@@ -3,16 +3,14 @@ import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { assetIdSchema, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
+import { permittedEntityIds } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { calculateRelationDelta } from "@/lib/authz/relation-delta";
 import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import {
-	getManyEntityCapabilities,
-	permittedEntityIds,
-} from "@/lib/orpc/router/helpers/capabilities";
+import { getManyEntityCapabilities } from "@/lib/orpc/router/helpers/capabilities";
 
 export const loadDatabaseBlockAssets = (params: {
 	blockId: BlockId;

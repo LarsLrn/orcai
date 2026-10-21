@@ -15,9 +15,8 @@ import {
 } from "@orcai/schema";
 import {
 	checkEntityPermission,
-	checkManyEntityPermissions,
 	type EntityIdFor,
-	hasPermission,
+	grantedPermissions,
 	lookupEntitiesByPermission,
 } from "@orcai/spice-db";
 import {
@@ -52,6 +51,10 @@ import {
 	requireInstanceAdminMiddleware,
 	requirePreferencesMiddleware,
 } from "@/lib/orpc/middlewares/auth";
+import {
+	permissionDenied,
+	requirePermission,
+} from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
 import { literalSearch } from "./helpers/literal-search";
 import {
@@ -93,25 +96,13 @@ const listUsers = authed.user.list
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
-		const permission = yield* checkEntityPermission({
+		yield* requirePermission({
 			entityId: organizationId,
 			entityType: "organization",
 			permission: "manage_members",
 			userId: context.auth.user.id,
 			zedToken: getZedToken(context, input),
 		});
-
-		if (hasPermission(permission) === false) {
-			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					reason: "PERMISSION_DENIED",
-					data: {
-						permission: "manage_members",
-						entityType: "organization",
-					},
-				}),
-			);
-		}
 
 		const search = input.filters?.search?.trim();
 		const searchLike = search ? literalSearch(search) : undefined;
@@ -344,25 +335,13 @@ const findUser = authed.user.find
 		const zedToken = getZedToken(context, input);
 
 		if (input.id !== context.auth.user.id) {
-			const permission = yield* checkEntityPermission({
+			yield* requirePermission({
 				entityId: organizationId,
 				entityType: "organization",
 				permission: "manage_members",
 				userId: context.auth.user.id,
 				zedToken,
 			});
-
-			if (hasPermission(permission) === false) {
-				return yield* Effect.fail(
-					new AppErrors.ForbiddenError({
-						reason: "PERMISSION_DENIED",
-						data: {
-							permission: "manage_members",
-							entityType: "organization",
-						},
-					}),
-				);
-			}
 		}
 
 		return yield* db
@@ -406,25 +385,13 @@ const listUserAccess = authed.user.listAccess
 		const zedToken = getZedToken(context, input);
 
 		if (input.id !== context.auth.user.id) {
-			const permission = yield* checkEntityPermission({
+			yield* requirePermission({
 				entityId: organizationId,
 				entityType: "organization",
 				permission: "manage_members",
 				userId: context.auth.user.id,
 				zedToken,
 			});
-
-			if (hasPermission(permission) === false) {
-				return yield* Effect.fail(
-					new AppErrors.ForbiddenError({
-						reason: "PERMISSION_DENIED",
-						data: {
-							permission: "manage_members",
-							entityType: "organization",
-						},
-					}),
-				);
-			}
 		}
 
 		const resourceTypes = RESOURCE_TYPES;
@@ -437,9 +404,9 @@ const listUserAccess = authed.user.listAccess
 					zedToken,
 				}).pipe(
 					Effect.map((items) =>
-						items.map((item) => ({
+						items.map((resourceId) => ({
 							resourceType: "bot" as const,
-							resourceId: item.resourceObjectId,
+							resourceId,
 						})),
 					),
 				),
@@ -450,9 +417,9 @@ const listUserAccess = authed.user.listAccess
 					zedToken,
 				}).pipe(
 					Effect.map((items) =>
-						items.map((item) => ({
+						items.map((resourceId) => ({
 							resourceType: "block" as const,
-							resourceId: item.resourceObjectId,
+							resourceId,
 						})),
 					),
 				),
@@ -463,9 +430,9 @@ const listUserAccess = authed.user.listAccess
 					zedToken,
 				}).pipe(
 					Effect.map((items) =>
-						items.map((item) => ({
+						items.map((resourceId) => ({
 							resourceType: "asset" as const,
-							resourceId: item.resourceObjectId,
+							resourceId,
 						})),
 					),
 				),
@@ -542,46 +509,17 @@ const listUserAccess = authed.user.listAccess
 			ids: EntityIdFor<Entity>[],
 		) =>
 			Effect.gen(function* () {
-				if (ids.length === 0) {
-					return new Map<string, ResourceGrantRole>();
-				}
-
-				const getAllowedSet = (permission: "read" | "edit" | "manage_access") =>
-					checkManyEntityPermissions({
-						entityIds: ids,
-						entityType,
-						permission,
-						userId: input.id,
-						zedToken,
-					}).pipe(
-						Effect.map(
-							(response) =>
-								new Set(
-									response.pairs
-										.map((pair) => {
-											const permitted =
-												pair.response.oneofKind === "item" &&
-												hasPermission({
-													permissionship: pair.response.item.permissionship,
-												}) === true;
-											const resourceId = pair.request?.resource?.objectId;
-											return permitted && resourceId ? resourceId : null;
-										})
-										.filter((id): id is string => id !== null),
-								),
-						),
-					);
-
-				const [manageableIds, editableIds, readableIds] = yield* Effect.all(
-					[
-						getAllowedSet("manage_access"),
-						getAllowedSet("edit"),
-						getAllowedSet("read"),
+				const granted = yield* grantedPermissions({
+					entityIds: ids,
+					entityType,
+					permissions: [
+						"manage_access",
+						"edit",
+						"read",
 					],
-					{
-						concurrency: "unbounded",
-					},
-				);
+					userId: input.id,
+					zedToken,
+				});
 
 				const entries: Array<
 					readonly [
@@ -591,21 +529,22 @@ const listUserAccess = authed.user.listAccess
 				> = [];
 
 				for (const id of ids) {
-					if (manageableIds.has(id)) {
+					const permissions = granted.get(id);
+					if (permissions?.has("manage_access")) {
 						entries.push([
 							id,
 							"manager",
 						]);
 						continue;
 					}
-					if (editableIds.has(id)) {
+					if (permissions?.has("edit")) {
 						entries.push([
 							id,
 							"editor",
 						]);
 						continue;
 					}
-					if (readableIds.has(id)) {
+					if (permissions?.has("read")) {
 						entries.push([
 							id,
 							"viewer",
@@ -1167,12 +1106,9 @@ const setActiveOrganization = authed.user.setActiveOrganization.effect(
 
 		if (!membership) {
 			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					reason: "PERMISSION_DENIED",
-					data: {
-						permission: "read",
-						entityType: "organization",
-					},
+				permissionDenied({
+					entityType: "organization",
+					permission: "read",
 				}),
 			);
 		}
@@ -1183,10 +1119,7 @@ const setActiveOrganization = authed.user.setActiveOrganization.effect(
 			permission: "read",
 			userId: context.auth.user.id,
 			zedToken: getZedToken(context),
-		}).pipe(
-			Effect.map((permission) => hasPermission(permission) === true),
-			Effect.catch(() => Effect.succeed(false)),
-		);
+		}).pipe(Effect.catch(() => Effect.succeed(false)));
 
 		if (!hasSpiceAccess) {
 			yield* authz.applyRelationshipMutations({

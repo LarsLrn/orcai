@@ -4,11 +4,7 @@ import {
 	type OrganizationRole,
 	type UserId,
 } from "@orcai/core";
-import {
-	checkEntityPermission,
-	hasPermission,
-	type PermissionFor,
-} from "@orcai/spice-db";
+import { checkEntityPermission, type PermissionFor } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
@@ -29,7 +25,7 @@ export const assertCanManageOrganizationAdmins = (params: {
 		zedToken: params.zedToken,
 	}).pipe(
 		Effect.filterOrFail(
-			(result) => hasPermission(result),
+			(allowed) => allowed,
 			() =>
 				new AppErrors.ForbiddenError({
 					reason: "ORGANIZATION_ADMIN_REQUIRED",

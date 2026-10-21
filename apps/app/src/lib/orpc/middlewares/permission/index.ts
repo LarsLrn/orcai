@@ -1,7 +1,5 @@
-export {
-	checkManyPermissionMiddleware,
-	checkPermissionMiddleware,
-} from "./checks";
+export { checkManyPermissionMiddleware } from "./checks";
+export { permissionDenied, requirePermission } from "./core";
 export {
 	type AssertCanGrantPrincipalInput,
 	assertCanGrantPrincipalMiddleware,

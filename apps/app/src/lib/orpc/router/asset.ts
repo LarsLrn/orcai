@@ -14,11 +14,7 @@ import {
 } from "@orcai/s3/server";
 import type { BucketName } from "@orcai/schema";
 import { assetIdSchema, PROCESS_ASSET_JOB_NAME } from "@orcai/schema";
-import {
-	checkEntityPermission,
-	hasPermission,
-	lookupEntitiesByPermission,
-} from "@orcai/spice-db";
+import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
@@ -36,6 +32,7 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 	requireOrganizationPermission,
+	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
 import {
 	getEntityCapabilities,
@@ -119,9 +116,7 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 		permission: "read",
 		entityType: "asset",
 		zedToken: getZedToken(context, input),
-	}).pipe(
-		Effect.map((response) => response.map((item) => item.resourceObjectId)),
-	);
+	});
 
 	const whereConditions = [
 		inArray(dbSchema.asset.id, allowedIds),
@@ -263,22 +258,13 @@ const saveAsset = authed.asset.save.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
 	if (input.id) {
-		const permission = yield* checkEntityPermission({
+		yield* requirePermission({
 			entityId: input.id,
 			entityType: "asset",
 			permission: "edit",
 			userId: context.auth.user.id,
 			zedToken: getZedToken(context),
 		});
-
-		if (!hasPermission(permission)) {
-			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					reason: "PERMISSION_DENIED",
-					message: "You do not have permission to edit this asset.",
-				}),
-			);
-		}
 
 		const [asset] = yield* db
 			.update(dbSchema.asset)
@@ -317,22 +303,13 @@ const saveAsset = authed.asset.save.effect(function* ({ input, context }) {
 		);
 	}
 
-	const permission = yield* checkEntityPermission({
+	yield* requirePermission({
 		entityId: organizationId,
 		entityType: "organization",
 		permission: "create_asset",
 		userId: context.auth.user.id,
 		zedToken: getZedToken(context),
 	});
-
-	if (!hasPermission(permission)) {
-		return yield* Effect.fail(
-			new AppErrors.ForbiddenError({
-				reason: "PERMISSION_DENIED",
-				message: "You do not have permission to create assets.",
-			}),
-		);
-	}
 
 	const { asset } = yield* createAssetRecord({
 		id: input.upload.id,
@@ -361,22 +338,13 @@ const saveManyAssets = authed.asset.saveMany
 			(assetInput) =>
 				Effect.gen(function* () {
 					if (assetInput.id) {
-						const permission = yield* checkEntityPermission({
+						yield* requirePermission({
 							entityId: assetInput.id,
 							entityType: "asset",
 							permission: "edit",
 							userId: context.auth.user.id,
 							zedToken: getZedToken(context),
 						});
-
-						if (!hasPermission(permission)) {
-							return yield* Effect.fail(
-								new AppErrors.ForbiddenError({
-									reason: "PERMISSION_DENIED",
-									message: "You do not have permission to edit this asset.",
-								}),
-							);
-						}
 
 						const db = yield* DB;
 						const [asset] = yield* db

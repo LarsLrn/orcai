@@ -2,10 +2,8 @@ import type { BotId, ChatId, ChatMessageId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ChatSortKey } from "@orcai/schema";
 import {
-	checkEntityPermission,
-	checkManyEntityPermissions,
-	hasPermission,
 	lookupEntitiesByPermission,
+	permittedEntityIds,
 	type TupleMutation,
 } from "@orcai/spice-db";
 import { isTextUIPart, type UIMessage } from "ai";
@@ -36,6 +34,7 @@ import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
+	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
 import { isEmptyReply } from "./chat-message";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
@@ -50,9 +49,7 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 		permission: "read",
 		entityType: "chat",
 		zedToken: getZedToken(context, input),
-	}).pipe(
-		Effect.map((response) => response.map((item) => item.resourceObjectId)),
-	);
+	});
 	const conditions = [
 		inArray(dbSchema.chat.id, allowedIds),
 		eq(dbSchema.chat.kind, "chat"),
@@ -117,34 +114,6 @@ const chatNotFound = (id: ChatId) =>
 		reason: "CHAT_NOT_FOUND",
 		id,
 		message: "Chat not found",
-	});
-
-const requireBotUse = (params: {
-	botId: BotId;
-	userId: UserId;
-	zedToken: string | undefined;
-}) =>
-	Effect.gen(function* () {
-		const canUseBot = yield* checkEntityPermission({
-			entityId: params.botId,
-			entityType: "bot",
-			permission: "use",
-			userId: params.userId,
-			zedToken: params.zedToken,
-		});
-
-		if (hasPermission(canUseBot) === false) {
-			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					reason: "PERMISSION_DENIED",
-					data: {
-						permission: "use",
-						entityType: "bot",
-						zedToken: params.zedToken,
-					},
-				}),
-			);
-		}
 	});
 
 export const chatRelationships = (chat: {
@@ -232,30 +201,13 @@ const findChat = authed.chat.find
 				: []),
 			...chat.branches.map((branch) => branch.id),
 		];
-		const readableIds = new Set<string>();
-
-		if (linkedIds.length > 0) {
-			const result = yield* checkManyEntityPermissions({
-				entityIds: linkedIds,
-				entityType: "chat",
-				permission: "read",
-				userId: context.auth.user.id,
-				zedToken: getZedToken(context, input),
-			});
-
-			for (const pair of result.pairs) {
-				const id = pair.request?.resource?.objectId;
-				if (
-					id &&
-					pair.response.oneofKind === "item" &&
-					hasPermission({
-						permissionship: pair.response.item.permissionship,
-					})
-				) {
-					readableIds.add(id);
-				}
-			}
-		}
+		const readableIds = yield* permittedEntityIds({
+			entityIds: linkedIds,
+			entityType: "chat",
+			permission: "read",
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		});
 
 		return {
 			data: {
@@ -295,8 +247,10 @@ const createChat = authed.chat.create.effect(function* ({ input, context }) {
 			return yield* botFeaturesImmutable();
 		}
 
-		yield* requireBotUse({
-			botId: input.botId,
+		yield* requirePermission({
+			entityType: "bot",
+			entityId: input.botId,
+			permission: "use",
 			userId: context.auth.user.id,
 			zedToken: getZedToken(context),
 		});
@@ -492,8 +446,10 @@ const branchChat = authed.chat.branch
 			);
 
 		if (source.botId) {
-			yield* requireBotUse({
-				botId: source.botId,
+			yield* requirePermission({
+				entityType: "bot",
+				entityId: source.botId,
+				permission: "use",
 				userId: context.auth.user.id,
 				zedToken: getZedToken(context, input),
 			});

@@ -15,7 +15,7 @@ import {
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { withName } from "@/lib/orpc/middlewares/utils";
-import { ensurePermission, permissionBase } from "./core";
+import { permissionBase, requirePermission } from "./core";
 import { createResourcePermissionInput } from "./resource";
 
 export type AssertCanGrantPrincipalInput = {
@@ -35,9 +35,9 @@ export const assertCanGrantPrincipalMiddleware = withName(
 			const db = yield* DB;
 			const zedToken = getZedToken(opts.context, input);
 
-			yield* ensurePermission({
-				context: opts.context,
-				input: createResourcePermissionInput(input, "manage_access", zedToken),
+			yield* requirePermission({
+				...createResourcePermissionInput(input, "manage_access", zedToken),
+				userId: opts.context.auth.user.id,
 			});
 
 			const resourceScopes = yield* db.query.resourceScope.findMany({

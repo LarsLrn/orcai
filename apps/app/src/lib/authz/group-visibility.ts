@@ -1,7 +1,7 @@
 import type { GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
-import { checkEntityPermission, hasPermission } from "@orcai/spice-db";
+import { checkEntityPermission, permittedEntityIds } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
@@ -23,38 +23,20 @@ export const hasManageGroups = (
 		permission: "manage_groups",
 		userId: params.userId,
 		zedToken: params.zedToken,
-	}).pipe(Effect.map(hasPermission));
+	});
 
 const organizationsWithManageGroups = (
 	params: PermissionParams & {
 		organizationIds: readonly OrganizationId[];
 	},
 ) =>
-	Effect.all(
-		params.organizationIds.map((organizationId) =>
-			hasManageGroups({
-				...params,
-				organizationId,
-			}).pipe(
-				Effect.map((allowed) => ({
-					organizationId,
-					allowed,
-				})),
-			),
-		),
-		{
-			concurrency: "unbounded",
-		},
-	).pipe(
-		Effect.map(
-			(results) =>
-				new Set(
-					results
-						.filter((result) => result.allowed)
-						.map((result) => result.organizationId),
-				),
-		),
-	);
+	permittedEntityIds({
+		entityType: "organization",
+		entityIds: params.organizationIds,
+		permission: "manage_groups",
+		userId: params.userId,
+		zedToken: params.zedToken,
+	});
 
 const isAllMembersGroup = and(
 	eq(dbSchema.group.kind, "system"),

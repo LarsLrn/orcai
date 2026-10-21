@@ -1,17 +1,16 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { Block } from "@orcai/schema";
-import {
-	checkEntityPermission,
-	checkManyEntityPermissions,
-	hasPermission,
-} from "@orcai/spice-db";
+import { permittedEntityIds } from "@orcai/spice-db";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
-import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
+import {
+	requireEntityPermission,
+	requirePermission,
+} from "@/lib/orpc/middlewares/permission";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 
 const listChatBlocks = authed.chatBlock.list
@@ -53,28 +52,13 @@ const listChatBlocks = authed.chatBlock.list
 			};
 		}
 
-		const usePermissionResult = yield* checkManyEntityPermissions({
+		const allowedBlockIds = yield* permittedEntityIds({
 			entityIds: blocks.map((block) => block.id),
 			entityType: "block",
 			permission: "use",
 			userId: context.auth.user.id,
 			zedToken: resolvedZedToken,
 		});
-
-		const parseAllowedIds = (result: typeof usePermissionResult) =>
-			result.pairs
-				.map((pair) => {
-					const allowed =
-						pair.response.oneofKind === "item" &&
-						hasPermission({
-							permissionship: pair.response.item.permissionship,
-						}) === true;
-					const id = pair.request?.resource?.objectId;
-					return allowed && id ? id : undefined;
-				})
-				.filter((id): id is string => id !== undefined);
-
-		const allowedBlockIds = new Set(parseAllowedIds(usePermissionResult));
 
 		return {
 			data: blocks.filter((block) => allowedBlockIds.has(block.id)) as Block[],
@@ -122,26 +106,13 @@ const attachChatBlock = authed.chatBlock.attach
 			);
 		}
 
-		const canUseBlock = yield* checkEntityPermission({
+		yield* requirePermission({
 			entityId: input.blockId,
 			entityType: "block",
 			permission: "use",
 			userId: context.auth.user.id,
 			zedToken: resolvedZedToken,
 		});
-
-		if (hasPermission(canUseBlock) === false) {
-			return yield* Effect.fail(
-				new AppErrors.ForbiddenError({
-					reason: "PERMISSION_DENIED",
-					data: {
-						permission: "use",
-						entityType: "block",
-						zedToken: resolvedZedToken,
-					},
-				}),
-			);
-		}
 
 		const block = yield* db.query.block
 			.findFirst({
