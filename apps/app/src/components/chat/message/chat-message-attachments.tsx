@@ -1,10 +1,6 @@
 import type { ChatMessageAttachment } from "@orcai/schema";
-import {
-	Attachment,
-	AttachmentInfo,
-	AttachmentPreview,
-	Attachments,
-} from "@/components/ai-elements/attachments";
+import { FileAttachment } from "@/components/ai-elements/attachments";
+import { AttachmentGroup } from "@/components/ui/attachment";
 
 export const ChatMessageAttachments = ({
 	attachments,
@@ -16,24 +12,15 @@ export const ChatMessageAttachments = ({
 	}
 
 	return (
-		<Attachments variant="list" className="mb-2 w-full">
+		<AttachmentGroup className="mb-2">
 			{attachments.map((attachment) => (
-				<Attachment
-					className="bg-card"
+				<FileAttachment
 					key={attachment.assetId}
-					data={{
-						id: attachment.assetId,
-						type: "source-document",
-						sourceId: attachment.assetId,
-						title: attachment.title,
-						filename: attachment.title,
-						mediaType: attachment.fileType,
-					}}
-				>
-					<AttachmentPreview />
-					<AttachmentInfo showMediaType />
-				</Attachment>
+					title={attachment.title}
+					mediaType={attachment.fileType}
+					size={attachment.size}
+				/>
 			))}
-		</Attachments>
+		</AttachmentGroup>
 	);
 };
