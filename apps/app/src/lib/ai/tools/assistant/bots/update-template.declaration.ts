@@ -15,7 +15,7 @@ export const updateTemplate = declareTool<typeof updateTemplateTool>()({
 		!output && input && !input.name
 			? [
 					{
-						kind: "block",
+						kind: "template",
 						id: input.id,
 					},
 				]
@@ -26,7 +26,7 @@ export const updateTemplate = declareTool<typeof updateTemplateTool>()({
 			: input &&
 				(input.name ??
 					nameOf({
-						kind: "block",
+						kind: "template",
 						id: input.id,
 					}));
 

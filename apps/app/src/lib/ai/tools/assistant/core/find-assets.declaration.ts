@@ -13,7 +13,7 @@ export const findAssets = declareTool<typeof findAssetsTool>()({
 		output && input?.repositoryId
 			? [
 					{
-						kind: "block",
+						kind: "repository",
 						id: input.repositoryId,
 					},
 				]
@@ -34,7 +34,7 @@ export const findAssets = declareTool<typeof findAssetsTool>()({
 		const repository = repositoryId
 			? m.assistant_tool_quoted_name({
 					name: nameOf({
-						kind: "block",
+						kind: "repository",
 						id: repositoryId,
 					}),
 				})

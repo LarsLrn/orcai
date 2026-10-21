@@ -45,12 +45,12 @@ import { revokeAccess } from "./assistant/sharing/revoke-access.declaration";
 import type {
 	AssistantToolGroup,
 	NameOf,
-	NameRef,
 	ToolCall,
 	ToolDeclaration,
 	ToolKind,
 } from "./declaration";
 import { readDocs } from "./docs/read-docs.declaration";
+import type { EntityRef } from "./entity-kind";
 import { getKnowledgeBaseChunks } from "./rag/get-knowledge-base-chunks.declaration";
 import { getKnowledgeBasePage } from "./rag/get-knowledge-base-page.declaration";
 import { listKnowledgeBaseDocuments } from "./rag/list-knowledge-base-documents.declaration";
@@ -231,7 +231,7 @@ export const toolLabels = (part: {
 
 export interface ToolSummary {
 	/** The ids the line names. */
-	refs: NameRef[];
+	refs: EntityRef[];
 	/** Undefined when the call does not fit its tool, as a stored call of an older shape. */
 	line: (nameOf: NameOf) => string | undefined;
 }

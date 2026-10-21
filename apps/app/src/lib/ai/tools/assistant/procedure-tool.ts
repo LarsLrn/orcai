@@ -12,6 +12,11 @@ import {
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Semaphore from "effect/Semaphore";
+import {
+	type EntityKind,
+	isMissing,
+	wrongIdText,
+} from "@/lib/ai/tools/entity-kind";
 import type { AppRuntimeContext } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
@@ -27,157 +32,8 @@ export interface AssistantToolDeps {
 	turn: AssistantTurn;
 }
 
-/** The kinds of thing a tool reads or returns, as its output's `type` names them. */
-export type AssistantEntityType =
-	| "bot"
-	| "template"
-	| "repository"
-	| "asset"
-	| "group"
-	| "member"
-	| "invitation";
-
-/** A template or a repository, where either fits. */
-export type ExpectedType = AssistantEntityType | "block";
-
-const typeLabels: Record<ExpectedType, string> = {
-	bot: "bot",
-	template: "template",
-	repository: "repository",
-	asset: "asset",
-	group: "group",
-	member: "member",
-	invitation: "invitation",
-	block: "template or repository",
-};
-
-const otherKinds: Record<ExpectedType, string[]> = {
-	bot: [
-		"templates",
-		"repositories",
-		"assets",
-		"groups",
-		"members",
-	],
-	template: [
-		"bots",
-		"repositories",
-		"assets",
-		"groups",
-		"members",
-	],
-	repository: [
-		"bots",
-		"templates",
-		"assets",
-		"groups",
-		"members",
-	],
-	asset: [
-		"bots",
-		"templates",
-		"repositories",
-		"groups",
-		"members",
-	],
-	group: [
-		"bots",
-		"templates",
-		"repositories",
-		"assets",
-		"members",
-	],
-	member: [
-		"bots",
-		"templates",
-		"repositories",
-		"assets",
-		"groups",
-	],
-	invitation: [
-		"bots",
-		"templates",
-		"repositories",
-		"assets",
-		"groups",
-		"members",
-	],
-	block: [
-		"bots",
-		"assets",
-		"groups",
-		"members",
-	],
-};
-
-/** Reasons and NOT_FOUND entities that mean "no such <type>", wrong-kind blocks included. */
-const missingReasons: Record<ExpectedType, string[]> = {
-	bot: [
-		"BOT_NOT_FOUND",
-		"bot",
-	],
-	template: [
-		"BLOCK_NOT_FOUND",
-		"BEHAVIOUR_BLOCK_TYPE_INVALID",
-		"block",
-	],
-	repository: [
-		"BLOCK_NOT_FOUND",
-		"REPOSITORY_NOT_FOUND",
-		"REPOSITORY_BLOCK_TYPE_INVALID",
-		"block",
-		"repository",
-	],
-	asset: [
-		"ASSET_NOT_FOUND",
-		"asset",
-	],
-	group: [
-		"GROUP_NOT_FOUND",
-		"group",
-	],
-	member: [
-		"MEMBER_NOT_FOUND",
-		"USER_NOT_FOUND",
-		"member",
-		"user",
-	],
-	invitation: [
-		"INVITATION_NOT_FOUND",
-		"invitation",
-	],
-	block: [
-		"BLOCK_NOT_FOUND",
-		"block",
-	],
-};
-
-/**
- * `REASON: No group with id <id>.`, plus the hint that ids of other kinds do
- * not fit, so the model notices it passed a bot id as a group id.
- */
-export const wrongIdText = (
-	type: ExpectedType,
-	ids: string | readonly string[],
-	reason: string,
-) => {
-	const list =
-		typeof ids === "string"
-			? [
-					ids,
-				]
-			: ids;
-	const label = typeLabels[type];
-	const subject =
-		list.length === 1
-			? `No ${label} with id ${list[0]}.`
-			: `No ${label} with one of the ids ${list.join(", ")}.`;
-
-	return `${reason}: ${subject} Ids of other kinds (${otherKinds[type].join(", ")}) are not ${label} ids.`;
-};
-
-/** The reason a failure gives for a missing `type`, if it is one. */
-const missingReason = (error: unknown, type: ExpectedType) => {
+/** The reason a failure gives for a missing `kind`, if it is one. */
+const missingReason = (error: unknown, kind: EntityKind) => {
 	if (!(error instanceof ORPCError)) {
 		return undefined;
 	}
@@ -188,31 +44,33 @@ const missingReason = (error: unknown, type: ExpectedType) => {
 	const entity =
 		isRecord(data) && typeof data.entity === "string" ? data.entity : undefined;
 
-	if (reason !== undefined) {
-		return missingReasons[type].includes(reason) ? reason : undefined;
+	if (reason === undefined && error.code !== "NOT_FOUND") {
+		return undefined;
 	}
 
-	return error.code === "NOT_FOUND" &&
-		(entity === undefined || missingReasons[type].includes(entity))
-		? error.code
+	return isMissing(kind, {
+		reason,
+		entity,
+	})
+		? (reason ?? error.code)
 		: undefined;
 };
 
 /**
- * Applied to a call that looks `ids` up as `type`: a not-found failure about
- * that type becomes `wrongIdText`; other failures, and any failure when there
+ * Applied to a call that looks `ids` up as `kind`: a not-found failure about
+ * that kind becomes `wrongIdText`; other failures, and any failure when there
  * are no ids, pass unchanged.
  */
 export const expectType =
-	(type: ExpectedType, ids: string | readonly string[]) =>
+	(kind: EntityKind, ids: string | readonly string[]) =>
 	<A, E, R>(effect: Effect.Effect<A, E, R>) =>
 		effect.pipe(
 			Effect.mapError((error): E | AssistantToolError => {
-				const reason = ids.length > 0 ? missingReason(error, type) : undefined;
+				const reason = ids.length > 0 ? missingReason(error, kind) : undefined;
 
 				return reason === undefined
 					? error
-					: new AssistantToolError(wrongIdText(type, ids, reason));
+					: new AssistantToolError(wrongIdText(kind, ids, reason));
 			}),
 		);
 

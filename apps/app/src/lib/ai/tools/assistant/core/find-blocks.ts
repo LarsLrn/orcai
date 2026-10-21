@@ -1,5 +1,6 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { blockTypeOf } from "@/lib/ai/tools/entity-kind";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
@@ -21,11 +22,6 @@ export const findBlocksInputSchema = z.object({
 	limit: listLimitSchema,
 });
 
-const blockTypes = {
-	template: "template",
-	repository: "database",
-} as const;
-
 export const findBlocksTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
@@ -44,7 +40,7 @@ export const findBlocksTool = (deps: AssistantToolDeps) =>
 								{
 									pageSize: limit,
 									filters: {
-										type: blockTypes[type],
+										type: blockTypeOf(type),
 										status,
 										search: query,
 									},

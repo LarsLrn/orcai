@@ -15,7 +15,7 @@ export const updateRepository = declareTool<typeof updateRepositoryTool>()({
 		!output && input && !input.name
 			? [
 					{
-						kind: "block",
+						kind: "repository",
 						id: input.id,
 					},
 				]
@@ -26,7 +26,7 @@ export const updateRepository = declareTool<typeof updateRepositoryTool>()({
 			: input &&
 				(input.name ??
 					nameOf({
-						kind: "block",
+						kind: "repository",
 						id: input.id,
 					}));
 

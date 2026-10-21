@@ -1,10 +1,10 @@
-import type { NameRef } from "@/lib/ai/tools/declaration";
+import type { EntityRef } from "@/lib/ai/tools/entity-kind";
 import { m } from "@/paraglide/messages";
 
 export const resourceRef = (input: {
 	resourceType: "bot" | "block" | "asset";
 	resourceId: string;
-}): NameRef => ({
+}): EntityRef => ({
 	kind: input.resourceType,
 	id: input.resourceId,
 });
@@ -12,8 +12,8 @@ export const resourceRef = (input: {
 export const principalRef = (principal: {
 	principalType: "user" | "group";
 	principalId: string;
-}): NameRef => ({
-	kind: principal.principalType,
+}): EntityRef => ({
+	kind: principal.principalType === "user" ? "member" : "group",
 	id: principal.principalId,
 });
 
