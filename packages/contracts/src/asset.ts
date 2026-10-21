@@ -1,6 +1,8 @@
 import {
 	createAssetInputSchema,
 	createAssetResponseSchema,
+	createAssetsFromUploadsInputSchema,
+	createAssetsFromUploadsResponseSchema,
 	deleteAssetsInputSchema,
 	deleteAssetsResponseSchema,
 	findAssetInputSchema,
@@ -42,6 +44,19 @@ export const assetContracts = {
 		)
 		.input(createAssetInputSchema)
 		.output(createAssetResponseSchema),
+	createFromUploads: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/assets/from-uploads",
+				summary: "Create assets from uploaded files, with one result per file",
+				tags: [
+					"Assets",
+				],
+			}),
+		)
+		.input(createAssetsFromUploadsInputSchema)
+		.output(createAssetsFromUploadsResponseSchema),
 	find: base
 		.meta(
 			openapi({

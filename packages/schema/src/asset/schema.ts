@@ -5,6 +5,7 @@ import { assetFileTypeSchema } from "../shared/primitives/file-type";
 import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
 import { metadataSchema } from "./parts/metadata";
+import { assetOriginSchema } from "./parts/origin";
 import { processingStatusSchema } from "./parts/processing-status";
 import { assetIdSchema } from "./ref";
 
@@ -22,6 +23,7 @@ export const assetSchema = assetFieldsSchema.extend({
 	size: z.number().int(),
 	processingStatus: processingStatusSchema,
 	fileType: assetFileTypeSchema,
+	origin: assetOriginSchema,
 	userId: userIdSchema,
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),

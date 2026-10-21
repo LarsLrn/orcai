@@ -59,6 +59,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 
 	return {
 		asset: {
+			createFromUploads: () => [
+				orpc.asset.key(),
+			],
 			save: () => [
 				orpc.asset.key(),
 			],

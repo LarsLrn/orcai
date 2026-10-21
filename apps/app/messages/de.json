@@ -2497,6 +2497,7 @@
 	"error_system_group_immutable": "Systemgruppen können nicht geändert werden.",
 	"error_token_invalid": "Der Link ist ungültig oder abgelaufen.",
 	"error_tool_not_available": "Der Assistent hat ein Tool aufgerufen, das nicht verfügbar war.",
+	"error_upload_create_failed": "Die Datei konnte nicht hinzugefügt werden. Versuchen Sie es erneut.",
 	"error_upload_file_missing": "Die hochgeladene Datei wurde im Speicher nicht gefunden.",
 	"error_upload_file_size_mismatch": "Die Größe der hochgeladenen Datei stimmt nicht überein.",
 	"error_upload_file_too_large": "„{fileName}“ überschreitet die maximale Dateigröße.",
