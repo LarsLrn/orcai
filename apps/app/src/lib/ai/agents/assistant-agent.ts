@@ -3,7 +3,7 @@ import {
 	buildSystemInstructions,
 	type ProviderCompaction,
 } from "@orcai/ai";
-import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
+import { Output, ToolLoopAgent, type ToolSet } from "ai";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
@@ -121,15 +121,15 @@ export const createAssistantAgent = (
 		...aiTelemetry("assistant.agent", params.telemetryIds),
 		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => {
-			const shapeStep = steps.prepareStep(options.maxSteps);
+			const turn = steps.forTurn(options);
 			return {
 				...settings,
 				...params.callSettings,
 				providerOptions: params.compaction.providerOptions,
 				instructions,
-				stopWhen: isStepCount(options.maxSteps),
+				stopWhen: turn.stopWhen,
 				prepareStep: (step) => ({
-					...shapeStep(step),
+					...turn.prepareStep(step),
 					activeTools: activeToolNames(),
 				}),
 			};
@@ -150,5 +150,6 @@ export const createAssistantAgent = (
 	return {
 		agent,
 		instructions,
+		contextFull: steps.contextFull,
 	};
 };

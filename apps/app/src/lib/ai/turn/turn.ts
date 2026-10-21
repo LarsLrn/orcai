@@ -1,7 +1,9 @@
 import { context as otelContext } from "@opentelemetry/api";
 import { AiError } from "@orcai/ai";
-import type { ChatId, ChatMessageId } from "@orcai/core";
+import { type ChatId, type ChatMessageId, SUMMARY_METADATA } from "@orcai/core";
+import type { DB } from "@orcai/db";
 import { withActiveSpan } from "@orcai/observability";
+import type { QuotaCounterStore } from "@orcai/quota";
 import type {
 	AiChatInput,
 	ChatMessageMetadata,
@@ -12,6 +14,7 @@ import {
 	type Agent,
 	type AsyncIterableStream,
 	createAgentUIStream,
+	createUIMessageStream,
 	type FileUIPart,
 	type InferAgentUIMessage,
 	type LanguageModelUsage,
@@ -60,6 +63,7 @@ import {
 	type StoredMessage,
 } from "./reply-store";
 import { type TurnRequester, type TurnSetup, turnSetup } from "./setup";
+import { summarizeHistory } from "./summary";
 
 type TurnInput = TurnRequester & {
 	chatId: ChatId;
@@ -72,6 +76,7 @@ type TurnStreamOptions = {
 	originalMessages: UIMessage<ChatMessageMetadata>[];
 	abortSignal: AbortSignal | undefined;
 	maxSteps: number;
+	promptTokens: number | undefined;
 	replyId: ChatMessageId;
 	onStepEnd: (usage: LanguageModelUsage) => void;
 	onEnd: (event: {
@@ -88,6 +93,8 @@ type TurnStreamOptions = {
 type TurnAgent = {
 	tools: ToolSet;
 	instructions: SystemModelMessage[];
+	/** Whether the turn stopped because its next step would not fit. */
+	contextFull: () => boolean;
 	stream: (
 		options: TurnStreamOptions,
 	) => Promise<AsyncIterableStream<UIMessageChunk>>;
@@ -96,17 +103,21 @@ type TurnAgent = {
 const turnAgent = <Tools extends ToolSet>({
 	agent,
 	instructions,
+	contextFull,
 }: {
 	agent: Agent<
 		{
 			maxSteps: number;
+			promptTokens?: number;
 		},
 		Tools
 	>;
 	instructions: SystemModelMessage[];
+	contextFull: () => boolean;
 }): TurnAgent => ({
 	tools: agent.tools,
 	instructions,
+	contextFull,
 	stream: (options) =>
 		createAgentUIStream({
 			agent,
@@ -119,6 +130,7 @@ const turnAgent = <Tools extends ToolSet>({
 			abortSignal: options.abortSignal,
 			options: {
 				maxSteps: options.maxSteps,
+				promptTokens: options.promptTokens,
 			},
 			generateMessageId: () => options.replyId,
 			experimental_transform: smoothStream({
@@ -300,7 +312,11 @@ const withAttachmentParts = (messages: ChatAgentUIMessage[]) => {
 	);
 };
 
-/** The prompt within the model's context window, refused when even its latest turn does not fit. */
+/**
+ * The prompt within the model's context window, refused when even its latest
+ * turn does not fit, and what each step's messages may take without native
+ * compaction.
+ */
 const fitPrompt = ({
 	setup,
 	agent,
@@ -313,10 +329,11 @@ const fitPrompt = ({
 	replyId: ChatMessageId;
 }) =>
 	Effect.gen(function* () {
+		const request = yield* Effect.promise(() => requestTokens(agent));
 		const fit = fitContextWindow({
 			messages: prompt,
 			replyId,
-			requestTokens: yield* Effect.promise(() => requestTokens(agent)),
+			requestTokens: request,
 			budget: setup.budget,
 			compaction: setup.compaction,
 		});
@@ -326,8 +343,13 @@ const fitPrompt = ({
 				message: "The latest turn does not fit the model's context window.",
 			});
 		}
-		return fit;
+		return {
+			...fit,
+			promptTokens: setup.compaction.native ? undefined : fit.stepTokens,
+		};
 	});
+
+type PromptFit = Effect.Success<ReturnType<typeof fitPrompt>>;
 
 const meteredOutcome = (
 	status: UIMessageStreamOutcome["status"],
@@ -338,41 +360,49 @@ const meteredOutcome = (
 			? "completed"
 			: "aborted";
 
-/** Streams the agent onto the reply, then settles the reply and the meter. */
+/** The part our own summary is streamed as, ahead of the agent's parts. */
+const SUMMARY_PART_ID = "summary";
+
+/**
+ * Streams the agent onto the reply, then settles the reply and the meter.
+ * When the fit asks for a summary, the reply first streams our own summary of
+ * the history, and the agent answers from the prompt that starts at it; a
+ * failed summary leaves the prompt as fitted without it.
+ */
 const streamTurn = ({
 	agent,
 	assistantTurn,
 	input,
+	setup,
 	replyId,
 	messages,
+	prompt,
 	fit,
 	meter,
-	contextWindow,
 	operation,
 }: {
 	agent: TurnAgent;
 	assistantTurn: AssistantTurn | undefined;
 	input: TurnInput;
+	setup: TurnSetup;
 	replyId: ChatMessageId;
 	messages: ChatAgentUIMessage[];
-	fit: {
-		messages: ChatAgentUIMessage[];
-		trimmed: boolean;
-		estimate: number;
-	};
+	/** What the fit read, attachments included. */
+	prompt: ChatAgentUIMessage[];
+	fit: PromptFit;
 	meter: Meter;
-	contextWindow: number | null;
 	operation: string;
 }) =>
 	Effect.gen(function* () {
 		const store = yield* ReplyStore;
-		const services = yield* Effect.context();
+		const services = yield* Effect.context<QuotaCounterStore | DB>();
 		// The stream outlives the request handler; its callbacks rejoin the request trace.
 		const traceContext = otelContext.active();
-		const run = (effect: Effect.Effect<void>) =>
+		const run = <A>(effect: Effect.Effect<A, never, QuotaCounterStore | DB>) =>
 			otelContext.with(traceContext, () =>
 				Effect.runPromiseWith(services)(withActiveSpan(effect)),
 			);
+		const { contextWindow } = setup.tokenLimits;
 		// A continuation reads on from what this turn wrote.
 		const writtenZedToken = () => {
 			const zedToken = assistantTurn?.zedToken.current();
@@ -397,76 +427,175 @@ const streamTurn = ({
 				},
 			}) satisfies ReplyContent;
 
-		return yield* Effect.tryPromise({
-			try: () =>
-				agent.stream({
-					uiMessages: fit.messages,
-					originalMessages: messages as UIMessage<ChatMessageMetadata>[],
-					abortSignal: input.stop,
-					maxSteps: meter.maxSteps,
-					replyId,
-					onStepEnd: meter.step,
-					onEnd: ({ responseMessage, outcome }) =>
-						run(
-							store
-								.settle({
-									chatId: input.chatId,
-									replyId,
-									reply: settledReply(responseMessage),
-								})
-								.pipe(
-									Effect.catchCause((cause) =>
-										Effect.logError(
-											`chat reply ${replyId} could not be settled ${Cause.pretty(cause)}`,
-										),
+		const streamAgent = (
+			sent: PromptFit,
+			originalMessages: ChatAgentUIMessage[],
+		) =>
+			agent.stream({
+				uiMessages: sent.messages,
+				originalMessages: originalMessages as UIMessage<ChatMessageMetadata>[],
+				abortSignal: input.stop,
+				maxSteps: meter.maxSteps,
+				promptTokens: sent.promptTokens,
+				replyId,
+				onStepEnd: meter.step,
+				onEnd: ({ responseMessage, outcome }) =>
+					run(
+						store
+							.settle({
+								chatId: input.chatId,
+								replyId,
+								reply: settledReply(responseMessage),
+							})
+							.pipe(
+								Effect.catchCause((cause) =>
+									Effect.logError(
+										`chat reply ${replyId} could not be settled ${Cause.pretty(cause)}`,
 									),
-									Effect.andThen(meter.settle(meteredOutcome(outcome.status))),
 								),
-						),
-					// Also called for every failed tool call, whose error text it returns.
-					onError: (error) => {
-						void run(
-							Effect.logError({
-								error: error instanceof Error ? error.message : String(error),
-								message: "AI stream error",
+								Effect.andThen(meter.settle(meteredOutcome(outcome.status))),
+							),
+					),
+				// Also called for every failed tool call, whose error text it returns.
+				onError: (error) => {
+					void run(
+						Effect.logError({
+							error: error instanceof Error ? error.message : String(error),
+							message: "AI stream error",
+						}),
+					);
+					return streamErrorText(error);
+				},
+				messageMetadata: (part) => {
+					if (part.type === "finish-step") {
+						return {
+							model: part.response.modelId,
+							...(part.usage.totalTokens !== undefined && {
+								contextTokens: part.usage.totalTokens,
 							}),
-						);
-						return streamErrorText(error);
-					},
-					messageMetadata: (part) => {
-						if (part.type === "finish-step") {
-							return {
-								model: part.response.modelId,
-								...(part.usage.totalTokens !== undefined && {
-									contextTokens: part.usage.totalTokens,
+							// Lets the client read what the turn wrote, such as the names on its cards.
+							...writtenZedToken(),
+						};
+					}
+					if (part.type === "finish") {
+						return {
+							totalUsage: part.totalUsage,
+							...(contextWindow !== null && {
+								contextWindow,
+							}),
+							contextEstimate: sent.estimate,
+							...(sent.trimmed && {
+								historyTrimmed: true,
+							}),
+							...(part.finishReason === "tool-calls" &&
+								meter.spent() && {
+									stepLimitReached: true,
 								}),
-								// Lets the client read what the turn wrote, such as the names on its cards.
-								...writtenZedToken(),
-							};
-						}
-						if (part.type === "finish") {
-							return {
-								totalUsage: part.totalUsage,
-								...(contextWindow !== null && {
-									contextWindow,
-								}),
-								contextEstimate: fit.estimate,
-								...(fit.trimmed && {
-									historyTrimmed: true,
-								}),
-								...(part.finishReason === "tool-calls" &&
-									meter.spent() && {
-										stepLimitReached: true,
-									}),
-							};
-						}
-					},
-				}),
-			catch: (cause) =>
-				new AiError({
-					operation,
-					cause,
-				}),
+							...(agent.contextFull() && {
+								contextLimitReached: true,
+							}),
+						};
+					}
+				},
+			});
+
+		const history = fit.summarize;
+		if (history === undefined) {
+			return yield* Effect.tryPromise({
+				try: () => streamAgent(fit, messages),
+				catch: (cause) =>
+					new AiError({
+						operation,
+						cause,
+					}),
+			});
+		}
+
+		return createUIMessageStream({
+			execute: async ({ writer }) => {
+				writer.write({
+					type: "start",
+					messageId: replyId,
+				});
+				writer.write({
+					type: "text-start",
+					id: SUMMARY_PART_ID,
+					providerMetadata: SUMMARY_METADATA,
+				});
+				const summary = await run(
+					summarizeHistory({
+						setup,
+						requester: input,
+						replyId,
+						history,
+						stop: input.stop,
+					}),
+				);
+				if (summary !== undefined) {
+					writer.write({
+						type: "text-delta",
+						id: SUMMARY_PART_ID,
+						delta: summary,
+					});
+				}
+				writer.write({
+					type: "text-end",
+					id: SUMMARY_PART_ID,
+				});
+
+				const reply = {
+					id: replyId,
+					role: "assistant",
+					parts: [
+						{
+							type: "text",
+							text: summary ?? "",
+							state: "done",
+							providerMetadata: SUMMARY_METADATA,
+						},
+					],
+					metadata: {},
+				} as ChatAgentUIMessage;
+				const summarized =
+					summary === undefined
+						? undefined
+						: await run(
+								fitPrompt({
+									setup,
+									agent,
+									prompt: [
+										...prompt,
+										reply,
+									],
+									replyId,
+								}).pipe(Effect.option),
+							);
+				try {
+					writer.merge(
+						summarized?._tag === "Some"
+							? await streamAgent(summarized.value, [
+									...messages,
+									reply,
+								])
+							: await streamAgent(fit, messages),
+					);
+				} catch (error) {
+					await run(
+						store
+							.settle({
+								chatId: input.chatId,
+								replyId,
+								reply: {
+									parts: [],
+									metadata: {},
+								},
+							})
+							.pipe(Effect.ignore, Effect.andThen(meter.settle("unused"))),
+					);
+					throw error;
+				}
+			},
+			onError: streamErrorText,
 		});
 	});
 
@@ -511,10 +640,11 @@ export const startTurn = (
 			),
 		);
 
+		const prompt = yield* withAttachmentParts(messages);
 		const fit = yield* fitPrompt({
 			setup,
 			agent,
-			prompt: yield* withAttachmentParts(messages),
+			prompt,
 			replyId,
 		});
 		const meter = yield* meterTurn({
@@ -563,11 +693,12 @@ export const startTurn = (
 				agent,
 				assistantTurn,
 				input,
+				setup,
 				replyId,
 				messages,
+				prompt,
 				fit,
 				meter,
-				contextWindow: setup.tokenLimits.contextWindow,
 				operation: "chatTurn.start",
 			}).pipe(
 				Effect.onError(() =>
@@ -686,10 +817,11 @@ export const continueTurn = (
 				const messages = yield* Effect.promise(() =>
 					closeInvalidToolParts(history, agent.tools),
 				);
+				const prompt = yield* withAttachmentParts(messages);
 				const fit = yield* fitPrompt({
 					setup,
 					agent,
-					prompt: yield* withAttachmentParts(messages),
+					prompt,
 					replyId: input.replyId,
 				});
 
@@ -697,11 +829,16 @@ export const continueTurn = (
 					agent,
 					assistantTurn,
 					input,
+					setup,
 					replyId: input.replyId,
 					messages,
-					fit,
+					prompt,
+					// The summary is a reply's first part, which a continued reply has already written.
+					fit: {
+						...fit,
+						summarize: undefined,
+					},
 					meter,
-					contextWindow: setup.tokenLimits.contextWindow,
 					operation: "chatTurn.continue",
 				});
 			}).pipe(

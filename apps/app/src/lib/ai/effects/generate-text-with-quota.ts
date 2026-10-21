@@ -24,6 +24,7 @@ export interface GenerateTextWithQuotaInput {
 	frequencyPenalty?: number;
 	presencePenalty?: number;
 	timeoutMs?: number;
+	abortSignal?: AbortSignal;
 	maxExpectedProviderRequests?: number;
 }
 
@@ -57,6 +58,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			topP: input.topP,
 			frequencyPenalty: input.frequencyPenalty,
 			presencePenalty: input.presencePenalty,
+			abortSignal: input.abortSignal,
 			...aiTelemetry(input.operation, {
 				organizationId: input.organizationId,
 				providerId: input.providerId,

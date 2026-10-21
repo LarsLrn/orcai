@@ -4,7 +4,7 @@ import {
 	type ProviderCompaction,
 } from "@orcai/ai";
 import type { DatabaseBlock } from "@orcai/schema";
-import { isStepCount, Output, ToolLoopAgent, type ToolSet } from "ai";
+import { Output, ToolLoopAgent, type ToolSet } from "ai";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
@@ -97,8 +97,7 @@ export const createChatAgent = (params: {
 				Object.keys(offeredTools).length > 0
 					? (offeredTools as ChatAgentTools)
 					: undefined,
-			stopWhen: isStepCount(options.maxSteps),
-			prepareStep: steps.prepareStep(options.maxSteps),
+			...steps.forTurn(options),
 		}),
 		onToolExecutionEnd: ({ toolOutput }) => steps.recordExecution(toolOutput),
 		output: Output.text(),
@@ -107,5 +106,6 @@ export const createChatAgent = (params: {
 	return {
 		agent,
 		instructions,
+		contextFull: steps.contextFull,
 	};
 };

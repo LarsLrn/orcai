@@ -3,6 +3,7 @@ import { providerCompaction } from "@orcai/ai";
 import type { ChatMessageMetadata } from "@orcai/schema";
 import type { UIMessage } from "ai";
 import {
+	compactionTrigger,
 	fitContextWindow,
 	promptBudget,
 	SUMMARY_PREFIX,
@@ -140,6 +141,8 @@ describe("fitContextWindow", () => {
 			messages: conversation,
 			trimmed: false,
 			estimate: 9_500,
+			stepTokens: 9_500,
+			summarize: undefined,
 		});
 	});
 
@@ -264,13 +267,13 @@ describe("fitContextWindow", () => {
 
 		test("counts the history as the provider counted it, and what is new by estimate", () => {
 			// 4 000 counted plus 1 000 new fits, though the estimate alone is 9 000.
-			expect(
-				keptIds(
-					fit(recorded(4_000), {
-						contextWindow: 5_000,
-					}),
-				),
-			).toEqual([
+			const result = fit(recorded(4_000), {
+				contextWindow: 5_000,
+			});
+
+			// A step's messages may grow by the estimate as far as the calibrated budget allows.
+			expect(result.fits && result.stepTokens).toBe(9_000);
+			expect(keptIds(result)).toEqual([
 				"u1",
 				"a1",
 				"u2",
@@ -498,6 +501,85 @@ describe("fitContextWindow", () => {
 				"u3",
 			]);
 			expect(result.fits && result.trimmed).toBe(false);
+		});
+	});
+
+	describe("without native compaction", () => {
+		test("hands all but the latest turn to our own summary at 80% of the budget", () => {
+			const below = fit(conversation, {
+				contextWindow: 11_250,
+				compaction: ownSummary,
+			});
+			const above = fit(conversation, {
+				contextWindow: 11_000,
+				compaction: ownSummary,
+			});
+
+			expect(compactionTrigger(11_250)).toBe(9_000);
+			expect(below.fits && below.summarize).toBeUndefined();
+			expect(above.fits && above.summarize?.map(({ id }) => id)).toEqual([
+				"u1",
+				"a1",
+				"u2",
+				"a2",
+			]);
+			// Without the summary, the prompt goes as it fits.
+			expect(keptIds(above)).toEqual(conversation.map(({ id }) => id));
+		});
+
+		test("summarizes only the newest turns one request can carry", () => {
+			const result = fit(conversation, {
+				contextWindow: 7_000,
+				compaction: ownSummary,
+			});
+
+			expect(result.fits && result.summarize?.map(({ id }) => id)).toEqual([
+				"u2",
+				"a2",
+			]);
+		});
+
+		test("trims the prompt to send without a summary once it outgrows the budget", () => {
+			const result = fit(conversation, {
+				contextWindow: 7_000,
+				compaction: ownSummary,
+			});
+
+			expect(result.fits && result.summarize).toHaveLength(2);
+			expect(result.fits && result.trimmed).toBe(true);
+		});
+
+		test("has nothing to summarize in a latest turn alone, or in a summary alone before it", () => {
+			const alone = fit(
+				[
+					user("u1", 9_500),
+				],
+				{
+					compaction: ownSummary,
+				},
+			);
+			const afterSummary = fit(
+				[
+					...conversation.slice(0, 4),
+					user("u3", 8_000),
+					summarized("a3", "The story so far."),
+				],
+				{
+					compaction: ownSummary,
+					replyId: "a3",
+				},
+			);
+
+			expect(alone.fits && alone.summarize).toBeUndefined();
+			expect(afterSummary.fits && afterSummary.summarize).toBeUndefined();
+		});
+
+		test("native compaction never asks for our own", () => {
+			const result = fit(conversation, {
+				contextWindow: 9_000,
+			});
+
+			expect(result.fits && result.summarize).toBeUndefined();
 		});
 	});
 });
