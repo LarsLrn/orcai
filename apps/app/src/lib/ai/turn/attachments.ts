@@ -185,9 +185,13 @@ const promptPart = (asset: AttachedAsset) =>
 		? filePart(asset)
 		: documentPart(asset)
 	).pipe(
-		Effect.catch(() =>
-			Effect.succeed(
-				notePart(`Attachment "${asset.title}" could not be loaded.`),
+		Effect.catch((error) =>
+			Effect.logError("chat attachment could not be loaded", error).pipe(
+				Effect.annotateLogs({
+					assetId: asset.id,
+					fileType: asset.fileType,
+				}),
+				Effect.as(notePart(`Attachment "${asset.title}" could not be loaded.`)),
 			),
 		),
 	);
