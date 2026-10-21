@@ -165,9 +165,10 @@ context window and max output tokens where the provider reports them:
 Anthropic's Models API does, and so do OpenAI-compatible servers such as
 OpenRouter, Together AI, vLLM and Groq. OpenAI's API reports neither.
 
-With an Anthropic provider, OrcAI marks the system prompt for Anthropic's
-prompt caching, so the steps of an answer that uses tools reuse it instead of
-paying for it again. The Assistant declares all of its tools up front there and
+With an Anthropic provider, OrcAI marks the system prompt and the conversation
+of every request for Anthropic's prompt caching. The steps of an answer that
+uses tools, and a next answer within the cache's lifetime of about five minutes,
+read what was already sent at Anthropic's reduced cache rate. The Assistant declares all of its tools up front there and
 loads more of them through Anthropic's tool search, so loading tools or
 approving a plan keeps the cache. Claude models without tool search (Claude 3,
 and Claude Opus and Sonnet 4.1 and earlier) get loaded tools added to the request
