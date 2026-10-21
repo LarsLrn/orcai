@@ -73,6 +73,48 @@ describe("callProcedure", () => {
 		expect(deps.turn.zedToken).toBe("after-save");
 		expect(context.meta).toBeUndefined();
 	});
+
+	test("concurrent calls of a turn run one at a time, so a slow write cannot roll the zedToken back", async () => {
+		const deps = {
+			context,
+			turn: createAssistantTurn({
+				zedToken: "request-token",
+				chatId: "chat",
+				replyId: "reply",
+			}),
+		};
+		const seen: (string | undefined)[] = [];
+		const save = (zedToken: string, delay: number) =>
+			callProcedure(deps, (options) =>
+				Effect.sync(() => seen.push(options.context.meta?.zedToken)).pipe(
+					Effect.andThen(Effect.sleep(delay)),
+					Effect.as({
+						data: {},
+						meta: {
+							zedToken,
+						},
+					}),
+				),
+			);
+
+		await Effect.runPromise(
+			Effect.all(
+				[
+					save("first-save", 20),
+					save("second-save", 0),
+				],
+				{
+					concurrency: "unbounded",
+				},
+			),
+		);
+
+		expect(seen).toEqual([
+			"request-token",
+			"first-save",
+		]);
+		expect(deps.turn.zedToken).toBe("second-save");
+	});
 });
 
 describe("expectType", () => {
