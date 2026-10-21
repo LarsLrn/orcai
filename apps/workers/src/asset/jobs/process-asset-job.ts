@@ -1,4 +1,4 @@
-import { buckets } from "@orcai/core";
+import { type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
 import { sendJobBatch, toPgBossRunError } from "@orcai/pg-boss";
@@ -8,6 +8,7 @@ import {
 	createImageOnlyStoredExtractionArtifact,
 	createStoredExtractionArtifact,
 	extract,
+	type StoredExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
 import { getMimeTypeFromFileType } from "@orcai/s3";
@@ -20,8 +21,12 @@ import {
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	AssetPipelineError,
+	settleProcessingAttempt,
+} from "@/asset/pipeline-failure";
 import { validateImageResolution } from "@/asset/utils/validate-image-resolution";
 
 const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
@@ -64,11 +69,15 @@ const getRequiredMimeType = (params: {
 	jobId: string;
 }) =>
 	Effect.fromNullishOr(getMimeTypeFromFileType(params.fileType)).pipe(
-		Effect.mapError(() =>
-			toPgBossRunError(
-				params.jobId,
-				PROCESS_ASSET_JOB_NAME,
-			)(new Error(`Unsupported asset file type: ${params.fileType}`)),
+		Effect.mapError(
+			() =>
+				new AssetPipelineError({
+					failure: "unsupported",
+					cause: toPgBossRunError(
+						params.jobId,
+						PROCESS_ASSET_JOB_NAME,
+					)(new Error(`Unsupported asset file type: ${params.fileType}`)),
+				}),
 		),
 	);
 
@@ -174,17 +183,99 @@ const createDocumentArtifact = (params: {
 		});
 	});
 
-const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
+const isEmptyArtifact = (artifact: StoredExtractionArtifact) =>
+	artifact.content.trim().length === 0 &&
+	artifact.chunks.length === 0 &&
+	artifact.images.length === 0;
+
+/**
+ * Queues indexing in every repository the asset is linked to. The links turn
+ * pending before the asset turns completed, and are read after it, so a link
+ * added meanwhile is queued either here or by the attach.
+ */
+const completeAndQueueIndexing = (params: {
+	assetId: AssetId;
+	jobId: string;
+}) =>
 	Effect.gen(function* () {
-		const { assetRef } = params.job.data;
 		const db = yield* DB;
 
 		yield* db
+			.update(dbSchema.blockAsset)
+			.set({
+				indexStatus: "pending",
+				indexFailure: null,
+			})
+			.where(eq(dbSchema.blockAsset.assetId, params.assetId));
+		yield* db
 			.update(dbSchema.asset)
 			.set({
-				processingStatus: "active",
+				processingStatus: "completed",
+				processingFailure: null,
 			})
-			.where(eq(dbSchema.asset.id, assetRef.id));
+			.where(eq(dbSchema.asset.id, params.assetId));
+
+		const attachedBlocks = yield* db
+			.select({
+				blockId: dbSchema.blockAsset.blockId,
+			})
+			.from(dbSchema.blockAsset)
+			.where(eq(dbSchema.blockAsset.assetId, params.assetId));
+
+		yield* Effect.forEach(
+			attachedBlocks,
+			({ blockId }) =>
+				sendJobBatch({
+					jobName: VECTORIZE_ASSET_JOB_NAME,
+					jobs: [
+						{
+							data: {
+								assetId: params.assetId,
+								blockId,
+							},
+						},
+					],
+					resourceOptions: {
+						resourceId: blockId,
+						resourceType: "block",
+					},
+				}).pipe(
+					Effect.tapError((err) =>
+						Effect.logError(
+							{
+								err,
+								jobId: params.jobId,
+								assetId: params.assetId,
+								blockId,
+							},
+							"Failed to dispatch follow-up vectorization job",
+						),
+					),
+					Effect.catch(() =>
+						db
+							.update(dbSchema.blockAsset)
+							.set({
+								indexStatus: "failed",
+								indexFailure: "other",
+							})
+							.where(
+								and(
+									eq(dbSchema.blockAsset.assetId, params.assetId),
+									eq(dbSchema.blockAsset.blockId, blockId),
+								),
+							),
+					),
+				),
+			{
+				concurrency: "unbounded",
+				discard: true,
+			},
+		);
+	});
+
+const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
+	Effect.gen(function* () {
+		const { assetRef } = params.job.data;
 
 		yield* deletePrefixRecursively({
 			bucket: buckets.processed.name,
@@ -216,7 +307,14 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 					},
 				).pipe(
 					Effect.mapError(
-						toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME),
+						(cause) =>
+							new AssetPipelineError({
+								failure: "extraction",
+								cause: toPgBossRunError(
+									params.job.id,
+									PROCESS_ASSET_JOB_NAME,
+								)(cause),
+							}),
 					),
 					Effect.tapError((err) =>
 						Effect.logError(
@@ -239,6 +337,13 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 					),
 				);
 
+		if (isEmptyArtifact(artifact)) {
+			return yield* new AssetPipelineError({
+				failure: "empty",
+				cause: new Error(`Asset ${assetRef.id} has no extractable content`),
+			});
+		}
+
 		yield* sendPutObjectCommand({
 			bucket: buckets.processed.name,
 			key: buildStoredExtractionKey(assetRef.id),
@@ -258,57 +363,10 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 			),
 		);
 
-		yield* db
-			.update(dbSchema.asset)
-			.set({
-				processingStatus: "completed",
-			})
-			.where(eq(dbSchema.asset.id, assetRef.id));
-
-		const attachedBlocks = yield* db
-			.select({
-				blockId: dbSchema.blockAsset.blockId,
-			})
-			.from(dbSchema.blockAsset)
-			.where(eq(dbSchema.blockAsset.assetId, assetRef.id));
-
-		if (attachedBlocks.length > 0) {
-			yield* Effect.forEach(
-				attachedBlocks,
-				({ blockId }) =>
-					sendJobBatch({
-						jobName: VECTORIZE_ASSET_JOB_NAME,
-						jobs: [
-							{
-								data: {
-									assetId: assetRef.id,
-									blockId,
-								},
-							},
-						],
-						resourceOptions: {
-							resourceId: blockId,
-							resourceType: "block",
-						},
-					}),
-				{
-					concurrency: "unbounded",
-					discard: true,
-				},
-			).pipe(
-				Effect.tapError((err) =>
-					Effect.logError(
-						{
-							err,
-							jobId: params.job.id,
-							assetId: assetRef.id,
-						},
-						"Failed to dispatch follow-up vectorization jobs",
-					),
-				),
-				Effect.catch(() => Effect.void),
-			);
-		}
+		yield* completeAndQueueIndexing({
+			assetId: assetRef.id,
+			jobId: params.job.id,
+		});
 
 		yield* Effect.logInfo(
 			{
@@ -321,20 +379,12 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 		);
 	}).pipe(
 		Effect.tapError((err) =>
-			Effect.gen(function* () {
-				yield* Effect.logError(
-					{
-						err,
-					},
-					"Process asset job failed",
-				);
-				const db = yield* DB;
-				yield* db
-					.update(dbSchema.asset)
-					.set({
-						processingStatus: "failed",
-					})
-					.where(eq(dbSchema.asset.id, params.job.data.assetRef.id));
-			}),
+			Effect.logError(
+				{
+					err,
+				},
+				"Process asset job failed",
+			),
 		),
+		(attempt) => settleProcessingAttempt(params.job.data.assetRef.id, attempt),
 	);

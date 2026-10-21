@@ -226,6 +226,9 @@
         "pg": "catalog:",
         "uuid": "catalog:",
       },
+      "devDependencies": {
+        "@orcai/testing": "workspace:*",
+      },
     },
     "packages/ai": {
       "name": "@orcai/ai",

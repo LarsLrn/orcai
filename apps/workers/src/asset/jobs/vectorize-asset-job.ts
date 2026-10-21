@@ -23,6 +23,10 @@ import type { FileType, VectorizeAssetPayload } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import {
+	AssetPipelineError,
+	settleIndexingAttempt,
+} from "@/asset/pipeline-failure";
 
 export const vectorizeAssetBatch = (jobs: Job<VectorizeAssetPayload>[]) =>
 	Effect.forEach(
@@ -485,31 +489,23 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 			.where(eq(dbSchema.asset.id, assetId));
 
 		if (!asset) {
-			return yield* Effect.fail(
-				new PgBossError({
-					operation: "run",
-					cause: new Error(`Asset ${assetId} not found for vectorization`),
-				}),
+			return yield* Effect.logInfo(
+				{
+					jobId: params.job.id,
+					assetId,
+				},
+				"Skipping vectorization of a deleted asset",
 			);
 		}
 
 		if (asset.processingStatus !== "completed") {
-			yield* Effect.logInfo(
+			return yield* Effect.logInfo(
 				{
 					jobId: params.job.id,
 					assetId,
 					processingStatus: asset.processingStatus,
 				},
-				"Asset is not processed yet; vectorization will be retried",
-			);
-
-			return yield* Effect.fail(
-				new PgBossError({
-					operation: "run",
-					cause: new Error(
-						`Asset ${assetId} processing status is ${asset.processingStatus}, expected completed`,
-					),
-				}),
+				"Skipping vectorization; processing queues it again once it completes",
 			);
 		}
 
@@ -519,7 +515,7 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 		});
 
 		if (!isInitiallyAttached) {
-			yield* Effect.logInfo(
+			return yield* Effect.logInfo(
 				{
 					jobId: params.job.id,
 					assetId,
@@ -527,8 +523,33 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 				},
 				"Skipping stale vectorization job for detached asset",
 			);
-			return;
 		}
+
+		yield* settleIndexingAttempt(
+			{
+				assetId,
+				blockId,
+			},
+			indexAsset({
+				jobId: params.job.id,
+				asset,
+				blockId,
+			}),
+		);
+	});
+
+const indexAsset = (params: {
+	jobId: string;
+	asset: {
+		id: AssetId;
+		title: string;
+	};
+	blockId: BlockId;
+}) =>
+	Effect.gen(function* () {
+		const { jobId, blockId } = params;
+		const assetId = params.asset.id;
+		const db = yield* DB;
 
 		const extraction = yield* getObjectAsJson<StoredExtractionArtifact>({
 			bucket: buckets.processed.name,
@@ -541,7 +562,7 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 
 		const imageChunks: VectorizableChunk[] = yield* buildImageChunks({
 			extraction,
-			jobId: params.job.id,
+			jobId,
 			assetId,
 			blockId,
 		});
@@ -558,14 +579,13 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 		);
 
 		if (mergedChunks.length === 0) {
-			return yield* Effect.fail(
-				new PgBossError({
-					operation: "run",
-					cause: new Error(
-						`No vectorizable chunks generated for asset ${assetId} in block ${blockId}`,
-					),
-				}),
-			);
+			return yield* new AssetPipelineError({
+				// Image descriptions can fail transiently; no content at all cannot.
+				failure: extraction.images.length > 0 ? "other" : "empty",
+				cause: new Error(
+					`No vectorizable chunks generated for asset ${assetId} in block ${blockId}`,
+				),
+			});
 		}
 
 		const isStillAttached = yield* isAssetAttachedToBlock({
@@ -574,33 +594,35 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 		});
 
 		if (!isStillAttached) {
-			yield* Effect.logInfo(
+			return yield* Effect.logInfo(
 				{
-					jobId: params.job.id,
+					jobId,
 					assetId,
 					blockId,
 				},
 				"Skipping vector upsert because asset was detached during processing",
 			);
-			return;
 		}
 
-		const qdrantResponse = yield* embedChunks({
+		yield* embedChunks({
 			chunks: mergedChunks,
 			assetId,
-			assetTitle: asset.title,
+			assetTitle: params.asset.title,
 			blockId,
 		});
 
-		return {
-			payload: {
-				assetId,
-				blockId,
-			},
-			results: {
-				qdrant: qdrantResponse,
-			},
-		};
+		yield* db
+			.update(dbSchema.blockAsset)
+			.set({
+				indexStatus: "completed",
+				indexFailure: null,
+			})
+			.where(
+				and(
+					eq(dbSchema.blockAsset.assetId, assetId),
+					eq(dbSchema.blockAsset.blockId, blockId),
+				),
+			);
 	});
 
 const embedChunks = ({

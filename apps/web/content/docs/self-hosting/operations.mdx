@@ -97,6 +97,8 @@ bun run --filter @orcai/spice-db status
 
 Keep workers running alongside the app. If workers are stopped, uploads and scheduled maintenance jobs may remain queued.
 
+Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run up to four times, a minute apart, and an attempt times out after an hour. A job whose attempts are used up moves to its dead letter queue (`process-asset-dead-letter-job`, `vectorize-asset-dead-letter-job`), whose worker marks the asset, or the asset in that repository, as failed. The workers create the queues and their dead letter settings at startup. The failed job, with its last error, stays in the pg-boss tables until retention removes it; the worker logs carry the same error.
+
 ## Upload Storage Lifecycle
 
 Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight.

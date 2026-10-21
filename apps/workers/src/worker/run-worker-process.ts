@@ -1,5 +1,5 @@
 import { logErrorCause, withActiveSpan } from "@orcai/observability";
-import type { Job } from "@orcai/pg-boss";
+import type { JobWithMetadata } from "@orcai/pg-boss";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import type { JobQueue } from "@orcai/schema";
 import * as Effect from "effect/Effect";
@@ -13,17 +13,29 @@ const retryPolicy = Schedule.max([
 	Schedule.recurs(9),
 ]).pipe(Schedule.jittered);
 
-const createQueue = (name: JobQueue) =>
+/** Creates the queue, or brings an existing one to these options. */
+export const ensureQueue = (
+	name: JobQueue,
+	options: {
+		readonly deadLetter?: JobQueue;
+	} = {},
+) =>
 	Effect.gen(function* () {
 		const { boss } = yield* PgBossService;
+		const queueOptions = {
+			retryLimit: 3,
+			retryDelay: 60,
+			expireInSeconds: 3600,
+		};
 		yield* Effect.logInfo(`Ensuring queue ${name} exists`);
 		yield* Effect.tryPromise({
-			try: () =>
-				boss.createQueue(name, {
-					retryLimit: 3,
-					retryDelay: 60,
-					expireInSeconds: 3600,
-				}),
+			try: async () => {
+				await boss.createQueue(name, queueOptions);
+				await boss.updateQueue(name, {
+					...queueOptions,
+					deadLetter: options.deadLetter ?? null,
+				});
+			},
 			catch: (cause) =>
 				new PgBossWorkersError({
 					queue: name,
@@ -45,10 +57,10 @@ const registerWorkers = <TContext>(
 			(
 				queue: JobQueue,
 				handler: (
-					jobs: Job<unknown>[],
+					jobs: JobWithMetadata<unknown>[],
 				) => Effect.Effect<void, unknown, TContext | PgBossService>,
 			) =>
-			(jobs: Job<unknown>[]) =>
+			(jobs: JobWithMetadata<unknown>[]) =>
 				Effect.runPromiseWith(services)(
 					// Joins the span this callback is called in.
 					withActiveSpan(
@@ -64,6 +76,10 @@ const registerWorkers = <TContext>(
 							),
 						),
 					),
+					// pg-boss aborts a batch that outlives its expiry.
+					{
+						signal: jobs[0]?.signal,
+					},
 				);
 
 		yield* Effect.forEach(
@@ -73,9 +89,12 @@ const registerWorkers = <TContext>(
 					yield* Effect.logInfo(`Registering worker ${definition.name}`);
 					yield* Effect.tryPromise({
 						try: () =>
-							boss.work<unknown>(
+							boss.work(
 								definition.name,
-								definition.workOptions,
+								{
+									...definition.workOptions,
+									includeMetadata: true,
+								},
 								runWorkerBatch(definition.name, definition.handler),
 							),
 						catch: (cause) =>
@@ -158,13 +177,24 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 			`Preparing ${params.definitions.length} worker definition(s)`,
 		);
 
-		yield* Effect.forEach(
-			params.definitions,
-			(definition) => createQueue(definition.name),
-			{
-				discard: true,
-				concurrency: "unbounded",
-			},
+		// A dead letter queue has to exist before the queue that names it.
+		const ensureQueues = (definitions: typeof params.definitions) =>
+			Effect.forEach(
+				definitions,
+				(definition) =>
+					ensureQueue(definition.name, {
+						deadLetter: definition.deadLetter,
+					}),
+				{
+					discard: true,
+					concurrency: "unbounded",
+				},
+			);
+		yield* ensureQueues(
+			params.definitions.filter((definition) => !definition.deadLetter),
+		);
+		yield* ensureQueues(
+			params.definitions.filter((definition) => definition.deadLetter),
 		);
 
 		yield* registerWorkers(params.definitions);
