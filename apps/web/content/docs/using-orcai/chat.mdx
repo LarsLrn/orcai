@@ -1,6 +1,6 @@
 ---
 title: Chat
-description: Starting chats with or without a bot, the chat list, message actions, branching, attachments, chat settings, quota, retrieval and citations, and deleting chats.
+description: Starting chats with or without a bot, the chat list, message actions, branching, attachments, chat settings, quota, preparing documents, retrieval and citations, and deleting chats.
 ---
 
 Chat is the core end-user workflow in OrcAI. You can start chats with or without a bot, attach sources, branch a conversation, and tune per-chat settings.
@@ -164,6 +164,12 @@ Copying an answer and downloading the conversation include primitives as markdow
 ## Quota Line
 
 When quota data is available, a line above the composer shows the pool that covers the chat's model and what is left in it, either requests or tokens.
+
+## Preparing Documents
+
+When a repository the chat searches still has documents that are not ready, a **Preparing documents** panel sits above the composer, under the quota line. The repositories are the bot's and those attached to the chat; on the new chat page they are the chosen bot's. The panel shows how many of all documents are ready, for example `38/120`, with a spinner while documents are being prepared. Once only failures are left, its title says how many documents could not be prepared. It disappears when every document is ready and refreshes every five seconds while documents are being prepared.
+
+The panel is collapsed. Expand it for one row per repository with its status, how many of its documents are ready and how many failed. A repository you can edit links to its page, where you can retry failed documents. Only ready documents are searchable, so the model can tell you when the answer may be in a document that is not ready yet. The panel never blocks sending.
 
 ## Retrieval And Citations
 
