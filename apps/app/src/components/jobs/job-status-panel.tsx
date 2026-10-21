@@ -1,8 +1,6 @@
-import type { AssetId, BlockId } from "@orcai/core";
-import type { JobQueue, PipelineStatus } from "@orcai/schema";
+import type { AssetId } from "@orcai/core";
+import type { PipelineStatus } from "@orcai/schema";
 import { RefreshCwIcon } from "lucide-react";
-import { JobListDialog } from "@/components/jobs/job-list-dialog";
-import type { JobResource } from "@/components/jobs/job-resource";
 import { JobStatusBadge } from "@/components/jobs/job-status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,53 +11,23 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { InfoDot } from "@/components/ui/composed/info-dot";
-import {
-	useRetryProcessingMutation,
-	useRetryVectorizationMutation,
-} from "@/hooks/mutations/use-job-mutations";
+import { useReprocessAssetMutation } from "@/hooks/mutations/use-asset-mutations";
 import { getProcessingStatusDescription } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 type JobStatusPanelProps = {
 	processingStatus: PipelineStatus;
-	jobQueue: JobQueue;
-	resource: JobResource;
-	/** For retry — required when resourceType is "asset" */
-	assetId?: AssetId;
-	/** For retry — required when resourceType is "block" */
-	blockId?: BlockId;
-	/** Optional filter for the job list dialog */
-	assetIdFilter?: string;
+	assetId: AssetId;
 	className?: string;
 };
 
 const JobStatusPanel = ({
 	processingStatus,
-	jobQueue,
-	resource,
 	assetId,
-	blockId,
-	assetIdFilter,
 	className,
 }: JobStatusPanelProps) => {
-	const { mutate: retryProcessing } = useRetryProcessingMutation();
-	const { mutate: retryVectorization } = useRetryVectorizationMutation();
-
-	const showRetry = processingStatus === "failed";
-
-	const handleRetry = () => {
-		if (resource.resourceType === "asset" && assetId) {
-			retryProcessing({
-				assetId,
-			});
-		} else if (resource.resourceType === "block" && blockId && assetId) {
-			retryVectorization({
-				blockId,
-				assetId,
-			});
-		}
-	};
+	const { mutate: reprocessAsset } = useReprocessAssetMutation();
 
 	return (
 		<Card className={cn(className)}>
@@ -74,13 +42,16 @@ const JobStatusPanel = ({
 			</CardHeader>
 			<CardContent className="flex items-center gap-2">
 				<JobStatusBadge status={processingStatus} className="h-8" />
-				<JobListDialog
-					jobQueue={jobQueue}
-					resource={resource}
-					assetIdFilter={assetIdFilter}
-				/>
-				{showRetry && (
-					<Button variant="outline" size="sm" onClick={handleRetry}>
+				{processingStatus === "failed" && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() =>
+							reprocessAsset({
+								id: assetId,
+							})
+						}
+					>
 						<RefreshCwIcon className="mr-1 h-3 w-3" />
 						{m.jobs_status_panel_retry_button()}
 					</Button>

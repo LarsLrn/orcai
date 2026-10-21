@@ -192,13 +192,6 @@ export const queryDefaults = {
 			},
 		},
 	},
-	job: {
-		list: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-	},
 	user: {
 		list: {
 			queryOptions: {

@@ -42,7 +42,7 @@ export const retryAsset = declareTool<typeof retryAssetTool>()({
 		]);
 
 		return input.repositoryId
-			? m.assistant_tool_retry_asset_summary_vectorisation({
+			? m.assistant_tool_retry_asset_summary_repository({
 					asset,
 					repository: formatNames([
 						nameOf({

@@ -1,14 +1,18 @@
-import type { BlockId, UserId } from "@orcai/core";
+import type { AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type {
-	DocumentReadiness,
-	PipelineFailure,
-	PipelineStatus,
-	RepositoryReadiness,
+import {
+	type DocumentReadiness,
+	isRetryableFailure,
+	type PipelineFailure,
+	type PipelineStatus,
+	type RepositoryReadiness,
 } from "@orcai/schema";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { reprocessAsset } from "@/lib/assets/processing";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
+import { enqueueIndexing } from "@/lib/blocks/database-block";
+import * as AppErrors from "@/lib/effect/utils/errors";
 
 type PipelineRow = {
 	processingStatus: PipelineStatus;
@@ -177,5 +181,143 @@ export const loadRepositoryReadiness = (params: {
 					documents,
 				},
 			];
+		});
+	});
+
+/** The repository's documents with what a retry needs, optionally only some. */
+const loadDocuments = (params: {
+	blockId: BlockId;
+	assetIds?: readonly AssetId[];
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db
+			.select({
+				...getColumns(dbSchema.asset),
+				indexStatus: dbSchema.blockAsset.indexStatus,
+				indexFailure: dbSchema.blockAsset.indexFailure,
+			})
+			.from(dbSchema.blockAsset)
+			.innerJoin(
+				dbSchema.asset,
+				eq(dbSchema.asset.id, dbSchema.blockAsset.assetId),
+			)
+			.where(
+				and(
+					eq(dbSchema.blockAsset.blockId, params.blockId),
+					params.assetIds
+						? inArray(dbSchema.blockAsset.assetId, [
+								...params.assetIds,
+							])
+						: undefined,
+				),
+			);
+	});
+
+type RetryDocument = Effect.Success<ReturnType<typeof loadDocuments>>[number];
+
+const runRetries = (params: {
+	blockId: BlockId;
+	processing: readonly RetryDocument[];
+	indexing: readonly RetryDocument[];
+}) =>
+	Effect.gen(function* () {
+		// A document another request already queued is not admitted again.
+		const admitted = yield* Effect.forEach(params.processing, reprocessAsset, {
+			concurrency: 4,
+		});
+		yield* enqueueIndexing({
+			blockId: params.blockId,
+			assetIds: params.indexing.map((document) => document.id),
+		});
+		return {
+			processing: admitted.filter(Boolean).length,
+			indexing: params.indexing.length,
+		};
+	});
+
+/**
+ * Runs one document's stage again: processing when the file failed,
+ * otherwise indexing in this repository. A document still being prepared has
+ * nothing to retry.
+ */
+export const retryDocument = (params: { blockId: BlockId; assetId: AssetId }) =>
+	Effect.gen(function* () {
+		const [document] = yield* loadDocuments({
+			blockId: params.blockId,
+			assetIds: [
+				params.assetId,
+			],
+		});
+		if (!document) {
+			return yield* new AppErrors.NotFoundError({
+				reason: "ASSET_NOT_ATTACHED",
+				message: "Asset not attached to this repository",
+			});
+		}
+
+		const { state, failure } = documentState(document);
+		const stage =
+			state === "failed"
+				? failure?.stage
+				: state === "ready"
+					? "indexing"
+					: undefined;
+		if (!stage) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "DOCUMENT_STILL_PREPARING",
+				message: "The document is still being prepared",
+			});
+		}
+
+		const retried = yield* runRetries({
+			blockId: params.blockId,
+			processing:
+				stage === "processing"
+					? [
+							document,
+						]
+					: [],
+			indexing:
+				stage === "indexing"
+					? [
+							document,
+						]
+					: [],
+		});
+		if (stage === "processing" && retried.processing === 0) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "DOCUMENT_STILL_PREPARING",
+				message: "The document is still being prepared",
+			});
+		}
+		return {
+			retried: stage,
+		};
+	});
+
+/** Retries every failed document of the repository that retrying can help. */
+export const retryFailedDocuments = (params: { blockId: BlockId }) =>
+	Effect.gen(function* () {
+		const failed = (yield* loadDocuments(params)).flatMap((document) => {
+			const { failure } = documentState(document);
+			return failure && isRetryableFailure(failure.kind)
+				? [
+						{
+							document,
+							stage: failure.stage,
+						},
+					]
+				: [];
+		});
+
+		return yield* runRetries({
+			blockId: params.blockId,
+			processing: failed
+				.filter((entry) => entry.stage === "processing")
+				.map((entry) => entry.document),
+			indexing: failed
+				.filter((entry) => entry.stage === "indexing")
+				.map((entry) => entry.document),
 		});
 	});

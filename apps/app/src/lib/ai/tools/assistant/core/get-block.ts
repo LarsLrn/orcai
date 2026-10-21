@@ -1,9 +1,5 @@
-import type { AssetId, BlockId } from "@orcai/core";
-import {
-	blockIdSchema,
-	type JobState,
-	VECTORIZE_ASSET_JOB_NAME,
-} from "@orcai/schema";
+import type { BlockId } from "@orcai/core";
+import { blockIdSchema } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
@@ -20,60 +16,23 @@ const getBlockInputSchema = z.object({
 	),
 });
 
-const vectorisationOf = (state: JobState | undefined) => {
-	switch (state) {
-		case undefined:
-			return "none" as const;
-		case "created":
-		case "retry":
-			return "queued" as const;
-		case "active":
-			return "running" as const;
-		default:
-			return state;
-	}
-};
-
-/** The newest vectorisation job state per asset in one repository. */
-const vectorisationStates = (deps: AssistantToolDeps, repositoryId: BlockId) =>
+/** Document states and totals of one repository. */
+const readinessOf = (deps: AssistantToolDeps, repositoryId: BlockId) =>
 	callProcedure(deps, (procedures, options) =>
-		procedures.job.list(
+		procedures.block.readiness(
 			{
-				resourceType: "block",
-				resourceId: repositoryId,
-				jobQueue: VECTORIZE_ASSET_JOB_NAME,
+				blockIds: [
+					repositoryId,
+				],
 			},
 			options,
 		),
-	).pipe(
-		Effect.map(({ data }) => {
-			const newest = new Map<AssetId, (typeof data)[number]>();
-
-			for (const job of data) {
-				if (job.name !== VECTORIZE_ASSET_JOB_NAME) {
-					continue;
-				}
-				const current = newest.get(job.data.assetId);
-				if (!current || current.createdOn < job.createdOn) {
-					newest.set(job.data.assetId, job);
-				}
-			}
-
-			return new Map(
-				[
-					...newest,
-				].map(([assetId, job]) => [
-					assetId,
-					job.state,
-				]),
-			);
-		}),
-	);
+	).pipe(Effect.map(({ data: [readiness] }) => readiness));
 
 export const getBlockTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Read one AI behaviour (template) or repository by id: name, description, status and what the user may do with it. A template comes with its system prompt; a repository with its retrieval settings and each attached asset's processing and vectorisation status in this repository (vectorisation `none` means no indexing job on record).",
+			"Read one AI behaviour (template) or repository by id: name, description, status and what the user may do with it. A template comes with its system prompt; a repository with its retrieval settings, document totals and each attached asset's state there: queued, processing, indexing, ready or failed (with the failed stage and reason). Only ready documents are searchable.",
 		inputSchema: getBlockInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {
@@ -81,7 +40,7 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 					`BLOCK_NOT_FOUND: No template or repository with id ${id} that the user can read. Look ids up with findBlocks; bot ids belong to getBot.`,
 				);
 
-				const { data: block, assets = [] } = yield* callProcedure(
+				const { data: block } = yield* callProcedure(
 					deps,
 					(procedures, options) =>
 						procedures.block.find(
@@ -121,21 +80,22 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 					return yield* Effect.fail(notFound);
 				}
 
-				const states =
-					assets.length > 0
-						? yield* vectorisationStates(deps, block.id)
-						: new Map<AssetId, JobState>();
+				const readiness = yield* readinessOf(deps, block.id);
+				if (!readiness) {
+					return yield* Effect.fail(notFound);
+				}
 
 				return {
 					type: "repository" as const,
 					...common,
 					retrieval: block.config,
-					assets: assets.map((asset) => ({
+					documents: readiness.totals,
+					assets: readiness.documents.map((document) => ({
 						type: "asset" as const,
-						id: asset.id,
-						title: asset.title,
-						processingStatus: asset.processingStatus,
-						vectorisation: vectorisationOf(states.get(asset.id)),
+						id: document.assetId,
+						title: document.title,
+						state: document.state,
+						failure: document.failure ?? undefined,
 					})),
 				};
 			}),

@@ -68,11 +68,6 @@ const FileViewer = ({ asset }: { asset: Asset }) => {
 					<div className="mb-3 flex items-center gap-3">
 						<JobStatusPanel
 							processingStatus={asset.processingStatus}
-							jobQueue="process-asset-job"
-							resource={{
-								resourceId: asset.id,
-								resourceType: "asset",
-							}}
 							assetId={asset.id}
 							className="w-full"
 						/>

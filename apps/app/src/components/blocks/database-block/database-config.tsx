@@ -5,12 +5,10 @@ import {
 	ChevronDownIcon,
 	ExternalLinkIcon,
 	MoreVerticalIcon,
-	Move3dIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { ContentRenderer } from "@/components/editor/content-renderer";
-import { JobListDialog } from "@/components/jobs/job-list-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,7 +33,6 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
-import { useCreateJobMutation } from "@/hooks/mutations/use-job-mutations";
 import { m } from "@/paraglide/messages";
 
 const getRetrievalModeLabel = (
@@ -192,7 +189,6 @@ const AssetSection = ({
 	blockId: BlockId;
 }) => {
 	const navigate = useNavigate();
-	const { mutate: createJob } = useCreateJobMutation();
 
 	return (
 		<Section>
@@ -206,13 +202,6 @@ const AssetSection = ({
 					{m.blocks_database_config_assets_description()}
 				</SectionDescription>
 				<SectionAction>
-					<JobListDialog
-						jobQueue="vectorize-asset-job"
-						resource={{
-							resourceId: blockId,
-							resourceType: "block",
-						}}
-					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={
@@ -225,17 +214,6 @@ const AssetSection = ({
 							}
 						/>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem
-								onClick={() =>
-									createJob({
-										jobRunner: "vectorize-asset-job",
-										blockId,
-									})
-								}
-							>
-								<Move3dIcon />
-								{m.blocks_database_config_create_vector_store_action()}
-							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() =>
 									navigate({

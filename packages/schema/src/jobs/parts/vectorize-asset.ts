@@ -8,7 +8,3 @@ export const vectorizeAssetPayloadSchema = z.object({
 });
 
 export type VectorizeAssetPayload = z.infer<typeof vectorizeAssetPayloadSchema>;
-
-export const vectorizeAssetOutputSchema = z.object({
-	message: z.string().optional(),
-});

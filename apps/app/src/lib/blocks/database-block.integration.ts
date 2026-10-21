@@ -14,7 +14,7 @@ import {
 } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { enqueueAssetProcessing } from "@/lib/assets/processing";
+import { reprocessAsset } from "@/lib/assets/processing";
 import {
 	type Actor,
 	authzIntegration,
@@ -227,7 +227,7 @@ describe("repository asset links", () => {
 
 describe("reset rules", () => {
 	test(
-		"reprocessing turns the asset and every link pending",
+		"reprocessing turns the asset and every link pending, once",
 		async () => {
 			const { assets, blockId } = await repositoryWith(1);
 			const [assetId] = assets;
@@ -248,7 +248,8 @@ describe("reset rules", () => {
 				}),
 			);
 
-			await run(enqueueAssetProcessing(asset));
+			expect(await run(reprocessAsset(asset))).toBe(true);
+			expect(await run(reprocessAsset(asset))).toBe(false);
 
 			const [after] = await run(
 				Effect.gen(function* () {
@@ -360,6 +361,109 @@ describe("block.readiness", () => {
 				kind: "other",
 			});
 			expect(await readiness(stranger)).toEqual([]);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("retrying documents", () => {
+	test(
+		"retries the failed stage, skips failures retrying cannot fix, and refuses documents still preparing",
+		async () => {
+			const { owner, assets, blockId, zedToken } = await repositoryWith(4);
+			const [processingFailed, indexingFailed, empty, preparing] = assets;
+			await setStatus({
+				assetId: processingFailed,
+				processing: "failed",
+			});
+			await setStatus({
+				assetId: indexingFailed,
+				processing: "completed",
+				index: {
+					blockId,
+					status: "failed",
+				},
+			});
+			await setStatus({
+				assetId: empty,
+				processing: "failed",
+			});
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.asset)
+						.set({
+							processingFailure: "empty",
+						})
+						.where(eq(dbSchema.asset.id, empty));
+				}),
+			);
+			const procedures = await run(Procedures);
+			const options = await procedureOptions(owner, zedToken);
+
+			expect(
+				await run(
+					procedures.block.retryFailed(
+						{
+							blockId,
+						},
+						options,
+					),
+				),
+			).toEqual({
+				processing: 1,
+				indexing: 1,
+			});
+			expect(await links(blockId)).toMatchObject({
+				[processingFailed]: "pending",
+				[indexingFailed]: "pending",
+			});
+			expect(
+				(
+					await run(
+						procedures.block.readiness(
+							{
+								blockIds: [
+									blockId,
+								],
+							},
+							options,
+						),
+					)
+				).data[0].totals,
+			).toEqual({
+				total: 4,
+				ready: 0,
+				preparing: 3,
+				failed: 1,
+			});
+
+			expect(
+				await run(
+					procedures.block.retryDocument(
+						{
+							blockId,
+							assetId: empty,
+						},
+						options,
+					),
+				),
+			).toEqual({
+				retried: "processing",
+			});
+			await expect(
+				run(
+					procedures.block.retryDocument(
+						{
+							blockId,
+							assetId: preparing,
+						},
+						options,
+					),
+				),
+			).rejects.toMatchObject({
+				reason: "DOCUMENT_STILL_PREPARING",
+			});
 		},
 		TIMEOUT,
 	);

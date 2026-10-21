@@ -235,10 +235,6 @@ const completeAndQueueIndexing = (params: {
 							},
 						},
 					],
-					resourceOptions: {
-						resourceId: blockId,
-						resourceType: "block",
-					},
 				}).pipe(
 					Effect.tapError((err) =>
 						Effect.logError(

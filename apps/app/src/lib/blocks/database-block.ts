@@ -171,10 +171,6 @@ export const enqueueIndexing = (params: {
 					blockId: params.blockId,
 				},
 			})),
-			resourceOptions: {
-				resourceId: params.blockId,
-				resourceType: "block",
-			},
 		}).pipe(
 			Effect.tapError(() =>
 				db

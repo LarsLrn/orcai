@@ -81,6 +81,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_TURN_NOT_AWAITING: m.error_chat_turn_not_awaiting,
 	CURRENT_PASSWORD_INCORRECT: m.error_current_password_incorrect,
 	DEFAULT_REFERENCES_OUT_OF_RANGE: m.error_default_references_out_of_range,
+	DOCUMENT_STILL_PREPARING: m.error_document_still_preparing,
 	EMAIL_ALREADY_REGISTERED: m.error_email_already_registered,
 	EMAIL_NOT_VERIFIED: m.error_email_not_verified,
 	ENTITY_IDS_REQUIRED: m.error_entity_ids_required,
@@ -109,7 +110,6 @@ const reasonMessages: ReasonMessages = {
 	INVITATION_RESPONSE_FORBIDDEN: m.error_invitation_response_forbidden,
 	INVITATION_RESPONSE_INVALID: m.error_invitation_response_invalid,
 	ITEMS_NOT_UNIQUE: m.error_items_not_unique,
-	JOB_RUNNER_UNSUPPORTED: m.error_job_runner_unsupported,
 	LAST_MANAGER_REQUIRED: m.error_last_manager_required,
 	LAST_ORGANIZATION_ADMIN_REQUIRED: m.error_last_organization_admin_required,
 	MEMBER_NOT_FOUND: m.error_member_not_found,
@@ -174,7 +174,6 @@ const reasonMessages: ReasonMessages = {
 	USER_OWNS_CONTENT: m.error_user_owns_content,
 	USER_PREFERENCES_NOT_FOUND: m.error_user_preferences_not_found,
 	USER_UNBAN_FAILED: m.error_user_unban_failed,
-	VECTORIZE_RETRY_NOT_READY: m.error_vectorize_retry_not_ready,
 };
 
 /** Params arrive untyped from the wire; the message for a reason trusts their shape. */

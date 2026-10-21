@@ -10,7 +10,6 @@ import { chatRouter } from "./chat";
 import { chatBlockRouter } from "./chat-block";
 import { chatMessageRouter } from "./chat-message";
 import { groupRouter } from "./group";
-import { jobRouter } from "./job";
 import { modelRouter } from "./model";
 import { organizationRouter } from "./organization";
 import { organizationInvitationRouter } from "./organization-invitation";
@@ -42,6 +41,5 @@ export const router = {
 	user: userRouter,
 	storage: storageRouter,
 	model: modelRouter,
-	job: jobRouter,
 	ai: aiRouter,
 };

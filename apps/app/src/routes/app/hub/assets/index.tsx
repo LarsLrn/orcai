@@ -26,8 +26,10 @@ import {
 } from "@/components/ui/shell/section";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import { useAddAssetToLibraryMutation } from "@/hooks/mutations/use-asset-mutations";
-import { useReprocessAssetMutation } from "@/hooks/mutations/use-job-mutations";
+import {
+	useAddAssetToLibraryMutation,
+	useReprocessAssetMutation,
+} from "@/hooks/mutations/use-asset-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -192,7 +194,7 @@ function RouteComponent() {
 																icon: RefreshCwIcon,
 																onClick: () =>
 																	reprocessAsset({
-																		assetId: asset.id,
+																		id: asset.id,
 																	}),
 															},
 														]),

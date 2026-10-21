@@ -40,3 +40,17 @@ export const deleteBlocksResponseSchema = statusResponseSchema;
 export const blockReadinessResponseSchema = createDataResponseSchema(
 	z.array(repositoryReadinessSchema),
 );
+
+/** Which stage the retry runs again: processing the file or indexing it here. */
+export const retryDocumentResponseSchema = z.object({
+	retried: z.enum([
+		"processing",
+		"indexing",
+	]),
+});
+
+/** How many failed documents were queued again, by stage. */
+export const retryFailedDocumentsResponseSchema = z.object({
+	processing: z.number().int(),
+	indexing: z.number().int(),
+});

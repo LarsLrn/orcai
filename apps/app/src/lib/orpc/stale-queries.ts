@@ -57,20 +57,19 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.user.listAccess.key(),
 	];
 
+	// Readiness lists each document's title and state.
+	const assetsAndReadiness = () => [
+		orpc.asset.key(),
+		orpc.block.readiness.key(),
+	];
+
 	return {
 		asset: {
-			addToLibrary: () => [
-				orpc.asset.key(),
-			],
-			createFromUploads: () => [
-				orpc.asset.key(),
-			],
-			save: () => [
-				orpc.asset.key(),
-			],
-			delete: () => [
-				orpc.asset.key(),
-			],
+			addToLibrary: assetsAndReadiness,
+			createFromUploads: assetsAndReadiness,
+			save: assetsAndReadiness,
+			delete: assetsAndReadiness,
+			reprocess: assetsAndReadiness,
 		},
 		assistant: {
 			create: () => [
@@ -87,6 +86,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			delete: () => [
 				orpc.block.key(),
 			],
+			retryDocument: assetsAndReadiness,
+			retryFailed: assetsAndReadiness,
 		},
 		bot: {
 			save: () => [
@@ -155,18 +156,6 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			addMembers: groupMembership,
 			removeMembers: groupMembership,
-		},
-		job: {
-			create: () => [
-				orpc.job.key(),
-			],
-			retryProcessing: () => [
-				orpc.job.key(),
-				orpc.asset.key(),
-			],
-			retryVectorization: () => [
-				orpc.job.key(),
-			],
 		},
 		model: {
 			create: () => [

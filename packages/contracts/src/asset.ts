@@ -8,6 +8,8 @@ import {
 	findAssetResponseSchema,
 	listAssetsInputSchema,
 	listAssetsResponseSchema,
+	reprocessAssetInputSchema,
+	reprocessAssetResponseSchema,
 	saveAssetInputSchema,
 	saveAssetResponseSchema,
 } from "@orcai/schema";
@@ -93,4 +95,17 @@ export const assetContracts = {
 		)
 		.input(deleteAssetsInputSchema)
 		.output(deleteAssetsResponseSchema),
+	reprocess: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/assets/{id}/reprocess",
+				summary: "Process an asset again",
+				tags: [
+					"Assets",
+				],
+			}),
+		)
+		.input(reprocessAssetInputSchema)
+		.output(reprocessAssetResponseSchema),
 };

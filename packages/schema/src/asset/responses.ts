@@ -3,6 +3,7 @@ import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
+	statusResponseSchema,
 } from "../shared";
 import { errorReasonSchema } from "../shared/error-reason";
 import { assetSchema, assetWithCapabilitiesSchema } from "./schema";
@@ -40,3 +41,5 @@ export const createAssetsFromUploadsResponseSchema = createDataResponseSchema(
 export const deleteAssetsResponseSchema = createDeleteResponseSchema();
 
 export type AssetIntakeResult = z.infer<typeof assetIntakeResultSchema>;
+
+export const reprocessAssetResponseSchema = statusResponseSchema;

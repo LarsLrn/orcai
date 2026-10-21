@@ -93,16 +93,15 @@ Asset cards and the **Preparation status** panel show one of these states:
 | Queued | Waiting to be prepared for search and citations. |
 | Processing | Currently being prepared for search and citations. |
 | Ready | Ready to be used in search, retrieval, and citations. |
-| Needs attention | Preparation failed. Review the job log or retry processing. |
+| Needs attention | Preparation failed. Retry processing, or replace a file that cannot be read. |
 
-On the **Preparation status** panel:
+A failing step is retried automatically, so an asset stays Processing until its last attempt has failed. A file of a type OrcAI cannot read, or one without any text or images (for example a scanned PDF whose text cannot be recognised), needs attention at once, since retrying cannot help.
 
-- **Jobs** opens the **Job history** for the asset, with each job's created, started and completed times and its retries.
-- **Retry** appears when the status is Needs attention and queues processing again.
+On the **Preparation status** panel, **Retry** appears when the status is Needs attention and queues processing again.
 
 **Reprocess** is available from the card menu on the Assets page and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns processing and refreshes the vector data for the repositories the asset belongs to. Reprocess is useful after parser or configuration changes.
 
-Each repository's page (`/app/hub/blocks/<block id>`) also shows the vectorisation status and jobs of its assets.
+Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds; the assets it keeps stay as they are.
 
 ## Permissions And Access
 

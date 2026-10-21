@@ -31,7 +31,11 @@ import {
 	replaceBlockAssets,
 	requireReadableAssets,
 } from "@/lib/blocks/database-block";
-import { loadRepositoryReadiness } from "@/lib/blocks/readiness";
+import {
+	loadRepositoryReadiness,
+	retryDocument,
+	retryFailedDocuments,
+} from "@/lib/blocks/readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -432,6 +436,26 @@ const blockReadiness = authed.block.readiness.effect(function* ({
 	};
 });
 
+const retryBlockDocument = authed.block.retryDocument
+	.use(
+		requireEntityPermission("block", "edit", {
+			entityId: "blockId",
+		}),
+	)
+	.effect(function* ({ input }) {
+		return yield* retryDocument(input);
+	});
+
+const retryFailedBlockDocuments = authed.block.retryFailed
+	.use(
+		requireEntityPermission("block", "edit", {
+			entityId: "blockId",
+		}),
+	)
+	.effect(function* ({ input }) {
+		return yield* retryFailedDocuments(input);
+	});
+
 export const blockRouter = {
 	list: listBlocks,
 	create: createBlock,
@@ -439,4 +463,6 @@ export const blockRouter = {
 	update: updateBlock,
 	delete: deleteBlocks,
 	readiness: blockReadiness,
+	retryDocument: retryBlockDocument,
+	retryFailed: retryFailedBlockDocuments,
 };

@@ -84,9 +84,22 @@ export const blockReadinessInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
 
+export const retryDocumentInputSchema = z.object({
+	blockId: blockIdSchema,
+	assetId: assetIdSchema,
+});
+
+export const retryFailedDocumentsInputSchema = z.object({
+	blockId: blockIdSchema,
+});
+
 export type ListBlocksInput = z.infer<typeof listBlocksInputSchema>;
 export type CreateBlockInput = z.infer<typeof createBlockInputSchema>;
 export type FindBlockInput = z.infer<typeof findBlockInputSchema>;
 export type UpdateBlockInput = z.infer<typeof updateBlockInputSchema>;
 export type DeleteBlocksInput = z.infer<typeof deleteBlocksInputSchema>;
 export type BlockReadinessInput = z.infer<typeof blockReadinessInputSchema>;
+export type RetryDocumentInput = z.infer<typeof retryDocumentInputSchema>;
+export type RetryFailedDocumentsInput = z.infer<
+	typeof retryFailedDocumentsInputSchema
+>;

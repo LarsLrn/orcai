@@ -14,52 +14,52 @@ const retryAssetInputSchema = z.object({
 	repositoryId: blockIdSchema
 		.optional()
 		.describe(
-			"Give the repository to retry vectorisation of a processed asset in it; leave out to retry processing the file.",
+			"Give the repository to retry the document there; leave out to process the file again.",
 		),
 });
 
 export const retryAssetTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Retry a failed background job for an asset: processing the uploaded file, or vectorisation in one repository once processing has completed.",
+			"Retry an asset. Without a repository, process the uploaded file again. With a repository, retry the document there: its processing when the file failed, otherwise its indexing in that repository. A document still being prepared has nothing to retry.",
 		inputSchema: retryAssetInputSchema,
 		run: ({ assetId, repositoryId }) =>
 			(repositoryId
 				? callProcedure(deps, (procedures, options) =>
-						procedures.job.retryVectorization(
+						procedures.block.retryDocument(
 							{
 								assetId,
 								blockId: repositoryId,
 							},
 							options,
 						),
-					)
+					).pipe(Effect.map(({ retried }) => retried))
 				: callProcedure(deps, (procedures, options) =>
-						procedures.job.retryProcessing(
+						procedures.asset.reprocess(
 							{
-								assetId,
+								id: assetId,
 							},
 							options,
 						),
-					)
+					).pipe(Effect.as("processing" as const))
 			).pipe(
 				mutation("findAssets"),
 				expectType("asset", assetId),
 				expectType("repository", repositoryId ?? []),
-				Effect.as({
+				Effect.map((retried) => ({
 					type: "asset" as const,
 					id: assetId,
 					repositoryId,
-					retried: repositoryId
-						? ("vectorisation" as const)
-						: ("processing" as const),
-				}),
+					retried,
+				})),
 			),
 		toModelOutput: ({ output }) => ({
 			type: "json",
 			value: {
 				...output,
-				note: "The job is queued; findAssets shows the processing status once it has run.",
+				note: output.repositoryId
+					? "The document is queued; getBlock on the repository shows its state once it has run."
+					: "The file is queued for processing; findAssets shows its status once it has run.",
 			},
 		}),
 	});

@@ -49,3 +49,9 @@ export type CreateAssetsFromUploadsInput = z.infer<
 	typeof createAssetsFromUploadsInputSchema
 >;
 export type DeleteAssetsInput = z.infer<typeof deleteAssetsInputSchema>;
+
+export const reprocessAssetInputSchema = z.object({
+	id: assetIdSchema,
+});
+
+export type ReprocessAssetInput = z.infer<typeof reprocessAssetInputSchema>;
