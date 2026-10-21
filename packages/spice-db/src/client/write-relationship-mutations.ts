@@ -86,23 +86,11 @@ export const writeRelationshipMutations = (
 		};
 	});
 
-// The request itself is wrong for the schema, so retrying it fails the same way.
-const PERMANENT_WRITE_STATUSES = new Set<number>([
-	status.INVALID_ARGUMENT,
-	status.FAILED_PRECONDITION,
-	status.NOT_FOUND,
-	status.ALREADY_EXISTS,
-	status.OUT_OF_RANGE,
-]);
-
-/**
- * Whether a failed write would fail again unchanged. Unavailability, timeouts,
- * exhaustion and authentication fail every write alike and count as transient.
- */
-export const isPermanentWriteFailure = (error: SpiceDbError) => {
+/** The gRPC status name of a failed SpiceDB call, when it carries one. */
+export const grpcStatusOf = (error: SpiceDbError) => {
 	const code =
 		error.cause instanceof Error && "code" in error.cause
 			? error.cause.code
 			: undefined;
-	return typeof code === "number" && PERMANENT_WRITE_STATUSES.has(code);
+	return typeof code === "number" ? status[code] : undefined;
 };

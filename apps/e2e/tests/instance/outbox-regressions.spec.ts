@@ -27,7 +27,7 @@ const INSTALL = `DROP TRIGGER IF EXISTS e2e_outbox_fault ON authz_outbox;
      IF fault.mode = 'rollback' THEN RAISE EXCEPTION 'injected outbox enqueue failure'; END IF;
      IF fault.mode = 'delay' THEN NEW.next_attempt_at := now() + interval '1 hour'; END IF;
      IF fault.mode = 'fail' THEN
-      NEW.payload_json := jsonb_set(NEW.payload_json::jsonb || jsonb_build_object('original', NEW.payload_json), '{mutations,0,resourceType}', '"invalid_e2e_resource"'::jsonb);
+      NEW.payload_json := jsonb_build_object('original', NEW.payload_json, 'mutations', 'unreadable_e2e_payload');
      END IF;
     END IF;
     RETURN NEW;
@@ -80,7 +80,7 @@ const test = base.extend<{
 		} finally {
 			await db.query(UNINSTALL);
 			await db.query(
-				"UPDATE authz_outbox SET payload_json = COALESCE(payload_json->'original', payload_json), next_attempt_at = NULL WHERE payload_json::text LIKE '%invalid_e2e_resource%' OR next_attempt_at > now() + interval '30 minutes'",
+				"UPDATE authz_outbox SET payload_json = COALESCE(payload_json->'original', payload_json), next_attempt_at = NULL WHERE payload_json::text LIKE '%unreadable_e2e_payload%' OR next_attempt_at > now() + interval '30 minutes'",
 			);
 			await db.end();
 		}
@@ -339,10 +339,10 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 				timeout: 30_000,
 			})
 			.toBe("processed");
-	// An event SpiceDB rejects is dead-lettered at once and delivery moves on.
+	// An unreadable event is dead-lettered at once and delivery moves on.
 	await fault(doomed.id, "fail");
-	const rejected = await api.as("admin", doomed).group.create({
-		name: `Outbox rejected ${randomUUID()}`,
+	const unreadable = await api.as("admin", doomed).group.create({
+		name: `Outbox unreadable ${randomUUID()}`,
 	});
 	await fault("none", "delay");
 	const next = await api.as("admin", doomed).group.create({
@@ -350,7 +350,7 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 	});
 	for (const [target, status] of [
 		[
-			rejected.data.id,
+			unreadable.data.id,
 			"dead_letter",
 		],
 		[
