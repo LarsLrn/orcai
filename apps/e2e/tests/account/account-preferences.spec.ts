@@ -46,19 +46,16 @@ test("account: skipping the app tour is remembered for the user", async ({
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
-		const tourCard = page.getByText(
-			message("next_step_initial_welcome_title"),
-			{
-				exact: true,
-			},
-		);
+		const tourCard = page.getByRole("dialog", {
+			name: message("tour_initial_welcome_title"),
+		});
 
 		// A user who has not seen the tour gets it on the app home.
 		await openAppPage(page, "/app", tourCard);
 
 		await page
 			.getByRole("button", {
-				name: message("next_step_card_skip_button"),
+				name: message("tour_card_skip_button"),
 			})
 			.click();
 

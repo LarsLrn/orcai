@@ -161,7 +161,7 @@ test("the app user menu offers instance management only to instance admins", asy
 	const adminPage = await pageAsWellKnownAdmin();
 	await enterApp(adminPage, INSTANCE_ORGANISATION.slug);
 	const skipTour = adminPage.getByRole("button", {
-		name: message("next_step_card_skip_button"),
+		name: message("tour_card_skip_button"),
 	});
 	if (await skipTour.isVisible()) {
 		await skipTour.click();

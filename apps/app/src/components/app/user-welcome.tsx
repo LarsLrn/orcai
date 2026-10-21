@@ -1,6 +1,6 @@
 import { useHydrated, useRouteContext } from "@tanstack/react-router";
 import { CompassIcon, ExternalLinkIcon } from "lucide-react";
-import { AppTourButton } from "@/components/next-step/app-tour-button";
+import { TourButton } from "@/components/tour/tour-button";
 import { buttonVariants } from "@/components/ui/button";
 import { clientEnv } from "@/lib/env/client";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ const UserWelcome = () => {
 			</h1>
 			<p className="text-muted-foreground">{m.home_intro()}</p>
 			<div className="-ms-3 flex flex-wrap items-center gap-1 pt-2">
-				<AppTourButton
+				<TourButton
 					variant="ghost"
 					size="sm"
 					tour="initialTour"
@@ -40,7 +40,7 @@ const UserWelcome = () => {
 					aria-label={m.home_tour_button_aria_label()}
 				>
 					<CompassIcon className="text-foreground" />
-				</AppTourButton>
+				</TourButton>
 				{clientEnv.VITE_WEB_URL && (
 					<a
 						href={clientEnv.VITE_WEB_URL}

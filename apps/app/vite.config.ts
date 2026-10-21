@@ -1,4 +1,3 @@
-import path from "node:path";
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
@@ -24,21 +23,12 @@ export default defineConfig({
 		noExternal: [
 			// Bundled with the workspace packages so the server holds one OpenTelemetry SDK.
 			"@effect/opentelemetry",
-			"nextstepjs",
 			"motion",
 			"streamdown",
 		],
 	},
 	resolve: {
 		tsconfigPaths: true,
-		// Mock Next.js navigation imports that nextstepjs tries to access
-		// FIXME: Check whether this was addressed upstream
-		alias: {
-			"next/navigation": path.resolve(
-				import.meta.dirname,
-				"./src/mocks/next-navigation.ts",
-			),
-		},
 	},
 	plugins: [
 		devtools(), // must be first plugin

@@ -14,8 +14,7 @@ const UserStats = ({
 	});
 
 	return (
-		// TODO: Consider centralising ids used by next-step
-		<Card className="relative h-fit" id="tour-account">
+		<Card className="relative h-fit">
 			{showSettingsLink && (
 				<Link
 					to={"/app/account"}
