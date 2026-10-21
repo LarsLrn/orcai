@@ -94,6 +94,13 @@ export interface ProviderKindServerEntry {
 	readonly callProviderOptions?: SharedV4ProviderOptions;
 	/** Without it, our own summary compacts. */
 	readonly compaction?: NativeCompaction;
+	/** How a chat title is asked for, set where the SDK turns reasoning off safely. */
+	readonly titleCallSettings?: TitleCallSettings;
+}
+
+export interface TitleCallSettings {
+	readonly reasoning?: "none";
+	readonly maxOutputTokens?: number;
 }
 
 const requireEndpoint = ({ endpoint }: ProviderConnection) => {
@@ -176,6 +183,11 @@ export const providerKindServerEntries: Record<
 			ANTHROPIC_MODELS_WITHOUT_TOOL_SEARCH.test(modelId)
 				? activeToolsLoading
 				: anthropicReferences,
+		// Models that cannot turn thinking off get low effort, which the cap leaves room for.
+		titleCallSettings: {
+			reasoning: "none",
+			maxOutputTokens: 256,
+		},
 		compaction: {
 			source: "anthropic",
 			minimumTrigger: 50_000,
@@ -198,6 +210,9 @@ export const providerKindServerEntries: Record<
 		},
 	},
 };
+
+export const titleCallSettings = (kind: ProviderKind): TitleCallSettings =>
+	providerKindServerEntries[kind].titleCallSettings ?? {};
 
 export const createProviderLanguageModel = (
 	kind: ProviderKind,
