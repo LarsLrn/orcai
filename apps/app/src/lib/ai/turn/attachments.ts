@@ -6,7 +6,7 @@ import {
 	type StoredExtractionArtifact,
 } from "@orcai/process";
 import { getMimeTypeFromFileType } from "@orcai/s3";
-import { getDownloadUrl, getObjectAsJson } from "@orcai/s3/server";
+import { getImageAsBase64, getObjectAsJson } from "@orcai/s3/server";
 import type { ChatAttachmentRef, ChatMessageAttachment } from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
 import type { FileUIPart, TextUIPart } from "ai";
@@ -15,7 +15,10 @@ import * as Effect from "effect/Effect";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { permissionDenied } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
-import { CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH } from "@/settings/constants";
+import {
+	CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH,
+	CHAT_ATTACHMENT_MAX_IMAGE_BYTES,
+} from "@/settings/constants";
 
 type Reader = {
 	userId: UserId;
@@ -124,18 +127,18 @@ const notePart = (text: string): AttachmentPart => ({
 	text,
 });
 
+// Inline data, so the model never fetches a signed URL.
 const filePart = (asset: AttachedAsset) =>
-	getDownloadUrl({
+	getImageAsBase64({
 		bucket: asset.bucket,
-		key: objectKey(asset),
-		expiresIn: 60 * 30,
+		name: objectKey(asset),
 	}).pipe(
 		Effect.map(
-			(url): AttachmentPart => ({
+			(base64): AttachmentPart => ({
 				type: "file",
 				mediaType: asset.mediaType,
 				filename: asset.title,
-				url,
+				url: `data:${asset.mediaType};base64,${base64}`,
 			}),
 		),
 	);
@@ -192,7 +195,7 @@ const promptPart = (asset: AttachedAsset) =>
 /**
  * User messages with their attachments as parts the model reads. An
  * attachment the reader can no longer read, or whose asset is gone, becomes a
- * note saying so.
+ * note saying so, as do images past the turn's image budget.
  */
 export const withAttachmentParts = (
 	messages: ChatAgentUIMessage[],
@@ -201,19 +204,37 @@ export const withAttachmentParts = (
 	Effect.gen(function* () {
 		const attachmentsOf = (message: ChatAgentUIMessage) =>
 			message.role === "user" ? (message.attachments ?? []) : [];
+		// Newest first, so the image budget goes to the latest attachments.
 		const assetIds = unique(
-			messages.flatMap((message) =>
-				attachmentsOf(message).map((attachment) => attachment.assetId),
-			),
+			[
+				...messages,
+			]
+				.reverse()
+				.flatMap((message) =>
+					attachmentsOf(message).map((attachment) => attachment.assetId),
+				),
 		);
 		if (assetIds.length === 0) return messages;
 
 		const assets = yield* readableAssets(assetIds, reader);
 		const parts = new Map<AssetId, AttachmentPart>();
+		let imageBytes = 0;
+		const loaded = assetIds
+			.flatMap((assetId) => assets.get(assetId) ?? [])
+			.filter((asset) => {
+				if (!asset.mediaType.startsWith("image/")) return true;
+				imageBytes += asset.size;
+				if (imageBytes <= CHAT_ATTACHMENT_MAX_IMAGE_BYTES) return true;
+				parts.set(
+					asset.id,
+					notePart(
+						`Attachment "${asset.title}" is left out to keep the request small.`,
+					),
+				);
+				return false;
+			});
 		yield* Effect.forEach(
-			[
-				...assets.values(),
-			],
+			loaded,
 			(asset) =>
 				promptPart(asset).pipe(
 					Effect.tap((part) => Effect.sync(() => parts.set(asset.id, part))),
