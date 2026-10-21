@@ -1,12 +1,9 @@
 import { assetIdSchema } from "@orcai/schema";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { assetProcedures } from "@/lib/orpc/router/asset";
 import { deleteNamed } from "../named-delete";
-import {
-	type AssistantToolDeps,
-	assistantTool,
-	runAssistantTool,
-} from "../procedure-tool";
+import { type AssistantToolDeps, assistantTool } from "../procedure-tool";
 
 export const deleteAssetInputSchema = z.object({
 	ids: z

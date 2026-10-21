@@ -2,13 +2,10 @@ import type { GroupId } from "@orcai/core";
 import { groupIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import { deleteNamed } from "../named-delete";
-import {
-	type AssistantToolDeps,
-	assistantTool,
-	runAssistantTool,
-} from "../procedure-tool";
+import { type AssistantToolDeps, assistantTool } from "../procedure-tool";
 
 export const deleteGroupInputSchema = z.object({
 	ids: z

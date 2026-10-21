@@ -2,14 +2,11 @@ import type { UserId } from "@orcai/core";
 import { userIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { organizationMemberProcedures } from "@/lib/orpc/router/organization-member";
 import { userProcedures } from "@/lib/orpc/router/user";
 import { deleteNamed } from "../named-delete";
-import {
-	type AssistantToolDeps,
-	assistantTool,
-	runAssistantTool,
-} from "../procedure-tool";
+import { type AssistantToolDeps, assistantTool } from "../procedure-tool";
 
 export const removeMembersInputSchema = z.object({
 	userIds: z

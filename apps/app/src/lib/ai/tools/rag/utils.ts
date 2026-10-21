@@ -1,4 +1,3 @@
-import { AiError } from "@orcai/ai";
 import {
 	type AssetId,
 	type BlockId,
@@ -269,13 +268,6 @@ export const loadDocumentCatalog = ({
 						},
 					)
 					.pipe(
-						Effect.mapError(
-							(cause) =>
-								new AiError({
-									operation: "loadDocumentCatalog.findBlock",
-									cause,
-								}),
-						),
 						Effect.map((result) => ({
 							block,
 							assetIds:
@@ -294,28 +286,18 @@ export const loadDocumentCatalog = ({
 			return [];
 		}
 
-		const assetResponse = yield* assetProcedures
-			.list(
-				{
-					pageIndex: 0,
-					pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
-					filters: {
-						ids: uniqueAssetIds,
-					},
+		const assetResponse = yield* assetProcedures.list(
+			{
+				pageIndex: 0,
+				pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
+				filters: {
+					ids: uniqueAssetIds,
 				},
-				{
-					context,
-				},
-			)
-			.pipe(
-				Effect.mapError(
-					(cause) =>
-						new AiError({
-							operation: "loadDocumentCatalog.listAssets",
-							cause,
-						}),
-				),
-			);
+			},
+			{
+				context,
+			},
+		);
 
 		const assetById = new Map(
 			assetResponse.data.map(

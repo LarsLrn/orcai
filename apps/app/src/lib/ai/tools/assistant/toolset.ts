@@ -1,5 +1,6 @@
 import type { ToolLoading } from "@orcai/ai";
 import type { ToolSet } from "ai";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import { createBotTool } from "./bots/create-bot";
 import { createRepositoryTool } from "./bots/create-repository";
 import { createTemplateTool } from "./bots/create-template";
@@ -38,7 +39,7 @@ import { removeGroupMembersTool } from "./people/remove-group-members";
 import { removeMembersTool } from "./people/remove-members";
 import { updateGroupTool } from "./people/update-group";
 import { updatePlanTool } from "./plan/update-plan";
-import { type AssistantToolDeps, AssistantToolError } from "./procedure-tool";
+import type { AssistantToolDeps } from "./procedure-tool";
 import { findPrincipalsTool } from "./sharing/find-principals";
 import { grantAccessTool } from "./sharing/grant-access";
 import { listAccessTool } from "./sharing/list-access";

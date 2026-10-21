@@ -7,7 +7,10 @@ import {
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runPromise } from "@/lib/effect/runtime";
+import {
+	AssistantToolError,
+	runAssistantTool,
+} from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
@@ -103,7 +106,7 @@ export const searchKnowledgeBaseTool = ({
 			{ query, queryVariants, queries, assetIds, blockId },
 			{ abortSignal },
 		) =>
-			runPromise(
+			runAssistantTool(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
 						return yield* new AiError({
@@ -118,10 +121,11 @@ export const searchKnowledgeBaseTool = ({
 						queries,
 					});
 					if (normalizedQueries.length === 0) {
-						return yield* new AiError({
-							operation: "searchKnowledgeBaseTool",
-							cause: new Error("Provide query or queryVariants."),
-						});
+						return yield* Effect.fail(
+							new AssistantToolError(
+								"INVALID_TOOL_INPUT: Provide query or queryVariants.",
+							),
+						);
 					}
 
 					const targetBlocks = resolveSearchBlocks({
@@ -169,14 +173,6 @@ export const searchKnowledgeBaseTool = ({
 						{
 							concurrency: "unbounded",
 						},
-					).pipe(
-						Effect.mapError(
-							(cause) =>
-								new AiError({
-									operation: "searchKnowledgeBaseTool.search",
-									cause,
-								}),
-						),
 					);
 
 					const candidates = mergeAndSortCandidates(
@@ -209,8 +205,6 @@ export const searchKnowledgeBaseTool = ({
 						},
 					};
 				}),
-				{
-					signal: abortSignal,
-				},
+				abortSignal,
 			),
 	});

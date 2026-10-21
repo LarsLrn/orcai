@@ -1,13 +1,13 @@
 import { resourceGrantRoleSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { resourceProcedures } from "@/lib/orpc/router/resource";
 import {
 	type AssistantToolDeps,
 	assistantTool,
 	callProcedure,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 import {
 	expectPrincipals,

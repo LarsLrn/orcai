@@ -1,6 +1,7 @@
 import type { GroupId } from "@orcai/core";
 import { groupFieldsSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
@@ -8,7 +9,6 @@ import {
 	callProcedure,
 	createOnce,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 import { groupOutline } from "./group-outline";
 

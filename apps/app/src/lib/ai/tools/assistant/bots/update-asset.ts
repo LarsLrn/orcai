@@ -6,6 +6,7 @@ import {
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { assetProcedures } from "@/lib/orpc/router/asset";
 import {
 	type AssistantToolDeps,
@@ -13,7 +14,6 @@ import {
 	callProcedure,
 	expectType,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 
 const assetMetadataPatchSchema = metadataSchema.partial();

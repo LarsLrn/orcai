@@ -3,7 +3,7 @@ import {
 	ASSISTANT_TOOL_GROUPS,
 	DEFERRED_TOOL_GROUPS,
 } from "@/lib/ai/tools/assistant/groups";
-import { AssistantToolError } from "@/lib/ai/tools/assistant/procedure-tool";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import { streamErrorReason } from "./stream-error-reason";
 
 const deferredGroupOf = (toolName: string) =>

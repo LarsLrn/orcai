@@ -2,6 +2,7 @@ import type { BlockId } from "@orcai/core";
 import { blockFieldsSchema, publicationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import {
 	type AssistantToolDeps,
@@ -9,7 +10,6 @@ import {
 	callProcedure,
 	createOnce,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 import { blockDescription, templateOutline } from "./block-outline";
 

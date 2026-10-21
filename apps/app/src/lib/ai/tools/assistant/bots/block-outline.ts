@@ -1,6 +1,7 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import type { PublicationStatus } from "@orcai/schema";
-import { AssistantToolError, wrongIdText } from "../procedure-tool";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
+import { wrongIdText } from "../procedure-tool";
 
 /** The editor stores a blank description as null. */
 export const blockDescription = (description: string) =>

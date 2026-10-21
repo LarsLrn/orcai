@@ -1,11 +1,11 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
 	assistantTool,
 	callProcedure,
-	runAssistantTool,
 } from "../procedure-tool";
 import { listLimitSchema, listQuerySchema } from "./list-input";
 

@@ -1,6 +1,7 @@
 import { botIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import { botProcedures } from "@/lib/orpc/router/bot";
 import {
@@ -8,7 +9,6 @@ import {
 	assistantTool,
 	callProcedure,
 	expectType,
-	runAssistantTool,
 } from "../procedure-tool";
 
 export const getBotInputSchema = z.object({

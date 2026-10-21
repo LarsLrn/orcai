@@ -7,14 +7,16 @@ import {
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import {
+	AssistantToolError,
+	runAssistantTool,
+} from "@/lib/ai/tools/tool-error";
 import { blockProcedures } from "@/lib/orpc/router/block";
 import { jobProcedures } from "@/lib/orpc/router/job";
 import {
 	type AssistantToolDeps,
-	AssistantToolError,
 	assistantTool,
 	callProcedure,
-	runAssistantTool,
 } from "../procedure-tool";
 
 export const getBlockInputSchema = z.object({

@@ -1,5 +1,6 @@
 import { updateGroupInputSchema as updateGroupProcedureInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { groupProcedures } from "@/lib/orpc/router/group";
 import {
 	type AssistantToolDeps,
@@ -7,7 +8,6 @@ import {
 	callProcedure,
 	expectType,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 import { groupOutline } from "./group-outline";
 

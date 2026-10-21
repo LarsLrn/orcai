@@ -3,7 +3,7 @@ import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { runPromise } from "@/lib/effect/runtime";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
@@ -64,7 +64,7 @@ export const getKnowledgeBaseChunksTool = ({
 			{ ids, limit, blockId, includeAdjacent },
 			{ abortSignal },
 		) =>
-			runPromise(
+			runAssistantTool(
 				Effect.gen(function* () {
 					if (blocks.length === 0) {
 						return yield* new AiError({
@@ -134,14 +134,6 @@ export const getKnowledgeBaseChunksTool = ({
 						{
 							concurrency: "unbounded",
 						},
-					).pipe(
-						Effect.mapError(
-							(cause) =>
-								new AiError({
-									operation: "getKnowledgeBaseChunksTool.fetch",
-									cause,
-								}),
-						),
 					);
 
 					const candidates = mergeAndSortCandidates(
@@ -219,14 +211,6 @@ export const getKnowledgeBaseChunksTool = ({
 							{
 								concurrency: "unbounded",
 							},
-						).pipe(
-							Effect.mapError(
-								(cause) =>
-									new AiError({
-										operation: "getKnowledgeBaseChunksTool.adjacent",
-										cause,
-									}),
-							),
 						);
 
 						for (const adjacentResult of adjacentResponses) {
@@ -287,8 +271,6 @@ export const getKnowledgeBaseChunksTool = ({
 						},
 					};
 				}),
-				{
-					signal: abortSignal,
-				},
+				abortSignal,
 			),
 	});

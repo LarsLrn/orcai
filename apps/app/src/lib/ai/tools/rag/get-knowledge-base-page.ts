@@ -1,4 +1,3 @@
-import { AiError } from "@orcai/ai";
 import {
 	assetIdSchema,
 	blockIdSchema,
@@ -7,7 +6,7 @@ import {
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
-import { runPromise } from "@/lib/effect/runtime";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { assetPointProcedures } from "@/lib/orpc/router/asset-point";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
@@ -80,7 +79,7 @@ export const getKnowledgeBasePageTool = ({
 			},
 			{ abortSignal },
 		) =>
-			runPromise(
+			runAssistantTool(
 				Effect.gen(function* () {
 					const targetBlocks = resolveSearchBlocks({
 						blocks,
@@ -164,14 +163,6 @@ export const getKnowledgeBasePageTool = ({
 						{
 							concurrency: "unbounded",
 						},
-					).pipe(
-						Effect.mapError(
-							(cause) =>
-								new AiError({
-									operation: "getKnowledgeBasePageTool.query",
-									cause,
-								}),
-						),
 					);
 
 					const points = mergeAndSortCandidates(
@@ -199,8 +190,6 @@ export const getKnowledgeBasePageTool = ({
 						},
 					};
 				}),
-				{
-					signal: abortSignal,
-				},
+				abortSignal,
 			),
 	});

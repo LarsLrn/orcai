@@ -1,5 +1,6 @@
 import { publishBotInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import { botProcedures } from "@/lib/orpc/router/bot";
 import {
 	type AssistantToolDeps,
@@ -7,7 +8,6 @@ import {
 	callProcedure,
 	expectType,
 	mutation,
-	runAssistantTool,
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
 

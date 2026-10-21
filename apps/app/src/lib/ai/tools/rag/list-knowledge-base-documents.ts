@@ -2,7 +2,7 @@ import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
 import { tool } from "ai";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
-import { runPromise } from "@/lib/effect/runtime";
+import { runAssistantTool } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { KnowledgeBaseDocument } from "./types";
 import {
@@ -38,7 +38,7 @@ export const listKnowledgeBaseDocumentsTool = ({
 				.describe("Maximum number of documents to return."),
 		}),
 		execute: async ({ query, blockId, limit }, { abortSignal }) =>
-			runPromise(
+			runAssistantTool(
 				Effect.gen(function* () {
 					const targetBlocks = resolveSearchBlocks({
 						blocks,
@@ -73,8 +73,6 @@ export const listKnowledgeBaseDocumentsTool = ({
 						},
 					};
 				}),
-				{
-					signal: abortSignal,
-				},
+				abortSignal,
 			),
 	});

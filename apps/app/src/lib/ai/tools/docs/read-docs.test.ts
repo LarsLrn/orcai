@@ -5,9 +5,7 @@ import * as TestClock from "effect/testing/TestClock";
 import "../assistant/test-procedures";
 import type { DocsFetch } from "./read-docs";
 
-const { AssistantToolError } = await import(
-	"@/lib/ai/tools/assistant/procedure-tool"
-);
+const { AssistantToolError } = await import("@/lib/ai/tools/tool-error");
 const { docsMarkdownPath, docsPageTitle, readDocs, readDocsTool } =
 	await import("./read-docs");
 
@@ -242,7 +240,7 @@ describe("readDocs", () => {
 
 	test("names a missing page", async () => {
 		expect((await failure("/docs/missing")).message).toBe(
-			"No docs page at /docs/missing; read the index (call readDocs without a path) for valid paths.",
+			"NOT_FOUND: No docs page at /docs/missing; read the index (call readDocs without a path) for valid paths.",
 		);
 	});
 
@@ -253,7 +251,7 @@ describe("readDocs", () => {
 		"/docs/moved",
 	])("reports %p as unavailable", async (path) => {
 		expect((await failure(path)).message).toBe(
-			"The docs are unavailable right now.",
+			"AI_TOOL_FAILED: The docs are unavailable right now.",
 		);
 	});
 
@@ -271,12 +269,14 @@ describe("readDocs", () => {
 			),
 		);
 
-		expect(error.message).toBe("The docs are unavailable right now.");
+		expect(error.message).toBe(
+			"AI_TOOL_FAILED: The docs are unavailable right now.",
+		);
 	});
 
 	test("never fetches a path outside the pattern", async () => {
 		expect((await failure("/docs/../app")).message).toBe(
-			"/docs/../app is not a docs page path.",
+			"INVALID_TOOL_INPUT: /docs/../app is not a docs page path.",
 		);
 		expect(requested).toEqual([]);
 	});
@@ -300,7 +300,9 @@ describe("readDocs", () => {
 			}).pipe(Effect.provide(TestClock.layer())),
 		);
 
-		expect(error.message).toBe("The docs are unavailable right now.");
+		expect(error.message).toBe(
+			"AI_TOOL_FAILED: The docs are unavailable right now.",
+		);
 	});
 
 	test("aborts the fetch with the signal", async () => {
@@ -342,7 +344,9 @@ describe("readDocsTool", () => {
 				},
 			),
 		).rejects.toThrow(
-			new AssistantToolError("The docs are unavailable right now."),
+			new AssistantToolError(
+				"AI_TOOL_FAILED: The docs are unavailable right now.",
+			),
 		);
 	});
 });
