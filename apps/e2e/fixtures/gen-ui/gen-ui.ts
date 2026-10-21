@@ -1,6 +1,12 @@
 import type { BotId, ChatId } from "@orcai/core";
 import { expect, type Page } from "@playwright/test";
-import { type ChatModel, chatName, composer, messageText } from "../chat/chat";
+import {
+	type ChatModel,
+	chatName,
+	composer,
+	messageText,
+	turnFinished,
+} from "../chat/chat";
 import type { ApiClient } from "../index";
 import type { InferenceMock } from "../inference/fixture";
 import { message } from "../messages";
@@ -136,22 +142,6 @@ export const ask = async (page: Page, question: string): Promise<void> => {
 			exact: true,
 		})
 		.click();
-};
-
-/** Wait until the latest turn has finished streaming. */
-export const turnFinished = async (page: Page): Promise<void> => {
-	await expect(
-		page.getByRole("button", {
-			name: message("ai_elements_prompt_input_stop_aria_label"),
-			exact: true,
-		}),
-	).toHaveCount(0);
-	await expect(
-		page.getByRole("button", {
-			name: message("ai_elements_prompt_input_submit_aria_label"),
-			exact: true,
-		}),
-	).toBeVisible();
 };
 
 /** Send a question and wait for the mock's echo of it. */

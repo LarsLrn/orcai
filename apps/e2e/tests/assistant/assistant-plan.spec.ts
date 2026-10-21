@@ -51,12 +51,12 @@ import {
 	composer,
 	createChat,
 	messageText,
+	turnFinished,
 } from "../../fixtures/chat/chat";
 import {
 	ask,
 	createBotChat,
 	createBot as createGenUiBot,
-	turnFinished,
 } from "../../fixtures/gen-ui/gen-ui";
 import type { ApiClient } from "../../fixtures/index";
 import {

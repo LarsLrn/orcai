@@ -17,8 +17,8 @@ import {
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import { approvePlan } from "../../fixtures/assistant/plan";
-import { chatName, messageText } from "../../fixtures/chat/chat";
-import { ask, turnFinished } from "../../fixtures/gen-ui/gen-ui";
+import { chatName, messageText, turnFinished } from "../../fixtures/chat/chat";
+import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";

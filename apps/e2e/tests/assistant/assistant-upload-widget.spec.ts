@@ -30,7 +30,7 @@ import {
 	uploadWidget,
 } from "../../fixtures/assistant/upload";
 import { adoptPageZedToken } from "../../fixtures/authz/resources";
-import { chatName, messageText } from "../../fixtures/chat/chat";
+import { chatName, messageText, turnFinished } from "../../fixtures/chat/chat";
 import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
@@ -83,6 +83,7 @@ test("assistant: requestUpload answers with the created assets and continues the
 
 	await uploadTextFile(widget, fileName);
 	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 	expect(continuations()).toBe(1);
 
 	const requests = turnRequests(inference);
@@ -215,6 +216,7 @@ test("assistant: Cancel during an upload asks, aborts it and reports cancelled",
 		})
 		.click();
 	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 	uploads.release();
 
 	const reply = await lastRow(member, chatId);
@@ -276,6 +278,7 @@ test("assistant: a new message instead of an upload skips the widget", async ({
 		}),
 	).toBeVisible();
 	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 	expect(continuations()).toBe(0);
 
 	const requests = turnRequests(inference);
