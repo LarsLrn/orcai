@@ -10,6 +10,7 @@ export * from "./id-schema";
 export * from "./pagination";
 export * from "./primitives/file-type";
 export * from "./primitives/locale";
+export * from "./primitives/pipeline-status";
 export * from "./primitives/publication-status";
 export * from "./primitives/retrieval-mode";
 export * from "./responses";

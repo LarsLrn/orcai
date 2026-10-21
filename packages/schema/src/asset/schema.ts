@@ -2,11 +2,14 @@ import { z } from "zod/v4";
 import { entityCapabilitiesSchema } from "../authorization";
 import { blockIdSchema } from "../block/ref";
 import { assetFileTypeSchema } from "../shared/primitives/file-type";
+import {
+	pipelineFailureSchema,
+	pipelineStatusSchema,
+} from "../shared/primitives/pipeline-status";
 import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
 import { metadataSchema } from "./parts/metadata";
 import { assetOriginSchema } from "./parts/origin";
-import { processingStatusSchema } from "./parts/processing-status";
 import { assetIdSchema } from "./ref";
 
 export const assetFieldsSchema = z.object({
@@ -19,7 +22,8 @@ export const assetSchema = assetFieldsSchema.extend({
 	bucket: bucketSchema,
 	prefix: z.string(),
 	size: z.number().int(),
-	processingStatus: processingStatusSchema,
+	processingStatus: pipelineStatusSchema,
+	processingFailure: pipelineFailureSchema.nullable(),
 	fileType: assetFileTypeSchema,
 	origin: assetOriginSchema,
 	userId: userIdSchema,
