@@ -1,6 +1,7 @@
 import { assetIdSchema } from "@orcai/schema";
 import { tool } from "ai";
 import { z } from "zod/v4";
+import { toolInputSchema } from "@/lib/ai/tools/input-schema";
 import type { NoToolContext } from "../procedure-tool";
 
 export const requestUploadInputSchema = z.object({
@@ -43,7 +44,7 @@ export const requestUploadTool = tool<
 >({
 	description:
 		"Show the user an upload field in the conversation to add files as assets. It only creates assets: it never attaches them to a repository. Returns the ids and titles of the saved assets, or status cancelled. To put the files in a repository, attach them afterwards with createRepository or updateRepository. After cancelled, do not call it again unless the user asks.",
-	inputSchema: requestUploadInputSchema,
+	inputSchema: toolInputSchema(requestUploadInputSchema),
 	outputSchema: requestUploadOutputSchema,
 	toModelOutput: ({ output }) => ({
 		type: "json",

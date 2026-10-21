@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import { ValkeyService } from "@orcai/valkey";
 import { COMMON_ERROR_STATUS_MAP, ORPCError } from "@orpc/client";
 import {
-	type FlexibleSchema,
 	type Tool,
 	type ToolExecuteFunction,
 	type ToolExecutionOptions,
@@ -11,11 +10,13 @@ import {
 } from "ai";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
+import type { z } from "zod/v4";
 import {
 	type EntityKind,
 	isMissing,
 	wrongIdText,
 } from "@/lib/ai/tools/entity-kind";
+import { toolInputSchema } from "@/lib/ai/tools/input-schema";
 import type { AppRuntimeContext } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
@@ -267,9 +268,17 @@ export type AssistantTool<Input, Output> = Tool<
 	execute: ToolExecuteFunction<Input, Output, NoToolContext>;
 };
 
-export const assistantTool = <Input, Output>(
-	definition: AssistantTool<Input, Output>,
-): AssistantTool<Input, Output> => tool(definition);
+export const assistantTool = <Input, Output>({
+	inputSchema,
+	...definition
+}: Omit<AssistantTool<Input, Output>, "inputSchema"> & {
+	inputSchema: z.ZodType<Input>;
+}): AssistantTool<Input, Output> =>
+	// The SDK's conditional tool types do not resolve over a generic Input and Output.
+	tool({
+		...definition,
+		inputSchema: toolInputSchema(inputSchema),
+	} as unknown as AssistantTool<Input, Output>);
 
 /**
  * A tool whose call runs `run` with the call's abort signal. A failure or
@@ -277,10 +286,11 @@ export const assistantTool = <Input, Output>(
  */
 export const effectTool = <Input, Output>({
 	run,
+	inputSchema,
 	...definition
 }: {
 	description: string;
-	inputSchema: FlexibleSchema<Input>;
+	inputSchema: z.ZodType<Input>;
 	run: (
 		input: Input,
 		options: ToolExecutionOptions<NoToolContext>,
@@ -294,6 +304,7 @@ export const effectTool = <Input, Output>({
 	// The SDK's conditional tool types do not resolve over a generic Input and Output.
 	({
 		...definition,
+		inputSchema: toolInputSchema(inputSchema),
 		execute: (input: Input, options: ToolExecutionOptions<NoToolContext>) =>
 			runAssistantTool(run(input, options), options.abortSignal),
 	}) as unknown as AssistantTool<Input, Output>;

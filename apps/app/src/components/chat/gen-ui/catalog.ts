@@ -15,6 +15,7 @@ import { matrixToMarkdown } from "@/components/chat/gen-ui/matrix/to-markdown";
 import { readReview } from "@/components/chat/gen-ui/review/findings";
 import { reviewSchema } from "@/components/chat/gen-ui/review/schema";
 import { reviewToMarkdown } from "@/components/chat/gen-ui/review/to-markdown";
+import { toolInputSchema } from "@/lib/ai/tools/input-schema";
 import { m } from "@/paraglide/messages";
 
 interface PrimitiveEntry<Schema extends z.ZodType, View> {
@@ -105,7 +106,7 @@ const displayTool = ({
 }: Pick<PrimitiveEntry<z.ZodType, unknown>, "schema" | "description">) =>
 	tool({
 		description,
-		inputSchema: schema,
+		inputSchema: toolInputSchema(schema),
 		execute: async () => ({
 			shown: true as const,
 		}),
