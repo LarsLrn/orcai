@@ -52,14 +52,12 @@ export const findPrincipalsTool = (deps: AssistantToolDeps) =>
 					principals: data.map((principal) =>
 						principal.type === "user"
 							? {
-									type: "member" as const,
 									principalType: principal.type,
 									principalId: principal.id,
 									name: principal.name,
 									email: principal.email,
 								}
 							: {
-									type: "group" as const,
 									principalType: principal.type,
 									principalId: principal.id,
 									name: principal.name,

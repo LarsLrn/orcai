@@ -20,7 +20,6 @@ const toFoundBot = (bot: {
 	isFavourite: boolean;
 	capabilities: Record<string, boolean>;
 }) => ({
-	type: "bot" as const,
 	id: bot.id,
 	name: bot.name,
 	description: bot.description,

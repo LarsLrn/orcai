@@ -36,7 +36,6 @@ export const listMembersTool = (deps: AssistantToolDeps) =>
 			).pipe(
 				Effect.map(({ data, rowCount }) => ({
 					members: data.map((user) => ({
-						type: "member" as const,
 						id: user.id,
 						name: user.name,
 						email: user.email,

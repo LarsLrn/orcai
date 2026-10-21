@@ -32,7 +32,7 @@ const readinessOf = (deps: AssistantToolDeps, repositoryId: BlockId) =>
 export const getBlockTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Read one AI behaviour (template) or repository by id: name, description, status and what the user may do with it. A template comes with its system prompt; a repository with its retrieval settings, document totals and each attached asset's state there: queued, processing, indexing, ready or failed (with the failed stage and reason). Only ready documents are searchable.",
+			"Read one AI behaviour (template) or repository by id: name, description, status and what the user may do with it. A template comes with its system prompt; a repository with its document totals and each attached asset's state there: queued, processing, indexing, ready or failed (with the failed stage and reason). Only ready documents are searchable.",
 		inputSchema: getBlockInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {
@@ -88,10 +88,8 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 				return {
 					type: "repository" as const,
 					...common,
-					retrieval: block.config,
 					documents: readiness.totals,
 					assets: readiness.documents.map((document) => ({
-						type: "asset" as const,
 						id: document.assetId,
 						title: document.title,
 						state: document.state,

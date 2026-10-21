@@ -212,7 +212,6 @@ describe("updateBotTool", () => {
 			},
 			repositories: [
 				{
-					type: "repository",
 					id: repositoryId,
 					assetCount: 0,
 				},

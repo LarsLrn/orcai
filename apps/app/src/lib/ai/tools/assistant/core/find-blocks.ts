@@ -59,7 +59,6 @@ export const findBlocksTool = (deps: AssistantToolDeps) =>
 					]
 						.slice(0, limit)
 						.map((block) => ({
-							type,
 							id: block.id,
 							name: block.name,
 							description: block.description,

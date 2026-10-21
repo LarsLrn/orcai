@@ -38,7 +38,6 @@ export const findAssetsTool = (deps: AssistantToolDeps) =>
 			).pipe(
 				Effect.map(({ data, rowCount }) => ({
 					assets: data.map((asset) => ({
-						type: "asset" as const,
 						id: asset.id,
 						title: asset.title,
 						processingStatus: asset.processingStatus,
