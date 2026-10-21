@@ -1,4 +1,5 @@
 import { formatAssetTitle } from "@/components/chat/message/asset-title";
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { ListKnowledgeBaseDocumentsToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import { SourcePassageList, spansMultipleBlocks } from "../source-passage";
@@ -6,10 +7,10 @@ import { ToolEntry } from "../tool-entry";
 
 export const ListKnowledgeBaseDocuments = ({
 	part,
-	running,
+	status,
 }: {
 	part: ListKnowledgeBaseDocumentsToolPart;
-	running: boolean;
+	status: ToolStatus | null;
 }) => {
 	const documents = part.output?.documents ?? [];
 	const showBlockName = spansMultipleBlocks(
@@ -19,7 +20,7 @@ export const ListKnowledgeBaseDocuments = ({
 	return (
 		<ToolEntry
 			part={part}
-			running={running}
+			status={status}
 			label={
 				documents.length > 0
 					? m.chat_work_log_tool_list_documents_result({

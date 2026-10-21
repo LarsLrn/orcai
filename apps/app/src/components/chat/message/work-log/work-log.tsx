@@ -8,64 +8,52 @@ import {
 } from "lucide-react";
 import type { Ref } from "react";
 import {
-	isLiveReasoning,
-	type WorkEntry,
-} from "@/components/chat/message/classify-turn";
-import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import type { Activity, WorkEntry } from "@/lib/ai/turn-view/turn-view";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ReasoningEntry } from "./reasoning-entry";
 import { TextEntry } from "./text-entry";
 import { ToolEntryPart } from "./tool-entry-part";
 import { toolLabels } from "./tool-labels";
-import { isFailedStatus, toolStatus } from "./tool-status";
+import { isFailedStatus } from "./tool-status";
 
 interface WorkLogProps {
 	entries: WorkEntry[];
-	/** Whether the turn is still streaming. Decides running versus orphaned. */
+	/** Whether the turn is still streaming. */
 	running: boolean;
+	activity: Activity | undefined;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	ref?: Ref<HTMLDivElement>;
 }
 
-const failedCount = (entries: WorkEntry[], running: boolean) =>
+const failedCount = (entries: WorkEntry[]) =>
 	entries.filter(
-		(entry) =>
-			entry.kind === "tool" && isFailedStatus(toolStatus(entry.part, running)),
+		(entry) => entry.kind === "tool" && isFailedStatus(entry.status),
 	).length;
 
-/** What the turn is doing right now, if a step is under way. */
-export const activeStepLabel = (
-	entries: WorkEntry[],
-	running: boolean,
-): string | null => {
-	const last = entries.at(-1);
-
-	if (running && last?.kind === "tool" && toolStatus(last.part, true)) {
-		return toolLabels(last.part).active;
+export const activityLabel = (activity: Activity) => {
+	switch (activity.kind) {
+		case "tool":
+			return toolLabels(activity.part).active;
+		case "thinking":
+			return m.chat_work_log_thinking();
+		case "working":
+			return m.chat_work_log_working();
 	}
-
-	if (last?.kind === "reasoning" && isLiveReasoning(last.part, running)) {
-		return m.chat_work_log_thinking();
-	}
-
-	return null;
 };
 
 /** The active step while one runs; otherwise the tally so far. */
-const headerLabel = (entries: WorkEntry[], running: boolean) => {
-	const active = activeStepLabel(entries, running);
-
-	if (active) {
-		return active;
+const headerLabel = (entries: WorkEntry[], activity: Activity | undefined) => {
+	if (activity && activity.kind !== "working") {
+		return activityLabel(activity);
 	}
 
-	const failed = failedCount(entries, running);
+	const failed = failedCount(entries);
 
 	return failed > 0
 		? m.chat_work_log_header_steps_failed({
@@ -77,13 +65,7 @@ const headerLabel = (entries: WorkEntry[], running: boolean) => {
 			});
 };
 
-const EntryIcon = ({
-	entry,
-	running,
-}: {
-	entry: WorkEntry;
-	running: boolean;
-}) => {
+const EntryIcon = ({ entry }: { entry: WorkEntry }) => {
 	if (entry.kind === "reasoning") {
 		return <BrainIcon className="size-3 text-muted-foreground" />;
 	}
@@ -93,7 +75,7 @@ const EntryIcon = ({
 	}
 
 	const Icon = toolLabels(entry.part).icon;
-	const failed = isFailedStatus(toolStatus(entry.part, running));
+	const failed = isFailedStatus(entry.status);
 
 	return (
 		<Icon
@@ -105,14 +87,14 @@ const EntryIcon = ({
 	);
 };
 
-const Entry = ({ entry, running }: { entry: WorkEntry; running: boolean }) => {
+const Entry = ({ entry }: { entry: WorkEntry }) => {
 	switch (entry.kind) {
 		case "reasoning":
-			return <ReasoningEntry part={entry.part} running={running} />;
+			return <ReasoningEntry part={entry.part} live={entry.live} />;
 		case "text":
 			return <TextEntry part={entry.part} />;
 		case "tool":
-			return <ToolEntryPart part={entry.part} running={running} />;
+			return <ToolEntryPart part={entry.part} status={entry.status} />;
 	}
 };
 
@@ -120,11 +102,12 @@ const Entry = ({ entry, running }: { entry: WorkEntry; running: boolean }) => {
 export const WorkLog = ({
 	entries,
 	running,
+	activity,
 	open,
 	onOpenChange,
 	ref,
 }: WorkLogProps) => {
-	const failed = failedCount(entries, running);
+	const failed = failedCount(entries);
 
 	return (
 		<Collapsible
@@ -142,7 +125,7 @@ export const WorkLog = ({
 					<ListChecksIcon className="size-4 shrink-0" />
 				)}
 				<span className="min-w-0 flex-1 truncate">
-					{headerLabel(entries, running)}
+					{headerLabel(entries, activity)}
 				</span>
 				<ChevronDownIcon
 					className={cn(
@@ -160,9 +143,9 @@ export const WorkLog = ({
 					{entries.map((entry) => (
 						<li key={entry.id} className="relative ps-5 pb-4 last:pb-0">
 							<span className="absolute -inset-s-2.5 top-0 grid size-5 place-items-center rounded-full border border-border bg-background">
-								<EntryIcon entry={entry} running={running} />
+								<EntryIcon entry={entry} />
 							</span>
-							<Entry entry={entry} running={running} />
+							<Entry entry={entry} />
 						</li>
 					))}
 				</ol>

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { UIMessage } from "ai";
+import { TOOL_CLOSE_SENTENCES } from "@/lib/ai/utils/close-pending-tool-parts";
 import {
 	applyTurnDecisions,
 	CONTINUATION_LEASE_MS,
@@ -773,6 +774,33 @@ describe("applyTurnDecisions with client tool outputs", () => {
 		expect(answer(widgetStep, [], [])).toMatchObject({
 			ok: false,
 			reason: "CHAT_TURN_DECISIONS_INCOMPLETE",
+		});
+	});
+
+	test("refuses to continue a step whose client call was closed or never complete", () => {
+		const closed: Part[] = [
+			...widgetStep.slice(0, -1),
+			{
+				...upload("a"),
+				state: "output-error",
+				errorText: TOOL_CLOSE_SENTENCES.superseded,
+			} as Part,
+		];
+		const halfStreamed: Part[] = [
+			...widgetStep.slice(0, -1),
+			{
+				...upload("a"),
+				state: "input-streaming",
+			} as Part,
+		];
+
+		expect(answer(closed, [], [])).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_NOT_AWAITING",
+		});
+		expect(answer(halfStreamed, [], [])).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_NOT_AWAITING",
 		});
 	});
 });

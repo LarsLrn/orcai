@@ -15,7 +15,7 @@ import {
 	type SummarisedToolName,
 	toolSummaryOf,
 } from "@/components/assistant/tool-summaries";
-import type { ToolPart } from "@/components/chat/message/classify-turn";
+import type { ToolPart } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
 export interface ToolLabels {

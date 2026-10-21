@@ -1,3 +1,4 @@
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import {
@@ -9,10 +10,10 @@ import { ToolEntry } from "../tool-entry";
 
 export const SearchKnowledgeBase = ({
 	part,
-	running,
+	status,
 }: {
 	part: SearchKnowledgeBaseToolPart;
-	running: boolean;
+	status: ToolStatus | null;
 }) => {
 	const results = part.output?.results ?? [];
 	const showBlockName = spansMultipleBlocks(
@@ -22,7 +23,7 @@ export const SearchKnowledgeBase = ({
 	return (
 		<ToolEntry
 			part={part}
-			running={running}
+			status={status}
 			label={
 				results.length > 0
 					? m.chat_work_log_tool_search_result({

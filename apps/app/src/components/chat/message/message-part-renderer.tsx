@@ -1,70 +1,63 @@
 import type { LinkSafetyConfig } from "streamdown";
 import { MessageResponse } from "@/components/ai-elements/message";
+import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
+import { clientToolRenderersOf } from "@/components/assistant/client-tool-renderers";
 import {
 	type AddToolApprovalResponse,
 	ConfirmationCard,
 } from "@/components/assistant/confirmation-card";
 import { isSummarisedToolPart } from "@/components/assistant/tool-summaries";
-import { UploadWidget } from "@/components/assistant/upload-widget";
-import type { ClientToolActions } from "@/components/chat/continue-turn";
-import { isDisplayToolPart } from "@/components/chat/gen-ui/catalog";
 import { DisplayPart } from "@/components/chat/gen-ui/display-part";
-import {
-	isPausingPart,
-	type MessagePart,
-} from "@/components/chat/message/classify-turn";
+import type { AnswerPart } from "@/lib/ai/turn-view/turn-view";
 import { ImagePart } from "./parts/image-part";
 
 const MessagePartRenderer = ({
-	part,
+	answer,
 	running,
 	linkSafety,
 	addToolApprovalResponse,
 	clientToolActions,
-	disabled = false,
 }: {
-	part: MessagePart;
+	answer: AnswerPart;
 	running: boolean;
 	linkSafety?: LinkSafetyConfig;
 	addToolApprovalResponse?: AddToolApprovalResponse;
 	clientToolActions?: ClientToolActions;
-	/** The chat is sending or streaming, so widgets wait. */
-	disabled?: boolean;
 }) => {
-	if (part.type === "file" && part.mediaType === "image/png") {
-		return <ImagePart url={part.url} alt={part.type} />;
+	switch (answer.kind) {
+		case "text":
+			return (
+				<MessageResponse linkSafety={linkSafety}>
+					{answer.part.text}
+				</MessageResponse>
+			);
+		case "file":
+			return answer.part.mediaType === "image/png" ? (
+				<ImagePart url={answer.part.url} alt={answer.part.type} />
+			) : null;
+		case "display":
+			return <DisplayPart part={answer.part} running={running} />;
+		case "client": {
+			const { Widget } = clientToolRenderersOf(answer.part);
+			return (
+				<Widget
+					part={answer.part}
+					status={answer.status}
+					actions={answer.answerable ? clientToolActions : undefined}
+				/>
+			);
+		}
+		case "approval":
+			return isSummarisedToolPart(answer.part) ? (
+				<ConfirmationCard
+					part={answer.part}
+					status={answer.status}
+					addToolApprovalResponse={
+						answer.answerable ? addToolApprovalResponse : undefined
+					}
+				/>
+			) : null;
 	}
-
-	if (part.type === "text") {
-		return (
-			<MessageResponse linkSafety={linkSafety}>{part.text}</MessageResponse>
-		);
-	}
-
-	if (isDisplayToolPart(part)) {
-		return <DisplayPart part={part} running={running} />;
-	}
-
-	if (part.type === "tool-requestUpload" && part.state !== "input-streaming") {
-		return (
-			<UploadWidget
-				part={part}
-				actions={clientToolActions}
-				disabled={disabled}
-			/>
-		);
-	}
-
-	if (isPausingPart(part) && isSummarisedToolPart(part)) {
-		return (
-			<ConfirmationCard
-				part={part}
-				addToolApprovalResponse={addToolApprovalResponse}
-			/>
-		);
-	}
-
-	return null;
 };
 
 export { MessagePartRenderer };

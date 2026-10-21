@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import {
-	isLiveReasoning,
-	type ReasoningPart,
-} from "@/components/chat/message/classify-turn";
+import type { ReasoningPart } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 import { ClampedText } from "./clamped-text";
 
@@ -30,12 +27,12 @@ const useStreamDuration = (streaming: boolean) => {
 
 export const ReasoningEntry = ({
 	part,
-	running,
+	live: streaming,
 }: {
 	part: ReasoningPart;
-	running: boolean;
+	/** Still arriving. */
+	live: boolean;
 }) => {
-	const streaming = isLiveReasoning(part, running);
 	const duration = useStreamDuration(streaming);
 
 	return (

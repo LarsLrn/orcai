@@ -1,4 +1,3 @@
-import type { UIMessage } from "ai";
 import { ArrowDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
@@ -102,7 +101,7 @@ export const ConversationScrollButton = ({
 	);
 };
 
-export const downloadConversation = <Message extends UIMessage>(
+export const downloadConversation = <Message,>(
 	messages: Message[],
 	formatMessage: (message: Message) => string,
 	filename = "conversation.md",

@@ -1,6 +1,6 @@
 import type { Asset } from "@orcai/schema";
 import { useRef, useState } from "react";
-import type { ClientToolActions } from "@/components/chat/continue-turn";
+import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
 import type { RequestUploadOutput } from "@/lib/ai/tools/assistant/bots/request-upload";
 
 /**

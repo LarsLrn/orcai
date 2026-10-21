@@ -1,11 +1,8 @@
 import { useId } from "react";
+import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
 import { useToolSummaryLine } from "@/components/assistant/tool-summaries";
 import { useUploadAnswer } from "@/components/assistant/use-upload-answer";
-import type { ClientToolActions } from "@/components/chat/continue-turn";
-import {
-	toolStatus,
-	toolStatusLabel,
-} from "@/components/chat/message/work-log/tool-status";
+import { toolStatusLabel } from "@/components/chat/message/work-log/tool-status";
 import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,23 +16,24 @@ import {
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import { requestUploadSummary } from "@/lib/ai/tools/assistant/bots/request-upload.summary";
 import type { AssistantToolPart } from "@/lib/ai/tools/assistant/summary";
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
 /** `requestUpload` waiting for the user: the reason, the intake flow and Cancel. */
 export const UploadWidget = ({
 	part,
+	status,
 	actions,
-	disabled,
 }: {
 	part: AssistantToolPart<"requestUpload">;
-	actions?: ClientToolActions;
-	disabled: boolean;
+	status: ToolStatus | null;
+	/** Left out unless the call can be answered. */
+	actions: ClientToolActions | undefined;
 }) => {
 	const titleId = useId();
 	const line = useToolSummaryLine(part);
 	const Icon = requestUploadSummary.icon;
 	const awaiting = part.state === "input-available" ? part : undefined;
-	const status = awaiting ? toolStatus(awaiting, false, true) : null;
 	const upload = useUploadAnswer({
 		toolCallId: part.toolCallId,
 		actions,
@@ -64,11 +62,7 @@ export const UploadWidget = ({
 				</ItemActions>
 			)}
 			{awaiting && actions && (
-				<fieldset
-					disabled={disabled}
-					inert={disabled}
-					className="flex min-w-0 basis-full flex-col gap-3"
-				>
+				<div className="flex min-w-0 basis-full flex-col gap-3">
 					<p className="text-muted-foreground">{awaiting.input.reason}</p>
 					<AssetIntakeFlow
 						variant="compact"
@@ -86,7 +80,7 @@ export const UploadWidget = ({
 							{m.common_cancel_button()}
 						</Button>
 					</div>
-				</fieldset>
+				</div>
 			)}
 		</Item>
 	);

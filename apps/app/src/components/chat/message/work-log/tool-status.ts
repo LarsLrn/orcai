@@ -1,22 +1,7 @@
-import type { ToolPart } from "@/components/chat/message/classify-turn";
-import { isClientToolPart } from "@/lib/ai/tools/assistant/client-tools";
-import {
-	type ToolCloseCode,
-	toolCloseCode,
-} from "@/lib/ai/utils/close-pending-tool-parts";
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { isErrorReason } from "@/lib/errors/is-error-reason";
 import { paramlessReasonMessage } from "@/lib/errors/reason-messages";
 import { m } from "@/paraglide/messages";
-
-export type ToolStatus =
-	| "approved"
-	| "awaiting-approval"
-	| "awaiting-input"
-	| "denied"
-	| "failed"
-	| "interrupted"
-	| "running"
-	| "skipped";
 
 export const toolStatusLabel = (status: ToolStatus) => {
 	switch (status) {
@@ -41,46 +26,6 @@ export const toolStatusLabel = (status: ToolStatus) => {
 
 export const isFailedStatus = (status: ToolStatus | null) =>
 	status === "failed" || status === "denied";
-
-const closedStatus = {
-	superseded: "skipped",
-	interrupted: "interrupted",
-} as const satisfies Record<ToolCloseCode, ToolStatus>;
-
-/**
- * A finished call has no status. Whether an unfinished call is still running
- * or was cut off by an ended turn is only known at the turn level. A client
- * call still waits only on the `latest` message; elsewhere it was skipped.
- */
-export const toolStatus = (
-	part: ToolPart,
-	running: boolean,
-	latest = false,
-): ToolStatus | null => {
-	switch (part.state) {
-		case "output-available":
-			return null;
-		case "output-error": {
-			const code = toolCloseCode(part.errorText);
-			return code ? closedStatus[code] : "failed";
-		}
-		case "output-denied": {
-			const code = toolCloseCode(part.approval.reason);
-			return code ? closedStatus[code] : "denied";
-		}
-		case "approval-requested":
-			return "awaiting-approval";
-		case "approval-responded":
-			if (!part.approval.approved) return "denied";
-			return running ? "running" : "approved";
-		default:
-			if (running) return "running";
-			if (part.state === "input-available" && isClientToolPart(part)) {
-				return latest ? "awaiting-input" : "skipped";
-			}
-			return "interrupted";
-	}
-};
 
 const REASON_PREFIX = /^([A-Z][A-Z0-9_]*): /;
 

@@ -1,4 +1,3 @@
-import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
 import { PlayIcon } from "lucide-react";
@@ -10,23 +9,18 @@ import {
 	MessageToolbar,
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import type { ClientToolActions } from "@/components/assistant/client-tool-actions";
 import type { AddToolApprovalResponse } from "@/components/assistant/confirmation-card";
 import { TurnZedTokenContext } from "@/components/assistant/tool-summaries";
 import { MessageBranches } from "@/components/chat/branch-links";
-import type { ClientToolActions } from "@/components/chat/continue-turn";
-import {
-	classifyTurn,
-	missingAnswer,
-	pausedStep,
-} from "@/components/chat/message/classify-turn";
 import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
 import {
-	activeStepLabel,
+	activityLabel,
 	WorkLog,
 } from "@/components/chat/message/work-log/work-log";
 import { Button } from "@/components/ui/button";
 import { InView } from "@/components/ui/motion/in-view";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import type { MessageView } from "@/lib/ai/turn-view/turn-view";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -36,11 +30,8 @@ import { MessagePartRenderer } from "./message-part-renderer";
 import { MessageUsage } from "./metadata/message-usage";
 
 interface MessageBlockProps {
-	message: ChatAgentUIMessage;
+	view: MessageView;
 	chatId: ChatId;
-	status: UseChatHelpers<ChatAgentUIMessage>["status"];
-	/** Only the latest message can still be receiving parts. */
-	isLatest: boolean;
 	animate?: boolean;
 	/** Chats branched from this message. */
 	branches?: ChatBranchLink[];
@@ -48,9 +39,9 @@ interface MessageBlockProps {
 	branching?: boolean;
 	/** Overrides the default confirmation for links in the answer. */
 	linkSafety?: LinkSafetyConfig;
-	/** Answers a Confirmation card; only the latest row's cards can be answered. */
+	/** Answers the Confirmation cards the view marks answerable. */
 	addToolApprovalResponse?: AddToolApprovalResponse;
-	/** Answers the latest row's client calls, such as the upload widget. */
+	/** Answers the client calls the view marks answerable, such as the upload widget. */
 	clientToolActions?: ClientToolActions;
 	/** Runs a step whose cards are answered but that has not run, as after a reload. */
 	onContinue?: () => void;
@@ -93,10 +84,8 @@ const MessageEntrance = ({
 };
 
 export const MessageBlock = ({
-	message,
+	view,
 	chatId,
-	status,
-	isLatest,
 	animate = true,
 	branches = [],
 	onBranch,
@@ -106,23 +95,11 @@ export const MessageBlock = ({
 	clientToolActions,
 	onContinue,
 }: MessageBlockProps) => {
+	const { message, running, workLog, answer, missing, activity } = view;
 	const variant = message.role === "user" ? "sent" : "received";
 	const messageAttachments = getChatMessageAttachments(message);
-
-	const running = isLatest && status === "streaming";
-	const { entries, answerParts } = classifyTurn(message.parts, {
-		running,
-		latest: isLatest,
-	});
 	const [workLogOpen, setWorkLogOpen] = useState(false);
 	const workLogRef = useRef<HTMLDivElement>(null);
-
-	const lastPart = message.parts.at(-1);
-	const writing = lastPart?.type === "text" && lastPart.state === "streaming";
-	const activity =
-		running && !writing
-			? (activeStepLabel(entries, running) ?? m.chat_work_log_working())
-			: null;
 
 	const showSteps = () => {
 		setWorkLogOpen(true);
@@ -131,15 +108,6 @@ export const MessageBlock = ({
 			block: "start",
 		});
 	};
-	const canContinue =
-		onContinue !== undefined &&
-		message.role === "assistant" &&
-		pausedStep(message.parts, running, isLatest)?.answered === true;
-	const missing = missingAnswer(message, {
-		running,
-		settled: !isLatest || (status !== "submitted" && status !== "streaming"),
-		answerParts,
-	});
 
 	// A reply exists from the first chunk on, before the model has written anything.
 	if (missing === "waiting") {
@@ -163,24 +131,24 @@ export const MessageBlock = ({
 				<TurnZedTokenContext value={message.metadata?.zedToken}>
 					<MessageContent>
 						<ChatMessageAttachments attachments={messageAttachments} />
-						{entries.length > 0 && (
+						{workLog.length > 0 && (
 							<WorkLog
 								ref={workLogRef}
-								entries={entries}
+								entries={workLog}
 								running={running}
+								activity={activity}
 								open={workLogOpen}
 								onOpenChange={setWorkLogOpen}
 							/>
 						)}
-						{answerParts.map((part, i) => (
+						{answer.map((part, i) => (
 							<MessagePartRenderer
-								key={`${part.type}${message.id}${i}`}
-								part={part}
+								key={`${part.part.type}${message.id}${i}`}
+								answer={part}
 								running={running}
 								linkSafety={linkSafety}
 								addToolApprovalResponse={addToolApprovalResponse}
 								clientToolActions={clientToolActions}
-								disabled={status === "submitted" || status === "streaming"}
 							/>
 						))}
 						{(missing === "step-limit" || missing === "no-answer") && (
@@ -190,7 +158,7 @@ export const MessageBlock = ({
 									: m.chat_reply_no_answer()}
 							</p>
 						)}
-						{canContinue && (
+						{view.canContinue && onContinue && (
 							<Button
 								variant="outline"
 								size="sm"
@@ -203,15 +171,15 @@ export const MessageBlock = ({
 						)}
 						{running && (
 							<ActivityLine
-								label={activity}
-								onShowSteps={entries.length > 0 ? showSteps : undefined}
+								label={activity ? activityLabel(activity) : null}
+								onShowSteps={workLog.length > 0 ? showSteps : undefined}
 							/>
 						)}
 					</MessageContent>
 				</TurnZedTokenContext>
 				<MessageToolbar>
 					<MessageActions
-						message={message}
+						view={view}
 						variant={variant}
 						chatId={chatId}
 						onBranch={onBranch}

@@ -1,3 +1,4 @@
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { GetKnowledgeBaseChunksToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import {
@@ -9,10 +10,10 @@ import { ToolEntry } from "../tool-entry";
 
 export const GetKnowledgeBaseChunks = ({
 	part,
-	running,
+	status,
 }: {
 	part: GetKnowledgeBaseChunksToolPart;
-	running: boolean;
+	status: ToolStatus | null;
 }) => {
 	const chunks = part.output?.chunks ?? [];
 	const showBlockName = spansMultipleBlocks(
@@ -22,7 +23,7 @@ export const GetKnowledgeBaseChunks = ({
 	return (
 		<ToolEntry
 			part={part}
-			running={running}
+			status={status}
 			label={
 				chunks.length > 0
 					? m.chat_work_log_tool_get_chunks_result({

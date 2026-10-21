@@ -1,3 +1,4 @@
+import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import type { ReadDocsToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import { ToolEntry } from "../tool-entry";
@@ -42,8 +43,8 @@ const label = (output: ReadDocsToolPart["output"]) => {
 
 export const ReadDocs = ({
 	part,
-	running,
+	status,
 }: {
 	part: ReadDocsToolPart;
-	running: boolean;
-}) => <ToolEntry part={part} running={running} label={label(part.output)} />;
+	status: ToolStatus | null;
+}) => <ToolEntry part={part} status={status} label={label(part.output)} />;

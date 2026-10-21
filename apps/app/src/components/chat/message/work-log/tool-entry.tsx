@@ -2,25 +2,24 @@ import { ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { ToolInput, ToolOutput } from "@/components/ai-elements/tool";
-import type { ToolPart } from "@/components/chat/message/classify-turn";
 import { Badge } from "@/components/ui/badge";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import {
 	isFailedStatus,
 	toolErrorMessage,
-	toolStatus,
 	toolStatusLabel,
 } from "./tool-status";
 
 interface ToolEntryProps {
 	part: ToolPart;
-	running: boolean;
+	status: ToolStatus | null;
 	/** Outcome sentence such as "Searched the sources, found 6 passages". */
 	label: ReactNode;
 	/** Human-readable output; when absent the raw result is shown in details. */
@@ -30,11 +29,10 @@ interface ToolEntryProps {
 /** Generic tool entry that the typed renderers build on. */
 export const ToolEntry = ({
 	part,
-	running,
+	status,
 	label,
 	children,
 }: ToolEntryProps) => {
-	const status = toolStatus(part, running);
 	const showsRawResult = children === undefined;
 	// A closed call's sentence is for the model; the badge already says it.
 	const errorText =
