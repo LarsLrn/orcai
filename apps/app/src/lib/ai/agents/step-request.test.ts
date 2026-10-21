@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ProviderKind } from "@orcai/core";
-import { isStepCount, type ModelMessage, ToolLoopAgent, tool } from "ai";
+import { type ModelMessage, ToolLoopAgent, tool } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { z } from "zod/v4";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
@@ -81,6 +81,11 @@ const runTurn = async (
 	providerKind: ProviderKind,
 	maxSteps = MAX_STEPS,
 	activeTools?: "search"[],
+	room?: {
+		promptTokens: number;
+		/** What each search after the failed first one returns. */
+		result: string;
+	},
 ) => {
 	const { model, calls } = toolHungryModel();
 	const pruned: ModelMessage[][] = [];
@@ -103,7 +108,7 @@ const runTurn = async (
 						? Promise.reject(
 								new AssistantToolError("SEARCH_FAILED: Try again."),
 							)
-						: Promise.resolve("a result");
+						: Promise.resolve(room?.result ?? "a result");
 				},
 			}),
 			createBot: tool({
@@ -113,12 +118,12 @@ const runTurn = async (
 		},
 		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => {
-			const shapeStep = steps.prepareStep(options.maxSteps);
+			const turn = steps.forTurn(options);
 			return {
 				...settings,
-				stopWhen: isStepCount(options.maxSteps),
+				stopWhen: turn.stopWhen,
 				prepareStep: (step) => ({
-					...shapeStep(step),
+					...turn.prepareStep(step),
 					activeTools,
 				}),
 			};
@@ -129,12 +134,14 @@ const runTurn = async (
 		prompt: "Check every citation.",
 		options: {
 			maxSteps,
+			promptTokens: room?.promptTokens,
 		},
 	});
 	return {
 		result,
 		calls,
 		pruned,
+		contextFull: steps.contextFull(),
 	};
 };
 
@@ -219,5 +226,65 @@ describe("createStepShaper", () => {
 				type: "none",
 			});
 		}
+	});
+
+	describe("within the prompt room of a kind without native compaction", () => {
+		/** About 500 tokens by the estimate. */
+		const bigResult = "r".repeat(2_000);
+		const toolResultIds = (call: CallOptions) =>
+			call.prompt.flatMap((message) =>
+				message.role === "tool"
+					? message.content.flatMap((part) =>
+							part.type === "tool-result"
+								? [
+										part.toolCallId,
+									]
+								: [],
+						)
+					: [],
+			);
+
+		test("a step that outgrows it leaves out the tool calls of the steps before the latest", async () => {
+			const { result, calls, contextFull } = await runTurn(
+				"openai-compatible",
+				4,
+				undefined,
+				{
+					promptTokens: 800,
+					result: bigResult,
+				},
+			);
+
+			expect(calls.map(toolResultIds)).toEqual([
+				[],
+				[
+					"call-1",
+				],
+				[
+					"call-1",
+					"call-2",
+				],
+				[
+					"call-3",
+				],
+			]);
+			expect(result.text).toBe("Here is what I found so far.");
+			expect(contextFull).toBe(false);
+		});
+
+		test("the turn stops when even the latest step's calls do not fit", async () => {
+			const { calls, contextFull } = await runTurn(
+				"openai-compatible",
+				4,
+				undefined,
+				{
+					promptTokens: 300,
+					result: bigResult,
+				},
+			);
+
+			expect(calls).toHaveLength(2);
+			expect(contextFull).toBe(true);
+		});
 	});
 });

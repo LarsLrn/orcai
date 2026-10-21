@@ -41,6 +41,8 @@ export const chatMessageMetadataSchema = z.object({
 	continuedAt: z.string().optional(),
 	/** The turn used up its steps on a step that still called tools. */
 	stepLimitReached: z.boolean().optional(),
+	/** The turn stopped because its next step would not fit the context window. */
+	contextLimitReached: z.boolean().optional(),
 });
 
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;

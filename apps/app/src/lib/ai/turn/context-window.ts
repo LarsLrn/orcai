@@ -6,6 +6,8 @@ import {
 import type { ChatMessageMetadata } from "@orcai/schema";
 import {
 	asSchema,
+	type ModelMessage,
+	pruneMessages,
 	type SystemModelMessage,
 	type ToolSet,
 	type UIMessage,
@@ -45,6 +47,23 @@ const scaleOf = (message: UIMessage<ChatMessageMetadata> | undefined) => {
 		: undefined;
 };
 
+const modelMessageTokens = (messages: ModelMessage[]) =>
+	messages.reduce(
+		(sum, message) =>
+			sum +
+			(typeof message.content === "string"
+				? charTokens(message.content)
+				: message.content.reduce(
+						(partSum, part) =>
+							partSum +
+							(part.type === "file" || part.type === "image"
+								? IMAGE_TOKENS
+								: charTokens(part)),
+						0,
+					)),
+		0,
+	);
+
 /** The estimate of what every request sends besides the messages. */
 export const requestTokens = async ({
 	instructions,
@@ -80,11 +99,16 @@ export const compactionTrigger = (budget: number) =>
 export type ContextFit<M> =
 	| {
 			fits: true;
+			/** The prompt to send without a new summary. */
 			messages: M[];
 			/** Whether older turns were left out. */
 			trimmed: boolean;
 			/** The estimate of the prompt without the reply, for the reply's metadata. */
 			estimate: number;
+			/** What a step's messages may take by the uncalibrated estimate, as the prompt's calibration sees it. */
+			stepTokens: number;
+			/** Set when the prompt reached the trigger: the history our own summary replaces, all but the latest turn. */
+			summarize: M[] | undefined;
 	  }
 	| {
 			fits: false;
@@ -126,6 +150,7 @@ const fromCompaction = <M extends UIMessage<ChatMessageMetadata>>(
 		return {
 			prompt: tidy(messages),
 			anchorsFrom: 0,
+			summarized: false,
 			before: [],
 		};
 	}
@@ -141,6 +166,7 @@ const fromCompaction = <M extends UIMessage<ChatMessageMetadata>>(
 				...rest,
 			],
 			anchorsFrom: head.length,
+			summarized: false,
 			before,
 		};
 	}
@@ -175,13 +201,16 @@ const fromCompaction = <M extends UIMessage<ChatMessageMetadata>>(
 		],
 		// The summary's reply recorded what the provider counted of the prompt that starts at it.
 		anchorsFrom: 1 + turn.length,
+		summarized: true,
 		before,
 	};
 };
 
 /**
  * Decides a turn's prompt. It starts at the latest compaction the turn reads.
- * Beyond the budget it leaves out the oldest whole turns, down to three quarters of it; the latest turn
+ * Once it reaches the compaction trigger without native compaction, all but
+ * its latest turn are handed to our own summary. Beyond the budget it leaves
+ * out the oldest whole turns, down to three quarters of it; the latest turn
  * stays. Sizes are char estimates, calibrated by the context tokens the
  * latest reply after the compaction recorded, so the history it covers counts
  * what the provider counted.
@@ -200,10 +229,11 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 	/** See `promptBudget`. */
 	budget: number;
 	compaction: {
+		native: boolean;
 		reads: (source: CompactionSource) => boolean;
 	};
 }): ContextFit<M> => {
-	const { prompt, anchorsFrom, before } = fromCompaction(
+	const { prompt, anchorsFrom, summarized, before } = fromCompaction(
 		messages,
 		compaction.reads,
 	);
@@ -250,9 +280,26 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 		};
 	});
 
-	let total =
+	const full =
 		requestTokens * requestScale +
 		turns.reduce((sum, turn) => sum + turn.cost, 0);
+	// One request carries the history to summarize, so its newest turns that fit the budget.
+	let room = budget;
+	const history: number[] = [];
+	for (const turn of turns.slice(0, -1).reverse()) {
+		if (turn.cost > room) {
+			break;
+		}
+		room -= turn.cost;
+		history.unshift(...turn.indices);
+	}
+	// A summary alone before the latest turn has nothing left to summarize.
+	const summarizes =
+		!compaction.native &&
+		full > compactionTrigger(budget) &&
+		history.some((index) => !(summarized && index === 0));
+
+	let total = full;
 	const dropped = new Set<number>();
 	if (total > budget) {
 		for (const turn of turns.slice(0, -1)) {
@@ -271,9 +318,17 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 		};
 	}
 
+	const kept = prompt.flatMap((_, index) => (dropped.has(index) ? [] : index));
+	const keptSize = kept.reduce((sum, index) => sum + sizes[index], 0);
 	return {
 		fits: true,
-		messages: prompt.filter((_, index) => !dropped.has(index)),
+		messages: kept.map((index) => prompt[index]),
+		stepTokens: Math.floor(
+			(budget - requestTokens * requestScale) /
+				(keptSize === 0
+					? 1
+					: kept.reduce((sum, index) => sum + cost(index), 0) / keptSize),
+		),
 		trimmed: dropped.size > 0,
 		estimate:
 			requestTokens +
@@ -284,5 +339,22 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 						: sum + sizes[index],
 				0,
 			),
+		summarize: summarizes ? history.map((index) => prompt[index]) : undefined,
 	};
+};
+
+/**
+ * A step's messages within what the prompt may take besides the request, if
+ * need be without the tool calls of steps before the latest; undefined when
+ * they still do not fit.
+ */
+export const fitStep = (messages: ModelMessage[], tokens: number) => {
+	if (modelMessageTokens(messages) <= tokens) {
+		return messages;
+	}
+	const pruned = pruneMessages({
+		messages,
+		toolCalls: "before-last-2-messages",
+	});
+	return modelMessageTokens(pruned) <= tokens ? pruned : undefined;
 };

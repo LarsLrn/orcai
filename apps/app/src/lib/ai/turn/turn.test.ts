@@ -486,7 +486,15 @@ describe("context window", () => {
 	});
 });
 
+/**
+ * With 1 000 tokens reserved for output, a chat's instructions and two long
+ * turns of 2 000 tokens stay below the 80% trigger; a third outgrows it all.
+ */
+const WINDOW = 10_100;
+
 describe("compaction", () => {
+	const long = (letter: string) => letter.repeat(8_000);
+
 	const model = (
 		providerKind: "anthropic" | "openai" | "openai-compatible",
 		contextWindow: number,
@@ -665,6 +673,110 @@ describe("compaction", () => {
 				encrypted_content: "sealed:List the scope.",
 			}),
 		);
+	});
+
+	describe("our own summary", () => {
+		/** Two long turns, then a third that reaches the trigger. */
+		const longChat = async (
+			summary: Parameters<
+				Awaited<ReturnType<typeof conversation>>["script"]
+			>[0][number],
+		) => {
+			model("openai-compatible", WINDOW);
+			const chat = await conversation(chatRow(), "openai-compatible");
+			// The provider counts what the estimate does.
+			chat.script([
+				{
+					text: "One.",
+					inputTokens: 5_150,
+				},
+				{
+					text: "Two.",
+					inputTokens: 7_160,
+				},
+				summary,
+				{
+					text: "Three.",
+				},
+			]);
+			await chat.send(long("a"));
+			await chat.send(long("b"));
+			await chat.send(long("c"));
+			return chat;
+		};
+
+		test("is streamed as the reply's first part, metered on its own, and starts the next prompts", async () => {
+			const chat = await longChat({
+				text: "Earlier: a and b.",
+			});
+			const replyId = chat.messages()[5]?.id;
+
+			// The summary reads the history as a transcript, without tools.
+			expect(chat.bodies[2]?.stream).toBeUndefined();
+			expect(JSON.stringify(chat.bodies[2]?.messages)).toContain(long("a"));
+			expect(chat.bodies[2]?.tools).toBeUndefined();
+			expect(chat.bodies[3]?.messages).toEqual([
+				expect.objectContaining({
+					role: "system",
+				}),
+				{
+					role: "user",
+					content: "Summary of the earlier conversation:\n\nEarlier: a and b.",
+				},
+				{
+					role: "user",
+					content: long("c"),
+				},
+			]);
+			expect(
+				partsOf(5, chat).map(({ type, text }) => [
+					type,
+					text,
+				]),
+			).toEqual([
+				[
+					"text",
+					"Earlier: a and b.",
+				],
+				[
+					"step-start",
+					undefined,
+				],
+				[
+					"text",
+					"Three.",
+				],
+			]);
+			expect(
+				quota.calls.reserve.map(({ appRequestId }) => appRequestId),
+			).toContain(`compaction:${replyId}`);
+			expect(chat.messages()[5]?.metadata.historyTrimmed).toBeUndefined();
+
+			chat.script([
+				{
+					text: "Four.",
+				},
+			]);
+			await chat.send("d");
+			const next = JSON.stringify(chat.bodies[4]?.messages);
+			expect(next).toContain("Earlier: a and b.");
+			expect(next).not.toContain(long("a"));
+			expect(next).toContain(long("c"));
+		});
+
+		test("that fails leaves the prompt trimmed, with the notice", async () => {
+			const chat = await longChat({
+				refused: true,
+			});
+
+			const sent = JSON.stringify(chat.bodies[3]?.messages);
+			expect(sent).not.toContain(long("a"));
+			expect(sent).toContain(long("c"));
+			expect(textOf(partsOf(5, chat))).toEqual([
+				"Three.",
+			]);
+			expect(chat.messages()[5]?.metadata.historyTrimmed).toBe(true);
+		});
 	});
 });
 

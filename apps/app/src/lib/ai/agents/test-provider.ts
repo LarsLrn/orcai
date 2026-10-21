@@ -14,6 +14,8 @@ export type Step = {
 	calls?: ToolCall[];
 	/** The prompt tokens the provider reports; 1 unless set. */
 	inputTokens?: number;
+	/** The provider refuses the request instead. */
+	refused?: true;
 };
 
 export type Body = Record<string, unknown>;
@@ -476,7 +478,7 @@ export const scriptedFetch = (kind: ProviderKind) => {
 		const body = JSON.parse(String(init?.body));
 		bodies.push(body);
 		const step = steps.shift();
-		if (step === undefined) {
+		if (step === undefined || step.refused) {
 			// A client error is not retried, so an unscripted request fails at once.
 			return Promise.resolve(
 				new Response("no step scripted", {
