@@ -13,6 +13,8 @@ import {
 	publishBotResponseSchema,
 	saveBotInputSchema,
 	saveBotResponseSchema,
+	setBotFavouriteInputSchema,
+	setBotFavouriteResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -96,6 +98,19 @@ export const botContracts = {
 		)
 		.input(publishBotInputSchema)
 		.output(publishBotResponseSchema),
+	setFavourite: base
+		.meta(
+			openapi({
+				method: "PUT",
+				path: "/bots/{id}/favourite",
+				summary: "Add a bot to or remove it from the user's favourites",
+				tags: [
+					"Bots",
+				],
+			}),
+		)
+		.input(setBotFavouriteInputSchema)
+		.output(setBotFavouriteResponseSchema),
 	delete: base
 		.meta(
 			openapi({

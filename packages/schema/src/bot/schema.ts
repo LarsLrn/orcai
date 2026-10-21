@@ -39,11 +39,13 @@ export const botSchema = botFieldsSchema.extend({
 
 export const botWithCapabilitiesSchema = botSchema.extend({
 	capabilities: entityCapabilitiesSchema,
+	isFavourite: z.boolean(),
 });
 
 export const botWithBlocksSchema = botSchema.extend({
 	blockIds: z.array(blockIdSchema),
 	capabilities: entityCapabilitiesSchema,
+	isFavourite: z.boolean(),
 });
 
 const botEditorBlockSchema = z.object({

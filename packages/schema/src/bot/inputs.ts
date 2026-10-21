@@ -7,9 +7,20 @@ import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { botIdSchema } from "./ref";
 import { botContentJsonSchema, botFieldsSchema } from "./schema";
 
+export const botListSortSchema = z.enum([
+	"name",
+	"favouritesFirst",
+]);
+
 export const listBotsInputSchema = paginationInputSchema.extend({
 	...zedTokenSchema.shape,
 	search: z.string().optional(),
+	filters: z
+		.object({
+			favourite: z.boolean().optional(),
+		})
+		.optional(),
+	sort: botListSortSchema.default("name"),
 });
 
 export const findBotInputSchema = z.object({
@@ -44,6 +55,11 @@ export const listDraftBotsInputSchema = paginationInputSchema.extend({
 	search: z.string().optional(),
 });
 
+export const setBotFavouriteInputSchema = z.object({
+	id: botIdSchema,
+	favourite: z.boolean(),
+});
+
 export const deleteBotsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
@@ -51,10 +67,12 @@ export const deleteBotsInputSchema = z.object({
 	}),
 });
 
+export type BotListSort = z.infer<typeof botListSortSchema>;
 export type ListBotsInput = z.infer<typeof listBotsInputSchema>;
 export type FindBotInput = z.infer<typeof findBotInputSchema>;
 export type FindBotEditorInput = z.infer<typeof findBotEditorInputSchema>;
 export type SaveBotInput = z.infer<typeof saveBotInputSchema>;
 export type PublishBotInput = z.infer<typeof publishBotInputSchema>;
 export type ListDraftBotsInput = z.infer<typeof listDraftBotsInputSchema>;
+export type SetBotFavouriteInput = z.infer<typeof setBotFavouriteInputSchema>;
 export type DeleteBotsInput = z.infer<typeof deleteBotsInputSchema>;

@@ -2401,6 +2401,7 @@
 	"error_bot_behaviour_block_not_ready": "Set the AI behaviour block to ready before publishing this bot.",
 	"error_bot_behaviour_block_required": "Bots need an AI behaviour block before they can be published.",
 	"error_bot_not_found": "Bot not found.",
+	"error_bot_not_published": "Only published bots can be favourites.",
 	"error_bot_repository_empty": "Attach at least one document to \"{blockName}\" before publishing.",
 	"error_bot_repository_not_ready": "Set \"{blockName}\" to ready before publishing this bot.",
 	"error_chat_blocks_unavailable": "The blocks of this chat could not be loaded.",
