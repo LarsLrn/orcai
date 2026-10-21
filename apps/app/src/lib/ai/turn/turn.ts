@@ -327,12 +327,15 @@ const streamTurn = ({
 				Effect.runPromiseWith(services)(withActiveSpan(effect)),
 			);
 		// A continuation reads on from what this turn wrote.
-		const writtenZedToken = () =>
-			assistantTurn?.zedToken === undefined
+		const writtenZedToken = () => {
+			const zedToken = assistantTurn?.zedToken.current();
+
+			return zedToken === undefined
 				? {}
 				: {
-						zedToken: assistantTurn.zedToken,
+						zedToken,
 					};
+		};
 
 		const settledReply = ({
 			parts,

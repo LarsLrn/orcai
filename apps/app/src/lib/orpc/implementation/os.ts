@@ -7,8 +7,8 @@ import type {
 	RequestHeadersHandlerPluginContext,
 	ResponseHeadersHandlerPluginContext,
 } from "@orpc/server/plugins";
+import { zedTokenResponseMiddleware } from "@/lib/authz/zed-token";
 import type { AppRuntimeContext } from "@/lib/effect/runtime";
-import { zedTokenResponseMiddleware } from "@/lib/orpc/middlewares/zed-token";
 
 /** The Effect services every procedure and middleware runs with. */
 export type AppEffectContext = WithEffectContext<AppRuntimeContext>;

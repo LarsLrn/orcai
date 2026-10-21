@@ -11,7 +11,6 @@ import {
 } from "ai";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import * as Semaphore from "effect/Semaphore";
 import {
 	type EntityKind,
 	isMissing,
@@ -82,13 +81,6 @@ export const expectType =
 			}),
 		);
 
-const zedTokenOf = (output: unknown) =>
-	isRecord(output) &&
-	isRecord(output.meta) &&
-	typeof output.meta.zedToken === "string"
-		? output.meta.zedToken
-		: undefined;
-
 /**
  * Calls a procedure as the user, reading at the turn's newest zedToken, and
  * keeps the zedToken its output carries. The turn's calls run one at a time.
@@ -100,23 +92,18 @@ export const callProcedure = <A, E>(
 		options: ProcedureOptions,
 	) => Effect.Effect<A, E>,
 ): Effect.Effect<A, E, Procedures> =>
-	Procedures.use((procedures) =>
-		call(procedures, {
-			context: {
-				...context,
-				meta: {
-					...context.meta,
-					zedToken: turn.zedToken,
+	turn.zedToken.run((zedToken) =>
+		Procedures.use((procedures) =>
+			call(procedures, {
+				context: {
+					...context,
+					meta: {
+						...context.meta,
+						zedToken,
+					},
 				},
-			},
-		}),
-	).pipe(
-		Effect.tap((output) =>
-			Effect.sync(() => {
-				turn.zedToken = zedTokenOf(output) ?? turn.zedToken;
 			}),
 		),
-		Semaphore.withPermit(turn.calls),
 	);
 
 const statusOf = (code: string): number | undefined =>
