@@ -13,6 +13,8 @@ export {
 	createQuotaPoolWithInitialPeriod,
 	finalizeQuotaLedger,
 	findReservedQuotaEvent,
+	type QuotaLedgerAmounts,
+	reconcileQuotaLedger,
 	releaseQuotaLedger,
 	reserveQuotaLedger,
 	updateQuotaPoolBudget,

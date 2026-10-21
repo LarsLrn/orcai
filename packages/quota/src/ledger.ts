@@ -8,7 +8,7 @@ import type {
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { getUtcPeriodBounds } from "./period";
 
@@ -666,6 +666,117 @@ export const releaseQuotaLedger: (params: {
 				return {
 					inserted: true,
 					reserved,
+				};
+			}),
+		);
+	});
+
+export interface QuotaLedgerAmounts {
+	reserved: number;
+	consumed: number;
+	remaining: number;
+}
+
+/**
+ * Recomputes a ledger from its usage events, the source of truth, and corrects
+ * it when they disagree. Holds the ledger row lock that reservations and
+ * settlements take, so the events read are the ones the ledger has applied.
+ */
+export const reconcileQuotaLedger: (params: {
+	quotaPoolId: QuotaPoolId;
+	quotaPeriodId: QuotaPeriodId;
+}) => Effect.Effect<
+	{
+		before: QuotaLedgerAmounts;
+		after: QuotaLedgerAmounts;
+	} | null,
+	unknown,
+	DB
+> = (params) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+
+		return yield* db.transaction((tx) =>
+			Effect.gen(function* () {
+				const ledgerOf = and(
+					eq(dbSchema.quotaLedger.quotaPoolId, params.quotaPoolId),
+					eq(dbSchema.quotaLedger.quotaPeriodId, params.quotaPeriodId),
+				);
+				const [ledger] = yield* tx
+					.select()
+					.from(dbSchema.quotaLedger)
+					.where(ledgerOf)
+					.limit(1)
+					.for("update");
+
+				if (!ledger) {
+					return null;
+				}
+
+				const event = dbSchema.quotaUsageEvent;
+				const total = (
+					amount: typeof event.reservedAmount,
+					eventTypes: QuotaUsageEvent["eventType"][],
+				) =>
+					sql<number>`coalesce(sum(${amount}) filter (where ${inArray(event.eventType, eventTypes)}), 0)`.mapWith(
+						Number,
+					);
+				const [totals] = yield* tx
+					.select({
+						reserved: total(event.reservedAmount, [
+							"reserved",
+						]),
+						settled: total(event.reservedAmount, [
+							"finalized",
+							"released",
+						]),
+						consumed: total(event.actualAmount, [
+							"finalized",
+						]),
+					})
+					.from(event)
+					.where(
+						and(
+							eq(event.quotaPoolId, params.quotaPoolId),
+							eq(event.quotaPeriodId, params.quotaPeriodId),
+						),
+					);
+
+				const before = {
+					reserved: ledger.reservedAmount,
+					consumed: ledger.consumedAmount,
+					remaining: ledger.remainingAmount,
+				};
+				const reserved = Math.max(0, totals.reserved - totals.settled);
+				const after = {
+					reserved,
+					consumed: totals.consumed,
+					remaining: Math.max(
+						0,
+						ledger.budgetAmount - reserved - totals.consumed,
+					),
+				};
+
+				if (
+					after.reserved !== before.reserved ||
+					after.consumed !== before.consumed ||
+					after.remaining !== before.remaining
+				) {
+					yield* tx
+						.update(dbSchema.quotaLedger)
+						.set({
+							reservedAmount: after.reserved,
+							consumedAmount: after.consumed,
+							remainingAmount: after.remaining,
+							version: sql`${dbSchema.quotaLedger.version} + 1`,
+							updatedAt: new Date(),
+						})
+						.where(ledgerOf);
+				}
+
+				return {
+					before,
+					after,
 				};
 			}),
 		);

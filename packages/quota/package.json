@@ -15,5 +15,8 @@
 		"effect": "catalog:",
 		"pg": "catalog:",
 		"uuid": "catalog:"
+	},
+	"devDependencies": {
+		"@orcai/testing": "workspace:*"
 	}
 }
