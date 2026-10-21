@@ -1,5 +1,9 @@
 import type { BlockId } from "@orcai/core";
-import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
+import {
+	type AssetPoint,
+	type DatabaseBlock,
+	documentReadinessSchema,
+} from "@orcai/schema";
 import { z } from "zod/v4";
 
 /** Text of one document read as one piece: a chunk, or neighbouring chunks joined. */
@@ -23,6 +27,9 @@ export const knowledgeBaseDocumentSchema = z.object({
 	assetId: z.string(),
 	title: z.string(),
 	citation: z.string().optional(),
+	/** Only ready documents are searchable. */
+	state: documentReadinessSchema.shape.state,
+	failure: documentReadinessSchema.shape.failure.unwrap().optional(),
 });
 
 export type KnowledgeBaseDocument = z.infer<typeof knowledgeBaseDocumentSchema>;

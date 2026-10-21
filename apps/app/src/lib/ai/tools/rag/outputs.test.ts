@@ -110,6 +110,7 @@ describe("knowledge base model output", () => {
 								assetId: "asset-a",
 								title: "Refund policy",
 								citation: "Finance, 2024",
+								state: "ready",
 							},
 						],
 					},
@@ -125,7 +126,7 @@ describe("knowledge base model output", () => {
 		);
 	});
 
-	test("documents read as one line each", () => {
+	test("documents read as one line each, with what keeps them from search", () => {
 		expect(
 			text(
 				listModelOutput({
@@ -134,12 +135,57 @@ describe("knowledge base model output", () => {
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
+								state: "ready",
+							},
+							{
+								assetId: "asset-b",
+								title: "Handbook",
+								state: "indexing",
+							},
+							{
+								assetId: "asset-c",
+								title: "Scans",
+								state: "failed",
+								failure: {
+									stage: "processing",
+									kind: "empty",
+								},
 							},
 						],
 					},
 				}),
 			),
-		).toBe("- asset-a: Refund policy");
+		).toBe(
+			[
+				"- asset-a: Refund policy",
+				"- asset-b: Handbook [indexing, not searchable yet]",
+				"- asset-c: Scans [failed in processing: empty]",
+			].join("\n"),
+		);
+	});
+
+	test("a search names repositories with documents not searchable yet", () => {
+		expect(
+			text(
+				searchModelOutput({
+					output: {
+						results: [],
+						notSearchable: [
+							{
+								note: "1 of 3 documents in Handbook are searchable. 2 are still being prepared.",
+							},
+						],
+					},
+				}),
+			),
+		).toBe(
+			[
+				"No matching passages.",
+				"",
+				"Not searchable yet:",
+				"- 1 of 3 documents in Handbook are searchable. 2 are still being prepared.",
+			].join("\n"),
+		);
 	});
 
 	test("an output of an older shape is no longer available", () => {

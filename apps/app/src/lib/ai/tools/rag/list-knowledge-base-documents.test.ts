@@ -1,0 +1,152 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import type { DatabaseBlock } from "@orcai/schema";
+import * as Effect from "effect/Effect";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import {
+	answers,
+	procedureCalls,
+	resetProcedures,
+} from "../assistant/test-procedures";
+
+const { listKnowledgeBaseDocumentsTool } = await import(
+	"./list-knowledge-base-documents"
+);
+
+afterEach(resetProcedures);
+
+describe("listKnowledgeBaseDocuments", () => {
+	test("each document carries its state, and a failed one its failure", async () => {
+		answers["block.readiness"] = () =>
+			Effect.succeed({
+				data: [
+					{
+						blockId: "block-1",
+						name: "Handbook",
+						totals: {
+							total: 2,
+							ready: 1,
+							preparing: 0,
+							failed: 1,
+						},
+						documents: [
+							{
+								assetId: "asset-1",
+								title: "Policies",
+								state: "ready",
+								failure: null,
+							},
+							{
+								assetId: "asset-2",
+								title: "Scans",
+								state: "failed",
+								failure: {
+									stage: "processing",
+									kind: "empty",
+								},
+							},
+						],
+					},
+				],
+			});
+		answers["asset.list"] = () =>
+			Effect.succeed({
+				data: [
+					{
+						id: "asset-1",
+						metadata: {
+							citation: "Handbook 2026",
+						},
+					},
+					{
+						id: "asset-2",
+						metadata: {},
+					},
+				],
+			});
+
+		const output = await listKnowledgeBaseDocumentsTool({
+			blocks: [
+				{
+					id: "block-1",
+					name: "Handbook",
+					config: {},
+				},
+			] as unknown as DatabaseBlock[],
+			context: {} as ORPCContext,
+		}).execute?.(
+			{
+				limit: 30,
+			},
+			{
+				toolCallId: "call",
+				messages: [],
+				context: {},
+			},
+		);
+
+		expect(output).toMatchObject({
+			documents: [
+				{
+					assetId: "asset-1",
+					title: "Policies",
+					citation: "Handbook 2026",
+					state: "ready",
+					failure: undefined,
+				},
+				{
+					assetId: "asset-2",
+					title: "Scans",
+					state: "failed",
+					failure: {
+						stage: "processing",
+						kind: "empty",
+					},
+				},
+			],
+		});
+	});
+
+	test("reads the readiness of many repositories in batches", async () => {
+		answers["block.readiness"] = () =>
+			Effect.succeed({
+				data: [],
+			});
+
+		await listKnowledgeBaseDocumentsTool({
+			blocks: Array.from(
+				{
+					length: 101,
+				},
+				(_, index) => ({
+					id: `block-${index}`,
+					name: `Repository ${index}`,
+					config: {},
+				}),
+			) as unknown as DatabaseBlock[],
+			context: {} as ORPCContext,
+		}).execute?.(
+			{
+				limit: 30,
+			},
+			{
+				toolCallId: "call",
+				messages: [],
+				context: {},
+			},
+		);
+
+		expect(
+			procedureCalls.map(
+				(call) =>
+					(
+						call.input as {
+							blockIds: string[];
+						}
+					).blockIds.length,
+			),
+		).toEqual([
+			100,
+			1,
+		]);
+	});
+});

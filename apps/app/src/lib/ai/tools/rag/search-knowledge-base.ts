@@ -15,9 +15,11 @@ import { searchModelOutput } from "./outputs";
 import type { Passage } from "./types";
 import {
 	flattenBlockResponses,
+	loadReadiness,
 	mergeAndSortCandidates,
 	resolveSearchBlocks,
 	toPassage,
+	unsearchableDocuments,
 } from "./utils";
 
 const normalizeQueries = ({
@@ -56,7 +58,7 @@ export const searchKnowledgeBaseTool = ({
 }) =>
 	effectTool({
 		description:
-			"Search the knowledge base by topic, entity, quote, or claim and return the full text of the best matching chunks. Call getKnowledgeBaseChunks only when you need the text around a chunk.",
+			"Search the knowledge base by topic, entity, quote, or claim and return the full text of the best matching chunks. Call getKnowledgeBaseChunks only when you need the text around a chunk. Only ready documents are searchable: the result names repositories with documents still being prepared or that could not be prepared; tell the user when the answer may be in them.",
 		inputSchema: z.object({
 			query: z
 				.string()
@@ -115,38 +117,52 @@ export const searchKnowledgeBaseTool = ({
 					};
 				}
 
-				const blockResponses = yield* Effect.forEach(
-					targetBlocks,
-					(block) =>
-						procedures.assetPoint
-							.searchRepository(
-								{
-									repositoryId: block.id,
-									filters: {
-										queries: normalizedQueries,
-										limit: Math.max(limit * 6, 24),
-										assetIds,
-										retrievalMode: block.config.retrievalMode ?? "hybrid",
-										minScore: block.config.scoreThreshold,
-										candidateLimit:
-											block.config.candidateLimit ?? Math.max(limit * 8, 32),
-										maxPerAsset: block.config.maxPerAsset ?? 2,
-									},
-								},
-								{
-									context,
-								},
-							)
-							.pipe(
-								Effect.map((response) => ({
-									block,
-									response,
-								})),
-							),
+				const [blockResponses, repositories] = yield* Effect.all(
+					[
+						Effect.forEach(
+							targetBlocks,
+							(block) =>
+								procedures.assetPoint
+									.searchRepository(
+										{
+											repositoryId: block.id,
+											filters: {
+												queries: normalizedQueries,
+												limit: Math.max(limit * 6, 24),
+												assetIds,
+												retrievalMode: block.config.retrievalMode ?? "hybrid",
+												minScore: block.config.scoreThreshold,
+												candidateLimit:
+													block.config.candidateLimit ??
+													Math.max(limit * 8, 32),
+												maxPerAsset: block.config.maxPerAsset ?? 2,
+											},
+										},
+										{
+											context,
+										},
+									)
+									.pipe(
+										Effect.map((response) => ({
+											block,
+											response,
+										})),
+									),
+							{
+								concurrency: "unbounded",
+							},
+						),
+						// Only adds notSearchable; a failure must not lose the results.
+						loadReadiness({
+							blocks: targetBlocks,
+							context,
+						}).pipe(Effect.orElseSucceed(() => [])),
+					],
 					{
 						concurrency: "unbounded",
 					},
 				);
+				const notSearchable = unsearchableDocuments(repositories);
 
 				const candidates = mergeAndSortCandidates(
 					flattenBlockResponses(blockResponses),
@@ -163,6 +179,11 @@ export const searchKnowledgeBaseTool = ({
 
 				return {
 					results: boundedResults,
+					...(notSearchable.length > 0
+						? {
+								notSearchable,
+							}
+						: {}),
 				};
 			}),
 		toModelOutput: searchModelOutput,

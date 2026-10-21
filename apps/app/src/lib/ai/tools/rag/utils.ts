@@ -4,7 +4,15 @@ import {
 	normalizeText,
 	tokenize,
 } from "@orcai/core";
-import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
+import {
+	type AssetPoint,
+	BLOCK_READINESS_MAX_IDS,
+	type DatabaseBlock,
+	type DocumentReadiness,
+	type DocumentState,
+	type RepositoryReadiness,
+} from "@orcai/schema";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
@@ -145,6 +153,25 @@ export const rankDocumentsByQuery = ({
 		.map((item) => item.doc);
 };
 
+/** The most assets one `asset.list` page holds. */
+const ASSET_PAGE_SIZE = 1000;
+
+/** Ready first: a document ready in one searched repository is searchable. */
+const STATE_ORDER: readonly DocumentState[] = [
+	"ready",
+	"indexing",
+	"processing",
+	"queued",
+	"failed",
+];
+
+const furthestDocument = (
+	a: DocumentReadiness,
+	b: DocumentReadiness,
+): DocumentReadiness =>
+	STATE_ORDER.indexOf(b.state) < STATE_ORDER.indexOf(a.state) ? b : a;
+
+/** The documents of `blocks`, once each, with their readiness and citation. */
 export const loadDocumentCatalog = ({
 	blocks,
 	context,
@@ -154,75 +181,135 @@ export const loadDocumentCatalog = ({
 }) =>
 	Effect.gen(function* () {
 		const procedures = yield* Procedures;
-		const blockAssetRefs = yield* Effect.forEach(
+		const repositories = yield* loadReadiness({
 			blocks,
-			(block) =>
-				procedures.block
-					.find(
-						{
-							id: block.id,
+			context,
+		});
+
+		const documentById = new Map<string, DocumentReadiness>();
+		for (const document of repositories.flatMap(
+			(repository) => repository.documents,
+		)) {
+			const known = documentById.get(document.assetId);
+			documentById.set(
+				document.assetId,
+				known ? furthestDocument(known, document) : document,
+			);
+		}
+		if (documentById.size === 0) {
+			return [];
+		}
+
+		const assetPages = yield* Effect.forEach(
+			Arr.chunksOf(
+				[
+					...documentById.keys(),
+				] as AssetId[],
+				ASSET_PAGE_SIZE,
+			),
+			(ids) =>
+				procedures.asset.list(
+					{
+						pageIndex: 0,
+						pageSize: ASSET_PAGE_SIZE,
+						filters: {
+							ids,
 						},
-						{
-							context,
-						},
-					)
-					.pipe(
-						Effect.map((result) => ({
-							block,
-							assetIds:
-								result.assets?.map((entry: { id: AssetId }) => entry.id) ?? [],
-						})),
-					),
+					},
+					{
+						context,
+					},
+				),
 			{
 				concurrency: 4,
 			},
 		);
-
-		const uniqueAssetIds = Array.from(
-			new Set(blockAssetRefs.flatMap((item) => item.assetIds)),
-		);
-		if (uniqueAssetIds.length === 0) {
-			return [];
-		}
-
-		const assetResponse = yield* procedures.asset.list(
-			{
-				pageIndex: 0,
-				pageSize: Math.min(1000, Math.max(uniqueAssetIds.length, 20)),
-				filters: {
-					ids: uniqueAssetIds,
-				},
-			},
-			{
-				context,
-			},
+		const citationById = new Map(
+			assetPages
+				.flatMap(({ data }) => data)
+				.map(
+					(asset) =>
+						[
+							asset.id,
+							(
+								asset.metadata as {
+									citation?: string;
+								} | null
+							)?.citation,
+						] as const,
+				),
 		);
 
-		const assetById = new Map(
-			assetResponse.data.map(
-				(asset) =>
-					[
-						asset.id,
-						asset,
-					] as const,
-			),
+		return [
+			...documentById.values(),
+		].map(
+			(document): KnowledgeBaseDocument => ({
+				assetId: document.assetId,
+				title: document.title,
+				citation: citationById.get(document.assetId) ?? undefined,
+				state: document.state,
+				failure: document.failure ?? undefined,
+			}),
 		);
-
-		return uniqueAssetIds.flatMap((assetId): KnowledgeBaseDocument[] => {
-			const asset = assetById.get(assetId);
-			if (!asset) return [];
-			const metadata = asset.metadata as {
-				citation?: string;
-			} | null;
-			return [
-				{
-					assetId,
-					title: asset.title,
-					citation: metadata?.citation ?? undefined,
-				},
-			];
-		});
 	});
+
+export const loadReadiness = ({
+	blocks,
+	context,
+}: {
+	blocks: DatabaseBlock[];
+	context: ORPCContext;
+}) =>
+	Effect.gen(function* () {
+		const procedures = yield* Procedures;
+		const batches = yield* Effect.forEach(
+			Arr.chunksOf(
+				blocks.map((block) => block.id),
+				BLOCK_READINESS_MAX_IDS,
+			),
+			(blockIds) =>
+				procedures.block.readiness(
+					{
+						blockIds,
+					},
+					{
+						context,
+					},
+				),
+			{
+				concurrency: 4,
+			},
+		);
+		return batches.flatMap(({ data }) => data);
+	});
+
+/**
+ * Tells the model which searched repositories hold documents search cannot
+ * see yet, so it does not present them as empty.
+ */
+export const unsearchableDocuments = (
+	repositories: readonly Pick<RepositoryReadiness, "name" | "totals">[],
+) =>
+	repositories
+		.filter(({ totals }) => totals.preparing > 0 || totals.failed > 0)
+		.map(({ name, totals }) => ({
+			repository: name,
+			ready: totals.ready,
+			total: totals.total,
+			preparing: totals.preparing,
+			failed: totals.failed,
+			note: [
+				`${totals.ready} of ${totals.total} documents in ${name} are searchable.`,
+				totals.preparing > 0
+					? `${totals.preparing} ${totals.preparing === 1 ? "is" : "are"} still being prepared.`
+					: undefined,
+				totals.failed > 0
+					? `${totals.failed} could not be prepared.`
+					: undefined,
+			]
+				.filter(Boolean)
+				.join(" "),
+		}));
 
 export const compareByPageAssetChunk = (
 	a: PointWithBlock,

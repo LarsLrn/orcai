@@ -79,8 +79,11 @@ export const deleteBlocksInputSchema = z.object({
 	}),
 });
 
+/** How many repositories one `block.readiness` call takes. */
+export const BLOCK_READINESS_MAX_IDS = 100;
+
 export const blockReadinessInputSchema = z.object({
-	blockIds: z.array(blockIdSchema).max(100),
+	blockIds: z.array(blockIdSchema).max(BLOCK_READINESS_MAX_IDS),
 	...zedTokenSchema.shape,
 });
 
