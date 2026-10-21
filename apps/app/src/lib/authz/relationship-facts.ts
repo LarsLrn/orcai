@@ -8,6 +8,7 @@ import type {
 	OrganizationRole,
 	UserId,
 } from "@orcai/core";
+import { ORGANIZATION_ROLES } from "@orcai/core";
 import type { ResourceGrantRole, ResourceVisibility } from "@orcai/schema";
 import type { RelationshipFor, TupleMutation } from "@orcai/spice-db";
 import * as Arr from "effect/Array";
@@ -36,6 +37,13 @@ export type GrantPrincipal =
 			principalType: "group";
 			principalId: GroupId;
 	  };
+
+/** An organization's group; the All Members group's members are the organization's roles. */
+type GroupRef = {
+	groupId: GroupId;
+	organizationId: OrganizationId;
+	allMembers: boolean;
+};
 
 /**
  * A change to business rows that SpiceDB must mirror. `from`/`to` of `null`
@@ -68,10 +76,8 @@ export type RelationshipFact = Data.TaggedEnum<{
 		from: OrganizationRole | null;
 		to: OrganizationRole | null;
 	};
-	GroupDeleted: {
-		groupId: GroupId;
-		organizationId: OrganizationId;
-	};
+	GroupCreated: GroupRef;
+	GroupDeleted: GroupRef;
 	GroupMembershipChanged: {
 		groupId: GroupId;
 		userId: UserId;
@@ -142,6 +148,33 @@ const principalSubject = (principal: GrantPrincipal) =>
 				subjectId: principal.principalId,
 			};
 
+const groupTuples = (
+	{ groupId, organizationId, allMembers }: GroupRef,
+	operation: Operation,
+): TupleMutation[] => [
+	{
+		resourceType: "group",
+		resourceId: groupId,
+		relation: "organization",
+		subjectType: "organization",
+		subjectId: organizationId,
+		operation,
+	},
+	...(allMembers
+		? ORGANIZATION_ROLES.map(
+				(role): TupleMutation => ({
+					resourceType: "group",
+					resourceId: groupId,
+					relation: "member",
+					subjectType: "organization",
+					subjectId: organizationId,
+					subjectRelation: role,
+					operation,
+				}),
+			)
+		: []),
+];
+
 const roleChange = <Role extends string>(
 	from: Role | null,
 	to: Role | null,
@@ -211,16 +244,8 @@ const projectFact = RelationshipFact.$match({
 				operation,
 			}),
 		),
-	GroupDeleted: ({ groupId, organizationId }): TupleMutation[] => [
-		{
-			resourceType: "group",
-			resourceId: groupId,
-			relation: "organization",
-			subjectType: "organization",
-			subjectId: organizationId,
-			operation: "delete",
-		},
-	],
+	GroupCreated: (group) => groupTuples(group, "touch"),
+	GroupDeleted: (group) => groupTuples(group, "delete"),
 	GroupMembershipChanged: ({ groupId, userId, member }): TupleMutation[] => [
 		{
 			resourceType: "group",

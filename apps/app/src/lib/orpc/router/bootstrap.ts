@@ -1,14 +1,10 @@
-import {
-	INSTANCE_ADMIN_ROLE,
-	normalizeEmail,
-	ORGANIZATION_ADMIN_ROLE,
-} from "@orcai/core";
+import { INSTANCE_ADMIN_ROLE, normalizeEmail } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { count, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
-import { AuthzService } from "@/lib/effect/services/authz";
+import { insertOrganization } from "@/lib/authz/organization-lifecycle";
+import { writeRelationships } from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { os } from "@/lib/orpc/implementation/os";
 
@@ -70,7 +66,6 @@ const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 	input,
 }) {
 	const db = yield* DB;
-	const authz = yield* AuthzService;
 	const authContext = yield* Effect.promise(() => auth.$context);
 	const email = normalizeEmail(input.email);
 	const now = new Date();
@@ -78,189 +73,94 @@ const initializeBootstrap = os.bootstrap.initialize.effect(function* ({
 		authContext.password.hash(input.password),
 	);
 
-	const { userId, organizationId, allMembersGroupId } = yield* db.transaction(
-		(tx) =>
-			Effect.gen(function* () {
-				// Ensure only one bootstrap transaction can pass the initialized check.
-				yield* tx.execute(
-					sql`LOCK TABLE "organization" IN ACCESS EXCLUSIVE MODE`,
+	const {
+		result: { userId, organizationId },
+	} = yield* writeRelationships(
+		{
+			organizationIds: [],
+		},
+		Effect.gen(function* () {
+			// Ensure only one bootstrap transaction can pass the initialized check.
+			yield* db.execute(
+				sql`LOCK TABLE "organization" IN ACCESS EXCLUSIVE MODE`,
+			);
+
+			const initialized = yield* getInitializedState(db);
+
+			if (initialized) {
+				return yield* Effect.fail(
+					new AppErrors.BadRequestError({
+						reason: "INSTANCE_ALREADY_INITIALISED",
+						message: "Application is already initialized.",
+					}),
 				);
+			}
 
-				const initialized = yield* getInitializedState(tx);
+			const [existingUser] = yield* db
+				.select({
+					id: dbSchema.user.id,
+				})
+				.from(dbSchema.user)
+				.where(eq(dbSchema.user.email, email))
+				.limit(1);
 
-				if (initialized) {
-					return yield* Effect.fail(
-						new AppErrors.BadRequestError({
-							reason: "INSTANCE_ALREADY_INITIALISED",
-							message: "Application is already initialized.",
-						}),
-					);
-				}
-
-				const [existingUser] = yield* tx
-					.select({
-						id: dbSchema.user.id,
-					})
-					.from(dbSchema.user)
-					.where(eq(dbSchema.user.email, email))
-					.limit(1);
-
-				if (existingUser) {
-					return yield* Effect.fail(
-						new AppErrors.BadRequestError({
-							reason: "EMAIL_ALREADY_REGISTERED",
-							message: "A user with this email already exists.",
-						}),
-					);
-				}
-
-				const [newUser] = yield* tx
-					.insert(dbSchema.user)
-					.values({
-						email,
-						name: input.name,
-						emailVerified: false,
-						role: INSTANCE_ADMIN_ROLE,
-						createdAt: now,
-						updatedAt: now,
-					})
-					.returning({
-						id: dbSchema.user.id,
-					});
-
-				const user = yield* Effect.fromNullishOr(newUser).pipe(
-					Effect.mapError(
-						() =>
-							new AppErrors.BadRequestError({
-								reason: "BOOTSTRAP_USER_CREATE_FAILED",
-								message: "Failed to create bootstrap user.",
-							}),
-					),
+			if (existingUser) {
+				return yield* Effect.fail(
+					new AppErrors.BadRequestError({
+						reason: "EMAIL_ALREADY_REGISTERED",
+						message: "A user with this email already exists.",
+					}),
 				);
+			}
 
-				yield* tx.insert(dbSchema.account).values({
-					accountId: user.id,
-					providerId: "credential",
-					userId: user.id,
-					password: passwordHash,
+			const [newUser] = yield* db
+				.insert(dbSchema.user)
+				.values({
+					email,
+					name: input.name,
+					emailVerified: false,
+					role: INSTANCE_ADMIN_ROLE,
 					createdAt: now,
 					updatedAt: now,
+				})
+				.returning({
+					id: dbSchema.user.id,
 				});
 
-				const [newOrganization] = yield* tx
-					.insert(dbSchema.organization)
-					.values({
-						name: input.organizationName,
-						slug: input.organizationSlug.trim().toLowerCase(),
-						createdAt: now,
-					})
-					.returning({
-						id: dbSchema.organization.id,
-					});
+			const user = yield* Effect.fromNullishOr(newUser).pipe(
+				Effect.mapError(
+					() =>
+						new AppErrors.BadRequestError({
+							reason: "BOOTSTRAP_USER_CREATE_FAILED",
+							message: "Failed to create bootstrap user.",
+						}),
+				),
+			);
 
-				const organization = yield* Effect.fromNullishOr(newOrganization).pipe(
-					Effect.mapError(
-						() =>
-							new AppErrors.BadRequestError({
-								reason: "BOOTSTRAP_ORGANIZATION_CREATE_FAILED",
-								message: "Failed to create bootstrap organisation.",
-							}),
-					),
-				);
+			yield* db.insert(dbSchema.account).values({
+				accountId: user.id,
+				providerId: "credential",
+				userId: user.id,
+				password: passwordHash,
+				createdAt: now,
+				updatedAt: now,
+			});
 
-				yield* tx.insert(dbSchema.member).values({
-					organizationId: organization.id,
-					userId: user.id,
-					role: ORGANIZATION_ADMIN_ROLE,
-					createdAt: now,
-				});
+			const organization = yield* insertOrganization({
+				values: {
+					name: input.organizationName,
+					slug: input.organizationSlug.trim().toLowerCase(),
+				},
+				adminUserId: user.id,
+				now,
+			});
 
-				const [allMembersGroup] = yield* tx
-					.insert(dbSchema.group)
-					.values({
-						organizationId: organization.id,
-						name: "All Members",
-						description: "System group containing all organisation members",
-						kind: "system",
-						systemKey: ALL_MEMBERS_GROUP_SYSTEM_KEY,
-						createdBy: user.id,
-						createdAt: now,
-						updatedAt: now,
-						deletedAt: null,
-					})
-					.returning({
-						id: dbSchema.group.id,
-					});
-
-				return {
-					userId: user.id,
-					organizationId: organization.id,
-					allMembersGroupId: allMembersGroup.id,
-				};
-			}),
+			return {
+				userId: user.id,
+				organizationId: organization.id,
+			};
+		}),
 	);
-
-	yield* authz.applyRelationshipMutations({
-		mutations: [
-			{
-				resourceType: "organization",
-				resourceId: organizationId,
-				relation: "admin",
-				subjectType: "user",
-				subjectId: userId,
-				operation: "touch",
-			},
-		],
-	});
-
-	yield* authz.applyRelationshipMutations({
-		mutations: [
-			{
-				resourceType: "group",
-				resourceId: allMembersGroupId,
-				relation: "organization",
-				subjectType: "organization",
-				subjectId: organizationId,
-				operation: "touch",
-			},
-			{
-				resourceType: "group",
-				resourceId: allMembersGroupId,
-				relation: "member",
-				subjectType: "organization",
-				subjectId: organizationId,
-				subjectRelation: "admin",
-				operation: "touch",
-			},
-			{
-				resourceType: "group",
-				resourceId: allMembersGroupId,
-				relation: "member",
-				subjectType: "organization",
-				subjectId: organizationId,
-				subjectRelation: "manager",
-				operation: "touch",
-			},
-			{
-				resourceType: "group",
-				resourceId: allMembersGroupId,
-				relation: "member",
-				subjectType: "organization",
-				subjectId: organizationId,
-				subjectRelation: "member",
-				operation: "touch",
-			},
-			{
-				resourceType: "group",
-				resourceId: allMembersGroupId,
-				relation: "member",
-				subjectType: "organization",
-				subjectId: organizationId,
-				subjectRelation: "viewer",
-				operation: "touch",
-			},
-		],
-	});
 
 	initializedCache = true;
 

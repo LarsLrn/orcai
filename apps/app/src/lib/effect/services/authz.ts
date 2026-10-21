@@ -1,6 +1,8 @@
 import { PgClient } from "@effect/sql-pg";
 import { DB, dbSchema, enumSchema } from "@orcai/db";
 import {
+	isPermanentWriteFailure,
+	SpiceDbError,
 	SpiceDbService,
 	type TupleMutation,
 	writeRelationshipMutations,
@@ -8,6 +10,7 @@ import {
 import { and, asc, eq, inArray, lte } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Context from "effect/Context";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { recordZedToken } from "@/lib/effect/services/zed-token-mailbox";
@@ -65,9 +68,6 @@ type Delivery = {
 export class AuthzService extends Context.Service<
 	AuthzService,
 	{
-		readonly applyRelationshipMutations: (params: {
-			mutations: TupleMutation[];
-		}) => Effect.Effect<Delivery, AuthzError>;
 		/**
 		 * Delivers committed events, and every older one first, then records the
 		 * token of the newest. Returns no token when an older event is failing
@@ -84,6 +84,16 @@ export class AuthzService extends Context.Service<
 >()("AuthzService") {}
 
 type OutboxEvent = typeof dbSchema.authzOutbox.$inferSelect;
+
+class InvalidOutboxPayload extends Data.TaggedError("InvalidOutboxPayload") {}
+
+const describeFailure = (cause: unknown) =>
+	cause instanceof SpiceDbError ? String(cause.cause) : String(cause);
+
+/** The event itself is at fault, so it fails on every retry. */
+const isPermanent = (cause: unknown) =>
+	cause instanceof InvalidOutboxPayload ||
+	(cause instanceof SpiceDbError && isPermanentWriteFailure(cause));
 
 const retryDelayMs = (attempts: number) =>
 	Math.min(AUTHZ.outboxRetryBaseDelayMs * 2 ** Math.min(attempts, 4), 600_000);
@@ -103,16 +113,18 @@ export const AuthzLive = Layer.effect(
 					}
 				).mutations;
 				if (!Array.isArray(mutations) || mutations.length === 0)
-					return yield* Effect.fail(
-						new Error("Invalid permission outbox payload"),
-					);
+					return yield* Effect.fail(new InvalidOutboxPayload());
 				return yield* writeRelationshipMutations(mutations).pipe(
 					Effect.timeout(AUTHZ.outboxDeliveryTimeoutMs),
 					Effect.provideService(SpiceDbService, spiceDb),
 				);
 			});
 
-		/** Records the outcome of one write: processed, or failed with backoff, or dead-lettered once exhausted. */
+		/**
+		 * Records the outcome of one write: processed, dead-lettered when the
+		 * event itself is at fault, or failed with backoff and retried until it
+		 * succeeds.
+		 */
 		const settle = (event: OutboxEvent) =>
 			write(event).pipe(
 				Effect.matchEffect({
@@ -134,23 +146,23 @@ export const AuthzLive = Layer.effect(
 					onFailure: (cause) =>
 						Effect.gen(function* () {
 							const attempts = event.attempts + 1;
-							const exhausted = attempts >= AUTHZ.outboxMaxAttempts;
+							const deadLetter = isPermanent(cause);
 							const now = new Date();
 							yield* Effect.logError(
-								`authz.${exhausted ? "dead_letter" : "projection_failed"} eventId=${event.id} attempts=${attempts} cause=${String(cause)}`,
+								`authz.${deadLetter ? "dead_letter" : "projection_failed"} eventId=${event.id} attempts=${attempts} cause=${describeFailure(cause)}`,
 							);
 							yield* db
 								.update(dbSchema.authzOutbox)
 								.set({
-									status: exhausted ? DEAD_LETTER : FAILED,
+									status: deadLetter ? DEAD_LETTER : FAILED,
 									attempts,
-									nextAttemptAt: exhausted
+									nextAttemptAt: deadLetter
 										? null
 										: new Date(now.getTime() + retryDelayMs(event.attempts)),
 									updatedAt: now,
 								})
 								.where(eq(dbSchema.authzOutbox.id, event.id));
-							return exhausted ? DEAD_LETTER : FAILED;
+							return deadLetter ? DEAD_LETTER : FAILED;
 						}),
 				}),
 			);
@@ -265,17 +277,6 @@ export const AuthzLive = Layer.effect(
 				Effect.tap((delivery: Delivery) => recordZedToken(delivery.zedToken)),
 			);
 
-		const applyRelationshipMutations = (params: {
-			mutations: TupleMutation[];
-		}) =>
-			db
-				.transaction(() => enqueueRelationshipMutations(params.mutations))
-				.pipe(
-					Effect.provideService(DB, db),
-					Effect.mapError(outboxFailure("outbox_enqueue_failed")),
-					Effect.flatMap(deliverRelationshipEvents),
-				);
-
 		const replayRelationshipOutbox = () =>
 			Effect.gen(function* () {
 				let processed = 0;
@@ -301,18 +302,17 @@ export const AuthzLive = Layer.effect(
 				),
 			);
 
-		yield* Effect.forkDetach(
+		yield* Effect.forkScoped(
 			Effect.forever(
 				replayRelationshipOutbox().pipe(
 					Effect.delay("10 seconds"),
-					Effect.catchCause((cause) =>
-						Effect.logError(`authz.replay_loop_defect cause=${String(cause)}`),
+					Effect.catchDefect((defect) =>
+						Effect.logError(`authz.replay_loop_defect cause=${String(defect)}`),
 					),
 				),
 			),
 		);
 		return {
-			applyRelationshipMutations,
 			deliverRelationshipEvents,
 			replayRelationshipOutbox,
 		};

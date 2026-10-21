@@ -2427,7 +2427,6 @@
 	"error_block_in_use_by_ready_bots": "This block cannot be moved to draft because ready bots use it: {botNames}.",
 	"error_block_link_forbidden": "You do not have access to one or more of the selected blocks.",
 	"error_block_not_found": "Block not found.",
-	"error_bootstrap_organization_create_failed": "The organisation could not be created.",
 	"error_bootstrap_user_create_failed": "The user could not be created.",
 	"error_bot_behaviour_block_not_ready": "Set the AI behaviour block to ready before publishing this bot.",
 	"error_bot_behaviour_block_required": "Bots need an AI behaviour block before they can be published.",

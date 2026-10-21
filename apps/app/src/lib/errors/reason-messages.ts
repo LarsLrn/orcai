@@ -48,8 +48,6 @@ const reasonMessages: ReasonMessages = {
 		}),
 	BLOCK_LINK_FORBIDDEN: m.error_block_link_forbidden,
 	BLOCK_NOT_FOUND: m.error_block_not_found,
-	BOOTSTRAP_ORGANIZATION_CREATE_FAILED:
-		m.error_bootstrap_organization_create_failed,
 	BOOTSTRAP_USER_CREATE_FAILED: m.error_bootstrap_user_create_failed,
 	BOT_BEHAVIOUR_BLOCK_NOT_READY: m.error_bot_behaviour_block_not_ready,
 	BOT_BEHAVIOUR_BLOCK_REQUIRED: m.error_bot_behaviour_block_required,

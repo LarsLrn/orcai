@@ -37,13 +37,13 @@ import * as Effect from "effect/Effect";
 import { SqlError } from "effect/unstable/sql/SqlError";
 import { auth } from "@/lib/auth/auth";
 import { detachAccountAccess } from "@/lib/authz/membership-detach";
+import { touchOrganizationRoles } from "@/lib/authz/organization-lifecycle";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
 import { getZedToken } from "@/lib/authz/zed-token";
-import { AuthzService } from "@/lib/effect/services/authz";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { createProcedures } from "@/lib/orpc/implementation/procedures";
@@ -1087,7 +1087,6 @@ const setTourState = authed.user.setTourState
 const setActiveOrganization = authed.user.setActiveOrganization.effect(
 	function* ({ input, context }) {
 		const db = yield* DB;
-		const authz = yield* AuthzService;
 		const [membership] = yield* db
 			.select({
 				role: dbSchema.member.role,
@@ -1119,16 +1118,10 @@ const setActiveOrganization = authed.user.setActiveOrganization.effect(
 		}).pipe(Effect.catch(() => Effect.succeed(false)));
 
 		if (!hasSpiceAccess) {
-			yield* authz.applyRelationshipMutations({
-				mutations: [
-					{
-						resourceType: "organization",
-						resourceId: input.organizationId,
-						relation: membership.role,
-						subjectType: "user",
-						subjectId: context.auth.user.id,
-						operation: "touch",
-					},
+			yield* touchOrganizationRoles({
+				userId: context.auth.user.id,
+				organizationIds: [
+					input.organizationId,
 				],
 			});
 		}
