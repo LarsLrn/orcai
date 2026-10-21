@@ -133,6 +133,8 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 	name: string;
 	layer: Layer.Layer<TContext | PgBossService, TError, never>;
 	definitions: readonly WorkerDefinition<TContext | PgBossService, unknown>[];
+	/** Runs once at boot; a failure is logged and does not stop the workers. */
+	setup?: Effect.Effect<void, unknown, TContext | PgBossService>;
 }) => {
 	const runtime = ManagedRuntime.make(params.layer);
 
@@ -167,6 +169,15 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 
 		yield* registerWorkers(params.definitions);
 		yield* scheduleWorkers(params.definitions);
+
+		if (params.setup) {
+			yield* params.setup.pipe(
+				Effect.retry(retryPolicy),
+				Effect.catchCause((cause) =>
+					logErrorCause(`${params.name} setup failed`, cause),
+				),
+			);
+		}
 
 		yield* Effect.logInfo(`${params.name} started`);
 	}).pipe(Effect.withSpan("workers.startup"));

@@ -142,9 +142,15 @@ export const UPLOAD_ROUTES = {
 			partSignedUrlExpiresIn: 60 * 15,
 		},
 		allowedMimePatterns: [
-			"image/*",
+			"image/jpeg",
+			"image/jpg",
+			"image/png",
+			"image/gif",
+			"image/webp",
 			"application/pdf",
-			"text/*",
+			"text/plain",
+			"text/csv",
+			"text/markdown",
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
 		],
@@ -186,6 +192,10 @@ export const isMimeAllowed = (params: {
 	});
 };
 
+/** Uploads land here until an asset is created from them; lifecycle expires the rest. */
+export const UPLOAD_STAGING_PREFIX = "staging/";
+
+/** Where a new upload lands: `staging/users/<userId>/<route>/YYYY/MM`. */
 export const buildUploadPrefix = (params: {
 	userId: string;
 	route: UploadRouteName;
@@ -194,7 +204,7 @@ export const buildUploadPrefix = (params: {
 	const year = now.getUTCFullYear();
 	const month = String(now.getUTCMonth() + 1).padStart(2, "0");
 
-	return `users/${params.userId}/${params.route}/${year}/${month}`;
+	return `${UPLOAD_STAGING_PREFIX}users/${params.userId}/${params.route}/${year}/${month}`;
 };
 
 export const shouldUseMultipartUpload = (params: {

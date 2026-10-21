@@ -12,4 +12,5 @@ export {
 	isMimeAllowed,
 	shouldUseMultipartUpload,
 	UPLOAD_ROUTES,
+	UPLOAD_STAGING_PREFIX,
 } from "./upload-policy";

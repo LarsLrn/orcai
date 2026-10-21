@@ -2,7 +2,11 @@ import { buckets } from "@orcai/core";
 import type { BucketName } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { getFileTypeFromMime } from "../shared/file-type-helpers";
-import type { UploadRouteName } from "../shared/upload-policy";
+import {
+	UPLOAD_ROUTES,
+	UPLOAD_STAGING_PREFIX,
+	type UploadRouteName,
+} from "../shared/upload-policy";
 import { sendCreateBucketCommand, sendHeadBucketCommand } from "./commands";
 import { S3Error } from "./errors";
 
@@ -88,88 +92,83 @@ export const createBucketIfNotExists = (bucketName: BucketName) =>
 		);
 	});
 
+const UUID_PATTERN =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const invalidEnvelope = (cause: string) =>
+	new S3Error({
+		operation: "validateUploadEnvelope",
+		cause,
+	});
+
+/**
+ * Checks a signed upload's metadata against the caller and the route, and
+ * derives the staged object's key and the final prefix and key of its asset.
+ */
 export const validateUploadEnvelope = (params: {
 	file: {
 		type: string;
 		objectMetadata: Record<string, string>;
 	};
-	inputRoute: UploadRouteName;
-	authUserId: string;
-	expectedBucket: BucketName;
-	requireKey?: boolean;
+	route: UploadRouteName;
+	userId: string;
 }) =>
 	Effect.gen(function* () {
 		const { id, prefix, route, userId, bucket, key } =
 			params.file.objectMetadata;
 
-		if (
-			!id ||
-			!prefix ||
-			!route ||
-			!userId ||
-			!bucket ||
-			(params.requireKey && !key)
-		) {
-			return yield* new S3Error({
-				operation: "validateUploadEnvelope",
-				cause: "incomplete_metadata",
-			});
+		if (!id || !prefix || !route || !userId || !bucket || !key) {
+			return yield* invalidEnvelope("incomplete_metadata");
 		}
 
-		if (route !== params.inputRoute) {
-			return yield* new S3Error({
-				operation: "validateUploadEnvelope",
-				cause: "route_metadata_mismatch",
-			});
+		if (route !== params.route) {
+			return yield* invalidEnvelope("route_metadata_mismatch");
 		}
 
-		if (userId !== params.authUserId) {
-			return yield* new S3Error({
-				operation: "validateUploadEnvelope",
-				cause: "user_metadata_mismatch",
-			});
+		if (userId !== params.userId) {
+			return yield* invalidEnvelope("user_metadata_mismatch");
 		}
 
-		if (bucket !== params.expectedBucket) {
-			return yield* new S3Error({
-				operation: "validateUploadEnvelope",
-				cause: "bucket_metadata_mismatch",
-			});
+		const expectedBucket = UPLOAD_ROUTES[params.route].bucket;
+		if (bucket !== expectedBucket) {
+			return yield* invalidEnvelope("bucket_metadata_mismatch");
 		}
 
-		const prefixSegments = prefix.split("/");
-		const [scope, prefixUserId, prefixRoute, year, month] = prefixSegments;
+		if (!UUID_PATTERN.test(id)) {
+			return yield* invalidEnvelope("invalid_id_metadata");
+		}
+
+		const finalPrefix = prefix.startsWith(UPLOAD_STAGING_PREFIX)
+			? prefix.slice(UPLOAD_STAGING_PREFIX.length)
+			: undefined;
+		const [scope, prefixUserId, prefixRoute, year, month, ...rest] =
+			finalPrefix?.split("/") ?? [];
 
 		const isValidPrefix =
-			prefixSegments.length === 5 &&
+			rest.length === 0 &&
 			scope === "users" &&
-			prefixUserId === params.authUserId &&
-			prefixRoute === params.inputRoute &&
+			prefixUserId === params.userId &&
+			prefixRoute === params.route &&
 			/^\d{4}$/.test(year ?? "") &&
 			/^(0[1-9]|1[0-2])$/.test(month ?? "");
 
-		if (!isValidPrefix) {
-			return yield* new S3Error({
-				operation: "validateUploadEnvelope",
-				cause: "invalid_prefix_metadata",
-			});
+		if (!finalPrefix || !isValidPrefix) {
+			return yield* invalidEnvelope("invalid_prefix_metadata");
 		}
 
 		const extension = getFileTypeFromMime(params.file.type);
-		const expectedKey = `${prefix}/${id}.${extension}`;
+		const stagingKey = `${prefix}/${id}.${extension}`;
 
-		if (params.requireKey && key !== expectedKey) {
-			return yield* new S3Error({
-				operation: "validateUploadEnvelope",
-				cause: "key_metadata_mismatch",
-			});
+		if (key !== stagingKey) {
+			return yield* invalidEnvelope("key_metadata_mismatch");
 		}
 
 		return {
 			id,
-			prefix,
-			bucket: params.expectedBucket,
-			expectedKey,
+			bucket: expectedBucket,
+			stagingKey,
+			prefix: finalPrefix,
+			key: `${finalPrefix}/${id}.${extension}`,
 		};
 	});
 
