@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
@@ -12,17 +11,12 @@ export const useCreateProviderMutation = (
 	opts: ReturnType<typeof orpc.provider.create.mutationOptions> = {},
 ) => {
 	const router = useRouter();
-	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.provider.create.mutationOptions({
 				...opts,
 				onSuccess: async (result, ...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.provider.key(),
-					});
-
 					await router.navigate({
 						to: "/app/providers/$providerId",
 						params: {
@@ -30,14 +24,7 @@ export const useCreateProviderMutation = (
 						},
 					});
 
-					try {
-						await opts.onSuccess?.(result, ...args);
-					} catch (error) {
-						console.error(
-							"useCreateProviderMutation onSuccess callback failed:",
-							error,
-						);
-					}
+					await opts.onSuccess?.(result, ...args);
 				},
 			}),
 		messages: {
@@ -51,27 +38,8 @@ export const useCreateProviderMutation = (
 export const useUpdateProviderMutation = (
 	opts: ReturnType<typeof orpc.provider.update.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.provider.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.provider.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUpdateProviderMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.provider.update.mutationOptions(opts),
 		messages: {
 			loading: m.providers_update_toast_loading(),
 			success: m.providers_update_toast_success(),
@@ -84,27 +52,8 @@ export const useDeleteProvidersMutation = (
 	opts: ReturnType<typeof orpc.provider.delete.mutationOptions> = {},
 	target?: DestructiveTarget,
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.provider.delete.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.provider.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useDeleteProvidersMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.provider.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
 				m.providers_delete_toast_loading({

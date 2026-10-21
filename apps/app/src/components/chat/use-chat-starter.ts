@@ -5,7 +5,7 @@ import {
 	type Model,
 	type Provider,
 } from "@orcai/schema";
-import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -13,7 +13,7 @@ import {
 	useDefaultChatModel,
 } from "@/components/chat/use-default-chat-model";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
-import { client, orpc } from "@/lib/orpc/orpc";
+import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 type ChatAvailability = ChatModelAvailability | "no-quota";
@@ -29,7 +29,9 @@ const useChatStarter = ({
 		zedToken?: string,
 	) => void | Promise<void>;
 }) => {
-	const queryClient = useQueryClient();
+	const { mutateAsync: createChat } = useMutation(
+		orpc.chat.create.mutationOptions(),
+	);
 	const [selectedModel, setSelectedModel] = useState<Model | null>(null);
 	const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
 		null,
@@ -99,20 +101,14 @@ const useChatStarter = ({
 							}),
 				};
 
-				const result = await client.chat.create({
+				const result = await createChat({
 					botId: selectedBotId ?? undefined,
 					config,
 				});
 
-				const chatId = result.data.id;
-				const zedToken = result.meta?.zedToken;
-
-				void queryClient.invalidateQueries({
-					queryKey: orpc.chat.key(),
-					refetchType: "all",
-				});
-
-				await Promise.resolve(onChatCreated(chatId, text, zedToken));
+				await Promise.resolve(
+					onChatCreated(result.data.id, text, result.meta?.zedToken),
+				);
 			} catch (error) {
 				toast.error(m.chat_starter_create_failed_toast_error(), {
 					description: reasonMessageOf(error),
@@ -125,7 +121,7 @@ const useChatStarter = ({
 			selectedProvider,
 			selectedBotId,
 			isCreating,
-			queryClient,
+			createChat,
 			onChatCreated,
 		],
 	);

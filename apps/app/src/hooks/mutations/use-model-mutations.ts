@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
@@ -12,17 +11,12 @@ export const useCreateModelMutation = (
 	opts: ReturnType<typeof orpc.model.create.mutationOptions> = {},
 ) => {
 	const router = useRouter();
-	const queryClient = useQueryClient();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.model.create.mutationOptions({
 				...opts,
 				onSuccess: async (result, ...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.model.key(),
-					});
-
 					await router.navigate({
 						to: "/app/models/$modelId",
 						params: {
@@ -30,14 +24,7 @@ export const useCreateModelMutation = (
 						},
 					});
 
-					try {
-						await opts.onSuccess?.(result, ...args);
-					} catch (error) {
-						console.error(
-							"useCreateModelMutation onSuccess callback failed:",
-							error,
-						);
-					}
+					await opts.onSuccess?.(result, ...args);
 				},
 			}),
 		messages: {
@@ -51,27 +38,8 @@ export const useCreateModelMutation = (
 export const useUpdateModelMutation = (
 	opts: ReturnType<typeof orpc.model.update.mutationOptions> = {},
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.model.update.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.model.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useUpdateModelMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.model.update.mutationOptions(opts),
 		messages: {
 			loading: m.models_update_toast_loading(),
 			success: m.models_update_toast_success(),
@@ -84,27 +52,8 @@ export const useDeleteModelsMutation = (
 	opts: ReturnType<typeof orpc.model.delete.mutationOptions> = {},
 	target?: DestructiveTarget,
 ) => {
-	const queryClient = useQueryClient();
-
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.model.delete.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					queryClient.invalidateQueries({
-						queryKey: orpc.model.key(),
-					});
-
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useDeleteModelsMutation onSuccess callback failed:",
-							error,
-						);
-					}
-				},
-			}),
+		mutationOptions: () => orpc.model.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
 				m.models_delete_toast_loading({

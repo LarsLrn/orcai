@@ -31,14 +31,7 @@ export const useUpdateProfileMutation = (
 			onSuccess: async (...args) => {
 				await refetch();
 
-				try {
-					await opts.onSuccess?.(...args);
-				} catch (error) {
-					console.error(
-						"useUpdateProfileMutation onSuccess callback failed:",
-						error,
-					);
-				}
+				await opts.onSuccess?.(...args);
 			},
 		}),
 		messages: {

@@ -1,6 +1,7 @@
+import type { RouterClient } from "@orpc/server";
 import type { RouterUtilsScoped } from "@orpc/tanstack-query";
 import { keepPreviousData } from "@tanstack/react-query";
-import { type client, orpc } from "./orpc";
+import type { router } from "./router";
 
 export const queryDefaults = {
 	asset: {
@@ -166,15 +167,6 @@ export const queryDefaults = {
 				placeholderData: keepPreviousData,
 			},
 		},
-		discover: {
-			mutationOptions: {
-				onSuccess: (_output, _input, _, ctx) => {
-					ctx.client.invalidateQueries({
-						queryKey: orpc.model.key(),
-					});
-				},
-			},
-		},
 	},
 	organization: {
 		list: {
@@ -194,29 +186,9 @@ export const queryDefaults = {
 		},
 	},
 	storage: {
-		createUploadUrls: {
-			mutationOptions: {
-				onSuccess: (_output, _input, _, ctx) => {
-					ctx.client.invalidateQueries({
-						queryKey: orpc.storage.key(),
-					});
-				},
-			},
-		},
 		createDownloadUrl: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
-			},
-		},
-		finalizeUpload: {
-			mutationOptions: {
-				onSuccess: (_output, input, _, ctx) => {
-					if (input.route === "asset") {
-						ctx.client.invalidateQueries({
-							queryKey: orpc.asset.key(),
-						});
-					}
-				},
 			},
 		},
 	},
@@ -248,15 +220,5 @@ export const queryDefaults = {
 				placeholderData: keepPreviousData,
 			},
 		},
-		setTourState: {
-			mutationOptions: {
-				onSuccess: (_output, _input, _, ctx) => {
-					ctx.client.invalidateQueries({
-						// TODO: Only invalidate a specific user
-						queryKey: orpc.user.key(),
-					});
-				},
-			},
-		},
 	},
-} satisfies RouterUtilsScoped<typeof client>;
+} satisfies RouterUtilsScoped<RouterClient<typeof router>>;

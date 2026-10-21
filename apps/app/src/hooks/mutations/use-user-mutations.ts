@@ -26,14 +26,7 @@ export const useSetActiveOrganizationMutation = (
 						to: "/app",
 					});
 
-					try {
-						await opts.onSuccess?.(...args);
-					} catch (error) {
-						console.error(
-							"useSetActiveOrganizationMutation onSuccess callback failed:",
-							error,
-						);
-					}
+					await opts.onSuccess?.(...args);
 				},
 			}),
 		messages: {
