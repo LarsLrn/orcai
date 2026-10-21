@@ -105,6 +105,7 @@ const streamdownComponents = {
 
 const streamdownAllowedTags = {
 	cite: [
+		"chunk",
 		"assetid",
 		"assetId",
 		"asset_id",

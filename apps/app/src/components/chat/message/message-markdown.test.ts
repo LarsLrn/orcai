@@ -18,13 +18,18 @@ const checklistInput = {
 	],
 };
 
-const message = (role: "user" | "assistant", parts: unknown[]) =>
+const message = (
+	role: "user" | "assistant",
+	parts: unknown[],
+	metadata?: unknown,
+) =>
 	turnView(
 		[
 			{
 				id: "message-1",
 				role,
 				parts,
+				metadata,
 			} as unknown as ChatAgentUIMessage,
 		],
 		"idle",
@@ -78,6 +83,36 @@ describe("messageToMarkdown", () => {
 				displayToolMarkdown("showChecklist", checklistInput),
 				"Conclusion",
 			].join("\n\n"),
+		);
+	});
+
+	test("writes both cite forms as the cited text and its source", () => {
+		expect(
+			messageToMarkdown(
+				message(
+					"assistant",
+					[
+						text(
+							[
+								'Paid <cite chunk="k7f3a2">within 14 days</cite>.',
+								'Booked <cite assetid="a1" title="Travel policy" page="2">by train</cite>.',
+								'Kept <cite chunk="k000000">for a year</cite>.',
+							].join(" "),
+						),
+					],
+					{
+						citations: {
+							k7f3a2: {
+								assetId: "a2",
+								title: "Refund policy.pdf",
+								page: 4,
+							},
+						},
+					},
+				),
+			),
+		).toBe(
+			"Paid within 14 days (Refund policy, p. 4). Booked by train (Travel policy, p. 2). Kept for a year.",
 		);
 	});
 

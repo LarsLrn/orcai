@@ -3,7 +3,9 @@ import type { ChatMessageId } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { quota } from "../metered-call/test-quota";
-import { resetProcedures } from "../tools/assistant/test-procedures";
+import { answers, resetProcedures } from "../tools/assistant/test-procedures";
+import { chunkRef } from "../tools/rag/chunk-ref";
+import { assetPoint } from "../tools/rag/test-points";
 import {
 	answerSetup,
 	assistantRow,
@@ -1046,6 +1048,62 @@ describe("turn setup", () => {
 		expect(await refusalOf(chatRow())).toBe(
 			"BadRequestError: MODEL_TOOLS_UNSUPPORTED",
 		);
+	});
+
+	test("stores the sources of the chunk refs the reply cites", async () => {
+		answerSetup({
+			providerKind: "anthropic",
+			providerModelId: "claude-opus-5-5",
+			chatBlocks: [
+				{
+					id: crypto.randomUUID(),
+					type: "database",
+					name: "Handbook",
+					config: {},
+				},
+			],
+		});
+		answers["assetPoint.searchRepository"] = () =>
+			Effect.succeed({
+				data: [
+					assetPoint({
+						id: "c1",
+						index: 1,
+						text: "Refunds are paid within 14 days.",
+						pageStart: 4,
+					}),
+				],
+			});
+		const ref = chunkRef("c1");
+		const chat = await conversation(chatRow(), "anthropic");
+		chat.script([
+			{
+				calls: [
+					{
+						name: "searchKnowledgeBase",
+						input: {
+							query: "refunds",
+						},
+					},
+				],
+			},
+			{
+				text: `Paid <cite chunk="${ref}">within 14 days</cite>, as <cite chunk="k000000">promised</cite>.`,
+			},
+		]);
+
+		await chat.send("How fast are refunds paid?");
+
+		expect(JSON.stringify(chat.bodies[1]?.messages)).toContain(
+			`[${ref}] Refund policy, p. 4\\nRefunds are paid within 14 days.`,
+		);
+		expect(chat.messages().at(-1)?.metadata.citations).toEqual({
+			[ref]: {
+				assetId: "asset-a",
+				title: "Refund policy",
+				page: 4,
+			},
+		});
 	});
 
 	test("prefers an attached template's prompt over the chat's own", async () => {

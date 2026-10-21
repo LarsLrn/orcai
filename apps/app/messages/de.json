@@ -1938,6 +1938,7 @@
 	"chat_list_search_placeholder": "Chats suchen...",
 	"chat_message_branch_action": "Ab hier verzweigen",
 	"chat_message_branches_label": "Zweige:",
+	"chat_message_copy_citation_with_page": "{title}, S. {page}",
 	"chat_message_copy_label": "Kopieren",
 	"chat_message_copy_response_tooltip": "Antwort kopieren",
 	"chat_message_copy_toast_error": "Kopieren in die Zwischenablage fehlgeschlagen",

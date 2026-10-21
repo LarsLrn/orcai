@@ -164,11 +164,11 @@ When quota data is available, a line above the composer shows the pool that cove
 
 ## Retrieval And Citations
 
-When a chat has repositories, through its bot or its chat settings, the model can search them before it answers, but it may also answer directly. An answer that took steps shows one work log above it, listing the steps, such as **Searched the sources**, **Read the passages** and **Read a page**, and any interim text the model wrote between them; the text after the last step is the answer. While a step runs, a line under the answer names it. Expand a step to see its details and the passages found.
+When a chat has repositories, through its bot or its chat settings, the model can search them before it answers, but it may also answer directly. An answer that took steps shows one work log above it, listing the steps, such as **Searched the sources**, **Read the passages** and **Read a page**, and any interim text the model wrote between them; the text after the last step is the answer. While a step runs, a line under the answer names it. A search returns whole passages, and reading the passages fetches the text around one of them. Expand a step to see the passages it found, each shortened to three lines with **Show more** to read the rest.
 
 A reply takes at most 25 steps, 20 in the OrcAI Assistant, and fewer when its quota pool counts requests and has fewer left. On the last one the model is asked to answer from what it has found and to say what it could not finish. A reply that still ends without an answer says it stopped at the step limit.
 
-Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the source details with an **Open asset** link to the asset's page (`/app/hub/assets/<asset id>`).
+Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the source details with an **Open asset** link to the asset's page (`/app/hub/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
 
 ## Deleting Chats
 

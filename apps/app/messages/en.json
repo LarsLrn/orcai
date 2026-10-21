@@ -1938,6 +1938,7 @@
 	"chat_list_search_placeholder": "Search chats...",
 	"chat_message_branch_action": "Branch from here",
 	"chat_message_branches_label": "Branches:",
+	"chat_message_copy_citation_with_page": "{title}, p. {page}",
 	"chat_message_copy_label": "Copy",
 	"chat_message_copy_response_tooltip": "Copy response",
 	"chat_message_copy_toast_error": "Failed to copy to clipboard",

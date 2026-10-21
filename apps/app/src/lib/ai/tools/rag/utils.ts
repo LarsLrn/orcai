@@ -8,6 +8,7 @@ import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { chunkRef } from "./chunk-ref";
 import { joinOverlapping } from "./passages";
 import type { KnowledgeBaseDocument, Passage, PointWithBlock } from "./types";
 
@@ -84,14 +85,18 @@ export const flattenBlockResponses = (
 		}),
 	);
 
-/** A run of neighbouring chunks of one document as one passage. */
-export const toPassage = (run: PointWithBlock[]): Passage => {
+/** A run of neighbouring chunks of one document as one passage, named for `anchor`. */
+export const toPassage = (
+	run: PointWithBlock[],
+	anchor: PointWithBlock = run[0],
+): Passage => {
 	const [first] = run;
 	const starts = run.flatMap((point) => point.payload.chunkPageStart ?? []);
 	const ends = run.flatMap((point) => point.payload.chunkPageEnd ?? []);
 
 	return {
-		id: first.id,
+		ref: chunkRef(anchor.id),
+		id: anchor.id,
 		assetId: first.payload.asset_id,
 		title: first.payload.title,
 		blockName: first.sourceBlock.name,

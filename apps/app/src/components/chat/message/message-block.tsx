@@ -1,8 +1,9 @@
 import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
 import { PlayIcon } from "lucide-react";
-import { type ReactNode, use, useRef, useState } from "react";
+import { type ReactNode, use, useMemo, useRef, useState } from "react";
 import type { LinkSafetyConfig } from "streamdown";
+import { CitationsContext } from "@/components/ai-elements/cite";
 import {
 	Message,
 	MessageContent,
@@ -19,6 +20,7 @@ import {
 import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
 import { InView } from "@/components/ui/motion/in-view";
+import { messageCitations } from "@/lib/ai/tools/rag/citations";
 import type { MessageView } from "@/lib/ai/turn-view/turn-view";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { cn } from "@/lib/utils";
@@ -93,6 +95,12 @@ export const MessageBlock = ({
 	const [workLogOpen, setWorkLogOpen] = useState(false);
 	const workLogRef = useRef<HTMLDivElement>(null);
 	const answers = use(StepAnswersContext);
+	const citations = useMemo(
+		() => messageCitations(message),
+		[
+			message,
+		],
+	);
 
 	const showSteps = () => {
 		setWorkLogOpen(true);
@@ -123,51 +131,53 @@ export const MessageBlock = ({
 				className="grid grid-cols-1"
 			>
 				<TurnZedTokenContext value={message.metadata?.zedToken}>
-					<MessageContent>
-						<ChatMessageAttachments attachments={messageAttachments} />
-						{workLog.length > 0 && (
-							<WorkLog
-								ref={workLogRef}
-								entries={workLog}
-								running={running}
-								activity={activity}
-								open={workLogOpen}
-								onOpenChange={setWorkLogOpen}
-							/>
-						)}
-						{answer.map((part, i) => (
-							<MessagePartRenderer
-								key={`${part.part.type}${message.id}${i}`}
-								answer={part}
-								running={running}
-								linkSafety={linkSafety}
-							/>
-						))}
-						{(missing === "step-limit" || missing === "no-answer") && (
-							<p className="text-muted-foreground text-sm">
-								{missing === "step-limit"
-									? m.chat_reply_step_limit()
-									: m.chat_reply_no_answer()}
-							</p>
-						)}
-						{view.canContinue && answers && (
-							<Button
-								variant="outline"
-								size="sm"
-								className="w-fit"
-								onClick={() => void answers.continue()}
-							>
-								<PlayIcon data-icon="inline-start" />
-								{m.assistant_turn_continue_action()}
-							</Button>
-						)}
-						{running && (
-							<ActivityLine
-								label={activity ? activityLabel(activity) : null}
-								onShowSteps={workLog.length > 0 ? showSteps : undefined}
-							/>
-						)}
-					</MessageContent>
+					<CitationsContext value={citations}>
+						<MessageContent>
+							<ChatMessageAttachments attachments={messageAttachments} />
+							{workLog.length > 0 && (
+								<WorkLog
+									ref={workLogRef}
+									entries={workLog}
+									running={running}
+									activity={activity}
+									open={workLogOpen}
+									onOpenChange={setWorkLogOpen}
+								/>
+							)}
+							{answer.map((part, i) => (
+								<MessagePartRenderer
+									key={`${part.part.type}${message.id}${i}`}
+									answer={part}
+									running={running}
+									linkSafety={linkSafety}
+								/>
+							))}
+							{(missing === "step-limit" || missing === "no-answer") && (
+								<p className="text-muted-foreground text-sm">
+									{missing === "step-limit"
+										? m.chat_reply_step_limit()
+										: m.chat_reply_no_answer()}
+								</p>
+							)}
+							{view.canContinue && answers && (
+								<Button
+									variant="outline"
+									size="sm"
+									className="w-fit"
+									onClick={() => void answers.continue()}
+								>
+									<PlayIcon data-icon="inline-start" />
+									{m.assistant_turn_continue_action()}
+								</Button>
+							)}
+							{running && (
+								<ActivityLine
+									label={activity ? activityLabel(activity) : null}
+									onShowSteps={workLog.length > 0 ? showSteps : undefined}
+								/>
+							)}
+						</MessageContent>
+					</CitationsContext>
 				</TurnZedTokenContext>
 				<MessageToolbar>
 					<MessageActions

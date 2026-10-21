@@ -4,7 +4,7 @@ import {
 	type ProviderCompaction,
 } from "@orcai/ai";
 import type { DatabaseBlock } from "@orcai/schema";
-import { Output, ToolLoopAgent, type ToolSet } from "ai";
+import { Output, ToolLoopAgent, type ToolSet, type UIMessage } from "ai";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
@@ -35,6 +35,8 @@ export const createChatAgent = (params: {
 		modelId: string;
 	};
 	context: ORPCContext;
+	/** The stored messages the turn answers. */
+	history: readonly UIMessage[];
 }) => {
 	const hasKnowledgeBaseBlocks = params.databaseBlocks.length > 0;
 	const offeredTools: ToolSet = {
@@ -42,6 +44,7 @@ export const createChatAgent = (params: {
 			? buildKnowledgeBaseTools({
 					blocks: params.databaseBlocks,
 					context: params.context,
+					history: params.history,
 				})
 			: {}),
 	};
@@ -81,6 +84,7 @@ export const createChatAgent = (params: {
 			...buildKnowledgeBaseTools({
 				blocks: [],
 				context: params.context,
+				history: [],
 			}),
 			...buildGenUiTools(),
 		} satisfies ChatAgentTools,
