@@ -1,20 +1,27 @@
-import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
+import type { DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
+import { neighbouringRuns } from "./passages";
 import type { ChunkResult, PointWithBlock } from "./types";
-import {
-	flattenBlockResponses,
-	mergeAndSortCandidates,
-	resolveSearchBlocks,
-	selectByIds,
-	toChunkResult,
-	toSearchKey,
-	withSourceBlock,
-} from "./utils";
+import { flattenBlockResponses, toChunkResult, withSourceBlock } from "./utils";
+
+/** The chunk indexes within `neighbours` of `point`, without its own. */
+const neighbourIndexes = (point: PointWithBlock, neighbours: number) =>
+	Array.from(
+		{
+			length: neighbours * 2 + 1,
+		},
+		(_, offset) => point.payload.chunk_index - neighbours + offset,
+	).filter(
+		(index) =>
+			index >= 0 &&
+			index < point.payload.chunkCount &&
+			index !== point.payload.chunk_index,
+	);
 
 export const getKnowledgeBaseChunksTool = ({
 	blocks,
@@ -25,88 +32,94 @@ export const getKnowledgeBaseChunksTool = ({
 }) =>
 	effectTool({
 		description:
-			"Read the full text of selected chunk IDs from prior search results. Use this after searchKnowledgeBase when you need exact evidence for the final answer.",
+			"Read the text around chunks from earlier results. Neighbouring chunks of one document come back as one passage.",
 		inputSchema: z.object({
-			ids: z
+			chunks: z
 				.array(z.string())
-				.max(20)
-				.default([])
-				.describe(
-					"Chunk IDs from searchKnowledgeBase.results[].id. Prefer only the few IDs you actually need.",
-				),
-			limit: z.coerce
-				.number()
-				.int()
 				.min(1)
 				.max(RETRIEVAL_LIMITS.maxFullChunkFetches)
-				.optional()
-				.describe(
-					"Optional cap on returned chunks after adjacent chunks are added. Default is enough to cover the requested IDs and any included neighbors.",
-				),
-			blockId: blockIdSchema
-				.optional()
-				.describe(
-					"Optional block ID when all chunk IDs come from one known block.",
-				),
-			includeAdjacent: z.coerce
+				.describe("Chunk ids from earlier results."),
+			neighbours: z.coerce
 				.number()
 				.int()
 				.min(0)
 				.max(2)
-				.default(0)
-				.describe(
-					"Include previous and next chunks around each requested chunk for local context.",
-				),
+				.default(1)
+				.describe("Chunks to read before and after each chunk."),
 		}),
-		run: ({ ids, limit, blockId, includeAdjacent }) =>
+		run: ({ chunks, neighbours }) =>
 			Effect.gen(function* () {
 				const procedures = yield* Procedures;
-				const targetBlocks = resolveSearchBlocks({
-					blocks,
-					blockId,
-				});
-				const uniqueIds = Array.from(new Set(ids));
-				const resolvedLimit = Math.min(
-					RETRIEVAL_LIMITS.maxFullChunkFetches,
-					limit ??
-						Math.max(
-							uniqueIds.length,
-							uniqueIds.length * (includeAdjacent * 2 + 1),
-						),
-				);
-				if (uniqueIds.length === 0) {
-					return {
-						chunks: [] as ChunkResult[],
-						noNewEvidence: true,
-						nextAction: "searchKnowledgeBase" as const,
-						missingIds: [] as string[],
-						stopReason: "missing_ids" as const,
-						stats: {
-							requestedChunkCount: 0,
-							returnedChunkCount: 0,
-							includeAdjacent,
-							truncated: false,
+				const ids = Array.from(new Set(chunks));
+
+				const found = flattenBlockResponses(
+					yield* Effect.forEach(
+						blocks,
+						(block) =>
+							procedures.assetPoint
+								.searchRepository(
+									{
+										repositoryId: block.id,
+										filters: {
+											pointIds: ids,
+											limit: ids.length,
+										},
+									},
+									{
+										context,
+									},
+								)
+								.pipe(
+									Effect.map((response) => ({
+										block,
+										response,
+									})),
+								),
+						{
+							concurrency: "unbounded",
 						},
+					),
+				);
+				const requested = ids.flatMap(
+					(id) => found.find((point) => point.id === id) ?? [],
+				);
+
+				const documents = new Map<
+					string,
+					{
+						point: PointWithBlock;
+						indexes: Set<number>;
+					}
+				>();
+				for (const point of requested) {
+					const key = `${point.sourceBlock.id}:${point.payload.asset_id}:${point.payload.source}`;
+					const document = documents.get(key) ?? {
+						point,
+						indexes: new Set<number>(),
 					};
-				}
-				if (targetBlocks.length === 0) {
-					return {
-						chunks: [] as ChunkResult[],
-						noNewEvidence: true,
-						nextAction: "refineSearch" as const,
-					};
+					for (const index of neighbourIndexes(point, neighbours)) {
+						document.indexes.add(index);
+					}
+					documents.set(key, document);
 				}
 
-				const blockResponses = yield* Effect.forEach(
-					targetBlocks,
-					(block) =>
+				const around = yield* Effect.forEach(
+					[
+						...documents.values(),
+					].filter(({ indexes }) => indexes.size > 0),
+					({ point, indexes }) =>
 						procedures.assetPoint
 							.searchRepository(
 								{
-									repositoryId: block.id,
+									repositoryId: point.sourceBlock.id,
 									filters: {
-										pointIds: uniqueIds,
-										limit: uniqueIds.length,
+										assetIds: [
+											point.payload.asset_id,
+										],
+										chunkIndices: [
+											...indexes,
+										],
+										limit: indexes.size,
 									},
 								},
 								{
@@ -114,149 +127,35 @@ export const getKnowledgeBaseChunksTool = ({
 								},
 							)
 							.pipe(
-								Effect.map((response) => ({
-									block,
-									response,
-								})),
+								Effect.map((response) =>
+									withSourceBlock({
+										sourceBlockId: point.sourceBlock.id,
+										sourceBlockName: point.sourceBlock.name,
+										points: response.data.filter(
+											(neighbour) =>
+												neighbour.payload.source === point.payload.source,
+										),
+									}),
+								),
 							),
 					{
 						concurrency: "unbounded",
 					},
 				);
 
-				const candidates = mergeAndSortCandidates(
-					flattenBlockResponses(blockResponses),
+				const passages: ChunkResult[] = neighbouringRuns([
+					...requested,
+					...around.flat(),
+				]).map(toChunkResult);
+				const missing = ids.filter(
+					(id) => !requested.some((point) => point.id === id),
 				);
 
-				const orderedCandidates = selectByIds({
-					candidates,
-					ids: uniqueIds,
-				});
-
-				const adjacentByCandidateKey = new Map<string, PointWithBlock[]>();
-				if (includeAdjacent > 0 && orderedCandidates.length > 0) {
-					const adjacentResponses = yield* Effect.forEach(
-						orderedCandidates,
-						(candidate) =>
-							Effect.gen(function* () {
-								const procedures = yield* Procedures;
-								const neighboringChunkIndexes = [];
-								for (let offset = 1; offset <= includeAdjacent; offset += 1) {
-									const previous = candidate.payload.chunk_index - offset;
-									const next = candidate.payload.chunk_index + offset;
-									if (previous >= 0) neighboringChunkIndexes.push(previous);
-									neighboringChunkIndexes.push(next);
-								}
-
-								if (neighboringChunkIndexes.length === 0) {
-									return {
-										candidate,
-										points: [] as PointWithBlock[],
-									};
-								}
-
-								const response = yield* procedures.assetPoint.searchRepository(
-									{
-										repositoryId: candidate.sourceBlock.id,
-										filters: {
-											assetIds: [
-												candidate.payload.asset_id,
-											],
-											chunkIndices: neighboringChunkIndexes,
-											limit: neighboringChunkIndexes.length,
-										},
-									},
-									{
-										context,
-									},
-								);
-
-								const points = withSourceBlock({
-									sourceBlockId: candidate.sourceBlock.id,
-									sourceBlockName: candidate.sourceBlock.name,
-									points: response.data,
-								})
-									.filter(
-										(point) =>
-											point.id !== candidate.id &&
-											point.payload.source === candidate.payload.source,
-									)
-									.sort((a, b) => {
-										const distanceA = Math.abs(
-											a.payload.chunk_index - candidate.payload.chunk_index,
-										);
-										const distanceB = Math.abs(
-											b.payload.chunk_index - candidate.payload.chunk_index,
-										);
-										if (distanceA !== distanceB) return distanceA - distanceB;
-										return a.payload.chunk_index - b.payload.chunk_index;
-									});
-
-								return {
-									candidate,
-									points,
-								};
-							}),
-						{
-							concurrency: "unbounded",
-						},
-					);
-
-					for (const adjacentResult of adjacentResponses) {
-						adjacentByCandidateKey.set(
-							toSearchKey(adjacentResult.candidate),
-							adjacentResult.points,
-						);
-					}
-				}
-
-				const candidateQueue: PointWithBlock[] = [];
-				const queuedKeys = new Set<string>();
-				for (const candidate of orderedCandidates) {
-					const baseKey = toSearchKey(candidate);
-					if (!queuedKeys.has(baseKey)) {
-						candidateQueue.push(candidate);
-						queuedKeys.add(baseKey);
-					}
-
-					const adjacentCandidates = adjacentByCandidateKey.get(baseKey) ?? [];
-					for (const adjacentCandidate of adjacentCandidates) {
-						const adjacentKey = toSearchKey(adjacentCandidate);
-						if (queuedKeys.has(adjacentKey)) continue;
-						candidateQueue.push(adjacentCandidate);
-						queuedKeys.add(adjacentKey);
-					}
-				}
-
-				const results: ChunkResult[] = [];
-
-				for (const candidate of candidateQueue) {
-					if (results.length >= resolvedLimit) {
-						break;
-					}
-
-					results.push(toChunkResult(candidate));
-				}
-
-				const returnedIds = new Set(results.map((result) => result.id));
-				const missingIds = uniqueIds.filter((id) => !returnedIds.has(id));
-				const stopReason = missingIds.length > 0 ? "missing_ids" : "complete";
-
 				return {
-					chunks: results,
-					noNewEvidence: results.length === 0,
-					nextAction:
-						results.length > 0
-							? ("answerFromChunks" as const)
-							: ("refineSearch" as const),
-					missingIds,
-					stopReason,
-					stats: {
-						requestedChunkCount: uniqueIds.length,
-						returnedChunkCount: results.length,
-						includeAdjacent,
-						truncated: candidateQueue.length > results.length,
-					},
+					passages,
+					...(missing.length > 0 && {
+						missing,
+					}),
 				};
 			}),
 	});

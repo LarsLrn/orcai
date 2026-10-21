@@ -82,10 +82,10 @@ describe("knowledge base tool errors", () => {
 
 		const run = getKnowledgeBaseChunksTool(deps).execute?.(
 			{
-				ids: [
+				chunks: [
 					"chunk-1",
 				],
-				includeAdjacent: 0,
+				neighbours: 0,
 			},
 			options,
 		);

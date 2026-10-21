@@ -105,34 +105,21 @@ const repairSearchKnowledgeBaseInput = (input: Record<string, unknown>) => {
 };
 
 const repairGetKnowledgeBaseChunksInput = (input: Record<string, unknown>) => {
-	const ids = normalizeStringArray(input.ids, 20) ?? [];
-	const limit = clampInteger({
-		value: input.limit,
-		min: 1,
-		max: RETRIEVAL_LIMITS.maxFullChunkFetches,
-	});
-	const includeAdjacent = clampInteger({
-		value: input.includeAdjacent,
+	const chunks = normalizeStringArray(
+		input.chunks,
+		RETRIEVAL_LIMITS.maxFullChunkFetches,
+	);
+	const neighbours = clampInteger({
+		value: input.neighbours,
 		min: 0,
 		max: 2,
 	});
-	const blockId = normalizeTrimmedString(input.blockId);
 
 	return {
-		ids,
-		...(typeof limit === "number"
+		chunks: chunks ?? [],
+		...(typeof neighbours === "number"
 			? {
-					limit,
-				}
-			: {}),
-		...(typeof includeAdjacent === "number"
-			? {
-					includeAdjacent,
-				}
-			: {}),
-		...(blockId
-			? {
-					blockId,
+					neighbours,
 				}
 			: {}),
 	};

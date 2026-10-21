@@ -8,6 +8,7 @@ import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { neighbouringRuns } from "./passages";
 import type { ChunkResult, KnowledgeBaseDocument } from "./types";
 import {
 	compareByPageAssetChunk,
@@ -28,7 +29,7 @@ export const getKnowledgeBasePageTool = ({
 }) =>
 	effectTool({
 		description:
-			"Read full chunk text from a specific document page or nearby pages. Use this for explicit page requests after you know the document or have narrowed it down by title.",
+			"Read the text of a specific document page or nearby pages. Use this for explicit page requests after you know the document or have narrowed it down by title.",
 		inputSchema: z.object({
 			page: z.coerce
 				.number()
@@ -83,7 +84,7 @@ export const getKnowledgeBasePageTool = ({
 				});
 				if (targetBlocks.length === 0) {
 					return {
-						chunks: [] as ChunkResult[],
+						passages: [] as ChunkResult[],
 						matchedDocuments: [] as KnowledgeBaseDocument[],
 						nextAction: "listKnowledgeBaseDocuments" as const,
 					};
@@ -118,7 +119,7 @@ export const getKnowledgeBasePageTool = ({
 
 				if (matchedAssetIds.length === 0) {
 					return {
-						chunks: [] as ChunkResult[],
+						passages: [] as ChunkResult[],
 						matchedDocuments: [] as KnowledgeBaseDocument[],
 						nextAction: "listKnowledgeBaseDocuments" as const,
 					};
@@ -168,7 +169,7 @@ export const getKnowledgeBasePageTool = ({
 					.slice(0, limit);
 
 				return {
-					chunks: points.map(toChunkResult),
+					passages: neighbouringRuns(points).map(toChunkResult),
 					matchedDocuments: matchedDocuments.slice(0, 20),
 					nextAction:
 						points.length > 0

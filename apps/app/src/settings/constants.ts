@@ -21,7 +21,6 @@ export const CHAT_ATTACHMENT_ACCEPT =
 export const RETRIEVAL_LIMITS = {
 	maxSnippetResultsPerCall: 8,
 	maxFullChunkFetches: 8,
-	snippetLengthChars: 360,
 } as const;
 
 export const AUTHZ = {

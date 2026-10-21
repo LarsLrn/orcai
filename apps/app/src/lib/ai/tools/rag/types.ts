@@ -44,10 +44,6 @@ type BaseResult = {
 	source: ResultSource;
 };
 
-export type SearchResult = BaseResult & {
-	snippet: string;
-};
-
 export type ChunkResult = BaseResult & {
 	text: string;
 };
