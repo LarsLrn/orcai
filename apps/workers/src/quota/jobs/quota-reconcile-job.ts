@@ -1,6 +1,6 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
-import { QuotaCounterStore } from "@orcai/quota";
+import { QuotaCounterStore, reconcileQuotaLedger } from "@orcai/quota";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
@@ -12,127 +12,66 @@ export const reconcileQuotaBatchEffect = (jobs: Job<unknown>[]) =>
 				const db = yield* DB;
 				const counterStore = yield* QuotaCounterStore;
 
-				const openRows = yield* db
+				const openLedgers = yield* db
 					.select({
-						poolId: dbSchema.quotaPeriod.quotaPoolId,
-						periodId: dbSchema.quotaPeriod.id,
-						budgetAmount: dbSchema.quotaLedger.budgetAmount,
-						reservedAmount: dbSchema.quotaLedger.reservedAmount,
-						consumedAmount: dbSchema.quotaLedger.consumedAmount,
-						remainingAmount: dbSchema.quotaLedger.remainingAmount,
+						poolId: dbSchema.quotaLedger.quotaPoolId,
+						periodId: dbSchema.quotaLedger.quotaPeriodId,
 					})
-					.from(dbSchema.quotaPeriod)
+					.from(dbSchema.quotaLedger)
 					.innerJoin(
-						dbSchema.quotaLedger,
+						dbSchema.quotaPeriod,
 						and(
-							eq(
-								dbSchema.quotaLedger.quotaPoolId,
-								dbSchema.quotaPeriod.quotaPoolId,
-							),
-							eq(dbSchema.quotaLedger.quotaPeriodId, dbSchema.quotaPeriod.id),
+							eq(dbSchema.quotaPeriod.id, dbSchema.quotaLedger.quotaPeriodId),
+							eq(dbSchema.quotaPeriod.status, "open"),
 						),
-					)
-					.where(eq(dbSchema.quotaPeriod.status, "open"));
+					);
 
 				const results = yield* Effect.forEach(
-					openRows,
-					(row) =>
+					openLedgers,
+					({ poolId, periodId }) =>
 						Effect.gen(function* () {
-							// Recalculate expected state from events (source of truth)
-							const events = yield* db.query.quotaUsageEvent.findMany({
-								where: {
-									AND: [
-										{
-											quotaPoolId: {
-												eq: row.poolId,
-											},
-										},
-										{
-											quotaPeriodId: {
-												eq: row.periodId,
-											},
-										},
-									],
-								},
+							const reconciled = yield* reconcileQuotaLedger({
+								quotaPoolId: poolId,
+								quotaPeriodId: periodId,
 							});
-
-							const reservedGross = events
-								.filter((event) => event.eventType === "reserved")
-								.reduce((sum, event) => sum + event.reservedAmount, 0);
-							const reservedReleased = events
-								.filter(
-									(event) =>
-										event.eventType === "finalized" ||
-										event.eventType === "released",
-								)
-								.reduce((sum, event) => sum + event.reservedAmount, 0);
-							const expectedReserved = Math.max(
-								0,
-								reservedGross - reservedReleased,
-							);
-							const expectedConsumed = events
-								.filter((event) => event.eventType === "finalized")
-								.reduce((sum, event) => sum + event.actualAmount, 0);
-							const expectedRemaining = Math.max(
-								0,
-								row.budgetAmount - expectedReserved - expectedConsumed,
-							);
+							if (!reconciled) return false;
+							const { before, after } = reconciled;
 
 							const ledgerDrift =
-								expectedReserved !== row.reservedAmount ||
-								expectedConsumed !== row.consumedAmount ||
-								expectedRemaining !== row.remainingAmount;
-
-							// Fix Postgres ledger if it drifted from events
+								before.reserved !== after.reserved ||
+								before.consumed !== after.consumed ||
+								before.remaining !== after.remaining;
 							if (ledgerDrift) {
-								yield* db
-									.update(dbSchema.quotaLedger)
-									.set({
-										reservedAmount: expectedReserved,
-										consumedAmount: expectedConsumed,
-										remainingAmount: expectedRemaining,
-										updatedAt: new Date(),
-									})
-									.where(
-										and(
-											eq(dbSchema.quotaLedger.quotaPoolId, row.poolId),
-											eq(dbSchema.quotaLedger.quotaPeriodId, row.periodId),
-										),
-									);
+								yield* Effect.logWarning(
+									`quota.reconcile.ledger_corrected poolId=${poolId} periodId=${periodId} before=${JSON.stringify(before)} after=${JSON.stringify(after)}`,
+								);
 							}
 
-							// Sync Redis to the (possibly corrected) expected state
-							const redisState = yield* counterStore.getState({
-								poolId: row.poolId,
-								periodId: row.periodId,
+							const counters = yield* counterStore.getState({
+								poolId,
+								periodId,
 							});
-
-							const redisDrift =
-								redisState.remaining !== expectedRemaining ||
-								redisState.reserved !== expectedReserved ||
-								redisState.consumed !== expectedConsumed;
-
-							if (redisDrift) {
+							const counterDrift =
+								counters.reserved !== after.reserved ||
+								counters.consumed !== after.consumed ||
+								counters.remaining !== after.remaining;
+							if (counterDrift) {
 								yield* counterStore.overwriteState({
-									poolId: row.poolId,
-									periodId: row.periodId,
-									remaining: expectedRemaining,
-									reserved: expectedReserved,
-									consumed: expectedConsumed,
+									poolId,
+									periodId,
+									...after,
 								});
 							}
 
-							return ledgerDrift || redisDrift;
+							return ledgerDrift || counterDrift;
 						}),
 					{
 						concurrency: 12,
 					},
 				);
 
-				const driftCount = results.filter(Boolean).length;
-
 				yield* Effect.logInfo(
-					`quota.reconcile.completed checked=${openRows.length} drift=${driftCount}`,
+					`quota.reconcile.completed checked=${openLedgers.length} drift=${results.filter(Boolean).length}`,
 				);
 			}),
 		{

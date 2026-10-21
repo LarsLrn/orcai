@@ -365,6 +365,9 @@
         "pg": "catalog:",
         "uuid": "catalog:",
       },
+      "devDependencies": {
+        "@orcai/testing": "workspace:*",
+      },
     },
     "packages/s3": {
       "name": "@orcai/s3",
