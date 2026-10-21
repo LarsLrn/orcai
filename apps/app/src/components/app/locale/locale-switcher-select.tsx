@@ -64,7 +64,7 @@ const LocaleSwitcherSelect = ({ defaultValue, items, label }: Props) => {
 					</Button>
 				}
 			/>
-			<DropdownMenuContent>
+			<DropdownMenuContent positionMethod="fixed">
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>{label}</DropdownMenuLabel>
 					{items.map((item) => (

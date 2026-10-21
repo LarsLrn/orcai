@@ -69,7 +69,12 @@ const NavUser = () => {
 							</SidebarMenuButton>
 						}
 					/>
-					<DropdownMenuContent className="min-w-56" align="end" sideOffset={4}>
+					<DropdownMenuContent
+						className="min-w-56"
+						align="end"
+						sideOffset={4}
+						positionMethod="fixed"
+					>
 						<DropdownMenuGroup>
 							<DropdownMenuLabel className="p-0 font-normal">
 								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
