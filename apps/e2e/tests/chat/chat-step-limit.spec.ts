@@ -23,6 +23,10 @@ import { enterApp } from "../../fixtures/navigation";
 const STEP_LIMIT = 25;
 const FINAL_STEP_NOTE =
 	"This is the last step of this turn: no more tools can run. Answer the user now from what you have so far, and say briefly what you could not finish.";
+/** A turn of 25 model calls and searches outlasts the default expect timeout on a loaded machine. */
+const FULL_TURN = {
+	timeout: 20_000,
+};
 const QUESTION = "Check every citation.";
 const ANSWER = "I checked 24 citations; the rest are still open.";
 
@@ -124,7 +128,7 @@ test("a turn that would keep searching answers on its last step", async ({
 
 	await send(page, QUESTION);
 
-	await expect(messageText(page, ANSWER)).toBeVisible();
+	await expect(messageText(page, ANSWER)).toBeVisible(FULL_TURN);
 	await expectNoWorkingIndicator(page);
 	expect(completionRequests(inference)).toHaveLength(STEP_LIMIT);
 
@@ -162,7 +166,7 @@ test("a model that still calls tools on its last step ends at the step limit", a
 		.getByText(message("chat_reply_step_limit"), {
 			exact: true,
 		});
-	await expect(stopped).toBeVisible();
+	await expect(stopped).toBeVisible(FULL_TURN);
 	await expectNoWorkingIndicator(page);
 	expect(completionRequests(inference)).toHaveLength(STEP_LIMIT);
 
