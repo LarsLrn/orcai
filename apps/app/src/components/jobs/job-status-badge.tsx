@@ -1,11 +1,11 @@
-import type { ProcessingStatus } from "@orcai/schema";
+import type { PipelineStatus } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { cn } from "@/lib/utils";
 
 const statusConfig: Record<
-	ProcessingStatus,
+	PipelineStatus,
 	{
 		label: string;
 		variant: "default" | "secondary" | "destructive" | "outline";
@@ -38,7 +38,7 @@ const JobStatusBadge = ({
 	status,
 	className,
 }: {
-	status: ProcessingStatus;
+	status: PipelineStatus;
 	className?: string;
 }) => {
 	const config = statusConfig[status];

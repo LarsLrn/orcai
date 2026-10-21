@@ -1,5 +1,5 @@
 import type {
-	ProcessingStatus,
+	PipelineStatus,
 	PublicationStatus,
 	RecentResource,
 } from "@orcai/schema";
@@ -30,7 +30,7 @@ const PublicationBadge = ({ status }: { status: PublicationStatus }) =>
 		<Badge variant="outline">{m.home_recent_draft_badge()}</Badge>
 	);
 
-const ProcessingBadge = ({ status }: { status: ProcessingStatus }) => {
+const ProcessingBadge = ({ status }: { status: PipelineStatus }) => {
 	if (status === "completed") {
 		return null;
 	}

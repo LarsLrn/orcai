@@ -4,6 +4,8 @@ import {
 	ASSET_ORIGINS,
 	type AssetMetadataType,
 	type BucketName,
+	PIPELINE_FAILURES,
+	PIPELINE_STATUSES,
 } from "@orcai/schema";
 import {
 	integer,
@@ -20,6 +22,13 @@ export const assetFileTypeEnum = pgEnum("asset_file_type", ASSET_FILE_TYPES);
 
 export const assetOriginEnum = pgEnum("asset_origin", ASSET_ORIGINS);
 
+export const pipelineStatusEnum = pgEnum("pipeline_status", PIPELINE_STATUSES);
+
+export const pipelineFailureEnum = pgEnum(
+	"pipeline_failure",
+	PIPELINE_FAILURES,
+);
+
 export const asset = pgTable("asset", {
 	id: uuid("id").$type<AssetId>().primaryKey().defaultRandom(),
 	bucket: text("bucket").$type<BucketName>().notNull(),
@@ -30,10 +39,10 @@ export const asset = pgTable("asset", {
 		relevance: "medium",
 	}),
 	size: integer("size").notNull(),
-	processingStatus: text("processing_status")
+	processingStatus: pipelineStatusEnum("processing_status")
 		.notNull()
-		.default("pending")
-		.$type<"pending" | "active" | "completed" | "failed">(),
+		.default("pending"),
+	processingFailure: pipelineFailureEnum("processing_failure"),
 	fileType: assetFileTypeEnum("file_type").notNull(),
 	origin: assetOriginEnum("origin").notNull().default("library"),
 	// TODO: Check what should be done if user deletes account

@@ -2,7 +2,8 @@
 	"extends": "../../tsconfig.base.json",
 	"include": [
 		"src/**/*.ts",
-		"drizzle.config.ts"
+		"drizzle.config.ts",
+		"test/**/*.ts"
 	],
 	"compilerOptions": {
 		"composite": true,

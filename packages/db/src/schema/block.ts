@@ -11,7 +11,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { asset } from "./asset";
+import { asset, pipelineFailureEnum, pipelineStatusEnum } from "./asset";
 import { user } from "./auth";
 import { chat } from "./chat";
 
@@ -69,18 +69,33 @@ export const chatBlock = pgTable(
 	],
 );
 
-export const blockAsset = pgTable("block_asset", {
-	blockId: uuid("block_id")
-		.$type<BlockId>()
-		.notNull()
-		.references(() => block.id, {
-			onDelete: "cascade",
+export const blockAsset = pgTable(
+	"block_asset",
+	{
+		blockId: uuid("block_id")
+			.$type<BlockId>()
+			.notNull()
+			.references(() => block.id, {
+				onDelete: "cascade",
+			}),
+		assetId: uuid("asset_id")
+			.$type<AssetId>()
+			.notNull()
+			.references(() => asset.id, {
+				onDelete: "cascade",
+			}),
+		indexStatus: pipelineStatusEnum("index_status")
+			.notNull()
+			.default("pending"),
+		indexFailure: pipelineFailureEnum("index_failure"),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [
+		primaryKey({
+			columns: [
+				table.blockId,
+				table.assetId,
+			],
 		}),
-	assetId: uuid("asset_id")
-		.$type<AssetId>()
-		.notNull()
-		.references(() => asset.id, {
-			onDelete: "cascade",
-		}),
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+	],
+);

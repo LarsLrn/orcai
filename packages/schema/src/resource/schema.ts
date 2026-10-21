@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
-import { processingStatusSchema } from "../asset/parts/processing-status";
 import { assetIdSchema } from "../asset/ref";
 import { blockIdSchema } from "../block/ref";
 import { blockTypeSchema } from "../block/schema";
 import { botIdSchema } from "../bot/ref";
 import { groupIdSchema } from "../group/ref";
 import { groupSchema } from "../group/schema";
+import { pipelineStatusSchema } from "../shared/primitives/pipeline-status";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
 
@@ -224,7 +224,7 @@ export const recentResourceSchema = z.discriminatedUnion("resourceType", [
 	assetResourceIdentitySchema.extend({
 		name: z.string(),
 		changedAt: z.coerce.date(),
-		processingStatus: processingStatusSchema,
+		processingStatus: pipelineStatusSchema,
 	}),
 	blockResourceIdentitySchema.extend({
 		name: z.string(),

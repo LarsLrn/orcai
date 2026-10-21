@@ -1,5 +1,5 @@
 import type { AssetId, BlockId } from "@orcai/core";
-import type { JobQueue, ProcessingStatus } from "@orcai/schema";
+import type { JobQueue, PipelineStatus } from "@orcai/schema";
 import { RefreshCwIcon } from "lucide-react";
 import { JobListDialog } from "@/components/jobs/job-list-dialog";
 import type { JobResource } from "@/components/jobs/job-resource";
@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 type JobStatusPanelProps = {
-	processingStatus: ProcessingStatus;
+	processingStatus: PipelineStatus;
 	jobQueue: JobQueue;
 	resource: JobResource;
 	/** For retry — required when resourceType is "asset" */
