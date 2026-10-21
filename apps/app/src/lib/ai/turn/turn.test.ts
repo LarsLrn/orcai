@@ -1053,6 +1053,38 @@ describe("turn setup", () => {
 		);
 	});
 
+	test("estimates a chat's prompt with only the tools it offers", async () => {
+		const estimate = async (chatBlocks: unknown[]) => {
+			answerSetup({
+				providerKind: "anthropic",
+				providerModelId: "claude-opus-5-5",
+				chatBlocks,
+			});
+			const chat = await conversation(chatRow(), "anthropic");
+			chat.script([
+				{
+					text: "Hello.",
+				},
+			]);
+			await chat.send("Hi");
+			return chat.messages().at(-1)?.metadata.contextEstimate ?? 0;
+		};
+
+		const plain = await estimate([]);
+		const withRepository = await estimate([
+			{
+				id: crypto.randomUUID(),
+				type: "database",
+				name: "Handbook",
+				config: {},
+			},
+		]);
+
+		expect(plain).toBeGreaterThan(0);
+		// The knowledge base tools and their guidance, which a plain chat does not send.
+		expect(withRepository - plain).toBeGreaterThan(1_000);
+	});
+
 	test("stores the sources of the chunk refs the reply cites", async () => {
 		answerSetup({
 			providerKind: "anthropic",

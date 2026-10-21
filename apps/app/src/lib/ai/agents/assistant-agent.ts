@@ -18,7 +18,10 @@ import {
 import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
-import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
+import {
+	offeredAssistantToolNames,
+	offeredToolGroups,
+} from "@/lib/ai/tools/assistant/groups";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
@@ -150,6 +153,18 @@ export const createAssistantAgent = (
 	return {
 		agent,
 		instructions,
+		// Groups loaded during the turn send their tools too.
+		offeredTools: (): ToolSet => {
+			const offered = new Set<string>(
+				offeredAssistantToolNames(params.userContext.capabilities),
+			);
+
+			return Object.fromEntries(
+				Object.entries(tools).filter(
+					([name]) => offered.has(name) && !disabled.has(name),
+				),
+			);
+		},
 		contextFull: steps.contextFull,
 	};
 };

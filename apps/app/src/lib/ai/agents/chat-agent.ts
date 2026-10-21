@@ -110,6 +110,7 @@ export const createChatAgent = (params: {
 	return {
 		agent,
 		instructions,
+		offeredTools: () => offeredTools,
 		contextFull: steps.contextFull,
 	};
 };
