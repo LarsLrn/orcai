@@ -4,6 +4,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { toChatAgentMessages } from "@/components/chat/chat-history";
 import { staleDataOf } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { client, orpc } from "@/lib/orpc/orpc";
 import type { ChatPage, ChatPort } from "./chat-session";
 
@@ -73,8 +74,14 @@ export const orpcChatPort = ({
 				{
 					...input,
 					message: {
-						...message,
+						id: message.id,
 						role: "user",
+						parts: message.parts,
+						attachments: getChatMessageAttachments(message).map(
+							({ assetId }) => ({
+								assetId,
+							}),
+						),
 					},
 				},
 				{

@@ -15,10 +15,13 @@ export const listChatMessagesInputSchema = z.object({
 	limit: z.number().int().min(1).max(100).default(20),
 });
 
-export const createChatMessageInputSchema = chatMessageFieldsSchema.extend({
-	id: chatMessageIdSchema.optional(),
-	attachments: chatMessageFieldsSchema.shape.attachments.optional(),
-});
+export const createChatMessageInputSchema = chatMessageFieldsSchema
+	.omit({
+		attachments: true,
+	})
+	.extend({
+		id: chatMessageIdSchema.optional(),
+	});
 
 export const findChatMessageInputSchema = z.object({
 	chatId: chatMessageSchema.shape.chatId,

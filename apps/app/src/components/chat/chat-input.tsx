@@ -1,5 +1,9 @@
 import type { ChatId } from "@orcai/core";
-import type { Model, Provider } from "@orcai/schema";
+import {
+	CHAT_MESSAGE_ATTACHMENT_LIMIT,
+	type Model,
+	type Provider,
+} from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import type { ChatStatus } from "ai";
 import {
@@ -45,10 +49,7 @@ import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import {
-	CHAT_ATTACHMENT_ACCEPT,
-	CHAT_ATTACHMENT_LIMIT,
-} from "@/settings/constants";
+import { CHAT_ATTACHMENT_ACCEPT } from "@/settings/constants";
 
 const submitStatuses: Record<ChatPhase, ChatStatus> = {
 	idle: "ready",
@@ -127,7 +128,7 @@ const ChatInput = ({
 		clearAttachments,
 		resolveAttachmentsForSend,
 	} = useChatAttachments({
-		limit: CHAT_ATTACHMENT_LIMIT,
+		limit: CHAT_MESSAGE_ATTACHMENT_LIMIT,
 		initialAttachments: draft?.attachments,
 	});
 
