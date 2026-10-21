@@ -11,6 +11,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLinkItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -119,14 +120,18 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 				}
 			/>
 			<DropdownMenuContent align="end">
-				<Link
-					to={"/app/users/$userId/edit"}
-					params={{
-						userId: user.id,
-					}}
+				<DropdownMenuLinkItem
+					render={
+						<Link
+							to={"/app/users/$userId/edit"}
+							params={{
+								userId: user.id,
+							}}
+						/>
+					}
 				>
-					<DropdownMenuItem>{m.users_table_edit_action()}</DropdownMenuItem>
-				</Link>
+					{m.users_table_edit_action()}
+				</DropdownMenuLinkItem>
 				{canRemoveUser ? (
 					<>
 						<DropdownMenuSeparator />

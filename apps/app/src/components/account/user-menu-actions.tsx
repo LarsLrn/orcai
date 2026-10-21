@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
 	DropdownMenuGroup,
-	DropdownMenuItem,
+	DropdownMenuLinkItem,
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsInstanceAdmin } from "@/hooks/authz/use-instance-admin";
@@ -27,7 +27,7 @@ const UserMenuActions = () => {
 	return (
 		<DropdownMenuGroup>
 			{menu.map((item) => (
-				<DropdownMenuItem
+				<DropdownMenuLinkItem
 					key={item.title()}
 					render={
 						<Link {...item.linkProps} onClick={closeMobileForNavigation}>

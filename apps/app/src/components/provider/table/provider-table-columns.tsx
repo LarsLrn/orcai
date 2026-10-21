@@ -11,6 +11,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLinkItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -123,26 +124,30 @@ export const providerTableColumns = columnHelper.columns([
 						}
 					/>
 					<DropdownMenuContent align="end">
-						<Link
-							to={"/app/providers/$providerId"}
-							params={{
-								providerId: row.original.id,
-							}}
+						<DropdownMenuLinkItem
+							render={
+								<Link
+									to={"/app/providers/$providerId"}
+									params={{
+										providerId: row.original.id,
+									}}
+								/>
+							}
 						>
-							<DropdownMenuItem>
-								{m.providers_table_view_menu_item()}
-							</DropdownMenuItem>
-						</Link>
-						<Link
-							to={"/app/providers/$providerId/edit"}
-							params={{
-								providerId: row.original.id,
-							}}
+							{m.providers_table_view_menu_item()}
+						</DropdownMenuLinkItem>
+						<DropdownMenuLinkItem
+							render={
+								<Link
+									to={"/app/providers/$providerId/edit"}
+									params={{
+										providerId: row.original.id,
+									}}
+								/>
+							}
 						>
-							<DropdownMenuItem>
-								{m.providers_table_edit_menu_item()}
-							</DropdownMenuItem>
-						</Link>
+							{m.providers_table_edit_menu_item()}
+						</DropdownMenuLinkItem>
 						<DropdownMenuSeparator />
 						<DeleteItem provider={provider} />
 					</DropdownMenuContent>

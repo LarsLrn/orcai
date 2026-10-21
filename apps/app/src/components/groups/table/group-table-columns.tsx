@@ -11,6 +11,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLinkItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -88,14 +89,18 @@ const ActionCell = ({ group }: { group: Group }) => {
 				}
 			/>
 			<DropdownMenuContent align="end">
-				<Link
-					to="/app/groups/$groupId"
-					params={{
-						groupId: group.id,
-					}}
+				<DropdownMenuLinkItem
+					render={
+						<Link
+							to="/app/groups/$groupId"
+							params={{
+								groupId: group.id,
+							}}
+						/>
+					}
 				>
-					<DropdownMenuItem>{m.groups_table_manage_action()}</DropdownMenuItem>
-				</Link>
+					{m.groups_table_manage_action()}
+				</DropdownMenuLinkItem>
 				{group.kind === "custom" && (
 					<>
 						<DropdownMenuSeparator />
