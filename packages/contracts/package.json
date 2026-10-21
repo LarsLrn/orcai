@@ -9,7 +9,6 @@
 	"dependencies": {
 		"@orcai/schema": "workspace:*",
 		"@orpc/contract": "catalog:",
-		"@orpc/openapi": "catalog:",
-		"zod": "catalog:"
+		"@orpc/openapi": "catalog:"
 	}
 }
