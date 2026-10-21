@@ -1,4 +1,5 @@
 import type { AssetPointPayload } from "@orcai/schema";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { QdrantError } from "./errors";
 import { QdrantService } from "./service";
@@ -9,44 +10,35 @@ interface Point {
 	payload: AssetPointPayload;
 }
 
+// Qdrant rejects request bodies over 32 MiB; 64 points stay far below it.
+const UPSERT_BATCH_SIZE = 64;
+
 export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 	Effect.gen(function* () {
 		const { client, collections, bm25Config } = yield* QdrantService;
 
-		const mappedPoints = points.map((point) => ({
-			id: point.id,
-			vector: point.vector,
-			payload: point.payload,
-		}));
-
-		// TODO: Uploading chunks one by one is not optimal, but batching was flaking out
-		// Specifically this:
-		// qdrant.upsert(collections.asset.name, { points });
-
 		yield* Effect.forEach(
-			mappedPoints,
-			(point) =>
+			Arr.chunksOf(points, UPSERT_BATCH_SIZE),
+			(batch) =>
 				Effect.tryPromise({
 					try: async () =>
 						client.upsert(collections.asset.name, {
-							points: [
-								{
-									id: point.id,
-									vector: {
-										dense: point.vector,
-										bm25: {
-											text: point.payload.lexical_text ?? point.payload.text,
-											model: "qdrant/bm25",
-											options: {
-												language: bm25Config.language,
-												tokenizer: bm25Config.tokenizer,
-												ascii_folding: bm25Config.asciiFolding,
-											},
+							points: batch.map((point) => ({
+								id: point.id,
+								vector: {
+									dense: point.vector,
+									bm25: {
+										text: point.payload.lexical_text ?? point.payload.text,
+										model: "qdrant/bm25",
+										options: {
+											language: bm25Config.language,
+											tokenizer: bm25Config.tokenizer,
+											ascii_folding: bm25Config.asciiFolding,
 										},
 									},
-									payload: point.payload,
 								},
-							],
+								payload: point.payload,
+							})),
 						}),
 					catch: (cause) =>
 						new QdrantError({
@@ -55,7 +47,7 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 						}),
 				}),
 			{
-				concurrency: 10,
+				concurrency: 4,
 			},
 		);
 	});
