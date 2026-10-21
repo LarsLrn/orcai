@@ -46,7 +46,6 @@ export const listKnowledgeBaseDocumentsTool = ({
 				if (targetBlocks.length === 0) {
 					return {
 						documents: [] as KnowledgeBaseDocument[],
-						nextAction: "searchKnowledgeBase" as const,
 					};
 				}
 
@@ -64,12 +63,6 @@ export const listKnowledgeBaseDocumentsTool = ({
 
 				return {
 					documents: ranked.slice(0, limit),
-					nextAction: "getKnowledgeBasePageOrSearch" as const,
-					stats: {
-						totalDocuments: documents.length,
-						returnedCount: Math.min(limit, ranked.length),
-						queryApplied: Boolean(query?.trim()),
-					},
 				};
 			}),
 		toModelOutput: listModelOutput,

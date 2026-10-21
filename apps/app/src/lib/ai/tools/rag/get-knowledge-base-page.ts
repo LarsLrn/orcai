@@ -50,12 +50,6 @@ export const getKnowledgeBasePageTool = ({
 				.describe(
 					"Optional document-title query when assetId is not known yet.",
 				),
-			documentQuery: z
-				.string()
-				.optional()
-				.describe(
-					"Legacy alias for documentTitleQuery. Prefer documentTitleQuery for new calls.",
-				),
 			includeAdjacentPages: z.coerce
 				.number()
 				.int()
@@ -76,7 +70,6 @@ export const getKnowledgeBasePageTool = ({
 			blockId,
 			assetId,
 			documentTitleQuery,
-			documentQuery,
 			includeAdjacentPages,
 			limit,
 		}) =>
@@ -89,13 +82,10 @@ export const getKnowledgeBasePageTool = ({
 				if (targetBlocks.length === 0) {
 					return {
 						passages: [] as Passage[],
-						matchedDocuments: [] as KnowledgeBaseDocument[],
-						nextAction: "listKnowledgeBaseDocuments" as const,
 					};
 				}
 
-				const normalizedDocumentQuery =
-					documentTitleQuery?.trim() || documentQuery?.trim() || undefined;
+				const normalizedDocumentQuery = documentTitleQuery?.trim() || undefined;
 
 				const documents = yield* loadDocumentCatalog({
 					blocks: targetBlocks,
@@ -124,8 +114,6 @@ export const getKnowledgeBasePageTool = ({
 				if (matchedAssetIds.length === 0) {
 					return {
 						passages: [] as Passage[],
-						matchedDocuments: [] as KnowledgeBaseDocument[],
-						nextAction: "listKnowledgeBaseDocuments" as const,
 					};
 				}
 
@@ -175,23 +163,12 @@ export const getKnowledgeBasePageTool = ({
 				const passages = neighbouringRuns(points).map((run) => toPassage(run));
 				chunks.add(passages);
 
+				// Without text on the pages, the documents help pick another one.
 				return {
 					passages,
-					matchedDocuments: matchedDocuments.slice(0, 20),
-					nextAction:
-						points.length > 0
-							? ("answerFromChunks" as const)
-							: matchedDocuments.length > 1 && !assetId
-								? ("listKnowledgeBaseDocuments" as const)
-								: ("searchKnowledgeBase" as const),
-					stats: {
-						requestedPage: normalizedRequestedPage,
-						pageFrom,
-						pageTo,
-						matchedDocumentCount: matchedDocuments.length,
-						searchedDocumentCount: documentsToSearch.length,
-						returnedChunkCount: Math.min(limit, points.length),
-					},
+					...(passages.length === 0 && {
+						matchedDocuments: matchedDocuments.slice(0, 20),
+					}),
 				};
 			}),
 		toModelOutput: pageModelOutput,

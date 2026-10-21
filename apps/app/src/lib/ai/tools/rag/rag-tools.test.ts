@@ -13,6 +13,7 @@ import { assetPoint } from "./test-points";
 const { getKnowledgeBaseChunksTool } = await import(
 	"./get-knowledge-base-chunk"
 );
+const { getKnowledgeBasePageTool } = await import("./get-knowledge-base-page");
 const { searchKnowledgeBaseTool } = await import("./search-knowledge-base");
 
 const deps = {
@@ -186,6 +187,72 @@ describe("getKnowledgeBaseChunks", () => {
 					"101",
 				],
 			},
+		});
+	});
+});
+
+describe("getKnowledgeBasePage", () => {
+	const answerCatalog = (pages: AssetPoint[]) => {
+		answers["block.find"] = () =>
+			Effect.succeed({
+				assets: [
+					{
+						id: "asset-a",
+					},
+				],
+			});
+		answers["asset.list"] = () =>
+			Effect.succeed({
+				data: [
+					{
+						id: "asset-a",
+						title: "Refund policy",
+						metadata: null,
+					},
+				],
+			});
+		answers["assetPoint.searchRepository"] = () =>
+			Effect.succeed({
+				data: pages,
+			});
+	};
+
+	const read = () =>
+		getKnowledgeBasePageTool(deps).execute?.(
+			{
+				page: 4,
+				includeAdjacentPages: 0,
+				limit: 12,
+			},
+			options,
+		);
+
+	test("returns the page's passages without the documents it matched", async () => {
+		answerCatalog([
+			chunks[0],
+		]);
+
+		expect(await read()).toEqual({
+			passages: [
+				expect.objectContaining({
+					id: "101",
+					pageStart: 4,
+				}),
+			],
+		});
+	});
+
+	test("lists the matched documents when the page has no text", async () => {
+		answerCatalog([]);
+
+		expect(await read()).toEqual({
+			passages: [],
+			matchedDocuments: [
+				{
+					assetId: "asset-a",
+					title: "Refund policy",
+				},
+			],
 		});
 	});
 });

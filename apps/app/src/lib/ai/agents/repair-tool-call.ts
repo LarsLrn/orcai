@@ -62,23 +62,15 @@ const normalizeStringArray = (value: unknown, maxItems: number) => {
 const repairSearchKnowledgeBaseInput = (input: Record<string, unknown>) => {
 	const query = normalizeTrimmedString(input.query);
 	const queryVariants = normalizeStringArray(input.queryVariants, 4);
-	const legacyQueries = normalizeStringArray(input.queries, 5);
 
 	const normalizedAssetIds = normalizeStringArray(input.assetIds, 20);
 	const blockId = normalizeTrimmedString(input.blockId);
 
-	const normalizedQuery =
-		query ??
-		queryVariants?.[0] ??
-		legacyQueries?.[0] ??
-		normalizeTrimmedString(input.documentQuery);
+	const normalizedQuery = query ?? queryVariants?.[0];
 
-	const normalizedVariants = [
-		...(queryVariants ?? []).slice(query ? 0 : 1),
-		...(legacyQueries ?? []).slice(
-			legacyQueries?.[0] === normalizedQuery ? 1 : 0,
-		),
-	].filter((variant) => variant !== normalizedQuery);
+	const normalizedVariants = (queryVariants ?? [])
+		.slice(query ? 0 : 1)
+		.filter((variant) => variant !== normalizedQuery);
 
 	return {
 		...(normalizedQuery
@@ -146,9 +138,7 @@ const repairGetKnowledgeBasePageInput = (input: Record<string, unknown>) => {
 		normalizeTrimmedString(input.assetId) ??
 		normalizeTrimmedString(input.asset_id);
 	const blockId = normalizeTrimmedString(input.blockId);
-	const documentTitleQuery =
-		normalizeTrimmedString(input.documentTitleQuery) ??
-		normalizeTrimmedString(input.documentQuery);
+	const documentTitleQuery = normalizeTrimmedString(input.documentTitleQuery);
 
 	return {
 		...(typeof page === "number"

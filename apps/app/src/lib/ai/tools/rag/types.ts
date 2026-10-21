@@ -23,10 +23,6 @@ export const knowledgeBaseDocumentSchema = z.object({
 	assetId: z.string(),
 	title: z.string(),
 	citation: z.string().optional(),
-	block: z.object({
-		id: z.string(),
-		name: z.string(),
-	}),
 });
 
 export type KnowledgeBaseDocument = z.infer<typeof knowledgeBaseDocumentSchema>;

@@ -64,6 +64,21 @@ describe("knowledge base tool errors", () => {
 		);
 	});
 
+	test("a search by the dropped queries alias says what to provide", async () => {
+		const run = searchKnowledgeBaseTool(deps).execute?.(
+			{
+				queries: [
+					"refund policy",
+				],
+			} as never,
+			options,
+		);
+
+		expect(await errorText(run as Promise<unknown>)).toBe(
+			"INVALID_TOOL_INPUT: Provide query or queryVariants.",
+		);
+	});
+
 	test("a failed search keeps the procedure's reason", async () => {
 		answers["assetPoint.searchRepository"] = denied;
 
