@@ -272,6 +272,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			unban: () => [
 				orpc.user.key(),
 			],
+			resetTwoFactor: () => [
+				orpc.user.key(),
+			],
 			setTourState: () => [
 				orpc.user.me.key(),
 			],

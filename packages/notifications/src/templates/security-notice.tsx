@@ -1,11 +1,14 @@
 import { Text } from "@react-email/components";
 import { m } from "../paraglide/messages";
-import type { TwoFactorDisabledNotification } from "../schema";
+import type {
+	TwoFactorDisabledNotification,
+	TwoFactorResetNotification,
+} from "../schema";
 import type { RenderableEmail } from "../types";
 import { EmailLayout, paragraphStyle } from "./layout";
 
 const securityNotice = (
-	notification: TwoFactorDisabledNotification,
+	notification: TwoFactorDisabledNotification | TwoFactorResetNotification,
 	content: {
 		subject: string;
 		preview: string;
@@ -47,5 +50,19 @@ export const buildTwoFactorDisabledEmail = (
 		preview: m.email_two_factor_disabled_preview({}, options),
 		title: m.email_two_factor_disabled_title({}, options),
 		body: m.email_two_factor_disabled_body({}, options),
+	});
+};
+
+export const buildTwoFactorResetEmail = (
+	notification: TwoFactorResetNotification,
+): RenderableEmail => {
+	const options = {
+		locale: notification.locale,
+	};
+	return securityNotice(notification, {
+		subject: m.email_two_factor_reset_subject({}, options),
+		preview: m.email_two_factor_reset_preview({}, options),
+		title: m.email_two_factor_reset_title({}, options),
+		body: m.email_two_factor_reset_body({}, options),
 	});
 };

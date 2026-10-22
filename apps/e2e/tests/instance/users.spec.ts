@@ -1,3 +1,6 @@
+import { signIn } from "../../fixtures/auth";
+import { waitForLink } from "../../fixtures/auth/outbox";
+import { enrolTwoFactor } from "../../fixtures/auth/two-factor";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
@@ -167,4 +170,51 @@ test("instance: the users page deletes an account", async ({
 		pageSize: 10,
 	});
 	expect(remaining.rowCount).toBe(0);
+});
+
+test("instance: the users page resets an account's two-factor authentication", async ({
+	api,
+	org,
+	outbox,
+	pageAsWellKnownAdmin,
+}) => {
+	const user = await createThrowawayUser(baseURL(), `two-factor-${runId()}`);
+	await addMember(api, org, user);
+	await enrolTwoFactor(baseURL(), user.session, user.password);
+	// A password alone now only reaches the second step.
+	await expect(signIn(baseURL(), user)).rejects.toThrow();
+
+	const page = await pageAsWellKnownAdmin();
+	await open(page, "/instance/users");
+
+	const row = userRow(page, user.email);
+	await expect(row).toContainText(
+		message("instance_users_table_two_factor_on_label"),
+	);
+
+	await row
+		.getByRole("button", {
+			name: message("common_row_menu_trigger"),
+		})
+		.click();
+	await page
+		.getByRole("menuitem", {
+			name: message("instance_users_table_reset_two_factor_menu_item"),
+		})
+		.click();
+	await page
+		.getByRole("button", {
+			name: message("users_reset_two_factor_confirm_button"),
+			exact: true,
+		})
+		.click();
+
+	await expect(page.getByRole("alertdialog")).toHaveCount(0);
+	await expect(row).toContainText(
+		message("instance_users_table_two_factor_off_label"),
+	);
+	expect(
+		await waitForLink(outbox, user.email, "auth.two-factor-reset"),
+	).toMatch(/\/app\/account\/security$/);
+	expect((await signIn(baseURL(), user)).userId).toBe(user.id);
 });

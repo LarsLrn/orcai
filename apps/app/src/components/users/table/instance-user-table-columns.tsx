@@ -16,6 +16,7 @@ import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-ro
 import {
 	useBanUserMutation,
 	useDeleteUsersMutation,
+	useResetTwoFactorMutation,
 	useUnbanUserMutation,
 } from "@/hooks/mutations/use-user-admin-mutations";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
@@ -77,6 +78,20 @@ export const instanceUserTableColumns = columnHelper.columns([
 				<span>{m.common_status_active_label()}</span>
 			),
 	}),
+	columnHelper.display({
+		id: "twoFactor",
+		header: () => m.instance_users_table_two_factor_column_header(),
+		cell: ({ row }) =>
+			row.original.twoFactorEnabled ? (
+				<Badge variant="success">
+					{m.instance_users_table_two_factor_on_label()}
+				</Badge>
+			) : (
+				<span className="text-muted-foreground">
+					{m.instance_users_table_two_factor_off_label()}
+				</span>
+			),
+	}),
 	columnHelper.accessor("createdAt", {
 		header: ({ column }) => (
 			<DataTableColumnHeader
@@ -110,6 +125,7 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 	const { mutate: banUser } = useBanUserMutation({}, target);
 	const { mutate: unbanUser } = useUnbanUserMutation();
 	const { mutate: deleteUsers } = useDeleteUsersMutation({}, target);
+	const { mutate: resetTwoFactor } = useResetTwoFactorMutation({}, target);
 
 	if (user.id === auth.user.id) {
 		return null;
@@ -145,6 +161,17 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 						}
 					>
 						{m.instance_users_table_ban_menu_item()}
+					</DropdownMenuItem>
+				)}
+				{user.twoFactorEnabled && (
+					<DropdownMenuItem
+						onClick={() =>
+							resetTwoFactor({
+								userId: user.id,
+							})
+						}
+					>
+						{m.instance_users_table_reset_two_factor_menu_item()}
 					</DropdownMenuItem>
 				)}
 				<DropdownMenuSeparator />

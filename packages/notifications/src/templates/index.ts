@@ -3,7 +3,10 @@ import type { RenderableEmail } from "../types";
 import { buildDataExportReadyEmail } from "./data-export-ready";
 import { buildOrganizationInvitedEmail } from "./organization-invited";
 import { buildResetPasswordEmail } from "./reset-password";
-import { buildTwoFactorDisabledEmail } from "./security-notice";
+import {
+	buildTwoFactorDisabledEmail,
+	buildTwoFactorResetEmail,
+} from "./security-notice";
 import { buildVerifyEmail } from "./verify-email";
 
 export type { RenderableEmail } from "../types";
@@ -20,6 +23,8 @@ export const buildEmail = (
 			return buildResetPasswordEmail(notification);
 		case "auth.two-factor-disabled":
 			return buildTwoFactorDisabledEmail(notification);
+		case "auth.two-factor-reset":
+			return buildTwoFactorResetEmail(notification);
 		case "data-export.ready":
 			return buildDataExportReadyEmail(notification);
 	}

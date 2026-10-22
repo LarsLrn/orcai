@@ -35,6 +35,8 @@ export const banUserResponseSchema = statusResponseSchema;
 
 export const unbanUserResponseSchema = statusResponseSchema;
 
+export const resetTwoFactorResponseSchema = statusResponseSchema;
+
 export const meResponseSchema = createDataResponseSchema(userSchema);
 
 export const updatePasswordResponseSchema = statusResponseSchema;

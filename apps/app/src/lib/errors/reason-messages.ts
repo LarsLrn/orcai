@@ -147,6 +147,7 @@ const reasonMessages: ReasonMessages = {
 	RESOURCE_SCOPE_REQUIRED: m.error_resource_scope_required,
 	SELF_BAN_FORBIDDEN: m.error_self_ban_forbidden,
 	SELF_DELETE_FORBIDDEN: m.error_self_delete_forbidden,
+	SELF_TWO_FACTOR_RESET_FORBIDDEN: m.error_self_two_factor_reset_forbidden,
 	SESSION_NOT_FOUND: m.error_session_not_found,
 	SORT_KEY_UNSUPPORTED: ({ sortKey }) =>
 		m.error_sort_key_unsupported({

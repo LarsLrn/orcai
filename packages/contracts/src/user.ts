@@ -13,6 +13,8 @@ import {
 	listUsersResponseSchema,
 	meInputSchema,
 	meResponseSchema,
+	resetTwoFactorInputSchema,
+	resetTwoFactorResponseSchema,
 	setActiveOrganizationInputSchema,
 	setActiveOrganizationResponseSchema,
 	setTourStateInputSchema,
@@ -118,6 +120,21 @@ export const userContracts = {
 		)
 		.input(unbanUserInputSchema)
 		.output(unbanUserResponseSchema),
+	resetTwoFactor: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/users/actions/reset-two-factor",
+				summary: "Reset an account's two-factor authentication",
+				description:
+					"Removes the account's second factor and trusted devices and ends its sessions.",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(resetTwoFactorInputSchema)
+		.output(resetTwoFactorResponseSchema),
 	me: base
 		.meta(
 			openapi({

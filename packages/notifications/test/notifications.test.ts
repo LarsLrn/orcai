@@ -52,6 +52,12 @@ const notifications = [
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
 	},
+	{
+		type: "auth.two-factor-reset" as const,
+		recipient: "user@example.com",
+		recipientName: "User",
+		securityUrl: "https://example.com/app/account/security",
+	},
 ];
 
 const loadEmailConfig = (values: Record<string, unknown>) =>
