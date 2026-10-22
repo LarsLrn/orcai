@@ -13,6 +13,7 @@ import {
 	SparklesIcon,
 } from "lucide-react";
 import { MetadataCard } from "@/components/app/metadata-card";
+import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -167,6 +168,7 @@ function RouteComponent() {
 			</PageHeader>
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
+					{!servesModels && <SearchPoolNotice providerId={provider.id} />}
 					<Card>
 						<CardHeader>
 							<CardTitle>{m.providers_detail_overview_title()}</CardTitle>

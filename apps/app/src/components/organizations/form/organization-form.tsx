@@ -10,6 +10,7 @@ import { skipToken, useQuery } from "@tanstack/react-query";
 import { TriangleAlertIcon } from "lucide-react";
 import { useId } from "react";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -340,26 +341,33 @@ export const OrganizationForm = ({
 					<form.AppField
 						name="webSearch"
 						children={(field) => (
-							<field.SelectField
-								label={m.orgs_form_web_search_label()}
-								description={m.orgs_form_web_search_description()}
-								options={[
-									{
-										value: "off",
-										label: m.orgs_form_web_search_off_option(),
-									},
-									{
-										value: "native",
-										label: m.orgs_form_web_search_native_option(),
-									},
-									...(searchProviders?.data ?? []).map((provider) => ({
-										value: provider.id,
-										label: m.orgs_form_web_search_provider_option({
-											name: provider.name,
-										}),
-									})),
-								]}
-							/>
+							<>
+								<field.SelectField
+									label={m.orgs_form_web_search_label()}
+									description={m.orgs_form_web_search_description()}
+									options={[
+										{
+											value: "off",
+											label: m.orgs_form_web_search_off_option(),
+										},
+										{
+											value: "native",
+											label: m.orgs_form_web_search_native_option(),
+										},
+										...(searchProviders?.data ?? []).map((provider) => ({
+											value: provider.id,
+											label: m.orgs_form_web_search_provider_option({
+												name: provider.name,
+											}),
+										})),
+									]}
+								/>
+								<SearchPoolNotice
+									providerId={
+										providerIdSchema.safeParse(field.state.value).data ?? null
+									}
+								/>
+							</>
 						)}
 					/>
 				</>

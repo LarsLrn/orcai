@@ -219,7 +219,7 @@ Providers (`/app/providers`) lists them with their status and metering mode.
 
 A search provider has no models; it serves the organisation's web search once
 the [Organisation page](#web-search) chooses it, and quota pools on it bound
-the searches.
+the searches. Its page warns while no active quota pool covers it.
 
 A provider's page (`/app/providers/<provider id>`) shows its configuration and
 connected models, with **Add model** and **Edit provider**
@@ -415,6 +415,9 @@ by default.
   failed search is not charged. When no pool covers the person, or the pool is
   used up, the model is told that web search is unavailable and answers
   without it.
+
+Choosing a search provider that no active quota pool covers shows a warning
+below the setting, and on the provider's page, with a link to add a quota pool.
 
 A bot's allowed domains apply in both modes: OrcAI passes them to the search
 and drops any search provider result whose host is not one of them or below
