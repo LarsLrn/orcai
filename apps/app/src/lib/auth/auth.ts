@@ -18,6 +18,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
 import { v4 as uuidv4 } from "uuid";
 import { authDb } from "@/lib/auth/auth-db";
@@ -127,6 +128,9 @@ export const auth = betterAuth({
 				),
 			);
 		},
+	},
+	rateLimit: {
+		enabled: Option.getOrUndefined(cfg.auth.rateLimit),
 	},
 	advanced: {
 		database: {

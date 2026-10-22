@@ -59,9 +59,63 @@ jobs:
             !(/\.md$/ && !/^(apps\/(app|workers)|packages)\//)')
           echo "e2e=$([ -n "$runtime" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
+  # The production images every shard runs, built once with the Compose
+  # build definitions and the stack environment the shards then reuse.
+  images:
+    name: e2e images
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # Lets bake read and write the GitHub Actions cache.
+      - name: Expose the Actions runtime
+        uses: crazy-max/ghaction-github-runtime@v4
+
+      - name: Write stack environment
+        run: bun run stack env > /dev/null
+
+      - name: Build images
+        run: >-
+          bun run stack build --
+          --set app.cache-from=type=gha,scope=app
+          --set app.cache-to=type=gha,scope=app,mode=max
+          --set web.cache-from=type=gha,scope=web
+          --set web.cache-to=type=gha,scope=web,mode=max
+          --set workers.cache-from=type=gha,scope=workers
+          --set workers.cache-to=type=gha,scope=workers,mode=max
+
+      - name: Export images
+        shell: bash
+        run: |
+          stack=$(sed -n 's/^ORCAI_STACK_NAME=//p' .env)
+          mkdir -p "$RUNNER_TEMP/e2e-images"
+          docker save "$stack-app" "$stack-web" "$stack-workers" \
+            | zstd -T0 -3 > "$RUNNER_TEMP/e2e-images/images.tar.zst"
+          cp .env "$RUNNER_TEMP/e2e-images/stack.env"
+
+      - name: Upload images
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-images
+          path: ${{ runner.temp }}/e2e-images
+          compression-level: 0
+          retention-days: 1
+
   e2e-shard:
     name: e2e ${{ matrix.shard }}
-    needs: changes
+    needs: [changes, images]
     if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -91,6 +145,20 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Download images
+        uses: actions/download-artifact@v8
+        with:
+          name: e2e-images
+          path: ${{ runner.temp }}/e2e-images
+
+      # The images were built for this environment: its VITE_* values are
+      # baked into the app.
+      - name: Load images
+        shell: bash
+        run: |
+          zstd -dc "$RUNNER_TEMP/e2e-images/images.tar.zst" | docker load
+          cp "$RUNNER_TEMP/e2e-images/stack.env" .env
+
       - name: Install Chromium
         working-directory: apps/e2e
         run: bunx --no-install playwright install --with-deps chromium
@@ -99,7 +167,7 @@ jobs:
         run: bun run stack up
 
       - name: Run end-to-end tests
-        run: bun run stack e2e --yes ${{ matrix.args }}
+        run: bun run stack e2e --yes --no-build ${{ matrix.args }}
         env:
           CI: true
           NODE_OPTIONS: --max-old-space-size=4096
@@ -116,7 +184,7 @@ jobs:
 
   # The required check: passes when every shard passed or e2e was skipped.
   e2e:
-    needs: [changes, e2e-shard]
+    needs: [changes, images, e2e-shard]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -124,4 +192,5 @@ jobs:
       - name: Check shard results
         run: |
           [ "${{ needs.changes.result }}" = success ]
+          [[ "${{ needs.images.result }}" =~ ^(success|skipped)$ ]]
           [[ "${{ needs.e2e-shard.result }}" =~ ^(success|skipped)$ ]]

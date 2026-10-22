@@ -5,6 +5,10 @@ const missing = [
 	"PORT",
 	"E2E_INFERENCE_PORT",
 	"WEB_PORT",
+	"E2E_CONTAINER_ENV_FILE",
+	"E2E_APP_IMAGE",
+	"E2E_WEB_IMAGE",
+	"E2E_WORKERS_IMAGE",
 ].filter((name) => !process.env[name]);
 
 if (missing.length > 0) {
@@ -21,6 +25,20 @@ const isCI = Boolean(process.env.CI);
 // which only this run starts. Elsewhere no queue exists, which other specs
 // rely on.
 const isPipeline = Boolean(process.env.E2E_PIPELINE);
+// The production images on the host network, so they reach the stack and the
+// mock inference server on loopback. Each container is named after its image.
+const container = (image: string, args: string[] = []) =>
+	[
+		"docker run --rm --init --network host",
+		`--env-file ${process.env.E2E_CONTAINER_ENV_FILE as string}`,
+		...args,
+		`--name ${image} ${image}`,
+	].join(" ");
+// Stops the container through `docker run`, which forwards the signal.
+const gracefulShutdown = {
+	signal: "SIGTERM" as const,
+	timeout: 10_000,
+};
 const setupProject = {
 	name: "setup",
 	testMatch: /setup\/.*\.setup\.ts$/,
@@ -122,11 +140,11 @@ export default defineConfig({
 			stderr: "pipe",
 		},
 		{
-			command: "bun run build:app && bun run start",
-			cwd: "../..",
+			command: container(process.env.E2E_APP_IMAGE as string),
 			url: baseURL,
 			reuseExistingServer: true,
-			timeout: 180_000,
+			timeout: 60_000,
+			gracefulShutdown,
 			stdout: "ignore",
 			stderr: "pipe",
 		},
@@ -134,12 +152,12 @@ export default defineConfig({
 			? [
 					// Ready once every queue exists and every worker is registered.
 					{
-						command: "bun run workers:start",
-						cwd: "../..",
+						command: container(process.env.E2E_WORKERS_IMAGE as string),
 						wait: {
 							stdout: /background workers started/,
 						},
 						timeout: 60_000,
+						gracefulShutdown,
 						stdout: "ignore" as const,
 						stderr: "pipe" as const,
 					},
@@ -148,15 +166,13 @@ export default defineConfig({
 					// The docs site the assistant reads (`WEB_INTERNAL_URL`); it needs
 					// no stack services. A running `bun run stack web` is reused.
 					{
-						command:
-							"bun run build:web && bun apps/web/.output/server/index.mjs",
-						cwd: "../..",
-						env: {
-							PORT: process.env.WEB_PORT as string,
-						},
+						command: container(process.env.E2E_WEB_IMAGE as string, [
+							`--env PORT=${process.env.WEB_PORT as string}`,
+						]),
 						url: `${docsURL}/llms.txt`,
 						reuseExistingServer: true,
-						timeout: 180_000,
+						timeout: 60_000,
+						gracefulShutdown,
 						stdout: "ignore" as const,
 						stderr: "pipe" as const,
 					},
