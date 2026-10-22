@@ -96,6 +96,7 @@ services:
       POSTGRES_DB: app
       POSTGRES_HOST: postgres
       POSTGRES_SSL: "false"
+      POSTGRES_POOL_MAX: ${POSTGRES_POOL_MAX:-10}
       VALKEY_URL: redis://valkey:6379
 
       # S3 Configuration
@@ -188,6 +189,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_HOST: postgres
+      POSTGRES_POOL_MAX: ${POSTGRES_POOL_MAX:-10}
       VALKEY_URL: redis://valkey:6379
       S3_ENDPOINT: ${S3_ENDPOINT:-http://seaweedfs:8333}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}

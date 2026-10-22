@@ -261,6 +261,10 @@ Runtime configuration is loaded across app and package config modules. Every val
 - `SPICEDB_ENDPOINT`
 - `SPICEDB_TOKEN`
 
+PostgreSQL optional:
+
+- `POSTGRES_POOL_MAX`: The most connections each pool opens, default `10`. The app runs three pools (queries, Better Auth, pg-boss) and the workers two (queries, pg-boss); keep the total for all processes below PostgreSQL's `max_connections` (100 by default).
+
 SpiceDB optional:
 
 - `SPICEDB_SECURITY`: Transport mode for SpiceDB client. Valid values: `secure`, `insecure-localhost`, `insecure-plaintext` (default).

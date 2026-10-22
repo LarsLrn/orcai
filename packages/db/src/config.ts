@@ -2,6 +2,7 @@ import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Schema from "effect/Schema";
 
 const dbConfig = Config.all({
 	postgres: Config.all({
@@ -10,6 +11,14 @@ const dbConfig = Config.all({
 		host: Config.string("POSTGRES_HOST"),
 		port: Config.withDefault(Config.port("POSTGRES_PORT"), 5432),
 		db: Config.string("POSTGRES_DB"),
+		/** The most connections each pool of a process opens. */
+		poolMax: Config.withDefault(
+			Config.schema(
+				Schema.Int.check(Schema.isGreaterThanOrEqualTo(1)),
+				"POSTGRES_POOL_MAX",
+			),
+			10,
+		),
 	}),
 });
 
