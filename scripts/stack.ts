@@ -37,8 +37,8 @@
  * refuse to run unless POSTGRES_HOST is a loopback address, the stack is named
  * `orcai-*`, and nothing is listening on the app port. There is no override.
  * `build` and `e2e` tag the images `<stack>-app`, `<stack>-web`, and
- * `<stack>-workers`, built by `docker buildx bake` from the Compose file with
- * the stack's VITE_* values; `build` forwards its arguments to bake.
+ * `<stack>-workers`, built by `docker buildx bake` from the Compose file;
+ * `build` forwards its arguments to bake.
  * `e2e` runs the images on the host network with the stack environment.
  * `e2e --no-reset` reuses an app already listening on PORT, for example
  * `bun run stack dev`, and skips building its image. An e2e run also starts
@@ -256,7 +256,7 @@ function defaultEnv(stackName: string, ports: Ports): Env {
 		PORT: String(ports.PORT),
 		WEB_PORT: String(ports.WEB_PORT),
 		BETTER_AUTH_URL: appUrl,
-		VITE_WEB_URL: webUrl,
+		WEB_URL: webUrl,
 
 		BETTER_AUTH_SECRET: randomSecret(48),
 		ENCRYPTION_KEY: randomSecret(32),
@@ -626,7 +626,7 @@ function appEnv(env: Env): Env {
 	};
 	if (paseoPort) result.PORT = paseoPort;
 	if (paseoUrl) result.BETTER_AUTH_URL = paseoUrl;
-	if (webUrl) result.VITE_WEB_URL = webUrl;
+	if (webUrl) result.WEB_URL = webUrl;
 	return result;
 }
 
@@ -951,9 +951,8 @@ function imageName(options: Options, service: ImageService): string {
 }
 
 /**
- * Bake reads each service's Dockerfile, target, and build args from the
- * Compose file, so the images match a Compose deployment with this stack's
- * VITE_* values.
+ * Bake reads each service's Dockerfile and target from the Compose file, so
+ * the images match a Compose deployment.
  */
 async function buildImages(
 	options: Options,
@@ -1263,9 +1262,7 @@ function printSummary(options: Options, env: Env): void {
 	console.log(
 		`  app            ${env.BETTER_AUTH_URL ?? ""}  (bun run stack dev)`,
 	);
-	console.log(
-		`  docs           ${env.VITE_WEB_URL ?? ""}  (bun run stack web)`,
-	);
+	console.log(`  docs           ${env.WEB_URL ?? ""}  (bun run stack web)`);
 	console.log(
 		`  postgres       ${env.POSTGRES_HOST ?? ""}:${env.POSTGRES_PORT ?? ""}`,
 	);

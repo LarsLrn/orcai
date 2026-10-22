@@ -20,12 +20,6 @@ RUN bun install --frozen-lockfile --production --ignore-scripts --filter @orcai/
 FROM ${BUN_IMAGE} AS builder
 WORKDIR /app
 
-# Build-time public envs used by Vite/TanStack Start
-ARG VITE_BASE_URL=http://localhost:3000
-ARG VITE_WEB_URL=http://localhost:3001
-ARG VITE_UMAMI_SCRIPT_URL=
-ARG VITE_UMAMI_WEBSITE_ID=
-
 # Copy package files for dependency installation
 COPY --parents package.json bun.lock bunfig.toml apps/*/package.json packages/*/package.json ./
 
@@ -40,10 +34,6 @@ COPY apps/app ./apps/app
 WORKDIR /app/apps/app
 
 ENV NODE_ENV=production
-ENV VITE_BASE_URL=${VITE_BASE_URL}
-ENV VITE_WEB_URL=${VITE_WEB_URL}
-ENV VITE_UMAMI_SCRIPT_URL=${VITE_UMAMI_SCRIPT_URL}
-ENV VITE_UMAMI_WEBSITE_ID=${VITE_UMAMI_WEBSITE_ID}
 
 RUN bun run build
 
