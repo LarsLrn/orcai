@@ -215,7 +215,7 @@ bun run stack workers
 
 The stack subcommands only load `.env` and run the workspace scripts; they do not start containers unless you call `bun run stack up`.
 
-Use `bun run build && bun run start` for the app and `bun run workers:start` for the workers.
+Run `bun run build`, then `bun run start` for the app and `bun run workers:start` for the workers.
 
 The e2e inference mock starts fresh and its worker-local scenarios reset before
 and after each test. Playwright also runs the docs image on `WEB_PORT`, or
@@ -305,12 +305,13 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run verify`: run lint, the migration check, and unit tests
 - `bun run test:integration`: run the integration tier against the stack
 - `bun run e2e`: reset the stack and run the end-to-end suite and the integration tier
-- `bun run build`: build the app and documentation site
+- `bun run build`: build the app, documentation site, and workers
 - `bun run build:app`: build only the main app
 - `bun run build:web`: build only the documentation site
+- `bun run build:workers`: bundle only the workers into `apps/workers/dist`
 - `bun run start`: run the production server from `apps/app/.output`
 - `bun run workers:dev`: start worker process directly on the host
-- `bun run workers:start`: run worker process in production mode
+- `bun run workers:start`: run the worker bundle from `apps/workers/dist`
 - `bun run lint`: run Biome, TypeScript checks, and the migration check
 - `bun run ci`: run the same lint, migration check, test, docs type-check, and build suite used by GitHub Actions
 - `bun run stack migrate`: apply SQL migrations and the SpiceDB schema

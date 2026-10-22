@@ -30,5 +30,9 @@ slice rules.
   `apps/e2e/fixtures/<area>/`; the Playwright config and the shared fixtures
   belong to the foundation. A slice needing one of them changed stops and
   reports.
+- The app and workers ship as bundles. A dependency that loads native
+  bindings, reads its own files by path, or imports a computed name breaks
+  only at runtime: keep it external (`apps/app/vite.config.ts`,
+  `apps/workers/build.ts`).
 - Never install software or change configuration outside the repository on
   the users machine. Report what is needed instead.
