@@ -11,6 +11,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { logFailedProcedure } from "@/lib/orpc/implementation/interceptors";
+import { toFetchResponse } from "@/lib/orpc/implementation/response";
 import { router } from "@/lib/orpc/router";
 
 const handler = new RPCHandler(router, {
@@ -69,6 +70,7 @@ const handler = new RPCHandler(router, {
 		new ResponseCompressionHandlerPlugin(),
 		new GetMethodCsrfProtectionHandlerPlugin(),
 	],
+	toFetchResponse,
 });
 
 export const Route = createFileRoute("/api/rpc/$")({
