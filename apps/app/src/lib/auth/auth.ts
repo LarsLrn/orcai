@@ -15,7 +15,7 @@ import {
 import { betterAuth, type User } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
-import { admin } from "better-auth/plugins";
+import { admin, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
@@ -50,7 +50,17 @@ const validateInstanceRole = (role: unknown) => {
 		});
 };
 
+/** Paths that finish a sign-in, including the second step of a challenged one. */
+const SIGN_IN_COMPLETIONS = [
+	"/two-factor/verify-totp",
+	"/two-factor/verify-backup-code",
+];
+
+const completesSignIn = (path: string) =>
+	path.startsWith("/sign-in") || SIGN_IN_COMPLETIONS.includes(path);
+
 export const auth = betterAuth({
+	appName: "OrcAI",
 	baseURL: cfg.auth.url,
 	secret: Redacted.value(cfg.auth.secret),
 	telemetry: {
@@ -89,6 +99,7 @@ export const auth = betterAuth({
 			],
 			defaultRole: INSTANCE_DEFAULT_ROLE,
 		}),
+		twoFactor(),
 		tanstackStartCookies(),
 	],
 	database: drizzleAdapter(authDb, {
@@ -98,6 +109,7 @@ export const auth = betterAuth({
 			account: dbSchema.account,
 			session: dbSchema.session,
 			verification: dbSchema.verification,
+			twoFactor: dbSchema.twoFactor,
 		},
 	}),
 	emailAndPassword: {
@@ -123,7 +135,8 @@ export const auth = betterAuth({
 	emailVerification: {
 		sendOnSignUp: true,
 		sendOnSignIn: false,
-		autoSignInAfterVerification: true,
+		// A verification link must not open a session the second factor never saw.
+		autoSignInAfterVerification: false,
 		sendVerificationEmail: async ({ user, url, token }) => {
 			const locale = emailLocaleOf(user);
 			await runPromise(
@@ -149,11 +162,30 @@ export const auth = betterAuth({
 		},
 	},
 	hooks: {
-		/** A new browser follows the stored locale; users without one keep the
-		 * request's. */
 		after: createAuthMiddleware(async (ctx) => {
+			if (ctx.path === "/two-factor/disable") {
+				const disabled = ctx.context.newSession;
+				if (!disabled || ctx.context.returned instanceof APIError) return;
+
+				await runPromise(
+					enqueueNotification(
+						{
+							type: "auth.two-factor-disabled",
+							recipient: disabled.user.email,
+							recipientName: disabled.user.name,
+							securityUrl: `${cfg.auth.url}/app/account/security`,
+							locale: emailLocaleOf(disabled.user),
+						},
+						`auth.two-factor-disabled:${disabled.session.id}`,
+					),
+				);
+				return;
+			}
+
+			/** A new browser follows the stored locale; users without one keep
+			 * the request's. */
 			const user = ctx.context.newSession?.user;
-			if (!ctx.path.startsWith("/sign-in") || !user) return;
+			if (!completesSignIn(ctx.path) || !user) return;
 
 			const stored = localeSchema.safeParse(
 				"locale" in user ? user.locale : undefined,

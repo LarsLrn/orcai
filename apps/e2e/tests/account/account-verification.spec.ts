@@ -66,9 +66,8 @@ test("account: a user sends the verification email and the link verifies the add
 			fromSignUp,
 		);
 
-		// Better Auth verifies the address, signs the user in again
-		// (`autoSignInAfterVerification`) and hands the browser to the
-		// callback the account page asked for.
+		// Better Auth verifies the address and hands the browser, still signed
+		// in, to the callback the account page asked for.
 		await open(page, link);
 		await expect(page).toHaveURL(/\/(select-organization|app)/);
 

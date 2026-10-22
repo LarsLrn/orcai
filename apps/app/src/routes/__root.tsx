@@ -26,6 +26,7 @@ import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth } from "@/lib/auth/auth";
+import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
 import { runPromise } from "@/lib/effect/runtime";
 import { AppConfigService } from "@/lib/effect/services/config";
 import { seo } from "@/lib/seo";
@@ -38,9 +39,18 @@ const getSession = createServerFn({
 	method: "GET",
 }).handler(async () => {
 	const { headers } = getRequest();
-	const sessionData = await auth.api.getSession({
-		headers,
-	});
+	const [sessionData, policy] = await Promise.all([
+		auth.api.getSession({
+			headers,
+		}),
+		runPromise(
+			Effect.gen(function* () {
+				const { config } = yield* AppConfigService;
+
+				return config.auth.twoFactorPolicy;
+			}),
+		),
+	]);
 
 	return sessionData
 		? {
@@ -49,6 +59,15 @@ const getSession = createServerFn({
 				},
 				user: {
 					...sessionData.user,
+				},
+				twoFactor: {
+					/** The policy covers the user, who has no second factor yet. */
+					setupRequired: requiresTwoFactor(policy, sessionData.user),
+					/** The policy covers the user, so 2FA cannot be turned off. */
+					enforced: requiresTwoFactor(policy, {
+						role: sessionData.user.role,
+						twoFactorEnabled: false,
+					}),
 				},
 			}
 		: null;
@@ -94,6 +113,7 @@ export const Route = createRootRouteWithContext<{
 				isAuthenticated: true as const,
 				session: session.session,
 				user: session.user,
+				twoFactor: session.twoFactor,
 			},
 		};
 	},

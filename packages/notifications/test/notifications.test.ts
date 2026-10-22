@@ -46,6 +46,12 @@ const notifications = [
 		accountUrl: "https://example.com/app/account",
 		expiresAt: new Date("2026-08-01T12:00:00.000Z"),
 	},
+	{
+		type: "auth.two-factor-disabled" as const,
+		recipient: "user@example.com",
+		recipientName: "User",
+		securityUrl: "https://example.com/app/account/security",
+	},
 ];
 
 const loadEmailConfig = (values: Record<string, unknown>) =>
@@ -180,7 +186,9 @@ describe("notification schemas and templates", () => {
 						? notification.verificationUrl
 						: "resetUrl" in notification
 							? notification.resetUrl
-							: notification.accountUrl;
+							: "securityUrl" in notification
+								? notification.securityUrl
+								: notification.accountUrl;
 
 			if (!actionUrl) {
 				throw new Error("Missing action URL");

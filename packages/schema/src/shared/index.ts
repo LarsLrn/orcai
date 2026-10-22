@@ -6,6 +6,7 @@ export * from "./forms/qdrant-playground";
 export * from "./forms/shared";
 export * from "./forms/signin";
 export * from "./forms/signup";
+export * from "./forms/two-factor";
 export * from "./id-schema";
 export * from "./pagination";
 export * from "./primitives/file-type";

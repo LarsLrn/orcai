@@ -1,9 +1,13 @@
 import { LOCALES } from "@orcai/schema";
-import { inferAdditionalFields } from "better-auth/client/plugins";
+import {
+	inferAdditionalFields,
+	twoFactorClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
 	plugins: [
+		twoFactorClient(),
 		inferAdditionalFields({
 			user: {
 				locale: {

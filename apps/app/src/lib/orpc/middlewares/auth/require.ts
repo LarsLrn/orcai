@@ -4,7 +4,9 @@ import { middlewareGen } from "@orpc/experimental-effect";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { auth as betterAuth } from "@/lib/auth/auth";
+import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { recordRequestUser } from "@/lib/observability/request-span";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
@@ -66,6 +68,16 @@ export const requiredAuthMiddleware = withName(
 				const { session, user } = auth;
 				const activeOrganizationId = session.activeOrganizationId;
 				recordRequestUser(user.id);
+
+				const { config } = yield* AppConfigService;
+				if (requiresTwoFactor(config.auth.twoFactorPolicy, user)) {
+					return yield* Effect.fail(
+						new AppErrors.ForbiddenError({
+							reason: "TWO_FACTOR_REQUIRED",
+							message: "Set up two-factor authentication to continue.",
+						}),
+					);
+				}
 
 				return yield* opts.next({
 					context: {

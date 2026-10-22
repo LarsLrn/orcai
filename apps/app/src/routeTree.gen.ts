@@ -20,7 +20,9 @@ import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLay
 import { Route as PathlessLayoutRegisterRouteImport } from './routes/_pathlessLayout/register'
 import { Route as PathlessLayoutResetPasswordRouteImport } from './routes/_pathlessLayout/reset-password'
 import { Route as PathlessLayoutSelectOrganizationRouteImport } from './routes/_pathlessLayout/select-organization'
+import { Route as PathlessLayoutSetupTwoFactorRouteImport } from './routes/_pathlessLayout/setup-two-factor'
 import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
+import { Route as PathlessLayoutTwoFactorRouteImport } from './routes/_pathlessLayout/two-factor'
 import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
@@ -159,9 +161,20 @@ const PathlessLayoutSelectOrganizationRoute =
     path: '/select-organization',
     getParentRoute: () => PathlessLayoutRouteRoute,
   } as any)
+const PathlessLayoutSetupTwoFactorRoute =
+  PathlessLayoutSetupTwoFactorRouteImport.update({
+    id: '/setup-two-factor',
+    path: '/setup-two-factor',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
 const PathlessLayoutTouRoute = PathlessLayoutTouRouteImport.update({
   id: '/tou',
   path: '/tou',
+  getParentRoute: () => PathlessLayoutRouteRoute,
+} as any)
+const PathlessLayoutTwoFactorRoute = PathlessLayoutTwoFactorRouteImport.update({
+  id: '/two-factor',
+  path: '/two-factor',
   getParentRoute: () => PathlessLayoutRouteRoute,
 } as any)
 const PathlessLayoutVerifyEmailRoute =
@@ -602,7 +615,9 @@ export interface FileRoutesByFullPath {
   '/register': typeof PathlessLayoutRegisterRoute
   '/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
+  '/setup-two-factor': typeof PathlessLayoutSetupTwoFactorRoute
   '/tou': typeof PathlessLayoutTouRoute
+  '/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
   '/instance/': typeof InstanceIndexRoute
@@ -682,7 +697,9 @@ export interface FileRoutesByTo {
   '/register': typeof PathlessLayoutRegisterRoute
   '/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/select-organization': typeof PathlessLayoutSelectOrganizationRoute
+  '/setup-two-factor': typeof PathlessLayoutSetupTwoFactorRoute
   '/tou': typeof PathlessLayoutTouRoute
+  '/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app': typeof AppIndexRoute
   '/instance': typeof InstanceIndexRoute
@@ -766,7 +783,9 @@ export interface FileRoutesById {
   '/_pathlessLayout/register': typeof PathlessLayoutRegisterRoute
   '/_pathlessLayout/reset-password': typeof PathlessLayoutResetPasswordRoute
   '/_pathlessLayout/select-organization': typeof PathlessLayoutSelectOrganizationRoute
+  '/_pathlessLayout/setup-two-factor': typeof PathlessLayoutSetupTwoFactorRoute
   '/_pathlessLayout/tou': typeof PathlessLayoutTouRoute
+  '/_pathlessLayout/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/app/': typeof AppIndexRoute
   '/instance/': typeof InstanceIndexRoute
@@ -861,7 +880,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/select-organization'
+    | '/setup-two-factor'
     | '/tou'
+    | '/two-factor'
     | '/verify-email'
     | '/app/'
     | '/instance/'
@@ -941,7 +962,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/select-organization'
+    | '/setup-two-factor'
     | '/tou'
+    | '/two-factor'
     | '/verify-email'
     | '/app'
     | '/instance'
@@ -1024,7 +1047,9 @@ export interface FileRouteTypes {
     | '/_pathlessLayout/register'
     | '/_pathlessLayout/reset-password'
     | '/_pathlessLayout/select-organization'
+    | '/_pathlessLayout/setup-two-factor'
     | '/_pathlessLayout/tou'
+    | '/_pathlessLayout/two-factor'
     | '/_pathlessLayout/verify-email'
     | '/app/'
     | '/instance/'
@@ -1186,11 +1211,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PathlessLayoutSelectOrganizationRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
+    '/_pathlessLayout/setup-two-factor': {
+      id: '/_pathlessLayout/setup-two-factor'
+      path: '/setup-two-factor'
+      fullPath: '/setup-two-factor'
+      preLoaderRoute: typeof PathlessLayoutSetupTwoFactorRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
     '/_pathlessLayout/tou': {
       id: '/_pathlessLayout/tou'
       path: '/tou'
       fullPath: '/tou'
       preLoaderRoute: typeof PathlessLayoutTouRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/two-factor': {
+      id: '/_pathlessLayout/two-factor'
+      path: '/two-factor'
+      fullPath: '/two-factor'
+      preLoaderRoute: typeof PathlessLayoutTwoFactorRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/_pathlessLayout/verify-email': {
@@ -1764,7 +1803,9 @@ interface PathlessLayoutRouteRouteChildren {
   PathlessLayoutRegisterRoute: typeof PathlessLayoutRegisterRoute
   PathlessLayoutResetPasswordRoute: typeof PathlessLayoutResetPasswordRoute
   PathlessLayoutSelectOrganizationRoute: typeof PathlessLayoutSelectOrganizationRoute
+  PathlessLayoutSetupTwoFactorRoute: typeof PathlessLayoutSetupTwoFactorRoute
   PathlessLayoutTouRoute: typeof PathlessLayoutTouRoute
+  PathlessLayoutTwoFactorRoute: typeof PathlessLayoutTwoFactorRoute
   PathlessLayoutVerifyEmailRoute: typeof PathlessLayoutVerifyEmailRoute
 }
 
@@ -1776,7 +1817,9 @@ const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
   PathlessLayoutRegisterRoute: PathlessLayoutRegisterRoute,
   PathlessLayoutResetPasswordRoute: PathlessLayoutResetPasswordRoute,
   PathlessLayoutSelectOrganizationRoute: PathlessLayoutSelectOrganizationRoute,
+  PathlessLayoutSetupTwoFactorRoute: PathlessLayoutSetupTwoFactorRoute,
   PathlessLayoutTouRoute: PathlessLayoutTouRoute,
+  PathlessLayoutTwoFactorRoute: PathlessLayoutTwoFactorRoute,
   PathlessLayoutVerifyEmailRoute: PathlessLayoutVerifyEmailRoute,
 }
 

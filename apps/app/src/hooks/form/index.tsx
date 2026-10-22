@@ -1,7 +1,9 @@
 import { createFormHook } from "@tanstack/react-form";
 import { flushSync } from "react-dom";
 import BlockEditorField from "@/components/forms/fields/block-editor-field";
+import CheckboxField from "@/components/forms/fields/checkbox-field";
 import CheckboxGroup from "@/components/forms/fields/checkbox-group";
+import CodeField from "@/components/forms/fields/code-field";
 import DatetimeField from "@/components/forms/fields/datetime-field";
 import FormValidationErrors from "@/components/forms/fields/form-validation-errors";
 import MultiSelectField from "@/components/forms/fields/multi-select-field";
@@ -25,6 +27,8 @@ const formHook = createFormHook({
 		SwitchField,
 		RadioGroup,
 		CheckboxGroup,
+		CheckboxField,
+		CodeField,
 		DatetimeField,
 		PasswordField,
 		BlockEditorField,

@@ -244,6 +244,7 @@ Runtime configuration is loaded across app and package config modules. Every val
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
 - `BETTER_AUTH_RATE_LIMIT`: `false` turns off Better Auth's rate limiting (optional; on in production by default). It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit.
 - `ENCRYPTION_KEY`: 32 to 64 character application encryption key.
+- `TWO_FACTOR_REQUIRED`: Who must use two-factor authentication: `none` (default), `admins` (instance administrators) or `all` (optional). A covered user without it is sent to set it up before using the app.
 
 ### Required infrastructure variables
 

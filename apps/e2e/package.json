@@ -9,6 +9,7 @@
 		"report": "playwright show-report"
 	},
 	"devDependencies": {
+		"@better-auth/utils": "0.5.0",
 		"@orcai/contracts": "workspace:*",
 		"@orcai/core": "workspace:*",
 		"@orcai/notifications": "workspace:*",

@@ -37,6 +37,7 @@ Primary config modules:
 | `BETTER_AUTH_SECRET` | Yes | Better Auth signing secret. |
 | `BETTER_AUTH_RATE_LIMIT` | No | `false` turns off Better Auth's rate limiting, which is on in production by default. It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit. |
 | `ENCRYPTION_KEY` | Yes | 32 to 64 character application encryption key. |
+| `TWO_FACTOR_REQUIRED` | No | Who must use two-factor authentication: `none` (default), `admins` (instance administrators) or `all`. A covered user without it is sent to set it up before using the app. |
 
 ## Database And Cache
 
