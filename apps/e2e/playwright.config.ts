@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const missing = [
-	"BASE_URL",
+	"BETTER_AUTH_URL",
 	"PORT",
 	"E2E_INFERENCE_PORT",
 	"WEB_PORT",
@@ -17,7 +17,7 @@ if (missing.length > 0) {
 	);
 }
 
-const baseURL = process.env.BASE_URL as string;
+const baseURL = process.env.BETTER_AUTH_URL as string;
 const inferenceURL = `http://127.0.0.1:${process.env.E2E_INFERENCE_PORT as string}/v1`;
 const docsURL = `http://127.0.0.1:${process.env.WEB_PORT as string}`;
 const isCI = Boolean(process.env.CI);

@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
-import { clientEnv } from "@/lib/env/client";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
@@ -117,7 +116,7 @@ const ActionsCell = ({
 			},
 		});
 		const href = location.maskedLocation?.publicHref ?? location.publicHref;
-		const fullUrl = new URL(href, clientEnv.VITE_BASE_URL).toString();
+		const fullUrl = new URL(href, window.location.origin).toString();
 
 		toast.promise(navigator.clipboard.writeText(fullUrl), {
 			loading: m.users_invites_copy_link_toast_loading(),

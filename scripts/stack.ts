@@ -255,9 +255,7 @@ function defaultEnv(stackName: string, ports: Ports): Env {
 
 		PORT: String(ports.PORT),
 		WEB_PORT: String(ports.WEB_PORT),
-		BASE_URL: appUrl,
 		BETTER_AUTH_URL: appUrl,
-		VITE_BASE_URL: appUrl,
 		VITE_WEB_URL: webUrl,
 
 		BETTER_AUTH_SECRET: randomSecret(48),
@@ -616,8 +614,8 @@ async function migrate(env: Env): Promise<void> {
 
 /**
  * When Paseo starts a service script it hands over the port it proxies and the
- * public URL of that proxy. Prefer those so the browser, Better Auth, and the
- * client bundle all agree on one origin.
+ * public URL of that proxy. Prefer those so the browser and Better Auth agree
+ * on one origin.
  */
 function appEnv(env: Env): Env {
 	const paseoPort = process.env.PASEO_PORT;
@@ -627,11 +625,7 @@ function appEnv(env: Env): Env {
 		...env,
 	};
 	if (paseoPort) result.PORT = paseoPort;
-	if (paseoUrl) {
-		result.BASE_URL = paseoUrl;
-		result.BETTER_AUTH_URL = paseoUrl;
-		result.VITE_BASE_URL = paseoUrl;
-	}
+	if (paseoUrl) result.BETTER_AUTH_URL = paseoUrl;
 	if (webUrl) result.VITE_WEB_URL = webUrl;
 	return result;
 }
@@ -727,7 +721,7 @@ async function assertResettable(options: Options, env: Env): Promise<void> {
 	// schema it created on start) that a reset would silently invalidate.
 	if (await isAppListening(env)) {
 		throw new Error(
-			`Refusing to reset: an app is listening on ${env.BASE_URL ?? ""}. Stop it first, or run \`bun run stack e2e --no-reset\` to test against it.`,
+			`Refusing to reset: an app is listening on ${env.BETTER_AUTH_URL ?? ""}. Stop it first, or run \`bun run stack e2e --no-reset\` to test against it.`,
 		);
 	}
 }
@@ -1239,8 +1233,8 @@ function probes(env: Env): Probe[] {
 		},
 		{
 			name: "app",
-			check: http(env.BASE_URL ?? ""),
-			detail: `${env.BASE_URL ?? ""} (only while \`bun run stack dev\` runs)`,
+			check: http(env.BETTER_AUTH_URL ?? ""),
+			detail: `${env.BETTER_AUTH_URL ?? ""} (only while \`bun run stack dev\` runs)`,
 		},
 	];
 }
@@ -1266,7 +1260,9 @@ function printSummary(options: Options, env: Env): void {
 	console.log("");
 	console.log(`Stack '${options.stackName}' is ready.`);
 	console.log(`  env file       ${options.envFile}`);
-	console.log(`  app            ${env.BASE_URL ?? ""}  (bun run stack dev)`);
+	console.log(
+		`  app            ${env.BETTER_AUTH_URL ?? ""}  (bun run stack dev)`,
+	);
 	console.log(
 		`  docs           ${env.VITE_WEB_URL ?? ""}  (bun run stack web)`,
 	);
