@@ -1,12 +1,15 @@
+import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import { logErrorCause, withActiveSpan } from "@orcai/observability";
 import type { JobWithMetadata } from "@orcai/pg-boss";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import type { JobQueue } from "@orcai/schema";
+import * as Cause from "effect/Cause";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import type * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import * as Option from "effect/Option";
+import * as Runtime from "effect/Runtime";
 import * as Schedule from "effect/Schedule";
 import type { WorkerDefinition } from "@/worker/types";
 
@@ -161,7 +164,13 @@ const scheduleWorkers = <TContext>(
 		);
 	});
 
-export const runWorkerProcess = async <TContext, TError>(params: {
+/** A signal interrupts the workers, which is a clean stop. */
+const teardown: Runtime.Teardown = (exit, onExit) =>
+	Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)
+		? onExit(0)
+		: Runtime.defaultTeardown(exit, onExit);
+
+export const runWorkerProcess = <TContext, TError>(params: {
 	name: string;
 	layer: Layer.Layer<TContext | PgBossService, TError, never>;
 	definitions: readonly WorkerDefinition<TContext | PgBossService, unknown>[];
@@ -173,22 +182,6 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 	/** Runs once at boot; a failure is logged and does not stop the workers. */
 	setup?: Effect.Effect<void, unknown, TContext | PgBossService>;
 }) => {
-	const runtime = ManagedRuntime.make(params.layer);
-
-	const shutdown = async (signal: NodeJS.Signals) => {
-		console.log(`[workers] received ${signal}, shutting down ${params.name}`);
-		await runtime.dispose();
-		process.exit(0);
-	};
-
-	process.on("SIGINT", () => {
-		void shutdown("SIGINT");
-	});
-
-	process.on("SIGTERM", () => {
-		void shutdown("SIGTERM");
-	});
-
 	const startWorkers = Effect.gen(function* () {
 		yield* Effect.logInfo(`Starting ${params.name}...`);
 		yield* Effect.logInfo(
@@ -230,13 +223,12 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 		yield* Effect.logInfo(`${params.name} started`);
 	}).pipe(Effect.withSpan("workers.startup"));
 
-	const workerProgram = startWorkers.pipe(Effect.andThen(Effect.never));
-
-	try {
-		await runtime.runPromise(workerProgram);
-	} catch (error) {
-		console.error(`[workers] failed to start ${params.name}`, error);
-		await runtime.dispose();
-		process.exit(1);
-	}
+	startWorkers.pipe(
+		Effect.andThen(Effect.never),
+		Effect.onInterrupt(() => Effect.logInfo(`Stopping ${params.name}...`)),
+		Effect.provide(params.layer),
+		BunRuntime.runMain({
+			teardown,
+		}),
+	);
 };

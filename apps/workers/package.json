@@ -8,6 +8,7 @@
 		"start": "bun run --filter @orcai/notifications paraglide:compile && bun run src/start-workers.ts"
 	},
 	"dependencies": {
+		"@effect/platform-bun": "catalog:",
 		"@effect/sql-pg": "catalog:",
 		"@orcai/ai": "workspace:*",
 		"@orcai/core": "workspace:*",
