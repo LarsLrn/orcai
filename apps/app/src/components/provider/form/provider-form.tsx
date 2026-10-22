@@ -1,4 +1,5 @@
 import {
+	canReportCost,
 	getProviderEndpointMode,
 	getProviderPurpose,
 	providerKinds,
@@ -7,11 +8,14 @@ import {
 import type { Provider } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
+import { TriangleAlertIcon } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateProviderMutation,
 	useUpdateProviderMutation,
 } from "@/hooks/mutations/use-provider-mutations";
+import { currencyOptions } from "@/lib/presentation/currency";
 import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
 import { m } from "@/paraglide/messages";
 import { providerFormOptions } from "./provider-form-options";
@@ -43,10 +47,13 @@ const ProviderForm = ({
 				getProviderEndpointMode(kind) === "none"
 					? null
 					: fields.endpoint || null;
+			// An emptied price field is cleared, not left as it was.
+			const searchPrice = fields.searchPrice ?? null;
 			if (action === "update" && provider) {
 				await updateProvider({
 					...fields,
 					endpoint,
+					searchPrice,
 					apiKey: apiKey.trim() || undefined,
 					id: provider.id,
 				});
@@ -55,6 +62,7 @@ const ProviderForm = ({
 					...fields,
 					kind,
 					endpoint,
+					searchPrice,
 					apiKey,
 				});
 			}
@@ -66,6 +74,14 @@ const ProviderForm = ({
 	const purpose = useSelector(form.store, (state) =>
 		getProviderPurpose(state.values.kind),
 	);
+	const reportsCostOffered = useSelector(form.store, (state) =>
+		canReportCost(state.values.kind),
+	);
+	const reportsCost = useSelector(
+		form.store,
+		(state) => state.values.reportsCost,
+	);
+	const currency = useSelector(form.store, (state) => state.values.currency);
 
 	return (
 		<form
@@ -83,6 +99,11 @@ const ProviderForm = ({
 							form.setFieldValue("endpoint", "");
 							if (getProviderPurpose(value) === "search") {
 								form.setFieldValue("meteringMode", "requests");
+							} else {
+								form.setFieldValue("searchPrice", null);
+							}
+							if (!canReportCost(value)) {
+								form.setFieldValue("reportsCost", false);
 							}
 						},
 					}}
@@ -194,6 +215,66 @@ const ProviderForm = ({
 					)}
 				/>
 			</div>
+
+			<div className="grid gap-4 md:grid-cols-2">
+				<form.AppField
+					name="currency"
+					children={(field) => (
+						<field.SelectField
+							label={m.providers_form_currency_label()}
+							description={
+								reportsCost
+									? m.providers_form_currency_reported_description()
+									: m.providers_form_currency_description()
+							}
+							options={currencyOptions()}
+							disabled={reportsCost}
+						/>
+					)}
+				/>
+				{reportsCostOffered && (
+					<form.AppField
+						name="reportsCost"
+						listeners={{
+							onChange: ({ value }) => {
+								if (value) {
+									form.setFieldValue("currency", "USD");
+								}
+							},
+						}}
+						children={(field) => (
+							<field.SwitchField
+								label={m.providers_form_reports_cost_label()}
+								description={m.providers_form_reports_cost_description()}
+							/>
+						)}
+					/>
+				)}
+				{purpose === "search" && (
+					<form.AppField
+						name="searchPrice"
+						children={(field) => (
+							<field.TextField
+								label={m.providers_form_search_price_label()}
+								description={m.providers_form_search_price_description()}
+								type="number"
+								min={0}
+								step="any"
+								unit={currency}
+							/>
+						)}
+					/>
+				)}
+			</div>
+			{provider !== undefined && currency !== provider.currency && (
+				<Alert>
+					<TriangleAlertIcon />
+					<AlertTitle>{m.providers_form_currency_changed_title()}</AlertTitle>
+					<AlertDescription>
+						{m.providers_form_currency_changed_description()}
+					</AlertDescription>
+				</Alert>
+			)}
 
 			<form.AppForm>
 				<form.SubmitButton label={m.providers_form_save_button()} />

@@ -1,8 +1,10 @@
+import { hasNativeWebSearch } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	BadgeCheck,
 	BadgeX,
+	CoinsIcon,
 	EditIcon,
 	LinkIcon,
 	ScanTextIcon,
@@ -11,6 +13,7 @@ import {
 	TagIcon,
 	TextCursorInputIcon,
 } from "lucide-react";
+import { Fragment } from "react";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -31,7 +34,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatNumber } from "@/lib/presentation/format-number";
+import { formatNumber, formatPrice } from "@/lib/presentation/format-number";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
 	getModelStatusLabel,
@@ -71,6 +74,36 @@ function RouteComponent() {
 	const provider = providerResponse.data;
 	const kindLabel = getProviderKindLabel(provider.kind);
 	const capabilityLabels = model.capabilities.map(getModelCapabilityLabel);
+	const prices = [
+		{
+			label: m.models_form_input_price_label(),
+			price: model.prices.input,
+		},
+		{
+			label: m.models_form_output_price_label(),
+			price: model.prices.output,
+		},
+		{
+			label: m.models_form_cache_read_price_label(),
+			price: model.prices.cacheRead,
+		},
+		{
+			label: m.models_form_cache_write_price_label(),
+			price: model.prices.cacheWrite,
+		},
+		{
+			label: m.models_form_request_price_label(),
+			price: model.prices.request,
+		},
+		...(hasNativeWebSearch(provider.kind)
+			? [
+					{
+						label: m.models_form_web_search_price_label(),
+						price: model.prices.webSearch,
+					},
+				]
+			: []),
+	];
 
 	return (
 		<Page>
@@ -187,6 +220,35 @@ function RouteComponent() {
 									)}
 								</span>
 							</div>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader>
+							<CardTitle>{m.models_form_prices_title()}</CardTitle>
+							<CardDescription>
+								{m.models_form_prices_description({
+									currency: provider.currency,
+								})}
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							{prices.map(({ label, price }, index) => (
+								<Fragment key={label}>
+									{index > 0 && <Separator />}
+									<div className="flex items-start justify-between gap-4">
+										<div className="flex items-center gap-2 text-muted-foreground text-sm">
+											<CoinsIcon className="h-4 w-4" />
+											{label}
+										</div>
+										<span className="font-medium tabular-nums">
+											{price === null
+												? m.models_detail_price_unset()
+												: formatPrice(price, provider.currency)}
+										</span>
+									</div>
+								</Fragment>
+							))}
 						</CardContent>
 					</Card>
 

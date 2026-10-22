@@ -1,7 +1,9 @@
-import { modelCapabilities } from "@orcai/core";
-import type { Model } from "@orcai/schema";
+import { hasNativeWebSearch, modelCapabilities } from "@orcai/core";
+import type { Model, ModelPrices } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useSelector } from "@tanstack/react-store";
+import { FieldDescription, FieldLegend, FieldSet } from "@/components/ui/field";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateModelMutation,
@@ -11,6 +13,15 @@ import { orpc } from "@/lib/orpc/orpc";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import { m } from "@/paraglide/messages";
 import { modelFormOptions } from "./model-form-options";
+
+const clearedPrices = (prices: Partial<ModelPrices> = {}): ModelPrices => ({
+	input: prices.input ?? null,
+	cacheRead: prices.cacheRead ?? null,
+	cacheWrite: prices.cacheWrite ?? null,
+	output: prices.output ?? null,
+	request: prices.request ?? null,
+	webSearch: prices.webSearch ?? null,
+});
 
 const ModelForm = ({
 	action,
@@ -46,11 +57,12 @@ const ModelForm = ({
 	const form = useAppForm({
 		...modelFormOptions(model),
 		onSubmit: async ({ value }) => {
-			// An emptied limit field is cleared, not left as it was.
+			// An emptied limit or price field is cleared, not left as it was.
 			const values = {
 				...value,
 				contextWindow: value.contextWindow ?? null,
 				maxOutputTokens: value.maxOutputTokens ?? null,
+				prices: clearedPrices(value.prices),
 			};
 			if (action === "update" && model) {
 				await updateModel({
@@ -62,6 +74,41 @@ const ModelForm = ({
 			}
 		},
 	});
+
+	const providerId = useSelector(
+		form.store,
+		(state) => state.values.providerId,
+	);
+	// The list may not hold the model's provider; its currency labels the prices.
+	const { data: provider } = useQuery({
+		...orpc.provider.find.queryOptions({
+			input: {
+				id: providerId,
+			},
+		}),
+		enabled: providerId !== "",
+		select: ({ data }) => data,
+	});
+	const currency = provider?.currency ?? "USD";
+	const priceField = (
+		name: keyof ModelPrices,
+		label: string,
+		description?: string,
+	) => (
+		<form.AppField
+			name={`prices.${name}`}
+			children={(field) => (
+				<field.TextField
+					label={label}
+					description={description}
+					type="number"
+					min={0}
+					step="any"
+					unit={currency}
+				/>
+			)}
+		/>
+	);
 
 	return (
 		<form
@@ -159,6 +206,37 @@ const ModelForm = ({
 					/>
 				)}
 			/>
+
+			<FieldSet>
+				<FieldLegend>{m.models_form_prices_title()}</FieldLegend>
+				<FieldDescription>
+					{m.models_form_prices_description({
+						currency,
+					})}
+				</FieldDescription>
+				<div className="grid gap-4 md:grid-cols-2">
+					{priceField("input", m.models_form_input_price_label())}
+					{priceField("output", m.models_form_output_price_label())}
+					{priceField(
+						"cacheRead",
+						m.models_form_cache_read_price_label(),
+						m.models_form_cache_price_description(),
+					)}
+					{priceField(
+						"cacheWrite",
+						m.models_form_cache_write_price_label(),
+						m.models_form_cache_price_description(),
+					)}
+					{priceField("request", m.models_form_request_price_label())}
+					{provider !== undefined &&
+						hasNativeWebSearch(provider.kind) &&
+						priceField(
+							"webSearch",
+							m.models_form_web_search_price_label(),
+							m.models_form_web_search_price_description(),
+						)}
+				</div>
+			</FieldSet>
 
 			<form.AppField
 				name="isDeprecated"

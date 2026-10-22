@@ -5,6 +5,7 @@ import {
 	BadgeCheck,
 	BadgeX,
 	BotIcon,
+	CoinsIcon,
 	EditIcon,
 	GlobeIcon,
 	PlusIcon,
@@ -31,6 +32,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatPrice } from "@/lib/presentation/format-number";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
@@ -245,6 +247,34 @@ function RouteComponent() {
 									</code>
 								)}
 							</div>
+							<Separator />
+							<div className="flex items-start justify-between gap-4">
+								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+									<CoinsIcon className="h-4 w-4" />
+									{m.providers_form_currency_label()}
+								</div>
+								<span className="font-medium">
+									{provider.currency}
+									{provider.reportsCost &&
+										` · ${m.providers_detail_reports_cost_label()}`}
+								</span>
+							</div>
+							{!servesModels && (
+								<>
+									<Separator />
+									<div className="flex items-start justify-between gap-4">
+										<div className="flex items-center gap-2 text-muted-foreground text-sm">
+											<CoinsIcon className="h-4 w-4" />
+											{m.providers_form_search_price_label()}
+										</div>
+										<span className="font-medium tabular-nums">
+											{provider.searchPrice === null
+												? m.models_detail_price_unset()
+												: formatPrice(provider.searchPrice, provider.currency)}
+										</span>
+									</div>
+								</>
+							)}
 						</CardContent>
 					</Card>
 

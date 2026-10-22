@@ -1,10 +1,6 @@
 import { providerKinds } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import {
-	type ProviderSortKey,
-	providerEndpointIssue,
-	providerMeteringModeIssue,
-} from "@orcai/schema";
+import { type ProviderSortKey, providerFieldIssues } from "@orcai/schema";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -22,6 +18,9 @@ const providerColumns = {
 	endpoint: dbSchema.provider.endpoint,
 	kind: dbSchema.provider.kind,
 	meteringMode: dbSchema.provider.meteringMode,
+	currency: dbSchema.provider.currency,
+	reportsCost: dbSchema.provider.reportsCost,
+	searchPrice: dbSchema.provider.searchPrice,
 	enabled: dbSchema.provider.enabled,
 	createdAt: dbSchema.provider.createdAt,
 	updatedAt: dbSchema.provider.updatedAt,
@@ -158,35 +157,35 @@ const updateProvider = authed.provider.update
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
-		if (input.endpoint !== undefined || input.meteringMode !== undefined) {
-			const [stored] = yield* db
-				.select({
-					kind: dbSchema.provider.kind,
-				})
-				.from(dbSchema.provider)
-				.where(
-					and(
-						eq(dbSchema.provider.id, input.id),
-						eq(dbSchema.provider.organizationId, organizationId),
-					),
-				)
-				.limit(1);
-			const reason = stored
-				? ((input.endpoint === undefined
-						? undefined
-						: providerEndpointIssue(stored.kind, input.endpoint)) ??
-					(input.meteringMode === undefined
-						? undefined
-						: providerMeteringModeIssue(stored.kind, input.meteringMode)))
-				: undefined;
-			if (reason) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason,
-						message: "The field does not suit the provider kind",
-					}),
-				);
-			}
+		const [stored] = yield* db
+			.select(providerColumns)
+			.from(dbSchema.provider)
+			.where(
+				and(
+					eq(dbSchema.provider.id, input.id),
+					eq(dbSchema.provider.organizationId, organizationId),
+				),
+			)
+			.limit(1);
+		if (!stored) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "PROVIDER_NOT_FOUND",
+					message: "Provider not found",
+				}),
+			);
+		}
+		const [issue] = providerFieldIssues({
+			...stored,
+			...input,
+		});
+		if (issue) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: issue[1],
+					message: `The ${issue[0]} does not suit the provider`,
+				}),
+			);
 		}
 
 		const { apiKey, ...inputWithoutApiKey } = input;

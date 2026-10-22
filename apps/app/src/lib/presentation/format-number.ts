@@ -34,4 +34,18 @@ const formatPercent = (value: number) =>
 const formatNumber = (value: number | null | undefined, missing = "—") =>
 	value === null || value === undefined ? missing : formatCount(value);
 
-export { formatCompactNumber, formatCount, formatNumber, formatPercent };
+/** A price with every decimal it was entered with. */
+const formatPrice = (value: number, currency: string) =>
+	getFormatter(`price:${currency}`, {
+		style: "currency",
+		currency,
+		maximumFractionDigits: 6,
+	}).format(value);
+
+export {
+	formatCompactNumber,
+	formatCount,
+	formatNumber,
+	formatPercent,
+	formatPrice,
+};

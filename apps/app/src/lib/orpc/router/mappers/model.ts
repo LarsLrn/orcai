@@ -3,11 +3,22 @@ import type {
 	CreateModelInput,
 	Model,
 	ModelListRow,
+	ModelPrices,
 	UpdateModelInput,
 } from "@orcai/schema";
 
 type ModelRow = typeof dbSchema.model.$inferSelect;
 type ModelInsertValues = typeof dbSchema.model.$inferInsert;
+
+/** The price columns of the prices given; a price left out stays undefined. */
+const priceValues = (prices: Partial<ModelPrices> = {}) => ({
+	inputPrice: prices.input,
+	cacheReadPrice: prices.cacheRead,
+	cacheWritePrice: prices.cacheWrite,
+	outputPrice: prices.output,
+	requestPrice: prices.request,
+	webSearchPrice: prices.webSearch,
+});
 
 export function toModelDto(row: ModelRow): Model {
 	return {
@@ -20,6 +31,14 @@ export function toModelDto(row: ModelRow): Model {
 		capabilities: row.capabilities,
 		contextWindow: row.contextWindow,
 		maxOutputTokens: row.maxOutputTokens,
+		prices: {
+			input: row.inputPrice,
+			cacheRead: row.cacheReadPrice,
+			cacheWrite: row.cacheWritePrice,
+			output: row.outputPrice,
+			request: row.requestPrice,
+			webSearch: row.webSearchPrice,
+		},
 		createdAt: row.createdAt ?? null,
 		updatedAt: row.updatedAt ?? null,
 	};
@@ -47,6 +66,7 @@ export function mapCreateModelInputToModelInsertValues(
 		capabilities: input.capabilities,
 		contextWindow: input.contextWindow ?? null,
 		maxOutputTokens: input.maxOutputTokens ?? null,
+		...priceValues(input.prices),
 	};
 }
 
@@ -62,6 +82,7 @@ export function mapUpdateModelInputToModelUpdateValues(
 		capabilities: input.capabilities,
 		contextWindow: input.contextWindow,
 		maxOutputTokens: input.maxOutputTokens,
+		...priceValues(input.prices),
 		updatedAt: new Date(),
 	};
 }
