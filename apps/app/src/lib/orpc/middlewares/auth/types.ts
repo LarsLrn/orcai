@@ -1,19 +1,19 @@
 import type { organizationIdSchema, userIdSchema } from "@orcai/schema";
-import type { authClient } from "@/lib/auth/auth-client";
+import type { auth } from "@/lib/auth/auth";
 
 export interface AuthContext {
 	reqHeaders: Headers;
 	auth: {
 		isAuthenticated: true;
 		session: Omit<
-			typeof authClient.$Infer.Session.session,
+			typeof auth.$Infer.Session.session,
 			"activeOrganizationId"
 		> & {
 			activeOrganizationId:
 				| ReturnType<typeof organizationIdSchema.parse>
 				| undefined;
 		};
-		user: Omit<typeof authClient.$Infer.Session.user, "id"> & {
+		user: Omit<typeof auth.$Infer.Session.user, "id"> & {
 			id: ReturnType<typeof userIdSchema.parse>;
 		};
 	};

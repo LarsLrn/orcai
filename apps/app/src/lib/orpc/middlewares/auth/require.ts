@@ -4,7 +4,6 @@ import { middlewareGen } from "@orpc/experimental-effect";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { auth as betterAuth } from "@/lib/auth/auth";
-import type { authClient } from "@/lib/auth/auth-client";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { recordRequestUser } from "@/lib/observability/request-span";
@@ -14,8 +13,8 @@ import type { AuthContext } from ".";
 
 type IncomingAuth = {
 	isAuthenticated?: boolean;
-	session?: typeof authClient.$Infer.Session.session;
-	user?: typeof authClient.$Infer.Session.user;
+	session?: typeof betterAuth.$Infer.Session.session;
+	user?: typeof betterAuth.$Infer.Session.user;
 };
 
 /** The session a surrounding procedure already resolved, so a nested procedure call keeps it. */
