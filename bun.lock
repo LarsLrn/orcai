@@ -79,6 +79,7 @@
         "@tiptap/react": "3.31.4",
         "@tiptap/starter-kit": "3.31.4",
         "@tiptap/static-renderer": "3.31.4",
+        "@zip.js/zip.js": "2.24.0",
         "ai": "catalog:",
         "better-auth": "1.7.11",
         "class-variance-authority": "0.7.1",
@@ -87,7 +88,6 @@
         "date-fns": "4.4.0",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
-        "fflate": "0.8.3",
         "js-cookie": "3.0.8",
         "katex": "0.16.47",
         "lucide-react": "catalog:",
@@ -1848,6 +1848,8 @@
     "@yuku-core/binding-win32-x64": ["@yuku-core/binding-win32-x64@0.17.0", "", { "os": "win32", "cpu": "x64" }, "sha512-gPDXHz0dPwvgj1GO7xzK8jPktrCh9xyMXZKmwqq+5bemxrSXSDUK/osSw93xmHha/PQP2WcJ1WiJ8+XEx+ciHg=="],
 
     "@yuku-toolchain/types": ["@yuku-toolchain/types@0.17.0", "", {}, "sha512-3T4eKUuFAtuwbyRc2OIpanxPTl4CZdbmOvg1HB9UmRrPb3bsF3fFfbLSyIFYtZrE9/cNqLyEq/7g3Hm6nHIekA=="],
+
+    "@zip.js/zip.js": ["@zip.js/zip.js@2.24.0", "", {}, "sha512-WlaVKzdqBK+RF3bdiXZWbdCnvGB6PdO4IHC1mn/2Yfl3bASgqUNegnU3+PNg61iecwoPfUi5BgLUPqBukXpyWw=="],
 
     "accepts": ["accepts@2.0.0", "", { "dependencies": { "mime-types": "^3.0.0", "negotiator": "^1.0.0" } }, "sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng=="],
 

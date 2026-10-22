@@ -5,9 +5,13 @@ import { PgBossService } from "@orcai/pg-boss";
 import { dataExportKey } from "@orcai/s3";
 import { sendGetObjectCommand, sendPutObjectCommand } from "@orcai/s3/server";
 import { DATA_EXPORT_JOB_NAME, type DataExport } from "@orcai/schema";
+import {
+	TextWriter,
+	Uint8ArrayReader,
+	ZipReader,
+} from "@zip.js/zip.js/index-native.js";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { strFromU8, unzipSync } from "fflate";
 import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import {
 	type Actor,
@@ -175,15 +179,26 @@ const archiveOf = (userId: UserId, dataExport: DataExport) =>
 					dataExportId: dataExport.id,
 				}),
 			});
-			const bytes = yield* Effect.promise(
-				() => object.Body?.transformToByteArray() ?? Promise.resolve(undefined),
-			);
-			return unzipSync(bytes ?? new Uint8Array());
+			return yield* Effect.promise(async () => {
+				const bytes = await object.Body?.transformToByteArray();
+				const reader = new ZipReader(
+					new Uint8ArrayReader(bytes ?? new Uint8Array()),
+				);
+				const entries = await reader.getEntries();
+				const archive: Record<string, string> = {};
+				for (const entry of entries) {
+					if (!entry.directory) {
+						archive[entry.filename] = await entry.getData(new TextWriter());
+					}
+				}
+				await reader.close();
+				return archive;
+			});
 		}),
 	);
 
-const jsonEntry = (archive: Record<string, Uint8Array>, name: string) =>
-	JSON.parse(strFromU8(archive[name] ?? new Uint8Array()));
+const jsonEntry = (archive: Record<string, string>, name: string) =>
+	JSON.parse(archive[name] ?? "null");
 
 describe("data export", () => {
 	test(
@@ -277,14 +292,10 @@ describe("data export", () => {
 				"user",
 				"assistant",
 			]);
-			expect(strFromU8(archive[`${chatName}.md`] ?? new Uint8Array())).toBe(
+			expect(archive[`${chatName}.md`]).toBe(
 				"**User:**\n\nHow deep do I sample?\n\n**Assistant:**\n\nThirty centimetres.",
 			);
-			expect(
-				strFromU8(
-					archive[`files/${seeded.notes.id}/notes.txt`] ?? new Uint8Array(),
-				),
-			).toBe(FILE_CONTENT);
+			expect(archive[`files/${seeded.notes.id}/notes.txt`]).toBe(FILE_CONTENT);
 
 			const [email] = await run(
 				Effect.gen(function* () {
