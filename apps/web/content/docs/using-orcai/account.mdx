@@ -1,6 +1,6 @@
 ---
 title: Account
-description: The Account page and related flows, covering your name, email verification, password change and reset, two-factor authentication, organisation invitations, exporting your data, registration, switching organisation, and legal links.
+description: The Account page and related flows, covering your name, email verification, password change and reset, two-factor authentication, passkeys, organisation invitations, exporting your data, registration, switching organisation, and legal links.
 ---
 
 The Account page holds your personal settings. Open it from **Account** in the user menu at the bottom of the sidebar.
@@ -8,7 +8,7 @@ The Account page holds your personal settings. Open it from **Account** in the u
 ## Tabs
 
 - **Profile** (`/app/account`): a summary card with your Name and Email, **Email verification** and **Your profile**
-- **Security** (`/app/account/security`): **Change password** and **Two-factor authentication**
+- **Security** (`/app/account/security`): **Change password**, **Two-factor authentication** and **Passkeys**
 - **Invitations** (`/app/account/invitations`): **Organisation invitations**, with Pending, Accepted and Rejected tabs
 - **Data** (`/app/account/data`): **Export your data**, and **Legal** with links to the privacy policy and terms of use
 
@@ -46,6 +46,14 @@ When you sign in, OrcAI then asks for a code from the app. **Use a backup code**
 On the Security tab, **New backup codes** replaces your backup codes, and **Turn off** turns 2FA off; both ask for your password. Turning 2FA off sends you an email. When the administrator of your instance requires 2FA for you, **Turn off** is missing, and signing in without it set up takes you to a setup page first.
 
 If you lose your authenticator app, sign in with a backup code and set up 2FA again. Without a backup code, ask the instance administrator to reset your 2FA.
+
+## Passkeys
+
+A passkey signs you in without your password: on the sign-in page, select **Use a passkey**, and your device or security key asks for your PIN, fingerprint or face. A passkey that does not check who you are, such as a security key without a PIN, is refused. Signing in with a passkey skips the 2FA code, because the passkey already proves both.
+
+**Add a passkey** on the Security tab registers one from this device or a security key, and you get an email about it. The list names each passkey after its provider where it can, and **Delete** removes one. Your password keeps working alongside your passkeys.
+
+A passkey belongs to the address OrcAI runs at. If the instance moves to another address, add your passkeys again. When the administrator of your instance requires 2FA for you, a passkey alone does not meet it: set up an authenticator app as well.
 
 ## Invitations
 

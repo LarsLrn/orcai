@@ -3,6 +3,7 @@ import { m } from "../paraglide/messages";
 import type {
 	InstanceAdminGrantedNotification,
 	InstanceAdminRevokedNotification,
+	PasskeyAddedNotification,
 	TwoFactorDisabledNotification,
 	TwoFactorResetNotification,
 } from "../schema";
@@ -14,7 +15,8 @@ const securityNotice = (
 		| TwoFactorDisabledNotification
 		| TwoFactorResetNotification
 		| InstanceAdminGrantedNotification
-		| InstanceAdminRevokedNotification,
+		| InstanceAdminRevokedNotification
+		| PasskeyAddedNotification,
 	content: {
 		subject: string;
 		preview: string;
@@ -115,6 +117,23 @@ export const buildInstanceAdminRevokedEmail = (
 		paragraphs: [
 			m.email_instance_admin_revoked_body({}, options),
 			m.email_instance_role_unexpected({}, options),
+		],
+	});
+};
+
+export const buildPasskeyAddedEmail = (
+	notification: PasskeyAddedNotification,
+): RenderableEmail => {
+	const options = {
+		locale: notification.locale,
+	};
+	return securityNotice(notification, {
+		subject: m.email_passkey_added_subject({}, options),
+		preview: m.email_passkey_added_preview({}, options),
+		title: m.email_passkey_added_title({}, options),
+		paragraphs: [
+			m.email_passkey_added_body({}, options),
+			m.email_security_unexpected({}, options),
 		],
 	});
 };

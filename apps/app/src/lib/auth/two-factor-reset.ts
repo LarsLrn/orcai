@@ -8,8 +8,9 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 
 /**
  * Takes away an account's second factor so its owner can sign in with the
- * password alone: the TOTP secret and backup codes, the trusted devices and
- * every session go, and the owner gets an email. Nobody resets their own.
+ * password alone: the TOTP secret and backup codes, the passkeys, the trusted
+ * devices and every session go, and the owner gets an email. Nobody resets
+ * their own.
  */
 export const resetTwoFactor = (params: { userId: UserId; actorId: UserId }) =>
 	Effect.gen(function* () {
@@ -50,6 +51,9 @@ export const resetTwoFactor = (params: { userId: UserId; actorId: UserId }) =>
 				yield* db
 					.delete(dbSchema.twoFactor)
 					.where(eq(dbSchema.twoFactor.userId, params.userId));
+				yield* db
+					.delete(dbSchema.passkey)
+					.where(eq(dbSchema.passkey.userId, params.userId));
 				// Better Auth keeps a trusted device as a verification value
 				// holding the user id.
 				yield* db

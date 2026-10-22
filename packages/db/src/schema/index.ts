@@ -1,5 +1,12 @@
 import { asset } from "./asset";
-import { account, session, twoFactor, user, verification } from "./auth";
+import {
+	account,
+	passkey,
+	session,
+	twoFactor,
+	user,
+	verification,
+} from "./auth";
 import {
 	authzOutbox,
 	authzOutboxStatusEnum,
@@ -48,6 +55,7 @@ export const dbSchema = {
 	account,
 	verification,
 	twoFactor,
+	passkey,
 	authzOutbox,
 	asset,
 	block,

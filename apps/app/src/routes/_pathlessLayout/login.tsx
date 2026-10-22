@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { PasskeySignInButton } from "@/components/auth/passkey/passkey-sign-in-button";
 import { SignInForm } from "@/components/auth/signin/signin-form";
 import {
 	Card,
@@ -8,6 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -37,8 +39,14 @@ function RouteComponent() {
 				<CardTitle>{m.auth_login_page_title()}</CardTitle>
 				<CardDescription>{m.auth_login_page_description()}</CardDescription>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="flex flex-col gap-4">
 				<SignInForm />
+				<div className="flex items-center gap-3 text-muted-foreground text-xs">
+					<Separator className="flex-1" />
+					{m.auth_login_page_or_separator()}
+					<Separator className="flex-1" />
+				</div>
+				<PasskeySignInButton />
 			</CardContent>
 			<CardFooter className="flex justify-end text-muted-foreground text-sm">
 				<Link to={"/forgot-password"}>

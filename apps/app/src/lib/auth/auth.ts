@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { getAuthenticatorName, passkey } from "@better-auth/passkey";
 import {
 	INSTANCE_ADMIN_ROLE,
 	INSTANCE_DEFAULT_ROLE,
@@ -14,9 +15,14 @@ import {
 } from "@orcai/schema";
 import { betterAuth, type User } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import {
+	APIError,
+	createAuthMiddleware,
+	getSessionFromCtx,
+} from "better-auth/api";
 import { admin, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Redacted from "effect/Redacted";
 import { v4 as uuidv4 } from "uuid";
@@ -54,7 +60,45 @@ const validateInstanceRole = (role: unknown) => {
 const SIGN_IN_COMPLETIONS = [
 	"/two-factor/verify-totp",
 	"/two-factor/verify-backup-code",
+	"/passkey/verify-authentication",
 ];
+
+/** A passkey replaces the password and the second factor, so the authenticator must have verified the user. */
+const requireUserVerified = (userVerified: boolean | undefined) => {
+	if (!userVerified)
+		throw new APIError("UNAUTHORIZED", {
+			code: "PASSKEY_USER_NOT_VERIFIED",
+			message: "The passkey did not verify the user.",
+		});
+};
+
+/**
+ * Emails the user about a change to how they sign in. The change has already
+ * happened, so a notice that cannot be queued is logged, not answered as an
+ * error.
+ */
+const sendSecurityNotice = (
+	type: "auth.two-factor-disabled" | "auth.passkey-added",
+	user: User & {
+		locale?: string | null;
+	},
+) =>
+	runPromise(
+		enqueueNotification(
+			{
+				type,
+				recipient: user.email,
+				recipientName: user.name,
+				securityUrl: `${cfg.auth.url}/app/account/security`,
+				locale: emailLocaleOf(user),
+			},
+			`${type}:${crypto.randomUUID()}`,
+		).pipe(
+			Effect.catch((cause) =>
+				Effect.logError(`${type} notice not queued`, cause),
+			),
+		),
+	);
 
 const completesSignIn = (path: string) =>
 	path.startsWith("/sign-in") || SIGN_IN_COMPLETIONS.includes(path);
@@ -100,6 +144,27 @@ export const auth = betterAuth({
 			defaultRole: INSTANCE_DEFAULT_ROLE,
 		}),
 		twoFactor(),
+		passkey({
+			// The relying party ID is the host of `baseURL`, so passkeys belong
+			// to this domain.
+			origin: cfg.auth.url,
+			authenticatorSelection: {
+				residentKey: "required",
+				userVerification: "required",
+			},
+			registration: {
+				afterVerification: ({ verification }) => {
+					requireUserVerified(verification.registrationInfo?.userVerified);
+					return {
+						name: getAuthenticatorName(verification.registrationInfo?.aaguid),
+					};
+				},
+			},
+			authentication: {
+				afterVerification: ({ verification }) =>
+					requireUserVerified(verification.authenticationInfo.userVerified),
+			},
+		}),
 		tanstackStartCookies(),
 	],
 	database: drizzleAdapter(authDb, {
@@ -110,6 +175,7 @@ export const auth = betterAuth({
 			session: dbSchema.session,
 			verification: dbSchema.verification,
 			twoFactor: dbSchema.twoFactor,
+			passkey: dbSchema.passkey,
 		},
 	}),
 	emailAndPassword: {
@@ -167,18 +233,15 @@ export const auth = betterAuth({
 				const disabled = ctx.context.newSession;
 				if (!disabled || ctx.context.returned instanceof APIError) return;
 
-				await runPromise(
-					enqueueNotification(
-						{
-							type: "auth.two-factor-disabled",
-							recipient: disabled.user.email,
-							recipientName: disabled.user.name,
-							securityUrl: `${cfg.auth.url}/app/account/security`,
-							locale: emailLocaleOf(disabled.user),
-						},
-						`auth.two-factor-disabled:${disabled.session.id}`,
-					),
-				);
+				await sendSecurityNotice("auth.two-factor-disabled", disabled.user);
+				return;
+			}
+
+			if (ctx.path === "/passkey/verify-registration") {
+				if (ctx.context.returned instanceof APIError) return;
+				const session = await getSessionFromCtx(ctx);
+				if (session)
+					await sendSecurityNotice("auth.passkey-added", session.user);
 				return;
 			}
 

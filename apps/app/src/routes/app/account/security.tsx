@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ChangePasswordForm } from "@/components/auth/change-password/change-password-form";
+import { PasskeyCard } from "@/components/auth/passkey/passkey-card";
 import { TwoFactorCard } from "@/components/auth/two-factor/two-factor-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageContent } from "@/components/ui/shell/page";
@@ -26,6 +27,7 @@ function RouteComponent() {
 				enabled={auth.user.twoFactorEnabled === true}
 				enforced={auth.twoFactor.enforced}
 			/>
+			<PasskeyCard />
 		</PageContent>
 	);
 }

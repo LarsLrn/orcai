@@ -6,6 +6,7 @@ import { buildResetPasswordEmail } from "./reset-password";
 import {
 	buildInstanceAdminGrantedEmail,
 	buildInstanceAdminRevokedEmail,
+	buildPasskeyAddedEmail,
 	buildTwoFactorDisabledEmail,
 	buildTwoFactorResetEmail,
 } from "./security-notice";
@@ -31,6 +32,8 @@ export const buildEmail = (
 			return buildInstanceAdminGrantedEmail(notification);
 		case "auth.instance-admin-revoked":
 			return buildInstanceAdminRevokedEmail(notification);
+		case "auth.passkey-added":
+			return buildPasskeyAddedEmail(notification);
 		case "data-export.ready":
 			return buildDataExportReadyEmail(notification);
 	}

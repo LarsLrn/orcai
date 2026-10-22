@@ -67,6 +67,10 @@ const instanceAdminRevokedSchema = securityNoticeSchema.extend({
 	type: z.literal("auth.instance-admin-revoked"),
 });
 
+const passkeyAddedSchema = securityNoticeSchema.extend({
+	type: z.literal("auth.passkey-added"),
+});
+
 const dataExportReadySchema = base.extend({
 	type: z.literal("data-export.ready"),
 	accountUrl: emailActionUrlSchema,
@@ -81,6 +85,7 @@ export const emailNotificationSchema = z.discriminatedUnion("type", [
 	twoFactorResetSchema,
 	instanceAdminGrantedSchema,
 	instanceAdminRevokedSchema,
+	passkeyAddedSchema,
 	dataExportReadySchema,
 ]);
 
@@ -105,6 +110,7 @@ export type InstanceAdminGrantedNotification = z.infer<
 export type InstanceAdminRevokedNotification = z.infer<
 	typeof instanceAdminRevokedSchema
 >;
+export type PasskeyAddedNotification = z.infer<typeof passkeyAddedSchema>;
 
 export type DataExportReadyNotification = z.infer<typeof dataExportReadySchema>;
 

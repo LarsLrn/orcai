@@ -124,6 +124,10 @@ const reasonMessages: ReasonMessages = {
 	ORGANIZATION_MEMBERSHIP_REVOKED: m.error_organization_membership_revoked,
 	ORGANIZATION_NOT_FOUND: m.error_organization_not_found,
 	PASSWORD_NOT_SET: m.error_password_not_set,
+	PASSKEY_ALREADY_REGISTERED: m.error_passkey_already_registered,
+	PASSKEY_CANCELLED: m.error_passkey_cancelled,
+	PASSKEY_SIGN_IN_FAILED: m.error_passkey_sign_in_failed,
+	PASSKEY_USER_NOT_VERIFIED: m.error_passkey_user_not_verified,
 	PASSWORDS_MISMATCH: m.error_passwords_mismatch,
 	PERMISSION_DENIED: m.error_permission_denied,
 	PRIVACY_CONSENT_REQUIRED: m.error_privacy_consent_required,
@@ -155,6 +159,7 @@ const reasonMessages: ReasonMessages = {
 		m.error_self_instance_role_change_forbidden,
 	SELF_TWO_FACTOR_RESET_FORBIDDEN: m.error_self_two_factor_reset_forbidden,
 	SESSION_NOT_FOUND: m.error_session_not_found,
+	SESSION_NOT_FRESH: m.error_session_not_fresh,
 	SORT_KEY_UNSUPPORTED: ({ sortKey }) =>
 		m.error_sort_key_unsupported({
 			sortKey,

@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import {
 	boolean,
 	check,
+	index,
 	integer,
 	json,
 	pgTable,
@@ -113,3 +114,28 @@ export const twoFactor = pgTable("two_factor", {
 		.default(0),
 	lockedUntil: timestamp("locked_until"),
 });
+
+export const passkey = pgTable(
+	"passkey",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		name: text("name"),
+		publicKey: text("public_key").notNull(),
+		userId: uuid("user_id")
+			.$type<UserId>()
+			.notNull()
+			.references(() => user.id, {
+				onDelete: "cascade",
+			}),
+		credentialID: text("credential_id").notNull().unique(),
+		counter: integer("counter").notNull(),
+		deviceType: text("device_type").notNull(),
+		backedUp: boolean("backed_up").notNull(),
+		transports: text("transports"),
+		createdAt: timestamp("created_at"),
+		aaguid: text("aaguid"),
+	},
+	(table) => [
+		index("passkey_user_idx").on(table.userId),
+	],
+);

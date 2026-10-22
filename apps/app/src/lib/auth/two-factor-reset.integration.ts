@@ -18,7 +18,7 @@ const rejection = (operation: Promise<unknown>) =>
 		(error: unknown) => error,
 	);
 
-/** What Better Auth leaves behind for an enrolled user who trusted a device. */
+/** What Better Auth leaves behind for an enrolled user with a passkey who trusted a device. */
 const enrol = (actor: Actor) =>
 	run(
 		Effect.gen(function* () {
@@ -34,6 +34,14 @@ const enrol = (actor: Actor) =>
 				userId: actor.user.id,
 				secret: "encrypted-secret",
 				backupCodes: "encrypted-codes",
+			});
+			yield* db.insert(dbSchema.passkey).values({
+				userId: actor.user.id,
+				publicKey: "public-key",
+				credentialID: crypto.randomUUID(),
+				counter: 0,
+				deviceType: "multiDevice",
+				backedUp: true,
 			});
 			yield* db.insert(dbSchema.verification).values([
 				{
@@ -66,6 +74,10 @@ const leftoversOf = (actor: Actor) =>
 				.select()
 				.from(dbSchema.twoFactor)
 				.where(eq(dbSchema.twoFactor.userId, actor.user.id));
+			const passkeys = yield* db
+				.select()
+				.from(dbSchema.passkey)
+				.where(eq(dbSchema.passkey.userId, actor.user.id));
 			const verifications = yield* db
 				.select({
 					identifier: dbSchema.verification.identifier,
@@ -88,6 +100,7 @@ const leftoversOf = (actor: Actor) =>
 			return {
 				twoFactorEnabled: user.twoFactorEnabled,
 				twoFactors: twoFactors.length,
+				passkeys: passkeys.length,
 				verifications: verifications.map(
 					({ identifier }) => identifier.split("-")[0],
 				),
@@ -99,7 +112,7 @@ const leftoversOf = (actor: Actor) =>
 
 describe("user.resetTwoFactor", () => {
 	test(
-		"an instance admin removes the second factor, trusted devices and sessions, and the user gets an email",
+		"an instance admin removes the second factor, passkeys, trusted devices and sessions, and the user gets an email",
 		async () => {
 			const {
 				organizationId,
@@ -124,6 +137,7 @@ describe("user.resetTwoFactor", () => {
 			expect(await leftoversOf(member)).toEqual({
 				twoFactorEnabled: false,
 				twoFactors: 0,
+				passkeys: 0,
 				verifications: [
 					"unrelated",
 				],
