@@ -122,11 +122,8 @@ describe("startTurn", () => {
 				],
 			],
 		]);
-		expect(quota.calls.finalize).toEqual([
-			expect.objectContaining({
-				actualRequestCount: 1,
-			}),
-		]);
+		expect(quota.calls.finalize).toHaveLength(1);
+		expect(quota.calls.finalize[0]?.steps).toHaveLength(1);
 		expect(quota.calls.release).toEqual([]);
 	});
 
@@ -175,11 +172,11 @@ describe("startTurn", () => {
 
 		await chat.send("Check it", stop.signal);
 
-		expect(quota.calls.finalize).toEqual([
-			expect.objectContaining({
-				actualRequestCount: 1,
+		expect(quota.calls.finalize).toHaveLength(1);
+		expect(quota.calls.finalize[0]?.steps).toMatchObject([
+			{
 				totalTokens: 2,
-			}),
+			},
 		]);
 		expect(chat.messages().at(-1)?.metadata.timeLimitReached).toBeUndefined();
 	});
@@ -237,11 +234,8 @@ describe("startTurn", () => {
 			timer.mockRestore();
 		}
 
-		expect(quota.calls.finalize).toEqual([
-			expect.objectContaining({
-				actualRequestCount: 1,
-			}),
-		]);
+		expect(quota.calls.finalize).toHaveLength(1);
+		expect(quota.calls.finalize[0]?.steps).toHaveLength(1);
 		expect(chat.messages().at(-1)?.metadata.timeLimitReached).toBe(true);
 	});
 

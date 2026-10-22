@@ -92,7 +92,10 @@ export const meteredWebSearch =
 					(Exit.isSuccess(exit)
 						? finalizeAppRequestQuota({
 								reservation,
-								actualRequestCount: 1,
+								// One search request, which uses no tokens.
+								steps: [
+									{},
+								],
 							})
 						: releaseAppRequestQuota({
 								reservation,

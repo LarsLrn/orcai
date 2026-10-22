@@ -12,6 +12,7 @@ import { and, eq, inArray, lt, notExists, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
 import { getUtcPeriodBounds } from "./period";
+import type { RecordedUsage } from "./usage";
 
 type QuotaPool = typeof dbSchema.quotaPool.$inferSelect;
 type QuotaPeriod = typeof dbSchema.quotaPeriod.$inferSelect;
@@ -434,11 +435,7 @@ export const finalizeQuotaLedger: (params: {
 	reservationKey: string;
 	appRequestId: string;
 	actualAmount: number;
-	requestCount?: number;
-	inputTokens?: number;
-	outputTokens?: number;
-	totalTokens?: number;
-	metadata?: Record<string, unknown>;
+	usage: RecordedUsage;
 }) => Effect.Effect<LedgerTransitionResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -494,11 +491,7 @@ export const finalizeQuotaLedger: (params: {
 						meteringMode: reserved.meteringMode,
 						reservedAmount: reserved.reservedAmount,
 						actualAmount: params.actualAmount,
-						requestCount: params.requestCount,
-						inputTokens: params.inputTokens,
-						outputTokens: params.outputTokens,
-						totalTokens: params.totalTokens,
-						metadata: params.metadata,
+						...params.usage,
 						occurredAt: now,
 						createdAt: now,
 					})

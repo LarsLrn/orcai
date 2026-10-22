@@ -2,10 +2,12 @@ import { describe, expect, test } from "bun:test";
 import type { BotId, ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { AnalyticsDays, ChatMessageRating } from "@orcai/schema";
-import type { LanguageModelUsage } from "ai";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { startMeteredCall } from "@/lib/ai/metered-call/metered-call";
+import {
+	type MeterStep,
+	startMeteredCall,
+} from "@/lib/ai/metered-call/metered-call";
 import {
 	type Actor,
 	authzIntegration,
@@ -18,22 +20,22 @@ const { run, organizationWith, procedureOptions, instanceAdmin } =
 
 const DAY_MS = 86_400_000;
 
-const usage = (
-	inputTokens: number,
-	outputTokens: number,
-): LanguageModelUsage => ({
-	inputTokens,
-	inputTokenDetails: {
-		noCacheTokens: inputTokens,
-		cacheReadTokens: undefined,
-		cacheWriteTokens: undefined,
+const usage = (inputTokens: number, outputTokens: number): MeterStep => ({
+	usage: {
+		inputTokens,
+		inputTokenDetails: {
+			noCacheTokens: inputTokens,
+			cacheReadTokens: undefined,
+			cacheWriteTokens: undefined,
+		},
+		outputTokens,
+		outputTokenDetails: {
+			textTokens: outputTokens,
+			reasoningTokens: undefined,
+		},
+		totalTokens: inputTokens + outputTokens,
 	},
-	outputTokens,
-	outputTokenDetails: {
-		textTokens: outputTokens,
-		reasoningTokens: undefined,
-	},
-	totalTokens: inputTokens + outputTokens,
+	toolCalls: [],
 });
 
 const rejection = (operation: Promise<unknown>) =>
@@ -118,7 +120,7 @@ const meteredOrganization = async () => {
 	const meter = async (params: {
 		actor: Actor;
 		botId?: BotId;
-		steps: LanguageModelUsage[];
+		steps: MeterStep[];
 		daysAgo?: number;
 	}) => {
 		const appRequestId = crypto.randomUUID();
