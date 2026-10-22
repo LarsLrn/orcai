@@ -12,7 +12,7 @@ FROM ${BUN_IMAGE} AS prod-deps
 WORKDIR /app
 
 COPY --parents package.json bun.lock bunfig.toml apps/*/package.json packages/*/package.json ./
-RUN bun install --frozen-lockfile --production --ignore-scripts
+RUN bun install --frozen-lockfile --production --ignore-scripts --filter @orcai/app
 
 # -------------------------
 # Build stage
@@ -30,10 +30,12 @@ ARG VITE_UMAMI_WEBSITE_ID=
 COPY --parents package.json bun.lock bunfig.toml apps/*/package.json packages/*/package.json ./
 
 # Install all dependencies
-RUN bun install --frozen-lockfile --ignore-scripts
+RUN bun install --frozen-lockfile --ignore-scripts --filter @orcai/app --filter @orcai/notifications
 
-# Copy source code and build
-COPY . .
+# Copy the sources the build reads and build
+COPY tsconfig.base.json ./
+COPY packages ./packages
+COPY apps/app ./apps/app
 
 WORKDIR /app/apps/app
 
@@ -55,17 +57,12 @@ WORKDIR /app/apps/app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# bun user already exists in the base image
-COPY --from=builder --chown=bun:bun /app/package.json /app/package.json
-COPY --from=builder --chown=bun:bun /app/bun.lock /app/bun.lock
-COPY --from=builder --chown=bun:bun /app/bunfig.toml /app/bunfig.toml
+# The server bundle inlines the workspace packages and resolves every other
+# import through apps/app/node_modules.
 COPY --from=prod-deps --chown=bun:bun /app/node_modules /app/node_modules
-COPY --from=prod-deps --chown=bun:bun /app/apps /app/apps
-COPY --from=prod-deps --chown=bun:bun /app/packages /app/packages
+COPY --from=prod-deps --chown=bun:bun /app/apps/app/node_modules ./node_modules
+COPY --from=builder --chown=bun:bun /app/apps/app/package.json /app/apps/app/start-server.ts ./
 COPY --from=builder --chown=bun:bun /app/apps/app/dist ./dist
-COPY --from=builder --chown=bun:bun /app/apps/app/package.json ./package.json
-COPY --from=builder --chown=bun:bun /app/apps/app/start-server.ts ./start-server.ts
-COPY --from=builder --chown=bun:bun /app/packages /app/packages
 
 # Switch to non-root user
 USER bun

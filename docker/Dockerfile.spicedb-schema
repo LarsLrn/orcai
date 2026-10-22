@@ -6,12 +6,12 @@ FROM ${BUN_IMAGE}
 WORKDIR /app
 
 COPY --parents package.json bun.lock bunfig.toml apps/*/package.json packages/*/package.json ./
+RUN bun install --frozen-lockfile --production --ignore-scripts --filter @orcai/spice-db
+
 COPY packages/spice-db ./packages/spice-db
 COPY packages/core ./packages/core
 
 WORKDIR /app/packages/spice-db
-
-RUN bun install --frozen-lockfile --ignore-scripts
 
 USER bun
 
