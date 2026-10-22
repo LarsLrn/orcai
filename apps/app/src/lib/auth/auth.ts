@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { expo } from "@better-auth/expo";
 import {
 	INSTANCE_ADMIN_ROLE,
 	INSTANCE_DEFAULT_ROLE,
@@ -57,12 +56,25 @@ export const auth = betterAuth({
 	telemetry: {
 		enabled: false,
 	},
-	// The app's own account deletion and ban keep the last organization admin
-	// who can sign in; deletion also runs the permission outbox and the
-	// session cleanup.
+	// The admin plugin only supplies the role and ban fields. Its endpoints
+	// stay server-side: the app's procedures guard the last organization admin
+	// and run the permission outbox, and impersonation or a set password would
+	// bypass the second factor.
 	disabledPaths: [
-		"/admin/remove-user",
 		"/admin/ban-user",
+		"/admin/create-user",
+		"/admin/get-user",
+		"/admin/has-permission",
+		"/admin/impersonate-user",
+		"/admin/list-user-sessions",
+		"/admin/list-users",
+		"/admin/remove-user",
+		"/admin/revoke-user-session",
+		"/admin/revoke-user-sessions",
+		"/admin/set-role",
+		"/admin/set-user-password",
+		"/admin/stop-impersonating",
+		"/admin/unban-user",
 		"/admin/update-user",
 	],
 	trustedOrigins: [
@@ -77,7 +89,6 @@ export const auth = betterAuth({
 			],
 			defaultRole: INSTANCE_DEFAULT_ROLE,
 		}),
-		expo(),
 		tanstackStartCookies(),
 	],
 	database: drizzleAdapter(authDb, {

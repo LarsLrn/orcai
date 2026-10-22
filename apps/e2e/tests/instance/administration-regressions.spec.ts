@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { organizationIdSchema } from "@orcai/schema";
+import { Client } from "pg";
 import { createApiClient } from "../../fixtures/api";
 import { activeOrganizationOf, signIn } from "../../fixtures/auth";
 import {
@@ -25,27 +26,38 @@ test("instance management has an independent route and survives the last organis
 		name: "Independent administrator",
 	});
 	const admin = await signIn(appBaseURL, WELL_KNOWN_ADMIN);
-	const setRole = (role: string) =>
-		fetch(`${appBaseURL}/api/auth/admin/set-role`, {
-			method: "POST",
-			headers: {
-				cookie: admin.cookieHeader,
-				origin: appBaseURL,
-				"content-type": "application/json",
-			},
-			body: JSON.stringify({
-				userId: session.userId,
-				role,
-			}),
+	const setRoleOverHttp = await fetch(`${appBaseURL}/api/auth/admin/set-role`, {
+		method: "POST",
+		headers: {
+			cookie: admin.cookieHeader,
+			origin: appBaseURL,
+			"content-type": "application/json",
+		},
+		body: JSON.stringify({
+			userId: session.userId,
+			role: "admin",
+		}),
+	});
+	expect(setRoleOverHttp.status).toBe(404);
+	/** No public API sets the instance role, so the spec writes it and puts it back. */
+	const setInstanceRole = async (role: "admin" | "user") => {
+		const db = new Client({
+			host: process.env.POSTGRES_HOST,
+			port: Number(process.env.POSTGRES_PORT),
+			user: process.env.POSTGRES_USER,
+			password: process.env.POSTGRES_PASSWORD,
+			database: process.env.POSTGRES_DB,
 		});
-	for (const role of [
-		"admin,user",
-		"owner",
-		"",
-		"user,admin",
-	])
-		expect((await setRole(role)).ok).toBe(false);
-	expect((await setRole("user")).ok).toBe(true);
+		await db.connect();
+		try {
+			await db.query(`UPDATE "user" SET role = $1 WHERE id = $2`, [
+				role,
+				session.userId,
+			]);
+		} finally {
+			await db.end();
+		}
+	};
 	const ordinary = await browser.newContext({
 		storageState: session.storageState,
 	});
@@ -61,95 +73,103 @@ test("instance management has an independent route and survives the last organis
 	} finally {
 		await ordinary.close();
 	}
-	expect((await setRole("admin")).ok).toBe(true);
-	const promoted = await signIn(appBaseURL, {
-		email: session.email,
-		password: USER_PASSWORD,
-	});
-	const client = createApiClient(appBaseURL, promoted.cookieHeader, zedTokens);
-	const context = await browser.newContext({
-		storageState: promoted.storageState,
-	});
+	await setInstanceRole("admin");
 	try {
-		const page = await context.newPage();
-		await open(page, "/select-organization");
-		await expect(
-			page.getByRole("link", {
-				name: message("select_organisation_page_manage_instance_link"),
-			}),
-		).toBeVisible();
-
-		await open(page, "/instance");
-		await expect(page).toHaveURL(/\/instance\/organizations/);
-		await expect(
-			page.getByRole("heading", {
-				name: message("instance_organizations_page_title"),
-				exact: true,
-			}),
-		).toBeVisible();
-		const created = await client.organization.create({
-			name: "Only organisation",
-			slug: `only-${randomUUID()}`,
+		const promoted = await signIn(appBaseURL, {
+			email: session.email,
+			password: USER_PASSWORD,
 		});
-		const id = organizationIdSchema.parse(created.data.id);
-		await client.user.setActiveOrganization({
-			organizationId: id,
+		const client = createApiClient(
+			appBaseURL,
+			promoted.cookieHeader,
+			zedTokens,
+		);
+		const context = await browser.newContext({
+			storageState: promoted.storageState,
 		});
-		await seedZedToken(page);
+		try {
+			const page = await context.newPage();
+			await open(page, "/select-organization");
+			await expect(
+				page.getByRole("link", {
+					name: message("select_organisation_page_manage_instance_link"),
+				}),
+			).toBeVisible();
 
-		await open(page, "/instance/users");
-		await expect(
-			page.getByRole("heading", {
-				name: message("instance_users_page_title"),
-				exact: true,
-			}),
-		).toBeVisible();
-		expect(await activeOrganizationOf(appBaseURL, promoted)).toBe(id);
-
-		await page
-			.getByRole("link", {
-				name: message("instance_sidebar_back_to_app_action"),
-			})
-			.click();
-		await expect(page).toHaveURL(/\/app(?:\/|$)/);
-		await expect(
-			page.getByRole("button", {
+			await open(page, "/instance");
+			await expect(page).toHaveURL(/\/instance\/organizations/);
+			await expect(
+				page.getByRole("heading", {
+					name: message("instance_organizations_page_title"),
+					exact: true,
+				}),
+			).toBeVisible();
+			const created = await client.organization.create({
 				name: "Only organisation",
-			}),
-		).toBeVisible();
+				slug: `only-${randomUUID()}`,
+			});
+			const id = organizationIdSchema.parse(created.data.id);
+			await client.user.setActiveOrganization({
+				organizationId: id,
+			});
+			await seedZedToken(page);
 
-		await open(page, "/app/instance/organizations");
-		await expect(
-			page.getByRole("heading", {
-				name: message("boundaries_not_found_title"),
-			}),
-		).toBeVisible();
+			await open(page, "/instance/users");
+			await expect(
+				page.getByRole("heading", {
+					name: message("instance_users_page_title"),
+					exact: true,
+				}),
+			).toBeVisible();
+			expect(await activeOrganizationOf(appBaseURL, promoted)).toBe(id);
 
-		await open(page, "/instance/organizations");
-		await client.organization.delete({
-			refs: [
-				{
-					id,
-				},
-			],
-		});
-		await seedZedToken(page);
-		await open(page, "/instance/users");
-		await expect(
-			page.getByRole("heading", {
-				name: message("instance_users_page_title"),
-				exact: true,
-			}),
-		).toBeVisible();
+			await page
+				.getByRole("link", {
+					name: message("instance_sidebar_back_to_app_action"),
+				})
+				.click();
+			await expect(page).toHaveURL(/\/app(?:\/|$)/);
+			await expect(
+				page.getByRole("button", {
+					name: "Only organisation",
+				}),
+			).toBeVisible();
 
-		await page
-			.getByRole("link", {
-				name: message("instance_sidebar_back_to_app_action"),
-			})
-			.click();
-		await expect(page).toHaveURL(/\/select-organization/);
+			await open(page, "/app/instance/organizations");
+			await expect(
+				page.getByRole("heading", {
+					name: message("boundaries_not_found_title"),
+				}),
+			).toBeVisible();
+
+			await open(page, "/instance/organizations");
+			await client.organization.delete({
+				refs: [
+					{
+						id,
+					},
+				],
+			});
+			await seedZedToken(page);
+			await open(page, "/instance/users");
+			await expect(
+				page.getByRole("heading", {
+					name: message("instance_users_page_title"),
+					exact: true,
+				}),
+			).toBeVisible();
+
+			await page
+				.getByRole("link", {
+					name: message("instance_sidebar_back_to_app_action"),
+				})
+				.click();
+			await expect(page).toHaveURL(/\/select-organization/);
+		} finally {
+			await context.close();
+		}
 	} finally {
-		await context.close();
+		await setInstanceRole("user");
 	}
 });
 
