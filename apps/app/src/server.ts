@@ -1,5 +1,10 @@
+import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import handler from "@tanstack/react-start/server-entry";
-import { ensureRuntimeReady, runtime } from "./lib/effect/runtime";
+import * as Cause from "effect/Cause";
+import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
+import * as Runtime from "effect/Runtime";
+import { runtime } from "./lib/effect/runtime";
 import { installZodErrorMap } from "./lib/errors/zod-error-map";
 import { traceRequest } from "./lib/observability/request-span";
 import { paraglideMiddleware } from "./paraglide/server.js";
@@ -7,29 +12,25 @@ import { getRouter } from "./router";
 
 installZodErrorMap();
 
-// Eagerly initialize the runtime and forces all layers to build.
-// If any layer fails, the process exits immediately before serving requests.
-const runtimeReady = ensureRuntimeReady().catch((error) => {
-	console.error("Failed to initialize AppLayer:", error);
-	process.exit(1);
-});
+/** A signal interrupts the server, which is a clean stop. */
+const teardown: Runtime.Teardown = (exit, onExit) =>
+	Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)
+		? onExit(0)
+		: Runtime.defaultTeardown(exit, onExit);
 
-// Graceful shutdown
-// Disposes the runtime so all finalizers run in order
-const shutdown = () => {
-	runtime
-		.dispose()
-		.then(() => {
-			console.log("Effect runtime disposed successfully");
-			process.exit(0);
-		})
-		.catch((error) => {
-			console.error("Failed to dispose effect runtime:", error);
-			process.exit(1);
-		});
-};
-process.once("SIGTERM", shutdown);
-process.once("SIGINT", shutdown);
+// Builds every layer at boot, so a failing one exits before serving requests.
+runtime.contextEffect.pipe(
+	Effect.flatMap((context) =>
+		Effect.logInfo("Effect runtime initialized successfully").pipe(
+			Effect.provideContext(context),
+		),
+	),
+	Effect.andThen(Effect.never),
+	Effect.ensuring(runtime.disposeEffect),
+	BunRuntime.runMain({
+		teardown,
+	}),
+);
 
 // Only matches request paths to route templates for span names.
 const routeMatcher = getRouter();
@@ -37,7 +38,7 @@ const routeMatcher = getRouter();
 export default {
 	async fetch(req: Request): Promise<Response> {
 		// The tracer provider is registered while the runtime builds.
-		await runtimeReady;
+		await runtime.context();
 		return traceRequest(req, routeMatcher, () =>
 			paraglideMiddleware(req, () => handler.fetch(req)),
 		);

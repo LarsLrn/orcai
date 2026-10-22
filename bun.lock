@@ -30,6 +30,7 @@
         "@authzed/authzed-node": "catalog:",
         "@base-ui/react": "1.9.0",
         "@better-auth/expo": "1.7.11",
+        "@effect/platform-bun": "catalog:",
         "@effect/sql-pg": "catalog:",
         "@kreuzberg/node": "catalog:",
         "@opentelemetry/api": "1.9.1",
