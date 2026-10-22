@@ -11,7 +11,7 @@ import {
 	type TracingSpan,
 } from "@orpc/shared";
 import { isClientErrorCode } from "@/lib/orpc/implementation/error-mapping";
-import packageJson from "../../../../package.json" with { type: "json" };
+import { version } from "../../../../package.json" with { type: "json" };
 
 const isClientORPCError = (exception: TracingException) =>
 	exception.name === "ORPCError" &&
@@ -101,7 +101,7 @@ class AppORPCInstrumentation extends ORPCInstrumentation {
 
 export const ObservabilityLive = makeObservabilityLayer({
 	serviceName: "orcai-app",
-	serviceVersion: packageJson.version,
+	serviceVersion: version,
 	additionalInstrumentations: [
 		new AppORPCInstrumentation(),
 	],
