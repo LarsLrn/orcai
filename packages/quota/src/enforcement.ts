@@ -1,4 +1,5 @@
 import type {
+	BotId,
 	OrganizationId,
 	ProviderId,
 	QuotaPeriodId,
@@ -22,6 +23,8 @@ interface ReserveQuotaInput {
 	userId: UserId;
 	providerId: ProviderId;
 	providerModelId?: string | null;
+	/** The bot whose chat the call runs in. */
+	botId?: BotId | null;
 	appRequestId: string;
 	maxExpectedOutputTokens?: number;
 	/** With requests metering, fewer are reserved when fewer remain. */
@@ -110,7 +113,8 @@ export const reserveForAppRequest: (
 			quotaPoolId: winning.pool.id,
 			quotaPeriodId: winning.period.id,
 			providerId: winning.pool.providerId,
-			providerModelId: winning.pool.providerModelId,
+			providerModelId: input.providerModelId,
+			botId: input.botId,
 			userId: input.userId,
 			appRequestId: input.appRequestId,
 			reservationKey,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { ChatMessageId } from "@orcai/core";
+import type { BotId, ChatMessageId } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { quota } from "../metered-call/test-quota";
@@ -1143,6 +1143,48 @@ describe("turn setup", () => {
 				page: 4,
 			},
 		});
+	});
+
+	test("meters a bot chat's turn with its bot", async () => {
+		const botId = crypto.randomUUID() as BotId;
+		answers["block.list"] = () =>
+			Effect.succeed({
+				data: [
+					{
+						id: crypto.randomUUID(),
+						type: "template",
+						config: {
+							systemPrompt: "You are the bot.",
+						},
+					},
+				],
+			});
+		answers["bot.find"] = () =>
+			Effect.succeed({
+				data: {
+					id: botId,
+					features: {},
+				},
+			});
+		const chat = await conversation(
+			chatRow({
+				botId,
+			}),
+			"anthropic",
+		);
+		chat.script([
+			{
+				text: "Hello.",
+			},
+		]);
+
+		await chat.send("Hi");
+
+		expect(quota.calls.reserve).toEqual([
+			expect.objectContaining({
+				botId,
+			}),
+		]);
 	});
 
 	test("prefers an attached template's prompt over the chat's own", async () => {

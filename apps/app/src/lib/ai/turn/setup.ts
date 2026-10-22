@@ -3,7 +3,13 @@ import {
 	type ProviderCompaction,
 	providerCompaction,
 } from "@orcai/ai";
-import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
+import type {
+	BotId,
+	ModelId,
+	OrganizationId,
+	ProviderId,
+	UserId,
+} from "@orcai/core";
 import { reservedOutputTokens } from "@orcai/quota";
 import type { DatabaseBlock, ModelTokenLimits } from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
@@ -76,6 +82,8 @@ type RequestedSetup = {
 	model: AgentModel;
 	providerId: ProviderId;
 	modelId: ModelId;
+	/** The bot of the chat, which its metered calls record. */
+	botId: BotId | null;
 	tokenLimits: ModelTokenLimits;
 	callSettings: ChatCallSettings;
 	maxSteps: number;
@@ -386,6 +394,7 @@ const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 
 		return {
 			...model,
+			botId: chat.botId,
 			callSettings: chatCallSettings(config, model.tokenLimits),
 			maxSteps: CHAT_AGENT_MAX_STEPS,
 			agent: {
@@ -456,6 +465,7 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 
 		return {
 			...model,
+			botId: null,
 			callSettings: {},
 			maxSteps: ASSISTANT_AGENT_MAX_STEPS,
 			agent: {

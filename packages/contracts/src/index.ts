@@ -5,6 +5,7 @@ import type {
 	RouterContractClient,
 } from "@orpc/contract";
 import { aiContracts } from "./ai";
+import { analyticsContracts } from "./analytics";
 import { assetContracts } from "./asset";
 import { assetPointContracts } from "./asset-point";
 import { assistantContracts } from "./assistant";
@@ -28,6 +29,7 @@ import { userContracts } from "./user";
 
 export const contracts = {
 	ai: aiContracts,
+	analytics: analyticsContracts,
 	asset: assetContracts,
 	assetPoint: assetPointContracts,
 	assistant: assistantContracts,
@@ -58,6 +60,7 @@ export type ContractClient = RouterContractClient<typeof contracts>;
 export { base } from "./base";
 export {
 	aiContracts,
+	analyticsContracts,
 	assetContracts,
 	assetPointContracts,
 	assistantContracts,

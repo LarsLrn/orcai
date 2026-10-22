@@ -1,4 +1,5 @@
 import type {
+	BotId,
 	GroupId,
 	OrganizationId,
 	ProviderId,
@@ -26,6 +27,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { group } from "./authz";
+import { bot } from "./bot";
 import { model, provider, providerMeteringModeEnum } from "./model";
 import { organization } from "./organization";
 
@@ -235,6 +237,7 @@ export const quotaUsageEvent = pgTable(
 			.references(() => provider.id, {
 				onDelete: "cascade",
 			}),
+		/** The model the call ran on. */
 		providerModelId: uuid("provider_model_id").references(() => model.id, {
 			onDelete: "set null",
 		}),
@@ -242,6 +245,12 @@ export const quotaUsageEvent = pgTable(
 			.$type<UserId>()
 			.notNull()
 			.references(() => user.id),
+		/** The bot whose chat the call ran in. */
+		botId: uuid("bot_id")
+			.$type<BotId>()
+			.references(() => bot.id, {
+				onDelete: "set null",
+			}),
 		appRequestId: text("app_request_id").notNull(),
 		eventType: quotaUsageEventTypeEnum("event_type").notNull(),
 		reservationKey: text("reservation_key").notNull(),
@@ -277,6 +286,15 @@ export const quotaUsageEvent = pgTable(
 			table.occurredAt,
 		),
 		index("quota_usage_event_app_request_idx").on(table.appRequestId),
+		index("quota_usage_event_org_finalized_idx")
+			.on(table.organizationId, table.occurredAt)
+			.where(sql`${table.eventType} = 'finalized'`),
+		index("quota_usage_event_finalized_idx")
+			.on(table.occurredAt)
+			.where(sql`${table.eventType} = 'finalized'`),
+		index("quota_usage_event_bot_idx")
+			.on(table.botId)
+			.where(sql`${table.botId} IS NOT NULL`),
 		index("quota_usage_event_reservation_key_idx").on(table.reservationKey),
 		uniqueIndex("quota_usage_event_terminal_unique")
 			.on(table.reservationKey)

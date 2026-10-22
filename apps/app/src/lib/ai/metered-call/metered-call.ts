@@ -1,4 +1,4 @@
-import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
+import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
@@ -58,6 +58,8 @@ export const startMeteredCall = (input: {
 	userId: UserId;
 	providerId: ProviderId;
 	providerModelId: string | null;
+	/** The bot whose chat the call runs in. */
+	botId?: BotId | null;
 	/** Provider requests the call may make at most. */
 	maxSteps: number;
 	maxOutputTokens?: number;
@@ -70,6 +72,7 @@ export const startMeteredCall = (input: {
 			userId: input.userId,
 			providerId: input.providerId,
 			providerModelId: input.providerModelId,
+			botId: input.botId,
 			appRequestId: input.appRequestId,
 			maxExpectedOutputTokens: input.maxOutputTokens,
 			maxExpectedProviderRequests: input.maxSteps,

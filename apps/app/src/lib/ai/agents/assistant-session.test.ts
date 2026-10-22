@@ -38,6 +38,7 @@ const admin: CapabilitySet = {
 	manage_providers: true,
 	manage_models: true,
 	manage_quotas: true,
+	view_analytics: true,
 };
 
 const activeTools: ToolLoading = {

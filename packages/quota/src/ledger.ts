@@ -1,4 +1,5 @@
 import type {
+	BotId,
 	GroupId,
 	OrganizationId,
 	ProviderId,
@@ -327,6 +328,7 @@ export const reserveQuotaLedger: (params: {
 	quotaPeriodId: QuotaPeriodId;
 	providerId: ProviderId;
 	providerModelId?: string | null;
+	botId?: BotId | null;
 	userId: UserId;
 	appRequestId: string;
 	reservationKey: string;
@@ -367,6 +369,7 @@ export const reserveQuotaLedger: (params: {
 						quotaPeriodId: params.quotaPeriodId,
 						providerId: params.providerId,
 						providerModelId: params.providerModelId ?? null,
+						botId: params.botId ?? null,
 						userId: params.userId,
 						appRequestId: params.appRequestId,
 						eventType: "reserved",
@@ -484,6 +487,7 @@ export const finalizeQuotaLedger: (params: {
 						quotaPeriodId: reserved.quotaPeriodId,
 						providerId: reserved.providerId,
 						providerModelId: reserved.providerModelId,
+						botId: reserved.botId,
 						userId: reserved.userId,
 						appRequestId: params.appRequestId,
 						eventType: "finalized",
@@ -587,6 +591,7 @@ export const releaseQuotaLedger: (params: {
 						quotaPeriodId: reserved.quotaPeriodId,
 						providerId: reserved.providerId,
 						providerModelId: reserved.providerModelId,
+						botId: reserved.botId,
 						userId: reserved.userId,
 						appRequestId: params.appRequestId,
 						eventType: "released",
@@ -636,6 +641,7 @@ export const releaseQuotaLedger: (params: {
 							quotaPeriodId: reserved.quotaPeriodId,
 							providerId: reserved.providerId,
 							providerModelId: reserved.providerModelId,
+							botId: reserved.botId,
 							userId: reserved.userId,
 							appRequestId: params.appRequestId,
 							eventType: "failed",

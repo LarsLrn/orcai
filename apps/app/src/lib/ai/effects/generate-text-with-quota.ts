@@ -1,5 +1,5 @@
 import { AiError, aiTelemetry } from "@orcai/ai";
-import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
+import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { generateText, type LanguageModel, type ModelMessage } from "ai";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -13,6 +13,7 @@ export interface GenerateTextWithQuotaInput {
 	userId: UserId;
 	providerId: ProviderId;
 	providerModelId: string | null;
+	botId?: BotId | null;
 	model: LanguageModel;
 	messages?: ModelMessage[];
 	reservationMessages?: unknown[];
@@ -45,6 +46,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			userId: input.userId,
 			providerId: input.providerId,
 			providerModelId: input.providerModelId,
+			botId: input.botId,
 			appRequestId: input.appRequestId,
 			maxOutputTokens: input.maxOutputTokens,
 			maxSteps: input.maxExpectedProviderRequests ?? 1,
