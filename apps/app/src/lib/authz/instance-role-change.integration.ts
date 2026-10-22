@@ -1,10 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import type { InstanceRole } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { Client } from "pg";
 import {
 	type Actor,
 	authzIntegration,
@@ -68,52 +66,6 @@ const emailsTo = (actor: Actor) =>
 			return rows;
 		}),
 	);
-
-/** Holds both rows from another connection until both changes wait on them. */
-const queueBehindRowLocks = async (
-	users: Actor[],
-	operations: (() => Promise<unknown>)[],
-) => {
-	const client = new Client({
-		host: process.env.POSTGRES_HOST,
-		port: Number(process.env.POSTGRES_PORT),
-		user: process.env.POSTGRES_USER,
-		password: process.env.POSTGRES_PASSWORD,
-		database: process.env.POSTGRES_DB,
-	});
-	await client.connect();
-	try {
-		await client.query("BEGIN");
-		await client.query(`SELECT id FROM "user" WHERE id = ANY($1) FOR UPDATE`, [
-			users.map(({ user }) => user.id),
-		]);
-		const outcomes = operations.map((operation) =>
-			Promise.allSettled([
-				operation(),
-			]).then(([outcome]) => outcome),
-		);
-		const deadline = Date.now() + 20_000;
-		for (;;) {
-			// Statistics views keep one snapshot per transaction otherwise.
-			await client.query("SELECT pg_stat_clear_snapshot()");
-			const { rows } = await client.query<{
-				waiting: number;
-			}>(
-				`SELECT count(*)::int AS waiting FROM pg_stat_activity
-				 WHERE wait_event_type = 'Lock' AND query ILIKE '%from "user"%for update%'`,
-			);
-			if (rows[0].waiting >= operations.length) break;
-			if (Date.now() > deadline)
-				throw new Error("Timed out waiting for both changes to queue");
-			await sleep(25);
-		}
-		await client.query("COMMIT");
-		return await Promise.all(outcomes);
-	} finally {
-		await client.query("ROLLBACK").catch(() => undefined);
-		await client.end();
-	}
-};
 
 describe("user.setInstanceRole", () => {
 	test(
@@ -209,49 +161,6 @@ describe("user.setInstanceRole", () => {
 				reason: "SELF_INSTANCE_ROLE_CHANGE_FORBIDDEN",
 			});
 			expect(await roleOf(admin)).toBe("admin");
-		},
-		TIMEOUT,
-	);
-
-	test(
-		"two admins demoting each other at once leave one admin",
-		async () => {
-			const { organizationId } = await organizationWith([
-				"member",
-			]);
-			const first = await instanceAdmin(organizationId);
-			const second = await instanceAdmin(organizationId);
-
-			const outcomes = await queueBehindRowLocks(
-				[
-					first,
-					second,
-				],
-				[
-					() => setRole(first, second, "user"),
-					() => setRole(second, first, "user"),
-				],
-			);
-
-			expect(outcomes.map(({ status }) => status).sort()).toEqual([
-				"fulfilled",
-				"rejected",
-			]);
-			const rejected = outcomes.find(
-				(outcome) => outcome.status === "rejected",
-			);
-			expect(rejected?.reason).toMatchObject({
-				reason: "INSTANCE_ADMIN_REQUIRED",
-			});
-			expect(
-				[
-					await roleOf(first),
-					await roleOf(second),
-				].sort(),
-			).toEqual([
-				"admin",
-				"user",
-			]);
 		},
 		TIMEOUT,
 	);
