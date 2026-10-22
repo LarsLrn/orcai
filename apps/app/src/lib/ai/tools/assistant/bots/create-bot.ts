@@ -31,7 +31,9 @@ export const createBotInputSchema = z.object({
 		.describe("Ids of every repository the bot answers from."),
 	features: featuresSchema
 		.optional()
-		.describe("Every enabled feature, such as { generativeUi: {} }."),
+		.describe(
+			"Every enabled feature, such as { generativeUi: {}, webSearch: { allowedDomains: [] } }.",
+		),
 });
 
 /** A new bot is a draft with empty rich content. */

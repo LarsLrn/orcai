@@ -1,5 +1,6 @@
 import {
 	getProviderEndpointMode,
+	getProviderPurpose,
 	providerKinds,
 	providerMeteringModes,
 } from "@orcai/core";
@@ -39,7 +40,9 @@ const ProviderForm = ({
 		onSubmit: async ({ value }) => {
 			const { apiKey, kind, ...fields } = value;
 			const endpoint =
-				getProviderEndpointMode(kind) === "required" ? fields.endpoint : null;
+				getProviderEndpointMode(kind) === "none"
+					? null
+					: fields.endpoint || null;
 			if (action === "update" && provider) {
 				await updateProvider({
 					...fields,
@@ -60,6 +63,9 @@ const ProviderForm = ({
 	const endpointMode = useSelector(form.store, (state) =>
 		getProviderEndpointMode(state.values.kind),
 	);
+	const purpose = useSelector(form.store, (state) =>
+		getProviderPurpose(state.values.kind),
+	);
 
 	return (
 		<form
@@ -73,7 +79,12 @@ const ProviderForm = ({
 				<form.AppField
 					name="kind"
 					listeners={{
-						onChange: () => form.setFieldValue("endpoint", ""),
+						onChange: ({ value }) => {
+							form.setFieldValue("endpoint", "");
+							if (getProviderPurpose(value) === "search") {
+								form.setFieldValue("meteringMode", "requests");
+							}
+						},
 					}}
 					children={(field) => (
 						<field.SelectField
@@ -105,20 +116,33 @@ const ProviderForm = ({
 				/>
 			</div>
 
-			{endpointMode === "required" ? (
+			{endpointMode === "none" ? (
+				<p className="text-muted-foreground text-sm">
+					{m.providers_form_endpoint_default_hint()}
+				</p>
+			) : (
 				<form.AppField
 					name="endpoint"
 					children={(field) => (
 						<field.TextField
 							label={m.providers_form_endpoint_label()}
-							description={m.providers_form_endpoint_description()}
-							placeholder="https://api.example.com/v1"
+							description={
+								endpointMode === "required"
+									? m.providers_form_endpoint_description()
+									: m.providers_form_endpoint_optional_description()
+							}
+							placeholder={
+								endpointMode === "required"
+									? "https://api.example.com/v1"
+									: "https://api.tavily.com"
+							}
 						/>
 					)}
 				/>
-			) : (
+			)}
+			{purpose === "search" && (
 				<p className="text-muted-foreground text-sm">
-					{m.providers_form_endpoint_default_hint()}
+					{m.providers_form_search_kind_hint()}
 				</p>
 			)}
 
@@ -147,11 +171,16 @@ const ProviderForm = ({
 					children={(field) => (
 						<field.SelectField
 							label={m.providers_form_metering_mode_label()}
-							description={m.providers_form_metering_mode_description()}
+							description={
+								purpose === "search"
+									? m.providers_form_metering_mode_search_description()
+									: m.providers_form_metering_mode_description()
+							}
 							options={providerMeteringModes.map((mode) => ({
 								value: mode.value,
 								label: mode.label,
 							}))}
+							disabled={purpose === "search"}
 						/>
 					)}
 				/>

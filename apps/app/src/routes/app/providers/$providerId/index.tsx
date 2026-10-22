@@ -1,3 +1,4 @@
+import { getProviderPurpose } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -5,6 +6,7 @@ import {
 	BadgeX,
 	BotIcon,
 	EditIcon,
+	GlobeIcon,
 	PlusIcon,
 	ServerIcon,
 	SparklesIcon,
@@ -100,6 +102,7 @@ function RouteComponent() {
 		new Set(providerModels.flatMap((model) => model.capabilities)),
 	).map(getModelCapabilityLabel);
 	const kindLabel = getProviderKindLabel(provider.kind);
+	const servesModels = getProviderPurpose(provider.kind) === "models";
 	const endpointHost = getEndpointHost(provider.endpoint);
 
 	return (
@@ -120,12 +123,19 @@ function RouteComponent() {
 						<ServerIcon className="size-3" />
 						{kindLabel}
 					</Badge>
-					<Badge variant="outline">
-						<BotIcon className="size-3" />
-						{m.providers_detail_model_count_badge({
-							count: providerModels.length,
-						})}
-					</Badge>
+					{servesModels ? (
+						<Badge variant="outline">
+							<BotIcon className="size-3" />
+							{m.providers_detail_model_count_badge({
+								count: providerModels.length,
+							})}
+						</Badge>
+					) : (
+						<Badge variant="outline">
+							<GlobeIcon className="size-3" />
+							{m.providers_detail_search_badge()}
+						</Badge>
+					)}
 				</div>
 				<PageAction>
 					<Link
@@ -140,15 +150,17 @@ function RouteComponent() {
 						<EditIcon />
 						{m.providers_detail_edit_button()}
 					</Link>
-					<Link
-						to="/app/models/add"
-						className={buttonVariants({
-							variant: "outline",
-						})}
-					>
-						<PlusIcon />
-						{m.providers_detail_add_model_button()}
-					</Link>
+					{servesModels && (
+						<Link
+							to="/app/models/add"
+							className={buttonVariants({
+								variant: "outline",
+							})}
+						>
+							<PlusIcon />
+							{m.providers_detail_add_model_button()}
+						</Link>
+					)}
 				</PageAction>
 			</PageHeader>
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -170,30 +182,34 @@ function RouteComponent() {
 										{endpointHost}
 									</div>
 								</div>
-								<div>
-									<div className="text-muted-foreground text-xs uppercase">
-										{m.providers_detail_active_models_label()}
-									</div>
-									<div className="mt-1 font-semibold text-sm">
-										{activeModelCount}
-									</div>
-								</div>
-								<div>
-									<div className="text-muted-foreground text-xs uppercase">
-										{m.providers_detail_deprecated_models_label()}
-									</div>
-									<div className="mt-1 font-semibold text-sm">
-										{deprecatedModelCount}
-									</div>
-								</div>
-								<div>
-									<div className="text-muted-foreground text-xs uppercase">
-										{m.providers_detail_capability_coverage_label()}
-									</div>
-									<div className="mt-1 font-semibold text-sm">
-										{supportedCapabilities.length}
-									</div>
-								</div>
+								{servesModels && (
+									<>
+										<div>
+											<div className="text-muted-foreground text-xs uppercase">
+												{m.providers_detail_active_models_label()}
+											</div>
+											<div className="mt-1 font-semibold text-sm">
+												{activeModelCount}
+											</div>
+										</div>
+										<div>
+											<div className="text-muted-foreground text-xs uppercase">
+												{m.providers_detail_deprecated_models_label()}
+											</div>
+											<div className="mt-1 font-semibold text-sm">
+												{deprecatedModelCount}
+											</div>
+										</div>
+										<div>
+											<div className="text-muted-foreground text-xs uppercase">
+												{m.providers_detail_capability_coverage_label()}
+											</div>
+											<div className="mt-1 font-semibold text-sm">
+												{supportedCapabilities.length}
+											</div>
+										</div>
+									</>
+								)}
 							</div>
 						</CardContent>
 					</Card>
@@ -232,109 +248,115 @@ function RouteComponent() {
 						</CardContent>
 					</Card>
 
-					<Card>
-						<CardHeader>
-							<CardTitle>{m.common_capabilities_title()}</CardTitle>
-							<CardDescription>
-								{m.providers_detail_capabilities_description()}
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{supportedCapabilities.length === 0 ? (
-								<p className="text-muted-foreground text-sm">
-									{m.providers_detail_no_capabilities_label()}
-								</p>
-							) : (
-								<div className="flex flex-wrap gap-2">
-									{supportedCapabilities.map((capability) => (
-										<Badge key={capability} variant="outline">
-											<SparklesIcon className="h-3 w-3" />
-											{capability}
-										</Badge>
-									))}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>
-								{m.providers_detail_connected_models_title()}
-							</CardTitle>
-							<CardDescription>
-								{m.providers_detail_connected_models_description()}
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{providerModels.length === 0 ? (
-								<div className="rounded-xl border border-border border-dashed p-6 text-center">
-									<p className="font-medium">
-										{m.providers_detail_no_models_title()}
-									</p>
-									<p className="mt-1 text-muted-foreground text-sm">
-										{m.providers_detail_no_models_description()}
-									</p>
-								</div>
-							) : (
-								<div className="grid gap-4 md:grid-cols-2">
-									{providerModels.map((model) => (
-										<div
-											key={model.id}
-											className="space-y-3 rounded-xl border border-border/60 bg-card/60 p-4"
-										>
-											<div className="flex flex-wrap items-start justify-between gap-2">
-												<div>
-													<p className="font-semibold">{model.name}</p>
-													<p className="font-mono text-muted-foreground text-xs">
-														{model.providerModelId}
-													</p>
-												</div>
-												<Badge
-													variant={getModelStatusVariant(model.isDeprecated)}
-												>
-													{model.isDeprecated ? (
-														<BadgeX className="h-3 w-3" />
-													) : (
-														<BadgeCheck className="h-3 w-3" />
-													)}
-													{getModelStatusLabel(model.isDeprecated)}
+					{servesModels && (
+						<>
+							<Card>
+								<CardHeader>
+									<CardTitle>{m.common_capabilities_title()}</CardTitle>
+									<CardDescription>
+										{m.providers_detail_capabilities_description()}
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									{supportedCapabilities.length === 0 ? (
+										<p className="text-muted-foreground text-sm">
+											{m.providers_detail_no_capabilities_label()}
+										</p>
+									) : (
+										<div className="flex flex-wrap gap-2">
+											{supportedCapabilities.map((capability) => (
+												<Badge key={capability} variant="outline">
+													<SparklesIcon className="h-3 w-3" />
+													{capability}
 												</Badge>
-											</div>
-
-											<div className="flex flex-wrap gap-2">
-												{model.capabilities.map((capability) => (
-													<Badge key={capability} variant="outline">
-														{getModelCapabilityLabel(capability)}
-													</Badge>
-												))}
-											</div>
-
-											<div className="flex items-center justify-between text-muted-foreground text-xs">
-												<span>
-													{m.providers_detail_model_created_label({
-														timestamp: formatTimestamp(model.createdAt),
-													})}
-												</span>
-												<Link
-													to="/app/models/$modelId"
-													params={{
-														modelId: model.id,
-													}}
-													className={buttonVariants({
-														variant: "outline",
-														size: "sm",
-													})}
-												>
-													{m.providers_detail_view_model_link()}
-												</Link>
-											</div>
+											))}
 										</div>
-									))}
-								</div>
-							)}
-						</CardContent>
-					</Card>
+									)}
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader>
+									<CardTitle>
+										{m.providers_detail_connected_models_title()}
+									</CardTitle>
+									<CardDescription>
+										{m.providers_detail_connected_models_description()}
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									{providerModels.length === 0 ? (
+										<div className="rounded-xl border border-border border-dashed p-6 text-center">
+											<p className="font-medium">
+												{m.providers_detail_no_models_title()}
+											</p>
+											<p className="mt-1 text-muted-foreground text-sm">
+												{m.providers_detail_no_models_description()}
+											</p>
+										</div>
+									) : (
+										<div className="grid gap-4 md:grid-cols-2">
+											{providerModels.map((model) => (
+												<div
+													key={model.id}
+													className="space-y-3 rounded-xl border border-border/60 bg-card/60 p-4"
+												>
+													<div className="flex flex-wrap items-start justify-between gap-2">
+														<div>
+															<p className="font-semibold">{model.name}</p>
+															<p className="font-mono text-muted-foreground text-xs">
+																{model.providerModelId}
+															</p>
+														</div>
+														<Badge
+															variant={getModelStatusVariant(
+																model.isDeprecated,
+															)}
+														>
+															{model.isDeprecated ? (
+																<BadgeX className="h-3 w-3" />
+															) : (
+																<BadgeCheck className="h-3 w-3" />
+															)}
+															{getModelStatusLabel(model.isDeprecated)}
+														</Badge>
+													</div>
+
+													<div className="flex flex-wrap gap-2">
+														{model.capabilities.map((capability) => (
+															<Badge key={capability} variant="outline">
+																{getModelCapabilityLabel(capability)}
+															</Badge>
+														))}
+													</div>
+
+													<div className="flex items-center justify-between text-muted-foreground text-xs">
+														<span>
+															{m.providers_detail_model_created_label({
+																timestamp: formatTimestamp(model.createdAt),
+															})}
+														</span>
+														<Link
+															to="/app/models/$modelId"
+															params={{
+																modelId: model.id,
+															}}
+															className={buttonVariants({
+																variant: "outline",
+																size: "sm",
+															})}
+														>
+															{m.providers_detail_view_model_link()}
+														</Link>
+													</div>
+												</div>
+											))}
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						</>
+					)}
 				</div>
 
 				<div className="space-y-6">

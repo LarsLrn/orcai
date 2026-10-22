@@ -1,6 +1,6 @@
 ---
 title: Workspace Administration
-description: The Administration pages for users, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its assistant and utility models, plus Manage instance and the instance administrator.
+description: The Administration pages for users, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its assistant and utility models and web search, plus Manage instance and the instance administrator.
 ---
 
 The Administration area is capability-gated and appears in the sidebar's "Your workspace" group.
@@ -165,21 +165,29 @@ usage records, so its usage leaves the page too.
 
 ## Providers
 
-Providers represent model backends/endpoints available to OrcAI.
+Providers represent model backends/endpoints available to OrcAI, and search
+providers that serve [web search](#web-search).
 
 Providers (`/app/providers`) lists them with their status and metering mode.
 **Add provider** opens `/app/providers/add` with these fields:
 
 - **Kind**: **OpenAI-compatible** for any endpoint that speaks the OpenAI
-  API, or **OpenAI** or **Anthropic** for their official APIs. The kind is
-  fixed once the provider exists; to switch kind, create a new provider.
+  API, **OpenAI** or **Anthropic** for their official APIs, or
+  **Tavily (web search)** for a search provider. The kind is fixed once the
+  provider exists; to switch kind, create a new provider.
 - **Name**, shown to users wherever the provider is named.
-- **Endpoint**, only for OpenAI-compatible providers: the base URL of the
+- **Endpoint**, required for OpenAI-compatible providers: the base URL of the
   endpoint, including the version path. OpenAI and Anthropic providers have
-  no endpoint field and use the official API.
+  no endpoint field and use the official API. Tavily providers use Tavily's
+  API while the field is blank.
 - **API key**, stored encrypted. When editing, leave it blank to keep the stored key.
 - **Metering mode**: whether quota counts tokens or requests for this provider.
+  Search providers always count requests, one per search.
 - **Enabled**: only an enabled provider's models can be used in the organisation.
+
+A search provider has no models; it serves the organisation's web search once
+the [Organisation page](#web-search) chooses it, and quota pools on it bound
+the searches.
 
 A provider's page (`/app/providers/<provider id>`) shows its configuration and
 connected models, with **Add model** and **Edit provider**
@@ -332,6 +340,31 @@ that model. While no utility model is set, each chat's title is written by its
 own model. If the chosen model becomes unusable, the page warns and titles fall
 back to each chat's own model until another is chosen. Deleting the model, or
 its provider, clears the setting.
+
+### Web search
+
+The **Web search** setting decides how bots with the
+[Web search feature](/docs/using-orcai/bots#features) search the web. It is off
+by default.
+
+- **Off**: no bot searches the web.
+- **Model native**: Anthropic and OpenAI models use their provider's own web
+  search tool; an Anthropic model searches at most five times per request.
+  Models on other kinds of provider get no search. The provider charges each
+  search on its own bill, which OrcAI does not meter; the search results the
+  model reads count as tokens like any other input.
+- **Search provider: _name_**: every model searches through one of the
+  organisation's search providers, such as Tavily. Each search reserves one
+  request on the provider's quota pools and is charged once it answered; a
+  failed search is not charged. When no pool covers the person, or the pool is
+  used up, the model is told that web search is unavailable and answers
+  without it.
+
+A bot's allowed domains apply in both modes: OrcAI passes them to the search
+and drops any search provider result whose host is not one of them or below
+one. A bot chat whose web search cannot run, because the setting is off or the
+model has no search of its own, shows a notice above the composer and answers
+without searching. Deleting the chosen search provider turns web search off.
 
 ## Operational Guidance
 

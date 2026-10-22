@@ -18,6 +18,10 @@ import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import { toolNamesOf } from "@/lib/ai/tools/registry";
+import {
+	storedWebSearchTools,
+	type TurnWebSearch,
+} from "@/lib/ai/tools/web/toolset";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
@@ -26,6 +30,7 @@ export const createChatAgent = (params: {
 	systemPrompt: string;
 	databaseBlocks: DatabaseBlock[];
 	features: ResolvedFeature[];
+	webSearch: TurnWebSearch;
 	callSettings: ChatCallSettings;
 	compaction: ProviderCompaction;
 	telemetryIds: {
@@ -54,6 +59,9 @@ export const createChatAgent = (params: {
 			entry.buildTools({
 				context: params.context,
 				settings,
+				turn: {
+					webSearch: params.webSearch,
+				},
 			}),
 		);
 	}
@@ -87,6 +95,7 @@ export const createChatAgent = (params: {
 				history: [],
 			}),
 			...buildGenUiTools(),
+			...storedWebSearchTools(),
 		} satisfies ChatAgentTools,
 		...aiTelemetry("chat.agent", params.telemetryIds),
 		experimental_repairToolCall: repairKnowledgeBaseToolCall,

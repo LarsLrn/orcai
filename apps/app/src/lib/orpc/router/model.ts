@@ -1,4 +1,9 @@
 import { listProviderModels } from "@orcai/ai";
+import {
+	isModelProviderKind,
+	type OrganizationId,
+	type ProviderId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ModelCapability, ModelSortKey } from "@orcai/schema";
 import { ORPCError } from "@orpc/server";
@@ -168,26 +173,30 @@ const findModel = authed.model.find
 		};
 	});
 
-const createModel = authed.model.create
-	.use(requireOrganizationPermission("manage_models"))
-	.effect(function* ({ input, context }) {
+/** Models belong to one of the organisation's model providers, never to a search provider. */
+const requireModelProvider = ({
+	organizationId,
+	providerId,
+}: {
+	organizationId: OrganizationId;
+	providerId: ProviderId;
+}) =>
+	Effect.gen(function* () {
 		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
-
-		const [foundProvider] = yield* db
+		const [provider] = yield* db
 			.select({
-				id: dbSchema.provider.id,
+				kind: dbSchema.provider.kind,
 			})
 			.from(dbSchema.provider)
 			.where(
 				and(
-					eq(dbSchema.provider.id, input.providerId),
+					eq(dbSchema.provider.id, providerId),
 					eq(dbSchema.provider.organizationId, organizationId),
 				),
 			)
 			.limit(1);
 
-		if (!foundProvider) {
+		if (!provider) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
 					reason: "PROVIDER_NOT_FOUND",
@@ -195,6 +204,26 @@ const createModel = authed.model.create
 				}),
 			);
 		}
+		if (!isModelProviderKind(provider.kind)) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: "PROVIDER_PURPOSE_MISMATCH",
+					message: "A search provider has no models.",
+				}),
+			);
+		}
+	});
+
+const createModel = authed.model.create
+	.use(requireOrganizationPermission("manage_models"))
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
+
+		yield* requireModelProvider({
+			organizationId,
+			providerId: input.providerId,
+		});
 
 		const [model] = yield* db
 			.insert(dbSchema.model)
@@ -236,6 +265,13 @@ const updateModel = authed.model.update
 					message: "Model not found",
 				}),
 			);
+		}
+
+		if (input.providerId) {
+			yield* requireModelProvider({
+				organizationId,
+				providerId: input.providerId,
+			});
 		}
 
 		const [model] = yield* db
@@ -355,10 +391,20 @@ const discoverModels = authed.model.discover
 				}),
 			);
 
+		const { kind } = provider;
+		if (!isModelProviderKind(kind)) {
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: "PROVIDER_PURPOSE_MISMATCH",
+					message: "A search provider has no models.",
+				}),
+			);
+		}
+
 		const apiKey = yield* providerApiKey(provider.id);
 		const discovered = yield* Effect.tryPromise({
 			try: () =>
-				listProviderModels(provider.kind, {
+				listProviderModels(kind, {
 					apiKey,
 					endpoint: provider.endpoint,
 				}),

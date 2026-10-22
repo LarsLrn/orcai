@@ -36,6 +36,9 @@ const ModelForm = ({
 			input: {
 				pageIndex: 0,
 				pageSize: 100,
+				filters: {
+					purpose: "models",
+				},
 			},
 		}),
 	);

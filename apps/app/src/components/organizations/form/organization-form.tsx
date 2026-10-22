@@ -3,6 +3,8 @@ import {
 	type ModelCapability,
 	modelIdSchema,
 	type Organization,
+	providerIdSchema,
+	type UpdateOrganizationInput,
 } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { TriangleAlertIcon } from "lucide-react";
@@ -180,6 +182,38 @@ const changedModel = <Key extends string>(
 			} as Record<Key, ModelId | null>);
 };
 
+/** The web search setting as one choice: off, the model's own, or a search provider. */
+const webSearchChoice = ({
+	webSearchMode,
+	webSearchProviderId,
+}: Pick<Organization, "webSearchMode" | "webSearchProviderId">) =>
+	webSearchMode === "provider" && webSearchProviderId
+		? webSearchProviderId
+		: webSearchMode === "native"
+			? "native"
+			: "off";
+
+/** The setting's next value, left out when unchanged so a disabled provider does not block other edits. */
+const changedWebSearch = (
+	choice: string,
+	organization: Organization,
+): Pick<UpdateOrganizationInput, "webSearch"> => {
+	if (choice === webSearchChoice(organization)) {
+		return {};
+	}
+	return {
+		webSearch:
+			choice === "off" || choice === "native"
+				? {
+						mode: choice,
+					}
+				: {
+						mode: "provider",
+						providerId: providerIdSchema.parse(choice),
+					},
+	};
+};
+
 export const OrganizationForm = ({
 	action,
 	organization,
@@ -191,6 +225,20 @@ export const OrganizationForm = ({
 	const { mutateAsync: updateOrganization } = useUpdateOrganizationMutation({
 		onSuccess: onCompleted,
 	});
+	const { data: searchProviders } = useQuery(
+		orpc.provider.list.queryOptions({
+			input:
+				action === "update"
+					? {
+							pageIndex: 0,
+							pageSize: 100,
+							filters: {
+								purpose: "search",
+							},
+						}
+					: skipToken,
+		}),
+	);
 
 	const form = useAppForm({
 		...organizationFormOptions,
@@ -201,10 +249,11 @@ export const OrganizationForm = ({
 					logo: organization.logo,
 					assistantModelId: organization.assistantModelId,
 					utilityModelId: organization.utilityModelId,
+					webSearch: webSearchChoice(organization),
 				}
 			: organizationFormOptions.defaultValues,
 		onSubmit: async ({ value }) => {
-			const { assistantModelId, utilityModelId, ...rest } = value;
+			const { assistantModelId, utilityModelId, webSearch, ...rest } = value;
 			const fields = {
 				...rest,
 				logo: rest.logo?.trim() || null,
@@ -223,6 +272,7 @@ export const OrganizationForm = ({
 						utilityModelId,
 						organization.utilityModelId,
 					),
+					...changedWebSearch(webSearch, organization),
 				});
 			} else {
 				await createOrganization(fields);
@@ -284,6 +334,31 @@ export const OrganizationForm = ({
 								setting={utilityModelSetting}
 								value={field.state.value}
 								onChange={field.handleChange}
+							/>
+						)}
+					/>
+					<form.AppField
+						name="webSearch"
+						children={(field) => (
+							<field.SelectField
+								label={m.orgs_form_web_search_label()}
+								description={m.orgs_form_web_search_description()}
+								options={[
+									{
+										value: "off",
+										label: m.orgs_form_web_search_off_option(),
+									},
+									{
+										value: "native",
+										label: m.orgs_form_web_search_native_option(),
+									},
+									...(searchProviders?.data ?? []).map((provider) => ({
+										value: provider.id,
+										label: m.orgs_form_web_search_provider_option({
+											name: provider.name,
+										}),
+									})),
+								]}
 							/>
 						)}
 					/>

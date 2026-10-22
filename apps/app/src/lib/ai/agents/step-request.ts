@@ -1,5 +1,5 @@
 import { withholdToolCalls } from "@orcai/ai";
-import type { ProviderKind } from "@orcai/core";
+import type { ModelProviderKind } from "@orcai/core";
 import {
 	isStepCount,
 	type ModelMessage,
@@ -28,7 +28,7 @@ export const FINAL_STEP_NOTE =
  * not fit its prompt room even without the earlier steps' tool calls stops.
  */
 export const createStepShaper = (params: {
-	providerKind: ProviderKind;
+	providerKind: ModelProviderKind;
 	prune: (messages: ModelMessage[]) => ModelMessage[];
 }) => {
 	// Calls approved in an earlier request fail before the first step, outside every step's content.

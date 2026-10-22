@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { modelIdSchema } from "../model/ref";
+import { providerIdSchema } from "../provider/ref";
 import { paginationInputSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
@@ -50,6 +51,21 @@ export const updateOrganizationInputSchema =
 		id: organizationIdSchema,
 		assistantModelId: modelIdSchema.nullable().optional(),
 		utilityModelId: modelIdSchema.nullable().optional(),
+		/** Off, the model's own search, or one of the organisation's search providers. */
+		webSearch: z
+			.discriminatedUnion("mode", [
+				z.object({
+					mode: z.enum([
+						"off",
+						"native",
+					]),
+				}),
+				z.object({
+					mode: z.literal("provider"),
+					providerId: providerIdSchema,
+				}),
+			])
+			.optional(),
 	});
 
 export const deleteOrganizationsInputSchema = z.object({

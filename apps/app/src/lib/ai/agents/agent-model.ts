@@ -4,7 +4,7 @@ import {
 	providerToolLoading,
 	type ToolLoading,
 } from "@orcai/ai";
-import type { ProviderKind } from "@orcai/core";
+import type { ModelProviderKind } from "@orcai/core";
 import {
 	extractReasoningMiddleware,
 	type LanguageModel,
@@ -15,7 +15,7 @@ import {
 /** A model with the behaviour of its provider kind. */
 export interface AgentModel {
 	readonly language: LanguageModel;
-	readonly kind: ProviderKind;
+	readonly kind: ModelProviderKind;
 	readonly toolLoading: ToolLoading;
 }
 
@@ -25,7 +25,7 @@ export const agentModel = ({
 	providerModelId,
 	middleware = [],
 }: {
-	kind: ProviderKind;
+	kind: ModelProviderKind;
 	connection: ProviderConnection;
 	providerModelId: string;
 	middleware?: LanguageModelMiddleware[];

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { isDeepStrictEqual } from "node:util";
-import type { ProviderKind } from "@orcai/core";
+import type { ModelProviderKind } from "@orcai/core";
 import type { DatabaseBlock } from "@orcai/schema";
 import type { UIMessage } from "ai";
 import * as Effect from "effect/Effect";
@@ -217,7 +217,7 @@ const fromResponses = (body: Body): ModelRequest => {
 	};
 };
 
-const toModelRequest = (kind: ProviderKind, body: Body) =>
+const toModelRequest = (kind: ModelProviderKind, body: Body) =>
 	kind === "anthropic"
 		? fromAnthropic(body)
 		: kind === "openai"
@@ -501,7 +501,7 @@ const checklist = {
 };
 
 /** A chat whose turns search over several steps, one search failing, and show a checklist. */
-const chatConversation = async (kind: ProviderKind, modelId: string) => {
+const chatConversation = async (kind: ModelProviderKind, modelId: string) => {
 	resetProcedures();
 	answerSetup({
 		providerKind: kind,
@@ -594,7 +594,10 @@ const plan = {
  * retries, which the user denies; asks a third time, which the user
  * supersedes with a new message.
  */
-const assistantConversation = async (kind: ProviderKind, modelId: string) => {
+const assistantConversation = async (
+	kind: ModelProviderKind,
+	modelId: string,
+) => {
 	resetProcedures();
 	answerSetup({
 		providerKind: kind,

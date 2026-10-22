@@ -10,9 +10,9 @@ import type {
 	ChatId,
 	ChatMessageId,
 	ModelId,
+	ModelProviderKind,
 	OrganizationId,
 	ProviderId,
-	ProviderKind,
 	UserId,
 } from "@orcai/core";
 import type { ChatConfig } from "@orcai/schema";
@@ -94,7 +94,7 @@ export const answerSetup = ({
 	model = {},
 	chatBlocks = [],
 }: {
-	providerKind: ProviderKind;
+	providerKind: ModelProviderKind;
 	providerModelId: string;
 	model?: Partial<{
 		isDeprecated: boolean;
@@ -184,7 +184,7 @@ export const drain = async (stream: AsyncIterable<unknown>) => {
  */
 export const conversation = async (
 	chat: StoredChat,
-	providerKind: ProviderKind,
+	providerKind: ModelProviderKind,
 ) => {
 	const { startTurn, continueTurn } = await import("./turn");
 	const { memoryReplyStore } = await import("./memory-reply-store");

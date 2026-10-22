@@ -5,13 +5,14 @@ import {
 	shouldGenerateChatTitle,
 	titleCallSettings,
 } from "@orcai/ai";
-import type {
-	ChatId,
-	ModelId,
-	OrganizationId,
-	ProviderId,
-	ProviderKind,
-	UserId,
+import {
+	type ChatId,
+	isModelProviderKind,
+	type ModelId,
+	type ModelProviderKind,
+	type OrganizationId,
+	type ProviderId,
+	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { LanguageModel, ModelMessage } from "ai";
@@ -43,7 +44,7 @@ const buildTitleReservationMessages = (
 /** A model a title can be written with, and what its call is metered against. */
 interface TitleModel {
 	language: LanguageModel;
-	kind: ProviderKind;
+	kind: ModelProviderKind;
 	providerId: ProviderId;
 	modelId: ModelId;
 }
@@ -87,24 +88,25 @@ const titleModel = (organizationId: OrganizationId, chatModel: TitleModel) =>
 			return chatModel;
 		}
 
+		const { kind } = utility;
 		const unusable = modelUnusableReason(utility, "text");
-		if (unusable) {
+		if (unusable || !isModelProviderKind(kind)) {
 			yield* Effect.logWarning(
-				`organisation ${organizationId} has an unusable utility model (${unusable}), titles use the chat's model`,
+				`organisation ${organizationId} has an unusable utility model (${unusable ?? "PROVIDER_PURPOSE_MISMATCH"}), titles use the chat's model`,
 			);
 			return chatModel;
 		}
 
 		return {
 			language: agentModel({
-				kind: utility.kind,
+				kind,
 				connection: {
 					apiKey: yield* providerApiKey(utility.providerId),
 					endpoint: utility.endpoint,
 				},
 				providerModelId: utility.providerModelId,
 			}).language,
-			kind: utility.kind,
+			kind,
 			providerId: utility.providerId,
 			modelId: utility.modelId,
 		} satisfies TitleModel;

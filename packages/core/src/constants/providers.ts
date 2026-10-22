@@ -1,35 +1,85 @@
-export type ProviderEndpointMode = "required" | "none";
+export type ProviderEndpointMode = "required" | "optional" | "none";
+
+/** What a provider serves: models to chat with, or web search. */
+export type ProviderPurpose = "models" | "search";
 
 /** Client-safe metadata, one entry per provider kind. */
 export const providerKinds = [
 	{
 		kind: "openai-compatible",
+		purpose: "models",
 		endpointMode: "required",
+		nativeWebSearch: false,
 	},
 	{
 		kind: "openai",
+		purpose: "models",
 		endpointMode: "none",
+		nativeWebSearch: true,
 	},
 	{
 		kind: "anthropic",
+		purpose: "models",
 		endpointMode: "none",
+		nativeWebSearch: true,
+	},
+	{
+		kind: "tavily",
+		purpose: "search",
+		endpointMode: "optional",
+		nativeWebSearch: false,
 	},
 ] as const satisfies readonly {
 	kind: string;
+	purpose: ProviderPurpose;
 	endpointMode: ProviderEndpointMode;
+	/** The kind's models search the web with their provider's own tool. */
+	nativeWebSearch: boolean;
 }[];
 
-export type ProviderKind = (typeof providerKinds)[number]["kind"];
+type ProviderKindEntry = (typeof providerKinds)[number];
 
-const endpointModes = Object.fromEntries(
-	providerKinds.map((entry) => [
-		entry.kind,
-		entry.endpointMode,
-	]),
-) as Record<ProviderKind, ProviderEndpointMode>;
+export type ProviderKind = ProviderKindEntry["kind"];
+export type ModelProviderKind = Extract<
+	ProviderKindEntry,
+	{
+		purpose: "models";
+	}
+>["kind"];
+export type SearchProviderKind = Extract<
+	ProviderKindEntry,
+	{
+		purpose: "search";
+	}
+>["kind"];
+
+const entryOf = (kind: ProviderKind): ProviderKindEntry => {
+	const entry = providerKinds.find((candidate) => candidate.kind === kind);
+	if (!entry) {
+		throw new Error(`Unknown provider kind ${kind}`);
+	}
+	return entry;
+};
 
 export const getProviderEndpointMode = (kind: ProviderKind) =>
-	endpointModes[kind];
+	entryOf(kind).endpointMode;
+
+export const getProviderPurpose = (kind: ProviderKind) => entryOf(kind).purpose;
+
+export const isModelProviderKind = (
+	kind: ProviderKind,
+): kind is ModelProviderKind => getProviderPurpose(kind) === "models";
+
+export const isSearchProviderKind = (
+	kind: ProviderKind,
+): kind is SearchProviderKind => getProviderPurpose(kind) === "search";
+
+export const modelProviderKinds: ModelProviderKind[] = providerKinds
+	.map((entry) => entry.kind)
+	.filter(isModelProviderKind);
+
+export const hasNativeWebSearch = (kind: ProviderKind) =>
+	entryOf(kind).nativeWebSearch;
 
 export const modelCapabilities = [
 	"text",

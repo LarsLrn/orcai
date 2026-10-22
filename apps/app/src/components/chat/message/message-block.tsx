@@ -21,6 +21,7 @@ import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
 import { InView } from "@/components/ui/motion/in-view";
 import { messageCitations } from "@/lib/ai/tools/rag/citations";
+import { citedWebSources } from "@/lib/ai/tools/web/sources";
 import type { MessageView } from "@/lib/ai/turn-view/turn-view";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ import { m } from "@/paraglide/messages";
 import { ChatMessageAttachments } from "./chat-message-attachments";
 import { MessageActions } from "./message-actions";
 import { MessagePartRenderer } from "./message-part-renderer";
+import { MessageSources } from "./message-sources";
 import { MessageCompacted } from "./metadata/message-compacted";
 import { MessageContextNotice } from "./metadata/message-context-notice";
 import { MessageUsage } from "./metadata/message-usage";
@@ -101,6 +103,12 @@ export const MessageBlock = ({
 			message,
 		],
 	);
+	const webSources = useMemo(
+		() => citedWebSources(message.parts),
+		[
+			message,
+		],
+	);
 
 	const showSteps = () => {
 		setWorkLogOpen(true);
@@ -152,6 +160,7 @@ export const MessageBlock = ({
 									linkSafety={linkSafety}
 								/>
 							))}
+							{!running && <MessageSources sources={webSources} />}
 							{(missing === "step-limit" || missing === "no-answer") && (
 								<p className="text-muted-foreground text-sm">
 									{missing === "step-limit"

@@ -1,9 +1,16 @@
-import { getProviderEndpointMode, type ProviderKind } from "@orcai/core";
+import {
+	getProviderEndpointMode,
+	getProviderPurpose,
+	type ProviderKind,
+} from "@orcai/core";
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import type { ErrorReason } from "../shared/error-reason";
 import { providerKindSchema } from "./parts/kind";
-import { providerMeteringModeSchema } from "./parts/metering-mode";
+import {
+	type ProviderMeteringMode,
+	providerMeteringModeSchema,
+} from "./parts/metering-mode";
 import { providerIdSchema } from "./ref";
 
 /** Why an endpoint does not suit a kind, or undefined when it does. */
@@ -11,38 +18,60 @@ export const providerEndpointIssue = (
 	kind: ProviderKind,
 	endpoint: string | null,
 ) => {
-	if (getProviderEndpointMode(kind) === "required") {
-		return endpoint === null
-			? ("PROVIDER_ENDPOINT_REQUIRED" satisfies ErrorReason)
-			: undefined;
+	switch (getProviderEndpointMode(kind)) {
+		case "required":
+			return endpoint === null
+				? ("PROVIDER_ENDPOINT_REQUIRED" satisfies ErrorReason)
+				: undefined;
+		case "optional":
+			return undefined;
+		case "none":
+			return endpoint === null
+				? undefined
+				: ("PROVIDER_ENDPOINT_NOT_ALLOWED" satisfies ErrorReason);
 	}
-	return endpoint === null
-		? undefined
-		: ("PROVIDER_ENDPOINT_NOT_ALLOWED" satisfies ErrorReason);
 };
 
-/** Rejects an endpoint that does not suit the kind; blank counts as none. */
-export const checkProviderEndpoint = (
+/** Search providers meter requests: one per search. */
+export const providerMeteringModeIssue = (
+	kind: ProviderKind,
+	meteringMode: ProviderMeteringMode,
+) =>
+	getProviderPurpose(kind) === "search" && meteringMode !== "requests"
+		? ("PROVIDER_METERING_MODE_NOT_ALLOWED" satisfies ErrorReason)
+		: undefined;
+
+/** Rejects an endpoint or metering mode that does not suit the kind; a blank endpoint counts as none. */
+export const checkProviderFields = (
 	ctx: z.core.ParsePayload<{
 		kind: ProviderKind;
 		endpoint: string | null;
+		meteringMode: ProviderMeteringMode;
 	}>,
 ) => {
-	const reason = providerEndpointIssue(
-		ctx.value.kind,
-		ctx.value.endpoint || null,
-	);
-	if (reason) {
-		ctx.issues.push({
-			code: "custom",
-			params: {
-				reason,
-			},
-			path: [
-				"endpoint",
-			],
-			input: ctx.value,
-		});
+	const issues = [
+		[
+			"endpoint",
+			providerEndpointIssue(ctx.value.kind, ctx.value.endpoint || null),
+		],
+		[
+			"meteringMode",
+			providerMeteringModeIssue(ctx.value.kind, ctx.value.meteringMode),
+		],
+	] as const;
+	for (const [path, reason] of issues) {
+		if (reason) {
+			ctx.issues.push({
+				code: "custom",
+				params: {
+					reason,
+				},
+				path: [
+					path,
+				],
+				input: ctx.value,
+			});
+		}
 	}
 };
 
@@ -79,6 +108,12 @@ export const providerSchema = providerFieldsSchema
 
 export const providerFiltersSchema = z.object({
 	enabled: providerSchema.shape.enabled.optional(),
+	purpose: z
+		.enum([
+			"models",
+			"search",
+		])
+		.optional(),
 });
 
 export type Provider = z.infer<typeof providerSchema>;

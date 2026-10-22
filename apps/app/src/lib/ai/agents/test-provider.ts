@@ -1,4 +1,4 @@
-import type { ProviderKind } from "@orcai/core";
+import type { ModelProviderKind } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 
 export type ToolCall = {
@@ -471,7 +471,7 @@ const eventStream = (events: string[]) => {
 };
 
 /** A fetch that records each request body and answers with the next scripted step. */
-export const scriptedFetch = (kind: ProviderKind) => {
+export const scriptedFetch = (kind: ModelProviderKind) => {
 	const bodies: Body[] = [];
 	const steps: Step[] = [];
 	const fetch = ((_input: string | URL | Request, init?: RequestInit) => {

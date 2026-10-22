@@ -4,6 +4,7 @@ import type { getKnowledgeBaseChunksTool } from "@/lib/ai/tools/rag/get-knowledg
 import type { getKnowledgeBasePageTool } from "@/lib/ai/tools/rag/get-knowledge-base-page";
 import type { listKnowledgeBaseDocumentsTool } from "@/lib/ai/tools/rag/list-knowledge-base-documents";
 import type { searchKnowledgeBaseTool } from "@/lib/ai/tools/rag/search-knowledge-base";
+import type { searchWebTool } from "@/lib/ai/tools/web/search-web";
 
 /**
  * Search Knowledge Base Tool Part
@@ -43,4 +44,17 @@ export type GetKnowledgeBasePageToolPart = ToolUIPart<{
 type ReadDocsUITool = InferUITool<ReturnType<typeof readDocsTool>>;
 export type ReadDocsToolPart = ToolUIPart<{
 	readDocs: ReadDocsUITool;
+}>;
+
+type SearchWebUITool = InferUITool<ReturnType<typeof searchWebTool>>;
+export type SearchWebToolPart = ToolUIPart<{
+	searchWeb: SearchWebUITool;
+}>;
+
+/** The model provider's own search; its input and output differ by provider. */
+export type NativeWebSearchToolPart = ToolUIPart<{
+	web_search: {
+		input: unknown;
+		output: unknown;
+	};
 }>;

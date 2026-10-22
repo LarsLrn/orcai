@@ -6,6 +6,7 @@ import {
 	DEFAULT_FEATURES,
 	type EntityCapabilities,
 	type FeatureId,
+	type Features,
 	type PublicationStatus,
 	type TemplateBlock,
 } from "@orcai/schema";
@@ -43,7 +44,9 @@ type BotEditorDatabaseBlock = {
 // zod infers `Record<string, never>` for empty settings, which TanStack Form's
 // DeepKeys collapses to never, dropping the `features` field name.
 type BotEditorFeatures = {
-	[Id in FeatureId]?: Record<never, never>;
+	[Id in FeatureId]?: NonNullable<Features[Id]> extends Record<string, never>
+		? Record<never, never>
+		: Features[Id];
 };
 
 export type BotEditorFormValues = {

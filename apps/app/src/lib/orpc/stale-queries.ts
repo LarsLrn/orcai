@@ -227,8 +227,10 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			update: () => [
 				orpc.provider.key(),
 			],
+			// Deleting the web search provider turns the organisation's web search off.
 			delete: () => [
 				orpc.provider.key(),
+				orpc.organization.key(),
 			],
 		},
 		quota: {

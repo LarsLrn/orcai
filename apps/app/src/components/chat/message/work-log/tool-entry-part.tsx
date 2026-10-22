@@ -4,8 +4,10 @@ import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { GetKnowledgeBaseChunks } from "./tools/get-knowledge-base-chunks";
 import { GetKnowledgeBasePage } from "./tools/get-knowledge-base-page";
 import { ListKnowledgeBaseDocuments } from "./tools/list-knowledge-base-documents";
+import { NativeWebSearch } from "./tools/native-web-search";
 import { ReadDocs } from "./tools/read-docs";
 import { SearchKnowledgeBase } from "./tools/search-knowledge-base";
+import { SearchWeb } from "./tools/search-web";
 import { SummaryEntry } from "./tools/summary-entry";
 
 export interface ToolEntryPartProps {
@@ -31,6 +33,10 @@ export const ToolEntryPart = ({ part, status }: ToolEntryPartProps) => {
 			return <ListKnowledgeBaseDocuments part={part} status={status} />;
 		case "tool-readDocs":
 			return <ReadDocs part={part} status={status} />;
+		case "tool-searchWeb":
+			return <SearchWeb part={part} status={status} />;
+		case "tool-web_search":
+			return <NativeWebSearch part={part} status={status} />;
 		default:
 			return <SummaryEntry part={part} status={status} />;
 	}

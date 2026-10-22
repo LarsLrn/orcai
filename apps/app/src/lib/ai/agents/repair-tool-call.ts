@@ -1,3 +1,5 @@
+import type { NATIVE_WEB_SEARCH_TOOL_NAME } from "@orcai/ai";
+import type { Tool } from "ai";
 import {
 	InvalidToolInputError,
 	NoSuchToolError,
@@ -5,10 +7,15 @@ import {
 } from "ai";
 import type { GenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
+import type { searchWebTool } from "@/lib/ai/tools/web/search-web";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 
 export type ChatAgentTools = ReturnType<typeof buildKnowledgeBaseTools> &
-	GenUiTools;
+	GenUiTools & {
+		searchWeb: ReturnType<typeof searchWebTool>;
+		/** Provider-executed: its input and output differ by provider. */
+		[NATIVE_WEB_SEARCH_TOOL_NAME]: Tool;
+	};
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	value !== null && typeof value === "object" && !Array.isArray(value);

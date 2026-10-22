@@ -3,12 +3,13 @@ import {
 	type ProviderCompaction,
 	providerCompaction,
 } from "@orcai/ai";
-import type {
-	BotId,
-	ModelId,
-	OrganizationId,
-	ProviderId,
-	UserId,
+import {
+	type BotId,
+	isModelProviderKind,
+	type ModelId,
+	type OrganizationId,
+	type ProviderId,
+	type UserId,
 } from "@orcai/core";
 import { reservedOutputTokens } from "@orcai/quota";
 import type { DatabaseBlock, ModelTokenLimits } from "@orcai/schema";
@@ -25,6 +26,8 @@ import {
 	type ResolvedFeature,
 	resolveFeatures,
 } from "@/lib/ai/features/resolve-features";
+import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
+import { turnWebSearch } from "@/lib/ai/tools/web/turn-web-search";
 import {
 	type ChatCallSettings,
 	chatCallSettings,
@@ -93,6 +96,7 @@ type RequestedSetup = {
 				systemPrompt: string;
 				databaseBlocks: DatabaseBlock[];
 				features: ResolvedFeature[];
+				webSearch: TurnWebSearch;
 		  }
 		| {
 				kind: "assistant";
@@ -117,6 +121,7 @@ const badRequest = (
 	reason:
 		| ModelUnusableReason<"turn">
 		| "MODEL_PROVIDER_MISMATCH"
+		| "PROVIDER_PURPOSE_MISMATCH"
 		| "CHAT_MODEL_NOT_CONFIGURED"
 		| "ASSISTANT_MODEL_NOT_CONFIGURED",
 	message: string,
@@ -195,12 +200,19 @@ const readModel = ({
 		if (unusable) {
 			return yield* badRequest(unusable, UNUSABLE_MESSAGES[unusable]);
 		}
+		const { kind } = provider;
+		if (!isModelProviderKind(kind)) {
+			return yield* badRequest(
+				"PROVIDER_PURPOSE_MISMATCH",
+				"Selected model belongs to a search provider. Please choose a chat model.",
+			);
+		}
 
 		const apiKey = yield* providerApiKey(provider.id);
 
 		return {
 			model: agentModel({
-				kind: provider.kind,
+				kind,
 				connection: {
 					apiKey,
 					endpoint: provider.endpoint,
@@ -337,7 +349,10 @@ const mergeDatabaseBlocks = (
 	];
 };
 
-const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
+const chatSetup = (
+	chat: StoredChat,
+	{ organizationId, user, context }: TurnRequester,
+) =>
 	Effect.gen(function* () {
 		const procedures = yield* Procedures;
 		const config = chat.config;
@@ -391,6 +406,20 @@ const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 		const attachedTemplate = attached.data.find(
 			(block) => block.type === "template",
 		);
+		const features = yield* resolveFeatures(
+			bot ? bot.features : config.features,
+		);
+		// Only bots enable web search.
+		const webSearch =
+			chat.botId && features.some(({ id }) => id === "webSearch")
+				? yield* turnWebSearch({
+						organizationId,
+						userId: user.id,
+						botId: chat.botId,
+						modelKind: model.model.kind,
+						context,
+					})
+				: NO_WEB_SEARCH;
 
 		return {
 			...model,
@@ -412,7 +441,8 @@ const chatSetup = (chat: StoredChat, { user, context }: TurnRequester) =>
 							block.type === "database",
 					),
 				),
-				features: yield* resolveFeatures(bot ? bot.features : config.features),
+				features,
+				webSearch,
 			},
 		} satisfies RequestedSetup;
 	});

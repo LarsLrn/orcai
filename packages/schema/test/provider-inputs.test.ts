@@ -74,6 +74,41 @@ describe("createProviderInputSchema endpoint", () => {
 	});
 });
 
+describe("createProviderInputSchema search providers", () => {
+	const tavily = {
+		...fields,
+		kind: "tavily",
+		meteringMode: "requests",
+	} as const;
+	const reasonsOf = (input: unknown) =>
+		createProviderInputSchema
+			.safeParse(input)
+			.error?.issues.map((issue) =>
+				"params" in issue ? issue.params?.reason : issue.code,
+			);
+
+	test("take an endpoint or none", () => {
+		expect(createProviderInputSchema.safeParse(tavily).success).toBe(true);
+		expect(
+			createProviderInputSchema.safeParse({
+				...tavily,
+				endpoint: null,
+			}).success,
+		).toBe(true);
+	});
+
+	test("meter requests only", () => {
+		expect(
+			reasonsOf({
+				...tavily,
+				meteringMode: "tokens",
+			}),
+		).toEqual([
+			"PROVIDER_METERING_MODE_NOT_ALLOWED",
+		]);
+	});
+});
+
 describe("updateProviderInputSchema", () => {
 	test("leaves the kind out", () => {
 		expect(

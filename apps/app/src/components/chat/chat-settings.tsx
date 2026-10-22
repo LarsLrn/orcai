@@ -1,5 +1,11 @@
 import type { ChatId } from "@orcai/core";
-import type { ChatConfig, Features, Model, Provider } from "@orcai/schema";
+import {
+	CHAT_FEATURE_IDS,
+	type ChatConfig,
+	type Features,
+	type Model,
+	type Provider,
+} from "@orcai/schema";
 import {
 	useMutation,
 	useQuery,
@@ -542,6 +548,7 @@ const ChatFeaturesEditor = ({
 					? (updateMutation.variables.config?.features ?? {})
 					: features
 			}
+			ids={CHAT_FEATURE_IDS}
 			onChange={(next) =>
 				updateMutation.mutate({
 					id: chatId,
