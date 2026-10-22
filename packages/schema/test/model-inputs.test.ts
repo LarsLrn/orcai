@@ -70,3 +70,41 @@ describe("model token limits", () => {
 		]);
 	});
 });
+
+describe("model prices", () => {
+	test("may be left out, unset or set one by one", () => {
+		for (const prices of [
+			undefined,
+			{
+				input: null,
+				output: null,
+			},
+			{
+				input: 3,
+				cacheRead: 0.3,
+				cacheWrite: 3.75,
+				output: 15,
+				request: 0,
+				webSearch: 0.01,
+			},
+		]) {
+			expect(
+				createModelInputSchema.safeParse({
+					...fields,
+					prices,
+				}).success,
+			).toBe(true);
+		}
+	});
+
+	test("are never negative", () => {
+		expect(
+			updateModelInputSchema.safeParse({
+				id,
+				prices: {
+					input: -1,
+				},
+			}).success,
+		).toBe(false);
+	});
+});

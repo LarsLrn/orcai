@@ -109,6 +109,85 @@ describe("createProviderInputSchema search providers", () => {
 	});
 });
 
+describe("createProviderInputSchema prices", () => {
+	const reasonsOf = (input: unknown) =>
+		createProviderInputSchema
+			.safeParse(input)
+			.error?.issues.map((issue) =>
+				"params" in issue ? issue.params?.reason : issue.code,
+			);
+
+	test("default to USD, no reported cost and no search price", () => {
+		expect(createProviderInputSchema.parse(fields)).toMatchObject({
+			currency: "USD",
+			reportsCost: false,
+			searchPrice: null,
+		});
+	});
+
+	test("take an ISO 4217 currency", () => {
+		expect(
+			createProviderInputSchema.parse({
+				...fields,
+				currency: "EUR",
+			}).currency,
+		).toBe("EUR");
+		expect(
+			createProviderInputSchema.safeParse({
+				...fields,
+				currency: "EURO",
+			}).success,
+		).toBe(false);
+	});
+
+	test("let only OpenAI-compatible providers report their cost, in USD", () => {
+		expect(
+			createProviderInputSchema.safeParse({
+				...fields,
+				reportsCost: true,
+			}).success,
+		).toBe(true);
+		expect(
+			reasonsOf({
+				...fields,
+				kind: "anthropic",
+				endpoint: null,
+				reportsCost: true,
+			}),
+		).toEqual([
+			"PROVIDER_COST_REPORTING_NOT_ALLOWED",
+		]);
+		expect(
+			reasonsOf({
+				...fields,
+				currency: "EUR",
+				reportsCost: true,
+			}),
+		).toEqual([
+			"PROVIDER_CURRENCY_NOT_ALLOWED",
+		]);
+	});
+
+	test("price searches of search providers only", () => {
+		expect(
+			createProviderInputSchema.safeParse({
+				...fields,
+				kind: "tavily",
+				meteringMode: "requests",
+				searchPrice: 0.008,
+			}).success,
+		).toBe(true);
+		expect(
+			reasonsOf({
+				...fields,
+				searchPrice: 0.008,
+			}),
+		).toEqual([
+			"PROVIDER_SEARCH_PRICE_NOT_ALLOWED",
+		]);
+	});
+});
+
 describe("updateProviderInputSchema", () => {
 	test("leaves the kind out", () => {
 		expect(

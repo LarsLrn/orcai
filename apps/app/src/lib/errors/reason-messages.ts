@@ -128,6 +128,9 @@ const reasonMessages: ReasonMessages = {
 	PERMISSION_DENIED: m.error_permission_denied,
 	PRIVACY_CONSENT_REQUIRED: m.error_privacy_consent_required,
 	PROVIDER_DISABLED: m.error_provider_disabled,
+	PROVIDER_COST_REPORTING_NOT_ALLOWED:
+		m.error_provider_cost_reporting_not_allowed,
+	PROVIDER_CURRENCY_NOT_ALLOWED: m.error_provider_currency_not_allowed,
 	PROVIDER_ENDPOINT_NOT_ALLOWED: m.error_provider_endpoint_not_allowed,
 	PROVIDER_ENDPOINT_REQUIRED: m.error_provider_endpoint_required,
 	PROVIDER_METERING_MODE_NOT_ALLOWED:
@@ -135,6 +138,7 @@ const reasonMessages: ReasonMessages = {
 	PROVIDER_MODELS_FETCH_FAILED: m.error_provider_models_fetch_failed,
 	PROVIDER_NOT_FOUND: m.error_provider_not_found,
 	PROVIDER_PURPOSE_MISMATCH: m.error_provider_purpose_mismatch,
+	PROVIDER_SEARCH_PRICE_NOT_ALLOWED: m.error_provider_search_price_not_allowed,
 	QUOTA_CHECK_FAILED: m.error_quota_check_failed,
 	QUOTA_EXHAUSTED: m.error_quota_exhausted,
 	QUOTA_GROUPS_INVALID: m.error_quota_groups_invalid,

@@ -8,8 +8,10 @@ import type { ModelCapability } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	boolean,
+	char,
 	index,
 	integer,
+	numeric,
 	pgEnum,
 	pgTable,
 	text,
@@ -24,6 +26,11 @@ export const providerMeteringModeEnum = pgEnum("provider_metering_mode", [
 	"tokens",
 	"requests",
 ]);
+
+const price = (name: string) =>
+	numeric(name, {
+		mode: "number",
+	});
 
 export const model = pgTable(
 	"model",
@@ -44,6 +51,13 @@ export const model = pgTable(
 		capabilities: text("capability").$type<ModelCapability>().array().notNull(),
 		contextWindow: integer("context_window"),
 		maxOutputTokens: integer("max_output_tokens"),
+		/** Per 1M tokens, in the provider's currency. */
+		inputPrice: price("input_price"),
+		cacheReadPrice: price("cache_read_price"),
+		cacheWritePrice: price("cache_write_price"),
+		outputPrice: price("output_price"),
+		requestPrice: price("request_price"),
+		webSearchPrice: price("web_search_price"),
 		createdAt: timestamp("created_at").defaultNow(),
 		updatedAt: timestamp("updated_at").defaultNow(),
 	},
@@ -76,6 +90,16 @@ export const provider = pgTable(
 		meteringMode: providerMeteringModeEnum("metering_mode")
 			.notNull()
 			.default("tokens"),
+		/** ISO 4217; the currency of its prices. */
+		currency: char("currency", {
+			length: 3,
+		})
+			.notNull()
+			.default("USD"),
+		/** Its responses carry their cost, OpenRouter style. */
+		reportsCost: boolean("reports_cost").notNull().default(false),
+		/** A search provider's price per search. */
+		searchPrice: price("search_price"),
 		enabled: boolean("enabled").notNull().default(true),
 		createdAt: timestamp("created_at").defaultNow(),
 		updatedAt: timestamp("updated_at").defaultNow(),

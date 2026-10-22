@@ -1,4 +1,5 @@
 import {
+	canReportCost,
 	getProviderEndpointMode,
 	getProviderPurpose,
 	type ProviderKind,
@@ -6,6 +7,7 @@ import {
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import type { ErrorReason } from "../shared/error-reason";
+import { currencySchema, priceSchema } from "../shared/primitives/money";
 import { providerKindSchema } from "./parts/kind";
 import {
 	type ProviderMeteringMode,
@@ -14,10 +16,7 @@ import {
 import { providerIdSchema } from "./ref";
 
 /** Why an endpoint does not suit a kind, or undefined when it does. */
-export const providerEndpointIssue = (
-	kind: ProviderKind,
-	endpoint: string | null,
-) => {
+const providerEndpointIssue = (kind: ProviderKind, endpoint: string | null) => {
 	switch (getProviderEndpointMode(kind)) {
 		case "required":
 			return endpoint === null
@@ -33,7 +32,7 @@ export const providerEndpointIssue = (
 };
 
 /** Search providers meter requests: one per search. */
-export const providerMeteringModeIssue = (
+const providerMeteringModeIssue = (
 	kind: ProviderKind,
 	meteringMode: ProviderMeteringMode,
 ) =>
@@ -41,37 +40,92 @@ export const providerMeteringModeIssue = (
 		? ("PROVIDER_METERING_MODE_NOT_ALLOWED" satisfies ErrorReason)
 		: undefined;
 
-/** Rejects an endpoint or metering mode that does not suit the kind; a blank endpoint counts as none. */
-export const checkProviderFields = (
-	ctx: z.core.ParsePayload<{
-		kind: ProviderKind;
-		endpoint: string | null;
-		meteringMode: ProviderMeteringMode;
-	}>,
-) => {
-	const issues = [
+/** The fields whose validity depends on the kind or on each other. */
+type CheckedProviderFields = {
+	kind: ProviderKind;
+	endpoint: string | null;
+	meteringMode: ProviderMeteringMode;
+	currency: string;
+	reportsCost: boolean;
+	searchPrice: number | null;
+};
+
+type ProviderFieldIssue = [
+	keyof CheckedProviderFields,
+	Extract<
+		ErrorReason,
+		| "PROVIDER_ENDPOINT_REQUIRED"
+		| "PROVIDER_ENDPOINT_NOT_ALLOWED"
+		| "PROVIDER_METERING_MODE_NOT_ALLOWED"
+		| "PROVIDER_COST_REPORTING_NOT_ALLOWED"
+		| "PROVIDER_CURRENCY_NOT_ALLOWED"
+		| "PROVIDER_SEARCH_PRICE_NOT_ALLOWED"
+	>,
+];
+
+/** Each field that does not suit the provider, with why; a blank endpoint counts as none. */
+export const providerFieldIssues = (
+	fields: CheckedProviderFields,
+): ProviderFieldIssue[] =>
+	(
 		[
-			"endpoint",
-			providerEndpointIssue(ctx.value.kind, ctx.value.endpoint || null),
-		],
-		[
-			"meteringMode",
-			providerMeteringModeIssue(ctx.value.kind, ctx.value.meteringMode),
-		],
-	] as const;
-	for (const [path, reason] of issues) {
-		if (reason) {
-			ctx.issues.push({
-				code: "custom",
-				params: {
-					reason,
-				},
-				path: [
-					path,
+			[
+				"endpoint",
+				providerEndpointIssue(fields.kind, fields.endpoint || null),
+			],
+			[
+				"meteringMode",
+				providerMeteringModeIssue(fields.kind, fields.meteringMode),
+			],
+			[
+				"reportsCost",
+				fields.reportsCost && !canReportCost(fields.kind)
+					? "PROVIDER_COST_REPORTING_NOT_ALLOWED"
+					: undefined,
+			],
+			// Reported costs are in USD.
+			[
+				"currency",
+				fields.reportsCost && fields.currency !== "USD"
+					? "PROVIDER_CURRENCY_NOT_ALLOWED"
+					: undefined,
+			],
+			[
+				"searchPrice",
+				fields.searchPrice !== null &&
+				getProviderPurpose(fields.kind) !== "search"
+					? "PROVIDER_SEARCH_PRICE_NOT_ALLOWED"
+					: undefined,
+			],
+		] satisfies [
+			ProviderFieldIssue[0],
+			ProviderFieldIssue[1] | undefined,
+		][]
+	).flatMap(([path, reason]): ProviderFieldIssue[] =>
+		reason === undefined
+			? []
+			: [
+					[
+						path,
+						reason,
+					],
 				],
-				input: ctx.value,
-			});
-		}
+	);
+
+export const checkProviderFields = (
+	ctx: z.core.ParsePayload<CheckedProviderFields>,
+) => {
+	for (const [path, reason] of providerFieldIssues(ctx.value)) {
+		ctx.issues.push({
+			code: "custom",
+			params: {
+				reason,
+			},
+			path: [
+				path,
+			],
+			input: ctx.value,
+		});
 	}
 };
 
@@ -81,6 +135,9 @@ export const providerFieldsSchema = z.object({
 	endpoint: z.url().nullable(),
 	kind: providerKindSchema,
 	meteringMode: providerMeteringModeSchema,
+	currency: currencySchema.default("USD"),
+	reportsCost: z.boolean().default(false),
+	searchPrice: priceSchema.nullable().default(null),
 	apiKey: z.string().trim().min(1),
 	enabled: z.boolean().default(true),
 });
@@ -90,8 +147,12 @@ export const providerMutableFieldsSchema = providerFieldsSchema
 	.omit({
 		kind: true,
 	})
+	// Without their defaults, which would overwrite what an update leaves out.
 	.extend({
 		enabled: z.boolean(),
+		currency: currencySchema,
+		reportsCost: z.boolean(),
+		searchPrice: priceSchema.nullable(),
 	})
 	.partial();
 

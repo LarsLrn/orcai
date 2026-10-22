@@ -13,6 +13,14 @@ const defaultValues = (
 	isDeprecated: model?.isDeprecated ?? false,
 	contextWindow: model?.contextWindow ?? null,
 	maxOutputTokens: model?.maxOutputTokens ?? null,
+	prices: model?.prices ?? {
+		input: null,
+		cacheRead: null,
+		cacheWrite: null,
+		output: null,
+		request: null,
+		webSearch: null,
+	},
 });
 
 export const modelFormOptions = (model?: Model) =>

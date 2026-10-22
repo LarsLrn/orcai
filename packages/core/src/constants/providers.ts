@@ -10,24 +10,28 @@ export const providerKinds = [
 		purpose: "models",
 		endpointMode: "required",
 		nativeWebSearch: false,
+		reportsCost: true,
 	},
 	{
 		kind: "openai",
 		purpose: "models",
 		endpointMode: "none",
 		nativeWebSearch: true,
+		reportsCost: false,
 	},
 	{
 		kind: "anthropic",
 		purpose: "models",
 		endpointMode: "none",
 		nativeWebSearch: true,
+		reportsCost: false,
 	},
 	{
 		kind: "tavily",
 		purpose: "search",
 		endpointMode: "optional",
 		nativeWebSearch: false,
+		reportsCost: false,
 	},
 ] as const satisfies readonly {
 	kind: string;
@@ -35,6 +39,8 @@ export const providerKinds = [
 	endpointMode: ProviderEndpointMode;
 	/** The kind's models search the web with their provider's own tool. */
 	nativeWebSearch: boolean;
+	/** The kind's responses may carry their cost, as OpenRouter's do. */
+	reportsCost: boolean;
 }[];
 
 type ProviderKindEntry = (typeof providerKinds)[number];
@@ -80,6 +86,8 @@ export const modelProviderKinds: ModelProviderKind[] = providerKinds
 
 export const hasNativeWebSearch = (kind: ProviderKind) =>
 	entryOf(kind).nativeWebSearch;
+
+export const canReportCost = (kind: ProviderKind) => entryOf(kind).reportsCost;
 
 export const modelCapabilities = [
 	"text",

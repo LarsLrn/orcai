@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
 import { modelCapabilitiesSchema } from "./parts/capabilities";
+import { modelPricesSchema } from "./parts/prices";
 import { modelIdSchema } from "./ref";
 
 const tokenCountSchema = z.int32().positive();
@@ -19,6 +20,8 @@ export const modelFieldsSchema = z.object({
 	isDeprecated: z.boolean(),
 	capabilities: z.array(modelCapabilitiesSchema),
 	...modelTokenLimitsSchema.partial().shape,
+	/** A price left out stays as it is, or unset on a new model. */
+	prices: modelPricesSchema.partial().optional(),
 });
 
 export const modelMutableFieldsSchema = modelFieldsSchema.partial();
@@ -29,6 +32,7 @@ export const modelSchema = modelFieldsSchema.extend({
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
 	...modelTokenLimitsSchema.shape,
+	prices: modelPricesSchema,
 });
 
 export const modelFiltersSchema = z.object({
