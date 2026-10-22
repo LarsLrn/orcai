@@ -15,8 +15,9 @@ import {
 	releaseQuotaLedger,
 	reserveQuotaLedger,
 } from "./ledger";
+import { loadPriceList, priceSteps } from "./pricing";
 import { resolveQuotaPool } from "./resolver";
-import { type MeteredStep, recordedUsage } from "./usage";
+import { type MeteredStep, usageCounts } from "./usage";
 
 interface ReserveQuotaInput {
 	organizationId: OrganizationId;
@@ -113,7 +114,7 @@ export const reserveForAppRequest: (
 				poolId: winning.pool.id,
 				periodId: winning.period.id,
 				providerId: winning.pool.providerId,
-				modelId: winning.pool.modelId,
+				modelId: input.modelId ?? null,
 				meteringMode: winning.meteringMode,
 				reservedAmount: reserved.reservedAmount,
 				budgetAmount: winning.ledger.budgetAmount,
@@ -122,23 +123,37 @@ export const reserveForAppRequest: (
 		} satisfies ReserveQuotaResult;
 	});
 
-/** Charges a call its steps, one provider request each. */
+/** Charges a call its steps, one provider request each, priced at the prices now in force. */
 export const finalizeAppRequestQuota: (input: {
 	reservation: ReservedQuotaContext;
 	steps: readonly MeteredStep[];
 }) => Effect.Effect<void, unknown, DB> = (input) =>
 	Effect.gen(function* () {
-		const usage = recordedUsage(input.steps);
+		const counts = usageCounts(input.steps);
 		const actualAmount =
 			input.reservation.meteringMode === "requests"
 				? input.steps.length
-				: (usage.totalTokens ?? 0);
+				: (counts.totalTokens ?? 0);
+		// A call whose prices cannot be read is still charged, without a cost.
+		const prices = yield* loadPriceList({
+			providerId: input.reservation.providerId,
+			modelId: input.reservation.modelId,
+		}).pipe(
+			Effect.catch((error) =>
+				Effect.logWarning(
+					`quota.finalize.prices_unavailable reservationKey=${input.reservation.reservationKey} cause=${String(error)}`,
+				).pipe(Effect.as(null)),
+			),
+		);
 
 		yield* finalizeQuotaLedger({
 			reservationKey: input.reservation.reservationKey,
 			appRequestId: input.reservation.appRequestId,
 			actualAmount,
-			usage,
+			usage: {
+				...counts,
+				...priceSteps(input.steps, prices),
+			},
 		});
 	});
 

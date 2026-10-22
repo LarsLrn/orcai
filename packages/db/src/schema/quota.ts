@@ -15,6 +15,8 @@ import { sql } from "drizzle-orm";
 import {
 	bigint,
 	boolean,
+	char,
+	check,
 	index,
 	integer,
 	json,
@@ -47,6 +49,12 @@ export const quotaUsageEventTypeEnum = pgEnum("quota_usage_event_type", [
 	"finalized",
 	"released",
 	"failed",
+]);
+
+/** Whether a cost is what the provider reported for every request, or estimated from prices. */
+export const quotaCostSourceEnum = pgEnum("quota_cost_source", [
+	"reported",
+	"estimated",
 ]);
 
 export const quotaPool = pgTable(
@@ -288,6 +296,14 @@ export const quotaUsageEvent = pgTable(
 		}),
 		/** Searches the model ran with its provider's own tool. */
 		webSearchCount: integer("web_search_count"),
+		/** In micro-units of the currency, priced at finalize; null when unpriced. */
+		cost: bigint("cost", {
+			mode: "number",
+		}),
+		currency: char("currency", {
+			length: 3,
+		}),
+		costSource: quotaCostSourceEnum("cost_source"),
 		metadata: json("metadata").$type<Record<string, unknown>>(),
 		occurredAt: timestamp("occurred_at").notNull().defaultNow(),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -318,6 +334,10 @@ export const quotaUsageEvent = pgTable(
 		uniqueIndex("quota_usage_event_reservation_event_unique").on(
 			table.reservationKey,
 			table.eventType,
+		),
+		check(
+			"quota_usage_event_cost_complete",
+			sql`(${table.cost} is null) = (${table.currency} is null) and (${table.cost} is null) = (${table.costSource} is null)`,
 		),
 	],
 );

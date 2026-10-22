@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { BotId, ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { AnalyticsDays, ChatMessageRating } from "@orcai/schema";
-import { eq } from "drizzle-orm";
+import type {
+	AnalyticsDays,
+	ChatMessageRating,
+	ModelPrices,
+} from "@orcai/schema";
+import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	type MeterStep,
@@ -45,7 +49,9 @@ const rejection = (operation: Promise<unknown>) =>
 	);
 
 /** An organisation with an admin and a member, a provider with one model, and a pool for everyone. */
-const meteredOrganization = async () => {
+const meteredOrganization = async (
+	options: { currency?: string; prices?: Partial<ModelPrices> } = {},
+) => {
 	const {
 		organizationId,
 		actors: [admin, member],
@@ -80,6 +86,7 @@ const meteredOrganization = async () => {
 				endpoint: "http://127.0.0.1:9/v1",
 				apiKey: "key",
 				meteringMode: "tokens",
+				currency: options.currency,
 				enabled: true,
 			},
 			await asAdmin(),
@@ -97,6 +104,7 @@ const meteredOrganization = async () => {
 				capabilities: [
 					"text",
 				],
+				prices: options.prices,
 			},
 			await asAdmin(),
 		),
@@ -161,6 +169,17 @@ const meteredOrganization = async () => {
 			),
 		).then(({ data }) => data);
 
+	const setPrices = async (prices: Partial<ModelPrices>) =>
+		run(
+			procedures.model.update(
+				{
+					id: model.id,
+					prices,
+				},
+				await asAdmin(),
+			),
+		);
+
 	return {
 		organizationId,
 		admin,
@@ -168,10 +187,32 @@ const meteredOrganization = async () => {
 		providerId: provider.id,
 		modelId: model.id,
 		meter,
+		setPrices,
 		analytics,
 		procedures,
 	};
 };
+
+const finalizedEvent = (appRequestId: string) =>
+	run(
+		Effect.gen(function* () {
+			const event = dbSchema.quotaUsageEvent;
+			const [row] = yield* (yield* DB)
+				.select({
+					cost: event.cost,
+					currency: event.currency,
+					costSource: event.costSource,
+				})
+				.from(event)
+				.where(
+					and(
+						eq(event.appRequestId, appRequestId),
+						eq(event.eventType, "finalized"),
+					),
+				);
+			return row;
+		}),
+	);
 
 const createBot = (owner: Actor) =>
 	run(
@@ -437,6 +478,70 @@ describe("organization analytics", () => {
 			const { users, totals } = await other.analytics(other.admin, 7);
 			expect(users).toEqual([]);
 			expect(totals.requests).toBe(0);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("usage cost", () => {
+	test(
+		"is priced at finalize in the provider's currency and kept when prices change",
+		async () => {
+			const org = await meteredOrganization({
+				currency: "EUR",
+				prices: {
+					input: 2,
+					output: 10,
+				},
+			});
+			const first = await org.meter({
+				actor: org.member,
+				steps: [
+					usage(1_000, 100),
+					usage(500, 50),
+				],
+			});
+
+			await org.setPrices({
+				output: 20,
+			});
+			const second = await org.meter({
+				actor: org.member,
+				steps: [
+					usage(1_000, 100),
+				],
+			});
+
+			expect(await finalizedEvent(first)).toEqual({
+				cost: 4_500,
+				currency: "EUR",
+				costSource: "estimated",
+			});
+			expect(await finalizedEvent(second)).toEqual({
+				cost: 4_000,
+				currency: "EUR",
+				costSource: "estimated",
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"stays unknown for a model without prices",
+		async () => {
+			const org = await meteredOrganization();
+			const request = await org.meter({
+				actor: org.member,
+				steps: [
+					usage(1_000, 100),
+				],
+			});
+
+			expect(await finalizedEvent(request)).toEqual({
+				cost: null,
+				currency: null,
+				costSource: null,
+			});
 		},
 		TIMEOUT,
 	);
