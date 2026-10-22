@@ -1,6 +1,6 @@
 ---
 title: Chat
-description: Starting chats with or without a bot, the chat list and search, message actions, branching, attachments, chat settings, quota, preparing documents, retrieval and citations, and deleting chats.
+description: Starting chats with or without a bot, the chat list, search and pinning, message actions, branching, attachments, chat settings, quota, preparing documents, retrieval and citations, and deleting chats.
 ---
 
 Chat is the core end-user workflow in OrcAI. You can start chats with or without a bot, attach sources, branch a conversation, and tune per-chat settings.
@@ -48,10 +48,14 @@ The chat list (`/app/chat`) shows all your chats in a table and supports:
 - Search across titles and message text
 - Filter by bot
 - Sorting and pagination
-- Rename and delete per chat, from the row menu
+- Pin, rename and delete per chat, from the row menu
 - **Delete selected** as the only bulk action, available for any chats you select
 
-The sidebar's **Chats** group shows your 40 most recent chats, with the same rename and delete actions.
+The sidebar's **Chats** group shows your most recent chats, up to 40 together with the pinned ones, with the same pin, rename and delete actions.
+
+### Pinning
+
+**Pin chat** in a chat's menu keeps it at the top: in the sidebar's **Pinned** group, above **Chats**, and first in the chat list and on Home, marked with a pin, the most recently pinned first. Sorting the chat list by a column or searching orders pinned chats like any other. **Unpin chat** returns it to its place by last activity. Pins are your own, and a branch of a pinned chat starts unpinned. Assistant conversations cannot be pinned.
 
 ### Search
 

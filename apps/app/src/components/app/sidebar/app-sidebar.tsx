@@ -5,14 +5,11 @@ import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
-	SidebarGroup,
-	SidebarGroupContent,
-	SidebarGroupLabel,
 	SidebarHeader,
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { m } from "@/paraglide/messages";
-import { ChatSidebarMenu } from "./chat-sidebar-menu";
+import { ChatSidebarGroups } from "./chat-sidebar-groups";
 import { ManageSidebarGroup } from "./manage-sidebar-group";
 import { SidebarLogo } from "./sidebar-logo";
 
@@ -34,17 +31,7 @@ const AppSidebar = () => {
 				</Link>
 			</SidebarHeader>
 			<SidebarContent>
-				<SidebarGroup>
-					<SidebarGroupLabel className="flex justify-between">
-						<span>{m.sidebar_chats_group_label()}</span>
-						<Link to="/app/chat" className="hover:underline">
-							{m.common_show_all_action()}
-						</Link>
-					</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<ChatSidebarMenu />
-					</SidebarGroupContent>
-				</SidebarGroup>
+				<ChatSidebarGroups />
 			</SidebarContent>
 
 			<SidebarFooter>

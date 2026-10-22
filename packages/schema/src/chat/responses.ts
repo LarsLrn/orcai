@@ -26,6 +26,8 @@ export const createChatResponseSchema = createDataResponseSchema(chatSchema);
 
 export const updateChatResponseSchema = createDataResponseSchema(chatSchema);
 
+export const pinChatResponseSchema = createDataResponseSchema(chatSchema);
+
 export const deleteChatResponseSchema = createDeleteResponseSchema();
 
 export const branchChatResponseSchema = createDataResponseSchema(

@@ -134,11 +134,7 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 			updatedAt: dbSchema.chat.updatedAt,
 		} satisfies Record<ChatSortKey, SortExpression>,
 		defaultOrder: [
-			...(search
-				? [
-						desc(rank),
-					]
-				: []),
+			search ? desc(rank) : sql`${dbSchema.chat.pinnedAt} desc nulls last`,
 			desc(dbSchema.chat.updatedAt),
 		],
 		tieBreaker: {
@@ -496,6 +492,40 @@ const updateChat = authed.chat.update
 		};
 	});
 
+const pinChat = authed.chat.pin
+	.use(
+		requireEntityPermission("chat", "edit", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const db = yield* DB;
+		const [existing] = yield* db
+			.select({
+				kind: dbSchema.chat.kind,
+			})
+			.from(dbSchema.chat)
+			.where(eq(dbSchema.chat.id, input.id));
+
+		if (existing?.kind === "assistant") {
+			return yield* Effect.fail(assistantConversationImmutable());
+		}
+
+		const [chat] = yield* db
+			.update(dbSchema.chat)
+			.set({
+				pinnedAt: input.pinned ? new Date() : null,
+			})
+			.where(eq(dbSchema.chat.id, input.id))
+			.returning();
+
+		return {
+			data: yield* Effect.fromNullishOr(chat).pipe(
+				Effect.mapError(() => chatNotFound(input.id)),
+			),
+		};
+	});
+
 const deleteChats = authed.chat.delete
 	.use(
 		checkManyPermissionMiddleware("chat").adaptInput(
@@ -664,6 +694,7 @@ export const chatRouter = {
 	create: createChat,
 	find: findChat,
 	update: updateChat,
+	pin: pinChat,
 	delete: deleteChats,
 	branch: branchChat,
 };

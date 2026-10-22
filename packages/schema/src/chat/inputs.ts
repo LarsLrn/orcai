@@ -31,6 +31,11 @@ export const updateChatInputSchema = chatMutableFieldsSchema.extend({
 	id: chatIdSchema,
 });
 
+export const pinChatInputSchema = z.object({
+	id: chatIdSchema,
+	pinned: z.boolean(),
+});
+
 export const deleteChatInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({
 		key: "id",
@@ -49,5 +54,6 @@ export type ChatSortKey = z.infer<typeof chatSortKeySchema>;
 export type FindChatInput = z.infer<typeof findChatInputSchema>;
 export type CreateChatInput = z.infer<typeof createChatInputSchema>;
 export type UpdateChatInput = z.infer<typeof updateChatInputSchema>;
+export type PinChatInput = z.infer<typeof pinChatInputSchema>;
 export type DeleteChatInput = z.infer<typeof deleteChatInputSchema>;
 export type BranchChatInput = z.infer<typeof branchChatInputSchema>;

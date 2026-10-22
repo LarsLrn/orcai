@@ -4,6 +4,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontalIcon } from "lucide-react";
 import { BranchMark } from "@/components/chat/branch-links";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
+import { PinMark } from "@/components/chat/pin-mark";
 import { SearchSnippet } from "@/components/chat/search-snippet";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -21,7 +22,7 @@ export const chatTableColumns = columnHelper.columns([
 			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => {
-			const { id, kind, match, parentChatId, title } = row.original;
+			const { id, kind, match, parentChatId, pinnedAt, title } = row.original;
 			return (
 				<div className="flex min-w-0 flex-col gap-0.5">
 					<Link
@@ -38,6 +39,7 @@ export const chatTableColumns = columnHelper.columns([
 						}}
 						className="inline-flex max-w-full items-center gap-1.5 font-medium hover:underline"
 					>
+						{pinnedAt && <PinMark />}
 						{parentChatId && <BranchMark />}
 						<span className="truncate">
 							{title ?? m.chat_title_placeholder()}
@@ -87,7 +89,15 @@ export const chatTableColumns = columnHelper.columns([
 		enableSorting: false,
 		enableHiding: false,
 		cell: ({ row }) => (
-			<ChatActionsDropdown chatId={row.original.id} title={row.original.title}>
+			<ChatActionsDropdown
+				chatId={row.original.id}
+				title={row.original.title}
+				pinned={
+					row.original.kind === "chat"
+						? row.original.pinnedAt !== null
+						: undefined
+				}
+			>
 				<Button variant="ghost" className="size-8 p-0">
 					<MoreHorizontalIcon />
 					<span className="sr-only">{m.chat_table_row_menu_trigger()}</span>

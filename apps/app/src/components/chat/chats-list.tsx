@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { BranchMark } from "./branch-links";
 import { ChatActionsDropdown } from "./chat-actions-dropdown";
+import { PinMark } from "./pin-mark";
 
 const ChatsList = ({
 	limit,
@@ -79,7 +80,11 @@ const ChatsList = ({
 					key={chat.id}
 				>
 					<Card className="relative h-full transition-all hover:border-primary/50 hover:shadow-md">
-						<ChatActionsDropdown chatId={chat.id} title={chat.title}>
+						<ChatActionsDropdown
+							chatId={chat.id}
+							title={chat.title}
+							pinned={chat.pinnedAt !== null}
+						>
 							<Button
 								variant="ghost"
 								className="absolute top-2 right-2 h-8 w-8 p-0 data-[state=open]:bg-muted"
@@ -92,6 +97,7 @@ const ChatsList = ({
 
 						<CardHeader className="pb-2">
 							<CardTitle className="flex w-[calc(100%-1rem)] items-center gap-1.5 text-base">
+								{chat.pinnedAt && <PinMark />}
 								{chat.parentChatId && <BranchMark />}
 								<span className="line-clamp-1 min-w-0">
 									{chat.title ?? m.chat_title_placeholder()}

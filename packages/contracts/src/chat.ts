@@ -9,6 +9,8 @@ import {
 	findChatResponseSchema,
 	listChatsInputSchema,
 	listChatsResponseSchema,
+	pinChatInputSchema,
+	pinChatResponseSchema,
 	updateChatInputSchema,
 	updateChatResponseSchema,
 } from "@orcai/schema";
@@ -68,6 +70,19 @@ export const chatContracts = {
 		)
 		.input(updateChatInputSchema)
 		.output(updateChatResponseSchema),
+	pin: base
+		.meta(
+			openapi({
+				method: "PUT",
+				path: "/chats/{id}/pin",
+				summary: "Pin or unpin a chat",
+				tags: [
+					"Chats",
+				],
+			}),
+		)
+		.input(pinChatInputSchema)
+		.output(pinChatResponseSchema),
 	delete: base
 		.meta(
 			openapi({

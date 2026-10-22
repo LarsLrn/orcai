@@ -27,6 +27,7 @@ export const chatSchema = chatFieldsSchema.extend({
 	kind: chatKindSchema,
 	organizationId: organizationIdSchema.nullable(),
 	userId: userIdSchema,
+	pinnedAt: z.coerce.date().nullable(),
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
 });
