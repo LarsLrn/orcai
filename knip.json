@@ -31,7 +31,6 @@
 				"src/router.tsx",
 				"src/client.tsx",
 				"src/server.ts",
-				"start-server.ts",
 				"src/**/*.test.{ts,tsx}",
 				"src/**/*.integration.ts"
 			],

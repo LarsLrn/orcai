@@ -4,10 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 import { paraglideOptions } from "./paraglide.config.ts";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
 	server: {
 		port: Number(process.env.PORT ?? 3000),
 		strictPort: true,
@@ -20,16 +21,23 @@ export default defineConfig({
 		},
 	},
 	ssr: {
-		// Loads its native bindings relative to its own files.
 		external: [
+			// Loads its native bindings relative to its own files.
 			"@kreuzberg/node",
+			// Imports its WebAssembly as a module, which Nitro's build handles.
+			"shiki",
 		],
-		noExternal: [
-			// Bundled with the workspace packages so the server holds one OpenTelemetry SDK.
-			"@effect/opentelemetry",
-			"motion",
-			"streamdown",
-		],
+		// The build bundles every dependency, so the server output resolves
+		// nothing from node_modules at runtime.
+		noExternal:
+			command === "build"
+				? true
+				: [
+						// Bundled with the workspace packages so the server holds one OpenTelemetry SDK.
+						"@effect/opentelemetry",
+						"motion",
+						"streamdown",
+					],
 	},
 	resolve: {
 		tsconfigPaths: true,
@@ -54,5 +62,15 @@ export default defineConfig({
 				reactCompilerPreset(),
 			],
 		}),
+		// Builds the production server; development keeps the Start dev server.
+		command === "build" &&
+			nitro({
+				preset: "bun",
+				compressPublicAssets: true,
+				// Copied whole: its loader requires files the tracer cannot see.
+				traceDeps: [
+					"@kreuzberg/node*",
+				],
+			}),
 	],
-});
+}));

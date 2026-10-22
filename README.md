@@ -307,7 +307,7 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run build`: build the app and documentation site
 - `bun run build:app`: build only the main app
 - `bun run build:web`: build only the documentation site
-- `bun run start`: run the production server from `dist`
+- `bun run start`: run the production server from `apps/app/.output`
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run worker process in production mode
 - `bun run lint`: run Biome, TypeScript checks, and the migration check

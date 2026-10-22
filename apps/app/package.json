@@ -11,7 +11,7 @@
 		"dev": "bun run --filter @orcai/notifications paraglide:compile && vite dev --host 127.0.0.1",
 		"machine-translate": "inlang machine translate --project project.inlang",
 		"paraglide:compile": "bun run compile-paraglide.ts",
-		"start": "bun run start-server.ts",
+		"start": "bun .output/server/index.mjs",
 		"test": "NODE_ENV=test bun test --parallel"
 	},
 	"dependencies": {
@@ -143,6 +143,7 @@
 		"@vitejs/plugin-react": "catalog:",
 		"babel-plugin-react-compiler": "1.0.0",
 		"motion": "14.1.0",
+		"nitro": "3.0.260610-beta",
 		"postcss": "8.5.29",
 		"shadcn": "4.21.4",
 		"streamdown": "2.7.0",
