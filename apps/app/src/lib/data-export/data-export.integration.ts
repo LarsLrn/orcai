@@ -29,13 +29,15 @@ import {
 const { run, organizationWith, procedureOptions } = authzIntegration();
 
 // Workers create the queues at boot; the tier runs none.
-beforeAll(() =>
-	run(
-		Effect.gen(function* () {
-			const { boss } = yield* PgBossService;
-			yield* Effect.promise(() => boss.createQueue(DATA_EXPORT_JOB_NAME));
-		}),
-	),
+beforeAll(
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { boss } = yield* PgBossService;
+				yield* Effect.promise(() => boss.createQueue(DATA_EXPORT_JOB_NAME));
+			}),
+		),
+	TIMEOUT,
 );
 
 const FILE_CONTENT = "Field notes, page one.";
