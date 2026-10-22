@@ -91,6 +91,5 @@ mock.module("@/lib/effect/runtime", () => ({
 	runtime: {
 		runPromise,
 	},
-	ensureRuntimeReady: () => Promise.resolve(),
 	runPromise,
 }));
