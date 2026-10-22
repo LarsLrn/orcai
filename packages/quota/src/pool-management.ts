@@ -22,7 +22,7 @@ type CreateQuotaPoolParams = {
 	name: string;
 	description?: string | null;
 	providerId: ProviderId;
-	providerModelId?: ModelId | null;
+	modelId?: ModelId | null;
 	periodType: (typeof dbSchema.quotaPool.$inferInsert)["periodType"];
 	budgetAmount: number;
 	priority: number;
@@ -38,7 +38,7 @@ type UpdateQuotaPoolParams = {
 	id: QuotaPoolId;
 	name?: string;
 	description?: string | null;
-	providerModelId?: ModelId | null;
+	modelId?: ModelId | null;
 	periodType?: (typeof dbSchema.quotaPool.$inferInsert)["periodType"];
 	budgetAmount?: number;
 	priority?: number;
@@ -89,10 +89,10 @@ const selectOrganizationProvider = (params: {
 
 const validateProviderModel = (params: {
 	providerId: ProviderId;
-	providerModelId?: ModelId | null;
+	modelId?: ModelId | null;
 }) =>
 	Effect.gen(function* () {
-		if (!params.providerModelId) {
+		if (!params.modelId) {
 			return true;
 		}
 
@@ -103,7 +103,7 @@ const validateProviderModel = (params: {
 				providerId: dbSchema.model.providerId,
 			})
 			.from(dbSchema.model)
-			.where(eq(dbSchema.model.id, params.providerModelId))
+			.where(eq(dbSchema.model.id, params.modelId))
 			.limit(1);
 
 		return !!model && model.providerId === params.providerId;
@@ -149,7 +149,7 @@ export const createQuotaPool: (
 
 		const modelValid = yield* validateProviderModel({
 			providerId: provider.id,
-			providerModelId: params.providerModelId,
+			modelId: params.modelId,
 		});
 
 		if (!modelValid) {
@@ -174,7 +174,7 @@ export const createQuotaPool: (
 			name: params.name,
 			description: params.description,
 			providerId: params.providerId,
-			providerModelId: params.providerModelId,
+			modelId: params.modelId,
 			periodType: params.periodType,
 			budgetAmount: params.budgetAmount,
 			priority: params.priority,
@@ -218,7 +218,7 @@ export const updateQuotaPool: (
 
 		const modelValid = yield* validateProviderModel({
 			providerId: pool.providerId,
-			providerModelId: params.providerModelId,
+			modelId: params.modelId,
 		});
 
 		if (!modelValid) {
@@ -277,8 +277,8 @@ export const updateQuotaPool: (
 			(params.name !== undefined && params.name !== updatedPool.name) ||
 			(params.description !== undefined &&
 				params.description !== updatedPool.description) ||
-			(params.providerModelId !== undefined &&
-				params.providerModelId !== updatedPool.providerModelId) ||
+			(params.modelId !== undefined &&
+				params.modelId !== updatedPool.modelId) ||
 			(params.periodType !== undefined &&
 				params.periodType !== updatedPool.periodType) ||
 			(params.priority !== undefined &&
@@ -294,10 +294,8 @@ export const updateQuotaPool: (
 				params.description === undefined
 					? updatedPool.description
 					: params.description,
-			providerModelId:
-				params.providerModelId === undefined
-					? updatedPool.providerModelId
-					: params.providerModelId,
+			modelId:
+				params.modelId === undefined ? updatedPool.modelId : params.modelId,
 			periodType: params.periodType ?? updatedPool.periodType,
 			priority: params.priority ?? updatedPool.priority,
 			isDefault: params.isDefault ?? updatedPool.isDefault,
@@ -331,7 +329,7 @@ export const updateQuotaPool: (
 					...(hasNonBudgetUpdate && {
 						name: pool.name,
 						description: pool.description,
-						providerModelId: pool.providerModelId,
+						modelId: pool.modelId,
 						periodType: pool.periodType,
 						priority: pool.priority,
 						isDefault: pool.isDefault,
@@ -345,7 +343,7 @@ export const updateQuotaPool: (
 					...(hasNonBudgetUpdate && {
 						name: finalPool.name,
 						description: finalPool.description,
-						providerModelId: finalPool.providerModelId,
+						modelId: finalPool.modelId,
 						periodType: finalPool.periodType,
 						priority: finalPool.priority,
 						isDefault: finalPool.isDefault,

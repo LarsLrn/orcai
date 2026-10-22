@@ -121,7 +121,7 @@ export const generateChatTitle = ({ model, ...params }: TitleRequest) =>
 			organizationId: params.organizationId,
 			userId: params.userId,
 			providerId: model.providerId,
-			providerModelId: model.modelId,
+			modelId: model.modelId,
 			model: model.language,
 			prompt: buildChatTitlePrompt(params.userMessageText),
 			...titleCallSettings(model.kind),

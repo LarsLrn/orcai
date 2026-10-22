@@ -76,7 +76,7 @@ const reserveForAppRequest: Reserve = (input) =>
 									poolId: "pool" as QuotaPoolId,
 									periodId: "period" as QuotaPeriodId,
 									providerId: input.providerId,
-									providerModelId: input.providerModelId ?? null,
+									modelId: input.modelId ?? null,
 									meteringMode: pool.meteringMode,
 									reservedAmount:
 										pool.meteringMode === "requests"

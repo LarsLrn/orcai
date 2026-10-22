@@ -12,7 +12,7 @@ export interface GenerateTextWithQuotaInput {
 	organizationId: OrganizationId;
 	userId: UserId;
 	providerId: ProviderId;
-	providerModelId: string | null;
+	modelId: string | null;
 	botId?: BotId | null;
 	model: LanguageModel;
 	messages?: ModelMessage[];
@@ -45,7 +45,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			organizationId: input.organizationId,
 			userId: input.userId,
 			providerId: input.providerId,
-			providerModelId: input.providerModelId,
+			modelId: input.modelId,
 			botId: input.botId,
 			appRequestId: input.appRequestId,
 			maxOutputTokens: input.maxOutputTokens,

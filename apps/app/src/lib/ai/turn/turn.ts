@@ -287,7 +287,7 @@ const meterTurn = ({
 		organizationId: input.organizationId,
 		userId: input.user.id,
 		providerId: setup.providerId,
-		providerModelId: setup.modelId,
+		modelId: setup.modelId,
 		botId: setup.botId,
 		maxSteps: setup.maxSteps,
 		maxOutputTokens: setup.callSettings.maxOutputTokens,

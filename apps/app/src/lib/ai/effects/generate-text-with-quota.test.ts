@@ -13,7 +13,7 @@ const generate = (model: MockLanguageModelV4) =>
 			organizationId: "org-1" as OrganizationId,
 			userId: "user-1" as UserId,
 			providerId: "provider-1" as ProviderId,
-			providerModelId: "model-1",
+			modelId: "model-1",
 			model,
 			prompt: "Name this chat.",
 		}),

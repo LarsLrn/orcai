@@ -14,11 +14,11 @@ export const PROVIDER_WIDE_MODEL_VALUE = "__provider_wide__";
 export const quotaPoolFormSchema = quotaPoolCreateInputSchema
 	.omit({
 		description: true,
-		providerModelId: true,
+		modelId: true,
 	})
 	.extend({
 		description: z.string().trim().max(1000),
-		providerModelId: z.union([
+		modelId: z.union([
 			modelIdSchema,
 			z.literal(PROVIDER_WIDE_MODEL_VALUE),
 		]),
@@ -30,7 +30,7 @@ const defaultValues = (
 	name: pool?.name ?? "",
 	description: pool?.description ?? "",
 	providerId: pool?.providerId ?? "",
-	providerModelId: pool?.providerModelId ?? PROVIDER_WIDE_MODEL_VALUE,
+	modelId: pool?.modelId ?? PROVIDER_WIDE_MODEL_VALUE,
 	periodType:
 		pool?.periodType ?? ("monthly" as "weekly" | "monthly" | "yearly"),
 	budgetAmount: pool?.budgetAmount ?? 100000,

@@ -63,7 +63,7 @@ export const meteredWebSearch =
 				userId,
 				botId,
 				providerId,
-				providerModelId: null,
+				modelId: null,
 				appRequestId: `web-search:${uuidv4()}`,
 				maxExpectedProviderRequests: 1,
 				messages: [],

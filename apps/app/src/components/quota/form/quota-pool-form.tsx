@@ -38,17 +38,15 @@ const QuotaPoolForm = ({
 	const form = useAppForm({
 		...quotaPoolFormOptions(pool),
 		onSubmit: async ({ value }) => {
-			const providerModelId =
-				value.providerModelId === PROVIDER_WIDE_MODEL_VALUE
-					? null
-					: value.providerModelId;
+			const modelId =
+				value.modelId === PROVIDER_WIDE_MODEL_VALUE ? null : value.modelId;
 
 			if (action === "update" && pool) {
 				await updateQuotaPool.mutateAsync({
 					id: pool.id,
 					name: value.name.trim(),
 					description: value.description.trim() || null,
-					providerModelId,
+					modelId,
 					periodType: value.periodType,
 					budgetAmount: value.budgetAmount,
 					priority: value.priority,
@@ -63,7 +61,7 @@ const QuotaPoolForm = ({
 				name: value.name.trim(),
 				description: value.description.trim() || null,
 				providerId: value.providerId,
-				providerModelId,
+				modelId,
 				periodType: value.periodType,
 				budgetAmount: value.budgetAmount,
 				priority: value.priority,
@@ -112,7 +110,7 @@ const QuotaPoolForm = ({
 	);
 	const selectedProviderModelId = useSelector(
 		form.store,
-		(state) => state.values.providerModelId,
+		(state) => state.values.modelId,
 	);
 	const selectedGroupIds = useSelector(
 		form.store,
@@ -133,7 +131,7 @@ const QuotaPoolForm = ({
 		],
 	);
 
-	const providerModelOptions = useMemo(() => {
+	const modelOptions = useMemo(() => {
 		if (!selectedProviderId) {
 			return [
 				{
@@ -194,15 +192,13 @@ const QuotaPoolForm = ({
 	]);
 
 	useEffect(() => {
-		const optionValues = new Set(
-			providerModelOptions.map((option) => option.value),
-		);
+		const optionValues = new Set(modelOptions.map((option) => option.value));
 		if (!optionValues.has(selectedProviderModelId)) {
-			form.setFieldValue("providerModelId", PROVIDER_WIDE_MODEL_VALUE);
+			form.setFieldValue("modelId", PROVIDER_WIDE_MODEL_VALUE);
 		}
 	}, [
 		form,
-		providerModelOptions,
+		modelOptions,
 		selectedProviderModelId,
 	]);
 
@@ -251,13 +247,13 @@ const QuotaPoolForm = ({
 
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<form.AppField
-					name="providerModelId"
+					name="modelId"
 					children={(field) => (
 						<field.SelectField
 							label={m.quotas_form_model_scope_label()}
 							placeholder={m.quotas_form_model_scope_placeholder()}
 							description={m.quotas_form_model_scope_description()}
-							options={providerModelOptions}
+							options={modelOptions}
 						/>
 					)}
 				/>

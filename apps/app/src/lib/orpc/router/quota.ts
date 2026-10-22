@@ -286,7 +286,7 @@ const createQuotaPool = authed.quota.create
 			name: input.name,
 			description: input.description,
 			providerId: input.providerId,
-			providerModelId: input.providerModelId,
+			modelId: input.modelId,
 			periodType: input.periodType,
 			budgetAmount: input.budgetAmount,
 			priority: input.priority,
@@ -422,7 +422,7 @@ const quotaChatBadge = authed.quota.chatBadge
 				organizationId,
 				userId: context.auth.user.id,
 				providerId: chatConfig.providerId,
-				providerModelId: chatConfig.modelId,
+				modelId: chatConfig.modelId,
 			});
 
 			const winning = resolved.winningPool;
@@ -507,7 +507,7 @@ const quotaChatBadge = authed.quota.chatBadge
 			organizationId: organizationId,
 			userId: context.auth.user.id,
 			providerId: templateConfig.provider,
-			providerModelId: templateConfig.model,
+			modelId: templateConfig.model,
 		});
 
 		const winning = resolved.winningPool;
@@ -545,7 +545,7 @@ const quotaAvailability = authed.quota.availability
 			organizationId: context.auth.session.activeOrganizationId,
 			userId: context.auth.user.id,
 			providerId: input.providerId,
-			providerModelId: input.modelId,
+			modelId: input.modelId,
 		});
 
 		return {

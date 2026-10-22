@@ -43,7 +43,7 @@ export const createQuotaPoolWithInitialPeriod: (params: {
 	name: string;
 	description?: string | null;
 	providerId: ProviderId;
-	providerModelId?: string | null;
+	modelId?: string | null;
 	periodType: (typeof dbSchema.quotaPool.$inferInsert)["periodType"];
 	budgetAmount: number;
 	priority: number;
@@ -67,7 +67,7 @@ export const createQuotaPoolWithInitialPeriod: (params: {
 						name: params.name,
 						description: params.description ?? null,
 						providerId: params.providerId,
-						providerModelId: params.providerModelId ?? null,
+						modelId: params.modelId ?? null,
 						periodType: params.periodType,
 						budgetAmount: params.budgetAmount,
 						priority: params.priority,
@@ -327,7 +327,7 @@ export const reserveQuotaLedger: (params: {
 	quotaPoolId: QuotaPoolId;
 	quotaPeriodId: QuotaPeriodId;
 	providerId: ProviderId;
-	providerModelId?: string | null;
+	modelId?: string | null;
 	botId?: BotId | null;
 	userId: UserId;
 	appRequestId: string;
@@ -368,7 +368,7 @@ export const reserveQuotaLedger: (params: {
 						quotaPoolId: params.quotaPoolId,
 						quotaPeriodId: params.quotaPeriodId,
 						providerId: params.providerId,
-						providerModelId: params.providerModelId ?? null,
+						modelId: params.modelId ?? null,
 						botId: params.botId ?? null,
 						userId: params.userId,
 						appRequestId: params.appRequestId,
@@ -486,7 +486,7 @@ export const finalizeQuotaLedger: (params: {
 						quotaPoolId: reserved.quotaPoolId,
 						quotaPeriodId: reserved.quotaPeriodId,
 						providerId: reserved.providerId,
-						providerModelId: reserved.providerModelId,
+						modelId: reserved.modelId,
 						botId: reserved.botId,
 						userId: reserved.userId,
 						appRequestId: params.appRequestId,
@@ -590,7 +590,7 @@ export const releaseQuotaLedger: (params: {
 						quotaPoolId: reserved.quotaPoolId,
 						quotaPeriodId: reserved.quotaPeriodId,
 						providerId: reserved.providerId,
-						providerModelId: reserved.providerModelId,
+						modelId: reserved.modelId,
 						botId: reserved.botId,
 						userId: reserved.userId,
 						appRequestId: params.appRequestId,
@@ -640,7 +640,7 @@ export const releaseQuotaLedger: (params: {
 							quotaPoolId: reserved.quotaPoolId,
 							quotaPeriodId: reserved.quotaPeriodId,
 							providerId: reserved.providerId,
-							providerModelId: reserved.providerModelId,
+							modelId: reserved.modelId,
 							botId: reserved.botId,
 							userId: reserved.userId,
 							appRequestId: params.appRequestId,
