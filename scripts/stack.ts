@@ -246,8 +246,15 @@ function userOverlayFile(): string {
 	);
 }
 
+/**
+ * The browser's origin for the app. WebAuthn refuses an IP address as the
+ * relying party, so passkeys need a host name; the servers still bind
+ * 127.0.0.1, which a client for `localhost` falls back to.
+ */
+const appUrlFor = (port: string) => `http://localhost:${port}`;
+
 function defaultEnv(stackName: string, ports: Ports): Env {
-	const appUrl = `http://127.0.0.1:${String(ports.PORT)}`;
+	const appUrl = appUrlFor(String(ports.PORT));
 	const webUrl = `http://127.0.0.1:${String(ports.WEB_PORT)}`;
 	const s3Url = `http://127.0.0.1:${String(ports.S3_PORT)}`;
 	return {
@@ -921,6 +928,8 @@ function e2eEnv(env: Env, pipeline: boolean): Env {
 		);
 	return {
 		...env,
+		// Also for a stack whose `.env` predates the host name.
+		BETTER_AUTH_URL: appUrlFor(envValue(env, "PORT")),
 		E2E_INFERENCE_PORT: inferencePort,
 		OPENAI_COMPATIBLE_BASE_URL: `http://127.0.0.1:${inferencePort}/v1`,
 		OPENAI_COMPATIBLE_API_KEY: "e2e-mock-key",
@@ -1047,6 +1056,11 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 		web: tcpProbe("127.0.0.1", envValue(env, "WEB_PORT")),
 		workers: async () => false,
 	};
+	const origin = appUrlFor(envValue(env, "PORT"));
+	if (env.BETTER_AUTH_URL !== origin && (await listening.app()))
+		throw new Error(
+			`The app listening on the stack port serves ${String(env.BETTER_AUTH_URL)}, but e2e opens ${origin}, which passkeys need. Set BETTER_AUTH_URL=${origin} in .env and restart it.`,
+		);
 	const needed: ImageService[] = [];
 	for (const service of pipeline
 		? ([
