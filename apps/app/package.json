@@ -39,7 +39,6 @@
 		"@streamdown/code": "2.0.0",
 		"@streamdown/math": "1.0.3",
 		"@streamdown/mermaid": "1.0.3",
-		"@t3-oss/env-core": "0.13.11",
 		"@tanstack/form-core": "1.33.5",
 		"@tanstack/query-core": "5.104.2",
 		"@tanstack/react-form": "1.33.5",

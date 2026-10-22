@@ -17,7 +17,7 @@ Valkey, SeaweedFS, Qdrant, SpiceDB, and the generated `.env` ports.
 3. Run services with `bun run stack dev`, `workers`, `web`, or `dev --all`.
    Run other commands through `bun run stack exec -- <command>` so they get
    the stack environment.
-4. Verify a running app through the `BASE_URL` in `.env`; allow at least 60
+4. Verify a running app through the `BETTER_AUTH_URL` in `.env`; allow at least 60
    seconds for the first request.
 5. Leave a healthy stack running. Use `bun run stack down --volumes --yes`
    only when the user explicitly wants its data removed.

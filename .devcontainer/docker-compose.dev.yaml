@@ -39,9 +39,7 @@ services:
       BUN_OPTIONS: --no-env-file
       ORCAI_ENV_FILE: .devcontainer/.env
       NODE_ENV: development
-      BASE_URL: http://localhost:3000
       BETTER_AUTH_URL: http://localhost:3000
-      VITE_BASE_URL: http://localhost:3000
       VITE_WEB_URL: http://localhost:3001
       KREUZBERG_OCR_LANGUAGE: eng+deu
       POSTGRES_HOST: postgres
