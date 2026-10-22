@@ -26,8 +26,8 @@ import {
 	MessageScrollerItem,
 	useMessageScroller,
 } from "@/components/ui/message-scroller";
+import { usePublicConfig } from "@/hooks/use-public-config";
 import { turnView } from "@/lib/ai/turn-view/turn-view";
-import { clientEnv } from "@/lib/env/client";
 import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
@@ -43,8 +43,6 @@ import { useBranchChat } from "./message/use-branch-chat";
 import { SendMessageContext } from "./send-message";
 import { StepAnswersContext } from "./step-answers";
 import { useChatSession } from "./use-chat-session";
-
-const assistantLinks = assistantLinkSafety(clientEnv.VITE_WEB_URL);
 
 /** Quota is a governance fact, so it sits in the accent, above the composer. */
 const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
@@ -118,6 +116,13 @@ const Chat = ({
 	variant?: "chat" | "assistant";
 }) => {
 	const isAssistant = variant === "assistant";
+	const { docsUrl } = usePublicConfig();
+	const assistantLinks = useMemo(
+		() => assistantLinkSafety(docsUrl),
+		[
+			docsUrl,
+		],
+	);
 	const { session, messages, phase, error } = useChatSession({
 		chatId: id,
 		page,

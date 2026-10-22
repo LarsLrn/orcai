@@ -156,6 +156,7 @@ export const answerSetup = ({
 const AppConfigTest = Layer.succeed(AppConfigService, {
 	config: {} as never,
 	docs: undefined,
+	publicConfig: {},
 });
 
 /** Runs a turn effect with the store and the services the fakes stand in for. */

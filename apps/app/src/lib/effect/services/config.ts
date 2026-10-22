@@ -16,9 +16,11 @@ const appConfig = Config.all({
 	}),
 });
 
-const docsEnv = Config.all({
-	webUrl: Config.option(Config.string("VITE_WEB_URL")),
+const deploymentEnv = Config.all({
+	webUrl: Config.option(Config.string("WEB_URL")),
 	webInternalUrl: Config.option(Config.string("WEB_INTERNAL_URL")),
+	umamiScriptUrl: Config.option(Config.string("UMAMI_SCRIPT_URL")),
+	umamiWebsiteId: Config.option(Config.string("UMAMI_WEBSITE_ID")),
 });
 
 type AppConfig = Config.Success<typeof appConfig>;
@@ -27,6 +29,15 @@ type AppConfig = Config.Success<typeof appConfig>;
 export interface DocsConfig {
 	readonly publicOrigin: string;
 	readonly fetchOrigin: string;
+}
+
+/** What the browser may know about this deployment. */
+export interface PublicConfig {
+	readonly docsUrl?: string;
+	readonly umami?: {
+		readonly scriptUrl: string;
+		readonly websiteId: string;
+	};
 }
 
 const parseOrigin = (value: string | undefined) => {
@@ -46,38 +57,70 @@ const parseOrigin = (value: string | undefined) => {
 	};
 };
 
-/** Empty and non-http(s) values count as unset; without a public URL there are no docs. */
-export const resolveDocsConfig = (env: {
+/**
+ * Empty and non-http(s) URLs count as unset; without a public URL there are no
+ * docs. Umami needs both values or stays off.
+ */
+export const resolveDeploymentConfig = (env: {
 	webUrl?: string;
 	webInternalUrl?: string;
+	umamiScriptUrl?: string;
+	umamiWebsiteId?: string;
 }): {
 	docs: DocsConfig | undefined;
-	invalid: ("VITE_WEB_URL" | "WEB_INTERNAL_URL")[];
+	publicConfig: PublicConfig;
+	warnings: string[];
 } => {
 	const web = parseOrigin(env.webUrl);
 	const internal = parseOrigin(env.webInternalUrl);
+	const docs = web.origin
+		? {
+				publicOrigin: web.origin,
+				fetchOrigin: internal.origin ?? web.origin,
+			}
+		: undefined;
+	const umami =
+		env.umamiScriptUrl && env.umamiWebsiteId
+			? {
+					scriptUrl: env.umamiScriptUrl,
+					websiteId: env.umamiWebsiteId,
+				}
+			: undefined;
 
 	return {
-		docs: web.origin
-			? {
-					publicOrigin: web.origin,
-					fetchOrigin: internal.origin ?? web.origin,
-				}
-			: undefined,
-		invalid: (
-			[
+		docs,
+		publicConfig: {
+			...(docs && {
+				docsUrl: docs.publicOrigin,
+			}),
+			...(umami && {
+				umami,
+			}),
+		},
+		warnings: [
+			...(
 				[
-					"VITE_WEB_URL",
-					web,
-				],
-				[
-					"WEB_INTERNAL_URL",
-					internal,
-				],
-			] as const
-		)
-			.filter(([, parsed]) => parsed.invalid)
-			.map(([name]) => name),
+					[
+						"WEB_URL",
+						web,
+					],
+					[
+						"WEB_INTERNAL_URL",
+						internal,
+					],
+				] as const
+			)
+				.filter(([, parsed]) => parsed.invalid)
+				.map(
+					([name]) =>
+						`${name} is not an http(s) URL and is ignored, so the assistant may not read the docs.`,
+				),
+			...(!umami && (env.umamiScriptUrl || env.umamiWebsiteId)
+				? [
+						"Only one of UMAMI_SCRIPT_URL and UMAMI_WEBSITE_ID is set, so analytics stay off.",
+					]
+				: []),
+		],
 	};
 };
 
@@ -86,6 +129,7 @@ export class AppConfigService extends Context.Service<
 	{
 		readonly config: AppConfig;
 		readonly docs: DocsConfig | undefined;
+		readonly publicConfig: PublicConfig;
 	}
 >()("AppConfigService") {}
 
@@ -93,21 +137,22 @@ export const AppConfigLive = Layer.effect(
 	AppConfigService,
 	Effect.gen(function* () {
 		const config = yield* appConfig;
-		const env = yield* docsEnv;
-		const { docs, invalid } = resolveDocsConfig({
+		const env = yield* deploymentEnv;
+		const { docs, publicConfig, warnings } = resolveDeploymentConfig({
 			webUrl: Option.getOrUndefined(env.webUrl),
 			webInternalUrl: Option.getOrUndefined(env.webInternalUrl),
+			umamiScriptUrl: Option.getOrUndefined(env.umamiScriptUrl),
+			umamiWebsiteId: Option.getOrUndefined(env.umamiWebsiteId),
 		});
 
-		for (const name of invalid) {
-			yield* Effect.logWarning(
-				`${name} is not an http(s) URL and is ignored, so the assistant may not read the docs.`,
-			);
+		for (const warning of warnings) {
+			yield* Effect.logWarning(warning);
 		}
 
 		return {
 			config,
 			docs,
+			publicConfig,
 		};
 	}),
 );

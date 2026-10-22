@@ -1,6 +1,8 @@
-import { clientEnv } from "@/lib/env/client";
+import { usePublicConfig } from "@/hooks/use-public-config";
 
 export function useUmami() {
+	const { umami } = usePublicConfig();
+
 	const identifyUser = (
 		uniqueId: string,
 		data: {
@@ -8,8 +10,7 @@ export function useUmami() {
 			email: string;
 		},
 	) => {
-		if (!clientEnv.VITE_UMAMI_SCRIPT_URL || !clientEnv.VITE_UMAMI_WEBSITE_ID)
-			return;
+		if (!umami) return;
 
 		if (typeof window !== "undefined" && window.umami) {
 			window.umami.identify(uniqueId, data);
@@ -17,8 +18,7 @@ export function useUmami() {
 	};
 
 	const trackEvent = (eventName: string, eventData?: Record<string, any>) => {
-		if (!clientEnv.VITE_UMAMI_SCRIPT_URL || !clientEnv.VITE_UMAMI_WEBSITE_ID)
-			return;
+		if (!umami) return;
 
 		if (typeof window !== "undefined" && window.umami) {
 			window.umami.track(eventName, eventData);
