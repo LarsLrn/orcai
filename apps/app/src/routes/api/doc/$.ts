@@ -13,6 +13,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { logFailedProcedure } from "@/lib/orpc/implementation/interceptors";
+import { toFetchResponse } from "@/lib/orpc/implementation/response";
 import { router } from "@/lib/orpc/router";
 import { HEADERS } from "@/settings/constants";
 
@@ -120,6 +121,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 			spec: specFromRouter,
 		}),
 	],
+	toFetchResponse,
 });
 
 export const Route = createFileRoute("/api/doc/$")({
