@@ -18,7 +18,11 @@ Valkey, SeaweedFS, Qdrant, SpiceDB, and the generated `.env` ports.
    Run other commands through `bun run stack exec -- <command>` so they get
    the stack environment.
 4. Verify a running app through the `BETTER_AUTH_URL` in `.env`; allow at least 60
-   seconds for the first request.
+   seconds for the first request. It is `http://localhost:<PORT>`: WebAuthn
+   refuses an IP address, so passkeys need the host name, while the servers
+   bind 127.0.0.1. An older `.env` with `127.0.0.1` keeps it for `stack dev`;
+   edit it to use passkeys there. `stack e2e` always uses `localhost`, and
+   refuses to reuse a running app started with another origin.
 5. Leave a healthy stack running. Use `bun run stack down --volumes --yes`
    only when the user explicitly wants its data removed.
 
