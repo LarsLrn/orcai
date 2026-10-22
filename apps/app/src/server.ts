@@ -7,10 +7,13 @@ import * as Runtime from "effect/Runtime";
 import { runtime } from "./lib/effect/runtime";
 import { installZodErrorMap } from "./lib/errors/zod-error-map";
 import { traceRequest } from "./lib/observability/request-span";
+import { openRequests } from "./lib/server/open-requests";
 import { paraglideMiddleware } from "./paraglide/server.js";
 import { getRouter } from "./router";
 
 installZodErrorMap();
+
+const requests = openRequests();
 
 /** A signal interrupts the server, which is a clean stop. */
 const teardown: Runtime.Teardown = (exit, onExit) =>
@@ -26,6 +29,11 @@ runtime.contextEffect.pipe(
 		),
 	),
 	Effect.andThen(Effect.never),
+	// A signal also makes the HTTP server stop accepting connections; the open
+	// requests still need the runtime, so it is disposed once they are sent.
+	Effect.onInterrupt(() =>
+		requests.drained.pipe(Effect.timeoutOption("5 seconds")),
+	),
 	Effect.ensuring(runtime.disposeEffect),
 	BunRuntime.runMain({
 		teardown,
@@ -36,11 +44,13 @@ runtime.contextEffect.pipe(
 const routeMatcher = getRouter();
 
 export default {
-	async fetch(req: Request): Promise<Response> {
-		// The tracer provider is registered while the runtime builds.
-		await runtime.context();
-		return traceRequest(req, routeMatcher, () =>
-			paraglideMiddleware(req, () => handler.fetch(req)),
-		);
+	fetch(req: Request): Promise<Response> {
+		return requests.track(async () => {
+			// The tracer provider is registered while the runtime builds.
+			await runtime.context();
+			return traceRequest(req, routeMatcher, () =>
+				paraglideMiddleware(req, () => handler.fetch(req)),
+			);
+		});
 	},
 };

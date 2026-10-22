@@ -10,6 +10,7 @@ import {
 } from "@opentelemetry/api";
 import { ATTR_ENDUSER_ID } from "@opentelemetry/semantic-conventions/incubating";
 import type { AnyRouter } from "@tanstack/react-router";
+import { whenSent } from "@/lib/server/open-requests";
 import {
 	loggablePath,
 	normaliseHttpMethod,
@@ -42,47 +43,6 @@ const failSpan = (span: Span, request: Request, error: unknown) => {
 	span.recordException(error instanceof Error ? error : String(error));
 	span.setStatus({
 		code: SpanStatusCode.ERROR,
-	});
-};
-
-/** Ends the span once the body is fully sent, fails or is cancelled by the client. */
-const endWithBody = (
-	request: Request,
-	response: Response,
-	span: Span,
-): Response => {
-	if (response.body === null) {
-		span.end();
-		return response;
-	}
-
-	const reader = response.body.getReader();
-	const body = new ReadableStream<Uint8Array>({
-		async pull(controller) {
-			try {
-				const { done, value } = await reader.read();
-				if (done) {
-					span.end();
-					controller.close();
-				} else {
-					controller.enqueue(value);
-				}
-			} catch (error) {
-				failSpan(span, request, error);
-				span.end();
-				controller.error(error);
-			}
-		},
-		cancel(reason) {
-			span.end();
-			return reader.cancel(reason);
-		},
-	});
-
-	return new Response(body, {
-		status: response.status,
-		statusText: response.statusText,
-		headers: response.headers,
 	});
 };
 
@@ -145,5 +105,8 @@ export const traceRequest = async (
 		});
 	}
 
-	return endWithBody(request, response, span);
+	return whenSent(response, (failure) => {
+		if (failure) failSpan(span, request, failure.error);
+		span.end();
+	});
 };
