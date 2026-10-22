@@ -13,6 +13,7 @@ import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { SqlError } from "effect/unstable/sql/SqlError";
+import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
@@ -423,7 +424,8 @@ const isConstraintViolation = (error: unknown) =>
 
 /**
  * Deletes accounts with their memberships, sessions and access. Every
- * organization they belong to keeps an admin.
+ * organization they belong to keeps an admin, and the instance keeps an
+ * instance admin.
  */
 export const deleteAccounts = (params: {
 	userIds: readonly UserId[];
@@ -462,12 +464,10 @@ export const deleteAccounts = (params: {
 				),
 			},
 			Effect.gen(function* () {
-				const existingUsers = yield* db
-					.select({
-						id: dbSchema.user.id,
-					})
-					.from(dbSchema.user)
-					.where(inArray(dbSchema.user.id, userIds));
+				const existingUsers = yield* lockAsInstanceAdmin({
+					actorId: params.actorId,
+					userIds,
+				});
 				if (existingUsers.length !== userIds.length)
 					return yield* Effect.fail(
 						new AppErrors.NotFoundError({
@@ -543,7 +543,8 @@ export const deleteAccounts = (params: {
 
 /**
  * Bans an account and ends its sessions. Every organization it administers
- * keeps another admin who can sign in.
+ * keeps another admin who can sign in, and the instance keeps an instance
+ * admin.
  */
 export const banAccount = (params: {
 	userId: UserId;
@@ -567,6 +568,12 @@ export const banAccount = (params: {
 				]),
 			},
 			Effect.gen(function* () {
+				yield* lockAsInstanceAdmin({
+					actorId: params.actorId,
+					userIds: [
+						params.userId,
+					],
+				});
 				const administered = yield* db
 					.select({
 						organizationId: dbSchema.member.organizationId,

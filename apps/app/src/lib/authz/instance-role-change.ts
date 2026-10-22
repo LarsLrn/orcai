@@ -5,18 +5,17 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { enqueueNotification } from "@orcai/notifications";
-import { asc, eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
-import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 /**
  * Makes an account an instance administrator or a user again, and emails its
  * owner. Nobody changes their own role, and the actor's role is read again
- * under a lock on both rows, so concurrent demotions always leave an
- * administrator.
+ * under a lock, so concurrent demotions always leave an administrator.
  */
 export const setInstanceRole = (params: {
 	userId: UserId;
@@ -37,39 +36,12 @@ export const setInstanceRole = (params: {
 
 		yield* db.transaction(() =>
 			Effect.gen(function* () {
-				// Locking in id order keeps two opposite changes from deadlocking.
-				const rows = yield* db
-					.select({
-						id: dbSchema.user.id,
-						role: dbSchema.user.role,
-						email: dbSchema.user.email,
-						name: dbSchema.user.name,
-						locale: dbSchema.user.locale,
-						twoFactorEnabled: dbSchema.user.twoFactorEnabled,
-					})
-					.from(dbSchema.user)
-					.where(
-						inArray(dbSchema.user.id, [
-							params.userId,
-							params.actorId,
-						]),
-					)
-					.orderBy(asc(dbSchema.user.id))
-					.for("update");
-				const actor = rows.find(({ id }) => id === params.actorId);
-				const user = rows.find(({ id }) => id === params.userId);
-
-				if (!isInstanceAdminRole(actor?.role))
-					return yield* Effect.fail(
-						new AppErrors.ForbiddenError({
-							reason: "INSTANCE_ADMIN_REQUIRED",
-							message: "This action requires the instance administrator.",
-							data: {
-								permission: "administer_instance",
-								entityType: "instance",
-							},
-						}),
-					);
+				const [user] = yield* lockAsInstanceAdmin({
+					actorId: params.actorId,
+					userIds: [
+						params.userId,
+					],
+				});
 				if (!user)
 					return yield* Effect.fail(
 						new AppErrors.NotFoundError({

@@ -349,11 +349,12 @@ initialised is an instance administrator.
 
 An instance administrator makes another account an instance administrator, or
 takes the role away again, from the Users page. The account's owner gets an
-email either way. Nobody changes their own instance role, so an instance always
-keeps at least one administrator, also when two administrators remove each
-other at the same moment. With `TWO_FACTOR_REQUIRED=admins`, a new instance
-administrator without two-factor authentication is sent to set it up the next
-time they open OrcAI.
+email either way. Nobody changes their own instance role or bans or deletes
+their own account, so an instance always keeps at least one administrator,
+also when two administrators demote, ban or delete each other at the same
+moment. With `TWO_FACTOR_REQUIRED=admins`, a new instance administrator
+without two-factor authentication is sent to set it up the next time they open
+OrcAI.
 
 Only an instance administrator may:
 
