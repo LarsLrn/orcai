@@ -70,7 +70,7 @@ const summarize = (messages: ModelMessage[]) =>
 				}),
 	);
 
-const displayToolNames = [
+const contentToolNames = [
 	"showChecklist",
 	"showReview",
 	"showMatrix",
@@ -97,8 +97,8 @@ describe("pruneToolHistory", () => {
 		expect(
 			summarize(
 				pruneToolHistory(history, {
-					displayToolNames,
-					enabledDisplayToolNames: displayToolNames,
+					contentToolNames,
+					enabledContentToolNames: contentToolNames,
 				}),
 			),
 		).toEqual(summarize(history));
@@ -108,8 +108,8 @@ describe("pruneToolHistory", () => {
 		expect(
 			summarize(
 				pruneToolHistory(history, {
-					displayToolNames,
-					enabledDisplayToolNames: [],
+					contentToolNames,
+					enabledContentToolNames: [],
 				}),
 			),
 		).toEqual([
@@ -143,8 +143,8 @@ describe("pruneToolHistory", () => {
 		expect(
 			summarize(
 				pruneToolHistory(messages, {
-					displayToolNames,
-					enabledDisplayToolNames: [
+					contentToolNames,
+					enabledContentToolNames: [
 						"showChecklist",
 					],
 				}),
@@ -175,8 +175,8 @@ describe("pruneToolHistory", () => {
 
 		expect(
 			pruneToolHistory(messages, {
-				displayToolNames,
-				enabledDisplayToolNames: [],
+				contentToolNames,
+				enabledContentToolNames: [],
 			}),
 		).toEqual(messages);
 	});
@@ -211,8 +211,8 @@ describe("pruneChatHistory", () => {
 					user("bye"),
 				],
 				{
-					displayToolNames,
-					enabledDisplayToolNames: [],
+					contentToolNames,
+					enabledContentToolNames: [],
 				},
 			),
 		).toEqual([
@@ -229,8 +229,8 @@ describe("pruneChatHistory", () => {
 			...call("getKnowledgeBaseChunks", "g1"),
 		];
 		const options = {
-			displayToolNames,
-			enabledDisplayToolNames: [],
+			contentToolNames,
+			enabledContentToolNames: [],
 		};
 		const pruned = pruneChatHistory(
 			[

@@ -1,4 +1,4 @@
-import { clientToolRenderersOf } from "@/components/assistant/client-tool-renderers";
+import { ClientToolEntry } from "@/components/chat/message/client-tool-renderers";
 import { isToolOfKind } from "@/lib/ai/tools/registry";
 import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { GetKnowledgeBaseChunks } from "./tools/get-knowledge-base-chunks";
@@ -18,8 +18,7 @@ export interface ToolEntryPartProps {
 /** Routes a tool part to its renderer; any other reads as its summary line. */
 export const ToolEntryPart = ({ part, status }: ToolEntryPartProps) => {
 	if (isToolOfKind(part, "client")) {
-		const { Entry } = clientToolRenderersOf(part);
-		return <Entry part={part} status={status} />;
+		return <ClientToolEntry part={part} status={status} />;
 	}
 
 	switch (part.type) {

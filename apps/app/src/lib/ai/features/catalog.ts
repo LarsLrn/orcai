@@ -1,12 +1,16 @@
 import {
 	type FeatureId,
 	generativeUiSettingsSchema,
+	questionsSettingsSchema,
 	webSearchSettingsSchema,
 } from "@orcai/schema";
 import type { ToolSet } from "ai";
 import type { z } from "zod/v4";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import { genUiPrompt } from "@/components/chat/gen-ui/prompt";
+import { questionsPrompt } from "@/lib/ai/tools/questions/prompt";
+import type { QuizHistoryMessage } from "@/lib/ai/tools/questions/quiz-result";
+import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
 import {
 	buildWebSearchTools,
 	type TurnWebSearch,
@@ -16,6 +20,8 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 /** What the turn offers features beyond their settings. */
 interface FeatureTurn {
 	webSearch: TurnWebSearch;
+	/** The stored conversation the turn answers. */
+	history: readonly QuizHistoryMessage[];
 }
 
 export interface FeatureEntry<Settings extends z.ZodType = z.ZodType> {
@@ -56,4 +62,13 @@ export const featureCatalog = {
 		prompt: "",
 		requires: [],
 	}),
+	questions: {
+		settingsSchema: questionsSettingsSchema,
+		buildTools: ({ turn }) =>
+			buildQuestionTools({
+				history: turn.history,
+			}),
+		prompt: questionsPrompt,
+		requires: [],
+	},
 } satisfies Record<FeatureId, FeatureEntry>;

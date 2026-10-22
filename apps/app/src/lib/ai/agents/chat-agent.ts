@@ -16,8 +16,9 @@ import {
 import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
+import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
-import { toolNamesOf } from "@/lib/ai/tools/registry";
+import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
 import {
 	storedWebSearchTools,
 	type TurnWebSearch,
@@ -61,17 +62,17 @@ export const createChatAgent = (params: {
 				settings,
 				turn: {
 					webSearch: params.webSearch,
+					history: params.history,
 				},
 			}),
 		);
 	}
-	const displayToolNames = toolNamesOf("display");
 	const steps = createStepShaper({
 		providerKind: params.model.kind,
 		prune: (messages) =>
 			pruneChatHistory(messages, {
-				displayToolNames,
-				enabledDisplayToolNames: displayToolNames.filter((name) =>
+				contentToolNames: CONTENT_TOOL_NAMES,
+				enabledContentToolNames: CONTENT_TOOL_NAMES.filter((name) =>
 					Object.hasOwn(offeredTools, name),
 				),
 			}),
@@ -95,6 +96,9 @@ export const createChatAgent = (params: {
 				history: [],
 			}),
 			...buildGenUiTools(),
+			...buildQuestionTools({
+				history: [],
+			}),
 			...storedWebSearchTools(),
 		} satisfies ChatAgentTools,
 		...aiTelemetry("chat.agent", params.telemetryIds),

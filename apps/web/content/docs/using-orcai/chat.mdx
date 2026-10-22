@@ -141,7 +141,7 @@ For chats without a bot, **Chat blocks** holds:
 - **Add behaviour**: attach one behaviour block. Remove it to attach another.
 - **Add repository**: attach one or more repositories to retrieve from.
 
-In such a chat you can also turn features such as Generative UI on and off; each switch saves immediately. Generative UI is on by default for new chats. Web search is a bot feature and is not offered here.
+In such a chat you can also turn features such as Generative UI on and off; each switch saves immediately. Generative UI is on by default for new chats. Web search and Questions & quizzes are bot features and are not offered here.
 
 ## Generative UI
 
@@ -197,6 +197,22 @@ Answers cite their sources inline. A citation shows the asset's title and page, 
 In a chat with a bot that has the Web search feature on, the model can search the web while the organisation's [web search setting](/docs/using-orcai/administration#web-search) allows it. Each search is a step in the work log, such as **Searched the web for “orca pods”, 3 pages**; expand it to see the pages it found, each linking to the page. Pages the answer cites are listed under it as **Sources**, each linking to the page. With the allowed domains set, only pages on those domains and their subdomains are searched.
 
 When the organisation's web search is off, or the setting is model native and the chat's model has no search of its own, a notice above the composer says so and the bot answers without searching.
+
+## Questions And Quizzes
+
+In a chat with a bot that has the Questions & quizzes feature on, the model can ask you questions in the conversation instead of in its text, and run quizzes it grades. The reply waits for your answers and continues once you send them. Questions can offer one choice, several choices, a free-text answer or a scale between two values.
+
+### Questions
+
+When the model needs your input, it asks up to five questions, one per step. Choosing one of several options moves to the next question; for several choices, a free-text answer or a scale, select **Next**. Choice questions also offer an **Other** field for an answer of your own. Every question is optional. After the last question, a review lists your answers; select one to go back to it. **Submit** sends what you have answered so far, on any step and even with nothing answered. **Skip** tells the model you did not want to answer. Writing a new message instead skips the questions too, and the model reads your message as your reply.
+
+### Quizzes
+
+A quiz has up to 20 questions in titled sections, one section per page, with **Next** and **Back** between pages and **Submit answers** on the last. Choice questions offer only their options. Every question counts, and one left blank is wrong; the last page says how many are unanswered. When the questions are worth different points, each shows its points. The correct answers are not sent to your browser before you submit.
+
+After you submit, the model grades every question as correct, partly correct or incorrect and shows the result in its answer: the score, each section's subtotal, and one line per question. A question you did not get fully right also shows your answer, the expected answer, or the key points of a free-text answer, and why. OrcAI adds up the points, so the totals always match the questions. **Practise what I got wrong** asks the model for practice on what you missed.
+
+Answers are final. Afterwards the questions stay in the conversation, read-only, with the answers you gave. Copying an answer and downloading the conversation include the questions with your answers and the graded quiz as markdown.
 
 ## Deleting Chats
 

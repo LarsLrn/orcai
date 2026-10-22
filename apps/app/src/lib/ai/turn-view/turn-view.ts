@@ -1,9 +1,11 @@
 import { compactionSource, isCompactionPart } from "@orcai/core";
 import {
 	type ClientToolName,
+	isConversationalTool,
 	isToolOfKind,
 	type ToolName,
 	type ToolNameOf,
+	toolNameOf,
 } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import {
@@ -182,9 +184,15 @@ const canAnswer = (phase: ChatPhase) => phase === "idle" || phase === "error";
 const isToolPart = (part: MessagePart): part is ToolPart =>
 	part.type === "dynamic-tool" || part.type.startsWith("tool-");
 
-/** A tool that does work, as opposed to a display primitive. */
+/** A client call the user answers in the conversation, which reads as part of the answer. */
+const isConversationalPart = (part: MessagePart): part is ClientToolPart =>
+	isToolOfKind(part, "client") && isConversationalTool(toolNameOf(part));
+
+/** A tool that does work, as opposed to a display primitive or questions. */
 const isWorkToolPart = (part: MessagePart) =>
-	isToolPart(part) && !isToolOfKind(part, "display");
+	isToolPart(part) &&
+	!isToolOfKind(part, "display") &&
+	!isConversationalPart(part);
 
 const isAnswerDisplayPart = (part: MessagePart) =>
 	isToolOfKind(part, "display") && part.state !== "output-error";
@@ -209,6 +217,7 @@ const isBlankText = (part: MessagePart) =>
 
 const closedStatus = {
 	superseded: "skipped",
+	declined: "skipped",
 	interrupted: "interrupted",
 } as const satisfies Record<ToolCloseCode, ToolStatus>;
 
@@ -296,7 +305,8 @@ const activeStep = (entries: readonly WorkEntry[]): Activity | undefined => {
  * work log; other text and display primitives are the answer. A finished
  * turn whose answer would be empty shows its last text as the answer.
  * A paused step's text and the calls it waits on, client calls included, are
- * the answer too, except a plan, which the plan panel approves.
+ * the answer too, except a plan, which the plan panel approves. Questions stay
+ * in the answer once answered.
  */
 const viewMessage = (
 	message: ChatAgentUIMessage,
@@ -369,6 +379,14 @@ const viewMessage = (
 						answerable: idle && part.state === "approval-requested",
 					};
 		}
+		if (isConversationalPart(part)) {
+			return {
+				kind: "client",
+				part,
+				status: statusOf(part),
+				answerable: false,
+			};
+		}
 		return isAnswerDisplayPart(part)
 			? {
 					kind: "display",
@@ -413,6 +431,7 @@ const viewMessage = (
 		} else if (
 			isToolPart(part) &&
 			!isAnswerDisplayPart(part) &&
+			!isConversationalPart(part) &&
 			!isPausedAnswer(part, index)
 		) {
 			workLog.push({

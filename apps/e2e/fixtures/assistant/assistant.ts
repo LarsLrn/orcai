@@ -388,9 +388,11 @@ export const startTitledConversation = async (
 export const VIEWER_TOOLS = [
 	"readDocs",
 	"updatePlan",
+	"askUser",
 	"showChecklist",
 	"showReview",
 	"showMatrix",
+	"showQuizResult",
 	"findBots",
 	"getBot",
 	"getBlock",

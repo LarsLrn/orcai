@@ -724,7 +724,7 @@ export const startTurn = (
 		}).pipe(Effect.onError(() => meter.settle("unused")));
 	});
 
-/** Resumes a paused assistant reply once its last step is answered. */
+/** Resumes a paused reply once its last step is answered. */
 export const continueTurn = (
 	input: TurnInput & {
 		replyId: ChatMessageId;
@@ -737,9 +737,6 @@ export const continueTurn = (
 	Effect.gen(function* () {
 		const store = yield* ReplyStore;
 		const { chat, messages: stored } = yield* loadChat(input);
-		if (chat.kind !== "assistant") {
-			return yield* turnNotAwaiting("Only assistant replies wait for answers.");
-		}
 		const setup = yield* turnSetup(chat, input);
 		// Quota and the fit come before the claim, so a refused continuation stores nothing.
 		const unclaimed = historyOf(stored);

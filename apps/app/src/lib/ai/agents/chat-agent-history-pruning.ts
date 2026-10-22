@@ -5,10 +5,10 @@ import {
 } from "@/lib/ai/agents/turn-history";
 
 export interface ToolHistoryPruningOptions {
-	/** Every display tool name, enabled or not. */
-	displayToolNames: readonly string[];
-	/** Display tools offered this turn; their calls stay in history. */
-	enabledDisplayToolNames: readonly string[];
+	/** Every content tool name, enabled or not. */
+	contentToolNames: readonly string[];
+	/** Content tools offered this turn; their calls stay in history. */
+	enabledContentToolNames: readonly string[];
 }
 
 type ToolCallsRule = Extract<
@@ -24,9 +24,9 @@ const toolPartsOf = (message: ModelMessage) =>
 
 export const pruneToolHistory = (
 	messages: ModelMessage[],
-	{ displayToolNames, enabledDisplayToolNames }: ToolHistoryPruningOptions,
+	{ contentToolNames, enabledContentToolNames }: ToolHistoryPruningOptions,
 ): ModelMessage[] => {
-	const display = new Set(displayToolNames);
+	const content = new Set(contentToolNames);
 	const toolNameById = new Map<string, string>();
 	for (const message of messages) {
 		for (const part of toolPartsOf(message)) {
@@ -38,30 +38,30 @@ export const pruneToolHistory = (
 
 	const otherToolNames = [
 		...new Set(toolNameById.values()),
-	].filter((name) => !display.has(name));
+	].filter((name) => !content.has(name));
 
 	const isOtherToolBearingAssistantMessage = (message: ModelMessage) =>
 		message.role === "assistant" &&
 		toolPartsOf(message).some((part) => {
 			if (part.type === "tool-call" || part.type === "tool-result") {
-				return !display.has(part.toolName);
+				return !content.has(part.toolName);
 			}
 			if (part.type === "tool-approval-request") {
 				const name = toolNameById.get(part.toolCallId);
-				return name === undefined || !display.has(name);
+				return name === undefined || !content.has(name);
 			}
 			return false;
 		});
 
 	const toolCalls: ToolCallsRule[] = [];
 
-	const disabledDisplayToolNames = displayToolNames.filter(
-		(name) => !enabledDisplayToolNames.includes(name),
+	const disabledContentToolNames = contentToolNames.filter(
+		(name) => !enabledContentToolNames.includes(name),
 	);
-	if (disabledDisplayToolNames.length > 0) {
+	if (disabledContentToolNames.length > 0) {
 		toolCalls.push({
 			type: "all",
-			tools: disabledDisplayToolNames,
+			tools: disabledContentToolNames,
 		});
 	}
 

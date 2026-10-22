@@ -120,16 +120,14 @@ describe("buildAssistantSystemPrompt", () => {
 		expect(stable.slice(toolGuidance, plans)).not.toContain("\n\n");
 		expect(stable).toContain("call updatePlan");
 		expect(stable).toContain(
-			"When requirements are unclear, ask in one short round, without calling updatePlan yet",
+			"When requirements are unclear, ask with askUser before calling updatePlan",
 		);
-		expect(stable).toContain(
-			'each with your suggested answer, so the user can reply "ok" or answer just some',
-		);
+		expect(stable).toContain("with your suggested answer as the first option");
 		expect(stable).toContain(
 			"its purpose, audience, what its system prompt should say, its repositories and its features",
 		);
 		expect(stable).toContain(
-			"Ask a follow-up round only if the answers raised new questions",
+			"Ask a follow-up round when the answers raise new questions or conflict",
 		);
 		expect(stable).toContain(
 			"A revision request or a new message is not approval",

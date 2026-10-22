@@ -1,8 +1,11 @@
 import { getToolName, isToolUIPart, type ToolSet, type UIMessage } from "ai";
+import { isConversationalTool } from "@/lib/ai/tools/registry";
 
 /** Why a pending call was closed, as the sentence the model reads for it. */
 export const TOOL_CLOSE_SENTENCES = {
 	superseded: "Not run: the user sent a new message instead.",
+	declined:
+		"Not answered: the user skipped the questions and sent a new message instead, which is their reply.",
 	interrupted:
 		"Not completed: the turn was interrupted. If the call changes something, it may have been applied; check before retrying.",
 } as const;
@@ -51,14 +54,21 @@ const closePart = (part: Part, tools: ToolSet): Part => {
 				},
 			};
 		case "input-available": {
-			const tool = tools[getToolName(part)];
+			const toolName = getToolName(part);
+			const tool = tools[toolName];
 			const isClientTool = tool !== undefined && tool.execute === undefined;
 
 			return {
 				...part,
 				state: "output-error",
 				errorText:
-					TOOL_CLOSE_SENTENCES[isClientTool ? "superseded" : "interrupted"],
+					TOOL_CLOSE_SENTENCES[
+						!isClientTool
+							? "interrupted"
+							: isConversationalTool(toolName)
+								? "declined"
+								: "superseded"
+					],
 			};
 		}
 		case "input-streaming":

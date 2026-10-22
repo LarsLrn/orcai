@@ -1,5 +1,6 @@
 import { type Tool, tool } from "ai";
 import {
+	GraduationCapIcon,
 	Grid3x3Icon,
 	ListChecksIcon,
 	type LucideIcon,
@@ -12,17 +13,23 @@ import { checklistToMarkdown } from "@/components/chat/gen-ui/checklist/to-markd
 import { readMatrix } from "@/components/chat/gen-ui/matrix/cells";
 import { matrixSchema } from "@/components/chat/gen-ui/matrix/schema";
 import { matrixToMarkdown } from "@/components/chat/gen-ui/matrix/to-markdown";
+import { readQuizResult } from "@/components/chat/gen-ui/quiz-result/read";
+import { quizResultToMarkdown } from "@/components/chat/gen-ui/quiz-result/to-markdown";
 import { readReview } from "@/components/chat/gen-ui/review/findings";
 import { reviewSchema } from "@/components/chat/gen-ui/review/schema";
 import { reviewToMarkdown } from "@/components/chat/gen-ui/review/to-markdown";
 import { toolInputSchema } from "@/lib/ai/tools/input-schema";
+import {
+	quizGradingSchema,
+	showQuizResultDescription,
+} from "@/lib/ai/tools/questions/quiz-result";
 import { m } from "@/paraglide/messages";
 
 interface PrimitiveEntry<Schema extends z.ZodType, View> {
 	schema: Schema;
 	description: string;
-	/** Reads any input, streamed, stored or invalid, into what the renderer and markdown show. */
-	read: (input: unknown) => View;
+	/** Reads any input, streamed, stored or invalid, and the output once the call ran, into what the renderer and markdown show. */
+	read: (input: unknown, output?: unknown) => View;
 	toMarkdown: (view: View) => string;
 	/** Work-log label */
 	icon: LucideIcon;
@@ -34,7 +41,8 @@ const primitive = <Schema extends z.ZodType, View>(
 	entry: PrimitiveEntry<Schema, View>,
 ) => entry;
 
-const entries = {
+/** The primitives of the Generative UI feature. */
+const genUiEntries = {
 	showChecklist: primitive({
 		schema: checklistSchema,
 		description:
@@ -67,6 +75,20 @@ const entries = {
 	}),
 };
 
+const entries = {
+	...genUiEntries,
+	// The questions feature builds it, since it grades the conversation's quiz.
+	showQuizResult: primitive({
+		schema: quizGradingSchema,
+		description: showQuizResultDescription,
+		read: readQuizResult,
+		toMarkdown: quizResultToMarkdown,
+		icon: GraduationCapIcon,
+		name: () => m.chat_work_log_tool_show_quiz_result_name(),
+		active: () => m.chat_work_log_tool_show_quiz_result_active(),
+	}),
+};
+
 type Entries = typeof entries;
 
 export type DisplayToolName = keyof Entries;
@@ -91,8 +113,10 @@ type DisplayToolInput<Name extends DisplayToolName> = z.infer<
 	(typeof primitiveCatalog)[Name]["schema"]
 >;
 
+type GenUiToolName = keyof typeof genUiEntries;
+
 export type GenUiTools = {
-	[Name in DisplayToolName]: Tool<
+	[Name in GenUiToolName]: Tool<
 		DisplayToolInput<Name>,
 		{
 			shown: true;
@@ -114,25 +138,26 @@ const displayTool = ({
 
 export const buildGenUiTools = (): GenUiTools =>
 	Object.fromEntries(
-		Object.entries(primitiveCatalog).map(([name, entry]) => [
+		Object.entries(genUiEntries).map(([name, entry]) => [
 			name,
 			displayTool(entry),
 		]),
 	) as GenUiTools;
 
 /**
- * Markdown of the reader's view of a display call's input: validated input
- * when it parses, the raw input otherwise. Null when it throws or is empty.
+ * Markdown of the reader's view of a display call: validated input when it
+ * parses, the raw input otherwise. Null when it throws or is empty.
  */
 export const displayToolMarkdown = <Name extends DisplayToolName>(
 	name: Name,
 	input: unknown,
+	output?: unknown,
 ): string | null => {
 	const { schema, read, toMarkdown } = primitiveCatalog[name];
 	const parsed = schema.safeParse(input);
 	try {
 		const markdown = toMarkdown(
-			read(parsed.success ? parsed.data : input),
+			read(parsed.success ? parsed.data : input, output),
 		).trim();
 		return markdown === "" ? null : markdown;
 	} catch {

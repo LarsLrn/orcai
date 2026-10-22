@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { type ToolSet, tool, type UIMessage } from "ai";
 import { z } from "zod/v4";
+import { askUserTool } from "@/lib/ai/tools/questions/ask-user";
 import {
 	closeCopiedToolParts,
 	closePendingToolParts,
@@ -22,6 +23,7 @@ const tools: ToolSet = {
 			options: z.array(z.string()),
 		}),
 	}),
+	askUser: askUserTool,
 };
 
 const close = (part: Part) =>
@@ -157,6 +159,23 @@ describe("closePendingToolParts", () => {
 				errorText: TOOL_CLOSE_SENTENCES.superseded,
 			},
 		]);
+	});
+
+	test("declines questions a new message answered instead", () => {
+		const [part] = close({
+			type: "tool-askUser",
+			toolCallId: "call-1",
+			state: "input-available",
+			input: {
+				mode: "regular",
+				questions: [],
+			},
+		}).parts;
+
+		expect(part).toMatchObject({
+			state: "output-error",
+			errorText: TOOL_CLOSE_SENTENCES.declined,
+		});
 	});
 
 	test("fails a server tool call without result as interrupted", () => {

@@ -7,10 +7,10 @@ import {
 export interface AssistantHistoryPruningOptions {
 	/** Summary line per tool call id. */
 	lines: ReadonlyMap<string, string>;
-	/** Every display tool name, enabled or not. */
-	displayToolNames: readonly string[];
-	/** Display tools offered this turn; their calls stay in history in full. */
-	enabledDisplayToolNames: readonly string[];
+	/** Every content tool name, enabled or not. */
+	contentToolNames: readonly string[];
+	/** Content tools offered this turn; their calls stay in history in full. */
+	enabledContentToolNames: readonly string[];
 	/** The calls whose results changed the request's tool list. */
 	toolListChanges: ReadonlySet<string>;
 }
@@ -56,7 +56,7 @@ const summarisedOutput = (output: ToolOutput, line: string): ToolOutput => {
 /**
  * Keeps every tool call and input but replaces the outputs of finished turns
  * with their summary line; the turn in progress stays as sent. Errors,
- * denials and approvals stay; calls of disabled display tools are dropped.
+ * denials and approvals stay; calls of disabled content tools are dropped.
  * Reasoning survives only from the turn's latest result that changed the
  * tool list on.
  */
@@ -64,22 +64,22 @@ export const pruneAssistantHistory = (
 	messages: ModelMessage[],
 	{
 		lines,
-		displayToolNames,
-		enabledDisplayToolNames,
+		contentToolNames,
+		enabledContentToolNames,
 		toolListChanges,
 	}: AssistantHistoryPruningOptions,
 ): ModelMessage[] => {
-	const disabledDisplayToolNames = displayToolNames.filter(
-		(name) => !enabledDisplayToolNames.includes(name),
+	const disabledContentToolNames = contentToolNames.filter(
+		(name) => !enabledContentToolNames.includes(name),
 	);
 	const pruned =
-		disabledDisplayToolNames.length > 0
+		disabledContentToolNames.length > 0
 			? pruneMessages({
 					messages,
 					toolCalls: [
 						{
 							type: "all",
-							tools: disabledDisplayToolNames,
+							tools: disabledContentToolNames,
 						},
 					],
 					emptyMessages: "remove",
@@ -97,7 +97,7 @@ export const pruneAssistantHistory = (
 				),
 		)
 		.lastIndexOf(true);
-	const enabledDisplay = new Set(enabledDisplayToolNames);
+	const enabledContent = new Set(enabledContentToolNames);
 
 	return dropEarlierReasoning(
 		pruned.map((message, index) =>
@@ -107,7 +107,7 @@ export const pruneAssistantHistory = (
 						content: message.content.map((part) =>
 							part.type === "tool-result" &&
 							SUCCEEDED_OUTPUT_TYPES.has(part.output.type) &&
-							!enabledDisplay.has(part.toolName)
+							!enabledContent.has(part.toolName)
 								? {
 										...part,
 										output: summarisedOutput(

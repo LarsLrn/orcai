@@ -20,7 +20,7 @@ OrcAI is a self-hostable platform for building governed AI assistants around cur
 - AI-assisted chat grounded in course content
 - Document ingestion and processing for PDFs, Office files, and images
 - Semantic retrieval with Qdrant-backed vector search
-- Bot features, starting with Generative UI for structured results such as checklists in the answer
+- Bot features: Generative UI for structured results such as checklists in the answer, web search, and questions and quizzes the bot asks in the conversation
 - Course and invitation-based access control
 - Background job processing for ingestion workflows
 - S3-compatible object storage for uploaded and processed assets

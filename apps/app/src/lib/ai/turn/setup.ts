@@ -58,6 +58,7 @@ const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant.";
 /** The assistant's fixed features. */
 const ASSISTANT_FEATURES = {
 	generativeUi: {},
+	questions: {},
 };
 
 const UNUSABLE_MESSAGES: Record<ModelUnusableReason<"turn">, string> = {

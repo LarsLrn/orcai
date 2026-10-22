@@ -16,6 +16,7 @@ const offeredTools = (
 				settings,
 				turn: {
 					webSearch,
+					history: [],
 				},
 			}),
 		),

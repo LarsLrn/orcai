@@ -1,6 +1,7 @@
 import { type LucideIcon, WrenchIcon } from "lucide-react";
 import {
 	type DisplayToolName,
+	displayToolMarkdown,
 	primitiveCatalog,
 } from "@/components/chat/gen-ui/catalog";
 import type { orpc } from "@/lib/orpc/orpc";
@@ -51,6 +52,7 @@ import type {
 } from "./declaration";
 import { readDocs } from "./docs/read-docs.declaration";
 import type { EntityRef } from "./entity-kind";
+import { askUser } from "./questions/ask-user.declaration";
 import { getKnowledgeBaseChunks } from "./rag/get-knowledge-base-chunks.declaration";
 import { getKnowledgeBasePage } from "./rag/get-knowledge-base-page.declaration";
 import { listKnowledgeBaseDocuments } from "./rag/list-knowledge-base-documents.declaration";
@@ -68,6 +70,9 @@ const displayTools = Object.fromEntries(
 				icon,
 				name: label,
 				active,
+				markdown: ({ input, output }) =>
+					displayToolMarkdown(name as DisplayToolName, input, output) ??
+					undefined,
 			},
 		],
 	),
@@ -88,6 +93,7 @@ const toolDeclarations = {
 	searchWeb,
 	web_search: nativeWebSearch,
 	readDocs,
+	askUser,
 	...displayTools,
 	findBots,
 	getBot,
@@ -266,6 +272,36 @@ export const toolSummary = (
 	};
 };
 
+/**
+ * The tools whose calls are conversation content, the user's view of them in
+ * the answer: display tools and conversational client tools.
+ */
+export const CONTENT_TOOL_NAMES: readonly ToolName[] = toolEntries
+	.filter(
+		([, declaration]) =>
+			declaration.kind === "display" || declaration.conversational === true,
+	)
+	.map(([name]) => name);
+
+export const isConversationalTool = (toolName: string) =>
+	toolDeclarationOf(toolName)?.conversational === true;
+
+/** A content call as markdown; undefined for other tools and calls that do not fit. */
+export const toolCallMarkdown = (part: {
+	type: string;
+	input?: unknown;
+	output?: unknown;
+}): string | undefined => {
+	try {
+		return partDeclaration(part)?.markdown?.({
+			input: part.input,
+			output: part.output,
+		});
+	} catch {
+		return undefined;
+	}
+};
+
 /** What the browser answers a client call with; undefined for any other tool. */
 export const clientOutputSchema = (toolName: string) => {
 	const declaration = toolDeclarationOf(toolName);
@@ -300,11 +336,12 @@ export const staleDataOf = (message: {
 	}[];
 }): readonly (typeof PLATFORM_DATA)[number][] =>
 	message.parts.some((part) => {
-		const kind = partDeclaration(part)?.kind;
+		const declaration = partDeclaration(part);
 
 		return (
-			kind !== undefined &&
-			writingKinds.has(kind) &&
+			declaration !== undefined &&
+			writingKinds.has(declaration.kind) &&
+			!declaration.conversational &&
 			part.state === "output-available"
 		);
 	})

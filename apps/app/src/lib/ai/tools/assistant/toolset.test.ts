@@ -18,6 +18,7 @@ const tools: ToolSet = buildAssistantTools({
 		replyId: "reply",
 	}),
 	docs: undefined,
+	history: [],
 	session: createAssistantSession({
 		history: [],
 		capabilities: {
