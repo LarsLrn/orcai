@@ -157,6 +157,15 @@ test("a token-metered call is refused unless all it asks remains", async () => {
 	});
 });
 
+/** Steps of a request-metered call, one provider request each. */
+const requests = (count: number) =>
+	Array.from(
+		{
+			length: count,
+		},
+		() => ({}),
+	);
+
 test("a finalized call charges what it used and frees the rest", async () => {
 	const { reserve } = await requestPool(10);
 	const first = await reserve(6);
@@ -165,7 +174,7 @@ test("a finalized call charges what it used and frees the rest", async () => {
 	await runtime.runPromise(
 		finalizeAppRequestQuota({
 			reservation: first.reservation,
-			actualRequestCount: 2,
+			steps: requests(2),
 		}),
 	);
 
@@ -225,7 +234,7 @@ test("a reservation older than any call can run is released", async () => {
 	await runtime.runPromise(
 		finalizeAppRequestQuota({
 			reservation: stale.reservation,
-			actualRequestCount: 6,
+			steps: requests(6),
 		}),
 	);
 	expect((await ledger()).remainingAmount).toBe(7);

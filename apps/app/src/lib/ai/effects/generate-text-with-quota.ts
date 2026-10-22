@@ -103,7 +103,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			Effect.tap((response) =>
 				Effect.sync(() => {
 					for (const step of response.steps) {
-						meter.step(step.usage);
+						meter.step(step);
 					}
 				}),
 			),

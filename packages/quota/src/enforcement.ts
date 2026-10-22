@@ -16,6 +16,7 @@ import {
 	reserveQuotaLedger,
 } from "./ledger";
 import { resolveQuotaPool } from "./resolver";
+import { type MeteredStep, recordedUsage } from "./usage";
 
 interface ReserveQuotaInput {
 	organizationId: OrganizationId;
@@ -121,31 +122,23 @@ export const reserveForAppRequest: (
 		} satisfies ReserveQuotaResult;
 	});
 
+/** Charges a call its steps, one provider request each. */
 export const finalizeAppRequestQuota: (input: {
 	reservation: ReservedQuotaContext;
-	actualRequestCount?: number;
-	inputTokens?: number;
-	outputTokens?: number;
-	totalTokens?: number;
-	providerRequestIds?: string[];
+	steps: readonly MeteredStep[];
 }) => Effect.Effect<void, unknown, DB> = (input) =>
 	Effect.gen(function* () {
+		const usage = recordedUsage(input.steps);
 		const actualAmount =
 			input.reservation.meteringMode === "requests"
-				? (input.actualRequestCount ?? 0)
-				: (input.totalTokens ?? 0);
+				? input.steps.length
+				: (usage.totalTokens ?? 0);
 
 		yield* finalizeQuotaLedger({
 			reservationKey: input.reservation.reservationKey,
 			appRequestId: input.reservation.appRequestId,
 			actualAmount,
-			requestCount: input.actualRequestCount,
-			inputTokens: input.inputTokens,
-			outputTokens: input.outputTokens,
-			totalTokens: input.totalTokens,
-			metadata: {
-				providerRequestIds: input.providerRequestIds,
-			},
+			usage,
 		});
 	});
 

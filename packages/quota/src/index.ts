@@ -32,3 +32,4 @@ export {
 	type WriteQuotaPoolResult,
 } from "./pool-management";
 export { resolveQuotaPool } from "./resolver";
+export type { MeteredStep } from "./usage";

@@ -272,6 +272,22 @@ export const quotaUsageEvent = pgTable(
 		totalTokens: bigint("total_tokens", {
 			mode: "number",
 		}),
+		/** Input read neither from nor into the prompt cache. */
+		noCacheInputTokens: bigint("no_cache_input_tokens", {
+			mode: "number",
+		}),
+		cacheReadTokens: bigint("cache_read_tokens", {
+			mode: "number",
+		}),
+		cacheWriteTokens: bigint("cache_write_tokens", {
+			mode: "number",
+		}),
+		/** Already inside the output tokens. */
+		reasoningTokens: bigint("reasoning_tokens", {
+			mode: "number",
+		}),
+		/** Searches the model ran with its provider's own tool. */
+		webSearchCount: integer("web_search_count"),
 		metadata: json("metadata").$type<Record<string, unknown>>(),
 		occurredAt: timestamp("occurred_at").notNull().defaultNow(),
 		createdAt: timestamp("created_at").notNull().defaultNow(),

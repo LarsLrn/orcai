@@ -1,22 +1,28 @@
+import { NATIVE_WEB_SEARCH_TOOL_NAME } from "@orcai/ai";
 import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
 	METERED_CALL_TIMEOUT_MS,
+	type MeteredStep,
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "@orcai/quota";
-import type { LanguageModelUsage } from "ai";
+import type { StepResult, ToolSet } from "ai";
 import * as Effect from "effect/Effect";
+import { z } from "zod/v4";
 import { BadRequestError } from "@/lib/effect/utils/errors";
 
 export type MeteredCallOutcome = "completed" | "aborted" | "failed" | "unused";
+
+/** What the meter reads of a finished provider request. */
+export type MeterStep = Pick<StepResult<ToolSet>, "usage" | "toolCalls">;
 
 export interface Meter {
 	/** Provider requests the pool granted: fewer than asked when a request quota has less left. */
 	readonly maxSteps: number;
 	/** Accounts one finished provider request and its usage. */
-	readonly step: (usage: LanguageModelUsage) => void;
+	readonly step: (step: MeterStep) => void;
 	/** Whether the granted requests are used up. */
 	readonly spent: () => boolean;
 	/** Aborts once the call has run as long as its reservation may stay open. */
@@ -51,8 +57,37 @@ const denialError = (
 	}
 };
 
-const addTokens = (sum: number | undefined, tokens: number | undefined) =>
-	tokens === undefined ? sum : (sum ?? 0) + tokens;
+/** What the meter reads of a provider's own usage report. */
+const rawUsageSchema = z
+	.object({
+		server_tool_use: z
+			.object({
+				web_search_requests: z.number(),
+			})
+			.optional()
+			.catch(undefined),
+	})
+	.catch({});
+
+/** Anthropic counts native searches in its usage; OpenAI only returns their calls. */
+const webSearches = ({ usage, toolCalls }: MeterStep) =>
+	rawUsageSchema.parse(usage.raw).server_tool_use?.web_search_requests ??
+	toolCalls.filter(
+		(call) =>
+			call.providerExecuted === true &&
+			call.toolName === NATIVE_WEB_SEARCH_TOOL_NAME,
+	).length;
+
+const meteredStep = (step: MeterStep): MeteredStep => ({
+	inputTokens: step.usage.inputTokens,
+	noCacheInputTokens: step.usage.inputTokenDetails.noCacheTokens,
+	cacheReadTokens: step.usage.inputTokenDetails.cacheReadTokens,
+	cacheWriteTokens: step.usage.inputTokenDetails.cacheWriteTokens,
+	outputTokens: step.usage.outputTokens,
+	reasoningTokens: step.usage.outputTokenDetails.reasoningTokens,
+	totalTokens: step.usage.totalTokens,
+	webSearches: webSearches(step),
+});
 
 export const startMeteredCall = (input: {
 	appRequestId: string;
@@ -92,10 +127,7 @@ export const startMeteredCall = (input: {
 			reservation.meteringMode === "requests"
 				? reservation.reservedAmount
 				: input.maxSteps;
-		let steps = 0;
-		let inputTokens: number | undefined;
-		let outputTokens: number | undefined;
-		let totalTokens: number | undefined;
+		const steps: MeteredStep[] = [];
 		let settled = false;
 
 		const logFailure = (message: string) => (error: unknown) =>
@@ -109,10 +141,7 @@ export const startMeteredCall = (input: {
 		const charge = Effect.suspend(() =>
 			finalizeAppRequestQuota({
 				reservation,
-				actualRequestCount: steps,
-				inputTokens,
-				outputTokens,
-				totalTokens,
+				steps,
 			}),
 		).pipe(Effect.catch(logFailure("quota.finalize.failed")));
 
@@ -124,13 +153,10 @@ export const startMeteredCall = (input: {
 
 		return {
 			maxSteps,
-			step: (usage) => {
-				steps += 1;
-				inputTokens = addTokens(inputTokens, usage.inputTokens);
-				outputTokens = addTokens(outputTokens, usage.outputTokens);
-				totalTokens = addTokens(totalTokens, usage.totalTokens);
+			step: (step) => {
+				steps.push(meteredStep(step));
 			},
-			spent: () => steps >= maxSteps,
+			spent: () => steps.length >= maxSteps,
 			deadline,
 			settle: (outcome) =>
 				Effect.suspend(() => {

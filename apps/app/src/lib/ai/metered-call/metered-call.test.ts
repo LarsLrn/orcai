@@ -1,30 +1,32 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
-import type { LanguageModelUsage } from "ai";
 import * as Effect from "effect/Effect";
 import * as Logger from "effect/Logger";
-import { startMeteredCall } from "./metered-call";
+import { type MeterStep, startMeteredCall } from "./metered-call";
 import { quota, withQuotaServices } from "./test-quota";
 
 const usage = (
 	inputTokens: number | undefined,
 	outputTokens: number | undefined,
-): LanguageModelUsage => ({
-	inputTokens,
-	inputTokenDetails: {
-		noCacheTokens: inputTokens,
-		cacheReadTokens: undefined,
-		cacheWriteTokens: undefined,
+): MeterStep => ({
+	usage: {
+		inputTokens,
+		inputTokenDetails: {
+			noCacheTokens: inputTokens,
+			cacheReadTokens: undefined,
+			cacheWriteTokens: undefined,
+		},
+		outputTokens,
+		outputTokenDetails: {
+			textTokens: outputTokens,
+			reasoningTokens: undefined,
+		},
+		totalTokens:
+			inputTokens === undefined || outputTokens === undefined
+				? undefined
+				: inputTokens + outputTokens,
 	},
-	outputTokens,
-	outputTokenDetails: {
-		textTokens: outputTokens,
-		reasoningTokens: undefined,
-	},
-	totalTokens:
-		inputTokens === undefined || outputTokens === undefined
-			? undefined
-			: inputTokens + outputTokens,
+	toolCalls: [],
 });
 
 const startEffect = (maxSteps = 5) =>
@@ -61,12 +63,16 @@ describe("startMeteredCall", () => {
 
 		expect(quota.calls.release).toEqual([]);
 		expect(quota.calls.finalize).toHaveLength(1);
-		expect(quota.calls.finalize[0]).toMatchObject({
-			actualRequestCount: 2,
-			inputTokens: 250,
-			outputTokens: 50,
-			totalTokens: 300,
-		});
+		expect(quota.calls.finalize[0]?.steps).toMatchObject([
+			{
+				inputTokens: 100,
+				outputTokens: 20,
+			},
+			{
+				inputTokens: 150,
+				outputTokens: 30,
+			},
+		]);
 	});
 
 	test.each([
@@ -126,33 +132,109 @@ describe("startMeteredCall", () => {
 		});
 	});
 
-	test("a completed call is charged its summed usage and step count", async () => {
+	test("a completed call is charged each step's token classes", async () => {
 		const meter = await start();
 
 		meter.step(usage(100, 20));
 		meter.step(usage(undefined, 5));
 		await Effect.runPromise(meter.settle("completed"));
 
-		expect(quota.calls.finalize[0]).toMatchObject({
-			actualRequestCount: 2,
-			inputTokens: 100,
-			outputTokens: 25,
-			totalTokens: 120,
-		});
+		expect(quota.calls.finalize[0]?.steps).toEqual([
+			{
+				inputTokens: 100,
+				noCacheInputTokens: 100,
+				cacheReadTokens: undefined,
+				cacheWriteTokens: undefined,
+				outputTokens: 20,
+				reasoningTokens: undefined,
+				totalTokens: 120,
+				webSearches: 0,
+			},
+			{
+				inputTokens: undefined,
+				noCacheInputTokens: undefined,
+				cacheReadTokens: undefined,
+				cacheWriteTokens: undefined,
+				outputTokens: 5,
+				reasoningTokens: undefined,
+				totalTokens: undefined,
+				webSearches: 0,
+			},
+		]);
 	});
 
-	test("a call whose steps report no usage is charged undefined tokens", async () => {
+	test("an Anthropic step keeps its cache classes and counted searches", async () => {
 		const meter = await start();
 
-		meter.step(usage(undefined, undefined));
+		meter.step({
+			usage: {
+				inputTokens: 1_350,
+				inputTokenDetails: {
+					noCacheTokens: 50,
+					cacheReadTokens: 1_000,
+					cacheWriteTokens: 300,
+				},
+				outputTokens: 400,
+				outputTokenDetails: {
+					textTokens: 100,
+					reasoningTokens: 300,
+				},
+				totalTokens: 1_750,
+				raw: {
+					input_tokens: 50,
+					cache_read_input_tokens: 1_000,
+					cache_creation_input_tokens: 300,
+					output_tokens: 400,
+					server_tool_use: {
+						web_search_requests: 2,
+					},
+				},
+			},
+			toolCalls: [],
+		});
 		await Effect.runPromise(meter.settle("completed"));
 
-		expect(quota.calls.finalize[0]).toMatchObject({
-			actualRequestCount: 1,
-			inputTokens: undefined,
-			outputTokens: undefined,
-			totalTokens: undefined,
+		expect(quota.calls.finalize[0]?.steps).toEqual([
+			{
+				inputTokens: 1_350,
+				noCacheInputTokens: 50,
+				cacheReadTokens: 1_000,
+				cacheWriteTokens: 300,
+				outputTokens: 400,
+				reasoningTokens: 300,
+				totalTokens: 1_750,
+				webSearches: 2,
+			},
+		]);
+	});
+
+	test("an OpenAI step counts its provider-executed web searches", async () => {
+		const meter = await start();
+		const call = (toolName: string, providerExecuted: boolean) => ({
+			type: "tool-call" as const,
+			toolCallId: crypto.randomUUID(),
+			toolName,
+			input: {},
+			providerExecuted,
+			dynamic: true as const,
 		});
+
+		meter.step({
+			...usage(10, 10),
+			toolCalls: [
+				call("web_search", true),
+				call("web_search", true),
+				call("web_search", false),
+				call("code_execution", true),
+			],
+		});
+		await Effect.runPromise(meter.settle("completed"));
+
+		expect(quota.calls.finalize[0]?.steps).toMatchObject([
+			{
+				webSearches: 2,
+			},
+		]);
 	});
 
 	test.each([

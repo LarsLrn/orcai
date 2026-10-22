@@ -56,12 +56,13 @@ test("a generation is charged the usage the model reported", async () => {
 	const { text } = await Effect.runPromise(generate(model));
 
 	expect(text).toBe("A title");
-	expect(quota.calls.finalize[0]).toMatchObject({
-		actualRequestCount: 1,
-		inputTokens: 12,
-		outputTokens: 3,
-		totalTokens: 15,
-	});
+	expect(quota.calls.finalize[0]?.steps).toMatchObject([
+		{
+			inputTokens: 12,
+			outputTokens: 3,
+			totalTokens: 15,
+		},
+	]);
 });
 
 test("a failed generation releases its reservation", async () => {

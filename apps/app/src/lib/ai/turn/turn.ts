@@ -15,7 +15,6 @@ import {
 	createAgentUIStream,
 	createUIMessageStream,
 	type InferAgentUIMessage,
-	type LanguageModelUsage,
 	type SystemModelMessage,
 	smoothStream,
 	type TextStreamPart,
@@ -33,6 +32,7 @@ import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-titl
 import {
 	type Meter,
 	type MeteredCallOutcome,
+	type MeterStep,
 	startMeteredCall,
 } from "@/lib/ai/metered-call/metered-call";
 import {
@@ -68,8 +68,7 @@ type TurnInput = TurnRequester & {
 	stop: AbortSignal | undefined;
 };
 
-type TurnStep = {
-	usage: LanguageModelUsage;
+type TurnStep = MeterStep & {
 	text: string;
 	toolResults: readonly {
 		toolName: string;
@@ -446,7 +445,7 @@ const streamTurn = ({
 				replyId,
 				onStepEnd: (step) => {
 					steps.push(step);
-					meter.step(step.usage);
+					meter.step(step);
 				},
 				onEnd: ({ responseMessage, outcome }) =>
 					run(
