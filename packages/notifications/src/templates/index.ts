@@ -4,6 +4,8 @@ import { buildDataExportReadyEmail } from "./data-export-ready";
 import { buildOrganizationInvitedEmail } from "./organization-invited";
 import { buildResetPasswordEmail } from "./reset-password";
 import {
+	buildInstanceAdminGrantedEmail,
+	buildInstanceAdminRevokedEmail,
 	buildTwoFactorDisabledEmail,
 	buildTwoFactorResetEmail,
 } from "./security-notice";
@@ -25,6 +27,10 @@ export const buildEmail = (
 			return buildTwoFactorDisabledEmail(notification);
 		case "auth.two-factor-reset":
 			return buildTwoFactorResetEmail(notification);
+		case "auth.instance-admin-granted":
+			return buildInstanceAdminGrantedEmail(notification);
+		case "auth.instance-admin-revoked":
+			return buildInstanceAdminRevokedEmail(notification);
 		case "data-export.ready":
 			return buildDataExportReadyEmail(notification);
 	}

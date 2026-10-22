@@ -1,6 +1,10 @@
+import { userIdSchema } from "@orcai/schema";
+import { createApiClient } from "../../fixtures/api";
 import { signIn } from "../../fixtures/auth";
 import { waitForLink } from "../../fixtures/auth/outbox";
 import { enrolTwoFactor } from "../../fixtures/auth/two-factor";
+import { rejection } from "../../fixtures/authorization";
+import { WELL_KNOWN_ADMIN } from "../../fixtures/constants";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
@@ -217,4 +221,130 @@ test("instance: the users page resets an account's two-factor authentication", a
 		await waitForLink(outbox, user.email, "auth.two-factor-reset"),
 	).toMatch(/\/app\/account\/security$/);
 	expect((await signIn(baseURL(), user)).userId).toBe(user.id);
+});
+
+test("instance: the users page makes an account an instance admin and back", async ({
+	api,
+	org,
+	outbox,
+	pageAsWellKnownAdmin,
+}) => {
+	const user = await createThrowawayUser(baseURL(), `instance-role-${runId()}`);
+	await addMember(api, org, user);
+	const asUser = createApiClient(baseURL(), user.session.cookieHeader);
+	const listUsers = () =>
+		asUser.user.listAll({
+			pageIndex: 0,
+			pageSize: 1,
+		});
+	expect((await rejection(listUsers())).code).toBe("FORBIDDEN");
+
+	const page = await pageAsWellKnownAdmin();
+	await open(page, "/instance/users");
+	const row = userRow(page, user.email);
+	await expect(row).toContainText(
+		message("instance_users_table_instance_role_user_label"),
+	);
+
+	await row
+		.getByRole("button", {
+			name: message("common_row_menu_trigger"),
+		})
+		.click();
+	await page
+		.getByRole("menuitem", {
+			name: message("instance_users_table_promote_menu_item"),
+		})
+		.click();
+	await page
+		.getByRole("button", {
+			name: message("users_promote_confirm_button"),
+			exact: true,
+		})
+		.click();
+
+	await expect(page.getByRole("alertdialog")).toHaveCount(0);
+	await expect(row).toContainText(
+		message("instance_users_table_instance_role_admin_label"),
+	);
+	expect(
+		await waitForLink(outbox, user.email, "auth.instance-admin-granted"),
+	).toMatch(/\/app\/account\/security$/);
+	expect((await listUsers()).rowCount).toBeGreaterThan(0);
+
+	await row
+		.getByRole("button", {
+			name: message("common_row_menu_trigger"),
+		})
+		.click();
+	await page
+		.getByRole("menuitem", {
+			name: message("instance_users_table_demote_menu_item"),
+		})
+		.click();
+	await page
+		.getByRole("button", {
+			name: message("users_demote_confirm_button"),
+			exact: true,
+		})
+		.click();
+
+	await expect(page.getByRole("alertdialog")).toHaveCount(0);
+	await expect(row).toContainText(
+		message("instance_users_table_instance_role_user_label"),
+	);
+	expect(
+		await waitForLink(outbox, user.email, "auth.instance-admin-revoked"),
+	).toMatch(/\/app\/account\/security$/);
+	expect((await rejection(listUsers())).code).toBe("FORBIDDEN");
+});
+
+test("instance: nobody changes their own instance role, and only instance admins change one", async ({
+	api,
+	org,
+	pageAsWellKnownAdmin,
+}) => {
+	const page = await pageAsWellKnownAdmin();
+	await open(page, "/instance/users");
+	await page
+		.getByPlaceholder(message("instance_users_search_placeholder"))
+		.fill(WELL_KNOWN_ADMIN.email);
+	// Other accounts' addresses end in the same text, so match the whole cell.
+	const ownRow = page.getByRole("row").filter({
+		has: page.getByRole("cell", {
+			name: WELL_KNOWN_ADMIN.email,
+			exact: true,
+		}),
+	});
+	await expect(ownRow).toContainText(
+		message("instance_users_table_instance_role_admin_label"),
+	);
+	await expect(
+		ownRow.getByRole("button", {
+			name: message("common_row_menu_trigger"),
+		}),
+	).toHaveCount(0);
+
+	const self = await signIn(baseURL(), WELL_KNOWN_ADMIN);
+	const ownDemotion = await rejection(
+		createApiClient(baseURL(), self.cookieHeader).user.setInstanceRole({
+			userId: userIdSchema.parse(self.userId),
+			role: "user",
+		}),
+	);
+	expect(ownDemotion.data).toMatchObject({
+		reason: "SELF_INSTANCE_ROLE_CHANGE_FORBIDDEN",
+	});
+
+	const user = await createThrowawayUser(baseURL(), `self-promote-${runId()}`);
+	await addMember(api, org, user);
+	const selfPromotion = await rejection(
+		createApiClient(baseURL(), user.session.cookieHeader).user.setInstanceRole({
+			userId: user.id,
+			role: "admin",
+		}),
+	);
+	expect(selfPromotion.data).toMatchObject({
+		reason: "INSTANCE_ADMIN_REQUIRED",
+	});
 });

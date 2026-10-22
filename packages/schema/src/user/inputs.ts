@@ -1,3 +1,4 @@
+import { INSTANCE_ROLES } from "@orcai/core";
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
@@ -44,6 +45,11 @@ export const resetTwoFactorInputSchema = z.object({
 	userId: userIdSchema,
 });
 
+export const setInstanceRoleInputSchema = z.object({
+	userId: userIdSchema,
+	role: z.enum(INSTANCE_ROLES),
+});
+
 export const findUserInputSchema = z.object({
 	id: userIdSchema,
 	...zedTokenSchema.shape,
@@ -81,6 +87,7 @@ export type InstanceUserSortKey = z.infer<typeof instanceUserSortKeySchema>;
 export type BanUserInput = z.infer<typeof banUserInputSchema>;
 export type UnbanUserInput = z.infer<typeof unbanUserInputSchema>;
 export type ResetTwoFactorInput = z.infer<typeof resetTwoFactorInputSchema>;
+export type SetInstanceRoleInput = z.infer<typeof setInstanceRoleInputSchema>;
 export type FindUserInput = z.infer<typeof findUserInputSchema>;
 export type ListUserAccessInput = z.infer<typeof listUserAccessInputSchema>;
 export type DeleteUsersInput = z.infer<typeof deleteUsersInputSchema>;

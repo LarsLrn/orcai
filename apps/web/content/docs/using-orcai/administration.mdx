@@ -319,13 +319,15 @@ Its former members lose their direct grants on them, as when they are removed
 one by one.
 
 **Users** (`/instance/users`) lists every account of the instance, searchable over name and email,
-with the organisations each account belongs to, its role in them, and whether
-it uses two-factor authentication (**2FA**). From here an account is banned,
-unbanned, or deleted, and **Reset 2FA** helps someone who lost their
-authenticator app and backup codes: it removes their second factor and trusted
-devices, signs them out everywhere and emails them, so they sign in with their
-password and set up 2FA again. None of these applies to your own account.
-Organisation administrators do not see whether a member uses 2FA.
+with the organisations each account belongs to, its role in them, its
+instance role, and whether it uses two-factor authentication (**2FA**). From
+here an account is banned, unbanned, or deleted, and **Reset 2FA** helps
+someone who lost their authenticator app and backup codes: it removes their
+second factor and trusted devices, signs them out everywhere and emails them,
+so they sign in with their password and set up 2FA again. **Make instance
+admin** and **Remove instance admin** change the account's instance role, see
+below. None of these applies to your own account. Organisation administrators
+do not see whether a member uses 2FA.
 
 **Analytics** (`/instance/analytics`) shows the instance's tokens and
 requests over the last 7, 30 or 90 days, per UTC day, and every organisation's
@@ -345,12 +347,21 @@ whole instance and belong to the instance administrator, an account marked with
 the instance role in the database. The first account created when an instance is
 initialised is an instance administrator.
 
+An instance administrator makes another account an instance administrator, or
+takes the role away again, from the Users page. The account's owner gets an
+email either way. Nobody changes their own instance role, so an instance always
+keeps at least one administrator, also when two administrators remove each
+other at the same moment. With `TWO_FACTOR_REQUIRED=admins`, a new instance
+administrator without two-factor authentication is sent to set it up the next
+time they open OrcAI.
+
 Only an instance administrator may:
 
 - create an organisation,
 - delete an organisation,
 - ban and unban an account,
 - reset an account's two-factor authentication,
+- make an account an instance administrator or remove the role,
 - delete an account,
 - list every organisation and every user of the instance,
 - see every organisation's usage.
