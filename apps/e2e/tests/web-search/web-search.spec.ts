@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expectForbidden, rejection } from "../../fixtures/authorization";
 import {
 	chatName,
@@ -282,4 +283,74 @@ test("web-search: an admin chooses the search provider on the organisation page"
 			webSearchMode: "provider",
 			webSearchProviderId: search.id,
 		});
+});
+
+test("web-search: a search provider without a quota pool shows a warning that ends with a pool", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const admin = api.as("admin");
+	const { data: search } = await admin.provider.create({
+		name: chatName("Search"),
+		description: "",
+		endpoint: null,
+		kind: "tavily",
+		meteringMode: "requests",
+		apiKey: SEARCH_API_KEY,
+		enabled: true,
+	});
+	const notice = (page: Page) =>
+		page.getByRole("alert").filter({
+			hasText: message("providers_search_pool_notice_title"),
+		});
+
+	const page = await pageAs("admin");
+	await enterApp(page, org.slug);
+	await openGuarded(
+		page,
+		"/app/organization",
+		message("orgs_settings_page_title"),
+	);
+	await expect(notice(page)).toHaveCount(0);
+	await page
+		.getByRole("combobox", {
+			name: message("orgs_form_web_search_label"),
+		})
+		.click();
+	await page
+		.getByRole("option", {
+			name: message("orgs_form_web_search_provider_option", {
+				name: search.name,
+			}),
+		})
+		.click();
+	await expect(notice(page)).toBeVisible();
+	await expect(
+		notice(page).getByRole("link", {
+			name: message("providers_search_pool_notice_action"),
+		}),
+	).toHaveAttribute("href", "/app/quotas/add");
+
+	await openGuarded(page, `/app/providers/${search.id}`, search.name);
+	await expect(notice(page)).toBeVisible();
+
+	const allMembers = (
+		await admin.group.list({
+			pageIndex: 0,
+			pageSize: 100,
+		})
+	).data.find((group) => group.systemKey === "all_members");
+	if (!allMembers) throw new Error("Missing All Members group");
+	await admin.quota.create({
+		name: chatName("Search Pool"),
+		providerId: search.id,
+		periodType: "monthly",
+		budgetAmount: 100,
+		groupIds: [
+			allMembers.id,
+		],
+	});
+	await openGuarded(page, `/app/providers/${search.id}`, search.name);
+	await expect(notice(page)).toHaveCount(0);
 });
