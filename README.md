@@ -239,7 +239,7 @@ Runtime configuration is loaded across app and package config modules. Every val
 
 ### Core URL and auth variables
 
-- `BETTER_AUTH_URL`: The app's public origin, used for auth callbacks and links in emails.
+- `BETTER_AUTH_URL`: The app's public origin, used for auth callbacks and links in emails. Passkeys are bound to its host name, so changing the domain invalidates them.
 - `WEB_URL`: Public docs site base URL used by the app dashboard and the assistant's docs links (optional). The assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the assistant cannot read the docs.
 - `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the assistant (optional, defaults to `WEB_URL`; Docker Compose sets `http://web:3001`).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.

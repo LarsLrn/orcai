@@ -26,7 +26,7 @@ Primary config modules:
 
 | Variable | Required | Notes |
 | --- | --- | --- |
-| `BETTER_AUTH_URL` | Yes | The app's public origin, used for auth callbacks and links in emails. |
+| `BETTER_AUTH_URL` | Yes | The app's public origin, used for auth callbacks and links in emails. Passkeys are bound to its host name, so changing the domain invalidates every registered passkey; users then sign in with their password and add them again. |
 | `WEB_URL` | No | Public docs site base URL used in the app dashboard and in the assistant's docs links. It is also where the assistant reads the docs unless `WEB_INTERNAL_URL` is set. Without it the assistant cannot read the docs. |
 | `WEB_INTERNAL_URL` | No | Docs site origin the app server fetches for the assistant. Defaults to `WEB_URL`. Docker Compose sets `http://web:3001`. |
 
