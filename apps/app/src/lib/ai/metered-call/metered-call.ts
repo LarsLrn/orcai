@@ -57,7 +57,7 @@ export const startMeteredCall = (input: {
 	organizationId: OrganizationId;
 	userId: UserId;
 	providerId: ProviderId;
-	providerModelId: string | null;
+	modelId: string | null;
 	/** The bot whose chat the call runs in. */
 	botId?: BotId | null;
 	/** Provider requests the call may make at most. */
@@ -71,7 +71,7 @@ export const startMeteredCall = (input: {
 			organizationId: input.organizationId,
 			userId: input.userId,
 			providerId: input.providerId,
-			providerModelId: input.providerModelId,
+			modelId: input.modelId,
 			botId: input.botId,
 			appRequestId: input.appRequestId,
 			maxExpectedOutputTokens: input.maxOutputTokens,

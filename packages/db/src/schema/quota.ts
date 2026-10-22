@@ -67,7 +67,7 @@ export const quotaPool = pgTable(
 			.references(() => provider.id, {
 				onDelete: "cascade",
 			}),
-		providerModelId: uuid("provider_model_id").references(() => model.id, {
+		modelId: uuid("model_id").references(() => model.id, {
 			onDelete: "set null",
 		}),
 		periodType: quotaPoolPeriodTypeEnum("period_type").notNull(),
@@ -89,14 +89,11 @@ export const quotaPool = pgTable(
 			table.organizationId,
 			table.providerId,
 		),
-		index("quota_pool_provider_model_idx").on(
-			table.providerId,
-			table.providerModelId,
-		),
+		index("quota_pool_provider_model_idx").on(table.providerId, table.modelId),
 		uniqueIndex("quota_pool_default_org_provider_unique")
 			.on(table.organizationId, table.providerId)
 			.where(
-				sql`${table.isDefault} = true AND ${table.providerModelId} IS NULL AND ${table.isActive} = true`,
+				sql`${table.isDefault} = true AND ${table.modelId} IS NULL AND ${table.isActive} = true`,
 			),
 	],
 );
@@ -238,7 +235,7 @@ export const quotaUsageEvent = pgTable(
 				onDelete: "cascade",
 			}),
 		/** The model the call ran on. */
-		providerModelId: uuid("provider_model_id").references(() => model.id, {
+		modelId: uuid("model_id").references(() => model.id, {
 			onDelete: "set null",
 		}),
 		userId: uuid("user_id")
@@ -292,6 +289,9 @@ export const quotaUsageEvent = pgTable(
 		index("quota_usage_event_finalized_idx")
 			.on(table.occurredAt)
 			.where(sql`${table.eventType} = 'finalized'`),
+		index("quota_usage_event_model_idx")
+			.on(table.modelId)
+			.where(sql`${table.modelId} IS NOT NULL`),
 		index("quota_usage_event_bot_idx")
 			.on(table.botId)
 			.where(sql`${table.botId} IS NOT NULL`),

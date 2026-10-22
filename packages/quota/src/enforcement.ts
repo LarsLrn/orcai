@@ -22,7 +22,7 @@ interface ReserveQuotaInput {
 	organizationId: OrganizationId;
 	userId: UserId;
 	providerId: ProviderId;
-	providerModelId?: string | null;
+	modelId?: string | null;
 	/** The bot whose chat the call runs in. */
 	botId?: BotId | null;
 	appRequestId: string;
@@ -38,7 +38,7 @@ export interface ReservedQuotaContext {
 	poolId: QuotaPoolId;
 	periodId: QuotaPeriodId;
 	providerId: ProviderId;
-	providerModelId: string | null;
+	modelId: string | null;
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
 	reservedAmount: number;
 	budgetAmount: number;
@@ -61,7 +61,7 @@ export const reserveForAppRequest: (
 			organizationId: input.organizationId,
 			userId: input.userId,
 			providerId: input.providerId,
-			providerModelId: input.providerModelId,
+			modelId: input.modelId,
 		});
 
 		const winning = resolution.winningPool;
@@ -113,7 +113,7 @@ export const reserveForAppRequest: (
 			quotaPoolId: winning.pool.id,
 			quotaPeriodId: winning.period.id,
 			providerId: winning.pool.providerId,
-			providerModelId: input.providerModelId,
+			modelId: input.modelId,
 			botId: input.botId,
 			userId: input.userId,
 			appRequestId: input.appRequestId,
@@ -147,7 +147,7 @@ export const reserveForAppRequest: (
 					poolId: winning.pool.id,
 					periodId: winning.period.id,
 					providerId: winning.pool.providerId,
-					providerModelId: winning.pool.providerModelId,
+					modelId: winning.pool.modelId,
 					meteringMode: winning.meteringMode,
 					reservedAmount,
 					budgetAmount: winning.ledger.budgetAmount,
@@ -164,7 +164,7 @@ export const reserveForAppRequest: (
 				poolId: winning.pool.id,
 				periodId: winning.period.id,
 				providerId: winning.pool.providerId,
-				providerModelId: winning.pool.providerModelId,
+				modelId: winning.pool.modelId,
 				meteringMode: winning.meteringMode,
 				reservedAmount,
 				budgetAmount: winning.ledger.budgetAmount,

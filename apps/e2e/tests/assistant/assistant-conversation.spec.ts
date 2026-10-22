@@ -356,7 +356,7 @@ test("assistant: the quota line and refusals follow the pool of the assistant mo
 	await admin.quota.create({
 		name: poolName,
 		providerId: model.providerId,
-		providerModelId: model.modelId,
+		modelId: model.modelId,
 		periodType: "monthly",
 		budgetAmount: 1,
 		groupIds: [

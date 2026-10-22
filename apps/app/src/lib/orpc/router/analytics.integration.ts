@@ -129,7 +129,7 @@ const meteredOrganization = async () => {
 					organizationId,
 					userId: params.actor.user.id,
 					providerId: provider.id,
-					providerModelId: model.id,
+					modelId: model.id,
 					botId: params.botId,
 					maxSteps: params.steps.length,
 					messages: [],

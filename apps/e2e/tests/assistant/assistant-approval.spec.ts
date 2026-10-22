@@ -534,7 +534,7 @@ test("assistant: a continuation refused for quota stores nothing", async ({
 	await admin.quota.create({
 		name: chatName("Exhausted Pool"),
 		providerId: model.providerId,
-		providerModelId: model.modelId,
+		modelId: model.modelId,
 		periodType: "monthly",
 		budgetAmount: 1,
 		groupIds: [

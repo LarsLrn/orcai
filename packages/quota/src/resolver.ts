@@ -25,17 +25,17 @@ export const resolveQuotaPool: (params: {
 	organizationId: OrganizationId;
 	userId: UserId;
 	providerId: ProviderId;
-	providerModelId?: string | null;
+	modelId?: string | null;
 }) => Effect.Effect<QuotaResolutionResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		const modelScopeCondition = params.providerModelId
+		const modelScopeCondition = params.modelId
 			? or(
-					eq(dbSchema.quotaPool.providerModelId, params.providerModelId),
-					isNull(dbSchema.quotaPool.providerModelId),
+					eq(dbSchema.quotaPool.modelId, params.modelId),
+					isNull(dbSchema.quotaPool.modelId),
 				)
-			: isNull(dbSchema.quotaPool.providerModelId);
+			: isNull(dbSchema.quotaPool.modelId);
 
 		const candidateRows = yield* db
 			.select({
@@ -108,15 +108,9 @@ export const resolveQuotaPool: (params: {
 
 		const orderedRows = Array.from(deduped.values()).sort((a, b) => {
 			const aSpecificity =
-				params.providerModelId &&
-				a.pool.providerModelId === params.providerModelId
-					? 2
-					: 1;
+				params.modelId && a.pool.modelId === params.modelId ? 2 : 1;
 			const bSpecificity =
-				params.providerModelId &&
-				b.pool.providerModelId === params.providerModelId
-					? 2
-					: 1;
+				params.modelId && b.pool.modelId === params.modelId ? 2 : 1;
 
 			if (aSpecificity !== bSpecificity) {
 				return bSpecificity - aSpecificity;

@@ -208,7 +208,7 @@ export const organizationAnalytics = ({
 					})
 					.from(event)
 					.innerJoin(provider, eq(provider.id, event.providerId))
-					.leftJoin(model, eq(model.id, event.providerModelId))
+					.leftJoin(model, eq(model.id, event.modelId))
 					.where(where)
 					.groupBy(event.providerId, provider.name, model.id, model.name),
 				// A reply belongs to the organisation that metered it, whose request id is the reply's id.

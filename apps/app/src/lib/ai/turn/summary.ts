@@ -66,7 +66,7 @@ export const summarizeHistory = ({
 		organizationId: requester.organizationId,
 		userId: requester.user.id,
 		providerId: setup.providerId,
-		providerModelId: setup.modelId,
+		modelId: setup.modelId,
 		botId: setup.botId,
 		model: setup.model.language,
 		system: COMPACTION_INSTRUCTIONS,
