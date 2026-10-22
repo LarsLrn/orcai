@@ -13,11 +13,13 @@ export interface MeteredStep {
 	totalTokens?: number;
 	/** Searches the model ran with its provider's own tool. */
 	webSearches?: number;
+	/** The cost the provider reported for the request, in USD. */
+	reportedCost?: number;
 }
 
 type UsageEvent = typeof dbSchema.quotaUsageEvent.$inferInsert;
 
-export type RecordedUsage = Pick<
+export type UsageCounts = Pick<
 	UsageEvent,
 	| "requestCount"
 	| "inputTokens"
@@ -33,7 +35,7 @@ export type RecordedUsage = Pick<
 /** A token class's sum, undefined when no step reported it. */
 const sumOf = (
 	steps: readonly MeteredStep[],
-	key: Exclude<keyof MeteredStep, "webSearches">,
+	key: Exclude<keyof MeteredStep, "webSearches" | "reportedCost">,
 ) =>
 	steps.reduce<number | undefined>((sum, step) => {
 		const tokens = step[key];
@@ -41,9 +43,7 @@ const sumOf = (
 	}, undefined);
 
 /** The usage event's counts for a call's steps, one provider request each. */
-export const recordedUsage = (
-	steps: readonly MeteredStep[],
-): RecordedUsage => ({
+export const usageCounts = (steps: readonly MeteredStep[]): UsageCounts => ({
 	requestCount: steps.length,
 	inputTokens: sumOf(steps, "inputTokens"),
 	noCacheInputTokens: sumOf(steps, "noCacheInputTokens"),

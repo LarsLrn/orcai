@@ -66,28 +66,32 @@ const rawUsageSchema = z
 			})
 			.optional()
 			.catch(undefined),
+		/** OpenRouter's cost of the request, in credits of one USD. */
+		cost: z.number().nonnegative().optional().catch(undefined),
 	})
 	.catch({});
 
-/** Anthropic counts native searches in its usage; OpenAI only returns their calls. */
-const webSearches = ({ usage, toolCalls }: MeterStep) =>
-	rawUsageSchema.parse(usage.raw).server_tool_use?.web_search_requests ??
-	toolCalls.filter(
-		(call) =>
-			call.providerExecuted === true &&
-			call.toolName === NATIVE_WEB_SEARCH_TOOL_NAME,
-	).length;
-
-const meteredStep = (step: MeterStep): MeteredStep => ({
-	inputTokens: step.usage.inputTokens,
-	noCacheInputTokens: step.usage.inputTokenDetails.noCacheTokens,
-	cacheReadTokens: step.usage.inputTokenDetails.cacheReadTokens,
-	cacheWriteTokens: step.usage.inputTokenDetails.cacheWriteTokens,
-	outputTokens: step.usage.outputTokens,
-	reasoningTokens: step.usage.outputTokenDetails.reasoningTokens,
-	totalTokens: step.usage.totalTokens,
-	webSearches: webSearches(step),
-});
+const meteredStep = ({ usage, toolCalls }: MeterStep): MeteredStep => {
+	const raw = rawUsageSchema.parse(usage.raw);
+	return {
+		inputTokens: usage.inputTokens,
+		noCacheInputTokens: usage.inputTokenDetails.noCacheTokens,
+		cacheReadTokens: usage.inputTokenDetails.cacheReadTokens,
+		cacheWriteTokens: usage.inputTokenDetails.cacheWriteTokens,
+		outputTokens: usage.outputTokens,
+		reasoningTokens: usage.outputTokenDetails.reasoningTokens,
+		totalTokens: usage.totalTokens,
+		// Anthropic counts native searches in its usage; OpenAI only returns their calls.
+		webSearches:
+			raw.server_tool_use?.web_search_requests ??
+			toolCalls.filter(
+				(call) =>
+					call.providerExecuted === true &&
+					call.toolName === NATIVE_WEB_SEARCH_TOOL_NAME,
+			).length,
+		reportedCost: raw.cost,
+	};
+};
 
 export const startMeteredCall = (input: {
 	appRequestId: string;

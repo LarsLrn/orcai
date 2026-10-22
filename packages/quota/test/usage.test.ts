@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { recordedUsage } from "../src/usage";
+import { usageCounts } from "../src/usage";
 
-describe("recordedUsage", () => {
+describe("usageCounts", () => {
 	test("sums each token class over the steps, one request each", () => {
 		expect(
-			recordedUsage([
+			usageCounts([
 				{
 					inputTokens: 1_350,
 					noCacheInputTokens: 50,
@@ -38,7 +38,7 @@ describe("recordedUsage", () => {
 
 	test("leaves a class no step reported unknown", () => {
 		expect(
-			recordedUsage([
+			usageCounts([
 				{},
 			]),
 		).toEqual({

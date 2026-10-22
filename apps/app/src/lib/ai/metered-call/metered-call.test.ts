@@ -237,6 +237,39 @@ describe("startMeteredCall", () => {
 		]);
 	});
 
+	test("each step keeps the cost its provider reported", async () => {
+		const meter = await start();
+		const reporting = (cost: number | string): MeterStep => {
+			const step = usage(10, 10);
+			return {
+				...step,
+				usage: {
+					...step.usage,
+					raw: {
+						prompt_tokens: 10,
+						completion_tokens: 10,
+						cost,
+					},
+				},
+			};
+		};
+
+		meter.step(reporting(0.0012));
+		meter.step(usage(10, 10));
+		meter.step(reporting("0.5"));
+		meter.step(reporting(0.0005));
+		await Effect.runPromise(meter.settle("completed"));
+
+		expect(
+			quota.calls.finalize[0]?.steps.map(({ reportedCost }) => reportedCost),
+		).toEqual([
+			0.0012,
+			undefined,
+			undefined,
+			0.0005,
+		]);
+	});
+
 	test.each([
 		[
 			"failed",
