@@ -2,7 +2,7 @@ import { useHydrated, useRouteContext } from "@tanstack/react-router";
 import { CompassIcon, ExternalLinkIcon } from "lucide-react";
 import { TourButton } from "@/components/tour/tour-button";
 import { buttonVariants } from "@/components/ui/button";
-import { clientEnv } from "@/lib/env/client";
+import { usePublicConfig } from "@/hooks/use-public-config";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -20,6 +20,7 @@ const UserWelcome = () => {
 	// The server does not know the browser's timezone, so it renders a neutral greeting.
 	const hydrated = useHydrated();
 	const greetingTime = hydrated ? timeOfDay() : "unknown";
+	const { docsUrl } = usePublicConfig();
 
 	return (
 		<div className="space-y-2">
@@ -41,9 +42,9 @@ const UserWelcome = () => {
 				>
 					<CompassIcon className="text-foreground" />
 				</TourButton>
-				{clientEnv.VITE_WEB_URL && (
+				{docsUrl && (
 					<a
-						href={clientEnv.VITE_WEB_URL}
+						href={docsUrl}
 						target="_blank"
 						rel="noopener noreferrer"
 						className={cn(

@@ -1,29 +1,33 @@
 import { describe, expect, test } from "bun:test";
-import { resolveDocsConfig } from "./config";
+import { resolveDeploymentConfig } from "./config";
 
-describe("resolveDocsConfig", () => {
-	test("has no docs without VITE_WEB_URL", () => {
-		expect(resolveDocsConfig({})).toEqual({
+describe("resolveDeploymentConfig", () => {
+	test("has no docs and no analytics when nothing is set", () => {
+		expect(resolveDeploymentConfig({})).toEqual({
 			docs: undefined,
-			invalid: [],
+			publicConfig: {},
+			warnings: [],
 		});
 	});
 
 	test("counts empty values as unset", () => {
 		expect(
-			resolveDocsConfig({
+			resolveDeploymentConfig({
 				webUrl: "",
 				webInternalUrl: "",
+				umamiScriptUrl: "",
+				umamiWebsiteId: "",
 			}),
 		).toEqual({
 			docs: undefined,
-			invalid: [],
+			publicConfig: {},
+			warnings: [],
 		});
 	});
 
-	test("fetches from VITE_WEB_URL when WEB_INTERNAL_URL is unset", () => {
+	test("fetches from WEB_URL when WEB_INTERNAL_URL is unset", () => {
 		expect(
-			resolveDocsConfig({
+			resolveDeploymentConfig({
 				webUrl: "https://docs.example.org",
 				webInternalUrl: "",
 			}).docs,
@@ -35,31 +39,38 @@ describe("resolveDocsConfig", () => {
 
 	test("fetches from WEB_INTERNAL_URL when set", () => {
 		expect(
-			resolveDocsConfig({
+			resolveDeploymentConfig({
 				webUrl: "http://localhost:3001",
 				webInternalUrl: "http://web:3001",
-			}).docs,
+			}),
 		).toEqual({
-			publicOrigin: "http://localhost:3001",
-			fetchOrigin: "http://web:3001",
+			docs: {
+				publicOrigin: "http://localhost:3001",
+				fetchOrigin: "http://web:3001",
+			},
+			publicConfig: {
+				docsUrl: "http://localhost:3001",
+			},
+			warnings: [],
 		});
 	});
 
 	test("drops a trailing slash", () => {
-		expect(
-			resolveDocsConfig({
-				webUrl: "https://docs.example.org/",
-				webInternalUrl: "http://web:3001/",
-			}).docs,
-		).toEqual({
+		const { docs, publicConfig } = resolveDeploymentConfig({
+			webUrl: "https://docs.example.org/",
+			webInternalUrl: "http://web:3001/",
+		});
+
+		expect(docs).toEqual({
 			publicOrigin: "https://docs.example.org",
 			fetchOrigin: "http://web:3001",
 		});
+		expect(publicConfig.docsUrl).toBe("https://docs.example.org");
 	});
 
 	test("ignores values that are not http(s) URLs and names them", () => {
 		expect(
-			resolveDocsConfig({
+			resolveDeploymentConfig({
 				webUrl: "https://docs.example.org",
 				webInternalUrl: "web:3001",
 			}),
@@ -68,27 +79,72 @@ describe("resolveDocsConfig", () => {
 				publicOrigin: "https://docs.example.org",
 				fetchOrigin: "https://docs.example.org",
 			},
-			invalid: [
-				"WEB_INTERNAL_URL",
+			publicConfig: {
+				docsUrl: "https://docs.example.org",
+			},
+			warnings: [
+				"WEB_INTERNAL_URL is not an http(s) URL and is ignored, so the assistant may not read the docs.",
 			],
 		});
 		expect(
-			resolveDocsConfig({
+			resolveDeploymentConfig({
 				webUrl: "ftp://docs.example.org",
 			}),
 		).toEqual({
 			docs: undefined,
-			invalid: [
-				"VITE_WEB_URL",
+			publicConfig: {},
+			warnings: [
+				"WEB_URL is not an http(s) URL and is ignored, so the assistant may not read the docs.",
 			],
 		});
 	});
 
 	test("does not enable the docs from WEB_INTERNAL_URL alone", () => {
 		expect(
-			resolveDocsConfig({
+			resolveDeploymentConfig({
 				webInternalUrl: "http://web:3001",
-			}).docs,
-		).toBeUndefined();
+			}),
+		).toEqual({
+			docs: undefined,
+			publicConfig: {},
+			warnings: [],
+		});
+	});
+
+	test("enables Umami when both values are set", () => {
+		expect(
+			resolveDeploymentConfig({
+				umamiScriptUrl: "https://umami.example.org/script.js",
+				umamiWebsiteId: "site",
+			}),
+		).toEqual({
+			docs: undefined,
+			publicConfig: {
+				umami: {
+					scriptUrl: "https://umami.example.org/script.js",
+					websiteId: "site",
+				},
+			},
+			warnings: [],
+		});
+	});
+
+	test("keeps Umami off and warns when only one value is set", () => {
+		for (const env of [
+			{
+				umamiScriptUrl: "https://umami.example.org/script.js",
+			},
+			{
+				umamiWebsiteId: "site",
+			},
+		]) {
+			expect(resolveDeploymentConfig(env)).toEqual({
+				docs: undefined,
+				publicConfig: {},
+				warnings: [
+					"Only one of UMAMI_SCRIPT_URL and UMAMI_WEBSITE_ID is set, so analytics stay off.",
+				],
+			});
+		}
 	});
 });

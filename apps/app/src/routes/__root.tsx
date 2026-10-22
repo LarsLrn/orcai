@@ -13,6 +13,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createIsomorphicFn, createServerFn } from "@tanstack/react-start";
 import { getCookie, getRequest } from "@tanstack/react-start/server";
+import * as Effect from "effect/Effect";
 import Cookies from "js-cookie";
 import { type ReactNode, useState } from "react";
 import { LoadingPage } from "@/components/app/loading/loading-page";
@@ -25,7 +26,8 @@ import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth } from "@/lib/auth/auth";
-import { clientEnv } from "@/lib/env/client";
+import { runPromise } from "@/lib/effect/runtime";
+import { AppConfigService } from "@/lib/effect/services/config";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -51,6 +53,19 @@ const getSession = createServerFn({
 			}
 		: null;
 });
+
+/** Read per request, so one image serves any deployment. */
+const getPublicConfig = createServerFn({
+	method: "GET",
+}).handler(() =>
+	runPromise(
+		Effect.gen(function* () {
+			const { publicConfig } = yield* AppConfigService;
+
+			return publicConfig;
+		}),
+	),
+);
 
 const getThemePreference = createIsomorphicFn()
 	.server(() => parseTheme(getCookie(THEME_COOKIE_NAME)))
@@ -82,7 +97,9 @@ export const Route = createRootRouteWithContext<{
 			},
 		};
 	},
-	head: () => ({
+	loader: () => getPublicConfig(),
+	staleTime: Number.POSITIVE_INFINITY,
+	head: ({ loaderData }) => ({
 		meta: [
 			{
 				charSet: "utf-8",
@@ -121,13 +138,15 @@ export const Route = createRootRouteWithContext<{
 				sizes: "16x16 32x32",
 			},
 		],
-		scripts: [
-			{
-				src: clientEnv.VITE_UMAMI_SCRIPT_URL,
-				defer: true,
-				"data-website-id": clientEnv.VITE_UMAMI_WEBSITE_ID,
-			},
-		],
+		scripts: loaderData?.umami
+			? [
+					{
+						src: loaderData.umami.scriptUrl,
+						defer: true,
+						"data-website-id": loaderData.umami.websiteId,
+					},
+				]
+			: [],
 	}),
 	shellComponent: RootComponent,
 	pendingComponent: LoadingPage,
