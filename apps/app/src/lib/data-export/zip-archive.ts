@@ -1,9 +1,7 @@
-import { once } from "node:events";
-import { PassThrough } from "node:stream";
 import { uploadStream } from "@orcai/s3/server";
+import { TextReader, ZipWriter } from "@zip.js/zip.js/index-native.js";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import { Zip, ZipDeflate, ZipPassThrough } from "fflate";
 
 class ZipArchiveError extends Data.TaggedError("ZipArchiveError")<{
 	readonly entry?: string;
@@ -19,17 +17,78 @@ export interface ZipArchiveWriter {
 	/** Adds an entry stored as is, read chunk by chunk. */
 	readonly addFile: (
 		name: string,
-		chunks: AsyncIterable<Uint8Array>,
+		content: ReadableStream<Uint8Array>,
 	) => Effect.Effect<void, ZipArchiveError>;
 }
 
-const encoder = new TextEncoder();
-
 /**
- * Streams a zip archive into S3 while `fill` adds its entries one after the
- * other, and returns its size in bytes. Every entry waits for the upload to
- * catch up, so memory stays at a few upload parts whatever the archive's size.
+ * Writes a zip archive into `sink` while `fill` adds its entries one after the
+ * other, and returns its size in bytes. Every write waits for the sink, so
+ * memory stays bounded whatever the archive's size; entries and archives over
+ * 4 GB use Zip64.
  */
+export const writeZip = <E, R>(
+	sink: WritableStream<Uint8Array>,
+	fill: (writer: ZipArchiveWriter) => Effect.Effect<void, E, R>,
+) =>
+	Effect.gen(function* () {
+		const output = sink.getWriter();
+		let size = 0;
+		const zip = new ZipWriter(
+			new WritableStream<Uint8Array>({
+				write: (chunk) => {
+					size += chunk.length;
+					return output.write(chunk);
+				},
+				close: () => output.close(),
+			}),
+			{
+				useWebWorkers: false,
+			},
+		);
+
+		const add = (
+			name: string,
+			reader: TextReader | ReadableStream<Uint8Array>,
+			level: number,
+		) =>
+			Effect.tryPromise({
+				try: (signal) =>
+					zip.add(name, reader, {
+						level,
+						signal,
+					}),
+				catch: (cause) =>
+					new ZipArchiveError({
+						entry: name,
+						cause,
+					}),
+			});
+
+		const writer: ZipArchiveWriter = {
+			addText: (name, content) => add(name, new TextReader(content), 6),
+			addFile: (name, content) => add(name, content, 0),
+		};
+
+		yield* fill(writer).pipe(
+			Effect.andThen(
+				Effect.tryPromise({
+					try: () => zip.close(),
+					catch: (cause) =>
+						new ZipArchiveError({
+							cause,
+						}),
+				}),
+			),
+			Effect.onError(() =>
+				Effect.promise(() => output.abort(new Error("Archive not completed"))),
+			),
+		);
+
+		return size;
+	});
+
+/** Streams a zip archive into S3, see {@link writeZip}. */
 export const writeZipArchive = <E, R>(
 	target: {
 		readonly bucket: string;
@@ -38,95 +97,23 @@ export const writeZipArchive = <E, R>(
 	fill: (writer: ZipArchiveWriter) => Effect.Effect<void, E, R>,
 ) =>
 	Effect.gen(function* () {
-		const body = new PassThrough();
-		let size = 0;
-		const zip = new Zip((error, chunk, final) => {
-			if (error) {
-				body.destroy(error);
-				return;
-			}
-			size += chunk.length;
-			body.write(chunk);
-			if (final) {
-				body.end();
-			}
-		});
-
-		const drained = async (signal: AbortSignal) => {
-			if (body.writableNeedDrain) {
-				await once(body, "drain", {
-					signal,
-				});
-			}
-		};
-
-		const writer: ZipArchiveWriter = {
-			addText: (name, content) =>
-				Effect.tryPromise({
-					try: (signal) => {
-						const file = new ZipDeflate(name, {
-							level: 6,
-						});
-						zip.add(file);
-						file.push(encoder.encode(content), true);
-						return drained(signal);
-					},
-					catch: (cause) =>
-						new ZipArchiveError({
-							entry: name,
-							cause,
-						}),
-				}),
-			addFile: (name, chunks) =>
-				Effect.tryPromise({
-					try: async (signal) => {
-						const file = new ZipPassThrough(name);
-						zip.add(file);
-						for await (const chunk of chunks) {
-							file.push(chunk);
-							await drained(signal);
-						}
-						file.push(new Uint8Array(0), true);
-						await drained(signal);
-					},
-					catch: (cause) =>
-						new ZipArchiveError({
-							entry: name,
-							cause,
-						}),
-				}),
-		};
-
-		const write = fill(writer).pipe(
-			Effect.andThen(
-				Effect.try({
-					try: () => zip.end(),
-					catch: (cause) =>
-						new ZipArchiveError({
-							cause,
-						}),
-				}),
-			),
-			Effect.onError(() =>
-				Effect.sync(() => body.destroy(new Error("Archive not completed"))),
-			),
-		);
-
-		yield* Effect.all(
+		const { readable, writable } = new TransformStream<
+			Uint8Array,
+			Uint8Array
+		>();
+		const [, size] = yield* Effect.all(
 			[
 				uploadStream({
 					bucket: target.bucket,
 					key: target.key,
-					body,
+					body: readable,
 					contentType: "application/zip",
 				}),
-				write,
+				writeZip(writable, fill),
 			],
 			{
 				concurrency: "unbounded",
-				discard: true,
 			},
 		);
-
 		return size;
 	});

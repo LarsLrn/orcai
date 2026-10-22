@@ -1,4 +1,3 @@
-import type { Readable } from "node:stream";
 import { Upload } from "@aws-sdk/lib-storage";
 import * as Effect from "effect/Effect";
 import { S3Error } from "./errors";
@@ -11,7 +10,7 @@ import { S3Service } from "./service";
 export const uploadStream = (params: {
 	bucket: string;
 	key: string;
-	body: Readable;
+	body: ReadableStream<Uint8Array>;
 	contentType: string;
 }) =>
 	Effect.gen(function* () {

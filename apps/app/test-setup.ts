@@ -7,10 +7,14 @@ import {
 } from "node:stream/web";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
+const { AbortController, AbortSignal } = globalThis;
+
 GlobalRegistrator.register();
 
-// happy-dom's stream classes do not mix with the AI SDK's; tests run on the native ones.
+// happy-dom's stream and abort classes do not mix with native streams; tests run on the native ones.
 Object.assign(globalThis, {
+	AbortController,
+	AbortSignal,
 	ReadableStream,
 	WritableStream,
 	TransformStream,
