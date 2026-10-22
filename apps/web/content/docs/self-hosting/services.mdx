@@ -30,7 +30,7 @@ The repository Compose stack also includes a `web` service for the documentation
 
 ## Workers
 
-Workers run background jobs for asset processing, vectorization, quota reconciliation, and quota period rollover. Workers must be running for uploaded content to become searchable. They also create the data export queues, which the app works.
+Workers run background jobs for asset processing, vectorization, releasing quota reservations of replies that never ended, and quota period rollover. Workers must be running for uploaded content to become searchable. They also create the data export queues, which the app works.
 
 ## PostgreSQL
 
@@ -38,7 +38,7 @@ PostgreSQL stores application data. The Compose stack uses the `pgvector/pgvecto
 
 ## Valkey
 
-Valkey is used as a cache and supporting infrastructure service.
+Valkey is used as a cache and supporting infrastructure service by the app. Workers do not use it.
 
 ## SeaweedFS Or S3-Compatible Storage
 

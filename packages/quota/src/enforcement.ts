@@ -9,7 +9,6 @@ import type {
 import type { DB, dbSchema } from "@orcai/db";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
-import { QuotaCounterStore } from "./counter-store";
 import { estimateQuotaReservationAmount } from "./estimator";
 import {
 	finalizeQuotaLedger,
@@ -53,9 +52,7 @@ interface ReserveQuotaResult {
 
 export const reserveForAppRequest: (
 	input: ReserveQuotaInput,
-) => Effect.Effect<ReserveQuotaResult, unknown, QuotaCounterStore | DB> = (
-	input,
-) =>
+) => Effect.Effect<ReserveQuotaResult, unknown, DB> = (input) =>
 	Effect.gen(function* () {
 		const resolution = yield* resolveQuotaPool({
 			organizationId: input.organizationId,
@@ -80,35 +77,7 @@ export const reserveForAppRequest: (
 		});
 
 		const reservationKey = `res_${uuidv4()}`;
-		const counterStore = yield* QuotaCounterStore;
-
-		const counterReservation = yield* counterStore.reserve({
-			poolId: winning.pool.id,
-			periodId: winning.period.id,
-			reservationKey,
-			amount: reservationAmount,
-			// A request-metered call can run with fewer requests; tokens are all or nothing.
-			minimumAmount:
-				winning.meteringMode === "requests" ? 1 : reservationAmount,
-			initialState: {
-				remaining: winning.ledger.remainingAmount,
-				reserved: winning.ledger.reservedAmount,
-				consumed: winning.ledger.consumedAmount,
-			},
-			meteringMode: winning.meteringMode,
-			userId: input.userId,
-			organizationId: input.organizationId,
-		});
-
-		if (!counterReservation.allowed) {
-			return {
-				allowed: false,
-				denialReason: "exhausted",
-			} satisfies ReserveQuotaResult;
-		}
-		const { reservedAmount } = counterReservation;
-
-		const durableReservation = yield* reserveQuotaLedger({
+		const reserved = yield* reserveQuotaLedger({
 			organizationId: input.organizationId,
 			quotaPoolId: winning.pool.id,
 			quotaPeriodId: winning.period.id,
@@ -119,40 +88,19 @@ export const reserveForAppRequest: (
 			appRequestId: input.appRequestId,
 			reservationKey,
 			meteringMode: winning.meteringMode,
-			reservedAmount,
+			amount: reservationAmount,
+			// A request-metered call can run with fewer requests; tokens are all or nothing.
+			minimumAmount:
+				winning.meteringMode === "requests" ? 1 : reservationAmount,
 			metadata: {
 				orderedCandidatePoolIds: resolution.orderedCandidatePoolIds,
 			},
-		}).pipe(
-			Effect.catch((error) =>
-				counterStore
-					.release({
-						poolId: winning.pool.id,
-						periodId: winning.period.id,
-						reservationKey,
-					})
-					.pipe(
-						Effect.catch(() => Effect.void),
-						Effect.andThen(Effect.fail(error)),
-					),
-			),
-		);
+		});
 
-		if (!durableReservation.inserted) {
+		if (reserved.status !== "reserved") {
 			return {
-				allowed: true,
-				reservation: {
-					reservationKey,
-					appRequestId: input.appRequestId,
-					poolId: winning.pool.id,
-					periodId: winning.period.id,
-					providerId: winning.pool.providerId,
-					modelId: winning.pool.modelId,
-					meteringMode: winning.meteringMode,
-					reservedAmount,
-					budgetAmount: winning.ledger.budgetAmount,
-					periodEndsAt: winning.period.endsAt,
-				},
+				allowed: false,
+				denialReason: reserved.status === "exhausted" ? "exhausted" : "error",
 			} satisfies ReserveQuotaResult;
 		}
 
@@ -166,7 +114,7 @@ export const reserveForAppRequest: (
 				providerId: winning.pool.providerId,
 				modelId: winning.pool.modelId,
 				meteringMode: winning.meteringMode,
-				reservedAmount,
+				reservedAmount: reserved.reservedAmount,
 				budgetAmount: winning.ledger.budgetAmount,
 				periodEndsAt: winning.period.endsAt,
 			},
@@ -180,14 +128,14 @@ export const finalizeAppRequestQuota: (input: {
 	outputTokens?: number;
 	totalTokens?: number;
 	providerRequestIds?: string[];
-}) => Effect.Effect<void, unknown, QuotaCounterStore | DB> = (input) =>
+}) => Effect.Effect<void, unknown, DB> = (input) =>
 	Effect.gen(function* () {
 		const actualAmount =
 			input.reservation.meteringMode === "requests"
 				? (input.actualRequestCount ?? 0)
 				: (input.totalTokens ?? 0);
 
-		const finalized = yield* finalizeQuotaLedger({
+		yield* finalizeQuotaLedger({
 			reservationKey: input.reservation.reservationKey,
 			appRequestId: input.reservation.appRequestId,
 			actualAmount,
@@ -199,56 +147,17 @@ export const finalizeAppRequestQuota: (input: {
 				providerRequestIds: input.providerRequestIds,
 			},
 		});
-
-		if (!finalized) {
-			return;
-		}
-
-		const counterStore = yield* QuotaCounterStore;
-		yield* counterStore
-			.finalize({
-				poolId: input.reservation.poolId,
-				periodId: input.reservation.periodId,
-				reservationKey: input.reservation.reservationKey,
-				actualAmount,
-			})
-			.pipe(
-				Effect.catch((error) =>
-					Effect.logWarning(
-						`quota.finalize.counter_reconcile_required reservationKey=${input.reservation.reservationKey} cause=${String(error)}`,
-					),
-				),
-			);
 	});
 
 export const releaseAppRequestQuota: (input: {
 	reservation: ReservedQuotaContext;
 	reason: "provider_failure" | "app_failure" | "cancelled";
-}) => Effect.Effect<void, unknown, QuotaCounterStore | DB> = (input) =>
+}) => Effect.Effect<void, unknown, DB> = (input) =>
 	Effect.gen(function* () {
-		const released = yield* releaseQuotaLedger({
+		yield* releaseQuotaLedger({
 			reservationKey: input.reservation.reservationKey,
 			appRequestId: input.reservation.appRequestId,
 			reason: input.reason,
 			includeFailureEvent: true,
 		});
-
-		if (!released) {
-			return;
-		}
-
-		const counterStore = yield* QuotaCounterStore;
-		yield* counterStore
-			.release({
-				poolId: input.reservation.poolId,
-				periodId: input.reservation.periodId,
-				reservationKey: input.reservation.reservationKey,
-			})
-			.pipe(
-				Effect.catch((error) =>
-					Effect.logWarning(
-						`quota.release.counter_reconcile_required reservationKey=${input.reservation.reservationKey} cause=${String(error)}`,
-					),
-				),
-			);
 	});

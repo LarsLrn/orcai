@@ -24,12 +24,14 @@ export class PgBossError extends Data.TaggedError(ErrorTags.PG_BOSS)<{
 export class PgBossWorkersError extends Data.TaggedError(
 	ErrorTags.PG_BOSS_WORKER,
 )<{
-	readonly queue: JobQueue;
+	/** A removed worker's queue is no longer a JobQueue. */
+	readonly queue: string;
 	readonly step:
 		| "create-queue"
 		| "register-worker"
 		| "run-worker"
-		| "schedule-worker";
+		| "schedule-worker"
+		| "unschedule-worker";
 	readonly jobId?: string;
 	readonly cause: unknown;
 }> {}

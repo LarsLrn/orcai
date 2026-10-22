@@ -47,7 +47,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_HOST: postgres
-      VALKEY_URL: redis://valkey:6379
       KREUZBERG_OCR_LANGUAGE: ${KREUZBERG_OCR_LANGUAGE:-eng+deu}
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-https://example.com/v1}
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-dev-openai-compatible-key}

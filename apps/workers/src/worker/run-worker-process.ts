@@ -162,6 +162,48 @@ const scheduleWorkers = <TContext>(
 				discard: true,
 			},
 		);
+
+		// A schedule whose worker is gone would keep queueing jobs nobody works.
+		const scheduled = new Set<string>(
+			definitions.flatMap((definition) =>
+				definition.schedule
+					? [
+							definition.name,
+						]
+					: [],
+			),
+		);
+		const installed = yield* Effect.tryPromise({
+			try: () => boss.getSchedules(),
+			catch: (cause) =>
+				new PgBossWorkersError({
+					queue: "*",
+					step: "unschedule-worker",
+					cause,
+				}),
+		});
+		yield* Effect.forEach(
+			installed.filter((schedule) => !scheduled.has(schedule.name)),
+			(schedule) =>
+				Effect.tryPromise({
+					try: () => boss.unschedule(schedule.name, schedule.key),
+					catch: (cause) =>
+						new PgBossWorkersError({
+							queue: schedule.name,
+							step: "unschedule-worker",
+							cause,
+						}),
+				}).pipe(
+					Effect.andThen(
+						Effect.logInfo(
+							`Removed schedule ${schedule.cron} for ${schedule.name}`,
+						),
+					),
+				),
+			{
+				discard: true,
+			},
+		);
 	});
 
 /** A signal interrupts the workers, which is a clean stop. */

@@ -126,6 +126,10 @@ estimate remaining: the prompt plus the chat's max tokens, or 16,384 tokens
 when the chat sets none, or the model's max output tokens when that is
 smaller.
 
+A call runs for at most 30 minutes. A reservation still open 35 minutes after
+it was made, such as one left by a server that stopped mid-reply, is released
+by the workers within five minutes.
+
 **View pool** opens `/app/quotas/<pool id>`, with the current period's
 budget, consumed, reserved and remaining amounts, **Adjust budget** (raising
 the budget frees the remaining allowance straight away), the eligible groups

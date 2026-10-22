@@ -8,7 +8,8 @@ import type {
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, notExists, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
 import { getUtcPeriodBounds } from "./period";
 
@@ -29,9 +30,14 @@ type UpdateQuotaPoolBudgetResult = {
 	period: QuotaPeriod;
 } | null;
 
-type LedgerInsertResult = {
-	inserted: boolean;
-};
+type LedgerReserveResult =
+	| {
+			status: "reserved";
+			reservedAmount: number;
+	  }
+	| {
+			status: "exhausted" | "no_ledger";
+	  };
 
 type LedgerTransitionResult = {
 	inserted: boolean;
@@ -322,6 +328,7 @@ export const updateQuotaPoolBudget: (params: {
 		);
 	});
 
+/** Reserves on the locked ledger row, which decides how much is granted. */
 export const reserveQuotaLedger: (params: {
 	organizationId: OrganizationId;
 	quotaPoolId: QuotaPoolId;
@@ -333,83 +340,75 @@ export const reserveQuotaLedger: (params: {
 	appRequestId: string;
 	reservationKey: string;
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
-	reservedAmount: number;
+	/** The most to reserve; less is granted when less remains. */
+	amount: number;
+	/** The least worth reserving; below it the reservation is refused. */
+	minimumAmount: number;
 	metadata?: Record<string, unknown>;
-}) => Effect.Effect<LedgerInsertResult, unknown, DB> = (params) =>
+}) => Effect.Effect<LedgerReserveResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const now = new Date();
+		const ledgerOf = and(
+			eq(dbSchema.quotaLedger.quotaPoolId, params.quotaPoolId),
+			eq(dbSchema.quotaLedger.quotaPeriodId, params.quotaPeriodId),
+		);
 
 		return yield* db.transaction((tx) =>
 			Effect.gen(function* () {
-				// Lock the ledger row to prevent concurrent reservation races
-				const [ledgerRow] = yield* tx
+				const [ledger] = yield* tx
 					.select()
 					.from(dbSchema.quotaLedger)
-					.where(
-						and(
-							eq(dbSchema.quotaLedger.quotaPoolId, params.quotaPoolId),
-							eq(dbSchema.quotaLedger.quotaPeriodId, params.quotaPeriodId),
-						),
-					)
+					.where(ledgerOf)
 					.limit(1)
 					.for("update");
 
-				if (!ledgerRow) {
+				if (!ledger) {
 					return {
-						inserted: false,
-					};
+						status: "no_ledger",
+					} satisfies LedgerReserveResult;
 				}
 
-				const inserted = yield* tx
-					.insert(dbSchema.quotaUsageEvent)
-					.values({
-						organizationId: params.organizationId,
-						quotaPoolId: params.quotaPoolId,
-						quotaPeriodId: params.quotaPeriodId,
-						providerId: params.providerId,
-						modelId: params.modelId ?? null,
-						botId: params.botId ?? null,
-						userId: params.userId,
-						appRequestId: params.appRequestId,
-						eventType: "reserved",
-						reservationKey: params.reservationKey,
-						meteringMode: params.meteringMode,
-						reservedAmount: params.reservedAmount,
-						actualAmount: 0,
-						metadata: params.metadata,
-						occurredAt: now,
-						createdAt: now,
-					})
-					.onConflictDoNothing()
-					.returning({
-						id: dbSchema.quotaUsageEvent.id,
-					});
-
-				if (inserted.length === 0) {
+				const reservedAmount = Math.min(params.amount, ledger.remainingAmount);
+				if (reservedAmount < params.minimumAmount || reservedAmount <= 0) {
 					return {
-						inserted: false,
-					};
+						status: "exhausted",
+					} satisfies LedgerReserveResult;
 				}
+
+				yield* tx.insert(dbSchema.quotaUsageEvent).values({
+					organizationId: params.organizationId,
+					quotaPoolId: params.quotaPoolId,
+					quotaPeriodId: params.quotaPeriodId,
+					providerId: params.providerId,
+					modelId: params.modelId ?? null,
+					botId: params.botId ?? null,
+					userId: params.userId,
+					appRequestId: params.appRequestId,
+					eventType: "reserved",
+					reservationKey: params.reservationKey,
+					meteringMode: params.meteringMode,
+					reservedAmount,
+					actualAmount: 0,
+					metadata: params.metadata,
+					occurredAt: now,
+					createdAt: now,
+				});
 
 				yield* tx
 					.update(dbSchema.quotaLedger)
 					.set({
-						reservedAmount: sql`${dbSchema.quotaLedger.reservedAmount} + ${params.reservedAmount}`,
-						remainingAmount: sql`greatest(0, ${dbSchema.quotaLedger.budgetAmount} - (${dbSchema.quotaLedger.reservedAmount} + ${params.reservedAmount}) - ${dbSchema.quotaLedger.consumedAmount})`,
+						reservedAmount: sql`${dbSchema.quotaLedger.reservedAmount} + ${reservedAmount}`,
+						remainingAmount: sql`greatest(0, ${dbSchema.quotaLedger.budgetAmount} - (${dbSchema.quotaLedger.reservedAmount} + ${reservedAmount}) - ${dbSchema.quotaLedger.consumedAmount})`,
 						version: sql`${dbSchema.quotaLedger.version} + 1`,
 						updatedAt: now,
 					})
-					.where(
-						and(
-							eq(dbSchema.quotaLedger.quotaPoolId, params.quotaPoolId),
-							eq(dbSchema.quotaLedger.quotaPeriodId, params.quotaPeriodId),
-						),
-					);
+					.where(ledgerOf);
 
 				return {
-					inserted: true,
-				};
+					status: "reserved",
+					reservedAmount,
+				} satisfies LedgerReserveResult;
 			}),
 		);
 	});
@@ -542,7 +541,7 @@ export const finalizeQuotaLedger: (params: {
 export const releaseQuotaLedger: (params: {
 	reservationKey: string;
 	appRequestId: string;
-	reason: "provider_failure" | "app_failure" | "cancelled";
+	reason: "provider_failure" | "app_failure" | "cancelled" | "expired";
 	includeFailureEvent?: boolean;
 }) => Effect.Effect<LedgerTransitionResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
@@ -671,113 +670,67 @@ export const releaseQuotaLedger: (params: {
 		);
 	});
 
-export interface QuotaLedgerAmounts {
-	reserved: number;
-	consumed: number;
-	remaining: number;
-}
-
 /**
- * Recomputes a ledger from its usage events, the source of truth, and corrects
- * it when they disagree. Holds the ledger row lock that reservations and
- * settlements take, so the events read are the ones the ledger has applied.
+ * Releases reservations in open periods that were never settled and were made
+ * before `reservedBefore`, as when the process running the call died.
  */
-export const reconcileQuotaLedger: (params: {
-	quotaPoolId: QuotaPoolId;
-	quotaPeriodId: QuotaPeriodId;
-}) => Effect.Effect<
-	{
-		before: QuotaLedgerAmounts;
-		after: QuotaLedgerAmounts;
-	} | null,
-	unknown,
-	DB
-> = (params) =>
+export const releaseStaleQuotaReservations: (params: {
+	reservedBefore: Date;
+	limit: number;
+}) => Effect.Effect<number, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		const event = dbSchema.quotaUsageEvent;
+		const settlement = alias(event, "settlement");
 
-		return yield* db.transaction((tx) =>
-			Effect.gen(function* () {
-				const ledgerOf = and(
-					eq(dbSchema.quotaLedger.quotaPoolId, params.quotaPoolId),
-					eq(dbSchema.quotaLedger.quotaPeriodId, params.quotaPeriodId),
-				);
-				const [ledger] = yield* tx
-					.select()
-					.from(dbSchema.quotaLedger)
-					.where(ledgerOf)
-					.limit(1)
-					.for("update");
-
-				if (!ledger) {
-					return null;
-				}
-
-				const event = dbSchema.quotaUsageEvent;
-				const total = (
-					amount: typeof event.reservedAmount,
-					eventTypes: QuotaUsageEvent["eventType"][],
-				) =>
-					sql<number>`coalesce(sum(${amount}) filter (where ${inArray(event.eventType, eventTypes)}), 0)`.mapWith(
-						Number,
-					);
-				const [totals] = yield* tx
-					.select({
-						reserved: total(event.reservedAmount, [
-							"reserved",
-						]),
-						settled: total(event.reservedAmount, [
-							"finalized",
-							"released",
-						]),
-						consumed: total(event.actualAmount, [
-							"finalized",
-						]),
-					})
-					.from(event)
-					.where(
-						and(
-							eq(event.quotaPoolId, params.quotaPoolId),
-							eq(event.quotaPeriodId, params.quotaPeriodId),
-						),
-					);
-
-				const before = {
-					reserved: ledger.reservedAmount,
-					consumed: ledger.consumedAmount,
-					remaining: ledger.remainingAmount,
-				};
-				const reserved = Math.max(0, totals.reserved - totals.settled);
-				const after = {
-					reserved,
-					consumed: totals.consumed,
-					remaining: Math.max(
-						0,
-						ledger.budgetAmount - reserved - totals.consumed,
+		const stale = yield* db
+			.select({
+				reservationKey: event.reservationKey,
+				appRequestId: event.appRequestId,
+			})
+			.from(event)
+			.innerJoin(
+				dbSchema.quotaPeriod,
+				and(
+					eq(dbSchema.quotaPeriod.id, event.quotaPeriodId),
+					eq(dbSchema.quotaPeriod.status, "open"),
+				),
+			)
+			.where(
+				and(
+					eq(event.eventType, "reserved"),
+					lt(event.occurredAt, params.reservedBefore),
+					notExists(
+						db
+							.select({
+								id: settlement.id,
+							})
+							.from(settlement)
+							.where(
+								and(
+									eq(settlement.reservationKey, event.reservationKey),
+									inArray(settlement.eventType, [
+										"finalized",
+										"released",
+									]),
+								),
+							),
 					),
-				};
+				),
+			)
+			.limit(params.limit);
 
-				if (
-					after.reserved !== before.reserved ||
-					after.consumed !== before.consumed ||
-					after.remaining !== before.remaining
-				) {
-					yield* tx
-						.update(dbSchema.quotaLedger)
-						.set({
-							reservedAmount: after.reserved,
-							consumedAmount: after.consumed,
-							remainingAmount: after.remaining,
-							version: sql`${dbSchema.quotaLedger.version} + 1`,
-							updatedAt: new Date(),
-						})
-						.where(ledgerOf);
-				}
-
-				return {
-					before,
-					after,
-				};
-			}),
+		const released = yield* Effect.forEach(
+			stale,
+			(reservation) =>
+				releaseQuotaLedger({
+					...reservation,
+					reason: "expired",
+				}),
+			{
+				concurrency: 10,
+			},
 		);
+
+		return released.filter((result) => result?.inserted).length;
 	});

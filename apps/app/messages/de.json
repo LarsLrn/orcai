@@ -2037,6 +2037,7 @@
 	"chat_message_usage_unknown_model": "Unbekanntes Modell",
 	"chat_message_history_trimmed": "Frühere Nachrichten wurden ausgelassen, damit der Verlauf in das Kontextfenster passt.",
 	"chat_message_context_limit_reached": "Angehalten: Der nächste Schritt passt nicht mehr in das Kontextfenster. Schreiben Sie eine Nachricht, um fortzufahren.",
+	"chat_message_time_limit_reached": "Angehalten: Die Antwort hat ihr Zeitlimit erreicht. Schreiben Sie eine Nachricht, um fortzufahren.",
 	"chat_message_compacted": "Frühere Nachrichten zusammengefasst",
 	"chat_model_notice_description_manager": "Richten Sie ein Modell mit Text und Tool-Aufrufen ein, dann wird der Chat für alle verfügbar.",
 	"chat_model_notice_description_member": "Ein Organisations-Admin muss ein Modell mit Text und Tool-Aufrufen einrichten, bevor jemand chatten kann.",

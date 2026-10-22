@@ -1,10 +1,12 @@
-export { QuotaCounterStore, QuotaCounterStoreLive } from "./counter-store";
+export {
+	METERED_CALL_TIMEOUT_MS,
+	STALE_RESERVATION_AGE_MS,
+} from "./call-timeout";
 export {
 	finalizeAppRequestQuota,
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "./enforcement";
-export { QuotaCounterStoreError } from "./errors";
 export {
 	estimateQuotaReservationAmount,
 	reservedOutputTokens,
@@ -13,9 +15,8 @@ export {
 	createQuotaPoolWithInitialPeriod,
 	finalizeQuotaLedger,
 	findReservedQuotaEvent,
-	type QuotaLedgerAmounts,
-	reconcileQuotaLedger,
 	releaseQuotaLedger,
+	releaseStaleQuotaReservations,
 	reserveQuotaLedger,
 	updateQuotaPoolBudget,
 } from "./ledger";

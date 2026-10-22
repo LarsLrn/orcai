@@ -3,7 +3,6 @@ import { AiError } from "@orcai/ai";
 import { type ChatId, type ChatMessageId, SUMMARY_METADATA } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import { withActiveSpan } from "@orcai/observability";
-import type { QuotaCounterStore } from "@orcai/quota";
 import type {
 	AiChatInput,
 	ChatMessageMetadata,
@@ -382,14 +381,32 @@ const streamTurn = ({
 }) =>
 	Effect.gen(function* () {
 		const store = yield* ReplyStore;
-		const services = yield* Effect.context<QuotaCounterStore | DB>();
+		const services = yield* Effect.context<DB>();
 		// The stream outlives the request handler; its callbacks rejoin the request trace.
 		const traceContext = otelContext.active();
-		const run = <A>(effect: Effect.Effect<A, never, QuotaCounterStore | DB>) =>
+		const run = <A>(effect: Effect.Effect<A, never, DB>) =>
 			otelContext.with(traceContext, () =>
 				Effect.runPromiseWith(services)(withActiveSpan(effect)),
 			);
 		const { contextWindow } = setup.tokenLimits;
+		const stop = AbortSignal.any([
+			...(input.stop
+				? [
+						input.stop,
+					]
+				: []),
+			meter.deadline,
+		]);
+		let timeLimitReached = false;
+		meter.deadline.addEventListener(
+			"abort",
+			() => {
+				timeLimitReached = !input.stop?.aborted;
+			},
+			{
+				once: true,
+			},
+		);
 		// A continuation reads on from what this turn wrote.
 		const writtenZedToken = () => {
 			const zedToken = assistantTurn?.zedToken.current();
@@ -423,7 +440,7 @@ const streamTurn = ({
 			agent.stream({
 				uiMessages: sent.messages,
 				originalMessages: originalMessages as UIMessage<ChatMessageMetadata>[],
-				abortSignal: input.stop,
+				abortSignal: stop,
 				maxSteps: meter.maxSteps,
 				promptTokens: sent.promptTokens,
 				replyId,
@@ -459,6 +476,11 @@ const streamTurn = ({
 					return streamErrorText(error);
 				},
 				messageMetadata: (part) => {
+					if (part.type === "abort" && timeLimitReached) {
+						return {
+							timeLimitReached: true,
+						};
+					}
 					if (part.type === "finish-step") {
 						return {
 							model: part.response.modelId,
@@ -528,7 +550,7 @@ const streamTurn = ({
 						requester: input,
 						replyId,
 						history,
-						stop: input.stop,
+						stop,
 					}),
 				);
 				if (summary !== undefined) {
