@@ -2288,6 +2288,8 @@
 	"chat_work_log_tool_show_checklist_name": "Checklist",
 	"chat_work_log_tool_show_matrix_active": "Preparing a matrix",
 	"chat_work_log_tool_show_matrix_name": "Matrix",
+	"chat_work_log_tool_show_quiz_result_active": "Grading the quiz",
+	"chat_work_log_tool_show_quiz_result_name": "Quiz result",
 	"chat_work_log_tool_show_review_active": "Preparing a review",
 	"chat_work_log_tool_show_review_name": "Review",
 	"chat_work_log_tool_status_approved": "Approved",
@@ -2693,6 +2695,8 @@
 	"error_web_search_failed": "The web search failed.",
 	"feature_generative_ui_description": "Lets the model show structured results, such as checklists, in its answer.",
 	"feature_generative_ui_label": "Generative UI",
+	"feature_questions_description": "Lets the model ask structured questions in the conversation, and run quizzes it grades.",
+	"feature_questions_label": "Questions & quizzes",
 	"feature_web_search_description": "Lets the model search the web and cite the pages it used, as the organisation's web search setting allows.",
 	"feature_web_search_domain_add": "Add",
 	"feature_web_search_domain_invalid": "Enter a domain such as example.org.",
@@ -2741,6 +2745,30 @@
 			}
 		}
 	],
+	"gen_ui_quiz_expected": "Expected",
+	"gen_ui_quiz_practice_action": "Practise what I got wrong",
+	"gen_ui_quiz_practice_message": "Let me practise what I got wrong in this quiz.",
+	"gen_ui_quiz_result_title": "Quiz result",
+	"gen_ui_quiz_score": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{earned} of {points} point",
+				"countPlural=other": "{earned} of {points} points"
+			}
+		}
+	],
+	"gen_ui_quiz_section_untitled": "Questions",
+	"gen_ui_quiz_verdict_correct": "Correct",
+	"gen_ui_quiz_verdict_incorrect": "Incorrect",
+	"gen_ui_quiz_verdict_partly_correct": "Partly correct",
+	"gen_ui_quiz_your_answer": "Your answer",
 	"gen_ui_review_copy_all": "Copy all",
 	"gen_ui_review_copy_revision": "Copy revision",
 	"gen_ui_review_no_findings": "No findings",
@@ -3424,6 +3452,84 @@
 	"providers_form_metering_mode_search_description": "Search providers count one request per search.",
 	"providers_form_search_kind_hint": "A search provider serves web search and has no models. Choose it in the organisation's web search setting.",
 	"providers_kind_tavily_label": "Tavily (web search)",
+	"questions_back_action": "Back",
+	"questions_card_title": "Questions",
+	"questions_next_action": "Next",
+	"questions_not_answered": "Not answered",
+	"questions_other_label": "Other",
+	"questions_other_placeholder": "Other answer",
+	"questions_points": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} point",
+				"countPlural=other": "{count} points"
+			}
+		}
+	],
+	"questions_quiz_blank": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} question unanswered",
+				"countPlural=other": "{count} questions unanswered"
+			}
+		}
+	],
+	"questions_review_title": "Review your answers",
+	"questions_scale_label": "{value}: {label}",
+	"questions_section_progress": "Section {page} of {count}",
+	"questions_skip_action": "Skip",
+	"questions_skip_quiz_action": "Skip quiz",
+	"questions_skipped": "Skipped",
+	"questions_step_progress": "Question {step} of {count}",
+	"questions_submit_action": "Submit",
+	"questions_submit_quiz_action": "Submit answers",
+	"questions_text_placeholder": "Your answer",
+	"questions_tool_active": "Preparing questions",
+	"questions_tool_name": "Questions",
+	"questions_tool_summary_questions": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Asked {count} question",
+				"countPlural=other": "Asked {count} questions"
+			}
+		}
+	],
+	"questions_tool_summary_quiz": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Quiz with {count} question",
+				"countPlural=other": "Quiz with {count} questions"
+			}
+		}
+	],
 	"sidebar_menu_analytics_item": "Analytics",
 	"tour_card_finish_button": "Finish",
 	"tour_card_previous_button": "Previous",

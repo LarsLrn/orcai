@@ -15,7 +15,7 @@ import type {
 	ProviderId,
 	UserId,
 } from "@orcai/core";
-import type { ChatConfig } from "@orcai/schema";
+import type { ChatConfig, ClientToolOutput } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { AppConfigService } from "@/lib/effect/services/config";
@@ -49,7 +49,7 @@ export const ORGANIZATION_ID =
 const PROVIDER_ID = "00000000-0000-4000-8000-00000000000b" as ProviderId;
 const MODEL_ID = "00000000-0000-4000-8000-00000000000c" as ModelId;
 
-const requester = {
+export const requester = {
 	organizationId: ORGANIZATION_ID,
 	user: {
 		id: "00000000-0000-4000-8000-00000000000d" as UserId,
@@ -267,6 +267,26 @@ export const conversation = async (
 								: [],
 						),
 						toolOutputs: [],
+						clientZedToken: undefined,
+						stop: undefined,
+					}),
+				),
+			);
+		},
+		/** Answers the paused reply's client calls. */
+		answer: async (toolOutputs: ClientToolOutput[]) => {
+			const reply = store.messages(chat.id).at(-1);
+			if (!reply) {
+				throw new Error("nothing to continue");
+			}
+			return drain(
+				await run(
+					continueTurn({
+						...requester,
+						chatId: chat.id,
+						replyId: reply.id,
+						decisions: [],
+						toolOutputs,
 						clientZedToken: undefined,
 						stop: undefined,
 					}),

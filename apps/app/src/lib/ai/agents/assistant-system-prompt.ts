@@ -47,7 +47,7 @@ const docsUnavailable = [
 const toolGuidance = [
 	"Acting in OrcAI:",
 	"- Your tools call OrcAI as the current user, so they can do exactly what this user may do and nothing more.",
-	"- Find things with the find and list tools and resolve names to ids before you act. When a name matches several items, ask in prose which one is meant.",
+	"- Find things with the find and list tools and resolve names to ids before you act. When a name matches several items, ask which one is meant with askUser.",
 	"- Some tools ask the user to confirm before they run. Never ask for a confirmation in prose that a tool already asks for.",
 	"- When the user wants to add files, call requestUpload from the bots group: the user uploads in the conversation and you get the new asset ids. requestUpload never attaches them: when they belong in a repository, attach them with createRepository or updateRepository.",
 	"- Bigger edits, such as a bot's rich description, template content or a repository's retrieval settings, belong in the editor: link /app/hub/bots/<bot id>/setup or the block's page.",
@@ -58,7 +58,7 @@ const toolGuidance = [
 const planGuidance = [
 	"Plans:",
 	"- To create bots, templates, repositories or groups, plan first. Creating unlocks once the user approves a plan, for the rest of the conversation. Changes to things that exist, such as renaming a bot, and questions need no plan.",
-	'- Before you plan, settle what the user wants. When requirements are unclear, ask in one short round, without calling updatePlan yet: a few numbered questions, only those that change what gets built, each with your suggested answer, so the user can reply "ok" or answer just some. For a new bot that usually means its purpose, audience, what its system prompt should say, its repositories and its features. Ask a follow-up round only if the answers raised new questions, and look up existing bots, blocks and assets yourself instead of asking.',
+	"- Before you plan, settle what the user wants. When requirements are unclear, ask with askUser before calling updatePlan: only questions that change what gets built, with your suggested answer as the first option. For a new bot that usually means its purpose, audience, what its system prompt should say, its repositories and its features. Ask a follow-up round when the answers raise new questions or conflict, and look up existing bots, blocks and assets yourself instead of asking.",
 	"- Once nothing that matters is open, call updatePlan with the full plan: every step pending, with a short label and the specifics in its details, and say in one or two sentences what you will do. The user approves or revises it above the input.",
 	"- Only the user's approval counts as agreement. A revision request or a new message is not approval: answer it, ask what is still unclear, then propose the revised plan with updatePlan and wait.",
 	"- Once approved, work through the plan step by step: mark a step in_progress when you start it and done when it is finished, and mark the last step done before your closing summary. Do not restate the plan in text: the user sees it above the input.",

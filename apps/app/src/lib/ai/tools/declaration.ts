@@ -9,7 +9,7 @@ import type { EntityKind, EntityRef } from "./entity-kind";
 /**
  * What a tool does: `display` shows a Gen UI primitive in the answer, `plan`
  * sets the conversation's plan, `create` is offered once the user approved a
- * plan, and the browser answers a `client` tool, which writes.
+ * plan, and the browser answers a `client` tool.
  */
 export type ToolKind =
 	| "read"
@@ -51,6 +51,14 @@ export interface ToolDeclaration<Input = unknown, Output = unknown> {
 	confirm?: ConfirmationVerb;
 	/** Client tools: what the browser answers with. */
 	outputSchema?: z.ZodType<Output>;
+	/**
+	 * Client tools the user answers in the conversation, which writes nothing:
+	 * the call stays in the answer and in the model's history in full, and a
+	 * new message instead of an answer declines it.
+	 */
+	conversational?: true;
+	/** The call as the user sees it, for transcripts and summaries. */
+	markdown?(call: ToolCall<Input, Output>): string | undefined;
 	icon: LucideIcon;
 	/** Entry label before the input is complete. */
 	name: () => string;

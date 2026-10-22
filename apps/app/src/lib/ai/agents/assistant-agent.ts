@@ -25,7 +25,7 @@ import {
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
-import { toolNamesOf } from "@/lib/ai/tools/registry";
+import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
 import { NO_WEB_SEARCH } from "@/lib/ai/tools/web/toolset";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
@@ -60,6 +60,7 @@ export const createAssistantAgent = (
 				settings,
 				turn: {
 					webSearch: NO_WEB_SEARCH,
+					history: params.history,
 				},
 			}),
 		);
@@ -78,16 +79,16 @@ export const createAssistantAgent = (
 			turn: params.turn,
 			session,
 			docs: params.docs,
+			history: params.history,
 		}),
 	);
 	const toolGroups = offeredToolGroups(params.userContext.capabilities);
-	const displayToolNames = toolNamesOf("display");
-	const enabledDisplayToolNames = displayToolNames.filter((name) =>
+	const enabledContentToolNames = CONTENT_TOOL_NAMES.filter((name) =>
 		Object.hasOwn(featureTools, name),
 	);
 	const disabled = new Set<string>([
-		...displayToolNames.filter(
-			(name) => !enabledDisplayToolNames.includes(name),
+		...CONTENT_TOOL_NAMES.filter(
+			(name) => !enabledContentToolNames.includes(name),
 		),
 		...(params.docs === undefined
 			? [
@@ -104,8 +105,8 @@ export const createAssistantAgent = (
 		prune: (messages) =>
 			pruneAssistantHistory(messages, {
 				lines: toolLines.lines,
-				displayToolNames,
-				enabledDisplayToolNames,
+				contentToolNames: CONTENT_TOOL_NAMES,
+				enabledContentToolNames,
 				toolListChanges: session.toolListChanges,
 			}),
 	});

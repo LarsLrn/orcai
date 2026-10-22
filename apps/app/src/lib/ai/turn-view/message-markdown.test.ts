@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
+import {
+	capitalsAnswers,
+	capitalsQuiz,
+} from "@/lib/ai/tools/questions/fixtures";
+import { gradeQuiz } from "@/lib/ai/tools/questions/quiz-result";
+import { askUserMarkdown } from "@/lib/ai/tools/questions/to-markdown";
 import { type MessageView, turnView } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import {
@@ -42,6 +48,62 @@ const text = (content: string) => ({
 });
 
 describe("messageToMarkdown", () => {
+	test("renders answered questions and a graded quiz", () => {
+		const quiz = {
+			input: capitalsQuiz,
+			output: capitalsAnswers,
+		};
+		const graded = gradeQuiz(quiz, {
+			results: [
+				{
+					question: 1,
+					verdict: "correct",
+				},
+				{
+					question: 2,
+					verdict: "incorrect",
+				},
+				{
+					question: 3,
+					verdict: "incorrect",
+				},
+			],
+		});
+		const result = graded.ok ? graded.result : undefined;
+
+		expect(
+			messageToMarkdown(
+				message("assistant", [
+					{
+						type: "tool-askUser",
+						toolCallId: "ask-1",
+						state: "output-available",
+						...quiz,
+					},
+					{
+						type: "step-start",
+					},
+					{
+						type: "tool-showQuizResult",
+						toolCallId: "result-1",
+						state: "output-available",
+						input: {
+							results: [],
+						},
+						output: result,
+					},
+					text("Well done."),
+				]),
+			),
+		).toBe(
+			[
+				askUserMarkdown(quiz),
+				displayToolMarkdown("showQuizResult", {}, result),
+				"Well done.",
+			].join("\n\n"),
+		);
+	});
+
 	test("walks the answer's text and display parts in order", () => {
 		const markdown = messageToMarkdown(
 			message("assistant", [

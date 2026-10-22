@@ -118,6 +118,36 @@ const upload = (state: string, extra: object = {}) =>
 		...extra,
 	}) as unknown as ClientToolPart;
 
+const askUser = (state: string, extra: object = {}) =>
+	({
+		type: "tool-askUser",
+		toolCallId: "ask-1",
+		state,
+		input: {
+			mode: "regular",
+			questions: [
+				{
+					type: "text",
+					prompt: "Who is it for?",
+				},
+			],
+		},
+		...(state === "output-available"
+			? {
+					output: {
+						status: "answered",
+						answers: [
+							{
+								type: "text",
+								text: "Students",
+							},
+						],
+					},
+				}
+			: {}),
+		...extra,
+	}) as unknown as ClientToolPart;
+
 const updatePlan = (
 	title: string,
 	state: string,
@@ -1051,6 +1081,90 @@ describe("client call step", () => {
 		expect(answerParts(message)).toEqual([
 			text("Done."),
 		]);
+	});
+});
+
+describe("questions", () => {
+	const askingTurn = (state: string, extra: object = {}) => [
+		stepStart(),
+		text("let me look"),
+		search(),
+		stepStart(),
+		text("A few questions first."),
+		askUser(state, extra),
+	];
+
+	test("waiting questions can be answered in the answer", () => {
+		expect(view(askingTurn("input-available")).answer.at(-1)).toEqual({
+			kind: "client",
+			part: askUser("input-available"),
+			status: "awaiting-input",
+			answerable: true,
+		});
+	});
+
+	test("once resumed the answered questions and their lead-in stay in the answer", () => {
+		const message = view([
+			...askingTurn("output-available"),
+			stepStart(),
+			text("Thanks, here is the plan."),
+		]);
+
+		expect(entryTypes(message)).toEqual([
+			"text",
+			"tool-searchKnowledgeBase",
+		]);
+		expect(message.answer).toEqual([
+			{
+				kind: "text",
+				part: text("A few questions first."),
+			},
+			{
+				kind: "client",
+				part: askUser("output-available"),
+				status: null,
+				answerable: false,
+			},
+			{
+				kind: "text",
+				part: text("Thanks, here is the plan."),
+			},
+		]);
+	});
+
+	test("questions a newer message declined stay in the answer as skipped", () => {
+		const declined = askingTurn("output-error", {
+			errorText: TOOL_CLOSE_SENTENCES.declined,
+		});
+
+		expect(pausedStep(reply(declined))).toBeUndefined();
+		expect(view(declined).answer.at(-1)).toMatchObject({
+			kind: "client",
+			status: "skipped",
+			answerable: false,
+		});
+		expect(
+			view(askingTurn("input-available"), {
+				latest: false,
+			}).answer.at(-1),
+		).toMatchObject({
+			kind: "client",
+			status: "skipped",
+			answerable: false,
+		});
+	});
+
+	test("questions still streaming are in the answer, not the work log", () => {
+		const message = streaming(askingTurn("input-streaming"));
+
+		expect(entryTypes(message)).toEqual([
+			"text",
+			"tool-searchKnowledgeBase",
+		]);
+		expect(message.answer.at(-1)).toMatchObject({
+			kind: "client",
+			status: "running",
+		});
 	});
 });
 

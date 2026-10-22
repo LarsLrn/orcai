@@ -6,7 +6,7 @@ import { useToolSummaryLine } from "@/components/assistant/tool-summary-line";
 import { AssetMetadataDialog } from "@/components/documents/shared/asset-metadata-dialog";
 import { Button } from "@/components/ui/button";
 import { uploadedAssets } from "@/lib/ai/tools/assistant/bots/request-upload.declaration";
-import type { ClientToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
+import type { ToolPartOf, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { ToolEntry } from "../tool-entry";
@@ -56,7 +56,7 @@ export const RequestUpload = ({
 	part,
 	status,
 }: {
-	part: ClientToolPart;
+	part: ToolPartOf<"requestUpload">;
 	status: ToolStatus | null;
 }) => {
 	const line = useToolSummaryLine(part);

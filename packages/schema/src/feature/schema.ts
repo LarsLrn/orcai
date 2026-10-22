@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 export const featureIdSchema = z.enum([
 	"generativeUi",
 	"webSearch",
+	"questions",
 ]);
 
 export const generativeUiSettingsSchema = z.object({});
@@ -14,6 +15,8 @@ export const webSearchDomainSchema = z
 	.toLowerCase()
 	.max(253)
 	.regex(/^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/);
+
+export const questionsSettingsSchema = z.object({});
 
 export const WEB_SEARCH_MAX_ALLOWED_DOMAINS = 50;
 
@@ -35,9 +38,14 @@ export const featuresSchema = z.object({
 		.describe(
 			"Searches the web as the organisation's web search setting allows. allowedDomains limits it to those host names and their subdomains; empty searches the whole web.",
 		),
+	questions: questionsSettingsSchema
+		.optional()
+		.describe(
+			"Asks the user structured questions, and runs quizzes the bot grades.",
+		),
 });
 
-/** What a plain chat may enable; web search is for bots only. */
+/** What a plain chat may enable; web search and questions are for bots only. */
 export const chatFeaturesSchema = featuresSchema.pick({
 	generativeUi: true,
 });
@@ -61,4 +69,5 @@ export const INITIAL_FEATURE_SETTINGS = {
 	webSearch: {
 		allowedDomains: [],
 	},
+	questions: {},
 } satisfies Required<Features>;

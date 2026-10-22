@@ -144,13 +144,13 @@ const activeWith = (
 	]).activeTools();
 
 describe("active tools", () => {
-	test("a viewer gets the eleven core tools and no loadTools", () => {
+	test("a viewer gets the thirteen core tools and no loadTools", () => {
 		const names = activeWith(viewer, DEFERRED_TOOL_GROUPS, true);
 
 		expect(names).toEqual(
 			coreWithoutMembers.filter((name) => name !== "loadTools"),
 		);
-		expect(names).toHaveLength(11);
+		expect(names).toHaveLength(13);
 		expect(offeredToolGroups(viewer)).toEqual([]);
 	});
 

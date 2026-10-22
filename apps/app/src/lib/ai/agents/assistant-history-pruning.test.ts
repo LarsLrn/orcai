@@ -69,7 +69,7 @@ const outputsOf = (messages: ModelMessage[]) =>
 
 const prune = (
 	messages: ModelMessage[],
-	enabledDisplayToolNames = [],
+	enabledContentToolNames = [],
 	toolListChanges: string[] = [],
 ) =>
 	pruneAssistantHistory(messages, {
@@ -83,10 +83,10 @@ const prune = (
 				"Read the docs page “Bots” (/docs/using-orcai/bots)",
 			],
 		]),
-		displayToolNames: [
+		contentToolNames: [
 			"showChecklist",
 		],
-		enabledDisplayToolNames,
+		enabledContentToolNames,
 		toolListChanges: new Set(toolListChanges),
 	});
 
@@ -293,8 +293,8 @@ describe("pruneAssistantHistory", () => {
 						"Plan “Set up the course”: 1 of 2 done",
 					],
 				]),
-				displayToolNames: [],
-				enabledDisplayToolNames: [],
+				contentToolNames: [],
+				enabledContentToolNames: [],
 				toolListChanges: new Set(),
 			},
 		);
@@ -446,10 +446,10 @@ describe("pruneAssistantHistory", () => {
 			outputsOf(
 				pruneAssistantHistory(messages, {
 					lines: new Map(),
-					displayToolNames: [
+					contentToolNames: [
 						"showChecklist",
 					],
-					enabledDisplayToolNames: [
+					enabledContentToolNames: [
 						"showChecklist",
 					],
 					toolListChanges: new Set(),

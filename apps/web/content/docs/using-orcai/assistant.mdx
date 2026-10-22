@@ -1,6 +1,6 @@
 ---
 title: OrcAI Assistant
-description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the plans it proposes, the actions it asks you to confirm, uploading files in a conversation, its conversations, and when it is unavailable.
+description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the plans it proposes, the actions it asks you to confirm, the questions it asks, uploading files in a conversation, its conversations, and when it is unavailable.
 ---
 
 The OrcAI Assistant is OrcAI's built-in helper. It is part of the platform, not a bot: nobody owns, edits or shares it, and its model is chosen by an administrator of your organisation. Every member can use it, whatever their role.
@@ -41,7 +41,7 @@ The assistant can answer with structured elements such as checklists, reviews an
 
 ## Plans
 
-Before the assistant creates bots, behaviour blocks, repository blocks or groups, it proposes a plan: a short title and the steps it means to take. When something is unclear, such as a new bot's purpose, audience, behaviour, repositories or features, it first asks a few numbered questions, each with a suggested answer. Reply "ok" to take the suggestions, or answer the ones you want to change. Once nothing that matters is open, it proposes the full plan. Changes to things that already exist, such as renaming a bot, and questions need no plan.
+Before the assistant creates bots, behaviour blocks, repository blocks or groups, it proposes a plan: a short title and the steps it means to take. When something is unclear, such as a new bot's purpose, audience, behaviour, repositories or features, it first asks you [questions](#questions), with its suggestion as the first option, and asks again when your answers raise new questions. Once nothing that matters is open, it proposes the full plan. Changes to things that already exist, such as renaming a bot, and questions need no plan.
 
 The plan sits above the input, with a tally such as "2 of 5 done". Each step shows whether it is pending, in progress, done or skipped, with its specifics below its name, and the assistant ticks the steps off as it works. Select the plan's header to collapse or expand it; it collapses by itself once every step is done or skipped.
 
@@ -78,6 +78,10 @@ When you want to add files, the assistant shows an **Upload files** field in the
 Choosing **Cancel** before uploading tells the assistant that you added nothing. During an upload you are asked first, and cancelling stops the upload. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads during an upload, the files still uploading are not added and the field comes back empty.
 
 In the work log the field shows as "Uploaded 2 files" with the file titles, or as "Upload cancelled". **Metadata** next to a title opens the asset's source details, so you can add them after the assistant has carried on.
+
+## Questions
+
+When the assistant needs your input, for example before it plans, it asks up to five questions in the conversation, as in a [bot chat](/docs/using-orcai/chat#questions). Answer some, all or none and select **Submit**, or **Skip** to go on without answering. Writing a new message instead skips the questions, and the assistant reads your message as your reply. A quick yes or no may still come as a plain question in its text. It can also run a [quiz](/docs/using-orcai/chat#quizzes) when you ask for one.
 
 ## Asking from other pages
 

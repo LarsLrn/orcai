@@ -2,6 +2,9 @@ import type { Tool } from "ai";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
 import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
+import { askUserTool } from "@/lib/ai/tools/questions/ask-user";
+import type { QuizHistoryMessage } from "@/lib/ai/tools/questions/quiz-result";
+import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
 import type { DocsConfig } from "@/lib/effect/services/config";
 import { createBotTool } from "./bots/create-bot";
 import { createRepositoryTool } from "./bots/create-repository";
@@ -50,6 +53,8 @@ import { revokeAccessTool } from "./sharing/revoke-access";
 type BuildDeps = AssistantToolDeps & {
 	session: AssistantSession;
 	docs: DocsConfig | undefined;
+	/** The stored conversation, whose latest quiz showQuizResult grades. */
+	history: readonly QuizHistoryMessage[];
 };
 
 const displayTools = buildGenUiTools();
@@ -59,9 +64,14 @@ const builds = {
 		readDocsTool({
 			docs,
 		}),
+	askUser: () => askUserTool,
 	showChecklist: () => displayTools.showChecklist,
 	showReview: () => displayTools.showReview,
 	showMatrix: () => displayTools.showMatrix,
+	showQuizResult: ({ history }: BuildDeps) =>
+		buildQuestionTools({
+			history,
+		}).showQuizResult,
 	findBots: findBotsTool,
 	getBot: getBotTool,
 	getBlock: getBlockTool,

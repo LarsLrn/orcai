@@ -1,6 +1,5 @@
-import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
 import { type Citations, messageCitations } from "@/lib/ai/tools/rag/citations";
-import { toolNameOf } from "@/lib/ai/tools/registry";
+import { toolCallMarkdown } from "@/lib/ai/tools/registry";
 import {
 	type AnswerPart,
 	type MessageView,
@@ -85,18 +84,18 @@ const answerPartMarkdown = (
 		case "text":
 			return citationsAsText(answer.part.text, citations);
 		case "display":
-			return (
-				displayToolMarkdown(toolNameOf(answer.part), answer.part.input) ??
-				m.gen_ui_cannot_display()
-			);
+			return toolCallMarkdown(answer.part) ?? m.gen_ui_cannot_display();
+		case "client":
+			return toolCallMarkdown(answer.part);
 		default:
 			return undefined;
 	}
 };
 
 /**
- * Markdown of what the user sees as the message: the answer's text and
- * display parts in order for assistant messages, all text for user messages.
+ * Markdown of what the user sees as the message: the answer's text, display
+ * parts and questions in order for assistant messages, all text for user
+ * messages.
  */
 export const messageToMarkdown = ({ message, answer }: MessageView): string => {
 	const citations = messageCitations(message);

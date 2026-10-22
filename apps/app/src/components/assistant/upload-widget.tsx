@@ -15,7 +15,7 @@ import {
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
 import { toolLabels } from "@/lib/ai/tools/registry";
-import type { ClientToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
+import type { ToolPartOf, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
 
 /** `requestUpload` waiting for the user: the reason, the intake flow and Cancel. Created assets answer it. */
@@ -24,7 +24,7 @@ export const UploadWidget = ({
 	status,
 	answers,
 }: {
-	part: ClientToolPart;
+	part: ToolPartOf<"requestUpload">;
 	status: ToolStatus | null;
 	/** Left out unless the call can be answered. */
 	answers: StepAnswers | undefined;

@@ -2,6 +2,7 @@ import { COMPACTION_INSTRUCTIONS } from "@orcai/ai";
 import { getToolName, isToolUIPart } from "ai";
 import * as Effect from "effect/Effect";
 import { generateTextWithQuota } from "@/lib/ai/effects/generate-text-with-quota";
+import { toolCallMarkdown } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import type { TurnRequester, TurnSetup } from "./setup";
 
@@ -17,6 +18,11 @@ const partLine = (part: ChatAgentUIMessage["parts"][number]) => {
 	}
 	if (!isToolUIPart(part)) {
 		return undefined;
+	}
+	const content =
+		part.state === "output-error" ? undefined : toolCallMarkdown(part);
+	if (content !== undefined) {
+		return content;
 	}
 	const call = `[Tool ${getToolName(part)} called with ${JSON.stringify(part.input ?? {})}`;
 	switch (part.state) {

@@ -6,12 +6,14 @@ import {
 	type ToolCallRepairFunction,
 } from "ai";
 import type { GenUiTools } from "@/components/chat/gen-ui/catalog";
+import type { QuestionTools } from "@/lib/ai/tools/questions/toolset";
 import type { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import type { searchWebTool } from "@/lib/ai/tools/web/search-web";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 
 export type ChatAgentTools = ReturnType<typeof buildKnowledgeBaseTools> &
-	GenUiTools & {
+	GenUiTools &
+	QuestionTools & {
 		searchWeb: ReturnType<typeof searchWebTool>;
 		/** Provider-executed: its input and output differ by provider. */
 		[NATIVE_WEB_SEARCH_TOOL_NAME]: Tool;

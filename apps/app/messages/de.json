@@ -2288,6 +2288,8 @@
 	"chat_work_log_tool_show_checklist_name": "Checkliste",
 	"chat_work_log_tool_show_matrix_active": "Matrix wird erstellt",
 	"chat_work_log_tool_show_matrix_name": "Matrix",
+	"chat_work_log_tool_show_quiz_result_active": "Quiz wird bewertet",
+	"chat_work_log_tool_show_quiz_result_name": "Quiz-Ergebnis",
 	"chat_work_log_tool_show_review_active": "Prüfung wird erstellt",
 	"chat_work_log_tool_show_review_name": "Prüfung",
 	"chat_work_log_tool_status_approved": "Genehmigt",
@@ -2693,6 +2695,8 @@
 	"error_web_search_failed": "Die Websuche ist fehlgeschlagen.",
 	"feature_generative_ui_description": "Ermöglicht dem Modell, strukturierte Ergebnisse wie Checklisten in seiner Antwort anzuzeigen.",
 	"feature_generative_ui_label": "Generative UI",
+	"feature_questions_description": "Lässt das Modell im Gespräch strukturierte Fragen stellen und Quiz durchführen, die es bewertet.",
+	"feature_questions_label": "Fragen & Quiz",
 	"feature_web_search_description": "Lässt das Modell im Web suchen und die genutzten Seiten zitieren, soweit die Websuche-Einstellung der Organisation es erlaubt.",
 	"feature_web_search_domain_add": "Hinzufügen",
 	"feature_web_search_domain_invalid": "Geben Sie eine Domain wie example.org ein.",
@@ -2741,6 +2745,30 @@
 			}
 		}
 	],
+	"gen_ui_quiz_expected": "Erwartet",
+	"gen_ui_quiz_practice_action": "Fehler üben",
+	"gen_ui_quiz_practice_message": "Ich möchte üben, was ich in diesem Quiz falsch hatte.",
+	"gen_ui_quiz_result_title": "Quiz-Ergebnis",
+	"gen_ui_quiz_score": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{earned} von {points} Punkt",
+				"countPlural=other": "{earned} von {points} Punkten"
+			}
+		}
+	],
+	"gen_ui_quiz_section_untitled": "Fragen",
+	"gen_ui_quiz_verdict_correct": "Richtig",
+	"gen_ui_quiz_verdict_incorrect": "Falsch",
+	"gen_ui_quiz_verdict_partly_correct": "Teilweise richtig",
+	"gen_ui_quiz_your_answer": "Ihre Antwort",
 	"gen_ui_review_copy_all": "Alle kopieren",
 	"gen_ui_review_copy_revision": "Überarbeitung kopieren",
 	"gen_ui_review_no_findings": "Keine Befunde",
@@ -3424,6 +3452,84 @@
 	"providers_form_metering_mode_search_description": "Suchanbieter zählen eine Anfrage pro Suche.",
 	"providers_form_search_kind_hint": "Ein Suchanbieter stellt die Websuche bereit und hat keine Modelle. Wählen Sie ihn in der Websuche-Einstellung der Organisation aus.",
 	"providers_kind_tavily_label": "Tavily (Websuche)",
+	"questions_back_action": "Zurück",
+	"questions_card_title": "Fragen",
+	"questions_next_action": "Weiter",
+	"questions_not_answered": "Nicht beantwortet",
+	"questions_other_label": "Andere",
+	"questions_other_placeholder": "Andere Antwort",
+	"questions_points": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Punkt",
+				"countPlural=other": "{count} Punkte"
+			}
+		}
+	],
+	"questions_quiz_blank": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Frage unbeantwortet",
+				"countPlural=other": "{count} Fragen unbeantwortet"
+			}
+		}
+	],
+	"questions_review_title": "Antworten prüfen",
+	"questions_scale_label": "{value}: {label}",
+	"questions_section_progress": "Abschnitt {page} von {count}",
+	"questions_skip_action": "Überspringen",
+	"questions_skip_quiz_action": "Quiz überspringen",
+	"questions_skipped": "Übersprungen",
+	"questions_step_progress": "Frage {step} von {count}",
+	"questions_submit_action": "Absenden",
+	"questions_submit_quiz_action": "Antworten absenden",
+	"questions_text_placeholder": "Ihre Antwort",
+	"questions_tool_active": "Fragen werden vorbereitet",
+	"questions_tool_name": "Fragen",
+	"questions_tool_summary_questions": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Frage gestellt",
+				"countPlural=other": "{count} Fragen gestellt"
+			}
+		}
+	],
+	"questions_tool_summary_quiz": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Quiz mit {count} Frage",
+				"countPlural=other": "Quiz mit {count} Fragen"
+			}
+		}
+	],
 	"sidebar_menu_analytics_item": "Analysen",
 	"tour_card_finish_button": "Fertig",
 	"tour_card_previous_button": "Zurück",
