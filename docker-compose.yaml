@@ -87,10 +87,6 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile.app
       target: runtime
-      args:
-        VITE_WEB_URL: ${VITE_WEB_URL:-}
-        VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
-        VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
     expose:
       - "3000"
     environment:
@@ -115,7 +111,7 @@ services:
 
       # Application Configuration
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-}
-      VITE_WEB_URL: ${VITE_WEB_URL:-}
+      WEB_URL: ${WEB_URL:-}
       WEB_INTERNAL_URL: ${WEB_INTERNAL_URL:-http://web:3001}
 
       # Secrets (from environment)
@@ -134,8 +130,8 @@ services:
       SPICEDB_TOKEN: ${SPICEDB_GRPC_PRESHARED_KEY:-}
 
       # Analytics
-      VITE_UMAMI_SCRIPT_URL: ${VITE_UMAMI_SCRIPT_URL:-}
-      VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
+      UMAMI_SCRIPT_URL: ${UMAMI_SCRIPT_URL:-}
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
 
       # Open Telemetry
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}

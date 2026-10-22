@@ -25,7 +25,7 @@ import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
 const BOTS_PATH = "/docs/using-orcai/bots";
-const docsUrl = (process.env.VITE_WEB_URL ?? "").replace(/\/$/, "");
+const docsUrl = (process.env.WEB_URL ?? "").replace(/\/$/, "");
 const docsFetchUrl = (process.env.WEB_INTERNAL_URL ?? "").replace(/\/$/, "");
 
 /** What the docs site the app reads serves at a path, so assertions follow the docs. */

@@ -60,7 +60,7 @@ jobs:
           echo "e2e=$([ -n "$runtime" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
   # The production images every shard runs, built once with the Compose
-  # build definitions and the stack environment the shards then reuse.
+  # build definitions. They carry no stack values, so each shard writes its own.
   images:
     name: e2e images
     needs: changes
@@ -103,7 +103,6 @@ jobs:
           mkdir -p "$RUNNER_TEMP/e2e-images"
           docker save "$stack-app" "$stack-web" "$stack-workers" \
             | zstd -T0 -3 > "$RUNNER_TEMP/e2e-images/images.tar.zst"
-          cp .env "$RUNNER_TEMP/e2e-images/stack.env"
 
       - name: Upload images
         uses: actions/upload-artifact@v7
@@ -151,13 +150,9 @@ jobs:
           name: e2e-images
           path: ${{ runner.temp }}/e2e-images
 
-      # The images were built for this environment: its VITE_* values are
-      # baked into the app.
       - name: Load images
         shell: bash
-        run: |
-          zstd -dc "$RUNNER_TEMP/e2e-images/images.tar.zst" | docker load
-          cp "$RUNNER_TEMP/e2e-images/stack.env" .env
+        run: zstd -dc "$RUNNER_TEMP/e2e-images/images.tar.zst" | docker load
 
       - name: Install Chromium
         working-directory: apps/e2e
