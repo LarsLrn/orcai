@@ -73,6 +73,7 @@ export const chatRow = (chat: Partial<StoredChat> = {}): StoredChat => ({
 		modelId: MODEL_ID,
 	} as ChatConfig,
 	kind: "chat",
+	pinnedAt: null,
 	organizationId: null,
 	createdAt: new Date(0),
 	updatedAt: new Date(0),

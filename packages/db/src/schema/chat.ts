@@ -64,6 +64,8 @@ export const chat = pgTable(
 			.references(() => organization.id, {
 				onDelete: "cascade",
 			}),
+		/** Chats are never shared, so the pin is the owner's. */
+		pinnedAt: timestamp("pinned_at"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 	},

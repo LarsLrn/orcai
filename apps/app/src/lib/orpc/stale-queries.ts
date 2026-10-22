@@ -111,6 +111,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.chat.key(),
 				orpc.assistant.key(),
 			],
+			pin: () => [
+				orpc.chat.key(),
+			],
 			delete: () => [
 				orpc.chat.key(),
 				orpc.assistant.key(),

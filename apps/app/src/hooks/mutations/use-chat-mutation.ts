@@ -19,6 +19,26 @@ export const useUpdateChatMutation = (
 	});
 };
 
+export const usePinChatMutation = (
+	opts: ReturnType<typeof orpc.chat.pin.mutationOptions> = {},
+) => {
+	return useMutationAction({
+		mutationOptions: () => orpc.chat.pin.mutationOptions(opts),
+		messages: {
+			loading: ({ input }) =>
+				input.pinned
+					? m.chat_pin_toast_loading()
+					: m.chat_unpin_toast_loading(),
+			success: ({ input }) =>
+				input.pinned
+					? m.chat_pin_toast_success()
+					: m.chat_unpin_toast_success(),
+			error: ({ input }) =>
+				input.pinned ? m.chat_pin_toast_error() : m.chat_unpin_toast_error(),
+		},
+	});
+};
+
 export const useDeleteChatsMutation = (
 	opts: ReturnType<typeof orpc.chat.delete.mutationOptions> = {},
 	target?: DestructiveTarget,

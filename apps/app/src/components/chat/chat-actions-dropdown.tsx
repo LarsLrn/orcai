@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
 	useDeleteChatsMutation,
+	usePinChatMutation,
 	useUpdateChatMutation,
 } from "@/hooks/mutations/use-chat-mutation";
 import { m } from "@/paraglide/messages";
@@ -17,11 +18,14 @@ const ChatActionsDropdown = ({
 	children,
 	chatId,
 	title,
+	pinned,
 	deleteRedirectTo = "/app/chat",
 }: {
 	children: React.ReactElement;
 	chatId: string;
 	title: string | null;
+	/** Whether the chat is pinned; omitted where chats cannot be pinned. */
+	pinned?: boolean;
 	/** Where to go when the open chat is the one being deleted. */
 	deleteRedirectTo?: "/app/chat" | "/app/assistant";
 }) => {
@@ -52,6 +56,7 @@ const ChatActionsDropdown = ({
 	);
 	const { mutateAsync: updateChat, isPending: isUpdatingChat } =
 		useUpdateChatMutation();
+	const { mutate: pinChat } = usePinChatMutation();
 
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
@@ -74,11 +79,27 @@ const ChatActionsDropdown = ({
 		setIsRenameDialogOpen(true);
 	};
 
+	const onPin = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.stopPropagation();
+		setIsDropdownOpen(false);
+		pinChat({
+			id: chatId,
+			pinned: !pinned,
+		});
+	};
+
 	return (
 		<>
 			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
 				<DropdownMenuTrigger render={children} />
 				<DropdownMenuContent align="end" className="w-40">
+					{pinned !== undefined && (
+						<DropdownMenuItem onClick={onPin}>
+							{pinned
+								? m.chat_actions_unpin_action()
+								: m.chat_actions_pin_action()}
+						</DropdownMenuItem>
+					)}
 					<DropdownMenuItem onClick={onUpdate}>
 						{m.chat_actions_rename_action()}
 					</DropdownMenuItem>
