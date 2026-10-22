@@ -1,6 +1,7 @@
 import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
+	AnalyticsCost,
 	AnalyticsDays,
 	AnalyticsDayUsage,
 	AnalyticsUsage,
@@ -9,6 +10,7 @@ import type {
 	OrganizationAnalytics,
 } from "@orcai/schema";
 import { and, count, eq, gte, type SQL, sql } from "drizzle-orm";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
 
@@ -16,19 +18,26 @@ const DAY_MS = 86_400_000;
 
 const event = dbSchema.quotaUsageEvent;
 
+const total = (column: AnyPgColumn) =>
+	sql<number>`coalesce(sum(${column}), 0)`.mapWith(Number);
+
+/** Usage of one currency's events; group by the currency too and add the rows up with `byKey`. */
 const usage = {
-	inputTokens: sql<number>`coalesce(sum(${event.inputTokens}), 0)`.mapWith(
+	inputTokens: total(event.inputTokens),
+	outputTokens: total(event.outputTokens),
+	totalTokens: total(event.totalTokens),
+	cacheReadTokens: total(event.cacheReadTokens),
+	cacheWriteTokens: total(event.cacheWriteTokens),
+	requests: total(event.requestCount),
+	unpriced: sql<number>`count(*) filter (where ${event.cost} is null)`.mapWith(
 		Number,
 	),
-	outputTokens: sql<number>`coalesce(sum(${event.outputTokens}), 0)`.mapWith(
-		Number,
-	),
-	totalTokens: sql<number>`coalesce(sum(${event.totalTokens}), 0)`.mapWith(
-		Number,
-	),
-	requests: sql<number>`coalesce(sum(${event.requestCount}), 0)`.mapWith(
-		Number,
-	),
+	currency: event.currency,
+	amount: total(event.cost),
+};
+
+type UsageRow = {
+	[Key in keyof typeof usage]: Key extends "currency" ? string | null : number;
 };
 
 const day = sql<string>`to_char(date_trunc('day', ${event.occurredAt}), 'YYYY-MM-DD')`;
@@ -37,7 +46,11 @@ const NO_USAGE: AnalyticsUsage = {
 	inputTokens: 0,
 	outputTokens: 0,
 	totalTokens: 0,
+	cacheReadTokens: 0,
+	cacheWriteTokens: 0,
 	requests: 0,
+	cost: [],
+	unpriced: 0,
 };
 
 /** The start of the UTC day `days - 1` days before `now`. */
@@ -74,16 +87,99 @@ const fillDays = (
 	);
 };
 
-const sumUsage = (rows: readonly AnalyticsUsage[]): AnalyticsUsage =>
-	rows.reduce(
-		(sum, row) => ({
-			inputTokens: sum.inputTokens + row.inputTokens,
-			outputTokens: sum.outputTokens + row.outputTokens,
-			totalTokens: sum.totalTokens + row.totalTokens,
-			requests: sum.requests + row.requests,
-		}),
-		NO_USAGE,
+/** Costs added per currency, ordered by code. */
+const addCosts = (a: AnalyticsCost[], b: AnalyticsCost[]): AnalyticsCost[] => {
+	const amounts = new Map(
+		a.map(({ currency, amount }) => [
+			currency,
+			amount,
+		]),
 	);
+	for (const { currency, amount } of b) {
+		amounts.set(currency, (amounts.get(currency) ?? 0) + amount);
+	}
+	return [
+		...amounts,
+	]
+		.map(([currency, amount]) => ({
+			currency,
+			amount,
+		}))
+		.sort((x, y) => x.currency.localeCompare(y.currency));
+};
+
+const addUsage = (a: AnalyticsUsage, b: AnalyticsUsage): AnalyticsUsage => ({
+	inputTokens: a.inputTokens + b.inputTokens,
+	outputTokens: a.outputTokens + b.outputTokens,
+	totalTokens: a.totalTokens + b.totalTokens,
+	cacheReadTokens: a.cacheReadTokens + b.cacheReadTokens,
+	cacheWriteTokens: a.cacheWriteTokens + b.cacheWriteTokens,
+	requests: a.requests + b.requests,
+	cost: addCosts(a.cost, b.cost),
+	unpriced: a.unpriced + b.unpriced,
+});
+
+const sumUsage = (rows: readonly AnalyticsUsage[]): AnalyticsUsage =>
+	rows.reduce(addUsage, NO_USAGE);
+
+/** One row per key, with the usage of its currencies' rows added up. */
+const byKey = <Row extends UsageRow>(
+	rows: readonly Row[],
+	key: (row: Row) => string | null,
+) => {
+	const groups = new Map<
+		string | null,
+		{
+			row: Row;
+			usage: AnalyticsUsage;
+		}
+	>();
+	for (const row of rows) {
+		const {
+			inputTokens,
+			outputTokens,
+			totalTokens,
+			cacheReadTokens,
+			cacheWriteTokens,
+			requests,
+			unpriced,
+			currency,
+			amount,
+		} = row;
+		const rowUsage: AnalyticsUsage = {
+			inputTokens,
+			outputTokens,
+			totalTokens,
+			cacheReadTokens,
+			cacheWriteTokens,
+			requests,
+			unpriced,
+			cost:
+				currency === null
+					? []
+					: [
+							{
+								currency,
+								amount,
+							},
+						],
+		};
+		const group = groups.get(key(row));
+		groups.set(key(row), {
+			row: group?.row ?? row,
+			usage: group ? addUsage(group.usage, rowUsage) : rowUsage,
+		});
+	}
+	return [
+		...groups.values(),
+	].map(({ row, usage: rowUsage }) => {
+		const { currency: _currency, amount: _amount, ...fields } = row;
+		return {
+			...fields,
+			...rowUsage,
+		};
+	});
+};
 
 /** Most tokens first, then most requests. */
 const byUsage = (a: AnalyticsUsage, b: AnalyticsUsage) =>
@@ -143,8 +239,12 @@ const dailyUsage = (from: Date, days: AnalyticsDays, scope?: SQL) =>
 			})
 			.from(event)
 			.where(finalizedSince(from, scope))
-			.groupBy(day);
-		const daily = fillDays(from, days, rows);
+			.groupBy(day, event.currency);
+		const daily = fillDays(
+			from,
+			days,
+			byKey(rows, (row) => row.date),
+		);
 		return {
 			days,
 			from,
@@ -187,7 +287,7 @@ export const organizationAnalytics = ({
 					.from(event)
 					.innerJoin(user, eq(user.id, event.userId))
 					.where(where)
-					.groupBy(event.userId, user.name, user.email),
+					.groupBy(event.userId, user.name, user.email, event.currency),
 				db
 					.select({
 						botId: event.botId,
@@ -197,7 +297,7 @@ export const organizationAnalytics = ({
 					.from(event)
 					.leftJoin(bot, eq(bot.id, event.botId))
 					.where(where)
-					.groupBy(event.botId, bot.name),
+					.groupBy(event.botId, bot.name, event.currency),
 				db
 					.select({
 						providerId: event.providerId,
@@ -210,7 +310,13 @@ export const organizationAnalytics = ({
 					.innerJoin(provider, eq(provider.id, event.providerId))
 					.leftJoin(model, eq(model.id, event.modelId))
 					.where(where)
-					.groupBy(event.providerId, provider.name, model.id, model.name),
+					.groupBy(
+						event.providerId,
+						provider.name,
+						model.id,
+						model.name,
+						event.currency,
+					),
 				// A reply belongs to the organisation that metered it, whose request id is the reply's id.
 				db
 					.select({
@@ -241,9 +347,11 @@ export const organizationAnalytics = ({
 
 		return {
 			...timeline,
-			users: users.sort(byUsage),
-			bots: bots.sort(byUsage),
-			models: models.sort(byUsage),
+			users: byKey(users, (row) => row.userId).sort(byUsage),
+			bots: byKey(bots, (row) => row.botId).sort(byUsage),
+			models: byKey(models, (row) => `${row.providerId}:${row.modelId}`).sort(
+				byUsage,
+			),
 			ratings: ratingsByBot(ratings),
 		};
 	});
@@ -259,7 +367,7 @@ export const instanceAnalytics = ({
 		const from = yield* range(days);
 		const { organization } = dbSchema;
 
-		const [timeline, organizations, used] = yield* Effect.all(
+		const [timeline, organizations, used, active] = yield* Effect.all(
 			[
 				dailyUsage(from, days),
 				db
@@ -272,10 +380,17 @@ export const instanceAnalytics = ({
 				db
 					.select({
 						organizationId: event.organizationId,
+						...usage,
+					})
+					.from(event)
+					.where(finalizedSince(from))
+					.groupBy(event.organizationId, event.currency),
+				db
+					.select({
+						organizationId: event.organizationId,
 						activeUsers: sql<number>`count(distinct ${event.userId})`.mapWith(
 							Number,
 						),
-						...usage,
 					})
 					.from(event)
 					.where(finalizedSince(from))
@@ -287,9 +402,15 @@ export const instanceAnalytics = ({
 		);
 
 		const usageOf = new Map(
-			used.map((row) => [
+			byKey(used, (row) => row.organizationId).map((row) => [
 				row.organizationId,
 				row,
+			]),
+		);
+		const activeUsersOf = new Map(
+			active.map((row) => [
+				row.organizationId,
+				row.activeUsers,
 			]),
 		);
 		return {
@@ -297,10 +418,8 @@ export const instanceAnalytics = ({
 			organizations: organizations
 				.map((row) => ({
 					...row,
-					...(usageOf.get(row.organizationId) ?? {
-						...NO_USAGE,
-						activeUsers: 0,
-					}),
+					...(usageOf.get(row.organizationId) ?? NO_USAGE),
+					activeUsers: activeUsersOf.get(row.organizationId) ?? 0,
 				}))
 				.sort((a, b) => byUsage(a, b) || a.name.localeCompare(b.name)),
 		};

@@ -7,12 +7,25 @@ import { providerIdSchema } from "../provider/ref";
 import { userIdSchema } from "../user/ref";
 import { analyticsDaysSchema } from "./inputs";
 
+/** An estimated cost in one currency; amounts in different currencies are never added up. */
+export const analyticsCostSchema = z.object({
+	currency: z.string(),
+	/** In micro-units of the currency. */
+	amount: z.number(),
+});
+
 /** Tokens and provider requests as metered; the two units are never added up. */
 export const analyticsUsageSchema = z.object({
 	inputTokens: z.number(),
 	outputTokens: z.number(),
 	totalTokens: z.number(),
+	cacheReadTokens: z.number(),
+	cacheWriteTokens: z.number(),
 	requests: z.number(),
+	/** One entry per currency, ordered by code. */
+	cost: z.array(analyticsCostSchema),
+	/** Metered calls without a price, whose cost is unknown. */
+	unpriced: z.number(),
 });
 
 export const analyticsDayUsageSchema = analyticsUsageSchema.extend({
@@ -77,6 +90,7 @@ export const instanceAnalyticsSchema = z.object({
 	),
 });
 
+export type AnalyticsCost = z.infer<typeof analyticsCostSchema>;
 export type AnalyticsUsage = z.infer<typeof analyticsUsageSchema>;
 export type AnalyticsDayUsage = z.infer<typeof analyticsDayUsageSchema>;
 export type OrganizationAnalytics = z.infer<typeof organizationAnalyticsSchema>;

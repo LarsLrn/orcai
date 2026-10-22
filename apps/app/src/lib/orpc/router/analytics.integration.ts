@@ -50,7 +50,7 @@ const rejection = (operation: Promise<unknown>) =>
 
 /** An organisation with an admin and a member, a provider with one model, and a pool for everyone. */
 const meteredOrganization = async (
-	options: { currency?: string; prices?: Partial<ModelPrices> } = {},
+	pricing: { currency?: string; prices?: Partial<ModelPrices> } = {},
 ) => {
 	const {
 		organizationId,
@@ -77,52 +77,63 @@ const meteredOrganization = async (
 				.returning();
 		}),
 	);
-	const { data: provider, meta } = await run(
-		procedures.provider.create(
-			{
-				name: `Analytics ${crypto.randomUUID()}`,
-				description: "Metered by the analytics test.",
-				kind: "openai-compatible",
-				endpoint: "http://127.0.0.1:9/v1",
-				apiKey: "key",
-				meteringMode: "tokens",
-				currency: options.currency,
-				enabled: true,
-			},
-			await asAdmin(),
-		),
-	);
-	token = meta?.zedToken ?? token;
-	const { data: model } = await run(
-		procedures.model.create(
-			{
-				providerId: provider.id,
-				providerModelId: "analytics-model",
-				name: "Analytics model",
-				description: "A text model.",
-				isDeprecated: false,
-				capabilities: [
-					"text",
-				],
-				prices: options.prices,
-			},
-			await asAdmin(),
-		),
-	);
-	await run(
-		procedures.quota.create(
-			{
-				name: `Analytics ${crypto.randomUUID()}`,
-				providerId: provider.id,
-				periodType: "monthly",
-				budgetAmount: 1_000_000,
-				groupIds: [
-					allMembers.id,
-				],
-			},
-			await asAdmin(),
-		),
-	);
+	/** A provider with one model and a pool for everyone; prices are in its currency. */
+	const addModel = async (pricing: {
+		currency?: string;
+		prices?: Partial<ModelPrices>;
+	}) => {
+		const { data: provider, meta } = await run(
+			procedures.provider.create(
+				{
+					name: `Analytics ${crypto.randomUUID()}`,
+					description: "Metered by the analytics test.",
+					kind: "openai-compatible",
+					endpoint: "http://127.0.0.1:9/v1",
+					apiKey: "key",
+					meteringMode: "tokens",
+					currency: pricing.currency,
+					enabled: true,
+				},
+				await asAdmin(),
+			),
+		);
+		token = meta?.zedToken ?? token;
+		const { data: model } = await run(
+			procedures.model.create(
+				{
+					providerId: provider.id,
+					providerModelId: "analytics-model",
+					name: "Analytics model",
+					description: "A text model.",
+					isDeprecated: false,
+					capabilities: [
+						"text",
+					],
+					prices: pricing.prices,
+				},
+				await asAdmin(),
+			),
+		);
+		await run(
+			procedures.quota.create(
+				{
+					name: `Analytics ${crypto.randomUUID()}`,
+					providerId: provider.id,
+					periodType: "monthly",
+					budgetAmount: 1_000_000,
+					groupIds: [
+						allMembers.id,
+					],
+				},
+				await asAdmin(),
+			),
+		);
+		return {
+			providerId: provider.id,
+			modelId: model.id,
+		};
+	};
+	const model = await addModel(pricing);
 
 	/** Meters one finished call and returns its request id, which a reply would carry. */
 	const meter = async (params: {
@@ -130,6 +141,8 @@ const meteredOrganization = async (
 		botId?: BotId;
 		steps: MeterStep[];
 		daysAgo?: number;
+		/** Another of the organisation's models, from `addModel`. */
+		on?: Awaited<ReturnType<typeof addModel>>;
 	}) => {
 		const appRequestId = crypto.randomUUID();
 		await run(
@@ -138,8 +151,7 @@ const meteredOrganization = async (
 					appRequestId,
 					organizationId,
 					userId: params.actor.user.id,
-					providerId: provider.id,
-					modelId: model.id,
+					...(params.on ?? model),
 					botId: params.botId,
 					maxSteps: params.steps.length,
 					messages: [],
@@ -173,7 +185,7 @@ const meteredOrganization = async (
 		run(
 			procedures.model.update(
 				{
-					id: model.id,
+					id: model.modelId,
 					prices,
 				},
 				await asAdmin(),
@@ -184,8 +196,8 @@ const meteredOrganization = async (
 		organizationId,
 		admin,
 		member,
-		providerId: provider.id,
-		modelId: model.id,
+		...model,
+		addModel,
 		meter,
 		setPrices,
 		analytics,
@@ -316,6 +328,10 @@ describe("organization analytics", () => {
 				outputTokens: 55,
 				totalTokens: 165,
 				requests: 3,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				cost: [],
+				unpriced: 2,
 			});
 			expect(week.daily.slice(0, -1).every((day) => day.requests === 0)).toBe(
 				true,
@@ -328,6 +344,10 @@ describe("organization analytics", () => {
 				outputTokens: 55,
 				totalTokens: 165,
 				requests: 3,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				cost: [],
+				unpriced: 2,
 			});
 			expect(week.users).toEqual([
 				{
@@ -338,6 +358,10 @@ describe("organization analytics", () => {
 					outputTokens: 50,
 					totalTokens: 150,
 					requests: 1,
+					cacheReadTokens: 0,
+					cacheWriteTokens: 0,
+					cost: [],
+					unpriced: 1,
 				},
 				{
 					userId: org.admin.user.id,
@@ -347,6 +371,10 @@ describe("organization analytics", () => {
 					outputTokens: 5,
 					totalTokens: 15,
 					requests: 2,
+					cacheReadTokens: 0,
+					cacheWriteTokens: 0,
+					cost: [],
+					unpriced: 1,
 				},
 			]);
 			expect(
@@ -387,6 +415,10 @@ describe("organization analytics", () => {
 				outputTokens: 1055,
 				totalTokens: 2165,
 				requests: 4,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				cost: [],
+				unpriced: 3,
 			});
 		},
 		TIMEOUT,
@@ -541,6 +573,136 @@ describe("usage cost", () => {
 				cost: null,
 				currency: null,
 				costSource: null,
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("cost analytics", () => {
+	test(
+		"adds cost up per currency and counts calls without a price",
+		async () => {
+			const org = await meteredOrganization({
+				currency: "EUR",
+				prices: {
+					input: 2,
+					output: 10,
+				},
+			});
+			const dollars = await org.addModel({
+				prices: {
+					input: 1,
+					output: 1,
+				},
+			});
+			const unpriced = await org.addModel({});
+			const cached = usage(1_000, 100);
+			cached.usage.inputTokenDetails = {
+				noCacheTokens: 200,
+				cacheReadTokens: 600,
+				cacheWriteTokens: 200,
+			};
+			await org.meter({
+				actor: org.member,
+				steps: [
+					cached,
+				],
+			});
+			await org.meter({
+				actor: org.member,
+				steps: [
+					usage(1_000, 1_000),
+				],
+				on: dollars,
+			});
+			await org.meter({
+				actor: org.member,
+				steps: [
+					usage(5, 5),
+				],
+				on: unpriced,
+			});
+			const cost = [
+				{
+					currency: "EUR",
+					amount: 3_000,
+				},
+				{
+					currency: "USD",
+					amount: 2_000,
+				},
+			];
+
+			const { totals, daily, users, models } = await org.analytics(
+				org.admin,
+				7,
+			);
+
+			expect(totals).toMatchObject({
+				cacheReadTokens: 600,
+				cacheWriteTokens: 200,
+				cost,
+				unpriced: 1,
+			});
+			expect(daily.at(-1)).toMatchObject({
+				cost,
+				unpriced: 1,
+			});
+			expect(users).toEqual([
+				expect.objectContaining({
+					userId: org.member.user.id,
+					cost,
+					unpriced: 1,
+				}),
+			]);
+			expect(
+				models.map(({ providerId, cost, unpriced }) => ({
+					providerId,
+					cost,
+					unpriced,
+				})),
+			).toEqual(
+				expect.arrayContaining([
+					{
+						providerId: org.providerId,
+						cost: [
+							cost[0],
+						],
+						unpriced: 0,
+					},
+					{
+						providerId: dollars.providerId,
+						cost: [
+							cost[1],
+						],
+						unpriced: 0,
+					},
+					{
+						providerId: unpriced.providerId,
+						cost: [],
+						unpriced: 1,
+					},
+				]),
+			);
+
+			const { organizations } = await run(
+				org.procedures.analytics.instance(
+					{
+						days: 7,
+					},
+					await procedureOptions(await instanceAdmin(org.organizationId)),
+				),
+			).then(({ data }) => data);
+			expect(
+				organizations.find(
+					({ organizationId }) => organizationId === org.organizationId,
+				),
+			).toMatchObject({
+				cost,
+				unpriced: 1,
+				requests: 3,
+				activeUsers: 1,
 			});
 		},
 		TIMEOUT,

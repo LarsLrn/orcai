@@ -15,7 +15,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { formatCount } from "@/lib/presentation/format-number";
+import { formatCosts, formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 interface Column<Row> {
@@ -23,7 +23,7 @@ interface Column<Row> {
 	cell: (row: Row) => ReactNode;
 }
 
-/** Usage per person, bot, model or organisation, most tokens first. */
+/** Usage and estimated cost per person, bot, model or organisation, most tokens first. */
 export const UsageBreakdown = <Row extends AnalyticsUsage>({
 	title,
 	description,
@@ -70,6 +70,9 @@ export const UsageBreakdown = <Row extends AnalyticsUsage>({
 								<TableHead className="text-right">
 									{m.analytics_metric_requests()}
 								</TableHead>
+								<TableHead className="text-right">
+									{m.analytics_metric_cost()}
+								</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -89,6 +92,9 @@ export const UsageBreakdown = <Row extends AnalyticsUsage>({
 									</TableCell>
 									<TableCell className="text-right tabular-nums">
 										{formatCount(row.requests)}
+									</TableCell>
+									<TableCell className="whitespace-nowrap text-right tabular-nums">
+										{formatCosts(row.cost, m.analytics_cost_none())}
 									</TableCell>
 								</TableRow>
 							))}
