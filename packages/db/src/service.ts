@@ -31,6 +31,7 @@ export const PgClientServiceLive: Layer.Layer<
 
 		return PgClient.layer({
 			url,
+			maxConnections: config.postgres.poolMax,
 			types: {
 				getTypeParser: (typeId, format) => {
 					if (pgStringTypeIds.has(typeId)) {

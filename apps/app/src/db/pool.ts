@@ -7,6 +7,7 @@ const pgConnectionString = makePgConnectionString(cfg.postgres);
 
 export const pgPool = new Pool({
 	connectionString: Redacted.value(pgConnectionString),
+	max: cfg.postgres.poolMax,
 });
 
 // pg removes failed idle clients. Handle the event to avoid an uncaught error.

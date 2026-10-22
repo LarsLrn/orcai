@@ -36,6 +36,7 @@ export const PgBossServiceLive: Layer.Layer<
 				try: async () => {
 					const boss = new PgBoss({
 						connectionString: Redacted.value(url),
+						max: config.postgres.poolMax,
 						// Jobs carry the trace context only, never baggage.
 						openTelemetry: {
 							propagateContext: true,
