@@ -1,43 +1,44 @@
 # Node & bun
-node_modules
+**/node_modules
 
-# Vite/TanStack Start outputs
-.output
-.dist
-dist
-build
+# Build outputs
+**/.output
+**/.dist
+**/dist
+**/build
+**/.tanstack
+**/.nitro
+**/.source
 
 # VCS & editor
 .git
 .gitignore
 .gitattributes
+.husky
 .vscode
 .idea
 
 # OS / misc
-.DS_Store
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+**/.DS_Store
+**/*.log
 
 # typescript
-*.tsbuildinfo
+**/*.tsbuildinfo
 
 # Paraglide
-/src/paraglide
-/apps/*/src/paraglide
-/packages/*/src/paraglide
+**/src/paraglide
 
 # devtools
-.devtools
+**/.devtools
 
 # Env
-.env*
+**/.env*
 !.env.example
 
 # Tests, coverage
 coverage
+apps/e2e/playwright-report
+apps/e2e/test-results
 
 # Project-specific caches
-project.inlang/cache
+**/project.inlang/cache
