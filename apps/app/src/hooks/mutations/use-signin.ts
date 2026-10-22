@@ -1,16 +1,14 @@
 import type { SigninSchemaType } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import { useUmami } from "@/hooks/use-umami";
+import { useEnterApp } from "@/hooks/use-enter-app";
 import { authClient } from "@/lib/auth/auth-client";
 import { toAuthError } from "@/lib/errors/auth-error";
 import { m } from "@/paraglide/messages";
-import { getLocale } from "@/paraglide/runtime";
 
 export const useSignin = () => {
 	const navigate = useNavigate();
-	const { trackEvent } = useUmami();
-	const renderedLocale = getLocale();
+	const enterApp = useEnterApp();
 
 	return useMutationAction({
 		mutationOptions: () => ({
@@ -22,24 +20,24 @@ export const useSignin = () => {
 				if (result.error) {
 					throw toAuthError(result.error);
 				}
-				return result;
+				return result.data;
 			},
-			onSuccess: (result) => {
-				trackEvent("auth-login");
-				// Sign-in set the stored locale's cookie; only a document load renders it.
-				const storedLocale = result.data?.user.locale;
-				if (storedLocale && storedLocale !== renderedLocale) {
-					window.location.assign("/app");
+			onSuccess: (data) => {
+				if ("twoFactorRedirect" in data) {
+					navigate({
+						to: "/two-factor",
+					});
 					return;
 				}
-				navigate({
-					to: "/app",
-				});
+				enterApp(data.user);
 			},
 		}),
 		messages: {
 			loading: m.auth_signin_toast_loading(),
-			success: m.auth_signin_toast_success(),
+			success: ({ data }) =>
+				"twoFactorRedirect" in data
+					? m.auth_signin_toast_two_factor()
+					: m.auth_signin_toast_success(),
 			error: m.auth_signin_toast_error(),
 		},
 	});

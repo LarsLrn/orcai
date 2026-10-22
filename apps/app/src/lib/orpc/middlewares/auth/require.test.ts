@@ -23,6 +23,7 @@ mock.module("@/lib/auth/auth", () => ({
 	},
 }));
 
+const { AppConfigService } = await import("@/lib/effect/services/config");
 const { mapEffectErrors } = await import(
 	"@/lib/orpc/implementation/error-mapping"
 );
@@ -53,7 +54,15 @@ const requestContext = () => ({
 	reqHeaders: new Headers({
 		cookie: "better-auth.session_token=token",
 	}),
-	"effect/context": Context.empty() as AppEffectContext["effect/context"],
+	"effect/context": Context.make(AppConfigService, {
+		config: {
+			auth: {
+				twoFactorPolicy: "none",
+			},
+		} as never,
+		docs: undefined,
+		publicConfig: {},
+	}) as AppEffectContext["effect/context"],
 	"effect/wrap": mapEffectErrors,
 });
 

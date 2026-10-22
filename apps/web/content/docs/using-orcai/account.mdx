@@ -1,6 +1,6 @@
 ---
 title: Account
-description: The Account page and related flows, covering your name, email verification, password change and reset, organisation invitations, exporting your data, registration, switching organisation, and legal links.
+description: The Account page and related flows, covering your name, email verification, password change and reset, two-factor authentication, organisation invitations, exporting your data, registration, switching organisation, and legal links.
 ---
 
 The Account page holds your personal settings. Open it from **Account** in the user menu at the bottom of the sidebar.
@@ -8,7 +8,7 @@ The Account page holds your personal settings. Open it from **Account** in the u
 ## Tabs
 
 - **Profile** (`/app/account`): a summary card with your Name and Email, **Email verification** and **Your profile**
-- **Security** (`/app/account/security`): **Change password**
+- **Security** (`/app/account/security`): **Change password** and **Two-factor authentication**
 - **Invitations** (`/app/account/invitations`): **Organisation invitations**, with Pending, Accepted and Rejected tabs
 - **Data** (`/app/account/data`): **Export your data**, and **Legal** with links to the privacy policy and terms of use
 
@@ -31,6 +31,21 @@ The **Your profile** card edits your Name. Save it with **Save profile**. There 
 The **Change password** card asks for your Current password, a New password and Confirm new password. Submitting with **Change password** asks you to confirm before the password changes.
 
 If you have forgotten your password, use **Forgot password?** on the sign-in page. It opens `/forgot-password`, where you request a reset email. The link in that email opens `/reset-password`, where you choose a new password.
+
+## Two-Factor Authentication
+
+Two-factor authentication (2FA) asks for a code from an authenticator app, such as a password manager or a phone app, after your password. Set it up on the Security tab:
+
+1. Select **Set up two-factor authentication** and confirm your password.
+2. Scan the QR code with your authenticator app, or enter the **Setup key** by hand.
+3. Enter the six-digit code the app shows and select **Verify and turn on**.
+4. Keep the ten backup codes shown next somewhere safe: copy or download them. They are shown only once, and each signs you in once when you cannot use your authenticator app.
+
+When you sign in, OrcAI then asks for a code from the app. **Use a backup code** switches to a backup code. **Trust this device for 30 days** skips the code on this browser for 30 days.
+
+On the Security tab, **New backup codes** replaces your backup codes, and **Turn off** turns 2FA off; both ask for your password. Turning 2FA off sends you an email. When the administrator of your instance requires 2FA for you, **Turn off** is missing, and signing in without it set up takes you to a setup page first.
+
+If you lose your authenticator app, sign in with a backup code and set up 2FA again. Without a backup code, ask the instance administrator to reset your 2FA.
 
 ## Invitations
 

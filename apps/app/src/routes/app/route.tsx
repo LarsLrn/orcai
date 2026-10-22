@@ -82,6 +82,13 @@ export const Route = createFileRoute("/app")({
 			});
 		}
 
+		if (context.auth.twoFactor.setupRequired) {
+			throw redirect({
+				to: "/setup-two-factor",
+				statusCode: 302,
+			});
+		}
+
 		if (!context.auth.session.activeOrganizationId) {
 			throw redirect({
 				to: "/select-organization",

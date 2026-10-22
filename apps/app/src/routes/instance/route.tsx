@@ -14,6 +14,13 @@ export const Route = createFileRoute("/instance")({
 			});
 		}
 
+		if (context.auth.twoFactor.setupRequired) {
+			throw redirect({
+				to: "/setup-two-factor",
+				statusCode: 302,
+			});
+		}
+
 		if (!isInstanceAdminRole(context.auth.user.role)) {
 			throw redirect({
 				to: "/app",

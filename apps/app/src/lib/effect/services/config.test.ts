@@ -1,5 +1,50 @@
 import { describe, expect, test } from "bun:test";
-import { resolveDeploymentConfig } from "./config";
+import * as ConfigProvider from "effect/ConfigProvider";
+import * as Effect from "effect/Effect";
+import * as Result from "effect/Result";
+import { TWO_FACTOR_POLICIES } from "@/lib/auth/two-factor-policy";
+import { appConfig, resolveDeploymentConfig } from "./config";
+
+const twoFactorPolicyFrom = (env: Record<string, string>) =>
+	Effect.runSync(
+		Effect.result(
+			appConfig
+				.parse(
+					ConfigProvider.fromUnknown({
+						BETTER_AUTH_SECRET: "secret",
+						BETTER_AUTH_URL: "http://localhost:3000",
+						ENCRYPTION_KEY: "key",
+						...env,
+					}),
+				)
+				.pipe(Effect.map((config) => config.auth.twoFactorPolicy)),
+		),
+	);
+
+describe("TWO_FACTOR_REQUIRED", () => {
+	test("defaults to none", () => {
+		expect(twoFactorPolicyFrom({})).toEqual(Result.succeed("none"));
+	});
+
+	test("reads each policy", () => {
+		for (const policy of TWO_FACTOR_POLICIES)
+			expect(
+				twoFactorPolicyFrom({
+					TWO_FACTOR_REQUIRED: policy,
+				}),
+			).toEqual(Result.succeed(policy));
+	});
+
+	test("refuses an unknown policy", () => {
+		expect(
+			Result.isFailure(
+				twoFactorPolicyFrom({
+					TWO_FACTOR_REQUIRED: "admin",
+				}),
+			),
+		).toBe(true);
+	});
+});
 
 describe("resolveDeploymentConfig", () => {
 	test("has no docs and no analytics when nothing is set", () => {

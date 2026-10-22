@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import {
 	boolean,
 	check,
+	integer,
 	json,
 	pgTable,
 	text,
@@ -31,6 +32,7 @@ export const user = pgTable(
 			.$type<UserPreferencesType>()
 			.default({}),
 		locale: text("locale").$type<Locale>(),
+		twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
 	},
 	(table) => [
 		check(
@@ -93,3 +95,21 @@ export const verification = pgTable("verification", {
 });
 
 export type Verification = InferSelectModel<typeof verification>;
+
+export const twoFactor = pgTable("two_factor", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	secret: text("secret").notNull(),
+	backupCodes: text("backup_codes").notNull(),
+	userId: uuid("user_id")
+		.$type<UserId>()
+		.notNull()
+		.unique()
+		.references(() => user.id, {
+			onDelete: "cascade",
+		}),
+	verified: boolean("verified").notNull().default(true),
+	failedVerificationCount: integer("failed_verification_count")
+		.notNull()
+		.default(0),
+	lockedUntil: timestamp("locked_until"),
+});

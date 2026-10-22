@@ -45,6 +45,15 @@ const resetPasswordSchema = base.extend({
 	resetUrl: emailActionUrlSchema,
 });
 
+/** Tells the user about a change to how they sign in. */
+const securityNoticeSchema = base.extend({
+	securityUrl: emailActionUrlSchema,
+});
+
+const twoFactorDisabledSchema = securityNoticeSchema.extend({
+	type: z.literal("auth.two-factor-disabled"),
+});
+
 const dataExportReadySchema = base.extend({
 	type: z.literal("data-export.ready"),
 	accountUrl: emailActionUrlSchema,
@@ -55,6 +64,7 @@ export const emailNotificationSchema = z.discriminatedUnion("type", [
 	organizationInvitedSchema,
 	verifyEmailSchema,
 	resetPasswordSchema,
+	twoFactorDisabledSchema,
 	dataExportReadySchema,
 ]);
 
@@ -65,6 +75,10 @@ export type OrganizationInvitedNotification = z.infer<
 export type VerifyEmailNotification = z.infer<typeof verifyEmailSchema>;
 
 export type ResetPasswordNotification = z.infer<typeof resetPasswordSchema>;
+
+export type TwoFactorDisabledNotification = z.infer<
+	typeof twoFactorDisabledSchema
+>;
 
 export type DataExportReadyNotification = z.infer<typeof dataExportReadySchema>;
 
