@@ -51,7 +51,7 @@ test("pipeline: a user exports their data from the account page and downloads th
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
-		await openAccountPage(page);
+		await openAccountPage(page, "data");
 		const card = accountCard(page, message("account_data_export_card_title"));
 		await card
 			.getByRole("button", {

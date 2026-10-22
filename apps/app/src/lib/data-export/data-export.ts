@@ -202,7 +202,7 @@ export const runDataExport = (
 						type: "data-export.ready",
 						recipient: target.email,
 						recipientName: target.name,
-						accountUrl: `${config.auth.url}/app/account`,
+						accountUrl: `${config.auth.url}/app/account/data`,
 						expiresAt,
 						locale,
 					},

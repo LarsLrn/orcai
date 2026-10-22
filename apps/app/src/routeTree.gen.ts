@@ -40,6 +40,9 @@ import { Route as ApiDataExportsDataExportIdRouteImport } from './routes/api/dat
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
+import { Route as AppAccountDataRouteImport } from './routes/app/account/data'
+import { Route as AppAccountInvitationsRouteImport } from './routes/app/account/invitations'
+import { Route as AppAccountSecurityRouteImport } from './routes/app/account/security'
 import { Route as AppAnalyticsIndexRouteImport } from './routes/app/analytics/index'
 import { Route as AppAssistantIndexRouteImport } from './routes/app/assistant/index'
 import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
@@ -256,6 +259,21 @@ const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
 const AppAccountIndexRoute = AppAccountIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppAccountRouteRoute,
+} as any)
+const AppAccountDataRoute = AppAccountDataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => AppAccountRouteRoute,
+} as any)
+const AppAccountInvitationsRoute = AppAccountInvitationsRouteImport.update({
+  id: '/invitations',
+  path: '/invitations',
+  getParentRoute: () => AppAccountRouteRoute,
+} as any)
+const AppAccountSecurityRoute = AppAccountSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => AppAccountRouteRoute,
 } as any)
 const AppAnalyticsIndexRoute = AppAnalyticsIndexRouteImport.update({
@@ -600,6 +618,9 @@ export interface FileRoutesByFullPath {
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/account/data': typeof AppAccountDataRoute
+  '/app/account/invitations': typeof AppAccountInvitationsRoute
+  '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
@@ -669,6 +690,9 @@ export interface FileRoutesByTo {
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/account/data': typeof AppAccountDataRoute
+  '/app/account/invitations': typeof AppAccountInvitationsRoute
+  '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
@@ -758,6 +782,9 @@ export interface FileRoutesById {
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/account/data': typeof AppAccountDataRoute
+  '/app/account/invitations': typeof AppAccountInvitationsRoute
+  '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/hub/behaviour': typeof AppHubBehaviourRoute
@@ -850,6 +877,9 @@ export interface FileRouteTypes {
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/account/data'
+    | '/app/account/invitations'
+    | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
@@ -919,6 +949,9 @@ export interface FileRouteTypes {
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/account/data'
+    | '/app/account/invitations'
+    | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
@@ -1007,6 +1040,9 @@ export interface FileRouteTypes {
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/account/data'
+    | '/app/account/invitations'
+    | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/hub/behaviour'
@@ -1288,6 +1324,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/account/'
       preLoaderRoute: typeof AppAccountIndexRouteImport
+      parentRoute: typeof AppAccountRouteRoute
+    }
+    '/app/account/data': {
+      id: '/app/account/data'
+      path: '/data'
+      fullPath: '/app/account/data'
+      preLoaderRoute: typeof AppAccountDataRouteImport
+      parentRoute: typeof AppAccountRouteRoute
+    }
+    '/app/account/invitations': {
+      id: '/app/account/invitations'
+      path: '/invitations'
+      fullPath: '/app/account/invitations'
+      preLoaderRoute: typeof AppAccountInvitationsRouteImport
+      parentRoute: typeof AppAccountRouteRoute
+    }
+    '/app/account/security': {
+      id: '/app/account/security'
+      path: '/security'
+      fullPath: '/app/account/security'
+      preLoaderRoute: typeof AppAccountSecurityRouteImport
       parentRoute: typeof AppAccountRouteRoute
     }
     '/app/analytics/': {
@@ -1727,10 +1784,16 @@ const PathlessLayoutRouteRouteWithChildren =
   PathlessLayoutRouteRoute._addFileChildren(PathlessLayoutRouteRouteChildren)
 
 interface AppAccountRouteRouteChildren {
+  AppAccountDataRoute: typeof AppAccountDataRoute
+  AppAccountInvitationsRoute: typeof AppAccountInvitationsRoute
+  AppAccountSecurityRoute: typeof AppAccountSecurityRoute
   AppAccountIndexRoute: typeof AppAccountIndexRoute
 }
 
 const AppAccountRouteRouteChildren: AppAccountRouteRouteChildren = {
+  AppAccountDataRoute: AppAccountDataRoute,
+  AppAccountInvitationsRoute: AppAccountInvitationsRoute,
+  AppAccountSecurityRoute: AppAccountSecurityRoute,
   AppAccountIndexRoute: AppAccountIndexRoute,
 }
 

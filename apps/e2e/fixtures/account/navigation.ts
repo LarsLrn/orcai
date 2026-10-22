@@ -2,8 +2,17 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { message } from "../messages";
 import { awaitHydration, open } from "../navigation";
 
-/** Where the account page lives. */
+/** Where the account page lives; its first tab is the profile. */
 export const accountPath = "/app/account";
+
+const ACCOUNT_TAB_PATHS = {
+	profile: accountPath,
+	security: `${accountPath}/security`,
+	invitations: `${accountPath}/invitations`,
+	data: `${accountPath}/data`,
+} as const;
+
+export type AccountTab = keyof typeof ACCOUNT_TAB_PATHS;
 
 /** Open a page under `/app` and wait for the marker that says it rendered. */
 export const openAppPage = async (
@@ -15,11 +24,14 @@ export const openAppPage = async (
 	await expect(visible).toBeVisible();
 };
 
-/** Open the account page and wait for its title. */
-export const openAccountPage = async (page: Page): Promise<void> => {
+/** Open a tab of the account page and wait for its title. */
+export const openAccountPage = async (
+	page: Page,
+	tab: AccountTab = "profile",
+): Promise<void> => {
 	await openAppPage(
 		page,
-		accountPath,
+		ACCOUNT_TAB_PATHS[tab],
 		page.getByRole("heading", {
 			name: message("account_page_title"),
 		}),
