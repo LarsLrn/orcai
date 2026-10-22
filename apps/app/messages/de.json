@@ -3083,8 +3083,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Chats, die auf dieses Modell eingestellt sind, verlieren ihre Modellauswahl, und Kontingent-Pools, die darauf beschränkt sind, greifen auf den gesamten Anbieter zurück.",
-				"countPlural=other": "Chats, die auf diese Modelle eingestellt sind, verlieren ihre Modellauswahl, und Kontingent-Pools, die darauf beschränkt sind, greifen auf den gesamten Anbieter zurück."
+				"countPlural=one": "Chats, die auf dieses Modell eingestellt sind, verlieren ihre Modellauswahl, und Kontingent-Pools, die darauf beschränkt sind, greifen auf den gesamten Anbieter zurück. Sein Nutzungsverlauf bleibt in den Analysen als „Modell nicht erfasst“ erhalten.",
+				"countPlural=other": "Chats, die auf diese Modelle eingestellt sind, verlieren ihre Modellauswahl, und Kontingent-Pools, die darauf beschränkt sind, greifen auf den gesamten Anbieter zurück. Ihr Nutzungsverlauf bleibt in den Analysen als „Modell nicht erfasst“ erhalten."
 			}
 		}
 	],
@@ -3819,8 +3819,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Seine Modelle und Kontingent-Pools werden mitgelöscht.",
-				"countPlural=other": "Ihre Modelle und Kontingent-Pools werden mitgelöscht."
+				"countPlural=one": "Seine Modelle, Kontingent-Pools und sein Nutzungsverlauf werden mitgelöscht, seine Nutzung verschwindet also aus den Analysen.",
+				"countPlural=other": "Ihre Modelle, Kontingent-Pools und ihr Nutzungsverlauf werden mitgelöscht, ihre Nutzung verschwindet also aus den Analysen."
 			}
 		}
 	],

@@ -3083,8 +3083,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Chats set to it lose their model choice, and quota pools scoped to it fall back to the whole provider.",
-				"countPlural=other": "Chats set to them lose their model choice, and quota pools scoped to them fall back to the whole provider."
+				"countPlural=one": "Chats set to it lose their model choice, and quota pools scoped to it fall back to the whole provider. Its usage history stays in Analytics as \"Model not recorded\".",
+				"countPlural=other": "Chats set to them lose their model choice, and quota pools scoped to them fall back to the whole provider. Their usage history stays in Analytics as \"Model not recorded\"."
 			}
 		}
 	],
@@ -3819,8 +3819,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Its models and quota pools are deleted with it.",
-				"countPlural=other": "Their models and quota pools are deleted with them."
+				"countPlural=one": "Its models, quota pools and usage history are deleted with it, so its usage leaves Analytics.",
+				"countPlural=other": "Their models, quota pools and usage history are deleted with them, so their usage leaves Analytics."
 			}
 		}
 	],
