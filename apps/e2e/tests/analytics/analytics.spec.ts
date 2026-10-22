@@ -1,4 +1,10 @@
-import { chatName, sendTurn, setUpChatModel } from "../../fixtures/chat/chat";
+import {
+	chatName,
+	createChat,
+	sendTurn,
+	setUpChatModel,
+} from "../../fixtures/chat/chat";
+import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -111,4 +117,54 @@ test("analytics: an admin sees a bot's usage and ratings, a member is led away",
 			hasText: org.name,
 		}),
 	).toBeVisible();
+});
+
+test("analytics: an admin prices a model and sees a turn's estimated cost", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	test.slow();
+	const model = await setUpChatModel(api, inference);
+	const page = await pageAs("admin");
+	await enterApp(page, org.slug);
+	await open(page, `/app/models/${model.modelId}/edit`);
+	await submitForm(page, {
+		fill: async () => {
+			await page
+				.getByLabel(message("models_form_input_price_label"))
+				.fill("1000");
+			await page
+				.getByLabel(message("models_form_output_price_label"))
+				.fill("2000");
+		},
+		submit: message("models_form_save_button"),
+		until: new RegExp(`/app/models/${model.modelId}$`),
+	});
+
+	const member = api.as("member");
+	await sendTurn({
+		client: member,
+		inference,
+		chatId: await createChat(member, model, chatName("Priced")),
+		turn: {
+			question: "What does this cost?",
+			reply: "Very little.",
+		},
+	});
+
+	await open(page, "/app/analytics");
+	const cost = page.locator("dl > div", {
+		has: page.getByText(message("analytics_metric_cost"), {
+			exact: true,
+		}),
+	});
+	await expect(cost).toContainText("$");
+	await expect(cost).not.toContainText(
+		message("analytics_cost_unpriced", {
+			count: "",
+		}).trim(),
+	);
+	await expect(page.getByText(message("analytics_cost_notice"))).toBeVisible();
 });

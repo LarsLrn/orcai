@@ -42,8 +42,38 @@ const formatPrice = (value: number, currency: string) =>
 		maximumFractionDigits: 6,
 	}).format(value);
 
+/** An amount of money; amounts below one keep up to four decimals. */
+const formatMoney = (value: number, currency: string) =>
+	Math.abs(value) < 1
+		? getFormatter(`money-small:${currency}`, {
+				style: "currency",
+				currency,
+				maximumFractionDigits: 4,
+			}).format(value)
+		: getFormatter(`money:${currency}`, {
+				style: "currency",
+				currency,
+			}).format(value);
+
+/** Amounts in micro-units, one per currency, as "€12.30 + $4.10". */
+const formatCosts = (
+	costs: readonly {
+		currency: string;
+		amount: number;
+	}[],
+	missing: string,
+) =>
+	costs.length === 0
+		? missing
+		: costs
+				.map(({ currency, amount }) =>
+					formatMoney(amount / 1_000_000, currency),
+				)
+				.join(" + ");
+
 export {
 	formatCompactNumber,
+	formatCosts,
 	formatCount,
 	formatNumber,
 	formatPercent,
