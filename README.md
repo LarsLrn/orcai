@@ -114,7 +114,7 @@ bun run stack e2e --pipeline                   # pipeline specs, with workers
 Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the integration tier on the same stack; the run fails if either does.
 
 Notes:
-- The application under test is the production images. `stack e2e` builds the app and docs images (app and workers for `--pipeline`) from the `docker-compose.yaml` build definitions with `docker buildx bake` and this stack's `VITE_*` values, tags them `<stack>-app`, `<stack>-web`, and `<stack>-workers`, and Playwright runs them on the host network with the stack environment. The run sets `BETTER_AUTH_RATE_LIMIT=false`, because every request comes from loopback. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
+- The application under test is the production images. `stack e2e` builds the app and docs images (app and workers for `--pipeline`) from the `docker-compose.yaml` build definitions with `docker buildx bake`, tags them `<stack>-app`, `<stack>-web`, and `<stack>-workers`, and Playwright runs them on the host network with the stack environment. The run sets `BETTER_AUTH_RATE_LIMIT=false`, because every request comes from loopback. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
 - A Playwright `setup` project initialises the reset instance through the first-run UI with a well-known admin. There is no separate seed step.
 - Locators use roles and accessible names read from `apps/app/messages/en.json` through `apps/e2e/fixtures/messages.ts`, so specs follow the copy. See [Development docs: Localisation](apps/web/content/docs/development/localisation.mdx).
 - Each Playwright worker creates its own organisations and users through the public API, so specs run in parallel without sharing data.
@@ -225,7 +225,7 @@ Stack flags before `--` are validated; delegated flags belong after `--`.
 
 ## Configuration
 
-Runtime configuration is loaded across app and package config modules:
+Runtime configuration is loaded across app and package config modules. Every value comes from the container environment and applies on restart, so one image serves any deployment; build args only carry image identity.
 
 - [apps/app/src/lib/effect/services/config.ts](apps/app/src/lib/effect/services/config.ts)
 - [packages/ai/src/config.ts](packages/ai/src/config.ts)
@@ -238,11 +238,9 @@ Runtime configuration is loaded across app and package config modules:
 
 ### Core URL and auth variables
 
-- `BASE_URL`: Compatibility fallback used by some auth tooling. Keep this aligned with `BETTER_AUTH_URL` when set.
-- `BETTER_AUTH_URL`: Public auth callback base URL.
-- `VITE_BASE_URL`: Public frontend base URL used in client-side links.
-- `VITE_WEB_URL`: Public docs site base URL used by the app dashboard and the assistant's docs links (optional). The assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the assistant cannot read the docs.
-- `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the assistant (optional, defaults to `VITE_WEB_URL`; Docker Compose sets `http://web:3001`).
+- `BETTER_AUTH_URL`: The app's public origin, used for auth callbacks and links in emails.
+- `WEB_URL`: Public docs site base URL used by the app dashboard and the assistant's docs links (optional). The assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the assistant cannot read the docs.
+- `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the assistant (optional, defaults to `WEB_URL`; Docker Compose sets `http://web:3001`).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
 - `BETTER_AUTH_RATE_LIMIT`: `false` turns off Better Auth's rate limiting (optional; on in production by default). It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit.
 - `ENCRYPTION_KEY`: 32 to 64 character application encryption key.
@@ -286,7 +284,7 @@ Model-scope note:
 - `S3_REGION`: Defaults to `eu-central-1`.
 - `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted. If `SMTP_SECURE` is unset, it is derived from port (`true` for 465, otherwise `false`).
-- `VITE_UMAMI_*`: Optional Umami analytics injection.
+- `UMAMI_SCRIPT_URL`, `UMAMI_WEBSITE_ID`: Optional Umami analytics. Both or neither; one alone logs a warning and keeps analytics off.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration. Traces, logs and metrics are exported once the endpoint is set.
 - `OTEL_RESOURCE_ATTRIBUTES`: Optional resource attributes such as `deployment.environment=production`, attached to every exported signal of the app and the workers.
 
