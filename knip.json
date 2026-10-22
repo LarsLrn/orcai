@@ -105,10 +105,12 @@
 		},
 		"packages/*": {
 			"entry": [
-				"src/index.ts"
+				"src/index.ts",
+				"src/**/*.test.ts",
+				"test/**/*.{test,integration}.ts"
 			],
 			"project": [
-				"src/**/*.ts"
+				"src/**/*.{ts,tsx}"
 			]
 		}
 	}

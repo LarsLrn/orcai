@@ -143,7 +143,6 @@
 		"@types/react-dom": "catalog:",
 		"@vitejs/plugin-react": "catalog:",
 		"babel-plugin-react-compiler": "1.0.0",
-		"embla-carousel-react": "8.6.0",
 		"motion": "14.1.0",
 		"postcss": "8.5.29",
 		"shadcn": "4.21.4",
