@@ -1,3 +1,4 @@
+import { INSTANCE_ADMIN_ROLE, INSTANCE_DEFAULT_ROLE } from "@orcai/core";
 import type { UserWithMemberships } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
@@ -17,8 +18,10 @@ import {
 	useBanUserMutation,
 	useDeleteUsersMutation,
 	useResetTwoFactorMutation,
+	useSetInstanceRoleMutation,
 	useUnbanUserMutation,
 } from "@/hooks/mutations/use-user-admin-mutations";
+import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
@@ -63,6 +66,20 @@ export const instanceUserTableColumns = columnHelper.columns([
 								`${membership.organizationName} (${getOrganizationRoleLabel(membership.role)})`,
 						)
 						.join(", ")}
+				</span>
+			),
+	}),
+	columnHelper.display({
+		id: "instanceRole",
+		header: () => m.instance_users_table_instance_role_column_header(),
+		cell: ({ row }) =>
+			isInstanceAdminRole(row.original.role) ? (
+				<Badge variant="secondary">
+					{m.instance_users_table_instance_role_admin_label()}
+				</Badge>
+			) : (
+				<span className="text-muted-foreground">
+					{m.instance_users_table_instance_role_user_label()}
 				</span>
 			),
 	}),
@@ -126,6 +143,7 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 	const { mutate: unbanUser } = useUnbanUserMutation();
 	const { mutate: deleteUsers } = useDeleteUsersMutation({}, target);
 	const { mutate: resetTwoFactor } = useResetTwoFactorMutation({}, target);
+	const { mutate: setInstanceRole } = useSetInstanceRoleMutation({}, target);
 
 	if (user.id === auth.user.id) {
 		return null;
@@ -172,6 +190,29 @@ const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
 						}
 					>
 						{m.instance_users_table_reset_two_factor_menu_item()}
+					</DropdownMenuItem>
+				)}
+				{isInstanceAdminRole(user.role) ? (
+					<DropdownMenuItem
+						onClick={() =>
+							setInstanceRole({
+								userId: user.id,
+								role: INSTANCE_DEFAULT_ROLE,
+							})
+						}
+					>
+						{m.instance_users_table_demote_menu_item()}
+					</DropdownMenuItem>
+				) : (
+					<DropdownMenuItem
+						onClick={() =>
+							setInstanceRole({
+								userId: user.id,
+								role: INSTANCE_ADMIN_ROLE,
+							})
+						}
+					>
+						{m.instance_users_table_promote_menu_item()}
 					</DropdownMenuItem>
 				)}
 				<DropdownMenuSeparator />

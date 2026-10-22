@@ -58,6 +58,15 @@ const twoFactorResetSchema = securityNoticeSchema.extend({
 	type: z.literal("auth.two-factor-reset"),
 });
 
+const instanceAdminGrantedSchema = securityNoticeSchema.extend({
+	type: z.literal("auth.instance-admin-granted"),
+	twoFactorRequired: z.boolean(),
+});
+
+const instanceAdminRevokedSchema = securityNoticeSchema.extend({
+	type: z.literal("auth.instance-admin-revoked"),
+});
+
 const dataExportReadySchema = base.extend({
 	type: z.literal("data-export.ready"),
 	accountUrl: emailActionUrlSchema,
@@ -70,6 +79,8 @@ export const emailNotificationSchema = z.discriminatedUnion("type", [
 	resetPasswordSchema,
 	twoFactorDisabledSchema,
 	twoFactorResetSchema,
+	instanceAdminGrantedSchema,
+	instanceAdminRevokedSchema,
 	dataExportReadySchema,
 ]);
 
@@ -86,6 +97,14 @@ export type TwoFactorDisabledNotification = z.infer<
 >;
 
 export type TwoFactorResetNotification = z.infer<typeof twoFactorResetSchema>;
+
+export type InstanceAdminGrantedNotification = z.infer<
+	typeof instanceAdminGrantedSchema
+>;
+
+export type InstanceAdminRevokedNotification = z.infer<
+	typeof instanceAdminRevokedSchema
+>;
 
 export type DataExportReadyNotification = z.infer<typeof dataExportReadySchema>;
 

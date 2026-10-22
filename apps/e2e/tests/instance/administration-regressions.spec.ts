@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { organizationIdSchema } from "@orcai/schema";
-import { Client } from "pg";
+import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import { createApiClient } from "../../fixtures/api";
 import { activeOrganizationOf, signIn } from "../../fixtures/auth";
 import {
@@ -39,25 +38,12 @@ test("instance management has an independent route and survives the last organis
 		}),
 	});
 	expect(setRoleOverHttp.status).toBe(404);
-	/** No public API sets the instance role, so the spec writes it and puts it back. */
-	const setInstanceRole = async (role: "admin" | "user") => {
-		const db = new Client({
-			host: process.env.POSTGRES_HOST,
-			port: Number(process.env.POSTGRES_PORT),
-			user: process.env.POSTGRES_USER,
-			password: process.env.POSTGRES_PASSWORD,
-			database: process.env.POSTGRES_DB,
+	const instanceAdmin = createApiClient(appBaseURL, admin.cookieHeader);
+	const setInstanceRole = (role: "admin" | "user") =>
+		instanceAdmin.user.setInstanceRole({
+			userId: userIdSchema.parse(session.userId),
+			role,
 		});
-		await db.connect();
-		try {
-			await db.query(`UPDATE "user" SET role = $1 WHERE id = $2`, [
-				role,
-				session.userId,
-			]);
-		} finally {
-			await db.end();
-		}
-	};
 	const ordinary = await browser.newContext({
 		storageState: session.storageState,
 	});

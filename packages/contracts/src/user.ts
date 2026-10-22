@@ -17,6 +17,8 @@ import {
 	resetTwoFactorResponseSchema,
 	setActiveOrganizationInputSchema,
 	setActiveOrganizationResponseSchema,
+	setInstanceRoleInputSchema,
+	setInstanceRoleResponseSchema,
 	setTourStateInputSchema,
 	setTourStateResponseSchema,
 	unbanUserInputSchema,
@@ -135,6 +137,21 @@ export const userContracts = {
 		)
 		.input(resetTwoFactorInputSchema)
 		.output(resetTwoFactorResponseSchema),
+	setInstanceRole: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/users/actions/set-instance-role",
+				summary: "Make an account an instance administrator, or a user again",
+				description:
+					"Nobody changes their own instance role, so an instance administrator always remains.",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(setInstanceRoleInputSchema)
+		.output(setInstanceRoleResponseSchema),
 	me: base
 		.meta(
 			openapi({

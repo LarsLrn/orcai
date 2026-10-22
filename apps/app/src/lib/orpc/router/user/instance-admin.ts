@@ -4,6 +4,7 @@ import { count, desc, eq, getColumns, ilike, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
 import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
+import { setInstanceRole } from "@/lib/authz/instance-role-change";
 import {
 	banAccount,
 	deleteAccounts,
@@ -175,6 +176,20 @@ const resetUserTwoFactor = authed.user.resetTwoFactor
 		};
 	});
 
+const setUserInstanceRole = authed.user.setInstanceRole
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input, context }) {
+		yield* setInstanceRole({
+			userId: input.userId,
+			role: input.role,
+			actorId: context.auth.user.id,
+		});
+
+		return {
+			success: true,
+		};
+	});
+
 const deleteUsers = authed.user.delete
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
@@ -194,5 +209,6 @@ export const instanceAdminRouter = {
 	ban: banUser,
 	unban: unbanUser,
 	resetTwoFactor: resetUserTwoFactor,
+	setInstanceRole: setUserInstanceRole,
 	delete: deleteUsers,
 };

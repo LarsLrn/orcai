@@ -275,6 +275,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			resetTwoFactor: () => [
 				orpc.user.key(),
 			],
+			setInstanceRole: () => [
+				orpc.user.key(),
+			],
 			setTourState: () => [
 				orpc.user.me.key(),
 			],

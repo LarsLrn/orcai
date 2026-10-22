@@ -58,6 +58,19 @@ const notifications = [
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
 	},
+	{
+		type: "auth.instance-admin-granted" as const,
+		recipient: "user@example.com",
+		recipientName: "User",
+		securityUrl: "https://example.com/app/account/security",
+		twoFactorRequired: true,
+	},
+	{
+		type: "auth.instance-admin-revoked" as const,
+		recipient: "user@example.com",
+		recipientName: "User",
+		securityUrl: "https://example.com/app/account/security",
+	},
 ];
 
 const loadEmailConfig = (values: Record<string, unknown>) =>
