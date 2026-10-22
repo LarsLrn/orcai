@@ -285,6 +285,7 @@ const meterTurn = ({
 		userId: input.user.id,
 		providerId: setup.providerId,
 		providerModelId: setup.modelId,
+		botId: setup.botId,
 		maxSteps: setup.maxSteps,
 		maxOutputTokens: setup.callSettings.maxOutputTokens,
 		messages,

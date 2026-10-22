@@ -227,7 +227,7 @@ describe("buildAssistantSystemPrompt", () => {
 			'- Organisation: "Acme"',
 			"- Role: member",
 			"- Can: read, create_bot, create_block, create_asset",
-			"- Cannot: manage_organization, manage_members, manage_groups, invite_members, manage_providers, manage_models, manage_quotas",
+			"- Cannot: manage_organization, manage_members, manage_groups, invite_members, manage_providers, manage_models, manage_quotas, view_analytics",
 		].join("\n");
 
 		for (const toolGroups of [

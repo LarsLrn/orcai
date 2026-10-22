@@ -1,4 +1,5 @@
 import { aiRouter } from "./ai";
+import { analyticsRouter } from "./analytics";
 import { assetRouter } from "./asset";
 import { assetPointRouter } from "./asset-point";
 import { assistantRouter } from "./assistant";
@@ -42,4 +43,5 @@ export const router = {
 	storage: storageRouter,
 	model: modelRouter,
 	ai: aiRouter,
+	analytics: analyticsRouter,
 };

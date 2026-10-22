@@ -1,4 +1,5 @@
 export * from "./ai";
+export * from "./analytics";
 export * from "./asset";
 export * from "./asset-point";
 export * from "./assistant";

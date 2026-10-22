@@ -34,6 +34,7 @@ export const AUTHZ_PERMISSIONS_BY_ENTITY = {
 		"manage_providers",
 		"manage_models",
 		"manage_quotas",
+		"view_analytics",
 	],
 	group: [
 		"read",

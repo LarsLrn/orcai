@@ -24,6 +24,7 @@ import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/
 import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
+import { Route as AppAnalyticsRouteRouteImport } from './routes/app/analytics/route'
 import { Route as AppAssistantRouteRouteImport } from './routes/app/assistant/route'
 import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
@@ -38,6 +39,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
+import { Route as AppAnalyticsIndexRouteImport } from './routes/app/analytics/index'
 import { Route as AppAssistantIndexRouteImport } from './routes/app/assistant/index'
 import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
@@ -63,6 +65,7 @@ import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
 import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
 import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
 import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
+import { Route as InstanceAnalyticsIndexRouteImport } from './routes/instance/analytics/index'
 import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
 import { Route as InstanceUsersIndexRouteImport } from './routes/instance/users/index'
 import { Route as AppAssistantChatIdIndexRouteImport } from './routes/app/assistant/$chatId/index'
@@ -173,6 +176,11 @@ const AppAccountRouteRoute = AppAccountRouteRouteImport.update({
   path: '/account',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppAnalyticsRouteRoute = AppAnalyticsRouteRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppAssistantRouteRoute = AppAssistantRouteRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -242,6 +250,11 @@ const AppAccountIndexRoute = AppAccountIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppAccountRouteRoute,
+} as any)
+const AppAnalyticsIndexRoute = AppAnalyticsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAnalyticsRouteRoute,
 } as any)
 const AppAssistantIndexRoute = AppAssistantIndexRouteImport.update({
   id: '/',
@@ -369,6 +382,11 @@ const AppUsersInvitesRoute = AppUsersInvitesRouteImport.update({
   id: '/invites',
   path: '/invites',
   getParentRoute: () => AppUsersRouteRoute,
+} as any)
+const InstanceAnalyticsIndexRoute = InstanceAnalyticsIndexRouteImport.update({
+  id: '/analytics/',
+  path: '/analytics/',
+  getParentRoute: () => InstanceRouteRoute,
 } as any)
 const InstanceOrganizationsIndexRoute =
   InstanceOrganizationsIndexRouteImport.update({
@@ -542,6 +560,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
+  '/app/analytics': typeof AppAnalyticsRouteRouteWithChildren
   '/app/assistant': typeof AppAssistantRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
@@ -582,6 +601,7 @@ export interface FileRoutesByFullPath {
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
+  '/app/analytics/': typeof AppAnalyticsIndexRoute
   '/app/assistant/': typeof AppAssistantIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
@@ -591,6 +611,7 @@ export interface FileRoutesByFullPath {
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
+  '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
@@ -648,6 +669,7 @@ export interface FileRoutesByTo {
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account': typeof AppAccountIndexRoute
+  '/app/analytics': typeof AppAnalyticsIndexRoute
   '/app/assistant': typeof AppAssistantIndexRoute
   '/app/chat': typeof AppChatIndexRoute
   '/app/groups': typeof AppGroupsIndexRoute
@@ -657,6 +679,7 @@ export interface FileRoutesByTo {
   '/app/providers': typeof AppProvidersIndexRoute
   '/app/quotas': typeof AppQuotasIndexRoute
   '/app/users': typeof AppUsersIndexRoute
+  '/instance/analytics': typeof InstanceAnalyticsIndexRoute
   '/instance/organizations': typeof InstanceOrganizationsIndexRoute
   '/instance/users': typeof InstanceUsersIndexRoute
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
@@ -693,6 +716,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
+  '/app/analytics': typeof AppAnalyticsRouteRouteWithChildren
   '/app/assistant': typeof AppAssistantRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
@@ -733,6 +757,7 @@ export interface FileRoutesById {
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
   '/app/account/': typeof AppAccountIndexRoute
+  '/app/analytics/': typeof AppAnalyticsIndexRoute
   '/app/assistant/': typeof AppAssistantIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
@@ -742,6 +767,7 @@ export interface FileRoutesById {
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
+  '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
@@ -781,6 +807,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/instance'
     | '/app/account'
+    | '/app/analytics'
     | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
@@ -821,6 +848,7 @@ export interface FileRouteTypes {
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
+    | '/app/analytics/'
     | '/app/assistant/'
     | '/app/chat/'
     | '/app/groups/'
@@ -830,6 +858,7 @@ export interface FileRouteTypes {
     | '/app/providers/'
     | '/app/quotas/'
     | '/app/users/'
+    | '/instance/analytics/'
     | '/instance/organizations/'
     | '/instance/users/'
     | '/app/hub/assets/$assetId'
@@ -887,6 +916,7 @@ export interface FileRouteTypes {
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account'
+    | '/app/analytics'
     | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
@@ -896,6 +926,7 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/quotas'
     | '/app/users'
+    | '/instance/analytics'
     | '/instance/organizations'
     | '/instance/users'
     | '/app/hub/assets/add'
@@ -931,6 +962,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/instance'
     | '/app/account'
+    | '/app/analytics'
     | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
@@ -971,6 +1003,7 @@ export interface FileRouteTypes {
     | '/app/users/add'
     | '/app/users/invites'
     | '/app/account/'
+    | '/app/analytics/'
     | '/app/assistant/'
     | '/app/chat/'
     | '/app/groups/'
@@ -980,6 +1013,7 @@ export interface FileRouteTypes {
     | '/app/providers/'
     | '/app/quotas/'
     | '/app/users/'
+    | '/instance/analytics/'
     | '/instance/organizations/'
     | '/instance/users/'
     | '/app/hub/assets/$assetId'
@@ -1130,6 +1164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/analytics': {
+      id: '/app/analytics'
+      path: '/analytics'
+      fullPath: '/app/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/assistant': {
       id: '/app/assistant'
       path: '/assistant'
@@ -1227,6 +1268,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/account/'
       preLoaderRoute: typeof AppAccountIndexRouteImport
       parentRoute: typeof AppAccountRouteRoute
+    }
+    '/app/analytics/': {
+      id: '/app/analytics/'
+      path: '/'
+      fullPath: '/app/analytics/'
+      preLoaderRoute: typeof AppAnalyticsIndexRouteImport
+      parentRoute: typeof AppAnalyticsRouteRoute
     }
     '/app/assistant/': {
       id: '/app/assistant/'
@@ -1402,6 +1450,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/users/invites'
       preLoaderRoute: typeof AppUsersInvitesRouteImport
       parentRoute: typeof AppUsersRouteRoute
+    }
+    '/instance/analytics/': {
+      id: '/instance/analytics/'
+      path: '/analytics'
+      fullPath: '/instance/analytics/'
+      preLoaderRoute: typeof InstanceAnalyticsIndexRouteImport
+      parentRoute: typeof InstanceRouteRoute
     }
     '/instance/organizations/': {
       id: '/instance/organizations/'
@@ -1661,6 +1716,17 @@ const AppAccountRouteRouteChildren: AppAccountRouteRouteChildren = {
 const AppAccountRouteRouteWithChildren = AppAccountRouteRoute._addFileChildren(
   AppAccountRouteRouteChildren,
 )
+
+interface AppAnalyticsRouteRouteChildren {
+  AppAnalyticsIndexRoute: typeof AppAnalyticsIndexRoute
+}
+
+const AppAnalyticsRouteRouteChildren: AppAnalyticsRouteRouteChildren = {
+  AppAnalyticsIndexRoute: AppAnalyticsIndexRoute,
+}
+
+const AppAnalyticsRouteRouteWithChildren =
+  AppAnalyticsRouteRoute._addFileChildren(AppAnalyticsRouteRouteChildren)
 
 interface AppAssistantRouteRouteChildren {
   AppAssistantIndexRoute: typeof AppAssistantIndexRoute
@@ -1977,6 +2043,7 @@ const AppUsersRouteRouteWithChildren = AppUsersRouteRoute._addFileChildren(
 
 interface AppRouteRouteChildren {
   AppAccountRouteRoute: typeof AppAccountRouteRouteWithChildren
+  AppAnalyticsRouteRoute: typeof AppAnalyticsRouteRouteWithChildren
   AppAssistantRouteRoute: typeof AppAssistantRouteRouteWithChildren
   AppChatRouteRoute: typeof AppChatRouteRouteWithChildren
   AppGroupsRouteRoute: typeof AppGroupsRouteRouteWithChildren
@@ -1991,6 +2058,7 @@ interface AppRouteRouteChildren {
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppAccountRouteRoute: AppAccountRouteRouteWithChildren,
+  AppAnalyticsRouteRoute: AppAnalyticsRouteRouteWithChildren,
   AppAssistantRouteRoute: AppAssistantRouteRouteWithChildren,
   AppChatRouteRoute: AppChatRouteRouteWithChildren,
   AppGroupsRouteRoute: AppGroupsRouteRouteWithChildren,
@@ -2009,12 +2077,14 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 
 interface InstanceRouteRouteChildren {
   InstanceIndexRoute: typeof InstanceIndexRoute
+  InstanceAnalyticsIndexRoute: typeof InstanceAnalyticsIndexRoute
   InstanceOrganizationsIndexRoute: typeof InstanceOrganizationsIndexRoute
   InstanceUsersIndexRoute: typeof InstanceUsersIndexRoute
 }
 
 const InstanceRouteRouteChildren: InstanceRouteRouteChildren = {
   InstanceIndexRoute: InstanceIndexRoute,
+  InstanceAnalyticsIndexRoute: InstanceAnalyticsIndexRoute,
   InstanceOrganizationsIndexRoute: InstanceOrganizationsIndexRoute,
   InstanceUsersIndexRoute: InstanceUsersIndexRoute,
 }

@@ -1,6 +1,6 @@
 ---
 title: Workspace Administration
-description: The Administration pages for users, invitations, groups, quota pools, providers, models and the Organisation page with its assistant and utility models, plus Manage instance and the instance administrator.
+description: The Administration pages for users, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its assistant and utility models, plus Manage instance and the instance administrator.
 ---
 
 The Administration area is capability-gated and appears in the sidebar's "Your workspace" group.
@@ -16,6 +16,7 @@ Current administration sections in the app:
 - Users (`/app/users`)
 - Groups (`/app/groups`)
 - Quotas (`/app/quotas`)
+- Analytics (`/app/analytics`)
 - Providers (`/app/providers`)
 - Models (`/app/models`)
 - Organisation (`/app/organization`)
@@ -134,6 +135,34 @@ In chat, users may see remaining quota badges by pool name and metering mode.
 
 The OrcAI Assistant draws on the same pools as chat, through the organisation's assistant model. Chat and conversation titles draw on the pools of the organisation's [utility model](#utility-model) when one is set. For a separate assistant budget, create a pool for that model alone and assign it to All Members; a model-specific pool wins over the provider's pools. An exhausted pool blocks the assistant like any chat.
 
+## Analytics
+
+Analytics (`/app/analytics`) shows how the organisation used its models over
+the last 7, 30 or 90 days; 30 is the default. It reads the usage that
+[quotas](#quotas) metered, so tokens and requests appear as recorded: tokens for
+every call and provider requests for every step, whatever the pool's metering
+mode. The two units are never added together, and there are no costs.
+
+- **Totals**: tokens, input tokens, output tokens and requests in the range.
+- **Tokens per day** and **Requests per day**: one bar per UTC day.
+- **People**: usage per person, most tokens first.
+- **Models**: usage per model and its provider. Usage recorded before
+  analytics existed under a pool for all of a provider's models, and usage of
+  a deleted model, shows as "Model not recorded".
+- **Bots**: usage in chats with a bot. Everything else, such as chats without a
+  bot, the OrcAI Assistant and chat titles, counts as "Without a bot". Bots are
+  recorded only since analytics were added, and usage of a deleted bot moves to
+  "Without a bot".
+- **Ratings by bot**: how many replies were rated in the range, by the bot of
+  their chat, with the count per rating and the up/down share, where up is
+  "Very much" and "A bit". A rating counts for the organisation whose quota
+  paid for the rated reply. Ratings of replies copied into a
+  [branch](/docs/using-orcai/chat) are not counted. Message content is never
+  shown.
+
+Only Admins see the page (`view_analytics`). Deleting a provider deletes its
+usage records, so its usage leaves the page too.
+
 ## Providers
 
 Providers represent model backends/endpoints available to OrcAI.
@@ -211,7 +240,7 @@ stay. A model opens at `/app/models/<model id>`, and **Edit model** at
 ## Instance management
 
 Instance management is a separate application area under `/instance`, with
-its own sidebar and two pages. Instance administrators can open it from the
+its own sidebar and three pages. Instance administrators can open it from the
 shared user menu or the organisation picker, including when they have no
 organisation memberships. `/instance` opens the Organisations page.
 
@@ -236,8 +265,13 @@ with the organisations each account belongs to and its role in them. From here
 an account is banned, unbanned, or deleted. None of the three applies to your
 own account.
 
+**Analytics** (`/instance/analytics`) shows the instance's tokens and
+requests over the last 7, 30 or 90 days, per UTC day, and every organisation's
+totals with the number of people who used a model. Organisations without usage
+are listed with zeros.
+
 The active organisation remains selected while the administrator is in this
-area, but it does not scope or otherwise affect either page. The **Back to
+area, but it does not scope or otherwise affect these pages. The **Back to
 app** action returns to `/app`, where the usual active-membership checks
 apply.
 
@@ -254,7 +288,8 @@ Only an instance administrator may:
 - delete an organisation,
 - ban and unban an account,
 - delete an account,
-- list every organisation and every user of the instance.
+- list every organisation and every user of the instance,
+- see every organisation's usage.
 
 The instance role grants nothing inside an organisation. An instance
 administrator still needs a membership to enter an organisation or manage its

@@ -6,6 +6,7 @@ import {
 	BotIcon,
 	BrainCircuitIcon,
 	Building2Icon,
+	ChartColumnIcon,
 	CpuIcon,
 	DatabaseIcon,
 	FolderOpenIcon,
@@ -106,6 +107,14 @@ export const sidebarMenu: SidebarMenuItem[] = [
 					to: "/app/quotas",
 				},
 				icon: WalletIcon,
+			},
+			{
+				title: m.sidebar_menu_analytics_item,
+				requires: "view_analytics",
+				linkProps: {
+					to: "/app/analytics",
+				},
+				icon: ChartColumnIcon,
 			},
 			{
 				title: m.sidebar_menu_providers_item,

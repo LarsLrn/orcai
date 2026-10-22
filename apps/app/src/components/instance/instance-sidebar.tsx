@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
 	ArrowLeftRightIcon,
 	Building2Icon,
+	ChartColumnIcon,
 	type LucideIcon,
 	UsersIcon,
 } from "lucide-react";
@@ -30,7 +31,7 @@ const InstanceSidebar = () => {
 
 	const instanceNavigation: {
 		title: string;
-		to: "/instance/organizations" | "/instance/users";
+		to: "/instance/organizations" | "/instance/users" | "/instance/analytics";
 		icon: LucideIcon;
 	}[] = [
 		{
@@ -42,6 +43,11 @@ const InstanceSidebar = () => {
 			title: m.instance_sidebar_users_nav_label(),
 			to: "/instance/users",
 			icon: UsersIcon,
+		},
+		{
+			title: m.instance_sidebar_analytics_nav_label(),
+			to: "/instance/analytics",
+			icon: ChartColumnIcon,
 		},
 	];
 

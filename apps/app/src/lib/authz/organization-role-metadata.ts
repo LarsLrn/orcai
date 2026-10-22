@@ -31,6 +31,7 @@ const organizationPermissionLabels: Record<
 	manage_providers: m.orgs_permission_manage_providers_label,
 	manage_models: m.orgs_permission_manage_models_label,
 	manage_quotas: m.orgs_permission_manage_quotas_label,
+	view_analytics: m.orgs_permission_view_analytics_label,
 };
 
 export const getOrganizationRoleLabel = (role: OrganizationRole) =>
