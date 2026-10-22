@@ -60,12 +60,10 @@ export const ConversationScrollButton = (
 	props: ConversationScrollButtonProps,
 ) => <MessageScrollerButton {...props} />;
 
-export const downloadConversation = <Message,>(
-	messages: Message[],
-	formatMessage: (message: Message) => string,
+export const downloadConversation = (
+	markdown: string,
 	filename = "conversation.md",
 ) => {
-	const markdown = messages.map(formatMessage).join("\n\n");
 	const blob = new Blob(
 		[
 			markdown,

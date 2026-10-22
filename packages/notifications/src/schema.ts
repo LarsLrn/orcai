@@ -45,10 +45,17 @@ const resetPasswordSchema = base.extend({
 	resetUrl: emailActionUrlSchema,
 });
 
+const dataExportReadySchema = base.extend({
+	type: z.literal("data-export.ready"),
+	accountUrl: emailActionUrlSchema,
+	expiresAt: z.coerce.date(),
+});
+
 export const emailNotificationSchema = z.discriminatedUnion("type", [
 	organizationInvitedSchema,
 	verifyEmailSchema,
 	resetPasswordSchema,
+	dataExportReadySchema,
 ]);
 
 export type OrganizationInvitedNotification = z.infer<
@@ -58,6 +65,8 @@ export type OrganizationInvitedNotification = z.infer<
 export type VerifyEmailNotification = z.infer<typeof verifyEmailSchema>;
 
 export type ResetPasswordNotification = z.infer<typeof resetPasswordSchema>;
+
+export type DataExportReadyNotification = z.infer<typeof dataExportReadySchema>;
 
 export type EmailNotification = z.infer<typeof emailNotificationSchema>;
 export type EmailNotificationType = EmailNotification["type"];

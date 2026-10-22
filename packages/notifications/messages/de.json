@@ -1,5 +1,10 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"email_data_export_ready_action": "Konto öffnen",
+	"email_data_export_ready_body": "Der Export Ihrer OrcAI-Daten ist fertig. Laden Sie ihn bis {date} auf Ihrer Kontoseite herunter; danach wird er gelöscht.",
+	"email_data_export_ready_preview": "Ihr OrcAI-Datenexport ist fertig",
+	"email_data_export_ready_subject": "Ihr OrcAI-Datenexport ist fertig",
+	"email_data_export_ready_title": "Ihr Datenexport ist fertig",
 	"email_layout_fallback": "Falls die Schaltfläche nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:",
 	"email_layout_footer": "Diese Nachricht wurde von OrcAI gesendet.",
 	"email_layout_greeting": "Hallo {name},",

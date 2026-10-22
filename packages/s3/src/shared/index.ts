@@ -1,3 +1,4 @@
+export { DATA_EXPORT_PREFIX, dataExportKey } from "./data-export";
 export { ensureQuotedEtag } from "./etag";
 export {
 	getFileTypeFromMime,

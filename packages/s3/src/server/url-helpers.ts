@@ -51,6 +51,8 @@ export const getDownloadUrl = (params: {
 	key: string;
 	expiresIn?: number;
 	endpointMode?: "public" | "internal";
+	/** Makes the browser save the object under this name. */
+	filename?: string;
 }) =>
 	Effect.gen(function* () {
 		const { client, presignClient } = yield* S3Service;
@@ -60,6 +62,10 @@ export const getDownloadUrl = (params: {
 		const command = new GetObjectCommand({
 			Bucket: params.bucket,
 			Key: params.key,
+			ResponseContentDisposition:
+				params.filename === undefined
+					? undefined
+					: `attachment; filename="${params.filename}"`,
 		});
 
 		return yield* signWithClient({

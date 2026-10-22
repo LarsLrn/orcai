@@ -1,7 +1,8 @@
 import { withActiveSpan } from "@orcai/observability";
 import * as Effect from "effect/Effect";
-import type * as Layer from "effect/Layer";
+import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
+import { DataExportWorkerLive } from "@/lib/data-export/data-export-worker";
 import { AppLayer } from "./app-layer";
 
 export type AppRuntime = ManagedRuntime.ManagedRuntime<
@@ -19,7 +20,9 @@ declare global {
 }
 
 if (!globalThis.__effectRuntime) {
-	globalThis.__effectRuntime = ManagedRuntime.make(AppLayer);
+	globalThis.__effectRuntime = ManagedRuntime.make(
+		DataExportWorkerLive.pipe(Layer.provideMerge(AppLayer)),
+	);
 }
 
 export const runtime: AppRuntime = globalThis.__effectRuntime;

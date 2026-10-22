@@ -10,6 +10,7 @@ import { botRouter } from "./bot";
 import { chatRouter } from "./chat";
 import { chatBlockRouter } from "./chat-block";
 import { chatMessageRouter } from "./chat-message";
+import { dataExportRouter } from "./data-export";
 import { groupRouter } from "./group";
 import { modelRouter } from "./model";
 import { organizationRouter } from "./organization";
@@ -34,6 +35,7 @@ export const router = {
 	chat: chatRouter,
 	chatBlock: chatBlockRouter,
 	chatMessage: chatMessageRouter,
+	dataExport: dataExportRouter,
 	block: blockRouter,
 	bot: botRouter,
 	asset: assetRouter,

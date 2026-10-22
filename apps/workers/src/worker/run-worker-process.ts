@@ -165,6 +165,11 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 	name: string;
 	layer: Layer.Layer<TContext | PgBossService, TError, never>;
 	definitions: readonly WorkerDefinition<TContext | PgBossService, unknown>[];
+	/** Queues another process works; created here with the others. */
+	queues?: readonly {
+		readonly name: JobQueue;
+		readonly deadLetter?: JobQueue;
+	}[];
 	/** Runs once at boot; a failure is logged and does not stop the workers. */
 	setup?: Effect.Effect<void, unknown, TContext | PgBossService>;
 }) => {
@@ -191,24 +196,24 @@ export const runWorkerProcess = async <TContext, TError>(params: {
 		);
 
 		// A dead letter queue has to exist before the queue that names it.
-		const ensureQueues = (definitions: typeof params.definitions) =>
+		const queues = [
+			...params.definitions,
+			...(params.queues ?? []),
+		];
+		const ensureQueues = (selected: typeof queues) =>
 			Effect.forEach(
-				definitions,
-				(definition) =>
-					ensureQueue(definition.name, {
-						deadLetter: definition.deadLetter,
+				selected,
+				(queue) =>
+					ensureQueue(queue.name, {
+						deadLetter: queue.deadLetter,
 					}),
 				{
 					discard: true,
 					concurrency: "unbounded",
 				},
 			);
-		yield* ensureQueues(
-			params.definitions.filter((definition) => !definition.deadLetter),
-		);
-		yield* ensureQueues(
-			params.definitions.filter((definition) => definition.deadLetter),
-		);
+		yield* ensureQueues(queues.filter((queue) => !queue.deadLetter));
+		yield* ensureQueues(queues.filter((queue) => queue.deadLetter));
 
 		yield* registerWorkers(params.definitions);
 		yield* scheduleWorkers(params.definitions);

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { DataExportId, UserId } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import * as Result from "effect/Result";
 import { UPLOAD_LIFECYCLE_RULES, validateUploadEnvelope } from "../src/server";
@@ -6,6 +7,7 @@ import {
 	ASSET_UPLOAD_ACCEPT,
 	ASSET_UPLOAD_MIME_TYPES,
 	buildUploadPrefix,
+	dataExportKey,
 	getFileTypeFromMime,
 	getMimeTypeFromFileType,
 	isMimeAllowed,
@@ -135,16 +137,22 @@ describe("staging", () => {
 		);
 	});
 
-	test("the lifecycle rules match staged keys only", () => {
+	test("lifecycle expires staged uploads and data exports, never final keys", () => {
 		const result = validate(envelope());
 		if (!Result.isSuccess(result)) throw new Error("envelope rejected");
+		const expires = (key: string) =>
+			UPLOAD_LIFECYCLE_RULES.some((rule) => key.startsWith(rule.Filter.Prefix));
 
-		for (const rule of UPLOAD_LIFECYCLE_RULES) {
-			expect(result.success.stagingKey.startsWith(rule.Filter.Prefix)).toBe(
-				true,
-			);
-			expect(result.success.key.startsWith(rule.Filter.Prefix)).toBe(false);
-		}
+		expect(expires(result.success.stagingKey)).toBe(true);
+		expect(
+			expires(
+				dataExportKey({
+					userId: userId as UserId,
+					dataExportId: id as DataExportId,
+				}),
+			),
+		).toBe(true);
+		expect(expires(result.success.key)).toBe(false);
 	});
 
 	test("rejects envelopes pointing outside the caller's staging prefix", () => {

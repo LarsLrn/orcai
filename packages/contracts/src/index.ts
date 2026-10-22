@@ -16,6 +16,7 @@ import { botContracts } from "./bot";
 import { chatContracts } from "./chat";
 import { chatBlockContracts } from "./chat-block";
 import { chatMessageContracts } from "./chat-message";
+import { dataExportContracts } from "./data-export";
 import { groupContracts } from "./group";
 import { modelContracts } from "./model";
 import { organizationContracts } from "./organization";
@@ -40,6 +41,7 @@ export const contracts = {
 	chat: chatContracts,
 	chatBlock: chatBlockContracts,
 	chatMessage: chatMessageContracts,
+	dataExport: dataExportContracts,
 	group: groupContracts,
 	model: modelContracts,
 	organization: organizationContracts,
@@ -71,6 +73,7 @@ export {
 	chatBlockContracts,
 	chatContracts,
 	chatMessageContracts,
+	dataExportContracts,
 	groupContracts,
 	modelContracts,
 	organizationContracts,
