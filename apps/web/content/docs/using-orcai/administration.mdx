@@ -145,10 +145,25 @@ Analytics (`/app/analytics`) shows how the organisation used its models over
 the last 7, 30 or 90 days; 30 is the default. It reads the usage that
 [quotas](#quotas) metered, so tokens and requests appear as recorded: tokens for
 every call and provider requests for every step, whatever the pool's metering
-mode. The two units are never added together, and there are no costs.
+mode. The two units are never added together.
 
-- **Totals**: tokens, input tokens, output tokens and requests in the range.
+Each call also carries an estimated cost, worked out when the call finished
+from the [model's prices](#model-prices) and its provider's currency at that
+moment. Changing a price later never changes the cost of past calls, and
+calls from before a price was set stay without a cost. Amounts in different
+currencies are never added together or converted: a figure such as
+"€12.30 + $4.10" lists each currency. Admins enter the prices by hand, so the
+estimate may differ from the provider's invoice; the page says so below the
+totals.
+
+- **Totals**: tokens, input tokens, output tokens, requests, cache read and
+  cache write tokens, and the estimated cost with one figure per currency.
+  Below the cost, "Requests without a price" counts the calls whose model or
+  search provider had no price.
 - **Tokens per day** and **Requests per day**: one bar per UTC day.
+  **Estimated cost per day** adds one series per currency.
+- Every table below has an **Estimated cost** column; the tables stay sorted
+  by tokens, then requests.
 - **People**: usage per person, most tokens first.
 - **Models**: usage per model and its provider. Usage recorded before
   analytics existed under a pool for all of a provider's models, and usage of
@@ -164,7 +179,8 @@ mode. The two units are never added together, and there are no costs.
   [branch](/docs/using-orcai/chat) are not counted. Message content is never
   shown.
 
-Only Admins see the page (`view_analytics`). Deleting a provider deletes its
+Only Admins see the page (`view_analytics`), and cost shows nowhere else, not
+even in a reply's usage. Deleting a provider deletes its
 usage records, so its usage leaves the page too.
 
 ## Providers
@@ -187,6 +203,18 @@ Providers (`/app/providers`) lists them with their status and metering mode.
 - **API key**, stored encrypted. When editing, leave it blank to keep the stored key.
 - **Metering mode**: whether quota counts tokens or requests for this provider.
   Search providers always count requests, one per search.
+- **Currency**: the currency the provider bills in, chosen from the ISO 4217
+  codes, USD for providers created before prices existed. Its models' prices
+  are read in this currency. Changing it shows a warning: model prices are
+  read in the new currency from now on, while past calls keep the currency
+  they were recorded in.
+- **Reports cost (OpenRouter style)**, for OpenAI-compatible providers only:
+  each response's own cost, as OpenRouter sends it, is used instead of the
+  model's prices. It is in USD, so the currency is locked to USD while this is
+  on. A response without a cost falls back to the model's prices, and only a
+  call whose every response reported one counts its cost as reported.
+- **Price per search**, for search providers only: what one search costs,
+  for the [estimated cost](#analytics).
 - **Enabled**: only an enabled provider's models can be used in the organisation.
 
 A search provider has no models; it serves the organisation's web search once
@@ -245,6 +273,24 @@ Rediscovery never overwrites a limit that is already set, so edited limits
 stay. A model opens at `/app/models/<model id>`, and **Edit model** at
 `/app/models/<model id>/edit`.
 
+### Model prices
+
+**Prices** on a model say what its provider bills, in the provider's
+currency, for the [estimated cost](#analytics) in analytics. Each is optional:
+
+- **Input**, **Cache read**, **Cache write** and **Output**, per 1M tokens.
+  Reasoning tokens count as output. An empty cache price uses the input price.
+- **Per request**, added for every provider request.
+- **Per web search**, for OpenAI and Anthropic models: each search the model
+  runs with its provider's own web search.
+
+A model needs both an input and an output price to be priced; without them its
+calls have no cost. Once it is priced, an empty request or search price counts
+as zero. Prices apply to calls from the moment they are saved. They estimate
+what the provider bills and leave quota untouched: quota pools keep counting
+tokens or requests. Long-context tiers, service tiers and longer-lived cache
+writes are not priced, so the estimate may differ from the invoice.
+
 <Callout title="Chat Models" type="info">
 	A model appears in chat only with at least the **Text** and **Tool calling** capabilities. Discovered models start with no capabilities, so set them on each model before it can chat.
 </Callout>
@@ -284,7 +330,8 @@ Organisation administrators do not see whether a member uses 2FA.
 **Analytics** (`/instance/analytics`) shows the instance's tokens and
 requests over the last 7, 30 or 90 days, per UTC day, and every organisation's
 totals with the number of people who used a model. Organisations without usage
-are listed with zeros.
+are listed with zeros. It shows the estimated cost per currency the same way
+as an organisation's [Analytics](#analytics).
 
 The active organisation remains selected while the administrator is in this
 area, but it does not scope or otherwise affect these pages. The **Back to
