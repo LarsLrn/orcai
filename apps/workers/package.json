@@ -4,10 +4,14 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"build": "bun run --filter @orcai/notifications paraglide:compile && bun build.ts",
 		"dev": "bun run --filter @orcai/notifications paraglide:compile && bun --watch src/start-workers.ts",
-		"start": "bun run --filter @orcai/notifications paraglide:compile && bun run src/start-workers.ts"
+		"start": "bun dist/start-workers.js"
 	},
 	"dependencies": {
+		"@kreuzberg/node": "catalog:"
+	},
+	"devDependencies": {
 		"@effect/platform-bun": "catalog:",
 		"@effect/sql-pg": "catalog:",
 		"@orcai/ai": "workspace:*",
@@ -21,12 +25,10 @@
 		"@orcai/quota": "workspace:*",
 		"@orcai/s3": "workspace:*",
 		"@orcai/schema": "workspace:*",
+		"@orcai/testing": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"pg": "catalog:",
 		"uuid": "catalog:"
-	},
-	"devDependencies": {
-		"@orcai/testing": "workspace:*"
 	}
 }

@@ -73,6 +73,9 @@
 			],
 			"project": [
 				"src/**/*.ts"
+			],
+			"ignoreDependencies": [
+				"@kreuzberg/node"
 			]
 		},
 		"packages/db": {
