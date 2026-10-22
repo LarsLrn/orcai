@@ -32,6 +32,7 @@ Go to Administration > Providers (`/app/providers`).
 - Choose **Add provider** (`/app/providers/add`) for each inference backend your workspace should use.
 - Pick the kind: **Anthropic** or **OpenAI** for their official APIs, **OpenAI-compatible** for any other endpoint that speaks the OpenAI API, or **Tavily (web search)** for a search provider that serves web search and has no models.
 - Enter the API key and the metering mode (tokens or requests), and leave the provider enabled. An OpenAI-compatible provider also needs the endpoint's base URL including the version path. Search providers always count requests, one per search.
+- Choose the **Currency** the provider bills in; USD is preselected. Turn on **Reports cost (OpenRouter style)** for an OpenAI-compatible provider that sends each response's cost, such as OpenRouter; this locks the currency to USD. For a search provider, optionally enter its **Price per search**.
 
 There is no separate connection test. Running **Discover models** in the next step is the check: if it lists the provider's models, the endpoint and key work. The fields are described in [Workspace Administration](/docs/using-orcai/administration#providers).
 
@@ -42,6 +43,7 @@ Go to Administration > Models (`/app/models`).
 - Choose **Discover models** and select the provider to add the models it offers, or choose **Add model** (`/app/models/add`) to register one by hand.
 - For a model added by hand, select the provider and enter the exact **Provider model ID** the endpoint expects.
 - Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovered models start with none, and a model without both does not appear in chat.
+- Optionally enter the model's **Prices** from the provider's price list, at least input and output per 1M tokens, so [Analytics](/docs/using-orcai/administration#analytics) shows an estimated cost. See [Model prices](/docs/using-orcai/administration#model-prices).
 - Save, then confirm the model appears in the list.
 
 ## 4. Configure Quota Pools
