@@ -19,6 +19,11 @@ test("account: the user menu stays beside its trigger when the page scrolls unde
 }) => {
 	const page = await pageAs("member");
 
+	// Short enough for the profile tab to scroll, wide enough for the sidebar.
+	await page.setViewportSize({
+		width: 900,
+		height: 560,
+	});
 	await openAccountPage(page);
 	await userMenu(page, "E2E member").click();
 

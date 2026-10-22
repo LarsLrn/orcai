@@ -3,17 +3,14 @@ title: Account
 description: The Account page and related flows, covering your name, email verification, password change and reset, organisation invitations, exporting your data, registration, switching organisation, and legal links.
 ---
 
-The Account page (`/app/account`) holds your personal settings. Open it from **Account** in the user menu at the bottom of the sidebar.
+The Account page holds your personal settings. Open it from **Account** in the user menu at the bottom of the sidebar.
 
-## Available Sections
+## Tabs
 
-- A summary card with your Name and Email
-- **Email verification**
-- **Change password**
-- **Your profile**
-- **Organisation invitations**, with Pending, Accepted and Rejected tabs
-- **Export your data**
-- **Legal**, with links to the privacy policy and terms of use
+- **Profile** (`/app/account`): a summary card with your Name and Email, **Email verification** and **Your profile**
+- **Security** (`/app/account/security`): **Change password**
+- **Invitations** (`/app/account/invitations`): **Organisation invitations**, with Pending, Accepted and Rejected tabs
+- **Data** (`/app/account/data`): **Export your data**, and **Legal** with links to the privacy policy and terms of use
 
 ## Summary Card
 
@@ -49,7 +46,7 @@ organisation and no pending invitations you enter it directly. Email
 verification remains optional for access.
 
 Invitations that arrive after your account exists are listed in the
-**Organisation invitations** card on the Account page and on the organisation
+**Organisation invitations** card on the Invitations tab and on the organisation
 selection page (`/select-organization`), where you **Accept** or **Reject**
 them. The card shows Pending first, with 12 invitations per page and Previous
 and Next buttons within each tab.
@@ -66,7 +63,7 @@ The archive holds:
 - `chats/`: each of your chats, including OrcAI Assistant conversations, as JSON with all messages and as a Markdown transcript like the one **Download chat** saves
 - `files/`: the original file of each asset you uploaded
 
-When the archive is ready, the card offers **Download** and you receive an email. The download stays available for 24 hours, then the archive is deleted. You can start a new export once the previous one has finished or failed.
+When the archive is ready, the card offers **Download** and you receive an email that links to the Data tab. The download stays available for 24 hours, then the archive is deleted. You can start a new export once the previous one has finished or failed.
 
 ## Organisation Context And Switching
 

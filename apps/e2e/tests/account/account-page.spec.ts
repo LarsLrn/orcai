@@ -5,7 +5,7 @@ import {
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 
-test("account: the account page shows the signed-in user's profile and an unverified address", async ({
+test("account: the account page shows the signed-in user's profile and an unverified address, and its tabs navigate", async ({
 	org,
 	pageAs,
 }) => {
@@ -46,6 +46,14 @@ test("account: the account page shows the signed-in user's profile and an unveri
 		}),
 	).toBeVisible();
 
+	// Each tab is its own route, so the tab list navigates.
+	const tab = (name: string) =>
+		page.getByRole("tab", {
+			name,
+		});
+
+	await tab(message("account_tab_security_label")).click();
+	await expect(page).toHaveURL(/\/app\/account\/security$/);
 	await expect(
 		accountCard(page, message("account_password_card_title")).getByRole(
 			"button",
@@ -55,6 +63,17 @@ test("account: the account page shows the signed-in user's profile and an unveri
 		),
 	).toBeVisible();
 
+	await tab(message("account_tab_invitations_label")).click();
+	await expect(page).toHaveURL(/\/app\/account\/invitations$/);
+	await expect(
+		accountCard(page, message("account_invitations_card_title")),
+	).toBeVisible();
+
+	await tab(message("account_tab_data_label")).click();
+	await expect(page).toHaveURL(/\/app\/account\/data$/);
+	await expect(
+		accountCard(page, message("account_data_export_card_title")),
+	).toBeVisible();
 	await expect(
 		page.getByRole("link", {
 			name: message("account_legal_privacy_link"),
@@ -64,5 +83,11 @@ test("account: the account page shows the signed-in user's profile and an unveri
 		page.getByRole("link", {
 			name: message("account_legal_terms_link"),
 		}),
+	).toBeVisible();
+
+	await tab(message("account_tab_profile_label")).click();
+	await expect(page).toHaveURL(/\/app\/account$/);
+	await expect(
+		accountCard(page, message("account_profile_card_title")),
 	).toBeVisible();
 });

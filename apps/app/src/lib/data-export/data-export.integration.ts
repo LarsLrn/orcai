@@ -313,7 +313,7 @@ describe("data export", () => {
 			expect(email?.type).toBe("data-export.ready");
 			expect(email?.recipient).toBe(owner.user.email.toLowerCase());
 			expect(email?.payload).toMatchObject({
-				accountUrl: expect.stringMatching(/\/app\/account$/),
+				accountUrl: expect.stringMatching(/\/app\/account\/data$/),
 				expiresAt: ready?.expiresAt?.toISOString(),
 			});
 

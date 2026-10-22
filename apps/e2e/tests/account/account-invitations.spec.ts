@@ -38,7 +38,7 @@ test("account: the invitations card shows a pending invitation and accepting it 
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
-		await openAccountPage(page);
+		await openAccountPage(page, "invitations");
 
 		const invitations = accountCard(
 			page,
@@ -108,7 +108,7 @@ test("account: the invitations card names the inviting organisation", async ({
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
-		await openAccountPage(page);
+		await openAccountPage(page, "invitations");
 
 		const invitations = accountCard(
 			page,

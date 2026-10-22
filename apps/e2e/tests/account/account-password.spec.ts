@@ -27,7 +27,7 @@ test("account: a wrong current password is refused, a valid change replaces the 
 	let earlier: Awaited<ReturnType<typeof pageForSession>> | undefined;
 
 	try {
-		await openAccountPage(page);
+		await openAccountPage(page, "security");
 
 		await submitPasswordChange(
 			page,
@@ -50,7 +50,7 @@ test("account: a wrong current password is refused, a valid change replaces the 
 		expect(stillValid.userId).toBe(user.session.userId);
 
 		earlier = await pageForSession(browser, stillValid);
-		await openAccountPage(earlier.page);
+		await openAccountPage(earlier.page, "security");
 
 		await submitPasswordChange(
 			page,
@@ -83,7 +83,7 @@ test("account: a wrong current password is refused, a valid change replaces the 
 		await expect(earlier.page).toHaveURL(/\/login/);
 
 		// The session that made the change survives it.
-		await openAccountPage(page);
+		await openAccountPage(page, "security");
 	} finally {
 		await earlier?.context.close();
 		await context.close();
