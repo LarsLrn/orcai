@@ -46,22 +46,30 @@ bun run stack e2e --yes -- --grep auth    # one area
 bun run stack e2e --yes -- --ui           # Playwright UI mode
 bun run stack e2e --no-reset -- --grep smoke   # no reset, so no confirmation
 bun run stack e2e --yes --no-integration  # Playwright only
+bun run stack e2e --yes --no-build        # reuse the images already built
 bun run stack e2e --yes --pipeline        # the pipeline specs, with workers
 ```
 
 Everything after `--` is passed to Playwright. After Playwright the run
 executes the integration tier on the same stack and fails if either fails. A run without `--no-reset`
 clears this worktree's database, authorisation store, object storage, vector
-store, and cache. Use a second named stack when development data must remain;
-run the two stacks of one checkout one after another because they share the
-production build output.
+store, and cache. Use a second named stack when development data must remain.
+
+The app under test is the production image. Each run first builds the app and
+docs images (app and workers with `--pipeline`) with `docker buildx bake` from
+the Compose build definitions, tagged `<stack>-app`, `<stack>-web`, and
+`<stack>-workers`; Playwright runs them on the host network with the stack
+environment. `--no-build` skips the build. A `bun run stack dev` or
+`bun run stack web` already listening is reused instead of its image. The
+images run with `NODE_ENV=production`; the run turns off Better Auth's rate
+limit (`BETTER_AUTH_RATE_LIMIT=false`) because all requests come from loopback.
 
 The setup project initialises a reset instance through the first-run UI with
 the well-known admin. Each parallel worker creates and mutates only its own
 organisations through the public API. Instance-level specs run serially before
 parallel specs. The mock inference server is used for e2e; do not call a real
-provider. Playwright also builds and serves the docs site on `WEB_PORT` for
-the assistant, reusing a running `bun run stack web`. Email delivery and OCR
+provider. Playwright also runs the docs image on `WEB_PORT` for the
+assistant, reusing a running `bun run stack web`. Email delivery and OCR
 are outside the suite.
 
 Only `--pipeline` runs the background workers, polling every half second (in

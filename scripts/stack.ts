@@ -14,11 +14,13 @@
  *   env [--reset]          Print the path and content of the resolved .env.
  *   migrate                Apply database migrations and the SpiceDB schema.
  *   reset                  Empty every store, then reapply migrations.
- *   e2e [--no-reset] [--no-integration] [--pipeline]
- *                          Install the pinned Chromium, reset, run the
- *                          Playwright suite, then the integration tier.
- *                          --pipeline runs only the pipeline specs, with
- *                          workers.
+ *   build [-- <bake args>] Build the app, docs, and workers production images.
+ *   e2e [--no-reset] [--no-build] [--no-integration] [--pipeline]
+ *                          Install the pinned Chromium, build the images,
+ *                          reset, run the Playwright suite against them,
+ *                          then the integration tier. --no-build uses the
+ *                          images already built. --pipeline runs only the
+ *                          pipeline specs, with workers.
  *   dev [--all]            Run the app dev server. --all adds workers and web.
  *   workers                Run the background workers.
  *   web                    Run the docs site dev server.
@@ -34,8 +36,12 @@
  * and `.env` in place; `e2e` does the same unless `--no-reset` is given. Both
  * refuse to run unless POSTGRES_HOST is a loopback address, the stack is named
  * `orcai-*`, and nothing is listening on the app port. There is no override.
+ * `build` and `e2e` tag the images `<stack>-app`, `<stack>-web`, and
+ * `<stack>-workers`, built by `docker buildx bake` from the Compose file with
+ * the stack's VITE_* values; `build` forwards its arguments to bake.
+ * `e2e` runs the images on the host network with the stack environment.
  * `e2e --no-reset` reuses an app already listening on PORT, for example
- * `bun run stack dev`, and skips the production build. An e2e run also starts
+ * `bun run stack dev`, and skips building its image. An e2e run also starts
  * a mock inference server on E2E_INFERENCE_PORT and points the app's global
  * OpenAI-compatible endpoint at it; a reused app keeps its own endpoint.
  * After Playwright, `e2e` runs `bun run test:integration` against the same
@@ -57,9 +63,16 @@
  * merged on top of the generated defaults whenever `.env` is (re)created.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import net from "node:net";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import * as Bun from "bun";
 
@@ -136,6 +149,7 @@ export function parseOptions(argv: string[]): Options {
 				![
 					"--help",
 					"--all",
+					"--no-build",
 					"--no-integration",
 					"--no-reset",
 					"--pipeline",
@@ -899,7 +913,7 @@ async function reset(options: Options, env: Env): Promise<void> {
  * (`apps/e2e/fixtures/inference/serve.ts`) on `E2E_INFERENCE_PORT` and points
  * the app's global inference endpoint at it, so embeddings and chat titles
  * never reach a real provider. The assistant reads the docs site that
- * Playwright serves on `WEB_PORT` through `WEB_INTERNAL_URL`. Env files written
+ * Playwright runs on `WEB_PORT` through `WEB_INTERNAL_URL`. Env files written
  * before the port existed get the slot the allocator would have chosen. With
  * `--no-reset` and an app already listening, that app keeps the endpoints it
  * was started with. A pipeline run sets `E2E_PIPELINE`, on which the
@@ -919,6 +933,9 @@ function e2eEnv(env: Env, pipeline: boolean): Env {
 		GENERAL_MODEL: "e2e-mock-chat",
 		EMBEDDING_MODEL: "e2e-mock-embedding",
 		WEB_INTERNAL_URL: `http://127.0.0.1:${envValue(env, "WEB_PORT")}`,
+		// Every request comes from loopback without a forwarded client IP, so
+		// the production limiter would put the whole suite in one bucket.
+		BETTER_AUTH_RATE_LIMIT: "false",
 		...(pipeline
 			? {
 					E2E_PIPELINE: "1",
@@ -928,7 +945,82 @@ function e2eEnv(env: Env, pipeline: boolean): Env {
 	};
 }
 
+const imageServices = [
+	"app",
+	"web",
+	"workers",
+] as const;
+type ImageService = (typeof imageServices)[number];
+
+function imageName(options: Options, service: ImageService): string {
+	return `${options.stackName}-${service}`;
+}
+
+/**
+ * Bake reads each service's Dockerfile, target, and build args from the
+ * Compose file, so the images match a Compose deployment with this stack's
+ * VITE_* values.
+ */
+async function buildImages(
+	options: Options,
+	env: Env,
+	services: readonly ImageService[],
+	bakeArgs: string[] = [],
+): Promise<void> {
+	await runOrThrow(
+		`Building the ${services.join(", ")} images`,
+		[
+			"docker",
+			"buildx",
+			"bake",
+			"--file",
+			path.join(repoRoot, "docker-compose.yaml"),
+			"--load",
+			...services.flatMap((service) => [
+				"--set",
+				`${service}.tags=${imageName(options, service)}`,
+			]),
+			...bakeArgs,
+			...services,
+		],
+		env,
+	);
+}
+
+async function imageExists(image: string): Promise<boolean> {
+	const proc = Bun.spawn(
+		[
+			"docker",
+			"image",
+			"inspect",
+			image,
+		],
+		{
+			stdout: "ignore",
+			stderr: "ignore",
+		},
+	);
+	return (await proc.exited) === 0;
+}
+
+// The Playwright config names each container after its image.
+async function removeContainers(names: string[]): Promise<void> {
+	await Bun.spawn(
+		[
+			"docker",
+			"rm",
+			"--force",
+			...names,
+		],
+		{
+			stdout: "ignore",
+			stderr: "ignore",
+		},
+	).exited;
+}
+
 async function runE2e(options: Options, env: Env): Promise<number> {
+	const pipeline = options.flags.has("pipeline");
 	// No-op once this Playwright version's browser is in the shared cache.
 	log("Installing the pinned Playwright Chromium");
 	const installed = await run(
@@ -947,26 +1039,105 @@ async function runE2e(options: Options, env: Env): Promise<number> {
 			`Installing the pinned Playwright Chromium failed with exit code ${String(installed)}`,
 		);
 	}
+	const images = Object.fromEntries(
+		imageServices.map((service) => [
+			service,
+			imageName(options, service),
+		]),
+	) as Record<ImageService, string>;
+	const containers = Object.values(images);
+	await removeContainers(containers);
+	// Playwright reuses a server already listening, such as `bun run stack dev`
+	// or `bun run stack web`, so its image is not needed.
+	const listening: Record<ImageService, () => Promise<boolean>> = {
+		app: () => isAppListening(env),
+		web: tcpProbe("127.0.0.1", envValue(env, "WEB_PORT")),
+		workers: async () => false,
+	};
+	const needed: ImageService[] = [];
+	for (const service of pipeline
+		? ([
+				"app",
+				"workers",
+			] as const)
+		: ([
+				"app",
+				"web",
+			] as const)) {
+		if (!(await listening[service]())) needed.push(service);
+	}
+	if (options.flags.has("no-build")) {
+		for (const service of needed) {
+			if (!(await imageExists(images[service]))) {
+				throw new Error(
+					`Image ${images[service]} does not exist. Run \`bun run stack build\` or drop --no-build.`,
+				);
+			}
+		}
+	} else if (needed.length > 0) {
+		await buildImages(options, env, needed);
+	}
 	if (!options.flags.has("no-reset")) {
 		await reset(options, env);
 	}
-	log(
+	// The fixtures and the integration tier import the generated messages.
+	await runOrThrow(
+		"Compiling messages",
 		[
-			"Running Playwright",
-			...options.args,
-		].join(" "),
-	);
-	const playwright = await run(
-		[
-			"bunx",
-			"--no-install",
-			"playwright",
-			"test",
-			...options.args,
+			"bun",
+			"run",
+			"--filter",
+			"*",
+			"paraglide:compile",
 		],
-		e2eEnv(env, options.flags.has("pipeline")),
-		path.join(repoRoot, "apps", "e2e"),
+		env,
 	);
+	const testEnv = e2eEnv(env, pipeline);
+	const containerEnvDir = mkdtempSync(
+		path.join(tmpdir(), `${options.stackName}-e2e-`),
+	);
+	const containerEnvFile = path.join(containerEnvDir, "env");
+	let playwright: number;
+	try {
+		writeFileSync(
+			containerEnvFile,
+			Object.entries(testEnv)
+				.map(([key, value]) => `${key}=${value}\n`)
+				.join(""),
+			{
+				mode: 0o600,
+			},
+		);
+		log(
+			[
+				"Running Playwright",
+				...options.args,
+			].join(" "),
+		);
+		playwright = await run(
+			[
+				"bunx",
+				"--no-install",
+				"playwright",
+				"test",
+				...options.args,
+			],
+			{
+				...testEnv,
+				E2E_CONTAINER_ENV_FILE: containerEnvFile,
+				E2E_APP_IMAGE: images.app,
+				E2E_WEB_IMAGE: images.web,
+				E2E_WORKERS_IMAGE: images.workers,
+			},
+			path.join(repoRoot, "apps", "e2e"),
+		);
+	} finally {
+		await removeContainers(containers);
+		rmSync(containerEnvDir, {
+			recursive: true,
+			force: true,
+		});
+	}
 	if (interrupted || options.flags.has("no-integration")) return playwright;
 	// After Playwright: its setup project initializes the reset instance, which
 	// the integration tier requires.
@@ -1183,6 +1354,14 @@ async function main(): Promise<number> {
 			return 0;
 		case "reset":
 			await reset(options, requireEnv(options));
+			return 0;
+		case "build":
+			await buildImages(
+				options,
+				requireEnv(options),
+				imageServices,
+				options.args,
+			);
 			return 0;
 		case "e2e":
 			return await runE2e(options, requireEnv(options));

@@ -8,6 +8,8 @@ const appConfig = Config.all({
 	auth: Config.all({
 		secret: Config.redacted("BETTER_AUTH_SECRET"),
 		url: Config.string("BETTER_AUTH_URL"),
+		// Unset keeps Better Auth's default: on in production.
+		rateLimit: Config.option(Config.boolean("BETTER_AUTH_RATE_LIMIT")),
 	}),
 	app: Config.all({
 		encryptionKey: Config.redacted("ENCRYPTION_KEY"),

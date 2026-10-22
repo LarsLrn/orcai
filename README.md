@@ -75,7 +75,8 @@ bun run stack dev     # app dev server on the port stored in .env
 Useful commands:
 - `bun run stack status`: container state and a probe per service
 - `bun run stack reset`: empty every store of the stack, leaving containers and `.env` in place (asks first; refuses while an app is listening on the stack's port)
-- `bun run stack e2e`: install the pinned Chromium, reset, then run the end-to-end suite and the integration tier (`bun run e2e` is an alias, asks first)
+- `bun run stack e2e`: install the pinned Chromium, build the production images, reset, then run the end-to-end suite against them and the integration tier (`bun run e2e` is an alias, asks first)
+- `bun run stack build`: build the app, docs, and workers production images for this stack
 - `bun run test:integration`: run the integration tier against the stack
 - `bun run stack dev --all`: app, workers, and docs together
 - `bun run stack workers` / `bun run stack web`: workers or docs site only
@@ -106,20 +107,21 @@ bun run stack e2e -- --grep auth               # one area
 bun run stack e2e -- --ui                      # Playwright UI mode
 bun run stack e2e --no-reset -- --grep smoke   # fast iteration on existing data
 bun run stack e2e --no-integration             # Playwright only
+bun run stack e2e --no-build                   # reuse the images already built
 bun run stack e2e --pipeline                   # pipeline specs, with workers
 ```
 
 Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the integration tier on the same stack; the run fails if either does.
 
 Notes:
-- The application under test is the production build. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
+- The application under test is the production images. `stack e2e` builds the app and docs images (app and workers for `--pipeline`) from the `docker-compose.yaml` build definitions with `docker buildx bake` and this stack's `VITE_*` values, tags them `<stack>-app`, `<stack>-web`, and `<stack>-workers`, and Playwright runs them on the host network with the stack environment. The run sets `BETTER_AUTH_RATE_LIMIT=false`, because every request comes from loopback. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
 - A Playwright `setup` project initialises the reset instance through the first-run UI with a well-known admin. There is no separate seed step.
 - Locators use roles and accessible names read from `apps/app/messages/en.json` through `apps/e2e/fixtures/messages.ts`, so specs follow the copy. See [Development docs: Localisation](apps/web/content/docs/development/localisation.mdx).
 - Each Playwright worker creates its own organisations and users through the public API, so specs run in parallel without sharing data.
 - A mock OpenAI-compatible inference server (`apps/e2e/fixtures/inference`) runs on `E2E_INFERENCE_PORT` for the whole suite; `stack e2e` points the app's global endpoint at it, and specs that configure a provider start their own on an ephemeral port. No run reaches a real provider.
-- To keep your dev data, run the suite against a second stack: `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same command with those flags. Run the stacks of one checkout one after the other, since both builds would share `apps/app/dist`.
+- To keep your dev data, run the suite against a second stack: `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same command with those flags.
 - Only `bun run stack e2e --pipeline` starts the background workers (polling every 0.5 s) and runs the upload-to-citation specs in `apps/e2e/tests/pipeline`; every other run has no pg-boss queues, so uploads end up failed. A full local run is `bun run stack e2e`, then `bun run stack e2e --pipeline`.
-- GitHub Actions uses the pinned workspace Playwright, splits the suite across three shards with the integration tier on the first, runs the pipeline specs in a fourth job, fails on flaky retries, and uploads each failing shard's report. Pull requests that only change `apps/web/content`, the root `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; the required `e2e` check still passes.
+- GitHub Actions builds the images once in an `e2e images` job, with layers cached in the GitHub Actions cache, and every shard loads and runs them. It uses the pinned workspace Playwright, splits the suite across three shards with the integration tier on the first, runs the pipeline specs in a fourth job, fails on flaky retries, and uploads each failing shard's report. Pull requests that only change `apps/web/content`, the root `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; the required `e2e` check still passes.
 
 For the e2e workflow and fixture contract, see [Development docs: End-To-End Tests](apps/web/content/docs/development/testing.mdx).
 
@@ -216,9 +218,9 @@ The stack subcommands only load `.env` and run the workspace scripts; they do no
 Use `bun run build && bun run start` for the app and `bun run workers:start` for the workers.
 
 The e2e inference mock starts fresh and its worker-local scenarios reset before
-and after each test. Playwright also builds and serves the docs site on
-`WEB_PORT`, which the assistant reads through `WEB_INTERNAL_URL` during
-`bun run stack e2e`. Admin browser pages use sessions separate from API clients.
+and after each test. Playwright also runs the docs image on `WEB_PORT`, or
+reuses a running `bun run stack web`, which the assistant reads through
+`WEB_INTERNAL_URL` during `bun run stack e2e`. Admin browser pages use sessions separate from API clients.
 Stack flags before `--` are validated; delegated flags belong after `--`.
 
 ## Configuration
@@ -242,6 +244,7 @@ Runtime configuration is loaded across app and package config modules:
 - `VITE_WEB_URL`: Public docs site base URL used by the app dashboard and the assistant's docs links (optional). The assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the assistant cannot read the docs.
 - `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the assistant (optional, defaults to `VITE_WEB_URL`; Docker Compose sets `http://web:3001`).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
+- `BETTER_AUTH_RATE_LIMIT`: `false` turns off Better Auth's rate limiting (optional; on in production by default). It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit.
 - `ENCRYPTION_KEY`: 32 to 64 character application encryption key.
 
 ### Required infrastructure variables

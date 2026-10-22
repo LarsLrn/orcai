@@ -20,7 +20,8 @@ Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.e
 | `bun run stack up` | Start infrastructure, write `.env`, apply migrations and the SpiceDB schema. |
 | `bun run stack status` | Show container state and probe every service. |
 | `bun run stack reset` | Empty every store of the stack, leaving containers and `.env` in place. Asks first. |
-| `bun run stack e2e` | Install the pinned Chromium, reset the stack, then run the end-to-end suite and the integration tier. |
+| `bun run stack e2e` | Install the pinned Chromium, build the production images, reset the stack, then run the end-to-end suite against the images and the integration tier. |
+| `bun run stack build` | Build the app, docs, and workers production images for this stack. Arguments after `--` reach `docker buildx bake`. |
 | `bun run stack dev` | Start the app development server with the stack environment. |
 | `bun run stack dev --all` | Start the app, workers, and documentation site together. |
 | `bun run stack workers` | Start workers with the stack environment. |
