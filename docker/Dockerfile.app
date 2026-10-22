@@ -58,7 +58,8 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # The server bundle inlines the workspace packages and resolves every other
-# import through apps/app/node_modules.
+# import through apps/app/node_modules, so the app's dependencies list exactly
+# what the bundle leaves external (and their required peers).
 COPY --from=prod-deps --chown=bun:bun /app/node_modules /app/node_modules
 COPY --from=prod-deps --chown=bun:bun /app/apps/app/node_modules ./node_modules
 COPY --from=builder --chown=bun:bun /app/apps/app/package.json /app/apps/app/start-server.ts ./
