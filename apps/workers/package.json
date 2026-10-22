@@ -21,7 +21,6 @@
 		"@orcai/quota": "workspace:*",
 		"@orcai/s3": "workspace:*",
 		"@orcai/schema": "workspace:*",
-		"@orcai/valkey": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"pg": "catalog:",

@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 import type { BotId, ChatMessageId } from "@orcai/core";
+import { METERED_CALL_TIMEOUT_MS } from "@orcai/quota";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { quota } from "../metered-call/test-quota";
@@ -180,6 +181,68 @@ describe("startTurn", () => {
 				totalTokens: 2,
 			}),
 		]);
+		expect(chat.messages().at(-1)?.metadata.timeLimitReached).toBeUndefined();
+	});
+
+	test("ends a turn that runs out of time like a stopped one, and says so", async () => {
+		quota.pool = {
+			meteringMode: "tokens",
+			remaining: 100_000,
+		};
+		const chat = await conversation(
+			chatRow({
+				config: {
+					...chatRow().config,
+					features: {
+						generativeUi: {},
+					},
+				} as never,
+			}),
+			"anthropic",
+		);
+		const timeLimit = new AbortController();
+		const timeout = AbortSignal.timeout;
+		const timer = spyOn(AbortSignal, "timeout").mockImplementation((ms) =>
+			ms === METERED_CALL_TIMEOUT_MS ? timeLimit.signal : timeout(ms),
+		);
+		chat.script([
+			{
+				calls: [
+					{
+						name: "showChecklist",
+						input: {
+							items: [
+								{
+									label: "Scope",
+								},
+							],
+						},
+					},
+				],
+			},
+			{
+				text: "Never read.",
+			},
+		]);
+		// The time runs out while the second step is in flight.
+		chat.beforeRequest((count) => {
+			if (count === 2) {
+				timeLimit.abort();
+			}
+		});
+
+		try {
+			await chat.send("Write it");
+		} finally {
+			timer.mockRestore();
+		}
+
+		expect(quota.calls.finalize).toEqual([
+			expect.objectContaining({
+				actualRequestCount: 1,
+			}),
+		]);
+		expect(chat.messages().at(-1)?.metadata.timeLimitReached).toBe(true);
 	});
 
 	test("leaves no reply when the turn produced nothing, and releases its quota", async () => {

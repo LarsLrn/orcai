@@ -9,7 +9,6 @@ import type {
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { QuotaCounterStore } from "./counter-store";
 import {
 	createQuotaPoolWithInitialPeriod,
 	updateQuotaPoolBudget,
@@ -192,12 +191,9 @@ export const createQuotaPool: (
 
 export const updateQuotaPool: (
 	params: UpdateQuotaPoolParams,
-) => Effect.Effect<WriteQuotaPoolResult, unknown, DB | QuotaCounterStore> = (
-	params,
-) =>
+) => Effect.Effect<WriteQuotaPoolResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const counterStore = yield* QuotaCounterStore;
 
 		const [pool] = yield* db
 			.select()
@@ -264,13 +260,6 @@ export const updateQuotaPool: (
 
 			updatedPool = updatedBudget.pool;
 			budgetChanged = true;
-			yield* counterStore.overwriteState({
-				poolId: updatedBudget.pool.id,
-				periodId: updatedBudget.period.id,
-				remaining: updatedBudget.ledger.remainingAmount,
-				reserved: updatedBudget.ledger.reservedAmount,
-				consumed: updatedBudget.ledger.consumedAmount,
-			});
 		}
 
 		const hasNonBudgetUpdate =

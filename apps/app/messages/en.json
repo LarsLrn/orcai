@@ -2037,6 +2037,7 @@
 	"chat_message_usage_unknown_model": "Unknown model",
 	"chat_message_history_trimmed": "Earlier messages were left out to fit the context window.",
 	"chat_message_context_limit_reached": "Stopped: the next step would not fit the context window. Send a message to continue.",
+	"chat_message_time_limit_reached": "Stopped: the reply reached its time limit. Send a message to continue.",
 	"chat_message_compacted": "Earlier messages summarized",
 	"chat_model_notice_description_manager": "Set up a model with text and tool calling, then chatting opens for everyone.",
 	"chat_model_notice_description_member": "An organisation admin needs to set up a model with text and tool calling before anyone can chat.",

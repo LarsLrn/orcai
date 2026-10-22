@@ -2,7 +2,7 @@ import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
-	type QuotaCounterStore,
+	METERED_CALL_TIMEOUT_MS,
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "@orcai/quota";
@@ -19,6 +19,8 @@ export interface Meter {
 	readonly step: (usage: LanguageModelUsage) => void;
 	/** Whether the granted requests are used up. */
 	readonly spent: () => boolean;
+	/** Aborts once the call has run as long as its reservation may stay open. */
+	readonly deadline: AbortSignal;
 	/**
 	 * Charges completed and aborted calls what their finished steps used and
 	 * releases the reservation of failed and unused ones. Runs once and never
@@ -65,7 +67,7 @@ export const startMeteredCall = (input: {
 	maxOutputTokens?: number;
 	/** What the call sends, for the token estimate. */
 	messages: unknown[];
-}): Effect.Effect<Meter, unknown, QuotaCounterStore | DB> =>
+}): Effect.Effect<Meter, unknown, DB> =>
 	Effect.gen(function* () {
 		const result = yield* reserveForAppRequest({
 			organizationId: input.organizationId,
@@ -84,7 +86,8 @@ export const startMeteredCall = (input: {
 			return yield* denialError(result.denialReason);
 		}
 
-		const services = yield* Effect.context<QuotaCounterStore | DB>();
+		const deadline = AbortSignal.timeout(METERED_CALL_TIMEOUT_MS);
+		const services = yield* Effect.context<DB>();
 		const maxSteps =
 			reservation.meteringMode === "requests"
 				? reservation.reservedAmount
@@ -128,6 +131,7 @@ export const startMeteredCall = (input: {
 				totalTokens = addTokens(totalTokens, usage.totalTokens);
 			},
 			spent: () => steps >= maxSteps,
+			deadline,
 			settle: (outcome) =>
 				Effect.suspend(() => {
 					if (settled) {

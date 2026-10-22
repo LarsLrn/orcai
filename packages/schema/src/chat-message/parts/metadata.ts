@@ -54,6 +54,8 @@ export const chatMessageMetadataSchema = z.object({
 	stepLimitReached: z.boolean().optional(),
 	/** The turn stopped because its next step would not fit the context window. */
 	contextLimitReached: z.boolean().optional(),
+	/** The turn stopped because it ran into the time limit of a metered call. */
+	timeLimitReached: z.boolean().optional(),
 	/** The sources of the chunk refs the reply cites, by ref. */
 	citations: z.record(z.string(), chatMessageCitationSchema).optional(),
 });

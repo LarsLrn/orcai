@@ -113,10 +113,5 @@ mock.module("@orcai/quota", () => ({
 }));
 
 /** Provides the services the quota calls require; the fakes use none of them. */
-export const withQuotaServices = <A, E>(
-	effect: Effect.Effect<A, E, realQuota.QuotaCounterStore | DB>,
-) =>
-	effect.pipe(
-		Effect.provideService(realQuota.QuotaCounterStore, {} as never),
-		Effect.provideService(DB, {} as never),
-	);
+export const withQuotaServices = <A, E>(effect: Effect.Effect<A, E, DB>) =>
+	effect.pipe(Effect.provideService(DB, {} as never));

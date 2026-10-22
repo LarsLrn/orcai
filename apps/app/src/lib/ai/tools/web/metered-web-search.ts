@@ -3,7 +3,7 @@ import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import {
 	finalizeAppRequestQuota,
-	type QuotaCounterStore,
+	METERED_CALL_TIMEOUT_MS,
 	releaseAppRequestQuota,
 	reserveForAppRequest,
 } from "@orcai/quota";
@@ -16,11 +16,7 @@ import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 export type MeteredWebSearch = (
 	query: WebSearchQuery,
 	signal?: AbortSignal,
-) => Effect.Effect<
-	WebSearchResult[],
-	AssistantToolError,
-	QuotaCounterStore | DB
->;
+) => Effect.Effect<WebSearchResult[], AssistantToolError, DB>;
 
 const DENIALS = {
 	no_pool:
@@ -78,7 +74,14 @@ export const meteredWebSearch =
 			return yield* Effect.tryPromise({
 				try: () =>
 					search(query, {
-						signal,
+						signal: AbortSignal.any([
+							...(signal
+								? [
+										signal,
+									]
+								: []),
+							AbortSignal.timeout(METERED_CALL_TIMEOUT_MS),
+						]),
 					}),
 				catch: (cause) =>
 					new AssistantToolError(

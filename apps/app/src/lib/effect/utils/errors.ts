@@ -2,7 +2,6 @@ import type { AiError } from "@orcai/ai";
 import type { PgBossError } from "@orcai/pg-boss";
 import type { ProcessError } from "@orcai/process";
 import type { QdrantError } from "@orcai/qdrant";
-import type { QuotaCounterStoreError } from "@orcai/quota";
 import type { S3Error } from "@orcai/s3/server";
 import type {
 	AnyErrorParams,
@@ -38,7 +37,6 @@ export const ErrorTags = {
 	SPICE_DB: "SpiceDbError",
 	S3: "S3Error",
 	QDRANT: "QdrantError",
-	QUOTA_COUNTER_STORE: "QuotaCounterStoreError",
 	VALKEY: "ValkeyError",
 	PROCESS: "ProcessError",
 	DRIZZLE_QUERY: "EffectDrizzleQueryError",
@@ -160,7 +158,6 @@ export type AppError =
 	| BadRequestError
 	| S3Error
 	| QdrantError
-	| QuotaCounterStoreError
 	| ValkeyError
 	| ProcessError
 	| EffectDrizzleQueryError

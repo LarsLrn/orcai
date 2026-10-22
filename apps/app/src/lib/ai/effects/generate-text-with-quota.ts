@@ -62,14 +62,26 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			topP: input.topP,
 			frequencyPenalty: input.frequencyPenalty,
 			presencePenalty: input.presencePenalty,
-			abortSignal: input.abortSignal,
+			abortSignal: AbortSignal.any([
+				...(input.abortSignal
+					? [
+							input.abortSignal,
+						]
+					: []),
+				meter.deadline,
+			]),
+			...(input.timeoutMs !== undefined && {
+				timeout: {
+					totalMs: input.timeoutMs,
+				},
+			}),
 			...aiTelemetry(input.operation, {
 				organizationId: input.organizationId,
 				providerId: input.providerId,
 			}),
 		};
 
-		const providerCallBase = Effect.tryPromise({
+		const providerCall = Effect.tryPromise({
 			try: () =>
 				input.prompt
 					? generateText({
@@ -86,23 +98,6 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 					cause,
 				}),
 		});
-
-		const providerCall =
-			input.timeoutMs === undefined
-				? providerCallBase
-				: providerCallBase.pipe(
-						Effect.timeout(input.timeoutMs),
-						Effect.catchTag("TimeoutError", () =>
-							Effect.fail(
-								new AiError({
-									operation: input.operation,
-									cause: new Error(
-										`Text generation timed out after ${input.timeoutMs}ms`,
-									),
-								}),
-							),
-						),
-					);
 
 		const response = yield* providerCall.pipe(
 			Effect.tap((response) =>
