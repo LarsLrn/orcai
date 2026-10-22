@@ -45,6 +45,9 @@ const DiscoverModels = () => {
 			input: {
 				pageIndex: 0,
 				pageSize: 200,
+				filters: {
+					purpose: "models",
+				},
 			},
 		}),
 	);

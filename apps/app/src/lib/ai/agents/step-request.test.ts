@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ProviderKind } from "@orcai/core";
+import type { ModelProviderKind } from "@orcai/core";
 import { type ModelMessage, ToolLoopAgent, tool } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { z } from "zod/v4";
@@ -78,7 +78,7 @@ const toolHungryModel = () => {
  * narrows the tools on every step as the assistant's plan gating does.
  */
 const runTurn = async (
-	providerKind: ProviderKind,
+	providerKind: ModelProviderKind,
 	maxSteps = MAX_STEPS,
 	activeTools?: "search"[],
 	room?: {

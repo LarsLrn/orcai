@@ -76,6 +76,13 @@ export type ScriptedStep = {
 	hold?: "response" | "end";
 };
 
+/** One page of a mock Tavily answer. */
+export type SearchResult = {
+	url: string;
+	title: string;
+	content: string;
+};
+
 export type ScriptedFailure = {
 	status: number;
 	message?: string;
@@ -105,6 +112,8 @@ export type InferenceMock = {
 	failNext: (failure: ScriptedFailure) => void;
 	/** Queue steps; each chat completion answers the next one. */
 	script: (...steps: ScriptedStep[]) => void;
+	/** Answer every Tavily search with these pages instead of the default one. */
+	searchWith: (results: SearchResult[]) => void;
 	/** Let every held response go. */
 	release: () => void;
 	/** Responses waiting for `release()`. */
@@ -332,6 +341,7 @@ export const startInferenceMock = async (
 	const closed = new WeakSet<ServerResponse>();
 	const discarded = new WeakSet<ServerResponse>();
 	let defaultReply: string | undefined;
+	let searchResults: SearchResult[] | undefined;
 	let completionCount = 0;
 	let toolCallCount = 0;
 	let abandonedCount = 0;
@@ -561,6 +571,41 @@ export const startInferenceMock = async (
 		});
 	};
 
+	/** Tavily's answer: the scripted pages, else one page on the first included domain. */
+	const search = (body: unknown, response: ServerResponse): void => {
+		const query = stringField(body, "query") ?? "";
+		const domains =
+			typeof body === "object" &&
+			body !== null &&
+			"include_domains" in body &&
+			Array.isArray(body.include_domains)
+				? body.include_domains.filter(
+						(domain): domain is string => typeof domain === "string",
+					)
+				: [];
+		const host = domains[0] ?? "example.org";
+		const results = searchResults ?? [
+			{
+				url: `https://${host}/search-result`,
+				title: `Mock search result for ${query}`,
+				content: `Mock search content about ${query}.`,
+			},
+		];
+
+		sendJson(response, 200, {
+			query,
+			answer: null,
+			images: [],
+			results: results.map((result) => ({
+				...result,
+				score: 0.9,
+				raw_content: null,
+			})),
+			response_time: 0.01,
+			request_id: "e2e-search",
+		});
+	};
+
 	const models = (response: ServerResponse): void => {
 		sendJson(response, 200, {
 			object: "list",
@@ -653,6 +698,12 @@ export const startInferenceMock = async (
 			return;
 		}
 
+		if (path === "/v1/search" && request.method === "POST") {
+			search(body, response);
+
+			return;
+		}
+
 		if (path === "/v1/embeddings" && request.method === "POST") {
 			embeddings(body, response);
 
@@ -711,6 +762,9 @@ export const startInferenceMock = async (
 		script: (...scripted) => {
 			steps.push(...scripted);
 		},
+		searchWith: (results) => {
+			searchResults = results;
+		},
 		release: () => {
 			const resumes = [
 				...holds.values(),
@@ -736,6 +790,7 @@ export const startInferenceMock = async (
 			steps.length = 0;
 			repliesByModel.clear();
 			defaultReply = undefined;
+			searchResults = undefined;
 			completionCount = 0;
 			toolCallCount = 0;
 			abandonedCount = 0;

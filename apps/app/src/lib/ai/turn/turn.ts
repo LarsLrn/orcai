@@ -146,6 +146,8 @@ const turnAgent = <Tools extends ToolSet>({
 				promptTokens: options.promptTokens,
 			},
 			generateMessageId: () => options.replyId,
+			// The model's own web search cites its pages as URL sources.
+			sendSources: true,
 			experimental_transform: smoothStream({
 				delayInMs: 20,
 				chunking: "word",
@@ -232,6 +234,7 @@ const buildAgent = ({
 					systemPrompt: setup.agent.systemPrompt,
 					databaseBlocks: setup.agent.databaseBlocks,
 					features: setup.agent.features,
+					webSearch: setup.agent.webSearch,
 					callSettings: setup.callSettings,
 					compaction: setup.compaction,
 					telemetryIds,

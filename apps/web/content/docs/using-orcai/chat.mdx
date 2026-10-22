@@ -141,7 +141,7 @@ For chats without a bot, **Chat blocks** holds:
 - **Add behaviour**: attach one behaviour block. Remove it to attach another.
 - **Add repository**: attach one or more repositories to retrieve from.
 
-In such a chat you can also turn features such as Generative UI on and off; each switch saves immediately. Generative UI is on by default for new chats.
+In such a chat you can also turn features such as Generative UI on and off; each switch saves immediately. Generative UI is on by default for new chats. Web search is a bot feature and is not offered here.
 
 ## Generative UI
 
@@ -191,6 +191,12 @@ When a chat has repositories, through its bot or its chat settings, the model ca
 A reply takes at most 25 steps, 20 in the OrcAI Assistant, and fewer when its quota pool counts requests and has fewer left. On the last one the model is asked to answer from what it has found and to say what it could not finish. A reply that still ends without an answer says it stopped at the step limit.
 
 Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the source details with an **Open asset** link to the asset's page (`/app/hub/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
+
+## Web Search
+
+In a chat with a bot that has the Web search feature on, the model can search the web while the organisation's [web search setting](/docs/using-orcai/administration#web-search) allows it. Each search is a step in the work log, such as **Searched the web for “orca pods”, 3 pages**; expand it to see the pages it found, each linking to the page. Pages the answer cites are listed under it as **Sources**, each linking to the page. With the allowed domains set, only pages on those domains and their subdomains are searched.
+
+When the organisation's web search is off, or the setting is model native and the chat's model has no search of its own, a notice above the composer says so and the bot answers without searching.
 
 ## Deleting Chats
 

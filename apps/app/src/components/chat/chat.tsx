@@ -19,6 +19,7 @@ import { AssistantComposerGate } from "@/components/assistant/assistant-composer
 import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
+import { WebSearchNotice } from "@/components/chat/web-search-notice";
 import { DocumentsPanel } from "@/components/documents/readiness/documents-panel";
 import { useChatRepositoryIds } from "@/components/documents/readiness/use-repository-readiness";
 import {
@@ -280,6 +281,10 @@ const Chat = ({
 						</>
 					) : (
 						<>
+							<WebSearchNotice
+								botId={chat?.data.botId}
+								providerId={chat?.data.config?.providerId}
+							/>
 							<DocumentsPanel blockIds={repositoryIds} />
 							{composer}
 						</>

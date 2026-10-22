@@ -60,6 +60,7 @@ export type {
 	JsonValue,
 	ScriptedStep,
 	ScriptedToolCall,
+	SearchResult,
 } from "./server";
 export {
 	DEFAULT_EMBEDDING_DIMENSIONS,

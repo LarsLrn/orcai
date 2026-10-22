@@ -1,8 +1,14 @@
-import type { ModelId, OrganizationId } from "@orcai/core";
+import {
+	isSearchProviderKind,
+	type ModelId,
+	type OrganizationId,
+	type ProviderId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
 	InstanceOrganizationSortKey,
 	OrganizationSortKey,
+	UpdateOrganizationInput,
 } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
@@ -310,6 +316,70 @@ const requireUsableModel = ({
 		}
 	});
 
+/** The web search provider must be one of the organisation's enabled search providers. */
+const requireSearchProvider = ({
+	organizationId,
+	providerId,
+}: {
+	organizationId: OrganizationId;
+	providerId: ProviderId;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [provider] = yield* db
+			.select({
+				kind: dbSchema.provider.kind,
+				enabled: dbSchema.provider.enabled,
+			})
+			.from(dbSchema.provider)
+			.where(
+				and(
+					eq(dbSchema.provider.id, providerId),
+					eq(dbSchema.provider.organizationId, organizationId),
+				),
+			)
+			.limit(1);
+
+		if (!provider) {
+			return yield* new AppErrors.NotFoundError({
+				reason: "PROVIDER_NOT_FOUND",
+				message: "The provider is not a provider of this organisation.",
+			});
+		}
+		if (!isSearchProviderKind(provider.kind)) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "PROVIDER_PURPOSE_MISMATCH",
+				message: "Web search needs a search provider.",
+			});
+		}
+		if (!provider.enabled) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "PROVIDER_DISABLED",
+				message: "The search provider is disabled.",
+			});
+		}
+	});
+
+/** The columns a web search update stores; the provider must be a usable search provider. */
+const webSearchColumns = (
+	organizationId: OrganizationId,
+	webSearch: NonNullable<UpdateOrganizationInput["webSearch"]>,
+) =>
+	webSearch.mode === "provider"
+		? requireSearchProvider({
+				organizationId,
+				providerId: webSearch.providerId,
+			}).pipe(
+				Effect.as({
+					webSearchMode: webSearch.mode,
+					webSearchProviderId: webSearch.providerId,
+				}),
+			)
+		: Effect.succeed({
+				webSearchMode: webSearch.mode,
+				webSearchProviderId: null,
+			});
+
 const updateOrganization = authed.organization.update
 	.use(
 		requireEntityPermission("organization", "manage_organization", {
@@ -334,9 +404,17 @@ const updateOrganization = authed.organization.update
 			});
 		}
 
+		const { webSearch, ...fields } = input;
+		const webSearchUpdate = webSearch
+			? yield* webSearchColumns(input.id, webSearch)
+			: {};
+
 		return yield* db
 			.update(dbSchema.organization)
-			.set(input)
+			.set({
+				...fields,
+				...webSearchUpdate,
+			})
 			.where(eq(dbSchema.organization.id, input.id))
 			.returning({
 				...getColumns(dbSchema.organization),

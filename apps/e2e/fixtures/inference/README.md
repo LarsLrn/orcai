@@ -36,6 +36,7 @@ available. Import from here only when a spec needs an endpoint that answers.
 | --- | --- |
 | `GET /v1/models` | `e2e-mock-chat` and `e2e-mock-embedding`, both owned by `orcai-e2e`. The chat model reports a context window of 32,768 tokens in vLLM's `max_model_len`. |
 | `POST /v1/chat/completions` | `Mock inference reply to: <last user message>`, `finish_reason: "stop"`, usage in every response. `stream: true` sends the same text as Server-Sent Events, one delta per word, then `[DONE]`; `stream_options.include_usage` adds a final usage chunk. |
+| `POST /v1/search` | Tavily's search: `{ query, results, response_time, ... }` with one page per request, `https://<first include_domains entry, else example.org>/search-result`, titled `Mock search result for <query>`. A Tavily provider whose `endpoint` is the mock's URL searches here. |
 | `POST /v1/embeddings` | A vector per input, single string or array. Length is the request's `dimensions`, else the `embeddingDimensions` option, else 1024. The same input always yields the same vector. |
 | anything else | 404 with an OpenAI-style error body. |
 
@@ -48,6 +49,7 @@ a 401.
 
 - `respondWith({ text })` replaces the echo for every model,
   `respondWith({ text, model })` for one.
+- `searchWith(results)` answers every search with these `{ url, title, content }` pages instead.
 - `failNext({ status, message?, code? })` answers the next request with that
   error, whatever the endpoint. Queue several to fail several.
 - `requests` holds every request the mock saw: `method`, `path`, parsed JSON
@@ -73,7 +75,7 @@ a 401.
 - `release()` lets every held response go; later steps hold again. `held()`
   counts responses still waiting, `abandoned()` counts requests the client
   closed before their response ended, on any endpoint.
-- `reset()` clears requests, scripted replies, failures, and steps, destroys
+- `reset()` clears requests, scripted replies and search results, failures, and steps, destroys
   held responses, and restarts the counters. Call it at the top of a spec: the
   fixture is worker-scoped, so the mock outlives a single test.
 

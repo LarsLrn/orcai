@@ -3,9 +3,9 @@ import { createProviderLanguageModel } from "@orcai/ai";
 import type {
 	ChatId,
 	ModelId,
+	ModelProviderKind,
 	OrganizationId,
 	ProviderId,
-	ProviderKind,
 	UserId,
 } from "@orcai/core";
 import * as Effect from "effect/Effect";
@@ -18,7 +18,10 @@ beforeEach(() => {
 });
 
 /** The title the kind's model gives, and the request it was asked with. */
-const titleRequest = async (providerKind: ProviderKind, modelId: string) => {
+const titleRequest = async (
+	providerKind: ModelProviderKind,
+	modelId: string,
+) => {
 	const provider = scriptedFetch(providerKind);
 	provider.script([
 		{

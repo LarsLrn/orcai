@@ -1,5 +1,10 @@
+import { providerKinds } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { type ProviderSortKey, providerEndpointIssue } from "@orcai/schema";
+import {
+	type ProviderSortKey,
+	providerEndpointIssue,
+	providerMeteringModeIssue,
+} from "@orcai/schema";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -32,6 +37,14 @@ const listProviders = authed.provider.list
 			eq(dbSchema.provider.organizationId, organizationId),
 			input.filters?.enabled !== undefined
 				? eq(dbSchema.provider.enabled, input.filters.enabled)
+				: undefined,
+			input.filters?.purpose !== undefined
+				? inArray(
+						dbSchema.provider.kind,
+						providerKinds
+							.filter(({ purpose }) => purpose === input.filters?.purpose)
+							.map(({ kind }) => kind),
+					)
 				: undefined,
 		].filter((condition) => condition !== undefined);
 
@@ -145,7 +158,7 @@ const updateProvider = authed.provider.update
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
 
-		if (input.endpoint !== undefined) {
+		if (input.endpoint !== undefined || input.meteringMode !== undefined) {
 			const [stored] = yield* db
 				.select({
 					kind: dbSchema.provider.kind,
@@ -159,13 +172,18 @@ const updateProvider = authed.provider.update
 				)
 				.limit(1);
 			const reason = stored
-				? providerEndpointIssue(stored.kind, input.endpoint)
+				? ((input.endpoint === undefined
+						? undefined
+						: providerEndpointIssue(stored.kind, input.endpoint)) ??
+					(input.meteringMode === undefined
+						? undefined
+						: providerMeteringModeIssue(stored.kind, input.meteringMode)))
 				: undefined;
 			if (reason) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
 						reason,
-						message: "The endpoint does not suit the provider kind",
+						message: "The field does not suit the provider kind",
 					}),
 				);
 			}
@@ -234,6 +252,19 @@ const deleteProviders = authed.provider.delete
 				}),
 			);
 		}
+
+		// The foreign key clears the provider; the mode must not stay on it.
+		yield* db
+			.update(dbSchema.organization)
+			.set({
+				webSearchMode: "off",
+			})
+			.where(
+				and(
+					eq(dbSchema.organization.id, organizationId),
+					inArray(dbSchema.organization.webSearchProviderId, providerIds),
+				),
+			);
 
 		yield* db
 			.delete(dbSchema.provider)

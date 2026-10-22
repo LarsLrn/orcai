@@ -130,8 +130,11 @@ const reasonMessages: ReasonMessages = {
 	PROVIDER_DISABLED: m.error_provider_disabled,
 	PROVIDER_ENDPOINT_NOT_ALLOWED: m.error_provider_endpoint_not_allowed,
 	PROVIDER_ENDPOINT_REQUIRED: m.error_provider_endpoint_required,
+	PROVIDER_METERING_MODE_NOT_ALLOWED:
+		m.error_provider_metering_mode_not_allowed,
 	PROVIDER_MODELS_FETCH_FAILED: m.error_provider_models_fetch_failed,
 	PROVIDER_NOT_FOUND: m.error_provider_not_found,
+	PROVIDER_PURPOSE_MISMATCH: m.error_provider_purpose_mismatch,
 	QUOTA_CHECK_FAILED: m.error_quota_check_failed,
 	QUOTA_EXHAUSTED: m.error_quota_exhausted,
 	QUOTA_GROUPS_INVALID: m.error_quota_groups_invalid,
@@ -176,6 +179,7 @@ const reasonMessages: ReasonMessages = {
 	USER_OWNS_CONTENT: m.error_user_owns_content,
 	USER_PREFERENCES_NOT_FOUND: m.error_user_preferences_not_found,
 	USER_UNBAN_FAILED: m.error_user_unban_failed,
+	WEB_SEARCH_FAILED: m.error_web_search_failed,
 };
 
 /** Params arrive untyped from the wire; the message for a reason trusts their shape. */

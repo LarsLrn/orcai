@@ -2170,6 +2170,9 @@
 	"chat_update_toast_loading": "Chat wird aktualisiert...",
 	"chat_update_toast_success": "Chat erfolgreich aktualisiert",
 	"chat_waiting_for_model": "Warten auf das Modell",
+	"chat_web_search_notice_model": "Dieses Modell hat keine eigene Websuche, daher antwortet dieser Bot ohne sie.",
+	"chat_web_search_notice_off": "Die Websuche ist in dieser Organisation ausgeschaltet, daher antwortet dieser Bot ohne sie.",
+	"chat_web_sources_label": "Quellen",
 	"chat_work_log_clamped_text_show_less": "Weniger anzeigen",
 	"chat_work_log_clamped_text_show_more": "Mehr anzeigen",
 	"chat_work_log_header_steps": [
@@ -2297,6 +2300,24 @@
 	"chat_work_log_tool_status_interrupted": "Unterbrochen",
 	"chat_work_log_tool_status_running": "Wird ausgeführt",
 	"chat_work_log_tool_status_skipped": "Übersprungen",
+	"chat_work_log_tool_web_search_active": "Suche im Web",
+	"chat_work_log_tool_web_search_name": "Im Web gesucht",
+	"chat_work_log_tool_web_search_query": [
+		{
+			"declarations": [
+				"input query",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Im Web nach „{query}“ gesucht, {count} Seite",
+				"countPlural=other": "Im Web nach „{query}“ gesucht, {count} Seiten"
+			}
+		}
+	],
 	"chat_work_log_working": "Wird bearbeitet",
 	"code_block_copied_label": "Kopiert",
 	"code_block_copy_label": "Kopieren",
@@ -2596,8 +2617,10 @@
 	"error_provider_disabled": "Der ausgewählte Anbieter ist deaktiviert. Wählen Sie einen aktiven Anbieter.",
 	"error_provider_endpoint_not_allowed": "Diese Anbieterart verbindet sich mit ihrer offiziellen API und nimmt keinen Endpunkt an.",
 	"error_provider_endpoint_required": "Diese Anbieterart braucht einen Endpunkt.",
+	"error_provider_metering_mode_not_allowed": "Suchanbieter messen Anfragen: eine pro Suche.",
 	"error_provider_models_fetch_failed": "Die Modelle konnten nicht vom Anbieter abgerufen werden.",
 	"error_provider_not_found": "Anbieter nicht gefunden.",
+	"error_provider_purpose_mismatch": "Dieser Anbieter dient nicht diesem Zweck: Modelle brauchen einen Modellanbieter, die Websuche einen Suchanbieter.",
 	"error_quota_check_failed": "Die Kontingentprüfung ist fehlgeschlagen.",
 	"error_quota_exhausted": "Das Kontingent für diesen Anbieter und dieses Modell ist aufgebraucht.",
 	"error_quota_groups_invalid": "Eine oder mehrere Gruppenzuweisungen sind ungültig.",
@@ -2669,8 +2692,17 @@
 	"error_validation_required": "Pflichtfeld.",
 	"error_validation_string_too_big": "Darf höchstens {maximum} Zeichen lang sein.",
 	"error_validation_string_too_small": "Muss mindestens {minimum} Zeichen lang sein.",
+	"error_web_search_failed": "Die Websuche ist fehlgeschlagen.",
 	"feature_generative_ui_description": "Ermöglicht dem Modell, strukturierte Ergebnisse wie Checklisten in seiner Antwort anzuzeigen.",
 	"feature_generative_ui_label": "Generative UI",
+	"feature_web_search_description": "Lässt das Modell im Web suchen und die genutzten Seiten zitieren, soweit die Websuche-Einstellung der Organisation es erlaubt.",
+	"feature_web_search_domain_add": "Hinzufügen",
+	"feature_web_search_domain_invalid": "Geben Sie eine Domain wie example.org ein.",
+	"feature_web_search_domain_remove": "{domain} entfernen",
+	"feature_web_search_domains_description": "Nur Seiten dieser Domains und ihrer Subdomains werden durchsucht.",
+	"feature_web_search_domains_empty_description": "Durchsucht das ganze Web. Fügen Sie Domains hinzu, um nur diese zu durchsuchen.",
+	"feature_web_search_domains_label": "Erlaubte Domains",
+	"feature_web_search_label": "Websuche",
 	"features_section_description": "Eingebaute Verhaltensweisen, die zusätzlich zur Vorlage und zu den Repositories wirken.",
 	"features_section_title": "Funktionen",
 	"forms_datetime_field_clear_aria_label": "Datum löschen",
@@ -3376,6 +3408,11 @@
 			}
 		}
 	],
+	"orgs_form_web_search_description": "Wie Bots mit der Funktion Websuche im Web suchen.",
+	"orgs_form_web_search_label": "Websuche",
+	"orgs_form_web_search_native_option": "Modelleigene Suche (Modelle von Anthropic und OpenAI)",
+	"orgs_form_web_search_off_option": "Aus",
+	"orgs_form_web_search_provider_option": "Suchanbieter: {name}",
 	"orgs_permission_view_analytics_label": "Analysen ansehen",
 	"pipeline_failure_empty": "In dieser Datei wurden weder Text noch Bilder gefunden, daher hilft ein erneuter Versuch nicht.",
 	"pipeline_failure_extraction": "Die Datei konnte nicht gelesen werden.",
@@ -3384,6 +3421,11 @@
 	"pipeline_failure_unsupported": "OrcAI kann diesen Dateityp nicht lesen, daher hilft ein erneuter Versuch nicht.",
 	"processing_status_failed_description": "Die Vorbereitung ist nach allen Wiederholungen fehlgeschlagen. Starten Sie die Verarbeitung erneut oder ersetzen Sie eine Datei, die nicht gelesen werden kann.",
 	"processing_status_failed_label": "Fehlgeschlagen",
+	"providers_detail_search_badge": "Websuche",
+	"providers_form_endpoint_optional_description": "Leer lassen, um die offizielle API des Anbieters zu nutzen.",
+	"providers_form_metering_mode_search_description": "Suchanbieter zählen eine Anfrage pro Suche.",
+	"providers_form_search_kind_hint": "Ein Suchanbieter stellt die Websuche bereit und hat keine Modelle. Wählen Sie ihn in der Websuche-Einstellung der Organisation aus.",
+	"providers_kind_tavily_label": "Tavily (Websuche)",
 	"sidebar_menu_analytics_item": "Analysen",
 	"tour_card_finish_button": "Fertig",
 	"tour_card_previous_button": "Zurück",

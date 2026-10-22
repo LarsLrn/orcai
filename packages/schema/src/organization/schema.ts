@@ -1,5 +1,7 @@
+import { webSearchModes } from "@orcai/core";
 import { z } from "zod/v4";
 import { modelIdSchema } from "../model/ref";
+import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
 import { organizationIdSchema } from "./ref";
 
@@ -17,6 +19,9 @@ export const organizationSchema = organizationFieldsSchema.extend({
 	id: organizationIdSchema,
 	assistantModelId: modelIdSchema.nullable(),
 	utilityModelId: modelIdSchema.nullable(),
+	webSearchMode: z.enum(webSearchModes),
+	/** The search provider of the `provider` mode. */
+	webSearchProviderId: providerIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 });
 

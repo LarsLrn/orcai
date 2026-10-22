@@ -26,6 +26,7 @@ import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { AssistantToolDeps } from "@/lib/ai/tools/assistant/procedure-tool";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { toolNamesOf } from "@/lib/ai/tools/registry";
+import { NO_WEB_SEARCH } from "@/lib/ai/tools/web/toolset";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
@@ -57,6 +58,9 @@ export const createAssistantAgent = (
 			entry.buildTools({
 				context: params.context,
 				settings,
+				turn: {
+					webSearch: NO_WEB_SEARCH,
+				},
 			}),
 		);
 	}

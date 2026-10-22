@@ -1,11 +1,11 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createOpenAI } from "@ai-sdk/openai";
+import { anthropic, createAnthropic } from "@ai-sdk/anthropic";
+import { createOpenAI, openai } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type {
 	LanguageModelV4,
 	SharedV4ProviderOptions,
 } from "@ai-sdk/provider";
-import type { CompactionSource, ProviderKind } from "@orcai/core";
+import type { CompactionSource, ModelProviderKind } from "@orcai/core";
 import type { SystemModelMessage, Tool, ToolResultPart } from "ai";
 import { COMPACTION_INSTRUCTIONS } from "./compaction";
 import { listAnthropicModels } from "./list-anthropic-models";
@@ -45,6 +45,9 @@ const activeToolsLoading: ToolLoading = {
 /** Claude models before tool search: Claude 3, and Opus and Sonnet 4 up to 4.1. */
 const ANTHROPIC_MODELS_WITHOUT_TOOL_SEARCH =
 	/^claude-(3|(opus|sonnet)-4-(0|1|\d{8})(-|$))/;
+
+/** Searches one Anthropic request may run; a turn's steps are separate requests. */
+const ANTHROPIC_WEB_SEARCHES_PER_TURN = 5;
 
 const anthropicReferences: ToolLoading = {
 	type: "references",
@@ -96,6 +99,8 @@ export interface ProviderKindServerEntry {
 	readonly compaction?: NativeCompaction;
 	/** How a chat title is asked for, set where the SDK turns reasoning off safely. */
 	readonly titleCallSettings?: TitleCallSettings;
+	/** The provider's own search tool, set for kinds with `nativeWebSearch`. */
+	readonly webSearchTool?: (allowedDomains: readonly string[]) => Tool;
 }
 
 export interface TitleCallSettings {
@@ -111,7 +116,7 @@ const requireEndpoint = ({ endpoint }: ProviderConnection) => {
 };
 
 export const providerKindServerEntries: Record<
-	ProviderKind,
+	ModelProviderKind,
 	ProviderKindServerEntry
 > = {
 	"openai-compatible": {
@@ -143,6 +148,18 @@ export const providerKindServerEntries: Record<
 				fetch,
 			}),
 		toolChoiceNoneKeepsTools: true,
+		webSearchTool: (allowedDomains) =>
+			openai.tools.webSearch(
+				allowedDomains.length > 0
+					? {
+							filters: {
+								allowedDomains: [
+									...allowedDomains,
+								],
+							},
+						}
+					: {},
+			),
 		// Replays compaction and reasoning from what we stored, not from OpenAI's copy.
 		callProviderOptions: {
 			openai: {
@@ -187,6 +204,15 @@ export const providerKindServerEntries: Record<
 			},
 		},
 		toolChoiceNoneKeepsTools: false,
+		webSearchTool: (allowedDomains) =>
+			anthropic.tools.webSearch_20260318({
+				maxUses: ANTHROPIC_WEB_SEARCHES_PER_TURN,
+				...(allowedDomains.length > 0 && {
+					allowedDomains: [
+						...allowedDomains,
+					],
+				}),
+			}),
 		toolLoading: (modelId) =>
 			ANTHROPIC_MODELS_WITHOUT_TOOL_SEARCH.test(modelId)
 				? activeToolsLoading
@@ -219,29 +245,39 @@ export const providerKindServerEntries: Record<
 	},
 };
 
-export const titleCallSettings = (kind: ProviderKind): TitleCallSettings =>
+export const titleCallSettings = (kind: ModelProviderKind): TitleCallSettings =>
 	providerKindServerEntries[kind].titleCallSettings ?? {};
 
 export const createProviderLanguageModel = (
-	kind: ProviderKind,
+	kind: ModelProviderKind,
 	connection: ProviderConnection,
 	modelId: string,
 ) => providerKindServerEntries[kind].createLanguageModel(connection, modelId);
 
 export const providerToolLoading = (
-	kind: ProviderKind,
+	kind: ModelProviderKind,
 	modelId: string,
 ): ToolLoading =>
 	providerKindServerEntries[kind].toolLoading?.(modelId) ?? activeToolsLoading;
 
+/** The tool name provider search tools are offered under. */
+export const NATIVE_WEB_SEARCH_TOOL_NAME = "web_search";
+
+/** The kind's own web search tool, or undefined for kinds without one. */
+export const nativeWebSearchTool = (
+	kind: ModelProviderKind,
+	allowedDomains: readonly string[],
+): Tool | undefined =>
+	providerKindServerEntries[kind].webSearchTool?.(allowedDomains);
+
 export const listProviderModels = (
-	kind: ProviderKind,
+	kind: ModelProviderKind,
 	connection: ProviderConnection,
 ) => providerKindServerEntries[kind].listModels(connection);
 
 /** Step settings that rule out tool calls where the kind keeps its tool list. */
 export const withholdToolCalls = (
-	kind: ProviderKind,
+	kind: ModelProviderKind,
 ): {
 	toolChoice?: "none";
 } =>
@@ -256,7 +292,7 @@ export const withholdToolCalls = (
  * own; the others get one message, which every chat template accepts.
  */
 export const buildSystemInstructions = (
-	kind: ProviderKind,
+	kind: ModelProviderKind,
 	{ stable, variable }: SystemPrompt,
 ): SystemModelMessage[] => {
 	const { stablePromptOptions } = providerKindServerEntries[kind];
@@ -303,7 +339,7 @@ export interface ProviderCompaction {
 }
 
 export const providerCompaction = (
-	kind: ProviderKind,
+	kind: ModelProviderKind,
 	trigger: number,
 ): ProviderCompaction => {
 	const { callProviderOptions, compaction } = providerKindServerEntries[kind];

@@ -1,10 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import { type ProviderKind, providerKinds } from "@orcai/core";
+import {
+	hasNativeWebSearch,
+	type ModelProviderKind,
+	modelProviderKinds,
+} from "@orcai/core";
 import { listAnthropicModels } from "../src/provider-kinds/list-anthropic-models";
 import {
 	buildSystemInstructions,
 	createProviderLanguageModel,
 	listProviderModels,
+	nativeWebSearchTool,
 	providerCompaction,
 	providerKindServerEntries,
 	providerToolLoading,
@@ -64,7 +69,7 @@ const prompt = [
 ];
 
 const requestUrlOf = async (
-	kind: ProviderKind,
+	kind: ModelProviderKind,
 	endpoint: string | null,
 ): Promise<string | undefined> => {
 	const { fetch, requests } = fakeFetch();
@@ -86,10 +91,20 @@ const requestUrlOf = async (
 };
 
 describe("provider kind registry", () => {
-	test("has one server entry per kind", () => {
+	test("has one server entry per model kind", () => {
 		expect(Object.keys(providerKindServerEntries).sort()).toEqual(
-			providerKinds.map(({ kind }) => kind).sort(),
+			[
+				...modelProviderKinds,
+			].sort(),
 		);
+	});
+
+	test("offers a native web search tool exactly for kinds that have one", () => {
+		for (const kind of modelProviderKinds) {
+			expect(nativeWebSearchTool(kind, []) !== undefined).toBe(
+				hasNativeWebSearch(kind),
+			);
+		}
 	});
 
 	test("an OpenAI-compatible model calls the endpoint", async () => {
@@ -394,7 +409,7 @@ describe("listAnthropicModels", () => {
 });
 
 describe("withholdToolCalls", () => {
-	const requestBodyWithToolChoiceNone = async (kind: ProviderKind) => {
+	const requestBodyWithToolChoiceNone = async (kind: ModelProviderKind) => {
 		const { fetch, requests } = fakeFetch();
 		const model = createProviderLanguageModel(
 			kind,
@@ -429,7 +444,7 @@ describe("withholdToolCalls", () => {
 	};
 
 	test("rules out tool calls only where the tool list stays in the request", async () => {
-		for (const { kind } of providerKinds) {
+		for (const kind of modelProviderKinds) {
 			const body = await requestBodyWithToolChoiceNone(kind);
 			const keepsTools = (body.tools?.length ?? 0) > 0;
 
@@ -500,7 +515,7 @@ describe("buildSystemInstructions", () => {
 
 describe("providerCompaction", () => {
 	/** What a call of `kind` with the compaction's options sends. */
-	const sent = async (kind: ProviderKind, trigger: number) => {
+	const sent = async (kind: ModelProviderKind, trigger: number) => {
 		const { fetch, requests } = fakeFetch();
 		const model = createProviderLanguageModel(
 			kind,

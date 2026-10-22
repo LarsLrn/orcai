@@ -43,7 +43,7 @@ export const updateBotInputSchema = z.object({
 	features: featuresSchema
 		.optional()
 		.describe(
-			"Every enabled feature, such as { generativeUi: {} }; replaces the current set. Leave out to keep it.",
+			"Every enabled feature, such as { generativeUi: {}, webSearch: { allowedDomains: [] } }; replaces the current set. Leave out to keep it.",
 		),
 });
 

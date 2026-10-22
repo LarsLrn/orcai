@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { providerCompaction } from "@orcai/ai";
-import type { ProviderKind } from "@orcai/core";
+import type { ModelProviderKind } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { resetProcedures } from "../tools/assistant/test-procedures";
@@ -16,7 +16,7 @@ const { agentModel } = await import("./agent-model");
 const { memberCapabilities } = await import("./test-provider");
 const { createAssistantAgent } = await import("./assistant-agent");
 
-const assistantConversation = (kind: ProviderKind, modelId: string) => {
+const assistantConversation = (kind: ModelProviderKind, modelId: string) => {
 	resetProcedures();
 	answerSetup({
 		providerKind: kind,
@@ -61,7 +61,10 @@ const botCreateTools = [
  * Loads, tries creating and proposes a plan; resumes once the user approved
  * it; then answers a new message. Five model requests.
  */
-const toolLoadingConversation = async (kind: ProviderKind, modelId: string) => {
+const toolLoadingConversation = async (
+	kind: ModelProviderKind,
+	modelId: string,
+) => {
 	const assistant = await assistantConversation(kind, modelId);
 	assistant.script([
 		{

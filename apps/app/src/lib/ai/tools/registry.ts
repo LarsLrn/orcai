@@ -55,6 +55,8 @@ import { getKnowledgeBaseChunks } from "./rag/get-knowledge-base-chunks.declarat
 import { getKnowledgeBasePage } from "./rag/get-knowledge-base-page.declaration";
 import { listKnowledgeBaseDocuments } from "./rag/list-knowledge-base-documents.declaration";
 import { searchKnowledgeBase } from "./rag/search-knowledge-base.declaration";
+import { nativeWebSearch } from "./web/native-web-search.declaration";
+import { searchWeb } from "./web/search-web.declaration";
 
 const displayTools = Object.fromEntries(
 	Object.entries(primitiveCatalog).map(
@@ -83,6 +85,8 @@ const toolDeclarations = {
 	listKnowledgeBaseDocuments,
 	getKnowledgeBasePage,
 	getKnowledgeBaseChunks,
+	searchWeb,
+	web_search: nativeWebSearch,
 	readDocs,
 	...displayTools,
 	findBots,

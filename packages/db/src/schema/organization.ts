@@ -1,9 +1,11 @@
-import type {
-	MemberId,
-	ModelId,
-	OrganizationId,
-	OrganizationInvitationId,
-	UserId,
+import {
+	type MemberId,
+	type ModelId,
+	type OrganizationId,
+	type OrganizationInvitationId,
+	type ProviderId,
+	type UserId,
+	webSearchModes,
 } from "@orcai/core";
 import type { OrganizationInvitationStatus } from "@orcai/schema";
 import {
@@ -16,7 +18,7 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
-import { model } from "./model";
+import { model, provider } from "./model";
 
 export const organizationRoleEnum = pgEnum("organization_role", [
 	"admin",
@@ -24,6 +26,11 @@ export const organizationRoleEnum = pgEnum("organization_role", [
 	"member",
 	"viewer",
 ]);
+
+export const organizationWebSearchModeEnum = pgEnum(
+	"organization_web_search_mode",
+	webSearchModes,
+);
 
 export const organization = pgTable("organization", {
 	id: uuid("id").$type<OrganizationId>().primaryKey().defaultRandom(),
@@ -40,6 +47,14 @@ export const organization = pgTable("organization", {
 	utilityModelId: uuid("utility_model_id")
 		.$type<ModelId>()
 		.references((): AnyPgColumn => model.id, {
+			onDelete: "set null",
+		}),
+	webSearchMode: organizationWebSearchModeEnum("web_search_mode")
+		.notNull()
+		.default("off"),
+	webSearchProviderId: uuid("web_search_provider_id")
+		.$type<ProviderId>()
+		.references((): AnyPgColumn => provider.id, {
 			onDelete: "set null",
 		}),
 });

@@ -2170,6 +2170,9 @@
 	"chat_update_toast_loading": "Updating chat...",
 	"chat_update_toast_success": "Chat updated successfully",
 	"chat_waiting_for_model": "Waiting for the model",
+	"chat_web_search_notice_model": "This model has no web search of its own, so this bot answers without it.",
+	"chat_web_search_notice_off": "Web search is off in this organisation, so this bot answers without it.",
+	"chat_web_sources_label": "Sources",
 	"chat_work_log_clamped_text_show_less": "Show less",
 	"chat_work_log_clamped_text_show_more": "Show more",
 	"chat_work_log_header_steps": [
@@ -2297,6 +2300,24 @@
 	"chat_work_log_tool_status_interrupted": "Interrupted",
 	"chat_work_log_tool_status_running": "Running",
 	"chat_work_log_tool_status_skipped": "Skipped",
+	"chat_work_log_tool_web_search_active": "Searching the web",
+	"chat_work_log_tool_web_search_name": "Searched the web",
+	"chat_work_log_tool_web_search_query": [
+		{
+			"declarations": [
+				"input query",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Searched the web for “{query}”, {count} page",
+				"countPlural=other": "Searched the web for “{query}”, {count} pages"
+			}
+		}
+	],
 	"chat_work_log_working": "Working",
 	"code_block_copied_label": "Copied",
 	"code_block_copy_label": "Copy",
@@ -2596,8 +2617,10 @@
 	"error_provider_disabled": "The selected provider is disabled. Choose an active provider.",
 	"error_provider_endpoint_not_allowed": "This provider kind connects to its official API and takes no endpoint.",
 	"error_provider_endpoint_required": "This provider kind needs an endpoint.",
+	"error_provider_metering_mode_not_allowed": "Search providers meter requests: one per search.",
 	"error_provider_models_fetch_failed": "Models could not be fetched from the provider.",
 	"error_provider_not_found": "Provider not found.",
+	"error_provider_purpose_mismatch": "This provider does not serve that purpose: models need a model provider, web search a search provider.",
 	"error_quota_check_failed": "The quota check failed.",
 	"error_quota_exhausted": "The quota for this provider and model is exhausted.",
 	"error_quota_groups_invalid": "One or more group assignments are invalid.",
@@ -2669,8 +2692,17 @@
 	"error_validation_required": "Required.",
 	"error_validation_string_too_big": "Must be at most {maximum} characters.",
 	"error_validation_string_too_small": "Must be at least {minimum} characters.",
+	"error_web_search_failed": "The web search failed.",
 	"feature_generative_ui_description": "Lets the model show structured results, such as checklists, in its answer.",
 	"feature_generative_ui_label": "Generative UI",
+	"feature_web_search_description": "Lets the model search the web and cite the pages it used, as the organisation's web search setting allows.",
+	"feature_web_search_domain_add": "Add",
+	"feature_web_search_domain_invalid": "Enter a domain such as example.org.",
+	"feature_web_search_domain_remove": "Remove {domain}",
+	"feature_web_search_domains_description": "Only pages on these domains and their subdomains are searched.",
+	"feature_web_search_domains_empty_description": "Searches the whole web. Add domains to search only those.",
+	"feature_web_search_domains_label": "Allowed domains",
+	"feature_web_search_label": "Web search",
 	"features_section_description": "Built-in behaviours that work alongside the template and repositories.",
 	"features_section_title": "Features",
 	"forms_datetime_field_clear_aria_label": "Clear date",
@@ -3376,6 +3408,11 @@
 			}
 		}
 	],
+	"orgs_form_web_search_description": "How bots with the Web search feature search the web.",
+	"orgs_form_web_search_label": "Web search",
+	"orgs_form_web_search_native_option": "Model native (Anthropic and OpenAI models)",
+	"orgs_form_web_search_off_option": "Off",
+	"orgs_form_web_search_provider_option": "Search provider: {name}",
 	"orgs_permission_view_analytics_label": "View analytics",
 	"pipeline_failure_empty": "No text or images were found in this file, so retrying will not help.",
 	"pipeline_failure_extraction": "The file could not be read.",
@@ -3384,6 +3421,11 @@
 	"pipeline_failure_unsupported": "OrcAI cannot read this file type, so retrying will not help.",
 	"processing_status_failed_description": "Preparation failed after its retries. Retry processing, or replace a file that cannot be read.",
 	"processing_status_failed_label": "Failed",
+	"providers_detail_search_badge": "Web search",
+	"providers_form_endpoint_optional_description": "Leave blank to use the provider's official API.",
+	"providers_form_metering_mode_search_description": "Search providers count one request per search.",
+	"providers_form_search_kind_hint": "A search provider serves web search and has no models. Choose it in the organisation's web search setting.",
+	"providers_kind_tavily_label": "Tavily (web search)",
 	"sidebar_menu_analytics_item": "Analytics",
 	"tour_card_finish_button": "Finish",
 	"tour_card_previous_button": "Previous",

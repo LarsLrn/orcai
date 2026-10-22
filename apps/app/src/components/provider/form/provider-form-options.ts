@@ -1,5 +1,5 @@
 import {
-	checkProviderEndpoint,
+	checkProviderFields,
 	type Provider,
 	providerFieldsSchema,
 } from "@orcai/schema";
@@ -14,16 +14,14 @@ const providerFormFieldsSchema = providerFieldsSchema.extend({
 	]),
 });
 
-const providerFormSchema = providerFormFieldsSchema.check(
-	checkProviderEndpoint,
-);
+const providerFormSchema = providerFormFieldsSchema.check(checkProviderFields);
 
 /** A blank key on edit keeps the stored one. */
 const providerEditFormSchema = providerFormFieldsSchema
 	.extend({
 		apiKey: z.string(),
 	})
-	.check(checkProviderEndpoint);
+	.check(checkProviderFields);
 
 const defaultValues = (
 	provider?: Provider,
