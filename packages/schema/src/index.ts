@@ -10,6 +10,7 @@ export * from "./bot";
 export * from "./chat";
 export * from "./chat-block";
 export * from "./chat-message";
+export * from "./data-export";
 export * from "./feature";
 export * from "./group";
 export * from "./jobs";

@@ -36,6 +36,7 @@ import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
 import { Route as InstanceIndexRouteImport } from './routes/instance/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiDataExportsDataExportIdRouteImport } from './routes/api/data-exports/$dataExportId'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
@@ -236,6 +237,12 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDataExportsDataExportIdRoute =
+  ApiDataExportsDataExportIdRouteImport.update({
+    id: '/api/data-exports/$dataExportId',
+    path: '/api/data-exports/$dataExportId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDocSplatRoute = ApiDocSplatRouteImport.update({
   id: '/api/doc/$',
   path: '/api/doc/$',
@@ -590,6 +597,7 @@ export interface FileRoutesByFullPath {
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -658,6 +666,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/instance': typeof InstanceIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -746,6 +755,7 @@ export interface FileRoutesById {
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -837,6 +847,7 @@ export interface FileRouteTypes {
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
     | '/api/auth/$'
+    | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
     | '/app/chat/new'
@@ -905,6 +916,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/instance'
     | '/api/auth/$'
+    | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
     | '/app/chat/new'
@@ -992,6 +1004,7 @@ export interface FileRouteTypes {
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
     | '/api/auth/$'
+    | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
     | '/app/chat/new'
@@ -1053,6 +1066,7 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   InstanceRouteRoute: typeof InstanceRouteRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiDataExportsDataExportIdRoute: typeof ApiDataExportsDataExportIdRoute
   ApiDocSplatRoute: typeof ApiDocSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
@@ -1246,6 +1260,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/data-exports/$dataExportId': {
+      id: '/api/data-exports/$dataExportId'
+      path: '/api/data-exports/$dataExportId'
+      fullPath: '/api/data-exports/$dataExportId'
+      preLoaderRoute: typeof ApiDataExportsDataExportIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/doc/$': {
@@ -2099,6 +2120,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   InstanceRouteRoute: InstanceRouteRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiDataExportsDataExportIdRoute: ApiDataExportsDataExportIdRoute,
   ApiDocSplatRoute: ApiDocSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }

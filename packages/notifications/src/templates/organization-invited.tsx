@@ -3,7 +3,7 @@ import { Text } from "@react-email/components";
 import { m } from "../paraglide/messages";
 import type { OrganizationInvitedNotification } from "../schema";
 import type { RenderableEmail } from "../types";
-import { EmailLayout, paragraphStyle } from "./layout";
+import { EmailLayout, paragraphStyle, REGIONAL_LOCALES } from "./layout";
 
 const roleLabels: Record<
 	OrganizationRole,
@@ -18,11 +18,6 @@ const roleLabels: Record<
 	manager: m.email_organization_invited_role_manager,
 	member: m.email_organization_invited_role_member,
 	viewer: m.email_organization_invited_role_viewer,
-};
-
-const REGIONAL_LOCALES: Record<Locale, string> = {
-	en: "en-GB",
-	de: "de-DE",
 };
 
 export const buildOrganizationInvitedEmail = (

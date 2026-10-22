@@ -39,6 +39,13 @@ const notifications = [
 		recipientName: "User",
 		resetUrl: "https://example.com/reset-password?token=secret",
 	},
+	{
+		type: "data-export.ready" as const,
+		recipient: "user@example.com",
+		recipientName: "User",
+		accountUrl: "https://example.com/app/account",
+		expiresAt: new Date("2026-08-01T12:00:00.000Z"),
+	},
 ];
 
 const loadEmailConfig = (values: Record<string, unknown>) =>
@@ -171,7 +178,9 @@ describe("notification schemas and templates", () => {
 					? notification.registrationUrl
 					: "verificationUrl" in notification
 						? notification.verificationUrl
-						: notification.resetUrl;
+						: "resetUrl" in notification
+							? notification.resetUrl
+							: notification.accountUrl;
 
 			if (!actionUrl) {
 				throw new Error("Missing action URL");
@@ -252,6 +261,30 @@ describe("notification schemas and templates", () => {
 						organization: "Research & Teaching",
 						role: m.email_organization_invited_role_member({}, options),
 						date: locale === "de" ? "1. August 2026" : "1 August 2026",
+					},
+					options,
+				),
+			);
+		});
+
+		test(`renders the data export email in ${locale}`, async () => {
+			const rendered = await renderEmail(
+				emailNotificationSchema.parse({
+					...notifications[3],
+					locale,
+				}),
+			);
+			expect(rendered.html).toMatch(new RegExp(`<html[^>]* lang="${locale}"`));
+			expect(rendered.subject).toBe(
+				m.email_data_export_ready_subject({}, options),
+			);
+			expect(rendered.text).toContain(
+				m.email_data_export_ready_body(
+					{
+						date:
+							locale === "de"
+								? "1. August 2026 um 12:00 UTC"
+								: "1 August 2026 at 12:00 UTC",
 					},
 					options,
 				),

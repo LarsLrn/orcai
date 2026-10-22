@@ -1,6 +1,7 @@
 import type { LifecycleRule } from "@aws-sdk/client-s3";
 import { buckets } from "@orcai/core";
 import * as Effect from "effect/Effect";
+import { DATA_EXPORT_PREFIX } from "../shared/data-export";
 import { UPLOAD_STAGING_PREFIX } from "../shared/upload-policy";
 import {
 	sendGetBucketLifecycleConfigurationCommand,
@@ -9,13 +10,26 @@ import {
 import { getS3Code } from "./errors";
 import { createBucketIfNotExists } from "./upload-validation";
 
-/** Staged uploads no asset was created from, and abandoned multipart uploads. */
+/** Staged uploads no asset was created from, abandoned multipart uploads, and data exports. */
 export const UPLOAD_LIFECYCLE_RULES = [
 	{
 		ID: "expire-staged-uploads",
 		Status: "Enabled",
 		Filter: {
 			Prefix: UPLOAD_STAGING_PREFIX,
+		},
+		Expiration: {
+			Days: 1,
+		},
+		AbortIncompleteMultipartUpload: {
+			DaysAfterInitiation: 1,
+		},
+	},
+	{
+		ID: "expire-data-exports",
+		Status: "Enabled",
+		Filter: {
+			Prefix: DATA_EXPORT_PREFIX,
 		},
 		Expiration: {
 			Days: 1,

@@ -147,6 +147,11 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				}),
 			],
 		},
+		dataExport: {
+			request: () => [
+				orpc.dataExport.latest.key(),
+			],
+		},
 		group: {
 			create: () => [
 				orpc.group.key(),

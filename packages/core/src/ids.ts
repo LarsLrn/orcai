@@ -19,6 +19,7 @@ export type ChatId = UuidBrand<"ChatId">;
 export type ChatMessageId = UuidBrand<"ChatMessageId">;
 export type GroupId = UuidBrand<"GroupId">;
 export type GroupMemberId = UuidBrand<"GroupMemberId">;
+export type DataExportId = UuidBrand<"DataExportId">;
 export type QuotaPoolId = UuidBrand<"QuotaPoolId">;
 export type QuotaPoolGroupAssignmentId =
 	UuidBrand<"QuotaPoolGroupAssignmentId">;

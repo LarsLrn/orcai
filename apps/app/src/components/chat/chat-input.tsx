@@ -43,8 +43,8 @@ import {
 } from "@/components/ui/input-group";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatSession } from "@/lib/ai/chat-session/chat-session";
-import { messageToTranscriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
-import { type ChatPhase, turnView } from "@/lib/ai/turn-view/turn-view";
+import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
+import type { ChatPhase } from "@/lib/ai/turn-view/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
@@ -198,10 +198,7 @@ const ChatInput = ({
 				chatId,
 				zedToken,
 			});
-			downloadConversation(
-				turnView(messages, "idle").messages,
-				messageToTranscriptMarkdown,
-			);
+			downloadConversation(transcriptMarkdown(messages));
 		} catch (error) {
 			toast.error(m.chat_download_failed_toast_error(), {
 				description: reasonMessageOf(error),

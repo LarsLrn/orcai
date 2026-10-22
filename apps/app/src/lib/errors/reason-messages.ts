@@ -80,6 +80,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_TURN_DECISIONS_INCOMPLETE: m.error_chat_turn_decisions_incomplete,
 	CHAT_TURN_NOT_AWAITING: m.error_chat_turn_not_awaiting,
 	CURRENT_PASSWORD_INCORRECT: m.error_current_password_incorrect,
+	DATA_EXPORT_IN_PROGRESS: m.error_data_export_in_progress,
 	DEFAULT_REFERENCES_OUT_OF_RANGE: m.error_default_references_out_of_range,
 	DOCUMENT_STILL_PREPARING: m.error_document_still_preparing,
 	EMAIL_ALREADY_REGISTERED: m.error_email_already_registered,

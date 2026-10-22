@@ -99,13 +99,15 @@ Keep workers running alongside the app. If workers are stopped, uploads and sche
 
 Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run up to four times, a minute apart, and an attempt times out after an hour. A job whose attempts are used up moves to its dead letter queue (`process-asset-dead-letter-job`, `vectorize-asset-dead-letter-job`), whose worker marks the asset, or the asset in that repository, as failed. The workers create the queues and their dead letter settings at startup. The failed job, with its last error, stays in the pg-boss tables until retention removes it; the worker logs carry the same error.
 
+Data exports (`data-export-job`) are the exception: the app server works them, one at a time per app instance, because their chat transcripts need the app's code. The workers still create the queue and its dead letter queue (`data-export-dead-letter-job`), and the app starts working it once both exist, so a deployment without workers cannot export data. The retry and timeout settings are the same; an export whose attempts are used up is marked failed and the user can start a new one. Stopping the app interrupts a running export, and pg-boss retries it.
+
 ## Upload Storage Lifecycle
 
-Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight.
+Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight. Data export archives land under `exports/` in the same bucket.
 
-Each time the workers start, they put one lifecycle rule (`expire-staged-uploads`) for `staging/` on the `uploads` bucket: objects expire one day after upload, and incomplete multipart uploads are aborted one day after they started. Other lifecycle rules on the bucket stay as they are. The rule never matches an asset's file. If the storage provider rejects the rule, the workers log the error and keep running.
+Each time the workers start, they put two lifecycle rules on the `uploads` bucket: `expire-staged-uploads` for `staging/` and `expire-data-exports` for `exports/`. Objects under either prefix expire one day after upload, and incomplete multipart uploads are aborted one day after they started. Other lifecycle rules on the bucket stay as they are. The rules never match an asset's file. If the storage provider rejects them, the workers log the error and keep running.
 
-The storage provider enforces the rule, not OrcAI. SeaweedFS runs lifecycle in its plugin worker, which `weed mini` starts by default, once a day, so a staged file can stay up to about two days. A storage provider without bucket lifecycle support keeps staged leftovers until you remove them.
+The storage provider enforces the rules, not OrcAI. SeaweedFS runs lifecycle in its plugin worker, which `weed mini` starts by default, once a day, so a staged file or an export archive can stay up to about two days. The app refuses to download an export after 24 hours either way. A storage provider without bucket lifecycle support keeps staged leftovers and export archives until you remove them.
 
 ## Asset Processing
 

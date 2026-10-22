@@ -17,6 +17,7 @@
 		"@playwright/test": "1.64.0",
 		"@types/node": "catalog:",
 		"@types/pg": "catalog:",
+		"fflate": "0.8.3",
 		"pg": "catalog:"
 	}
 }

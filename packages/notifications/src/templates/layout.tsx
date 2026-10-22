@@ -14,6 +14,11 @@ import {
 import type { ReactNode } from "react";
 import { m } from "../paraglide/messages";
 
+export const REGIONAL_LOCALES: Record<Locale, string> = {
+	en: "en-GB",
+	de: "de-DE",
+};
+
 export function EmailLayout(props: {
 	locale: Locale;
 	recipientName: string | undefined;

@@ -23,6 +23,7 @@ import {
 	chatMessageRating,
 	chatMessageRatingEnum,
 } from "./chat-message";
+import { dataExport, dataExportStatusEnum } from "./data-export";
 import { model, provider, providerMeteringModeEnum } from "./model";
 import {
 	notificationOutbox,
@@ -57,6 +58,7 @@ export const dbSchema = {
 	chatMessage,
 	chatMessageRating,
 	chat,
+	dataExport,
 	group,
 	groupMember,
 	model,
@@ -80,6 +82,7 @@ export const enumSchema = {
 	authzOutboxStatusEnum,
 	chatKindEnum,
 	chatMessageRatingEnum,
+	dataExportStatusEnum,
 	groupKindEnum,
 	groupSystemKeyEnum,
 	principalTypeEnum,

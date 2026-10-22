@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileTextIcon, MailCheckIcon, MailWarningIcon } from "lucide-react";
 import { Suspense } from "react";
+import { DataExportCard } from "@/components/account/data-export-card";
 import { UserStats } from "@/components/app/user-stats";
 import { ChangePasswordForm } from "@/components/auth/change-password/change-password-form";
 import { OrganizationInvitationsList } from "@/components/organizations/invitations/organization-invitations-list";
@@ -105,6 +106,7 @@ function RouteComponent() {
 								</Suspense>
 							</CardContent>
 						</Card>
+						<DataExportCard />
 					</div>
 				</div>
 				<div className="flex flex-col gap-2">

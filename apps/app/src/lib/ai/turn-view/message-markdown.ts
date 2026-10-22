@@ -1,7 +1,12 @@
 import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
 import { type Citations, messageCitations } from "@/lib/ai/tools/rag/citations";
 import { toolNameOf } from "@/lib/ai/tools/registry";
-import type { AnswerPart, MessageView } from "@/lib/ai/turn-view/turn-view";
+import {
+	type AnswerPart,
+	type MessageView,
+	turnView,
+} from "@/lib/ai/turn-view/turn-view";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 
@@ -115,3 +120,9 @@ export const messageToTranscriptMarkdown = (view: MessageView): string => {
 	const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 	return `**${roleLabel}:**\n\n${messageToMarkdown(view)}`;
 };
+
+/** A stored conversation as markdown, one transcript block per shown message. */
+export const transcriptMarkdown = (messages: ChatAgentUIMessage[]): string =>
+	turnView(messages, "idle")
+		.messages.map(messageToTranscriptMarkdown)
+		.join("\n\n");

@@ -21,6 +21,7 @@ export {
 	getObjectAsString,
 } from "./object-helpers";
 export { S3Live, S3Service, S3ServiceLive } from "./service";
+export { uploadStream } from "./stream-upload";
 export {
 	ensureUploadLifecycle,
 	UPLOAD_LIFECYCLE_RULES,

@@ -104,6 +104,7 @@
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"embla-carousel-react": "8.6.0",
+		"fflate": "0.8.3",
 		"js-cookie": "3.0.8",
 		"katex": "0.16.47",
 		"lucide-react": "catalog:",

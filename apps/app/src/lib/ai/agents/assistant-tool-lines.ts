@@ -1,7 +1,7 @@
 import type { NameOf } from "@/lib/ai/tools/declaration";
 import { NAME_FIELDS } from "@/lib/ai/tools/entity-kind";
 import { toolSummary } from "@/lib/ai/tools/registry";
-import { getServerAsyncLocalStorage } from "@/paraglide/runtime";
+import { withLocale } from "@/lib/presentation/with-locale";
 
 /** One tool call that returned an output. */
 export interface ToolExecution {
@@ -81,28 +81,14 @@ const collectNames = (
 	}
 };
 
-/** The model reads English; the request's locale lives in Paraglide's AsyncLocalStorage. */
-const inEnglish = <A>(line: () => A): A => {
-	const storage = getServerAsyncLocalStorage();
-
-	return storage
-		? storage.run(
-				{
-					...storage.getStore(),
-					locale: "en",
-				},
-				line,
-			)
-		: line();
-};
-
 const lineOf = ({ toolName, input, output }: ToolExecution, nameOf: NameOf) => {
 	const summary = toolSummary(toolName, {
 		input,
 		output,
 	});
 
-	return summary && inEnglish(() => summary.line(nameOf));
+	// The model reads English.
+	return summary && withLocale("en", () => summary.line(nameOf));
 };
 
 /**

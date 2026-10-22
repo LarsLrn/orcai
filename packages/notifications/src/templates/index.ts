@@ -1,5 +1,6 @@
 import type { EmailNotification } from "../schema";
 import type { RenderableEmail } from "../types";
+import { buildDataExportReadyEmail } from "./data-export-ready";
 import { buildOrganizationInvitedEmail } from "./organization-invited";
 import { buildResetPasswordEmail } from "./reset-password";
 import { buildVerifyEmail } from "./verify-email";
@@ -16,5 +17,7 @@ export const buildEmail = (
 			return buildVerifyEmail(notification);
 		case "auth.reset-password":
 			return buildResetPasswordEmail(notification);
+		case "data-export.ready":
+			return buildDataExportReadyEmail(notification);
 	}
 };
