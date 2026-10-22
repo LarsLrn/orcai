@@ -28,16 +28,18 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 const { run, organizationWith, procedureOptions } = authzIntegration();
 
 // Workers create the queues at boot; the tier runs none.
-beforeAll(() =>
-	run(
-		Effect.gen(function* () {
-			const { boss } = yield* PgBossService;
-			yield* Effect.promise(async () => {
-				await boss.createQueue(PROCESS_ASSET_JOB_NAME);
-				await boss.createQueue(VECTORIZE_ASSET_JOB_NAME);
-			});
-		}),
-	),
+beforeAll(
+	() =>
+		run(
+			Effect.gen(function* () {
+				const { boss } = yield* PgBossService;
+				yield* Effect.promise(async () => {
+					await boss.createQueue(PROCESS_ASSET_JOB_NAME);
+					await boss.createQueue(VECTORIZE_ASSET_JOB_NAME);
+				});
+			}),
+		),
+	TIMEOUT,
 );
 
 const createAsset = (owner: Actor, organizationId: OrganizationId) =>

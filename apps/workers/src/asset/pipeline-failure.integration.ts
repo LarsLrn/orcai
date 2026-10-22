@@ -47,7 +47,7 @@ const runtime = ManagedRuntime.make(
 	),
 );
 
-beforeAll(() => boss.start());
+beforeAll(() => boss.start(), TIMEOUT);
 afterAll(async () => {
 	await boss.stop({
 		graceful: false,
