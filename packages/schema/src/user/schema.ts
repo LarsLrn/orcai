@@ -50,6 +50,7 @@ export const userOrganizationMembershipSchema = z.object({
 /** An account as the instance sees it, with every membership instead of one organisation role. */
 export const userWithMembershipsSchema = userSchema.extend({
 	memberships: z.array(userOrganizationMembershipSchema),
+	twoFactorEnabled: z.boolean(),
 });
 
 export const USER_ACCESS_SOURCE = {

@@ -54,6 +54,10 @@ const twoFactorDisabledSchema = securityNoticeSchema.extend({
 	type: z.literal("auth.two-factor-disabled"),
 });
 
+const twoFactorResetSchema = securityNoticeSchema.extend({
+	type: z.literal("auth.two-factor-reset"),
+});
+
 const dataExportReadySchema = base.extend({
 	type: z.literal("data-export.ready"),
 	accountUrl: emailActionUrlSchema,
@@ -65,6 +69,7 @@ export const emailNotificationSchema = z.discriminatedUnion("type", [
 	verifyEmailSchema,
 	resetPasswordSchema,
 	twoFactorDisabledSchema,
+	twoFactorResetSchema,
 	dataExportReadySchema,
 ]);
 
@@ -79,6 +84,8 @@ export type ResetPasswordNotification = z.infer<typeof resetPasswordSchema>;
 export type TwoFactorDisabledNotification = z.infer<
 	typeof twoFactorDisabledSchema
 >;
+
+export type TwoFactorResetNotification = z.infer<typeof twoFactorResetSchema>;
 
 export type DataExportReadyNotification = z.infer<typeof dataExportReadySchema>;
 

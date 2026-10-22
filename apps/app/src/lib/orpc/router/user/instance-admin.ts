@@ -3,6 +3,7 @@ import type { InstanceUserSortKey } from "@orcai/schema";
 import { count, desc, eq, getColumns, ilike, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
+import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
 import {
 	banAccount,
 	deleteAccounts,
@@ -161,6 +162,19 @@ const unbanUser = authed.user.unban
 		};
 	});
 
+const resetUserTwoFactor = authed.user.resetTwoFactor
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input, context }) {
+		yield* resetTwoFactor({
+			userId: input.userId,
+			actorId: context.auth.user.id,
+		});
+
+		return {
+			success: true,
+		};
+	});
+
 const deleteUsers = authed.user.delete
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
@@ -179,5 +193,6 @@ export const instanceAdminRouter = {
 	listAll: listAllUsers,
 	ban: banUser,
 	unban: unbanUser,
+	resetTwoFactor: resetUserTwoFactor,
 	delete: deleteUsers,
 };

@@ -86,3 +86,29 @@ export const useUnbanUserMutation = (
 		},
 	});
 };
+
+export const useResetTwoFactorMutation = (
+	opts: ReturnType<typeof orpc.user.resetTwoFactor.mutationOptions> = {},
+	target?: DestructiveTarget,
+) => {
+	const name = singleTargetName(1, target);
+
+	return useMutationAction({
+		mutationOptions: () => orpc.user.resetTwoFactor.mutationOptions(opts),
+		messages: {
+			loading: m.users_reset_two_factor_toast_loading(),
+			success: m.users_reset_two_factor_toast_success(),
+			error: m.users_reset_two_factor_toast_error(),
+		},
+		confirm: {
+			title: name
+				? m.users_reset_two_factor_confirm_title_named({
+						name,
+					})
+				: m.users_reset_two_factor_confirm_title(),
+			description: m.users_reset_two_factor_confirm_description(),
+			confirmText: m.users_reset_two_factor_confirm_button(),
+			cancelText: m.common_cancel_button(),
+		},
+	});
+};
