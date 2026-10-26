@@ -26,6 +26,8 @@ export default defineConfig(({ command }) => ({
 			"@kreuzberg/node",
 			// Imports its WebAssembly as a module, which Nitro's build handles.
 			"shiki",
+			// Bun serves its built-in module; bundling would ship the npm copy unused.
+			"undici",
 		],
 		// The build bundles every dependency, so the server output resolves
 		// nothing from node_modules at runtime.
@@ -67,6 +69,12 @@ export default defineConfig(({ command }) => ({
 			nitro({
 				preset: "bun",
 				compressPublicAssets: true,
+				// Bun provides undici, as in `ssr.external`.
+				unenv: {
+					external: [
+						"undici",
+					],
+				},
 				// Copied whole: its loader requires files the tracer cannot see.
 				traceDeps: [
 					"@kreuzberg/node*",

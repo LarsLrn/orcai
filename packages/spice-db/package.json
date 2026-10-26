@@ -17,7 +17,7 @@
 	},
 	"dependencies": {
 		"@authzed/authzed-node": "catalog:",
-		"@grpc/grpc-js": "1.14.3",
+		"@grpc/grpc-js": "1.14.6",
 		"@orcai/core": "workspace:*",
 		"effect": "catalog:"
 	}

@@ -2,7 +2,7 @@
 
 # Bundles the workers; the runtime image holds the bundle and its externals.
 
-ARG BUN_IMAGE=oven/bun:1.4.3-slim
+ARG BUN_IMAGE=oven/bun:1.4.4-slim
 
 FROM ${BUN_IMAGE} AS builder
 WORKDIR /app
