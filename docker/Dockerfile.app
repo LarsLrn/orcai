@@ -2,7 +2,7 @@
 
 # Builds the app with Vite and Nitro; the runtime image holds only the Nitro output.
 
-ARG BUN_IMAGE=oven/bun:1.4.3-slim
+ARG BUN_IMAGE=oven/bun:1.4.4-slim
 
 # -------------------------
 # Build stage
