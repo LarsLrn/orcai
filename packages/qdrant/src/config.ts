@@ -1,3 +1,4 @@
+import type { Schemas } from "@qdrant/qdrant-js";
 import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -14,10 +15,16 @@ const embeddingDimensionsConfig = Config.schema(
 );
 
 export const defaultBm25Config = {
-	language: "none",
 	tokenizer: "multilingual",
-	asciiFolding: true,
-} as const;
+	ascii_folding: true,
+	stemmer: {
+		type: "none",
+	},
+	stopwords: {
+		languages: [],
+		custom: [],
+	},
+} satisfies Schemas["Bm25Config"];
 
 const qdrantConfig = Config.all({
 	qdrant: Config.all({
