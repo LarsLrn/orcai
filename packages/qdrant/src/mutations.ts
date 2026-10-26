@@ -30,11 +30,7 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 									bm25: {
 										text: point.payload.lexical_text ?? point.payload.text,
 										model: "qdrant/bm25",
-										options: {
-											language: bm25Config.language,
-											tokenizer: bm25Config.tokenizer,
-											ascii_folding: bm25Config.asciiFolding,
-										},
+										options: bm25Config,
 									},
 								},
 								payload: point.payload,

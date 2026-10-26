@@ -54,11 +54,7 @@ export const queryAssetPoints = (params: {
 						query: {
 							text: params.text,
 							model: "qdrant/bm25",
-							options: {
-								language: bm25Config.language,
-								tokenizer: bm25Config.tokenizer,
-								ascii_folding: bm25Config.asciiFolding,
-							},
+							options: bm25Config,
 						},
 						using: "bm25",
 						filter: params.filter,
@@ -81,11 +77,7 @@ export const queryAssetPoints = (params: {
 								query: {
 									text: params.text,
 									model: "qdrant/bm25",
-									options: {
-										language: bm25Config.language,
-										tokenizer: bm25Config.tokenizer,
-										ascii_folding: bm25Config.asciiFolding,
-									},
+									options: bm25Config,
 								},
 								using: "bm25",
 								filter: params.filter,
