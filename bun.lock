@@ -340,6 +340,7 @@
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
         "@orcai/schema": "workspace:*",
+        "drizzle-orm": "catalog:",
         "effect": "catalog:",
         "pg-boss": "12.37.1",
       },

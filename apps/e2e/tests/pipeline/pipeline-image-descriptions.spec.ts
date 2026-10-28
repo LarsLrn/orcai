@@ -1,15 +1,15 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import { uploadAsset } from "../../fixtures/assets";
-import { chatName, setUpChatModel } from "../../fixtures/chat/chat";
+import { setUpChatModel } from "../../fixtures/chat/chat";
 import type { ApiClient } from "../../fixtures/index";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { runId } from "../../fixtures/organisation";
 import {
 	pipelineName,
 	preparedReadiness,
 } from "../../fixtures/pipeline/repository";
+import { useUtilityModel } from "../../fixtures/pipeline/utility-model";
 
 // Specs here set the worker organisation's utility model; later specs expect none.
 test.afterEach(async ({ api, org }) => {
@@ -30,30 +30,6 @@ const DESCRIPTION = {
 	title: "Refunds per month",
 	description: "A bar chart of refunds in January and February.",
 	language: "en",
-};
-
-/** A model on the chat provider that the organisation uses as its utility model. */
-const useUtilityModel = async (
-	api: Parameters<typeof setUpChatModel>[0],
-	orgId: string,
-	providerId: Awaited<ReturnType<typeof setUpChatModel>>["providerId"],
-	capabilities: ("text" | "image")[],
-) => {
-	const admin = api.as("admin");
-	const providerModelId = `e2e-mock-vision-${runId()}`;
-	const created = await admin.model.create({
-		providerId,
-		providerModelId,
-		name: chatName("Vision Model"),
-		description: "A utility model on the mock for the image specs.",
-		isDeprecated: false,
-		capabilities,
-	});
-	await admin.organization.update({
-		id: orgId,
-		utilityModelId: created.data.id,
-	});
-	return providerModelId;
 };
 
 const uploadImage = (client: ApiClient, label: string) =>
@@ -80,7 +56,7 @@ const repositoryOf = async (client: ApiClient, assetId: AssetId) => {
 	return block.data.id as BlockId;
 };
 
-test("pipeline: an uploaded image is described once by the utility model and indexed from its description", async ({
+test("pipeline: an uploaded image is described once by the utility model, indexed from its description and titled from it", async ({
 	api,
 	inference,
 	org,
@@ -100,6 +76,17 @@ test("pipeline: an uploaded image is described once by the utility model and ind
 	const repositoryId = await repositoryOf(member, asset.id);
 	const readiness = await preparedReadiness(member, repositoryId);
 	expect(readiness.totals.ready).toBe(1);
+	// The metadata job applies the suggestion processing stored, without a call.
+	await expect
+		.poll(
+			async () =>
+				(
+					await member.asset.find({
+						id: asset.id,
+					})
+				).data.metadataStatus,
+		)
+		.toBe("completed");
 
 	const visionCalls = inference.requests.filter(
 		({ path, body }) =>
@@ -124,7 +111,7 @@ test("pipeline: an uploaded image is described once by the utility model and ind
 		]),
 	).toEqual([
 		[
-			asset.title,
+			DESCRIPTION.title,
 			DESCRIPTION.text,
 		],
 	]);

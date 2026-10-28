@@ -43,3 +43,8 @@ export const deleteAssetsResponseSchema = createDeleteResponseSchema();
 export type AssetIntakeResult = z.infer<typeof assetIntakeResultSchema>;
 
 export const reprocessAssetResponseSchema = statusResponseSchema;
+
+/** Library assets the user can edit whose metadata was never generated, or failed. */
+export const missingMetadataResponseSchema = z.object({
+	count: z.number().int().min(0),
+});

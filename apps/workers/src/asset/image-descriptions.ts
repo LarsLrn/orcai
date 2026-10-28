@@ -31,13 +31,13 @@ import { AssetPipelineError } from "@/asset/pipeline-failure";
 const IMAGE_DESCRIPTION_TIMEOUT_MS = 120_000;
 
 /** Who the model calls for an asset are metered against. */
-interface AssetOwner {
+export interface AssetOwner {
 	organizationId: OrganizationId;
 	userId: UserId;
 }
 
 /** The organisation the asset belongs to and its uploader. */
-const assetOwner = (assetId: AssetId) =>
+export const assetOwner = (assetId: AssetId) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { asset, resourceScope } = dbSchema;
@@ -146,7 +146,8 @@ const withSource = (image: StoredExtractionImage) =>
 			}
 		: undefined;
 
-const describeImageAsset = (params: {
+/** One structured vision call on an image asset: its search text and a metadata suggestion. */
+export const readImageAsset = (params: {
 	assetId: AssetId;
 	jobId: string;
 	owner: AssetOwner;
@@ -179,18 +180,33 @@ const describeImageAsset = (params: {
 			),
 		);
 
-		const { text, suggestion } = readImageAssetDescription(output);
 		return {
-			...params.artifact,
-			images: [
-				{
-					...image,
-					text,
-				},
-			],
-			metadataSuggestion: suggestion,
-		} satisfies StoredExtractionArtifact;
+			image,
+			...readImageAssetDescription(output),
+		};
 	});
+
+const describeImageAsset = (params: {
+	assetId: AssetId;
+	jobId: string;
+	owner: AssetOwner;
+	model: UtilityModel;
+	artifact: StoredExtractionArtifact;
+}) =>
+	readImageAsset(params).pipe(
+		Effect.map(
+			({ image, text, suggestion }): StoredExtractionArtifact => ({
+				...params.artifact,
+				images: [
+					{
+						...image,
+						text,
+					},
+				],
+				metadataSuggestion: suggestion,
+			}),
+		),
+	);
 
 const describeFigures = (params: {
 	assetId: AssetId;

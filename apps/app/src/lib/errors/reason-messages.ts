@@ -123,6 +123,7 @@ const reasonMessages: ReasonMessages = {
 	LAST_MANAGER_REQUIRED: m.error_last_manager_required,
 	LAST_ORGANIZATION_ADMIN_REQUIRED: m.error_last_organization_admin_required,
 	MEMBER_NOT_FOUND: m.error_member_not_found,
+	METADATA_GENERATION_UNAVAILABLE: m.error_metadata_generation_unavailable,
 	MODEL_DEPRECATED: m.error_model_deprecated,
 	MODEL_NOT_FOUND: m.error_model_not_found,
 	MODEL_PROVIDER_MISMATCH: m.error_model_provider_mismatch,

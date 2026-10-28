@@ -2686,6 +2686,7 @@
 	"error_last_manager_required": "At least one manager must remain on this resource.",
 	"error_last_organization_admin_required": "At least one organisation admin must remain.",
 	"error_member_not_found": "Member not found.",
+	"error_metadata_generation_unavailable": "Metadata can be generated once the file is prepared and in the library.",
 	"error_model_deprecated": "The selected model is deprecated. Choose another model.",
 	"error_model_not_found": "Model not found.",
 	"error_model_provider_mismatch": "The selected model does not belong to the selected provider.",

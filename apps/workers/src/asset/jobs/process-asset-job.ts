@@ -1,7 +1,11 @@
 import { type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
-import { sendJobBatchInTransaction, toPgBossRunError } from "@orcai/pg-boss";
+import {
+	queueMetadataGeneration,
+	sendJobBatchInTransaction,
+	toPgBossRunError,
+} from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
@@ -191,18 +195,24 @@ const completeAndQueueIndexing = (params: { assetId: AssetId }) =>
 					})
 					.from(dbSchema.blockAsset)
 					.where(eq(dbSchema.blockAsset.assetId, params.assetId));
-				if (attachedBlocks.length === 0) {
-					return;
+				if (attachedBlocks.length > 0) {
+					yield* sendJobBatchInTransaction({
+						jobName: VECTORIZE_ASSET_JOB_NAME,
+						jobs: attachedBlocks.map(({ blockId }) => ({
+							data: {
+								assetId: params.assetId,
+								blockId,
+							},
+						})),
+					});
 				}
 
-				yield* sendJobBatchInTransaction({
-					jobName: VECTORIZE_ASSET_JOB_NAME,
-					jobs: attachedBlocks.map(({ blockId }) => ({
-						data: {
-							assetId: params.assetId,
-							blockId,
-						},
-					})),
+				yield* queueMetadataGeneration({
+					assetIds: [
+						params.assetId,
+					],
+					mode: "apply",
+					onlyMissing: true,
 				});
 			}),
 		);

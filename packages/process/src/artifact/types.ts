@@ -15,7 +15,8 @@ export type StoredExtractionImage = Omit<
 export type ImageMetadataSuggestion = {
 	title: string;
 	description: string;
-	language: string;
+	/** Left out when the model's answer is no BCP 47 tag. */
+	language?: string;
 };
 
 export type StoredExtractionArtifact = {

@@ -21,6 +21,19 @@ export const findAssetInputSchema = z.object({
 
 export const saveAssetInputSchema = assetFieldsSchema.extend({
 	id: assetIdSchema,
+	/** The metadata generation whose suggestion the save applies; it is cleared with the save. */
+	metadataGeneration: z.number().int().optional(),
+});
+
+export const generateAssetMetadataInputSchema = z.object({
+	id: assetIdSchema,
+});
+
+export const missingMetadataInputSchema = z.object({});
+
+export const dismissMetadataSuggestionInputSchema = z.object({
+	id: assetIdSchema,
+	generation: z.number().int(),
 });
 
 export const addAssetToLibraryInputSchema = z.object({

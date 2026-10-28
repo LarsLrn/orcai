@@ -1,5 +1,12 @@
 export { type AgentModel, agentModel } from "./agent-model";
 export {
+	ASSET_METADATA_INSTRUCTIONS,
+	ASSET_METADATA_MAX_OUTPUT_TOKENS,
+	assetMetadataOutput,
+	assetMetadataPrompt,
+	readAssetMetadata,
+} from "./asset-metadata";
+export {
 	buildChatTitlePrompt,
 	getChatTitleSourceText,
 	sanitizeGeneratedChatTitle,

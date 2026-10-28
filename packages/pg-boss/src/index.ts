@@ -1,4 +1,5 @@
 export { type Job, type JobWithMetadata, PgBoss } from "pg-boss";
+export * from "./asset-metadata";
 export * from "./errors";
 export * from "./helpers";
 export * from "./monitoring";

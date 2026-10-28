@@ -1,3 +1,4 @@
+import { languageTag } from "@orcai/schema";
 import { Output } from "ai";
 import { z } from "zod/v4";
 
@@ -52,7 +53,7 @@ export const readImageAssetDescription = (
 	suggestion: {
 		title: output.title.trim(),
 		description: output.description.trim().slice(0, MAX_IMAGE_SUMMARY_LENGTH),
-		language: output.language.trim(),
+		language: languageTag(output.language.trim()),
 	},
 });
 
