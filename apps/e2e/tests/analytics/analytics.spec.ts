@@ -9,7 +9,7 @@ import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
-test("analytics: an admin sees a bot's usage and ratings, a member is led away", async ({
+test("analytics: an admin sees usage and ratings of a bot they cannot open as other bots, a member is led away", async ({
 	api,
 	inference,
 	org,
@@ -77,7 +77,7 @@ test("analytics: an admin sees a bot's usage and ratings, a member is led away",
 	});
 	await expect(
 		bots.getByRole("row").filter({
-			hasText: bot.name,
+			hasText: message("analytics_other_bots_label"),
 		}),
 	).toBeVisible();
 	const ratings = page.locator("[data-slot=card]", {
@@ -87,9 +87,10 @@ test("analytics: an admin sees a bot's usage and ratings, a member is led away",
 	});
 	await expect(
 		ratings.getByRole("row").filter({
-			hasText: bot.name,
+			hasText: message("analytics_other_bots_label"),
 		}),
-	).toContainText("100");
+	).toBeVisible();
+	await expect(page.getByText(bot.name)).toHaveCount(0);
 
 	await page
 		.getByRole("button", {
@@ -101,7 +102,7 @@ test("analytics: an admin sees a bot's usage and ratings, a member is led away",
 	await expect(page).toHaveURL(/days=7/);
 	await expect(
 		bots.getByRole("row").filter({
-			hasText: bot.name,
+			hasText: message("analytics_other_bots_label"),
 		}),
 	).toBeVisible();
 

@@ -164,20 +164,23 @@ totals.
   **Estimated cost per day** adds one series per currency.
 - Every table below has an **Estimated cost** column; the tables stay sorted
   by tokens, then requests.
-- **People**: usage per person, most tokens first.
+- **People**: usage per person, most tokens first. People who have left the
+  organisation add up to one "Former members" row, without names or email
+  addresses.
 - **Models**: usage per model and its provider. Usage recorded before
   analytics existed under a pool for all of a provider's models, and usage of
   a deleted model, shows as "Model not recorded".
 - **Bots**: usage in chats with a bot. Everything else, such as chats without a
   bot, the OrcAI Assistant and chat titles, counts as "Without a bot". Bots are
   recorded only since analytics were added, and usage of a deleted bot moves to
-  "Without a bot".
+  "Without a bot". A bot shows by name only to an Admin who can open it; all
+  other bots add up to one "Other bots" row.
 - **Ratings by bot**: how many replies were rated in the range, by the bot of
   their chat, with the count per rating and the up/down share, where up is
   "Very much" and "A bit". A rating counts for the organisation whose quota
   paid for the rated reply. Ratings of replies copied into a
-  [branch](/docs/using-orcai/chat) are not counted. Message content is never
-  shown.
+  [branch](/docs/using-orcai/chat) are not counted. Bots the Admin cannot open
+  add up to "Other bots", as above. Message content is never shown.
 
 Only Admins see the page (`view_analytics`), and cost shows nowhere else, not
 even in a reply's usage. Deleting a provider deletes its

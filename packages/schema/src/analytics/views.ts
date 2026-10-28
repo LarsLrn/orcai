@@ -42,20 +42,47 @@ const analyticsRangeShape = {
 	totals: analyticsUsageSchema,
 };
 
+/** A current member, or everyone who has left the organisation added up. */
+export const analyticsPersonSchema = z.discriminatedUnion("kind", [
+	z.object({
+		kind: z.literal("member"),
+		id: userIdSchema,
+		name: z.string(),
+		email: z.string(),
+	}),
+	z.object({
+		kind: z.literal("former"),
+	}),
+]);
+
+/**
+ * A bot the viewer can read, usage outside bot chats or before bots were
+ * recorded, or every bot the viewer cannot read added up.
+ */
+export const analyticsBotSchema = z.discriminatedUnion("kind", [
+	z.object({
+		kind: z.literal("bot"),
+		id: botIdSchema,
+		name: z.string(),
+	}),
+	z.object({
+		kind: z.literal("none"),
+	}),
+	z.object({
+		kind: z.literal("other"),
+	}),
+]);
+
 export const organizationAnalyticsSchema = z.object({
 	...analyticsRangeShape,
 	users: z.array(
 		analyticsUsageSchema.extend({
-			userId: userIdSchema,
-			name: z.string(),
-			email: z.string(),
+			user: analyticsPersonSchema,
 		}),
 	),
-	/** A null bot is usage outside bot chats, or before bots were recorded. */
 	bots: z.array(
 		analyticsUsageSchema.extend({
-			botId: botIdSchema.nullable(),
-			name: z.string().nullable(),
+			bot: analyticsBotSchema,
 		}),
 	),
 	/** A null model was not recorded or has been deleted. */
@@ -70,8 +97,7 @@ export const organizationAnalyticsSchema = z.object({
 	/** Ratings of the organisation's replies, by the bot of their chat. */
 	ratings: z.array(
 		z.object({
-			botId: botIdSchema.nullable(),
-			name: z.string().nullable(),
+			bot: analyticsBotSchema,
 			counts: z.record(chatMessageRatingSchema, z.number()),
 		}),
 	),
@@ -93,5 +119,7 @@ export const instanceAnalyticsSchema = z.object({
 export type AnalyticsCost = z.infer<typeof analyticsCostSchema>;
 export type AnalyticsUsage = z.infer<typeof analyticsUsageSchema>;
 export type AnalyticsDayUsage = z.infer<typeof analyticsDayUsageSchema>;
+export type AnalyticsPerson = z.infer<typeof analyticsPersonSchema>;
+export type AnalyticsBot = z.infer<typeof analyticsBotSchema>;
 export type OrganizationAnalytics = z.infer<typeof organizationAnalyticsSchema>;
 export type InstanceAnalytics = z.infer<typeof instanceAnalyticsSchema>;
