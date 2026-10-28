@@ -1,7 +1,11 @@
 import { analyticsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AnalyticsRange } from "@/components/analytics/analytics-range";
+import {
+	AnalyticsRange,
+	AnalyticsRangeList,
+	AnalyticsRangePanel,
+} from "@/components/analytics/analytics-range";
 import {
 	TwoLineName,
 	UsageBreakdown,
@@ -59,47 +63,51 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader>
-				<PageTitle>{m.instance_analytics_page_title()}</PageTitle>
-				<PageDescription>
-					{m.instance_analytics_page_description()}
-				</PageDescription>
-				<PageAction>
-					<AnalyticsRange
-						days={days}
-						onChange={(next) =>
-							void navigate({
-								to: ".",
-								search: {
-									days: next,
-								},
-								replace: true,
-							})
-						}
-					/>
-				</PageAction>
-			</PageHeader>
-			<PageContent className="space-y-6">
-				<UsageTotals totals={analytics.totals} />
-				<UsageOverTime daily={analytics.daily} />
-				<UsageBreakdown
-					title={m.instance_analytics_organizations_title()}
-					description={m.instance_analytics_organizations_description()}
-					nameHeader={m.instance_analytics_organization_column_header()}
-					rows={analytics.organizations}
-					rowKey={(row) => row.organizationId}
-					name={(row) => (
-						<TwoLineName primary={row.name} secondary={row.slug} />
-					)}
-					columns={[
-						{
-							header: m.instance_analytics_active_users_column_header(),
-							cell: (row) => formatCount(row.activeUsers),
+			<AnalyticsRange
+				days={days}
+				onChange={(next) =>
+					void navigate({
+						to: ".",
+						search: {
+							days: next,
 						},
-					]}
-					empty={m.instance_organizations_empty_title()}
-				/>
-			</PageContent>
+						replace: true,
+					})
+				}
+			>
+				<PageHeader>
+					<PageTitle>{m.instance_analytics_page_title()}</PageTitle>
+					<PageDescription>
+						{m.instance_analytics_page_description()}
+					</PageDescription>
+					<PageAction>
+						<AnalyticsRangeList />
+					</PageAction>
+				</PageHeader>
+				<PageContent>
+					<AnalyticsRangePanel days={days}>
+						<UsageTotals totals={analytics.totals} />
+						<UsageOverTime daily={analytics.daily} />
+						<UsageBreakdown
+							title={m.instance_analytics_organizations_title()}
+							description={m.instance_analytics_organizations_description()}
+							nameHeader={m.instance_analytics_organization_column_header()}
+							rows={analytics.organizations}
+							rowKey={(row) => row.organizationId}
+							name={(row) => (
+								<TwoLineName primary={row.name} secondary={row.slug} />
+							)}
+							columns={[
+								{
+									header: m.instance_analytics_active_users_column_header(),
+									cell: (row) => formatCount(row.activeUsers),
+								},
+							]}
+							empty={m.instance_organizations_empty_title()}
+						/>
+					</AnalyticsRangePanel>
+				</PageContent>
+			</AnalyticsRange>
 		</Page>
 	);
 }

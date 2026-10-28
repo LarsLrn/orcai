@@ -72,7 +72,7 @@ const UsageChart = ({
 						<YAxis
 							tickLine={false}
 							axisLine={false}
-							width={48}
+							width="auto"
 							allowDecimals={decimals}
 							tickFormatter={(value: number) => formatCompactNumber(value)}
 						/>

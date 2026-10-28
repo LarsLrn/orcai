@@ -93,7 +93,7 @@ test("analytics: an admin sees usage and ratings of a bot they cannot open as ot
 	await expect(page.getByText(bot.name)).toHaveCount(0);
 
 	await page
-		.getByRole("button", {
+		.getByRole("tab", {
 			name: message("analytics_range_days_option", {
 				days: 7,
 			}),
