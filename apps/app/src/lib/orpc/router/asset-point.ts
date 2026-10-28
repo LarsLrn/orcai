@@ -12,8 +12,12 @@ import {
 	resolveScoreThreshold,
 	selectDiversePoints,
 } from "@orcai/qdrant";
-import type { AssetPoint, assetPointsFiltersSchema } from "@orcai/schema";
-import { eq } from "drizzle-orm";
+import type {
+	AssetPoint,
+	assetPointsFiltersSchema,
+	RetrievedAssetPoint,
+} from "@orcai/schema";
+import { eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
@@ -21,9 +25,60 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
+/** The points with their asset's title as it is now; a point of an asset deleted meanwhile is left out. */
+const withAssetTitles = (points: readonly AssetPoint[]) =>
+	Effect.gen(function* () {
+		const assetIds = [
+			...new Set(points.map((point) => point.payload.asset_id)),
+		];
+		const assets =
+			assetIds.length === 0
+				? []
+				: yield* (yield* DB)
+						.select({
+							id: dbSchema.asset.id,
+							title: dbSchema.asset.title,
+						})
+						.from(dbSchema.asset)
+						.where(inArray(dbSchema.asset.id, assetIds));
+		const titles = new Map(
+			assets.map((asset) => [
+				asset.id,
+				asset.title,
+			]),
+		);
+
+		return points.flatMap((point): RetrievedAssetPoint[] => {
+			const title = titles.get(point.payload.asset_id);
+			return title === undefined
+				? []
+				: [
+						{
+							...point,
+							title,
+						},
+					];
+		});
+	});
+
 const retrieveAssetPoints = (
 	filters: z.infer<typeof assetPointsFiltersSchema>,
 ) =>
+	queryPoints(filters).pipe(
+		Effect.flatMap((result) =>
+			withAssetTitles(result.data).pipe(
+				Effect.map((data) => ({
+					data,
+					metadata: {
+						...result.metadata,
+						returnedCount: data.length,
+					},
+				})),
+			),
+		),
+	);
+
+const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 	Effect.gen(function* () {
 		const input = {
 			filters,
@@ -348,7 +403,16 @@ const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 			order: input.assetId ? "reading" : "point",
 			cursor: input.cursor,
 			limit: BROWSE_PAGE_SIZE,
-		});
+		}).pipe(
+			Effect.flatMap((page) =>
+				withAssetTitles(page.data).pipe(
+					Effect.map((data) => ({
+						...page,
+						data,
+					})),
+				),
+			),
+		);
 	});
 
 export const assetPointRouter = {

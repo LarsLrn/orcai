@@ -1,4 +1,4 @@
-import type { AssetPoint } from "@orcai/schema";
+import type { RetrievedAssetPoint } from "@orcai/schema";
 import { Markdown } from "@/components/app/markdown";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,7 +29,7 @@ const DisplayPoint = ({
 	point,
 	showScore = false,
 }: {
-	point: AssetPoint;
+	point: RetrievedAssetPoint;
 	/** For a search hit; browsed points carry no score. */
 	showScore?: boolean;
 }) => {
@@ -49,7 +49,7 @@ const DisplayPoint = ({
 				<div className="flex flex-wrap items-start justify-between gap-3">
 					<div className="space-y-1">
 						<CardTitle className="wrap-break-word text-lg leading-tight">
-							{payload.title || payload.source || id}
+							{point.title || payload.source || id}
 						</CardTitle>
 						<CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-sm">
 							{payload.source && (

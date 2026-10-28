@@ -1,9 +1,12 @@
 import { z } from "zod/v4";
 import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
-import { assetPointBrowseCursorSchema, assetPointSchema } from "./schema";
+import {
+	assetPointBrowseCursorSchema,
+	retrievedAssetPointSchema,
+} from "./schema";
 
 export const listAssetPointsResponseSchema = z.object({
-	data: z.array(assetPointSchema),
+	data: z.array(retrievedAssetPointSchema),
 	metadata: z
 		.object({
 			retrievalMode: retrievalModeSchema,
@@ -15,7 +18,7 @@ export const listAssetPointsResponseSchema = z.object({
 });
 
 export const browseRepositoryAssetPointsResponseSchema = z.object({
-	data: z.array(assetPointSchema),
+	data: z.array(retrievedAssetPointSchema),
 	/** Absent on the last page. */
 	nextCursor: assetPointBrowseCursorSchema.nullable(),
 });

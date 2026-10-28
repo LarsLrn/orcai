@@ -5,12 +5,12 @@ import {
 	tokenize,
 } from "@orcai/core";
 import {
-	type AssetPoint,
 	BLOCK_READINESS_MAX_IDS,
 	type DatabaseBlock,
 	type DocumentReadiness,
 	type DocumentState,
 	type RepositoryReadiness,
+	type RetrievedAssetPoint,
 } from "@orcai/schema";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -53,7 +53,7 @@ const withBlockSource = ({
 	points,
 }: {
 	block: DatabaseBlock;
-	points: AssetPoint[];
+	points: RetrievedAssetPoint[];
 }): PointWithBlock[] =>
 	withSourceBlock({
 		sourceBlockId: block.id,
@@ -68,7 +68,7 @@ export const withSourceBlock = ({
 }: {
 	sourceBlockId: BlockId;
 	sourceBlockName: DatabaseBlock["name"];
-	points: AssetPoint[];
+	points: RetrievedAssetPoint[];
 }): PointWithBlock[] =>
 	points.map((point) => ({
 		...point,
@@ -82,7 +82,7 @@ export const flattenBlockResponses = (
 	blockResponses: Array<{
 		block: DatabaseBlock;
 		response: {
-			data: AssetPoint[];
+			data: RetrievedAssetPoint[];
 		};
 	}>,
 ): PointWithBlock[] =>
@@ -106,7 +106,7 @@ export const toPassage = (
 		ref: chunkRef(anchor.id),
 		id: anchor.id,
 		assetId: first.payload.asset_id,
-		title: first.payload.title,
+		title: first.title,
 		blockName: first.sourceBlock.name,
 		pageStart: starts.length > 0 ? Math.min(...starts) : undefined,
 		pageEnd: ends.length > 0 ? Math.max(...ends) : undefined,

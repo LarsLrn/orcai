@@ -37,7 +37,6 @@ describe("upsertPointsToQdrant", () => {
 							asset_id: assetId,
 							block_id: crypto.randomUUID() as BlockId,
 							text: `Chunk ${index}`,
-							title: "Integration",
 							depth: 0,
 							tokens: 2,
 							chunk_index: index,

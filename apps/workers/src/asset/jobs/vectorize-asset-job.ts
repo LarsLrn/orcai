@@ -214,7 +214,6 @@ const buildImageChunks = (
 
 interface IndexedAsset {
 	id: AssetId;
-	title: string;
 	bucket: BucketName;
 	prefix: string;
 	fileType: AssetFileType;
@@ -228,7 +227,6 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 		const [asset] = yield* db
 			.select({
 				id: dbSchema.asset.id,
-				title: dbSchema.asset.title,
 				bucket: dbSchema.asset.bucket,
 				prefix: dbSchema.asset.prefix,
 				fileType: dbSchema.asset.fileType,
@@ -347,7 +345,6 @@ const indexAsset = (params: {
 		yield* embedChunks({
 			chunks: mergedChunks,
 			assetId,
-			assetTitle: params.asset.title,
 			blockId,
 		});
 
@@ -368,12 +365,10 @@ const indexAsset = (params: {
 const embedChunks = ({
 	chunks,
 	assetId,
-	assetTitle,
 	blockId,
 }: {
 	chunks: VectorizableChunk[];
 	assetId: AssetId;
-	assetTitle: string;
 	blockId: BlockId;
 }) =>
 	Effect.gen(function* () {
@@ -390,7 +385,6 @@ const embedChunks = ({
 					chunk.lexicalContent !== chunk.content
 						? chunk.lexicalContent
 						: undefined,
-				title: assetTitle,
 				documentTotalPages: chunk.documentTotalPages,
 				chunkPageStart: chunk.chunkPageStart,
 				chunkPageEnd: chunk.chunkPageEnd,

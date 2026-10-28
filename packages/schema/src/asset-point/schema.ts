@@ -9,7 +9,6 @@ const baseChunkPayloadSchema = z.object({
 	block_id: blockIdSchema,
 	text: z.string(),
 	lexical_text: z.string().optional(),
-	title: z.string(),
 	documentTotalPages: z.number().int().positive().optional(),
 	chunkPageStart: z.number().int().positive().optional(),
 	chunkPageEnd: z.number().int().positive().optional(),
@@ -117,7 +116,13 @@ export const assetPointBrowseCursorSchema = z.discriminatedUnion("order", [
 	}),
 ]);
 
+/** A point as the procedures return it, with its asset's title as it is when read. */
+export const retrievedAssetPointSchema = assetPointSchema.extend({
+	title: z.string(),
+});
+
 export type AssetPoint = z.infer<typeof assetPointSchema>;
+export type RetrievedAssetPoint = z.infer<typeof retrievedAssetPointSchema>;
 export type AssetPointBrowseCursor = z.infer<
 	typeof assetPointBrowseCursorSchema
 >;

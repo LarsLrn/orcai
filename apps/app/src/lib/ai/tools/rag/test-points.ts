@@ -1,4 +1,4 @@
-import type { AssetPoint } from "@orcai/schema";
+import type { RetrievedAssetPoint } from "@orcai/schema";
 import type { PointWithBlock } from "./types";
 
 interface PointFields {
@@ -20,17 +20,17 @@ export const assetPoint = ({
 	text = `Text of chunk ${index}.`,
 	pageStart,
 	pageEnd = pageStart,
-}: PointFields): AssetPoint =>
+}: PointFields): RetrievedAssetPoint =>
 	({
 		id,
 		version: 1,
 		score: 0.5,
+		title,
 		payload: {
 			source: "text",
 			asset_id: assetId,
 			block_id: "block-1",
 			text,
-			title,
 			documentTotalPages: 20,
 			chunkPageStart: pageStart,
 			chunkPageEnd: pageEnd,
@@ -40,7 +40,7 @@ export const assetPoint = ({
 			chunkCount: 20,
 			createdAt: "2026-10-01T00:00:00.000Z",
 		},
-	}) as AssetPoint;
+	}) as RetrievedAssetPoint;
 
 export const point = (fields: PointFields): PointWithBlock => ({
 	...assetPoint(fields),
