@@ -7,6 +7,7 @@ import { authorizationRouter } from "./authorization";
 import { blockRouter } from "./block";
 import { bootstrapRouter } from "./bootstrap";
 import { botRouter } from "./bot";
+import { botSetupRouter } from "./bot-setup";
 import { chatRouter } from "./chat";
 import { chatBlockRouter } from "./chat-block";
 import { chatMessageRouter } from "./chat-message";
@@ -44,6 +45,7 @@ export const router = {
 	dataExport: dataExportRouter,
 	block: blockRouter,
 	bot: botRouter,
+	botSetup: botSetupRouter,
 	asset: assetRouter,
 	assetPoint: assetPointRouter,
 	authorization: authorizationRouter,

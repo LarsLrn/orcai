@@ -1,10 +1,21 @@
-import type { BlockId, BotId, UserId } from "@orcai/core";
-import type { Features, PublicationStatus } from "@orcai/schema";
+import type {
+	BlockId,
+	BotId,
+	ModelId,
+	OrganizationId,
+	UserId,
+} from "@orcai/core";
+import type {
+	Features,
+	GenerationSettings,
+	PublicationStatus,
+} from "@orcai/schema";
 import {
 	type AnyPgColumn,
 	index,
 	integer,
 	json,
+	pgEnum,
 	pgTable,
 	primaryKey,
 	text,
@@ -14,6 +25,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { block } from "./block";
+import { model } from "./model";
+import { organization } from "./organization";
 
 export const bot = pgTable("bot", {
 	id: uuid("id").$type<BotId>().primaryKey().defaultRandom(),
@@ -93,5 +106,55 @@ export const botFavourite = pgTable(
 			],
 		}),
 		index("bot_favourite_bot_idx").on(table.botId),
+	],
+);
+
+export const botSetupStrengthEnum = pgEnum("bot_setup_strength", [
+	"recommended",
+	"required",
+]);
+
+/** A bot's model and generation settings in one organisation. */
+export const botSetup = pgTable(
+	"bot_setup",
+	{
+		botId: uuid("bot_id")
+			.$type<BotId>()
+			.notNull()
+			.references(() => bot.id, {
+				onDelete: "cascade",
+			}),
+		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
+			.notNull()
+			.references(() => organization.id, {
+				onDelete: "cascade",
+			}),
+		modelId: uuid("model_id")
+			.$type<ModelId>()
+			.references(() => model.id, {
+				onDelete: "set null",
+			}),
+		strength: botSetupStrengthEnum("strength").notNull(),
+		generation: json("generation")
+			.$type<GenerationSettings>()
+			.notNull()
+			.default({}),
+		updatedBy: uuid("updated_by")
+			.$type<UserId>()
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
+		updatedAt: timestamp("updated_at").notNull().defaultNow(),
+	},
+	(table) => [
+		primaryKey({
+			columns: [
+				table.botId,
+				table.organizationId,
+			],
+		}),
+		index("bot_setup_organization_idx").on(table.organizationId),
+		index("bot_setup_model_idx").on(table.modelId),
 	],
 );

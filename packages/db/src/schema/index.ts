@@ -23,7 +23,13 @@ import {
 	resourceVisibilityEnum,
 } from "./authz";
 import { block, blockAsset, chatBlock } from "./block";
-import { bot, botBlock, botFavourite } from "./bot";
+import {
+	bot,
+	botBlock,
+	botFavourite,
+	botSetup,
+	botSetupStrengthEnum,
+} from "./bot";
 import { chat, chatKindEnum } from "./chat";
 import {
 	chatMessage,
@@ -65,6 +71,7 @@ export const dbSchema = {
 	bot,
 	botBlock,
 	botFavourite,
+	botSetup,
 	chatMessage,
 	chatMessageRating,
 	chat,
@@ -90,6 +97,7 @@ export const dbSchema = {
 
 export const enumSchema = {
 	authzOutboxStatusEnum,
+	botSetupStrengthEnum,
 	chatKindEnum,
 	chatMessageRatingEnum,
 	dataExportStatusEnum,
