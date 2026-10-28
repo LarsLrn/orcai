@@ -1,11 +1,11 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
+import { agentModel } from "@orcai/ai";
 import type { ChatId, ModelId, OrganizationId, ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { serve } from "bun";
 import { eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { agentModel } from "@/lib/ai/agents/agent-model";
 import {
 	type Actor,
 	authzIntegration,

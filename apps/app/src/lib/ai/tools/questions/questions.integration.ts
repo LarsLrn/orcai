@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { quota } from "@orcai/quota/testing";
 import type { ClientToolOutput } from "@orcai/schema";
 import { createUser, integrationRuntime } from "@orcai/testing";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { scriptedFetch } from "../../agents/test-provider";
-import { quota } from "../../metered-call/test-quota";
 import {
 	answerSetup,
 	chatRow,

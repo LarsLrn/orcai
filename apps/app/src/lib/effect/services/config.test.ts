@@ -13,7 +13,6 @@ const twoFactorPolicyFrom = (env: Record<string, string>) =>
 					ConfigProvider.fromUnknown({
 						BETTER_AUTH_SECRET: "secret",
 						BETTER_AUTH_URL: "http://localhost:3000",
-						ENCRYPTION_KEY: "key",
 						...env,
 					}),
 				)

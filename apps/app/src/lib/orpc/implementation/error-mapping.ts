@@ -79,6 +79,13 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 				},
 				cause: error,
 			});
+		case ErrorTags.QUOTA_DENIED:
+			return new ORPCError("BAD_REQUEST", {
+				data: {
+					reason: error.reason,
+				},
+				cause: error,
+			});
 		case ErrorTags.VALIDATION:
 			return new ORPCError("BAD_REQUEST", {
 				data: {},

@@ -8,9 +8,9 @@ import type {
 	ProviderId,
 	UserId,
 } from "@orcai/core";
+import { quota, withQuotaServices } from "@orcai/quota/testing";
 import * as Effect from "effect/Effect";
 import { scriptedFetch } from "@/lib/ai/agents/test-provider";
-import { quota, withQuotaServices } from "@/lib/ai/metered-call/test-quota";
 import { generateChatTitle } from "./fork-chat-title-generation";
 
 beforeEach(() => {

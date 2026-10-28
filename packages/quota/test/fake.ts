@@ -1,11 +1,11 @@
 import { mock } from "bun:test";
 import type { QuotaPeriodId, QuotaPoolId } from "@orcai/core";
 import { DB } from "@orcai/db";
-import * as realQuota from "@orcai/quota";
 import * as Effect from "effect/Effect";
+import * as realQuota from "../src";
 
 /**
- * Fakes the quota enforcement of `@orcai/quota` for a test file: set `pool`
+ * Fakes the quota enforcement of this package for a test file: set `pool`
  * per test and read what was reserved, finalized and released from `calls`.
  */
 
@@ -105,7 +105,7 @@ const releaseAppRequestQuota: Release = (input) =>
 		return failureOf("release");
 	});
 
-mock.module("@orcai/quota", () => ({
+mock.module("../src/index.ts", () => ({
 	...realQuota,
 	reserveForAppRequest,
 	finalizeAppRequestQuota,

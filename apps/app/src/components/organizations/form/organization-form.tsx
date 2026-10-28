@@ -1,7 +1,10 @@
 import type { ModelId } from "@orcai/core";
 import {
 	type ModelCapability,
+	type ModelUnusableReason,
+	type ModelUse,
 	modelIdSchema,
+	modelUnusableReason,
 	type Organization,
 	providerIdSchema,
 	type UpdateOrganizationInput,
@@ -23,11 +26,6 @@ import {
 	useCreateOrganizationMutation,
 	useUpdateOrganizationMutation,
 } from "@/hooks/mutations/use-organization-mutations";
-import {
-	type ModelUnusableReason,
-	type ModelUse,
-	modelUnusableReason,
-} from "@/lib/ai/turn/model-usability";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { organizationFormOptions } from "./organization-form-options";

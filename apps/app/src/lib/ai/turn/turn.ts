@@ -1,5 +1,11 @@
 import { context as otelContext } from "@opentelemetry/api";
-import { AiError } from "@orcai/ai";
+import {
+	AiError,
+	type Meter,
+	type MeteredCallOutcome,
+	type MeterStep,
+	startMeteredCall,
+} from "@orcai/ai";
 import { type ChatId, type ChatMessageId, SUMMARY_METADATA } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import { withActiveSpan } from "@orcai/observability";
@@ -29,12 +35,6 @@ import { v4 as uuidv4 } from "uuid";
 import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
-import {
-	type Meter,
-	type MeteredCallOutcome,
-	type MeterStep,
-	startMeteredCall,
-} from "@/lib/ai/metered-call/metered-call";
 import {
 	type AssistantTurn,
 	createAssistantTurn,

@@ -7,14 +7,14 @@ import {
 	type ProviderKind,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type {
-	ModelCapability,
-	OrganizationCheck,
-	OrganizationReadiness,
+import {
+	type ModelCapability,
+	modelUnusableReason,
+	type OrganizationCheck,
+	type OrganizationReadiness,
 } from "@orcai/schema";
 import { and, count, eq, gt, inArray, isNull, notExists } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { modelUnusableReason } from "@/lib/ai/turn/model-usability";
 
 /** The organisation's configuration that readiness reads. */
 export interface ReadinessSnapshot {

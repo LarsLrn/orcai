@@ -1,6 +1,9 @@
 import {
+	type AgentModel,
 	AiError,
+	agentModel,
 	type ProviderCompaction,
+	providerApiKey,
 	providerCompaction,
 } from "@orcai/ai";
 import {
@@ -12,11 +15,15 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { reservedOutputTokens } from "@orcai/quota";
-import type { DatabaseBlock, ModelTokenLimits } from "@orcai/schema";
+import {
+	type DatabaseBlock,
+	type ModelTokenLimits,
+	type ModelUnusableReason,
+	modelUnusableReason,
+} from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import { type AgentModel, agentModel } from "@/lib/ai/agents/agent-model";
 import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
 import {
 	ASSISTANT_AGENT_MAX_STEPS,
@@ -39,7 +46,6 @@ import {
 	type DocsConfig,
 } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { providerApiKey } from "@/lib/encryption";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
@@ -47,10 +53,6 @@ import {
 	DEFAULT_CONTEXT_WINDOW,
 	promptBudget,
 } from "./context-window";
-import {
-	type ModelUnusableReason,
-	modelUnusableReason,
-} from "./model-usability";
 import type { StoredChat } from "./reply-store";
 
 const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant.";
@@ -549,16 +551,23 @@ const withLimits = (setup: RequestedSetup): TurnSetup => {
 	};
 };
 
+type SetupOf = ReturnType<typeof chatSetup | typeof assistantSetup>;
+
 /** Reads what a turn on `chat` runs with: the chat's own model, or the organisation's assistant model. */
 export const turnSetup = (
 	chat: StoredChat,
 	requester: TurnRequester,
 ): Effect.Effect<
 	TurnSetup,
-	Effect.Error<ReturnType<typeof chatSetup | typeof assistantSetup>>,
-	Effect.Services<ReturnType<typeof chatSetup | typeof assistantSetup>>
-> =>
-	(chat.kind === "assistant"
+	Effect.Error<SetupOf>,
+	Effect.Services<SetupOf>
+> => {
+	const requested: Effect.Effect<
+		RequestedSetup,
+		Effect.Error<SetupOf>,
+		Effect.Services<SetupOf>
+	> = chat.kind === "assistant"
 		? assistantSetup(requester)
-		: chatSetup(chat, requester)
-	).pipe(Effect.map(withLimits));
+		: chatSetup(chat, requester);
+	return Effect.map(requested, withLimits);
+};

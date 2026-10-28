@@ -1,12 +1,9 @@
 import { describe, expect, test } from "bun:test";
+import { type MeterStep, startMeteredCall } from "@orcai/ai";
 import type { ModelId, ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { createOrganization, createUser } from "@orcai/testing";
 import * as Effect from "effect/Effect";
-import {
-	type MeterStep,
-	startMeteredCall,
-} from "@/lib/ai/metered-call/metered-call";
 import {
 	type Actor,
 	authzIntegration,

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
+import { quota, withQuotaServices } from "@orcai/quota/testing";
 import * as Effect from "effect/Effect";
 import * as Logger from "effect/Logger";
-import { type MeterStep, startMeteredCall } from "./metered-call";
-import { quota, withQuotaServices } from "./test-quota";
+import { type MeterStep, startMeteredCall } from "../../src/metered/meter";
 
 const usage = (
 	inputTokens: number | undefined,
@@ -96,7 +96,7 @@ describe("startMeteredCall", () => {
 		const error = await Effect.runPromise(Effect.flip(startEffect()));
 
 		expect(error).toMatchObject({
-			_tag: "BadRequestError",
+			_tag: "QuotaDeniedError",
 			reason,
 		});
 	});

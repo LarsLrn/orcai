@@ -15,13 +15,13 @@ import type {
 	ProviderId,
 	UserId,
 } from "@orcai/core";
+import { withQuotaServices } from "@orcai/quota/testing";
 import type { ChatConfig, ClientToolOutput } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { AppConfigService } from "@/lib/effect/services/config";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { memberCapabilities, scriptedFetch } from "../agents/test-provider";
-import { withQuotaServices } from "../metered-call/test-quota";
 import { answers, FakeServices } from "../tools/assistant/test-procedures";
 import type { ReplyStore, StoredChat } from "./reply-store";
 
@@ -40,7 +40,9 @@ Object.assign(globalThis, {
 	TextEncoderStream,
 });
 
-mock.module("@/lib/encryption", () => ({
+const ai = await import("@orcai/ai");
+mock.module("@orcai/ai", () => ({
+	...ai,
 	providerApiKey: () => Effect.succeed("key"),
 }));
 

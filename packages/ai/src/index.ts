@@ -1,3 +1,4 @@
+export { type AgentModel, agentModel } from "./agent-model";
 export {
 	buildChatTitlePrompt,
 	getChatTitleSourceText,
@@ -9,12 +10,28 @@ export {
 	AiConfigService,
 } from "./config";
 export { countTokens } from "./count-tokens";
-export { AiError } from "./errors";
+export { AiError, QuotaDeniedError } from "./errors";
 export {
 	generateEmbedding,
 	generateManyEmbeddings,
 } from "./generate-embedding";
 export { generateTextEffect } from "./generate-text";
+export {
+	type GenerateTextWithQuotaInput,
+	generateTextWithQuota,
+} from "./metered/generate-text-with-quota";
+export {
+	type Meter,
+	type MeteredCallOutcome,
+	type MeterStep,
+	startMeteredCall,
+} from "./metered/meter";
+export {
+	EncryptionKey,
+	EncryptionKeyLive,
+	encryptApiKey,
+	providerApiKey,
+} from "./provider-key";
 export { COMPACTION_INSTRUCTIONS } from "./provider-kinds/compaction";
 export {
 	buildSystemInstructions,
@@ -31,6 +48,11 @@ export {
 } from "./provider-kinds/registry";
 export type { ProviderConnection, SystemPrompt } from "./provider-kinds/types";
 export { AiTelemetryLive, aiTelemetry } from "./telemetry";
+export {
+	type MeteredModel,
+	type UtilityModel,
+	utilityModel,
+} from "./utility-model";
 export { isAllowedUrl } from "./web-search/allowed-domains";
 export { createWebSearch } from "./web-search/registry";
 export {

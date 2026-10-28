@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { startMeteredCall } from "@orcai/ai";
 import type { BotId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { QuotaUsageEventListInput } from "@orcai/schema";
 import { createOrganization, createUser } from "@orcai/testing";
 import * as Effect from "effect/Effect";
-import { startMeteredCall } from "@/lib/ai/metered-call/metered-call";
 import {
 	type Actor,
 	authzIntegration,

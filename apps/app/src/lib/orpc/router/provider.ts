@@ -1,3 +1,4 @@
+import { encryptApiKey } from "@orcai/ai";
 import { providerKinds } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
@@ -8,7 +9,6 @@ import {
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { encryptApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";

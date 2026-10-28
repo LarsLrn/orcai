@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { type MeterStep, startMeteredCall } from "@orcai/ai";
 import type {
 	BotId,
 	ChatId,
@@ -15,10 +16,6 @@ import type {
 import { createOrganization, createUser } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type MeterStep,
-	startMeteredCall,
-} from "@/lib/ai/metered-call/metered-call";
 import {
 	type Actor,
 	authzIntegration,

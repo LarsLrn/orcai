@@ -1,3 +1,4 @@
+import type { AgentModel } from "@orcai/ai";
 import {
 	aiTelemetry,
 	buildSystemInstructions,
@@ -6,7 +7,6 @@ import {
 import type { DatabaseBlock } from "@orcai/schema";
 import { Output, ToolLoopAgent, type ToolSet, type UIMessage } from "ai";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
-import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import {
