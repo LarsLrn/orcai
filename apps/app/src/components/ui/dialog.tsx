@@ -2,6 +2,7 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -87,6 +88,26 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 	);
 }
 
+/** The scrolling part of a dialog, reaching its side edges so the content lines up with the header. */
+function DialogBody({
+	className,
+	children,
+	...props
+}: React.ComponentProps<typeof ScrollArea>) {
+	return (
+		<ScrollArea
+			data-slot="dialog-body"
+			className={cn(
+				"-mx-6 flex min-h-0 flex-1 flex-col *:data-[slot=scroll-area-viewport]:h-auto *:data-[slot=scroll-area-viewport]:min-h-0",
+				className,
+			)}
+			{...props}
+		>
+			<div className="px-6 py-1">{children}</div>
+		</ScrollArea>
+	);
+}
+
 function DialogFooter({
 	className,
 	showCloseButton = false,
@@ -145,6 +166,7 @@ function DialogDescription({
 
 export {
 	Dialog,
+	DialogBody,
 	DialogClose,
 	DialogContent,
 	DialogDescription,

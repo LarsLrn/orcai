@@ -7,13 +7,13 @@ import {
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
 import { m } from "@/paraglide/messages";
 
@@ -34,9 +34,9 @@ const MetadataForm = ({
 
 	return (
 		<>
-			<ScrollArea className="max-h-[calc(88vh-14rem)]">
+			<DialogBody>
 				<AssetMetadataEditor value={draft} onChange={setDraft} />
-			</ScrollArea>
+			</DialogBody>
 
 			<DialogFooter>
 				<Button
@@ -74,7 +74,7 @@ const AssetMetadataDialog = ({
 	onSaved?: (asset: Asset) => void;
 }) => (
 	<Dialog open={open} onOpenChange={onOpenChange}>
-		<DialogContent className="max-h-[88vh] sm:max-w-3xl">
+		<DialogContent className="flex max-h-[88vh] flex-col sm:max-w-3xl">
 			<DialogHeader>
 				<DialogTitle>{m.assets_selected_list_dialog_title()}</DialogTitle>
 				<DialogDescription>

@@ -30,13 +30,13 @@ import {
 } from "@/components/ui/collapsible";
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppForm } from "@/hooks/form";
@@ -81,8 +81,8 @@ const ChatSettings = ({
 							: m.chat_settings_dialog_description()}
 					</DialogDescription>
 				</DialogHeader>
-				<ScrollArea className="h-full min-h-0 flex-1">
-					<div className="grid auto-rows-min gap-6 px-6 pb-6">
+				<DialogBody>
+					<div className="grid auto-rows-min gap-6">
 						{chat?.data.botId && (
 							<Suspense fallback={<Skeleton className="h-12 w-full" />}>
 								<BotDetails botId={chat.data.botId} />
@@ -122,7 +122,7 @@ const ChatSettings = ({
 								</>
 							))}
 					</div>
-				</ScrollArea>
+				</DialogBody>
 			</DialogContent>
 		</Dialog>
 	);
