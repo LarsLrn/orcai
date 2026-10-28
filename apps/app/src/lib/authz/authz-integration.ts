@@ -2,6 +2,7 @@ import { afterAll, expect } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { v1 } from "@authzed/authzed-node";
 import {
+	buckets,
 	INSTANCE_ADMIN_ROLE,
 	type OrganizationId,
 	type OrganizationRole,
@@ -19,6 +20,8 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { Client } from "pg";
+import { writeRelationships } from "@/lib/authz/relationship-write";
+import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AppLayer } from "@/lib/effect/app-layer";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
@@ -230,6 +233,47 @@ export const authzIntegration = () => {
 		};
 	};
 
+	/** A PDF asset row owned by `owner`, with its authorization in place. */
+	const createAsset = (owner: Actor, organizationId: OrganizationId) =>
+		run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const { result, zedToken } = yield* writeRelationships(
+					{
+						organizationIds: [
+							organizationId,
+						],
+					},
+					Effect.gen(function* () {
+						const [asset] = yield* db
+							.insert(dbSchema.asset)
+							.values({
+								title: "Integration asset",
+								size: 1,
+								fileType: "pdf",
+								bucket: buckets.main.name,
+								prefix: `users/${owner.user.id}/asset`,
+								userId: owner.user.id,
+							})
+							.returning();
+						yield* initializeResourceAuthorization({
+							resource: {
+								resourceType: "asset",
+								resourceId: asset.id,
+							},
+							organizationId,
+							ownerUserId: owner.user.id,
+						});
+						return asset;
+					}),
+				);
+				return {
+					asset: result,
+					zedToken,
+				};
+			}),
+		);
+
 	/** Waits until every outbox event mentioning `id` is delivered. */
 	const outboxDelivered = (id: string) =>
 		until(
@@ -316,6 +360,7 @@ export const authzIntegration = () => {
 		procedureOptions,
 		organizationWith,
 		createBlock,
+		createAsset,
 		outboxDelivered,
 		readTuples,
 		instanceAdmin,

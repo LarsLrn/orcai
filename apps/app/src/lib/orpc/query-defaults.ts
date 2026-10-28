@@ -16,13 +16,6 @@ export const queryDefaults = {
 			},
 		},
 	},
-	assetPoint: {
-		list: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-	},
 	block: {
 		list: {
 			queryOptions: {
