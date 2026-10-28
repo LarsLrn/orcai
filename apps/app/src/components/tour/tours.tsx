@@ -58,6 +58,10 @@ export const tourSteps = (tour: TourId): TourStep[] => {
 					content: m.tour_chat_intro_content(),
 				},
 				{
+					title: m.tour_chat_menu_title(),
+					content: m.tour_chat_menu_content(),
+				},
+				{
 					title: m.tour_chat_references_title(),
 					content: m.tour_chat_references_content(),
 				},

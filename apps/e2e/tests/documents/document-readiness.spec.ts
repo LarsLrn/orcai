@@ -54,10 +54,6 @@ test("documents: a chat shows the documents of its repositories that could not b
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "completed",
-	});
 	const repository = await repositoryWithFailedDocument(member);
 	const chatId = await createChat(member, model, chatName("Readiness"));
 	await member.chatBlock.attach({

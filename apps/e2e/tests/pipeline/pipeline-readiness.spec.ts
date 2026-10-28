@@ -57,10 +57,6 @@ test("pipeline: a chat shows which of its repositories are ready and which faile
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "completed",
-	});
 	const ready = await readyRepository(member);
 	const empty = await emptyRepository(member);
 	const chatId = await createChat(member, model, chatName("Pipeline"));

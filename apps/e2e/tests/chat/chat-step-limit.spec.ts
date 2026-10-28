@@ -71,10 +71,6 @@ const openChatWithRepository = async ({
 	pageAs: (role: "member") => Promise<Page>;
 	orgSlug: string;
 }) => {
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "completed",
-	});
 	const chatId = await createChat(member, model, chatName("Step Limit"));
 	await attachRepository(member, chatId);
 

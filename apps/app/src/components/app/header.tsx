@@ -1,5 +1,9 @@
-import { Link, useMatches } from "@tanstack/react-router";
-import { EllipsisIcon, HomeIcon } from "lucide-react";
+import {
+	Link,
+	type StaticDataRouteOption,
+	useMatches,
+} from "@tanstack/react-router";
+import { ChevronDownIcon, EllipsisIcon, HomeIcon } from "lucide-react";
 import { Fragment } from "react";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import {
@@ -22,6 +26,9 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { LocaleSwitcher } from "./locale/locale-switcher";
 
+const currentCrumbClassName =
+	"h-7 min-w-0 max-w-full shrink overflow-hidden lg:max-w-96";
+
 const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 	const matches = useMatches();
 
@@ -30,12 +37,16 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 		.map(({ pathname, meta, staticData }) => ({
 			href: staticData.breadcrumbTo?.(matches) ?? pathname,
 			label: meta?.find((entry) => entry?.title)?.title,
+			titleMenu: staticData.titleMenu,
 		}))
 		.filter((i) => i.href !== "/" && i.href !== homeTo)
 		.filter((i) => i.label !== undefined) as {
 		href: string;
 		label: string;
+		titleMenu?: StaticDataRouteOption["titleMenu"];
 	}[];
+	const current = breadcrumbItems.at(-1);
+	const TitleMenu = current?.titleMenu;
 
 	return (
 		<header className="sticky top-2 z-10 mx-2 flex h-12 min-w-0 shrink-0 items-center gap-2 rounded-lg border bg-sidebar px-4 text-muted-foreground shadow-sm">
@@ -63,81 +74,50 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 							</Link>
 						</BreadcrumbItem>
 
-						{breadcrumbItems.length > 0 && (
-							<>
-								{breadcrumbItems.length > 1 && (
-									<BreadcrumbItem className="lg:hidden">
-										<DropdownMenu>
-											<DropdownMenuTrigger
-												render={
-													<Button variant="ghost" size="icon-sm">
-														<EllipsisIcon aria-hidden="true" />
-														<span className="sr-only">
-															{m.header_breadcrumb_menu_label()}
-														</span>
-													</Button>
-												}
-											/>
-											<DropdownMenuContent positionMethod="fixed">
-												<DropdownMenuGroup>
-													{breadcrumbItems.slice(0, -1).map((item) => (
-														<DropdownMenuLinkItem
-															key={item.href}
-															title={item.label}
-															className="block max-w-72 truncate"
-															render={<Link to={item.href} />}
-														>
-															{item.label}
-														</DropdownMenuLinkItem>
-													))}
-												</DropdownMenuGroup>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</BreadcrumbItem>
-								)}
-								<BreadcrumbSeparator className="lg:hidden" />
-								<BreadcrumbItem className="min-w-0 lg:hidden">
-									<Link
-										to={breadcrumbItems[breadcrumbItems.length - 1].href}
-										aria-current="page"
-										title={breadcrumbItems[breadcrumbItems.length - 1].label}
-										className={cn(
-											buttonVariants({
-												variant: "ghost",
-												size: "sm",
-												className:
-													"h-7 min-w-0 max-w-full shrink overflow-hidden",
-											}),
-										)}
-									>
-										<span className="truncate">
-											{breadcrumbItems[breadcrumbItems.length - 1].label}
-										</span>
-									</Link>
-								</BreadcrumbItem>
-							</>
+						{breadcrumbItems.length > 1 && (
+							<BreadcrumbItem className="lg:hidden">
+								<DropdownMenu>
+									<DropdownMenuTrigger
+										render={
+											<Button variant="ghost" size="icon-sm">
+												<EllipsisIcon aria-hidden="true" />
+												<span className="sr-only">
+													{m.header_breadcrumb_menu_label()}
+												</span>
+											</Button>
+										}
+									/>
+									<DropdownMenuContent positionMethod="fixed">
+										<DropdownMenuGroup>
+											{breadcrumbItems.slice(0, -1).map((item) => (
+												<DropdownMenuLinkItem
+													key={item.href}
+													title={item.label}
+													className="block max-w-72 truncate"
+													render={<Link to={item.href} />}
+												>
+													{item.label}
+												</DropdownMenuLinkItem>
+											))}
+										</DropdownMenuGroup>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</BreadcrumbItem>
 						)}
 
-						{breadcrumbItems.map((item, index) => (
+						{breadcrumbItems.slice(0, -1).map((item) => (
 							<Fragment key={item.href}>
 								<BreadcrumbSeparator className="hidden lg:block" />
 								<BreadcrumbItem className="hidden min-w-0 lg:inline-flex">
 									<Link
 										to={item.href}
-										aria-current={
-											index === breadcrumbItems.length - 1 ? "page" : undefined
-										}
 										title={item.label}
 										className={cn(
 											buttonVariants({
 												variant: "ghost",
 												size: "sm",
-												className: cn(
-													"h-7 min-w-0 shrink overflow-hidden",
-													index === breadcrumbItems.length - 1
-														? "max-w-96"
-														: "max-w-56",
-												),
+												className:
+													"h-7 min-w-0 max-w-56 shrink overflow-hidden",
 											}),
 										)}
 									>
@@ -146,6 +126,40 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 								</BreadcrumbItem>
 							</Fragment>
 						))}
+
+						{current && (
+							<>
+								<BreadcrumbSeparator />
+								<BreadcrumbItem className="min-w-0">
+									{TitleMenu ? (
+										<TitleMenu>
+											<Button
+												variant="ghost"
+												size="sm"
+												title={current.label}
+												className={currentCrumbClassName}
+											>
+												<span className="truncate">{current.label}</span>
+												<ChevronDownIcon aria-hidden="true" />
+											</Button>
+										</TitleMenu>
+									) : (
+										<Link
+											to={current.href}
+											aria-current="page"
+											title={current.label}
+											className={buttonVariants({
+												variant: "ghost",
+												size: "sm",
+												className: currentCrumbClassName,
+											})}
+										>
+											<span className="truncate">{current.label}</span>
+										</Link>
+									)}
+								</BreadcrumbItem>
+							</>
+						)}
 					</BreadcrumbList>
 				</Breadcrumb>
 				<div className="flex shrink-0 gap-2">

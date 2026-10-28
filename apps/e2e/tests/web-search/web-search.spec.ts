@@ -52,10 +52,6 @@ test("web-search: a bot answers with a cited page from the search provider", asy
 	const model = await setUpChatModel(api, inference);
 	await setUpSearchProvider(api, inference, org.id);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "skipped",
-	});
 	const bot = await createBot(member, WEB_SEARCH);
 	const chatId = await createBotChat(member, model, bot.id);
 
@@ -123,10 +119,6 @@ test("web-search: a bot with web search warns while the organisation's search is
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "skipped",
-	});
 	const bot = await createBot(member, WEB_SEARCH);
 	const chatId = await createBotChat(member, model, bot.id);
 

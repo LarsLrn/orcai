@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { ChatId, ModelId, ProviderId } from "@orcai/core";
 import { expect, type Locator, type Page } from "@playwright/test";
+import { createApiClient, createZedTokenStore } from "../api";
 import { untilAllowed } from "../authorization";
+import { baseURL } from "../env";
 import type { Api, ApiClient } from "../index";
 import {
 	INFERENCE_MOCK_MODELS,
@@ -284,10 +286,49 @@ export const conversationOf = (
 	);
 };
 
-/** Open a chat and wait for its composer. */
+/** Mark the chat tour seen for the page's user, so its card does not cover the chat. */
+const skipChatTour = async (page: Page): Promise<void> => {
+	const cookies = await page.context().cookies();
+	const client = createApiClient(
+		baseURL(),
+		cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; "),
+		createZedTokenStore(),
+	);
+
+	await client.user.setTourState({
+		tourId: "chatTour",
+		state: "completed",
+	});
+};
+
+/** Open a chat, its tour already seen, and wait for its composer. */
 export const openChat = async (page: Page, chatId: ChatId): Promise<void> => {
+	await skipChatTour(page);
 	await open(page, `/app/chat/${chatId}`);
 	await expect(composer(page)).toBeVisible();
+};
+
+/** The open chat's title, the header's last crumb, which opens the chat's menu. */
+export const chatTitleMenu = (page: Page) =>
+	page
+		.getByRole("navigation", {
+			name: message("breadcrumb_label"),
+		})
+		.getByRole("listitem")
+		.last()
+		.getByRole("button");
+
+/** Open the chat's title menu and choose an item. */
+export const chooseFromChatMenu = async (
+	page: Page,
+	item: string,
+): Promise<void> => {
+	await chatTitleMenu(page).click();
+	await page
+		.getByRole("menuitem", {
+			name: message(item),
+		})
+		.click();
 };
 
 export const composer = (page: Page) =>

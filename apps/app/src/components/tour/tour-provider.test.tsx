@@ -49,6 +49,7 @@ mock.module("@/hooks/use-umami", () => ({
 const { TourProvider, useTour } = await import(
 	"@/components/tour/tour-provider"
 );
+const { tourSteps } = await import("@/components/tour/tours");
 
 afterEach(() => {
 	cleanup();
@@ -156,8 +157,9 @@ describe("TourProvider", () => {
 	test("finishing the last step completes the tour", async () => {
 		const dialog = startTour("chat");
 
-		click(m.common_next_button());
-		click(m.common_next_button());
+		for (const _ of tourSteps("chatTour").slice(1)) {
+			click(m.common_next_button());
+		}
 		expect(
 			screen.queryByRole("button", {
 				name: m.tour_card_skip_button(),

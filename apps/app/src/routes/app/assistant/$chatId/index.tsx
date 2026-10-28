@@ -5,6 +5,7 @@ import {
 } from "@orcai/schema";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { z } from "zod/v4";
+import { ChatTitleMenu } from "@/components/chat/chat-actions-dropdown";
 import { ChatPage, loadChatPage } from "@/components/chat/chat-page";
 import { parseParam } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
@@ -17,6 +18,9 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/app/assistant/$chatId/")({
 	validateSearch: searchSchema,
+	staticData: {
+		titleMenu: ChatTitleMenu,
+	},
 	params: {
 		parse: (params) => ({
 			chatId: parseParam(chatIdSchema, params.chatId),

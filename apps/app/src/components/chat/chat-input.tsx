@@ -6,15 +6,8 @@ import {
 } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import type { ChatStatus } from "ai";
-import {
-	CompassIcon,
-	DownloadIcon,
-	EllipsisIcon,
-	SettingsIcon,
-} from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { downloadConversation } from "@/components/ai-elements/conversation";
 import {
 	PromptInputSubmit,
 	PromptInputTools,
@@ -25,17 +18,7 @@ import { ChatComposerAttachments } from "@/components/chat/attachments/chat-atta
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
-import { fetchWholeChat } from "@/components/chat/chat-history";
-import { ChatSettings } from "@/components/chat/chat-settings";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
-import { TourButton } from "@/components/tour/tour-button";
-import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -43,7 +26,6 @@ import {
 } from "@/components/ui/input-group";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import type { ChatSession } from "@/lib/ai/chat-session/chat-session";
-import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import type { ChatPhase } from "@/lib/ai/turn-view/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
@@ -81,7 +63,6 @@ const ChatInput = ({
 }) => {
 	const isAssistant = variant === "assistant";
 	const [messageText, setMessageText] = useState(draft?.text ?? "");
-	const [settingsOpen, setSettingsOpen] = useState(false);
 
 	const { data: chat } = useQuery(
 		orpc.chat.find.queryOptions({
@@ -192,20 +173,6 @@ const ChatInput = ({
 		}
 	};
 
-	const handleDownload = async () => {
-		try {
-			const messages = await fetchWholeChat({
-				chatId,
-				zedToken,
-			});
-			downloadConversation(transcriptMarkdown(messages));
-		} catch (error) {
-			toast.error(m.chat_download_failed_toast_error(), {
-				description: reasonMessageOf(error),
-			});
-		}
-	};
-
 	const handleTextareaKeyDown = (
 		event: React.KeyboardEvent<HTMLTextAreaElement>,
 	) => {
@@ -278,41 +245,6 @@ const ChatInput = ({
 										/>
 									</>
 								)}
-								<DropdownMenu>
-									<DropdownMenuTrigger
-										render={
-											<Button type="button" variant="ghost" size="icon-sm" />
-										}
-									>
-										<EllipsisIcon />
-										<span className="sr-only">
-											{m.chat_composer_more_actions_aria_label()}
-										</span>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="start" className="w-56">
-										{!isAssistant && (
-											<>
-												<TourButton
-													tour="chatTour"
-													type="button"
-													variant="ghost"
-													autoTrigger={true}
-													render={<DropdownMenuItem />}
-													className="w-full justify-start"
-												>
-													<CompassIcon className="size-4" />{" "}
-													{m.chat_composer_start_tour_action()}
-												</TourButton>
-												<DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-													<SettingsIcon /> {m.chat_composer_settings_action()}
-												</DropdownMenuItem>
-											</>
-										)}
-										<DropdownMenuItem onClick={handleDownload}>
-											<DownloadIcon /> {m.chat_composer_download_action()}
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
 							</PromptInputTools>
 
 							<PromptInputSubmit
@@ -340,21 +272,13 @@ const ChatInput = ({
 			</form>
 
 			{!isAssistant && (
-				<>
-					<ChatAssetPicker
-						open={assetPickerOpen}
-						onOpenChange={setAssetPickerOpen}
-						selectedAssetIds={selectedAssetIds}
-						onAddAsset={addAsset}
-						onRemoveAsset={removeSelectedAsset}
-					/>
-					<ChatSettings
-						chatId={chatId}
-						zedToken={zedToken}
-						open={settingsOpen}
-						onOpenChange={setSettingsOpen}
-					/>
-				</>
+				<ChatAssetPicker
+					open={assetPickerOpen}
+					onOpenChange={setAssetPickerOpen}
+					selectedAssetIds={selectedAssetIds}
+					onAddAsset={addAsset}
+					onRemoveAsset={removeSelectedAsset}
+				/>
 			)}
 		</>
 	);
