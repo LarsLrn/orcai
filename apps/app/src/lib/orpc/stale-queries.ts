@@ -71,6 +71,16 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		readOnlyChats,
 	];
 
+	const instanceMembership = () => [
+		orpc.instance.key(),
+		orpc.organization.listAll.key(),
+		orpc.user.listAll.key(),
+		orpc.organizationMember.key(),
+		orpc.user.list.key(),
+		readiness,
+		...groupSummaries(),
+	];
+
 	// A provider's page counts its models.
 	const models = () => [
 		orpc.model.key(),
@@ -204,8 +214,11 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			discover: models,
 		},
 		organization: {
+			// The initial admin's account gains a membership.
 			create: () => [
 				orpc.organization.key(),
+				orpc.user.listAll.key(),
+				orpc.instance.key(),
 			],
 			update: () => [
 				orpc.organization.key(),
@@ -236,6 +249,18 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 							orpc.organization.key(),
 						]
 					: []),
+			],
+		},
+		// Instance admins change memberships of any organisation.
+		instance: {
+			addMember: instanceMembership,
+			changeMemberRole: instanceMembership,
+			removeMember: instanceMembership,
+			// Readiness counts pending invitations.
+			inviteMember: () => [
+				orpc.organizationInvitation.key(),
+				orpc.instance.key(),
+				readiness,
 			],
 		},
 		organizationMember: {
@@ -307,18 +332,23 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			delete: () => [
 				orpc.user.key(),
 				readiness,
+				orpc.instance.key(),
 			],
 			ban: () => [
 				orpc.user.key(),
+				orpc.instance.key(),
 			],
 			unban: () => [
 				orpc.user.key(),
+				orpc.instance.key(),
 			],
 			resetTwoFactor: () => [
 				orpc.user.key(),
+				orpc.instance.key(),
 			],
 			setInstanceRole: () => [
 				orpc.user.key(),
+				orpc.instance.key(),
 			],
 			setTourState: () => [
 				orpc.user.me.key(),

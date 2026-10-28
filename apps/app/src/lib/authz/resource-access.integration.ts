@@ -40,6 +40,7 @@ const rejection = (operation: Promise<unknown>) =>
 	);
 
 const actorOf = (actor: Actor) => ({
+	kind: "member" as const,
 	userId: actor.user.id,
 	zedToken: undefined,
 });

@@ -870,6 +870,7 @@ describe("organization analytics scope", () => {
 						first.member.user.id,
 					],
 					actor: {
+						kind: "member",
 						userId: first.admin.user.id,
 						zedToken: token,
 					},

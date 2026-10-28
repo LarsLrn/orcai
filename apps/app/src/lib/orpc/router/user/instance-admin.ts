@@ -1,6 +1,6 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { InstanceUserSortKey } from "@orcai/schema";
-import { count, desc, eq, getColumns, ilike, inArray, or } from "drizzle-orm";
+import { count, desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
 import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
@@ -64,6 +64,10 @@ const listAllUsers = authed.user.listAll
 				db
 					.select({
 						...getColumns(dbSchema.user),
+						membershipCount: db.$count(
+							dbSchema.member,
+							eq(dbSchema.member.userId, dbSchema.user.id),
+						),
 					})
 					.from(dbSchema.user)
 					.where(whereClause)
@@ -82,40 +86,8 @@ const listAllUsers = authed.user.listAll
 			},
 		);
 
-		const userIds = users.map((user) => user.id);
-		const memberships =
-			userIds.length === 0
-				? []
-				: yield* db
-						.select({
-							userId: dbSchema.member.userId,
-							organizationId: dbSchema.member.organizationId,
-							organizationName: dbSchema.organization.name,
-							organizationSlug: dbSchema.organization.slug,
-							role: dbSchema.member.role,
-						})
-						.from(dbSchema.member)
-						.innerJoin(
-							dbSchema.organization,
-							eq(dbSchema.organization.id, dbSchema.member.organizationId),
-						)
-						.where(inArray(dbSchema.member.userId, userIds));
-
-		const membershipsByUser = new Map<
-			(typeof memberships)[number]["userId"],
-			Array<Omit<(typeof memberships)[number], "userId">>
-		>();
-		for (const { userId, ...membership } of memberships) {
-			const bucket = membershipsByUser.get(userId) ?? [];
-			bucket.push(membership);
-			membershipsByUser.set(userId, bucket);
-		}
-
 		return {
-			data: users.map((user) => ({
-				...user,
-				memberships: membershipsByUser.get(user.id) ?? [],
-			})),
+			data: users,
 			rowCount: rowCount.count,
 		};
 	});

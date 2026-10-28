@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatId, GroupId, UserId } from "@orcai/core";
+import type { ChatId, GroupId, OrganizationId, UserId } from "@orcai/core";
 import { createORPCClient } from "@orpc/client";
 import type { RouterClient } from "@orpc/server";
 import {
@@ -224,6 +224,40 @@ describe("invalidateStaleQueries", () => {
 			await edit();
 			expect(chat()).toBe(true);
 		}
+	});
+
+	test("an instance invitation makes both readiness views stale", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const organizationId = "organization-1" as OrganizationId;
+		const instanceReadiness = cached(
+			orpc.instance.organizationReadiness.queryKey({
+				input: {
+					organizationId,
+				},
+			}),
+		);
+		const readiness = cached(
+			orpc.readiness.organization.queryKey({
+				input: {},
+			}),
+		);
+
+		await new MutationObserver(
+			queryClient,
+			orpc.instance.inviteMember.mutationOptions(),
+		).mutate({
+			organizationId,
+			email: "new@example.test",
+			role: "member",
+		});
+
+		expect([
+			instanceReadiness(),
+			readiness(),
+		]).toEqual([
+			true,
+			true,
+		]);
 	});
 
 	test("invalidates before the call site's onSuccess, which cannot replace it", async () => {

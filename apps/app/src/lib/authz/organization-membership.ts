@@ -31,6 +31,20 @@ type Actor = {
 	zedToken: string | undefined;
 };
 
+/**
+ * Who changes memberships: a member, through their organization role, or an
+ * instance admin, who need not belong to the organization and is checked
+ * against their account inside the write.
+ */
+export type MembershipActor =
+	| ({
+			kind: "member";
+	  } & Actor)
+	| {
+			kind: "instance-admin";
+			userId: UserId;
+	  };
+
 export const organizationRoleRequiresAdminControl = (
 	role: OrganizationRole | null | undefined,
 ) => role === ORGANIZATION_ADMIN_ROLE;
@@ -46,6 +60,27 @@ const canManageOrganizationAdmins = (
 		userId: actor.userId,
 		zedToken: actor.zedToken,
 	});
+
+/** Whether the actor may touch admin memberships; an instance admin always may. */
+const managesOrganizationAdmins = (
+	organizationId: OrganizationId,
+	actor: MembershipActor,
+) =>
+	actor.kind === "instance-admin"
+		? Effect.succeed(true)
+		: canManageOrganizationAdmins(organizationId, actor);
+
+/** Under the organization lock: fails unless an instance admin actor still is one, and locks the targets' accounts. */
+const confirmInstanceAdmin = (
+	actor: MembershipActor,
+	userIds: readonly UserId[],
+) =>
+	actor.kind === "instance-admin"
+		? lockAsInstanceAdmin({
+				actorId: actor.userId,
+				userIds,
+			})
+		: Effect.succeed([]);
 
 const adminControlRequired = () =>
 	new AppErrors.ForbiddenError({
@@ -119,11 +154,11 @@ export const changeMemberRole = (params: {
 	organizationId: OrganizationId;
 	userId: UserId;
 	role: OrganizationRole | undefined;
-	actor: Actor;
+	actor: MembershipActor;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const managesAdmins = yield* canManageOrganizationAdmins(
+		const managesAdmins = yield* managesOrganizationAdmins(
 			params.organizationId,
 			params.actor,
 		);
@@ -135,6 +170,9 @@ export const changeMemberRole = (params: {
 				],
 			},
 			Effect.gen(function* () {
+				yield* confirmInstanceAdmin(params.actor, [
+					params.userId,
+				]);
 				const [existing] = yield* db
 					.select({
 						role: dbSchema.member.role,
@@ -204,12 +242,12 @@ export const changeMemberRole = (params: {
 export const removeMembers = (params: {
 	organizationId: OrganizationId;
 	userIds: readonly UserId[];
-	actor: Actor;
+	actor: MembershipActor;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const now = new Date();
-		const managesAdmins = yield* canManageOrganizationAdmins(
+		const managesAdmins = yield* managesOrganizationAdmins(
 			params.organizationId,
 			params.actor,
 		);
@@ -221,6 +259,7 @@ export const removeMembers = (params: {
 				],
 			},
 			Effect.gen(function* () {
+				yield* confirmInstanceAdmin(params.actor, params.userIds);
 				const members = yield* db
 					.select({
 						userId: dbSchema.member.userId,
@@ -287,6 +326,105 @@ export const removeMembers = (params: {
 				});
 			}),
 		);
+	});
+
+/**
+ * Adds an existing account to the organization with `role`. Instance admins
+ * only; a banned account, or one that is already a member, is refused.
+ */
+export const addMember = (params: {
+	organizationId: OrganizationId;
+	userId: UserId;
+	role: OrganizationRole;
+	actor: Extract<
+		MembershipActor,
+		{
+			kind: "instance-admin";
+		}
+	>;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { result } = yield* writeRelationships(
+			{
+				organizationIds: [
+					params.organizationId,
+				],
+			},
+			Effect.gen(function* () {
+				const [target] = yield* confirmInstanceAdmin(params.actor, [
+					params.userId,
+				]);
+				const [organization] = yield* db
+					.select({
+						id: dbSchema.organization.id,
+					})
+					.from(dbSchema.organization)
+					.where(eq(dbSchema.organization.id, params.organizationId));
+				if (!organization)
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							reason: "ORGANIZATION_NOT_FOUND",
+							message: "Organization not found",
+						}),
+					);
+				if (!target)
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							reason: "USER_NOT_FOUND",
+							id: params.userId,
+							message: "User not found",
+						}),
+					);
+				if (target.banned)
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "USER_BANNED",
+							message: "A banned account cannot join an organization.",
+						}),
+					);
+				// The organization lock serializes adds, so the check holds.
+				const [existing] = yield* db
+					.select({
+						id: dbSchema.member.id,
+					})
+					.from(dbSchema.member)
+					.where(
+						and(
+							eq(dbSchema.member.organizationId, params.organizationId),
+							eq(dbSchema.member.userId, params.userId),
+						),
+					);
+				if (existing)
+					return yield* Effect.fail(
+						new AppErrors.ConflictError({
+							reason: "ALREADY_EXISTS",
+							message: "This account is already a member.",
+						}),
+					);
+				const [member] = yield* db
+					.insert(dbSchema.member)
+					.values({
+						organizationId: params.organizationId,
+						userId: params.userId,
+						role: params.role,
+						createdAt: new Date(),
+					})
+					.returning({
+						...getColumns(dbSchema.member),
+					});
+				yield* recordRelationshipFacts(
+					RelationshipFact.OrganizationRoleChanged({
+						organizationId: params.organizationId,
+						userId: params.userId,
+						from: null,
+						to: params.role,
+					}),
+				);
+				return member;
+			}),
+		);
+		return result;
 	});
 
 /**

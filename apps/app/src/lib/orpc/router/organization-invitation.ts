@@ -1,9 +1,5 @@
 import { normalizeEmail } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import {
-	notificationOutboxValues,
-	wakeNotificationWorker,
-} from "@orcai/notifications";
 import type {
 	ListOrganizationInvitationsInput,
 	OrganizationInvitationSortKey,
@@ -20,13 +16,13 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { invitationAddressedTo } from "@/lib/auth/invitation-signup";
+import { inviteToOrganization } from "@/lib/authz/organization-invitations";
 import {
 	acceptInvitation as acceptInvitedMembership,
 	assertCanManageOrganizationAdmins,
 	organizationRoleRequiresAdminControl,
 } from "@/lib/authz/organization-membership";
 import { getZedToken } from "@/lib/authz/zed-token";
-import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
@@ -224,25 +220,7 @@ const validateOrganizationInvitation =
 const createOrganizationInvitations = authed.organizationInvitation.create
 	.use(requireOrganizationPermission("invite_members"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const { config } = yield* AppConfigService;
 		const organizationId = context.auth.session.activeOrganizationId;
-		const organization = yield* db.query.organization.findFirst({
-			where: {
-				id: {
-					eq: organizationId,
-				},
-			},
-		});
-		if (!organization) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					reason: "ORGANIZATION_NOT_FOUND",
-					message: "Organization not found",
-				}),
-			);
-		}
-
 		if (organizationRoleRequiresAdminControl(input.role)) {
 			yield* assertCanManageOrganizationAdmins(organizationId, {
 				userId: context.auth.user.id,
@@ -250,53 +228,18 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 			});
 		}
 
-		const invitations = input.items.map((item) => ({
-			email: item.email,
-			organizationId,
-			role: input.role,
-			status: "pending" as const,
-			expiresAt: input.expiresAt,
-			inviterId: context.auth.user.id,
-		}));
-
-		const data = yield* db.transaction((tx) =>
-			Effect.gen(function* () {
-				const created = yield* tx
-					.insert(dbSchema.invitation)
-					.values(invitations)
-					.returning({
-						...getColumns(dbSchema.invitation),
-					});
-				yield* tx.insert(dbSchema.notificationOutbox).values(
-					created.map((invitation) =>
-						notificationOutboxValues(
-							{
-								type: "organization.invited",
-								recipient: invitation.email,
-								recipientName: invitation.email.split("@")[0] || undefined,
-								invitationId: invitation.id,
-								organizationName: organization.name,
-								inviterName: context.auth.user.name || context.auth.user.email,
-								role: invitation.role,
-								expiresAt: invitation.expiresAt,
-								registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
-								locale: input.locale ?? context.auth.user.locale ?? "en",
-							},
-							`organization.invited:${invitation.id}`,
-						),
-					),
-				);
-				return created;
-			}),
-		);
-		yield* wakeNotificationWorker.pipe(
-			Effect.catch((cause) =>
-				Effect.logWarning(`notification.wake.failed cause=${String(cause)}`),
-			),
-		);
-
 		return {
-			data,
+			data: yield* inviteToOrganization({
+				organizationId,
+				emails: input.items.map((item) => item.email),
+				role: input.role,
+				expiresAt: input.expiresAt,
+				locale: input.locale ?? context.auth.user.locale ?? "en",
+				inviter: {
+					id: context.auth.user.id,
+					name: context.auth.user.name || context.auth.user.email,
+				},
+			}),
 		};
 	});
 

@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { instanceUserSchema } from "../instance/schema";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
@@ -7,7 +8,6 @@ import {
 import {
 	userAccessEntrySchema,
 	userSchema,
-	userWithMembershipsSchema,
 	userWithOrganizationRoleSchema,
 } from "./schema";
 
@@ -15,9 +15,8 @@ export const listUsersResponseSchema = createListResponseSchema(
 	userWithOrganizationRoleSchema,
 );
 
-export const listAllUsersResponseSchema = createListResponseSchema(
-	userWithMembershipsSchema,
-);
+export const listAllUsersResponseSchema =
+	createListResponseSchema(instanceUserSchema);
 
 export const findUserResponseSchema = createDataResponseSchema(
 	userWithOrganizationRoleSchema,

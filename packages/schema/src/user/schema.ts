@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
 import { organizationRoleSchema } from "../organization/parts/role";
-import { organizationIdSchema } from "../organization/ref";
 import {
 	createResourceScopedSchema,
 	RESOURCE_GRANT_SOURCE,
@@ -39,20 +38,6 @@ export const userFiltersSchema = z.object({
 	...searchFilterSchema.shape,
 });
 
-/** One organisation an account belongs to, named for the instance list. */
-export const userOrganizationMembershipSchema = z.object({
-	organizationId: organizationIdSchema,
-	organizationName: z.string(),
-	organizationSlug: z.string(),
-	role: organizationRoleSchema,
-});
-
-/** An account as the instance sees it, with every membership instead of one organisation role. */
-export const userWithMembershipsSchema = userSchema.extend({
-	memberships: z.array(userOrganizationMembershipSchema),
-	twoFactorEnabled: z.boolean(),
-});
-
 export const USER_ACCESS_SOURCE = {
 	...RESOURCE_GRANT_SOURCE,
 	INHERITED_ORGANIZATION: "inherited:organization",
@@ -85,7 +70,3 @@ export type UserWithOrganizationRole = z.infer<
 >;
 export type UserAccessEntry = z.infer<typeof userAccessEntrySchema>;
 export type UserAccessSource = z.infer<typeof userAccessSourceSchema>;
-export type UserOrganizationMembership = z.infer<
-	typeof userOrganizationMembershipSchema
->;
-export type UserWithMemberships = z.infer<typeof userWithMembershipsSchema>;
