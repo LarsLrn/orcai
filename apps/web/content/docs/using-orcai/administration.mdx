@@ -312,9 +312,26 @@ writes are not priced, so the estimate may differ from the invoice.
 ## Instance management
 
 Instance management is a separate application area under `/instance`, with
-its own sidebar and three pages. Instance administrators can open it from the
+its own sidebar and four pages. Instance administrators can open it from the
 shared user menu or the organisation picker, including when they have no
-organisation memberships. `/instance` opens the Organisations page.
+organisation memberships. `/instance` opens the Health page.
+
+**Health** (`/instance/health`) shows whether the instance works. Each check
+is OK, a warning or failing, and is either required or recommended:
+PostgreSQL, SpiceDB, Qdrant and object storage are required, Valkey is
+recommended. The page also requires a running workers process, and
+recommends email delivery over SMTP and a deployment without configuration
+warnings. A dependency that does not answer within three seconds counts as
+failing. Below the checks it lists the outbox (waiting and given-up emails,
+the latest error, and whether the latest email went out over SMTP or only to
+the worker log), the processes that run background jobs with their last
+heartbeat, the jobs per queue including dead letter queues, the OrcAI,
+PostgreSQL, Qdrant and Valkey versions with the latest database migration,
+and the settings of the app process. Secrets only show whether they are set.
+The checks run when the page opens and on **Check again**; nothing polls in
+the background. **Send test email** queues an email to your own address, at
+most one a minute, through the same outbox as every other email; check again
+to see whether it was sent and how.
 
 **Organisations** (`/instance/organizations`) lists every organisation of the
 instance with its slug and member count, with search, creates one with
