@@ -27,7 +27,7 @@ const NewChat = ({
 		selectedBotId,
 		selectedModelId,
 		selectedProviderId,
-		availability,
+		blocker,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect,
@@ -65,7 +65,7 @@ const NewChat = ({
 					onModelSelect={handleModelSelect}
 					onSend={handleSend}
 					isCreating={isCreating}
-					availability={availability}
+					blocker={blocker}
 				/>
 			</div>
 		</div>

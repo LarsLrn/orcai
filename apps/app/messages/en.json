@@ -1900,6 +1900,7 @@
 	"chat_composer_placeholder": "Ask a question",
 	"chat_composer_placeholder_no_model": "Chatting opens once a model is available",
 	"chat_composer_placeholder_no_quota": "Chatting opens once a quota pool covers this model",
+	"chat_composer_placeholder_quota_exhausted": "Chatting opens again when the quota resets",
 	"chat_composer_send_failed_toast_error": "The message and its attachments were not sent. Send them again.",
 	"chat_delete_confirm_button": [
 		{
@@ -2053,6 +2054,8 @@
 	"chat_placeholder_bot_description_fallback": "Answers draw on this bot's sources and behaviour.",
 	"chat_placeholder_description": "Without a bot, answers come from the model alone. Choose a bot to ground them in your organisation's sources.",
 	"chat_placeholder_title": "Ask anything",
+	"chat_quota_exhausted_notice_resets": "Resets {time}.",
+	"chat_quota_exhausted_notice_title": "Quota used up.",
 	"chat_quota_notice_create_pool_action": "Create a quota pool",
 	"chat_quota_notice_description_manager": "Create a pool for its provider, then chatting opens.",
 	"chat_quota_notice_description_member": "Choose another model or ask an organisation admin to create a quota pool.",

@@ -35,7 +35,9 @@ Before sending the first message, choose:
 
 The first message is text only. Attachments, behaviour and repositories are added once the chat exists.
 
-The composer is disabled with a notice when no chat model is available (a model needs Text and Tool calling) or when no quota pool covers the chosen model for you. Members who can fix it get a link: **Set up a model** to Models (`/app/models`) or **Create a quota pool** to `/app/quotas/add`. Everyone else is asked to contact an organisation admin.
+The composer is disabled with a notice below it when no chat model is available (a model needs Text and Tool calling), when no quota pool covers the chosen model for you, or when that pool is used up. Members who can fix the first two get a link: **Set up a model** to Models (`/app/models`) or **Create a quota pool** to `/app/quotas/add`. Everyone else is asked to contact an organisation admin. A used-up pool says when it resets, for example **Quota used up. Resets in 3 days.**; hover the time for the exact date. Sending opens again by itself once the pool resets.
+
+An open chat shows the same notice below its composer when no pool covers its model or the pool is used up. You can still type, and **Stop** still ends a reply that is running, but sending waits until the notice is gone.
 
 ### Send And Continue [step]
 

@@ -2,16 +2,12 @@ import type { ChatId } from "@orcai/core";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import {
-	type AssistantModelAvailability,
-	useAssistantModel,
-} from "@/components/assistant/use-assistant-model";
+import { useAssistantModel } from "@/components/assistant/use-assistant-model";
+import { composerBlocker } from "@/components/chat/composer-blocker";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
-
-type AssistantStarterAvailability = AssistantModelAvailability | "no-quota";
 
 const useAssistantStarter = ({
 	onConversationCreated,
@@ -32,10 +28,13 @@ const useAssistantStarter = ({
 		modelId,
 	});
 
-	const starterAvailability: AssistantStarterAvailability =
-		availability === "set" && quota?.data.available === false
-			? "no-quota"
-			: availability;
+	const blocker =
+		availability === "set"
+			? composerBlocker({
+					modelAvailable: true,
+					quota: quota?.data,
+				})
+			: undefined;
 
 	/** Resolves whether the conversation was created, so a failed send keeps its draft. */
 	const handleSend = useCallback(
@@ -66,7 +65,8 @@ const useAssistantStarter = ({
 	);
 
 	return {
-		availability: starterAvailability,
+		availability,
+		blocker,
 		isCreating,
 		handleSend,
 	};

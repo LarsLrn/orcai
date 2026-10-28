@@ -28,11 +28,13 @@ const AssistantNewConversation = ({
 	) => void | Promise<void>;
 }) => {
 	const [messageText, setMessageText] = useState(initialText ?? "");
-	const { availability, isCreating, handleSend } = useAssistantStarter({
-		onConversationCreated,
-	});
+	const { availability, blocker, isCreating, handleSend } = useAssistantStarter(
+		{
+			onConversationCreated,
+		},
+	);
 	const { modelId, providerId } = useAssistantModel();
-	const isBlocked = availability === "no-quota";
+	const isBlocked = blocker !== undefined;
 
 	if (availability === "loading") {
 		return <Spinner className="mx-auto my-8" />;
@@ -74,9 +76,11 @@ const AssistantNewConversation = ({
 						name="message"
 						aria-label={m.chat_composer_aria_label()}
 						placeholder={
-							isBlocked
-								? m.chat_composer_placeholder_no_quota()
-								: m.chat_composer_placeholder()
+							blocker?.reason === "exhausted"
+								? m.chat_composer_placeholder_quota_exhausted()
+								: blocker
+									? m.chat_composer_placeholder_no_quota()
+									: m.chat_composer_placeholder()
 						}
 						className="field-sizing-content max-h-48 min-h-16"
 						value={messageText}
@@ -99,7 +103,7 @@ const AssistantNewConversation = ({
 						</div>
 					</InputGroupAddon>
 				</InputGroup>
-				{isBlocked && <ChatModelNotice reason="quota" />}
+				{blocker && <ChatModelNotice blocker={blocker} />}
 			</form>
 		</div>
 	);
