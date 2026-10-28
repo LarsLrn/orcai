@@ -12,6 +12,7 @@ import { createTemplate } from "./assistant/bots/create-template.declaration";
 import { deleteAsset } from "./assistant/bots/delete-asset.declaration";
 import { deleteBlock } from "./assistant/bots/delete-block.declaration";
 import { deleteBot } from "./assistant/bots/delete-bot.declaration";
+import { findModels } from "./assistant/bots/find-models.declaration";
 import { publishBot } from "./assistant/bots/publish-bot.declaration";
 import { requestUpload } from "./assistant/bots/request-upload.declaration";
 import { retryAsset } from "./assistant/bots/retry-asset.declaration";
@@ -104,6 +105,7 @@ const toolDeclarations = {
 	listMembers,
 	loadTools,
 	updatePlan,
+	findModels,
 	createBot,
 	updateBot,
 	publishBot,

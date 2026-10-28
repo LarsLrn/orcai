@@ -62,6 +62,7 @@ describe("loadTools", () => {
 					group: "bots",
 					loaded: true,
 					tools: [
+						"findModels",
 						"createBot",
 						"updateBot",
 						"publishBot",
@@ -98,6 +99,7 @@ describe("loadTools", () => {
 			group: "bots",
 			loaded: true,
 			tools: [
+				"findModels",
 				"updateBot",
 				"publishBot",
 				"deleteBot",

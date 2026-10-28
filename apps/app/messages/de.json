@@ -903,6 +903,23 @@
 			}
 		}
 	],
+	"assistant_tool_find_models_active": "Modelle werden gesucht",
+	"assistant_tool_find_models_name": "Modelle suchen",
+	"assistant_tool_find_models_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Modell gefunden",
+				"countPlural=other": "{count} Modelle gefunden"
+			}
+		}
+	],
 	"assistant_tool_find_principals_active": "Personen und Gruppen werden gesucht",
 	"assistant_tool_find_principals_name": "Personen und Gruppen suchen",
 	"assistant_tool_find_principals_summary": "Personen und Gruppen für {resource} suchen",

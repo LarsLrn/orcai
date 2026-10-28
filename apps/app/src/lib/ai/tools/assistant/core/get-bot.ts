@@ -1,6 +1,7 @@
 import { botIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { readSetup } from "../bots/setup-input";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -16,7 +17,7 @@ const getBotInputSchema = z.strictObject({
 export const getBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Read one bot: its name, description, status, features, linked AI behaviour (template) and repositories, and what the user may do with it.",
+			"Read one bot: its name, description, status, features, linked AI behaviour (template) and repositories, its model in the active organisation (with quota coverage for its editors), and what the user may do with it.",
 		inputSchema: getBotInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {
@@ -101,6 +102,7 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 							}
 						: null,
 					repositories: links.repositories,
+					setup: yield* readSetup(deps, id),
 					canEdit: bot.capabilities.edit === true,
 					canDelete: bot.capabilities.delete === true,
 					canManageAccess: bot.capabilities.manage_access === true,

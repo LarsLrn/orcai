@@ -16,6 +16,7 @@ import {
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
 import { featuresInputSchema } from "./features-input";
+import { readSetup, setupInputSchema, writeSetup } from "./setup-input";
 
 export const createBotInputSchema = z.strictObject({
 	name: botFieldsSchema.shape.name,
@@ -34,6 +35,7 @@ export const createBotInputSchema = z.strictObject({
 		.describe(
 			"Every enabled feature, such as { generativeUi: {}, webSearch: { allowedDomains: [] } }.",
 		),
+	setup: setupInputSchema.optional(),
 });
 
 /** A new bot is a draft with empty rich content. */
@@ -53,7 +55,7 @@ export const createBotPayload = (
 export const createBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Create a new draft bot: name and description, optionally its behaviour block, repositories and features. To change an existing bot, use updateBot. Publish with publishBot.",
+			"Create a new draft bot: name and description, optionally its behaviour block, repositories, features and its model in the active organisation, with how many of its audience a quota pool covers. A setup that fails comes back as setupError next to the created bot; fix it with updateBot. To change an existing bot, use updateBot. Publish with publishBot.",
 		inputSchema: createBotInputSchema,
 		run: (input, { toolCallId }) => {
 			const payload = createBotPayload(input);
@@ -81,10 +83,21 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 						expectType("template", templateBlockId ?? []),
 						expectType("repository", databaseBlockIds),
 						Effect.map(({ data }) => botOutline(data)),
+						Effect.flatMap((bot) =>
+							input.setup === undefined
+								? Effect.succeed(bot)
+								: writeSetup(deps, bot.id, input.setup).pipe(
+										Effect.map((setup) => ({
+											...bot,
+											...setup,
+										})),
+									),
+						),
 					),
 					ids: (bot) => [
 						bot.id,
 					],
+					// A replay reads the setup back, so it never undoes a change made since.
 					replay: ([botId]) =>
 						callProcedure(deps, (procedures, options) =>
 							procedures.bot.findEditor(
@@ -93,7 +106,19 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 								},
 								options,
 							),
-						).pipe(Effect.map(({ data }) => botOutline(data))),
+						).pipe(
+							Effect.map(({ data }) => botOutline(data)),
+							Effect.flatMap((bot) =>
+								input.setup === undefined
+									? Effect.succeed(bot)
+									: readSetup(deps, bot.id).pipe(
+											Effect.map((setup) => ({
+												...bot,
+												setup,
+											})),
+										),
+							),
+						),
 				},
 			);
 		},

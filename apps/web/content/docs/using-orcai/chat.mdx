@@ -62,6 +62,14 @@ A read-only chat cannot be sent to, branched, renamed or have blocks attached; y
 
 Chats of organisations you are no longer a member of are listed under **Chat history** (`/history`). It works without any membership: the chat list and **Select your organisation** link to it as soon as you have such chats. It lists each chat with its organisation and last activity, opens it read-only with **Download chat**, and offers **Export your data**. Deleting an organisation deletes its chats, so they do not appear here.
 
+### Bot Models
+
+A bot can recommend or require a model in your organisation (see [Bots](/docs/using-orcai/bots#model)). A new chat with the bot starts on that model and its settings.
+
+- With a **recommended** model you can switch in the composer or chat settings. After switching, **Tuned for …** next to the picker names the model the bot was set up for.
+- With a **required** model the picker is locked; hovering it shows **Required by …**. Chat settings show the model and its generation settings read-only, and the bot's author can change them for all its chats.
+- When a required model cannot serve you, because it was removed, cannot serve chats or no quota pool covers it for you, a notice under the composer says so. The bot's editors get **Choose its model**, which opens the editor's Model step.
+
 ## Chat List
 
 The chat list (`/app/chat`) shows your chats of the active organisation in a table and supports:
