@@ -3192,6 +3192,7 @@
 	"instance_org_members_empty_title": "No members",
 	"instance_org_members_search_placeholder": "Search name or email",
 	"instance_org_members_title": "Members",
+	"instance_org_setup_description": "What the organisation still needs before its members can chat. Its admins fix it on the organisation's Manage tab.",
 	"instance_sidebar_health_nav_label": "Health",
 	"instance_organizations_create_button": "Create organisation",
 	"instance_organizations_create_dialog_description": "Choose who administers the new organisation.",

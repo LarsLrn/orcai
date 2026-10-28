@@ -3192,6 +3192,7 @@
 	"instance_org_members_empty_title": "Keine Mitglieder",
 	"instance_org_members_search_placeholder": "Name oder E-Mail suchen",
 	"instance_org_members_title": "Mitglieder",
+	"instance_org_setup_description": "Was der Organisation noch fehlt, damit ihre Mitglieder chatten können. Ihre Admins beheben es im Tab „Verwalten“ der Organisation.",
 	"instance_sidebar_health_nav_label": "Status",
 	"instance_organizations_create_button": "Organisation erstellen",
 	"instance_organizations_create_dialog_description": "Legen Sie fest, wer die neue Organisation verwaltet.",
