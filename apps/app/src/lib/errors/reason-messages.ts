@@ -137,6 +137,7 @@ const reasonMessages: ReasonMessages = {
 	PASSWORDS_MISMATCH: m.error_passwords_mismatch,
 	PERMISSION_DENIED: m.error_permission_denied,
 	PRIVACY_CONSENT_REQUIRED: m.error_privacy_consent_required,
+	PROFILE_IMAGE_UPLOAD_REQUIRED: m.error_profile_image_upload_required,
 	PROVIDER_DISABLED: m.error_provider_disabled,
 	PROVIDER_COST_REPORTING_NOT_ALLOWED:
 		m.error_provider_cost_reporting_not_allowed,

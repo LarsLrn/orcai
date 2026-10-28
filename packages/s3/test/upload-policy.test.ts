@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-
+import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Result from "effect/Result";
 import { UPLOAD_LIFECYCLE_RULES, validateUploadEnvelope } from "../src/server";
@@ -9,7 +9,11 @@ import {
 	buildUploadPrefix,
 	getFileTypeFromMime,
 	getMimeTypeFromFileType,
+	IMAGE_PREFIX,
+	type ImageOwner,
+	imagePath,
 	isMimeAllowed,
+	parseImagePath,
 	UPLOAD_ROUTES,
 	UPLOAD_STAGING_PREFIX,
 } from "../src/shared";
@@ -144,6 +148,7 @@ describe("staging", () => {
 
 		expect(expires(result.success.stagingKey)).toBe(true);
 		expect(expires(result.success.key)).toBe(false);
+		expect(expires(`${IMAGE_PREFIX}users/${userId}/${id}.webp`)).toBe(false);
 	});
 
 	test("rejects envelopes pointing outside the caller's staging prefix", () => {
@@ -174,6 +179,50 @@ describe("staging", () => {
 
 		for (const overrides of forgeries) {
 			expect(Result.isFailure(validate(envelope(overrides)))).toBe(true);
+		}
+	});
+});
+
+describe("image paths", () => {
+	const userId = userIdSchema.parse("00000000-0000-4000-8000-0000000000aa");
+	const organizationId = organizationIdSchema.parse(
+		"00000000-0000-4000-8000-0000000000bb",
+	);
+	const id = "00000000-0000-4000-8000-0000000000cc";
+
+	test("a built path parses back to its owner and its key under the image prefix", () => {
+		const owners: ImageOwner[] = [
+			{
+				kind: "user",
+				userId,
+			},
+			{
+				kind: "organization",
+				organizationId,
+			},
+		];
+		for (const owner of owners) {
+			const path = imagePath(owner, id);
+			const parsed = parseImagePath(path);
+
+			expect(parsed?.owner).toEqual(owner);
+			expect(parsed?.key.startsWith(IMAGE_PREFIX)).toBe(true);
+			expect(`/api/${parsed?.key}`).toBe(path);
+		}
+	});
+
+	test("rejects paths outside the layout", () => {
+		for (const path of [
+			"https://example.com/avatar.png",
+			`/api/images/users/${userId}/${id}.png`,
+			`/api/images/users/${userId}/../${id}.webp`,
+			`/api/images/users/not-a-uuid/${id}.webp`,
+			`/api/images/groups/${userId}/${id}.webp`,
+			`/api/images/users/${userId}/${id}.webp?x=1`,
+			`/api/staging/users/${userId}/${id}.webp`,
+			`images/users/${userId}/${id}.webp`,
+		]) {
+			expect(parseImagePath(path)).toBeUndefined();
 		}
 	});
 });

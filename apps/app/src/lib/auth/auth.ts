@@ -56,6 +56,15 @@ const validateInstanceRole = (role: unknown) => {
 		});
 };
 
+/** Pictures are uploaded through OrcAI, which writes the column itself. */
+const rejectImage = (image: unknown) => {
+	if (image !== undefined)
+		throw new APIError("BAD_REQUEST", {
+			code: "PROFILE_IMAGE_UPLOAD_REQUIRED",
+			message: "A profile picture is set by uploading it.",
+		});
+};
+
 /** Paths that finish a sign-in, including the second step of a challenged one. */
 const SIGN_IN_COMPLETIONS = [
 	"/two-factor/verify-totp",
@@ -271,6 +280,7 @@ export const auth = betterAuth({
 			update: {
 				before: (user) => {
 					if ("role" in user) validateInstanceRole(user.role);
+					rejectImage(user.image);
 					return Promise.resolve();
 				},
 			},
@@ -282,6 +292,7 @@ export const auth = betterAuth({
 				before: async (user, ctx) => {
 					const requestLocale = getLocale();
 					validateInstanceRole("role" in user ? user.role : "user");
+					rejectImage(user.image ?? undefined);
 					const invitationId = organizationInvitationIdSchema.safeParse(
 						ctx?.body?.invitationId,
 					);

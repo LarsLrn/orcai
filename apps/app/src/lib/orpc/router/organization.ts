@@ -45,6 +45,7 @@ import {
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { removeImage, setImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -486,6 +487,46 @@ const updateOrganization = authed.organization.update
 			);
 	});
 
+const setOrganizationLogo = authed.organization.setLogo
+	.use(
+		requireEntityPermission("organization", "manage_organization", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input, context }) {
+		const logo = yield* setImage({
+			owner: {
+				kind: "organization",
+				organizationId: input.id,
+			},
+			uploaderId: context.auth.user.id,
+			file: input.file,
+		});
+
+		return {
+			data: {
+				logo,
+			},
+		};
+	});
+
+const removeOrganizationLogo = authed.organization.removeLogo
+	.use(
+		requireEntityPermission("organization", "manage_organization", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input }) {
+		yield* removeImage({
+			kind: "organization",
+			organizationId: input.id,
+		});
+
+		return {
+			success: true,
+		};
+	});
+
 /** Count resources with no other active organisation scope */
 const countExclusiveResources = (organizationId: OrganizationId) =>
 	Effect.gen(function* () {
@@ -621,6 +662,8 @@ export const organizationRouter = {
 	create: createOrganization,
 	find: findOrganization,
 	update: updateOrganization,
+	setLogo: setOrganizationLogo,
+	removeLogo: removeOrganizationLogo,
 	delete: deleteOrganizations,
 	deletionImpact: getOrganizationDeletionImpact,
 };

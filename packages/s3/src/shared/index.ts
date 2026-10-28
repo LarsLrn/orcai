@@ -8,6 +8,12 @@ export {
 	getFileTypeFromMime,
 	getMimeTypeFromFileType,
 } from "./file-type-helpers";
+export {
+	IMAGE_PREFIX,
+	type ImageOwner,
+	imagePath,
+	parseImagePath,
+} from "./images";
 export type { ObjectMetadata, ServerMetadata } from "./types";
 export type { UploadRouteName } from "./upload-policy";
 export {

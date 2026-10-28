@@ -6,6 +6,7 @@ import { searchFilterSchema } from "../shared/filters";
 import { localeSchema } from "../shared/primitives/locale";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
+import { uploadFileObjectSchema } from "../storage/schema";
 import { userIdSchema } from "../user/ref";
 import { organizationIdSchema } from "./ref";
 import {
@@ -93,6 +94,16 @@ export const updateOrganizationInputSchema =
 			])
 			.optional(),
 	});
+
+/** A cropped logo the caller uploaded through the `organizationLogo` route. */
+export const setOrganizationLogoInputSchema = z.object({
+	id: organizationIdSchema,
+	file: uploadFileObjectSchema,
+});
+
+export const removeOrganizationLogoInputSchema = z.object({
+	id: organizationIdSchema,
+});
 
 export const deleteOrganizationsInputSchema = z.object({
 	refs: createUniqueRefsInputSchema({

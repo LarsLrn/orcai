@@ -78,18 +78,27 @@ test("only an admin changes the organisation", async ({ api, org }) => {
 		await expectForbidden(
 			api.as(role).organization.update({
 				id: org.id,
-				logo: null,
+				name: org.name,
+			}),
+		);
+		await expectForbidden(
+			api.as(role).organization.removeLogo({
+				id: org.id,
 			}),
 		);
 	}
 
 	const updated = await api.as("admin").organization.update({
 		id: org.id,
-		logo: null,
+		name: org.name,
 	});
-
 	expect(updated.data.id).toBe(org.id);
 	expect(updated.data.name).toBe(org.name);
+
+	const removed = await api.as("admin").organization.removeLogo({
+		id: org.id,
+	});
+	expect(removed.success).toBe(true);
 });
 
 test("no organisation role may delete an organisation", async ({

@@ -48,7 +48,6 @@ const organizationFormSchema = organizationFieldsSchema
 const defaultValues = (): z.input<typeof organizationFormSchema> => ({
 	name: "",
 	slug: "",
-	logo: null,
 	metadata: null,
 	assistantModelId: null,
 	utilityModelId: null,

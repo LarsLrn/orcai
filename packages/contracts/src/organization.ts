@@ -11,6 +11,10 @@ import {
 	listOrganizationsResponseSchema,
 	organizationDeletionImpactInputSchema,
 	organizationDeletionImpactResponseSchema,
+	removeOrganizationLogoInputSchema,
+	removeOrganizationLogoResponseSchema,
+	setOrganizationLogoInputSchema,
+	setOrganizationLogoResponseSchema,
 	updateOrganizationInputSchema,
 	updateOrganizationResponseSchema,
 } from "@orcai/schema";
@@ -83,6 +87,34 @@ export const organizationContracts = {
 		)
 		.input(updateOrganizationInputSchema)
 		.output(updateOrganizationResponseSchema),
+	setLogo: base
+		.meta(
+			openapi({
+				method: "PUT",
+				path: "/organizations/{id}/logo",
+				summary: "Set the organisation's logo",
+				description:
+					"Takes a square WebP of at most 256 KB uploaded through the `organizationLogo` route.",
+				tags: [
+					"Organizations",
+				],
+			}),
+		)
+		.input(setOrganizationLogoInputSchema)
+		.output(setOrganizationLogoResponseSchema),
+	removeLogo: base
+		.meta(
+			openapi({
+				method: "DELETE",
+				path: "/organizations/{id}/logo",
+				summary: "Remove the organisation's logo",
+				tags: [
+					"Organizations",
+				],
+			}),
+		)
+		.input(removeOrganizationLogoInputSchema)
+		.output(removeOrganizationLogoResponseSchema),
 	delete: base
 		.meta(
 			openapi({

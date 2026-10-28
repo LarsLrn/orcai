@@ -1,11 +1,19 @@
 import { z } from "zod/v4";
 
-export const STORAGE_UPLOAD_ROUTES = [
+/** The routes asset intake takes; the others carry profile pictures and logos. */
+export const ASSET_UPLOAD_ROUTES = [
 	"asset",
 	"chatAttachment",
 ] as const;
 
+export const STORAGE_UPLOAD_ROUTES = [
+	...ASSET_UPLOAD_ROUTES,
+	"profileImage",
+	"organizationLogo",
+] as const;
+
 export const storageUploadRouteSchema = z.enum(STORAGE_UPLOAD_ROUTES);
+export const assetUploadRouteSchema = z.enum(ASSET_UPLOAD_ROUTES);
 
 export const uploadFileDescriptorSchema = z.object({
 	name: z.string().min(1),
@@ -55,6 +63,7 @@ export const multipartCompletedPartSchema = z.object({
 });
 
 export type StorageUploadRoute = z.infer<typeof storageUploadRouteSchema>;
+export type AssetUploadRoute = z.infer<typeof assetUploadRouteSchema>;
 export type UploadFileDescriptor = z.infer<typeof uploadFileDescriptorSchema>;
 export type UploadFileObject = z.infer<typeof uploadFileObjectSchema>;
 export type StorageUploadTarget = z.infer<typeof storageUploadTargetSchema>;

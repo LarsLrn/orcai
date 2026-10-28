@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth/auth";
 import { touchOrganizationRoles } from "@/lib/authz/organization-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { removeImage, setImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
 import { permissionDenied } from "@/lib/orpc/middlewares/permission";
@@ -188,8 +189,41 @@ const setActiveOrganization = authed.user.setActiveOrganization.effect(
 	},
 );
 
+const setUserImage = authed.user.setImage.effect(function* ({
+	input,
+	context,
+}) {
+	const image = yield* setImage({
+		owner: {
+			kind: "user",
+			userId: context.auth.user.id,
+		},
+		uploaderId: context.auth.user.id,
+		file: input.file,
+	});
+
+	return {
+		data: {
+			image,
+		},
+	};
+});
+
+const removeUserImage = authed.user.removeImage.effect(function* ({ context }) {
+	yield* removeImage({
+		kind: "user",
+		userId: context.auth.user.id,
+	});
+
+	return {
+		success: true,
+	};
+});
+
 export const selfServiceRouter = {
 	me,
+	setImage: setUserImage,
+	removeImage: removeUserImage,
 	updatePassword,
 	setTourState,
 	setActiveOrganization,

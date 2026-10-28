@@ -1,4 +1,4 @@
-import type { Asset, StorageUploadRoute } from "@orcai/schema";
+import type { Asset, AssetUploadRoute } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
 import { reasonMessage } from "@/lib/errors/reason-messages";
@@ -21,7 +21,7 @@ export type AssetIntakeOutcome = {
  * Uploads files and creates their assets in one step. Pending covers the
  * transfer and the create call; unmounting mid-transfer aborts it.
  */
-export const useAssetIntake = ({ route }: { route: StorageUploadRoute }) => {
+export const useAssetIntake = ({ route }: { route: AssetUploadRoute }) => {
 	const upload = useUploadFiles({
 		route,
 	});

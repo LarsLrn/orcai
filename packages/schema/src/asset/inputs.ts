@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import {
-	storageUploadRouteSchema,
+	assetUploadRouteSchema,
 	uploadFileObjectSchema,
 } from "../storage/schema";
 import { assetIdSchema } from "./ref";
@@ -28,7 +28,7 @@ export const addAssetToLibraryInputSchema = z.object({
 });
 
 export const createAssetsFromUploadsInputSchema = z.object({
-	route: storageUploadRouteSchema,
+	route: assetUploadRouteSchema,
 	files: z.array(uploadFileObjectSchema).min(1),
 });
 
