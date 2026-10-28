@@ -98,9 +98,9 @@ export const quotaPoolTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<div className="text-right">
+			<span className="tabular-nums">
 				{formatAmount(row.original.currentLedger?.budgetAmount)}
-			</div>
+			</span>
 		),
 	}),
 	columnHelper.display({

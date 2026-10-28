@@ -43,7 +43,13 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			orpc.user.listAccess.key(),
 		];
 	};
+	// Group lists and quota pools show each group's member count.
+	const groupSummaries = () => [
+		orpc.group.list.key(),
+		orpc.quota.find.key(),
+	];
 	const groupMembership = ({ groupId }: Inputs["group"]["addMembers"]) => [
+		...groupSummaries(),
 		orpc.group.listMembers.key({
 			input: {
 				groupId,
@@ -55,6 +61,12 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			},
 		}),
 		orpc.user.listAccess.key(),
+	];
+
+	// A provider's page counts its models.
+	const models = () => [
+		orpc.model.key(),
+		orpc.provider.find.key(),
 	];
 
 	// Readiness lists each document's title and state.
@@ -158,26 +170,20 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			update: () => [
 				orpc.group.key(),
+				orpc.quota.find.key(),
 			],
 			delete: () => [
 				orpc.group.key(),
+				orpc.quota.find.key(),
 			],
 			addMembers: groupMembership,
 			removeMembers: groupMembership,
 		},
 		model: {
-			create: () => [
-				orpc.model.key(),
-			],
-			update: () => [
-				orpc.model.key(),
-			],
-			delete: () => [
-				orpc.model.key(),
-			],
-			discover: () => [
-				orpc.model.key(),
-			],
+			create: models,
+			update: models,
+			delete: models,
+			discover: models,
 		},
 		organization: {
 			create: () => [
@@ -218,6 +224,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			delete: () => [
 				orpc.user.key(),
 				orpc.organizationMember.key(),
+				...groupSummaries(),
 			],
 		},
 		provider: {

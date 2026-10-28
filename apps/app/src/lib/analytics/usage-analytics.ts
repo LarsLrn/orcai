@@ -1,7 +1,6 @@
-import type { BotId, OrganizationId, UserId } from "@orcai/core";
+import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
-	AnalyticsBot,
 	AnalyticsCost,
 	AnalyticsDays,
 	AnalyticsDayUsage,
@@ -9,12 +8,14 @@ import type {
 	ChatMessageRating,
 	InstanceAnalytics,
 	OrganizationAnalytics,
+	UsageBot,
 } from "@orcai/schema";
-import { permittedEntityIds, type SpiceDbService } from "@orcai/spice-db";
+import type { SpiceDbService } from "@orcai/spice-db";
 import { and, count, eq, gte, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
+import { usageIdentities } from "./usage-identities";
 
 const DAY_MS = 86_400_000;
 
@@ -187,12 +188,12 @@ const byKey = <Row extends UsageRow>(
 const byUsage = (a: AnalyticsUsage, b: AnalyticsUsage) =>
 	b.totalTokens - a.totalTokens || b.requests - a.requests;
 
-const botKey = (bot: AnalyticsBot) => (bot.kind === "bot" ? bot.id : bot.kind);
+const botKey = (bot: UsageBot) => (bot.kind === "bot" ? bot.id : bot.kind);
 
 /** Rating rows of one bot each, every rating counted, the most rated first. */
 const ratingsByBot = (
 	rows: ReadonlyArray<{
-		bot: AnalyticsBot;
+		bot: UsageBot;
 		rating: ChatMessageRating;
 		count: number;
 	}>,
@@ -200,7 +201,7 @@ const ratingsByBot = (
 	const bots = new Map<
 		string,
 		{
-			bot: AnalyticsBot;
+			bot: UsageBot;
 			counts: Record<ChatMessageRating, number>;
 		}
 	>();
@@ -279,49 +280,27 @@ export const organizationAnalytics = ({
 			from,
 			eq(event.organizationId, organizationId),
 		);
-		const {
-			user,
-			member,
-			bot,
-			provider,
-			model,
-			chat,
-			chatMessage,
-			chatMessageRating,
-		} = dbSchema;
+		const { provider, model, chat, chatMessage, chatMessageRating } = dbSchema;
 
 		const [timeline, users, bots, models, ratings] = yield* Effect.all(
 			[
 				dailyUsage(from, days, eq(event.organizationId, organizationId)),
-				// Profiles are read through current membership only.
 				db
 					.select({
 						userId: event.userId,
-						name: user.name,
-						email: user.email,
 						...usage,
 					})
 					.from(event)
-					.leftJoin(
-						member,
-						and(
-							eq(member.userId, event.userId),
-							eq(member.organizationId, organizationId),
-						),
-					)
-					.leftJoin(user, eq(user.id, member.userId))
 					.where(where)
-					.groupBy(event.userId, user.name, user.email, event.currency),
+					.groupBy(event.userId, event.currency),
 				db
 					.select({
 						botId: event.botId,
-						name: bot.name,
 						...usage,
 					})
 					.from(event)
-					.leftJoin(bot, eq(bot.id, event.botId))
 					.where(where)
-					.groupBy(event.botId, bot.name, event.currency),
+					.groupBy(event.botId, event.currency),
 				db
 					.select({
 						providerId: event.providerId,
@@ -345,7 +324,6 @@ export const organizationAnalytics = ({
 				db
 					.select({
 						botId: chat.botId,
-						name: bot.name,
 						rating: chatMessageRating.rating,
 						count: count(),
 					})
@@ -355,84 +333,42 @@ export const organizationAnalytics = ({
 						eq(chatMessage.id, chatMessageRating.messageId),
 					)
 					.innerJoin(chat, eq(chat.id, chatMessage.chatId))
-					.leftJoin(bot, eq(bot.id, chat.botId))
 					.where(
 						and(
 							gte(chatMessageRating.updatedAt, from),
 							sql`exists (select 1 from ${event} where ${event.appRequestId} = ${chatMessageRating.messageId}::text and ${event.organizationId} = ${organizationId})`,
 						),
 					)
-					.groupBy(chat.botId, bot.name, chatMessageRating.rating),
+					.groupBy(chat.botId, chatMessageRating.rating),
 			],
 			{
 				concurrency: "unbounded",
 			},
 		);
 
-		const readable = yield* permittedEntityIds({
-			entityType: "bot",
-			entityIds: [
+		const identities = yield* usageIdentities({
+			organizationId,
+			viewer,
+			userIds: users.map(({ userId }) => userId),
+			botIds: [
 				...bots,
 				...ratings,
-			].flatMap((row) =>
-				row.botId === null
-					? []
-					: [
-							row.botId,
-						],
-			),
-			permission: "read",
-			userId: viewer.userId,
-			zedToken: viewer.zedToken,
+			].map(({ botId }) => botId),
 		});
-		const botOf = ({
-			botId,
-			name,
-		}: {
-			botId: BotId | null;
-			name: string | null;
-		}): AnalyticsBot => {
-			if (botId === null)
-				return {
-					kind: "none",
-				};
-			return name !== null && readable.has(botId)
-				? {
-						kind: "bot",
-						id: botId,
-						name,
-					}
-				: {
-						kind: "other",
-					};
-		};
 
 		return {
 			...timeline,
 			users: byKey(
-				users.map(({ userId, name, email, ...row }) => ({
+				users.map(({ userId, ...row }) => ({
 					...row,
-					user:
-						name === null || email === null
-							? {
-									kind: "former" as const,
-								}
-							: {
-									kind: "member" as const,
-									id: userId,
-									name,
-									email,
-								},
+					user: identities.person(userId),
 				})),
 				(row) => (row.user.kind === "member" ? row.user.id : "former"),
 			).sort(byUsage),
 			bots: byKey(
-				bots.map(({ botId, name, ...row }) => ({
+				bots.map(({ botId, ...row }) => ({
 					...row,
-					bot: botOf({
-						botId,
-						name,
-					}),
+					bot: identities.bot(botId),
 				})),
 				(row) => botKey(row.bot),
 			).sort(byUsage),
@@ -440,12 +376,9 @@ export const organizationAnalytics = ({
 				byUsage,
 			),
 			ratings: ratingsByBot(
-				ratings.map(({ botId, name, ...row }) => ({
+				ratings.map(({ botId, ...row }) => ({
 					...row,
-					bot: botOf({
-						botId,
-						name,
-					}),
+					bot: identities.bot(botId),
 				})),
 			),
 		};

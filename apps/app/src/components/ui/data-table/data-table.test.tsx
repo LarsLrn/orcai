@@ -166,20 +166,15 @@ describe("DataTable", () => {
 		expect(screen.queryByText("Rows per page")).toBeNull();
 	});
 
-	test("an empty page past the data offers to go back to the first page", async () => {
+	test("an empty page past the data moves back to the last page", async () => {
 		const router = await renderTable({
 			data: [],
+			rowCount: 50,
 			search: "?pageIndex=4",
 		});
 
-		fireEvent.click(
-			screen.getByRole("button", {
-				name: "Clear filters",
-			}),
-		);
-
 		await waitFor(() => {
-			expect(currentSearch(router).pageIndex).toBe(0);
+			expect(currentSearch(router).pageIndex).toBe(2);
 		});
 	});
 

@@ -4,9 +4,14 @@ import {
 	statusResponseSchema,
 } from "../shared";
 import { groupSchema } from "./schema";
-import { groupMemberRowSchema, groupMemberUserSchema } from "./views";
+import {
+	groupListRowSchema,
+	groupMemberRowSchema,
+	groupMemberUserSchema,
+} from "./views";
 
-export const listGroupsResponseSchema = createListResponseSchema(groupSchema);
+export const listGroupsResponseSchema =
+	createListResponseSchema(groupListRowSchema);
 
 export const findGroupResponseSchema = createDataResponseSchema(groupSchema);
 

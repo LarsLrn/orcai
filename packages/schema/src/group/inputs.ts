@@ -34,6 +34,7 @@ const groupUserIdsSchema = z
 export const groupSortKeySchema = z.enum([
 	"name",
 	"kind",
+	"memberCount",
 	"createdAt",
 	"updatedAt",
 ]);
@@ -60,9 +61,14 @@ export const findGroupInputSchema = z.object({
 	id: groupIdSchema,
 });
 
+export const groupMemberSortKeySchema = z.enum([
+	"name",
+]);
+
 export const listGroupMembersInputSchema = paginationInputSchema.extend({
 	groupId: groupIdSchema,
 	query: z.string().trim().max(200).optional(),
+	...createSortingInputSchema(groupMemberSortKeySchema).shape,
 });
 
 export const listGroupCandidatesInputSchema = z.object({
@@ -91,6 +97,7 @@ export type ListGroupCandidatesInput = z.infer<
 >;
 export type FindGroupInput = z.infer<typeof findGroupInputSchema>;
 export type ListGroupMembersInput = z.infer<typeof listGroupMembersInputSchema>;
+export type GroupMemberSortKey = z.infer<typeof groupMemberSortKeySchema>;
 export type AddGroupMembersInput = z.infer<typeof addGroupMembersInputSchema>;
 export type RemoveGroupMembersInput = z.infer<
 	typeof removeGroupMembersInputSchema

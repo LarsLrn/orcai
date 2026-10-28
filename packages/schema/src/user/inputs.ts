@@ -1,12 +1,13 @@
 import { INSTANCE_ROLES } from "@orcai/core";
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
+import { resourceTypeSchema } from "../resource/schema";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { sharedSchemas } from "../shared/forms/shared";
 import { createSortingInputSchema } from "../shared/sorting";
 import { tourIdSchema, tourStateSchema } from "./parts/preferences";
 import { userIdSchema } from "./ref";
-import { userFiltersSchema } from "./schema";
+import { userAccessSourceSchema, userFiltersSchema } from "./schema";
 
 export const userSortKeySchema = z.enum([
 	"name",
@@ -55,8 +56,22 @@ export const findUserInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
 
-export const listUserAccessInputSchema = z.object({
+export const userAccessSortKeySchema = z.enum([
+	"resourceName",
+	"resourceType",
+	"source",
+]);
+
+export const listUserAccessInputSchema = paginationInputSchema.extend({
 	id: userIdSchema,
+	filters: z
+		.object({
+			search: z.string().trim().max(200).optional(),
+			resourceType: resourceTypeSchema.optional(),
+			source: userAccessSourceSchema.optional(),
+		})
+		.optional(),
+	...createSortingInputSchema(userAccessSortKeySchema).shape,
 	...zedTokenSchema.shape,
 });
 
@@ -90,6 +105,7 @@ export type ResetTwoFactorInput = z.infer<typeof resetTwoFactorInputSchema>;
 export type SetInstanceRoleInput = z.infer<typeof setInstanceRoleInputSchema>;
 export type FindUserInput = z.infer<typeof findUserInputSchema>;
 export type ListUserAccessInput = z.infer<typeof listUserAccessInputSchema>;
+export type UserAccessSortKey = z.infer<typeof userAccessSortKeySchema>;
 export type DeleteUsersInput = z.infer<typeof deleteUsersInputSchema>;
 export type MeInput = z.infer<typeof meInputSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordInputSchema>;

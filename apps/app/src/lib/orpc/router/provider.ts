@@ -1,7 +1,11 @@
 import { providerKinds } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { type ProviderSortKey, providerFieldIssues } from "@orcai/schema";
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import {
+	type ModelCapability,
+	type ProviderSortKey,
+	providerFieldIssues,
+} from "@orcai/schema";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { encryptApiKey } from "@/lib/encryption";
@@ -112,18 +116,49 @@ const findProvider = authed.provider.find
 			)
 			.limit(1);
 
-		return yield* Effect.fromNullishOr(provider).pipe(
-			Effect.mapError(
-				() =>
-					new AppErrors.NotFoundError({
-						reason: "PROVIDER_NOT_FOUND",
-						message: "Provider not found",
-					}),
-			),
-			Effect.map((provider) => ({
-				data: provider,
-			})),
+		if (!provider) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "PROVIDER_NOT_FOUND",
+					message: "Provider not found",
+				}),
+			);
+		}
+
+		const ofProvider = eq(dbSchema.model.providerId, provider.id);
+		const [[counts], capabilities] = yield* Effect.all(
+			[
+				db
+					.select({
+						total: count(),
+						deprecated: count(
+							sql`case when ${dbSchema.model.isDeprecated} then 1 end`,
+						),
+					})
+					.from(dbSchema.model)
+					.where(ofProvider),
+				db
+					.selectDistinct({
+						capability: sql<ModelCapability>`unnest(${dbSchema.model.capabilities})`,
+					})
+					.from(dbSchema.model)
+					.where(ofProvider)
+					.orderBy(sql`1`),
+			],
+			{
+				concurrency: "unbounded",
+			},
 		);
+
+		return {
+			data: {
+				...provider,
+				models: {
+					...counts,
+					capabilities: capabilities.map((row) => row.capability),
+				},
+			},
+		};
 	});
 
 const createProvider = authed.provider.create

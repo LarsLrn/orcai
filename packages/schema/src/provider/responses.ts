@@ -3,13 +3,13 @@ import {
 	createDeleteResponseSchema,
 	createListResponseSchema,
 } from "../shared";
-import { providerSchema } from "./schema";
+import { providerDetailSchema, providerSchema } from "./schema";
 
 export const listProvidersResponseSchema =
 	createListResponseSchema(providerSchema);
 
 export const findProviderResponseSchema =
-	createDataResponseSchema(providerSchema);
+	createDataResponseSchema(providerDetailSchema);
 
 export const createProviderResponseSchema =
 	createDataResponseSchema(providerSchema);

@@ -1,6 +1,7 @@
 import type { GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
@@ -8,6 +9,13 @@ import {
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
+
+/** Active members of the selected group; All Members holds every member of its organisation. */
+export const groupMemberCount =
+	sql<number>`case when ${dbSchema.group.systemKey} = ${ALL_MEMBERS_GROUP_SYSTEM_KEY}
+	then (select count(*) from ${dbSchema.member} where ${dbSchema.member.organizationId} = ${dbSchema.group.organizationId})
+	else (select count(*) from ${dbSchema.groupMember} where ${dbSchema.groupMember.groupId} = ${dbSchema.group.id} and ${dbSchema.groupMember.removedAt} is null)
+end`.mapWith(Number);
 
 /** The organization's group that is not deleted, or GROUP_NOT_FOUND. */
 export const findOrganizationGroup = (params: {

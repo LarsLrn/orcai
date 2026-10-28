@@ -68,7 +68,7 @@ export const inheritedSourceByResourceType: Record<
 	asset: USER_ACCESS_SOURCE.INHERITED_BLOCK,
 };
 
-const userAccessSourceSchema = z.union([
+export const userAccessSourceSchema = z.union([
 	resourceGrantSourceSchema,
 	z.literal(USER_ACCESS_SOURCE.INHERITED_ORGANIZATION),
 ]);
@@ -77,7 +77,6 @@ export const userAccessEntrySchema = createResourceScopedSchema({
 	role: resourceGrantRoleSchema,
 	source: userAccessSourceSchema,
 	resourceName: z.string().nullable(),
-	createdAt: z.coerce.date(),
 });
 
 export type User = z.infer<typeof userSchema>;
@@ -85,6 +84,7 @@ export type UserWithOrganizationRole = z.infer<
 	typeof userWithOrganizationRoleSchema
 >;
 export type UserAccessEntry = z.infer<typeof userAccessEntrySchema>;
+export type UserAccessSource = z.infer<typeof userAccessSourceSchema>;
 export type UserOrganizationMembership = z.infer<
 	typeof userOrganizationMembershipSchema
 >;

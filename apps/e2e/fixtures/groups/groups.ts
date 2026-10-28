@@ -177,13 +177,13 @@ export const systemGroup = async (client: ApiClient): Promise<Group> => {
 	return group;
 };
 
-/** The entry for an email in the group detail page's "Current members" list. */
+/** The row for an email in the group detail page's "Current members" table. */
 export const memberRow = (page: Page, email: string): Locator =>
 	page
 		.getByRole("region", {
 			name: message("groups_member_list_title"),
 		})
-		.getByRole("listitem")
+		.getByRole("row")
 		.filter({
 			has: page.getByText(email, {
 				exact: true,

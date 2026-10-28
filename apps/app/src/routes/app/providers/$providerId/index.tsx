@@ -1,10 +1,12 @@
-import { getProviderPurpose } from "@orcai/core";
+import { getProviderPurpose, type ProviderId } from "@orcai/core";
+import { listModelsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import {
 	BadgeCheck,
 	BadgeX,
 	BotIcon,
+	BoxIcon,
 	CoinsIcon,
 	EditIcon,
 	GlobeIcon,
@@ -12,10 +14,12 @@ import {
 	ServerIcon,
 	SparklesIcon,
 } from "lucide-react";
+import type { z } from "zod/v4";
 import { MetadataCard } from "@/components/app/metadata-card";
+import { ModelTableActions } from "@/components/model/table/model-table-actions";
+import { modelTableColumns } from "@/components/model/table/model-table-columns";
 import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -23,6 +27,19 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import {
+	dataTableQuerySchema,
+	dataTableSearchDefaults,
+} from "@/components/ui/data-table/data-table-search-params";
+import {
+	DataTableToolbar,
+	DataTableToolbarActions,
+} from "@/components/ui/data-table/data-table-toolbar";
+import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import { Separator } from "@/components/ui/separator";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
@@ -32,14 +49,15 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import {
+	Section,
+	SectionDescription,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatPrice } from "@/lib/presentation/format-number";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
-import {
-	getModelStatusLabel,
-	getModelStatusVariant,
-} from "@/lib/presentation/model-status";
 import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
 import {
 	getProviderStatusLabel,
@@ -47,21 +65,53 @@ import {
 } from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/providers/$providerId/")({
-	component: RouteComponent,
+const searchSchema = listModelsInputSchema
+	.omit({
+		filters: true,
+	})
+	.extend({
+		query: dataTableQuerySchema.default(""),
+	});
+
+const modelsInput = (
+	providerId: ProviderId,
+	{ pageIndex, pageSize, sort, query }: z.infer<typeof searchSchema>,
+) => ({
+	filters: {
+		providerId,
+		search: query || undefined,
+	},
+	pageIndex,
+	pageSize,
+	sort,
 });
 
-const formatTimestamp = (timestamp?: Date | string | null) => {
-	if (!timestamp) {
-		return m.providers_detail_timestamp_not_available();
-	}
+const providerModelColumns = modelTableColumns.filter(
+	(column) => column.id !== "providerName",
+);
 
-	const parsedDate =
-		timestamp instanceof Date ? timestamp : new Date(timestamp);
-	return Number.isNaN(parsedDate.getTime())
-		? m.providers_detail_timestamp_not_available()
-		: formatDisplayTimestamp(parsedDate);
-};
+export const Route = createFileRoute("/app/providers/$providerId/")({
+	validateSearch: searchSchema,
+	search: {
+		middlewares: [
+			stripSearchParams(dataTableSearchDefaults),
+		],
+	},
+	loaderDeps: ({ search }) => search,
+	loader: async ({
+		context: { queryClient },
+		params: { providerId },
+		deps,
+	}) => {
+		await queryClient.query(
+			orpc.model.list.queryOptions({
+				input: modelsInput(providerId, deps),
+				staleTime: "static",
+			}),
+		);
+	},
+	component: RouteComponent,
+});
 
 const getEndpointHost = (endpoint: string | null) => {
 	if (endpoint === null) {
@@ -76,6 +126,7 @@ const getEndpointHost = (endpoint: string | null) => {
 
 function RouteComponent() {
 	const { providerId } = Route.useParams();
+	const search = Route.useSearch();
 	const { data: providerResponse } = useSuspenseQuery(
 		orpc.provider.find.queryOptions({
 			input: {
@@ -84,26 +135,17 @@ function RouteComponent() {
 		}),
 	);
 
-	const { data: modelsResponse } = useSuspenseQuery(
+	const { data: models } = useSuspenseQuery(
 		orpc.model.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 500,
-			},
+			input: modelsInput(providerId, search),
 		}),
 	);
 
 	const provider = providerResponse.data;
-	const providerModels = modelsResponse.data.filter(
-		(model) => model.providerId === provider.id,
+	const activeModelCount = provider.models.total - provider.models.deprecated;
+	const supportedCapabilities = provider.models.capabilities.map(
+		getModelCapabilityLabel,
 	);
-	const deprecatedModelCount = providerModels.filter(
-		(model) => model.isDeprecated,
-	).length;
-	const activeModelCount = providerModels.length - deprecatedModelCount;
-	const supportedCapabilities = Array.from(
-		new Set(providerModels.flatMap((model) => model.capabilities)),
-	).map(getModelCapabilityLabel);
 	const kindLabel = getProviderKindLabel(provider.kind);
 	const servesModels = getProviderPurpose(provider.kind) === "models";
 	const endpointHost = getEndpointHost(provider.endpoint);
@@ -130,7 +172,7 @@ function RouteComponent() {
 						<Badge variant="outline">
 							<BotIcon className="size-3" />
 							{m.providers_detail_model_count_badge({
-								count: providerModels.length,
+								count: provider.models.total,
 							})}
 						</Badge>
 					) : (
@@ -200,7 +242,7 @@ function RouteComponent() {
 												{m.providers_detail_deprecated_models_label()}
 											</div>
 											<div className="mt-1 font-semibold text-sm">
-												{deprecatedModelCount}
+												{provider.models.deprecated}
 											</div>
 										</div>
 										<div>
@@ -280,113 +322,30 @@ function RouteComponent() {
 					</Card>
 
 					{servesModels && (
-						<>
-							<Card>
-								<CardHeader>
-									<CardTitle>{m.common_capabilities_title()}</CardTitle>
-									<CardDescription>
-										{m.providers_detail_capabilities_description()}
-									</CardDescription>
-								</CardHeader>
-								<CardContent>
-									{supportedCapabilities.length === 0 ? (
-										<p className="text-muted-foreground text-sm">
-											{m.providers_detail_no_capabilities_label()}
-										</p>
-									) : (
-										<div className="flex flex-wrap gap-2">
-											{supportedCapabilities.map((capability) => (
-												<Badge key={capability} variant="outline">
-													<SparklesIcon className="h-3 w-3" />
-													{capability}
-												</Badge>
-											))}
-										</div>
-									)}
-								</CardContent>
-							</Card>
-
-							<Card>
-								<CardHeader>
-									<CardTitle>
-										{m.providers_detail_connected_models_title()}
-									</CardTitle>
-									<CardDescription>
-										{m.providers_detail_connected_models_description()}
-									</CardDescription>
-								</CardHeader>
-								<CardContent>
-									{providerModels.length === 0 ? (
-										<div className="rounded-xl border border-border border-dashed p-6 text-center">
-											<p className="font-medium">
-												{m.providers_detail_no_models_title()}
-											</p>
-											<p className="mt-1 text-muted-foreground text-sm">
-												{m.providers_detail_no_models_description()}
-											</p>
-										</div>
-									) : (
-										<div className="grid gap-4 md:grid-cols-2">
-											{providerModels.map((model) => (
-												<div
-													key={model.id}
-													className="space-y-3 rounded-xl border border-border/60 bg-card/60 p-4"
-												>
-													<div className="flex flex-wrap items-start justify-between gap-2">
-														<div>
-															<p className="font-semibold">{model.name}</p>
-															<p className="font-mono text-muted-foreground text-xs">
-																{model.providerModelId}
-															</p>
-														</div>
-														<Badge
-															variant={getModelStatusVariant(
-																model.isDeprecated,
-															)}
-														>
-															{model.isDeprecated ? (
-																<BadgeX className="h-3 w-3" />
-															) : (
-																<BadgeCheck className="h-3 w-3" />
-															)}
-															{getModelStatusLabel(model.isDeprecated)}
-														</Badge>
-													</div>
-
-													<div className="flex flex-wrap gap-2">
-														{model.capabilities.map((capability) => (
-															<Badge key={capability} variant="outline">
-																{getModelCapabilityLabel(capability)}
-															</Badge>
-														))}
-													</div>
-
-													<div className="flex items-center justify-between text-muted-foreground text-xs">
-														<span>
-															{m.providers_detail_model_created_label({
-																timestamp: formatTimestamp(model.createdAt),
-															})}
-														</span>
-														<Link
-															to="/app/models/$modelId"
-															params={{
-																modelId: model.id,
-															}}
-															className={buttonVariants({
-																variant: "outline",
-																size: "sm",
-															})}
-														>
-															{m.providers_detail_view_model_link()}
-														</Link>
-													</div>
-												</div>
-											))}
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						</>
+						<Card>
+							<CardHeader>
+								<CardTitle>{m.common_capabilities_title()}</CardTitle>
+								<CardDescription>
+									{m.providers_detail_capabilities_description()}
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								{supportedCapabilities.length === 0 ? (
+									<p className="text-muted-foreground text-sm">
+										{m.providers_detail_no_capabilities_label()}
+									</p>
+								) : (
+									<div className="flex flex-wrap gap-2">
+										{supportedCapabilities.map((capability) => (
+											<Badge key={capability} variant="outline">
+												<SparklesIcon className="h-3 w-3" />
+												{capability}
+											</Badge>
+										))}
+									</div>
+								)}
+							</CardContent>
+						</Card>
 					)}
 				</div>
 
@@ -397,6 +356,66 @@ function RouteComponent() {
 						updatedAt={provider.updatedAt}
 					/>
 				</div>
+
+				{servesModels ? (
+					<Section className="gap-4 lg:col-span-3">
+						<SectionHeader>
+							<SectionTitle>
+								{m.providers_detail_connected_models_title()}
+							</SectionTitle>
+							<SectionDescription>
+								{m.providers_detail_connected_models_description()}
+							</SectionDescription>
+						</SectionHeader>
+						<DataTable
+							data={models.data}
+							columns={providerModelColumns}
+							state={{
+								pagination: {
+									pageIndex: search.pageIndex,
+									pageSize: search.pageSize,
+								},
+								sorting: search.sort,
+							}}
+							options={{
+								rowCount: models.rowCount,
+								uidAccessor: "id",
+							}}
+						>
+							<DataTableToolbar>
+								<DataTableSearch
+									placeholder={m.providers_detail_models_search_placeholder()}
+								/>
+								<DataTableToolbarActions>
+									<DataTableViewOptions />
+									<ModelTableActions />
+								</DataTableToolbarActions>
+							</DataTableToolbar>
+							<DataTableBody
+								empty={{
+									Icon: BoxIcon,
+									title: m.providers_detail_no_models_title(),
+									description: m.providers_detail_no_models_description(),
+									actions: [
+										{
+											key: "add",
+											label: m.providers_detail_add_model_button(),
+											icon: PlusIcon,
+											variant: "default",
+											linkProps: {
+												to: "/app/models/add",
+											},
+										},
+									],
+								}}
+								filters={{
+									query: search.query,
+								}}
+							/>
+							<DataTablePagination />
+						</DataTable>
+					</Section>
+				) : null}
 			</PageContent>
 		</Page>
 	);

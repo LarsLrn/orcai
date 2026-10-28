@@ -160,16 +160,12 @@ const listUserAccess = authed.user.listAccess
 			});
 		}
 
-		const data = yield* effectiveAccess({
+		return yield* effectiveAccess({
+			...input,
 			userId: input.id,
 			organizationId,
 			zedToken,
 		});
-
-		return {
-			data,
-			rowCount: data.length,
-		};
 	});
 
 export const memberDirectoryRouter = {

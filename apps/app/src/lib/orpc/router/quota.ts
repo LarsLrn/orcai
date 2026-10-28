@@ -7,9 +7,15 @@ import {
 	updateQuotaPool as updateQuotaPoolCommand,
 	type WriteQuotaPoolResult,
 } from "@orcai/quota";
-import type { QuotaPoolSortKey } from "@orcai/schema";
-import { and, count, desc, eq, ilike } from "drizzle-orm";
+import type { QuotaPoolSortKey, QuotaUsageEventSortKey } from "@orcai/schema";
+import { and, asc, count, desc, eq, ilike, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	memberMatching,
+	usageIdentities,
+} from "@/lib/analytics/usage-identities";
+import { groupMemberCount } from "@/lib/authz/group-membership";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
@@ -226,39 +232,40 @@ const findQuotaPool = authed.quota.find
 			);
 		}
 
-		const [state, assignments, recentEvents] = yield* Effect.all(
+		const [state, assignments] = yield* Effect.all(
 			[
 				getCurrentPeriodAndLedger({
 					quotaPoolId: row.pool.id,
 				}),
-				db.query.quotaPoolGroupAssignment.findMany({
-					where: {
-						AND: [
-							{
-								quotaPoolId: {
-									eq: row.pool.id,
-								},
-							},
-							{
-								isActive: true,
-							},
-						],
-					},
-					orderBy: {
-						createdAt: "desc",
-					},
-				}),
-				db.query.quotaUsageEvent.findMany({
-					where: {
-						quotaPoolId: {
-							eq: row.pool.id,
+				db
+					.select({
+						id: dbSchema.quotaPoolGroupAssignment.id,
+						groupId: dbSchema.quotaPoolGroupAssignment.groupId,
+						isActive: dbSchema.quotaPoolGroupAssignment.isActive,
+						createdAt: dbSchema.quotaPoolGroupAssignment.createdAt,
+						updatedAt: dbSchema.quotaPoolGroupAssignment.updatedAt,
+						group: {
+							id: dbSchema.group.id,
+							name: dbSchema.group.name,
+							description: dbSchema.group.description,
+							kind: dbSchema.group.kind,
+							systemKey: dbSchema.group.systemKey,
+							memberCount: groupMemberCount,
 						},
-					},
-					orderBy: {
-						occurredAt: "desc",
-					},
-					limit: 50,
-				}),
+					})
+					.from(dbSchema.quotaPoolGroupAssignment)
+					.innerJoin(
+						dbSchema.group,
+						eq(dbSchema.group.id, dbSchema.quotaPoolGroupAssignment.groupId),
+					)
+					.where(
+						and(
+							eq(dbSchema.quotaPoolGroupAssignment.quotaPoolId, row.pool.id),
+							eq(dbSchema.quotaPoolGroupAssignment.isActive, true),
+							isNull(dbSchema.group.deletedAt),
+						),
+					)
+					.orderBy(asc(dbSchema.group.name), asc(dbSchema.group.id)),
 			],
 			{
 				concurrency: "unbounded",
@@ -272,8 +279,102 @@ const findQuotaPool = authed.quota.find
 				currentPeriod: state.period,
 				currentLedger: state.ledger,
 				assignments,
-				recentEvents,
 			},
+		};
+	});
+
+const listQuotaUsageEvents = authed.quota.listEvents
+	.use(requireOrganizationPermission("manage_quotas"))
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
+		const organizationId = context.auth.session.activeOrganizationId;
+		const event = dbSchema.quotaUsageEvent;
+
+		const whereClause = and(
+			eq(event.organizationId, organizationId),
+			eq(event.quotaPoolId, input.quotaPoolId),
+			input.filters?.eventType
+				? eq(event.eventType, input.filters.eventType)
+				: undefined,
+			input.filters?.search
+				? memberMatching(
+						organizationId,
+						event.userId,
+						literalSearch(input.filters.search),
+					)
+				: undefined,
+		);
+
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				occurredAt: event.occurredAt,
+				eventType: event.eventType,
+				reservedAmount: event.reservedAmount,
+				actualAmount: event.actualAmount,
+			} satisfies Record<QuotaUsageEventSortKey, SortExpression>,
+			defaultOrder: [
+				desc(event.occurredAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: event.id,
+			},
+		});
+
+		const [rows, [rowCount]] = yield* Effect.all(
+			[
+				db
+					.select({
+						id: event.id,
+						eventType: event.eventType,
+						appRequestId: event.appRequestId,
+						reservedAmount: event.reservedAmount,
+						actualAmount: event.actualAmount,
+						totalTokens: event.totalTokens,
+						occurredAt: event.occurredAt,
+						userId: event.userId,
+						botId: event.botId,
+						model: {
+							id: dbSchema.model.id,
+							name: dbSchema.model.name,
+						},
+					})
+					.from(event)
+					.leftJoin(dbSchema.model, eq(dbSchema.model.id, event.modelId))
+					.where(whereClause)
+					.orderBy(...orderBy)
+					.limit(input.pageSize)
+					.offset(input.pageIndex * input.pageSize),
+				db
+					.select({
+						count: count(),
+					})
+					.from(event)
+					.where(whereClause),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
+
+		const identities = yield* usageIdentities({
+			organizationId,
+			viewer: {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			},
+			userIds: rows.map(({ userId }) => userId),
+			botIds: rows.map(({ botId }) => botId),
+		});
+
+		return {
+			data: rows.map(({ userId, botId, ...row }) => ({
+				...row,
+				user: identities.person(userId),
+				bot: identities.bot(botId),
+			})),
+			rowCount: rowCount.count,
 		};
 	});
 
@@ -559,6 +660,7 @@ export const quotaRouter = {
 	list: listQuotaPools,
 	create: createQuotaPool,
 	find: findQuotaPool,
+	listEvents: listQuotaUsageEvents,
 	update: updateQuotaPool,
 	deactivate: deactivateQuotaPool,
 	chatBadge: quotaChatBadge,

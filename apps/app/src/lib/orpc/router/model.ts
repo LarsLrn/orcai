@@ -59,12 +59,17 @@ const listModels = authed.model.list
 						input.filters.capabilities as ModelCapability[],
 					)
 				: undefined,
+			// Within one provider, its name would match every model.
 			searchTerm
 				? or(
 						sql`word_similarity(${searchTerm}, ${dbSchema.model.name}) > 0.2`,
-						sql`word_similarity(${searchTerm}, ${dbSchema.provider.name}) > 0.2`,
 						ilike(dbSchema.model.name, literalSearch(searchTerm)),
-						ilike(dbSchema.provider.name, literalSearch(searchTerm)),
+						...(input.filters?.providerId
+							? []
+							: [
+									sql`word_similarity(${searchTerm}, ${dbSchema.provider.name}) > 0.2`,
+									ilike(dbSchema.provider.name, literalSearch(searchTerm)),
+								]),
 					)
 				: undefined,
 		].filter((c) => c !== undefined);
