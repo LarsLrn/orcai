@@ -7,6 +7,7 @@ export * from "./authorization";
 export * from "./block";
 export * from "./bootstrap";
 export * from "./bot";
+export * from "./bot-setup";
 export * from "./chat";
 export * from "./chat-block";
 export * from "./chat-message";

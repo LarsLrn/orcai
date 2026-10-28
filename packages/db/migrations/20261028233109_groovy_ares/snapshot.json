@@ -1,0 +1,457 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "9059e4f1-d416-4d26-8882-5b48725e33cc",
+  "prevIds": [
+    "344a5d71-1276-4939-a397-48c6c2bb9ae9"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "bot_setup_strength"
+      ],
+      "writes": [
+        "s|enum|public.bot_setup_strength",
+        "n|enum|public.bot_setup_strength",
+        "e|enum|public.bot_setup_strength",
+        "n|type|public.bot_setup_strength"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_setup"
+      ],
+      "writes": [
+        "s|tbl|public.bot_setup",
+        "n|tbl|public.bot_setup",
+        "e|tbl|public.bot_setup",
+        "n|rel|public.bot_setup",
+        "n|type|public.bot_setup",
+        "n|rel|public.bot_setup_pkey"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.bot_setup_strength"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bot_setup",
+        "bot_setup_organization_idx"
+      ],
+      "writes": [
+        "s|idx|public.bot_setup_organization_idx",
+        "n|idx|public.bot_setup_organization_idx",
+        "e|idx|public.bot_setup_organization_idx",
+        "n|rel|public.bot_setup_organization_idx"
+      ],
+      "reads": [
+        "n|tbl|public.bot_setup",
+        "n|sch|public",
+        "n|col|public.bot_setup.organization_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bot_setup",
+        "bot_setup_model_idx"
+      ],
+      "writes": [
+        "s|idx|public.bot_setup_model_idx",
+        "n|idx|public.bot_setup_model_idx",
+        "e|idx|public.bot_setup_model_idx",
+        "n|rel|public.bot_setup_model_idx"
+      ],
+      "reads": [
+        "n|tbl|public.bot_setup",
+        "n|sch|public",
+        "n|col|public.bot_setup.model_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_setup"
+      ],
+      "writes": [
+        "s|fk|public.bot_setup.bot_setup_bot_id_bot_id_fkey",
+        "n|fk|public.bot_setup.bot_setup_bot_id_bot_id_fkey",
+        "e|fk|public.bot_setup.bot_setup_bot_id_bot_id_fkey",
+        "n|con|public.bot_setup.bot_setup_bot_id_bot_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bot_setup",
+        "n|sch|public",
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "n|col|public.bot_setup.bot_id",
+        "n|col|public.bot.id",
+        "e|uniqueness|public.bot.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_setup"
+      ],
+      "writes": [
+        "s|fk|public.bot_setup.bot_setup_organization_id_organization_id_fkey",
+        "n|fk|public.bot_setup.bot_setup_organization_id_organization_id_fkey",
+        "e|fk|public.bot_setup.bot_setup_organization_id_organization_id_fkey",
+        "n|con|public.bot_setup.bot_setup_organization_id_organization_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bot_setup",
+        "n|sch|public",
+        "n|tbl|public.organization",
+        "n|sch|public",
+        "n|col|public.bot_setup.organization_id",
+        "n|col|public.organization.id",
+        "e|uniqueness|public.organization.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_setup"
+      ],
+      "writes": [
+        "s|fk|public.bot_setup.bot_setup_model_id_model_id_fkey",
+        "n|fk|public.bot_setup.bot_setup_model_id_model_id_fkey",
+        "e|fk|public.bot_setup.bot_setup_model_id_model_id_fkey",
+        "n|con|public.bot_setup.bot_setup_model_id_model_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bot_setup",
+        "n|sch|public",
+        "n|tbl|public.model",
+        "n|sch|public",
+        "n|col|public.bot_setup.model_id",
+        "n|col|public.model.id",
+        "e|uniqueness|public.model.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_setup"
+      ],
+      "writes": [
+        "s|fk|public.bot_setup.bot_setup_updated_by_user_id_fkey",
+        "n|fk|public.bot_setup.bot_setup_updated_by_user_id_fkey",
+        "e|fk|public.bot_setup.bot_setup_updated_by_user_id_fkey",
+        "n|con|public.bot_setup.bot_setup_updated_by_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bot_setup",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.bot_setup.updated_by",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "bot_setup",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "bot_setup_strength",
+        "values": [
+          "recommended",
+          "required"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "organization_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "model_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "strength",
+        "type": "bot_setup_strength",
+        "typeSchema": "public",
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "generation",
+        "type": "json",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'{}'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_setup_organization_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_setup_model_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "model_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_setup_bot_id_bot_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "bot_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "bot",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_setup_organization_id_organization_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "organization_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "organization",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_setup_model_id_model_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "model_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "model",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_setup_updated_by_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_setup",
+        "name": "bot_setup_pkey",
+        "columns": [
+          "bot_id",
+          "organization_id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    }
+  ]
+}

@@ -13,6 +13,7 @@ import { authorizationContracts } from "./authorization";
 import { blockContracts } from "./block";
 import { bootstrapContracts } from "./bootstrap";
 import { botContracts } from "./bot";
+import { botSetupContracts } from "./bot-setup";
 import { chatContracts } from "./chat";
 import { chatBlockContracts } from "./chat-block";
 import { chatMessageContracts } from "./chat-message";
@@ -40,6 +41,7 @@ export const contracts = {
 	authorization: authorizationContracts,
 	block: blockContracts,
 	bot: botContracts,
+	botSetup: botSetupContracts,
 	bootstrap: bootstrapContracts,
 	chat: chatContracts,
 	chatBlock: chatBlockContracts,
@@ -76,6 +78,7 @@ export {
 	blockContracts,
 	bootstrapContracts,
 	botContracts,
+	botSetupContracts,
 	chatBlockContracts,
 	chatContracts,
 	chatMessageContracts,

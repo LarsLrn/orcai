@@ -2,6 +2,7 @@ export {
 	METERED_CALL_TIMEOUT_MS,
 	STALE_RESERVATION_AGE_MS,
 } from "./call-timeout";
+export { coveringGroups } from "./coverage";
 export {
 	finalizeAppRequestQuota,
 	releaseAppRequestQuota,

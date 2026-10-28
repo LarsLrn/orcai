@@ -2570,6 +2570,7 @@
 	"error_bot_not_published": "Only published bots can be favourites.",
 	"error_bot_repository_empty": "Attach at least one document to \"{blockName}\" before publishing.",
 	"error_bot_repository_not_ready": "Set \"{blockName}\" to ready before publishing this bot.",
+	"error_bot_setup_forbidden": "Only the bot's editors in its home organisation can change its model here.",
 	"error_chat_blocks_unavailable": "The blocks of this chat could not be loaded.",
 	"error_chat_bot_blocks_immutable": "The blocks of a chat linked to a bot cannot be changed directly.",
 	"error_chat_bot_deleted": "The bot of this chat was deleted, so the chat is read-only. Download it to keep it.",
