@@ -1,12 +1,7 @@
 import type { AssetId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { logErrorCause } from "@orcai/observability";
-import {
-	getFileTypeFromMime,
-	isMimeAllowed,
-	UPLOAD_ROUTES,
-	type UploadRouteName,
-} from "@orcai/s3";
+import { getFileTypeFromMime, isMimeAllowed, UPLOAD_ROUTES } from "@orcai/s3";
 import {
 	isS3NotFound,
 	sendCopyObjectCommand,
@@ -18,6 +13,7 @@ import {
 	type Asset,
 	type AssetIntakeResult,
 	type AssetOrigin,
+	type AssetUploadRoute,
 	assetFileTypeSchema,
 	assetIdSchema,
 	type ErrorReasonProps,
@@ -33,7 +29,7 @@ import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle"
 const ORIGIN_BY_ROUTE = {
 	asset: "library",
 	chatAttachment: "chat",
-} as const satisfies Record<UploadRouteName, AssetOrigin>;
+} as const satisfies Record<AssetUploadRoute, AssetOrigin>;
 
 /** A file the intake refuses, with the reason the client translates. */
 class UploadRejected extends Data.TaggedError("UploadRejected")<{
@@ -48,7 +44,7 @@ const reject = (rejection: ErrorReasonProps) =>
 	);
 
 type Intake = {
-	route: UploadRouteName;
+	route: AssetUploadRoute;
 	userId: UserId;
 	organizationId: OrganizationId;
 };

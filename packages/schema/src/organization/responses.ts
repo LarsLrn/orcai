@@ -1,7 +1,9 @@
+import { z } from "zod/v4";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
+	statusResponseSchema,
 } from "../shared";
 import {
 	organizationDeletionImpactSchema,
@@ -29,3 +31,11 @@ export const deleteOrganizationsResponseSchema = createDeleteResponseSchema();
 
 export const organizationDeletionImpactResponseSchema =
 	createDataResponseSchema(organizationDeletionImpactSchema);
+
+export const setOrganizationLogoResponseSchema = createDataResponseSchema(
+	z.object({
+		logo: z.string(),
+	}),
+);
+
+export const removeOrganizationLogoResponseSchema = statusResponseSchema;

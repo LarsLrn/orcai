@@ -8,7 +8,6 @@ import { organizationIdSchema } from "./ref";
 export const organizationFieldsSchema = z.object({
 	name: z.string().min(1),
 	slug: z.string().min(1),
-	logo: z.string().nullable().optional(),
 	metadata: z.string().nullable().optional(),
 });
 
@@ -17,6 +16,8 @@ export const organizationMutableFieldsSchema =
 
 export const organizationSchema = organizationFieldsSchema.extend({
 	id: organizationIdSchema,
+	/** The app path of the organisation's logo. */
+	logo: z.string().nullable(),
 	assistantModelId: modelIdSchema.nullable(),
 	utilityModelId: modelIdSchema.nullable(),
 	webSearchMode: z.enum(webSearchModes),

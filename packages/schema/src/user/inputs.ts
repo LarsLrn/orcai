@@ -5,6 +5,7 @@ import { resourceTypeSchema } from "../resource/schema";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { sharedSchemas } from "../shared/forms/shared";
 import { createSortingInputSchema } from "../shared/sorting";
+import { uploadFileObjectSchema } from "../storage/schema";
 import { tourIdSchema, tourStateSchema } from "./parts/preferences";
 import { userIdSchema } from "./ref";
 import { userAccessSourceSchema, userFiltersSchema } from "./schema";
@@ -94,6 +95,13 @@ export const setTourStateInputSchema = z.object({
 	tourId: tourIdSchema,
 	state: tourStateSchema,
 });
+
+/** A cropped picture the caller uploaded through the `profileImage` route. */
+export const setUserImageInputSchema = z.object({
+	file: uploadFileObjectSchema,
+});
+
+export const removeUserImageInputSchema = z.object({});
 
 export type ListUsersInput = z.infer<typeof listUsersInputSchema>;
 export type UserSortKey = z.infer<typeof userSortKeySchema>;

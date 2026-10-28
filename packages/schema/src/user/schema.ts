@@ -15,6 +15,7 @@ export const userFieldsSchema = z.object({
 	name: z.string().min(1),
 	email: z.string(),
 	emailVerified: z.boolean(),
+	/** The app path of the profile picture. */
 	image: z.string().nullable(),
 	role: z.string().nullable(),
 	banned: z.boolean().nullable(),

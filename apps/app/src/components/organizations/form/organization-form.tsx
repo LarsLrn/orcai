@@ -265,7 +265,6 @@ export const OrganizationForm = ({
 			? {
 					name: organization.name,
 					slug: organization.slug,
-					logo: organization.logo,
 					assistantModelId: organization.assistantModelId,
 					utilityModelId: organization.utilityModelId,
 					webSearch: webSearchChoice(organization),
@@ -282,12 +281,8 @@ export const OrganizationForm = ({
 				initialAdmin,
 				initialAdminUserId,
 				initialAdminEmail,
-				...rest
+				...fields
 			} = value;
-			const fields = {
-				...rest,
-				logo: rest.logo?.trim() || null,
-			};
 			if (action === "update") {
 				await updateOrganization({
 					...fields,
@@ -349,15 +344,6 @@ export const OrganizationForm = ({
 					<field.TextField
 						label={m.orgs_form_slug_label()}
 						placeholder={m.orgs_form_slug_placeholder()}
-					/>
-				)}
-			/>
-			<form.AppField
-				name="logo"
-				children={(field) => (
-					<field.TextField
-						label={m.orgs_form_logo_label()}
-						placeholder={m.orgs_form_logo_placeholder()}
 					/>
 				)}
 			/>

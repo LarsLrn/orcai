@@ -13,6 +13,8 @@ import {
 	listUsersResponseSchema,
 	meInputSchema,
 	meResponseSchema,
+	removeUserImageInputSchema,
+	removeUserImageResponseSchema,
 	resetTwoFactorInputSchema,
 	resetTwoFactorResponseSchema,
 	setActiveOrganizationInputSchema,
@@ -21,6 +23,8 @@ import {
 	setInstanceRoleResponseSchema,
 	setTourStateInputSchema,
 	setTourStateResponseSchema,
+	setUserImageInputSchema,
+	setUserImageResponseSchema,
 	unbanUserInputSchema,
 	unbanUserResponseSchema,
 	updatePasswordInputSchema,
@@ -180,6 +184,34 @@ export const userContracts = {
 		)
 		.input(updatePasswordInputSchema)
 		.output(updatePasswordResponseSchema),
+	setImage: base
+		.meta(
+			openapi({
+				method: "PUT",
+				path: "/users/me/image",
+				summary: "Set your profile picture",
+				description:
+					"Takes a square WebP of at most 256 KB uploaded through the `profileImage` route.",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(setUserImageInputSchema)
+		.output(setUserImageResponseSchema),
+	removeImage: base
+		.meta(
+			openapi({
+				method: "DELETE",
+				path: "/users/me/image",
+				summary: "Remove your profile picture",
+				tags: [
+					"Users",
+				],
+			}),
+		)
+		.input(removeUserImageInputSchema)
+		.output(removeUserImageResponseSchema),
 	setActiveOrganization: base
 		.meta(
 			openapi({

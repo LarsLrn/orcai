@@ -1,4 +1,4 @@
-import type { Asset, StorageUploadRoute } from "@orcai/schema";
+import type { Asset, AssetUploadRoute } from "@orcai/schema";
 import { expect, type Page } from "@playwright/test";
 import type { ApiClient } from "./api";
 
@@ -17,7 +17,7 @@ export const uploadAsset = async (
 		content = `Uploaded by the e2e suite as ${title}.`,
 		type = "text/plain",
 	}: {
-		route?: StorageUploadRoute;
+		route?: AssetUploadRoute;
 		content?: string | Uint8Array;
 		type?: string;
 	} = {},

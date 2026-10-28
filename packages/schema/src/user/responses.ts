@@ -45,3 +45,11 @@ export const updatePasswordResponseSchema = statusResponseSchema;
 export const setActiveOrganizationResponseSchema = statusResponseSchema;
 
 export const setTourStateResponseSchema = statusResponseSchema;
+
+export const setUserImageResponseSchema = createDataResponseSchema(
+	z.object({
+		image: z.string(),
+	}),
+);
+
+export const removeUserImageResponseSchema = statusResponseSchema;

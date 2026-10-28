@@ -5,8 +5,8 @@ import { UPLOAD_STAGING_PREFIX } from "@orcai/s3";
 import { isS3NotFound, sendHeadObjectCommand } from "@orcai/s3/server";
 import {
 	type AssetIntakeResult,
+	type AssetUploadRoute,
 	PROCESS_ASSET_JOB_NAME,
-	type StorageUploadRoute,
 	type UploadFileObject,
 } from "@orcai/schema";
 import { eq } from "drizzle-orm";
@@ -48,7 +48,7 @@ const CONTENT = "Uploaded by the asset intake integration test.";
 const upload = async (
 	{ actor, zedToken }: Member,
 	name: string,
-	route: StorageUploadRoute = "asset",
+	route: AssetUploadRoute = "asset",
 	put = true,
 ): Promise<UploadFileObject> => {
 	const procedures = await run(Procedures);
@@ -84,7 +84,7 @@ const upload = async (
 const createFromUploads = async (
 	{ actor, zedToken }: Member,
 	files: UploadFileObject[],
-	route: StorageUploadRoute = "asset",
+	route: AssetUploadRoute = "asset",
 ): Promise<AssetIntakeResult[]> => {
 	const procedures = await run(Procedures);
 	const { data } = await run(

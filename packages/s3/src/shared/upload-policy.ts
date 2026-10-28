@@ -1,5 +1,9 @@
 import { buckets } from "@orcai/core";
-import type { AssetFileType, BucketName } from "@orcai/schema";
+import type {
+	AssetFileType,
+	BucketName,
+	StorageUploadRoute,
+} from "@orcai/schema";
 
 type UploadFileTypeDefinition = {
 	fileType: AssetFileType;
@@ -116,6 +120,23 @@ export const ASSET_UPLOAD_ACCEPT = PROCESSABLE_ASSET_FILE_TYPES.reduce(
 	{} as Record<string, string[]>,
 );
 
+/** The browser crops pictures and logos to a small WebP; nothing else is stored. */
+const IMAGE_UPLOAD_ROUTE = {
+	bucket: buckets.main.name,
+	maxFiles: 1,
+	maxFileSize: 256 * 1024,
+	signedUrlExpiresIn: 60 * 15,
+	multipart: {
+		mode: "off",
+		thresholdSize: 0,
+		partSize: 0,
+		partSignedUrlExpiresIn: 0,
+	},
+	allowedMimePatterns: [
+		"image/webp",
+	],
+} as const;
+
 export const UPLOAD_ROUTES = {
 	asset: {
 		bucket: buckets.main.name,
@@ -155,8 +176,10 @@ export const UPLOAD_ROUTES = {
 			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
 		],
 	},
+	profileImage: IMAGE_UPLOAD_ROUTE,
+	organizationLogo: IMAGE_UPLOAD_ROUTE,
 } as const satisfies Record<
-	string,
+	StorageUploadRoute,
 	{
 		bucket: BucketName;
 		maxFiles: number;
@@ -192,7 +215,7 @@ export const isMimeAllowed = (params: {
 	});
 };
 
-/** Uploads land here until an asset is created from them; lifecycle expires the rest. */
+/** Uploads land here until an asset or image is made from them; lifecycle expires the rest. */
 export const UPLOAD_STAGING_PREFIX = "staging/";
 
 /** Where a new upload lands: `staging/users/<userId>/<route>/YYYY/MM`. */

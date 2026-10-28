@@ -44,6 +44,7 @@ import { Route as PathlessLayoutHistoryChatIdRouteImport } from './routes/_pathl
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDataExportsDataExportIdRouteImport } from './routes/api/data-exports/$dataExportId'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
+import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as AppHomeIndexRouteImport } from './routes/app/_home/index'
 import { Route as AppHomeManageRouteImport } from './routes/app/_home/manage'
@@ -296,6 +297,11 @@ const ApiDataExportsDataExportIdRoute =
 const ApiDocSplatRoute = ApiDocSplatRouteImport.update({
   id: '/api/doc/$',
   path: '/api/doc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
+  id: '/api/images/$',
+  path: '/api/images/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
@@ -715,6 +721,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/manage': typeof AppHomeManageRoute
   '/app/account/data': typeof AppAccountDataRoute
@@ -797,6 +804,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/manage': typeof AppHomeManageRoute
   '/app/account/data': typeof AppAccountDataRoute
@@ -902,6 +910,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/app/_home/manage': typeof AppHomeManageRoute
   '/app/account/data': typeof AppAccountDataRoute
@@ -1010,6 +1019,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
+    | '/api/images/$'
     | '/api/rpc/$'
     | '/app/manage'
     | '/app/account/data'
@@ -1092,6 +1102,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
+    | '/api/images/$'
     | '/api/rpc/$'
     | '/app/manage'
     | '/app/account/data'
@@ -1196,6 +1207,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
+    | '/api/images/$'
     | '/api/rpc/$'
     | '/app/_home/manage'
     | '/app/account/data'
@@ -1268,6 +1280,7 @@ export interface RootRouteChildren {
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiDataExportsDataExportIdRoute: typeof ApiDataExportsDataExportIdRoute
   ApiDocSplatRoute: typeof ApiDocSplatRoute
+  ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
@@ -1516,6 +1529,13 @@ declare module '@tanstack/react-router' {
       path: '/api/doc/$'
       fullPath: '/api/doc/$'
       preLoaderRoute: typeof ApiDocSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/images/$': {
+      id: '/api/images/$'
+      path: '/api/images/$'
+      fullPath: '/api/images/$'
+      preLoaderRoute: typeof ApiImagesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/rpc/$': {
@@ -2547,6 +2567,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiDataExportsDataExportIdRoute: ApiDataExportsDataExportIdRoute,
   ApiDocSplatRoute: ApiDocSplatRoute,
+  ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport
