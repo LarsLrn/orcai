@@ -102,7 +102,7 @@ const documentsText = (documents: KnowledgeBaseDocument[]) =>
 		? documents
 				.map(
 					(document) =>
-						`- ${document.assetId}: ${document.title}${document.citation ? ` (${document.citation})` : ""}${documentState(document)}`,
+						`- ${document.assetId}: ${document.title}${document.citation ? ` (${document.citation})` : ""}${documentState(document)}${document.description ? `\n  ${document.description.replace(/\s+/g, " ").trim()}` : ""}`,
 				)
 				.join("\n")
 		: "No documents.";

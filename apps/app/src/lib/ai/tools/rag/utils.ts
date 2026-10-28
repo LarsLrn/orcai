@@ -171,7 +171,7 @@ const furthestDocument = (
 ): DocumentReadiness =>
 	STATE_ORDER.indexOf(b.state) < STATE_ORDER.indexOf(a.state) ? b : a;
 
-/** The documents of `blocks`, once each, with their readiness and citation. */
+/** The documents of `blocks`, once each, with their readiness, citation and description. */
 export const loadDocumentCatalog = ({
 	blocks,
 	context,
@@ -224,18 +224,17 @@ export const loadDocumentCatalog = ({
 				concurrency: 4,
 			},
 		);
-		const citationById = new Map(
+		const metadataById = new Map(
 			assetPages
 				.flatMap(({ data }) => data)
 				.map(
 					(asset) =>
 						[
 							asset.id,
-							(
-								asset.metadata as {
-									citation?: string;
-								} | null
-							)?.citation,
+							asset.metadata as {
+								citation?: string;
+								description?: string;
+							} | null,
 						] as const,
 				),
 		);
@@ -246,7 +245,9 @@ export const loadDocumentCatalog = ({
 			(document): KnowledgeBaseDocument => ({
 				assetId: document.assetId,
 				title: document.title,
-				citation: citationById.get(document.assetId) ?? undefined,
+				citation: metadataById.get(document.assetId)?.citation ?? undefined,
+				description:
+					metadataById.get(document.assetId)?.description ?? undefined,
 				state: document.state,
 				failure: document.failure ?? undefined,
 			}),

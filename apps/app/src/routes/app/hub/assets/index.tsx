@@ -3,7 +3,7 @@ import {
 	assetOriginSchema,
 	paginationInputSchema,
 } from "@orcai/schema";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Link,
@@ -16,10 +16,11 @@ import {
 	MessageSquareIcon,
 	PlusIcon,
 	RefreshCwIcon,
+	SparklesIcon,
 } from "lucide-react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
 import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
 import {
@@ -35,10 +36,16 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import {
 	useAddAssetToLibraryMutation,
+	useGenerateMissingMetadataMutation,
 	useReprocessAssetMutation,
 } from "@/hooks/mutations/use-asset-mutations";
+import { useUtilityModel } from "@/hooks/use-utility-model";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	isAssetWorking,
+	METADATA_POLL_MS,
+} from "@/lib/presentation/metadata-status";
 import { m } from "@/paraglide/messages";
 
 const assetsSearchSchema = paginationInputSchema.extend({
@@ -56,6 +63,34 @@ const listInput = (search: {
 		origin: search.origin,
 	},
 });
+
+/** Generates metadata for the library assets that lack it; hidden without a utility model or anything to generate. */
+const GenerateMissingMetadataAction = () => {
+	const utilityModel = useUtilityModel();
+	const { data } = useQuery(
+		orpc.asset.missingMetadata.queryOptions({
+			input: utilityModel.available ? {} : skipToken,
+		}),
+	);
+	const count = data?.count ?? 0;
+	const { mutate: generate, isPending } =
+		useGenerateMissingMetadataMutation(count);
+
+	if (!utilityModel.available || count === 0) {
+		return null;
+	}
+	return (
+		<Button
+			variant="outline"
+			size="sm"
+			loading={isPending}
+			onClick={() => generate({})}
+		>
+			<SparklesIcon />
+			{m.assets_metadata_backfill_action()}
+		</Button>
+	);
+};
 
 export const Route = createFileRoute("/app/hub/assets/")({
 	validateSearch: assetsSearchSchema,
@@ -101,6 +136,8 @@ function RouteComponent() {
 	const { data: assets } = useSuspenseQuery(
 		orpc.asset.list.queryOptions({
 			input: listInput(search),
+			refetchInterval: (query) =>
+				query.state.data?.data.some(isAssetWorking) ? METADATA_POLL_MS : false,
 		}),
 	);
 	useClampedPageIndex({
@@ -115,17 +152,20 @@ function RouteComponent() {
 			<SectionHeader>
 				<SectionTitle>{m.assets_list_title()}</SectionTitle>
 				<SectionDescription>{m.assets_list_description()}</SectionDescription>
-				{canCreateAsset ? (
+				{canCreateAsset || !isChatUploads ? (
 					<SectionAction>
-						<Link
-							to="/app/hub/assets/add"
-							className={buttonVariants({
-								size: "sm",
-							})}
-						>
-							<PlusIcon />
-							{m.assets_list_add_action()}
-						</Link>
+						{isChatUploads ? null : <GenerateMissingMetadataAction />}
+						{canCreateAsset ? (
+							<Link
+								to="/app/hub/assets/add"
+								className={buttonVariants({
+									size: "sm",
+								})}
+							>
+								<PlusIcon />
+								{m.assets_list_add_action()}
+							</Link>
+						) : null}
 					</SectionAction>
 				) : null}
 			</SectionHeader>

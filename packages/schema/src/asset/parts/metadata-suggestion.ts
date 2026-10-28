@@ -1,4 +1,8 @@
-import type { AssetMetadataType, MetadataSuggestion } from "./metadata";
+import {
+	type AssetMetadataType,
+	fitMetadataToSourceType,
+	type MetadataSuggestion,
+} from "./metadata";
 
 type MetadataField = Exclude<keyof AssetMetadataType, "sourceType">;
 
@@ -70,7 +74,7 @@ export const applyMetadataSuggestion = (
 
 	return {
 		title,
-		metadata,
+		metadata: fitMetadataToSourceType(metadata),
 		review:
 			Object.keys(review).length > 0
 				? {
@@ -88,11 +92,17 @@ export interface MetadataReviewField {
 	field: "title" | keyof AssetMetadataType;
 	current: string;
 	suggested: string;
-	/** Accepted unless the field already holds a value. */
+	/** Accepted unless the field already holds a value, or needs a source type change that is not. */
 	accept: boolean;
+	/** Formatted for the suggested source type, which the suggestion changes: usable only with it. */
+	requiresType?: true;
 }
 
-/** The fields a suggestion would change, title first, in the editor's order. */
+/**
+ * The fields a suggestion would change, title first, in the editor's order.
+ * When it changes the source type, its type-specific fields depend on that
+ * change.
+ */
 export const metadataReviewFields = (
 	current: {
 		title: string;
@@ -100,33 +110,65 @@ export const metadataReviewFields = (
 	},
 	suggestion: MetadataSuggestion,
 ): MetadataReviewField[] => {
+	const currentType = current.metadata.sourceType;
+	const suggestedType = suggestion.metadata.sourceType;
+	const typeChanges =
+		suggestedType !== undefined && suggestedType !== currentType;
 	const field = (
 		name: MetadataReviewField["field"],
 		currentValue: string | undefined,
 		suggested: string | undefined,
-	): MetadataReviewField[] =>
-		suggested === undefined ||
-		isEmpty(suggested) ||
-		suggested === (currentValue ?? "")
-			? []
-			: [
-					{
-						field: name,
-						current: currentValue ?? "",
-						suggested,
-						accept: isEmpty(currentValue),
-					},
-				];
+	): MetadataReviewField[] => {
+		if (
+			suggested === undefined ||
+			isEmpty(suggested) ||
+			suggested === (currentValue ?? "")
+		) {
+			return [];
+		}
+		const requiresType =
+			typeChanges &&
+			name !== "title" &&
+			name !== "sourceType" &&
+			!SHARED_FIELDS.has(name);
+		return [
+			{
+				field: name,
+				current: currentValue ?? "",
+				suggested,
+				accept:
+					isEmpty(currentValue) && (!requiresType || isEmpty(currentType)),
+				...(requiresType && {
+					requiresType: true as const,
+				}),
+			},
+		];
+	};
+
+	// Only fields the resulting source type has; a save drops the others.
+	const fitting = fitMetadataToSourceType({
+		...suggestion.metadata,
+		sourceType: suggestedType ?? currentType,
+	});
 
 	return [
 		...field("title", current.title, suggestion.title),
-		...field(
-			"sourceType",
-			current.metadata.sourceType,
-			suggestion.metadata.sourceType,
-		),
-		...suggestedFields(suggestion).flatMap((name) =>
+		...field("sourceType", currentType, suggestedType),
+		...suggestedFields({
+			metadata: fitting,
+		}).flatMap((name) =>
 			field(name, current.metadata[name], suggestion.metadata[name]),
 		),
 	];
 };
+
+/** The accepted fields that can go into the form: type-specific ones only with their source type. */
+export const acceptedReviewFields = (
+	fields: readonly MetadataReviewField[],
+	accepted: ReadonlySet<MetadataReviewField["field"]>,
+) =>
+	fields.filter(
+		(field) =>
+			accepted.has(field.field) &&
+			(!field.requiresType || accepted.has("sourceType")),
+	);

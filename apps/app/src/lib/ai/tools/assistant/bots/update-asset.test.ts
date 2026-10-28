@@ -29,35 +29,11 @@ beforeEach(() => {
 		});
 });
 
-const { mergeAssetMetadata, updateAssetTool } = await import("./update-asset");
+const { updateAssetTool } = await import("./update-asset");
 const { createAssistantTurn } = await import("../turn-state");
 
-describe("mergeAssetMetadata", () => {
-	test("given keys replace stored ones, the rest stay", () => {
-		expect(
-			mergeAssetMetadata(stored, {
-				author: "Charles Babbage",
-				doi: "10.1000/182",
-			}),
-		).toEqual({
-			...stored,
-			author: "Charles Babbage",
-			doi: "10.1000/182",
-		});
-	});
-
-	test("undefined keys and a missing patch keep the stored values", () => {
-		expect(
-			mergeAssetMetadata(stored, {
-				author: undefined,
-			}),
-		).toEqual(stored);
-		expect(mergeAssetMetadata(stored)).toEqual(stored);
-	});
-});
-
 describe("updateAssetTool", () => {
-	test("saves the stored title and merged metadata", async () => {
+	test("saves only the given fields", async () => {
 		await updateAssetTool({
 			context: {} as ORPCContext,
 			turn: createAssistantTurn({
@@ -85,9 +61,7 @@ describe("updateAssetTool", () => {
 		).toEqual([
 			{
 				id: assetId,
-				title: "Notes",
 				metadata: {
-					...stored,
 					citation: "Lovelace 1843, note G",
 				},
 			},

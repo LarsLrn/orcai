@@ -1,11 +1,12 @@
 import type { Asset, AssetWithCapabilities } from "@orcai/schema";
-import { PencilIcon, XIcon } from "lucide-react";
+import { LoaderCircleIcon, PencilIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { AssetMetadataDialog } from "@/components/documents/shared/asset-metadata-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
+import { isGeneratingMetadata } from "@/lib/presentation/metadata-status";
 import {
 	getProcessingStatusLabel,
 	getProcessingStatusVariant,
@@ -17,10 +18,13 @@ const SelectedAssetList = ({
 	assets,
 	onRemove,
 	onAssetUpdated,
+	metadataGenerated = false,
 }: {
 	assets: AssetWithCapabilities[];
 	onRemove?: (assetId: string) => void;
 	onAssetUpdated?: (asset: Asset) => void;
+	/** Metadata is generated in the background, so editing it is the secondary action. */
+	metadataGenerated?: boolean;
 }) => {
 	const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
 
@@ -36,6 +40,11 @@ const SelectedAssetList = ({
 					>
 						<div className="min-w-0 flex-1">
 							<div className="truncate font-medium text-sm">{asset.title}</div>
+							{asset.metadata.description ? (
+								<p className="mt-1 line-clamp-2 text-muted-foreground text-sm">
+									{asset.metadata.description}
+								</p>
+							) : null}
 							<div className="mt-1 flex flex-wrap gap-2 text-xs">
 								<Badge variant="secondary">
 									{getFileTypeLabel(asset.fileType)}
@@ -47,13 +56,19 @@ const SelectedAssetList = ({
 										{getProcessingStatusLabel(asset.processingStatus)}
 									</Badge>
 								) : null}
+								{isGeneratingMetadata(asset) ? (
+									<Badge variant="processing">
+										<LoaderCircleIcon className="animate-spin" />
+										{m.assets_metadata_generating_badge()}
+									</Badge>
+								) : null}
 							</div>
 						</div>
 
 						<div className="flex gap-2">
 							{canEdit ? (
 								<Button
-									variant="outline"
+									variant={metadataGenerated ? "ghost" : "outline"}
 									size="sm"
 									onClick={() => setEditingAssetId(asset.id)}
 								>

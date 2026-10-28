@@ -13,7 +13,12 @@ export const listAssetsResponseSchema = createListResponseSchema(
 );
 
 export const findAssetResponseSchema = createDataResponseSchema(
-	assetWithCapabilitiesSchema,
+	assetWithCapabilitiesSchema.extend({
+		/** The organisation the asset belongs to; null unless the user can read it. */
+		organizationId: z.string().nullable(),
+		/** Whether that organisation has a utility model to generate metadata with; null unless the user can read it. */
+		utilityModel: z.boolean().nullable(),
+	}),
 );
 
 export const saveAssetResponseSchema = createDataResponseSchema(assetSchema);

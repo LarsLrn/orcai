@@ -66,7 +66,8 @@ export const assetContracts = {
 			openapi({
 				method: "PUT",
 				path: "/assets/save",
-				summary: "Update an asset's title and metadata",
+				summary:
+					"Change an asset's title and the given metadata fields; the others keep their values",
 				tags: [
 					"Assets",
 				],

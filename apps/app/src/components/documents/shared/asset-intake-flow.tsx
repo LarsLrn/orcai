@@ -1,4 +1,5 @@
 import type { Asset } from "@orcai/schema";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon } from "lucide-react";
 import { useState } from "react";
 import { SelectedAssetList } from "@/components/documents/shared/selected-asset-list";
@@ -16,7 +17,13 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
+import { useUtilityModel } from "@/hooks/use-utility-model";
 import { ownerCapabilities } from "@/lib/authz/capabilities";
+import { orpc } from "@/lib/orpc/orpc";
+import {
+	isAssetWorking,
+	METADATA_POLL_MS,
+} from "@/lib/presentation/metadata-status";
 import { m } from "@/paraglide/messages";
 
 type IntakeStep = "upload" | "review";
@@ -55,14 +62,43 @@ const AssetIntakeFlow = ({
 	};
 
 	const isCompact = variant === "compact";
+	const utilityModel = useUtilityModel();
+	// The uploads as they are now: prepared, and with metadata generated in the background.
+	const { data: current } = useQuery(
+		orpc.asset.list.queryOptions({
+			input:
+				assets.length > 0
+					? {
+							pageIndex: 0,
+							pageSize: assets.length,
+							filters: {
+								ids: assets.map((asset) => asset.id),
+							},
+						}
+					: skipToken,
+			refetchInterval: (query) =>
+				(query.state.data?.data ?? assets).some(isAssetWorking)
+					? METADATA_POLL_MS
+					: false,
+		}),
+	);
+	const shown = assets.map(
+		(asset) => current?.data.find((fresh) => fresh.id === asset.id) ?? asset,
+	);
 
 	const review = (
 		<>
+			{utilityModel.available ? (
+				<p className="text-muted-foreground text-sm">
+					{m.assets_intake_metadata_background_hint()}
+				</p>
+			) : null}
 			<SelectedAssetList
-				assets={assets.map((asset) => ({
+				assets={shown.map((asset) => ({
 					...asset,
 					capabilities: ownerCapabilities("asset"),
 				}))}
+				metadataGenerated={utilityModel.available}
 				onAssetUpdated={(updated) => {
 					setAssets((current) =>
 						current.map((asset) => (asset.id === updated.id ? updated : asset)),

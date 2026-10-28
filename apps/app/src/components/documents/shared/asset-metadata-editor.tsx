@@ -1,13 +1,15 @@
 import {
 	type Asset,
+	MAX_DESCRIPTION_LENGTH,
 	type SourceType,
 	sourceTypeLabels,
 	sourceTypes,
 } from "@orcai/schema";
-import { useId } from "react";
+import { type ReactNode, useId } from "react";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { m } from "@/paraglide/messages";
 
 type AssetMetadataDraft = {
@@ -233,10 +235,13 @@ const AssetMetadataEditor = ({
 	value,
 	onChange,
 	showTitle = true,
+	generation,
 }: {
 	value: AssetMetadataDraft;
 	onChange: (nextValue: AssetMetadataDraft) => void;
 	showTitle?: boolean;
+	/** Generate with AI, above the fields. */
+	generation?: ReactNode;
 }) => {
 	const metadata = value.metadata ?? createDefaultAssetMetadata();
 	const id = useId();
@@ -255,6 +260,7 @@ const AssetMetadataEditor = ({
 
 	return (
 		<div className="grid gap-4 md:grid-cols-2">
+			{generation}
 			{showTitle ? (
 				<div className="space-y-2 md:col-span-2">
 					<Label htmlFor={`${id}-title`}>
@@ -302,6 +308,26 @@ const AssetMetadataEditor = ({
 			{SourceFields ? (
 				<SourceFields metadata={metadata} onFieldChange={onFieldChange} />
 			) : null}
+
+			<div className="space-y-2 md:col-span-2">
+				<Label htmlFor={`${id}-description`}>
+					{m.assets_metadata_description_label()}
+				</Label>
+				<Textarea
+					id={`${id}-description`}
+					value={metadata.description ?? ""}
+					maxLength={MAX_DESCRIPTION_LENGTH}
+					onChange={(event) => onFieldChange("description", event.target.value)}
+					placeholder={m.assets_metadata_description_placeholder()}
+				/>
+			</div>
+
+			<MetadataField
+				label={m.assets_metadata_language_label()}
+				value={metadata.language ?? ""}
+				placeholder={m.assets_metadata_language_placeholder()}
+				onChange={(v) => onFieldChange("language", v)}
+			/>
 
 			{/* External URL is always available when the source type doesn't already include it */}
 			{metadata.sourceType && metadata.sourceType !== "web-source" ? (

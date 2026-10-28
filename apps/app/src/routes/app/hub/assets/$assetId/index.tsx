@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { FileViewer } from "@/components/documents/file-viewer";
+import { MetadataStatusNotice } from "@/components/documents/shared/metadata-generation";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Section,
@@ -23,6 +24,10 @@ import {
 } from "@/hooks/mutations/use-asset-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	isAssetWorking,
+	METADATA_POLL_MS,
+} from "@/lib/presentation/metadata-status";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/")({
@@ -39,6 +44,10 @@ function RouteComponent() {
 			input: {
 				id: assetId,
 			},
+			refetchInterval: (query) =>
+				query.state.data && isAssetWorking(query.state.data.data)
+					? METADATA_POLL_MS
+					: false,
 		}),
 	);
 
@@ -132,7 +141,8 @@ function RouteComponent() {
 					]}
 				/>
 			</SectionHeader>
-			<SectionContent>
+			<SectionContent className="space-y-4">
+				<MetadataStatusNotice asset={asset.data} canEdit={canEdit} />
 				<FileViewer asset={asset.data} />
 
 				{canManageAccess ? (

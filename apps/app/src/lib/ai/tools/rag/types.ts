@@ -27,6 +27,7 @@ export const knowledgeBaseDocumentSchema = z.object({
 	assetId: z.string(),
 	title: z.string(),
 	citation: z.string().optional(),
+	description: z.string().optional(),
 	/** Only ready documents are searchable. */
 	state: documentReadinessSchema.shape.state,
 	failure: documentReadinessSchema.shape.failure.unwrap().optional(),
