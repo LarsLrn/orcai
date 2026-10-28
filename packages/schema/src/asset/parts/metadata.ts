@@ -18,6 +18,15 @@ export const sourceTypeLabels: Record<SourceType, string> = {
 
 export const MAX_DESCRIPTION_LENGTH = 300;
 
+/** The canonical form of a BCP 47 language tag, or undefined when it is none. */
+export const languageTag = (tag: string) => {
+	try {
+		return Intl.getCanonicalLocales(tag)[0];
+	} catch {
+		return undefined;
+	}
+};
+
 export const metadataSchema = z.object({
 	sourceType: z.enum(sourceTypes).optional(),
 	citation: z.string().optional(),
@@ -35,8 +44,13 @@ export const metadataSchema = z.object({
 	jurisdiction: z.string().optional(),
 	/** Two or three sentences on what the asset is about. */
 	description: z.string().max(MAX_DESCRIPTION_LENGTH).optional(),
-	/** BCP 47 tag of the asset's language. */
-	language: z.string().optional(),
+	/** BCP 47 tag of the asset's language; empty clears it. */
+	language: z
+		.string()
+		.refine((tag) => tag === "" || languageTag(tag) !== undefined, {
+			message: "Not a BCP 47 language tag",
+		})
+		.optional(),
 });
 
 export type AssetMetadataType = z.infer<typeof metadataSchema>;

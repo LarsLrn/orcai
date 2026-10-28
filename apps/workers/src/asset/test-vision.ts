@@ -19,13 +19,20 @@ export const suggestion = {
 	language: "en",
 };
 
+/** What the endpoint answers JSON mode with; a test may replace it. */
+export const jsonAnswer: {
+	value: unknown;
+} = {
+	value: suggestion,
+};
+
 /** What the endpoint received, newest last. */
 export const requests: {
 	responseFormat?: string;
 	content: unknown;
 }[] = [];
 
-/** An OpenAI-compatible endpoint that answers JSON mode with `suggestion` and text otherwise. */
+/** An OpenAI-compatible endpoint that answers JSON mode with `jsonAnswer` and text otherwise. */
 const inference = serve({
 	port: 0,
 	fetch: async (request) => {
@@ -54,7 +61,7 @@ const inference = serve({
 					message: {
 						role: "assistant",
 						content: body.response_format
-							? JSON.stringify(suggestion)
+							? JSON.stringify(jsonAnswer.value)
 							: "A photo of a lighthouse.",
 					},
 					finish_reason: "stop",
@@ -77,13 +84,14 @@ export const PNG = Buffer.from(
 );
 
 /**
- * An organisation whose utility model has `capabilities`, a pool for every
- * member unless `pool` is false, and an uploaded asset of `uploader`'s with
- * its image stored.
+ * An organisation whose utility model has `capabilities`, a pool of `budget`
+ * tokens for every member unless `pool` is false, and an uploaded asset of
+ * `uploader`'s with its image stored.
  */
 export const seedImageAsset = (params: {
 	capabilities: ModelCapability[];
 	pool?: boolean;
+	budget?: number;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -145,7 +153,7 @@ export const seedImageAsset = (params: {
 				name: "Utility pool",
 				providerId: provider.id,
 				periodType: "monthly",
-				budgetAmount: 100_000,
+				budgetAmount: params.budget ?? 100_000,
 				priority: 0,
 				isDefault: true,
 				createdByUserId: admin.id,
@@ -182,6 +190,7 @@ export const seedImageAsset = (params: {
 
 		return {
 			organizationId: organization.id,
+			adminId: admin.id,
 			uploaderId: uploader.id,
 			assetId: asset.id,
 			prefix: asset.prefix,

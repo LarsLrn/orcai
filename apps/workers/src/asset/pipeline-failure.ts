@@ -2,6 +2,7 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { JobWithMetadata } from "@orcai/pg-boss";
 import {
+	type GenerateAssetMetadataPayload,
 	isTransientFailure,
 	type PipelineFailure,
 	type ProcessAssetPayload,
@@ -78,6 +79,30 @@ const indexingTarget =
 				);
 		});
 
+/** Metadata generation of an asset; a write for an earlier generation changes nothing. */
+const metadataTarget =
+	(job: { assetId: AssetId; generation: number }): Target =>
+	(values) =>
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const { asset } = dbSchema;
+			yield* db
+				.update(asset)
+				.set({
+					metadataStatus: values.status,
+					metadataFailure: failureValue(values.failure, asset.metadataFailure),
+				})
+				.where(
+					and(
+						eq(asset.id, job.assetId),
+						eq(asset.metadataGeneration, job.generation),
+						values.unlessCompleted
+							? ne(asset.metadataStatus, "completed")
+							: undefined,
+					),
+				);
+		});
+
 /**
  * Runs one attempt and keeps the stored status honest. The attempt starts
  * active. A transient failure records its kind and fails the job so pg-boss
@@ -134,6 +159,14 @@ export const settleIndexingAttempt = <A, E, R>(
 	attempt: Effect.Effect<A, E, R>,
 ) => settleAttempt(indexingTarget(link), attempt);
 
+export const settleMetadataAttempt = <A, E, R>(
+	job: {
+		assetId: AssetId;
+		generation: number;
+	},
+	attempt: Effect.Effect<A, E, R>,
+) => settleAttempt(metadataTarget(job), attempt);
+
 /**
  * A worker that outlives `expireInSeconds` fails the job with "handler
  * execution exceeded"; the supervisor fails a job whose worker is gone with
@@ -178,5 +211,13 @@ export const markIndexingExhausted = (
 	jobs: JobWithMetadata<VectorizeAssetPayload>[],
 ) =>
 	Effect.forEach(jobs, (job) => markExhausted(indexingTarget(job.data), job), {
+		discard: true,
+	});
+
+/** Dead letter handler: a metadata generation ran out of retries. */
+export const markMetadataExhausted = (
+	jobs: JobWithMetadata<GenerateAssetMetadataPayload>[],
+) =>
+	Effect.forEach(jobs, (job) => markExhausted(metadataTarget(job.data), job), {
 		discard: true,
 	});

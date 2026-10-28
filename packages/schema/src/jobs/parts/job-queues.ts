@@ -6,6 +6,9 @@ export const PROCESS_ASSET_DEAD_LETTER_JOB_NAME =
 	"process-asset-dead-letter-job";
 export const VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME =
 	"vectorize-asset-dead-letter-job";
+export const GENERATE_ASSET_METADATA_JOB_NAME = "generate-asset-metadata-job";
+export const GENERATE_ASSET_METADATA_DEAD_LETTER_JOB_NAME =
+	"generate-asset-metadata-dead-letter-job";
 export const QUOTA_PERIOD_ROLLOVER_JOB_NAME = "quota-period-rollover-job";
 export const QUOTA_RELEASE_STALE_JOB_NAME = "quota-release-stale-job";
 export const NOTIFICATION_OUTBOX_JOB_NAME = "notification-outbox-job";
@@ -21,6 +24,8 @@ export const jobQueues = z.enum([
 	VECTORIZE_ASSET_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
+	GENERATE_ASSET_METADATA_JOB_NAME,
+	GENERATE_ASSET_METADATA_DEAD_LETTER_JOB_NAME,
 	QUOTA_PERIOD_ROLLOVER_JOB_NAME,
 	QUOTA_RELEASE_STALE_JOB_NAME,
 	NOTIFICATION_OUTBOX_JOB_NAME,

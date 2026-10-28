@@ -1,5 +1,6 @@
 import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { queueMetadataGeneration } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { UPLOAD_ROUTES } from "@orcai/s3";
 import {
@@ -7,9 +8,19 @@ import {
 	sendDeleteObjectCommand,
 } from "@orcai/s3/server";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
-import { and, count, desc, eq, getColumns, ilike, inArray } from "drizzle-orm";
+import {
+	and,
+	count,
+	desc,
+	eq,
+	getColumns,
+	ilike,
+	inArray,
+	sql,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
+import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { reprocessAsset } from "@/lib/assets/processing";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
@@ -20,6 +31,7 @@ import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
@@ -168,6 +180,9 @@ const saveAsset = authed.asset.save
 				title: input.title,
 				metadata: input.metadata,
 				updatedAt: new Date(),
+				...(input.metadataGeneration !== undefined && {
+					metadataSuggestion: sql`case when ${dbSchema.asset.metadataGeneration} = ${input.metadataGeneration} then null else ${dbSchema.asset.metadataSuggestion} end`,
+				}),
 			})
 			.where(eq(dbSchema.asset.id, input.id))
 			.returning({
@@ -199,8 +214,22 @@ const addAssetToLibrary = authed.asset.addToLibrary
 				...getColumns(dbSchema.asset),
 			});
 
+		const admitted = yield* queueMetadataGeneration({
+			assetIds: [
+				input.id,
+			],
+			mode: "apply",
+			onlyMissing: true,
+		});
+
 		return {
-			data: asset,
+			data:
+				admitted.length > 0
+					? {
+							...asset,
+							metadataStatus: "pending" as const,
+						}
+					: asset,
 		};
 	});
 
@@ -323,6 +352,90 @@ const reprocessAssetProcedure = authed.asset.reprocess
 		};
 	});
 
+const generateAssetMetadata = authed.asset.generateMetadata
+	.use(
+		requireEntityPermission("asset", "edit", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input, context }) {
+		const admitted = yield* queueMetadataGeneration({
+			assetIds: [
+				input.id,
+			],
+			mode: "review",
+			userId: context.auth.user.id,
+		});
+		if (admitted.length === 0) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "METADATA_GENERATION_UNAVAILABLE",
+				message:
+					"The asset is not a prepared library asset of an organisation with a utility model",
+			});
+		}
+
+		return {
+			success: true,
+			message: "Metadata generation queued",
+		};
+	});
+
+const dismissMetadataSuggestion = authed.asset.dismissMetadataSuggestion
+	.use(
+		requireEntityPermission("asset", "edit", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const db = yield* DB;
+		yield* db
+			.update(dbSchema.asset)
+			.set({
+				metadataSuggestion: null,
+			})
+			.where(
+				and(
+					eq(dbSchema.asset.id, input.id),
+					eq(dbSchema.asset.metadataGeneration, input.generation),
+				),
+			);
+
+		return {
+			success: true,
+		};
+	});
+
+const missingMetadata = authed.asset.missingMetadata
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ context }) {
+		const assetIds = yield* assetsMissingMetadata({
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			zedToken: getZedToken(context),
+		});
+		return {
+			count: assetIds.length,
+		};
+	});
+
+const generateMissingMetadata = authed.asset.generateMissingMetadata
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ context }) {
+		const admitted = yield* queueMetadataGeneration({
+			assetIds: yield* assetsMissingMetadata({
+				userId: context.auth.user.id,
+				organizationId: context.auth.session.activeOrganizationId,
+				zedToken: getZedToken(context),
+			}),
+			mode: "apply",
+			onlyMissing: true,
+			userId: context.auth.user.id,
+		});
+		return {
+			count: admitted.length,
+		};
+	});
+
 export const assetRouter = {
 	list: listAssets,
 	save: saveAsset,
@@ -331,4 +444,8 @@ export const assetRouter = {
 	find: findAsset,
 	delete: deleteAssets,
 	reprocess: reprocessAssetProcedure,
+	generateMetadata: generateAssetMetadata,
+	dismissMetadataSuggestion,
+	missingMetadata,
+	generateMissingMetadata,
 };

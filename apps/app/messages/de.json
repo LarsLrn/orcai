@@ -2686,6 +2686,7 @@
 	"error_last_manager_required": "Mindestens ein Manager muss für diese Ressource bestehen bleiben.",
 	"error_last_organization_admin_required": "Mindestens ein Admin der Organisation muss bestehen bleiben.",
 	"error_member_not_found": "Mitglied nicht gefunden.",
+	"error_metadata_generation_unavailable": "Metadaten lassen sich erzeugen, sobald die Datei vorbereitet ist und in der Bibliothek liegt.",
 	"error_model_deprecated": "Das ausgewählte Modell ist veraltet. Wählen Sie ein anderes Modell.",
 	"error_model_not_found": "Modell nicht gefunden.",
 	"error_model_provider_mismatch": "Das ausgewählte Modell gehört nicht zum ausgewählten Anbieter.",
