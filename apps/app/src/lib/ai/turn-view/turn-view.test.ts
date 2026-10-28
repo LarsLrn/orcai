@@ -905,10 +905,6 @@ describe("paused step", () => {
 					deleteBot("approval-responded", false, "Not now"),
 					deleteBot("approval-responded", true),
 					upload("output-available"),
-					upload("output-error", {
-						toolCallId: "upload-2",
-						errorText: "Could not open the picker",
-					}),
 				]),
 			)?.answers,
 		).toEqual({
@@ -930,10 +926,6 @@ describe("paused step", () => {
 					output: {
 						status: "cancelled",
 					},
-				},
-				{
-					toolCallId: "upload-2",
-					errorText: "Could not open the picker",
 				},
 			],
 		});
@@ -1044,25 +1036,16 @@ describe("client call step", () => {
 		expect(toolStatuses(view(halfStreamed)).at(-1)).toBe("interrupted");
 	});
 
-	test("an error the user gave is an answer", () => {
-		const errored = [
+	test("a call that failed for its input waits on nobody", () => {
+		const invalid = [
 			...widgetTurn("input-available").slice(0, -1),
 			upload("output-error", {
-				errorText: "Could not open the picker",
+				errorText: "INVALID_TOOL_INPUT: Invalid input for tool requestUpload",
 			}),
 		];
 
-		expect(pausedStep(reply(errored))).toMatchObject({
-			answered: true,
-			answers: {
-				toolOutputs: [
-					{
-						toolCallId: "upload-1",
-						errorText: "Could not open the picker",
-					},
-				],
-			},
-		});
+		expect(pausedStep(reply(invalid))).toBeUndefined();
+		expect(view(invalid).canContinue).toBe(false);
 	});
 
 	test("once resumed the call folds into the work log", () => {

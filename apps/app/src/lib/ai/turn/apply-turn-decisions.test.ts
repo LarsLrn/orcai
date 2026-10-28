@@ -520,25 +520,6 @@ describe("applyTurnDecisions with client tool outputs", () => {
 		});
 	});
 
-	test("turns an error text into an errored call", () => {
-		const result = answer(
-			widgetStep,
-			[],
-			[
-				{
-					toolCallId: "upload-a",
-					errorText: "The widget failed.",
-				},
-			],
-		);
-
-		expect(result.ok && result.parts.at(-1)).toEqual({
-			...upload("a"),
-			state: "output-error",
-			errorText: "The widget failed.",
-		} as Part);
-	});
-
 	test("rejects an output that fails the tool's output schema", () => {
 		for (const output of [
 			{
@@ -777,13 +758,21 @@ describe("applyTurnDecisions with client tool outputs", () => {
 		});
 	});
 
-	test("refuses to continue a step whose client call was closed or never complete", () => {
+	test("refuses to continue a step whose client call failed or never completed", () => {
 		const closed: Part[] = [
 			...widgetStep.slice(0, -1),
 			{
 				...upload("a"),
 				state: "output-error",
 				errorText: TOOL_CLOSE_SENTENCES.superseded,
+			} as Part,
+		];
+		const invalid: Part[] = [
+			...widgetStep.slice(0, -1),
+			{
+				...upload("a"),
+				state: "output-error",
+				errorText: `INVALID_TOOL_INPUT: ${"x".repeat(2000)}`,
 			} as Part,
 		];
 		const halfStreamed: Part[] = [
@@ -795,6 +784,10 @@ describe("applyTurnDecisions with client tool outputs", () => {
 		];
 
 		expect(answer(closed, [], [])).toMatchObject({
+			ok: false,
+			reason: "CHAT_TURN_NOT_AWAITING",
+		});
+		expect(answer(invalid, [], [])).toMatchObject({
 			ok: false,
 			reason: "CHAT_TURN_NOT_AWAITING",
 		});

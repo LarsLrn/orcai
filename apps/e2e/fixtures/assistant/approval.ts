@@ -216,16 +216,10 @@ export const continueTurn = async (
 			approved: boolean;
 			reason?: string;
 		}[];
-		toolOutputs?: (
-			| {
-					toolCallId: string;
-					output: unknown;
-			  }
-			| {
-					toolCallId: string;
-					errorText: string;
-			  }
-		)[];
+		toolOutputs?: {
+			toolCallId: string;
+			output: unknown;
+		}[];
 	},
 ): Promise<string> => await streamedText(await client.ai.continue(input));
 
