@@ -19,6 +19,7 @@ import { organizationInvitationRouter } from "./organization-invitation";
 import { organizationMemberRouter } from "./organization-member";
 import { providerRouter } from "./provider";
 import { quotaRouter } from "./quota";
+import { readinessRouter } from "./readiness";
 import { resourceRouter } from "./resource";
 import { storageRouter } from "./storage";
 import { userRouter } from "./user";
@@ -30,6 +31,7 @@ export const router = {
 	organizationInvitation: organizationInvitationRouter,
 	provider: providerRouter,
 	quota: quotaRouter,
+	readiness: readinessRouter,
 	resource: resourceRouter,
 	group: groupRouter,
 	health: healthRouter,
