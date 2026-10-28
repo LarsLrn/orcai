@@ -44,17 +44,13 @@ export const deletePrefixRecursively = ({
 	Effect.gen(function* () {
 		yield* createBucketIfNotExists(bucket);
 
-		const objects = yield* sendListObjectsCommand({
+		const objects = yield* listObjects({
 			bucket,
 			prefix,
 		});
 
-		if (!objects.Contents || objects.Contents.length === 0) {
-			return;
-		}
-
 		yield* Effect.forEach(
-			objects.Contents,
+			objects,
 			(object) =>
 				Effect.gen(function* () {
 					if (!object.Key) return;
