@@ -12,7 +12,7 @@ import {
 	type BucketName,
 	PROCESS_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { toSanitizedPgBossRunError } from "@/asset/error-summary";
 
@@ -93,13 +93,17 @@ export const describedExtraction = (params: {
 					return current;
 				}
 
-				yield* db
+				const [claimed] = yield* db
 					.update(asset)
 					.set({
 						processingStatus: "pending",
 						processingFailure: null,
+						processingGeneration: sql`${asset.processingGeneration} + 1`,
 					})
-					.where(eq(asset.id, params.asset.id));
+					.where(eq(asset.id, params.asset.id))
+					.returning({
+						generation: asset.processingGeneration,
+					});
 				yield* linkPending;
 				yield* sendJobBatchInTransaction({
 					jobName: PROCESS_ASSET_JOB_NAME,
@@ -112,6 +116,7 @@ export const describedExtraction = (params: {
 									id: params.asset.id,
 									type: params.asset.fileType,
 								},
+								generation: claimed?.generation,
 							},
 						},
 					],

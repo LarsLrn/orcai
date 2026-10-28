@@ -40,6 +40,8 @@ export const asset = pgTable("asset", {
 		.notNull()
 		.default("pending"),
 	processingFailure: pipelineFailureEnum("processing_failure"),
+	/** Counts processing requests; a delivery for an earlier one does nothing. */
+	processingGeneration: integer("processing_generation").notNull().default(0),
 	fileType: assetFileTypeEnum("file_type").notNull(),
 	origin: assetOriginEnum("origin").notNull().default("library"),
 	// TODO: Check what should be done if user deletes account

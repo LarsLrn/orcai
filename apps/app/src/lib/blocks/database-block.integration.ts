@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
+import { PgClient } from "@effect/sql-pg";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
@@ -8,14 +9,19 @@ import {
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
+import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import { reprocessAsset } from "@/lib/assets/processing";
 import {
 	type Actor,
 	authzIntegration,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
-import { enqueueIndexing } from "@/lib/blocks/database-block";
+import {
+	enqueueIndexing,
+	reindexBlockAssets,
+} from "@/lib/blocks/database-block";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions, createAsset } =
@@ -420,6 +426,108 @@ describe("retrying documents", () => {
 			).rejects.toMatchObject({
 				reason: "DOCUMENT_STILL_PREPARING",
 			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("attaching while processing completes", () => {
+	test(
+		"an asset completing as it is attached is queued for indexing in the new repository",
+		async () => {
+			const { owner, organizationId, blockId } = await repositoryWith(1);
+			const { asset } = await createAsset(owner, organizationId);
+			const assetId = asset.id as AssetId;
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.asset)
+						.set({
+							processingStatus: "active",
+						})
+						.where(eq(dbSchema.asset.id, assetId));
+				}),
+			);
+			const linksRead = await run(Deferred.make<void>());
+			const commit = await run(Deferred.make<void>());
+
+			// Processing has completed the asset and read its links, but not committed.
+			const processing = await run(
+				Effect.forkDetach(
+					Effect.gen(function* () {
+						const db = yield* DB;
+						yield* db.transaction(() =>
+							Effect.gen(function* () {
+								yield* db
+									.update(dbSchema.asset)
+									.set({
+										processingStatus: "completed",
+									})
+									.where(eq(dbSchema.asset.id, assetId));
+								yield* db
+									.select({
+										blockId: dbSchema.blockAsset.blockId,
+									})
+									.from(dbSchema.blockAsset)
+									.where(eq(dbSchema.blockAsset.assetId, assetId));
+								yield* Deferred.succeed(linksRead, undefined);
+								yield* Deferred.await(commit);
+							}),
+						);
+					}),
+				),
+			);
+			await run(Deferred.await(linksRead));
+
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB).insert(dbSchema.blockAsset).values({
+						blockId,
+						assetId,
+					});
+				}),
+			);
+			const attach = await run(
+				Effect.forkDetach(
+					reindexBlockAssets({
+						blockId,
+						addedIds: [
+							assetId,
+						],
+						removedIds: [],
+					}),
+				),
+			);
+			await run(
+				Effect.gen(function* () {
+					const sql = yield* PgClient.PgClient;
+					for (;;) {
+						const [waiting] = yield* sql<{
+							count: number;
+						}>`SELECT count(*)::int AS count FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query ILIKE ${"%for share%"}`;
+						if ((waiting?.count ?? 0) > 0) return;
+						yield* Effect.sleep("25 millis");
+					}
+				}),
+			);
+			await run(Deferred.succeed(commit, undefined));
+			await run(Fiber.join(processing));
+			await run(Fiber.join(attach));
+
+			const queued = await run(
+				Effect.gen(function* () {
+					const { boss } = yield* PgBossService;
+					return yield* Effect.promise(() =>
+						boss.findJobs(VECTORIZE_ASSET_JOB_NAME, {
+							data: {
+								assetId,
+								blockId,
+							},
+						}),
+					);
+				}),
+			);
+			expect(queued).toHaveLength(1);
 		},
 		TIMEOUT,
 	);
