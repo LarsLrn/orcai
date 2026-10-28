@@ -379,17 +379,23 @@ type ResourceCardActionItem = ResourceCardActionItemBase &
 	ResourceCardClickAction;
 
 const ResourceCardAction = ({ action }: { action: ResourceCardActionItem }) => {
+	const size = action.size ?? "sm";
+	const className = cn("gap-1.5 shadow-none", action.className);
+	const icon = action.icon ? (
+		<action.icon className={size === "sm" ? "size-3.5" : undefined} />
+	) : null;
+
 	if (action.linkProps) {
 		return (
 			<Link
 				{...action.linkProps}
 				className={buttonVariants({
 					variant: action.variant ?? "outline",
-					size: action.size ?? "sm",
-					className: cn("gap-1.5 shadow-none", action.className),
+					size,
+					className,
 				})}
 			>
-				{action.icon ? <action.icon className="h-3.5 w-3.5" /> : null}
+				{icon}
 				{action.label}
 			</Link>
 		);
@@ -399,12 +405,12 @@ const ResourceCardAction = ({ action }: { action: ResourceCardActionItem }) => {
 		<Button
 			onClick={action.onClick}
 			variant={action.variant ?? "outline"}
-			size="sm"
-			className={cn("gap-1.5 shadow-none", action.className)}
+			size={size}
+			className={className}
 			loading={action.loading}
 			disabled={action.disabled}
 		>
-			{action.icon ? <action.icon className="h-3.5 w-3.5" /> : null}
+			{icon}
 			{action.label}
 		</Button>
 	);

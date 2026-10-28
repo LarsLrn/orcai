@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	EditIcon,
 	KeyRoundIcon,
-	MoreVerticalIcon,
+	MessageSquarePlusIcon,
 	Trash2Icon,
 } from "lucide-react";
 import { useState } from "react";
@@ -20,17 +20,9 @@ import {
 	FeatureBadges,
 } from "@/components/features/feature-badges";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Page,
-	PageAction,
 	PageContent,
 	PageDescription,
 	PageHeader,
@@ -118,7 +110,6 @@ function RouteComponent() {
 	const canEdit = hasCapability(bot.data.capabilities, "edit");
 	const canDelete = hasCapability(bot.data.capabilities, "delete");
 	const canManageAccess = hasCapability(bot.data.capabilities, "manage_access");
-	const hasMenuActions = canManageAccess || canEdit || canDelete;
 
 	return (
 		<Page>
@@ -134,80 +125,58 @@ function RouteComponent() {
 						<FeatureBadges features={bot.data.features} className="contents" />
 					</div>
 				) : null}
-				<PageAction>
-					{bot.data.status === "ready" ? (
-						<BotFavouriteToggle bot={bot.data} />
-					) : null}
-					{canUse ? (
-						<Button
-							onClick={() =>
-								navigate({
-									to: "/app/chat/new",
-									search: {
-										botId: bot.data.id,
-									},
-								})
-							}
-						>
-							{m.bots_detail_start_chat_action()}
-						</Button>
-					) : null}
-					{hasMenuActions ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger
-								render={
-									<Button variant="ghost" size="icon">
-										<MoreVerticalIcon className="size-4" />
-										<span className="sr-only">
-											{m.bots_detail_more_options_aria_label()}
-										</span>
-									</Button>
-								}
-							/>
-							<DropdownMenuContent align="end">
-								{canManageAccess ? (
-									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
-										<KeyRoundIcon className="size-4" />
-										{m.bots_detail_access_action()}
-									</DropdownMenuItem>
-								) : null}
-								{canEdit ? (
-									<DropdownMenuItem
-										onClick={() =>
-											navigate({
-												to: "/app/hub/bots/$botId/setup",
-												params: {
-													botId: bot.data.id,
-												},
-											})
-										}
-									>
-										<EditIcon />
-										{m.bots_detail_edit_action()}
-									</DropdownMenuItem>
-								) : null}
-								{canDelete ? <DropdownMenuSeparator /> : null}
-								{canDelete ? (
-									<DropdownMenuItem
-										variant="destructive"
-										onClick={() =>
-											deleteBots({
-												refs: [
-													{
-														id: bot.data.id,
-													},
-												],
-											})
-										}
-									>
-										<Trash2Icon />
-										{m.bots_detail_delete_action()}
-									</DropdownMenuItem>
-								) : null}
-							</DropdownMenuContent>
-						</DropdownMenu>
-					) : null}
-				</PageAction>
+				<HeaderActions
+					leading={
+						bot.data.status === "ready" ? (
+							<BotFavouriteToggle bot={bot.data} />
+						) : null
+					}
+					actions={[
+						canUse && {
+							key: "start-chat",
+							label: m.bots_detail_start_chat_action(),
+							icon: MessageSquarePlusIcon,
+							variant: "default",
+							linkProps: {
+								to: "/app/chat/new",
+								search: {
+									botId: bot.data.id,
+								},
+							},
+						},
+						canEdit && {
+							key: "edit",
+							label: m.bots_detail_edit_action(),
+							icon: EditIcon,
+							linkProps: {
+								to: "/app/hub/bots/$botId/setup",
+								params: {
+									botId: bot.data.id,
+								},
+							},
+						},
+						canManageAccess && {
+							key: "access",
+							label: m.bots_detail_access_action(),
+							icon: KeyRoundIcon,
+							onClick: () => setIsAccessOpen(true),
+						},
+						canDelete && {
+							key: "delete",
+							label: m.bots_detail_delete_action(),
+							icon: Trash2Icon,
+							destructive: true,
+							onClick: () =>
+								deleteBots({
+									refs: [
+										{
+											id: bot.data.id,
+										},
+									],
+								}),
+						},
+					]}
+				/>
 			</PageHeader>
 
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">

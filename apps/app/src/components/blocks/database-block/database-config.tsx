@@ -6,35 +6,22 @@ import {
 	isRetryableFailure,
 	type RepositoryReadiness,
 } from "@orcai/schema";
-import { useNavigate } from "@tanstack/react-router";
-import {
-	ChevronDownIcon,
-	ExternalLinkIcon,
-	MoreVerticalIcon,
-	RotateCwIcon,
-} from "lucide-react";
+import { ChevronDownIcon, ExternalLinkIcon, RotateCwIcon } from "lucide-react";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
 import { ContentRenderer } from "@/components/editor/content-renderer";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Section,
-	SectionAction,
 	SectionContent,
 	SectionDescription,
 	SectionGrid,
@@ -201,7 +188,6 @@ const AssetSection = ({
 	assets: Asset[];
 	blockId: BlockId;
 }) => {
-	const navigate = useNavigate();
 	const { data } = useRepositoryReadiness([
 		blockId,
 	]);
@@ -233,50 +219,31 @@ const AssetSection = ({
 				<SectionDescription>
 					{m.blocks_database_config_assets_description()}
 				</SectionDescription>
-				<SectionAction>
-					{readiness?.documents.some(retryable) && (
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={retryingFailed}
-							onClick={() =>
+				<HeaderActions
+					actions={[
+						readiness?.documents.some(retryable) && {
+							key: "retry-failed",
+							label: m.blocks_database_config_retry_failed_action(),
+							icon: RotateCwIcon,
+							disabled: retryingFailed,
+							onClick: () =>
 								retryFailed({
 									blockId,
-								})
-							}
-						>
-							<RotateCwIcon />
-							{m.blocks_database_config_retry_failed_action()}
-						</Button>
-					)}
-					<DropdownMenu>
-						<DropdownMenuTrigger
-							render={
-								<Button variant="ghost" size="icon">
-									<MoreVerticalIcon className="size-4" />
-									<span className="sr-only">
-										{m.blocks_database_config_assets_menu_trigger()}
-									</span>
-								</Button>
-							}
-						/>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem
-								onClick={() =>
-									navigate({
-										to: "/app/hub/blocks/$blockId/points",
-										params: {
-											blockId,
-										},
-									})
-								}
-							>
-								<ExternalLinkIcon />
-								{m.blocks_database_config_view_vector_points_action()}
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</SectionAction>
+								}),
+						},
+						{
+							key: "points",
+							label: m.blocks_database_config_view_vector_points_action(),
+							icon: ExternalLinkIcon,
+							linkProps: {
+								to: "/app/hub/blocks/$blockId/points",
+								params: {
+									blockId,
+								},
+							},
+						},
+					]}
+				/>
 			</SectionHeader>
 			{readiness && readiness.totals.total > 0 && (
 				<ReadinessSummary totals={readiness.totals} />
