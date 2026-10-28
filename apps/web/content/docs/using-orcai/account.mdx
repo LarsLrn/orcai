@@ -83,7 +83,7 @@ The archive holds:
 - `profile.json`: your name, email, language, preferences, and organisation memberships with their roles
 - `ratings.json` and `favourites.json`: your message ratings and favourite bots
 - `bots.json`, `blocks.json` and `assets.json`: the bots, blocks and assets you own
-- `chats/`: each of your chats, including OrcAI Assistant conversations, as JSON with all messages and as a Markdown transcript like the one **Download chat** saves
+- `chats/`: each of your chats, including OrcAI Assistant conversations and the chats of organisations you left, as JSON with all messages and as a Markdown transcript like the one **Download chat** saves
 - `files/`: the original file of each asset you uploaded
 
 When the archive is ready, the card offers **Download** and you receive an email that links to the Data tab. The download stays available for 24 hours, then the archive is deleted. Once an export exists the button reads **Export again**, which also asks for confirmation. You can start a new export once the previous one has finished or failed.
@@ -93,6 +93,8 @@ When the archive is ready, the card offers **Download** and you receive an email
 The user menu at the bottom of the sidebar shows your active organisation and includes **Switch organisation**.
 
 **Switch organisation** opens **Select your organisation** (`/select-organization`), where you pick another organisation you belong to and see pending invitations. Instance administrators also find a **Manage instance** link there.
+
+Chats belong to the organisation they were started in. After you leave an organisation, or are removed from it, your chats there stay readable but read-only under [Chat history](/docs/using-orcai/chat#chat-history), which **Select your organisation** links to even when you belong to no organisation.
 
 ## Legal
 

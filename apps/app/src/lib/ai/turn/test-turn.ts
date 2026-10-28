@@ -76,7 +76,8 @@ export const chatRow = (chat: Partial<StoredChat> = {}): StoredChat => ({
 	} as ChatConfig,
 	kind: "chat",
 	pinnedAt: null,
-	organizationId: null,
+	botDeletedAt: null,
+	organizationId: ORGANIZATION_ID,
 	createdAt: new Date(0),
 	updatedAt: new Date(0),
 	...chat,
@@ -86,7 +87,6 @@ export const assistantRow = () =>
 	chatRow({
 		kind: "assistant",
 		config: null,
-		organizationId: ORGANIZATION_ID,
 	});
 
 /** Answers the reads of a turn's setup: the organisation, its model and provider, the caller. */

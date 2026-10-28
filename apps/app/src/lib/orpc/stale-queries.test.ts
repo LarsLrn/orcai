@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { GroupId, UserId } from "@orcai/core";
+import type { ChatId, GroupId, UserId } from "@orcai/core";
 import { createORPCClient } from "@orpc/client";
 import type { RouterClient } from "@orpc/server";
 import {
@@ -170,6 +170,59 @@ describe("invalidateStaleQueries", () => {
 			);
 			await edit();
 			expect(readiness()).toBe(true);
+		}
+	});
+
+	test("makes open chats stale whenever access to their bot or organisation changes", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const edits = [
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.grant.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.revoke.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.setVisibility.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.group.addMembers.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.group.removeMembers.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.organizationMember.delete.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.bot.delete.mutationOptions(),
+				).mutate({} as never),
+		];
+
+		for (const edit of edits) {
+			const chat = cached(
+				orpc.chat.find.queryKey({
+					input: {
+						id: crypto.randomUUID() as ChatId,
+					},
+				}),
+			);
+			await edit();
+			expect(chat()).toBe(true);
 		}
 	});
 

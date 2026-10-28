@@ -30,6 +30,7 @@ import {
 	inArray,
 	lt,
 	lte,
+	notExists,
 	or,
 	sql,
 } from "drizzle-orm";
@@ -43,9 +44,16 @@ import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
+import { lockExistingResource } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
+import {
+	chatBotUsable,
+	chatReadOnlyReason,
+	requireWritableChat,
+} from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
@@ -60,111 +68,176 @@ import {
 } from "./helpers/chat-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
-const listChats = authed.chat.list.effect(function* ({ input, context }) {
-	const db = yield* DB;
+const listChats = authed.chat.list
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		const db = yield* DB;
 
-	const allowedIds = yield* lookupEntitiesByPermission({
-		userId: context.auth.user.id,
-		permission: "read",
-		entityType: "chat",
-		zedToken: getZedToken(context, input),
-	});
-	const search =
-		input.filters?.search === undefined
-			? undefined
-			: prefixTsQuery(input.filters.search);
-	const tsQuery = sql`to_tsquery('simple', ${search})`;
-	const titleVector = chatTitleSearchVector(dbSchema.chat.title);
-	const messageVector = chatMessageSearchVector(dbSchema.chatMessage.parts);
-	const messageMatches = sql`${messageVector} @@ ${tsQuery}`;
-	const activeOrganizationId = context.auth.session.activeOrganizationId;
+		const allowedIds = yield* lookupEntitiesByPermission({
+			userId: context.auth.user.id,
+			permission: "read",
+			entityType: "chat",
+			zedToken: getZedToken(context, input),
+		});
+		const search =
+			input.filters?.search === undefined
+				? undefined
+				: prefixTsQuery(input.filters.search);
+		const tsQuery = sql`to_tsquery('simple', ${search})`;
+		const titleVector = chatTitleSearchVector(dbSchema.chat.title);
+		const messageVector = chatMessageSearchVector(dbSchema.chatMessage.parts);
+		const messageMatches = sql`${messageVector} @@ ${tsQuery}`;
 
-	const conditions = [
-		inArray(dbSchema.chat.id, allowedIds),
-		// A search also finds the assistant conversations of the active organisation.
-		search && activeOrganizationId
-			? or(
-					eq(dbSchema.chat.kind, "chat"),
-					eq(dbSchema.chat.organizationId, activeOrganizationId),
-				)
-			: eq(dbSchema.chat.kind, "chat"),
-		input.filters?.botId
-			? eq(dbSchema.chat.botId, input.filters.botId)
-			: undefined,
-		search
-			? or(
-					sql`${titleVector} @@ ${tsQuery}`,
-					exists(
-						db
-							.select({
-								id: dbSchema.chatMessage.id,
-							})
-							.from(dbSchema.chatMessage)
-							.where(
-								and(
-									eq(dbSchema.chatMessage.chatId, dbSchema.chat.id),
-									messageMatches,
+		const conditions = [
+			inArray(dbSchema.chat.id, allowedIds),
+			eq(
+				dbSchema.chat.organizationId,
+				context.auth.session.activeOrganizationId,
+			),
+			// A search also finds the organisation's assistant conversations.
+			search ? undefined : eq(dbSchema.chat.kind, "chat"),
+			input.filters?.botId
+				? eq(dbSchema.chat.botId, input.filters.botId)
+				: undefined,
+			search
+				? or(
+						sql`${titleVector} @@ ${tsQuery}`,
+						exists(
+							db
+								.select({
+									id: dbSchema.chatMessage.id,
+								})
+								.from(dbSchema.chatMessage)
+								.where(
+									and(
+										eq(dbSchema.chatMessage.chatId, dbSchema.chat.id),
+										messageMatches,
+									),
 								),
-							),
-					),
-				)
-			: undefined,
-	].filter((condition) => condition !== undefined);
-	const whereClause = and(...conditions);
+						),
+					)
+				: undefined,
+		].filter((condition) => condition !== undefined);
+		const whereClause = and(...conditions);
 
-	const bestMessage = db
-		.select({
-			id: dbSchema.chatMessage.id,
-			parts: dbSchema.chatMessage.parts,
-			rank: sql<number>`ts_rank(${messageVector}, ${tsQuery})`.as("rank"),
-		})
-		.from(dbSchema.chatMessage)
-		.where(
-			and(eq(dbSchema.chatMessage.chatId, dbSchema.chat.id), messageMatches),
-		)
-		.orderBy(sql`rank desc`, desc(dbSchema.chatMessage.position))
-		.limit(1)
-		.as("best_message");
-	// A title term weighs ten times one in a message.
-	const rank = sql`greatest(ts_rank(setweight(${titleVector}, 'A'), ${tsQuery}), ${bestMessage.rank})`;
+		const bestMessage = db
+			.select({
+				id: dbSchema.chatMessage.id,
+				parts: dbSchema.chatMessage.parts,
+				rank: sql<number>`ts_rank(${messageVector}, ${tsQuery})`.as("rank"),
+			})
+			.from(dbSchema.chatMessage)
+			.where(
+				and(eq(dbSchema.chatMessage.chatId, dbSchema.chat.id), messageMatches),
+			)
+			.orderBy(sql`rank desc`, desc(dbSchema.chatMessage.position))
+			.limit(1)
+			.as("best_message");
+		// A title term weighs ten times one in a message.
+		const rank = sql`greatest(ts_rank(setweight(${titleVector}, 'A'), ${tsQuery}), ${bestMessage.rank})`;
 
-	const orderBy = yield* buildOrderBy({
-		sort: input.sort,
-		allowlist: {
-			title: dbSchema.chat.title,
-			botName: dbSchema.bot.name,
-			updatedAt: dbSchema.chat.updatedAt,
-		} satisfies Record<ChatSortKey, SortExpression>,
-		defaultOrder: [
-			search ? desc(rank) : sql`${dbSchema.chat.pinnedAt} desc nulls last`,
-			desc(dbSchema.chat.updatedAt),
-		],
-		tieBreaker: {
-			id: "id",
-			expression: dbSchema.chat.id,
-		},
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				title: dbSchema.chat.title,
+				botName: dbSchema.bot.name,
+				updatedAt: dbSchema.chat.updatedAt,
+			} satisfies Record<ChatSortKey, SortExpression>,
+			defaultOrder: [
+				search ? desc(rank) : sql`${dbSchema.chat.pinnedAt} desc nulls last`,
+				desc(dbSchema.chat.updatedAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.chat.id,
+			},
+		});
+
+		const rows = db
+			.select({
+				...getColumns(dbSchema.chat),
+				botName: dbSchema.bot.name,
+				match: search
+					? sql<{
+							messageId: ChatMessageId;
+							headline: string;
+						} | null>`case when ${bestMessage.id} is null then null else json_build_object('messageId', ${bestMessage.id}, 'headline', ts_headline('simple', ${chatMessageSearchText(bestMessage.parts)}, ${tsQuery}, ${HEADLINE_OPTIONS})) end`
+					: sql<null>`null`,
+			})
+			.from(dbSchema.chat)
+			.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
+			.$dynamic();
+
+		return yield* Effect.all(
+			[
+				(search ? rows.leftJoinLateral(bestMessage, sql`true`) : rows)
+					.where(whereClause)
+					.orderBy(...orderBy)
+					.limit(input.pageSize)
+					.offset(input.pageIndex * input.pageSize),
+				db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.chat)
+					.where(whereClause),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		).pipe(
+			Effect.map(([rows, [countResult]]) => ({
+				data: rows.map(({ match, ...chat }) => ({
+					...chat,
+					match: match && {
+						messageId: match.messageId,
+						snippet: snippetOf(match.headline),
+					},
+				})),
+				rowCount: countResult.count,
+			})),
+		);
 	});
 
-	const rows = db
-		.select({
-			...getColumns(dbSchema.chat),
-			botName: dbSchema.bot.name,
-			match: search
-				? sql<{
-						messageId: ChatMessageId;
-						headline: string;
-					} | null>`case when ${bestMessage.id} is null then null else json_build_object('messageId', ${bestMessage.id}, 'headline', ts_headline('simple', ${chatMessageSearchText(bestMessage.parts)}, ${tsQuery}, ${HEADLINE_OPTIONS})) end`
-				: sql<null>`null`,
-		})
-		.from(dbSchema.chat)
-		.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
-		.$dynamic();
+/** Owner-only, so it needs no membership: the chats of organisations the user left. */
+const listChatHistory = authed.chat.history.effect(function* ({
+	input,
+	context,
+}) {
+	const db = yield* DB;
+	const whereClause = and(
+		eq(dbSchema.chat.userId, context.auth.user.id),
+		notExists(
+			db
+				.select({
+					id: dbSchema.member.id,
+				})
+				.from(dbSchema.member)
+				.where(
+					and(
+						eq(dbSchema.member.organizationId, dbSchema.chat.organizationId),
+						eq(dbSchema.member.userId, context.auth.user.id),
+					),
+				),
+		),
+	);
 
-	return yield* Effect.all(
+	const [data, [rowCount]] = yield* Effect.all(
 		[
-			(search ? rows.leftJoinLateral(bestMessage, sql`true`) : rows)
+			db
+				.select({
+					...getColumns(dbSchema.chat),
+					organizationName: dbSchema.organization.name,
+					botName: dbSchema.bot.name,
+				})
+				.from(dbSchema.chat)
+				.innerJoin(
+					dbSchema.organization,
+					eq(dbSchema.organization.id, dbSchema.chat.organizationId),
+				)
+				.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
 				.where(whereClause)
-				.orderBy(...orderBy)
+				.orderBy(desc(dbSchema.chat.updatedAt), desc(dbSchema.chat.id))
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
@@ -177,18 +250,12 @@ const listChats = authed.chat.list.effect(function* ({ input, context }) {
 		{
 			concurrency: "unbounded",
 		},
-	).pipe(
-		Effect.map(([rows, [countResult]]) => ({
-			data: rows.map(({ match, ...chat }) => ({
-				...chat,
-				match: match && {
-					messageId: match.messageId,
-					snippet: snippetOf(match.headline),
-				},
-			})),
-			rowCount: countResult.count,
-		})),
 	);
+
+	return {
+		data,
+		rowCount: rowCount.count,
+	};
 });
 
 const chatNotFound = (id: ChatId) =>
@@ -202,6 +269,20 @@ const chatNotFound = (id: ChatId) =>
 export const insertChat = (values: typeof dbSchema.chat.$inferInsert) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		// Held until commit, so a bot deletion marks this chat or refuses it.
+		if (
+			values.botId &&
+			!(yield* lockExistingResource({
+				resourceType: "bot",
+				resourceId: values.botId,
+			}))
+		) {
+			return yield* new AppErrors.NotFoundError({
+				reason: "BOT_NOT_FOUND",
+				id: values.botId,
+				message: "Bot not found",
+			});
+		}
 		const [chat] = yield* db.insert(dbSchema.chat).values(values).returning();
 		yield* recordRelationshipFacts(
 			RelationshipFact.ChatCreated({
@@ -231,6 +312,12 @@ const findChat = authed.chat.find
 					},
 				},
 				with: {
+					organization: {
+						columns: {
+							id: true,
+							name: true,
+						},
+					},
 					parentChat: {
 						columns: {
 							id: true,
@@ -271,17 +358,51 @@ const findChat = authed.chat.find
 				: []),
 			...chat.branches.map((branch) => branch.id),
 		];
-		const readableIds = yield* permittedEntityIds({
-			entityIds: linkedIds,
-			entityType: "chat",
-			permission: "read",
-			userId: context.auth.user.id,
-			zedToken: getZedToken(context, input),
-		});
+		const activeOrganizationId = context.auth.session.activeOrganizationId;
+		const [readableIds, membership, botUsable] = yield* Effect.all(
+			[
+				permittedEntityIds({
+					entityIds: linkedIds,
+					entityType: "chat",
+					permission: "read",
+					userId: context.auth.user.id,
+					zedToken: getZedToken(context, input),
+				}),
+				chat.organizationId === activeOrganizationId
+					? Effect.succeed(undefined)
+					: db.query.member.findFirst({
+							where: {
+								organizationId: {
+									eq: chat.organizationId,
+								},
+								userId: {
+									eq: context.auth.user.id,
+								},
+							},
+							columns: {
+								id: true,
+							},
+						}),
+				chatBotUsable(chat, {
+					userId: context.auth.user.id,
+					zedToken: getZedToken(context, input),
+				}),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
 
 		return {
 			data: {
 				...chat,
+				readOnly: chatReadOnlyReason(chat, {
+					activeOrganizationId,
+					isMember:
+						chat.organizationId === activeOrganizationId ||
+						membership !== undefined,
+					botUsable,
+				}),
 				parentChat:
 					chat.parentChat && readableIds.has(chat.parentChat.id)
 						? chat.parentChat
@@ -315,10 +436,10 @@ const checkMaxTokens = ({
 }: {
 	modelId: ModelId | null | undefined;
 	maxTokens: number | null | undefined;
-	organizationId: OrganizationId | undefined;
+	organizationId: OrganizationId;
 }) =>
 	Effect.gen(function* () {
-		if (modelId == null || maxTokens == null || organizationId === undefined) {
+		if (modelId == null || maxTokens == null) {
 			return;
 		}
 
@@ -359,19 +480,11 @@ const checkChatModel = ({
 }: {
 	providerId: ProviderId | null | undefined;
 	modelId: ModelId | null | undefined;
-	organizationId: OrganizationId | undefined;
+	organizationId: OrganizationId;
 }) =>
 	Effect.gen(function* () {
 		if (providerId == null && modelId == null) {
 			return;
-		}
-
-		if (organizationId === undefined) {
-			return yield* new AppErrors.BadRequestError({
-				reason: "ACTIVE_ORGANIZATION_REQUIRED",
-				message:
-					"An active organization must be selected to access this resource.",
-			});
 		}
 
 		const db = yield* DB;
@@ -443,54 +556,59 @@ const checkChatModel = ({
 		}
 	});
 
-const createChat = authed.chat.create.effect(function* ({ input, context }) {
-	const features = input.config?.features;
+const createChat = authed.chat.create
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		const organizationId = context.auth.session.activeOrganizationId;
+		const features = input.config?.features;
 
-	if (input.botId) {
-		if (features !== undefined) {
-			return yield* botFeaturesImmutable();
+		if (input.botId) {
+			if (features !== undefined) {
+				return yield* botFeaturesImmutable();
+			}
+
+			yield* requirePermission({
+				entityType: "bot",
+				entityId: input.botId,
+				permission: "use",
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			});
+		} else if (features) {
+			yield* checkFeatureRequirements(features);
 		}
 
-		yield* requirePermission({
-			entityType: "bot",
-			entityId: input.botId,
-			permission: "use",
-			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+		yield* checkChatModel({
+			providerId: input.config?.providerId,
+			modelId: input.config?.modelId,
+			organizationId,
 		});
-	} else if (features) {
-		yield* checkFeatureRequirements(features);
-	}
+		yield* checkMaxTokens({
+			modelId: input.config?.modelId,
+			maxTokens: input.config?.maxTokens,
+			organizationId,
+		});
 
-	yield* checkChatModel({
-		providerId: input.config?.providerId,
-		modelId: input.config?.modelId,
-		organizationId: context.auth.session.activeOrganizationId,
+		const { result: chat } = yield* writeRelationships(
+			{
+				organizationIds: [],
+			},
+			insertChat({
+				title: input.title,
+				userId: context.auth.user.id,
+				botId: input.botId,
+				config: input.config ?? {},
+				organizationId,
+			}),
+		);
+
+		return {
+			data: chat,
+		};
 	});
-	yield* checkMaxTokens({
-		modelId: input.config?.modelId,
-		maxTokens: input.config?.maxTokens,
-		organizationId: context.auth.session.activeOrganizationId,
-	});
-
-	const { result: chat } = yield* writeRelationships(
-		{
-			organizationIds: [],
-		},
-		insertChat({
-			title: input.title,
-			userId: context.auth.user.id,
-			botId: input.botId,
-			config: input.config ?? {},
-		}),
-	);
-
-	return {
-		data: chat,
-	};
-});
 
 const updateChat = authed.chat.update
+	.use(requireActiveOrganizationMiddleware)
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "id",
@@ -498,17 +616,32 @@ const updateChat = authed.chat.update
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const existingChat = yield* db.query.chat.findFirst({
-			where: {
-				id: {
-					eq: input.id,
+		const existingChat = yield* db.query.chat
+			.findFirst({
+				where: {
+					id: {
+						eq: input.id,
+					},
 				},
-			},
+			})
+			.pipe(
+				Effect.flatMap((chat) =>
+					Effect.fromNullishOr(chat).pipe(
+						Effect.mapError(() => chatNotFound(input.id)),
+					),
+				),
+			);
+		yield* requireWritableChat(existingChat, {
+			activeOrganizationId: context.auth.session.activeOrganizationId,
+			botUsable: chatBotUsable(existingChat, {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			}),
 		});
 		const features = input.config?.features;
 
 		if (features !== undefined) {
-			if (existingChat?.botId) {
+			if (existingChat.botId) {
 				return yield* botFeaturesImmutable();
 			}
 
@@ -517,7 +650,7 @@ const updateChat = authed.chat.update
 			}
 		}
 
-		if (existingChat?.kind === "assistant" && input.config !== undefined) {
+		if (existingChat.kind === "assistant" && input.config !== undefined) {
 			return yield* Effect.fail(assistantConversationImmutable());
 		}
 
@@ -537,7 +670,7 @@ const updateChat = authed.chat.update
 					? null
 					: (() => {
 							const nextConfig = {
-								...(existingChat?.config ?? {}),
+								...(existingChat.config ?? {}),
 							} as Record<string, unknown>;
 
 							for (const [key, value] of Object.entries(configPatch)) {
@@ -559,13 +692,13 @@ const updateChat = authed.chat.update
 			yield* checkChatModel({
 				providerId:
 					input.config.providerId === undefined
-						? existingChat?.config?.providerId
+						? existingChat.config?.providerId
 						: input.config.providerId,
 				modelId:
 					input.config.modelId === undefined
-						? existingChat?.config?.modelId
+						? existingChat.config?.modelId
 						: input.config.modelId,
-				organizationId: context.auth.session.activeOrganizationId,
+				organizationId: existingChat.organizationId,
 			});
 		}
 
@@ -574,10 +707,10 @@ const updateChat = authed.chat.update
 			yield* checkMaxTokens({
 				modelId:
 					input.config.modelId === undefined
-						? existingChat?.config?.modelId
+						? existingChat.config?.modelId
 						: input.config.modelId,
 				maxTokens: input.config.maxTokens,
-				organizationId: context.auth.session.activeOrganizationId,
+				organizationId: existingChat.organizationId,
 			});
 		}
 
@@ -666,6 +799,7 @@ const deleteChats = authed.chat.delete
 	});
 
 const branchChat = authed.chat.branch
+	.use(requireActiveOrganizationMiddleware)
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
@@ -694,6 +828,13 @@ const branchChat = authed.chat.branch
 		if (source.kind === "assistant") {
 			return yield* Effect.fail(assistantConversationImmutable());
 		}
+		yield* requireWritableChat(source, {
+			activeOrganizationId: context.auth.session.activeOrganizationId,
+			botUsable: chatBotUsable(source, {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context, input),
+			}),
+		});
 
 		const message = yield* db.query.chatMessage
 			.findFirst({
@@ -721,16 +862,6 @@ const branchChat = authed.chat.branch
 				),
 			);
 
-		if (source.botId) {
-			yield* requirePermission({
-				entityType: "bot",
-				entityId: source.botId,
-				permission: "use",
-				userId: context.auth.user.id,
-				zedToken: getZedToken(context, input),
-			});
-		}
-
 		// A user message becomes the draft, so the branch ends before it.
 		const isUserMessage = message.role === "user";
 		const copiedPositions = isUserMessage
@@ -747,6 +878,7 @@ const branchChat = authed.chat.branch
 					userId: context.auth.user.id,
 					botId: source.botId,
 					config: source.config,
+					organizationId: source.organizationId,
 					parentChatId: source.id,
 					branchedFromMessageId: message.id,
 				});
@@ -808,6 +940,7 @@ const branchChat = authed.chat.branch
 
 export const chatRouter = {
 	list: listChats,
+	history: listChatHistory,
 	create: createChat,
 	find: findChat,
 	update: updateChat,

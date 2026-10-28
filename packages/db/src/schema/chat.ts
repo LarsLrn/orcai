@@ -61,9 +61,12 @@ export const chat = pgTable(
 		kind: chatKindEnum("kind").notNull().default("chat"),
 		organizationId: uuid("organization_id")
 			.$type<OrganizationId>()
+			.notNull()
 			.references(() => organization.id, {
 				onDelete: "cascade",
 			}),
+		/** Set when the bot is deleted, which leaves the chat read-only. */
+		botDeletedAt: timestamp("bot_deleted_at"),
 		/** Chats are never shared, so the pin is the owner's. */
 		pinnedAt: timestamp("pinned_at"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -72,7 +75,7 @@ export const chat = pgTable(
 	(table) => [
 		check(
 			"chat_assistant_shape",
-			sql`(${table.kind} = 'assistant') = (${table.organizationId} IS NOT NULL) AND (${table.kind} <> 'assistant' OR (${table.botId} IS NULL AND ${table.parentChatId} IS NULL))`,
+			sql`${table.kind} <> 'assistant' OR (${table.botId} IS NULL AND ${table.parentChatId} IS NULL)`,
 		),
 		index("chat_organization_user_updated_idx").on(
 			table.organizationId,

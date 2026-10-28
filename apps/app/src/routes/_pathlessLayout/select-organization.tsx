@@ -8,6 +8,7 @@ import {
 import { BuildingIcon } from "lucide-react";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
+import { ChatHistoryLink } from "@/components/chat/chat-history-link";
 import {
 	invitationsPageInput,
 	OrganizationInvitationsList,
@@ -214,6 +215,10 @@ function RouteComponent() {
 			) : null}
 
 			<PendingInvitationsSection onAccepted={handleInvitationAccepted} />
+
+			<div className="flex justify-center">
+				<ChatHistoryLink />
+			</div>
 
 			{rowCount === 0 && trimmedSearch ? (
 				<p className="text-center text-muted-foreground text-sm">

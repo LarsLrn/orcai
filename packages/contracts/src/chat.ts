@@ -7,6 +7,8 @@ import {
 	deleteChatResponseSchema,
 	findChatInputSchema,
 	findChatResponseSchema,
+	listChatHistoryInputSchema,
+	listChatHistoryResponseSchema,
 	listChatsInputSchema,
 	listChatsResponseSchema,
 	pinChatInputSchema,
@@ -31,6 +33,20 @@ export const chatContracts = {
 		)
 		.input(listChatsInputSchema)
 		.output(listChatsResponseSchema),
+	history: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/chat-history",
+				summary:
+					"List your chats in organisations you are no longer a member of",
+				tags: [
+					"Chats",
+				],
+			}),
+		)
+		.input(listChatHistoryInputSchema)
+		.output(listChatHistoryResponseSchema),
 	create: base
 		.meta(
 			openapi({

@@ -59,6 +59,8 @@ export const queryDefaults = {
 		find: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
+				// Someone else's grant or membership change locks or unlocks it.
+				refetchOnWindowFocus: "always",
 			},
 		},
 	},

@@ -38,7 +38,6 @@ const reasonMessages: ReasonMessages = {
 	ASSET_NOT_FOUND: m.error_asset_not_found,
 	ASSISTANT_CONVERSATION_IMMUTABLE: m.error_assistant_conversation_immutable,
 	ASSISTANT_MODEL_NOT_CONFIGURED: m.error_assistant_model_not_configured,
-	ASSISTANT_ORGANIZATION_MISMATCH: m.error_assistant_organization_mismatch,
 	AUTH_REQUIRED: m.error_auth_required,
 	BEHAVIOUR_BLOCK_TYPE_INVALID: m.error_behaviour_block_type_invalid,
 	BLOCK_IN_USE_BY_READY_BOTS: ({ botNames }) =>
@@ -62,7 +61,9 @@ const reasonMessages: ReasonMessages = {
 		}),
 	CHAT_BLOCKS_UNAVAILABLE: m.error_chat_blocks_unavailable,
 	CHAT_BOT_BLOCKS_IMMUTABLE: m.error_chat_bot_blocks_immutable,
+	CHAT_BOT_DELETED: m.error_chat_bot_deleted,
 	CHAT_BOT_FEATURES_IMMUTABLE: m.error_chat_bot_features_immutable,
+	CHAT_BOT_UNAVAILABLE: m.error_chat_bot_unavailable,
 	CHAT_CONTEXT_TOO_LONG: m.error_chat_context_too_long,
 	CHAT_MAX_TOKENS_EXCEEDS_MODEL: ({ maxOutputTokens }) =>
 		m.error_chat_max_tokens_exceeds_model({
@@ -73,6 +74,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_MESSAGE_NOT_FOUND: m.error_chat_message_not_found,
 	CHAT_MODEL_NOT_CONFIGURED: m.error_chat_model_not_configured,
 	CHAT_NOT_FOUND: m.error_chat_not_found,
+	CHAT_ORGANIZATION_MISMATCH: m.error_chat_organization_mismatch,
 	CHAT_RATING_FAILED: m.error_chat_rating_failed,
 	CHAT_TEMPLATE_BLOCK_ALREADY_ATTACHED:
 		m.error_chat_template_block_already_attached,

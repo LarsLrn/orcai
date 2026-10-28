@@ -4,6 +4,7 @@ import type {
 	BotId,
 	ChatId,
 	ChatMessageId,
+	OrganizationId,
 	OrganizationRole,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
@@ -359,6 +360,8 @@ const rateReply = (params: {
 					id: crypto.randomUUID() as ChatId,
 					userId: params.rater.user.id,
 					botId: params.botId,
+					organizationId: params.rater.session
+						.activeOrganizationId as OrganizationId,
 				})
 				.returning();
 			yield* db.insert(dbSchema.chatMessage).values({

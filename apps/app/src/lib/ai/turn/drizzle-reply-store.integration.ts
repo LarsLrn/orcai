@@ -13,12 +13,23 @@ const run = <A, E>(effect: Effect.Effect<A, E, ReplyStore | DB>) =>
 	runtime.runPromise(effect.pipe(Effect.provide(DrizzleReplyStore)));
 
 const newChat = Effect.gen(function* () {
+	const db = yield* DB;
 	const user = yield* createUser();
-	const [chat] = yield* (yield* DB)
+	const suffix = crypto.randomUUID();
+	const [organization] = yield* db
+		.insert(dbSchema.organization)
+		.values({
+			name: `Reply store ${suffix}`,
+			slug: `reply-store-${suffix}`,
+			createdAt: new Date(),
+		})
+		.returning();
+	const [chat] = yield* db
 		.insert(dbSchema.chat)
 		.values({
 			title: "Integration",
 			userId: user.id,
+			organizationId: organization.id,
 		})
 		.returning();
 	return chat.id;

@@ -12,6 +12,14 @@ export const chatKindSchema = z.enum([
 	"assistant",
 ]);
 
+/** Why a chat can be read but not continued: its bot is gone or not available, its organisation was left, or another one is active. */
+export const chatReadOnlyReasonSchema = z.enum([
+	"bot-deleted",
+	"bot-unavailable",
+	"not-member",
+	"other-organization",
+]);
+
 export const chatFieldsSchema = z.object({
 	title: z.string().nullable(),
 	config: chatConfigSchema.nullable(),
@@ -25,8 +33,9 @@ export const chatSchema = chatFieldsSchema.extend({
 	parentChatId: chatIdSchema.nullable(),
 	branchedFromMessageId: chatMessageIdSchema.nullable(),
 	kind: chatKindSchema,
-	organizationId: organizationIdSchema.nullable(),
+	organizationId: organizationIdSchema,
 	userId: userIdSchema,
+	botDeletedAt: z.coerce.date().nullable(),
 	pinnedAt: z.coerce.date().nullable(),
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
@@ -56,6 +65,12 @@ export const chatListRowSchema = chatSchema.extend({
 		.nullable(),
 });
 
+/** A chat of an organisation its owner is no longer a member of. */
+export const chatHistoryRowSchema = chatSchema.extend({
+	organizationName: z.string(),
+	botName: z.string().nullable(),
+});
+
 export const chatLinkSchema = z.object({
 	id: chatIdSchema,
 	title: z.string().nullable(),
@@ -67,6 +82,8 @@ export const chatBranchLinkSchema = chatLinkSchema.extend({
 });
 
 export type ChatKind = z.infer<typeof chatKindSchema>;
+export type ChatReadOnlyReason = z.infer<typeof chatReadOnlyReasonSchema>;
+export type ChatHistoryRow = z.infer<typeof chatHistoryRowSchema>;
 export type Chat = z.infer<typeof chatSchema>;
 export type ChatLink = z.infer<typeof chatLinkSchema>;
 export type ChatBranchLink = z.infer<typeof chatBranchLinkSchema>;

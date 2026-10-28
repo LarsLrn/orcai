@@ -1,0 +1,2 @@
+ALTER TABLE "chat" ADD COLUMN "bot_deleted_at" timestamp;--> statement-breakpoint
+ALTER TABLE "chat" DROP CONSTRAINT "chat_assistant_shape", ADD CONSTRAINT "chat_assistant_shape" CHECK ("kind" <> 'assistant' OR ("bot_id" IS NULL AND "parent_chat_id" IS NULL));
