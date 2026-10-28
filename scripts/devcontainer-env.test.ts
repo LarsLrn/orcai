@@ -30,7 +30,6 @@ describe("writeDevcontainerEnv", () => {
 			"EMBEDDING_DIMENSIONS",
 			"EMBEDDING_MODEL",
 			"ENCRYPTION_KEY",
-			"GENERAL_MODEL",
 			"OPENAI_COMPATIBLE_API_KEY",
 			"OPENAI_COMPATIBLE_BASE_URL",
 			"PORT",

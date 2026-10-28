@@ -1,4 +1,10 @@
-import type { DocumentState, PipelineFailure } from "@orcai/schema";
+import {
+	type DocumentState,
+	type FileType,
+	isImageFileType,
+	isRetryableFailure,
+	type PipelineFailure,
+} from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
 import type { ResourceCardBadgeItem } from "@/components/ui/shell/resource-card";
 import { m } from "@/paraglide/messages";
@@ -43,6 +49,19 @@ const failureDescriptions: Record<PipelineFailure, () => string> = {
 	other: m.pipeline_failure_other,
 };
 
-/** Why preparing failed, in words; says so when retrying cannot help. */
-export const getPipelineFailureDescription = (failure: PipelineFailure) =>
-	failureDescriptions[failure]();
+/** An image the utility model could not read can be processed again once an admin picks one that can. */
+const unreadableImage = (failure: PipelineFailure, fileType: FileType) =>
+	failure === "unsupported" && isImageFileType(fileType);
+
+/** Whether processing a failed file again can help. */
+export const canReprocess = (failure: PipelineFailure, fileType: FileType) =>
+	isRetryableFailure(failure) || unreadableImage(failure, fileType);
+
+/** Why preparing a file failed, in words; says so when retrying cannot help. */
+export const getPipelineFailureDescription = (
+	failure: PipelineFailure,
+	fileType: FileType,
+) =>
+	unreadableImage(failure, fileType)
+		? m.pipeline_failure_unsupported_image()
+		: failureDescriptions[failure]();

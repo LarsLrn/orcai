@@ -6,7 +6,7 @@ import {
 } from "node:http";
 import type { AddressInfo } from "node:net";
 
-/** The models the mock serves; `GENERAL_MODEL` and `EMBEDDING_MODEL` point at them. */
+/** The models the mock serves; `EMBEDDING_MODEL` points at the embedding model. */
 export const INFERENCE_MOCK_MODELS = {
 	chat: "e2e-mock-chat",
 	embedding: "e2e-mock-embedding",

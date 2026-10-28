@@ -18,7 +18,6 @@ export function writeDevcontainerEnv(file: string): boolean {
 				OPENAI_COMPATIBLE_API_KEY: "ollama",
 				EMBEDDING_MODEL: "baai/bge-m3",
 				EMBEDDING_DIMENSIONS: "1024",
-				GENERAL_MODEL: "google/gemma-4-26b-a4b-it",
 			},
 			[
 				"Generated once for the devcontainer by `bun scripts/devcontainer-env.ts`.",

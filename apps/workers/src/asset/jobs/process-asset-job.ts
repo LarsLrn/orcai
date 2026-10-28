@@ -17,12 +17,14 @@ import {
 	sendPutObjectCommand,
 } from "@orcai/s3/server";
 import {
+	isImageFileType,
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { describeImages, imageMediaType } from "@/asset/image-descriptions";
 import {
 	AssetPipelineError,
 	settleProcessingAttempt,
@@ -31,38 +33,6 @@ import { validateImageResolution } from "@/asset/utils/validate-image-resolution
 
 const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
 	`${assetRef.prefix}/${assetRef.id}.${assetRef.type}`;
-
-const getImageContentType = (format: string) => {
-	const normalizedFormat = format.toLowerCase();
-
-	if (normalizedFormat === "jpg" || normalizedFormat === "jpeg") {
-		return "image/jpeg";
-	}
-
-	if (normalizedFormat === "png") {
-		return "image/png";
-	}
-
-	if (normalizedFormat === "gif") {
-		return "image/gif";
-	}
-
-	if (normalizedFormat === "webp") {
-		return "image/webp";
-	}
-
-	return `image/${normalizedFormat}`;
-};
-
-const IMAGE_FILE_TYPES = new Set([
-	"jpeg",
-	"jpg",
-	"png",
-	"gif",
-	"webp",
-]);
-
-const isImageFileType = (fileType: string) => IMAGE_FILE_TYPES.has(fileType);
 
 const getRequiredMimeType = (params: {
 	fileType: ProcessAssetPayload["assetRef"]["type"];
@@ -141,7 +111,7 @@ const createDocumentArtifact = (params: {
 						bucket: buckets.processed.name,
 						key,
 						body: Buffer.from(image.data),
-						contentType: getImageContentType(image.format),
+						contentType: imageMediaType(image.format),
 					}).pipe(
 						Effect.mapError(
 							toPgBossRunError(params.jobId, PROCESS_ASSET_JOB_NAME),
@@ -283,7 +253,8 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 			jobId: params.job.id,
 		});
 		const objectKey = getAssetObjectKey(assetRef);
-		const artifact = isImageFileType(assetRef.type)
+		const imageAsset = isImageFileType(assetRef.type);
+		const extracted = imageAsset
 			? createImageOnlyStoredExtractionArtifact({
 					mimeType,
 					format: assetRef.type,
@@ -333,12 +304,19 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 					),
 				);
 
-		if (isEmptyArtifact(artifact)) {
+		if (isEmptyArtifact(extracted)) {
 			return yield* new AssetPipelineError({
 				failure: "empty",
 				cause: new Error(`Asset ${assetRef.id} has no extractable content`),
 			});
 		}
+
+		const artifact = yield* describeImages({
+			assetId: assetRef.id,
+			jobId: params.job.id,
+			artifact: extracted,
+			imageAsset,
+		});
 
 		yield* sendPutObjectCommand({
 			bucket: buckets.processed.name,

@@ -1,0 +1,295 @@
+import {
+	AiError,
+	figureDescriptionInstructions,
+	generateTextWithQuota,
+	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
+	imageAssetDescriptionInstructions,
+	imageAssetDescriptionOutput,
+	readImageAssetDescription,
+	type UtilityModel,
+	utilityModel,
+} from "@orcai/ai";
+import {
+	type AssetId,
+	buckets,
+	type OrganizationId,
+	type UserId,
+} from "@orcai/core";
+import { DB, dbSchema } from "@orcai/db";
+import type {
+	StoredExtractionArtifact,
+	StoredExtractionImage,
+} from "@orcai/process";
+import { getImageAsBase64 } from "@orcai/s3/server";
+import { and, eq, isNull } from "drizzle-orm";
+import * as Effect from "effect/Effect";
+import { summarizeErrorCause } from "@/asset/error-summary";
+import { AssetPipelineError } from "@/asset/pipeline-failure";
+
+/** A description that takes longer counts as failed. */
+const IMAGE_DESCRIPTION_TIMEOUT_MS = 120_000;
+
+/** Who the model calls for an asset are metered against. */
+interface AssetOwner {
+	organizationId: OrganizationId;
+	userId: UserId;
+}
+
+/** The organisation the asset belongs to and its uploader. */
+const assetOwner = (assetId: AssetId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { asset, resourceScope } = dbSchema;
+		const [owner] = yield* db
+			.select({
+				organizationId: resourceScope.organizationId,
+				userId: asset.userId,
+			})
+			.from(asset)
+			.innerJoin(
+				resourceScope,
+				and(
+					eq(resourceScope.resourceType, "asset"),
+					eq(resourceScope.resourceId, asset.id),
+					eq(resourceScope.isPrimary, true),
+					isNull(resourceScope.endedAt),
+				),
+			)
+			.where(eq(asset.id, assetId))
+			.limit(1);
+
+		if (!owner) {
+			return yield* new AssetPipelineError({
+				failure: "other",
+				cause: new Error(`Asset ${assetId} belongs to no organisation`),
+			});
+		}
+		return owner satisfies AssetOwner;
+	});
+
+export const imageMediaType = (format: string) => {
+	const normalized = format.toLowerCase();
+	return normalized === "jpg" ? "image/jpeg" : `image/${normalized}`;
+};
+
+const hintOf = (image: StoredExtractionImage) =>
+	[
+		image.description,
+		image.sourcePath,
+	]
+		.filter(Boolean)
+		.join(" ");
+
+/** One metered vision call on a stored image. */
+const describe = (params: {
+	assetId: AssetId;
+	jobId: string;
+	owner: AssetOwner;
+	model: UtilityModel;
+	image: StoredExtractionImage & {
+		sourcePath: string;
+	};
+	instructions: string;
+	output?: typeof imageAssetDescriptionOutput;
+}) =>
+	Effect.gen(function* () {
+		const base64 = yield* getImageAsBase64({
+			bucket: params.image.sourceBucket ?? buckets.processed.name,
+			name: params.image.sourcePath,
+		});
+
+		return yield* generateTextWithQuota({
+			operation: "asset.describeImage",
+			appRequestId: `image:${params.assetId}:${params.image.imageIndex}:${params.jobId}`,
+			organizationId: params.owner.organizationId,
+			userId: params.owner.userId,
+			providerId: params.model.providerId,
+			modelId: params.model.modelId,
+			model: params.model.language,
+			system: params.instructions,
+			output: params.output,
+			messages: [
+				{
+					role: "user",
+					content: [
+						{
+							type: "file",
+							data: Buffer.from(base64, "base64"),
+							mediaType: imageMediaType(params.image.format),
+						},
+					],
+				},
+			],
+			reservationMessages: [
+				params.instructions,
+			],
+			maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
+			timeoutMs: IMAGE_DESCRIPTION_TIMEOUT_MS,
+		});
+	});
+
+const withSource = (image: StoredExtractionImage) =>
+	image.sourcePath
+		? {
+				...image,
+				sourcePath: image.sourcePath,
+			}
+		: undefined;
+
+const describeImageAsset = (params: {
+	assetId: AssetId;
+	jobId: string;
+	owner: AssetOwner;
+	model: UtilityModel;
+	artifact: StoredExtractionArtifact;
+}) =>
+	Effect.gen(function* () {
+		const [stored] = params.artifact.images;
+		const image = stored && withSource(stored);
+		if (!image) {
+			return yield* new AssetPipelineError({
+				failure: "other",
+				cause: new Error(`Image asset ${params.assetId} has no stored image`),
+			});
+		}
+
+		const { output } = yield* describe({
+			...params,
+			image,
+			instructions: imageAssetDescriptionInstructions(hintOf(image)),
+			output: imageAssetDescriptionOutput,
+		}).pipe(
+			Effect.mapError((error) =>
+				error instanceof AiError
+					? new AssetPipelineError({
+							failure: "other",
+							cause: summarizeErrorCause(error),
+						})
+					: error,
+			),
+		);
+
+		const { text, suggestion } = readImageAssetDescription(output);
+		return {
+			...params.artifact,
+			images: [
+				{
+					...image,
+					text,
+				},
+			],
+			metadataSuggestion: suggestion,
+		} satisfies StoredExtractionArtifact;
+	});
+
+const describeFigures = (params: {
+	assetId: AssetId;
+	jobId: string;
+	owner: AssetOwner;
+	model: UtilityModel;
+	artifact: StoredExtractionArtifact;
+}) =>
+	Effect.forEach(
+		params.artifact.images,
+		(stored) => {
+			const image = withSource(stored);
+			if (stored.text !== undefined || !image) {
+				return Effect.succeed({
+					...stored,
+					text: stored.text ?? null,
+				});
+			}
+
+			return describe({
+				...params,
+				image,
+				instructions: figureDescriptionInstructions(hintOf(image)),
+			}).pipe(
+				Effect.map(({ text }) => ({
+					...image,
+					text: text.trim() || null,
+				})),
+				Effect.catchIf(
+					(error) => error instanceof AiError,
+					(error) =>
+						Effect.logWarning(
+							{
+								assetId: params.assetId,
+								imageIndex: image.imageIndex,
+								error: summarizeErrorCause(error),
+							},
+							"Skipping a figure whose description failed",
+						).pipe(
+							Effect.as({
+								...image,
+								text: null,
+							}),
+						),
+				),
+			);
+		},
+		{
+			concurrency: 2,
+		},
+	).pipe(
+		Effect.map(
+			(images): StoredExtractionArtifact => ({
+				...params.artifact,
+				images,
+			}),
+		),
+	);
+
+/**
+ * Describes every image of the artifact not described yet with the asset
+ * organisation's utility model, metered against the uploader. Without a model
+ * that reads images, figures are skipped and an image asset fails
+ * `unsupported`. A failed figure is skipped; a failed image asset fails.
+ */
+export const describeImages = (params: {
+	assetId: AssetId;
+	jobId: string;
+	artifact: StoredExtractionArtifact;
+	imageAsset: boolean;
+}) =>
+	Effect.gen(function* () {
+		const { artifact } = params;
+		if (artifact.images.every((image) => image.text !== undefined)) {
+			return artifact;
+		}
+
+		const owner = yield* assetOwner(params.assetId);
+		const model = yield* utilityModel(owner.organizationId);
+
+		if (!model?.capabilities.includes("image")) {
+			if (params.imageAsset) {
+				return yield* new AssetPipelineError({
+					failure: "unsupported",
+					cause: new Error("The utility model cannot read images"),
+				});
+			}
+			yield* Effect.logWarning(
+				{
+					assetId: params.assetId,
+					imageCount: artifact.images.length,
+				},
+				"Skipping figures: the utility model cannot read images",
+			);
+			return {
+				...artifact,
+				images: artifact.images.map((image) => ({
+					...image,
+					text: image.text ?? null,
+				})),
+			} satisfies StoredExtractionArtifact;
+		}
+
+		const described = {
+			...params,
+			owner,
+			model,
+		};
+		return yield* params.imageAsset
+			? describeImageAsset(described)
+			: describeFigures(described);
+	});

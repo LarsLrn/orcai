@@ -9,9 +9,6 @@ const aiConfig = Config.all({
 	embedding: Config.all({
 		model: Config.String("EMBEDDING_MODEL"),
 	}),
-	general: Config.all({
-		model: Config.String("GENERAL_MODEL"),
-	}),
 });
 
 export type AiConfig = Config.Success<typeof aiConfig>;

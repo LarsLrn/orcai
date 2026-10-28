@@ -277,11 +277,10 @@ SpiceDB optional:
 - `OPENAI_COMPATIBLE_API_KEY`
 - `EMBEDDING_MODEL`: Embedding model exposed by your configured OpenAI-compatible endpoint.
 - `EMBEDDING_DIMENSIONS`: Positive integer output size of `EMBEDDING_MODEL` and Qdrant dense vector size.
-- `GENERAL_MODEL`: General-purpose text/image-capable model used by the worker image-description step.
 
 Model-scope note:
 
-- Custom embedding and image-processing model definitions are supported only in self-hosted deployments.
+- Custom embedding model definitions are supported only in self-hosted deployments.
 
 ### Optional variables
 

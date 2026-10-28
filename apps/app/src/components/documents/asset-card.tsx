@@ -145,7 +145,10 @@ const AssetCard = ({
 
 	let description: string | undefined;
 	if (document?.failure) {
-		description = getPipelineFailureDescription(document.failure.kind);
+		description = getPipelineFailureDescription(
+			document.failure.kind,
+			asset.fileType,
+		);
 	} else if (asset.metadata.chapterTitle) {
 		description = m.assets_card_chapter_description({
 			name: asset.metadata.chapterTitle,

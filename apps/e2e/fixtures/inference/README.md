@@ -81,9 +81,8 @@ a 401.
 
 ## The global endpoint
 
-Only a provider entity's `endpoint` is per request. Embeddings, chat titles,
-and image descriptions read `OPENAI_COMPATIBLE_BASE_URL` from the app's
-environment, so pointing those at the mock means the app has to start with the
+Only a provider entity's `endpoint` is per request. Embeddings read
+`OPENAI_COMPATIBLE_BASE_URL` from the environment, so pointing those at the mock means the app has to start with the
 mock's URL already known. `fixtures/inference/serve.ts` is that entry: it
 starts the mock on `E2E_INFERENCE_PORT` with `EMBEDDING_DIMENSIONS` and stays
 up. It is the first `webServer` entry in `apps/e2e/playwright.config.ts`, so

@@ -302,12 +302,11 @@ function defaultEnv(stackName: string, ports: Ports): Env {
 
 		// No inference endpoint ships with the stack. Point these at a real
 		// OpenAI-compatible endpoint (for example through ~/.config/orcai/dev.env)
-		// before exercising embeddings or image descriptions.
+		// before exercising embeddings.
 		OPENAI_COMPATIBLE_BASE_URL: "http://127.0.0.1:11434/v1",
 		OPENAI_COMPATIBLE_API_KEY: "dev-openai-compatible-key",
 		EMBEDDING_MODEL: "baai/bge-m3",
 		EMBEDDING_DIMENSIONS: "1024",
-		GENERAL_MODEL: "google/gemma-4-26b-a4b-it",
 
 		// Workers on the host need Tesseract with matching language packs.
 		KREUZBERG_OCR_LANGUAGE: "eng",
@@ -933,7 +932,6 @@ function e2eEnv(env: Env, pipeline: boolean): Env {
 		E2E_INFERENCE_PORT: inferencePort,
 		OPENAI_COMPATIBLE_BASE_URL: `http://127.0.0.1:${inferencePort}/v1`,
 		OPENAI_COMPATIBLE_API_KEY: "e2e-mock-key",
-		GENERAL_MODEL: "e2e-mock-chat",
 		EMBEDDING_MODEL: "e2e-mock-embedding",
 		WEB_INTERNAL_URL: `http://127.0.0.1:${envValue(env, "WEB_PORT")}`,
 		// Every request comes from loopback without a forwarded client IP, so

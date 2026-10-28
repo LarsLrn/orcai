@@ -13,7 +13,7 @@ import { AiError } from "../errors";
 import { aiTelemetry } from "../telemetry";
 import { startMeteredCall } from "./meter";
 
-export interface GenerateTextWithQuotaInput<
+interface GenerateTextWithQuotaInput<
 	OUTPUT extends OutputInterface = OutputInterface<string, string>,
 > {
 	operation: string;

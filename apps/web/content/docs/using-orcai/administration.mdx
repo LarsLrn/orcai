@@ -429,13 +429,19 @@ reason, and the assistant's replies fail until another model is chosen.
 ### Utility model
 
 The **Utility model** picker chooses the model that writes the titles of new
-chats and assistant conversations, so a small, inexpensive model can do this
-work instead of each chat's own model. It offers text models that are not
+chats and assistant conversations and describes images in the library, so a
+small, inexpensive model can do this work instead of each chat's own model. It offers text models that are not
 deprecated, on an enabled provider; tool calling is not required. **Clear**
 removes the choice.
 
 Title calls draw on the quota pools of the utility model, like any chat on
-that model. While no utility model is set, each chat's title is written by its
+that model.
+
+Images are described once, when an asset is processed: image files and the
+figures in documents. This needs a utility model with the image capability.
+Without one, image files fail to prepare and figures in documents are skipped.
+Each description draws on the quota pools of the utility model, attributed to
+the person who uploaded the file. While no utility model is set, each chat's title is written by its
 own model. If the chosen model becomes unusable, the page warns and titles fall
 back to each chat's own model until another is chosen. Deleting the model, or
 its provider, clears the setting.
