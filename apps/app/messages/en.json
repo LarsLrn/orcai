@@ -3572,6 +3572,7 @@
 	"pipeline_failure_empty": "No text or images were found in this file, so retrying will not help.",
 	"pipeline_failure_extraction": "The file could not be read.",
 	"pipeline_failure_other": "Preparing the file failed.",
+	"pipeline_failure_quota": "Quota used up while describing images. Retry after the pool resets.",
 	"pipeline_failure_timeout": "Preparing the file took too long.",
 	"pipeline_failure_unsupported": "OrcAI cannot read this file type, so retrying will not help.",
 	"pipeline_failure_unsupported_image": "The organisation's utility model cannot read images. Once an admin chooses one that can, process the image again.",

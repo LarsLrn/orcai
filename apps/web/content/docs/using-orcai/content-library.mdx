@@ -20,7 +20,7 @@ Assets (Library > Assets, `/app/hub/assets`) are the reusable source material Or
 
 1. Upload files on **Add assets** (`/app/hub/assets/add`). Each file becomes an asset as soon as its upload finishes, and OrcAI keeps the original in S3-compatible object storage.
 2. Add metadata to the new assets, right away or later.
-3. A background job processes the file and extracts its text. The organisation's [utility model](/docs/using-orcai/administration#utility-model) describes each image once, an image file or a figure in a document, so its content can be found by search.
+3. A background job processes the file and extracts its text. The organisation's [utility model](/docs/using-orcai/administration#utility-model) describes each image, an image file or a figure in a document, so its content can be found by search. The descriptions are saved with the extracted text, and indexing in every repository reuses them. When the quota runs out partway through a document, the descriptions written so far are charged but not saved, so a retry describes those images again.
 4. Add the asset to one or more repositories, from the repository editor or the bot editor's Repositories step.
 5. For each repository the asset belongs to, a background job vectorises it into that repository's index. This runs when processing finishes and when the asset is added to a repository.
 6. Repositories are used in bots or attached directly to chats.
@@ -95,7 +95,7 @@ Outside a repository, asset cards, the recent changes on Home and the **Preparat
 
 Inside a repository, each asset also has an indexing step, so its card on the repository page shows one more state, **Indexing**, between Processing and Ready, and Ready means searchable in that repository. See [Repository Blocks](/docs/using-orcai/bots#repository-blocks).
 
-A failing step is retried automatically, so an asset stays Processing until its last attempt has failed. A failed asset says why: OrcAI cannot read the file type, or the utility model cannot read images for an image file; no text or images were found (for example a scanned PDF whose text cannot be recognised); the file could not be read; preparing it took too long; or another error. The first two fail at once, since retrying cannot help. Without a utility model that reads images, figures in documents are skipped and the rest of the document is prepared.
+A failing step is retried automatically, so an asset stays Processing until its last attempt has failed. A failed asset says why: OrcAI cannot read the file type, or the utility model cannot read images for an image file; no text or images were found (for example a scanned PDF whose text cannot be recognised); the file could not be read; preparing it took too long; the quota ran out while describing images; or another error. The first two fail at once, since retrying cannot help. A used-up quota also fails at once, with nothing half prepared; retry once the pool resets. Without a utility model that reads images, figures in documents are skipped and the rest of the document is prepared.
 
 On the **Preparation status** card, **Retry** appears for a failed asset you can edit, unless retrying cannot help, and queues processing again.
 

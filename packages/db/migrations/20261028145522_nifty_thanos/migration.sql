@@ -1,0 +1,1 @@
+ALTER TYPE "pipeline_failure" ADD VALUE 'quota' BEFORE 'other';

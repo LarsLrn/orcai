@@ -2,7 +2,7 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { JobWithMetadata } from "@orcai/pg-boss";
 import {
-	isRetryableFailure,
+	isTransientFailure,
 	type PipelineFailure,
 	type ProcessAssetPayload,
 	type VectorizeAssetPayload,
@@ -80,9 +80,9 @@ const indexingTarget =
 
 /**
  * Runs one attempt and keeps the stored status honest. The attempt starts
- * active. A retryable failure records its kind and fails the job so pg-boss
- * retries it; the dead letter handler marks it failed once retries run out. A
- * failure retrying cannot fix marks it failed at once and completes the job.
+ * active. A transient failure records its kind and fails the job so pg-boss
+ * retries it; the dead letter handler marks it failed once retries run out.
+ * Any other failure marks it failed at once and completes the job.
  * The attempt writes completed itself.
  */
 const settleAttempt = <A, E, R>(
@@ -99,7 +99,7 @@ const settleAttempt = <A, E, R>(
 		Effect.catch((error) => {
 			const failure =
 				error instanceof AssetPipelineError ? error.failure : "other";
-			return isRetryableFailure(failure)
+			return isTransientFailure(failure)
 				? target({
 						failure,
 					}).pipe(Effect.andThen(Effect.fail(error)))
