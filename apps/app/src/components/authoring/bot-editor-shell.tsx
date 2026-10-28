@@ -3,7 +3,6 @@ import type {
 	DocumentState,
 	PublicationStatus,
 	ResourceGrant,
-	SaveBotInput,
 } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -23,11 +22,18 @@ import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import {
 	type BotEditorFormValues,
-	botEditorFormOptions,
 	createDefaultBuilderDatabaseBlock,
 	createDefaultBuilderTemplateBlock,
 	toBotEditorFormValues,
 } from "@/components/authoring/bot-editor-form-options";
+import {
+	type BotEditorBlockSaved,
+	botEditorBaseline,
+	planBotEditorSave,
+	toDatabaseBlockInput,
+	toTemplateBlockInput,
+	withSavedBlock,
+} from "@/components/authoring/bot-editor-save";
 import {
 	describeAllMembersAccess,
 	PublishSummary,
@@ -58,17 +64,13 @@ import {
 	useResourceVisibility,
 } from "@/hooks/authz/use-resource-access";
 import { useAppForm } from "@/hooks/form";
-import {
-	useCreateBlockInlineMutation,
-	useSetBlockStatusMutation,
-	useUpdateBlockInlineMutation,
-} from "@/hooks/mutations/use-block-mutations";
+import { useSetBlockStatusMutation } from "@/hooks/mutations/use-block-mutations";
 import {
 	usePublishBotMutation,
-	useSaveBotMutation,
+	useSaveBotEditorMutation,
 } from "@/hooks/mutations/use-bot-mutations";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
-import { hasCapability, ownerCapabilities } from "@/lib/authz/capabilities";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { documentStateBadge } from "@/lib/presentation/document-state";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
@@ -150,31 +152,6 @@ const getPublishIssues = (editor: BotEditorFormValues) => {
 	return issues;
 };
 
-const toTemplateBlockInput = (
-	block: NonNullable<BotEditorFormValues["templateBlock"]>,
-) => ({
-	name: block.name,
-	description: block.description.trim() ? block.description : null,
-	contentJson: block.contentJson ?? null,
-	contentHtml: block.contentHtml ? block.contentHtml : null,
-	type: "template" as const,
-	status: block.status,
-	config: block.config,
-});
-
-const toDatabaseBlockInput = (
-	block: BotEditorFormValues["databaseBlocks"][number],
-) => ({
-	name: block.name,
-	description: block.description.trim() ? block.description : null,
-	contentJson: block.contentJson ?? null,
-	contentHtml: block.contentHtml ? block.contentHtml : null,
-	type: "database" as const,
-	status: block.status,
-	config: block.config,
-	assets: block.assetIds ?? [],
-});
-
 const BotEditorShell = ({
 	editorData,
 	stepIndex,
@@ -198,8 +175,12 @@ const BotEditorShell = ({
 	>(null);
 	const activeStepIndex = stepIndex ?? internalStepIndex;
 	const zedTokenRef = useRef<string | undefined>(undefined);
+	// What the server holds; the form keeps the saved bot as its default values.
+	const [baseline, setBaseline] = useState(() =>
+		botEditorBaseline(toBotEditorFormValues(editorData)),
+	);
 	const form = useAppForm({
-		...botEditorFormOptions(editorData),
+		defaultValues: baseline.bot,
 		onSubmit: () => undefined,
 	});
 	useUnsavedChangesGuard(() => !form.state.isDefaultValue);
@@ -233,16 +214,12 @@ const BotEditorShell = ({
 	]);
 
 	const {
-		mutateAsync: saveBot,
+		mutateAsync: saveBotEditor,
 		isPending: isSaving,
 		isSuccess: hasSaved,
-	} = useSaveBotMutation();
+	} = useSaveBotEditorMutation();
 	const { mutateAsync: publishBot, isPending: isPublishing } =
 		usePublishBotMutation();
-	const { mutateAsync: createBlock, isPending: isCreatingBlock } =
-		useCreateBlockInlineMutation();
-	const { mutateAsync: updateBlock, isPending: isUpdatingBlock } =
-		useUpdateBlockInlineMutation();
 	const { mutateAsync: setBlockStatus, isPending: isSettingBlockStatus } =
 		useSetBlockStatusMutation();
 	const botResourceRef = editor.id
@@ -259,12 +236,7 @@ const BotEditorShell = ({
 		enabled: !!editor.id,
 	});
 
-	const isWorking =
-		isSaving ||
-		isPublishing ||
-		isCreatingBlock ||
-		isUpdatingBlock ||
-		isSettingBlockStatus;
+	const isWorking = isSaving || isPublishing || isSettingBlockStatus;
 
 	const runWizardAction =
 		(action: NonNullable<typeof wizardAction>, run: () => Promise<void>) =>
@@ -299,17 +271,18 @@ const BotEditorShell = ({
 			return;
 		}
 
-		const templateBlock: NonNullable<BotEditorFormValues["templateBlock"]> = {
+		const templateBlock = {
 			id: block.data.id,
 			capabilities: block.data.capabilities,
 			name: block.data.name,
 			description: block.data.description ?? "",
 			contentJson: block.data.contentJson,
 			contentHtml: block.data.contentHtml ?? "",
-			type: "template",
+			type: "template" as const,
 			status: block.data.status,
 			config: block.data.config,
-		};
+		} satisfies NonNullable<BotEditorFormValues["templateBlock"]>;
+		setBaseline((current) => withSavedBlock(current, templateBlock));
 		form.setFieldValue("templateBlock", templateBlock);
 	};
 
@@ -333,11 +306,11 @@ const BotEditorShell = ({
 			return;
 		}
 
-		const linkedBlock: BotEditorFormValues["databaseBlocks"][number] = {
+		const linkedBlock = {
 			id: block.data.id,
 			capabilities: block.data.capabilities,
 			name: block.data.name,
-			type: "database",
+			type: "database" as const,
 			description: block.data.description ?? "",
 			contentJson: block.data.contentJson,
 			contentHtml: block.data.contentHtml ?? "",
@@ -345,88 +318,32 @@ const BotEditorShell = ({
 			config: block.data.config,
 			assetIds: block.assets?.map((asset) => asset.id) ?? [],
 			assets: block.assets ?? [],
-		};
+		} satisfies BotEditorFormValues["databaseBlocks"][number];
 
+		setBaseline((current) => withSavedBlock(current, linkedBlock));
 		form.setFieldValue("databaseBlocks", [
 			...editor.databaseBlocks,
 			linkedBlock,
 		]);
 	};
 
-	const persistLinkedBlocks = async () => {
-		let nextTemplateBlock = editor.templateBlock;
-		const nextDatabaseBlocks: BotEditorFormValues["databaseBlocks"] = [];
-
-		if (editor.templateBlock) {
-			if (editor.templateBlock.id) {
-				if (canEditBlock(editor.templateBlock)) {
-					const result = await updateBlock({
-						id: editor.templateBlock.id,
-						...toTemplateBlockInput(editor.templateBlock),
-					});
-					if (result.status !== "success") {
-						return null;
-					}
-				}
-			} else {
-				const result = await createBlock(
-					toTemplateBlockInput(editor.templateBlock),
-				);
-				if (result.status !== "success") {
-					return null;
-				}
-				zedTokenRef.current = result.data.meta?.zedToken ?? zedTokenRef.current;
-				nextTemplateBlock = {
-					...editor.templateBlock,
-					id: result.data.data.id,
-					capabilities: ownerCapabilities("block"),
-				};
-			}
-		}
-
-		for (const databaseBlock of editor.databaseBlocks) {
-			let nextBlock = databaseBlock;
-			if (databaseBlock.id) {
-				if (canEditBlock(databaseBlock)) {
-					const result = await updateBlock({
-						id: databaseBlock.id,
-						...toDatabaseBlockInput(databaseBlock),
-					});
-					if (result.status !== "success") {
-						return null;
-					}
-				}
-			} else {
-				const result = await createBlock(toDatabaseBlockInput(databaseBlock));
-				if (result.status !== "success") {
-					return null;
-				}
-				zedTokenRef.current = result.data.meta?.zedToken ?? zedTokenRef.current;
-				nextBlock = {
-					...databaseBlock,
-					id: result.data.data.id,
-					capabilities: ownerCapabilities("block"),
-				};
-			}
-
-			nextDatabaseBlocks.push(nextBlock);
-		}
-
-		form.setFieldValue("templateBlock", nextTemplateBlock);
-		form.setFieldValue("databaseBlocks", nextDatabaseBlocks);
-
-		return {
-			templateBlockId: nextTemplateBlock?.id ?? null,
-			databaseBlockIds: nextDatabaseBlocks.flatMap((databaseBlock) =>
-				databaseBlock.id
-					? [
-							databaseBlock.id,
-						]
-					: [],
-			),
-		};
+	const markSaved = (values: BotEditorFormValues) => {
+		setBaseline(botEditorBaseline(values));
+		form.reset(values);
 	};
 
+	// A block committed before a later write failed stays saved, and a new one keeps its id.
+	const handleBlockSaved = ({ slot, block, zedToken }: BotEditorBlockSaved) => {
+		zedTokenRef.current = zedToken ?? zedTokenRef.current;
+		setBaseline((current) => withSavedBlock(current, block));
+		if (slot === "template") {
+			form.setFieldValue("templateBlock.id", block.id);
+		} else {
+			form.setFieldValue(`databaseBlocks[${slot}].id`, block.id);
+		}
+	};
+
+	/** Saves what changed; resolves with the saved state, or null when saving failed. */
 	const handleSave = async ({
 		nextStepOnCreate,
 		status,
@@ -434,32 +351,26 @@ const BotEditorShell = ({
 		nextStepOnCreate?: number;
 		status?: PublicationStatus;
 	} = {}) => {
-		const linkedBlocks = await persistLinkedBlocks();
-		if (!linkedBlocks) {
-			return null;
+		const plan = planBotEditorSave({
+			values: editor,
+			baseline,
+			status,
+		});
+		if (!plan) {
+			return editor;
 		}
 
-		const payload: SaveBotInput = {
+		const result = await saveBotEditor({
+			plan,
 			zedToken: zedTokenRef.current,
-			id: editor.id,
-			name: editor.name,
-			description: editor.description,
-			contentJson: editor.contentJson as SaveBotInput["contentJson"],
-			contentHtml: editor.contentHtml,
-			status: status ?? editor.status,
-			templateBlockId: linkedBlocks.templateBlockId,
-			databaseBlockIds: linkedBlocks.databaseBlockIds,
-			features: editor.features,
-		};
-
-		const result = await saveBot(payload);
+			onBlockSaved: handleBlockSaved,
+		});
 		if (result.status !== "success") {
 			return null;
 		}
-		zedTokenRef.current = result.data.meta?.zedToken ?? zedTokenRef.current;
-
-		const nextEditor = toBotEditorFormValues(result.data.data);
-		form.reset(nextEditor);
+		zedTokenRef.current = result.data.zedToken;
+		const nextEditor = result.data.values;
+		markSaved(nextEditor);
 
 		if (!editorData?.id && nextEditor.id) {
 			await navigate({
@@ -528,12 +439,9 @@ const BotEditorShell = ({
 			return;
 		}
 
-		const savedEditor =
-			editor.id && form.state.isDefaultValue
-				? editor
-				: await handleSave({
-						status: editor.id ? undefined : "draft",
-					});
+		const savedEditor = await handleSave({
+			status: editor.id ? undefined : "draft",
+		});
 		if (!savedEditor?.id) {
 			return;
 		}
@@ -578,10 +486,13 @@ const BotEditorShell = ({
 			return;
 		}
 
-		form.setFieldValue("templateBlock", {
+		const savedBlock = {
 			...templateBlock,
+			id: templateBlock.id,
 			status,
-		});
+		};
+		setBaseline((current) => withSavedBlock(current, savedBlock));
+		form.setFieldValue("templateBlock", savedBlock);
 	};
 
 	const handleDatabaseBlockStatusChange = async (params: {
@@ -624,15 +535,16 @@ const BotEditorShell = ({
 			return;
 		}
 
+		const savedBlock = {
+			...databaseBlock,
+			id: databaseBlock.id,
+			status: params.status,
+		};
+		setBaseline((current) => withSavedBlock(current, savedBlock));
 		form.setFieldValue(
 			"databaseBlocks",
 			editor.databaseBlocks.map((block) =>
-				block.id === params.blockId
-					? {
-							...block,
-							status: params.status,
-						}
-					: block,
+				block.id === savedBlock.id ? savedBlock : block,
 			),
 		);
 	};
@@ -685,7 +597,7 @@ const BotEditorShell = ({
 				})}
 			</div>
 
-			<div className="min-w-0 rounded-4xl border bg-muted/25 p-6 shadow-inner">
+			<div className="min-w-0 sm:rounded-4xl sm:border sm:bg-muted/25 sm:p-6 sm:shadow-inner">
 				<div className="mb-6 flex flex-wrap items-start justify-between gap-3">
 					<div>
 						<h2 className="font-semibold text-2xl">{currentStep.title()}</h2>
@@ -1072,36 +984,42 @@ const BotEditorShell = ({
 						/>
 					) : null}
 
-					<div className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-2xl border bg-background p-4">
-						<div className="flex flex-wrap items-center gap-3">
-							<Button
-								variant="outline"
-								onClick={runWizardAction("back", handleWizardBack)}
-								loading={isWizardActionPending("back")}
-								disabled={activeStepIndex === 0 || isWorking}
-							>
-								<ChevronLeftIcon />
-								{m.common_back_button()}
-							</Button>
-							<span
-								className="text-muted-foreground text-xs"
-								aria-live="polite"
-							>
-								{isSaving
-									? m.authoring_wizard_saving_status()
-									: hasSaved
-										? m.authoring_wizard_saved_status()
-										: m.authoring_wizard_autosave_hint()}
-							</span>
-						</div>
+					<div className="grid min-w-0 grid-cols-[auto_auto] items-center justify-between gap-3 rounded-2xl border bg-background p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+						<Button
+							variant="outline"
+							className="col-start-1 row-start-1"
+							onClick={runWizardAction("back", handleWizardBack)}
+							loading={isWizardActionPending("back")}
+							disabled={activeStepIndex === 0 || isWorking}
+						>
+							<ChevronLeftIcon />
+							{m.common_back_button()}
+						</Button>
+						<span
+							className="col-span-2 row-start-2 text-muted-foreground text-xs sm:col-span-1 sm:col-start-2 sm:row-start-1"
+							aria-live="polite"
+						>
+							{isSaving
+								? m.authoring_wizard_saving_status()
+								: hasSaved
+									? m.authoring_wizard_saved_status()
+									: m.authoring_wizard_autosave_hint()}
+						</span>
 
 						{activeStepIndex === WIZARD_STEPS.length - 1 ? (
-							<div className="flex flex-wrap items-center gap-2">
+							<div className="col-start-2 row-start-1 flex flex-wrap items-center justify-end gap-2 sm:col-start-3">
 								<Button
 									variant="outline"
 									onClick={runWizardAction("draft", handleSetDraft)}
 									loading={isWizardActionPending("draft")}
-									disabled={isWorking}
+									disabled={
+										isWorking ||
+										!planBotEditorSave({
+											values: editor,
+											baseline,
+											status: "draft",
+										})
+									}
 								>
 									{m.authoring_wizard_save_draft_action()}
 								</Button>
@@ -1115,6 +1033,7 @@ const BotEditorShell = ({
 							</div>
 						) : (
 							<Button
+								className="col-start-2 row-start-1 justify-self-end sm:col-start-3"
 								onClick={runWizardAction("next", handleWizardNext)}
 								loading={isWizardActionPending("next")}
 								disabled={isWorking}

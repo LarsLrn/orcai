@@ -287,36 +287,6 @@ const updateBlock = authed.block.update
 			});
 		}
 
-		if (input.status === "draft") {
-			const linkedReadyBots = yield* db
-				.select({
-					id: dbSchema.bot.id,
-					name: dbSchema.bot.name,
-				})
-				.from(dbSchema.botBlock)
-				.innerJoin(dbSchema.bot, eq(dbSchema.bot.id, dbSchema.botBlock.botId))
-				.where(
-					and(
-						eq(dbSchema.botBlock.blockId, input.id),
-						eq(dbSchema.bot.status, "ready"),
-					),
-				)
-				.limit(5);
-
-			if (linkedReadyBots.length > 0) {
-				const botNames = linkedReadyBots.map((bot) => bot.name);
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "BLOCK_IN_USE_BY_READY_BOTS",
-						params: {
-							botNames,
-						},
-						message: `Cannot move this block to draft because it is used by ready bot(s): ${botNames.join(", ")}.`,
-					}),
-				);
-			}
-		}
-
 		const organizationIds = yield* resourceOrganizations([
 			{
 				resourceType: "block",
@@ -330,6 +300,48 @@ const updateBlock = authed.block.update
 				organizationIds,
 			},
 			Effect.gen(function* () {
+				// Checked under the organization write lock, so a concurrent status change cannot interleave.
+				const [current] = yield* db
+					.select({
+						status: dbSchema.block.status,
+					})
+					.from(dbSchema.block)
+					.where(eq(dbSchema.block.id, input.id))
+					.for("update");
+
+				if (current?.status === "ready" && input.status === "draft") {
+					const linkedReadyBots = yield* db
+						.select({
+							id: dbSchema.bot.id,
+							name: dbSchema.bot.name,
+						})
+						.from(dbSchema.botBlock)
+						.innerJoin(
+							dbSchema.bot,
+							eq(dbSchema.bot.id, dbSchema.botBlock.botId),
+						)
+						.where(
+							and(
+								eq(dbSchema.botBlock.blockId, input.id),
+								eq(dbSchema.bot.status, "ready"),
+							),
+						)
+						.limit(5);
+
+					if (linkedReadyBots.length > 0) {
+						const botNames = linkedReadyBots.map((bot) => bot.name);
+						return yield* Effect.fail(
+							new AppErrors.BadRequestError({
+								reason: "BLOCK_IN_USE_BY_READY_BOTS",
+								params: {
+									botNames,
+								},
+								message: `Cannot move this block to draft because it is used by ready bot(s): ${botNames.join(", ")}.`,
+							}),
+						);
+					}
+				}
+
 				const [block] = yield* db
 					.update(dbSchema.block)
 					.set({

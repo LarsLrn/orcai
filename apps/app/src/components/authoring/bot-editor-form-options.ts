@@ -10,7 +10,6 @@ import {
 	type PublicationStatus,
 	type TemplateBlock,
 } from "@orcai/schema";
-import { formOptions } from "@tanstack/react-form";
 import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
 import { createDefaultTemplateBlock } from "@/components/authoring/template-block-editor";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
@@ -95,11 +94,6 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 		})) ?? [],
 	features: editor ? editor.features : DEFAULT_FEATURES,
 });
-
-export const botEditorFormOptions = (editor?: BotEditor) =>
-	formOptions({
-		defaultValues: toBotEditorFormValues(editor),
-	});
 
 export { toBotEditorFormValues };
 

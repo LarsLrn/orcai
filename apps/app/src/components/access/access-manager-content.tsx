@@ -205,7 +205,7 @@ const AccessManagerContent = ({
 					</TabsList>
 				</Tabs>
 
-				<div className="mt-3 grid gap-3 md:grid-cols-[1fr_180px]">
+				<div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
 					<PrincipalPicker
 						resourceRef={resourceRef}
 						principalType={principalType}
