@@ -1,5 +1,9 @@
 import type { ChatMessageRating, OrganizationAnalytics } from "@orcai/schema";
 import {
+	analyticsBotKey,
+	analyticsBotName,
+} from "@/components/analytics/analytics-bot";
+import {
 	Card,
 	CardContent,
 	CardDescription,
@@ -86,9 +90,9 @@ export const RatingBreakdown = ({
 						</TableHeader>
 						<TableBody>
 							{ratings.map((row) => (
-								<TableRow key={row.botId ?? "none"}>
+								<TableRow key={analyticsBotKey(row.bot)}>
 									<TableCell className="max-w-72 truncate font-medium">
-										{row.name ?? m.analytics_without_bot_label()}
+										{analyticsBotName(row.bot)}
 									</TableCell>
 									<TableCell className="text-right tabular-nums">
 										{formatCount(total(row.counts))}

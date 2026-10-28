@@ -1,11 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import type { BotId, ChatId, ChatMessageId } from "@orcai/core";
+import type {
+	BotId,
+	ChatId,
+	ChatMessageId,
+	OrganizationRole,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
 	AnalyticsDays,
 	ChatMessageRating,
 	ModelPrices,
+	OrganizationAnalytics,
 } from "@orcai/schema";
+import { createOrganization, createUser } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
@@ -17,10 +24,26 @@ import {
 	authzIntegration,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
+import { removeMembers } from "@/lib/authz/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
-const { run, organizationWith, procedureOptions, instanceAdmin } =
-	authzIntegration();
+const { run, signIn, procedureOptions, instanceAdmin } = authzIntegration();
+
+/** The newest zedToken any call returned; every call reads at least at it. */
+let token: string | undefined;
+const options = (actor: Actor) => procedureOptions(actor, token);
+const track = <
+	A extends {
+		meta?: {
+			zedToken?: string;
+		};
+	},
+>(
+	output: A,
+) => {
+	token = output.meta?.zedToken ?? token;
+	return output;
+};
 
 const DAY_MS = 86_400_000;
 
@@ -48,21 +71,56 @@ const rejection = (operation: Promise<unknown>) =>
 		(error: unknown) => error,
 	);
 
-/** An organisation with an admin and a member, a provider with one model, and a pool for everyone. */
+/**
+ * An organisation with an admin and a member, a provider with one model, and a
+ * pool for everyone. People `joining` from other organisations come back as
+ * `joined`, signed in to this one.
+ */
 const meteredOrganization = async (
-	pricing: { currency?: string; prices?: Partial<ModelPrices> } = {},
+	setup: {
+		pricing?: {
+			currency?: string;
+			prices?: Partial<ModelPrices>;
+		};
+		joining?: ReadonlyArray<{
+			actor: Actor;
+			role: OrganizationRole;
+		}>;
+	} = {},
 ) => {
-	const {
-		organizationId,
-		actors: [admin, member],
-		zedToken,
-	} = await organizationWith([
-		"admin",
-		"member",
+	const users = await Promise.all([
+		run(createUser()),
+		run(createUser()),
 	]);
+	const joining = setup.joining ?? [];
+	const { organization, zedToken } = await run(
+		createOrganization({
+			members: [
+				{
+					userId: users[0].id,
+					role: "admin",
+				},
+				{
+					userId: users[1].id,
+					role: "member",
+				},
+				...joining.map(({ actor, role }) => ({
+					userId: actor.user.id,
+					role,
+				})),
+			],
+		}),
+	);
+	const organizationId = organization.id;
+	token = zedToken ?? token;
+	const [admin, member, ...joined] = await Promise.all(
+		[
+			...users.map((user) => user.id),
+			...joining.map(({ actor }) => actor.user.id),
+		].map((userId) => signIn(organizationId, userId)),
+	);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const asAdmin = () => procedureOptions(admin, token);
+	const asAdmin = () => options(admin);
 	const [allMembers] = await run(
 		Effect.gen(function* () {
 			return yield* (yield* DB)
@@ -82,22 +140,23 @@ const meteredOrganization = async (
 		currency?: string;
 		prices?: Partial<ModelPrices>;
 	}) => {
-		const { data: provider, meta } = await run(
-			procedures.provider.create(
-				{
-					name: `Analytics ${crypto.randomUUID()}`,
-					description: "Metered by the analytics test.",
-					kind: "openai-compatible",
-					endpoint: "http://127.0.0.1:9/v1",
-					apiKey: "key",
-					meteringMode: "tokens",
-					currency: pricing.currency,
-					enabled: true,
-				},
-				await asAdmin(),
+		const { data: provider } = track(
+			await run(
+				procedures.provider.create(
+					{
+						name: `Analytics ${crypto.randomUUID()}`,
+						description: "Metered by the analytics test.",
+						kind: "openai-compatible",
+						endpoint: "http://127.0.0.1:9/v1",
+						apiKey: "key",
+						meteringMode: "tokens",
+						currency: pricing.currency,
+						enabled: true,
+					},
+					await asAdmin(),
+				),
 			),
 		);
-		token = meta?.zedToken ?? token;
 		const { data: model } = await run(
 			procedures.model.create(
 				{
@@ -133,7 +192,7 @@ const meteredOrganization = async (
 			modelId: model.id,
 		};
 	};
-	const model = await addModel(pricing);
+	const model = await addModel(setup.pricing ?? {});
 
 	/** Meters one finished call and returns its request id, which a reply would carry. */
 	const meter = async (params: {
@@ -177,7 +236,7 @@ const meteredOrganization = async (
 				{
 					days,
 				},
-				await procedureOptions(actor, token),
+				await options(actor),
 			),
 		).then(({ data }) => data);
 
@@ -196,6 +255,7 @@ const meteredOrganization = async (
 		organizationId,
 		admin,
 		member,
+		joined,
 		...model,
 		addModel,
 		meter,
@@ -226,21 +286,65 @@ const finalizedEvent = (appRequestId: string) =>
 		}),
 	);
 
-const createBot = (owner: Actor) =>
-	run(
-		Effect.gen(function* () {
-			const [bot] = yield* (yield* DB)
-				.insert(dbSchema.bot)
-				.values({
-					name: `Analytics bot ${crypto.randomUUID()}`,
-					description: "",
-					contentHtml: "",
-					userId: owner.user.id,
-				})
-				.returning();
-			return bot;
-		}),
+/** A draft bot of `owner`, readable by its owner alone. */
+const createBot = async (owner: Actor) => {
+	const procedures = await run(Procedures);
+	const name = `Analytics bot ${crypto.randomUUID()}`;
+	const { data } = track(
+		await run(
+			procedures.bot.save(
+				{
+					name,
+					description: "Metered by the analytics test.",
+					status: "draft",
+				},
+				await options(owner),
+			),
+		),
 	);
+	return {
+		id: data.id,
+		name,
+	};
+};
+
+const viewerOf = (botId: BotId, viewer: Actor) => ({
+	resourceType: "bot" as const,
+	resourceId: botId,
+	principalType: "user" as const,
+	principalId: viewer.user.id,
+});
+
+const share = async (owner: Actor, botId: BotId, viewer: Actor) => {
+	const procedures = await run(Procedures);
+	track(
+		await run(
+			procedures.resource.grant(
+				{
+					resourceType: "bot",
+					resourceId: botId,
+					principals: [
+						{
+							principalType: "user",
+							principalId: viewer.user.id,
+						},
+					],
+					role: "viewer",
+				},
+				await options(owner),
+			),
+		),
+	);
+};
+
+const unshare = async (owner: Actor, botId: BotId, viewer: Actor) => {
+	const procedures = await run(Procedures);
+	track(
+		await run(
+			procedures.resource.revoke(viewerOf(botId, viewer), await options(owner)),
+		),
+	);
+};
 
 /** A reply under `messageId` in a chat of `rater` with `botId`, rated `rating`. */
 const rateReply = (params: {
@@ -295,6 +399,7 @@ describe("organization analytics", () => {
 		async () => {
 			const org = await meteredOrganization();
 			const bot = await createBot(org.member);
+			await share(org.member, bot.id, org.admin);
 			await org.meter({
 				actor: org.member,
 				botId: bot.id,
@@ -351,9 +456,12 @@ describe("organization analytics", () => {
 			});
 			expect(week.users).toEqual([
 				{
-					userId: org.member.user.id,
-					name: org.member.user.name,
-					email: org.member.user.email,
+					user: {
+						kind: "member",
+						id: org.member.user.id,
+						name: org.member.user.name,
+						email: org.member.user.email,
+					},
 					inputTokens: 100,
 					outputTokens: 50,
 					totalTokens: 150,
@@ -364,9 +472,12 @@ describe("organization analytics", () => {
 					unpriced: 1,
 				},
 				{
-					userId: org.admin.user.id,
-					name: org.admin.user.name,
-					email: org.admin.user.email,
+					user: {
+						kind: "member",
+						id: org.admin.user.id,
+						name: org.admin.user.name,
+						email: org.admin.user.email,
+					},
 					inputTokens: 10,
 					outputTokens: 5,
 					totalTokens: 15,
@@ -378,22 +489,25 @@ describe("organization analytics", () => {
 				},
 			]);
 			expect(
-				week.bots.map(({ botId, name, totalTokens, requests }) => ({
-					botId,
-					name,
+				week.bots.map(({ bot, totalTokens, requests }) => ({
+					bot,
 					totalTokens,
 					requests,
 				})),
 			).toEqual([
 				{
-					botId: bot.id,
-					name: bot.name,
+					bot: {
+						kind: "bot",
+						id: bot.id,
+						name: bot.name,
+					},
 					totalTokens: 150,
 					requests: 1,
 				},
 				{
-					botId: null,
-					name: null,
+					bot: {
+						kind: "none",
+					},
 					totalTokens: 15,
 					requests: 2,
 				},
@@ -430,6 +544,7 @@ describe("organization analytics", () => {
 			const org = await meteredOrganization();
 			const other = await meteredOrganization();
 			const bot = await createBot(org.member);
+			await share(org.member, bot.id, org.admin);
 
 			const ownReply = await org.meter({
 				actor: org.member,
@@ -473,16 +588,20 @@ describe("organization analytics", () => {
 
 			expect(ratings).toHaveLength(2);
 			expect(ratings).toContainEqual({
-				botId: bot.id,
-				name: bot.name,
+				bot: {
+					kind: "bot",
+					id: bot.id,
+					name: bot.name,
+				},
 				counts: {
 					...NO_RATINGS,
 					very_much: 1,
 				},
 			});
 			expect(ratings).toContainEqual({
-				botId: null,
-				name: null,
+				bot: {
+					kind: "none",
+				},
 				counts: {
 					...NO_RATINGS,
 					not_really: 1,
@@ -515,15 +634,315 @@ describe("organization analytics", () => {
 	);
 });
 
+/** Each bot's tokens and requests, as `bot:<id>` for a named bot, else its kind. */
+const botUsage = (bots: OrganizationAnalytics["bots"]) =>
+	bots.map(({ bot, totalTokens, requests }) => ({
+		bot: bot.kind === "bot" ? `bot:${bot.id}` : bot.kind,
+		totalTokens,
+		requests,
+	}));
+
+describe("organization analytics scope", () => {
+	test(
+		"names only the bots the viewer can read and adds up the others as other bots",
+		async () => {
+			const org = await meteredOrganization();
+			const own = await createBot(org.admin);
+			const shared = await createBot(org.member);
+			const secret = await createBot(org.member);
+			const alsoSecret = await createBot(org.member);
+			await share(org.member, shared.id, org.admin);
+			for (const [bot, tokens] of [
+				[
+					own,
+					1,
+				],
+				[
+					shared,
+					2,
+				],
+				[
+					secret,
+					3,
+				],
+				[
+					alsoSecret,
+					4,
+				],
+			] as const) {
+				await rateReply({
+					rater: org.member,
+					botId: bot.id,
+					messageId: await org.meter({
+						actor: org.member,
+						botId: bot.id,
+						steps: [
+							usage(tokens, tokens),
+						],
+					}),
+					rating: "very_much",
+				});
+			}
+
+			const analytics = await org.analytics(org.admin, 7);
+
+			const response = JSON.stringify(analytics);
+			for (const hidden of [
+				secret,
+				alsoSecret,
+			]) {
+				expect(response).not.toContain(hidden.id);
+				expect(response).not.toContain(hidden.name);
+			}
+			expect(botUsage(analytics.bots)).toEqual([
+				{
+					bot: "other",
+					totalTokens: 14,
+					requests: 2,
+				},
+				{
+					bot: `bot:${shared.id}`,
+					totalTokens: 4,
+					requests: 1,
+				},
+				{
+					bot: `bot:${own.id}`,
+					totalTokens: 2,
+					requests: 1,
+				},
+			]);
+			expect(analytics.totals.totalTokens).toBe(20);
+			expect(analytics.ratings).toHaveLength(3);
+			expect(analytics.ratings[0]).toEqual({
+				bot: {
+					kind: "other",
+				},
+				counts: {
+					...NO_RATINGS,
+					very_much: 2,
+				},
+			});
+			for (const bot of [
+				shared,
+				own,
+			]) {
+				expect(analytics.ratings).toContainEqual({
+					bot: {
+						kind: "bot",
+						id: bot.id,
+						name: bot.name,
+					},
+					counts: {
+						...NO_RATINGS,
+						very_much: 1,
+					},
+				});
+			}
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"hides a bot again once its grant is revoked",
+		async () => {
+			const org = await meteredOrganization();
+			const bot = await createBot(org.member);
+			await share(org.member, bot.id, org.admin);
+			await org.meter({
+				actor: org.member,
+				botId: bot.id,
+				steps: [
+					usage(5, 5),
+				],
+			});
+			expect(botUsage((await org.analytics(org.admin, 7)).bots)).toEqual([
+				{
+					bot: `bot:${bot.id}`,
+					totalTokens: 10,
+					requests: 1,
+				},
+			]);
+
+			await unshare(org.member, bot.id, org.admin);
+
+			const analytics = await org.analytics(org.admin, 7);
+			expect(JSON.stringify(analytics)).not.toContain(bot.name);
+			expect(botUsage(analytics.bots)).toEqual([
+				{
+					bot: "other",
+					totalTokens: 10,
+					requests: 1,
+				},
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"shows each organisation its own usage of a bot used in both, named only where the viewer can read it",
+		async () => {
+			const first = await meteredOrganization();
+			const second = await meteredOrganization({
+				joining: [
+					{
+						actor: first.member,
+						role: "member",
+					},
+				],
+			});
+			const [owner] = second.joined;
+			const bot = await createBot(owner);
+			await share(owner, bot.id, second.admin);
+			await first.meter({
+				actor: first.member,
+				botId: bot.id,
+				steps: [
+					usage(3, 3),
+				],
+			});
+			await second.meter({
+				actor: owner,
+				botId: bot.id,
+				steps: [
+					usage(4, 4),
+				],
+			});
+
+			const firstAnalytics = await first.analytics(first.admin, 7);
+			expect(JSON.stringify(firstAnalytics)).not.toContain(bot.name);
+			expect(botUsage(firstAnalytics.bots)).toEqual([
+				{
+					bot: "other",
+					totalTokens: 6,
+					requests: 1,
+				},
+			]);
+			expect(botUsage((await second.analytics(second.admin, 7)).bots)).toEqual([
+				{
+					bot: `bot:${bot.id}`,
+					totalTokens: 8,
+					requests: 1,
+				},
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"adds up former members as one row without their current profile",
+		async () => {
+			const first = await meteredOrganization();
+			const second = await meteredOrganization({
+				joining: [
+					{
+						actor: first.member,
+						role: "admin",
+					},
+				],
+			});
+			const [leaver] = second.joined;
+			await first.meter({
+				actor: first.member,
+				steps: [
+					usage(3, 2),
+				],
+			});
+			await first.meter({
+				actor: first.admin,
+				steps: [
+					usage(1, 1),
+				],
+			});
+			await second.meter({
+				actor: leaver,
+				steps: [
+					usage(4, 4),
+				],
+			});
+			expect(await rejection(first.analytics(first.member, 7))).toMatchObject({
+				_tag: "ForbiddenError",
+			});
+
+			await run(
+				removeMembers({
+					organizationId: first.organizationId,
+					userIds: [
+						first.member.user.id,
+					],
+					actor: {
+						userId: first.admin.user.id,
+						zedToken: token,
+					},
+				}),
+			);
+			const renamed = {
+				name: `Renamed ${crypto.randomUUID()}`,
+				email: `renamed-${crypto.randomUUID()}@example.com`,
+			};
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.user)
+						.set(renamed)
+						.where(eq(dbSchema.user.id, first.member.user.id));
+				}),
+			);
+
+			const analytics = await first.analytics(first.admin, 7);
+			const response = JSON.stringify(analytics);
+			expect(response).not.toContain(first.member.user.id);
+			expect(response).not.toContain(renamed.name);
+			expect(response).not.toContain(renamed.email);
+			expect(
+				analytics.users.map(({ user, totalTokens }) => ({
+					user,
+					totalTokens,
+				})),
+			).toEqual([
+				{
+					user: {
+						kind: "former",
+					},
+					totalTokens: 5,
+				},
+				{
+					user: {
+						kind: "member",
+						id: first.admin.user.id,
+						name: first.admin.user.name,
+						email: first.admin.user.email,
+					},
+					totalTokens: 2,
+				},
+			]);
+			expect(analytics.totals.totalTokens).toBe(7);
+
+			expect((await second.analytics(leaver, 7)).users).toEqual([
+				expect.objectContaining({
+					user: {
+						kind: "member",
+						id: leaver.user.id,
+						...renamed,
+					},
+					totalTokens: 8,
+				}),
+			]);
+		},
+		TIMEOUT,
+	);
+});
+
 describe("usage cost", () => {
 	test(
 		"is priced at finalize in the provider's currency and kept when prices change",
 		async () => {
 			const org = await meteredOrganization({
-				currency: "EUR",
-				prices: {
-					input: 2,
-					output: 10,
+				pricing: {
+					currency: "EUR",
+					prices: {
+						input: 2,
+						output: 10,
+					},
 				},
 			});
 			const first = await org.meter({
@@ -584,10 +1003,12 @@ describe("cost analytics", () => {
 		"adds cost up per currency and counts calls without a price",
 		async () => {
 			const org = await meteredOrganization({
-				currency: "EUR",
-				prices: {
-					input: 2,
-					output: 10,
+				pricing: {
+					currency: "EUR",
+					prices: {
+						input: 2,
+						output: 10,
+					},
 				},
 			});
 			const dollars = await org.addModel({
@@ -651,7 +1072,9 @@ describe("cost analytics", () => {
 			});
 			expect(users).toEqual([
 				expect.objectContaining({
-					userId: org.member.user.id,
+					user: expect.objectContaining({
+						id: org.member.user.id,
+					}),
 					cost,
 					unpriced: 1,
 				}),

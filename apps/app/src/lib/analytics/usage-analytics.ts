@@ -1,6 +1,7 @@
-import type { OrganizationId } from "@orcai/core";
+import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
+	AnalyticsBot,
 	AnalyticsCost,
 	AnalyticsDays,
 	AnalyticsDayUsage,
@@ -9,6 +10,7 @@ import type {
 	InstanceAnalytics,
 	OrganizationAnalytics,
 } from "@orcai/schema";
+import { permittedEntityIds, type SpiceDbService } from "@orcai/spice-db";
 import { and, count, eq, gte, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import * as Clock from "effect/Clock";
@@ -185,27 +187,26 @@ const byKey = <Row extends UsageRow>(
 const byUsage = (a: AnalyticsUsage, b: AnalyticsUsage) =>
 	b.totalTokens - a.totalTokens || b.requests - a.requests;
 
+const botKey = (bot: AnalyticsBot) => (bot.kind === "bot" ? bot.id : bot.kind);
+
 /** Rating rows of one bot each, every rating counted, the most rated first. */
-const ratingsByBot = <Bot extends string | null>(
+const ratingsByBot = (
 	rows: ReadonlyArray<{
-		botId: Bot;
-		name: string | null;
+		bot: AnalyticsBot;
 		rating: ChatMessageRating;
 		count: number;
 	}>,
 ) => {
 	const bots = new Map<
-		Bot,
+		string,
 		{
-			botId: Bot;
-			name: string | null;
+			bot: AnalyticsBot;
 			counts: Record<ChatMessageRating, number>;
 		}
 	>();
 	for (const row of rows) {
-		const bot = bots.get(row.botId) ?? {
-			botId: row.botId,
-			name: row.name,
+		const bot = bots.get(botKey(row.bot)) ?? {
+			bot: row.bot,
 			counts: {
 				very_much: 0,
 				a_bit: 0,
@@ -214,7 +215,7 @@ const ratingsByBot = <Bot extends string | null>(
 			},
 		};
 		bot.counts[row.rating] += row.count;
-		bots.set(row.botId, bot);
+		bots.set(botKey(row.bot), bot);
 	}
 	const total = (counts: Record<ChatMessageRating, number>) =>
 		Object.values(counts).reduce((sum, value) => sum + value, 0);
@@ -255,15 +256,22 @@ const dailyUsage = (from: Date, days: AnalyticsDays, scope?: SQL) =>
 
 /**
  * The organisation's metered usage per UTC day, person, bot and model, and the
- * ratings of its replies per bot, over the last `days` days.
+ * ratings of its replies per bot, over the last `days` days. Only current
+ * members and bots the viewer can read are named; former members and the
+ * other bots each add up to one row.
  */
 export const organizationAnalytics = ({
 	organizationId,
 	days,
+	viewer,
 }: {
 	organizationId: OrganizationId;
 	days: AnalyticsDays;
-}): Effect.Effect<OrganizationAnalytics, unknown, DB> =>
+	viewer: {
+		userId: UserId;
+		zedToken?: string;
+	};
+}): Effect.Effect<OrganizationAnalytics, unknown, DB | SpiceDbService> =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const from = yield* range(days);
@@ -271,12 +279,21 @@ export const organizationAnalytics = ({
 			from,
 			eq(event.organizationId, organizationId),
 		);
-		const { user, bot, provider, model, chat, chatMessage, chatMessageRating } =
-			dbSchema;
+		const {
+			user,
+			member,
+			bot,
+			provider,
+			model,
+			chat,
+			chatMessage,
+			chatMessageRating,
+		} = dbSchema;
 
 		const [timeline, users, bots, models, ratings] = yield* Effect.all(
 			[
 				dailyUsage(from, days, eq(event.organizationId, organizationId)),
+				// Profiles are read through current membership only.
 				db
 					.select({
 						userId: event.userId,
@@ -285,7 +302,14 @@ export const organizationAnalytics = ({
 						...usage,
 					})
 					.from(event)
-					.innerJoin(user, eq(user.id, event.userId))
+					.leftJoin(
+						member,
+						and(
+							eq(member.userId, event.userId),
+							eq(member.organizationId, organizationId),
+						),
+					)
+					.leftJoin(user, eq(user.id, member.userId))
 					.where(where)
 					.groupBy(event.userId, user.name, user.email, event.currency),
 				db
@@ -345,14 +369,85 @@ export const organizationAnalytics = ({
 			},
 		);
 
+		const readable = yield* permittedEntityIds({
+			entityType: "bot",
+			entityIds: [
+				...bots,
+				...ratings,
+			].flatMap((row) =>
+				row.botId === null
+					? []
+					: [
+							row.botId,
+						],
+			),
+			permission: "read",
+			userId: viewer.userId,
+			zedToken: viewer.zedToken,
+		});
+		const botOf = ({
+			botId,
+			name,
+		}: {
+			botId: BotId | null;
+			name: string | null;
+		}): AnalyticsBot => {
+			if (botId === null)
+				return {
+					kind: "none",
+				};
+			return name !== null && readable.has(botId)
+				? {
+						kind: "bot",
+						id: botId,
+						name,
+					}
+				: {
+						kind: "other",
+					};
+		};
+
 		return {
 			...timeline,
-			users: byKey(users, (row) => row.userId).sort(byUsage),
-			bots: byKey(bots, (row) => row.botId).sort(byUsage),
+			users: byKey(
+				users.map(({ userId, name, email, ...row }) => ({
+					...row,
+					user:
+						name === null || email === null
+							? {
+									kind: "former" as const,
+								}
+							: {
+									kind: "member" as const,
+									id: userId,
+									name,
+									email,
+								},
+				})),
+				(row) => (row.user.kind === "member" ? row.user.id : "former"),
+			).sort(byUsage),
+			bots: byKey(
+				bots.map(({ botId, name, ...row }) => ({
+					...row,
+					bot: botOf({
+						botId,
+						name,
+					}),
+				})),
+				(row) => botKey(row.bot),
+			).sort(byUsage),
 			models: byKey(models, (row) => `${row.providerId}:${row.modelId}`).sort(
 				byUsage,
 			),
-			ratings: ratingsByBot(ratings),
+			ratings: ratingsByBot(
+				ratings.map(({ botId, name, ...row }) => ({
+					...row,
+					bot: botOf({
+						botId,
+						name,
+					}),
+				})),
+			),
 		};
 	});
 

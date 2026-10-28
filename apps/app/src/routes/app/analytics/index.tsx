@@ -2,6 +2,10 @@ import { analyticsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChartColumnIcon } from "lucide-react";
+import {
+	analyticsBotKey,
+	analyticsBotName,
+} from "@/components/analytics/analytics-bot";
 import { AnalyticsRange } from "@/components/analytics/analytics-range";
 import { RatingBreakdown } from "@/components/analytics/rating-breakdown";
 import {
@@ -59,7 +63,7 @@ function RouteComponent() {
 	);
 	const unused =
 		analytics.totals.requests === 0 && analytics.ratings.length === 0;
-	const hasBotUsage = analytics.bots.some((row) => row.botId !== null);
+	const hasBotUsage = analytics.bots.some((row) => row.bot.kind !== "none");
 
 	return (
 		<Page>
@@ -104,10 +108,19 @@ function RouteComponent() {
 								description={m.analytics_users_description()}
 								nameHeader={m.analytics_user_column_header()}
 								rows={analytics.users}
-								rowKey={(row) => row.userId}
-								name={(row) => (
-									<TwoLineName primary={row.name} secondary={row.email} />
-								)}
+								rowKey={(row) =>
+									row.user.kind === "member" ? row.user.id : row.user.kind
+								}
+								name={(row) =>
+									row.user.kind === "member" ? (
+										<TwoLineName
+											primary={row.user.name}
+											secondary={row.user.email}
+										/>
+									) : (
+										<TwoLineName primary={m.analytics_former_members_label()} />
+									)
+								}
 								empty={m.analytics_usage_empty()}
 							/>
 							<UsageBreakdown
@@ -133,11 +146,9 @@ function RouteComponent() {
 								}
 								nameHeader={m.analytics_bot_column_header()}
 								rows={analytics.bots}
-								rowKey={(row) => row.botId ?? "none"}
+								rowKey={(row) => analyticsBotKey(row.bot)}
 								name={(row) => (
-									<TwoLineName
-										primary={row.name ?? m.analytics_without_bot_label()}
-									/>
+									<TwoLineName primary={analyticsBotName(row.bot)} />
 								)}
 								empty={m.analytics_usage_empty()}
 							/>
