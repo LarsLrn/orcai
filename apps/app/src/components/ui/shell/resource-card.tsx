@@ -1,7 +1,7 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
-import { type LucideIcon, MoreHorizontalIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type * as React from "react";
 import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { m } from "@/paraglide/messages";
 
 type ResourceCardClickAction =
 	| {
@@ -416,60 +415,6 @@ const ResourceCardAction = ({ action }: { action: ResourceCardActionItem }) => {
 	);
 };
 
-const ResourceCardMenuTrigger = ({
-	action,
-	icon: Icon = MoreHorizontalIcon,
-	label = m.common_row_menu_trigger(),
-	className,
-	onClick,
-	disabled,
-	...props
-}: {
-	action?: ResourceCardClickAction;
-	icon?: LucideIcon;
-	label?: string;
-} & Omit<
-	React.ComponentProps<typeof Button>,
-	"children" | "variant" | "size"
->) => {
-	const triggerClassName = cn("size-8 data-[state=open]:bg-muted", className);
-
-	if (action?.linkProps) {
-		return (
-			<Link
-				{...action.linkProps}
-				className={buttonVariants({
-					variant: "ghost",
-					size: "icon-sm",
-					className: triggerClassName,
-				})}
-			>
-				<Icon className="h-4 w-4" />
-				<span className="sr-only">{label}</span>
-			</Link>
-		);
-	}
-
-	return (
-		<Button
-			variant="ghost"
-			size="icon-sm"
-			className={triggerClassName}
-			onClick={(event) => {
-				onClick?.(event);
-				if (!event.defaultPrevented && action?.onClick) {
-					action.onClick();
-				}
-			}}
-			disabled={disabled ?? action?.disabled}
-			{...props}
-		>
-			<Icon className="h-4 w-4" />
-			<span className="sr-only">{label}</span>
-		</Button>
-	);
-};
-
 export {
 	ResourceCard,
 	ResourceCardAction,
@@ -484,7 +429,6 @@ export {
 	ResourceCardHeader,
 	ResourceCardMedia,
 	ResourceCardMenu,
-	ResourceCardMenuTrigger,
 	ResourceCardMeta,
 	type ResourceCardMetaItem,
 	type ResourceCardPrimaryAction,

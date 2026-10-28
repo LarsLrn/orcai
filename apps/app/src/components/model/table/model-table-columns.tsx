@@ -1,9 +1,7 @@
 import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
@@ -15,6 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
@@ -144,12 +143,7 @@ export const modelTableColumns = columnHelper.columns([
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger
-						render={
-							<Button variant="ghost" className="size-8 p-0">
-								<span className="sr-only">{m.common_row_menu_trigger()}</span>
-								<MoreHorizontal className="size-4" />
-							</Button>
-						}
+						render={<OverflowMenuTrigger variant="ghost" />}
 					/>
 					<DropdownMenuContent align="end">
 						<DropdownMenuLinkItem

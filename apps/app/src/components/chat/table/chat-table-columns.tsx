@@ -1,15 +1,14 @@
 import type { ChatListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontalIcon } from "lucide-react";
 import { BranchMark } from "@/components/chat/branch-links";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { PinMark } from "@/components/chat/pin-mark";
 import { SearchSnippet } from "@/components/chat/search-snippet";
-import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
@@ -98,10 +97,7 @@ export const chatTableColumns = columnHelper.columns([
 						: undefined
 				}
 			>
-				<Button variant="ghost" className="size-8 p-0">
-					<MoreHorizontalIcon />
-					<span className="sr-only">{m.chat_table_row_menu_trigger()}</span>
-				</Button>
+				<OverflowMenuTrigger variant="ghost" />
 			</ChatActionsDropdown>
 		),
 	}),

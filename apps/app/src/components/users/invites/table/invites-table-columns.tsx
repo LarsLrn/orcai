@@ -5,9 +5,7 @@ import {
 import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
@@ -18,6 +16,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
@@ -130,14 +129,7 @@ const ActionsCell = ({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button variant="ghost" className="size-8 p-0">
-						<span className="sr-only">{m.common_row_menu_trigger()}</span>
-						<MoreHorizontal className="size-4" />
-					</Button>
-				}
-			/>
+			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
 			<DropdownMenuContent align="end">
 				<DropdownMenuItem onClick={() => handleCopyLink(invitation.id)}>
 					{m.users_invites_table_copy_link_action()}

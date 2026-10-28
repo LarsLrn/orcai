@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { MoreHorizontalIcon } from "lucide-react";
 import { useId, useState } from "react";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { Button } from "@/components/ui/button";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
@@ -72,14 +72,10 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 								title={conversation.title}
 								deleteRedirectTo="/app/assistant"
 							>
-								<Button
+								<OverflowMenuTrigger
 									variant="ghost"
-									size="icon-sm"
-									className="relative z-10 shrink-0 data-[state=open]:bg-muted"
-								>
-									<MoreHorizontalIcon />
-									<span className="sr-only">{m.common_row_menu_trigger()}</span>
-								</Button>
+									className="relative z-10 shrink-0"
+								/>
 							</ChatActionsDropdown>
 						</li>
 					))}

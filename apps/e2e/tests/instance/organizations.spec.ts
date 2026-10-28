@@ -163,7 +163,7 @@ test("instance: the deletion dialog counts what goes and asks for the slug", asy
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page

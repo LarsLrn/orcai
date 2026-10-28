@@ -130,7 +130,7 @@ export const rowMenuItems = async (
 ): Promise<string[]> => {
 	await userRow(page, email)
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 

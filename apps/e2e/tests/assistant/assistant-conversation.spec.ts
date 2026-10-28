@@ -226,7 +226,7 @@ test("assistant: the history lists the most recently active first and renames an
 	});
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -251,7 +251,7 @@ test("assistant: the history lists the most recently active first and renames an
 	});
 	await renamedRow
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page

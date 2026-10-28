@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { MessagesSquareIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react";
+import { MessagesSquareIcon, PlusIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { Placeholder } from "@/components/placeholders/placeholder";
-import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -12,6 +11,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { AnimatedGroup } from "@/components/ui/motion/animated-group";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
@@ -85,14 +85,11 @@ const ChatsList = ({
 							title={chat.title}
 							pinned={chat.pinnedAt !== null}
 						>
-							<Button
+							<OverflowMenuTrigger
 								variant="ghost"
-								className="absolute top-2 right-2 h-8 w-8 p-0 data-[state=open]:bg-muted"
+								className="absolute top-2 right-2"
 								onClick={(e) => e.preventDefault()}
-							>
-								<MoreHorizontalIcon className="h-4 w-4" />
-								<span className="sr-only">{m.common_row_menu_trigger()}</span>
-							</Button>
+							/>
 						</ChatActionsDropdown>
 
 						<CardHeader className="pb-2">

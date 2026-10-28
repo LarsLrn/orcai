@@ -37,7 +37,7 @@ test("users: an admin removes a user from the organisation", async ({
 	// deleting the account is an instance action on Instance > Users.
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
