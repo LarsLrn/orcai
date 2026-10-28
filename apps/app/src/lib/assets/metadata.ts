@@ -6,20 +6,21 @@ import * as Effect from "effect/Effect";
 
 /**
  * The organisation's prepared library assets the user can edit whose metadata
- * was never generated, or failed: what a backfill generates.
+ * was never generated, or failed: what a backfill generates. `ids` narrows them.
  */
 export const assetsMissingMetadata = (params: {
 	userId: UserId;
 	organizationId: OrganizationId;
+	ids?: readonly AssetId[];
 	zedToken?: string;
 }) =>
 	Effect.gen(function* () {
-		const editable = yield* lookupEntitiesByPermission({
+		const editable = (yield* lookupEntitiesByPermission({
 			userId: params.userId,
 			permission: "edit",
 			entityType: "asset",
 			zedToken: params.zedToken,
-		});
+		})).filter((id) => !params.ids || params.ids.includes(id as AssetId));
 		if (editable.length === 0) {
 			return [];
 		}

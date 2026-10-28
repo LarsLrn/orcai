@@ -75,6 +75,7 @@ describe("loadTools", () => {
 						"updateAsset",
 						"deleteAsset",
 						"retryAsset",
+						"generateAssetMetadata",
 						"requestUpload",
 					],
 				},
@@ -109,6 +110,7 @@ describe("loadTools", () => {
 				"updateAsset",
 				"deleteAsset",
 				"retryAsset",
+				"generateAssetMetadata",
 				"requestUpload",
 			],
 			lockedUntilPlanApproved: [

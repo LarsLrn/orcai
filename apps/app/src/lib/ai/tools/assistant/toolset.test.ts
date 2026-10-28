@@ -98,6 +98,7 @@ describe("buildAssistantTools", () => {
 			"deleteBot",
 			"deleteBlock",
 			"deleteAsset",
+			"generateAssetMetadata",
 			"grantAccess",
 			"revokeAccess",
 			"deleteGroup",

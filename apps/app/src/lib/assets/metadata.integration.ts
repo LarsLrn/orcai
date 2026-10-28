@@ -5,6 +5,7 @@ import type { AssetMetadataType, SaveAssetInput } from "@orcai/schema";
 import { createOrganization } from "@orcai/testing";
 import { eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
@@ -117,7 +118,7 @@ describe("asset metadata generation", () => {
 	);
 
 	test(
-		"counts only prepared library assets of the active organisation the user can edit",
+		"counts only prepared library assets of the active organisation the user can edit, narrowed to given ids",
 		async () => {
 			const {
 				organizationId,
@@ -170,6 +171,23 @@ describe("asset metadata generation", () => {
 			expect(
 				await count(ownerElsewhere, inOtherOrganization.zedToken ?? zedToken),
 			).toBe(1);
+			expect(
+				await run(
+					assetsMissingMetadata({
+						userId: owner.user.id,
+						organizationId,
+						ids: [
+							mine.asset.id,
+							unprepared.asset.id,
+							theirs.asset.id,
+							inOtherOrganization.asset.id,
+						],
+						zedToken: inOtherOrganization.zedToken ?? theirs.zedToken,
+					}),
+				),
+			).toEqual([
+				mine.asset.id,
+			]);
 		},
 		TIMEOUT,
 	);

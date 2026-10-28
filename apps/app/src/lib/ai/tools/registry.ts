@@ -13,6 +13,7 @@ import { deleteAsset } from "./assistant/bots/delete-asset.declaration";
 import { deleteBlock } from "./assistant/bots/delete-block.declaration";
 import { deleteBot } from "./assistant/bots/delete-bot.declaration";
 import { findModels } from "./assistant/bots/find-models.declaration";
+import { generateAssetMetadata } from "./assistant/bots/generate-asset-metadata.declaration";
 import { publishBot } from "./assistant/bots/publish-bot.declaration";
 import { requestUpload } from "./assistant/bots/request-upload.declaration";
 import { retryAsset } from "./assistant/bots/retry-asset.declaration";
@@ -118,6 +119,7 @@ const toolDeclarations = {
 	updateAsset,
 	deleteAsset,
 	retryAsset,
+	generateAssetMetadata,
 	requestUpload,
 	listAccess,
 	findPrincipals,

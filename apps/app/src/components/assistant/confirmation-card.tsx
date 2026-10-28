@@ -27,6 +27,7 @@ const verbLabels: Record<ConfirmationVerb, () => string> = {
 	grant: m.assistant_confirmation_grant,
 	add: m.common_add_button,
 	change: m.assistant_confirmation_change,
+	generate: m.assistant_confirmation_generate,
 	invite: m.assistant_confirmation_invite,
 };
 

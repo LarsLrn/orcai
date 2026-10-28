@@ -35,6 +35,11 @@ export const generateAssetMetadataInputSchema = z.object({
 
 export const missingMetadataInputSchema = z.object({});
 
+export const generateMissingMetadataInputSchema = z.object({
+	/** Only these assets; every one the user can edit when left out. */
+	ids: z.array(assetIdSchema).min(1).max(100).optional(),
+});
+
 export const dismissMetadataSuggestionInputSchema = z.object({
 	id: assetIdSchema,
 	generation: z.number().int(),

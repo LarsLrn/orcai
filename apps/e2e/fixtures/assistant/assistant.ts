@@ -415,6 +415,7 @@ export const BOTS_TOOLS = [
 	"updateAsset",
 	"deleteAsset",
 	"retryAsset",
+	"generateAssetMetadata",
 	"requestUpload",
 ];
 

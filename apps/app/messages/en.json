@@ -626,6 +626,7 @@
 	"assistant_ask_groups_draft": "Help me organise the groups in this organisation",
 	"assistant_composer_model_hint": "Chosen by your organisation's admins",
 	"assistant_confirmation_change": "Change",
+	"assistant_confirmation_generate": "Generate",
 	"assistant_confirmation_grant": "Grant",
 	"assistant_confirmation_invite": "Invite",
 	"assistant_confirmation_withdraw": "Withdraw",
@@ -973,6 +974,9 @@
 			}
 		}
 	],
+	"assistant_tool_generate_asset_metadata_active": "Requesting metadata",
+	"assistant_tool_generate_asset_metadata_name": "Generate asset metadata",
+	"assistant_tool_generate_asset_metadata_summary": "Generate metadata for {names}",
 	"assistant_tool_get_block_active": "Reading AI behaviour or repository",
 	"assistant_tool_get_block_name": "Read AI behaviour or repository",
 	"assistant_tool_get_block_summary": "Read {name}",

@@ -425,12 +425,13 @@ describe("plan approval", () => {
 		expect(session.unlockedByApproval()).toEqual([]);
 	});
 
-	test("asks for exactly the twelve confirming tools and updatePlan", () => {
+	test("asks for exactly the thirteen confirming tools and updatePlan", () => {
 		expect(Object.keys(sessionOf(member).toolApproval).sort()).toEqual(
 			[
 				"deleteBot",
 				"deleteBlock",
 				"deleteAsset",
+				"generateAssetMetadata",
 				"deleteGroup",
 				"revokeAccess",
 				"removeGroupMembers",

@@ -8,6 +8,7 @@ import {
 	findAssetInputSchema,
 	findAssetResponseSchema,
 	generateAssetMetadataInputSchema,
+	generateMissingMetadataInputSchema,
 	listAssetsInputSchema,
 	listAssetsResponseSchema,
 	missingMetadataInputSchema,
@@ -167,6 +168,6 @@ export const assetContracts = {
 				],
 			}),
 		)
-		.input(missingMetadataInputSchema)
+		.input(generateMissingMetadataInputSchema)
 		.output(missingMetadataResponseSchema),
 };

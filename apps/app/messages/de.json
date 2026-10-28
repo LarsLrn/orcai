@@ -626,6 +626,7 @@
 	"assistant_ask_groups_draft": "Helfen Sie mir, die Gruppen in dieser Organisation zu ordnen",
 	"assistant_composer_model_hint": "Von den Admins Ihrer Organisation festgelegt",
 	"assistant_confirmation_change": "Ändern",
+	"assistant_confirmation_generate": "Erzeugen",
 	"assistant_confirmation_grant": "Gewähren",
 	"assistant_confirmation_invite": "Einladen",
 	"assistant_confirmation_withdraw": "Zurückziehen",
@@ -973,6 +974,9 @@
 			}
 		}
 	],
+	"assistant_tool_generate_asset_metadata_active": "Metadaten werden angefordert",
+	"assistant_tool_generate_asset_metadata_name": "Asset-Metadaten erzeugen",
+	"assistant_tool_generate_asset_metadata_summary": "Metadaten für {names} erzeugen",
 	"assistant_tool_get_block_active": "KI-Verhalten oder Repository wird gelesen",
 	"assistant_tool_get_block_name": "KI-Verhalten oder Repository lesen",
 	"assistant_tool_get_block_summary": "{name} gelesen",
