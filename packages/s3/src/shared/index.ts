@@ -1,4 +1,8 @@
-export { DATA_EXPORT_PREFIX, dataExportKey } from "./data-export";
+export {
+	DATA_EXPORT_PREFIX,
+	DATA_EXPORT_TTL_MS,
+	dataExportKey,
+} from "./data-export";
 export { ensureQuotedEtag } from "./etag";
 export {
 	getFileTypeFromMime,

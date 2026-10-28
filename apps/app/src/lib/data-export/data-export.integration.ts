@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import { buckets, type ChatMessageId, type UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
-import { dataExportKey } from "@orcai/s3";
+import { DATA_EXPORT_TTL_MS, dataExportKey } from "@orcai/s3";
 import { sendGetObjectCommand, sendPutObjectCommand } from "@orcai/s3/server";
 import { DATA_EXPORT_JOB_NAME, type DataExport } from "@orcai/schema";
 import {
@@ -20,7 +20,6 @@ import {
 } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
-	DATA_EXPORT_TTL_MS,
 	downloadableDataExport,
 	failDataExports,
 	runDataExport,
@@ -330,6 +329,38 @@ describe("data export", () => {
 			expect(
 				await run(downloadableDataExport(other.user.id, requested.id)),
 			).toBeUndefined();
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"reads a ready export past its expiry as expired, refuses its download and allows a new request",
+		async () => {
+			const {
+				actors: [owner],
+			} = await organizationWith([
+				"member",
+			]);
+			const requested = await requestExport(owner);
+			await run(runDataExport(requested.id, transcriptMarkdown));
+			expect((await latestExport(owner))?.status).toBe("ready");
+
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.dataExport)
+						.set({
+							expiresAt: new Date(Date.now() - 1_000),
+						})
+						.where(eq(dbSchema.dataExport.id, requested.id));
+				}),
+			);
+
+			expect((await latestExport(owner))?.status).toBe("expired");
+			expect(
+				await run(downloadableDataExport(owner.user.id, requested.id)),
+			).toBeUndefined();
+			expect((await requestExport(owner)).status).toBe("pending");
 		},
 		TIMEOUT,
 	);

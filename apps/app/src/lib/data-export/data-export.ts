@@ -2,7 +2,7 @@ import { buckets, type DataExportId, type UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { enqueueNotification } from "@orcai/notifications";
 import { sendJobBatch } from "@orcai/pg-boss";
-import { dataExportKey } from "@orcai/s3";
+import { DATA_EXPORT_TTL_MS, dataExportKey } from "@orcai/s3";
 import {
 	DATA_EXPORT_JOB_NAME,
 	type DataExport,
@@ -17,9 +17,6 @@ import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mappi
 import { withLocale } from "@/lib/presentation/with-locale";
 import { type Transcript, writeDataExportContents } from "./archive-contents";
 import { writeZipArchive } from "./zip-archive";
-
-/** How long a ready archive can be downloaded; the bucket lifecycle deletes it after. */
-export const DATA_EXPORT_TTL_MS = 24 * 60 * 60_000;
 
 type DataExportRow = typeof dbSchema.dataExport.$inferSelect;
 
