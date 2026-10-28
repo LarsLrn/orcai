@@ -5,13 +5,13 @@ import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { getResourceTypeLabel } from "@/settings/display-config";
@@ -58,7 +58,7 @@ const AccessDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<ScrollArea className="flex min-h-0 flex-1 flex-col *:data-[slot=scroll-area-viewport]:h-auto *:data-[slot=scroll-area-viewport]:min-h-0">
+				<DialogBody>
 					<AccessManagerContent
 						resourceRef={resourceRef}
 						resourceName={resourceName}
@@ -66,7 +66,7 @@ const AccessDialog = ({
 							botEditor.data ? toLinkedBlocks(botEditor.data.data) : undefined
 						}
 					/>
-				</ScrollArea>
+				</DialogBody>
 
 				<DialogFooter>
 					<Button variant="outline" onClick={() => onOpenChange(false)}>
