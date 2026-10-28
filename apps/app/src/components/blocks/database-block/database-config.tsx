@@ -6,7 +6,7 @@ import {
 	isRetryableFailure,
 	type RepositoryReadiness,
 } from "@orcai/schema";
-import { ChevronDownIcon, ExternalLinkIcon, RotateCwIcon } from "lucide-react";
+import { ChevronDownIcon, RotateCwIcon, TelescopeIcon } from "lucide-react";
 import { useState } from "react";
 import { AssetCard } from "@/components/documents/asset-card";
 import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
@@ -51,12 +51,15 @@ const DatabaseBlockConfigCard = ({
 	description,
 	contentJson,
 	assets,
+	explorable,
 }: {
 	blockId: BlockId;
 	config: DatabaseBlock["config"];
 	description: DatabaseBlock["description"];
 	contentJson: DatabaseBlock["contentJson"];
 	assets: Asset[];
+	/** A ready repository can be explored. */
+	explorable: boolean;
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
@@ -176,7 +179,7 @@ const DatabaseBlockConfigCard = ({
 				</CardContent>
 			</Card>
 
-			<AssetSection assets={assets} blockId={blockId} />
+			<AssetSection assets={assets} blockId={blockId} explorable={explorable} />
 		</div>
 	);
 };
@@ -184,9 +187,11 @@ const DatabaseBlockConfigCard = ({
 const AssetSection = ({
 	assets,
 	blockId,
+	explorable,
 }: {
 	assets: Asset[];
 	blockId: BlockId;
+	explorable: boolean;
 }) => {
 	const { data } = useRepositoryReadiness([
 		blockId,
@@ -231,12 +236,12 @@ const AssetSection = ({
 									blockId,
 								}),
 						},
-						{
-							key: "points",
-							label: m.blocks_database_config_view_vector_points_action(),
-							icon: ExternalLinkIcon,
+						explorable && {
+							key: "explore",
+							label: m.blocks_database_config_explore_action(),
+							icon: TelescopeIcon,
 							linkProps: {
-								to: "/app/hub/blocks/$blockId/points",
+								to: "/app/hub/repositories/$blockId/explore",
 								params: {
 									blockId,
 								},

@@ -149,6 +149,7 @@ function RouteComponent() {
 							description={block.data.description}
 							contentJson={block.data.contentJson}
 							assets={block.assets}
+							explorable={block.data.status === "ready"}
 						/>
 					)}
 				</div>
