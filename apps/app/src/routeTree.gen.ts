@@ -25,7 +25,7 @@ import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/
 import { Route as PathlessLayoutTwoFactorRouteImport } from './routes/_pathlessLayout/two-factor'
 import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppHomeRouteRouteImport } from './routes/app/_home/route'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
 import { Route as AppAnalyticsRouteRouteImport } from './routes/app/analytics/route'
 import { Route as AppAssistantRouteRouteImport } from './routes/app/assistant/route'
@@ -42,6 +42,8 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDataExportsDataExportIdRouteImport } from './routes/api/data-exports/$dataExportId'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
+import { Route as AppHomeIndexRouteImport } from './routes/app/_home/index'
+import { Route as AppHomeManageRouteImport } from './routes/app/_home/manage'
 import { Route as AppAccountIndexRouteImport } from './routes/app/account/index'
 import { Route as AppAccountDataRouteImport } from './routes/app/account/data'
 import { Route as AppAccountInvitationsRouteImport } from './routes/app/account/invitations'
@@ -191,9 +193,8 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppHomeRouteRoute = AppHomeRouteRouteImport.update({
+  id: '/_home',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAccountRouteRoute = AppAccountRouteRouteImport.update({
@@ -276,6 +277,16 @@ const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   id: '/api/rpc/$',
   path: '/api/rpc/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppHomeIndexRoute = AppHomeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppHomeRouteRoute,
+} as any)
+const AppHomeManageRoute = AppHomeManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => AppHomeRouteRoute,
 } as any)
 const AppAccountIndexRoute = AppAccountIndexRouteImport.update({
   id: '/',
@@ -638,7 +649,6 @@ export interface FileRoutesByFullPath {
   '/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/api/health': typeof ApiHealthRoute
-  '/app/': typeof AppIndexRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
@@ -653,6 +663,7 @@ export interface FileRoutesByFullPath {
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/manage': typeof AppHomeManageRoute
   '/app/account/data': typeof AppAccountDataRoute
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
@@ -664,6 +675,7 @@ export interface FileRoutesByFullPath {
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
+  '/app/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
   '/app/analytics/': typeof AppAnalyticsIndexRoute
   '/app/assistant/': typeof AppAssistantIndexRoute
@@ -711,6 +723,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppHomeIndexRoute
   '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
@@ -723,12 +736,12 @@ export interface FileRoutesByTo {
   '/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/api/health': typeof ApiHealthRoute
-  '/app': typeof AppIndexRoute
   '/instance': typeof InstanceIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/manage': typeof AppHomeManageRoute
   '/app/account/data': typeof AppAccountDataRoute
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
@@ -788,6 +801,7 @@ export interface FileRoutesById {
   '/_pathlessLayout': typeof PathlessLayoutRouteRouteWithChildren
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
+  '/app/_home': typeof AppHomeRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/analytics': typeof AppAnalyticsRouteRouteWithChildren
   '/app/assistant': typeof AppAssistantRouteRouteWithChildren
@@ -811,7 +825,6 @@ export interface FileRoutesById {
   '/_pathlessLayout/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/api/health': typeof ApiHealthRoute
-  '/app/': typeof AppIndexRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
@@ -826,6 +839,7 @@ export interface FileRoutesById {
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/app/_home/manage': typeof AppHomeManageRoute
   '/app/account/data': typeof AppAccountDataRoute
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
@@ -837,6 +851,7 @@ export interface FileRoutesById {
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
+  '/app/_home/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
   '/app/analytics/': typeof AppAnalyticsIndexRoute
   '/app/assistant/': typeof AppAssistantIndexRoute
@@ -911,7 +926,6 @@ export interface FileRouteTypes {
     | '/two-factor'
     | '/verify-email'
     | '/api/health'
-    | '/app/'
     | '/instance/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
@@ -926,6 +940,7 @@ export interface FileRouteTypes {
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/manage'
     | '/app/account/data'
     | '/app/account/invitations'
     | '/app/account/security'
@@ -937,6 +952,7 @@ export interface FileRouteTypes {
     | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
+    | '/app/'
     | '/app/account/'
     | '/app/analytics/'
     | '/app/assistant/'
@@ -984,6 +1000,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app'
     | '/forgot-password'
     | '/init'
     | '/login'
@@ -996,12 +1013,12 @@ export interface FileRouteTypes {
     | '/two-factor'
     | '/verify-email'
     | '/api/health'
-    | '/app'
     | '/instance'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/manage'
     | '/app/account/data'
     | '/app/account/invitations'
     | '/app/account/security'
@@ -1060,6 +1077,7 @@ export interface FileRouteTypes {
     | '/_pathlessLayout'
     | '/app'
     | '/instance'
+    | '/app/_home'
     | '/app/account'
     | '/app/analytics'
     | '/app/assistant'
@@ -1083,7 +1101,6 @@ export interface FileRouteTypes {
     | '/_pathlessLayout/two-factor'
     | '/_pathlessLayout/verify-email'
     | '/api/health'
-    | '/app/'
     | '/instance/'
     | '/app/groups/$groupId'
     | '/app/hub/assets'
@@ -1098,6 +1115,7 @@ export interface FileRouteTypes {
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
     | '/api/rpc/$'
+    | '/app/_home/manage'
     | '/app/account/data'
     | '/app/account/invitations'
     | '/app/account/security'
@@ -1109,6 +1127,7 @@ export interface FileRouteTypes {
     | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
+    | '/app/_home/'
     | '/app/account/'
     | '/app/analytics/'
     | '/app/assistant/'
@@ -1281,11 +1300,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
+    '/app/_home': {
+      id: '/app/_home'
+      path: ''
+      fullPath: '/app'
+      preLoaderRoute: typeof AppHomeRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/account': {
@@ -1399,6 +1418,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/rpc/$'
       preLoaderRoute: typeof ApiRpcSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/_home/': {
+      id: '/app/_home/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppHomeIndexRouteImport
+      parentRoute: typeof AppHomeRouteRoute
+    }
+    '/app/_home/manage': {
+      id: '/app/_home/manage'
+      path: '/manage'
+      fullPath: '/app/manage'
+      preLoaderRoute: typeof AppHomeManageRouteImport
+      parentRoute: typeof AppHomeRouteRoute
     }
     '/app/account/': {
       id: '/app/account/'
@@ -1882,6 +1915,20 @@ const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
 const PathlessLayoutRouteRouteWithChildren =
   PathlessLayoutRouteRoute._addFileChildren(PathlessLayoutRouteRouteChildren)
 
+interface AppHomeRouteRouteChildren {
+  AppHomeManageRoute: typeof AppHomeManageRoute
+  AppHomeIndexRoute: typeof AppHomeIndexRoute
+}
+
+const AppHomeRouteRouteChildren: AppHomeRouteRouteChildren = {
+  AppHomeManageRoute: AppHomeManageRoute,
+  AppHomeIndexRoute: AppHomeIndexRoute,
+}
+
+const AppHomeRouteRouteWithChildren = AppHomeRouteRoute._addFileChildren(
+  AppHomeRouteRouteChildren,
+)
+
 interface AppAccountRouteRouteChildren {
   AppAccountDataRoute: typeof AppAccountDataRoute
   AppAccountInvitationsRoute: typeof AppAccountInvitationsRoute
@@ -2252,6 +2299,7 @@ const AppUsersRouteRouteWithChildren = AppUsersRouteRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppHomeRouteRoute: typeof AppHomeRouteRouteWithChildren
   AppAccountRouteRoute: typeof AppAccountRouteRouteWithChildren
   AppAnalyticsRouteRoute: typeof AppAnalyticsRouteRouteWithChildren
   AppAssistantRouteRoute: typeof AppAssistantRouteRouteWithChildren
@@ -2263,10 +2311,10 @@ interface AppRouteRouteChildren {
   AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
   AppQuotasRouteRoute: typeof AppQuotasRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
-  AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppHomeRouteRoute: AppHomeRouteRouteWithChildren,
   AppAccountRouteRoute: AppAccountRouteRouteWithChildren,
   AppAnalyticsRouteRoute: AppAnalyticsRouteRouteWithChildren,
   AppAssistantRouteRoute: AppAssistantRouteRouteWithChildren,
@@ -2278,7 +2326,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,
   AppQuotasRouteRoute: AppQuotasRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
-  AppIndexRoute: AppIndexRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

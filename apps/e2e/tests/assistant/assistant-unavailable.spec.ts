@@ -28,9 +28,9 @@ test("assistant: without a model an admin is pointed to the organisation page an
 	await expect(composer(admin)).toHaveCount(0);
 	await expect(
 		admin.getByRole("link", {
-			name: message("assistant_unavailable_admin_action"),
+			name: message("readiness_open_checklist_action"),
 		}),
-	).toHaveAttribute("href", "/app/organization");
+	).toHaveAttribute("href", "/app/manage");
 
 	const viewer = await pageAs("viewer");
 	await enterApp(viewer, org.slug);
@@ -40,7 +40,7 @@ test("assistant: without a model an admin is pointed to the organisation page an
 	).toBeVisible();
 	await expect(
 		viewer.getByRole("link", {
-			name: message("assistant_unavailable_admin_action"),
+			name: message("readiness_open_checklist_action"),
 		}),
 	).toHaveCount(0);
 	await expect(composer(viewer)).toHaveCount(0);

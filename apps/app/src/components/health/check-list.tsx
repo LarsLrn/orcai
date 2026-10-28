@@ -5,9 +5,11 @@ import {
 	CircleXIcon,
 	type LucideIcon,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Item,
+	ItemActions,
 	ItemContent,
 	ItemDescription,
 	ItemGroup,
@@ -43,13 +45,16 @@ const statusIcons: Record<
 	},
 };
 
-/** A list of checks with status, reason and any technical detail. */
+/** A list of checks with status, reason, any technical detail and an optional fix. */
 export const CheckList = <TCheck extends Check>({
 	checks,
 	title,
+	action,
 }: {
 	checks: readonly TCheck[];
 	title: (check: TCheck) => string;
+	/** Where to fix a check that is not ok, in the viewer's own context. */
+	action?: (check: TCheck) => ReactNode;
 }) => (
 	<ItemGroup className="gap-2">
 		{checks.map((check) => {
@@ -90,6 +95,9 @@ export const CheckList = <TCheck extends Check>({
 							</pre>
 						)}
 					</ItemContent>
+					{check.status !== "ok" && action && (
+						<ItemActions>{action(check)}</ItemActions>
+					)}
 				</Item>
 			);
 		})}

@@ -112,6 +112,67 @@ describe("invalidateStaleQueries", () => {
 		]);
 	});
 
+	test("makes organisation readiness stale on every configuration edit", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const edits = [
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.provider.update.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.model.update.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.quota.create.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.organization.update.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.group.addMembers.mutationOptions(),
+				).mutate({
+					groupId: groupA,
+					userIds: [
+						userId,
+					],
+				}),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.organizationMember.delete.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.organizationInvitation.create.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.user.delete.mutationOptions(),
+				).mutate({} as never),
+		];
+
+		for (const edit of edits) {
+			const readiness = cached(
+				orpc.readiness.organization.queryKey({
+					input: {},
+				}),
+			);
+			await edit();
+			expect(readiness()).toBe(true);
+		}
+	});
+
 	test("invalidates before the call site's onSuccess, which cannot replace it", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const me = cached(
