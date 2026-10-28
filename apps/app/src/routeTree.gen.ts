@@ -81,7 +81,9 @@ import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as InstanceAnalyticsIndexRouteImport } from './routes/instance/analytics/index'
 import { Route as InstanceHealthIndexRouteImport } from './routes/instance/health/index'
 import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
+import { Route as InstanceOrganizationsOrganizationIdRouteRouteImport } from './routes/instance/organizations/$organizationId/route'
 import { Route as InstanceUsersIndexRouteImport } from './routes/instance/users/index'
+import { Route as InstanceUsersUserIdRouteRouteImport } from './routes/instance/users/$userId/route'
 import { Route as AppAssistantChatIdIndexRouteImport } from './routes/app/assistant/$chatId/index'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
@@ -104,6 +106,8 @@ import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quot
 import { Route as AppQuotasQuotaPoolIdEditRouteImport } from './routes/app/quotas/$quotaPoolId/edit'
 import { Route as AppUsersUserIdIndexRouteImport } from './routes/app/users/$userId/index'
 import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$userId/edit'
+import { Route as InstanceOrganizationsOrganizationIdIndexRouteImport } from './routes/instance/organizations/$organizationId/index'
+import { Route as InstanceUsersUserIdIndexRouteImport } from './routes/instance/users/$userId/index'
 import { Route as AppHubAssetsAssetIdIndexRouteImport } from './routes/app/hub/assets/$assetId/index'
 import { Route as AppHubAssetsAssetIdEditRouteImport } from './routes/app/hub/assets/$assetId/edit'
 import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
@@ -482,11 +486,23 @@ const InstanceOrganizationsIndexRoute =
     path: '/organizations/',
     getParentRoute: () => InstanceRouteRoute,
   } as any)
+const InstanceOrganizationsOrganizationIdRouteRoute =
+  InstanceOrganizationsOrganizationIdRouteRouteImport.update({
+    id: '/organizations/$organizationId',
+    path: '/organizations/$organizationId',
+    getParentRoute: () => InstanceRouteRoute,
+  } as any)
 const InstanceUsersIndexRoute = InstanceUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
   getParentRoute: () => InstanceRouteRoute,
 } as any)
+const InstanceUsersUserIdRouteRoute =
+  InstanceUsersUserIdRouteRouteImport.update({
+    id: '/users/$userId',
+    path: '/users/$userId',
+    getParentRoute: () => InstanceRouteRoute,
+  } as any)
 const AppAssistantChatIdIndexRoute = AppAssistantChatIdIndexRouteImport.update({
   id: '/$chatId/',
   path: '/$chatId/',
@@ -604,6 +620,18 @@ const AppUsersUserIdEditRoute = AppUsersUserIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AppUsersUserIdRouteRoute,
 } as any)
+const InstanceOrganizationsOrganizationIdIndexRoute =
+  InstanceOrganizationsOrganizationIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => InstanceOrganizationsOrganizationIdRouteRoute,
+  } as any)
+const InstanceUsersUserIdIndexRoute =
+  InstanceUsersUserIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => InstanceUsersUserIdRouteRoute,
+  } as any)
 const AppHubAssetsAssetIdIndexRoute =
   AppHubAssetsAssetIdIndexRouteImport.update({
     id: '/',
@@ -681,6 +709,8 @@ export interface FileRoutesByFullPath {
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
+  '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
+  '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
   '/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
@@ -737,6 +767,8 @@ export interface FileRoutesByFullPath {
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
+  '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
+  '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
@@ -813,6 +845,8 @@ export interface FileRoutesByTo {
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId': typeof AppUsersUserIdIndexRoute
+  '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdIndexRoute
+  '/instance/users/$userId': typeof InstanceUsersUserIdIndexRoute
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
@@ -862,6 +896,8 @@ export interface FileRoutesById {
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
+  '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
+  '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
   '/_pathlessLayout/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
@@ -918,6 +954,8 @@ export interface FileRoutesById {
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
+  '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
+  '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
   '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
   '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
   '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
@@ -966,6 +1004,8 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
+    | '/instance/organizations/$organizationId'
+    | '/instance/users/$userId'
     | '/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
@@ -1022,6 +1062,8 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
     | '/app/users/$userId/'
+    | '/instance/organizations/$organizationId/'
+    | '/instance/users/$userId/'
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/bots/$botId/setup'
@@ -1098,6 +1140,8 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
+    | '/instance/organizations/$organizationId'
+    | '/instance/users/$userId'
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/bots/$botId/setup'
@@ -1146,6 +1190,8 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
+    | '/instance/organizations/$organizationId'
+    | '/instance/users/$userId'
     | '/_pathlessLayout/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
@@ -1202,6 +1248,8 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
     | '/app/users/$userId/'
+    | '/instance/organizations/$organizationId/'
+    | '/instance/users/$userId/'
     | '/app/hub/assets/$assetId/edit'
     | '/app/hub/blocks/$blockId/edit'
     | '/app/hub/bots/$botId/setup'
@@ -1729,11 +1777,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstanceOrganizationsIndexRouteImport
       parentRoute: typeof InstanceRouteRoute
     }
+    '/instance/organizations/$organizationId': {
+      id: '/instance/organizations/$organizationId'
+      path: '/organizations/$organizationId'
+      fullPath: '/instance/organizations/$organizationId'
+      preLoaderRoute: typeof InstanceOrganizationsOrganizationIdRouteRouteImport
+      parentRoute: typeof InstanceRouteRoute
+    }
     '/instance/users/': {
       id: '/instance/users/'
       path: '/users'
       fullPath: '/instance/users/'
       preLoaderRoute: typeof InstanceUsersIndexRouteImport
+      parentRoute: typeof InstanceRouteRoute
+    }
+    '/instance/users/$userId': {
+      id: '/instance/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/instance/users/$userId'
+      preLoaderRoute: typeof InstanceUsersUserIdRouteRouteImport
       parentRoute: typeof InstanceRouteRoute
     }
     '/app/assistant/$chatId/': {
@@ -1889,6 +1951,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/users/$userId/edit'
       preLoaderRoute: typeof AppUsersUserIdEditRouteImport
       parentRoute: typeof AppUsersUserIdRouteRoute
+    }
+    '/instance/organizations/$organizationId/': {
+      id: '/instance/organizations/$organizationId/'
+      path: '/'
+      fullPath: '/instance/organizations/$organizationId/'
+      preLoaderRoute: typeof InstanceOrganizationsOrganizationIdIndexRouteImport
+      parentRoute: typeof InstanceOrganizationsOrganizationIdRouteRoute
+    }
+    '/instance/users/$userId/': {
+      id: '/instance/users/$userId/'
+      path: '/'
+      fullPath: '/instance/users/$userId/'
+      preLoaderRoute: typeof InstanceUsersUserIdIndexRouteImport
+      parentRoute: typeof InstanceUsersUserIdRouteRoute
     }
     '/app/hub/assets/$assetId/': {
       id: '/app/hub/assets/$assetId/'
@@ -2408,8 +2484,39 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
   AppRouteRouteChildren,
 )
 
+interface InstanceOrganizationsOrganizationIdRouteRouteChildren {
+  InstanceOrganizationsOrganizationIdIndexRoute: typeof InstanceOrganizationsOrganizationIdIndexRoute
+}
+
+const InstanceOrganizationsOrganizationIdRouteRouteChildren: InstanceOrganizationsOrganizationIdRouteRouteChildren =
+  {
+    InstanceOrganizationsOrganizationIdIndexRoute:
+      InstanceOrganizationsOrganizationIdIndexRoute,
+  }
+
+const InstanceOrganizationsOrganizationIdRouteRouteWithChildren =
+  InstanceOrganizationsOrganizationIdRouteRoute._addFileChildren(
+    InstanceOrganizationsOrganizationIdRouteRouteChildren,
+  )
+
+interface InstanceUsersUserIdRouteRouteChildren {
+  InstanceUsersUserIdIndexRoute: typeof InstanceUsersUserIdIndexRoute
+}
+
+const InstanceUsersUserIdRouteRouteChildren: InstanceUsersUserIdRouteRouteChildren =
+  {
+    InstanceUsersUserIdIndexRoute: InstanceUsersUserIdIndexRoute,
+  }
+
+const InstanceUsersUserIdRouteRouteWithChildren =
+  InstanceUsersUserIdRouteRoute._addFileChildren(
+    InstanceUsersUserIdRouteRouteChildren,
+  )
+
 interface InstanceRouteRouteChildren {
   InstanceIndexRoute: typeof InstanceIndexRoute
+  InstanceOrganizationsOrganizationIdRouteRoute: typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
+  InstanceUsersUserIdRouteRoute: typeof InstanceUsersUserIdRouteRouteWithChildren
   InstanceAnalyticsIndexRoute: typeof InstanceAnalyticsIndexRoute
   InstanceHealthIndexRoute: typeof InstanceHealthIndexRoute
   InstanceOrganizationsIndexRoute: typeof InstanceOrganizationsIndexRoute
@@ -2418,6 +2525,9 @@ interface InstanceRouteRouteChildren {
 
 const InstanceRouteRouteChildren: InstanceRouteRouteChildren = {
   InstanceIndexRoute: InstanceIndexRoute,
+  InstanceOrganizationsOrganizationIdRouteRoute:
+    InstanceOrganizationsOrganizationIdRouteRouteWithChildren,
+  InstanceUsersUserIdRouteRoute: InstanceUsersUserIdRouteRouteWithChildren,
   InstanceAnalyticsIndexRoute: InstanceAnalyticsIndexRoute,
   InstanceHealthIndexRoute: InstanceHealthIndexRoute,
   InstanceOrganizationsIndexRoute: InstanceOrganizationsIndexRoute,
@@ -2442,3 +2552,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

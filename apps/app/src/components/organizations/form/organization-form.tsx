@@ -8,11 +8,13 @@ import {
 	type Organization,
 	providerIdSchema,
 	type UpdateOrganizationInput,
+	userIdSchema,
 } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { TriangleAlertIcon } from "lucide-react";
 import { useId } from "react";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { InitialAdminField } from "@/components/organizations/form/initial-admin-field";
 import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
 import { Button } from "@/components/ui/button";
 import {
@@ -213,6 +215,24 @@ const changedWebSearch = (
 	};
 };
 
+// The initial admin is checked on submit, so choosing one flags no untouched field.
+const quietly = {
+	dontValidate: true,
+};
+
+const errorMessage = (errors: readonly unknown[] | undefined) => {
+	const [error] = errors ?? [];
+	return typeof error === "string"
+		? error
+		: (
+				error as
+					| {
+							message?: string;
+					  }
+					| undefined
+			)?.message;
+};
+
 export const OrganizationForm = ({
 	action,
 	organization,
@@ -249,10 +269,21 @@ export const OrganizationForm = ({
 					assistantModelId: organization.assistantModelId,
 					utilityModelId: organization.utilityModelId,
 					webSearch: webSearchChoice(organization),
+					initialAdmin: "me" as const,
+					initialAdminUserId: null,
+					initialAdminEmail: "",
 				}
 			: organizationFormOptions.defaultValues,
 		onSubmit: async ({ value }) => {
-			const { assistantModelId, utilityModelId, webSearch, ...rest } = value;
+			const {
+				assistantModelId,
+				utilityModelId,
+				webSearch,
+				initialAdmin,
+				initialAdminUserId,
+				initialAdminEmail,
+				...rest
+			} = value;
 			const fields = {
 				...rest,
 				logo: rest.logo?.trim() || null,
@@ -274,7 +305,23 @@ export const OrganizationForm = ({
 					...changedWebSearch(webSearch, organization),
 				});
 			} else {
-				await createOrganization(fields);
+				await createOrganization({
+					...fields,
+					initialAdmin:
+						initialAdmin === "user" && initialAdminUserId
+							? {
+									kind: "user",
+									userId: userIdSchema.parse(initialAdminUserId),
+								}
+							: initialAdmin === "invite"
+								? {
+										kind: "invite",
+										email: initialAdminEmail.trim(),
+									}
+								: {
+										kind: "me",
+									},
+				});
 			}
 		},
 	});
@@ -285,7 +332,7 @@ export const OrganizationForm = ({
 				e.preventDefault();
 				form.handleSubmit();
 			}}
-			className="flex flex-col gap-4"
+			className="flex min-w-0 flex-col gap-4"
 		>
 			<form.AppField
 				name="name"
@@ -314,6 +361,33 @@ export const OrganizationForm = ({
 					/>
 				)}
 			/>
+			{action === "create" && (
+				<form.Subscribe
+					selector={(state) => ({
+						kind: state.values.initialAdmin,
+						email: state.values.initialAdminEmail,
+						userError: errorMessage(state.fieldMeta.initialAdminUserId?.errors),
+						emailError: errorMessage(state.fieldMeta.initialAdminEmail?.errors),
+					})}
+					children={({ kind, email, userError, emailError }) => (
+						<InitialAdminField
+							kind={kind}
+							onKindChange={(next) =>
+								form.setFieldValue("initialAdmin", next, quietly)
+							}
+							onUserChange={(userId) =>
+								form.setFieldValue("initialAdminUserId", userId, quietly)
+							}
+							email={email}
+							onEmailChange={(next) =>
+								form.setFieldValue("initialAdminEmail", next, quietly)
+							}
+							userError={userError}
+							emailError={emailError}
+						/>
+					)}
+				/>
+			)}
 			{action === "update" && (
 				<>
 					<form.AppField

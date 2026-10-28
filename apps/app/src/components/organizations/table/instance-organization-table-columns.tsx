@@ -1,4 +1,5 @@
 import type { OrganizationWithMemberCount } from "@orcai/schema";
+import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
 import { DeleteOrganizationDialog } from "@/components/organizations/delete-organization-dialog";
@@ -25,7 +26,17 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
-		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+		cell: ({ row }) => (
+			<Link
+				to="/instance/organizations/$organizationId"
+				params={{
+					organizationId: row.original.id,
+				}}
+				className="font-medium hover:underline"
+			>
+				{row.original.name}
+			</Link>
+		),
 		meta: {
 			label: m.common_name_label,
 		},

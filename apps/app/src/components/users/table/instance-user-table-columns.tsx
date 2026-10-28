@@ -1,34 +1,16 @@
-import { INSTANCE_ADMIN_ROLE, INSTANCE_DEFAULT_ROLE } from "@orcai/core";
-import type { UserWithMemberships } from "@orcai/schema";
+import type { InstanceUser } from "@orcai/schema";
+import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
-import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
-import {
-	useBanUserMutation,
-	useDeleteUsersMutation,
-	useResetTwoFactorMutation,
-	useSetInstanceRoleMutation,
-	useUnbanUserMutation,
-} from "@/hooks/mutations/use-user-admin-mutations";
+import { InstanceUserRowMenu } from "@/components/users/instance-user-actions";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
-import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
+import { formatCount } from "@/lib/presentation/format-number";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
-const columnHelper = createColumnHelper<
-	DataTableFeatures,
-	UserWithMemberships
->();
+const columnHelper = createColumnHelper<DataTableFeatures, InstanceUser>();
 
 export const instanceUserTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
@@ -36,7 +18,17 @@ export const instanceUserTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
-		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+		cell: ({ row }) => (
+			<Link
+				to="/instance/users/$userId"
+				params={{
+					userId: row.original.id,
+				}}
+				className="font-medium hover:underline"
+			>
+				{row.original.name}
+			</Link>
+		),
 		meta: {
 			label: m.common_name_label,
 		},
@@ -53,19 +45,12 @@ export const instanceUserTableColumns = columnHelper.columns([
 		id: "organisations",
 		header: () => m.instance_users_table_organisations_column_header(),
 		cell: ({ row }) =>
-			row.original.memberships.length === 0 ? (
+			row.original.membershipCount === 0 ? (
 				<span className="text-muted-foreground">
 					{m.instance_users_table_no_organisation_label()}
 				</span>
 			) : (
-				<span>
-					{row.original.memberships
-						.map(
-							(membership) =>
-								`${membership.organizationName} (${getOrganizationRoleLabel(membership.role)})`,
-						)
-						.join(", ")}
-				</span>
+				<span>{formatCount(row.original.membershipCount)}</span>
 			),
 	}),
 	columnHelper.display({
@@ -127,100 +112,6 @@ export const instanceUserTableColumns = columnHelper.columns([
 		size: 32,
 		enableSorting: false,
 		enableHiding: false,
-		cell: ({ row }) => <InstanceUserActions user={row.original} />,
+		cell: ({ row }) => <InstanceUserRowMenu user={row.original} />,
 	}),
 ]);
-
-const InstanceUserActions = ({ user }: { user: UserWithMemberships }) => {
-	const { auth } = useAuthenticatedRouteContext();
-	const target = {
-		names: [
-			user.email,
-		],
-	};
-	const { mutate: banUser } = useBanUserMutation({}, target);
-	const { mutate: unbanUser } = useUnbanUserMutation();
-	const { mutate: deleteUsers } = useDeleteUsersMutation({}, target);
-	const { mutate: resetTwoFactor } = useResetTwoFactorMutation({}, target);
-	const { mutate: setInstanceRole } = useSetInstanceRoleMutation({}, target);
-
-	if (user.id === auth.user.id) {
-		return null;
-	}
-
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-			<DropdownMenuContent align="end">
-				{user.banned ? (
-					<DropdownMenuItem
-						onClick={() =>
-							unbanUser({
-								userId: user.id,
-							})
-						}
-					>
-						{m.instance_users_table_unban_menu_item()}
-					</DropdownMenuItem>
-				) : (
-					<DropdownMenuItem
-						onClick={() =>
-							banUser({
-								userId: user.id,
-							})
-						}
-					>
-						{m.instance_users_table_ban_menu_item()}
-					</DropdownMenuItem>
-				)}
-				{user.twoFactorEnabled && (
-					<DropdownMenuItem
-						onClick={() =>
-							resetTwoFactor({
-								userId: user.id,
-							})
-						}
-					>
-						{m.instance_users_table_reset_two_factor_menu_item()}
-					</DropdownMenuItem>
-				)}
-				{isInstanceAdminRole(user.role) ? (
-					<DropdownMenuItem
-						onClick={() =>
-							setInstanceRole({
-								userId: user.id,
-								role: INSTANCE_DEFAULT_ROLE,
-							})
-						}
-					>
-						{m.instance_users_table_demote_menu_item()}
-					</DropdownMenuItem>
-				) : (
-					<DropdownMenuItem
-						onClick={() =>
-							setInstanceRole({
-								userId: user.id,
-								role: INSTANCE_ADMIN_ROLE,
-							})
-						}
-					>
-						{m.instance_users_table_promote_menu_item()}
-					</DropdownMenuItem>
-				)}
-				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() =>
-						deleteUsers({
-							userIds: [
-								user.id,
-							],
-						})
-					}
-				>
-					{m.instance_users_table_delete_menu_item()}
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
-};

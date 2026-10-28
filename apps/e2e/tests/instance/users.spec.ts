@@ -44,14 +44,27 @@ test("instance: the users page lists accounts from several organisations", async
 
 	// The list is newest first and neither account belongs to the instance
 	// organisation, so both prove the page is not scoped to one organisation.
+	// Each row counts its organisations; the user page names them.
 	const firstRow = userRow(page, first.email);
 	const secondRow = userRow(page, second.email);
 	await expect(firstRow).toBeVisible();
 	await expect(secondRow).toBeVisible();
-	await expect(firstRow).toContainText(org.name);
-	await expect(firstRow).toContainText(message("orgs_role_member_label"));
-	await expect(secondRow).toContainText(other.name);
-	await expect(secondRow).toContainText(message("orgs_role_manager_label"));
+	await expect(
+		firstRow.getByRole("cell", {
+			name: "1",
+			exact: true,
+		}),
+	).toBeVisible();
+
+	await secondRow
+		.getByRole("link", {
+			name: second.name,
+		})
+		.click();
+	const membership = page.getByRole("row").filter({
+		hasText: other.name,
+	});
+	await expect(membership).toContainText(message("orgs_role_manager_label"));
 });
 
 test("instance: the search narrows the users page", async ({

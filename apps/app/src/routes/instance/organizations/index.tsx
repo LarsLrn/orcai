@@ -19,6 +19,7 @@ import {
 import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
@@ -160,7 +161,7 @@ function RouteComponent() {
 			</PageContent>
 
 			<Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-				<DialogContent>
+				<DialogContent className="flex max-h-[90vh] flex-col">
 					<DialogHeader>
 						<DialogTitle>
 							{m.instance_organizations_create_dialog_title()}
@@ -169,10 +170,12 @@ function RouteComponent() {
 							{m.instance_organizations_create_dialog_description()}
 						</DialogDescription>
 					</DialogHeader>
-					<OrganizationForm
-						action="create"
-						onCompleted={() => setIsCreateOpen(false)}
-					/>
+					<DialogBody>
+						<OrganizationForm
+							action="create"
+							onCompleted={() => setIsCreateOpen(false)}
+						/>
+					</DialogBody>
 				</DialogContent>
 			</Dialog>
 		</Page>
