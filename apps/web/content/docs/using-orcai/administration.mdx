@@ -435,16 +435,18 @@ deprecated, on an enabled provider; tool calling is not required. **Clear**
 removes the choice.
 
 Title calls draw on the quota pools of the utility model, like any chat on
-that model.
+that model. While no utility model is set, each chat's title is written by its
+own model. If the chosen model becomes unusable, the page warns and titles fall
+back to each chat's own model until another is chosen. Deleting the model, or
+its provider, clears the setting.
 
 Images are described once, when an asset is processed: image files and the
 figures in documents. This needs a utility model with the image capability.
 Without one, image files fail to prepare and figures in documents are skipped.
 Each description draws on the quota pools of the utility model, attributed to
-the person who uploaded the file. While no utility model is set, each chat's title is written by its
-own model. If the chosen model becomes unusable, the page warns and titles fall
-back to each chat's own model until another is chosen. Deleting the model, or
-its provider, clears the setting.
+the person who uploaded the file. When the pool is used up, the file fails to
+prepare and can be retried once the pool resets. When no active pool covers
+the utility model for the uploader, create or adjust one before retrying.
 
 ### Web search
 

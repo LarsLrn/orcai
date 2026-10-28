@@ -3572,6 +3572,7 @@
 	"pipeline_failure_empty": "In dieser Datei wurden weder Text noch Bilder gefunden, daher hilft ein erneuter Versuch nicht.",
 	"pipeline_failure_extraction": "Die Datei konnte nicht gelesen werden.",
 	"pipeline_failure_other": "Die Vorbereitung der Datei ist fehlgeschlagen.",
+	"pipeline_failure_quota": "Das Kontingent war beim Beschreiben der Bilder aufgebraucht. Versuchen Sie es erneut, sobald der Pool zurückgesetzt ist.",
 	"pipeline_failure_timeout": "Die Vorbereitung der Datei hat zu lange gedauert.",
 	"pipeline_failure_unsupported": "OrcAI kann diesen Dateityp nicht lesen, daher hilft ein erneuter Versuch nicht.",
 	"pipeline_failure_unsupported_image": "Das Hilfsmodell der Organisation kann keine Bilder lesen. Sobald ein Admin eines wählt, das es kann, verarbeiten Sie das Bild erneut.",

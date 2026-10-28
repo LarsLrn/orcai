@@ -349,3 +349,27 @@ test("without a utility model that reads images, an image asset is unsupported a
 	]);
 	expect(requests).toHaveLength(0);
 });
+
+test("a quota that refuses the call fails an image asset and a document with quota", async () => {
+	const { assetId, artifact } = await seed({
+		capabilities: [
+			"text",
+			"image",
+		],
+		pool: false,
+	});
+
+	expect(await failureOf(describe(assetId, artifact, true))).toBe("quota");
+	expect(
+		await failureOf(
+			describe(
+				assetId,
+				asFigures(artifact, [
+					undefined,
+				]),
+				false,
+			),
+		),
+	).toBe("quota");
+	expect(requests).toHaveLength(0);
+});

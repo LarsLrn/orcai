@@ -283,13 +283,16 @@ describe("processing failures", () => {
 		TIMEOUT,
 	);
 
-	test(
-		"that retrying cannot fix fail at once and complete the job",
-		async () => {
+	test.each([
+		"unsupported",
+		"quota",
+	] as const)(
+		"%s fails at once and completes the job",
+		async (failure) => {
 			const { asset } = await seedLink();
 			const queue = await pipelineQueue<ProcessAssetPayload>({
 				attempt: (data) =>
-					settleProcessingAttempt(data.assetRef.id, failWith("unsupported")),
+					settleProcessingAttempt(data.assetRef.id, failWith(failure)),
 				exhausted: markProcessingExhausted,
 				retryLimit: 3,
 			});
@@ -303,7 +306,7 @@ describe("processing failures", () => {
 			expect(queue.attempts()).toBe(1);
 			expect(await processingOf(asset.id)).toEqual({
 				status: "failed",
-				failure: "unsupported",
+				failure,
 			});
 		},
 		TIMEOUT,

@@ -5,6 +5,7 @@ import {
 	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
 	imageAssetDescriptionInstructions,
 	imageAssetDescriptionOutput,
+	QuotaDeniedError,
 	readImageAssetDescription,
 	type UtilityModel,
 	utilityModel,
@@ -125,7 +126,16 @@ const describe = (params: {
 			],
 			maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
 			timeoutMs: IMAGE_DESCRIPTION_TIMEOUT_MS,
-		});
+		}).pipe(
+			Effect.mapError((error) =>
+				error instanceof QuotaDeniedError
+					? new AssetPipelineError({
+							failure: "quota",
+							cause: error,
+						})
+					: error,
+			),
+		);
 	});
 
 const withSource = (image: StoredExtractionImage) =>
@@ -244,7 +254,8 @@ const describeFigures = (params: {
  * Describes every image of the artifact not described yet with the asset
  * organisation's utility model, metered against the uploader. Without a model
  * that reads images, figures are skipped and an image asset fails
- * `unsupported`. A failed figure is skipped; a failed image asset fails.
+ * `unsupported`. A failed figure is skipped; a failed image asset fails. A
+ * quota that refuses any call fails the asset with `quota`.
  */
 export const describeImages = (params: {
 	assetId: AssetId;

@@ -46,6 +46,7 @@ const failureDescriptions: Record<PipelineFailure, () => string> = {
 	empty: m.pipeline_failure_empty,
 	extraction: m.pipeline_failure_extraction,
 	timeout: m.pipeline_failure_timeout,
+	quota: m.pipeline_failure_quota,
 	other: m.pipeline_failure_other,
 };
 

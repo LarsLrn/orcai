@@ -1,0 +1,41 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "d1a9be0c-63ac-4cc7-bec6-8c4301928eb1",
+  "prevIds": [
+    "3ff11e1f-f105-4895-8d92-f63a01fc8313"
+  ],
+  "footprints": [
+    {
+      "statementType": "alter_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "pipeline_failure"
+      ],
+      "writes": [
+        "s|enum|public.pipeline_failure"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "enums\u0000[\"public\",\"pipeline_failure\"]",
+      "set": {
+        "values": [
+          "unsupported",
+          "empty",
+          "extraction",
+          "timeout",
+          "quota",
+          "other"
+        ]
+      }
+    }
+  ]
+}
