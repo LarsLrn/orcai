@@ -1,0 +1,185 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "c1d4a11a-d444-4aa5-bd39-c417139487eb",
+  "prevIds": [
+    "9059e4f1-d416-4d26-8882-5b48725e33cc"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "file_name"
+      ],
+      "writes": [
+        "s|col|public.asset.file_name",
+        "n|col|public.asset.file_name",
+        "e|col|public.asset.file_name"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "metadata_status"
+      ],
+      "writes": [
+        "s|col|public.asset.metadata_status",
+        "n|col|public.asset.metadata_status",
+        "e|col|public.asset.metadata_status"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|enum|public.pipeline_status"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "metadata_failure"
+      ],
+      "writes": [
+        "s|col|public.asset.metadata_failure",
+        "n|col|public.asset.metadata_failure",
+        "e|col|public.asset.metadata_failure"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|enum|public.pipeline_failure"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "metadata_suggestion"
+      ],
+      "writes": [
+        "s|col|public.asset.metadata_suggestion",
+        "n|col|public.asset.metadata_suggestion",
+        "e|col|public.asset.metadata_suggestion"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "metadata_generation"
+      ],
+      "writes": [
+        "s|col|public.asset.metadata_generation",
+        "n|col|public.asset.metadata_generation",
+        "e|col|public.asset.metadata_generation"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "file_name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "metadata_status",
+        "type": "pipeline_status",
+        "typeSchema": "public",
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "metadata_failure",
+        "type": "pipeline_failure",
+        "typeSchema": "public",
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "metadata_suggestion",
+        "type": "json",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "metadata_generation",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    }
+  ]
+}

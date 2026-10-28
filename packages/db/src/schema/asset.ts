@@ -4,6 +4,7 @@ import {
 	ASSET_ORIGINS,
 	type AssetMetadataType,
 	type BucketName,
+	type MetadataSuggestion,
 	PIPELINE_FAILURES,
 	PIPELINE_STATUSES,
 } from "@orcai/schema";
@@ -42,6 +43,12 @@ export const asset = pgTable("asset", {
 	processingFailure: pipelineFailureEnum("processing_failure"),
 	/** Counts processing requests; a delivery for an earlier one does nothing. */
 	processingGeneration: integer("processing_generation").notNull().default(0),
+	fileName: text("file_name"),
+	metadataStatus: pipelineStatusEnum("metadata_status"),
+	metadataFailure: pipelineFailureEnum("metadata_failure"),
+	metadataSuggestion: json("metadata_suggestion").$type<MetadataSuggestion>(),
+	/** Counts metadata generations; a job or review for an earlier one changes nothing. */
+	metadataGeneration: integer("metadata_generation").notNull().default(0),
 	fileType: assetFileTypeEnum("file_type").notNull(),
 	origin: assetOriginEnum("origin").notNull().default("library"),
 	// TODO: Check what should be done if user deletes account

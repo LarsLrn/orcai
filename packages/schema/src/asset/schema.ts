@@ -8,7 +8,7 @@ import {
 } from "../shared/primitives/pipeline-status";
 import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
-import { metadataSchema } from "./parts/metadata";
+import { metadataSchema, metadataSuggestionSchema } from "./parts/metadata";
 import { assetOriginSchema } from "./parts/origin";
 import { assetIdSchema } from "./ref";
 
@@ -24,6 +24,14 @@ export const assetSchema = assetFieldsSchema.extend({
 	size: z.number().int(),
 	processingStatus: pipelineStatusSchema,
 	processingFailure: pipelineFailureSchema.nullable(),
+	/** The uploaded file's name; unset for assets uploaded before it was kept. */
+	fileName: z.string().nullable(),
+	/** Null until metadata was generated for the asset. */
+	metadataStatus: pipelineStatusSchema.nullable(),
+	metadataFailure: pipelineFailureSchema.nullable(),
+	metadataSuggestion: metadataSuggestionSchema.nullable(),
+	/** The metadata generation the suggestion belongs to. */
+	metadataGeneration: z.number().int(),
 	fileType: assetFileTypeSchema,
 	origin: assetOriginSchema,
 	userId: userIdSchema,
