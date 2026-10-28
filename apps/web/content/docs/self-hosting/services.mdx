@@ -22,7 +22,7 @@ OrcAI is a multi-service application. The app and workers are separate processes
 
 The main app is a Bun/TanStack Start application. It serves the user interface, authentication, oRPC API routes, and application workflows. It also works the data export queue, because building an export's chat transcripts needs the app's own code.
 
-In Docker Compose, the service name is `app`.
+In Docker Compose, the service name is `app`. Its healthcheck calls `/api/health`, which reports whether PostgreSQL and SpiceDB answer.
 
 ## Web (Docs)
 

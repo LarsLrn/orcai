@@ -93,9 +93,21 @@ Inspect SpiceDB schema migration status with:
 bun run --filter @orcai/spice-db status
 ```
 
+## Health
+
+`GET /api/health` answers `200` when PostgreSQL and SpiceDB answer within three seconds, and `503` otherwise. It needs no session and returns no body, so it is safe to expose to a load balancer or orchestrator. The Compose `app` healthcheck uses it.
+
+Instance administrators see the full picture on the Health page (`/instance/health`): every dependency, the background processes, queue counts, email delivery, versions and the app's configuration with secrets hidden. See [Instance management](/docs/using-orcai/administration#instance-management).
+
+## Email delivery
+
+The workers send email from the `notification_outbox` table. Each sent row records its `delivery_channel`: `smtp`, or `log` when the workers have no SMTP configuration and only wrote the message to their log. A `log` row is still marked `sent`, so check the channel, or the Health page, which warns when the latest email only reached the log. The app process has no SMTP settings of its own.
+
 ## Workers
 
 Keep workers running alongside the app. If workers are stopped, uploads and scheduled maintenance jobs may remain queued.
+
+Every process that runs pg-boss registers in its instance registry under a name: the app as `app`, the workers as `workers`, each with its host and process id. The Health page lists them and fails its workers check when no `workers` process is live.
 
 Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run up to four times, a minute apart, and an attempt times out after an hour. A job whose attempts are used up moves to its dead letter queue (`process-asset-dead-letter-job`, `vectorize-asset-dead-letter-job`), whose worker marks the asset, or the asset in that repository, as failed. The workers create the queues and their dead letter settings at startup. The failed job, with its last error, stays in the pg-boss tables until retention removes it; the worker logs carry the same error.
 
@@ -143,5 +155,5 @@ If SpiceDB connections fail, verify:
 - `SPICEDB_SECURITY` matches your deployment mode.
 
 <Callout title="TODO" type="idea">
-	Add backup and restore guidance, health checks, alerting recommendations, log locations, common failure signatures, upgrade steps, and compatibility policy.
+	Add backup and restore guidance, alerting recommendations, log locations, common failure signatures, upgrade steps, and compatibility policy.
 </Callout>
