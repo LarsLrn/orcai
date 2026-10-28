@@ -1,4 +1,3 @@
-import { PgClient } from "@effect/sql-pg";
 import { DB, dbSchema, enumSchema } from "@orcai/db";
 import {
 	grpcStatusOf,
@@ -7,7 +6,7 @@ import {
 	type TupleMutation,
 	writeRelationshipMutations,
 } from "@orcai/spice-db";
-import { and, asc, eq, inArray, lte } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
@@ -130,7 +129,6 @@ export const AuthzLive = Layer.effect(
 	AuthzService,
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const pg = yield* PgClient.PgClient;
 		const spiceDb = yield* SpiceDbService;
 
 		/**
@@ -218,9 +216,12 @@ export const AuthzLive = Layer.effect(
 							processed: 0,
 							failed: 0,
 						};
-						const [{ locked }] = yield* pg<{
+						const [{ locked }] = yield* db.execute<{
 							locked: boolean;
-						}>`SELECT pg_try_advisory_xact_lock(${DELIVERY_LOCK}) AS locked`;
+						}>(
+							sql`SELECT pg_try_advisory_xact_lock(${DELIVERY_LOCK}) AS locked`,
+							"objects",
+						);
 						if (!locked) return result;
 						result.locked = true;
 						const events = yield* db

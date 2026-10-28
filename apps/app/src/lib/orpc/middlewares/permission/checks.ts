@@ -1,6 +1,6 @@
 import type { EntityIdFor, EntityType } from "@orcai/spice-db";
 import { permittedEntityIds } from "@orcai/spice-db";
-import { middlewareGen } from "@orpc/experimental-effect";
+import { middlewareGen } from "@orpc/effect";
 import * as Effect from "effect/Effect";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";

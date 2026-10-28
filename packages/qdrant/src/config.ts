@@ -28,8 +28,8 @@ export const defaultBm25Config = {
 
 const qdrantConfig = Config.all({
 	qdrant: Config.all({
-		url: Config.string("QDRANT_URL"),
-		apiKey: Config.redacted("QDRANT_API_KEY"),
+		url: Config.String("QDRANT_URL"),
+		apiKey: Config.Redacted("QDRANT_API_KEY"),
 	}),
 	embedding: Config.all({
 		dimensions: embeddingDimensionsConfig,

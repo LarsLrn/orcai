@@ -27,7 +27,7 @@ const QUEUES = [
 
 /** Replaces the polling interval, for test stacks that cannot wait. */
 const pollingIntervalOverride = Config.option(
-	Config.number("WORKER_POLLING_INTERVAL_SECONDS"),
+	Config.Number("WORKER_POLLING_INTERVAL_SECONDS"),
 );
 
 const dataExportIdsOf = (jobs: Job<unknown>[]) =>

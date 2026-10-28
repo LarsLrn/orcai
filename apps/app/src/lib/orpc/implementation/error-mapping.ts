@@ -10,7 +10,7 @@ import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
-import { SqlError } from "effect/unstable/sql/SqlError";
+import { SqlError } from "effect/sql";
 import { type AppError, ErrorTags } from "@/lib/effect/utils/errors";
 
 type AnyORPCError = ORPCError<ORPCErrorCode, unknown>;
@@ -36,7 +36,7 @@ export const uniqueViolationConstraint = (
 			? Cause.squash(error.cause)
 			: error;
 
-	return failure instanceof SqlError &&
+	return failure instanceof SqlError.SqlError &&
 		failure.reason._tag === "UniqueViolation"
 		? failure.reason.constraint
 		: undefined;

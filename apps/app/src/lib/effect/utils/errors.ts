@@ -13,7 +13,7 @@ import type { SpiceDbError } from "@orcai/spice-db";
 import type { ValkeyError } from "@orcai/valkey";
 import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core/errors";
 import * as Data from "effect/Data";
-import type { SqlError } from "effect/unstable/sql/SqlError";
+import type { SqlError } from "effect/sql";
 
 export const ErrorTags = {
 	// Resource errors
@@ -161,7 +161,7 @@ export type AppError =
 	| ValkeyError
 	| ProcessError
 	| EffectDrizzleQueryError
-	| SqlError
+	| SqlError.SqlError
 	| AiError
 	| AuthzError
 	| InternalError;

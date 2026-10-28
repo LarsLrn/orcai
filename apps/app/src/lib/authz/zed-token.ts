@@ -1,4 +1,4 @@
-import type { WithEffectContext } from "@orpc/experimental-effect";
+import type { WithEffectContext } from "@orpc/effect";
 import { os } from "@orpc/server";
 import { setCookie } from "@orpc/server/helpers";
 import type { CookieOptions } from "better-auth";

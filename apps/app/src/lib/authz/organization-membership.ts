@@ -12,7 +12,7 @@ import { and, eq, getColumns, inArray, isNull, lt, or } from "drizzle-orm";
 import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import { SqlError } from "effect/unstable/sql/SqlError";
+import { SqlError } from "effect/sql";
 import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
@@ -418,7 +418,8 @@ const isConstraintViolation = (error: unknown) =>
 	(() => {
 		const failure = Cause.squash(error.cause);
 		return (
-			failure instanceof SqlError && failure.reason._tag === "ConstraintError"
+			failure instanceof SqlError.SqlError &&
+			failure.reason._tag === "ConstraintError"
 		);
 	})();
 

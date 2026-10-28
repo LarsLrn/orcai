@@ -3,22 +3,9 @@ import * as PgDrizzle from "drizzle-orm/effect-postgres";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { types } from "pg";
 import { DbConfigLive, DbConfigService } from "./config";
 import { makePgConnectionString } from "./pg-connection-string";
 import { relations } from "./schema/relations";
-
-const pgStringTypeIds = new Set([
-	1184,
-	1114,
-	1082,
-	1186,
-	1231,
-	1115,
-	1185,
-	1187,
-	1182,
-]);
 
 export const PgClientServiceLive: Layer.Layer<
 	PgClient.PgClient,
@@ -32,14 +19,6 @@ export const PgClientServiceLive: Layer.Layer<
 		return PgClient.layer({
 			url,
 			maxConnections: config.postgres.poolMax,
-			types: {
-				getTypeParser: (typeId, format) => {
-					if (pgStringTypeIds.has(typeId)) {
-						return (val: any) => val;
-					}
-					return types.getTypeParser(typeId, format);
-				},
-			},
 		});
 	}),
 );

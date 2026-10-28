@@ -26,19 +26,19 @@ export type EmailConfig =
 	  };
 
 const config = Config.all({
-	host: Config.option(Config.string("SMTP_HOST")),
-	port: Config.option(Config.string("SMTP_PORT")),
-	username: Config.option(Config.string("SMTP_USERNAME")),
-	password: Config.option(Config.string("SMTP_PASSWORD")),
-	secure: Config.option(Config.boolean("SMTP_SECURE")),
+	host: Config.option(Config.String("SMTP_HOST")),
+	port: Config.option(Config.String("SMTP_PORT")),
+	username: Config.option(Config.String("SMTP_USERNAME")),
+	password: Config.option(Config.String("SMTP_PASSWORD")),
+	secure: Config.option(Config.Boolean("SMTP_SECURE")),
 	tlsRejectUnauthorized: Config.withDefault(
-		Config.boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
+		Config.Boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
 		true,
 	),
-	from: Config.option(Config.string("SMTP_FROM")),
-	fromName: Config.withDefault(Config.string("SMTP_FROM_NAME"), "OrcAI Team"),
+	from: Config.option(Config.String("SMTP_FROM")),
+	fromName: Config.withDefault(Config.String("SMTP_FROM_NAME"), "OrcAI Team"),
 }).pipe(
-	Config.mapOrFail((raw): Effect.Effect<EmailConfig, Config.ConfigError> => {
+	Config.mapEffect((raw): Effect.Effect<EmailConfig, Config.ConfigError> => {
 		const normalize = (value: Option.Option<string>) =>
 			Option.flatMap(value, (item) => {
 				const trimmed = item.trim();

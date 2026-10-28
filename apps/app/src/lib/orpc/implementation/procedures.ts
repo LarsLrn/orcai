@@ -1,9 +1,6 @@
 import type { contracts } from "@orcai/contracts";
 import type { ContractRouterClient } from "@orpc/contract";
-import {
-	createEffectClient,
-	type EffectClient,
-} from "@orpc/experimental-effect";
+import { createEffectClient, type EffectClient } from "@orpc/effect";
 import { createRouterClient } from "@orpc/server";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";

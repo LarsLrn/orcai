@@ -1,4 +1,4 @@
-import { RPCJsonSerializer } from "@orpc/client";
+import { createHydrationOptions } from "@orpc/tanstack-query";
 import { QueryClient } from "@tanstack/react-query";
 import { type AnyRouteMatch, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
@@ -7,28 +7,12 @@ import { NotFound } from "./components/boundaries/not-found";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
-	const serializer = new RPCJsonSerializer();
-
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
-				queryKeyHashFn(queryKey) {
-					const serialized = serializer.serialize(queryKey);
-					return JSON.stringify(serialized);
-				},
 				staleTime: 60 * 1000, // > 0 to prevent immediate refetching on mount
 			},
-			dehydrate: {
-				serializeData(data) {
-					const serialized = serializer.serialize(data);
-					return serialized;
-				},
-			},
-			hydrate: {
-				deserializeData(data) {
-					return serializer.deserialize(data);
-				},
-			},
+			...createHydrationOptions(),
 		},
 	});
 

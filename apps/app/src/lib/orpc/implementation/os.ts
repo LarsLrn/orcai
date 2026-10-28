@@ -1,7 +1,7 @@
-import "@orpc/experimental-effect/extensions/effect";
+import "@orpc/effect/extensions/effect";
 
 import { contracts } from "@orcai/contracts";
-import type { WithEffectContext } from "@orpc/experimental-effect";
+import type { WithEffectContext } from "@orpc/effect";
 import { implement } from "@orpc/server";
 import type {
 	RequestHeadersHandlerPluginContext,
