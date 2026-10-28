@@ -2,7 +2,6 @@ import { botIdSchema, listChatsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MessagesSquareIcon, PlusIcon } from "lucide-react";
-import { z } from "zod/v4";
 import { ChatTableActions } from "@/components/chat/table/chat-table-actions";
 import { chatTableColumns } from "@/components/chat/table/chat-table-columns";
 import { buttonVariants } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
 	DataTableToolbar,
@@ -33,7 +33,7 @@ const searchSchema = listChatsInputSchema
 	})
 	.extend({
 		botId: botIdSchema.optional(),
-		query: z.string().trim().max(100).default(""),
+		query: dataTableQuerySchema.default(""),
 	});
 
 export const Route = createFileRoute("/app/chat/")({
@@ -127,21 +127,7 @@ function RouteComponent() {
 					}}
 				>
 					<DataTableToolbar>
-						<DataTableSearch
-							value={query}
-							placeholder={m.chat_list_search_placeholder()}
-							onChange={(value) =>
-								void navigate({
-									to: ".",
-									search: (prev) => ({
-										...prev,
-										pageIndex: 0,
-										query: value,
-									}),
-									replace: true,
-								})
-							}
-						/>
+						<DataTableSearch placeholder={m.chat_list_search_placeholder()} />
 						<DataTableSelectFilter
 							label={m.chat_list_bot_filter_label()}
 							value={botId}

@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { BuildingIcon } from "lucide-react";
 import { useState } from "react";
+import { useDebounceValue } from "usehooks-ts";
 import {
 	invitationsPageInput,
 	OrganizationInvitationsList,
@@ -14,7 +15,7 @@ import {
 import { OrganizationCard } from "@/components/organizations/organization-card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import { SearchField } from "@/components/ui/composed/search-field";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
 import { authClient } from "@/lib/auth/auth-client";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
@@ -118,8 +119,9 @@ function RouteComponent() {
 	const { auth } = Route.useRouteContext();
 
 	const [search, setSearch] = useState("");
+	const [debouncedSearch] = useDebounceValue(search, 250);
 	const [pageCount, setPageCount] = useState(1);
-	const trimmedSearch = search.trim();
+	const trimmedSearch = debouncedSearch.trim();
 
 	const { data: organizations, isFetching } = useQuery(
 		orpc.organization.list.queryOptions({
@@ -167,15 +169,16 @@ function RouteComponent() {
 				</p>
 			</div>
 
-			{trimmedSearch || rowCount > 0 ? (
+			{search || rowCount > 0 ? (
 				<div className="flex justify-center">
-					<DataTableSearch
+					<SearchField
 						value={search}
 						placeholder={m.select_organisation_page_search_placeholder()}
-						onChange={(value) => {
+						onValueChange={(value) => {
 							setSearch(value);
 							setPageCount(1);
 						}}
+						className="w-full sm:max-w-xs"
 					/>
 				</div>
 			) : null}
