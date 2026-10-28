@@ -1,5 +1,6 @@
 import type { BotId, ModelId, ProviderId } from "@orcai/core";
-import type { Model, Provider } from "@orcai/schema";
+import type { BotSetup, Model, Provider } from "@orcai/schema";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
 	PromptInputSubmit,
@@ -8,13 +9,15 @@ import {
 import { BotSelectorButton } from "@/components/chat/bot-selector";
 import { ChatModelNotice } from "@/components/chat/chat-model-notice";
 import type { ComposerBlocker } from "@/components/chat/composer-blocker";
-import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { ModelPicker } from "@/components/chat/model-picker";
+import { modelPickerState } from "@/components/chat/model-picker-state";
 import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const blockedPlaceholders: Record<ComposerBlocker["reason"], () => string> = {
@@ -33,6 +36,7 @@ const NewChatInput = ({
 	onSend,
 	isCreating,
 	blocker,
+	setup,
 }: {
 	selectedBotId?: BotId;
 	selectedModelId?: ModelId;
@@ -42,8 +46,19 @@ const NewChatInput = ({
 	onSend: (text: string) => void;
 	isCreating: boolean;
 	blocker?: ComposerBlocker;
+	/** The selected bot's setup, which fixes or recommends the model. */
+	setup?: BotSetup | null;
 }) => {
 	const [messageText, setMessageText] = useState("");
+	const { data: bot } = useQuery(
+		orpc.bot.find.queryOptions({
+			input: selectedBotId
+				? {
+						id: selectedBotId,
+					}
+				: skipToken,
+		}),
+	);
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -90,7 +105,14 @@ const NewChatInput = ({
 								variant="compact"
 							/>
 						)}
-						<ModelSelectorButton
+						<ModelPicker
+							state={modelPickerState({
+								source:
+									setup?.strength === "required" ? "bot-required" : "chat",
+								modelId: selectedModelId ?? null,
+								botSetup: setup ?? null,
+							})}
+							botName={bot?.data.name}
 							selectedModelId={selectedModelId}
 							selectedProviderId={selectedProviderId}
 							onSelect={onModelSelect}

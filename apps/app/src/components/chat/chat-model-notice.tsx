@@ -2,6 +2,7 @@ import type { BotId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { CircleAlertIcon } from "lucide-react";
+import { MODEL_STEP_INDEX } from "@/components/authoring/bot-editor-steps";
 import type { ComposerBlocker } from "@/components/chat/composer-blocker";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -57,6 +58,9 @@ const BotModelNotice = ({ botId }: { botId: BotId }) => {
 					to="/app/hub/bots/$botId/setup"
 					params={{
 						botId,
+					}}
+					search={{
+						step: MODEL_STEP_INDEX,
 					}}
 					className={buttonVariants({
 						variant: "outline",

@@ -127,3 +127,13 @@ export const useDeleteBotsMutation = (
 		},
 	});
 };
+
+export const useSaveBotSetupMutation = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.botSetup.save.mutationOptions(),
+		messages: {
+			loading: () => m.bot_setup_save_toast_loading(),
+			success: () => m.bot_setup_save_toast_success(),
+			error: () => m.bot_setup_save_toast_error(),
+		},
+	});

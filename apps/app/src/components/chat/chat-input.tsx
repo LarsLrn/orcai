@@ -4,7 +4,7 @@ import {
 	type Model,
 	type Provider,
 } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import type { ChatStatus } from "ai";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -21,7 +21,8 @@ import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
 import { ChatModelNotice } from "@/components/chat/chat-model-notice";
 import { composerBlocker } from "@/components/chat/composer-blocker";
-import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { ModelPicker } from "@/components/chat/model-picker";
+import { modelPickerState } from "@/components/chat/model-picker-state";
 import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import {
@@ -78,6 +79,15 @@ const ChatInput = ({
 				id: chatId,
 				zedToken,
 			},
+		}),
+	);
+	const { data: bot } = useQuery(
+		orpc.bot.find.queryOptions({
+			input: chat?.data.botId
+				? {
+						id: chat.data.botId,
+					}
+				: skipToken,
 		}),
 	);
 	const assistantModel = useAssistantModel();
@@ -267,7 +277,15 @@ const ChatInput = ({
 											onUploadFile={openUploadDialog}
 											onSelectFromAssets={() => setAssetPickerOpen(true)}
 										/>
-										<ModelSelectorButton
+										<ModelPicker
+											state={
+												effective
+													? modelPickerState(effective)
+													: {
+															kind: "free",
+														}
+											}
+											botName={bot?.data.name}
 											selectedModelId={selectedModel.modelId ?? undefined}
 											selectedProviderId={selectedModel.providerId ?? undefined}
 											onSelect={handleModelSelect}

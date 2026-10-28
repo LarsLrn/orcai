@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import z from "zod/v4";
 import { BotEditorShell } from "@/components/authoring/bot-editor-shell";
+import { WIZARD_STEPS } from "@/components/authoring/bot-editor-steps";
 import {
 	Page,
 	PageContent,
@@ -17,7 +18,13 @@ import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/setup")({
 	validateSearch: z.object({
-		step: z.coerce.number().int().min(0).max(4).catch(0).default(0),
+		step: z.coerce
+			.number()
+			.int()
+			.min(0)
+			.max(WIZARD_STEPS.length - 1)
+			.catch(0)
+			.default(0),
 		...zedTokenSchema.shape,
 	}),
 	loaderDeps: ({ search: { zedToken } }) => ({
