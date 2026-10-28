@@ -1,5 +1,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	stripSearchParams,
+	useNavigate,
+} from "@tanstack/react-router";
 import {
 	BlocksIcon,
 	DatabaseIcon,
@@ -11,6 +16,12 @@ import {
 import { BlockCard } from "@/components/blocks/block-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
+import {
+	CardPager,
+	libraryPagingDefaults,
+	libraryPagingSchema,
+	useClampedPageIndex,
+} from "@/components/ui/card-pager";
 import {
 	Section,
 	SectionAction,
@@ -26,34 +37,42 @@ import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-const PAGE_SIZE = 100;
+const listInput = (
+	status: "ready" | "draft",
+	pageIndex: number,
+	pageSize: number,
+) => ({
+	pageIndex,
+	pageSize,
+	filters: {
+		type: "database" as const,
+		status,
+	},
+});
 
 export const Route = createFileRoute("/app/hub/repositories/")({
-	loader: async ({ context: { queryClient } }) => {
+	validateSearch: libraryPagingSchema,
+	search: {
+		middlewares: [
+			stripSearchParams(libraryPagingDefaults),
+		],
+	},
+	loaderDeps: ({ search: { pageIndex, pageSize, draftPageIndex } }) => ({
+		pageIndex,
+		pageSize,
+		draftPageIndex,
+	}),
+	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
 			queryClient.query(
 				orpc.block.list.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: PAGE_SIZE,
-						filters: {
-							type: "database",
-							status: "ready",
-						},
-					},
+					input: listInput("ready", deps.pageIndex, deps.pageSize),
 					staleTime: "static",
 				}),
 			),
 			queryClient.query(
 				orpc.block.list.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: PAGE_SIZE,
-						filters: {
-							type: "database",
-							status: "draft",
-						},
-					},
+					input: listInput("draft", deps.draftPageIndex, deps.pageSize),
 					staleTime: "static",
 				}),
 			),
@@ -78,43 +97,29 @@ function RouteComponent() {
 		"create_block",
 	);
 
-	const { data: repositoryReadyBlocks } = useSuspenseQuery(
+	const search = Route.useSearch();
+	const { data: published } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: PAGE_SIZE,
-				filters: {
-					type: "database",
-					status: "ready",
-				},
-			},
+			input: listInput("ready", search.pageIndex, search.pageSize),
 		}),
 	);
-	const { data: repositoryDraftBlocks } = useSuspenseQuery(
+	const { data: drafts } = useSuspenseQuery(
 		orpc.block.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: PAGE_SIZE,
-				filters: {
-					type: "database",
-					status: "draft",
-				},
-			},
+			input: listInput("draft", search.draftPageIndex, search.pageSize),
 		}),
 	);
 
-	const getCreatedAtValue = (createdAt: Date | null) =>
-		createdAt ? +new Date(createdAt) : 0;
-	const publishedRepositoryBlocks = [
-		...repositoryReadyBlocks.data,
-	].sort(
-		(a, b) => getCreatedAtValue(b.createdAt) - getCreatedAtValue(a.createdAt),
-	);
-	const draftRepositoryBlocks = [
-		...repositoryDraftBlocks.data,
-	].sort(
-		(a, b) => getCreatedAtValue(b.createdAt) - getCreatedAtValue(a.createdAt),
-	);
+	useClampedPageIndex({
+		rowCount: published.rowCount,
+		pageIndex: search.pageIndex,
+		pageSize: search.pageSize,
+	});
+	useClampedPageIndex({
+		rowCount: drafts.rowCount,
+		pageIndex: search.draftPageIndex,
+		pageSize: search.pageSize,
+		indexKey: "draftPageIndex",
+	});
 
 	return (
 		<div className="space-y-12">
@@ -143,8 +148,8 @@ function RouteComponent() {
 						</SectionAction>
 					) : null}
 				</SectionHeader>
-				<SectionContent>
-					{publishedRepositoryBlocks.length === 0 ? (
+				<SectionContent className="space-y-6">
+					{published.rowCount === 0 ? (
 						<Placeholder
 							Icon={DatabaseIcon}
 							tone="repository"
@@ -170,34 +175,41 @@ function RouteComponent() {
 							}
 						/>
 					) : (
-						<SectionGrid layout="3">
-							{publishedRepositoryBlocks.map((block) => (
-								<BlockCard
-									key={block.id}
-									block={block}
-									actions={{
-										footer: [
-											{
-												key: "playground",
-												label: m.blocks_repositories_playground_action(),
-												icon: FlaskConicalIcon,
-												linkProps: {
-													to: "/app/hub/repositories/$blockId/playground",
-													params: {
-														blockId: block.id,
+						<>
+							<SectionGrid layout="3">
+								{published.data.map((block) => (
+									<BlockCard
+										key={block.id}
+										block={block}
+										actions={{
+											footer: [
+												{
+													key: "playground",
+													label: m.blocks_repositories_playground_action(),
+													icon: FlaskConicalIcon,
+													linkProps: {
+														to: "/app/hub/repositories/$blockId/playground",
+														params: {
+															blockId: block.id,
+														},
 													},
 												},
-											},
-										],
-									}}
-								/>
-							))}
-						</SectionGrid>
+											],
+										}}
+									/>
+								))}
+							</SectionGrid>
+							<CardPager
+								rowCount={published.rowCount}
+								pageIndex={search.pageIndex}
+								pageSize={search.pageSize}
+							/>
+						</>
 					)}
 				</SectionContent>
 			</Section>
 
-			{draftRepositoryBlocks.length > 0 && (
+			{drafts.rowCount > 0 && (
 				<Section>
 					<SectionHeader>
 						<SectionTitle>
@@ -207,12 +219,18 @@ function RouteComponent() {
 							{m.blocks_repositories_drafts_section_description()}
 						</SectionDescription>
 					</SectionHeader>
-					<SectionContent>
+					<SectionContent className="space-y-6">
 						<SectionGrid layout="3">
-							{draftRepositoryBlocks.map((block) => (
+							{drafts.data.map((block) => (
 								<DraftRepositoryCard key={block.id} block={block} />
 							))}
 						</SectionGrid>
+						<CardPager
+							rowCount={drafts.rowCount}
+							pageIndex={search.draftPageIndex}
+							pageSize={search.pageSize}
+							indexKey="draftPageIndex"
+						/>
 					</SectionContent>
 				</Section>
 			)}

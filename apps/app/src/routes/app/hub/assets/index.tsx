@@ -4,7 +4,12 @@ import {
 	paginationInputSchema,
 } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	stripSearchParams,
+	useNavigate,
+} from "@tanstack/react-router";
 import {
 	FileTextIcon,
 	LibraryIcon,
@@ -15,6 +20,8 @@ import {
 import { AssetCard } from "@/components/documents/asset-card";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
+import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
+import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
 import {
 	Section,
 	SectionAction,
@@ -52,6 +59,15 @@ const listInput = (search: {
 
 export const Route = createFileRoute("/app/hub/assets/")({
 	validateSearch: assetsSearchSchema,
+	search: {
+		middlewares: [
+			stripSearchParams({
+				pageIndex: 0,
+				pageSize: DEFAULT_PAGE_SIZE,
+				origin: "library",
+			}),
+		],
+	},
 	loaderDeps: ({ search: { pageIndex, pageSize, origin } }) => ({
 		pageIndex,
 		pageSize,
@@ -87,6 +103,11 @@ function RouteComponent() {
 			input: listInput(search),
 		}),
 	);
+	useClampedPageIndex({
+		rowCount: assets.rowCount,
+		pageIndex: search.pageIndex,
+		pageSize: search.pageSize,
+	});
 	const isChatUploads = search.origin === "chat";
 
 	return (
@@ -132,7 +153,7 @@ function RouteComponent() {
 						</TabsTrigger>
 					</TabsList>
 				</Tabs>
-				{assets.data.length === 0 ? (
+				{assets.rowCount === 0 ? (
 					<Placeholder
 						Icon={isChatUploads ? MessageSquareIcon : FileTextIcon}
 						tone="asset"
@@ -163,48 +184,55 @@ function RouteComponent() {
 						}
 					/>
 				) : (
-					<SectionGrid layout="3">
-						{assets.data.map((asset) => (
-							<AssetCard
-								key={asset.id}
-								asset={asset}
-								actions={{
-									dropdown: hasCapability(asset.capabilities, "edit")
-										? [
-												...(asset.origin === "chat"
-													? [
-															{
-																key: "add-to-library",
-																label: m.assets_add_to_library_action(),
-																icon: LibraryIcon,
-																onClick: () =>
-																	addToLibrary({
-																		id: asset.id,
-																	}),
-															},
-														]
-													: []),
-												...(asset.processingStatus === "pending" ||
-												asset.processingStatus === "active"
-													? []
-													: [
-															{
-																key: "reprocess",
-																label: m.assets_list_reprocess_action(),
-																icon: RefreshCwIcon,
-																onClick: () =>
-																	reprocessAsset({
-																		id: asset.id,
-																	}),
-															},
-														]),
-											]
-										: [],
-									footer: [],
-								}}
-							/>
-						))}
-					</SectionGrid>
+					<>
+						<SectionGrid layout="3">
+							{assets.data.map((asset) => (
+								<AssetCard
+									key={asset.id}
+									asset={asset}
+									actions={{
+										dropdown: hasCapability(asset.capabilities, "edit")
+											? [
+													...(asset.origin === "chat"
+														? [
+																{
+																	key: "add-to-library",
+																	label: m.assets_add_to_library_action(),
+																	icon: LibraryIcon,
+																	onClick: () =>
+																		addToLibrary({
+																			id: asset.id,
+																		}),
+																},
+															]
+														: []),
+													...(asset.processingStatus === "pending" ||
+													asset.processingStatus === "active"
+														? []
+														: [
+																{
+																	key: "reprocess",
+																	label: m.assets_list_reprocess_action(),
+																	icon: RefreshCwIcon,
+																	onClick: () =>
+																		reprocessAsset({
+																			id: asset.id,
+																		}),
+																},
+															]),
+												]
+											: [],
+										footer: [],
+									}}
+								/>
+							))}
+						</SectionGrid>
+						<CardPager
+							rowCount={assets.rowCount}
+							pageIndex={search.pageIndex}
+							pageSize={search.pageSize}
+						/>
+					</>
 				)}
 			</SectionContent>
 		</Section>
