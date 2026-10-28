@@ -14,6 +14,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
@@ -32,15 +33,18 @@ export const columns = columnHelper.columns([
 			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => (
-			<Link
-				to="/app/users/$userId/edit"
-				params={{
-					userId: row.original.id,
-				}}
-				className="font-medium hover:underline"
-			>
-				{row.original.name}
-			</Link>
+			<div className="flex items-center gap-2">
+				<UserAvatar user={row.original} size="sm" />
+				<Link
+					to="/app/users/$userId/edit"
+					params={{
+						userId: row.original.id,
+					}}
+					className="font-medium hover:underline"
+				>
+					{row.original.name}
+				</Link>
+			</div>
 		),
 		meta: {
 			label: m.common_name_label,

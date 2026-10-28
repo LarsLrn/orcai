@@ -32,11 +32,12 @@ export const organizationInvitationFiltersSchema = z.object({
 	status: organizationInvitationStatusSchema.optional(),
 });
 
-/** An invitation plus the name and slug of an organisation the invitee cannot read yet. */
+/** An invitation plus the name, slug and logo of an organisation the invitee cannot read yet. */
 export const organizationInvitationListItemSchema =
 	organizationInvitationSchema.extend({
 		organizationName: z.string(),
 		organizationSlug: z.string(),
+		organizationLogo: z.string().nullable(),
 	});
 
 export type OrganizationInvitationListItem = z.infer<

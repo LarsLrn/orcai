@@ -22,14 +22,25 @@ export const tokenize = (value: string): string[] =>
 		.split(" ")
 		.filter((token) => token.length > 1);
 
-export const getInitial = (value: string | undefined | null) => {
-	let initial = "U";
+const graphemes = new Intl.Segmenter(undefined, {
+	granularity: "grapheme",
+});
 
-	if (value && value.length > 0) {
-		initial = value[0].toUpperCase();
-	}
+const firstGrapheme = (word: string) =>
+	graphemes.segment(word)[Symbol.iterator]().next().value?.segment ?? "";
 
-	return initial;
+/** Up to two letters for a name: the first of its first and last words. */
+export const initialsOf = (name: string | undefined | null) => {
+	const words = (name ?? "").trim().split(/\s+/u).filter(Boolean);
+	const first = words.at(0);
+	const last = words.length > 1 ? words.at(-1) : undefined;
+	return [
+		first,
+		last,
+	]
+		.map((word) => (word ? firstGrapheme(word) : ""))
+		.join("")
+		.toLocaleUpperCase();
 };
 
 /** The form an email address is stored and compared in. */

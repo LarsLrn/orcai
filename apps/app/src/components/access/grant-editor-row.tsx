@@ -1,4 +1,3 @@
-import { getInitial } from "@orcai/core";
 import type {
 	DirectGrantSource,
 	ResourceGrant,
@@ -9,10 +8,10 @@ import {
 	RESOURCE_GRANT_SOURCE,
 } from "@orcai/schema";
 import { Trash2Icon, UsersIcon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { m } from "@/paraglide/messages";
 import {
 	getResourceRoleLabel,
@@ -49,10 +48,7 @@ const GrantEditorRow = ({
 		<li className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
 			<div className="flex min-w-0 items-center gap-3">
 				{grant.principal.type === "user" ? (
-					<Avatar size="sm">
-						<AvatarImage src={grant.principal.image ?? undefined} />
-						<AvatarFallback>{getInitial(grant.principal.name)}</AvatarFallback>
-					</Avatar>
+					<UserAvatar user={grant.principal} size="sm" />
 				) : (
 					<div className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
 						<UsersIcon className="h-4 w-4" />

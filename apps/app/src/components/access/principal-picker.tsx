@@ -1,4 +1,3 @@
-import { getInitial } from "@orcai/core";
 import type {
 	PrincipalType,
 	ResourcePrincipal,
@@ -7,9 +6,9 @@ import type {
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { UserIcon, UsersIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { SearchablePickerRow } from "@/components/ui/composed/searchable-picker";
 import { SearchablePicker } from "@/components/ui/composed/searchable-picker";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { useShareablePrincipals } from "@/hooks/authz/use-resource-access";
 import { m } from "@/paraglide/messages";
 
@@ -45,12 +44,7 @@ const renderPrincipal = (principal: ResourcePrincipal): SearchablePickerRow => {
 					: undefined,
 		},
 		Icon: isUser ? UserIcon : UsersIcon,
-		leading: isUser ? (
-			<Avatar className="size-8">
-				<AvatarImage src={principal.image ?? undefined} alt={principal.name} />
-				<AvatarFallback>{getInitial(principal.name)}</AvatarFallback>
-			</Avatar>
-		) : undefined,
+		leading: isUser ? <UserAvatar user={principal} /> : undefined,
 	};
 };
 

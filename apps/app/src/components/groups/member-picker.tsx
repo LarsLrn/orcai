@@ -1,12 +1,11 @@
 import type { GroupId } from "@orcai/core";
-import { getInitial } from "@orcai/core";
 import type { GroupMemberUser } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { UserIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { SearchablePickerRow } from "@/components/ui/composed/searchable-picker";
 import { SearchablePicker } from "@/components/ui/composed/searchable-picker";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -17,12 +16,7 @@ const renderCandidate = (user: GroupMemberUser): SearchablePickerRow => ({
 		description: user.email,
 	},
 	Icon: UserIcon,
-	leading: (
-		<Avatar className="size-8">
-			<AvatarImage src={user.image ?? undefined} alt={user.name} />
-			<AvatarFallback>{getInitial(user.name)}</AvatarFallback>
-		</Avatar>
-	),
+	leading: <UserAvatar user={user} />,
 });
 
 const MemberPicker = ({

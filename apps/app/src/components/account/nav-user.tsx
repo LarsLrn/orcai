@@ -1,8 +1,7 @@
-import { getInitial } from "@orcai/core";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { useHydrated } from "@tanstack/react-router";
 import { ChevronsUpDown, LogOut } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -17,6 +16,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { useSignOut } from "@/hooks/actions/use-sign-out";
 import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
 import { orpc } from "@/lib/orpc/orpc";
@@ -36,9 +36,9 @@ const NavUser = () => {
 		}),
 	);
 	// The server renders the query as pending even when its data reaches the
-	// browser before hydration, so the name waits for hydration.
+	// browser before hydration, so the organisation waits for hydration.
 	const hydrated = useHydrated();
-	const organizationName = hydrated ? activeOrganization?.data.name : undefined;
+	const organization = hydrated ? activeOrganization?.data : undefined;
 
 	return (
 		<SidebarMenu>
@@ -50,19 +50,19 @@ const NavUser = () => {
 								size="lg"
 								className="border bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:bg-background/50"
 							>
-								<Avatar className="size-8">
-									<AvatarImage
-										src={auth.user.image ?? undefined}
-										alt={auth.user.name}
-									/>
-									<AvatarFallback>{getInitial(auth.user.name)}</AvatarFallback>
-								</Avatar>
+								<UserAvatar user={auth.user} />
 								<div className="grid flex-1 text-left text-sm leading-tight">
 									<span className="truncate font-semibold">
 										{auth.user.name}
 									</span>
-									{organizationName && (
-										<span className="truncate text-xs">{organizationName}</span>
+									{organization && (
+										<span className="flex min-w-0 items-center gap-1 text-xs">
+											<OrganizationLogo
+												organization={organization}
+												className="size-4 text-[0.5rem]"
+											/>
+											<span className="truncate">{organization.name}</span>
+										</span>
 									)}
 								</div>
 								<ChevronsUpDown className="ml-auto size-4" />
@@ -78,15 +78,7 @@ const NavUser = () => {
 						<DropdownMenuGroup>
 							<DropdownMenuLabel className="p-0 font-normal">
 								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-									<Avatar className="size-8">
-										<AvatarImage
-											src={auth.user.image ?? undefined}
-											alt={auth.user.name}
-										/>
-										<AvatarFallback>
-											{getInitial(auth.user.name)}
-										</AvatarFallback>
-									</Avatar>
+									<UserAvatar user={auth.user} />
 									<div className="grid flex-1 text-left text-sm leading-tight">
 										<span className="truncate font-semibold">
 											{auth.user.name}
