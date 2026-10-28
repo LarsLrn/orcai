@@ -41,7 +41,7 @@ A bot is private until it is shared. Publishing does not share it: a published b
 
 ## The Bot Page
 
-A bot's page (`/app/hub/bots/<bot id>`) shows its behaviour and repositories. Depending on your role on the bot it offers:
+A bot's page (`/app/hub/bots/<bot id>`) shows its behaviour and repositories, and a **Model in …** card: the bot's model in the active organisation and whether it is recommended or required, or that chats pick any model. Its editors also see how many of the people and groups it is shared with have a quota pool for that model, and everyone else whether they can use it. A model that was deleted or cannot serve chats is marked **Model missing**. Depending on your role on the bot it offers:
 
 - **Start chat**, for anyone who can use the bot
 - **Edit bot**, which opens the editor
@@ -66,7 +66,7 @@ A favourite disappears while you cannot read the bot or while it is unpublished,
 
 **Create bot** opens the editor at `/app/hub/bots/add`. The first save creates a draft and moves the editor to `/app/hub/bots/<bot id>/setup`, the same place **Edit bot** opens. The later steps unlock after that first save, and moving between steps saves your changes.
 
-The bot editor is a guided wizard with five steps:
+The bot editor is a guided wizard with six steps:
 
 ### Bot Basics [step]
 
@@ -85,6 +85,17 @@ Attach ready repository blocks that provide retrieval context. Repositories are 
 ### Sharing And Access [step]
 
 Configure visibility, groups, and direct grants for the intended audience. Giving someone edit or manage on the bot also offers edit on its blocks, for the blocks you can share.
+
+### Model [step]
+
+Optionally recommend or require a model for the bot's chats in the active organisation, with **Save model**. Skip the step and people pick any available model. Models, quota pools and groups belong to one organisation, so the model is set per organisation. The bot's editors set it in the organisation the bot was created in. **Remove model** returns the bot to a free pick.
+
+- **Recommended** (the default) is a starting point: new chats start on the model and its settings, and people can switch. Later changes reach only new chats.
+- **Required** decides every chat: the model and settings cannot be changed in the chat, and your changes reach existing chats too. If the model is deleted, its provider is disabled, it is deprecated, it cannot call tools, or no quota pool covers it for someone, their chats with the bot are blocked with a notice until you choose another model or an admin adds a pool.
+
+**Advanced generation settings** (temperature, top P, max tokens and the penalties) are optional, as in chat settings; unset ones keep the provider's defaults.
+
+**Quota coverage** lists the people and groups the bot is shared with in this organisation and whether a quota pool covers the model for each, through their group or All Members. It only warns; you can save either way. Admins get a link to Quotas. Only the bot's editors see the list, and only the groups and email addresses they may see elsewhere.
 
 ### Review And Publish [step]
 

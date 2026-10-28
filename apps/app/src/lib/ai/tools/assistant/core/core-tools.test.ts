@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { AssetId, BlockId, BotId } from "@orcai/core";
+import type { AssetId, BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
@@ -76,7 +76,16 @@ const block = (
 	},
 });
 
-beforeEach(resetProcedures);
+beforeEach(() => {
+	resetProcedures();
+	answers["botSetup.find"] = () =>
+		Effect.succeed({
+			data: {
+				setup: null,
+				canEdit: false,
+			},
+		});
+});
 
 describe("findBots", () => {
 	const ready = [
@@ -227,6 +236,7 @@ describe("getBot", () => {
 					assetCount: 2,
 				},
 			],
+			setup: null,
 			canEdit: false,
 			canDelete: false,
 			canManageAccess: false,
@@ -269,6 +279,43 @@ describe("getBot", () => {
 				},
 			});
 
+		const tutor = {
+			id: crypto.randomUUID() as ModelId,
+			name: "Tutor model",
+			providerId: crypto.randomUUID() as ProviderId,
+			usable: true,
+		};
+		answers["botSetup.find"] = () =>
+			Effect.succeed({
+				data: {
+					setup: {
+						model: tutor,
+						strength: "required",
+						generation: {},
+					},
+					canEdit: true,
+				},
+			});
+		answers["botSetup.coverage"] = () =>
+			Effect.succeed({
+				data: {
+					principals: [
+						{
+							principal: {
+								name: "Seminar A",
+							},
+							covered: true,
+						},
+						{
+							principal: {
+								name: "Seminar B",
+							},
+							covered: false,
+						},
+					],
+				},
+			});
+
 		const output = await run(getBotTool(deps()), {
 			id: editable.data.id,
 		});
@@ -289,6 +336,21 @@ describe("getBot", () => {
 					assetCount: 0,
 				},
 			],
+			setup: {
+				model: {
+					id: tutor.id,
+					name: "Tutor model",
+					usable: true,
+				},
+				strength: "required",
+				coverage: {
+					covered: 1,
+					total: 2,
+					notCovered: [
+						"Seminar B",
+					],
+				},
+			},
 			canEdit: true,
 			canDelete: true,
 			canManageAccess: true,
@@ -298,6 +360,8 @@ describe("getBot", () => {
 		expect(procedureCalls.map((call) => call.procedure)).toEqual([
 			"bot.find",
 			"bot.findEditor",
+			"botSetup.find",
+			"botSetup.coverage",
 		]);
 	});
 

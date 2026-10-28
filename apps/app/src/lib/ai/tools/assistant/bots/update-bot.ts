@@ -17,6 +17,7 @@ import {
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
 import { featuresInputSchema } from "./features-input";
+import { setupInputSchema, writeSetup } from "./setup-input";
 
 export const updateBotInputSchema = z.strictObject({
 	id: botIdSchema.describe("Id of the bot to update."),
@@ -45,6 +46,7 @@ export const updateBotInputSchema = z.strictObject({
 		.describe(
 			"Every enabled feature, such as { generativeUi: {}, webSearch: { allowedDomains: [] } }; replaces the current set. Leave out to keep it.",
 		),
+	setup: setupInputSchema.optional(),
 });
 
 /** The parts of the stored bot an update keeps when the model leaves them out. */
@@ -89,7 +91,7 @@ export const updateBotPayload = (
 export const updateBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Update an existing bot: name, description, behaviour block, repositories and features. Give only the fields that change; everything else, including status and rich content, is kept. To create a bot, use createBot.",
+			"Update an existing bot: name, description, behaviour block, repositories, features and its model in the active organisation, with how many of its audience a quota pool covers. A setup that fails comes back as setupError while the other changes are saved. Give only the fields that change; everything else, including status and rich content, is kept. To create a bot, use createBot.",
 		inputSchema: updateBotInputSchema,
 		run: (input) =>
 			Effect.gen(function* () {
@@ -107,7 +109,7 @@ export const updateBotTool = (deps: AssistantToolDeps) =>
 				const payload = updateBotPayload(input, current);
 				const { templateBlockId, databaseBlockIds } = payload;
 
-				return yield* callProcedure(deps, (procedures, options) =>
+				const bot = yield* callProcedure(deps, (procedures, options) =>
 					procedures.bot.save(payload, options),
 				).pipe(
 					mutation("getBot"),
@@ -123,5 +125,11 @@ export const updateBotTool = (deps: AssistantToolDeps) =>
 					expectType("repository", databaseBlockIds),
 					Effect.map(({ data }) => botOutline(data)),
 				);
+				return input.setup === undefined
+					? bot
+					: {
+							...bot,
+							...(yield* writeSetup(deps, id, input.setup)),
+						};
 			}),
 	});

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { BlockId, BotId } from "@orcai/core";
-import type { BotEditor } from "@orcai/schema";
+import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
+import type { BotEditor, BotSetup, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -116,7 +116,7 @@ describe("createBotPayload", () => {
 });
 
 describe("createBotTool", () => {
-	const create = (toolCallId: string) =>
+	const create = (toolCallId: string, setup?: BotSetupFields | null) =>
 		createBotTool({
 			context: {} as ORPCContext,
 			turn: createAssistantTurn({
@@ -128,6 +128,7 @@ describe("createBotTool", () => {
 			{
 				name: "Citation check",
 				description: "Checks citations.",
+				setup,
 			},
 			{
 				toolCallId,
@@ -184,6 +185,110 @@ describe("createBotTool", () => {
 			"INTERNAL_SERVER_ERROR: The request failed on the server. The change may have been applied anyway; check with findBots before retrying.",
 		);
 		expect(valkeyStore.size).toBe(0);
+	});
+
+	describe("with a setup", () => {
+		const modelId = crypto.randomUUID() as ModelId;
+		const setup = {
+			modelId,
+			strength: "required" as const,
+			generation: {},
+		};
+		const stored: BotSetup = {
+			model: {
+				id: modelId,
+				name: "Tutor model",
+				providerId: crypto.randomUUID() as ProviderId,
+				usable: true,
+			},
+			strength: "required",
+			generation: {},
+		};
+		const setupSaves = () =>
+			procedureCalls.filter(({ procedure }) => procedure === "botSetup.save")
+				.length;
+
+		beforeEach(() => {
+			answers["botSetup.save"] = () =>
+				Effect.succeed({
+					data: stored,
+				});
+			answers["botSetup.find"] = () =>
+				Effect.succeed({
+					data: {
+						setup: null,
+						canEdit: true,
+					},
+				});
+			answers["botSetup.coverage"] = () =>
+				Effect.succeed({
+					data: {
+						principals: [],
+					},
+				});
+		});
+
+		test("a rejected setup keeps the created bot and says why", async () => {
+			answers["botSetup.save"] = () =>
+				Effect.fail(
+					new ORPCError("NOT_FOUND", {
+						message: "Model not found",
+						data: {
+							reason: "MODEL_NOT_FOUND",
+						},
+					}),
+				);
+
+			const output = await create("call-1", setup);
+
+			expect(output).toMatchObject({
+				id: botId,
+				setupError: "MODEL_NOT_FOUND: Model not found",
+			});
+			expect(valkeyStore.size).toBe(1);
+		});
+
+		test("a saved setup whose coverage cannot be read keeps the created bot", async () => {
+			answers["botSetup.coverage"] = () =>
+				Effect.fail(
+					new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: "SpiceDB unavailable",
+					}),
+				);
+
+			const first = await create("call-1", setup);
+			await create("call-1", setup);
+
+			expect(first).toMatchObject({
+				id: botId,
+				setup: {
+					model: {
+						id: modelId,
+					},
+				},
+				setupError: expect.stringContaining("The setup was saved"),
+			});
+			expect(saves()).toBe(1);
+			expect(setupSaves()).toBe(1);
+		});
+
+		test("the same call run again reads the setup back instead of saving it again", async () => {
+			const first = await create("call-1", setup);
+			const again = await create("call-1", setup);
+
+			expect(first).toMatchObject({
+				setup: {
+					model: {
+						id: modelId,
+					},
+				},
+			});
+			expect(setupSaves()).toBe(1);
+			expect(again).toMatchObject({
+				id: botId,
+				setup: null,
+			});
+		});
 	});
 
 	test("a rejected create does not say so", async () => {

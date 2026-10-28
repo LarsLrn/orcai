@@ -903,6 +903,23 @@
 			}
 		}
 	],
+	"assistant_tool_find_models_active": "Finding models",
+	"assistant_tool_find_models_name": "Find models",
+	"assistant_tool_find_models_summary": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Found {count} model",
+				"countPlural=other": "Found {count} models"
+			}
+		}
+	],
 	"assistant_tool_find_principals_active": "Finding people and groups",
 	"assistant_tool_find_principals_name": "Find people and groups",
 	"assistant_tool_find_principals_summary": "Find people and groups for {resource}",

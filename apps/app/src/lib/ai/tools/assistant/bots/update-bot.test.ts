@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { BlockId, BotId } from "@orcai/core";
-import type { BotEditor } from "@orcai/schema";
+import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
+import type { BotEditor, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -235,6 +235,106 @@ describe("updateBotTool", () => {
 				messages: [],
 			} as never,
 		);
+
+	test("a setup goes through the shared writer, and the result says whom it covers", async () => {
+		const modelId = crypto.randomUUID() as ModelId;
+		answers["botSetup.save"] = (input: { setup: BotSetupFields }) =>
+			Effect.succeed({
+				data: {
+					model: {
+						id: input.setup.modelId,
+						name: "Tutor model",
+						providerId: crypto.randomUUID() as ProviderId,
+						usable: true,
+					},
+					strength: input.setup.strength,
+					generation: input.setup.generation,
+				},
+			});
+		answers["botSetup.coverage"] = () =>
+			Effect.succeed({
+				data: {
+					principals: [
+						{
+							principal: {
+								name: "All Members",
+							},
+							covered: false,
+						},
+					],
+				},
+			});
+
+		const output = await run({
+			id: botId,
+			setup: {
+				modelId,
+				strength: "required",
+				generation: {},
+			},
+		});
+
+		expect(
+			procedureCalls
+				.filter(({ procedure }) => procedure === "botSetup.save")
+				.map(({ input }) => input),
+		).toEqual([
+			{
+				botId,
+				setup: {
+					modelId,
+					strength: "required",
+					generation: {},
+				},
+			},
+		]);
+		expect(output).toMatchObject({
+			id: botId,
+			setup: {
+				model: {
+					id: modelId,
+				},
+				strength: "required",
+				coverage: {
+					covered: 0,
+					total: 1,
+					notCovered: [
+						"All Members",
+					],
+				},
+			},
+		});
+	});
+
+	test("a rejected setup keeps the saved changes and says why", async () => {
+		answers["botSetup.save"] = () =>
+			Effect.fail(
+				new ORPCError("NOT_FOUND", {
+					message: "Model not found",
+					data: {
+						reason: "MODEL_NOT_FOUND",
+					},
+				}),
+			);
+
+		const output = await run({
+			id: botId,
+			name: "Renamed",
+			setup: {
+				modelId: crypto.randomUUID() as ModelId,
+				strength: "required",
+				generation: {},
+			},
+		});
+
+		expect(
+			procedureCalls.filter(({ procedure }) => procedure === "bot.save"),
+		).toHaveLength(1);
+		expect(output).toMatchObject({
+			id: botId,
+			setupError: "MODEL_NOT_FOUND: Model not found",
+		});
+	});
 
 	test("a missing bot names the expected type", async () => {
 		answers["bot.findEditor"] = () =>

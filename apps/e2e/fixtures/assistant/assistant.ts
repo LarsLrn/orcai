@@ -402,6 +402,7 @@ export const VIEWER_TOOLS = [
 ];
 
 export const BOTS_TOOLS = [
+	"findModels",
 	"createBot",
 	"updateBot",
 	"publishBot",

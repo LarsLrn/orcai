@@ -12,6 +12,7 @@ import { createTemplateTool } from "./bots/create-template";
 import { deleteAssetTool } from "./bots/delete-asset";
 import { deleteBlockTool } from "./bots/delete-block";
 import { deleteBotTool } from "./bots/delete-bot";
+import { findModelsTool } from "./bots/find-models";
 import { publishBotTool } from "./bots/publish-bot";
 import { requestUploadTool } from "./bots/request-upload";
 import { retryAssetTool } from "./bots/retry-asset";
@@ -81,6 +82,7 @@ const builds = {
 	listMembers: listMembersTool,
 	loadTools: ({ session }: BuildDeps) => loadToolsTool(session),
 	updatePlan: ({ session }: BuildDeps) => updatePlanTool(session),
+	findModels: findModelsTool,
 	createBot: createBotTool,
 	updateBot: updateBotTool,
 	publishBot: publishBotTool,
