@@ -123,10 +123,6 @@ const BlockCard = ({
 
 	const badges: ResourceCardBadgeItem[] = [
 		{
-			label: `v${block.version}`,
-			variant: "outline",
-		},
-		{
 			label: getBlockTypeLabel(block.type),
 			variant: badgeTone,
 		},

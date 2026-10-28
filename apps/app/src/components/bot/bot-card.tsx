@@ -90,10 +90,6 @@ const BotCard = ({
 				: m.bots_card_draft_badge(),
 			variant: isPublished ? "success" : "outline",
 		},
-		{
-			label: `v${bot.version}`,
-			variant: "outline",
-		},
 	];
 
 	const primaryAction = actions?.primary ?? {

@@ -6,7 +6,6 @@ import {
 	GlobeIcon,
 	HashIcon,
 	LockIcon,
-	MilestoneIcon,
 } from "lucide-react";
 import { useCopyToClipboard } from "usehooks-ts";
 import { Badge } from "@/components/ui/badge";
@@ -50,13 +49,11 @@ const CopyableId = ({ value }: { value: string }) => {
 
 const MetadataCard = ({
 	id,
-	version,
 	visibility,
 	createdAt,
 	updatedAt,
 }: {
 	id?: string;
-	version?: number;
 	visibility?: "public" | "private";
 	createdAt?: Date | string | null;
 	updatedAt?: Date | string | null;
@@ -71,7 +68,7 @@ const MetadataCard = ({
 		return formatDisplayDate(dateObj);
 	};
 
-	if (!createdAt && !updatedAt && !visibility && !version && !id) {
+	if (!createdAt && !updatedAt && !visibility && !id) {
 		return null;
 	}
 
@@ -112,21 +109,9 @@ const MetadataCard = ({
 							</Badge>
 						</div>
 					)}
-					{version !== undefined && (
-						<div className="flex items-center justify-between gap-4">
-							<div className="flex items-center gap-2 text-muted-foreground">
-								<MilestoneIcon className="size-3.5 shrink-0" />
-								<span>{m.app_metadata_card_version_label()}</span>
-							</div>
-							<Badge variant="outline">
-								{m.app_metadata_card_version_value({
-									version,
-								})}
-							</Badge>
-						</div>
+					{(id || visibility) && (createdAt || updatedAt) && (
+						<div className="mt-8" />
 					)}
-					{(id || visibility || version !== undefined) &&
-						(createdAt || updatedAt) && <div className="mt-8" />}
 					{createdAt && (
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center gap-2 text-muted-foreground">
