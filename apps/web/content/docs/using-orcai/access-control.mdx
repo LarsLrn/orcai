@@ -79,7 +79,9 @@ Current flows in app:
   it sets the **Role**, the **Expires** date (seven days ahead by default) and
   the **Email language** for everyone in it. Add addresses one at a time with
   **Add email field** or paste a list with **Bulk add emails**, then choose
-  **Create invitations**.
+  **Create invitations**. An address that already belongs to a member is
+  refused with the whole batch, before any email goes out; change that
+  member's role instead.
 - **View invitations** opens `/app/users/invites`, a table with the columns
   Email, Invitation ID, Expires, Status and Role. Each row offers **Copy
   invitation link** and **Delete organisation invitation**; selected rows can
@@ -90,7 +92,8 @@ Current flows in app:
 The sign-up endpoint validates the invitation ID, pending status, expiry, and
 matching email address. The register page names the inviting organisation.
 Signing up accepts only the linked invitation; other invitations remain pending
-for explicit acceptance. One active organisation opens directly when there are
+for explicit acceptance. Someone who is already a member and accepts another
+invitation to the same organisation keeps their current role. One active organisation opens directly when there are
 no pending invitations. Email verification remains optional for access.
 
 ## Groups

@@ -335,8 +335,27 @@ to see whether it was sent and how.
 
 **Organisations** (`/instance/organizations`) lists every organisation of the
 instance with its slug and member count, with search, creates one with
-**Create organisation**, and deletes one. The creator becomes the first
-administrator of what it created.
+**Create organisation**, and deletes one. Creating one asks for its
+**Initial admin**:
+
+- **Me**: you administer it.
+- **Existing user**: an account you pick administers it, and you are not
+  added. A banned account is refused.
+- **Invite by email**: you administer it for now and the address gets an
+  admin invitation, both in one step. Once they have joined, leave the
+  organisation from its page; nothing removes you automatically.
+
+An organisation's name opens its page (`/instance/organizations/<organisation id>`).
+It shows the organisation's setup checklist read-only, the same checks its
+admins see on Home's Manage tab, and its members in a paged, sortable list,
+searchable over name and email.
+Each name links to the account's page. There an instance administrator
+changes a member's role, removes a member (on your own row this reads
+**Leave**), **Add existing user** with a role, and **Invite by email** with a
+role. The organisation always keeps one admin who can sign in, so demoting or
+removing the last one is refused. Inviting someone who is already a member is
+refused before any email goes out; change their role instead. None of this
+gives an instance administrator access to the organisation's content.
 
 Deletion is thorough. The dialog first shows an impact preview counting the
 memberships, pending invitations and groups that go with the organisation, plus
@@ -350,9 +369,11 @@ Its former members lose their direct grants on them, as when they are removed
 one by one.
 
 **Users** (`/instance/users`) lists every account of the instance, searchable over name and email,
-with the organisations each account belongs to, its role in them, its
-instance role, and whether it uses two-factor authentication (**2FA**). From
-here an account is banned, unbanned, or deleted, and **Reset 2FA** helps
+with how many organisations each account belongs to, its
+instance role, and whether it uses two-factor authentication (**2FA**). An
+account's name opens its page (`/instance/users/<user id>`), which lists its
+organisations with its role and join date, each linking to the organisation's
+page, and carries the same actions in its `…` menu. An account is banned, unbanned, or deleted, and **Reset 2FA** helps
 someone who lost their authenticator app and backup codes: it removes their
 second factor, passkeys and trusted devices, signs them out everywhere and emails them,
 so they sign in with their password and set up 2FA again. **Make instance
