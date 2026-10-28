@@ -1,10 +1,21 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	stripSearchParams,
+	useNavigate,
+} from "@tanstack/react-router";
 import { BotIcon, EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { BotCard } from "@/components/bot/bot-card";
 import { FAVOURITE_BOTS_INPUT } from "@/components/bot/bot-favourites";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
+import {
+	CardPager,
+	libraryPagingDefaults,
+	libraryPagingSchema,
+	useClampedPageIndex,
+} from "@/components/ui/card-pager";
 import {
 	Section,
 	SectionAction,
@@ -20,8 +31,24 @@ import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+const listInput = (pageIndex: number, pageSize: number) => ({
+	pageIndex,
+	pageSize,
+});
+
 export const Route = createFileRoute("/app/hub/bots/")({
-	loader: async ({ context: { queryClient } }) => {
+	validateSearch: libraryPagingSchema,
+	search: {
+		middlewares: [
+			stripSearchParams(libraryPagingDefaults),
+		],
+	},
+	loaderDeps: ({ search: { pageIndex, pageSize, draftPageIndex } }) => ({
+		pageIndex,
+		pageSize,
+		draftPageIndex,
+	}),
+	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
 			queryClient.query(
 				orpc.bot.list.queryOptions({
@@ -31,19 +58,13 @@ export const Route = createFileRoute("/app/hub/bots/")({
 			),
 			queryClient.query(
 				orpc.bot.list.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: 50,
-					},
+					input: listInput(deps.pageIndex, deps.pageSize),
 					staleTime: "static",
 				}),
 			),
 			queryClient.query(
 				orpc.bot.listDrafts.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: 50,
-					},
+					input: listInput(deps.draftPageIndex, deps.pageSize),
 					staleTime: "static",
 				}),
 			),
@@ -53,6 +74,7 @@ export const Route = createFileRoute("/app/hub/bots/")({
 });
 
 function RouteComponent() {
+	const search = Route.useSearch();
 	const { data: favourites } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
 			input: FAVOURITE_BOTS_INPUT,
@@ -60,18 +82,12 @@ function RouteComponent() {
 	);
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 50,
-			},
+			input: listInput(search.pageIndex, search.pageSize),
 		}),
 	);
 	const { data: drafts } = useSuspenseQuery(
 		orpc.bot.listDrafts.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 50,
-			},
+			input: listInput(search.draftPageIndex, search.pageSize),
 		}),
 	);
 	const { data: organizationCapabilities } = useOrganizationCapabilities([
@@ -81,6 +97,18 @@ function RouteComponent() {
 		organizationCapabilities?.data.capabilities,
 		"create_bot",
 	);
+
+	useClampedPageIndex({
+		rowCount: bots.rowCount,
+		pageIndex: search.pageIndex,
+		pageSize: search.pageSize,
+	});
+	useClampedPageIndex({
+		rowCount: drafts.rowCount,
+		pageIndex: search.draftPageIndex,
+		pageSize: search.pageSize,
+		indexKey: "draftPageIndex",
+	});
 
 	return (
 		<div className="space-y-12">
@@ -92,7 +120,7 @@ function RouteComponent() {
 							{m.bots_list_favourites_description()}
 						</SectionDescription>
 					</SectionHeader>
-					<SectionContent>
+					<SectionContent className="space-y-6">
 						<SectionGrid layout="3">
 							{favourites.data.map((bot) => (
 								<BotCard
@@ -128,8 +156,8 @@ function RouteComponent() {
 						</SectionAction>
 					) : null}
 				</SectionHeader>
-				<SectionContent>
-					{bots.data.length === 0 ? (
+				<SectionContent className="space-y-6">
+					{bots.rowCount === 0 ? (
 						<Placeholder
 							Icon={BotIcon}
 							tone="bot"
@@ -152,22 +180,29 @@ function RouteComponent() {
 							}
 						/>
 					) : (
-						<SectionGrid layout="3">
-							{bots.data.map((bot) => (
-								<BotCard
-									key={bot.id}
-									bot={bot}
-									actions={{
-										footer: [],
-									}}
-								/>
-							))}
-						</SectionGrid>
+						<>
+							<SectionGrid layout="3">
+								{bots.data.map((bot) => (
+									<BotCard
+										key={bot.id}
+										bot={bot}
+										actions={{
+											footer: [],
+										}}
+									/>
+								))}
+							</SectionGrid>
+							<CardPager
+								rowCount={bots.rowCount}
+								pageIndex={search.pageIndex}
+								pageSize={search.pageSize}
+							/>
+						</>
 					)}
 				</SectionContent>
 			</Section>
 
-			{drafts.data.length > 0 && (
+			{drafts.rowCount > 0 && (
 				<Section>
 					<SectionHeader>
 						<SectionTitle>{m.bots_list_drafts_title()}</SectionTitle>
@@ -175,12 +210,18 @@ function RouteComponent() {
 							{m.bots_list_drafts_description()}
 						</SectionDescription>
 					</SectionHeader>
-					<SectionContent>
+					<SectionContent className="space-y-6">
 						<SectionGrid layout="3">
 							{drafts.data.map((bot) => (
 								<DraftBotCard key={bot.id} bot={bot} />
 							))}
 						</SectionGrid>
+						<CardPager
+							rowCount={drafts.rowCount}
+							pageIndex={search.draftPageIndex}
+							pageSize={search.pageSize}
+							indexKey="draftPageIndex"
+						/>
 					</SectionContent>
 				</Section>
 			)}

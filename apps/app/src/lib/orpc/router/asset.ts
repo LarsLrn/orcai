@@ -78,7 +78,7 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 				})
 				.from(dbSchema.asset)
 				.where(and(...whereConditions))
-				.orderBy(desc(dbSchema.asset.createdAt))
+				.orderBy(desc(dbSchema.asset.createdAt), desc(dbSchema.asset.id))
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db

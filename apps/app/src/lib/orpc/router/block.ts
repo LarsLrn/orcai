@@ -90,7 +90,7 @@ const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 					eq(dbSchema.botBlock.blockId, dbSchema.block.id),
 				)
 				.where(and(...whereConditions))
-				.orderBy(desc(dbSchema.block.createdAt))
+				.orderBy(desc(dbSchema.block.createdAt), desc(dbSchema.block.id))
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db

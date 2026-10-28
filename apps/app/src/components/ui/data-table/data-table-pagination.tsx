@@ -1,24 +1,6 @@
-import {
-	ChevronLeft,
-	ChevronRight,
-	ChevronsLeft,
-	ChevronsRight,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { OptionPicker } from "@/components/ui/composed/option-picker";
+import { Pager } from "@/components/ui/pager";
 import { m } from "@/paraglide/messages";
 import { useTable } from "./data-table-context";
-
-const PAGE_SIZE_OPTIONS = [
-	20,
-	30,
-	50,
-	100,
-	200,
-].map((pageSize) => ({
-	value: `${pageSize}`,
-	label: `${pageSize}`,
-}));
 
 const DataTablePagination = () => {
 	const { table } = useTable();
@@ -41,74 +23,13 @@ const DataTablePagination = () => {
 						})
 					: null}
 			</div>
-			<div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:gap-x-8">
-				<div className="flex items-center space-x-2">
-					<p className="whitespace-nowrap font-medium text-sm">
-						{m.data_table_pagination_rows_per_page_label()}
-					</p>
-					<OptionPicker
-						options={PAGE_SIZE_OPTIONS}
-						value={`${table.state.pagination.pageSize}`}
-						onChange={(value) => {
-							table.setPageSize(Number(value));
-						}}
-						side="top"
-						className="h-8 w-20"
-					/>
-				</div>
-				<div className="flex items-center space-x-2">
-					<div className="flex w-25 items-center justify-center font-medium text-sm">
-						{m.data_table_pagination_position({
-							page: table.state.pagination.pageIndex + 1,
-							pageCount: table.getPageCount(),
-						})}
-					</div>
-					<Button
-						variant="outline"
-						className="hidden h-8 w-8 p-0 lg:flex"
-						onClick={() => table.setPageIndex(0)}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<span className="sr-only">
-							{m.common_pagination_first_page_label()}
-						</span>
-						<ChevronsLeft />
-					</Button>
-					<Button
-						variant="outline"
-						className="h-8 w-8 p-0"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<span className="sr-only">
-							{m.common_pagination_previous_page_label()}
-						</span>
-						<ChevronLeft />
-					</Button>
-					<Button
-						variant="outline"
-						className="h-8 w-8 p-0"
-						onClick={() => table.nextPage()}
-						disabled={!table.getCanNextPage()}
-					>
-						<span className="sr-only">
-							{m.common_pagination_next_page_label()}
-						</span>
-						<ChevronRight />
-					</Button>
-					<Button
-						variant="outline"
-						className="hidden h-8 w-8 p-0 lg:flex"
-						onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-						disabled={!table.getCanNextPage()}
-					>
-						<span className="sr-only">
-							{m.common_pagination_last_page_label()}
-						</span>
-						<ChevronsRight />
-					</Button>
-				</div>
-			</div>
+			<Pager
+				pageIndex={table.state.pagination.pageIndex}
+				pageSize={table.state.pagination.pageSize}
+				pageCount={table.getPageCount()}
+				onPageIndexChange={(pageIndex) => table.setPageIndex(pageIndex)}
+				onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+			/>
 		</div>
 	);
 };
