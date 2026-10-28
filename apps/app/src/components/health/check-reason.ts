@@ -27,6 +27,26 @@ const reasonMessages: Record<CheckReason, (check: Check) => string> = {
 		m.check_reason_config_warnings({
 			count: formatCount(count(check)),
 		}),
+	PROVIDER_READY: () => m.check_reason_provider_ready(),
+	PROVIDER_MISSING: () => m.check_reason_provider_missing(),
+	CHAT_MODEL_READY: () => m.check_reason_chat_model_ready(),
+	CHAT_MODEL_MISSING: () => m.check_reason_chat_model_missing(),
+	POOL_READY: () => m.check_reason_pool_ready(),
+	POOL_MISSING: () => m.check_reason_pool_missing(),
+	ASSISTANT_MODEL_READY: () => m.check_reason_assistant_model_ready(),
+	ASSISTANT_MODEL_MISSING: () => m.check_reason_assistant_model_missing(),
+	ASSISTANT_MODEL_UNUSABLE: () => m.check_reason_assistant_model_unusable(),
+	ASSISTANT_POOL_READY: () => m.check_reason_assistant_pool_ready(),
+	ASSISTANT_POOL_MISSING: () => m.check_reason_assistant_pool_missing(),
+	UTILITY_MODEL_READY: () => m.check_reason_utility_model_ready(),
+	UTILITY_MODEL_MISSING: () => m.check_reason_utility_model_missing(),
+	MEMBERS_INVITED: () => m.check_reason_members_invited(),
+	MEMBERS_NONE_INVITED: () => m.check_reason_members_none_invited(),
+	COVERAGE_COMPLETE: () => m.check_reason_coverage_complete(),
+	COVERAGE_GAPS: (check) =>
+		m.check_reason_coverage_gaps({
+			count: formatCount(count(check)),
+		}),
 };
 
 export const checkReasonMessage = (check: Check) =>
