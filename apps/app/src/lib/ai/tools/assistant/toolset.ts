@@ -13,6 +13,7 @@ import { deleteAssetTool } from "./bots/delete-asset";
 import { deleteBlockTool } from "./bots/delete-block";
 import { deleteBotTool } from "./bots/delete-bot";
 import { findModelsTool } from "./bots/find-models";
+import { generateAssetMetadataTool } from "./bots/generate-asset-metadata";
 import { publishBotTool } from "./bots/publish-bot";
 import { requestUploadTool } from "./bots/request-upload";
 import { retryAssetTool } from "./bots/retry-asset";
@@ -95,6 +96,7 @@ const builds = {
 	updateAsset: updateAssetTool,
 	deleteAsset: deleteAssetTool,
 	retryAsset: retryAssetTool,
+	generateAssetMetadata: generateAssetMetadataTool,
 	requestUpload: () => requestUploadTool,
 	listAccess: listAccessTool,
 	findPrincipals: findPrincipalsTool,

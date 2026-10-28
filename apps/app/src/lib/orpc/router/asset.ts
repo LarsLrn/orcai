@@ -478,11 +478,12 @@ const missingMetadata = authed.asset.missingMetadata
 
 const generateMissingMetadata = authed.asset.generateMissingMetadata
 	.use(requireActiveOrganizationMiddleware)
-	.effect(function* ({ context }) {
+	.effect(function* ({ input, context }) {
 		const admitted = yield* queueMetadataGeneration({
 			assetIds: yield* assetsMissingMetadata({
 				userId: context.auth.user.id,
 				organizationId: context.auth.session.activeOrganizationId,
+				ids: input.ids,
 				zedToken: getZedToken(context),
 			}),
 			mode: "apply",

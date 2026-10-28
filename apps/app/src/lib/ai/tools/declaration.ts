@@ -30,6 +30,7 @@ export type ConfirmationVerb =
 	| "grant"
 	| "add"
 	| "change"
+	| "generate"
 	| "invite";
 
 /** Looked-up name, or a placeholder while loading or when it cannot be read. */

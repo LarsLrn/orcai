@@ -120,6 +120,9 @@ const pendingInputs = {
 		assetId: id(3),
 		repositoryId: id(2),
 	},
+	generateAssetMetadata: {
+		assetIds: ids(1),
+	},
 	requestUpload: {
 		reason: "Upload the style guides for the repository 'APA rules'",
 	},
