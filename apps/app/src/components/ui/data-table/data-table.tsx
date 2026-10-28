@@ -6,6 +6,7 @@ import {
 	type TableState,
 	useTable,
 } from "@tanstack/react-table";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { TableProvider } from "./data-table-context";
 import {
@@ -23,7 +24,8 @@ interface DataTableProps<TData extends RowData> {
 
 interface DataTableOptions<TData extends RowData> {
 	rowCount: number;
-	uidAccessor: keyof TData;
+	/** The row's key, or a function deriving it when no single field holds one. */
+	uidAccessor: keyof TData | ((row: TData) => string);
 	enableRowSelection?:
 		| boolean
 		| ((row: Row<DataTableFeatures, TData>) => boolean);
@@ -70,8 +72,33 @@ const DataTable = <TData extends RowData>({
 			});
 		},
 		state,
-		getRowId: (row) => String(row[uidAccessor]),
+		getRowId: (row) =>
+			typeof uidAccessor === "function"
+				? uidAccessor(row)
+				: String(row[uidAccessor]),
 	});
+
+	// A page emptied by deletions moves back to the last page, keeping filters.
+	const { pageIndex, pageSize } = table.state.pagination;
+	const lastPageIndex = Math.max(0, Math.ceil(rowCount / pageSize) - 1);
+	useEffect(() => {
+		if (data.length > 0 || pageIndex <= lastPageIndex) return;
+		void navigate({
+			to: ".",
+			search: (prev) =>
+				withPagination(prev, {
+					pageIndex: lastPageIndex,
+					pageSize,
+				}),
+			replace: true,
+		});
+	}, [
+		data.length,
+		lastPageIndex,
+		navigate,
+		pageIndex,
+		pageSize,
+	]);
 
 	return (
 		<TableProvider table={table}>

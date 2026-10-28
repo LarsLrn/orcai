@@ -1,14 +1,26 @@
-import type { GroupId } from "@orcai/core";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { EditIcon, PowerOffIcon } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import {
+	quotaUsageEventListInputSchema,
+	quotaUsageEventTypeSchema,
+} from "@orcai/schema";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+	createFileRoute,
+	stripSearchParams,
+	useNavigate,
+} from "@tanstack/react-router";
+import { EditIcon, PowerOffIcon, ReceiptTextIcon } from "lucide-react";
+import { useEffect } from "react";
 import { z } from "zod/v4";
 import { MetadataCard } from "@/components/app/metadata-card";
 import {
 	QuotaConsumption,
 	QuotaRemaining,
 } from "@/components/quota/quota-consumption";
+import { QuotaEligibleGroups } from "@/components/quota/quota-eligible-groups";
+import {
+	quotaUsageEventTableColumns,
+	quotaUsageEventTypeOptions,
+} from "@/components/quota/table/quota-usage-event-table-columns";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -17,6 +29,20 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import {
+	dataTableQuerySchema,
+	dataTableSearchDefaults,
+} from "@/components/ui/data-table/data-table-search-params";
+import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
+import {
+	DataTableToolbar,
+	DataTableToolbarActions,
+} from "@/components/ui/data-table/data-table-toolbar";
+import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Page,
@@ -26,13 +52,11 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+	Section,
+	SectionDescription,
+	SectionHeader,
+	SectionTitle,
+} from "@/components/ui/shell/section";
 import { useAppForm } from "@/hooks/form";
 import {
 	useDeactivateQuotaPoolMutation,
@@ -62,24 +86,71 @@ const periodTypeLabel = (periodType: "weekly" | "monthly" | "yearly") => {
 	}
 };
 
+const searchSchema = quotaUsageEventListInputSchema
+	.omit({
+		quotaPoolId: true,
+		filters: true,
+	})
+	.extend({
+		query: dataTableQuerySchema.default(""),
+		eventType: quotaUsageEventTypeSchema.optional(),
+	});
+
+type EventsSearch = z.infer<typeof searchSchema>;
+
+const eventsInput = (
+	quotaPoolId: z.infer<typeof quotaUsageEventListInputSchema>["quotaPoolId"],
+	{ pageIndex, pageSize, sort, query, eventType }: EventsSearch,
+) => ({
+	quotaPoolId,
+	filters: {
+		eventType,
+		search: query || undefined,
+	},
+	pageIndex,
+	pageSize,
+	sort,
+});
+
 export const Route = createFileRoute("/app/quotas/$quotaPoolId/")({
-	loader: async ({ context: { queryClient }, params: { quotaPoolId } }) => {
-		await orNotFound(
+	validateSearch: searchSchema,
+	search: {
+		middlewares: [
+			stripSearchParams(dataTableSearchDefaults),
+		],
+	},
+	loaderDeps: ({ search }) => search,
+	loader: async ({
+		context: { queryClient },
+		params: { quotaPoolId },
+		deps,
+	}) => {
+		await Promise.all([
+			orNotFound(
+				queryClient.query(
+					orpc.quota.find.queryOptions({
+						input: {
+							id: quotaPoolId,
+						},
+						staleTime: "static",
+					}),
+				),
+			),
 			queryClient.query(
-				orpc.quota.find.queryOptions({
-					input: {
-						id: quotaPoolId,
-					},
+				orpc.quota.listEvents.queryOptions({
+					input: eventsInput(quotaPoolId, deps),
 					staleTime: "static",
 				}),
 			),
-		);
+		]);
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
 	const { quotaPoolId } = Route.useParams();
+	const search = Route.useSearch();
 
 	const { data } = useSuspenseQuery(
 		orpc.quota.find.queryOptions({
@@ -89,12 +160,9 @@ function RouteComponent() {
 		}),
 	);
 
-	const groups = useQuery(
-		orpc.group.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 200,
-			},
+	const { data: events } = useSuspenseQuery(
+		orpc.quota.listEvents.queryOptions({
+			input: eventsInput(quotaPoolId, search),
 		}),
 	);
 
@@ -122,22 +190,6 @@ function RouteComponent() {
 		budgetForm,
 		data.data.budgetAmount,
 	]);
-
-	const groupById = useMemo(
-		() =>
-			new Map(
-				(groups.data?.data ?? []).map(
-					(group) =>
-						[
-							group.id,
-							group,
-						] as const,
-				),
-			),
-		[
-			groups.data?.data,
-		],
-	);
 
 	return (
 		<Page>
@@ -209,7 +261,7 @@ function RouteComponent() {
 										{m.quotas_detail_consumed_metric_label()}
 									</div>
 									<QuotaConsumption
-										className="justify-start font-semibold text-lg"
+										className="font-semibold text-lg"
 										consumedAmount={data.data.currentLedger?.consumedAmount}
 										budgetAmount={data.data.currentLedger?.budgetAmount}
 										unit={data.data.provider.meteringMode}
@@ -228,7 +280,7 @@ function RouteComponent() {
 										{m.quotas_detail_remaining_metric_label()}
 									</div>
 									<QuotaRemaining
-										className="justify-start font-semibold text-lg"
+										className="font-semibold text-lg"
 										remainingAmount={data.data.currentLedger?.remainingAmount}
 										budgetAmount={data.data.currentLedger?.budgetAmount}
 										unit={data.data.provider.meteringMode}
@@ -275,101 +327,12 @@ function RouteComponent() {
 					<Card>
 						<CardHeader>
 							<CardTitle>{m.quotas_detail_eligible_groups_title()}</CardTitle>
+							<CardDescription>
+								{m.quotas_detail_eligible_groups_description()}
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className="space-y-2">
-								{data.data.assignments.map((assignment) => {
-									const group = groupById.get(assignment.groupId as GroupId);
-									const displayName = group
-										? group.kind === "system"
-											? m.quotas_form_group_system_label({
-													name: group.name,
-												})
-											: group.name
-										: assignment.groupId;
-
-									return (
-										<div
-											key={assignment.id}
-											className="rounded border px-3 py-2 text-sm"
-										>
-											<Link
-												to="/app/groups/$groupId"
-												params={{
-													groupId: assignment.groupId,
-												}}
-												className="font-medium hover:underline"
-											>
-												{displayName}
-											</Link>
-										</div>
-									);
-								})}
-								{data.data.assignments.length === 0 && (
-									<div className="text-muted-foreground text-sm">
-										{m.quotas_detail_no_groups_label()}
-									</div>
-								)}
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>{m.quotas_detail_recent_events_title()}</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="rounded-md border">
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>
-												{m.quotas_detail_event_column_header()}
-											</TableHead>
-											<TableHead>
-												{m.quotas_detail_request_column_header()}
-											</TableHead>
-											<TableHead className="text-right">
-												{m.quotas_detail_reserved_amount_column_header()}
-											</TableHead>
-											<TableHead className="text-right">
-												{m.quotas_detail_actual_amount_column_header()}
-											</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{data.data.recentEvents.map((event) => (
-											<TableRow key={event.id}>
-												<TableCell className="uppercase">
-													{event.eventType}
-												</TableCell>
-												<TableCell
-													className="max-w-48 truncate text-muted-foreground"
-													title={event.appRequestId}
-												>
-													{event.appRequestId}
-												</TableCell>
-												<TableCell className="text-right tabular-nums">
-													{formatNumber(event.reservedAmount)}
-												</TableCell>
-												<TableCell className="text-right tabular-nums">
-													{formatNumber(event.actualAmount)}
-												</TableCell>
-											</TableRow>
-										))}
-										{data.data.recentEvents.length === 0 && (
-											<TableRow>
-												<TableCell
-													colSpan={4}
-													className="h-24 text-center text-muted-foreground"
-												>
-													{m.quotas_detail_no_events_label()}
-												</TableCell>
-											</TableRow>
-										)}
-									</TableBody>
-								</Table>
-							</div>
+							<QuotaEligibleGroups assignments={data.data.assignments} />
 						</CardContent>
 					</Card>
 				</div>
@@ -381,6 +344,67 @@ function RouteComponent() {
 						updatedAt={data.data.updatedAt}
 					/>
 				</div>
+
+				<Section className="gap-4 lg:col-span-3">
+					<SectionHeader>
+						<SectionTitle>{m.quotas_detail_usage_events_title()}</SectionTitle>
+						<SectionDescription>
+							{m.quotas_detail_usage_events_description()}
+						</SectionDescription>
+					</SectionHeader>
+					<DataTable
+						data={events.data}
+						columns={quotaUsageEventTableColumns}
+						state={{
+							pagination: {
+								pageIndex: search.pageIndex,
+								pageSize: search.pageSize,
+							},
+							sorting: search.sort,
+						}}
+						options={{
+							rowCount: events.rowCount,
+							uidAccessor: "id",
+						}}
+					>
+						<DataTableToolbar>
+							<DataTableSearch
+								placeholder={m.quotas_events_search_placeholder()}
+							/>
+							<DataTableSelectFilter
+								label={m.quotas_detail_event_column_header()}
+								value={search.eventType}
+								options={quotaUsageEventTypeOptions()}
+								onChange={(eventType) =>
+									void navigate({
+										to: ".",
+										search: (prev) => ({
+											...prev,
+											pageIndex: 0,
+											eventType,
+										}),
+										replace: true,
+									})
+								}
+							/>
+							<DataTableToolbarActions>
+								<DataTableViewOptions />
+							</DataTableToolbarActions>
+						</DataTableToolbar>
+						<DataTableBody
+							empty={{
+								Icon: ReceiptTextIcon,
+								title: m.quotas_events_empty_title(),
+								description: m.quotas_events_empty_description(),
+							}}
+							filters={{
+								query: search.query,
+								eventType: search.eventType,
+							}}
+						/>
+						<DataTablePagination />
+					</DataTable>
+				</Section>
 			</PageContent>
 		</Page>
 	);

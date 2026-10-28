@@ -50,7 +50,7 @@ const QuotaConsumption = ({
 	const percentage = share === null ? null : Math.round(share * 100);
 
 	return (
-		<div className={cn("flex items-center justify-end gap-2", className)}>
+		<div className={cn("flex items-center gap-2", className)}>
 			<span className="tabular-nums">{formatAmount(consumedAmount)}</span>
 			<QuotaUnitLabel unit={unit} amount={consumedAmount} />
 			{percentage === null ? null : (
@@ -87,7 +87,7 @@ const QuotaRemaining = ({
 	const isLow = share !== null && share < LOW_BALANCE_SHARE;
 
 	return (
-		<div className={cn("flex items-center justify-end gap-2", className)}>
+		<div className={cn("flex items-center gap-2", className)}>
 			<span
 				className={cn(
 					"font-medium tabular-nums",

@@ -42,3 +42,14 @@ export const withQuery = <TSearch extends object>(
 	pageIndex: 0,
 	query,
 });
+
+/**
+ * A table's search params at their defaults: the first page, unsorted and
+ * unfiltered. Entity pages strip them so their links stay clean.
+ */
+export const dataTableSearchDefaults = {
+	pageIndex: 0,
+	pageSize: 20,
+	sort: [],
+	query: "",
+};

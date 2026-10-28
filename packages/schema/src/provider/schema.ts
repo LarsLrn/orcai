@@ -5,6 +5,7 @@ import {
 	type ProviderKind,
 } from "@orcai/core";
 import { z } from "zod/v4";
+import { modelCapabilitiesSchema } from "../model/parts/capabilities";
 import { organizationIdSchema } from "../organization/ref";
 import type { ErrorReason } from "../shared/error-reason";
 import { currencySchema, priceSchema } from "../shared/primitives/money";
@@ -167,6 +168,15 @@ export const providerSchema = providerFieldsSchema
 		updatedAt: z.coerce.date().nullable(),
 	});
 
+export const providerDetailSchema = providerSchema.extend({
+	/** Counted over all of the provider's models. */
+	models: z.object({
+		total: z.number().int().nonnegative(),
+		deprecated: z.number().int().nonnegative(),
+		capabilities: z.array(modelCapabilitiesSchema),
+	}),
+});
+
 export const providerFiltersSchema = z.object({
 	enabled: providerSchema.shape.enabled.optional(),
 	purpose: z
@@ -178,3 +188,4 @@ export const providerFiltersSchema = z.object({
 });
 
 export type Provider = z.infer<typeof providerSchema>;
+export type ProviderDetail = z.infer<typeof providerDetailSchema>;

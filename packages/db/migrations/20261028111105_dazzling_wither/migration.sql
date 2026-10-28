@@ -1,0 +1,1 @@
+CREATE INDEX "quota_usage_event_pool_occurred_idx" ON "quota_usage_event" ("quota_pool_id","occurred_at");

@@ -1,10 +1,16 @@
 import { DB, dbSchema } from "@orcai/db";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY, type GroupSortKey } from "@orcai/schema";
+import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	type GroupMemberSortKey,
+	type GroupSortKey,
+} from "@orcai/schema";
 import {
 	and,
+	asc,
 	count,
 	desc,
 	eq,
+	getColumns,
 	ilike,
 	inArray,
 	isNull,
@@ -16,6 +22,7 @@ import * as Effect from "effect/Effect";
 import {
 	addGroupMembers,
 	findOrganizationGroup,
+	groupMemberCount,
 	removeGroupMembers,
 } from "@/lib/authz/group-membership";
 import {
@@ -90,6 +97,7 @@ const listGroups = authed.group.list
 			allowlist: {
 				name: dbSchema.group.name,
 				kind: dbSchema.group.kind,
+				memberCount: groupMemberCount,
 				createdAt: dbSchema.group.createdAt,
 				updatedAt: dbSchema.group.updatedAt,
 			} satisfies Record<GroupSortKey, SortExpression>,
@@ -105,7 +113,10 @@ const listGroups = authed.group.list
 		const [data, [rowCount]] = yield* Effect.all(
 			[
 				db
-					.select()
+					.select({
+						...getColumns(dbSchema.group),
+						memberCount: groupMemberCount,
+					})
 					.from(dbSchema.group)
 					.where(whereClause)
 					.orderBy(...orderBy)
@@ -429,6 +440,19 @@ const listGroupMembers = authed.group.listMembers
 			queryLike: input.query ? literalSearch(input.query.trim()) : undefined,
 			canSeeEmail,
 		});
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.user.name,
+			} satisfies Record<GroupMemberSortKey, SortExpression>,
+			defaultOrder: [
+				asc(dbSchema.user.name),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.user.id,
+			},
+		});
 
 		if (
 			group.kind === "system" &&
@@ -451,6 +475,7 @@ const listGroupMembers = authed.group.listMembers
 							eq(dbSchema.user.id, dbSchema.member.userId),
 						)
 						.where(whereClause)
+						.orderBy(...orderBy)
 						.limit(input.pageSize)
 						.offset(input.pageIndex * input.pageSize),
 					db
@@ -500,6 +525,7 @@ const listGroupMembers = authed.group.listMembers
 						eq(dbSchema.user.id, dbSchema.groupMember.userId),
 					)
 					.where(whereClause)
+					.orderBy(...orderBy)
 					.limit(input.pageSize)
 					.offset(input.pageIndex * input.pageSize),
 				db

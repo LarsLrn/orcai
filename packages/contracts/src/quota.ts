@@ -11,6 +11,8 @@ import {
 	quotaPoolListResponseSchema,
 	quotaPoolUpdateInputSchema,
 	quotaPoolWriteResponseSchema,
+	quotaUsageEventListInputSchema,
+	quotaUsageEventListResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -55,6 +57,19 @@ export const quotaContracts = {
 		)
 		.input(quotaPoolFindInputSchema)
 		.output(quotaPoolFindResponseSchema),
+	listEvents: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/quota-pools/{quotaPoolId}/events",
+				summary: "List quota pool usage events",
+				tags: [
+					"Quota",
+				],
+			}),
+		)
+		.input(quotaUsageEventListInputSchema)
+		.output(quotaUsageEventListResponseSchema),
 	update: base
 		.meta(
 			openapi({

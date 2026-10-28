@@ -314,6 +314,10 @@ export const quotaUsageEvent = pgTable(
 			table.quotaPeriodId,
 			table.occurredAt,
 		),
+		index("quota_usage_event_pool_occurred_idx").on(
+			table.quotaPoolId,
+			table.occurredAt,
+		),
 		index("quota_usage_event_app_request_idx").on(table.appRequestId),
 		index("quota_usage_event_org_finalized_idx")
 			.on(table.organizationId, table.occurredAt)

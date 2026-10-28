@@ -1,10 +1,10 @@
-import type { AnalyticsBot } from "@orcai/schema";
+import type { UsageBot } from "@orcai/schema";
 import { m } from "@/paraglide/messages";
 
-export const analyticsBotKey = (bot: AnalyticsBot) =>
+export const analyticsBotKey = (bot: UsageBot) =>
 	bot.kind === "bot" ? bot.id : bot.kind;
 
-export const analyticsBotName = (bot: AnalyticsBot) => {
+export const analyticsBotName = (bot: UsageBot) => {
 	switch (bot.kind) {
 		case "bot":
 			return bot.name;

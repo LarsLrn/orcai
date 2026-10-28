@@ -56,6 +56,8 @@ described under [Invitations](/docs/using-orcai/access-control#invitations).
   in this organisation, with the role and where the access comes from: a direct
   grant, a group, All members, an inherited bot or block, the organisation, or
   public visibility. Use it to answer why someone can or cannot see something.
+  The table pages through the list and filters it by name, resource type and
+  source.
 - **User management**: **Send password reset**, **Send verification email**
   while the address is unverified, the organisation role, and **Remove from
   organisation**.
@@ -75,9 +77,11 @@ open sessions, and entering the app rechecks that the membership still exists.
 Groups (`/app/groups`) supports:
 
 - Search
+- The member count of each group
 - Create custom groups
 - Edit and delete custom groups
-- Member management with explicit/implicit labels
+- Member management with explicit/implicit labels: a group's page adds
+  members and lists the current ones in a searchable, paged table
 
 System groups are immutable. A group opens at `/app/groups/<group id>`;
 [Access Control](/docs/using-orcai/access-control#groups) covers the All
@@ -133,7 +137,13 @@ by the workers within five minutes.
 **View pool** opens `/app/quotas/<pool id>`, with the current period's
 budget, consumed, reserved and remaining amounts, **Adjust budget** (raising
 the budget frees the remaining allowance straight away), the eligible groups
-and the recent usage events. **Edit pool** opens `/app/quotas/<pool id>/edit`.
+with their description, type and member count, and the usage events. The
+usage events table covers every period, newest first, and filters by user and
+event type: Reserved when a call starts, Settled with the amount it actually
+used, Released when a reservation is given back, Failed when the call failed.
+As in Analytics, people who have left the organisation and bots you cannot
+open stay unnamed, and the user search finds current members only.
+**Edit pool** opens `/app/quotas/<pool id>/edit`.
 
 In chat, users may see remaining quota badges by pool name and metering mode.
 
@@ -224,8 +234,9 @@ A search provider has no models; it serves the organisation's web search once
 the [Organisation page](#web-search) chooses it, and quota pools on it bound
 the searches. Its page warns while no active quota pool covers it.
 
-A provider's page (`/app/providers/<provider id>`) shows its configuration and
-connected models, with **Add model** and **Edit provider**
+A provider's page (`/app/providers/<provider id>`) shows its configuration,
+model counts and a searchable, paged table of its connected models, with
+**Add model** and **Edit provider**
 (`/app/providers/<provider id>/edit`). There is no separate connection test;
 **Discover models** on the Models page is a quick check that the endpoint and
 key work.

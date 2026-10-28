@@ -1,4 +1,4 @@
-import type { Group } from "@orcai/schema";
+import type { Group, GroupListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
@@ -15,12 +15,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useDeleteGroupsMutation } from "@/hooks/mutations/use-group-mutations";
+import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
-const columnHelper = createColumnHelper<DataTableFeatures, Group>();
+const columnHelper = createColumnHelper<DataTableFeatures, GroupListRow>();
 
 export const groupTableColumns = columnHelper.columns([
-	createDataTableSelectColumn<Group>(),
+	createDataTableSelectColumn<GroupListRow>(),
 	columnHelper.accessor("name", {
 		size: 440,
 		header: ({ column }) => (
@@ -65,6 +66,23 @@ export const groupTableColumns = columnHelper.columns([
 		),
 		meta: {
 			label: m.groups_table_kind_column_header,
+		},
+	}),
+	columnHelper.accessor("memberCount", {
+		size: 120,
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title={m.groups_table_members_column_header()}
+			/>
+		),
+		cell: ({ row }) => (
+			<span className="tabular-nums">
+				{formatCount(row.original.memberCount)}
+			</span>
+		),
+		meta: {
+			label: m.groups_table_members_column_header,
 		},
 	}),
 	columnHelper.display({

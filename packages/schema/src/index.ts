@@ -23,4 +23,5 @@ export * from "./quota";
 export * from "./resource";
 export * from "./shared";
 export * from "./storage";
+export * from "./usage";
 export * from "./user";

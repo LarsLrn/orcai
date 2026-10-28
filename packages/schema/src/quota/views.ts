@@ -1,6 +1,9 @@
 import { z } from "zod/v4";
+import { groupListRowSchema } from "../group/views";
+import { modelSchema } from "../model/schema";
 import { providerMeteringModeSchema } from "../provider/parts/metering-mode";
 import { providerSchema } from "../provider/schema";
+import { usageBotSchema, usagePersonSchema } from "../usage/identity";
 import { quotaPoolIdSchema } from "./ref";
 import {
 	quotaLedgerSchema,
@@ -38,29 +41,47 @@ export const quotaPoolListRowSchema = quotaPoolSchema.extend({
 
 export const quotaPoolDetailSchema = quotaPoolListRowSchema.extend({
 	assignments: z.array(
-		quotaPoolGroupAssignmentSchema.pick({
-			id: true,
-			groupId: true,
-			isActive: true,
-			createdAt: true,
-			updatedAt: true,
-		}),
-	),
-	recentEvents: z.array(
-		quotaUsageEventSchema.pick({
-			id: true,
-			eventType: true,
-			reservationKey: true,
-			appRequestId: true,
-			userId: true,
-			reservedAmount: true,
-			actualAmount: true,
-			requestCount: true,
-			totalTokens: true,
-			occurredAt: true,
-		}),
+		quotaPoolGroupAssignmentSchema
+			.pick({
+				id: true,
+				groupId: true,
+				isActive: true,
+				createdAt: true,
+				updatedAt: true,
+			})
+			.extend({
+				group: groupListRowSchema.pick({
+					id: true,
+					name: true,
+					description: true,
+					kind: true,
+					systemKey: true,
+					memberCount: true,
+				}),
+			}),
 	),
 });
+
+export const quotaUsageEventListRowSchema = quotaUsageEventSchema
+	.pick({
+		id: true,
+		eventType: true,
+		appRequestId: true,
+		reservedAmount: true,
+		actualAmount: true,
+		totalTokens: true,
+		occurredAt: true,
+	})
+	.extend({
+		user: usagePersonSchema,
+		model: modelSchema
+			.pick({
+				id: true,
+				name: true,
+			})
+			.nullable(),
+		bot: usageBotSchema,
+	});
 
 export const quotaChatBadgeSchema = z.object({
 	poolId: quotaPoolIdSchema.nullable(),
@@ -78,5 +99,8 @@ export const quotaAvailabilitySchema = z.object({
 
 export type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
 export type QuotaPoolDetail = z.infer<typeof quotaPoolDetailSchema>;
+export type QuotaUsageEventListRow = z.infer<
+	typeof quotaUsageEventListRowSchema
+>;
 export type QuotaChatBadge = z.infer<typeof quotaChatBadgeSchema>;
 export type QuotaAvailability = z.infer<typeof quotaAvailabilitySchema>;

@@ -106,6 +106,7 @@ export const accessIds = async (
 	(
 		await client.user.listAccess({
 			id: userId,
+			pageSize: 1000,
 		})
 	).data.map((entry) => String(entry.resourceId));
 

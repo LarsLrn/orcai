@@ -21,7 +21,7 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	const user = await createThrowawayUser(baseURL(), "details");
 	await addMember(api, org, user, "member", zedTokens);
 
-	// A block only this test grants, so the card carries a row of its own.
+	// A block only this test grants, so the table carries a row of its own.
 	const blockName = `E2E Users Block ${runId()}`;
 	const block = await api.as("admin").block.create(templateBlock(blockName));
 	await api.as("admin").resource.grant({
@@ -66,12 +66,11 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	await expect(
 		page.getByText(message("users_verification_not_verified")),
 	).toBeVisible();
-	const accessCard = page.locator('[data-slot="card"]').filter({
-		hasText: message("users_access_overview_title"),
-	});
-	await expect(accessCard).toBeVisible();
-	const accessRow = accessCard
-		.locator('[data-slot="card-content"] > div')
+	const accessRow = page
+		.getByRole("region", {
+			name: message("users_access_overview_title"),
+		})
+		.getByRole("row")
 		.filter({
 			hasText: blockName,
 		});
@@ -91,7 +90,7 @@ test("users: the edit page shows what an admin may know about a user", async ({
 		}),
 	).toBeVisible();
 	await expect(
-		accessRow.getByText("viewer", {
+		accessRow.getByText(message("access_role_viewer_label"), {
 			exact: true,
 		}),
 	).toBeVisible();
@@ -109,7 +108,7 @@ test("users: the edit page reports a user without resource access", async ({
 	pageAs,
 	zedTokens,
 }) => {
-	// A new organisation grants nothing and owns no resources, so the card is empty.
+	// A new organisation grants nothing and owns no resources, so the table is empty.
 	const org = await orgs.create("E2E Users No Access");
 	const user = await createThrowawayUser(baseURL(), "no-access");
 	await addMember(api, org, user, "member", zedTokens);
@@ -122,17 +121,13 @@ test("users: the edit page reports a user without resource access", async ({
 		message("users_edit_page_title"),
 	);
 
-	const accessCard = page.locator('[data-slot="card"]').filter({
-		hasText: message("users_access_overview_title"),
+	const access = page.getByRole("region", {
+		name: message("users_access_overview_title"),
 	});
 	await expect(
-		accessCard.getByText(
-			message("users_access_overview_empty_state_description"),
-		),
+		access.getByText(message("users_access_overview_empty_state_description")),
 	).toBeVisible();
-	await expect(accessCard.locator('[data-slot="card-content"] a')).toHaveCount(
-		0,
-	);
+	await expect(access.getByRole("row")).toHaveCount(0);
 });
 
 test("users: an admin changes a user's organisation role", async ({

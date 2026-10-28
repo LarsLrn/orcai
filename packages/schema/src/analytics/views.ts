@@ -1,10 +1,9 @@
 import { z } from "zod/v4";
-import { botIdSchema } from "../bot/ref";
 import { chatMessageRatingSchema } from "../chat-message/schema";
 import { modelIdSchema } from "../model/ref";
 import { organizationIdSchema } from "../organization/ref";
 import { providerIdSchema } from "../provider/ref";
-import { userIdSchema } from "../user/ref";
+import { usageBotSchema, usagePersonSchema } from "../usage/identity";
 import { analyticsDaysSchema } from "./inputs";
 
 /** An estimated cost in one currency; amounts in different currencies are never added up. */
@@ -42,47 +41,16 @@ const analyticsRangeShape = {
 	totals: analyticsUsageSchema,
 };
 
-/** A current member, or everyone who has left the organisation added up. */
-export const analyticsPersonSchema = z.discriminatedUnion("kind", [
-	z.object({
-		kind: z.literal("member"),
-		id: userIdSchema,
-		name: z.string(),
-		email: z.string(),
-	}),
-	z.object({
-		kind: z.literal("former"),
-	}),
-]);
-
-/**
- * A bot the viewer can read, usage outside bot chats or before bots were
- * recorded, or every bot the viewer cannot read added up.
- */
-export const analyticsBotSchema = z.discriminatedUnion("kind", [
-	z.object({
-		kind: z.literal("bot"),
-		id: botIdSchema,
-		name: z.string(),
-	}),
-	z.object({
-		kind: z.literal("none"),
-	}),
-	z.object({
-		kind: z.literal("other"),
-	}),
-]);
-
 export const organizationAnalyticsSchema = z.object({
 	...analyticsRangeShape,
 	users: z.array(
 		analyticsUsageSchema.extend({
-			user: analyticsPersonSchema,
+			user: usagePersonSchema,
 		}),
 	),
 	bots: z.array(
 		analyticsUsageSchema.extend({
-			bot: analyticsBotSchema,
+			bot: usageBotSchema,
 		}),
 	),
 	/** A null model was not recorded or has been deleted. */
@@ -97,7 +65,7 @@ export const organizationAnalyticsSchema = z.object({
 	/** Ratings of the organisation's replies, by the bot of their chat. */
 	ratings: z.array(
 		z.object({
-			bot: analyticsBotSchema,
+			bot: usageBotSchema,
 			counts: z.record(chatMessageRatingSchema, z.number()),
 		}),
 	),
@@ -119,7 +87,5 @@ export const instanceAnalyticsSchema = z.object({
 export type AnalyticsCost = z.infer<typeof analyticsCostSchema>;
 export type AnalyticsUsage = z.infer<typeof analyticsUsageSchema>;
 export type AnalyticsDayUsage = z.infer<typeof analyticsDayUsageSchema>;
-export type AnalyticsPerson = z.infer<typeof analyticsPersonSchema>;
-export type AnalyticsBot = z.infer<typeof analyticsBotSchema>;
 export type OrganizationAnalytics = z.infer<typeof organizationAnalyticsSchema>;
 export type InstanceAnalytics = z.infer<typeof instanceAnalyticsSchema>;

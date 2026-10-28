@@ -79,6 +79,11 @@ describe("invalidateStaleQueries", () => {
 				input: {},
 			}),
 		);
+		const models = cached(
+			orpc.model.list.queryKey({
+				input: {},
+			}),
+		);
 
 		await new MutationObserver(
 			queryClient,
@@ -96,11 +101,13 @@ describe("invalidateStaleQueries", () => {
 			access(),
 			membersB(),
 			groups(),
+			models(),
 		]).toEqual([
 			true,
 			true,
 			true,
 			false,
+			true,
 			false,
 		]);
 	});
