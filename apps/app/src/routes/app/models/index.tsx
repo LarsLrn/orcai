@@ -71,6 +71,9 @@ export const Route = createFileRoute("/app/models/")({
 					input: {
 						pageIndex: 0,
 						pageSize: 200,
+						filters: {
+							purpose: "models",
+						},
 					},
 					staleTime: "static",
 				}),
@@ -101,6 +104,9 @@ function RouteComponent() {
 			input: {
 				pageIndex: 0,
 				pageSize: 200,
+				filters: {
+					purpose: "models",
+				},
 			},
 		}),
 	);

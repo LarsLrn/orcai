@@ -14,6 +14,7 @@ const useDefaultChatModel = () => {
 				pageSize: 100,
 				filters: {
 					enabled: true,
+					purpose: "models",
 				},
 			},
 		}),

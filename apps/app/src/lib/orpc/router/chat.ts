@@ -1,8 +1,10 @@
-import type {
-	ChatId,
-	ChatMessageId,
-	ModelId,
-	OrganizationId,
+import {
+	type ChatId,
+	type ChatMessageId,
+	isModelProviderKind,
+	type ModelId,
+	type OrganizationId,
+	type ProviderId,
 } from "@orcai/core";
 import {
 	chatMessageSearchText,
@@ -349,6 +351,98 @@ const checkMaxTokens = ({
 		}
 	});
 
+/** A chat's provider is a model provider of the organisation, and its model belongs to it. */
+const checkChatModel = ({
+	providerId,
+	modelId,
+	organizationId,
+}: {
+	providerId: ProviderId | null | undefined;
+	modelId: ModelId | null | undefined;
+	organizationId: OrganizationId | undefined;
+}) =>
+	Effect.gen(function* () {
+		if (providerId == null && modelId == null) {
+			return;
+		}
+
+		if (organizationId === undefined) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "ACTIVE_ORGANIZATION_REQUIRED",
+				message:
+					"An active organization must be selected to access this resource.",
+			});
+		}
+
+		const db = yield* DB;
+
+		if (providerId != null) {
+			const [provider] = yield* db
+				.select({
+					kind: dbSchema.provider.kind,
+				})
+				.from(dbSchema.provider)
+				.where(
+					and(
+						eq(dbSchema.provider.id, providerId),
+						eq(dbSchema.provider.organizationId, organizationId),
+					),
+				)
+				.limit(1);
+
+			if (!provider) {
+				return yield* new AppErrors.NotFoundError({
+					reason: "PROVIDER_NOT_FOUND",
+					id: providerId,
+					message: "Provider not found",
+				});
+			}
+
+			if (!isModelProviderKind(provider.kind)) {
+				return yield* new AppErrors.BadRequestError({
+					reason: "PROVIDER_PURPOSE_MISMATCH",
+					message:
+						"Selected provider is a search provider. Please choose a chat model.",
+				});
+			}
+		}
+
+		if (modelId != null) {
+			const [model] = yield* db
+				.select({
+					providerId: dbSchema.model.providerId,
+				})
+				.from(dbSchema.model)
+				.innerJoin(
+					dbSchema.provider,
+					eq(dbSchema.provider.id, dbSchema.model.providerId),
+				)
+				.where(
+					and(
+						eq(dbSchema.model.id, modelId),
+						eq(dbSchema.provider.organizationId, organizationId),
+					),
+				)
+				.limit(1);
+
+			if (!model) {
+				return yield* new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
+					id: modelId,
+					message: "Model not found",
+				});
+			}
+
+			if (providerId != null && model.providerId !== providerId) {
+				return yield* new AppErrors.BadRequestError({
+					reason: "MODEL_PROVIDER_MISMATCH",
+					message:
+						"Selected model does not belong to the selected provider. Please update chat settings.",
+				});
+			}
+		}
+	});
+
 const createChat = authed.chat.create.effect(function* ({ input, context }) {
 	const features = input.config?.features;
 
@@ -368,6 +462,11 @@ const createChat = authed.chat.create.effect(function* ({ input, context }) {
 		yield* checkFeatureRequirements(features);
 	}
 
+	yield* checkChatModel({
+		providerId: input.config?.providerId,
+		modelId: input.config?.modelId,
+		organizationId: context.auth.session.activeOrganizationId,
+	});
 	yield* checkMaxTokens({
 		modelId: input.config?.modelId,
 		maxTokens: input.config?.maxTokens,
@@ -451,6 +550,24 @@ const updateChat = authed.chat.update
 
 							return nextConfig;
 						})();
+
+		if (
+			input.config != null &&
+			(input.config.providerId !== undefined ||
+				input.config.modelId !== undefined)
+		) {
+			yield* checkChatModel({
+				providerId:
+					input.config.providerId === undefined
+						? existingChat?.config?.providerId
+						: input.config.providerId,
+				modelId:
+					input.config.modelId === undefined
+						? existingChat?.config?.modelId
+						: input.config.modelId,
+				organizationId: context.auth.session.activeOrganizationId,
+			});
+		}
 
 		// Only a new max tokens is checked; a model switch keeps it and the turn caps it.
 		if (input.config?.maxTokens != null) {

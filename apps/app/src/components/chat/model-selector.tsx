@@ -61,6 +61,7 @@ const ModelSelectorButton = ({
 				pageSize: 100,
 				filters: {
 					enabled: true,
+					purpose: "models",
 				},
 			},
 		}),

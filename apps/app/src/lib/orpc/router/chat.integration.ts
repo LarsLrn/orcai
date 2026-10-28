@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatId, ChatMessageId } from "@orcai/core";
+import type { ChatId, ChatMessageId, ModelId, ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { ChatConfig, ChatConfigPatch } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
@@ -398,6 +399,201 @@ describe("chat pins", () => {
 			});
 			expect(await rejection(pin(owner, conversation, true))).toMatchObject({
 				reason: "ASSISTANT_CONVERSATION_IMMUTABLE",
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("a chat's model and provider", () => {
+	const withProviders = async () => {
+		const {
+			actors: [admin, member],
+			zedToken,
+		} = await organizationWith([
+			"admin",
+			"member",
+		]);
+		const procedures = await run(Procedures);
+		let token = zedToken;
+		const addProvider = async (kind: "openai-compatible" | "tavily") => {
+			const { data, meta } = await run(
+				procedures.provider.create(
+					{
+						name: `${kind} ${crypto.randomUUID()}`,
+						description: "Created by the chat config test.",
+						kind,
+						endpoint: "http://127.0.0.1:9/v1",
+						apiKey: "key",
+						meteringMode: kind === "tavily" ? "requests" : "tokens",
+						enabled: true,
+					},
+					await procedureOptions(admin, token),
+				),
+			);
+			token = meta?.zedToken ?? token;
+			return data;
+		};
+		const addModel = async (providerId: ProviderId) =>
+			(
+				await run(
+					procedures.model.create(
+						{
+							providerId,
+							providerModelId: crypto.randomUUID(),
+							name: "Chat model",
+							description: "A text model.",
+							isDeprecated: false,
+							capabilities: [
+								"text",
+								"tool-calling",
+							],
+						},
+						await procedureOptions(admin, token),
+					),
+				)
+			).data;
+		const chat = async () => {
+			const { data, meta } = await run(
+				procedures.chat.create(
+					{
+						title: "Config",
+					},
+					await procedureOptions(member, token),
+				),
+			);
+			token = meta?.zedToken ?? token;
+			return data;
+		};
+		const create = async (config: ChatConfig) =>
+			run(
+				procedures.chat.create(
+					{
+						title: "Config",
+						config,
+					},
+					await procedureOptions(member, token),
+				),
+			);
+		const update = async (id: ChatId, config: ChatConfigPatch) =>
+			run(
+				procedures.chat.update(
+					{
+						id,
+						config,
+					},
+					await procedureOptions(member, token),
+				),
+			);
+
+		return {
+			addProvider,
+			addModel,
+			chat,
+			create,
+			update,
+		};
+	};
+
+	test(
+		"a search provider is refused in a chat's config, a model of its own provider is kept",
+		async () => {
+			const { addProvider, addModel, chat, create, update } =
+				await withProviders();
+			const search = await addProvider("tavily");
+			const provider = await addProvider("openai-compatible");
+			const model = await addModel(provider.id);
+
+			expect(
+				await rejection(
+					create({
+						providerId: search.id,
+					}),
+				),
+			).toMatchObject({
+				reason: "PROVIDER_PURPOSE_MISMATCH",
+			});
+			expect(
+				await rejection(
+					create({
+						providerId: search.id,
+						modelId: model.id,
+					}),
+				),
+			).toMatchObject({
+				reason: "PROVIDER_PURPOSE_MISMATCH",
+			});
+
+			expect(
+				await rejection(
+					create({
+						providerId: provider.id,
+						modelId: crypto.randomUUID() as ModelId,
+					}),
+				),
+			).toMatchObject({
+				reason: "MODEL_NOT_FOUND",
+			});
+			const elsewhere = await withProviders();
+			const foreignProvider = await elsewhere.addProvider("openai-compatible");
+			const foreignModel = await elsewhere.addModel(foreignProvider.id);
+			expect(
+				await rejection(
+					create({
+						providerId: provider.id,
+						modelId: foreignModel.id,
+					}),
+				),
+			).toMatchObject({
+				reason: "MODEL_NOT_FOUND",
+			});
+			expect(
+				await rejection(
+					create({
+						providerId: foreignProvider.id,
+					}),
+				),
+			).toMatchObject({
+				reason: "PROVIDER_NOT_FOUND",
+			});
+
+			const created = await create({
+				providerId: provider.id,
+				modelId: model.id,
+			});
+			expect(created.data.config).toMatchObject({
+				providerId: provider.id,
+				modelId: model.id,
+			});
+
+			const other = await addProvider("openai-compatible");
+			const target = await chat();
+			expect(
+				await rejection(
+					update(target.id, {
+						providerId: other.id,
+						modelId: model.id,
+					}),
+				),
+			).toMatchObject({
+				reason: "MODEL_PROVIDER_MISMATCH",
+			});
+			expect(
+				await rejection(
+					update(target.id, {
+						providerId: search.id,
+					}),
+				),
+			).toMatchObject({
+				reason: "PROVIDER_PURPOSE_MISMATCH",
+			});
+			const updated = await update(target.id, {
+				providerId: provider.id,
+				modelId: model.id,
+			});
+			expect(updated.data.config).toMatchObject({
+				providerId: provider.id,
+				modelId: model.id,
 			});
 		},
 		TIMEOUT,
