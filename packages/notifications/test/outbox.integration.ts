@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { DB, DrizzleLive, dbSchema } from "@orcai/db";
+import type { EmailDeliveryChannel } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import {
-	type EmailDeliveryChannel,
 	EmailService,
 	notificationOutboxValues,
 	processNextNotification,

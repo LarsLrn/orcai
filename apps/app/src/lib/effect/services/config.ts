@@ -135,6 +135,7 @@ export class AppConfigService extends Context.Service<
 		readonly config: AppConfig;
 		readonly docs: DocsConfig | undefined;
 		readonly publicConfig: PublicConfig;
+		readonly warnings: readonly string[];
 	}
 >()("AppConfigService") {}
 
@@ -158,6 +159,7 @@ export const AppConfigLive = Layer.effect(
 			config,
 			docs,
 			publicConfig,
+			warnings,
 		};
 	}),
 );

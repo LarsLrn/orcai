@@ -1,3 +1,4 @@
+import type { EmailDeliveryChannel } from "@orcai/schema";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -14,9 +15,6 @@ export type SendEmailParams = Readonly<{
 	html: string;
 	from?: string;
 }>;
-
-/** `log` means the message only reached the worker log. */
-export type EmailDeliveryChannel = "smtp" | "log";
 
 export class EmailService extends Context.Service<
 	EmailService,

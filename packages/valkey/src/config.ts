@@ -5,7 +5,8 @@ import * as Layer from "effect/Layer";
 
 const valkeyConfig = Config.all({
 	valkey: Config.all({
-		url: Config.String("VALKEY_URL"),
+		// The URL may carry a password.
+		url: Config.Redacted("VALKEY_URL"),
 	}),
 });
 

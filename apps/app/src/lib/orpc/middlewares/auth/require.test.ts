@@ -62,6 +62,7 @@ const requestContext = () => ({
 		} as never,
 		docs: undefined,
 		publicConfig: {},
+		warnings: [],
 	}) as AppEffectContext["effect/context"],
 	"effect/wrap": mapEffectErrors,
 });
