@@ -1,6 +1,7 @@
 import type { AssetWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useDebounceValue } from "usehooks-ts";
 import { AssetCard } from "@/components/documents/asset-card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,13 +21,14 @@ const AssetLibraryPicker = ({
 	scrollAreaClassName?: string;
 }) => {
 	const [search, setSearch] = useState("");
+	const [debouncedSearch] = useDebounceValue(search, 300);
 	const assets = useQuery(
 		orpc.asset.list.queryOptions({
 			input: {
 				pageIndex: 0,
 				pageSize: 24,
 				filters: {
-					search: search.trim() || undefined,
+					search: debouncedSearch.trim() || undefined,
 				},
 			},
 		}),

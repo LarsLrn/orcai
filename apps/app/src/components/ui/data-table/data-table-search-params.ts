@@ -1,4 +1,8 @@
 import type { PaginationState } from "@tanstack/react-table";
+import { z } from "zod/v4";
+
+/** The `query` search param a data table search edits. */
+export const dataTableQuerySchema = z.string().trim().max(100);
 
 /** Search params after a pagination change. */
 export const withPagination = <TSearch extends object>(
@@ -27,4 +31,14 @@ export const withSorting = <
 	...search,
 	pageIndex: 0,
 	sort: sorting,
+});
+
+/** Search params after a search query change, back on the first page. */
+export const withQuery = <TSearch extends object>(
+	search: TSearch,
+	query: string,
+) => ({
+	...search,
+	pageIndex: 0,
+	query,
 });

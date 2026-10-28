@@ -1,13 +1,13 @@
 import { listUsersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { PlusIcon, UsersIcon } from "lucide-react";
-import { z } from "zod/v4";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -27,7 +27,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listUsersInputSchema.extend({
-	query: z.string().trim().max(100).default(""),
+	query: dataTableQuerySchema.default(""),
 });
 
 export const Route = createFileRoute("/app/users/")({
@@ -60,7 +60,6 @@ export const Route = createFileRoute("/app/users/")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
 	const { pageIndex, pageSize, query, sort } = Route.useSearch();
 	const { data: users } = useSuspenseQuery(
 		orpc.user.list.queryOptions({
@@ -117,21 +116,7 @@ function RouteComponent() {
 					}}
 				>
 					<DataTableToolbar>
-						<DataTableSearch
-							value={query}
-							placeholder={m.users_list_search_placeholder()}
-							onChange={(value) =>
-								void navigate({
-									to: ".",
-									search: (prev) => ({
-										...prev,
-										pageIndex: 0,
-										query: value,
-									}),
-									replace: true,
-								})
-							}
-						/>
+						<DataTableSearch placeholder={m.users_list_search_placeholder()} />
 						<DataTableToolbarActions>
 							<DataTableViewOptions />
 							<UsersDataTableSelectActions />

@@ -2,7 +2,6 @@ import { listModelsInputSchema, providerIdSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BoxIcon, PlusIcon } from "lucide-react";
-import { z } from "zod/v4";
 import { DiscoverModels } from "@/components/model/discover-models";
 import { ModelTableActions } from "@/components/model/table/model-table-actions";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
@@ -11,6 +10,7 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
 	DataTableToolbar,
@@ -32,7 +32,7 @@ const searchSchema = listModelsInputSchema
 		filters: true,
 	})
 	.extend({
-		query: z.string().trim().max(100).default(""),
+		query: dataTableQuerySchema.default(""),
 		providerId: providerIdSchema.optional(),
 	});
 
@@ -139,19 +139,7 @@ function RouteComponent() {
 				>
 					<DataTableToolbar>
 						<DataTableSearch
-							value={query}
 							placeholder={m.models_index_search_placeholder()}
-							onChange={(value) =>
-								void navigate({
-									to: ".",
-									search: (prev) => ({
-										...prev,
-										pageIndex: 0,
-										query: value,
-									}),
-									replace: true,
-								})
-							}
 						/>
 						<DataTableSelectFilter
 							label={m.common_provider_label()}

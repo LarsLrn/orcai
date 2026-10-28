@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import type { SortingState } from "@tanstack/react-table";
-import { withPagination, withSorting } from "./data-table-search-params";
+import {
+	withPagination,
+	withQuery,
+	withSorting,
+} from "./data-table-search-params";
 
 describe("withPagination", () => {
 	test("replaces page index and size and keeps other params", () => {
@@ -46,6 +50,26 @@ describe("withSorting", () => {
 			pageIndex: 0,
 			pageSize: 20,
 			sort: sorting,
+			query: "abc",
+		});
+	});
+});
+
+describe("withQuery", () => {
+	test("sets the query and resets to the first page", () => {
+		const next = withQuery(
+			{
+				pageIndex: 4,
+				pageSize: 20,
+				providerId: "p1",
+			},
+			"abc",
+		);
+
+		expect(next).toEqual({
+			pageIndex: 0,
+			pageSize: 20,
+			providerId: "p1",
 			query: "abc",
 		});
 	});

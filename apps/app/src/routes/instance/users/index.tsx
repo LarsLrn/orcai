@@ -1,12 +1,13 @@
 import { listAllUsersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { UsersIcon } from "lucide-react";
-import { z } from "zod/v4";
+import type { z } from "zod/v4";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -24,7 +25,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listAllUsersInputSchema.extend({
-	query: z.string().trim().max(100).default(""),
+	query: dataTableQuerySchema.default(""),
 });
 
 const listInput = ({
@@ -73,7 +74,6 @@ export const Route = createFileRoute("/instance/users/")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
 	const { pageIndex, pageSize, query, sort } = Route.useSearch();
 	const { data: users } = useSuspenseQuery(
 		orpc.user.listAll.queryOptions({
@@ -110,19 +110,7 @@ function RouteComponent() {
 				>
 					<DataTableToolbar>
 						<DataTableSearch
-							value={query}
 							placeholder={m.instance_users_search_placeholder()}
-							onChange={(value) =>
-								void navigate({
-									to: ".",
-									search: (prev) => ({
-										...prev,
-										pageIndex: 0,
-										query: value,
-									}),
-									replace: true,
-								})
-							}
 						/>
 						<DataTableToolbarActions>
 							<DataTableViewOptions />

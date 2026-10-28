@@ -1,9 +1,9 @@
 import { listAllOrganizationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Building2Icon, PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { z } from "zod/v4";
+import type { z } from "zod/v4";
 import { OrganizationForm } from "@/components/organizations/form/organization-form";
 import { instanceOrganizationTableColumns } from "@/components/organizations/table/instance-organization-table-columns";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -35,7 +36,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listAllOrganizationsInputSchema.extend({
-	query: z.string().trim().max(100).default(""),
+	query: dataTableQuerySchema.default(""),
 });
 
 const listInput = ({
@@ -85,7 +86,6 @@ export const Route = createFileRoute("/instance/organizations/")({
 
 function RouteComponent() {
 	const { pageIndex, pageSize, query, sort } = Route.useSearch();
-	const navigate = useNavigate();
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const { data: organizations } = useSuspenseQuery(
 		orpc.organization.listAll.queryOptions({
@@ -130,19 +130,7 @@ function RouteComponent() {
 				>
 					<DataTableToolbar>
 						<DataTableSearch
-							value={query}
 							placeholder={m.instance_organizations_search_placeholder()}
-							onChange={(value) =>
-								void navigate({
-									to: ".",
-									search: (prev) => ({
-										...prev,
-										pageIndex: 0,
-										query: value,
-									}),
-									replace: true,
-								})
-							}
 						/>
 						<DataTableToolbarActions>
 							<DataTableViewOptions />

@@ -1,70 +1,111 @@
-import { SearchIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { m } from "@/paraglide/messages";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect, useEffectEvent, useState } from "react";
+import { SearchField } from "@/components/ui/composed/search-field";
+import { dataTableQuerySchema, withQuery } from "./data-table-search-params";
 
 type DataTableSearchProps = {
-	value: string;
-	onChange: (value: string) => void;
 	placeholder?: string;
 	debounceMs?: number;
 };
 
+type Emission = {
+	id: string;
+	query: string;
+};
+
+const emissionId = () => Math.random().toString(36).slice(2);
+
+/**
+ * Edits the `query` search param. The input owns what the user types and
+ * navigates with the trimmed query after a pause, tagging the history entry.
+ * A location carrying a pending tag settles it and any earlier, superseded
+ * ones; any other location (cleared filters, back and forward) replaces the
+ * draft and drops the pending pause.
+ */
 const DataTableSearch = ({
-	value,
-	onChange,
-	placeholder = m.common_search_placeholder(),
+	placeholder,
 	debounceMs = 250,
 }: DataTableSearchProps) => {
-	const [draft, setDraft] = useState(value);
+	const navigate = useNavigate();
+	const location = useLocation({
+		select: ({ search, state }) => ({
+			key: state.__TSR_key,
+			emission: state.dataTableSearch,
+			query:
+				"query" in search && typeof search.query === "string"
+					? search.query
+					: "",
+		}),
+	});
+	const [draft, setDraft] = useState(location.query);
+	const [composing, setComposing] = useState(false);
+	const [synced, setSynced] = useState({
+		key: location.key,
+		query: location.query,
+		pending: [] as Emission[],
+	});
+	if (location.key !== synced.key) {
+		const echo = synced.pending.findIndex(
+			(emission) => emission.id === location.emission,
+		);
+		setSynced({
+			key: location.key,
+			query: location.query,
+			pending: echo === -1 ? [] : synced.pending.slice(echo + 1),
+		});
+		if (echo === -1) setDraft(location.query);
+	}
 
-	useEffect(
-		() => setDraft(value),
-		[
-			value,
-		],
-	);
+	const emit = (query: string) => {
+		const id = emissionId();
+		setSynced((current) => ({
+			...current,
+			pending: [
+				...current.pending,
+				{
+					id,
+					query,
+				},
+			],
+		}));
+		void navigate({
+			to: ".",
+			search: (prev) => withQuery(prev, query),
+			state: (prev) => ({
+				...prev,
+				dataTableSearch: id,
+			}),
+			replace: true,
+		});
+	};
+	const emitAfterPause = useEffectEvent(emit);
+	const query = draft.trim();
+	const latest = synced.pending.at(-1)?.query ?? synced.query;
 	useEffect(() => {
-		if (draft === value) return;
-		const timeout = window.setTimeout(() => onChange(draft), debounceMs);
+		if (composing || query === latest) return;
+		const timeout = window.setTimeout(() => emitAfterPause(query), debounceMs);
 		return () => window.clearTimeout(timeout);
 	}, [
+		composing,
 		debounceMs,
-		draft,
-		onChange,
-		value,
+		latest,
+		query,
 	]);
 
 	return (
-		<div className="relative w-full sm:w-auto sm:min-w-40 sm:max-w-xs sm:flex-1">
-			<SearchIcon
-				aria-hidden="true"
-				className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-			/>
-			<Input
-				value={draft}
-				onChange={(event) => setDraft(event.target.value)}
-				aria-label={placeholder}
-				placeholder={placeholder}
-				className="h-8 pr-9 pl-9"
-			/>
-			{draft ? (
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon-sm"
-					className="absolute top-1/2 right-1 -translate-y-1/2"
-					onClick={() => {
-						setDraft("");
-						onChange("");
-					}}
-				>
-					<XIcon aria-hidden="true" />
-					<span className="sr-only">{m.data_table_search_clear_label()}</span>
-				</Button>
-			) : null}
-		</div>
+		<SearchField
+			value={draft}
+			onValueChange={setDraft}
+			onClear={() => {
+				setDraft("");
+				if (latest) emit("");
+			}}
+			onCompositionStart={() => setComposing(true)}
+			onCompositionEnd={() => setComposing(false)}
+			placeholder={placeholder}
+			maxLength={dataTableQuerySchema.maxLength ?? undefined}
+			className="w-full sm:w-auto sm:min-w-40 sm:max-w-xs sm:flex-1"
+		/>
 	);
 };
 

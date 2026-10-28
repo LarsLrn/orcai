@@ -3,7 +3,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SparklesIcon, UserCogIcon } from "lucide-react";
 import { useState } from "react";
-import { z } from "zod/v4";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { GroupTableActions } from "@/components/groups/table/group-table-actions";
 import { groupTableColumns } from "@/components/groups/table/group-table-columns";
@@ -12,6 +11,7 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
+import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -40,7 +40,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listGroupsInputSchema.extend({
-	query: z.string().trim().max(100).default(""),
+	query: dataTableQuerySchema.default(""),
 });
 
 export const Route = createFileRoute("/app/groups/")({
@@ -159,21 +159,7 @@ function RouteComponent() {
 					}}
 				>
 					<DataTableToolbar>
-						<DataTableSearch
-							value={query}
-							placeholder={m.groups_list_search_placeholder()}
-							onChange={(value) =>
-								void navigate({
-									to: ".",
-									search: (prev) => ({
-										...prev,
-										pageIndex: 0,
-										query: value,
-									}),
-									replace: true,
-								})
-							}
-						/>
+						<DataTableSearch placeholder={m.groups_list_search_placeholder()} />
 						<DataTableToolbarActions>
 							<DataTableViewOptions />
 							<GroupTableActions />

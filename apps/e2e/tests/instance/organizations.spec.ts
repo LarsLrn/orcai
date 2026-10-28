@@ -86,7 +86,8 @@ test("instance: the search narrows the organisations page", async ({
 	orgs,
 	pageAsWellKnownAdmin,
 }) => {
-	const wanted = await orgs.create("E2E Instance Search");
+	const name = `E2E Search ${runId()}`;
+	const wanted = await orgs.create(name);
 	const other = await orgs.create("E2E Instance Hidden");
 
 	const page = await pageAsWellKnownAdmin();
@@ -97,10 +98,23 @@ test("instance: the search narrows the organisations page", async ({
 			hasText: slug,
 		});
 
-	await page
-		.getByPlaceholder(message("instance_organizations_search_placeholder"))
-		.fill(wanted.slug);
+	const search = page.getByPlaceholder(
+		message("instance_organizations_search_placeholder"),
+	);
+	// Fast bursts, each followed by a pause until the URL holds the trimmed
+	// prefix, so typing goes on while that navigation loads.
+	let typed = "";
+	for (const word of name.split(/(?<= )/)) {
+		await search.pressSequentially(word, {
+			delay: 20,
+		});
+		typed += word;
+		await expect
+			.poll(() => new URL(page.url()).searchParams.get("query"))
+			.toBe(typed.trim());
+	}
 
+	await expect(search).toHaveValue(name);
 	await expect(rowFor(wanted.slug)).toBeVisible();
 	await expect(rowFor(other.slug)).toHaveCount(0);
 });
