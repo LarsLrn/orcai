@@ -9,6 +9,7 @@ import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { composerBlocker } from "@/components/chat/composer-blocker";
+import { starterModel } from "@/components/chat/model-picker-state";
 import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
@@ -58,26 +59,22 @@ const useChatStarter = ({
 				}
 			: null;
 	const required = setup?.strength === "required" ? setup : null;
-	const setupModel = setup?.model && {
-		modelId: setup.model.id,
-		providerId: setup.model.providerId,
-	};
-	const defaultPick = defaultModel &&
-		defaultProvider && {
-			modelId: defaultModel.id,
-			providerId: defaultProvider.id,
-		};
-	// A required model is fixed; otherwise the user's pick, the recommended one, then the default.
-	const selected = required
-		? setupModel
-		: (picked ?? setupModel ?? defaultPick);
+	const selected = starterModel({
+		setup,
+		picked,
+		defaultPick: defaultModel &&
+			defaultProvider && {
+				modelId: defaultModel.id,
+				providerId: defaultProvider.id,
+			},
+	});
 	const { data: quota } = useQuotaStatus({
 		providerId: selected?.providerId,
 		modelId: selected?.modelId,
 	});
 
 	const blocker = composerBlocker({
-		modelAvailable: availability !== "none" || !!setupModel,
+		modelAvailable: availability !== "none" || !!selected,
 		quota: quota?.data,
 		requiredBy:
 			required && selectedBotId

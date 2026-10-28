@@ -7,15 +7,7 @@ import type {
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
-import {
-	BookOpenIcon,
-	CheckCircle2Icon,
-	ChevronLeftIcon,
-	ChevronRightIcon,
-	FileTextIcon,
-	LockKeyholeIcon,
-	SparklesIcon,
-} from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
 import { toLinkedBlocks } from "@/components/access/block-edit-offer";
@@ -34,6 +26,7 @@ import {
 	toTemplateBlockInput,
 	withSavedBlock,
 } from "@/components/authoring/bot-editor-save";
+import { WIZARD_STEPS } from "@/components/authoring/bot-editor-steps";
 import {
 	describeAllMembersAccess,
 	PublishSummary,
@@ -44,6 +37,10 @@ import {
 	createDatabaseBlockBuilderFieldMap,
 	DatabaseBlockFieldGroup,
 } from "@/components/blocks/database-block/form/database-block-field-group";
+import {
+	BotModelStep,
+	type BotModelStepHandle,
+} from "@/components/bot/setup/bot-model-step";
 import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
 import { FeaturesSection } from "@/components/features/features-section";
 import { Badge } from "@/components/ui/badge";
@@ -76,39 +73,6 @@ import { documentStateBadge } from "@/lib/presentation/document-state";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-
-const WIZARD_STEPS = [
-	{
-		key: "basics",
-		title: m.authoring_wizard_step_basics_title,
-		description: m.authoring_wizard_step_basics_description,
-		icon: FileTextIcon,
-	},
-	{
-		key: "behavior",
-		title: m.authoring_wizard_step_behaviour_title,
-		description: m.authoring_wizard_step_behaviour_description,
-		icon: SparklesIcon,
-	},
-	{
-		key: "documents",
-		title: m.authoring_wizard_step_repositories_title,
-		description: m.authoring_wizard_step_repositories_description,
-		icon: BookOpenIcon,
-	},
-	{
-		key: "sharing",
-		title: m.authoring_wizard_step_sharing_title,
-		description: m.authoring_wizard_step_sharing_description,
-		icon: LockKeyholeIcon,
-	},
-	{
-		key: "review",
-		title: m.authoring_wizard_step_review_title,
-		description: m.authoring_wizard_step_review_description,
-		icon: CheckCircle2Icon,
-	},
-] as const;
 
 const EXAMPLE_SYSTEM_PROMPT = `You are the course assistant for this module.
 
@@ -183,7 +147,10 @@ const BotEditorShell = ({
 		defaultValues: baseline.bot,
 		onSubmit: () => undefined,
 	});
-	useUnsavedChangesGuard(() => !form.state.isDefaultValue);
+	const modelStep = useRef<BotModelStepHandle>(null);
+	useUnsavedChangesGuard(
+		() => !form.state.isDefaultValue || modelStep.current?.isDirty() === true,
+	);
 
 	const editor = useSelector(
 		form.store,
@@ -250,6 +217,9 @@ const BotEditorShell = ({
 		};
 	const isWizardActionPending = (action: typeof wizardAction) =>
 		isWorking && wizardAction === action;
+
+	// The Model step saves through its own procedure and loses its form when left.
+	const leaveModelStep = async () => (await modelStep.current?.save()) ?? true;
 
 	const setStep = (nextStep: number) => {
 		onStepChange?.(nextStep);
@@ -392,6 +362,9 @@ const BotEditorShell = ({
 
 	const handleWizardNext = async () => {
 		const nextStep = Math.min(activeStepIndex + 1, WIZARD_STEPS.length - 1);
+		if (!(await leaveModelStep())) {
+			return;
+		}
 		const savedEditor = await handleSave({
 			nextStepOnCreate: nextStep,
 		});
@@ -405,6 +378,9 @@ const BotEditorShell = ({
 	};
 
 	const handleWizardBack = async () => {
+		if (!(await leaveModelStep())) {
+			return;
+		}
 		if (activeStepIndex > 0 && editor.id) {
 			await handleSave();
 		}
@@ -570,8 +546,8 @@ const BotEditorShell = ({
 								isLocked &&
 									"cursor-not-allowed border-border/60 border-dashed bg-transparent opacity-55",
 							)}
-							onClick={() => {
-								if (!isLocked) {
+							onClick={async () => {
+								if (!isLocked && (await leaveModelStep())) {
 									setStep(index);
 								}
 							}}
@@ -626,7 +602,7 @@ const BotEditorShell = ({
 				</div>
 
 				<div className="grid min-w-0 grid-cols-1 gap-6">
-					{activeStepIndex === 0 ? (
+					{currentStep.key === "basics" ? (
 						<div className="grid min-w-0 grid-cols-1 gap-6">
 							<Card className="min-w-0 rounded-2xl">
 								<CardHeader>
@@ -680,7 +656,7 @@ const BotEditorShell = ({
 						</div>
 					) : null}
 
-					{activeStepIndex === 1 ? (
+					{currentStep.key === "behavior" ? (
 						<div className="grid min-w-0 grid-cols-1 gap-4">
 							{editor.templateBlock ? (
 								<div className="flex flex-wrap justify-end gap-2">
@@ -838,7 +814,7 @@ const BotEditorShell = ({
 						</div>
 					) : null}
 
-					{activeStepIndex === 2 ? (
+					{currentStep.key === "documents" ? (
 						<div className="grid min-w-0 grid-cols-1 gap-4">
 							{editor.databaseBlocks.length === 0 ? (
 								<div className="min-w-0 rounded-2xl border border-dashed bg-background/70 p-6">
@@ -964,7 +940,7 @@ const BotEditorShell = ({
 						</div>
 					) : null}
 
-					{activeStepIndex === 3 ? (
+					{currentStep.key === "sharing" ? (
 						<SharingSection
 							editor={editor}
 							grants={grants.data?.data ?? []}
@@ -972,7 +948,11 @@ const BotEditorShell = ({
 						/>
 					) : null}
 
-					{activeStepIndex === 4 ? (
+					{currentStep.key === "model" ? (
+						<BotModelStep botId={editor.id} ref={modelStep} />
+					) : null}
+
+					{currentStep.key === "review" ? (
 						<ReviewSection
 							editor={editor}
 							visibility={visibility.data?.data.visibility}

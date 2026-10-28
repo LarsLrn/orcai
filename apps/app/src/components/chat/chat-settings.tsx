@@ -2,6 +2,7 @@ import type { ChatId } from "@orcai/core";
 import {
 	CHAT_FEATURE_IDS,
 	type ChatConfig,
+	type EffectiveModel,
 	type Features,
 	type Model,
 	type Provider,
@@ -13,21 +14,21 @@ import {
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
-import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react";
+import { PlusIcon, XIcon } from "lucide-react";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { BlockCard } from "@/components/blocks/block-card";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import { BotCard } from "@/components/bot/bot-card";
 import { chatConfigFormOptions } from "@/components/chat/form/chat-config-form-options";
+import {
+	GENERATION_SETTINGS_FIELDS,
+	GenerationSettingsFieldGroup,
+} from "@/components/chat/form/generation-settings-field-group";
+import { GenerationSettingsSummary } from "@/components/chat/generation-settings-summary";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { FeaturesSection } from "@/components/features/features-section";
 import { Button } from "@/components/ui/button";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import {
 	Dialog,
 	DialogBody,
@@ -42,9 +43,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
-import { reasonMessage } from "@/lib/errors/reason-messages";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 const ChatSettings = ({
@@ -94,6 +93,11 @@ const ChatSettings = ({
 								chatId={chatId}
 								config={config ?? {}}
 								isBotLinked={isBotLinked}
+								required={
+									chat.data.effectiveModel.source === "bot-required"
+										? chat.data.effectiveModel
+										: null
+								}
 							/>
 						)}
 
@@ -132,12 +136,14 @@ const ChatConfigEditor = ({
 	chatId,
 	config,
 	isBotLinked,
+	required,
 }: {
 	chatId: ChatId;
 	config: ChatConfig;
 	isBotLinked: boolean;
+	/** A bot's required model and settings, shown read-only and left out of the update. */
+	required: EffectiveModel | null;
 }) => {
-	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 	const { mutateAsync: updateChat } = useUpdateChatMutation();
 	const form = useAppForm({
 		...chatConfigFormOptions(config),
@@ -145,13 +151,17 @@ const ChatConfigEditor = ({
 			await updateChat({
 				id: chatId,
 				config: {
-					modelId: value.modelId,
-					providerId: value.providerId,
-					temperature: value.temperature ?? null,
-					maxTokens: value.maxTokens ?? null,
-					topP: value.topP ?? null,
-					frequencyPenalty: value.frequencyPenalty ?? null,
-					presencePenalty: value.presencePenalty ?? null,
+					...(required
+						? {}
+						: {
+								modelId: value.modelId,
+								providerId: value.providerId,
+								temperature: value.temperature ?? null,
+								maxTokens: value.maxTokens ?? null,
+								topP: value.topP ?? null,
+								frequencyPenalty: value.frequencyPenalty ?? null,
+								presencePenalty: value.presencePenalty ?? null,
+							}),
 					...(isBotLinked
 						? {}
 						: {
@@ -192,15 +202,25 @@ const ChatConfigEditor = ({
 
 			<div className="flex flex-col gap-2">
 				<Label>{m.chat_settings_model_label()}</Label>
-				<ModelSelectorButton
-					selectedModelId={selectedModelId}
-					selectedProviderId={selectedProviderId}
-					onSelect={(model: Model, provider: Provider) => {
-						form.setFieldValue("modelId", model.id);
-						form.setFieldValue("providerId", provider.id);
-					}}
-					variant="full"
-				/>
+				{required ? (
+					<p className="text-sm">
+						{required.botSetup?.model?.name ??
+							m.chat_model_locked_missing_label()}{" "}
+						<span className="text-muted-foreground">
+							{m.chat_settings_model_required_description()}
+						</span>
+					</p>
+				) : (
+					<ModelSelectorButton
+						selectedModelId={selectedModelId}
+						selectedProviderId={selectedProviderId}
+						onSelect={(model: Model, provider: Provider) => {
+							form.setFieldValue("modelId", model.id);
+							form.setFieldValue("providerId", provider.id);
+						}}
+						variant="full"
+					/>
+				)}
 			</div>
 
 			<div className="flex flex-col gap-2">
@@ -225,124 +245,18 @@ const ChatConfigEditor = ({
 				)}
 			</div>
 
-			<Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
-				<CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border bg-muted/15 px-4 py-3 text-left">
-					<div>
-						<div className="font-medium text-sm">
-							{m.chat_settings_advanced_title()}
-						</div>
-						<div className="text-muted-foreground text-sm">
-							{m.chat_settings_advanced_description()}
-						</div>
-					</div>
-					<ChevronDownIcon
-						className={`h-4 w-4 transition-transform ${
-							isAdvancedOpen ? "rotate-180" : ""
-						}`}
-					/>
-				</CollapsibleTrigger>
-				<CollapsibleContent className="pt-4">
-					<div className="flex flex-col gap-4">
-						<form.AppField
-							name="temperature"
-							children={(field) => (
-								<field.SliderField
-									label={m.chat_settings_temperature_label()}
-									placeholder={m.chat_settings_provider_default_placeholder()}
-									restingValue={1}
-									min={0}
-									max={2}
-									step={0.1}
-									formatValue={(value) => value.toFixed(1)}
-								/>
-							)}
-						/>
-
-						<form.AppField
-							name="topP"
-							children={(field) => (
-								<field.SliderField
-									label={m.chat_settings_top_p_label()}
-									placeholder={m.chat_settings_provider_default_placeholder()}
-									restingValue={1}
-									min={0}
-									max={1}
-									step={0.05}
-									formatValue={(value) => value.toFixed(2)}
-								/>
-							)}
-						/>
-
-						<form.AppField
-							name="maxTokens"
-							validators={{
-								onChangeListenTo: [
-									"modelId",
-								],
-								onChange: ({ value }) =>
-									value != null &&
-									modelMaxOutputTokens !== null &&
-									value > modelMaxOutputTokens
-										? {
-												message: reasonMessage(
-													"CHAT_MAX_TOKENS_EXCEEDS_MODEL",
-													{
-														maxOutputTokens: modelMaxOutputTokens,
-													},
-												),
-											}
-										: undefined,
-							}}
-							children={(field) => (
-								<field.TextField
-									label={m.chat_settings_max_tokens_label()}
-									description={
-										modelMaxOutputTokens === null
-											? undefined
-											: m.chat_settings_max_tokens_description({
-													maxOutputTokens: formatCount(modelMaxOutputTokens),
-												})
-									}
-									type="number"
-									min={1}
-									max={modelMaxOutputTokens ?? undefined}
-									placeholder={m.chat_settings_provider_default_placeholder()}
-								/>
-							)}
-						/>
-
-						<form.AppField
-							name="frequencyPenalty"
-							children={(field) => (
-								<field.SliderField
-									label={m.chat_settings_frequency_penalty_label()}
-									placeholder={m.chat_settings_provider_default_placeholder()}
-									restingValue={0}
-									min={-2}
-									max={2}
-									step={0.1}
-									formatValue={(value) => value.toFixed(1)}
-								/>
-							)}
-						/>
-
-						<form.AppField
-							name="presencePenalty"
-							children={(field) => (
-								<field.SliderField
-									label={m.chat_settings_presence_penalty_label()}
-									placeholder={m.chat_settings_provider_default_placeholder()}
-									restingValue={0}
-									min={-2}
-									max={2}
-									step={0.1}
-									formatValue={(value) => value.toFixed(1)}
-								/>
-							)}
-						/>
-					</div>
-				</CollapsibleContent>
-			</Collapsible>
+			{required ? (
+				<div className="flex flex-col gap-2">
+					<Label>{m.chat_settings_advanced_title()}</Label>
+					<GenerationSettingsSummary generation={required.generation} />
+				</div>
+			) : (
+				<GenerationSettingsFieldGroup
+					form={form}
+					fields={GENERATION_SETTINGS_FIELDS}
+					maxOutputTokens={modelMaxOutputTokens}
+				/>
+			)}
 
 			<form.AppForm>
 				<form.FormValidationErrors />

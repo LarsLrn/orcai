@@ -11,6 +11,7 @@ import { AccessDialog } from "@/components/access/access-dialog";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
+import { BotSetupSummary } from "@/components/bot/setup/bot-setup-summary";
 import {
 	ContentRenderer,
 	isContentEmpty,
@@ -192,6 +193,7 @@ function RouteComponent() {
 				</div>
 
 				<div className="space-y-6">
+					<BotSetupSummary botId={bot.data.id} />
 					<MetadataCard
 						createdAt={bot.data.createdAt}
 						updatedAt={bot.data.updatedAt}

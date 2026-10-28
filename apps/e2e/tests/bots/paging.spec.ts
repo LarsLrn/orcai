@@ -68,6 +68,7 @@ test("bots: paging through a published bot writes nothing", async ({
 		2,
 		3,
 		4,
+		5,
 	]) {
 		await next(page).click();
 		await expect(page).toHaveURL(new RegExp(`step=${step}`));
