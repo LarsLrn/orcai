@@ -24,9 +24,9 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Page,
-	PageAction,
 	PageContent,
 	PageDescription,
 	PageHeader,
@@ -140,31 +140,30 @@ function RouteComponent() {
 						</Badge>
 					)}
 				</div>
-				<PageAction>
-					<Link
-						to="/app/providers/$providerId/edit"
-						params={{
-							providerId,
-						}}
-						className={buttonVariants({
+				<HeaderActions
+					actions={[
+						{
+							key: "edit",
+							label: m.providers_detail_edit_button(),
+							icon: EditIcon,
 							variant: "default",
-						})}
-					>
-						<EditIcon />
-						{m.providers_detail_edit_button()}
-					</Link>
-					{servesModels && (
-						<Link
-							to="/app/models/add"
-							className={buttonVariants({
-								variant: "outline",
-							})}
-						>
-							<PlusIcon />
-							{m.providers_detail_add_model_button()}
-						</Link>
-					)}
-				</PageAction>
+							linkProps: {
+								to: "/app/providers/$providerId/edit",
+								params: {
+									providerId,
+								},
+							},
+						},
+						servesModels && {
+							key: "add-model",
+							label: m.providers_detail_add_model_button(),
+							icon: PlusIcon,
+							linkProps: {
+								to: "/app/models/add",
+							},
+						},
+					]}
+				/>
 			</PageHeader>
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">

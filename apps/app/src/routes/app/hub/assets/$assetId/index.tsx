@@ -4,24 +4,15 @@ import {
 	DownloadIcon,
 	EditIcon,
 	KeyRoundIcon,
-	MoreVerticalIcon,
 	RefreshCwIcon,
 	Trash2Icon,
 } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { FileViewer } from "@/components/documents/file-viewer";
-import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Section,
-	SectionAction,
 	SectionContent,
 	SectionHeader,
 	SectionTitle,
@@ -80,93 +71,66 @@ function RouteComponent() {
 		asset.data.capabilities,
 		"manage_access",
 	);
-	const hasMenuActions = canManageAccess || canEdit || canDelete;
 
 	return (
 		<Section>
 			<SectionHeader>
 				<SectionTitle>{asset.data.title}</SectionTitle>
-				<SectionAction>
-					{canDownload ? (
-						<Button
-							variant="default"
-							disabled={status !== "success"}
-							onClick={() => window.open(file?.url, "_blank")}
-						>
-							<DownloadIcon />
-							{m.assets_detail_download_button()}
-						</Button>
-					) : null}
-					{hasMenuActions ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger
-								render={
-									<Button variant="ghost" size="icon">
-										<MoreVerticalIcon className="size-4" />
-										<span className="sr-only">
-											{m.assets_detail_menu_trigger()}
-										</span>
-									</Button>
-								}
-							/>
-							<DropdownMenuContent align="end">
-								{canManageAccess ? (
-									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
-										<KeyRoundIcon className="size-4" />
-										{m.assets_detail_access_action()}
-									</DropdownMenuItem>
-								) : null}
-								{canEdit ? (
-									<DropdownMenuItem
-										onClick={() =>
-											navigate({
-												to: "/app/hub/assets/$assetId/edit",
-												params: {
-													assetId: asset.data.id,
-												},
-											})
-										}
-									>
-										<EditIcon />
-										{m.assets_detail_edit_action()}
-									</DropdownMenuItem>
-								) : null}
-								{canEdit &&
-									asset.data.processingStatus !== "pending" &&
-									asset.data.processingStatus !== "active" && (
-										<DropdownMenuItem
-											onClick={() =>
-												reprocessAsset({
-													id: asset.data.id,
-												})
-											}
-										>
-											<RefreshCwIcon className="size-4" />
-											{m.assets_detail_reprocess_action()}
-										</DropdownMenuItem>
-									)}
-								{canDelete ? <DropdownMenuSeparator /> : null}
-								{canDelete ? (
-									<DropdownMenuItem
-										variant="destructive"
-										onClick={() =>
-											deleteAssets({
-												refs: [
-													{
-														id: asset.data.id,
-													},
-												],
-											})
-										}
-									>
-										<Trash2Icon />
-										{m.assets_detail_delete_action()}
-									</DropdownMenuItem>
-								) : null}
-							</DropdownMenuContent>
-						</DropdownMenu>
-					) : null}
-				</SectionAction>
+				<HeaderActions
+					actions={[
+						canDownload && {
+							key: "download",
+							label: m.assets_detail_download_button(),
+							icon: DownloadIcon,
+							variant: "default",
+							disabled: status !== "success",
+							onClick: () => window.open(file?.url, "_blank"),
+						},
+						canEdit && {
+							key: "edit",
+							label: m.assets_detail_edit_action(),
+							icon: EditIcon,
+							linkProps: {
+								to: "/app/hub/assets/$assetId/edit",
+								params: {
+									assetId: asset.data.id,
+								},
+							},
+						},
+						canManageAccess && {
+							key: "access",
+							label: m.assets_detail_access_action(),
+							icon: KeyRoundIcon,
+							onClick: () => setIsAccessOpen(true),
+						},
+						canEdit &&
+							asset.data.processingStatus !== "pending" &&
+							asset.data.processingStatus !== "active" && {
+								key: "reprocess",
+								label: m.assets_detail_reprocess_action(),
+								icon: RefreshCwIcon,
+								overflow: true,
+								onClick: () =>
+									reprocessAsset({
+										id: asset.data.id,
+									}),
+							},
+						canDelete && {
+							key: "delete",
+							label: m.assets_detail_delete_action(),
+							icon: Trash2Icon,
+							destructive: true,
+							onClick: () =>
+								deleteAssets({
+									refs: [
+										{
+											id: asset.data.id,
+										},
+									],
+								}),
+						},
+					]}
+				/>
 			</SectionHeader>
 			<SectionContent>
 				<FileViewer asset={asset.data} />

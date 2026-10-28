@@ -44,9 +44,11 @@ A bot is private until it is shared. Publishing does not share it: a published b
 A bot's page (`/app/hub/bots/<bot id>`) shows its behaviour and repositories. Depending on your role on the bot it offers:
 
 - **Start chat**, for anyone who can use the bot
-- **Access & groups**, which opens the access dialog
 - **Edit bot**, which opens the editor
-- **Delete bot**
+- **Access & groups**, which opens the access dialog
+- **Delete bot**, in the **More actions** (`…`) menu
+
+Every detail page follows this pattern: frequent actions are buttons in the header, and rare or destructive ones sit in the **More actions** menu.
 
 ## Favourites
 
@@ -136,7 +138,7 @@ Each block can have:
 - Visibility and grants
 - Capability-based actions (edit, delete, manage access)
 
-A block's page is `/app/hub/blocks/<block id>`. Its **More options** menu holds **Access & groups**, **Edit block** (`/app/hub/blocks/<block id>/edit`) and **Delete block**.
+A block's page is `/app/hub/blocks/<block id>`. It offers **Edit block** (`/app/hub/blocks/<block id>/edit`) and **Access & groups**, with **Delete block** in the **More actions** menu.
 
 ## Repository Blocks
 
@@ -146,7 +148,7 @@ A repository block's page lists its attached assets and its retrieval configurat
 - **References**: Minimum, Default and Maximum
 - **Max per asset**, **Candidate limit** and **Score threshold**, under the advanced settings
 
-Above the assets, the **More options** menu holds **View vector points**, which opens the indexed passages at `/app/hub/blocks/<block id>/points`.
+Above the assets, **View vector points** opens the indexed passages at `/app/hub/blocks/<block id>/points`.
 
 Each asset card shows its state in this repository: **Queued**, **Processing** (the file is read), **Indexing** (its passages are added to this repository's index), **Ready** or **Failed**. Only Ready assets are searchable. A summary above the cards says how many of the repository's documents are ready and how many failed, and refreshes while documents are being prepared. A failed card says why. If you can edit the repository, **Retry** on a failed card runs the failed step again: processing when the file failed, otherwise indexing in this repository. **Retry failed** next to the menu retries every failed document at once. Neither is offered for a file OrcAI cannot read or one without any text or images, since retrying cannot help.
 

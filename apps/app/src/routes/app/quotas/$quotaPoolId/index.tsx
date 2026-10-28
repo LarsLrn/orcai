@@ -1,6 +1,7 @@
 import type { GroupId } from "@orcai/core";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { EditIcon, PowerOffIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { z } from "zod/v4";
 import { MetadataCard } from "@/components/app/metadata-card";
@@ -9,7 +10,6 @@ import {
 	QuotaRemaining,
 } from "@/components/quota/quota-consumption";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -17,9 +17,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Page,
-	PageAction,
 	PageContent,
 	PageDescription,
 	PageHeader,
@@ -157,29 +157,33 @@ function RouteComponent() {
 						{data.data.provider.name} / {data.data.provider.meteringMode}
 					</Badge>
 				</div>
-				<PageAction>
-					<Link
-						to="/app/quotas/$quotaPoolId/edit"
-						params={{
-							quotaPoolId: data.data.id,
-						}}
-					>
-						<Button variant="outline">{m.quotas_detail_edit_button()}</Button>
-					</Link>
-					{data.data.isActive ? (
-						<Button
-							variant="destructive"
-							loading={deactivatePool.isPending}
-							onClick={() =>
+				<HeaderActions
+					actions={[
+						{
+							key: "edit",
+							label: m.quotas_detail_edit_button(),
+							icon: EditIcon,
+							variant: "default",
+							linkProps: {
+								to: "/app/quotas/$quotaPoolId/edit",
+								params: {
+									quotaPoolId: data.data.id,
+								},
+							},
+						},
+						data.data.isActive && {
+							key: "deactivate",
+							label: m.quotas_detail_deactivate_button(),
+							icon: PowerOffIcon,
+							destructive: true,
+							loading: deactivatePool.isPending,
+							onClick: () =>
 								deactivatePool.mutate({
 									id: data.data.id,
-								})
-							}
-						>
-							{m.quotas_detail_deactivate_button()}
-						</Button>
-					) : null}
-				</PageAction>
+								}),
+						},
+					]}
+				/>
 			</PageHeader>
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">

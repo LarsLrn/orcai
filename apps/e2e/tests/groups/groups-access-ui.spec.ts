@@ -40,10 +40,6 @@ test("groups: the access manager shows the group grant on the block page", async
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
 
-	const accessItem = page.getByRole("menuitem", {
-		name: message("bots_detail_access_action"),
-	});
-
 	await open(page, `/app/hub/blocks/${block.data.id}`);
 	await expect(
 		page.getByRole("heading", {
@@ -53,12 +49,9 @@ test("groups: the access manager shows the group grant on the block page", async
 
 	await page
 		.getByRole("button", {
-			name: message("bots_detail_more_options_aria_label"),
+			name: message("blocks_detail_access_action"),
 		})
 		.click();
-	await expect(accessItem).toBeVisible();
-
-	await accessItem.click();
 
 	await expect(
 		page.getByRole("heading", {
@@ -146,17 +139,11 @@ test("groups: the access manager grants several people at once", async ({
 		}),
 	).toBeVisible();
 
-	const accessItem = page.getByRole("menuitem", {
-		name: message("bots_detail_access_action"),
-	});
-
 	await page
 		.getByRole("button", {
-			name: message("bots_detail_more_options_aria_label"),
+			name: message("blocks_detail_access_action"),
 		})
 		.click();
-	await expect(accessItem).toBeVisible();
-	await accessItem.click();
 
 	await expect(
 		page.getByRole("heading", {

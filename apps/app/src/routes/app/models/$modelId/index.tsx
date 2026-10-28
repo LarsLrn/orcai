@@ -25,9 +25,9 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Page,
-	PageAction,
 	PageContent,
 	PageDescription,
 	PageHeader,
@@ -130,32 +130,33 @@ function RouteComponent() {
 						{kindLabel}
 					</Badge>
 				</div>
-				<PageAction>
-					<Link
-						to="/app/models/$modelId/edit"
-						params={{
-							modelId,
-						}}
-						className={buttonVariants({
+				<HeaderActions
+					actions={[
+						{
+							key: "edit",
+							label: m.models_detail_edit_button(),
+							icon: EditIcon,
 							variant: "default",
-						})}
-					>
-						<EditIcon />
-						{m.models_detail_edit_button()}
-					</Link>
-					<Link
-						to="/app/providers/$providerId"
-						params={{
-							providerId: provider.id,
-						}}
-						className={buttonVariants({
-							variant: "outline",
-						})}
-					>
-						<LinkIcon />
-						{m.models_detail_view_provider_button()}
-					</Link>
-				</PageAction>
+							linkProps: {
+								to: "/app/models/$modelId/edit",
+								params: {
+									modelId,
+								},
+							},
+						},
+						{
+							key: "view-provider",
+							label: m.models_detail_view_provider_button(),
+							icon: LinkIcon,
+							linkProps: {
+								to: "/app/providers/$providerId",
+								params: {
+									providerId: provider.id,
+								},
+							},
+						},
+					]}
+				/>
 			</PageHeader>
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">

@@ -1,28 +1,15 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-	EditIcon,
-	KeyRoundIcon,
-	MoreVerticalIcon,
-	Trash2Icon,
-} from "lucide-react";
+import { EditIcon, KeyRoundIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
 import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	Page,
-	PageAction,
 	PageContent,
 	PageDescription,
 	PageHeader,
@@ -95,7 +82,6 @@ function RouteComponent() {
 		block.data.capabilities,
 		"manage_access",
 	);
-	const hasMenuActions = canManageAccess || canEdit || canDelete;
 
 	return (
 		<Page>
@@ -109,63 +95,42 @@ function RouteComponent() {
 						</Badge>
 					</div>
 				) : null}
-				<PageAction>
-					{hasMenuActions ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger
-								render={
-									<Button variant="ghost" size="icon">
-										<MoreVerticalIcon className="size-4" />
-										<span className="sr-only">
-											{m.blocks_detail_menu_trigger()}
-										</span>
-									</Button>
-								}
-							/>
-							<DropdownMenuContent align="end">
-								{canManageAccess ? (
-									<DropdownMenuItem onClick={() => setIsAccessOpen(true)}>
-										<KeyRoundIcon className="size-4" />
-										{m.blocks_detail_access_action()}
-									</DropdownMenuItem>
-								) : null}
-								{canEdit ? (
-									<DropdownMenuItem
-										onClick={() =>
-											navigate({
-												to: "/app/hub/blocks/$blockId/edit",
-												params: {
-													blockId: block.data.id,
-												},
-											})
-										}
-									>
-										<EditIcon />
-										{m.blocks_detail_edit_action()}
-									</DropdownMenuItem>
-								) : null}
-								{canDelete ? <DropdownMenuSeparator /> : null}
-								{canDelete ? (
-									<DropdownMenuItem
-										variant="destructive"
-										onClick={() =>
-											deleteBlocks({
-												refs: [
-													{
-														id: block.data.id,
-													},
-												],
-											})
-										}
-									>
-										<Trash2Icon />
-										{m.blocks_detail_delete_action()}
-									</DropdownMenuItem>
-								) : null}
-							</DropdownMenuContent>
-						</DropdownMenu>
-					) : null}
-				</PageAction>
+				<HeaderActions
+					actions={[
+						canEdit && {
+							key: "edit",
+							label: m.blocks_detail_edit_action(),
+							icon: EditIcon,
+							variant: "default",
+							linkProps: {
+								to: "/app/hub/blocks/$blockId/edit",
+								params: {
+									blockId: block.data.id,
+								},
+							},
+						},
+						canManageAccess && {
+							key: "access",
+							label: m.blocks_detail_access_action(),
+							icon: KeyRoundIcon,
+							onClick: () => setIsAccessOpen(true),
+						},
+						canDelete && {
+							key: "delete",
+							label: m.blocks_detail_delete_action(),
+							icon: Trash2Icon,
+							destructive: true,
+							onClick: () =>
+								deleteBlocks({
+									refs: [
+										{
+											id: block.data.id,
+										},
+									],
+								}),
+						},
+					]}
+				/>
 			</PageHeader>
 
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
