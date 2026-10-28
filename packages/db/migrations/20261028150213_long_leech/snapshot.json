@@ -1,0 +1,78 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "fc95e949-0dde-4764-b8fe-695635253264",
+  "prevIds": [
+    "3ff11e1f-f105-4895-8d92-f63a01fc8313",
+    "63943b6e-1aca-44a3-a0bd-20fd0defcf83"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "notification_delivery_channel"
+      ],
+      "writes": [
+        "s|enum|public.notification_delivery_channel",
+        "n|enum|public.notification_delivery_channel",
+        "e|enum|public.notification_delivery_channel",
+        "n|type|public.notification_delivery_channel"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "notification_outbox",
+        "delivery_channel"
+      ],
+      "writes": [
+        "s|col|public.notification_outbox.delivery_channel",
+        "n|col|public.notification_outbox.delivery_channel",
+        "e|col|public.notification_outbox.delivery_channel"
+      ],
+      "reads": [
+        "n|tbl|public.notification_outbox",
+        "n|sch|public",
+        "n|enum|public.notification_delivery_channel"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "notification_delivery_channel",
+        "values": [
+          "smtp",
+          "log"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "notification_outbox",
+        "name": "delivery_channel",
+        "type": "notification_delivery_channel",
+        "typeSchema": "public",
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    }
+  ]
+}

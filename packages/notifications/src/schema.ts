@@ -77,6 +77,12 @@ const dataExportReadySchema = base.extend({
 	expiresAt: z.coerce.date(),
 });
 
+/** Sent on request to the instance admin who asked for it. */
+const instanceTestEmailSchema = base.extend({
+	type: z.literal("instance.test-email"),
+	healthUrl: emailActionUrlSchema,
+});
+
 export const emailNotificationSchema = z.discriminatedUnion("type", [
 	organizationInvitedSchema,
 	verifyEmailSchema,
@@ -87,6 +93,7 @@ export const emailNotificationSchema = z.discriminatedUnion("type", [
 	instanceAdminRevokedSchema,
 	passkeyAddedSchema,
 	dataExportReadySchema,
+	instanceTestEmailSchema,
 ]);
 
 export type OrganizationInvitedNotification = z.infer<
@@ -113,6 +120,10 @@ export type InstanceAdminRevokedNotification = z.infer<
 export type PasskeyAddedNotification = z.infer<typeof passkeyAddedSchema>;
 
 export type DataExportReadyNotification = z.infer<typeof dataExportReadySchema>;
+
+export type InstanceTestEmailNotification = z.infer<
+	typeof instanceTestEmailSchema
+>;
 
 export type EmailNotification = z.infer<typeof emailNotificationSchema>;
 export type EmailNotificationType = EmailNotification["type"];

@@ -43,23 +43,29 @@ export const wakeNotificationWorker = Effect.gen(function* () {
 	});
 });
 
+/** False when a row with the same deduplication key already exists. */
 export const enqueueNotification = (
 	notification: EmailNotification,
 	deduplicationKey: string,
 ) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		yield* db
+		const inserted = yield* db
 			.insert(dbSchema.notificationOutbox)
 			.values(notificationOutboxValues(notification, deduplicationKey))
 			.onConflictDoNothing({
 				target: dbSchema.notificationOutbox.deduplicationKey,
+			})
+			.returning({
+				id: dbSchema.notificationOutbox.id,
 			});
+		if (inserted.length === 0) return false;
 		yield* wakeNotificationWorker.pipe(
 			Effect.catch((cause) =>
 				Effect.logWarning(`notification.wake.failed cause=${String(cause)}`),
 			),
 		);
+		return true;
 	});
 
 const retryDelay = (attempt: number) =>
@@ -163,6 +169,7 @@ export const processNextNotification = () =>
 					leaseExpiresAt: null,
 					lastError: null,
 					providerMessageId: result.value.messageId,
+					deliveryChannel: result.value.channel,
 					sentAt: new Date(),
 					updatedAt: new Date(),
 				})

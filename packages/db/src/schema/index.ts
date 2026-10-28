@@ -33,6 +33,7 @@ import {
 import { dataExport, dataExportStatusEnum } from "./data-export";
 import { model, provider, providerMeteringModeEnum } from "./model";
 import {
+	notificationDeliveryChannelEnum,
 	notificationOutbox,
 	notificationOutboxStatusEnum,
 } from "./notification";
@@ -100,6 +101,7 @@ export const enumSchema = {
 	resourceVisibilityEnum,
 	providerMeteringModeEnum,
 	notificationOutboxStatusEnum,
+	notificationDeliveryChannelEnum,
 	quotaPoolPeriodTypeEnum,
 	quotaPeriodStatusEnum,
 	quotaUsageEventTypeEnum,

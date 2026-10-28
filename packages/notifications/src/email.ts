@@ -15,12 +15,16 @@ export type SendEmailParams = Readonly<{
 	from?: string;
 }>;
 
+/** `log` means the message only reached the worker log. */
+export type EmailDeliveryChannel = "smtp" | "log";
+
 export class EmailService extends Context.Service<
 	EmailService,
 	{
 		readonly send: (params: SendEmailParams) => Effect.Effect<
 			{
 				messageId?: string;
+				channel: EmailDeliveryChannel;
 			},
 			EmailError
 		>;
@@ -45,7 +49,11 @@ export const EmailLive = Layer.effect(
 							subject: params.subject,
 							text: params.text,
 							html: params.html,
-						}).pipe(Effect.as({})),
+						}).pipe(
+							Effect.as({
+								channel: "log" as const,
+							}),
+						),
 				};
 			}
 
@@ -99,6 +107,7 @@ export const EmailLive = Layer.effect(
 							});
 							return {
 								messageId: info.messageId || undefined,
+								channel: "smtp" as const,
 							};
 						},
 						catch: (cause) =>
