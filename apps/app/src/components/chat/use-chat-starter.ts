@@ -8,16 +8,12 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-	type ChatModelAvailability,
-	useDefaultChatModel,
-} from "@/components/chat/use-default-chat-model";
+import { composerBlocker } from "@/components/chat/composer-blocker";
+import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
-
-type ChatAvailability = ChatModelAvailability | "no-quota";
 
 const useChatStarter = ({
 	initialBotId,
@@ -47,10 +43,10 @@ const useChatStarter = ({
 		modelId: selectedModel?.id,
 	});
 
-	const chatAvailability: ChatAvailability =
-		availability === "ready" && quota?.data.available === false
-			? "no-quota"
-			: availability;
+	const blocker = composerBlocker({
+		modelAvailable: availability !== "none",
+		quota: quota?.data,
+	});
 
 	useEffect(() => {
 		setSelectedBotId(initialBotId);
@@ -124,7 +120,7 @@ const useChatStarter = ({
 		selectedModelId: selectedModel?.id,
 		selectedProviderId: selectedProvider?.id,
 		selectedBotId,
-		availability: chatAvailability,
+		blocker,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect: setSelectedBotId,
@@ -132,4 +128,4 @@ const useChatStarter = ({
 	};
 };
 
-export { type ChatAvailability, useChatStarter };
+export { useChatStarter };

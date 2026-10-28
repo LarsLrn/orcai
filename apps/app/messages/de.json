@@ -1900,6 +1900,7 @@
 	"chat_composer_placeholder": "Stellen Sie eine Frage",
 	"chat_composer_placeholder_no_model": "Der Chat wird verfügbar, sobald ein Modell bereitsteht",
 	"chat_composer_placeholder_no_quota": "Der Chat wird verfügbar, sobald ein Kontingent-Pool dieses Modell abdeckt",
+	"chat_composer_placeholder_quota_exhausted": "Der Chat wird wieder verfügbar, sobald das Kontingent zurückgesetzt wird",
 	"chat_composer_send_failed_toast_error": "Die Nachricht und ihre Anhänge wurden nicht gesendet. Senden Sie sie erneut.",
 	"chat_delete_confirm_button": [
 		{
@@ -2053,6 +2054,8 @@
 	"chat_placeholder_bot_description_fallback": "Antworten stützen sich auf die Quellen und das Verhalten dieses Bots.",
 	"chat_placeholder_description": "Ohne Bot kommen Antworten allein vom Modell. Wählen Sie einen Bot, um sie auf die Quellen Ihrer Organisation zu stützen.",
 	"chat_placeholder_title": "Fragen Sie, was Sie möchten",
+	"chat_quota_exhausted_notice_resets": "Wird {time} zurückgesetzt.",
+	"chat_quota_exhausted_notice_title": "Kontingent aufgebraucht.",
 	"chat_quota_notice_create_pool_action": "Kontingent-Pool erstellen",
 	"chat_quota_notice_description_manager": "Erstellen Sie einen Pool für den Anbieter, dann wird der Chat verfügbar.",
 	"chat_quota_notice_description_member": "Wählen Sie ein anderes Modell oder bitten Sie einen Organisations-Admin, einen Kontingent-Pool zu erstellen.",

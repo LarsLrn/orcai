@@ -1,23 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { CircleAlertIcon } from "lucide-react";
+import type { ComposerBlocker } from "@/components/chat/composer-blocker";
 import { buttonVariants } from "@/components/ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	formatDisplayTimestamp,
+	formatRelativeTime,
+} from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-/** Why the composer cannot chat: no usable model, or no quota pool for the chosen one. */
-type ChatModelNoticeReason = "model" | "quota";
-
+/** Why the composer cannot send, below it: no usable model, no pool for the chosen one, or a used-up pool. */
 const ChatModelNotice = ({
-	reason,
+	blocker,
 	className,
 }: {
-	reason: ChatModelNoticeReason;
+	blocker: ComposerBlocker;
 	className?: string;
 }) => {
+	const { reason } = blocker;
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
@@ -33,10 +42,13 @@ const ChatModelNotice = ({
 		"manage_models",
 		"manage_quotas",
 	]);
-	const canFix = hasCapability(
-		capabilities?.data.capabilities,
-		reason === "model" ? "manage_models" : "manage_quotas",
-	);
+	// Managers reach a used-up pool through the usage indicator.
+	const canFix =
+		reason !== "exhausted" &&
+		hasCapability(
+			capabilities?.data.capabilities,
+			reason === "model" ? "manage_models" : "manage_quotas",
+		);
 	const organizationName =
 		organization?.data.name ?? m.chat_model_notice_organisation_fallback();
 
@@ -61,6 +73,22 @@ const ChatModelNotice = ({
 								? m.chat_model_notice_description_manager()
 								: m.chat_model_notice_description_member()}
 						</span>
+					</p>
+				) : blocker.reason === "exhausted" ? (
+					<p className="text-foreground">
+						{m.chat_quota_exhausted_notice_title()}{" "}
+						<Tooltip>
+							<TooltipTrigger
+								render={<span className="text-muted-foreground" />}
+							>
+								{m.chat_quota_exhausted_notice_resets({
+									time: formatRelativeTime(blocker.resetsAt),
+								})}
+							</TooltipTrigger>
+							<TooltipContent>
+								{formatDisplayTimestamp(blocker.resetsAt)}
+							</TooltipContent>
+						</Tooltip>
 					</p>
 				) : (
 					<p className="text-foreground">

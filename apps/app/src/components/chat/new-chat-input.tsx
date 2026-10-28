@@ -7,15 +7,21 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { BotSelectorButton } from "@/components/chat/bot-selector";
 import { ChatModelNotice } from "@/components/chat/chat-model-notice";
+import type { ComposerBlocker } from "@/components/chat/composer-blocker";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
-import type { ChatAvailability } from "@/components/chat/use-chat-starter";
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupTextarea,
 } from "@/components/ui/input-group";
 import { m } from "@/paraglide/messages";
+
+const blockedPlaceholders: Record<ComposerBlocker["reason"], () => string> = {
+	model: m.chat_composer_placeholder_no_model,
+	quota: m.chat_composer_placeholder_no_quota,
+	exhausted: m.chat_composer_placeholder_quota_exhausted,
+};
 
 const NewChatInput = ({
 	selectedBotId,
@@ -25,7 +31,7 @@ const NewChatInput = ({
 	onModelSelect,
 	onSend,
 	isCreating,
-	availability = "ready",
+	blocker,
 }: {
 	selectedBotId?: BotId;
 	selectedModelId?: ModelId;
@@ -34,20 +40,14 @@ const NewChatInput = ({
 	onModelSelect: (model: Model, provider: Provider) => void;
 	onSend: (text: string) => void;
 	isCreating: boolean;
-	availability?: ChatAvailability;
+	blocker?: ComposerBlocker;
 }) => {
 	const [messageText, setMessageText] = useState("");
-	const blocker =
-		availability === "none"
-			? "model"
-			: availability === "no-quota"
-				? "quota"
-				: null;
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		const trimmed = messageText.trim();
-		if (!trimmed || isCreating) return;
+		if (!trimmed || isCreating || blocker) return;
 		onSend(trimmed);
 		setMessageText("");
 	};
@@ -68,15 +68,13 @@ const NewChatInput = ({
 					name="message"
 					aria-label={m.chat_composer_aria_label()}
 					placeholder={
-						blocker === "model"
-							? m.chat_composer_placeholder_no_model()
-							: blocker === "quota"
-								? m.chat_composer_placeholder_no_quota()
-								: m.chat_composer_placeholder()
+						blocker
+							? blockedPlaceholders[blocker.reason]()
+							: m.chat_composer_placeholder()
 					}
 					className="field-sizing-content max-h-48 min-h-16"
 					value={messageText}
-					disabled={blocker !== null}
+					disabled={blocker !== undefined}
 					aria-describedby={blocker ? "chat-model-notice" : undefined}
 					onChange={(event) => setMessageText(event.target.value)}
 					onKeyDown={handleTextareaKeyDown}
@@ -104,12 +102,17 @@ const NewChatInput = ({
 						/>
 						<PromptInputSubmit
 							status={isCreating ? "submitted" : "ready"}
-							disabled={isCreating || !messageText.trim() || !selectedModelId}
+							disabled={
+								isCreating ||
+								blocker !== undefined ||
+								!messageText.trim() ||
+								!selectedModelId
+							}
 						/>
 					</div>
 				</InputGroupAddon>
 			</InputGroup>
-			{blocker && <ChatModelNotice reason={blocker} />}
+			{blocker && <ChatModelNotice blocker={blocker} />}
 		</form>
 	);
 };

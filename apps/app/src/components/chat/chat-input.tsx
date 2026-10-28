@@ -19,8 +19,11 @@ import { ChatComposerAttachments } from "@/components/chat/attachments/chat-atta
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
+import { ChatModelNotice } from "@/components/chat/chat-model-notice";
+import { composerBlocker } from "@/components/chat/composer-blocker";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
 import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
+import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -85,9 +88,15 @@ const ChatInput = ({
 				modelId: chat?.data.config?.modelId,
 			};
 	const { mutate: updateChat } = useUpdateChatMutation();
-	const isModelConfigured =
-		isAssistant ||
-		Boolean(chat?.data.config?.modelId && chat?.data.config?.providerId);
+	const isModelConfigured = Boolean(
+		selectedModel.modelId && selectedModel.providerId,
+	);
+	const { data: quota } = useQuotaStatus(selectedModel);
+	// Blocks sending only; a running turn keeps its Stop.
+	const blocker = composerBlocker({
+		modelAvailable: true,
+		quota: quota?.data,
+	});
 	const handleModelSelect = useCallback(
 		(model: Model, provider: Provider) => {
 			updateChat({
@@ -142,7 +151,7 @@ const ChatInput = ({
 			return;
 		}
 
-		if (isGenerating || isBusy) {
+		if (isGenerating || isBusy || blocker) {
 			return;
 		}
 
@@ -233,6 +242,7 @@ const ChatInput = ({
 							value={messageText}
 							onChange={(event) => setMessageText(event.target.value)}
 							onKeyDown={handleTextareaKeyDown}
+							aria-describedby={blocker ? "chat-model-notice" : undefined}
 						/>
 
 						<InputGroupAddon
@@ -272,6 +282,7 @@ const ChatInput = ({
 										isBusy ||
 										(!isGenerating &&
 											(!isModelConfigured ||
+												blocker !== undefined ||
 												!(
 													messageText.trim().length > 0 ||
 													localFiles.length > 0 ||
@@ -283,11 +294,12 @@ const ChatInput = ({
 						</InputGroupAddon>
 					</InputGroup>
 				</div>
-				{!isModelConfigured && (
+				{!isAssistant && !isModelConfigured && (
 					<p className="mt-2 text-muted-foreground text-xs">
 						{m.chat_composer_model_required_hint()}
 					</p>
 				)}
+				{blocker && <ChatModelNotice blocker={blocker} className="mt-3" />}
 			</form>
 
 			{!isAssistant && (

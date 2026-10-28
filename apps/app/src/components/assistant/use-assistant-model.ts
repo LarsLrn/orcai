@@ -1,8 +1,25 @@
+import { ORPCError } from "@orpc/client";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 import { orpc } from "@/lib/orpc/orpc";
 
 type AssistantModelAvailability = "loading" | "unset" | "set";
+
+/** Unset also when the organisation still names a model that is gone; other failures keep it set. */
+const assistantModelAvailability = ({
+	organizationStatus,
+	modelId,
+	modelMissing,
+}: {
+	organizationStatus: "pending" | "error" | "success";
+	modelId: string | null;
+	modelMissing: boolean;
+}): AssistantModelAvailability =>
+	organizationStatus === "pending"
+		? "loading"
+		: !modelId || modelMissing
+			? "unset"
+			: "set";
 
 /** The active organisation's assistant model, read live like the turn does. */
 const useAssistantModel = () => {
@@ -18,7 +35,7 @@ const useAssistantModel = () => {
 	);
 	const modelId = organization?.data.assistantModelId ?? null;
 
-	const { data: model } = useQuery(
+	const { data: model, error: modelError } = useQuery(
 		orpc.model.find.queryOptions({
 			input: modelId
 				? {
@@ -29,8 +46,12 @@ const useAssistantModel = () => {
 	);
 	const providerId = model?.data.providerId ?? null;
 
-	const availability: AssistantModelAvailability =
-		organizationStatus === "pending" ? "loading" : modelId ? "set" : "unset";
+	const availability = assistantModelAvailability({
+		organizationStatus,
+		modelId,
+		modelMissing:
+			modelError instanceof ORPCError && modelError.code === "NOT_FOUND",
+	});
 
 	return {
 		availability,
@@ -40,4 +61,8 @@ const useAssistantModel = () => {
 	};
 };
 
-export { type AssistantModelAvailability, useAssistantModel };
+export {
+	type AssistantModelAvailability,
+	assistantModelAvailability,
+	useAssistantModel,
+};
