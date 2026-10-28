@@ -8,6 +8,7 @@ import {
 import { BotSelectorButton } from "@/components/chat/bot-selector";
 import { ChatModelNotice } from "@/components/chat/chat-model-notice";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
 import type { ChatAvailability } from "@/components/chat/use-chat-starter";
 import {
 	InputGroup,
@@ -96,10 +97,16 @@ const NewChatInput = ({
 							onSelect={onModelSelect}
 						/>
 					</PromptInputTools>
-					<PromptInputSubmit
-						status={isCreating ? "submitted" : "ready"}
-						disabled={isCreating || !messageText.trim() || !selectedModelId}
-					/>
+					<div className="flex shrink-0 items-center gap-1">
+						<UsageIndicator
+							providerId={selectedProviderId}
+							modelId={selectedModelId}
+						/>
+						<PromptInputSubmit
+							status={isCreating ? "submitted" : "ready"}
+							disabled={isCreating || !messageText.trim() || !selectedModelId}
+						/>
+					</div>
 				</InputGroupAddon>
 			</InputGroup>
 			{blocker && <ChatModelNotice reason={blocker} />}

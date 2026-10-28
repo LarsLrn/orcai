@@ -221,10 +221,14 @@ test("max tokens stay within the model's max output", async ({
 	expect(lastTurnParameters(inference)).toEqual({
 		max_tokens: 500,
 	});
-	// The mock reports a context window, so the reply shows how full it is.
+	// The mock model states its context window, so the composer shows how full it is.
+	await page
+		.getByRole("button", {
+			name: message("chat_usage_trigger_aria_label"),
+		})
+		.click();
 	await expect(
-		page.getByRole("img", {
-			name: message("ai_elements_context_usage_aria_label"),
-		}),
+		page.getByText(message("chat_usage_context_title")),
 	).toBeVisible();
+	await expect(page.getByText(/% used$/)).toBeVisible();
 });

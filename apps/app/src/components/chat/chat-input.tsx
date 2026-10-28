@@ -13,12 +13,14 @@ import {
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { AssistantModelLabel } from "@/components/assistant/assistant-model-label";
+import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { ChatAttachmentActionMenu } from "@/components/chat/attachments/chat-attachment-action-menu";
 import { ChatComposerAttachments } from "@/components/chat/attachments/chat-attachment-input";
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -48,6 +50,7 @@ const ChatInput = ({
 	send,
 	stop,
 	draft,
+	contextTokens,
 	variant = "chat",
 }: {
 	chatId: ChatId;
@@ -58,6 +61,8 @@ const ChatInput = ({
 	stop: ChatSession["stop"];
 	/** Prefills the composer, e.g. with the message a branch started from. */
 	draft?: ChatDraft;
+	/** What the newest reply's context held. */
+	contextTokens?: number;
 	/** The assistant's model comes from the organisation, and it takes no attachments here. */
 	variant?: "chat" | "assistant";
 }) => {
@@ -72,6 +77,13 @@ const ChatInput = ({
 			},
 		}),
 	);
+	const assistantModel = useAssistantModel();
+	const selectedModel = isAssistant
+		? assistantModel
+		: {
+				providerId: chat?.data.config?.providerId,
+				modelId: chat?.data.config?.modelId,
+			};
 	const { mutate: updateChat } = useUpdateChatMutation();
 	const isModelConfigured =
 		isAssistant ||
@@ -247,20 +259,27 @@ const ChatInput = ({
 								)}
 							</PromptInputTools>
 
-							<PromptInputSubmit
-								status={submitStatus}
-								onStop={() => void stop()}
-								disabled={
-									isBusy ||
-									(!isGenerating &&
-										(!isModelConfigured ||
-											!(
-												messageText.trim().length > 0 ||
-												localFiles.length > 0 ||
-												selectedAttachments.length > 0
-											)))
-								}
-							/>
+							<div className="flex shrink-0 items-center gap-1">
+								<UsageIndicator
+									providerId={selectedModel.providerId}
+									modelId={selectedModel.modelId}
+									contextTokens={contextTokens}
+								/>
+								<PromptInputSubmit
+									status={submitStatus}
+									onStop={() => void stop()}
+									disabled={
+										isBusy ||
+										(!isGenerating &&
+											(!isModelConfigured ||
+												!(
+													messageText.trim().length > 0 ||
+													localFiles.length > 0 ||
+													selectedAttachments.length > 0
+												)))
+									}
+								/>
+							</div>
 						</InputGroupAddon>
 					</InputGroup>
 				</div>
