@@ -8,6 +8,7 @@ import {
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import { useTheme } from "@/components/app/theme-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { m } from "@/paraglide/messages";
 
 const Toaster = ({
 	mobilePosition = "bottom-right",
@@ -38,7 +39,9 @@ const Toaster = ({
 				} as React.CSSProperties
 			}
 			position={isMobile ? mobilePosition : props.position}
+			closeButton
 			toastOptions={{
+				closeButtonAriaLabel: m.toast_close_button_label(),
 				classNames: {
 					toast: "cn-toast",
 				},

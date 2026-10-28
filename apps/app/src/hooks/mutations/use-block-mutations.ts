@@ -121,32 +121,6 @@ export const useSetBlockStatusMutation = (
 	});
 };
 
-export const useCreateBlockInlineMutation = (
-	opts: ReturnType<typeof orpc.block.create.mutationOptions> = {},
-) => {
-	return useMutationAction({
-		mutationOptions: () => orpc.block.create.mutationOptions(opts),
-		messages: {
-			loading: () => m.blocks_create_inline_toast_loading(),
-			success: () => m.blocks_create_inline_toast_success(),
-			error: () => m.blocks_create_inline_toast_error(),
-		},
-	});
-};
-
-export const useUpdateBlockInlineMutation = (
-	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
-) => {
-	return useMutationAction({
-		mutationOptions: () => orpc.block.update.mutationOptions(opts),
-		messages: {
-			loading: () => m.blocks_update_inline_toast_loading(),
-			success: () => m.blocks_update_inline_toast_success(),
-			error: () => m.blocks_update_inline_toast_error(),
-		},
-	});
-};
-
 export const useRetryDocumentMutation = () => {
 	return useMutationAction({
 		mutationOptions: () => orpc.block.retryDocument.mutationOptions(),

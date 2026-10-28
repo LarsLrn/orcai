@@ -1,4 +1,9 @@
+import type {
+	MutationFunction,
+	MutationFunctionContext,
+} from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { executeBotEditorSave } from "@/components/authoring/bot-editor-save";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
@@ -7,11 +12,41 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const useSaveBotMutation = (
-	opts: ReturnType<typeof orpc.bot.save.mutationOptions> = {},
-) => {
+/** Calls a procedure through its mutation options, so the queries it makes stale are invalidated. */
+const callProcedure =
+	<TInput, TOutput>(
+		options: {
+			mutationFn?: MutationFunction<TOutput, TInput>;
+		},
+		context: MutationFunctionContext,
+	) =>
+	(input: TInput) => {
+		if (!options.mutationFn) {
+			throw new Error("Procedure mutation options lack a mutationFn");
+		}
+		return options.mutationFn(input, context);
+	};
+
+/** Saves the bot editor's changed blocks and bot as one action with one toast. */
+export const useSaveBotEditorMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.bot.save.mutationOptions(opts),
+		mutationOptions: () => ({
+			mutationFn: (
+				input: Parameters<typeof executeBotEditorSave>[0],
+				context: MutationFunctionContext,
+			) =>
+				executeBotEditorSave(input, {
+					createBlock: callProcedure(
+						orpc.block.create.mutationOptions(),
+						context,
+					),
+					updateBlock: callProcedure(
+						orpc.block.update.mutationOptions(),
+						context,
+					),
+					saveBot: callProcedure(orpc.bot.save.mutationOptions(), context),
+				}),
+		}),
 		messages: {
 			loading: () => m.bots_save_toast_loading(),
 			success: () => m.bots_save_toast_success(),
