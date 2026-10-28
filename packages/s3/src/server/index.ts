@@ -21,6 +21,7 @@ export {
 	getObjectAsString,
 	listObjects,
 } from "./object-helpers";
+export { probeS3 } from "./probe";
 export { S3Live, S3Service, S3ServiceLive } from "./service";
 export { uploadStream } from "./stream-upload";
 export {

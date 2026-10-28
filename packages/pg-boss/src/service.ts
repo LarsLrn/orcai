@@ -18,66 +18,68 @@ export class PgBossService extends Context.Service<
 	}
 >()("PgBossService") {}
 
-export const PgBossServiceLive: Layer.Layer<
-	PgBossService,
-	PgBossError,
-	DbConfigService
-> = Layer.effect(
-	PgBossService,
-	Effect.acquireRelease(
-		Effect.gen(function* () {
-			yield* Effect.logInfo("Starting PgBoss service...");
-
-			const { config } = yield* DbConfigService;
-
-			const url = makePgConnectionString(config.postgres);
-
-			const boss = yield* Effect.tryPromise({
-				try: async () => {
-					const boss = new PgBoss({
-						connectionString: Redacted.value(url),
-						max: config.postgres.poolMax,
-						// Jobs carry the trace context only, never baggage.
-						openTelemetry: {
-							propagateContext: true,
-							propagator: new W3CTraceContextPropagator(),
-						},
-					});
-					// pg-boss re-emits pool errors on itself; without a listener a
-					// terminated idle connection ends the process.
-					boss.on("error", (error) => {
-						console.warn(`[pg-boss] ${error.message}`);
-					});
-					await boss.start();
-					return boss;
-				},
-				catch: (error) =>
-					new PgBossError({
-						operation: "start",
-						cause: error,
-					}),
-			});
-
-			yield* Effect.logInfo("PgBoss service started successfully");
-			return {
-				boss,
-			};
-		}),
-		({ boss }) =>
+/** `instanceName` tells this process apart in pg-boss's instance registry. */
+const pgBossServiceLayer = (options: {
+	readonly instanceName: string;
+}): Layer.Layer<PgBossService, PgBossError, DbConfigService> =>
+	Layer.effect(
+		PgBossService,
+		Effect.acquireRelease(
 			Effect.gen(function* () {
-				yield* Effect.logInfo("Stopping PgBoss service...");
-				yield* Effect.tryPromise(() =>
-					boss.stop({
-						graceful: true,
-					}),
-				).pipe(
-					Effect.catch((error) =>
-						Effect.logError(`Failed to stop PgBoss: ${error}`),
-					),
-				);
-				yield* Effect.logInfo("PgBoss service stopped");
-			}),
-	),
-);
+				yield* Effect.logInfo("Starting PgBoss service...");
 
-export const PgBossLive = PgBossServiceLive.pipe(Layer.provide(DbConfigLive));
+				const { config } = yield* DbConfigService;
+
+				const url = makePgConnectionString(config.postgres);
+
+				const boss = yield* Effect.tryPromise({
+					try: async () => {
+						const boss = new PgBoss({
+							connectionString: Redacted.value(url),
+							max: config.postgres.poolMax,
+							instanceName: options.instanceName,
+							// Jobs carry the trace context only, never baggage.
+							openTelemetry: {
+								propagateContext: true,
+								propagator: new W3CTraceContextPropagator(),
+							},
+						});
+						// pg-boss re-emits pool errors on itself; without a listener a
+						// terminated idle connection ends the process.
+						boss.on("error", (error) => {
+							console.warn(`[pg-boss] ${error.message}`);
+						});
+						await boss.start();
+						return boss;
+					},
+					catch: (error) =>
+						new PgBossError({
+							operation: "start",
+							cause: error,
+						}),
+				});
+
+				yield* Effect.logInfo("PgBoss service started successfully");
+				return {
+					boss,
+				};
+			}),
+			({ boss }) =>
+				Effect.gen(function* () {
+					yield* Effect.logInfo("Stopping PgBoss service...");
+					yield* Effect.tryPromise(() =>
+						boss.stop({
+							graceful: true,
+						}),
+					).pipe(
+						Effect.catch((error) =>
+							Effect.logError(`Failed to stop PgBoss: ${error}`),
+						),
+					);
+					yield* Effect.logInfo("PgBoss service stopped");
+				}),
+		),
+	);
+
+export const makePgBossLayer = (options: { readonly instanceName: string }) =>
+	pgBossServiceLayer(options).pipe(Layer.provide(DbConfigLive));

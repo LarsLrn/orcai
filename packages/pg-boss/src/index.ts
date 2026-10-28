@@ -2,5 +2,6 @@ export { type Job, type JobWithMetadata, PgBoss } from "pg-boss";
 export * from "./errors";
 export * from "./helpers";
 export * from "./monitoring";
-export { PgBossLive, PgBossService, PgBossServiceLive } from "./service";
+export * from "./probe";
+export { makePgBossLayer, PgBossService } from "./service";
 export { toPgBossRunError } from "./utils/error-helper";
