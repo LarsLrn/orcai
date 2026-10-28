@@ -100,5 +100,25 @@ export const assetPointsFiltersSchema = z.object({
 	chunkIndices: z.array(z.number().int().min(0)).optional(),
 });
 
+/**
+ * Where a browse continues: from a point in point-id order across the
+ * repository, or after a passage in one document's reading order (page, then
+ * chunk; passages without a page last).
+ */
+export const assetPointBrowseCursorSchema = z.discriminatedUnion("order", [
+	z.object({
+		order: z.literal("point"),
+		from: z.uuid(),
+	}),
+	z.object({
+		order: z.literal("reading"),
+		page: z.number().int().min(1).nullable(),
+		chunkIndex: z.number().int().min(0),
+	}),
+]);
+
 export type AssetPoint = z.infer<typeof assetPointSchema>;
+export type AssetPointBrowseCursor = z.infer<
+	typeof assetPointBrowseCursorSchema
+>;
 export type AssetPointPayload = z.infer<typeof assetPointPayloadSchema>;

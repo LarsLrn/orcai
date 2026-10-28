@@ -1,10 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import {
-	type AssetId,
-	type BlockId,
-	buckets,
-	type OrganizationId,
-} from "@orcai/core";
+import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
 import {
@@ -20,12 +15,11 @@ import {
 	authzIntegration,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
-import { writeRelationships } from "@/lib/authz/relationship-write";
-import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { enqueueIndexing } from "@/lib/blocks/database-block";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions, createAsset } =
+	authzIntegration();
 
 // Workers create the queues at boot; the tier runs none.
 beforeAll(
@@ -41,46 +35,6 @@ beforeAll(
 		),
 	TIMEOUT,
 );
-
-const createAsset = (owner: Actor, organizationId: OrganizationId) =>
-	run(
-		Effect.gen(function* () {
-			const db = yield* DB;
-			const { result, zedToken } = yield* writeRelationships(
-				{
-					organizationIds: [
-						organizationId,
-					],
-				},
-				Effect.gen(function* () {
-					const [asset] = yield* db
-						.insert(dbSchema.asset)
-						.values({
-							title: "Integration asset",
-							size: 1,
-							fileType: "pdf",
-							bucket: buckets.main.name,
-							prefix: `users/${owner.user.id}/asset`,
-							userId: owner.user.id,
-						})
-						.returning();
-					yield* initializeResourceAuthorization({
-						resource: {
-							resourceType: "asset",
-							resourceId: asset.id,
-						},
-						organizationId,
-						ownerUserId: owner.user.id,
-					});
-					return asset;
-				}),
-			);
-			return {
-				asset: result,
-				zedToken,
-			};
-		}),
-	);
 
 const repository = (assets: AssetId[]) => ({
 	type: "database" as const,

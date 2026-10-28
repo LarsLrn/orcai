@@ -1,7 +1,9 @@
 import { generateEmbedding } from "@orcai/ai";
+import type { BlockId } from "@orcai/core";
 import { RAG_SETTINGS } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
+	browseAssetPoints,
 	buildQdrantFilter,
 	dedupeById,
 	mergeRecallCandidates,
@@ -223,28 +225,15 @@ const retrieveAssetPoints = (
 		};
 	});
 
-const listAssetPoint = authed.assetPoint.list
-	.use(
-		requireEntityPermission("asset", "read", {
-			entityId: "assetId",
-		}),
-	)
-	.effect(function* ({ input }) {
-		return yield* retrieveAssetPoints({
-			...input.filters,
-			assetIds: [
-				input.assetId,
-			],
-		});
-	});
-
-const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
-	.use(
-		requireEntityPermission("block", "read", {
-			entityId: "repositoryId",
-		}),
-	)
-	.effect(function* ({ input }) {
+/**
+ * The ready repository's member documents among `requested`, or all of them.
+ * Membership is read on every call, so a detached document drops out at once.
+ */
+const repositoryAssetScope = (
+	repositoryId: BlockId,
+	requested: readonly string[] | undefined,
+) =>
+	Effect.gen(function* () {
 		const db = yield* DB;
 		const rows = yield* db
 			.select({
@@ -257,7 +246,7 @@ const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 				dbSchema.blockAsset,
 				eq(dbSchema.blockAsset.blockId, dbSchema.block.id),
 			)
-			.where(eq(dbSchema.block.id, input.repositoryId));
+			.where(eq(dbSchema.block.id, repositoryId));
 
 		const repository = rows[0];
 		if (repository?.type !== "database" || repository.status !== "ready") {
@@ -269,7 +258,7 @@ const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 			);
 		}
 
-		const permittedAssetIds = new Set<string>(
+		const members = new Set<string>(
 			rows.flatMap((row) =>
 				row.assetId
 					? [
@@ -278,10 +267,22 @@ const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 					: [],
 			),
 		);
-		const requestedAssetIds = input.filters.assetIds;
-		const assetIds = requestedAssetIds
-			? requestedAssetIds.filter((assetId) => permittedAssetIds.has(assetId))
-			: Array.from(permittedAssetIds);
+		return requested
+			? requested.filter((assetId) => members.has(assetId))
+			: Array.from(members);
+	});
+
+const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
+	.use(
+		requireEntityPermission("block", "read", {
+			entityId: "repositoryId",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const assetIds = yield* repositoryAssetScope(
+			input.repositoryId,
+			input.filters.assetIds,
+		);
 
 		if (assetIds.length === 0) {
 			return {
@@ -302,7 +303,55 @@ const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 		});
 	});
 
+const BROWSE_PAGE_SIZE = 50;
+
+const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
+	.use(
+		requireEntityPermission("block", "read", {
+			entityId: "repositoryId",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const assetIds = yield* repositoryAssetScope(
+			input.repositoryId,
+			input.assetId
+				? [
+						input.assetId,
+					]
+				: undefined,
+		);
+
+		if (assetIds.length === 0) {
+			return {
+				data: [],
+				nextCursor: null,
+			};
+		}
+
+		return yield* browseAssetPoints({
+			filter: {
+				must: [
+					{
+						key: "block_id",
+						match: {
+							value: input.repositoryId,
+						},
+					},
+					{
+						key: "asset_id",
+						match: {
+							any: assetIds,
+						},
+					},
+				],
+			},
+			order: input.assetId ? "reading" : "point",
+			cursor: input.cursor,
+			limit: BROWSE_PAGE_SIZE,
+		});
+	});
+
 export const assetPointRouter = {
-	list: listAssetPoint,
 	searchRepository: searchRepositoryAssetPoint,
+	browseRepository: browseRepositoryAssetPoint,
 };

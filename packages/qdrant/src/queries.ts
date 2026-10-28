@@ -6,6 +6,30 @@ import z from "zod/v4";
 import { QdrantError } from "./errors";
 import { QdrantService } from "./service";
 
+/** Qdrant records as asset points; records without a score or version get 0. */
+export const parseAssetPoints = (points: ReadonlyArray<object>) =>
+	Effect.try({
+		try: () =>
+			z.array(assetPointSchema).parse(
+				points.map((point) => ({
+					...point,
+					version:
+						typeof (point as Record<string, unknown>).version === "number"
+							? ((point as Record<string, unknown>).version as number)
+							: 0,
+					score:
+						typeof (point as Record<string, unknown>).score === "number"
+							? ((point as Record<string, unknown>).score as number)
+							: 0,
+				})),
+			),
+		catch: (error) =>
+			new QdrantError({
+				operation: "parse_query_response",
+				cause: error,
+			}),
+	});
+
 export const queryAssetPoints = (params: {
 	embedding?: number[];
 	text?: string;
@@ -142,29 +166,5 @@ export const queryAssetPoints = (params: {
 				}),
 		});
 
-		return yield* Effect.succeed(points).pipe(
-			Effect.flatMap((response) =>
-				Effect.try({
-					try: () =>
-						z.array(assetPointSchema).parse(
-							response.map((point) => ({
-								...point,
-								version:
-									typeof (point as Record<string, unknown>).version === "number"
-										? ((point as Record<string, unknown>).version as number)
-										: 0,
-								score:
-									typeof (point as Record<string, unknown>).score === "number"
-										? ((point as Record<string, unknown>).score as number)
-										: 0,
-							})),
-						),
-					catch: (error) =>
-						new QdrantError({
-							operation: "parse_query_response",
-							cause: error,
-						}),
-				}),
-			),
-		);
+		return yield* parseAssetPoints(points);
 	});
