@@ -8,7 +8,7 @@ const InstanceShell = ({ children }: { children: ReactNode }) => (
 		<InstanceSidebar />
 		<SidebarInset className="max-w-full">
 			<Header homeTo="/instance" />
-			<main className="p-6">{children}</main>
+			<div className="isolate p-6">{children}</div>
 		</SidebarInset>
 	</SidebarProvider>
 );

@@ -134,7 +134,7 @@ function RouteComponent() {
 				<AppSidebar />
 				<SidebarInset className="max-w-full">
 					<Header />
-					<div className="z-10 mx-auto flex w-full flex-1 flex-col px-2 py-6 md:px-6">
+					<div className="isolate mx-auto flex w-full flex-1 flex-col px-2 py-6 md:px-6">
 						<Outlet />
 					</div>
 				</SidebarInset>
