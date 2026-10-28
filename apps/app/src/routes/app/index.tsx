@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ManagerHome } from "@/components/app/home/manager-home";
 import { UserHome } from "@/components/app/home/user-home";
 import { Page, PageContent } from "@/components/ui/shell/page";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -49,12 +49,13 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageContent className="space-y-8">
-				<div className="flex justify-end">
-					<Tabs
-						value={view}
-						onValueChange={(value) => setView(value as HomeView)}
-					>
+			<PageContent>
+				<Tabs
+					className="gap-8"
+					value={view}
+					onValueChange={(value) => setView(value as HomeView)}
+				>
+					<div className="flex justify-end">
 						<TabsList>
 							<TabsTrigger value="user">
 								<MessageSquareIcon />
@@ -65,10 +66,14 @@ function RouteComponent() {
 								{m.home_view_manage_tab()}
 							</TabsTrigger>
 						</TabsList>
-					</Tabs>
-				</div>
-
-				{view === "user" ? <UserHome /> : <ManagerHome />}
+					</div>
+					<TabsContent value="user" className="text-base">
+						<UserHome />
+					</TabsContent>
+					<TabsContent value="manager" className="text-base">
+						<ManagerHome />
+					</TabsContent>
+				</Tabs>
 			</PageContent>
 		</Page>
 	);
