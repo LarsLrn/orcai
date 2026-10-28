@@ -158,7 +158,6 @@ function RouteComponent() {
 						createdAt={block.data.createdAt}
 						updatedAt={block.data.updatedAt}
 						visibility={visibility.data.visibility}
-						version={block.data.version}
 						id={block.data.id}
 					/>
 				</div>

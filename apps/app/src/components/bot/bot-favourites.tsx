@@ -44,7 +44,10 @@ const BotFavouriteToggle = ({
 			aria-label={m.bots_favourite_toggle_label({
 				name: bot.name,
 			})}
-			className={cn("px-2 aria-pressed:bg-transparent", className)}
+			className={cn(
+				"px-2 aria-pressed:bg-transparent aria-pressed:hover:bg-muted",
+				className,
+			)}
 		>
 			<StarIcon
 				className={cn(

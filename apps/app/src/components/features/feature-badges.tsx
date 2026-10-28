@@ -27,7 +27,7 @@ const FeatureBadges = ({
 			{ids.map((id) => (
 				<Badge
 					key={id}
-					variant="secondary"
+					variant="outline"
 					className="px-2.5 font-medium"
 					title={featureDescription(id)}
 				>

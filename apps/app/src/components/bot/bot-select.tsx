@@ -6,7 +6,6 @@ import {
 	BotFavouriteStar,
 	FAVOURITE_BOTS_INPUT,
 } from "@/components/bot/bot-favourites";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
 import {
 	Field,
@@ -85,12 +84,6 @@ const BotRadioGroup = ({
 									{bot.isFavourite ? (
 										<BotFavouriteStar className="shrink-0" />
 									) : null}
-									<Badge
-										variant="secondary"
-										className="ml-auto shrink-0 text-xs"
-									>
-										v{bot.version}
-									</Badge>
 								</FieldTitle>
 								<FieldDescription
 									id={`${itemId}-description`}

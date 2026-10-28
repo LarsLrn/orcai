@@ -264,8 +264,6 @@
 	"app_metadata_card_id_label": "ID",
 	"app_metadata_card_title": "Details",
 	"app_metadata_card_updated_label": "Updated",
-	"app_metadata_card_version_label": "Version",
-	"app_metadata_card_version_value": "v{version}",
 	"app_metadata_card_visibility_label": "Visibility",
 	"app_metadata_card_visibility_private": "Private",
 	"app_metadata_card_visibility_public": "Public",
