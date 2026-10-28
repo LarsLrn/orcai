@@ -5,7 +5,7 @@ import { z } from "zod/v4";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-const removeMembersInputSchema = z.object({
+const removeMembersInputSchema = z.strictObject({
 	userIds: z
 		.array(userIdSchema)
 		.min(1)

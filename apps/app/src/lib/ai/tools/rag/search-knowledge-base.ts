@@ -59,7 +59,7 @@ export const searchKnowledgeBaseTool = ({
 	effectTool({
 		description:
 			"Search the knowledge base by topic, entity, quote, or claim and return the full text of the best matching chunks. Call getKnowledgeBaseChunks only when you need the text around a chunk. Only ready documents are searchable: the result names repositories with documents still being prepared or that could not be prepared; tell the user when the answer may be in them.",
-		inputSchema: z.object({
+		inputSchema: z.strictObject({
 			query: z
 				.string()
 				.min(2)

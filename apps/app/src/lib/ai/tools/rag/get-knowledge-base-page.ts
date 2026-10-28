@@ -34,7 +34,7 @@ export const getKnowledgeBasePageTool = ({
 	effectTool({
 		description:
 			"Read the text of a specific document page or nearby pages. Use this for explicit page requests after you know the document or have narrowed it down by title.",
-		inputSchema: z.object({
+		inputSchema: z.strictObject({
 			page: z.coerce
 				.number()
 				.int()

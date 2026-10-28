@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { statusSchema } from "@/components/chat/gen-ui/status";
 
-export const checklistSchema = z.object({
+export const checklistSchema = z.strictObject({
 	title: z.string().optional().describe("Short heading, plain text."),
 	description: z
 		.string()
@@ -9,7 +9,7 @@ export const checklistSchema = z.object({
 		.describe("One sentence on what was checked, plain text."),
 	items: z
 		.array(
-			z.object({
+			z.strictObject({
 				label: z
 					.string()
 					.describe("The criterion or point, a few words of plain text."),

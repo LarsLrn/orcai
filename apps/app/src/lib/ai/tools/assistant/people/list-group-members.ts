@@ -18,7 +18,8 @@ const listGroupMembersInputSchema = groupMembersQuerySchema
 			"Part of the name or email to search for, case-insensitive.",
 		),
 		limit: listLimitSchema,
-	});
+	})
+	.strict();
 
 export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({

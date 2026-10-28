@@ -10,7 +10,7 @@ import {
 } from "../groups";
 import { type AssistantTool, assistantTool } from "../procedure-tool";
 
-export const loadToolsInputSchema = z.object({
+export const loadToolsInputSchema = z.strictObject({
 	groups: z
 		.array(z.enum(DEFERRED_TOOL_GROUPS))
 		.min(1)

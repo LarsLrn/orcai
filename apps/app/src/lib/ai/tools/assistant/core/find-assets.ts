@@ -8,7 +8,7 @@ import {
 } from "../procedure-tool";
 import { listLimitSchema, listQuerySchema } from "./list-input";
 
-const findAssetsInputSchema = z.object({
+const findAssetsInputSchema = z.strictObject({
 	query: listQuerySchema.describe(
 		"Part of the title to search for, case-insensitive.",
 	),

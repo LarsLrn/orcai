@@ -4,7 +4,8 @@ import { z } from "zod/v4";
 /**
  * A tool's input schema as every step sends it: the JSON schema without
  * `$schema` and without the pattern of a UUID, whose `format` says the same.
- * Zod still validates the input.
+ * Zod still validates the input. Input objects are `z.strictObject`, which
+ * providers such as OpenAI require and which names a key the model invents.
  */
 export const toolInputSchema = <Input>(
 	schema: z.ZodType<Input>,
@@ -18,13 +19,6 @@ export const toolInputSchema = <Input>(
 				override: ({ jsonSchema: node }) => {
 					if (node.format === "uuid") {
 						node.pattern = undefined;
-					}
-					// Providers such as OpenAI reject open objects.
-					if (
-						node.type === "object" &&
-						node.additionalProperties === undefined
-					) {
-						node.additionalProperties = false;
 					}
 				},
 			});

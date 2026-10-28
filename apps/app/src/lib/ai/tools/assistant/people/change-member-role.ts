@@ -17,7 +17,8 @@ const changeMemberRoleInputSchema = organizationMemberSchema
 		userId: organizationMemberSchema.shape.userId.describe(
 			"Id of the member, from listMembers.",
 		),
-	});
+	})
+	.strict();
 
 export const changeMemberRoleTool = (deps: AssistantToolDeps) =>
 	effectTool({

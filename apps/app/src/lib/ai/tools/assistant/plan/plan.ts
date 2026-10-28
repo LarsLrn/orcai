@@ -7,7 +7,7 @@ const planItemStatusSchema = z.enum([
 	"skipped",
 ]);
 
-export const planSchema = z.object({
+export const planSchema = z.strictObject({
 	title: z
 		.string()
 		.min(1)
@@ -15,7 +15,7 @@ export const planSchema = z.object({
 		.describe("The task in a few words, plain text."),
 	items: z
 		.array(
-			z.object({
+			z.strictObject({
 				label: z
 					.string()
 					.min(1)

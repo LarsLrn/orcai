@@ -111,7 +111,7 @@ export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
 	effectTool({
 		description:
 			"Read the OrcAI docs: without a path the index of all pages with their descriptions, with a path one page as Markdown.",
-		inputSchema: z.object({
+		inputSchema: z.strictObject({
 			path: z
 				.string()
 				.refine((path) => docsMarkdownPath(path) !== undefined, {

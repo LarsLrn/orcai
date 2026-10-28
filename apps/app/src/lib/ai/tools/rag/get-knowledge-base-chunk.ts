@@ -37,7 +37,7 @@ export const getKnowledgeBaseChunksTool = ({
 	effectTool({
 		description:
 			"Read the text around chunks from earlier results. Neighbouring chunks of one document come back as one passage.",
-		inputSchema: z.object({
+		inputSchema: z.strictObject({
 			chunks: z
 				.array(z.string())
 				.min(1)

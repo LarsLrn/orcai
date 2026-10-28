@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
 import { statusSchema } from "@/components/chat/gen-ui/status";
 
-export const matrixSchema = z.object({
+export const matrixSchema = z.strictObject({
 	title: z.string().optional().describe("Short heading, plain text."),
 	columns: z
 		.array(
-			z.object({
+			z.strictObject({
 				key: z.string().describe("Identifies the column in each row's cells."),
 				label: z
 					.string()
@@ -15,14 +15,14 @@ export const matrixSchema = z.object({
 		.describe("One column per criterion, in display order."),
 	rows: z
 		.array(
-			z.object({
+			z.strictObject({
 				label: z
 					.string()
 					.describe("The checked item, a few words of plain text."),
 				cells: z
 					.record(
 						z.string(),
-						z.object({
+						z.strictObject({
 							status: statusSchema.describe(
 								"Outcome of the check. met: fully satisfied. partial: partly satisfied. not_met: not satisfied. n_a: cannot be checked.",
 							),

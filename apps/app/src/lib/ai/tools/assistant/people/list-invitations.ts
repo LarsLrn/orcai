@@ -8,7 +8,7 @@ import {
 	effectTool,
 } from "../procedure-tool";
 
-const listInvitationsInputSchema = z.object({
+const listInvitationsInputSchema = z.strictObject({
 	status: organizationInvitationStatusSchema.default("pending"),
 	limit: listLimitSchema,
 });

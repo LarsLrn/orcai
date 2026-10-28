@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-const deleteBlockInputSchema = z.object({
+const deleteBlockInputSchema = z.strictObject({
 	ids: z
 		.array(blockIdSchema)
 		.min(1)

@@ -8,7 +8,7 @@ import {
 	expectType,
 } from "../procedure-tool";
 
-const getBotInputSchema = z.object({
+const getBotInputSchema = z.strictObject({
 	id: botIdSchema.describe("Id of the bot, from findBots."),
 });
 

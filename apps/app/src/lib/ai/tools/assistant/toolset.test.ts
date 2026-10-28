@@ -71,6 +71,20 @@ describe("buildAssistantTools", () => {
 		},
 	);
 
+	test("a padded search query is trimmed before its length limit", async () => {
+		expect(
+			await asSchema(tools.findBots?.inputSchema).validate?.({
+				query: `${" ".repeat(101)}bot`,
+				limit: 20,
+			}),
+		).toMatchObject({
+			success: true,
+			value: {
+				query: "bot",
+			},
+		});
+	});
+
 	test("tells the model which tools the user confirms", () => {
 		const confirming = Object.entries(tools)
 			.filter(

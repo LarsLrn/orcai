@@ -21,10 +21,10 @@ const verdictSchema = z.enum([
 
 export type Verdict = z.infer<typeof verdictSchema>;
 
-export const quizGradingSchema = z.object({
+export const quizGradingSchema = z.strictObject({
 	results: z
 		.array(
-			z.object({
+			z.strictObject({
 				question: z
 					.int()
 					.min(1)

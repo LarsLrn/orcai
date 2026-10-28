@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-const deleteBotInputSchema = z.object({
+const deleteBotInputSchema = z.strictObject({
 	ids: z
 		.array(botIdSchema)
 		.min(1)

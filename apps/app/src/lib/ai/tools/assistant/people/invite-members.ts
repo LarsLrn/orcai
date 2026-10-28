@@ -11,7 +11,7 @@ import {
 } from "../procedure-tool";
 import { invitationInput, requestLocale } from "./invitation-input";
 
-export const inviteMembersInputSchema = z.object({
+export const inviteMembersInputSchema = z.strictObject({
 	emails: z
 		.array(z.email())
 		.min(1)

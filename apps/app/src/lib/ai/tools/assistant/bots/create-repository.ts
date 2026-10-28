@@ -21,7 +21,7 @@ import {
 	uniqueAssetIds,
 } from "./block-outline";
 
-export const createRepositoryInputSchema = z.object({
+export const createRepositoryInputSchema = z.strictObject({
 	name: z.string().min(1),
 	description: blockFieldsSchema.shape.description
 		.unwrap()

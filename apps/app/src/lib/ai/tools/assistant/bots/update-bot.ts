@@ -4,7 +4,6 @@ import {
 	blockIdSchema,
 	botFieldsSchema,
 	botIdSchema,
-	featuresSchema,
 	type SaveBotInput,
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
@@ -17,8 +16,9 @@ import {
 	mutation,
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
+import { featuresInputSchema } from "./features-input";
 
-export const updateBotInputSchema = z.object({
+export const updateBotInputSchema = z.strictObject({
 	id: botIdSchema.describe("Id of the bot to update."),
 	name: botFieldsSchema.shape.name
 		.optional()
@@ -40,7 +40,7 @@ export const updateBotInputSchema = z.object({
 		.describe(
 			"Ids of every repository the bot answers from; replaces the current list. Leave out to keep it.",
 		),
-	features: featuresSchema
+	features: featuresInputSchema
 		.optional()
 		.describe(
 			"Every enabled feature, such as { generativeUi: {}, webSearch: { allowedDomains: [] } }; replaces the current set. Leave out to keep it.",

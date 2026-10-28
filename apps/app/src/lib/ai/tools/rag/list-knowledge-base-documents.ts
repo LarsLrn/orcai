@@ -21,7 +21,7 @@ export const listKnowledgeBaseDocumentsTool = ({
 	effectTool({
 		description:
 			"List knowledge base documents with their asset IDs and state. Use this before page-specific retrieval or when the user mentions a document title and you need to identify the right asset. Only ready documents are searchable; a document queued, processing or indexing is still being prepared, a failed one names its failure. Tell the user rather than treating such a document as empty.",
-		inputSchema: z.object({
+		inputSchema: z.strictObject({
 			query: z
 				.string()
 				.optional()

@@ -14,9 +14,9 @@ import {
 	mutation,
 } from "../procedure-tool";
 
-const assetMetadataPatchSchema = metadataSchema.partial();
+const assetMetadataPatchSchema = metadataSchema.partial().strict();
 
-const updateAssetInputSchema = z.object({
+const updateAssetInputSchema = z.strictObject({
 	id: assetIdSchema.describe("Id of the asset, from findAssets."),
 	title: assetFieldsSchema.shape.title
 		.optional()
