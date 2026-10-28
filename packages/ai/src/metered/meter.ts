@@ -1,4 +1,3 @@
-import { NATIVE_WEB_SEARCH_TOOL_NAME } from "@orcai/ai";
 import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import {
@@ -11,7 +10,8 @@ import {
 import type { StepResult, ToolSet } from "ai";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { BadRequestError } from "@/lib/effect/utils/errors";
+import { QuotaDeniedError } from "../errors";
+import { NATIVE_WEB_SEARCH_TOOL_NAME } from "../provider-kinds/registry";
 
 export type MeteredCallOutcome = "completed" | "aborted" | "failed" | "unused";
 
@@ -40,17 +40,17 @@ const denialError = (
 ) => {
 	switch (denialReason) {
 		case "no_pool":
-			return new BadRequestError({
+			return new QuotaDeniedError({
 				reason: "QUOTA_POOL_UNAVAILABLE",
 				message: "No quota pool available for this request.",
 			});
 		case "exhausted":
-			return new BadRequestError({
+			return new QuotaDeniedError({
 				reason: "QUOTA_EXHAUSTED",
 				message: "Quota exhausted for this provider/model.",
 			});
 		default:
-			return new BadRequestError({
+			return new QuotaDeniedError({
 				reason: "QUOTA_CHECK_FAILED",
 				message: "Quota check failed.",
 			});

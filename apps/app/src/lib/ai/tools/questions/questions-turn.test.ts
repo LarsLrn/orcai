@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { BotId } from "@orcai/core";
+import { quota } from "@orcai/quota/testing";
 import * as Effect from "effect/Effect";
-import { quota } from "../../metered-call/test-quota";
 import {
 	answerSetup,
 	assistantRow,

@@ -12,7 +12,7 @@ const { ASSISTANT_TOOL_GROUPS, DEFERRED_TOOL_NAMES } = await import(
 	"../tools/assistant/groups"
 );
 const { createAssistantTurn } = await import("../tools/assistant/turn-state");
-const { agentModel } = await import("./agent-model");
+const { agentModel } = await import("@orcai/ai");
 const { memberCapabilities } = await import("./test-provider");
 const { createAssistantAgent } = await import("./assistant-agent");
 

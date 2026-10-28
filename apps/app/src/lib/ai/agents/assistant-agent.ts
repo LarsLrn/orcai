@@ -1,10 +1,10 @@
+import type { AgentModel } from "@orcai/ai";
 import {
 	aiTelemetry,
 	buildSystemInstructions,
 	type ProviderCompaction,
 } from "@orcai/ai";
 import { Output, ToolLoopAgent, type ToolSet } from "ai";
-import type { AgentModel } from "@/lib/ai/agents/agent-model";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import {

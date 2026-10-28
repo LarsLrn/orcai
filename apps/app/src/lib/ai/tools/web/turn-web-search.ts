@@ -1,4 +1,4 @@
-import { createWebSearch } from "@orcai/ai";
+import { createWebSearch, providerApiKey } from "@orcai/ai";
 import {
 	type BotId,
 	isSearchProviderKind,
@@ -8,7 +8,6 @@ import {
 	webSearchSource,
 } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import { providerApiKey } from "@/lib/encryption";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { meteredWebSearch } from "./metered-web-search";

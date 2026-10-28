@@ -1,9 +1,3 @@
-import {
-	createProviderLanguageModel,
-	type ProviderConnection,
-	providerToolLoading,
-	type ToolLoading,
-} from "@orcai/ai";
 import type { ModelProviderKind } from "@orcai/core";
 import {
 	extractReasoningMiddleware,
@@ -11,6 +5,12 @@ import {
 	type LanguageModelMiddleware,
 	wrapLanguageModel,
 } from "ai";
+import {
+	createProviderLanguageModel,
+	providerToolLoading,
+	type ToolLoading,
+} from "./provider-kinds/registry";
+import type { ProviderConnection } from "./provider-kinds/types";
 
 /** A model with the behaviour of its provider kind. */
 export interface AgentModel {

@@ -1,4 +1,4 @@
-import { AiConfigService } from "@orcai/ai";
+import { AiConfigService, EncryptionKey } from "@orcai/ai";
 import type { ProbeResult } from "@orcai/core";
 import {
 	DB,
@@ -415,7 +415,9 @@ const appProcessConfig = Effect.gen(function* () {
 	const { config: s3 } = yield* S3ConfigService;
 	return {
 		auth: app.config.auth,
-		app: app.config.app,
+		app: {
+			encryptionKey: yield* EncryptionKey,
+		},
 		docs: app.docs,
 		umami: app.publicConfig.umami,
 		postgres: db.postgres,

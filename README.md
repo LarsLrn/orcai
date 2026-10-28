@@ -244,7 +244,7 @@ Runtime configuration is loaded across app and package config modules. Every val
 - `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the assistant (optional, defaults to `WEB_URL`; Docker Compose sets `http://web:3001`).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
 - `BETTER_AUTH_RATE_LIMIT`: `false` turns off Better Auth's rate limiting (optional; on in production by default). It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit.
-- `ENCRYPTION_KEY`: 32 to 64 character application encryption key.
+- `ENCRYPTION_KEY`: 32 to 64 character application encryption key. Provider API keys are stored encrypted with it, so the app and the workers need the same value.
 - `TWO_FACTOR_REQUIRED`: Who must use two-factor authentication: `none` (default), `admins` (instance administrators) or `all` (optional). A covered user without it is sent to set it up before using the app.
 
 ### Required infrastructure variables

@@ -16,9 +16,6 @@ export const appConfig = Config.all({
 			"TWO_FACTOR_REQUIRED",
 		).pipe(Config.withDefault("none")),
 	}),
-	app: Config.all({
-		encryptionKey: Config.Redacted("ENCRYPTION_KEY"),
-	}),
 });
 
 const deploymentEnv = Config.all({

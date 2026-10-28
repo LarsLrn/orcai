@@ -1,4 +1,4 @@
-import { listProviderModels } from "@orcai/ai";
+import { listProviderModels, providerApiKey } from "@orcai/ai";
 import {
 	isModelProviderKind,
 	type OrganizationId,
@@ -21,7 +21,6 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { providerApiKey } from "@/lib/encryption";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";

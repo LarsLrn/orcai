@@ -1,4 +1,5 @@
-import type { ErrorReason, ModelCapability } from "@orcai/schema";
+import type { ErrorReason } from "../../shared/error-reason";
+import type { ModelCapability } from "./capabilities";
 
 const required = {
 	turn: {

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 import type { BotId, ChatMessageId } from "@orcai/core";
 import { METERED_CALL_TIMEOUT_MS } from "@orcai/quota";
+import { quota } from "@orcai/quota/testing";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { quota } from "../metered-call/test-quota";
 import { answers, resetProcedures } from "../tools/assistant/test-procedures";
 import { chunkRef } from "../tools/rag/chunk-ref";
 import { assetPoint } from "../tools/rag/test-points";
@@ -261,7 +261,7 @@ describe("startTurn", () => {
 		const chat = await conversation(chatRow(), "anthropic");
 
 		expect(await refusal(() => chat.send("Hi"))).toBe(
-			"BadRequestError: QUOTA_EXHAUSTED",
+			"QuotaDeniedError: QUOTA_EXHAUSTED",
 		);
 		expect(chat.messages()).toEqual([]);
 		expect(chat.bodies).toEqual([]);
@@ -978,7 +978,7 @@ describe("continueTurn", () => {
 		};
 
 		expect(await refusal(() => chat.decide(true))).toBe(
-			"BadRequestError: QUOTA_EXHAUSTED",
+			"QuotaDeniedError: QUOTA_EXHAUSTED",
 		);
 		expect(chat.messages().at(-1)).toEqual(paused);
 	});

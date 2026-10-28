@@ -1,12 +1,21 @@
-import { AiError, aiTelemetry } from "@orcai/ai";
 import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
-import { generateText, type LanguageModel, type ModelMessage } from "ai";
+import {
+	generateText,
+	type InferGenerateOutput,
+	type LanguageModel,
+	type ModelMessage,
+	NoObjectGeneratedError,
+	type OutputInterface,
+} from "ai";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
-import { startMeteredCall } from "@/lib/ai/metered-call/metered-call";
-import { BadRequestError } from "@/lib/effect/utils/errors";
+import { AiError } from "../errors";
+import { aiTelemetry } from "../telemetry";
+import { startMeteredCall } from "./meter";
 
-export interface GenerateTextWithQuotaInput {
+export interface GenerateTextWithQuotaInput<
+	OUTPUT extends OutputInterface = OutputInterface<string, string>,
+> {
 	operation: string;
 	appRequestId: string;
 	organizationId: OrganizationId;
@@ -19,6 +28,8 @@ export interface GenerateTextWithQuotaInput {
 	reservationMessages?: unknown[];
 	system?: string;
 	prompt?: string;
+	/** Structured output; a reply that does not match is charged and fails. */
+	output?: OUTPUT;
 	maxOutputTokens?: number;
 	reasoning?: Parameters<typeof generateText>[0]["reasoning"];
 	temperature?: number;
@@ -30,14 +41,19 @@ export interface GenerateTextWithQuotaInput {
 	maxExpectedProviderRequests?: number;
 }
 
-export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
+/** One generation metered against the quota of the organisation and user. */
+export const generateTextWithQuota = <
+	OUTPUT extends OutputInterface = OutputInterface<string, string>,
+>(
+	input: GenerateTextWithQuotaInput<OUTPUT>,
+) =>
 	Effect.gen(function* () {
 		const messages = input.messages ?? [];
 
 		if (messages.length === 0 && !input.prompt) {
-			return yield* new BadRequestError({
-				reason: "AI_PROMPT_REQUIRED",
-				message: "Either messages or prompt is required for text generation.",
+			return yield* new AiError({
+				operation: input.operation,
+				cause: new Error("Either messages or prompt is required."),
 			});
 		}
 
@@ -56,6 +72,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 		const baseInput = {
 			model: input.model,
 			instructions: input.system,
+			output: input.output,
 			maxOutputTokens: input.maxOutputTokens,
 			reasoning: input.reasoning,
 			temperature: input.temperature,
@@ -81,6 +98,7 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 			}),
 		};
 
+		let answered = false;
 		const providerCall = Effect.tryPromise({
 			try: () =>
 				input.prompt
@@ -92,11 +110,20 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 							...baseInput,
 							messages,
 						}),
-			catch: (cause) =>
-				new AiError({
+			catch: (cause) => {
+				// The provider answered, so the reply is charged even though it does not parse.
+				if (NoObjectGeneratedError.isInstance(cause) && cause.usage) {
+					answered = true;
+					meter.step({
+						usage: cause.usage,
+						toolCalls: [],
+					});
+				}
+				return new AiError({
 					operation: input.operation,
 					cause,
-				}),
+				});
+			},
 		});
 
 		const response = yield* providerCall.pipe(
@@ -108,12 +135,13 @@ export const generateTextWithQuota = (input: GenerateTextWithQuotaInput) =>
 				}),
 			),
 			Effect.onExit((exit) =>
-				meter.settle(Exit.isSuccess(exit) ? "completed" : "failed"),
+				meter.settle(Exit.isSuccess(exit) || answered ? "completed" : "failed"),
 			),
 		);
 
 		return {
 			text: response.text,
+			output: response.output as InferGenerateOutput<OUTPUT>,
 			usage: response.usage,
 		};
 	});

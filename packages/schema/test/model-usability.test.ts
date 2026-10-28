@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { modelUnusableReason } from "./model-usability";
+import { modelUnusableReason } from "../src";
 
 const usable = {
 	capabilities: [

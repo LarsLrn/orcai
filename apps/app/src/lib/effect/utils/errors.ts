@@ -1,4 +1,4 @@
-import type { AiError } from "@orcai/ai";
+import type { AiError, QuotaDeniedError } from "@orcai/ai";
 import type { PgBossError } from "@orcai/pg-boss";
 import type { ProcessError } from "@orcai/process";
 import type { QdrantError } from "@orcai/qdrant";
@@ -31,6 +31,7 @@ export const ErrorTags = {
 
 	// AI errors
 	AI: "AiError",
+	QUOTA_DENIED: "QuotaDeniedError",
 
 	// Infrastructure errors
 	PG_BOSS: "PgBossError",
@@ -163,5 +164,6 @@ export type AppError =
 	| EffectDrizzleQueryError
 	| SqlError.SqlError
 	| AiError
+	| QuotaDeniedError
 	| AuthzError
 	| InternalError;

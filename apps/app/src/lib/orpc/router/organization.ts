@@ -5,10 +5,12 @@ import {
 	type ProviderId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type {
-	InstanceOrganizationSortKey,
-	OrganizationSortKey,
-	UpdateOrganizationInput,
+import {
+	type InstanceOrganizationSortKey,
+	type ModelUse,
+	modelUnusableReason,
+	type OrganizationSortKey,
+	type UpdateOrganizationInput,
 } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
@@ -28,10 +30,6 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type ModelUse,
-	modelUnusableReason,
-} from "@/lib/ai/turn/model-usability";
 import {
 	deleteOrganizationsWithAuthorization,
 	insertOrganization,
