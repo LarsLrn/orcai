@@ -1,6 +1,7 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import { createClient, type RedisClientType } from "redis";
 import { ValkeyConfigLive, ValkeyConfigService } from "./config";
 import { ValkeyError } from "./errors";
@@ -21,7 +22,7 @@ export const ValkeyServiceLive = Layer.effect(
 			const { config } = yield* ValkeyConfigService;
 
 			const client = createClient({
-				url: config.valkey.url,
+				url: Redacted.value(config.valkey.url),
 			});
 
 			yield* Effect.tryPromise({

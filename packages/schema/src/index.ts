@@ -13,6 +13,7 @@ export * from "./chat-message";
 export * from "./data-export";
 export * from "./feature";
 export * from "./group";
+export * from "./instance-health";
 export * from "./jobs";
 export * from "./model";
 export * from "./organization";

@@ -24,6 +24,7 @@ import { Route as PathlessLayoutSetupTwoFactorRouteImport } from './routes/_path
 import { Route as PathlessLayoutTouRouteImport } from './routes/_pathlessLayout/tou'
 import { Route as PathlessLayoutTwoFactorRouteImport } from './routes/_pathlessLayout/two-factor'
 import { Route as PathlessLayoutVerifyEmailRouteImport } from './routes/_pathlessLayout/verify-email'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppAccountRouteRouteImport } from './routes/app/account/route'
 import { Route as AppAnalyticsRouteRouteImport } from './routes/app/analytics/route'
@@ -183,6 +184,11 @@ const PathlessLayoutVerifyEmailRoute =
     path: '/verify-email',
     getParentRoute: () => PathlessLayoutRouteRoute,
   } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -619,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/tou': typeof PathlessLayoutTouRoute
   '/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
+  '/api/health': typeof ApiHealthRoute
   '/app/': typeof AppIndexRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
@@ -701,6 +708,7 @@ export interface FileRoutesByTo {
   '/tou': typeof PathlessLayoutTouRoute
   '/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
+  '/api/health': typeof ApiHealthRoute
   '/app': typeof AppIndexRoute
   '/instance': typeof InstanceIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -787,6 +795,7 @@ export interface FileRoutesById {
   '/_pathlessLayout/tou': typeof PathlessLayoutTouRoute
   '/_pathlessLayout/two-factor': typeof PathlessLayoutTwoFactorRoute
   '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
+  '/api/health': typeof ApiHealthRoute
   '/app/': typeof AppIndexRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
@@ -884,6 +893,7 @@ export interface FileRouteTypes {
     | '/tou'
     | '/two-factor'
     | '/verify-email'
+    | '/api/health'
     | '/app/'
     | '/instance/'
     | '/app/groups/$groupId'
@@ -966,6 +976,7 @@ export interface FileRouteTypes {
     | '/tou'
     | '/two-factor'
     | '/verify-email'
+    | '/api/health'
     | '/app'
     | '/instance'
     | '/api/auth/$'
@@ -1051,6 +1062,7 @@ export interface FileRouteTypes {
     | '/_pathlessLayout/tou'
     | '/_pathlessLayout/two-factor'
     | '/_pathlessLayout/verify-email'
+    | '/api/health'
     | '/app/'
     | '/instance/'
     | '/app/groups/$groupId'
@@ -1126,6 +1138,7 @@ export interface RootRouteChildren {
   PathlessLayoutRouteRoute: typeof PathlessLayoutRouteRouteWithChildren
   AppRouteRoute: typeof AppRouteRouteWithChildren
   InstanceRouteRoute: typeof InstanceRouteRouteWithChildren
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiDataExportsDataExportIdRoute: typeof ApiDataExportsDataExportIdRoute
   ApiDocSplatRoute: typeof ApiDocSplatRoute
@@ -1238,6 +1251,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/verify-email'
       preLoaderRoute: typeof PathlessLayoutVerifyEmailRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/': {
       id: '/app/'
@@ -2225,6 +2245,7 @@ const rootRouteChildren: RootRouteChildren = {
   PathlessLayoutRouteRoute: PathlessLayoutRouteRouteWithChildren,
   AppRouteRoute: AppRouteRouteWithChildren,
   InstanceRouteRoute: InstanceRouteRouteWithChildren,
+  ApiHealthRoute: ApiHealthRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiDataExportsDataExportIdRoute: ApiDataExportsDataExportIdRoute,
   ApiDocSplatRoute: ApiDocSplatRoute,
