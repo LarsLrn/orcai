@@ -1,0 +1,38 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "344a5d71-1276-4939-a397-48c6c2bb9ae9",
+  "prevIds": [
+    "b6e544dc-33ad-419f-a879-34e25c9d766e"
+  ],
+  "footprints": [
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "chat",
+        "organization_id"
+      ],
+      "writes": [
+        "s|colprop|public.chat.organization_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.chat",
+        "n|sch|public",
+        "n|col|public.chat.organization_id"
+      ],
+      "sqlHash": "1b6efdc3af082550"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"chat\",\"organization_id\"]",
+      "set": {
+        "notNull": true
+      }
+    }
+  ]
+}

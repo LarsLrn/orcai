@@ -1,4 +1,6 @@
 import type { ChatId } from "@orcai/core";
+import { downloadConversation } from "@/components/ai-elements/conversation";
+import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { client } from "@/lib/orpc/orpc";
 
@@ -34,3 +36,9 @@ export const fetchWholeChat = async ({
 
 	return pages.flat();
 };
+
+/** Downloads the whole chat as a markdown transcript. */
+export const downloadChat = async (chat: {
+	chatId: ChatId;
+	zedToken?: string;
+}) => downloadConversation(transcriptMarkdown(await fetchWholeChat(chat)));

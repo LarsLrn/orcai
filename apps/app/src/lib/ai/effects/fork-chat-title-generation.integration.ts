@@ -186,6 +186,7 @@ const titleNewChat = async ({
 				.values({
 					userId: member.user.id,
 					config: chatModel,
+					organizationId,
 				})
 				.returning();
 		}),

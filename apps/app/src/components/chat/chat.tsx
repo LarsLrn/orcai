@@ -36,6 +36,7 @@ import { BranchedFrom } from "./branch-links";
 import type { ChatDraft } from "./chat-draft";
 import { ChatInput } from "./chat-input";
 import { ChatPlaceholder } from "./chat-placeholder";
+import { ChatReadOnlyNotice } from "./chat-read-only-notice";
 import { EarlierMessages } from "./earlier-messages";
 import { MessageBlock } from "./message/message-block";
 import { useBranchChat } from "./message/use-branch-chat";
@@ -132,8 +133,9 @@ const Chat = ({
 		highlightedId,
 	]);
 
+	const readOnly = chat?.data.readOnly ?? null;
 	const view = turnView(messages, phase);
-	const canBranch = !isAssistant && !view.busy;
+	const canBranch = !isAssistant && !view.busy && readOnly === null;
 	const branchFrom = (messageId: string) => {
 		if (branchChat.isPending) return;
 		branchChat.mutate({
@@ -252,7 +254,12 @@ const Chat = ({
 					</Conversation>
 
 					<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
-						{isAssistant ? (
+						{readOnly !== null && chat ? (
+							<ChatReadOnlyNotice
+								reason={readOnly}
+								organizationName={chat.data.organization.name}
+							/>
+						) : isAssistant ? (
 							<>
 								<PlanPanel plan={view.plan} busy={view.busy} />
 								<DocumentsPanel blockIds={repositoryIds} />

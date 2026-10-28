@@ -1,0 +1,77 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "4dc3e845-d316-4468-9314-788e7ea2f2be",
+  "prevIds": [
+    "2c6663be-aae8-41fe-9177-04fa7392599c"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "chat",
+        "bot_deleted_at"
+      ],
+      "writes": [
+        "s|col|public.chat.bot_deleted_at",
+        "n|col|public.chat.bot_deleted_at",
+        "e|col|public.chat.bot_deleted_at"
+      ],
+      "reads": [
+        "n|tbl|public.chat",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "alter_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "chat"
+      ],
+      "writes": [
+        "s|ck|public.chat.chat_assistant_shape"
+      ],
+      "reads": [
+        "n|tbl|public.chat",
+        "n|sch|public",
+        "n|col|public.chat.kind",
+        "n|col|public.chat.bot_id",
+        "n|col|public.chat.parent_chat_id",
+        "e|col|public.chat.kind",
+        "e|col|public.chat.organization_id",
+        "e|col|public.chat.bot_id",
+        "e|col|public.chat.parent_chat_id"
+      ],
+      "sqlHash": "4907e3f62c1a6bd2"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat",
+        "name": "bot_deleted_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "checks\u0000[\"public\",\"chat\",\"chat_assistant_shape\"]",
+      "set": {
+        "value": "\"kind\" <> 'assistant' OR (\"bot_id\" IS NULL AND \"parent_chat_id\" IS NULL)"
+      }
+    }
+  ]
+}

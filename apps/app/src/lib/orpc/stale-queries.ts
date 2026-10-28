@@ -24,6 +24,8 @@ type MutationInterceptor = NonNullable<
 
 /** The queries each mutation makes stale, keyed like the router. */
 const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
+	// A chat turns read-only or writable with access to its bot and organisation.
+	const readOnlyChats = orpc.chat.find.key();
 	const resourceAccess = ({
 		resourceType,
 		resourceId,
@@ -41,6 +43,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				input,
 			}),
 			orpc.user.listAccess.key(),
+			readOnlyChats,
 		];
 	};
 	// Organisation readiness reads providers, models, pools, groups and members.
@@ -65,6 +68,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		}),
 		orpc.user.listAccess.key(),
 		readiness,
+		readOnlyChats,
 	];
 
 	// A provider's page counts its models.
@@ -118,6 +122,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			delete: () => [
 				orpc.bot.key(),
+				readOnlyChats,
 			],
 		},
 		chat: {
@@ -245,6 +250,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.organizationMember.key(),
 				...groupSummaries(),
 				readiness,
+				readOnlyChats,
 			],
 		},
 		provider: {
@@ -288,6 +294,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 					},
 				}),
 				orpc.user.listAccess.key(),
+				readOnlyChats,
 			],
 		},
 		storage: {

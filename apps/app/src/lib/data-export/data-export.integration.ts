@@ -1,5 +1,10 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { buckets, type ChatMessageId, type UserId } from "@orcai/core";
+import {
+	buckets,
+	type ChatMessageId,
+	type OrganizationId,
+	type UserId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
 import { DATA_EXPORT_TTL_MS, dataExportKey } from "@orcai/s3";
@@ -42,7 +47,7 @@ beforeAll(
 const FILE_CONTENT = "Field notes, page one.";
 
 /** A chat with a question and an answer, a rating, a favourite bot, a block and two assets, one without its file. */
-const seed = (userId: UserId) =>
+const seed = (userId: UserId, organizationId: OrganizationId) =>
 	run(
 		Effect.gen(function* () {
 			const db = yield* DB;
@@ -73,6 +78,7 @@ const seed = (userId: UserId) =>
 				.values({
 					title: "Soil: samples?",
 					userId,
+					organizationId,
 				})
 				.returning();
 			const [, answer] = yield* db
@@ -213,7 +219,7 @@ describe("data export", () => {
 				"member",
 			]);
 			const userId = owner.user.id;
-			const seeded = await seed(userId);
+			const seeded = await seed(userId, organizationId);
 
 			const requested = await requestExport(owner);
 			expect(requested.status).toBe("pending");
@@ -397,6 +403,59 @@ describe("data export", () => {
 			const retried = await requestExport(owner);
 			expect(retried.id).not.toBe(first.id);
 			expect(retried.status).toBe("pending");
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"exports the chats of an organisation the user left, without any membership",
+		async () => {
+			const {
+				actors: [admin, member],
+				zedToken,
+			} = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const { data: chat } = await run(
+				procedures.chat.create(
+					{
+						title: "Before leaving",
+					},
+					await procedureOptions(member, zedToken),
+				),
+			);
+			await run(
+				procedures.organizationMember.delete(
+					{
+						refs: [
+							{
+								userId: member.user.id,
+							},
+						],
+					},
+					await procedureOptions(admin, zedToken),
+				),
+			);
+			const unattached: Actor = {
+				...member,
+				session: {
+					...member.session,
+					activeOrganizationId: null,
+				},
+			};
+
+			const requested = await requestExport(unattached);
+			await run(runDataExport(requested.id, transcriptMarkdown));
+
+			const archive = await archiveOf(member.user.id, requested);
+			expect(jsonEntry(archive, "profile.json").memberships).toEqual([]);
+			expect(
+				Object.keys(archive).filter((name) => name.startsWith("chats/")),
+			).toEqual([
+				`chats/Before leaving (${chat.id.slice(0, 8)}).json`,
+				`chats/Before leaving (${chat.id.slice(0, 8)}).md`,
+			]);
 		},
 		TIMEOUT,
 	);

@@ -6,7 +6,12 @@ import {
 	type MeterStep,
 	startMeteredCall,
 } from "@orcai/ai";
-import { type ChatId, type ChatMessageId, SUMMARY_METADATA } from "@orcai/core";
+import {
+	type BotId,
+	type ChatId,
+	type ChatMessageId,
+	SUMMARY_METADATA,
+} from "@orcai/core";
 import type { DB } from "@orcai/db";
 import { withActiveSpan } from "@orcai/observability";
 import type {
@@ -15,6 +20,7 @@ import type {
 	ClientToolOutput,
 	ToolApprovalDecision,
 } from "@orcai/schema";
+import { ORPCError } from "@orpc/client";
 import {
 	type Agent,
 	type AsyncIterableStream,
@@ -46,7 +52,10 @@ import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import { closeLastReply } from "@/lib/ai/utils/close-pending-tool-parts";
 import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	applyTurnDecisions,
 	withoutContinuationClaim,
@@ -164,7 +173,34 @@ const turnNotAwaiting = (message: string) =>
 		message,
 	});
 
-const loadChat = ({ chatId, organizationId }: TurnInput) =>
+/** A procedure that refused the requester or found nothing, as an ORPC or an app error. */
+const isRefusal = (cause: unknown) =>
+	cause instanceof ORPCError
+		? cause.code === "FORBIDDEN" || cause.code === "NOT_FOUND"
+		: cause instanceof AppErrors.ForbiddenError ||
+			cause instanceof AppErrors.NotFoundError;
+
+/** Whether the requester may use the bot, read through the procedures at the request's zedToken. */
+const botUsable = (botId: BotId, context: ORPCContext) =>
+	Effect.gen(function* () {
+		const procedures = yield* Procedures;
+		return yield* procedures.bot
+			.find(
+				{
+					id: botId,
+					zedToken: getZedToken(context),
+				},
+				{
+					context,
+				},
+			)
+			.pipe(
+				Effect.map(({ data }) => data.capabilities.use === true),
+				Effect.catchIf(isRefusal, () => Effect.succeed(false)),
+			);
+	});
+
+const loadChat = ({ chatId, organizationId, context }: TurnInput) =>
 	Effect.gen(function* () {
 		const loaded = yield* (yield* ReplyStore).load(chatId);
 		if (!loaded) {
@@ -174,16 +210,13 @@ const loadChat = ({ chatId, organizationId }: TurnInput) =>
 				message: "Chat not found",
 			});
 		}
-		if (
-			loaded.chat.kind === "assistant" &&
-			loaded.chat.organizationId !== organizationId
-		) {
-			return yield* new AppErrors.BadRequestError({
-				reason: "ASSISTANT_ORGANIZATION_MISMATCH",
-				message:
-					"This assistant conversation belongs to another organisation. Switch to it to continue.",
-			});
-		}
+		const { chat } = loaded;
+		yield* requireWritableChat(chat, {
+			activeOrganizationId: organizationId,
+			botUsable: chat.botId
+				? botUsable(chat.botId, context)
+				: Effect.succeed(true),
+		});
 		return loaded;
 	});
 

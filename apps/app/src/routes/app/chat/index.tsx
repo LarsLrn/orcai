@@ -2,6 +2,7 @@ import { botIdSchema, listChatsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MessagesSquareIcon, PlusIcon } from "lucide-react";
+import { ChatHistoryLink } from "@/components/chat/chat-history-link";
 import { ChatTableActions } from "@/components/chat/table/chat-table-actions";
 import { chatTableColumns } from "@/components/chat/table/chat-table-columns";
 import { buttonVariants } from "@/components/ui/button";
@@ -105,6 +106,7 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{m.chat_list_page_title()}</PageTitle>
 				<PageAction>
+					<ChatHistoryLink />
 					<Link to="/app/chat/setup" className={buttonVariants()}>
 						{m.chat_start_action()}
 					</Link>

@@ -19,6 +19,8 @@ export const listChatsInputSchema = paginationInputSchema.extend({
 	filters: chatFiltersSchema.optional(),
 });
 
+export const listChatHistoryInputSchema = paginationInputSchema;
+
 export const findChatInputSchema = z.object({
 	id: chatIdSchema,
 	...zedTokenSchema.shape,
@@ -51,6 +53,7 @@ export const branchChatInputSchema = z.object({
 
 export type ListChatsInput = z.infer<typeof listChatsInputSchema>;
 export type ChatSortKey = z.infer<typeof chatSortKeySchema>;
+export type ListChatHistoryInput = z.infer<typeof listChatHistoryInputSchema>;
 export type FindChatInput = z.infer<typeof findChatInputSchema>;
 export type CreateChatInput = z.infer<typeof createChatInputSchema>;
 export type UpdateChatInput = z.infer<typeof updateChatInputSchema>;

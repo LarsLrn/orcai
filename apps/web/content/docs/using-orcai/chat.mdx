@@ -43,9 +43,28 @@ An open chat shows the same notice below its composer when no pool covers its mo
 
 When you send the first message, OrcAI creates the chat and opens it at `/app/chat/<chat id>`.
 
+## Chats And Organisations
+
+A chat belongs to the organisation that was active when you started it, and a branch to the organisation of its chat. The chat list, its search and the sidebar show only the chats of the active organisation; switch organisation to see the others.
+
+You can always open and download your own chats, but some cannot be continued. Instead of the composer, such a chat shows why:
+
+- **This chat belongs to another organisation**: it was started in an organisation you are still a member of. Switch to it to continue.
+- **You are no longer a member**: you left the organisation, or were removed from it. The chat is read-only.
+- **The bot of this chat is not available to you right now**: the bot is no longer shared with you.
+- **The bot of this chat was deleted**: the chat is read-only in every organisation.
+
+Only a deleted bot is final. The other states follow your current membership and access, so joining the organisation again or having the bot shared with you again lets you continue the chat.
+
+A read-only chat cannot be sent to, branched, renamed or have blocks attached; you can still pin, download, rate and delete it. Download it, or [export your data](/docs/using-orcai/account#data-export), to keep it elsewhere.
+
+### Chat History
+
+Chats of organisations you are no longer a member of are listed under **Chat history** (`/history`). It works without any membership: the chat list and **Select your organisation** link to it as soon as you have such chats. It lists each chat with its organisation and last activity, opens it read-only with **Download chat**, and offers **Export your data**. Deleting an organisation deletes its chats, so they do not appear here.
+
 ## Chat List
 
-The chat list (`/app/chat`) shows all your chats in a table and supports:
+The chat list (`/app/chat`) shows your chats of the active organisation in a table and supports:
 
 - Search across titles and message text
 - Filter by bot
@@ -61,7 +80,7 @@ The sidebar's **Chats** group shows your most recent chats, up to 40 together wi
 
 ### Search
 
-The search box on the chat list finds your own chats by title and by the text of their messages, questions and answers alike. It also finds your OrcAI Assistant conversations of the active organisation. Tool steps, attachments and source passages are not searched.
+The search box on the chat list finds your own chats by title and by the text of their messages, questions and answers alike. It also finds your OrcAI Assistant conversations; both are limited to the active organisation. Tool steps, attachments and source passages are not searched.
 
 - Every word must appear; the last one also matches as the start of a word, so results follow as you type. Case does not matter, and words match exactly in any language, without stemming.
 - Results are ordered by relevance, with title matches first, unless you sort by a column.

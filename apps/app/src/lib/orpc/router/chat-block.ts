@@ -4,8 +4,10 @@ import { permittedEntityIds } from "@orcai/spice-db";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { chatBotUsable, requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
 	requireEntityPermission,
 	requirePermission,
@@ -65,6 +67,7 @@ const listChatBlocks = authed.chatBlock.list
 	});
 
 const attachChatBlock = authed.chatBlock.attach
+	.use(requireActiveOrganizationMiddleware)
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
@@ -95,6 +98,13 @@ const attachChatBlock = authed.chatBlock.attach
 		if (chat.kind === "assistant") {
 			return yield* Effect.fail(assistantConversationImmutable());
 		}
+		yield* requireWritableChat(chat, {
+			activeOrganizationId: context.auth.session.activeOrganizationId,
+			botUsable: chatBotUsable(chat, {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context, input),
+			}),
+		});
 
 		if (chat.botId) {
 			return yield* Effect.fail(
@@ -187,13 +197,14 @@ const attachChatBlock = authed.chatBlock.attach
 	});
 
 const detachChatBlock = authed.chatBlock.detach
+	.use(requireActiveOrganizationMiddleware)
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
 			zedToken: "zedToken",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const chat = yield* db.query.chat.findFirst({
 			where: {
@@ -216,6 +227,13 @@ const detachChatBlock = authed.chatBlock.detach
 		if (chat.kind === "assistant") {
 			return yield* Effect.fail(assistantConversationImmutable());
 		}
+		yield* requireWritableChat(chat, {
+			activeOrganizationId: context.auth.session.activeOrganizationId,
+			botUsable: chatBotUsable(chat, {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context, input),
+			}),
+		});
 
 		if (chat.botId) {
 			return yield* Effect.fail(

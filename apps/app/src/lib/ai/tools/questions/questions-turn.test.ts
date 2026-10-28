@@ -38,6 +38,9 @@ const answerBot = (features: Record<string, unknown>) => {
 			data: {
 				id: botId,
 				features,
+				capabilities: {
+					use: true,
+				},
 			},
 		});
 };

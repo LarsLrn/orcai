@@ -14,6 +14,7 @@ import { Route as PathlessLayoutRouteRouteImport } from './routes/_pathlessLayou
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as InstanceRouteRouteImport } from './routes/instance/route'
 import { Route as PathlessLayoutForgotPasswordRouteImport } from './routes/_pathlessLayout/forgot-password'
+import { Route as PathlessLayoutHistoryRouteRouteImport } from './routes/_pathlessLayout/history/route'
 import { Route as PathlessLayoutInitRouteImport } from './routes/_pathlessLayout/init'
 import { Route as PathlessLayoutLoginRouteImport } from './routes/_pathlessLayout/login'
 import { Route as PathlessLayoutPrivacyRouteImport } from './routes/_pathlessLayout/privacy'
@@ -38,6 +39,8 @@ import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/ro
 import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
 import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
 import { Route as InstanceIndexRouteImport } from './routes/instance/index'
+import { Route as PathlessLayoutHistoryIndexRouteImport } from './routes/_pathlessLayout/history/index'
+import { Route as PathlessLayoutHistoryChatIdRouteImport } from './routes/_pathlessLayout/history/$chatId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiDataExportsDataExportIdRouteImport } from './routes/api/data-exports/$dataExportId'
 import { Route as ApiDocSplatRouteImport } from './routes/api/doc/$'
@@ -132,6 +135,12 @@ const PathlessLayoutForgotPasswordRoute =
   PathlessLayoutForgotPasswordRouteImport.update({
     id: '/forgot-password',
     path: '/forgot-password',
+    getParentRoute: () => PathlessLayoutRouteRoute,
+  } as any)
+const PathlessLayoutHistoryRouteRoute =
+  PathlessLayoutHistoryRouteRouteImport.update({
+    id: '/history',
+    path: '/history',
     getParentRoute: () => PathlessLayoutRouteRoute,
   } as any)
 const PathlessLayoutInitRoute = PathlessLayoutInitRouteImport.update({
@@ -257,6 +266,18 @@ const InstanceIndexRoute = InstanceIndexRouteImport.update({
   path: '/',
   getParentRoute: () => InstanceRouteRoute,
 } as any)
+const PathlessLayoutHistoryIndexRoute =
+  PathlessLayoutHistoryIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => PathlessLayoutHistoryRouteRoute,
+  } as any)
+const PathlessLayoutHistoryChatIdRoute =
+  PathlessLayoutHistoryChatIdRouteImport.update({
+    id: '/$chatId',
+    path: '/$chatId',
+    getParentRoute: () => PathlessLayoutHistoryRouteRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -626,6 +647,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
+  '/history': typeof PathlessLayoutHistoryRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/analytics': typeof AppAnalyticsRouteRouteWithChildren
   '/app/assistant': typeof AppAssistantRouteRouteWithChildren
@@ -659,6 +681,7 @@ export interface FileRoutesByFullPath {
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
+  '/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -675,6 +698,7 @@ export interface FileRoutesByFullPath {
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
+  '/history/': typeof PathlessLayoutHistoryIndexRoute
   '/app/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
   '/app/analytics/': typeof AppAnalyticsIndexRoute
@@ -737,6 +761,7 @@ export interface FileRoutesByTo {
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/api/health': typeof ApiHealthRoute
   '/instance': typeof InstanceIndexRoute
+  '/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -753,6 +778,7 @@ export interface FileRoutesByTo {
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
+  '/history': typeof PathlessLayoutHistoryIndexRoute
   '/app/account': typeof AppAccountIndexRoute
   '/app/analytics': typeof AppAnalyticsIndexRoute
   '/app/assistant': typeof AppAssistantIndexRoute
@@ -801,6 +827,7 @@ export interface FileRoutesById {
   '/_pathlessLayout': typeof PathlessLayoutRouteRouteWithChildren
   '/app': typeof AppRouteRouteWithChildren
   '/instance': typeof InstanceRouteRouteWithChildren
+  '/_pathlessLayout/history': typeof PathlessLayoutHistoryRouteRouteWithChildren
   '/app/_home': typeof AppHomeRouteRouteWithChildren
   '/app/account': typeof AppAccountRouteRouteWithChildren
   '/app/analytics': typeof AppAnalyticsRouteRouteWithChildren
@@ -835,6 +862,7 @@ export interface FileRoutesById {
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
   '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
+  '/_pathlessLayout/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/data-exports/$dataExportId': typeof ApiDataExportsDataExportIdRoute
   '/api/doc/$': typeof ApiDocSplatRoute
@@ -851,6 +879,7 @@ export interface FileRoutesById {
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
   '/app/users/invites': typeof AppUsersInvitesRoute
+  '/_pathlessLayout/history/': typeof PathlessLayoutHistoryIndexRoute
   '/app/_home/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
   '/app/analytics/': typeof AppAnalyticsIndexRoute
@@ -903,6 +932,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/instance'
+    | '/history'
     | '/app/account'
     | '/app/analytics'
     | '/app/assistant'
@@ -936,6 +966,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
+    | '/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
@@ -952,6 +983,7 @@ export interface FileRouteTypes {
     | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
+    | '/history/'
     | '/app/'
     | '/app/account/'
     | '/app/analytics/'
@@ -1014,6 +1046,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/api/health'
     | '/instance'
+    | '/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
@@ -1030,6 +1063,7 @@ export interface FileRouteTypes {
     | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
+    | '/history'
     | '/app/account'
     | '/app/analytics'
     | '/app/assistant'
@@ -1077,6 +1111,7 @@ export interface FileRouteTypes {
     | '/_pathlessLayout'
     | '/app'
     | '/instance'
+    | '/_pathlessLayout/history'
     | '/app/_home'
     | '/app/account'
     | '/app/analytics'
@@ -1111,6 +1146,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
+    | '/_pathlessLayout/history/$chatId'
     | '/api/auth/$'
     | '/api/data-exports/$dataExportId'
     | '/api/doc/$'
@@ -1127,6 +1163,7 @@ export interface FileRouteTypes {
     | '/app/quotas/add'
     | '/app/users/add'
     | '/app/users/invites'
+    | '/_pathlessLayout/history/'
     | '/app/_home/'
     | '/app/account/'
     | '/app/analytics/'
@@ -1221,6 +1258,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof PathlessLayoutForgotPasswordRouteImport
+      parentRoute: typeof PathlessLayoutRouteRoute
+    }
+    '/_pathlessLayout/history': {
+      id: '/_pathlessLayout/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof PathlessLayoutHistoryRouteRouteImport
       parentRoute: typeof PathlessLayoutRouteRoute
     }
     '/_pathlessLayout/init': {
@@ -1390,6 +1434,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/instance/'
       preLoaderRoute: typeof InstanceIndexRouteImport
       parentRoute: typeof InstanceRouteRoute
+    }
+    '/_pathlessLayout/history/': {
+      id: '/_pathlessLayout/history/'
+      path: '/'
+      fullPath: '/history/'
+      preLoaderRoute: typeof PathlessLayoutHistoryIndexRouteImport
+      parentRoute: typeof PathlessLayoutHistoryRouteRoute
+    }
+    '/_pathlessLayout/history/$chatId': {
+      id: '/_pathlessLayout/history/$chatId'
+      path: '/$chatId'
+      fullPath: '/history/$chatId'
+      preLoaderRoute: typeof PathlessLayoutHistoryChatIdRouteImport
+      parentRoute: typeof PathlessLayoutHistoryRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -1884,7 +1942,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PathlessLayoutHistoryRouteRouteChildren {
+  PathlessLayoutHistoryChatIdRoute: typeof PathlessLayoutHistoryChatIdRoute
+  PathlessLayoutHistoryIndexRoute: typeof PathlessLayoutHistoryIndexRoute
+}
+
+const PathlessLayoutHistoryRouteRouteChildren: PathlessLayoutHistoryRouteRouteChildren =
+  {
+    PathlessLayoutHistoryChatIdRoute: PathlessLayoutHistoryChatIdRoute,
+    PathlessLayoutHistoryIndexRoute: PathlessLayoutHistoryIndexRoute,
+  }
+
+const PathlessLayoutHistoryRouteRouteWithChildren =
+  PathlessLayoutHistoryRouteRoute._addFileChildren(
+    PathlessLayoutHistoryRouteRouteChildren,
+  )
+
 interface PathlessLayoutRouteRouteChildren {
+  PathlessLayoutHistoryRouteRoute: typeof PathlessLayoutHistoryRouteRouteWithChildren
   PathlessLayoutForgotPasswordRoute: typeof PathlessLayoutForgotPasswordRoute
   PathlessLayoutInitRoute: typeof PathlessLayoutInitRoute
   PathlessLayoutLoginRoute: typeof PathlessLayoutLoginRoute
@@ -1899,6 +1974,7 @@ interface PathlessLayoutRouteRouteChildren {
 }
 
 const PathlessLayoutRouteRouteChildren: PathlessLayoutRouteRouteChildren = {
+  PathlessLayoutHistoryRouteRoute: PathlessLayoutHistoryRouteRouteWithChildren,
   PathlessLayoutForgotPasswordRoute: PathlessLayoutForgotPasswordRoute,
   PathlessLayoutInitRoute: PathlessLayoutInitRoute,
   PathlessLayoutLoginRoute: PathlessLayoutLoginRoute,
@@ -2366,12 +2442,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

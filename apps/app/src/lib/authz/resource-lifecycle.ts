@@ -334,7 +334,28 @@ export const deleteResourcesWithAuthorization = (params: {
 				organizationIds,
 			},
 			Effect.gen(function* () {
+				// Waits for chats being created with a bot, and keeps new ones out until commit.
+				yield* db
+					.select({
+						id: table.id,
+					})
+					.from(table)
+					.where(
+						inArray(table.id, [
+							...params.resourceIds,
+						] as (typeof table.id._.data)[]),
+					)
+					.for("update");
 				yield* teardownResourceAuthorization(params);
+				// Their chats lose the bot link with the row, so they keep why they turned read-only.
+				if (params.resourceType === "bot") {
+					yield* db
+						.update(dbSchema.chat)
+						.set({
+							botDeletedAt: new Date(),
+						})
+						.where(inArray(dbSchema.chat.botId, params.resourceIds as BotId[]));
+				}
 				yield* db.delete(table).where(
 					inArray(table.id, [
 						...params.resourceIds,

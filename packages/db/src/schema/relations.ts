@@ -13,6 +13,11 @@ export const relations = defineRelations(dbSchema, (r) => ({
 			from: r.chat.userId,
 			to: r.user.id,
 		}),
+		organization: r.one.organization({
+			from: r.chat.organizationId,
+			to: r.organization.id,
+			optional: false,
+		}),
 		parentChat: r.one.chat({
 			from: r.chat.parentChatId,
 			to: r.chat.id,

@@ -1054,7 +1054,7 @@ describe("turn setup", () => {
 				...assistantRow(),
 				organizationId: crypto.randomUUID() as typeof ORGANIZATION_ID,
 			}),
-		).toBe("BadRequestError: ASSISTANT_ORGANIZATION_MISMATCH");
+		).toBe("BadRequestError: CHAT_ORGANIZATION_MISMATCH");
 	});
 
 	test("refuses a chat without a model", async () => {
@@ -1221,6 +1221,9 @@ describe("turn setup", () => {
 				data: {
 					id: botId,
 					features: {},
+					capabilities: {
+						use: true,
+					},
 				},
 			});
 		const chat = await conversation(

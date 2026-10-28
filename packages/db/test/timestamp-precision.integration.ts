@@ -24,10 +24,19 @@ const readBack = Effect.gen(function* () {
 			updatedAt: createdAt,
 		})
 		.returning();
+	const [organization] = yield* db
+		.insert(dbSchema.organization)
+		.values({
+			name: `Timestamps ${suffix}`,
+			slug: `timestamps-${suffix}`,
+			createdAt,
+		})
+		.returning();
 	const [chat] = yield* db
 		.insert(dbSchema.chat)
 		.values({
 			userId: user.id,
+			organizationId: organization.id,
 			createdAt,
 		})
 		.returning();

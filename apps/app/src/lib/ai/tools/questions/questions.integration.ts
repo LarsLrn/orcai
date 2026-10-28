@@ -3,7 +3,11 @@ import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { quota } from "@orcai/quota/testing";
 import type { ClientToolOutput } from "@orcai/schema";
-import { createUser, integrationRuntime } from "@orcai/testing";
+import {
+	createOrganization,
+	createUser,
+	integrationRuntime,
+} from "@orcai/testing";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { scriptedFetch } from "../../agents/test-provider";
@@ -35,10 +39,18 @@ const store = Layer.succeed(
 
 /** A bot chat with the questions feature, stored in Postgres; turns run against a scripted model. */
 const quizChat = async () => {
-	const chatId = await runtime.runPromise(
+	const { chatId, organizationId } = await runtime.runPromise(
 		Effect.gen(function* () {
 			const db = yield* DB;
 			const user = yield* createUser();
+			const { organization } = yield* createOrganization({
+				members: [
+					{
+						userId: user.id,
+						role: "member",
+					},
+				],
+			});
 			const [bot] = yield* db
 				.insert(dbSchema.bot)
 				.values({
@@ -53,7 +65,12 @@ const quizChat = async () => {
 				.returning();
 			answers["bot.find"] = () =>
 				Effect.succeed({
-					data: bot,
+					data: {
+						...bot,
+						capabilities: {
+							use: true,
+						},
+					},
 				});
 			const [chat] = yield* db
 				.insert(dbSchema.chat)
@@ -62,9 +79,13 @@ const quizChat = async () => {
 					userId: user.id,
 					botId: bot.id,
 					config: chatRow().config,
+					organizationId: organization.id,
 				})
 				.returning();
-			return chat.id as ChatId;
+			return {
+				chatId: chat.id as ChatId,
+				organizationId: organization.id,
+			};
 		}),
 	);
 	const provider = scriptedFetch("anthropic");
@@ -87,6 +108,7 @@ const quizChat = async () => {
 				await runTurn(
 					startTurn({
 						...requester,
+						organizationId,
 						chatId,
 						message: {
 							id: crypto.randomUUID() as ChatMessageId,
@@ -110,6 +132,7 @@ const quizChat = async () => {
 				await runTurn(
 					continueTurn({
 						...requester,
+						organizationId,
 						chatId,
 						replyId: reply?.id as ChatMessageId,
 						decisions: [],

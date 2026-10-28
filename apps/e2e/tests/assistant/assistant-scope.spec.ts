@@ -73,7 +73,7 @@ test("assistant: a user in two organisations sees each one's conversations only 
 	]);
 
 	expect(reasonOf(await turnRefusal(second.client, firstChatId))).toBe(
-		"ASSISTANT_ORGANIZATION_MISMATCH",
+		"CHAT_ORGANIZATION_MISMATCH",
 	);
 
 	// The API reads it by ownership from anywhere; only the route hides it.

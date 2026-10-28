@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import { cloneElement, useState } from "react";
 import { toast } from "sonner";
-import { downloadConversation } from "@/components/ai-elements/conversation";
-import { fetchWholeChat } from "@/components/chat/chat-history";
+import { downloadChat } from "@/components/chat/chat-history";
 import { ChatSettings } from "@/components/chat/chat-settings";
 import { useTour } from "@/components/tour/tour-provider";
 import { RenameDialog } from "@/components/ui/dialog/rename-dialog";
@@ -29,7 +28,6 @@ import {
 	usePinChatMutation,
 	useUpdateChatMutation,
 } from "@/hooks/mutations/use-chat-mutation";
-import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -38,6 +36,8 @@ import { m } from "@/paraglide/messages";
 type CurrentChat = {
 	zedToken?: string;
 	variant: "chat" | "assistant";
+	/** A read-only chat can still be pinned, downloaded and deleted. */
+	readOnly: boolean;
 };
 
 const ChatActionsDropdown = ({
@@ -100,11 +100,10 @@ const ChatActionsDropdown = ({
 
 	const handleDownload = async () => {
 		try {
-			const messages = await fetchWholeChat({
+			await downloadChat({
 				chatId,
 				zedToken: current?.zedToken,
 			});
-			downloadConversation(transcriptMarkdown(messages));
 		} catch (error) {
 			toast.error(m.chat_download_failed_toast_error(), {
 				description: reasonMessageOf(error),
@@ -117,10 +116,14 @@ const ChatActionsDropdown = ({
 			<DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
 				<DropdownMenuTrigger render={children} />
 				<DropdownMenuContent align="end" className="w-48">
-					<DropdownMenuItem onClick={select(() => setIsRenameDialogOpen(true))}>
-						<PencilIcon />
-						{m.chat_actions_rename_action()}
-					</DropdownMenuItem>
+					{!current?.readOnly && (
+						<DropdownMenuItem
+							onClick={select(() => setIsRenameDialogOpen(true))}
+						>
+							<PencilIcon />
+							{m.chat_actions_rename_action()}
+						</DropdownMenuItem>
+					)}
 					{pinned !== undefined && (
 						<DropdownMenuItem
 							onClick={select(() =>
@@ -136,7 +139,7 @@ const ChatActionsDropdown = ({
 								: m.chat_actions_pin_action()}
 						</DropdownMenuItem>
 					)}
-					{current?.variant === "chat" && (
+					{current?.variant === "chat" && !current.readOnly && (
 						<DropdownMenuItem onClick={select(() => setIsSettingsOpen(true))}>
 							<SettingsIcon />
 							{m.chat_actions_settings_action()}
@@ -260,6 +263,7 @@ const ChatTitleMenu = ({
 			current={{
 				zedToken,
 				variant: isAssistant ? "assistant" : "chat",
+				readOnly: chat.data.readOnly !== null,
 			}}
 		>
 			{children}

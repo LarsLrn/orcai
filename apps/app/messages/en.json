@@ -2009,6 +2009,26 @@
 	"chat_download_failed_toast_error": "The chat could not be downloaded.",
 	"chat_earlier_messages_failed": "Earlier messages could not be loaded.",
 	"chat_earlier_messages_loading": "Loading earlier messages...",
+	"chat_history_back_link": "Back to OrcAI",
+	"chat_history_empty_title": "No chats from organisations you left.",
+	"chat_history_link": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 chat from organisations you left",
+				"countPlural=other": "{count} chats from organisations you left"
+			}
+		}
+	],
+	"chat_history_page_description": "Your chats in organisations you are no longer a member of. They are read-only.",
+	"chat_history_page_title": "Chat history",
+	"chat_history_row_description": "{organisation} · {date}",
 	"chat_image_part_download_action": "Download image",
 	"chat_image_part_download_toast_error": "The image was not downloaded. Try again.",
 	"chat_image_part_download_toast_success": "Image downloaded",
@@ -2071,6 +2091,13 @@
 	"chat_quota_notice_description_manager": "Create a pool for its provider, then chatting opens.",
 	"chat_quota_notice_description_member": "Choose another model or ask an organisation admin to create a quota pool.",
 	"chat_quota_notice_title": "No quota pool covers this model for you yet.",
+	"chat_read_only_bot_deleted_title": "The bot of this chat was deleted.",
+	"chat_read_only_bot_unavailable_description": "The chat continues once it is shared with you again.",
+	"chat_read_only_bot_unavailable_title": "The bot of this chat is not available to you right now.",
+	"chat_read_only_export_description": "The chat is read-only; download it or export your data to keep it.",
+	"chat_read_only_not_member_title": "You are no longer a member of {organisation}.",
+	"chat_read_only_other_organisation_description": "Switch to that organisation to continue it.",
+	"chat_read_only_other_organisation_title": "This chat belongs to {organisation}.",
 	"chat_rename_dialog_description": "Enter a new name for this chat.",
 	"chat_rename_dialog_submit": "Rename",
 	"chat_rename_dialog_title": "Rename chat",
@@ -2531,7 +2558,6 @@
 	"error_asset_not_found": "Asset not found.",
 	"error_assistant_conversation_immutable": "Assistant conversations can only be renamed or deleted.",
 	"error_assistant_model_not_configured": "The OrcAI Assistant is unavailable until an admin chooses its model on the organisation page.",
-	"error_assistant_organization_mismatch": "This assistant conversation belongs to another organisation. Switch to it to continue.",
 	"error_auth_required": "Sign in to continue.",
 	"error_behaviour_block_type_invalid": "The linked AI behaviour must be a behaviour block.",
 	"error_block_in_use_by_ready_bots": "This block cannot be moved to draft because ready bots use it: {botNames}.",
@@ -2546,7 +2572,9 @@
 	"error_bot_repository_not_ready": "Set \"{blockName}\" to ready before publishing this bot.",
 	"error_chat_blocks_unavailable": "The blocks of this chat could not be loaded.",
 	"error_chat_bot_blocks_immutable": "The blocks of a chat linked to a bot cannot be changed directly.",
+	"error_chat_bot_deleted": "The bot of this chat was deleted, so the chat is read-only. Download it to keep it.",
 	"error_chat_bot_features_immutable": "The features of a chat linked to a bot cannot be changed directly.",
+	"error_chat_bot_unavailable": "The bot of this chat is not available to you, so the chat is read-only.",
 	"error_chat_context_too_long": "Your message no longer fits the model's context window. Shorten it, remove attachments or start a new chat.",
 	"error_chat_max_tokens_exceeds_model": "Max tokens can be at most {maxOutputTokens} for this model.",
 	"error_chat_message_create_failed": "Your message could not be saved.",
@@ -2554,6 +2582,7 @@
 	"error_chat_message_not_found": "Message not found.",
 	"error_chat_model_not_configured": "Select a model in the chat settings first.",
 	"error_chat_not_found": "Chat not found.",
+	"error_chat_organization_mismatch": "This chat belongs to another organisation. Switch to it to continue.",
 	"error_chat_rating_failed": "The rating could not be saved.",
 	"error_chat_template_block_already_attached": "This chat already has an AI behaviour block. Remove it before attaching another one.",
 	"error_chat_tool_output_invalid": "The answer to this step is not valid. Reload the conversation and try again.",
