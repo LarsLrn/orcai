@@ -334,6 +334,7 @@
       "name": "@orcai/pg-boss",
       "version": "0.1.0",
       "dependencies": {
+        "@effect/sql-pg": "catalog:",
         "@opentelemetry/core": "2.12.0",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",

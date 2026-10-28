@@ -10,7 +10,7 @@ Use the Compose quickstart when you want a runnable local stack outside the devc
 - Docker with Docker Compose.
 - A configured OpenAI-compatible endpoint for embeddings and model calls.
 - A local `.env` file based on `.env.example`.
-- Values for `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`, and `GENERAL_MODEL`.
+- Values for `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS`.
 - Secrets for auth/encryption (`BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`) for anything beyond throwaway local testing.
 
 ## Start The Stack
@@ -67,7 +67,6 @@ OPENAI_COMPATIBLE_BASE_URL="https://your-ai-provider.example/v1"
 OPENAI_COMPATIBLE_API_KEY="replace-with-openai-compatible-api-key"
 EMBEDDING_MODEL="baai/bge-m3"
 EMBEDDING_DIMENSIONS=1024
-GENERAL_MODEL="google/gemma-4-26b-a4b-it"
 ```
 
 <Callout title="Keep embeddings stable" type="warn">
@@ -86,7 +85,7 @@ Add `-v` only if you intentionally want to remove local volumes and lose stored 
 
 - The local override injects development defaults for several values; treat those as non-production.
 - Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data.
-- Custom embedding and image-processing model definitions are only supported in self-hosted deployments.
+- Custom embedding model definitions are only supported in self-hosted deployments.
 
 ## What Compose Initializes
 

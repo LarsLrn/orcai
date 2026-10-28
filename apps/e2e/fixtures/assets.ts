@@ -18,7 +18,7 @@ export const uploadAsset = async (
 		type = "text/plain",
 	}: {
 		route?: StorageUploadRoute;
-		content?: string;
+		content?: string | Uint8Array;
 		type?: string;
 	} = {},
 ): Promise<Asset> => {

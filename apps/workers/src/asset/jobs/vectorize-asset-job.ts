@@ -1,28 +1,20 @@
-import {
-	countTokens,
-	generateManyEmbeddings,
-	generateTextEffect,
-} from "@orcai/ai";
-import {
-	type AssetId,
-	type BlockId,
-	buckets,
-	describeImagePrompt,
-	describeTableImagePrompt,
-} from "@orcai/core";
+import { countTokens, generateManyEmbeddings } from "@orcai/ai";
+import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
-import { PgBossError } from "@orcai/pg-boss";
-import {
-	buildStoredExtractionKey,
-	type StoredExtractionArtifact,
-} from "@orcai/process";
+import type { StoredExtractionArtifact } from "@orcai/process";
 import { deletePointsByIdentifier, upsertPointsToQdrant } from "@orcai/qdrant";
-import { getImageAsBase64, getObjectAsJson } from "@orcai/s3/server";
-import type { FileType, VectorizeAssetPayload } from "@orcai/schema";
+import {
+	type AssetFileType,
+	type BucketName,
+	type FileType,
+	isImageFileType,
+	type VectorizeAssetPayload,
+} from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { describedExtraction } from "@/asset/described-extraction";
 import {
 	AssetPipelineError,
 	settleIndexingAttempt,
@@ -39,8 +31,6 @@ export const vectorizeAssetBatch = (jobs: Job<VectorizeAssetPayload>[]) =>
 			discard: true,
 		},
 	);
-
-const MAX_ERROR_MESSAGE_LENGTH = 320;
 
 type VectorPointSource = "text" | "image";
 
@@ -59,114 +49,6 @@ type VectorizableChunk = {
 	fileReference?: string;
 	fileType?: FileType;
 };
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	value !== null && typeof value === "object";
-
-const compactObject = (value: Record<string, unknown>) =>
-	Object.fromEntries(
-		Object.entries(value).filter(([, fieldValue]) => fieldValue !== undefined),
-	);
-
-const stringField = (value: unknown) =>
-	typeof value === "string" ? value : undefined;
-
-const numberField = (value: unknown) =>
-	typeof value === "number" ? value : undefined;
-
-const getStatusCode = (value: Record<string, unknown>) => {
-	if (numberField(value.status) !== undefined) {
-		return value.status;
-	}
-	if (numberField(value.statusCode) !== undefined) {
-		return value.statusCode;
-	}
-	if (
-		isRecord(value.$metadata) &&
-		numberField(value.$metadata.httpStatusCode) !== undefined
-	) {
-		return value.$metadata.httpStatusCode;
-	}
-	return undefined;
-};
-
-const sanitizeMessage = (value: unknown) => {
-	if (typeof value !== "string") return undefined;
-	if (value.startsWith("data:")) {
-		return `[redacted-data-url:${value.length} chars]`;
-	}
-	if (value.length > MAX_ERROR_MESSAGE_LENGTH) {
-		return `${value.slice(0, MAX_ERROR_MESSAGE_LENGTH)}...[truncated ${value.length - MAX_ERROR_MESSAGE_LENGTH} chars]`;
-	}
-	return value;
-};
-
-const summarizeErrorCause = (cause: unknown): Record<string, unknown> => {
-	if (typeof cause === "string") {
-		return {
-			message: sanitizeMessage(cause),
-		};
-	}
-
-	if (cause instanceof Error) {
-		const details = cause as Error & Record<string, unknown>;
-		const nested = isRecord(details.cause) ? details.cause : undefined;
-		return compactObject({
-			name: cause.name,
-			tag: stringField(details._tag),
-			code: stringField(details.code),
-			message: sanitizeMessage(cause.message),
-			operation: stringField(details.operation),
-			step: stringField(details.step),
-			queue: stringField(details.queue),
-			stage: stringField(details.stage),
-			fileName: stringField(details.fileName),
-			fileType: stringField(details.fileType),
-			decodedBytes: numberField(details.decodedBytes),
-			statusCode: getStatusCode(details),
-			causeName: nested ? stringField(nested.name) : undefined,
-			causeTag: nested ? stringField(nested._tag) : undefined,
-			causeCode: nested ? stringField(nested.code) : undefined,
-			causeMessage: nested ? sanitizeMessage(nested.message) : undefined,
-			causeStatusCode: nested ? getStatusCode(nested) : undefined,
-		});
-	}
-
-	if (!isRecord(cause)) {
-		return {
-			value: String(cause),
-		};
-	}
-
-	const nested = isRecord(cause.cause) ? cause.cause : undefined;
-	return compactObject({
-		name: stringField(cause.name),
-		tag: stringField(cause._tag),
-		code: stringField(cause.code),
-		message:
-			sanitizeMessage(cause.message) ??
-			(nested ? sanitizeMessage(nested.message) : undefined),
-		operation: stringField(cause.operation),
-		step: stringField(cause.step),
-		queue: stringField(cause.queue),
-		stage: stringField(cause.stage),
-		fileName: stringField(cause.fileName),
-		fileType: stringField(cause.fileType),
-		decodedBytes: numberField(cause.decodedBytes),
-		statusCode: getStatusCode(cause),
-		causeName: nested ? stringField(nested.name) : undefined,
-		causeTag: nested ? stringField(nested._tag) : undefined,
-		causeCode: nested ? stringField(nested.code) : undefined,
-		causeMessage: nested ? sanitizeMessage(nested.message) : undefined,
-		causeStatusCode: nested ? getStatusCode(nested) : undefined,
-	});
-};
-
-const toSanitizedPgBossRunError = (cause: unknown) =>
-	new PgBossError({
-		operation: "run",
-		cause: summarizeErrorCause(cause),
-	});
 
 const isAssetAttachedToBlock = (params: {
 	assetId: AssetId;
@@ -235,51 +117,9 @@ const resolveChunkDepth = (
 		| undefined,
 ) => headings?.headings.at(-1)?.level ?? 0;
 
-const normalizeImageFormat = (
-	format: string,
-): {
-	contentType: string;
-	fileType?: FileType;
-} => {
-	const normalizedFormat = format.toLowerCase();
-
-	if (normalizedFormat === "jpg" || normalizedFormat === "jpeg") {
-		return {
-			contentType: "image/jpeg",
-			fileType: normalizedFormat,
-		};
-	}
-
-	if (
-		normalizedFormat === "png" ||
-		normalizedFormat === "gif" ||
-		normalizedFormat === "webp"
-	) {
-		return {
-			contentType: `image/${normalizedFormat}`,
-			fileType: normalizedFormat,
-		};
-	}
-
-	return {
-		contentType: `image/${normalizedFormat}`,
-	};
-};
-
-const TABLE_HINT_REGEX = /\btable\b/i;
-
-const isLikelyTableImage = (
-	image: StoredExtractionArtifact["images"][number],
-) => {
-	if (image.description && TABLE_HINT_REGEX.test(image.description)) {
-		return true;
-	}
-
-	if (image.sourcePath && TABLE_HINT_REGEX.test(image.sourcePath)) {
-		return true;
-	}
-
-	return false;
+const imageFileType = (format: string) => {
+	const normalized = format.toLowerCase();
+	return isImageFileType(normalized) ? normalized : undefined;
 };
 
 const buildTextChunks = ({
@@ -338,141 +178,47 @@ const buildTextChunks = ({
 	});
 };
 
-const processImageFile = (params: {
-	base64Image: string;
-	contentType: string;
-	systemPrompt: string;
-	fileType?: FileType;
-	fileReference: string;
-	decodedBytes: number;
-	pageNumber?: number | null;
-	chunkIndex: number;
-	chunkCount: number;
-}) =>
-	Effect.gen(function* () {
-		const imageBytes = Buffer.from(params.base64Image, "base64");
-
-		return yield* generateTextEffect({
-			maxOutputTokens: 1024,
-			instructions: params.systemPrompt,
-			messages: [
-				{
-					role: "user",
-					content: [
-						{
-							type: "file",
-							data: imageBytes,
-							mediaType: params.contentType,
-						},
-					],
-				},
-			],
-		}).pipe(
-			Effect.map((result) => ({
-				content: result.text,
-				lexicalContent: result.text,
-				embeddingContent: result.text,
-				tokens: result.usage.totalTokens ?? countTokens(result.text),
-				documentTotalPages: undefined,
-				chunkPageStart: toValidPageNumber(params.pageNumber ?? undefined),
-				chunkPageEnd: toValidPageNumber(params.pageNumber ?? undefined),
-				depth: 0,
-				chunkIndex: params.chunkIndex,
-				chunkCount: params.chunkCount,
-				source: "image" as const,
-				fileReference: params.fileReference,
-				fileType: params.fileType,
-			})),
-		);
-	});
-
-const buildImageChunks = ({
-	extraction,
-	jobId,
-	assetId,
-	blockId,
-}: {
-	extraction: StoredExtractionArtifact;
-	jobId: string;
-	assetId: AssetId;
-	blockId: BlockId;
-}) => {
+/** A chunk for every image the utility model described. */
+const buildImageChunks = (
+	extraction: StoredExtractionArtifact,
+): VectorizableChunk[] => {
 	const textChunkCount = extraction.chunks.length;
-	const totalChunkCount = textChunkCount + extraction.images.length;
 	const documentTotalPages = extractDocumentTotalPages(extraction);
 
-	return Effect.forEach(
-		extraction.images,
-		(image, imageIndex) =>
-			Effect.gen(function* () {
-				if (!image.sourcePath) {
-					yield* Effect.logWarning(
-						{
-							jobId,
-							assetId,
-							blockId,
-							imageIndex: image.imageIndex,
-						},
-						"Skipping extracted image without stored sourcePath",
-					);
-					return undefined;
-				}
+	return extraction.images.flatMap((image, imageIndex) => {
+		const text = image.text?.trim();
+		if (!text || !image.sourcePath) {
+			return [];
+		}
+		const page = toValidPageNumber(image.pageNumber ?? undefined);
 
-				const base64Image = yield* getImageAsBase64({
-					bucket: image.sourceBucket ?? buckets.processed.name,
-					name: image.sourcePath,
-				});
-
-				const decodedBytes = Buffer.byteLength(base64Image, "base64");
-				const normalizedFormat = normalizeImageFormat(image.format);
-				const systemPrompt = isLikelyTableImage(image)
-					? describeTableImagePrompt
-					: describeImagePrompt;
-
-				const chunk = yield* processImageFile({
-					base64Image,
-					contentType: normalizedFormat.contentType,
-					systemPrompt,
-					fileType: normalizedFormat.fileType,
-					fileReference: image.sourcePath,
-					decodedBytes,
-					pageNumber: image.pageNumber,
-					chunkIndex: textChunkCount + imageIndex,
-					chunkCount: totalChunkCount,
-				}).pipe(
-					Effect.catch((err) =>
-						Effect.logError(
-							{
-								jobId,
-								assetId,
-								blockId,
-								fileName: image.sourcePath,
-								fileType: image.format,
-								decodedBytes,
-								err: summarizeErrorCause(err),
-							},
-							"Image description generation failed",
-						).pipe(Effect.as(undefined)),
-					),
-				);
-
-				return chunk
-					? {
-							...chunk,
-							documentTotalPages,
-						}
-					: undefined;
-			}),
-		{
-			concurrency: 2,
-		},
-	).pipe(
-		Effect.map(
-			(images) =>
-				images.filter((image) => image !== undefined) as VectorizableChunk[],
-		),
-	);
+		return [
+			{
+				content: text,
+				lexicalContent: text,
+				embeddingContent: text,
+				tokens: countTokens(text),
+				documentTotalPages,
+				chunkPageStart: page,
+				chunkPageEnd: page,
+				depth: 0,
+				chunkIndex: textChunkCount + imageIndex,
+				chunkCount: textChunkCount + extraction.images.length,
+				source: "image",
+				fileReference: image.sourcePath,
+				fileType: imageFileType(image.format),
+			},
+		];
+	});
 };
+
+interface IndexedAsset {
+	id: AssetId;
+	title: string;
+	bucket: BucketName;
+	prefix: string;
+	fileType: AssetFileType;
+}
 
 const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 	Effect.gen(function* () {
@@ -483,6 +229,9 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 			.select({
 				id: dbSchema.asset.id,
 				title: dbSchema.asset.title,
+				bucket: dbSchema.asset.bucket,
+				prefix: dbSchema.asset.prefix,
+				fileType: dbSchema.asset.fileType,
 				processingStatus: dbSchema.asset.processingStatus,
 			})
 			.from(dbSchema.asset)
@@ -540,10 +289,7 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 
 const indexAsset = (params: {
 	jobId: string;
-	asset: {
-		id: AssetId;
-		title: string;
-	};
+	asset: IndexedAsset;
 	blockId: BlockId;
 }) =>
 	Effect.gen(function* () {
@@ -551,21 +297,16 @@ const indexAsset = (params: {
 		const assetId = params.asset.id;
 		const db = yield* DB;
 
-		const extraction = yield* getObjectAsJson<StoredExtractionArtifact>({
-			bucket: buckets.processed.name,
-			name: buildStoredExtractionKey(assetId),
-		}).pipe(Effect.mapError(toSanitizedPgBossRunError));
+		const extraction = yield* describedExtraction(params);
+		if (!extraction) {
+			return;
+		}
 
 		const textChunks = buildTextChunks({
 			extraction,
 		});
 
-		const imageChunks: VectorizableChunk[] = yield* buildImageChunks({
-			extraction,
-			jobId,
-			assetId,
-			blockId,
-		});
+		const imageChunks = buildImageChunks(extraction);
 
 		const mergedChunks: VectorizableChunk[] = [
 			...textChunks,
@@ -580,8 +321,7 @@ const indexAsset = (params: {
 
 		if (mergedChunks.length === 0) {
 			return yield* new AssetPipelineError({
-				// Image descriptions can fail transiently; no content at all cannot.
-				failure: extraction.images.length > 0 ? "other" : "empty",
+				failure: "empty",
 				cause: new Error(
 					`No vectorizable chunks generated for asset ${assetId} in block ${blockId}`,
 				),

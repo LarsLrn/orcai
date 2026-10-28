@@ -92,7 +92,7 @@ Go to Administration > Organisation (`/app/organization`).
 - Choose a model in **Assistant model** and save. Only models with tool calling, not deprecated, on an enabled provider are listed.
 - Until a model is chosen, the [OrcAI Assistant](/docs/using-orcai/assistant) is unavailable to everyone in the organisation.
 - The assistant draws on the same quota pools as chat. For a separate assistant budget, add a pool for that model alone.
-- Optionally choose a small, inexpensive model in **Utility model** to write chat and conversation titles. Without one, each chat's own model writes its title.
+- Choose a small, inexpensive model in **Utility model** to write chat and conversation titles and to describe images in the library; give it the image capability so image files can be prepared. Without one, each chat's own model writes its title and images are not described.
 - Optionally turn on **Web search** for bots with the Web search feature: **Model native** for Anthropic and OpenAI models, or a search provider such as Tavily, added under Providers with a quota pool of its own. See [Web search](/docs/using-orcai/administration#web-search).
 
 ## 6. Prepare Assets And Retrieval
@@ -145,10 +145,10 @@ Run this short test from a non-admin user account:
 5. Ask the OrcAI Assistant a question about OrcAI.
 6. Confirm permissions block access to resources outside the user scope.
 
-## Self-Hosting Note: Custom Embedding And Image Processing Models
+## Self-Hosting Note: Custom Embedding Models
 
-Custom embedding model and image-processing model definitions are supported only in self-hosted deployments.
+Custom embedding model definitions are supported only in self-hosted deployments.
 
 For managed/shared deployments, treat these as platform-level settings controlled by the hosting operator.
 
-If you self-host, they are set with `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`, `GENERAL_MODEL` (used to describe images during asset processing) and `KREUZBERG_OCR_LANGUAGE`; see [AI And Retrieval](/docs/self-hosting/configuration#ai-and-retrieval). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and reprocess content.
+If you self-host, they are set with `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS` and `KREUZBERG_OCR_LANGUAGE`; see [AI And Retrieval](/docs/self-hosting/configuration#ai-and-retrieval). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and reprocess content.

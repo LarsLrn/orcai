@@ -56,9 +56,9 @@ SpiceDB backs authorization checks. The repository includes schema files under `
 
 ## AI Endpoint
 
-OrcAI uses an OpenAI-compatible model endpoint for embeddings and model calls. The configured endpoint must expose the embedding model and general-purpose model selected in environment variables.
+OrcAI uses an OpenAI-compatible endpoint for embeddings; it must expose the embedding model named in `EMBEDDING_MODEL`. Chat, assistant and utility models, including image descriptions, use the providers configured in the app.
 
-Custom embedding and image-processing model definitions are only supported in self-hosted deployments.
+Custom embedding model definitions are only supported in self-hosted deployments.
 
 ## Document Processing
 

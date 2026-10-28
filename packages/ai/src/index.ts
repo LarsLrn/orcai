@@ -15,11 +15,14 @@ export {
 	generateEmbedding,
 	generateManyEmbeddings,
 } from "./generate-embedding";
-export { generateTextEffect } from "./generate-text";
 export {
-	type GenerateTextWithQuotaInput,
-	generateTextWithQuota,
-} from "./metered/generate-text-with-quota";
+	figureDescriptionInstructions,
+	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
+	imageAssetDescriptionInstructions,
+	imageAssetDescriptionOutput,
+	readImageAssetDescription,
+} from "./image-description";
+export { generateTextWithQuota } from "./metered/generate-text-with-quota";
 export {
 	type Meter,
 	type MeteredCallOutcome,

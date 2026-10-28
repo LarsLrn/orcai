@@ -1,4 +1,4 @@
-import { type Asset, isRetryableFailure } from "@orcai/schema";
+import type { Asset } from "@orcai/schema";
 import { RotateCwIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,10 @@ import {
 } from "@/components/ui/card";
 import { InfoDot } from "@/components/ui/composed/info-dot";
 import { useReprocessAssetMutation } from "@/hooks/mutations/use-asset-mutations";
-import { getPipelineFailureDescription } from "@/lib/presentation/document-state";
+import {
+	canReprocess,
+	getPipelineFailureDescription,
+} from "@/lib/presentation/document-state";
 import {
 	getProcessingStatusDescription,
 	processingStatusBadge,
@@ -25,7 +28,10 @@ const AssetProcessingCard = ({
 	canEdit,
 	className,
 }: {
-	asset: Pick<Asset, "id" | "processingStatus" | "processingFailure">;
+	asset: Pick<
+		Asset,
+		"id" | "fileType" | "processingStatus" | "processingFailure"
+	>;
 	canEdit: boolean;
 	className?: string;
 }) => {
@@ -49,7 +55,7 @@ const AssetProcessingCard = ({
 				</CardTitle>
 				<CardDescription>
 					{failure
-						? getPipelineFailureDescription(failure)
+						? getPipelineFailureDescription(failure, asset.fileType)
 						: getProcessingStatusDescription(asset.processingStatus)}
 				</CardDescription>
 			</CardHeader>
@@ -60,7 +66,7 @@ const AssetProcessingCard = ({
 				</Badge>
 				{canEdit &&
 					asset.processingStatus === "failed" &&
-					isRetryableFailure(failure ?? "other") && (
+					canReprocess(failure ?? "other", asset.fileType) && (
 						<Button
 							variant="outline"
 							size="sm"

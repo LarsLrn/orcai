@@ -1,12 +1,29 @@
+import { PgClient } from "@effect/sql-pg";
 import type { JobQueue } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { PgBossError } from "./errors";
 import { PgBossService } from "./service";
 
 /**
- * Send multiple jobs in batch.
+ * pg-boss's queries on the current SQL connection, so jobs sent inside a
+ * transaction commit or roll back with it.
  */
-export const sendJobBatch = <T extends object = object>(params: {
+const currentConnection = Effect.gen(function* () {
+	const sql = yield* PgClient.PgClient;
+	const context = yield* Effect.context<never>();
+	return {
+		executeSql: (text: string, values: unknown[] = []) =>
+			Effect.runPromiseWith(context)(
+				sql.unsafe<Record<string, unknown>>(text, values),
+			).then((rows) => ({
+				rows: [
+					...rows,
+				],
+			})),
+	};
+});
+
+type JobBatch<T> = {
 	jobName: JobQueue;
 	jobs: Array<{
 		data: T;
@@ -16,7 +33,12 @@ export const sendJobBatch = <T extends object = object>(params: {
 			retryDelay?: number;
 		};
 	}>;
-}) =>
+};
+
+const insertJobs = <T extends object>(
+	params: JobBatch<T>,
+	options: Parameters<PgBossService["Service"]["boss"]["insert"]>[2],
+) =>
 	Effect.gen(function* () {
 		const { boss } = yield* PgBossService;
 
@@ -30,7 +52,7 @@ export const sendJobBatch = <T extends object = object>(params: {
 						retryLimit: job.options?.retryLimit ?? 3,
 						retryDelay: job.options?.retryDelay ?? 60,
 					})),
-					{},
+					options,
 				),
 			catch: (error) =>
 				new PgBossError({
@@ -40,3 +62,21 @@ export const sendJobBatch = <T extends object = object>(params: {
 				}),
 		});
 	});
+
+/**
+ * Send multiple jobs in batch.
+ */
+export const sendJobBatch = <T extends object = object>(params: JobBatch<T>) =>
+	insertJobs(params, {});
+
+/** Sends the jobs on the current transaction: they are queued only if it commits. */
+export const sendJobBatchInTransaction = <T extends object = object>(
+	params: JobBatch<T>,
+) =>
+	currentConnection.pipe(
+		Effect.flatMap((db) =>
+			insertJobs(params, {
+				db,
+			}),
+		),
+	);

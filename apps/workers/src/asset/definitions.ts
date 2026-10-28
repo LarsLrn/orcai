@@ -1,4 +1,5 @@
-import type { AiConfigService } from "@orcai/ai";
+import type { PgClient } from "@effect/sql-pg";
+import type { AiConfigService, EncryptionKey } from "@orcai/ai";
 import type { DB } from "@orcai/db";
 import type { PgBossService } from "@orcai/pg-boss";
 import type { QdrantService } from "@orcai/qdrant";
@@ -25,7 +26,9 @@ export type AssetWorkerContext =
 	| S3Service
 	| QdrantService
 	| PgBossService
-	| AiConfigService;
+	| AiConfigService
+	| EncryptionKey
+	| PgClient.PgClient;
 
 const assetWorker = <TPayload>(
 	definition: WorkerDefinition<AssetWorkerContext, TPayload>,

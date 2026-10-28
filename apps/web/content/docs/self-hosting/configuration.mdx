@@ -8,7 +8,7 @@ Runtime configuration is loaded across app and package config modules. `.env.exa
 When SMTP is not configured, emails are not delivered. The local-testing fallback logs complete rendered messages, including password-reset, verification, and invitation links. Do not use log-only mode in production, and treat any captured output as credential-bearing sensitive data.
 
 <Callout title="Self-hosting scope" type="info">
-	Custom embedding and image-processing model definitions are supported only in self-hosted deployments. For managed/shared deployments, these are platform-level settings controlled by the hosting operator.
+	Custom embedding model definitions are supported only in self-hosted deployments. For managed/shared deployments, these are platform-level settings controlled by the hosting operator.
 </Callout>
 
 Primary config modules:
@@ -70,7 +70,6 @@ Primary config modules:
 | `OPENAI_COMPATIBLE_API_KEY` | Yes | API key for the model endpoint. |
 | `EMBEDDING_MODEL` | Yes | Embedding model exposed by the endpoint. |
 | `EMBEDDING_DIMENSIONS` | Yes | Positive integer vector size for the embedding model and Qdrant collection. |
-| `GENERAL_MODEL` | Yes | General-purpose model used by worker image-description steps. |
 | `KREUZBERG_OCR_LANGUAGE` | No | OCR languages for asset processing. Defaults to `eng` in host-oriented code and `eng+deu` in Compose examples. |
 
 <Callout title="Do not mix embeddings" type="warn">

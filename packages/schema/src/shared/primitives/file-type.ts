@@ -25,6 +25,18 @@ export const fileTypeSchema = z.enum([
 
 export type FileType = z.infer<typeof fileTypeSchema>;
 
+const IMAGE_FILE_TYPES = new Set<string>([
+	"jpeg",
+	"jpg",
+	"png",
+	"gif",
+	"webp",
+] satisfies FileType[]);
+
+/** Whether a file of this type is a single image. */
+export const isImageFileType = (fileType: string): fileType is FileType =>
+	IMAGE_FILE_TYPES.has(fileType);
+
 /** The file types an asset upload accepts. */
 export const ASSET_FILE_TYPES = [
 	"pdf",

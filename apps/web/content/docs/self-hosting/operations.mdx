@@ -132,7 +132,7 @@ If OCR or extraction fails, verify:
 - Worker process is running.
 - Tesseract is installed when running workers on the host.
 - `KREUZBERG_OCR_LANGUAGE` only references installed language packs.
-- The AI endpoint supports the configured `GENERAL_MODEL`.
+- Images are described by the organisation's utility model, which needs the image capability; without it, image files fail and figures in documents are skipped.
 - Object storage credentials and bucket setup are valid.
 
 ## Retrieval

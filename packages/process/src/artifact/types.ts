@@ -7,6 +7,15 @@ export type StoredExtractionImage = Omit<
 > & {
 	sourceBucket?: BucketName;
 	sourcePath?: string;
+	/** What the utility model read in the image, for search; null when it was skipped, missing until described. */
+	text?: string | null;
+};
+
+/** Metadata the utility model suggests for an image asset. */
+export type ImageMetadataSuggestion = {
+	title: string;
+	description: string;
+	language: string;
 };
 
 export type StoredExtractionArtifact = {
@@ -20,4 +29,6 @@ export type StoredExtractionArtifact = {
 	qualityScore: ExtractionResult["qualityScore"];
 	processingWarnings: NonNullable<ExtractionResult["processingWarnings"]>;
 	images: StoredExtractionImage[];
+	/** Set for image assets once their image is described. */
+	metadataSuggestion?: ImageMetadataSuggestion;
 };
