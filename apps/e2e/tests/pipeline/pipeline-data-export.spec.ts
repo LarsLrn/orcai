@@ -58,6 +58,12 @@ test("pipeline: a user exports their data from the account page and downloads th
 				name: message("account_data_export_request_button"),
 			})
 			.click();
+		await page
+			.getByRole("alertdialog")
+			.getByRole("button", {
+				name: message("account_data_export_confirm_button"),
+			})
+			.click();
 		await expect(
 			card.getByText(message("account_data_export_status_pending")),
 		).toBeVisible();
@@ -69,6 +75,11 @@ test("pipeline: a user exports their data from the account page and downloads th
 		await expect(download).toBeVisible({
 			timeout: 60_000,
 		});
+		await expect(
+			card.getByRole("button", {
+				name: message("account_data_export_request_again_button"),
+			}),
+		).toBeVisible();
 
 		const [file] = await Promise.all([
 			page.waitForEvent("download"),

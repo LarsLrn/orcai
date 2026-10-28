@@ -9,6 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRequestDataExportMutation } from "@/hooks/mutations/use-data-export-mutation";
 import { orpc } from "@/lib/orpc/orpc";
@@ -58,8 +59,27 @@ export function DataExportCard() {
 	);
 	const { mutate: requestDataExport, isPending: requesting } =
 		useRequestDataExportMutation();
+	const confirm = useConfirm();
 	const dataExport = data?.data;
 	const inFlight = isInFlight(dataExport);
+	const exportedBefore =
+		dataExport?.status === "ready" || dataExport?.status === "expired";
+
+	const handleRequest = async () => {
+		const confirmed = await confirm({
+			title: m.account_data_export_confirm_title(),
+			description: exportedBefore
+				? m.account_data_export_confirm_again_description()
+				: m.account_data_export_confirm_description(),
+			confirmText: m.account_data_export_confirm_button(),
+			confirmButton: {
+				variant: "default",
+			},
+		});
+		if (confirmed) {
+			requestDataExport({});
+		}
+	};
 
 	return (
 		<Card>
@@ -97,9 +117,11 @@ export function DataExportCard() {
 					<Button
 						variant="outline"
 						disabled={isPending || inFlight || requesting}
-						onClick={() => requestDataExport({})}
+						onClick={() => void handleRequest()}
 					>
-						{m.account_data_export_request_button()}
+						{exportedBefore
+							? m.account_data_export_request_again_button()
+							: m.account_data_export_request_button()}
 					</Button>
 				</div>
 			</CardContent>
