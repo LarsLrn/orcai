@@ -72,7 +72,7 @@ In a chat (`/app/chat/<chat id>`), OrcAI supports:
 - Streaming model responses, with Stop while an answer is generated
 - Message actions: **Copy** and **Branch from here** on your questions; **Copy**, **Branch from here** and **Rate response** on answers
 - Ratings stay private to you; organisation Admins see only how many answers of each bot were rated how, on [Analytics](/docs/using-orcai/administration#analytics)
-- Usage metadata on assistant messages: the tokens a reply used, and how full the model's context window was when the model's context window is known; a reply that summarized the chat counts the summary too
+- The model that wrote each reply, under the reply
 - Switching the model with the model picker in the composer
 - The chat menu: click the chat's title in the header for **Rename chat**, **Pin chat**, **Chat settings**, **Download chat** (always the whole chat), **Start tour** and **Delete chat**
 - A short tour of the chat page, shown the first time you open a chat until you finish or skip it
@@ -175,13 +175,18 @@ Primitives already stored in a chat keep rendering after Generative UI is turned
 
 Copying an answer and downloading the conversation include primitives as markdown, in the order they appear in the answer. A checklist becomes a list with each row's status, summary, quote and explanation; a review becomes each text as a quote with its findings and revision; a matrix becomes a table of statuses followed by its notes.
 
-## Quota Line
+## Usage Indicator
 
-When quota data is available, a line above the composer shows the pool that covers the chat's model and what is left in it, either requests or tokens.
+A ring in the composer, next to the send button, shows how full the context window is. Open it (a sheet on phones) for two sections:
+
+- **Context window**: how much of the selected model's context window the newest reply filled, for example `7% used` and `74K / 1M tokens`, with the model's name. When the model does not state its window, only the tokens show. After switching to a model with a smaller window the share can pass 100%, and the next reply summarises earlier messages to fit. The section appears once a reply has reported its context.
+- **Pool**: the quota pool that covers the selected model for you, with a bar and, for example, `50% used · resets in 3d`; hover the reset time for the exact date. Pools are shared by their groups, so other people's chats fill them too. Members see the share used, never amounts; people who manage quotas get **Manage pool**, which opens the pool's page.
+
+The ring turns amber once the pool is 90% used and red when it is used up. The indicator is hidden when neither section has anything to show.
 
 ## Preparing Documents
 
-When a repository the chat searches still has documents that are not ready, a **Preparing documents** panel sits above the composer, under the quota line. The repositories are the bot's and those attached to the chat; on the new chat page they are the chosen bot's. The panel shows how many of all documents are ready, for example `38/120`, with a spinner while documents are being prepared. Once only failures are left, its title says how many documents could not be prepared. It disappears when every document is ready and refreshes every five seconds while documents are being prepared.
+When a repository the chat searches still has documents that are not ready, a **Preparing documents** panel sits above the composer. The repositories are the bot's and those attached to the chat; on the new chat page they are the chosen bot's. The panel shows how many of all documents are ready, for example `38/120`, with a spinner while documents are being prepared. Once only failures are left, its title says how many documents could not be prepared. It disappears when every document is ready and refreshes every five seconds while documents are being prepared.
 
 The panel is collapsed. Expand it for one row per repository with its status, how many of its documents are ready and how many failed. A repository you can edit links to its page, where you can retry failed documents. Only ready documents are searchable, so the model can tell you when the answer may be in a document that is not ready yet. The panel never blocks sending.
 

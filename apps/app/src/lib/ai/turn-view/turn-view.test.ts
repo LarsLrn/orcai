@@ -189,6 +189,7 @@ const reply = (
 	parts: MessagePart[],
 	metadata: {
 		stepLimitReached?: boolean;
+		contextTokens?: number;
 	} = {},
 	id = "reply",
 ) =>
@@ -1599,5 +1600,49 @@ describe("compaction", () => {
 			"question",
 			false,
 		]);
+	});
+});
+
+describe("context", () => {
+	test("is what the newest reply reporting it held", () => {
+		expect(
+			turnView(
+				[
+					reply(
+						[
+							text("First"),
+						],
+						{
+							contextTokens: 1_200,
+						},
+						"first",
+					),
+					question(),
+					reply(
+						[
+							text("Second"),
+						],
+						{
+							contextTokens: 2_400,
+						},
+						"second",
+					),
+					question(),
+					reply([], {}, "running"),
+				],
+				"streaming",
+			).contextTokens,
+		).toBe(2_400);
+	});
+
+	test("is unknown before any reply reports it", () => {
+		expect(
+			turnView(
+				[
+					question(),
+				],
+				"idle",
+			).contextTokens,
+		).toBeUndefined();
 	});
 });

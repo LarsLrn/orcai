@@ -163,6 +163,7 @@ const Chat = ({
 			send={session.send}
 			stop={session.stop}
 			draft={draft}
+			contextTokens={view.contextTokens}
 			variant={variant}
 		/>
 	);

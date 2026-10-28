@@ -33,7 +33,6 @@ import { MessagePartRenderer } from "./message-part-renderer";
 import { MessageSources } from "./message-sources";
 import { MessageCompacted } from "./metadata/message-compacted";
 import { MessageContextNotice } from "./metadata/message-context-notice";
-import { MessageUsage } from "./metadata/message-usage";
 
 interface MessageBlockProps {
 	view: MessageView;
@@ -213,7 +212,11 @@ export const MessageBlock = ({
 					{variant === "received" && (
 						<div className="mt-1 flex items-center justify-end gap-2">
 							<MessageContextNotice message={message} />
-							<MessageUsage message={message} />
+							{message.metadata?.model && (
+								<span className="wrap-anywhere min-w-0 text-muted-foreground text-xs">
+									{message.metadata.model}
+								</span>
+							)}
 						</div>
 					)}
 				</MessageToolbar>

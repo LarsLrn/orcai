@@ -173,6 +173,8 @@ export interface TurnView {
 	busy: boolean;
 	/** The conversation's plan: its newest shown `updatePlan` call. */
 	plan: TurnPlan | undefined;
+	/** What the context of the newest reply that reported it held. */
+	contextTokens: number | undefined;
 }
 
 const isBusy = (phase: ChatPhase) =>
@@ -555,4 +557,10 @@ export const turnView = (
 	),
 	busy: isBusy(phase),
 	plan: planOf(messages, phase),
+	contextTokens: [
+		...messages,
+	]
+		.reverse()
+		.find((message) => message.metadata?.contextTokens !== undefined)?.metadata
+		?.contextTokens,
 });

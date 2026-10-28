@@ -4,8 +4,10 @@ import { PromptInputSubmit } from "@/components/ai-elements/prompt-input";
 import { AssistantModelLabel } from "@/components/assistant/assistant-model-label";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { AssistantUnavailable } from "@/components/assistant/assistant-unavailable";
+import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { useAssistantStarter } from "@/components/assistant/use-assistant-starter";
 import { ChatModelNotice } from "@/components/chat/chat-model-notice";
+import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -29,6 +31,7 @@ const AssistantNewConversation = ({
 	const { availability, isCreating, handleSend } = useAssistantStarter({
 		onConversationCreated,
 	});
+	const { modelId, providerId } = useAssistantModel();
 	const isBlocked = availability === "no-quota";
 
 	if (availability === "loading") {
@@ -87,10 +90,13 @@ const AssistantNewConversation = ({
 						className="min-w-0 justify-between gap-1"
 					>
 						<AssistantModelLabel />
-						<PromptInputSubmit
-							status={isCreating ? "submitted" : "ready"}
-							disabled={isCreating || isBlocked || !messageText.trim()}
-						/>
+						<div className="flex shrink-0 items-center gap-1">
+							<UsageIndicator providerId={providerId} modelId={modelId} />
+							<PromptInputSubmit
+								status={isCreating ? "submitted" : "ready"}
+								disabled={isCreating || isBlocked || !messageText.trim()}
+							/>
+						</div>
 					</InputGroupAddon>
 				</InputGroup>
 				{isBlocked && <ChatModelNotice reason="quota" />}

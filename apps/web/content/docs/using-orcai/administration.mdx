@@ -145,7 +145,7 @@ As in Analytics, people who have left the organisation and bots you cannot
 open stay unnamed, and the user search finds current members only.
 **Edit pool** opens `/app/quotas/<pool id>/edit`.
 
-In chat, users may see remaining quota badges by pool name and metering mode.
+In chat, the [usage indicator](/docs/using-orcai/chat#usage-indicator) shows people the pool that covers their model as a share used, with its reset time, never amounts. People who can manage quotas get a **Manage pool** link to the pool.
 
 The OrcAI Assistant draws on the same pools as chat, through the organisation's assistant model. Chat and conversation titles draw on the pools of the organisation's [utility model](#utility-model) when one is set. For a separate assistant budget, create a pool for that model alone and assign it to All Members; a model-specific pool wins over the provider's pools. An exhausted pool blocks the assistant like any chat.
 
