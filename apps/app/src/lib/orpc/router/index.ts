@@ -12,6 +12,7 @@ import { chatBlockRouter } from "./chat-block";
 import { chatMessageRouter } from "./chat-message";
 import { dataExportRouter } from "./data-export";
 import { groupRouter } from "./group";
+import { healthRouter } from "./health";
 import { modelRouter } from "./model";
 import { organizationRouter } from "./organization";
 import { organizationInvitationRouter } from "./organization-invitation";
@@ -31,6 +32,7 @@ export const router = {
 	quota: quotaRouter,
 	resource: resourceRouter,
 	group: groupRouter,
+	health: healthRouter,
 	assistant: assistantRouter,
 	chat: chatRouter,
 	chatBlock: chatBlockRouter,

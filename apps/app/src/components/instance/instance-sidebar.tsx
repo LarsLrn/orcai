@@ -3,6 +3,7 @@ import {
 	ArrowLeftRightIcon,
 	Building2Icon,
 	ChartColumnIcon,
+	HeartPulseIcon,
 	type LucideIcon,
 	UsersIcon,
 } from "lucide-react";
@@ -31,9 +32,18 @@ const InstanceSidebar = () => {
 
 	const instanceNavigation: {
 		title: string;
-		to: "/instance/organizations" | "/instance/users" | "/instance/analytics";
+		to:
+			| "/instance/health"
+			| "/instance/organizations"
+			| "/instance/users"
+			| "/instance/analytics";
 		icon: LucideIcon;
 	}[] = [
+		{
+			title: m.instance_sidebar_health_nav_label(),
+			to: "/instance/health",
+			icon: HeartPulseIcon,
+		},
 		{
 			title: m.instance_sidebar_organisations_nav_label(),
 			to: "/instance/organizations",

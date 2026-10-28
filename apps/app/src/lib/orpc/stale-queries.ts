@@ -164,6 +164,11 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.dataExport.latest.key(),
 			],
 		},
+		health: {
+			sendTestEmail: () => [
+				orpc.health.instance.key(),
+			],
+		},
 		group: {
 			create: () => [
 				orpc.group.key(),
