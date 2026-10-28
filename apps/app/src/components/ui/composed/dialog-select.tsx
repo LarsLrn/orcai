@@ -163,7 +163,7 @@ function DialogSelectTrigger({
 	return (
 		<DialogTrigger
 			className={cn(
-				"flex w-fit items-center justify-between gap-1.5 whitespace-nowrap rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+				"flex w-fit min-w-0 items-center justify-between gap-1.5 whitespace-nowrap rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 				!hasValue && "text-muted-foreground",
 				className,
 			)}

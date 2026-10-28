@@ -258,9 +258,9 @@ const ChatInput = ({
 
 						<InputGroupAddon
 							align="block-end"
-							className="min-w-0 justify-between gap-1"
+							className="justify-between gap-1"
 						>
-							<PromptInputTools className="min-w-0 overflow-hidden">
+							<PromptInputTools>
 								{isAssistant ? (
 									<AssistantModelLabel />
 								) : (
@@ -274,7 +274,7 @@ const ChatInput = ({
 											selectedModelId={chat?.data.config?.modelId}
 											selectedProviderId={chat?.data.config?.providerId}
 											onSelect={handleModelSelect}
-											className="min-w-0 max-w-32 sm:max-w-60"
+											className="max-w-32 sm:max-w-60"
 										/>
 									</>
 								)}
