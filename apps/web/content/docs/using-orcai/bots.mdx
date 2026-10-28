@@ -146,7 +146,9 @@ A repository block's page lists its attached assets and its retrieval configurat
 
 - **Retrieval mode**: Dense, Sparse or Hybrid
 - **References**: Minimum, Default and Maximum
-- **Max per asset**, **Candidate limit** and **Score threshold**, under the advanced settings
+- **Passages per asset**, **Candidate limit** and **Score threshold**, under the advanced settings
+
+**Passages per asset** keeps one long document from crowding out the others: a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
 
 Above the assets, **View vector points** opens the indexed passages at `/app/hub/blocks/<block id>/points`.
 

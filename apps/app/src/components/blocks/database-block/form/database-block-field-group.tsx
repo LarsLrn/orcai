@@ -152,7 +152,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						name="maxPerAsset"
 						children={(field) => (
 							<field.TextField
-								label={m.blocks_database_form_max_per_asset_label()}
+								label={m.blocks_database_form_per_asset_label()}
 								type="number"
 							/>
 						)}

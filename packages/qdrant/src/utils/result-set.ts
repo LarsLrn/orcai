@@ -17,34 +17,38 @@ export const dedupeById = (points: AssetPoint[]) => {
 };
 
 /**
- * Enforces a per-asset diversity cap on an already-ranked list of points.
- * Iterates through points in rank order and admits at most `maxPerAsset`
- * chunks from each unique `asset_id`. Points that would exceed the cap are
- * skipped entirely (not just pushed down), so the cap is hard.
- *
- * A minimum cap of 1 is always enforced to avoid returning an empty result
- * when only one asset matches.
- *
- * @param points      - Points sorted by descending relevance score.
- * @param maxPerAsset - Maximum chunks to admit from any single asset.
+ * Picks up to `limit` points from a ranked list: at most `maxPerAsset` per
+ * asset first, then the next-best points regardless of asset fill any slots
+ * left. The picks keep their rank order.
  */
-export const applyAssetDiversityCap = (
+export const selectDiversePoints = (
 	points: AssetPoint[],
-	maxPerAsset: number,
+	{
+		limit,
+		maxPerAsset,
+	}: {
+		limit: number;
+		maxPerAsset: number;
+	},
 ) => {
-	const cap = Math.max(1, maxPerAsset);
 	const perAssetCount = new Map<string, number>();
-	const selected: AssetPoint[] = [];
+	const picked = new Set<AssetPoint>();
 
 	for (const point of points) {
+		if (picked.size >= limit) break;
 		const assetId = point.payload.asset_id;
-		const currentCount = perAssetCount.get(assetId) ?? 0;
-		if (currentCount >= cap) continue;
-		perAssetCount.set(assetId, currentCount + 1);
-		selected.push(point);
+		const count = perAssetCount.get(assetId) ?? 0;
+		if (count >= maxPerAsset) continue;
+		perAssetCount.set(assetId, count + 1);
+		picked.add(point);
 	}
 
-	return selected;
+	for (const point of points) {
+		if (picked.size >= limit) break;
+		picked.add(point);
+	}
+
+	return points.filter((point) => picked.has(point));
 };
 
 /**

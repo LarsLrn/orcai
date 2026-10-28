@@ -2,13 +2,13 @@ import { generateEmbedding } from "@orcai/ai";
 import { RAG_SETTINGS } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
-	applyAssetDiversityCap,
 	buildQdrantFilter,
 	dedupeById,
 	mergeRecallCandidates,
 	queryAssetPoints,
 	rerankHybrid,
 	resolveScoreThreshold,
+	selectDiversePoints,
 } from "@orcai/qdrant";
 import type { AssetPoint, assetPointsFiltersSchema } from "@orcai/schema";
 import { eq } from "drizzle-orm";
@@ -27,6 +27,7 @@ const retrieveAssetPoints = (
 			filters,
 		};
 		const limit = input.filters.limit ?? RAG_SETTINGS.limit;
+		const recallLimit = input.filters.recallLimit ?? limit;
 		const retrievalMode = input.filters.retrievalMode ?? "dense";
 
 		const scoreThreshold = resolveScoreThreshold({
@@ -37,7 +38,7 @@ const retrieveAssetPoints = (
 		const candidateLimit = Math.max(
 			limit,
 			input.filters.candidateLimit ??
-				Math.max(limit * 6, RAG_SETTINGS.candidateLimit),
+				Math.max(recallLimit * 6, RAG_SETTINGS.candidateLimit),
 		);
 
 		const maxPerAsset = input.filters.maxPerAsset ?? RAG_SETTINGS.maxPerAsset;
@@ -100,7 +101,10 @@ const retrieveAssetPoints = (
 
 		const searchQueries = input.filters.queries;
 
-		const recallTarget = Math.max(RAG_SETTINGS.minRecallCandidates, limit * 2);
+		const recallTarget = Math.max(
+			RAG_SETTINGS.minRecallCandidates,
+			recallLimit * 2,
+		);
 
 		const recallPasses = [
 			{
@@ -114,7 +118,7 @@ const retrieveAssetPoints = (
 				}),
 				candidateLimit: Math.min(
 					200,
-					Math.max(80, candidateLimit * 2, limit * 12),
+					Math.max(80, candidateLimit * 2, recallLimit * 12),
 				),
 			},
 		];
@@ -203,10 +207,10 @@ const retrieveAssetPoints = (
 					})
 				: basePoints.sort((a, b) => b.score - a.score);
 
-		const selectedPoints = applyAssetDiversityCap(
-			rankedPoints,
-			usedFallbackPass ? Math.max(maxPerAsset, 4) : maxPerAsset,
-		).slice(0, limit);
+		const selectedPoints = selectDiversePoints(rankedPoints, {
+			limit,
+			maxPerAsset: usedFallbackPass ? Math.max(maxPerAsset, 4) : maxPerAsset,
+		});
 
 		return {
 			data: selectedPoints,

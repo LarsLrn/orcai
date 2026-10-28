@@ -66,6 +66,7 @@ export const queryAssetPoints = (params: {
 					return response.points;
 				};
 
+				// The threshold is a cosine similarity, so only the dense side takes it; any lexical match counts.
 				const queryHybrid = async () => {
 					if (!hasEmbedding || !hasText) {
 						return [];
@@ -88,6 +89,7 @@ export const queryAssetPoints = (params: {
 								using: "dense",
 								filter: params.filter,
 								limit: Math.max(resolvedLimit, 20),
+								score_threshold: params.scoreThreshold,
 							},
 						],
 						query: {

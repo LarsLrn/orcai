@@ -85,6 +85,8 @@ export const assetPointsFiltersSchema = z.object({
 	pointIds: z.array(assetPointSchema.shape.id).optional(),
 	assetIds: z.array(assetPointSchema.shape.id).optional(),
 	limit: z.number().int().min(1).optional(),
+	/** The result count the recall passes gather candidates for; defaults to `limit`. */
+	recallLimit: z.number().int().min(1).optional(),
 	blockId: blockIdSchema.optional(),
 	minScore: z.number().min(0).max(1).optional(),
 	retrievalMode: retrievalModeSchema.optional(),
