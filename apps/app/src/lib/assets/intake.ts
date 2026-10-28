@@ -162,6 +162,7 @@ const createAssetFromUpload = (intake: Intake, file: UploadFileObject) =>
 					.values({
 						id: plan.id,
 						title: file.name,
+						fileName: file.name,
 						size: file.size,
 						fileType: plan.fileType,
 						origin: ORIGIN_BY_ROUTE[intake.route],
