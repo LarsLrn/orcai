@@ -1,10 +1,13 @@
 import { z } from "zod/v4";
 import { botIdSchema } from "../bot/ref";
+import { botSetupSchema } from "../bot-setup/schema";
 import { chatMessageIdSchema } from "../chat-message/ref";
+import { modelIdSchema } from "../model/ref";
 import { organizationIdSchema } from "../organization/ref";
+import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
 import { userIdSchema } from "../user/ref";
-import { chatConfigSchema } from "./parts/config";
+import { chatConfigSchema, generationSettingsSchema } from "./parts/config";
 import { chatIdSchema } from "./ref";
 
 export const chatKindSchema = z.enum([
@@ -19,6 +22,19 @@ export const chatReadOnlyReasonSchema = z.enum([
 	"not-member",
 	"other-organization",
 ]);
+
+/** The model and settings the chat's next turn uses, and whether a bot requires them. */
+export const effectiveModelSchema = z.object({
+	modelId: modelIdSchema.nullable(),
+	providerId: providerIdSchema.nullable(),
+	generation: generationSettingsSchema,
+	source: z.enum([
+		"chat",
+		"bot-required",
+	]),
+	/** The bot's setup in the chat's organisation, for the picker lock and the "Tuned for" hint. */
+	botSetup: botSetupSchema.nullable(),
+});
 
 export const chatFieldsSchema = z.object({
 	title: z.string().nullable(),
@@ -82,6 +98,7 @@ export const chatBranchLinkSchema = chatLinkSchema.extend({
 });
 
 export type ChatKind = z.infer<typeof chatKindSchema>;
+export type EffectiveModel = z.infer<typeof effectiveModelSchema>;
 export type ChatReadOnlyReason = z.infer<typeof chatReadOnlyReasonSchema>;
 export type ChatHistoryRow = z.infer<typeof chatHistoryRowSchema>;
 export type Chat = z.infer<typeof chatSchema>;

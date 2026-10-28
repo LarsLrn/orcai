@@ -81,11 +81,12 @@ const ChatInput = ({
 		}),
 	);
 	const assistantModel = useAssistantModel();
+	const effective = chat?.data.effectiveModel;
 	const selectedModel = isAssistant
 		? assistantModel
 		: {
-				providerId: chat?.data.config?.providerId,
-				modelId: chat?.data.config?.modelId,
+				providerId: effective?.providerId ?? undefined,
+				modelId: effective?.modelId ?? undefined,
 			};
 	const { mutate: updateChat } = useUpdateChatMutation();
 	const isModelConfigured = Boolean(
@@ -96,6 +97,13 @@ const ChatInput = ({
 	const blocker = composerBlocker({
 		modelAvailable: true,
 		quota: quota?.data,
+		requiredBy:
+			effective?.source === "bot-required" && chat?.data.botId
+				? {
+						botId: chat.data.botId,
+						usable: effective.botSetup?.model?.usable === true,
+					}
+				: undefined,
 	});
 	const handleModelSelect = useCallback(
 		(model: Model, provider: Provider) => {
@@ -260,8 +268,8 @@ const ChatInput = ({
 											onSelectFromAssets={() => setAssetPickerOpen(true)}
 										/>
 										<ModelSelectorButton
-											selectedModelId={chat?.data.config?.modelId}
-											selectedProviderId={chat?.data.config?.providerId}
+											selectedModelId={selectedModel.modelId ?? undefined}
+											selectedProviderId={selectedModel.providerId ?? undefined}
 											onSelect={handleModelSelect}
 											className="max-w-32 sm:max-w-60"
 										/>
@@ -294,11 +302,13 @@ const ChatInput = ({
 						</InputGroupAddon>
 					</InputGroup>
 				</div>
-				{!isAssistant && !isModelConfigured && (
-					<p className="mt-2 text-muted-foreground text-xs">
-						{m.chat_composer_model_required_hint()}
-					</p>
-				)}
+				{!isAssistant &&
+					!isModelConfigured &&
+					blocker?.reason !== "bot-model" && (
+						<p className="mt-2 text-muted-foreground text-xs">
+							{m.chat_composer_model_required_hint()}
+						</p>
+					)}
 				{blocker && <ChatModelNotice blocker={blocker} className="mt-3" />}
 			</form>
 

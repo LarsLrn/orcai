@@ -269,7 +269,7 @@ const Chat = ({
 							<>
 								<WebSearchNotice
 									botId={chat?.data.botId}
-									providerId={chat?.data.config?.providerId}
+									providerId={chat?.data.effectiveModel.providerId ?? undefined}
 								/>
 								<DocumentsPanel blockIds={repositoryIds} />
 								{composer}

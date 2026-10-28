@@ -20,6 +20,7 @@ import { m } from "@/paraglide/messages";
 const blockedPlaceholders: Record<ComposerBlocker["reason"], () => string> = {
 	model: m.chat_composer_placeholder_no_model,
 	quota: m.chat_composer_placeholder_no_quota,
+	"bot-model": m.chat_composer_placeholder_bot_model,
 	exhausted: m.chat_composer_placeholder_quota_exhausted,
 };
 

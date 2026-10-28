@@ -41,6 +41,7 @@ import {
 } from "@/lib/ai/utils/chat-call-settings";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { effectiveModel } from "@/lib/chats/effective-model";
 import {
 	AppConfigService,
 	type DocsConfig,
@@ -126,6 +127,7 @@ const badRequest = (
 		| "MODEL_PROVIDER_MISMATCH"
 		| "PROVIDER_PURPOSE_MISMATCH"
 		| "CHAT_MODEL_NOT_CONFIGURED"
+		| "BOT_MODEL_UNAVAILABLE"
 		| "ASSISTANT_MODEL_NOT_CONFIGURED",
 	message: string,
 ) =>
@@ -359,18 +361,37 @@ const chatSetup = (
 	Effect.gen(function* () {
 		const procedures = yield* Procedures;
 		const config = chat.config;
-		if (!config?.providerId || !config.modelId) {
-			return yield* badRequest(
-				"CHAT_MODEL_NOT_CONFIGURED",
-				"Chat is missing model or provider configuration. Please select a model in chat settings.",
-			);
+		const setup = chat.botId
+			? (yield* procedures.botSetup
+					.find(
+						{
+							botId: chat.botId,
+							zedToken: getZedToken(context),
+						},
+						{
+							context,
+						},
+					)
+					.pipe(Effect.mapError(failedRead("botSetup")))).data.setup
+			: null;
+		const effective = effectiveModel(config, setup);
+		if (!effective.providerId || !effective.modelId) {
+			return yield* effective.source === "bot-required"
+				? badRequest(
+						"BOT_MODEL_UNAVAILABLE",
+						"The model this bot requires is no longer available.",
+					)
+				: badRequest(
+						"CHAT_MODEL_NOT_CONFIGURED",
+						"Chat is missing model or provider configuration. Please select a model in chat settings.",
+					);
 		}
 
 		const [model, bot, attached] = yield* Effect.all(
 			[
 				readModel({
-					modelId: config.modelId,
-					requestedProviderId: config.providerId,
+					modelId: effective.modelId,
+					requestedProviderId: effective.providerId,
 					context,
 				}),
 				chat.botId
@@ -410,7 +431,7 @@ const chatSetup = (
 			(block) => block.type === "template",
 		);
 		const features = yield* resolveFeatures(
-			bot ? bot.features : config.features,
+			bot ? bot.features : config?.features,
 		);
 		// Only bots enable web search.
 		const webSearch =
@@ -427,7 +448,7 @@ const chatSetup = (
 		return {
 			...model,
 			botId: chat.botId,
-			callSettings: chatCallSettings(config, model.tokenLimits),
+			callSettings: chatCallSettings(effective.generation, model.tokenLimits),
 			maxSteps: CHAT_AGENT_MAX_STEPS,
 			agent: {
 				kind: "chat",
@@ -435,7 +456,7 @@ const chatSetup = (
 				systemPrompt:
 					bot?.template.config.systemPrompt ??
 					attachedTemplate?.config.systemPrompt ??
-					config.systemPrompt ??
+					config?.systemPrompt ??
 					DEFAULT_SYSTEM_PROMPT,
 				databaseBlocks: mergeDatabaseBlocks(
 					bot?.databaseBlocks ?? [],

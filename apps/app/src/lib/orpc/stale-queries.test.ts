@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatId, GroupId, OrganizationId, UserId } from "@orcai/core";
+import type {
+	BotId,
+	ChatId,
+	GroupId,
+	ModelId,
+	OrganizationId,
+	UserId,
+} from "@orcai/core";
 import { createORPCClient } from "@orpc/client";
 import type { RouterClient } from "@orpc/server";
 import {
@@ -258,6 +265,91 @@ describe("invalidateStaleQueries", () => {
 			true,
 			true,
 		]);
+	});
+
+	test("makes bot setup coverage stale whenever group membership changes", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const edits = [
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.group.addMembers.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.group.removeMembers.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.group.delete.mutationOptions(),
+				).mutate({} as never),
+		];
+
+		for (const edit of edits) {
+			const coverage = cached(
+				orpc.botSetup.coverage.queryKey({
+					input: {
+						botId: crypto.randomUUID() as BotId,
+						modelId: crypto.randomUUID() as ModelId,
+					},
+				}),
+			);
+			await edit();
+			expect(coverage()).toBe(true);
+		}
+	});
+
+	test("makes bot setups and their chats stale whenever a model can change", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const edits = [
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.provider.update.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.provider.delete.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.model.update.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.model.delete.mutationOptions(),
+				).mutate({} as never),
+		];
+
+		for (const edit of edits) {
+			const botSetup = cached(
+				orpc.botSetup.find.queryKey({
+					input: {
+						botId: crypto.randomUUID() as BotId,
+					},
+				}),
+			);
+			const chat = cached(
+				orpc.chat.find.queryKey({
+					input: {
+						id: crypto.randomUUID() as ChatId,
+					},
+				}),
+			);
+			await edit();
+			expect([
+				botSetup(),
+				chat(),
+			]).toEqual([
+				true,
+				true,
+			]);
+		}
 	});
 
 	test("invalidates before the call site's onSuccess, which cannot replace it", async () => {

@@ -731,4 +731,144 @@ describe("chats belong to an organisation", () => {
 		},
 		TIMEOUT,
 	);
+
+	test(
+		"a locked chat shows its own settings, not the bot's live setup",
+		async () => {
+			const {
+				admin,
+				member,
+				elsewhere,
+				createChat,
+				find,
+				call,
+				procedures,
+				options,
+			} = await twoOrganizations();
+			const { data: provider } = await call(
+				procedures.provider.create(
+					{
+						name: `Locked ${crypto.randomUUID()}`,
+						description: "Serves the locked chat test.",
+						kind: "openai-compatible",
+						endpoint: "http://127.0.0.1:9/v1",
+						apiKey: "key",
+						meteringMode: "tokens",
+						enabled: true,
+					},
+					await options(admin),
+				),
+			);
+			const { data: model } = await call(
+				procedures.model.create(
+					{
+						providerId: provider.id,
+						providerModelId: `locked-${crypto.randomUUID()}`,
+						name: "Locked model",
+						description: "A chat model.",
+						isDeprecated: false,
+						capabilities: [
+							"text",
+							"tool-calling",
+						],
+					},
+					await options(admin),
+				),
+			);
+			const { data: bot } = await call(
+				procedures.bot.save(
+					{
+						name: `Required bot ${crypto.randomUUID()}`,
+						description: "Integration bot",
+						status: "draft",
+					},
+					await options(admin),
+				),
+			);
+			const grant = async () =>
+				call(
+					procedures.resource.grant(
+						{
+							resourceType: "bot",
+							resourceId: bot.id,
+							role: "viewer",
+							principals: [
+								{
+									principalType: "user",
+									principalId: member.user.id,
+								},
+							],
+						},
+						await options(admin),
+					),
+				);
+			const requireModel = async (temperature: number) =>
+				call(
+					procedures.botSetup.save(
+						{
+							botId: bot.id,
+							setup: {
+								modelId: model.id,
+								strength: "required",
+								generation: {
+									temperature,
+								},
+							},
+						},
+						await options(admin),
+					),
+				);
+			await grant();
+			await requireModel(0.2);
+			const { chat } = await createChat(member, bot.id);
+			await requireModel(0.9);
+			expect((await find(member, chat.id)).effectiveModel).toMatchObject({
+				source: "bot-required",
+				generation: {
+					temperature: 0.9,
+				},
+			});
+
+			const seeded = {
+				modelId: model.id,
+				generation: {
+					temperature: 0.2,
+				},
+				source: "chat",
+				botSetup: null,
+			};
+			await call(
+				procedures.resource.revoke(
+					{
+						resourceType: "bot",
+						resourceId: bot.id,
+						principalType: "user",
+						principalId: member.user.id,
+					},
+					await options(admin),
+				),
+			);
+			expect((await find(member, chat.id)).effectiveModel).toMatchObject(
+				seeded,
+			);
+
+			await grant();
+			await call(
+				procedures.organizationMember.delete(
+					{
+						refs: [
+							{
+								userId: member.user.id,
+							},
+						],
+					},
+					await options(admin),
+				),
+			);
+			expect((await find(elsewhere, chat.id)).effectiveModel).toMatchObject(
+				seeded,
+			);
+		},
+		TIMEOUT,
+	);
 });

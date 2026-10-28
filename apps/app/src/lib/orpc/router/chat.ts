@@ -39,7 +39,9 @@ import {
 } from "@/lib/authz/relationship-write";
 import { lockExistingResource } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { findBotSetup } from "@/lib/bots/bot-setup";
 import { checkChatModel, checkMaxTokens } from "@/lib/chats/chat-model";
+import { effectiveModel, seededConfig } from "@/lib/chats/effective-model";
 import {
 	chatBotUsable,
 	chatReadOnlyReason,
@@ -386,15 +388,24 @@ const findChat = authed.chat.find
 				concurrency: "unbounded",
 			},
 		);
+		const isMember =
+			chat.organizationId === activeOrganizationId || membership !== undefined;
+		// Only who may still use the bot in the chat's organisation sees its live setup.
+		const setup =
+			chat.botId && isMember && botUsable
+				? yield* findBotSetup({
+						botId: chat.botId,
+						organizationId: chat.organizationId,
+					})
+				: null;
 
 		return {
 			data: {
 				...chat,
+				effectiveModel: effectiveModel(chat.config, setup),
 				readOnly: chatReadOnlyReason(chat, {
 					activeOrganizationId,
-					isMember:
-						chat.organizationId === activeOrganizationId ||
-						membership !== undefined,
+					isMember,
 					botUsable,
 				}),
 				parentChat:
@@ -422,6 +433,17 @@ const botFeaturesImmutable = () =>
 		message: "Cannot set features on chats linked to a bot.",
 	});
 
+/** The config keys a required bot setup decides. */
+const MODEL_KEYS = [
+	"modelId",
+	"providerId",
+	"temperature",
+	"maxTokens",
+	"topP",
+	"frequencyPenalty",
+	"presencePenalty",
+] as const;
+
 const createChat = authed.chat.create
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
@@ -444,14 +466,23 @@ const createChat = authed.chat.create
 			yield* checkFeatureRequirements(features);
 		}
 
+		const config = seededConfig(
+			input.config ?? {},
+			input.botId
+				? yield* findBotSetup({
+						botId: input.botId,
+						organizationId,
+					})
+				: null,
+		);
 		yield* checkChatModel({
-			providerId: input.config?.providerId,
-			modelId: input.config?.modelId,
+			providerId: config.providerId,
+			modelId: config.modelId,
 			organizationId,
 		});
 		yield* checkMaxTokens({
-			modelId: input.config?.modelId,
-			maxTokens: input.config?.maxTokens,
+			modelId: config.modelId,
+			maxTokens: config.maxTokens,
 			organizationId,
 		});
 
@@ -463,7 +494,7 @@ const createChat = authed.chat.create
 				title: input.title,
 				userId: context.auth.user.id,
 				botId: input.botId,
-				config: input.config ?? {},
+				config,
 				organizationId,
 			}),
 		);
@@ -518,6 +549,23 @@ const updateChat = authed.chat.update
 
 		if (existingChat.kind === "assistant" && input.config !== undefined) {
 			return yield* Effect.fail(assistantConversationImmutable());
+		}
+
+		if (
+			existingChat.botId &&
+			(input.config === null ||
+				MODEL_KEYS.some((key) => input.config?.[key] !== undefined))
+		) {
+			const setup = yield* findBotSetup({
+				botId: existingChat.botId,
+				organizationId: existingChat.organizationId,
+			});
+			if (setup?.strength === "required") {
+				return yield* new AppErrors.BadRequestError({
+					reason: "CHAT_MODEL_REQUIRED_BY_BOT",
+					message: "The bot requires its model and generation settings.",
+				});
+			}
 		}
 
 		const configPatch =
