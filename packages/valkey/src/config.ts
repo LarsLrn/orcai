@@ -5,7 +5,7 @@ import * as Layer from "effect/Layer";
 
 const valkeyConfig = Config.all({
 	valkey: Config.all({
-		url: Config.string("VALKEY_URL"),
+		url: Config.String("VALKEY_URL"),
 	}),
 });
 

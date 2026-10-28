@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { middlewareGen } from "@orpc/experimental-effect";
+import { middlewareGen } from "@orpc/effect";
 import { call, ORPCError, os } from "@orpc/server";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";

@@ -6,11 +6,11 @@ import * as Schema from "effect/Schema";
 
 const dbConfig = Config.all({
 	postgres: Config.all({
-		user: Config.string("POSTGRES_USER"),
-		password: Config.redacted("POSTGRES_PASSWORD"),
-		host: Config.string("POSTGRES_HOST"),
-		port: Config.withDefault(Config.port("POSTGRES_PORT"), 5432),
-		db: Config.string("POSTGRES_DB"),
+		user: Config.String("POSTGRES_USER"),
+		password: Config.Redacted("POSTGRES_PASSWORD"),
+		host: Config.String("POSTGRES_HOST"),
+		port: Config.withDefault(Config.Port("POSTGRES_PORT"), 5432),
+		db: Config.String("POSTGRES_DB"),
 		/** The most connections each pool of a process opens. */
 		poolMax: Config.withDefault(
 			Config.schema(

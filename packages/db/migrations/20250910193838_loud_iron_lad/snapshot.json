@@ -1,3033 +1,2618 @@
 {
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
   "id": "e3f624f6-56dc-426f-9fde-6d90b85a2c76",
   "prevIds": [
     "741a07cf-7c71-42b4-a85b-fba27630dbba"
   ],
-  "version": "8",
-  "dialect": "postgres",
-  "ddl": [
+  "footprints": [
     {
-      "isRlsEnabled": false,
-      "name": "asset",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "asset"
       ],
-      "nameExplicit": false,
-      "name": "asset_pkey",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "bucket",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "prefix",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "title",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'{\"showReference\":true,\"relevance\":\"medium\"}'",
-      "generated": null,
-      "identity": null,
-      "name": "metadata",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "size",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "file_type",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
+      "writes": [
+        "s|tbl|public.asset",
+        "n|tbl|public.asset",
+        "e|tbl|public.asset",
+        "n|rel|public.asset",
+        "n|type|public.asset",
+        "n|rel|public.asset_pkey"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "block_asset"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "asset_user_id_user_id_fk",
-      "schema": "public",
-      "table": "asset",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "account",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "writes": [
+        "s|tbl|public.block_asset",
+        "n|tbl|public.block_asset",
+        "e|tbl|public.block_asset",
+        "n|rel|public.block_asset",
+        "n|type|public.block_asset"
       ],
-      "nameExplicit": false,
-      "name": "account_pkey",
-      "schema": "public",
-      "table": "account",
-      "entityType": "pks"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "account_id",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "provider_id",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "access_token",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "refresh_token",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "id_token",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "access_token_expires_at",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "refresh_token_expires_at",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "scope",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "password",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "account",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "block"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|tbl|public.block",
+        "n|tbl|public.block",
+        "e|tbl|public.block",
+        "n|rel|public.block",
+        "n|type|public.block",
+        "n|rel|public.block_pkey"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "account_user_id_user_id_fk",
-      "schema": "public",
-      "table": "account",
-      "entityType": "fks"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "session",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "chat_block"
       ],
-      "nameExplicit": false,
-      "name": "session_pkey",
-      "schema": "public",
-      "table": "session",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "expires_at",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "token",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "ip_address",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_agent",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "impersonated_by",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "active_organization_id",
-      "schema": "public",
-      "table": "session",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "token"
+      "writes": [
+        "s|tbl|public.chat_block",
+        "n|tbl|public.chat_block",
+        "e|tbl|public.chat_block",
+        "n|rel|public.chat_block",
+        "n|type|public.chat_block",
+        "n|rel|public.chat_block_block_id_chat_id_pk"
       ],
-      "nullsNotDistinct": false,
-      "name": "session_token_unique",
-      "schema": "public",
-      "table": "session",
-      "entityType": "uniques"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_block"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|tbl|public.bot_block",
+        "n|tbl|public.bot_block",
+        "e|tbl|public.bot_block",
+        "n|rel|public.bot_block",
+        "n|type|public.bot_block",
+        "n|rel|public.bot_block_block_id_bot_id_pk"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "session_user_id_user_id_fk",
-      "schema": "public",
-      "table": "session",
-      "entityType": "fks"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "user",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot"
       ],
-      "nameExplicit": false,
-      "name": "user_pkey",
-      "schema": "public",
-      "table": "user",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "email",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "email_verified",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "image",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "role",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "banned",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "ban_reason",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "ban_expires",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'{}'",
-      "generated": null,
-      "identity": null,
-      "name": "preferences",
-      "schema": "public",
-      "table": "user",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "email"
+      "writes": [
+        "s|tbl|public.bot",
+        "n|tbl|public.bot",
+        "e|tbl|public.bot",
+        "n|rel|public.bot",
+        "n|type|public.bot",
+        "n|rel|public.bot_pkey"
       ],
-      "nullsNotDistinct": false,
-      "name": "user_email_unique",
-      "schema": "public",
-      "table": "user",
-      "entityType": "uniques"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "verification",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "capability"
       ],
-      "nameExplicit": false,
-      "name": "verification_pkey",
-      "schema": "public",
-      "table": "verification",
-      "entityType": "pks"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "verification",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "identifier",
-      "schema": "public",
-      "table": "verification",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "value",
-      "schema": "public",
-      "table": "verification",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "expires_at",
-      "schema": "public",
-      "table": "verification",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "verification",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "verification",
-      "entityType": "columns"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "block_asset",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "block_id",
-      "schema": "public",
-      "table": "block_asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "asset_id",
-      "schema": "public",
-      "table": "block_asset",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "block_asset",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "block_id"
+      "writes": [
+        "s|tbl|public.capability",
+        "n|tbl|public.capability",
+        "e|tbl|public.capability",
+        "n|rel|public.capability",
+        "n|type|public.capability",
+        "n|rel|public.capability_pkey",
+        "n|rel|public.capability_capability_unique"
       ],
-      "schemaTo": "public",
-      "tableTo": "block",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "model_capability"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "block_asset_block_id_block_id_fk",
-      "schema": "public",
-      "table": "block_asset",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "asset_id"
+      "writes": [
+        "s|tbl|public.model_capability",
+        "n|tbl|public.model_capability",
+        "e|tbl|public.model_capability",
+        "n|rel|public.model_capability",
+        "n|type|public.model_capability",
+        "n|rel|public.model_capability_model_id_capability_unique"
       ],
-      "schemaTo": "public",
-      "tableTo": "asset",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "model"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "block_asset_asset_id_asset_id_fk",
-      "schema": "public",
-      "table": "block_asset",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "block",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "writes": [
+        "s|tbl|public.model",
+        "n|tbl|public.model",
+        "e|tbl|public.model",
+        "n|rel|public.model",
+        "n|type|public.model",
+        "n|rel|public.model_pkey",
+        "n|rel|public.model_slug_provider_slug_unique"
       ],
-      "nameExplicit": false,
-      "name": "block_pkey",
-      "schema": "public",
-      "table": "block",
-      "entityType": "pks"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "type",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "config",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "forked_from_id",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "1",
-      "generated": null,
-      "identity": null,
-      "name": "version",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "block",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "organization_provider"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|tbl|public.organization_provider",
+        "n|tbl|public.organization_provider",
+        "e|tbl|public.organization_provider",
+        "n|rel|public.organization_provider",
+        "n|type|public.organization_provider",
+        "n|rel|public.organization_provider_organization_id_provider_slug_unique"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "block_user_id_user_id_fk",
-      "schema": "public",
-      "table": "block",
-      "entityType": "fks"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "forked_from_id"
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "provider"
       ],
-      "schemaTo": "public",
-      "tableTo": "block",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|tbl|public.provider",
+        "n|tbl|public.provider",
+        "e|tbl|public.provider",
+        "n|rel|public.provider",
+        "n|type|public.provider",
+        "n|rel|public.provider_pkey",
+        "n|rel|public.provider_slug_unique"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "SET NULL",
-      "name": "block_forked_from_id_block_id_fk",
-      "schema": "public",
-      "table": "block",
-      "entityType": "fks"
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "chat_block",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "block_id",
-      "schema": "public",
-      "table": "chat_block",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "chat_id",
-      "schema": "public",
-      "table": "chat_block",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "chat_block",
-      "entityType": "columns"
-    },
-    {
-      "columns": [
-        "block_id",
-        "chat_id"
+      "statementType": "drop_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "chat"
       ],
-      "nameExplicit": false,
-      "name": "chat_block_block_id_chat_id_pk",
-      "schema": "public",
-      "table": "chat_block",
-      "entityType": "pks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "block_id"
+      "writes": [
+        "s|fk|public.chat.chat_course_id_course_id_fk",
+        "n|fk|public.chat.chat_course_id_course_id_fk",
+        "e|fk|public.chat.chat_course_id_course_id_fk",
+        "n|con|public.chat.chat_course_id_course_id_fk"
       ],
-      "schemaTo": "public",
-      "tableTo": "block",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.chat",
+        "n|sch|public",
+        "e|col|public.chat.course_id"
+      ]
+    },
+    {
+      "statementType": "drop_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "document"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "chat_block_block_id_block_id_fk",
-      "schema": "public",
-      "table": "chat_block",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "chat_id"
+      "writes": [
+        "s|tbl|public.document",
+        "n|tbl|public.document",
+        "e|tbl|public.document",
+        "n|rel|public.document",
+        "n|type|public.document"
       ],
-      "schemaTo": "public",
-      "tableTo": "chat",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "chat_message",
+        "metadata"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "chat_block_chat_id_chat_id_fk",
-      "schema": "public",
-      "table": "chat_block",
-      "entityType": "fks"
+      "writes": [
+        "s|col|public.chat_message.metadata",
+        "n|col|public.chat_message.metadata",
+        "e|col|public.chat_message.metadata"
+      ],
+      "reads": [
+        "n|tbl|public.chat_message",
+        "n|sch|public"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "bot_block",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "block_id",
-      "schema": "public",
-      "table": "bot_block",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "bot_id",
-      "schema": "public",
-      "table": "bot_block",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "bot_block",
-      "entityType": "columns"
-    },
-    {
-      "columns": [
-        "block_id",
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "chat",
         "bot_id"
       ],
-      "nameExplicit": false,
-      "name": "bot_block_block_id_bot_id_pk",
-      "schema": "public",
-      "table": "bot_block",
-      "entityType": "pks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "block_id"
+      "writes": [
+        "s|col|public.chat.bot_id",
+        "n|col|public.chat.bot_id",
+        "e|col|public.chat.bot_id"
       ],
-      "schemaTo": "public",
-      "tableTo": "block",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.chat",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "invitation",
+        "created_at"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "bot_block_block_id_block_id_fk",
-      "schema": "public",
-      "table": "bot_block",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "bot_id"
+      "writes": [
+        "s|col|public.invitation.created_at",
+        "n|col|public.invitation.created_at",
+        "e|col|public.invitation.created_at"
       ],
-      "schemaTo": "public",
-      "tableTo": "bot",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.invitation",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "invitation",
+        "updated_at"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "bot_block_bot_id_bot_id_fk",
-      "schema": "public",
-      "table": "bot_block",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "bot",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "writes": [
+        "s|col|public.invitation.updated_at",
+        "n|col|public.invitation.updated_at",
+        "e|col|public.invitation.updated_at"
       ],
-      "nameExplicit": false,
-      "name": "bot_pkey",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "pks"
+      "reads": [
+        "n|tbl|public.invitation",
+        "n|sch|public"
+      ]
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "varchar(500)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "description",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'{}'",
-      "generated": null,
-      "identity": null,
-      "name": "content_json",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "content_html",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "forked_from_id",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "1",
-      "generated": null,
-      "identity": null,
-      "name": "version",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "chat_message",
+        "annotations"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|col|public.chat_message.annotations",
+        "n|col|public.chat_message.annotations",
+        "e|col|public.chat_message.annotations"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "bot_user_id_user_id_fk",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "fks"
+      "reads": [
+        "n|tbl|public.chat_message",
+        "n|sch|public"
+      ]
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "forked_from_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "bot",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "SET NULL",
-      "name": "bot_forked_from_id_bot_id_fk",
-      "schema": "public",
-      "table": "bot",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "chat_message",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "chat_message_pkey",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "chat_id",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "columns"
-    },
-    {
-      "type": "varchar",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "role",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "parts",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "attachments",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "metadata",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "chat_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "chat",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "chat_message_chat_id_chat_id_fk",
-      "schema": "public",
-      "table": "chat_message",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "chat",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "chat_pkey",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "columns"
-    },
-    {
-      "type": "varchar",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "title",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "bot_id",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "chat_user_id_user_id_fk",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "bot_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "bot",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "SET NULL",
-      "name": "chat_bot_id_bot_id_fk",
-      "schema": "public",
-      "table": "chat",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "course_invitation",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "course_invitation_pkey",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "email",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "course_id",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "role",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "status",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "expires_at",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "inviter_id",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "chat",
         "course_id"
       ],
-      "schemaTo": "public",
-      "tableTo": "course",
-      "columnsTo": [
+      "writes": [
+        "s|col|public.chat.course_id",
+        "n|col|public.chat.course_id",
+        "e|col|public.chat.course_id"
+      ],
+      "reads": [
+        "n|tbl|public.chat",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "session",
+        "active_course_id"
+      ],
+      "writes": [
+        "s|col|public.session.active_course_id",
+        "n|col|public.session.active_course_id",
+        "e|col|public.session.active_course_id"
+      ],
+      "reads": [
+        "n|tbl|public.session",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "invitation",
         "id"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "course_invitation_course_id_course_id_fk",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "inviter_id"
+      "writes": [
+        "s|colprop|public.invitation.id.default",
+        "s|colprop|public.invitation.id.type"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.invitation",
+        "n|sch|public",
+        "n|col|public.invitation.id"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "course_invitation_inviter_id_user_id_fk",
-      "schema": "public",
-      "table": "course_invitation",
-      "entityType": "fks"
+      "sqlHash": "f8f33dc71d492a05"
     },
     {
-      "isRlsEnabled": false,
-      "name": "course",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "member",
+        "created_at"
       ],
-      "nameExplicit": false,
-      "name": "course_pkey",
-      "schema": "public",
-      "table": "course",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "title",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "organization_id",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "varchar(500)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "description",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'{}'",
-      "generated": null,
-      "identity": null,
-      "name": "content_json",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "content_html",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "json",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'{}'",
-      "generated": null,
-      "identity": null,
-      "name": "config",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "course",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organization_id"
+      "writes": [
+        "s|colprop|public.member.created_at.notNull",
+        "s|colprop|public.member.created_at.default"
       ],
-      "schemaTo": "public",
-      "tableTo": "organization",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.member",
+        "n|sch|public",
+        "n|col|public.member.created_at"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "course_organization_id_organization_id_fk",
-      "schema": "public",
-      "table": "course",
-      "entityType": "fks"
+      "sqlHash": "c8f7cc69ce19c18c"
     },
     {
-      "isRlsEnabled": false,
-      "name": "course_member",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "course_id",
-      "schema": "public",
-      "table": "course_member",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "course_member",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "role",
-      "schema": "public",
-      "table": "course_member",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "course_member",
-      "entityType": "columns"
-    },
-    {
-      "columns": [
-        "course_id",
-        "user_id"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "asset"
       ],
-      "nameExplicit": false,
-      "name": "course_member_course_id_user_id_pk",
-      "schema": "public",
-      "table": "course_member",
-      "entityType": "pks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "course_id"
+      "writes": [
+        "s|fk|public.asset.asset_user_id_user_id_fk",
+        "n|fk|public.asset.asset_user_id_user_id_fk",
+        "e|fk|public.asset.asset_user_id_user_id_fk",
+        "n|con|public.asset.asset_user_id_user_id_fk"
       ],
-      "schemaTo": "public",
-      "tableTo": "course",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.asset.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "block_asset"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "course_member_course_id_course_id_fk",
-      "schema": "public",
-      "table": "course_member",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
+      "writes": [
+        "s|fk|public.block_asset.block_asset_block_id_block_id_fk",
+        "n|fk|public.block_asset.block_asset_block_id_block_id_fk",
+        "e|fk|public.block_asset.block_asset_block_id_block_id_fk",
+        "n|con|public.block_asset.block_asset_block_id_block_id_fk"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public",
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|col|public.block_asset.block_id",
+        "n|col|public.block.id",
+        "e|uniqueness|public.block.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "block_asset"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "course_member_user_id_user_id_fk",
-      "schema": "public",
-      "table": "course_member",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "capability",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "capability"
+      "writes": [
+        "s|fk|public.block_asset.block_asset_asset_id_asset_id_fk",
+        "n|fk|public.block_asset.block_asset_asset_id_asset_id_fk",
+        "e|fk|public.block_asset.block_asset_asset_id_asset_id_fk",
+        "n|con|public.block_asset.block_asset_asset_id_asset_id_fk"
       ],
-      "nameExplicit": false,
-      "name": "capability_pkey",
-      "schema": "public",
-      "table": "capability",
-      "entityType": "pks"
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public",
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.block_asset.asset_id",
+        "n|col|public.asset.id",
+        "e|uniqueness|public.asset.id"
+      ]
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "capability",
-      "schema": "public",
-      "table": "capability",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "capability",
-      "entityType": "columns"
-    },
-    {
-      "type": "varchar(500)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "description",
-      "schema": "public",
-      "table": "capability",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "capability"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "block"
       ],
-      "nullsNotDistinct": false,
-      "name": "capability_capability_unique",
-      "schema": "public",
-      "table": "capability",
-      "entityType": "uniques"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "model_capability",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "model_id",
-      "schema": "public",
-      "table": "model_capability",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "capability",
-      "schema": "public",
-      "table": "model_capability",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "model_id",
-        "capability"
+      "writes": [
+        "s|fk|public.block.block_user_id_user_id_fk",
+        "n|fk|public.block.block_user_id_user_id_fk",
+        "e|fk|public.block.block_user_id_user_id_fk",
+        "n|con|public.block.block_user_id_user_id_fk"
       ],
-      "nullsNotDistinct": false,
-      "name": "model_capability_model_id_capability_unique",
-      "schema": "public",
-      "table": "model_capability",
-      "entityType": "uniques"
+      "reads": [
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.block.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "model_id"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "block"
       ],
-      "schemaTo": "public",
-      "tableTo": "model",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|fk|public.block.block_forked_from_id_block_id_fk",
+        "n|fk|public.block.block_forked_from_id_block_id_fk",
+        "e|fk|public.block.block_forked_from_id_block_id_fk",
+        "n|con|public.block.block_forked_from_id_block_id_fk"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "model_capability_model_id_model_id_fk",
-      "schema": "public",
-      "table": "model_capability",
-      "entityType": "fks"
+      "reads": [
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|col|public.block.forked_from_id",
+        "n|col|public.block.id",
+        "e|uniqueness|public.block.id"
+      ]
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "capability"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "chat_block"
       ],
-      "schemaTo": "public",
-      "tableTo": "capability",
-      "columnsTo": [
-        "capability"
+      "writes": [
+        "s|fk|public.chat_block.chat_block_block_id_block_id_fk",
+        "n|fk|public.chat_block.chat_block_block_id_block_id_fk",
+        "e|fk|public.chat_block.chat_block_block_id_block_id_fk",
+        "n|con|public.chat_block.chat_block_block_id_block_id_fk"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "model_capability_capability_capability_capability_fk",
-      "schema": "public",
-      "table": "model_capability",
-      "entityType": "fks"
+      "reads": [
+        "n|tbl|public.chat_block",
+        "n|sch|public",
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|col|public.chat_block.block_id",
+        "n|col|public.block.id",
+        "e|uniqueness|public.block.id"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "model",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "chat_block"
       ],
-      "nameExplicit": false,
-      "name": "model_pkey",
-      "schema": "public",
-      "table": "model",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "model",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "slug",
-      "schema": "public",
-      "table": "model",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "provider_slug",
-      "schema": "public",
-      "table": "model",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "model",
-      "entityType": "columns"
-    },
-    {
-      "type": "varchar(500)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "description",
-      "schema": "public",
-      "table": "model",
-      "entityType": "columns"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "false",
-      "generated": null,
-      "identity": null,
-      "name": "is_deprecated",
-      "schema": "public",
-      "table": "model",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "model",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "slug",
-        "provider_slug"
+      "writes": [
+        "s|fk|public.chat_block.chat_block_chat_id_chat_id_fk",
+        "n|fk|public.chat_block.chat_block_chat_id_chat_id_fk",
+        "e|fk|public.chat_block.chat_block_chat_id_chat_id_fk",
+        "n|con|public.chat_block.chat_block_chat_id_chat_id_fk"
       ],
-      "nullsNotDistinct": false,
-      "name": "model_slug_provider_slug_unique",
-      "schema": "public",
-      "table": "model",
-      "entityType": "uniques"
+      "reads": [
+        "n|tbl|public.chat_block",
+        "n|sch|public",
+        "n|tbl|public.chat",
+        "n|sch|public",
+        "n|col|public.chat_block.chat_id",
+        "n|col|public.chat.id",
+        "e|uniqueness|public.chat.id"
+      ]
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "provider_slug"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_block"
       ],
-      "schemaTo": "public",
-      "tableTo": "provider",
-      "columnsTo": [
-        "slug"
+      "writes": [
+        "s|fk|public.bot_block.bot_block_block_id_block_id_fk",
+        "n|fk|public.bot_block.bot_block_block_id_block_id_fk",
+        "e|fk|public.bot_block.bot_block_block_id_block_id_fk",
+        "n|con|public.bot_block.bot_block_block_id_block_id_fk"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "model_provider_slug_provider_slug_fk",
-      "schema": "public",
-      "table": "model",
-      "entityType": "fks"
+      "reads": [
+        "n|tbl|public.bot_block",
+        "n|sch|public",
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|col|public.bot_block.block_id",
+        "n|col|public.block.id",
+        "e|uniqueness|public.block.id"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "organization_provider",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "organization_id",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "provider_slug",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "api_key_encrypted",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "true",
-      "generated": null,
-      "identity": null,
-      "name": "enabled",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organization_id",
-        "provider_slug"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot_block"
       ],
-      "nullsNotDistinct": false,
-      "name": "organization_provider_organization_id_provider_slug_unique",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "uniques"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organization_id"
+      "writes": [
+        "s|fk|public.bot_block.bot_block_bot_id_bot_id_fk",
+        "n|fk|public.bot_block.bot_block_bot_id_bot_id_fk",
+        "e|fk|public.bot_block.bot_block_bot_id_bot_id_fk",
+        "n|con|public.bot_block.bot_block_bot_id_bot_id_fk"
       ],
-      "schemaTo": "public",
-      "tableTo": "organization",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.bot_block",
+        "n|sch|public",
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "n|col|public.bot_block.bot_id",
+        "n|col|public.bot.id",
+        "e|uniqueness|public.bot.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "organization_provider_organization_id_organization_id_fk",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "provider_slug"
+      "writes": [
+        "s|fk|public.bot.bot_user_id_user_id_fk",
+        "n|fk|public.bot.bot_user_id_user_id_fk",
+        "e|fk|public.bot.bot_user_id_user_id_fk",
+        "n|con|public.bot.bot_user_id_user_id_fk"
       ],
-      "schemaTo": "public",
-      "tableTo": "provider",
-      "columnsTo": [
-        "slug"
+      "reads": [
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.bot.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "name": "organization_provider_provider_slug_provider_slug_fk",
-      "schema": "public",
-      "table": "organization_provider",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "provider",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "slug"
+      "writes": [
+        "s|fk|public.bot.bot_forked_from_id_bot_id_fk",
+        "n|fk|public.bot.bot_forked_from_id_bot_id_fk",
+        "e|fk|public.bot.bot_forked_from_id_bot_id_fk",
+        "n|con|public.bot.bot_forked_from_id_bot_id_fk"
       ],
-      "nameExplicit": false,
-      "name": "provider_pkey",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "pks"
+      "reads": [
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "n|col|public.bot.forked_from_id",
+        "n|col|public.bot.id",
+        "e|uniqueness|public.bot.id"
+      ]
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "slug",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "varchar(500)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "description",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "website",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "compatibility",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "endpoint",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "1",
-      "generated": null,
-      "identity": null,
-      "name": "version",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "slug"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "chat"
       ],
-      "nullsNotDistinct": false,
-      "name": "provider_slug_unique",
-      "schema": "public",
-      "table": "provider",
-      "entityType": "uniques"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "invitation",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "writes": [
+        "s|fk|public.chat.chat_bot_id_bot_id_fk",
+        "n|fk|public.chat.chat_bot_id_bot_id_fk",
+        "e|fk|public.chat.chat_bot_id_bot_id_fk",
+        "n|con|public.chat.chat_bot_id_bot_id_fk"
       ],
-      "nameExplicit": false,
-      "name": "invitation_pkey",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "pks"
+      "reads": [
+        "n|tbl|public.chat",
+        "n|sch|public",
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "n|col|public.chat.bot_id",
+        "n|col|public.bot.id",
+        "e|uniqueness|public.bot.id"
+      ]
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "organization_id",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "email",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "role",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "status",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "expires_at",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "inviter_id",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organization_id"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "model_capability"
       ],
-      "schemaTo": "public",
-      "tableTo": "organization",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|fk|public.model_capability.model_capability_model_id_model_id_fk",
+        "n|fk|public.model_capability.model_capability_model_id_model_id_fk",
+        "e|fk|public.model_capability.model_capability_model_id_model_id_fk",
+        "n|con|public.model_capability.model_capability_model_id_model_id_fk"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "invitation_organization_id_organization_id_fk",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "fks"
+      "reads": [
+        "n|tbl|public.model_capability",
+        "n|sch|public",
+        "n|tbl|public.model",
+        "n|sch|public",
+        "n|col|public.model_capability.model_id",
+        "n|col|public.model.id",
+        "e|uniqueness|public.model.id"
+      ]
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "inviter_id"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "model_capability"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "writes": [
+        "s|fk|public.model_capability.model_capability_capability_capability_capability_fk",
+        "n|fk|public.model_capability.model_capability_capability_capability_capability_fk",
+        "e|fk|public.model_capability.model_capability_capability_capability_capability_fk",
+        "n|con|public.model_capability.model_capability_capability_capability_capability_fk"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "invitation_inviter_id_user_id_fk",
-      "schema": "public",
-      "table": "invitation",
-      "entityType": "fks"
+      "reads": [
+        "n|tbl|public.model_capability",
+        "n|sch|public",
+        "n|tbl|public.capability",
+        "n|sch|public",
+        "n|col|public.model_capability.capability",
+        "n|col|public.capability.capability",
+        "e|uniqueness|public.capability.capability"
+      ]
     },
     {
-      "isRlsEnabled": false,
-      "name": "member",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "model"
       ],
-      "nameExplicit": false,
-      "name": "member_pkey",
-      "schema": "public",
-      "table": "member",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "member",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "organization_id",
-      "schema": "public",
-      "table": "member",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "member",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "role",
-      "schema": "public",
-      "table": "member",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "member",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organization_id"
+      "writes": [
+        "s|fk|public.model.model_provider_slug_provider_slug_fk",
+        "n|fk|public.model.model_provider_slug_provider_slug_fk",
+        "e|fk|public.model.model_provider_slug_provider_slug_fk",
+        "n|con|public.model.model_provider_slug_provider_slug_fk"
       ],
-      "schemaTo": "public",
-      "tableTo": "organization",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.model",
+        "n|sch|public",
+        "n|tbl|public.provider",
+        "n|sch|public",
+        "n|col|public.model.provider_slug",
+        "n|col|public.provider.slug",
+        "e|uniqueness|public.provider.slug"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "organization_provider"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "member_organization_id_organization_id_fk",
-      "schema": "public",
-      "table": "member",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
+      "writes": [
+        "s|fk|public.organization_provider.organization_provider_organization_id_organization_id_fk",
+        "n|fk|public.organization_provider.organization_provider_organization_id_organization_id_fk",
+        "e|fk|public.organization_provider.organization_provider_organization_id_organization_id_fk",
+        "n|con|public.organization_provider.organization_provider_organization_id_organization_id_fk"
       ],
-      "schemaTo": "public",
-      "tableTo": "user",
-      "columnsTo": [
-        "id"
+      "reads": [
+        "n|tbl|public.organization_provider",
+        "n|sch|public",
+        "n|tbl|public.organization",
+        "n|sch|public",
+        "n|col|public.organization_provider.organization_id",
+        "n|col|public.organization.id",
+        "e|uniqueness|public.organization.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "organization_provider"
       ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "member_user_id_user_id_fk",
-      "schema": "public",
-      "table": "member",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "organization",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
+      "writes": [
+        "s|fk|public.organization_provider.organization_provider_provider_slug_provider_slug_fk",
+        "n|fk|public.organization_provider.organization_provider_provider_slug_provider_slug_fk",
+        "e|fk|public.organization_provider.organization_provider_provider_slug_provider_slug_fk",
+        "n|con|public.organization_provider.organization_provider_provider_slug_provider_slug_fk"
       ],
-      "nameExplicit": false,
-      "name": "organization_pkey",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "slug",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "logo",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "metadata",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "slug"
-      ],
-      "nullsNotDistinct": false,
-      "name": "organization_slug_unique",
-      "schema": "public",
-      "table": "organization",
-      "entityType": "uniques"
+      "reads": [
+        "n|tbl|public.organization_provider",
+        "n|sch|public",
+        "n|tbl|public.provider",
+        "n|sch|public",
+        "n|col|public.organization_provider.provider_slug",
+        "n|col|public.provider.slug",
+        "e|uniqueness|public.provider.slug"
+      ]
     }
   ],
-  "renames": []
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "asset",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "block_asset",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "block",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "chat_block",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "bot_block",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "bot",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "capability",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "model_capability",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "model",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "organization_provider",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "provider",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "bucket",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "prefix",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "title",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "metadata",
+        "type": "json",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'{\"showReference\":true,\"relevance\":\"medium\"}'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "size",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "file_type",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "asset_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "type",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "config",
+        "type": "json",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "forked_from_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_block",
+        "name": "block_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_block",
+        "name": "chat_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_block",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_block",
+        "name": "block_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_block",
+        "name": "bot_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_block",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "description",
+        "type": "varchar(500)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "content_json",
+        "type": "json",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'{}'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "content_html",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "forked_from_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_message",
+        "name": "metadata",
+        "type": "json",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat",
+        "name": "bot_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "capability",
+        "name": "capability",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "capability",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "capability",
+        "name": "description",
+        "type": "varchar(500)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model_capability",
+        "name": "model_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model_capability",
+        "name": "capability",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "slug",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "provider_slug",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "description",
+        "type": "varchar(500)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "is_deprecated",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "organization_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "provider_slug",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "api_key_encrypted",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "enabled",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "true",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "slug",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "description",
+        "type": "varchar(500)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "website",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "compatibility",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "endpoint",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invitation",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invitation",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_user_id_user_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_asset_block_id_block_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "block_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "block",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_asset_asset_id_asset_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "asset_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "asset",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "block_user_id_user_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "block_forked_from_id_block_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "forked_from_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "block",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_block",
+        "name": "chat_block_block_id_block_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "block_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "block",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_block",
+        "name": "chat_block_chat_id_chat_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "chat_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "chat",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_block",
+        "name": "bot_block_block_id_block_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "block_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "block",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_block",
+        "name": "bot_block_bot_id_bot_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "bot_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "bot",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "bot_user_id_user_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "bot_forked_from_id_bot_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "forked_from_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "bot",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat",
+        "name": "chat_bot_id_bot_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "bot_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "bot",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model_capability",
+        "name": "model_capability_model_id_model_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "model_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "model",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model_capability",
+        "name": "model_capability_capability_capability_capability_fk",
+        "nameExplicit": false,
+        "columns": [
+          "capability"
+        ],
+        "schemaTo": "public",
+        "tableTo": "capability",
+        "columnsTo": [
+          "capability"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "model_provider_slug_provider_slug_fk",
+        "nameExplicit": false,
+        "columns": [
+          "provider_slug"
+        ],
+        "schemaTo": "public",
+        "tableTo": "provider",
+        "columnsTo": [
+          "slug"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "organization_provider_organization_id_organization_id_fk",
+        "nameExplicit": false,
+        "columns": [
+          "organization_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "organization",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "organization_provider_provider_slug_provider_slug_fk",
+        "nameExplicit": false,
+        "columns": [
+          "provider_slug"
+        ],
+        "schemaTo": "public",
+        "tableTo": "provider",
+        "columnsTo": [
+          "slug"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block",
+        "name": "block_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_block",
+        "name": "chat_block_block_id_chat_id_pk",
+        "columns": [
+          "block_id",
+          "chat_id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_block",
+        "name": "bot_block_block_id_bot_id_pk",
+        "columns": [
+          "block_id",
+          "bot_id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot",
+        "name": "bot_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "capability",
+        "name": "capability_pkey",
+        "columns": [
+          "capability"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "model_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "provider_pkey",
+        "columns": [
+          "slug"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "capability",
+        "name": "capability_capability_unique",
+        "nameExplicit": false,
+        "columns": [
+          "capability"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model_capability",
+        "name": "model_capability_model_id_capability_unique",
+        "nameExplicit": false,
+        "columns": [
+          "model_id",
+          "capability"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "model_slug_provider_slug_unique",
+        "nameExplicit": false,
+        "columns": [
+          "slug",
+          "provider_slug"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization_provider",
+        "name": "organization_provider_organization_id_provider_slug_unique",
+        "nameExplicit": false,
+        "columns": [
+          "organization_id",
+          "provider_slug"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "provider",
+        "name": "provider_slug_unique",
+        "nameExplicit": false,
+        "columns": [
+          "slug"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "drop",
+      "key": "tables\u0000[\"public\",\"document\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"session\",\"active_course_id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"chat_message\",\"annotations\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"chat\",\"course_id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"bucket\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"prefix\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"title\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"metadata\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"size\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"file_type\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"course_id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"uploaded_by\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"status\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"updated_at\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"document\",\"created_at\"]"
+    },
+    {
+      "op": "drop",
+      "key": "fks\u0000[\"public\",\"chat\",\"chat_course_id_course_id_fk\"]"
+    },
+    {
+      "op": "drop",
+      "key": "fks\u0000[\"public\",\"document\",\"document_course_id_course_id_fk\"]"
+    },
+    {
+      "op": "drop",
+      "key": "fks\u0000[\"public\",\"document\",\"document_uploaded_by_user_id_fk\"]"
+    },
+    {
+      "op": "drop",
+      "key": "pks\u0000[\"public\",\"document\",\"document_pkey\"]"
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"invitation\",\"id\"]",
+      "set": {
+        "type": "uuid",
+        "default": "gen_random_uuid()"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"member\",\"created_at\"]",
+      "set": {
+        "notNull": false,
+        "default": "now()"
+      }
+    }
+  ]
 }

@@ -16,11 +16,11 @@ const normalizeOptionalString = (
 	});
 
 const s3Config = Config.all({
-	region: Config.withDefault(Config.string("S3_REGION"), "eu-central-1"),
-	endpoint: Config.string("S3_ENDPOINT"),
-	publicEndpoint: Config.option(Config.string("S3_PUBLIC_ENDPOINT")),
-	accessKey: Config.redacted("S3_ACCESS_KEY"),
-	secretKey: Config.redacted("S3_SECRET_KEY"),
+	region: Config.withDefault(Config.String("S3_REGION"), "eu-central-1"),
+	endpoint: Config.String("S3_ENDPOINT"),
+	publicEndpoint: Config.option(Config.String("S3_PUBLIC_ENDPOINT")),
+	accessKey: Config.Redacted("S3_ACCESS_KEY"),
+	secretKey: Config.Redacted("S3_SECRET_KEY"),
 }).pipe(
 	Config.map((raw) => ({
 		...raw,

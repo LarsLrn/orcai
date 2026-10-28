@@ -53,7 +53,7 @@ export const ensureQueue = (
 
 /** Replaces every worker's polling interval, for test stacks that cannot wait. */
 const pollingIntervalOverride = Config.option(
-	Config.number("WORKER_POLLING_INTERVAL_SECONDS"),
+	Config.Number("WORKER_POLLING_INTERVAL_SECONDS"),
 );
 
 const registerWorkers = <TContext>(

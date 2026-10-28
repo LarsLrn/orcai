@@ -4,13 +4,13 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
 const aiConfig = Config.all({
-	baseUrl: Config.string("OPENAI_COMPATIBLE_BASE_URL"),
-	apiKey: Config.redacted("OPENAI_COMPATIBLE_API_KEY"),
+	baseUrl: Config.String("OPENAI_COMPATIBLE_BASE_URL"),
+	apiKey: Config.Redacted("OPENAI_COMPATIBLE_API_KEY"),
 	embedding: Config.all({
-		model: Config.string("EMBEDDING_MODEL"),
+		model: Config.String("EMBEDDING_MODEL"),
 	}),
 	general: Config.all({
-		model: Config.string("GENERAL_MODEL"),
+		model: Config.String("GENERAL_MODEL"),
 	}),
 });
 

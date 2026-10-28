@@ -1,6 +1,6 @@
 import { DB } from "@orcai/db";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
-import { middlewareGen } from "@orpc/experimental-effect";
+import { middlewareGen } from "@orpc/effect";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { auth as betterAuth } from "@/lib/auth/auth";

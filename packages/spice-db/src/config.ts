@@ -18,7 +18,7 @@ const SpiceDbSecurityModeLiteralSchema = Schema.Literals(spiceDbSecurityModes);
 
 const SpiceDbSecurityModeSchema = Schema.String.pipe(
 	Schema.decodeTo(SpiceDbSecurityModeLiteralSchema, {
-		decode: SchemaGetter.transformOrFail((value: string) => {
+		decode: SchemaGetter.transformEffect((value: string) => {
 			const normalized = value.trim().toLowerCase();
 
 			if (spiceDbSecurityModes.includes(normalized as SpiceDbSecurityMode)) {
@@ -37,8 +37,8 @@ const SpiceDbSecurityModeSchema = Schema.String.pipe(
 
 const spiceConfig = Config.all({
 	spice: Config.all({
-		endpoint: Config.string("SPICEDB_ENDPOINT"),
-		token: Config.redacted("SPICEDB_TOKEN"),
+		endpoint: Config.String("SPICEDB_ENDPOINT"),
+		token: Config.Redacted("SPICEDB_TOKEN"),
 		security: Config.withDefault(
 			Config.schema(SpiceDbSecurityModeSchema, "SPICEDB_SECURITY"),
 			"insecure-plaintext",
