@@ -6,6 +6,7 @@ import {
 } from "@shadcn/react/message-scroller";
 import { ArrowDownIcon } from "lucide-react";
 import type * as React from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -119,6 +120,62 @@ function MessageScrollerButton({
 	);
 }
 
+/**
+ * A ref for any number of elements and whether one of them shows in the
+ * message scroller's viewport. Measured on scroll and whenever the content
+ * resizes, until the element leaves the ref.
+ */
+function useMessageScrollerInView() {
+	const [shown, setShown] = useState<ReadonlySet<Element>>(new Set());
+	const ref = useCallback((element: HTMLElement | null) => {
+		const viewport = element?.closest(
+			'[data-slot="message-scroller-viewport"]',
+		);
+		if (!element || !viewport) {
+			return;
+		}
+		const show = (inView: boolean) => {
+			setShown((current) => {
+				if (current.has(element) === inView) {
+					return current;
+				}
+				const next = new Set(current);
+				if (inView) {
+					next.add(element);
+				} else {
+					next.delete(element);
+				}
+				return next;
+			});
+		};
+		const measure = () => {
+			const target = element.getBoundingClientRect();
+			const bounds = viewport.getBoundingClientRect();
+			show(target.bottom > bounds.top && target.top < bounds.bottom);
+		};
+		const resize = new ResizeObserver(measure);
+		resize.observe(viewport);
+		for (const child of viewport.children) {
+			resize.observe(child);
+		}
+		viewport.addEventListener("scroll", measure, {
+			passive: true,
+		});
+		measure();
+
+		return () => {
+			resize.disconnect();
+			viewport.removeEventListener("scroll", measure);
+			show(false);
+		};
+	}, []);
+
+	return [
+		ref,
+		shown.size > 0,
+	] as const;
+}
+
 export {
 	MessageScroller,
 	MessageScrollerButton,
@@ -127,6 +184,7 @@ export {
 	MessageScrollerProvider,
 	MessageScrollerViewport,
 	useMessageScroller,
+	useMessageScrollerInView,
 	useMessageScrollerScrollable,
 	useMessageScrollerVisibility,
 };
