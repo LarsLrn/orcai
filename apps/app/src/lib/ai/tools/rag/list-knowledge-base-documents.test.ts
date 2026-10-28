@@ -55,6 +55,7 @@ describe("listKnowledgeBaseDocuments", () => {
 						id: "asset-1",
 						metadata: {
 							citation: "Handbook 2026",
+							description: "Rules for staff.",
 						},
 					},
 					{
@@ -90,6 +91,7 @@ describe("listKnowledgeBaseDocuments", () => {
 					assetId: "asset-1",
 					title: "Policies",
 					citation: "Handbook 2026",
+					description: "Rules for staff.",
 					state: "ready",
 					failure: undefined,
 				},

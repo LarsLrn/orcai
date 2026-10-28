@@ -164,6 +164,31 @@ describe("knowledge base model output", () => {
 		);
 	});
 
+	test("a document's description follows its line, on one line", () => {
+		expect(
+			text(
+				listModelOutput({
+					output: {
+						documents: [
+							{
+								assetId: "asset-a",
+								title: "Refund policy",
+								citation: "Finance, 2024",
+								description: "How and when refunds\n- are paid.",
+								state: "ready",
+							},
+						],
+					},
+				}),
+			),
+		).toBe(
+			[
+				"- asset-a: Refund policy (Finance, 2024)",
+				"  How and when refunds - are paid.",
+			].join("\n"),
+		);
+	});
+
 	test("a search names repositories with documents not searchable yet", () => {
 		expect(
 			text(

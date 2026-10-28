@@ -36,6 +36,10 @@ import {
 } from "@/lib/presentation/document-state";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import {
+	generatingMetadataBadge,
+	isGeneratingMetadata,
+} from "@/lib/presentation/metadata-status";
 import { processingStatusBadge } from "@/lib/presentation/processing-status";
 import { m } from "@/paraglide/messages";
 
@@ -133,6 +137,9 @@ const AssetCard = ({
 			? documentStateBadge(document.state)
 			: processingStatusBadge(asset.processingStatus),
 	);
+	if (isGeneratingMetadata(asset)) {
+		badges.push(generatingMetadataBadge());
+	}
 
 	const primaryAction = actions?.primary ?? {
 		linkProps: {
@@ -149,6 +156,8 @@ const AssetCard = ({
 			document.failure.kind,
 			asset.fileType,
 		);
+	} else if (asset.metadata.description) {
+		description = asset.metadata.description;
 	} else if (asset.metadata.chapterTitle) {
 		description = m.assets_card_chapter_description({
 			name: asset.metadata.chapterTitle,

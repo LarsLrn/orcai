@@ -1,9 +1,11 @@
 import type { Asset } from "@orcai/schema";
 import { useState } from "react";
+import { changedAssetFields } from "@/components/documents/shared/asset-metadata-changes";
 import {
 	AssetMetadataEditor,
 	createDefaultAssetMetadata,
 } from "@/components/documents/shared/asset-metadata-editor";
+import { MetadataGeneration } from "@/components/documents/shared/metadata-generation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,11 +21,13 @@ import { formatFileSize } from "@/lib/presentation/format-file-size";
 import { m } from "@/paraglide/messages";
 
 const AssetForm = ({ asset }: { asset: Asset }) => {
-	const { mutate: saveAsset, isPending } = useSaveAssetMutation();
-	const [value, setValue] = useState({
+	const { mutateAsync: saveAsset, isPending } = useSaveAssetMutation();
+	const [initial, setInitial] = useState(() => ({
 		title: asset.title,
 		metadata: asset.metadata ?? createDefaultAssetMetadata(),
-	});
+	}));
+	const [value, setValue] = useState(initial);
+	const [metadataGeneration, setMetadataGeneration] = useState<number>();
 
 	return (
 		<div className="space-y-4">
@@ -40,19 +44,43 @@ const AssetForm = ({ asset }: { asset: Asset }) => {
 						<Badge variant="outline">{formatFileSize(asset.size)}</Badge>
 					</div>
 
-					<AssetMetadataEditor value={value} onChange={setValue} />
+					<AssetMetadataEditor
+						value={value}
+						onChange={setValue}
+						generation={
+							<MetadataGeneration
+								asset={asset}
+								value={value}
+								onApply={(next, generation) => {
+									setValue(next);
+									setMetadataGeneration(generation);
+								}}
+							/>
+						}
+					/>
 				</CardContent>
 			</Card>
 
 			<div className="flex justify-end">
 				<Button
-					onClick={() =>
-						saveAsset({
+					onClick={async () => {
+						const sent = value;
+						const result = await saveAsset({
 							id: asset.id,
-							title: value.title,
-							metadata: value.metadata,
-						})
-					}
+							...changedAssetFields(initial, sent),
+							metadataGeneration,
+						});
+
+						if (result.status === "success") {
+							const saved = {
+								title: result.data.data.title,
+								metadata: result.data.data.metadata,
+							};
+							setInitial(saved);
+							// Edits typed while saving stay, to be saved next.
+							setValue((current) => (current === sent ? saved : current));
+						}
+					}}
 					loading={isPending}
 				>
 					{m.assets_form_submit_button()}

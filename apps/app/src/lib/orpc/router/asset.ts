@@ -1,4 +1,4 @@
-import { buckets } from "@orcai/core";
+import { buckets, type OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { queueMetadataGeneration } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
@@ -7,7 +7,11 @@ import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
 } from "@orcai/s3/server";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
+import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
+import {
+	checkEntityPermission,
+	lookupEntitiesByPermission,
+} from "@orcai/spice-db";
 import {
 	and,
 	count,
@@ -16,6 +20,7 @@ import {
 	getColumns,
 	ilike,
 	inArray,
+	isNull,
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -139,8 +144,23 @@ const findAsset = authed.asset.find
 		const [query] = yield* db
 			.select({
 				...getColumns(dbSchema.asset),
+				organizationId: dbSchema.organization.id,
+				utilityModelId: dbSchema.organization.utilityModelId,
 			})
 			.from(dbSchema.asset)
+			.leftJoin(
+				dbSchema.resourceScope,
+				and(
+					eq(dbSchema.resourceScope.resourceType, "asset"),
+					eq(dbSchema.resourceScope.resourceId, dbSchema.asset.id),
+					eq(dbSchema.resourceScope.isPrimary, true),
+					isNull(dbSchema.resourceScope.endedAt),
+				),
+			)
+			.leftJoin(
+				dbSchema.organization,
+				eq(dbSchema.organization.id, dbSchema.resourceScope.organizationId),
+			)
 			.where(eq(dbSchema.asset.id, input.id));
 
 		if (!query) {
@@ -152,14 +172,28 @@ const findAsset = authed.asset.find
 			);
 		}
 
+		const { utilityModelId, organizationId, ...asset } = query;
+		const zedToken = getZedToken(context, input);
+		// Readers from outside the organisation learn nothing about it.
+		const readsOrganization =
+			organizationId !== null &&
+			(yield* checkEntityPermission({
+				entityType: "organization",
+				entityId: organizationId as OrganizationId,
+				permission: "read",
+				userId: context.auth.user.id,
+				zedToken,
+			}));
 		return {
 			data: {
-				...query,
+				...asset,
+				organizationId: readsOrganization ? organizationId : null,
+				utilityModel: readsOrganization ? utilityModelId !== null : null,
 				capabilities: yield* getEntityCapabilities({
 					entityType: "asset",
 					entityId: query.id,
 					userId: context.auth.user.id,
-					zedToken: getZedToken(context, input),
+					zedToken,
 				}),
 			},
 		};
@@ -174,20 +208,44 @@ const saveAsset = authed.asset.save
 	.effect(function* ({ input }) {
 		const db = yield* DB;
 
-		const [asset] = yield* db
-			.update(dbSchema.asset)
-			.set({
-				title: input.title,
-				metadata: input.metadata,
-				updatedAt: new Date(),
-				...(input.metadataGeneration !== undefined && {
-					metadataSuggestion: sql`case when ${dbSchema.asset.metadataGeneration} = ${input.metadataGeneration} then null else ${dbSchema.asset.metadataSuggestion} end`,
-				}),
-			})
-			.where(eq(dbSchema.asset.id, input.id))
-			.returning({
-				...getColumns(dbSchema.asset),
-			});
+		// Under the row lock a generation applying meanwhile waits, and its
+		// fields survive unless named here; the result fits its source type.
+		const asset = yield* db.transaction(() =>
+			Effect.gen(function* () {
+				const [stored] = yield* db
+					.select({
+						metadata: dbSchema.asset.metadata,
+					})
+					.from(dbSchema.asset)
+					.where(eq(dbSchema.asset.id, input.id))
+					.for("update");
+				const [saved] = yield* db
+					.update(dbSchema.asset)
+					.set({
+						...(input.title !== undefined && {
+							title: input.title,
+						}),
+						...(stored &&
+							input.metadata !== undefined && {
+								metadata: metadataSchema.parse(
+									fitMetadataToSourceType({
+										...stored.metadata,
+										...input.metadata,
+									}),
+								),
+							}),
+						updatedAt: new Date(),
+						...(input.metadataGeneration !== undefined && {
+							metadataSuggestion: sql`case when ${dbSchema.asset.metadataGeneration} = ${input.metadataGeneration} then null else ${dbSchema.asset.metadataSuggestion} end`,
+						}),
+					})
+					.where(eq(dbSchema.asset.id, input.id))
+					.returning({
+						...getColumns(dbSchema.asset),
+					});
+				return saved;
+			}),
+		);
 
 		return {
 			data: asset,

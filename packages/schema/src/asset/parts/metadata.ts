@@ -55,6 +55,60 @@ export const metadataSchema = z.object({
 
 export type AssetMetadataType = z.infer<typeof metadataSchema>;
 
+/** Fields that hold whatever the source type is. */
+const TYPE_INDEPENDENT_FIELDS = [
+	"sourceType",
+	"description",
+	"language",
+	"externalUrl",
+] as const satisfies readonly (keyof AssetMetadataType)[];
+
+/** The fields each source type has, as the editor shows them. */
+export const SOURCE_TYPE_FIELDS = {
+	book: [
+		"author",
+		"citation",
+		"chapterTitle",
+		"pageRange",
+	],
+	"journal-article": [
+		"author",
+		"citation",
+		"journalName",
+		"volume",
+		"issueNumber",
+		"pageRange",
+		"doi",
+	],
+	"web-source": [
+		"author",
+		"citation",
+		"websiteName",
+		"accessDate",
+	],
+	"legal-text": [
+		"citation",
+		"legalReference",
+		"jurisdiction",
+	],
+} as const satisfies Record<SourceType, readonly (keyof AssetMetadataType)[]>;
+
+/** Drops the fields its source type does not have; untyped metadata keeps all. */
+export const fitMetadataToSourceType = (
+	metadata: AssetMetadataType,
+): AssetMetadataType => {
+	if (!metadata.sourceType) {
+		return metadata;
+	}
+	const kept = new Set<string>([
+		...TYPE_INDEPENDENT_FIELDS,
+		...SOURCE_TYPE_FIELDS[metadata.sourceType],
+	]);
+	return Object.fromEntries(
+		Object.entries(metadata).filter(([field]) => kept.has(field)),
+	) as AssetMetadataType;
+};
+
 /** What the utility model suggests for an asset, kept until applied or dismissed. */
 export const metadataSuggestionSchema = z.object({
 	title: z.string().optional(),

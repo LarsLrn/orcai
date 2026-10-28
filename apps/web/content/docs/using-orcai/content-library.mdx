@@ -1,6 +1,6 @@
 ---
 title: Content Library
-description: Assets in the Library, covering upload, accepted file types and limits, metadata and citations, processing status, retry and reprocessing, access, and how assets reach chats through repositories.
+description: Assets in the Library, covering upload, accepted file types and limits, metadata and citations, metadata generated with AI, processing status, retry and reprocessing, access, and how assets reach chats through repositories.
 ---
 
 Assets (Library > Assets, `/app/hub/assets`) are the reusable source material OrcAI uses for retrieval, grounding, and citations.
@@ -11,6 +11,7 @@ Assets (Library > Assets, `/app/hub/assets`) are the reusable source material Or
 - Move a chat upload into the library
 - View an asset's details
 - Edit metadata
+- Generate metadata with AI
 - Reprocess an asset
 - Manage access and groups
 - Download the original file (if permitted)
@@ -19,7 +20,7 @@ Assets (Library > Assets, `/app/hub/assets`) are the reusable source material Or
 ## End-To-End Flow
 
 1. Upload files on **Add assets** (`/app/hub/assets/add`). Each file becomes an asset as soon as its upload finishes, and OrcAI keeps the original in S3-compatible object storage.
-2. Add metadata to the new assets, right away or later.
+2. Add metadata to the new assets, right away or later. With a utility model, OrcAI generates it for library uploads once the file is processed; see [Metadata generated with AI](#metadata-generated-with-ai).
 3. A background job processes the file and extracts its text. The organisation's [utility model](/docs/using-orcai/administration#utility-model) describes each image, an image file or a figure in a document, so its content can be found by search. The descriptions are saved with the extracted text, and indexing in every repository reuses them. When the quota runs out partway through a document, the descriptions written so far are charged but not saved, so a retry describes those images again.
 4. Add the asset to one or more repositories, from the repository editor or the bot editor's Repositories step.
 5. For each repository the asset belongs to, a background job vectorises it into that repository's index. This runs when processing finishes and when the asset is added to a repository.
@@ -32,7 +33,7 @@ Assets (Library > Assets, `/app/hub/assets`) are the reusable source material Or
 Intake is file upload only:
 
 1. **Upload assets**: select files and **Upload files**. Each file becomes an asset as soon as its upload finishes; there is nothing else to save.
-2. **Uploaded assets**: the new assets are listed. **Metadata** opens a file's **Source details**, and **Save** stores them at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets page.
+2. **Uploaded assets**: the new assets are listed. With a utility model, each shows **Generating metadata** until its generated title and description appear; you can leave, and the results land in the library. **Metadata** opens a file's **Source details**, and **Save** stores them at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets page.
 
 Leaving the page while files are still uploading asks first; leaving anyway stops the upload, and those files are not added. Once a file's asset exists, leaving loses nothing.
 
@@ -51,7 +52,7 @@ Limits: up to 64 MB per file and 100 files per upload.
 
 The Assets page has two tabs. **Library** (the default) lists the assets uploaded on **Add assets**, in the repository editor or through the assistant. **Chat uploads** lists the files uploaded with a chat message; they are assets too, processed like any other, but kept out of the library so it stays tidy.
 
-**Add to library** in a chat upload's card menu moves it to the **Library** tab. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads; delete them from **Chat uploads**.
+**Add to library** in a chat upload's card menu moves it to the **Library** tab and generates its metadata like a library upload. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads; delete them from **Chat uploads**.
 
 The asset pickers in the repository editor and the chat composer search both, and mark chat uploads with a **Chat upload** badge.
 
@@ -60,6 +61,8 @@ The asset pickers in the repository editor and the chat composer search both, an
 The metadata travels with the asset wherever it is reused. Fields:
 
 - **Source title**
+- **Description**: two or three sentences on what the source is about, up to 300 characters. Cards show it, and the model reads it in the list of a repository's documents to pick what to search.
+- **Language**: the source's language as a code such as `en` or `de-CH`.
 - **Source type**: Book, Journal Article, Web Source or Legal Text. Each type adds its own fields:
 	- Book: **Author(s)**, **Citation label**, **Chapter title**, **Page range**
 	- Journal Article: **Author(s)**, **Citation label**, **Journal name**, **Volume**, **Issue**, **Page range**, **DOI**
@@ -67,7 +70,18 @@ The metadata travels with the asset wherever it is reused. Fields:
 	- Legal Text: **Citation label**, **Legal reference**, **Jurisdiction**
 - **External URL** (for types other than Web Source)
 
-Edit metadata later with **Edit content** on the asset page, which opens `/app/hub/assets/<asset id>/edit`.
+Edit metadata later with **Edit content** on the asset page, which opens `/app/hub/assets/<asset id>/edit`. Saving stores only the fields you changed, so metadata generated while the editor was open is kept. Changing the source type removes, on save, the fields the new type does not have.
+
+## Metadata Generated With AI
+
+When the organisation has a [utility model](/docs/using-orcai/administration#utility-model), it writes an asset's metadata from the start of its extracted text and the details the parser found (title, authors, keywords, page count, language): the title, the source type and its fields, a citation label in APA 7 style, a description and the language. Generated text is in the document's language. For an image file, the description written while processing the image supplies the title, description and language. Each run draws on the utility model's quota pools.
+
+- **After upload**: once a library upload is processed, its metadata is generated in the background. A chat upload gets it when it is added to the library. Only empty fields are filled, and the title only while it is still the uploaded file name; values you save in the meantime always win. Fields that do not fit the source type you chose are kept for review instead.
+- **Generate with AI** in the metadata editor generates a suggestion for an asset you can edit, also for assets uploaded before or edited since. The editor shows **Generating...**; you can leave, and the asset page then says **Suggestions ready** with **Review**. **Suggested metadata** lists each field with its current and suggested value; empty fields are selected. **Use selected** puts the chosen values into the form, which saves them with **Save**; **Dismiss** drops the suggestion.
+- **Generate missing metadata** in the **Library** tab header generates metadata, filling empty fields, for every processed library asset of the organisation you can edit whose metadata was never generated or failed. It asks first and shows how many assets that is.
+- The [OrcAI Assistant](/docs/using-orcai/assistant) can do the same for assets you name, after you confirm. It never overwrites values; to replace them, use **Generate with AI** or tell it the values.
+
+While metadata is generated, cards, the upload list and the asset page show **Generating metadata**. A failed run says why on the asset page; when the quota ran out, run it again once the pool resets. Without a utility model, nothing is generated, **Generate with AI** is disabled with a hint (admins get a link to the organisation settings), and **Generate missing metadata** is hidden. Generating metadata never affects whether an asset is ready for its repositories.
 
 ## The Asset Page
 

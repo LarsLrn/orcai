@@ -118,6 +118,11 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			save: assetsAndReadiness,
 			delete: assetsAndReadiness,
 			reprocess: assetsAndReadiness,
+			generateMetadata: assetsAndReadiness,
+			dismissMetadataSuggestion: () => [
+				orpc.asset.key(),
+			],
+			generateMissingMetadata: assetsAndReadiness,
 		},
 		assistant: {
 			create: () => [

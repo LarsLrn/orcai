@@ -5,6 +5,7 @@ import {
 	assetUploadRouteSchema,
 	uploadFileObjectSchema,
 } from "../storage/schema";
+import { metadataSchema } from "./parts/metadata";
 import { assetIdSchema } from "./ref";
 import { assetFieldsSchema, assetFiltersSchema } from "./schema";
 
@@ -19,8 +20,11 @@ export const findAssetInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
 
-export const saveAssetInputSchema = assetFieldsSchema.extend({
+/** Only the given title and metadata fields change; an empty string clears a field. */
+export const saveAssetInputSchema = z.object({
 	id: assetIdSchema,
+	title: assetFieldsSchema.shape.title.optional(),
+	metadata: metadataSchema.optional(),
 	/** The metadata generation whose suggestion the save applies; it is cleared with the save. */
 	metadataGeneration: z.number().int().optional(),
 });

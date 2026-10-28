@@ -1,5 +1,4 @@
 import {
-	type AssetMetadataType,
 	assetFieldsSchema,
 	assetIdSchema,
 	metadataSchema,
@@ -28,17 +27,6 @@ const updateAssetInputSchema = z.strictObject({
 		),
 });
 
-/** Given keys win; keys left out or undefined keep their stored values. */
-export const mergeAssetMetadata = (
-	stored: AssetMetadataType,
-	patch: z.infer<typeof assetMetadataPatchSchema> = {},
-): AssetMetadataType => ({
-	...stored,
-	...Object.fromEntries(
-		Object.entries(patch).filter(([, value]) => value !== undefined),
-	),
-});
-
 export const updateAssetTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
@@ -46,23 +34,21 @@ export const updateAssetTool = (deps: AssistantToolDeps) =>
 		inputSchema: updateAssetInputSchema,
 		run: ({ id, title, metadata }) =>
 			Effect.gen(function* () {
-				const { data: current } = yield* callProcedure(
-					deps,
-					(procedures, options) =>
-						procedures.asset.find(
-							{
-								id,
-							},
-							options,
-						),
+				yield* callProcedure(deps, (procedures, options) =>
+					procedures.asset.find(
+						{
+							id,
+						},
+						options,
+					),
 				).pipe(expectType("asset", id));
 
 				const { data } = yield* callProcedure(deps, (procedures, options) =>
 					procedures.asset.save(
 						{
 							id,
-							title: title ?? current.title,
-							metadata: mergeAssetMetadata(current.metadata, metadata),
+							title,
+							metadata,
 						},
 						options,
 					),

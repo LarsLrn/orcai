@@ -462,7 +462,8 @@ reason, and the assistant's replies fail until another model is chosen.
 ### Utility model
 
 The **Utility model** picker chooses the model that writes the titles of new
-chats and assistant conversations and describes images in the library, so a
+chats and assistant conversations, describes images in the library and
+generates asset metadata, so a
 small, inexpensive model can do this work instead of each chat's own model. It offers text models that are not
 deprecated, on an enabled provider; tool calling is not required. **Clear**
 removes the choice.
@@ -480,6 +481,12 @@ Each description draws on the quota pools of the utility model, attributed to
 the person who uploaded the file. When the pool is used up, the file fails to
 prepare and can be retried once the pool resets. When no active pool covers
 the utility model for the uploader, create or adjust one before retrying.
+
+The utility model also [generates asset metadata](/docs/using-orcai/content-library#metadata-generated-with-ai):
+automatically for processed library uploads, and on request from the metadata
+editor, the Library tab or the assistant. Each run draws on the quota pools of
+the utility model, attributed to the uploader for automatic runs and to the
+person who asked otherwise. Without a utility model, no metadata is generated.
 
 ### Web search
 

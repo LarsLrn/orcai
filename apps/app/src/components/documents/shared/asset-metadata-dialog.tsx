@@ -1,9 +1,11 @@
 import type { Asset } from "@orcai/schema";
 import { useState } from "react";
+import { changedAssetFields } from "@/components/documents/shared/asset-metadata-changes";
 import {
 	AssetMetadataEditor,
 	createDefaultAssetMetadata,
 } from "@/components/documents/shared/asset-metadata-editor";
+import { MetadataGeneration } from "@/components/documents/shared/metadata-generation";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -17,25 +19,38 @@ import {
 import { useSaveAssetMutation } from "@/hooks/mutations/use-asset-mutations";
 import { m } from "@/paraglide/messages";
 
-type EditableAsset = Pick<Asset, "id" | "title" | "metadata">;
-
 const MetadataForm = ({
 	asset,
 	onSaved,
 }: {
-	asset: EditableAsset;
+	asset: Asset;
 	onSaved: (asset: Asset) => void;
 }) => {
-	const [draft, setDraft] = useState({
+	const [initial] = useState(() => ({
 		title: asset.title,
 		metadata: asset.metadata ?? createDefaultAssetMetadata(),
-	});
+	}));
+	const [draft, setDraft] = useState(initial);
+	const [metadataGeneration, setMetadataGeneration] = useState<number>();
 	const { mutateAsync: saveAsset, isPending } = useSaveAssetMutation();
 
 	return (
 		<>
 			<DialogBody>
-				<AssetMetadataEditor value={draft} onChange={setDraft} />
+				<AssetMetadataEditor
+					value={draft}
+					onChange={setDraft}
+					generation={
+						<MetadataGeneration
+							asset={asset}
+							value={draft}
+							onApply={(next, generation) => {
+								setDraft(next);
+								setMetadataGeneration(generation);
+							}}
+						/>
+					}
+				/>
 			</DialogBody>
 
 			<DialogFooter>
@@ -44,8 +59,8 @@ const MetadataForm = ({
 					onClick={async () => {
 						const result = await saveAsset({
 							id: asset.id,
-							title: draft.title,
-							metadata: draft.metadata,
+							...changedAssetFields(initial, draft),
+							metadataGeneration,
 						});
 
 						if (result.status === "success") {
@@ -68,7 +83,7 @@ const AssetMetadataDialog = ({
 	onSaved,
 }: {
 	/** Left out while it loads. */
-	asset: EditableAsset | undefined;
+	asset: Asset | undefined;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onSaved?: (asset: Asset) => void;

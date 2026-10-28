@@ -91,3 +91,45 @@ export const useReprocessAssetMutation = () => {
 		},
 	});
 };
+
+export const useGenerateAssetMetadataMutation = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.asset.generateMetadata.mutationOptions(),
+		messages: {
+			loading: () => m.assets_metadata_generate_toast_loading(),
+			success: () => m.assets_metadata_generate_toast_success(),
+			error: () => m.assets_metadata_generate_toast_error(),
+		},
+	});
+
+export const useDismissMetadataSuggestionMutation = () =>
+	useMutationAction({
+		mutationOptions: () =>
+			orpc.asset.dismissMetadataSuggestion.mutationOptions(),
+		messages: {
+			loading: () => m.assets_metadata_dismiss_toast_loading(),
+			success: () => m.assets_metadata_dismiss_toast_success(),
+			error: () => m.assets_metadata_dismiss_toast_error(),
+		},
+	});
+
+/** Generates metadata for every library asset that lacks it, after confirming `count`. */
+export const useGenerateMissingMetadataMutation = (count: number) =>
+	useMutationAction({
+		mutationOptions: () => orpc.asset.generateMissingMetadata.mutationOptions(),
+		messages: {
+			loading: () => m.assets_metadata_backfill_toast_loading(),
+			success: ({ data }) =>
+				m.assets_metadata_backfill_toast_success({
+					count: data.count,
+				}),
+			error: () => m.assets_metadata_backfill_toast_error(),
+		},
+		confirm: {
+			title: m.assets_metadata_backfill_confirm_title(),
+			description: m.assets_metadata_backfill_confirm_description({
+				count,
+			}),
+			confirmText: m.assets_metadata_backfill_confirm_button(),
+		},
+	});
