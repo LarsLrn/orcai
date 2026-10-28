@@ -43,6 +43,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			orpc.user.listAccess.key(),
 		];
 	};
+	// Organisation readiness reads providers, models, pools, groups and members.
+	const readiness = orpc.readiness.key();
+
 	// Group lists and quota pools show each group's member count.
 	const groupSummaries = () => [
 		orpc.group.list.key(),
@@ -61,12 +64,14 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			},
 		}),
 		orpc.user.listAccess.key(),
+		readiness,
 	];
 
 	// A provider's page counts its models.
 	const models = () => [
 		orpc.model.key(),
 		orpc.provider.find.key(),
+		readiness,
 	];
 
 	// Readiness lists each document's title and state.
@@ -172,14 +177,17 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		group: {
 			create: () => [
 				orpc.group.key(),
+				readiness,
 			],
 			update: () => [
 				orpc.group.key(),
 				orpc.quota.find.key(),
+				readiness,
 			],
 			delete: () => [
 				orpc.group.key(),
 				orpc.quota.find.key(),
+				readiness,
 			],
 			addMembers: groupMembership,
 			removeMembers: groupMembership,
@@ -196,6 +204,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			update: () => [
 				orpc.organization.key(),
+				readiness,
 			],
 			delete: () => [
 				orpc.organization.key(),
@@ -204,15 +213,19 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		organizationInvitation: {
 			create: () => [
 				orpc.organizationInvitation.key(),
+				readiness,
 			],
 			update: () => [
 				orpc.organizationInvitation.key(),
+				readiness,
 			],
 			delete: () => [
 				orpc.organizationInvitation.key(),
+				readiness,
 			],
 			respond: ({ response }) => [
 				orpc.organizationInvitation.key(),
+				readiness,
 				...(response === "accept"
 					? [
 							orpc.organization.key(),
@@ -225,35 +238,43 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.user.key(),
 				orpc.organizationMember.key(),
 				orpc.authorization.key(),
+				readiness,
 			],
 			delete: () => [
 				orpc.user.key(),
 				orpc.organizationMember.key(),
 				...groupSummaries(),
+				readiness,
 			],
 		},
 		provider: {
 			create: () => [
 				orpc.provider.key(),
+				readiness,
 			],
 			update: () => [
 				orpc.provider.key(),
+				readiness,
 			],
 			// Deleting the web search provider turns the organisation's web search off.
 			delete: () => [
 				orpc.provider.key(),
 				orpc.organization.key(),
+				readiness,
 			],
 		},
 		quota: {
 			create: () => [
 				orpc.quota.key(),
+				readiness,
 			],
 			update: () => [
 				orpc.quota.key(),
+				readiness,
 			],
 			deactivate: () => [
 				orpc.quota.key(),
+				readiness,
 			],
 		},
 		resource: {
@@ -275,8 +296,10 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 		},
 		user: {
+			// Deleting accounts removes their memberships.
 			delete: () => [
 				orpc.user.key(),
+				readiness,
 			],
 			ban: () => [
 				orpc.user.key(),

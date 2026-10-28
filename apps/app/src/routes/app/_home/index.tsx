@@ -1,12 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { LayoutDashboardIcon, MessageSquareIcon } from "lucide-react";
-import { useState } from "react";
-import { ManagerHome } from "@/components/app/home/manager-home";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { UserHome } from "@/components/app/home/user-home";
-import { Page, PageContent } from "@/components/ui/shell/page";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	failingRequired,
+	readinessQuery,
+} from "@/components/readiness/organization-readiness-card";
 import { orpc } from "@/lib/orpc/orpc";
-import { m } from "@/paraglide/messages";
 
 const PREFETCH_PARAMS = {
 	pageIndex: 0,
@@ -22,7 +20,20 @@ const SUMMARY_PARAMS = {
 	},
 } as const;
 
-export const Route = createFileRoute("/app/")({
+export const Route = createFileRoute("/app/_home/")({
+	// A turn fails until the required setup is done, so admins finish it first.
+	beforeLoad: async ({ context: { queryClient, isOrganizationAdmin } }) => {
+		if (!isOrganizationAdmin) {
+			return;
+		}
+		const { data } = await queryClient.query(readinessQuery());
+		if (failingRequired(data.checks) > 0) {
+			throw redirect({
+				to: "/app/manage",
+				statusCode: 302,
+			});
+		}
+	},
 	loader: async ({ context: { queryClient } }) => {
 		await Promise.all([
 			queryClient.query(
@@ -39,42 +50,5 @@ export const Route = createFileRoute("/app/")({
 			),
 		]);
 	},
-	component: RouteComponent,
+	component: UserHome,
 });
-
-type HomeView = "user" | "manager";
-
-function RouteComponent() {
-	const [view, setView] = useState<HomeView>("user");
-
-	return (
-		<Page>
-			<PageContent>
-				<Tabs
-					className="gap-8"
-					value={view}
-					onValueChange={(value) => setView(value as HomeView)}
-				>
-					<div className="flex justify-end">
-						<TabsList>
-							<TabsTrigger value="user">
-								<MessageSquareIcon />
-								{m.home_view_use_tab()}
-							</TabsTrigger>
-							<TabsTrigger value="manager">
-								<LayoutDashboardIcon />
-								{m.home_view_manage_tab()}
-							</TabsTrigger>
-						</TabsList>
-					</div>
-					<TabsContent value="user" className="text-base">
-						<UserHome />
-					</TabsContent>
-					<TabsContent value="manager" className="text-base">
-						<ManagerHome />
-					</TabsContent>
-				</Tabs>
-			</PageContent>
-		</Page>
-	);
-}

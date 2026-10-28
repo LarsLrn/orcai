@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { SparklesIcon } from "lucide-react";
 import { Suspense } from "react";
+import { OrganizationReadinessCard } from "@/components/readiness/organization-readiness-card";
 import { buttonVariants } from "@/components/ui/button";
 import { PanelSkeleton } from "@/components/ui/composed/panel";
 import {
@@ -69,35 +70,47 @@ const QuotaPanelSlot = () => {
 	);
 };
 
-const ManagerHome = () => (
-	<div className="space-y-10">
-		<PageHeader>
-			<Suspense fallback={<Skeleton className="h-9 w-64 md:h-10" />}>
-				<OrganizationTitle />
-			</Suspense>
-			<PageDescription>{m.home_manage_description()}</PageDescription>
-			<CreateBotAction />
-		</PageHeader>
+const ManagerHome = () => {
+	const { isOrganizationAdmin } = useRouteContext({
+		from: "/app/_home",
+	});
 
-		<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-			<QuotaPanelSlot />
-			<div>
-				<Suspense fallback={<PanelSkeleton rows={4} />}>
-					<ManageLibraryPanel />
+	return (
+		<div className="space-y-10">
+			<PageHeader>
+				<Suspense fallback={<Skeleton className="h-9 w-64 md:h-10" />}>
+					<OrganizationTitle />
 				</Suspense>
-			</div>
-			<div className="lg:col-span-2">
-				<Suspense fallback={<PanelSkeleton rows={6} />}>
-					<ManageRecentPanel />
-				</Suspense>
-			</div>
-			<div>
+				<PageDescription>{m.home_manage_description()}</PageDescription>
+				<CreateBotAction />
+			</PageHeader>
+
+			{isOrganizationAdmin && (
 				<Suspense fallback={<PanelSkeleton rows={3} />}>
-					<ManagePeoplePanel />
+					<OrganizationReadinessCard />
 				</Suspense>
+			)}
+
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+				<QuotaPanelSlot />
+				<div>
+					<Suspense fallback={<PanelSkeleton rows={4} />}>
+						<ManageLibraryPanel />
+					</Suspense>
+				</div>
+				<div className="lg:col-span-2">
+					<Suspense fallback={<PanelSkeleton rows={6} />}>
+						<ManageRecentPanel />
+					</Suspense>
+				</div>
+				<div>
+					<Suspense fallback={<PanelSkeleton rows={3} />}>
+						<ManagePeoplePanel />
+					</Suspense>
+				</div>
 			</div>
 		</div>
-	</div>
-);
+	);
+};
 
 export { ManagerHome };

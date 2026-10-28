@@ -35,14 +35,14 @@ const AssistantUnavailable = ({
 		: m.assistant_unavailable_description_member();
 	const action = canFix && (
 		<Link
-			to="/app/organization"
+			to="/app/manage"
 			className={buttonVariants({
 				variant: "outline",
 				size: "sm",
 				className: "shrink-0",
 			})}
 		>
-			{m.assistant_unavailable_admin_action()}
+			{m.readiness_open_checklist_action()}
 		</Link>
 	);
 

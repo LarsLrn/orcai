@@ -44,16 +44,15 @@ test("choosing an organisation loads its home page", async ({
 	await expect(card(other.slug)).toBeDisabled();
 	release();
 
-	await expect(page).toHaveURL(/\/app(\/|$)/);
+	// A fresh organisation's admin lands on Manage until its setup is done.
+	await expect(page).toHaveURL(/\/app\/manage$/);
 
 	// The lists mount while the selection still settles; each must reach its
 	// result instead of loading forever.
 	await expect(
 		page.getByText(message("sidebar_chats_empty_state_title")),
 	).toBeVisible();
-	await expect(
-		page.getByText(message("chat_list_empty_state_title")),
-	).toBeVisible();
+	await expect(page.getByText(message("readiness_card_title"))).toBeVisible();
 	await expect(
 		page.getByRole("status", {
 			name: "Loading",

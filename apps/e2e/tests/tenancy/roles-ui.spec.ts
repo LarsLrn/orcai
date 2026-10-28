@@ -63,7 +63,8 @@ test("an organisation admin cannot enter instance management", async ({
 	]) {
 		await open(page, path);
 
-		await expect(page).toHaveURL(/\/app$/);
+		// Home, or Manage while the worker organisation's setup is incomplete.
+		await expect(page).toHaveURL(/\/app(\/manage)?$/);
 	}
 
 	await page
