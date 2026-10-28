@@ -34,10 +34,7 @@ export const asset = pgTable("asset", {
 	bucket: text("bucket").$type<BucketName>().notNull(),
 	prefix: text("prefix").notNull(),
 	title: text("title").notNull(),
-	metadata: json("metadata").notNull().$type<AssetMetadataType>().default({
-		showReference: true,
-		relevance: "medium",
-	}),
+	metadata: json("metadata").notNull().$type<AssetMetadataType>().default({}),
 	size: integer("size").notNull(),
 	processingStatus: pipelineStatusEnum("processing_status")
 		.notNull()

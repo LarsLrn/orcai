@@ -8,7 +8,6 @@ import {
 	HardDrive,
 	MoveHorizontalIcon,
 	SignatureIcon,
-	Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,31 +26,8 @@ const formatDate = (date: Date | null): string => {
 	return formatDisplayDate(date);
 };
 
-type BadgeVariant = React.ComponentProps<typeof Badge>["variant"];
-
-const RELEVANCE_VARIANT: Record<string, BadgeVariant> = {
-	high: "success",
-	medium: "warning",
-	low: "danger",
-};
-
-const getRelevanceVariant = (relevance: string): BadgeVariant =>
-	RELEVANCE_VARIANT[relevance.toLowerCase()] ?? "outline";
-
-const getRelevanceLabel = (relevance: string) => {
-	switch (relevance.toLowerCase()) {
-		case "high":
-			return m.assets_relevance_high_label();
-		case "low":
-			return m.assets_relevance_low_label();
-		default:
-			return m.assets_relevance_medium_label();
-	}
-};
-
 const AssetMeta = ({ asset }: { asset: Asset }) => {
 	const fileTypeLabel = getFileTypeLabel(asset.fileType);
-	const relevanceVariant = getRelevanceVariant(asset.metadata.relevance);
 
 	return (
 		<Card>
@@ -97,16 +73,6 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 							{m.assets_meta_size_label()}
 						</span>
 						<span className="font-medium">{formatFileSize(asset.size)}</span>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<Star className="h-4 w-4 text-muted-foreground" />
-						<span className="text-muted-foreground">
-							{m.assets_meta_relevance_label()}
-						</span>
-						<Badge variant={relevanceVariant} className="font-normal text-xs">
-							{getRelevanceLabel(asset.metadata.relevance)}
-						</Badge>
 					</div>
 
 					{asset.metadata.citation && (
@@ -186,21 +152,6 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 							</span>
 						</div>
 					)}
-				</div>
-
-				<div className="mt-4 flex flex-wrap gap-2">
-					{/* <Badge variant="outline" className="font-normal text-xs">
-						{asset.status}
-					</Badge> */}
-
-					<Badge
-						variant={asset.metadata.showReference ? "default" : "outline"}
-						className="font-normal text-xs"
-					>
-						{asset.metadata.showReference
-							? m.assets_meta_citations_allowed_badge()
-							: m.assets_meta_citations_blocked_badge()}
-					</Badge>
 				</div>
 			</CardContent>
 		</Card>

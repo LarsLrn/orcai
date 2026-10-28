@@ -1,0 +1,38 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "3ff11e1f-f105-4895-8d92-f63a01fc8313",
+  "prevIds": [
+    "10b9c122-ac14-4ef3-be47-8a3d1676e932"
+  ],
+  "footprints": [
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "metadata"
+      ],
+      "writes": [
+        "s|colprop|public.asset.metadata.default"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.asset.metadata"
+      ],
+      "sqlHash": "ec9219f4657bbda7"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"asset\",\"metadata\"]",
+      "set": {
+        "default": "'{}'"
+      }
+    }
+  ]
+}

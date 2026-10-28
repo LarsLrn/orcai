@@ -8,7 +8,6 @@ import { useId } from "react";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { m } from "@/paraglide/messages";
 
 type AssetMetadataDraft = {
@@ -17,8 +16,6 @@ type AssetMetadataDraft = {
 };
 
 const createDefaultAssetMetadata = (): Asset["metadata"] => ({
-	showReference: true,
-	relevance: "medium",
 	citation: "",
 	externalUrl: "",
 	pageRange: "",
@@ -316,71 +313,6 @@ const AssetMetadataEditor = ({
 					onChange={(v) => onFieldChange("externalUrl", v)}
 				/>
 			) : null}
-
-			<div className="space-y-2">
-				<Label htmlFor={`${id}-relevance`}>
-					{m.assets_metadata_relevance_label()}
-				</Label>
-				<OptionPicker<Asset["metadata"]["relevance"]>
-					id={`${id}-relevance`}
-					options={[
-						{
-							value: "high",
-							label: m.assets_relevance_high_label(),
-						},
-						{
-							value: "medium",
-							label: m.assets_relevance_medium_label(),
-						},
-						{
-							value: "low",
-							label: m.assets_relevance_low_label(),
-						},
-					]}
-					value={metadata.relevance}
-					onChange={(relevance) =>
-						onChange({
-							...value,
-							metadata: {
-								...metadata,
-								relevance,
-							},
-						})
-					}
-					placeholder={m.assets_metadata_relevance_placeholder()}
-					className="w-full"
-				/>
-			</div>
-
-			<div className="space-y-3 rounded-xl border p-3">
-				<div className="flex items-center justify-between gap-3">
-					<div>
-						<Label htmlFor={`${id}-show-reference`}>
-							{m.assets_metadata_show_reference_label()}
-						</Label>
-						<div
-							id={`${id}-show-reference-description`}
-							className="text-muted-foreground text-xs"
-						>
-							{m.assets_metadata_show_reference_description()}
-						</div>
-					</div>
-					<Switch
-						id={`${id}-show-reference`}
-						aria-describedby={`${id}-show-reference-description`}
-						checked={metadata.showReference}
-						onCheckedChange={(checked) =>
-							onChange({
-								...value,
-								metadata: {
-									...metadata,
-									showReference: checked,
-								},
-							})
-						}
-					/>
-				</div>
-			</div>
 		</div>
 	);
 };

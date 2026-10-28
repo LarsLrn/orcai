@@ -49,10 +49,7 @@ export const databaseBlockUpdate = (
 export const assetRename = (id: AssetId, title: string) => ({
 	id,
 	title,
-	metadata: {
-		showReference: true,
-		relevance: "medium" as const,
-	},
+	metadata: {},
 });
 
 /** `bot.save` input linking a template and repositories. */

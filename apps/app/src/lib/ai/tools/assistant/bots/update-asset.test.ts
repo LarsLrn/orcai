@@ -7,8 +7,6 @@ import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 const assetId = crypto.randomUUID() as AssetId;
 const stored: AssetMetadataType = {
-	showReference: true,
-	relevance: "medium",
 	sourceType: "book",
 	author: "Ada Lovelace",
 	citation: "Lovelace 1843",
@@ -38,12 +36,12 @@ describe("mergeAssetMetadata", () => {
 	test("given keys replace stored ones, the rest stay", () => {
 		expect(
 			mergeAssetMetadata(stored, {
-				relevance: "high",
+				author: "Charles Babbage",
 				doi: "10.1000/182",
 			}),
 		).toEqual({
 			...stored,
-			relevance: "high",
+			author: "Charles Babbage",
 			doi: "10.1000/182",
 		});
 	});
@@ -71,7 +69,7 @@ describe("updateAssetTool", () => {
 			{
 				id: assetId,
 				metadata: {
-					showReference: false,
+					citation: "Lovelace 1843, note G",
 				},
 			},
 			{
@@ -90,7 +88,7 @@ describe("updateAssetTool", () => {
 				title: "Notes",
 				metadata: {
 					...stored,
-					showReference: false,
+					citation: "Lovelace 1843, note G",
 				},
 			},
 		]);
