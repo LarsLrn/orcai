@@ -5,6 +5,24 @@ description: Checklist for preparing an organisation before people start chattin
 
 Use this page as a practical runbook for preparing a new OrcAI workspace. Most steps need the Admin role; see [Access Control](/docs/using-orcai/access-control#organisation-roles).
 
+## The Setup Checklist
+
+Admins find an **Organisation setup** checklist on Home's Manage tab (`/app/manage`). It is worked out from the organisation's current configuration each time, nothing is stored, and each open item links to the page that fixes it. While a required item is open, admins who open `/app` land on Manage, and the Manage tab shows the number of required items left. Once every item passes, the checklist shrinks to one line and stays as a health check.
+
+Required, because a chat or assistant turn fails without them:
+
+- **Model provider**: an enabled model provider (step 2).
+- **Chat model**: a model with tool calling, not deprecated, on an enabled provider (step 3). This is the rule a turn applies to its model.
+- **Quota pool**: an active pool on such a provider that covers a chat model (no model set, or that model) and is assigned to a group (step 4).
+- **Assistant model**: chosen and usable by the same rule (step 5).
+- **Quota for the assistant**: an active pool, assigned to a group, that covers the assistant model (step 5).
+
+Recommended:
+
+- **Utility model**: chosen (step 5).
+- **Members**: someone besides you is a member or invited (step 8).
+- **Quota for every member**: every member is reached by a pool through All Members or a group they belong to. An exhausted pool still counts; its remaining amount shows on the Quotas page.
+
 ## Outcome
 
 After completing this checklist, users should be able to:
@@ -42,7 +60,7 @@ Go to Administration > Models (`/app/models`).
 
 - Choose **Discover models** and select the provider to add the models it offers, or choose **Add model** (`/app/models/add`) to register one by hand.
 - For a model added by hand, select the provider and enter the exact **Provider model ID** the endpoint expects.
-- Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovered models start with none, and a model without both does not appear in chat.
+- Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovered models start with none, and a model without both does not appear in chat. The checklist's chat model item stays open until a model has tool calling.
 - Optionally enter the model's **Prices** from the provider's price list, at least input and output per 1M tokens, so [Analytics](/docs/using-orcai/administration#analytics) shows an estimated cost. See [Model prices](/docs/using-orcai/administration#model-prices).
 - Save, then confirm the model appears in the list.
 
