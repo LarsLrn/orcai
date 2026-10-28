@@ -1,11 +1,13 @@
 import {
 	isSearchProviderKind,
 	type ModelId,
+	ORGANIZATION_ADMIN_ROLE,
 	type OrganizationId,
 	type ProviderId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
+	DEFAULT_INVITATION_TTL_DAYS,
 	type InstanceOrganizationSortKey,
 	type ModelUse,
 	modelUnusableReason,
@@ -30,6 +32,11 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
+import {
+	insertInvitations,
+	wakeInvitationEmails,
+} from "@/lib/authz/organization-invitations";
 import {
 	deleteOrganizationsWithAuthorization,
 	insertOrganization,
@@ -246,16 +253,71 @@ const findOrganization = authed.organization.find
 const createOrganization = authed.organization.create
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
+		const { initialAdmin, ...values } = input;
+		const creator = context.auth.user;
 		const { result: organization } = yield* writeRelationships(
 			{
 				organizationIds: [],
 			},
-			insertOrganization({
-				values: input,
-				adminUserId: context.auth.user.id,
-				now: new Date(),
+			Effect.gen(function* () {
+				// Confirms the creator is still an instance admin and holds the
+				// chosen account against a concurrent ban or deletion.
+				const [target] = yield* lockAsInstanceAdmin({
+					actorId: creator.id,
+					userIds:
+						initialAdmin.kind === "user"
+							? [
+									initialAdmin.userId,
+								]
+							: [],
+				});
+				if (initialAdmin.kind === "user") {
+					if (!target)
+						return yield* Effect.fail(
+							new AppErrors.NotFoundError({
+								reason: "USER_NOT_FOUND",
+								id: initialAdmin.userId,
+								message: "User not found",
+							}),
+						);
+					if (target.banned)
+						return yield* Effect.fail(
+							new AppErrors.BadRequestError({
+								reason: "USER_BANNED",
+								message: "A banned account cannot administer an organization.",
+							}),
+						);
+				}
+
+				const organization = yield* insertOrganization({
+					values,
+					adminUserId:
+						initialAdmin.kind === "user" ? initialAdmin.userId : creator.id,
+					now: new Date(),
+				});
+				if (initialAdmin.kind === "invite") {
+					yield* insertInvitations({
+						organizationId: organization.id,
+						emails: [
+							initialAdmin.email,
+						],
+						role: ORGANIZATION_ADMIN_ROLE,
+						expiresAt: new Date(
+							Date.now() + DEFAULT_INVITATION_TTL_DAYS * 24 * 60 * 60 * 1000,
+						),
+						locale: initialAdmin.locale ?? creator.locale ?? "en",
+						inviter: {
+							id: creator.id,
+							name: creator.name || creator.email,
+						},
+					});
+				}
+				return organization;
 			}),
 		);
+		if (initialAdmin.kind === "invite") {
+			yield* wakeInvitationEmails;
+		}
 
 		return {
 			data: organization,

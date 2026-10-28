@@ -19,6 +19,7 @@ import { chatMessageContracts } from "./chat-message";
 import { dataExportContracts } from "./data-export";
 import { groupContracts } from "./group";
 import { healthContracts } from "./health";
+import { instanceContracts } from "./instance";
 import { modelContracts } from "./model";
 import { organizationContracts } from "./organization";
 import { organizationInvitationContracts } from "./organization-invitation";
@@ -46,6 +47,7 @@ export const contracts = {
 	dataExport: dataExportContracts,
 	group: groupContracts,
 	health: healthContracts,
+	instance: instanceContracts,
 	model: modelContracts,
 	organization: organizationContracts,
 	organizationInvitation: organizationInvitationContracts,
@@ -80,6 +82,7 @@ export {
 	dataExportContracts,
 	groupContracts,
 	healthContracts,
+	instanceContracts,
 	modelContracts,
 	organizationContracts,
 	organizationInvitationContracts,

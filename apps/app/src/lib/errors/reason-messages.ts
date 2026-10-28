@@ -106,6 +106,10 @@ const reasonMessages: ReasonMessages = {
 	INVALID_CREDENTIALS: m.error_invalid_credentials,
 	INVALID_TOOL_INPUT: m.error_invalid_tool_input,
 	INVITATION_ALREADY_ACCEPTED: m.error_invitation_already_accepted,
+	INVITEE_ALREADY_MEMBER: ({ emails }) =>
+		m.error_invitee_already_member({
+			emails: formatList(emails),
+		}),
 	INVITATION_CHANGED: m.error_invitation_changed,
 	INVITATION_EXPIRED: m.error_invitation_expired,
 	INVITATION_NOT_FOUND: m.error_invitation_not_found,
@@ -212,6 +216,7 @@ const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
 	FEATURE_REQUIREMENT_MISSING: true,
 	GRANT_PRINCIPALS_INVALID: true,
 	GROUP_MEMBERS_INVALID: true,
+	INVITEE_ALREADY_MEMBER: true,
 	SORT_KEY_UNSUPPORTED: true,
 	UPLOAD_FILE_TOO_LARGE: true,
 	UPLOAD_FILE_TYPE_INVALID: true,

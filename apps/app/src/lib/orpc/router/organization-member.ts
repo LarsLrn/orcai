@@ -94,6 +94,7 @@ const updateOrganizationMember = authed.organizationMember.update
 			userId: input.userId,
 			role: input.role,
 			actor: {
+				kind: "member",
 				userId: context.auth.user.id,
 				zedToken: getZedToken(context),
 			},
@@ -111,6 +112,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 			organizationId: context.auth.session.activeOrganizationId,
 			userIds: input.refs.map((ref) => ref.userId),
 			actor: {
+				kind: "member",
 				userId: context.auth.user.id,
 				zedToken: getZedToken(context),
 			},

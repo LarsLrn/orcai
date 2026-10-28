@@ -17,6 +17,7 @@ import {
 } from "@/lib/authz/authz-integration";
 import {
 	acceptInvitation,
+	addMember,
 	banAccount,
 	changeMemberRole,
 	deleteAccounts,
@@ -36,6 +37,7 @@ type Organization = Awaited<ReturnType<typeof organizationWith>>;
 
 /** The actor, reading the organization's roles at least as new as its creation. */
 const actorOf = (organization: Organization, actor: Actor) => ({
+	kind: "member" as const,
 	userId: actor.user.id,
 	zedToken: organization.zedToken,
 });
@@ -573,6 +575,190 @@ describe("invitation acceptance", () => {
 			expect((await rolesOf(organizationId)).members).toEqual([
 				`admin@${admin.user.id}`,
 			]);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("instance admin actions", () => {
+	const asInstanceAdmin = (actor: Actor) => ({
+		kind: "instance-admin" as const,
+		userId: actor.user.id,
+	});
+
+	test(
+		"an instance admin outside the organization adds, changes and removes members",
+		async () => {
+			const {
+				organizationId,
+				actors: [admin, member],
+			} = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const instance = asInstanceAdmin(await instanceAdmin(organizationId));
+			const joining = await run(createUser());
+
+			await run(
+				addMember({
+					organizationId,
+					userId: joining.id,
+					role: "manager",
+					actor: instance,
+				}),
+			);
+			await run(
+				changeMemberRole({
+					organizationId,
+					userId: member.user.id,
+					role: "admin",
+					actor: instance,
+				}),
+			);
+			await run(
+				removeMembers({
+					organizationId,
+					userIds: [
+						admin.user.id,
+					],
+					actor: instance,
+				}),
+			);
+
+			expect(await rolesOf(organizationId)).toEqual({
+				members: [
+					`admin@${member.user.id}`,
+					`manager@${joining.id}`,
+				].sort(),
+				tuples: [
+					`admin@${member.user.id}`,
+					`manager@${joining.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"keeps the last admin and refuses existing members and banned accounts",
+		async () => {
+			const {
+				organizationId,
+				actors: [admin, member],
+			} = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const instanceActor = await instanceAdmin(organizationId);
+			const instance = asInstanceAdmin(instanceActor);
+
+			expect(
+				await rejection(
+					run(
+						changeMemberRole({
+							organizationId,
+							userId: admin.user.id,
+							role: "member",
+							actor: instance,
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect(
+				await rejection(
+					run(
+						removeMembers({
+							organizationId,
+							userIds: [
+								admin.user.id,
+							],
+							actor: instance,
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+			});
+			expect(
+				await rejection(
+					run(
+						addMember({
+							organizationId,
+							userId: member.user.id,
+							role: "admin",
+							actor: instance,
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "ALREADY_EXISTS",
+			});
+
+			const banned = await run(createUser());
+			await run(
+				banAccount({
+					userId: banned.id,
+					reason: undefined,
+					actorId: instanceActor.user.id,
+				}),
+			);
+			expect(
+				await rejection(
+					run(
+						addMember({
+							organizationId,
+							userId: banned.id,
+							role: "member",
+							actor: instance,
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "USER_BANNED",
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"refuses an instance admin whose role was revoked",
+		async () => {
+			const {
+				organizationId,
+				actors: [, member],
+			} = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const revoked = await instanceAdmin(organizationId);
+			await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					yield* db
+						.update(dbSchema.user)
+						.set({
+							role: "user",
+						})
+						.where(eq(dbSchema.user.id, revoked.user.id));
+				}),
+			);
+
+			expect(
+				await rejection(
+					run(
+						changeMemberRole({
+							organizationId,
+							userId: member.user.id,
+							role: "manager",
+							actor: asInstanceAdmin(revoked),
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "INSTANCE_ADMIN_REQUIRED",
+			});
 		},
 		TIMEOUT,
 	);

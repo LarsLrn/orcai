@@ -3,8 +3,10 @@ import { modelIdSchema } from "../model/ref";
 import { providerIdSchema } from "../provider/ref";
 import { paginationInputSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
+import { localeSchema } from "../shared/primitives/locale";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
+import { userIdSchema } from "../user/ref";
 import { organizationIdSchema } from "./ref";
 import {
 	organizationFieldsSchema,
@@ -44,7 +46,31 @@ export const organizationDeletionImpactInputSchema = organizationSchema.pick({
 	id: true,
 });
 
-export const createOrganizationInputSchema = organizationFieldsSchema;
+/**
+ * Who administers a new organisation: its creator, an existing account (the
+ * creator is not added), or an invitee, with the creator as admin until they leave.
+ */
+export const initialOrganizationAdminSchema = z.discriminatedUnion("kind", [
+	z.object({
+		kind: z.literal("me"),
+	}),
+	z.object({
+		kind: z.literal("user"),
+		userId: userIdSchema,
+	}),
+	z.object({
+		kind: z.literal("invite"),
+		email: z.email(),
+		/** Language of the invitation email. */
+		locale: localeSchema.optional(),
+	}),
+]);
+
+export const createOrganizationInputSchema = organizationFieldsSchema.extend({
+	initialAdmin: initialOrganizationAdminSchema.default({
+		kind: "me",
+	}),
+});
 
 export const updateOrganizationInputSchema =
 	organizationMutableFieldsSchema.extend({
