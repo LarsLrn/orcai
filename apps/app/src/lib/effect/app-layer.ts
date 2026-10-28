@@ -1,6 +1,6 @@
 import { AiConfigLive, AiTelemetryLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
-import { PgBossLive } from "@orcai/pg-boss";
+import { makePgBossLayer } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
 import { S3Live } from "@orcai/s3/server";
 import { SpiceDbLive } from "@orcai/spice-db";
@@ -15,7 +15,9 @@ const BaseInfra = Layer.mergeAll(
 	DrizzleLive,
 	SpiceDbLive,
 	S3Live,
-	PgBossLive,
+	makePgBossLayer({
+		instanceName: "app",
+	}),
 	ValkeyLive,
 	QdrantLive,
 	AiConfigLive,

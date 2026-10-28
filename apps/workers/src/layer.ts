@@ -1,7 +1,7 @@
 import { AiConfigLive, AiTelemetryLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { EmailConfigLive, EmailLive } from "@orcai/notifications";
-import { PgBossLive } from "@orcai/pg-boss";
+import { makePgBossLayer } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
 import { S3Live } from "@orcai/s3/server";
 import * as Layer from "effect/Layer";
@@ -11,7 +11,9 @@ export const BackgroundWorkerLayer = Layer.mergeAll(
 	ObservabilityLive,
 	AiTelemetryLive,
 	DrizzleLive,
-	PgBossLive,
+	makePgBossLayer({
+		instanceName: "workers",
+	}),
 	S3Live,
 	QdrantLive,
 	AiConfigLive,
