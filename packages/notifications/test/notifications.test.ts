@@ -77,6 +77,12 @@ const notifications = [
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
 	},
+	{
+		type: "instance.test-email" as const,
+		recipient: "admin@example.com",
+		recipientName: "Admin",
+		healthUrl: "https://example.com/instance/health",
+	},
 ];
 
 const loadEmailConfig = (values: Record<string, unknown>) =>
@@ -136,10 +142,10 @@ describe("notification schemas and templates", () => {
 			html: '<a href="https://example.com/reset?token=secret">Reset</a>',
 		};
 
-		await Effect.runPromise(
+		const result = await Effect.runPromise(
 			Effect.gen(function* () {
 				const service = yield* EmailService;
-				yield* service.send(email);
+				return yield* service.send(email);
 			}).pipe(
 				Effect.provide(EmailLive),
 				Effect.provide(EmailConfigLive),
@@ -154,6 +160,9 @@ describe("notification schemas and templates", () => {
 			),
 		);
 
+		expect(result).toEqual({
+			channel: "log",
+		});
 		expect(entries).toContainEqual({
 			operation: "email.log-only",
 			warning:
@@ -213,7 +222,9 @@ describe("notification schemas and templates", () => {
 							? notification.resetUrl
 							: "securityUrl" in notification
 								? notification.securityUrl
-								: notification.accountUrl;
+								: "healthUrl" in notification
+									? notification.healthUrl
+									: notification.accountUrl;
 
 			if (!actionUrl) {
 				throw new Error("Missing action URL");

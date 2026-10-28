@@ -21,6 +21,15 @@ export const notificationOutboxStatusEnum = pgEnum(
 	],
 );
 
+/** How a sent row left the workers: over SMTP, or only into the log. */
+export const notificationDeliveryChannelEnum = pgEnum(
+	"notification_delivery_channel",
+	[
+		"smtp",
+		"log",
+	],
+);
+
 export const notificationOutbox = pgTable(
 	"notification_outbox",
 	{
@@ -36,6 +45,7 @@ export const notificationOutbox = pgTable(
 		leaseExpiresAt: timestamp("lease_expires_at"),
 		lastError: text("last_error"),
 		providerMessageId: text("provider_message_id"),
+		deliveryChannel: notificationDeliveryChannelEnum("delivery_channel"),
 		sentAt: timestamp("sent_at"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
