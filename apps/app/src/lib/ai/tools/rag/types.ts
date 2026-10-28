@@ -1,8 +1,8 @@
 import type { BlockId } from "@orcai/core";
 import {
-	type AssetPoint,
 	type DatabaseBlock,
 	documentReadinessSchema,
+	type RetrievedAssetPoint,
 } from "@orcai/schema";
 import { z } from "zod/v4";
 
@@ -34,7 +34,7 @@ export const knowledgeBaseDocumentSchema = z.object({
 
 export type KnowledgeBaseDocument = z.infer<typeof knowledgeBaseDocumentSchema>;
 
-export type PointWithBlock = AssetPoint & {
+export type PointWithBlock = RetrievedAssetPoint & {
 	sourceBlock: {
 		id: BlockId;
 		name: DatabaseBlock["name"];

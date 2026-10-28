@@ -97,10 +97,8 @@ test("pipeline: an uploaded image is described once by the utility model and ind
 	const member = api.as("member");
 	const asset = await uploadImage(member, "Chart");
 
-	const readiness = await preparedReadiness(
-		member,
-		await repositoryOf(member, asset.id),
-	);
+	const repositoryId = await repositoryOf(member, asset.id);
+	const readiness = await preparedReadiness(member, repositoryId);
 	expect(readiness.totals.ready).toBe(1);
 
 	const visionCalls = inference.requests.filter(
@@ -115,9 +113,9 @@ test("pipeline: an uploaded image is described once by the utility model and ind
 	expect(visionCalls).toHaveLength(1);
 	expect(JSON.stringify(visionCalls[0]?.body)).toContain("image_url");
 
-	const { data: points } = await member.assetPoint.list({
+	const { data: points } = await member.assetPoint.browseRepository({
+		repositoryId,
 		assetId: asset.id,
-		filters: {},
 	});
 	expect(
 		points.map((point) => [

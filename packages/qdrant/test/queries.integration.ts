@@ -74,7 +74,6 @@ const stored = run(
 						asset_id: assetId,
 						block_id: crypto.randomUUID() as BlockId,
 						text,
-						title: "Integration",
 						depth: 0,
 						tokens: 8,
 						chunk_index: index,

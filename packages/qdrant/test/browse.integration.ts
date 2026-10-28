@@ -84,7 +84,6 @@ describe("browseAssetPoints in reading order", () => {
 							asset_id: assetId,
 							block_id: blockId,
 							text: `Passage ${passage.chunkIndex}`,
-							title: "Integration",
 							chunkPageStart: passage.page,
 							chunkPageEnd: passage.lastPage,
 							depth: 0,

@@ -10,6 +10,7 @@ import {
 } from "@orcai/qdrant";
 import type { AssetPoint, assetPointsFiltersSchema } from "@orcai/schema";
 import { serve } from "bun";
+import { eq } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
@@ -94,9 +95,6 @@ const embeddingThroughEndpoint = async (actor: Actor, zedToken?: string) => {
 						baseUrl: `${embeddings.url.origin}/v1`,
 						apiKey: Redacted.make("key"),
 						embedding: {
-							model: "integration",
-						},
-						general: {
 							model: "integration",
 						},
 					},
@@ -218,7 +216,6 @@ const storeChunks = (
 							asset_id: assetId,
 							block_id: blockId,
 							text: `Chunk ${index} at ${similarity}`,
-							title: "Integration asset",
 							depth: 0,
 							tokens: 4,
 							chunk_index: index,
@@ -371,6 +368,48 @@ describe("repository search", () => {
 				[first]: 1,
 				[second]: 1,
 			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("asset titles", () => {
+	test(
+		"points carry their asset's title as it is when read",
+		async () => {
+			const {
+				search,
+				assets: [assetId],
+			} = await repositoryOf([
+				[
+					STRONG,
+				],
+			]);
+			const titles = async () =>
+				(
+					await search({
+						limit: 1,
+					})
+				).data.map((point) => point.title);
+
+			expect(await titles()).toEqual([
+				"Integration asset",
+			]);
+
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.asset)
+						.set({
+							title: "Final title",
+						})
+						.where(eq(dbSchema.asset.id, assetId));
+				}),
+			);
+
+			expect(await titles()).toEqual([
+				"Final title",
+			]);
 		},
 		TIMEOUT,
 	);
