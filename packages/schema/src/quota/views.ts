@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { groupListRowSchema } from "../group/views";
 import { modelSchema } from "../model/schema";
-import { providerMeteringModeSchema } from "../provider/parts/metering-mode";
 import { providerSchema } from "../provider/schema";
 import { usageBotSchema, usagePersonSchema } from "../usage/identity";
 import { quotaPoolIdSchema } from "./ref";
@@ -83,18 +82,18 @@ export const quotaUsageEventListRowSchema = quotaUsageEventSchema
 		bot: usageBotSchema,
 	});
 
-export const quotaChatBadgeSchema = z.object({
-	poolId: quotaPoolIdSchema.nullable(),
-	poolName: z.string().nullable(),
-	meteringMode: providerMeteringModeSchema.nullable(),
-	remainingAmount: z.number().nullable(),
-	consumedAmount: z.number().nullable(),
-	reservedAmount: z.number().nullable(),
-	periodEndsAt: z.coerce.date().nullable(),
-});
-
-export const quotaAvailabilitySchema = z.object({
+/** The pool covering a user for a model, as a share; amounts stay on the pool page. */
+export const quotaStatusSchema = z.object({
 	available: z.boolean(),
+	pool: z
+		.object({
+			id: quotaPoolIdSchema,
+			name: z.string(),
+			/** Consumed and reserved over budget, 0 to 1. */
+			usedShare: z.number(),
+			periodEndsAt: z.coerce.date(),
+		})
+		.nullable(),
 });
 
 export type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
@@ -102,5 +101,4 @@ export type QuotaPoolDetail = z.infer<typeof quotaPoolDetailSchema>;
 export type QuotaUsageEventListRow = z.infer<
 	typeof quotaUsageEventListRowSchema
 >;
-export type QuotaChatBadge = z.infer<typeof quotaChatBadgeSchema>;
-export type QuotaAvailability = z.infer<typeof quotaAvailabilitySchema>;
+export type QuotaStatus = z.infer<typeof quotaStatusSchema>;

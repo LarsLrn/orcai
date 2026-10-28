@@ -1,4 +1,4 @@
-import type { OrganizationId, ProviderId, QuotaPoolId } from "@orcai/core";
+import type { QuotaPoolId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	createQuotaPool as createQuotaPoolCommand,
@@ -18,10 +18,8 @@ import { groupMemberCount } from "@/lib/authz/group-membership";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import {
-	requireEntityPermission,
-	requireOrganizationPermission,
-} from "@/lib/orpc/middlewares/permission";
+import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { usedShareOf } from "@/lib/presentation/quota-share";
 import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
@@ -105,7 +103,7 @@ const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
 	});
 
 const listQuotaPools = authed.quota.list
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -200,7 +198,7 @@ const listQuotaPools = authed.quota.list
 	});
 
 const findQuotaPool = authed.quota.find
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -449,201 +447,38 @@ const deactivateQuotaPool = authed.quota.deactivate
 		};
 	});
 
-/** The organisation's assistant model in the shape of a chat config, empty when unset. */
-const assistantModelConfig = (organizationId: OrganizationId) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const [row] = yield* db
-			.select({
-				providerId: dbSchema.model.providerId,
-				modelId: dbSchema.model.id,
-			})
-			.from(dbSchema.organization)
-			.innerJoin(
-				dbSchema.model,
-				eq(dbSchema.model.id, dbSchema.organization.assistantModelId),
-			)
-			.where(eq(dbSchema.organization.id, organizationId))
-			.limit(1);
-
-		return {
-			providerId: row?.providerId,
-			modelId: row?.modelId,
-		};
-	});
-
-// TODO: Consider restricting pool budget/usage data to admin users.
-// Currently any user with chat-read access can see pool budget details.
-const quotaChatBadge = authed.quota.chatBadge
-	.use(
-		requireEntityPermission("chat", "read", {
-			entityId: "chatId",
-		}),
-	)
+const quotaStatus = authed.quota.status
+	.use(requireOrganizationPermission("read"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
-		if (!organizationId) {
-			return {
-				data: {
-					poolId: null,
-					poolName: null,
-					meteringMode: null,
-					remainingAmount: null,
-					consumedAmount: null,
-					reservedAmount: null,
-					periodEndsAt: null,
-				},
-			};
-		}
-
-		const chat = yield* db.query.chat.findFirst({
-			where: {
-				id: {
-					eq: input.chatId,
-				},
-			},
-			columns: {
-				botId: true,
-				config: true,
-				kind: true,
-			},
-		});
-
-		const chatConfig =
-			chat?.kind === "assistant"
-				? yield* assistantModelConfig(organizationId)
-				: ((chat?.config ?? {}) as {
-						providerId?: ProviderId;
-						modelId?: string;
-					});
-
-		if (chatConfig.providerId && chatConfig.modelId) {
-			const resolved = yield* resolveQuotaPool({
-				organizationId,
-				userId: context.auth.user.id,
-				providerId: chatConfig.providerId,
-				modelId: chatConfig.modelId,
-			});
-
-			const winning = resolved.winningPool;
-			if (!winning) {
-				return {
-					data: {
-						poolId: null,
-						poolName: null,
-						meteringMode: null,
-						remainingAmount: null,
-						consumedAmount: null,
-						reservedAmount: null,
-						periodEndsAt: null,
-					},
-				};
-			}
-
-			return {
-				data: {
-					poolId: winning.pool.id,
-					poolName: winning.pool.name,
-					meteringMode: winning.meteringMode,
-					remainingAmount: winning.ledger.remainingAmount,
-					consumedAmount: winning.ledger.consumedAmount,
-					reservedAmount: winning.ledger.reservedAmount,
-					periodEndsAt: winning.period.endsAt,
-				},
-			};
-		}
-
-		if (!chat?.botId) {
-			return {
-				data: {
-					poolId: null,
-					poolName: null,
-					meteringMode: null,
-					remainingAmount: null,
-					consumedAmount: null,
-					reservedAmount: null,
-					periodEndsAt: null,
-				},
-			};
-		}
-
-		const [templateBlockRow] = yield* db
+		const [model] = yield* (yield* DB)
 			.select({
-				config: dbSchema.block.config,
+				id: dbSchema.model.id,
 			})
-			.from(dbSchema.botBlock)
+			.from(dbSchema.model)
 			.innerJoin(
-				dbSchema.block,
-				eq(dbSchema.block.id, dbSchema.botBlock.blockId),
+				dbSchema.provider,
+				eq(dbSchema.provider.id, dbSchema.model.providerId),
 			)
 			.where(
 				and(
-					eq(dbSchema.botBlock.botId, chat.botId),
-					eq(dbSchema.block.type, "template"),
+					eq(dbSchema.model.id, input.modelId),
+					eq(dbSchema.provider.id, input.providerId),
+					eq(dbSchema.provider.organizationId, organizationId),
 				),
 			)
 			.limit(1);
-
-		const templateConfig = (templateBlockRow?.config ?? {}) as {
-			provider?: ProviderId;
-			model?: string;
-		};
-
-		if (!templateConfig.provider || !templateConfig.model) {
-			return {
-				data: {
-					poolId: null,
-					poolName: null,
-					meteringMode: null,
-					remainingAmount: null,
-					consumedAmount: null,
-					reservedAmount: null,
-					periodEndsAt: null,
-				},
-			};
+		if (!model) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "MODEL_NOT_FOUND",
+					message: "Model not found for this provider",
+				}),
+			);
 		}
 
-		const resolved = yield* resolveQuotaPool({
-			organizationId: organizationId,
-			userId: context.auth.user.id,
-			providerId: templateConfig.provider,
-			modelId: templateConfig.model,
-		});
-
-		const winning = resolved.winningPool;
-		if (!winning) {
-			return {
-				data: {
-					poolId: null,
-					poolName: null,
-					meteringMode: null,
-					remainingAmount: null,
-					consumedAmount: null,
-					reservedAmount: null,
-					periodEndsAt: null,
-				},
-			};
-		}
-
-		return {
-			data: {
-				poolId: winning.pool.id,
-				poolName: winning.pool.name,
-				meteringMode: winning.meteringMode,
-				remainingAmount: winning.ledger.remainingAmount,
-				consumedAmount: winning.ledger.consumedAmount,
-				reservedAmount: winning.ledger.reservedAmount,
-				periodEndsAt: winning.period.endsAt,
-			},
-		};
-	});
-
-const quotaAvailability = authed.quota.availability
-	.use(requireOrganizationPermission("read"))
-	.effect(function* ({ input, context }) {
-		const resolved = yield* resolveQuotaPool({
-			organizationId: context.auth.session.activeOrganizationId,
+		const { winningPool } = yield* resolveQuotaPool({
+			organizationId,
 			userId: context.auth.user.id,
 			providerId: input.providerId,
 			modelId: input.modelId,
@@ -651,7 +486,13 @@ const quotaAvailability = authed.quota.availability
 
 		return {
 			data: {
-				available: resolved.winningPool !== null,
+				available: winningPool !== null,
+				pool: winningPool && {
+					id: winningPool.pool.id,
+					name: winningPool.pool.name,
+					usedShare: usedShareOf(winningPool.ledger),
+					periodEndsAt: winningPool.period.endsAt,
+				},
 			},
 		};
 	});
@@ -663,6 +504,5 @@ export const quotaRouter = {
 	listEvents: listQuotaUsageEvents,
 	update: updateQuotaPool,
 	deactivate: deactivateQuotaPool,
-	chatBadge: quotaChatBadge,
-	availability: quotaAvailability,
+	status: quotaStatus,
 };

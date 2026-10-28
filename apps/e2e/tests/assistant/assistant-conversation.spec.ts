@@ -325,7 +325,7 @@ test("assistant: the chat route of a conversation redirects to the assistant", a
 	await expect(conversationLog(page)).toBeVisible();
 });
 
-test("assistant: the quota line and refusals follow the pool of the assistant model", async ({
+test("assistant: the quota status and refusals follow the pool of the assistant model", async ({
 	api,
 	inference,
 	org,
@@ -354,10 +354,11 @@ test("assistant: the quota line and refusals follow the pool of the assistant mo
 
 	const member = api.as("member");
 	const chatId = await startConversation(member);
-	const badge = await member.quota.chatBadge({
-		chatId,
+	const status = await member.quota.status({
+		providerId: model.providerId,
+		modelId: model.modelId,
 	});
-	expect(badge.data.poolName).toBe(poolName);
+	expect(status.data.pool?.name).toBe(poolName);
 
 	expect(reasonOf(await turnRefusal(member, chatId))).toBe("QUOTA_EXHAUSTED");
 });

@@ -2065,41 +2065,6 @@
 	"chat_quota_notice_description_manager": "Create a pool for its provider, then chatting opens.",
 	"chat_quota_notice_description_member": "Choose another model or ask an organisation admin to create a quota pool.",
 	"chat_quota_notice_title": "No quota pool covers this model for you yet.",
-	"chat_quota_pool_fallback_name": "Quota",
-	"chat_quota_requests_left": [
-		{
-			"declarations": [
-				"input count",
-				"input pool",
-				"input amount",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{pool} · {amount} request left",
-				"countPlural=other": "{pool} · {amount} requests left"
-			}
-		}
-	],
-	"chat_quota_tokens_left": [
-		{
-			"declarations": [
-				"input count",
-				"input pool",
-				"input amount",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{pool} · {amount} token left",
-				"countPlural=other": "{pool} · {amount} tokens left"
-			}
-		}
-	],
 	"chat_rename_dialog_description": "Enter a new name for this chat.",
 	"chat_rename_dialog_submit": "Rename",
 	"chat_rename_dialog_title": "Rename chat",

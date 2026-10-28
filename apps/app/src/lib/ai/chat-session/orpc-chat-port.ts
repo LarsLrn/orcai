@@ -1,4 +1,3 @@
-import type { ChatId } from "@orcai/core";
 import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
 import type { QueryClient } from "@tanstack/react-query";
 import { isTextUIPart } from "ai";
@@ -24,17 +23,12 @@ export const chatPageOf = (page: {
 /** What a finished turn may have changed: the chat list and title, the quota, and data its tools wrote. */
 const invalidateAfterTurn = async (
 	queryClient: QueryClient,
-	{
-		chatId,
-		variant,
-	}: {
-		chatId: ChatId;
-		variant: "chat" | "assistant";
-	},
+	variant: "chat" | "assistant",
 	message: ChatAgentUIMessage,
 ) => {
 	const namespaces = [
 		orpc.chat,
+		orpc.quota.status,
 		...(variant === "assistant"
 			? [
 					orpc.assistant,
@@ -42,31 +36,21 @@ const invalidateAfterTurn = async (
 			: []),
 		...staleDataOf(message).map((namespace) => orpc[namespace]),
 	];
-	await Promise.all([
-		queryClient.invalidateQueries({
-			queryKey: orpc.quota.chatBadge.queryKey({
-				input: {
-					chatId,
-				},
-			}),
-			refetchType: "active",
-		}),
-		...namespaces.map((namespace) =>
+	await Promise.all(
+		namespaces.map((namespace) =>
 			queryClient.invalidateQueries({
 				queryKey: namespace.key(),
 				refetchType: "active",
 			}),
 		),
-	]);
+	);
 };
 
 export const orpcChatPort = ({
 	queryClient,
-	chatId,
 	variant,
 }: {
 	queryClient: QueryClient;
-	chatId: ChatId;
 	variant: "chat" | "assistant";
 }): ChatPort => ({
 	chat: async ({ message, ...input }, signal) =>
@@ -114,13 +98,5 @@ export const orpcChatPort = ({
 		}
 	},
 	list: async (input) => chatPageOf(await client.chatMessage.list(input)),
-	turnEnded: (message) =>
-		invalidateAfterTurn(
-			queryClient,
-			{
-				chatId,
-				variant,
-			},
-			message,
-		),
+	turnEnded: (message) => invalidateAfterTurn(queryClient, variant, message),
 });

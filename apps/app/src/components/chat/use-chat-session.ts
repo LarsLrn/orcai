@@ -27,7 +27,6 @@ export const useChatSession = ({
 				zedToken,
 				port: orpcChatPort({
 					queryClient,
-					chatId,
 					variant,
 				}),
 			}),

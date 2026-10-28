@@ -1,8 +1,4 @@
 import {
-	quotaAvailabilityInputSchema,
-	quotaAvailabilityResponseSchema,
-	quotaChatBadgeInputSchema,
-	quotaChatBadgeResponseSchema,
 	quotaPoolCreateInputSchema,
 	quotaPoolDeactivateInputSchema,
 	quotaPoolFindInputSchema,
@@ -11,6 +7,8 @@ import {
 	quotaPoolListResponseSchema,
 	quotaPoolUpdateInputSchema,
 	quotaPoolWriteResponseSchema,
+	quotaStatusInputSchema,
+	quotaStatusResponseSchema,
 	quotaUsageEventListInputSchema,
 	quotaUsageEventListResponseSchema,
 } from "@orcai/schema";
@@ -96,30 +94,17 @@ export const quotaContracts = {
 		)
 		.input(quotaPoolDeactivateInputSchema)
 		.output(quotaPoolWriteResponseSchema),
-	chatBadge: base
-		.meta(
-			openapi({
-				method: "POST",
-				path: "/quota/chat-badge",
-				summary: "Get remaining quota for chat header badge",
-				tags: [
-					"Quota",
-				],
-			}),
-		)
-		.input(quotaChatBadgeInputSchema)
-		.output(quotaChatBadgeResponseSchema),
-	availability: base
+	status: base
 		.meta(
 			openapi({
 				method: "GET",
-				path: "/quota/availability",
-				summary: "Check whether a quota pool covers the user for a model",
+				path: "/quota/status",
+				summary: "Get the quota pool covering the user for a model",
 				tags: [
 					"Quota",
 				],
 			}),
 		)
-		.input(quotaAvailabilityInputSchema)
-		.output(quotaAvailabilityResponseSchema),
+		.input(quotaStatusInputSchema)
+		.output(quotaStatusResponseSchema),
 };
