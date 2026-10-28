@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { rejection } from "../../fixtures/authorization";
 import {
 	chatName,
+	chooseFromChatMenu,
 	createChat,
 	openChat,
 	setUpChatModel,
@@ -23,18 +24,8 @@ const genUiSwitch = (page: Page) =>
 		name: message("feature_generative_ui_label"),
 	});
 
-/** The composer menu starts the chat tour unless the user has skipped it. */
 const openChatSettings = async (page: Page) => {
-	await page
-		.getByRole("button", {
-			name: message("chat_composer_more_actions_aria_label"),
-		})
-		.click();
-	await page
-		.getByRole("menuitem", {
-			name: message("chat_composer_settings_action"),
-		})
-		.click();
+	await chooseFromChatMenu(page, "chat_actions_settings_action");
 
 	return page.getByRole("dialog", {
 		name: message("chat_settings_dialog_title"),
@@ -93,10 +84,6 @@ test("gen-ui: a plain chat's switch saves at once and decides the tools offered"
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "skipped",
-	});
 	const chatId = await createChat(member, model, chatName("Plain Features"));
 
 	const page = await pageAs("member");
@@ -151,10 +138,6 @@ test("gen-ui: a bot-linked chat shows the bot's features read-only", async ({
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "skipped",
-	});
 	const bot = await createBot(member);
 	const chatId = await createBotChat(member, model, bot.id);
 

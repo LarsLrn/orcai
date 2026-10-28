@@ -1,7 +1,6 @@
 import type { Button as ButtonPrimitive } from "@base-ui/react/button";
 import type { VariantProps } from "class-variance-authority";
-import { useEffect } from "react";
-import { useTour } from "@/components/tour/tour-provider";
+import { useAutoStartTour, useTour } from "@/components/tour/tour-provider";
 import type { TourId } from "@/components/tour/tours";
 import { Button, type buttonVariants } from "@/components/ui/button";
 
@@ -22,14 +21,7 @@ const TourButton = ({
 } & ButtonPrimitive.Props &
 	VariantProps<typeof buttonVariants>) => {
 	const { seen, start } = useTour(tour);
-
-	useEffect(() => {
-		if (autoTrigger && seen === false) start();
-	}, [
-		autoTrigger,
-		seen,
-		start,
-	]);
+	useAutoStartTour(tour, autoTrigger);
 
 	const showLabel = !!label && seen === false;
 

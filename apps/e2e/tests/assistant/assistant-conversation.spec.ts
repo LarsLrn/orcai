@@ -16,6 +16,7 @@ import {
 import {
 	branchActions,
 	chatName,
+	chatTitleMenu,
 	composer,
 	messageText,
 	sendTurn,
@@ -127,28 +128,15 @@ test("assistant: a conversation is titled, shows its model, hides chat-only cont
 			exact: true,
 		}),
 	).toHaveCount(0);
-	const moreActions = page.getByRole("button", {
-		name: message("chat_composer_more_actions_aria_label"),
-	});
-	if ((await moreActions.count()) > 0) {
-		await moreActions.click();
-		await expect(
-			page.getByRole("menuitem", {
-				name: message("chat_composer_download_action"),
-			}),
-		).toBeVisible();
-		await expect(
-			page.getByRole("menuitem", {
-				name: message("chat_composer_settings_action"),
-			}),
-		).toHaveCount(0);
-		await expect(
-			page.getByRole("menuitem", {
-				name: message("chat_composer_start_tour_action"),
-			}),
-		).toHaveCount(0);
-		await page.keyboard.press("Escape");
-	}
+	// The title menu offers what an assistant conversation supports.
+	await expect(chatTitleMenu(page)).toHaveText(turn.reply);
+	await chatTitleMenu(page).click();
+	await expect(page.getByRole("menuitem")).toHaveText([
+		message("chat_actions_rename_action"),
+		message("chat_actions_download_action"),
+		message("chat_actions_delete_action"),
+	]);
+	await page.keyboard.press("Escape");
 
 	// Neither the chat sidebar nor the chat list links to it.
 	const chatLink = page.locator(`a[href="/app/chat/${chatId}"]`);

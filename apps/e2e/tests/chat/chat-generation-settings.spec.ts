@@ -4,6 +4,7 @@ import { turnRequests } from "../../fixtures/assistant/assistant";
 import { rejection } from "../../fixtures/authorization";
 import {
 	chatName,
+	chooseFromChatMenu,
 	composer,
 	createChat,
 	messageText,
@@ -70,16 +71,7 @@ const send = async (page: Page, text: string, turn: number) => {
 };
 
 const openSettings = async (page: Page) => {
-	await page
-		.getByRole("button", {
-			name: message("chat_composer_more_actions_aria_label"),
-		})
-		.click();
-	await page
-		.getByRole("menuitem", {
-			name: message("chat_composer_settings_action"),
-		})
-		.click();
+	await chooseFromChatMenu(page, "chat_actions_settings_action");
 	await page
 		.getByRole("button", {
 			name: message("chat_settings_advanced_title"),
@@ -103,6 +95,11 @@ test("a chat started in the page leaves sampling to the provider and caps the ou
 	pageAs,
 }) => {
 	await setUpChatModel(api, inference);
+	// The chat tour's card would cover the chat the page starts.
+	await api.as("member").user.setTourState({
+		tourId: "chatTour",
+		state: "completed",
+	});
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
@@ -127,11 +124,6 @@ test("chat settings send only the parameters the member set", async ({
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
 	const chatId = await createChat(member, model, chatName("Generation"));
-	// The chat tour's card swallows the clicks on the composer's menu.
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "completed",
-	});
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);

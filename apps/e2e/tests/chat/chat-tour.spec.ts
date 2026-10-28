@@ -4,6 +4,7 @@ import { zedTokenOf } from "../../fixtures/api";
 import { pageForSession } from "../../fixtures/auth/users";
 import {
 	chatName,
+	chatTitleMenu,
 	composer,
 	createChat,
 	setUpChatModel,
@@ -12,17 +13,12 @@ import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
-const moreActions = (page: Page) =>
-	page.getByRole("button", {
-		name: message("chat_composer_more_actions_aria_label"),
-	});
-
 const tourCard = (page: Page) =>
 	page.getByRole("dialog", {
 		name: message("tour_chat_intro_title"),
 	});
 
-test("chat: the composer menu starts the chat tour until the user has seen it", async ({
+test("chat: the chat tour starts on opening a chat until the user has seen it, and on request from the title menu", async ({
 	api,
 	appBaseURL,
 	browser,
@@ -37,16 +33,11 @@ test("chat: the composer menu starts the chat tour until the user has seen it", 
 	});
 	const chatId = await createChat(user.api, model, chatName("Tour"));
 	const { context, page } = await pageForSession(browser, user.session);
+	const chatPath = `/app/chat/${chatId}?zedToken=${encodeURIComponent(zedTokenOf(user.api) ?? "")}`;
 
 	try {
 		// The browser session has not seen the chat's grant yet.
-		await open(
-			page,
-			`/app/chat/${chatId}?zedToken=${encodeURIComponent(zedTokenOf(user.api) ?? "")}`,
-		);
-		await expect(composer(page)).toBeVisible();
-
-		await moreActions(page).click();
+		await open(page, chatPath);
 		await expect(tourCard(page)).toBeVisible();
 		await expect(
 			page.getByRole("button", {
@@ -57,6 +48,7 @@ test("chat: the composer menu starts the chat tour until the user has seen it", 
 		for (const _ of [
 			1,
 			2,
+			3,
 		]) {
 			await page
 				.getByRole("button", {
@@ -70,8 +62,6 @@ test("chat: the composer menu starts the chat tour until the user has seen it", 
 			})
 			.click();
 		await expect(page.getByRole("dialog")).toHaveCount(0);
-		// Focus returns to the menu's trigger the tour started from.
-		await expect(moreActions(page)).toBeFocused();
 
 		await expect
 			.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
@@ -79,10 +69,12 @@ test("chat: the composer menu starts the chat tour until the user has seen it", 
 				chatTour: "completed",
 			});
 
-		// Reopening the menu right away must not start the finished tour again.
-		await moreActions(page).click();
+		// Opening the chat again does not start the finished tour.
+		await open(page, chatPath);
+		await expect(composer(page)).toBeVisible();
+		await chatTitleMenu(page).click();
 		const startTour = page.getByRole("menuitem", {
-			name: message("chat_composer_start_tour_action"),
+			name: message("chat_actions_tour_action"),
 		});
 		await expect(startTour).toBeVisible();
 		await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -92,6 +84,8 @@ test("chat: the composer menu starts the chat tour until the user has seen it", 
 		await expect(tourCard(page)).toBeVisible();
 		await page.keyboard.press("Escape");
 		await expect(page.getByRole("dialog")).toHaveCount(0);
+		// Focus returns to the title the tour started from.
+		await expect(chatTitleMenu(page)).toBeFocused();
 		await expect
 			.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
 			.toEqual({

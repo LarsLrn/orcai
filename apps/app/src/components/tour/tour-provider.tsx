@@ -4,6 +4,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useContext,
+	useEffect,
 	useRef,
 	useState,
 } from "react";
@@ -63,6 +64,19 @@ export const useTour = (tour: TourId) => {
 		seen,
 		start: startTour,
 	};
+};
+
+/** Starts the tour on mount, while `enabled`, until the user has seen it. */
+export const useAutoStartTour = (tour: TourId, enabled = true) => {
+	const { seen, start } = useTour(tour);
+
+	useEffect(() => {
+		if (enabled && seen === false) start();
+	}, [
+		enabled,
+		seen,
+		start,
+	]);
 };
 
 /**

@@ -32,7 +32,7 @@ test("bots: a starred bot shows in the hub's and the selector's favourites", asy
 		templateBlockId: null,
 		databaseBlockIds: [],
 	});
-	// The chat tour's card swallows the clicks on the composer's menu.
+	// The chat tour's card would cover the chat the bot starts.
 	await member.user.setTourState({
 		tourId: "chatTour",
 		state: "completed",

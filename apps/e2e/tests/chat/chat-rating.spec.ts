@@ -59,10 +59,6 @@ test("chat: a rating survives a reload, can be changed, and cleared", async ({
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "completed",
-	});
 	const chatId = await createChat(member, model, chatName("Rating"));
 	await sendTurn({
 		client: member,

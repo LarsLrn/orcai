@@ -57,10 +57,6 @@ test("pipeline: a citation by chunk ref names the uploaded document, also after 
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	await member.user.setTourState({
-		tourId: "chatTour",
-		state: "completed",
-	});
 	const chatId = await createChat(member, model, chatName("Citations"));
 	const repository = await repositoryWithDocument(member, {
 		label: "Refund Policy",
