@@ -6,7 +6,7 @@ import {
 	type BucketName,
 	PROCESS_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
 type ProcessableAsset = {
@@ -14,6 +14,7 @@ type ProcessableAsset = {
 	bucket: BucketName;
 	prefix: string;
 	fileType: AssetFileType;
+	processingGeneration: number;
 };
 
 /**
@@ -35,6 +36,7 @@ export const enqueueAssetProcessing = (asset: ProcessableAsset) =>
 							id: asset.id,
 							type: asset.fileType,
 						},
+						generation: asset.processingGeneration,
 					},
 				},
 			],
@@ -52,22 +54,26 @@ export const enqueueAssetProcessing = (asset: ProcessableAsset) =>
 	});
 
 /**
- * Processes a completed or failed asset again. The asset and every
- * repository link turn pending in one transaction, so no repository claims
- * ready for vectors about to be replaced. Returns false, and queues nothing,
- * when the asset is already pending or being processed.
+ * Processes a completed or failed asset again, as its next processing
+ * generation. The asset and every repository link turn pending in one
+ * transaction, so no repository claims ready for vectors about to be
+ * replaced. Returns false, and queues nothing, when the asset is already
+ * pending or being processed.
  */
-export const reprocessAsset = (asset: ProcessableAsset) =>
+export const reprocessAsset = (
+	asset: Omit<ProcessableAsset, "processingGeneration">,
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		const admitted = yield* db.transaction(() =>
+		const generation = yield* db.transaction(() =>
 			Effect.gen(function* () {
 				const reset = yield* db
 					.update(dbSchema.asset)
 					.set({
 						processingStatus: "pending",
 						processingFailure: null,
+						processingGeneration: sql`${dbSchema.asset.processingGeneration} + 1`,
 					})
 					.where(
 						and(
@@ -79,9 +85,10 @@ export const reprocessAsset = (asset: ProcessableAsset) =>
 						),
 					)
 					.returning({
-						id: dbSchema.asset.id,
+						processingGeneration: dbSchema.asset.processingGeneration,
 					});
-				if (reset.length === 0) return false;
+				const [admitted] = reset;
+				if (!admitted) return undefined;
 
 				yield* db
 					.update(dbSchema.blockAsset)
@@ -90,10 +97,14 @@ export const reprocessAsset = (asset: ProcessableAsset) =>
 						indexFailure: null,
 					})
 					.where(eq(dbSchema.blockAsset.assetId, asset.id));
-				return true;
+				return admitted.processingGeneration;
 			}),
 		);
 
-		if (admitted) yield* enqueueAssetProcessing(asset);
-		return admitted;
+		if (generation === undefined) return false;
+		yield* enqueueAssetProcessing({
+			...asset,
+			processingGeneration: generation,
+		});
+		return true;
 	});

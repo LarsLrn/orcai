@@ -1,0 +1,48 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "2c6663be-aae8-41fe-9177-04fa7392599c",
+  "prevIds": [
+    "fc95e949-0dde-4764-b8fe-695635253264",
+    "d1a9be0c-63ac-4cc7-bec6-8c4301928eb1"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "processing_generation"
+      ],
+      "writes": [
+        "s|col|public.asset.processing_generation",
+        "n|col|public.asset.processing_generation",
+        "e|col|public.asset.processing_generation"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "processing_generation",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    }
+  ]
+}

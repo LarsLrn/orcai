@@ -211,22 +211,24 @@ export const reindexBlockAssets = (params: {
 
 		if (params.addedIds.length === 0) return;
 
-		const completedAssets = yield* db
+		// Locks the rows without a status filter, so processing completing an asset is waited for; it queues only the links it saw.
+		const addedAssets = yield* db
 			.select({
 				id: dbSchema.asset.id,
+				processingStatus: dbSchema.asset.processingStatus,
 			})
 			.from(dbSchema.asset)
 			.where(
-				and(
-					inArray(dbSchema.asset.id, [
-						...params.addedIds,
-					]),
-					eq(dbSchema.asset.processingStatus, "completed"),
-				),
-			);
+				inArray(dbSchema.asset.id, [
+					...params.addedIds,
+				]),
+			)
+			.for("share");
 
 		yield* enqueueIndexing({
 			blockId: params.blockId,
-			assetIds: completedAssets.map((asset) => asset.id),
+			assetIds: addedAssets
+				.filter((asset) => asset.processingStatus === "completed")
+				.map((asset) => asset.id),
 		});
 	});

@@ -1,7 +1,7 @@
 import { type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
-import { sendJobBatch, toPgBossRunError } from "@orcai/pg-boss";
+import { sendJobBatchInTransaction, toPgBossRunError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
@@ -22,7 +22,7 @@ import {
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { describeImages, imageMediaType } from "@/asset/image-descriptions";
 import {
@@ -159,87 +159,102 @@ const isEmptyArtifact = (artifact: StoredExtractionArtifact) =>
 	artifact.images.length === 0;
 
 /**
- * Queues indexing in every repository the asset is linked to. The links turn
- * pending before the asset turns completed, and are read after it, so a link
- * added meanwhile is queued either here or by the attach.
+ * Completes the asset and queues indexing in every repository it is linked
+ * to, in one transaction: a retry after a crash finds the asset still active
+ * and gets here again. An attach reads the asset's status with a share lock,
+ * so a link it adds meanwhile is queued either here or by the attach.
  */
-const completeAndQueueIndexing = (params: {
-	assetId: AssetId;
-	jobId: string;
-}) =>
+const completeAndQueueIndexing = (params: { assetId: AssetId }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		yield* db
-			.update(dbSchema.blockAsset)
-			.set({
-				indexStatus: "pending",
-				indexFailure: null,
-			})
-			.where(eq(dbSchema.blockAsset.assetId, params.assetId));
-		yield* db
-			.update(dbSchema.asset)
-			.set({
-				processingStatus: "completed",
-				processingFailure: null,
-			})
-			.where(eq(dbSchema.asset.id, params.assetId));
+		yield* db.transaction(() =>
+			Effect.gen(function* () {
+				yield* db
+					.update(dbSchema.blockAsset)
+					.set({
+						indexStatus: "pending",
+						indexFailure: null,
+					})
+					.where(eq(dbSchema.blockAsset.assetId, params.assetId));
+				yield* db
+					.update(dbSchema.asset)
+					.set({
+						processingStatus: "completed",
+						processingFailure: null,
+					})
+					.where(eq(dbSchema.asset.id, params.assetId));
 
-		const attachedBlocks = yield* db
-			.select({
-				blockId: dbSchema.blockAsset.blockId,
-			})
-			.from(dbSchema.blockAsset)
-			.where(eq(dbSchema.blockAsset.assetId, params.assetId));
+				const attachedBlocks = yield* db
+					.select({
+						blockId: dbSchema.blockAsset.blockId,
+					})
+					.from(dbSchema.blockAsset)
+					.where(eq(dbSchema.blockAsset.assetId, params.assetId));
+				if (attachedBlocks.length === 0) {
+					return;
+				}
 
-		yield* Effect.forEach(
-			attachedBlocks,
-			({ blockId }) =>
-				sendJobBatch({
+				yield* sendJobBatchInTransaction({
 					jobName: VECTORIZE_ASSET_JOB_NAME,
-					jobs: [
-						{
-							data: {
-								assetId: params.assetId,
-								blockId,
-							},
+					jobs: attachedBlocks.map(({ blockId }) => ({
+						data: {
+							assetId: params.assetId,
+							blockId,
 						},
-					],
-				}).pipe(
-					Effect.tapError((err) =>
-						Effect.logError(
-							{
-								err,
-								jobId: params.jobId,
-								assetId: params.assetId,
-								blockId,
-							},
-							"Failed to dispatch follow-up vectorization job",
-						),
-					),
-					Effect.catch(() =>
-						db
-							.update(dbSchema.blockAsset)
-							.set({
-								indexStatus: "failed",
-								indexFailure: "other",
-							})
-							.where(
-								and(
-									eq(dbSchema.blockAsset.assetId, params.assetId),
-									eq(dbSchema.blockAsset.blockId, blockId),
-								),
-							),
-					),
-				),
-			{
-				concurrency: "unbounded",
-				discard: true,
-			},
+					})),
+				});
+			}),
 		);
 	});
 
+/**
+ * Whether this delivery may run: the asset still waits for the processing
+ * generation it was queued for. A delivery replayed after its run completed,
+ * or queued for an earlier generation, may not.
+ */
+const claimDelivery = (job: Job<ProcessAssetPayload>) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { asset } = dbSchema;
+		const claimed = yield* db
+			.update(asset)
+			.set({
+				processingStatus: "active",
+			})
+			.where(
+				and(
+					eq(asset.id, job.data.assetRef.id),
+					inArray(asset.processingStatus, [
+						"pending",
+						"active",
+					]),
+					job.data.generation === undefined
+						? undefined
+						: eq(asset.processingGeneration, job.data.generation),
+				),
+			)
+			.returning({
+				id: asset.id,
+			});
+		return claimed.length > 0;
+	});
+
 const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
+	Effect.gen(function* () {
+		if (!(yield* claimDelivery(params.job))) {
+			return yield* Effect.logInfo(
+				{
+					jobId: params.job.id,
+					assetId: params.job.data.assetRef.id,
+				},
+				"Skipping a processing delivery that is done or replaced",
+			);
+		}
+		yield* processDelivery(params);
+	});
+
+const processDelivery = (params: { job: Job<ProcessAssetPayload> }) =>
 	Effect.gen(function* () {
 		const { assetRef } = params.job.data;
 
@@ -339,7 +354,6 @@ const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
 
 		yield* completeAndQueueIndexing({
 			assetId: assetRef.id,
-			jobId: params.job.id,
 		});
 
 		yield* Effect.logInfo(

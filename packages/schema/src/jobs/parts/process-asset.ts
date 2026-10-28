@@ -10,6 +10,8 @@ export const processAssetPayloadSchema = z.object({
 		id: assetIdSchema,
 		type: fileTypeSchema,
 	}),
+	/** The asset's processing generation the job was queued for; unset on jobs queued before it existed. */
+	generation: z.number().int().nonnegative().optional(),
 });
 
 export type ProcessAssetPayload = z.infer<typeof processAssetPayloadSchema>;
