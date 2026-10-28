@@ -73,6 +73,7 @@ import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$use
 import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
 import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as InstanceAnalyticsIndexRouteImport } from './routes/instance/analytics/index'
+import { Route as InstanceHealthIndexRouteImport } from './routes/instance/health/index'
 import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
 import { Route as InstanceUsersIndexRouteImport } from './routes/instance/users/index'
 import { Route as AppAssistantChatIdIndexRouteImport } from './routes/app/assistant/$chatId/index'
@@ -432,6 +433,11 @@ const InstanceAnalyticsIndexRoute = InstanceAnalyticsIndexRouteImport.update({
   path: '/analytics/',
   getParentRoute: () => InstanceRouteRoute,
 } as any)
+const InstanceHealthIndexRoute = InstanceHealthIndexRouteImport.update({
+  id: '/health/',
+  path: '/health/',
+  getParentRoute: () => InstanceRouteRoute,
+} as any)
 const InstanceOrganizationsIndexRoute =
   InstanceOrganizationsIndexRouteImport.update({
     id: '/organizations/',
@@ -663,6 +669,7 @@ export interface FileRoutesByFullPath {
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
+  '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
@@ -738,6 +745,7 @@ export interface FileRoutesByTo {
   '/app/quotas': typeof AppQuotasIndexRoute
   '/app/users': typeof AppUsersIndexRoute
   '/instance/analytics': typeof InstanceAnalyticsIndexRoute
+  '/instance/health': typeof InstanceHealthIndexRoute
   '/instance/organizations': typeof InstanceOrganizationsIndexRoute
   '/instance/users': typeof InstanceUsersIndexRoute
   '/app/hub/assets/add': typeof AppHubAssetsAddRoute
@@ -833,6 +841,7 @@ export interface FileRoutesById {
   '/app/quotas/': typeof AppQuotasIndexRoute
   '/app/users/': typeof AppUsersIndexRoute
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
+  '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
@@ -931,6 +940,7 @@ export interface FileRouteTypes {
     | '/app/quotas/'
     | '/app/users/'
     | '/instance/analytics/'
+    | '/instance/health/'
     | '/instance/organizations/'
     | '/instance/users/'
     | '/app/hub/assets/$assetId'
@@ -1006,6 +1016,7 @@ export interface FileRouteTypes {
     | '/app/quotas'
     | '/app/users'
     | '/instance/analytics'
+    | '/instance/health'
     | '/instance/organizations'
     | '/instance/users'
     | '/app/hub/assets/add'
@@ -1100,6 +1111,7 @@ export interface FileRouteTypes {
     | '/app/quotas/'
     | '/app/users/'
     | '/instance/analytics/'
+    | '/instance/health/'
     | '/instance/organizations/'
     | '/instance/users/'
     | '/app/hub/assets/$assetId'
@@ -1593,6 +1605,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/instance/analytics/'
       preLoaderRoute: typeof InstanceAnalyticsIndexRouteImport
+      parentRoute: typeof InstanceRouteRoute
+    }
+    '/instance/health/': {
+      id: '/instance/health/'
+      path: '/health'
+      fullPath: '/instance/health/'
+      preLoaderRoute: typeof InstanceHealthIndexRouteImport
       parentRoute: typeof InstanceRouteRoute
     }
     '/instance/organizations/': {
@@ -2225,6 +2244,7 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 interface InstanceRouteRouteChildren {
   InstanceIndexRoute: typeof InstanceIndexRoute
   InstanceAnalyticsIndexRoute: typeof InstanceAnalyticsIndexRoute
+  InstanceHealthIndexRoute: typeof InstanceHealthIndexRoute
   InstanceOrganizationsIndexRoute: typeof InstanceOrganizationsIndexRoute
   InstanceUsersIndexRoute: typeof InstanceUsersIndexRoute
 }
@@ -2232,6 +2252,7 @@ interface InstanceRouteRouteChildren {
 const InstanceRouteRouteChildren: InstanceRouteRouteChildren = {
   InstanceIndexRoute: InstanceIndexRoute,
   InstanceAnalyticsIndexRoute: InstanceAnalyticsIndexRoute,
+  InstanceHealthIndexRoute: InstanceHealthIndexRoute,
   InstanceOrganizationsIndexRoute: InstanceOrganizationsIndexRoute,
   InstanceUsersIndexRoute: InstanceUsersIndexRoute,
 }

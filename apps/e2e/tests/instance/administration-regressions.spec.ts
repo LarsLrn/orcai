@@ -83,10 +83,10 @@ test("instance management has an independent route and survives the last organis
 			).toBeVisible();
 
 			await open(page, "/instance");
-			await expect(page).toHaveURL(/\/instance\/organizations/);
+			await expect(page).toHaveURL(/\/instance\/health$/);
 			await expect(
 				page.getByRole("heading", {
-					name: message("instance_organizations_page_title"),
+					name: message("instance_health_page_title"),
 					exact: true,
 				}),
 			).toBeVisible();
@@ -182,7 +182,7 @@ test("the app user menu offers instance management only to instance admins", asy
 	});
 	await expect(launcher).toBeVisible();
 	await launcher.click();
-	await expect(adminPage).toHaveURL(/\/instance\/organizations/);
+	await expect(adminPage).toHaveURL(/\/instance\/health$/);
 
 	const memberPage = await pageAs("member");
 	await enterApp(memberPage, org.slug);

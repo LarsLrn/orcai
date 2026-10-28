@@ -127,6 +127,15 @@ export const queryDefaults = {
 			},
 		},
 	},
+	health: {
+		instance: {
+			queryOptions: {
+				// Every fetch probes the dependencies: only on load and refresh.
+				staleTime: 10_000,
+				refetchOnWindowFocus: false,
+			},
+		},
+	},
 	provider: {
 		list: {
 			queryOptions: {
