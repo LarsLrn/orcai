@@ -14,6 +14,7 @@ export const NOTIFICATION_OUTBOX_CLEANUP_JOB_NAME =
 
 export const DATA_EXPORT_JOB_NAME = "data-export-job";
 export const DATA_EXPORT_DEAD_LETTER_JOB_NAME = "data-export-dead-letter-job";
+export const DATA_EXPORT_EXPIRE_JOB_NAME = "data-export-expire-job";
 
 export const jobQueues = z.enum([
 	PROCESS_ASSET_JOB_NAME,
@@ -26,6 +27,7 @@ export const jobQueues = z.enum([
 	NOTIFICATION_OUTBOX_CLEANUP_JOB_NAME,
 	DATA_EXPORT_JOB_NAME,
 	DATA_EXPORT_DEAD_LETTER_JOB_NAME,
+	DATA_EXPORT_EXPIRE_JOB_NAME,
 ]);
 
 export type JobQueue = z.infer<typeof jobQueues>;

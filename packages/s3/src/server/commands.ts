@@ -162,12 +162,14 @@ export const sendPutObjectCommand = (params: {
 export const sendListObjectsCommand = (params: {
 	bucket: string;
 	prefix: string;
+	continuationToken?: string;
 }) =>
 	Effect.gen(function* () {
 		const { client } = yield* S3Service;
 		const command = new ListObjectsV2Command({
 			Bucket: params.bucket,
 			Prefix: params.prefix,
+			ContinuationToken: params.continuationToken,
 		});
 
 		return yield* trySend({

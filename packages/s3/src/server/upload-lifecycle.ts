@@ -1,7 +1,6 @@
 import type { LifecycleRule } from "@aws-sdk/client-s3";
 import { buckets } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import { DATA_EXPORT_PREFIX } from "../shared/data-export";
 import { UPLOAD_STAGING_PREFIX } from "../shared/upload-policy";
 import {
 	sendGetBucketLifecycleConfigurationCommand,
@@ -10,7 +9,7 @@ import {
 import { getS3Code } from "./errors";
 import { createBucketIfNotExists } from "./upload-validation";
 
-/** Staged uploads no asset was created from, abandoned multipart uploads, and data exports. */
+/** Staged uploads no asset was created from, and abandoned multipart uploads. */
 export const UPLOAD_LIFECYCLE_RULES = [
 	{
 		ID: "expire-staged-uploads",
@@ -25,26 +24,18 @@ export const UPLOAD_LIFECYCLE_RULES = [
 			DaysAfterInitiation: 1,
 		},
 	},
-	{
-		ID: "expire-data-exports",
-		Status: "Enabled",
-		Filter: {
-			Prefix: DATA_EXPORT_PREFIX,
-		},
-		Expiration: {
-			Days: 1,
-		},
-		AbortIncompleteMultipartUpload: {
-			DaysAfterInitiation: 1,
-		},
-	},
 ] as const satisfies LifecycleRule[];
 
-const OWN_RULE_IDS = new Set<string>(
-	UPLOAD_LIFECYCLE_RULES.map((rule) => rule.ID),
-);
+const RETIRED_RULE_IDS = [
+	"expire-data-exports",
+] as const;
 
-/** Idempotent: puts these rules on the uploads bucket and keeps any other rule. */
+const MANAGED_RULE_IDS = new Set<string>([
+	...UPLOAD_LIFECYCLE_RULES.map((rule) => rule.ID),
+	...RETIRED_RULE_IDS,
+]);
+
+/** Idempotent: puts these rules on the uploads bucket, drops retired ones and keeps any other rule. */
 export const ensureUploadLifecycle = Effect.gen(function* () {
 	yield* createBucketIfNotExists(buckets.main.name);
 	const current = yield* sendGetBucketLifecycleConfigurationCommand({
@@ -60,7 +51,7 @@ export const ensureUploadLifecycle = Effect.gen(function* () {
 		bucket: buckets.main.name,
 		rules: [
 			...(current?.Rules ?? []).filter(
-				(rule) => !rule.ID || !OWN_RULE_IDS.has(rule.ID),
+				(rule) => !rule.ID || !MANAGED_RULE_IDS.has(rule.ID),
 			),
 			...UPLOAD_LIFECYCLE_RULES,
 		],

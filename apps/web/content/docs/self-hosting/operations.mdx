@@ -103,11 +103,15 @@ Data exports (`data-export-job`) are the exception: the app server works them, o
 
 ## Upload Storage Lifecycle
 
-Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight. Data export archives land under `exports/` in the same bucket.
+Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight.
 
-Each time the workers start, they put two lifecycle rules on the `uploads` bucket: `expire-staged-uploads` for `staging/` and `expire-data-exports` for `exports/`. Objects under either prefix expire one day after upload, and incomplete multipart uploads are aborted one day after they started. Other lifecycle rules on the bucket stay as they are. The rules never match an asset's file. If the storage provider rejects them, the workers log the error and keep running.
+Each time the workers start, they put the lifecycle rule `expire-staged-uploads` on the `uploads` bucket: objects under `staging/` expire one day after upload, and incomplete multipart uploads are aborted one day after they started. Other lifecycle rules on the bucket stay as they are. The rule never matches an asset's file. If the storage provider rejects it, the workers log the error and keep running.
 
-The storage provider enforces the rules, not OrcAI. SeaweedFS runs lifecycle in its plugin worker, which `weed mini` starts by default, once a day, so a staged file or an export archive can stay up to about two days. The app refuses to download an export after 24 hours either way. A storage provider without bucket lifecycle support keeps staged leftovers and export archives until you remove them.
+The storage provider enforces the rule, not OrcAI. SeaweedFS runs lifecycle in its plugin worker, once a day, so a staged file can stay up to about two days. A storage provider without bucket lifecycle support keeps staged leftovers until you remove them.
+
+## Data Export Archives
+
+Data export archives land under `exports/` in the same bucket and can be downloaded for 24 hours. The workers delete them themselves, so the removal does not depend on the storage provider: the `data-export-expire-job` runs every ten minutes and deletes every object under `exports/` that is older than 25 hours, the 24 hour download window plus the hour an export may take to build, including archives whose export or user no longer exists. The app refuses to download an export after 24 hours before the job has run.
 
 ## Asset Processing
 
