@@ -7,7 +7,7 @@ import {
 } from "../procedure-tool";
 import { listLimitSchema } from "./list-input";
 
-const listMembersInputSchema = z.object({
+const listMembersInputSchema = z.strictObject({
 	query: z
 		.string()
 		.trim()

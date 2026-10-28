@@ -7,7 +7,7 @@ import { toolInputSchema } from "./input-schema";
 
 const ASSET_ID = "9b2d4c6e-1f3a-4b5c-8d7e-0a1b2c3d4e5f";
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
 	ids: z.array(assetIdSchema).describe("Assets to read."),
 	note: z.string().optional(),
 });

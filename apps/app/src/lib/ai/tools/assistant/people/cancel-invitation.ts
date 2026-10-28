@@ -10,7 +10,7 @@ import {
 	mutation,
 } from "../procedure-tool";
 
-const cancelInvitationInputSchema = z.object({
+const cancelInvitationInputSchema = z.strictObject({
 	ids: z
 		.array(organizationInvitationIdSchema)
 		.min(1)

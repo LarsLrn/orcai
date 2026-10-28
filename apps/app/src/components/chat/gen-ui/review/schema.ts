@@ -8,7 +8,7 @@ export const severitySchema = z.enum([
 
 export type Severity = z.infer<typeof severitySchema>;
 
-const findingSchema = z.object({
+const findingSchema = z.strictObject({
 	label: z.string().describe("The rule or aspect, a few words of plain text."),
 	severity: severitySchema.describe(
 		"error: breaks the rule. warning: partly follows it or is doubtful. info: an observation that needs no change.",
@@ -26,7 +26,7 @@ const findingSchema = z.object({
 		),
 });
 
-export const reviewSchema = z.object({
+export const reviewSchema = z.strictObject({
 	title: z.string().describe("Short heading, plain text."),
 	summary: z
 		.string()
@@ -36,7 +36,7 @@ export const reviewSchema = z.object({
 		),
 	items: z
 		.array(
-			z.object({
+			z.strictObject({
 				label: z
 					.string()
 					.describe("Names the text, a few words of plain text."),

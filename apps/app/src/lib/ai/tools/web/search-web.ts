@@ -24,7 +24,7 @@ export const searchWebTool = ({
 					]
 				: []),
 		].join(" "),
-		inputSchema: z.object({
+		inputSchema: z.strictObject({
 			query: z
 				.string()
 				.trim()

@@ -7,7 +7,7 @@ import {
 } from "../procedure-tool";
 import { listLimitSchema, listQuerySchema } from "./list-input";
 
-const findBotsInputSchema = z.object({
+const findBotsInputSchema = z.strictObject({
 	query: listQuerySchema,
 	limit: listLimitSchema,
 });

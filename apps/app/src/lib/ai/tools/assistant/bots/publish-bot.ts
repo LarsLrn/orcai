@@ -13,7 +13,7 @@ export const publishBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Publish a draft bot so its audience can chat with it. Needs a ready behaviour block, and every linked repository ready with at least one asset; otherwise the error names what is missing.",
-		inputSchema: publishBotInputSchema,
+		inputSchema: publishBotInputSchema.strict(),
 		run: ({ id }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.bot.publish(

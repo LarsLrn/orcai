@@ -9,17 +9,19 @@ import {
 } from "../procedure-tool";
 import { groupOutline } from "./group-outline";
 
-const updateGroupInputSchema = updateGroupProcedureInputSchema.extend({
-	id: updateGroupProcedureInputSchema.shape.id.describe(
-		"Id of the group to update.",
-	),
-	name: updateGroupProcedureInputSchema.shape.name.describe(
-		"Leave out to keep the current name.",
-	),
-	description: updateGroupProcedureInputSchema.shape.description.describe(
-		"Leave out to keep the current description; null clears it.",
-	),
-});
+const updateGroupInputSchema = updateGroupProcedureInputSchema
+	.extend({
+		id: updateGroupProcedureInputSchema.shape.id.describe(
+			"Id of the group to update.",
+		),
+		name: updateGroupProcedureInputSchema.shape.name.describe(
+			"Leave out to keep the current name.",
+		),
+		description: updateGroupProcedureInputSchema.shape.description.describe(
+			"Leave out to keep the current description; null clears it.",
+		),
+	})
+	.strict();
 
 export const updateGroupTool = (deps: AssistantToolDeps) =>
 	effectTool({

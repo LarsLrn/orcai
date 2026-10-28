@@ -4,7 +4,7 @@ import { z } from "zod/v4";
 import { toolInputSchema } from "@/lib/ai/tools/input-schema";
 import type { NoToolContext } from "../procedure-tool";
 
-export const requestUploadInputSchema = z.object({
+export const requestUploadInputSchema = z.strictObject({
 	reason: z
 		.string()
 		.min(1)

@@ -11,7 +11,7 @@ import {
 } from "../procedure-tool";
 import { blockDescription, templateOutline } from "./block-outline";
 
-export const createTemplateInputSchema = z.object({
+export const createTemplateInputSchema = z.strictObject({
 	name: z.string().min(1),
 	description: blockFieldsSchema.shape.description
 		.unwrap()

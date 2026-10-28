@@ -2,7 +2,6 @@ import type { BotId } from "@orcai/core";
 import {
 	blockIdSchema,
 	botFieldsSchema,
-	featuresSchema,
 	type SaveBotInput,
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
@@ -16,8 +15,9 @@ import {
 	mutation,
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
+import { featuresInputSchema } from "./features-input";
 
-export const createBotInputSchema = z.object({
+export const createBotInputSchema = z.strictObject({
 	name: botFieldsSchema.shape.name,
 	description: botFieldsSchema.shape.description.describe(
 		"Short plain-text description shown with the bot, up to 500 characters.",
@@ -29,7 +29,7 @@ export const createBotInputSchema = z.object({
 		.array(blockIdSchema)
 		.optional()
 		.describe("Ids of every repository the bot answers from."),
-	features: featuresSchema
+	features: featuresInputSchema
 		.optional()
 		.describe(
 			"Every enabled feature, such as { generativeUi: {}, webSearch: { allowedDomains: [] } }.",

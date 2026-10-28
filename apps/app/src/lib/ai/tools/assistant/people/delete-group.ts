@@ -5,7 +5,7 @@ import { z } from "zod/v4";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
-const deleteGroupInputSchema = z.object({
+const deleteGroupInputSchema = z.strictObject({
 	ids: z
 		.array(groupIdSchema)
 		.min(1)

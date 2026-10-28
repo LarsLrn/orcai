@@ -8,7 +8,7 @@ import {
 } from "../procedure-tool";
 import { listLimitSchema, listQuerySchema } from "./list-input";
 
-const findBlocksInputSchema = z.object({
+const findBlocksInputSchema = z.strictObject({
 	type: z
 		.enum([
 			"template",

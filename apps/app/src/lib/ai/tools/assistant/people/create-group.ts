@@ -10,7 +10,7 @@ import {
 } from "../procedure-tool";
 import { groupOutline } from "./group-outline";
 
-const createGroupInputSchema = groupFieldsSchema;
+const createGroupInputSchema = groupFieldsSchema.strict();
 
 export const createGroupTool = (deps: AssistantToolDeps) =>
 	effectTool({

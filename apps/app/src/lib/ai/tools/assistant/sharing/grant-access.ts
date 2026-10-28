@@ -16,10 +16,10 @@ import {
 	toResourceIdentity,
 } from "./resource-target";
 
-const grantAccessInputSchema = z.object({
+const grantAccessInputSchema = z.strictObject({
 	...resourceTargetShape,
 	principals: z
-		.array(z.object(principalShape))
+		.array(z.strictObject(principalShape))
 		.min(1)
 		.max(50)
 		.describe("The users and groups that get the role."),

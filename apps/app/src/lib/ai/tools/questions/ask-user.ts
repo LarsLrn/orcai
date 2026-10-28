@@ -44,25 +44,25 @@ const quizFields = {
 };
 
 const questionSchema = z.discriminatedUnion("type", [
-	z.object({
+	z.strictObject({
 		type: z.literal("single"),
 		prompt,
 		options,
 		...quizFields,
 	}),
-	z.object({
+	z.strictObject({
 		type: z.literal("multiple"),
 		prompt,
 		options,
 		...quizFields,
 	}),
-	z.object({
+	z.strictObject({
 		type: z.literal("text"),
 		prompt,
 		...quizFields,
 	}),
 	z
-		.object({
+		.strictObject({
 			type: z.literal("scale"),
 			prompt,
 			min: z.int().min(0).max(100).describe("The lowest value."),
@@ -90,7 +90,7 @@ const questionSchema = z.discriminatedUnion("type", [
 export type Question = z.infer<typeof questionSchema>;
 
 export const askUserInputSchema = z
-	.object({
+	.strictObject({
 		mode: z
 			.enum([
 				"regular",

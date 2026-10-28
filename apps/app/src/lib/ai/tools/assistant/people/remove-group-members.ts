@@ -12,7 +12,7 @@ export const removeGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Remove users from a custom group, by user id (from listGroupMembers). They lose the access the group holds; their organisation membership stays.",
-		inputSchema: removeGroupMembersInputSchema,
+		inputSchema: removeGroupMembersInputSchema.strict(),
 		run: (input) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.group.removeMembers(input, options),
