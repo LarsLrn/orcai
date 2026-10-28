@@ -204,7 +204,7 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -379,7 +379,7 @@ test("orgs: a manager is not offered to delete an admin invitation", async ({
 	const openRowMenu = async (email: string) => {
 		await rowOf(email)
 			.getByRole("button", {
-				name: message("common_row_menu_trigger"),
+				name: message("common_more_actions"),
 			})
 			.click();
 		await expect(copyLinkItem).toBeVisible();

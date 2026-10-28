@@ -1,9 +1,7 @@
 import type { OrganizationWithMemberCount } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { DeleteOrganizationDialog } from "@/components/organizations/delete-organization-dialog";
-import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import {
@@ -12,6 +10,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
@@ -88,14 +87,7 @@ const InstanceOrganizationRowActions = ({
 	return (
 		<>
 			<DropdownMenu>
-				<DropdownMenuTrigger
-					render={
-						<Button variant="ghost" className="size-8 p-0">
-							<span className="sr-only">{m.common_row_menu_trigger()}</span>
-							<MoreHorizontal className="size-4" />
-						</Button>
-					}
-				/>
+				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
 				<DropdownMenuContent align="end">
 					<DropdownMenuItem
 						variant="destructive"

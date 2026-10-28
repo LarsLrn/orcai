@@ -12,6 +12,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import {
 	ResourceCard,
 	ResourceCardAction as ResourceCardActionButton,
@@ -25,7 +26,6 @@ import {
 	ResourceCardHeader,
 	ResourceCardMedia,
 	ResourceCardMenu,
-	ResourceCardMenuTrigger,
 	ResourceCardMeta,
 	type ResourceCardMetaItem,
 	type ResourceCardPrimaryAction,
@@ -153,7 +153,9 @@ const BlockCard = ({
 			{dropdownActions.length > 0 ? (
 				<ResourceCardMenu>
 					<DropdownMenu>
-						<DropdownMenuTrigger render={<ResourceCardMenuTrigger />} />
+						<DropdownMenuTrigger
+							render={<OverflowMenuTrigger variant="ghost" />}
+						/>
 						<DropdownMenuContent align="end" className="w-40">
 							{dropdownActions.map((action) => (
 								<DropdownMenuItem

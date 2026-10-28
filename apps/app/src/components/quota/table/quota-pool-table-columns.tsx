@@ -1,14 +1,12 @@
 import type { quotaPoolListRowSchema } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
 import type { z } from "zod/v4";
 import {
 	QuotaConsumption,
 	QuotaRemaining,
 } from "@/components/quota/quota-consumption";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import {
@@ -19,6 +17,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-mutations";
 import { formatNumber } from "@/lib/presentation/format-number";
 import {
@@ -166,14 +165,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		enableHiding: false,
 		cell: ({ row }) => (
 			<DropdownMenu>
-				<DropdownMenuTrigger
-					render={
-						<Button variant="ghost" className="size-8 p-0">
-							<span className="sr-only">{m.common_row_menu_trigger()}</span>
-							<MoreHorizontal className="size-4" />
-						</Button>
-					}
-				/>
+				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
 				<DropdownMenuContent align="end">
 					<DropdownMenuLinkItem
 						render={

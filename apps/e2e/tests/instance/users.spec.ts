@@ -96,7 +96,7 @@ test("instance: the users page bans and unbans an account", async ({
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -118,7 +118,7 @@ test("instance: the users page bans and unbans an account", async ({
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -146,7 +146,7 @@ test("instance: the users page deletes an account", async ({
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -198,7 +198,7 @@ test("instance: the users page resets an account's two-factor authentication", a
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -248,7 +248,7 @@ test("instance: the users page makes an account an instance admin and back", asy
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -274,7 +274,7 @@ test("instance: the users page makes an account an instance admin and back", asy
 
 	await row
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
@@ -321,7 +321,7 @@ test("instance: nobody changes their own instance role, and only instance admins
 	);
 	await expect(
 		ownRow.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		}),
 	).toHaveCount(0);
 

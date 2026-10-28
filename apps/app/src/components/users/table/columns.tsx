@@ -2,8 +2,6 @@ import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { UserWithOrganizationRole } from "@orcai/schema";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
@@ -15,6 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
@@ -111,14 +110,7 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button variant="ghost" className="size-8 p-0">
-						<span className="sr-only">{m.common_row_menu_trigger()}</span>
-						<MoreHorizontal className="size-4" />
-					</Button>
-				}
-			/>
+			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
 			<DropdownMenuContent align="end">
 				<DropdownMenuLinkItem
 					render={

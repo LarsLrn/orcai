@@ -52,7 +52,7 @@ test("assets: chat uploads have their own tab until added to the library", async
 
 	await chatCard
 		.getByRole("button", {
-			name: message("common_row_menu_trigger"),
+			name: message("common_more_actions"),
 		})
 		.click();
 	await page
