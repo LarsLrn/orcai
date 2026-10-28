@@ -1,12 +1,12 @@
-import { type GroupId, getInitial } from "@orcai/core";
+import type { GroupId } from "@orcai/core";
 import type { GroupMemberRow } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Trash2Icon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { useRemoveGroupMembersMutation } from "@/hooks/mutations/use-group-mutations";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
@@ -54,12 +54,7 @@ export const groupMemberTableColumns = (groupId: GroupId) =>
 			),
 			cell: ({ row }) => (
 				<div className="flex min-w-0 items-center gap-3">
-					<Avatar size="sm">
-						<AvatarImage src={row.original.user.image ?? undefined} />
-						<AvatarFallback>
-							{getInitial(row.original.user.name)}
-						</AvatarFallback>
-					</Avatar>
+					<UserAvatar user={row.original.user} size="sm" />
 					<div className="min-w-0">
 						<p className="truncate font-medium">{row.original.user.name}</p>
 						{row.original.user.email ? (

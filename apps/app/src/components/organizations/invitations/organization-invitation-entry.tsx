@@ -2,7 +2,8 @@ import type {
 	OrganizationInvitation,
 	OrganizationInvitationListItem,
 } from "@orcai/schema";
-import { Building2Icon, CalendarIcon, Clock4Icon } from "lucide-react";
+import { CalendarIcon, Clock4Icon } from "lucide-react";
+import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -70,7 +71,13 @@ export function OrganizationInvitationEntry({
 			<CardHeader className="pb-2">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex items-center gap-2">
-						<Building2Icon className="h-4 w-4 text-primary" />
+						<OrganizationLogo
+							organization={{
+								name: invitation.organizationName,
+								logo: invitation.organizationLogo,
+							}}
+							size="sm"
+						/>
 						<CardTitle className="text-lg">
 							{invitation.organizationName}
 						</CardTitle>

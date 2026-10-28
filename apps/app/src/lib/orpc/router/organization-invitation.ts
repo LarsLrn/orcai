@@ -73,6 +73,7 @@ const listInvitations = (
 						...getColumns(dbSchema.invitation),
 						organizationName: dbSchema.organization.name,
 						organizationSlug: dbSchema.organization.slug,
+						organizationLogo: dbSchema.organization.logo,
 					})
 					.from(dbSchema.invitation)
 					.innerJoin(

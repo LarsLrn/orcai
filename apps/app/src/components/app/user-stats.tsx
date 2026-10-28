@@ -1,7 +1,8 @@
 import { Link, useRouteContext } from "@tanstack/react-router";
-import { MailIcon, SettingsIcon, UserIcon } from "lucide-react";
+import { MailIcon, SettingsIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { m } from "@/paraglide/messages";
 
 const UserStats = ({
@@ -29,7 +30,7 @@ const UserStats = ({
 			)}
 			<CardContent className="flex flex-col gap-2">
 				<div className="flex items-center gap-2">
-					<UserIcon className="text-primary" />
+					<UserAvatar user={auth.user} size="sm" />
 					<div className="space-y-0.5">
 						<p className="text-muted-foreground text-xs">
 							{m.common_name_label()}

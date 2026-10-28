@@ -1,5 +1,6 @@
 import type { Organization } from "@orcai/schema";
 import { BuildingIcon } from "lucide-react";
+import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import {
 	ResourceCard,
 	ResourceCardBadges,
@@ -7,6 +8,7 @@ import {
 	ResourceCardContent,
 	ResourceCardDescription,
 	ResourceCardHeader,
+	ResourceCardMedia,
 	ResourceCardTitle,
 } from "@/components/ui/shell/resource-card";
 import { m } from "@/paraglide/messages";
@@ -32,6 +34,9 @@ const OrganizationCard = ({
 				}}
 			>
 				<ResourceCardHeader>
+					<ResourceCardMedia>
+						<OrganizationLogo organization={organization} size="lg" />
+					</ResourceCardMedia>
 					<ResourceCardTitle>{organization.name}</ResourceCardTitle>
 					{organization.slug ? (
 						<ResourceCardDescription>

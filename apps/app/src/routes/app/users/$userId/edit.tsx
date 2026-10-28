@@ -16,7 +16,6 @@ import {
 	KeyRoundIcon,
 	MailCheckIcon,
 	MailIcon,
-	UserIcon,
 } from "lucide-react";
 import type { z } from "zod/v4";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +51,7 @@ import {
 	userAccessTableColumns,
 	userAccessTypeOptions,
 } from "@/components/users/table/user-access-table-columns";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
@@ -158,7 +158,7 @@ function RouteComponent() {
 					<CardContent className="flex flex-col gap-4">
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="flex items-center gap-2">
-								<UserIcon className="h-4 w-4 text-primary" />
+								<UserAvatar user={user.data} size="sm" />
 								<div className="space-y-0.5">
 									<p className="font-medium text-sm">{m.common_name_label()}</p>
 									<p className="text-muted-foreground text-sm">
