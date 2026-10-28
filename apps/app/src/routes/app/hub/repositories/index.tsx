@@ -9,7 +9,6 @@ import {
 	BlocksIcon,
 	DatabaseIcon,
 	EditIcon,
-	FlaskConicalIcon,
 	PlusIcon,
 	TrashIcon,
 } from "lucide-react";
@@ -79,13 +78,6 @@ export const Route = createFileRoute("/app/hub/repositories/")({
 		]);
 	},
 	component: RouteComponent,
-	head: () => ({
-		meta: [
-			{
-				title: m.blocks_repositories_page_title(),
-			},
-		],
-	}),
 });
 
 function RouteComponent() {
@@ -178,25 +170,7 @@ function RouteComponent() {
 						<>
 							<SectionGrid layout="3">
 								{published.data.map((block) => (
-									<BlockCard
-										key={block.id}
-										block={block}
-										actions={{
-											footer: [
-												{
-													key: "playground",
-													label: m.blocks_repositories_playground_action(),
-													icon: FlaskConicalIcon,
-													linkProps: {
-														to: "/app/hub/repositories/$blockId/playground",
-														params: {
-															blockId: block.id,
-														},
-													},
-												},
-											],
-										}}
-									/>
+									<BlockCard key={block.id} block={block} />
 								))}
 							</SectionGrid>
 							<CardPager

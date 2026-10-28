@@ -25,9 +25,16 @@ const formatScore = (score: number) =>
 		maximumFractionDigits: 3,
 	}).format(score);
 
-const DisplayPoint = ({ point }: { point: AssetPoint }) => {
+const DisplayPoint = ({
+	point,
+	showScore = false,
+}: {
+	point: AssetPoint;
+	/** For a search hit; browsed points carry no score. */
+	showScore?: boolean;
+}) => {
 	const { id, payload, score } = point;
-	const hasScore = typeof score === "number" && Number.isFinite(score);
+	const hasScore = showScore && Number.isFinite(score);
 	const imageObjectKey =
 		payload.source === "image" ? payload.file_reference : undefined;
 	const pageRange = formatPageRange({

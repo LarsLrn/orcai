@@ -3,7 +3,6 @@ export * from "./error-reason";
 export * from "./forms/auth-email";
 export * from "./forms/change-password";
 export * from "./forms/init";
-export * from "./forms/qdrant-playground";
 export * from "./forms/shared";
 export * from "./forms/signin";
 export * from "./forms/signup";
