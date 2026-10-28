@@ -1,7 +1,6 @@
 import type { ClientToolOutput, ToolApprovalDecision } from "@orcai/schema";
 import { isToolUIPart, type ToolUIPart, type UIMessage } from "ai";
 import { toolKindOf } from "@/lib/ai/tools/registry";
-import { toolCloseCode } from "@/lib/ai/utils/close-pending-tool-parts";
 
 type AnyPart = UIMessage["parts"][number];
 
@@ -46,15 +45,13 @@ const isClientCall = (part: AnyPart): part is ToolUIPart =>
 	isToolUIPart(part) && toolKindOf(part) === "client";
 
 /**
- * A client call the user can answer or has answered. One the server closed,
- * or whose input never finished streaming, waits on nobody.
+ * A client call the user can answer or has answered. One that failed, which
+ * only the server records, or whose input never finished streaming, waits on
+ * nobody.
  */
 const isUserClientCall = (part: AnyPart) =>
 	isClientCall(part) &&
-	(part.state === "input-available" ||
-		part.state === "output-available" ||
-		(part.state === "output-error" &&
-			toolCloseCode(part.errorText) === undefined));
+	(part.state === "input-available" || part.state === "output-available");
 
 /** Client calls wait only on the chat's latest message; elsewhere a newer message skipped them. */
 export const pausesTurn = (part: AnyPart, latest: boolean) =>
@@ -78,27 +75,16 @@ const answersOf = (
 				]
 			: [],
 	),
-	toolOutputs: calls.flatMap((part): ClientToolOutput[] => {
-		if (!isToolUIPart(part) || !isUserClientCall(part)) return [];
-		switch (part.state) {
-			case "output-available":
-				return [
+	toolOutputs: calls.flatMap((part): ClientToolOutput[] =>
+		isClientCall(part) && part.state === "output-available"
+			? [
 					{
 						toolCallId: part.toolCallId,
 						output: part.output,
 					},
-				];
-			case "output-error":
-				return [
-					{
-						toolCallId: part.toolCallId,
-						errorText: part.errorText,
-					},
-				];
-			default:
-				return [];
-		}
-	}),
+				]
+			: [],
+	),
 });
 
 /** The last step, the parts after the last `step-start`, while it waits on the user for one of its calls. */

@@ -23,16 +23,10 @@ export type ToolApprovalDecision = z.infer<typeof toolApprovalDecisionSchema>;
 const toolCallIdSchema = z.string().min(1).max(200);
 
 /** A client tool's result; the server validates `output` against that tool's schema. */
-export const clientToolOutputSchema = z.union([
-	z.strictObject({
-		toolCallId: toolCallIdSchema,
-		errorText: z.string().min(1).max(1000),
-	}),
-	z.strictObject({
-		toolCallId: toolCallIdSchema,
-		output: z.unknown(),
-	}),
-]);
+export const clientToolOutputSchema = z.strictObject({
+	toolCallId: toolCallIdSchema,
+	output: z.unknown(),
+});
 
 export type ClientToolOutput = z.infer<typeof clientToolOutputSchema>;
 

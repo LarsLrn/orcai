@@ -189,8 +189,7 @@ export const applyTurnDecisions = ({
 			(candidate) =>
 				candidate.toolCallId === answer.toolCallId &&
 				toolKindOf(candidate) === "client" &&
-				(candidate.state === "output-available" ||
-					candidate.state === "output-error"),
+				candidate.state === "output-available",
 		);
 
 		// A retry after a failed stream repeats outputs the reply already holds.
@@ -204,15 +203,6 @@ export const applyTurnDecisions = ({
 				"CHAT_TURN_NOT_AWAITING",
 				`Call ${answer.toolCallId} is not waiting for a result.`,
 			);
-		}
-
-		if ("errorText" in answer) {
-			outputById.set(answer.toolCallId, {
-				...part,
-				state: "output-error",
-				errorText: answer.errorText,
-			} as Part);
-			continue;
 		}
 
 		const toolName = getToolName(part);
