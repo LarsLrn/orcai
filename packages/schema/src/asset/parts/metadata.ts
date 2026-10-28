@@ -17,12 +17,6 @@ export const sourceTypeLabels: Record<SourceType, string> = {
 };
 
 export const metadataSchema = z.object({
-	showReference: z.boolean(),
-	relevance: z.enum([
-		"high",
-		"medium",
-		"low",
-	]),
 	sourceType: z.enum(sourceTypes).optional(),
 	citation: z.string().optional(),
 	externalUrl: z.string().optional(),
