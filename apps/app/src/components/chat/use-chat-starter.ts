@@ -1,11 +1,11 @@
-import type { BotId, ChatId } from "@orcai/core";
+import type { BotId, ChatId, ModelId, ProviderId } from "@orcai/core";
 import {
 	type ChatConfig,
 	DEFAULT_FEATURES,
 	type Model,
 	type Provider,
 } from "@orcai/schema";
-import { useMutation } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { composerBlocker } from "@/components/chat/composer-blocker";
@@ -29,23 +29,63 @@ const useChatStarter = ({
 	const { mutateAsync: createChat } = useMutation(
 		orpc.chat.create.mutationOptions(),
 	);
-	const [selectedModel, setSelectedModel] = useState<Model | null>(null);
-	const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
-		null,
-	);
+	// A pick belongs to the bot it was made for, so another bot brings its own recommendation.
+	const [pick, setPick] = useState<{
+		botId: BotId | undefined;
+		modelId: ModelId;
+		providerId: ProviderId;
+	} | null>(null);
 	const [selectedBotId, setSelectedBotId] = useState<BotId | undefined>(
 		initialBotId,
 	);
 	const [isCreating, setIsCreating] = useState(false);
 	const { availability, defaultModel, defaultProvider } = useDefaultChatModel();
+	const { data: setupData } = useQuery(
+		orpc.botSetup.find.queryOptions({
+			input: selectedBotId
+				? {
+						botId: selectedBotId,
+					}
+				: skipToken,
+		}),
+	);
+	const setup = selectedBotId ? (setupData?.data.setup ?? null) : null;
+	const picked =
+		pick && pick.botId === selectedBotId
+			? {
+					modelId: pick.modelId,
+					providerId: pick.providerId,
+				}
+			: null;
+	const required = setup?.strength === "required" ? setup : null;
+	const setupModel = setup?.model && {
+		modelId: setup.model.id,
+		providerId: setup.model.providerId,
+	};
+	const defaultPick = defaultModel &&
+		defaultProvider && {
+			modelId: defaultModel.id,
+			providerId: defaultProvider.id,
+		};
+	// A required model is fixed; otherwise the user's pick, the recommended one, then the default.
+	const selected = required
+		? setupModel
+		: (picked ?? setupModel ?? defaultPick);
 	const { data: quota } = useQuotaStatus({
-		providerId: selectedProvider?.id,
-		modelId: selectedModel?.id,
+		providerId: selected?.providerId,
+		modelId: selected?.modelId,
 	});
 
 	const blocker = composerBlocker({
-		modelAvailable: availability !== "none",
+		modelAvailable: availability !== "none" || !!setupModel,
 		quota: quota?.data,
+		requiredBy:
+			required && selectedBotId
+				? {
+						botId: selectedBotId,
+						usable: required.model?.usable === true,
+					}
+				: undefined,
 	});
 
 	useEffect(() => {
@@ -54,24 +94,22 @@ const useChatStarter = ({
 		initialBotId,
 	]);
 
-	useEffect(() => {
-		if (selectedModel || !defaultModel || !defaultProvider) return;
-		setSelectedModel(defaultModel);
-		setSelectedProvider(defaultProvider);
-	}, [
-		selectedModel,
-		defaultModel,
-		defaultProvider,
-	]);
-
-	const handleModelSelect = useCallback((model: Model, provider: Provider) => {
-		setSelectedModel(model);
-		setSelectedProvider(provider);
-	}, []);
+	const handleModelSelect = useCallback(
+		(model: Model, provider: Provider) => {
+			setPick({
+				botId: selectedBotId,
+				modelId: model.id,
+				providerId: provider.id,
+			});
+		},
+		[
+			selectedBotId,
+		],
+	);
 
 	const handleSend = useCallback(
 		async (text: string) => {
-			if (!selectedModel || !selectedProvider) {
+			if (!selected) {
 				toast.error(m.chat_composer_model_required_toast_error());
 				return;
 			}
@@ -81,8 +119,7 @@ const useChatStarter = ({
 
 			try {
 				const config: ChatConfig = {
-					modelId: selectedModel.id,
-					providerId: selectedProvider.id,
+					...selected,
 					// Bot chats use the bot's features and reject their own.
 					...(selectedBotId
 						? {}
@@ -107,8 +144,7 @@ const useChatStarter = ({
 			}
 		},
 		[
-			selectedModel,
-			selectedProvider,
+			selected,
 			selectedBotId,
 			isCreating,
 			createChat,
@@ -117,8 +153,10 @@ const useChatStarter = ({
 	);
 
 	return {
-		selectedModelId: selectedModel?.id,
-		selectedProviderId: selectedProvider?.id,
+		selectedModelId: selected?.modelId,
+		selectedProviderId: selected?.providerId,
+		/** The bot's setup in the active organisation, which seeds or fixes the model. */
+		setup,
 		selectedBotId,
 		blocker,
 		isCreating,

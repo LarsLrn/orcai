@@ -44,6 +44,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			}),
 			orpc.user.listAccess.key(),
 			readOnlyChats,
+			orpc.botSetup.coverage.key(),
 		];
 	};
 	// Organisation readiness reads providers, models, pools, groups and members.
@@ -69,6 +70,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.user.listAccess.key(),
 		readiness,
 		readOnlyChats,
+		orpc.botSetup.coverage.key(),
 	];
 
 	const instanceMembership = () => [
@@ -82,10 +84,13 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	];
 
 	// A provider's page counts its models.
+	// A bot's setup and the chats it requires a model for show whether the model is usable.
 	const models = () => [
 		orpc.model.key(),
 		orpc.provider.find.key(),
 		readiness,
+		orpc.botSetup.key(),
+		readOnlyChats,
 	];
 
 	// Readiness lists each document's title and state.
@@ -132,6 +137,12 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			delete: () => [
 				orpc.bot.key(),
+				readOnlyChats,
+			],
+		},
+		botSetup: {
+			save: () => [
+				orpc.botSetup.key(),
 				readOnlyChats,
 			],
 		},
@@ -203,6 +214,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.group.key(),
 				orpc.quota.find.key(),
 				readiness,
+				readOnlyChats,
+				orpc.botSetup.coverage.key(),
 			],
 			addMembers: groupMembership,
 			removeMembers: groupMembership,
@@ -286,26 +299,33 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			update: () => [
 				orpc.provider.key(),
 				readiness,
+				orpc.botSetup.key(),
+				readOnlyChats,
 			],
 			// Deleting the web search provider turns the organisation's web search off.
 			delete: () => [
 				orpc.provider.key(),
 				orpc.organization.key(),
 				readiness,
+				orpc.botSetup.key(),
+				readOnlyChats,
 			],
 		},
 		quota: {
 			create: () => [
 				orpc.quota.key(),
 				readiness,
+				orpc.botSetup.coverage.key(),
 			],
 			update: () => [
 				orpc.quota.key(),
 				readiness,
+				orpc.botSetup.coverage.key(),
 			],
 			deactivate: () => [
 				orpc.quota.key(),
 				readiness,
+				orpc.botSetup.coverage.key(),
 			],
 		},
 		resource: {

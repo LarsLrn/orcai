@@ -49,6 +49,7 @@ const reasonMessages: ReasonMessages = {
 	BOOTSTRAP_USER_CREATE_FAILED: m.error_bootstrap_user_create_failed,
 	BOT_BEHAVIOUR_BLOCK_NOT_READY: m.error_bot_behaviour_block_not_ready,
 	BOT_BEHAVIOUR_BLOCK_REQUIRED: m.error_bot_behaviour_block_required,
+	BOT_MODEL_UNAVAILABLE: m.error_bot_model_unavailable,
 	BOT_NOT_FOUND: m.error_bot_not_found,
 	BOT_NOT_PUBLISHED: m.error_bot_not_published,
 	BOT_REPOSITORY_EMPTY: ({ blockName }) =>
@@ -74,6 +75,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_MESSAGE_ID_TAKEN: m.error_chat_message_id_taken,
 	CHAT_MESSAGE_NOT_FOUND: m.error_chat_message_not_found,
 	CHAT_MODEL_NOT_CONFIGURED: m.error_chat_model_not_configured,
+	CHAT_MODEL_REQUIRED_BY_BOT: m.error_chat_model_required_by_bot,
 	CHAT_NOT_FOUND: m.error_chat_not_found,
 	CHAT_ORGANIZATION_MISMATCH: m.error_chat_organization_mismatch,
 	CHAT_RATING_FAILED: m.error_chat_rating_failed,

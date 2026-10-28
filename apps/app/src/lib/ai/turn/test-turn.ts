@@ -137,6 +137,13 @@ export const answerSetup = ({
 					providerKind === "openai-compatible" ? "https://llm.test/v1" : null,
 			},
 		});
+	answers["botSetup.find"] = () =>
+		Effect.succeed({
+			data: {
+				setup: null,
+				canEdit: false,
+			},
+		});
 	answers["chatBlock.list"] = () =>
 		Effect.succeed({
 			data: chatBlocks,

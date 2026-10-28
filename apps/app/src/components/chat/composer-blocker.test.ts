@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { QuotaPoolId } from "@orcai/core";
+import type { BotId, QuotaPoolId } from "@orcai/core";
 import type { QuotaStatus } from "@orcai/schema";
 import { composerBlocker } from "./composer-blocker";
 
@@ -72,6 +72,57 @@ describe("composerBlocker", () => {
 			composerBlocker({
 				modelAvailable: true,
 				quota: undefined,
+			}),
+		).toBeUndefined();
+	});
+
+	test("a bot's required model blocks when missing, unusable or uncovered, but not when only used up", () => {
+		const botId = crypto.randomUUID() as BotId;
+		const blocked = {
+			reason: "bot-model" as const,
+			botId,
+		};
+		expect(
+			composerBlocker({
+				modelAvailable: true,
+				quota: covered(0),
+				requiredBy: {
+					botId,
+					usable: false,
+				},
+			}),
+		).toEqual(blocked);
+		expect(
+			composerBlocker({
+				modelAvailable: false,
+				quota: uncovered,
+				requiredBy: {
+					botId,
+					usable: true,
+				},
+			}),
+		).toEqual(blocked);
+		expect(
+			composerBlocker({
+				modelAvailable: true,
+				quota: covered(1),
+				requiredBy: {
+					botId,
+					usable: true,
+				},
+			}),
+		).toEqual({
+			reason: "exhausted",
+			resetsAt,
+		});
+		expect(
+			composerBlocker({
+				modelAvailable: true,
+				quota: undefined,
+				requiredBy: {
+					botId,
+					usable: true,
+				},
 			}),
 		).toBeUndefined();
 	});

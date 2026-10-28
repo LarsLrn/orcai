@@ -13,6 +13,7 @@ import {
 	chatListRowSchema,
 	chatReadOnlyReasonSchema,
 	chatSchema,
+	effectiveModelSchema,
 } from "./schema";
 
 export const listChatsResponseSchema =
@@ -31,6 +32,7 @@ export const findChatResponseSchema = createDataResponseSchema(
 		}),
 		/** Null when the requester can continue the chat. */
 		readOnly: chatReadOnlyReasonSchema.nullable(),
+		effectiveModel: effectiveModelSchema,
 	}),
 );
 
