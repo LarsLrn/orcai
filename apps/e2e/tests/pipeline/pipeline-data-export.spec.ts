@@ -64,14 +64,17 @@ test("pipeline: a user exports their data from the account page and downloads th
 				name: message("account_data_export_confirm_button"),
 			})
 			.click();
-		await expect(
-			card.getByText(message("account_data_export_status_pending")),
-		).toBeVisible();
-
-		// The app picks the job up once the workers have created its queue.
 		const download = card.getByRole("link", {
 			name: message("account_data_export_download_button"),
 		});
+		// Workers poll every 0.5 s, so the export can be ready before pending renders.
+		await expect(
+			card
+				.getByText(message("account_data_export_status_pending"))
+				.or(download),
+		).toBeVisible();
+
+		// The app picks the job up once the workers have created its queue.
 		await expect(download).toBeVisible({
 			timeout: 60_000,
 		});
