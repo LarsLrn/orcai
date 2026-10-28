@@ -6,7 +6,11 @@ import {
 	analyticsBotKey,
 	analyticsBotName,
 } from "@/components/analytics/analytics-bot";
-import { AnalyticsRange } from "@/components/analytics/analytics-range";
+import {
+	AnalyticsRange,
+	AnalyticsRangeList,
+	AnalyticsRangePanel,
+} from "@/components/analytics/analytics-range";
 import { RatingBreakdown } from "@/components/analytics/rating-breakdown";
 import {
 	TwoLineName,
@@ -67,96 +71,104 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader>
-				<PageTitle>{m.analytics_page_title()}</PageTitle>
-				<PageDescription>{m.analytics_page_description()}</PageDescription>
-				<PageAction>
-					<AnalyticsRange
-						days={days}
-						onChange={(next) =>
-							void navigate({
-								to: ".",
-								search: {
-									days: next,
-								},
-								replace: true,
-							})
-						}
-					/>
-				</PageAction>
-			</PageHeader>
-			<PageContent className="space-y-6">
-				{unused ? (
-					<Empty className="border">
-						<EmptyHeader>
-							<EmptyMedia variant="icon">
-								<ChartColumnIcon />
-							</EmptyMedia>
-							<EmptyTitle>{m.analytics_empty_title()}</EmptyTitle>
-							<EmptyDescription>
-								{m.analytics_empty_description()}
-							</EmptyDescription>
-						</EmptyHeader>
-					</Empty>
-				) : (
-					<>
-						<UsageTotals totals={analytics.totals} />
-						<UsageOverTime daily={analytics.daily} />
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-							<UsageBreakdown
-								title={m.analytics_users_title()}
-								description={m.analytics_users_description()}
-								nameHeader={m.analytics_user_column_header()}
-								rows={analytics.users}
-								rowKey={(row) =>
-									row.user.kind === "member" ? row.user.id : row.user.kind
-								}
-								name={(row) =>
-									row.user.kind === "member" ? (
-										<TwoLineName
-											primary={row.user.name}
-											secondary={row.user.email}
-										/>
-									) : (
-										<TwoLineName primary={m.analytics_former_members_label()} />
-									)
-								}
-								empty={m.analytics_usage_empty()}
-							/>
-							<UsageBreakdown
-								title={m.analytics_models_title()}
-								description={m.analytics_models_description()}
-								nameHeader={m.analytics_model_column_header()}
-								rows={analytics.models}
-								rowKey={(row) => `${row.providerId}:${row.modelId ?? ""}`}
-								name={(row) => (
-									<TwoLineName
-										primary={row.modelName ?? m.analytics_model_unknown_label()}
-										secondary={row.providerName}
+			<AnalyticsRange
+				days={days}
+				onChange={(next) =>
+					void navigate({
+						to: ".",
+						search: {
+							days: next,
+						},
+						replace: true,
+					})
+				}
+			>
+				<PageHeader>
+					<PageTitle>{m.analytics_page_title()}</PageTitle>
+					<PageDescription>{m.analytics_page_description()}</PageDescription>
+					<PageAction>
+						<AnalyticsRangeList />
+					</PageAction>
+				</PageHeader>
+				<PageContent>
+					<AnalyticsRangePanel days={days}>
+						{unused ? (
+							<Empty className="border">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<ChartColumnIcon />
+									</EmptyMedia>
+									<EmptyTitle>{m.analytics_empty_title()}</EmptyTitle>
+									<EmptyDescription>
+										{m.analytics_empty_description()}
+									</EmptyDescription>
+								</EmptyHeader>
+							</Empty>
+						) : (
+							<>
+								<UsageTotals totals={analytics.totals} />
+								<UsageOverTime daily={analytics.daily} />
+								<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+									<UsageBreakdown
+										title={m.analytics_users_title()}
+										description={m.analytics_users_description()}
+										nameHeader={m.analytics_user_column_header()}
+										rows={analytics.users}
+										rowKey={(row) =>
+											row.user.kind === "member" ? row.user.id : row.user.kind
+										}
+										name={(row) =>
+											row.user.kind === "member" ? (
+												<TwoLineName
+													primary={row.user.name}
+													secondary={row.user.email}
+												/>
+											) : (
+												<TwoLineName
+													primary={m.analytics_former_members_label()}
+												/>
+											)
+										}
+										empty={m.analytics_usage_empty()}
 									/>
-								)}
-								empty={m.analytics_usage_empty()}
-							/>
-							<UsageBreakdown
-								title={m.analytics_bots_title()}
-								description={
-									hasBotUsage
-										? m.analytics_bots_description()
-										: m.analytics_bots_not_recorded_description()
-								}
-								nameHeader={m.analytics_bot_column_header()}
-								rows={analytics.bots}
-								rowKey={(row) => analyticsBotKey(row.bot)}
-								name={(row) => (
-									<TwoLineName primary={analyticsBotName(row.bot)} />
-								)}
-								empty={m.analytics_usage_empty()}
-							/>
-							<RatingBreakdown ratings={analytics.ratings} />
-						</div>
-					</>
-				)}
-			</PageContent>
+									<UsageBreakdown
+										title={m.analytics_models_title()}
+										description={m.analytics_models_description()}
+										nameHeader={m.analytics_model_column_header()}
+										rows={analytics.models}
+										rowKey={(row) => `${row.providerId}:${row.modelId ?? ""}`}
+										name={(row) => (
+											<TwoLineName
+												primary={
+													row.modelName ?? m.analytics_model_unknown_label()
+												}
+												secondary={row.providerName}
+											/>
+										)}
+										empty={m.analytics_usage_empty()}
+									/>
+									<UsageBreakdown
+										title={m.analytics_bots_title()}
+										description={
+											hasBotUsage
+												? m.analytics_bots_description()
+												: m.analytics_bots_not_recorded_description()
+										}
+										nameHeader={m.analytics_bot_column_header()}
+										rows={analytics.bots}
+										rowKey={(row) => analyticsBotKey(row.bot)}
+										name={(row) => (
+											<TwoLineName primary={analyticsBotName(row.bot)} />
+										)}
+										empty={m.analytics_usage_empty()}
+									/>
+									<RatingBreakdown ratings={analytics.ratings} />
+								</div>
+							</>
+						)}
+					</AnalyticsRangePanel>
+				</PageContent>
+			</AnalyticsRange>
 		</Page>
 	);
 }
