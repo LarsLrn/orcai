@@ -5,13 +5,14 @@ import {
 	type Model,
 	type Provider,
 } from "@orcai/schema";
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
 	type ChatModelAvailability,
 	useDefaultChatModel,
 } from "@/components/chat/use-default-chat-model";
+import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -41,20 +42,13 @@ const useChatStarter = ({
 	);
 	const [isCreating, setIsCreating] = useState(false);
 	const { availability, defaultModel, defaultProvider } = useDefaultChatModel();
-	const { data: quotaAvailability } = useQuery(
-		orpc.quota.availability.queryOptions({
-			input:
-				selectedModel && selectedProvider
-					? {
-							providerId: selectedProvider.id,
-							modelId: selectedModel.id,
-						}
-					: skipToken,
-		}),
-	);
+	const { data: quota } = useQuotaStatus({
+		providerId: selectedProvider?.id,
+		modelId: selectedModel?.id,
+	});
 
 	const chatAvailability: ChatAvailability =
-		availability === "ready" && quotaAvailability?.data.available === false
+		availability === "ready" && quota?.data.available === false
 			? "no-quota"
 			: availability;
 

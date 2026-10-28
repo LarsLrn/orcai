@@ -148,6 +148,14 @@ export const queryDefaults = {
 			},
 		},
 	},
+	quota: {
+		status: {
+			queryOptions: {
+				// Other members fill the pool too.
+				refetchOnWindowFocus: "always",
+			},
+		},
+	},
 	resource: {
 		listGrants: {
 			queryOptions: {

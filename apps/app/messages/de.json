@@ -2065,41 +2065,6 @@
 	"chat_quota_notice_description_manager": "Erstellen Sie einen Pool für den Anbieter, dann wird der Chat verfügbar.",
 	"chat_quota_notice_description_member": "Wählen Sie ein anderes Modell oder bitten Sie einen Organisations-Admin, einen Kontingent-Pool zu erstellen.",
 	"chat_quota_notice_title": "Für dieses Modell steht Ihnen noch kein Kontingent-Pool zur Verfügung.",
-	"chat_quota_pool_fallback_name": "Kontingent",
-	"chat_quota_requests_left": [
-		{
-			"declarations": [
-				"input count",
-				"input pool",
-				"input amount",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{pool} · {amount} Anfrage übrig",
-				"countPlural=other": "{pool} · {amount} Anfragen übrig"
-			}
-		}
-	],
-	"chat_quota_tokens_left": [
-		{
-			"declarations": [
-				"input count",
-				"input pool",
-				"input amount",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{pool} · {amount} Token übrig",
-				"countPlural=other": "{pool} · {amount} Token übrig"
-			}
-		}
-	],
 	"chat_rename_dialog_description": "Geben Sie einen neuen Namen für diesen Chat ein.",
 	"chat_rename_dialog_submit": "Umbenennen",
 	"chat_rename_dialog_title": "Chat umbenennen",

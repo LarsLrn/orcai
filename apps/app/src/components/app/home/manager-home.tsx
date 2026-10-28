@@ -52,6 +52,23 @@ const CreateBotAction = () => {
 	);
 };
 
+/** Pool amounts are for people who manage quotas; everyone else sees their share in chat. */
+const QuotaPanelSlot = () => {
+	const { data } = useOrganizationCapabilities();
+
+	if (!hasCapability(data?.data.capabilities, "manage_quotas")) {
+		return null;
+	}
+
+	return (
+		<div className="lg:col-span-2">
+			<Suspense fallback={<PanelSkeleton rows={3} />}>
+				<ManageQuotaPanel />
+			</Suspense>
+		</div>
+	);
+};
+
 const ManagerHome = () => (
 	<div className="space-y-10">
 		<PageHeader>
@@ -63,11 +80,7 @@ const ManagerHome = () => (
 		</PageHeader>
 
 		<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-			<div className="lg:col-span-2">
-				<Suspense fallback={<PanelSkeleton rows={3} />}>
-					<ManageQuotaPanel />
-				</Suspense>
-			</div>
+			<QuotaPanelSlot />
 			<div>
 				<Suspense fallback={<PanelSkeleton rows={4} />}>
 					<ManageLibraryPanel />

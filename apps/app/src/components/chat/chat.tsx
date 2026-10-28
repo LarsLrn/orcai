@@ -30,7 +30,6 @@ import { usePublicConfig } from "@/hooks/use-public-config";
 import { turnView } from "@/lib/ai/turn-view/turn-view";
 import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatCount } from "@/lib/presentation/format-number";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { BranchedFrom } from "./branch-links";
@@ -43,38 +42,6 @@ import { useBranchChat } from "./message/use-branch-chat";
 import { SendMessageContext } from "./send-message";
 import { StepAnswersContext } from "./step-answers";
 import { useChatSession } from "./use-chat-session";
-
-/** Quota is a governance fact, so it sits in the accent, above the composer. */
-const QuotaLine = ({ chatId }: { chatId: ChatId }) => {
-	const { data } = useQuery(
-		orpc.quota.chatBadge.queryOptions({
-			input: {
-				chatId,
-			},
-		}),
-	);
-	const badge = data?.data;
-
-	if (!badge?.poolId || badge.remainingAmount === null) {
-		return null;
-	}
-
-	return (
-		<p className="px-1 text-accent-brand text-xs tabular-nums">
-			{badge.meteringMode === "requests"
-				? m.chat_quota_requests_left({
-						pool: badge.poolName ?? m.chat_quota_pool_fallback_name(),
-						amount: formatCount(badge.remainingAmount),
-						count: badge.remainingAmount,
-					})
-				: m.chat_quota_tokens_left({
-						pool: badge.poolName ?? m.chat_quota_pool_fallback_name(),
-						amount: formatCount(badge.remainingAmount),
-						count: badge.remainingAmount,
-					})}
-		</p>
-	);
-};
 
 const HIGHLIGHT_MS = 2000;
 
@@ -284,7 +251,6 @@ const Chat = ({
 					</Conversation>
 
 					<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
-						<QuotaLine chatId={id} />
 						{isAssistant ? (
 							<>
 								<PlanPanel plan={view.plan} busy={view.busy} />

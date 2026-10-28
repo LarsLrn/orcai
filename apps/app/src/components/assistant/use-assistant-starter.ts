@@ -1,11 +1,12 @@
 import type { ChatId } from "@orcai/core";
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import {
 	type AssistantModelAvailability,
 	useAssistantModel,
 } from "@/components/assistant/use-assistant-model";
+import { useQuotaStatus } from "@/components/quota/use-quota-status";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -26,20 +27,13 @@ const useAssistantStarter = ({
 	);
 	const [isCreating, setIsCreating] = useState(false);
 	const { availability, modelId, providerId } = useAssistantModel();
-	const { data: quotaAvailability } = useQuery(
-		orpc.quota.availability.queryOptions({
-			input:
-				modelId && providerId
-					? {
-							providerId,
-							modelId,
-						}
-					: skipToken,
-		}),
-	);
+	const { data: quota } = useQuotaStatus({
+		providerId,
+		modelId,
+	});
 
 	const starterAvailability: AssistantStarterAvailability =
-		availability === "set" && quotaAvailability?.data.available === false
+		availability === "set" && quota?.data.available === false
 			? "no-quota"
 			: availability;
 

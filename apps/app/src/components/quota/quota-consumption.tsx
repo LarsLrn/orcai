@@ -1,10 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { formatNumber } from "@/lib/presentation/format-number";
+import { isLowShare, usedShareOf } from "@/lib/presentation/quota-share";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-
-const LOW_BALANCE_SHARE = 0.1;
 
 /** The metering unit a quota pool's provider counts in. */
 type QuotaUnit = "tokens" | "requests";
@@ -71,7 +70,7 @@ const QuotaConsumption = ({
 	);
 };
 
-/** Remaining amount, marked when less than a tenth of the budget is left. */
+/** Remaining amount, marked when the pool runs low. */
 const QuotaRemaining = ({
 	remainingAmount,
 	budgetAmount,
@@ -83,8 +82,16 @@ const QuotaRemaining = ({
 	unit?: QuotaUnit;
 	className?: string;
 }) => {
-	const share = toShare(remainingAmount, budgetAmount);
-	const isLow = share !== null && share < LOW_BALANCE_SHARE;
+	const isLow =
+		hasAmount(remainingAmount) &&
+		hasAmount(budgetAmount) &&
+		budgetAmount > 0 &&
+		isLowShare(
+			usedShareOf({
+				budgetAmount,
+				remainingAmount,
+			}),
+		);
 
 	return (
 		<div className={cn("flex items-center gap-2", className)}>
