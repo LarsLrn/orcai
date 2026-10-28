@@ -128,14 +128,15 @@ export const searchKnowledgeBaseTool = ({
 											repositoryId: block.id,
 											filters: {
 												queries: normalizedQueries,
-												limit: Math.max(limit * 6, 24),
+												limit,
+												recallLimit: Math.max(limit * 6, 24),
 												assetIds,
 												retrievalMode: block.config.retrievalMode ?? "hybrid",
 												minScore: block.config.scoreThreshold,
 												candidateLimit:
 													block.config.candidateLimit ??
 													Math.max(limit * 8, 32),
-												maxPerAsset: block.config.maxPerAsset ?? 2,
+												maxPerAsset: block.config.maxPerAsset,
 											},
 										},
 										{

@@ -167,7 +167,7 @@ const DatabaseBlockConfigCard = ({
 										{config.maxPerAsset ?? 6}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										{m.blocks_database_config_max_per_asset_label()}
+										{m.blocks_database_config_per_asset_label()}
 									</div>
 								</div>
 							</div>

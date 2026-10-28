@@ -21,9 +21,9 @@ export const RAG_SETTINGS = {
 	candidateLimit: 40,
 
 	/**
-	 * Maximum number of chunks from the same asset that may appear in
-	 * the final result set. Prevents a single verbose document from
-	 * dominating the results.
+	 * Chunks per asset admitted before other assets get a turn. Keeps one
+	 * verbose document from crowding out the rest; when fewer assets match,
+	 * the next-best chunks of any asset fill the remaining slots.
 	 */
 	maxPerAsset: 2,
 

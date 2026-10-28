@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { RAG_SETTINGS } from "@orcai/core";
+import { selectDiversePoints } from "@orcai/qdrant";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -116,6 +118,79 @@ describe("searchKnowledgeBase", () => {
 		).toEqual([
 			longText,
 		]);
+	});
+	test("shows the repository's per-document selection, recalled for more than it shows", async () => {
+		const ranked = [
+			...Array.from(
+				{
+					length: 8,
+				},
+				(_, index) => ({
+					...assetPoint({
+						id: `a${index}`,
+						index,
+					}),
+					score: 0.9 - index / 100,
+				}),
+			),
+			...Array.from(
+				{
+					length: 2,
+				},
+				(_, index) => ({
+					...assetPoint({
+						id: `b${index}`,
+						index,
+						assetId: "asset-b",
+					}),
+					score: 0.6 - index / 100,
+				}),
+			),
+		];
+		answers["assetPoint.searchRepository"] = ({
+			filters,
+		}: {
+			filters: {
+				limit: number;
+				maxPerAsset?: number;
+			};
+		}) =>
+			Effect.succeed({
+				data: selectDiversePoints(ranked, {
+					limit: filters.limit,
+					maxPerAsset: filters.maxPerAsset ?? RAG_SETTINGS.maxPerAsset,
+				}),
+			});
+
+		const output = await searchKnowledgeBaseTool(deps).execute?.(
+			{
+				query: "refund policy",
+			},
+			options,
+		);
+
+		expect(
+			(
+				output as {
+					results: {
+						id: string;
+					}[];
+				}
+			).results.map((result) => result.id),
+		).toEqual([
+			"a0",
+			"a1",
+			"a2",
+			"a3",
+			"b0",
+			"b1",
+		]);
+		expect(procedureCalls[0]?.input).toMatchObject({
+			filters: {
+				limit: 6,
+				recallLimit: 36,
+			},
+		});
 	});
 });
 
