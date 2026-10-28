@@ -3,14 +3,17 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 
 /**
  * The running turn's current activity, below its answer so far. Mounted for
- * the whole turn, so its live region announces each new label once.
+ * the whole turn, so its live region announces each new label once, shown or not.
  */
 export const ActivityLine = ({
 	label,
+	shown = true,
 	onShowSteps,
 }: {
 	/** Null while nothing is under way, such as when answer text streams. */
 	label: string | null;
+	/** Left false while the work log shows the activity in view. */
+	shown?: boolean;
 	/** Left out while the turn has no work log to show. */
 	onShowSteps?: () => void;
 }) => {
@@ -19,7 +22,7 @@ export const ActivityLine = ({
 		setAnnounced(label);
 	}
 
-	const text = label && <Shimmer as="span">{label}</Shimmer>;
+	const text = shown && label && <Shimmer as="span">{label}</Shimmer>;
 
 	return (
 		<>

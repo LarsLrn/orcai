@@ -1,4 +1,5 @@
 import {
+	attachRepository,
 	chatName,
 	messageText,
 	openChat,
@@ -226,4 +227,72 @@ test("gen-ui: a running turn shows its activity below the answer", async ({
 	await turnFinished(page);
 	await expect(messageText(page, CLOSING)).toBeVisible();
 	await expect(activity).toHaveCount(0);
+});
+
+test("gen-ui: a running turn shows its activity below a checklist while the work log is in view", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const member = api.as("member");
+	const chatId = await createGenUiChat(
+		member,
+		model,
+		chatName("Activity Below"),
+	);
+	await attachRepository(member, chatId);
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await openChat(page, chatId);
+
+	inference.script(
+		{
+			toolCalls: [
+				{
+					name: "searchKnowledgeBase",
+					input: {
+						query: "reference style",
+					},
+				},
+			],
+		},
+		{
+			toolCalls: [
+				{
+					name: "showChecklist",
+					input: CHECKLIST,
+				},
+			],
+			hold: "end",
+		},
+		{
+			text: CLOSING,
+		},
+	);
+	await ask(page, "Check my references");
+
+	const log = page.getByRole("log");
+	await expect(
+		log.getByText(TITLE, {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		log.getByRole("button", {
+			name: /^1 step/,
+		}),
+	).toBeInViewport();
+	await expect(
+		log.getByRole("button", {
+			name: message("chat_work_log_working"),
+			exact: true,
+		}),
+	).toBeVisible();
+
+	inference.release();
+	await turnFinished(page);
+	await expect(messageText(page, CLOSING)).toBeVisible();
 });

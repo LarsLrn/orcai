@@ -19,6 +19,7 @@ import {
 } from "@/components/chat/message/work-log/work-log";
 import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
+import { useMessageScrollerInView } from "@/components/ui/message-scroller";
 import { InView } from "@/components/ui/motion/in-view";
 import { messageCitations } from "@/lib/ai/tools/rag/citations";
 import { citedWebSources } from "@/lib/ai/tools/web/sources";
@@ -96,6 +97,7 @@ export const MessageBlock = ({
 	const messageAttachments = getChatMessageAttachments(message);
 	const [workLogOpen, setWorkLogOpen] = useState(false);
 	const workLogRef = useRef<HTMLDivElement>(null);
+	const [activityRef, activityInView] = useMessageScrollerInView();
 	const answers = use(StepAnswersContext);
 	const citations = useMemo(
 		() => messageCitations(message),
@@ -150,6 +152,7 @@ export const MessageBlock = ({
 									activity={activity}
 									open={workLogOpen}
 									onOpenChange={setWorkLogOpen}
+									activityRef={activityRef}
 								/>
 							)}
 							{answer.map((part, i) => (
@@ -182,6 +185,14 @@ export const MessageBlock = ({
 							{running && (
 								<ActivityLine
 									label={activity ? activityLabel(activity) : null}
+									shown={
+										workLog.length === 0 ||
+										!activityInView ||
+										answer.some(
+											(part) =>
+												part.kind === "display" || part.kind === "client",
+										)
+									}
 									onShowSteps={workLog.length > 0 ? showSteps : undefined}
 								/>
 							)}

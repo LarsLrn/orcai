@@ -47,6 +47,13 @@ describe("ActivityLine", () => {
 		rerender(<ActivityLine label="Thinking" />);
 		expect(status.textContent).toBe("Thinking");
 	});
+
+	test("keeps announcing while not shown", () => {
+		render(<ActivityLine label="Searching" shown={false} />);
+
+		expect(screen.getAllByText("Searching")).toHaveLength(1);
+		expect(screen.getByRole("status").textContent).toBe("Searching");
+	});
 });
 
 describe("ReasoningEntry", () => {

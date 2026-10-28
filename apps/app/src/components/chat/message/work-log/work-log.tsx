@@ -6,7 +6,7 @@ import {
 	Loader2Icon,
 	MessageSquareTextIcon,
 } from "lucide-react";
-import type { Ref } from "react";
+import type { Ref, RefCallback } from "react";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -29,6 +29,8 @@ interface WorkLogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	ref?: Ref<HTMLDivElement>;
+	/** Gets what shows the current activity while running: the header, and a live entry's title while open. */
+	activityRef?: RefCallback<HTMLElement>;
 }
 
 const failedCount = (entries: WorkEntry[]) =>
@@ -66,6 +68,11 @@ const headerLabel = (entries: WorkEntry[], activity: Activity | undefined) => {
 				count: entries.length,
 			});
 };
+
+const isLive = (entry: WorkEntry) =>
+	entry.kind === "reasoning"
+		? entry.live
+		: entry.kind === "tool" && entry.status === "running";
 
 const EntryIcon = ({ entry }: { entry: WorkEntry }) => {
 	if (entry.kind === "reasoning") {
@@ -108,8 +115,10 @@ export const WorkLog = ({
 	open,
 	onOpenChange,
 	ref,
+	activityRef,
 }: WorkLogProps) => {
 	const failed = failedCount(entries);
+	const indicatorRef = running ? activityRef : undefined;
 
 	return (
 		<Collapsible
@@ -118,7 +127,10 @@ export const WorkLog = ({
 			onOpenChange={onOpenChange}
 			className="not-prose w-full min-w-0 shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/20"
 		>
-			<CollapsibleTrigger className="flex w-full items-center gap-2 px-3 py-2 text-left text-muted-foreground text-sm transition-colors duration-150 hover:text-foreground">
+			<CollapsibleTrigger
+				ref={indicatorRef}
+				className="flex w-full items-center gap-2 px-3 py-2 text-left text-muted-foreground text-sm transition-colors duration-150 hover:text-foreground"
+			>
 				{running ? (
 					<Loader2Icon className="size-4 shrink-0 animate-spin" />
 				) : failed > 0 ? (
@@ -144,7 +156,10 @@ export const WorkLog = ({
 				<ol className="ms-2 border-border border-s">
 					{entries.map((entry) => (
 						<li key={entry.id} className="relative ps-5 pb-4 last:pb-0">
-							<span className="absolute -inset-s-2.5 top-0 grid size-5 place-items-center rounded-full border border-border bg-background">
+							<span
+								ref={open && isLive(entry) ? indicatorRef : undefined}
+								className="absolute -inset-s-2.5 top-0 grid size-5 place-items-center rounded-full border border-border bg-background"
+							>
 								<EntryIcon entry={entry} />
 							</span>
 							<Entry entry={entry} />
