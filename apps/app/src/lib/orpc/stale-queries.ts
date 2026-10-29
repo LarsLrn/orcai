@@ -45,6 +45,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			orpc.user.listAccess.key(),
 			readOnlyChats,
 			orpc.botSetup.coverage.key(),
+			// Chat pickers offer the bots shared with the user.
+			orpc.bot.list.key(),
 		];
 	};
 	// Organisation readiness reads providers, models, pools, groups and members.
@@ -83,12 +85,25 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		...groupSummaries(),
 	];
 
-	// Library tiles show their creator.
+	// Library and catalogue tiles show their creator.
 	const libraryLists = () => [
 		orpc.bot.list.key(),
 		orpc.block.list.key(),
 		orpc.asset.list.key(),
 		orpc.library.key(),
+		orpc.catalogue.key(),
+	];
+	// Adding from the catalogue changes the library, and removing ends what the organisation built on it.
+	const installs = () => [
+		...libraryLists(),
+		orpc.bot.find.key(),
+		orpc.block.find.key(),
+		orpc.botSetup.key(),
+		orpc.resource.listGrants.key(),
+		orpc.user.listAccess.key(),
+		orpc.resource.listingImpact.key(),
+		orpc.organization.deletionImpact.key(),
+		readOnlyChats,
 	];
 
 	// Lists of people and organisations show pictures and logos.
@@ -346,6 +361,10 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				readOnlyChats,
 			],
 		},
+		catalogue: {
+			install: installs,
+			uninstall: installs,
+		},
 		provider: {
 			create: () => [
 				orpc.provider.key(),
@@ -406,6 +425,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.resource.listingImpact.key(),
 				orpc.organization.deletionImpact.key(),
 				orpc.user.listAccess.key(),
+				orpc.catalogue.key(),
 				readOnlyChats,
 			],
 		},

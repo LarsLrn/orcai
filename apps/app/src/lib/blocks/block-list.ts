@@ -17,7 +17,7 @@ import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { repositoryTotals } from "@/lib/blocks/readiness";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
-import type { TileQuery } from "@/lib/library/tile-details";
+import { installedFrom, type TileQuery } from "@/lib/library/tile-details";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -51,11 +51,12 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 			owner: ResourceOwner;
 		})[];
 
-		const [capabilities, totals] = yield* Effect.all(
+		const ids = blocks.map((block) => block.id);
+		const [capabilities, totals, sources] = yield* Effect.all(
 			[
 				getManyEntityCapabilities({
 					entityType: "block",
-					entityIds: blocks.map((block) => block.id),
+					entityIds: ids,
 					userId: reader.userId,
 					organizationId: reader.organizationId,
 					zedToken: reader.zedToken,
@@ -65,6 +66,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 						.filter((block) => block.type === "database")
 						.map((block) => block.id),
 				),
+				installedFrom("block", ids, reader.organizationId),
 			],
 			{
 				concurrency: "unbounded",
@@ -75,6 +77,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 			...block,
 			capabilities: capabilities.get(block.id) ?? emptyCapabilities("block"),
 			documents: block.type === "database" ? totals(block.id) : null,
+			installedFrom: sources(block.id),
 		}));
 	});
 
@@ -115,6 +118,7 @@ export const listBlockTiles = (params: {
 			: yield* params.access.condition("block", {
 					scope: input.filters?.scope,
 					status,
+					source: input.filters?.source,
 				});
 		const where = and(
 			visible,

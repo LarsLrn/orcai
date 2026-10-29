@@ -3,6 +3,7 @@ import { paginationInputSchema, zedTokenSchema } from "../shared";
 import {
 	libraryScopeSchema,
 	librarySortSchema,
+	librarySourceSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
 
@@ -21,6 +22,8 @@ export const searchLibraryInputSchema = paginationInputSchema.extend({
 	...zedTokenSchema.shape,
 	search: z.string().optional(),
 	scope: libraryScopeSchema.default("all"),
+	/** Assets are never added from the catalogue: "installed" leaves them out. */
+	source: librarySourceSchema.default("all"),
 	/** Assets have no status: drafts leave them out. */
 	status: publicationStatusFilterSchema.default("all"),
 	sort: librarySortSchema.default("newest"),

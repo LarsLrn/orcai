@@ -291,6 +291,30 @@ const teardownResourceAuthorization = (params: {
 		);
 	});
 
+/** Whether the organisation is the resource's home, has it installed, or neither. */
+export const scopeIn = (
+	resource: ResourceRef,
+	organizationId: OrganizationId,
+) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [scope] = yield* db
+			.select({
+				isPrimary: dbSchema.resourceScope.isPrimary,
+			})
+			.from(dbSchema.resourceScope)
+			.where(
+				and(
+					eq(dbSchema.resourceScope.resourceType, resource.resourceType),
+					eq(dbSchema.resourceScope.resourceId, resource.resourceId),
+					eq(dbSchema.resourceScope.organizationId, organizationId),
+					isNull(dbSchema.resourceScope.endedAt),
+				),
+			);
+		if (!scope) return undefined;
+		return scope.isPrimary ? ("home" as const) : ("install" as const);
+	});
+
 /** The organizations the resources are scoped to, whose write locks guard them. */
 export const resourceOrganizations = (
 	resources: readonly {

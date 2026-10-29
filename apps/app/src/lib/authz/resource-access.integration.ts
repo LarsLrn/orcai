@@ -39,10 +39,16 @@ const rejection = (operation: Promise<unknown>) =>
 		(error: unknown) => error,
 	);
 
+/** The newest zedToken a write here returned; the lib checks the actor's authority at it. */
+let latestToken: string | undefined;
+const remember = (zedToken: string | undefined) => {
+	latestToken = zedToken ?? latestToken;
+};
+
 const actorOf = (actor: Actor) => ({
 	kind: "member" as const,
 	userId: actor.user.id,
-	zedToken: undefined,
+	zedToken: latestToken,
 });
 
 const block = (blockId: BlockId) => ({
@@ -89,15 +95,19 @@ const grant = (
 			role,
 			actor: actorOf(owner),
 		}),
-	);
+	).then((granted) => {
+		remember(granted.zedToken);
+		return granted;
+	});
 
-const revoke = (blockId: BlockId, principal: GrantPrincipal) =>
+const revoke = (owner: Actor, blockId: BlockId, principal: GrantPrincipal) =>
 	run(
 		Effect.gen(function* () {
 			return yield* revokeResourceAccess({
 				resource: block(blockId),
 				organizationId: yield* homeOf(blockId),
 				principal,
+				actor: actorOf(owner),
 			});
 		}),
 	);
@@ -158,6 +168,7 @@ const ownedBlock = async (roles: readonly ("admin" | "member")[]) => {
 	]);
 	const [owner, ...others] = actors;
 	const { blockId, zedToken: created } = await createBlock(owner, zedToken);
+	remember(created);
 	return {
 		organizationId,
 		owner,
@@ -182,7 +193,7 @@ describe("grant and revoke", () => {
 			await grant(owner, blockId, user(viewer.user.id));
 			await queueBehindOrganizationLock(
 				organizationId,
-				() => revoke(blockId, user(viewer.user.id)),
+				() => revoke(owner, blockId, user(viewer.user.id)),
 				() => grant(owner, blockId, user(viewer.user.id)),
 			);
 			expect(await accessOf(blockId, viewer.user.id)).toEqual({
@@ -213,7 +224,7 @@ describe("grant and revoke", () => {
 			await queueBehindOrganizationLock(
 				organizationId,
 				() => grant(owner, blockId, user(viewer.user.id)),
-				() => revoke(blockId, user(viewer.user.id)),
+				() => revoke(owner, blockId, user(viewer.user.id)),
 			);
 			expect(await accessOf(blockId, viewer.user.id)).toEqual({
 				grants: [],
@@ -242,9 +253,11 @@ describe("grant and revoke", () => {
 			let rejected: unknown;
 			await queueBehindOrganizationLock(
 				organizationId,
-				() => revoke(blockId, user(first.user.id)),
+				() => revoke(owner, blockId, user(first.user.id)),
 				async () => {
-					rejected = await rejection(revoke(blockId, user(second.user.id)));
+					rejected = await rejection(
+						revoke(owner, blockId, user(second.user.id)),
+					);
 				},
 			);
 			expect(rejected).toMatchObject({
@@ -565,10 +578,14 @@ const blockInTwoOrganizations = async () => {
 		"member",
 	]);
 	const [member] = home.others;
-	const { organizationId: otherOrganizationId, actors } =
-		await organizationWith([
-			"admin",
-		]);
+	const {
+		organizationId: otherOrganizationId,
+		actors,
+		zedToken,
+	} = await organizationWith([
+		"admin",
+	]);
+	remember(zedToken);
 	const [sharer] = actors;
 	await run(
 		Effect.gen(function* () {
@@ -604,6 +621,7 @@ const blockInTwoOrganizations = async () => {
 				resource: block(home.blockId),
 				organizationId: otherOrganizationId,
 				principal: user(member.user.id),
+				actor: actorOf(sharer),
 			}),
 		);
 	return {

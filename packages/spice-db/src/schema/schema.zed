@@ -18,6 +18,7 @@ definition organization {
 	permission manage_models = admin
 	permission manage_quotas = admin
 	permission view_analytics = admin
+	permission install_resource = admin + manager
 }
 
 definition group {

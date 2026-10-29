@@ -1,4 +1,4 @@
-import type { BlockId, UserId } from "@orcai/core";
+import type { BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
 	AccessAncestor,
@@ -31,6 +31,7 @@ import {
 	grantResourceAccess,
 	revokeResourceAccess,
 } from "@/lib/authz/resource-access";
+import { requireAdministersIn } from "@/lib/authz/resource-authority";
 import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { listingImpact, setListing } from "@/lib/catalogue/listing";
@@ -390,10 +391,37 @@ const getInheritedAccess = authed.resource.inheritedAccess
 		};
 	});
 
+/** Sharing a resource in the active organisation: see {@link administersIn}. */
+const requireSharing = (
+	input: ResourceIdentity,
+	context: {
+		auth: {
+			user: {
+				id: UserId;
+			};
+			session: {
+				activeOrganizationId: OrganizationId;
+			};
+		};
+		meta?: {
+			zedToken?: string;
+		};
+	},
+) =>
+	requireAdministersIn({
+		resource: scopedResourceRef(input),
+		organizationId: context.auth.session.activeOrganizationId,
+		homePermission: "manage_access",
+		actor: {
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context),
+		},
+	});
+
 const listResourceGrants = authed.resource.listGrants
 	.use(requireActiveOrganizationMiddleware)
-	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
+		yield* requireSharing(input, context);
 		const grants = yield* activeGrants(
 			input,
 			context.auth.session.activeOrganizationId,
@@ -411,31 +439,15 @@ const listResourceGrants = authed.resource.listGrants
 		};
 	});
 
+/** Grants are issued in the active organisation, so only its principals can receive one. */
 const listResourcePrincipals = authed.resource.listPrincipals
-	.use(requireResourcePermission("manage_access"))
+	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
+		yield* requireSharing(input, context);
 		const db = yield* DB;
-		const scopes = yield* db
-			.select({
-				organizationId: dbSchema.resourceScope.organizationId,
-			})
-			.from(dbSchema.resourceScope)
-			.where(
-				and(
-					eq(dbSchema.resourceScope.resourceType, input.resourceType),
-					eq(dbSchema.resourceScope.resourceId, input.resourceId),
-					isNull(dbSchema.resourceScope.endedAt),
-				),
-			);
-
-		if (scopes.length === 0) {
-			return {
-				data: [],
-				rowCount: 0,
-			};
-		}
-
-		const orgIds = scopes.map((scope) => scope.organizationId);
+		const orgIds = [
+			context.auth.session.activeOrganizationId,
+		];
 		const canSeeEmail = yield* canSeeEmailIn({
 			organizationIds: orgIds,
 			userId: context.auth.user.id,
@@ -554,7 +566,6 @@ const listResourcePrincipals = authed.resource.listPrincipals
 
 const grantAccess = authed.resource.grant
 	.use(requireActiveOrganizationMiddleware)
-	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const { grants, zedToken } = yield* grantResourceAccess({
 			resource: input,
@@ -581,12 +592,15 @@ const grantAccess = authed.resource.grant
 
 const revokeAccess = authed.resource.revoke
 	.use(requireActiveOrganizationMiddleware)
-	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const revoked = yield* revokeResourceAccess({
 			resource: input,
 			organizationId: context.auth.session.activeOrganizationId,
 			principal: input,
+			actor: {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			},
 		});
 
 		return {

@@ -1,15 +1,20 @@
 import type { OrganizationId, UserId } from "@orcai/core";
 import { dbSchema } from "@orcai/db";
-import type { LibraryScope, PublicationStatusFilter } from "@orcai/schema";
+import type {
+	LibraryScope,
+	LibrarySource,
+	PublicationStatusFilter,
+} from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
-import { and, eq, inArray, or, type SQL } from "drizzle-orm";
+import { and, eq, inArray, or, type SQL, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
 import { inLibrary } from "@/lib/authz/library";
+import { usableHere } from "@/lib/authz/organization-use";
 
 export type LibraryResource = "bot" | "block" | "asset";
 
-type Permission = "read" | "edit";
+type Permission = "read" | "edit" | "use";
 
 export type Reader = {
 	userId: UserId;
@@ -35,7 +40,8 @@ const lookup = (
  * so the lists and counts of one request share them.
  *
  * Published resources need read and drafts need edit; scope "edit" asks for
- * edit on both. Assets have no status.
+ * edit on both. Assets have no status. `source` tells what the organisation
+ * made from what it added from the catalogue.
  */
 export const libraryAccess = (reader: Reader) =>
 	Effect.gen(function* () {
@@ -57,9 +63,11 @@ export const libraryAccess = (reader: Reader) =>
 			{
 				scope = "all",
 				status = "ready",
+				source = "all",
 			}: {
 				scope?: LibraryScope;
 				status?: PublicationStatusFilter;
+				source?: LibrarySource;
 			},
 		) =>
 			Effect.gen(function* () {
@@ -69,7 +77,7 @@ export const libraryAccess = (reader: Reader) =>
 						inArray(table.id, allowed),
 					);
 				const shared = [
-					inLibrary(resource, table.id, reader.organizationId),
+					inLibrary(resource, table.id, reader.organizationId, source),
 					readableNow(resource, table.id, reader.userId),
 				];
 				if (resource === "asset" || scope === "edit") {
@@ -96,8 +104,26 @@ export const libraryAccess = (reader: Reader) =>
 				return and(visible, ...shared) as SQL;
 			});
 
+		/** The resources the reader may use in the active organisation, such as to start a chat. */
+		const usable = (resource: LibraryResource) =>
+			Effect.gen(function* () {
+				const { organizationId } = reader;
+				if (!organizationId) return sql`false`;
+				const table = dbSchema[resource];
+				return and(
+					inArray(table.id, yield* ids(resource, "use")),
+					usableHere({
+						resourceType: resource,
+						id: table.id,
+						userId: reader.userId,
+						organizationId,
+					}),
+				) as SQL;
+			});
+
 		return {
 			condition,
+			usable,
 		};
 	});
 

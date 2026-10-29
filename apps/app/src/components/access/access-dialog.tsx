@@ -1,6 +1,9 @@
-import type { ResourceRef } from "@orcai/schema";
+import type { ResourceRef, SourceOrganization } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { AccessManagerContent } from "@/components/access/access-manager-content";
+import {
+	AccessManagerContent,
+	InstalledAccessContent,
+} from "@/components/access/access-manager-content";
 import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +24,8 @@ type AccessDialogProps = {
 	onOpenChange: (open: boolean) => void;
 	resourceRef: ResourceRef;
 	resourceName?: string;
+	/** Set when the active organisation added the resource from the catalogue. */
+	installedFrom?: SourceOrganization | null;
 };
 
 const AccessDialog = ({
@@ -28,12 +33,13 @@ const AccessDialog = ({
 	onOpenChange,
 	resourceRef,
 	resourceName,
+	installedFrom,
 }: AccessDialogProps) => {
 	const resource = getResourceTypeLabel(resourceRef.type);
 	const botEditor = useQuery(
 		orpc.bot.findEditor.queryOptions({
 			input:
-				open && resourceRef.type === "bot"
+				open && resourceRef.type === "bot" && !installedFrom
 					? {
 							id: resourceRef.id,
 						}
@@ -59,13 +65,20 @@ const AccessDialog = ({
 				</DialogHeader>
 
 				<DialogBody>
-					<AccessManagerContent
-						resourceRef={resourceRef}
-						resourceName={resourceName}
-						linkedBlocks={
-							botEditor.data ? toLinkedBlocks(botEditor.data.data) : undefined
-						}
-					/>
+					{installedFrom ? (
+						<InstalledAccessContent
+							resourceRef={resourceRef}
+							from={installedFrom}
+						/>
+					) : (
+						<AccessManagerContent
+							resourceRef={resourceRef}
+							resourceName={resourceName}
+							linkedBlocks={
+								botEditor.data ? toLinkedBlocks(botEditor.data.data) : undefined
+							}
+						/>
+					)}
 				</DialogBody>
 
 				<DialogFooter>

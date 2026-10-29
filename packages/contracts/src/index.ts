@@ -14,6 +14,7 @@ import { blockContracts } from "./block";
 import { bootstrapContracts } from "./bootstrap";
 import { botContracts } from "./bot";
 import { botSetupContracts } from "./bot-setup";
+import { catalogueContracts } from "./catalogue";
 import { chatContracts } from "./chat";
 import { chatBlockContracts } from "./chat-block";
 import { chatMessageContracts } from "./chat-message";
@@ -43,6 +44,7 @@ export const contracts = {
 	block: blockContracts,
 	bot: botContracts,
 	botSetup: botSetupContracts,
+	catalogue: catalogueContracts,
 	bootstrap: bootstrapContracts,
 	chat: chatContracts,
 	chatBlock: chatBlockContracts,
@@ -81,6 +83,7 @@ export {
 	bootstrapContracts,
 	botContracts,
 	botSetupContracts,
+	catalogueContracts,
 	chatBlockContracts,
 	chatContracts,
 	chatMessageContracts,

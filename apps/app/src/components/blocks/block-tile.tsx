@@ -6,6 +6,7 @@ import type {
 } from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
 import { useBlockActions } from "@/components/blocks/block-actions";
+import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
@@ -20,7 +21,6 @@ import {
 	TileProvenance,
 	TileTitle,
 } from "@/components/ui/shell/tile";
-import { ResourceOwner } from "@/components/users/resource-owner";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
@@ -36,7 +36,8 @@ type TileBlock = Pick<
 };
 
 /** A block as library lists return it, with its tile details. */
-type BrowseBlock = TileBlock & Pick<BlockListItem, "owner" | "documents">;
+type BrowseBlock = TileBlock &
+	Pick<BlockListItem, "owner" | "documents" | "installedFrom">;
 
 /** A repository's document count, and badges for those still processing or failed. */
 const repositoryFooter = (
@@ -138,7 +139,10 @@ const BlockTile = ({ block }: { block: BrowseBlock }) => {
 				block={block}
 				provenance={
 					<TileProvenance>
-						<ResourceOwner owner={block.owner} />
+						<ResourceProvenance
+							owner={block.owner}
+							installedFrom={block.installedFrom}
+						/>
 					</TileProvenance>
 				}
 				documents={block.documents}
@@ -148,6 +152,7 @@ const BlockTile = ({ block }: { block: BrowseBlock }) => {
 					actions.edit,
 					actions.access,
 					actions.delete,
+					actions.remove,
 				]}
 			/>
 			{dialog}

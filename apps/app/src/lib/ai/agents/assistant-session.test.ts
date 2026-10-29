@@ -31,6 +31,7 @@ const manager: CapabilitySet = {
 	manage_members: true,
 	manage_groups: true,
 	invite_members: true,
+	install_resource: true,
 };
 const admin: CapabilitySet = {
 	...manager,
@@ -46,6 +47,11 @@ const activeTools: ToolLoading = {
 };
 const references = providerToolLoading("anthropic", "claude-opus-5-5");
 
+/** The bots tools only admins and managers, who add from the catalogue, are offered. */
+const installerTools: readonly string[] = [
+	"installFromCatalogue",
+	"uninstallResource",
+];
 const coreWithoutMembers = ASSISTANT_TOOL_GROUPS.core.filter(
 	(name) => name !== "listMembers",
 );
@@ -167,7 +173,9 @@ describe("active tools", () => {
 	test("a member's loaded groups add their tools, people adds nothing", () => {
 		expect(activeWith(member, DEFERRED_TOOL_GROUPS, true)).toEqual([
 			...coreWithoutMembers,
-			...ASSISTANT_TOOL_GROUPS.bots,
+			...ASSISTANT_TOOL_GROUPS.bots.filter(
+				(name) => !installerTools.includes(name),
+			),
 			...ASSISTANT_TOOL_GROUPS.sharing,
 		]);
 		expect(
@@ -425,13 +433,15 @@ describe("plan approval", () => {
 		expect(session.unlockedByApproval()).toEqual([]);
 	});
 
-	test("asks for exactly the thirteen confirming tools and updatePlan", () => {
+	test("asks for exactly the fifteen confirming tools and updatePlan", () => {
 		expect(Object.keys(sessionOf(member).toolApproval).sort()).toEqual(
 			[
 				"deleteBot",
 				"deleteBlock",
 				"deleteAsset",
 				"generateAssetMetadata",
+				"installFromCatalogue",
+				"uninstallResource",
 				"deleteGroup",
 				"revokeAccess",
 				"removeGroupMembers",

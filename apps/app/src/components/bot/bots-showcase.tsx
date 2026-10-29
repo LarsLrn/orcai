@@ -18,14 +18,21 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { BotTile } from "./bot-tile";
 
+/** A tile starts a chat, so the showcase offers only bots the user may chat with here. */
+export const showcaseBotsInput = (limit: number) =>
+	({
+		pageIndex: 0,
+		pageSize: limit,
+		sort: "favouritesFirst",
+		filters: {
+			usable: true,
+		},
+	}) as const;
+
 const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: limit,
-				sort: "favouritesFirst",
-			},
+			input: showcaseBotsInput(limit),
 		}),
 	);
 

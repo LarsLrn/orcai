@@ -9,7 +9,8 @@ type GrantListProps = {
 	search: string;
 	onSearchChange: (value: string) => void;
 	disabled?: boolean;
-	onChangeRole: (grant: ResourceGrant, role: ResourceGrantRole) => void;
+	/** Without it every grant keeps its role. */
+	onChangeRole?: (grant: ResourceGrant, role: ResourceGrantRole) => void;
 	onRevoke: (grant: ResourceGrant) => void;
 };
 
@@ -54,7 +55,7 @@ const GrantList = ({
 					key={`${grant.principalType}:${grant.principalId}:${grant.source}`}
 					grant={grant}
 					disabled={disabled}
-					onChangeRole={(role) => onChangeRole(grant, role)}
+					onChangeRole={onChangeRole && ((role) => onChangeRole(grant, role))}
 					onRevoke={() => onRevoke(grant)}
 				/>
 			))}

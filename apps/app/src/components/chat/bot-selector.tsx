@@ -5,7 +5,7 @@ import { BotIcon, MessageSquareIcon } from "lucide-react";
 import { useState } from "react";
 import {
 	BotFavouriteStar,
-	FAVOURITE_BOTS_INPUT,
+	FAVOURITE_CHAT_BOTS_INPUT,
 } from "@/components/bot/bot-favourites";
 import {
 	DialogSelect,
@@ -60,6 +60,9 @@ const BotSelectorButton = ({
 				pageIndex: page,
 				pageSize: BOT_PAGE_SIZE,
 				search: search || undefined,
+				filters: {
+					usable: true,
+				},
 			},
 			enabled: dialogOpen,
 		}),
@@ -68,7 +71,7 @@ const BotSelectorButton = ({
 	const showFavourites = !search;
 	const favouritesQuery = useQuery(
 		orpc.bot.list.queryOptions({
-			input: FAVOURITE_BOTS_INPUT,
+			input: FAVOURITE_CHAT_BOTS_INPUT,
 			enabled: dialogOpen && showFavourites,
 		}),
 	);

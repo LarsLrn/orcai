@@ -5,6 +5,7 @@ import { MetadataCard } from "@/components/app/metadata-card";
 import { useBlockActions } from "@/components/blocks/block-actions";
 import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
 import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
+import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { Badge } from "@/components/ui/badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
@@ -16,7 +17,6 @@ import {
 	DetailHeaderTitle,
 } from "@/components/ui/shell/detail-header";
 import { Page, PageContent } from "@/components/ui/shell/page";
-import { ResourceOwner } from "@/components/users/resource-owner";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
@@ -72,7 +72,10 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 								{getPublicationStatusLabel("draft")}
 							</Badge>
 						) : null}
-						<ResourceOwner owner={block.data.owner} />
+						<ResourceProvenance
+							owner={block.data.owner}
+							installedFrom={block.data.installedFrom}
+						/>
 					</DetailHeaderMeta>
 					<HeaderActions
 						actions={[
@@ -83,6 +86,7 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 							actions.access,
 							actions.listing,
 							actions.delete,
+							actions.remove,
 						]}
 					/>
 				</DetailHeaderHeading>

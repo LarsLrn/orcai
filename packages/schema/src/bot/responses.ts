@@ -1,5 +1,8 @@
 import { z } from "zod/v4";
-import { resourceOwnerSchema } from "../resource/schema";
+import {
+	resourceOwnerSchema,
+	sourceOrganizationSchema,
+} from "../resource/schema";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
@@ -18,6 +21,8 @@ export const listBotsResponseSchema =
 export const findBotResponseSchema = createDataResponseSchema(
 	botWithBlocksSchema.extend({
 		owner: resourceOwnerSchema,
+		/** Set when the active organisation added the bot from the catalogue. */
+		installedFrom: sourceOrganizationSchema.nullable(),
 	}),
 );
 

@@ -99,6 +99,8 @@ describe("buildAssistantTools", () => {
 			"deleteBlock",
 			"deleteAsset",
 			"generateAssetMetadata",
+			"installFromCatalogue",
+			"uninstallResource",
 			"grantAccess",
 			"revokeAccess",
 			"deleteGroup",

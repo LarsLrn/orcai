@@ -4,12 +4,14 @@ import type {
 	ResourcePrincipal,
 	ResourcePrincipalIdentity,
 	ResourceRef,
+	SourceOrganization,
 } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import {
 	AlertCircleIcon,
 	GlobeIcon,
 	Loader2Icon,
+	PackageCheckIcon,
 	PlusIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -54,17 +56,33 @@ const toPrincipalIdentity = (
 				principalId: principal.id,
 			};
 
-type AccessManagerContentProps = {
-	resourceRef: ResourceRef;
-	resourceName?: string;
-	linkedBlocks?: LinkedBlock[];
-};
+const GroupsHint = () => (
+	<Alert>
+		<AlertCircleIcon className="h-4 w-4" />
+		<AlertTitle>{m.access_manager_groups_hint_title()}</AlertTitle>
+		<AlertDescription>
+			{m.access_manager_groups_hint_description()}
+		</AlertDescription>
+	</Alert>
+);
 
-const AccessManagerContent = ({
+/**
+ * Grants on the resource in the active organisation: who gets which role,
+ * of `roles` when given, and the grants it holds. With one role, nobody
+ * picks a role.
+ */
+const GrantManager = ({
 	resourceRef,
-	resourceName,
+	roles,
 	linkedBlocks = [],
-}: AccessManagerContentProps) => {
+	busy = false,
+}: {
+	resourceRef: ResourceRef;
+	roles?: readonly ResourceGrantRole[];
+	linkedBlocks?: LinkedBlock[];
+	/** Another change to the resource's access is running. */
+	busy?: boolean;
+}) => {
 	const [grantSearch, setGrantSearch] = useState("");
 	const [principalSearch, setPrincipalSearch] = useState("");
 	const [principalType, setPrincipalType] = useState<PrincipalType>("group");
@@ -75,22 +93,17 @@ const AccessManagerContent = ({
 	const [grantsBlockEdit, setGrantsBlockEdit] = useState(true);
 
 	const grants = useResourceGrants(resourceRef);
-	const inherited = useInheritedAccess(resourceRef);
-	const visibility = useResourceVisibility(resourceRef);
-
 	const grantAccess = useGrantResourceAccess();
 	const changeGrantRole = useGrantResourceAccess();
 	const revokeAccess = useRevokeResourceAccess();
-	const listing = useSetResourceListing();
 	const grantBlockEdit = useGrantBlockEdit();
 
 	const isGranting = grantAccess.isPending || grantBlockEdit.isPending;
 	const isMutating =
-		isGranting ||
-		changeGrantRole.isPending ||
-		revokeAccess.isPending ||
-		listing.isPending;
-	const isRefreshing = grants.isFetching || visibility.isFetching;
+		busy || isGranting || changeGrantRole.isPending || revokeAccess.isPending;
+	const roleOptions = getResourceRoleOptions().filter(
+		(option) => !roles || roles.includes(option.value),
+	);
 
 	const selectedHasAllMembers = selectedPrincipals.some(
 		(principal) =>
@@ -131,43 +144,8 @@ const AccessManagerContent = ({
 		setGrantsBlockEdit(true);
 	};
 
-	const currentVisibility = visibility.data?.data.visibility ?? "private";
-
 	return (
-		<div className="space-y-6">
-			{currentVisibility === "public" && (
-				<Alert>
-					<GlobeIcon className="h-4 w-4" />
-					<AlertTitle>{m.access_manager_public_alert_title()}</AlertTitle>
-					<AlertDescription>
-						{m.access_manager_public_alert_description()}
-					</AlertDescription>
-				</Alert>
-			)}
-
-			{inherited.data && (
-				<InheritedAccessSummary inherited={inherited.data.data} />
-			)}
-
-			{/* Documents are published through their repository; one listed earlier can still be unlisted. */}
-			{resourceRef.type !== "asset" || currentVisibility === "public" ? (
-				<VisibilityToggle
-					visibility={currentVisibility}
-					disabled={isMutating}
-					onChange={(nextVisibility) =>
-						void listing.setListing(resourceRef, nextVisibility)
-					}
-				/>
-			) : null}
-
-			<Alert>
-				<AlertCircleIcon className="h-4 w-4" />
-				<AlertTitle>{m.access_manager_groups_hint_title()}</AlertTitle>
-				<AlertDescription>
-					{m.access_manager_groups_hint_description()}
-				</AlertDescription>
-			</Alert>
-
+		<>
 			<div className="rounded-2xl border p-4">
 				<div className="flex items-center justify-between gap-3">
 					<div>
@@ -178,7 +156,7 @@ const AccessManagerContent = ({
 							{m.access_manager_add_description()}
 						</p>
 					</div>
-					{(isMutating || isRefreshing) && (
+					{(isMutating || grants.isFetching) && (
 						<Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
 					)}
 				</div>
@@ -221,13 +199,15 @@ const AccessManagerContent = ({
 					/>
 
 					<div className="space-y-2">
-						<OptionPicker
-							options={getResourceRoleOptions()}
-							onChange={(role) => setSelectedRole(role)}
-							value={effectiveRole}
-							disabled={isMutating || selectedHasAllMembers}
-							className="w-32"
-						/>
+						{roleOptions.length > 1 && (
+							<OptionPicker
+								options={roleOptions}
+								onChange={(role) => setSelectedRole(role)}
+								value={effectiveRole}
+								disabled={isMutating || selectedHasAllMembers}
+								className="w-32"
+							/>
+						)}
 						<Button
 							className="w-full"
 							loading={isGranting}
@@ -255,15 +235,18 @@ const AccessManagerContent = ({
 				search={grantSearch}
 				onSearchChange={setGrantSearch}
 				disabled={isMutating}
-				onChangeRole={(grant, role) =>
-					changeGrantRole.mutate({
-						resourceType: resourceRef.type,
-						resourceId: resourceRef.id,
-						principals: [
-							toPrincipalIdentity(grant.principal),
-						],
-						role,
-					})
+				onChangeRole={
+					roleOptions.length > 1
+						? (grant, role) =>
+								changeGrantRole.mutate({
+									resourceType: resourceRef.type,
+									resourceId: resourceRef.id,
+									principals: [
+										toPrincipalIdentity(grant.principal),
+									],
+									role,
+								})
+						: undefined
 				}
 				onRevoke={(grant) =>
 					revokeAccess.mutate({
@@ -273,6 +256,61 @@ const AccessManagerContent = ({
 						principalId: grant.principalId,
 					})
 				}
+			/>
+		</>
+	);
+};
+
+type AccessManagerContentProps = {
+	resourceRef: ResourceRef;
+	resourceName?: string;
+	linkedBlocks?: LinkedBlock[];
+};
+
+/** Access to a resource in its home: listing, inherited access and grants of every role. */
+const AccessManagerContent = ({
+	resourceRef,
+	resourceName,
+	linkedBlocks = [],
+}: AccessManagerContentProps) => {
+	const inherited = useInheritedAccess(resourceRef);
+	const visibility = useResourceVisibility(resourceRef);
+	const listing = useSetResourceListing();
+	const currentVisibility = visibility.data?.data.visibility ?? "private";
+
+	return (
+		<div className="space-y-6">
+			{currentVisibility === "public" && (
+				<Alert>
+					<GlobeIcon className="h-4 w-4" />
+					<AlertTitle>{m.access_manager_public_alert_title()}</AlertTitle>
+					<AlertDescription>
+						{m.access_manager_public_alert_description()}
+					</AlertDescription>
+				</Alert>
+			)}
+
+			{inherited.data && (
+				<InheritedAccessSummary inherited={inherited.data.data} />
+			)}
+
+			{/* Documents are published through their repository; one listed earlier can still be unlisted. */}
+			{resourceRef.type !== "asset" || currentVisibility === "public" ? (
+				<VisibilityToggle
+					visibility={currentVisibility}
+					disabled={listing.isPending}
+					onChange={(nextVisibility) =>
+						void listing.setListing(resourceRef, nextVisibility)
+					}
+				/>
+			) : null}
+
+			<GroupsHint />
+
+			<GrantManager
+				resourceRef={resourceRef}
+				linkedBlocks={linkedBlocks}
+				busy={listing.isPending}
 			/>
 
 			<div className="rounded-2xl border border-dashed p-3 text-muted-foreground text-xs">
@@ -287,4 +325,38 @@ const AccessManagerContent = ({
 	);
 };
 
-export { AccessManagerContent };
+const INSTALLED_ROLES = [
+	"viewer",
+] as const satisfies ResourceGrantRole[];
+
+/**
+ * Access to a resource the active organisation added from the catalogue:
+ * its home edits it, so here it is shared for use only.
+ */
+const InstalledAccessContent = ({
+	resourceRef,
+	from,
+}: {
+	resourceRef: ResourceRef;
+	from: SourceOrganization;
+}) => (
+	<div className="space-y-6">
+		<Alert>
+			<PackageCheckIcon className="h-4 w-4" />
+			<AlertTitle>
+				{m.access_manager_installed_alert_title({
+					organisation: from.name,
+				})}
+			</AlertTitle>
+			<AlertDescription>
+				{m.access_manager_installed_alert_description()}
+			</AlertDescription>
+		</Alert>
+
+		<GroupsHint />
+
+		<GrantManager resourceRef={resourceRef} roles={INSTALLED_ROLES} />
+	</div>
+);
+
+export { AccessManagerContent, InstalledAccessContent };

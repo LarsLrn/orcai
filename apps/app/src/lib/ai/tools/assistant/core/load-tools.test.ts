@@ -63,8 +63,10 @@ describe("loadTools", () => {
 					loaded: true,
 					tools: [
 						"findModels",
+						"findCatalogue",
 						"createBot",
 						"updateBot",
+						"updateBotSetup",
 						"publishBot",
 						"deleteBot",
 						"createTemplate",
@@ -101,7 +103,9 @@ describe("loadTools", () => {
 			loaded: true,
 			tools: [
 				"findModels",
+				"findCatalogue",
 				"updateBot",
+				"updateBotSetup",
 				"publishBot",
 				"deleteBot",
 				"updateTemplate",

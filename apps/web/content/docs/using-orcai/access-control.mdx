@@ -29,6 +29,7 @@ create actions they see. The role picker lists each role's permissions.
 | Manage groups (`manage_groups`): Groups | Yes | Yes | No | No |
 | Manage quotas (`manage_quotas`): Quotas | Yes | No | No | No |
 | View analytics (`view_analytics`): Analytics | Yes | No | No | No |
+| Add from the catalogue (`install_resource`) | Yes | Yes | No | No |
 | Manage providers (`manage_providers`): Providers | Yes | No | No | No |
 | Manage models (`manage_models`): Models | Yes | No | No | No |
 | Manage organisation (`manage_organization`): Organisation | Yes | No | No | No |
@@ -190,9 +191,10 @@ belongs to two organisations uses in each only what is shared there.
 
 ### The Catalogue
 
-Bots, behaviours and repositories can be listed in the catalogue. A listed
-resource can be previewed by every signed-in user of the instance, but using it
-still needs a grant in the organisation where it is used. Only the
+Bots, behaviours and repositories can be listed in the
+catalogue. A listed resource can be previewed by
+every signed-in user of the instance, but using it needs the organisation to
+add it and a grant issued there. Only the
 configuration and its blocks are shared, because a resource runs with the
 providers, models and quotas of the organisation it is used in. Documents have
 no entry of their own: a listed repository publishes its documents, and the
@@ -204,6 +206,18 @@ listing is refused unless you manage access to each of them. Saving a listed
 bot with a block that is not listed asks the same before it saves. The OrcAI
 Assistant never lists anything, so a change it makes to a listed bot that
 needs a block listed fails and points you to the app.
+
+Admins and managers add a listed resource to their organisation
+(`install_resource`). It then appears in that organisation's Library marked
+"From" its home organisation, and nobody there can use it until they share it.
+In an organisation that added it, its access dialog shares it for use only:
+the grants issued there are always viewer grants, to that organisation's
+members and groups, and neither listing nor inherited access is shown. Only
+the home organisation edits, lists or deletes it; the organisation that added
+it sets a bot's model there and removes it again with **Remove from …**,
+which ends its grants, its model setup and its links in that
+organisation, so chats with a removed bot become read-only until it is added
+and shared again. Adding something twice changes nothing.
 
 Taking a resource out of the catalogue removes it from every organisation that
 added it: the confirmation names them. There, the grants issued for it end,

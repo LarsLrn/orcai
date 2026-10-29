@@ -40,13 +40,37 @@ const status = singleFilter({
 	}),
 });
 
+const source = singleFilter({
+	label: m.library_filter_source_label,
+	options: [
+		{
+			value: "all",
+			label: m.library_filter_source_all,
+		},
+		{
+			value: "own",
+			label: m.library_filter_source_own,
+		},
+		{
+			value: "installed",
+			label: m.library_filter_source_installed,
+		},
+	],
+	defaultValue: "all",
+	toInput: (value) => ({
+		source: value,
+	}),
+});
+
 /** The library's filters per view; Overview's apply while searching. */
 export const libraryFilters = {
 	overview: {
 		status,
+		source,
 	},
 	bot: {
 		status,
+		source,
 		favourite: toggleFilter({
 			label: m.library_filter_favourites_label,
 			optionLabel: m.library_filter_favourites_only,
@@ -60,9 +84,11 @@ export const libraryFilters = {
 	},
 	behaviour: {
 		status,
+		source,
 	},
 	repository: {
 		status,
+		source,
 	},
 	asset: {
 		origin: singleFilter({

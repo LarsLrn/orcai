@@ -1,7 +1,8 @@
 import type { BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { BotListItem } from "@orcai/schema";
-import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
+import type { BotListItem, SourceOrganization } from "@orcai/schema";
+import { and, eq, inArray, isNull, not, type SQL, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
 
 /*
@@ -91,5 +92,57 @@ export const botDetails = (
 		for (const { botId, ...hint } of hints) {
 			hintById.set(botId, hint);
 		}
+		return lookup;
+	});
+
+/**
+ * For each resource the organisation added from the catalogue, the
+ * organisation it comes from, as a lookup by id; null for the rest.
+ */
+export const installedFrom = (
+	resourceType: "bot" | "block",
+	ids: readonly string[],
+	organizationId: OrganizationId | undefined,
+) =>
+	Effect.gen(function* () {
+		const sources = new Map<string, SourceOrganization>();
+		const lookup = (id: string) => sources.get(id) ?? null;
+		if (ids.length === 0 || !organizationId) return lookup;
+		const home = dbSchema.resourceScope;
+		const install = alias(dbSchema.resourceScope, "install");
+		const rows = yield* (yield* DB)
+			.select({
+				resourceId: home.resourceId,
+				id: dbSchema.organization.id,
+				name: dbSchema.organization.name,
+				logo: dbSchema.organization.logo,
+			})
+			.from(install)
+			.innerJoin(
+				home,
+				and(
+					eq(home.resourceType, install.resourceType),
+					eq(home.resourceId, install.resourceId),
+					eq(home.isPrimary, true),
+					isNull(home.endedAt),
+				),
+			)
+			.innerJoin(
+				dbSchema.organization,
+				eq(dbSchema.organization.id, home.organizationId),
+			)
+			.where(
+				and(
+					eq(install.resourceType, resourceType),
+					inArray(install.resourceId, [
+						...ids,
+					]),
+					eq(install.organizationId, organizationId),
+					not(install.isPrimary),
+					isNull(install.endedAt),
+				),
+			);
+		for (const { resourceId, ...source } of rows)
+			sources.set(resourceId, source);
 		return lookup;
 	});
