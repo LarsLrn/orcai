@@ -1,3 +1,5 @@
+import type { ModelCapability } from "@orcai/schema";
+
 /** What a provider row supplies to reach the provider's API. */
 export interface ProviderConnection {
 	readonly apiKey: string;
@@ -13,6 +15,8 @@ export interface DiscoveredModel {
 	/** Null where the provider does not say. */
 	readonly contextWindow: number | null;
 	readonly maxOutputTokens: number | null;
+	/** Null where the provider does not say. */
+	readonly capabilities: ModelCapability[] | null;
 }
 
 /** A system prompt split by how often it changes. */

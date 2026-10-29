@@ -2458,6 +2458,7 @@
 	"check_reason_assistant_model_unusable": "The assistant model cannot run turns: its provider is off, it is deprecated, or it lacks tool calling.",
 	"check_reason_assistant_pool_missing": "No active quota pool covers the assistant model, so assistant turns are refused.",
 	"check_reason_assistant_pool_ready": "A quota pool covers the assistant model.",
+	"check_reason_chat_model_capabilities_unknown": "No model is known to support tool calling. Models whose capabilities are not set yet: {count}. Set them on the models that support text and tool calling.",
 	"check_reason_chat_model_missing": "No model with tool calling is available on an enabled provider.",
 	"check_reason_chat_model_ready": "At least one model can run chat turns.",
 	"check_reason_coverage_complete": "Every member is covered by a quota pool.",
@@ -2764,6 +2765,7 @@
 	"error_listing_blocks_unconfirmed": "A listed bot contains only listed blocks. Confirm listing these too: {blockNames}.",
 	"error_member_not_found": "Member not found.",
 	"error_metadata_generation_unavailable": "Metadata can be generated once the file is prepared and in the library.",
+	"error_model_capabilities_unknown": "The selected model has no capabilities set yet. Set them on the model first.",
 	"error_model_deprecated": "The selected model is deprecated. Choose another model.",
 	"error_model_not_found": "Model not found.",
 	"error_model_provider_mismatch": "The selected model does not belong to the selected provider.",
@@ -3581,7 +3583,22 @@
 	"models_detail_token_limit_unknown": "Unknown",
 	"models_detail_price_unset": "Not set",
 	"models_detail_view_provider_button": "View provider",
-	"models_discover_capabilities_hint": "New models start without capabilities. Give a model text and tool calling before it can chat.",
+	"models_discover_capabilities_hint": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "The provider did not report the capabilities of {count} new model. Set text and tool calling on it, if it supports them, before it can chat.",
+				"countPlural=other": "The provider did not report the capabilities of {count} new models. Set text and tool calling on those that support them before they can chat."
+			}
+		}
+	],
+	"models_discover_capabilities_link": "Show models without capabilities",
 	"models_discover_dialog_description": "Choose a provider and discover available models automatically.",
 	"models_discover_dialog_title": "Discover models",
 	"models_discover_error_title": "Discovery failed",
@@ -3609,7 +3626,7 @@
 	"models_discover_success_title": "Discovery completed",
 	"models_discover_trigger_button": "Discover models",
 	"models_edit_page_title": "Edit model",
-	"models_form_capabilities_description": "Chat needs a model with at least text and tool calling. A model is hidden wherever a capability it lacks is required.",
+	"models_form_capabilities_description": "Chat needs a model with at least text and tool calling. A model is hidden wherever a capability it lacks is required. Empty means unknown: discovery fills them in where the provider reports them.",
 	"models_form_capabilities_label": "Capabilities",
 	"models_form_capabilities_placeholder": "e.g. text, tool calling",
 	"models_form_context_window_description": "How many tokens the model reads at once; chat shows how full it is. Leave empty when unknown.",
@@ -3638,6 +3655,8 @@
 	"models_form_save_button": "Save model",
 	"models_form_token_limit_unit": "tokens",
 	"models_index_add_button": "Add model",
+	"models_index_capabilities_set_option": "Set",
+	"models_index_capabilities_unset_option": "Not set",
 	"models_index_empty_description": "Add a model by hand, or discover the models a provider offers.",
 	"models_index_empty_title": "No models yet",
 	"models_index_search_placeholder": "Search models or providers",
@@ -4077,6 +4096,7 @@
 	"orgs_form_assistant_model_description": "The model the OrcAI Assistant answers with. Only models with tool calling, not deprecated, on an enabled provider are listed.",
 	"orgs_form_assistant_model_label": "Assistant model",
 	"orgs_form_assistant_model_unset_hint": "The assistant is unavailable until a model is chosen.",
+	"orgs_form_assistant_model_unusable_capabilities_unknown": "The current model has no capabilities set yet, so the assistant cannot answer.",
 	"orgs_form_assistant_model_unusable_deprecated": "The current model is deprecated, so the assistant cannot answer.",
 	"orgs_form_assistant_model_unusable_provider_disabled": "The current model's provider is disabled, so the assistant cannot answer.",
 	"orgs_form_assistant_model_unusable_tools_unsupported": "The current model does not support tool calling, so the assistant cannot answer.",
@@ -4089,6 +4109,7 @@
 	"orgs_form_utility_model_description": "The model that writes chat and assistant titles, describes images and generates metadata in the library. A small, inexpensive model fits; images need one with the image capability. Only text models, not deprecated, on an enabled provider are listed.",
 	"orgs_form_utility_model_label": "Utility model",
 	"orgs_form_utility_model_unset_hint": "Titles use each chat's own model, images are not described and metadata is not generated.",
+	"orgs_form_utility_model_unusable_capabilities_unknown": "The current model has no capabilities set yet, so titles use each chat's own model, images are not described and metadata is not generated.",
 	"orgs_form_utility_model_unusable_deprecated": "The current model is deprecated, so titles use each chat's own model, images are not described and metadata is not generated.",
 	"orgs_form_utility_model_unusable_provider_disabled": "The current model's provider is disabled, so titles use each chat's own model, images are not described and metadata is not generated.",
 	"orgs_form_utility_model_unusable_text_unsupported": "The current model does not generate text, so titles use each chat's own model, images are not described and metadata is not generated.",

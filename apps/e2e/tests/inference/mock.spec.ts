@@ -802,7 +802,7 @@ test("the app discovers the inference mock's models through a provider", async (
 		].sort(),
 	);
 	expect(listed.data.map((model) => model.capabilities)).toEqual(
-		inference.models.map(() => []),
+		inference.models.map(() => null),
 	);
 
 	const limitsOf = (models: typeof listed.data) =>
@@ -885,6 +885,7 @@ test("rediscovery fills the limits a model lacks and keeps edited ones", async (
 		foundCount: inference.models.length,
 		addedCount: 0,
 		alreadyExistedCount: inference.models.length,
+		capabilitiesUnsetCount: 0,
 	});
 	expect(await chatModel()).toMatchObject({
 		contextWindow: INFERENCE_MOCK_CONTEXT_WINDOW,

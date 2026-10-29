@@ -13,6 +13,27 @@ const textOnly = "model-text" as ModelId;
 const allMembers = "group-all" as GroupId;
 const staff = "group-staff" as GroupId;
 
+type Model = ReadinessSnapshot["models"][number];
+
+const chatModel: Model = {
+	id: chat,
+	providerId: provider,
+	capabilities: [
+		"text",
+		"tool-calling",
+	],
+	isDeprecated: false,
+};
+
+const textModel: Model = {
+	id: textOnly,
+	providerId: provider,
+	capabilities: [
+		"text",
+	],
+	isDeprecated: false,
+};
+
 /** An organisation where everything is set up. */
 const ready: ReadinessSnapshot = {
 	providers: [
@@ -23,23 +44,8 @@ const ready: ReadinessSnapshot = {
 		},
 	],
 	models: [
-		{
-			id: chat,
-			providerId: provider,
-			capabilities: [
-				"text",
-				"tool-calling",
-			],
-			isDeprecated: false,
-		},
-		{
-			id: textOnly,
-			providerId: provider,
-			capabilities: [
-				"text",
-			],
-			isDeprecated: false,
-		},
+		chatModel,
+		textModel,
 	],
 	pools: [
 		{
@@ -166,6 +172,68 @@ describe("evaluateReadiness", () => {
 		expect(statusOf(deprecated)).toMatchObject({
 			"chat-model": "failing",
 			"assistant-model": "failing",
+		});
+	});
+
+	test("asks for capabilities when only models without them could chat", () => {
+		const unset = (model: Model) => ({
+			...model,
+			capabilities: null,
+		});
+		const discovered: ReadinessSnapshot = {
+			...ready,
+			models: [
+				...ready.models.map(unset),
+				{
+					...unset(chatModel),
+					id: "model-old" as ModelId,
+					isDeprecated: true,
+				},
+			],
+		};
+
+		expect(checkOf(discovered, "chat-model")).toMatchObject({
+			status: "failing",
+			reason: "CHAT_MODEL_CAPABILITIES_UNKNOWN",
+			params: {
+				count: 2,
+			},
+		});
+		expect(
+			checkOf(
+				{
+					...discovered,
+					models: [
+						...discovered.models,
+						chatModel,
+					],
+				},
+				"chat-model",
+			),
+		).toEqual({
+			id: "chat-model",
+			severity: "required",
+			status: "ok",
+			reason: "CHAT_MODEL_READY",
+		});
+		expect(
+			checkOf(
+				{
+					...ready,
+					models: [
+						{
+							...textModel,
+							capabilities: [],
+						},
+					],
+				},
+				"chat-model",
+			),
+		).toEqual({
+			id: "chat-model",
+			severity: "required",
+			status: "failing",
+			reason: "CHAT_MODEL_MISSING",
 		});
 	});
 

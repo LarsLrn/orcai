@@ -175,6 +175,7 @@ describe("provider kind registry", () => {
 				description: "Model ID: gpt-x | Owned by openai",
 				contextWindow: null,
 				maxOutputTokens: null,
+				capabilities: null,
 			},
 		]);
 		expect(compatible.requests[0]?.url).toBe(
@@ -251,6 +252,142 @@ describe("provider kind registry", () => {
 			},
 		]);
 	});
+
+	test("OpenRouter's metadata reports capabilities, other servers report none", async () => {
+		const model = (id: string, metadata: Record<string, unknown>) => ({
+			id,
+			object: "model",
+			created: 0,
+			owned_by: "someone",
+			...metadata,
+		});
+		const architecture = (input: string[], output: string[]) => ({
+			modality: `${input.join("+")}->${output.join("+")}`,
+			input_modalities: input,
+			output_modalities: output,
+			tokenizer: "Other",
+			instruct_type: null,
+		});
+		const { fetch } = fakeFetch({
+			object: "list",
+			data: [
+				model("anthropic/claude-opus-4.5", {
+					architecture: architecture(
+						[
+							"file",
+							"image",
+							"text",
+						],
+						[
+							"text",
+						],
+					),
+					supported_parameters: [
+						"include_reasoning",
+						"max_tokens",
+						"reasoning",
+						"tool_choice",
+						"tools",
+					],
+				}),
+				model("meta-llama/llama-3-8b-instruct", {
+					architecture: architecture(
+						[
+							"text",
+						],
+						[
+							"text",
+						],
+					),
+					supported_parameters: [
+						"max_tokens",
+						"temperature",
+					],
+				}),
+				model("amazon/titan-embed-image-v1", {
+					architecture: architecture(
+						[
+							"text",
+							"image",
+						],
+						[
+							"embeddings",
+						],
+					),
+					supported_parameters: [],
+				}),
+				model("google/gemini-image", {
+					architecture: architecture(
+						[
+							"text",
+							"audio",
+							"video",
+						],
+						[
+							"text",
+							"image",
+							"audio",
+						],
+					),
+					supported_parameters: [
+						"tools",
+					],
+				}),
+				model("vllm", {
+					max_model_len: 32_768,
+				}),
+				model("partial", {
+					architecture: architecture(
+						[
+							"text",
+						],
+						[
+							"text",
+						],
+					),
+				}),
+			],
+		});
+
+		const models = await listProviderModels("openai-compatible", {
+			apiKey: "key",
+			endpoint: "https://openrouter.ai/api/v1",
+			fetch,
+		});
+
+		expect(
+			Object.fromEntries(
+				models.map(({ providerModelId, capabilities }) => [
+					providerModelId,
+					capabilities,
+				]),
+			),
+		).toEqual({
+			"anthropic/claude-opus-4.5": [
+				"text",
+				"image",
+				"reasoning",
+				"tool-calling",
+			],
+			"meta-llama/llama-3-8b-instruct": [
+				"text",
+			],
+			"amazon/titan-embed-image-v1": [
+				"embedding",
+				"image",
+			],
+			"google/gemini-image": [
+				"text",
+				"image-generation",
+				"video",
+				"audio",
+				"audio-generation",
+				"tool-calling",
+			],
+			vllm: null,
+			partial: null,
+		});
+	});
 });
 
 describe("providerToolLoading", () => {
@@ -301,7 +438,11 @@ describe("providerToolLoading", () => {
 });
 
 describe("listAnthropicModels", () => {
-	test("maps every page of the Models API with the token limits it reports", async () => {
+	const supported = (value: boolean) => ({
+		supported: value,
+	});
+
+	test("maps every page of the Models API with the limits and capabilities it reports", async () => {
 		const { fetch, requests } = fakeFetch(
 			{
 				data: [
@@ -312,6 +453,33 @@ describe("listAnthropicModels", () => {
 						created_at: "2026-01-01T00:00:00Z",
 						max_input_tokens: 1_000_000,
 						max_tokens: 128_000,
+						capabilities: {
+							batch: supported(true),
+							citations: supported(true),
+							image_input: supported(true),
+							pdf_input: supported(true),
+							structured_outputs: supported(true),
+							thinking: {
+								supported: true,
+								types: {
+									adaptive: supported(true),
+									enabled: supported(true),
+								},
+							},
+						},
+					},
+					{
+						type: "model",
+						id: "claude-text",
+						display_name: "Claude Text",
+						created_at: "2026-01-01T00:00:00Z",
+						capabilities: {
+							image_input: supported(false),
+							thinking: {
+								supported: false,
+								types: {},
+							},
+						},
 					},
 				],
 				has_more: true,
@@ -346,6 +514,23 @@ describe("listAnthropicModels", () => {
 				description: "Model ID: claude-a",
 				contextWindow: 1_000_000,
 				maxOutputTokens: 128_000,
+				capabilities: [
+					"text",
+					"image",
+					"reasoning",
+					"tool-calling",
+				],
+			},
+			{
+				providerModelId: "claude-text",
+				name: "Claude Text",
+				description: "Model ID: claude-text",
+				contextWindow: null,
+				maxOutputTokens: null,
+				capabilities: [
+					"text",
+					"tool-calling",
+				],
 			},
 			{
 				providerModelId: "claude-b",
@@ -353,6 +538,10 @@ describe("listAnthropicModels", () => {
 				description: "Model ID: claude-b",
 				contextWindow: null,
 				maxOutputTokens: null,
+				capabilities: [
+					"text",
+					"tool-calling",
+				],
 			},
 		]);
 		expect(requests.map(({ url }) => new URL(url).search)).toEqual([

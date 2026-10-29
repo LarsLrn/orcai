@@ -68,6 +68,8 @@ const UNUSABLE_MESSAGES: Record<ModelUnusableReason<"turn">, string> = {
 		"Selected provider is disabled. Please choose an active provider.",
 	MODEL_DEPRECATED:
 		"Selected model is deprecated. Please choose a non-deprecated model.",
+	MODEL_CAPABILITIES_UNKNOWN:
+		"Selected model has no capabilities set yet. Please set them on the model.",
 	MODEL_TOOLS_UNSUPPORTED:
 		"Selected model does not support tool calling. Please choose a chat-capable model.",
 };

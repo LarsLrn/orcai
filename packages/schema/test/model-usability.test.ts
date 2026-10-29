@@ -39,6 +39,15 @@ describe("modelUnusableReason", () => {
 			modelUnusableReason(
 				{
 					...usable,
+					capabilities: null,
+				},
+				"text",
+			),
+		).toBe("MODEL_CAPABILITIES_UNKNOWN");
+		expect(
+			modelUnusableReason(
+				{
+					...usable,
 					capabilities: [
 						"text",
 					],

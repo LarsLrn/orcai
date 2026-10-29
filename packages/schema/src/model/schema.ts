@@ -18,7 +18,8 @@ export const modelFieldsSchema = z.object({
 	name: z.string(),
 	description: z.string().max(500),
 	isDeprecated: z.boolean(),
-	capabilities: z.array(modelCapabilitiesSchema),
+	/** Null until the provider reports them or an admin sets them. */
+	capabilities: z.array(modelCapabilitiesSchema).nullable(),
 	...modelTokenLimitsSchema.partial().shape,
 	/** A price left out stays as it is, or unset on a new model. */
 	prices: modelPricesSchema.partial().optional(),
@@ -38,6 +39,8 @@ export const modelSchema = modelFieldsSchema.extend({
 export const modelFiltersSchema = z.object({
 	providerId: providerIdSchema.optional(),
 	capabilities: z.array(modelCapabilitiesSchema).optional(),
+	/** False lists the models whose capabilities are not set yet. */
+	capabilitiesSet: z.boolean().optional(),
 	isDeprecated: z.boolean().optional(),
 	providerEnabled: z.boolean().optional(),
 	...searchFilterSchema.shape,

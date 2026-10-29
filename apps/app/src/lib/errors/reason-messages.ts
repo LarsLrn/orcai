@@ -138,6 +138,7 @@ const reasonMessages: ReasonMessages = {
 		}),
 	MEMBER_NOT_FOUND: m.error_member_not_found,
 	METADATA_GENERATION_UNAVAILABLE: m.error_metadata_generation_unavailable,
+	MODEL_CAPABILITIES_UNKNOWN: m.error_model_capabilities_unknown,
 	MODEL_DEPRECATED: m.error_model_deprecated,
 	MODEL_NOT_FOUND: m.error_model_not_found,
 	MODEL_PROVIDER_MISMATCH: m.error_model_provider_mismatch,

@@ -31,6 +31,10 @@ const reasonMessages: Record<CheckReason, (check: Check) => string> = {
 	PROVIDER_MISSING: () => m.check_reason_provider_missing(),
 	CHAT_MODEL_READY: () => m.check_reason_chat_model_ready(),
 	CHAT_MODEL_MISSING: () => m.check_reason_chat_model_missing(),
+	CHAT_MODEL_CAPABILITIES_UNKNOWN: (check) =>
+		m.check_reason_chat_model_capabilities_unknown({
+			count: formatCount(count(check)),
+		}),
 	POOL_READY: () => m.check_reason_pool_ready(),
 	POOL_MISSING: () => m.check_reason_pool_missing(),
 	ASSISTANT_MODEL_READY: () => m.check_reason_assistant_model_ready(),

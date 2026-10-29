@@ -3,6 +3,7 @@ import { providerIdSchema } from "../provider/ref";
 import { paginationInputSchema } from "../shared";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
+import { modelCapabilitiesSchema } from "./parts/capabilities";
 import { modelIdSchema } from "./ref";
 import {
 	modelFieldsSchema,
@@ -26,13 +27,20 @@ export const findModelInputSchema = z.object({
 	id: modelIdSchema,
 });
 
+/** An admin's choice; choosing none leaves the capabilities not set. */
+const chosenCapabilitiesSchema = z
+	.array(modelCapabilitiesSchema)
+	.transform((capabilities) => (capabilities.length > 0 ? capabilities : null));
+
 export const createModelInputSchema = modelFieldsSchema.extend({
 	providerId: providerIdSchema,
+	capabilities: chosenCapabilitiesSchema,
 });
 
 export const updateModelInputSchema = modelMutableFieldsSchema.extend({
 	id: modelIdSchema,
 	providerId: providerIdSchema.optional(),
+	capabilities: chosenCapabilitiesSchema.optional(),
 });
 
 export const deleteModelsInputSchema = z.object({

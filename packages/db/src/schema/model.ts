@@ -48,7 +48,8 @@ export const model = pgTable(
 			length: 500,
 		}).notNull(),
 		isDeprecated: boolean("is_deprecated").notNull().default(false),
-		capabilities: text("capability").$type<ModelCapability>().array().notNull(),
+		/** Null until the provider reports them or an admin sets them. */
+		capabilities: text("capability").$type<ModelCapability>().array(),
 		contextWindow: integer("context_window"),
 		maxOutputTokens: integer("max_output_tokens"),
 		/** Per 1M tokens, in the provider's currency. */

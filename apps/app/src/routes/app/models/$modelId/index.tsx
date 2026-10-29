@@ -73,7 +73,9 @@ function RouteComponent() {
 
 	const provider = providerResponse.data;
 	const kindLabel = getProviderKindLabel(provider.kind);
-	const capabilityLabels = model.capabilities.map(getModelCapabilityLabel);
+	const capabilityLabels = (model.capabilities ?? []).map(
+		getModelCapabilityLabel,
+	);
 	const prices = [
 		{
 			label: m.models_form_input_price_label(),
