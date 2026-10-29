@@ -111,6 +111,7 @@ describe("createBotPayload", () => {
 			features: {
 				generativeUi: {},
 			},
+			listBlockIds: [],
 		});
 	});
 });

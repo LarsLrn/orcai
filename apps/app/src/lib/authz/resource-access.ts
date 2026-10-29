@@ -1,10 +1,6 @@
 import type { GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type {
-	GrantRejection,
-	ResourceGrantRole,
-	ResourceVisibility,
-} from "@orcai/schema";
+import type { GrantRejection, ResourceGrantRole } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
 import * as Arr from "effect/Array";
@@ -444,47 +440,6 @@ export const revokeResourceAccess = (params: {
 		}),
 	).pipe(Effect.map(({ result }) => result));
 
-export const setResourceVisibility = (params: {
-	resource: ResourceRef;
-	visibility: ResourceVisibility;
-	actorId: UserId;
-}) =>
-	writeResourceAccess(params.resource, () =>
-		Effect.gen(function* () {
-			const db = yield* DB;
-			const now = new Date();
-			const [row] = yield* db
-				.insert(dbSchema.resourceVisibility)
-				.values({
-					...params.resource,
-					visibility: params.visibility,
-					updatedBy: params.actorId,
-					updatedAt: now,
-				})
-				.onConflictDoUpdate({
-					target: [
-						dbSchema.resourceVisibility.resourceType,
-						dbSchema.resourceVisibility.resourceId,
-					],
-					set: {
-						visibility: params.visibility,
-						updatedAt: now,
-						updatedBy: params.actorId,
-					},
-				})
-				.returning();
-
-			yield* recordRelationshipFacts(
-				RelationshipFact.ResourceVisibilitySet({
-					resource: params.resource,
-					visibility: params.visibility,
-				}),
-			);
-
-			return row;
-		}),
-	).pipe(Effect.map(({ result }) => result));
-
 const grantColumns = {
 	id: dbSchema.resourceGrant.id,
 	resourceType: dbSchema.resourceGrant.resourceType,
@@ -507,6 +462,28 @@ const revokeGrantsWhere = (where: SQL | undefined, now: Date) =>
 			.returning(grantColumns);
 		yield* recordGrantChanges(revoked);
 	});
+
+/**
+ * Revokes the resource's grants issued in the organisations. Call it in a
+ * {@link writeRelationships} that holds the resource's organisation locks.
+ */
+export const revokeIssuedGrants = (params: {
+	resource: ResourceRef;
+	organizationIds: readonly OrganizationId[];
+	now: Date;
+}) =>
+	params.organizationIds.length === 0
+		? Effect.void
+		: revokeGrantsWhere(
+				and(
+					eq(dbSchema.resourceGrant.resourceType, params.resource.resourceType),
+					eq(dbSchema.resourceGrant.resourceId, params.resource.resourceId),
+					inArray(dbSchema.resourceGrant.organizationId, [
+						...params.organizationIds,
+					]),
+				),
+				params.now,
+			);
 
 /** Removes the users' active group memberships, in one organization's groups when given. */
 const leaveGroups = (params: {

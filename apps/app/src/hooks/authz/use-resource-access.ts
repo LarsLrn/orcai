@@ -1,8 +1,10 @@
 import type { BlockId } from "@orcai/core";
 import type {
+	ListingImpact,
 	PrincipalType,
 	ResourcePrincipalIdentity,
 	ResourceRef,
+	ResourceVisibility,
 } from "@orcai/schema";
 import {
 	skipToken,
@@ -11,6 +13,10 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+	type ConfirmOptions,
+	useConfirm,
+} from "@/components/ui/dialog/confirm-dialog";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatList } from "@/lib/presentation/format-list";
@@ -120,8 +126,66 @@ export const useRevokeResourceAccess = () =>
 		},
 	});
 
-export const useSetResourceVisibility = () =>
-	useMutationAction({
+/**
+ * The confirm for listing or unlisting, naming the blocks listed with a bot
+ * and the organisations whose installs end; null when the server refuses the
+ * change anyway and names what blocks it.
+ */
+export const listingConfirm = (
+	visibility: ResourceVisibility,
+	impact: ListingImpact,
+): ConfirmOptions | null => {
+	if (visibility === "public") {
+		if (impact.unlistedBlocks.some((block) => !block.canManageAccess)) {
+			return null;
+		}
+		return {
+			title: m.access_publish_confirm_title(),
+			description: [
+				m.access_publish_confirm_description(),
+				...(impact.unlistedBlocks.length > 0
+					? [
+							m.access_publish_confirm_blocks({
+								blockNames: formatList(
+									impact.unlistedBlocks.map((block) => block.name),
+								),
+							}),
+						]
+					: []),
+			].join(" "),
+			confirmText: m.access_publish_confirm_button(),
+			cancelText: m.common_cancel_button(),
+		};
+	}
+	if (impact.listedBots.length > 0) {
+		return null;
+	}
+	return {
+		title: m.access_make_private_confirm_title(),
+		description: [
+			m.access_make_private_confirm_description(),
+			...(impact.installingOrganizations.length > 0
+				? [
+						m.access_make_private_confirm_installs({
+							organizationNames: formatList(
+								impact.installingOrganizations.map(
+									(organization) => organization.name,
+								),
+							),
+						}),
+					]
+				: []),
+		].join(" "),
+		confirmText: m.access_make_private_confirm_button(),
+		cancelText: m.common_cancel_button(),
+	};
+};
+
+/** Lists or unlists a resource once {@link listingConfirm} is confirmed. */
+export const useSetResourceListing = () => {
+	const queryClient = useQueryClient();
+	const confirm = useConfirm();
+	const setVisibility = useMutationAction({
 		mutationOptions: () => orpc.resource.setVisibility.mutationOptions(),
 		messages: {
 			loading: m.access_visibility_toast_loading(),
@@ -131,21 +195,41 @@ export const useSetResourceVisibility = () =>
 					: m.access_visibility_toast_private(),
 			error: m.access_visibility_toast_error(),
 		},
-		confirm: (input) =>
-			input.visibility === "private"
-				? {
-						title: m.access_make_private_confirm_title(),
-						description: m.access_make_private_confirm_description(),
-						confirmText: m.access_make_private_confirm_button(),
-						cancelText: m.common_cancel_button(),
-					}
-				: {
-						title: m.access_publish_confirm_title(),
-						description: m.access_publish_confirm_description(),
-						confirmText: m.access_publish_confirm_button(),
-						cancelText: m.common_cancel_button(),
-					},
 	});
+
+	const setListing = async (
+		resourceRef: ResourceRef,
+		visibility: ResourceVisibility,
+	) => {
+		const input = getResourceInput(resourceRef);
+		const impact = await queryClient
+			.fetchQuery(
+				orpc.resource.listingImpact.queryOptions({
+					input,
+					staleTime: 0,
+				}),
+			)
+			.catch(() => null);
+		if (!impact) {
+			toast.error(m.access_visibility_toast_error());
+			return;
+		}
+		const confirmOptions = listingConfirm(visibility, impact.data);
+		if (confirmOptions && !(await confirm(confirmOptions))) {
+			return;
+		}
+		await setVisibility.mutateAsync({
+			...input,
+			visibility,
+			listBlockIds: impact.data.unlistedBlocks.map((block) => block.id),
+		});
+	};
+
+	return {
+		setListing,
+		isPending: setVisibility.isPending,
+	};
+};
 
 const principalKey = (principal: {
 	principalType: PrincipalType;

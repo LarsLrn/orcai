@@ -70,6 +70,7 @@ import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { documentStateBadge } from "@/lib/presentation/document-state";
+import { formatList } from "@/lib/presentation/format-list";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -334,6 +335,18 @@ const BotEditorShell = ({
 			plan,
 			zedToken: zedTokenRef.current,
 			onBlockSaved: handleBlockSaved,
+			confirmListing: (blocks) =>
+				confirm({
+					title: m.authoring_list_blocks_confirm_title(),
+					description: m.authoring_list_blocks_confirm_description({
+						blockNames: formatList(blocks.map((block) => block.name)),
+					}),
+					confirmText: m.authoring_list_blocks_confirm_button(),
+					cancelText: m.common_cancel_button(),
+					confirmButton: {
+						variant: "default",
+					},
+				}),
 		});
 		if (result.status !== "success") {
 			return null;
@@ -862,6 +875,7 @@ const BotEditorShell = ({
 												key={databaseBlock.id ?? `database-block-${index}`}
 												form={form}
 												fields={createDatabaseBlockBuilderFieldMap(index)}
+												blockId={databaseBlock.id}
 												assetIds={databaseBlock.assetIds}
 												onAssetIdsChange={(ids) => {
 													form.setFieldValue(

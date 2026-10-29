@@ -86,6 +86,8 @@ export const updateBotPayload = (
 	databaseBlockIds:
 		input.repositoryIds ?? current.databaseBlocks.map((block) => block.id),
 	features: input.features ?? current.features,
+	// The assistant never lists; a listed bot's new blocks wait for the owner in the app.
+	listBlockIds: [],
 });
 
 export const updateBotTool = (deps: AssistantToolDeps) =>

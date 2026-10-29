@@ -1,3 +1,4 @@
+import type { BlockId } from "@orcai/core";
 import type { AssetWithCapabilities, RetrievalMode } from "@orcai/schema";
 import { DatabaseBlockEditor } from "@/components/authoring/database-block-editor";
 import { withFieldGroup } from "@/hooks/form";
@@ -58,6 +59,7 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 			void _assets;
 		},
 		onRemove: undefined as (() => void) | undefined,
+		blockId: undefined as BlockId | undefined,
 	},
 	render: function Render({
 		group,
@@ -66,9 +68,11 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 		assets,
 		onAssetsChange,
 		onRemove,
+		blockId,
 	}) {
 		return (
 			<DatabaseBlockEditor
+				blockId={blockId}
 				nameField={
 					<group.AppField
 						name="name"

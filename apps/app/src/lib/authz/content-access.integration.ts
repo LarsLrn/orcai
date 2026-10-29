@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { attachAssets } from "@/lib/ai/turn/attachments";
 import {
@@ -327,7 +327,7 @@ describe("reading contents while tuples lag", () => {
 	);
 
 	test(
-		"unlisting a bot closes its contents to readers it reached only by listing",
+		"unlisting a bot and its repository closes them to readers they reached only by listing",
 		async () => {
 			const {
 				admissions,
@@ -336,6 +336,7 @@ describe("reading contents while tuples lag", () => {
 				procedures,
 				call,
 				bot,
+				repositoryId,
 				reads,
 				withoutTuples,
 			} = await sharedRepository();
@@ -345,6 +346,9 @@ describe("reading contents while tuples lag", () => {
 						resourceType: "bot",
 						resourceId: bot.id,
 						visibility: "public",
+						listBlockIds: [
+							repositoryId,
+						],
 					},
 					options,
 				),
@@ -372,7 +376,12 @@ describe("reading contents while tuples lag", () => {
 						.set({
 							visibility: "private",
 						})
-						.where(eq(dbSchema.resourceVisibility.resourceId, bot.id));
+						.where(
+							inArray(dbSchema.resourceVisibility.resourceId, [
+								bot.id,
+								repositoryId,
+							]),
+						);
 				}),
 			);
 			expect(await reads()).toEqual(closed);

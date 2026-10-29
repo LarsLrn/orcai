@@ -7,6 +7,8 @@ import {
 	resourceInheritedAccessResponseSchema,
 	resourceListGrantsInputSchema,
 	resourceListGrantsResponseSchema,
+	resourceListingImpactInputSchema,
+	resourceListingImpactResponseSchema,
 	resourceListPrincipalsInputSchema,
 	resourceListPrincipalsResponseSchema,
 	resourceListRecentInputSchema,
@@ -111,6 +113,19 @@ export const resourceContracts = {
 		)
 		.input(resourceGetVisibilityInputSchema)
 		.output(resourceGetVisibilityResponseSchema),
+	listingImpact: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/resources/{resourceType}/{resourceId}/listing-impact",
+				summary: "What changing a resource's listing involves",
+				tags: [
+					"Resources",
+				],
+			}),
+		)
+		.input(resourceListingImpactInputSchema)
+		.output(resourceListingImpactResponseSchema),
 	setVisibility: base
 		.meta(
 			openapi({

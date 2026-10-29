@@ -17,7 +17,7 @@ const listAccessInputSchema = z.strictObject(resourceTargetShape);
 export const listAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"List who has access to a bot, block or asset: direct grants with their roles (viewer, editor, manager), and the users and groups that reach it through a bot or block it belongs to. Needs manage access on the resource. Public visibility (everyone on the instance) is not shown here and is set only in the resource's access dialog in the editor, never by the assistant.",
+			"List who has access to a bot, block or asset: direct grants with their roles (viewer, editor, manager), and the users and groups that reach it through a bot or block it belongs to. Needs manage access on the resource. A catalogue listing (a preview for everyone on the instance) is not shown here and is set only in the resource's access dialog in the app, never by the assistant.",
 		inputSchema: listAccessInputSchema,
 		run: (input) =>
 			Effect.gen(function* () {

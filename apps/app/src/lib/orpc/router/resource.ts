@@ -30,10 +30,10 @@ import {
 	activeGrants,
 	grantResourceAccess,
 	revokeResourceAccess,
-	setResourceVisibility,
 } from "@/lib/authz/resource-access";
 import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { listingImpact, setListing } from "@/lib/catalogue/listing";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
@@ -626,14 +626,29 @@ const getResourceVisibility = authed.resource.getVisibility
 const setVisibility = authed.resource.setVisibility
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
-		const data = yield* setResourceVisibility({
-			resource: input,
+		const data = yield* setListing({
+			resource: scopedResourceRef(input),
 			visibility: input.visibility,
-			actorId: context.auth.user.id,
+			listBlockIds: input.listBlockIds,
+			actor: {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			},
 		});
 
 		return {
 			data,
+		};
+	});
+
+const getListingImpact = authed.resource.listingImpact
+	.use(requireResourcePermission("manage_access"))
+	.effect(function* ({ input, context }) {
+		return {
+			data: yield* listingImpact(scopedResourceRef(input), {
+				userId: context.auth.user.id,
+				zedToken: getZedToken(context),
+			}),
 		};
 	});
 
@@ -662,5 +677,6 @@ export const resourceRouter = {
 	grant: grantAccess,
 	revoke: revokeAccess,
 	getVisibility: getResourceVisibility,
+	listingImpact: getListingImpact,
 	setVisibility,
 };

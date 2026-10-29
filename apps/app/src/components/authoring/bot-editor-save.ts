@@ -1,5 +1,9 @@
 import type { BlockId } from "@orcai/core";
-import type { PublicationStatus, SaveBotInput } from "@orcai/schema";
+import type {
+	ErrorReasonParams,
+	PublicationStatus,
+	SaveBotInput,
+} from "@orcai/schema";
 import type { InferClientInputs, InferClientOutputs } from "@orpc/client";
 import { evaluate } from "@tanstack/react-form";
 import {
@@ -7,6 +11,7 @@ import {
 	toBotEditorFormValues,
 } from "@/components/authoring/bot-editor-form-options";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { errorReasonOf } from "@/lib/errors/describe-error";
 import type { client } from "@/lib/orpc/orpc";
 
 type TemplateBlockValues = NonNullable<BotEditorFormValues["templateBlock"]>;
@@ -200,6 +205,24 @@ export type BotEditorBlockSaved = {
 	zedToken?: string;
 };
 
+type UnlistedBlock = {
+	id: BlockId;
+	name: string;
+};
+
+/** The unlisted blocks a listed bot's save asks to list with it, if that is why it failed. */
+const unlistedBlocksOf = (error: unknown): UnlistedBlock[] | undefined => {
+	const ref = errorReasonOf(error);
+	return ref?.reason === "LISTING_BLOCKS_UNCONFIRMED"
+		? (
+				ref.params as ErrorReasonParams["LISTING_BLOCKS_UNCONFIRMED"]
+			).blocks.map((block) => ({
+				id: block.id as BlockId,
+				name: block.name,
+			}))
+		: undefined;
+};
+
 /**
  * Writes a plan: blocks first, so the bot links the ids of new ones. Reports
  * each committed block write through `onBlockSaved`, so a later failure leaves
@@ -211,10 +234,12 @@ export const executeBotEditorSave = async (
 		plan,
 		zedToken,
 		onBlockSaved,
+		confirmListing,
 	}: {
 		plan: BotEditorSavePlan;
 		zedToken?: string;
 		onBlockSaved: (saved: BotEditorBlockSaved) => void;
+		confirmListing: (blocks: UnlistedBlock[]) => Promise<boolean>;
 	},
 	procedures: BotEditorProcedures,
 ) => {
@@ -273,23 +298,33 @@ export const executeBotEditorSave = async (
 		};
 	}
 
-	const saved = await procedures.saveBot({
-		zedToken: token,
-		id: plan.values.id,
-		name: plan.values.name,
-		description: plan.values.description,
-		contentJson: plan.values.contentJson as SaveBotInput["contentJson"],
-		contentHtml: plan.values.contentHtml,
-		status: plan.status,
-		templateBlockId: templateBlock?.id ?? null,
-		databaseBlockIds: databaseBlocks.flatMap((block) =>
-			block.id
-				? [
-						block.id,
-					]
-				: [],
-		),
-		features: plan.values.features,
+	const saveBot = (listBlockIds: BlockId[]) =>
+		procedures.saveBot({
+			zedToken: token,
+			id: plan.values.id,
+			name: plan.values.name,
+			description: plan.values.description,
+			contentJson: plan.values.contentJson as SaveBotInput["contentJson"],
+			contentHtml: plan.values.contentHtml,
+			status: plan.status,
+			templateBlockId: templateBlock?.id ?? null,
+			databaseBlockIds: databaseBlocks.flatMap((block) =>
+				block.id
+					? [
+							block.id,
+						]
+					: [],
+			),
+			features: plan.values.features,
+			listBlockIds,
+		});
+	// A listed bot lists the blocks it gains, once the author confirms them.
+	const saved = await saveBot([]).catch(async (error: unknown) => {
+		const unlisted = unlistedBlocksOf(error);
+		if (!unlisted || !(await confirmListing(unlisted))) {
+			throw error;
+		}
+		return saveBot(unlisted.map((block) => block.id));
 	});
 
 	return {

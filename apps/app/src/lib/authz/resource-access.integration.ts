@@ -19,8 +19,8 @@ import type { GrantPrincipal } from "@/lib/authz/relationship-facts";
 import {
 	grantResourceAccess,
 	revokeResourceAccess,
-	setResourceVisibility,
 } from "@/lib/authz/resource-access";
+import { setListing } from "@/lib/catalogue/listing";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const {
@@ -103,12 +103,22 @@ const revoke = (blockId: BlockId, principal: GrantPrincipal) =>
 	);
 
 const setVisibility =
-	(owner: Actor, blockId: BlockId, visibility: "public" | "private") => () =>
+	(
+		owner: Actor,
+		blockId: BlockId,
+		visibility: "public" | "private",
+		zedToken: string | undefined,
+	) =>
+	() =>
 		run(
-			setResourceVisibility({
+			setListing({
 				resource: block(blockId),
 				visibility,
-				actorId: owner.user.id,
+				listBlockIds: [],
+				actor: {
+					userId: owner.user.id,
+					zedToken,
+				},
 			}),
 		);
 
@@ -147,13 +157,13 @@ const ownedBlock = async (roles: readonly ("admin" | "member")[]) => {
 		...roles,
 	]);
 	const [owner, ...others] = actors;
-	const { blockId } = await createBlock(owner, zedToken);
+	const { blockId, zedToken: created } = await createBlock(owner, zedToken);
 	return {
 		organizationId,
 		owner,
 		others,
 		blockId,
-		zedToken,
+		zedToken: created,
 	};
 };
 
@@ -391,11 +401,11 @@ describe("visibility", () => {
 	test(
 		"private queued after public leaves the resource private in both stores",
 		async () => {
-			const { organizationId, owner, blockId } = await ownedBlock([]);
+			const { organizationId, owner, blockId, zedToken } = await ownedBlock([]);
 			await queueBehindOrganizationLock(
 				organizationId,
-				setVisibility(owner, blockId, "public"),
-				setVisibility(owner, blockId, "private"),
+				setVisibility(owner, blockId, "public", zedToken),
+				setVisibility(owner, blockId, "private", zedToken),
 			);
 			expect(await visibilityOf(blockId)).toEqual({
 				visibility: "private",
@@ -408,11 +418,11 @@ describe("visibility", () => {
 	test(
 		"public queued after private leaves the resource public in both stores",
 		async () => {
-			const { organizationId, owner, blockId } = await ownedBlock([]);
+			const { organizationId, owner, blockId, zedToken } = await ownedBlock([]);
 			await queueBehindOrganizationLock(
 				organizationId,
-				setVisibility(owner, blockId, "private"),
-				setVisibility(owner, blockId, "public"),
+				setVisibility(owner, blockId, "private", zedToken),
+				setVisibility(owner, blockId, "public", zedToken),
 			);
 			expect(await visibilityOf(blockId)).toEqual({
 				visibility: "public",
@@ -507,6 +517,7 @@ describe("detaching principals that leave", () => {
 				organizationId: grantOrganizationId,
 				owner,
 				blockId,
+				zedToken,
 			} = await ownedBlock([]);
 			await run(
 				Effect.gen(function* () {
@@ -532,7 +543,7 @@ describe("detaching principals that leave", () => {
 							actorId: admin.user.id,
 						}),
 					),
-				setVisibility(owner, blockId, "private"),
+				setVisibility(owner, blockId, "private", zedToken),
 			);
 			expect(await accessOf(blockId, account.user.id)).toEqual({
 				grants: [],

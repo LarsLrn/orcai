@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeleteOrganizationsMutation } from "@/hooks/mutations/use-organization-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
 const IMPACT_ROWS = [
@@ -131,6 +132,32 @@ const DeleteOrganizationDialog = ({
 									<li key={row.key}>{row.describe(impact.data[row.key])}</li>
 								))}
 							</ul>
+							{impact.data.listedResources.length > 0 ? (
+								<div className="space-y-1">
+									<p className="font-medium">
+										{m.orgs_delete_dialog_listed_heading()}
+									</p>
+									<ul className="max-h-40 list-inside list-disc space-y-1 overflow-y-auto">
+										{impact.data.listedResources.map((resource) => (
+											<li key={resource.resourceId}>
+												{resource.name}
+												{resource.installingOrganizations.length > 0 ? (
+													<span className="text-muted-foreground">
+														{" "}
+														(
+														{m.orgs_delete_dialog_listed_installs({
+															organizationNames: formatList(
+																resource.installingOrganizations,
+															),
+														})}
+														)
+													</span>
+												) : null}
+											</li>
+										))}
+									</ul>
+								</div>
+							) : null}
 							<p className="text-muted-foreground">
 								{m.orgs_delete_dialog_impact_note()}
 							</p>

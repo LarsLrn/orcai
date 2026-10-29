@@ -44,6 +44,7 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 
 	const kind = blockKind(block.data.type);
 	const { actions, dialog } = useBlockActions(block.data, {
+		listing: true,
 		onDeleted: async () => {
 			await navigate({
 				to: blockPaths(block.data.type).list,
@@ -80,6 +81,7 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 								variant: "default",
 							},
 							actions.access,
+							actions.listing,
 							actions.delete,
 						]}
 					/>

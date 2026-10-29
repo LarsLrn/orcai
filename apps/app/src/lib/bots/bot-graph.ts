@@ -20,6 +20,7 @@ import {
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { loadDatabaseBlockAssets } from "@/lib/blocks/database-block";
+import { isListed, listBlocksOfListedBot } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 export const loadBotEditor = (params: {
@@ -383,6 +384,20 @@ export const saveBotGraph = (params: {
 					userId: params.userId,
 					zedToken: params.zedToken,
 				});
+				if (
+					yield* isListed({
+						resourceType: "bot",
+						resourceId: botId,
+					})
+				)
+					yield* listBlocksOfListedBot({
+						blockIds: Arr.difference(nextBlockIds, previousBlockIds),
+						confirmedIds: params.input.listBlockIds,
+						actor: {
+							userId: params.userId,
+							zedToken: params.zedToken,
+						},
+					});
 
 				if (nextBlockIds.length > 0) {
 					yield* db.insert(dbSchema.botBlock).values(

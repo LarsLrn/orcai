@@ -90,6 +90,7 @@ function RouteComponent() {
 			: blocks.data;
 
 	const { actions, dialog } = useBotActions(bot.data, {
+		listing: true,
 		onDeleted: async () => {
 			await navigate({
 				to: "/app/library/bots",
@@ -137,6 +138,7 @@ function RouteComponent() {
 							},
 							actions.edit,
 							actions.access,
+							actions.listing,
 							actions.delete,
 						]}
 					/>

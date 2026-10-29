@@ -40,7 +40,11 @@ export type OrganizationWithMemberCount = z.infer<
 	typeof organizationWithMemberCountSchema
 >;
 
-/** What deleting an organisation takes with it; `homeResources` are the bots, behaviours, repositories and documents it is home to. */
+/**
+ * What deleting an organisation takes with it; `homeResources` are the bots,
+ * behaviours, repositories and documents it is home to, `listedResources`
+ * those of them in the catalogue, with the organisations that added them.
+ */
 export const organizationDeletionImpactSchema = z.object({
 	id: organizationIdSchema,
 	name: z.string(),
@@ -49,6 +53,17 @@ export const organizationDeletionImpactSchema = z.object({
 	pendingInvitations: z.number().int(),
 	groups: z.number().int(),
 	homeResources: z.number().int(),
+	listedResources: z.array(
+		z.object({
+			resourceType: z.enum([
+				"bot",
+				"block",
+			]),
+			resourceId: z.string(),
+			name: z.string(),
+			installingOrganizations: z.array(z.string()),
+		}),
+	),
 });
 
 export type OrganizationDeletionImpact = z.infer<

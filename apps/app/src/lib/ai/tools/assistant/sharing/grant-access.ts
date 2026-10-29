@@ -31,7 +31,7 @@ const grantAccessInputSchema = z.strictObject({
 export const grantAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Give users or groups a role on one bot, block or asset; a principal that already has a role gets the new one instead. It grants on the named resource only, not on a bot's template or repositories. Needs manage access on the resource. Public visibility (everyone on the instance) is set only in the resource's access dialog in the editor, never by the assistant.",
+			"Give users or groups a role on one bot, block or asset; a principal that already has a role gets the new one instead. It grants on the named resource only, not on a bot's template or repositories. Needs manage access on the resource. A catalogue listing (a preview for everyone on the instance) is set only in the resource's access dialog in the app, never by the assistant.",
 		inputSchema: grantAccessInputSchema,
 		run: ({ principals, role, ...target }) =>
 			Effect.gen(function* () {

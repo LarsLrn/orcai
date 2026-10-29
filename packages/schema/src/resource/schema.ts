@@ -5,6 +5,7 @@ import { blockTypeSchema } from "../block/schema";
 import { botIdSchema } from "../bot/ref";
 import { groupIdSchema } from "../group/ref";
 import { groupSchema } from "../group/schema";
+import { organizationIdSchema } from "../organization/ref";
 import { pipelineStatusSchema } from "../shared/primitives/pipeline-status";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
@@ -228,6 +229,33 @@ export const resourceOwnerSchema = z.object({
 	image: z.string().nullable(),
 });
 
+/**
+ * What changing a resource's listing involves: the bot's unlisted blocks that
+ * listing it lists too, the listed bots that keep a block listed, and the
+ * organisations whose installs unlisting ends.
+ */
+export const listingImpactSchema = z.object({
+	unlistedBlocks: z.array(
+		z.object({
+			id: blockIdSchema,
+			name: z.string(),
+			canManageAccess: z.boolean(),
+		}),
+	),
+	listedBots: z.array(
+		z.object({
+			id: botIdSchema,
+			name: z.string(),
+		}),
+	),
+	installingOrganizations: z.array(
+		z.object({
+			id: organizationIdSchema,
+			name: z.string(),
+		}),
+	),
+});
+
 /** A resource that changed recently, carrying only what a summary row shows. */
 export const recentResourceSchema = z.discriminatedUnion("resourceType", [
 	assetResourceIdentitySchema.extend({
@@ -251,6 +279,7 @@ export const recentResourceSchema = z.discriminatedUnion("resourceType", [
 export type ResourceType = z.infer<typeof resourceTypeSchema>;
 export type ResourceGrantRole = z.infer<typeof resourceGrantRoleSchema>;
 export type ResourceVisibility = z.infer<typeof resourceVisibilitySchema>;
+export type ListingImpact = z.infer<typeof listingImpactSchema>;
 export type PrincipalType = z.infer<typeof principalTypeSchema>;
 export type ResourceGrantSource = z.infer<typeof resourceGrantSourceSchema>;
 export type ResourceOwner = z.infer<typeof resourceOwnerSchema>;

@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { blockIdSchema } from "../block/ref";
 import { zedTokenSchema } from "../shared";
 import {
 	createResourceScopedSchema,
@@ -36,7 +37,11 @@ export const resourceListPrincipalsInputSchema = createResourceScopedSchema({
 
 export const resourceSetVisibilityInputSchema = createResourceScopedSchema({
 	visibility: resourceVisibilitySchema,
+	/** The bot's unlisted blocks the actor confirmed to list with it. */
+	listBlockIds: z.array(blockIdSchema).default([]),
 });
+
+export const resourceListingImpactInputSchema = resourceIdentitySchema;
 
 export const resourceGetVisibilityInputSchema = resourceIdentitySchema;
 

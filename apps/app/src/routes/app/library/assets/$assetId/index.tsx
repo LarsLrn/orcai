@@ -57,6 +57,7 @@ function RouteComponent() {
 	);
 
 	const { actions, dialog } = useAssetActions(asset.data, {
+		listing: true,
 		onDeleted: async () => {
 			await navigate({
 				to: "/app/library/assets",
@@ -101,6 +102,7 @@ function RouteComponent() {
 							actions.access,
 							actions.addToLibrary,
 							actions.reprocess,
+							actions.listing,
 							actions.delete,
 						]}
 					/>

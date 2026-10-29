@@ -93,6 +93,7 @@ const DatabaseBlockForm = ({
 				assets={selectedAssets}
 				onAssetsChange={setSelectedAssets}
 				onRemove={undefined}
+				blockId={block?.id}
 			/>
 
 			<form.AppForm>
