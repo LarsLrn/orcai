@@ -9,7 +9,10 @@ import {
 } from "../block/schema";
 import { botSetupStrengthSchema } from "../bot-setup/schema";
 import { featuresSchema } from "../feature/schema";
-import { resourceOwnerSchema } from "../resource/schema";
+import {
+	resourceOwnerSchema,
+	sourceOrganizationSchema,
+} from "../resource/schema";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
 import { botIdSchema } from "./ref";
@@ -47,6 +50,8 @@ export const botWithCapabilitiesSchema = botSchema.extend({
 /** A bot as library lists return it: with what its tile shows. */
 export const botListItemSchema = botWithCapabilitiesSchema.extend({
 	owner: resourceOwnerSchema,
+	/** Set when the active organisation added the bot from the catalogue. */
+	installedFrom: sourceOrganizationSchema.nullable(),
 	contents: z.object({
 		behaviour: z.boolean(),
 		repositories: z.number().int(),

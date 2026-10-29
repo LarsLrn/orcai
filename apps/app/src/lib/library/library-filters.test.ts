@@ -45,6 +45,7 @@ describe("library filters", () => {
 					query: "tutor",
 					sort: "name",
 					status: "draft",
+					source: "own",
 					favourite: true,
 					pageIndex: 2,
 					pageSize: 50,
@@ -57,6 +58,7 @@ describe("library filters", () => {
 			sort: "name",
 			filters: {
 				status: "draft",
+				source: "own",
 				favourite: true,
 				scope: "edit",
 			},
@@ -68,6 +70,7 @@ describe("library filters", () => {
 			sort: "newest",
 			filters: {
 				status: "all",
+				source: "all",
 				scope: "all",
 			},
 		});
@@ -96,6 +99,7 @@ describe("library filters", () => {
 			sort: "newest",
 			filters: {
 				status: "ready",
+				source: "all",
 				type,
 				scope: "all",
 				search: "notes",
@@ -129,12 +133,13 @@ describe("library filters", () => {
 		});
 	});
 
-	test("the overview searches every kind with the status filter", () => {
+	test("the overview searches every kind with the status and source filters", () => {
 		expect(
 			libraryListInput.overview(
 				parse("overview", {
 					query: "methods",
 					status: "draft",
+					source: "installed",
 					scope: "edit",
 				}),
 			),
@@ -145,6 +150,7 @@ describe("library filters", () => {
 			scope: "edit",
 			sort: "newest",
 			status: "draft",
+			source: "installed",
 		});
 	});
 

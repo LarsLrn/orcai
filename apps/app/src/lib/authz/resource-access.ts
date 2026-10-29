@@ -18,9 +18,11 @@ import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
+import { requireAdministersIn } from "@/lib/authz/resource-authority";
 import {
 	lockExistingResource,
 	resourceOrganizations,
+	scopeIn,
 } from "@/lib/authz/resource-lifecycle";
 import {
 	grantPrincipal,
@@ -276,9 +278,10 @@ const principalRejections = (params: {
 
 /**
  * Gives every principal `role` on the resource, replacing their current
- * grant issued in the organisation. Principals must belong to it, checked
- * under the resource's locks, so a member removed or a group deleted
- * concurrently is rejected rather than granted.
+ * grant issued in the organisation. The actor must administer the resource
+ * there, and principals must belong to it, both checked under the resource's
+ * locks, so a demotion, a member removed or a group deleted concurrently is
+ * rejected rather than granted.
  */
 export const grantResourceAccess = (params: {
 	resource: ResourceRef;
@@ -312,6 +315,26 @@ export const grantResourceAccess = (params: {
 								reason: "RESOURCE_SCOPE_REQUIRED",
 								message:
 									"Resource is not available in this organization and cannot be shared here",
+							}),
+						);
+
+					yield* requireAdministersIn({
+						resource: params.resource,
+						organizationId: params.organizationId,
+						homePermission: "manage_access",
+						actor: params.actor,
+					});
+
+					if (
+						params.role !== "viewer" &&
+						(yield* scopeIn(params.resource, params.organizationId)) ===
+							"install"
+					)
+						return yield* Effect.fail(
+							new AppErrors.BadRequestError({
+								reason: "INSTALL_GRANTS_VIEWER_ONLY",
+								message:
+									"Resources added from the catalogue can be shared for use only, not for editing or managing.",
 							}),
 						);
 
@@ -398,16 +421,23 @@ export const grantResourceAccess = (params: {
 	});
 
 /**
- * Revokes the principal's grant on the resource issued in the organisation;
- * returns how many were active.
+ * Revokes the principal's grant on the resource issued in the organisation,
+ * when the actor administers the resource there; returns how many were active.
  */
 export const revokeResourceAccess = (params: {
 	resource: ResourceRef;
 	organizationId: OrganizationId;
 	principal: GrantPrincipal;
+	actor: Actor;
 }) =>
 	writeResourceAccess(params.resource, () =>
 		Effect.gen(function* () {
+			yield* requireAdministersIn({
+				resource: params.resource,
+				organizationId: params.organizationId,
+				homePermission: "manage_access",
+				actor: params.actor,
+			});
 			const db = yield* DB;
 			const active = yield* activeGrants(
 				params.resource,

@@ -51,6 +51,7 @@ const toolGuidance = [
 	"- Some tools ask the user to confirm before they run. Never ask for a confirmation in prose that a tool already asks for.",
 	"- When the user wants to add files, call requestUpload from the bots group: the user uploads in the conversation and you get the new asset ids. requestUpload never attaches them: when they belong in a repository, attach them with createRepository or updateRepository.",
 	"- Bigger edits, such as a bot's rich description, template content or a repository's retrieval settings, belong in the editor: link /app/library/bots/<bot id>/setup or the block's page.",
+	"- What the organisation added from the catalogue comes from another organisation, which alone edits it. Here it can only be shared for use and given a model with updateBotSetup.",
 	"- Listing in the catalogue (a preview for everyone on the instance) is set only in the access dialog of the bot's, block's or asset's page, never by you. When asked, link that page. A listed bot contains only listed blocks: when a change to one fails because a block is not listed, link the bot's page so its owner confirms there.",
 	"- When a tool fails, tell the user plainly what failed and why, including permission denials.",
 ].join("\n");
@@ -66,7 +67,7 @@ const planGuidance = [
 ].join("\n");
 
 const toolGroupLines: Record<DeferredToolGroup, string> = {
-	bots: "- bots: create, edit, publish and delete bots, templates and repositories; ask the user to upload files; edit, delete and retry assets.",
+	bots: "- bots: create, edit, publish and delete bots, templates and repositories; set a bot's model; find what the catalogue offers, and add it to or remove it from the organisation; ask the user to upload files; edit, delete and retry assets.",
 	sharing:
 		"- sharing: list who can access a bot, block or asset, and grant or revoke access for groups and members; not catalogue listing.",
 	people:

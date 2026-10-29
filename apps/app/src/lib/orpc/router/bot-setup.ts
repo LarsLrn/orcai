@@ -49,17 +49,12 @@ const findSetup = authed.botSetup.find
 const saveSetup = authed.botSetup.save
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
-		yield* requireBotSetupEditor({
-			botId: input.botId,
-			organizationId: context.auth.session.activeOrganizationId,
-			userId: context.auth.user.id,
-			zedToken: getZedToken(context, input),
-		});
 		return {
 			data: yield* saveBotSetup({
 				botId: input.botId,
 				organizationId: context.auth.session.activeOrganizationId,
 				userId: context.auth.user.id,
+				zedToken: getZedToken(context, input),
 				setup: input.setup,
 			}),
 		};

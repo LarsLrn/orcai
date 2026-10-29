@@ -36,7 +36,8 @@ const GrantEditorRow = ({
 }: {
 	grant: ResourceGrant;
 	disabled?: boolean;
-	onChangeRole: (role: ResourceGrantRole) => void;
+	/** Without it the role is fixed. */
+	onChangeRole?: (role: ResourceGrantRole) => void;
 	onRevoke: () => void;
 }) => {
 	const isAllMembers =
@@ -71,7 +72,7 @@ const GrantEditorRow = ({
 			</div>
 
 			<div className="flex items-center gap-2">
-				{isAllMembers ? (
+				{isAllMembers || !onChangeRole ? (
 					<Badge variant="outline" className="capitalize">
 						{getResourceRoleLabel(grant.role)}
 					</Badge>

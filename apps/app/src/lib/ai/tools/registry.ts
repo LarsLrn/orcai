@@ -21,6 +21,10 @@ import { updateAsset } from "./assistant/bots/update-asset.declaration";
 import { updateBot } from "./assistant/bots/update-bot.declaration";
 import { updateRepository } from "./assistant/bots/update-repository.declaration";
 import { updateTemplate } from "./assistant/bots/update-template.declaration";
+import { findCatalogue } from "./assistant/catalogue/find-catalogue.declaration";
+import { installFromCatalogue } from "./assistant/catalogue/install-from-catalogue.declaration";
+import { uninstallResource } from "./assistant/catalogue/uninstall-resource.declaration";
+import { updateBotSetup } from "./assistant/catalogue/update-bot-setup.declaration";
 import { findAssets } from "./assistant/core/find-assets.declaration";
 import { findBlocks } from "./assistant/core/find-blocks.declaration";
 import { findBots } from "./assistant/core/find-bots.declaration";
@@ -107,8 +111,10 @@ const toolDeclarations = {
 	loadTools,
 	updatePlan,
 	findModels,
+	findCatalogue,
 	createBot,
 	updateBot,
+	updateBotSetup,
 	publishBot,
 	deleteBot,
 	createTemplate,
@@ -121,6 +127,8 @@ const toolDeclarations = {
 	retryAsset,
 	generateAssetMetadata,
 	requestUpload,
+	installFromCatalogue,
+	uninstallResource,
 	listAccess,
 	findPrincipals,
 	grantAccess,

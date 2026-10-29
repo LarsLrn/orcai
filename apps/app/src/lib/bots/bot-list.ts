@@ -16,7 +16,11 @@ import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { favouriteOf, isFavourite } from "@/lib/bots/bot-favourites";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
-import { botDetails, type TileQuery } from "@/lib/library/tile-details";
+import {
+	botDetails,
+	installedFrom,
+	type TileQuery,
+} from "@/lib/library/tile-details";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -57,7 +61,7 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 			: select;
 
 		const ids = rows.map((bot) => bot.id);
-		const [capabilities, details] = yield* Effect.all(
+		const [capabilities, details, sources] = yield* Effect.all(
 			[
 				getManyEntityCapabilities({
 					entityType: "bot",
@@ -67,6 +71,7 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 					zedToken: reader.zedToken,
 				}),
 				botDetails(ids, reader.organizationId),
+				installedFrom("bot", ids, reader.organizationId),
 			],
 			{
 				concurrency: "unbounded",
@@ -78,6 +83,7 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 			contentJson: bot.contentJson as Bot["contentJson"],
 			capabilities: capabilities.get(bot.id) ?? emptyCapabilities("bot"),
 			...details(bot.id),
+			installedFrom: sources(bot.id),
 		}));
 	});
 
@@ -95,7 +101,9 @@ export const listBotTiles = (params: {
 			yield* params.access.condition("bot", {
 				scope: input.filters?.scope,
 				status: input.filters?.status,
+				source: input.filters?.source,
 			}),
+			input.filters?.usable ? yield* params.access.usable("bot") : undefined,
 			input.search
 				? ilike(dbSchema.bot.name, literalSearch(input.search))
 				: undefined,

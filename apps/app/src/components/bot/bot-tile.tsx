@@ -2,6 +2,7 @@ import type { BotListItem, BotWithCapabilities } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
 import { useBotActions } from "@/components/bot/bot-actions";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
+import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { FeatureBadges } from "@/components/features/feature-badges";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,7 +17,6 @@ import {
 	TileProvenance,
 	TileTitle,
 } from "@/components/ui/shell/tile";
-import { ResourceOwner } from "@/components/users/resource-owner";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
@@ -36,7 +36,7 @@ type TileBot = Pick<
 
 /** A bot as library lists return it, with its tile details. */
 type BrowseBot = TileBot &
-	Pick<BotListItem, "owner" | "contents" | "modelHint">;
+	Pick<BotListItem, "owner" | "contents" | "modelHint" | "installedFrom">;
 
 const { Icon, well, band } = RESOURCE_KINDS.bot;
 
@@ -142,7 +142,10 @@ const BotTile = ({
 				linkProps={linkProps}
 				provenance={
 					<TileProvenance>
-						<ResourceOwner owner={bot.owner} />
+						<ResourceProvenance
+							owner={bot.owner}
+							installedFrom={bot.installedFrom}
+						/>
 					</TileProvenance>
 				}
 			>
@@ -158,6 +161,7 @@ const BotTile = ({
 					actions.edit,
 					actions.access,
 					actions.delete,
+					actions.remove,
 				]}
 			>
 				{draft ? null : <BotFavouriteToggle bot={bot} />}

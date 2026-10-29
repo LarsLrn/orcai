@@ -25,6 +25,7 @@ import {
 } from "@/lib/blocks/readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
+import { installedFrom } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInputFor,
@@ -87,13 +88,32 @@ const findBlock = authed.block.find
 			);
 		}
 
-		const capabilities = yield* getEntityCapabilities({
-			entityType: "block",
-			entityId: input.id,
-			userId: context.auth.user.id,
-			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: getZedToken(context, input),
-		});
+		const [capabilities, sources] = yield* Effect.all(
+			[
+				getEntityCapabilities({
+					entityType: "block",
+					entityId: input.id,
+					userId: context.auth.user.id,
+					organizationId: context.auth.session.activeOrganizationId,
+					zedToken: getZedToken(context, input),
+				}),
+				installedFrom(
+					"block",
+					[
+						input.id,
+					],
+					context.auth.session.activeOrganizationId,
+				),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
+		const found = {
+			...block,
+			capabilities,
+			installedFrom: sources(block.id),
+		};
 
 		if (block.type === "database") {
 			const assets = yield* loadDatabaseBlockAssets({
@@ -104,19 +124,13 @@ const findBlock = authed.block.find
 			});
 
 			return {
-				data: {
-					...block,
-					capabilities,
-				},
+				data: found,
 				assets,
 			};
 		}
 
 		return {
-			data: {
-				...block,
-				capabilities,
-			},
+			data: found,
 		};
 	});
 

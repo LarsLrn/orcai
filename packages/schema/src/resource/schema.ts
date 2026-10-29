@@ -229,6 +229,14 @@ export const resourceOwnerSchema = z.object({
 	image: z.string().nullable(),
 });
 
+/** The organisation a resource added from the catalogue comes from: its home. */
+export const sourceOrganizationSchema = z.object({
+	id: organizationIdSchema,
+	name: z.string(),
+	/** The app path of the logo. */
+	logo: z.string().nullable(),
+});
+
 /**
  * What changing a resource's listing involves: the bot's unlisted blocks that
  * listing it lists too, the listed bots that keep a block listed, and the
@@ -283,6 +291,7 @@ export type ListingImpact = z.infer<typeof listingImpactSchema>;
 export type PrincipalType = z.infer<typeof principalTypeSchema>;
 export type ResourceGrantSource = z.infer<typeof resourceGrantSourceSchema>;
 export type ResourceOwner = z.infer<typeof resourceOwnerSchema>;
+export type SourceOrganization = z.infer<typeof sourceOrganizationSchema>;
 export type DirectGrantSource = z.infer<typeof directGrantSourceSchema>;
 export type ResourceRef = z.infer<typeof resourceRefSchema>;
 export type ResourceIdentity = z.infer<typeof resourceIdentitySchema>;

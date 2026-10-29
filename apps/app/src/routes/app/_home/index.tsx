@@ -1,16 +1,11 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { UserHome } from "@/components/app/home/user-home";
+import { showcaseBotsInput } from "@/components/bot/bots-showcase";
 import {
 	failingRequired,
 	readinessQuery,
 } from "@/components/readiness/organization-readiness-card";
 import { orpc } from "@/lib/orpc/orpc";
-
-const PREFETCH_PARAMS = {
-	pageIndex: 0,
-	pageSize: 6,
-	sort: "favouritesFirst",
-} as const;
 
 const SUMMARY_PARAMS = {
 	pageIndex: 0,
@@ -38,7 +33,7 @@ export const Route = createFileRoute("/app/_home/")({
 		await Promise.all([
 			queryClient.query(
 				orpc.bot.list.queryOptions({
-					input: PREFETCH_PARAMS,
+					input: showcaseBotsInput(6),
 					staleTime: "static",
 				}),
 			),

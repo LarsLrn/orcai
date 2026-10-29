@@ -108,6 +108,7 @@ const reasonMessages: ReasonMessages = {
 		].join(" "),
 	GROUP_MEMBERS_INVALID: m.error_group_members_invalid,
 	GROUP_NOT_FOUND: m.error_group_not_found,
+	INSTALL_GRANTS_VIEWER_ONLY: m.error_install_grants_viewer_only,
 	INSTANCE_ADMIN_REQUIRED: m.error_instance_admin_required,
 	INSTANCE_ALREADY_INITIALISED: m.error_instance_already_initialised,
 	INSTANCE_ROLE_INVALID: m.error_instance_role_invalid,
@@ -176,6 +177,8 @@ const reasonMessages: ReasonMessages = {
 	REPOSITORY_BLOCK_TYPE_INVALID: m.error_repository_block_type_invalid,
 	REPOSITORY_NOT_FOUND: m.error_repository_not_found,
 	REQUEST_HEADERS_REQUIRED: m.error_request_headers_required,
+	RESOURCE_HOME_ORGANIZATION: m.error_resource_home_organization,
+	RESOURCE_NOT_LISTED: m.error_resource_not_listed,
 	RESOURCE_NOT_USABLE_IN_ORGANIZATION:
 		m.error_resource_not_usable_in_organization,
 	RESOURCE_SCOPE_REQUIRED: m.error_resource_scope_required,

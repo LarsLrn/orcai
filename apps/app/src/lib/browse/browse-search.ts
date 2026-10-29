@@ -121,6 +121,13 @@ export const activeFilterCount = <D extends FilterDefinitions>(
 		([key, definition]) => values[key] !== definition.defaultValue,
 	).length;
 
+/** Every filter's input together; one filter's input may vary with its value. */
+type FilterInputs<D extends FilterDefinitions> = {
+	[K in keyof D]: (input: ReturnType<D[K]["toInput"]>) => void;
+}[keyof D] extends (input: infer I) => void
+	? I
+	: never;
+
 /** The list input the filters' values map onto. */
 export const filterInput = <D extends FilterDefinitions>(
 	filters: D,
@@ -131,4 +138,4 @@ export const filterInput = <D extends FilterDefinitions>(
 		...Object.entries(filters).map(([key, definition]) =>
 			definition.toInput(values[key] as never),
 		),
-	) as ReturnType<D[keyof D]["toInput"]>;
+	) as FilterInputs<D>;

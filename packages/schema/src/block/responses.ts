@@ -1,7 +1,10 @@
 import { z } from "zod/v4";
 import { assetIdSchema } from "../asset/ref";
 import { assetWithCapabilitiesSchema } from "../asset/schema";
-import { resourceOwnerSchema } from "../resource/schema";
+import {
+	resourceOwnerSchema,
+	sourceOrganizationSchema,
+} from "../resource/schema";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
@@ -19,6 +22,8 @@ export const blockListItemSchema = z.intersection(
 	blockWithCapabilitiesSchema,
 	z.object({
 		owner: resourceOwnerSchema,
+		/** Set when the active organisation added the block from the catalogue. */
+		installedFrom: sourceOrganizationSchema.nullable(),
 		/** A repository's document counts; null for behaviours. */
 		documents: repositoryTotalsSchema.nullable(),
 	}),
@@ -38,6 +43,8 @@ export const findBlockResponseSchema = createDataResponseSchema(
 		blockWithCapabilitiesSchema,
 		z.object({
 			owner: resourceOwnerSchema,
+			/** Set when the active organisation added the block from the catalogue. */
+			installedFrom: sourceOrganizationSchema.nullable(),
 		}),
 	),
 ).extend({

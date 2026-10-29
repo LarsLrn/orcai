@@ -35,6 +35,7 @@ export const AUTHZ_PERMISSIONS_BY_ENTITY = {
 		"manage_models",
 		"manage_quotas",
 		"view_analytics",
+		"install_resource",
 	],
 	group: [
 		"read",
@@ -128,6 +129,7 @@ export const ORGANIZATION_ROLE_PERMISSIONS = {
 		"create_bot",
 		"create_block",
 		"create_asset",
+		"install_resource",
 	],
 	member: [
 		"read",

@@ -6,6 +6,7 @@ import { searchFilterSchema } from "../shared/filters";
 import {
 	libraryScopeSchema,
 	librarySortSchema,
+	librarySourceSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
@@ -73,14 +74,18 @@ export const listBlocksInputSchema = paginationInputSchema.extend({
 			/** Published blocks unless given. */
 			status: publicationStatusFilterSchema.optional(),
 			scope: libraryScopeSchema.optional(),
+			source: librarySourceSchema.optional(),
 			...searchFilterSchema.shape,
 		})
-		.refine((filters) => !(filters.botId && filters.scope), {
-			message: "A bot's blocks have no scope",
-			path: [
-				"scope",
-			],
-		})
+		.refine(
+			(filters) => !(filters.botId && (filters.scope || filters.source)),
+			{
+				message: "A bot's blocks have no scope or source",
+				path: [
+					"scope",
+				],
+			},
+		)
 		.optional(),
 	sort: librarySortSchema.default("newest"),
 });

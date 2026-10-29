@@ -6,6 +6,7 @@ import { useBotActions } from "@/components/bot/bot-actions";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { BotSetupSummary } from "@/components/bot/setup/bot-setup-summary";
+import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import {
 	ContentRenderer,
 	isContentEmpty,
@@ -23,7 +24,6 @@ import {
 	DetailHeaderTitle,
 } from "@/components/ui/shell/detail-header";
 import { Page, PageContent } from "@/components/ui/shell/page";
-import { ResourceOwner } from "@/components/users/resource-owner";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
@@ -119,7 +119,10 @@ function RouteComponent() {
 							</Badge>
 						) : null}
 						<FeatureBadges features={bot.data.features} className="contents" />
-						<ResourceOwner owner={bot.data.owner} />
+						<ResourceProvenance
+							owner={bot.data.owner}
+							installedFrom={bot.data.installedFrom}
+						/>
 					</DetailHeaderMeta>
 					<HeaderActions
 						leading={draft ? null : <BotFavouriteToggle bot={bot.data} />}
@@ -140,6 +143,7 @@ function RouteComponent() {
 							actions.access,
 							actions.listing,
 							actions.delete,
+							actions.remove,
 						]}
 					/>
 				</DetailHeaderHeading>
@@ -163,7 +167,10 @@ function RouteComponent() {
 				</div>
 
 				<div className="space-y-6">
-					<BotSetupSummary botId={bot.data.id} />
+					<BotSetupSummary
+						botId={bot.data.id}
+						installed={bot.data.installedFrom !== null}
+					/>
 					<MetadataCard
 						createdAt={bot.data.createdAt}
 						updatedAt={bot.data.updatedAt}

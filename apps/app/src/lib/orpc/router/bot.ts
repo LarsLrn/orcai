@@ -16,6 +16,7 @@ import { loadBotEditor, saveBotGraph } from "@/lib/bots/bot-graph";
 import { listBotTiles } from "@/lib/bots/bot-list";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
+import { installedFrom } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -79,13 +80,27 @@ const findBot = authed.bot.find
 			})
 			.from(dbSchema.botBlock)
 			.where(eq(dbSchema.botBlock.botId, bot.id));
-		const capabilities = yield* getEntityCapabilities({
-			entityType: "bot",
-			entityId: bot.id,
-			userId: context.auth.user.id,
-			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: getZedToken(context, input),
-		});
+		const [capabilities, sources] = yield* Effect.all(
+			[
+				getEntityCapabilities({
+					entityType: "bot",
+					entityId: bot.id,
+					userId: context.auth.user.id,
+					organizationId: context.auth.session.activeOrganizationId,
+					zedToken: getZedToken(context, input),
+				}),
+				installedFrom(
+					"bot",
+					[
+						bot.id,
+					],
+					context.auth.session.activeOrganizationId,
+				),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
 
 		return {
 			data: {
@@ -93,6 +108,7 @@ const findBot = authed.bot.find
 				contentJson: bot.contentJson as Bot["contentJson"],
 				blockIds: blockIds.map((b) => b.blockId),
 				capabilities,
+				installedFrom: sources(bot.id),
 			},
 		};
 	});

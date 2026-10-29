@@ -9,11 +9,13 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 /** Lists every favourite of the user on one page. */
-const FAVOURITE_BOTS_INPUT = {
+/** The favourites a chat picker offers: those the user may chat with here. */
+const FAVOURITE_CHAT_BOTS_INPUT = {
 	pageIndex: 0,
 	pageSize: 1000,
 	filters: {
 		favourite: true,
+		usable: true,
 	},
 };
 
@@ -69,4 +71,4 @@ const BotFavouriteStar = ({ className }: { className?: string }) => (
 	/>
 );
 
-export { BotFavouriteStar, BotFavouriteToggle, FAVOURITE_BOTS_INPUT };
+export { BotFavouriteStar, BotFavouriteToggle, FAVOURITE_CHAT_BOTS_INPUT };

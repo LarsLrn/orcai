@@ -4,7 +4,7 @@ import { BotIcon, SearchIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
 import {
 	BotFavouriteStar,
-	FAVOURITE_BOTS_INPUT,
+	FAVOURITE_CHAT_BOTS_INPUT,
 } from "@/components/bot/bot-favourites";
 import { Card, CardHeader } from "@/components/ui/card";
 import {
@@ -110,12 +110,15 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 				pageSize: 50,
 				pageIndex: 0,
 				search: searchQuery,
+				filters: {
+					usable: true,
+				},
 			},
 		}),
 	);
 	const favouritesQuery = useQuery(
 		orpc.bot.list.queryOptions({
-			input: FAVOURITE_BOTS_INPUT,
+			input: FAVOURITE_CHAT_BOTS_INPUT,
 			enabled: showFavourites,
 		}),
 	);

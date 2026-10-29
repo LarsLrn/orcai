@@ -44,6 +44,8 @@ A bot's page (`/app/library/bots/<bot id>`) shows its behaviour and repositories
 - **Access & groups**, which opens the access dialog
 - **Delete bot**, in the **More actions** (`…`) menu; the chats with the bot stay with their owners but become [read-only](/docs/using-orcai/chat#chats-and-organisations)
 
+A bot your organisation added from the catalogue shows "From" its home organisation and is edited and deleted only there. Its admins and managers share it for use with **Access & groups** and take it out of the organisation with **Remove from …**.
+
 Every detail page follows this pattern: frequent actions are buttons in the header, and rare or destructive ones sit in the **More actions** menu.
 
 ## Favourites
@@ -85,7 +87,7 @@ Choose whether the bot is listed in the catalogue, and configure groups and dire
 
 ### Model [step]
 
-Optionally recommend or require a model for the bot's chats in the active organisation, with **Save model**. Skip the step and people pick any available model. Models, quota pools and groups belong to one organisation, so the model is set per organisation. The bot's editors set it in the organisation the bot was created in. **Remove model** returns the bot to a free pick.
+Optionally recommend or require a model for the bot's chats in the active organisation, with **Save model**. Skip the step and people pick any available model. Models, quota pools and groups belong to one organisation, so the model is set per organisation. The bot's editors set it in the organisation the bot was created in; where an organisation added the bot from the catalogue, its admins and managers set it there, with **Edit** on the bot's **Model in …** card. **Remove model** returns the bot to a free pick.
 
 - **Recommended** (the default) is a starting point: new chats start on the model and its settings, and people can switch. Later changes reach only new chats.
 - **Required** decides every chat: the model and settings cannot be changed in the chat, and your changes reach existing chats too. If the model is deleted, its provider is disabled, it is deprecated, it cannot call tools, or no quota pool covers it for someone, their chats with the bot are blocked with a notice until you choose another model or an admin adds a pool.

@@ -6,9 +6,12 @@ description: Browsing the Library (rail, Mine, filters, search, sort and the New
 Assets (Library > Assets, `/app/library/assets`) are the reusable source material OrcAI uses for retrieval, grounding, and citations.
 
 The Library, its pickers and the assistant's find tools show the bots, blocks
-and assets of your active organisation that you can read. A bot's blocks and a
-repository's documents open through the bot or repository, so what a shared
-bot contains is readable without appearing in your Library.
+and assets of your active organisation that you can read: those made there and
+those it added from the catalogue. A bot's
+blocks and a repository's documents open through the bot or repository, so what
+a shared bot contains is readable without appearing in your Library. Chat
+pickers and the bots on the home page offer only the bots shared with you in
+your active organisation.
 
 ## Browsing The Library
 
@@ -20,10 +23,15 @@ The Library (`/app/library`) shows everything your organisation can use. Its hea
 
 | View | Filters |
 |---|---|
-| Bots | **Status** (All, Published, Drafts), **Only favourites** |
-| Behaviours, Repositories | **Status** (All, Published, Drafts) |
+| Bots | **Status** (All, Published, Drafts), **Source**, **Only favourites** |
+| Behaviours, Repositories | **Status** (All, Published, Drafts), **Source** |
 | Assets | **Uploaded to** (Library, Chats), **Processing** (Any, Queued or running, Failed) |
-| Overview, while searching | **Status** |
+| Overview, while searching | **Status**, **Source** |
+
+**Source** tells apart what your organisation made (**Made in this
+organisation**) from what it added from the catalogue (**Added from the
+catalogue**). Assets are never added on their own, so searching for added items
+leaves them out.
 
 The **Overview** shows shelves: with Mine, your **Drafts** first, then your **Favourites**, then each kind with **See all**, which opens that kind's view. With fewer than six items it shows them all in one grid.
 
@@ -31,7 +39,7 @@ Search matches names and titles. On the Overview it searches every kind at once,
 
 **New** offers **Bot**, **Behaviour**, **Repository** and **Upload files**, each for roles with the matching `create_bot`, `create_block` or `create_asset` permission. An empty Library says whether you can create something or wait for others to share.
 
-Every tile opens its page. Its corner holds the star for published bots and a **…** menu with the actions your role allows.
+Every tile opens its page. Under its name it shows its owner, or "From" and the home organisation for what your organisation added from the catalogue. Its corner holds the star for published bots and a **…** menu with the actions your role allows. Something added from the catalogue is edited only in its home organisation: here admins and managers share it for use and remove it with **Remove from …**, and the setup editors of an added bot set its model on its page.
 
 ## What You Can Do
 

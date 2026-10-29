@@ -4,6 +4,7 @@ import { featuresSchema } from "../feature/schema";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import {
 	libraryScopeSchema,
+	librarySourceSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
@@ -26,6 +27,9 @@ export const listBotsInputSchema = paginationInputSchema.extend({
 			/** Published bots unless given. */
 			status: publicationStatusFilterSchema.optional(),
 			scope: libraryScopeSchema.optional(),
+			source: librarySourceSchema.optional(),
+			/** Only bots the user may start a chat with in the active organisation. */
+			usable: z.boolean().optional(),
 		})
 		.optional(),
 	sort: botListSortSchema.default("name"),

@@ -50,7 +50,10 @@ const loadTools = (...groups: string[]) => ({
 	},
 });
 
-const botTools: readonly string[] = ASSISTANT_TOOL_GROUPS.bots;
+/** A member does not add from the catalogue. */
+const botTools: readonly string[] = ASSISTANT_TOOL_GROUPS.bots.filter(
+	(name) => name !== "installFromCatalogue" && name !== "uninstallResource",
+);
 const botCreateTools = [
 	"createBot",
 	"createTemplate",

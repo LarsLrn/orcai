@@ -401,10 +401,13 @@ export const VIEWER_TOOLS = [
 	"listGroups",
 ];
 
+/** The bots tools a member is offered; admins and managers also add from the catalogue. */
 export const BOTS_TOOLS = [
 	"findModels",
+	"findCatalogue",
 	"createBot",
 	"updateBot",
+	"updateBotSetup",
 	"publishBot",
 	"deleteBot",
 	"createTemplate",

@@ -21,6 +21,10 @@ import { updateAssetTool } from "./bots/update-asset";
 import { updateBotTool } from "./bots/update-bot";
 import { updateRepositoryTool } from "./bots/update-repository";
 import { updateTemplateTool } from "./bots/update-template";
+import { findCatalogueTool } from "./catalogue/find-catalogue";
+import { installFromCatalogueTool } from "./catalogue/install-from-catalogue";
+import { uninstallResourceTool } from "./catalogue/uninstall-resource";
+import { updateBotSetupTool } from "./catalogue/update-bot-setup";
 import { findAssetsTool } from "./core/find-assets";
 import { findBlocksTool } from "./core/find-blocks";
 import { findBotsTool } from "./core/find-bots";
@@ -84,8 +88,10 @@ const builds = {
 	loadTools: ({ session }: BuildDeps) => loadToolsTool(session),
 	updatePlan: ({ session }: BuildDeps) => updatePlanTool(session),
 	findModels: findModelsTool,
+	findCatalogue: findCatalogueTool,
 	createBot: createBotTool,
 	updateBot: updateBotTool,
+	updateBotSetup: updateBotSetupTool,
 	publishBot: publishBotTool,
 	deleteBot: deleteBotTool,
 	createTemplate: createTemplateTool,
@@ -98,6 +104,8 @@ const builds = {
 	retryAsset: retryAssetTool,
 	generateAssetMetadata: generateAssetMetadataTool,
 	requestUpload: () => requestUploadTool,
+	installFromCatalogue: installFromCatalogueTool,
+	uninstallResource: uninstallResourceTool,
 	listAccess: listAccessTool,
 	findPrincipals: findPrincipalsTool,
 	grantAccess: grantAccessTool,

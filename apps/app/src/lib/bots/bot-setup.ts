@@ -13,11 +13,13 @@ import {
 	type BotSetupFields,
 	modelUnusableReason,
 } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
+import { writeRelationships } from "@/lib/authz/relationship-write";
 import { activeGrants } from "@/lib/authz/resource-access";
+import { administersIn } from "@/lib/authz/resource-authority";
+import { resourceOrganizations } from "@/lib/authz/resource-lifecycle";
 import { checkChatModel, checkMaxTokens } from "@/lib/chats/chat-model";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { canSeeEmailIn } from "@/lib/orpc/router/helpers/can-see-email";
@@ -29,7 +31,7 @@ type SetupKey = {
 
 /**
  * Whether the user edits the bot's setup in the organisation: they edit the
- * bot and the organisation is its home.
+ * bot in its home, or add from the catalogue where it was installed.
  */
 export const canEditBotSetup = ({
 	botId,
@@ -40,39 +42,17 @@ export const canEditBotSetup = ({
 	userId: UserId;
 	zedToken?: string;
 }) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const [editable, [home]] = yield* Effect.all(
-			[
-				permittedEntityIds({
-					entityIds: [
-						botId,
-					],
-					entityType: "bot",
-					permission: "edit",
-					userId,
-					zedToken,
-				}),
-				db
-					.select({
-						id: dbSchema.resourceScope.id,
-					})
-					.from(dbSchema.resourceScope)
-					.where(
-						and(
-							eq(dbSchema.resourceScope.resourceType, "bot"),
-							eq(dbSchema.resourceScope.resourceId, botId),
-							eq(dbSchema.resourceScope.organizationId, organizationId),
-							eq(dbSchema.resourceScope.isPrimary, true),
-							isNull(dbSchema.resourceScope.endedAt),
-						),
-					),
-			],
-			{
-				concurrency: "unbounded",
-			},
-		);
-		return editable.has(botId) && home !== undefined;
+	administersIn({
+		resource: {
+			resourceType: "bot",
+			resourceId: botId,
+		},
+		organizationId,
+		homePermission: "edit",
+		actor: {
+			userId,
+			zedToken,
+		},
 	});
 
 /** Fails unless the user edits the bot's setup in the organisation. */
@@ -86,7 +66,7 @@ export const requireBotSetupEditor = (
 				new AppErrors.ForbiddenError({
 					reason: "BOT_SETUP_FORBIDDEN",
 					message:
-						"Only editors of the bot in its home organisation change its setup there.",
+						"Only editors of the bot in its home organisation, or members who add from the catalogue where it was added, change its setup there.",
 				}),
 		),
 		Effect.asVoid,
@@ -188,10 +168,54 @@ const organizationModel = ({
 
 /**
  * Stores the bot's setup in the organisation, or removes it with null. The
- * model must belong to the organisation and serve turns, and the generation
- * settings must fit it; the provider follows from the model.
+ * user must edit the setup there, checked under the bot's and the
+ * organisation's locks, which uninstalling takes too, so a setup never
+ * outlives its install. The model must belong to the organisation and serve
+ * turns, and the generation settings must fit it; the provider follows from
+ * the model.
  */
 export const saveBotSetup = ({
+	botId,
+	organizationId,
+	userId,
+	zedToken,
+	setup,
+}: SetupKey & {
+	userId: UserId;
+	zedToken: string | undefined;
+	setup: BotSetupFields | null;
+}) =>
+	writeRelationships(
+		{
+			organizationIds: resourceOrganizations([
+				{
+					resourceType: "bot",
+					resourceId: botId,
+				},
+			]).pipe(
+				Effect.map((organizationIds) => [
+					...organizationIds,
+					organizationId,
+				]),
+			),
+		},
+		Effect.gen(function* () {
+			yield* requireBotSetupEditor({
+				botId,
+				organizationId,
+				userId,
+				zedToken,
+			});
+			return yield* writeSetup({
+				botId,
+				organizationId,
+				userId,
+				setup,
+			});
+		}),
+	).pipe(Effect.map(({ result }) => result));
+
+const writeSetup = ({
 	botId,
 	organizationId,
 	userId,
