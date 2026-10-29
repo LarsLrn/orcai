@@ -126,6 +126,7 @@ export const deleteAttemptPoints = (points: LinkPoints) =>
 		yield* Effect.tryPromise({
 			try: () =>
 				client.delete(collections.asset.name, {
+					wait: true,
 					filter: linkPointsFilter(points),
 				}),
 			catch: (cause) =>
@@ -200,6 +201,7 @@ export const deletePointsByIdentifier = ({
 		return yield* Effect.tryPromise({
 			try: async () =>
 				client.delete(collections.asset.name, {
+					wait: true,
 					filter: {
 						must: filters,
 					},

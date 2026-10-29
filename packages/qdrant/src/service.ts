@@ -94,6 +94,7 @@ const ensurePayloadIndex = ({
 	Effect.tryPromise({
 		try: () =>
 			qdrant.createPayloadIndex(collections.asset.name, {
+				wait: true,
 				field_name: fieldName,
 				field_schema: fieldSchema,
 			}),
