@@ -20,11 +20,13 @@ import { useChatAttachments } from "@/components/chat/attachments/use-chat-attac
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
 import { ChatModelNotice } from "@/components/chat/chat-model-notice";
-import { composerBlocker } from "@/components/chat/composer-blocker";
 import { ModelPicker } from "@/components/chat/model-picker";
 import { modelPickerState } from "@/components/chat/model-picker-state";
 import { UsageIndicator } from "@/components/chat/usage/usage-indicator";
-import { useQuotaStatus } from "@/components/quota/use-quota-status";
+import {
+	chatSelectedModel,
+	useComposerSendState,
+} from "@/components/chat/use-composer-send-state";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -94,26 +96,11 @@ const ChatInput = ({
 	const effective = chat?.data.effectiveModel;
 	const selectedModel = isAssistant
 		? assistantModel
-		: {
-				providerId: effective?.providerId ?? undefined,
-				modelId: effective?.modelId ?? undefined,
-			};
+		: chatSelectedModel(chat?.data);
 	const { mutate: updateChat } = useUpdateChatMutation();
-	const isModelConfigured = Boolean(
-		selectedModel.modelId && selectedModel.providerId,
-	);
-	const { data: quota } = useQuotaStatus(selectedModel);
-	// Blocks sending only; a running turn keeps its Stop.
-	const blocker = composerBlocker({
-		modelAvailable: true,
-		quota: quota?.data,
-		requiredBy:
-			effective?.source === "bot-required" && chat?.data.botId
-				? {
-						botId: chat.data.botId,
-						usable: effective.botSetup?.model?.usable === true,
-					}
-				: undefined,
+	const { isModelConfigured, blocker } = useComposerSendState({
+		chat: chat?.data,
+		selectedModel,
 	});
 	const handleModelSelect = useCallback(
 		(model: Model, provider: Provider) => {

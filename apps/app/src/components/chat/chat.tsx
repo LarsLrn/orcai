@@ -40,7 +40,7 @@ import { ChatReadOnlyNotice } from "./chat-read-only-notice";
 import { EarlierMessages } from "./earlier-messages";
 import { MessageBlock } from "./message/message-block";
 import { useBranchChat } from "./message/use-branch-chat";
-import { SendMessageContext } from "./send-message";
+import { AssistantReplySender, ChatReplySender } from "./reply-sender";
 import { StepAnswersContext } from "./step-answers";
 import { useChatSession } from "./use-chat-session";
 
@@ -174,10 +174,11 @@ const Chat = ({
 		session.send({
 			text,
 		});
+	const ReplySender = isAssistant ? AssistantReplySender : ChatReplySender;
 
 	return (
 		<StepAnswersContext value={session.answers}>
-			<SendMessageContext value={view.busy ? undefined : sendText}>
+			<ReplySender chat={chat?.data} send={sendText} busy={view.busy}>
 				<div className="flex size-full min-h-0 min-w-0 flex-col">
 					{!isAssistant && chat?.data.parentChat && (
 						<div className="mx-auto flex w-full max-w-200 px-4 pb-2">
@@ -277,7 +278,7 @@ const Chat = ({
 						)}
 					</div>
 				</div>
-			</SendMessageContext>
+			</ReplySender>
 		</StepAnswersContext>
 	);
 };
