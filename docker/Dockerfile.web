@@ -12,7 +12,7 @@ COPY --parents package.json bun.lock bunfig.toml apps/*/package.json packages/*/
 
 RUN bun install --frozen-lockfile --ignore-scripts --filter @orcai/web
 
-COPY tsconfig.base.json ./
+COPY tsconfig.base.json GLOSSARY.md ./
 COPY apps/web ./apps/web
 
 WORKDIR /app/apps/web
