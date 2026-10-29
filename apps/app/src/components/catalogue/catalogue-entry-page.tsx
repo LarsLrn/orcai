@@ -9,12 +9,20 @@ import {
 	LibraryIcon,
 	PackagePlusIcon,
 } from "lucide-react";
+import { useId, useState } from "react";
 import {
 	useActiveOrganizationName,
 	useInstaller,
 } from "@/components/catalogue/installer";
 import { SourceOrganizationName } from "@/components/catalogue/resource-provenance";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Field,
+	FieldContent,
+	FieldDescription,
+	FieldLabel,
+} from "@/components/ui/field";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	DetailHeader,
@@ -60,8 +68,70 @@ const RowList = ({ children }: { children: React.ReactNode }) => (
 	<ul className="flex flex-col divide-y rounded-2xl border">{children}</ul>
 );
 
+/** "Also add its behaviour and N repositories", for the blocks not added yet. */
+const addBlocksLabel = (
+	blocks: CatalogueEntryDetail["blocks"],
+	organisation: string,
+) => {
+	const behaviour = blocks.some((block) => block.type === "template");
+	const count = blocks.filter((block) => block.type === "database").length;
+	if (count === 0)
+		return m.catalogue_detail_add_blocks_behaviour({
+			organisation,
+		});
+	return behaviour
+		? m.catalogue_detail_add_blocks_both({
+				organisation,
+				count,
+			})
+		: m.catalogue_detail_add_blocks_repositories({
+				organisation,
+				count,
+			});
+};
+
+/** Whether "Add" adds the bot's blocks not added yet too; unticked at first. */
+const AddBlocksOption = ({
+	blocks,
+	organisation,
+	checked,
+	onCheckedChange,
+}: {
+	blocks: CatalogueEntryDetail["blocks"];
+	organisation: string;
+	checked: boolean;
+	onCheckedChange: (checked: boolean) => void;
+}) => {
+	const id = useId();
+	return (
+		<Field orientation="horizontal">
+			<Checkbox
+				id={id}
+				checked={checked}
+				onCheckedChange={(value) => onCheckedChange(value === true)}
+			/>
+			<FieldContent>
+				<FieldLabel htmlFor={id} className="font-normal">
+					{addBlocksLabel(blocks, organisation)}
+				</FieldLabel>
+				<FieldDescription className="text-xs">
+					{m.catalogue_detail_add_blocks_description()}
+				</FieldDescription>
+			</FieldContent>
+		</Field>
+	);
+};
+
 /** A bot's behaviour and repositories, each with what it holds. */
-const BotContents = ({ entry }: { entry: CatalogueEntryDetail }) => (
+const BotContents = ({
+	entry,
+	organisation,
+	children,
+}: {
+	entry: CatalogueEntryDetail;
+	organisation: string | undefined;
+	children?: React.ReactNode;
+}) => (
 	<Section label={m.catalogue_detail_inside_label()}>
 		<RowList>
 			{entry.blocks.length === 0 ? (
@@ -92,11 +162,19 @@ const BotContents = ({ entry }: { entry: CatalogueEntryDetail }) => (
 											})}
 								</p>
 							</div>
+							{block.state === "added" && organisation !== undefined ? (
+								<span className="shrink-0 text-muted-foreground text-xs">
+									{m.catalogue_added_label({
+										organisation,
+									})}
+								</span>
+							) : null}
 						</li>
 					);
 				})
 			)}
 		</RowList>
+		{children}
 	</Section>
 );
 
@@ -227,6 +305,10 @@ export const CatalogueEntryPage = ({
 	});
 	const { Icon, well, band, badge, label } = RESOURCE_KINDS[entry.kind];
 	const added = entry.state === "added";
+	const addableBlocks = entry.blocks.filter(
+		(block) => block.state === "available",
+	);
+	const [withBlocks, setWithBlocks] = useState(false);
 	const openInLibrary = {
 		key: "open",
 		label: m.catalogue_open_in_library_action(),
@@ -276,6 +358,7 @@ export const CatalogueEntryPage = ({
 											onClick: async () => {
 												const result = await install({
 													entry: ref,
+													withBlocks: withBlocks && addableBlocks.length > 0,
 												});
 												if (result.status === "success")
 													await navigate({
@@ -311,7 +394,18 @@ export const CatalogueEntryPage = ({
 				) : null}
 				{entry.kind === "bot" ? (
 					<>
-						<BotContents entry={entry} />
+						<BotContents entry={entry} organisation={organisation}>
+							{entry.state === "available" &&
+							installer &&
+							addableBlocks.length > 0 ? (
+								<AddBlocksOption
+									blocks={addableBlocks}
+									organisation={installer.organisation}
+									checked={withBlocks}
+									onCheckedChange={setWithBlocks}
+								/>
+							) : null}
+						</BotContents>
 						<BotModel entry={entry} organisation={organisation} />
 					</>
 				) : entry.kind === "behaviour" ? (

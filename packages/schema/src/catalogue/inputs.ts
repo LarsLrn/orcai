@@ -55,6 +55,13 @@ export const findCatalogueEntryInputSchema = z.object({
 export const installCatalogueEntryInputSchema = z.object({
 	...zedTokenSchema.shape,
 	entry: catalogueEntryRefSchema,
+	/** Adds a bot's behaviour and repositories too; ignored for blocks. */
+	withBlocks: z.boolean().default(false),
+});
+
+export const uninstallCatalogueEntryInputSchema = z.object({
+	...zedTokenSchema.shape,
+	entry: catalogueEntryRefSchema,
 });
 
 export type CatalogueKind = z.infer<typeof catalogueKindSchema>;
@@ -67,4 +74,7 @@ export type FindCatalogueEntryInput = z.infer<
 >;
 export type InstallCatalogueEntryInput = z.infer<
 	typeof installCatalogueEntryInputSchema
+>;
+export type UninstallCatalogueEntryInput = z.infer<
+	typeof uninstallCatalogueEntryInputSchema
 >;

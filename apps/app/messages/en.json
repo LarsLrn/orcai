@@ -163,6 +163,40 @@
 	"access_visibility_toast_public": "Resource is now listed in the catalogue",
 	"catalogue_add_action": "Add to {organisation}",
 	"catalogue_added_label": "Added to {organisation}",
+	"catalogue_detail_add_blocks_behaviour": "Also add its behaviour to {organisation}",
+	"catalogue_detail_add_blocks_both": [
+		{
+			"declarations": [
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Also add its behaviour and its repository to {organisation}",
+				"countPlural=other": "Also add its behaviour and {count} repositories to {organisation}"
+			}
+		}
+	],
+	"catalogue_detail_add_blocks_description": "Each joins the library on its own and stays when the bot is removed. Nobody can use them until you share them.",
+	"catalogue_detail_add_blocks_repositories": [
+		{
+			"declarations": [
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Also add its repository to {organisation}",
+				"countPlural=other": "Also add its {count} repositories to {organisation}"
+			}
+		}
+	],
 	"catalogue_detail_ask_installer": "To add it to {organisation}, ask an admin or manager.",
 	"catalogue_detail_contents_label": "Contents",
 	"catalogue_detail_inside_label": "What's inside",
@@ -218,6 +252,23 @@
 	"catalogue_install_toast_error": "Could not add {name}",
 	"catalogue_install_toast_loading": "Adding {name}...",
 	"catalogue_install_toast_success": "{name} is in {organisation} now",
+	"catalogue_install_toast_success_with_blocks": [
+		{
+			"declarations": [
+				"input name",
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{name} and one of its blocks are in {organisation} now",
+				"countPlural=other": "{name} and {count} of its blocks are in {organisation} now"
+			}
+		}
+	],
 	"catalogue_kind_empty_behaviour": "No behaviours listed yet",
 	"catalogue_kind_empty_bot": "No bots listed yet",
 	"catalogue_kind_empty_repository": "No repositories listed yet",
@@ -1085,6 +1136,7 @@
 	"assistant_tool_install_from_catalogue_active": "Adding from the catalogue",
 	"assistant_tool_install_from_catalogue_name": "Add from the catalogue",
 	"assistant_tool_install_from_catalogue_summary": "Add {name} from the catalogue",
+	"assistant_tool_install_from_catalogue_with_blocks_summary": "Add {name} with its behaviour and repositories from the catalogue",
 	"assistant_tool_uninstall_resource_active": "Removing from the organisation",
 	"assistant_tool_uninstall_resource_name": "Remove from the organisation",
 	"assistant_tool_uninstall_resource_summary": "Remove {name} from the organisation",

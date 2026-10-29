@@ -24,17 +24,22 @@ export const installFromCatalogue = declareTool<
 					},
 				]
 			: [],
-	line: ({ input, output }, nameOf) =>
-		input
-			? m.assistant_tool_install_from_catalogue_summary({
-					name: m.assistant_tool_quoted_name({
-						name:
-							output?.name ??
-							nameOf({
-								kind: input.entry.resourceType,
-								id: input.entry.resourceId,
-							}),
-					}),
+	line: ({ input, output }, nameOf) => {
+		if (!input) return m.assistant_tool_install_from_catalogue_name();
+		const name = m.assistant_tool_quoted_name({
+			name:
+				output?.name ??
+				nameOf({
+					kind: input.entry.resourceType,
+					id: input.entry.resourceId,
+				}),
+		});
+		return input.withBlocks && input.entry.resourceType === "bot"
+			? m.assistant_tool_install_from_catalogue_with_blocks_summary({
+					name,
 				})
-			: m.assistant_tool_install_from_catalogue_name(),
+			: m.assistant_tool_install_from_catalogue_summary({
+					name,
+				});
+	},
 });

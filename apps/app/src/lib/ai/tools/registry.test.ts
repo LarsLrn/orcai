@@ -727,3 +727,26 @@ describe("toolLabels", () => {
 		).toBe("retiredTool");
 	});
 });
+
+describe("installFromCatalogue summary", () => {
+	const line = (withBlocks: boolean) =>
+		summaryOf("installFromCatalogue", {
+			input: {
+				entry: {
+					resourceType: "bot",
+					resourceId: "00000000-0000-4000-8000-000000000001",
+				},
+				withBlocks,
+			},
+		}).line(lookedUp);
+
+	test("names the bot alone", () => {
+		expect(line(false)).toBe("Add “bot 1” from the catalogue");
+	});
+
+	test("names its behaviour and repositories when they come along", () => {
+		expect(line(true)).toBe(
+			"Add “bot 1” with its behaviour and repositories from the catalogue",
+		);
+	});
+});

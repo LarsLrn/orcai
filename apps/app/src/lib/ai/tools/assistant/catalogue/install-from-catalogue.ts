@@ -10,14 +10,20 @@ import { catalogueEntryInputSchema } from "./catalogue-entry-input";
 
 const installInputSchema = z.strictObject({
 	entry: catalogueEntryInputSchema,
+	withBlocks: z
+		.boolean()
+		.default(false)
+		.describe(
+			"For a bot: also add its behaviour and repositories, each on its own, so the organisation can build its own bots from them. Removing the bot later keeps them. Only when the user asks for them.",
+		),
 });
 
 export const installFromCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Add a bot, template or repository from the catalogue to the active organisation's library. Nobody there can use it until it is shared with grantAccess, for use only (viewer). Set an added bot's model here with updateBotSetup. Adding what the organisation has already changes nothing.",
+			"Add a bot, template or repository from the catalogue to the active organisation's library. Nobody there can use it until it is shared with grantAccess, for use only (viewer). Set an added bot's model here with updateBotSetup. Adding what the organisation has already changes nothing; with withBlocks, blocks it has already are skipped.",
 		inputSchema: installInputSchema,
-		run: ({ entry }) =>
+		run: ({ entry, withBlocks }) =>
 			Effect.gen(function* () {
 				const { data: found } = yield* callProcedure(
 					deps,
@@ -33,6 +39,7 @@ export const installFromCatalogueTool = (deps: AssistantToolDeps) =>
 					procedures.catalogue.install(
 						{
 							entry,
+							withBlocks,
 						},
 						options,
 					),
@@ -42,6 +49,7 @@ export const installFromCatalogueTool = (deps: AssistantToolDeps) =>
 					name: found.name,
 					from: found.source.name,
 					added: data.changed,
+					addedBlocks: data.addedBlocks,
 				};
 			}),
 	});
