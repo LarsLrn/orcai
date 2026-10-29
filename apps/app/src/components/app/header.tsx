@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { ChevronDownIcon, EllipsisIcon, HomeIcon } from "lucide-react";
 import { Fragment } from "react";
+import { ActivityIndicator } from "@/components/activity/activity-indicator";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import {
 	Breadcrumb,
@@ -163,6 +164,7 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 					</BreadcrumbList>
 				</Breadcrumb>
 				<div className="flex shrink-0 gap-2">
+					<ActivityIndicator />
 					<ThemeSwitcher className="size-8 px-0" />
 					<LocaleSwitcher />
 				</div>

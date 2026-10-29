@@ -43,6 +43,32 @@ describe("formatRelativeTime", () => {
 		).toBe("in 1 minute");
 	});
 
+	test("the last minute is just now, a minute ago counts, and the next minute stays ahead", () => {
+		overwriteGetLocale(() => "en");
+
+		expect(
+			formatRelativeTime(now, {
+				now,
+			}),
+		).toBe("just now");
+		expect(
+			formatRelativeTime(now - 59_999, {
+				now,
+				style: "narrow",
+			}),
+		).toBe("just now");
+		expect(
+			formatRelativeTime(now - 60_000, {
+				now,
+			}),
+		).toBe("1 minute ago");
+		expect(
+			formatRelativeTime(now + 1_000, {
+				now,
+			}),
+		).toBe("in 1 minute");
+	});
+
 	test("uses the active locale", () => {
 		overwriteGetLocale(() => "de");
 
@@ -56,5 +82,10 @@ describe("formatRelativeTime", () => {
 				now,
 			}),
 		).toBe("in 5 Stunden");
+		expect(
+			formatRelativeTime(now - 10_000, {
+				now,
+			}),
+		).toBe("gerade eben");
 	});
 });

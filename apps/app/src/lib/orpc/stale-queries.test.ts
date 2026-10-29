@@ -220,6 +220,82 @@ describe("invalidateStaleQueries", () => {
 		}
 	});
 
+	test("makes the user's activity stale whenever they start, hand over or clear work", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const edits = [
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.asset.createFromUploads.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.asset.reprocess.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.asset.generateMissingMetadata.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.asset.dismissMetadataSuggestion.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.asset.delete.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.block.update.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.block.retryFailed.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.block.delete.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.dataExport.request.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.activity.dismissRun.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.activity.dismissFailure.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.organizationMember.delete.mutationOptions(),
+				).mutate({} as never),
+		];
+
+		for (const edit of edits) {
+			const summary = cached(
+				orpc.activity.summary.queryKey({
+					input: {},
+				}),
+			);
+			await edit();
+			expect(summary()).toBe(true);
+		}
+	});
+
 	test("makes open chats stale whenever access to their bot or organisation changes", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [

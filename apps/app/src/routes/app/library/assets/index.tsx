@@ -5,6 +5,8 @@ import {
 	stripSearchParams,
 } from "@tanstack/react-router";
 import { SparklesIcon } from "lucide-react";
+import { RunFilter } from "@/components/activity/run-filter";
+import { NoResults } from "@/components/browse/browse-layout";
 import { AssetTile } from "@/components/documents/asset-tile";
 import { LibraryEmpty } from "@/components/library/library-empty";
 import { LibraryResults } from "@/components/library/library-results";
@@ -12,11 +14,11 @@ import { Button } from "@/components/ui/button";
 import { useGenerateMissingMetadataMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useUtilityModel } from "@/hooks/use-utility-model";
 import {
+	assetLibrarySearchSchema,
 	libraryCountsInput,
 	libraryFilters,
 	libraryListInput,
 	librarySearchDefaults,
-	librarySearchSchema,
 } from "@/lib/library/library-filters";
 import { orpc } from "@/lib/orpc/orpc";
 import {
@@ -54,7 +56,7 @@ const GenerateMissingMetadataAction = () => {
 };
 
 export const Route = createFileRoute("/app/library/assets/")({
-	validateSearch: librarySearchSchema(libraryFilters.asset),
+	validateSearch: assetLibrarySearchSchema,
 	search: {
 		middlewares: [
 			retainSearchParams([
@@ -95,23 +97,32 @@ function RouteComponent() {
 	);
 
 	return (
-		<LibraryResults
-			view="asset"
-			title={m.library_view_asset()}
-			rowCount={assets.rowCount}
-			actions={
-				search.origin === "library" ? <GenerateMissingMetadataAction /> : null
-			}
-			empty={
-				<LibraryEmpty
-					scope={search.scope}
-					title={m.library_kind_empty_asset()}
-				/>
-			}
-		>
-			{assets.data.map((asset) => (
-				<AssetTile key={asset.id} asset={asset} />
-			))}
-		</LibraryResults>
+		<>
+			{search.run ? <RunFilter runId={search.run} /> : null}
+			<LibraryResults
+				view="asset"
+				title={m.library_view_asset()}
+				rowCount={assets.rowCount}
+				actions={
+					search.origin === "library" && !search.run ? (
+						<GenerateMissingMetadataAction />
+					) : null
+				}
+				empty={
+					search.run ? (
+						<NoResults />
+					) : (
+						<LibraryEmpty
+							scope={search.scope}
+							title={m.library_kind_empty_asset()}
+						/>
+					)
+				}
+			>
+				{assets.data.map((asset) => (
+					<AssetTile key={asset.id} asset={asset} />
+				))}
+			</LibraryResults>
+		</>
 	);
 }

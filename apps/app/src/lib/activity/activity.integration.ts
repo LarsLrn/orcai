@@ -581,6 +581,7 @@ describe("activity runs", () => {
 				reason: "ACTIVITY_RUN_RUNNING",
 			});
 			const failure = await endProcessing(asset.id, first, "failed");
+			const before = (await summary(owner, zedToken)).attention;
 			await run(
 				p.activity.dismissFailure(
 					{
@@ -616,6 +617,10 @@ describe("activity runs", () => {
 					occurrenceId: again,
 				}),
 			]);
+			// Same count, another failure: the revision tells them apart.
+			const after = (await summary(owner, zedToken)).attention;
+			expect(after.failures).toBe(before.failures);
+			expect(after.revision).not.toBe(before.revision);
 		},
 		TIMEOUT,
 	);

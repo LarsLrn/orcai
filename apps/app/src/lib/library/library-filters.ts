@@ -1,4 +1,5 @@
 import {
+	activityRunIdSchema,
 	type LibraryCountsInput,
 	type LibraryKind,
 	type ListAssetsInput,
@@ -164,6 +165,13 @@ export type LibrarySearch<V extends LibraryView> = z.output<
 	ReturnType<typeof librarySearchSchema<(typeof libraryFilters)[V]>>
 >;
 
+/** The asset view also opens on one of the reader's activity runs, which stands in for its filters and Mine. */
+export const assetLibrarySearchSchema = librarySearchSchema(
+	libraryFilters.asset,
+).extend({
+	run: activityRunIdSchema.optional().catch(undefined),
+});
+
 /** What a view lists for its search params: the input of its list procedure. */
 export const libraryListInput = {
 	overview: (search: LibrarySearch<"overview">): SearchLibraryInput => ({
@@ -206,15 +214,22 @@ export const libraryListInput = {
 			search: search.query || undefined,
 		},
 	}),
-	asset: (search: LibrarySearch<"asset">): ListAssetsInput => ({
+	asset: (
+		search: z.output<typeof assetLibrarySearchSchema>,
+	): ListAssetsInput => ({
 		pageIndex: search.pageIndex,
 		pageSize: search.pageSize,
 		sort: search.sort,
-		filters: {
-			...filterInput(libraryFilters.asset, search),
-			scope: search.scope,
-			search: search.query || undefined,
-		},
+		filters: search.run
+			? {
+					runId: search.run,
+					search: search.query || undefined,
+				}
+			: {
+					...filterInput(libraryFilters.asset, search),
+					scope: search.scope,
+					search: search.query || undefined,
+				},
 	}),
 };
 

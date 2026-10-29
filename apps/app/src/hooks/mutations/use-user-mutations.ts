@@ -1,14 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { type LinkProps, useNavigate } from "@tanstack/react-router";
+import { type NavigateOptions, useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
+import { openAfterOrganizationSwitch } from "./organization-switch";
 
-/** Switches the active organisation, then opens `to`. */
+/** Switches the active organisation, then opens `target`. */
 export const useSetActiveOrganizationMutation = (
 	opts: ReturnType<typeof orpc.user.setActiveOrganization.mutationOptions> = {},
-	to: LinkProps["to"] = "/app",
+	target: NavigateOptions = {
+		to: "/app",
+	},
 ) => {
 	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
@@ -19,13 +22,9 @@ export const useSetActiveOrganizationMutation = (
 			orpc.user.setActiveOrganization.mutationOptions({
 				...opts,
 				onSuccess: async (...args) => {
-					await refetchSession();
-					// Only inactive queries, so no mounted observer is left on a removed one.
-					queryClient.removeQueries({
-						type: "inactive",
-					});
-					await navigate({
-						to,
+					await openAfterOrganizationSwitch(queryClient, {
+						refetchSession,
+						navigate: () => navigate(target),
 					});
 
 					await opts.onSuccess?.(...args);
