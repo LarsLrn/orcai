@@ -102,7 +102,7 @@ describe("buildAssistantSystemPrompt", () => {
 
 		expect(stable).toContain("Acting in OrcAI:");
 		expect(stable).toContain("call requestUpload");
-		expect(stable).not.toContain("/app/hub/assets/add");
+		expect(stable).not.toContain("/app/library/assets/add");
 		expect(stable).toContain(featurePrompts[0]);
 		expect(stable).not.toContain(toolGroupsHeading);
 	});

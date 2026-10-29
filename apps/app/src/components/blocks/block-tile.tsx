@@ -21,6 +21,7 @@ import {
 	TileTitle,
 } from "@/components/ui/shell/tile";
 import { ResourceOwner } from "@/components/users/resource-owner";
+import { blockPaths } from "@/lib/navigation/block-paths";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
 import { blockKind, RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
@@ -90,7 +91,7 @@ const BlockTileContent = ({
 				<TileTitle
 					action={{
 						linkProps: {
-							to: "/app/hub/blocks/$blockId",
+							to: blockPaths(block.type).detail,
 							params: {
 								blockId: block.id,
 							},

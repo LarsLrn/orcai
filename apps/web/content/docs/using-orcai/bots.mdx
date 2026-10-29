@@ -3,17 +3,17 @@ title: Bots and Behaviour
 description: The Library's bots, behaviour and repository blocks; the bot editor's steps, publishing rules, block pages, vector store actions, exploring a repository and resource roles.
 ---
 
-Bots are reusable AI configurations that can be selected at chat start. They are authored in the Library (`/app/hub`) and combine behaviour, retrieval context, and sharing settings.
+Bots are reusable AI configurations that can be selected at chat start. They are authored in the Library (`/app/library`) and combine behaviour, retrieval context, and sharing settings.
 
 ## Library Sections
 
-The Library (`/app/hub`) has five tabs:
+The Library (`/app/library`) has five tabs:
 
-- All (`/app/hub`)
-- Bots (`/app/hub/bots`)
-- Behaviour (`/app/hub/behaviour`)
-- Repositories (`/app/hub/repositories`)
-- Assets (`/app/hub/assets`), described in [Content Library](/docs/using-orcai/content-library)
+- All (`/app/library`)
+- Bots (`/app/library/bots`)
+- Behaviour (`/app/library/behaviours`)
+- Repositories (`/app/library/repositories`)
+- Assets (`/app/library/assets`), described in [Content Library](/docs/using-orcai/content-library)
 
 The sidebar lists the same sections under Library. Each needs the organisation's `read` permission, which every role has.
 
@@ -29,7 +29,7 @@ A bot fixes no model and no quota pool. Each chat runs on the provider and model
 
 ## Bot Lifecycle
 
-Bots (`/app/hub/bots`) have draft and published states, shown as sections:
+Bots (`/app/library/bots`) have draft and published states, shown as sections:
 
 - **Favourites** lists the published bots you starred, when there are any. See [Favourites](#favourites).
 - **Published** lists the bots ready to use in chats that you can read.
@@ -41,7 +41,7 @@ A bot is private until it is shared. Publishing does not share it: a published b
 
 ## The Bot Page
 
-A bot's page (`/app/hub/bots/<bot id>`) shows its behaviour and repositories, and a **Model in …** card: the bot's model in the active organisation and whether it is recommended or required, or that chats pick any model. Its editors also see how many of the people and groups it is shared with have a quota pool for that model, and everyone else whether they can use it. A model that was deleted or cannot serve chats is marked **Model missing**. Depending on your role on the bot it offers:
+A bot's page (`/app/library/bots/<bot id>`) shows its behaviour and repositories, and a **Model in …** card: the bot's model in the active organisation and whether it is recommended or required, or that chats pick any model. Its editors also see how many of the people and groups it is shared with have a quota pool for that model, and everyone else whether they can use it. A model that was deleted or cannot serve chats is marked **Model missing**. Depending on your role on the bot it offers:
 
 - **Start chat**, for anyone who can use the bot
 - **Edit bot**, which opens the editor
@@ -64,7 +64,7 @@ A favourite disappears while you cannot read the bot or while it is unpublished,
 
 ## Creating Or Editing A Bot
 
-**Create bot** opens the editor at `/app/hub/bots/add`. The first save creates a draft and moves the editor to `/app/hub/bots/<bot id>/setup`, the same place **Edit bot** opens. The later steps unlock after that first save, and moving between steps saves your changes.
+**Create bot** opens the editor at `/app/library/bots/add`. The first save creates a draft and moves the editor to `/app/library/bots/<bot id>/setup`, the same place **Edit bot** opens. The later steps unlock after that first save, and moving between steps saves your changes.
 
 The bot editor is a guided wizard with six steps:
 
@@ -135,7 +135,7 @@ Documents that are still being prepared or that failed do not hold publishing ba
 
 ## Block Types
 
-**Add behaviour** on the Behaviour tab and **Add repository** on the Repositories tab open `/app/hub/blocks/add`, where one of two types is chosen. `/app/hub/blocks/add?type=database` opens it on the repository type.
+**Add behaviour** on the Behaviour tab opens `/app/library/behaviours/add`, and **Add repository** on the Repositories tab opens `/app/library/repositories/add`.
 
 - AI behaviour (template block)
 - Repository (database block)
@@ -149,7 +149,7 @@ Each block can have:
 - Visibility and grants
 - Capability-based actions (edit, delete, manage access)
 
-A block's page is `/app/hub/blocks/<block id>`. It offers **Edit block** (`/app/hub/blocks/<block id>/edit`) and **Access & groups**, with **Delete block** in the **More actions** menu.
+A block's page sits under its kind: `/app/library/behaviours/<block id>` or `/app/library/repositories/<block id>`; a block opened under the other kind's path is not found. It offers **Edit block** (`<page>/edit`) and **Access & groups**, with **Delete block** in the **More actions** menu.
 
 ## Repository Blocks
 
@@ -161,7 +161,7 @@ A repository block's page lists its attached assets and its retrieval configurat
 
 **Passages per asset** keeps one long document from crowding out the others: a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
 
-Above the assets of a ready repository, **Explore** opens its passages at `/app/hub/repositories/<block id>/explore`.
+Above the assets of a ready repository, **Explore** opens its passages at `/app/library/repositories/<block id>/explore`.
 
 Each asset card shows its state in this repository: **Queued**, **Processing** (the file is read), **Indexing** (its passages are added to this repository's index), **Ready** or **Failed**. Only Ready assets are searchable. A summary above the cards says how many of the repository's documents are ready and how many failed, and refreshes while documents are being prepared. A failed card says why. If you can edit the repository, **Retry** on a failed card runs the failed step again: processing when the file failed, otherwise indexing in this repository. **Retry failed** next to **Explore** retries every failed document at once. Neither is offered for a file OrcAI cannot read or one without any text or images, since retrying cannot help.
 

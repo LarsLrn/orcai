@@ -68,7 +68,7 @@ const template = (name: string, status: "ready" | "draft") => ({
 const grids = [
 	{
 		kind: "assets",
-		path: "/app/hub/assets",
+		path: "/app/library/assets",
 		titleKey: "assets_list_title",
 		// Newest first: the oldest is on the last page.
 		lastOf: (titles: string[]) => titles[0],
@@ -80,7 +80,7 @@ const grids = [
 	},
 	{
 		kind: "behaviour",
-		path: "/app/hub/behaviour",
+		path: "/app/library/behaviours",
 		titleKey: "behaviour_published_title",
 		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
@@ -91,7 +91,7 @@ const grids = [
 	},
 	{
 		kind: "repositories",
-		path: "/app/hub/repositories",
+		path: "/app/library/repositories",
 		titleKey: "blocks_repositories_published_section_title",
 		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
@@ -112,7 +112,7 @@ const grids = [
 	},
 	{
 		kind: "bots",
-		path: "/app/hub/bots",
+		path: "/app/library/bots",
 		titleKey: "bots_list_published_title",
 		// Listed by name: the last one is on the last page.
 		lastOf: (titles: string[]) => titles[2],
@@ -204,7 +204,7 @@ test("library: bots page their draft grid on its own", async ({
 
 	const page = await pageAs("member", org);
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots?pageSize=${PAGE_SIZE}`);
+	await open(page, `/app/library/bots?pageSize=${PAGE_SIZE}`);
 	const draftGrid = section(page, "bots_list_drafts_title", "en");
 	await reachLastPage(draftGrid, "en");
 	await expect(draftGrid.getByText(drafts[2])).toBeVisible();
@@ -237,11 +237,11 @@ test("library: a page index past the last page is replaced by the last page", as
 	await enterApp(page, org.slug);
 
 	// No published bot at all: the grid is not rendered, the URL is still fixed.
-	await open(page, `/app/hub/bots?pageIndex=9&pageSize=${PAGE_SIZE}`);
+	await open(page, `/app/library/bots?pageIndex=9&pageSize=${PAGE_SIZE}`);
 	await expect(page).not.toHaveURL(/[?&]pageIndex=/);
 
 	// The last draft of the last page goes away.
-	await open(page, `/app/hub/bots?draftPageIndex=1&pageSize=${PAGE_SIZE}`);
+	await open(page, `/app/library/bots?draftPageIndex=1&pageSize=${PAGE_SIZE}`);
 	const draftGrid = section(page, "bots_list_drafts_title", "en");
 	await expect(cards(draftGrid)).toHaveCount(1);
 	await cards(draftGrid)
@@ -264,6 +264,6 @@ test("library: a page index past the last page is replaced by the last page", as
 	await expect(page).not.toHaveURL(/draftPageIndex=/);
 
 	// Every draft deleted: the section disappears and the URL stays clean.
-	await open(page, `/app/hub/bots?draftPageIndex=5&pageSize=${PAGE_SIZE}`);
+	await open(page, `/app/library/bots?draftPageIndex=5&pageSize=${PAGE_SIZE}`);
 	await expect(page).not.toHaveURL(/draftPageIndex=/);
 });

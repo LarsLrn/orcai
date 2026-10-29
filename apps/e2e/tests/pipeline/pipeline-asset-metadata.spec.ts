@@ -106,7 +106,7 @@ test("pipeline: a library upload gets its metadata from the utility model", asyn
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/assets");
+	await open(page, "/app/library/assets");
 	await expect(
 		card(page, GENERATED.title).getByText(GENERATED.description),
 	).toBeVisible();
@@ -142,7 +142,7 @@ test("pipeline: Generate with AI suggests metadata to review before saving", asy
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/assets/${asset.id}/edit`);
+	await open(page, `/app/library/assets/${asset.id}/edit`);
 	await page
 		.getByRole("button", {
 			name: message("assets_metadata_generate_button"),
@@ -219,7 +219,7 @@ test("pipeline: saving an editor opened before generation keeps the generated fi
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/assets/${asset.id}/edit`);
+	await open(page, `/app/library/assets/${asset.id}/edit`);
 	const title = page.getByRole("textbox", {
 		name: message("assets_metadata_source_title_label"),
 	});

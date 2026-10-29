@@ -110,7 +110,7 @@ test("documents: the repository page shows a failed document with why and Retry"
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/blocks/${repository.blockId}`);
+	await open(page, `/app/library/repositories/${repository.blockId}`);
 
 	await expect(
 		page.getByRole("status").filter({

@@ -52,7 +52,7 @@ const assetActions = (
 			label: m.assets_edit_action(),
 			icon: EditIcon,
 			linkProps: {
-				to: "/app/hub/assets/$assetId/edit",
+				to: "/app/library/assets/$assetId/edit",
 				params: {
 					assetId: asset.id,
 				},

@@ -42,7 +42,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 	{
 		title: m.sidebar_menu_library_item,
 		linkProps: {
-			to: "/app/hub",
+			to: "/app/library",
 		},
 		icon: BlocksIcon,
 		items: [
@@ -50,7 +50,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				title: m.sidebar_menu_bots_item,
 				requires: "read",
 				linkProps: {
-					to: "/app/hub/bots",
+					to: "/app/library/bots",
 				},
 				icon: BotIcon,
 			},
@@ -58,7 +58,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				title: m.sidebar_menu_behaviour_item,
 				requires: "read",
 				linkProps: {
-					to: "/app/hub/behaviour",
+					to: "/app/library/behaviours",
 				},
 				icon: BrainCircuitIcon,
 			},
@@ -66,7 +66,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				title: m.sidebar_menu_repositories_item,
 				requires: "read",
 				linkProps: {
-					to: "/app/hub/repositories",
+					to: "/app/library/repositories",
 				},
 				icon: DatabaseIcon,
 			},
@@ -74,7 +74,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				title: m.sidebar_menu_assets_item,
 				requires: "read",
 				linkProps: {
-					to: "/app/hub/assets",
+					to: "/app/library/assets",
 				},
 				icon: FolderOpenIcon,
 			},

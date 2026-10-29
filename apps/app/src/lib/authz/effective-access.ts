@@ -3,6 +3,7 @@ import { DB, dbSchema } from "@orcai/db";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	assetIdSchema,
+	type BlockType,
 	blockIdSchema,
 	botIdSchema,
 	inheritedSourceByResourceType,
@@ -266,6 +267,7 @@ export const effectiveAccess = (
 						resourceType: scope.resourceType,
 						resourceId: scope.resourceId,
 						resourceName,
+						blockType: dbSchema.block.type,
 						source,
 					})
 					.from(scope)
@@ -362,13 +364,25 @@ export const effectiveAccess = (
 			asset: assetRoles,
 		} satisfies Record<ResourceType, Map<string, ResourceGrantRole>>;
 
-		const data = rows.map((row) => ({
-			resourceType: row.resourceType,
-			resourceId: row.resourceId,
-			resourceName: row.resourceName,
-			source: row.source,
-			role: roles[row.resourceType].get(row.resourceId) ?? "viewer",
-		}));
+		const data = rows.map((row) => {
+			const entry = {
+				resourceId: row.resourceId,
+				resourceName: row.resourceName,
+				source: row.source,
+				role: roles[row.resourceType].get(row.resourceId) ?? "viewer",
+			};
+
+			return row.resourceType === "block"
+				? {
+						...entry,
+						resourceType: row.resourceType,
+						blockType: row.blockType as BlockType,
+					}
+				: {
+						...entry,
+						resourceType: row.resourceType,
+					};
+		});
 
 		return {
 			data,

@@ -45,7 +45,7 @@ const CreateBotAction = () => {
 
 	return (
 		<PageAction>
-			<Link to="/app/hub/bots/add" className={buttonVariants()}>
+			<Link to="/app/library/bots/add" className={buttonVariants()}>
 				<SparklesIcon />
 				{m.home_manage_create_bot_action()}
 			</Link>

@@ -38,7 +38,7 @@ test("assets: an upload is an asset without another click", async ({
 	const name = `E2E Intake ${runId()}.txt`;
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/assets/add");
+	await open(page, "/app/library/assets/add");
 
 	await uploadOnAddPage(page, name);
 	await expect(
@@ -51,7 +51,7 @@ test("assets: an upload is an asset without another click", async ({
 	).toBeVisible();
 
 	await homeLink(page).click();
-	await expect(page).not.toHaveURL(/\/app\/hub\/assets\/add/);
+	await expect(page).not.toHaveURL(/\/app\/library\/assets\/add/);
 	await expect(leaveDialog(page)).toHaveCount(0);
 
 	await adoptPageZedToken(page, zedTokens);
@@ -76,7 +76,7 @@ test("assets: leaving asks only while an upload is in flight", async ({
 	const name = `E2E Intake Abandoned ${runId()}.txt`;
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/assets/add");
+	await open(page, "/app/library/assets/add");
 	const uploads = await holdUploads(page);
 
 	await uploadOnAddPage(page, name);
@@ -86,7 +86,7 @@ test("assets: leaving asks only while an upload is in flight", async ({
 			name: message("common_unsaved_changes_stay_button"),
 		})
 		.click();
-	await expect(page).toHaveURL(/\/app\/hub\/assets\/add/);
+	await expect(page).toHaveURL(/\/app\/library\/assets\/add/);
 
 	await homeLink(page).click();
 	await leaveDialog(page)
@@ -94,7 +94,7 @@ test("assets: leaving asks only while an upload is in flight", async ({
 			name: message("common_unsaved_changes_leave_button"),
 		})
 		.click();
-	await expect(page).not.toHaveURL(/\/app\/hub\/assets\/add/);
+	await expect(page).not.toHaveURL(/\/app\/library\/assets\/add/);
 	uploads.release();
 
 	const { data } = await api.as("member").asset.list({

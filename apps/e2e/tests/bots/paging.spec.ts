@@ -60,7 +60,7 @@ test("bots: paging through a published bot writes nothing", async ({
 	});
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.data.id}/setup?step=0`);
+	await open(page, `/app/library/bots/${bot.data.id}/setup?step=0`);
 	const writes = recordWrites(page);
 
 	for (const step of [
@@ -106,7 +106,7 @@ test("bots: a step with changes saves once, with one toast", async ({
 	});
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.data.id}/setup?step=0`);
+	await open(page, `/app/library/bots/${bot.data.id}/setup?step=0`);
 	const writes = recordWrites(page);
 
 	await page

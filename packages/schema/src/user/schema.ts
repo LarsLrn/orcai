@@ -1,7 +1,10 @@
 import { z } from "zod/v4";
+import { blockTypeSchema } from "../block/schema";
 import { organizationRoleSchema } from "../organization/parts/role";
 import {
-	createResourceScopedSchema,
+	assetResourceIdentitySchema,
+	blockResourceIdentitySchema,
+	botResourceIdentitySchema,
 	RESOURCE_GRANT_SOURCE,
 	type ResourceType,
 	resourceGrantRoleSchema,
@@ -59,11 +62,20 @@ export const userAccessSourceSchema = z.union([
 	z.literal(USER_ACCESS_SOURCE.INHERITED_ORGANIZATION),
 ]);
 
-export const userAccessEntrySchema = createResourceScopedSchema({
+const userAccessFields = {
 	role: resourceGrantRoleSchema,
 	source: userAccessSourceSchema,
 	resourceName: z.string().nullable(),
-});
+};
+
+export const userAccessEntrySchema = z.discriminatedUnion("resourceType", [
+	assetResourceIdentitySchema.extend(userAccessFields),
+	blockResourceIdentitySchema.extend({
+		...userAccessFields,
+		blockType: blockTypeSchema,
+	}),
+	botResourceIdentitySchema.extend(userAccessFields),
+]);
 
 export type User = z.infer<typeof userSchema>;
 export type UserWithOrganizationRole = z.infer<

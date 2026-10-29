@@ -134,8 +134,9 @@ permission to manage groups.
 ## Resource Sharing
 
 **Access & groups** opens the access dialog on a bot's page
-(`/app/hub/bots/<bot id>`), a block's page (`/app/hub/blocks/<block id>`) and
-an asset's page (`/app/hub/assets/<asset id>`). The bot editor's "Sharing and
+(`/app/library/bots/<bot id>`), a behaviour's or repository's page
+(`/app/library/behaviours/<block id>`, `/app/library/repositories/<block id>`) and
+an asset's page (`/app/library/assets/<asset id>`). The bot editor's "Sharing and
 access" step embeds the same controls. New people and groups are added from the
 **People** and **Groups** tabs, each granted one of three resource roles:
 
@@ -228,7 +229,7 @@ the access it passed on through its links.
 ## Capability-Gated Workspace Sections
 
 The sidebar's "Your workspace" group holds the OrcAI Assistant
-(`/app/assistant`), the Library (`/app/hub`) and Administration. The Library
+(`/app/assistant`), the Library (`/app/library`) and Administration. The Library
 always shows; its Bots, Behaviour, Repositories and Assets items need `read`.
 Administration shows when at least one of its items is allowed:
 

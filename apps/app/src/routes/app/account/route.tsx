@@ -3,6 +3,7 @@ import {
 	type LinkProps,
 	Outlet,
 	useNavigate,
+	useRouterState,
 } from "@tanstack/react-router";
 import {
 	DatabaseIcon,
@@ -15,7 +16,6 @@ import { LoadingPage } from "@/components/app/loading/loading-page";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Page, PageHeader, PageTitle } from "@/components/ui/shell/page";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSectionPathname } from "@/hooks/use-section-pathname";
 import { m } from "@/paraglide/messages";
 
 const ACCOUNT_ROUTES = [
@@ -81,7 +81,11 @@ export const Route = createFileRoute("/app/account")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const activeTab = getActiveTab(useSectionPathname());
+	const activeTab = getActiveTab(
+		useRouterState({
+			select: (state) => state.location.pathname,
+		}),
+	);
 	const accountRouteItems = ACCOUNT_ROUTES.map((route) => ({
 		...route,
 		label: getAccountRouteLabel(route.value),

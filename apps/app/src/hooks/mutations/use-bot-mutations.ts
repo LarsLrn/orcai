@@ -66,7 +66,7 @@ export const usePublishBotMutation = (
 				...opts,
 				onSuccess: async (result, ...args) => {
 					await router.navigate({
-						to: "/app/hub/bots/$botId",
+						to: "/app/library/bots/$botId",
 						params: {
 							botId: result.data.id,
 						},

@@ -30,7 +30,7 @@ const DatabaseBlockForm = ({
 	const { mutateAsync: updateBlock } = useUpdateBlockMutation({
 		onSuccess: (result) =>
 			navigate({
-				to: "/app/hub/blocks/$blockId",
+				to: "/app/library/repositories/$blockId",
 				params: {
 					blockId: result.data.id,
 				},

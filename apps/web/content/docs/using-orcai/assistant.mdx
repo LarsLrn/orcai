@@ -13,7 +13,7 @@ Sending the first message starts a conversation and opens it at `/app/assistant/
 
 ## Questions about OrcAI
 
-Ask the assistant how something in OrcAI works and it reads these docs before it answers. An answer links the app page where you act, such as Bots (`/app/hub/bots`), and the docs page it came from. Both open in a new tab, so the conversation stays open. The work log of an answer lists the docs pages the assistant read, each linked.
+Ask the assistant how something in OrcAI works and it reads these docs before it answers. An answer links the app page where you act, such as Bots (`/app/library/bots`), and the docs page it came from. Both open in a new tab, so the conversation stays open. The work log of an answer lists the docs pages the assistant read, each linked.
 
 The assistant says so when the docs do not cover something, and it does not guess permissions, limits or settings. It knows who you are (your name, email and user id), your role in the active organisation and what that role may do, so it tailors answers to you: when a task needs a role you do not have, it says who can do it. What you claim about your role in the conversation changes nothing.
 
@@ -74,7 +74,7 @@ If you answered every card but the page reloaded before the assistant continued,
 
 ## Uploads
 
-When you want to add files, the assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files as on **Add assets** (`/app/hub/assets/add`): each file becomes an asset as soon as its upload finishes, and the assistant gets the new assets right away and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
+When you want to add files, the assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files as on **Add assets** (`/app/library/assets/add`): each file becomes an asset as soon as its upload finishes, and the assistant gets the new assets right away and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
 
 Choosing **Cancel** before uploading tells the assistant that you added nothing. During an upload you are asked first, and cancelling stops the upload. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads during an upload, the files still uploading are not added and the field comes back empty.
 
@@ -86,7 +86,7 @@ When the assistant needs your input, for example before it plans, it asks up to 
 
 ## Asking from other pages
 
-The bot editor (`/app/hub/bots/<bot id>/setup`) and Groups (`/app/groups`) have an **Ask the assistant** button. It opens the assistant with a prefilled first message, such as "Help me set up the bot “Citation check”", which you can change before sending. The button shows only while the assistant is available in the active organisation.
+The bot editor (`/app/library/bots/<bot id>/setup`) and Groups (`/app/groups`) have an **Ask the assistant** button. It opens the assistant with a prefilled first message, such as "Help me set up the bot “Citation check”", which you can change before sending. The button shows only while the assistant is available in the active organisation.
 
 ## One conversation per task
 

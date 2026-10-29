@@ -4,6 +4,7 @@ import {
 	type DestructiveTarget,
 	singleTargetName,
 } from "@/hooks/mutations/destructive-target";
+import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -22,7 +23,7 @@ export const useCreateBlockMutation = (
 				...opts,
 				onSuccess: async (result, ...args) => {
 					await router.navigate({
-						to: "/app/hub/blocks/$blockId",
+						to: blockPaths(result.data.type).detail,
 						params: {
 							blockId: result.data.id,
 						},

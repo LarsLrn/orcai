@@ -5,6 +5,7 @@ import { AccessDialog } from "@/components/access/access-dialog";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { blockPaths } from "@/lib/navigation/block-paths";
 import { blockKind } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
@@ -14,7 +15,7 @@ type ActionBlock = Pick<Block, "id" | "type" | "name"> & {
 
 /** A behaviour's or repository's own actions, each present as far as its capabilities allow. */
 const blockActions = (
-	block: Pick<ActionBlock, "id" | "capabilities">,
+	block: Pick<ActionBlock, "id" | "type" | "capabilities">,
 	{
 		onAccess,
 		onDelete,
@@ -28,7 +29,7 @@ const blockActions = (
 		label: m.blocks_edit_action(),
 		icon: EditIcon,
 		linkProps: {
-			to: "/app/hub/blocks/$blockId/edit",
+			to: blockPaths(block.type).edit,
 			params: {
 				blockId: block.id,
 			},

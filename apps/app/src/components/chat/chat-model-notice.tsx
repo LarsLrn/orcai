@@ -55,7 +55,7 @@ const BotModelNotice = ({ botId }: { botId: BotId }) => {
 			</div>
 			{canEdit && (
 				<Link
-					to="/app/hub/bots/$botId/setup"
+					to="/app/library/bots/$botId/setup"
 					params={{
 						botId,
 					}}

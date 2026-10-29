@@ -344,7 +344,7 @@ const BotEditorShell = ({
 
 		if (!editorData?.id && nextEditor.id) {
 			await navigate({
-				to: "/app/hub/bots/$botId/setup",
+				to: "/app/library/bots/$botId/setup",
 				params: {
 					botId: nextEditor.id,
 				},
@@ -1302,7 +1302,7 @@ const ReadOnlyTemplateCard = ({
 						onClick={() =>
 							block.id
 								? navigate({
-										to: "/app/hub/blocks/$blockId",
+										to: "/app/library/behaviours/$blockId",
 										params: {
 											blockId: block.id,
 										},
@@ -1389,7 +1389,7 @@ const ReadOnlyDatabaseCard = ({
 						onClick={() =>
 							block.id
 								? navigate({
-										to: "/app/hub/blocks/$blockId",
+										to: "/app/library/repositories/$blockId",
 										params: {
 											blockId: block.id,
 										},

@@ -113,7 +113,7 @@ test("assistant: a member's question is answered from the docs with app and docs
 			],
 		},
 		{
-			text: `${answer} Open [Bots](/app/hub/bots), read [the bots page](${docsUrl}${BOTS_PATH}) or [elsewhere](https://example.org/).`,
+			text: `${answer} Open [Bots](/app/library/bots), read [the bots page](${docsUrl}${BOTS_PATH}) or [elsewhere](https://example.org/).`,
 		},
 	);
 
@@ -160,7 +160,7 @@ test("assistant: a member's question is answered from the docs with app and docs
 		})
 		.click();
 	const appPage = await opened;
-	await expect(appPage).toHaveURL(/\/app\/hub\/bots$/);
+	await expect(appPage).toHaveURL(/\/app\/library\/bots$/);
 	await expect(linkConfirmation(page)).toHaveCount(0);
 	await appPage.close();
 

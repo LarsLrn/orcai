@@ -18,7 +18,7 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}`);
+	await open(page, `/app/library/bots/${bot.id}`);
 	const title = page.getByRole("heading", {
 		name: bot.name,
 	});

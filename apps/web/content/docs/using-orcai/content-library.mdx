@@ -3,7 +3,7 @@ title: Content Library
 description: Assets in the Library, covering upload, accepted file types and limits, metadata and citations, metadata generated with AI, processing status, retry and reprocessing, access, and how assets reach chats through repositories.
 ---
 
-Assets (Library > Assets, `/app/hub/assets`) are the reusable source material OrcAI uses for retrieval, grounding, and citations.
+Assets (Library > Assets, `/app/library/assets`) are the reusable source material OrcAI uses for retrieval, grounding, and citations.
 
 The Library, its pickers and the assistant's find tools show the bots, blocks
 and assets of your active organisation that you can read. A bot's blocks and a
@@ -24,7 +24,7 @@ bot contains is readable without appearing in your Library.
 
 ## End-To-End Flow
 
-1. Upload files on **Add assets** (`/app/hub/assets/add`). Each file becomes an asset as soon as its upload finishes, and OrcAI keeps the original in S3-compatible object storage.
+1. Upload files on **Add assets** (`/app/library/assets/add`). Each file becomes an asset as soon as its upload finishes, and OrcAI keeps the original in S3-compatible object storage.
 2. Add metadata to the new assets, right away or later. With a utility model, OrcAI generates it for library uploads once the file is processed; see [Metadata generated with AI](#metadata-generated-with-ai).
 3. A background job processes the file and extracts its text. The organisation's [utility model](/docs/using-orcai/administration#utility-model) describes each image, an image file or a figure in a document, so its content can be found by search. The descriptions are saved with the extracted text, and indexing in every repository reuses them. When the quota runs out partway through a document, the descriptions written so far are charged but not saved, so a retry describes those images again.
 4. Add the asset to one or more repositories, from the repository editor or the bot editor's Repositories step.
@@ -33,7 +33,7 @@ bot contains is readable without appearing in your Library.
 
 ## Adding Assets
 
-**Add assets** on the Assets page opens `/app/hub/assets/add`. It needs the `create_asset` permission.
+**Add assets** on the Assets page opens `/app/library/assets/add`. It needs the `create_asset` permission.
 
 Intake is file upload only:
 
@@ -75,7 +75,7 @@ The metadata travels with the asset wherever it is reused. Fields:
 	- Legal Text: **Citation label**, **Legal reference**, **Jurisdiction**
 - **External URL** (for types other than Web Source)
 
-Edit metadata later with **Edit content** on the asset page, which opens `/app/hub/assets/<asset id>/edit`. Saving stores only the fields you changed, so metadata generated while the editor was open is kept. Changing the source type removes, on save, the fields the new type does not have.
+Edit metadata later with **Edit content** on the asset page, which opens `/app/library/assets/<asset id>/edit`. Saving stores only the fields you changed, so metadata generated while the editor was open is kept. Changing the source type removes, on save, the fields the new type does not have.
 
 ## Metadata Generated With AI
 
@@ -90,7 +90,7 @@ While metadata is generated, cards, the upload list and the asset page show **Ge
 
 ## The Asset Page
 
-The asset page (`/app/hub/assets/<asset id>`) shows a preview of the file, its **Metadata**, and its **Preparation status**.
+The asset page (`/app/library/assets/<asset id>`) shows a preview of the file, its **Metadata**, and its **Preparation status**.
 
 Actions, depending on your access to the asset:
 
