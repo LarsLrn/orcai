@@ -1,6 +1,9 @@
-import { librarySortSchema, paginationInputSchema } from "@orcai/schema";
+import { librarySortSchema } from "@orcai/schema";
 import { z } from "zod/v4";
-import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
+import {
+	dataTableQuerySchema,
+	paginationSearchShape,
+} from "@/components/ui/data-table/data-table-search-params";
 import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
 
 /*
@@ -86,7 +89,7 @@ const mapDefinitions = <D extends FilterDefinitions, T>(
 
 /** Search params every browsing view takes: paging, the search query and the sort. */
 const browseShape = {
-	...paginationInputSchema.shape,
+	...paginationSearchShape,
 	query: dataTableQuerySchema.catch("").default(""),
 	sort: librarySortSchema.catch("newest").default("newest"),
 };

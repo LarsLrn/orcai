@@ -34,6 +34,7 @@ import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
 	dataTableQuerySchema,
 	dataTableSearchDefaults,
+	paginationSearchShape,
 } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
@@ -70,6 +71,7 @@ const searchSchema = listModelsInputSchema
 		filters: true,
 	})
 	.extend({
+		...paginationSearchShape,
 		query: dataTableQuerySchema.default(""),
 	});
 

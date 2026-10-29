@@ -17,6 +17,7 @@ import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
 	dataTableQuerySchema,
 	dataTableSearchDefaults,
+	paginationSearchShape,
 } from "@/components/ui/data-table/data-table-search-params";
 import { DataTableToolbar } from "@/components/ui/data-table/data-table-toolbar";
 import { HeaderActions } from "@/components/ui/shell/actions";
@@ -44,6 +45,7 @@ const searchSchema = listInstanceUserMembershipsInputSchema
 		userId: true,
 	})
 	.extend({
+		...paginationSearchShape,
 		query: dataTableQuerySchema.default(""),
 	});
 
