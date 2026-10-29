@@ -1,8 +1,10 @@
 import { webSearchModes } from "@orcai/core";
 import { z } from "zod/v4";
+import { catalogueKindSchema } from "../catalogue/inputs";
 import { modelIdSchema } from "../model/ref";
 import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
+import { organizationDescriptionSchema } from "./description";
 import { organizationIdSchema } from "./ref";
 
 export const organizationFieldsSchema = z.object({
@@ -18,6 +20,7 @@ export const organizationSchema = organizationFieldsSchema.extend({
 	id: organizationIdSchema,
 	/** The app path of the organisation's logo. */
 	logo: z.string().nullable(),
+	description: organizationDescriptionSchema.nullable(),
 	assistantModelId: modelIdSchema.nullable(),
 	utilityModelId: modelIdSchema.nullable(),
 	webSearchMode: z.enum(webSearchModes),
@@ -27,6 +30,23 @@ export const organizationSchema = organizationFieldsSchema.extend({
 });
 
 export type Organization = z.infer<typeof organizationSchema>;
+
+/**
+ * What any signed-in user sees of an organisation on its page, with how many
+ * entries of each kind it lists in the catalogue.
+ */
+export const organizationProfileSchema = organizationSchema
+	.pick({
+		id: true,
+		name: true,
+		logo: true,
+		description: true,
+	})
+	.extend({
+		listed: z.record(catalogueKindSchema, z.number().int()),
+	});
+
+export type OrganizationProfile = z.infer<typeof organizationProfileSchema>;
 
 /** Narrows the organisations the caller sees by name. */
 export const organizationFiltersSchema = searchFilterSchema;

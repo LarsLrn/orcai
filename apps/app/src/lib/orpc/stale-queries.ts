@@ -85,13 +85,14 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		...groupSummaries(),
 	];
 
-	// Library and catalogue tiles show their creator.
+	// Library and catalogue tiles show their creator; an organisation's page counts its entries.
 	const libraryLists = () => [
 		orpc.bot.list.key(),
 		orpc.block.list.key(),
 		orpc.asset.list.key(),
 		orpc.library.key(),
 		orpc.catalogue.key(),
+		orpc.organization.profile.key(),
 	];
 	// Adding from the catalogue changes the library, and removing ends what the organisation built on it.
 	const installs = () => [
@@ -427,6 +428,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.organization.deletionImpact.key(),
 				orpc.user.listAccess.key(),
 				orpc.catalogue.key(),
+				orpc.organization.profile.key(),
 				readOnlyChats,
 			],
 		},

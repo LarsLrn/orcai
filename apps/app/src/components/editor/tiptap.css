@@ -439,3 +439,36 @@
 	height: 0;
 	pointer-events: none;
 }
+
+/* The description editor reads like its rendered prose, not like a document page. */
+.description-editor .ProseMirror {
+	padding: 0.75rem 1rem;
+	margin: 0;
+	max-width: none;
+	min-height: 8rem;
+	font-family: inherit;
+	color: inherit;
+}
+
+.description-editor .ProseMirror :is(p, h2, h3) {
+	font-family: inherit;
+	font-size: inherit;
+	color: inherit;
+	letter-spacing: normal;
+}
+
+.description-editor .ProseMirror h2 {
+	font-size: 1.125rem;
+}
+
+.description-editor .ProseMirror a {
+	color: var(--primary);
+}
+
+.dark .description-editor .ProseMirror a {
+	color: var(--accent-brand);
+}
+
+.description-editor .ProseMirror > :first-child {
+	margin-top: 0;
+}

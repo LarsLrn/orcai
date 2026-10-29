@@ -7,6 +7,7 @@ import {
 } from "../shared";
 import {
 	organizationDeletionImpactSchema,
+	organizationProfileSchema,
 	organizationSchema,
 	organizationWithMemberCountSchema,
 } from "./schema";
@@ -20,6 +21,10 @@ export const listAllOrganizationsResponseSchema = createListResponseSchema(
 
 export const findOrganizationResponseSchema =
 	createDataResponseSchema(organizationSchema);
+
+export const organizationProfileResponseSchema = createDataResponseSchema(
+	organizationProfileSchema,
+);
 
 export const createOrganizationResponseSchema =
 	createDataResponseSchema(organizationSchema);

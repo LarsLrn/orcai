@@ -18,6 +18,10 @@ import {
 import { m } from "@/paraglide/messages";
 import type { sidebarMenu } from "@/settings/menus";
 
+/** Whether `pathname` is `to` or below it, by whole segments. */
+const isWithin = (pathname: string, to: string) =>
+	pathname === to || pathname.startsWith(`${to}/`);
+
 const CollapsibleSidebarMenu = ({
 	item,
 }: {
@@ -34,13 +38,11 @@ const CollapsibleSidebarMenu = ({
 
 	const isChildActive =
 		item.items?.some(
-			(sub) => !!sub.linkProps?.to && pathname.startsWith(sub.linkProps.to),
+			(sub) => !!sub.linkProps?.to && isWithin(pathname, sub.linkProps.to),
 		) ?? false;
 	const isRouteActive =
 		isChildActive ||
-		(hasRoute &&
-			!!item.linkProps?.to &&
-			pathname.startsWith(item.linkProps.to));
+		(hasRoute && !!item.linkProps?.to && isWithin(pathname, item.linkProps.to));
 
 	// Close the group automatically when the user navigates away from all its routes.
 	useEffect(() => {
@@ -107,7 +109,7 @@ const CollapsibleSidebarMenu = ({
 											<SidebarMenuSubButton
 												isActive={
 													!!subItem.linkProps?.to &&
-													pathname.startsWith(subItem.linkProps.to)
+													isWithin(pathname, subItem.linkProps.to)
 												}
 												render={
 													<Link

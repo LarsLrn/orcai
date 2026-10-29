@@ -8,6 +8,7 @@ import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { uploadFileObjectSchema } from "../storage/schema";
 import { userIdSchema } from "../user/ref";
+import { organizationDescriptionSchema } from "./description";
 import { organizationIdSchema } from "./ref";
 import {
 	organizationFieldsSchema,
@@ -40,6 +41,10 @@ export const listAllOrganizationsInputSchema = paginationInputSchema.extend({
 });
 
 export const findOrganizationInputSchema = organizationSchema.pick({
+	id: true,
+});
+
+export const organizationProfileInputSchema = organizationSchema.pick({
 	id: true,
 });
 
@@ -76,6 +81,7 @@ export const createOrganizationInputSchema = organizationFieldsSchema.extend({
 export const updateOrganizationInputSchema =
 	organizationMutableFieldsSchema.extend({
 		id: organizationIdSchema,
+		description: organizationDescriptionSchema.nullable().optional(),
 		assistantModelId: modelIdSchema.nullable().optional(),
 		utilityModelId: modelIdSchema.nullable().optional(),
 		/** Off, the model's own search, or one of the organisation's search providers. */
@@ -123,6 +129,9 @@ export type InstanceOrganizationSortKey = z.infer<
 	typeof instanceOrganizationSortKeySchema
 >;
 export type FindOrganizationInput = z.infer<typeof findOrganizationInputSchema>;
+export type OrganizationProfileInput = z.infer<
+	typeof organizationProfileInputSchema
+>;
 export type OrganizationDeletionImpactInput = z.infer<
 	typeof organizationDeletionImpactInputSchema
 >;

@@ -36,7 +36,9 @@ Each tile names the organisation the entry comes from and what it holds: a
 bot's behaviour and repositories, "Prompt" for a behaviour, or a repository's
 documents. A bot's tile shows the model its author set up: **Requires …** when
 its chats always use that model, **Tuned for …** when it is a recommendation.
-A check on the icon marks what your organisation already added.
+A check on the icon marks what your organisation already added. The
+organisation's name opens its page, and while the **Organisation** filter is
+set, a link above the results leads to each chosen organisation's page.
 
 ## An Entry's Page
 
@@ -52,6 +54,19 @@ Admins and managers see **Add to …** for your active organisation. Other
 members are told to ask them. An entry your organisation added shows
 **Added to …** and **Open in Library**; one it made itself shows **Open in
 Library**.
+
+## An Organisation's Page
+
+Every organisation on the instance has a page (`/app/organizations/<id>`) that
+everyone signed in can open: from an entry's organisation in the catalogue or
+the Library ("From …"), from the organisation picker, and from the
+**Organisation** filter. It shows the organisation's logo, name and
+description, and how many bots, behaviours and repositories it lists in the
+catalogue; each count opens the catalogue's view of that kind filtered to the
+organisation. It shows no members. Its administrators see **Edit**, which
+opens the [Organisation settings](/docs/using-orcai/administration#organisation)
+where the description is written, switching to that organisation first when
+another one is active.
 
 ## Adding An Entry
 

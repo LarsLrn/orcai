@@ -402,6 +402,27 @@ const cataloguePage = (
 		};
 	});
 
+/** How many entries of each kind the filters let through. */
+const kindCounts = (filters: EntryFilters) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const matching = yield* entries(filters);
+		const rows = yield* db
+			.select({
+				kind: matching.kind,
+				count: count(),
+			})
+			.from(matching)
+			.groupBy(matching.kind);
+		const counts: Record<CatalogueKind, number> = {
+			bot: 0,
+			behaviour: 0,
+			repository: 0,
+		};
+		for (const row of rows) counts[row.kind] = row.count;
+		return counts;
+	});
+
 /**
  * How many entries each kind holds, matching `search`, and the organisations
  * that list entries, with how many each.
@@ -409,22 +430,13 @@ const cataloguePage = (
 export const catalogueCounts = (search: string | undefined) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const [matching, all] = yield* Effect.all([
-			entries({
-				search,
-			}),
-			entries({}),
-		]);
-		const [kinds, organizations] = yield* Effect.all(
-			[
-				db
-					.select({
-						kind: matching.kind,
-						count: count(),
-					})
-					.from(matching)
-					.groupBy(matching.kind),
-				db
+		const all = yield* entries({});
+		return yield* Effect.all(
+			{
+				counts: kindCounts({
+					search,
+				}),
+				organizations: db
 					.select({
 						...sourceColumns,
 						entries: count(),
@@ -436,21 +448,19 @@ export const catalogueCounts = (search: string | undefined) =>
 					)
 					.groupBy(dbSchema.organization.id)
 					.orderBy(asc(dbSchema.organization.name)),
-			],
+			},
 			{
 				concurrency: "unbounded",
 			},
 		);
-		const counts: Record<CatalogueKind, number> = {
-			bot: 0,
-			behaviour: 0,
-			repository: 0,
-		};
-		for (const row of kinds) counts[row.kind] = row.count;
-		return {
-			counts,
-			organizations,
-		};
+	});
+
+/** How many entries of each kind the organisation lists in the catalogue. */
+export const listedCounts = (organizationId: OrganizationId) =>
+	kindCounts({
+		organizationIds: [
+			organizationId,
+		],
 	});
 
 /**

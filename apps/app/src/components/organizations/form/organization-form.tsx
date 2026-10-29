@@ -269,6 +269,7 @@ export const OrganizationForm = ({
 			? {
 					name: organization.name,
 					slug: organization.slug,
+					description: organization.description,
 					assistantModelId: organization.assistantModelId,
 					utilityModelId: organization.utilityModelId,
 					webSearch: webSearchChoice(organization),
@@ -279,6 +280,7 @@ export const OrganizationForm = ({
 			: organizationFormOptions.defaultValues,
 		onSubmit: async ({ value }) => {
 			const {
+				description,
 				assistantModelId,
 				utilityModelId,
 				webSearch,
@@ -291,6 +293,7 @@ export const OrganizationForm = ({
 				await updateOrganization({
 					...fields,
 					id: organization.id,
+					description,
 					...changedModel(
 						"assistantModelId",
 						assistantModelId,
@@ -380,6 +383,15 @@ export const OrganizationForm = ({
 			)}
 			{action === "update" && (
 				<>
+					<form.AppField
+						name="description"
+						children={(field) => (
+							<field.DescriptionEditorField
+								label={m.orgs_form_description_label()}
+								description={m.orgs_form_description_description()}
+							/>
+						)}
+					/>
 					<form.AppField
 						name="assistantModelId"
 						children={(field) => (

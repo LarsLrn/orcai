@@ -4,6 +4,7 @@ import BlockEditorField from "@/components/forms/fields/block-editor-field";
 import CheckboxField from "@/components/forms/fields/checkbox-field";
 import CodeField from "@/components/forms/fields/code-field";
 import DatetimeField from "@/components/forms/fields/datetime-field";
+import DescriptionEditorField from "@/components/forms/fields/description-editor-field";
 import FormValidationErrors from "@/components/forms/fields/form-validation-errors";
 import MultiSelectField from "@/components/forms/fields/multi-select-field";
 import PasswordField from "@/components/forms/fields/password-field";
@@ -27,6 +28,7 @@ const formHook = createFormHook({
 		DatetimeField,
 		PasswordField,
 		BlockEditorField,
+		DescriptionEditorField,
 		SliderField,
 	},
 	formComponents: {

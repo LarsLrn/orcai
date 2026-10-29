@@ -11,6 +11,8 @@ import {
 	listOrganizationsResponseSchema,
 	organizationDeletionImpactInputSchema,
 	organizationDeletionImpactResponseSchema,
+	organizationProfileInputSchema,
+	organizationProfileResponseSchema,
 	removeOrganizationLogoInputSchema,
 	removeOrganizationLogoResponseSchema,
 	setOrganizationLogoInputSchema,
@@ -74,6 +76,21 @@ export const organizationContracts = {
 		)
 		.input(findOrganizationInputSchema)
 		.output(findOrganizationResponseSchema),
+	profile: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/organizations/{id}/profile",
+				summary: "Find an organisation's public profile",
+				description:
+					"What any signed-in user sees of an organisation: its name, logo, description and how many entries of each kind it lists in the catalogue.",
+				tags: [
+					"Organizations",
+				],
+			}),
+		)
+		.input(organizationProfileInputSchema)
+		.output(organizationProfileResponseSchema),
 	update: base
 		.meta(
 			openapi({

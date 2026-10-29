@@ -1,3 +1,7 @@
+import {
+	isOrganizationDescriptionHref,
+	ORGANIZATION_DESCRIPTION_HEADING_LEVELS,
+} from "@orcai/schema";
 import { mergeAttributes } from "@tiptap/core";
 import { CharacterCount } from "@tiptap/extension-character-count";
 import { Color } from "@tiptap/extension-color";
@@ -174,6 +178,26 @@ const TiptapCharacterCount = CharacterCount;
 //   },
 // });
 
+const placeholder = Placeholder.configure({
+	emptyNodeClass: "is-editor-empty",
+	placeholder: ({ node }) => {
+		switch (node.type.name) {
+			case "heading":
+				return m.editor_placeholder_heading({
+					level: node.attrs.level,
+				});
+			case "detailsSummary":
+				return m.editor_placeholder_section_title();
+			case "codeBlock":
+				// never show the placeholder when editing code
+				return "";
+			default:
+				return m.editor_placeholder_default();
+		}
+	},
+	includeChildren: false,
+});
+
 export const extensions = [
 	TiptapStarterKit,
 	TiptapHeading,
@@ -186,25 +210,7 @@ export const extensions = [
 	TiptapCharacterCount,
 	TextStyle,
 	DragHandle,
-	Placeholder.configure({
-		emptyNodeClass: "is-editor-empty",
-		placeholder: ({ node }) => {
-			switch (node.type.name) {
-				case "heading":
-					return m.editor_placeholder_heading({
-						level: node.attrs.level,
-					});
-				case "detailsSummary":
-					return m.editor_placeholder_section_title();
-				case "codeBlock":
-					// never show the placeholder when editing code
-					return "";
-				default:
-					return m.editor_placeholder_default();
-			}
-		},
-		includeChildren: false,
-	}),
+	placeholder,
 	Subscript,
 	Superscript,
 	Color,
@@ -213,5 +219,26 @@ export const extensions = [
 	}),
 	TiptapImage,
 	MathExtension,
+	Typography,
+];
+
+/** An organisation's description: text, headings, lists, quotes and links. */
+export const descriptionExtensions = [
+	StarterKit.configure({
+		code: false,
+		codeBlock: false,
+		dropcursor: false,
+		heading: {
+			levels: [
+				...ORGANIZATION_DESCRIPTION_HEADING_LEVELS,
+			],
+		},
+		link: {
+			openOnClick: false,
+			defaultProtocol: "https",
+			isAllowedUri: isOrganizationDescriptionHref,
+		},
+	}),
+	placeholder,
 	Typography,
 ];

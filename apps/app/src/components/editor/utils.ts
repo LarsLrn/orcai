@@ -1,10 +1,13 @@
 function isValidUrl(url: string) {
-	return /^https?:\/\/\S+$/.test(url);
+	return /^(https?:\/\/|mailto:|tel:)\S+$/.test(url);
 }
 
 export function getUrlFromString(str: string) {
 	if (isValidUrl(str)) {
 		return str;
+	}
+	if (/^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/.test(str)) {
+		return `mailto:${str}`;
 	}
 	try {
 		if (str.includes(".") && !str.includes(" ")) {
