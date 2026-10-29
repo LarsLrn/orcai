@@ -1,4 +1,3 @@
-import type { ChatId } from "@orcai/core";
 import { createApiClient } from "../../fixtures/api";
 import { untilAllowed } from "../../fixtures/authorization";
 import { signIn } from "../../fixtures/index";
@@ -7,24 +6,13 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { addMember, createOrgsUser } from "../../fixtures/orgs/members";
 
-/** The browser opens a chat without the API client's zedToken, so it waits until the chat reads without one. */
-const readableWithoutZedToken = (
-	appBaseURL: string,
-	cookieHeader: string,
-	id: ChatId,
-) =>
-	untilAllowed(() =>
-		createApiClient(appBaseURL, cookieHeader).chat.find({
-			id,
-		}),
-	);
-
 test("chat: the chat list follows the active organisation, and another organisation's chat is read-only", async ({
 	api,
 	appBaseURL,
 	browser,
 	org,
 	orgs,
+	seedZedToken,
 	zedTokens,
 }) => {
 	test.slow();
@@ -58,11 +46,6 @@ test("chat: the chat list follows the active organisation, and another organisat
 	const second = await client.chat.create({
 		title: "Second organisation chat",
 	});
-	await readableWithoutZedToken(
-		appBaseURL,
-		session.cookieHeader,
-		first.data.id,
-	);
 
 	const context = await browser.newContext({
 		storageState: session.storageState,
@@ -70,6 +53,7 @@ test("chat: the chat list follows the active organisation, and another organisat
 	});
 	try {
 		const page = await context.newPage();
+		await seedZedToken(page);
 		await enterApp(page, other.slug);
 		await open(page, "/app/chat");
 		const table = page.getByRole("table");
@@ -107,6 +91,7 @@ test("chat: after leaving their only organisation a user reads their chats in th
 	appBaseURL,
 	browser,
 	org,
+	seedZedToken,
 	zedTokens,
 }) => {
 	test.slow();
@@ -127,7 +112,6 @@ test("chat: after leaving their only organisation a user reads their chats in th
 	const { data: chat } = await client.chat.create({
 		title: "Kept after leaving",
 	});
-	await readableWithoutZedToken(appBaseURL, session.cookieHeader, chat.id);
 	await api.as("admin").organizationMember.delete({
 		refs: [
 			{
@@ -142,6 +126,7 @@ test("chat: after leaving their only organisation a user reads their chats in th
 	});
 	try {
 		const page = await context.newPage();
+		await seedZedToken(page);
 		await open(page, "/app");
 		await expect(page).toHaveURL(/\/select-organization/);
 		await page
