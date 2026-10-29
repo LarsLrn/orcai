@@ -31,11 +31,11 @@ describe("repositoryFooter", () => {
 				failed: 0,
 			}),
 		).toEqual([
-			"No documents yet",
+			"No assets yet",
 		]);
 	});
 
-	test("counts documents, then those processing and failed", () => {
+	test("counts assets, then those preparing and failed", () => {
 		expect(
 			labels({
 				total: 18,
@@ -44,8 +44,8 @@ describe("repositoryFooter", () => {
 				failed: 1,
 			}),
 		).toEqual([
-			"18 documents",
-			"3 processing (info)",
+			"18 assets",
+			"3 preparing (info)",
 			"1 failed (danger)",
 		]);
 		expect(
@@ -56,7 +56,7 @@ describe("repositoryFooter", () => {
 				failed: 0,
 			}),
 		).toEqual([
-			"1 document",
+			"1 asset",
 		]);
 	});
 });

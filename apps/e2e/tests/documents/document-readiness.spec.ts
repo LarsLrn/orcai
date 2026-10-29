@@ -66,7 +66,7 @@ test("documents: a chat shows the documents of its repositories that could not b
 	await openChat(page, chatId);
 
 	const trigger = documentsPanel(page).getByRole("button", {
-		name: /1 document could not be prepared.*0\/1/,
+		name: /1 asset could not be prepared.*0\/1/,
 	});
 	await expect(trigger).toBeVisible();
 	await expect(
