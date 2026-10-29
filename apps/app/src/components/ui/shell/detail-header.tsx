@@ -69,14 +69,14 @@ const DetailHeaderHeading = ({
 	className,
 	...props
 }: React.ComponentProps<typeof PageHeader>) => (
-	<PageHeader className={cn("mt-4 overflow-visible", className)} {...props} />
+	<PageHeader className={cn("mt-4", className)} {...props} />
 );
 
 const DetailHeaderTitle = ({
 	className,
 	...props
 }: React.ComponentProps<typeof PageTitle>) => (
-	<PageTitle className={cn("min-w-0 break-words", className)} {...props} />
+	<PageTitle className={className} {...props} />
 );
 
 /** The kind badge, state badges and provenance under the name. */
@@ -98,7 +98,7 @@ const DetailHeaderDescription = ({
 	className,
 	...props
 }: React.ComponentProps<typeof PageDescription>) => (
-	<PageDescription className={cn("mt-4 break-words", className)} {...props} />
+	<PageDescription className={cn("mt-4", className)} {...props} />
 );
 
 export {

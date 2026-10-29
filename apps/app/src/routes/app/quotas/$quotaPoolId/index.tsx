@@ -205,8 +205,14 @@ function RouteComponent() {
 					<Badge variant="outline">
 						{periodTypeLabel(data.data.periodType).toUpperCase()}
 					</Badge>
-					<Badge variant="outline">
-						{data.data.provider.name} / {data.data.provider.meteringMode}
+					<Badge
+						variant="outline"
+						className="max-w-full"
+						title={`${data.data.provider.name} / ${data.data.provider.meteringMode}`}
+					>
+						<span className="truncate">
+							{data.data.provider.name} / {data.data.provider.meteringMode}
+						</span>
 					</Badge>
 				</div>
 				<HeaderActions
