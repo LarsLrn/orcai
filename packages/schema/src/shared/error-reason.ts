@@ -4,6 +4,9 @@ import type { FeatureId } from "../feature/schema";
 /** Stable codes the client translates; the server never sends user-facing prose. */
 export const ERROR_REASONS = [
 	"ACTIVE_ORGANIZATION_REQUIRED",
+	"ACTIVITY_FAILURE_NOT_FOUND",
+	"ACTIVITY_RUN_NOT_FOUND",
+	"ACTIVITY_RUN_RUNNING",
 	"AI_PROMPT_REQUIRED",
 	"AI_STREAM_FAILED",
 	"AI_TOOL_FAILED",

@@ -7,7 +7,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { reconcileLinkPoints } from "@orcai/pg-boss";
+import { reconcileLinkPoints, replaceIndexing } from "@orcai/pg-boss";
 import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
@@ -372,7 +372,7 @@ export const deleteResources = (params: {
 			.from(table)
 			.where(inArray(table.id, ids))
 			.for("update");
-		// The rows cascade with the resource; their points are reconciled after the commit.
+		// The rows cascade with the resource; their points are reconciled after the commit. Locked, so an indexing admission on them commits first or finds them gone.
 		const indexedLinks =
 			params.resourceType === "block" || params.resourceType === "asset"
 				? yield* db
@@ -386,6 +386,7 @@ export const deleteResources = (params: {
 								? inArray(dbSchema.blockAsset.blockId, ids as BlockId[])
 								: inArray(dbSchema.blockAsset.assetId, ids as AssetId[]),
 						)
+						.for("update")
 				: [];
 		const files =
 			params.resourceType === "asset"
@@ -399,6 +400,9 @@ export const deleteResources = (params: {
 						.from(dbSchema.asset)
 						.where(inArray(dbSchema.asset.id, ids as AssetId[]))
 				: [];
+		if (params.resourceType === "block") {
+			yield* replaceIndexing(ids as BlockId[]);
+		}
 		yield* teardownResourceAuthorization(params);
 		// Their chats lose the bot link with the row, so they keep why they turned read-only.
 		if (params.resourceType === "bot") {

@@ -1,4 +1,4 @@
-import type { BlockId } from "@orcai/core";
+import type { ActivityRunId, BlockId } from "@orcai/core";
 import type { AssetWithCapabilities, RetrievalMode } from "@orcai/schema";
 import { DatabaseBlockEditor } from "@/components/authoring/database-block-editor";
 import { withFieldGroup } from "@/hooks/form";
@@ -58,6 +58,9 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 		onAssetsChange: (_assets: AssetWithCapabilities[]) => {
 			void _assets;
 		},
+		onUploadRun: (_runId: ActivityRunId) => {
+			void _runId;
+		},
 		onRemove: undefined as (() => void) | undefined,
 		blockId: undefined as BlockId | undefined,
 	},
@@ -67,12 +70,14 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 		onAssetIdsChange,
 		assets,
 		onAssetsChange,
+		onUploadRun,
 		onRemove,
 		blockId,
 	}) {
 		return (
 			<DatabaseBlockEditor
 				blockId={blockId}
+				onUploadRun={onUploadRun}
 				nameField={
 					<group.AppField
 						name="name"

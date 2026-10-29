@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	bigint,
+	index,
 	integer,
 	json,
 	pgSequence,
@@ -93,6 +94,14 @@ export const blockAsset = pgTable(
 			.notNull()
 			.default("pending"),
 		indexFailure: pipelineFailureEnum("index_failure"),
+		/** Identifies the current indexing failure; a new failure gets a new id. */
+		indexFailureId: uuid("index_failure_id"),
+		/** Who asked for the current indexing; null when it was automatic. */
+		indexActorId: uuid("index_actor_id")
+			.$type<UserId>()
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		/**
 		 * The link's current indexing attempt, new on every admission and on a
 		 * relink; a delivery for another one changes nothing.
@@ -115,5 +124,11 @@ export const blockAsset = pgTable(
 				table.assetId,
 			],
 		}),
+		index("block_asset_index_failure_idx")
+			.on(table.indexFailureId)
+			.where(sql`${table.indexFailureId} is not null`),
+		index("block_asset_index_failed_actor_idx")
+			.on(table.indexActorId)
+			.where(sql`${table.indexStatus} = 'failed'`),
 	],
 );

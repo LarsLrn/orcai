@@ -1,7 +1,12 @@
 import { countTokens, generateManyEmbeddings } from "@orcai/ai";
 import type { AssetId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { type Job, reconcileLinkPoints, withLinkPoints } from "@orcai/pg-boss";
+import {
+	type Job,
+	reconcileLinkPoints,
+	settleStage,
+	withLinkPoints,
+} from "@orcai/pg-boss";
 import type { StoredExtractionArtifact } from "@orcai/process";
 import { upsertPointsToQdrant } from "@orcai/qdrant";
 import {
@@ -359,17 +364,35 @@ const indexAsset = (params: {
 			attempt,
 		});
 
-		const completed = yield* db
-			.update(dbSchema.blockAsset)
-			.set({
-				indexStatus: "completed",
-				indexFailure: null,
-				indexedAttempt: attempt.attempt,
-			})
-			.where(currentIndexing(attempt))
-			.returning({
-				assetId: dbSchema.blockAsset.assetId,
-			});
+		const completed = yield* db.transaction(() =>
+			Effect.gen(function* () {
+				const written = yield* db
+					.update(dbSchema.blockAsset)
+					.set({
+						indexStatus: "completed",
+						indexFailure: null,
+						indexedAttempt: attempt.attempt,
+					})
+					.where(currentIndexing(attempt))
+					.returning({
+						assetId: dbSchema.blockAsset.assetId,
+					});
+				if (written.length > 0) {
+					yield* settleStage(
+						attempt.runId,
+						{
+							stage: "indexing",
+							assetId,
+							blockId,
+						},
+						{
+							state: "completed",
+						},
+					);
+				}
+				return written;
+			}),
+		);
 		if (completed.length === 0) {
 			yield* Effect.logInfo(
 				{

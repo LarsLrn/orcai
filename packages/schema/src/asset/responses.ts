@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { activityRunIdSchema } from "../activity/ref";
 import { resourceOwnerSchema } from "../resource/schema";
 import {
 	createDataResponseSchema,
@@ -43,10 +44,12 @@ export const assetIntakeResultSchema = z.discriminatedUnion("status", [
 	}),
 ]);
 
-/** Results in input order. */
+/** Results in input order, and the activity run of a library upload. */
 export const createAssetsFromUploadsResponseSchema = createDataResponseSchema(
 	z.array(assetIntakeResultSchema),
-);
+).extend({
+	runId: activityRunIdSchema.nullable(),
+});
 
 export const deleteAssetsResponseSchema = createDeleteResponseSchema();
 

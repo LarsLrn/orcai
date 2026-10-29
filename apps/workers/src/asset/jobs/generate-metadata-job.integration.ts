@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, buckets, type UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import {
 	type Job,
 	PgBoss,
@@ -20,11 +20,18 @@ import {
 	type GenerateAssetMetadataPayload,
 	type MetadataGenerationMode,
 } from "@orcai/schema";
-import { createJobQueues, IntegrationLive } from "@orcai/testing";
+import {
+	awaitLockWaiters,
+	createJobQueues,
+	IntegrationLive,
+} from "@orcai/testing";
 import { and, eq, like } from "drizzle-orm";
+import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
+import * as Tracer from "effect/Tracer";
 import { generateMetadataBatch } from "@/asset/jobs/generate-metadata-job";
 import {
 	jsonAnswer,
@@ -196,6 +203,20 @@ const latestJob = async (assetId: AssetId) => {
 		.map((job) => job as Job<GenerateAssetMetadataPayload>)
 		.sort((a, b) => b.data.generation - a.data.generation)[0];
 };
+
+/** A tracer that collects the SQL statements run under it. */
+const statementTracer = (statements: string[]) =>
+	Tracer.make({
+		span(options) {
+			const span = new Tracer.NativeSpan(options);
+			const attribute = span.attribute.bind(span);
+			span.attribute = (key, value) => {
+				if (key === "db.query.text") statements.push(String(value));
+				attribute(key, value);
+			};
+			return span;
+		},
+	});
 
 const runJob = (job: Job<GenerateAssetMetadataPayload>) =>
 	run(
@@ -560,6 +581,133 @@ test(
 			status: "completed",
 		});
 		expect(requests).toHaveLength(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"apply storing while its member's repository is deleted deadlocks, and the victim runs again without a second model call",
+	async () => {
+		const seeded = await seedDocument();
+		const { blockId, runId } = await run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const [block] = yield* db
+					.insert(dbSchema.block)
+					.values({
+						type: "database",
+						name: "Deleted repository",
+						config: {},
+						userId: seeded.adminId,
+					})
+					.returning({
+						id: dbSchema.block.id,
+					});
+				const [activityRun] = yield* db
+					.insert(dbSchema.activityRun)
+					.values({
+						userId: seeded.adminId,
+						kind: "upload",
+						organizationId: seeded.organizationId,
+					})
+					.returning({
+						id: dbSchema.activityRun.id,
+					});
+				if (!block || !activityRun) throw new Error("Nothing seeded");
+				yield* db.insert(dbSchema.activityMember).values({
+					runId: activityRun.id,
+					assetId: seeded.assetId,
+					blockId: block.id,
+				});
+				return {
+					blockId: block.id,
+					runId: activityRun.id,
+				};
+			}),
+		);
+		await run(
+			queueMetadataGeneration({
+				assetIds: [
+					seeded.assetId,
+				],
+				mode: "apply",
+				onlyMissing: true,
+				userId: seeded.adminId,
+				runId,
+			}),
+		);
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+
+		// Deletion holds the repository; its cascade then needs the member the store holds.
+		const locked = await run(Deferred.make<void>());
+		const go = await run(Deferred.make<void>());
+		let deletions = 0;
+		const deletion = await run(
+			Effect.forkDetach(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					yield* retryDeadlocks(
+						db.transaction(() =>
+							Effect.gen(function* () {
+								deletions += 1;
+								yield* db
+									.select({
+										id: dbSchema.block.id,
+									})
+									.from(dbSchema.block)
+									.where(eq(dbSchema.block.id, blockId))
+									.for("update");
+								yield* Deferred.succeed(locked, undefined);
+								yield* Deferred.await(go);
+								yield* db
+									.delete(dbSchema.block)
+									.where(eq(dbSchema.block.id, blockId));
+							}),
+						),
+					);
+				}),
+			),
+		);
+		await run(Deferred.await(locked));
+		const statements: string[] = [];
+		const store = await run(
+			Effect.forkDetach(
+				generateMetadataBatch([
+					job,
+				]).pipe(Effect.withTracer(statementTracer(statements))),
+			),
+		);
+		// The member's second change in the store rechecks its repository's key.
+		await run(awaitLockWaiters("%applied_fields%"));
+		await run(Deferred.succeed(go, undefined));
+		await run(Fiber.join(store));
+		await run(Fiber.join(deletion));
+
+		const stores = statements.filter((text) =>
+			text.startsWith('select "title", "file_name", "metadata" from "asset"'),
+		).length;
+		expect(stores > 1 || deletions > 1).toBe(true);
+		expect(requests).toHaveLength(1);
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			title: "Refund policy 2026",
+			status: "completed",
+		});
+		const [member] = await run(
+			Effect.gen(function* () {
+				return yield* (yield* DB)
+					.select({
+						blockId: dbSchema.activityMember.blockId,
+						metadata: dbSchema.activityMember.metadataState,
+					})
+					.from(dbSchema.activityMember)
+					.where(eq(dbSchema.activityMember.runId, runId));
+			}),
+		);
+		expect(member).toEqual({
+			blockId: null,
+			metadata: "completed",
+		});
 	},
 	TIMEOUT,
 );

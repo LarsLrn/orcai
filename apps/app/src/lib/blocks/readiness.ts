@@ -11,6 +11,7 @@ import {
 } from "@orcai/schema";
 import { and, asc, eq, getColumns, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { homeOrganization, inActivityRun } from "@/lib/activity/admission";
 import { reprocessAsset } from "@/lib/assets/processing";
 import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
@@ -284,35 +285,54 @@ const loadDocuments = (params: {
 
 type RetryDocument = Effect.Success<ReturnType<typeof loadDocuments>>[number];
 
+/** Retries the documents' stages as one retry run of the user's in the repository. */
 const runRetries = (params: {
+	userId: UserId;
 	blockId: BlockId;
 	processing: readonly RetryDocument[];
 	indexing: readonly RetryDocument[];
 }) =>
-	Effect.gen(function* () {
-		// A document another request already queued is not admitted again.
-		const admitted = yield* Effect.forEach(params.processing, reprocessAsset, {
-			concurrency: 4,
-		});
-		const indexing = yield* queueIndexing(
-			params.indexing.map((document) => ({
-				assetId: document.id,
-				blockId: params.blockId,
-				attempt: document.indexAttempt,
-			})),
-		);
-		return {
-			processing: admitted.filter(Boolean).length,
-			indexing: indexing.length,
-		};
-	});
+	inActivityRun(
+		{
+			userId: params.userId,
+			kind: "retry",
+			organizationId: homeOrganization("block", params.blockId),
+			blockId: params.blockId,
+		},
+		(runId) =>
+			Effect.gen(function* () {
+				// A document another request already queued is not admitted again.
+				const admitted = yield* Effect.forEach(params.processing, (document) =>
+					reprocessAsset(document, {
+						id: runId,
+						blockId: params.blockId,
+					}),
+				);
+				const indexing = yield* queueIndexing(
+					params.indexing.map((document) => ({
+						assetId: document.id,
+						blockId: params.blockId,
+						attempt: document.indexAttempt,
+					})),
+					runId,
+				);
+				return {
+					processing: admitted.filter(Boolean).length,
+					indexing: indexing.length,
+				};
+			}),
+	);
 
 /**
  * Runs one document's stage again: processing when the file failed,
  * otherwise indexing in this repository. A document still being prepared has
  * nothing to retry.
  */
-export const retryDocument = (params: { blockId: BlockId; assetId: AssetId }) =>
+export const retryDocument = (params: {
+	userId: UserId;
+	blockId: BlockId;
+	assetId: AssetId;
+}) =>
 	Effect.gen(function* () {
 		const [document] = yield* loadDocuments({
 			blockId: params.blockId,
@@ -342,6 +362,7 @@ export const retryDocument = (params: { blockId: BlockId; assetId: AssetId }) =>
 		}
 
 		const retried = yield* runRetries({
+			userId: params.userId,
 			blockId: params.blockId,
 			processing:
 				stage === "processing"
@@ -369,7 +390,10 @@ export const retryDocument = (params: { blockId: BlockId; assetId: AssetId }) =>
 	});
 
 /** Retries every failed document of the repository that retrying can help. */
-export const retryFailedDocuments = (params: { blockId: BlockId }) =>
+export const retryFailedDocuments = (params: {
+	userId: UserId;
+	blockId: BlockId;
+}) =>
 	Effect.gen(function* () {
 		const failed = (yield* loadDocuments(params)).flatMap((document) => {
 			const { failure } = documentState(document);
@@ -384,6 +408,7 @@ export const retryFailedDocuments = (params: { blockId: BlockId }) =>
 		});
 
 		return yield* runRetries({
+			userId: params.userId,
 			blockId: params.blockId,
 			processing: failed
 				.filter((entry) => entry.stage === "processing")

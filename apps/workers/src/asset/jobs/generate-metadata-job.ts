@@ -11,8 +11,8 @@ import {
 	utilityModel,
 } from "@orcai/ai";
 import { buckets } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
-import type { Job } from "@orcai/pg-boss";
+import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
+import { type Job, settleStage } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
@@ -24,6 +24,7 @@ import {
 	isImageFileType,
 	type MetadataSuggestion,
 } from "@orcai/schema";
+import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { summarizeErrorCause } from "@/asset/error-summary";
 import {
@@ -149,9 +150,10 @@ const imageSuggestion = (params: {
 /**
  * In `review` mode the suggestion is kept whole. In `apply` mode it fills
  * empty fields on the row as it is now, so an edit saved meanwhile wins, and
- * keeps only what it could not apply. Either way only while the job's
- * generation is the asset's and unfinished, so a duplicate delivery stores
- * nothing.
+ * keeps only what it could not apply; the run's member records the fields it
+ * filled. Either way only while the job's generation is the asset's and
+ * unfinished, so a duplicate delivery stores nothing, and a deadlocked store
+ * runs again without asking the model again.
  */
 const store = (
 	data: GenerateAssetMetadataPayload,
@@ -159,48 +161,78 @@ const store = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const { asset } = dbSchema;
+		const { activityMember, asset } = dbSchema;
 		const current = currentMetadata(data);
+		const target = {
+			stage: "metadata",
+			assetId: data.assetId,
+		} as const;
 
-		if (data.mode === "review") {
-			yield* db
-				.update(asset)
-				.set({
-					metadataSuggestion: suggestion,
-					metadataStatus: "completed",
-					metadataFailure: null,
-				})
-				.where(current);
-			return;
-		}
+		yield* retryDeadlocks(
+			db.transaction(() =>
+				Effect.gen(function* () {
+					if (data.mode === "review") {
+						const stored = yield* db
+							.update(asset)
+							.set({
+								metadataSuggestion: suggestion,
+								metadataStatus: "completed",
+								metadataFailure: null,
+							})
+							.where(current)
+							.returning({
+								id: asset.id,
+							});
+						if (stored.length > 0) {
+							yield* settleStage(data.runId, target, {
+								state: "completed",
+							});
+						}
+						return;
+					}
 
-		yield* db.transaction(() =>
-			Effect.gen(function* () {
-				const [row] = yield* db
-					.select({
-						title: asset.title,
-						fileName: asset.fileName,
-						metadata: asset.metadata,
-					})
-					.from(asset)
-					.where(current)
-					.for("update");
-				if (!row) {
-					return;
-				}
-				const applied = applyMetadataSuggestion(row, suggestion);
-				yield* db
-					.update(asset)
-					.set({
-						title: applied.title,
-						metadata: applied.metadata,
-						metadataSuggestion: applied.review,
-						metadataStatus: "completed",
-						metadataFailure: null,
-						updatedAt: new Date(),
-					})
-					.where(current);
-			}),
+					const [row] = yield* db
+						.select({
+							title: asset.title,
+							fileName: asset.fileName,
+							metadata: asset.metadata,
+						})
+						.from(asset)
+						.where(current)
+						.for("update");
+					if (!row) {
+						return;
+					}
+					const applied = applyMetadataSuggestion(row, suggestion);
+					yield* db
+						.update(asset)
+						.set({
+							title: applied.title,
+							metadata: applied.metadata,
+							metadataSuggestion: applied.review,
+							metadataStatus: "completed",
+							metadataFailure: null,
+							updatedAt: new Date(),
+						})
+						.where(current);
+					yield* settleStage(data.runId, target, {
+						state: "completed",
+					});
+					if (data.runId) {
+						yield* db
+							.update(activityMember)
+							.set({
+								appliedFields: applied.filled,
+							})
+							.where(
+								and(
+									eq(activityMember.runId, data.runId),
+									eq(activityMember.assetId, data.assetId),
+								),
+							);
+					}
+				}),
+			),
 		);
 	});
 

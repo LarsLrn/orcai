@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
-import { type AssetId, buckets } from "@orcai/core";
+import { type ActivityRunId, type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
+	admitStage,
 	PgBoss,
 	PgBossService,
 	sendJobBatchInTransaction,
@@ -17,6 +18,7 @@ import {
 	type JobQueue,
 	type PipelineStatus,
 	PROCESS_ASSET_JOB_NAME,
+	type ProcessAssetPayload,
 } from "@orcai/schema";
 import {
 	awaitLockWaiters,
@@ -31,7 +33,13 @@ import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { describedExtraction } from "@/asset/described-extraction";
-import type { IndexingAttempt } from "@/asset/pipeline-attempt";
+import {
+	AssetPipelineError,
+	claimProcessing,
+	type IndexingAttempt,
+	processingAttempt,
+	settleProcessingAttempt,
+} from "@/asset/pipeline-attempt";
 
 const TIMEOUT = 30_000;
 
@@ -151,6 +159,7 @@ const seed = (processingStatus: PipelineStatus = "completed") =>
 			const extraction = olderExtraction(asset.prefix, asset.id);
 			yield* storeExtraction(asset.id, extraction);
 			return {
+				userId: user.id,
 				asset: {
 					id: asset.id,
 					bucket: asset.bucket,
@@ -397,6 +406,96 @@ test(
 
 		expect(await queuedWith(committed)).toBe(1);
 		expect(await queuedWith(rolledBack)).toBe(0);
+	},
+	TIMEOUT,
+);
+
+/** The run's member of the asset, as its processing and indexing stages stand. */
+const memberStages = (runId: ActivityRunId) =>
+	run(
+		Effect.gen(function* () {
+			const [member] = yield* (yield* DB)
+				.select({
+					processing: dbSchema.activityMember.processingState,
+					indexing: dbSchema.activityMember.indexingState,
+				})
+				.from(dbSchema.activityMember)
+				.where(eq(dbSchema.activityMember.runId, runId));
+			return member;
+		}),
+	);
+
+test(
+	"a run's indexing that goes back to processing is replaced, so a failed processing finishes the run",
+	async () => {
+		const { userId, asset, attempts } = await seed();
+		const [attempt] = attempts;
+		const runId = await run(
+			Effect.gen(function* () {
+				const [created] = yield* (yield* DB)
+					.insert(dbSchema.activityRun)
+					.values({
+						userId,
+						kind: "retry",
+					})
+					.returning({
+						id: dbSchema.activityRun.id,
+					});
+				yield* admitStage(created.id, [
+					{
+						stage: "indexing",
+						assetId: attempt.assetId,
+						blockId: attempt.blockId,
+					},
+				]);
+				return created.id;
+			}),
+		);
+
+		await run(
+			describedExtraction({
+				jobId: crypto.randomUUID(),
+				asset,
+				attempt: {
+					...attempt,
+					runId,
+				},
+			}),
+		);
+		expect(await memberStages(runId)).toEqual({
+			processing: "pending",
+			indexing: "replaced",
+		});
+
+		const [job] = await boss.findJobs<ProcessAssetPayload>(
+			PROCESS_ASSET_JOB_NAME,
+			{
+				data: {
+					assetRef: {
+						id: asset.id,
+					},
+				},
+			},
+		);
+		const processing = processingAttempt(job.data);
+		expect(processing.runId).toBe(runId);
+		expect(await run(claimProcessing(processing))).toBe(true);
+		await run(
+			settleProcessingAttempt(
+				processing,
+				Effect.fail(
+					new AssetPipelineError({
+						failure: "unsupported",
+						cause: "no text",
+					}),
+				),
+			),
+		);
+
+		expect(await memberStages(runId)).toEqual({
+			processing: "failed",
+			indexing: "replaced",
+		});
 	},
 	TIMEOUT,
 );

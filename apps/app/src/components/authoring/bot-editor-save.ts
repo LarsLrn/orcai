@@ -36,6 +36,7 @@ export const toDatabaseBlockInput = (block: DatabaseBlockValues) => ({
 	status: block.status,
 	config: block.config,
 	assets: block.assetIds ?? [],
+	uploadRunIds: block.uploadRunIds,
 });
 
 const toBlockInput = (block: TemplateBlockValues | DatabaseBlockValues) =>

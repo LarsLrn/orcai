@@ -1,6 +1,6 @@
 import type { AssetId } from "@orcai/core";
 import { buckets } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import { queueProcessing } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
@@ -55,64 +55,80 @@ export const describedExtraction = (params: {
 		}
 
 		const db = yield* DB;
-		const { asset, blockAsset } = dbSchema;
+		const { asset, block, blockAsset } = dbSchema;
 
-		return yield* db.transaction(() =>
-			Effect.gen(function* () {
-				const [completed] = yield* db
-					.select({
-						processingGeneration: asset.processingGeneration,
-					})
-					.from(asset)
-					.where(
-						and(
-							eq(asset.id, params.asset.id),
-							eq(asset.processingStatus, "completed"),
-						),
-					)
-					.for("update");
-				if (!completed) {
-					yield* db
-						.update(blockAsset)
-						.set({
-							indexStatus: "pending",
-							indexFailure: null,
+		return yield* retryDeadlocks(
+			db.transaction(() =>
+				Effect.gen(function* () {
+					const [completed] = yield* db
+						.select({
+							processingGeneration: asset.processingGeneration,
 						})
-						.where(currentIndexing(params.attempt));
+						.from(asset)
+						.where(
+							and(
+								eq(asset.id, params.asset.id),
+								eq(asset.processingStatus, "completed"),
+							),
+						)
+						.for("update");
+					if (!completed) {
+						yield* db
+							.update(blockAsset)
+							.set({
+								indexStatus: "pending",
+								indexFailure: null,
+							})
+							.where(currentIndexing(params.attempt));
+						return undefined;
+					}
+
+					const current = yield* readExtraction(params.asset.id);
+					if (isDescribed(current)) {
+						return current;
+					}
+
+					// Repository before link before member, as repository deletion locks them.
+					yield* db
+						.select({
+							id: block.id,
+						})
+						.from(block)
+						.where(eq(block.id, params.attempt.blockId))
+						.for("key share");
+					const [link] = yield* db
+						.select({
+							assetId: blockAsset.assetId,
+						})
+						.from(blockAsset)
+						.where(currentIndexing(params.attempt))
+						.for("update");
+					if (!link) return undefined;
+
+					yield* queueProcessing(
+						{
+							...params.asset,
+							processingGeneration: completed.processingGeneration,
+						},
+						[
+							"completed",
+						],
+						params.attempt.runId
+							? {
+									id: params.attempt.runId,
+									blockId: params.attempt.blockId,
+								}
+							: undefined,
+					);
+					yield* Effect.logInfo(
+						{
+							jobId: params.jobId,
+							assetId: params.asset.id,
+						},
+						"Processing again to describe the images of an older extraction",
+					);
 					return undefined;
-				}
-
-				const current = yield* readExtraction(params.asset.id);
-				if (isDescribed(current)) {
-					return current;
-				}
-
-				const [link] = yield* db
-					.select({
-						assetId: blockAsset.assetId,
-					})
-					.from(blockAsset)
-					.where(currentIndexing(params.attempt))
-					.for("update");
-				if (!link) return undefined;
-
-				yield* queueProcessing(
-					{
-						...params.asset,
-						processingGeneration: completed.processingGeneration,
-					},
-					[
-						"completed",
-					],
-				);
-				yield* Effect.logInfo(
-					{
-						jobId: params.jobId,
-						assetId: params.asset.id,
-					},
-					"Processing again to describe the images of an older extraction",
-				);
-				return undefined;
-			}),
+				}),
+			),
 		);
 	});

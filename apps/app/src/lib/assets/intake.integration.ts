@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { PgClient } from "@effect/sql-pg";
+import type { ActivityRunId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
 import { UPLOAD_STAGING_PREFIX } from "@orcai/s3";
@@ -11,6 +13,8 @@ import {
 } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
+import { createAssetsFromUploads } from "@/lib/assets/intake";
 import {
 	type Actor,
 	authzIntegration,
@@ -257,6 +261,176 @@ describe("createAssetsFromUploads", () => {
 				}),
 			).toContain(`owner@user:${owner.actor.user.id}`);
 			expect(await processJobsFor(asset.id)).toHaveLength(1);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a library upload is one activity run that a repeat with its key joins; a chat upload is none",
+		async () => {
+			const [owner] = await members(1);
+			const procedures = await run(Procedures);
+			const options = await procedureOptions(owner.actor, owner.zedToken);
+			const uploadKey = crypto.randomUUID();
+			const first = await upload(owner, "first.txt");
+			const second = await upload(owner, "second.txt");
+			const call = (files: UploadFileObject[]) =>
+				run(
+					procedures.asset.createFromUploads(
+						{
+							route: "asset",
+							files,
+							uploadKey,
+						},
+						options,
+					),
+				);
+
+			const opened = await call([
+				first,
+			]);
+			const joined = await call([
+				first,
+				second,
+			]);
+			expect(opened.runId).not.toBeNull();
+			expect(joined.runId).toBe(opened.runId);
+			const [asset] = joined.data.map(created);
+			expect((await processJobsFor(asset.id)).map((job) => job.data)).toEqual([
+				expect.objectContaining({
+					runId: opened.runId,
+				}),
+			]);
+			const listed = await run(
+				procedures.asset.list(
+					{
+						pageIndex: 0,
+						pageSize: 10,
+						filters: {
+							runId: opened.runId ?? undefined,
+						},
+					},
+					await procedureOptions(owner.actor, joined.meta?.zedToken),
+				),
+			);
+			expect(listed.rowCount).toBe(2);
+
+			const chat = await run(
+				procedures.asset.createFromUploads(
+					{
+						route: "chatAttachment",
+						files: [
+							await upload(owner, "chat.txt", "chatAttachment"),
+						],
+					},
+					options,
+				),
+			);
+			expect(chat.runId).toBeNull();
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a call stopped once its asset commits leaves the processing queued, so a retry needs nothing more",
+		async () => {
+			const [owner] = await members(1);
+			const procedures = await run(Procedures);
+			const options = await procedureOptions(owner.actor, owner.zedToken);
+			const file = await upload(owner, "stopped.txt");
+			const call = procedures.asset.createFromUploads(
+				{
+					route: "asset",
+					files: [
+						file,
+					],
+					uploadKey: crypto.randomUUID(),
+				},
+				options,
+			);
+
+			// One statement, one snapshot: the asset and its job as committed together.
+			const committed = () =>
+				run(
+					Effect.gen(function* () {
+						const sql = yield* PgClient.PgClient;
+						const [row] = yield* sql<{
+							asset: boolean;
+							job: boolean;
+						}>`SELECT
+						exists (SELECT 1 FROM asset WHERE id = ${file.objectKey}) AS asset,
+						exists (SELECT 1 FROM pgboss.job WHERE name = ${PROCESS_ASSET_JOB_NAME}
+							AND data -> 'assetRef' ->> 'id' = ${file.objectKey}) AS job`;
+						return row;
+					}),
+				);
+			const fiber = await run(Effect.forkDetach(call));
+			let seen = await committed();
+			while (!seen?.asset) seen = await committed();
+			await run(Fiber.interrupt(fiber));
+
+			expect(seen).toEqual({
+				asset: true,
+				job: true,
+			});
+			const asset = created(
+				(
+					await createFromUploads(owner, [
+						file,
+					])
+				)[0],
+			);
+			expect(asset.processingStatus).toBe("pending");
+			expect(await processJobsFor(asset.id)).toHaveLength(1);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a queue that refuses the job leaves the upload failed, for Retry",
+		async () => {
+			const [owner] = await members(1);
+			const file = await upload(owner, "refused.txt");
+			const refusing = {
+				insert: () => Promise.reject(new Error("Queue does not exist")),
+			};
+
+			const { results, runId } = await run(
+				createAssetsFromUploads({
+					route: "asset",
+					userId: owner.actor.user.id,
+					organizationId: owner.actor.session
+						.activeOrganizationId as OrganizationId,
+					files: [
+						file,
+					],
+					uploadKey: crypto.randomUUID(),
+				}).pipe(
+					Effect.provideService(PgBossService, {
+						boss: refusing as never,
+					}),
+				),
+			);
+
+			const asset = created(results[0]);
+			expect(asset.processingStatus).toBe("failed");
+			const [row] = await assetRows(asset.id);
+			expect(row?.processingFailureId).toEqual(expect.any(String));
+			const [member] = await run(
+				Effect.gen(function* () {
+					return yield* (yield* DB)
+						.select({
+							state: dbSchema.activityMember.processingState,
+							failureId: dbSchema.activityMember.processingFailureId,
+						})
+						.from(dbSchema.activityMember)
+						.where(eq(dbSchema.activityMember.runId, runId as ActivityRunId));
+				}),
+			);
+			expect(member).toEqual({
+				state: "failed",
+				failureId: row?.processingFailureId,
+			});
 		},
 		TIMEOUT,
 	);

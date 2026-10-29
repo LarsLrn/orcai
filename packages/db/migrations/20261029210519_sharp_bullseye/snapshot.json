@@ -1,0 +1,1965 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "150bcc14-ebd5-4c38-ab19-83062aacf6f4",
+  "prevIds": [
+    "03bb4b8c-53b9-4fc6-8c10-e1f59863bae8"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "activity_run_kind"
+      ],
+      "writes": [
+        "s|enum|public.activity_run_kind",
+        "n|enum|public.activity_run_kind",
+        "e|enum|public.activity_run_kind",
+        "n|type|public.activity_run_kind"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "activity_stage_state"
+      ],
+      "writes": [
+        "s|enum|public.activity_stage_state",
+        "n|enum|public.activity_stage_state",
+        "e|enum|public.activity_stage_state",
+        "n|type|public.activity_stage_state"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_admission"
+      ],
+      "writes": [
+        "s|tbl|public.activity_admission",
+        "n|tbl|public.activity_admission",
+        "e|tbl|public.activity_admission",
+        "n|rel|public.activity_admission",
+        "n|type|public.activity_admission",
+        "n|rel|public.activity_admission_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_dismissal"
+      ],
+      "writes": [
+        "s|tbl|public.activity_dismissal",
+        "n|tbl|public.activity_dismissal",
+        "e|tbl|public.activity_dismissal",
+        "n|rel|public.activity_dismissal",
+        "n|type|public.activity_dismissal",
+        "n|rel|public.activity_dismissal_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_member"
+      ],
+      "writes": [
+        "s|tbl|public.activity_member",
+        "n|tbl|public.activity_member",
+        "e|tbl|public.activity_member",
+        "n|rel|public.activity_member",
+        "n|type|public.activity_member",
+        "n|rel|public.activity_member_pkey"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.activity_stage_state",
+        "n|enum|public.activity_stage_state",
+        "n|enum|public.activity_stage_state"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_run"
+      ],
+      "writes": [
+        "s|tbl|public.activity_run",
+        "n|tbl|public.activity_run",
+        "e|tbl|public.activity_run",
+        "n|rel|public.activity_run",
+        "n|type|public.activity_run",
+        "n|rel|public.activity_run_pkey",
+        "n|rel|public.activity_run_client_key_unique"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.activity_run_kind"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "processing_failure_id"
+      ],
+      "writes": [
+        "s|col|public.asset.processing_failure_id",
+        "n|col|public.asset.processing_failure_id",
+        "e|col|public.asset.processing_failure_id"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "processing_actor_id"
+      ],
+      "writes": [
+        "s|col|public.asset.processing_actor_id",
+        "n|col|public.asset.processing_actor_id",
+        "e|col|public.asset.processing_actor_id"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "metadata_failure_id"
+      ],
+      "writes": [
+        "s|col|public.asset.metadata_failure_id",
+        "n|col|public.asset.metadata_failure_id",
+        "e|col|public.asset.metadata_failure_id"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "metadata_actor_id"
+      ],
+      "writes": [
+        "s|col|public.asset.metadata_actor_id",
+        "n|col|public.asset.metadata_actor_id",
+        "e|col|public.asset.metadata_actor_id"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "block_asset",
+        "index_failure_id"
+      ],
+      "writes": [
+        "s|col|public.block_asset.index_failure_id",
+        "n|col|public.block_asset.index_failure_id",
+        "e|col|public.block_asset.index_failure_id"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "block_asset",
+        "index_actor_id"
+      ],
+      "writes": [
+        "s|col|public.block_asset.index_actor_id",
+        "n|col|public.block_asset.index_actor_id",
+        "e|col|public.block_asset.index_actor_id"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activity_admission",
+        "activity_admission_run_idx"
+      ],
+      "writes": [
+        "s|idx|public.activity_admission_run_idx",
+        "n|idx|public.activity_admission_run_idx",
+        "e|idx|public.activity_admission_run_idx",
+        "n|rel|public.activity_admission_run_idx"
+      ],
+      "reads": [
+        "n|tbl|public.activity_admission",
+        "n|sch|public",
+        "n|col|public.activity_admission.run_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activity_member",
+        "activity_member_asset_unique"
+      ],
+      "writes": [
+        "s|idx|public.activity_member_asset_unique",
+        "n|idx|public.activity_member_asset_unique",
+        "e|idx|public.activity_member_asset_unique",
+        "n|rel|public.activity_member_asset_unique"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|col|public.activity_member.run_id",
+        "n|col|public.activity_member.asset_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activity_member",
+        "activity_member_export_unique"
+      ],
+      "writes": [
+        "s|idx|public.activity_member_export_unique",
+        "n|idx|public.activity_member_export_unique",
+        "e|idx|public.activity_member_export_unique",
+        "n|rel|public.activity_member_export_unique"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|col|public.activity_member.data_export_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activity_member",
+        "activity_member_pending_idx"
+      ],
+      "writes": [
+        "s|idx|public.activity_member_pending_idx",
+        "n|idx|public.activity_member_pending_idx",
+        "e|idx|public.activity_member_pending_idx",
+        "n|rel|public.activity_member_pending_idx"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|col|public.activity_member.run_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activity_member",
+        "activity_member_asset_idx"
+      ],
+      "writes": [
+        "s|idx|public.activity_member_asset_idx",
+        "n|idx|public.activity_member_asset_idx",
+        "e|idx|public.activity_member_asset_idx",
+        "n|rel|public.activity_member_asset_idx"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|col|public.activity_member.asset_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activity_run",
+        "activity_run_user_created_idx"
+      ],
+      "writes": [
+        "s|idx|public.activity_run_user_created_idx",
+        "n|idx|public.activity_run_user_created_idx",
+        "e|idx|public.activity_run_user_created_idx",
+        "n|rel|public.activity_run_user_created_idx"
+      ],
+      "reads": [
+        "n|tbl|public.activity_run",
+        "n|sch|public",
+        "n|col|public.activity_run.user_id",
+        "n|col|public.activity_run.created_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_processing_failed_owner_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_processing_failed_owner_idx",
+        "n|idx|public.asset_processing_failed_owner_idx",
+        "e|idx|public.asset_processing_failed_owner_idx",
+        "n|rel|public.asset_processing_failed_owner_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_processing_failure_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_processing_failure_idx",
+        "n|idx|public.asset_processing_failure_idx",
+        "e|idx|public.asset_processing_failure_idx",
+        "n|rel|public.asset_processing_failure_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.asset.processing_failure_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_metadata_failure_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_metadata_failure_idx",
+        "n|idx|public.asset_metadata_failure_idx",
+        "e|idx|public.asset_metadata_failure_idx",
+        "n|rel|public.asset_metadata_failure_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.asset.metadata_failure_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_metadata_attention_owner_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_metadata_attention_owner_idx",
+        "n|idx|public.asset_metadata_attention_owner_idx",
+        "e|idx|public.asset_metadata_attention_owner_idx",
+        "n|rel|public.asset_metadata_attention_owner_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "block_asset",
+        "block_asset_index_failure_idx"
+      ],
+      "writes": [
+        "s|idx|public.block_asset_index_failure_idx",
+        "n|idx|public.block_asset_index_failure_idx",
+        "e|idx|public.block_asset_index_failure_idx",
+        "n|rel|public.block_asset_index_failure_idx"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public",
+        "n|col|public.block_asset.index_failure_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "block_asset",
+        "block_asset_index_failed_actor_idx"
+      ],
+      "writes": [
+        "s|idx|public.block_asset_index_failed_actor_idx",
+        "n|idx|public.block_asset_index_failed_actor_idx",
+        "e|idx|public.block_asset_index_failed_actor_idx",
+        "n|rel|public.block_asset_index_failed_actor_idx"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public",
+        "n|col|public.block_asset.index_actor_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_admission"
+      ],
+      "writes": [
+        "s|fk|public.activity_admission.activity_admission_run_id_activity_run_id_fkey",
+        "n|fk|public.activity_admission.activity_admission_run_id_activity_run_id_fkey",
+        "e|fk|public.activity_admission.activity_admission_run_id_activity_run_id_fkey",
+        "n|con|public.activity_admission.activity_admission_run_id_activity_run_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_admission",
+        "n|sch|public",
+        "n|tbl|public.activity_run",
+        "n|sch|public",
+        "n|col|public.activity_admission.run_id",
+        "n|col|public.activity_run.id",
+        "e|uniqueness|public.activity_run.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_dismissal"
+      ],
+      "writes": [
+        "s|fk|public.activity_dismissal.activity_dismissal_user_id_user_id_fkey",
+        "n|fk|public.activity_dismissal.activity_dismissal_user_id_user_id_fkey",
+        "e|fk|public.activity_dismissal.activity_dismissal_user_id_user_id_fkey",
+        "n|con|public.activity_dismissal.activity_dismissal_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_dismissal",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.activity_dismissal.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_member"
+      ],
+      "writes": [
+        "s|fk|public.activity_member.activity_member_run_id_activity_run_id_fkey",
+        "n|fk|public.activity_member.activity_member_run_id_activity_run_id_fkey",
+        "e|fk|public.activity_member.activity_member_run_id_activity_run_id_fkey",
+        "n|con|public.activity_member.activity_member_run_id_activity_run_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|tbl|public.activity_run",
+        "n|sch|public",
+        "n|col|public.activity_member.run_id",
+        "n|col|public.activity_run.id",
+        "e|uniqueness|public.activity_run.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_member"
+      ],
+      "writes": [
+        "s|fk|public.activity_member.activity_member_asset_id_asset_id_fkey",
+        "n|fk|public.activity_member.activity_member_asset_id_asset_id_fkey",
+        "e|fk|public.activity_member.activity_member_asset_id_asset_id_fkey",
+        "n|con|public.activity_member.activity_member_asset_id_asset_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.activity_member.asset_id",
+        "n|col|public.asset.id",
+        "e|uniqueness|public.asset.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_member"
+      ],
+      "writes": [
+        "s|fk|public.activity_member.activity_member_block_id_block_id_fkey",
+        "n|fk|public.activity_member.activity_member_block_id_block_id_fkey",
+        "e|fk|public.activity_member.activity_member_block_id_block_id_fkey",
+        "n|con|public.activity_member.activity_member_block_id_block_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|col|public.activity_member.block_id",
+        "n|col|public.block.id",
+        "e|uniqueness|public.block.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_member"
+      ],
+      "writes": [
+        "s|fk|public.activity_member.activity_member_data_export_id_data_export_id_fkey",
+        "n|fk|public.activity_member.activity_member_data_export_id_data_export_id_fkey",
+        "e|fk|public.activity_member.activity_member_data_export_id_data_export_id_fkey",
+        "n|con|public.activity_member.activity_member_data_export_id_data_export_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_member",
+        "n|sch|public",
+        "n|tbl|public.data_export",
+        "n|sch|public",
+        "n|col|public.activity_member.data_export_id",
+        "n|col|public.data_export.id",
+        "e|uniqueness|public.data_export.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_run"
+      ],
+      "writes": [
+        "s|fk|public.activity_run.activity_run_user_id_user_id_fkey",
+        "n|fk|public.activity_run.activity_run_user_id_user_id_fkey",
+        "e|fk|public.activity_run.activity_run_user_id_user_id_fkey",
+        "n|con|public.activity_run.activity_run_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_run",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.activity_run.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_run"
+      ],
+      "writes": [
+        "s|fk|public.activity_run.activity_run_organization_id_organization_id_fkey",
+        "n|fk|public.activity_run.activity_run_organization_id_organization_id_fkey",
+        "e|fk|public.activity_run.activity_run_organization_id_organization_id_fkey",
+        "n|con|public.activity_run.activity_run_organization_id_organization_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_run",
+        "n|sch|public",
+        "n|tbl|public.organization",
+        "n|sch|public",
+        "n|col|public.activity_run.organization_id",
+        "n|col|public.organization.id",
+        "e|uniqueness|public.organization.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activity_run"
+      ],
+      "writes": [
+        "s|fk|public.activity_run.activity_run_block_id_block_id_fkey",
+        "n|fk|public.activity_run.activity_run_block_id_block_id_fkey",
+        "e|fk|public.activity_run.activity_run_block_id_block_id_fkey",
+        "n|con|public.activity_run.activity_run_block_id_block_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activity_run",
+        "n|sch|public",
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|col|public.activity_run.block_id",
+        "n|col|public.block.id",
+        "e|uniqueness|public.block.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "asset"
+      ],
+      "writes": [
+        "s|fk|public.asset.asset_processing_actor_id_user_id_fkey",
+        "n|fk|public.asset.asset_processing_actor_id_user_id_fkey",
+        "e|fk|public.asset.asset_processing_actor_id_user_id_fkey",
+        "n|con|public.asset.asset_processing_actor_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.asset.processing_actor_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "asset"
+      ],
+      "writes": [
+        "s|fk|public.asset.asset_metadata_actor_id_user_id_fkey",
+        "n|fk|public.asset.asset_metadata_actor_id_user_id_fkey",
+        "e|fk|public.asset.asset_metadata_actor_id_user_id_fkey",
+        "n|con|public.asset.asset_metadata_actor_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.asset.metadata_actor_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "block_asset"
+      ],
+      "writes": [
+        "s|fk|public.block_asset.block_asset_index_actor_id_user_id_fkey",
+        "n|fk|public.block_asset.block_asset_index_actor_id_user_id_fkey",
+        "e|fk|public.block_asset.block_asset_index_actor_id_user_id_fkey",
+        "n|con|public.block_asset.block_asset_index_actor_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.block_asset.index_actor_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "activity_admission",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "activity_dismissal",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "activity_member",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "activity_run",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "activity_run_kind",
+        "values": [
+          "upload",
+          "fill_metadata",
+          "suggest_metadata",
+          "retry",
+          "export"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "activity_stage_state",
+        "values": [
+          "pending",
+          "completed",
+          "failed",
+          "replaced"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_admission",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_admission",
+        "name": "run_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_admission",
+        "name": "lease_until",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_dismissal",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_dismissal",
+        "name": "occurrence_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_dismissal",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "run_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "asset_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "block_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "data_export_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "processing_state",
+        "type": "activity_stage_state",
+        "typeSchema": "public",
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "processing_failure_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "metadata_state",
+        "type": "activity_stage_state",
+        "typeSchema": "public",
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "metadata_failure_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "indexing_state",
+        "type": "activity_stage_state",
+        "typeSchema": "public",
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "indexing_failure_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "applied_fields",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 1,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "kind",
+        "type": "activity_run_kind",
+        "typeSchema": "public",
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "organization_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "block_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "client_key",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "finished_seen_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "dismissed_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "processing_failure_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "processing_actor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "metadata_failure_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "metadata_actor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "index_failure_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "index_actor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_admission",
+        "name": "activity_admission_run_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "run_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_asset_unique",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "run_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "asset_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"asset_id\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_export_unique",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "data_export_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"data_export_id\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_pending_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "run_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "'pending' in (\"processing_state\", \"metadata_state\", \"indexing_state\")",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_asset_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "asset_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "activity_run_user_created_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "created_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_processing_failed_owner_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "coalesce(\"processing_actor_id\", \"user_id\")",
+            "isExpression": true,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"processing_status\" = 'failed'",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_processing_failure_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "processing_failure_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"processing_failure_id\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_metadata_failure_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "metadata_failure_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"metadata_failure_id\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_metadata_attention_owner_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "coalesce(\"metadata_actor_id\", \"user_id\")",
+            "isExpression": true,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"metadata_status\" = 'failed' or \"metadata_suggestion\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_asset_index_failure_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "index_failure_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"index_failure_id\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_asset_index_failed_actor_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "index_actor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"index_status\" = 'failed'",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_admission",
+        "name": "activity_admission_run_id_activity_run_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "run_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "activity_run",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_dismissal",
+        "name": "activity_dismissal_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_run_id_activity_run_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "run_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "activity_run",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_asset_id_asset_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "asset_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "asset",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_block_id_block_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "block_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "block",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_data_export_id_data_export_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "data_export_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "data_export",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "activity_run_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "activity_run_organization_id_organization_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "organization_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "organization",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "activity_run_block_id_block_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "block_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "block",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_processing_actor_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "processing_actor_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_metadata_actor_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "metadata_actor_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_asset_index_actor_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "index_actor_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_dismissal",
+        "name": "activity_dismissal_pkey",
+        "columns": [
+          "user_id",
+          "occurrence_id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_admission",
+        "name": "activity_admission_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "activity_run_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_run",
+        "name": "activity_run_client_key_unique",
+        "nameExplicit": true,
+        "columns": [
+          "user_id",
+          "client_key"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "activity_member",
+        "name": "activity_member_target_check",
+        "value": "(\"asset_id\" is null) <> (\"data_export_id\" is null) and (\"block_id\" is null or \"asset_id\" is not null)",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

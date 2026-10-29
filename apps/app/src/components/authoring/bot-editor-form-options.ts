@@ -1,4 +1,4 @@
-import type { BlockId, BotId } from "@orcai/core";
+import type { ActivityRunId, BlockId, BotId } from "@orcai/core";
 import {
 	type AssetWithCapabilities,
 	type BotEditor,
@@ -38,6 +38,8 @@ type BotEditorDatabaseBlock = {
 	config: DatabaseBlock["config"];
 	assetIds: string[];
 	assets: AssetWithCapabilities[];
+	/** Uploads in this editor whose assets the save indexes as part of their run. */
+	uploadRunIds: ActivityRunId[];
 };
 
 // zod infers `Record<string, never>` for empty settings, which TanStack Form's
@@ -91,6 +93,7 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 			contentJson: databaseBlock.contentJson ?? null,
 			contentHtml: databaseBlock.contentHtml ?? "",
 			assetIds: databaseBlock.assetIds ?? [],
+			uploadRunIds: [],
 		})) ?? [],
 	features: editor ? editor.features : DEFAULT_FEATURES,
 });
@@ -108,6 +111,7 @@ export const createDefaultBuilderDatabaseBlock = (params?: {
 		contentJson: block.contentJson ?? null,
 		contentHtml: block.contentHtml ?? "",
 		assetIds: block.assetIds ?? [],
+		uploadRunIds: [],
 		capabilities: {
 			...emptyCapabilities("block"),
 			edit: true,

@@ -1,4 +1,4 @@
-import type { BlockId } from "@orcai/core";
+import type { ActivityRunId, BlockId } from "@orcai/core";
 import {
 	type Asset,
 	type AssetWithCapabilities,
@@ -90,6 +90,7 @@ const DatabaseBlockEditor = ({
 	onAssetIdsChange,
 	assets,
 	onAssetsChange,
+	onUploadRun,
 	onRemove,
 	blockId,
 }: {
@@ -107,6 +108,8 @@ const DatabaseBlockEditor = ({
 	onAssetIdsChange: (ids: string[]) => void;
 	assets: AssetWithCapabilities[];
 	onAssetsChange: (assets: AssetWithCapabilities[]) => void;
+	/** An upload added assets; saving indexes them as part of its run. */
+	onUploadRun: (runId: ActivityRunId) => void;
 	onRemove?: () => void;
 	blockId?: BlockId;
 }) => {
@@ -254,7 +257,8 @@ const DatabaseBlockEditor = ({
 							</DialogHeader>
 							<AssetIntakeFlow
 								onPendingChange={setHasPendingUploads}
-								onAssetsCreated={(createdAssets) => {
+								onAssetsCreated={(createdAssets, _zedToken, runId) => {
+									if (runId) onUploadRun(runId);
 									const nextAssets = mergeAssets(
 										assets,
 										createdAssets.map((asset) => ({

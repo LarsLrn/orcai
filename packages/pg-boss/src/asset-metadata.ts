@@ -1,4 +1,4 @@
-import type { AssetId, UserId } from "@orcai/core";
+import type { ActivityRunId, AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
@@ -17,6 +17,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { admitStage, runActor } from "./activity";
 import { sendJobBatchInTransaction } from "./helpers";
 
 /**
@@ -27,13 +28,15 @@ import { sendJobBatchInTransaction } from "./helpers";
  * earlier one changes nothing. A `review` supersedes a generation in flight;
  * an `apply` skips such an asset, and with `onlyMissing` any asset that has
  * metadata generated already. Calls are metered against `userId`, else the
- * uploader. Returns the assets admitted.
+ * uploader. The generations are `runId`'s work, or automatic without it.
+ * Returns the assets admitted.
  */
 export const queueMetadataGeneration = (params: {
 	assetIds: readonly AssetId[];
 	mode: MetadataGenerationMode;
 	userId?: UserId;
 	onlyMissing?: boolean;
+	runId?: ActivityRunId;
 }) =>
 	Effect.gen(function* () {
 		if (params.assetIds.length === 0) {
@@ -49,6 +52,8 @@ export const queueMetadataGeneration = (params: {
 					.set({
 						metadataStatus: "pending",
 						metadataFailure: null,
+						metadataFailureId: null,
+						metadataActorId: runActor(params.runId),
 						metadataSuggestion: null,
 						metadataGeneration: sql`${asset.metadataGeneration} + 1`,
 					})
@@ -98,6 +103,13 @@ export const queueMetadataGeneration = (params: {
 						generation: asset.metadataGeneration,
 					});
 				if (admitted.length > 0) {
+					yield* admitStage(
+						params.runId,
+						admitted.map((row) => ({
+							stage: "metadata",
+							assetId: row.assetId,
+						})),
+					);
 					yield* sendJobBatchInTransaction<GenerateAssetMetadataPayload>({
 						jobName: GENERATE_ASSET_METADATA_JOB_NAME,
 						jobs: admitted.map((row) => ({
@@ -106,6 +118,7 @@ export const queueMetadataGeneration = (params: {
 								userId: params.userId ?? row.uploaderId,
 								generation: row.generation,
 								mode: params.mode,
+								runId: params.runId,
 							},
 						})),
 					});

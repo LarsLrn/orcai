@@ -1,3 +1,4 @@
+import { activityRouter } from "./activity";
 import { aiRouter } from "./ai";
 import { analyticsRouter } from "./analytics";
 import { assetRouter } from "./asset";
@@ -29,6 +30,7 @@ import { storageRouter } from "./storage";
 import { userRouter } from "./user";
 
 export const router = {
+	activity: activityRouter,
 	bootstrap: bootstrapRouter,
 	organization: organizationRouter,
 	organizationMember: organizationMemberRouter,

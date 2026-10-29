@@ -1,5 +1,6 @@
 export { advisoryXactLock } from "./advisory-lock";
 export { DbConfigLive, DbConfigService, loadDbConfigSync } from "./config";
+export { retryDeadlocks } from "./deadlock-retry";
 export { makePgConnectionString } from "./pg-connection-string";
 export { findLatestMigration, probeDatabase } from "./probe";
 export { dbSchema, enumSchema } from "./schema";

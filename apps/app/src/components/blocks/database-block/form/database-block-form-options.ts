@@ -38,6 +38,7 @@ const defaultValues = (
 		maxPerAsset: block?.config.maxPerAsset ?? 6,
 	},
 	assets: assetIds || [],
+	uploadRunIds: [],
 });
 
 export const databaseBlockFormOptions = (

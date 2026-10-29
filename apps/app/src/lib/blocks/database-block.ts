@@ -1,13 +1,21 @@
-import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import type {
+	ActivityRunId,
+	AssetId,
+	BlockId,
+	OrganizationId,
+	UserId,
+} from "@orcai/core";
+import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import {
 	type ObservedLink,
 	queueIndexing,
 	reconcileLinkPoints,
+	replaceIndexing,
 } from "@orcai/pg-boss";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
+import { bindUploadRuns } from "@/lib/activity/admission";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
@@ -78,12 +86,15 @@ export const requireReadableAssets = (params: {
 
 /**
  * Replaces a database block's asset links and records the change. Kept links
- * keep their index state; new ones start pending. Call it in
+ * keep their index state; new ones start pending, and those from the user's
+ * `uploadRunIds` are indexed as part of their upload. Call it in
  * `writeRelationships`, then pass the result to {@link reindexBlockAssets}.
  */
 export const replaceBlockAssets = (params: {
 	blockId: BlockId;
 	assetIds: readonly AssetId[];
+	userId: UserId;
+	uploadRunIds: readonly ActivityRunId[];
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -117,6 +128,12 @@ export const replaceBlockAssets = (params: {
 						)
 						.returning(link)
 				: [];
+		yield* replaceIndexing(
+			[
+				params.blockId,
+			],
+			removed.map((link) => link.assetId),
+		);
 		const added =
 			addedIds.length > 0
 				? yield* db
@@ -142,17 +159,25 @@ export const replaceBlockAssets = (params: {
 		return {
 			added,
 			removed,
+			runs: yield* bindUploadRuns({
+				userId: params.userId,
+				runIds: params.uploadRunIds,
+				blockId: params.blockId,
+				assetIds: added.map((link) => link.assetId),
+			}),
 		};
 	});
 
 /**
  * Reconciles the vectors of unlinked assets, so they go unless a relink owns
- * them, and indexes the newly linked, processed ones. The rest are indexed
- * once their processing completes.
+ * them, and indexes the newly linked, processed ones, as part of the upload
+ * run each was bound to. The rest are indexed once their processing
+ * completes.
  */
 export const reindexBlockAssets = (params: {
 	added: readonly ObservedLink[];
 	removed: readonly ObservedLink[];
+	runs?: ReadonlyMap<AssetId, ActivityRunId>;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -165,28 +190,42 @@ export const reindexBlockAssets = (params: {
 		if (params.added.length === 0) return;
 
 		// Locks the rows without a status filter, so processing completing an asset is waited for; a link both queue is admitted once.
-		yield* db.transaction(() =>
-			Effect.gen(function* () {
-				const completed = new Set(
-					(yield* db
-						.select({
-							id: dbSchema.asset.id,
-							processingStatus: dbSchema.asset.processingStatus,
-						})
-						.from(dbSchema.asset)
-						.where(
-							inArray(
-								dbSchema.asset.id,
-								params.added.map((link) => link.assetId),
+		yield* retryDeadlocks(
+			db.transaction(() =>
+				Effect.gen(function* () {
+					const completed = new Set(
+						(yield* db
+							.select({
+								id: dbSchema.asset.id,
+								processingStatus: dbSchema.asset.processingStatus,
+							})
+							.from(dbSchema.asset)
+							.where(
+								inArray(
+									dbSchema.asset.id,
+									params.added.map((link) => link.assetId),
+								),
+							)
+							.for("share"))
+							.filter((asset) => asset.processingStatus === "completed")
+							.map((asset) => asset.id),
+					);
+					const admissible = params.added.filter((link) =>
+						completed.has(link.assetId),
+					);
+					const runOf = (link: ObservedLink) => params.runs?.get(link.assetId);
+					yield* Effect.forEach(
+						Arr.dedupe(admissible.map(runOf)),
+						(runId) =>
+							queueIndexing(
+								admissible.filter((link) => runOf(link) === runId),
+								runId,
 							),
-						)
-						.for("share"))
-						.filter((asset) => asset.processingStatus === "completed")
-						.map((asset) => asset.id),
-				);
-				yield* queueIndexing(
-					params.added.filter((link) => completed.has(link.assetId)),
-				);
-			}),
+						{
+							discard: true,
+						},
+					);
+				}),
+			),
 		);
 	});

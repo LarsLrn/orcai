@@ -1,3 +1,4 @@
+import type { ActivityRunId } from "@orcai/core";
 import type { Asset, AssetUploadRoute } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { useUploadFiles } from "@/components/documents/use-upload-files";
@@ -17,6 +18,8 @@ export type AssetIntakeOutcome = {
 	failures: UploadFailure[];
 	/** From the create call, so later reads see the new assets. */
 	zedToken: string | undefined;
+	/** The activity run of a library upload; chat uploads have none. */
+	runId?: ActivityRunId;
 };
 
 /**
@@ -47,8 +50,13 @@ export const useAssetIntake = ({ route }: { route: AssetUploadRoute }) => {
 			};
 		}
 
-		const { data: results, meta } = await createFromUploads({
+		const {
+			data: results,
+			runId,
+			meta,
+		} = await createFromUploads({
 			route,
+			uploadKey: crypto.randomUUID(),
 			files: uploaded.files.map((file) => ({
 				objectKey: file.objectKey,
 				objectMetadata: file.objectMetadata,
@@ -84,6 +92,7 @@ export const useAssetIntake = ({ route }: { route: AssetUploadRoute }) => {
 			assets,
 			failures,
 			zedToken: meta?.zedToken,
+			runId: runId ?? undefined,
 		};
 	};
 
