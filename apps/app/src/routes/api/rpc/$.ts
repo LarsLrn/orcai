@@ -1,5 +1,5 @@
 import { trace } from "@opentelemetry/api";
-import { ORPCError, onError, ValidationError } from "@orpc/server";
+import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import {
 	GetMethodCsrfProtectionHandlerPlugin,
@@ -8,47 +8,18 @@ import {
 	ResponseHeadersHandlerPlugin,
 } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod/v4";
 import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { logFailedProcedure } from "@/lib/orpc/implementation/interceptors";
 import { toFetchResponse } from "@/lib/orpc/implementation/response";
+import {
+	describeValidationFailure,
+	errorStatusMap,
+} from "@/lib/orpc/implementation/validation";
 import { router } from "@/lib/orpc/router";
 
 const handler = new RPCHandler(router, {
 	clientInterceptors: [
-		onError((error) => {
-			if (
-				error instanceof ORPCError &&
-				error.code === "BAD_REQUEST" &&
-				error.cause instanceof ValidationError
-			) {
-				const zodError = new z.ZodError(
-					error.cause.issues as z.core.$ZodIssue[],
-				);
-
-				throw new ORPCError("INPUT_VALIDATION_FAILED", {
-					message: z.prettifyError(zodError),
-					data: z.flattenError(zodError),
-					cause: error.cause,
-				});
-			}
-
-			if (
-				error instanceof ORPCError &&
-				error.code === "INTERNAL_SERVER_ERROR" &&
-				error.cause instanceof ValidationError
-			) {
-				const zodError = new z.ZodError(
-					error.cause.issues as z.core.$ZodIssue[],
-				);
-
-				throw new ORPCError("OUTPUT_VALIDATION_FAILED", {
-					message: z.prettifyError(zodError),
-					data: z.flattenError(zodError),
-					cause: error.cause,
-				});
-			}
-		}),
+		onError(describeValidationFailure),
 		onError(logFailedProcedure),
 	],
 	interceptors: [
@@ -70,6 +41,7 @@ const handler = new RPCHandler(router, {
 		new ResponseCompressionHandlerPlugin(),
 		new GetMethodCsrfProtectionHandlerPlugin(),
 	],
+	errorStatusMap,
 	toFetchResponse,
 });
 

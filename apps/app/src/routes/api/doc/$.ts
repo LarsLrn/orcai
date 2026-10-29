@@ -3,17 +3,20 @@ import { SmartCoercionHandlerPlugin } from "@orpc/json-schema";
 import { OpenAPIGenerator } from "@orpc/openapi";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferenceHandlerPlugin } from "@orpc/openapi/plugins";
-import { ORPCError, onError, ValidationError } from "@orpc/server";
+import { onError } from "@orpc/server";
 import {
 	RequestHeadersHandlerPlugin,
 	ResponseHeadersHandlerPlugin,
 } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod/v4";
 import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { logFailedProcedure } from "@/lib/orpc/implementation/interceptors";
 import { toFetchResponse } from "@/lib/orpc/implementation/response";
+import {
+	describeValidationFailure,
+	errorStatusMap,
+} from "@/lib/orpc/implementation/validation";
 import { router } from "@/lib/orpc/router";
 import { HEADERS } from "@/settings/constants";
 
@@ -55,39 +58,7 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 
 const openAPIHandler = new OpenAPIHandler(router, {
 	clientInterceptors: [
-		onError((error) => {
-			if (
-				error instanceof ORPCError &&
-				error.code === "BAD_REQUEST" &&
-				error.cause instanceof ValidationError
-			) {
-				const zodError = new z.ZodError(
-					error.cause.issues as z.core.$ZodIssue[],
-				);
-
-				throw new ORPCError("INPUT_VALIDATION_FAILED", {
-					message: z.prettifyError(zodError),
-					data: z.flattenError(zodError),
-					cause: error.cause,
-				});
-			}
-
-			if (
-				error instanceof ORPCError &&
-				error.code === "INTERNAL_SERVER_ERROR" &&
-				error.cause instanceof ValidationError
-			) {
-				const zodError = new z.ZodError(
-					error.cause.issues as z.core.$ZodIssue[],
-				);
-
-				throw new ORPCError("OUTPUT_VALIDATION_FAILED", {
-					message: z.prettifyError(zodError),
-					data: z.flattenError(zodError),
-					cause: error.cause,
-				});
-			}
-		}),
+		onError(describeValidationFailure),
 		onError(logFailedProcedure),
 	],
 	interceptors: [
@@ -121,6 +92,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
 			spec: specFromRouter,
 		}),
 	],
+	errorStatusMap,
 	toFetchResponse,
 });
 
