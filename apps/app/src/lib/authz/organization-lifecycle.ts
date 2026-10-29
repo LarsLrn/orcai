@@ -4,7 +4,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
+import { ALL_MEMBERS_GROUP_SYSTEM_KEY, RESOURCE_TYPES } from "@orcai/schema";
 import { and, asc, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
@@ -12,7 +12,16 @@ import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import { detachGroups, detachMembers } from "@/lib/authz/resource-access";
+import {
+	detachGroups,
+	detachMembers,
+	issuedGrantOrganizations,
+} from "@/lib/authz/resource-access";
+import {
+	deleteResources,
+	removeDeletedResourceData,
+	resourceOrganizations,
+} from "@/lib/authz/resource-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { deleteImages } from "@/lib/images/images";
 
@@ -79,17 +88,45 @@ export const insertOrganization = (params: {
 		return organization;
 	});
 
+/** The bots, blocks and assets whose home is one of the organizations. */
+const homeResources = (organizationIds: readonly OrganizationId[]) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db
+			.select({
+				resourceType: dbSchema.resourceScope.resourceType,
+				resourceId: dbSchema.resourceScope.resourceId,
+			})
+			.from(dbSchema.resourceScope)
+			.where(
+				and(
+					inArray(dbSchema.resourceScope.organizationId, [
+						...organizationIds,
+					]),
+					eq(dbSchema.resourceScope.isPrimary, true),
+					isNull(dbSchema.resourceScope.endedAt),
+				),
+			);
+	});
+
 /**
- * Deletes organizations with their memberships, groups and group grants, and
- * the tuples of all three. Members are detached as when they are removed, so
- * resources scoped only to these organizations stay with their owners.
+ * Deletes organizations with the resources they are home to, their
+ * memberships, groups and grants, and the tuples of all of them. Members are
+ * detached as when they are removed.
  */
 export const deleteOrganizationsWithAuthorization = (
 	organizationIds: readonly OrganizationId[],
 ) =>
 	writeRelationships(
 		{
-			organizationIds,
+			organizationIds: Effect.all([
+				homeResources(organizationIds).pipe(
+					Effect.flatMap(resourceOrganizations),
+				),
+				issuedGrantOrganizations({
+					organizationIds,
+				}),
+			]).pipe(Effect.map((locked) => locked.flat())),
 		},
 		Effect.gen(function* () {
 			const db = yield* DB;
@@ -117,6 +154,16 @@ export const deleteOrganizationsWithAuthorization = (
 					}),
 				);
 			}
+
+			const resources = yield* homeResources(ids);
+			const deleted = yield* Effect.forEach(RESOURCE_TYPES, (resourceType) =>
+				deleteResources({
+					resourceType,
+					resourceIds: resources
+						.filter((resource) => resource.resourceType === resourceType)
+						.map((resource) => resource.resourceId),
+				}),
+			);
 
 			const memberships = yield* db
 				.delete(dbSchema.member)
@@ -208,9 +255,24 @@ export const deleteOrganizationsWithAuthorization = (
 					}),
 				),
 			);
-			return existing.map((organization) => organization.logo);
+			return {
+				logos: existing.map((organization) => organization.logo),
+				deleted,
+			};
 		}),
-	).pipe(Effect.flatMap(({ result: logos }) => deleteImages(logos)));
+	).pipe(
+		Effect.flatMap(({ result }) =>
+			Effect.all(
+				[
+					deleteImages(result.logos),
+					removeDeletedResourceData(result.deleted),
+				],
+				{
+					discard: true,
+				},
+			),
+		),
+	);
 
 /**
  * Touches the user's role tuples in the organizations they are a member of,

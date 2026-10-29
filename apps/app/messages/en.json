@@ -3954,7 +3954,7 @@
 			}
 		}
 	],
-	"orgs_delete_dialog_impact_note": "Members, invitations and groups go with the organisation. Resources scoped only here stay behind without an organisation.",
+	"orgs_delete_dialog_impact_note": "Members, invitations, groups, chats and the resources homed here go with the organisation.",
 	"orgs_delete_dialog_impact_resources": [
 		{
 			"declarations": [
@@ -3965,8 +3965,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} resource scoped only here",
-				"countPlural=other": "{count} resources scoped only here"
+				"countPlural=one": "{count} resource homed here",
+				"countPlural=other": "{count} resources homed here"
 			}
 		}
 	],

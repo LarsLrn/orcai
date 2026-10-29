@@ -16,7 +16,6 @@ import {
 } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
-	aliasedTable,
 	and,
 	count,
 	desc,
@@ -26,10 +25,7 @@ import {
 	ilike,
 	inArray,
 	isNull,
-	ne,
-	notExists,
 	or,
-	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
@@ -528,11 +524,9 @@ const removeOrganizationLogo = authed.organization.removeLogo
 	});
 
 /** Count resources with no other active organisation scope */
-const countExclusiveResources = (organizationId: OrganizationId) =>
+const countHomeResources = (organizationId: OrganizationId) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const otherScope = aliasedTable(dbSchema.resourceScope, "other_scope");
-
 		const [result] = yield* db
 			.select({
 				count: count(),
@@ -541,25 +535,8 @@ const countExclusiveResources = (organizationId: OrganizationId) =>
 			.where(
 				and(
 					eq(dbSchema.resourceScope.organizationId, organizationId),
+					eq(dbSchema.resourceScope.isPrimary, true),
 					isNull(dbSchema.resourceScope.endedAt),
-					notExists(
-						db
-							.select({
-								one: sql`1`,
-							})
-							.from(otherScope)
-							.where(
-								and(
-									eq(
-										otherScope.resourceType,
-										dbSchema.resourceScope.resourceType,
-									),
-									eq(otherScope.resourceId, dbSchema.resourceScope.resourceId),
-									ne(otherScope.organizationId, organizationId),
-									isNull(otherScope.endedAt),
-								),
-							),
-					),
 				),
 			);
 
@@ -591,7 +568,7 @@ const getOrganizationDeletionImpact = authed.organization.deletionImpact
 			);
 		}
 
-		const [[members], [pendingInvitations], [groups], exclusiveResources] =
+		const [[members], [pendingInvitations], [groups], homeResources] =
 			yield* Effect.all(
 				[
 					db
@@ -623,7 +600,7 @@ const getOrganizationDeletionImpact = authed.organization.deletionImpact
 								isNull(dbSchema.group.deletedAt),
 							),
 						),
-					countExclusiveResources(input.id),
+					countHomeResources(input.id),
 				],
 				{
 					concurrency: "unbounded",
@@ -638,7 +615,7 @@ const getOrganizationDeletionImpact = authed.organization.deletionImpact
 				members: Number(members?.count ?? 0),
 				pendingInvitations: Number(pendingInvitations?.count ?? 0),
 				groups: Number(groups?.count ?? 0),
-				exclusiveResources,
+				homeResources,
 			},
 		};
 	});

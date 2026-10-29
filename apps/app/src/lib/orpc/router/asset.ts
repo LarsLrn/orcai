@@ -1,12 +1,7 @@
-import { buckets, type OrganizationId } from "@orcai/core";
+import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { queueMetadataGeneration } from "@orcai/pg-boss";
-import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { UPLOAD_ROUTES } from "@orcai/s3";
-import {
-	deletePrefixRecursively,
-	sendDeleteObjectCommand,
-} from "@orcai/s3/server";
 import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
 import {
 	checkEntityPermission,
@@ -328,8 +323,6 @@ const deleteAssets = authed.asset.delete
 		),
 	)
 	.effect(function* ({ context }) {
-		const db = yield* DB;
-
 		const allowedIds = context.allowedIds ?? [];
 
 		if (allowedIds.length === 0) {
@@ -338,33 +331,6 @@ const deleteAssets = authed.asset.delete
 				message: "No assets to delete",
 			};
 		}
-
-		const assetsToDelete = yield* db
-			.select()
-			.from(dbSchema.asset)
-			.where(inArray(dbSchema.asset.id, allowedIds));
-
-		yield* Effect.all(
-			assetsToDelete.map((asset) =>
-				Effect.gen(function* () {
-					yield* sendDeleteObjectCommand({
-						bucket: asset.bucket,
-						key: `${asset.prefix}/${asset.id}.${asset.fileType}`,
-					});
-					yield* deletePointsByIdentifier({
-						assetId: asset.id,
-						blockId: undefined,
-					});
-					yield* deletePrefixRecursively({
-						bucket: buckets.processed.name,
-						prefix: `${asset.id}/`,
-					});
-				}),
-			),
-			{
-				concurrency: "unbounded",
-			},
-		);
 
 		yield* deleteResourcesWithAuthorization({
 			resourceType: "asset",

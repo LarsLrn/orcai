@@ -3954,7 +3954,7 @@
 			}
 		}
 	],
-	"orgs_delete_dialog_impact_note": "Mitglieder, Einladungen und Gruppen werden mit der Organisation gelöscht. Ressourcen, die nur hier zugeordnet sind, bleiben ohne Organisation zurück.",
+	"orgs_delete_dialog_impact_note": "Mitglieder, Einladungen, Gruppen, Chats und die hier beheimateten Ressourcen werden mit der Organisation gelöscht.",
 	"orgs_delete_dialog_impact_resources": [
 		{
 			"declarations": [
@@ -3965,8 +3965,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Ressource, die nur hier zugeordnet ist",
-				"countPlural=other": "{count} Ressourcen, die nur hier zugeordnet sind"
+				"countPlural=one": "{count} hier beheimatete Ressource",
+				"countPlural=other": "{count} hier beheimatete Ressourcen"
 			}
 		}
 	],

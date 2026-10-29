@@ -360,14 +360,12 @@ gives an instance administrator access to the organisation's content.
 
 Deletion is thorough. The dialog first shows an impact preview counting the
 memberships, pending invitations and groups that go with the organisation, plus
-the resources whose only scope is this organisation, and it enables Delete only
-once the organisation's slug is typed back. The delete then removes the
-memberships, invitations and groups along with the organisation's authorisation
+the bots, behaviours, repositories and documents it is home to, and it enables
+Delete only once the organisation's slug is typed back. The delete then removes
+all of them along with the organisation's chats, grants and authorisation
 relationships, and any session that had the organisation active loses it and
-lands back on the organisation selection page. Resources scoped only to the
-deleted organisation stay with their owners, without an organisation for now.
-Its former members lose their direct grants on them, as when they are removed
-one by one.
+lands back on the organisation selection page. Chats elsewhere that used a
+deleted bot become read-only.
 
 **Users** (`/instance/users`) lists every account of the instance, searchable over name and email,
 with how many organisations each account belongs to, its

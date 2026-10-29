@@ -6,7 +6,8 @@ import type {
 	ResourceVisibility,
 } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import {
 	isActiveGroupMember,
@@ -43,8 +44,11 @@ const principalKey = (principal: {
 	principalId: string;
 }) => `${principal.principalType}:${principal.principalId}`;
 
-/** The resource's grants that are not revoked. */
-export const activeGrants = (resource: ResourceRef) =>
+/** The resource's grants issued in the organisation that are not revoked. */
+export const activeGrants = (
+	resource: ResourceRef,
+	organizationId: OrganizationId,
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		return yield* db
@@ -54,9 +58,74 @@ export const activeGrants = (resource: ResourceRef) =>
 				and(
 					eq(dbSchema.resourceGrant.resourceType, resource.resourceType),
 					eq(dbSchema.resourceGrant.resourceId, resource.resourceId),
+					eq(dbSchema.resourceGrant.organizationId, organizationId),
 					isNull(dbSchema.resourceGrant.revokedAt),
 				),
 			);
+	});
+
+type EndedGrant = {
+	resourceType: ResourceRef["resourceType"];
+	resourceId: string;
+	principalType: GrantPrincipal["principalType"];
+	principalId: UserId | GroupId;
+	role: ResourceGrantRole;
+};
+
+/**
+ * Records the tuples of principals whose grants changed: a role's tuple goes
+ * only when no active grant, from any organisation, still backs it. `ended`
+ * are the grants that ended; `touched` principals gained one.
+ */
+export const recordGrantChanges = (
+	ended: readonly EndedGrant[],
+	touched: readonly EndedGrant[] = [],
+) =>
+	Effect.gen(function* () {
+		const changed = [
+			...ended,
+			...touched,
+		];
+		if (changed.length === 0) return;
+		const db = yield* DB;
+		const keyOf = (grant: Omit<EndedGrant, "role">) =>
+			`${scopeKey(grant)}@${principalKey(grant)}`;
+
+		const held = yield* db
+			.select({
+				resourceType: dbSchema.resourceGrant.resourceType,
+				resourceId: dbSchema.resourceGrant.resourceId,
+				principalType: dbSchema.resourceGrant.principalType,
+				principalId: dbSchema.resourceGrant.principalId,
+				role: dbSchema.resourceGrant.role,
+			})
+			.from(dbSchema.resourceGrant)
+			.where(
+				and(
+					inArray(
+						dbSchema.resourceGrant.resourceId,
+						Arr.dedupe(changed.map((grant) => grant.resourceId)),
+					),
+					inArray(
+						dbSchema.resourceGrant.principalId,
+						Arr.dedupe(changed.map((grant) => grant.principalId)),
+					),
+					isNull(dbSchema.resourceGrant.revokedAt),
+				),
+			);
+		const heldRoles = Arr.groupBy(held, keyOf);
+		const endedRoles = Arr.groupBy(ended, keyOf);
+
+		yield* recordRelationshipFacts(
+			...Arr.dedupeWith(changed, (a, b) => keyOf(a) === keyOf(b)).map((grant) =>
+				RelationshipFact.ResourceGrantChanged({
+					resource: scopedResourceRef(grant),
+					principal: grantPrincipal(grant),
+					ended: (endedRoles[keyOf(grant)] ?? []).map((row) => row.role),
+					held: (heldRoles[keyOf(grant)] ?? []).map((row) => row.role),
+				}),
+			),
+		);
 	});
 
 /**
@@ -211,12 +280,13 @@ const principalRejections = (params: {
 
 /**
  * Gives every principal `role` on the resource, replacing their current
- * grant. Principals are checked against the resource's organizations under
- * their locks, so a member removed or a group deleted concurrently is
- * rejected rather than granted.
+ * grant issued in the organisation. Principals must belong to it, checked
+ * under the resource's locks, so a member removed or a group deleted
+ * concurrently is rejected rather than granted.
  */
 export const grantResourceAccess = (params: {
 	resource: ResourceRef;
+	organizationId: OrganizationId;
 	principals: readonly GrantPrincipal[];
 	role: ResourceGrantRole;
 	actor: Actor;
@@ -228,9 +298,9 @@ export const grantResourceAccess = (params: {
 			(principal) => principal.principalType === "group",
 		)
 			? yield* organizationsWithManageGroups({
-					organizationIds: yield* resourceOrganizations([
-						params.resource,
-					]),
+					organizationIds: [
+						params.organizationId,
+					],
 					userId: params.actor.userId,
 					zedToken: params.actor.zedToken,
 				})
@@ -240,19 +310,21 @@ export const grantResourceAccess = (params: {
 			params.resource,
 			(organizationIds) =>
 				Effect.gen(function* () {
-					if (organizationIds.length === 0)
+					if (!organizationIds.includes(params.organizationId))
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
 								reason: "RESOURCE_SCOPE_REQUIRED",
 								message:
-									"Resource has no active organization scope and cannot be shared",
+									"Resource is not available in this organization and cannot be shared here",
 							}),
 						);
 
 					const rejections = yield* principalRejections({
 						principals: params.principals,
 						role: params.role,
-						organizationIds,
+						organizationIds: [
+							params.organizationId,
+						],
 						managedOrganizations,
 						actorId: params.actor.userId,
 					});
@@ -267,7 +339,10 @@ export const grantResourceAccess = (params: {
 							}),
 						);
 
-					const active = yield* activeGrants(params.resource);
+					const active = yield* activeGrants(
+						params.resource,
+						params.organizationId,
+					);
 					const existingByPrincipal = new Map(
 						active.map((grant) => [
 							principalKey(grant),
@@ -286,16 +361,19 @@ export const grantResourceAccess = (params: {
 					});
 
 					const written: ActiveGrant[] = [];
+					const replaced: ActiveGrant[] = [];
 					for (const principal of params.principals) {
 						const existing = existingByPrincipal.get(principalKey(principal));
 
-						if (existing)
+						if (existing) {
 							yield* db
 								.update(dbSchema.resourceGrant)
 								.set({
 									revokedAt: now,
 								})
 								.where(eq(dbSchema.resourceGrant.id, existing.id));
+							replaced.push(existing);
+						}
 
 						const [grant] = yield* db
 							.insert(dbSchema.resourceGrant)
@@ -303,22 +381,15 @@ export const grantResourceAccess = (params: {
 								...params.resource,
 								...principal,
 								role: params.role,
+								organizationId: params.organizationId,
 								grantedBy: params.actor.userId,
 								createdAt: now,
 								revokedAt: null,
 							})
 							.returning();
 						written.push(grant);
-
-						yield* recordRelationshipFacts(
-							RelationshipFact.ResourceGrantChanged({
-								resource: params.resource,
-								principal,
-								from: existing?.role ?? null,
-								to: params.role,
-							}),
-						);
 					}
+					yield* recordGrantChanges(replaced, written);
 
 					return written;
 				}),
@@ -330,15 +401,22 @@ export const grantResourceAccess = (params: {
 		};
 	});
 
-/** Revokes the principal's grant on the resource; returns how many were active. */
+/**
+ * Revokes the principal's grant on the resource issued in the organisation;
+ * returns how many were active.
+ */
 export const revokeResourceAccess = (params: {
 	resource: ResourceRef;
+	organizationId: OrganizationId;
 	principal: GrantPrincipal;
 }) =>
 	writeResourceAccess(params.resource, () =>
 		Effect.gen(function* () {
 			const db = yield* DB;
-			const active = yield* activeGrants(params.resource);
+			const active = yield* activeGrants(
+				params.resource,
+				params.organizationId,
+			);
 			const revoked = active.filter(
 				(grant) => principalKey(grant) === principalKey(params.principal),
 			);
@@ -360,16 +438,7 @@ export const revokeResourceAccess = (params: {
 					),
 				);
 
-			yield* recordRelationshipFacts(
-				...revoked.map((grant) =>
-					RelationshipFact.ResourceGrantChanged({
-						resource: params.resource,
-						principal: grantPrincipal(grant),
-						from: grant.role,
-						to: null,
-					}),
-				),
-			);
+			yield* recordGrantChanges(revoked);
 
 			return revoked.length;
 		}),
@@ -416,45 +485,28 @@ export const setResourceVisibility = (params: {
 		}),
 	).pipe(Effect.map(({ result }) => result));
 
-type UserGrant = {
-	id: string;
-	resourceType: "asset" | "block" | "bot";
-	resourceId: string;
-	role: ResourceGrantRole;
-	principalId: UserId | GroupId;
+const grantColumns = {
+	id: dbSchema.resourceGrant.id,
+	resourceType: dbSchema.resourceGrant.resourceType,
+	resourceId: dbSchema.resourceGrant.resourceId,
+	principalType: dbSchema.resourceGrant.principalType,
+	principalId: dbSchema.resourceGrant.principalId,
+	role: dbSchema.resourceGrant.role,
 };
 
-const revokeGrants = (grants: readonly UserGrant[], now: Date) =>
+/** Revokes the grants matching `where` and records their tuples. */
+const revokeGrantsWhere = (where: SQL | undefined, now: Date) =>
 	Effect.gen(function* () {
-		if (grants.length === 0) return;
 		const db = yield* DB;
-		yield* db
+		const revoked = yield* db
 			.update(dbSchema.resourceGrant)
 			.set({
 				revokedAt: now,
 			})
-			.where(
-				inArray(
-					dbSchema.resourceGrant.id,
-					grants.map((grant) => grant.id),
-				),
-			);
+			.where(and(isNull(dbSchema.resourceGrant.revokedAt), where))
+			.returning(grantColumns);
+		yield* recordGrantChanges(revoked);
 	});
-
-const recordRevokedUserGrants = (grants: readonly UserGrant[]) =>
-	recordRelationshipFacts(
-		...grants.map((grant) =>
-			RelationshipFact.ResourceGrantChanged({
-				resource: scopedResourceRef(grant),
-				principal: {
-					principalType: "user",
-					principalId: grant.principalId as UserId,
-				},
-				from: grant.role,
-				to: null,
-			}),
-		),
-	);
 
 /** Removes the users' active group memberships, in one organization's groups when given. */
 const leaveGroups = (params: {
@@ -515,30 +567,20 @@ const scopeKey = (resource: { resourceType: string; resourceId: string }) =>
 	`${resource.resourceType}:${resource.resourceId}`;
 
 /**
- * Detaches users whose membership of the organization is gone: they leave its
- * groups and lose their direct grants on its resources, unless a remaining
- * membership of another organization the resource is scoped to keeps them in
- * reach. Call it in the {@link writeRelationships} that deletes the `member`
- * rows, after deleting them.
+ * The organizations whose locks guard the user grants issued in
+ * `organizationIds`, to `userIds` or to anyone: the issuing ones and every
+ * scope of the granted resources, where grants from other organizations may
+ * back the same tuples.
  */
-export const detachMembers = (params: {
-	organizationId: OrganizationId;
-	userIds: readonly UserId[];
-	now: Date;
+export const issuedGrantOrganizations = (params: {
+	organizationIds: readonly OrganizationId[];
+	userIds?: readonly UserId[];
 }) =>
 	Effect.gen(function* () {
-		if (params.userIds.length === 0) return;
 		const db = yield* DB;
-
-		yield* leaveGroups(params);
-
-		const candidates = yield* db
-			.select({
-				id: dbSchema.resourceGrant.id,
-				resourceType: dbSchema.resourceGrant.resourceType,
-				resourceId: dbSchema.resourceGrant.resourceId,
-				role: dbSchema.resourceGrant.role,
-				principalId: dbSchema.resourceGrant.principalId,
+		const scopes = yield* db
+			.selectDistinct({
+				organizationId: dbSchema.resourceScope.organizationId,
 			})
 			.from(dbSchema.resourceGrant)
 			.innerJoin(
@@ -556,60 +598,49 @@ export const detachMembers = (params: {
 			)
 			.where(
 				and(
-					eq(dbSchema.resourceGrant.principalType, "user"),
-					inArray(dbSchema.resourceGrant.principalId, [
-						...params.userIds,
+					inArray(dbSchema.resourceGrant.organizationId, [
+						...params.organizationIds,
 					]),
+					eq(dbSchema.resourceGrant.principalType, "user"),
+					params.userIds
+						? inArray(dbSchema.resourceGrant.principalId, [
+								...params.userIds,
+							])
+						: undefined,
 					isNull(dbSchema.resourceGrant.revokedAt),
-					eq(dbSchema.resourceScope.organizationId, params.organizationId),
 					isNull(dbSchema.resourceScope.endedAt),
 				),
 			);
-		if (candidates.length === 0) return;
+		return Arr.dedupe([
+			...params.organizationIds,
+			...scopes.map((scope) => scope.organizationId),
+		]);
+	});
 
-		const remainingMemberships = yield* db
-			.select({
-				userId: dbSchema.member.userId,
-				organizationId: dbSchema.member.organizationId,
-			})
-			.from(dbSchema.member)
-			.where(
-				inArray(dbSchema.member.userId, [
+/**
+ * Detaches users whose membership of the organization is gone: they leave its
+ * groups and lose the direct grants issued in it. Call it in the
+ * {@link writeRelationships} that deletes the `member` rows, after deleting
+ * them, holding {@link issuedGrantOrganizations}.
+ */
+export const detachMembers = (params: {
+	organizationId: OrganizationId;
+	userIds: readonly UserId[];
+	now: Date;
+}) =>
+	Effect.gen(function* () {
+		if (params.userIds.length === 0) return;
+		yield* leaveGroups(params);
+		yield* revokeGrantsWhere(
+			and(
+				eq(dbSchema.resourceGrant.organizationId, params.organizationId),
+				eq(dbSchema.resourceGrant.principalType, "user"),
+				inArray(dbSchema.resourceGrant.principalId, [
 					...params.userIds,
 				]),
-			);
-		const otherScopes = yield* db
-			.select({
-				resourceType: dbSchema.resourceScope.resourceType,
-				resourceId: dbSchema.resourceScope.resourceId,
-				organizationId: dbSchema.resourceScope.organizationId,
-			})
-			.from(dbSchema.resourceScope)
-			.where(
-				and(
-					inArray(
-						dbSchema.resourceScope.resourceId,
-						candidates.map((grant) => grant.resourceId),
-					),
-					isNull(dbSchema.resourceScope.endedAt),
-				),
-			);
-
-		const reachable = new Set(
-			otherScopes.flatMap((scope) =>
-				remainingMemberships
-					.filter(
-						(membership) => membership.organizationId === scope.organizationId,
-					)
-					.map((membership) => `${scopeKey(scope)}@${membership.userId}`),
 			),
+			params.now,
 		);
-		const revoked = candidates.filter(
-			(grant) => !reachable.has(`${scopeKey(grant)}@${grant.principalId}`),
-		);
-
-		yield* revokeGrants(revoked, params.now);
-		yield* recordRevokedUserGrants(revoked);
 	});
 
 /**
@@ -622,31 +653,16 @@ export const detachAccounts = (params: {
 }) =>
 	Effect.gen(function* () {
 		if (params.userIds.length === 0) return;
-		const db = yield* DB;
-
 		yield* leaveGroups(params);
-
-		const grants = yield* db
-			.select({
-				id: dbSchema.resourceGrant.id,
-				resourceType: dbSchema.resourceGrant.resourceType,
-				resourceId: dbSchema.resourceGrant.resourceId,
-				role: dbSchema.resourceGrant.role,
-				principalId: dbSchema.resourceGrant.principalId,
-			})
-			.from(dbSchema.resourceGrant)
-			.where(
-				and(
-					eq(dbSchema.resourceGrant.principalType, "user"),
-					inArray(dbSchema.resourceGrant.principalId, [
-						...params.userIds,
-					]),
-					isNull(dbSchema.resourceGrant.revokedAt),
-				),
-			);
-
-		yield* revokeGrants(grants, params.now);
-		yield* recordRevokedUserGrants(grants);
+		yield* revokeGrantsWhere(
+			and(
+				eq(dbSchema.resourceGrant.principalType, "user"),
+				inArray(dbSchema.resourceGrant.principalId, [
+					...params.userIds,
+				]),
+			),
+			params.now,
+		);
 	});
 
 /**
@@ -659,22 +675,9 @@ export const accountAccessOrganizations = (userIds: readonly UserId[]) =>
 		const [grantScopes, groups] = yield* Effect.all([
 			db
 				.selectDistinct({
-					organizationId: dbSchema.resourceScope.organizationId,
+					organizationId: dbSchema.resourceGrant.organizationId,
 				})
 				.from(dbSchema.resourceGrant)
-				.innerJoin(
-					dbSchema.resourceScope,
-					and(
-						eq(
-							dbSchema.resourceScope.resourceType,
-							dbSchema.resourceGrant.resourceType,
-						),
-						eq(
-							dbSchema.resourceScope.resourceId,
-							dbSchema.resourceGrant.resourceId,
-						),
-					),
-				)
 				.where(
 					and(
 						eq(dbSchema.resourceGrant.principalType, "user"),
@@ -682,7 +685,6 @@ export const accountAccessOrganizations = (userIds: readonly UserId[]) =>
 							...userIds,
 						]),
 						isNull(dbSchema.resourceGrant.revokedAt),
-						isNull(dbSchema.resourceScope.endedAt),
 					),
 				),
 			db
@@ -719,37 +721,13 @@ export const detachGroups = (params: {
 }) =>
 	Effect.gen(function* () {
 		if (params.groupIds.length === 0) return;
-		const db = yield* DB;
-		const revoked = yield* db
-			.update(dbSchema.resourceGrant)
-			.set({
-				revokedAt: params.now,
-			})
-			.where(
-				and(
-					eq(dbSchema.resourceGrant.principalType, "group"),
-					inArray(dbSchema.resourceGrant.principalId, [
-						...params.groupIds,
-					]),
-					isNull(dbSchema.resourceGrant.revokedAt),
-				),
-			)
-			.returning({
-				resourceType: dbSchema.resourceGrant.resourceType,
-				resourceId: dbSchema.resourceGrant.resourceId,
-				role: dbSchema.resourceGrant.role,
-				principalType: dbSchema.resourceGrant.principalType,
-				principalId: dbSchema.resourceGrant.principalId,
-			});
-
-		yield* recordRelationshipFacts(
-			...revoked.map((grant) =>
-				RelationshipFact.ResourceGrantChanged({
-					resource: scopedResourceRef(grant),
-					principal: grantPrincipal(grant),
-					from: grant.role,
-					to: null,
-				}),
+		yield* revokeGrantsWhere(
+			and(
+				eq(dbSchema.resourceGrant.principalType, "group"),
+				inArray(dbSchema.resourceGrant.principalId, [
+					...params.groupIds,
+				]),
 			),
+			params.now,
 		);
 	});

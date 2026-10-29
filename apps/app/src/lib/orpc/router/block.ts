@@ -1,4 +1,3 @@
-import type { BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Block } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
@@ -11,7 +10,6 @@ import {
 	ilike,
 	inArray,
 } from "drizzle-orm";
-import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
@@ -391,8 +389,6 @@ const deleteBlocks = authed.block.delete
 		),
 	)
 	.effect(function* ({ context }) {
-		const db = yield* DB;
-
 		const allowedIds = context.allowedIds ?? [];
 
 		if (allowedIds.length === 0) {
@@ -402,32 +398,10 @@ const deleteBlocks = authed.block.delete
 			};
 		}
 
-		const linkedAssets = yield* db
-			.select({
-				blockId: dbSchema.blockAsset.blockId,
-				assetId: dbSchema.blockAsset.assetId,
-			})
-			.from(dbSchema.blockAsset)
-			.where(inArray(dbSchema.blockAsset.blockId, allowedIds));
-
 		yield* deleteResourcesWithAuthorization({
 			resourceType: "block",
 			resourceIds: allowedIds,
 		});
-
-		yield* Effect.forEach(
-			Object.entries(Arr.groupBy(linkedAssets, (link) => link.blockId)),
-			([blockId, links]) =>
-				reindexBlockAssets({
-					blockId: blockId as BlockId,
-					addedIds: [],
-					removedIds: links.map((link) => link.assetId),
-				}),
-			{
-				concurrency: "unbounded",
-				discard: true,
-			},
-		);
 
 		return {
 			success: true,

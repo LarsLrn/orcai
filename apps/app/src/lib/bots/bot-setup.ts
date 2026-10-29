@@ -286,10 +286,13 @@ export const botSetupCoverage = ({
 			modelId,
 			organizationId,
 		});
-		const grants = yield* activeGrants({
-			resourceType: "bot",
-			resourceId: botId,
-		});
+		const grants = yield* activeGrants(
+			{
+				resourceType: "bot",
+				resourceId: botId,
+			},
+			organizationId,
+		);
 		const userIds = grants.flatMap((grant) =>
 			grant.principalType === "user"
 				? [
