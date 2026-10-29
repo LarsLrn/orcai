@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ type DiscoverResult =
 			foundCount: number;
 			addedCount: number;
 			alreadyExistedCount: number;
+			capabilitiesUnsetCount: number;
 	  }
 	| {
 			status: "error";
@@ -75,14 +77,9 @@ const DiscoverModels = () => {
 			const discoveredModels = await discoverModels({
 				providerId,
 			});
-			const { foundCount, addedCount, alreadyExistedCount } =
-				discoveredModels.data;
-
 			setResult({
 				status: "success",
-				foundCount,
-				addedCount,
-				alreadyExistedCount,
+				...discoveredModels.data,
 			});
 		} catch (error) {
 			setResult({
@@ -158,8 +155,21 @@ const DiscoverModels = () => {
 										alreadyExistedCount: result.alreadyExistedCount,
 									})}
 								</p>
-								{result.addedCount > 0 && (
-									<p>{m.models_discover_capabilities_hint()}</p>
+								{result.capabilitiesUnsetCount > 0 && (
+									<p>
+										{m.models_discover_capabilities_hint({
+											count: result.capabilitiesUnsetCount,
+										})}{" "}
+										<Link
+											to="/app/models"
+											search={{
+												capabilities: "unset",
+											}}
+											onClick={() => handleOpenChange(false)}
+										>
+											{m.models_discover_capabilities_link()}
+										</Link>
+									</p>
 								)}
 							</AlertDescription>
 						</Alert>

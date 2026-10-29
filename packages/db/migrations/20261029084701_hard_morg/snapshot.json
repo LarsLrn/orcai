@@ -1,0 +1,38 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "e66e18ff-dc69-4401-934e-603c202b7b57",
+  "prevIds": [
+    "3d677545-646a-475b-95e7-642ee95f7918"
+  ],
+  "footprints": [
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "model",
+        "capability"
+      ],
+      "writes": [
+        "s|colprop|public.model.capability.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.model",
+        "n|sch|public",
+        "n|col|public.model.capability"
+      ],
+      "sqlHash": "7ed7f8d5a37af644"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"model\",\"capability\"]",
+      "set": {
+        "notNull": false
+      }
+    }
+  ]
+}

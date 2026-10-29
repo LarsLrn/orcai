@@ -61,6 +61,8 @@ const assistantModelSetting: ModelSetting<"turn"> = {
 	unusable: {
 		PROVIDER_DISABLED: m.orgs_form_assistant_model_unusable_provider_disabled,
 		MODEL_DEPRECATED: m.orgs_form_assistant_model_unusable_deprecated,
+		MODEL_CAPABILITIES_UNKNOWN:
+			m.orgs_form_assistant_model_unusable_capabilities_unknown,
 		MODEL_TOOLS_UNSUPPORTED:
 			m.orgs_form_assistant_model_unusable_tools_unsupported,
 	},
@@ -74,6 +76,8 @@ const utilityModelSetting: ModelSetting<"text"> = {
 	unusable: {
 		PROVIDER_DISABLED: m.orgs_form_utility_model_unusable_provider_disabled,
 		MODEL_DEPRECATED: m.orgs_form_utility_model_unusable_deprecated,
+		MODEL_CAPABILITIES_UNKNOWN:
+			m.orgs_form_utility_model_unusable_capabilities_unknown,
 		MODEL_TEXT_UNSUPPORTED: m.orgs_form_utility_model_unusable_text_unsupported,
 	},
 };

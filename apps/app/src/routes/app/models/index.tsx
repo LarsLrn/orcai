@@ -2,6 +2,7 @@ import { listModelsInputSchema, providerIdSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BoxIcon, PlusIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { DiscoverModels } from "@/components/model/discover-models";
 import { ModelTableActions } from "@/components/model/table/model-table-actions";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
@@ -34,22 +35,32 @@ const searchSchema = listModelsInputSchema
 	.extend({
 		query: dataTableQuerySchema.default(""),
 		providerId: providerIdSchema.optional(),
+		capabilities: z
+			.enum([
+				"set",
+				"unset",
+			])
+			.optional(),
 	});
+
+const capabilitiesSet = (capabilities: "set" | "unset" | undefined) =>
+	capabilities === undefined ? undefined : capabilities === "set";
 
 export const Route = createFileRoute("/app/models/")({
 	validateSearch: searchSchema,
 	loaderDeps: ({
-		search: { pageIndex, pageSize, providerId, query, sort },
+		search: { pageIndex, pageSize, providerId, capabilities, query, sort },
 	}) => ({
 		pageIndex,
 		pageSize,
 		providerId,
+		capabilities,
 		query,
 		sort,
 	}),
 	loader: async ({
 		context: { queryClient },
-		deps: { pageIndex, pageSize, providerId, query, sort },
+		deps: { pageIndex, pageSize, providerId, capabilities, query, sort },
 	}) => {
 		await Promise.all([
 			queryClient.query(
@@ -57,6 +68,7 @@ export const Route = createFileRoute("/app/models/")({
 					input: {
 						filters: {
 							providerId,
+							capabilitiesSet: capabilitiesSet(capabilities),
 							search: query || undefined,
 						},
 						pageIndex,
@@ -85,12 +97,14 @@ export const Route = createFileRoute("/app/models/")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const { pageIndex, pageSize, providerId, query, sort } = Route.useSearch();
+	const { pageIndex, pageSize, providerId, capabilities, query, sort } =
+		Route.useSearch();
 	const { data: models } = useSuspenseQuery(
 		orpc.model.list.queryOptions({
 			input: {
 				filters: {
 					providerId,
+					capabilitiesSet: capabilitiesSet(capabilities),
 					search: query || undefined,
 				},
 				pageIndex,
@@ -165,6 +179,30 @@ function RouteComponent() {
 								})
 							}
 						/>
+						<DataTableSelectFilter
+							label={m.common_capabilities_title()}
+							value={capabilities}
+							options={[
+								{
+									label: m.models_index_capabilities_set_option(),
+									value: "set",
+								},
+								{
+									label: m.models_index_capabilities_unset_option(),
+									value: "unset",
+								},
+							]}
+							onChange={(value) =>
+								void navigate({
+									to: ".",
+									search: (prev) => ({
+										...prev,
+										pageIndex: 0,
+										capabilities: value,
+									}),
+								})
+							}
+						/>
 						<DataTableToolbarActions>
 							<DataTableViewOptions />
 							<ModelTableActions />
@@ -190,6 +228,7 @@ function RouteComponent() {
 						filters={{
 							query,
 							providerId,
+							capabilities,
 						}}
 					/>
 					<DataTablePagination />

@@ -60,7 +60,7 @@ Go to Administration > Models (`/app/models`).
 
 - Choose **Discover models** and select the provider to add the models it offers, or choose **Add model** (`/app/models/add`) to register one by hand.
 - For a model added by hand, select the provider and enter the exact **Provider model ID** the endpoint expects.
-- Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovered models start with none, and a model without both does not appear in chat. The checklist's chat model item stays open until a model has tool calling.
+- Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovery sets them where the provider reports them (OpenRouter and Anthropic do, OpenAI does not); the others show **Not set**. A model without both does not appear in chat. The checklist's chat model item stays open until a model has tool calling, and its **Set up** button lists the models whose capabilities are not set.
 - Optionally enter the model's **Prices** from the provider's price list, at least input and output per 1M tokens, so [Analytics](/docs/using-orcai/administration#analytics) shows an estimated cost. See [Model prices](/docs/using-orcai/administration#model-prices).
 - Save, then confirm the model appears in the list.
 

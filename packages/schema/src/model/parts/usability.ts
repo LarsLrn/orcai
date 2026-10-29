@@ -24,6 +24,7 @@ export type ModelUse = keyof typeof required;
 export type ModelUnusableReason<Use extends ModelUse = ModelUse> =
 	| "PROVIDER_DISABLED"
 	| "MODEL_DEPRECATED"
+	| "MODEL_CAPABILITIES_UNKNOWN"
 	| (typeof required)[Use]["reason"];
 
 /** The first reason a model cannot serve `use`, or nothing when it can. */
@@ -33,7 +34,7 @@ export const modelUnusableReason = <Use extends ModelUse>(
 		isDeprecated,
 		providerEnabled,
 	}: {
-		capabilities: readonly ModelCapability[];
+		capabilities: readonly ModelCapability[] | null;
 		isDeprecated: boolean;
 		providerEnabled: boolean;
 	},
@@ -41,6 +42,7 @@ export const modelUnusableReason = <Use extends ModelUse>(
 ): ModelUnusableReason<Use> | undefined => {
 	if (!providerEnabled) return "PROVIDER_DISABLED";
 	if (isDeprecated) return "MODEL_DEPRECATED";
+	if (!capabilities) return "MODEL_CAPABILITIES_UNKNOWN";
 	const { capability, reason } = required[use];
 	return capabilities.includes(capability) ? undefined : reason;
 };

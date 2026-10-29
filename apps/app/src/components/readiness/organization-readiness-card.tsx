@@ -55,6 +55,11 @@ const checks: Record<
 	},
 };
 
+const fixClassName = buttonVariants({
+	variant: "outline",
+	size: "sm",
+});
+
 export const readinessQuery = () =>
 	orpc.readiness.organization.queryOptions({
 		input: {},
@@ -91,17 +96,23 @@ export const OrganizationReadinessCard = () => {
 				<CheckList
 					checks={readiness.checks}
 					title={organizationCheckTitle}
-					action={(check) => (
-						<Link
-							to={checks[check.id].fix}
-							className={buttonVariants({
-								variant: "outline",
-								size: "sm",
-							})}
-						>
-							{m.readiness_fix_action()}
-						</Link>
-					)}
+					action={(check) =>
+						check.reason === "CHAT_MODEL_CAPABILITIES_UNKNOWN" ? (
+							<Link
+								to="/app/models"
+								search={{
+									capabilities: "unset",
+								}}
+								className={fixClassName}
+							>
+								{m.readiness_fix_action()}
+							</Link>
+						) : (
+							<Link to={checks[check.id].fix} className={fixClassName}>
+								{m.readiness_fix_action()}
+							</Link>
+						)
+					}
 				/>
 			</CardContent>
 		</Card>

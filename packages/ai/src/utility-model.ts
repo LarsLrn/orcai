@@ -58,9 +58,9 @@ export const utilityModel = (organizationId: OrganizationId) =>
 			return undefined;
 		}
 
-		const { kind } = utility;
+		const { kind, capabilities } = utility;
 		const unusable = modelUnusableReason(utility, "text");
-		if (unusable || !isModelProviderKind(kind)) {
+		if (unusable || !capabilities || !isModelProviderKind(kind)) {
 			yield* Effect.logWarning(
 				`organisation ${organizationId} has an unusable utility model (${unusable ?? "PROVIDER_PURPOSE_MISMATCH"})`,
 			);
@@ -79,6 +79,6 @@ export const utilityModel = (organizationId: OrganizationId) =>
 			kind,
 			providerId: utility.providerId,
 			modelId: utility.modelId,
-			capabilities: utility.capabilities,
+			capabilities,
 		} satisfies UtilityModel;
 	});

@@ -16,6 +16,8 @@ import {
 	getColumns,
 	ilike,
 	inArray,
+	isNotNull,
+	isNull,
 	or,
 	sql,
 } from "drizzle-orm";
@@ -58,6 +60,11 @@ const listModels = authed.model.list
 						input.filters.capabilities as ModelCapability[],
 					)
 				: undefined,
+			input.filters?.capabilitiesSet === undefined
+				? undefined
+				: input.filters.capabilitiesSet
+					? isNotNull(dbSchema.model.capabilities)
+					: isNull(dbSchema.model.capabilities),
 			// Within one provider, its name would match every model.
 			searchTerm
 				? or(
@@ -423,11 +430,10 @@ const discoverModels = authed.model.discover
 		const modelsToInsert = discovered.map((model) => ({
 			...model,
 			providerId: input.providerId,
-			capabilities: [],
 		}));
 
-		const { contextWindow, maxOutputTokens } = dbSchema.model;
-		// Known models only gain the limits they lack, so edited ones keep theirs.
+		const { capabilities, contextWindow, maxOutputTokens } = dbSchema.model;
+		// Known models only gain what they lack, so edited ones keep theirs.
 		const writtenModels =
 			modelsToInsert.length === 0
 				? []
@@ -440,18 +446,21 @@ const discoverModels = authed.model.discover
 								dbSchema.model.providerId,
 							],
 							set: {
+								capabilities: sql`coalesce(${capabilities}, excluded.capability)`,
 								contextWindow: sql`coalesce(${contextWindow}, excluded.context_window)`,
 								maxOutputTokens: sql`coalesce(${maxOutputTokens}, excluded.max_output_tokens)`,
 							},
-							setWhere: sql`(${contextWindow} is null and excluded.context_window is not null) or (${maxOutputTokens} is null and excluded.max_output_tokens is not null)`,
+							setWhere: sql`(${capabilities} is null and excluded.capability is not null) or (${contextWindow} is null and excluded.context_window is not null) or (${maxOutputTokens} is null and excluded.max_output_tokens is not null)`,
 						})
 						.returning({
 							// Postgres leaves xmax at 0 on a row the statement inserted.
 							inserted: sql<boolean>`xmax = 0`,
+							capabilities,
 						});
 
 		const foundCount = modelsToInsert.length;
-		const addedCount = writtenModels.filter(({ inserted }) => inserted).length;
+		const addedModels = writtenModels.filter(({ inserted }) => inserted);
+		const addedCount = addedModels.length;
 		const alreadyExistedCount = foundCount - addedCount;
 
 		return {
@@ -459,6 +468,9 @@ const discoverModels = authed.model.discover
 				foundCount,
 				addedCount,
 				alreadyExistedCount,
+				capabilitiesUnsetCount: addedModels.filter(
+					(model) => model.capabilities === null,
+				).length,
 			},
 		};
 	});

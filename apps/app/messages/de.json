@@ -2419,6 +2419,7 @@
 	"check_reason_assistant_model_unusable": "Das Assistant-Modell kann keine Anfragen ausführen: Sein Anbieter ist aus, es ist veraltet oder es kann keine Tools aufrufen.",
 	"check_reason_assistant_pool_missing": "Kein aktiver Kontingent-Pool deckt das Assistant-Modell ab, daher werden Assistant-Anfragen abgelehnt.",
 	"check_reason_assistant_pool_ready": "Ein Kontingent-Pool deckt das Assistant-Modell ab.",
+	"check_reason_chat_model_capabilities_unknown": "Von keinem Modell ist bekannt, dass es Tool-Aufrufe unterstützt. Modelle ohne festgelegte Fähigkeiten: {count}. Legen Sie sie für die Modelle fest, die Text und Tool-Aufrufe unterstützen.",
 	"check_reason_chat_model_missing": "Auf keinem aktiven Anbieter ist ein Modell mit Tool-Aufrufen verfügbar.",
 	"check_reason_chat_model_ready": "Mindestens ein Modell kann Chat-Anfragen ausführen.",
 	"check_reason_coverage_complete": "Jedes Mitglied ist durch einen Kontingent-Pool abgedeckt.",
@@ -2724,6 +2725,7 @@
 	"error_listing_blocks_unconfirmed": "Ein Bot im Katalog enthält nur Blöcke im Katalog. Bestätigen Sie, dass auch diese aufgenommen werden: {blockNames}.",
 	"error_member_not_found": "Mitglied nicht gefunden.",
 	"error_metadata_generation_unavailable": "Metadaten lassen sich erzeugen, sobald die Datei vorbereitet ist und in der Bibliothek liegt.",
+	"error_model_capabilities_unknown": "Für das ausgewählte Modell sind noch keine Fähigkeiten festgelegt. Legen Sie sie zuerst am Modell fest.",
 	"error_model_deprecated": "Das ausgewählte Modell ist veraltet. Wählen Sie ein anderes Modell.",
 	"error_model_not_found": "Modell nicht gefunden.",
 	"error_model_provider_mismatch": "Das ausgewählte Modell gehört nicht zum ausgewählten Anbieter.",
@@ -3535,7 +3537,22 @@
 	"models_detail_token_limit_unknown": "Unbekannt",
 	"models_detail_price_unset": "Nicht festgelegt",
 	"models_detail_view_provider_button": "Anbieter anzeigen",
-	"models_discover_capabilities_hint": "Neue Modelle haben zunächst keine Fähigkeiten. Geben Sie einem Modell Text und Tool-Aufrufe, bevor damit gechattet werden kann.",
+	"models_discover_capabilities_hint": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Der Anbieter hat die Fähigkeiten von {count} neuen Modell nicht gemeldet. Geben Sie ihm Text und Tool-Aufrufe, falls es sie unterstützt, bevor damit gechattet werden kann.",
+				"countPlural=other": "Der Anbieter hat die Fähigkeiten von {count} neuen Modellen nicht gemeldet. Geben Sie denen, die es unterstützen, Text und Tool-Aufrufe, bevor damit gechattet werden kann."
+			}
+		}
+	],
+	"models_discover_capabilities_link": "Modelle ohne Fähigkeiten anzeigen",
 	"models_discover_dialog_description": "Wählen Sie einen Anbieter aus und entdecken Sie verfügbare Modelle automatisch.",
 	"models_discover_dialog_title": "Modelle entdecken",
 	"models_discover_error_title": "Entdeckung fehlgeschlagen",
@@ -3563,7 +3580,7 @@
 	"models_discover_success_title": "Entdeckung abgeschlossen",
 	"models_discover_trigger_button": "Modelle entdecken",
 	"models_edit_page_title": "Modell bearbeiten",
-	"models_form_capabilities_description": "Für Chat wird mindestens ein Modell mit Text und Tool-Aufrufen benötigt. Ein Modell wird überall dort ausgeblendet, wo eine Fähigkeit erforderlich ist, die ihm fehlt.",
+	"models_form_capabilities_description": "Für Chat wird mindestens ein Modell mit Text und Tool-Aufrufen benötigt. Ein Modell wird überall dort ausgeblendet, wo eine Fähigkeit erforderlich ist, die ihm fehlt. Leer bedeutet unbekannt: Die Erkennung trägt sie ein, wo der Anbieter sie meldet.",
 	"models_form_capabilities_label": "Fähigkeiten",
 	"models_form_capabilities_placeholder": "z. B. Text, Tool-Aufrufe",
 	"models_form_context_window_description": "Wie viele Token das Modell auf einmal liest; der Chat zeigt, wie voll es ist. Leer lassen, wenn unbekannt.",
@@ -3592,6 +3609,8 @@
 	"models_form_save_button": "Modell speichern",
 	"models_form_token_limit_unit": "Token",
 	"models_index_add_button": "Modell hinzufügen",
+	"models_index_capabilities_set_option": "Festgelegt",
+	"models_index_capabilities_unset_option": "Nicht festgelegt",
 	"models_index_empty_description": "Fügen Sie ein Modell manuell hinzu oder ermitteln Sie die Modelle eines Anbieters.",
 	"models_index_empty_title": "Noch keine Modelle",
 	"models_index_search_placeholder": "Modelle oder Anbieter suchen",
@@ -4031,6 +4050,7 @@
 	"orgs_form_assistant_model_description": "Das Modell, mit dem der OrcAI Assistant antwortet. Aufgeführt sind nur Modelle mit Tool-Aufrufen, die nicht veraltet sind und deren Anbieter aktiviert ist.",
 	"orgs_form_assistant_model_label": "Assistant-Modell",
 	"orgs_form_assistant_model_unset_hint": "Der Assistant ist nicht verfügbar, bis ein Modell ausgewählt ist.",
+	"orgs_form_assistant_model_unusable_capabilities_unknown": "Für das aktuelle Modell sind noch keine Fähigkeiten festgelegt, daher kann der Assistant nicht antworten.",
 	"orgs_form_assistant_model_unusable_deprecated": "Das aktuelle Modell ist veraltet, daher kann der Assistant nicht antworten.",
 	"orgs_form_assistant_model_unusable_provider_disabled": "Der Anbieter des aktuellen Modells ist deaktiviert, daher kann der Assistant nicht antworten.",
 	"orgs_form_assistant_model_unusable_tools_unsupported": "Das aktuelle Modell unterstützt keine Tool-Aufrufe, daher kann der Assistant nicht antworten.",
@@ -4043,6 +4063,7 @@
 	"orgs_form_utility_model_description": "Das Modell, das die Titel von Chats und Unterhaltungen mit dem Assistant schreibt sowie in der Bibliothek Bilder beschreibt und Metadaten erzeugt. Ein kleines, günstiges Modell genügt; für Bilder braucht es die Fähigkeit Bild. Aufgeführt sind nur Textmodelle, die nicht veraltet sind und deren Anbieter aktiviert ist.",
 	"orgs_form_utility_model_label": "Hilfsmodell",
 	"orgs_form_utility_model_unset_hint": "Titel verwenden das Modell des jeweiligen Chats, Bilder werden nicht beschrieben und Metadaten nicht erzeugt.",
+	"orgs_form_utility_model_unusable_capabilities_unknown": "Für das aktuelle Modell sind noch keine Fähigkeiten festgelegt, daher verwenden Titel das Modell des jeweiligen Chats, Bilder werden nicht beschrieben und Metadaten nicht erzeugt.",
 	"orgs_form_utility_model_unusable_deprecated": "Das aktuelle Modell ist veraltet, daher verwenden Titel das Modell des jeweiligen Chats, Bilder werden nicht beschrieben und Metadaten nicht erzeugt.",
 	"orgs_form_utility_model_unusable_provider_disabled": "Der Anbieter des aktuellen Modells ist deaktiviert, daher verwenden Titel das Modell des jeweiligen Chats, Bilder werden nicht beschrieben und Metadaten nicht erzeugt.",
 	"orgs_form_utility_model_unusable_text_unsupported": "Das aktuelle Modell erzeugt keinen Text, daher verwenden Titel das Modell des jeweiligen Chats, Bilder werden nicht beschrieben und Metadaten nicht erzeugt.",

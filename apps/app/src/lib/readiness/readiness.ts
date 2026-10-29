@@ -26,7 +26,7 @@ export interface ReadinessSnapshot {
 	readonly models: readonly {
 		readonly id: ModelId;
 		readonly providerId: ProviderId;
-		readonly capabilities: readonly ModelCapability[];
+		readonly capabilities: readonly ModelCapability[] | null;
 		readonly isDeprecated: boolean;
 	}[];
 	/** Active pools, each with the live groups it is actively assigned to. */
@@ -93,12 +93,20 @@ const rules = (snapshot: ReadinessSnapshot) => {
 		pool.providerId === model.providerId &&
 		(pool.modelId === null || pool.modelId === model.id);
 	const chatModels = snapshot.models.filter(chatReady);
+	// Models that may chat once an admin sets their capabilities.
+	const unsetModels = snapshot.models.filter(
+		(model) =>
+			model.capabilities === null &&
+			!model.isDeprecated &&
+			providers.get(model.providerId)?.enabled,
+	);
 
 	return {
 		providers,
 		chatReady,
 		covers,
 		chatModels,
+		unsetModels,
 		chatPools: snapshot.pools.filter((pool) =>
 			chatModels.some((model) => covers(pool, model)),
 		),
@@ -118,7 +126,7 @@ export const evaluateReadiness = (
 	snapshot: ReadinessSnapshot,
 	uncoveredMembers: number,
 ): OrganizationReadiness => {
-	const { providers, chatReady, covers, chatModels, chatPools } =
+	const { providers, chatReady, covers, chatModels, unsetModels, chatPools } =
 		rules(snapshot);
 	const assistantModel = snapshot.models.find(
 		(model) => model.id === snapshot.assistantModelId,
@@ -138,10 +146,23 @@ export const evaluateReadiness = (
 					failed: "PROVIDER_MISSING",
 				},
 			),
-			check("chat-model", "required", chatModels.length > 0, {
-				ok: "CHAT_MODEL_READY",
-				failed: "CHAT_MODEL_MISSING",
-			}),
+			check(
+				"chat-model",
+				"required",
+				chatModels.length > 0,
+				{
+					ok: "CHAT_MODEL_READY",
+					failed:
+						unsetModels.length > 0
+							? "CHAT_MODEL_CAPABILITIES_UNKNOWN"
+							: "CHAT_MODEL_MISSING",
+				},
+				chatModels.length === 0 && unsetModels.length > 0
+					? {
+							count: unsetModels.length,
+						}
+					: undefined,
+			),
 			check("pool", "required", chatPools.length > 0, {
 				ok: "POOL_READY",
 				failed: "POOL_MISSING",

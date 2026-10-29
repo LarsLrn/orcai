@@ -288,7 +288,7 @@ export const describeImages = (params: {
 		const owner = yield* assetOwner(params.assetId);
 		const model = yield* utilityModel(owner.organizationId);
 
-		if (!model?.capabilities.includes("image")) {
+		if (!model?.capabilities?.includes("image")) {
 			if (params.imageAsset) {
 				return yield* new AssetPipelineError({
 					failure: "unsupported",

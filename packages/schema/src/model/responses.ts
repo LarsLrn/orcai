@@ -19,5 +19,7 @@ export const discoverModelsResponseSchema = createDataResponseSchema(
 		foundCount: z.number().int().nonnegative(),
 		addedCount: z.number().int().nonnegative(),
 		alreadyExistedCount: z.number().int().nonnegative(),
+		/** Added models whose provider did not report their capabilities. */
+		capabilitiesUnsetCount: z.number().int().nonnegative(),
 	}),
 );

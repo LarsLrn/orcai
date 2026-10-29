@@ -266,9 +266,11 @@ Current models page (`/app/models`) features:
 
 - Search by model/provider text
 - Provider filter
+- Capabilities filter, to find the models whose capabilities are not set yet
 - **Add model** (`/app/models/add`)
 - **Discover models**, which lists the models a provider offers, adds the
-  new ones and fills in the token limits a known model still lacks
+  new ones and fills in the token limits and capabilities a known model still
+  lacks
 
 A model has a name, an optional description, a provider, the **Provider model
 ID** the endpoint expects, its **Capabilities**, a **Deprecated** flag, and
@@ -283,8 +285,20 @@ two token limits, empty when unknown:
   chat's max tokens cannot be set higher, a reply asks for no more, and a
   limit below 16,384 lowers the quota reservation of a chat without max tokens.
 
-Rediscovery never overwrites a limit that is already set, so edited limits
-stay. A model opens at `/app/models/<model id>`, and **Edit model** at
+Discovery sets a model's capabilities where its provider reports them:
+
+- **OpenAI-compatible**: from OpenRouter's model metadata (input and output
+  modalities, and whether the model takes tools or reasoning). Other servers
+  report none.
+- **Anthropic**: **Text** and **Tool calling**, which every Claude model has,
+  plus **Image** and **Reasoning** where the Models API reports them.
+- **OpenAI**: its models API reports none.
+
+Capabilities a provider does not report stay **Not set**: set them yourself
+once, on the models you want to use. Clearing every capability in the form
+makes them not set again: unknown, filled in by the next discovery where the
+provider reports them. Rediscovery never overwrites capabilities or a
+limit that are already set, so edited ones stay. A model opens at `/app/models/<model id>`, and **Edit model** at
 `/app/models/<model id>/edit`.
 
 ### Model prices
@@ -306,7 +320,7 @@ tokens or requests. Long-context tiers, service tiers and longer-lived cache
 writes are not priced, so the estimate may differ from the invoice.
 
 <Callout title="Chat Models" type="info">
-	A model appears in chat only with at least the **Text** and **Tool calling** capabilities. Discovered models start with no capabilities, so set them on each model before it can chat.
+	A model appears in chat only with at least the **Text** and **Tool calling** capabilities. Set them on each discovered model whose capabilities are not set before it can chat; until one can, the setup checklist counts the models still waiting for them.
 </Callout>
 
 ## Instance management

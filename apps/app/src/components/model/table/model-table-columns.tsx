@@ -78,7 +78,7 @@ export const modelTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) =>
-			row.original.capabilities.length === 0 ? (
+			!row.original.capabilities?.length ? (
 				<Badge
 					variant="warning"
 					render={
