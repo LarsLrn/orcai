@@ -32,6 +32,7 @@ import { v4 as uuidv4 } from "uuid";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
+import { requireUsableInOrganization } from "@/lib/authz/organization-use";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
@@ -54,7 +55,6 @@ import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
-	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 import {
@@ -455,11 +455,13 @@ const createChat = authed.chat.create
 				return yield* botFeaturesImmutable();
 			}
 
-			yield* requirePermission({
-				entityType: "bot",
-				entityId: input.botId,
-				permission: "use",
+			yield* requireUsableInOrganization({
+				resourceType: "bot",
+				resourceIds: [
+					input.botId,
+				],
 				userId: context.auth.user.id,
+				organizationId,
 				zedToken: getZedToken(context),
 			});
 		} else if (features) {

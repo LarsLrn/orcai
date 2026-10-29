@@ -21,7 +21,6 @@ import {
 	type ModelUnusableReason,
 	modelUnusableReason,
 } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
@@ -256,14 +255,12 @@ const devToolsMiddleware = Effect.gen(function* () {
 	];
 });
 
-/** A bot's template, its database blocks the user may use, and its features. */
+/** A bot's template, its database blocks and its features. */
 const botSettings = ({
 	botId,
-	userId,
 	context,
 }: {
 	botId: NonNullable<StoredChat["botId"]>;
-	userId: UserId;
 	context: ORPCContext;
 }) =>
 	Effect.gen(function* () {
@@ -309,29 +306,13 @@ const botSettings = ({
 			});
 		}
 
-		const databaseBlocks = blocks.data.filter(
-			(block): block is Extract<typeof block, DatabaseBlock> =>
-				block.type === "database",
-		);
-		if (databaseBlocks.length === 0) {
-			return {
-				template,
-				databaseBlocks,
-				features: bot.features,
-			};
-		}
-
-		const usableIds = yield* permittedEntityIds({
-			entityIds: databaseBlocks.map((block) => block.id),
-			entityType: "block",
-			permission: "use",
-			userId,
-			zedToken,
-		});
-
+		// The bot is authorized, so its blocks come with it.
 		return {
 			template,
-			databaseBlocks: databaseBlocks.filter((block) => usableIds.has(block.id)),
+			databaseBlocks: blocks.data.filter(
+				(block): block is Extract<typeof block, DatabaseBlock> =>
+					block.type === "database",
+			),
 			features: bot.features,
 		};
 	});
@@ -397,7 +378,6 @@ const chatSetup = (
 				chat.botId
 					? botSettings({
 							botId: chat.botId,
-							userId: user.id,
 							context,
 						})
 					: Effect.succeed(undefined),

@@ -1,4 +1,4 @@
-import type { AssetId, BlockId, UserId } from "@orcai/core";
+import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	type DocumentReadiness,
@@ -97,6 +97,7 @@ export const readinessTotals = (
 export const loadRepositoryReadiness = (params: {
 	blockIds: readonly BlockId[];
 	userId: UserId;
+	organizationId: OrganizationId | undefined;
 	zedToken?: string;
 }) =>
 	Effect.gen(function* () {
@@ -108,6 +109,7 @@ export const loadRepositoryReadiness = (params: {
 			entityType: "block",
 			entityIds: blockIds,
 			userId: params.userId,
+			organizationId: params.organizationId,
 			zedToken: params.zedToken,
 		});
 		const readableIds = blockIds.filter(

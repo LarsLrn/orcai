@@ -112,6 +112,7 @@ const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 		entityType: "block",
 		entityIds: blocks.map((block) => block.id),
 		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
 		zedToken: getZedToken(context, input),
 	});
 
@@ -155,6 +156,7 @@ const findBlock = authed.block.find
 			entityType: "block",
 			entityId: input.id,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: getZedToken(context, input),
 		});
 
@@ -162,6 +164,7 @@ const findBlock = authed.block.find
 			const assets = yield* loadDatabaseBlockAssets({
 				blockId: input.id,
 				userId: context.auth.user.id,
+				organizationId: context.auth.session.activeOrganizationId,
 				zedToken: getZedToken(context, input),
 			});
 
@@ -417,6 +420,7 @@ const blockReadiness = authed.block.readiness.effect(function* ({
 		data: yield* loadRepositoryReadiness({
 			blockIds: input.blockIds,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: getZedToken(context, input),
 		}),
 	};

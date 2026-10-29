@@ -163,6 +163,8 @@ const reasonMessages: ReasonMessages = {
 	REPOSITORY_BLOCK_TYPE_INVALID: m.error_repository_block_type_invalid,
 	REPOSITORY_NOT_FOUND: m.error_repository_not_found,
 	REQUEST_HEADERS_REQUIRED: m.error_request_headers_required,
+	RESOURCE_NOT_USABLE_IN_ORGANIZATION:
+		m.error_resource_not_usable_in_organization,
 	RESOURCE_SCOPE_REQUIRED: m.error_resource_scope_required,
 	SELF_BAN_FORBIDDEN: m.error_self_ban_forbidden,
 	SELF_DELETE_FORBIDDEN: m.error_self_delete_forbidden,

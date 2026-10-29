@@ -110,6 +110,7 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 					entityType: "asset",
 					entityIds: data.map((asset) => asset.id),
 					userId: context.auth.user.id,
+					organizationId: context.auth.session.activeOrganizationId,
 					zedToken: getZedToken(context, input),
 				});
 
@@ -188,6 +189,7 @@ const findAsset = authed.asset.find
 					entityType: "asset",
 					entityId: query.id,
 					userId: context.auth.user.id,
+					organizationId: context.auth.session.activeOrganizationId,
 					zedToken,
 				}),
 			},

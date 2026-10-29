@@ -1,17 +1,17 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { Block } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	requireUsableInOrganization,
+	usableInOrganization,
+} from "@/lib/authz/organization-use";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { chatBotUsable, requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import {
-	requireEntityPermission,
-	requirePermission,
-} from "@/lib/orpc/middlewares/permission";
+import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 
 const listChatBlocks = authed.chatBlock.list
@@ -53,11 +53,17 @@ const listChatBlocks = authed.chatBlock.list
 			};
 		}
 
-		const allowedBlockIds = yield* permittedEntityIds({
-			entityIds: blocks.map((block) => block.id),
-			entityType: "block",
-			permission: "use",
+		const [chat] = yield* db
+			.select({
+				organizationId: dbSchema.chat.organizationId,
+			})
+			.from(dbSchema.chat)
+			.where(eq(dbSchema.chat.id, input.chatId));
+		const allowedBlockIds = yield* usableInOrganization({
+			resourceType: "block",
+			resourceIds: blocks.map((block) => block.id),
 			userId: context.auth.user.id,
+			organizationId: chat?.organizationId,
 			zedToken: resolvedZedToken,
 		});
 
@@ -115,11 +121,13 @@ const attachChatBlock = authed.chatBlock.attach
 			);
 		}
 
-		yield* requirePermission({
-			entityId: input.blockId,
-			entityType: "block",
-			permission: "use",
+		yield* requireUsableInOrganization({
+			resourceType: "block",
+			resourceIds: [
+				input.blockId,
+			],
 			userId: context.auth.user.id,
+			organizationId: chat.organizationId,
 			zedToken: resolvedZedToken,
 		});
 
