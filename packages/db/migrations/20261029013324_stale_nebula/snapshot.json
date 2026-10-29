@@ -1,0 +1,73 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "a951b61a-f03c-49d6-be6a-eb49e0799f24",
+  "prevIds": [
+    "c6012c19-6212-4ddd-a1e1-538c778793cb"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resource_scope",
+        "resource_scope_active_unique"
+      ],
+      "writes": [
+        "s|idx|public.resource_scope_active_unique",
+        "n|idx|public.resource_scope_active_unique",
+        "e|idx|public.resource_scope_active_unique",
+        "n|rel|public.resource_scope_active_unique"
+      ],
+      "reads": [
+        "n|tbl|public.resource_scope",
+        "n|sch|public",
+        "n|col|public.resource_scope.resource_type",
+        "n|col|public.resource_scope.resource_id",
+        "n|col|public.resource_scope.organization_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resource_scope",
+        "name": "resource_scope_active_unique",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "resource_type",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "resource_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"ended_at\" IS NULL",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    }
+  ]
+}

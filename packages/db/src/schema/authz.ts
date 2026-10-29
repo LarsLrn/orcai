@@ -224,6 +224,9 @@ export const resourceScope = pgTable(
 			table.resourceId,
 		),
 		index("resource_scope_org_idx").on(table.organizationId),
+		uniqueIndex("resource_scope_active_unique")
+			.on(table.resourceType, table.resourceId, table.organizationId)
+			.where(sql`${table.endedAt} IS NULL`),
 	],
 );
 

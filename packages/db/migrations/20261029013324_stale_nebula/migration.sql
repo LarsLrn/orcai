@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "resource_scope_active_unique" ON "resource_scope" ("resource_type","resource_id","organization_id") WHERE "ended_at" IS NULL;
