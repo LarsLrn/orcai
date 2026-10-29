@@ -257,6 +257,7 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 					prefix: true,
 					fileType: true,
 					title: true,
+					fileName: true,
 				},
 			})
 			.pipe(
@@ -299,9 +300,7 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 			key: filePath,
 			expiresIn: expiry,
 			filename:
-				input.attachment && !input.objectKey
-					? downloadName(asset.title, asset.fileType)
-					: undefined,
+				input.attachment && !input.objectKey ? downloadName(asset) : undefined,
 		}).pipe(
 			Effect.map((presignedUrl) => ({
 				url: presignedUrl,
