@@ -2,11 +2,11 @@ import type { AssetFileType, AssetWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLinkIcon, FileTextIcon, ImageOffIcon } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { openFreshUrl, type RefetchedUrl } from "@/lib/assets/open-fresh-url";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
@@ -55,7 +55,7 @@ const FileViewer = ({ asset }: { asset: AssetWithCapabilities }) => {
 						fileType={asset.fileType}
 						filePath={file.url}
 						isMobile={isMobile}
-						refreshUrl={async () => (await refetch()).data?.url}
+						refetchUrl={refetch}
 					/>
 				</div>
 				<div className="col-span-1 flex flex-col gap-4">
@@ -78,30 +78,17 @@ const Viewport = ({
 	fileType,
 	filePath,
 	isMobile,
-	refreshUrl,
+	refetchUrl,
 }: {
 	title: string;
 	fileType: AssetFileType;
 	filePath: string;
 	isMobile: boolean;
-	refreshUrl: () => Promise<string | undefined>;
+	refetchUrl: () => Promise<RefetchedUrl>;
 }) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [loadFailed, setLoadFailed] = useState(false);
 	const [attempt, setAttempt] = useState(0);
-
-	// Presigned URLs expire, so a PDF opens through a fresh one. The tab opens
-	// synchronously to keep the click's popup permission.
-	const openPdf = async () => {
-		const tab = window.open("", "_blank");
-		const url = await refreshUrl();
-		if (url && tab) {
-			tab.location.href = url;
-			return;
-		}
-		tab?.close();
-		toast.error(m.assets_file_viewer_error_title());
-	};
 
 	switch (fileType) {
 		case "png":
@@ -123,7 +110,7 @@ const Viewport = ({
 									setLoadFailed(false);
 									setIsLoading(true);
 									setAttempt((n) => n + 1);
-									void refreshUrl();
+									void refetchUrl();
 								},
 							},
 						]}
@@ -169,7 +156,7 @@ const Viewport = ({
 								icon: ExternalLinkIcon,
 								variant: "default",
 								size: "default",
-								onClick: openPdf,
+								onClick: () => openFreshUrl(refetchUrl),
 							},
 						]}
 					/>

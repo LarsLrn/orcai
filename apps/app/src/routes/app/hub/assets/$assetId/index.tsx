@@ -22,6 +22,7 @@ import {
 	useDeleteAssetsMutation,
 	useReprocessAssetMutation,
 } from "@/hooks/mutations/use-asset-mutations";
+import { openFreshUrl } from "@/lib/assets/open-fresh-url";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import {
@@ -51,10 +52,11 @@ function RouteComponent() {
 		}),
 	);
 
-	const { data: file, status } = useQuery(
+	const { status, refetch } = useQuery(
 		orpc.storage.createDownloadUrl.queryOptions({
 			input: {
 				id: asset.data.id,
+				attachment: true,
 			},
 		}),
 	);
@@ -93,7 +95,7 @@ function RouteComponent() {
 							icon: DownloadIcon,
 							variant: "default",
 							disabled: status !== "success",
-							onClick: () => window.open(file?.url, "_blank"),
+							onClick: () => openFreshUrl(refetch),
 						},
 						canEdit && {
 							key: "edit",

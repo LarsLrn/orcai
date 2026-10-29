@@ -46,6 +46,16 @@ export const getSignedUploadUrl = (params: {
 		});
 	});
 
+/** An attachment header that keeps non-ASCII names intact (RFC 6266). */
+export const attachmentDisposition = (filename: string) => {
+	const fallback = filename.replace(/[^\x20-\x7e]|["\\%]/g, "_");
+	const encoded = encodeURIComponent(filename).replace(
+		/['()*]/g,
+		(character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+	);
+	return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
+};
+
 export const getDownloadUrl = (params: {
 	bucket: string;
 	key: string;
@@ -65,7 +75,7 @@ export const getDownloadUrl = (params: {
 			ResponseContentDisposition:
 				params.filename === undefined
 					? undefined
-					: `attachment; filename="${params.filename}"`,
+					: attachmentDisposition(params.filename),
 		});
 
 		return yield* signWithClient({

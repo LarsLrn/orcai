@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Download, Page } from "@playwright/test";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -159,6 +159,39 @@ test("assets: a pdf previews inline at 1280 px and opens in a tab at 390 px", as
 	const response = await served;
 	expect(response.status()).toBe(200);
 	expect(response.headers()["content-type"]).toContain("application/pdf");
+});
+
+test("assets: the header download saves the file under its name through a fresh signed URL", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const title = `E2E Preview ${runId()}`;
+	const asset = await uploadFile(
+		api.as("member"),
+		title,
+		"application/pdf",
+		tinyPdf(),
+	);
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await page.setViewportSize(WIDTHS[0]);
+	await open(page, `/app/hub/assets/${asset.id}`);
+	const download = page.getByRole("button", {
+		name: message("assets_detail_download_button"),
+	});
+	await expect(download).toBeEnabled();
+
+	const refreshed = page.waitForRequest((r) =>
+		r.url().includes("createDownloadUrl"),
+	);
+	const saved = new Promise<Download>((resolve) => {
+		page.context().on("page", (popup) => popup.on("download", resolve));
+	});
+	await download.click();
+	await refreshed;
+	expect((await saved).suggestedFilename()).toBe(`${title}.pdf`);
 });
 
 test("assets: a failed image load offers a retry", async ({
