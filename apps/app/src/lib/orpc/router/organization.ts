@@ -40,6 +40,7 @@ import {
 } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { listedCounts } from "@/lib/catalogue/catalogue-browse";
 import { listedHomeResources } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
@@ -247,6 +248,48 @@ const findOrganization = authed.organization.find
 				})),
 			);
 	});
+
+/**
+ * Any signed-in user may see an organisation's page: only these columns and
+ * its catalogue counts, read in one snapshot.
+ */
+const organizationProfile = authed.organization.profile.effect(function* ({
+	input,
+}) {
+	const db = yield* DB;
+	const profile = yield* db.transaction(
+		() =>
+			Effect.gen(function* () {
+				const [organization] = yield* db
+					.select({
+						id: dbSchema.organization.id,
+						name: dbSchema.organization.name,
+						logo: dbSchema.organization.logo,
+						description: dbSchema.organization.description,
+					})
+					.from(dbSchema.organization)
+					.where(eq(dbSchema.organization.id, input.id));
+				if (!organization) return undefined;
+				return {
+					...organization,
+					listed: yield* listedCounts(organization.id),
+				};
+			}),
+		{
+			isolationLevel: "repeatable read",
+			accessMode: "read only",
+		},
+	);
+	if (!profile)
+		return yield* new AppErrors.NotFoundError({
+			reason: "ORGANIZATION_NOT_FOUND",
+			id: input.id,
+			message: "Organization not found",
+		});
+	return {
+		data: profile,
+	};
+});
 
 const createOrganization = authed.organization.create
 	.use(requireInstanceAdminMiddleware)
@@ -646,6 +689,7 @@ export const organizationRouter = {
 	listAll: listAllOrganizations,
 	create: createOrganization,
 	find: findOrganization,
+	profile: organizationProfile,
 	update: updateOrganization,
 	setLogo: setOrganizationLogo,
 	removeLogo: removeOrganizationLogo,

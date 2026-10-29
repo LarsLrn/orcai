@@ -17,17 +17,23 @@ import { m } from "@/paraglide/messages";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
 import { useToolbar } from "./toolbar-provider";
 
-const levels = [
+type Level = 1 | 2 | 3 | 4;
+
+const allLevels: readonly Level[] = [
 	1,
 	2,
 	3,
 	4,
-] as const;
+];
 
 export const HeadingsToolbar = ({
 	className,
+	levels = allLevels,
 	...props
-}: React.ComponentProps<"button">) => {
+}: React.ComponentProps<"button"> & {
+	/** The heading levels the editor offers. */
+	levels?: readonly Level[];
+}) => {
 	const { editor } = useToolbar();
 	const isMobile = useMediaQuery("(max-width: 640px)");
 	const activeLevel = levels.find((level) =>

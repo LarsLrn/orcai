@@ -1,10 +1,29 @@
-import { modelIdSchema, organizationFieldsSchema } from "@orcai/schema";
+import {
+	modelIdSchema,
+	organizationDescriptionSchema,
+	organizationFieldsSchema,
+} from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod/v4";
 import { m } from "@/paraglide/messages";
 
+// The devtools serialise form options, and the description schema is recursive.
+// An opaque value also spares the form typing the document's paths.
+const descriptionFieldSchema = z.unknown().check((ctx) => {
+	if (ctx.value === null) return;
+	const [issue] =
+		organizationDescriptionSchema.safeParse(ctx.value).error?.issues ?? [];
+	if (issue)
+		ctx.issues.push({
+			code: "custom",
+			message: issue.message,
+			input: ctx.value,
+		});
+});
+
 const organizationFormSchema = organizationFieldsSchema
 	.extend({
+		description: descriptionFieldSchema,
 		assistantModelId: modelIdSchema.nullable(),
 		utilityModelId: modelIdSchema.nullable(),
 		/** `off`, `native`, or the id of the search provider. */
@@ -49,6 +68,7 @@ const defaultValues = (): z.input<typeof organizationFormSchema> => ({
 	name: "",
 	slug: "",
 	metadata: null,
+	description: null,
 	assistantModelId: null,
 	utilityModelId: null,
 	webSearch: "off",

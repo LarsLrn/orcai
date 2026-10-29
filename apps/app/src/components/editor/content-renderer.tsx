@@ -6,39 +6,55 @@ import { getEmbedUrlFromYoutubeUrl } from "@tiptap/extension-youtube";
 import { Node } from "@tiptap/pm/model";
 import { renderToReactElement } from "@tiptap/static-renderer/pm/react";
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { extensions, TiptapYoutube } from "./extensions";
+import { descriptionExtensions, extensions, TiptapYoutube } from "./extensions";
 import { renderMathToString } from "./extensions/math";
 
-const schema = getSchema(extensions);
+type Extensions = typeof extensions | typeof descriptionExtensions;
 
-const toDocument = (content: unknown) => {
+const blockSchema = getSchema(extensions);
+const descriptionSchema = getSchema(descriptionExtensions);
+
+const toDocument = (content: unknown, from: Extensions = extensions) => {
 	if (!content || typeof content !== "object" || Array.isArray(content)) {
 		return null;
 	}
 
 	try {
-		return Node.fromJSON(schema, content as JSONContent);
+		return Node.fromJSON(
+			from === descriptionExtensions ? descriptionSchema : blockSchema,
+			content as JSONContent,
+		);
 	} catch {
 		return null;
 	}
 };
 
 /** Whether stored editor content renders nothing, such as `{}` or an empty paragraph. */
-const isContentEmpty = (content: unknown) => {
-	const doc = toDocument(content);
+const isContentEmpty = (content: unknown, from?: Extensions) => {
+	const doc = toDocument(content, from);
 
 	return !doc || isNodeEmpty(doc);
 };
 
-const ContentRenderer = ({ content }: { content?: unknown }) => {
+/** Renders stored editor content; content with nodes `extensions` lacks renders nothing. */
+const ContentRenderer = ({
+	content,
+	extensions: rendererExtensions = extensions,
+	className,
+}: {
+	content?: unknown;
+	extensions?: Extensions;
+	className?: string;
+}) => {
 	const rendered = useMemo(() => {
-		const doc = toDocument(content);
+		const doc = toDocument(content, rendererExtensions);
 
 		return doc
 			? renderToReactElement({
 					content: doc,
-					extensions,
+					extensions: rendererExtensions,
 					options: {
 						nodeMapping: {
 							math: ({ node }) => (
@@ -73,10 +89,16 @@ const ContentRenderer = ({ content }: { content?: unknown }) => {
 			: null;
 	}, [
 		content,
+		rendererExtensions,
 	]);
 
 	return (
-		<article className="tiptap prose dark:prose-invert max-w-full focus:outline-none">
+		<article
+			className={cn(
+				"tiptap prose dark:prose-invert max-w-full focus:outline-none",
+				className,
+			)}
+		>
 			{rendered}
 		</article>
 	);

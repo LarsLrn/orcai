@@ -1,12 +1,13 @@
 import type { CatalogueKind, LibrarySort } from "@orcai/schema";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
+	Link,
 	type LinkProps,
 	useMatches,
 	useNavigate,
 	useSearch,
 } from "@tanstack/react-router";
-import { CompassIcon } from "lucide-react";
+import { ArrowRightIcon, CompassIcon } from "lucide-react";
 import { FilterFields } from "@/components/browse/browse-filters";
 import {
 	BrowseLayout,
@@ -16,6 +17,7 @@ import {
 	BrowseRail,
 } from "@/components/browse/browse-layout";
 import { BrowseResults } from "@/components/browse/browse-results";
+import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
 	PageDescription,
@@ -155,6 +157,41 @@ const useCatalogueSearch = (view: CatalogueView) => {
 	};
 };
 
+/** Links to the pages of the organisations the Organisation filter picked. */
+const PickedOrganizations = ({
+	organizationIds,
+}: {
+	organizationIds: readonly string[];
+}) => {
+	const picked = (useCatalogueOrganizations() ?? []).filter((organization) =>
+		organizationIds.includes(organization.id),
+	);
+	if (picked.length === 0) return null;
+	return (
+		<ul className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">
+			{picked.map((organization) => (
+				<li key={organization.id}>
+					<Link
+						to="/app/organizations/$organizationId"
+						params={{
+							organizationId: organization.id,
+						}}
+						className="group/org flex items-center gap-1.5 rounded-sm outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/75"
+					>
+						<OrganizationLogo organization={organization} size="sm" />
+						<span className="group-hover/org:underline">
+							{m.catalogue_organisation_page_link({
+								organisation: organization.name,
+							})}
+						</span>
+						<ArrowRightIcon aria-hidden="true" className="size-3.5" />
+					</Link>
+				</li>
+			))}
+		</ul>
+	);
+};
+
 const CatalogueHeader = () => {
 	const organizations = useCatalogueOrganizations();
 	return (
@@ -234,6 +271,9 @@ export const CatalogueBrowse = ({
 						label={m.catalogue_views_label()}
 						orientation="horizontal"
 					/>
+					{showFilters ? (
+						<PickedOrganizations organizationIds={search.organizationIds} />
+					) : null}
 					{children}
 				</BrowseMain>
 			</BrowseLayout>

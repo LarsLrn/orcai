@@ -1,12 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { type LinkProps, useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+/** Switches the active organisation, then opens `to`. */
 export const useSetActiveOrganizationMutation = (
 	opts: ReturnType<typeof orpc.user.setActiveOrganization.mutationOptions> = {},
+	to: LinkProps["to"] = "/app",
 ) => {
 	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
@@ -23,7 +25,7 @@ export const useSetActiveOrganizationMutation = (
 						type: "inactive",
 					});
 					await navigate({
-						to: "/app",
+						to,
 					});
 
 					await opts.onSuccess?.(...args);

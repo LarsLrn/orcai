@@ -282,6 +282,7 @@
 	"catalogue_filter_organisation_label": "Organisation",
 	"catalogue_filter_status_label": "Status",
 	"catalogue_from_organisation": "From {organisation}",
+	"catalogue_organisation_page_link": "About {organisation}",
 	"catalogue_install_blocks_toast_error": "Could not add the blocks of {name}",
 	"catalogue_install_blocks_toast_loading": "Adding the blocks of {name}...",
 	"catalogue_install_blocks_toast_success": [
@@ -4155,6 +4156,59 @@
 	"orgs_form_name_placeholder": "Your organisation",
 	"orgs_form_slug_label": "Slug",
 	"orgs_form_slug_placeholder": "your-organisation",
+	"orgs_form_description_label": "About the organisation",
+	"orgs_form_description_description": "Everyone on this instance sees it on the organisation page. Say what you do and share, and how to reach you.",
+	"organization_profile_active_badge": "Your organisation",
+	"organization_profile_edit_link": "Edit",
+	"organization_profile_description_label": "About",
+	"organization_profile_listed_label": "Listed in the catalogue",
+	"organization_profile_no_description": "This organisation has not added a description yet.",
+	"organization_profile_no_description_admin": "No description yet. Add one in the organisation settings.",
+	"organization_profile_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Bot",
+				"countPlural=other": "Bots"
+			}
+		}
+	],
+	"organization_profile_behaviours": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Behaviour",
+				"countPlural=other": "Behaviours"
+			}
+		}
+	],
+	"organization_profile_repositories": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Repository",
+				"countPlural=other": "Repositories"
+			}
+		}
+	],
 	"orgs_form_submit_button": "Save organisation",
 	"orgs_form_utility_model_description": "The model that writes chat and assistant titles, describes images and generates metadata in the library. A small, inexpensive model fits; images need one with the image capability. Only text models, not deprecated, on an enabled provider are listed.",
 	"orgs_form_utility_model_label": "Utility model",
@@ -4398,7 +4452,7 @@
 	"orgs_role_picker_placeholder": "Select role",
 	"orgs_role_picker_title": "Select organisation role",
 	"orgs_role_viewer_label": "Viewer",
-	"orgs_settings_page_description": "Name, slug and logo of the organisation you are working in.",
+	"orgs_settings_page_description": "Name, slug, logo and description of the organisation you are working in.",
 	"orgs_settings_page_title": "Organisation",
 	"orgs_update_toast_error": "Failed to update organisation",
 	"orgs_update_toast_loading": "Updating organisation...",
@@ -4701,6 +4755,8 @@
 	"select_organisation_page_empty_description": "Accept an invitation above or contact your administrator to get access.",
 	"select_organisation_page_empty_title": "No organisations available yet",
 	"select_organisation_page_load_more_button": "Load more organisations",
+	"select_organisation_page_profile_link": "Organisation page",
+	"select_organisation_page_profile_link_label": "Organisation page of {organisation}",
 	"select_organisation_page_manage_instance_link": "Manage instance",
 	"select_organisation_page_no_match": "No organisation matches \"{search}\".",
 	"select_organisation_page_pending_invitations_description": "Accept an invitation to join an organisation.",

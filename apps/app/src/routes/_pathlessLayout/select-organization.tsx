@@ -195,6 +195,9 @@ function RouteComponent() {
 							organization={organization}
 							loading={organization.id === selectingId}
 							disabled={setActiveOrganization.isPending}
+							withPageLink={
+								auth.isAuthenticated && !!auth.session.activeOrganizationId
+							}
 							onSelect={() =>
 								setActiveOrganization.mutate({
 									organizationId: organization.id,

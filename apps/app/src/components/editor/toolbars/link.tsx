@@ -20,6 +20,9 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { useToolbar } from "./toolbar-provider";
 
+/** Any allowed address, to ask whether the selection can take a link. */
+export const LINK_PROBE = "https://example.com";
+
 const LinkToolbar = ({
 	className,
 	...props
@@ -56,7 +59,7 @@ const LinkToolbar = ({
 									?.can()
 									.chain()
 									.setLink({
-										href: "",
+										href: LINK_PROBE,
 									})
 									.run()
 							}

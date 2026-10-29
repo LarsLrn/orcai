@@ -7,10 +7,14 @@ import {
 	type UserId,
 	webSearchModes,
 } from "@orcai/core";
-import type { OrganizationInvitationStatus } from "@orcai/schema";
+import type {
+	OrganizationDescription,
+	OrganizationInvitationStatus,
+} from "@orcai/schema";
 import {
 	type AnyPgColumn,
 	index,
+	jsonb,
 	pgEnum,
 	pgTable,
 	text,
@@ -37,6 +41,7 @@ export const organization = pgTable("organization", {
 	name: text("name").notNull(),
 	slug: text("slug").unique().notNull(),
 	logo: text("logo"),
+	description: jsonb("description").$type<OrganizationDescription>(),
 	createdAt: timestamp("created_at").notNull(),
 	metadata: text("metadata"),
 	assistantModelId: uuid("assistant_model_id")

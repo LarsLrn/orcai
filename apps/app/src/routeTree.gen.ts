@@ -70,6 +70,7 @@ import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
 import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
 import { Route as AppOrganizationIndexRouteImport } from './routes/app/organization/index'
+import { Route as AppOrganizationsOrganizationIdRouteImport } from './routes/app/organizations/$organizationId'
 import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
 import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
@@ -447,6 +448,12 @@ const AppOrganizationIndexRoute = AppOrganizationIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppOrganizationRouteRoute,
 } as any)
+const AppOrganizationsOrganizationIdRoute =
+  AppOrganizationsOrganizationIdRouteImport.update({
+    id: '/organizations/$organizationId',
+    path: '/organizations/$organizationId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppProvidersIndexRoute = AppProvidersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -847,6 +854,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/models/add': typeof AppModelsAddRoute
+  '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -945,6 +953,7 @@ export interface FileRoutesByTo {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/models/add': typeof AppModelsAddRoute
+  '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -1063,6 +1072,7 @@ export interface FileRoutesById {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
   '/app/models/add': typeof AppModelsAddRoute
+  '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
   '/app/users/add': typeof AppUsersAddRoute
@@ -1188,6 +1198,7 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/models/add'
+    | '/app/organizations/$organizationId'
     | '/app/providers/add'
     | '/app/quotas/add'
     | '/app/users/add'
@@ -1286,6 +1297,7 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/models/add'
+    | '/app/organizations/$organizationId'
     | '/app/providers/add'
     | '/app/quotas/add'
     | '/app/users/add'
@@ -1403,6 +1415,7 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/setup'
     | '/app/models/add'
+    | '/app/organizations/$organizationId'
     | '/app/providers/add'
     | '/app/quotas/add'
     | '/app/users/add'
@@ -1914,6 +1927,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/organization/'
       preLoaderRoute: typeof AppOrganizationIndexRouteImport
       parentRoute: typeof AppOrganizationRouteRoute
+    }
+    '/app/organizations/$organizationId': {
+      id: '/app/organizations/$organizationId'
+      path: '/organizations/$organizationId'
+      fullPath: '/app/organizations/$organizationId'
+      preLoaderRoute: typeof AppOrganizationsOrganizationIdRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/app/providers/': {
       id: '/app/providers/'
@@ -2888,6 +2908,7 @@ interface AppRouteRouteChildren {
   AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
   AppQuotasRouteRoute: typeof AppQuotasRouteRouteWithChildren
   AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
+  AppOrganizationsOrganizationIdRoute: typeof AppOrganizationsOrganizationIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -2904,6 +2925,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,
   AppQuotasRouteRoute: AppQuotasRouteRouteWithChildren,
   AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
+  AppOrganizationsOrganizationIdRoute: AppOrganizationsOrganizationIdRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
