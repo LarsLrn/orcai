@@ -1,16 +1,8 @@
 import { useHydrated } from "@tanstack/react-router";
-import { useSelector } from "@tanstack/react-store";
 import { format } from "date-fns";
 import { CalendarIcon, XIcon } from "lucide-react";
-import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-	Field,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,11 +10,10 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
 import { getDateLocale } from "@/lib/presentation/date-locale";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import { FormField, formTriggerText, useFormField } from "./form-field";
 
 type DatetimeFieldProps = {
 	label: string;
@@ -43,17 +34,10 @@ const DatetimeField = ({
 	minDate,
 	maxDate,
 }: DatetimeFieldProps) => {
-	const field = useFieldContext<Date | null>();
-	useFieldLabel(field, label);
-	const id = useId();
+	const { field, ...state } = useFormField<Date | null>(label, description);
+	const { id } = state.control;
 	// The server does not know the browser's timezone or clock, so it renders no date.
 	const hydrated = useHydrated();
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
 
 	const value = field.state.value;
 
@@ -109,20 +93,19 @@ const DatetimeField = ({
 	};
 
 	return (
-		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+		<FormField state={state} label={label} description={description}>
 			<Popover>
 				<div className="flex gap-2">
 					<PopoverTrigger
 						render={
 							<Button
-								id={id}
+								{...state.control}
 								variant="outline"
 								className={cn(
 									"min-w-0 flex-1 justify-start text-left font-normal",
+									formTriggerText,
 									!value && "text-muted-foreground",
 								)}
-								aria-invalid={isInvalid}
 							>
 								{value ? (
 									hydrated && formatDate(value)
@@ -192,9 +175,7 @@ const DatetimeField = ({
 					</div>
 				</PopoverContent>
 			</Popover>
-			{description && <FieldDescription>{description}</FieldDescription>}
-			{isInvalid && <FieldError errors={errors} />}
-		</Field>
+		</FormField>
 	);
 };
 

@@ -2,9 +2,13 @@ import type { QuotaPoolDetail } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
-import { AlertCircleIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+	FormActions,
+	FormNotice,
+	FormPair,
+	FormSection,
+} from "@/components/forms/form-layout";
 import { useAppForm } from "@/hooks/form";
 import {
 	useCreateQuotaPoolMutation,
@@ -211,9 +215,9 @@ const QuotaPoolForm = ({
 				event.preventDefault();
 				form.handleSubmit();
 			}}
-			className="flex flex-col gap-4"
+			className="flex flex-col gap-5"
 		>
-			<div className="grid gap-4 md:grid-cols-2">
+			<FormSection title={m.forms_section_general_title()}>
 				<form.AppField
 					name="name"
 					children={(field) => (
@@ -221,6 +225,7 @@ const QuotaPoolForm = ({
 							label={m.common_name_label()}
 							description={m.quotas_form_name_description()}
 							placeholder={m.quotas_form_name_placeholder()}
+							width="medium"
 						/>
 					)}
 				/>
@@ -236,19 +241,18 @@ const QuotaPoolForm = ({
 						/>
 					)}
 				/>
-			</div>
+				<form.AppField
+					name="description"
+					children={(field) => (
+						<field.TextareaField
+							label={m.common_description_label()}
+							placeholder={m.quotas_form_description_placeholder()}
+						/>
+					)}
+				/>
+			</FormSection>
 
-			<form.AppField
-				name="description"
-				children={(field) => (
-					<field.TextareaField
-						label={m.common_description_label()}
-						placeholder={m.quotas_form_description_placeholder()}
-					/>
-				)}
-			/>
-
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<FormSection title={m.quotas_form_budget_section_title()}>
 				<form.AppField
 					name="modelId"
 					children={(field) => (
@@ -257,6 +261,7 @@ const QuotaPoolForm = ({
 							placeholder={m.quotas_form_model_scope_placeholder()}
 							description={m.quotas_form_model_scope_description()}
 							options={modelOptions}
+							width="medium"
 						/>
 					)}
 				/>
@@ -284,30 +289,43 @@ const QuotaPoolForm = ({
 						/>
 					)}
 				/>
-				<form.AppField
-					name="budgetAmount"
-					children={(field) => (
-						<field.TextField
-							label={m.quotas_form_budget_label()}
-							type="number"
-							min={1}
-							description={m.quotas_form_budget_description()}
-						/>
-					)}
-				/>
-				<form.AppField
-					name="priority"
-					children={(field) => (
-						<field.TextField
-							label={m.quotas_form_priority_label()}
-							type="number"
-							description={m.quotas_form_priority_description()}
-						/>
-					)}
-				/>
-			</div>
+				<FormPair>
+					<form.AppField
+						name="budgetAmount"
+						children={(field) => (
+							<field.TextField
+								label={m.quotas_form_budget_label()}
+								type="number"
+								min={1}
+								description={m.quotas_form_budget_description()}
+							/>
+						)}
+					/>
+					<form.AppField
+						name="priority"
+						children={(field) => (
+							<field.TextField
+								label={m.quotas_form_priority_label()}
+								type="number"
+								description={m.quotas_form_priority_description()}
+							/>
+						)}
+					/>
+				</FormPair>
+			</FormSection>
 
-			<div className="grid gap-4 md:grid-cols-2">
+			<FormSection title={m.quotas_form_access_section_title()}>
+				<form.AppField
+					name="groupIds"
+					children={(field) => (
+						<field.MultiSelectField
+							label={m.quotas_form_groups_label()}
+							placeholder={m.quotas_form_groups_placeholder()}
+							description={m.quotas_form_groups_description()}
+							options={eligibleGroupOptions}
+						/>
+					)}
+				/>
 				<form.AppField
 					name="isDefault"
 					children={(field) => (
@@ -317,6 +335,9 @@ const QuotaPoolForm = ({
 						/>
 					)}
 				/>
+			</FormSection>
+
+			<FormSection title={m.forms_section_availability_title()}>
 				<form.AppField
 					name="isActive"
 					children={(field) => (
@@ -326,38 +347,22 @@ const QuotaPoolForm = ({
 						/>
 					)}
 				/>
-			</div>
+			</FormSection>
 
-			<form.AppField
-				name="groupIds"
-				children={(field) => (
-					<field.MultiSelectField
-						label={m.quotas_form_groups_label()}
-						placeholder={m.quotas_form_groups_placeholder()}
-						description={m.quotas_form_groups_description()}
-						options={eligibleGroupOptions}
-					/>
-				)}
-			/>
-
-			{action === "create" ? (
-				<Alert>
-					<AlertCircleIcon className="h-4 w-4" />
-					<AlertTitle>{m.quotas_form_undeletable_alert_title()}</AlertTitle>
-					<AlertDescription>
-						{m.quotas_form_undeletable_alert_description()}
-					</AlertDescription>
-				</Alert>
-			) : null}
+			{action === "create" && (
+				<FormNotice>{m.quotas_form_undeletable_notice()}</FormNotice>
+			)}
 
 			<form.AppForm>
-				<form.SubmitButton
-					label={
-						action === "create"
-							? m.quotas_form_create_button()
-							: m.quotas_form_save_changes_button()
-					}
-				/>
+				<FormActions>
+					<form.SubmitButton
+						label={
+							action === "create"
+								? m.quotas_form_create_button()
+								: m.quotas_form_save_changes_button()
+						}
+					/>
+				</FormActions>
 			</form.AppForm>
 		</form>
 	);

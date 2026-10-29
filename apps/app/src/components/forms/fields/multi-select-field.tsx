@@ -1,6 +1,5 @@
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
-import { useSelector } from "@tanstack/react-store";
-import { useId, useMemo } from "react";
+import { useMemo } from "react";
 import {
 	Combobox,
 	ComboboxChip,
@@ -14,16 +13,8 @@ import {
 	ComboboxTrigger,
 	ComboboxValue,
 } from "@/components/ui/combobox";
-import {
-	Field,
-	FieldContent,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "@/components/ui/field";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
 import { m } from "@/paraglide/messages";
+import { FormField, useFormField } from "./form-field";
 
 interface MultiSelectOption {
 	value: string;
@@ -45,15 +36,8 @@ const MultiSelectField = ({
 	placeholder?: string;
 	disabled?: boolean;
 }) => {
-	const field = useFieldContext<string[]>();
-	useFieldLabel(field, label);
-	const id = useId();
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
+	const { field, ...state } = useFormField<string[]>(label, description);
+	const { id } = state.control;
 
 	const items = useMemo(
 		() =>
@@ -78,28 +62,18 @@ const MultiSelectField = ({
 		],
 	);
 
-	const descriptionId = description ? `${id}-description` : undefined;
-	const errorId = isInvalid ? `${id}-error` : undefined;
 	const selectedCount = field.state.value.length;
 	const keyboardHintId = selectedCount > 0 ? `${id}-keyboard` : undefined;
 	const describedBy =
 		[
-			descriptionId,
-			errorId,
+			state.control["aria-describedby"],
 			keyboardHintId,
 		]
 			.filter(Boolean)
 			.join(" ") || undefined;
 
 	return (
-		<Field data-invalid={isInvalid}>
-			<FieldContent>
-				<FieldLabel htmlFor={id}>{label}</FieldLabel>
-				{description && (
-					<FieldDescription id={descriptionId}>{description}</FieldDescription>
-				)}
-				{isInvalid && <FieldError id={errorId} errors={errors} />}
-			</FieldContent>
+		<FormField state={state} label={label} description={description}>
 			<Combobox
 				items={items}
 				multiple
@@ -133,7 +107,7 @@ const MultiSelectField = ({
 									<ComboboxChipsInput
 										id={id}
 										onBlur={field.handleBlur}
-										aria-invalid={isInvalid}
+										aria-invalid={state.isInvalid}
 										aria-describedby={describedBy}
 										placeholder={value.length > 0 ? "" : placeholder}
 									/>
@@ -166,7 +140,7 @@ const MultiSelectField = ({
 					})}
 				</span>
 			)}
-		</Field>
+		</FormField>
 	);
 };
 

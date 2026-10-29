@@ -1,15 +1,7 @@
-import { useSelector } from "@tanstack/react-store";
 import type { Content } from "@tiptap/core";
-import { lazy, Suspense, useId } from "react";
+import { lazy, Suspense } from "react";
 import { BlockEditorPlaceholder } from "@/components/editor/block-editor-placeholder";
-import {
-	Field,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "@/components/ui/field";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
+import { FormField, useFormField } from "./form-field";
 
 // Tiptap is large, so only the editor waits for its chunk while the form hydrates.
 const BlockEditor = lazy(() =>
@@ -38,22 +30,14 @@ const BlockEditorField = ({
 	description,
 	htmlFieldName,
 }: BlockEditorFieldProps) => {
-	const field = useFieldContext<Content>();
-	useFieldLabel(field, label);
-	const id = useId();
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
+	const { field, ...state } = useFormField<Content>(label, description);
 
 	return (
-		<Field data-invalid={isInvalid}>
-			<FieldLabel id={id}>{label}</FieldLabel>
+		<FormField state={state} label={label} description={description}>
 			<Suspense fallback={<BlockEditorPlaceholder />}>
 				<BlockEditor
-					labelledBy={id}
+					labelledBy={state.labelId}
+					describedBy={state.control["aria-describedby"]}
 					content={field.state.value}
 					onUpdate={(editor) => {
 						field.handleChange(editor.getJSON() as Content);
@@ -70,9 +54,7 @@ const BlockEditorField = ({
 					}}
 				/>
 			</Suspense>
-			{description && <FieldDescription>{description}</FieldDescription>}
-			{isInvalid && <FieldError errors={errors} />}
-		</Field>
+		</FormField>
 	);
 };
 

@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { FormPage } from "@/components/forms/form-layout";
 import { ProviderForm } from "@/components/provider/form/provider-form";
-import {
-	Page,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/providers/add")({
@@ -21,13 +16,8 @@ export const Route = createFileRoute("/app/providers/add")({
 
 function RouteComponent() {
 	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>{m.providers_add_page_title()}</PageTitle>
-			</PageHeader>
-			<PageContent>
-				<ProviderForm action="create" />
-			</PageContent>
-		</Page>
+		<FormPage title={m.providers_add_page_title()}>
+			<ProviderForm action="create" />
+		</FormPage>
 	);
 }

@@ -132,28 +132,23 @@ test("instance: the organisation form refuses an empty name and an empty slug", 
 		})
 		.click();
 
-	const required = message("error_validation_required");
-	const fieldOf = (label: string) =>
-		page.getByRole("group").filter({
-			has: page.getByLabel(label),
-		});
-	const nameField = fieldOf(message("orgs_form_name_label"));
-	const slugField = fieldOf(message("orgs_form_slug_label"));
+	// Each control references its error through its accessible description.
+	const required = new RegExp(
+		message("error_validation_required").replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+	);
+	const name = page.getByLabel(message("orgs_form_name_label"));
+	const slug = page.getByLabel(message("orgs_form_slug_label"));
 
-	await expect(nameField.getByText(required)).toBeVisible();
-	await expect(slugField.getByText(required)).toBeVisible();
+	await expect(name).toHaveAccessibleDescription(required);
+	await expect(slug).toHaveAccessibleDescription(required);
 
 	// A name alone leaves the slug complaint standing.
-	await nameField
-		.getByLabel(message("orgs_form_name_label"))
-		.fill(`E2E Invalid ${runId()}`);
-	await expect(nameField.getByText(required)).toHaveCount(0);
-	await expect(slugField.getByText(required)).toBeVisible();
+	await name.fill(`E2E Invalid ${runId()}`);
+	await expect(name).not.toHaveAccessibleDescription(required);
+	await expect(slug).toHaveAccessibleDescription(required);
 
-	await slugField
-		.getByLabel(message("orgs_form_slug_label"))
-		.fill(`e2e-invalid-${runId()}`);
-	await expect(slugField.getByText(required)).toHaveCount(0);
+	await slug.fill(`e2e-invalid-${runId()}`);
+	await expect(slug).not.toHaveAccessibleDescription(required);
 });
 
 test("instance: the deletion dialog counts what goes and asks for the slug", async ({

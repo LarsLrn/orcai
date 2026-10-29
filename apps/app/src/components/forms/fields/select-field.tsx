@@ -1,16 +1,12 @@
-import { useSelector } from "@tanstack/react-store";
-import { useId } from "react";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
-import {
-	Field,
-	FieldContent,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "@/components/ui/field";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import {
+	type ControlWidth,
+	FormField,
+	formTriggerText,
+	useFormField,
+} from "./form-field";
 
 const SelectField = ({
 	label,
@@ -18,6 +14,7 @@ const SelectField = ({
 	description,
 	placeholder = m.forms_select_field_placeholder(),
 	disabled = false,
+	width = "short",
 }: {
 	label: string;
 	options:
@@ -29,36 +26,28 @@ const SelectField = ({
 	description?: string;
 	placeholder?: string;
 	disabled?: boolean;
+	width?: ControlWidth;
 }) => {
-	const field = useFieldContext<string>();
-	useFieldLabel(field, label);
-	const id = useId();
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
+	const { field, ...state } = useFormField<string>(label, description);
 
 	return (
-		<Field orientation="responsive" data-invalid={isInvalid}>
-			<FieldContent>
-				<FieldLabel htmlFor={id}>{label}</FieldLabel>
-				{description && <FieldDescription>{description}</FieldDescription>}
-				{isInvalid && <FieldError errors={errors} />}
-			</FieldContent>
+		<FormField
+			state={state}
+			label={label}
+			description={description}
+			width={width}
+		>
 			<OptionPicker
-				id={id}
+				{...state.control}
 				name={field.name}
 				options={options ?? []}
 				value={field.state.value}
 				onChange={field.handleChange}
 				placeholder={placeholder}
 				disabled={disabled || options === undefined || options.length === 0}
-				aria-invalid={isInvalid}
-				className="min-w-30"
+				className={cn("w-full", formTriggerText)}
 			/>
-		</Field>
+		</FormField>
 	);
 };
 

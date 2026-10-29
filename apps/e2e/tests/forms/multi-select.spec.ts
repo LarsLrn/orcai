@@ -204,7 +204,11 @@ test("forms: eligible groups show member counts and replace the default group", 
 	const poolName = formsName("Pool");
 	await page.getByLabel(message("common_name_label")).fill(poolName);
 	await pickProvider(page, providerName);
-	await page.getByLabel(message("quotas_form_budget_label")).fill("100");
+	await page
+		.getByRole("spinbutton", {
+			name: message("quotas_form_budget_label"),
+		})
+		.fill("100");
 
 	const input = page.getByRole("combobox", {
 		name: message("quotas_form_groups_label"),

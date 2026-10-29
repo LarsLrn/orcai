@@ -1,6 +1,4 @@
-import { useSelector } from "@tanstack/react-store";
 import { XIcon } from "lucide-react";
-import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -9,10 +7,9 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { Slider } from "@/components/ui/slider";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import { useFormField } from "./form-field";
 
 /**
  * With a placeholder the field may be unset: it then shows the placeholder,
@@ -37,26 +34,22 @@ const SliderField = ({
 	restingValue: number;
 	formatValue?: (value: number) => string;
 }) => {
-	const field = useFieldContext<number | undefined>();
-	useFieldLabel(field, label);
-	const id = useId();
+	const { field, ...state } = useFormField<number | undefined>(
+		label,
+		description,
+	);
 	const extractNumberValue = (nextValue: number | readonly number[]) =>
 		Array.isArray(nextValue) ? nextValue[0] : nextValue;
 
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
 	const storedValue = field.state.value;
 	const isSet = typeof storedValue === "number";
 	const value = isSet ? storedValue : restingValue;
 	const valueText = formatValue ? formatValue(value) : String(value);
 
 	return (
-		<Field data-invalid={isInvalid}>
+		<Field data-invalid={state.isInvalid}>
 			<div className="flex items-center justify-between gap-3">
-				<FieldLabel htmlFor={id}>{label}</FieldLabel>
+				<FieldLabel htmlFor={state.control.id}>{label}</FieldLabel>
 				<div className="flex items-center gap-1">
 					<span className="text-muted-foreground text-sm">
 						{isSet ? valueText : placeholder}
@@ -76,8 +69,13 @@ const SliderField = ({
 					)}
 				</div>
 			</div>
+			{description && (
+				<FieldDescription id={state.hintId}>{description}</FieldDescription>
+			)}
+			{/* The root cannot take focus, so it stays out of the invalid-field focus. */}
 			<Slider
-				id={id}
+				id={state.control.id}
+				aria-describedby={state.control["aria-describedby"]}
 				name={field.name}
 				value={[
 					value,
@@ -101,10 +99,10 @@ const SliderField = ({
 					);
 					field.handleBlur();
 				}}
-				aria-invalid={isInvalid}
 			/>
-			{description && <FieldDescription>{description}</FieldDescription>}
-			{isInvalid && <FieldError errors={errors} />}
+			{state.isInvalid && (
+				<FieldError id={state.errorId} errors={state.errors} />
+			)}
 		</Field>
 	);
 };

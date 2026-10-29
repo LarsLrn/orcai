@@ -1,12 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { FormPage } from "@/components/forms/form-layout";
 import { ModelForm } from "@/components/model/form/model-form";
-import {
-	Page,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -32,13 +27,8 @@ function RouteComponent() {
 	);
 
 	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>{m.models_edit_page_title()}</PageTitle>
-			</PageHeader>
-			<PageContent>
-				<ModelForm action="update" model={model.data} />
-			</PageContent>
-		</Page>
+		<FormPage title={m.models_edit_page_title()}>
+			<ModelForm action="update" model={model.data} />
+		</FormPage>
 	);
 }
