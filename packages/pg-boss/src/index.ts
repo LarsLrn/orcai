@@ -1,4 +1,5 @@
 export { type Job, type JobWithMetadata, PgBoss } from "pg-boss";
+export * from "./activity";
 export * from "./asset-metadata";
 export * from "./asset-pipeline";
 export * from "./errors";
@@ -6,5 +7,6 @@ export * from "./helpers";
 export * from "./link-points";
 export * from "./monitoring";
 export * from "./probe";
+export * from "./processing-completion";
 export { makePgBossLayer, PgBossService } from "./service";
 export { toPgBossRunError } from "./utils/error-helper";

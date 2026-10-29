@@ -186,6 +186,8 @@ const createBlock = authed.block.create
 							? yield* replaceBlockAssets({
 									blockId: block.id,
 									assetIds: input.assets,
+									userId: context.auth.user.id,
+									uploadRunIds: input.uploadRunIds,
 								})
 							: undefined,
 				};
@@ -311,6 +313,8 @@ const updateBlock = authed.block.update
 							? yield* replaceBlockAssets({
 									blockId: block.id,
 									assetIds: input.assets,
+									userId: context.auth.user.id,
+									uploadRunIds: input.uploadRunIds,
 								})
 							: undefined,
 				};
@@ -381,8 +385,11 @@ const retryBlockDocument = authed.block.retryDocument
 			entityId: "blockId",
 		}),
 	)
-	.effect(function* ({ input }) {
-		return yield* retryDocument(input);
+	.effect(function* ({ input, context }) {
+		return yield* retryDocument({
+			...input,
+			userId: context.auth.user.id,
+		});
 	});
 
 const retryFailedBlockDocuments = authed.block.retryFailed
@@ -391,8 +398,11 @@ const retryFailedBlockDocuments = authed.block.retryFailed
 			entityId: "blockId",
 		}),
 	)
-	.effect(function* ({ input }) {
-		return yield* retryFailedDocuments(input);
+	.effect(function* ({ input, context }) {
+		return yield* retryFailedDocuments({
+			...input,
+			userId: context.auth.user.id,
+		});
 	});
 
 export const blockRouter = {

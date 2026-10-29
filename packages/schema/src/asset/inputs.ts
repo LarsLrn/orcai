@@ -54,6 +54,8 @@ export const addAssetToLibraryInputSchema = z.object({
 export const createAssetsFromUploadsInputSchema = z.object({
 	route: assetUploadRouteSchema,
 	files: z.array(uploadFileObjectSchema).min(1),
+	/** The client's key for a library upload; a repeated call joins its activity run. */
+	uploadKey: z.uuid().optional(),
 });
 
 export const deleteAssetsInputSchema = z.object({

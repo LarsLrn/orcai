@@ -29,6 +29,9 @@ const grantRejections = (rejections: GrantRejection[]) =>
 // One entry per reason; a reason without an entry does not compile.
 const reasonMessages: ReasonMessages = {
 	ACTIVE_ORGANIZATION_REQUIRED: m.error_active_organization_required,
+	ACTIVITY_FAILURE_NOT_FOUND: m.error_activity_failure_not_found,
+	ACTIVITY_RUN_NOT_FOUND: m.error_activity_run_not_found,
+	ACTIVITY_RUN_RUNNING: m.error_activity_run_running,
 	AI_PROMPT_REQUIRED: m.error_ai_prompt_required,
 	AI_STREAM_FAILED: m.error_ai_stream_failed,
 	AI_TOOL_FAILED: m.error_ai_tool_failed,

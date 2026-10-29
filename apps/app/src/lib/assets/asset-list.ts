@@ -1,3 +1,4 @@
+import type { ActivityRunId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ListAssetsInput, PipelineStatus } from "@orcai/schema";
 import {
@@ -12,6 +13,7 @@ import {
 	isNotNull,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { visibleRuns } from "@/lib/activity/runs";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { readableIds, requireReadable } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
@@ -75,7 +77,34 @@ export const assetTiles = (reader: Reader, query: TileQuery) =>
 		}));
 	});
 
-/** One page of a repository's documents, of known assets, or of the active organisation's library. */
+/** The assets of the user's run while it is visible to them; none otherwise. */
+const runAssetIds = (runId: ActivityRunId, userId: UserId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { activityMember, activityRun } = dbSchema;
+		const rows = yield* db
+			.select({
+				assetId: activityMember.assetId,
+			})
+			.from(activityMember)
+			.innerJoin(activityRun, eq(activityRun.id, activityMember.runId))
+			.where(
+				and(
+					eq(activityRun.id, runId),
+					visibleRuns(userId),
+					isNotNull(activityMember.assetId),
+				),
+			);
+		return rows.flatMap((row) =>
+			row.assetId
+				? [
+						row.assetId,
+					]
+				: [],
+		);
+	});
+
+/** One page of a repository's documents, of known assets, of a run's assets, or of the active organisation's library. */
 export const listAssetTiles = (params: {
 	input: ListAssetsInput;
 	reader: Reader;
@@ -84,10 +113,17 @@ export const listAssetTiles = (params: {
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { input, reader } = params;
-		const { repositoryId, ids, processing, suggestions } = input.filters ?? {};
+		const { repositoryId, processing, suggestions, runId } =
+			input.filters ?? {};
+		const known = input.filters?.ids;
+		const ids = runId
+			? (yield* runAssetIds(runId, reader.userId)).filter(
+					(id) => !known || known.includes(id),
+				)
+			: known;
 		if (repositoryId) yield* requireReadable("block", repositoryId, reader);
 
-		// A repository's documents and known ids are contents; the rest is the library.
+		// A repository's documents, known ids and a run's assets are contents; the rest is the library.
 		const where = and(
 			repositoryId
 				? inArray(

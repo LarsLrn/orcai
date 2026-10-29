@@ -1,3 +1,11 @@
+import {
+	activityAdmission,
+	activityDismissal,
+	activityMember,
+	activityRun,
+	activityRunKindEnum,
+	activityStageStateEnum,
+} from "./activity";
 import { asset } from "./asset";
 import {
 	account,
@@ -57,6 +65,10 @@ import {
 } from "./quota";
 
 export const dbSchema = {
+	activityRun,
+	activityAdmission,
+	activityMember,
+	activityDismissal,
 	user,
 	session,
 	account,
@@ -96,6 +108,8 @@ export const dbSchema = {
 };
 
 export const enumSchema = {
+	activityRunKindEnum,
+	activityStageStateEnum,
 	authzOutboxStatusEnum,
 	botSetupStrengthEnum,
 	chatKindEnum,

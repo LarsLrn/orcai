@@ -11,6 +11,7 @@ import {
 } from "@orcai/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { inActivityRun } from "@/lib/activity/admission";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mapping";
@@ -57,27 +58,40 @@ export const findLatestDataExport = (userId: UserId) =>
 export const requestDataExport = (userId: UserId) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const [created] = yield* db
-			.insert(dbSchema.dataExport)
-			.values({
+		const created = yield* inActivityRun(
+			{
 				userId,
-			})
-			.returning()
-			.pipe(
-				Effect.catchIf(
-					(error) =>
-						uniqueViolationConstraint(error) ===
-						"data_export_user_in_flight_unique",
-					(cause) =>
-						Effect.fail(
-							new AppErrors.ConflictError({
-								reason: "DATA_EXPORT_IN_PROGRESS",
-								message: "An export of this user's data is already running",
-								cause,
-							}),
-						),
-				),
-			);
+				kind: "export",
+			},
+			(runId) =>
+				Effect.gen(function* () {
+					const [row] = yield* db
+						.insert(dbSchema.dataExport)
+						.values({
+							userId,
+						})
+						.returning();
+					yield* db.insert(dbSchema.activityMember).values({
+						runId,
+						dataExportId: row.id,
+					});
+					return row;
+				}),
+		).pipe(
+			Effect.catchIf(
+				(error) =>
+					uniqueViolationConstraint(error) ===
+					"data_export_user_in_flight_unique",
+				(cause) =>
+					Effect.fail(
+						new AppErrors.ConflictError({
+							reason: "DATA_EXPORT_IN_PROGRESS",
+							message: "An export of this user's data is already running",
+							cause,
+						}),
+					),
+			),
+		);
 
 		yield* sendJobBatch<DataExportPayload>({
 			jobName: DATA_EXPORT_JOB_NAME,

@@ -113,6 +113,8 @@ Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run u
 
 Data exports (`data-export-job`) are the exception: the app server works them, one at a time per app instance, because their chat transcripts need the app's code. The workers still create the queue and its dead letter queue (`data-export-dead-letter-job`), and the app starts working it once both exist, so a deployment without workers cannot export data. The retry and timeout settings are the same; an export whose attempts are used up is marked failed and the user can start a new one. Stopping the app interrupts a running export, and pg-boss retries it.
 
+The `activity-cleanup-job` runs every hour and keeps each user's activity bounded. It deletes an entry seven days after its work finished, or once the user dismissed it, and never deletes an entry whose work is still running. Failures and suggestions that need a user's attention are read from the assets and exports themselves, so the cleanup never removes one.
+
 ## Upload Storage Lifecycle
 
 Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight.

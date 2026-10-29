@@ -1,3 +1,5 @@
+import type { ActivityWorkerContext } from "@/activity/definitions";
+import { activityWorkerDefinitions } from "@/activity/definitions";
 import type { AssetWorkerContext } from "@/asset/definitions";
 import { assetWorkerDefinitions } from "@/asset/definitions";
 import type { DataExportWorkerContext } from "@/data-export/definitions";
@@ -9,6 +11,7 @@ import { quotaWorkerDefinitions } from "@/quota/definitions";
 import type { WorkerDefinition } from "@/worker/types";
 
 export type BackgroundWorkerContext =
+	| ActivityWorkerContext
 	| AssetWorkerContext
 	| QuotaWorkerContext
 	| NotificationWorkerContext
@@ -19,4 +22,5 @@ export const backgroundWorkerDefinitions = [
 	...assetWorkerDefinitions,
 	...notificationWorkerDefinitions,
 	...dataExportWorkerDefinitions,
+	...activityWorkerDefinitions,
 ] as readonly WorkerDefinition<BackgroundWorkerContext, unknown>[];

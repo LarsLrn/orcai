@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { activityRunIdSchema } from "../activity/ref";
 import { entityCapabilitiesSchema } from "../authorization";
 import { blockIdSchema } from "../block/ref";
 import { resourceOwnerSchema } from "../resource/schema";
@@ -68,16 +69,18 @@ export const assetFiltersSchema = z
 			.optional(),
 		/** Only assets with metadata suggestions to review that the reader can edit. */
 		suggestions: z.literal(true).optional(),
+		/** Only assets of one of the reader's activity runs, wherever they live. */
+		runId: activityRunIdSchema.optional(),
 	})
 	.refine(
 		(filters) =>
 			!(
 				(filters.scope || filters.suggestions) &&
-				(filters.repositoryId || filters.ids)
+				(filters.repositoryId || filters.ids || filters.runId)
 			),
 		{
 			message:
-				"A repository's documents and known ids have no scope or suggestions",
+				"A repository's documents, known ids and a run's assets have no scope or suggestions",
 			path: [
 				"scope",
 			],

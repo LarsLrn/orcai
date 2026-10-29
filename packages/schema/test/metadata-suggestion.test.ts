@@ -44,6 +44,14 @@ describe("applyMetadataSuggestion", () => {
 				language: "en",
 			},
 			review: null,
+			filled: [
+				"title",
+				"citation",
+				"sourceType",
+				"journalName",
+				"description",
+				"language",
+			],
 		});
 	});
 

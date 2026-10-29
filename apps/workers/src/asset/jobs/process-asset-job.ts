@@ -1,11 +1,7 @@
 import { buckets } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
-import {
-	queueIndexing,
-	queueMetadataGeneration,
-	toPgBossRunError,
-} from "@orcai/pg-boss";
+import { queueAfterProcessing, toPgBossRunError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
@@ -25,7 +21,6 @@ import {
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
 } from "@orcai/schema";
-import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { describeImages, imageMediaType } from "@/asset/image-descriptions";
 import {
@@ -175,41 +170,26 @@ const isEmptyArtifact = (artifact: StoredExtractionArtifact) =>
 const completeAndQueueIndexing = (attempt: ProcessingAttempt) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const { asset, blockAsset } = dbSchema;
+		const { asset } = dbSchema;
 
-		return yield* db.transaction(() =>
-			Effect.gen(function* () {
-				const completed = yield* db
-					.update(asset)
-					.set({
-						processingStatus: "completed",
-						processingFailure: null,
-					})
-					.where(currentProcessing(attempt))
-					.returning({
-						id: asset.id,
-					});
-				if (completed.length === 0) return false;
-
-				yield* queueIndexing(
-					yield* db
-						.select({
-							assetId: blockAsset.assetId,
-							blockId: blockAsset.blockId,
-							attempt: blockAsset.indexAttempt,
+		return yield* retryDeadlocks(
+			db.transaction(() =>
+				Effect.gen(function* () {
+					const completed = yield* db
+						.update(asset)
+						.set({
+							processingStatus: "completed",
+							processingFailure: null,
 						})
-						.from(blockAsset)
-						.where(eq(blockAsset.assetId, attempt.assetId)),
-				);
-				yield* queueMetadataGeneration({
-					assetIds: [
-						attempt.assetId,
-					],
-					mode: "apply",
-					onlyMissing: true,
-				});
-				return true;
-			}),
+						.where(currentProcessing(attempt))
+						.returning({
+							id: asset.id,
+						});
+					if (completed.length === 0) return false;
+					yield* queueAfterProcessing(attempt);
+					return true;
+				}),
+			),
 		);
 	});
 

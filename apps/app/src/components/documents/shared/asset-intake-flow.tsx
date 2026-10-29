@@ -1,3 +1,4 @@
+import type { ActivityRunId } from "@orcai/core";
 import type { Asset } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon } from "lucide-react";
@@ -40,8 +41,15 @@ const AssetIntakeFlow = ({
 	onDone,
 	variant = "page",
 }: {
-	/** Also hands over the create call's zedToken, so later reads see the new assets. */
-	onAssetsCreated?: (assets: Asset[], zedToken: string | undefined) => void;
+	/**
+	 * Also hands over the create call's zedToken, so later reads see the new
+	 * assets, and the upload's activity run.
+	 */
+	onAssetsCreated?: (
+		assets: Asset[],
+		zedToken: string | undefined,
+		runId: ActivityRunId | undefined,
+	) => void;
 	onAssetUpdated?: (asset: Asset) => void;
 	/** True while files upload or their assets are being created. */
 	onPendingChange?: (pending: boolean) => void;
@@ -154,7 +162,12 @@ const AssetIntakeFlow = ({
 					description={m.assets_intake_upload_description()}
 					uploadLabel={m.assets_intake_upload_button()}
 					onPendingChange={changePending}
-					onCreated={({ assets: created, failures: failed, zedToken }) => {
+					onCreated={({
+						assets: created,
+						failures: failed,
+						zedToken,
+						runId,
+					}) => {
 						setAssets((current) => [
 							...current,
 							...created.filter(
@@ -163,7 +176,7 @@ const AssetIntakeFlow = ({
 						]);
 						setFailures(failed);
 						setStep("review");
-						if (created.length > 0) onAssetsCreated?.(created, zedToken);
+						if (created.length > 0) onAssetsCreated?.(created, zedToken, runId);
 					}}
 				/>
 			) : isCompact ? (

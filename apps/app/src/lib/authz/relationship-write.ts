@@ -1,5 +1,5 @@
 import type { OrganizationId } from "@orcai/core";
-import { advisoryXactLock, DB } from "@orcai/db";
+import { advisoryXactLock, DB, retryDeadlocks } from "@orcai/db";
 import * as Context from "effect/Context";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
@@ -42,6 +42,8 @@ class ScopeGrew extends Data.TaggedError("ScopeGrew")<{
  * and records the zedToken; a failed delivery is logged and left to the
  * outbox loop, so the write still succeeds.
  *
+ * A deadlocked transaction runs again.
+ *
  * When `organizationIds` is an effect, it is read again under the locks; if
  * it names an organization not yet locked, the transaction starts over with
  * that one locked too.
@@ -63,40 +65,42 @@ export const writeRelationships = <A, E, R, ES = never, RS = never>(
 			: undefined;
 
 		const write = (locked: ReadonlySet<OrganizationId>) =>
-			db.transaction(() =>
-				Effect.gen(function* () {
-					for (const organizationId of [
-						...locked,
-					].sort())
-						yield* db.execute(lockOrganization(organizationId));
+			retryDeadlocks(
+				db.transaction(() =>
+					Effect.gen(function* () {
+						for (const organizationId of [
+							...locked,
+						].sort())
+							yield* db.execute(lockOrganization(organizationId));
 
-					if (readScope) {
-						const grown = [
-							...(yield* readScope),
-						].filter((organizationId) => !locked.has(organizationId));
-						if (grown.length > 0)
-							return yield* new ScopeGrew({
-								organizationIds: grown,
-							});
-					}
+						if (readScope) {
+							const grown = [
+								...(yield* readScope),
+							].filter((organizationId) => !locked.has(organizationId));
+							if (grown.length > 0)
+								return yield* new ScopeGrew({
+									organizationIds: grown,
+								});
+						}
 
-					const facts: RelationshipFact[] = [];
-					const result = yield* body.pipe(
-						Effect.provideService(RelationshipFacts, {
-							record: (recorded) =>
-								Effect.sync(() => {
-									facts.push(...recorded);
-								}),
-						}),
-					);
-					const eventIds = yield* enqueueRelationshipMutations(
-						projectRelationshipFacts(facts),
-					);
-					return {
-						result,
-						eventIds,
-					};
-				}),
+						const facts: RelationshipFact[] = [];
+						const result = yield* body.pipe(
+							Effect.provideService(RelationshipFacts, {
+								record: (recorded) =>
+									Effect.sync(() => {
+										facts.push(...recorded);
+									}),
+							}),
+						);
+						const eventIds = yield* enqueueRelationshipMutations(
+							projectRelationshipFacts(facts),
+						);
+						return {
+							result,
+							eventIds,
+						};
+					}),
+				),
 			);
 
 		const attempt = (locked: ReadonlySet<OrganizationId>) =>

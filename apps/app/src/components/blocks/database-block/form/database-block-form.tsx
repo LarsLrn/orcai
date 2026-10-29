@@ -92,6 +92,12 @@ const DatabaseBlockForm = ({
 				onAssetIdsChange={(ids) => form.setFieldValue("assets", ids)}
 				assets={selectedAssets}
 				onAssetsChange={setSelectedAssets}
+				onUploadRun={(runId) =>
+					form.setFieldValue("uploadRunIds", (runIds = []) => [
+						...runIds,
+						runId,
+					])
+				}
 				onRemove={undefined}
 				blockId={block?.id}
 			/>

@@ -4,6 +4,7 @@ import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
+	admitStage,
 	type Job,
 	type JobWithMetadata,
 	PgBoss,
@@ -19,6 +20,7 @@ import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
+	type VectorizeAssetPayload,
 } from "@orcai/schema";
 import { createJobQueues, createUser, IntegrationLive } from "@orcai/testing";
 import { and, eq, like, sql } from "drizzle-orm";
@@ -394,6 +396,114 @@ test(
 		expect(await queued()).toEqual({
 			indexing: 0,
 			metadata: 0,
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"completion carries the run on to metadata and to indexing in its member's repository only",
+	async () => {
+		const { asset, blockId } = await seedLinked();
+		const { elsewhere, runId } = await run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const [other] = yield* db
+					.insert(dbSchema.block)
+					.values({
+						type: "database",
+						name: "Other repository",
+						config: {},
+						userId: asset.uploaderId,
+					})
+					.returning();
+				yield* db.insert(dbSchema.blockAsset).values({
+					blockId: other.id,
+					assetId: asset.assetId,
+				});
+				const [created] = yield* db
+					.insert(dbSchema.activityRun)
+					.values({
+						userId: asset.uploaderId,
+						kind: "upload",
+						blockId,
+					})
+					.returning();
+				yield* admitStage(created.id, [
+					{
+						stage: "processing",
+						assetId: asset.assetId,
+						blockId,
+					},
+				]);
+				return {
+					elsewhere: other.id,
+					runId: created.id,
+				};
+			}),
+		);
+		const job = delivery(asset, 0);
+
+		await processOnce({
+			...job,
+			data: {
+				...job.data,
+				runId,
+			},
+		});
+
+		const indexingRuns = async (target: typeof blockId) =>
+			(
+				await boss.findJobs<VectorizeAssetPayload>(VECTORIZE_ASSET_JOB_NAME, {
+					data: {
+						assetId: asset.assetId,
+						blockId: target,
+					},
+				})
+			).map((found) => found.data.runId);
+		expect(await indexingRuns(blockId)).toEqual([
+			runId,
+		]);
+		expect(await indexingRuns(elsewhere)).toEqual([
+			undefined,
+		]);
+		const { member, actors } = await run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				const [member] = yield* db
+					.select({
+						processing: dbSchema.activityMember.processingState,
+						metadata: dbSchema.activityMember.metadataState,
+						indexing: dbSchema.activityMember.indexingState,
+					})
+					.from(dbSchema.activityMember)
+					.where(eq(dbSchema.activityMember.runId, runId));
+				const actors = yield* db
+					.select({
+						blockId: dbSchema.blockAsset.blockId,
+						actor: dbSchema.blockAsset.indexActorId,
+					})
+					.from(dbSchema.blockAsset)
+					.where(eq(dbSchema.blockAsset.assetId, asset.assetId));
+				return {
+					member,
+					actors: Object.fromEntries(
+						actors.map((row) => [
+							row.blockId,
+							row.actor,
+						]),
+					),
+				};
+			}),
+		);
+		expect(member).toEqual({
+			processing: "completed",
+			metadata: "pending",
+			indexing: "pending",
+		});
+		expect(actors).toEqual({
+			[blockId]: asset.uploaderId,
+			[elsewhere]: null,
 		});
 	},
 	TIMEOUT,

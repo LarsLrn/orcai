@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { activityRunIdSchema } from "../../activity/ref";
 import { assetIdSchema } from "../../asset/ref";
 import { userIdSchema } from "../../user/ref";
 
@@ -22,6 +23,8 @@ export const generateAssetMetadataPayloadSchema = z.object({
 	/** The asset's metadata generation the job was queued for. */
 	generation: z.number().int().nonnegative(),
 	mode: metadataGenerationModeSchema,
+	/** The activity run that admitted the work; none for automatic work. */
+	runId: activityRunIdSchema.optional(),
 });
 
 export type GenerateAssetMetadataPayload = z.infer<

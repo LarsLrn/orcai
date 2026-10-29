@@ -296,6 +296,7 @@ const BotEditorShell = ({
 			config: block.data.config,
 			assetIds: block.assets?.map((asset) => asset.id) ?? [],
 			assets: block.assets ?? [],
+			uploadRunIds: [],
 		} satisfies BotEditorFormValues["databaseBlocks"][number];
 
 		setBaseline((current) => withSavedBlock(current, linkedBlock));
@@ -896,6 +897,15 @@ const BotEditorShell = ({
 													form.setFieldValue(
 														`databaseBlocks[${index}].assets`,
 														assets,
+													);
+												}}
+												onUploadRun={(runId) => {
+													form.setFieldValue(
+														`databaseBlocks[${index}].uploadRunIds`,
+														(runIds) => [
+															...runIds,
+															runId,
+														],
 													);
 												}}
 												onRemove={() =>

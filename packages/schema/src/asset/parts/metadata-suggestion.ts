@@ -4,6 +4,9 @@ import {
 	type MetadataSuggestion,
 } from "./metadata";
 
+/** A field a metadata generation can fill. */
+export type AppliedMetadataField = "title" | keyof AssetMetadataType;
+
 type MetadataField = Exclude<keyof AssetMetadataType, "sourceType">;
 
 /** Fields that hold whatever the source type; the rest are formatted for one source type. */
@@ -43,6 +46,8 @@ export const applyMetadataSuggestion = (
 	metadata: AssetMetadataType;
 	/** What is left to review; null when everything was applied or skipped. */
 	review: MetadataSuggestion | null;
+	/** The fields whose value it changed. */
+	filled: AppliedMetadataField[];
 } => {
 	const kept = target.metadata.sourceType;
 	const suggestedType = suggestion.metadata.sourceType;
@@ -72,9 +77,25 @@ export const applyMetadataSuggestion = (
 			? suggestion.title
 			: target.title;
 
+	const fitted = fitMetadataToSourceType(metadata);
+	const keys = new Set([
+		...Object.keys(target.metadata),
+		...Object.keys(fitted),
+	] as (keyof AssetMetadataType)[]);
+
 	return {
 		title,
-		metadata: fitMetadataToSourceType(metadata),
+		metadata: fitted,
+		filled: [
+			...(title === target.title
+				? []
+				: [
+						"title" as const,
+					]),
+			...[
+				...keys,
+			].filter((field) => target.metadata[field] !== fitted[field]),
+		],
 		review:
 			Object.keys(review).length > 0
 				? {

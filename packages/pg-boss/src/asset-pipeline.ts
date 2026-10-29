@@ -1,4 +1,4 @@
-import type { AssetId, BlockId } from "@orcai/core";
+import type { ActivityRunId, AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	type AssetFileType,
@@ -11,6 +11,7 @@ import {
 } from "@orcai/schema";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { admitStage, runActor } from "./activity";
 import { sendJobBatchInTransaction } from "./helpers";
 
 const nextIndexAttempt = sql<number>`nextval('block_asset_index_attempt_seq')`;
@@ -26,10 +27,13 @@ export type ObservedLink = {
  * Starts a new indexing attempt on each link whose attempt is still the one
  * observed, and queues its job in the same transaction. A link another
  * admission got to first is left to it, so overlapping callers admit it once,
- * and a delivery of an earlier attempt changes nothing. Returns the links
- * admitted.
+ * and a delivery of an earlier attempt changes nothing. The links admitted
+ * are `runId`'s work, or automatic without it. Returns them.
  */
-export const queueIndexing = (observed: readonly ObservedLink[]) =>
+export const queueIndexing = (
+	observed: readonly ObservedLink[],
+	runId?: ActivityRunId,
+) =>
 	Effect.gen(function* () {
 		if (observed.length === 0) return [];
 		const db = yield* DB;
@@ -42,6 +46,8 @@ export const queueIndexing = (observed: readonly ObservedLink[]) =>
 					.set({
 						indexStatus: "pending",
 						indexFailure: null,
+						indexFailureId: null,
+						indexActorId: runActor(runId),
 						indexAttempt: nextIndexAttempt,
 					})
 					.where(
@@ -61,10 +67,21 @@ export const queueIndexing = (observed: readonly ObservedLink[]) =>
 						attempt: blockAsset.indexAttempt,
 					});
 				if (admitted.length > 0) {
+					yield* admitStage(
+						runId,
+						admitted.map((link) => ({
+							stage: "indexing",
+							assetId: link.assetId,
+							blockId: link.blockId,
+						})),
+					);
 					yield* sendJobBatchInTransaction<VectorizeAssetPayload>({
 						jobName: VECTORIZE_ASSET_JOB_NAME,
-						jobs: admitted.map((data) => ({
-							data,
+						jobs: admitted.map((link) => ({
+							data: {
+								...link,
+								runId,
+							},
 						})),
 					});
 				}
@@ -79,7 +96,11 @@ export const queueIndexing = (observed: readonly ObservedLink[]) =>
  * the same transaction. Every repository link
  * turns pending with a new indexing attempt, so no repository claims ready
  * for vectors about to be replaced; processing queues their indexing once it
- * completes. Returns the generation, or undefined when nothing was admitted.
+ * completes. The generation is `runId`'s work, or automatic without it, and
+ * replaces every run's indexing waiting on the asset, the run's own too;
+ * `blockId` is the repository the run indexes it in once processing
+ * completes. Returns the generation, or
+ * undefined when nothing was admitted.
  */
 export const queueProcessing = (
 	asset: {
@@ -90,10 +111,14 @@ export const queueProcessing = (
 		processingGeneration: number;
 	},
 	from: readonly PipelineStatus[],
+	run?: {
+		id: ActivityRunId;
+		blockId?: BlockId;
+	},
 ) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const { asset: assetTable, blockAsset } = dbSchema;
+		const { activityMember, asset: assetTable, blockAsset } = dbSchema;
 
 		return yield* db.transaction(() =>
 			Effect.gen(function* () {
@@ -102,6 +127,8 @@ export const queueProcessing = (
 					.set({
 						processingStatus: "pending",
 						processingFailure: null,
+						processingFailureId: null,
+						processingActorId: runActor(run?.id),
 						processingGeneration: sql`${assetTable.processingGeneration} + 1`,
 					})
 					.where(
@@ -123,9 +150,28 @@ export const queueProcessing = (
 					.set({
 						indexStatus: "pending",
 						indexFailure: null,
+						indexFailureId: null,
 						indexAttempt: nextIndexAttempt,
 					})
 					.where(eq(blockAsset.assetId, asset.id));
+				yield* admitStage(run?.id, [
+					{
+						stage: "processing",
+						assetId: asset.id,
+						blockId: run?.blockId,
+					},
+				]);
+				yield* db
+					.update(activityMember)
+					.set({
+						indexingState: "replaced",
+					})
+					.where(
+						and(
+							eq(activityMember.assetId, asset.id),
+							eq(activityMember.indexingState, "pending"),
+						),
+					);
 				yield* sendJobBatchInTransaction<ProcessAssetPayload>({
 					jobName: PROCESS_ASSET_JOB_NAME,
 					jobs: [
@@ -138,6 +184,7 @@ export const queueProcessing = (
 									type: asset.fileType,
 								},
 								generation: admitted.generation,
+								runId: run?.id,
 							},
 						},
 					],

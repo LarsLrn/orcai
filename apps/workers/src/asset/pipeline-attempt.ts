@@ -1,6 +1,12 @@
-import type { AssetId, BlockId } from "@orcai/core";
+import type { ActivityRunId, AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { type JobWithMetadata, reconcileLinkPoints } from "@orcai/pg-boss";
+import {
+	type JobWithMetadata,
+	newFailureId,
+	reconcileLinkPoints,
+	type StageTarget,
+	settleStage,
+} from "@orcai/pg-boss";
 import {
 	type GenerateAssetMetadataPayload,
 	isTransientFailure,
@@ -22,6 +28,8 @@ export class AssetPipelineError extends Data.TaggedError("AssetPipelineError")<{
 export type ProcessingAttempt = {
 	readonly assetId: AssetId;
 	readonly generation: number;
+	/** The activity run whose work it is. */
+	readonly runId?: ActivityRunId;
 };
 
 /** An indexing delivery's attempt: the link's attempt it was queued for. */
@@ -29,12 +37,14 @@ export type IndexingAttempt = {
 	readonly assetId: AssetId;
 	readonly blockId: BlockId;
 	readonly attempt: number;
+	readonly runId?: ActivityRunId;
 };
 
 /** A metadata delivery's attempt: the asset's generation it was queued for. */
 export type MetadataAttempt = {
 	readonly assetId: AssetId;
 	readonly generation: number;
+	readonly runId?: ActivityRunId;
 };
 
 export const processingAttempt = (
@@ -42,6 +52,7 @@ export const processingAttempt = (
 ): ProcessingAttempt => ({
 	assetId: data.assetRef.id,
 	generation: data.generation ?? 0,
+	runId: data.runId,
 });
 
 export const indexingAttempt = (
@@ -50,6 +61,7 @@ export const indexingAttempt = (
 	assetId: data.assetId,
 	blockId: data.blockId,
 	attempt: data.attempt ?? 0,
+	runId: data.runId,
 });
 
 const unfinished = (status: Column) =>
@@ -95,26 +107,70 @@ type Target = (values: Write) => Effect.Effect<boolean, unknown, DB>;
 const failureValue = (failure: Write["failure"], column: Column) =>
 	failure === "recorded" ? sql`coalesce(${column}, 'other')` : failure;
 
+/**
+ * Runs the attempt's fenced write; when it failed the target, records the
+ * failure on the run's member in the same transaction.
+ */
+const fencedWrite = (
+	values: Write,
+	runId: ActivityRunId | undefined,
+	stage: StageTarget,
+	write: Effect.Effect<
+		{
+			failureId: string | null;
+		}[],
+		unknown,
+		DB
+	>,
+) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db.transaction(() =>
+			Effect.gen(function* () {
+				const [written] = yield* write;
+				if (!written) return false;
+				if (values.status === "failed") {
+					yield* settleStage(runId, stage, {
+						state: "failed",
+						failureId: written.failureId,
+					});
+				}
+				return true;
+			}),
+		);
+	});
+
+const failureIdValue = (values: Write) =>
+	values.status === "failed" ? newFailureId : undefined;
+
 const processingTarget =
 	(attempt: ProcessingAttempt): Target =>
 	(values) =>
 		Effect.gen(function* () {
 			const db = yield* DB;
 			const { asset } = dbSchema;
-			const written = yield* db
-				.update(asset)
-				.set({
-					processingStatus: values.status,
-					processingFailure: failureValue(
-						values.failure,
-						asset.processingFailure,
-					),
-				})
-				.where(currentProcessing(attempt))
-				.returning({
-					id: asset.id,
-				});
-			return written.length > 0;
+			return yield* fencedWrite(
+				values,
+				attempt.runId,
+				{
+					stage: "processing",
+					assetId: attempt.assetId,
+				},
+				db
+					.update(asset)
+					.set({
+						processingStatus: values.status,
+						processingFailure: failureValue(
+							values.failure,
+							asset.processingFailure,
+						),
+						processingFailureId: failureIdValue(values),
+					})
+					.where(currentProcessing(attempt))
+					.returning({
+						failureId: asset.processingFailureId,
+					}),
+			);
 		});
 
 const indexingTarget =
@@ -123,17 +179,26 @@ const indexingTarget =
 		Effect.gen(function* () {
 			const db = yield* DB;
 			const { blockAsset } = dbSchema;
-			const written = yield* db
-				.update(blockAsset)
-				.set({
-					indexStatus: values.status,
-					indexFailure: failureValue(values.failure, blockAsset.indexFailure),
-				})
-				.where(currentIndexing(attempt))
-				.returning({
-					assetId: blockAsset.assetId,
-				});
-			return written.length > 0;
+			return yield* fencedWrite(
+				values,
+				attempt.runId,
+				{
+					stage: "indexing",
+					assetId: attempt.assetId,
+					blockId: attempt.blockId,
+				},
+				db
+					.update(blockAsset)
+					.set({
+						indexStatus: values.status,
+						indexFailure: failureValue(values.failure, blockAsset.indexFailure),
+						indexFailureId: failureIdValue(values),
+					})
+					.where(currentIndexing(attempt))
+					.returning({
+						failureId: blockAsset.indexFailureId,
+					}),
+			);
 		});
 
 const metadataTarget =
@@ -142,17 +207,28 @@ const metadataTarget =
 		Effect.gen(function* () {
 			const db = yield* DB;
 			const { asset } = dbSchema;
-			const written = yield* db
-				.update(asset)
-				.set({
-					metadataStatus: values.status,
-					metadataFailure: failureValue(values.failure, asset.metadataFailure),
-				})
-				.where(currentMetadata(attempt))
-				.returning({
-					id: asset.id,
-				});
-			return written.length > 0;
+			return yield* fencedWrite(
+				values,
+				attempt.runId,
+				{
+					stage: "metadata",
+					assetId: attempt.assetId,
+				},
+				db
+					.update(asset)
+					.set({
+						metadataStatus: values.status,
+						metadataFailure: failureValue(
+							values.failure,
+							asset.metadataFailure,
+						),
+						metadataFailureId: failureIdValue(values),
+					})
+					.where(currentMetadata(attempt))
+					.returning({
+						failureId: asset.metadataFailureId,
+					}),
+			);
 		});
 
 const claim = (target: Target) =>

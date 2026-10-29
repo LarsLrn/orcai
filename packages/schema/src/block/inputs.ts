@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { activityRunIdSchema } from "../activity/ref";
 import { assetIdSchema } from "../asset/ref";
 import { botIdSchema } from "../bot/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
@@ -35,6 +36,8 @@ export const createTemplateBlockInputSchema = blockWriteFieldsSchema.extend(
 export const createDatabaseBlockInputSchema = blockWriteFieldsSchema.extend({
 	...databaseBlockSchema.shape,
 	assets: z.array(assetIdSchema).default([]),
+	/** The user's upload runs whose newly linked assets this save indexes. */
+	uploadRunIds: z.array(activityRunIdSchema).max(100).default([]),
 });
 
 export const createBlockInputSchema = z.discriminatedUnion("type", [
@@ -53,6 +56,8 @@ export const updateTemplateBlockInputSchema = updateBlockFieldsSchema.extend(
 export const updateDatabaseBlockInputSchema = updateBlockFieldsSchema.extend({
 	...databaseBlockSchema.shape,
 	assets: z.array(assetIdSchema).default([]),
+	/** The user's upload runs whose newly linked assets this save indexes. */
+	uploadRunIds: z.array(activityRunIdSchema).max(100).default([]),
 });
 
 export const updateBlockInputSchema = z.discriminatedUnion("type", [

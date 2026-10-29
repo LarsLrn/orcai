@@ -6,6 +6,7 @@ import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
 import { checkEntityPermission } from "@orcai/spice-db";
 import { and, eq, getColumns, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { homeOrganization, inActivityRun } from "@/lib/activity/admission";
 import { listAssetTiles } from "@/lib/assets/asset-list";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
@@ -223,13 +224,16 @@ const createAssetsFromUploadsProcedure = authed.asset.createFromUploads
 			);
 		}
 
+		const { results, runId } = yield* createAssetsFromUploads({
+			route: input.route,
+			files: input.files,
+			uploadKey: input.uploadKey,
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+		});
 		return {
-			data: yield* createAssetsFromUploads({
-				route: input.route,
-				files: input.files,
-				userId: context.auth.user.id,
-				organizationId: context.auth.session.activeOrganizationId,
-			}),
+			data: results,
+			runId,
 		};
 	});
 
@@ -269,7 +273,7 @@ const reprocessAssetProcedure = authed.asset.reprocess
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const [asset] = yield* db
 			.select()
@@ -283,7 +287,18 @@ const reprocessAssetProcedure = authed.asset.reprocess
 			});
 		}
 
-		if (!(yield* reprocessAsset(asset))) {
+		const admitted = yield* inActivityRun(
+			{
+				userId: context.auth.user.id,
+				kind: "retry",
+				organizationId: homeOrganization("asset", asset.id),
+			},
+			(runId) =>
+				reprocessAsset(asset, {
+					id: runId,
+				}),
+		);
+		if (!admitted) {
 			return yield* new AppErrors.BadRequestError({
 				reason: "DOCUMENT_STILL_PREPARING",
 				message: "The asset is still being processed",
@@ -303,13 +318,22 @@ const generateAssetMetadata = authed.asset.generateMetadata
 		}),
 	)
 	.effect(function* ({ input, context }) {
-		const admitted = yield* queueMetadataGeneration({
-			assetIds: [
-				input.id,
-			],
-			mode: "review",
-			userId: context.auth.user.id,
-		});
+		const admitted = yield* inActivityRun(
+			{
+				userId: context.auth.user.id,
+				kind: "suggest_metadata",
+				organizationId: homeOrganization("asset", input.id),
+			},
+			(runId) =>
+				queueMetadataGeneration({
+					assetIds: [
+						input.id,
+					],
+					mode: "review",
+					userId: context.auth.user.id,
+					runId,
+				}),
+		);
 		if (admitted.length === 0) {
 			return yield* new AppErrors.BadRequestError({
 				reason: "METADATA_GENERATION_UNAVAILABLE",
@@ -365,17 +389,27 @@ const missingMetadata = authed.asset.missingMetadata
 const generateMissingMetadata = authed.asset.generateMissingMetadata
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
-		const admitted = yield* queueMetadataGeneration({
-			assetIds: yield* assetsMissingMetadata({
-				userId: context.auth.user.id,
-				organizationId: context.auth.session.activeOrganizationId,
-				ids: input.ids,
-				zedToken: getZedToken(context),
-			}),
-			mode: "apply",
-			onlyMissing: true,
+		const assetIds = yield* assetsMissingMetadata({
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			ids: input.ids,
+			zedToken: getZedToken(context),
 		});
+		const admitted = yield* inActivityRun(
+			{
+				userId: context.auth.user.id,
+				kind: "fill_metadata",
+				organizationId: context.auth.session.activeOrganizationId,
+			},
+			(runId) =>
+				queueMetadataGeneration({
+					assetIds,
+					mode: "apply",
+					onlyMissing: true,
+					userId: context.auth.user.id,
+					runId,
+				}),
+		);
 		return {
 			count: admitted.length,
 		};

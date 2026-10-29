@@ -1,8 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
-import type { AssetId, BlockId } from "@orcai/core";
+import type { ActivityRunId, AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { type JobWithMetadata, PgBoss, PgBossService } from "@orcai/pg-boss";
+import {
+	admitStage,
+	type JobWithMetadata,
+	PgBoss,
+	PgBossService,
+} from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
 import {
 	type PipelineFailure,
@@ -562,6 +567,135 @@ describe("replaced and finished attempts", () => {
 			expect(await metadataOf(asset.id)).toEqual({
 				status: "failed",
 				failure: "other",
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+/** A run of the asset's uploader that took on its processing, as an admission records it. */
+const admitProcessing = (asset: { id: AssetId; userId: UserId }) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const [created] = yield* db
+				.insert(dbSchema.activityRun)
+				.values({
+					userId: asset.userId,
+					kind: "retry",
+				})
+				.returning({
+					id: dbSchema.activityRun.id,
+				});
+			yield* admitStage(created.id, [
+				{
+					stage: "processing",
+					assetId: asset.id,
+				},
+			]);
+			return created.id;
+		}),
+	);
+
+const processingMember = (runId: ActivityRunId) =>
+	run(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.select({
+					state: dbSchema.activityMember.processingState,
+					failureId: dbSchema.activityMember.processingFailureId,
+				})
+				.from(dbSchema.activityMember)
+				.where(eq(dbSchema.activityMember.runId, runId));
+			return row;
+		}),
+	);
+
+const processingFailureId = (assetId: AssetId) =>
+	run(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.select({
+					failureId: dbSchema.asset.processingFailureId,
+				})
+				.from(dbSchema.asset)
+				.where(eq(dbSchema.asset.id, assetId));
+			return row?.failureId;
+		}),
+	);
+
+describe("activity runs", () => {
+	test(
+		"a dead letter fails its run's stage with the target's failure; a repeat changes nothing",
+		async () => {
+			const { asset } = await seedLink();
+			const runId = await admitProcessing(asset);
+			const job = deadLetter({
+				...processPayload(asset),
+				runId,
+			});
+
+			await run(
+				markProcessingExhausted([
+					job,
+				]),
+			);
+			const failureId = await processingFailureId(asset.id);
+			expect(failureId).toEqual(expect.any(String));
+			expect(await processingMember(runId)).toEqual({
+				state: "failed",
+				failureId,
+			});
+
+			await run(
+				markProcessingExhausted([
+					job,
+				]),
+			);
+			expect(await processingFailureId(asset.id)).toBe(failureId);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a newer run replaces the pending stage, so the older run's late failure settles nothing",
+		async () => {
+			const { asset } = await seedLink();
+			const older = await admitProcessing(asset);
+			await processAgain(asset.id);
+			const newer = await admitProcessing(asset);
+
+			await run(
+				markProcessingExhausted([
+					deadLetter({
+						...processPayload(asset),
+						runId: older,
+					}),
+				]),
+			);
+			expect(await processingMember(older)).toEqual({
+				state: "replaced",
+				failureId: null,
+			});
+			expect(await processingMember(newer)).toEqual({
+				state: "pending",
+				failureId: null,
+			});
+			expect(await processingOf(asset.id)).toMatchObject({
+				status: "pending",
+			});
+
+			await run(
+				markProcessingExhausted([
+					deadLetter({
+						...processPayload(asset),
+						generation: 1,
+						runId: newer,
+					}),
+				]),
+			);
+			expect(await processingMember(newer)).toMatchObject({
+				state: "failed",
 			});
 		},
 		TIMEOUT,

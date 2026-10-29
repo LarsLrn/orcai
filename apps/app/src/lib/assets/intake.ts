@@ -1,6 +1,12 @@
-import type { AssetId, OrganizationId, UserId } from "@orcai/core";
+import type {
+	ActivityRunId,
+	AssetId,
+	OrganizationId,
+	UserId,
+} from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { logErrorCause } from "@orcai/observability";
+import { admitStage } from "@orcai/pg-boss";
 import { getFileTypeFromMime, isMimeAllowed, UPLOAD_ROUTES } from "@orcai/s3";
 import {
 	isS3NotFound,
@@ -22,7 +28,13 @@ import {
 import { eq } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import { enqueueAssetProcessing } from "@/lib/assets/processing";
+import {
+	addActivityMember,
+	openUploadRun,
+	releaseAdmission,
+	renewAdmission,
+} from "@/lib/activity/admission";
+import { queueFirstProcessing } from "@/lib/assets/processing";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 
@@ -47,6 +59,12 @@ type Intake = {
 	route: AssetUploadRoute;
 	userId: UserId;
 	organizationId: OrganizationId;
+};
+
+/** The upload run a call adds its files to, and the call's lease on it. */
+type Admission = {
+	runId: ActivityRunId;
+	leaseId: string;
 };
 
 /** Validates the file against the caller and the route and derives every coordinate. */
@@ -100,10 +118,20 @@ const planUpload = (intake: Intake, file: UploadFileObject) =>
 		};
 	});
 
-/** The existing asset for a repeated upload: the owner gets it back, anyone else is refused. */
-const existingAsset = (intake: Intake, asset: Asset) =>
+/**
+ * The existing asset for a repeated upload: the owner gets it back, also as
+ * part of the call's run, and anyone else is refused.
+ */
+const existingAsset = (
+	intake: Intake,
+	asset: Asset,
+	admission: Admission | undefined,
+) =>
 	asset.userId === intake.userId
-		? Effect.succeed(asset)
+		? Effect.as(
+				admission ? addActivityMember(admission.runId, asset.id) : Effect.void,
+				asset,
+			)
 		: reject({
 				reason: "PERMISSION_DENIED",
 			});
@@ -118,13 +146,17 @@ const findAsset = (id: AssetId) =>
 		return asset;
 	});
 
-const createAssetFromUpload = (intake: Intake, file: UploadFileObject) =>
+const createAssetFromUpload = (
+	intake: Intake,
+	admission: Admission | undefined,
+	file: UploadFileObject,
+) =>
 	Effect.gen(function* () {
 		const plan = yield* planUpload(intake, file);
 
 		const existing = yield* findAsset(plan.id);
 		if (existing) {
-			return yield* existingAsset(intake, existing);
+			return yield* existingAsset(intake, existing, admission);
 		}
 
 		const staged = yield* sendHeadObjectCommand({
@@ -169,24 +201,31 @@ const createAssetFromUpload = (intake: Intake, file: UploadFileObject) =>
 						bucket: plan.bucket,
 						prefix: plan.prefix,
 						userId: intake.userId,
+						processingActorId: admission && intake.userId,
 					})
 					.onConflictDoNothing({
 						target: dbSchema.asset.id,
 					})
 					.returning();
 
-				if (asset) {
-					yield* initializeResourceAuthorization({
-						resource: {
-							resourceType: "asset",
-							resourceId: asset.id,
+				if (asset && admission) {
+					yield* admitStage(admission.runId, [
+						{
+							stage: "processing",
+							assetId: asset.id,
 						},
-						organizationId: intake.organizationId,
-						ownerUserId: intake.userId,
-					});
+					]);
 				}
-
-				return asset;
+				if (!asset) return undefined;
+				yield* initializeResourceAuthorization({
+					resource: {
+						resourceType: "asset",
+						resourceId: asset.id,
+					},
+					organizationId: intake.organizationId,
+					ownerUserId: intake.userId,
+				});
+				return yield* queueFirstProcessing(asset, admission?.runId);
 			}),
 		);
 
@@ -194,7 +233,7 @@ const createAssetFromUpload = (intake: Intake, file: UploadFileObject) =>
 		if (!inserted) {
 			const winner = yield* findAsset(plan.id);
 			return winner
-				? yield* existingAsset(intake, winner)
+				? yield* existingAsset(intake, winner, admission)
 				: yield* reject({
 						reason: "UPLOAD_CREATE_FAILED",
 					});
@@ -210,17 +249,18 @@ const createAssetFromUpload = (intake: Intake, file: UploadFileObject) =>
 			),
 		);
 
-		yield* enqueueAssetProcessing(inserted).pipe(
-			Effect.catchCause((cause) =>
-				logErrorCause("Asset processing not enqueued", cause),
-			),
-		);
-
 		return inserted;
 	});
 
-const intakeResult = (intake: Intake, file: UploadFileObject) =>
-	createAssetFromUpload(intake, file).pipe(
+const intakeResult = (
+	intake: Intake,
+	admission: Admission | undefined,
+	file: UploadFileObject,
+) =>
+	createAssetFromUpload(intake, admission, file).pipe(
+		Effect.tap(() =>
+			admission ? renewAdmission(admission.leaseId) : Effect.void,
+		),
 		Effect.map(
 			(asset): AssetIntakeResult => ({
 				status: "created",
@@ -248,9 +288,10 @@ const intakeResult = (intake: Intake, file: UploadFileObject) =>
 
 /**
  * Creates one asset per uploaded file: checks the staged object, moves it to
- * the asset's key, inserts the row with its owner and organization, and
- * enqueues processing. Bucket, keys and origin come from the caller and the
- * route, never from the client.
+ * the asset's key, and inserts the row with its owner and organization and
+ * its processing job in one transaction, so an asset never lacks its job. Bucket, keys and origin come from the caller and the
+ * route, never from the client. A library upload is an activity run; calls
+ * with the same `uploadKey` add to one run.
  *
  * One result per file in input order; a failing file does not block the
  * others. Repeating an upload returns its asset to the owner and fails for
@@ -259,8 +300,37 @@ const intakeResult = (intake: Intake, file: UploadFileObject) =>
 export const createAssetsFromUploads = (
 	intake: Intake & {
 		files: readonly UploadFileObject[];
+		uploadKey?: string;
 	},
 ) =>
-	Effect.forEach(intake.files, (file) => intakeResult(intake, file), {
-		concurrency: 10,
+	Effect.gen(function* () {
+		const admission =
+			intake.route === "asset"
+				? yield* openUploadRun({
+						userId: intake.userId,
+						organizationId: intake.organizationId,
+						clientKey: intake.uploadKey,
+					})
+				: undefined;
+		const results = yield* Effect.forEach(
+			intake.files,
+			(file) => intakeResult(intake, admission, file),
+			{
+				concurrency: 10,
+			},
+		).pipe(
+			Effect.ensuring(
+				admission
+					? releaseAdmission(admission.leaseId).pipe(
+							Effect.catchCause((cause) =>
+								logErrorCause("Upload admission not released", cause),
+							),
+						)
+					: Effect.void,
+			),
+		);
+		return {
+			results,
+			runId: admission?.runId ?? null,
+		};
 	});

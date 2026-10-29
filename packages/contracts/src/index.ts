@@ -4,6 +4,7 @@ import type {
 	InferRouterContractOutputs,
 	RouterContractClient,
 } from "@orpc/contract";
+import { activityContracts } from "./activity";
 import { aiContracts } from "./ai";
 import { analyticsContracts } from "./analytics";
 import { assetContracts } from "./asset";
@@ -35,6 +36,7 @@ import { storageContracts } from "./storage";
 import { userContracts } from "./user";
 
 export const contracts = {
+	activity: activityContracts,
 	ai: aiContracts,
 	analytics: analyticsContracts,
 	asset: assetContracts,
