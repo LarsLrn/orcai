@@ -83,6 +83,18 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		...groupSummaries(),
 	];
 
+	// Lists of people and organisations show pictures and logos.
+	const pictures = () => [
+		orpc.user.key(),
+		orpc.organizationMember.key(),
+		orpc.instance.key(),
+	];
+	const logos = () => [
+		orpc.organization.key(),
+		orpc.organizationInvitation.key(),
+		orpc.instance.key(),
+	];
+
 	// A provider's page counts its models.
 	// A bot's setup and the chats it requires a model for show whether the model is usable.
 	const models = () => [
@@ -240,6 +252,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			delete: () => [
 				orpc.organization.key(),
 			],
+			setLogo: logos,
+			removeLogo: logos,
 		},
 		organizationInvitation: {
 			create: () => [
@@ -275,6 +289,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.instance.key(),
 				readiness,
 			],
+			removeUserImage: pictures,
+			removeOrganizationLogo: logos,
 		},
 		organizationMember: {
 			update: () => [
@@ -373,6 +389,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			setTourState: () => [
 				orpc.user.me.key(),
 			],
+			setImage: pictures,
+			removeImage: pictures,
 		},
 	};
 };

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MailCheckIcon, MailWarningIcon } from "lucide-react";
 import { UserStats } from "@/components/app/user-stats";
+import { ProfilePictureSettings } from "@/components/images/image-settings";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -66,6 +67,7 @@ function RouteComponent() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
+						<ProfilePictureSettings user={auth.user} />
 						<ProfileForm />
 					</CardContent>
 				</Card>
