@@ -25,7 +25,7 @@ The Library (`/app/library`) shows everything your organisation can use. Its hea
 |---|---|
 | Bots | **Status** (All, Published, Drafts), **Source**, **Only favourites** |
 | Behaviours, Repositories | **Status** (All, Published, Drafts), **Source** |
-| Assets | **Uploaded to** (Library, Chats), **Processing** (Any, Queued or running, Failed) |
+| Assets | **Uploaded to** (Library, Chats), **Processing** (Any, Queued or running, Failed), **Suggestions to review** |
 | Overview, while searching | **Status**, **Source** |
 
 **Source** tells apart what your organisation made (**Made in this
@@ -113,7 +113,7 @@ Edit metadata later with **Edit content** on the asset page, which opens `/app/l
 When the organisation has a [utility model](/docs/using-orcai/administration#utility-model), it writes an asset's metadata from the start of its extracted text and the details the parser found (title, authors, keywords, page count, language): the title, the source type and its fields, a citation label in APA 7 style, a description and the language. Generated text is in the document's language. For an image file, the description written while processing the image supplies the title, description and language. Each run draws on the utility model's quota pools.
 
 - **After upload**: once a library upload is processed, its metadata is generated in the background. A chat upload gets it when it is added to the library. Only empty fields are filled, and the title only while it is still the uploaded file name; values you save in the meantime always win. Fields that do not fit the source type you chose are kept for review instead.
-- **Generate with AI** in the metadata editor generates a suggestion for an asset you can edit, also for assets uploaded before or edited since. The editor shows **Generating...**; you can leave, and the asset page then says **Suggestions ready** with **Review**. **Suggested metadata** lists each field with its current and suggested value; empty fields are selected. **Use selected** puts the chosen values into the form, which saves them with **Save**; **Dismiss** drops the suggestion.
+- **Generate with AI** in the metadata editor generates a suggestion for an asset you can edit, also for assets uploaded before or edited since. The editor shows **Generating...**; you can leave, and the asset page then says **Suggestions ready** with **Review**. **Suggested metadata** lists each field with its current and suggested value; empty fields are selected. **Use selected** puts the chosen values into the form, which saves them with **Save**; **Dismiss** drops the suggestion. The **Suggestions to review** filter on the Assets view lists every asset you can edit that has a suggestion waiting.
 - **Generate missing metadata** above the Assets view's library uploads generates metadata, filling empty fields, for every processed library asset of the organisation you can edit whose metadata was never generated or failed. It asks first and shows how many assets that is.
 - The [OrcAI Assistant](/docs/using-orcai/assistant) can do the same for assets you name, after you confirm. It never overwrites values; to replace them, use **Generate with AI** or tell it the values.
 

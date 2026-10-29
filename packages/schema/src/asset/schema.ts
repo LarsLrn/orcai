@@ -66,11 +66,18 @@ export const assetFiltersSchema = z
 				"failed",
 			])
 			.optional(),
+		/** Only assets with metadata suggestions to review that the reader can edit. */
+		suggestions: z.literal(true).optional(),
 	})
 	.refine(
-		(filters) => !(filters.scope && (filters.repositoryId || filters.ids)),
+		(filters) =>
+			!(
+				(filters.scope || filters.suggestions) &&
+				(filters.repositoryId || filters.ids)
+			),
 		{
-			message: "A repository's documents and known ids have no scope",
+			message:
+				"A repository's documents and known ids have no scope or suggestions",
 			path: [
 				"scope",
 			],

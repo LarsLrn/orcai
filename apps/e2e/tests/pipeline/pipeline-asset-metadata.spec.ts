@@ -155,6 +155,21 @@ test("pipeline: Generate with AI suggests metadata to review before saving", asy
 	await expect(review).toBeVisible({
 		timeout: 30_000,
 	});
+
+	// The library lists the asset under "Suggestions to review" while it waits.
+	const library = await page.context().newPage();
+	const listed = () =>
+		library.locator('[data-slot="tile"]').filter({
+			hasText: GENERATED.title,
+		});
+	await open(library, "/app/library/assets?review=true");
+	await expect(listed()).toBeVisible();
+	await expect(
+		library.getByRole("checkbox", {
+			name: message("library_filter_review_suggestions"),
+		}),
+	).toBeChecked();
+
 	const field = (key: string) =>
 		review.getByRole("checkbox", {
 			name: new RegExp(`^${message(key)}`),
@@ -193,6 +208,9 @@ test("pipeline: Generate with AI suggests metadata to review before saving", asy
 			suggested.description,
 			null,
 		]);
+
+	await library.reload();
+	await expect(listed()).toHaveCount(0);
 });
 
 test("pipeline: saving an editor opened before generation keeps the generated fields", async ({

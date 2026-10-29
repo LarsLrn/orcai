@@ -3459,6 +3459,8 @@
 	"library_filter_processing_any": "Any",
 	"library_filter_processing_running": "Queued or running",
 	"library_filter_processing_failed": "Failed",
+	"library_filter_review_label": "Review",
+	"library_filter_review_suggestions": "Suggestions to review",
 	"library_shelf_favourites": "Favourites",
 	"library_shelf_drafts": "Drafts",
 	"library_search_results_title": "Search results",

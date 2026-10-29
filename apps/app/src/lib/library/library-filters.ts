@@ -132,6 +132,16 @@ export const libraryFilters = {
 							processing: value,
 						},
 		}),
+		review: toggleFilter({
+			label: m.library_filter_review_label,
+			optionLabel: m.library_filter_review_suggestions,
+			toInput: (on) =>
+				on
+					? {
+							suggestions: true as const,
+						}
+					: {},
+		}),
 	},
 } satisfies Record<"overview" | LibraryKind, FilterDefinitions>;
 

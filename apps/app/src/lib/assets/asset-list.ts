@@ -9,6 +9,7 @@ import {
 	getColumns,
 	ilike,
 	inArray,
+	isNotNull,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
@@ -83,7 +84,7 @@ export const listAssetTiles = (params: {
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { input, reader } = params;
-		const { repositoryId, ids, processing } = input.filters ?? {};
+		const { repositoryId, ids, processing, suggestions } = input.filters ?? {};
 		if (repositoryId) yield* requireReadable("block", repositoryId, reader);
 
 		// A repository's documents and known ids are contents; the rest is the library.
@@ -103,7 +104,7 @@ export const listAssetTiles = (params: {
 							...(yield* readableIds("asset", ids, reader)),
 						])
 					: yield* params.access.condition("asset", {
-							scope: input.filters?.scope,
+							scope: suggestions ? "edit" : input.filters?.scope,
 						}),
 			repositoryId && ids ? inArray(dbSchema.asset.id, ids) : undefined,
 			input.filters?.search
@@ -118,6 +119,7 @@ export const listAssetTiles = (params: {
 						processingStatuses[processing],
 					)
 				: undefined,
+			suggestions ? isNotNull(dbSchema.asset.metadataSuggestion) : undefined,
 		);
 
 		const [data, [counted]] = yield* Effect.all(
