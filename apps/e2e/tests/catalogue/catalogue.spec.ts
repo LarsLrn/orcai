@@ -337,3 +337,79 @@ test("catalogue: an entry's page is a page of its own, and Back restores the gri
 	await expect(tiles(page)).toHaveCount(20);
 	await expect.poll(() => scrollTop(page)).toBeCloseTo(scrolled, -1);
 });
+
+test("catalogue: adding a bot with its blocks puts its behaviour and repository in the Library", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const id = runId();
+	const author = api.as("member");
+	const template = await author.block.create({
+		type: "template",
+		name: `E2E Catalogue Blocks Behaviour ${id}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Answer from the handbook.",
+		},
+	});
+	const repository = await author.block.create({
+		type: "database",
+		name: `E2E Catalogue Blocks Repository ${id}`,
+		status: "ready",
+		assets: [],
+		config: {
+			minReferences: 1,
+			maxReferences: 5,
+			defaultReferences: 3,
+		},
+	});
+	const { data: bot } = await author.bot.save({
+		name: `E2E Catalogue Blocks Bot ${id}`,
+		description: "Listed with its blocks by the catalogue spec.",
+		status: "ready",
+		templateBlockId: template.data.id,
+		databaseBlockIds: [
+			repository.data.id,
+		],
+	});
+	await author.resource.setVisibility({
+		resourceType: "bot",
+		resourceId: bot.id,
+		visibility: "public",
+		listBlockIds: [
+			template.data.id,
+			repository.data.id,
+		],
+	});
+
+	const other = await orgs.create(`E2E Catalogue Blocks ${id}`);
+	const page = await pageAs("admin", other);
+	await enterApp(page, other.slug);
+	await open(page, `/app/catalogue/bots/${bot.id}`);
+	const withBlocks = page.getByRole("checkbox", {
+		name: `Also add its behaviour and its repository to ${other.name}`,
+	});
+	await expect(withBlocks).not.toBeChecked();
+	await withBlocks.check();
+	await page
+		.getByRole("button", {
+			name: message("catalogue_add_action", {
+				organisation: other.name,
+			}),
+		})
+		.click();
+	await expect(page).toHaveURL(new RegExp(`/app/catalogue/bots/${bot.id}/add`));
+
+	await open(page, `/app/library?query=${id}`);
+	for (const name of [
+		bot.name,
+		template.data.name,
+		repository.data.name,
+	])
+		await expect(
+			page.getByRole("link", {
+				name,
+			}),
+		).toBeVisible();
+});

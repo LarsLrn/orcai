@@ -41,16 +41,15 @@ const install = authed.catalogue.install
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		return {
-			data: {
-				changed: yield* installResource({
-					resource: input.entry,
-					organizationId: context.auth.session.activeOrganizationId,
-					actor: {
-						userId: context.auth.user.id,
-						zedToken: getZedToken(context, input),
-					},
-				}),
-			},
+			data: yield* installResource({
+				resource: input.entry,
+				organizationId: context.auth.session.activeOrganizationId,
+				withBlocks: input.withBlocks,
+				actor: {
+					userId: context.auth.user.id,
+					zedToken: getZedToken(context, input),
+				},
+			}),
 		};
 	});
 

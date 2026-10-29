@@ -49,7 +49,8 @@ export const isListed = (resource: ResourceRef) =>
 		return row?.visibility === "public";
 	});
 
-const linkedBlockIds = (botId: BotId) =>
+/** The blocks the bot links. */
+export const linkedBlockIds = (botId: BotId) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const links = yield* db

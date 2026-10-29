@@ -163,6 +163,40 @@
 	"access_visibility_toast_public": "Ressource steht jetzt im Katalog",
 	"catalogue_add_action": "Zu {organisation} hinzufügen",
 	"catalogue_added_label": "Zu {organisation} hinzugefügt",
+	"catalogue_detail_add_blocks_behaviour": "Auch sein Verhalten zu {organisation} hinzufügen",
+	"catalogue_detail_add_blocks_both": [
+		{
+			"declarations": [
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Auch sein Verhalten und sein Repository zu {organisation} hinzufügen",
+				"countPlural=other": "Auch sein Verhalten und seine {count} Repositories zu {organisation} hinzufügen"
+			}
+		}
+	],
+	"catalogue_detail_add_blocks_description": "Jeder Block kommt einzeln in die Bibliothek und bleibt, wenn der Bot entfernt wird. Niemand kann sie nutzen, bis Sie sie freigeben.",
+	"catalogue_detail_add_blocks_repositories": [
+		{
+			"declarations": [
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Auch sein Repository zu {organisation} hinzufügen",
+				"countPlural=other": "Auch seine {count} Repositories zu {organisation} hinzufügen"
+			}
+		}
+	],
 	"catalogue_detail_ask_installer": "Um es zu {organisation} hinzuzufügen, fragen Sie einen Admin oder Manager.",
 	"catalogue_detail_contents_label": "Inhalt",
 	"catalogue_detail_inside_label": "Was enthalten ist",
@@ -218,6 +252,23 @@
 	"catalogue_install_toast_error": "{name} konnte nicht hinzugefügt werden",
 	"catalogue_install_toast_loading": "{name} wird hinzugefügt...",
 	"catalogue_install_toast_success": "{name} ist jetzt in {organisation}",
+	"catalogue_install_toast_success_with_blocks": [
+		{
+			"declarations": [
+				"input name",
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{name} und einer seiner Blöcke sind jetzt in {organisation}",
+				"countPlural=other": "{name} und {count} seiner Blöcke sind jetzt in {organisation}"
+			}
+		}
+	],
 	"catalogue_kind_empty_behaviour": "Noch keine Verhalten im Katalog",
 	"catalogue_kind_empty_bot": "Noch keine Bots im Katalog",
 	"catalogue_kind_empty_repository": "Noch keine Repositories im Katalog",
@@ -1085,6 +1136,7 @@
 	"assistant_tool_install_from_catalogue_active": "Wird aus dem Katalog hinzugefügt",
 	"assistant_tool_install_from_catalogue_name": "Aus dem Katalog hinzufügen",
 	"assistant_tool_install_from_catalogue_summary": "{name} aus dem Katalog hinzufügen",
+	"assistant_tool_install_from_catalogue_with_blocks_summary": "{name} mit seinem Verhalten und seinen Repositories aus dem Katalog hinzufügen",
 	"assistant_tool_uninstall_resource_active": "Wird aus der Organisation entfernt",
 	"assistant_tool_uninstall_resource_name": "Aus der Organisation entfernen",
 	"assistant_tool_uninstall_resource_summary": "{name} aus der Organisation entfernen",

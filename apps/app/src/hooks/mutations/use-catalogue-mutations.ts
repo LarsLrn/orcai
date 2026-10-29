@@ -20,11 +20,17 @@ export const useInstallMutation = (
 				m.catalogue_install_toast_loading({
 					name,
 				}),
-			success: () =>
-				m.catalogue_install_toast_success({
-					name,
-					organisation,
-				}),
+			success: ({ data }) =>
+				data.data.addedBlocks > 0
+					? m.catalogue_install_toast_success_with_blocks({
+							name,
+							organisation,
+							count: data.data.addedBlocks,
+						})
+					: m.catalogue_install_toast_success({
+							name,
+							organisation,
+						}),
 			error: () =>
 				m.catalogue_install_toast_error({
 					name,

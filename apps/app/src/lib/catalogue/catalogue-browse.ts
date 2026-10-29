@@ -509,8 +509,11 @@ const authorsPick = (botId: BotId, organizationId: OrganizationId) =>
 			: null;
 	});
 
-/** A bot's behaviour and repositories, with each repository's published documents. */
-const botBlocks = (botId: BotId) =>
+/**
+ * A bot's behaviour and repositories, with each repository's published
+ * documents and how each relates to the organisation.
+ */
+const botBlocks = (botId: BotId, organizationId: OrganizationId) =>
 	Effect.gen(function* () {
 		const blocks = yield* (yield* DB)
 			.select({
@@ -526,13 +529,20 @@ const botBlocks = (botId: BotId) =>
 			)
 			.where(eq(dbSchema.botBlock.botId, botId))
 			.orderBy(desc(dbSchema.block.type), asc(dbSchema.block.name));
-		const totals = yield* repositoryTotals(
-			blocks
-				.filter((block) => block.type === "database")
-				.map((block) => block.id),
-		);
+		const [totals, stateOf] = yield* Effect.all([
+			repositoryTotals(
+				blocks
+					.filter((block) => block.type === "database")
+					.map((block) => block.id),
+			),
+			entryStates(
+				blocks.map((block) => block.id),
+				organizationId,
+			),
+		]);
 		return blocks.map((block) => ({
 			...block,
+			state: stateOf(block.id),
 			type:
 				block.type === "template"
 					? ("template" as const)
@@ -623,7 +633,7 @@ const entryDetail = (
 			case "bot": {
 				const [blocks, pick] = yield* Effect.all(
 					[
-						botBlocks(entry.resourceId),
+						botBlocks(entry.resourceId, organizationId),
 						tile.modelHint
 							? authorsPick(entry.resourceId, organizationId)
 							: Effect.succeed(null),

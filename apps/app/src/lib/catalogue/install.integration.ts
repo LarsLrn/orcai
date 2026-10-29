@@ -152,6 +152,16 @@ const catalogue = async () => {
 				options,
 			),
 		).then(({ data }) => data.changed);
+	const installWithBlocks = (actor: Actor) =>
+		call(actor, (options) =>
+			procedures.catalogue.install(
+				{
+					entry: entry.bot,
+					withBlocks: true,
+				},
+				options,
+			),
+		).then(({ data }) => data);
 	const uninstall = (actor: Actor, ref: CatalogueEntryRef = entry.bot) =>
 		call(actor, (options) =>
 			procedures.catalogue.uninstall(
@@ -198,6 +208,7 @@ const catalogue = async () => {
 		document: document.asset.id,
 		entry,
 		install,
+		installWithBlocks,
 		uninstall,
 		grant,
 	};
@@ -325,6 +336,188 @@ describe("installing from the catalogue", () => {
 							],
 				);
 				expect(await installs(s.bot)).toEqual([]);
+			}
+		},
+		TIMEOUT,
+	);
+});
+
+describe("adding a bot with its blocks", () => {
+	test(
+		"admins and managers add the bot's blocks once, each on its own; members cannot",
+		async () => {
+			const s = await catalogue();
+			expect(await reasonOf(s.installWithBlocks(s.member))).toBe(
+				"PERMISSION_DENIED",
+			);
+			for (const id of [
+				s.bot,
+				s.template,
+				s.repository,
+			])
+				expect(await installs(id)).toEqual([]);
+
+			expect(await s.installWithBlocks(s.admin)).toEqual({
+				changed: true,
+				addedBlocks: 2,
+			});
+			expect(await s.installWithBlocks(s.manager)).toEqual({
+				changed: false,
+				addedBlocks: 0,
+			});
+			expect(await s.uninstall(s.admin)).toBe(true);
+			expect(await installs(s.bot)).toEqual([]);
+			expect(await installs(s.template)).toEqual([
+				s.other,
+			]);
+			expect(await installs(s.repository)).toEqual([
+				s.other,
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"blocks added already are skipped",
+		async () => {
+			const s = await catalogue();
+			expect(await s.install(s.admin, s.entry.repository)).toBe(true);
+			expect(await s.install(s.admin)).toBe(true);
+			expect(await s.installWithBlocks(s.admin)).toEqual({
+				changed: false,
+				addedBlocks: 1,
+			});
+			expect(await installs(s.template)).toEqual([
+				s.other,
+			]);
+			expect(await installs(s.repository)).toEqual([
+				s.other,
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"blocks the organisation is home to are skipped",
+		async () => {
+			const s = await catalogue();
+			const { data: own } = await s.call(s.admin, (options) =>
+				s.procedures.block.create(
+					{
+						type: "database",
+						name: `Install own repository ${crypto.randomUUID()}`,
+						description: null,
+						contentJson: null,
+						contentHtml: null,
+						status: "ready",
+						assets: [],
+						config: {
+							minReferences: 1,
+							maxReferences: 5,
+							defaultReferences: 3,
+						},
+					},
+					options,
+				),
+			);
+			const ownRef = {
+				resourceType: "block",
+				resourceId: own.id,
+			} satisfies CatalogueEntryRef;
+			await s.call(s.admin, (options) =>
+				s.procedures.resource.setVisibility(
+					{
+						...ownRef,
+						visibility: "public",
+						listBlockIds: [],
+					},
+					options,
+				),
+			);
+			expect(await s.install(s.author, ownRef)).toBe(true);
+			await s.grant(s.author, s.author, "viewer", ownRef);
+			await s.call(s.author, (options) =>
+				s.procedures.bot.save(
+					{
+						id: s.bot,
+						name: `Install bot ${crypto.randomUUID()}`,
+						description: "Integration bot",
+						status: "ready",
+						templateBlockId: s.template,
+						databaseBlockIds: [
+							s.repository,
+							own.id,
+						],
+					},
+					options,
+				),
+			);
+
+			expect(await s.installWithBlocks(s.admin)).toEqual({
+				changed: true,
+				addedBlocks: 2,
+			});
+			expect(await installs(own.id)).toEqual([
+				s.home,
+			]);
+			expect(await installs(s.repository)).toEqual([
+				s.other,
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a block taken out of the bot and unlisted meanwhile never stays added",
+		async () => {
+			for (const installFirst of [
+				true,
+				false,
+			]) {
+				const s = await catalogue();
+				const install = () => s.installWithBlocks(s.admin);
+				const removeAndUnlist = async () => {
+					await s.call(s.author, (options) =>
+						s.procedures.bot.save(
+							{
+								id: s.bot,
+								name: `Install bot ${crypto.randomUUID()}`,
+								description: "Integration bot",
+								status: "ready",
+								templateBlockId: s.template,
+								databaseBlockIds: [],
+							},
+							options,
+						),
+					);
+					await s.call(s.author, (options) =>
+						s.procedures.resource.setVisibility(
+							{
+								...s.entry.repository,
+								visibility: "private",
+								listBlockIds: [],
+							},
+							options,
+						),
+					);
+				};
+				let added: number | undefined;
+				await queueBehindOrganizationLock(
+					s.home,
+					async () => {
+						if (installFirst) added = (await install()).addedBlocks;
+						else await removeAndUnlist();
+					},
+					async () => {
+						if (installFirst) await removeAndUnlist();
+						else added = (await install()).addedBlocks;
+					},
+				);
+				expect(added).toBe(installFirst ? 2 : 1);
+				expect(await installs(s.repository)).toEqual([]);
+				expect(await installs(s.template)).toEqual([
+					s.other,
+				]);
 			}
 		},
 		TIMEOUT,

@@ -68,6 +68,7 @@ export const catalogueCountsResponseSchema = createDataResponseSchema(
 
 const catalogueBlockSummarySchema = z.object({
 	id: blockIdSchema,
+	state: catalogueEntryStateSchema,
 	name: z.string(),
 	type: blockTypeSchema,
 	description: z.string().nullable(),
@@ -102,6 +103,15 @@ export const findCatalogueEntryResponseSchema = createDataResponseSchema(
 export const installCatalogueEntryResponseSchema = createDataResponseSchema(
 	z.object({
 		/** False when the organisation had it already. */
+		changed: z.boolean(),
+		/** The bot's blocks added with it; those the organisation had are skipped. */
+		addedBlocks: z.number().int(),
+	}),
+);
+
+export const uninstallCatalogueEntryResponseSchema = createDataResponseSchema(
+	z.object({
+		/** False when the organisation did not have it. */
 		changed: z.boolean(),
 	}),
 );

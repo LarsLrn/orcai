@@ -7,6 +7,8 @@ import {
 	installCatalogueEntryResponseSchema,
 	listCatalogueInputSchema,
 	listCatalogueResponseSchema,
+	uninstallCatalogueEntryInputSchema,
+	uninstallCatalogueEntryResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -77,6 +79,6 @@ export const catalogueContracts = {
 				],
 			}),
 		)
-		.input(installCatalogueEntryInputSchema)
-		.output(installCatalogueEntryResponseSchema),
+		.input(uninstallCatalogueEntryInputSchema)
+		.output(uninstallCatalogueEntryResponseSchema),
 };
