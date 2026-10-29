@@ -104,8 +104,8 @@ export const accessIds = async (
 	userId: UserId,
 ): Promise<string[]> =>
 	(
-		await client.user.listAccess({
-			id: userId,
+		await client.organizationMember.listAccess({
+			userId,
 			pageSize: 1000,
 		})
 	).data.map((entry) => String(entry.resourceId));

@@ -47,7 +47,7 @@ const checks: Record<
 	},
 	members: {
 		title: m.readiness_check_members_title,
-		fix: "/app/users/invites",
+		fix: "/app/members/invitations",
 	},
 	coverage: {
 		title: m.readiness_check_coverage_title,

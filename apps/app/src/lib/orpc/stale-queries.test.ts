@@ -68,9 +68,9 @@ describe("invalidateStaleQueries", () => {
 			}),
 		);
 		const access = cached(
-			orpc.user.listAccess.queryKey({
+			orpc.organizationMember.listAccess.queryKey({
 				input: {
-					id: userId,
+					userId,
 				},
 			}),
 		);
@@ -177,6 +177,46 @@ describe("invalidateStaleQueries", () => {
 			);
 			await edit();
 			expect(readiness()).toBe(true);
+		}
+	});
+
+	test("refreshes the organisation's member count when members come or go", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const edits = [
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.organizationMember.delete.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.organizationInvitation.respond.mutationOptions(),
+				).mutate({
+					response: "accept",
+				} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.instance.addMember.mutationOptions(),
+				).mutate({} as never),
+			() =>
+				new MutationObserver(
+					queryClient,
+					orpc.user.delete.mutationOptions(),
+				).mutate({} as never),
+		];
+
+		for (const edit of edits) {
+			const organization = cached(
+				orpc.organization.find.queryKey({
+					input: {
+						id: "organization-1" as OrganizationId,
+					},
+				}),
+			);
+			await edit();
+			expect(organization()).toBe(true);
 		}
 	});
 
@@ -379,9 +419,9 @@ describe("invalidateStaleQueries", () => {
 	test("scopes the tour state to the user's own record", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const someone = cached(
-			orpc.user.find.queryKey({
+			orpc.organizationMember.find.queryKey({
 				input: {
-					id: userId,
+					userId,
 				},
 			}),
 		);

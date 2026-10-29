@@ -1,5 +1,6 @@
+import { organizationIdSchema } from "@orcai/schema";
 import { type ApiClient, createApiClient } from "../api";
-import { type Session, signUpInvited } from "../auth";
+import { activeOrganizationOf, type Session, signUpInvited } from "../auth";
 import { untilAllowed } from "../authorization";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../constants";
 import { runId } from "../organisation";
@@ -39,10 +40,10 @@ export const createAccountUser = async (params: {
 
 	// The sign-up hook grants the membership without a zedToken, so wait once
 	// here for it to be readable; every later read of this user sees it.
+	const organizationId = await activeOrganizationOf(params.baseURL, session);
 	await untilAllowed(() =>
-		api.organizationMember.list({
-			pageIndex: 0,
-			pageSize: 1,
+		api.organization.find({
+			id: organizationIdSchema.parse(organizationId),
 		}),
 	);
 

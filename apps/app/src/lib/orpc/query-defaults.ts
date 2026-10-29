@@ -116,6 +116,11 @@ export const queryDefaults = {
 				placeholderData: keepPreviousData,
 			},
 		},
+		listAccess: {
+			queryOptions: {
+				placeholderData: keepPreviousData,
+			},
+		},
 	},
 	health: {
 		instance: {
@@ -200,22 +205,7 @@ export const queryDefaults = {
 		},
 	},
 	user: {
-		list: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
 		listAll: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-		find: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
-		listAccess: {
 			queryOptions: {
 				placeholderData: keepPreviousData,
 			},

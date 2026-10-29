@@ -115,16 +115,13 @@ test("a session that has never seen a zedToken still reads what it was granted",
 
 	// Naming no revision is the one path that may lag, so this read is the only
 	// one in the file that is repeated.
-	const members = await untilAllowed(() =>
-		viewer.organizationMember.list({
-			pageIndex: 0,
-			pageSize: 100,
+	const found = await untilAllowed(() =>
+		viewer.organization.find({
+			id: org.id,
 		}),
 	);
 
-	expect(members.data.map((member) => member.userId)).toContain(
-		org.users.viewer.id,
-	);
+	expect(found.data.slug).toBe(org.slug);
 });
 
 test("a block created in the browser is readable on the page the creation navigates to", async ({

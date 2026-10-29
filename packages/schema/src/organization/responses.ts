@@ -19,8 +19,9 @@ export const listAllOrganizationsResponseSchema = createListResponseSchema(
 	organizationWithMemberCountSchema,
 );
 
-export const findOrganizationResponseSchema =
-	createDataResponseSchema(organizationSchema);
+export const findOrganizationResponseSchema = createDataResponseSchema(
+	organizationWithMemberCountSchema,
+);
 
 export const organizationProfileResponseSchema = createDataResponseSchema(
 	organizationProfileSchema,

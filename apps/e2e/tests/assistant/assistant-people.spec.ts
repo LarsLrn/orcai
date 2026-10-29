@@ -25,6 +25,7 @@ import {
 	type ScriptedToolCall,
 	test,
 } from "../../fixtures/inference/fixture";
+import { addMember, createThrowawayUser } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
@@ -32,7 +33,6 @@ import {
 	invitationEmail,
 } from "../../fixtures/orgs/invitations";
 import { memberRole } from "../../fixtures/orgs/members";
-import { addMember, createThrowawayUser } from "../../fixtures/users/users";
 
 const DONE = "That is done.";
 

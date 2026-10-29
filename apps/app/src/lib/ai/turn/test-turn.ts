@@ -151,7 +151,7 @@ export const answerSetup = ({
 	answers["organizationMember.find"] = () =>
 		Effect.succeed({
 			data: {
-				role: "member",
+				organizationRole: "member",
 			},
 		});
 	answers["authorization.organizationCapabilities"] = () =>

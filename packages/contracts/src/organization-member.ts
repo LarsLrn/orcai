@@ -3,6 +3,8 @@ import {
 	deleteOrganizationMembersResponseSchema,
 	findOrganizationMemberInputSchema,
 	findOrganizationMemberResponseSchema,
+	listMemberAccessInputSchema,
+	listMemberAccessResponseSchema,
 	listOrganizationMembersInputSchema,
 	listOrganizationMembersResponseSchema,
 	updateOrganizationMemberInputSchema,
@@ -38,6 +40,19 @@ export const organizationMemberContracts = {
 		)
 		.input(findOrganizationMemberInputSchema)
 		.output(findOrganizationMemberResponseSchema),
+	listAccess: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/members/{userId}/access",
+				summary: "List effective resource access entries for a member",
+				tags: [
+					"Organization Members",
+				],
+			}),
+		)
+		.input(listMemberAccessInputSchema)
+		.output(listMemberAccessResponseSchema),
 	update: base
 		.meta(
 			openapi({

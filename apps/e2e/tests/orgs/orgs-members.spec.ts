@@ -35,8 +35,8 @@ test("orgs: an admin changes a member's role from the member's page", async ({
 	await enterApp(page, org.slug);
 	await openGuarded(
 		page,
-		`/app/users/${user.id}/edit`,
-		message("users_edit_page_title"),
+		`/app/members/${user.id}/edit`,
+		message("members_edit_page_title"),
 	);
 
 	await chooseRole(page, "member", "manager");
@@ -69,8 +69,8 @@ test("orgs: a manager changes roles but is not offered the admin role", async ({
 	await enterApp(page, org.slug);
 	await openGuarded(
 		page,
-		`/app/users/${user.id}/edit`,
-		message("users_edit_page_title"),
+		`/app/members/${user.id}/edit`,
+		message("members_edit_page_title"),
 	);
 
 	await chooseRole(page, "member", "viewer");
@@ -145,7 +145,7 @@ test("orgs: an admin removes a member from the organisation", async ({
 
 	// The member page reads the user through the active organisation, so a
 	// user that is no longer a member is not found there.
-	await open(page, `/app/users/${user.id}/edit`);
+	await open(page, `/app/members/${user.id}/edit`);
 	await expect(
 		page.getByRole("heading", {
 			name: message("boundaries_not_found_title"),
@@ -155,7 +155,7 @@ test("orgs: an admin removes a member from the organisation", async ({
 	});
 	await expect(
 		page.getByRole("heading", {
-			name: message("users_edit_page_title"),
+			name: message("members_edit_page_title"),
 		}),
 	).toHaveCount(0);
 });

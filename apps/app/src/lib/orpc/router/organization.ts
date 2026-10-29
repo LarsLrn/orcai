@@ -222,31 +222,28 @@ const findOrganization = authed.organization.find
 	)
 	.effect(function* ({ input }) {
 		const db = yield* DB;
-
-		return yield* db.query.organization
-			.findFirst({
-				where: {
-					id: {
-						eq: input.id,
-					},
-				},
-			})
-			.pipe(
-				Effect.flatMap((organization) =>
-					Effect.fromNullishOr(organization).pipe(
-						Effect.mapError(
-							() =>
-								new AppErrors.NotFoundError({
-									reason: "ORGANIZATION_NOT_FOUND",
-									message: "Organization not found",
-								}),
-						),
-					),
+		const [found] = yield* db
+			.select({
+				...getColumns(dbSchema.organization),
+				memberCount: db.$count(
+					dbSchema.member,
+					eq(dbSchema.member.organizationId, dbSchema.organization.id),
 				),
-				Effect.map((organization) => ({
-					data: organization,
-				})),
+			})
+			.from(dbSchema.organization)
+			.where(eq(dbSchema.organization.id, input.id));
+		if (!found) {
+			return yield* Effect.fail(
+				new AppErrors.NotFoundError({
+					reason: "ORGANIZATION_NOT_FOUND",
+					message: "Organization not found",
+				}),
 			);
+		}
+
+		return {
+			data: found,
+		};
 	});
 
 /**

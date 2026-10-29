@@ -1,6 +1,6 @@
 import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouteContext } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Panel,
@@ -81,7 +81,7 @@ const InvitationsRow = ({ linked }: Pick<PeopleRowProps, "linked">) => {
 			meta={m.home_people_invitations_meta()}
 			count={invitations.rowCount}
 			linkProps={{
-				to: "/app/users/invites",
+				to: "/app/members/invitations",
 			}}
 			linked={linked}
 		/>
@@ -90,13 +90,18 @@ const InvitationsRow = ({ linked }: Pick<PeopleRowProps, "linked">) => {
 
 /** Who is in the organisation, and who has been asked to join. */
 const ManagePeoplePanel = () => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const { data: organizationCapabilities } = useOrganizationCapabilities();
 	const capabilities = organizationCapabilities?.data.capabilities;
 
-	const [members, groups] = useSuspenseQueries({
+	const [organization, groups] = useSuspenseQueries({
 		queries: [
-			orpc.organizationMember.list.queryOptions({
-				input: COUNT_INPUT,
+			orpc.organization.find.queryOptions({
+				input: {
+					id: auth.session.activeOrganizationId,
+				},
 			}),
 			orpc.group.list.queryOptions({
 				input: COUNT_INPUT,
@@ -110,7 +115,7 @@ const ManagePeoplePanel = () => {
 				<PanelTitle>{m.home_people_panel_title()}</PanelTitle>
 				{hasCapability(capabilities, "manage_members") ? (
 					<Link
-						to="/app/users/add"
+						to="/app/members/add"
 						className={buttonVariants({
 							variant: "ghost",
 							size: "sm",
@@ -124,9 +129,9 @@ const ManagePeoplePanel = () => {
 				<PeopleRow
 					label={m.home_people_members_label()}
 					meta={m.home_people_members_meta()}
-					count={members.data.rowCount}
+					count={organization.data.data.memberCount}
 					linkProps={{
-						to: "/app/users",
+						to: "/app/members",
 					}}
 					linked={hasCapability(capabilities, "manage_members")}
 				/>

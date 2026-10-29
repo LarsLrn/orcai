@@ -98,7 +98,7 @@ export const organisationRoleOf = async (
 	api: ApiClient,
 	email: string,
 ): Promise<Role | undefined> => {
-	const users = await api.user.list({
+	const users = await api.organizationMember.list({
 		pageIndex: 0,
 		pageSize: 100,
 	});

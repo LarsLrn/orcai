@@ -55,10 +55,10 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		icon: ShieldCogIcon,
 		items: [
 			{
-				title: m.sidebar_menu_users_item,
+				title: m.sidebar_menu_members_item,
 				requires: "manage_members",
 				linkProps: {
-					to: "/app/users",
+					to: "/app/members",
 				},
 				icon: UsersIcon,
 			},

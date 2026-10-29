@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/app/users/$userId/")({
+export const Route = createFileRoute("/app/members/$userId/")({
 	beforeLoad: ({ params: { userId } }) => {
 		throw redirect({
-			to: "/app/users/$userId/edit",
+			to: "/app/members/$userId/edit",
 			params: {
 				userId,
 			},

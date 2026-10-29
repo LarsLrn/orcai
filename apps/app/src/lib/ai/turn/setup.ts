@@ -509,7 +509,7 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 				userContext: {
 					user,
 					organizationName: organization.name,
-					role: member.data.role,
+					role: member.data.organizationRole,
 					capabilities: Object.fromEntries(
 						capabilitySets.organization.map((permission) => [
 							permission,

@@ -7,7 +7,7 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { m } from "@/paraglide/messages";
 
-const UsersDataTableSelectActions = () => {
+const MembersDataTableSelectActions = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
@@ -38,7 +38,7 @@ const UsersDataTableSelectActions = () => {
 					? []
 					: [
 							{
-								label: m.users_table_bulk_remove_action(),
+								label: m.members_table_bulk_remove_action(),
 								variant: "destructive",
 								onSelect: ({ selectedRows }) =>
 									removeMembers.mutate({
@@ -53,4 +53,4 @@ const UsersDataTableSelectActions = () => {
 	);
 };
 
-export { UsersDataTableSelectActions };
+export { MembersDataTableSelectActions };

@@ -4,7 +4,7 @@ import { useTable } from "@/components/ui/data-table/data-table-context";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { m } from "@/paraglide/messages";
 
-const InvitesTableActions = () => {
+const InvitationsTableActions = () => {
 	const { table } = useTable();
 	const deleteInvitations = useDeleteOrganizationInvitationsMutation({
 		onSuccess: () => {
@@ -35,4 +35,4 @@ const InvitesTableActions = () => {
 	);
 };
 
-export { InvitesTableActions };
+export { InvitationsTableActions };

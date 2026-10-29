@@ -51,7 +51,7 @@ export type OrganizationProfile = z.infer<typeof organizationProfileSchema>;
 /** Narrows the organisations the caller sees by name. */
 export const organizationFiltersSchema = searchFilterSchema;
 
-/** An organisation plus how many members it has, for the instance list. */
+/** An organisation plus how many members it has. */
 export const organizationWithMemberCountSchema = organizationSchema.extend({
 	memberCount: z.number().int(),
 });

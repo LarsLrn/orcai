@@ -4,7 +4,7 @@ import { OrganizationInvitationForm } from "@/components/organizations/invitatio
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/users/add")({
+export const Route = createFileRoute("/app/members/add")({
 	loader: async ({ context: { queryClient, auth } }) => {
 		await queryClient.query(
 			orpc.organization.find.queryOptions({
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/app/users/add")({
 	head: () => ({
 		meta: [
 			{
-				title: m.users_add_page_meta_title(),
+				title: m.members_add_page_meta_title(),
 			},
 		],
 	}),
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/app/users/add")({
 
 function RouteComponent() {
 	return (
-		<FormPage title={m.users_add_page_title()}>
+		<FormPage title={m.members_add_page_title()}>
 			<OrganizationInvitationForm />
 		</FormPage>
 	);

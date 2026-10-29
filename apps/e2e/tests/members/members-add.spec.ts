@@ -1,24 +1,24 @@
 import { EMAIL_DOMAIN } from "../../fixtures/constants";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
+import { memberRow, reachPage } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { awaitHydration, enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
-import { reachPage, userRow } from "../../fixtures/users/users";
 
 /**
- * "Add user" on the users page is an invitation form: it never creates an
+ * "Add user" on the members page is an invitation form: it never creates an
  * account, it queues an invitation per email address for the selected
  * organisation and role and then shows the invitations list.
  */
-test("users: an admin invites a user from the users page", async ({
+test("members: an admin invites a user from the members page", async ({
 	org,
 	pageAs,
 }) => {
-	const email = `e2e-users-invited-${runId()}@${EMAIL_DOMAIN}`;
+	const email = `e2e-members-invited-${runId()}@${EMAIL_DOMAIN}`;
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/app/users/add", message("users_add_page_title"));
+	await reachPage(page, "/app/members/add", message("members_add_page_title"));
 
 	await submitForm(page, {
 		fill: async () => {
@@ -31,28 +31,28 @@ test("users: an admin invites a user from the users page", async ({
 				.fill(email);
 		},
 		submit: message("orgs_invitation_form_submit_button"),
-		until: /\/app\/users\/invites/,
+		until: /\/app\/members\/invitations/,
 	});
 
 	await expect(
 		page.getByRole("heading", {
-			name: message("users_invites_page_title"),
+			name: message("members_invitations_page_title"),
 		}),
 	).toBeVisible();
 
-	const row = userRow(page, email);
+	const row = memberRow(page, email);
 	await expect(row).toBeVisible();
 	await expect(row).toContainText("pending");
 	await expect(row).toContainText("member");
 });
 
-test("users: the add form refuses an invalid email", async ({
+test("members: the add form refuses an invalid email", async ({
 	org,
 	pageAs,
 }) => {
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/app/users/add", message("users_add_page_title"));
+	await reachPage(page, "/app/members/add", message("members_add_page_title"));
 
 	await page
 		.getByLabel(
@@ -77,7 +77,7 @@ test("users: the add form refuses an invalid email", async ({
 			})}: ${message("error_validation_invalid_email")}`,
 		),
 	).toBeVisible();
-	await expect(page).toHaveURL(/\/app\/users\/add/);
+	await expect(page).toHaveURL(/\/app\/members\/add/);
 });
 
 /**
@@ -107,7 +107,7 @@ for (const { condition, theme, colorScheme, clockAheadMs } of [
 		clockAheadMs: 60 * 60 * 1000,
 	},
 ] as const) {
-	test(`users: the add form keeps its server-rendered form through hydration with ${condition}`, async ({
+	test(`members: the add form keeps its server-rendered form through hydration with ${condition}`, async ({
 		org,
 		pageAs,
 	}) => {
@@ -140,7 +140,7 @@ for (const { condition, theme, colorScheme, clockAheadMs } of [
 			await route.fallback();
 		});
 
-		await page.goto("/app/users/add", {
+		await page.goto("/app/members/add", {
 			waitUntil: "commit",
 		});
 		const serverForm = await page.locator("form").elementHandle();

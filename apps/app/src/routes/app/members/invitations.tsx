@@ -3,6 +3,8 @@ import { listOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MailIcon, PlusIcon } from "lucide-react";
+import { InvitationsTableActions } from "@/components/members/invitations/table/invitations-table-actions";
+import { invitationsTableColumns } from "@/components/members/invitations/table/invitations-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -22,13 +24,11 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { InvitesTableActions } from "@/components/users/invites/table/invites-table-actions";
-import { invitesTableColumns } from "@/components/users/invites/table/invites-table-columns";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/users/invites")({
+export const Route = createFileRoute("/app/members/invitations")({
 	validateSearch: listOrganizationInvitationsInputSchema.extend(
 		paginationSearchShape,
 	),
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/app/users/invites")({
 	head: () => ({
 		meta: [
 			{
-				title: m.users_invites_page_meta_title(),
+				title: m.members_invitations_page_meta_title(),
 			},
 		],
 	}),
@@ -82,23 +82,25 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{m.users_invites_page_title()}</PageTitle>
-				<PageDescription>{m.users_invites_page_description()}</PageDescription>
+				<PageTitle>{m.members_invitations_page_title()}</PageTitle>
+				<PageDescription>
+					{m.members_invitations_page_description()}
+				</PageDescription>
 				<PageAction>
 					<Link
-						to={"/app/users/add"}
+						to={"/app/members/add"}
 						className={buttonVariants({
 							variant: "default",
 						})}
 					>
-						{m.users_invites_invite_action()}
+						{m.members_invitations_invite_action()}
 					</Link>
 				</PageAction>
 			</PageHeader>
 			<PageContent>
 				<DataTable
 					data={invitations.data}
-					columns={invitesTableColumns}
+					columns={invitationsTableColumns}
 					state={{
 						pagination: {
 							pageIndex,
@@ -117,23 +119,23 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableToolbarActions>
 							<DataTableViewOptions />
-							<InvitesTableActions />
+							<InvitationsTableActions />
 							<DataTableExportButton fileName="invitations" />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody
 						empty={{
 							Icon: MailIcon,
-							title: m.users_invites_empty_title(),
-							description: m.users_invites_empty_description(),
+							title: m.members_invitations_empty_title(),
+							description: m.members_invitations_empty_description(),
 							actions: [
 								{
 									key: "invite",
-									label: m.users_invites_invite_action(),
+									label: m.members_invitations_invite_action(),
 									icon: PlusIcon,
 									variant: "default",
 									linkProps: {
-										to: "/app/users/add",
+										to: "/app/members/add",
 									},
 								},
 							],

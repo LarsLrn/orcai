@@ -2,10 +2,10 @@ import { createApiClient } from "../../fixtures/api";
 import { pageForSession } from "../../fixtures/auth/users";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
+import { addMember, createThrowawayUser } from "../../fixtures/members/members";
 import { enterApp, open } from "../../fixtures/navigation";
-import { addMember, createThrowawayUser } from "../../fixtures/users/users";
 
-test("users: a user in two organisations switches the active one", async ({
+test("members: a user in two organisations switches the active one", async ({
 	api,
 	browser,
 	orgs,
@@ -29,7 +29,7 @@ test("users: a user in two organisations switches the active one", async ({
 	expect(me.data.email).toBe(user.email);
 	expect(me.data.name).toBe(user.name);
 
-	// `user.listAccess` lists resource access inside the active organisation,
+	// `organizationMember.listAccess` lists resource access inside the active organisation,
 	// not the organisations themselves, so it needs one to be active. The
 	// organisations a user reaches come from `organization.list`.
 	await client.user.setActiveOrganization({
@@ -47,8 +47,8 @@ test("users: a user in two organisations switches the active one", async ({
 		]),
 	);
 
-	const access = await client.user.listAccess({
-		id: user.id,
+	const access = await client.organizationMember.listAccess({
+		userId: user.id,
 	});
 	// This user owns nothing and was granted nothing, so it holds no access of
 	// its own. Public means visible to every signed-in user of the instance,

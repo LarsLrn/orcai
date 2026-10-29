@@ -28,7 +28,11 @@ test("orgs: an admin invites an address through the form and the link reaches th
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/app/users/add", message("users_add_page_title"));
+	await openGuarded(
+		page,
+		"/app/members/add",
+		message("members_add_page_title"),
+	);
 
 	// The form starts on "Member"; only the role and the address are worth
 	// saying out loud.
@@ -45,7 +49,7 @@ test("orgs: an admin invites an address through the form and the link reaches th
 				.fill(email);
 		},
 		submit: message("orgs_invitation_form_submit_button"),
-		until: /\/app\/users\/invites/,
+		until: /\/app\/members\/invitations/,
 	});
 
 	const link = await waitForLink(outbox, email, INVITED_NOTIFICATION);
@@ -191,8 +195,8 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	await enterApp(page, org.slug);
 	await openGuarded(
 		page,
-		"/app/users/invites",
-		message("users_invites_page_title"),
+		"/app/members/invitations",
+		message("members_invitations_page_title"),
 	);
 
 	// The list is sorted newest first, so the invitation this test just
@@ -209,7 +213,7 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: message("users_invites_table_delete_action"),
+			name: message("members_invitations_table_delete_action"),
 		})
 		.click();
 	await page
@@ -293,8 +297,8 @@ test("orgs: the invitations list carries every invitation of the active organisa
 	await enterApp(page, org.slug);
 	await openGuarded(
 		page,
-		"/app/users/invites",
-		message("users_invites_page_title"),
+		"/app/members/invitations",
+		message("members_invitations_page_title"),
 	);
 
 	// Both invitations are the newest of the organisation, so the first page
@@ -365,8 +369,8 @@ test("orgs: a manager is not offered to delete an admin invitation", async ({
 	await enterApp(page, org.slug);
 	await openGuarded(
 		page,
-		"/app/users/invites",
-		message("users_invites_page_title"),
+		"/app/members/invitations",
+		message("members_invitations_page_title"),
 	);
 
 	const rowOf = (email: string) =>
@@ -374,7 +378,7 @@ test("orgs: a manager is not offered to delete an admin invitation", async ({
 			hasText: email,
 		});
 	const copyLinkItem = page.getByRole("menuitem", {
-		name: message("users_invites_table_copy_link_action"),
+		name: message("members_invitations_table_copy_link_action"),
 	});
 	const openRowMenu = async (email: string) => {
 		await rowOf(email)
@@ -389,7 +393,7 @@ test("orgs: a manager is not offered to delete an admin invitation", async ({
 		await expect(copyLinkItem).toHaveCount(0);
 	};
 	const deleteItem = page.getByRole("menuitem", {
-		name: message("users_invites_table_delete_action"),
+		name: message("members_invitations_table_delete_action"),
 	});
 
 	await openRowMenu(memberEmail);

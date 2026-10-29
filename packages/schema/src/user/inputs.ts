@@ -1,27 +1,13 @@
 import { INSTANCE_ROLES } from "@orcai/core";
 import { z } from "zod/v4";
 import { organizationIdSchema } from "../organization/ref";
-import { resourceTypeSchema } from "../resource/schema";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { paginationInputSchema } from "../shared";
 import { sharedSchemas } from "../shared/forms/shared";
 import { createSortingInputSchema } from "../shared/sorting";
 import { uploadFileObjectSchema } from "../storage/schema";
 import { tourIdSchema, tourStateSchema } from "./parts/preferences";
 import { userIdSchema } from "./ref";
-import { userAccessSourceSchema, userFiltersSchema } from "./schema";
-
-export const userSortKeySchema = z.enum([
-	"name",
-	"email",
-	"organizationRole",
-	"createdAt",
-]);
-
-export const listUsersInputSchema = paginationInputSchema.extend({
-	filters: userFiltersSchema.optional(),
-	...zedTokenSchema.shape,
-	...createSortingInputSchema(userSortKeySchema).shape,
-});
+import { userFiltersSchema } from "./schema";
 
 export const instanceUserSortKeySchema = z.enum([
 	"name",
@@ -52,30 +38,6 @@ export const setInstanceRoleInputSchema = z.object({
 	role: z.enum(INSTANCE_ROLES),
 });
 
-export const findUserInputSchema = z.object({
-	id: userIdSchema,
-	...zedTokenSchema.shape,
-});
-
-export const userAccessSortKeySchema = z.enum([
-	"resourceName",
-	"resourceType",
-	"source",
-]);
-
-export const listUserAccessInputSchema = paginationInputSchema.extend({
-	id: userIdSchema,
-	filters: z
-		.object({
-			search: z.string().trim().max(200).optional(),
-			resourceType: resourceTypeSchema.optional(),
-			source: userAccessSourceSchema.optional(),
-		})
-		.optional(),
-	...createSortingInputSchema(userAccessSortKeySchema).shape,
-	...zedTokenSchema.shape,
-});
-
 export const deleteUsersInputSchema = z.object({
 	userIds: userIdSchema.array().min(1),
 });
@@ -103,17 +65,12 @@ export const setUserImageInputSchema = z.object({
 
 export const removeUserImageInputSchema = z.object({});
 
-export type ListUsersInput = z.infer<typeof listUsersInputSchema>;
-export type UserSortKey = z.infer<typeof userSortKeySchema>;
 export type ListAllUsersInput = z.infer<typeof listAllUsersInputSchema>;
 export type InstanceUserSortKey = z.infer<typeof instanceUserSortKeySchema>;
 export type BanUserInput = z.infer<typeof banUserInputSchema>;
 export type UnbanUserInput = z.infer<typeof unbanUserInputSchema>;
 export type ResetTwoFactorInput = z.infer<typeof resetTwoFactorInputSchema>;
 export type SetInstanceRoleInput = z.infer<typeof setInstanceRoleInputSchema>;
-export type FindUserInput = z.infer<typeof findUserInputSchema>;
-export type ListUserAccessInput = z.infer<typeof listUserAccessInputSchema>;
-export type UserAccessSortKey = z.infer<typeof userAccessSortKeySchema>;
 export type DeleteUsersInput = z.infer<typeof deleteUsersInputSchema>;
 export type MeInput = z.infer<typeof meInputSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordInputSchema>;

@@ -42,7 +42,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			orpc.resource.listPrincipals.key({
 				input,
 			}),
-			orpc.user.listAccess.key(),
+			orpc.organizationMember.listAccess.key(),
 			readOnlyChats,
 			orpc.botSetup.coverage.key(),
 			// Chat pickers offer the bots shared with the user.
@@ -69,7 +69,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				groupId,
 			},
 		}),
-		orpc.user.listAccess.key(),
+		orpc.organizationMember.listAccess.key(),
 		readiness,
 		readOnlyChats,
 		orpc.botSetup.coverage.key(),
@@ -78,9 +78,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	const instanceMembership = () => [
 		orpc.instance.key(),
 		orpc.organization.listAll.key(),
+		orpc.organization.find.key(),
 		orpc.user.listAll.key(),
 		orpc.organizationMember.key(),
-		orpc.user.list.key(),
 		readiness,
 		...groupSummaries(),
 	];
@@ -101,7 +101,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.block.find.key(),
 		orpc.botSetup.key(),
 		orpc.resource.listGrants.key(),
-		orpc.user.listAccess.key(),
+		orpc.organizationMember.listAccess.key(),
 		orpc.resource.listingImpact.key(),
 		orpc.organization.deletionImpact.key(),
 		readOnlyChats,
@@ -349,14 +349,14 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		},
 		organizationMember: {
 			update: () => [
-				orpc.user.key(),
 				orpc.organizationMember.key(),
 				orpc.authorization.key(),
 				readiness,
 			],
 			delete: () => [
-				orpc.user.key(),
+				orpc.user.listAll.key(),
 				orpc.organizationMember.key(),
+				orpc.organization.find.key(),
 				...groupSummaries(),
 				readiness,
 				readOnlyChats,
@@ -426,7 +426,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				),
 				orpc.resource.listingImpact.key(),
 				orpc.organization.deletionImpact.key(),
-				orpc.user.listAccess.key(),
+				orpc.organizationMember.listAccess.key(),
 				orpc.catalogue.key(),
 				orpc.organization.profile.key(),
 				readOnlyChats,
@@ -441,15 +441,19 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			// Deleting accounts removes their memberships.
 			delete: () => [
 				orpc.user.key(),
+				orpc.organizationMember.key(),
+				orpc.organization.find.key(),
 				readiness,
 				orpc.instance.key(),
 			],
 			ban: () => [
 				orpc.user.key(),
+				orpc.organizationMember.key(),
 				orpc.instance.key(),
 			],
 			unban: () => [
 				orpc.user.key(),
+				orpc.organizationMember.key(),
 				orpc.instance.key(),
 			],
 			resetTwoFactor: () => [

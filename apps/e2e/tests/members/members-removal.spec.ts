@@ -7,17 +7,17 @@ import {
 } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
-import { message } from "../../fixtures/messages";
-import { enterApp, open } from "../../fixtures/navigation";
 import {
 	addMember,
 	adoptZedToken,
 	createThrowawayUser,
+	memberRow,
 	reachPage,
-	userRow,
-} from "../../fixtures/users/users";
+} from "../../fixtures/members/members";
+import { message } from "../../fixtures/messages";
+import { enterApp, open } from "../../fixtures/navigation";
 
-test("users: an admin removes a user from the organisation", async ({
+test("members: an admin removes a user from the organisation", async ({
 	api,
 	org,
 	pageAs,
@@ -28,12 +28,12 @@ test("users: an admin removes a user from the organisation", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await reachPage(page, "/app/users", message("users_page_title"));
+	await reachPage(page, "/app/members", message("members_page_title"));
 
-	const row = userRow(page, user.email);
+	const row = memberRow(page, user.email);
 	await expect(row).toBeVisible();
 
-	// The row menu of the organisation users list acts on the membership;
+	// The row menu of the organisation members list acts on the membership;
 	// deleting the account is an instance action on Instance > Users.
 	await row
 		.getByRole("button", {
@@ -42,7 +42,7 @@ test("users: an admin removes a user from the organisation", async ({
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: message("users_remove_from_organisation_action"),
+			name: message("members_remove_from_organisation_action"),
 		})
 		.click();
 	await page
@@ -59,16 +59,16 @@ test("users: an admin removes a user from the organisation", async ({
 
 	// The removal happened in the browser, so the API client takes its revision
 	// from the page. The account survives it; only the membership is gone, so
-	// the user drops out of the organisation's list and out of `user.find`.
+	// the user drops out of the organisation's list and out of `organizationMember.find`.
 	await adoptZedToken(page, zedTokens);
 	await expectDenied(
-		api.as("admin").user.find({
-			id: user.id,
+		api.as("admin").organizationMember.find({
+			userId: user.id,
 		}),
 	);
 });
 
-test("users: a removed user loses the organisation it was signed in to", async ({
+test("members: a removed user loses the organisation it was signed in to", async ({
 	api,
 	browser,
 	org,
@@ -114,7 +114,7 @@ test("users: a removed user loses the organisation it was signed in to", async (
 	}
 });
 
-test("users: an admin deletes a user's account", async ({
+test("members: an admin deletes a user's account", async ({
 	api,
 	org,
 	zedTokens,
@@ -141,13 +141,13 @@ test("users: an admin deletes a user's account", async ({
 	expect(deleted.deletedCount).toBe(1);
 
 	await expectDenied(
-		api.as("admin").user.find({
-			id: user.id,
+		api.as("admin").organizationMember.find({
+			userId: user.id,
 		}),
 	);
 });
 
-test("users: an account that still owns content is not deleted halfway", async ({
+test("members: an account that still owns content is not deleted halfway", async ({
 	api,
 	org,
 	zedTokens,
@@ -174,7 +174,7 @@ test("users: an account that still owns content is not deleted halfway", async (
 		name: `E2E Users Owned ${user.id}`,
 		status: "ready",
 		config: {
-			systemPrompt: "Created by the users slice.",
+			systemPrompt: "Created by the members slice.",
 		},
 	});
 
@@ -192,19 +192,19 @@ test("users: an account that still owns content is not deleted halfway", async (
 
 	// The refusal leaves nothing half done: the membership and the account are
 	// both still there.
-	const listed = await api.as("admin").user.list({
+	const listed = await api.as("admin").organizationMember.list({
 		pageIndex: 0,
 		pageSize: 100,
 	});
 	expect(listed.data.map((entry) => entry.email)).toContain(user.email);
 
-	const found = await api.as("admin").user.find({
-		id: user.id,
+	const found = await api.as("admin").organizationMember.find({
+		userId: user.id,
 	});
 	expect(found.data.id).toBe(user.id);
 });
 
-test("users: a removed user loses the access its groups and grants gave it", async ({
+test("members: a removed user loses the access its groups and grants gave it", async ({
 	api,
 	org,
 	zedTokens,
@@ -235,7 +235,7 @@ test("users: a removed user loses the access its groups and grants gave it", asy
 		name,
 		status: "ready" as const,
 		config: {
-			systemPrompt: "Created by the users slice.",
+			systemPrompt: "Created by the members slice.",
 		},
 	});
 

@@ -25,7 +25,7 @@ const columnHelper = createColumnHelper<
 	UserWithOrganizationRole
 >();
 
-export const columns = columnHelper.columns([
+export const memberTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<UserWithOrganizationRole>(),
 	columnHelper.accessor("name", {
 		size: 500,
@@ -36,7 +36,7 @@ export const columns = columnHelper.columns([
 			<div className="flex items-center gap-2">
 				<UserAvatar user={row.original} size="sm" />
 				<Link
-					to="/app/users/$userId/edit"
+					to="/app/members/$userId/edit"
 					params={{
 						userId: row.original.id,
 					}}
@@ -62,27 +62,27 @@ export const columns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_table_email_verified_column_header()}
+				title={m.members_table_email_verified_column_header()}
 			/>
 		),
 		cell: ({ row }) =>
 			row.original.emailVerified
-				? m.users_verification_verified()
-				: m.users_verification_not_verified(),
+				? m.members_verification_verified()
+				: m.members_verification_not_verified(),
 		meta: {
-			label: m.users_table_email_verified_column_header,
+			label: m.members_table_email_verified_column_header,
 		},
 	}),
 	columnHelper.accessor("organizationRole", {
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_organisation_role_label()}
+				title={m.members_organisation_role_label()}
 			/>
 		),
 		cell: ({ row }) => getOrganizationRoleLabel(row.original.organizationRole),
 		meta: {
-			label: m.users_organisation_role_label,
+			label: m.members_organisation_role_label,
 		},
 	}),
 	columnHelper.display({
@@ -91,14 +91,14 @@ export const columns = columnHelper.columns([
 		enableSorting: false,
 		enableHiding: false,
 		cell: ({ row }) => {
-			const user = row.original;
+			const member = row.original;
 
-			return <UserActions user={user} />;
+			return <MemberActions member={member} />;
 		},
 	}),
 ]);
 
-const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
+const MemberActions = ({ member }: { member: UserWithOrganizationRole }) => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
@@ -107,9 +107,9 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 	]);
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
-	const canRemoveUser =
-		user.id !== auth.user.id &&
-		(user.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
+	const canRemoveMember =
+		member.id !== auth.user.id &&
+		(member.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
 			canManageOrganization);
 
 	return (
@@ -119,19 +119,19 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 				<DropdownMenuLinkItem
 					render={
 						<Link
-							to={"/app/users/$userId/edit"}
+							to={"/app/members/$userId/edit"}
 							params={{
-								userId: user.id,
+								userId: member.id,
 							}}
 						/>
 					}
 				>
-					{m.users_table_edit_action()}
+					{m.members_table_edit_action()}
 				</DropdownMenuLinkItem>
-				{canRemoveUser ? (
+				{canRemoveMember ? (
 					<>
 						<DropdownMenuSeparator />
-						<RemoveItem user={user} />
+						<RemoveItem member={member} />
 					</>
 				) : null}
 			</DropdownMenuContent>
@@ -139,12 +139,12 @@ const UserActions = ({ user }: { user: UserWithOrganizationRole }) => {
 	);
 };
 
-const RemoveItem = ({ user }: { user: UserWithOrganizationRole }) => {
+const RemoveItem = ({ member }: { member: UserWithOrganizationRole }) => {
 	const { mutate: removeMembers } = useDeleteOrganizationMembersMutation(
 		{},
 		{
 			names: [
-				user.email,
+				member.email,
 			],
 		},
 	);
@@ -155,13 +155,13 @@ const RemoveItem = ({ user }: { user: UserWithOrganizationRole }) => {
 				removeMembers({
 					refs: [
 						{
-							userId: user.id,
+							userId: member.id,
 						},
 					],
 				})
 			}
 		>
-			{m.users_remove_from_organisation_action()}
+			{m.members_remove_from_organisation_action()}
 		</DropdownMenuItem>
 	);
 };
