@@ -59,7 +59,7 @@ const QuickChatSection = () => {
 				</SectionDescription>
 				<SectionAction>
 					<Link
-						to="/app/hub/bots"
+						to="/app/library/bots"
 						data-slot="button"
 						className={buttonVariants({
 							variant: "outline",

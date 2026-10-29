@@ -139,7 +139,7 @@ test("pipeline: the repository page shows a prepared document as ready", async (
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/blocks/${repository.blockId}`);
+	await open(page, `/app/library/repositories/${repository.blockId}`);
 
 	await expect(readinessSummary(page, 1, 1)).toBeVisible({
 		timeout: 20_000,
@@ -172,7 +172,7 @@ test("pipeline: the repository page says why an empty document failed and offers
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/blocks/${repository.blockId}`);
+	await open(page, `/app/library/repositories/${repository.blockId}`);
 
 	await expect(readinessSummary(page, 0, 1)).toContainText(
 		message("blocks_database_config_readiness_failed", {

@@ -19,7 +19,7 @@ test("assets: without a utility model metadata is not generated", async ({
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/assets/${asset.id}/edit`);
+	await open(page, `/app/library/assets/${asset.id}/edit`);
 	await expect(generateButton(page)).toBeDisabled();
 	await expect(
 		page.getByText(message("assets_metadata_no_utility_model_hint")),
@@ -30,7 +30,7 @@ test("assets: without a utility model metadata is not generated", async ({
 		}),
 	).toHaveCount(0);
 
-	await open(page, "/app/hub/assets");
+	await open(page, "/app/library/assets");
 	await expect(
 		page.locator('[data-slot="tile"]').filter({
 			hasText: asset.title,
@@ -52,7 +52,7 @@ test("assets: without a utility model admins are pointed to the organisation set
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/assets/${asset.id}/edit`);
+	await open(page, `/app/library/assets/${asset.id}/edit`);
 	await expect(generateButton(page)).toBeDisabled();
 	await expect(
 		page.getByRole("link", {

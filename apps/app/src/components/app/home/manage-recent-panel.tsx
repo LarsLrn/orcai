@@ -16,6 +16,7 @@ import {
 	PanelTitle,
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
+import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
@@ -72,7 +73,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 		case "bot":
 			return (
 				<Link
-					to="/app/hub/bots/$botId"
+					to="/app/library/bots/$botId"
 					params={{
 						botId: entry.resourceId,
 					}}
@@ -91,7 +92,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 		case "block":
 			return (
 				<Link
-					to="/app/hub/blocks/$blockId"
+					to={blockPaths(entry.blockType).detail}
 					params={{
 						blockId: entry.resourceId,
 					}}
@@ -114,7 +115,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 		case "asset":
 			return (
 				<Link
-					to="/app/hub/assets/$assetId"
+					to="/app/library/assets/$assetId"
 					params={{
 						assetId: entry.resourceId,
 					}}
@@ -148,7 +149,7 @@ const ManageRecentPanel = () => {
 			<PanelHeader>
 				<PanelTitle>{m.home_recent_panel_title()}</PanelTitle>
 				<Link
-					to="/app/hub"
+					to="/app/library"
 					className={buttonVariants({
 						variant: "ghost",
 						size: "sm",

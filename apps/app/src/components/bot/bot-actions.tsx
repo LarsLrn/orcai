@@ -25,7 +25,7 @@ const botActions = (
 		label: m.bots_edit_action(),
 		icon: EditIcon,
 		linkProps: {
-			to: "/app/hub/bots/$botId/setup",
+			to: "/app/library/bots/$botId/setup",
 			params: {
 				botId: bot.id,
 			},

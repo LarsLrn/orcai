@@ -26,7 +26,7 @@ const TemplateBlockForm = ({
 	const { mutateAsync: updateBlock } = useUpdateBlockMutation({
 		onSuccess: (result) =>
 			navigate({
-				to: "/app/hub/blocks/$blockId",
+				to: "/app/library/behaviours/$blockId",
 				params: {
 					blockId: result.data.id,
 				},

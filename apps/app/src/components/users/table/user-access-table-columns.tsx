@@ -10,6 +10,7 @@ import { FileIcon, ShieldIcon, SquareStackIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
+import { blockPaths } from "@/lib/navigation/block-paths";
 import { m } from "@/paraglide/messages";
 import { getResourceRoleLabel } from "@/settings/display-config";
 
@@ -77,7 +78,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 		case "bot":
 			return (
 				<Link
-					to="/app/hub/bots/$botId"
+					to="/app/library/bots/$botId"
 					params={{
 						botId: access.resourceId,
 					}}
@@ -89,7 +90,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 		case "block":
 			return (
 				<Link
-					to="/app/hub/blocks/$blockId"
+					to={blockPaths(access.blockType).detail}
 					params={{
 						blockId: access.resourceId,
 					}}
@@ -101,7 +102,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 		case "asset":
 			return (
 				<Link
-					to="/app/hub/assets/$assetId"
+					to="/app/library/assets/$assetId"
 					params={{
 						assetId: access.resourceId,
 					}}

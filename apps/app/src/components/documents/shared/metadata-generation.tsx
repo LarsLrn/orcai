@@ -346,7 +346,7 @@ const MetadataStatusNotice = ({
 				{m.assets_metadata_suggestions_ready()}
 			</span>
 			<Link
-				to="/app/hub/assets/$assetId/edit"
+				to="/app/library/assets/$assetId/edit"
 				params={{
 					assetId: asset.id,
 				}}

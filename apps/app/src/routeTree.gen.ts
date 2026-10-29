@@ -32,7 +32,7 @@ import { Route as AppAnalyticsRouteRouteImport } from './routes/app/analytics/ro
 import { Route as AppAssistantRouteRouteImport } from './routes/app/assistant/route'
 import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
-import { Route as AppHubRouteRouteImport } from './routes/app/hub/route'
+import { Route as AppLibraryRouteRouteImport } from './routes/app/library/route'
 import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
 import { Route as AppOrganizationRouteRouteImport } from './routes/app/organization/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
@@ -59,12 +59,11 @@ import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
 import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
 import { Route as AppGroupsIndexRouteImport } from './routes/app/groups/index'
 import { Route as AppGroupsGroupIdRouteRouteImport } from './routes/app/groups/$groupId/route'
-import { Route as AppHubIndexRouteImport } from './routes/app/hub/index'
-import { Route as AppHubAssetsRouteRouteImport } from './routes/app/hub/assets/route'
-import { Route as AppHubBehaviourRouteImport } from './routes/app/hub/behaviour'
-import { Route as AppHubBlocksRouteRouteImport } from './routes/app/hub/blocks/route'
-import { Route as AppHubBotsRouteRouteImport } from './routes/app/hub/bots/route'
-import { Route as AppHubRepositoriesRouteRouteImport } from './routes/app/hub/repositories/route'
+import { Route as AppLibraryIndexRouteImport } from './routes/app/library/index'
+import { Route as AppLibraryAssetsRouteRouteImport } from './routes/app/library/assets/route'
+import { Route as AppLibraryBehavioursRouteRouteImport } from './routes/app/library/behaviours/route'
+import { Route as AppLibraryBotsRouteRouteImport } from './routes/app/library/bots/route'
+import { Route as AppLibraryRepositoriesRouteRouteImport } from './routes/app/library/repositories/route'
 import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
 import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
@@ -88,17 +87,18 @@ import { Route as InstanceUsersUserIdRouteRouteImport } from './routes/instance/
 import { Route as AppAssistantChatIdIndexRouteImport } from './routes/app/assistant/$chatId/index'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
-import { Route as AppHubAssetsIndexRouteImport } from './routes/app/hub/assets/index'
-import { Route as AppHubAssetsAssetIdRouteRouteImport } from './routes/app/hub/assets/$assetId/route'
-import { Route as AppHubAssetsAddRouteImport } from './routes/app/hub/assets/add'
-import { Route as AppHubBlocksIndexRouteImport } from './routes/app/hub/blocks/index'
-import { Route as AppHubBlocksBlockIdRouteRouteImport } from './routes/app/hub/blocks/$blockId/route'
-import { Route as AppHubBlocksAddRouteImport } from './routes/app/hub/blocks/add'
-import { Route as AppHubBotsIndexRouteImport } from './routes/app/hub/bots/index'
-import { Route as AppHubBotsBotIdRouteRouteImport } from './routes/app/hub/bots/$botId/route'
-import { Route as AppHubBotsAddRouteImport } from './routes/app/hub/bots/add'
-import { Route as AppHubRepositoriesIndexRouteImport } from './routes/app/hub/repositories/index'
-import { Route as AppHubRepositoriesBlockIdRouteRouteImport } from './routes/app/hub/repositories/$blockId/route'
+import { Route as AppLibraryAssetsIndexRouteImport } from './routes/app/library/assets/index'
+import { Route as AppLibraryAssetsAssetIdRouteRouteImport } from './routes/app/library/assets/$assetId/route'
+import { Route as AppLibraryAssetsAddRouteImport } from './routes/app/library/assets/add'
+import { Route as AppLibraryBehavioursIndexRouteImport } from './routes/app/library/behaviours/index'
+import { Route as AppLibraryBehavioursBlockIdRouteRouteImport } from './routes/app/library/behaviours/$blockId/route'
+import { Route as AppLibraryBehavioursAddRouteImport } from './routes/app/library/behaviours/add'
+import { Route as AppLibraryBotsIndexRouteImport } from './routes/app/library/bots/index'
+import { Route as AppLibraryBotsBotIdRouteRouteImport } from './routes/app/library/bots/$botId/route'
+import { Route as AppLibraryBotsAddRouteImport } from './routes/app/library/bots/add'
+import { Route as AppLibraryRepositoriesIndexRouteImport } from './routes/app/library/repositories/index'
+import { Route as AppLibraryRepositoriesBlockIdRouteRouteImport } from './routes/app/library/repositories/$blockId/route'
+import { Route as AppLibraryRepositoriesAddRouteImport } from './routes/app/library/repositories/add'
 import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
@@ -109,13 +109,15 @@ import { Route as AppUsersUserIdIndexRouteImport } from './routes/app/users/$use
 import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$userId/edit'
 import { Route as InstanceOrganizationsOrganizationIdIndexRouteImport } from './routes/instance/organizations/$organizationId/index'
 import { Route as InstanceUsersUserIdIndexRouteImport } from './routes/instance/users/$userId/index'
-import { Route as AppHubAssetsAssetIdIndexRouteImport } from './routes/app/hub/assets/$assetId/index'
-import { Route as AppHubAssetsAssetIdEditRouteImport } from './routes/app/hub/assets/$assetId/edit'
-import { Route as AppHubBlocksBlockIdIndexRouteImport } from './routes/app/hub/blocks/$blockId/index'
-import { Route as AppHubBlocksBlockIdEditRouteImport } from './routes/app/hub/blocks/$blockId/edit'
-import { Route as AppHubBotsBotIdIndexRouteImport } from './routes/app/hub/bots/$botId/index'
-import { Route as AppHubBotsBotIdSetupRouteImport } from './routes/app/hub/bots/$botId/setup'
-import { Route as AppHubRepositoriesBlockIdExploreRouteImport } from './routes/app/hub/repositories/$blockId/explore'
+import { Route as AppLibraryAssetsAssetIdIndexRouteImport } from './routes/app/library/assets/$assetId/index'
+import { Route as AppLibraryAssetsAssetIdEditRouteImport } from './routes/app/library/assets/$assetId/edit'
+import { Route as AppLibraryBehavioursBlockIdIndexRouteImport } from './routes/app/library/behaviours/$blockId/index'
+import { Route as AppLibraryBehavioursBlockIdEditRouteImport } from './routes/app/library/behaviours/$blockId/edit'
+import { Route as AppLibraryBotsBotIdIndexRouteImport } from './routes/app/library/bots/$botId/index'
+import { Route as AppLibraryBotsBotIdSetupRouteImport } from './routes/app/library/bots/$botId/setup'
+import { Route as AppLibraryRepositoriesBlockIdIndexRouteImport } from './routes/app/library/repositories/$blockId/index'
+import { Route as AppLibraryRepositoriesBlockIdEditRouteImport } from './routes/app/library/repositories/$blockId/edit'
+import { Route as AppLibraryRepositoriesBlockIdExploreRouteImport } from './routes/app/library/repositories/$blockId/explore'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -236,9 +238,9 @@ const AppGroupsRouteRoute = AppGroupsRouteRouteImport.update({
   path: '/groups',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppHubRouteRoute = AppHubRouteRouteImport.update({
-  id: '/hub',
-  path: '/hub',
+const AppLibraryRouteRoute = AppLibraryRouteRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppModelsRouteRoute = AppModelsRouteRouteImport.update({
@@ -374,36 +376,33 @@ const AppGroupsGroupIdRouteRoute = AppGroupsGroupIdRouteRouteImport.update({
   path: '/$groupId',
   getParentRoute: () => AppGroupsRouteRoute,
 } as any)
-const AppHubIndexRoute = AppHubIndexRouteImport.update({
+const AppLibraryIndexRoute = AppLibraryIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppHubRouteRoute,
+  getParentRoute: () => AppLibraryRouteRoute,
 } as any)
-const AppHubAssetsRouteRoute = AppHubAssetsRouteRouteImport.update({
+const AppLibraryAssetsRouteRoute = AppLibraryAssetsRouteRouteImport.update({
   id: '/assets',
   path: '/assets',
-  getParentRoute: () => AppHubRouteRoute,
+  getParentRoute: () => AppLibraryRouteRoute,
 } as any)
-const AppHubBehaviourRoute = AppHubBehaviourRouteImport.update({
-  id: '/behaviour',
-  path: '/behaviour',
-  getParentRoute: () => AppHubRouteRoute,
-} as any)
-const AppHubBlocksRouteRoute = AppHubBlocksRouteRouteImport.update({
-  id: '/blocks',
-  path: '/blocks',
-  getParentRoute: () => AppHubRouteRoute,
-} as any)
-const AppHubBotsRouteRoute = AppHubBotsRouteRouteImport.update({
+const AppLibraryBehavioursRouteRoute =
+  AppLibraryBehavioursRouteRouteImport.update({
+    id: '/behaviours',
+    path: '/behaviours',
+    getParentRoute: () => AppLibraryRouteRoute,
+  } as any)
+const AppLibraryBotsRouteRoute = AppLibraryBotsRouteRouteImport.update({
   id: '/bots',
   path: '/bots',
-  getParentRoute: () => AppHubRouteRoute,
+  getParentRoute: () => AppLibraryRouteRoute,
 } as any)
-const AppHubRepositoriesRouteRoute = AppHubRepositoriesRouteRouteImport.update({
-  id: '/repositories',
-  path: '/repositories',
-  getParentRoute: () => AppHubRouteRoute,
-} as any)
+const AppLibraryRepositoriesRouteRoute =
+  AppLibraryRepositoriesRouteRouteImport.update({
+    id: '/repositories',
+    path: '/repositories',
+    getParentRoute: () => AppLibraryRouteRoute,
+  } as any)
 const AppModelsIndexRoute = AppModelsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -524,63 +523,72 @@ const AppGroupsGroupIdIndexRoute = AppGroupsGroupIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppGroupsGroupIdRouteRoute,
 } as any)
-const AppHubAssetsIndexRoute = AppHubAssetsIndexRouteImport.update({
+const AppLibraryAssetsIndexRoute = AppLibraryAssetsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppHubAssetsRouteRoute,
+  getParentRoute: () => AppLibraryAssetsRouteRoute,
 } as any)
-const AppHubAssetsAssetIdRouteRoute =
-  AppHubAssetsAssetIdRouteRouteImport.update({
+const AppLibraryAssetsAssetIdRouteRoute =
+  AppLibraryAssetsAssetIdRouteRouteImport.update({
     id: '/$assetId',
     path: '/$assetId',
-    getParentRoute: () => AppHubAssetsRouteRoute,
+    getParentRoute: () => AppLibraryAssetsRouteRoute,
   } as any)
-const AppHubAssetsAddRoute = AppHubAssetsAddRouteImport.update({
+const AppLibraryAssetsAddRoute = AppLibraryAssetsAddRouteImport.update({
   id: '/add',
   path: '/add',
-  getParentRoute: () => AppHubAssetsRouteRoute,
+  getParentRoute: () => AppLibraryAssetsRouteRoute,
 } as any)
-const AppHubBlocksIndexRoute = AppHubBlocksIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHubBlocksRouteRoute,
-} as any)
-const AppHubBlocksBlockIdRouteRoute =
-  AppHubBlocksBlockIdRouteRouteImport.update({
+const AppLibraryBehavioursIndexRoute =
+  AppLibraryBehavioursIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppLibraryBehavioursRouteRoute,
+  } as any)
+const AppLibraryBehavioursBlockIdRouteRoute =
+  AppLibraryBehavioursBlockIdRouteRouteImport.update({
     id: '/$blockId',
     path: '/$blockId',
-    getParentRoute: () => AppHubBlocksRouteRoute,
+    getParentRoute: () => AppLibraryBehavioursRouteRoute,
   } as any)
-const AppHubBlocksAddRoute = AppHubBlocksAddRouteImport.update({
+const AppLibraryBehavioursAddRoute = AppLibraryBehavioursAddRouteImport.update({
   id: '/add',
   path: '/add',
-  getParentRoute: () => AppHubBlocksRouteRoute,
+  getParentRoute: () => AppLibraryBehavioursRouteRoute,
 } as any)
-const AppHubBotsIndexRoute = AppHubBotsIndexRouteImport.update({
+const AppLibraryBotsIndexRoute = AppLibraryBotsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppHubBotsRouteRoute,
+  getParentRoute: () => AppLibraryBotsRouteRoute,
 } as any)
-const AppHubBotsBotIdRouteRoute = AppHubBotsBotIdRouteRouteImport.update({
-  id: '/$botId',
-  path: '/$botId',
-  getParentRoute: () => AppHubBotsRouteRoute,
-} as any)
-const AppHubBotsAddRoute = AppHubBotsAddRouteImport.update({
+const AppLibraryBotsBotIdRouteRoute =
+  AppLibraryBotsBotIdRouteRouteImport.update({
+    id: '/$botId',
+    path: '/$botId',
+    getParentRoute: () => AppLibraryBotsRouteRoute,
+  } as any)
+const AppLibraryBotsAddRoute = AppLibraryBotsAddRouteImport.update({
   id: '/add',
   path: '/add',
-  getParentRoute: () => AppHubBotsRouteRoute,
+  getParentRoute: () => AppLibraryBotsRouteRoute,
 } as any)
-const AppHubRepositoriesIndexRoute = AppHubRepositoriesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHubRepositoriesRouteRoute,
-} as any)
-const AppHubRepositoriesBlockIdRouteRoute =
-  AppHubRepositoriesBlockIdRouteRouteImport.update({
+const AppLibraryRepositoriesIndexRoute =
+  AppLibraryRepositoriesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppLibraryRepositoriesRouteRoute,
+  } as any)
+const AppLibraryRepositoriesBlockIdRouteRoute =
+  AppLibraryRepositoriesBlockIdRouteRouteImport.update({
     id: '/$blockId',
     path: '/$blockId',
-    getParentRoute: () => AppHubRepositoriesRouteRoute,
+    getParentRoute: () => AppLibraryRepositoriesRouteRoute,
+  } as any)
+const AppLibraryRepositoriesAddRoute =
+  AppLibraryRepositoriesAddRouteImport.update({
+    id: '/add',
+    path: '/add',
+    getParentRoute: () => AppLibraryRepositoriesRouteRoute,
   } as any)
 const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
   id: '/',
@@ -638,43 +646,59 @@ const InstanceUsersUserIdIndexRoute =
     path: '/',
     getParentRoute: () => InstanceUsersUserIdRouteRoute,
   } as any)
-const AppHubAssetsAssetIdIndexRoute =
-  AppHubAssetsAssetIdIndexRouteImport.update({
+const AppLibraryAssetsAssetIdIndexRoute =
+  AppLibraryAssetsAssetIdIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
+    getParentRoute: () => AppLibraryAssetsAssetIdRouteRoute,
   } as any)
-const AppHubAssetsAssetIdEditRoute = AppHubAssetsAssetIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppHubAssetsAssetIdRouteRoute,
-} as any)
-const AppHubBlocksBlockIdIndexRoute =
-  AppHubBlocksBlockIdIndexRouteImport.update({
+const AppLibraryAssetsAssetIdEditRoute =
+  AppLibraryAssetsAssetIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppLibraryAssetsAssetIdRouteRoute,
+  } as any)
+const AppLibraryBehavioursBlockIdIndexRoute =
+  AppLibraryBehavioursBlockIdIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AppHubBlocksBlockIdRouteRoute,
+    getParentRoute: () => AppLibraryBehavioursBlockIdRouteRoute,
   } as any)
-const AppHubBlocksBlockIdEditRoute = AppHubBlocksBlockIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppHubBlocksBlockIdRouteRoute,
-} as any)
-const AppHubBotsBotIdIndexRoute = AppHubBotsBotIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHubBotsBotIdRouteRoute,
-} as any)
-const AppHubBotsBotIdSetupRoute = AppHubBotsBotIdSetupRouteImport.update({
-  id: '/setup',
-  path: '/setup',
-  getParentRoute: () => AppHubBotsBotIdRouteRoute,
-} as any)
-const AppHubRepositoriesBlockIdExploreRoute =
-  AppHubRepositoriesBlockIdExploreRouteImport.update({
+const AppLibraryBehavioursBlockIdEditRoute =
+  AppLibraryBehavioursBlockIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppLibraryBehavioursBlockIdRouteRoute,
+  } as any)
+const AppLibraryBotsBotIdIndexRoute =
+  AppLibraryBotsBotIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppLibraryBotsBotIdRouteRoute,
+  } as any)
+const AppLibraryBotsBotIdSetupRoute =
+  AppLibraryBotsBotIdSetupRouteImport.update({
+    id: '/setup',
+    path: '/setup',
+    getParentRoute: () => AppLibraryBotsBotIdRouteRoute,
+  } as any)
+const AppLibraryRepositoriesBlockIdIndexRoute =
+  AppLibraryRepositoriesBlockIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppLibraryRepositoriesBlockIdRouteRoute,
+  } as any)
+const AppLibraryRepositoriesBlockIdEditRoute =
+  AppLibraryRepositoriesBlockIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppLibraryRepositoriesBlockIdRouteRoute,
+  } as any)
+const AppLibraryRepositoriesBlockIdExploreRoute =
+  AppLibraryRepositoriesBlockIdExploreRouteImport.update({
     id: '/explore',
     path: '/explore',
-    getParentRoute: () => AppHubRepositoriesBlockIdRouteRoute,
+    getParentRoute: () => AppLibraryRepositoriesBlockIdRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -687,7 +711,7 @@ export interface FileRoutesByFullPath {
   '/app/assistant': typeof AppAssistantRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
-  '/app/hub': typeof AppHubRouteRouteWithChildren
+  '/app/library': typeof AppLibraryRouteRouteWithChildren
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
@@ -707,10 +731,10 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
-  '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
-  '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
-  '/app/hub/bots': typeof AppHubBotsRouteRouteWithChildren
-  '/app/hub/repositories': typeof AppHubRepositoriesRouteRouteWithChildren
+  '/app/library/assets': typeof AppLibraryAssetsRouteRouteWithChildren
+  '/app/library/behaviours': typeof AppLibraryBehavioursRouteRouteWithChildren
+  '/app/library/bots': typeof AppLibraryBotsRouteRouteWithChildren
+  '/app/library/repositories': typeof AppLibraryRepositoriesRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
@@ -729,7 +753,6 @@ export interface FileRoutesByFullPath {
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
-  '/app/hub/behaviour': typeof AppHubBehaviourRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
@@ -742,7 +765,7 @@ export interface FileRoutesByFullPath {
   '/app/assistant/': typeof AppAssistantIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
-  '/app/hub/': typeof AppHubIndexRoute
+  '/app/library/': typeof AppLibraryIndexRoute
   '/app/models/': typeof AppModelsIndexRoute
   '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
@@ -752,13 +775,14 @@ export interface FileRoutesByFullPath {
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
-  '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
-  '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
-  '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
-  '/app/hub/repositories/$blockId': typeof AppHubRepositoriesBlockIdRouteRouteWithChildren
-  '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
-  '/app/hub/bots/add': typeof AppHubBotsAddRoute
+  '/app/library/assets/$assetId': typeof AppLibraryAssetsAssetIdRouteRouteWithChildren
+  '/app/library/behaviours/$blockId': typeof AppLibraryBehavioursBlockIdRouteRouteWithChildren
+  '/app/library/bots/$botId': typeof AppLibraryBotsBotIdRouteRouteWithChildren
+  '/app/library/repositories/$blockId': typeof AppLibraryRepositoriesBlockIdRouteRouteWithChildren
+  '/app/library/assets/add': typeof AppLibraryAssetsAddRoute
+  '/app/library/behaviours/add': typeof AppLibraryBehavioursAddRoute
+  '/app/library/bots/add': typeof AppLibraryBotsAddRoute
+  '/app/library/repositories/add': typeof AppLibraryRepositoriesAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
@@ -766,23 +790,25 @@ export interface FileRoutesByFullPath {
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
-  '/app/hub/assets/': typeof AppHubAssetsIndexRoute
-  '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
-  '/app/hub/bots/': typeof AppHubBotsIndexRoute
-  '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
+  '/app/library/assets/': typeof AppLibraryAssetsIndexRoute
+  '/app/library/behaviours/': typeof AppLibraryBehavioursIndexRoute
+  '/app/library/bots/': typeof AppLibraryBotsIndexRoute
+  '/app/library/repositories/': typeof AppLibraryRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
-  '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
-  '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
-  '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
-  '/app/hub/repositories/$blockId/explore': typeof AppHubRepositoriesBlockIdExploreRoute
-  '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
-  '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
-  '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
+  '/app/library/assets/$assetId/edit': typeof AppLibraryAssetsAssetIdEditRoute
+  '/app/library/behaviours/$blockId/edit': typeof AppLibraryBehavioursBlockIdEditRoute
+  '/app/library/bots/$botId/setup': typeof AppLibraryBotsBotIdSetupRoute
+  '/app/library/repositories/$blockId/edit': typeof AppLibraryRepositoriesBlockIdEditRoute
+  '/app/library/repositories/$blockId/explore': typeof AppLibraryRepositoriesBlockIdExploreRoute
+  '/app/library/assets/$assetId/': typeof AppLibraryAssetsAssetIdIndexRoute
+  '/app/library/behaviours/$blockId/': typeof AppLibraryBehavioursBlockIdIndexRoute
+  '/app/library/bots/$botId/': typeof AppLibraryBotsBotIdIndexRoute
+  '/app/library/repositories/$blockId/': typeof AppLibraryRepositoriesBlockIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -812,7 +838,6 @@ export interface FileRoutesByTo {
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
-  '/app/hub/behaviour': typeof AppHubBehaviourRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
@@ -824,7 +849,7 @@ export interface FileRoutesByTo {
   '/app/assistant': typeof AppAssistantIndexRoute
   '/app/chat': typeof AppChatIndexRoute
   '/app/groups': typeof AppGroupsIndexRoute
-  '/app/hub': typeof AppHubIndexRoute
+  '/app/library': typeof AppLibraryIndexRoute
   '/app/models': typeof AppModelsIndexRoute
   '/app/organization': typeof AppOrganizationIndexRoute
   '/app/providers': typeof AppProvidersIndexRoute
@@ -834,10 +859,10 @@ export interface FileRoutesByTo {
   '/instance/health': typeof InstanceHealthIndexRoute
   '/instance/organizations': typeof InstanceOrganizationsIndexRoute
   '/instance/users': typeof InstanceUsersIndexRoute
-  '/app/hub/repositories/$blockId': typeof AppHubRepositoriesBlockIdRouteRouteWithChildren
-  '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
-  '/app/hub/bots/add': typeof AppHubBotsAddRoute
+  '/app/library/assets/add': typeof AppLibraryAssetsAddRoute
+  '/app/library/behaviours/add': typeof AppLibraryBehavioursAddRoute
+  '/app/library/bots/add': typeof AppLibraryBotsAddRoute
+  '/app/library/repositories/add': typeof AppLibraryRepositoriesAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
@@ -845,23 +870,25 @@ export interface FileRoutesByTo {
   '/app/assistant/$chatId': typeof AppAssistantChatIdIndexRoute
   '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdIndexRoute
-  '/app/hub/assets': typeof AppHubAssetsIndexRoute
-  '/app/hub/blocks': typeof AppHubBlocksIndexRoute
-  '/app/hub/bots': typeof AppHubBotsIndexRoute
-  '/app/hub/repositories': typeof AppHubRepositoriesIndexRoute
+  '/app/library/assets': typeof AppLibraryAssetsIndexRoute
+  '/app/library/behaviours': typeof AppLibraryBehavioursIndexRoute
+  '/app/library/bots': typeof AppLibraryBotsIndexRoute
+  '/app/library/repositories': typeof AppLibraryRepositoriesIndexRoute
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId': typeof AppUsersUserIdIndexRoute
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId': typeof InstanceUsersUserIdIndexRoute
-  '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
-  '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
-  '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
-  '/app/hub/repositories/$blockId/explore': typeof AppHubRepositoriesBlockIdExploreRoute
-  '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdIndexRoute
-  '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdIndexRoute
-  '/app/hub/bots/$botId': typeof AppHubBotsBotIdIndexRoute
+  '/app/library/assets/$assetId/edit': typeof AppLibraryAssetsAssetIdEditRoute
+  '/app/library/behaviours/$blockId/edit': typeof AppLibraryBehavioursBlockIdEditRoute
+  '/app/library/bots/$botId/setup': typeof AppLibraryBotsBotIdSetupRoute
+  '/app/library/repositories/$blockId/edit': typeof AppLibraryRepositoriesBlockIdEditRoute
+  '/app/library/repositories/$blockId/explore': typeof AppLibraryRepositoriesBlockIdExploreRoute
+  '/app/library/assets/$assetId': typeof AppLibraryAssetsAssetIdIndexRoute
+  '/app/library/behaviours/$blockId': typeof AppLibraryBehavioursBlockIdIndexRoute
+  '/app/library/bots/$botId': typeof AppLibraryBotsBotIdIndexRoute
+  '/app/library/repositories/$blockId': typeof AppLibraryRepositoriesBlockIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -876,7 +903,7 @@ export interface FileRoutesById {
   '/app/assistant': typeof AppAssistantRouteRouteWithChildren
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
-  '/app/hub': typeof AppHubRouteRouteWithChildren
+  '/app/library': typeof AppLibraryRouteRouteWithChildren
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
@@ -896,10 +923,10 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/instance/': typeof InstanceIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
-  '/app/hub/assets': typeof AppHubAssetsRouteRouteWithChildren
-  '/app/hub/blocks': typeof AppHubBlocksRouteRouteWithChildren
-  '/app/hub/bots': typeof AppHubBotsRouteRouteWithChildren
-  '/app/hub/repositories': typeof AppHubRepositoriesRouteRouteWithChildren
+  '/app/library/assets': typeof AppLibraryAssetsRouteRouteWithChildren
+  '/app/library/behaviours': typeof AppLibraryBehavioursRouteRouteWithChildren
+  '/app/library/bots': typeof AppLibraryBotsRouteRouteWithChildren
+  '/app/library/repositories': typeof AppLibraryRepositoriesRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
@@ -918,7 +945,6 @@ export interface FileRoutesById {
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
-  '/app/hub/behaviour': typeof AppHubBehaviourRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
@@ -931,7 +957,7 @@ export interface FileRoutesById {
   '/app/assistant/': typeof AppAssistantIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
-  '/app/hub/': typeof AppHubIndexRoute
+  '/app/library/': typeof AppLibraryIndexRoute
   '/app/models/': typeof AppModelsIndexRoute
   '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
@@ -941,13 +967,14 @@ export interface FileRoutesById {
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
-  '/app/hub/assets/$assetId': typeof AppHubAssetsAssetIdRouteRouteWithChildren
-  '/app/hub/blocks/$blockId': typeof AppHubBlocksBlockIdRouteRouteWithChildren
-  '/app/hub/bots/$botId': typeof AppHubBotsBotIdRouteRouteWithChildren
-  '/app/hub/repositories/$blockId': typeof AppHubRepositoriesBlockIdRouteRouteWithChildren
-  '/app/hub/assets/add': typeof AppHubAssetsAddRoute
-  '/app/hub/blocks/add': typeof AppHubBlocksAddRoute
-  '/app/hub/bots/add': typeof AppHubBotsAddRoute
+  '/app/library/assets/$assetId': typeof AppLibraryAssetsAssetIdRouteRouteWithChildren
+  '/app/library/behaviours/$blockId': typeof AppLibraryBehavioursBlockIdRouteRouteWithChildren
+  '/app/library/bots/$botId': typeof AppLibraryBotsBotIdRouteRouteWithChildren
+  '/app/library/repositories/$blockId': typeof AppLibraryRepositoriesBlockIdRouteRouteWithChildren
+  '/app/library/assets/add': typeof AppLibraryAssetsAddRoute
+  '/app/library/behaviours/add': typeof AppLibraryBehavioursAddRoute
+  '/app/library/bots/add': typeof AppLibraryBotsAddRoute
+  '/app/library/repositories/add': typeof AppLibraryRepositoriesAddRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
@@ -955,23 +982,25 @@ export interface FileRoutesById {
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
-  '/app/hub/assets/': typeof AppHubAssetsIndexRoute
-  '/app/hub/blocks/': typeof AppHubBlocksIndexRoute
-  '/app/hub/bots/': typeof AppHubBotsIndexRoute
-  '/app/hub/repositories/': typeof AppHubRepositoriesIndexRoute
+  '/app/library/assets/': typeof AppLibraryAssetsIndexRoute
+  '/app/library/behaviours/': typeof AppLibraryBehavioursIndexRoute
+  '/app/library/bots/': typeof AppLibraryBotsIndexRoute
+  '/app/library/repositories/': typeof AppLibraryRepositoriesIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
   '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
-  '/app/hub/assets/$assetId/edit': typeof AppHubAssetsAssetIdEditRoute
-  '/app/hub/blocks/$blockId/edit': typeof AppHubBlocksBlockIdEditRoute
-  '/app/hub/bots/$botId/setup': typeof AppHubBotsBotIdSetupRoute
-  '/app/hub/repositories/$blockId/explore': typeof AppHubRepositoriesBlockIdExploreRoute
-  '/app/hub/assets/$assetId/': typeof AppHubAssetsAssetIdIndexRoute
-  '/app/hub/blocks/$blockId/': typeof AppHubBlocksBlockIdIndexRoute
-  '/app/hub/bots/$botId/': typeof AppHubBotsBotIdIndexRoute
+  '/app/library/assets/$assetId/edit': typeof AppLibraryAssetsAssetIdEditRoute
+  '/app/library/behaviours/$blockId/edit': typeof AppLibraryBehavioursBlockIdEditRoute
+  '/app/library/bots/$botId/setup': typeof AppLibraryBotsBotIdSetupRoute
+  '/app/library/repositories/$blockId/edit': typeof AppLibraryRepositoriesBlockIdEditRoute
+  '/app/library/repositories/$blockId/explore': typeof AppLibraryRepositoriesBlockIdExploreRoute
+  '/app/library/assets/$assetId/': typeof AppLibraryAssetsAssetIdIndexRoute
+  '/app/library/behaviours/$blockId/': typeof AppLibraryBehavioursBlockIdIndexRoute
+  '/app/library/bots/$botId/': typeof AppLibraryBotsBotIdIndexRoute
+  '/app/library/repositories/$blockId/': typeof AppLibraryRepositoriesBlockIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -985,7 +1014,7 @@ export interface FileRouteTypes {
     | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
-    | '/app/hub'
+    | '/app/library'
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
@@ -1005,10 +1034,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/instance/'
     | '/app/groups/$groupId'
-    | '/app/hub/assets'
-    | '/app/hub/blocks'
-    | '/app/hub/bots'
-    | '/app/hub/repositories'
+    | '/app/library/assets'
+    | '/app/library/behaviours'
+    | '/app/library/bots'
+    | '/app/library/repositories'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
@@ -1027,7 +1056,6 @@ export interface FileRouteTypes {
     | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
-    | '/app/hub/behaviour'
     | '/app/models/add'
     | '/app/providers/add'
     | '/app/quotas/add'
@@ -1040,7 +1068,7 @@ export interface FileRouteTypes {
     | '/app/assistant/'
     | '/app/chat/'
     | '/app/groups/'
-    | '/app/hub/'
+    | '/app/library/'
     | '/app/models/'
     | '/app/organization/'
     | '/app/providers/'
@@ -1050,13 +1078,14 @@ export interface FileRouteTypes {
     | '/instance/health/'
     | '/instance/organizations/'
     | '/instance/users/'
-    | '/app/hub/assets/$assetId'
-    | '/app/hub/blocks/$blockId'
-    | '/app/hub/bots/$botId'
-    | '/app/hub/repositories/$blockId'
-    | '/app/hub/assets/add'
-    | '/app/hub/blocks/add'
-    | '/app/hub/bots/add'
+    | '/app/library/assets/$assetId'
+    | '/app/library/behaviours/$blockId'
+    | '/app/library/bots/$botId'
+    | '/app/library/repositories/$blockId'
+    | '/app/library/assets/add'
+    | '/app/library/behaviours/add'
+    | '/app/library/bots/add'
+    | '/app/library/repositories/add'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
@@ -1064,23 +1093,25 @@ export interface FileRouteTypes {
     | '/app/assistant/$chatId/'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
-    | '/app/hub/assets/'
-    | '/app/hub/blocks/'
-    | '/app/hub/bots/'
-    | '/app/hub/repositories/'
+    | '/app/library/assets/'
+    | '/app/library/behaviours/'
+    | '/app/library/bots/'
+    | '/app/library/repositories/'
     | '/app/models/$modelId/'
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
     | '/app/users/$userId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
-    | '/app/hub/assets/$assetId/edit'
-    | '/app/hub/blocks/$blockId/edit'
-    | '/app/hub/bots/$botId/setup'
-    | '/app/hub/repositories/$blockId/explore'
-    | '/app/hub/assets/$assetId/'
-    | '/app/hub/blocks/$blockId/'
-    | '/app/hub/bots/$botId/'
+    | '/app/library/assets/$assetId/edit'
+    | '/app/library/behaviours/$blockId/edit'
+    | '/app/library/bots/$botId/setup'
+    | '/app/library/repositories/$blockId/edit'
+    | '/app/library/repositories/$blockId/explore'
+    | '/app/library/assets/$assetId/'
+    | '/app/library/behaviours/$blockId/'
+    | '/app/library/bots/$botId/'
+    | '/app/library/repositories/$blockId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1110,7 +1141,6 @@ export interface FileRouteTypes {
     | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
-    | '/app/hub/behaviour'
     | '/app/models/add'
     | '/app/providers/add'
     | '/app/quotas/add'
@@ -1122,7 +1152,7 @@ export interface FileRouteTypes {
     | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
-    | '/app/hub'
+    | '/app/library'
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
@@ -1132,10 +1162,10 @@ export interface FileRouteTypes {
     | '/instance/health'
     | '/instance/organizations'
     | '/instance/users'
-    | '/app/hub/repositories/$blockId'
-    | '/app/hub/assets/add'
-    | '/app/hub/blocks/add'
-    | '/app/hub/bots/add'
+    | '/app/library/assets/add'
+    | '/app/library/behaviours/add'
+    | '/app/library/bots/add'
+    | '/app/library/repositories/add'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
@@ -1143,23 +1173,25 @@ export interface FileRouteTypes {
     | '/app/assistant/$chatId'
     | '/app/chat/$chatId'
     | '/app/groups/$groupId'
-    | '/app/hub/assets'
-    | '/app/hub/blocks'
-    | '/app/hub/bots'
-    | '/app/hub/repositories'
+    | '/app/library/assets'
+    | '/app/library/behaviours'
+    | '/app/library/bots'
+    | '/app/library/repositories'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
     | '/app/users/$userId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
-    | '/app/hub/assets/$assetId/edit'
-    | '/app/hub/blocks/$blockId/edit'
-    | '/app/hub/bots/$botId/setup'
-    | '/app/hub/repositories/$blockId/explore'
-    | '/app/hub/assets/$assetId'
-    | '/app/hub/blocks/$blockId'
-    | '/app/hub/bots/$botId'
+    | '/app/library/assets/$assetId/edit'
+    | '/app/library/behaviours/$blockId/edit'
+    | '/app/library/bots/$botId/setup'
+    | '/app/library/repositories/$blockId/edit'
+    | '/app/library/repositories/$blockId/explore'
+    | '/app/library/assets/$assetId'
+    | '/app/library/behaviours/$blockId'
+    | '/app/library/bots/$botId'
+    | '/app/library/repositories/$blockId'
   id:
     | '__root__'
     | '/'
@@ -1173,7 +1205,7 @@ export interface FileRouteTypes {
     | '/app/assistant'
     | '/app/chat'
     | '/app/groups'
-    | '/app/hub'
+    | '/app/library'
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
@@ -1193,10 +1225,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/instance/'
     | '/app/groups/$groupId'
-    | '/app/hub/assets'
-    | '/app/hub/blocks'
-    | '/app/hub/bots'
-    | '/app/hub/repositories'
+    | '/app/library/assets'
+    | '/app/library/behaviours'
+    | '/app/library/bots'
+    | '/app/library/repositories'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
@@ -1215,7 +1247,6 @@ export interface FileRouteTypes {
     | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
-    | '/app/hub/behaviour'
     | '/app/models/add'
     | '/app/providers/add'
     | '/app/quotas/add'
@@ -1228,7 +1259,7 @@ export interface FileRouteTypes {
     | '/app/assistant/'
     | '/app/chat/'
     | '/app/groups/'
-    | '/app/hub/'
+    | '/app/library/'
     | '/app/models/'
     | '/app/organization/'
     | '/app/providers/'
@@ -1238,13 +1269,14 @@ export interface FileRouteTypes {
     | '/instance/health/'
     | '/instance/organizations/'
     | '/instance/users/'
-    | '/app/hub/assets/$assetId'
-    | '/app/hub/blocks/$blockId'
-    | '/app/hub/bots/$botId'
-    | '/app/hub/repositories/$blockId'
-    | '/app/hub/assets/add'
-    | '/app/hub/blocks/add'
-    | '/app/hub/bots/add'
+    | '/app/library/assets/$assetId'
+    | '/app/library/behaviours/$blockId'
+    | '/app/library/bots/$botId'
+    | '/app/library/repositories/$blockId'
+    | '/app/library/assets/add'
+    | '/app/library/behaviours/add'
+    | '/app/library/bots/add'
+    | '/app/library/repositories/add'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
@@ -1252,23 +1284,25 @@ export interface FileRouteTypes {
     | '/app/assistant/$chatId/'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
-    | '/app/hub/assets/'
-    | '/app/hub/blocks/'
-    | '/app/hub/bots/'
-    | '/app/hub/repositories/'
+    | '/app/library/assets/'
+    | '/app/library/behaviours/'
+    | '/app/library/bots/'
+    | '/app/library/repositories/'
     | '/app/models/$modelId/'
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
     | '/app/users/$userId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
-    | '/app/hub/assets/$assetId/edit'
-    | '/app/hub/blocks/$blockId/edit'
-    | '/app/hub/bots/$botId/setup'
-    | '/app/hub/repositories/$blockId/explore'
-    | '/app/hub/assets/$assetId/'
-    | '/app/hub/blocks/$blockId/'
-    | '/app/hub/bots/$botId/'
+    | '/app/library/assets/$assetId/edit'
+    | '/app/library/behaviours/$blockId/edit'
+    | '/app/library/bots/$botId/setup'
+    | '/app/library/repositories/$blockId/edit'
+    | '/app/library/repositories/$blockId/explore'
+    | '/app/library/assets/$assetId/'
+    | '/app/library/behaviours/$blockId/'
+    | '/app/library/bots/$botId/'
+    | '/app/library/repositories/$blockId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1447,11 +1481,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGroupsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/hub': {
-      id: '/app/hub'
-      path: '/hub'
-      fullPath: '/app/hub'
-      preLoaderRoute: typeof AppHubRouteRouteImport
+    '/app/library': {
+      id: '/app/library'
+      path: '/library'
+      fullPath: '/app/library'
+      preLoaderRoute: typeof AppLibraryRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/models': {
@@ -1636,47 +1670,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGroupsGroupIdRouteRouteImport
       parentRoute: typeof AppGroupsRouteRoute
     }
-    '/app/hub/': {
-      id: '/app/hub/'
+    '/app/library/': {
+      id: '/app/library/'
       path: '/'
-      fullPath: '/app/hub/'
-      preLoaderRoute: typeof AppHubIndexRouteImport
-      parentRoute: typeof AppHubRouteRoute
+      fullPath: '/app/library/'
+      preLoaderRoute: typeof AppLibraryIndexRouteImport
+      parentRoute: typeof AppLibraryRouteRoute
     }
-    '/app/hub/assets': {
-      id: '/app/hub/assets'
+    '/app/library/assets': {
+      id: '/app/library/assets'
       path: '/assets'
-      fullPath: '/app/hub/assets'
-      preLoaderRoute: typeof AppHubAssetsRouteRouteImport
-      parentRoute: typeof AppHubRouteRoute
+      fullPath: '/app/library/assets'
+      preLoaderRoute: typeof AppLibraryAssetsRouteRouteImport
+      parentRoute: typeof AppLibraryRouteRoute
     }
-    '/app/hub/behaviour': {
-      id: '/app/hub/behaviour'
-      path: '/behaviour'
-      fullPath: '/app/hub/behaviour'
-      preLoaderRoute: typeof AppHubBehaviourRouteImport
-      parentRoute: typeof AppHubRouteRoute
+    '/app/library/behaviours': {
+      id: '/app/library/behaviours'
+      path: '/behaviours'
+      fullPath: '/app/library/behaviours'
+      preLoaderRoute: typeof AppLibraryBehavioursRouteRouteImport
+      parentRoute: typeof AppLibraryRouteRoute
     }
-    '/app/hub/blocks': {
-      id: '/app/hub/blocks'
-      path: '/blocks'
-      fullPath: '/app/hub/blocks'
-      preLoaderRoute: typeof AppHubBlocksRouteRouteImport
-      parentRoute: typeof AppHubRouteRoute
-    }
-    '/app/hub/bots': {
-      id: '/app/hub/bots'
+    '/app/library/bots': {
+      id: '/app/library/bots'
       path: '/bots'
-      fullPath: '/app/hub/bots'
-      preLoaderRoute: typeof AppHubBotsRouteRouteImport
-      parentRoute: typeof AppHubRouteRoute
+      fullPath: '/app/library/bots'
+      preLoaderRoute: typeof AppLibraryBotsRouteRouteImport
+      parentRoute: typeof AppLibraryRouteRoute
     }
-    '/app/hub/repositories': {
-      id: '/app/hub/repositories'
+    '/app/library/repositories': {
+      id: '/app/library/repositories'
       path: '/repositories'
-      fullPath: '/app/hub/repositories'
-      preLoaderRoute: typeof AppHubRepositoriesRouteRouteImport
-      parentRoute: typeof AppHubRouteRoute
+      fullPath: '/app/library/repositories'
+      preLoaderRoute: typeof AppLibraryRepositoriesRouteRouteImport
+      parentRoute: typeof AppLibraryRouteRoute
     }
     '/app/models/': {
       id: '/app/models/'
@@ -1839,82 +1866,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGroupsGroupIdIndexRouteImport
       parentRoute: typeof AppGroupsGroupIdRouteRoute
     }
-    '/app/hub/assets/': {
-      id: '/app/hub/assets/'
+    '/app/library/assets/': {
+      id: '/app/library/assets/'
       path: '/'
-      fullPath: '/app/hub/assets/'
-      preLoaderRoute: typeof AppHubAssetsIndexRouteImport
-      parentRoute: typeof AppHubAssetsRouteRoute
+      fullPath: '/app/library/assets/'
+      preLoaderRoute: typeof AppLibraryAssetsIndexRouteImport
+      parentRoute: typeof AppLibraryAssetsRouteRoute
     }
-    '/app/hub/assets/$assetId': {
-      id: '/app/hub/assets/$assetId'
+    '/app/library/assets/$assetId': {
+      id: '/app/library/assets/$assetId'
       path: '/$assetId'
-      fullPath: '/app/hub/assets/$assetId'
-      preLoaderRoute: typeof AppHubAssetsAssetIdRouteRouteImport
-      parentRoute: typeof AppHubAssetsRouteRoute
+      fullPath: '/app/library/assets/$assetId'
+      preLoaderRoute: typeof AppLibraryAssetsAssetIdRouteRouteImport
+      parentRoute: typeof AppLibraryAssetsRouteRoute
     }
-    '/app/hub/assets/add': {
-      id: '/app/hub/assets/add'
+    '/app/library/assets/add': {
+      id: '/app/library/assets/add'
       path: '/add'
-      fullPath: '/app/hub/assets/add'
-      preLoaderRoute: typeof AppHubAssetsAddRouteImport
-      parentRoute: typeof AppHubAssetsRouteRoute
+      fullPath: '/app/library/assets/add'
+      preLoaderRoute: typeof AppLibraryAssetsAddRouteImport
+      parentRoute: typeof AppLibraryAssetsRouteRoute
     }
-    '/app/hub/blocks/': {
-      id: '/app/hub/blocks/'
+    '/app/library/behaviours/': {
+      id: '/app/library/behaviours/'
       path: '/'
-      fullPath: '/app/hub/blocks/'
-      preLoaderRoute: typeof AppHubBlocksIndexRouteImport
-      parentRoute: typeof AppHubBlocksRouteRoute
+      fullPath: '/app/library/behaviours/'
+      preLoaderRoute: typeof AppLibraryBehavioursIndexRouteImport
+      parentRoute: typeof AppLibraryBehavioursRouteRoute
     }
-    '/app/hub/blocks/$blockId': {
-      id: '/app/hub/blocks/$blockId'
+    '/app/library/behaviours/$blockId': {
+      id: '/app/library/behaviours/$blockId'
       path: '/$blockId'
-      fullPath: '/app/hub/blocks/$blockId'
-      preLoaderRoute: typeof AppHubBlocksBlockIdRouteRouteImport
-      parentRoute: typeof AppHubBlocksRouteRoute
+      fullPath: '/app/library/behaviours/$blockId'
+      preLoaderRoute: typeof AppLibraryBehavioursBlockIdRouteRouteImport
+      parentRoute: typeof AppLibraryBehavioursRouteRoute
     }
-    '/app/hub/blocks/add': {
-      id: '/app/hub/blocks/add'
+    '/app/library/behaviours/add': {
+      id: '/app/library/behaviours/add'
       path: '/add'
-      fullPath: '/app/hub/blocks/add'
-      preLoaderRoute: typeof AppHubBlocksAddRouteImport
-      parentRoute: typeof AppHubBlocksRouteRoute
+      fullPath: '/app/library/behaviours/add'
+      preLoaderRoute: typeof AppLibraryBehavioursAddRouteImport
+      parentRoute: typeof AppLibraryBehavioursRouteRoute
     }
-    '/app/hub/bots/': {
-      id: '/app/hub/bots/'
+    '/app/library/bots/': {
+      id: '/app/library/bots/'
       path: '/'
-      fullPath: '/app/hub/bots/'
-      preLoaderRoute: typeof AppHubBotsIndexRouteImport
-      parentRoute: typeof AppHubBotsRouteRoute
+      fullPath: '/app/library/bots/'
+      preLoaderRoute: typeof AppLibraryBotsIndexRouteImport
+      parentRoute: typeof AppLibraryBotsRouteRoute
     }
-    '/app/hub/bots/$botId': {
-      id: '/app/hub/bots/$botId'
+    '/app/library/bots/$botId': {
+      id: '/app/library/bots/$botId'
       path: '/$botId'
-      fullPath: '/app/hub/bots/$botId'
-      preLoaderRoute: typeof AppHubBotsBotIdRouteRouteImport
-      parentRoute: typeof AppHubBotsRouteRoute
+      fullPath: '/app/library/bots/$botId'
+      preLoaderRoute: typeof AppLibraryBotsBotIdRouteRouteImport
+      parentRoute: typeof AppLibraryBotsRouteRoute
     }
-    '/app/hub/bots/add': {
-      id: '/app/hub/bots/add'
+    '/app/library/bots/add': {
+      id: '/app/library/bots/add'
       path: '/add'
-      fullPath: '/app/hub/bots/add'
-      preLoaderRoute: typeof AppHubBotsAddRouteImport
-      parentRoute: typeof AppHubBotsRouteRoute
+      fullPath: '/app/library/bots/add'
+      preLoaderRoute: typeof AppLibraryBotsAddRouteImport
+      parentRoute: typeof AppLibraryBotsRouteRoute
     }
-    '/app/hub/repositories/': {
-      id: '/app/hub/repositories/'
+    '/app/library/repositories/': {
+      id: '/app/library/repositories/'
       path: '/'
-      fullPath: '/app/hub/repositories/'
-      preLoaderRoute: typeof AppHubRepositoriesIndexRouteImport
-      parentRoute: typeof AppHubRepositoriesRouteRoute
+      fullPath: '/app/library/repositories/'
+      preLoaderRoute: typeof AppLibraryRepositoriesIndexRouteImport
+      parentRoute: typeof AppLibraryRepositoriesRouteRoute
     }
-    '/app/hub/repositories/$blockId': {
-      id: '/app/hub/repositories/$blockId'
+    '/app/library/repositories/$blockId': {
+      id: '/app/library/repositories/$blockId'
       path: '/$blockId'
-      fullPath: '/app/hub/repositories/$blockId'
-      preLoaderRoute: typeof AppHubRepositoriesBlockIdRouteRouteImport
-      parentRoute: typeof AppHubRepositoriesRouteRoute
+      fullPath: '/app/library/repositories/$blockId'
+      preLoaderRoute: typeof AppLibraryRepositoriesBlockIdRouteRouteImport
+      parentRoute: typeof AppLibraryRepositoriesRouteRoute
+    }
+    '/app/library/repositories/add': {
+      id: '/app/library/repositories/add'
+      path: '/add'
+      fullPath: '/app/library/repositories/add'
+      preLoaderRoute: typeof AppLibraryRepositoriesAddRouteImport
+      parentRoute: typeof AppLibraryRepositoriesRouteRoute
     }
     '/app/models/$modelId/': {
       id: '/app/models/$modelId/'
@@ -1986,54 +2020,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstanceUsersUserIdIndexRouteImport
       parentRoute: typeof InstanceUsersUserIdRouteRoute
     }
-    '/app/hub/assets/$assetId/': {
-      id: '/app/hub/assets/$assetId/'
+    '/app/library/assets/$assetId/': {
+      id: '/app/library/assets/$assetId/'
       path: '/'
-      fullPath: '/app/hub/assets/$assetId/'
-      preLoaderRoute: typeof AppHubAssetsAssetIdIndexRouteImport
-      parentRoute: typeof AppHubAssetsAssetIdRouteRoute
+      fullPath: '/app/library/assets/$assetId/'
+      preLoaderRoute: typeof AppLibraryAssetsAssetIdIndexRouteImport
+      parentRoute: typeof AppLibraryAssetsAssetIdRouteRoute
     }
-    '/app/hub/assets/$assetId/edit': {
-      id: '/app/hub/assets/$assetId/edit'
+    '/app/library/assets/$assetId/edit': {
+      id: '/app/library/assets/$assetId/edit'
       path: '/edit'
-      fullPath: '/app/hub/assets/$assetId/edit'
-      preLoaderRoute: typeof AppHubAssetsAssetIdEditRouteImport
-      parentRoute: typeof AppHubAssetsAssetIdRouteRoute
+      fullPath: '/app/library/assets/$assetId/edit'
+      preLoaderRoute: typeof AppLibraryAssetsAssetIdEditRouteImport
+      parentRoute: typeof AppLibraryAssetsAssetIdRouteRoute
     }
-    '/app/hub/blocks/$blockId/': {
-      id: '/app/hub/blocks/$blockId/'
+    '/app/library/behaviours/$blockId/': {
+      id: '/app/library/behaviours/$blockId/'
       path: '/'
-      fullPath: '/app/hub/blocks/$blockId/'
-      preLoaderRoute: typeof AppHubBlocksBlockIdIndexRouteImport
-      parentRoute: typeof AppHubBlocksBlockIdRouteRoute
+      fullPath: '/app/library/behaviours/$blockId/'
+      preLoaderRoute: typeof AppLibraryBehavioursBlockIdIndexRouteImport
+      parentRoute: typeof AppLibraryBehavioursBlockIdRouteRoute
     }
-    '/app/hub/blocks/$blockId/edit': {
-      id: '/app/hub/blocks/$blockId/edit'
+    '/app/library/behaviours/$blockId/edit': {
+      id: '/app/library/behaviours/$blockId/edit'
       path: '/edit'
-      fullPath: '/app/hub/blocks/$blockId/edit'
-      preLoaderRoute: typeof AppHubBlocksBlockIdEditRouteImport
-      parentRoute: typeof AppHubBlocksBlockIdRouteRoute
+      fullPath: '/app/library/behaviours/$blockId/edit'
+      preLoaderRoute: typeof AppLibraryBehavioursBlockIdEditRouteImport
+      parentRoute: typeof AppLibraryBehavioursBlockIdRouteRoute
     }
-    '/app/hub/bots/$botId/': {
-      id: '/app/hub/bots/$botId/'
+    '/app/library/bots/$botId/': {
+      id: '/app/library/bots/$botId/'
       path: '/'
-      fullPath: '/app/hub/bots/$botId/'
-      preLoaderRoute: typeof AppHubBotsBotIdIndexRouteImport
-      parentRoute: typeof AppHubBotsBotIdRouteRoute
+      fullPath: '/app/library/bots/$botId/'
+      preLoaderRoute: typeof AppLibraryBotsBotIdIndexRouteImport
+      parentRoute: typeof AppLibraryBotsBotIdRouteRoute
     }
-    '/app/hub/bots/$botId/setup': {
-      id: '/app/hub/bots/$botId/setup'
+    '/app/library/bots/$botId/setup': {
+      id: '/app/library/bots/$botId/setup'
       path: '/setup'
-      fullPath: '/app/hub/bots/$botId/setup'
-      preLoaderRoute: typeof AppHubBotsBotIdSetupRouteImport
-      parentRoute: typeof AppHubBotsBotIdRouteRoute
+      fullPath: '/app/library/bots/$botId/setup'
+      preLoaderRoute: typeof AppLibraryBotsBotIdSetupRouteImport
+      parentRoute: typeof AppLibraryBotsBotIdRouteRoute
     }
-    '/app/hub/repositories/$blockId/explore': {
-      id: '/app/hub/repositories/$blockId/explore'
+    '/app/library/repositories/$blockId/': {
+      id: '/app/library/repositories/$blockId/'
+      path: '/'
+      fullPath: '/app/library/repositories/$blockId/'
+      preLoaderRoute: typeof AppLibraryRepositoriesBlockIdIndexRouteImport
+      parentRoute: typeof AppLibraryRepositoriesBlockIdRouteRoute
+    }
+    '/app/library/repositories/$blockId/edit': {
+      id: '/app/library/repositories/$blockId/edit'
+      path: '/edit'
+      fullPath: '/app/library/repositories/$blockId/edit'
+      preLoaderRoute: typeof AppLibraryRepositoriesBlockIdEditRouteImport
+      parentRoute: typeof AppLibraryRepositoriesBlockIdRouteRoute
+    }
+    '/app/library/repositories/$blockId/explore': {
+      id: '/app/library/repositories/$blockId/explore'
       path: '/explore'
-      fullPath: '/app/hub/repositories/$blockId/explore'
-      preLoaderRoute: typeof AppHubRepositoriesBlockIdExploreRouteImport
-      parentRoute: typeof AppHubRepositoriesBlockIdRouteRoute
+      fullPath: '/app/library/repositories/$blockId/explore'
+      preLoaderRoute: typeof AppLibraryRepositoriesBlockIdExploreRouteImport
+      parentRoute: typeof AppLibraryRepositoriesBlockIdRouteRoute
     }
   }
 }
@@ -2188,149 +2236,166 @@ const AppGroupsRouteRouteWithChildren = AppGroupsRouteRoute._addFileChildren(
   AppGroupsRouteRouteChildren,
 )
 
-interface AppHubAssetsAssetIdRouteRouteChildren {
-  AppHubAssetsAssetIdEditRoute: typeof AppHubAssetsAssetIdEditRoute
-  AppHubAssetsAssetIdIndexRoute: typeof AppHubAssetsAssetIdIndexRoute
+interface AppLibraryAssetsAssetIdRouteRouteChildren {
+  AppLibraryAssetsAssetIdEditRoute: typeof AppLibraryAssetsAssetIdEditRoute
+  AppLibraryAssetsAssetIdIndexRoute: typeof AppLibraryAssetsAssetIdIndexRoute
 }
 
-const AppHubAssetsAssetIdRouteRouteChildren: AppHubAssetsAssetIdRouteRouteChildren =
+const AppLibraryAssetsAssetIdRouteRouteChildren: AppLibraryAssetsAssetIdRouteRouteChildren =
   {
-    AppHubAssetsAssetIdEditRoute: AppHubAssetsAssetIdEditRoute,
-    AppHubAssetsAssetIdIndexRoute: AppHubAssetsAssetIdIndexRoute,
+    AppLibraryAssetsAssetIdEditRoute: AppLibraryAssetsAssetIdEditRoute,
+    AppLibraryAssetsAssetIdIndexRoute: AppLibraryAssetsAssetIdIndexRoute,
   }
 
-const AppHubAssetsAssetIdRouteRouteWithChildren =
-  AppHubAssetsAssetIdRouteRoute._addFileChildren(
-    AppHubAssetsAssetIdRouteRouteChildren,
+const AppLibraryAssetsAssetIdRouteRouteWithChildren =
+  AppLibraryAssetsAssetIdRouteRoute._addFileChildren(
+    AppLibraryAssetsAssetIdRouteRouteChildren,
   )
 
-interface AppHubAssetsRouteRouteChildren {
-  AppHubAssetsAssetIdRouteRoute: typeof AppHubAssetsAssetIdRouteRouteWithChildren
-  AppHubAssetsAddRoute: typeof AppHubAssetsAddRoute
-  AppHubAssetsIndexRoute: typeof AppHubAssetsIndexRoute
+interface AppLibraryAssetsRouteRouteChildren {
+  AppLibraryAssetsAssetIdRouteRoute: typeof AppLibraryAssetsAssetIdRouteRouteWithChildren
+  AppLibraryAssetsAddRoute: typeof AppLibraryAssetsAddRoute
+  AppLibraryAssetsIndexRoute: typeof AppLibraryAssetsIndexRoute
 }
 
-const AppHubAssetsRouteRouteChildren: AppHubAssetsRouteRouteChildren = {
-  AppHubAssetsAssetIdRouteRoute: AppHubAssetsAssetIdRouteRouteWithChildren,
-  AppHubAssetsAddRoute: AppHubAssetsAddRoute,
-  AppHubAssetsIndexRoute: AppHubAssetsIndexRoute,
+const AppLibraryAssetsRouteRouteChildren: AppLibraryAssetsRouteRouteChildren = {
+  AppLibraryAssetsAssetIdRouteRoute:
+    AppLibraryAssetsAssetIdRouteRouteWithChildren,
+  AppLibraryAssetsAddRoute: AppLibraryAssetsAddRoute,
+  AppLibraryAssetsIndexRoute: AppLibraryAssetsIndexRoute,
 }
 
-const AppHubAssetsRouteRouteWithChildren =
-  AppHubAssetsRouteRoute._addFileChildren(AppHubAssetsRouteRouteChildren)
+const AppLibraryAssetsRouteRouteWithChildren =
+  AppLibraryAssetsRouteRoute._addFileChildren(
+    AppLibraryAssetsRouteRouteChildren,
+  )
 
-interface AppHubBlocksBlockIdRouteRouteChildren {
-  AppHubBlocksBlockIdEditRoute: typeof AppHubBlocksBlockIdEditRoute
-  AppHubBlocksBlockIdIndexRoute: typeof AppHubBlocksBlockIdIndexRoute
+interface AppLibraryBehavioursBlockIdRouteRouteChildren {
+  AppLibraryBehavioursBlockIdEditRoute: typeof AppLibraryBehavioursBlockIdEditRoute
+  AppLibraryBehavioursBlockIdIndexRoute: typeof AppLibraryBehavioursBlockIdIndexRoute
 }
 
-const AppHubBlocksBlockIdRouteRouteChildren: AppHubBlocksBlockIdRouteRouteChildren =
+const AppLibraryBehavioursBlockIdRouteRouteChildren: AppLibraryBehavioursBlockIdRouteRouteChildren =
   {
-    AppHubBlocksBlockIdEditRoute: AppHubBlocksBlockIdEditRoute,
-    AppHubBlocksBlockIdIndexRoute: AppHubBlocksBlockIdIndexRoute,
+    AppLibraryBehavioursBlockIdEditRoute: AppLibraryBehavioursBlockIdEditRoute,
+    AppLibraryBehavioursBlockIdIndexRoute:
+      AppLibraryBehavioursBlockIdIndexRoute,
   }
 
-const AppHubBlocksBlockIdRouteRouteWithChildren =
-  AppHubBlocksBlockIdRouteRoute._addFileChildren(
-    AppHubBlocksBlockIdRouteRouteChildren,
+const AppLibraryBehavioursBlockIdRouteRouteWithChildren =
+  AppLibraryBehavioursBlockIdRouteRoute._addFileChildren(
+    AppLibraryBehavioursBlockIdRouteRouteChildren,
   )
 
-interface AppHubBlocksRouteRouteChildren {
-  AppHubBlocksBlockIdRouteRoute: typeof AppHubBlocksBlockIdRouteRouteWithChildren
-  AppHubBlocksAddRoute: typeof AppHubBlocksAddRoute
-  AppHubBlocksIndexRoute: typeof AppHubBlocksIndexRoute
+interface AppLibraryBehavioursRouteRouteChildren {
+  AppLibraryBehavioursBlockIdRouteRoute: typeof AppLibraryBehavioursBlockIdRouteRouteWithChildren
+  AppLibraryBehavioursAddRoute: typeof AppLibraryBehavioursAddRoute
+  AppLibraryBehavioursIndexRoute: typeof AppLibraryBehavioursIndexRoute
 }
 
-const AppHubBlocksRouteRouteChildren: AppHubBlocksRouteRouteChildren = {
-  AppHubBlocksBlockIdRouteRoute: AppHubBlocksBlockIdRouteRouteWithChildren,
-  AppHubBlocksAddRoute: AppHubBlocksAddRoute,
-  AppHubBlocksIndexRoute: AppHubBlocksIndexRoute,
-}
-
-const AppHubBlocksRouteRouteWithChildren =
-  AppHubBlocksRouteRoute._addFileChildren(AppHubBlocksRouteRouteChildren)
-
-interface AppHubBotsBotIdRouteRouteChildren {
-  AppHubBotsBotIdSetupRoute: typeof AppHubBotsBotIdSetupRoute
-  AppHubBotsBotIdIndexRoute: typeof AppHubBotsBotIdIndexRoute
-}
-
-const AppHubBotsBotIdRouteRouteChildren: AppHubBotsBotIdRouteRouteChildren = {
-  AppHubBotsBotIdSetupRoute: AppHubBotsBotIdSetupRoute,
-  AppHubBotsBotIdIndexRoute: AppHubBotsBotIdIndexRoute,
-}
-
-const AppHubBotsBotIdRouteRouteWithChildren =
-  AppHubBotsBotIdRouteRoute._addFileChildren(AppHubBotsBotIdRouteRouteChildren)
-
-interface AppHubBotsRouteRouteChildren {
-  AppHubBotsBotIdRouteRoute: typeof AppHubBotsBotIdRouteRouteWithChildren
-  AppHubBotsAddRoute: typeof AppHubBotsAddRoute
-  AppHubBotsIndexRoute: typeof AppHubBotsIndexRoute
-}
-
-const AppHubBotsRouteRouteChildren: AppHubBotsRouteRouteChildren = {
-  AppHubBotsBotIdRouteRoute: AppHubBotsBotIdRouteRouteWithChildren,
-  AppHubBotsAddRoute: AppHubBotsAddRoute,
-  AppHubBotsIndexRoute: AppHubBotsIndexRoute,
-}
-
-const AppHubBotsRouteRouteWithChildren = AppHubBotsRouteRoute._addFileChildren(
-  AppHubBotsRouteRouteChildren,
-)
-
-interface AppHubRepositoriesBlockIdRouteRouteChildren {
-  AppHubRepositoriesBlockIdExploreRoute: typeof AppHubRepositoriesBlockIdExploreRoute
-}
-
-const AppHubRepositoriesBlockIdRouteRouteChildren: AppHubRepositoriesBlockIdRouteRouteChildren =
+const AppLibraryBehavioursRouteRouteChildren: AppLibraryBehavioursRouteRouteChildren =
   {
-    AppHubRepositoriesBlockIdExploreRoute:
-      AppHubRepositoriesBlockIdExploreRoute,
+    AppLibraryBehavioursBlockIdRouteRoute:
+      AppLibraryBehavioursBlockIdRouteRouteWithChildren,
+    AppLibraryBehavioursAddRoute: AppLibraryBehavioursAddRoute,
+    AppLibraryBehavioursIndexRoute: AppLibraryBehavioursIndexRoute,
   }
 
-const AppHubRepositoriesBlockIdRouteRouteWithChildren =
-  AppHubRepositoriesBlockIdRouteRoute._addFileChildren(
-    AppHubRepositoriesBlockIdRouteRouteChildren,
+const AppLibraryBehavioursRouteRouteWithChildren =
+  AppLibraryBehavioursRouteRoute._addFileChildren(
+    AppLibraryBehavioursRouteRouteChildren,
   )
 
-interface AppHubRepositoriesRouteRouteChildren {
-  AppHubRepositoriesBlockIdRouteRoute: typeof AppHubRepositoriesBlockIdRouteRouteWithChildren
-  AppHubRepositoriesIndexRoute: typeof AppHubRepositoriesIndexRoute
+interface AppLibraryBotsBotIdRouteRouteChildren {
+  AppLibraryBotsBotIdSetupRoute: typeof AppLibraryBotsBotIdSetupRoute
+  AppLibraryBotsBotIdIndexRoute: typeof AppLibraryBotsBotIdIndexRoute
 }
 
-const AppHubRepositoriesRouteRouteChildren: AppHubRepositoriesRouteRouteChildren =
+const AppLibraryBotsBotIdRouteRouteChildren: AppLibraryBotsBotIdRouteRouteChildren =
   {
-    AppHubRepositoriesBlockIdRouteRoute:
-      AppHubRepositoriesBlockIdRouteRouteWithChildren,
-    AppHubRepositoriesIndexRoute: AppHubRepositoriesIndexRoute,
+    AppLibraryBotsBotIdSetupRoute: AppLibraryBotsBotIdSetupRoute,
+    AppLibraryBotsBotIdIndexRoute: AppLibraryBotsBotIdIndexRoute,
   }
 
-const AppHubRepositoriesRouteRouteWithChildren =
-  AppHubRepositoriesRouteRoute._addFileChildren(
-    AppHubRepositoriesRouteRouteChildren,
+const AppLibraryBotsBotIdRouteRouteWithChildren =
+  AppLibraryBotsBotIdRouteRoute._addFileChildren(
+    AppLibraryBotsBotIdRouteRouteChildren,
   )
 
-interface AppHubRouteRouteChildren {
-  AppHubAssetsRouteRoute: typeof AppHubAssetsRouteRouteWithChildren
-  AppHubBlocksRouteRoute: typeof AppHubBlocksRouteRouteWithChildren
-  AppHubBotsRouteRoute: typeof AppHubBotsRouteRouteWithChildren
-  AppHubRepositoriesRouteRoute: typeof AppHubRepositoriesRouteRouteWithChildren
-  AppHubBehaviourRoute: typeof AppHubBehaviourRoute
-  AppHubIndexRoute: typeof AppHubIndexRoute
+interface AppLibraryBotsRouteRouteChildren {
+  AppLibraryBotsBotIdRouteRoute: typeof AppLibraryBotsBotIdRouteRouteWithChildren
+  AppLibraryBotsAddRoute: typeof AppLibraryBotsAddRoute
+  AppLibraryBotsIndexRoute: typeof AppLibraryBotsIndexRoute
 }
 
-const AppHubRouteRouteChildren: AppHubRouteRouteChildren = {
-  AppHubAssetsRouteRoute: AppHubAssetsRouteRouteWithChildren,
-  AppHubBlocksRouteRoute: AppHubBlocksRouteRouteWithChildren,
-  AppHubBotsRouteRoute: AppHubBotsRouteRouteWithChildren,
-  AppHubRepositoriesRouteRoute: AppHubRepositoriesRouteRouteWithChildren,
-  AppHubBehaviourRoute: AppHubBehaviourRoute,
-  AppHubIndexRoute: AppHubIndexRoute,
+const AppLibraryBotsRouteRouteChildren: AppLibraryBotsRouteRouteChildren = {
+  AppLibraryBotsBotIdRouteRoute: AppLibraryBotsBotIdRouteRouteWithChildren,
+  AppLibraryBotsAddRoute: AppLibraryBotsAddRoute,
+  AppLibraryBotsIndexRoute: AppLibraryBotsIndexRoute,
 }
 
-const AppHubRouteRouteWithChildren = AppHubRouteRoute._addFileChildren(
-  AppHubRouteRouteChildren,
+const AppLibraryBotsRouteRouteWithChildren =
+  AppLibraryBotsRouteRoute._addFileChildren(AppLibraryBotsRouteRouteChildren)
+
+interface AppLibraryRepositoriesBlockIdRouteRouteChildren {
+  AppLibraryRepositoriesBlockIdEditRoute: typeof AppLibraryRepositoriesBlockIdEditRoute
+  AppLibraryRepositoriesBlockIdExploreRoute: typeof AppLibraryRepositoriesBlockIdExploreRoute
+  AppLibraryRepositoriesBlockIdIndexRoute: typeof AppLibraryRepositoriesBlockIdIndexRoute
+}
+
+const AppLibraryRepositoriesBlockIdRouteRouteChildren: AppLibraryRepositoriesBlockIdRouteRouteChildren =
+  {
+    AppLibraryRepositoriesBlockIdEditRoute:
+      AppLibraryRepositoriesBlockIdEditRoute,
+    AppLibraryRepositoriesBlockIdExploreRoute:
+      AppLibraryRepositoriesBlockIdExploreRoute,
+    AppLibraryRepositoriesBlockIdIndexRoute:
+      AppLibraryRepositoriesBlockIdIndexRoute,
+  }
+
+const AppLibraryRepositoriesBlockIdRouteRouteWithChildren =
+  AppLibraryRepositoriesBlockIdRouteRoute._addFileChildren(
+    AppLibraryRepositoriesBlockIdRouteRouteChildren,
+  )
+
+interface AppLibraryRepositoriesRouteRouteChildren {
+  AppLibraryRepositoriesBlockIdRouteRoute: typeof AppLibraryRepositoriesBlockIdRouteRouteWithChildren
+  AppLibraryRepositoriesAddRoute: typeof AppLibraryRepositoriesAddRoute
+  AppLibraryRepositoriesIndexRoute: typeof AppLibraryRepositoriesIndexRoute
+}
+
+const AppLibraryRepositoriesRouteRouteChildren: AppLibraryRepositoriesRouteRouteChildren =
+  {
+    AppLibraryRepositoriesBlockIdRouteRoute:
+      AppLibraryRepositoriesBlockIdRouteRouteWithChildren,
+    AppLibraryRepositoriesAddRoute: AppLibraryRepositoriesAddRoute,
+    AppLibraryRepositoriesIndexRoute: AppLibraryRepositoriesIndexRoute,
+  }
+
+const AppLibraryRepositoriesRouteRouteWithChildren =
+  AppLibraryRepositoriesRouteRoute._addFileChildren(
+    AppLibraryRepositoriesRouteRouteChildren,
+  )
+
+interface AppLibraryRouteRouteChildren {
+  AppLibraryAssetsRouteRoute: typeof AppLibraryAssetsRouteRouteWithChildren
+  AppLibraryBehavioursRouteRoute: typeof AppLibraryBehavioursRouteRouteWithChildren
+  AppLibraryBotsRouteRoute: typeof AppLibraryBotsRouteRouteWithChildren
+  AppLibraryRepositoriesRouteRoute: typeof AppLibraryRepositoriesRouteRouteWithChildren
+  AppLibraryIndexRoute: typeof AppLibraryIndexRoute
+}
+
+const AppLibraryRouteRouteChildren: AppLibraryRouteRouteChildren = {
+  AppLibraryAssetsRouteRoute: AppLibraryAssetsRouteRouteWithChildren,
+  AppLibraryBehavioursRouteRoute: AppLibraryBehavioursRouteRouteWithChildren,
+  AppLibraryBotsRouteRoute: AppLibraryBotsRouteRouteWithChildren,
+  AppLibraryRepositoriesRouteRoute:
+    AppLibraryRepositoriesRouteRouteWithChildren,
+  AppLibraryIndexRoute: AppLibraryIndexRoute,
+}
+
+const AppLibraryRouteRouteWithChildren = AppLibraryRouteRoute._addFileChildren(
+  AppLibraryRouteRouteChildren,
 )
 
 interface AppModelsModelIdRouteRouteChildren {
@@ -2477,7 +2542,7 @@ interface AppRouteRouteChildren {
   AppAssistantRouteRoute: typeof AppAssistantRouteRouteWithChildren
   AppChatRouteRoute: typeof AppChatRouteRouteWithChildren
   AppGroupsRouteRoute: typeof AppGroupsRouteRouteWithChildren
-  AppHubRouteRoute: typeof AppHubRouteRouteWithChildren
+  AppLibraryRouteRoute: typeof AppLibraryRouteRouteWithChildren
   AppModelsRouteRoute: typeof AppModelsRouteRouteWithChildren
   AppOrganizationRouteRoute: typeof AppOrganizationRouteRouteWithChildren
   AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
@@ -2492,7 +2557,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppAssistantRouteRoute: AppAssistantRouteRouteWithChildren,
   AppChatRouteRoute: AppChatRouteRouteWithChildren,
   AppGroupsRouteRoute: AppGroupsRouteRouteWithChildren,
-  AppHubRouteRoute: AppHubRouteRouteWithChildren,
+  AppLibraryRouteRoute: AppLibraryRouteRouteWithChildren,
   AppModelsRouteRoute: AppModelsRouteRouteWithChildren,
   AppOrganizationRouteRoute: AppOrganizationRouteRouteWithChildren,
   AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,

@@ -38,7 +38,7 @@ const openBlockEditor = async ({
 			systemPrompt: "Created by the unsaved changes spec.",
 		},
 	});
-	const detailPath = `/app/hub/blocks/${block.data.id}`;
+	const detailPath = `/app/library/behaviours/${block.data.id}`;
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);

@@ -114,7 +114,7 @@ const BotTileContent = ({
 );
 
 const detailLink = (bot: Pick<TileBot, "id">): LinkProps => ({
-	to: "/app/hub/bots/$botId",
+	to: "/app/library/bots/$botId",
 	params: {
 		botId: bot.id,
 	},

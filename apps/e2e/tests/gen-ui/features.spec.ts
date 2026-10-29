@@ -49,7 +49,7 @@ test("gen-ui: the bot editor saves Generative UI and its chats offer the checkli
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=1`);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=1`);
 
 	await expect(
 		page.getByText(message("features_section_title"), {
@@ -68,7 +68,7 @@ test("gen-ui: the bot editor saves Generative UI and its chats offer the checkli
 		page.getByText(message("authoring_wizard_saved_status")),
 	).toBeVisible();
 
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=1`);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=1`);
 	await expect(genUiSwitch(page)).toBeChecked();
 
 	await openChat(page, chatId);

@@ -1,6 +1,6 @@
 import { createHydrationOptions } from "@orpc/tanstack-query";
 import { QueryClient } from "@tanstack/react-query";
-import { type AnyRouteMatch, createRouter } from "@tanstack/react-router";
+import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import type { ReactElement, ReactNode } from "react";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
@@ -43,8 +43,6 @@ declare module "@tanstack/react-router" {
 	}
 
 	interface StaticDataRouteOption {
-		/** Where the crumb of a route that is no page of its own leads. */
-		breadcrumbTo?: (matches: AnyRouteMatch[]) => string | undefined;
 		/** Turns the header's last crumb, the page's title, into a menu it opens; the trigger may be disabled. */
 		titleMenu?: (props: {
 			children: ReactElement<{

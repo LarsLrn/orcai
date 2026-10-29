@@ -41,8 +41,8 @@ describe("request span names", () => {
 		expect(spanNameFor("GET", "/")).toBe("GET /");
 		expect(spanNameFor("GET", "/login")).toBe("GET /login");
 		expect(spanNameFor("GET", "/app/chat/0b7c")).toBe("GET /app/chat/$chatId/");
-		expect(spanNameFor("GET", "/app/hub/bots/42")).toBe(
-			"GET /app/hub/bots/$botId/",
+		expect(spanNameFor("GET", "/app/library/bots/42")).toBe(
+			"GET /app/library/bots/$botId/",
 		);
 		expect(spanNameFor("GET", "/app/models/7/edit")).toBe(
 			"GET /app/models/$modelId/edit",

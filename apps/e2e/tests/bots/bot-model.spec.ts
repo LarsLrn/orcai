@@ -140,7 +140,7 @@ test("bots: the Model step shows who the bot's quota covers", async ({
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=4`);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=4`);
 	await expect(
 		page.getByRole("heading", {
 			name: message("bot_setup_coverage_title"),
@@ -181,7 +181,7 @@ test("bots: moving on from the Model step saves its changes", async ({
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=4`);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=4`);
 	await page
 		.getByRole("combobox", {
 			name: message("bot_setup_strength_label"),

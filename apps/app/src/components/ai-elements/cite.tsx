@@ -106,7 +106,7 @@ const CiteCardContent = ({
 					size: "sm",
 					className: "w-full",
 				})}
-				to="/app/hub/assets/$assetId"
+				to="/app/library/assets/$assetId"
 				params={{
 					assetId,
 				}}

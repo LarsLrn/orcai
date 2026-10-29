@@ -78,7 +78,7 @@ const pickManagerOnSharingStep = async (
 	botId: BotId,
 ): Promise<void> => {
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${botId}/setup?step=${SHARING_STEP}`);
+	await open(page, `/app/library/bots/${botId}/setup?step=${SHARING_STEP}`);
 
 	await page
 		.getByRole("tab", {

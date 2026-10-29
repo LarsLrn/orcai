@@ -2,6 +2,7 @@ import type { BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
 	AccessAncestor,
+	BlockType,
 	ResourceGrant as ResourceGrantView,
 	ResourceIdentity,
 	ResourcePrincipal,
@@ -57,7 +58,7 @@ const grantSourceForGroup = (
 type ActiveGrant = typeof dbSchema.resourceGrant.$inferSelect;
 type AncestorRef = AccessAncestor extends infer Ancestor
 	? Ancestor extends AccessAncestor
-		? Omit<Ancestor, "name">
+		? Omit<Ancestor, "name" | "blockType">
 		: never
 	: never;
 
@@ -355,6 +356,7 @@ const getInheritedAccess = authed.resource.inheritedAccess
 						.select({
 							id: dbSchema.block.id,
 							name: dbSchema.block.name,
+							type: dbSchema.block.type,
 						})
 						.from(dbSchema.block)
 						.where(inArray(dbSchema.block.id, visibleBlockIds))
@@ -371,6 +373,7 @@ const getInheritedAccess = authed.resource.inheritedAccess
 				resourceType: "block" as const,
 				resourceId: row.id,
 				name: row.name,
+				blockType: row.type as BlockType,
 			})),
 		];
 

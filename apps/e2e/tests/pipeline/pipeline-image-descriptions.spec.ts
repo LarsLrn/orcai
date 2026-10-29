@@ -152,7 +152,7 @@ test("pipeline: an image fails with the reason when the utility model cannot rea
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/assets/${asset.id}`);
+	await open(page, `/app/library/assets/${asset.id}`);
 	await expect(
 		page.getByText(message("pipeline_failure_unsupported_image")),
 	).toBeVisible();

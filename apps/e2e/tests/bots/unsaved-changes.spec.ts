@@ -22,7 +22,7 @@ test("bots: stay keeps a new bot's unsaved name", async ({ org, pageAs }) => {
 	const name = `E2E Unsaved Bot ${runId()}`;
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/bots/add");
+	await open(page, "/app/library/bots/add");
 	await nameField(page).fill(name);
 
 	await homeLink(page).click();
@@ -33,7 +33,7 @@ test("bots: stay keeps a new bot's unsaved name", async ({ org, pageAs }) => {
 		.click();
 
 	await expect(leaveDialog(page)).toHaveCount(0);
-	await expect(page).toHaveURL(/\/app\/hub\/bots\/add/);
+	await expect(page).toHaveURL(/\/app\/library\/bots\/add/);
 	await expect(nameField(page)).toHaveValue(name);
 });
 
@@ -44,7 +44,7 @@ test("bots: saving and changing steps never ask, leaving with edits does", async
 	const name = `E2E Unsaved Bot ${runId()}`;
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/bots/add");
+	await open(page, "/app/library/bots/add");
 	await nameField(page).fill(name);
 	await page
 		.getByLabel(message("authoring_basics_description_label"))
@@ -55,7 +55,7 @@ test("bots: saving and changing steps never ask, leaving with edits does", async
 			name: message("common_next_button"),
 		})
 		.click();
-	await expect(page).toHaveURL(/\/app\/hub\/bots\/[^/]+\/setup\?step=1/);
+	await expect(page).toHaveURL(/\/app\/library\/bots\/[^/]+\/setup\?step=1/);
 	await expect(
 		page.getByRole("heading", {
 			name: message("bots_setup_page_title"),
@@ -145,7 +145,7 @@ test("bots: closing the upload dialog asks only while an upload is in flight", a
 	const bot = await memberBot(api);
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=2`);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=2`);
 	const uploadDialog = await openUploadDialog(page);
 	const uploads = await holdUploads(page);
 	await uploadNotes(uploadDialog, "unsaved-notes.txt");
@@ -193,7 +193,7 @@ test("bots: assets uploaded in the repository dialog are selected at once", asyn
 	const bot = await memberBot(api);
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=2`);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=2`);
 	const uploadDialog = await openUploadDialog(page);
 	const name = `E2E Selected ${runId()}.txt`;
 
@@ -233,7 +233,7 @@ test("bots: publishing saves the edits on screen first", async ({
 	const renamed = `${bot.name} published`;
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/bots/${bot.id}/setup?step=0`);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=0`);
 
 	await nameField(page).fill(renamed);
 	await page
@@ -253,7 +253,7 @@ test("bots: publishing saves the edits on screen first", async ({
 		})
 		.click();
 
-	await expect(page).toHaveURL(new RegExp(`/app/hub/bots/${bot.id}$`));
+	await expect(page).toHaveURL(new RegExp(`/app/library/bots/${bot.id}$`));
 	await expect(leaveDialog(page)).toHaveCount(0);
 	const published = await api.as("member").bot.find({
 		id: bot.id,

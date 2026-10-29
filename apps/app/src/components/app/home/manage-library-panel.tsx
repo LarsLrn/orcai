@@ -81,7 +81,7 @@ const ManageLibraryPanel = () => {
 			}),
 			count: publishedCount + draftCount,
 			linkProps: {
-				to: "/app/hub/bots",
+				to: "/app/library/bots",
 			},
 		},
 		{
@@ -89,7 +89,7 @@ const ManageLibraryPanel = () => {
 			meta: m.home_library_blocks_meta(),
 			count: templates.data.rowCount,
 			linkProps: {
-				to: "/app/hub/behaviour",
+				to: "/app/library/behaviours",
 			},
 		},
 		{
@@ -97,7 +97,7 @@ const ManageLibraryPanel = () => {
 			meta: m.home_library_repositories_meta(),
 			count: repositories.data.rowCount,
 			linkProps: {
-				to: "/app/hub/repositories",
+				to: "/app/library/repositories",
 			},
 		},
 		{
@@ -105,7 +105,7 @@ const ManageLibraryPanel = () => {
 			meta: m.home_library_assets_meta(),
 			count: assets.data.rowCount,
 			linkProps: {
-				to: "/app/hub/assets",
+				to: "/app/library/assets",
 			},
 		},
 	];
@@ -119,7 +119,7 @@ const ManageLibraryPanel = () => {
 					"create_asset",
 				) ? (
 					<Link
-						to="/app/hub/assets/add"
+						to="/app/library/assets/add"
 						className={buttonVariants({
 							variant: "ghost",
 							size: "sm",

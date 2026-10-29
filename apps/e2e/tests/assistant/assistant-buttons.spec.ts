@@ -16,7 +16,7 @@ const askButton = (page: Page) =>
 	});
 
 const openBotSetup = async (page: Page, botId: string): Promise<void> => {
-	await open(page, `/app/hub/bots/${botId}/setup`);
+	await open(page, `/app/library/bots/${botId}/setup`);
 	await expect(
 		page.getByRole("heading", {
 			name: message("bots_setup_page_title"),

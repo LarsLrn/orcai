@@ -19,7 +19,7 @@ const star = (page: Page, titleKey: string, name: string) =>
 		}),
 	});
 
-test("bots: a starred bot shows in the hub's and the selector's favourites", async ({
+test("bots: a starred bot shows in the library's and the selector's favourites", async ({
 	api,
 	org,
 	pageAs,
@@ -40,7 +40,7 @@ test("bots: a starred bot shows in the hub's and the selector's favourites", asy
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/bots");
+	await open(page, "/app/library/bots");
 	const favourites = section(page, "bots_list_favourites_title");
 	await expect(favourites).toHaveCount(0);
 
@@ -73,7 +73,7 @@ test("bots: a starred bot shows in the hub's and the selector's favourites", asy
 	).toBeVisible();
 	await page.keyboard.press("Escape");
 
-	await open(page, "/app/hub/bots");
+	await open(page, "/app/library/bots");
 	await star(page, "bots_list_favourites_title", bot.name).click();
 	await expect(favourites).toHaveCount(0);
 	await expect(

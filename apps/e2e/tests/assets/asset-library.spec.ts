@@ -30,7 +30,7 @@ test("assets: chat uploads have their own tab until added to the library", async
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/assets");
+	await open(page, "/app/library/assets");
 
 	await expect(tab(page, "assets_list_library_tab")).toHaveAttribute(
 		"aria-selected",

@@ -9,8 +9,8 @@ const origins = {
 describe("isTrustedAssistantLink", () => {
 	test.each([
 		"/app",
-		"/app/hub/bots",
-		"/app/hub/bots/123?tab=access",
+		"/app/library/bots",
+		"/app/library/bots/123?tab=access",
 		"https://orcai.example.org/app/organization",
 		"https://docs.example.org",
 		"https://docs.example.org/docs/using-orcai/bots",
@@ -21,8 +21,8 @@ describe("isTrustedAssistantLink", () => {
 	test.each([
 		"/instance/users",
 		"/application",
-		"//evil.example/app/hub",
-		"https://evil.example/app/hub",
+		"//evil.example/app/library",
+		"https://evil.example/app/library",
 		"http://docs.example.org/docs",
 		"https://docs.example.org.evil.example/docs",
 		"javascript:alert(1)",

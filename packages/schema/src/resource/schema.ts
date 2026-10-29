@@ -33,17 +33,17 @@ export const resourceVisibilitySchema = z.enum([
 	"public",
 ]);
 
-const assetResourceIdentitySchema = z.object({
+export const assetResourceIdentitySchema = z.object({
 	resourceType: z.literal("asset"),
 	resourceId: assetIdSchema,
 });
 
-const blockResourceIdentitySchema = z.object({
+export const blockResourceIdentitySchema = z.object({
 	resourceType: z.literal("block"),
 	resourceId: blockIdSchema,
 });
 
-const botResourceIdentitySchema = z.object({
+export const botResourceIdentitySchema = z.object({
 	resourceType: z.literal("bot"),
 	resourceId: botIdSchema,
 });
@@ -188,6 +188,7 @@ const accessAncestorSchema = z.discriminatedUnion("resourceType", [
 		resourceType: z.literal("block"),
 		resourceId: blockIdSchema,
 		name: z.string(),
+		blockType: blockTypeSchema,
 	}),
 ]);
 

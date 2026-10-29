@@ -42,7 +42,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 				<SectionDescription>{m.bots_showcase_description()}</SectionDescription>
 				<SectionAction>
 					<Link
-						to="/app/hub/bots"
+						to="/app/library/bots"
 						className={buttonVariants({
 							variant: "outline",
 							size: "sm",
@@ -70,7 +70,7 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 											icon: SparklesIcon,
 											variant: "outline",
 											linkProps: {
-												to: "/app/hub/bots/add",
+												to: "/app/library/bots/add",
 											},
 										},
 									]

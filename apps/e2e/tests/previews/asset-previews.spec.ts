@@ -86,7 +86,7 @@ for (const image of images) {
 
 		for (const viewport of WIDTHS) {
 			await page.setViewportSize(viewport);
-			await open(page, `/app/hub/assets/${asset.id}`);
+			await open(page, `/app/library/assets/${asset.id}`);
 			const preview = page.getByRole("img", {
 				name: asset.title,
 			});
@@ -135,12 +135,12 @@ test("assets: a pdf previews inline at 1280 px and opens in a tab at 390 px", as
 	});
 
 	await page.setViewportSize(WIDTHS[0]);
-	await open(page, `/app/hub/assets/${asset.id}`);
+	await open(page, `/app/library/assets/${asset.id}`);
 	await expect(page.locator("iframe")).toBeVisible();
 	await expect(openPdf).toHaveCount(0);
 
 	await page.setViewportSize(WIDTHS[1]);
-	await open(page, `/app/hub/assets/${asset.id}`);
+	await open(page, `/app/library/assets/${asset.id}`);
 	await expect(openPdf).toBeVisible();
 	await expect(page.locator("iframe")).toHaveCount(0);
 	await fitsViewport(page);
@@ -177,7 +177,7 @@ test("assets: the header download saves the file under its name through a fresh 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
 	await page.setViewportSize(WIDTHS[0]);
-	await open(page, `/app/hub/assets/${asset.id}`);
+	await open(page, `/app/library/assets/${asset.id}`);
 	const download = page.getByRole("button", {
 		name: message("assets_detail_download_button"),
 	});
@@ -211,7 +211,7 @@ test("assets: a failed image load offers a retry", async ({
 	const isImage = (url: URL) =>
 		url.href.includes(asset.id) && url.pathname.endsWith(".png");
 	await page.route(isImage, (route) => route.abort());
-	await open(page, `/app/hub/assets/${asset.id}`);
+	await open(page, `/app/library/assets/${asset.id}`);
 	await expect(
 		page.getByText(message("assets_file_viewer_image_error_title")),
 	).toBeVisible();
@@ -245,7 +245,7 @@ test("assets: other file types stay unsupported on every width", async ({
 	await enterApp(page, org.slug);
 	for (const viewport of WIDTHS) {
 		await page.setViewportSize(viewport);
-		await open(page, `/app/hub/assets/${asset.id}`);
+		await open(page, `/app/library/assets/${asset.id}`);
 		await expect(
 			page.getByText(message("assets_file_viewer_unsupported_title")),
 		).toBeVisible();

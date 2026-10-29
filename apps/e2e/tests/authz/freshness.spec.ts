@@ -51,7 +51,7 @@ test("a grant made over the API is visible on the first page load of the granted
 	// least as fresh as the grant.
 	const page = await pageAs("viewer");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/blocks/${block.data.id}`);
+	await open(page, `/app/library/behaviours/${block.data.id}`);
 
 	await expect(
 		page.getByRole("heading", {
@@ -136,7 +136,7 @@ test("a block created in the browser is readable on the page the creation naviga
 	const blockName = authzName("Browser Created Block");
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/hub/blocks/add");
+	await open(page, "/app/library/behaviours/add");
 
 	// Creating the block writes the owner relationship, and the response carries
 	// the zedToken back as a cookie the page keeps.
@@ -149,7 +149,7 @@ test("a block created in the browser is readable on the page the creation naviga
 		},
 		submit: message("blocks_template_form_create_submit_button"),
 		// The created block, not the add page it was submitted from.
-		until: /\/app\/hub\/blocks\/(?!add$)[^/]+$/,
+		until: /\/app\/library\/behaviours\/(?!add$)[^/]+$/,
 	});
 
 	// The page the creation navigates to reads the block behind a permission

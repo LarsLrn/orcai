@@ -121,7 +121,7 @@ const BotSetupSummary = ({ botId }: { botId: BotId }) => {
 				)}
 				{canEdit && (
 					<Link
-						to="/app/hub/bots/$botId/setup"
+						to="/app/library/bots/$botId/setup"
 						params={{
 							botId,
 						}}

@@ -61,7 +61,7 @@ test("pipeline: Explore browses a repository with Load more, reads a document in
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, `/app/hub/blocks/${repository.blockId}`);
+	await open(page, `/app/library/repositories/${repository.blockId}`);
 	await page
 		.getByRole("link", {
 			name: message("blocks_database_config_explore_action"),

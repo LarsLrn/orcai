@@ -63,7 +63,7 @@ test("account: Enter on a breadcrumb menu entry navigates to it", async ({
 		width: 800,
 		height: 720,
 	});
-	await open(page, "/app/hub/bots");
+	await open(page, "/app/library/bots");
 	await page
 		.getByRole("button", {
 			name: message("header_breadcrumb_menu_label"),
@@ -71,13 +71,13 @@ test("account: Enter on a breadcrumb menu entry navigates to it", async ({
 		.click();
 
 	const entry = page.getByRole("menuitem", {
-		name: message("hub_page_title"),
+		name: message("library_page_title"),
 	});
 
 	await expect(entry).toBeVisible();
 	await entry.focus();
 	await page.keyboard.press("Enter");
 
-	await expect(page).toHaveURL(/\/app\/hub$/);
+	await expect(page).toHaveURL(/\/app\/library$/);
 	await expect(entry).toBeHidden();
 });

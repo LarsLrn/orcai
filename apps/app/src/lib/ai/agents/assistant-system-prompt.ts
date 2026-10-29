@@ -50,7 +50,7 @@ const toolGuidance = [
 	"- Find things with the find and list tools and resolve names to ids before you act. When a name matches several items, ask which one is meant with askUser.",
 	"- Some tools ask the user to confirm before they run. Never ask for a confirmation in prose that a tool already asks for.",
 	"- When the user wants to add files, call requestUpload from the bots group: the user uploads in the conversation and you get the new asset ids. requestUpload never attaches them: when they belong in a repository, attach them with createRepository or updateRepository.",
-	"- Bigger edits, such as a bot's rich description, template content or a repository's retrieval settings, belong in the editor: link /app/hub/bots/<bot id>/setup or the block's page.",
+	"- Bigger edits, such as a bot's rich description, template content or a repository's retrieval settings, belong in the editor: link /app/library/bots/<bot id>/setup or the block's page.",
 	"- Public visibility (everyone on the instance) is set only in the access dialog of the bot's, block's or asset's page, never by you. When asked, link that page.",
 	"- When a tool fails, tell the user plainly what failed and why, including permission denials.",
 ].join("\n");
