@@ -1,23 +1,9 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { Block, ResourceOwner } from "@orcai/schema";
-import {
-	and,
-	asc,
-	count,
-	desc,
-	eq,
-	getColumns,
-	ilike,
-	inArray,
-	sql,
-} from "drizzle-orm";
+import { and, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { readableIds, requireReadable } from "@/lib/authz/content-access";
-import {
-	getEntityCapabilities,
-	getManyEntityCapabilities,
-} from "@/lib/authz/entity-capabilities";
+import { requireReadable } from "@/lib/authz/content-access";
+import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
@@ -25,6 +11,7 @@ import {
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { listBlockTiles } from "@/lib/blocks/block-list";
 import {
 	loadDatabaseBlockAssets,
 	reindexBlockAssets,
@@ -33,7 +20,6 @@ import {
 } from "@/lib/blocks/database-block";
 import {
 	loadRepositoryReadiness,
-	repositoryTotals,
 	retryDocument,
 	retryFailedDocuments,
 } from "@/lib/blocks/readiness";
@@ -47,122 +33,18 @@ import {
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
-import { literalSearch } from "@/lib/utils/literal-search";
-
-const blockOrder = {
-	newest: [
-		desc(dbSchema.block.createdAt),
-		desc(dbSchema.block.id),
-	],
-	name: [
-		asc(dbSchema.block.name),
-		asc(dbSchema.block.id),
-	],
-};
 
 const listBlocks = authed.block.list.effect(function* ({ input, context }) {
-	const db = yield* DB;
-
-	const botId = input.filters?.botId;
-	const status = input.filters?.status ?? "ready";
 	const reader = {
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
 		zedToken: getZedToken(context, input),
 	};
-
-	// A bot's blocks are its contents, readable with it; the rest is the library.
-	const visible = botId
-		? and(
-				(yield* readableIds(
-					"bot",
-					[
-						botId,
-					],
-					reader,
-				)).has(botId)
-					? inArray(
-							dbSchema.block.id,
-							db
-								.select({
-									blockId: dbSchema.botBlock.blockId,
-								})
-								.from(dbSchema.botBlock)
-								.where(eq(dbSchema.botBlock.botId, botId)),
-						)
-					: sql`false`,
-				status === "all" ? undefined : eq(dbSchema.block.status, status),
-			)
-		: yield* (yield* libraryAccess(reader)).condition("block", {
-				scope: input.filters?.scope,
-				status,
-			});
-	const where = and(
-		visible,
-		input.filters?.type
-			? eq(dbSchema.block.type, input.filters.type)
-			: undefined,
-		input.filters?.search
-			? ilike(dbSchema.block.name, literalSearch(input.filters.search))
-			: undefined,
-	);
-
-	const [rows, [counted]] = yield* Effect.all(
-		[
-			db
-				.select({
-					...getColumns(dbSchema.block),
-					owner: ownerColumns,
-				})
-				.from(dbSchema.block)
-				.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.block.userId))
-				.where(where)
-				.orderBy(...blockOrder[input.sort])
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({
-					count: count(),
-				})
-				.from(dbSchema.block)
-				.where(where),
-		],
-		{
-			concurrency: "unbounded",
-		},
-	);
-
-	const blocks = rows as (Block & {
-		owner: ResourceOwner;
-	})[];
-	const [capabilities, totals] = yield* Effect.all(
-		[
-			getManyEntityCapabilities({
-				entityType: "block",
-				entityIds: blocks.map((block) => block.id),
-				userId: reader.userId,
-				organizationId: reader.organizationId,
-				zedToken: reader.zedToken,
-			}),
-			repositoryTotals(
-				blocks
-					.filter((block) => block.type === "database")
-					.map((block) => block.id),
-			),
-		],
-		{
-			concurrency: "unbounded",
-		},
-	);
-
-	return {
-		data: blocks.map((block) => ({
-			...block,
-			capabilities: capabilities.get(block.id) ?? emptyCapabilities("block"),
-			documents: block.type === "database" ? totals(block.id) : null,
-		})),
-		rowCount: counted.count,
-	};
+	return yield* listBlockTiles({
+		input,
+		reader,
+		access: yield* libraryAccess(reader),
+	});
 });
 
 const findBlock = authed.block.find

@@ -2,14 +2,10 @@ import type { OrganizationCapability } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
 import {
 	ArrowLeftRightIcon,
-	BlocksIcon,
-	BotIcon,
-	BrainCircuitIcon,
 	Building2Icon,
 	ChartColumnIcon,
 	CpuIcon,
-	DatabaseIcon,
-	FolderOpenIcon,
+	LibraryIcon,
 	type LucideIcon,
 	PlugIcon,
 	ServerCogIcon,
@@ -44,41 +40,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 		linkProps: {
 			to: "/app/library",
 		},
-		icon: BlocksIcon,
-		items: [
-			{
-				title: m.sidebar_menu_bots_item,
-				requires: "read",
-				linkProps: {
-					to: "/app/library/bots",
-				},
-				icon: BotIcon,
-			},
-			{
-				title: m.sidebar_menu_behaviour_item,
-				requires: "read",
-				linkProps: {
-					to: "/app/library/behaviours",
-				},
-				icon: BrainCircuitIcon,
-			},
-			{
-				title: m.sidebar_menu_repositories_item,
-				requires: "read",
-				linkProps: {
-					to: "/app/library/repositories",
-				},
-				icon: DatabaseIcon,
-			},
-			{
-				title: m.sidebar_menu_assets_item,
-				requires: "read",
-				linkProps: {
-					to: "/app/library/assets",
-				},
-				icon: FolderOpenIcon,
-			},
-		],
+		icon: LibraryIcon,
 	},
 	{
 		title: m.sidebar_menu_administration_item,

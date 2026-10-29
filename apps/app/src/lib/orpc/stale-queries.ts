@@ -88,6 +88,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.bot.list.key(),
 		orpc.block.list.key(),
 		orpc.asset.list.key(),
+		orpc.library.key(),
 	];
 
 	// Lists of people and organisations show pictures and logos.
@@ -113,6 +114,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.botSetup.key(),
 		readOnlyChats,
 		orpc.bot.list.key(),
+		orpc.library.key(),
 	];
 
 	// Readiness lists each document's title and state; repository tiles count them.
@@ -120,6 +122,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.asset.key(),
 		orpc.block.readiness.key(),
 		orpc.block.list.key(),
+		orpc.library.key(),
 	];
 
 	return {
@@ -143,13 +146,16 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		block: {
 			create: () => [
 				orpc.block.key(),
+				orpc.library.key(),
 			],
 			update: () => [
 				orpc.block.key(),
+				orpc.library.key(),
 			],
 			// Bot tiles count their blocks.
 			delete: () => [
 				orpc.block.key(),
+				orpc.library.key(),
 				orpc.bot.list.key(),
 			],
 			retryDocument: assetsAndReadiness,
@@ -158,6 +164,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		bot: {
 			save: (input) => [
 				orpc.bot.key(),
+				orpc.library.key(),
 				orpc.organization.deletionImpact.key(),
 				...(input.listBlockIds ?? []).map((blockId) =>
 					orpc.resource.getVisibility.key({
@@ -170,12 +177,15 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			publish: () => [
 				orpc.bot.key(),
+				orpc.library.key(),
 			],
 			setFavourite: () => [
 				orpc.bot.key(),
+				orpc.library.key(),
 			],
 			delete: () => [
 				orpc.bot.key(),
+				orpc.library.key(),
 				readOnlyChats,
 			],
 		},
@@ -184,6 +194,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.botSetup.key(),
 				readOnlyChats,
 				orpc.bot.list.key(),
+				orpc.library.key(),
 			],
 		},
 		chat: {
@@ -354,6 +365,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.botSetup.key(),
 				readOnlyChats,
 				orpc.bot.list.key(),
+				orpc.library.key(),
 			],
 		},
 		quota: {

@@ -15,6 +15,7 @@ import { dataExportRouter } from "./data-export";
 import { groupRouter } from "./group";
 import { healthRouter } from "./health";
 import { instanceRouter } from "./instance";
+import { libraryRouter } from "./library";
 import { modelRouter } from "./model";
 import { organizationRouter } from "./organization";
 import { organizationInvitationRouter } from "./organization-invitation";
@@ -38,6 +39,7 @@ export const router = {
 	group: groupRouter,
 	health: healthRouter,
 	instance: instanceRouter,
+	library: libraryRouter,
 	assistant: assistantRouter,
 	chat: chatRouter,
 	chatBlock: chatBlockRouter,

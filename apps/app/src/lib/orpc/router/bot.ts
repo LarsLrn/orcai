@@ -13,8 +13,9 @@ import {
 	setBotFavourite,
 } from "@/lib/bots/bot-favourites";
 import { loadBotEditor, saveBotGraph } from "@/lib/bots/bot-graph";
-import { listLibraryBots } from "@/lib/bots/bot-list";
+import { listBotTiles } from "@/lib/bots/bot-list";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { libraryAccess } from "@/lib/library/library-access";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -26,11 +27,15 @@ import {
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
 const listBots = authed.bot.list.effect(function* ({ input, context }) {
-	return yield* listLibraryBots({
-		input,
+	const reader = {
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
 		zedToken: getZedToken(context, input),
+	};
+	return yield* listBotTiles({
+		input,
+		reader,
+		access: yield* libraryAccess(reader),
 	});
 });
 

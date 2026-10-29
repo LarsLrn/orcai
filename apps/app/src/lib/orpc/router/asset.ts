@@ -2,35 +2,16 @@ import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { queueMetadataGeneration } from "@orcai/pg-boss";
 import { UPLOAD_ROUTES } from "@orcai/s3";
-import {
-	fitMetadataToSourceType,
-	type ListAssetsInput,
-	metadataSchema,
-	type PipelineStatus,
-} from "@orcai/schema";
+import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
 import { checkEntityPermission } from "@orcai/spice-db";
-import {
-	and,
-	asc,
-	count,
-	desc,
-	eq,
-	getColumns,
-	ilike,
-	inArray,
-	isNull,
-	sql,
-} from "drizzle-orm";
+import { and, eq, getColumns, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { listAssetTiles } from "@/lib/assets/asset-list";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { reprocessAsset } from "@/lib/assets/processing";
-import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { readableIds, requireReadable } from "@/lib/authz/content-access";
-import {
-	getEntityCapabilities,
-	getManyEntityCapabilities,
-} from "@/lib/authz/entity-capabilities";
+import { requireReadable } from "@/lib/authz/content-access";
+import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -44,114 +25,18 @@ import {
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
-import { literalSearch } from "@/lib/utils/literal-search";
-
-const assetOrder = {
-	newest: [
-		desc(dbSchema.asset.createdAt),
-		desc(dbSchema.asset.id),
-	],
-	name: [
-		asc(dbSchema.asset.title),
-		asc(dbSchema.asset.id),
-	],
-};
-
-const processingStatuses = {
-	running: [
-		"pending",
-		"active",
-	],
-	failed: [
-		"failed",
-	],
-} satisfies Record<
-	NonNullable<NonNullable<ListAssetsInput["filters"]>["processing"]>,
-	PipelineStatus[]
->;
 
 const listAssets = authed.asset.list.effect(function* ({ input, context }) {
-	const db = yield* DB;
-
 	const reader = {
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
 		zedToken: getZedToken(context, input),
 	};
-	const { repositoryId, ids, processing } = input.filters ?? {};
-	if (repositoryId) yield* requireReadable("block", repositoryId, reader);
-
-	// A repository's documents and known ids are contents; the rest is the library.
-	const where = and(
-		repositoryId
-			? inArray(
-					dbSchema.asset.id,
-					db
-						.select({
-							assetId: dbSchema.blockAsset.assetId,
-						})
-						.from(dbSchema.blockAsset)
-						.where(eq(dbSchema.blockAsset.blockId, repositoryId)),
-				)
-			: ids
-				? inArray(dbSchema.asset.id, [
-						...(yield* readableIds("asset", ids, reader)),
-					])
-				: yield* (yield* libraryAccess(reader)).condition("asset", {
-						scope: input.filters?.scope,
-					}),
-		repositoryId && ids ? inArray(dbSchema.asset.id, ids) : undefined,
-		input.filters?.search
-			? ilike(dbSchema.asset.title, literalSearch(input.filters.search))
-			: undefined,
-		input.filters?.origin
-			? eq(dbSchema.asset.origin, input.filters.origin)
-			: undefined,
-		processing
-			? inArray(dbSchema.asset.processingStatus, processingStatuses[processing])
-			: undefined,
-	);
-
-	const [rows, [counted]] = yield* Effect.all(
-		[
-			db
-				.select({
-					...getColumns(dbSchema.asset),
-					owner: ownerColumns,
-				})
-				.from(dbSchema.asset)
-				.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.asset.userId))
-				.where(where)
-				.orderBy(...assetOrder[input.sort])
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({
-					count: count(),
-				})
-				.from(dbSchema.asset)
-				.where(where),
-		],
-		{
-			concurrency: "unbounded",
-		},
-	);
-
-	const capabilities = yield* getManyEntityCapabilities({
-		entityType: "asset",
-		entityIds: rows.map((asset) => asset.id),
-		userId: reader.userId,
-		organizationId: reader.organizationId,
-		zedToken: reader.zedToken,
+	return yield* listAssetTiles({
+		input,
+		reader,
+		access: yield* libraryAccess(reader),
 	});
-
-	return {
-		data: rows.map((asset) => ({
-			...asset,
-			capabilities: capabilities.get(asset.id) ?? emptyCapabilities("asset"),
-		})),
-		rowCount: counted.count,
-	};
 });
 
 const findAsset = authed.asset.find

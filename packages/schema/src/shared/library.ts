@@ -26,3 +26,13 @@ export type PublicationStatusFilter = z.infer<
 	typeof publicationStatusFilterSchema
 >;
 export type LibrarySort = z.infer<typeof librarySortSchema>;
+
+/** The kinds a library browses, one rail entry and one path each. */
+export const libraryKindSchema = z.enum([
+	"bot",
+	"behaviour",
+	"repository",
+	"asset",
+]);
+
+export type LibraryKind = z.infer<typeof libraryKindSchema>;

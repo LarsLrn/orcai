@@ -6,6 +6,7 @@ import { dataTableQuerySchema, withQuery } from "./data-table-search-params";
 type DataTableSearchProps = {
 	placeholder?: string;
 	debounceMs?: number;
+	className?: string;
 };
 
 type Emission = {
@@ -25,6 +26,7 @@ const emissionId = () => Math.random().toString(36).slice(2);
 const DataTableSearch = ({
 	placeholder,
 	debounceMs = 250,
+	className = "w-full sm:w-auto sm:min-w-40 sm:max-w-xs sm:flex-1",
 }: DataTableSearchProps) => {
 	const navigate = useNavigate();
 	const location = useLocation({
@@ -104,7 +106,7 @@ const DataTableSearch = ({
 			onCompositionEnd={() => setComposing(false)}
 			placeholder={placeholder}
 			maxLength={dataTableQuerySchema.maxLength ?? undefined}
-			className="w-full sm:w-auto sm:min-w-40 sm:max-w-xs sm:flex-1"
+			className={className}
 		/>
 	);
 };
