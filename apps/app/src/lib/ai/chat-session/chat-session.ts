@@ -17,6 +17,12 @@ export interface ChatPage {
 	hasMore: boolean;
 }
 
+/** A message the user sends, with its attachments in the metadata. */
+export interface OutgoingMessage {
+	text: string;
+	metadata?: ChatAgentUIMessage["metadata"];
+}
+
 /** How a session reaches the server and the data a turn may change. */
 export interface ChatPort {
 	/** Opens a turn for a new user message. */
@@ -191,22 +197,17 @@ export class ChatSession {
 	}
 
 	/** Resolves once the turn and anything it continued into are stored and refreshed. */
-	send = async (message: {
-		text: string;
-		metadata?: ChatAgentUIMessage["metadata"];
-	}) => {
+	send = async (message: OutgoingMessage) => {
 		await this.#settled;
 		await this.chat.sendMessage(message);
 		await this.#settled;
 	};
 
 	/** Sends a chat's opening message once, while it has none. */
-	sendFirst(text: string) {
+	sendFirst(message: OutgoingMessage) {
 		if (this.#sentFirst || this.chat.messages.length > 0) return undefined;
 		this.#sentFirst = true;
-		return this.send({
-			text,
-		}).catch((error: unknown) => {
+		return this.send(message).catch((error: unknown) => {
 			this.#sentFirst = false;
 			throw error;
 		});

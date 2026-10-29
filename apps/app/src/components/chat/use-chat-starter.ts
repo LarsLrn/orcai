@@ -8,6 +8,7 @@ import {
 import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { ChatDraft } from "@/components/chat/chat-draft";
 import { composerBlocker } from "@/components/chat/composer-blocker";
 import { starterModel } from "@/components/chat/model-picker-state";
 import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
@@ -23,7 +24,7 @@ const useChatStarter = ({
 	initialBotId?: BotId;
 	onChatCreated: (
 		chatId: ChatId,
-		pendingMessage: string,
+		pendingMessage: ChatDraft,
 		zedToken?: string,
 	) => void | Promise<void>;
 }) => {
@@ -104,14 +105,15 @@ const useChatStarter = ({
 		],
 	);
 
+	/** Resolves whether the chat was created, so a failed send keeps its draft. */
 	const handleSend = useCallback(
-		async (text: string) => {
+		async (message: ChatDraft): Promise<boolean> => {
 			if (!selected) {
 				toast.error(m.chat_composer_model_required_toast_error());
-				return;
+				return false;
 			}
 
-			if (isCreating) return;
+			if (isCreating) return false;
 			setIsCreating(true);
 
 			try {
@@ -131,13 +133,15 @@ const useChatStarter = ({
 				});
 
 				await Promise.resolve(
-					onChatCreated(result.data.id, text, result.meta?.zedToken),
+					onChatCreated(result.data.id, message, result.meta?.zedToken),
 				);
+				return true;
 			} catch (error) {
 				toast.error(m.chat_starter_create_failed_toast_error(), {
 					description: reasonMessageOf(error),
 				});
 				setIsCreating(false);
+				return false;
 			}
 		},
 		[

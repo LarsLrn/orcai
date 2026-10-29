@@ -7,10 +7,10 @@ import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 
-/** The translated sentence the app home greets a user with. */
+/** A translated section title on the app home. */
 const WELCOME = {
-	en: message("home_intro"),
-	de: message("home_intro", {}, "de"),
+	en: message("home_try_title"),
+	de: message("home_try_title", {}, "de"),
 } as const;
 
 test("account: a user switches the interface language to German and back", async ({

@@ -170,6 +170,13 @@ const ChatInput = ({
 		try {
 			const attachments = await resolveAttachmentsForSend();
 
+			if (!attachments) {
+				if (hasText) {
+					setMessageText((current) => current || trimmedText);
+				}
+				return;
+			}
+
 			if (!hasText && attachments.length === 0) {
 				toast.error(m.chat_composer_attachments_missing_toast_error());
 				return;
@@ -229,7 +236,7 @@ const ChatInput = ({
 						(isGenerating || isStoringReply) && "loading-ring",
 					)}
 				>
-					<InputGroup className="overflow-hidden border-border bg-card">
+					<InputGroup className="overflow-hidden border-border bg-card shadow-sm">
 						{!isAssistant && (
 							<ChatComposerAttachments
 								localFiles={localFiles}

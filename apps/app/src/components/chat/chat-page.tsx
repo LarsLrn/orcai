@@ -1,7 +1,7 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useMatch, useRouter, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAutoStartTour } from "@/components/tour/tour-provider";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound } from "@/lib/router/not-found";
@@ -116,12 +116,15 @@ export const ChatPage = ({
 
 	useAutoStartTour("chatTour", variant !== "assistant");
 
-	const pendingMessage = useRouterState({
-		select: (state) =>
-			typeof state.location.state.pendingMessage === "string"
-				? state.location.state.pendingMessage
-				: undefined,
+	const pendingState = useRouterState({
+		select: (state) => state.location.state.pendingMessage,
 	});
+	const pendingMessage = useMemo(
+		() => chatDraftSchema.safeParse(pendingState).data,
+		[
+			pendingState,
+		],
+	);
 	const draftState = useRouterState({
 		select: (state) => state.location.state.draft,
 	});

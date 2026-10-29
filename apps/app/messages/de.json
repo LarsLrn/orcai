@@ -2140,12 +2140,6 @@
 	"bots_select_search_placeholder": "Bots suchen",
 	"bots_setup_page_description": "Verwenden Sie den gemeinsamen Bearbeitungsablauf, um die Bot-Konfiguration zu aktualisieren, vorhandene Blöcke wiederzuverwenden und Änderungen zu veröffentlichen, sobald sie bereit sind.",
 	"bots_setup_page_title": "Bot-Einrichtung",
-	"bots_showcase_create_action": "Bot erstellen",
-	"bots_showcase_description": "Jeder Bot antwortet aus seinen eigenen Quellen und seinem eigenen Verhalten.",
-	"bots_showcase_empty_description": "Ein Bot bündelt freigegebene Quellen mit einem festgelegten Verhalten, sodass alle in der Organisation Fragen dazu stellen können.",
-	"bots_showcase_empty_title": "Noch keine Bots",
-	"bots_showcase_title": "Bots, die Sie verwenden können",
-	"bots_showcase_view_all_action": "Alle Bots anzeigen",
 	"boundaries_default_error_back_button": "Zurück",
 	"boundaries_default_error_description": "Versuchen Sie es erneut oder kehren Sie zur vorherigen Seite zurück. Die technischen Details unten helfen, wenn das Problem weiterhin besteht.",
 	"boundaries_default_error_details_summary": "Technische Details",
@@ -2181,7 +2175,7 @@
 	"chat_asset_picker_search_placeholder": "Nach Titel suchen...",
 	"chat_asset_picker_title": "Vorhandene Assets auswählen",
 	"chat_attachment_menu_assets_action": "Aus Assets",
-	"chat_attachment_menu_trigger": "Datei hinzufügen",
+	"chat_attachment_menu_trigger": "Dateien anhängen",
 	"chat_attachment_menu_upload_action": "Datei hochladen",
 	"chat_attachments_capacity_toast_warning": [
 		{
@@ -2213,7 +2207,7 @@
 			}
 		}
 	],
-	"chat_attachments_upload_failed_toast_warning": [
+	"chat_attachments_upload_failed_toast_error": [
 		{
 			"declarations": [
 				"input count",
@@ -2373,9 +2367,7 @@
 	"chat_image_part_download_toast_success": "Bild heruntergeladen",
 	"chat_image_part_label": "Generiertes Bild",
 	"chat_list_bot_filter_label": "Bot",
-	"chat_list_card_continue_action": "Chat fortsetzen",
 	"chat_list_card_last_updated": "Zuletzt aktualisiert {timestamp}",
-	"chat_list_empty_state_description": "Stellen Sie oben eine Frage oder öffnen Sie einen Bot, um mit dessen Quellen zu chatten.",
 	"chat_list_empty_state_title": "Noch keine Chats",
 	"chat_list_page_empty_description": "Starten Sie einen Chat mit einem Bot oder einem Modell, dann erscheint er hier.",
 	"chat_list_page_title": "Chats",
@@ -3344,16 +3336,63 @@
 	"header_locale_switcher_toast_error": "Sprache konnte nicht gespeichert werden",
 	"header_theme_switcher_label": "Design wechseln",
 	"home_about_link": "Über OrcAI",
-	"home_ask_browse_bots_action": "Bots durchstöbern",
-	"home_ask_section_description": "Wählen Sie einen Bot, der aus seinen Quellen antwortet, oder fragen Sie das Modell direkt.",
-	"home_ask_section_title": "Eine Frage stellen",
-	"home_chats_new_chat_aria_label": "Neuen Chat starten",
-	"home_chats_section_description": "Machen Sie dort weiter, wo Sie aufgehört haben.",
 	"home_chats_section_title": "Letzte Chats",
+	"home_chats_all_action": "Alle Chats",
+	"home_chats_empty": "Hier erscheinen Ihre Chats.",
+	"home_organization_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Bot",
+				"countPlural=other": "{count} Bots"
+			}
+		}
+	],
+	"home_organization_behaviours": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Verhalten",
+				"countPlural=other": "{count} Verhalten"
+			}
+		}
+	],
+	"home_organization_repositories": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Repository",
+				"countPlural=other": "{count} Repositories"
+			}
+		}
+	],
+	"home_organization_page_action": "Organisationsseite",
+	"home_try_all_bots_action": "Alle Bots",
+	"home_try_catalogue_new": "Neu im Katalog: {name}",
+	"home_try_empty": "Hier erscheinen Bots, mit denen Sie chatten können.",
+	"home_try_favourite_label": "Ihr Favorit",
+	"home_try_title": "Etwas ausprobieren",
 	"home_greeting_afternoon": "Guten Tag",
 	"home_greeting_evening": "Guten Abend",
 	"home_greeting_morning": "Guten Morgen",
-	"home_intro": "Stellen Sie Fragen an die freigegebenen Quellen Ihrer Organisation oder erstellen Sie einen Bot, den andere nutzen können.",
 	"home_library_assets_label": "Assets",
 	"home_library_assets_meta": "Quellenmaterial für Abruf und Zitate",
 	"home_library_blocks_label": "Verhaltensblöcke",

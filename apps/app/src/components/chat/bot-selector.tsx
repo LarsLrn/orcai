@@ -39,11 +39,13 @@ const BotSelectorButton = ({
 	selectedBotId,
 	onSelectBot,
 	variant = "full",
+	disabled,
 	className,
 }: {
 	selectedBotId?: BotId;
 	onSelectBot: (botId?: BotId) => void;
 	variant?: "compact" | "full";
+	disabled?: boolean;
 	className?: string;
 }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -116,6 +118,7 @@ const BotSelectorButton = ({
 				)}
 				placeholder={m.chat_bot_selector_trigger_placeholder()}
 				size={variant === "compact" ? "sm" : "default"}
+				disabled={disabled}
 			>
 				<BotIcon className="size-3.5" />
 				<span className="truncate">{triggerLabel}</span>

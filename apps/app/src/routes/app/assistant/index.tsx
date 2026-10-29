@@ -45,7 +45,10 @@ function RouteComponent() {
 						},
 						state: (previous) => ({
 							...previous,
-							pendingMessage,
+							pendingMessage: {
+								text: pendingMessage,
+								attachments: [],
+							},
 						}),
 					})
 				}

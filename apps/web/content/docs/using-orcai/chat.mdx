@@ -10,7 +10,8 @@ Conversations with the [OrcAI Assistant](/docs/using-orcai/assistant) live on th
 ## Entry Points
 
 - **Start a chat** in the sidebar, or on the chat list (`/app/chat`), opens the chat setup page (`/app/chat/setup`).
-- The **Ask a question** composer on the Use tab of Home (`/app`) starts a chat directly, with bot and model pickers.
+- The composer on the Use tab of Home (`/app`) starts a chat directly, with bot and model pickers and attachments.
+- A bot under **Try something** on the Use tab starts a chat with that bot.
 - **Start chat** on a bot's page (`/app/library/bots/<bot id>`) starts a chat with that bot.
 
 The setup page (`/app/chat/setup`) offers two options:
@@ -126,7 +127,7 @@ Branches are ordinary chats. They keep the original title, show a branch icon in
 
 ## Attachments In Chat
 
-Attachments are added to messages in an existing chat, not to the first message. Use **Add file** in the composer:
+Attachments are added to a single message, including the first one when you start a chat from Home or a new chat. Use the paperclip (**Attach files**) in the composer:
 
 - **Upload file**: upload a file from your device. When you send the message, the file becomes an asset of yours, listed in the Library's Assets view under **Uploaded to** > **Chats**, and OrcAI prepares it like any other asset.
 - **From assets**: pick assets from the Library or your chat uploads (**Select existing assets**); chat uploads carry a **Chat upload** badge. The asset is attached to that one message only, not to the chat.

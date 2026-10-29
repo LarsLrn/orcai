@@ -1,28 +1,12 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { BotIcon, PlusIcon } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { UserWelcome } from "@/components/app/user-welcome";
-import { BotsShowcase } from "@/components/bot/bots-showcase";
-import { ChatsList } from "@/components/chat/chats-list";
 import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
-import { buttonVariants } from "@/components/ui/button";
-import {
-	Hero,
-	HeroContent,
-	HeroInner,
-	HeroWave,
-} from "@/components/ui/shell/hero";
-import {
-	Section,
-	SectionAction,
-	SectionContent,
-	SectionDescription,
-	SectionHeader,
-	SectionTitle,
-} from "@/components/ui/shell/section";
-import { m } from "@/paraglide/messages";
+import { OrganizationCard } from "./organization-card";
+import { RecentChats } from "./recent-chats";
+import { TrySomething } from "./try-something";
 
-const QuickChatSection = () => {
+const QuickChat = () => {
 	const navigate = useNavigate();
 	const {
 		selectedBotId,
@@ -51,94 +35,37 @@ const QuickChatSection = () => {
 	});
 
 	return (
-		<Section>
-			<SectionHeader>
-				<SectionTitle>{m.home_ask_section_title()}</SectionTitle>
-				<SectionDescription>
-					{m.home_ask_section_description()}
-				</SectionDescription>
-				<SectionAction>
-					<Link
-						to="/app/library/bots"
-						data-slot="button"
-						className={buttonVariants({
-							variant: "outline",
-							size: "sm",
-						})}
-					>
-						<BotIcon />
-						{m.home_ask_browse_bots_action()}
-					</Link>
-				</SectionAction>
-			</SectionHeader>
-			<SectionContent>
-				<div className="flex w-full max-w-3xl flex-col gap-3">
-					<NewChatInput
-						selectedBotId={selectedBotId}
-						selectedModelId={selectedModelId}
-						selectedProviderId={selectedProviderId}
-						onBotSelect={handleBotSelect}
-						onModelSelect={handleModelSelect}
-						onSend={handleSend}
-						isCreating={isCreating}
-						blocker={blocker}
-					/>
-				</div>
-			</SectionContent>
-		</Section>
+		<NewChatInput
+			selectedBotId={selectedBotId}
+			selectedModelId={selectedModelId}
+			selectedProviderId={selectedProviderId}
+			onBotSelect={handleBotSelect}
+			onModelSelect={handleModelSelect}
+			onSend={handleSend}
+			isCreating={isCreating}
+			blocker={blocker}
+		/>
 	);
 };
 
-const UserHome = () => {
-	return (
-		<div className="space-y-12">
-			<Hero>
-				<HeroWave />
-				<HeroInner>
-					<HeroContent>
-						<UserWelcome />
-					</HeroContent>
-				</HeroInner>
-			</Hero>
-
-			<QuickChatSection />
-
-			<Section>
-				<SectionHeader>
-					<SectionTitle>{m.home_chats_section_title()}</SectionTitle>
-					<SectionDescription>
-						{m.home_chats_section_description()}
-					</SectionDescription>
-					<SectionAction>
-						<Link
-							to={"/app/chat"}
-							className={buttonVariants({
-								variant: "outline",
-								size: "sm",
-							})}
-						>
-							{m.common_show_all_action()}
-						</Link>
-						<Link
-							to="/app/chat/setup"
-							aria-label={m.home_chats_new_chat_aria_label()}
-							className={buttonVariants({
-								size: "icon-sm",
-								variant: "outline",
-							})}
-						>
-							<PlusIcon />
-						</Link>
-					</SectionAction>
-				</SectionHeader>
-				<SectionContent>
-					<ChatsList limit={6} />
-				</SectionContent>
-			</Section>
-
-			<BotsShowcase limit={6} />
+/**
+ * The Use view: greeting and composer, the active organisation beside them
+ * from lg (above the rest below lg), then bots to try and recent chats.
+ */
+const UserHome = () => (
+	<div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem]">
+		<div className="min-w-0 space-y-4 lg:col-start-1 lg:row-start-1">
+			<UserWelcome />
+			<QuickChat />
 		</div>
-	);
-};
+		<div className="space-y-4 lg:sticky lg:top-20 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+			<OrganizationCard />
+		</div>
+		<div className="min-w-0 space-y-10 lg:col-start-1 lg:row-start-2">
+			<TrySomething />
+			<RecentChats />
+		</div>
+	</div>
+);
 
 export { UserHome };

@@ -71,7 +71,7 @@ const AssistantNewConversation = ({
 		<div className="flex flex-col gap-6">
 			<AssistantPlaceholder />
 			<form onSubmit={handleSubmit} className="flex flex-col gap-3">
-				<InputGroup className="overflow-hidden border-border bg-card">
+				<InputGroup className="overflow-hidden border-border bg-card shadow-sm">
 					<InputGroupTextarea
 						name="message"
 						aria-label={m.chat_composer_aria_label()}

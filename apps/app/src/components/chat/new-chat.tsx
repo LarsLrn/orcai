@@ -4,6 +4,7 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import type { ChatDraft } from "@/components/chat/chat-draft";
 import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
 import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
@@ -19,7 +20,7 @@ const NewChat = ({
 	botId?: BotId;
 	onChatCreated: (
 		chatId: ChatId,
-		pendingMessage: string,
+		pendingMessage: ChatDraft,
 		zedToken?: string,
 	) => void;
 }) => {

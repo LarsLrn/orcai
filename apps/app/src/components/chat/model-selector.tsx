@@ -32,6 +32,7 @@ const ModelSelectorButton = ({
 	excludeDeprecated = false,
 	capabilities = CHAT_CAPABILITIES,
 	variant = "compact",
+	disabled,
 	className,
 	"aria-describedby": describedBy,
 }: {
@@ -43,6 +44,7 @@ const ModelSelectorButton = ({
 	/** The capabilities every offered model has. */
 	capabilities?: ModelCapability[];
 	variant?: "compact" | "full";
+	disabled?: boolean;
 	className?: string;
 	"aria-describedby"?: string;
 }) => {
@@ -196,6 +198,7 @@ const ModelSelectorButton = ({
 				)}
 				placeholder={m.chat_model_selector_trigger_placeholder()}
 				size={variant === "compact" ? "sm" : "default"}
+				disabled={disabled}
 				aria-describedby={describedBy}
 			>
 				<span className="truncate">{triggerLabel}</span>
