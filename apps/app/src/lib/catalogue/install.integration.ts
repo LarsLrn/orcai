@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import type { BlockId, BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { CatalogueEntryRef } from "@orcai/schema";
+import { awaitLockWaiters } from "@orcai/testing";
 import { and, count, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { Client } from "pg";
@@ -1132,20 +1132,7 @@ const pausedOn = async <A>(
 		await client.query("BEGIN");
 		await client.query(`LOCK TABLE "${table}" IN ACCESS EXCLUSIVE MODE`);
 		const reading = read();
-		for (let waited = 0; ; waited += 50) {
-			const { rows } = await client.query<{
-				waiting: number;
-			}>(
-				`SELECT count(*)::int AS waiting FROM pg_locks
-				 WHERE relation = $1::regclass AND NOT granted`,
-				[
-					`"${table}"`,
-				],
-			);
-			if (rows[0].waiting > 0) break;
-			if (waited > 10_000) throw new Error(`the read never waited on ${table}`);
-			await sleep(50);
-		}
+		await run(awaitLockWaiters(`%"${table}"%`));
 		await meanwhile();
 		await client.query("COMMIT");
 		return await reading;

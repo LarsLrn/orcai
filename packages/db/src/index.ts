@@ -9,6 +9,7 @@ export {
 } from "./schema/chat-search";
 export { relations } from "./schema/relations";
 export {
+	applicationName,
 	DB,
 	DBLive,
 	DrizzleLive,

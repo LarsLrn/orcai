@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import { DB, dbSchema } from "@orcai/db";
+import { awaitLockWaiters } from "@orcai/testing";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { Client } from "pg";
@@ -37,21 +37,7 @@ const queueBehindRowLocks = async (
 				operation(),
 			]).then(([outcome]) => outcome),
 		);
-		const deadline = Date.now() + 20_000;
-		for (;;) {
-			// Statistics views keep one snapshot per transaction otherwise.
-			await client.query("SELECT pg_stat_clear_snapshot()");
-			const { rows } = await client.query<{
-				waiting: number;
-			}>(
-				`SELECT count(*)::int AS waiting FROM pg_stat_activity
-				 WHERE wait_event_type = 'Lock' AND query ILIKE '%from "user"%for update%'`,
-			);
-			if (rows[0].waiting >= operations.length) break;
-			if (Date.now() > deadline)
-				throw new Error("Timed out waiting for both changes to queue");
-			await sleep(25);
-		}
+		await run(awaitLockWaiters('%from "user"%for update%', operations.length));
 		await client.query("COMMIT");
 		return await Promise.all(outcomes);
 	} finally {

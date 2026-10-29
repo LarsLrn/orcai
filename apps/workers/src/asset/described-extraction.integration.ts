@@ -1,6 +1,4 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
-import { PgClient } from "@effect/sql-pg";
 import { type AssetId, type BlockId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
@@ -20,7 +18,12 @@ import {
 	type PipelineStatus,
 	PROCESS_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { createJobQueues, createUser, IntegrationLive } from "@orcai/testing";
+import {
+	awaitLockWaiters,
+	createJobQueues,
+	createUser,
+	IntegrationLive,
+} from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -260,18 +263,7 @@ test(
 			}),
 		);
 		// The reader has read the older extraction and waits for the row.
-		await run(
-			Effect.gen(function* () {
-				const sql = yield* PgClient.PgClient;
-				for (;;) {
-					const waiting = yield* sql<{
-						count: number;
-					}>`SELECT count(*)::int AS count FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query ILIKE ${'%from "asset"%for update%'}`;
-					if ((waiting[0]?.count ?? 0) > 0) return;
-					yield* Effect.promise(() => sleep(25));
-				}
-			}),
-		);
+		await run(awaitLockWaiters('%from "asset"%for update%'));
 		await run(Deferred.succeed(release, undefined));
 		await run(Fiber.join(processing));
 

@@ -7,6 +7,9 @@ import { DbConfigLive, DbConfigService } from "./config";
 import { makePgConnectionString } from "./pg-connection-string";
 import { relations } from "./schema/relations";
 
+/** Names this process's query connections in `pg_stat_activity`. */
+export const applicationName = `orcai-${process.pid}`;
+
 export const PgClientServiceLive: Layer.Layer<
 	PgClient.PgClient,
 	unknown,
@@ -19,6 +22,7 @@ export const PgClientServiceLive: Layer.Layer<
 		return PgClient.layer({
 			url,
 			maxConnections: config.postgres.poolMax,
+			applicationName,
 		});
 	}),
 );

@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { PgClient } from "@effect/sql-pg";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
 import { type PipelineStatus, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
+import { awaitLockWaiters } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -479,18 +479,7 @@ describe("attaching while processing completes", () => {
 					}),
 				),
 			);
-			await run(
-				Effect.gen(function* () {
-					const sql = yield* PgClient.PgClient;
-					for (;;) {
-						const [waiting] = yield* sql<{
-							count: number;
-						}>`SELECT count(*)::int AS count FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query ILIKE ${"%for share%"}`;
-						if ((waiting?.count ?? 0) > 0) return;
-						yield* Effect.sleep("25 millis");
-					}
-				}),
-			);
+			await run(awaitLockWaiters("%for share%"));
 			await run(Deferred.succeed(commit, undefined));
 			await run(Fiber.join(processing));
 			await run(Fiber.join(attach));
