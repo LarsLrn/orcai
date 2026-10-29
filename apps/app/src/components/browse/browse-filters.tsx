@@ -1,9 +1,12 @@
 import type { LibrarySort } from "@orcai/schema";
-import { SlidersHorizontalIcon } from "lucide-react";
+import {
+	ArrowDownUpIcon,
+	ChevronDownIcon,
+	SlidersHorizontalIcon,
+} from "lucide-react";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { OptionPicker } from "@/components/ui/composed/option-picker";
 import {
 	Drawer,
 	DrawerContent,
@@ -12,44 +15,65 @@ import {
 	DrawerTrigger,
 } from "@/components/ui/drawer";
 import {
-	Field,
-	FieldLabel,
-	FieldLegend,
-	FieldSet,
-} from "@/components/ui/field";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	activeFilterCount,
 	type FilterDefinitions,
 	type FilterValues,
 } from "@/lib/browse/browse-search";
-import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 type FilterFieldsProps<D extends FilterDefinitions> = {
-	className?: string;
 	filters: D;
 	values: FilterValues<D>;
 	onChange: (key: keyof D & string, value: string | string[] | boolean) => void;
 };
 
-/** One field per filter definition: radios for a single choice, checkboxes for several or a toggle. */
+/** A full-width row: the label is the whole hit area and wraps its control. */
+const FilterRow = ({
+	id,
+	control,
+	children,
+}: {
+	id: string;
+	control: React.ReactNode;
+	children: React.ReactNode;
+}) => (
+	<FieldLabel
+		htmlFor={id}
+		className="-mx-2 w-auto items-center gap-3 rounded-lg px-2 py-1.5 font-normal hover:bg-muted has-data-checked:bg-muted has-data-checked:font-medium"
+	>
+		{control}
+		<span className="min-w-0 break-words">{children}</span>
+	</FieldLabel>
+);
+
+/** One card per filter definition: radios for a single choice, checkboxes for several or a toggle, each option a full-width row. */
 const FilterFields = <D extends FilterDefinitions>({
-	className,
 	filters,
 	values,
 	onChange,
 }: FilterFieldsProps<D>) => {
 	const id = useId();
 	return (
-		<div className={cn("flex flex-col gap-6", className)}>
+		<div className="flex flex-col gap-3">
 			{Object.entries(filters).map(([key, definition]) =>
 				definition.type === "multi" &&
 				definition.options.length === 0 ? null : (
-					<FieldSet key={key} className="gap-0">
+					<FieldSet
+						key={key}
+						className="block gap-0 rounded-2xl border bg-card px-3 pb-2 shadow-xs [&>*:not(legend)]:clear-both"
+					>
 						<FieldLegend
 							variant="label"
-							className="mb-2 font-medium text-muted-foreground text-sm"
+							className="float-left -mx-3 mb-2 w-[calc(100%+1.5rem)] border-b px-3 py-2.5 font-medium text-foreground text-sm"
 						>
 							{definition.label()}
 						</FieldLegend>
@@ -57,67 +81,71 @@ const FilterFields = <D extends FilterDefinitions>({
 							<RadioGroup
 								value={values[key]}
 								onValueChange={(value) => onChange(key, value as string)}
-								className="gap-2"
+								className="gap-0.5"
 							>
 								{definition.options.map((option) => (
-									<Field key={option.value} orientation="horizontal">
-										<RadioGroupItem
-											value={option.value}
-											id={`${id}-${key}-${option.value}`}
-										/>
-										<FieldLabel
-											htmlFor={`${id}-${key}-${option.value}`}
-											className="font-normal"
-										>
-											{option.label()}
-										</FieldLabel>
-									</Field>
+									<FilterRow
+										key={option.value}
+										id={`${id}-${key}-${option.value}`}
+										control={
+											<RadioGroupItem
+												value={option.value}
+												id={`${id}-${key}-${option.value}`}
+											/>
+										}
+									>
+										{option.label()}
+									</FilterRow>
 								))}
 							</RadioGroup>
 						) : definition.type === "multi" ? (
-							<div className="flex flex-col gap-2">
+							<div className="flex flex-col gap-0.5">
 								{definition.options.map((option) => {
 									const selected = values[key] as string[];
 									return (
-										<Field key={option.value} orientation="horizontal">
-											<Checkbox
-												id={`${id}-${key}-${option.value}`}
-												checked={selected.includes(option.value)}
-												onCheckedChange={(checked) =>
-													onChange(
-														key,
-														checked
-															? [
-																	...selected,
-																	option.value,
-																]
-															: selected.filter(
-																	(value) => value !== option.value,
-																),
-													)
-												}
-											/>
-											<FieldLabel
-												htmlFor={`${id}-${key}-${option.value}`}
-												className="min-w-0 font-normal"
-											>
-												<span className="truncate">{option.label()}</span>
-											</FieldLabel>
-										</Field>
+										<FilterRow
+											key={option.value}
+											id={`${id}-${key}-${option.value}`}
+											control={
+												<Checkbox
+													id={`${id}-${key}-${option.value}`}
+													checked={selected.includes(option.value)}
+													onCheckedChange={(checked) =>
+														onChange(
+															key,
+															checked
+																? [
+																		...selected,
+																		option.value,
+																	]
+																: selected.filter(
+																		(value) => value !== option.value,
+																	),
+														)
+													}
+												/>
+											}
+										>
+											{option.label()}
+										</FilterRow>
 									);
 								})}
 							</div>
 						) : (
-							<Field orientation="horizontal">
-								<Checkbox
-									id={`${id}-${key}`}
-									checked={values[key] === true}
-									onCheckedChange={(checked) => onChange(key, checked === true)}
-								/>
-								<FieldLabel htmlFor={`${id}-${key}`} className="font-normal">
-									{definition.optionLabel()}
-								</FieldLabel>
-							</Field>
+							<FilterRow
+								id={`${id}-${key}`}
+								control={
+									<Checkbox
+										id={`${id}-${key}`}
+										checked={values[key] === true}
+										onCheckedChange={(checked) =>
+											onChange(key, checked === true)
+										}
+									/>
+								}
+							>
+								{definition.optionLabel()}
+							</FilterRow>
 						)}
 					</FieldSet>
 				),
@@ -172,45 +200,54 @@ const sortOptions = () =>
 		},
 	] as const;
 
-/** Newest or A to Z: two toggles, a compact dropdown below `sm` where they would wrap. */
+/** The current sort in a small menu beside the results heading. */
 const SortControl = ({
 	value,
 	onChange,
 }: {
 	value: LibrarySort;
 	onChange: (sort: LibrarySort) => void;
-}) => (
-	<>
-		<OptionPicker
-			options={sortOptions()}
-			value={value}
-			onChange={onChange}
-			size="sm"
-			aria-label={m.browse_sort_label()}
-			className="sm:hidden"
-		/>
-		{/* biome-ignore lint/a11y/useSemanticElements: a toolbar of toggles, not a fieldset of inputs */}
-		<div
-			role="group"
-			aria-label={m.browse_sort_label()}
-			className="hidden items-center gap-1 text-sm sm:flex"
-		>
-			<span aria-hidden="true" className="mr-1 text-muted-foreground">
-				{m.browse_sort_label()}
-			</span>
-			{sortOptions().map((option) => (
-				<Button
-					key={option.value}
-					size="xs"
-					variant={value === option.value ? "secondary" : "ghost"}
-					aria-pressed={value === option.value}
-					onClick={() => onChange(option.value)}
+}) => {
+	const current = sortOptions().find((option) => option.value === value);
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				render={
+					<Button
+						variant="ghost"
+						size="sm"
+						aria-label={`${m.browse_sort_label()}: ${current?.label ?? ""}`}
+					>
+						<ArrowDownUpIcon data-icon="inline-start" aria-hidden="true" />
+						<span className="text-muted-foreground">
+							{m.browse_sort_label()}:
+						</span>
+						{current?.label}
+						<ChevronDownIcon
+							aria-hidden="true"
+							className="text-muted-foreground"
+						/>
+					</Button>
+				}
+			/>
+			<DropdownMenuContent align="end" className="w-auto min-w-36">
+				<DropdownMenuRadioGroup
+					value={value}
+					onValueChange={(next) => onChange(next as LibrarySort)}
 				>
-					{option.label}
-				</Button>
-			))}
-		</div>
-	</>
-);
+					{sortOptions().map((option) => (
+						<DropdownMenuRadioItem
+							key={option.value}
+							value={option.value}
+							closeOnClick
+						>
+							{option.label}
+						</DropdownMenuRadioItem>
+					))}
+				</DropdownMenuRadioGroup>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+};
 
 export { FilterFields, FiltersDrawer, SortControl };

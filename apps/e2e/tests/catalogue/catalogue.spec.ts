@@ -488,3 +488,68 @@ test("catalogue: a bot added without its blocks gets them from its Library menu"
 		}),
 	).toHaveCount(0);
 });
+
+test("catalogue: the sort dropdown orders the grid and the filter card's toggle lives in the URL", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const id = runId();
+	const author = api.as("member");
+	for (const letter of [
+		"A",
+		"B",
+	]) {
+		const block = await author.block.create({
+			type: "template",
+			name: `E2E Catalogue Sort ${id} ${letter}`,
+			status: "ready",
+			config: {
+				systemPrompt: `Behaviour ${letter} of the sort.`,
+			},
+		});
+		await author.resource.setVisibility({
+			resourceType: "block",
+			resourceId: block.data.id,
+			visibility: "public",
+			listBlockIds: [],
+		});
+	}
+
+	const other = await orgs.create(`E2E Catalogue Sort ${id}`);
+	const page = await pageAs("member", other);
+	await enterApp(page, other.slug);
+	await open(page, `/app/catalogue/behaviours?query=${id}`);
+	await expect(tiles(page)).toHaveCount(2);
+	await expect(tiles(page).first()).toContainText(`Sort ${id} B`);
+
+	await page
+		.getByRole("button", {
+			name: `${message("browse_sort_label")}: ${message("browse_sort_newest")}`,
+		})
+		.click();
+	await page
+		.getByRole("menuitemradio", {
+			name: message("browse_sort_name"),
+		})
+		.click();
+	await expect(page).toHaveURL(/sort=name/);
+	await expect(tiles(page).first()).toContainText(`Sort ${id} A`);
+	await expect(
+		page.getByRole("button", {
+			name: `${message("browse_sort_label")}: ${message("browse_sort_name")}`,
+		}),
+	).toBeVisible();
+
+	const hideAdded = page
+		.getByRole("group", {
+			name: message("catalogue_filter_status_label"),
+		})
+		.getByRole("checkbox", {
+			name: message("catalogue_filter_hide_added"),
+		});
+	await hideAdded.click();
+	await expect(page).toHaveURL(/hideAdded=true/);
+	await expect(hideAdded).toBeChecked();
+	await expect(tiles(page)).toHaveCount(2);
+});

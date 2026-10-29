@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import type { ApiClient } from "../../fixtures/api";
 import { uploadAsset } from "../../fixtures/assets";
 import { grantUser } from "../../fixtures/authz/resources";
@@ -53,6 +53,40 @@ const filter = (page: Page, legendKey: string, optionKey: string) =>
 		.getByRole("radio", {
 			name: message(optionKey),
 		});
+
+/** Clicks the option's row at its right edge, away from the control and the text. */
+const clickRowEnd = async (option: Locator) => {
+	const row = option.locator("xpath=ancestor::label");
+	const box = await row.boundingBox();
+	if (!box) {
+		throw new Error("The filter row has no box.");
+	}
+	await row.click({
+		position: {
+			x: box.width - 4,
+			y: box.height / 2,
+		},
+	});
+};
+
+const sortButton = (page: Page, currentKey: string) =>
+	page.getByRole("button", {
+		name: `${message("browse_sort_label")}: ${message(currentKey)}`,
+	});
+
+/** Opens the sort dropdown and picks an option. */
+const sortBy = async (page: Page, optionKey: string) => {
+	await page
+		.getByRole("button", {
+			name: new RegExp(`^${message("browse_sort_label")}: `),
+		})
+		.click();
+	await page
+		.getByRole("menuitemradio", {
+			name: message(optionKey),
+		})
+		.click();
+};
 
 const scrollTop = (page: Page) =>
 	page.evaluate(
@@ -172,18 +206,17 @@ test("library: search, filters, sort and page live in the URL and come back on B
 	await open(page, "/app/library/bots?pageSize=10");
 	await expect(tiles(page)).toHaveCount(10);
 
-	await filter(
-		page,
-		"library_filter_status_label",
-		"library_filter_status_published",
-	).click();
+	await clickRowEnd(
+		filter(
+			page,
+			"library_filter_status_label",
+			"library_filter_status_published",
+		),
+	);
 	await expect(page).toHaveURL(/status=ready/);
-	await page
-		.getByRole("button", {
-			name: message("browse_sort_name"),
-		})
-		.click();
+	await sortBy(page, "browse_sort_name");
 	await expect(page).toHaveURL(/sort=name/);
+	await expect(sortButton(page, "browse_sort_name")).toBeVisible();
 	await page
 		.getByRole("button", {
 			name: message("common_pagination_next_page_label"),
@@ -457,11 +490,11 @@ test("library: at 390 px the switch, chips, Filters drawer and full-width tiles"
 	const drawer = page.getByRole("dialog", {
 		name: message("browse_filters_title"),
 	});
-	await drawer
-		.getByRole("radio", {
+	await clickRowEnd(
+		drawer.getByRole("radio", {
 			name: message("library_filter_status_drafts"),
-		})
-		.click();
+		}),
+	);
 	await expect(page).toHaveURL(/status=draft/);
 	await page.keyboard.press("Escape");
 	await expect(drawer).toBeHidden();
@@ -474,9 +507,5 @@ test("library: at 390 px the switch, chips, Filters drawer and full-width tiles"
 
 	const box = await tile(page, name).boundingBox();
 	expect(box?.width).toBeGreaterThan(350);
-	await expect(
-		page.getByRole("combobox", {
-			name: message("browse_sort_label"),
-		}),
-	).toBeVisible();
+	await expect(sortButton(page, "browse_sort_newest")).toBeVisible();
 });

@@ -244,7 +244,6 @@ export const LibraryBrowse = ({
 					/>
 					{showFilters ? (
 						<FilterFields
-							className="px-3"
 							filters={filters}
 							values={search as FilterValues<typeof filters>}
 							onChange={setFilter}
