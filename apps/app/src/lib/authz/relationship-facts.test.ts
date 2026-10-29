@@ -111,8 +111,8 @@ describe("projectRelationshipFacts", () => {
 
 	describe("grant changes", () => {
 		const grant = (
-			from: "viewer" | "editor" | "manager" | null,
-			to: "viewer" | "editor" | "manager" | null,
+			ended: readonly ("viewer" | "editor" | "manager")[],
+			held: readonly ("viewer" | "editor" | "manager")[],
 			principal:
 				| {
 						principalType: "user";
@@ -129,46 +129,113 @@ describe("projectRelationshipFacts", () => {
 			RelationshipFact.ResourceGrantChanged({
 				resource: bot,
 				principal,
-				from,
-				to,
+				ended,
+				held,
 			});
 
 		test("a new grant touches the role", () => {
-			expect(project(grant(null, "viewer"))).toEqual([
+			expect(
+				project(
+					grant(
+						[],
+						[
+							"viewer",
+						],
+					),
+				),
+			).toEqual([
 				`touch bot:${botId}#viewer@user:${userId}`,
 			]);
 		});
 
 		test("a revoked grant deletes the role", () => {
-			expect(project(grant("editor", null))).toEqual([
+			expect(
+				project(
+					grant(
+						[
+							"editor",
+						],
+						[],
+					),
+				),
+			).toEqual([
 				`delete bot:${botId}#editor@user:${userId}`,
 			]);
 		});
 
 		test("a role change deletes the old role and touches the new one", () => {
-			expect(project(grant("viewer", "manager"))).toEqual([
+			expect(
+				project(
+					grant(
+						[
+							"viewer",
+						],
+						[
+							"manager",
+						],
+					),
+				),
+			).toEqual([
 				`delete bot:${botId}#viewer@user:${userId}`,
 				`touch bot:${botId}#manager@user:${userId}`,
 			]);
 		});
 
 		test("an unchanged role only touches it", () => {
-			expect(project(grant("editor", "editor"))).toEqual([
+			expect(
+				project(
+					grant(
+						[
+							"editor",
+						],
+						[
+							"editor",
+						],
+					),
+				),
+			).toEqual([
 				`touch bot:${botId}#editor@user:${userId}`,
 			]);
 		});
 
 		test("no role before or after emits nothing", () => {
-			expect(project(grant(null, null))).toEqual([]);
+			expect(project(grant([], []))).toEqual([]);
+		});
+
+		test("an ended grant keeps a role another organisation's grant still backs", () => {
+			expect(
+				project(
+					grant(
+						[
+							"viewer",
+						],
+						[
+							"viewer",
+							"editor",
+						],
+					),
+				),
+			).toEqual([
+				`touch bot:${botId}#viewer@user:${userId}`,
+				`touch bot:${botId}#editor@user:${userId}`,
+			]);
 		});
 
 		test("a group principal is its member set", () => {
 			expect(
 				project(
-					grant("viewer", "editor", {
-						principalType: "group",
-						principalId: groupId,
-					}),
+					grant(
+						[
+							"viewer",
+						],
+						[
+							"editor",
+						],
+						{
+							principalType: "group",
+							principalId: groupId,
+						},
+					),
 				),
 			).toEqual([
 				`delete bot:${botId}#viewer@group:${groupId}#member`,
@@ -371,8 +438,12 @@ describe("projectRelationshipFacts", () => {
 							principalType: "user",
 							principalId: userId,
 						},
-						from: "viewer",
-						to: "editor",
+						ended: [
+							"viewer",
+						],
+						held: [
+							"editor",
+						],
 					}),
 					RelationshipFact.ResourceGrantChanged({
 						resource: bot,
@@ -380,8 +451,10 @@ describe("projectRelationshipFacts", () => {
 							principalType: "user",
 							principalId: userId,
 						},
-						from: "editor",
-						to: null,
+						ended: [
+							"editor",
+						],
+						held: [],
 					}),
 				),
 			).toEqual([
@@ -438,8 +511,10 @@ describe("projectRelationshipFacts", () => {
 							principalType: "user",
 							principalId: sameId as UserId,
 						},
-						from: null,
-						to: "viewer",
+						ended: [],
+						held: [
+							"viewer",
+						],
 					}),
 					RelationshipFact.ResourceGrantChanged({
 						resource: bot,
@@ -447,8 +522,10 @@ describe("projectRelationshipFacts", () => {
 							principalType: "group",
 							principalId: sameId as GroupId,
 						},
-						from: "viewer",
-						to: null,
+						ended: [
+							"viewer",
+						],
+						held: [],
 					}),
 				),
 			).toEqual([
@@ -542,12 +619,20 @@ const samples: Record<RelationshipFact["_tag"], RelationshipFact[]> = {
 						"manager",
 					],
 				] as const
-			).map(([from, to]) =>
+			).map(([ended, held]) =>
 				RelationshipFact.ResourceGrantChanged({
 					resource,
 					principal,
-					from,
-					to,
+					ended: ended
+						? [
+								ended,
+							]
+						: [],
+					held: held
+						? [
+								held,
+							]
+						: [],
 				}),
 			),
 		),

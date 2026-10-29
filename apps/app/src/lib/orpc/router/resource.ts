@@ -34,6 +34,7 @@ import {
 import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
 import { recentResources } from "@/lib/resources/recents";
 import { literalSearch } from "@/lib/utils/literal-search";
@@ -387,9 +388,13 @@ const getInheritedAccess = authed.resource.inheritedAccess
 	});
 
 const listResourceGrants = authed.resource.listGrants
+	.use(requireActiveOrganizationMiddleware)
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
-		const grants = yield* activeGrants(input);
+		const grants = yield* activeGrants(
+			input,
+			context.auth.session.activeOrganizationId,
+		);
 		const data = yield* hydrateGrants({
 			grants,
 			resource: input,
@@ -545,10 +550,12 @@ const listResourcePrincipals = authed.resource.listPrincipals
 	});
 
 const grantAccess = authed.resource.grant
+	.use(requireActiveOrganizationMiddleware)
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const { grants, zedToken } = yield* grantResourceAccess({
 			resource: input,
+			organizationId: context.auth.session.activeOrganizationId,
 			principals: input.principals,
 			role: input.role,
 			actor: {
@@ -570,10 +577,12 @@ const grantAccess = authed.resource.grant
 	});
 
 const revokeAccess = authed.resource.revoke
+	.use(requireActiveOrganizationMiddleware)
 	.use(requireResourcePermission("manage_access"))
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
 		const revoked = yield* revokeResourceAccess({
 			resource: input,
+			organizationId: context.auth.session.activeOrganizationId,
 			principal: input,
 		});
 

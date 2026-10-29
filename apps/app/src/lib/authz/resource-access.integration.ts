@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { BlockId, UserId } from "@orcai/core";
+import type { BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ResourceGrantRole } from "@orcai/schema";
 import { and, eq, isNull } from "drizzle-orm";
@@ -55,6 +55,24 @@ const user = (userId: UserId): GrantPrincipal => ({
 	principalId: userId,
 });
 
+/** The block's home organisation, where these tests issue grants. */
+const homeOf = (blockId: BlockId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [scope] = yield* db
+			.select({
+				organizationId: dbSchema.resourceScope.organizationId,
+			})
+			.from(dbSchema.resourceScope)
+			.where(
+				and(
+					eq(dbSchema.resourceScope.resourceId, blockId),
+					eq(dbSchema.resourceScope.isPrimary, true),
+				),
+			);
+		return scope.organizationId;
+	});
+
 const grant = (
 	owner: Actor,
 	blockId: BlockId,
@@ -64,6 +82,7 @@ const grant = (
 	run(
 		grantResourceAccess({
 			resource: block(blockId),
+			organizationId: owner.session.activeOrganizationId as OrganizationId,
 			principals: [
 				principal,
 			],
@@ -74,9 +93,12 @@ const grant = (
 
 const revoke = (blockId: BlockId, principal: GrantPrincipal) =>
 	run(
-		revokeResourceAccess({
-			resource: block(blockId),
-			principal,
+		Effect.gen(function* () {
+			return yield* revokeResourceAccess({
+				resource: block(blockId),
+				organizationId: yield* homeOf(blockId),
+				principal,
+			});
 		}),
 	);
 
@@ -436,7 +458,7 @@ describe("detaching principals that leave", () => {
 	);
 
 	test(
-		"deleting the organization revokes its members' grants on resources scoped only to it",
+		"deleting the organization deletes the resources it is home to with their grants and tuples",
 		async () => {
 			const {
 				organizationId,
@@ -454,10 +476,21 @@ describe("detaching principals that leave", () => {
 			);
 			expect(await accessOf(blockId, viewer.user.id)).toEqual({
 				grants: [],
-				tuples: [
-					`owner@user:${owner.user.id}`,
-				],
+				tuples: [],
 			});
+			expect(
+				await run(
+					Effect.gen(function* () {
+						const db = yield* DB;
+						return yield* db
+							.select({
+								id: dbSchema.block.id,
+							})
+							.from(dbSchema.block)
+							.where(eq(dbSchema.block.id, blockId));
+					}),
+				),
+			).toEqual([]);
 		},
 		TIMEOUT,
 	);
@@ -482,6 +515,7 @@ describe("detaching principals that leave", () => {
 						...block(blockId),
 						...user(account.user.id),
 						role: "viewer",
+						organizationId: grantOrganizationId,
 						grantedBy: owner.user.id,
 					});
 				}),
@@ -505,6 +539,234 @@ describe("detaching principals that leave", () => {
 				tuples: [
 					`owner@user:${owner.user.id}`,
 				],
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+/**
+ * A block homed in one organisation and scoped to a second one as installs
+ * will be, with a member of both and a sharer in the second.
+ */
+const blockInTwoOrganizations = async () => {
+	const home = await ownedBlock([
+		"member",
+	]);
+	const [member] = home.others;
+	const { organizationId: otherOrganizationId, actors } =
+		await organizationWith([
+			"admin",
+		]);
+	const [sharer] = actors;
+	await run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			yield* db.insert(dbSchema.member).values({
+				organizationId: otherOrganizationId,
+				userId: member.user.id,
+				role: "member",
+			});
+			yield* db.insert(dbSchema.resourceScope).values({
+				...block(home.blockId),
+				organizationId: otherOrganizationId,
+				isPrimary: false,
+				assignedBy: sharer.user.id,
+			});
+		}),
+	);
+	const grantInOther = (role: ResourceGrantRole) =>
+		run(
+			grantResourceAccess({
+				resource: block(home.blockId),
+				organizationId: otherOrganizationId,
+				principals: [
+					user(member.user.id),
+				],
+				role,
+				actor: actorOf(sharer),
+			}),
+		);
+	const revokeInOther = () =>
+		run(
+			revokeResourceAccess({
+				resource: block(home.blockId),
+				organizationId: otherOrganizationId,
+				principal: user(member.user.id),
+			}),
+		);
+	return {
+		...home,
+		member,
+		sharer,
+		otherOrganizationId,
+		grantInOther,
+		revokeInOther,
+	};
+};
+
+describe("grant provenance", () => {
+	test(
+		"a home editor grant and another organisation's viewer grant coexist, and revoking one keeps the other's tuple",
+		async () => {
+			const { owner, member, blockId, grantInOther, revokeInOther } =
+				await blockInTwoOrganizations();
+			await grant(owner, blockId, user(member.user.id), "editor");
+			await grantInOther("viewer");
+			expect(await accessOf(blockId, member.user.id)).toEqual({
+				grants: [
+					`editor@${member.user.id}`,
+					`viewer@${member.user.id}`,
+				],
+				tuples: [
+					`editor@user:${member.user.id}`,
+					`owner@user:${owner.user.id}`,
+					`viewer@user:${member.user.id}`,
+				].sort(),
+			});
+
+			await revokeInOther();
+			expect(await accessOf(blockId, member.user.id)).toEqual({
+				grants: [
+					`editor@${member.user.id}`,
+				],
+				tuples: [
+					`editor@user:${member.user.id}`,
+					`owner@user:${owner.user.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"revoking one of two grants of the same role keeps its tuple",
+		async () => {
+			const { owner, member, blockId, grantInOther, revokeInOther } =
+				await blockInTwoOrganizations();
+			await grant(owner, blockId, user(member.user.id));
+			await grantInOther("viewer");
+			await revokeInOther();
+			expect(await accessOf(blockId, member.user.id)).toEqual({
+				grants: [
+					`viewer@${member.user.id}`,
+				],
+				tuples: [
+					`owner@user:${owner.user.id}`,
+					`viewer@user:${member.user.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"leaving an organisation revokes only the grants issued there",
+		async () => {
+			const {
+				owner,
+				member,
+				sharer,
+				blockId,
+				otherOrganizationId,
+				grantInOther,
+			} = await blockInTwoOrganizations();
+			await grant(owner, blockId, user(member.user.id), "editor");
+			await grantInOther("viewer");
+			await run(
+				removeMembers({
+					organizationId: otherOrganizationId,
+					userIds: [
+						member.user.id,
+					],
+					actor: actorOf(sharer),
+				}),
+			);
+			expect(await accessOf(blockId, member.user.id)).toEqual({
+				grants: [
+					`editor@${member.user.id}`,
+				],
+				tuples: [
+					`editor@user:${member.user.id}`,
+					`owner@user:${owner.user.id}`,
+				].sort(),
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"removals from both organisations at once leave no tuple behind",
+		async () => {
+			const {
+				owner,
+				member,
+				sharer,
+				blockId,
+				organizationId,
+				otherOrganizationId,
+				grantInOther,
+			} = await blockInTwoOrganizations();
+			await grant(owner, blockId, user(member.user.id));
+			await grantInOther("viewer");
+			const removeFrom = (from: OrganizationId, actor: Actor) => () =>
+				run(
+					removeMembers({
+						organizationId: from,
+						userIds: [
+							member.user.id,
+						],
+						actor: actorOf(actor),
+					}),
+				);
+			// Each removal locks both organisations, the lower id first, so both queue behind it.
+			const [firstLocked] = [
+				organizationId,
+				otherOrganizationId,
+			].sort();
+			await queueBehindOrganizationLock(
+				firstLocked,
+				removeFrom(organizationId, owner),
+				removeFrom(otherOrganizationId, sharer),
+			);
+			expect(await accessOf(blockId, member.user.id)).toEqual({
+				grants: [],
+				tuples: [
+					`owner@user:${owner.user.id}`,
+				],
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a grant in an organisation the resource is not scoped to is refused",
+		async () => {
+			const {
+				blockId,
+				others: [member],
+			} = await ownedBlock([
+				"member",
+			]);
+			const { organizationId: otherOrganizationId, actors } =
+				await organizationWith([
+					"admin",
+				]);
+			const rejected = await rejection(
+				run(
+					grantResourceAccess({
+						resource: block(blockId),
+						organizationId: otherOrganizationId,
+						principals: [
+							user(member.user.id),
+						],
+						role: "viewer",
+						actor: actorOf(actors[0]),
+					}),
+				),
+			);
+			expect(rejected).toMatchObject({
+				reason: "RESOURCE_SCOPE_REQUIRED",
 			});
 		},
 		TIMEOUT,

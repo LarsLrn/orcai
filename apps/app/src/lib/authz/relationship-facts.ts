@@ -64,11 +64,16 @@ export type RelationshipFact = Data.TaggedEnum<{
 		resource: ResourceRef;
 		visibility: ResourceVisibility;
 	};
+	/**
+	 * A principal's grants on a resource changed: `ended` are the roles of the
+	 * grants that ended, `held` the roles its active grants hold afterwards,
+	 * whichever organisation issued them.
+	 */
 	ResourceGrantChanged: {
 		resource: ResourceRef;
 		principal: GrantPrincipal;
-		from: ResourceGrantRole | null;
-		to: ResourceGrantRole | null;
+		ended: readonly ResourceGrantRole[];
+		held: readonly ResourceGrantRole[];
 	};
 	OrganizationRoleChanged: {
 		organizationId: OrganizationId;
@@ -227,10 +232,14 @@ const projectFact = RelationshipFact.$match({
 	ResourceVisibilitySet: ({ resource, visibility }) => [
 		publicTuple(resource, visibility === "public" ? "touch" : "delete"),
 	],
-	ResourceGrantChanged: ({ resource, principal, from, to }) =>
-		roleChange(from, to, (role, operation) =>
-			resourceTuple(resource, role, operation, principalSubject(principal)),
+	ResourceGrantChanged: ({ resource, principal, ended, held }) => [
+		...Arr.difference(Arr.dedupe(ended), held).map((role) =>
+			resourceTuple(resource, role, "delete", principalSubject(principal)),
 		),
+		...Arr.dedupe(held).map((role) =>
+			resourceTuple(resource, role, "touch", principalSubject(principal)),
+		),
+	],
 	OrganizationRoleChanged: ({ organizationId, userId, from, to }) =>
 		roleChange(
 			from,

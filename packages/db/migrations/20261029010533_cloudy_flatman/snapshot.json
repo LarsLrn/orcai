@@ -1,0 +1,203 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "e4ca0f03-6814-4c55-9af5-d24b20ffa25b",
+  "prevIds": [
+    "9059e4f1-d416-4d26-8882-5b48725e33cc"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resource_grant",
+        "organization_id"
+      ],
+      "writes": [
+        "s|col|public.resource_grant.organization_id",
+        "n|col|public.resource_grant.organization_id",
+        "e|col|public.resource_grant.organization_id"
+      ],
+      "reads": [
+        "n|tbl|public.resource_grant",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "recreate_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resource_grant",
+        "resource_grant_active_principal_unique"
+      ],
+      "writes": [
+        "s|idx|public.resource_grant_active_principal_unique",
+        "n|idx|public.resource_grant_active_principal_unique",
+        "e|idx|public.resource_grant_active_principal_unique",
+        "n|rel|public.resource_grant_active_principal_unique"
+      ],
+      "reads": [
+        "n|tbl|public.resource_grant",
+        "n|sch|public",
+        "n|col|public.resource_grant.resource_type",
+        "n|col|public.resource_grant.resource_id",
+        "n|col|public.resource_grant.principal_type",
+        "n|col|public.resource_grant.principal_id",
+        "n|col|public.resource_grant.organization_id"
+      ],
+      "sharedWrites": [],
+      "sqlHash": "c920f93e87adb4e0"
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resource_grant",
+        "resource_grant_organization_idx"
+      ],
+      "writes": [
+        "s|idx|public.resource_grant_organization_idx",
+        "n|idx|public.resource_grant_organization_idx",
+        "e|idx|public.resource_grant_organization_idx",
+        "n|rel|public.resource_grant_organization_idx"
+      ],
+      "reads": [
+        "n|tbl|public.resource_grant",
+        "n|sch|public",
+        "n|col|public.resource_grant.organization_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "resource_grant"
+      ],
+      "writes": [
+        "s|fk|public.resource_grant.resource_grant_organization_id_organization_id_fkey",
+        "n|fk|public.resource_grant.resource_grant_organization_id_organization_id_fkey",
+        "e|fk|public.resource_grant.resource_grant_organization_id_organization_id_fkey",
+        "n|con|public.resource_grant.resource_grant_organization_id_organization_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.resource_grant",
+        "n|sch|public",
+        "n|tbl|public.organization",
+        "n|sch|public",
+        "n|col|public.resource_grant.organization_id",
+        "n|col|public.organization.id",
+        "e|uniqueness|public.organization.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resource_grant",
+        "name": "organization_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resource_grant",
+        "name": "resource_grant_organization_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resource_grant",
+        "name": "resource_grant_organization_id_organization_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "organization_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "organization",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "indexes\u0000[\"public\",\"resource_grant_active_principal_unique\"]",
+      "set": {
+        "columns": [
+          {
+            "value": "resource_type",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "resource_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "principal_type",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "principal_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ]
+      }
+    }
+  ]
+}

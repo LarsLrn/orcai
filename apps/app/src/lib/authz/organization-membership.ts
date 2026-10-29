@@ -23,6 +23,7 @@ import {
 	accountAccessOrganizations,
 	detachAccounts,
 	detachMembers,
+	issuedGrantOrganizations,
 } from "@/lib/authz/resource-access";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { deleteImages } from "@/lib/images/images";
@@ -255,9 +256,12 @@ export const removeMembers = (params: {
 
 		yield* writeRelationships(
 			{
-				organizationIds: [
-					params.organizationId,
-				],
+				organizationIds: issuedGrantOrganizations({
+					organizationIds: [
+						params.organizationId,
+					],
+					userIds: params.userIds,
+				}),
 			},
 			Effect.gen(function* () {
 				yield* confirmInstanceAdmin(params.actor, params.userIds);

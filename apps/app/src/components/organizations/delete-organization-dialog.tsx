@@ -40,7 +40,7 @@ const IMPACT_ROWS = [
 			}),
 	},
 	{
-		key: "exclusiveResources",
+		key: "homeResources",
 		describe: (count: number) =>
 			m.orgs_delete_dialog_impact_resources({
 				count,

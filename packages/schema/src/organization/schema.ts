@@ -40,7 +40,7 @@ export type OrganizationWithMemberCount = z.infer<
 	typeof organizationWithMemberCountSchema
 >;
 
-/** What deleting an organisation takes with it; `exclusiveResources` are scoped to it alone. */
+/** What deleting an organisation takes with it; `homeResources` are the bots, behaviours, repositories and documents it is home to. */
 export const organizationDeletionImpactSchema = z.object({
 	id: organizationIdSchema,
 	name: z.string(),
@@ -48,7 +48,7 @@ export const organizationDeletionImpactSchema = z.object({
 	members: z.number().int(),
 	pendingInvitations: z.number().int(),
 	groups: z.number().int(),
-	exclusiveResources: z.number().int(),
+	homeResources: z.number().int(),
 });
 
 export type OrganizationDeletionImpact = z.infer<

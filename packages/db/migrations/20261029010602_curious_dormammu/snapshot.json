@@ -1,0 +1,38 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "9b263c69-6a77-4603-a803-df0186769d69",
+  "prevIds": [
+    "70fd7eba-779b-4f9e-b042-b6350cbbec13"
+  ],
+  "footprints": [
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resource_grant",
+        "organization_id"
+      ],
+      "writes": [
+        "s|colprop|public.resource_grant.organization_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.resource_grant",
+        "n|sch|public",
+        "n|col|public.resource_grant.organization_id"
+      ],
+      "sqlHash": "08bf25c235e92502"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"resource_grant\",\"organization_id\"]",
+      "set": {
+        "notNull": true
+      }
+    }
+  ]
+}

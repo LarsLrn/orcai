@@ -1,11 +1,17 @@
-import type {
-	AssetId,
-	BlockId,
-	BotId,
-	OrganizationId,
-	UserId,
+import {
+	type AssetId,
+	type BlockId,
+	type BotId,
+	buckets,
+	type OrganizationId,
+	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { deletePointsByIdentifier } from "@orcai/qdrant";
+import {
+	deletePrefixRecursively,
+	sendDeleteObjectCommand,
+} from "@orcai/s3/server";
 import type { ResourceType } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
@@ -275,8 +281,10 @@ const teardownResourceAuthorization = (params: {
 				RelationshipFact.ResourceGrantChanged({
 					resource: ref(grant.resourceId),
 					principal: grantPrincipal(grant),
-					from: grant.role,
-					to: null,
+					ended: [
+						grant.role,
+					],
+					held: [],
 				}),
 			),
 			...linkFacts,
@@ -314,53 +322,145 @@ export const resourceOrganizations = (
 		return rows.map((row) => row.organizationId);
 	});
 
-/** Deletes resource rows together with their authorization state and tuples. */
-export const deleteResourcesWithAuthorization = (params: {
+/**
+ * Deletes resource rows with their authorization state, recording the facts
+ * that remove their tuples. Call it in a {@link writeRelationships} that
+ * holds the resources' organisation locks; pass the result to
+ * {@link removeDeletedResourceData} after the commit.
+ */
+export const deleteResources = (params: {
 	resourceType: ResourceType;
 	resourceIds: readonly string[];
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const table = resourceTables[params.resourceType];
-		const organizationIds = yield* resourceOrganizations(
-			params.resourceIds.map((resourceId) => ({
-				resourceType: params.resourceType,
-				resourceId,
-			})),
-		);
+		const ids = [
+			...params.resourceIds,
+		] as (typeof table.id._.data)[];
+		if (ids.length === 0) return emptyDeletedData;
 
-		yield* writeRelationships(
-			{
-				organizationIds,
-			},
-			Effect.gen(function* () {
-				// Waits for chats being created with a bot, and keeps new ones out until commit.
-				yield* db
-					.select({
-						id: table.id,
-					})
-					.from(table)
-					.where(
-						inArray(table.id, [
-							...params.resourceIds,
-						] as (typeof table.id._.data)[]),
-					)
-					.for("update");
-				yield* teardownResourceAuthorization(params);
-				// Their chats lose the bot link with the row, so they keep why they turned read-only.
-				if (params.resourceType === "bot") {
-					yield* db
-						.update(dbSchema.chat)
-						.set({
-							botDeletedAt: new Date(),
+		// Waits for chats being created with a bot, and keeps new ones out until commit.
+		yield* db
+			.select({
+				id: table.id,
+			})
+			.from(table)
+			.where(inArray(table.id, ids))
+			.for("update");
+		const indexedLinks =
+			params.resourceType === "block"
+				? yield* db
+						.select({
+							blockId: dbSchema.blockAsset.blockId,
+							assetId: dbSchema.blockAsset.assetId,
 						})
-						.where(inArray(dbSchema.chat.botId, params.resourceIds as BotId[]));
-				}
-				yield* db.delete(table).where(
-					inArray(table.id, [
-						...params.resourceIds,
-					] as (typeof table.id._.data)[]),
-				);
-			}),
-		);
+						.from(dbSchema.blockAsset)
+						.where(inArray(dbSchema.blockAsset.blockId, ids as BlockId[]))
+				: [];
+		const files =
+			params.resourceType === "asset"
+				? yield* db
+						.select({
+							id: dbSchema.asset.id,
+							bucket: dbSchema.asset.bucket,
+							prefix: dbSchema.asset.prefix,
+							fileType: dbSchema.asset.fileType,
+						})
+						.from(dbSchema.asset)
+						.where(inArray(dbSchema.asset.id, ids as AssetId[]))
+				: [];
+		yield* teardownResourceAuthorization(params);
+		// Their chats lose the bot link with the row, so they keep why they turned read-only.
+		if (params.resourceType === "bot") {
+			yield* db
+				.update(dbSchema.chat)
+				.set({
+					botDeletedAt: new Date(),
+				})
+				.where(inArray(dbSchema.chat.botId, ids as BotId[]));
+		}
+		yield* db.delete(table).where(inArray(table.id, ids));
+		return {
+			indexedLinks,
+			files,
+		};
 	});
+
+type DeletedData = Effect.Success<ReturnType<typeof deleteResources>>;
+
+const emptyDeletedData = {
+	indexedLinks: [] as {
+		blockId: BlockId;
+		assetId: AssetId;
+	}[],
+	files: [] as {
+		id: AssetId;
+		bucket: string;
+		prefix: string;
+		fileType: string;
+	}[],
+};
+
+/** Removes the stored files and search points of deleted resources. */
+export const removeDeletedResourceData = (deleted: readonly DeletedData[]) =>
+	Effect.all(
+		[
+			Effect.forEach(
+				deleted.flatMap((data) => data.files),
+				(asset) =>
+					Effect.all([
+						sendDeleteObjectCommand({
+							bucket: asset.bucket,
+							key: `${asset.prefix}/${asset.id}.${asset.fileType}`,
+						}),
+						deletePointsByIdentifier({
+							assetId: asset.id,
+							blockId: undefined,
+						}),
+						deletePrefixRecursively({
+							bucket: buckets.processed.name,
+							prefix: `${asset.id}/`,
+						}),
+					]),
+				{
+					concurrency: 5,
+					discard: true,
+				},
+			),
+			Effect.forEach(
+				deleted.flatMap((data) => data.indexedLinks),
+				(link) => deletePointsByIdentifier(link),
+				{
+					concurrency: 5,
+					discard: true,
+				},
+			),
+		],
+		{
+			discard: true,
+		},
+	);
+
+/** Deletes resources with their authorization state, tuples, files and search points. */
+export const deleteResourcesWithAuthorization = (params: {
+	resourceType: ResourceType;
+	resourceIds: readonly string[];
+}) =>
+	writeRelationships(
+		{
+			organizationIds: resourceOrganizations(
+				params.resourceIds.map((resourceId) => ({
+					resourceType: params.resourceType,
+					resourceId,
+				})),
+			),
+		},
+		deleteResources(params),
+	).pipe(
+		Effect.flatMap(({ result }) =>
+			removeDeletedResourceData([
+				result,
+			]),
+		),
+	);

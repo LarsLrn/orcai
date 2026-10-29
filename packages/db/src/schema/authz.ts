@@ -135,6 +135,13 @@ export const resourceGrant = pgTable(
 		principalType: principalTypeEnum("principal_type").notNull(),
 		principalId: uuid("principal_id").$type<UserId | GroupId>().notNull(),
 		role: resourceGrantRoleEnum("role").notNull(),
+		/** The organisation the grant was issued in. */
+		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
+			.notNull()
+			.references(() => organization.id, {
+				onDelete: "cascade",
+			}),
 		grantedBy: uuid("granted_by")
 			.$type<UserId>()
 			.notNull()
@@ -151,12 +158,14 @@ export const resourceGrant = pgTable(
 			table.principalType,
 			table.principalId,
 		),
+		index("resource_grant_organization_idx").on(table.organizationId),
 		uniqueIndex("resource_grant_active_principal_unique")
 			.on(
 				table.resourceType,
 				table.resourceId,
 				table.principalType,
 				table.principalId,
+				table.organizationId,
 			)
 			.where(sql`${table.revokedAt} IS NULL`),
 	],
