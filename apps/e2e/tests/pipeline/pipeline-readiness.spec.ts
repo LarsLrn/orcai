@@ -82,7 +82,7 @@ test("pipeline: a chat shows which of its repositories are ready and which faile
 	await openChat(page, chatId);
 
 	const trigger = documentsPanel(page).getByRole("button", {
-		name: /1 document could not be prepared.*1\/2/,
+		name: /1 asset could not be prepared.*1\/2/,
 	});
 	await expect(trigger).toBeVisible();
 	await trigger.click();

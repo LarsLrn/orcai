@@ -741,12 +741,12 @@ describe("installFromCatalogue summary", () => {
 		}).line(lookedUp);
 
 	test("names the bot alone", () => {
-		expect(line(false)).toBe("Add “bot 1” from the catalogue");
+		expect(line(false)).toBe("Add “bot 1” from the Catalogue");
 	});
 
 	test("names its behaviour and repositories when they come along", () => {
 		expect(line(true)).toBe(
-			"Add “bot 1” with its behaviour and repositories from the catalogue",
+			"Add “bot 1” with its behaviour and repositories from the Catalogue",
 		);
 	});
 });

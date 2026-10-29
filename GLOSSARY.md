@@ -38,12 +38,13 @@ _Avoid_: Questions & quizzes, Fragen & Quiz
 The instructions inside a behaviour that the model reads before every answer.
 _German_: System-Prompt
 
-**Draft**, **Ready**:
-The two publication states of a bot or block. Only a ready bot can be chatted with by others.
-_German_: Entwurf, Bereit
+**Draft**, **Published**:
+The two publication states of a bot or block. Only a published bot can be chatted with by others. The code value of Published is `ready`.
+_German_: Entwurf, Veröffentlicht
+_Avoid_: Ready (that is a preparation state)
 
 **Publish**:
-Move a bot or block from Draft to Ready.
+Move a bot or block from Draft to Published.
 _German_: veröffentlichen
 _Avoid_: list (that is the catalogue)
 
