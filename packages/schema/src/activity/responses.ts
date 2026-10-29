@@ -102,6 +102,8 @@ export const activitySummaryResponseSchema = z.object({
 	attention: z.object({
 		suggestions: z.number().int(),
 		failures: z.number().int(),
+		/** Changes whenever the attention list does, also when its counts stay the same. */
+		revision: z.string(),
 	}),
 });
 

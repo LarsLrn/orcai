@@ -1,3 +1,4 @@
+import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
@@ -56,7 +57,10 @@ const getRelativeFormatter = (
 	return formatter;
 };
 
-/** How far off a moment is, as "in 3 days": minutes within the hour, hours within the day. */
+/**
+ * How far off a moment is, as "in 3 days": minutes within the hour, hours
+ * within the day, and "just now" for the last minute.
+ */
 export const formatRelativeTime = (
 	value: Date | string | number,
 	{
@@ -69,6 +73,7 @@ export const formatRelativeTime = (
 ) => {
 	const offset = new Date(value).getTime() - now;
 	const distance = Math.abs(offset);
+	if (offset <= 0 && distance < MINUTE_MS) return m.common_just_now();
 	const [unitMs, unit]: [
 		number,
 		Intl.RelativeTimeFormatUnit,

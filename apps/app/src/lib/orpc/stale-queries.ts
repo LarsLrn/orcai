@@ -133,12 +133,16 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.library.key(),
 	];
 
+	// The user's activity lists the work they start and the failures and suggestions it leaves.
+	const activity = orpc.activity.key();
+
 	// Readiness lists each document's title and state; repository tiles count them.
 	const assetsAndReadiness = () => [
 		orpc.asset.key(),
 		orpc.block.readiness.key(),
 		orpc.block.list.key(),
 		orpc.library.key(),
+		activity,
 	];
 
 	return {
@@ -151,6 +155,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			generateMetadata: assetsAndReadiness,
 			dismissMetadataSuggestion: () => [
 				orpc.asset.key(),
+				activity,
 			],
 			generateMissingMetadata: assetsAndReadiness,
 		},
@@ -159,20 +164,24 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.assistant.key(),
 			],
 		},
+		// Saving a repository takes over the uploads made in its editor; deleting it ends their indexing.
 		block: {
 			create: () => [
 				orpc.block.key(),
 				orpc.library.key(),
+				activity,
 			],
 			update: () => [
 				orpc.block.key(),
 				orpc.library.key(),
+				activity,
 			],
 			// Bot tiles count their blocks.
 			delete: () => [
 				orpc.block.key(),
 				orpc.library.key(),
 				orpc.bot.list.key(),
+				activity,
 			],
 			retryDocument: assetsAndReadiness,
 			retryFailed: assetsAndReadiness,
@@ -257,9 +266,18 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				}),
 			],
 		},
+		activity: {
+			dismissRun: () => [
+				activity,
+			],
+			dismissFailure: () => [
+				activity,
+			],
+		},
 		dataExport: {
 			request: () => [
 				orpc.dataExport.latest.key(),
+				activity,
 			],
 		},
 		health: {
@@ -306,6 +324,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			delete: () => [
 				orpc.organization.key(),
+				activity,
 			],
 			setLogo: logos,
 			removeLogo: logos,
@@ -353,6 +372,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.authorization.key(),
 				readiness,
 			],
+			// A member who leaves loses the organisation's activity.
 			delete: () => [
 				orpc.user.listAll.key(),
 				orpc.organizationMember.key(),
@@ -360,6 +380,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				...groupSummaries(),
 				readiness,
 				readOnlyChats,
+				activity,
 			],
 		},
 		catalogue: {

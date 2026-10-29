@@ -103,13 +103,16 @@ export const useLibrarySearch = <V extends LibraryView>(view: V) => {
 		});
 	return {
 		search,
+		// A filter or Mine leaves an activity run's assets for the whole view.
 		setFilter: (key: string, value: string | string[] | boolean) =>
 			update({
 				[key]: value,
+				run: undefined,
 			}),
 		setScope: (scope: LibraryScope) =>
 			update({
 				scope,
+				run: undefined,
 			}),
 		setSort: (sort: LibrarySort) =>
 			update({

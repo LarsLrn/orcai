@@ -425,6 +425,231 @@
 	"account_verification_send_button": "Bestätigungs-E-Mail senden",
 	"account_verification_unverified_description": "Ihre E-Mail-Adresse ist nicht bestätigt.",
 	"account_verification_verified_description": "Ihre E-Mail-Adresse ist bestätigt.",
+	"activity_title": "Aktivität",
+	"activity_trigger_running": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} läuft",
+				"countPlural=other": "{count} laufen"
+			}
+		}
+	],
+	"activity_trigger_attention": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} benötigt Ihre Aufmerksamkeit",
+				"countPlural=other": "{count} benötigen Ihre Aufmerksamkeit"
+			}
+		}
+	],
+	"activity_attention_section": "Benötigt Ihre Aufmerksamkeit",
+	"activity_recent_section": "Laufend und kürzlich",
+	"activity_empty_title": "Noch nichts hier",
+	"activity_empty_description": "Hier erscheinen Uploads, Metadatenerzeugung und Datenexporte, die Sie starten.",
+	"activity_load_error": "Die Aktivität wurde nicht geladen.",
+	"activity_show_older": "Ältere anzeigen",
+	"activity_show_all": "Alle anzeigen",
+	"activity_dismiss_label": "Ausblenden: {title}",
+	"activity_run_upload_library_title": "Upload in die Bibliothek",
+	"activity_run_upload_repository_title": "Upload in {repository}",
+	"activity_run_fill_metadata_title": "Fehlende Metadaten erzeugen",
+	"activity_run_suggest_metadata_title": "Metadatenvorschlag für {asset}",
+	"activity_run_suggest_metadata_fallback_title": "Metadatenvorschlag",
+	"activity_run_retry_asset_title": "Erneut vorbereiten: {asset}",
+	"activity_run_retry_repository_title": "Erneut vorbereiten in {repository}",
+	"activity_run_retry_title": "Erneut vorbereiten",
+	"activity_run_export_title": "Export Ihrer Daten",
+	"activity_run_state_finished": "Abgeschlossen",
+	"activity_run_state_failed": "Fehlgeschlagen",
+	"activity_run_state_resolved": "Behoben",
+	"activity_run_state_expired": "Abgelaufen",
+	"activity_run_upload_progress": [
+		{
+			"declarations": [
+				"input done",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "{done} von {total} Datei bereit",
+				"totalPlural=other": "{done} von {total} Dateien bereit"
+			}
+		}
+	],
+	"activity_run_progress": [
+		{
+			"declarations": [
+				"input done",
+				"input total",
+				"local totalPlural = total: plural"
+			],
+			"selectors": [
+				"totalPlural"
+			],
+			"match": {
+				"totalPlural=one": "{done} von {total} Asset erledigt",
+				"totalPlural=other": "{done} von {total} Assets erledigt"
+			}
+		}
+	],
+	"activity_run_uploading": "Dateien werden hochgeladen",
+	"activity_run_export_running": "Das Archiv wird erstellt",
+	"activity_progress_short": "{done} von {total}",
+	"activity_run_files_ready": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Datei bereit",
+				"countPlural=other": "{count} Dateien bereit"
+			}
+		}
+	],
+	"activity_run_assets_ready": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Asset bereit",
+				"countPlural=other": "{count} Assets bereit"
+			}
+		}
+	],
+	"activity_run_metadata_updated": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Asset aktualisiert",
+				"countPlural=other": "{count} Assets aktualisiert"
+			}
+		}
+	],
+	"activity_run_suggestion_ready": "Vorschlag bereit zur Prüfung",
+	"activity_run_failed_count": "{failed} von {total} fehlgeschlagen",
+	"activity_run_export_ready": "Bereit zum Herunterladen",
+	"activity_run_export_expired": "Download abgelaufen",
+	"activity_stage_upload": "Dateien werden vorbereitet",
+	"activity_stage_metadata": "Metadaten werden erzeugt",
+	"activity_stage_retry": "Wird erneut vorbereitet",
+	"activity_run_details_show": "Details zu {title} anzeigen",
+	"activity_run_details_hide": "Details zu {title} ausblenden",
+	"activity_members_more": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} weiteres anzeigen",
+				"countPlural=other": "{count} weitere anzeigen"
+			}
+		}
+	],
+	"activity_members_unchanged": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} unverändert",
+				"countPlural=other": "{count} unverändert"
+			}
+		}
+	],
+	"activity_run_open_repository": "{repository} öffnen",
+	"activity_run_show_in_library": "In der Bibliothek anzeigen",
+	"activity_run_open_asset": "Asset öffnen",
+	"activity_run_open_export": "Datenexport öffnen",
+	"activity_member_updated": "Aktualisiert",
+	"activity_member_unchanged": "Unverändert",
+	"activity_member_stopped": "Gestoppt",
+	"activity_suggestions_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Vorschlag zu prüfen",
+				"countPlural=other": "{count} Vorschläge zu prüfen"
+			}
+		}
+	],
+	"activity_suggestions_review": "Prüfen",
+	"activity_failure_processing_title": "{asset} wurde nicht vorbereitet",
+	"activity_failure_metadata_title": "Für {asset} wurden keine Metadaten erzeugt",
+	"activity_failure_indexing_title": "{asset} wurde nicht in {repository} indiziert",
+	"activity_failure_export_title": "Ihre Daten wurden nicht exportiert",
+	"activity_failure_asset_fallback": "Ein Asset",
+	"activity_failure_repository_fallback": "einem Repository",
+	"activity_failures_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Fehler",
+				"countPlural=other": "{count} Fehler"
+			}
+		}
+	],
+	"activity_toast_finished": "{title} abgeschlossen",
+	"activity_toast_failed": "{title} fehlgeschlagen",
+	"activity_toast_fill_metadata_work": "Metadatenerzeugung",
+	"activity_toast_retry_asset_work": "Vorbereitung von {asset}",
+	"activity_toast_retry_repository_work": "Vorbereitung in {repository}",
+	"activity_toast_retry_work": "Vorbereitung",
+	"activity_toast_export_work": "Datenexport",
+	"activity_toast_show": "Anzeigen",
+	"activity_library_run_filter": "Assets aus {title}",
+	"activity_library_run_filter_clear": "Alle Assets anzeigen",
 	"ai_elements_attachment_remove_label": "{name} entfernen",
 	"ai_elements_cite_load_error": "Die Metadaten konnten nicht geladen werden.",
 	"ai_elements_cite_loading_label": "Metadaten werden geladen",
@@ -2699,6 +2924,7 @@
 	"common_email_label": "E-Mail",
 	"common_email_placeholder": "your@email.com",
 	"common_info_dot_trigger": "Weitere Informationen",
+	"common_just_now": "gerade eben",
 	"common_loading_label": "Wird geladen...",
 	"common_more_actions": "Weitere Aktionen",
 	"common_name_label": "Name",

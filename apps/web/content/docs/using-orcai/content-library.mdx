@@ -28,6 +28,8 @@ The Library (`/app/library`) shows everything your organisation can use. Its hea
 | Assets | **Uploaded to** (Library, Chats), **Processing** (Any, Queued or running, Failed), **Suggestions to review** |
 | Overview, while searching | **Status**, **Source** |
 
+**Show in Library** on an upload's [Activity](/docs/using-orcai#activity) entry opens the Assets view with only the assets of that upload, wherever they are now. A bar above the results names the entry, and its × or any filter returns to the whole view.
+
 **Source** tells apart what your organisation made (**Made in this
 organisation**) from what it added from the catalogue (**Added from the
 catalogue**). Assets are never added on their own, so searching for added items
@@ -69,7 +71,7 @@ Every tile opens its page. Under its name it shows its owner, or "From" and the 
 Intake is file upload only:
 
 1. **Upload assets**: select files and **Upload files**. Each file becomes an asset as soon as its upload finishes; there is nothing else to save.
-2. **Uploaded assets**: the new assets are listed. With a utility model, each shows **Generating metadata** until its generated title and description appear; you can leave, and the results land in the library. **Metadata** opens a file's **Source details**, and **Save** stores them at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets view.
+2. **Uploaded assets**: the new assets are listed. With a utility model, each shows **Generating metadata** until its generated title and description appear; you can leave, and the results land in the library. The upload and its preparation also show in [Activity](/docs/using-orcai#activity). **Metadata** opens a file's **Source details**, and **Save** stores them at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets view.
 
 Leaving the page while files are still uploading asks first; leaving anyway stops the upload, and those files are not added. Once a file's asset exists, leaving loses nothing.
 
@@ -151,7 +153,7 @@ On the **Preparation status** card, **Retry** appears for a failed asset you can
 
 **Reprocess** is available from the tile menu in the Assets view and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns processing; the asset's repositories index it again afterwards. Reprocess is useful after parser or configuration changes.
 
-Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds; the assets it keeps stay as they are. There is no job history in the app; operators find failed jobs in the worker logs and the pg-boss tables.
+Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds; the assets it keeps stay as they are. [Activity](/docs/using-orcai#activity) shows the uploads and retries you started and the failures that need you. Operators find failed jobs in the worker logs and the pg-boss tables.
 
 ## Permissions And Access
 
