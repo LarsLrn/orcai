@@ -1,13 +1,9 @@
-import { beforeAll, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { PgClient } from "@effect/sql-pg";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
-import {
-	type PipelineStatus,
-	PROCESS_ASSET_JOB_NAME,
-	VECTORIZE_ASSET_JOB_NAME,
-} from "@orcai/schema";
+import { type PipelineStatus, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -26,21 +22,6 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions, createAsset } =
 	authzIntegration();
-
-// Workers create the queues at boot; the tier runs none.
-beforeAll(
-	() =>
-		run(
-			Effect.gen(function* () {
-				const { boss } = yield* PgBossService;
-				yield* Effect.promise(async () => {
-					await boss.createQueue(PROCESS_ASSET_JOB_NAME);
-					await boss.createQueue(VECTORIZE_ASSET_JOB_NAME);
-				});
-			}),
-		),
-	TIMEOUT,
-);
 
 const repository = (assets: AssetId[]) => ({
 	type: "database" as const,

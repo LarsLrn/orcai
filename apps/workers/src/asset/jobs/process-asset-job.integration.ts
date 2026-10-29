@@ -12,7 +12,7 @@ import {
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { createUser, IntegrationLive } from "@orcai/testing";
+import { createJobQueues, createUser, IntegrationLive } from "@orcai/testing";
 import { and, eq, like, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -59,7 +59,7 @@ const runtime = ManagedRuntime.make(
 
 beforeAll(async () => {
 	await boss.start();
-	await boss.createQueue(VECTORIZE_ASSET_JOB_NAME);
+	await createJobQueues(boss);
 }, TIMEOUT);
 afterAll(async () => {
 	await boss.stop({

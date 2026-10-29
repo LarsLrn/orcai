@@ -128,15 +128,6 @@ const assetRows = (id: string) =>
 		}),
 	);
 
-// Workers create their queues at boot; the tier runs none.
-const ensureProcessQueue = () =>
-	run(
-		Effect.gen(function* () {
-			const { boss } = yield* PgBossService;
-			yield* Effect.promise(() => boss.createQueue(PROCESS_ASSET_JOB_NAME));
-		}),
-	);
-
 const processJobsFor = (assetId: string) =>
 	run(
 		Effect.gen(function* () {
@@ -226,7 +217,6 @@ describe("createAssetsFromUploads", () => {
 	test(
 		"moves the staged file, records the owner and enqueues processing",
 		async () => {
-			await ensureProcessQueue();
 			const [owner] = await members(1);
 			const file = await upload(owner, "notes.txt", "chatAttachment");
 

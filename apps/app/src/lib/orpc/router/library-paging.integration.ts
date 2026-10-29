@@ -1,7 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { DB, dbSchema } from "@orcai/db";
-import { PgBossService } from "@orcai/pg-boss";
-import { PROCESS_ASSET_JOB_NAME } from "@orcai/schema";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
@@ -24,13 +22,6 @@ const member = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	// Workers create their queues at boot; the tier runs none.
-	await run(
-		Effect.gen(function* () {
-			const { boss } = yield* PgBossService;
-			yield* Effect.promise(() => boss.createQueue(PROCESS_ASSET_JOB_NAME));
-		}),
-	);
 	return {
 		procedures,
 		options: (token = zedToken) => procedureOptions(actor, token),

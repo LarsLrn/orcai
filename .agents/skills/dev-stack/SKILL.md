@@ -115,6 +115,8 @@ reset, but `integrationRuntime()` fails before the instance is initialised;
 run `bun run stack e2e --yes -- --grep <area>` once on a fresh stack.
 
 Use `integrationRuntime()` from `@orcai/testing` for the app's DB and SpiceDB
-layers, and `createUser` and `createOrganization` for data. Create everything
+layers, and `createUser` and `createOrganization` for data. A file that
+enqueues jobs calls `createJobQueues(boss)` first; the tier runs no workers,
+so no queue exists otherwise. Create everything
 under fresh ids, never rely on or mutate rows you did not create, and leave
 the data in place.

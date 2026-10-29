@@ -20,7 +20,7 @@ import {
 	type GenerateAssetMetadataPayload,
 	type MetadataGenerationMode,
 } from "@orcai/schema";
-import { IntegrationLive } from "@orcai/testing";
+import { createJobQueues, IntegrationLive } from "@orcai/testing";
 import { and, eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -57,7 +57,7 @@ const runtime = ManagedRuntime.make(
 
 beforeAll(async () => {
 	await boss.start();
-	await boss.createQueue(GENERATE_ASSET_METADATA_JOB_NAME);
+	await createJobQueues(boss);
 }, TIMEOUT);
 afterAll(async () => {
 	await boss.stop({

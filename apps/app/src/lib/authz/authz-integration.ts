@@ -9,8 +9,10 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { PgBossService } from "@orcai/pg-boss";
 import { SpiceDbService } from "@orcai/spice-db";
 import {
+	createJobQueues,
 	createOrganization,
 	createUser,
 	IntegrationLive,
@@ -27,6 +29,13 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const ORGANIZATION_LOCK_SPACE = 72370906;
 export const TIMEOUT = 30_000;
+
+const JobQueuesLive = Layer.effectDiscard(
+	Effect.gen(function* () {
+		const { boss } = yield* PgBossService;
+		yield* Effect.promise(() => createJobQueues(boss));
+	}),
+);
 
 const until = async (condition: () => Promise<boolean>, what: string) => {
 	const deadline = Date.now() + 20_000;
@@ -129,7 +138,11 @@ const queueBehindOrganizationLock = async (
  */
 export const authzIntegration = () => {
 	const runtime = ManagedRuntime.make(
-		Layer.mergeAll(AppLayer, IntegrationLive),
+		Layer.mergeAll(
+			AppLayer,
+			IntegrationLive,
+			JobQueuesLive.pipe(Layer.provide(AppLayer)),
+		),
 	);
 	afterAll(() => runtime.dispose());
 

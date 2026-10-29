@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
 	buckets,
 	type ChatMessageId,
@@ -6,7 +6,6 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { PgBossService } from "@orcai/pg-boss";
 import {
 	DATA_EXPORT_TTL_MS,
 	dataExportKey,
@@ -14,7 +13,7 @@ import {
 	parseImagePath,
 } from "@orcai/s3";
 import { sendGetObjectCommand, sendPutObjectCommand } from "@orcai/s3/server";
-import { DATA_EXPORT_JOB_NAME, type DataExport } from "@orcai/schema";
+import type { DataExport } from "@orcai/schema";
 import {
 	TextWriter,
 	Uint8ArrayReader,
@@ -36,18 +35,6 @@ import {
 } from "./data-export";
 
 const { run, organizationWith, procedureOptions } = authzIntegration();
-
-// Workers create the queues at boot; the tier runs none.
-beforeAll(
-	() =>
-		run(
-			Effect.gen(function* () {
-				const { boss } = yield* PgBossService;
-				yield* Effect.promise(() => boss.createQueue(DATA_EXPORT_JOB_NAME));
-			}),
-		),
-	TIMEOUT,
-);
 
 const FILE_CONTENT = "Field notes, page one.";
 const PICTURE_CONTENT = "picture bytes";

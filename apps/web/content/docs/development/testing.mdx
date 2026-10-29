@@ -64,6 +64,7 @@ Tests create their own organisations and users under unique ids, so they coexist
 | `integrationRuntime()` | A `ManagedRuntime` over `IntegrationLive`, the app's `DrizzleLive` and `SpiceDbLive` layers built from the stack environment, disposed after the file's last test. |
 | `createUser({ role })` | A user row with a unique email, instance role `user` unless given. |
 | `createOrganization({ members })` | An organisation with a unique slug whose members hold their role in both the `member` table and SpiceDB, and the `zedToken` of that write. |
+| `createJobQueues(boss)` | Every pg-boss queue the workers create at boot. The tier runs no workers, so a file that enqueues jobs creates them all, whatever queues it expects to reach. |
 
 `packages/spice-db/test/schema.integration.ts` checks the SpiceDB schema: it writes a fixed set of relationships under per-run ids and asserts which permissions they grant and deny against the stack's applied schema.
 
