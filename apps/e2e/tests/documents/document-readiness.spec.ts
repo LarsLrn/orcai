@@ -132,13 +132,19 @@ test("documents: the repository page shows a failed document with why and Retry"
 	await expect(page.getByText(message("pipeline_failure_other"))).toBeVisible();
 	await expect(
 		page.getByRole("button", {
-			name: message("assets_card_retry_action"),
-			exact: true,
+			name: message("blocks_database_config_retry_failed_action"),
 		}),
 	).toBeVisible();
+	await page
+		.locator('[data-slot="tile"]')
+		.getByRole("button", {
+			name: message("common_more_actions"),
+		})
+		.click();
 	await expect(
-		page.getByRole("button", {
-			name: message("blocks_database_config_retry_failed_action"),
+		page.getByRole("menuitem", {
+			name: message("assets_tile_retry_action"),
+			exact: true,
 		}),
 	).toBeVisible();
 });

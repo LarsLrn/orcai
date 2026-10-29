@@ -13,7 +13,7 @@ import {
 	invitationsPageInput,
 	OrganizationInvitationsList,
 } from "@/components/organizations/invitations/organization-invitations-list";
-import { OrganizationCard } from "@/components/organizations/organization-card";
+import { OrganizationTile } from "@/components/organizations/organization-tile";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchField } from "@/components/ui/composed/search-field";
@@ -187,7 +187,7 @@ function RouteComponent() {
 			{rows.length > 0 && (
 				<div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
 					{rows.map((organization) => (
-						<OrganizationCard
+						<OrganizationTile
 							key={organization.id}
 							organization={organization}
 							loading={organization.id === selectingId}

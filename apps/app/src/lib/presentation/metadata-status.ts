@@ -1,6 +1,6 @@
 import type { Asset } from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
-import type { ResourceCardBadgeItem } from "@/components/ui/shell/resource-card";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { m } from "@/paraglide/messages";
 
 /** How often an asset is read again while its metadata is being generated. */
@@ -18,7 +18,7 @@ export const isAssetWorking = (
 	asset.processingStatus === "active" ||
 	isGeneratingMetadata(asset);
 
-export const generatingMetadataBadge = (): ResourceCardBadgeItem => ({
+export const generatingMetadataBadge = (): BadgeItem => ({
 	label: m.assets_metadata_generating_badge(),
 	variant: "processing",
 	icon: LoaderCircleIcon,

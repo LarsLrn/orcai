@@ -42,12 +42,18 @@ const readinessSummary = (page: Page, ready: number, total: number) =>
 		}),
 	});
 
-const retryButtons = (page: Page) =>
-	page.getByRole("button", {
-		name: new RegExp(
-			`^(${message("assets_card_retry_action")}|${message("blocks_database_config_retry_failed_action")})$`,
-		),
-	});
+/** The header's Retry failed, or a document tile's menu, which holds only Retry. */
+const retryOffers = (page: Page) =>
+	page
+		.getByRole("button", {
+			name: message("blocks_database_config_retry_failed_action"),
+			exact: true,
+		})
+		.or(
+			page.locator('[data-slot="tile"]').getByRole("button", {
+				name: message("common_more_actions"),
+			}),
+		);
 
 test("pipeline: a chat shows which of its repositories are ready and which failed", async ({
 	api,
@@ -143,7 +149,7 @@ test("pipeline: the repository page shows a prepared document as ready", async (
 			exact: true,
 		}),
 	).toBeVisible();
-	await expect(retryButtons(page)).toHaveCount(0);
+	await expect(retryOffers(page)).toHaveCount(0);
 });
 
 test("pipeline: the repository page says why an empty document failed and offers no retry", async ({
@@ -179,5 +185,5 @@ test("pipeline: the repository page says why an empty document failed and offers
 		}),
 	).toBeVisible();
 	await expect(page.getByText(message("pipeline_failure_empty"))).toBeVisible();
-	await expect(retryButtons(page)).toHaveCount(0);
+	await expect(retryOffers(page)).toHaveCount(0);
 });

@@ -17,9 +17,9 @@ import { useSelector } from "@tanstack/react-store";
 import { PlusIcon, XIcon } from "lucide-react";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
-import { BlockCard } from "@/components/blocks/block-card";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
-import { BotCard } from "@/components/bot/bot-card";
+import { CompactBlockTile } from "@/components/blocks/block-tile";
+import { CompactBotTile } from "@/components/bot/bot-tile";
 import { chatConfigFormOptions } from "@/components/chat/form/chat-config-form-options";
 import {
 	GENERATION_SETTINGS_FIELDS,
@@ -363,33 +363,24 @@ const ChatBlocksEditor = ({
 			)}
 
 			{attached.map((block) => (
-				<div key={block.id} className="flex items-start gap-2">
-					<div className="flex-1">
-						<BlockCard block={block} />
-					</div>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="shrink-0"
-						loading={
-							detachMutation.isPending &&
-							detachMutation.variables.blockId === block.id
-						}
-						disabled={detachMutation.isPending}
-						aria-label={m.chat_settings_attached_block_remove_aria_label({
-							name: block.name,
-						})}
-						onClick={() =>
-							detachMutation.mutate({
-								chatId,
-								blockId: block.id,
-								zedToken,
-							})
-						}
-					>
-						<XIcon className="size-4" aria-hidden="true" />
-					</Button>
-				</div>
+				<CompactBlockTile
+					key={block.id}
+					block={block}
+					actions={[
+						{
+							key: "remove",
+							label: m.chat_settings_attached_block_remove_action(),
+							icon: XIcon,
+							disabled: detachMutation.isPending,
+							onClick: () =>
+								detachMutation.mutate({
+									chatId,
+									blockId: block.id,
+									zedToken,
+								}),
+						},
+					]}
+				/>
 			))}
 
 			<BlockSelectorDialog
@@ -509,21 +500,10 @@ const BotDetails = ({ botId }: { botId: string }) => {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<BotCard
-				bot={bot.data}
-				actions={{
-					footer: [],
-				}}
-			/>
+			<CompactBotTile bot={bot.data} />
 			<div className="grid gap-6 md:grid-cols-2">
 				{blocks.data.map((block) => (
-					<BlockCard
-						key={block.id}
-						block={block}
-						actions={{
-							footer: [],
-						}}
-					/>
+					<CompactBlockTile key={block.id} block={block} />
 				))}
 			</div>
 		</div>

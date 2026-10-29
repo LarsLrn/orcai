@@ -184,8 +184,11 @@ test("registration lands on the picker when another invitation is pending", asyn
 		),
 	).toBeVisible();
 	await expect(
-		page.getByRole("button").filter({
-			hasText: `@${org.slug}`,
-		}),
+		page
+			.locator('[data-slot="tile"]')
+			.filter({
+				hasText: `@${org.slug}`,
+			})
+			.getByRole("button"),
 	).toBeVisible();
 });

@@ -2,12 +2,12 @@ import type { OrganizationCapability } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LibraryIcon, PlusIcon } from "lucide-react";
-import { BlockCard } from "@/components/blocks/block-card";
-import { BotCard } from "@/components/bot/bot-card";
-import { AssetCard } from "@/components/documents/asset-card";
+import { BlockTile } from "@/components/blocks/block-tile";
+import { BotTile } from "@/components/bot/bot-tile";
+import { AssetTile } from "@/components/documents/asset-tile";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
-import type { ResourceCardActionItem } from "@/components/ui/shell/resource-card";
+import type { Action } from "@/components/ui/shell/actions";
 import {
 	Section,
 	SectionAction,
@@ -37,11 +37,6 @@ const BLOCKS_PREVIEW_INPUT = {
 	pageIndex: 0,
 	pageSize: 3,
 } as const;
-const NO_FOOTER: {
-	footer: [];
-} = {
-	footer: [],
-};
 
 export const Route = createFileRoute("/app/hub/")({
 	loader: async ({ context: { queryClient } }) => {
@@ -127,7 +122,7 @@ function RouteComponent() {
 		knowledgeBlocks.data.length === 0 &&
 		assets.data.length === 0
 	) {
-		const actions: (ResourceCardActionItem & {
+		const actions: (Action & {
 			requires: OrganizationCapability;
 		})[] = [
 			{
@@ -186,7 +181,7 @@ function RouteComponent() {
 					<SectionContent>
 						<SectionGrid layout="3">
 							{bots.data.map((bot) => (
-								<BotCard key={bot.id} bot={bot} actions={NO_FOOTER} />
+								<BotTile key={bot.id} bot={bot} />
 							))}
 						</SectionGrid>
 					</SectionContent>
@@ -212,7 +207,7 @@ function RouteComponent() {
 					<SectionContent>
 						<SectionGrid layout="3">
 							{behaviourBlocks.data.map((block) => (
-								<BlockCard key={block.id} block={block} actions={NO_FOOTER} />
+								<BlockTile key={block.id} block={block} />
 							))}
 						</SectionGrid>
 					</SectionContent>
@@ -238,7 +233,7 @@ function RouteComponent() {
 					<SectionContent>
 						<SectionGrid layout="3">
 							{knowledgeBlocks.data.map((block) => (
-								<BlockCard key={block.id} block={block} actions={NO_FOOTER} />
+								<BlockTile key={block.id} block={block} />
 							))}
 						</SectionGrid>
 					</SectionContent>
@@ -264,7 +259,7 @@ function RouteComponent() {
 					<SectionContent>
 						<SectionGrid layout="3">
 							{assets.data.map((asset) => (
-								<AssetCard key={asset.id} asset={asset} actions={NO_FOOTER} />
+								<AssetTile key={asset.id} asset={asset} />
 							))}
 						</SectionGrid>
 					</SectionContent>

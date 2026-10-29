@@ -3,16 +3,9 @@ import {
 	createFileRoute,
 	Link,
 	stripSearchParams,
-	useNavigate,
 } from "@tanstack/react-router";
-import {
-	BlocksIcon,
-	DatabaseIcon,
-	EditIcon,
-	PlusIcon,
-	TrashIcon,
-} from "lucide-react";
-import { BlockCard } from "@/components/blocks/block-card";
+import { BlocksIcon, DatabaseIcon, PlusIcon } from "lucide-react";
+import { BlockTile } from "@/components/blocks/block-tile";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -31,7 +24,6 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -170,7 +162,7 @@ function RouteComponent() {
 						<>
 							<SectionGrid layout="3">
 								{published.data.map((block) => (
-									<BlockCard key={block.id} block={block} />
+									<BlockTile key={block.id} block={block} />
 								))}
 							</SectionGrid>
 							<CardPager
@@ -196,7 +188,7 @@ function RouteComponent() {
 					<SectionContent className="space-y-6">
 						<SectionGrid layout="3">
 							{drafts.data.map((block) => (
-								<DraftRepositoryCard key={block.id} block={block} />
+								<BlockTile key={block.id} block={block} />
 							))}
 						</SectionGrid>
 						<CardPager
@@ -211,64 +203,3 @@ function RouteComponent() {
 		</div>
 	);
 }
-
-const DraftRepositoryCard = ({
-	block,
-}: {
-	block: React.ComponentProps<typeof BlockCard>["block"];
-}) => {
-	const navigate = useNavigate();
-	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
-		{},
-		{
-			names: [
-				block.name,
-			],
-			kind: "repository",
-		},
-	);
-
-	return (
-		<BlockCard
-			block={block}
-			actions={{
-				dropdown: [
-					...(hasCapability(block.capabilities, "edit")
-						? [
-								{
-									key: "edit",
-									label: m.blocks_repositories_edit_draft_action(),
-									icon: EditIcon,
-									onClick: () =>
-										navigate({
-											to: "/app/hub/blocks/$blockId/edit",
-											params: {
-												blockId: block.id,
-											},
-										}),
-								},
-							]
-						: []),
-					...(hasCapability(block.capabilities, "delete")
-						? [
-								{
-									key: "delete",
-									label: m.blocks_repositories_delete_draft_action(),
-									icon: TrashIcon,
-									onClick: () =>
-										deleteBlocks({
-											refs: [
-												{
-													id: block.id,
-												},
-											],
-										}),
-								},
-							]
-						: []),
-				],
-				footer: [],
-			}}
-		/>
-	);
-};

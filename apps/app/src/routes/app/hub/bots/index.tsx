@@ -3,11 +3,10 @@ import {
 	createFileRoute,
 	Link,
 	stripSearchParams,
-	useNavigate,
 } from "@tanstack/react-router";
-import { BotIcon, EditIcon, PlusIcon, TrashIcon } from "lucide-react";
-import { BotCard } from "@/components/bot/bot-card";
+import { BotIcon, PlusIcon } from "lucide-react";
 import { FAVOURITE_BOTS_INPUT } from "@/components/bot/bot-favourites";
+import { BotTile } from "@/components/bot/bot-tile";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -26,7 +25,6 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -123,13 +121,7 @@ function RouteComponent() {
 					<SectionContent className="space-y-6">
 						<SectionGrid layout="3">
 							{favourites.data.map((bot) => (
-								<BotCard
-									key={bot.id}
-									bot={bot}
-									actions={{
-										footer: [],
-									}}
-								/>
+								<BotTile key={bot.id} bot={bot} />
 							))}
 						</SectionGrid>
 					</SectionContent>
@@ -183,13 +175,7 @@ function RouteComponent() {
 						<>
 							<SectionGrid layout="3">
 								{bots.data.map((bot) => (
-									<BotCard
-										key={bot.id}
-										bot={bot}
-										actions={{
-											footer: [],
-										}}
-									/>
+									<BotTile key={bot.id} bot={bot} />
 								))}
 							</SectionGrid>
 							<CardPager
@@ -213,7 +199,7 @@ function RouteComponent() {
 					<SectionContent className="space-y-6">
 						<SectionGrid layout="3">
 							{drafts.data.map((bot) => (
-								<DraftBotCard key={bot.id} bot={bot} />
+								<BotTile key={bot.id} bot={bot} />
 							))}
 						</SectionGrid>
 						<CardPager
@@ -228,63 +214,3 @@ function RouteComponent() {
 		</div>
 	);
 }
-
-const DraftBotCard = ({
-	bot,
-}: {
-	bot: React.ComponentProps<typeof BotCard>["bot"];
-}) => {
-	const navigate = useNavigate();
-	const { mutate: deleteBots } = useDeleteBotsMutation(
-		{},
-		{
-			names: [
-				bot.name,
-			],
-		},
-	);
-
-	return (
-		<BotCard
-			bot={bot}
-			actions={{
-				dropdown: [
-					...(hasCapability(bot.capabilities, "edit")
-						? [
-								{
-									key: "edit",
-									label: m.bots_list_draft_edit_action(),
-									icon: EditIcon,
-									onClick: () =>
-										navigate({
-											to: "/app/hub/bots/$botId/setup",
-											params: {
-												botId: bot.id,
-											},
-										}),
-								},
-							]
-						: []),
-					...(hasCapability(bot.capabilities, "delete")
-						? [
-								{
-									key: "delete",
-									label: m.bots_list_draft_delete_action(),
-									icon: TrashIcon,
-									onClick: () =>
-										deleteBots({
-											refs: [
-												{
-													id: bot.id,
-												},
-											],
-										}),
-								},
-							]
-						: []),
-				],
-				footer: [],
-			}}
-		/>
-	);
-};
