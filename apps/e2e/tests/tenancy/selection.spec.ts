@@ -23,9 +23,12 @@ test("choosing an organisation loads its home page", async ({
 		.fill(prefix);
 
 	const card = (slug: string) =>
-		page.getByRole("button").filter({
-			hasText: `@${slug}`,
-		});
+		page
+			.locator('[data-slot="tile"]')
+			.filter({
+				hasText: `@${slug}`,
+			})
+			.getByRole("button");
 	await expect(card(other.slug)).toBeVisible();
 
 	// While one selection runs, the other cards wait for it.

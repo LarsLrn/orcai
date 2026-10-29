@@ -2,7 +2,7 @@ import type { AssetWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
-import { AssetCard } from "@/components/documents/asset-card";
+import { CompactAssetTile } from "@/components/documents/asset-tile";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { orpc } from "@/lib/orpc/orpc";
@@ -45,29 +45,21 @@ const AssetLibraryPicker = ({
 			<ScrollArea
 				className={cn("max-h-[50vh] overflow-y-auto", scrollAreaClassName)}
 			>
-				<div className="grid gap-3 p-1 md:grid-cols-2 xl:grid-cols-3">
+				<div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
 					{assets.data?.data.map((asset) => {
 						const isSelected = selectedIds.includes(asset.id);
 						return (
-							<div key={asset.id}>
-								<AssetCard
-									asset={asset}
-									actions={{
-										primary: {
-											onClick: () =>
-												isSelected && onDeselect
-													? onDeselect(asset)
-													: onSelect(asset),
-										},
-										footer: [],
-									}}
-									className={cn(
-										"",
-										isSelected &&
-											"bg-primary/10 data-[state=active]:bg-primary/20",
-									)}
-								/>
-							</div>
+							<CompactAssetTile
+								key={asset.id}
+								asset={asset}
+								selection={{
+									selected: isSelected,
+									onToggle: () =>
+										isSelected && onDeselect
+											? onDeselect(asset)
+											: onSelect(asset),
+								}}
+							/>
 						);
 					})}
 				</div>

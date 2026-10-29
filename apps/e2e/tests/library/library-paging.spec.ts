@@ -19,7 +19,7 @@ const section = (page: Page, titleKey: string, locale: Locale) =>
 		}),
 	});
 
-const cards = (scope: Locator) => scope.locator('[data-slot="card"]');
+const cards = (scope: Locator) => scope.locator('[data-slot="tile"]');
 
 const pagerButton = (scope: Locator, key: string, locale: Locale) =>
 	scope.getByRole("button", {
@@ -251,7 +251,7 @@ test("library: a page index past the last page is replaced by the last page", as
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: message("bots_list_draft_delete_action"),
+			name: message("bots_tile_delete_action"),
 		})
 		.click();
 	await page

@@ -6,7 +6,7 @@ import {
 	type PipelineFailure,
 } from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
-import type { ResourceCardBadgeItem } from "@/components/ui/shell/resource-card";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { m } from "@/paraglide/messages";
 
 const documentStateLabels: Record<DocumentState, () => string> = {
@@ -17,10 +17,7 @@ const documentStateLabels: Record<DocumentState, () => string> = {
 	failed: m.document_state_failed_label,
 };
 
-const documentStateVariants: Record<
-	DocumentState,
-	ResourceCardBadgeItem["variant"]
-> = {
+const documentStateVariants: Record<DocumentState, BadgeItem["variant"]> = {
 	queued: "info",
 	processing: "processing",
 	indexing: "processing",
@@ -29,9 +26,7 @@ const documentStateVariants: Record<
 };
 
 /** The status badge of a document in a repository. */
-export const documentStateBadge = (
-	state: DocumentState,
-): ResourceCardBadgeItem => {
+export const documentStateBadge = (state: DocumentState): BadgeItem => {
 	const working = state === "processing" || state === "indexing";
 	return {
 		label: documentStateLabels[state](),

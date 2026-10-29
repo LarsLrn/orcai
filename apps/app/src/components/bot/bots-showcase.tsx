@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { BotIcon, SparklesIcon } from "lucide-react";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,10 +16,9 @@ import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
-import { BotCard } from "./bot-card";
+import { BotTile } from "./bot-tile";
 
 const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
-	const navigate = useNavigate();
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
 			input: {
@@ -81,24 +80,14 @@ const BotsShowcase = ({ limit = 6 }: { limit?: number }) => {
 				) : (
 					<SectionGrid layout="3">
 						{bots.data.map((bot) => (
-							<BotCard
+							<BotTile
 								key={bot.id}
 								bot={bot}
-								actions={{
-									footer: [
-										{
-											key: "start_chat",
-											label: m.bots_showcase_start_chat_action(),
-											onClick: () =>
-												navigate({
-													to: "/app/chat/new",
-													search: {
-														botId: bot.id,
-													},
-												}),
-											variant: "outline",
-										},
-									],
+								linkProps={{
+									to: "/app/chat/new",
+									search: {
+										botId: bot.id,
+									},
 								}}
 							/>
 						))}

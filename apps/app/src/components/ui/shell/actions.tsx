@@ -1,7 +1,8 @@
-import { Link } from "@tanstack/react-router";
-import { EllipsisIcon } from "lucide-react";
+import { Link, type LinkProps } from "@tanstack/react-router";
+import type { VariantProps } from "class-variance-authority";
+import { EllipsisIcon, type LucideIcon } from "lucide-react";
 import type * as React from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -11,17 +12,76 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-	ResourceCardAction,
-	type ResourceCardActionItem,
-} from "@/components/ui/shell/resource-card";
-import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-type HeaderAction = ResourceCardActionItem & {
+/** What happens on activation: a navigation or a callback. */
+type ClickAction =
+	| {
+			linkProps: LinkProps;
+			onClick?: never;
+			disabled?: never;
+			loading?: never;
+	  }
+	| {
+			onClick: () => void;
+			linkProps?: never;
+			disabled?: boolean;
+			loading?: boolean;
+	  };
+
+type Action = {
+	key: string;
+	label: string;
+	icon?: LucideIcon;
+	className?: string;
+} & VariantProps<typeof buttonVariants> &
+	ClickAction;
+
+/** An action as a labelled button, or a link styled as one. */
+const ActionButton = ({ action }: { action: Action }) => {
+	const size = action.size ?? "sm";
+	const className = cn("gap-1.5 shadow-none", action.className);
+	const icon = action.icon ? (
+		<action.icon className={size === "sm" ? "size-3.5" : undefined} />
+	) : null;
+
+	if (action.linkProps) {
+		return (
+			<Link
+				{...action.linkProps}
+				className={buttonVariants({
+					variant: action.variant ?? "outline",
+					size,
+					className,
+				})}
+			>
+				{icon}
+				{action.label}
+			</Link>
+		);
+	}
+
+	return (
+		<Button
+			onClick={action.onClick}
+			variant={action.variant ?? "outline"}
+			size={size}
+			className={className}
+			loading={action.loading}
+			disabled={action.disabled}
+		>
+			{icon}
+			{action.label}
+		</Button>
+	);
+};
+
+type HeaderAction = Action & {
 	/** A rare action, kept in the `…` menu. */
 	overflow?: boolean;
 	/** Always in the `…` menu, below the others. */
@@ -92,6 +152,44 @@ const ActionMenuItem = ({ action }: { action: HeaderAction }) => {
 	);
 };
 
+/** A `…` menu of actions in declaration order, the destructive ones below a separator. */
+const ActionMenu = ({
+	actions,
+	triggerVariant,
+	triggerClassName,
+}: {
+	actions: HeaderAction[];
+	triggerVariant?: React.ComponentProps<typeof OverflowMenuTrigger>["variant"];
+	triggerClassName?: string;
+}) => {
+	const regular = actions.filter((action) => !action.destructive);
+	const destructive = actions.filter((action) => action.destructive);
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				render={
+					<OverflowMenuTrigger
+						variant={triggerVariant}
+						className={triggerClassName}
+					/>
+				}
+			/>
+			<DropdownMenuContent align="end">
+				{regular.map((action) => (
+					<ActionMenuItem key={action.key} action={action} />
+				))}
+				{regular.length > 0 && destructive.length > 0 ? (
+					<DropdownMenuSeparator />
+				) : null}
+				{destructive.map((action) => (
+					<ActionMenuItem key={action.key} action={action} />
+				))}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+};
+
 /**
  * A page or section header's actions, in declaration order: labelled buttons,
  * then a `…` menu with the overflow and destructive ones. A menu holding a
@@ -115,8 +213,6 @@ const HeaderActions = ({
 		menuCandidates.length === 1 && !menuCandidates[0].destructive;
 	const inline = declared.filter((action) => inlineSingle || !isInMenu(action));
 	const menu = inlineSingle ? [] : menuCandidates;
-	const regular = menu.filter((action) => !action.destructive);
-	const destructive = menu.filter((action) => action.destructive);
 
 	if (!leading && inline.length === 0 && menu.length === 0) {
 		return null;
@@ -134,7 +230,7 @@ const HeaderActions = ({
 				>
 					{leading}
 					{inline.map((action) => (
-						<ResourceCardAction
+						<ActionButton
 							key={action.key}
 							action={{
 								...action,
@@ -149,24 +245,19 @@ const HeaderActions = ({
 					data-slot="header-actions-menu"
 					className="col-start-2 row-start-1 self-start justify-self-end"
 				>
-					<DropdownMenu>
-						<DropdownMenuTrigger render={<OverflowMenuTrigger />} />
-						<DropdownMenuContent align="end">
-							{regular.map((action) => (
-								<ActionMenuItem key={action.key} action={action} />
-							))}
-							{regular.length > 0 && destructive.length > 0 ? (
-								<DropdownMenuSeparator />
-							) : null}
-							{destructive.map((action) => (
-								<ActionMenuItem key={action.key} action={action} />
-							))}
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<ActionMenu actions={menu} />
 				</div>
 			) : null}
 		</div>
 	);
 };
 
-export { type HeaderAction, HeaderActions, OverflowMenuTrigger };
+export {
+	type Action,
+	ActionButton,
+	ActionMenu,
+	type ClickAction,
+	type HeaderAction,
+	HeaderActions,
+	OverflowMenuTrigger,
+};

@@ -1,5 +1,5 @@
 import type { BlockWithCapabilities } from "@orcai/schema";
-import { BlockCard } from "@/components/blocks/block-card";
+import { CompactBlockTile } from "@/components/blocks/block-tile";
 import {
 	Section,
 	SectionDescription,
@@ -23,12 +23,7 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 							{m.bots_blocks_behaviour_description()}
 						</SectionDescription>
 					</SectionHeader>
-					<BlockCard
-						block={templateBlock}
-						actions={{
-							footer: [],
-						}}
-					/>
+					<CompactBlockTile block={templateBlock} />
 				</Section>
 			)}
 			{databaseBlocks.length > 0 && (
@@ -39,15 +34,9 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 							{m.bots_blocks_repositories_description()}
 						</SectionDescription>
 					</SectionHeader>
-					<SectionGrid layout="3">
+					<SectionGrid>
 						{databaseBlocks.map((block) => (
-							<BlockCard
-								key={block.id}
-								block={block}
-								actions={{
-									footer: [],
-								}}
-							/>
+							<CompactBlockTile key={block.id} block={block} />
 						))}
 					</SectionGrid>
 				</Section>

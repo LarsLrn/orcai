@@ -275,9 +275,12 @@ export const enterApp = async (
 ): Promise<void> => {
 	await open(page, "/select-organization");
 
-	const card = page.getByRole("button").filter({
-		hasText: `@${organisationSlug}`,
-	});
+	const card = page
+		.locator('[data-slot="tile"]')
+		.filter({
+			hasText: `@${organisationSlug}`,
+		})
+		.getByRole("button");
 	const heading = page.getByRole("heading", {
 		name: message("select_organisation_page_title"),
 	});

@@ -15,10 +15,9 @@ import {
 	LibraryIcon,
 	MessageSquareIcon,
 	PlusIcon,
-	RefreshCwIcon,
 	SparklesIcon,
 } from "lucide-react";
-import { AssetCard } from "@/components/documents/asset-card";
+import { AssetTile } from "@/components/documents/asset-tile";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
@@ -34,11 +33,7 @@ import {
 } from "@/components/ui/shell/section";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import {
-	useAddAssetToLibraryMutation,
-	useGenerateMissingMetadataMutation,
-	useReprocessAssetMutation,
-} from "@/hooks/mutations/use-asset-mutations";
+import { useGenerateMissingMetadataMutation } from "@/hooks/mutations/use-asset-mutations";
 import { useUtilityModel } from "@/hooks/use-utility-model";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
@@ -124,8 +119,6 @@ function RouteComponent() {
 	const navigate = useNavigate({
 		from: Route.fullPath,
 	});
-	const { mutate: reprocessAsset } = useReprocessAssetMutation();
-	const { mutate: addToLibrary } = useAddAssetToLibraryMutation();
 	const { data: organizationCapabilities } = useOrganizationCapabilities([
 		"create_asset",
 	]);
@@ -227,44 +220,7 @@ function RouteComponent() {
 					<>
 						<SectionGrid layout="3">
 							{assets.data.map((asset) => (
-								<AssetCard
-									key={asset.id}
-									asset={asset}
-									actions={{
-										dropdown: hasCapability(asset.capabilities, "edit")
-											? [
-													...(asset.origin === "chat"
-														? [
-																{
-																	key: "add-to-library",
-																	label: m.assets_add_to_library_action(),
-																	icon: LibraryIcon,
-																	onClick: () =>
-																		addToLibrary({
-																			id: asset.id,
-																		}),
-																},
-															]
-														: []),
-													...(asset.processingStatus === "pending" ||
-													asset.processingStatus === "active"
-														? []
-														: [
-																{
-																	key: "reprocess",
-																	label: m.assets_list_reprocess_action(),
-																	icon: RefreshCwIcon,
-																	onClick: () =>
-																		reprocessAsset({
-																			id: asset.id,
-																		}),
-																},
-															]),
-												]
-											: [],
-										footer: [],
-									}}
-								/>
+								<AssetTile key={asset.id} asset={asset} />
 							))}
 						</SectionGrid>
 						<CardPager

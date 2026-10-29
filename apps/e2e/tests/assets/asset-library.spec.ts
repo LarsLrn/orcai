@@ -6,7 +6,7 @@ import { enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
 const card = (page: Page, title: string) =>
-	page.locator('[data-slot="card"]').filter({
+	page.locator('[data-slot="tile"]').filter({
 		hasText: title,
 	});
 

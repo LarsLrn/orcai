@@ -8,16 +8,15 @@ import {
 import { ArrowLeftIcon, MessagesSquareIcon } from "lucide-react";
 import { DataExportCard } from "@/components/account/data-export-card";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
 import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
-import {
-	ResourceCard,
-	ResourceCardBody,
-	ResourceCardDescription,
-	ResourceCardHeader,
-	ResourceCardTitle,
-} from "@/components/ui/shell/resource-card";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
@@ -84,36 +83,38 @@ function RouteComponent() {
 			</div>
 
 			{rows.length > 0 ? (
-				<div className="grid gap-4 md:grid-cols-2">
+				<ul className="flex flex-col gap-3">
 					{rows.map((chat) => (
-						<ResourceCard key={chat.id}>
-							<ResourceCardBody
-								action={{
-									linkProps: {
-										to: "/history/$chatId",
-										params: {
-											chatId: chat.id,
-										},
-									},
-								}}
+						<li key={chat.id}>
+							<Card
+								size="sm"
+								className="relative transition-colors hover:bg-muted/40 has-focus-visible:ring-[3px] has-focus-visible:ring-ring/75"
 							>
-								<ResourceCardHeader>
-									<ResourceCardTitle>
-										{chat.title ?? m.chat_title_placeholder()}
-									</ResourceCardTitle>
-									<ResourceCardDescription>
+								<CardHeader>
+									<CardTitle>
+										<Link
+											to="/history/$chatId"
+											params={{
+												chatId: chat.id,
+											}}
+											className="outline-none after:absolute after:inset-0"
+										>
+											{chat.title ?? m.chat_title_placeholder()}
+										</Link>
+									</CardTitle>
+									<CardDescription>
 										{m.chat_history_row_description({
 											organisation: chat.organizationName,
 											date: chat.updatedAt
 												? formatDisplayDate(chat.updatedAt)
 												: "",
 										})}
-									</ResourceCardDescription>
-								</ResourceCardHeader>
-							</ResourceCardBody>
-						</ResourceCard>
+									</CardDescription>
+								</CardHeader>
+							</Card>
+						</li>
 					))}
-				</div>
+				</ul>
 			) : (
 				<Card className="py-12 text-center">
 					<CardContent>

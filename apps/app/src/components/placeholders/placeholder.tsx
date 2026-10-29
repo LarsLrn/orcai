@@ -7,10 +7,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "@/components/ui/empty";
-import {
-	ResourceCardAction,
-	type ResourceCardActionItem,
-} from "@/components/ui/shell/resource-card";
+import { type Action, ActionButton } from "@/components/ui/shell/actions";
 import { cn } from "@/lib/utils";
 
 const Placeholder = ({
@@ -26,7 +23,7 @@ const Placeholder = ({
 	className?: string;
 	Icon?: LucideIcon;
 	tone?: React.ComponentProps<typeof EmptyMedia>["tone"];
-	actions?: ResourceCardActionItem[];
+	actions?: Action[];
 }): React.ReactNode => {
 	return (
 		<Empty className={cn(className)}>
@@ -39,7 +36,7 @@ const Placeholder = ({
 			</EmptyHeader>
 			<EmptyContent className="flex flex-row flex-wrap justify-center gap-2">
 				{actions?.map((action) => (
-					<ResourceCardAction key={action.key} action={action} />
+					<ActionButton key={action.key} action={action} />
 				))}
 			</EmptyContent>
 		</Empty>

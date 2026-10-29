@@ -8,7 +8,7 @@ import {
 } from "@orcai/schema";
 import { ChevronDownIcon, RotateCwIcon, TelescopeIcon } from "lucide-react";
 import { useState } from "react";
-import { AssetCard } from "@/components/documents/asset-card";
+import { CompactAssetTile } from "@/components/documents/asset-tile";
 import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
 import { ContentRenderer } from "@/components/editor/content-renderer";
 import { Badge } from "@/components/ui/badge";
@@ -258,20 +258,26 @@ const AssetSection = ({
 					{assets.map((entry) => {
 						const document = documentById.get(entry.id);
 						return (
-							<AssetCard
+							<CompactAssetTile
 								key={entry.id}
 								asset={entry}
 								document={document}
-								onRetry={
+								actions={
 									retryable(document)
-										? () => {
-												if (retryingDocument) return;
-												retryDocument({
-													blockId,
-													assetId: entry.id,
-												});
-											}
-										: undefined
+										? [
+												{
+													key: "retry",
+													label: m.assets_tile_retry_action(),
+													icon: RotateCwIcon,
+													disabled: retryingDocument,
+													onClick: () =>
+														retryDocument({
+															blockId,
+															assetId: entry.id,
+														}),
+												},
+											]
+										: []
 								}
 							/>
 						);

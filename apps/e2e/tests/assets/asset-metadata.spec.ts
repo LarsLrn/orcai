@@ -32,7 +32,7 @@ test("assets: without a utility model metadata is not generated", async ({
 
 	await open(page, "/app/hub/assets");
 	await expect(
-		page.locator('[data-slot="card"]').filter({
+		page.locator('[data-slot="tile"]').filter({
 			hasText: asset.title,
 		}),
 	).toBeVisible();

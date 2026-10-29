@@ -99,7 +99,7 @@ test("orgs: an admin sets the logo and it shows on the organisation picker", asy
 		.fill(created.name);
 	await expect(
 		picker
-			.locator('[data-slot="card"]')
+			.locator('[data-slot="tile"]')
 			.filter({
 				hasText: `@${created.slug}`,
 			})
