@@ -2,13 +2,16 @@ import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { queueMetadataGeneration } from "@orcai/pg-boss";
 import { UPLOAD_ROUTES } from "@orcai/s3";
-import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
 import {
-	checkEntityPermission,
-	lookupEntitiesByPermission,
-} from "@orcai/spice-db";
+	fitMetadataToSourceType,
+	type ListAssetsInput,
+	metadataSchema,
+	type PipelineStatus,
+} from "@orcai/schema";
+import { checkEntityPermission } from "@orcai/spice-db";
 import {
 	and,
+	asc,
 	count,
 	desc,
 	eq,
@@ -23,19 +26,15 @@ import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { reprocessAsset } from "@/lib/assets/processing";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import {
-	readableIds,
-	readableNow,
-	requireReadable,
-} from "@/lib/authz/content-access";
+import { readableIds, requireReadable } from "@/lib/authz/content-access";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
-import { inLibrary } from "@/lib/authz/library";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { libraryAccess } from "@/lib/library/library-access";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -47,19 +46,43 @@ import {
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
+const assetOrder = {
+	newest: [
+		desc(dbSchema.asset.createdAt),
+		desc(dbSchema.asset.id),
+	],
+	name: [
+		asc(dbSchema.asset.title),
+		asc(dbSchema.asset.id),
+	],
+};
+
+const processingStatuses = {
+	running: [
+		"pending",
+		"active",
+	],
+	failed: [
+		"failed",
+	],
+} satisfies Record<
+	NonNullable<NonNullable<ListAssetsInput["filters"]>["processing"]>,
+	PipelineStatus[]
+>;
+
 const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
 	const reader = {
 		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
 		zedToken: getZedToken(context, input),
 	};
-	const repositoryId = input.filters?.repositoryId;
-	const ids = input.filters?.ids;
+	const { repositoryId, ids, processing } = input.filters ?? {};
 	if (repositoryId) yield* requireReadable("block", repositoryId, reader);
 
 	// A repository's documents and known ids are contents; the rest is the library.
-	const whereConditions = [
+	const where = and(
 		repositoryId
 			? inArray(
 					dbSchema.asset.id,
@@ -74,46 +97,32 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 				? inArray(dbSchema.asset.id, [
 						...(yield* readableIds("asset", ids, reader)),
 					])
-				: and(
-						inArray(
-							dbSchema.asset.id,
-							yield* lookupEntitiesByPermission({
-								...reader,
-								permission: "read",
-								entityType: "asset",
-							}),
-						),
-						inLibrary(
-							"asset",
-							dbSchema.asset.id,
-							context.auth.session.activeOrganizationId,
-						),
-						readableNow("asset", dbSchema.asset.id, reader.userId),
-					),
-	];
-	if (repositoryId && ids) {
-		whereConditions.push(inArray(dbSchema.asset.id, ids));
-	}
+				: yield* (yield* libraryAccess(reader)).condition("asset", {
+						scope: input.filters?.scope,
+					}),
+		repositoryId && ids ? inArray(dbSchema.asset.id, ids) : undefined,
+		input.filters?.search
+			? ilike(dbSchema.asset.title, literalSearch(input.filters.search))
+			: undefined,
+		input.filters?.origin
+			? eq(dbSchema.asset.origin, input.filters.origin)
+			: undefined,
+		processing
+			? inArray(dbSchema.asset.processingStatus, processingStatuses[processing])
+			: undefined,
+	);
 
-	if (input.filters?.search) {
-		whereConditions.push(
-			ilike(dbSchema.asset.title, literalSearch(input.filters.search)),
-		);
-	}
-
-	if (input.filters?.origin) {
-		whereConditions.push(eq(dbSchema.asset.origin, input.filters.origin));
-	}
-
-	return yield* Effect.all(
+	const [rows, [counted]] = yield* Effect.all(
 		[
 			db
 				.select({
 					...getColumns(dbSchema.asset),
+					owner: ownerColumns,
 				})
 				.from(dbSchema.asset)
-				.where(and(...whereConditions))
-				.orderBy(desc(dbSchema.asset.createdAt), desc(dbSchema.asset.id))
+				.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.asset.userId))
+				.where(where)
+				.orderBy(...assetOrder[input.sort])
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
@@ -121,33 +130,28 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 					count: count(),
 				})
 				.from(dbSchema.asset)
-				.where(and(...whereConditions)),
+				.where(where),
 		],
 		{
 			concurrency: "unbounded",
 		},
-	).pipe(
-		Effect.flatMap(([data, [countResult]]) =>
-			Effect.gen(function* () {
-				const capabilities = yield* getManyEntityCapabilities({
-					entityType: "asset",
-					entityIds: data.map((asset) => asset.id),
-					userId: context.auth.user.id,
-					organizationId: context.auth.session.activeOrganizationId,
-					zedToken: getZedToken(context, input),
-				});
-
-				return {
-					data: data.map((asset) => ({
-						...asset,
-						capabilities:
-							capabilities.get(asset.id) ?? emptyCapabilities("asset"),
-					})),
-					rowCount: countResult.count,
-				};
-			}),
-		),
 	);
+
+	const capabilities = yield* getManyEntityCapabilities({
+		entityType: "asset",
+		entityIds: rows.map((asset) => asset.id),
+		userId: reader.userId,
+		organizationId: reader.organizationId,
+		zedToken: reader.zedToken,
+	});
+
+	return {
+		data: rows.map((asset) => ({
+			...asset,
+			capabilities: capabilities.get(asset.id) ?? emptyCapabilities("asset"),
+		})),
+		rowCount: counted.count,
+	};
 });
 
 const findAsset = authed.asset.find

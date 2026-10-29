@@ -8,13 +8,12 @@ import {
 import { botIdSchema } from "./ref";
 import {
 	botEditorSchema,
+	botListItemSchema,
 	botWithBlocksSchema,
-	botWithCapabilitiesSchema,
 } from "./schema";
 
-export const listBotsResponseSchema = createListResponseSchema(
-	botWithCapabilitiesSchema,
-);
+export const listBotsResponseSchema =
+	createListResponseSchema(botListItemSchema);
 
 export const findBotResponseSchema = createDataResponseSchema(
 	botWithBlocksSchema.extend({
@@ -29,10 +28,6 @@ export const saveBotResponseSchema = createDataResponseSchema(botEditorSchema);
 
 export const publishBotResponseSchema =
 	createDataResponseSchema(botEditorSchema);
-
-export const listDraftBotsResponseSchema = createListResponseSchema(
-	botWithCapabilitiesSchema,
-);
 
 export const setBotFavouriteResponseSchema = createDataResponseSchema(
 	z.object({

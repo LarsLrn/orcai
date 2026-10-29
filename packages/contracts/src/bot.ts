@@ -7,8 +7,6 @@ import {
 	findBotResponseSchema,
 	listBotsInputSchema,
 	listBotsResponseSchema,
-	listDraftBotsInputSchema,
-	listDraftBotsResponseSchema,
 	publishBotInputSchema,
 	publishBotResponseSchema,
 	saveBotInputSchema,
@@ -33,19 +31,6 @@ export const botContracts = {
 		)
 		.input(listBotsInputSchema)
 		.output(listBotsResponseSchema),
-	listDrafts: base
-		.meta(
-			openapi({
-				method: "POST",
-				path: "/bots/drafts",
-				summary: "List draft bots",
-				tags: [
-					"Bots",
-				],
-			}),
-		)
-		.input(listDraftBotsInputSchema)
-		.output(listDraftBotsResponseSchema),
 	find: base
 		.meta(
 			openapi({

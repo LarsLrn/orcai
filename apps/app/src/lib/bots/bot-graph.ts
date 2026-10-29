@@ -1,34 +1,14 @@
 import type { BlockId, BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type {
-	Block,
-	Bot,
-	BotListSort,
-	PublicationStatus,
-	SaveBotInput,
-} from "@orcai/schema";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
-import {
-	and,
-	asc,
-	count,
-	desc,
-	eq,
-	getColumns,
-	ilike,
-	inArray,
-	isNotNull,
-	isNull,
-} from "drizzle-orm";
+import type { Block, Bot, SaveBotInput } from "@orcai/schema";
+import { and, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { readableNow } from "@/lib/authz/content-access";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
-import { inLibrary } from "@/lib/authz/library";
 import { usableInOrganization } from "@/lib/authz/organization-use";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
@@ -40,110 +20,7 @@ import {
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { loadDatabaseBlockAssets } from "@/lib/blocks/database-block";
-import { favouriteOf, isFavourite } from "@/lib/bots/bot-favourites";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { literalSearch } from "@/lib/utils/literal-search";
-
-export const listBotsByStatus = (params: {
-	userId: UserId;
-	organizationId: OrganizationId | undefined;
-	status: PublicationStatus;
-	pageIndex: number;
-	pageSize: number;
-	search?: string;
-	favourite?: boolean;
-	sort?: BotListSort;
-	zedToken?: string;
-	permission: "read" | "edit";
-}) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-
-		const allowedIds = yield* lookupEntitiesByPermission({
-			userId: params.userId,
-			permission: params.permission,
-			entityType: "bot",
-			zedToken: params.zedToken,
-		});
-
-		const whereConditions = [
-			inArray(dbSchema.bot.id, allowedIds),
-			inLibrary("bot", dbSchema.bot.id, params.organizationId),
-			readableNow("bot", dbSchema.bot.id, params.userId),
-			eq(dbSchema.bot.status, params.status),
-		];
-
-		if (params.search) {
-			whereConditions.push(
-				ilike(dbSchema.bot.name, literalSearch(params.search)),
-			);
-		}
-
-		if (params.favourite !== undefined) {
-			whereConditions.push(
-				params.favourite
-					? isNotNull(dbSchema.botFavourite.botId)
-					: isNull(dbSchema.botFavourite.botId),
-			);
-		}
-
-		const order = [
-			asc(dbSchema.bot.name),
-			asc(dbSchema.bot.id),
-		];
-
-		if (params.sort === "favouritesFirst") {
-			order.unshift(desc(isFavourite));
-		}
-
-		return yield* Effect.all(
-			[
-				db
-					.select({
-						...getColumns(dbSchema.bot),
-						isFavourite,
-					})
-					.from(dbSchema.bot)
-					.leftJoin(dbSchema.botFavourite, favouriteOf(params.userId))
-					.where(and(...whereConditions))
-					.orderBy(...order)
-					.limit(params.pageSize)
-					.offset(params.pageIndex * params.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.bot)
-					.leftJoin(dbSchema.botFavourite, favouriteOf(params.userId))
-					.where(and(...whereConditions)),
-			],
-			{
-				concurrency: "unbounded",
-			},
-		).pipe(
-			Effect.flatMap(([data, [countResult]]) =>
-				Effect.gen(function* () {
-					const capabilities = yield* getManyEntityCapabilities({
-						entityType: "bot",
-						entityIds: data.map((bot) => bot.id),
-						userId: params.userId,
-						organizationId: params.organizationId,
-						zedToken: params.zedToken,
-					});
-
-					return {
-						data: data.map((bot) => ({
-							...bot,
-							contentJson: bot.contentJson as Bot["contentJson"],
-							capabilities:
-								capabilities.get(bot.id) ?? emptyCapabilities("bot"),
-						})),
-						rowCount: countResult.count,
-					};
-				}),
-			),
-		);
-	});
 
 export const loadBotEditor = (params: {
 	id: BotId;

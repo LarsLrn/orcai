@@ -35,32 +35,22 @@ export const findBotsTool = (deps: AssistantToolDeps) =>
 		inputSchema: findBotsInputSchema,
 		run: ({ query, limit }) =>
 			Effect.gen(function* () {
-				const input = {
-					pageSize: limit,
-					search: query,
-				};
-				const [ready, drafts] = yield* Effect.all(
-					[
-						callProcedure(deps, (procedures, options) =>
-							procedures.bot.list(input, options),
-						),
-						callProcedure(deps, (procedures, options) =>
-							procedures.bot.listDrafts(input, options),
-						),
-					],
-					{
-						concurrency: "unbounded",
-					},
+				const bots = yield* callProcedure(deps, (procedures, options) =>
+					procedures.bot.list(
+						{
+							pageSize: limit,
+							search: query,
+							filters: {
+								status: "all",
+							},
+						},
+						options,
+					),
 				);
 
 				return {
-					bots: [
-						...ready.data,
-						...drafts.data,
-					]
-						.slice(0, limit)
-						.map(toFoundBot),
-					total: ready.rowCount + drafts.rowCount,
+					bots: bots.data.map(toFoundBot),
+					total: bots.rowCount,
 				};
 			}),
 	});

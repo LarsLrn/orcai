@@ -34,11 +34,6 @@ export const queryDefaults = {
 				placeholderData: keepPreviousData,
 			},
 		},
-		listDrafts: {
-			queryOptions: {
-				placeholderData: keepPreviousData,
-			},
-		},
 		find: {
 			queryOptions: {
 				placeholderData: keepPreviousData,

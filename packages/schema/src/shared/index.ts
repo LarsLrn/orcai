@@ -8,6 +8,7 @@ export * from "./forms/signin";
 export * from "./forms/signup";
 export * from "./forms/two-factor";
 export * from "./id-schema";
+export * from "./library";
 export * from "./pagination";
 export * from "./primitives/file-type";
 export * from "./primitives/locale";

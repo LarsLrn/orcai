@@ -1719,6 +1719,24 @@
 	"blocks_template_form_system_prompt_placeholder": "Explain the bot's role, response style, and constraints.",
 	"blocks_template_form_update_submit_button": "Update AI behaviour",
 	"blocks_tile_behaviour_contents": "Prompt",
+	"blocks_tile_documents": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} document",
+				"countPlural=other": "{count} documents"
+			}
+		}
+	],
+	"blocks_tile_documents_failed": "{count} failed",
+	"blocks_tile_documents_preparing": "{count} processing",
+	"blocks_tile_no_documents": "No documents yet",
 	"blocks_update_toast_error": "Failed to update block",
 	"blocks_update_toast_loading": "Updating block...",
 	"blocks_update_toast_success": "Block updated successfully",
@@ -1850,6 +1868,25 @@
 	],
 	"bots_detail_start_chat_action": "Start chat",
 	"bots_edit_action": "Edit bot",
+	"bots_tile_contents_behaviour": "Behaviour",
+	"bots_tile_contents_model_only": "Model only",
+	"bots_tile_contents_repositories": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} repository",
+				"countPlural=other": "{count} repositories"
+			}
+		}
+	],
+	"bots_tile_model_required": "Requires {model}",
+	"bots_tile_model_tuned": "Tuned for {model}",
 	"bots_favourite_label": "Favourite",
 	"bots_favourite_toggle_label": "Favourite {name}",
 	"bots_favourites_group_label": "Favourites",

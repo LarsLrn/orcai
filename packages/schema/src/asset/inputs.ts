@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { librarySortSchema } from "../shared/library";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import {
 	assetUploadRouteSchema,
@@ -13,6 +14,7 @@ export const listAssetsInputSchema = z.object({
 	...paginationInputSchema.shape,
 	...zedTokenSchema.shape,
 	filters: assetFiltersSchema.optional(),
+	sort: librarySortSchema.default("newest"),
 });
 
 export const findAssetInputSchema = z.object({

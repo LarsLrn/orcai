@@ -171,20 +171,23 @@ export const documentReadinessSchema = z.object({
 		.nullable(),
 });
 
+export const repositoryTotalsSchema = z.object({
+	total: z.number().int(),
+	ready: z.number().int(),
+	/** Queued, processing or indexing. */
+	preparing: z.number().int(),
+	failed: z.number().int(),
+});
+
 export const repositoryReadinessSchema = z.object({
 	blockId: blockIdSchema,
 	name: z.string(),
 	capabilities: entityCapabilitiesSchema,
-	totals: z.object({
-		total: z.number().int(),
-		ready: z.number().int(),
-		/** Queued, processing or indexing. */
-		preparing: z.number().int(),
-		failed: z.number().int(),
-	}),
+	totals: repositoryTotalsSchema,
 	documents: z.array(documentReadinessSchema),
 });
 
 export type DocumentState = z.infer<typeof documentStateSchema>;
 export type DocumentReadiness = z.infer<typeof documentReadinessSchema>;
 export type RepositoryReadiness = z.infer<typeof repositoryReadinessSchema>;
+export type RepositoryTotals = z.infer<typeof repositoryTotalsSchema>;

@@ -29,9 +29,16 @@ import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-const listInput = (pageIndex: number, pageSize: number) => ({
+const listInput = (
+	pageIndex: number,
+	pageSize: number,
+	status: "ready" | "draft",
+) => ({
 	pageIndex,
 	pageSize,
+	filters: {
+		status,
+	},
 });
 
 export const Route = createFileRoute("/app/hub/bots/")({
@@ -56,13 +63,13 @@ export const Route = createFileRoute("/app/hub/bots/")({
 			),
 			queryClient.query(
 				orpc.bot.list.queryOptions({
-					input: listInput(deps.pageIndex, deps.pageSize),
+					input: listInput(deps.pageIndex, deps.pageSize, "ready"),
 					staleTime: "static",
 				}),
 			),
 			queryClient.query(
-				orpc.bot.listDrafts.queryOptions({
-					input: listInput(deps.draftPageIndex, deps.pageSize),
+				orpc.bot.list.queryOptions({
+					input: listInput(deps.draftPageIndex, deps.pageSize, "draft"),
 					staleTime: "static",
 				}),
 			),
@@ -80,12 +87,12 @@ function RouteComponent() {
 	);
 	const { data: bots } = useSuspenseQuery(
 		orpc.bot.list.queryOptions({
-			input: listInput(search.pageIndex, search.pageSize),
+			input: listInput(search.pageIndex, search.pageSize, "ready"),
 		}),
 	);
 	const { data: drafts } = useSuspenseQuery(
-		orpc.bot.listDrafts.queryOptions({
-			input: listInput(search.draftPageIndex, search.pageSize),
+		orpc.bot.list.queryOptions({
+			input: listInput(search.draftPageIndex, search.pageSize, "draft"),
 		}),
 	);
 	const { data: organizationCapabilities } = useOrganizationCapabilities([

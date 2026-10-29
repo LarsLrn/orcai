@@ -6,8 +6,9 @@ import {
 	type PipelineFailure,
 	type PipelineStatus,
 	type RepositoryReadiness,
+	type RepositoryTotals,
 } from "@orcai/schema";
-import { and, asc, eq, getColumns, inArray } from "drizzle-orm";
+import { and, asc, eq, getColumns, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { reprocessAsset } from "@/lib/assets/processing";
 import { readableIds } from "@/lib/authz/content-access";
@@ -69,6 +70,67 @@ export const documentState = (
 			}
 	}
 };
+
+/** `documentState`'s state in SQL, for totals counted in the database; the two must agree. */
+const documentStateSql = sql<DocumentReadiness["state"]>`case
+	when ${dbSchema.asset.processingStatus} = 'pending' then 'queued'
+	when ${dbSchema.asset.processingStatus} = 'active' then 'processing'
+	when ${dbSchema.asset.processingStatus} = 'failed' then 'failed'
+	when ${dbSchema.blockAsset.indexStatus} in ('pending', 'active') then 'indexing'
+	when ${dbSchema.blockAsset.indexStatus} = 'completed' then 'ready'
+	else 'failed'
+end`;
+
+const countWhere = (states: readonly DocumentReadiness["state"][]) =>
+	sql<number>`(count(*) filter (where ${documentStateSql} in ${states}))::int`;
+
+/**
+ * The document totals of the repositories among `blockIds`, counted in one
+ * query, as a lookup by block id. Callers check access.
+ */
+export const repositoryTotals = (blockIds: readonly BlockId[]) =>
+	Effect.gen(function* () {
+		const totalsById = new Map<BlockId, RepositoryTotals>();
+		const lookup = (blockId: BlockId): RepositoryTotals =>
+			totalsById.get(blockId) ?? {
+				total: 0,
+				ready: 0,
+				preparing: 0,
+				failed: 0,
+			};
+		if (blockIds.length === 0) return lookup;
+		const rows = yield* (yield* DB)
+			.select({
+				blockId: dbSchema.blockAsset.blockId,
+				total: sql<number>`count(*)::int`,
+				ready: countWhere([
+					"ready",
+				]),
+				preparing: countWhere([
+					"queued",
+					"processing",
+					"indexing",
+				]),
+				failed: countWhere([
+					"failed",
+				]),
+			})
+			.from(dbSchema.blockAsset)
+			.innerJoin(
+				dbSchema.asset,
+				eq(dbSchema.asset.id, dbSchema.blockAsset.assetId),
+			)
+			.where(
+				inArray(dbSchema.blockAsset.blockId, [
+					...blockIds,
+				]),
+			)
+			.groupBy(dbSchema.blockAsset.blockId);
+		for (const { blockId, ...totals } of rows) {
+			totalsById.set(blockId, totals);
+		}
+		return lookup;
+	});
 
 export const readinessTotals = (
 	documents: readonly Pick<DocumentReadiness, "state">[],

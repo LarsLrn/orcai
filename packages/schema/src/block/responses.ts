@@ -11,11 +11,21 @@ import {
 	blockSchema,
 	blockWithCapabilitiesSchema,
 	repositoryReadinessSchema,
+	repositoryTotalsSchema,
 } from "./schema";
 
-export const listBlocksResponseSchema = createListResponseSchema(
+/** A block as library lists return it: with what its tile shows. */
+export const blockListItemSchema = z.intersection(
 	blockWithCapabilitiesSchema,
+	z.object({
+		owner: resourceOwnerSchema,
+		/** A repository's document counts; null for behaviours. */
+		documents: repositoryTotalsSchema.nullable(),
+	}),
 );
+
+export const listBlocksResponseSchema =
+	createListResponseSchema(blockListItemSchema);
 
 export const createBlockResponseSchema = createDataResponseSchema(
 	blockSchema,
@@ -60,3 +70,5 @@ export const retryFailedDocumentsResponseSchema = z.object({
 	processing: z.number().int(),
 	indexing: z.number().int(),
 });
+
+export type BlockListItem = z.infer<typeof blockListItemSchema>;
