@@ -2,6 +2,7 @@ import type { BotWithCapabilities } from "@orcai/schema";
 import { EditIcon, KeyRoundIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
+import { useListingAction } from "@/components/access/listing-action";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
@@ -51,11 +52,23 @@ const useBotActions = (
 	bot: ActionBot,
 	{
 		onDeleted,
+		listing = false,
 	}: {
 		onDeleted?: () => Promise<void>;
+		/** Offers listing in the catalogue, reading the bot's listing. */
+		listing?: boolean;
 	} = {},
 ) => {
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
+	const listingAction = useListingAction(
+		{
+			type: "bot",
+			id: bot.id,
+		},
+		{
+			enabled: listing && hasCapability(bot.capabilities, "manage_access"),
+		},
+	);
 	const { mutate: deleteBots } = useDeleteBotsMutation(
 		{
 			onSuccess: onDeleted,
@@ -68,17 +81,20 @@ const useBotActions = (
 	);
 
 	return {
-		actions: botActions(bot, {
-			onAccess: () => setIsAccessOpen(true),
-			onDelete: () =>
-				deleteBots({
-					refs: [
-						{
-							id: bot.id,
-						},
-					],
-				}),
-		}),
+		actions: {
+			...botActions(bot, {
+				onAccess: () => setIsAccessOpen(true),
+				onDelete: () =>
+					deleteBots({
+						refs: [
+							{
+								id: bot.id,
+							},
+						],
+					}),
+			}),
+			listing: listingAction,
+		},
 		dialog: hasCapability(bot.capabilities, "manage_access") ? (
 			<AccessDialog
 				open={isAccessOpen}

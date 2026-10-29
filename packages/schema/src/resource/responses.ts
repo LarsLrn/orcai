@@ -5,6 +5,7 @@ import {
 } from "../shared";
 import {
 	inheritedAccessSchema,
+	listingImpactSchema,
 	recentResourceSchema,
 	resourceGrantSchema,
 	resourcePrincipalSchema,
@@ -38,3 +39,6 @@ export const resourceGetVisibilityResponseSchema = createDataResponseSchema(
 
 export const resourceListRecentResponseSchema =
 	createListResponseSchema(recentResourceSchema);
+
+export const resourceListingImpactResponseSchema =
+	createDataResponseSchema(listingImpactSchema);

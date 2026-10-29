@@ -1,3 +1,4 @@
+import type { BlockId } from "@orcai/core";
 import {
 	type Asset,
 	type AssetWithCapabilities,
@@ -32,6 +33,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { useResourceVisibility } from "@/hooks/authz/use-resource-access";
 import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import { emptyCapabilities, ownerCapabilities } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
@@ -89,6 +91,7 @@ const DatabaseBlockEditor = ({
 	assets,
 	onAssetsChange,
 	onRemove,
+	blockId,
 }: {
 	nameField: ReactNode;
 	descriptionField: ReactNode;
@@ -105,12 +108,21 @@ const DatabaseBlockEditor = ({
 	assets: AssetWithCapabilities[];
 	onAssetsChange: (assets: AssetWithCapabilities[]) => void;
 	onRemove?: () => void;
+	blockId?: BlockId;
 }) => {
 	const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 	const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
 	const [hasPendingUploads, setHasPendingUploads] = useState(false);
 	const confirmDiscard = useConfirmDiscard();
+	const visibility = useResourceVisibility(
+		blockId
+			? {
+					type: "block",
+					id: blockId,
+				}
+			: undefined,
+	);
 
 	const updateAsset = (asset: Asset) =>
 		onAssetsChange(
@@ -164,6 +176,11 @@ const DatabaseBlockEditor = ({
 							<div className="text-muted-foreground text-sm">
 								{m.authoring_database_block_assets_description()}
 							</div>
+							{visibility.data?.data.visibility === "public" ? (
+								<div className="text-muted-foreground text-sm">
+									{m.authoring_database_block_listed_note()}
+								</div>
+							) : null}
 						</div>
 						<div className="flex flex-wrap gap-2">
 							<Button

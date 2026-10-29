@@ -215,6 +215,8 @@ describe("using a resource in an organisation", () => {
 				procedures,
 				call,
 				bot,
+				template,
+				repository,
 				createChat,
 				canUse,
 			} = await botWithTwoOrganizations();
@@ -224,6 +226,10 @@ describe("using a resource in an organisation", () => {
 						resourceType: "bot",
 						resourceId: bot.id,
 						visibility: "public",
+						listBlockIds: [
+							template,
+							repository,
+						],
 					},
 					options,
 				),

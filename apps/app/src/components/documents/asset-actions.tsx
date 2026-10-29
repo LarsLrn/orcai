@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
+import { useListingAction } from "@/components/access/listing-action";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	useAddAssetToLibraryMutation,
@@ -95,11 +96,23 @@ const useAssetActions = (
 	asset: ActionAsset,
 	{
 		onDeleted,
+		listing = false,
 	}: {
 		onDeleted?: () => Promise<void>;
+		/** Offers listing in the catalogue, reading the asset's listing. */
+		listing?: boolean;
 	} = {},
 ) => {
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
+	const listingAction = useListingAction(
+		{
+			type: "asset",
+			id: asset.id,
+		},
+		{
+			enabled: listing && hasCapability(asset.capabilities, "manage_access"),
+		},
+	);
 	const { mutate: addToLibrary } = useAddAssetToLibraryMutation();
 	const { mutate: reprocessAsset } = useReprocessAssetMutation();
 	const { mutate: deleteAssets } = useDeleteAssetsMutation(
@@ -114,25 +127,28 @@ const useAssetActions = (
 	);
 
 	return {
-		actions: assetActions(asset, {
-			onAccess: () => setIsAccessOpen(true),
-			onAddToLibrary: () =>
-				addToLibrary({
-					id: asset.id,
-				}),
-			onReprocess: () =>
-				reprocessAsset({
-					id: asset.id,
-				}),
-			onDelete: () =>
-				deleteAssets({
-					refs: [
-						{
-							id: asset.id,
-						},
-					],
-				}),
-		}),
+		actions: {
+			...assetActions(asset, {
+				onAccess: () => setIsAccessOpen(true),
+				onAddToLibrary: () =>
+					addToLibrary({
+						id: asset.id,
+					}),
+				onReprocess: () =>
+					reprocessAsset({
+						id: asset.id,
+					}),
+				onDelete: () =>
+					deleteAssets({
+						refs: [
+							{
+								id: asset.id,
+							},
+						],
+					}),
+			}),
+			listing: listingAction,
+		},
 		dialog: hasCapability(asset.capabilities, "manage_access") ? (
 			<AccessDialog
 				open={isAccessOpen}

@@ -99,6 +99,7 @@ describe("updateBotPayload", () => {
 			features: {
 				generativeUi: {},
 			},
+			listBlockIds: [],
 		});
 	});
 

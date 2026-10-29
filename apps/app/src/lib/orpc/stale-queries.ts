@@ -156,8 +156,17 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			retryFailed: assetsAndReadiness,
 		},
 		bot: {
-			save: () => [
+			save: (input) => [
 				orpc.bot.key(),
+				orpc.organization.deletionImpact.key(),
+				...(input.listBlockIds ?? []).map((blockId) =>
+					orpc.resource.getVisibility.key({
+						input: {
+							resourceType: "block",
+							resourceId: blockId,
+						},
+					}),
+				),
 			],
 			publish: () => [
 				orpc.bot.key(),
@@ -374,6 +383,16 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 						resourceId: input.resourceId,
 					},
 				}),
+				...(input.listBlockIds ?? []).map((blockId) =>
+					orpc.resource.getVisibility.key({
+						input: {
+							resourceType: "block",
+							resourceId: blockId,
+						},
+					}),
+				),
+				orpc.resource.listingImpact.key(),
+				orpc.organization.deletionImpact.key(),
 				orpc.user.listAccess.key(),
 				readOnlyChats,
 			],

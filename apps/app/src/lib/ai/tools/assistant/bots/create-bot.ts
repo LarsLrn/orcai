@@ -50,6 +50,7 @@ export const createBotPayload = (
 	templateBlockId: input.templateId ?? null,
 	databaseBlockIds: input.repositoryIds ?? [],
 	features: input.features ?? {},
+	listBlockIds: [],
 });
 
 export const createBotTool = (deps: AssistantToolDeps) =>

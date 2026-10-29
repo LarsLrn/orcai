@@ -1,6 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { BlockId, BotId } from "@orcai/core";
 import type { BotEditor, PublicationStatus } from "@orcai/schema";
+import { ORPCError } from "@orpc/client";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({
@@ -81,18 +82,24 @@ const published = (): Values =>
 
 /**
  * Plans and runs a save against recording procedures; the bot save echoes its
- * input, and `failing` names a procedure that rejects.
+ * input, and `failing` names a procedure that rejects. With `listing`, the bot
+ * is listed and its save asks to list the new repository until the answer to
+ * the confirm lists it.
  */
 const save = async ({
 	values,
 	baseline = botEditorBaseline(published()),
 	status,
 	failing,
+	listing,
 }: {
 	values: Values;
 	baseline?: Baseline;
 	status?: PublicationStatus;
 	failing?: "createBlock" | "updateBlock" | "saveBot";
+	listing?: {
+		confirms: boolean;
+	};
 }) => {
 	const calls: [
 		string,
@@ -116,14 +123,40 @@ const save = async ({
 			name,
 			input,
 		]);
+		if (
+			name === "saveBot" &&
+			listing &&
+			(input.listBlockIds as BlockId[]).length === 0
+		) {
+			return Promise.reject(
+				new ORPCError("BAD_REQUEST", {
+					data: {
+						reason: "LISTING_BLOCKS_UNCONFIRMED",
+						params: {
+							blocks: [
+								{
+									id: createdId,
+									name: "New repository",
+								},
+							],
+						},
+					},
+				}),
+			);
+		}
 		return name === failing
 			? Promise.reject(new Error(`${name} failed`))
 			: Promise.resolve(output as never);
 	};
+	const confirmed: string[][] = [];
 	const error = await executeBotEditorSave(
 		{
 			plan,
 			onBlockSaved: (saved) => blocksSaved.push(saved),
+			confirmListing: (blocks) => {
+				confirmed.push(blocks.map((block) => block.name));
+				return Promise.resolve(listing?.confirms ?? false);
+			},
 		},
 		{
 			createBlock: (input) =>
@@ -149,6 +182,7 @@ const save = async ({
 	return {
 		calls,
 		blocksSaved,
+		confirmed,
 		error,
 	};
 };
@@ -449,6 +483,48 @@ describe("saving the bot editor", () => {
 			),
 		).toEqual([
 			"saveBot",
+		]);
+	});
+
+	test("a listed bot lists the blocks it gains once the author confirms them", async () => {
+		const result = await save({
+			values: withRepository(published(), "New repository"),
+			listing: {
+				confirms: true,
+			},
+		});
+
+		expect(result.confirmed).toEqual([
+			[
+				"New repository",
+			],
+		]);
+		expect(result.error).toBeUndefined();
+		expect(result.calls.at(-1)).toEqual([
+			"saveBot",
+			expect.objectContaining({
+				listBlockIds: [
+					createdId,
+				],
+			}),
+		]);
+	});
+
+	test("declining to list the blocks fails the save and keeps the created block", async () => {
+		const result = await save({
+			values: withRepository(published(), "New repository"),
+			listing: {
+				confirms: false,
+			},
+		});
+
+		expect(result.error).toBeInstanceOf(ORPCError);
+		expect(names(result)).toEqual([
+			"createBlock",
+			"saveBot",
+		]);
+		expect(result.blocksSaved.map((saved) => saved.block.id)).toEqual([
+			createdId,
 		]);
 	});
 });

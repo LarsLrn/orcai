@@ -32,7 +32,7 @@ import {
 	useResourceGrants,
 	useResourceVisibility,
 	useRevokeResourceAccess,
-	useSetResourceVisibility,
+	useSetResourceListing,
 } from "@/hooks/authz/use-resource-access";
 import { toggleSelection } from "@/lib/utils/array-utils";
 import { m } from "@/paraglide/messages";
@@ -81,7 +81,7 @@ const AccessManagerContent = ({
 	const grantAccess = useGrantResourceAccess();
 	const changeGrantRole = useGrantResourceAccess();
 	const revokeAccess = useRevokeResourceAccess();
-	const setVisibility = useSetResourceVisibility();
+	const listing = useSetResourceListing();
 	const grantBlockEdit = useGrantBlockEdit();
 
 	const isGranting = grantAccess.isPending || grantBlockEdit.isPending;
@@ -89,7 +89,7 @@ const AccessManagerContent = ({
 		isGranting ||
 		changeGrantRole.isPending ||
 		revokeAccess.isPending ||
-		setVisibility.isPending;
+		listing.isPending;
 	const isRefreshing = grants.isFetching || visibility.isFetching;
 
 	const selectedHasAllMembers = selectedPrincipals.some(
@@ -149,17 +149,16 @@ const AccessManagerContent = ({
 				<InheritedAccessSummary inherited={inherited.data.data} />
 			)}
 
-			<VisibilityToggle
-				visibility={currentVisibility}
-				disabled={isMutating}
-				onChange={(nextVisibility) =>
-					setVisibility.mutate({
-						resourceType: resourceRef.type,
-						resourceId: resourceRef.id,
-						visibility: nextVisibility,
-					})
-				}
-			/>
+			{/* Documents are published through their repository; one listed earlier can still be unlisted. */}
+			{resourceRef.type !== "asset" || currentVisibility === "public" ? (
+				<VisibilityToggle
+					visibility={currentVisibility}
+					disabled={isMutating}
+					onChange={(nextVisibility) =>
+						void listing.setListing(resourceRef, nextVisibility)
+					}
+				/>
+			) : null}
 
 			<Alert>
 				<AlertCircleIcon className="h-4 w-4" />

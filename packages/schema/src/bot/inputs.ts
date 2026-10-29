@@ -52,6 +52,8 @@ export const saveBotInputSchema = z.object({
 	templateBlockId: blockIdSchema.nullable().default(null),
 	databaseBlockIds: z.array(blockIdSchema).default([]),
 	features: featuresSchema.default({}),
+	/** Unlisted blocks a listed bot gains, confirmed to be listed with it. */
+	listBlockIds: z.array(blockIdSchema).default([]),
 });
 
 export const publishBotInputSchema = z.object({

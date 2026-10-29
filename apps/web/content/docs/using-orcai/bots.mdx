@@ -37,7 +37,7 @@ Bots (`/app/library/bots`) have draft and published states, shown as sections:
 
 **Create bot** appears for roles with `create_bot` (admins, managers and members).
 
-A bot is private until it is shared. Publishing does not share it: a published bot is usable only by the people and groups it was granted to, or by everyone when it is public. See [Access Control](/docs/using-orcai/access-control#resource-sharing).
+A bot is private until it is shared. Publishing does not share it: a published bot is usable only by the people and groups it was granted to. Listing it in the catalogue lets everyone preview it, together with its behaviour and repositories. See [Access Control](/docs/using-orcai/access-control#resource-sharing).
 
 ## The Bot Page
 
@@ -84,7 +84,7 @@ Attach ready repository blocks that provide retrieval context. Repositories are 
 
 ### Sharing And Access [step]
 
-Configure visibility, groups, and direct grants for the intended audience. Giving someone edit or manage on the bot also offers edit on its blocks, for the blocks you can share.
+Choose whether the bot is listed in the catalogue, and configure groups and direct grants for the intended audience. Giving someone edit or manage on the bot also offers edit on its blocks, for the blocks you can share.
 
 ### Model [step]
 
@@ -146,7 +146,7 @@ Each block can have:
 
 - Draft or Ready publication status
 - Metadata and versioning
-- Visibility and grants
+- Catalogue listing and grants
 - Capability-based actions (edit, delete, manage access)
 
 A block's page sits under its kind: `/app/library/behaviours/<block id>` or `/app/library/repositories/<block id>`; a block opened under the other kind's path is not found. It offers **Edit block** (`<page>/edit`) and **Access & groups**, with **Delete block** in the **More actions** menu.
@@ -183,7 +183,7 @@ This is useful for:
 
 ## Sharing And Access
 
-Bots, blocks and assets expose the same access dialog, **Access & groups**, for visibility, groups, and direct grants. The bot editor's sharing step embeds it.
+Bots, blocks and assets expose the same access dialog, **Access & groups**, for the catalogue listing, groups, and direct grants. The bot editor's sharing step embeds it.
 
 A grant gives one of three resource roles:
 

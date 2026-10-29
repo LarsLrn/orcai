@@ -54,6 +54,29 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 
 	await moreActions.click();
 	await expect(page.getByRole("menuitem")).toHaveText([
+		message("access_list_action"),
+		message("bots_delete_action"),
+	]);
+
+	// Listing sits in the menu and confirms first; afterwards the menu offers to take it out.
+	await page
+		.getByRole("menuitem", {
+			name: message("access_list_action"),
+		})
+		.click();
+	const confirmListing = page.getByRole("alertdialog");
+	await expect(
+		confirmListing.getByText(message("access_publish_confirm_description")),
+	).toBeVisible();
+	await confirmListing
+		.getByRole("button", {
+			name: message("access_publish_confirm_button"),
+		})
+		.click();
+	await expect(confirmListing).toBeHidden();
+	await moreActions.click();
+	await expect(page.getByRole("menuitem")).toHaveText([
+		message("access_unlist_action"),
 		message("bots_delete_action"),
 	]);
 	await page.keyboard.press("Escape");

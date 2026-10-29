@@ -48,39 +48,60 @@ const readerGroupIds = (userId: UserId) => {
 	)`;
 };
 
-/** Whether the user owns the resource in `id`, holds an active grant on it, or it is listed. */
-const readableDirectly = (
+/** Whether the user owns the resource in `id`. */
+const ownedBy = (
 	resourceType: ResourceType,
 	id: AnyColumn | SQL,
 	userId: UserId,
 ) => {
 	// Aliased, so `id` may be a column of the same table in the outer query.
 	const owned = alias(resourceTables[resourceType], `owned_${resourceType}`);
-	const { resourceGrant: grant, resourceVisibility: visibility } = dbSchema;
 	const ownership = new QueryBuilder()
 		.select({
 			one: sql`1`,
 		})
 		.from(owned)
 		.where(sql`${owned.id} = ${id} and ${owned.userId} = ${userId}`);
+	return sql`exists ${ownership}`;
+};
+
+/** Whether the user, or a group of theirs, holds an active grant on the resource in `id`, of `role` when given. */
+const grantedTo = (
+	resourceType: ResourceType,
+	id: AnyColumn | SQL,
+	userId: UserId,
+	role?: "manager",
+) => {
+	const { resourceGrant: grant } = dbSchema;
+	return sql`exists (
+		select 1 from ${grant}
+		where ${grant.resourceType} = ${resourceType}
+			and ${grant.resourceId} = ${id}
+			and ${grant.revokedAt} is null
+			${role ? sql`and ${grant.role} = ${role}` : sql``}
+			and (
+				(${grant.principalType} = 'user' and ${grant.principalId} = ${userId})
+				or (${grant.principalType} = 'group' and ${grant.principalId} in ${readerGroupIds(userId)})
+			)
+	)`;
+};
+
+/** Whether the user owns the resource in `id`, holds an active grant on it, or it is listed. */
+const readableDirectly = (
+	resourceType: ResourceType,
+	id: AnyColumn | SQL,
+	userId: UserId,
+) => {
+	const { resourceVisibility: visibility } = dbSchema;
 	return sql`(
-		exists ${ownership}
+		${ownedBy(resourceType, id, userId)}
 		or exists (
 			select 1 from ${visibility}
 			where ${visibility.resourceType} = ${resourceType}
 				and ${visibility.resourceId} = ${id}
 				and ${visibility.visibility} = 'public'
 		)
-		or exists (
-			select 1 from ${grant}
-			where ${grant.resourceType} = ${resourceType}
-				and ${grant.resourceId} = ${id}
-				and ${grant.revokedAt} is null
-				and (
-					(${grant.principalType} = 'user' and ${grant.principalId} = ${userId})
-					or (${grant.principalType} = 'group' and ${grant.principalId} in ${readerGroupIds(userId)})
-				)
-		)
+		or ${grantedTo(resourceType, id, userId)}
 	)`;
 };
 
@@ -115,11 +136,13 @@ export const readableNow = (
 	}
 };
 
-/** The resources of `ids` the user may read, in SpiceDB and by committed state. */
-export const readableIds = <Type extends ResourceType>(
+/** The resources of `ids` the user holds `permission` on in SpiceDB whose committed state agrees. */
+const permittedNow = <Type extends ResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	reader: Reader,
+	permission: "read" | "manage_access",
+	committed: (id: AnyColumn) => SQL,
 ) =>
 	Effect.gen(function* () {
 		if (ids.length === 0) return new Set<EntityIdFor<Type>>();
@@ -130,7 +153,7 @@ export const readableIds = <Type extends ResourceType>(
 				permittedEntityIds({
 					entityIds: ids,
 					entityType: resourceType,
-					permission: "read",
+					permission,
 					...reader,
 				}),
 				db
@@ -143,7 +166,7 @@ export const readableIds = <Type extends ResourceType>(
 							inArray(table.id, [
 								...ids,
 							] as (typeof table.id._.data)[]),
-							readableNow(resourceType, table.id, reader.userId),
+							committed(table.id),
 						),
 					),
 			],
@@ -151,9 +174,38 @@ export const readableIds = <Type extends ResourceType>(
 				concurrency: "unbounded",
 			},
 		);
-		const committed = new Set<string>(rows.map((row) => row.id));
-		return new Set(ids.filter((id) => committed.has(id) && permitted.has(id)));
+		const agreed = new Set<string>(rows.map((row) => row.id));
+		return new Set(ids.filter((id) => agreed.has(id) && permitted.has(id)));
 	});
+
+/** The resources of `ids` the user may read, in SpiceDB and by committed state. */
+export const readableIds = <Type extends ResourceType>(
+	resourceType: Type,
+	ids: readonly EntityIdFor<Type>[],
+	reader: Reader,
+) =>
+	permittedNow(resourceType, ids, reader, "read", (id) =>
+		readableNow(resourceType, id, reader.userId),
+	);
+
+/**
+ * The resources of `ids` whose access the user manages, in SpiceDB and by
+ * committed state: they own it or hold an active manager grant, directly or
+ * through a group.
+ */
+export const managedIds = <Type extends ResourceType>(
+	resourceType: Type,
+	ids: readonly EntityIdFor<Type>[],
+	reader: Reader,
+) =>
+	permittedNow(
+		resourceType,
+		ids,
+		reader,
+		"manage_access",
+		(id) =>
+			sql`(${ownedBy(resourceType, id, reader.userId)} or ${grantedTo(resourceType, id, reader.userId, "manager")})`,
+	);
 
 /** Fails as not found unless the user may read the resource, see {@link readableIds}. */
 export const requireReadable = <Type extends ResourceType>(

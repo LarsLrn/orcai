@@ -2,6 +2,7 @@ import type { Block, BlockWithCapabilities } from "@orcai/schema";
 import { EditIcon, KeyRoundIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
+import { useListingAction } from "@/components/access/listing-action";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
@@ -55,11 +56,23 @@ const useBlockActions = (
 	block: ActionBlock,
 	{
 		onDeleted,
+		listing = false,
 	}: {
 		onDeleted?: () => Promise<void>;
+		/** Offers listing in the catalogue, reading the block's listing. */
+		listing?: boolean;
 	} = {},
 ) => {
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
+	const listingAction = useListingAction(
+		{
+			type: "block",
+			id: block.id,
+		},
+		{
+			enabled: listing && hasCapability(block.capabilities, "manage_access"),
+		},
+	);
 	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
 		{
 			onSuccess: onDeleted,
@@ -73,17 +86,20 @@ const useBlockActions = (
 	);
 
 	return {
-		actions: blockActions(block, {
-			onAccess: () => setIsAccessOpen(true),
-			onDelete: () =>
-				deleteBlocks({
-					refs: [
-						{
-							id: block.id,
-						},
-					],
-				}),
-		}),
+		actions: {
+			...blockActions(block, {
+				onAccess: () => setIsAccessOpen(true),
+				onDelete: () =>
+					deleteBlocks({
+						refs: [
+							{
+								id: block.id,
+							},
+						],
+					}),
+			}),
+			listing: listingAction,
+		},
 		dialog: hasCapability(block.capabilities, "manage_access") ? (
 			<AccessDialog
 				open={isAccessOpen}

@@ -34,6 +34,7 @@ const reasonMessages: ReasonMessages = {
 	AI_TOOL_FAILED: m.error_ai_tool_failed,
 	ALREADY_EXISTS: m.error_already_exists,
 	ASSET_LINK_FORBIDDEN: m.error_asset_link_forbidden,
+	ASSET_LISTING_UNSUPPORTED: m.error_asset_listing_unsupported,
 	ASSET_NOT_ATTACHED: m.error_asset_not_attached,
 	ASSET_NOT_FOUND: m.error_asset_not_found,
 	ASSISTANT_CONVERSATION_IMMUTABLE: m.error_assistant_conversation_immutable,
@@ -46,6 +47,10 @@ const reasonMessages: ReasonMessages = {
 		}),
 	BLOCK_LINK_FORBIDDEN: m.error_block_link_forbidden,
 	BLOCK_NOT_FOUND: m.error_block_not_found,
+	BLOCK_USED_BY_LISTED_BOTS: ({ botNames }) =>
+		m.error_block_used_by_listed_bots({
+			botNames: formatList(botNames),
+		}),
 	BOOTSTRAP_USER_CREATE_FAILED: m.error_bootstrap_user_create_failed,
 	BOT_BEHAVIOUR_BLOCK_NOT_READY: m.error_bot_behaviour_block_not_ready,
 	BOT_BEHAVIOUR_BLOCK_REQUIRED: m.error_bot_behaviour_block_required,
@@ -122,6 +127,14 @@ const reasonMessages: ReasonMessages = {
 	ITEMS_NOT_UNIQUE: m.error_items_not_unique,
 	LAST_MANAGER_REQUIRED: m.error_last_manager_required,
 	LAST_ORGANIZATION_ADMIN_REQUIRED: m.error_last_organization_admin_required,
+	LISTING_BLOCKS_FORBIDDEN: ({ blockNames }) =>
+		m.error_listing_blocks_forbidden({
+			blockNames: formatList(blockNames),
+		}),
+	LISTING_BLOCKS_UNCONFIRMED: ({ blocks }) =>
+		m.error_listing_blocks_unconfirmed({
+			blockNames: formatList(blocks.map((block) => block.name)),
+		}),
 	MEMBER_NOT_FOUND: m.error_member_not_found,
 	METADATA_GENERATION_UNAVAILABLE: m.error_metadata_generation_unavailable,
 	MODEL_DEPRECATED: m.error_model_deprecated,
@@ -217,6 +230,7 @@ export const reasonMessage = (reason: ErrorReason, params: unknown): string =>
 
 const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
 	BLOCK_IN_USE_BY_READY_BOTS: true,
+	BLOCK_USED_BY_LISTED_BOTS: true,
 	BOT_REPOSITORY_EMPTY: true,
 	BOT_REPOSITORY_NOT_READY: true,
 	CHAT_MAX_TOKENS_EXCEEDS_MODEL: true,
@@ -224,6 +238,8 @@ const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
 	GRANT_PRINCIPALS_INVALID: true,
 	GROUP_MEMBERS_INVALID: true,
 	INVITEE_ALREADY_MEMBER: true,
+	LISTING_BLOCKS_FORBIDDEN: true,
+	LISTING_BLOCKS_UNCONFIRMED: true,
 	SORT_KEY_UNSUPPORTED: true,
 	UPLOAD_FILE_TOO_LARGE: true,
 	UPLOAD_FILE_TYPE_INVALID: true,

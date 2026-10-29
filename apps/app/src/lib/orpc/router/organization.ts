@@ -40,6 +40,7 @@ import {
 } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { getZedToken } from "@/lib/authz/zed-token";
+import { listedHomeResources } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -568,44 +569,50 @@ const getOrganizationDeletionImpact = authed.organization.deletionImpact
 			);
 		}
 
-		const [[members], [pendingInvitations], [groups], homeResources] =
-			yield* Effect.all(
-				[
-					db
-						.select({
-							count: count(),
-						})
-						.from(dbSchema.member)
-						.where(eq(dbSchema.member.organizationId, input.id)),
-					db
-						.select({
-							count: count(),
-						})
-						.from(dbSchema.invitation)
-						.where(
-							and(
-								eq(dbSchema.invitation.organizationId, input.id),
-								eq(dbSchema.invitation.status, "pending"),
-								gt(dbSchema.invitation.expiresAt, now),
-							),
+		const [
+			[members],
+			[pendingInvitations],
+			[groups],
+			homeResources,
+			listedResources,
+		] = yield* Effect.all(
+			[
+				db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.member)
+					.where(eq(dbSchema.member.organizationId, input.id)),
+				db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.invitation)
+					.where(
+						and(
+							eq(dbSchema.invitation.organizationId, input.id),
+							eq(dbSchema.invitation.status, "pending"),
+							gt(dbSchema.invitation.expiresAt, now),
 						),
-					db
-						.select({
-							count: count(),
-						})
-						.from(dbSchema.group)
-						.where(
-							and(
-								eq(dbSchema.group.organizationId, input.id),
-								isNull(dbSchema.group.deletedAt),
-							),
+					),
+				db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.group)
+					.where(
+						and(
+							eq(dbSchema.group.organizationId, input.id),
+							isNull(dbSchema.group.deletedAt),
 						),
-					countHomeResources(input.id),
-				],
-				{
-					concurrency: "unbounded",
-				},
-			);
+					),
+				countHomeResources(input.id),
+				listedHomeResources(input.id),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
 
 		return {
 			data: {
@@ -616,6 +623,7 @@ const getOrganizationDeletionImpact = authed.organization.deletionImpact
 				pendingInvitations: Number(pendingInvitations?.count ?? 0),
 				groups: Number(groups?.count ?? 0),
 				homeResources,
+				listedResources,
 			},
 		};
 	});

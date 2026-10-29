@@ -144,12 +144,12 @@ access" step embeds the same controls. New people and groups are added from the
 - **Editor** can also edit it.
 - **Manager** can also delete it and manage its access.
 
-The person who created a resource owns it and holds all of these. Switching
-**Visibility** between Private and Public asks for confirmation either way.
+The person who created a resource owns it and holds all of these. Listing a
+resource in the **Catalogue** or taking it out asks for confirmation either way.
 
 Access dialogs allow:
 
-- Visibility management
+- Catalogue listing
 - Group grants
 - Direct grants
 - A summary of the access inherited from the bots and blocks above
@@ -157,8 +157,8 @@ Access dialogs allow:
 Listing or managing a resource's access, in its access dialog or through the
 API, needs `manage_access` on that resource: you own it or hold a `manager`
 grant on it. Organisation admins have no override. An admin who neither owns
-nor manages a resource cannot list its grants, change its visibility, or share
-it, and its access dialog is not offered to them.
+nor manages a resource cannot list its grants, list it in the catalogue, or
+share it, and its access dialog is not offered to them.
 
 Whoever holds `manage_access` on a resource shares it. Among them, organisation
 admins and managers may grant to every group of the organisation; members and
@@ -188,10 +188,30 @@ one of its groups you are in, or to All Members. Owning the resource counts in
 its own organisation. Access does not travel with the person: someone who
 belongs to two organisations uses in each only what is shared there.
 
-A public resource is listed: every signed-in user of the instance can find and
-preview it, but using it still needs a grant in the organisation where it is
-used. Only the configuration and its blocks are shared, because a resource
-runs with the providers, models and quotas of the organisation it is used in.
+### The Catalogue
+
+Bots, behaviours and repositories can be listed in the catalogue. A listed
+resource can be previewed by every signed-in user of the instance, but using it
+still needs a grant in the organisation where it is used. Only the
+configuration and its blocks are shared, because a resource runs with the
+providers, models and quotas of the organisation it is used in. Documents have
+no entry of their own: a listed repository publishes its documents, and the
+repository editor says so, including for documents added later.
+
+A listed bot contains only listed blocks. Listing a bot lists its unlisted
+behaviour and repositories with it: the confirmation names them, and the
+listing is refused unless you manage access to each of them. Saving a listed
+bot with a block that is not listed asks the same before it saves. The OrcAI
+Assistant never lists anything, so a change it makes to a listed bot that
+needs a block listed fails and points you to the app.
+
+Taking a resource out of the catalogue removes it from every organisation that
+added it: the confirmation names them. There, the grants issued for it end,
+their bots and chats lose the block, and a bot's model setup is deleted, so
+their chats with the bot become read-only. A block that a listed bot contains
+cannot be taken out of the catalogue until that bot is taken out too or drops
+the block. Either way, nothing added to the resource afterwards reaches those
+organisations.
 
 The same access manager pattern is reused for:
 
@@ -223,8 +243,10 @@ summary's links lead. Bots and blocks the viewer cannot read are counted rather
 than named. Inherited access lasts only as long as the link above it: a direct
 grant is what survives a block being detached from its bot.
 
-Deleting a bot, block or content item removes its grants, its visibility and
-the access it passed on through its links.
+Deleting a bot, block or content item removes its grants, its catalogue
+listing and the access it passed on through its links. Deleting an
+organisation deletes the resources it is home to, including listed ones that
+other organisations added.
 
 ## Capability-Gated Workspace Sections
 

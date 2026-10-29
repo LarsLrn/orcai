@@ -254,14 +254,36 @@ describe("asset metadata generation", () => {
 			await withUtilityModel(organizationId);
 			const created = await createAsset(owner, organizationId);
 			const procedures = await run(Procedures);
+			const repository = await run(
+				procedures.block.create(
+					{
+						type: "database",
+						name: "Listed repository",
+						description: null,
+						contentJson: null,
+						contentHtml: null,
+						status: "ready",
+						assets: [
+							created.asset.id,
+						],
+						config: {
+							minReferences: 1,
+							maxReferences: 5,
+							defaultReferences: 3,
+						},
+					},
+					await procedureOptions(owner, created.zedToken ?? zedToken),
+				),
+			);
+			// A document is listed through its repository.
 			const { meta } = await run(
 				procedures.resource.setVisibility(
 					{
-						resourceType: "asset",
-						resourceId: created.asset.id,
+						resourceType: "block",
+						resourceId: repository.data.id,
 						visibility: "public",
 					},
-					await procedureOptions(owner, created.zedToken ?? zedToken),
+					await procedureOptions(owner, repository.meta?.zedToken),
 				),
 			);
 			const find = async (actor: typeof owner) =>
