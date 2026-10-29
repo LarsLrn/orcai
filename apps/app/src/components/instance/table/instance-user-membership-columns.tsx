@@ -1,6 +1,7 @@
 import type { InstanceUserMembership } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
@@ -18,15 +19,18 @@ export const instanceUserMembershipColumns = columnHelper.columns([
 			<DataTableColumnHeader column={column} title={m.common_name_label()} />
 		),
 		cell: ({ row }) => (
-			<Link
-				to="/instance/organizations/$organizationId"
-				params={{
-					organizationId: row.original.organizationId,
-				}}
-				className="font-medium hover:underline"
-			>
-				{row.original.name}
-			</Link>
+			<div className="flex items-center gap-2">
+				<OrganizationLogo organization={row.original} size="sm" />
+				<Link
+					to="/instance/organizations/$organizationId"
+					params={{
+						organizationId: row.original.organizationId,
+					}}
+					className="font-medium hover:underline"
+				>
+					{row.original.name}
+				</Link>
+			</div>
 		),
 		meta: {
 			label: m.common_name_label,

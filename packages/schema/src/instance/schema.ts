@@ -15,6 +15,7 @@ export const instanceUserMembershipSchema = z.object({
 	organizationId: organizationIdSchema,
 	name: z.string(),
 	slug: z.string(),
+	logo: z.string().nullable(),
 	role: organizationRoleSchema,
 	joinedAt: z.coerce.date().nullable(),
 });
@@ -24,6 +25,7 @@ export const instanceOrganizationMemberSchema = z.object({
 	userId: userIdSchema,
 	name: z.string(),
 	email: z.string(),
+	image: z.string().nullable(),
 	banned: z.boolean(),
 	role: organizationRoleSchema,
 	joinedAt: z.coerce.date().nullable(),

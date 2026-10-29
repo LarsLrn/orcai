@@ -13,7 +13,8 @@ import {
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { referencedImage } from "./images";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions, instanceAdmin } =
+	authzIntegration();
 
 const procedures = () => run(Procedures);
 
@@ -410,6 +411,78 @@ describe("organisation logos", () => {
 				),
 			);
 			expect(await head(keyOf(data.logo))).toBeUndefined();
+		},
+		TIMEOUT,
+	);
+});
+
+describe("instance moderation", () => {
+	test(
+		"only an instance admin removes another account's picture or an organisation's logo",
+		async () => {
+			const {
+				organizationId,
+				actors: [admin, member],
+				zedToken,
+			} = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const { data: picture } = await setImage(
+				member,
+				await stagedUpload(member, "profileImage"),
+			);
+			const { instance, organization } = await procedures();
+			const { data: logo } = await run(
+				organization.setLogo(
+					{
+						id: organizationId,
+						file: await stagedUpload(admin, "organizationLogo"),
+					},
+					await procedureOptions(admin, zedToken),
+				),
+			);
+
+			for (const call of [
+				instance.removeUserImage(
+					{
+						id: member.user.id,
+					},
+					await procedureOptions(admin, zedToken),
+				),
+				instance.removeOrganizationLogo(
+					{
+						id: organizationId,
+					},
+					await procedureOptions(admin, zedToken),
+				),
+			])
+				expect(await rejection(run(call))).toMatchObject({
+					_tag: "ForbiddenError",
+				});
+			expect(await imageOf(member)).toBe(picture.image);
+
+			const moderator = await instanceAdmin(organizationId);
+			await run(
+				instance.removeUserImage(
+					{
+						id: member.user.id,
+					},
+					await procedureOptions(moderator),
+				),
+			);
+			await run(
+				instance.removeOrganizationLogo(
+					{
+						id: organizationId,
+					},
+					await procedureOptions(moderator),
+				),
+			);
+
+			expect(await imageOf(member)).toBeNull();
+			expect(await head(keyOf(picture.image))).toBeUndefined();
+			expect(await head(keyOf(logo.logo))).toBeUndefined();
 		},
 		TIMEOUT,
 	);

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
+import { UserAvatar } from "@/components/users/user-avatar";
 import {
 	useChangeInstanceMemberRoleMutation,
 	useRemoveInstanceMemberMutation,
@@ -87,6 +88,7 @@ export const instanceOrganizationMemberColumns = (
 			),
 			cell: ({ row }) => (
 				<span className="flex items-center gap-2">
+					<UserAvatar user={row.original} size="sm" />
 					<Link
 						to="/instance/users/$userId"
 						params={{

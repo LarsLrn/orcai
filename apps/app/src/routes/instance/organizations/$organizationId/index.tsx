@@ -5,7 +5,12 @@ import {
 } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
-import { MailPlusIcon, UserPlusIcon, UsersIcon } from "lucide-react";
+import {
+	ImageOffIcon,
+	MailPlusIcon,
+	UserPlusIcon,
+	UsersIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import type { z } from "zod/v4";
 import { CheckList } from "@/components/health/check-list";
@@ -14,6 +19,7 @@ import {
 	InviteMemberDialog,
 } from "@/components/instance/organization-member-dialogs";
 import { instanceOrganizationMemberColumns } from "@/components/instance/table/instance-organization-member-columns";
+import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { organizationCheckTitle } from "@/components/readiness/organization-readiness-card";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -40,6 +46,7 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
+import { useRemoveOrganizationLogoMutation } from "@/hooks/mutations/use-instance-image-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
@@ -125,6 +132,7 @@ function RouteComponent() {
 			input: membersInput(organizationId, search),
 		}),
 	);
+	const removeLogo = useRemoveOrganizationLogoMutation(organization);
 	const columns = useMemo(
 		() =>
 			instanceOrganizationMemberColumns(
@@ -142,7 +150,8 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{organization.name}</PageTitle>
 				<PageDescription>@{organization.slug}</PageDescription>
-				<div className="flex flex-wrap gap-2">
+				<div className="flex flex-wrap items-center gap-2">
+					<OrganizationLogo organization={organization} size="lg" />
 					<Badge variant="outline">
 						{m.instance_org_member_count({
 							count: formatCount(organization.memberCount),
@@ -164,6 +173,20 @@ function RouteComponent() {
 							icon: UserPlusIcon,
 							onClick: () => setDialog("add"),
 						},
+						...(organization.logo
+							? [
+									{
+										key: "remove-logo",
+										label: m.images_logo_remove_button(),
+										icon: ImageOffIcon,
+										overflow: true,
+										onClick: () =>
+											removeLogo.mutate({
+												id: organization.id,
+											}),
+									},
+								]
+							: []),
 					]}
 				/>
 			</PageHeader>
