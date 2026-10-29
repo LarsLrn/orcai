@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { resourceOwnerSchema } from "../resource/schema";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
@@ -18,6 +19,7 @@ export const findAssetResponseSchema = createDataResponseSchema(
 		organizationId: z.string().nullable(),
 		/** Whether that organisation has a utility model to generate metadata with; null unless the user can read it. */
 		utilityModel: z.boolean().nullable(),
+		owner: resourceOwnerSchema,
 	}),
 );
 

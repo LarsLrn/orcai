@@ -219,6 +219,14 @@ export const resourceVisibilityDataSchema = createResourceScopedSchema({
 	visibility: resourceVisibilitySchema,
 });
 
+/** The user who owns a resource, as its detail page names them. */
+export const resourceOwnerSchema = z.object({
+	id: userIdSchema,
+	name: z.string(),
+	/** The app path of the profile picture. */
+	image: z.string().nullable(),
+});
+
 /** A resource that changed recently, carrying only what a summary row shows. */
 export const recentResourceSchema = z.discriminatedUnion("resourceType", [
 	assetResourceIdentitySchema.extend({
@@ -244,6 +252,7 @@ export type ResourceGrantRole = z.infer<typeof resourceGrantRoleSchema>;
 export type ResourceVisibility = z.infer<typeof resourceVisibilitySchema>;
 export type PrincipalType = z.infer<typeof principalTypeSchema>;
 export type ResourceGrantSource = z.infer<typeof resourceGrantSourceSchema>;
+export type ResourceOwner = z.infer<typeof resourceOwnerSchema>;
 export type DirectGrantSource = z.infer<typeof directGrantSourceSchema>;
 export type ResourceRef = z.infer<typeof resourceRefSchema>;
 export type ResourceIdentity = z.infer<typeof resourceIdentitySchema>;

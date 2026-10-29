@@ -3,16 +3,8 @@ import type {
 	AssetWithCapabilities,
 	DocumentReadiness,
 } from "@orcai/schema";
-import {
-	EditIcon,
-	KeyRoundIcon,
-	LibraryIcon,
-	MessageSquareIcon,
-	RefreshCwIcon,
-	Trash2Icon,
-} from "lucide-react";
-import { useState } from "react";
-import { AccessDialog } from "@/components/access/access-dialog";
+import { MessageSquareIcon } from "lucide-react";
+import { useAssetActions } from "@/components/documents/asset-actions";
 import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
@@ -26,12 +18,6 @@ import {
 	TileMenu,
 	TileTitle,
 } from "@/components/ui/shell/tile";
-import {
-	useAddAssetToLibraryMutation,
-	useDeleteAssetsMutation,
-	useReprocessAssetMutation,
-} from "@/hooks/mutations/use-asset-mutations";
-import { hasCapability } from "@/lib/authz/capabilities";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
 import {
 	documentStateBadge,
@@ -119,67 +105,6 @@ const assetTileState = (
 	};
 };
 
-/** The `…` menu of an asset tile, as far as the asset's capabilities allow. */
-const assetTileActions = (
-	asset: Pick<TileAsset, "id" | "origin" | "processingStatus" | "capabilities">,
-	{
-		onAccess,
-		onAddToLibrary,
-		onReprocess,
-		onDelete,
-	}: {
-		onAccess: () => void;
-		onAddToLibrary: () => void;
-		onReprocess: () => void;
-		onDelete: () => void;
-	},
-): (HeaderAction | false)[] => {
-	const canEdit = hasCapability(asset.capabilities, "edit");
-	const processing =
-		asset.processingStatus === "pending" || asset.processingStatus === "active";
-
-	return [
-		canEdit && {
-			key: "edit",
-			label: m.assets_tile_edit_action(),
-			icon: EditIcon,
-			linkProps: {
-				to: "/app/hub/assets/$assetId/edit",
-				params: {
-					assetId: asset.id,
-				},
-			},
-		},
-		hasCapability(asset.capabilities, "manage_access") && {
-			key: "access",
-			label: m.assets_tile_access_action(),
-			icon: KeyRoundIcon,
-			onClick: onAccess,
-		},
-		canEdit &&
-			asset.origin === "chat" && {
-				key: "add-to-library",
-				label: m.assets_add_to_library_action(),
-				icon: LibraryIcon,
-				onClick: onAddToLibrary,
-			},
-		canEdit &&
-			!processing && {
-				key: "reprocess",
-				label: m.assets_tile_reprocess_action(),
-				icon: RefreshCwIcon,
-				onClick: onReprocess,
-			},
-		hasCapability(asset.capabilities, "delete") && {
-			key: "delete",
-			label: m.assets_tile_delete_action(),
-			icon: Trash2Icon,
-			destructive: true,
-			onClick: onDelete,
-		},
-	];
-};
-
 const AssetTileBody = ({
 	asset,
 	document,
@@ -239,17 +164,7 @@ const detailTitle = (asset: TileAsset) => (
 
 /** An asset on a browsing surface: band and its `…` menu. */
 const AssetTile = ({ asset }: { asset: TileAsset }) => {
-	const [isAccessOpen, setIsAccessOpen] = useState(false);
-	const { mutate: addToLibrary } = useAddAssetToLibraryMutation();
-	const { mutate: reprocessAsset } = useReprocessAssetMutation();
-	const { mutate: deleteAssets } = useDeleteAssetsMutation(
-		{},
-		{
-			names: [
-				asset.title,
-			],
-		},
-	);
+	const { actions, dialog } = useAssetActions(asset);
 
 	return (
 		<Tile>
@@ -261,37 +176,15 @@ const AssetTile = ({ asset }: { asset: TileAsset }) => {
 			</TileIcon>
 			<AssetTileBody asset={asset} title={detailTitle(asset)} />
 			<TileMenu
-				actions={assetTileActions(asset, {
-					onAccess: () => setIsAccessOpen(true),
-					onAddToLibrary: () =>
-						addToLibrary({
-							id: asset.id,
-						}),
-					onReprocess: () =>
-						reprocessAsset({
-							id: asset.id,
-						}),
-					onDelete: () =>
-						deleteAssets({
-							refs: [
-								{
-									id: asset.id,
-								},
-							],
-						}),
-				})}
+				actions={[
+					actions.edit,
+					actions.access,
+					actions.addToLibrary,
+					actions.reprocess,
+					actions.delete,
+				]}
 			/>
-			{hasCapability(asset.capabilities, "manage_access") ? (
-				<AccessDialog
-					open={isAccessOpen}
-					onOpenChange={setIsAccessOpen}
-					resourceRef={{
-						type: "asset",
-						id: asset.id,
-					}}
-					resourceName={asset.title}
-				/>
-			) : null}
+			{dialog}
 		</Tile>
 	);
 };
@@ -341,4 +234,4 @@ const CompactAssetTile = ({
 	</Tile>
 );
 
-export { AssetTile, assetTileActions, assetTileState, CompactAssetTile };
+export { AssetTile, assetTileState, CompactAssetTile };

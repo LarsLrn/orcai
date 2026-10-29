@@ -8,7 +8,7 @@ mock.module("@/lib/orpc/orpc", () => ({
 	orpc: {},
 }));
 
-const { assetTileActions, assetTileState } = await import("./asset-tile");
+const { assetTileState } = await import("./asset-tile");
 
 const asset = (
 	overrides: Partial<Parameters<typeof assetTileState>[0]> = {},
@@ -23,23 +23,6 @@ const asset = (
 	metadataStatus: null,
 	...overrides,
 });
-
-const noop = () => undefined;
-const handlers = {
-	onAccess: noop,
-	onAddToLibrary: noop,
-	onReprocess: noop,
-	onDelete: noop,
-};
-
-const actionKeys = (actions: ReturnType<typeof assetTileActions>) =>
-	actions.flatMap((action) =>
-		action
-			? [
-					action.destructive ? `${action.key}!` : action.key,
-				]
-			: [],
-	);
 
 describe("assetTileState", () => {
 	test("a finished asset shows no state, and its chapter as description", () => {
@@ -156,53 +139,5 @@ describe("assetTileState", () => {
 			description: m.pipeline_failure_timeout(),
 			failed: true,
 		});
-	});
-});
-
-describe("assetTileActions", () => {
-	test("offers nothing without capabilities", () => {
-		expect(actionKeys(assetTileActions(asset(), handlers))).toEqual([]);
-	});
-
-	test("an editable chat upload offers adding it to the library, Delete last and destructive", () => {
-		expect(
-			actionKeys(
-				assetTileActions(
-					asset({
-						origin: "chat",
-						capabilities: {
-							edit: true,
-							manage_access: true,
-							delete: true,
-						},
-					}),
-					handlers,
-				),
-			),
-		).toEqual([
-			"edit",
-			"access",
-			"add-to-library",
-			"reprocess",
-			"delete!",
-		]);
-	});
-
-	test("an asset in processing cannot be reprocessed", () => {
-		expect(
-			actionKeys(
-				assetTileActions(
-					asset({
-						processingStatus: "active",
-						capabilities: {
-							edit: true,
-						},
-					}),
-					handlers,
-				),
-			),
-		).toEqual([
-			"edit",
-		]);
 	});
 });

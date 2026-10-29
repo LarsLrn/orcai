@@ -49,7 +49,7 @@ test("groups: the access manager shows the group grant on the block page", async
 
 	await page
 		.getByRole("button", {
-			name: message("blocks_detail_access_action"),
+			name: message("blocks_access_action"),
 		})
 		.click();
 
@@ -141,7 +141,7 @@ test("groups: the access manager grants several people at once", async ({
 
 	await page
 		.getByRole("button", {
-			name: message("blocks_detail_access_action"),
+			name: message("blocks_access_action"),
 		})
 		.click();
 

@@ -1,34 +1,31 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-	DownloadIcon,
-	EditIcon,
-	KeyRoundIcon,
-	RefreshCwIcon,
-	Trash2Icon,
-} from "lucide-react";
-import { useState } from "react";
-import { AccessDialog } from "@/components/access/access-dialog";
+import { DownloadIcon, MessageSquareIcon } from "lucide-react";
+import { useAssetActions } from "@/components/documents/asset-actions";
 import { FileViewer } from "@/components/documents/file-viewer";
 import { MetadataStatusNotice } from "@/components/documents/shared/metadata-generation";
+import { Badge } from "@/components/ui/badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
-	Section,
-	SectionContent,
-	SectionHeader,
-	SectionTitle,
-} from "@/components/ui/shell/section";
-import {
-	useDeleteAssetsMutation,
-	useReprocessAssetMutation,
-} from "@/hooks/mutations/use-asset-mutations";
+	DetailHeader,
+	DetailHeaderBand,
+	DetailHeaderDescription,
+	DetailHeaderHeading,
+	DetailHeaderIcon,
+	DetailHeaderMeta,
+	DetailHeaderTitle,
+} from "@/components/ui/shell/detail-header";
+import { Page, PageContent } from "@/components/ui/shell/page";
+import { ResourceOwner } from "@/components/users/resource-owner";
 import { openFreshUrl } from "@/lib/assets/open-fresh-url";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import {
 	isAssetWorking,
 	METADATA_POLL_MS,
 } from "@/lib/presentation/metadata-status";
+import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/assets/$assetId/")({
@@ -38,8 +35,6 @@ export const Route = createFileRoute("/app/hub/assets/$assetId/")({
 function RouteComponent() {
 	const { assetId } = Route.useParams();
 	const navigate = useNavigate();
-	const [isAccessOpen, setIsAccessOpen] = useState(false);
-	const { mutate: reprocessAsset } = useReprocessAssetMutation();
 	const { data: asset } = useSuspenseQuery(
 		orpc.asset.find.queryOptions({
 			input: {
@@ -61,104 +56,69 @@ function RouteComponent() {
 		}),
 	);
 
-	const { mutate: deleteAssets } = useDeleteAssetsMutation(
-		{
-			onSuccess: async () => {
-				await navigate({
-					to: "/app/hub/assets",
-				});
-			},
+	const { actions, dialog } = useAssetActions(asset.data, {
+		onDeleted: async () => {
+			await navigate({
+				to: "/app/hub/assets",
+			});
 		},
-		{
-			names: [
-				asset.data.title,
-			],
-		},
-	);
-	const canDownload = hasCapability(asset.data.capabilities, "download");
-	const canEdit = hasCapability(asset.data.capabilities, "edit");
-	const canDelete = hasCapability(asset.data.capabilities, "delete");
-	const canManageAccess = hasCapability(
-		asset.data.capabilities,
-		"manage_access",
-	);
+	});
+	const { Icon, well, band, badge, label } = RESOURCE_KINDS.asset;
 
 	return (
-		<Section>
-			<SectionHeader>
-				<SectionTitle>{asset.data.title}</SectionTitle>
-				<HeaderActions
-					actions={[
-						canDownload && {
-							key: "download",
-							label: m.assets_detail_download_button(),
-							icon: DownloadIcon,
-							variant: "default",
-							disabled: status !== "success",
-							onClick: () => openFreshUrl(refetch),
-						},
-						canEdit && {
-							key: "edit",
-							label: m.assets_detail_edit_action(),
-							icon: EditIcon,
-							linkProps: {
-								to: "/app/hub/assets/$assetId/edit",
-								params: {
-									assetId: asset.data.id,
-								},
+		<Page>
+			<DetailHeader>
+				<DetailHeaderBand className={band}>
+					<Icon />
+				</DetailHeaderBand>
+				<DetailHeaderIcon className={well}>
+					<Icon />
+				</DetailHeaderIcon>
+				<DetailHeaderHeading>
+					<DetailHeaderTitle>{asset.data.title}</DetailHeaderTitle>
+					<DetailHeaderMeta>
+						<Badge variant={badge}>{label()}</Badge>
+						<span>{getFileTypeLabel(asset.data.fileType)}</span>
+						{asset.data.origin === "chat" ? (
+							<Badge variant="outline">
+								<MessageSquareIcon aria-hidden="true" />
+								{m.assets_origin_chat_badge()}
+							</Badge>
+						) : null}
+						<ResourceOwner owner={asset.data.owner} />
+					</DetailHeaderMeta>
+					<HeaderActions
+						actions={[
+							hasCapability(asset.data.capabilities, "download") && {
+								key: "download",
+								label: m.assets_detail_download_button(),
+								icon: DownloadIcon,
+								variant: "default",
+								disabled: status !== "success",
+								onClick: () => openFreshUrl(refetch),
 							},
-						},
-						canManageAccess && {
-							key: "access",
-							label: m.assets_detail_access_action(),
-							icon: KeyRoundIcon,
-							onClick: () => setIsAccessOpen(true),
-						},
-						canEdit &&
-							asset.data.processingStatus !== "pending" &&
-							asset.data.processingStatus !== "active" && {
-								key: "reprocess",
-								label: m.assets_detail_reprocess_action(),
-								icon: RefreshCwIcon,
-								overflow: true,
-								onClick: () =>
-									reprocessAsset({
-										id: asset.data.id,
-									}),
-							},
-						canDelete && {
-							key: "delete",
-							label: m.assets_detail_delete_action(),
-							icon: Trash2Icon,
-							destructive: true,
-							onClick: () =>
-								deleteAssets({
-									refs: [
-										{
-											id: asset.data.id,
-										},
-									],
-								}),
-						},
-					]}
-				/>
-			</SectionHeader>
-			<SectionContent className="space-y-4">
-				<MetadataStatusNotice asset={asset.data} canEdit={canEdit} />
-				<FileViewer asset={asset.data} />
-
-				{canManageAccess ? (
-					<AccessDialog
-						open={isAccessOpen}
-						onOpenChange={setIsAccessOpen}
-						resourceRef={{
-							type: "asset",
-							id: asset.data.id,
-						}}
-						resourceName={asset.data.title}
+							actions.edit,
+							actions.access,
+							actions.addToLibrary,
+							actions.reprocess,
+							actions.delete,
+						]}
 					/>
+				</DetailHeaderHeading>
+				{asset.data.metadata.description ? (
+					<DetailHeaderDescription>
+						{asset.data.metadata.description}
+					</DetailHeaderDescription>
 				) : null}
-			</SectionContent>
-		</Section>
+			</DetailHeader>
+			<PageContent className="space-y-4">
+				<MetadataStatusNotice
+					asset={asset.data}
+					canEdit={hasCapability(asset.data.capabilities, "edit")}
+				/>
+				<FileViewer asset={asset.data} />
+			</PageContent>
+			{dialog}
+		</Page>
 	);
 }

@@ -265,18 +265,18 @@
 	"app_metadata_card_visibility_label": "Sichtbarkeit",
 	"app_metadata_card_visibility_private": "Privat",
 	"app_metadata_card_visibility_public": "Öffentlich",
+	"assets_access_action": "Zugriff & Gruppen",
 	"assets_add_page_description": "Laden Sie Dateien hoch. Jede Datei wird sofort zu einem Asset; die Metadaten, die sie begleiten, können Sie jederzeit ergänzen.",
 	"assets_add_page_title": "Assets hinzufügen",
 	"assets_add_to_library_action": "Zur Bibliothek hinzufügen",
 	"assets_add_to_library_toast_error": "Das Asset wurde nicht zur Bibliothek hinzugefügt. Versuchen Sie es erneut.",
 	"assets_add_to_library_toast_loading": "Wird zur Bibliothek hinzugefügt...",
 	"assets_add_to_library_toast_success": "Zur Bibliothek hinzugefügt",
-	"assets_tile_access_action": "Zugriff & Gruppen",
+	"assets_delete_action": "Asset löschen",
+	"assets_edit_action": "Asset bearbeiten",
+	"assets_reprocess_action": "Neu verarbeiten",
 	"assets_tile_author_description": "Autor: {name}",
 	"assets_tile_chapter_description": "Kapitel: {name}",
-	"assets_tile_delete_action": "Asset löschen",
-	"assets_tile_edit_action": "Asset bearbeiten",
-	"assets_tile_reprocess_action": "Neu verarbeiten",
 	"assets_tile_retry_action": "Erneut versuchen",
 	"assets_delete_confirm_button": [
 		{
@@ -369,11 +369,7 @@
 			}
 		}
 	],
-	"assets_detail_access_action": "Zugriff & Gruppen",
-	"assets_detail_delete_action": "Asset löschen",
 	"assets_detail_download_button": "Herunterladen",
-	"assets_detail_edit_action": "Inhalt bearbeiten",
-	"assets_detail_reprocess_action": "Neu verarbeiten",
 	"assets_edit_page_meta_title": "Bearbeiten",
 	"assets_edit_page_title": "Asset bearbeiten",
 	"assets_file_uploader_drop_active_label": "Dateien hier ablegen",
@@ -1457,6 +1453,7 @@
 	"behaviour_page_title": "Verhalten",
 	"behaviour_published_description": "Ein Verhaltensblock ist ein wiederverwendbarer System-Prompt, der festlegt, wie ein Bot antwortet. Veröffentlichte Blöcke stehen Bots und Chats zur Verfügung.",
 	"behaviour_published_title": "Veröffentlicht",
+	"blocks_access_action": "Zugriff & Gruppen",
 	"blocks_add_database_form_description": "Konfigurieren Sie ein wiederverwendbares Repository.",
 	"blocks_add_database_option_description": "Bündeln Sie wiederverwendbare Assets mit Abruf-Einstellungen.",
 	"blocks_add_database_option_title": "Repository",
@@ -1498,6 +1495,7 @@
 	"blocks_database_form_retrieval_mode_label": "Abrufmodus",
 	"blocks_database_form_score_threshold_label": "Score-Schwellenwert",
 	"blocks_database_form_update_submit_button": "Repository aktualisieren",
+	"blocks_delete_action": "Block löschen",
 	"blocks_delete_confirm_button": [
 		{
 			"declarations": [
@@ -1634,11 +1632,7 @@
 			}
 		}
 	],
-	"blocks_detail_access_action": "Zugriff & Gruppen",
-	"blocks_detail_delete_action": "Block löschen",
-	"blocks_detail_edit_action": "Block bearbeiten",
-	"blocks_detail_type_database": "Repository",
-	"blocks_detail_type_template": "KI-Verhalten",
+	"blocks_edit_action": "Block bearbeiten",
 	"blocks_edit_database_page_title": "Repository bearbeiten",
 	"blocks_edit_page_meta_title": "Block bearbeiten",
 	"blocks_edit_template_page_title": "KI-Verhalten bearbeiten",
@@ -1724,10 +1718,7 @@
 	"blocks_template_form_system_prompt_label": "System-Prompt",
 	"blocks_template_form_system_prompt_placeholder": "Erläutern Sie die Rolle des Bots, den Antwortstil und die Einschränkungen.",
 	"blocks_template_form_update_submit_button": "KI-Verhalten aktualisieren",
-	"blocks_tile_access_action": "Zugriff & Gruppen",
 	"blocks_tile_behaviour_contents": "Prompt",
-	"blocks_tile_delete_action": "Block löschen",
-	"blocks_tile_edit_action": "Block bearbeiten",
 	"blocks_update_toast_error": "Block konnte nicht aktualisiert werden",
 	"blocks_update_toast_loading": "Block wird aktualisiert...",
 	"blocks_update_toast_success": "Block erfolgreich aktualisiert",
@@ -1757,6 +1748,7 @@
 	"bot_setup_summary_unavailable": "Für Sie noch nicht verfügbar.",
 	"bot_setup_title": "Modell",
 	"bot_setup_unsaved_description": "Speichern Sie den Bot zuerst und wählen Sie dann hier sein Modell.",
+	"bots_access_action": "Zugriff & Gruppen",
 	"bots_add_page_description": "Folgen Sie der geführten Einrichtung, um den Bot, sein KI-Verhalten, seine Repositories und seine Zugriffseinstellungen festzulegen.",
 	"bots_add_page_title": "Bot erstellen",
 	"bots_all_group_label": "Alle Bots",
@@ -1764,9 +1756,7 @@
 	"bots_blocks_behaviour_title": "Verhalten",
 	"bots_blocks_repositories_description": "Dieser Bot verwendet Repository-Blöcke, um auf kuratierte Inhalte zu verweisen.",
 	"bots_blocks_repositories_title": "Repositories",
-	"bots_tile_access_action": "Zugriff & Gruppen",
-	"bots_tile_delete_action": "Bot löschen",
-	"bots_tile_edit_action": "Bot bearbeiten",
+	"bots_delete_action": "Bot löschen",
 	"bots_delete_confirm_button": [
 		{
 			"declarations": [
@@ -1858,11 +1848,8 @@
 			}
 		}
 	],
-	"bots_detail_access_action": "Zugriff & Gruppen",
-	"bots_detail_delete_action": "Bot löschen",
-	"bots_detail_draft_badge": "Entwurf",
-	"bots_detail_edit_action": "Bot bearbeiten",
 	"bots_detail_start_chat_action": "Chat starten",
+	"bots_edit_action": "Bot bearbeiten",
 	"bots_favourite_label": "Favorit",
 	"bots_favourite_toggle_label": "„{name}“ favorisieren",
 	"bots_favourites_group_label": "Favoriten",
@@ -3868,6 +3855,12 @@
 	"readiness_fix_action": "Einrichten",
 	"readiness_open_checklist_action": "Einrichtungs-Checkliste öffnen",
 	"readiness_ready_line": "Ihre Organisation ist eingerichtet.",
+	"resource_kind_asset": "Asset",
+	"resource_kind_behaviour": "Verhalten",
+	"resource_kind_bot": "Bot",
+	"resource_kind_repository": "Repository",
+	"resource_owner_label": "Eigentümer:",
+	"resource_owner_you": "Sie",
 	"sidebar_menu_analytics_item": "Analysen",
 	"toast_close_button_label": "Benachrichtigung schließen",
 	"tour_card_finish_button": "Fertig",

@@ -265,18 +265,18 @@
 	"app_metadata_card_visibility_label": "Visibility",
 	"app_metadata_card_visibility_private": "Private",
 	"app_metadata_card_visibility_public": "Public",
+	"assets_access_action": "Access & groups",
 	"assets_add_page_description": "Upload files. Each one becomes an asset right away; add the metadata that travels with it whenever you like.",
 	"assets_add_page_title": "Add assets",
 	"assets_add_to_library_action": "Add to library",
 	"assets_add_to_library_toast_error": "The asset was not added to the library. Try again.",
 	"assets_add_to_library_toast_loading": "Adding to the library...",
 	"assets_add_to_library_toast_success": "Added to the library",
-	"assets_tile_access_action": "Access & groups",
+	"assets_delete_action": "Delete asset",
+	"assets_edit_action": "Edit asset",
+	"assets_reprocess_action": "Reprocess",
 	"assets_tile_author_description": "Author: {name}",
 	"assets_tile_chapter_description": "Chapter: {name}",
-	"assets_tile_delete_action": "Delete asset",
-	"assets_tile_edit_action": "Edit asset",
-	"assets_tile_reprocess_action": "Reprocess",
 	"assets_tile_retry_action": "Retry",
 	"assets_delete_confirm_button": [
 		{
@@ -369,11 +369,7 @@
 			}
 		}
 	],
-	"assets_detail_access_action": "Access & groups",
-	"assets_detail_delete_action": "Delete asset",
 	"assets_detail_download_button": "Download",
-	"assets_detail_edit_action": "Edit content",
-	"assets_detail_reprocess_action": "Reprocess",
 	"assets_edit_page_meta_title": "Edit",
 	"assets_edit_page_title": "Edit asset",
 	"assets_file_uploader_drop_active_label": "Drop the files here",
@@ -1457,6 +1453,7 @@
 	"behaviour_page_title": "Behaviour",
 	"behaviour_published_description": "A behaviour block is a reusable system prompt that sets how a bot answers. Published blocks are available to bots and chats.",
 	"behaviour_published_title": "Published",
+	"blocks_access_action": "Access & groups",
 	"blocks_add_database_form_description": "Configure a reusable repository.",
 	"blocks_add_database_option_description": "Bundle reusable assets with retrieval settings.",
 	"blocks_add_database_option_title": "Repository",
@@ -1498,6 +1495,7 @@
 	"blocks_database_form_retrieval_mode_label": "Retrieval mode",
 	"blocks_database_form_score_threshold_label": "Score threshold",
 	"blocks_database_form_update_submit_button": "Update repository",
+	"blocks_delete_action": "Delete block",
 	"blocks_delete_confirm_button": [
 		{
 			"declarations": [
@@ -1634,11 +1632,7 @@
 			}
 		}
 	],
-	"blocks_detail_access_action": "Access & groups",
-	"blocks_detail_delete_action": "Delete block",
-	"blocks_detail_edit_action": "Edit block",
-	"blocks_detail_type_database": "Repository",
-	"blocks_detail_type_template": "AI behaviour",
+	"blocks_edit_action": "Edit block",
 	"blocks_edit_database_page_title": "Edit repository",
 	"blocks_edit_page_meta_title": "Edit block",
 	"blocks_edit_template_page_title": "Edit AI behaviour",
@@ -1724,10 +1718,7 @@
 	"blocks_template_form_system_prompt_label": "System prompt",
 	"blocks_template_form_system_prompt_placeholder": "Explain the bot's role, response style, and constraints.",
 	"blocks_template_form_update_submit_button": "Update AI behaviour",
-	"blocks_tile_access_action": "Access & groups",
 	"blocks_tile_behaviour_contents": "Prompt",
-	"blocks_tile_delete_action": "Delete block",
-	"blocks_tile_edit_action": "Edit block",
 	"blocks_update_toast_error": "Failed to update block",
 	"blocks_update_toast_loading": "Updating block...",
 	"blocks_update_toast_success": "Block updated successfully",
@@ -1757,6 +1748,7 @@
 	"bot_setup_summary_unavailable": "Not available to you yet.",
 	"bot_setup_title": "Model",
 	"bot_setup_unsaved_description": "Save the bot first, then choose its model here.",
+	"bots_access_action": "Access & groups",
 	"bots_add_page_description": "Follow the guided setup to define the bot, its AI behaviour, its repositories, and its access settings.",
 	"bots_add_page_title": "Create bot",
 	"bots_all_group_label": "All bots",
@@ -1764,9 +1756,7 @@
 	"bots_blocks_behaviour_title": "Behaviour",
 	"bots_blocks_repositories_description": "This bot uses repository blocks to reference curated content.",
 	"bots_blocks_repositories_title": "Repositories",
-	"bots_tile_access_action": "Access & groups",
-	"bots_tile_delete_action": "Delete bot",
-	"bots_tile_edit_action": "Edit bot",
+	"bots_delete_action": "Delete bot",
 	"bots_delete_confirm_button": [
 		{
 			"declarations": [
@@ -1858,11 +1848,8 @@
 			}
 		}
 	],
-	"bots_detail_access_action": "Access & groups",
-	"bots_detail_delete_action": "Delete bot",
-	"bots_detail_draft_badge": "Draft",
-	"bots_detail_edit_action": "Edit bot",
 	"bots_detail_start_chat_action": "Start chat",
+	"bots_edit_action": "Edit bot",
 	"bots_favourite_label": "Favourite",
 	"bots_favourite_toggle_label": "Favourite {name}",
 	"bots_favourites_group_label": "Favourites",
@@ -3868,6 +3855,12 @@
 	"readiness_fix_action": "Set up",
 	"readiness_open_checklist_action": "Open the setup checklist",
 	"readiness_ready_line": "Your organisation is set up.",
+	"resource_kind_asset": "Asset",
+	"resource_kind_behaviour": "Behaviour",
+	"resource_kind_bot": "Bot",
+	"resource_kind_repository": "Repository",
+	"resource_owner_label": "Owner:",
+	"resource_owner_you": "You",
 	"sidebar_menu_analytics_item": "Analytics",
 	"toast_close_button_label": "Close notification",
 	"tour_card_finish_button": "Finish",

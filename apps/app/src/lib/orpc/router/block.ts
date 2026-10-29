@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import type { Block } from "@orcai/schema";
+import type { Block, ResourceOwner } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
 	and,
@@ -49,6 +49,7 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 const listBlocks = authed.block.list.effect(function* ({ input, context }) {
@@ -174,10 +175,19 @@ const findBlock = authed.block.find
 		const [block] = yield* db
 			.select({
 				...getColumns(dbSchema.block),
+				owner: ownerColumns,
 			})
 			.from(dbSchema.block)
+			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.block.userId))
 			.where(eq(dbSchema.block.id, input.id))
-			.pipe(Effect.map((rows) => rows as Block[]));
+			.pipe(
+				Effect.map(
+					(rows) =>
+						rows as (Block & {
+							owner: ResourceOwner;
+						})[],
+				),
+			);
 
 		if (!block) {
 			return yield* Effect.fail(

@@ -26,6 +26,7 @@ import {
 	requireEntityPermission,
 	requirePermission,
 } from "@/lib/orpc/middlewares/permission";
+import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
 const listBots = authed.bot.list.effect(function* ({ input, context }) {
 	return yield* listBotsByStatus({
@@ -76,8 +77,10 @@ const findBot = authed.bot.find
 			.select({
 				...getColumns(dbSchema.bot),
 				isFavourite,
+				owner: ownerColumns,
 			})
 			.from(dbSchema.bot)
+			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.bot.userId))
 			.leftJoin(dbSchema.botFavourite, favouriteOf(context.auth.user.id))
 			.where(eq(dbSchema.bot.id, input.id));
 

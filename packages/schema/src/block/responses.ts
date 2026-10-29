@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { assetIdSchema } from "../asset/ref";
 import { assetWithCapabilitiesSchema } from "../asset/schema";
+import { resourceOwnerSchema } from "../resource/schema";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
@@ -23,7 +24,12 @@ export const createBlockResponseSchema = createDataResponseSchema(
 });
 
 export const findBlockResponseSchema = createDataResponseSchema(
-	blockWithCapabilitiesSchema,
+	z.intersection(
+		blockWithCapabilitiesSchema,
+		z.object({
+			owner: resourceOwnerSchema,
+		}),
+	),
 ).extend({
 	assets: z.array(assetWithCapabilitiesSchema).optional(),
 });
