@@ -1,0 +1,81 @@
+---
+title: Catalogue
+description: Browsing what organisations on the instance list (bots, behaviours and repositories), judging an entry on its page, and adding it to your organisation with Sharing and Model.
+---
+
+The catalogue (`/app/catalogue`) shows the bots, behaviours and repositories
+that organisations on this instance list. Everyone signed in can browse it and
+open an entry's page. Using an entry needs your organisation to add it and to
+share it with you. Listing and what it shares are described under
+[Access Control](/docs/using-orcai/access-control#the-catalogue).
+
+## Browsing
+
+The catalogue has the Library's layout. Its header has a search field; a rail
+on the left (above the results on small screens) has:
+
+- The views: **Discover**, and one per kind (Bots, Behaviours, Repositories)
+  with its count.
+- The view's filters, on a kind view or while searching. On narrow screens
+  they open from **Filters**, which shows how many are set.
+
+| View | Filters |
+|---|---|
+| Bots | **Model** (Any, Works with any model, Tuned for a model, Requires a model), **Organisation**, **Hide added** |
+| Behaviours, Repositories | **Organisation**, **Hide added** |
+| Discover, while searching | **Organisation**, **Hide added** |
+
+**Discover** shows the newest entries, then a shelf per kind with **See all**.
+While there are fewer than six entries it shows them in one grid. A search from
+Discover covers every kind; on a kind view it covers that kind. Results sort
+by **Newest** or **A to Z** and page like the Library. Search, filters, sort
+and page are part of the address, so going back from an entry's page returns
+to the same results at the same scroll position.
+
+Each tile names the organisation the entry comes from and what it holds: a
+bot's behaviour and repositories, "Prompt" for a behaviour, or a repository's
+documents. A bot's tile shows the model its author set up: **Requires …** when
+its chats always use that model, **Tuned for …** when it is a recommendation.
+A check on the icon marks what your organisation already added.
+
+## An Entry's Page
+
+Opening a tile shows the entry's page: its organisation and owner, its
+description, and what you need to judge it before adding it.
+
+- A bot lists its behaviour and repositories, with their documents, and says
+  which model it asks for and whether your organisation can use that model.
+- A behaviour shows its full prompt.
+- A repository shows its first documents and how many more it holds.
+
+Admins and managers see **Add to …** for your active organisation. Other
+members are told to ask them. An entry your organisation added shows
+**Added to …** and **Open in Library**; one it made itself shows **Open in
+Library**.
+
+## Adding An Entry
+
+**Add to …** adds the entry to your organisation and opens its setup:
+
+1. **Sharing**: who in your organisation may use it. Nobody can until you
+   share it. Grants here are always for use: your organisation cannot edit,
+   list or delete what it added.
+2. **Model** (bots only): the model the bot's chats use in your organisation,
+   recommended or required, with the same settings and coverage as the bot
+   editor's Model step. When the author set up a model that your organisation
+   also has and may use, it is preselected as the **Author's pick**; otherwise
+   pick another model or ask an admin to enable it. **Skip** leaves people
+   free to pick any model.
+3. **Done**: start a chat with the bot (once it is shared with you), open it
+   in the Library, or go back to the catalogue.
+
+Leaving the setup early keeps the entry added but unshared; finish it later
+from the entry's **Access & groups** and, for a bot, its **Model in …** card in
+the Library. The entry then appears in your Library marked "From" its home
+organisation, and the **Source** filter there separates it from what your
+organisation made. **Remove from …** in its **…** menu takes it out again.
+Changes its home organisation makes reach you right away, and taking it out
+of the catalogue removes it from every organisation that added it.
+
+The [OrcAI Assistant](/docs/using-orcai/assistant) can search the catalogue
+and, for admins and managers, add and remove entries after you confirm.

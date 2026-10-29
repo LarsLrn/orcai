@@ -52,12 +52,37 @@ export const toggleFilter = <I>(definition: {
 	schema: z.boolean().catch(false).default(false),
 });
 
+/** Any number of choices, such as organisations; none narrows nothing. */
+export const multiFilter = <V extends string, I>({
+	value,
+	...definition
+}: {
+	label: () => string;
+	/** One choice's value in the URL. */
+	value: z.ZodType<V>;
+	options: readonly FilterOption<V>[];
+	toInput: (values: V[]) => I;
+}) => ({
+	type: "multi" as const,
+	...definition,
+	defaultValue: [] as V[],
+	schema: z.array(value).catch([]).default([]),
+});
+
 export type FilterDefinition =
 	| {
 			type: "single";
 			label: () => string;
 			options: readonly FilterOption<string>[];
 			defaultValue: string;
+			schema: z.ZodType;
+			toInput: (value: never) => object;
+	  }
+	| {
+			type: "multi";
+			label: () => string;
+			options: readonly FilterOption<string>[];
+			defaultValue: string[];
 			schema: z.ZodType;
 			toInput: (value: never) => object;
 	  }
@@ -120,9 +145,12 @@ export const activeFilterCount = <D extends FilterDefinitions>(
 	filters: D,
 	values: FilterValues<D>,
 ) =>
-	Object.entries(filters).filter(
-		([key, definition]) => values[key] !== definition.defaultValue,
-	).length;
+	Object.entries(filters).filter(([key, definition]) => {
+		const value: unknown = values[key];
+		return Array.isArray(value)
+			? value.length > 0
+			: value !== definition.defaultValue;
+	}).length;
 
 /** Every filter's input together; one filter's input may vary with its value. */
 type FilterInputs<D extends FilterDefinitions> = {

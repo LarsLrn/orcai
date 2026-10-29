@@ -103,7 +103,7 @@ export const useLibrarySearch = <V extends LibraryView>(view: V) => {
 		});
 	return {
 		search,
-		setFilter: (key: string, value: string | boolean) =>
+		setFilter: (key: string, value: string | string[] | boolean) =>
 			update({
 				[key]: value,
 			}),

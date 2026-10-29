@@ -161,17 +161,123 @@
 	"access_visibility_toast_loading": "Updating the listing...",
 	"access_visibility_toast_private": "Resource is no longer listed",
 	"access_visibility_toast_public": "Resource is now listed in the catalogue",
+	"catalogue_add_action": "Add to {organisation}",
+	"catalogue_added_label": "Added to {organisation}",
+	"catalogue_detail_ask_installer": "To add it to {organisation}, ask an admin or manager.",
+	"catalogue_detail_contents_label": "Contents",
+	"catalogue_detail_inside_label": "What's inside",
+	"catalogue_detail_model_label": "Model",
+	"catalogue_detail_model_none": "Works with any model.",
+	"catalogue_detail_model_only": "Only a model, no blocks.",
+	"catalogue_detail_model_recommended": "Tuned for {model}. It works with other models, but answers may differ.",
+	"catalogue_detail_model_required": "Requires {model}: chats with this bot always use it.",
+	"catalogue_detail_model_unusable": "{organisation} cannot use it yet.",
+	"catalogue_detail_model_usable": "{organisation} can use it.",
+	"catalogue_detail_more_documents": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "and one more document",
+				"countPlural=other": "and {count} more documents"
+			}
+		}
+	],
+	"catalogue_detail_prompt_label": "Prompt",
+	"catalogue_detail_repository_documents": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Repository, one document",
+				"countPlural=other": "Repository, {count} documents"
+			}
+		}
+	],
+	"catalogue_empty_description": "When an organisation lists a bot, behaviour or repository, it shows up here for everyone on this instance.",
+	"catalogue_empty_title": "The catalogue is empty",
+	"catalogue_filter_hide_added": "Hide added",
+	"catalogue_filter_model_any": "Any",
+	"catalogue_filter_model_label": "Model",
+	"catalogue_filter_model_none": "Works with any model",
+	"catalogue_filter_model_recommended": "Tuned for a model",
+	"catalogue_filter_model_required": "Requires a model",
+	"catalogue_filter_organisation_label": "Organisation",
+	"catalogue_filter_status_label": "Status",
 	"catalogue_from_organisation": "From {organisation}",
 	"catalogue_install_toast_error": "Could not add {name}",
 	"catalogue_install_toast_loading": "Adding {name}...",
 	"catalogue_install_toast_success": "{name} is in {organisation} now",
+	"catalogue_kind_empty_behaviour": "No behaviours listed yet",
+	"catalogue_kind_empty_bot": "No bots listed yet",
+	"catalogue_kind_empty_repository": "No repositories listed yet",
+	"catalogue_open_in_library_action": "Open in Library",
+	"catalogue_overview_sparse": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "One entry so far.",
+				"countPlural=other": "{count} entries so far."
+			}
+		}
+	],
+	"catalogue_page_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Shared by one organisation on this instance.",
+				"countPlural=other": "Shared by {count} organisations on this instance."
+			}
+		}
+	],
+	"catalogue_page_title": "Catalogue",
 	"catalogue_remove_action": "Remove from {organisation}",
+	"catalogue_search_placeholder": "Search the catalogue",
+	"catalogue_search_results_title": "Search results",
+	"catalogue_shelf_new": "New in the catalogue",
+	"catalogue_tile_added_fallback_label": "(added)",
+	"catalogue_tile_added_label": "(added to {organisation})",
 	"catalogue_uninstall_confirm_button": "Remove",
 	"catalogue_uninstall_confirm_description": "Its sharing and model setup in {organisation} go with it, and chats with it there turn read-only. You can add it again from the catalogue.",
 	"catalogue_uninstall_confirm_title": "Remove {name} from {organisation}?",
 	"catalogue_uninstall_toast_error": "Could not remove {name}",
 	"catalogue_uninstall_toast_loading": "Removing {name}...",
 	"catalogue_uninstall_toast_success": "{name} is no longer in {organisation}",
+	"catalogue_view_discover": "Discover",
+	"catalogue_views_label": "Catalogue sections",
+	"catalogue_wizard_back_to_catalogue_action": "Back to catalogue",
+	"catalogue_wizard_done_description": "It shows in your Library, marked as from {organisation}.",
+	"catalogue_wizard_done_title": "{name} is in {organisation}",
+	"catalogue_wizard_finish_action": "Finish",
+	"catalogue_wizard_sharing_description": "Nobody here can use it until you share it.",
+	"catalogue_wizard_sharing_title": "Who in {organisation} can use it?",
+	"catalogue_wizard_skip_action": "Skip",
+	"catalogue_wizard_step_done": "Done",
+	"catalogue_wizard_step_heading": "Step {position} of {count}: {step}",
+	"catalogue_wizard_step_model": "Model",
+	"catalogue_wizard_step_sharing": "Sharing",
 	"account_change_password_confirm_description": "Are you sure you want to change your password?",
 	"account_change_password_confirm_title": "Change password",
 	"account_change_password_toast_error": "Failed to change password",
@@ -1759,6 +1865,11 @@
 	"blocks_update_toast_error": "Failed to update block",
 	"blocks_update_toast_loading": "Updating block...",
 	"blocks_update_toast_success": "Block updated successfully",
+	"bot_setup_authors_pick_preselected": "It is preselected.",
+	"bot_setup_authors_pick_recommended": "{author} tuned the bot for this model.",
+	"bot_setup_authors_pick_required": "{author} requires this model for the bot.",
+	"bot_setup_authors_pick_title": "Author's pick: {model}",
+	"bot_setup_authors_pick_unusable": "{organisation} cannot use it yet: pick another model or ask an admin to enable it.",
 	"bot_setup_coverage_count": "{covered} of {total} covered",
 	"bot_setup_coverage_covered": "Covered",
 	"bot_setup_coverage_not_covered": "Not covered",
@@ -3208,6 +3319,7 @@
 			}
 		}
 	],
+	"library_browse_catalogue_action": "Browse the catalogue",
 	"library_page_title": "Library",
 	"library_page_description": "Everything {organization} can use: made here or added from the catalogue.",
 	"library_search_placeholder": "Search the library",
@@ -4665,6 +4777,7 @@
 	"sidebar_logo_home_link_label": "OrcAI home",
 	"sidebar_manage_group_label": "Your workspace",
 	"sidebar_menu_administration_item": "Administration",
+	"sidebar_menu_catalogue_item": "Catalogue",
 	"sidebar_menu_groups_item": "Groups",
 	"sidebar_menu_library_item": "Library",
 	"sidebar_menu_models_item": "Models",

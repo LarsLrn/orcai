@@ -1,6 +1,8 @@
 import type { LibraryScope } from "@orcai/schema";
-import { LibraryIcon, UserIcon } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { CompassIcon, LibraryIcon, UserIcon } from "lucide-react";
 import { LibraryNewMenu } from "@/components/library/library-new-menu";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Empty,
 	EmptyContent,
@@ -15,7 +17,8 @@ import { m } from "@/paraglide/messages";
 
 /**
  * Nothing to show yet: in the whole library, or of the user's own with Mine.
- * The copy depends on whether the user may create anything.
+ * The copy depends on whether the user may create anything; the catalogue
+ * offers what other organisations share.
  */
 export const LibraryEmpty = ({
 	scope,
@@ -58,11 +61,18 @@ export const LibraryEmpty = ({
 							: m.library_empty_read_description()}
 				</EmptyDescription>
 			</EmptyHeader>
-			{canCreate ? (
-				<EmptyContent>
-					<LibraryNewMenu />
-				</EmptyContent>
-			) : null}
+			<EmptyContent className="flex-row flex-wrap justify-center">
+				{canCreate ? <LibraryNewMenu /> : null}
+				<Link
+					to="/app/catalogue"
+					className={buttonVariants({
+						variant: "outline",
+					})}
+				>
+					<CompassIcon data-icon="inline-start" aria-hidden="true" />
+					{m.library_browse_catalogue_action()}
+				</Link>
+			</EmptyContent>
 		</Empty>
 	);
 };

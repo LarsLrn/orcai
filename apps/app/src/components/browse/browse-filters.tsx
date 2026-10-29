@@ -28,10 +28,10 @@ import { m } from "@/paraglide/messages";
 type FilterFieldsProps<D extends FilterDefinitions> = {
 	filters: D;
 	values: FilterValues<D>;
-	onChange: (key: keyof D & string, value: string | boolean) => void;
+	onChange: (key: keyof D & string, value: string | string[] | boolean) => void;
 };
 
-/** One field per filter definition: radios for a single choice, a checkbox for a toggle. */
+/** One field per filter definition: radios for a single choice, checkboxes for several or a toggle. */
 const FilterFields = <D extends FilterDefinitions>({
 	filters,
 	values,
@@ -40,49 +40,85 @@ const FilterFields = <D extends FilterDefinitions>({
 	const id = useId();
 	return (
 		<div className="flex flex-col gap-6">
-			{Object.entries(filters).map(([key, definition]) => (
-				<FieldSet key={key} className="gap-0">
-					<FieldLegend
-						variant="label"
-						className="mb-2 text-muted-foreground text-xs uppercase tracking-wider"
-					>
-						{definition.label()}
-					</FieldLegend>
-					{definition.type === "single" ? (
-						<RadioGroup
-							value={values[key]}
-							onValueChange={(value) => onChange(key, value as string)}
-							className="gap-2"
+			{Object.entries(filters).map(([key, definition]) =>
+				definition.type === "multi" &&
+				definition.options.length === 0 ? null : (
+					<FieldSet key={key} className="gap-0">
+						<FieldLegend
+							variant="label"
+							className="mb-2 text-muted-foreground text-xs uppercase tracking-wider"
 						>
-							{definition.options.map((option) => (
-								<Field key={option.value} orientation="horizontal">
-									<RadioGroupItem
-										value={option.value}
-										id={`${id}-${key}-${option.value}`}
-									/>
-									<FieldLabel
-										htmlFor={`${id}-${key}-${option.value}`}
-										className="font-normal"
-									>
-										{option.label()}
-									</FieldLabel>
-								</Field>
-							))}
-						</RadioGroup>
-					) : (
-						<Field orientation="horizontal">
-							<Checkbox
-								id={`${id}-${key}`}
-								checked={values[key] === true}
-								onCheckedChange={(checked) => onChange(key, checked === true)}
-							/>
-							<FieldLabel htmlFor={`${id}-${key}`} className="font-normal">
-								{definition.optionLabel()}
-							</FieldLabel>
-						</Field>
-					)}
-				</FieldSet>
-			))}
+							{definition.label()}
+						</FieldLegend>
+						{definition.type === "single" ? (
+							<RadioGroup
+								value={values[key]}
+								onValueChange={(value) => onChange(key, value as string)}
+								className="gap-2"
+							>
+								{definition.options.map((option) => (
+									<Field key={option.value} orientation="horizontal">
+										<RadioGroupItem
+											value={option.value}
+											id={`${id}-${key}-${option.value}`}
+										/>
+										<FieldLabel
+											htmlFor={`${id}-${key}-${option.value}`}
+											className="font-normal"
+										>
+											{option.label()}
+										</FieldLabel>
+									</Field>
+								))}
+							</RadioGroup>
+						) : definition.type === "multi" ? (
+							<div className="flex flex-col gap-2">
+								{definition.options.map((option) => {
+									const selected = values[key] as string[];
+									return (
+										<Field key={option.value} orientation="horizontal">
+											<Checkbox
+												id={`${id}-${key}-${option.value}`}
+												checked={selected.includes(option.value)}
+												onCheckedChange={(checked) =>
+													onChange(
+														key,
+														checked
+															? [
+																	...selected,
+																	option.value,
+																]
+															: selected.filter(
+																	(value) => value !== option.value,
+																),
+													)
+												}
+											/>
+											<FieldLabel
+												htmlFor={`${id}-${key}-${option.value}`}
+												className="min-w-0 font-normal"
+											>
+												<span className="truncate">{option.label()}</span>
+											</FieldLabel>
+										</Field>
+									);
+								})}
+							</div>
+						) : (
+							<Field orientation="horizontal">
+								<Checkbox
+									id={`${id}-${key}`}
+									checked={values[key] === true}
+									onCheckedChange={(checked) => onChange(key, checked === true)}
+								/>
+								<FieldLabel htmlFor={`${id}-${key}`} className="font-normal">
+									{definition.optionLabel()}
+								</FieldLabel>
+							</Field>
+						)}
+					</FieldSet>
+				),
+			)}
 		</div>
 	);
 };

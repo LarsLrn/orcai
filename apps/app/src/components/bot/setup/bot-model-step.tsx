@@ -2,12 +2,14 @@ import type { BotId, ModelId, ProviderId } from "@orcai/core";
 import type {
 	BotSetup,
 	BotSetupStrength,
+	CatalogueModelHint,
 	GenerationSettings,
 	Model,
 	Provider,
 } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
+import { CircleAlertIcon, CircleCheckIcon } from "lucide-react";
 import { type Ref, useImperativeHandle } from "react";
 import { BotSetupCoverage } from "@/components/bot/setup/bot-setup-coverage";
 import {
@@ -15,6 +17,7 @@ import {
 	GenerationSettingsFieldGroup,
 } from "@/components/chat/form/generation-settings-field-group";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -51,12 +54,62 @@ const strengthOptions = () =>
 		},
 	] as const;
 
-const formValues = (setup: BotSetup | null): SetupFormValues => ({
-	modelId: setup?.model?.id,
-	providerId: setup?.model?.providerId,
-	strength: setup?.strength ?? "recommended",
-	...setup?.generation,
-});
+/**
+ * The model a bot's author set up, offered when adding the bot from the
+ * catalogue: preselected when the active organisation may use it.
+ */
+type AuthorsPick = {
+	hint: CatalogueModelHint;
+	/** The active organisation's model with the same provider model, when usable. */
+	modelId: ModelId | null;
+	/** The bot's home. */
+	author: string;
+	/** The active organisation. */
+	organisation: string;
+};
+
+const formValues = (
+	setup: BotSetup | null,
+	authorsPick: AuthorsPick | undefined,
+): SetupFormValues =>
+	setup
+		? {
+				modelId: setup.model?.id,
+				providerId: setup.model?.providerId,
+				strength: setup.strength,
+				...setup.generation,
+			}
+		: {
+				modelId: authorsPick?.modelId ?? undefined,
+				providerId: undefined,
+				strength: authorsPick?.hint.strength ?? "recommended",
+			};
+
+/** Which model the author asks for, and whether it is preselected or missing here. */
+const AuthorsPickNote = ({ pick }: { pick: AuthorsPick }) => (
+	<Alert>
+		{pick.modelId ? <CircleCheckIcon /> : <CircleAlertIcon />}
+		<AlertTitle>
+			{m.bot_setup_authors_pick_title({
+				model: pick.hint.modelName,
+			})}
+		</AlertTitle>
+		<AlertDescription>
+			{pick.hint.strength === "required"
+				? m.bot_setup_authors_pick_required({
+						author: pick.author,
+					})
+				: m.bot_setup_authors_pick_recommended({
+						author: pick.author,
+					})}{" "}
+			{pick.modelId
+				? m.bot_setup_authors_pick_preselected()
+				: m.bot_setup_authors_pick_unusable({
+						organisation: pick.organisation,
+					})}
+		</AlertDescription>
+	</Alert>
+);
 
 /** Lets the wizard save the step before leaving it, as it does its own steps. */
 type BotModelStepHandle = {
@@ -72,9 +125,11 @@ type BotModelStepHandle = {
  */
 const BotModelStep = ({
 	botId,
+	authorsPick,
 	ref,
 }: {
 	botId: BotId | undefined;
+	authorsPick?: AuthorsPick;
 	ref?: Ref<BotModelStepHandle>;
 }) => {
 	const { data: found } = useQuery(
@@ -119,6 +174,7 @@ const BotModelStep = ({
 			key={JSON.stringify(found.data.setup)}
 			botId={botId}
 			setup={found.data.setup}
+			authorsPick={authorsPick}
 			ref={ref}
 		/>
 	);
@@ -127,10 +183,12 @@ const BotModelStep = ({
 const BotModelForm = ({
 	botId,
 	setup,
+	authorsPick,
 	ref,
 }: {
 	botId: BotId;
 	setup: BotSetup | null;
+	authorsPick: AuthorsPick | undefined;
 	ref?: Ref<BotModelStepHandle>;
 }) => {
 	const { mutateAsync: saveSetup, isPending } = useSaveBotSetupMutation();
@@ -154,19 +212,21 @@ const BotModelForm = ({
 		return result.status === "success";
 	};
 	const form = useAppForm({
-		defaultValues: formValues(setup),
+		defaultValues: formValues(setup, authorsPick),
 		onSubmit: async ({ value }) => {
 			await submit(value);
 		},
 	});
+	// A preselected Author's pick counts as a change until it is saved.
 	const isDirty = () =>
-		!form.state.isDefaultValue && form.state.values.modelId !== undefined;
+		form.state.values.modelId !== undefined &&
+		(!form.state.isDefaultValue || setup === null);
 	useImperativeHandle(ref, () => ({
 		isDirty,
 		save: async () => !isDirty() || (await submit(form.state.values)),
 	}));
 	const modelId = useSelector(form.store, (state) => state.values.modelId);
-	const providerId = useSelector(
+	const selectedProviderId = useSelector(
 		form.store,
 		(state) => state.values.providerId,
 	);
@@ -180,6 +240,7 @@ const BotModelForm = ({
 				: skipToken,
 		}),
 	);
+	const providerId = selectedProviderId ?? model?.data.providerId;
 
 	return (
 		<Card className="min-w-0 rounded-2xl">
@@ -195,6 +256,9 @@ const BotModelForm = ({
 					}}
 					className="flex flex-col gap-5"
 				>
+					{authorsPick && !setup ? (
+						<AuthorsPickNote pick={authorsPick} />
+					) : null}
 					<div className="flex flex-col gap-2">
 						<Label>{m.chat_settings_model_label()}</Label>
 						<ModelSelectorButton
@@ -257,4 +321,4 @@ const BotModelForm = ({
 	);
 };
 
-export { BotModelStep, type BotModelStepHandle };
+export { type AuthorsPick, BotModelStep, type BotModelStepHandle };
