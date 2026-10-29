@@ -1,7 +1,7 @@
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import type { ChatReadOnlyReason } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import { usableInOrganization } from "@/lib/authz/organization-use";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 type ChatState = {
@@ -37,21 +37,24 @@ export const chatReadOnlyReason = (
 	return null;
 };
 
-/** Whether the user may use the chat's bot now; true for a chat without one. */
+/**
+ * Whether the user may use the chat's bot in the chat's organisation now;
+ * true for a chat without one.
+ */
 export const chatBotUsable = (
-	chat: Pick<ChatState, "botId">,
+	chat: Pick<ChatState, "botId" | "organizationId">,
 	viewer: {
 		userId: UserId;
 		zedToken: string | undefined;
 	},
 ) =>
 	chat.botId
-		? permittedEntityIds({
-				entityIds: [
+		? usableInOrganization({
+				resourceType: "bot",
+				resourceIds: [
 					chat.botId,
 				],
-				entityType: "bot",
-				permission: "use",
+				organizationId: chat.organizationId,
 				...viewer,
 			}).pipe(Effect.map((usable) => usable.size > 0))
 		: Effect.succeed(true);

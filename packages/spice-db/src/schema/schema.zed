@@ -36,7 +36,7 @@ definition bot {
 	relation public: user:*
 
 	permission read = owner + manager + editor + viewer + public
-	permission use = read
+	permission use = owner + manager + editor + viewer
 	permission fork = read
 	permission edit = owner + manager + editor
 	permission delete = owner + manager
@@ -52,7 +52,7 @@ definition block {
 	relation bot: bot
 
 	permission read = owner + manager + editor + viewer + bot->read + public
-	permission use = read
+	permission use = owner + manager + editor + viewer
 	permission fork = read
 	permission edit = owner + manager + editor
 	permission delete = owner + manager
@@ -69,7 +69,7 @@ definition asset {
 
 	permission read = owner + manager + editor + viewer + block->read + public
 	permission download = read
-	permission use = read
+	permission use = owner + manager + editor + viewer
 	permission fork = read
 	permission edit = owner + manager + editor
 	permission delete = owner + manager

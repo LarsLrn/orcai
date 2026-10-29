@@ -1,4 +1,4 @@
-import type { AssetId, BlockId, UserId } from "@orcai/core";
+import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
@@ -16,6 +16,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 export const loadDatabaseBlockAssets = (params: {
 	blockId: BlockId;
 	userId: UserId;
+	organizationId: OrganizationId | undefined;
 	zedToken?: string;
 }) =>
 	Effect.gen(function* () {
@@ -35,6 +36,7 @@ export const loadDatabaseBlockAssets = (params: {
 			entityType: "asset",
 			entityIds: assets.map((asset) => asset.id),
 			userId: params.userId,
+			organizationId: params.organizationId,
 			zedToken: params.zedToken,
 		});
 

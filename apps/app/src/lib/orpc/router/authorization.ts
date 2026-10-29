@@ -20,6 +20,7 @@ const checkAuthorization = authed.authorization.check.effect(function* ({
 			input.permission,
 		],
 		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
 		zedToken: getZedToken(context, input),
 	});
 
@@ -37,6 +38,7 @@ const checkManyAuthorization = authed.authorization.checkMany.effect(
 			entityIds: input.entityIds as EntityIdFor<CapabilityEntityType>[],
 			permissions: input.permissions,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: getZedToken(context, input),
 		});
 
@@ -69,6 +71,7 @@ const organizationCapabilities =
 			entityId: organizationId,
 			permissions: input.permissions,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: getZedToken(context, input),
 		});
 

@@ -29,6 +29,7 @@ import {
 const listBots = authed.bot.list.effect(function* ({ input, context }) {
 	return yield* listBotsByStatus({
 		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
 		status: "ready",
 		pageIndex: input.pageIndex,
 		pageSize: input.pageSize,
@@ -46,6 +47,7 @@ const listDraftBots = authed.bot.listDrafts.effect(function* ({
 }) {
 	return yield* listBotsByStatus({
 		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
 		status: "draft",
 		pageIndex: input.pageIndex,
 		pageSize: input.pageSize,
@@ -93,6 +95,7 @@ const findBot = authed.bot.find
 			entityType: "bot",
 			entityId: bot.id,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: getZedToken(context, input),
 		});
 
@@ -116,6 +119,7 @@ const findBotEditor = authed.bot.findEditor
 		return yield* loadBotEditor({
 			id: input.id,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: getZedToken(context, input),
 		}).pipe(
 			Effect.mapError(
@@ -172,6 +176,7 @@ const publishBot = authed.bot.publish
 		const editor = yield* loadBotEditor({
 			id: input.id,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 		});
 
 		if (!editor.data.templateBlock) {
@@ -231,6 +236,7 @@ const publishBot = authed.bot.publish
 		const updatedEditor = yield* loadBotEditor({
 			id: input.id,
 			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
 		});
 
 		return {

@@ -179,14 +179,18 @@ loses its grants, even the last manager's, when they are removed from the
 organisation, their account is deleted or the group is deleted. The owner keeps
 managing the resource.
 
-A private resource is reachable only by those it was granted to. Grants go
-only to members and groups of the resource's organisation, but access follows
-the person: someone who belongs to two organisations uses and links what they
-can read in either. Sharing and linking across organisations are intended. A
-public resource is the opposite: every signed-in user of the instance can find
-and use it, whatever organisation they are in. Only the configuration and its
-blocks are shared, because a public resource runs with the providers, models,
-and quotas of the organisation it is used in.
+A private resource is reachable only by those it was granted to. Using a
+resource happens in your active organisation: starting a chat with a bot,
+attaching a block to a chat, or linking a block into a bot. It needs the
+resource to belong to that organisation and a grant issued there, to you, to
+one of its groups you are in, or to All Members. Owning the resource counts in
+its own organisation. Access does not travel with the person: someone who
+belongs to two organisations uses in each only what is shared there.
+
+A public resource is listed: every signed-in user of the instance can find and
+preview it, but using it still needs a grant in the organisation where it is
+used. Only the configuration and its blocks are shared, because a resource
+runs with the providers, models and quotas of the organisation it is used in.
 
 The same access manager pattern is reused for:
 
@@ -206,9 +210,11 @@ Edit does not cascade: an editor or manager of a bot does not become an editor
 of its blocks, and editing a block or a content item needs a grant on it. When
 you give someone edit or manage on a bot, the access manager offers to give
 them edit on the bot's blocks too, for the blocks you can share. Because
-linking passes read on, linking requires read on what is linked: a bot links
-only blocks its editor can read, and a repository attaches only content items
-its editor can read.
+linking passes read on, a bot links only blocks of its own organisation that
+its editor may use there, and a repository attaches only content items its
+editor can read. A chat with a bot uses the bot's blocks without a grant on
+each of them; a chat without a bot attaches only blocks of the chat's
+organisation.
 
 Inherited access is shown, not edited. `manage_access` does not cascade, so a
 grant that arrives from a bot is changed on that bot, which is where the
