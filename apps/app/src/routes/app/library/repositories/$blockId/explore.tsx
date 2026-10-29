@@ -29,8 +29,9 @@ const searchSchema = z.object({
 	mode: retrievalModeSchema.optional().catch(undefined),
 	/** One document of the repository. */
 	asset: assetIdSchema.optional().catch(undefined),
-	k: z
-		.union(TOP_K_OPTIONS.map((count) => z.literal(count)))
+	k: z.coerce
+		.number()
+		.pipe(z.union(TOP_K_OPTIONS.map((count) => z.literal(count))))
 		.optional()
 		.catch(undefined),
 });

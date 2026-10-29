@@ -49,7 +49,13 @@ export const toggleFilter = <I>(definition: {
 	type: "toggle" as const,
 	...definition,
 	defaultValue: false,
-	schema: z.boolean().catch(false).default(false),
+	schema: z
+		.union([
+			z.boolean(),
+			z.stringbool(),
+		])
+		.catch(false)
+		.default(false),
 });
 
 /** Any number of choices, such as organisations; none narrows nothing. */
