@@ -1,5 +1,6 @@
 import type {
 	Asset,
+	AssetListItem,
 	AssetWithCapabilities,
 	DocumentReadiness,
 } from "@orcai/schema";
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	Tile,
+	TileBadges,
 	TileBand,
 	TileBody,
 	TileDescription,
@@ -16,8 +18,10 @@ import {
 	TileIcon,
 	TileMark,
 	TileMenu,
+	TileProvenance,
 	TileTitle,
 } from "@/components/ui/shell/tile";
+import { ResourceOwner } from "@/components/users/resource-owner";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
 import {
 	documentStateBadge,
@@ -109,16 +113,19 @@ const AssetTileBody = ({
 	asset,
 	document,
 	title,
+	provenance,
 }: {
 	asset: TileAsset;
 	document?: TileDocument;
 	title: React.ReactNode;
+	provenance?: React.ReactNode;
 }) => {
 	const { badges, description, failed } = assetTileState(asset, document);
 
 	return (
 		<TileBody>
 			{title}
+			{provenance}
 			{description ? (
 				<TileDescription className={cn(failed && "text-status-danger")}>
 					{description}
@@ -132,16 +139,7 @@ const AssetTileBody = ({
 						{m.assets_origin_chat_badge()}
 					</Badge>
 				) : null}
-				{badges.map((badge) => (
-					<Badge
-						key={badge.label}
-						variant={badge.variant}
-						className={badge.className}
-					>
-						{badge.icon ? <badge.icon aria-hidden="true" /> : null}
-						{badge.label}
-					</Badge>
-				))}
+				<TileBadges badges={badges} />
 			</TileFooter>
 		</TileBody>
 	);
@@ -163,7 +161,11 @@ const detailTitle = (asset: TileAsset) => (
 );
 
 /** An asset on a browsing surface: band and its `…` menu. */
-const AssetTile = ({ asset }: { asset: TileAsset }) => {
+const AssetTile = ({
+	asset,
+}: {
+	asset: TileAsset & Pick<AssetListItem, "owner">;
+}) => {
 	const { actions, dialog } = useAssetActions(asset);
 
 	return (
@@ -174,7 +176,15 @@ const AssetTile = ({ asset }: { asset: TileAsset }) => {
 			<TileIcon className={well}>
 				<Icon />
 			</TileIcon>
-			<AssetTileBody asset={asset} title={detailTitle(asset)} />
+			<AssetTileBody
+				asset={asset}
+				title={detailTitle(asset)}
+				provenance={
+					<TileProvenance>
+						<ResourceOwner owner={asset.owner} />
+					</TileProvenance>
+				}
+			/>
 			<TileMenu
 				actions={[
 					actions.edit,

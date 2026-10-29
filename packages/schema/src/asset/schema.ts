@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
 import { entityCapabilitiesSchema } from "../authorization";
 import { blockIdSchema } from "../block/ref";
+import { resourceOwnerSchema } from "../resource/schema";
+import { libraryScopeSchema } from "../shared/library";
 import { assetFileTypeSchema } from "../shared/primitives/file-type";
 import {
 	pipelineFailureSchema,
@@ -43,14 +45,38 @@ export const assetWithCapabilitiesSchema = assetSchema.extend({
 	capabilities: entityCapabilitiesSchema,
 });
 
-export const assetFiltersSchema = z.object({
-	ids: z.array(assetIdSchema).optional(),
-	search: z.string().optional(),
-	/** Only assets attached to this repository. */
-	repositoryId: blockIdSchema.optional(),
-	/** Only assets of this origin; both when left out. */
-	origin: assetOriginSchema.optional(),
+/** An asset as library lists return it: with what its tile shows. */
+export const assetListItemSchema = assetWithCapabilitiesSchema.extend({
+	owner: resourceOwnerSchema,
 });
+
+export const assetFiltersSchema = z
+	.object({
+		ids: z.array(assetIdSchema).optional(),
+		search: z.string().optional(),
+		/** Only assets attached to this repository. */
+		repositoryId: blockIdSchema.optional(),
+		/** Only assets of this origin; both when left out. */
+		origin: assetOriginSchema.optional(),
+		scope: libraryScopeSchema.optional(),
+		/** Only assets queued or being processed, or only failed ones. */
+		processing: z
+			.enum([
+				"running",
+				"failed",
+			])
+			.optional(),
+	})
+	.refine(
+		(filters) => !(filters.scope && (filters.repositoryId || filters.ids)),
+		{
+			message: "A repository's documents and known ids have no scope",
+			path: [
+				"scope",
+			],
+		},
+	);
 
 export type Asset = z.infer<typeof assetSchema>;
 export type AssetWithCapabilities = z.infer<typeof assetWithCapabilitiesSchema>;
+export type AssetListItem = z.infer<typeof assetListItemSchema>;

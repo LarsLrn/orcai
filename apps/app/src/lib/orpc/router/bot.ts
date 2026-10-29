@@ -12,11 +12,8 @@ import {
 	isFavourite,
 	setBotFavourite,
 } from "@/lib/bots/bot-favourites";
-import {
-	listBotsByStatus,
-	loadBotEditor,
-	saveBotGraph,
-} from "@/lib/bots/bot-graph";
+import { loadBotEditor, saveBotGraph } from "@/lib/bots/bot-graph";
+import { listLibraryBots } from "@/lib/bots/bot-list";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -29,33 +26,11 @@ import {
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
 const listBots = authed.bot.list.effect(function* ({ input, context }) {
-	return yield* listBotsByStatus({
+	return yield* listLibraryBots({
+		input,
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
-		status: "ready",
-		pageIndex: input.pageIndex,
-		pageSize: input.pageSize,
-		search: input.search,
-		favourite: input.filters?.favourite,
-		sort: input.sort,
 		zedToken: getZedToken(context, input),
-		permission: "read",
-	});
-});
-
-const listDraftBots = authed.bot.listDrafts.effect(function* ({
-	input,
-	context,
-}) {
-	return yield* listBotsByStatus({
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		status: "draft",
-		pageIndex: input.pageIndex,
-		pageSize: input.pageSize,
-		search: input.search,
-		zedToken: getZedToken(context, input),
-		permission: "edit",
 	});
 });
 
@@ -301,7 +276,6 @@ const deleteBots = authed.bot.delete
 
 export const botRouter = {
 	list: listBots,
-	listDrafts: listDraftBots,
 	find: findBot,
 	findEditor: findBotEditor,
 	save: saveBot,

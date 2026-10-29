@@ -2,11 +2,13 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { Link } from "@tanstack/react-router";
 import { CheckIcon } from "lucide-react";
 import type * as React from "react";
+import { Badge } from "@/components/ui/badge";
 import {
 	ActionMenu,
 	type ClickAction,
 	type HeaderAction,
 } from "@/components/ui/shell/actions";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { cn } from "@/lib/utils";
 
 /*
@@ -138,6 +140,18 @@ const TileTitle = ({
 	</h3>
 );
 
+/** Who made the resource, under the title: an avatar or logo, then a name. */
+const TileProvenance = ({ className, ...props }: React.ComponentProps<"p">) => (
+	<p
+		data-slot="tile-provenance"
+		className={cn(
+			"flex min-w-0 items-center text-muted-foreground text-xs",
+			className,
+		)}
+		{...props}
+	/>
+);
+
 const TileDescription = ({
 	className,
 	...props
@@ -163,6 +177,19 @@ const TileFooter = ({ className, ...props }: React.ComponentProps<"div">) => (
 		{...props}
 	/>
 );
+
+/** State badges in a `TileFooter`. */
+const TileBadges = ({ badges }: { badges: readonly BadgeItem[] }) =>
+	badges.map((badge) => (
+		<Badge
+			key={badge.label}
+			variant={badge.variant}
+			className={badge.className}
+		>
+			{badge.icon ? <badge.icon aria-hidden="true" /> : null}
+			{badge.label}
+		</Badge>
+	));
 
 /**
  * The corner cluster above the stretched title: `children` (such as the
@@ -204,6 +231,7 @@ const TileMenu = ({
 
 export {
 	Tile,
+	TileBadges,
 	TileBand,
 	TileBody,
 	TileDescription,
@@ -211,5 +239,6 @@ export {
 	TileIcon,
 	TileMark,
 	TileMenu,
+	TileProvenance,
 	TileTitle,
 };

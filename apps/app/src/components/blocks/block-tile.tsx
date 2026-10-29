@@ -1,17 +1,27 @@
-import type { Block, BlockWithCapabilities } from "@orcai/schema";
+import type {
+	Block,
+	BlockListItem,
+	BlockWithCapabilities,
+	RepositoryTotals,
+} from "@orcai/schema";
+import { LoaderCircleIcon } from "lucide-react";
 import { useBlockActions } from "@/components/blocks/block-actions";
 import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	Tile,
+	TileBadges,
 	TileBand,
 	TileBody,
 	TileDescription,
 	TileFooter,
 	TileIcon,
 	TileMenu,
+	TileProvenance,
 	TileTitle,
 } from "@/components/ui/shell/tile";
+import { ResourceOwner } from "@/components/users/resource-owner";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
 import { blockKind, RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
@@ -24,8 +34,52 @@ type TileBlock = Pick<
 	capabilities?: BlockWithCapabilities["capabilities"];
 };
 
-const BlockTileContent = ({ block }: { block: TileBlock }) => {
+/** A block as library lists return it, with its tile details. */
+type BrowseBlock = TileBlock & Pick<BlockListItem, "owner" | "documents">;
+
+/** A repository's document count, and badges for those still processing or failed. */
+const repositoryFooter = (
+	documents: RepositoryTotals,
+): {
+	label: string;
+	badges: BadgeItem[];
+} => ({
+	label:
+		documents.total === 0
+			? m.blocks_tile_no_documents()
+			: m.blocks_tile_documents({
+					count: documents.total,
+				}),
+	badges: [
+		documents.preparing > 0 && {
+			label: m.blocks_tile_documents_preparing({
+				count: documents.preparing,
+			}),
+			variant: "info" as const,
+			icon: LoaderCircleIcon,
+			className: "[&>svg]:animate-spin",
+		},
+		documents.failed > 0 && {
+			label: m.blocks_tile_documents_failed({
+				count: documents.failed,
+			}),
+			variant: "danger" as const,
+		},
+	].filter((badge) => badge !== false),
+});
+
+const BlockTileContent = ({
+	block,
+	provenance,
+	documents,
+}: {
+	block: TileBlock;
+	provenance?: React.ReactNode;
+	/** A repository's documents, when known. */
+	documents?: RepositoryTotals | null;
+}) => {
 	const { Icon, well } = RESOURCE_KINDS[blockKind(block.type)];
+	const repository = documents ? repositoryFooter(documents) : null;
 
 	return (
 		<>
@@ -45,6 +99,7 @@ const BlockTileContent = ({ block }: { block: TileBlock }) => {
 				>
 					{block.name}
 				</TileTitle>
+				{provenance}
 				{block.description ? (
 					<TileDescription>{block.description}</TileDescription>
 				) : null}
@@ -52,6 +107,8 @@ const BlockTileContent = ({ block }: { block: TileBlock }) => {
 					{block.type === "template" ? (
 						<span>{m.blocks_tile_behaviour_contents()}</span>
 					) : null}
+					{repository ? <span>{repository.label}</span> : null}
+					{repository ? <TileBadges badges={repository.badges} /> : null}
 					{block.status === "draft" ? (
 						<Badge variant="outline">
 							{getPublicationStatusLabel("draft")}
@@ -64,7 +121,7 @@ const BlockTileContent = ({ block }: { block: TileBlock }) => {
 };
 
 /** A behaviour or repository on a browsing surface: band and its `…` menu. */
-const BlockTile = ({ block }: { block: TileBlock }) => {
+const BlockTile = ({ block }: { block: BrowseBlock }) => {
 	const kind = blockKind(block.type);
 	const { Icon, band } = RESOURCE_KINDS[kind];
 	const { actions, dialog } = useBlockActions(block);
@@ -76,7 +133,15 @@ const BlockTile = ({ block }: { block: TileBlock }) => {
 			>
 				<Icon />
 			</TileBand>
-			<BlockTileContent block={block} />
+			<BlockTileContent
+				block={block}
+				provenance={
+					<TileProvenance>
+						<ResourceOwner owner={block.owner} />
+					</TileProvenance>
+				}
+				documents={block.documents}
+			/>
 			<TileMenu
 				actions={[
 					actions.edit,
@@ -103,4 +168,4 @@ const CompactBlockTile = ({
 	</Tile>
 );
 
-export { BlockTile, CompactBlockTile };
+export { BlockTile, CompactBlockTile, repositoryFooter };

@@ -3,7 +3,11 @@ import { assetIdSchema } from "../asset/ref";
 import { botIdSchema } from "../bot/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
-import { publicationStatusSchema } from "../shared/primitives/publication-status";
+import {
+	libraryScopeSchema,
+	librarySortSchema,
+	publicationStatusFilterSchema,
+} from "../shared/library";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { blockIdSchema } from "./ref";
 import {
@@ -59,12 +63,26 @@ export const listBlocksInputSchema = paginationInputSchema.extend({
 	...zedTokenSchema.shape,
 	filters: z
 		.object({
+			/**
+			 * The bot's blocks, readable with the bot instead of from the
+			 * library: `status` then only filters their rows, and `scope` is
+			 * refused.
+			 */
 			botId: botIdSchema.optional(),
 			type: blockTypeSchema.optional(),
-			status: publicationStatusSchema.optional(),
+			/** Published blocks unless given. */
+			status: publicationStatusFilterSchema.optional(),
+			scope: libraryScopeSchema.optional(),
 			...searchFilterSchema.shape,
 		})
+		.refine((filters) => !(filters.botId && filters.scope), {
+			message: "A bot's blocks have no scope",
+			path: [
+				"scope",
+			],
+		})
 		.optional(),
+	sort: librarySortSchema.default("newest"),
 });
 
 export const findBlockInputSchema = z.object({

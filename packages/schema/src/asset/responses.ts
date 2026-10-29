@@ -7,11 +7,14 @@ import {
 	statusResponseSchema,
 } from "../shared";
 import { errorReasonSchema } from "../shared/error-reason";
-import { assetSchema, assetWithCapabilitiesSchema } from "./schema";
-
-export const listAssetsResponseSchema = createListResponseSchema(
+import {
+	assetListItemSchema,
+	assetSchema,
 	assetWithCapabilitiesSchema,
-);
+} from "./schema";
+
+export const listAssetsResponseSchema =
+	createListResponseSchema(assetListItemSchema);
 
 export const findAssetResponseSchema = createDataResponseSchema(
 	assetWithCapabilitiesSchema.extend({

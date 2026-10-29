@@ -1,9 +1,9 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { Block, ResourceOwner } from "@orcai/schema";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
 	and,
-	countDistinct,
+	asc,
+	count,
 	desc,
 	eq,
 	getColumns,
@@ -13,16 +13,11 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import {
-	readableIds,
-	readableNow,
-	requireReadable,
-} from "@/lib/authz/content-access";
+import { readableIds, requireReadable } from "@/lib/authz/content-access";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
-import { inLibrary } from "@/lib/authz/library";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
@@ -38,10 +33,12 @@ import {
 } from "@/lib/blocks/database-block";
 import {
 	loadRepositoryReadiness,
+	repositoryTotals,
 	retryDocument,
 	retryFailedDocuments,
 } from "@/lib/blocks/readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { libraryAccess } from "@/lib/library/library-access";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInputFor,
@@ -52,109 +49,119 @@ import {
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
+const blockOrder = {
+	newest: [
+		desc(dbSchema.block.createdAt),
+		desc(dbSchema.block.id),
+	],
+	name: [
+		asc(dbSchema.block.name),
+		asc(dbSchema.block.id),
+	],
+};
+
 const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
 	const botId = input.filters?.botId;
+	const status = input.filters?.status ?? "ready";
 	const reader = {
 		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
 		zedToken: getZedToken(context, input),
 	};
 
 	// A bot's blocks are its contents, readable with it; the rest is the library.
-	const whereConditions = [
-		eq(dbSchema.block.status, input.filters?.status ?? "ready"),
-	];
-	if (botId) {
-		const readableBot = yield* readableIds(
-			"bot",
-			[
-				botId,
-			],
-			reader,
-		);
-		whereConditions.push(
-			readableBot.has(botId) ? eq(dbSchema.botBlock.botId, botId) : sql`false`,
-		);
-	} else {
-		whereConditions.push(
-			inArray(
-				dbSchema.block.id,
-				yield* lookupEntitiesByPermission({
-					...reader,
-					permission: "read",
-					entityType: "block",
-				}),
-			),
-			inLibrary(
-				"block",
-				dbSchema.block.id,
-				context.auth.session.activeOrganizationId,
-			),
-			readableNow("block", dbSchema.block.id, reader.userId),
-		);
-	}
-	if (input.filters?.type) {
-		whereConditions.push(eq(dbSchema.block.type, input.filters.type));
-	}
-	if (input.filters?.search) {
-		whereConditions.push(
-			ilike(dbSchema.block.name, literalSearch(input.filters.search)),
-		);
-	}
+	const visible = botId
+		? and(
+				(yield* readableIds(
+					"bot",
+					[
+						botId,
+					],
+					reader,
+				)).has(botId)
+					? inArray(
+							dbSchema.block.id,
+							db
+								.select({
+									blockId: dbSchema.botBlock.blockId,
+								})
+								.from(dbSchema.botBlock)
+								.where(eq(dbSchema.botBlock.botId, botId)),
+						)
+					: sql`false`,
+				status === "all" ? undefined : eq(dbSchema.block.status, status),
+			)
+		: yield* (yield* libraryAccess(reader)).condition("block", {
+				scope: input.filters?.scope,
+				status,
+			});
+	const where = and(
+		visible,
+		input.filters?.type
+			? eq(dbSchema.block.type, input.filters.type)
+			: undefined,
+		input.filters?.search
+			? ilike(dbSchema.block.name, literalSearch(input.filters.search))
+			: undefined,
+	);
 
-	const [rawBlocks, [countResult]] = yield* Effect.all(
+	const [rows, [counted]] = yield* Effect.all(
 		[
 			db
-				.selectDistinctOn(
-					[
-						dbSchema.block.id,
-						dbSchema.block.createdAt,
-					],
-					{
-						...getColumns(dbSchema.block),
-					},
-				)
+				.select({
+					...getColumns(dbSchema.block),
+					owner: ownerColumns,
+				})
 				.from(dbSchema.block)
-				.leftJoin(
-					dbSchema.botBlock,
-					eq(dbSchema.botBlock.blockId, dbSchema.block.id),
-				)
-				.where(and(...whereConditions))
-				.orderBy(desc(dbSchema.block.createdAt), desc(dbSchema.block.id))
+				.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.block.userId))
+				.where(where)
+				.orderBy(...blockOrder[input.sort])
 				.limit(input.pageSize)
 				.offset(input.pageIndex * input.pageSize),
 			db
 				.select({
-					count: countDistinct(dbSchema.block.id),
+					count: count(),
 				})
 				.from(dbSchema.block)
-				.leftJoin(
-					dbSchema.botBlock,
-					eq(dbSchema.botBlock.blockId, dbSchema.block.id),
-				)
-				.where(and(...whereConditions)),
+				.where(where),
 		],
 		{
 			concurrency: "unbounded",
 		},
 	);
 
-	const blocks = rawBlocks as Block[];
-	const capabilities = yield* getManyEntityCapabilities({
-		entityType: "block",
-		entityIds: blocks.map((block) => block.id),
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: getZedToken(context, input),
-	});
+	const blocks = rows as (Block & {
+		owner: ResourceOwner;
+	})[];
+	const [capabilities, totals] = yield* Effect.all(
+		[
+			getManyEntityCapabilities({
+				entityType: "block",
+				entityIds: blocks.map((block) => block.id),
+				userId: reader.userId,
+				organizationId: reader.organizationId,
+				zedToken: reader.zedToken,
+			}),
+			repositoryTotals(
+				blocks
+					.filter((block) => block.type === "database")
+					.map((block) => block.id),
+			),
+		],
+		{
+			concurrency: "unbounded",
+		},
+	);
 
 	return {
 		data: blocks.map((block) => ({
 			...block,
 			capabilities: capabilities.get(block.id) ?? emptyCapabilities("block"),
+			documents: block.type === "database" ? totals(block.id) : null,
 		})),
-		rowCount: countResult.count,
+		rowCount: counted.count,
 	};
 });
 

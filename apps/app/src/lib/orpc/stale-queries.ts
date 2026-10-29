@@ -83,11 +83,19 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		...groupSummaries(),
 	];
 
+	// Library tiles show their creator.
+	const libraryLists = () => [
+		orpc.bot.list.key(),
+		orpc.block.list.key(),
+		orpc.asset.list.key(),
+	];
+
 	// Lists of people and organisations show pictures and logos.
 	const pictures = () => [
 		orpc.user.key(),
 		orpc.organizationMember.key(),
 		orpc.instance.key(),
+		...libraryLists(),
 	];
 	const logos = () => [
 		orpc.organization.key(),
@@ -97,18 +105,21 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 
 	// A provider's page counts its models.
 	// A bot's setup and the chats it requires a model for show whether the model is usable.
+	// Bot tiles name the model their setup asks for.
 	const models = () => [
 		orpc.model.key(),
 		orpc.provider.find.key(),
 		readiness,
 		orpc.botSetup.key(),
 		readOnlyChats,
+		orpc.bot.list.key(),
 	];
 
-	// Readiness lists each document's title and state.
+	// Readiness lists each document's title and state; repository tiles count them.
 	const assetsAndReadiness = () => [
 		orpc.asset.key(),
 		orpc.block.readiness.key(),
+		orpc.block.list.key(),
 	];
 
 	return {
@@ -136,8 +147,10 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			update: () => [
 				orpc.block.key(),
 			],
+			// Bot tiles count their blocks.
 			delete: () => [
 				orpc.block.key(),
+				orpc.bot.list.key(),
 			],
 			retryDocument: assetsAndReadiness,
 			retryFailed: assetsAndReadiness,
@@ -161,6 +174,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			save: () => [
 				orpc.botSetup.key(),
 				readOnlyChats,
+				orpc.bot.list.key(),
 			],
 		},
 		chat: {
@@ -330,6 +344,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				readiness,
 				orpc.botSetup.key(),
 				readOnlyChats,
+				orpc.bot.list.key(),
 			],
 		},
 		quota: {

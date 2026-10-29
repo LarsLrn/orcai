@@ -608,11 +608,6 @@ const assistantConversation = async (
 			data: [],
 			rowCount: 0,
 		});
-	answers["bot.listDrafts"] = () =>
-		Effect.succeed({
-			data: [],
-			rowCount: 0,
-		});
 	const assistant = await conversation(assistantRow(), kind);
 
 	assistant.script([

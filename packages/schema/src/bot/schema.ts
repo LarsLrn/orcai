@@ -7,7 +7,9 @@ import {
 	databaseBlockSchema,
 	templateBlockSchema,
 } from "../block/schema";
+import { botSetupStrengthSchema } from "../bot-setup/schema";
 import { featuresSchema } from "../feature/schema";
+import { resourceOwnerSchema } from "../resource/schema";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { userIdSchema } from "../user/ref";
 import { botIdSchema } from "./ref";
@@ -40,6 +42,22 @@ export const botSchema = botFieldsSchema.extend({
 export const botWithCapabilitiesSchema = botSchema.extend({
 	capabilities: entityCapabilitiesSchema,
 	isFavourite: z.boolean(),
+});
+
+/** A bot as library lists return it: with what its tile shows. */
+export const botListItemSchema = botWithCapabilitiesSchema.extend({
+	owner: resourceOwnerSchema,
+	contents: z.object({
+		behaviour: z.boolean(),
+		repositories: z.number().int(),
+	}),
+	/** The model the active organisation's setup asks for, if any. */
+	modelHint: z
+		.object({
+			strength: botSetupStrengthSchema,
+			modelName: z.string(),
+		})
+		.nullable(),
 });
 
 export const botWithBlocksSchema = botSchema.extend({
@@ -87,5 +105,6 @@ export const botEditorSchema = z.object({
 
 export type Bot = z.infer<typeof botSchema>;
 export type BotWithCapabilities = z.infer<typeof botWithCapabilitiesSchema>;
+export type BotListItem = z.infer<typeof botListItemSchema>;
 export type BotWithBlocks = z.infer<typeof botWithBlocksSchema>;
 export type BotEditor = z.infer<typeof botEditorSchema>;

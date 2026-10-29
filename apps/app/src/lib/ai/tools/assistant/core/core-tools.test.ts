@@ -88,44 +88,34 @@ beforeEach(() => {
 });
 
 describe("findBots", () => {
-	const ready = [
+	const found = [
 		bot("Citation check", "ready", false),
+		bot("Citation draft", "draft", true),
 		bot("Citation style", "ready", true, true),
 	];
-	const draft = bot("Citation draft", "draft", true);
 
 	beforeEach(() => {
 		answers["bot.list"] = (input: { pageSize: number }) =>
 			Effect.succeed({
-				data: ready.slice(0, input.pageSize),
-				rowCount: 5,
-			});
-		answers["bot.listDrafts"] = (input: { pageSize: number }) =>
-			Effect.succeed({
-				data: [
-					draft,
-				].slice(0, input.pageSize),
-				rowCount: 1,
+				data: found.slice(0, input.pageSize),
+				rowCount: 6,
 			});
 	});
 
-	test("merges published bots and drafts with both totals", async () => {
+	test("lists published bots and drafts in one page with its total", async () => {
 		const output = await run(findBotsTool(deps()), {
 			query: "citation",
 			limit: 20,
 		});
 
 		expect(output).toEqual({
-			bots: [
-				...ready,
-				draft,
-			].map((found) => ({
-				id: found.id,
-				name: found.name,
-				description: found.description,
-				status: found.status,
-				canEdit: found.capabilities.edit,
-				favourite: found.isFavourite,
+			bots: found.map((entry) => ({
+				id: entry.id,
+				name: entry.name,
+				description: entry.description,
+				status: entry.status,
+				canEdit: entry.capabilities.edit,
+				favourite: entry.isFavourite,
 			})),
 			total: 6,
 		});
@@ -135,28 +125,28 @@ describe("findBots", () => {
 				input: {
 					pageSize: 20,
 					search: "citation",
-				},
-			},
-			{
-				procedure: "bot.listDrafts",
-				input: {
-					pageSize: 20,
-					search: "citation",
+					filters: {
+						status: "all",
+					},
 				},
 			},
 		]);
 	});
 
-	test("returns at most limit bots", async () => {
+	test("forwards a smaller limit", async () => {
 		const output = await run(findBotsTool(deps()), {
 			limit: 2,
 		});
 
-		expect(output.bots.map((found) => found.name)).toEqual([
-			"Citation check",
-			"Citation style",
+		expect(output.bots).toHaveLength(2);
+		expect(procedureCalls.map((call) => call.input)).toEqual([
+			{
+				pageSize: 2,
+				filters: {
+					status: "all",
+				},
+			},
 		]);
-		expect(output.total).toBe(6);
 	});
 });
 
@@ -392,26 +382,14 @@ describe("findBlocks", () => {
 	test("a repository search lists ready and draft database blocks", async () => {
 		const readyBlock = block("Sources", "database");
 		const draftBlock = block("Sources draft", "database", "draft");
-		answers["block.list"] = (input: {
-			filters: {
-				status: string;
-			};
-		}) =>
-			Effect.succeed(
-				input.filters.status === "ready"
-					? {
-							data: [
-								readyBlock,
-							],
-							rowCount: 1,
-						}
-					: {
-							data: [
-								draftBlock,
-							],
-							rowCount: 3,
-						},
-			);
+		answers["block.list"] = () =>
+			Effect.succeed({
+				data: [
+					readyBlock,
+					draftBlock,
+				],
+				rowCount: 4,
+			});
 
 		const output = await run(findBlocksTool(deps()), {
 			type: "repository",
@@ -438,19 +416,16 @@ describe("findBlocks", () => {
 			],
 			total: 4,
 		});
-		expect(procedureCalls.map((call) => call.input)).toEqual(
-			[
-				"ready",
-				"draft",
-			].map((status) => ({
+		expect(procedureCalls.map((call) => call.input)).toEqual([
+			{
 				pageSize: 10,
 				filters: {
 					type: "database",
-					status,
+					status: "all",
 					search: "sources",
 				},
-			})),
-		);
+			},
+		]);
 	});
 });
 

@@ -27,8 +27,13 @@ const ManageLibraryPanel = () => {
 				orpc.bot.list.queryOptions({
 					input: COUNT_INPUT,
 				}),
-				orpc.bot.listDrafts.queryOptions({
-					input: COUNT_INPUT,
+				orpc.bot.list.queryOptions({
+					input: {
+						...COUNT_INPUT,
+						filters: {
+							status: "draft",
+						},
+					},
 				}),
 				orpc.block.list.queryOptions({
 					input: {

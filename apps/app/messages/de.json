@@ -1719,6 +1719,24 @@
 	"blocks_template_form_system_prompt_placeholder": "Erläutern Sie die Rolle des Bots, den Antwortstil und die Einschränkungen.",
 	"blocks_template_form_update_submit_button": "KI-Verhalten aktualisieren",
 	"blocks_tile_behaviour_contents": "Prompt",
+	"blocks_tile_documents": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Dokument",
+				"countPlural=other": "{count} Dokumente"
+			}
+		}
+	],
+	"blocks_tile_documents_failed": "{count} fehlgeschlagen",
+	"blocks_tile_documents_preparing": "{count} in Verarbeitung",
+	"blocks_tile_no_documents": "Noch keine Dokumente",
 	"blocks_update_toast_error": "Block konnte nicht aktualisiert werden",
 	"blocks_update_toast_loading": "Block wird aktualisiert...",
 	"blocks_update_toast_success": "Block erfolgreich aktualisiert",
@@ -1850,6 +1868,25 @@
 	],
 	"bots_detail_start_chat_action": "Chat starten",
 	"bots_edit_action": "Bot bearbeiten",
+	"bots_tile_contents_behaviour": "Verhalten",
+	"bots_tile_contents_model_only": "Nur Modell",
+	"bots_tile_contents_repositories": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Repository",
+				"countPlural=other": "{count} Repositories"
+			}
+		}
+	],
+	"bots_tile_model_required": "Erfordert {model}",
+	"bots_tile_model_tuned": "Abgestimmt auf {model}",
 	"bots_favourite_label": "Favorit",
 	"bots_favourite_toggle_label": "„{name}“ favorisieren",
 	"bots_favourites_group_label": "Favoriten",

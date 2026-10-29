@@ -1,4 +1,4 @@
-import type { BotWithCapabilities } from "@orcai/schema";
+import type { BotListItem, BotWithCapabilities } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
 import { useBotActions } from "@/components/bot/bot-actions";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
@@ -6,17 +6,22 @@ import { FeatureBadges } from "@/components/features/feature-badges";
 import { Badge } from "@/components/ui/badge";
 import {
 	Tile,
+	TileBadges,
 	TileBand,
 	TileBody,
 	TileDescription,
 	TileFooter,
 	TileIcon,
 	TileMenu,
+	TileProvenance,
 	TileTitle,
 } from "@/components/ui/shell/tile";
+import { ResourceOwner } from "@/components/users/resource-owner";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type TileBot = Pick<
 	BotWithCapabilities,
@@ -29,14 +34,59 @@ type TileBot = Pick<
 	| "isFavourite"
 >;
 
+/** A bot as library lists return it, with its tile details. */
+type BrowseBot = TileBot &
+	Pick<BotListItem, "owner" | "contents" | "modelHint">;
+
 const { Icon, well, band } = RESOURCE_KINDS.bot;
+
+/** What the bot is made of: "Behaviour + 2 repositories", or "Model only". */
+const botContentsLabel = ({
+	behaviour,
+	repositories,
+}: BotListItem["contents"]) => {
+	const parts = [
+		behaviour ? m.bots_tile_contents_behaviour() : null,
+		repositories > 0
+			? m.bots_tile_contents_repositories({
+					count: repositories,
+				})
+			: null,
+	].filter((part) => part !== null);
+	return parts.length > 0
+		? parts.join(" + ")
+		: m.bots_tile_contents_model_only();
+};
+
+/** The model the bot's setup asks for: a warning when required, a hint when recommended. */
+const botModelHintBadge = (hint: BotListItem["modelHint"]): BadgeItem | null =>
+	hint
+		? hint.strength === "required"
+			? {
+					label: m.bots_tile_model_required({
+						model: hint.modelName,
+					}),
+					variant: "warning",
+				}
+			: {
+					label: m.bots_tile_model_tuned({
+						model: hint.modelName,
+					}),
+					variant: "outline",
+				}
+		: null;
 
 const BotTileContent = ({
 	bot,
 	linkProps,
+	provenance,
+	children,
 }: {
 	bot: TileBot;
 	linkProps: LinkProps;
+	provenance?: React.ReactNode;
+	/** The footer's leading entries, before its badges. */
+	children?: React.ReactNode;
 }) => (
 	<>
 		<TileIcon className={well}>
@@ -50,8 +100,10 @@ const BotTileContent = ({
 			>
 				{bot.name}
 			</TileTitle>
+			{provenance}
 			<TileDescription>{bot.description}</TileDescription>
 			<TileFooter>
+				{children}
 				{bot.status === "draft" ? (
 					<Badge variant="outline">{getPublicationStatusLabel("draft")}</Badge>
 				) : null}
@@ -73,7 +125,7 @@ const BotTile = ({
 	bot,
 	linkProps = detailLink(bot),
 }: {
-	bot: TileBot;
+	bot: BrowseBot;
 	/** Where the tile leads; the bot's page unless given. */
 	linkProps?: LinkProps;
 }) => {
@@ -85,7 +137,22 @@ const BotTile = ({
 			<TileBand className={cn(band, draft && "opacity-45 grayscale")}>
 				<Icon />
 			</TileBand>
-			<BotTileContent bot={bot} linkProps={linkProps} />
+			<BotTileContent
+				bot={bot}
+				linkProps={linkProps}
+				provenance={
+					<TileProvenance>
+						<ResourceOwner owner={bot.owner} />
+					</TileProvenance>
+				}
+			>
+				<span>{botContentsLabel(bot.contents)}</span>
+				<TileBadges
+					badges={[
+						botModelHintBadge(bot.modelHint),
+					].filter((badge) => badge !== null)}
+				/>
+			</BotTileContent>
 			<TileMenu
 				actions={[
 					actions.edit,
@@ -110,4 +177,4 @@ const CompactBotTile = ({ bot }: { bot: TileBot }) => (
 	</Tile>
 );
 
-export { BotTile, CompactBotTile };
+export { BotTile, botContentsLabel, botModelHintBadge, CompactBotTile };
