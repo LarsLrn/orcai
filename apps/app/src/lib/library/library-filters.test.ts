@@ -133,6 +133,35 @@ describe("library filters", () => {
 		});
 	});
 
+	test("assets map the review toggle to the suggestions filter, off sends nothing", () => {
+		expect(
+			libraryListInput.asset(
+				parse("asset", {
+					review: "true",
+				}),
+			).filters,
+		).toEqual({
+			origin: "library",
+			suggestions: true,
+			scope: "all",
+			search: undefined,
+		});
+		expect(
+			libraryListInput.asset(
+				parse("asset", {
+					review: false,
+				}),
+			).filters,
+		).not.toHaveProperty("suggestions");
+		expect(
+			libraryListInput.asset(
+				parse("asset", {
+					review: "maybe",
+				}),
+			).filters,
+		).not.toHaveProperty("suggestions");
+	});
+
 	test("the overview searches every kind with the status and source filters", () => {
 		expect(
 			libraryListInput.overview(

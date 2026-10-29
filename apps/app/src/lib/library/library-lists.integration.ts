@@ -602,6 +602,84 @@ describe("library lists", () => {
 	);
 
 	test(
+		"the suggestions filter lists assets with a pending suggestion the user can edit",
+		async () => {
+			const { admin, member, procedures, call, asset, share, toMember } =
+				await organization();
+			const own = await asset(member);
+			const ownWithoutSuggestion = await asset(member);
+			const edited = await asset(admin);
+			const viewed = await asset(admin);
+			const unshared = await asset(admin);
+			const asset_ = (resourceId: AssetId) => ({
+				resourceType: "asset" as const,
+				resourceId,
+			});
+			await share(asset_(edited), "editor", toMember);
+			await share(asset_(viewed), "viewer", toMember);
+			await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					for (const id of [
+						own,
+						edited,
+						viewed,
+						unshared,
+					]) {
+						yield* db
+							.update(dbSchema.asset)
+							.set({
+								metadataSuggestion: {
+									title: "Suggested",
+									metadata: {},
+								},
+							})
+							.where(eq(dbSchema.asset.id, id));
+					}
+				}),
+			);
+
+			const list = (filters: { suggestions?: true }) =>
+				call(member, (options) =>
+					procedures.asset.list(
+						{
+							filters,
+						},
+						options,
+					),
+				);
+			const ids = (page: {
+				data: {
+					id: AssetId;
+				}[];
+			}) => page.data.map((row) => row.id).sort();
+
+			// Read-only and unreadable assets with suggestions stay out.
+			expect(
+				ids(
+					await list({
+						suggestions: true,
+					}),
+				),
+			).toEqual(
+				[
+					own,
+					edited,
+				].sort(),
+			);
+			expect(
+				(
+					await list({
+						suggestions: true,
+					})
+				).rowCount,
+			).toBe(2);
+			expect(ids(await list({}))).toContain(ownWithoutSuggestion);
+		},
+		TIMEOUT,
+	);
+
+	test(
 		"repository document counts match the readiness summary",
 		async () => {
 			const { member, procedures, call, asset, token } = await organization();

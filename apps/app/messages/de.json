@@ -3459,6 +3459,8 @@
 	"library_filter_processing_any": "Beliebig",
 	"library_filter_processing_running": "Wartend oder laufend",
 	"library_filter_processing_failed": "Fehlgeschlagen",
+	"library_filter_review_label": "Prüfung",
+	"library_filter_review_suggestions": "Vorschläge zur Prüfung",
 	"library_shelf_favourites": "Favoriten",
 	"library_shelf_drafts": "Entwürfe",
 	"library_search_results_title": "Suchergebnisse",
