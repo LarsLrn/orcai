@@ -107,6 +107,7 @@ export const installCatalogueEntryResponseSchema = createDataResponseSchema(
 );
 
 export type CatalogueEntryState = z.infer<typeof catalogueEntryStateSchema>;
+export type CatalogueModelHint = z.infer<typeof catalogueModelHintSchema>;
 export type CatalogueEntry = z.infer<typeof catalogueEntrySchema>;
 export type CatalogueEntryDetail = z.infer<typeof catalogueEntryDetailSchema>;
 export type CatalogueCounts = z.infer<

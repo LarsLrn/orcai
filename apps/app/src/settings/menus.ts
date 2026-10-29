@@ -4,6 +4,7 @@ import {
 	ArrowLeftRightIcon,
 	Building2Icon,
 	ChartColumnIcon,
+	CompassIcon,
 	CpuIcon,
 	LibraryIcon,
 	type LucideIcon,
@@ -41,6 +42,13 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			to: "/app/library",
 		},
 		icon: LibraryIcon,
+	},
+	{
+		title: m.sidebar_menu_catalogue_item,
+		linkProps: {
+			to: "/app/catalogue",
+		},
+		icon: CompassIcon,
 	},
 	{
 		title: m.sidebar_menu_administration_item,
