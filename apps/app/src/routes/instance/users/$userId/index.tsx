@@ -34,6 +34,7 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useInstanceUserActions } from "@/components/users/instance-user-actions";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -106,7 +107,8 @@ function RouteComponent() {
 			<PageHeader>
 				<PageTitle>{user.name}</PageTitle>
 				<PageDescription>{user.email}</PageDescription>
-				<div className="flex flex-wrap gap-2">
+				<div className="flex flex-wrap items-center gap-2">
+					<UserAvatar user={user} size="lg" />
 					{isInstanceAdminRole(user.role) && (
 						<Badge variant="secondary">
 							{m.instance_users_table_instance_role_admin_label()}

@@ -62,6 +62,14 @@ export const removeInstanceOrganizationMemberInputSchema = z.object({
 	userId: userIdSchema,
 });
 
+export const removeInstanceUserImageInputSchema = z.object({
+	id: userIdSchema,
+});
+
+export const removeInstanceOrganizationLogoInputSchema = z.object({
+	id: organizationIdSchema,
+});
+
 export const inviteInstanceOrganizationMemberInputSchema = z.object({
 	organizationId: organizationIdSchema,
 	email: z.email(),

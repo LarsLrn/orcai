@@ -24,3 +24,5 @@ export const listInstanceOrganizationMembersResponseSchema =
 	createListResponseSchema(instanceOrganizationMemberSchema);
 
 export const instanceMembershipActionResponseSchema = statusResponseSchema;
+
+export const removeInstanceImageResponseSchema = statusResponseSchema;

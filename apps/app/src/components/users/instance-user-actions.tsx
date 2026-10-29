@@ -2,6 +2,7 @@ import { INSTANCE_ADMIN_ROLE, INSTANCE_DEFAULT_ROLE } from "@orcai/core";
 import type { InstanceUser } from "@orcai/schema";
 import {
 	BanIcon,
+	ImageOffIcon,
 	KeyRoundIcon,
 	ShieldCheckIcon,
 	ShieldOffIcon,
@@ -20,6 +21,7 @@ import {
 	OverflowMenuTrigger,
 } from "@/components/ui/shell/actions";
 import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
+import { useRemoveUserImageMutation } from "@/hooks/mutations/use-instance-image-mutations";
 import {
 	useBanUserMutation,
 	useDeleteUsersMutation,
@@ -34,7 +36,7 @@ import { m } from "@/paraglide/messages";
 export const useInstanceUserActions = (
 	user: Pick<
 		InstanceUser,
-		"id" | "email" | "banned" | "role" | "twoFactorEnabled"
+		"id" | "name" | "email" | "image" | "banned" | "role" | "twoFactorEnabled"
 	>,
 	options: {
 		onDeleted?: () => void;
@@ -56,6 +58,9 @@ export const useInstanceUserActions = (
 	);
 	const resetTwoFactor = useResetTwoFactorMutation({}, target);
 	const setInstanceRole = useSetInstanceRoleMutation({}, target);
+	const removeImage = useRemoveUserImageMutation({
+		name: user.name,
+	});
 
 	if (user.id === auth.user.id) {
 		return [];
@@ -95,6 +100,16 @@ export const useInstanceUserActions = (
 							role: INSTANCE_ADMIN_ROLE,
 						}),
 				},
+		Boolean(user.image) && {
+			key: "remove-picture",
+			label: m.images_picture_remove_button(),
+			icon: ImageOffIcon,
+			overflow: true,
+			onClick: () =>
+				removeImage.mutate({
+					id: user.id,
+				}),
+		},
 		user.banned
 			? {
 					key: "ban",

@@ -13,6 +13,7 @@ import {
 	removeMembers,
 } from "@/lib/authz/organization-membership";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { removeImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -90,6 +91,7 @@ const userMemberships = authed.instance.userMemberships
 						organizationId: dbSchema.organization.id,
 						name: dbSchema.organization.name,
 						slug: dbSchema.organization.slug,
+						logo: dbSchema.organization.logo,
 						role: dbSchema.member.role,
 						joinedAt: dbSchema.member.createdAt,
 					})
@@ -179,6 +181,7 @@ const organizationMembers = authed.instance.organizationMembers
 						userId: dbSchema.user.id,
 						name: dbSchema.user.name,
 						email: dbSchema.user.email,
+						image: dbSchema.user.image,
 						banned: dbSchema.user.banned,
 						role: dbSchema.member.role,
 						joinedAt: dbSchema.member.createdAt,
@@ -299,6 +302,30 @@ const inviteMember = authed.instance.inviteMember
 		};
 	});
 
+const removeUserImage = authed.instance.removeUserImage
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input }) {
+		yield* removeImage({
+			kind: "user",
+			userId: input.id,
+		});
+		return {
+			success: true,
+		};
+	});
+
+const removeOrganizationLogo = authed.instance.removeOrganizationLogo
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input }) {
+		yield* removeImage({
+			kind: "organization",
+			organizationId: input.id,
+		});
+		return {
+			success: true,
+		};
+	});
+
 export const instanceRouter = {
 	user,
 	userMemberships,
@@ -309,4 +336,6 @@ export const instanceRouter = {
 	changeMemberRole,
 	removeMember,
 	inviteMember,
+	removeUserImage,
+	removeOrganizationLogo,
 };

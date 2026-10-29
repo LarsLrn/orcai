@@ -12,7 +12,10 @@ import {
 	listInstanceOrganizationMembersResponseSchema,
 	listInstanceUserMembershipsInputSchema,
 	listInstanceUserMembershipsResponseSchema,
+	removeInstanceImageResponseSchema,
+	removeInstanceOrganizationLogoInputSchema,
 	removeInstanceOrganizationMemberInputSchema,
+	removeInstanceUserImageInputSchema,
 	updateInstanceOrganizationMemberInputSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
@@ -125,4 +128,26 @@ export const instanceContracts = {
 		)
 		.input(inviteInstanceOrganizationMemberInputSchema)
 		.output(instanceMembershipActionResponseSchema),
+	removeUserImage: base
+		.meta(
+			openapi({
+				method: "DELETE",
+				path: "/instance/users/{id}/image",
+				summary: "Remove any account's profile picture",
+				tags,
+			}),
+		)
+		.input(removeInstanceUserImageInputSchema)
+		.output(removeInstanceImageResponseSchema),
+	removeOrganizationLogo: base
+		.meta(
+			openapi({
+				method: "DELETE",
+				path: "/instance/organizations/{id}/logo",
+				summary: "Remove any organisation's logo",
+				tags,
+			}),
+		)
+		.input(removeInstanceOrganizationLogoInputSchema)
+		.output(removeInstanceImageResponseSchema),
 };
