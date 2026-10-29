@@ -1,7 +1,6 @@
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { useHydrated } from "@tanstack/react-router";
 import { ChevronsUpDown, LogOut } from "lucide-react";
-import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -56,12 +55,8 @@ const NavUser = () => {
 										{auth.user.name}
 									</span>
 									{organization && (
-										<span className="flex min-w-0 items-center gap-1 text-xs">
-											<OrganizationLogo
-												organization={organization}
-												className="size-4 text-[0.5rem]"
-											/>
-											<span className="truncate">{organization.name}</span>
+										<span className="truncate text-muted-foreground text-xs">
+											{organization.name}
 										</span>
 									)}
 								</div>

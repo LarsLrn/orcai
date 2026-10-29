@@ -5,7 +5,7 @@ import {
 	redirect,
 	useNavigate,
 } from "@tanstack/react-router";
-import { BuildingIcon } from "lucide-react";
+import { BuildingIcon, ServerCogIcon } from "lucide-react";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
 import { ChatHistoryLink } from "@/components/chat/chat-history-link";
@@ -152,14 +152,17 @@ function RouteComponent() {
 	return (
 		<div className="w-full max-w-3xl space-y-6">
 			{auth.isAuthenticated && isInstanceAdminRole(auth.user.role) && (
-				<Link
-					to="/instance"
-					className={buttonVariants({
-						variant: "link",
-					})}
-				>
-					{m.select_organisation_page_manage_instance_link()}
-				</Link>
+				<div className="flex justify-end">
+					<Link
+						to="/instance"
+						className={buttonVariants({
+							variant: "outline",
+						})}
+					>
+						<ServerCogIcon />
+						{m.select_organisation_page_manage_instance_link()}
+					</Link>
+				</div>
 			)}
 			<div className="space-y-2 text-center">
 				<h1 className="font-semibold text-2xl tracking-tight">
