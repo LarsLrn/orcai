@@ -4,7 +4,10 @@ import type { AssetPointBrowseCursor } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { browseAssetPoints } from "../src/browse";
-import { upsertPointsToQdrant } from "../src/mutations";
+import {
+	deletePointsByIdentifier,
+	upsertPointsToQdrant,
+} from "../src/mutations";
 import { QdrantLive, QdrantService } from "../src/service";
 
 let calls = 0;
@@ -132,7 +135,14 @@ describe("browseAssetPoints in reading order", () => {
 					cursor = page.nextCursor ?? undefined;
 				} while (cursor);
 				return read;
-			}),
+			}).pipe(
+				Effect.ensuring(
+					deletePointsByIdentifier({
+						assetId,
+						blockId,
+					}).pipe(Effect.ignore),
+				),
+			),
 		);
 
 		const expected = [
