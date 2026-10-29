@@ -640,6 +640,7 @@ const listRecentResources = authed.resource.listRecent.effect(function* ({
 }) {
 	const data = yield* recentResources({
 		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
 		limit: input.limit,
 		zedToken: getZedToken(context, input),
 	});

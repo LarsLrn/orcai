@@ -3,13 +3,18 @@ import {
 	type AssetId,
 	buckets,
 	type ChatMessageId,
+	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import { writeRelationshipMutations } from "@orcai/spice-db";
-import { createUser, integrationRuntime } from "@orcai/testing";
-import { eq } from "drizzle-orm";
+import {
+	createOrganization,
+	createUser,
+	integrationRuntime,
+} from "@orcai/testing";
+import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { attachAssets, withAttachmentParts } from "./attachments";
@@ -67,6 +72,7 @@ const privateImage = async (
 	};
 };
 
+/** Writes the tuple, and for a viewer the grant row reads are checked against too. */
 const relate = (
 	assetId: AssetId,
 	relation: "owner" | "viewer",
@@ -74,16 +80,45 @@ const relate = (
 	operation: "create" | "delete" = "create",
 ) =>
 	run(
-		writeRelationshipMutations([
-			{
-				resourceType: "asset",
-				resourceId: assetId,
-				relation,
-				subjectType: "user",
-				subjectId: userId,
-				operation,
-			},
-		]),
+		Effect.gen(function* () {
+			if (relation === "viewer") {
+				const db = yield* DB;
+				if (operation === "create") {
+					const { organization } = yield* createOrganization();
+					yield* db.insert(dbSchema.resourceGrant).values({
+						resourceType: "asset",
+						resourceId: assetId,
+						principalType: "user",
+						principalId: userId,
+						role: "viewer",
+						organizationId: organization.id as OrganizationId,
+						grantedBy: userId,
+					});
+				} else {
+					yield* db
+						.update(dbSchema.resourceGrant)
+						.set({
+							revokedAt: new Date(),
+						})
+						.where(
+							and(
+								eq(dbSchema.resourceGrant.resourceId, assetId),
+								eq(dbSchema.resourceGrant.principalId, userId),
+							),
+						);
+				}
+			}
+			return yield* writeRelationshipMutations([
+				{
+					resourceType: "asset",
+					resourceId: assetId,
+					relation,
+					subjectType: "user",
+					subjectId: userId,
+					operation,
+				},
+			]);
+		}),
 	);
 
 const question = (

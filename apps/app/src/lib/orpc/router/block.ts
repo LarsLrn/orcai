@@ -9,13 +9,20 @@ import {
 	getColumns,
 	ilike,
 	inArray,
+	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
+	readableIds,
+	readableNow,
+	requireReadable,
+} from "@/lib/authz/content-access";
+import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
+import { inLibrary } from "@/lib/authz/library";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
@@ -47,19 +54,44 @@ import { literalSearch } from "@/lib/utils/literal-search";
 const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
-	const allowedIds = yield* lookupEntitiesByPermission({
+	const botId = input.filters?.botId;
+	const reader = {
 		userId: context.auth.user.id,
-		permission: "read",
-		entityType: "block",
 		zedToken: getZedToken(context, input),
-	});
+	};
 
+	// A bot's blocks are its contents, readable with it; the rest is the library.
 	const whereConditions = [
-		inArray(dbSchema.block.id, allowedIds),
 		eq(dbSchema.block.status, input.filters?.status ?? "ready"),
 	];
-	if (input.filters?.botId) {
-		whereConditions.push(eq(dbSchema.botBlock.botId, input.filters.botId));
+	if (botId) {
+		const readableBot = yield* readableIds(
+			"bot",
+			[
+				botId,
+			],
+			reader,
+		);
+		whereConditions.push(
+			readableBot.has(botId) ? eq(dbSchema.botBlock.botId, botId) : sql`false`,
+		);
+	} else {
+		whereConditions.push(
+			inArray(
+				dbSchema.block.id,
+				yield* lookupEntitiesByPermission({
+					...reader,
+					permission: "read",
+					entityType: "block",
+				}),
+			),
+			inLibrary(
+				"block",
+				dbSchema.block.id,
+				context.auth.session.activeOrganizationId,
+			),
+			readableNow("block", dbSchema.block.id, reader.userId),
+		);
 	}
 	if (input.filters?.type) {
 		whereConditions.push(eq(dbSchema.block.type, input.filters.type));
@@ -134,6 +166,10 @@ const findBlock = authed.block.find
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		yield* requireReadable("block", input.id, {
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		});
 
 		const [block] = yield* db
 			.select({

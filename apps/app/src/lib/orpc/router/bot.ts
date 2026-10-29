@@ -3,6 +3,7 @@ import type { Bot } from "@orcai/schema";
 import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
+import { requireReadable } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
@@ -66,6 +67,10 @@ const findBot = authed.bot.find
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		yield* requireReadable("bot", input.id, {
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		});
 
 		const [bot] = yield* db
 			.select({

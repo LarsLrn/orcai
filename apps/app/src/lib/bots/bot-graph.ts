@@ -23,10 +23,12 @@ import {
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { readableNow } from "@/lib/authz/content-access";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
+import { inLibrary } from "@/lib/authz/library";
 import { usableInOrganization } from "@/lib/authz/organization-use";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
@@ -66,6 +68,8 @@ export const listBotsByStatus = (params: {
 
 		const whereConditions = [
 			inArray(dbSchema.bot.id, allowedIds),
+			inLibrary("bot", dbSchema.bot.id, params.organizationId),
+			readableNow("bot", dbSchema.bot.id, params.userId),
 			eq(dbSchema.bot.status, params.status),
 		];
 
