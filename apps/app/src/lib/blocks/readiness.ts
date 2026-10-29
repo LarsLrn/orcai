@@ -10,6 +10,7 @@ import {
 import { and, asc, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { reprocessAsset } from "@/lib/assets/processing";
+import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { enqueueIndexing } from "@/lib/blocks/database-block";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -112,10 +113,12 @@ export const loadRepositoryReadiness = (params: {
 			organizationId: params.organizationId,
 			zedToken: params.zedToken,
 		});
-		const readableIds = blockIds.filter(
-			(blockId) => capabilities.get(blockId)?.read === true,
-		);
-		if (readableIds.length === 0) return [];
+		const readable = yield* readableIds("block", blockIds, {
+			userId: params.userId,
+			zedToken: params.zedToken,
+		});
+		const repositoryIds = blockIds.filter((blockId) => readable.has(blockId));
+		if (repositoryIds.length === 0) return [];
 
 		const [blocks, rows] = yield* Effect.all(
 			[
@@ -127,7 +130,7 @@ export const loadRepositoryReadiness = (params: {
 					.from(dbSchema.block)
 					.where(
 						and(
-							inArray(dbSchema.block.id, readableIds),
+							inArray(dbSchema.block.id, repositoryIds),
 							eq(dbSchema.block.type, "database"),
 						),
 					),
@@ -146,7 +149,7 @@ export const loadRepositoryReadiness = (params: {
 						dbSchema.asset,
 						eq(dbSchema.asset.id, dbSchema.blockAsset.assetId),
 					)
-					.where(inArray(dbSchema.blockAsset.blockId, readableIds))
+					.where(inArray(dbSchema.blockAsset.blockId, repositoryIds))
 					.orderBy(asc(dbSchema.asset.title)),
 			],
 			{
@@ -161,7 +164,7 @@ export const loadRepositoryReadiness = (params: {
 			]),
 		);
 
-		return readableIds.flatMap((blockId): RepositoryReadiness[] => {
+		return repositoryIds.flatMap((blockId): RepositoryReadiness[] => {
 			const name = nameById.get(blockId);
 			const blockCapabilities = capabilities.get(blockId);
 			if (name === undefined || !blockCapabilities) return [];

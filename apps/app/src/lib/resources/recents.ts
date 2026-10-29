@@ -1,9 +1,11 @@
-import type { UserId } from "@orcai/core";
+import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { BlockType } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
-import { type AnyColumn, desc, inArray, sql } from "drizzle-orm";
+import { type AnyColumn, and, desc, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { readableNow } from "@/lib/authz/content-access";
+import { inLibrary } from "@/lib/authz/library";
 
 /**
  * When a row last changed, falling back to creation time so a row that has
@@ -18,6 +20,7 @@ const toTime = (value: Date | string) => new Date(value).getTime();
 /** The user's most recently changed readable bots, blocks and assets, newest first. */
 export const recentResources = (params: {
 	userId: UserId;
+	organizationId: OrganizationId | undefined;
 	limit: number;
 	zedToken: string | undefined;
 }) =>
@@ -49,7 +52,13 @@ export const recentResources = (params: {
 										changedAt: changedAt(dbSchema.bot),
 									})
 									.from(dbSchema.bot)
-									.where(inArray(dbSchema.bot.id, ids))
+									.where(
+										and(
+											inArray(dbSchema.bot.id, ids),
+											inLibrary("bot", dbSchema.bot.id, params.organizationId),
+											readableNow("bot", dbSchema.bot.id, params.userId),
+										),
+									)
 									.orderBy(desc(changedAt(dbSchema.bot)))
 									.limit(params.limit),
 					),
@@ -67,7 +76,17 @@ export const recentResources = (params: {
 										changedAt: changedAt(dbSchema.block),
 									})
 									.from(dbSchema.block)
-									.where(inArray(dbSchema.block.id, ids))
+									.where(
+										and(
+											inArray(dbSchema.block.id, ids),
+											inLibrary(
+												"block",
+												dbSchema.block.id,
+												params.organizationId,
+											),
+											readableNow("block", dbSchema.block.id, params.userId),
+										),
+									)
 									.orderBy(desc(changedAt(dbSchema.block)))
 									.limit(params.limit),
 					),
@@ -84,7 +103,17 @@ export const recentResources = (params: {
 										changedAt: changedAt(dbSchema.asset),
 									})
 									.from(dbSchema.asset)
-									.where(inArray(dbSchema.asset.id, ids))
+									.where(
+										and(
+											inArray(dbSchema.asset.id, ids),
+											inLibrary(
+												"asset",
+												dbSchema.asset.id,
+												params.organizationId,
+											),
+											readableNow("asset", dbSchema.asset.id, params.userId),
+										),
+									)
 									.orderBy(desc(changedAt(dbSchema.asset)))
 									.limit(params.limit),
 					),

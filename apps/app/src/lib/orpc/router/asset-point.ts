@@ -21,6 +21,8 @@ import { eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
+import { requireReadable } from "@/lib/authz/content-access";
+import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -333,7 +335,11 @@ const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 			entityId: "repositoryId",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
+		yield* requireReadable("block", input.repositoryId, {
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context),
+		});
 		const assetIds = yield* repositoryAssetScope(
 			input.repositoryId,
 			input.filters.assetIds,
@@ -366,7 +372,11 @@ const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 			entityId: "repositoryId",
 		}),
 	)
-	.effect(function* ({ input }) {
+	.effect(function* ({ input, context }) {
+		yield* requireReadable("block", input.repositoryId, {
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context),
+		});
 		const assetIds = yield* repositoryAssetScope(
 			input.repositoryId,
 			input.assetId

@@ -3,11 +3,11 @@ import { DB, dbSchema } from "@orcai/db";
 import { sendJobBatch } from "@orcai/pg-boss";
 import { deletePointsByIdentifier } from "@orcai/qdrant";
 import { VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
@@ -58,15 +58,12 @@ export const requireReadableAssets = (params: {
 }) =>
 	Effect.gen(function* () {
 		const assetIds = Array.from(new Set(params.assetIds));
-		const readableIds = yield* permittedEntityIds({
-			entityIds: assetIds,
-			entityType: "asset",
-			permission: "read",
+		const readable = yield* readableIds("asset", assetIds, {
 			userId: params.userId,
 			zedToken: params.zedToken,
 		});
 
-		if (assetIds.some((assetId) => !readableIds.has(assetId))) {
+		if (assetIds.some((assetId) => !readable.has(assetId))) {
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
 					reason: "ASSET_LINK_FORBIDDEN",

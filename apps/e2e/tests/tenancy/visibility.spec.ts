@@ -108,7 +108,7 @@ test("a private block is hidden from another organisation", async ({
 	}
 });
 
-test("a public block is readable from another organisation", async ({
+test("a public block is previewed from another organisation but not listed there", async ({
 	api,
 	orgs,
 }) => {
@@ -126,24 +126,16 @@ test("a public block is readable from another organisation", async ({
 	});
 	const zedToken = madePublic.meta?.zedToken;
 
-	// The owner's own organisation reaches it, which is the point of public.
-	await api.as("manager").block.find({
-		id: resourceId,
-	});
-
-	/** Public is instance-wide: every role in another organisation can read and
-	 * list it, while the owning organisation's providers, models, and quotas
-	 * remain local. */
+	/** Public is listed: every role in another organisation can preview it,
+	 * but its library holds only what belongs to that organisation. */
 	for (const role of ROLES) {
 		const found = await api.as(role, other).block.find({
 			id: resourceId,
+			zedToken,
 		});
 		expect(found.data.id).toBe(resourceId);
+		expect(found.data.capabilities.use).toBe(false);
 
-		/** Blocks come back newest first, so the block this test created is on
-		 * the first page whatever else the run has accumulated. `block.list`
-		 * takes its revision from the input, so the listing carries the token
-		 * of the change. */
 		expect(
 			await blockIds(
 				api.as(role, other).block.list({
@@ -152,6 +144,6 @@ test("a public block is readable from another organisation", async ({
 					zedToken,
 				}),
 			),
-		).toContain(resourceId);
+		).not.toContain(resourceId);
 	}
 });

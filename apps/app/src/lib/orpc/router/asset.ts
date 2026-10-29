@@ -24,9 +24,15 @@ import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { reprocessAsset } from "@/lib/assets/processing";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import {
+	readableIds,
+	readableNow,
+	requireReadable,
+} from "@/lib/authz/content-access";
+import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
+import { inLibrary } from "@/lib/authz/library";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -43,19 +49,49 @@ import { literalSearch } from "@/lib/utils/literal-search";
 const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 	const db = yield* DB;
 
-	const allowedIds = yield* lookupEntitiesByPermission({
+	const reader = {
 		userId: context.auth.user.id,
-		permission: "read",
-		entityType: "asset",
 		zedToken: getZedToken(context, input),
-	});
+	};
+	const repositoryId = input.filters?.repositoryId;
+	const ids = input.filters?.ids;
+	if (repositoryId) yield* requireReadable("block", repositoryId, reader);
 
+	// A repository's documents and known ids are contents; the rest is the library.
 	const whereConditions = [
-		inArray(dbSchema.asset.id, allowedIds),
+		repositoryId
+			? inArray(
+					dbSchema.asset.id,
+					db
+						.select({
+							assetId: dbSchema.blockAsset.assetId,
+						})
+						.from(dbSchema.blockAsset)
+						.where(eq(dbSchema.blockAsset.blockId, repositoryId)),
+				)
+			: ids
+				? inArray(dbSchema.asset.id, [
+						...(yield* readableIds("asset", ids, reader)),
+					])
+				: and(
+						inArray(
+							dbSchema.asset.id,
+							yield* lookupEntitiesByPermission({
+								...reader,
+								permission: "read",
+								entityType: "asset",
+							}),
+						),
+						inLibrary(
+							"asset",
+							dbSchema.asset.id,
+							context.auth.session.activeOrganizationId,
+						),
+						readableNow("asset", dbSchema.asset.id, reader.userId),
+					),
 	];
-
-	if (input.filters?.ids) {
-		whereConditions.push(inArray(dbSchema.asset.id, input.filters.ids));
+	if (repositoryId && ids) {
+		whereConditions.push(inArray(dbSchema.asset.id, ids));
 	}
 
 	if (input.filters?.search) {
@@ -66,20 +102,6 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 
 	if (input.filters?.origin) {
 		whereConditions.push(eq(dbSchema.asset.origin, input.filters.origin));
-	}
-
-	if (input.filters?.repositoryId) {
-		whereConditions.push(
-			inArray(
-				dbSchema.asset.id,
-				db
-					.select({
-						assetId: dbSchema.blockAsset.assetId,
-					})
-					.from(dbSchema.blockAsset)
-					.where(eq(dbSchema.blockAsset.blockId, input.filters.repositoryId)),
-			),
-		);
 	}
 
 	return yield* Effect.all(
@@ -136,6 +158,10 @@ const findAsset = authed.asset.find
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		yield* requireReadable("asset", input.id, {
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		});
 
 		const [query] = yield* db
 			.select({

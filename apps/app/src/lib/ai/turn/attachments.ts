@@ -8,11 +8,11 @@ import {
 import { getMimeTypeFromFileType } from "@orcai/s3";
 import { getImageAsBase64, getObjectAsJson } from "@orcai/s3/server";
 import type { ChatAttachmentRef, ChatMessageAttachment } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
 import type { FileUIPart, TextUIPart } from "ai";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { readableIds } from "@/lib/authz/content-access";
 import { permissionDenied } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
 import {
@@ -37,13 +37,7 @@ type AttachmentPart = FileUIPart | TextUIPart;
 /** The assets among `assetIds` the reader may read, by id. */
 const readableAssets = (assetIds: readonly AssetId[], reader: Reader) =>
 	Effect.gen(function* () {
-		const permitted = yield* permittedEntityIds({
-			entityIds: assetIds,
-			entityType: "asset",
-			permission: "read",
-			userId: reader.userId,
-			zedToken: reader.zedToken,
-		});
+		const permitted = yield* readableIds("asset", assetIds, reader);
 		if (permitted.size === 0) return new Map<AssetId, AttachedAsset>();
 
 		const rows = yield* (yield* DB)
