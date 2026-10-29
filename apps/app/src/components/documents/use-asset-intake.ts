@@ -6,6 +6,8 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export type UploadFailure = {
+	/** The file as given to `intake`, so callers can tell same-named files apart. */
+	file: File;
 	name: string;
 	message: string;
 };
@@ -32,6 +34,7 @@ export const useAssetIntake = ({ route }: { route: AssetUploadRoute }) => {
 	const intake = async (files: File[]): Promise<AssetIntakeOutcome> => {
 		const uploaded = await upload.uploadAsync(files);
 		const failures: UploadFailure[] = uploaded.failedFiles.map((file) => ({
+			file: file.raw,
 			name: file.name,
 			message: file.error.message,
 		}));
@@ -55,36 +58,31 @@ export const useAssetIntake = ({ route }: { route: AssetUploadRoute }) => {
 			})),
 		});
 
-		const names = new Map(
-			uploaded.files.map((file) => [
-				file.objectKey,
-				file.name,
+		const outcomes = new Map(
+			results.map((result) => [
+				result.objectKey,
+				result,
 			]),
 		);
+		const assets: Asset[] = [];
+		for (const file of uploaded.files) {
+			const outcome = outcomes.get(file.objectKey);
+			if (outcome?.status === "created") {
+				assets.push(outcome.asset);
+				continue;
+			}
+			failures.push({
+				file: file.raw,
+				name: file.name,
+				message: outcome
+					? reasonMessage(outcome.reason, outcome.params)
+					: m.assets_upload_progress_file_error_label(),
+			});
+		}
 
 		return {
-			assets: results.flatMap((result) =>
-				result.status === "created"
-					? [
-							result.asset,
-						]
-					: [],
-			),
-			failures: [
-				...failures,
-				...results.flatMap((result) =>
-					result.status === "failed"
-						? [
-								{
-									name:
-										names.get(result.objectKey) ??
-										m.assets_upload_progress_file_error_label(),
-									message: reasonMessage(result.reason, result.params),
-								},
-							]
-						: [],
-				),
-			],
+			assets,
+			failures,
 			zedToken: meta?.zedToken,
 		};
 	};

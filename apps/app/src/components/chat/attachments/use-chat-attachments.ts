@@ -22,6 +22,16 @@ const toChatAttachment = (
 	size: asset.size,
 });
 
+const uniqueAttachments = (attachments: ChatMessageAttachment[]) =>
+	Array.from(
+		new Map(
+			attachments.map((attachment) => [
+				attachment.assetId,
+				attachment,
+			]),
+		).values(),
+	);
+
 export const useChatAttachments = ({
 	limit = 8,
 	initialAttachments = [],
@@ -177,38 +187,56 @@ export const useChatAttachments = ({
 		resetUploadState();
 	};
 
+	/**
+	 * Uploads the local files and keeps their assets as selected attachments, so
+	 * a retry reuses them. Resolves null when an upload failed: the failed files
+	 * stay for another try.
+	 */
 	const resolveAttachmentsForSend = async (): Promise<
-		ChatMessageAttachment[]
+		ChatMessageAttachment[] | null
 	> => {
-		const uploadedAttachments: ChatMessageAttachment[] = [];
-
-		if (localFiles.length > 0) {
-			const { assets, failures } = await intake(
-				localFiles.map((entry) => entry.file),
-			);
-
-			uploadedAttachments.push(
-				...assets.map((asset) => toChatAttachment(asset)),
-			);
-
-			if (failures.length > 0) {
-				toast.warning(
-					m.chat_attachments_upload_failed_toast_warning({
-						count: failures.length,
-					}),
-				);
-			}
+		if (localFiles.length === 0) {
+			return selectedAttachments;
 		}
 
-		const attachmentsMap = new Map<string, ChatMessageAttachment>();
-		for (const attachment of [
+		const pending = localFiles;
+		const { assets, failures } = await intake(
+			pending.map((entry) => entry.file),
+		);
+		const uploaded = assets.map((asset) => toChatAttachment(asset));
+		const attachments = uniqueAttachments([
 			...selectedAttachments,
-			...uploadedAttachments,
-		]) {
-			attachmentsMap.set(attachment.assetId, attachment);
+			...uploaded,
+		]);
+
+		const failed = new Set(failures.map((failure) => failure.file));
+		const succeeded = pending.filter((entry) => !failed.has(entry.file));
+		for (const entry of succeeded) {
+			URL.revokeObjectURL(entry.previewUrl);
+		}
+		setLocalFiles((current) =>
+			current.filter((entry) => !succeeded.includes(entry)),
+		);
+		setSelectedAttachments((current) =>
+			uniqueAttachments([
+				...current,
+				...uploaded,
+			]),
+		);
+
+		if (failures.length > 0) {
+			toast.error(
+				m.chat_attachments_upload_failed_toast_error({
+					count: failures.length,
+				}),
+				{
+					description: m.chat_composer_send_failed_toast_error(),
+				},
+			);
+			return null;
 		}
 
-		return Array.from(attachmentsMap.values());
+		return attachments;
 	};
 
 	return {

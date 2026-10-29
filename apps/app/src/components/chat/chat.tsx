@@ -78,7 +78,8 @@ const Chat = ({
 	zedToken?: string;
 	/** A message to open on and highlight briefly. */
 	focusMessageId?: string;
-	pendingMessage?: string;
+	/** The opening message of a chat just created, sent once. */
+	pendingMessage?: ChatDraft;
 	draft?: ChatDraft;
 	/** Assistant conversations drop the chat-only controls. */
 	variant?: "chat" | "assistant";
@@ -147,11 +148,22 @@ const Chat = ({
 
 	useEffect(() => {
 		if (!pendingMessage) return;
-		session.sendFirst(pendingMessage)?.catch((error: unknown) => {
-			toast.error(m.chat_pending_message_failed_toast_error(), {
-				description: reasonMessageOf(error),
+		const { text, attachments } = pendingMessage;
+		session
+			.sendFirst({
+				text,
+				metadata:
+					attachments.length > 0
+						? {
+								attachments,
+							}
+						: undefined,
+			})
+			?.catch((error: unknown) => {
+				toast.error(m.chat_pending_message_failed_toast_error(), {
+					description: reasonMessageOf(error),
+				});
 			});
-		});
 	}, [
 		session,
 		pendingMessage,

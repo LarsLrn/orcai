@@ -1,4 +1,4 @@
-import { FolderOpenIcon, PlusIcon, UploadIcon } from "lucide-react";
+import { FolderOpenIcon, PaperclipIcon, UploadIcon } from "lucide-react";
 import {
 	PromptInputActionMenu,
 	PromptInputActionMenuContent,
@@ -20,13 +20,13 @@ export const ChatAttachmentActionMenu = ({
 		<PromptInputActionMenu>
 			<PromptInputActionMenuTrigger
 				type="button"
+				variant="ghost"
+				size="icon-sm"
 				disabled={disabled}
-				className="max-sm:size-8 max-sm:p-0"
+				aria-label={m.chat_attachment_menu_trigger()}
+				className="text-muted-foreground"
 			>
-				<PlusIcon className="size-4" />
-				<span className="max-sm:sr-only">
-					{m.chat_attachment_menu_trigger()}
-				</span>
+				<PaperclipIcon />
 			</PromptInputActionMenuTrigger>
 			<PromptInputActionMenuContent className="w-48">
 				<PromptInputActionMenuItem onClick={onUploadFile}>

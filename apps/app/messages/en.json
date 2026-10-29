@@ -2140,12 +2140,6 @@
 	"bots_select_search_placeholder": "Search bots",
 	"bots_setup_page_description": "Use the shared authoring flow to update the bot configuration, reuse existing blocks, and publish changes when they are ready.",
 	"bots_setup_page_title": "Bot setup",
-	"bots_showcase_create_action": "Create bot",
-	"bots_showcase_description": "Each bot answers from its own sources and behaviour.",
-	"bots_showcase_empty_description": "A bot bundles approved sources with a set behaviour so anyone in the organisation can ask against them.",
-	"bots_showcase_empty_title": "No bots yet",
-	"bots_showcase_title": "Bots you can use",
-	"bots_showcase_view_all_action": "View all bots",
 	"boundaries_default_error_back_button": "Go back",
 	"boundaries_default_error_description": "Try again, or go back to the previous page. The technical details below help if the problem continues.",
 	"boundaries_default_error_details_summary": "Technical details",
@@ -2181,7 +2175,7 @@
 	"chat_asset_picker_search_placeholder": "Search by title...",
 	"chat_asset_picker_title": "Select existing assets",
 	"chat_attachment_menu_assets_action": "From assets",
-	"chat_attachment_menu_trigger": "Add file",
+	"chat_attachment_menu_trigger": "Attach files",
 	"chat_attachment_menu_upload_action": "Upload file",
 	"chat_attachments_capacity_toast_warning": [
 		{
@@ -2213,7 +2207,7 @@
 			}
 		}
 	],
-	"chat_attachments_upload_failed_toast_warning": [
+	"chat_attachments_upload_failed_toast_error": [
 		{
 			"declarations": [
 				"input count",
@@ -2373,9 +2367,7 @@
 	"chat_image_part_download_toast_success": "Image downloaded",
 	"chat_image_part_label": "Generated image",
 	"chat_list_bot_filter_label": "Bot",
-	"chat_list_card_continue_action": "Continue chat",
 	"chat_list_card_last_updated": "Last updated {timestamp}",
-	"chat_list_empty_state_description": "Ask a question above, or open a bot to chat against its sources.",
 	"chat_list_empty_state_title": "No chats yet",
 	"chat_list_page_empty_description": "Start a chat with a bot or a model, and it is listed here.",
 	"chat_list_page_title": "Chats",
@@ -3344,16 +3336,63 @@
 	"header_locale_switcher_toast_error": "Failed to save language",
 	"header_theme_switcher_label": "Toggle theme",
 	"home_about_link": "About OrcAI",
-	"home_ask_browse_bots_action": "Browse bots",
-	"home_ask_section_description": "Pick a bot to answer from its sources, or ask the model directly.",
-	"home_ask_section_title": "Ask a question",
-	"home_chats_new_chat_aria_label": "Start a new chat",
-	"home_chats_section_description": "Pick up where you left off.",
 	"home_chats_section_title": "Recent chats",
+	"home_chats_all_action": "All chats",
+	"home_chats_empty": "Your chats will show up here.",
+	"home_organization_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} bot",
+				"countPlural=other": "{count} bots"
+			}
+		}
+	],
+	"home_organization_behaviours": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} behaviour",
+				"countPlural=other": "{count} behaviours"
+			}
+		}
+	],
+	"home_organization_repositories": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} repository",
+				"countPlural=other": "{count} repositories"
+			}
+		}
+	],
+	"home_organization_page_action": "Organisation page",
+	"home_try_all_bots_action": "All bots",
+	"home_try_catalogue_new": "New in the catalogue: {name}",
+	"home_try_empty": "Bots you can chat with will show up here.",
+	"home_try_favourite_label": "Your favourite",
+	"home_try_title": "Try something",
 	"home_greeting_afternoon": "Good afternoon",
 	"home_greeting_evening": "Good evening",
 	"home_greeting_morning": "Good morning",
-	"home_intro": "Ask questions against your organisation's approved sources, or build a bot that others can use.",
 	"home_library_assets_label": "Assets",
 	"home_library_assets_meta": "Source material for retrieval and citations",
 	"home_library_blocks_label": "Behaviour blocks",

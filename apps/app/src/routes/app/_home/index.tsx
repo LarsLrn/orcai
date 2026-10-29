@@ -1,20 +1,16 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import z from "zod/v4";
+import { recentChatsInput } from "@/components/app/home/recent-chats";
+import {
+	catalogueTeaserInput,
+	tryBotsInput,
+} from "@/components/app/home/try-something";
 import { UserHome } from "@/components/app/home/user-home";
-import { showcaseBotsInput } from "@/components/bot/bots-showcase";
 import {
 	failingRequired,
 	readinessQuery,
 } from "@/components/readiness/organization-readiness-card";
 import { orpc } from "@/lib/orpc/orpc";
-
-const SUMMARY_PARAMS = {
-	pageIndex: 0,
-	pageSize: 1,
-	filters: {
-		origin: "library",
-	},
-} as const;
 
 export const Route = createFileRoute("/app/_home/")({
 	validateSearch: z.object({
@@ -37,17 +33,31 @@ export const Route = createFileRoute("/app/_home/")({
 			});
 		}
 	},
-	loader: async ({ context: { queryClient } }) => {
+	loader: async ({ context: { queryClient, auth } }) => {
 		await Promise.all([
 			queryClient.query(
-				orpc.bot.list.queryOptions({
-					input: showcaseBotsInput(6),
+				orpc.organization.profile.queryOptions({
+					input: {
+						id: auth.session.activeOrganizationId,
+					},
 					staleTime: "static",
 				}),
 			),
 			queryClient.query(
-				orpc.asset.list.queryOptions({
-					input: SUMMARY_PARAMS,
+				orpc.bot.list.queryOptions({
+					input: tryBotsInput,
+					staleTime: "static",
+				}),
+			),
+			queryClient.query(
+				orpc.catalogue.list.queryOptions({
+					input: catalogueTeaserInput,
+					staleTime: "static",
+				}),
+			),
+			queryClient.query(
+				orpc.chat.list.queryOptions({
+					input: recentChatsInput,
 					staleTime: "static",
 				}),
 			),

@@ -73,7 +73,9 @@ test("auth: registering from a German browser queues a German verification email
 			submit: message("auth_signup_form_submit_button", {}, "de"),
 			until: /\/app(\/|$)/,
 		});
-		await expect(page.getByText(message("home_intro", {}, "de"))).toBeVisible();
+		await expect(
+			page.getByText(message("home_try_title", {}, "de")),
+		).toBeVisible();
 	} finally {
 		await context.close();
 	}
@@ -101,7 +103,7 @@ test("auth: registering from an English browser queues an English verification e
 		name: "E2E Auth English",
 		password: USER_PASSWORD,
 	});
-	await expect(page.getByText(message("home_intro"))).toBeVisible();
+	await expect(page.getByText(message("home_try_title"))).toBeVisible();
 
 	await expectEmailIn(
 		await queuedEmail(outbox, email, VERIFY_NOTIFICATION),

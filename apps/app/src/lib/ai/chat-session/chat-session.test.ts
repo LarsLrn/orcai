@@ -631,8 +631,14 @@ describe("ChatSession", () => {
 		});
 		const empty = session(port);
 
-		await empty.sendFirst("Hi");
-		expect(empty.sendFirst("Hi")).toBeUndefined();
+		await empty.sendFirst({
+			text: "Hi",
+		});
+		expect(
+			empty.sendFirst({
+				text: "Hi",
+			}),
+		).toBeUndefined();
 		expect(
 			session(port, {
 				messages: [
@@ -640,7 +646,9 @@ describe("ChatSession", () => {
 						text("Earlier"),
 					]),
 				],
-			}).sendFirst("Hi"),
+			}).sendFirst({
+				text: "Hi",
+			}),
 		).toBeUndefined();
 		expect(calls.chat).toHaveLength(1);
 	});

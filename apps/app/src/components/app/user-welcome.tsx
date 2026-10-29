@@ -3,7 +3,6 @@ import { CompassIcon, ExternalLinkIcon } from "lucide-react";
 import { TourButton } from "@/components/tour/tour-button";
 import { buttonVariants } from "@/components/ui/button";
 import { usePublicConfig } from "@/hooks/use-public-config";
-import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 const timeOfDay = () => {
@@ -13,6 +12,7 @@ const timeOfDay = () => {
 	return "evening";
 };
 
+/** The greeting, with the tour and the docs link beside it. */
 const UserWelcome = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
@@ -23,15 +23,14 @@ const UserWelcome = () => {
 	const { docsUrl } = usePublicConfig();
 
 	return (
-		<div className="space-y-2">
-			<h1 className="font-semibold text-2xl tracking-tight">
+		<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+			<h1 className="font-heading font-semibold text-3xl tracking-tight">
 				{m.home_welcome_heading({
 					timeOfDay: greetingTime,
 					name: auth.user.name?.split(" ")[0] ?? "",
 				})}
 			</h1>
-			<p className="text-muted-foreground">{m.home_intro()}</p>
-			<div className="-ms-3 flex flex-wrap items-center gap-1 pt-2">
+			<div className="-ms-3 flex items-center gap-1 sm:ms-0 sm:-me-3">
 				<TourButton
 					variant="ghost"
 					size="sm"
@@ -47,12 +46,10 @@ const UserWelcome = () => {
 						href={docsUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						className={cn(
-							buttonVariants({
-								variant: "ghost",
-								size: "sm",
-							}),
-						)}
+						className={buttonVariants({
+							variant: "ghost",
+							size: "sm",
+						})}
 					>
 						{m.home_about_link()}
 						<ExternalLinkIcon className="size-3.5" />

@@ -17,6 +17,7 @@ const ModelPicker = ({
 	selectedModelId,
 	selectedProviderId,
 	onSelect,
+	disabled,
 	className,
 }: {
 	state: ModelPickerState;
@@ -24,6 +25,7 @@ const ModelPicker = ({
 	selectedModelId?: string;
 	selectedProviderId?: string;
 	onSelect: (model: Model, provider: Provider) => void;
+	disabled?: boolean;
 	className?: string;
 }) => {
 	if (state.kind === "locked") {
@@ -61,6 +63,7 @@ const ModelPicker = ({
 				selectedModelId={selectedModelId}
 				selectedProviderId={selectedProviderId}
 				onSelect={onSelect}
+				disabled={disabled}
 				className={className}
 			/>
 			{state.kind === "tuned" && (

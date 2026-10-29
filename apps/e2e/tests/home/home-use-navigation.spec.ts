@@ -24,21 +24,21 @@ test("home: an admin of an unfinished organisation can open Use and still lands 
 	});
 	await useTab.click();
 	await expect(admin).toHaveURL(/\/app\?view=use$/);
-	const askHeading = admin.getByRole("heading", {
-		name: message("home_ask_section_title"),
+	const useHeading = admin.getByRole("heading", {
+		name: message("home_try_title"),
 	});
-	await expect(askHeading).toBeVisible();
+	await expect(useHeading).toBeVisible();
 
 	// The choice is in the URL, so a reload and a new tab keep Use.
 	await admin.reload();
 	await expect(admin).toHaveURL(/\/app\?view=use$/);
-	await expect(askHeading).toBeVisible();
+	await expect(useHeading).toBeVisible();
 	const newTab = await admin.context().newPage();
 	await open(newTab, "/app?view=use");
 	await expect(newTab).toHaveURL(/\/app\?view=use$/);
 	await expect(
 		newTab.getByRole("heading", {
-			name: message("home_ask_section_title"),
+			name: message("home_try_title"),
 		}),
 	).toBeVisible();
 	await newTab.close();
