@@ -14,6 +14,9 @@ import { skipToken, useQuery } from "@tanstack/react-query";
 import { TriangleAlertIcon } from "lucide-react";
 import { useId } from "react";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
+import { formTriggerText } from "@/components/forms/fields/form-field";
+import { FormSection } from "@/components/forms/form-layout";
+import { OrganizationLogoSettings } from "@/components/images/image-settings";
 import { InitialAdminField } from "@/components/organizations/form/initial-admin-field";
 import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
 import { Button } from "@/components/ui/button";
@@ -102,7 +105,11 @@ const OrganizationModelField = <Use extends ModelUse>({
 	value: string | null;
 	onChange: (modelId: string | null) => void;
 }) => {
-	const labelId = useId();
+	const id = useId();
+	const labelId = `${id}-label`;
+	const hintId = `${id}-hint`;
+	const unsetId = `${id}-unset`;
+	const unusableId = `${id}-unusable`;
 	const { data: model } = useQuery(
 		orpc.model.find.queryOptions({
 			input: value
@@ -134,13 +141,21 @@ const OrganizationModelField = <Use extends ModelUse>({
 				)
 			: undefined;
 
+	const describedBy = [
+		hintId,
+		!value && unsetId,
+		unusableReason && unusableId,
+	]
+		.filter(Boolean)
+		.join(" ");
+
 	return (
 		<Field role="group" aria-labelledby={labelId}>
 			<FieldContent>
 				<FieldLabel id={labelId}>{setting.label()}</FieldLabel>
-				<FieldDescription>{setting.description()}</FieldDescription>
+				<FieldDescription id={hintId}>{setting.description()}</FieldDescription>
 			</FieldContent>
-			<div className="flex items-center gap-2">
+			<div className="flex items-center gap-2 sm:max-w-md">
 				<ModelSelectorButton
 					selectedModelId={value ?? undefined}
 					selectedProviderId={providerId}
@@ -148,6 +163,8 @@ const OrganizationModelField = <Use extends ModelUse>({
 					excludeDeprecated
 					capabilities={pickerCapabilities[setting.use]}
 					variant="full"
+					className={formTriggerText}
+					aria-describedby={describedBy}
 				/>
 				{value && (
 					<Button
@@ -161,10 +178,15 @@ const OrganizationModelField = <Use extends ModelUse>({
 				)}
 			</div>
 			{!value && (
-				<p className="text-muted-foreground text-sm">{setting.unsetHint()}</p>
+				<p id={unsetId} className="text-muted-foreground text-sm">
+					{setting.unsetHint()}
+				</p>
 			)}
 			{unusableReason && (
-				<p className="flex items-start gap-2 text-destructive text-sm">
+				<p
+					id={unusableId}
+					className="flex items-start gap-2 text-destructive text-sm"
+				>
 					<TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
 					{setting.unusable[unusableReason]()}
 				</p>
@@ -328,130 +350,159 @@ export const OrganizationForm = ({
 		},
 	});
 
+	const nameField = (
+		<form.AppField
+			name="name"
+			children={(field) => (
+				<field.TextField
+					label={m.orgs_form_name_label()}
+					placeholder={m.orgs_form_name_placeholder()}
+					width="medium"
+				/>
+			)}
+		/>
+	);
+	const slugField = (
+		<form.AppField
+			name="slug"
+			children={(field) => (
+				<field.TextField
+					label={m.orgs_form_slug_label()}
+					placeholder={m.orgs_form_slug_placeholder()}
+					width="medium"
+					className="font-mono"
+				/>
+			)}
+		/>
+	);
+	const submit = (
+		<div className="flex justify-end">
+			<form.AppForm>
+				<form.SubmitButton label={m.orgs_form_submit_button()} />
+			</form.AppForm>
+		</div>
+	);
+
 	return (
 		<form
 			onSubmit={(e) => {
 				e.preventDefault();
 				form.handleSubmit();
 			}}
-			className="flex min-w-0 flex-col gap-4"
+			className="flex min-w-0 flex-col gap-5"
 		>
-			<form.AppField
-				name="name"
-				children={(field) => (
-					<field.TextField
-						label={m.orgs_form_name_label()}
-						placeholder={m.orgs_form_name_placeholder()}
-					/>
-				)}
-			/>
-			<form.AppField
-				name="slug"
-				children={(field) => (
-					<field.TextField
-						label={m.orgs_form_slug_label()}
-						placeholder={m.orgs_form_slug_placeholder()}
-					/>
-				)}
-			/>
 			{action === "create" && (
-				<form.Subscribe
-					selector={(state) => ({
-						kind: state.values.initialAdmin,
-						email: state.values.initialAdminEmail,
-						userError: errorMessage(state.fieldMeta.initialAdminUserId?.errors),
-						emailError: errorMessage(state.fieldMeta.initialAdminEmail?.errors),
-					})}
-					children={({ kind, email, userError, emailError }) => (
-						<InitialAdminField
-							kind={kind}
-							onKindChange={(next) =>
-								form.setFieldValue("initialAdmin", next, quietly)
-							}
-							onUserChange={(userId) =>
-								form.setFieldValue("initialAdminUserId", userId, quietly)
-							}
-							email={email}
-							onEmailChange={(next) =>
-								form.setFieldValue("initialAdminEmail", next, quietly)
-							}
-							userError={userError}
-							emailError={emailError}
-						/>
-					)}
-				/>
-			)}
-			{action === "update" && (
 				<>
-					<form.AppField
-						name="description"
-						children={(field) => (
-							<field.DescriptionEditorField
-								label={m.orgs_form_description_label()}
-								description={m.orgs_form_description_description()}
+					{nameField}
+					{slugField}
+					<form.Subscribe
+						selector={(state) => ({
+							kind: state.values.initialAdmin,
+							email: state.values.initialAdminEmail,
+							userError: errorMessage(
+								state.fieldMeta.initialAdminUserId?.errors,
+							),
+							emailError: errorMessage(
+								state.fieldMeta.initialAdminEmail?.errors,
+							),
+						})}
+						children={({ kind, email, userError, emailError }) => (
+							<InitialAdminField
+								kind={kind}
+								onKindChange={(next) =>
+									form.setFieldValue("initialAdmin", next, quietly)
+								}
+								onUserChange={(userId) =>
+									form.setFieldValue("initialAdminUserId", userId, quietly)
+								}
+								email={email}
+								onEmailChange={(next) =>
+									form.setFieldValue("initialAdminEmail", next, quietly)
+								}
+								userError={userError}
+								emailError={emailError}
 							/>
-						)}
-					/>
-					<form.AppField
-						name="assistantModelId"
-						children={(field) => (
-							<OrganizationModelField
-								setting={assistantModelSetting}
-								value={field.state.value}
-								onChange={field.handleChange}
-							/>
-						)}
-					/>
-					<form.AppField
-						name="utilityModelId"
-						children={(field) => (
-							<OrganizationModelField
-								setting={utilityModelSetting}
-								value={field.state.value}
-								onChange={field.handleChange}
-							/>
-						)}
-					/>
-					<form.AppField
-						name="webSearch"
-						children={(field) => (
-							<>
-								<field.SelectField
-									label={m.orgs_form_web_search_label()}
-									description={m.orgs_form_web_search_description()}
-									options={[
-										{
-											value: "off",
-											label: m.orgs_form_web_search_off_option(),
-										},
-										{
-											value: "native",
-											label: m.orgs_form_web_search_native_option(),
-										},
-										...(searchProviders?.data ?? []).map((provider) => ({
-											value: provider.id,
-											label: m.orgs_form_web_search_provider_option({
-												name: provider.name,
-											}),
-										})),
-									]}
-								/>
-								<SearchPoolNotice
-									providerId={
-										providerIdSchema.safeParse(field.state.value).data ?? null
-									}
-								/>
-							</>
 						)}
 					/>
 				</>
 			)}
+			{action === "update" && (
+				<>
+					<FormSection title={m.forms_section_general_title()}>
+						<OrganizationLogoSettings organization={organization} />
+						{nameField}
+						{slugField}
+						<form.AppField
+							name="description"
+							children={(field) => (
+								<field.DescriptionEditorField
+									label={m.orgs_form_description_label()}
+									description={m.orgs_form_description_description()}
+								/>
+							)}
+						/>
+					</FormSection>
+					<FormSection title={m.orgs_form_section_models_title()}>
+						<form.AppField
+							name="assistantModelId"
+							children={(field) => (
+								<OrganizationModelField
+									setting={assistantModelSetting}
+									value={field.state.value}
+									onChange={field.handleChange}
+								/>
+							)}
+						/>
+						<form.AppField
+							name="utilityModelId"
+							children={(field) => (
+								<OrganizationModelField
+									setting={utilityModelSetting}
+									value={field.state.value}
+									onChange={field.handleChange}
+								/>
+							)}
+						/>
+					</FormSection>
+					<FormSection title={m.orgs_form_section_features_title()}>
+						<form.AppField
+							name="webSearch"
+							children={(field) => (
+								<>
+									<field.SelectField
+										label={m.orgs_form_web_search_label()}
+										description={m.orgs_form_web_search_description()}
+										width="medium"
+										options={[
+											{
+												value: "off",
+												label: m.orgs_form_web_search_off_option(),
+											},
+											{
+												value: "native",
+												label: m.orgs_form_web_search_native_option(),
+											},
+											...(searchProviders?.data ?? []).map((provider) => ({
+												value: provider.id,
+												label: m.orgs_form_web_search_provider_option({
+													name: provider.name,
+												}),
+											})),
+										]}
+									/>
+									<SearchPoolNotice
+										providerId={
+											providerIdSchema.safeParse(field.state.value).data ?? null
+										}
+									/>
+								</>
+							)}
+						/>
+					</FormSection>
+				</>
+			)}
 
-			<div className="flex justify-end pt-4">
-				<form.AppForm>
-					<form.SubmitButton label={m.orgs_form_submit_button()} />
-				</form.AppForm>
-			</div>
+			{submit}
 		</form>
 	);
 };

@@ -23,7 +23,7 @@ const ProfileForm = () => {
 				e.preventDefault();
 				form.handleSubmit();
 			}}
-			className="space-y-4"
+			className="flex flex-col gap-5"
 			noValidate
 		>
 			<form.AppForm>
@@ -36,13 +36,16 @@ const ProfileForm = () => {
 					<field.TextField
 						label={m.users_profile_form_name_label()}
 						placeholder={m.users_profile_form_name_placeholder()}
+						width="medium"
 					/>
 				)}
 			/>
 
-			<form.AppForm>
-				<form.SubmitButton label={m.users_profile_form_submit_button()} />
-			</form.AppForm>
+			<div className="flex justify-end">
+				<form.AppForm>
+					<form.SubmitButton label={m.users_profile_form_submit_button()} />
+				</form.AppForm>
+			</div>
 		</form>
 	);
 };

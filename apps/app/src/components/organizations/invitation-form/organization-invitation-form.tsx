@@ -4,15 +4,14 @@ import { useRouteContext } from "@tanstack/react-router";
 import { CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
 import { LOCALE_NAMES } from "@/components/app/locale/locale-names";
+import { formTriggerText } from "@/components/forms/fields/form-field";
+import {
+	FormActions,
+	FormPair,
+	FormSection,
+} from "@/components/forms/form-layout";
 import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import {
 	Dialog,
 	DialogClose,
@@ -22,14 +21,15 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useAppForm } from "@/hooks/form";
 import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
 import { orpc } from "@/lib/orpc/orpc";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { locales } from "@/paraglide/runtime";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
@@ -47,6 +47,7 @@ const OrganizationInvitationForm = () => {
 	const bulkEmailsId = useId();
 
 	const organizationNameId = useId();
+	const roleLabelId = useId();
 
 	const { data: organization } = useSuspenseQuery(
 		orpc.organization.find.queryOptions({
@@ -92,48 +93,49 @@ const OrganizationInvitationForm = () => {
 				e.preventDefault();
 				form.handleSubmit();
 			}}
-			className="space-y-4"
+			className="flex flex-col gap-5"
 			noValidate
 		>
 			<form.AppForm>
 				<form.FormValidationErrors />
 			</form.AppForm>
 
-			<Card className="order-last h-fit lg:order-first">
-				<CardHeader>
-					<CardTitle>{m.orgs_invitation_form_details_title()}</CardTitle>
-					<CardDescription>
-						{m.orgs_invitation_form_details_description()}
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-4">
-					<div className="space-y-2">
-						<Label htmlFor={organizationNameId}>
-							{m.orgs_invitation_form_organisation_label()}
-						</Label>
-						<Input
-							id={organizationNameId}
-							value={organization.data.name}
-							readOnly
-						/>
-					</div>
-
-					<form.AppField
-						name="role"
-						children={(field) => (
-							<div className="space-y-2">
-								<Label>{m.orgs_invitation_form_role_label()}</Label>
-								<OrganizationRolePicker
-									value={field.state.value as OrganizationRole}
-									onValueChange={(role) => field.handleChange(role)}
-									variant="full"
-									title={m.orgs_invitation_form_role_picker_title()}
-									roles={assignableRoles}
-								/>
-							</div>
-						)}
+			<FormSection
+				title={m.orgs_invitation_form_details_title()}
+				description={m.orgs_invitation_form_details_description()}
+			>
+				<Field>
+					<FieldLabel htmlFor={organizationNameId}>
+						{m.orgs_invitation_form_organisation_label()}
+					</FieldLabel>
+					<Input
+						id={organizationNameId}
+						value={organization.data.name}
+						readOnly
+						className="sm:max-w-md"
 					/>
+				</Field>
 
+				<form.AppField
+					name="role"
+					children={(field) => (
+						<Field role="group" aria-labelledby={roleLabelId}>
+							<FieldLabel id={roleLabelId}>
+								{m.orgs_invitation_form_role_label()}
+							</FieldLabel>
+							<OrganizationRolePicker
+								value={field.state.value as OrganizationRole}
+								onValueChange={(role) => field.handleChange(role)}
+								variant="full"
+								className={cn("sm:max-w-xs", formTriggerText)}
+								title={m.orgs_invitation_form_role_picker_title()}
+								roles={assignableRoles}
+							/>
+						</Field>
+					)}
+				/>
+
+				<FormPair>
 					<form.AppField
 						name="expiresAt"
 						children={(field) => (
@@ -151,6 +153,7 @@ const OrganizationInvitationForm = () => {
 							<field.SelectField
 								label={m.orgs_invitation_form_locale_label()}
 								description={m.orgs_invitation_form_locale_description()}
+								width="full"
 								options={locales.map((locale) => ({
 									label: LOCALE_NAMES[locale],
 									value: locale,
@@ -158,128 +161,123 @@ const OrganizationInvitationForm = () => {
 							/>
 						)}
 					/>
-				</CardContent>
-			</Card>
+				</FormPair>
+			</FormSection>
 
-			<Card className="h-fit">
-				<CardHeader>
-					<CardTitle>{m.orgs_invitation_form_emails_title()}</CardTitle>
-					<CardDescription>
-						{m.orgs_invitation_form_emails_description()}
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-4">
-					<form.AppField name="items" mode="array">
-						{(field) => {
-							return (
-								<div className="space-y-4">
-									{field.state.value.map((_, index) => {
-										return (
-											<div
-												key={index}
-												className="flex flex-row items-end gap-2"
-											>
-												<form.AppField
-													name={`items[${index}].email`}
-													children={(field) => (
-														<field.TextField
-															label={m.orgs_invitation_form_email_label({
-																position: index + 1,
-															})}
-															placeholder={m.orgs_invitation_form_email_placeholder()}
-														/>
-													)}
-												/>
-												{field.state.value.length > 1 && (
-													<Button
-														type="button"
-														size="icon"
-														variant="destructive"
-														aria-label={m.orgs_invitation_form_remove_email_aria_label(
-															{
-																position: index + 1,
-															},
-														)}
-														onClick={() => field.removeValue(index)}
-													>
-														<CircleMinusIcon aria-hidden="true" />
-													</Button>
+			<FormSection
+				title={m.orgs_invitation_form_emails_title()}
+				description={m.orgs_invitation_form_emails_description()}
+			>
+				<form.AppField name="items" mode="array">
+					{(field) => {
+						return (
+							<div className="flex flex-col gap-4">
+								{field.state.value.map((_, index) => {
+									return (
+										<div
+											key={index}
+											className="flex flex-row items-end gap-2 sm:max-w-md"
+										>
+											<form.AppField
+												name={`items[${index}].email`}
+												children={(field) => (
+													<field.TextField
+														label={m.orgs_invitation_form_email_label({
+															position: index + 1,
+														})}
+														placeholder={m.orgs_invitation_form_email_placeholder()}
+													/>
 												)}
-											</div>
-										);
-									})}
-								</div>
-							);
-						}}
-					</form.AppField>
-					<div className="flex flex-wrap gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() =>
-								form.insertFieldValue(
-									"items",
-									form.state.values.items.length + 1,
-									{
-										email: "",
-									},
-								)
+											/>
+											{field.state.value.length > 1 && (
+												<Button
+													type="button"
+													size="icon"
+													variant="destructive"
+													aria-label={m.orgs_invitation_form_remove_email_aria_label(
+														{
+															position: index + 1,
+														},
+													)}
+													onClick={() => field.removeValue(index)}
+												>
+													<CircleMinusIcon aria-hidden="true" />
+												</Button>
+											)}
+										</div>
+									);
+								})}
+							</div>
+						);
+					}}
+				</form.AppField>
+				<div className="flex flex-wrap gap-2">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() =>
+							form.insertFieldValue(
+								"items",
+								form.state.values.items.length + 1,
+								{
+									email: "",
+								},
+							)
+						}
+					>
+						{m.orgs_invitation_form_add_email_button()}
+					</Button>
+					<Dialog>
+						<DialogTrigger
+							render={
+								<Button variant="outline">
+									{m.orgs_invitation_form_bulk_button()}
+								</Button>
 							}
-						>
-							{m.orgs_invitation_form_add_email_button()}
-						</Button>
-						<Dialog>
-							<DialogTrigger
-								render={
-									<Button variant="outline">
-										{m.orgs_invitation_form_bulk_button()}
-									</Button>
-								}
-							/>
-							<DialogContent className="max-w-150">
-								<DialogHeader>
-									<DialogTitle>
-										{m.orgs_invitation_form_bulk_dialog_title()}
-									</DialogTitle>
-									<DialogDescription>
-										{m.orgs_invitation_form_bulk_dialog_description()}
-									</DialogDescription>
-								</DialogHeader>
-								<div className="flex flex-col gap-4">
-									<Textarea
-										name="bulkEmails"
-										id={bulkEmailsId}
-										rows={5}
-										placeholder={m.orgs_invitation_form_bulk_placeholder()}
-									/>
-									<DialogClose
-										render={
-											<Button
-												type="button"
-												onClick={() => {
-													const textArea = document.getElementById(
-														bulkEmailsId,
-													) as HTMLTextAreaElement;
+						/>
+						<DialogContent className="max-w-150">
+							<DialogHeader>
+								<DialogTitle>
+									{m.orgs_invitation_form_bulk_dialog_title()}
+								</DialogTitle>
+								<DialogDescription>
+									{m.orgs_invitation_form_bulk_dialog_description()}
+								</DialogDescription>
+							</DialogHeader>
+							<div className="flex flex-col gap-4">
+								<Textarea
+									name="bulkEmails"
+									id={bulkEmailsId}
+									rows={5}
+									placeholder={m.orgs_invitation_form_bulk_placeholder()}
+								/>
+								<DialogClose
+									render={
+										<Button
+											type="button"
+											onClick={() => {
+												const textArea = document.getElementById(
+													bulkEmailsId,
+												) as HTMLTextAreaElement;
 
-													handleBulkPaste(textArea);
-												}}
-											>
-												{m.orgs_invitation_form_bulk_confirm_button()}
-											</Button>
-										}
-									/>
-								</div>
-							</DialogContent>
-						</Dialog>
-					</div>
-				</CardContent>
-			</Card>
+												handleBulkPaste(textArea);
+											}}
+										>
+											{m.orgs_invitation_form_bulk_confirm_button()}
+										</Button>
+									}
+								/>
+							</div>
+						</DialogContent>
+					</Dialog>
+				</div>
+			</FormSection>
 
-			<div className="flex justify-end pt-4">
-				<form.AppForm>
+			<form.AppForm>
+				<FormActions>
 					<form.SubmitButton label={m.orgs_invitation_form_submit_button()} />
-				</form.AppForm>
-			</div>
+				</FormActions>
+			</form.AppForm>
 		</form>
 	);
 };

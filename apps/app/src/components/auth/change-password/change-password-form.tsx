@@ -24,7 +24,7 @@ const ChangePasswordForm = () => {
 				e.preventDefault();
 				form.handleSubmit();
 			}}
-			className="space-y-4"
+			className="flex flex-col gap-5"
 		>
 			<form.AppField
 				name="currentPassword"
@@ -32,6 +32,7 @@ const ChangePasswordForm = () => {
 					<field.PasswordField
 						label={m.auth_change_password_form_current_password_label()}
 						placeholder={m.auth_change_password_form_current_password_placeholder()}
+						width="medium"
 					/>
 				)}
 			/>
@@ -42,6 +43,7 @@ const ChangePasswordForm = () => {
 					<field.PasswordField
 						label={m.auth_change_password_form_new_password_label()}
 						placeholder={m.auth_change_password_form_new_password_placeholder()}
+						width="medium"
 					/>
 				)}
 			/>
@@ -52,15 +54,18 @@ const ChangePasswordForm = () => {
 					<field.PasswordField
 						label={m.auth_change_password_form_confirm_password_label()}
 						placeholder={m.auth_change_password_form_confirm_password_placeholder()}
+						width="medium"
 					/>
 				)}
 			/>
 
-			<form.AppForm>
-				<form.SubmitButton
-					label={m.auth_change_password_form_submit_button()}
-				/>
-			</form.AppForm>
+			<div className="flex justify-end">
+				<form.AppForm>
+					<form.SubmitButton
+						label={m.auth_change_password_form_submit_button()}
+					/>
+				</form.AppForm>
+			</div>
 		</form>
 	);
 };

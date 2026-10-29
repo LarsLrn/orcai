@@ -1,7 +1,7 @@
 import type { Group } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
+import { useSelector } from "@tanstack/react-store";
 import { Trash2Icon } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,9 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useAppForm } from "@/hooks/form";
 import {
 	useDeleteGroupsMutation,
 	useUpdateGroupMutation,
@@ -21,9 +19,6 @@ import { m } from "@/paraglide/messages";
 
 const GroupSettingsForm = ({ group }: { group: Group }) => {
 	const navigate = useNavigate();
-	const [name, setName] = useState(group.name);
-	const [description, setDescription] = useState(group.description ?? "");
-
 	const updateGroup = useUpdateGroupMutation();
 	const deleteGroup = useDeleteGroupsMutation(
 		{
@@ -42,6 +37,24 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 
 	const isSystemGroup = group.kind === "system";
 
+	const form = useAppForm({
+		defaultValues: {
+			name: group.name,
+			description: group.description ?? "",
+		},
+		onSubmit: async ({ value }) => {
+			await updateGroup.mutateAsync({
+				id: group.id,
+				name: value.name.trim(),
+				description: value.description.trim() ? value.description.trim() : null,
+			});
+		},
+	});
+	const isNameBlank = useSelector(
+		form.store,
+		(state) => !state.values.name.trim(),
+	);
+
 	return (
 		<Card>
 			<CardHeader>
@@ -54,45 +67,33 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 			</CardHeader>
 			<CardContent>
 				<form
-					className="space-y-3"
+					className="flex flex-col gap-5"
 					onSubmit={(event) => {
 						event.preventDefault();
-						updateGroup.mutate({
-							id: group.id,
-							name: name.trim(),
-							description: description.trim() ? description.trim() : null,
-						});
+						form.handleSubmit();
 					}}
 				>
-					<div className="space-y-2">
-						<Label htmlFor="group-name">{m.common_name_label()}</Label>
-						<Input
-							id="group-name"
-							value={name}
-							onChange={(event) => setName(event.target.value)}
-							disabled={isSystemGroup}
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="group-description">
-							{m.common_description_label()}
-						</Label>
-						<Textarea
-							id="group-description"
-							value={description}
-							onChange={(event) => setDescription(event.target.value)}
-							disabled={isSystemGroup}
-							rows={3}
-						/>
-					</div>
-					<div className="flex gap-2">
-						<Button
-							type="submit"
-							loading={updateGroup.isPending}
-							disabled={isSystemGroup || !name.trim()}
-						>
-							{m.common_save_button()}
-						</Button>
+					<form.AppField
+						name="name"
+						children={(field) => (
+							<field.TextField
+								label={m.common_name_label()}
+								width="medium"
+								disabled={isSystemGroup}
+							/>
+						)}
+					/>
+					<form.AppField
+						name="description"
+						children={(field) => (
+							<field.TextareaField
+								label={m.common_description_label()}
+								rows={3}
+								disabled={isSystemGroup}
+							/>
+						)}
+					/>
+					<div className="flex justify-end gap-2">
 						{!isSystemGroup && (
 							<Button
 								type="button"
@@ -112,6 +113,12 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 								{m.groups_delete_action()}
 							</Button>
 						)}
+						<form.AppForm>
+							<form.SubmitButton
+								label={m.common_save_button()}
+								disabled={isSystemGroup || isNameBlank}
+							/>
+						</form.AppForm>
 					</div>
 				</form>
 			</CardContent>

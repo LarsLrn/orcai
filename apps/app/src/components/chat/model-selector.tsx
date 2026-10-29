@@ -33,6 +33,7 @@ const ModelSelectorButton = ({
 	capabilities = CHAT_CAPABILITIES,
 	variant = "compact",
 	className,
+	"aria-describedby": describedBy,
 }: {
 	selectedModelId?: string;
 	selectedProviderId?: string;
@@ -43,6 +44,7 @@ const ModelSelectorButton = ({
 	capabilities?: ModelCapability[];
 	variant?: "compact" | "full";
 	className?: string;
+	"aria-describedby"?: string;
 }) => {
 	const [modelDialogOpen, setModelDialogOpen] = useState(false);
 	const [modelSearch, setModelSearch] = useState("");
@@ -194,6 +196,7 @@ const ModelSelectorButton = ({
 				)}
 				placeholder={m.chat_model_selector_trigger_placeholder()}
 				size={variant === "compact" ? "sm" : "default"}
+				aria-describedby={describedBy}
 			>
 				<span className="truncate">{triggerLabel}</span>
 			</DialogSelectTrigger>
