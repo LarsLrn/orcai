@@ -137,11 +137,11 @@ const queueBehindOrganizationLock = async (
  * create organizations, users and resources and read both stores.
  */
 export const authzIntegration = () => {
+	// Loading the router while the app layer builds blocks the event loop for
+	// seconds, so the instance check connects only once it is built.
 	const runtime = ManagedRuntime.make(
-		Layer.mergeAll(
-			AppLayer,
-			IntegrationLive,
-			JobQueuesLive.pipe(Layer.provide(AppLayer)),
+		Layer.mergeAll(IntegrationLive, JobQueuesLive).pipe(
+			Layer.provideMerge(AppLayer),
 		),
 	);
 	afterAll(() => runtime.dispose());
