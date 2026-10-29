@@ -170,6 +170,9 @@ const QuotaPoolForm = ({
 								name: group.name,
 							})
 						: group.name,
+				hint: m.quotas_detail_group_member_count({
+					count: group.memberCount,
+				}),
 			})),
 		[
 			groups.data?.data,
