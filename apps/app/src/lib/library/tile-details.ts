@@ -1,13 +1,23 @@
 import type { BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { BotListItem } from "@orcai/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
 /*
  * What list tiles show beyond a resource's own row, loaded for a whole page
  * at once: never per tile.
  */
+
+/** Which rows a tile loader selects, in which order, and optionally one page of them. */
+export type TileQuery = {
+	where: SQL | undefined;
+	orderBy?: SQL[];
+	page?: {
+		limit: number;
+		offset: number;
+	};
+};
 
 type BotDetails = Pick<BotListItem, "contents" | "modelHint">;
 

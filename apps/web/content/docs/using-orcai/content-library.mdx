@@ -1,6 +1,6 @@
 ---
 title: Content Library
-description: Assets in the Library, covering upload, accepted file types and limits, metadata and citations, metadata generated with AI, processing status, retry and reprocessing, access, and how assets reach chats through repositories.
+description: Browsing the Library (rail, Mine, filters, search, sort and the New menu) and its assets, covering upload, accepted file types and limits, metadata and citations, metadata generated with AI, processing status, retry and reprocessing, access, and how assets reach chats through repositories.
 ---
 
 Assets (Library > Assets, `/app/library/assets`) are the reusable source material OrcAI uses for retrieval, grounding, and citations.
@@ -9,6 +9,29 @@ The Library, its pickers and the assistant's find tools show the bots, blocks
 and assets of your active organisation that you can read. A bot's blocks and a
 repository's documents open through the bot or repository, so what a shared
 bot contains is readable without appearing in your Library.
+
+## Browsing The Library
+
+The Library (`/app/library`) shows everything your organisation can use. Its header has a search field and a **New** menu; a rail on the left (above the results on small screens) has:
+
+- **All | Mine**: Mine keeps to what you can edit, as owner, manager or editor, directly or through a group. It stays on when you switch views, and the counts follow it.
+- The views: **Overview** and one per kind (Bots, Behaviours, Repositories, Assets), each with its count.
+- The view's filters, on a kind view or while searching. On narrow screens they open from **Filters**, which shows how many are set.
+
+| View | Filters |
+|---|---|
+| Bots | **Status** (All, Published, Drafts), **Only favourites** |
+| Behaviours, Repositories | **Status** (All, Published, Drafts) |
+| Assets | **Uploaded to** (Library, Chats), **Processing** (Any, Queued or running, Failed) |
+| Overview, while searching | **Status** |
+
+The **Overview** shows shelves: with Mine, your **Drafts** first, then your **Favourites**, then each kind with **See all**, which opens that kind's view. With fewer than six items it shows them all in one grid.
+
+Search matches names and titles. On the Overview it searches every kind at once, in one list and one pager; on a kind view only that kind. Results are sorted **Newest** or **A to Z** and paged under the grid. Search, filters, sort, page and Mine are part of the address, so Back from a page returns to the same results and scroll position. Changing the search, a filter, the sort or Mine starts over on the first page.
+
+**New** offers **Bot**, **Behaviour**, **Repository** and **Upload files**, each for roles with the matching `create_bot`, `create_block` or `create_asset` permission. An empty Library says whether you can create something or wait for others to share.
+
+Every tile opens its page. Its corner holds the star for published bots and a **…** menu with the actions your role allows.
 
 ## What You Can Do
 
@@ -33,12 +56,12 @@ bot contains is readable without appearing in your Library.
 
 ## Adding Assets
 
-**Add assets** on the Assets page opens `/app/library/assets/add`. It needs the `create_asset` permission.
+**New** > **Upload files** in the Library opens `/app/library/assets/add`. It needs the `create_asset` permission.
 
 Intake is file upload only:
 
 1. **Upload assets**: select files and **Upload files**. Each file becomes an asset as soon as its upload finishes; there is nothing else to save.
-2. **Uploaded assets**: the new assets are listed. With a utility model, each shows **Generating metadata** until its generated title and description appear; you can leave, and the results land in the library. **Metadata** opens a file's **Source details**, and **Save** stores them at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets page.
+2. **Uploaded assets**: the new assets are listed. With a utility model, each shows **Generating metadata** until its generated title and description appear; you can leave, and the results land in the library. **Metadata** opens a file's **Source details**, and **Save** stores them at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets view.
 
 Leaving the page while files are still uploading asks first; leaving anyway stops the upload, and those files are not added. Once a file's asset exists, leaving loses nothing.
 
@@ -55,9 +78,9 @@ Limits: up to 64 MB per file and 100 files per upload.
 
 ## Library And Chat Uploads
 
-The Assets page has two tabs. **Library** (the default) lists the assets uploaded on **Add assets**, in the repository editor or through the assistant. **Chat uploads** lists the files uploaded with a chat message; they are assets too, processed like any other, but kept out of the library so it stays tidy.
+The Assets view's **Uploaded to** filter has two choices. **Library** (the default) lists the assets uploaded on **Add assets**, in the repository editor or through the assistant. **Chats** lists the files uploaded with a chat message; they are assets too, processed like any other, but kept out of the library so it stays tidy. The Library's counts and its Overview leave chat uploads out.
 
-**Add to library** in a chat upload's card menu moves it to the **Library** tab and generates its metadata like a library upload. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads; delete them from **Chat uploads**.
+**Add to library** in a chat upload's tile menu moves it to the library and generates its metadata like a library upload. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads; delete them from **Uploaded to** > **Chats**.
 
 The asset pickers in the repository editor and the chat composer search both, and mark chat uploads with a **Chat upload** badge.
 
@@ -83,7 +106,7 @@ When the organisation has a [utility model](/docs/using-orcai/administration#uti
 
 - **After upload**: once a library upload is processed, its metadata is generated in the background. A chat upload gets it when it is added to the library. Only empty fields are filled, and the title only while it is still the uploaded file name; values you save in the meantime always win. Fields that do not fit the source type you chose are kept for review instead.
 - **Generate with AI** in the metadata editor generates a suggestion for an asset you can edit, also for assets uploaded before or edited since. The editor shows **Generating...**; you can leave, and the asset page then says **Suggestions ready** with **Review**. **Suggested metadata** lists each field with its current and suggested value; empty fields are selected. **Use selected** puts the chosen values into the form, which saves them with **Save**; **Dismiss** drops the suggestion.
-- **Generate missing metadata** in the **Library** tab header generates metadata, filling empty fields, for every processed library asset of the organisation you can edit whose metadata was never generated or failed. It asks first and shows how many assets that is.
+- **Generate missing metadata** above the Assets view's library uploads generates metadata, filling empty fields, for every processed library asset of the organisation you can edit whose metadata was never generated or failed. It asks first and shows how many assets that is.
 - The [OrcAI Assistant](/docs/using-orcai/assistant) can do the same for assets you name, after you confirm. It never overwrites values; to replace them, use **Generate with AI** or tell it the values.
 
 While metadata is generated, cards, the upload list and the asset page show **Generating metadata**. A failed run says why on the asset page; when the quota ran out, run it again once the pool resets. Without a utility model, nothing is generated, **Generate with AI** is disabled with a hint (admins get a link to the organisation settings), and **Generate missing metadata** is hidden. Generating metadata never affects whether an asset is ready for its repositories.
@@ -118,7 +141,7 @@ A failing step is retried automatically, so an asset stays Processing until its 
 
 On the **Preparation status** card, **Retry** appears for a failed asset you can edit, unless retrying cannot help, and queues processing again.
 
-**Reprocess** is available from the card menu on the Assets page and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns processing; the asset's repositories index it again afterwards. Reprocess is useful after parser or configuration changes.
+**Reprocess** is available from the tile menu in the Assets view and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns processing; the asset's repositories index it again afterwards. Reprocess is useful after parser or configuration changes.
 
 Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds; the assets it keeps stay as they are. There is no job history in the app; operators find failed jobs in the worker logs and the pg-boss tables.
 

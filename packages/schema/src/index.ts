@@ -17,6 +17,7 @@ export * from "./group";
 export * from "./instance";
 export * from "./instance-health";
 export * from "./jobs";
+export * from "./library";
 export * from "./model";
 export * from "./organization";
 export * from "./organization-invitation";

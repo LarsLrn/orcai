@@ -5,17 +5,17 @@ description: The Library's bots, behaviour and repository blocks; the bot editor
 
 Bots are reusable AI configurations that can be selected at chat start. They are authored in the Library (`/app/library`) and combine behaviour, retrieval context, and sharing settings.
 
-## Library Sections
+## Library Views
 
-The Library (`/app/library`) has five tabs:
+The Library (`/app/library`) has five views, listed in its rail with their counts:
 
-- All (`/app/library`)
+- Overview (`/app/library`)
 - Bots (`/app/library/bots`)
-- Behaviour (`/app/library/behaviours`)
+- Behaviours (`/app/library/behaviours`)
 - Repositories (`/app/library/repositories`)
 - Assets (`/app/library/assets`), described in [Content Library](/docs/using-orcai/content-library)
 
-The sidebar lists the same sections under Library. Each needs the organisation's `read` permission, which every role has.
+Library is one item in the sidebar; the rail switches views. Every role can browse it. How to search, filter and narrow it to your own items is described in [Browsing the Library](/docs/using-orcai/content-library#browsing-the-library).
 
 ## Core Concepts
 
@@ -29,13 +29,9 @@ A bot fixes no model and no quota pool. Each chat runs on the provider and model
 
 ## Bot Lifecycle
 
-Bots (`/app/library/bots`) have draft and published states, shown as sections:
+Bots (`/app/library/bots`) have draft and published states. The Bots view lists the published bots you can read and the drafts you can edit, newest first; drafts have a faded band and a **Draft** badge. The **Status** filter narrows the list to **Published** or **Drafts**, and **Only favourites** to your [favourites](#favourites).
 
-- **Favourites** lists the published bots you starred, when there are any. See [Favourites](#favourites).
-- **Published** lists the bots ready to use in chats that you can read.
-- **Your drafts** lists bots not yet published, with **Edit draft** and **Delete draft** where your role on the bot allows them.
-
-**Create bot** appears for roles with `create_bot` (admins, managers and members).
+**New** > **Bot** appears for roles with `create_bot` (admins, managers and members).
 
 A bot is private until it is shared. Publishing does not share it: a published bot is usable only by the people and groups it was granted to. Listing it in the catalogue lets everyone preview it, together with its behaviour and repositories. See [Access Control](/docs/using-orcai/access-control#resource-sharing).
 
@@ -54,9 +50,10 @@ Every detail page follows this pattern: frequent actions are buttons in the head
 
 The star on a published bot's card and next to **Start chat** on its page adds the bot to your favourites; selecting it again removes it. Favourites are personal: nobody else sees them.
 
-Your favourites show up in three places:
+Your favourites show up in four places:
 
-- The **Favourites** section above **Published** on the Bots tab
+- The **Favourites** shelf on the Library's Overview
+- The Bots view with **Only favourites**
 - First among the bots on the home page
 - In a **Favourites** group above **All bots** when you choose a bot for a new chat, until you search
 
@@ -64,7 +61,7 @@ A favourite disappears while you cannot read the bot or while it is unpublished,
 
 ## Creating Or Editing A Bot
 
-**Create bot** opens the editor at `/app/library/bots/add`. The first save creates a draft and moves the editor to `/app/library/bots/<bot id>/setup`, the same place **Edit bot** opens. The later steps unlock after that first save, and moving between steps saves your changes.
+**New** > **Bot** opens the editor at `/app/library/bots/add`. The first save creates a draft and moves the editor to `/app/library/bots/<bot id>/setup`, the same place **Edit bot** opens. The later steps unlock after that first save, and moving between steps saves your changes.
 
 The bot editor is a guided wizard with six steps:
 
@@ -135,7 +132,7 @@ Documents that are still being prepared or that failed do not hold publishing ba
 
 ## Block Types
 
-**Add behaviour** on the Behaviour tab opens `/app/library/behaviours/add`, and **Add repository** on the Repositories tab opens `/app/library/repositories/add`.
+**New** > **Behaviour** opens `/app/library/behaviours/add`, and **New** > **Repository** opens `/app/library/repositories/add`; both need `create_block`.
 
 - AI behaviour (template block)
 - Repository (database block)

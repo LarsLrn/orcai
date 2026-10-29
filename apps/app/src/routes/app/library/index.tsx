@@ -1,77 +1,76 @@
-import type { OrganizationCapability } from "@orcai/schema";
+import type { LibraryEntry, LibraryScope } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { LibraryIcon, PlusIcon } from "lucide-react";
-import { BlockTile } from "@/components/blocks/block-tile";
+import {
+	createFileRoute,
+	retainSearchParams,
+	stripSearchParams,
+} from "@tanstack/react-router";
 import { BotTile } from "@/components/bot/bot-tile";
-import { AssetTile } from "@/components/documents/asset-tile";
-import { Placeholder } from "@/components/placeholders/placeholder";
-import { buttonVariants } from "@/components/ui/button";
-import type { Action } from "@/components/ui/shell/actions";
 import {
-	Section,
-	SectionAction,
-	SectionContent,
-	SectionGrid,
-	SectionHeader,
-	SectionTitle,
-} from "@/components/ui/shell/section";
+	NoResults,
+	Shelf,
+	ShelfItem,
+	TileGrid,
+} from "@/components/browse/browse-layout";
+import { LIBRARY_VIEWS } from "@/components/library/library-browse";
+import { LibraryEmpty } from "@/components/library/library-empty";
 import {
-	filterByCapabilities,
-	useOrganizationCapabilities,
-} from "@/hooks/authz/use-capabilities";
+	LibraryEntryTile,
+	libraryEntryId,
+} from "@/components/library/library-entry-tile";
+import { LibraryResults } from "@/components/library/library-results";
+import {
+	type LibrarySearch,
+	libraryCountsInput,
+	libraryFilters,
+	libraryListInput,
+	librarySearchDefaults,
+	librarySearchSchema,
+} from "@/lib/library/library-filters";
 import { orpc } from "@/lib/orpc/orpc";
+import {
+	isAssetWorking,
+	METADATA_POLL_MS,
+} from "@/lib/presentation/metadata-status";
 import { m } from "@/paraglide/messages";
 
-const PREVIEW_INPUT = {
-	pageIndex: 0,
-	pageSize: 6,
-} as const;
-const ASSETS_PREVIEW_INPUT = {
-	...PREVIEW_INPUT,
-	filters: {
-		origin: "library",
-	},
-} as const;
-const BLOCKS_PREVIEW_INPUT = {
-	pageIndex: 0,
-	pageSize: 3,
-} as const;
+/** Below this many items, the overview is one grid instead of shelves. */
+const SHELVES_FROM = 6;
+
+const overviewInput = (scope: LibraryScope) => ({
+	scope,
+});
 
 export const Route = createFileRoute("/app/library/")({
-	loader: async ({ context: { queryClient } }) => {
+	validateSearch: librarySearchSchema(libraryFilters.overview),
+	search: {
+		middlewares: [
+			retainSearchParams([
+				"scope",
+				"query",
+			]),
+			stripSearchParams(librarySearchDefaults(libraryFilters.overview)),
+		],
+	},
+	loaderDeps: ({ search }) => search,
+	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
+			deps.query
+				? queryClient.query(
+						orpc.library.search.queryOptions({
+							input: libraryListInput.overview(deps),
+							staleTime: "static",
+						}),
+					)
+				: queryClient.query(
+						orpc.library.overview.queryOptions({
+							input: overviewInput(deps.scope),
+							staleTime: "static",
+						}),
+					),
 			queryClient.query(
-				orpc.bot.list.queryOptions({
-					input: PREVIEW_INPUT,
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.block.list.queryOptions({
-					input: {
-						...BLOCKS_PREVIEW_INPUT,
-						filters: {
-							type: "template",
-						},
-					},
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.block.list.queryOptions({
-					input: {
-						...BLOCKS_PREVIEW_INPUT,
-						filters: {
-							type: "database",
-						},
-					},
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.asset.list.queryOptions({
-					input: ASSETS_PREVIEW_INPUT,
+				orpc.library.counts.queryOptions({
+					input: libraryCountsInput(deps),
 					staleTime: "static",
 				}),
 			),
@@ -81,192 +80,150 @@ export const Route = createFileRoute("/app/library/")({
 });
 
 function RouteComponent() {
-	const { data: bots } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({
-			input: PREVIEW_INPUT,
-		}),
+	const search = Route.useSearch();
+	return search.query ? (
+		<SearchResults search={search} />
+	) : (
+		<Overview scope={search.scope} />
 	);
-	const { data: behaviourBlocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				...BLOCKS_PREVIEW_INPUT,
-				filters: {
-					type: "template",
-				},
-			},
-		}),
-	);
-	const { data: knowledgeBlocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				...BLOCKS_PREVIEW_INPUT,
-				filters: {
-					type: "database",
-				},
-			},
-		}),
-	);
-	const { data: assets } = useSuspenseQuery(
-		orpc.asset.list.queryOptions({
-			input: ASSETS_PREVIEW_INPUT,
-		}),
-	);
-	const { data: organizationCapabilities } = useOrganizationCapabilities([
-		"create_bot",
-		"create_asset",
-	]);
+}
 
-	if (
-		bots.data.length === 0 &&
-		behaviourBlocks.data.length === 0 &&
-		knowledgeBlocks.data.length === 0 &&
-		assets.data.length === 0
-	) {
-		const actions: (Action & {
-			requires: OrganizationCapability;
-		})[] = [
-			{
-				key: "create_bot",
-				requires: "create_bot",
-				label: m.bots_list_create_action(),
-				icon: PlusIcon,
-				variant: "default",
-				linkProps: {
-					to: "/app/library/bots/add",
-				},
-			},
-			{
-				key: "add_asset",
-				requires: "create_asset",
-				label: m.assets_list_add_action(),
-				icon: PlusIcon,
-				linkProps: {
-					to: "/app/library/assets/add",
-				},
-			},
-		];
+/** Every kind at once, in one order and one pager. */
+const SearchResults = ({ search }: { search: LibrarySearch<"overview"> }) => {
+	const { data: results } = useSuspenseQuery(
+		orpc.library.search.queryOptions({
+			input: libraryListInput.overview(search),
+		}),
+	);
+	return (
+		<LibraryResults
+			view="overview"
+			title={m.library_search_results_title()}
+			rowCount={results.rowCount}
+			empty={<NoResults />}
+		>
+			{results.data.map((entry) => (
+				<LibraryEntryTile key={libraryEntryId(entry)} entry={entry} />
+			))}
+		</LibraryResults>
+	);
+};
 
+const Overview = ({ scope }: { scope: LibraryScope }) => {
+	const {
+		data: { data: overview },
+	} = useSuspenseQuery(
+		orpc.library.overview.queryOptions({
+			input: overviewInput(scope),
+			refetchInterval: (query) =>
+				query.state.data?.data.asset.data.some(isAssetWorking)
+					? METADATA_POLL_MS
+					: false,
+		}),
+	);
+	const kinds = LIBRARY_VIEWS.filter((view) => view.view !== "overview");
+	const entries = kinds.flatMap((view): LibraryEntry[] =>
+		view.view === "bot"
+			? overview.bot.data.map((bot) => ({
+					kind: "bot",
+					bot,
+				}))
+			: view.view === "asset"
+				? overview.asset.data.map((asset) => ({
+						kind: "asset",
+						asset,
+					}))
+				: overview[view.view].data.map((block) => ({
+						kind: "block",
+						block,
+					})),
+	);
+	const total = kinds.reduce(
+		(sum, view) => sum + overview[view.view].rowCount,
+		0,
+	);
+
+	if (total === 0) return <LibraryEmpty scope={scope} />;
+
+	if (total < SHELVES_FROM) {
+		const createdAt = (entry: LibraryEntry) =>
+			(entry.kind === "bot"
+				? entry.bot.createdAt
+				: entry.kind === "block"
+					? entry.block.createdAt
+					: entry.asset.createdAt
+			)?.getTime() ?? 0;
 		return (
-			<Placeholder
-				Icon={LibraryIcon}
-				title={m.library_all_empty_title()}
-				description={m.library_all_empty_description()}
-				actions={filterByCapabilities(
-					actions,
-					organizationCapabilities?.data.capabilities,
-					(action) => action.requires,
-				)}
-			/>
+			<div className="flex flex-col gap-4">
+				<p className="text-muted-foreground text-sm">
+					{m.library_overview_sparse({
+						count: total,
+					})}
+				</p>
+				<TileGrid>
+					{[
+						...entries,
+					]
+						.sort((a, b) => createdAt(b) - createdAt(a))
+						.map((entry) => (
+							<LibraryEntryTile key={libraryEntryId(entry)} entry={entry} />
+						))}
+				</TileGrid>
+			</div>
 		);
 	}
 
 	return (
-		<div className="space-y-14">
-			{bots.data.length > 0 && (
-				<Section>
-					<SectionHeader>
-						<SectionTitle>{m.library_bots_section_title()}</SectionTitle>
-						<SectionAction>
-							<Link
-								to="/app/library/bots"
-								className={buttonVariants({
-									variant: "outline",
-									size: "sm",
-								})}
-							>
-								{m.library_section_view_all_action()}
-							</Link>
-						</SectionAction>
-					</SectionHeader>
-					<SectionContent>
-						<SectionGrid layout="3">
-							{bots.data.map((bot) => (
-								<BotTile key={bot.id} bot={bot} />
+		<div className="flex flex-col gap-8">
+			{overview.drafts.length > 0 ? (
+				<Shelf title={m.library_shelf_drafts()} restorationId="library-drafts">
+					{overview.drafts.map((entry) => (
+						<ShelfItem key={libraryEntryId(entry)}>
+							<LibraryEntryTile entry={entry} />
+						</ShelfItem>
+					))}
+				</Shelf>
+			) : null}
+			{overview.favourites.length > 0 ? (
+				<Shelf
+					title={m.library_shelf_favourites()}
+					restorationId="library-favourites"
+				>
+					{overview.favourites.map((bot) => (
+						<ShelfItem key={bot.id}>
+							<BotTile bot={bot} />
+						</ShelfItem>
+					))}
+				</Shelf>
+			) : null}
+			{kinds.map((view) =>
+				overview[view.view].rowCount > 0 ? (
+					<Shelf
+						key={view.view}
+						title={view.label()}
+						seeAll={{
+							to: view.to,
+						}}
+						restorationId={`library-${view.view}`}
+					>
+						{entries
+							.filter((entry) =>
+								view.view === "bot"
+									? entry.kind === "bot"
+									: view.view === "asset"
+										? entry.kind === "asset"
+										: entry.kind === "block" &&
+											(entry.block.type === "template") ===
+												(view.view === "behaviour"),
+							)
+							.map((entry) => (
+								<ShelfItem key={libraryEntryId(entry)}>
+									<LibraryEntryTile entry={entry} />
+								</ShelfItem>
 							))}
-						</SectionGrid>
-					</SectionContent>
-				</Section>
-			)}
-
-			{behaviourBlocks.data.length > 0 && (
-				<Section>
-					<SectionHeader>
-						<SectionTitle>{m.library_behaviour_section_title()}</SectionTitle>
-						<SectionAction>
-							<Link
-								to="/app/library/behaviours"
-								className={buttonVariants({
-									variant: "outline",
-									size: "sm",
-								})}
-							>
-								{m.library_section_view_all_action()}
-							</Link>
-						</SectionAction>
-					</SectionHeader>
-					<SectionContent>
-						<SectionGrid layout="3">
-							{behaviourBlocks.data.map((block) => (
-								<BlockTile key={block.id} block={block} />
-							))}
-						</SectionGrid>
-					</SectionContent>
-				</Section>
-			)}
-
-			{knowledgeBlocks.data.length > 0 && (
-				<Section>
-					<SectionHeader>
-						<SectionTitle>
-							{m.library_repositories_section_title()}
-						</SectionTitle>
-						<SectionAction>
-							<Link
-								to="/app/library/repositories"
-								className={buttonVariants({
-									variant: "outline",
-									size: "sm",
-								})}
-							>
-								{m.library_section_view_all_action()}
-							</Link>
-						</SectionAction>
-					</SectionHeader>
-					<SectionContent>
-						<SectionGrid layout="3">
-							{knowledgeBlocks.data.map((block) => (
-								<BlockTile key={block.id} block={block} />
-							))}
-						</SectionGrid>
-					</SectionContent>
-				</Section>
-			)}
-
-			{assets.data.length > 0 && (
-				<Section>
-					<SectionHeader>
-						<SectionTitle>{m.library_assets_section_title()}</SectionTitle>
-						<SectionAction>
-							<Link
-								to="/app/library/assets"
-								className={buttonVariants({
-									variant: "outline",
-									size: "sm",
-								})}
-							>
-								{m.library_section_view_all_action()}
-							</Link>
-						</SectionAction>
-					</SectionHeader>
-					<SectionContent>
-						<SectionGrid layout="3">
-							{assets.data.map((asset) => (
-								<AssetTile key={asset.id} asset={asset} />
-							))}
-						</SectionGrid>
-					</SectionContent>
-				</Section>
+					</Shelf>
+				) : null,
 			)}
 		</div>
 	);
-}
+};

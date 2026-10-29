@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import type { ApiClient } from "../../fixtures/api";
 import { uploadAsset } from "../../fixtures/assets";
 import { expect, test } from "../../fixtures/index";
@@ -11,26 +11,18 @@ const PAGE_SIZE = 2;
 
 type Locale = "en" | "de";
 
-const section = (page: Page, titleKey: string, locale: Locale) =>
-	page.locator("section", {
-		has: page.getByRole("heading", {
-			name: message(titleKey, {}, locale),
-			exact: true,
-		}),
-	});
+const cards = (page: Page) => page.locator('[data-slot="tile"]');
 
-const cards = (scope: Locator) => scope.locator('[data-slot="tile"]');
-
-const pagerButton = (scope: Locator, key: string, locale: Locale) =>
-	scope.getByRole("button", {
+const pagerButton = (page: Page, key: string, locale: Locale) =>
+	page.getByRole("button", {
 		name: message(key, {}, locale),
 	});
 
-/** Pages `scope` from its first page to its last, checking the card counts. */
-const reachLastPage = async (scope: Locator, locale: Locale) => {
-	await expect(cards(scope)).toHaveCount(PAGE_SIZE);
+/** Pages the grid from its first page to its last, checking the card counts. */
+const reachLastPage = async (page: Page, locale: Locale) => {
+	await expect(cards(page)).toHaveCount(PAGE_SIZE);
 	await expect(
-		scope.getByText(
+		page.getByText(
 			message(
 				"data_table_pagination_position",
 				{
@@ -42,10 +34,10 @@ const reachLastPage = async (scope: Locator, locale: Locale) => {
 		),
 	).toBeVisible();
 
-	await pagerButton(scope, "common_pagination_next_page_label", locale).click();
-	await expect(cards(scope)).toHaveCount(1);
+	await pagerButton(page, "common_pagination_next_page_label", locale).click();
+	await expect(cards(page)).toHaveCount(1);
 	await expect(
-		pagerButton(scope, "common_pagination_next_page_label", locale),
+		pagerButton(page, "common_pagination_next_page_label", locale),
 	).toBeDisabled();
 };
 
@@ -69,7 +61,6 @@ const grids = [
 	{
 		kind: "assets",
 		path: "/app/library/assets",
-		titleKey: "assets_list_title",
 		// Newest first: the oldest is on the last page.
 		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
@@ -81,7 +72,6 @@ const grids = [
 	{
 		kind: "behaviour",
 		path: "/app/library/behaviours",
-		titleKey: "behaviour_published_title",
 		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
 			for (const title of titles) {
@@ -92,7 +82,6 @@ const grids = [
 	{
 		kind: "repositories",
 		path: "/app/library/repositories",
-		titleKey: "blocks_repositories_published_section_title",
 		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
 			for (const title of titles) {
@@ -113,9 +102,7 @@ const grids = [
 	{
 		kind: "bots",
 		path: "/app/library/bots",
-		titleKey: "bots_list_published_title",
-		// Listed by name: the last one is on the last page.
-		lastOf: (titles: string[]) => titles[2],
+		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
 			for (const title of titles) {
 				await member.bot.save({
@@ -145,9 +132,8 @@ for (const grid of grids) {
 		await enterApp(page, org.slug);
 		const reach = async (locale: Locale) => {
 			await open(page, `${grid.path}?pageSize=${PAGE_SIZE}`);
-			const scope = section(page, grid.titleKey, locale);
-			await reachLastPage(scope, locale);
-			await expect(scope.getByText(grid.lastOf(titles))).toBeVisible();
+			await reachLastPage(page, locale);
+			await expect(cards(page).getByText(grid.lastOf(titles))).toBeVisible();
 			await expect(page).toHaveURL(/pageIndex=1/);
 		};
 
@@ -174,45 +160,48 @@ for (const grid of grids) {
 	});
 }
 
-test("library: bots page their draft grid on its own", async ({
+test("library: published bots and the user's drafts page together, newest first", async ({
 	api,
 	orgs,
 	pageAs,
 }) => {
-	const org = await orgs.create("E2E Library Drafts");
+	const org = await orgs.create("E2E Library Statuses");
 	const member = api.as("member", org);
 	const id = runId();
-	for (const name of names("Bot", id)) {
-		await member.bot.save({
-			name,
-			description: "Created by the library paging spec.",
-			status: "ready",
-			templateBlockId: null,
-			databaseBlockIds: [],
-		});
-	}
-	const drafts = names("Draft", id);
-	for (const name of drafts) {
-		await member.bot.save({
-			name,
-			description: "Created by the library paging spec.",
-			status: "draft",
-			templateBlockId: null,
-			databaseBlockIds: [],
-		});
-	}
+	const [published, draft] = [
+		names("Bot", id),
+		names("Draft", id),
+	];
+	await member.bot.save({
+		name: published[0],
+		description: "Created by the library paging spec.",
+		status: "ready",
+		templateBlockId: null,
+		databaseBlockIds: [],
+	});
+	await member.bot.save({
+		name: draft[0],
+		description: "Created by the library paging spec.",
+		status: "draft",
+		templateBlockId: null,
+		databaseBlockIds: [],
+	});
+	await member.bot.save({
+		name: published[1],
+		description: "Created by the library paging spec.",
+		status: "ready",
+		templateBlockId: null,
+		databaseBlockIds: [],
+	});
 
 	const page = await pageAs("member", org);
 	await enterApp(page, org.slug);
 	await open(page, `/app/library/bots?pageSize=${PAGE_SIZE}`);
-	const draftGrid = section(page, "bots_list_drafts_title", "en");
-	await reachLastPage(draftGrid, "en");
-	await expect(draftGrid.getByText(drafts[2])).toBeVisible();
-	await expect(page).toHaveURL(/draftPageIndex=1/);
-	await expect(page).not.toHaveURL(/[?&]pageIndex=/);
-	await expect(
-		cards(section(page, "bots_list_published_title", "en")),
-	).toHaveCount(PAGE_SIZE);
+	await expect(cards(page).first()).toContainText(published[1]);
+	await expect(cards(page).nth(1)).toContainText(draft[0]);
+	await reachLastPage(page, "en");
+	await expect(cards(page).getByText(published[0])).toBeVisible();
+	await expect(page).toHaveURL(/pageIndex=1/);
 });
 
 test("library: a page index past the last page is replaced by the last page", async ({
@@ -236,15 +225,14 @@ test("library: a page index past the last page is replaced by the last page", as
 	const page = await pageAs("member", org);
 	await enterApp(page, org.slug);
 
-	// No published bot at all: the grid is not rendered, the URL is still fixed.
-	await open(page, `/app/library/bots?pageIndex=9&pageSize=${PAGE_SIZE}`);
+	// Nothing matches at all: no grid is rendered, the URL is still fixed.
+	await open(page, "/app/library/bots?status=ready&pageIndex=9");
 	await expect(page).not.toHaveURL(/[?&]pageIndex=/);
 
-	// The last draft of the last page goes away.
-	await open(page, `/app/library/bots?draftPageIndex=1&pageSize=${PAGE_SIZE}`);
-	const draftGrid = section(page, "bots_list_drafts_title", "en");
-	await expect(cards(draftGrid)).toHaveCount(1);
-	await cards(draftGrid)
+	// The last bot of the last page goes away.
+	await open(page, `/app/library/bots?pageIndex=1&pageSize=${PAGE_SIZE}`);
+	await expect(cards(page)).toHaveCount(1);
+	await cards(page)
 		.getByRole("button", {
 			name: message("common_more_actions"),
 		})
@@ -260,10 +248,6 @@ test("library: a page index past the last page is replaced by the last page", as
 			name: /^Delete/,
 		})
 		.click();
-	await expect(cards(draftGrid)).toHaveCount(PAGE_SIZE);
-	await expect(page).not.toHaveURL(/draftPageIndex=/);
-
-	// Every draft deleted: the section disappears and the URL stays clean.
-	await open(page, `/app/library/bots?draftPageIndex=5&pageSize=${PAGE_SIZE}`);
-	await expect(page).not.toHaveURL(/draftPageIndex=/);
+	await expect(cards(page)).toHaveCount(PAGE_SIZE);
+	await expect(page).not.toHaveURL(/[?&]pageIndex=/);
 });

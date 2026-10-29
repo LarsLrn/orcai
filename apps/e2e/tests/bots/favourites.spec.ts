@@ -4,16 +4,8 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
-const section = (page: Page, titleKey: string) =>
-	page.locator("section", {
-		has: page.getByRole("heading", {
-			name: message(titleKey),
-			exact: true,
-		}),
-	});
-
-const star = (page: Page, titleKey: string, name: string) =>
-	section(page, titleKey).getByRole("button", {
+const star = (page: Page, name: string) =>
+	page.getByRole("button", {
 		name: message("bots_favourite_toggle_label", {
 			name,
 		}),
@@ -40,18 +32,15 @@ test("bots: a starred bot shows in the library's and the selector's favourites",
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
-	await open(page, "/app/library/bots");
-	const favourites = section(page, "bots_list_favourites_title");
-	await expect(favourites).toHaveCount(0);
+	const favourites = `/app/library/bots?favourite=true&query=${encodeURIComponent(bot.name)}`;
+	await open(page, favourites);
+	await expect(star(page, bot.name)).toHaveCount(0);
 
-	await star(page, "bots_list_published_title", bot.name).click();
-	await expect(favourites.getByText(bot.name)).toBeVisible();
-	await expect(
-		star(page, "bots_list_favourites_title", bot.name),
-	).toHaveAttribute("aria-pressed", "true");
-	await expect(
-		star(page, "bots_list_published_title", bot.name),
-	).toHaveAttribute("aria-pressed", "true");
+	await open(page, `/app/library/bots?query=${encodeURIComponent(bot.name)}`);
+	await star(page, bot.name).click();
+	await expect(star(page, bot.name)).toHaveAttribute("aria-pressed", "true");
+	await open(page, favourites);
+	await expect(star(page, bot.name)).toHaveAttribute("aria-pressed", "true");
 
 	await open(page, "/app/chat/new");
 	await page
@@ -73,10 +62,10 @@ test("bots: a starred bot shows in the library's and the selector's favourites",
 	).toBeVisible();
 	await page.keyboard.press("Escape");
 
-	await open(page, "/app/library/bots");
-	await star(page, "bots_list_favourites_title", bot.name).click();
-	await expect(favourites).toHaveCount(0);
+	await open(page, favourites);
+	await star(page, bot.name).click();
+	await expect(star(page, bot.name)).toHaveCount(0);
 	await expect(
-		star(page, "bots_list_published_title", bot.name),
-	).toHaveAttribute("aria-pressed", "false");
+		page.getByText(message("browse_no_results_title")),
+	).toBeVisible();
 });

@@ -10,12 +10,17 @@ const card = (page: Page, title: string) =>
 		hasText: title,
 	});
 
-const tab = (page: Page, key: string) =>
-	page.getByRole("tab", {
-		name: message(key),
-	});
+/** An "Uploaded to" choice in the rail. */
+const uploadedTo = (page: Page, key: string) =>
+	page
+		.getByRole("group", {
+			name: message("library_filter_origin_label"),
+		})
+		.getByRole("radio", {
+			name: message(key),
+		});
 
-test("assets: chat uploads have their own tab until added to the library", async ({
+test("assets: chat uploads have their own filter until added to the library", async ({
 	api,
 	org,
 	pageAs,
@@ -32,14 +37,11 @@ test("assets: chat uploads have their own tab until added to the library", async
 	await enterApp(page, org.slug);
 	await open(page, "/app/library/assets");
 
-	await expect(tab(page, "assets_list_library_tab")).toHaveAttribute(
-		"aria-selected",
-		"true",
-	);
+	await expect(uploadedTo(page, "library_filter_origin_library")).toBeChecked();
 	await expect(card(page, libraryTitle)).toBeVisible();
 	await expect(card(page, chatTitle)).toHaveCount(0);
 
-	await tab(page, "assets_list_chat_uploads_tab").click();
+	await uploadedTo(page, "library_filter_origin_chat").click();
 	await expect(page).toHaveURL(/origin=chat/);
 	const chatCard = card(page, chatTitle);
 	await expect(chatCard).toBeVisible();
@@ -62,7 +64,8 @@ test("assets: chat uploads have their own tab until added to the library", async
 		.click();
 	await expect(chatCard).toHaveCount(0);
 
-	await tab(page, "assets_list_library_tab").click();
+	await uploadedTo(page, "library_filter_origin_library").click();
+	await expect(page).not.toHaveURL(/origin=/);
 	const added = card(page, chatTitle);
 	await expect(added).toBeVisible();
 	await expect(

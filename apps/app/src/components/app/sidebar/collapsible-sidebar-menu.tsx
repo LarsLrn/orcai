@@ -59,9 +59,12 @@ const CollapsibleSidebarMenu = ({
 			render={
 				<SidebarMenuItem>
 					<SidebarMenuButton
+						// An item without sub-items stays active on the pages under it.
 						isActive={
 							hasRoute && item.linkProps?.to
-								? pathname === item.linkProps.to
+								? hasChildren
+									? pathname === item.linkProps.to
+									: isRouteActive
 								: isChildActive
 						}
 						// When there's no own route, the whole button row toggles the group.

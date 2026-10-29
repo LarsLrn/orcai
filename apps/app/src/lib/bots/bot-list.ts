@@ -1,4 +1,3 @@
-import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Bot, ListBotsInput } from "@orcai/schema";
 import {
@@ -16,8 +15,8 @@ import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { favouriteOf, isFavourite } from "@/lib/bots/bot-favourites";
-import { libraryAccess } from "@/lib/library/library-access";
-import { botDetails } from "@/lib/library/tile-details";
+import type { LibraryAccess, Reader } from "@/lib/library/library-access";
+import { botDetails, type TileQuery } from "@/lib/library/tile-details";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -37,20 +36,63 @@ const orderBy = {
 	],
 } satisfies Record<ListBotsInput["sort"], unknown[]>;
 
+/** The bots `query` selects, with what their tiles show. */
+export const botTiles = (reader: Reader, query: TileQuery) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const select = db
+			.select({
+				...getColumns(dbSchema.bot),
+				isFavourite,
+				owner: ownerColumns,
+			})
+			.from(dbSchema.bot)
+			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.bot.userId))
+			.leftJoin(dbSchema.botFavourite, favouriteOf(reader.userId))
+			.where(query.where)
+			.orderBy(...(query.orderBy ?? []))
+			.$dynamic();
+		const rows = yield* query.page
+			? select.limit(query.page.limit).offset(query.page.offset)
+			: select;
+
+		const ids = rows.map((bot) => bot.id);
+		const [capabilities, details] = yield* Effect.all(
+			[
+				getManyEntityCapabilities({
+					entityType: "bot",
+					entityIds: ids,
+					userId: reader.userId,
+					organizationId: reader.organizationId,
+					zedToken: reader.zedToken,
+				}),
+				botDetails(ids, reader.organizationId),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
+
+		return rows.map((bot) => ({
+			...bot,
+			contentJson: bot.contentJson as Bot["contentJson"],
+			capabilities: capabilities.get(bot.id) ?? emptyCapabilities("bot"),
+			...details(bot.id),
+		}));
+	});
+
 /** One page of the bots in the active organisation's library, with their tile details. */
-export const listLibraryBots = (params: {
+export const listBotTiles = (params: {
 	input: ListBotsInput;
-	userId: UserId;
-	organizationId: OrganizationId | undefined;
-	zedToken?: string;
+	reader: Reader;
+	access: LibraryAccess;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const { input } = params;
-		const access = yield* libraryAccess(params);
+		const { input, reader } = params;
 
 		const where = and(
-			yield* access.condition("bot", {
+			yield* params.access.condition("bot", {
 				scope: input.filters?.scope,
 				status: input.filters?.status,
 			}),
@@ -64,27 +106,22 @@ export const listLibraryBots = (params: {
 					: isNull(dbSchema.botFavourite.botId),
 		);
 
-		const [rows, [counted]] = yield* Effect.all(
+		const [data, [counted]] = yield* Effect.all(
 			[
-				db
-					.select({
-						...getColumns(dbSchema.bot),
-						isFavourite,
-						owner: ownerColumns,
-					})
-					.from(dbSchema.bot)
-					.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.bot.userId))
-					.leftJoin(dbSchema.botFavourite, favouriteOf(params.userId))
-					.where(where)
-					.orderBy(...orderBy[input.sort])
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
+				botTiles(reader, {
+					where,
+					orderBy: orderBy[input.sort],
+					page: {
+						limit: input.pageSize,
+						offset: input.pageIndex * input.pageSize,
+					},
+				}),
 				db
 					.select({
 						count: count(),
 					})
 					.from(dbSchema.bot)
-					.leftJoin(dbSchema.botFavourite, favouriteOf(params.userId))
+					.leftJoin(dbSchema.botFavourite, favouriteOf(reader.userId))
 					.where(where),
 			],
 			{
@@ -92,30 +129,8 @@ export const listLibraryBots = (params: {
 			},
 		);
 
-		const ids = rows.map((bot) => bot.id);
-		const [capabilities, details] = yield* Effect.all(
-			[
-				getManyEntityCapabilities({
-					entityType: "bot",
-					entityIds: ids,
-					userId: params.userId,
-					organizationId: params.organizationId,
-					zedToken: params.zedToken,
-				}),
-				botDetails(ids, params.organizationId),
-			],
-			{
-				concurrency: "unbounded",
-			},
-		);
-
 		return {
-			data: rows.map((bot) => ({
-				...bot,
-				contentJson: bot.contentJson as Bot["contentJson"],
-				capabilities: capabilities.get(bot.id) ?? emptyCapabilities("bot"),
-				...details(bot.id),
-			})),
+			data,
 			rowCount: counted.count,
 		};
 	});

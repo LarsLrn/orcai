@@ -21,6 +21,7 @@ import { dataExportContracts } from "./data-export";
 import { groupContracts } from "./group";
 import { healthContracts } from "./health";
 import { instanceContracts } from "./instance";
+import { libraryContracts } from "./library";
 import { modelContracts } from "./model";
 import { organizationContracts } from "./organization";
 import { organizationInvitationContracts } from "./organization-invitation";
@@ -50,6 +51,7 @@ export const contracts = {
 	group: groupContracts,
 	health: healthContracts,
 	instance: instanceContracts,
+	library: libraryContracts,
 	model: modelContracts,
 	organization: organizationContracts,
 	organizationInvitation: organizationInvitationContracts,
@@ -86,6 +88,7 @@ export {
 	groupContracts,
 	healthContracts,
 	instanceContracts,
+	libraryContracts,
 	modelContracts,
 	organizationContracts,
 	organizationInvitationContracts,

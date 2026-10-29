@@ -7,14 +7,14 @@ import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
 import { inLibrary } from "@/lib/authz/library";
 
-type LibraryResource = "bot" | "block" | "asset";
+export type LibraryResource = "bot" | "block" | "asset";
 
 type Permission = "read" | "edit";
 
-type Reader = {
+export type Reader = {
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
-	zedToken?: string;
+	zedToken: string | undefined;
 };
 
 const lookup = (
@@ -100,3 +100,5 @@ export const libraryAccess = (reader: Reader) =>
 			condition,
 		};
 	});
+
+export type LibraryAccess = Effect.Success<ReturnType<typeof libraryAccess>>;
