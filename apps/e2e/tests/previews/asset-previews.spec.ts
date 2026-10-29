@@ -161,18 +161,23 @@ test("assets: a pdf previews inline at 1280 px and opens in a tab at 390 px", as
 	expect(response.headers()["content-type"]).toContain("application/pdf");
 });
 
-test("assets: the header download saves the file under its name through a fresh signed URL", async ({
+test("assets: the header download saves the file under its uploaded name through a fresh signed URL", async ({
 	api,
 	org,
 	pageAs,
 }) => {
-	const title = `E2E Preview ${runId()}`;
+	const fileName = `E2E Preview ${runId()}.pdf`;
 	const asset = await uploadFile(
 		api.as("member"),
-		title,
+		fileName,
 		"application/pdf",
 		tinyPdf(),
 	);
+	await api.as("member").asset.save({
+		id: asset.id,
+		title: `Renamed ${runId()}`,
+		metadata: {},
+	});
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
@@ -191,7 +196,7 @@ test("assets: the header download saves the file under its name through a fresh 
 	});
 	await download.click();
 	await refreshed;
-	expect((await saved).suggestedFilename()).toBe(`${title}.pdf`);
+	expect((await saved).suggestedFilename()).toBe(fileName);
 });
 
 test("assets: a failed image load offers a retry", async ({
