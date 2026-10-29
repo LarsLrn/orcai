@@ -1,19 +1,10 @@
-import { useSelector } from "@tanstack/react-store";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { useId } from "react";
-import {
-	Field,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "@/components/ui/field";
 import {
 	InputOTP,
 	InputOTPGroup,
 	InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
+import { FormField, useFormField } from "./form-field";
 
 const CODE_LENGTH = 6;
 
@@ -27,22 +18,12 @@ const CodeField = ({
 	description?: string;
 	autoFocus?: boolean;
 }) => {
-	const field = useFieldContext<string>();
-	useFieldLabel(field, label);
-	const id = useId();
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
+	const { field, ...state } = useFormField<string>(label, description);
 
 	return (
-		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
-			{description && <FieldDescription>{description}</FieldDescription>}
+		<FormField state={state} label={label} description={description}>
 			<InputOTP
-				id={id}
+				{...state.control}
 				name={field.name}
 				maxLength={CODE_LENGTH}
 				pattern={REGEXP_ONLY_DIGITS}
@@ -51,7 +32,6 @@ const CodeField = ({
 				value={field.state.value}
 				onChange={field.handleChange}
 				onBlur={field.handleBlur}
-				aria-invalid={isInvalid}
 			>
 				<InputOTPGroup>
 					{Array.from(
@@ -62,14 +42,13 @@ const CodeField = ({
 							<InputOTPSlot
 								key={index}
 								index={index}
-								aria-invalid={isInvalid}
+								aria-invalid={state.isInvalid}
 							/>
 						),
 					)}
 				</InputOTPGroup>
 			</InputOTP>
-			{isInvalid && <FieldError errors={errors} />}
-		</Field>
+		</FormField>
 	);
 };
 

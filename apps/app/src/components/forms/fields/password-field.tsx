@@ -1,24 +1,17 @@
-import { useSelector } from "@tanstack/react-store";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { PasswordStrengthIndicator } from "@/components/forms/utility/password-strength-indicator";
-import {
-	Field,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import { type ControlWidth, FormField, useFormField } from "./form-field";
 
 type PasswordFieldProps = {
 	label: string;
 	description?: string;
 	showTogglePassword?: boolean;
 	showStrength?: boolean;
+	width?: ControlWidth;
 } & React.ComponentProps<typeof Input>;
 
 const PasswordField = ({
@@ -26,36 +19,38 @@ const PasswordField = ({
 	description,
 	showTogglePassword = false,
 	showStrength = false,
+	width,
 	className,
 	...props
 }: PasswordFieldProps) => {
-	const field = useFieldContext<string>();
-	useFieldLabel(field, label);
-	const id = useId();
+	const { field, ...state } = useFormField<string>(label, description);
+	const { id } = state.control;
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
+	const describedBy = [
+		state.control["aria-describedby"],
+		showStrength && `${id}-description`,
+	]
+		.filter(Boolean)
+		.join(" ");
 
 	return (
-		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
-			{description && <FieldDescription>{description}</FieldDescription>}
+		<FormField
+			state={state}
+			label={label}
+			description={description}
+			width={width}
+		>
 			<div className="relative">
 				<Input
-					id={id}
+					{...props}
+					{...state.control}
+					aria-describedby={describedBy || undefined}
 					name={field.name}
 					type={isPasswordVisible ? "text" : "password"}
 					value={field.state.value}
 					onBlur={field.handleBlur}
 					onChange={(e) => field.handleChange(e.target.value)}
-					aria-invalid={isInvalid}
-					aria-describedby={showStrength ? `${id}-description` : undefined}
 					className={cn(showTogglePassword && "pr-9", className)}
-					{...props}
 				/>
 				{showTogglePassword && (
 					<button
@@ -79,11 +74,10 @@ const PasswordField = ({
 					</button>
 				)}
 			</div>
-			{isInvalid && <FieldError errors={errors} />}
 			{showStrength && (
 				<PasswordStrengthIndicator value={field.state.value} fieldName={id} />
 			)}
-		</Field>
+		</FormField>
 	);
 };
 

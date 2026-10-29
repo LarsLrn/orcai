@@ -1,17 +1,14 @@
-import { useSelector } from "@tanstack/react-store";
-import { useId } from "react";
 import {
 	Field,
 	FieldContent,
 	FieldDescription,
 	FieldError,
 	FieldLabel,
-	FieldTitle,
 } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
+import { useFormField } from "./form-field";
 
+/** A plain row: label and hint on the left, the switch on the right. */
 const SwitchField = ({
 	label,
 	description,
@@ -19,35 +16,33 @@ const SwitchField = ({
 	label: string;
 	description?: string;
 }) => {
-	const field = useFieldContext<boolean>();
-	useFieldLabel(field, label);
-	const id = useId();
-	const titleId = `${id}-title`;
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
+	const { field, ...state } = useFormField<boolean>(label, description);
 
 	return (
-		<FieldLabel htmlFor={id}>
-			<Field orientation="horizontal" data-invalid={isInvalid}>
-				<FieldContent>
-					<FieldTitle id={titleId}>{label}</FieldTitle>
-					{description && <FieldDescription>{description}</FieldDescription>}
-					{isInvalid && <FieldError errors={errors} />}
-				</FieldContent>
-				<Switch
-					id={id}
-					name={field.name}
-					checked={field.state.value}
-					onCheckedChange={field.handleChange}
-					aria-invalid={isInvalid}
-					aria-labelledby={titleId}
-				/>
-			</Field>
-		</FieldLabel>
+		<Field
+			orientation="horizontal"
+			data-invalid={state.isInvalid}
+			className="justify-between gap-6"
+		>
+			<FieldContent>
+				<FieldLabel id={state.labelId} htmlFor={state.control.id}>
+					{label}
+				</FieldLabel>
+				{description && (
+					<FieldDescription id={state.hintId}>{description}</FieldDescription>
+				)}
+				{state.isInvalid && (
+					<FieldError id={state.errorId} errors={state.errors} />
+				)}
+			</FieldContent>
+			<Switch
+				{...state.control}
+				aria-labelledby={state.labelId}
+				name={field.name}
+				checked={field.state.value}
+				onCheckedChange={field.handleChange}
+			/>
+		</Field>
 	);
 };
 

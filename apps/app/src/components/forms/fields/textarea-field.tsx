@@ -1,52 +1,30 @@
-import { useSelector } from "@tanstack/react-store";
-import { useId } from "react";
-import {
-	Field,
-	FieldDescription,
-	FieldError,
-	FieldLabel,
-} from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
-import { useFieldContext } from "@/hooks/form/context";
-import { useFieldLabel } from "@/hooks/form/field-labels";
 import { cn } from "@/lib/utils";
+import { FormField, useFormField } from "./form-field";
 
 const TextareaField = ({
 	label,
 	description,
-	unit,
+	className,
 	...props
 }: {
 	label: string;
 	description?: string;
-	unit?: string;
 } & React.ComponentProps<"textarea">) => {
-	const field = useFieldContext<string>();
-	useFieldLabel(field, label);
-	const id = useId();
-
-	const errors = useSelector(field.store, (state) => state.meta.errors);
-	const isInvalid = useSelector(
-		field.store,
-		(state) => state.meta.isTouched && !state.meta.isValid,
-	);
+	const { field, ...state } = useFormField<string>(label, description);
 
 	return (
-		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+		<FormField state={state} label={label} description={description}>
 			<Textarea
-				id={id}
+				{...props}
+				{...state.control}
 				name={field.name}
 				value={field.state.value}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
-				aria-invalid={isInvalid}
-				className={cn("min-h-30", props.className)}
-				{...props}
+				className={cn("min-h-30", className)}
 			/>
-			{description && <FieldDescription>{description}</FieldDescription>}
-			{isInvalid && <FieldError errors={errors} />}
-		</Field>
+		</FormField>
 	);
 };
 

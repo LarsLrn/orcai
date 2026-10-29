@@ -134,10 +134,14 @@ test("analytics: an admin prices a model and sees a turn's estimated cost", asyn
 	await submitForm(page, {
 		fill: async () => {
 			await page
-				.getByLabel(message("models_form_input_price_label"))
+				.getByLabel(message("models_form_input_price_label"), {
+					exact: true,
+				})
 				.fill("1000");
 			await page
-				.getByLabel(message("models_form_output_price_label"))
+				.getByLabel(message("models_form_output_price_label"), {
+					exact: true,
+				})
 				.fill("2000");
 		},
 		submit: message("models_form_save_button"),

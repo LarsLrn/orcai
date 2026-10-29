@@ -32,6 +32,7 @@ const OptionPicker = <T extends string>({
 	name,
 	"aria-label": ariaLabel,
 	"aria-invalid": ariaInvalid,
+	"aria-describedby": ariaDescribedBy,
 }: {
 	options: readonly PickerOption<T>[];
 	onChange: (value: T) => void;
@@ -45,6 +46,7 @@ const OptionPicker = <T extends string>({
 	name?: string;
 	"aria-label"?: string;
 	"aria-invalid"?: boolean;
+	"aria-describedby"?: string;
 }) => (
 	<Select
 		name={name}
@@ -60,6 +62,7 @@ const OptionPicker = <T extends string>({
 			id={id}
 			aria-label={ariaLabel}
 			aria-invalid={ariaInvalid}
+			aria-describedby={ariaDescribedBy}
 			className={className}
 			size={size}
 		>

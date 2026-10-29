@@ -1,12 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { FormPage } from "@/components/forms/form-layout";
 import { QuotaPoolForm } from "@/components/quota/form/quota-pool-form";
-import {
-	Page,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -32,13 +27,8 @@ function RouteComponent() {
 	);
 
 	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>{m.quotas_edit_page_title()}</PageTitle>
-			</PageHeader>
-			<PageContent>
-				<QuotaPoolForm action="update" pool={data.data} />
-			</PageContent>
-		</Page>
+		<FormPage title={m.quotas_edit_page_title()}>
+			<QuotaPoolForm action="update" pool={data.data} />
+		</FormPage>
 	);
 }

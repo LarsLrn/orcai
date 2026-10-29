@@ -6,6 +6,7 @@ import {
 	EditorContent,
 	useEditor,
 } from "@tiptap/react";
+import { useEffect, useMemo } from "react";
 import { BlockEditorPlaceholder } from "./block-editor-placeholder";
 import { extensions } from "./extensions";
 import { DefaultBubbleMenu } from "./menus/default-bubble-menu";
@@ -16,6 +17,7 @@ interface BlockEditorProps {
 	content?: Content;
 	placeholder?: string;
 	labelledBy?: string;
+	describedBy?: string;
 	onCreate?: (editor: Editor) => void;
 	onUpdate?: (editor: Editor) => void;
 }
@@ -29,9 +31,25 @@ const isEmptyObject = (content?: Content) =>
 const BlockEditor = ({
 	content,
 	labelledBy,
+	describedBy,
 	onCreate,
 	onUpdate,
 }: BlockEditorProps) => {
+	const attributes = useMemo(
+		() => ({
+			spellcheck: "false",
+			...(labelledBy && {
+				"aria-labelledby": labelledBy,
+			}),
+			...(describedBy && {
+				"aria-describedby": describedBy,
+			}),
+		}),
+		[
+			labelledBy,
+			describedBy,
+		],
+	);
 	const editor = useEditor({
 		extensions: [
 			...extensions,
@@ -40,12 +58,7 @@ const BlockEditor = ({
 		immediatelyRender: false,
 		shouldRerenderOnTransaction: false,
 		editorProps: {
-			attributes: {
-				spellcheck: "false",
-				...(labelledBy && {
-					"aria-labelledby": labelledBy,
-				}),
-			},
+			attributes,
 		},
 		onCreate: ({ editor }) => {
 			onCreate?.(editor);
@@ -57,6 +70,18 @@ const BlockEditor = ({
 			console.error(error);
 		},
 	});
+
+	// An error shown later changes the description.
+	useEffect(() => {
+		editor?.setOptions({
+			editorProps: {
+				attributes,
+			},
+		});
+	}, [
+		editor,
+		attributes,
+	]);
 
 	if (!editor) {
 		return <BlockEditorPlaceholder />;

@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { FormPage } from "@/components/forms/form-layout";
 import { ModelForm } from "@/components/model/form/model-form";
-import {
-	Page,
-	PageContent,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/models/add")({
@@ -21,13 +16,8 @@ export const Route = createFileRoute("/app/models/add")({
 
 function RouteComponent() {
 	return (
-		<Page>
-			<PageHeader>
-				<PageTitle>{m.models_add_page_title()}</PageTitle>
-			</PageHeader>
-			<PageContent>
-				<ModelForm action="create" />
-			</PageContent>
-		</Page>
+		<FormPage title={m.models_add_page_title()}>
+			<ModelForm action="create" />
+		</FormPage>
 	);
 }

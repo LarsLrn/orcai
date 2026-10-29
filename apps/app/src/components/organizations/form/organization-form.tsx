@@ -135,7 +135,7 @@ const OrganizationModelField = <Use extends ModelUse>({
 			: undefined;
 
 	return (
-		<Field aria-labelledby={labelId}>
+		<Field role="group" aria-labelledby={labelId}>
 			<FieldContent>
 				<FieldLabel id={labelId}>{setting.label()}</FieldLabel>
 				<FieldDescription>{setting.description()}</FieldDescription>

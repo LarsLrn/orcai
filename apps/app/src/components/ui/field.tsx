@@ -72,9 +72,9 @@ function Field({
 	className,
 	orientation = "vertical",
 	...props
-}: React.ComponentProps<"fieldset"> & VariantProps<typeof fieldVariants>) {
+}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
 	return (
-		<fieldset
+		<div
 			data-slot="field"
 			data-orientation={orientation}
 			className={cn(
