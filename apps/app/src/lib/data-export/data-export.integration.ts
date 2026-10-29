@@ -7,7 +7,12 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
-import { DATA_EXPORT_TTL_MS, dataExportKey } from "@orcai/s3";
+import {
+	DATA_EXPORT_TTL_MS,
+	dataExportKey,
+	imagePath,
+	parseImagePath,
+} from "@orcai/s3";
 import { sendGetObjectCommand, sendPutObjectCommand } from "@orcai/s3/server";
 import { DATA_EXPORT_JOB_NAME, type DataExport } from "@orcai/schema";
 import {
@@ -45,6 +50,7 @@ beforeAll(
 );
 
 const FILE_CONTENT = "Field notes, page one.";
+const PICTURE_CONTENT = "picture bytes";
 
 /** A chat with a question and an answer, a rating, a favourite bot, a block and two assets, one without its file. */
 const seed = (userId: UserId, organizationId: OrganizationId) =>
@@ -155,6 +161,25 @@ const seed = (userId: UserId, organizationId: OrganizationId) =>
 				body: FILE_CONTENT,
 				contentType: "text/plain",
 			});
+			const picture = imagePath(
+				{
+					kind: "user",
+					userId,
+				},
+				crypto.randomUUID(),
+			);
+			yield* sendPutObjectCommand({
+				bucket: buckets.main.name,
+				key: parseImagePath(picture)?.key ?? "",
+				body: PICTURE_CONTENT,
+				contentType: "image/webp",
+			});
+			yield* db
+				.update(dbSchema.user)
+				.set({
+					image: picture,
+				})
+				.where(eq(dbSchema.user.id, userId));
 			return {
 				bot,
 				block,
@@ -238,6 +263,7 @@ describe("data export", () => {
 			expect(Object.keys(archive).sort()).toEqual(
 				[
 					"profile.json",
+					"profile/avatar.webp",
 					"ratings.json",
 					"favourites.json",
 					"bots.json",
@@ -251,6 +277,8 @@ describe("data export", () => {
 
 			const profile = jsonEntry(archive, "profile.json");
 			expect(profile.email).toBe(owner.user.email);
+			expect(profile.image).toBe("profile/avatar.webp");
+			expect(archive["profile/avatar.webp"]).toBe(PICTURE_CONTENT);
 			expect(profile.memberships).toEqual([
 				expect.objectContaining({
 					organizationId,
