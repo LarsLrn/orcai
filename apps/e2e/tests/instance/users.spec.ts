@@ -7,14 +7,14 @@ import { rejection } from "../../fixtures/authorization";
 import { WELL_KNOWN_ADMIN } from "../../fixtures/constants";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
-import { message } from "../../fixtures/messages";
-import { open } from "../../fixtures/navigation";
-import { runId } from "../../fixtures/organisation";
 import {
 	addMember,
 	createThrowawayUser,
-	userRow,
-} from "../../fixtures/users/users";
+	memberRow,
+} from "../../fixtures/members/members";
+import { message } from "../../fixtures/messages";
+import { open } from "../../fixtures/navigation";
+import { runId } from "../../fixtures/organisation";
 
 test.describe.configure({
 	mode: "serial",
@@ -45,8 +45,8 @@ test("instance: the users page lists accounts from several organisations", async
 	// The list is newest first and neither account belongs to the instance
 	// organisation, so both prove the page is not scoped to one organisation.
 	// Each row counts its organisations; the user page names them.
-	const firstRow = userRow(page, first.email);
-	const secondRow = userRow(page, second.email);
+	const firstRow = memberRow(page, first.email);
+	const secondRow = memberRow(page, second.email);
 	await expect(firstRow).toBeVisible();
 	await expect(secondRow).toBeVisible();
 	await expect(
@@ -81,15 +81,15 @@ test("instance: the search narrows the users page", async ({
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
 
-	await expect(userRow(page, wanted.email)).toBeVisible();
-	await expect(userRow(page, other.email)).toBeVisible();
+	await expect(memberRow(page, wanted.email)).toBeVisible();
+	await expect(memberRow(page, other.email)).toBeVisible();
 
 	await page
 		.getByPlaceholder(message("instance_users_search_placeholder"))
 		.fill(wanted.email);
 
-	await expect(userRow(page, other.email)).toHaveCount(0);
-	await expect(userRow(page, wanted.email)).toBeVisible();
+	await expect(memberRow(page, other.email)).toHaveCount(0);
+	await expect(memberRow(page, wanted.email)).toBeVisible();
 });
 
 test("instance: the users page bans and unbans an account", async ({
@@ -103,7 +103,7 @@ test("instance: the users page bans and unbans an account", async ({
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
 
-	const row = userRow(page, user.email);
+	const row = memberRow(page, user.email);
 	await expect(row).toBeVisible();
 	await expect(row).toContainText(message("common_status_active_label"));
 
@@ -154,7 +154,7 @@ test("instance: the users page deletes an account", async ({
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
 
-	const row = userRow(page, user.email);
+	const row = memberRow(page, user.email);
 	await expect(row).toBeVisible();
 
 	await row
@@ -204,7 +204,7 @@ test("instance: the users page resets an account's two-factor authentication", a
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
 
-	const row = userRow(page, user.email);
+	const row = memberRow(page, user.email);
 	await expect(row).toContainText(
 		message("instance_users_table_two_factor_on_label"),
 	);
@@ -254,7 +254,7 @@ test("instance: the users page makes an account an instance admin and back", asy
 
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
-	const row = userRow(page, user.email);
+	const row = memberRow(page, user.email);
 	await expect(row).toContainText(
 		message("instance_users_table_instance_role_user_label"),
 	);

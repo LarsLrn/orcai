@@ -43,6 +43,11 @@ const find = ({ id: key }: { id: string }) => {
 			);
 };
 
+const findMember = ({ userId }: { userId: string }) =>
+	find({
+		id: userId,
+	});
+
 const done = () =>
 	Effect.succeed({
 		success: true,
@@ -52,7 +57,7 @@ const done = () =>
 beforeEach(() => {
 	resetProcedures();
 	answers["group.find"] = find;
-	answers["user.find"] = find;
+	answers["organizationMember.find"] = findMember;
 	answers["group.delete"] = done;
 	answers["organizationMember.delete"] = done;
 	answers["organizationInvitation.delete"] = done;
@@ -182,9 +187,9 @@ describe("removeMembers", () => {
 		});
 		expect(procedureCalls).toEqual([
 			{
-				procedure: "user.find",
+				procedure: "organizationMember.find",
 				input: {
-					id: id(2),
+					userId: id(2),
 				},
 			},
 			{

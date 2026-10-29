@@ -7,14 +7,14 @@ import {
 	blockIdSchema,
 	botIdSchema,
 	inheritedSourceByResourceType,
-	type ListUserAccessInput,
+	type ListMemberAccessInput,
+	type MemberAccessSortKey,
+	type MemberAccessSource,
+	memberAccessSourceSchema,
 	RESOURCE_GRANT_SOURCE,
 	RESOURCE_TYPES,
 	type ResourceGrantRole,
 	type ResourceType,
-	type UserAccessSortKey,
-	type UserAccessSource,
-	userAccessSourceSchema,
 } from "@orcai/schema";
 import {
 	type EntityIdFor,
@@ -79,7 +79,7 @@ const accessSource = (params: {
 		)}
 	end`;
 
-	return sql<UserAccessSource>`coalesce(
+	return sql<MemberAccessSource>`coalesce(
 		(select ${directSource} from ${grant}
 			where ${grant.resourceType} = ${scope.resourceType}
 				and ${grant.resourceId} = ${scope.resourceId}
@@ -92,7 +92,7 @@ const accessSource = (params: {
 				and ${dbSchema.resourceVisibility.resourceId} = ${scope.resourceId}
 				and ${dbSchema.resourceVisibility.visibility} = 'public'),
 		${inherited}
-	)`.mapWith((value) => userAccessSourceSchema.parse(value));
+	)`.mapWith((value) => memberAccessSourceSchema.parse(value));
 };
 
 /** The strongest role the user holds on each resource, from SpiceDB. */
@@ -139,7 +139,7 @@ const rolesOf = <Entity extends ResourceType>(
  * they effectively hold and where that access comes from.
  */
 export const effectiveAccess = (
-	params: Omit<ListUserAccessInput, "id" | "zedToken"> & {
+	params: Omit<ListMemberAccessInput, "userId" | "zedToken"> & {
 		userId: UserId;
 		organizationId: OrganizationId;
 		zedToken: string | undefined;
@@ -250,7 +250,7 @@ export const effectiveAccess = (
 				resourceName,
 				resourceType: scope.resourceType,
 				source,
-			} satisfies Record<UserAccessSortKey, SortExpression>,
+			} satisfies Record<MemberAccessSortKey, SortExpression>,
 			defaultOrder: [
 				asc(resourceName),
 			],

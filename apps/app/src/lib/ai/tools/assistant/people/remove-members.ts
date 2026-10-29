@@ -17,9 +17,9 @@ export const removeMembers = (deps: AssistantToolDeps, userIds: UserId[]) =>
 	deleteNamed(deps, userIds, {
 		type: "member",
 		find: (id, procedures, options) =>
-			procedures.user.find(
+			procedures.organizationMember.find(
 				{
-					id,
+					userId: id,
 				},
 				options,
 			),

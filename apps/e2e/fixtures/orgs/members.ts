@@ -75,5 +75,5 @@ export const memberRole = async (
 ): Promise<Role | undefined> => {
 	const found = await api.organizationMember.find(membership);
 
-	return found.data.role;
+	return found.data.organizationRole;
 };

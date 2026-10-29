@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
 import type {
-	ListUserAccessInput,
+	ListMemberAccessInput,
 	ResourcePrincipalIdentity,
 } from "@orcai/schema";
 import {
@@ -125,12 +125,12 @@ const sharedBlocks = async () => {
 
 	const listAccess = async (
 		actor: Actor,
-		input: Partial<Omit<ListUserAccessInput, "id">> = {},
+		input: Partial<Omit<ListMemberAccessInput, "userId">> = {},
 	) => {
 		const { data, rowCount } = await run(
-			procedures.user.listAccess(
+			procedures.organizationMember.listAccess(
 				{
-					id: member.user.id,
+					userId: member.user.id,
 					pageIndex: 0,
 					pageSize: 20,
 					sort: [],

@@ -63,7 +63,7 @@ for (const width of WIDTHS) {
 			"/app/models",
 			"/app/providers",
 			"/app/quotas",
-			"/app/users",
+			"/app/members",
 			"/app/chat",
 			"/app/analytics",
 			`/app/groups/${group.data.id}`,

@@ -34,11 +34,11 @@ import { Route as AppCatalogueRouteRouteImport } from './routes/app/catalogue/ro
 import { Route as AppChatRouteRouteImport } from './routes/app/chat/route'
 import { Route as AppGroupsRouteRouteImport } from './routes/app/groups/route'
 import { Route as AppLibraryRouteRouteImport } from './routes/app/library/route'
+import { Route as AppMembersRouteRouteImport } from './routes/app/members/route'
 import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
 import { Route as AppOrganizationRouteRouteImport } from './routes/app/organization/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
 import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
-import { Route as AppUsersRouteRouteImport } from './routes/app/users/route'
 import { Route as InstanceIndexRouteImport } from './routes/instance/index'
 import { Route as PathlessLayoutHistoryIndexRouteImport } from './routes/_pathlessLayout/history/index'
 import { Route as PathlessLayoutHistoryChatIdRouteImport } from './routes/_pathlessLayout/history/$chatId'
@@ -66,6 +66,10 @@ import { Route as AppLibraryAssetsRouteRouteImport } from './routes/app/library/
 import { Route as AppLibraryBehavioursRouteRouteImport } from './routes/app/library/behaviours/route'
 import { Route as AppLibraryBotsRouteRouteImport } from './routes/app/library/bots/route'
 import { Route as AppLibraryRepositoriesRouteRouteImport } from './routes/app/library/repositories/route'
+import { Route as AppMembersIndexRouteImport } from './routes/app/members/index'
+import { Route as AppMembersUserIdRouteRouteImport } from './routes/app/members/$userId/route'
+import { Route as AppMembersAddRouteImport } from './routes/app/members/add'
+import { Route as AppMembersInvitationsRouteImport } from './routes/app/members/invitations'
 import { Route as AppModelsIndexRouteImport } from './routes/app/models/index'
 import { Route as AppModelsModelIdRouteRouteImport } from './routes/app/models/$modelId/route'
 import { Route as AppModelsAddRouteImport } from './routes/app/models/add'
@@ -77,10 +81,6 @@ import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
 import { Route as AppQuotasIndexRouteImport } from './routes/app/quotas/index'
 import { Route as AppQuotasQuotaPoolIdRouteRouteImport } from './routes/app/quotas/$quotaPoolId/route'
 import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
-import { Route as AppUsersIndexRouteImport } from './routes/app/users/index'
-import { Route as AppUsersUserIdRouteRouteImport } from './routes/app/users/$userId/route'
-import { Route as AppUsersAddRouteImport } from './routes/app/users/add'
-import { Route as AppUsersInvitesRouteImport } from './routes/app/users/invites'
 import { Route as InstanceAnalyticsIndexRouteImport } from './routes/instance/analytics/index'
 import { Route as InstanceHealthIndexRouteImport } from './routes/instance/health/index'
 import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
@@ -108,14 +108,14 @@ import { Route as AppLibraryBotsAddRouteImport } from './routes/app/library/bots
 import { Route as AppLibraryRepositoriesIndexRouteImport } from './routes/app/library/repositories/index'
 import { Route as AppLibraryRepositoriesBlockIdRouteRouteImport } from './routes/app/library/repositories/$blockId/route'
 import { Route as AppLibraryRepositoriesAddRouteImport } from './routes/app/library/repositories/add'
+import { Route as AppMembersUserIdIndexRouteImport } from './routes/app/members/$userId/index'
+import { Route as AppMembersUserIdEditRouteImport } from './routes/app/members/$userId/edit'
 import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$modelId/index'
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
 import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quotas/$quotaPoolId/index'
 import { Route as AppQuotasQuotaPoolIdEditRouteImport } from './routes/app/quotas/$quotaPoolId/edit'
-import { Route as AppUsersUserIdIndexRouteImport } from './routes/app/users/$userId/index'
-import { Route as AppUsersUserIdEditRouteImport } from './routes/app/users/$userId/edit'
 import { Route as InstanceOrganizationsOrganizationIdIndexRouteImport } from './routes/instance/organizations/$organizationId/index'
 import { Route as InstanceUsersUserIdIndexRouteImport } from './routes/instance/users/$userId/index'
 import { Route as AppCatalogueBehavioursIdIndexRouteImport } from './routes/app/catalogue/behaviours/$id/index'
@@ -263,6 +263,11 @@ const AppLibraryRouteRoute = AppLibraryRouteRouteImport.update({
   path: '/library',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppMembersRouteRoute = AppMembersRouteRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppModelsRouteRoute = AppModelsRouteRouteImport.update({
   id: '/models',
   path: '/models',
@@ -281,11 +286,6 @@ const AppProvidersRouteRoute = AppProvidersRouteRouteImport.update({
 const AppQuotasRouteRoute = AppQuotasRouteRouteImport.update({
   id: '/quotas',
   path: '/quotas',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppUsersRouteRoute = AppUsersRouteRouteImport.update({
-  id: '/users',
-  path: '/users',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const InstanceIndexRoute = InstanceIndexRouteImport.update({
@@ -428,6 +428,26 @@ const AppLibraryRepositoriesRouteRoute =
     path: '/repositories',
     getParentRoute: () => AppLibraryRouteRoute,
   } as any)
+const AppMembersIndexRoute = AppMembersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppMembersRouteRoute,
+} as any)
+const AppMembersUserIdRouteRoute = AppMembersUserIdRouteRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => AppMembersRouteRoute,
+} as any)
+const AppMembersAddRoute = AppMembersAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppMembersRouteRoute,
+} as any)
+const AppMembersInvitationsRoute = AppMembersInvitationsRouteImport.update({
+  id: '/invitations',
+  path: '/invitations',
+  getParentRoute: () => AppMembersRouteRoute,
+} as any)
 const AppModelsIndexRoute = AppModelsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -485,26 +505,6 @@ const AppQuotasAddRoute = AppQuotasAddRouteImport.update({
   id: '/add',
   path: '/add',
   getParentRoute: () => AppQuotasRouteRoute,
-} as any)
-const AppUsersIndexRoute = AppUsersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppUsersRouteRoute,
-} as any)
-const AppUsersUserIdRouteRoute = AppUsersUserIdRouteRouteImport.update({
-  id: '/$userId',
-  path: '/$userId',
-  getParentRoute: () => AppUsersRouteRoute,
-} as any)
-const AppUsersAddRoute = AppUsersAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AppUsersRouteRoute,
-} as any)
-const AppUsersInvitesRoute = AppUsersInvitesRouteImport.update({
-  id: '/invites',
-  path: '/invites',
-  getParentRoute: () => AppUsersRouteRoute,
 } as any)
 const InstanceAnalyticsIndexRoute = InstanceAnalyticsIndexRouteImport.update({
   id: '/analytics/',
@@ -655,6 +655,16 @@ const AppLibraryRepositoriesAddRoute =
     path: '/add',
     getParentRoute: () => AppLibraryRepositoriesRouteRoute,
   } as any)
+const AppMembersUserIdIndexRoute = AppMembersUserIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppMembersUserIdRouteRoute,
+} as any)
+const AppMembersUserIdEditRoute = AppMembersUserIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AppMembersUserIdRouteRoute,
+} as any)
 const AppModelsModelIdIndexRoute = AppModelsModelIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -689,16 +699,6 @@ const AppQuotasQuotaPoolIdEditRoute =
     path: '/edit',
     getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
   } as any)
-const AppUsersUserIdIndexRoute = AppUsersUserIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppUsersUserIdRouteRoute,
-} as any)
-const AppUsersUserIdEditRoute = AppUsersUserIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppUsersUserIdRouteRoute,
-} as any)
 const InstanceOrganizationsOrganizationIdIndexRoute =
   InstanceOrganizationsOrganizationIdIndexRouteImport.update({
     id: '/',
@@ -812,11 +812,11 @@ export interface FileRoutesByFullPath {
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
   '/app/library': typeof AppLibraryRouteRouteWithChildren
+  '/app/members': typeof AppMembersRouteRouteWithChildren
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
-  '/app/users': typeof AppUsersRouteRouteWithChildren
   '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
@@ -835,10 +835,10 @@ export interface FileRoutesByFullPath {
   '/app/library/behaviours': typeof AppLibraryBehavioursRouteRouteWithChildren
   '/app/library/bots': typeof AppLibraryBotsRouteRouteWithChildren
   '/app/library/repositories': typeof AppLibraryRepositoriesRouteRouteWithChildren
+  '/app/members/$userId': typeof AppMembersUserIdRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
-  '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
   '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
   '/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
@@ -853,12 +853,12 @@ export interface FileRoutesByFullPath {
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/members/add': typeof AppMembersAddRoute
+  '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
-  '/app/users/add': typeof AppUsersAddRoute
-  '/app/users/invites': typeof AppUsersInvitesRoute
   '/history/': typeof PathlessLayoutHistoryIndexRoute
   '/app/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -868,11 +868,11 @@ export interface FileRoutesByFullPath {
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
   '/app/library/': typeof AppLibraryIndexRoute
+  '/app/members/': typeof AppMembersIndexRoute
   '/app/models/': typeof AppModelsIndexRoute
   '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
-  '/app/users/': typeof AppUsersIndexRoute
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
@@ -888,10 +888,10 @@ export interface FileRoutesByFullPath {
   '/app/library/behaviours/add': typeof AppLibraryBehavioursAddRoute
   '/app/library/bots/add': typeof AppLibraryBotsAddRoute
   '/app/library/repositories/add': typeof AppLibraryRepositoriesAddRoute
+  '/app/members/$userId/edit': typeof AppMembersUserIdEditRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
-  '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/catalogue/behaviours/': typeof AppCatalogueBehavioursIndexRoute
   '/app/catalogue/bots/': typeof AppCatalogueBotsIndexRoute
@@ -902,10 +902,10 @@ export interface FileRoutesByFullPath {
   '/app/library/behaviours/': typeof AppLibraryBehavioursIndexRoute
   '/app/library/bots/': typeof AppLibraryBotsIndexRoute
   '/app/library/repositories/': typeof AppLibraryRepositoriesIndexRoute
+  '/app/members/$userId/': typeof AppMembersUserIdIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
-  '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
   '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
@@ -952,12 +952,12 @@ export interface FileRoutesByTo {
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/members/add': typeof AppMembersAddRoute
+  '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
-  '/app/users/add': typeof AppUsersAddRoute
-  '/app/users/invites': typeof AppUsersInvitesRoute
   '/history': typeof PathlessLayoutHistoryIndexRoute
   '/app/account': typeof AppAccountIndexRoute
   '/app/analytics': typeof AppAnalyticsIndexRoute
@@ -966,11 +966,11 @@ export interface FileRoutesByTo {
   '/app/chat': typeof AppChatIndexRoute
   '/app/groups': typeof AppGroupsIndexRoute
   '/app/library': typeof AppLibraryIndexRoute
+  '/app/members': typeof AppMembersIndexRoute
   '/app/models': typeof AppModelsIndexRoute
   '/app/organization': typeof AppOrganizationIndexRoute
   '/app/providers': typeof AppProvidersIndexRoute
   '/app/quotas': typeof AppQuotasIndexRoute
-  '/app/users': typeof AppUsersIndexRoute
   '/instance/analytics': typeof InstanceAnalyticsIndexRoute
   '/instance/health': typeof InstanceHealthIndexRoute
   '/instance/organizations': typeof InstanceOrganizationsIndexRoute
@@ -979,10 +979,10 @@ export interface FileRoutesByTo {
   '/app/library/behaviours/add': typeof AppLibraryBehavioursAddRoute
   '/app/library/bots/add': typeof AppLibraryBotsAddRoute
   '/app/library/repositories/add': typeof AppLibraryRepositoriesAddRoute
+  '/app/members/$userId/edit': typeof AppMembersUserIdEditRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
-  '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/assistant/$chatId': typeof AppAssistantChatIdIndexRoute
   '/app/catalogue/behaviours': typeof AppCatalogueBehavioursIndexRoute
   '/app/catalogue/bots': typeof AppCatalogueBotsIndexRoute
@@ -993,10 +993,10 @@ export interface FileRoutesByTo {
   '/app/library/behaviours': typeof AppLibraryBehavioursIndexRoute
   '/app/library/bots': typeof AppLibraryBotsIndexRoute
   '/app/library/repositories': typeof AppLibraryRepositoriesIndexRoute
+  '/app/members/$userId': typeof AppMembersUserIdIndexRoute
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdIndexRoute
-  '/app/users/$userId': typeof AppUsersUserIdIndexRoute
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId': typeof InstanceUsersUserIdIndexRoute
   '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
@@ -1030,11 +1030,11 @@ export interface FileRoutesById {
   '/app/chat': typeof AppChatRouteRouteWithChildren
   '/app/groups': typeof AppGroupsRouteRouteWithChildren
   '/app/library': typeof AppLibraryRouteRouteWithChildren
+  '/app/members': typeof AppMembersRouteRouteWithChildren
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
   '/app/quotas': typeof AppQuotasRouteRouteWithChildren
-  '/app/users': typeof AppUsersRouteRouteWithChildren
   '/_pathlessLayout/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/_pathlessLayout/init': typeof PathlessLayoutInitRoute
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
@@ -1053,10 +1053,10 @@ export interface FileRoutesById {
   '/app/library/behaviours': typeof AppLibraryBehavioursRouteRouteWithChildren
   '/app/library/bots': typeof AppLibraryBotsRouteRouteWithChildren
   '/app/library/repositories': typeof AppLibraryRepositoriesRouteRouteWithChildren
+  '/app/members/$userId': typeof AppMembersUserIdRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
   '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
-  '/app/users/$userId': typeof AppUsersUserIdRouteRouteWithChildren
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
   '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
   '/_pathlessLayout/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
@@ -1071,12 +1071,12 @@ export interface FileRoutesById {
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/members/add': typeof AppMembersAddRoute
+  '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
   '/app/quotas/add': typeof AppQuotasAddRoute
-  '/app/users/add': typeof AppUsersAddRoute
-  '/app/users/invites': typeof AppUsersInvitesRoute
   '/_pathlessLayout/history/': typeof PathlessLayoutHistoryIndexRoute
   '/app/_home/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -1086,11 +1086,11 @@ export interface FileRoutesById {
   '/app/chat/': typeof AppChatIndexRoute
   '/app/groups/': typeof AppGroupsIndexRoute
   '/app/library/': typeof AppLibraryIndexRoute
+  '/app/members/': typeof AppMembersIndexRoute
   '/app/models/': typeof AppModelsIndexRoute
   '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
   '/app/quotas/': typeof AppQuotasIndexRoute
-  '/app/users/': typeof AppUsersIndexRoute
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
@@ -1106,10 +1106,10 @@ export interface FileRoutesById {
   '/app/library/behaviours/add': typeof AppLibraryBehavioursAddRoute
   '/app/library/bots/add': typeof AppLibraryBotsAddRoute
   '/app/library/repositories/add': typeof AppLibraryRepositoriesAddRoute
+  '/app/members/$userId/edit': typeof AppMembersUserIdEditRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
-  '/app/users/$userId/edit': typeof AppUsersUserIdEditRoute
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/catalogue/behaviours/': typeof AppCatalogueBehavioursIndexRoute
   '/app/catalogue/bots/': typeof AppCatalogueBotsIndexRoute
@@ -1120,10 +1120,10 @@ export interface FileRoutesById {
   '/app/library/behaviours/': typeof AppLibraryBehavioursIndexRoute
   '/app/library/bots/': typeof AppLibraryBotsIndexRoute
   '/app/library/repositories/': typeof AppLibraryRepositoriesIndexRoute
+  '/app/members/$userId/': typeof AppMembersUserIdIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
   '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
-  '/app/users/$userId/': typeof AppUsersUserIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
   '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
@@ -1156,11 +1156,11 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/groups'
     | '/app/library'
+    | '/app/members'
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
     | '/app/quotas'
-    | '/app/users'
     | '/forgot-password'
     | '/init'
     | '/login'
@@ -1179,10 +1179,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours'
     | '/app/library/bots'
     | '/app/library/repositories'
+    | '/app/members/$userId'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
-    | '/app/users/$userId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
     | '/history/$chatId'
@@ -1197,12 +1197,12 @@ export interface FileRouteTypes {
     | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
+    | '/app/members/add'
+    | '/app/members/invitations'
     | '/app/models/add'
     | '/app/organizations/$organizationId'
     | '/app/providers/add'
     | '/app/quotas/add'
-    | '/app/users/add'
-    | '/app/users/invites'
     | '/history/'
     | '/app/'
     | '/app/account/'
@@ -1212,11 +1212,11 @@ export interface FileRouteTypes {
     | '/app/chat/'
     | '/app/groups/'
     | '/app/library/'
+    | '/app/members/'
     | '/app/models/'
     | '/app/organization/'
     | '/app/providers/'
     | '/app/quotas/'
-    | '/app/users/'
     | '/instance/analytics/'
     | '/instance/health/'
     | '/instance/organizations/'
@@ -1232,10 +1232,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours/add'
     | '/app/library/bots/add'
     | '/app/library/repositories/add'
+    | '/app/members/$userId/edit'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
-    | '/app/users/$userId/edit'
     | '/app/assistant/$chatId/'
     | '/app/catalogue/behaviours/'
     | '/app/catalogue/bots/'
@@ -1246,10 +1246,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours/'
     | '/app/library/bots/'
     | '/app/library/repositories/'
+    | '/app/members/$userId/'
     | '/app/models/$modelId/'
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
-    | '/app/users/$userId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
     | '/app/catalogue/behaviours/$id/add'
@@ -1296,12 +1296,12 @@ export interface FileRouteTypes {
     | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
+    | '/app/members/add'
+    | '/app/members/invitations'
     | '/app/models/add'
     | '/app/organizations/$organizationId'
     | '/app/providers/add'
     | '/app/quotas/add'
-    | '/app/users/add'
-    | '/app/users/invites'
     | '/history'
     | '/app/account'
     | '/app/analytics'
@@ -1310,11 +1310,11 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/groups'
     | '/app/library'
+    | '/app/members'
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
     | '/app/quotas'
-    | '/app/users'
     | '/instance/analytics'
     | '/instance/health'
     | '/instance/organizations'
@@ -1323,10 +1323,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours/add'
     | '/app/library/bots/add'
     | '/app/library/repositories/add'
+    | '/app/members/$userId/edit'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
-    | '/app/users/$userId/edit'
     | '/app/assistant/$chatId'
     | '/app/catalogue/behaviours'
     | '/app/catalogue/bots'
@@ -1337,10 +1337,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours'
     | '/app/library/bots'
     | '/app/library/repositories'
+    | '/app/members/$userId'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
-    | '/app/users/$userId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
     | '/app/catalogue/behaviours/$id/add'
@@ -1373,11 +1373,11 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/groups'
     | '/app/library'
+    | '/app/members'
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
     | '/app/quotas'
-    | '/app/users'
     | '/_pathlessLayout/forgot-password'
     | '/_pathlessLayout/init'
     | '/_pathlessLayout/login'
@@ -1396,10 +1396,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours'
     | '/app/library/bots'
     | '/app/library/repositories'
+    | '/app/members/$userId'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
     | '/app/quotas/$quotaPoolId'
-    | '/app/users/$userId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
     | '/_pathlessLayout/history/$chatId'
@@ -1414,12 +1414,12 @@ export interface FileRouteTypes {
     | '/app/account/security'
     | '/app/chat/new'
     | '/app/chat/setup'
+    | '/app/members/add'
+    | '/app/members/invitations'
     | '/app/models/add'
     | '/app/organizations/$organizationId'
     | '/app/providers/add'
     | '/app/quotas/add'
-    | '/app/users/add'
-    | '/app/users/invites'
     | '/_pathlessLayout/history/'
     | '/app/_home/'
     | '/app/account/'
@@ -1429,11 +1429,11 @@ export interface FileRouteTypes {
     | '/app/chat/'
     | '/app/groups/'
     | '/app/library/'
+    | '/app/members/'
     | '/app/models/'
     | '/app/organization/'
     | '/app/providers/'
     | '/app/quotas/'
-    | '/app/users/'
     | '/instance/analytics/'
     | '/instance/health/'
     | '/instance/organizations/'
@@ -1449,10 +1449,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours/add'
     | '/app/library/bots/add'
     | '/app/library/repositories/add'
+    | '/app/members/$userId/edit'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
     | '/app/quotas/$quotaPoolId/edit'
-    | '/app/users/$userId/edit'
     | '/app/assistant/$chatId/'
     | '/app/catalogue/behaviours/'
     | '/app/catalogue/bots/'
@@ -1463,10 +1463,10 @@ export interface FileRouteTypes {
     | '/app/library/behaviours/'
     | '/app/library/bots/'
     | '/app/library/repositories/'
+    | '/app/members/$userId/'
     | '/app/models/$modelId/'
     | '/app/providers/$providerId/'
     | '/app/quotas/$quotaPoolId/'
-    | '/app/users/$userId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
     | '/app/catalogue/behaviours/$id/add'
@@ -1676,6 +1676,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLibraryRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/members': {
+      id: '/app/members'
+      path: '/members'
+      fullPath: '/app/members'
+      preLoaderRoute: typeof AppMembersRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/models': {
       id: '/app/models'
       path: '/models'
@@ -1702,13 +1709,6 @@ declare module '@tanstack/react-router' {
       path: '/quotas'
       fullPath: '/app/quotas'
       preLoaderRoute: typeof AppQuotasRouteRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/users': {
-      id: '/app/users'
-      path: '/users'
-      fullPath: '/app/users'
-      preLoaderRoute: typeof AppUsersRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/instance/': {
@@ -1900,6 +1900,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLibraryRepositoriesRouteRouteImport
       parentRoute: typeof AppLibraryRouteRoute
     }
+    '/app/members/': {
+      id: '/app/members/'
+      path: '/'
+      fullPath: '/app/members/'
+      preLoaderRoute: typeof AppMembersIndexRouteImport
+      parentRoute: typeof AppMembersRouteRoute
+    }
+    '/app/members/$userId': {
+      id: '/app/members/$userId'
+      path: '/$userId'
+      fullPath: '/app/members/$userId'
+      preLoaderRoute: typeof AppMembersUserIdRouteRouteImport
+      parentRoute: typeof AppMembersRouteRoute
+    }
+    '/app/members/add': {
+      id: '/app/members/add'
+      path: '/add'
+      fullPath: '/app/members/add'
+      preLoaderRoute: typeof AppMembersAddRouteImport
+      parentRoute: typeof AppMembersRouteRoute
+    }
+    '/app/members/invitations': {
+      id: '/app/members/invitations'
+      path: '/invitations'
+      fullPath: '/app/members/invitations'
+      preLoaderRoute: typeof AppMembersInvitationsRouteImport
+      parentRoute: typeof AppMembersRouteRoute
+    }
     '/app/models/': {
       id: '/app/models/'
       path: '/'
@@ -1976,34 +2004,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/quotas/add'
       preLoaderRoute: typeof AppQuotasAddRouteImport
       parentRoute: typeof AppQuotasRouteRoute
-    }
-    '/app/users/': {
-      id: '/app/users/'
-      path: '/'
-      fullPath: '/app/users/'
-      preLoaderRoute: typeof AppUsersIndexRouteImport
-      parentRoute: typeof AppUsersRouteRoute
-    }
-    '/app/users/$userId': {
-      id: '/app/users/$userId'
-      path: '/$userId'
-      fullPath: '/app/users/$userId'
-      preLoaderRoute: typeof AppUsersUserIdRouteRouteImport
-      parentRoute: typeof AppUsersRouteRoute
-    }
-    '/app/users/add': {
-      id: '/app/users/add'
-      path: '/add'
-      fullPath: '/app/users/add'
-      preLoaderRoute: typeof AppUsersAddRouteImport
-      parentRoute: typeof AppUsersRouteRoute
-    }
-    '/app/users/invites': {
-      id: '/app/users/invites'
-      path: '/invites'
-      fullPath: '/app/users/invites'
-      preLoaderRoute: typeof AppUsersInvitesRouteImport
-      parentRoute: typeof AppUsersRouteRoute
     }
     '/instance/analytics/': {
       id: '/instance/analytics/'
@@ -2194,6 +2194,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLibraryRepositoriesAddRouteImport
       parentRoute: typeof AppLibraryRepositoriesRouteRoute
     }
+    '/app/members/$userId/': {
+      id: '/app/members/$userId/'
+      path: '/'
+      fullPath: '/app/members/$userId/'
+      preLoaderRoute: typeof AppMembersUserIdIndexRouteImport
+      parentRoute: typeof AppMembersUserIdRouteRoute
+    }
+    '/app/members/$userId/edit': {
+      id: '/app/members/$userId/edit'
+      path: '/edit'
+      fullPath: '/app/members/$userId/edit'
+      preLoaderRoute: typeof AppMembersUserIdEditRouteImport
+      parentRoute: typeof AppMembersUserIdRouteRoute
+    }
     '/app/models/$modelId/': {
       id: '/app/models/$modelId/'
       path: '/'
@@ -2235,20 +2249,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/quotas/$quotaPoolId/edit'
       preLoaderRoute: typeof AppQuotasQuotaPoolIdEditRouteImport
       parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
-    }
-    '/app/users/$userId/': {
-      id: '/app/users/$userId/'
-      path: '/'
-      fullPath: '/app/users/$userId/'
-      preLoaderRoute: typeof AppUsersUserIdIndexRouteImport
-      parentRoute: typeof AppUsersUserIdRouteRoute
-    }
-    '/app/users/$userId/edit': {
-      id: '/app/users/$userId/edit'
-      path: '/edit'
-      fullPath: '/app/users/$userId/edit'
-      preLoaderRoute: typeof AppUsersUserIdEditRouteImport
-      parentRoute: typeof AppUsersUserIdRouteRoute
     }
     '/instance/organizations/$organizationId/': {
       id: '/instance/organizations/$organizationId/'
@@ -2757,6 +2757,39 @@ const AppLibraryRouteRouteWithChildren = AppLibraryRouteRoute._addFileChildren(
   AppLibraryRouteRouteChildren,
 )
 
+interface AppMembersUserIdRouteRouteChildren {
+  AppMembersUserIdEditRoute: typeof AppMembersUserIdEditRoute
+  AppMembersUserIdIndexRoute: typeof AppMembersUserIdIndexRoute
+}
+
+const AppMembersUserIdRouteRouteChildren: AppMembersUserIdRouteRouteChildren = {
+  AppMembersUserIdEditRoute: AppMembersUserIdEditRoute,
+  AppMembersUserIdIndexRoute: AppMembersUserIdIndexRoute,
+}
+
+const AppMembersUserIdRouteRouteWithChildren =
+  AppMembersUserIdRouteRoute._addFileChildren(
+    AppMembersUserIdRouteRouteChildren,
+  )
+
+interface AppMembersRouteRouteChildren {
+  AppMembersUserIdRouteRoute: typeof AppMembersUserIdRouteRouteWithChildren
+  AppMembersAddRoute: typeof AppMembersAddRoute
+  AppMembersInvitationsRoute: typeof AppMembersInvitationsRoute
+  AppMembersIndexRoute: typeof AppMembersIndexRoute
+}
+
+const AppMembersRouteRouteChildren: AppMembersRouteRouteChildren = {
+  AppMembersUserIdRouteRoute: AppMembersUserIdRouteRouteWithChildren,
+  AppMembersAddRoute: AppMembersAddRoute,
+  AppMembersInvitationsRoute: AppMembersInvitationsRoute,
+  AppMembersIndexRoute: AppMembersIndexRoute,
+}
+
+const AppMembersRouteRouteWithChildren = AppMembersRouteRoute._addFileChildren(
+  AppMembersRouteRouteChildren,
+)
+
 interface AppModelsModelIdRouteRouteChildren {
   AppModelsModelIdEditRoute: typeof AppModelsModelIdEditRoute
   AppModelsModelIdIndexRoute: typeof AppModelsModelIdIndexRoute
@@ -2863,37 +2896,6 @@ const AppQuotasRouteRouteWithChildren = AppQuotasRouteRoute._addFileChildren(
   AppQuotasRouteRouteChildren,
 )
 
-interface AppUsersUserIdRouteRouteChildren {
-  AppUsersUserIdEditRoute: typeof AppUsersUserIdEditRoute
-  AppUsersUserIdIndexRoute: typeof AppUsersUserIdIndexRoute
-}
-
-const AppUsersUserIdRouteRouteChildren: AppUsersUserIdRouteRouteChildren = {
-  AppUsersUserIdEditRoute: AppUsersUserIdEditRoute,
-  AppUsersUserIdIndexRoute: AppUsersUserIdIndexRoute,
-}
-
-const AppUsersUserIdRouteRouteWithChildren =
-  AppUsersUserIdRouteRoute._addFileChildren(AppUsersUserIdRouteRouteChildren)
-
-interface AppUsersRouteRouteChildren {
-  AppUsersUserIdRouteRoute: typeof AppUsersUserIdRouteRouteWithChildren
-  AppUsersAddRoute: typeof AppUsersAddRoute
-  AppUsersInvitesRoute: typeof AppUsersInvitesRoute
-  AppUsersIndexRoute: typeof AppUsersIndexRoute
-}
-
-const AppUsersRouteRouteChildren: AppUsersRouteRouteChildren = {
-  AppUsersUserIdRouteRoute: AppUsersUserIdRouteRouteWithChildren,
-  AppUsersAddRoute: AppUsersAddRoute,
-  AppUsersInvitesRoute: AppUsersInvitesRoute,
-  AppUsersIndexRoute: AppUsersIndexRoute,
-}
-
-const AppUsersRouteRouteWithChildren = AppUsersRouteRoute._addFileChildren(
-  AppUsersRouteRouteChildren,
-)
-
 interface AppRouteRouteChildren {
   AppHomeRouteRoute: typeof AppHomeRouteRouteWithChildren
   AppAccountRouteRoute: typeof AppAccountRouteRouteWithChildren
@@ -2903,11 +2905,11 @@ interface AppRouteRouteChildren {
   AppChatRouteRoute: typeof AppChatRouteRouteWithChildren
   AppGroupsRouteRoute: typeof AppGroupsRouteRouteWithChildren
   AppLibraryRouteRoute: typeof AppLibraryRouteRouteWithChildren
+  AppMembersRouteRoute: typeof AppMembersRouteRouteWithChildren
   AppModelsRouteRoute: typeof AppModelsRouteRouteWithChildren
   AppOrganizationRouteRoute: typeof AppOrganizationRouteRouteWithChildren
   AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
   AppQuotasRouteRoute: typeof AppQuotasRouteRouteWithChildren
-  AppUsersRouteRoute: typeof AppUsersRouteRouteWithChildren
   AppOrganizationsOrganizationIdRoute: typeof AppOrganizationsOrganizationIdRoute
 }
 
@@ -2920,11 +2922,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppChatRouteRoute: AppChatRouteRouteWithChildren,
   AppGroupsRouteRoute: AppGroupsRouteRouteWithChildren,
   AppLibraryRouteRoute: AppLibraryRouteRouteWithChildren,
+  AppMembersRouteRoute: AppMembersRouteRouteWithChildren,
   AppModelsRouteRoute: AppModelsRouteRouteWithChildren,
   AppOrganizationRouteRoute: AppOrganizationRouteRouteWithChildren,
   AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,
   AppQuotasRouteRoute: AppQuotasRouteRouteWithChildren,
-  AppUsersRouteRoute: AppUsersRouteRouteWithChildren,
   AppOrganizationsOrganizationIdRoute: AppOrganizationsOrganizationIdRoute,
 }
 

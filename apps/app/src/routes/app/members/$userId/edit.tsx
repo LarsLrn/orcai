@@ -1,8 +1,8 @@
 import type { UserId } from "@orcai/core";
 import {
-	listUserAccessInputSchema,
+	listMemberAccessInputSchema,
+	memberAccessSourceSchema,
 	resourceTypeSchema,
-	userAccessSourceSchema,
 } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -18,6 +18,12 @@ import {
 	MailIcon,
 } from "lucide-react";
 import type { z } from "zod/v4";
+import { ManageMember } from "@/components/members/manage-member";
+import {
+	memberAccessSourceOptions,
+	memberAccessTableColumns,
+	memberAccessTypeOptions,
+} from "@/components/members/table/member-access-table-columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -46,20 +52,14 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
-import { ManageUser } from "@/components/users/manage-user";
-import {
-	userAccessSourceOptions,
-	userAccessTableColumns,
-	userAccessTypeOptions,
-} from "@/components/users/table/user-access-table-columns";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
-const searchSchema = listUserAccessInputSchema
+const searchSchema = listMemberAccessInputSchema
 	.omit({
-		id: true,
+		userId: true,
 		filters: true,
 		zedToken: true,
 	})
@@ -67,11 +67,11 @@ const searchSchema = listUserAccessInputSchema
 		...paginationSearchShape,
 		query: dataTableQuerySchema.default(""),
 		resourceType: resourceTypeSchema.optional(),
-		source: userAccessSourceSchema.optional(),
+		source: memberAccessSourceSchema.optional(),
 	});
 
 const accessInput = (
-	id: UserId,
+	userId: UserId,
 	{
 		pageIndex,
 		pageSize,
@@ -81,7 +81,7 @@ const accessInput = (
 		source,
 	}: z.infer<typeof searchSchema>,
 ) => ({
-	id,
+	userId,
 	filters: {
 		search: query || undefined,
 		resourceType,
@@ -92,7 +92,7 @@ const accessInput = (
 	sort,
 });
 
-export const Route = createFileRoute("/app/users/$userId/edit")({
+export const Route = createFileRoute("/app/members/$userId/edit")({
 	validateSearch: searchSchema,
 	search: {
 		middlewares: [
@@ -102,7 +102,7 @@ export const Route = createFileRoute("/app/users/$userId/edit")({
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, params: { userId }, deps }) => {
 		await queryClient.query(
-			orpc.user.listAccess.queryOptions({
+			orpc.organizationMember.listAccess.queryOptions({
 				input: accessInput(userId, deps),
 				staleTime: "static",
 			}),
@@ -112,7 +112,7 @@ export const Route = createFileRoute("/app/users/$userId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: m.users_edit_page_meta_title(),
+				title: m.members_edit_page_meta_title(),
 			},
 		],
 	}),
@@ -122,15 +122,15 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const { userId } = Route.useParams();
 	const search = Route.useSearch();
-	const { data: user } = useSuspenseQuery(
-		orpc.user.find.queryOptions({
+	const { data: member } = useSuspenseQuery(
+		orpc.organizationMember.find.queryOptions({
 			input: {
-				id: userId,
+				userId,
 			},
 		}),
 	);
 	const { data: access } = useSuspenseQuery(
-		orpc.user.listAccess.queryOptions({
+		orpc.organizationMember.listAccess.queryOptions({
 			input: accessInput(userId, search),
 		}),
 	);
@@ -149,22 +149,22 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{m.users_edit_page_title()}</PageTitle>
+				<PageTitle>{m.members_edit_page_title()}</PageTitle>
 			</PageHeader>
 
 			<PageContent className="flex flex-col gap-4">
 				<Card>
 					<CardHeader>
-						<CardTitle>{m.users_edit_details_title()}</CardTitle>
+						<CardTitle>{m.members_edit_details_title()}</CardTitle>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div className="flex items-center gap-2">
-								<UserAvatar user={user.data} size="sm" />
+								<UserAvatar user={member.data} size="sm" />
 								<div className="space-y-0.5">
 									<p className="font-medium text-sm">{m.common_name_label()}</p>
 									<p className="text-muted-foreground text-sm">
-										{user.data.name}
+										{member.data.name}
 									</p>
 								</div>
 							</div>
@@ -176,7 +176,7 @@ function RouteComponent() {
 										{m.common_email_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
-										{user.data.email}
+										{member.data.email}
 									</p>
 								</div>
 							</div>
@@ -185,16 +185,16 @@ function RouteComponent() {
 								<BadgeIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
 									<p className="font-medium text-sm">
-										{m.users_edit_details_status_label()}
+										{m.members_edit_details_status_label()}
 									</p>
 									<div className="flex items-center gap-2">
 										<span
-											className={`h-2 w-2 rounded-full ${user.data.banned ? "bg-destructive" : "bg-green-500"}`}
+											className={`h-2 w-2 rounded-full ${member.data.banned ? "bg-destructive" : "bg-green-500"}`}
 										/>
 										<p className="text-muted-foreground text-sm">
-											{user.data.banned
-												? m.users_edit_details_status_banned()
-												: m.users_edit_details_status_active()}
+											{member.data.banned
+												? m.members_edit_details_status_banned()
+												: m.members_edit_details_status_active()}
 										</p>
 									</div>
 								</div>
@@ -204,12 +204,12 @@ function RouteComponent() {
 								<MailCheckIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
 									<p className="font-medium text-sm">
-										{m.users_edit_details_verification_label()}
+										{m.members_edit_details_verification_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
-										{user.data.emailVerified
-											? m.users_verification_verified()
-											: m.users_verification_not_verified()}
+										{member.data.emailVerified
+											? m.members_verification_verified()
+											: m.members_verification_not_verified()}
 									</p>
 								</div>
 							</div>
@@ -218,10 +218,10 @@ function RouteComponent() {
 								<CalendarIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
 									<p className="font-medium text-sm">
-										{m.users_edit_details_created_label()}
+										{m.members_edit_details_created_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
-										{formatDisplayDate(user.data.createdAt)}
+										{formatDisplayDate(member.data.createdAt)}
 									</p>
 								</div>
 							</div>
@@ -230,10 +230,10 @@ function RouteComponent() {
 								<CalendarIcon className="h-4 w-4 text-primary" />
 								<div className="space-y-0.5">
 									<p className="font-medium text-sm">
-										{m.users_edit_details_updated_label()}
+										{m.members_edit_details_updated_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
-										{formatDisplayDate(user.data.updatedAt)}
+										{formatDisplayDate(member.data.updatedAt)}
 									</p>
 								</div>
 							</div>
@@ -241,18 +241,18 @@ function RouteComponent() {
 					</CardContent>
 				</Card>
 
-				<Section aria-labelledby="user-access-title" className="gap-4">
+				<Section aria-labelledby="member-access-title" className="gap-4">
 					<SectionHeader>
-						<SectionTitle id="user-access-title">
-							{m.users_access_overview_title()}
+						<SectionTitle id="member-access-title">
+							{m.members_access_overview_title()}
 						</SectionTitle>
 						<SectionDescription>
-							{m.users_access_overview_description()}
+							{m.members_access_overview_description()}
 						</SectionDescription>
 					</SectionHeader>
 					<DataTable
 						data={access.data}
-						columns={userAccessTableColumns}
+						columns={memberAccessTableColumns}
 						state={{
 							pagination: {
 								pageIndex: search.pageIndex,
@@ -267,12 +267,12 @@ function RouteComponent() {
 					>
 						<DataTableToolbar>
 							<DataTableSearch
-								placeholder={m.users_access_overview_search_placeholder()}
+								placeholder={m.members_access_overview_search_placeholder()}
 							/>
 							<DataTableSelectFilter
-								label={m.users_access_overview_type_column_header()}
+								label={m.members_access_overview_type_column_header()}
 								value={search.resourceType}
-								options={userAccessTypeOptions()}
+								options={memberAccessTypeOptions()}
 								onChange={(resourceType) =>
 									setFilter({
 										resourceType,
@@ -280,9 +280,9 @@ function RouteComponent() {
 								}
 							/>
 							<DataTableSelectFilter
-								label={m.users_access_overview_source_column_header()}
+								label={m.members_access_overview_source_column_header()}
 								value={search.source}
-								options={userAccessSourceOptions()}
+								options={memberAccessSourceOptions()}
 								onChange={(source) =>
 									setFilter({
 										source,
@@ -296,8 +296,9 @@ function RouteComponent() {
 						<DataTableBody
 							empty={{
 								Icon: KeyRoundIcon,
-								title: m.users_access_overview_empty_title(),
-								description: m.users_access_overview_empty_state_description(),
+								title: m.members_access_overview_empty_title(),
+								description:
+									m.members_access_overview_empty_state_description(),
 							}}
 							filters={{
 								query: search.query,
@@ -308,7 +309,7 @@ function RouteComponent() {
 						<DataTablePagination />
 					</DataTable>
 				</Section>
-				<ManageUser user={user.data} />
+				<ManageMember member={member.data} />
 			</PageContent>
 		</Page>
 	);

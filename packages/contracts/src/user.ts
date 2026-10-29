@@ -3,14 +3,8 @@ import {
 	banUserResponseSchema,
 	deleteUsersInputSchema,
 	deleteUsersResponseSchema,
-	findUserInputSchema,
-	findUserResponseSchema,
 	listAllUsersInputSchema,
 	listAllUsersResponseSchema,
-	listUserAccessInputSchema,
-	listUserAccessResponseSchema,
-	listUsersInputSchema,
-	listUsersResponseSchema,
 	meInputSchema,
 	meResponseSchema,
 	removeUserImageInputSchema,
@@ -34,19 +28,6 @@ import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
 export const userContracts = {
-	list: base
-		.meta(
-			openapi({
-				method: "GET",
-				path: "/users",
-				summary: "List all users",
-				tags: [
-					"Users",
-				],
-			}),
-		)
-		.input(listUsersInputSchema)
-		.output(listUsersResponseSchema),
 	listAll: base
 		.meta(
 			openapi({
@@ -60,33 +41,6 @@ export const userContracts = {
 		)
 		.input(listAllUsersInputSchema)
 		.output(listAllUsersResponseSchema),
-	find: base
-		.meta(
-			openapi({
-				method: "GET",
-				path: "/users/{id}",
-				summary: "Find a user",
-				tags: [
-					"Users",
-				],
-				description: "Find a user by their ID.",
-			}),
-		)
-		.input(findUserInputSchema)
-		.output(findUserResponseSchema),
-	listAccess: base
-		.meta(
-			openapi({
-				method: "GET",
-				path: "/users/{id}/access",
-				summary: "List effective resource access entries for a user",
-				tags: [
-					"Users",
-				],
-			}),
-		)
-		.input(listUserAccessInputSchema)
-		.output(listUserAccessResponseSchema),
 	delete: base
 		.meta(
 			openapi({

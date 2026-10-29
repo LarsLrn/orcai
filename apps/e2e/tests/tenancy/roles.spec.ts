@@ -49,7 +49,7 @@ const invitedMember = async (
 	return userIdSchema.parse(session.userId);
 };
 
-test("every role reads its own organisation and its members", async ({
+test("every role reads its own organisation, and only managers list its members", async ({
 	api,
 	org,
 }) => {
@@ -58,18 +58,37 @@ test("every role reads its own organisation and its members", async ({
 			id: org.id,
 		});
 		expect(found.data.slug).toBe(org.slug);
+	}
 
+	for (const role of [
+		"admin",
+		"manager",
+	] as const) {
 		const members = await api.as(role).organizationMember.list({
 			pageIndex: 0,
 			pageSize: 100,
 		});
 
-		expect(members.data.map((member) => member.userId)).toContain(
+		expect(members.data.map((member) => member.id)).toContain(
 			org.users[role].id,
 		);
 		// One user per role plus the well-known admin, which creates every
 		// worker organisation and stays an admin member of it.
 		expect(members.rowCount).toBeGreaterThanOrEqual(5);
+	}
+
+	for (const role of UNPRIVILEGED) {
+		await expectForbidden(
+			api.as(role).organizationMember.list({
+				pageIndex: 0,
+				pageSize: 100,
+			}),
+		);
+
+		const self = await api.as(role).organizationMember.find({
+			userId: org.users[role].id,
+		});
+		expect(self.data.organizationRole).toBe(role);
 	}
 });
 

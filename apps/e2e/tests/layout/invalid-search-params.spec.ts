@@ -7,8 +7,8 @@ import { runId } from "../../fixtures/organisation";
 /** Routes whose table shows its page and page size. */
 const TABLE_PATHS = [
 	"/app/groups",
-	"/app/users",
-	"/app/users/invites",
+	"/app/members",
+	"/app/members/invitations",
 	"/app/providers",
 	"/app/quotas",
 ];

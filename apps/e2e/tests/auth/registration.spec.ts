@@ -86,7 +86,7 @@ test("sign-up consumes the invitation and enters the organisation", async ({
 
 	// Sign-up wrote the membership with the invited role, and with one
 	// organisation the new session already sits inside it.
-	const users = await api.as("admin").user.list({
+	const users = await api.as("admin").organizationMember.list({
 		pageIndex: 0,
 		pageSize: 100,
 	});

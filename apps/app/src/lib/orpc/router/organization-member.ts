@@ -1,6 +1,8 @@
 import { DB, dbSchema } from "@orcai/db";
-import { count, eq } from "drizzle-orm";
+import type { OrganizationMemberSortKey } from "@orcai/schema";
+import { and, count, desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { effectiveAccess } from "@/lib/authz/effective-access";
 import {
 	changeMemberRole,
 	removeMembers,
@@ -8,31 +10,85 @@ import {
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import {
+	requireOrganizationPermission,
+	requirePermission,
+} from "@/lib/orpc/middlewares/permission";
+import {
+	buildOrderBy,
+	type SortExpression,
+} from "@/lib/orpc/router/helpers/sorting";
+import { literalSearch } from "@/lib/utils/literal-search";
 
 const listOrganizationMembers = authed.organizationMember.list
-	.use(requireOrganizationPermission("read"))
+	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+		yield* requirePermission({
+			entityId: organizationId,
+			entityType: "organization",
+			permission: "manage_members",
+			userId: context.auth.user.id,
+			zedToken: getZedToken(context, input),
+		});
+
+		const search = input.filters?.search?.trim();
+		const searchLike = search ? literalSearch(search) : undefined;
+		const whereClause = and(
+			eq(dbSchema.member.organizationId, organizationId),
+			searchLike
+				? or(
+						ilike(dbSchema.user.name, searchLike),
+						ilike(dbSchema.user.email, searchLike),
+					)
+				: undefined,
+		);
+
+		const orderBy = yield* buildOrderBy({
+			sort: input.sort,
+			allowlist: {
+				name: dbSchema.user.name,
+				email: dbSchema.user.email,
+				organizationRole: dbSchema.member.role,
+				createdAt: dbSchema.user.createdAt,
+			} satisfies Record<OrganizationMemberSortKey, SortExpression>,
+			defaultOrder: [
+				desc(dbSchema.user.createdAt),
+			],
+			tieBreaker: {
+				id: "id",
+				expression: dbSchema.user.id,
+			},
+		});
 
 		const [data, [rowCount]] = yield* Effect.all(
 			[
-				db.query.member.findMany({
-					where: {
-						organizationId: {
-							eq: organizationId,
-						},
-					},
-					limit: input.pageSize,
-					offset: input.pageIndex * input.pageSize,
-				}),
+				db
+					.select({
+						...getColumns(dbSchema.user),
+						organizationRole: dbSchema.member.role,
+					})
+					.from(dbSchema.member)
+					.innerJoin(
+						dbSchema.user,
+						eq(dbSchema.user.id, dbSchema.member.userId),
+					)
+					.where(whereClause)
+					.orderBy(...orderBy)
+					.limit(input.pageSize)
+					.offset(input.pageIndex * input.pageSize),
 				db
 					.select({
 						count: count(),
 					})
 					.from(dbSchema.member)
-					.where(eq(dbSchema.member.organizationId, organizationId)),
+					.innerJoin(
+						dbSchema.user,
+						eq(dbSchema.user.id, dbSchema.member.userId),
+					)
+					.where(whereClause),
 			],
 			{
 				concurrency: "unbounded",
@@ -46,31 +102,40 @@ const listOrganizationMembers = authed.organizationMember.list
 	});
 
 const findOrganizationMember = authed.organizationMember.find
-	.use(requireOrganizationPermission("read"))
+	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
+		const zedToken = getZedToken(context, input);
 
-		return yield* db.query.member
-			.findFirst({
-				where: {
-					AND: [
-						{
-							userId: {
-								eq: input.userId,
-							},
-						},
-						{
-							organizationId: {
-								eq: organizationId,
-							},
-						},
-					],
-				},
+		if (input.userId !== context.auth.user.id) {
+			yield* requirePermission({
+				entityId: organizationId,
+				entityType: "organization",
+				permission: "manage_members",
+				userId: context.auth.user.id,
+				zedToken,
+			});
+		}
+
+		return yield* db
+			.select({
+				...getColumns(dbSchema.user),
+				organizationRole: dbSchema.member.role,
 			})
+			.from(dbSchema.member)
+			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
+			.where(
+				and(
+					eq(dbSchema.member.organizationId, organizationId),
+					eq(dbSchema.user.id, input.userId),
+				),
+			)
+			.limit(1)
 			.pipe(
-				Effect.flatMap((member) =>
-					Effect.fromNullishOr(member).pipe(
+				Effect.map(([user]) => user),
+				Effect.flatMap((userWithMembership) =>
+					Effect.fromNullishOr(userWithMembership).pipe(
 						Effect.mapError(
 							() =>
 								new AppErrors.NotFoundError({
@@ -80,10 +145,33 @@ const findOrganizationMember = authed.organizationMember.find
 						),
 					),
 				),
-				Effect.map((member) => ({
-					data: member,
+				Effect.map((user) => ({
+					data: user,
 				})),
 			);
+	});
+
+const listMemberAccess = authed.organizationMember.listAccess
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		const organizationId = context.auth.session.activeOrganizationId;
+		const zedToken = getZedToken(context, input);
+
+		if (input.userId !== context.auth.user.id) {
+			yield* requirePermission({
+				entityId: organizationId,
+				entityType: "organization",
+				permission: "manage_members",
+				userId: context.auth.user.id,
+				zedToken,
+			});
+		}
+
+		return yield* effectiveAccess({
+			...input,
+			organizationId,
+			zedToken,
+		});
 	});
 
 const updateOrganizationMember = authed.organizationMember.update
@@ -127,6 +215,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 export const organizationMemberRouter = {
 	list: listOrganizationMembers,
 	find: findOrganizationMember,
+	listAccess: listMemberAccess,
 	update: updateOrganizationMember,
 	delete: deleteOrganizationMembers,
 };

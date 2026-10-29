@@ -1,15 +1,5 @@
 import { z } from "zod/v4";
-import { blockTypeSchema } from "../block/schema";
 import { organizationRoleSchema } from "../organization/parts/role";
-import {
-	assetResourceIdentitySchema,
-	blockResourceIdentitySchema,
-	botResourceIdentitySchema,
-	RESOURCE_GRANT_SOURCE,
-	type ResourceType,
-	resourceGrantRoleSchema,
-	resourceGrantSourceSchema,
-} from "../resource/schema";
 import { searchFilterSchema } from "../shared/filters";
 import { preferencesSchema } from "./parts/preferences";
 import { userIdSchema } from "./ref";
@@ -42,44 +32,7 @@ export const userFiltersSchema = z.object({
 	...searchFilterSchema.shape,
 });
 
-export const USER_ACCESS_SOURCE = {
-	...RESOURCE_GRANT_SOURCE,
-	INHERITED_ORGANIZATION: "inherited:organization",
-} as const;
-
-export const inheritedSourceByResourceType: Record<
-	ResourceType,
-	| typeof USER_ACCESS_SOURCE.INHERITED_ORGANIZATION
-	| z.infer<typeof resourceGrantSourceSchema>
-> = {
-	bot: USER_ACCESS_SOURCE.INHERITED_ORGANIZATION,
-	block: USER_ACCESS_SOURCE.INHERITED_BOT,
-	asset: USER_ACCESS_SOURCE.INHERITED_BLOCK,
-};
-
-export const userAccessSourceSchema = z.union([
-	resourceGrantSourceSchema,
-	z.literal(USER_ACCESS_SOURCE.INHERITED_ORGANIZATION),
-]);
-
-const userAccessFields = {
-	role: resourceGrantRoleSchema,
-	source: userAccessSourceSchema,
-	resourceName: z.string().nullable(),
-};
-
-export const userAccessEntrySchema = z.discriminatedUnion("resourceType", [
-	assetResourceIdentitySchema.extend(userAccessFields),
-	blockResourceIdentitySchema.extend({
-		...userAccessFields,
-		blockType: blockTypeSchema,
-	}),
-	botResourceIdentitySchema.extend(userAccessFields),
-]);
-
 export type User = z.infer<typeof userSchema>;
 export type UserWithOrganizationRole = z.infer<
 	typeof userWithOrganizationRoleSchema
 >;
-export type UserAccessEntry = z.infer<typeof userAccessEntrySchema>;
-export type UserAccessSource = z.infer<typeof userAccessSourceSchema>;

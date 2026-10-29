@@ -188,9 +188,9 @@ const kinds = {
 		name: {
 			field: "name",
 			query: (orpc: ORPCUtils, id: string, zedToken: string | undefined) =>
-				orpc.user.find.queryOptions({
+				orpc.organizationMember.find.queryOptions({
 					input: {
-						id: id as UserId,
+						userId: id as UserId,
 						zedToken,
 					},
 					select: ({ data }) => data.name,

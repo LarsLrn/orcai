@@ -47,7 +47,11 @@ test("orgs: the email language picked in the invitation form decides the invitat
 	const page = await pageAs("admin");
 
 	await enterApp(page, org.slug);
-	await openGuarded(page, "/app/users/add", message("users_add_page_title"));
+	await openGuarded(
+		page,
+		"/app/members/add",
+		message("members_add_page_title"),
+	);
 
 	// The form starts on the inviter's interface language, English here.
 	const language = page.getByRole("combobox", {
@@ -67,11 +71,11 @@ test("orgs: the email language picked in the invitation form decides the invitat
 			await firstEmailField(page, "en").fill(email);
 		},
 		submit: message("orgs_invitation_form_submit_button"),
-		until: /\/app\/users\/invites/,
+		until: /\/app\/members\/invitations/,
 	});
 	await expect(
 		page.getByRole("heading", {
-			name: message("users_invites_page_title"),
+			name: message("members_invitations_page_title"),
 		}),
 	).toBeVisible();
 
@@ -104,8 +108,8 @@ test("orgs: an untouched email language follows the inviter's interface language
 	]);
 	await openGuarded(
 		page,
-		"/app/users/add",
-		message("users_add_page_title", {}, "de"),
+		"/app/members/add",
+		message("members_add_page_title", {}, "de"),
 	);
 	await expect(
 		page.getByRole("combobox", {
@@ -118,11 +122,11 @@ test("orgs: an untouched email language follows the inviter's interface language
 			await firstEmailField(page, "de").fill(email);
 		},
 		submit: message("orgs_invitation_form_submit_button", {}, "de"),
-		until: /\/app\/users\/invites/,
+		until: /\/app\/members\/invitations/,
 	});
 	await expect(
 		page.getByRole("heading", {
-			name: message("users_invites_page_title", {}, "de"),
+			name: message("members_invitations_page_title", {}, "de"),
 		}),
 	).toBeVisible();
 

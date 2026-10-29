@@ -24,7 +24,7 @@ export const listMembersTool = (deps: AssistantToolDeps) =>
 		inputSchema: listMembersInputSchema,
 		run: ({ query, limit }) =>
 			callProcedure(deps, (procedures, options) =>
-				procedures.user.list(
+				procedures.organizationMember.list(
 					{
 						pageSize: limit,
 						filters: {

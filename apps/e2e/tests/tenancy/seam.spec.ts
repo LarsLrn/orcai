@@ -17,6 +17,34 @@ const listableGroupIds = async (client: ApiClient): Promise<string[]> => {
 	return groups.data.map((group) => group.id);
 };
 
+/**
+ * User ids a role can list as members. Only roles that manage members may list
+ * them, and the claim under test is that none of those ids is a neighbour's.
+ */
+const listableMemberIds = async (client: ApiClient): Promise<string[]> => {
+	const members = await client.organizationMember
+		.list({
+			pageIndex: 0,
+			pageSize: 100,
+		})
+		.catch((error: unknown) => {
+			if (
+				(
+					error as {
+						code?: string;
+					}
+				).code === "FORBIDDEN"
+			) {
+				return {
+					data: [],
+				};
+			}
+			throw error;
+		});
+
+	return members.data.map((member) => member.id);
+};
+
 for (const role of ROLES) {
 	const article = role === "admin" ? "an" : "a";
 
@@ -50,19 +78,25 @@ for (const role of ROLES) {
 			).code,
 		);
 
-		const ownMembers = await api.as(role).organizationMember.list({
-			pageIndex: 0,
-			pageSize: 100,
-		});
-		expect(ownMembers.rowCount).toBeGreaterThan(0);
 		const neighbourUserIds: string[] = Object.values(other.users).map(
 			(user) => user.id,
 		);
 		expect(
-			ownMembers.data
-				.map((member) => member.userId)
-				.filter((userId) => neighbourUserIds.includes(userId)),
+			(await listableMemberIds(api.as(role))).filter((userId) =>
+				neighbourUserIds.includes(userId),
+			),
 		).toStrictEqual([]);
+		for (const user of Object.values(other.users)) {
+			expect(DENIED).toContain(
+				(
+					await rejection(
+						api.as(role).organizationMember.find({
+							userId: user.id,
+						}),
+					)
+				).code,
+			);
+		}
 
 		// Every organisation gets an "All Members" group when it is created, so
 		// the neighbour always has at least one group that could leak. The

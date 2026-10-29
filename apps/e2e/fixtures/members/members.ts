@@ -12,7 +12,7 @@ import { open } from "../navigation";
 import type { WorkerOrganisation } from "../organisation";
 import { runId, signUpUnaffiliated } from "../organisation";
 
-/** A user owned by the users slice.
+/** A user owned by the members slice.
  * Bans, demotions, and removals stay within its worker data. */
 export type ThrowawayUser = {
 	id: UserId;
@@ -53,7 +53,7 @@ export const templateBlock = (name: string) => ({
 	name,
 	status: "ready" as const,
 	config: {
-		systemPrompt: "Created by the users slice.",
+		systemPrompt: "Created by the members slice.",
 	},
 });
 
@@ -117,8 +117,8 @@ export const reachPage = async (
 	).toBeVisible();
 };
 
-/** The row of the users table that belongs to an email address. */
-export const userRow = (page: Page, email: string): Locator =>
+/** The row of the members table that belongs to an email address. */
+export const memberRow = (page: Page, email: string): Locator =>
 	page.getByRole("row").filter({
 		hasText: email,
 	});
@@ -128,7 +128,7 @@ export const rowMenuItems = async (
 	page: Page,
 	email: string,
 ): Promise<string[]> => {
-	await userRow(page, email)
+	await memberRow(page, email)
 		.getByRole("button", {
 			name: message("common_more_actions"),
 		})

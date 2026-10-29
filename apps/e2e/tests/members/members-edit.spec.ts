@@ -1,18 +1,18 @@
 import { expectDenied } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
-import { message } from "../../fixtures/messages";
-import { enterApp } from "../../fixtures/navigation";
-import { runId } from "../../fixtures/organisation";
 import {
 	addMember,
 	chooseRole,
 	createThrowawayUser,
 	reachPage,
 	templateBlock,
-} from "../../fixtures/users/users";
+} from "../../fixtures/members/members";
+import { message } from "../../fixtures/messages";
+import { enterApp } from "../../fixtures/navigation";
+import { runId } from "../../fixtures/organisation";
 
-test("users: the edit page shows what an admin may know about a user", async ({
+test("members: the edit page shows what an admin may know about a user", async ({
 	api,
 	org,
 	pageAs,
@@ -40,8 +40,8 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	await enterApp(page, org.slug);
 	await reachPage(
 		page,
-		`/app/users/${user.id}/edit`,
-		message("users_edit_page_title"),
+		`/app/members/${user.id}/edit`,
+		message("members_edit_page_title"),
 	);
 
 	// The breadcrumb repeats the name and the email, so both are matched
@@ -59,16 +59,16 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	/** Name and email are read-only; this page changes the organisation role and
 	 * ban state, while account deletion is instance-scoped. */
 	await expect(
-		page.getByText(message("users_edit_details_status_active"), {
+		page.getByText(message("members_edit_details_status_active"), {
 			exact: true,
 		}),
 	).toBeVisible();
 	await expect(
-		page.getByText(message("users_verification_not_verified")),
+		page.getByText(message("members_verification_not_verified")),
 	).toBeVisible();
 	const accessRow = page
 		.getByRole("region", {
-			name: message("users_access_overview_title"),
+			name: message("members_access_overview_title"),
 		})
 		.getByRole("row")
 		.filter({
@@ -80,12 +80,12 @@ test("users: the edit page shows what an admin may know about a user", async ({
 		}),
 	).toBeVisible();
 	await expect(
-		accessRow.getByText(message("users_access_overview_type_block"), {
+		accessRow.getByText(message("members_access_overview_type_block"), {
 			exact: true,
 		}),
 	).toBeVisible();
 	await expect(
-		accessRow.getByText(message("users_access_overview_source_direct_user"), {
+		accessRow.getByText(message("members_access_overview_source_direct_user"), {
 			exact: true,
 		}),
 	).toBeVisible();
@@ -102,7 +102,7 @@ test("users: the edit page shows what an admin may know about a user", async ({
 	).toBeVisible();
 });
 
-test("users: the edit page reports a user without resource access", async ({
+test("members: the edit page reports a user without resource access", async ({
 	api,
 	orgs,
 	pageAs,
@@ -117,20 +117,22 @@ test("users: the edit page reports a user without resource access", async ({
 	await enterApp(page, org.slug);
 	await reachPage(
 		page,
-		`/app/users/${user.id}/edit`,
-		message("users_edit_page_title"),
+		`/app/members/${user.id}/edit`,
+		message("members_edit_page_title"),
 	);
 
 	const access = page.getByRole("region", {
-		name: message("users_access_overview_title"),
+		name: message("members_access_overview_title"),
 	});
 	await expect(
-		access.getByText(message("users_access_overview_empty_state_description")),
+		access.getByText(
+			message("members_access_overview_empty_state_description"),
+		),
 	).toBeVisible();
 	await expect(access.getByRole("row")).toHaveCount(0);
 });
 
-test("users: an admin changes a user's organisation role", async ({
+test("members: an admin changes a user's organisation role", async ({
 	api,
 	org,
 	pageAs,
@@ -143,8 +145,8 @@ test("users: an admin changes a user's organisation role", async ({
 	await enterApp(page, org.slug);
 	await reachPage(
 		page,
-		`/app/users/${user.id}/edit`,
-		message("users_edit_page_title"),
+		`/app/members/${user.id}/edit`,
+		message("members_edit_page_title"),
 	);
 
 	await chooseRole(page, "Member", "Manager");
@@ -159,10 +161,10 @@ test("users: an admin changes a user's organisation role", async ({
 	const member = await api.as("admin").organizationMember.find({
 		userId: user.id,
 	});
-	expect(member.data.role).toBe("manager");
+	expect(member.data.organizationRole).toBe("manager");
 });
 
-test("users: a manager may not hand out the admin role", async ({
+test("members: a manager may not hand out the admin role", async ({
 	api,
 	org,
 	pageAs,
@@ -175,8 +177,8 @@ test("users: a manager may not hand out the admin role", async ({
 	await enterApp(page, org.slug);
 	await reachPage(
 		page,
-		`/app/users/${user.id}/edit`,
-		message("users_edit_page_title"),
+		`/app/members/${user.id}/edit`,
+		message("members_edit_page_title"),
 	);
 
 	await page
@@ -200,7 +202,7 @@ test("users: a manager may not hand out the admin role", async ({
 	).toHaveCount(0);
 });
 
-test("users: a role change is refused for someone who is not a member", async ({
+test("members: a role change is refused for someone who is not a member", async ({
 	api,
 }) => {
 	const outsider = await createThrowawayUser(baseURL(), "outsider");
@@ -215,7 +217,7 @@ test("users: a role change is refused for someone who is not a member", async ({
 	);
 });
 
-test("users: an organisation admin is not offered ban or delete", async ({
+test("members: an organisation admin is not offered ban or delete", async ({
 	api,
 	org,
 	pageAs,
@@ -228,8 +230,8 @@ test("users: an organisation admin is not offered ban or delete", async ({
 	await enterApp(page, org.slug);
 	await reachPage(
 		page,
-		`/app/users/${user.id}/edit`,
-		message("users_edit_page_title"),
+		`/app/members/${user.id}/edit`,
+		message("members_edit_page_title"),
 	);
 
 	// Banning and deleting an account are instance actions, so the edit page of
@@ -254,7 +256,7 @@ test("users: an organisation admin is not offered ban or delete", async ({
 	// What it does offer is the organisation-scoped removal.
 	await expect(
 		page.getByRole("button", {
-			name: message("users_remove_from_organisation_action"),
+			name: message("members_remove_from_organisation_action"),
 		}),
 	).toBeVisible();
 });

@@ -5,26 +5,10 @@ import {
 	createListResponseSchema,
 	statusResponseSchema,
 } from "../shared";
-import {
-	userAccessEntrySchema,
-	userSchema,
-	userWithOrganizationRoleSchema,
-} from "./schema";
-
-export const listUsersResponseSchema = createListResponseSchema(
-	userWithOrganizationRoleSchema,
-);
+import { userSchema } from "./schema";
 
 export const listAllUsersResponseSchema =
 	createListResponseSchema(instanceUserSchema);
-
-export const findUserResponseSchema = createDataResponseSchema(
-	userWithOrganizationRoleSchema,
-);
-
-export const listUserAccessResponseSchema = createListResponseSchema(
-	userAccessEntrySchema,
-);
 
 export const deleteUsersResponseSchema = statusResponseSchema.extend({
 	deletedCount: z.number(),

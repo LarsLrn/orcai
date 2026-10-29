@@ -1,8 +1,8 @@
 import {
+	MEMBER_ACCESS_SOURCE,
+	type MemberAccessEntry,
+	type MemberAccessSource,
 	type ResourceType,
-	USER_ACCESS_SOURCE,
-	type UserAccessEntry,
-	type UserAccessSource,
 } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -15,7 +15,7 @@ import { m } from "@/paraglide/messages";
 import { getResourceRoleLabel } from "@/settings/display-config";
 
 const roleVariant: Record<
-	UserAccessEntry["role"],
+	MemberAccessEntry["role"],
 	"outline" | "secondary" | "default"
 > = {
 	viewer: "outline",
@@ -23,28 +23,28 @@ const roleVariant: Record<
 	manager: "default",
 };
 
-const sourceLabel = (source: UserAccessSource) =>
+const sourceLabel = (source: MemberAccessSource) =>
 	({
-		[USER_ACCESS_SOURCE.DIRECT_USER]:
-			m.users_access_overview_source_direct_user(),
-		[USER_ACCESS_SOURCE.DIRECT_GROUP]:
-			m.users_access_overview_source_direct_group(),
-		[USER_ACCESS_SOURCE.DIRECT_GROUP_ALL_MEMBERS]:
-			m.users_access_overview_source_all_members(),
-		[USER_ACCESS_SOURCE.INHERITED_ORGANIZATION]:
-			m.users_access_overview_source_inherited_organisation(),
-		[USER_ACCESS_SOURCE.INHERITED_BOT]:
-			m.users_access_overview_source_inherited_bot(),
-		[USER_ACCESS_SOURCE.INHERITED_BLOCK]:
-			m.users_access_overview_source_inherited_block(),
-		[USER_ACCESS_SOURCE.PUBLIC]: m.users_access_overview_source_public(),
+		[MEMBER_ACCESS_SOURCE.DIRECT_USER]:
+			m.members_access_overview_source_direct_user(),
+		[MEMBER_ACCESS_SOURCE.DIRECT_GROUP]:
+			m.members_access_overview_source_direct_group(),
+		[MEMBER_ACCESS_SOURCE.DIRECT_GROUP_ALL_MEMBERS]:
+			m.members_access_overview_source_all_members(),
+		[MEMBER_ACCESS_SOURCE.INHERITED_ORGANIZATION]:
+			m.members_access_overview_source_inherited_organisation(),
+		[MEMBER_ACCESS_SOURCE.INHERITED_BOT]:
+			m.members_access_overview_source_inherited_bot(),
+		[MEMBER_ACCESS_SOURCE.INHERITED_BLOCK]:
+			m.members_access_overview_source_inherited_block(),
+		[MEMBER_ACCESS_SOURCE.PUBLIC]: m.members_access_overview_source_public(),
 	})[source];
 
 const typeLabel = (type: ResourceType) =>
 	({
-		bot: m.users_access_overview_type_bot(),
-		block: m.users_access_overview_type_block(),
-		asset: m.users_access_overview_type_asset(),
+		bot: m.members_access_overview_type_bot(),
+		block: m.members_access_overview_type_block(),
+		asset: m.members_access_overview_type_asset(),
 	})[type];
 
 const typeIcon = {
@@ -53,7 +53,7 @@ const typeIcon = {
 	asset: FileIcon,
 } satisfies Record<ResourceType, unknown>;
 
-export const userAccessTypeOptions = () =>
+export const memberAccessTypeOptions = () =>
 	(
 		[
 			"bot",
@@ -65,13 +65,13 @@ export const userAccessTypeOptions = () =>
 		label: typeLabel(value),
 	}));
 
-export const userAccessSourceOptions = () =>
-	Object.values(USER_ACCESS_SOURCE).map((value) => ({
+export const memberAccessSourceOptions = () =>
+	Object.values(MEMBER_ACCESS_SOURCE).map((value) => ({
 		value,
 		label: sourceLabel(value),
 	}));
 
-const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
+const ResourceLink = ({ access }: { access: MemberAccessEntry }) => {
 	const className = "truncate font-medium hover:underline";
 
 	switch (access.resourceType) {
@@ -84,7 +84,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className={className}
 				>
-					{access.resourceName ?? m.users_access_overview_untitled_bot()}
+					{access.resourceName ?? m.members_access_overview_untitled_bot()}
 				</Link>
 			);
 		case "block":
@@ -96,7 +96,7 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className={className}
 				>
-					{access.resourceName ?? m.users_access_overview_untitled_block()}
+					{access.resourceName ?? m.members_access_overview_untitled_block()}
 				</Link>
 			);
 		case "asset":
@@ -108,21 +108,21 @@ const ResourceLink = ({ access }: { access: UserAccessEntry }) => {
 					}}
 					className={className}
 				>
-					{access.resourceName ?? m.users_access_overview_untitled_asset()}
+					{access.resourceName ?? m.members_access_overview_untitled_asset()}
 				</Link>
 			);
 	}
 };
 
-const columnHelper = createColumnHelper<DataTableFeatures, UserAccessEntry>();
+const columnHelper = createColumnHelper<DataTableFeatures, MemberAccessEntry>();
 
-export const userAccessTableColumns = columnHelper.columns([
+export const memberAccessTableColumns = columnHelper.columns([
 	columnHelper.accessor("resourceName", {
 		size: 360,
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_access_overview_resource_column_header()}
+				title={m.members_access_overview_resource_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -131,7 +131,7 @@ export const userAccessTableColumns = columnHelper.columns([
 			</div>
 		),
 		meta: {
-			label: m.users_access_overview_resource_column_header,
+			label: m.members_access_overview_resource_column_header,
 		},
 	}),
 	columnHelper.accessor("resourceType", {
@@ -139,7 +139,7 @@ export const userAccessTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_access_overview_type_column_header()}
+				title={m.members_access_overview_type_column_header()}
 			/>
 		),
 		cell: ({ row }) => {
@@ -152,7 +152,7 @@ export const userAccessTableColumns = columnHelper.columns([
 			);
 		},
 		meta: {
-			label: m.users_access_overview_type_column_header,
+			label: m.members_access_overview_type_column_header,
 		},
 	}),
 	columnHelper.accessor("role", {
@@ -161,7 +161,7 @@ export const userAccessTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_access_overview_role_column_header()}
+				title={m.members_access_overview_role_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -170,7 +170,7 @@ export const userAccessTableColumns = columnHelper.columns([
 			</Badge>
 		),
 		meta: {
-			label: m.users_access_overview_role_column_header,
+			label: m.members_access_overview_role_column_header,
 		},
 	}),
 	columnHelper.accessor("source", {
@@ -178,14 +178,14 @@ export const userAccessTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_access_overview_source_column_header()}
+				title={m.members_access_overview_source_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
 			<Badge variant="outline">{sourceLabel(row.original.source)}</Badge>
 		),
 		meta: {
-			label: m.users_access_overview_source_column_header,
+			label: m.members_access_overview_source_column_header,
 		},
 	}),
 ]);

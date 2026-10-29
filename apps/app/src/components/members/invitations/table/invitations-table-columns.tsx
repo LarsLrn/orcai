@@ -28,7 +28,7 @@ const columnHelper = createColumnHelper<
 	OrganizationInvitation
 >();
 
-export const invitesTableColumns = columnHelper.columns([
+export const invitationsTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<OrganizationInvitation>(),
 	columnHelper.accessor("email", {
 		header: ({ column }) => (
@@ -42,47 +42,47 @@ export const invitesTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_invites_table_id_column_header()}
+				title={m.members_invitations_table_id_column_header()}
 			/>
 		),
 		meta: {
-			label: m.users_invites_table_id_column_header,
+			label: m.members_invitations_table_id_column_header,
 		},
 	}),
 	columnHelper.accessor("expiresAt", {
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_invites_table_expires_column_header()}
+				title={m.members_invitations_table_expires_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
 			<span>{formatDisplayTimestamp(row.original.expiresAt || "")}</span>
 		),
 		meta: {
-			label: m.users_invites_table_expires_column_header,
+			label: m.members_invitations_table_expires_column_header,
 		},
 	}),
 	columnHelper.accessor("status", {
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_invites_table_status_column_header()}
+				title={m.members_invitations_table_status_column_header()}
 			/>
 		),
 		meta: {
-			label: m.users_invites_table_status_column_header,
+			label: m.members_invitations_table_status_column_header,
 		},
 	}),
 	columnHelper.accessor("role", {
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.users_invites_table_role_column_header()}
+				title={m.members_invitations_table_role_column_header()}
 			/>
 		),
 		meta: {
-			label: m.users_invites_table_role_column_header,
+			label: m.members_invitations_table_role_column_header,
 		},
 	}),
 	columnHelper.display({
@@ -118,10 +118,10 @@ const ActionsCell = ({
 		const fullUrl = new URL(href, window.location.origin).toString();
 
 		toast.promise(navigator.clipboard.writeText(fullUrl), {
-			loading: m.users_invites_copy_link_toast_loading(),
-			success: m.users_invites_copy_link_toast_success(),
+			loading: m.members_invitations_copy_link_toast_loading(),
+			success: m.members_invitations_copy_link_toast_success(),
 			error: (error) => ({
-				message: m.users_invites_copy_link_toast_error(),
+				message: m.members_invitations_copy_link_toast_error(),
 				description: reasonMessageOf(error),
 			}),
 		});
@@ -132,7 +132,7 @@ const ActionsCell = ({
 			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
 			<DropdownMenuContent align="end">
 				<DropdownMenuItem onClick={() => handleCopyLink(invitation.id)}>
-					{m.users_invites_table_copy_link_action()}
+					{m.members_invitations_table_copy_link_action()}
 				</DropdownMenuItem>
 				{canDeleteInvitation ? (
 					<>
@@ -171,7 +171,7 @@ const DeleteItem = ({ invitation }: { invitation: OrganizationInvitation }) => {
 			variant="destructive"
 			onClick={() => handleDelete(invitation.id)}
 		>
-			{m.users_invites_table_delete_action()}
+			{m.members_invitations_table_delete_action()}
 		</DropdownMenuItem>
 	);
 };

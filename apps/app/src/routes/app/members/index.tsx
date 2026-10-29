@@ -1,7 +1,9 @@
-import { listUsersInputSchema } from "@orcai/schema";
+import { listOrganizationMembersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PlusIcon, UsersIcon } from "lucide-react";
+import { memberTableColumns } from "@/components/members/table/member-table-columns";
+import { MembersDataTableSelectActions } from "@/components/members/table/members-data-table-select-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
@@ -24,17 +26,15 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { columns } from "@/components/users/table/columns";
-import { UsersDataTableSelectActions } from "@/components/users/table/users-data-table-select-actions";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-const searchSchema = listUsersInputSchema.extend({
+const searchSchema = listOrganizationMembersInputSchema.extend({
 	...paginationSearchShape,
 	query: dataTableQuerySchema.default(""),
 });
 
-export const Route = createFileRoute("/app/users/")({
+export const Route = createFileRoute("/app/members/")({
 	validateSearch: searchSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize, query, sort } }) => ({
 		pageIndex,
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/app/users/")({
 		deps: { pageIndex, pageSize, query, sort },
 	}) => {
 		await queryClient.query(
-			orpc.user.list.queryOptions({
+			orpc.organizationMember.list.queryOptions({
 				input: {
 					filters: {
 						search: query.trim() ? query.trim() : undefined,
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/app/users/")({
 function RouteComponent() {
 	const { pageIndex, pageSize, query, sort } = Route.useSearch();
 	const { data: users } = useSuspenseQuery(
-		orpc.user.list.queryOptions({
+		orpc.organizationMember.list.queryOptions({
 			input: {
 				filters: {
 					search: query.trim() ? query.trim() : undefined,
@@ -81,32 +81,32 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{m.users_page_title()}</PageTitle>
-				<PageDescription>{m.users_page_description()}</PageDescription>
+				<PageTitle>{m.members_page_title()}</PageTitle>
+				<PageDescription>{m.members_page_description()}</PageDescription>
 
 				<PageAction>
 					<Link
-						to={"/app/users/invites"}
+						to={"/app/members/invitations"}
 						className={buttonVariants({
 							variant: "outline",
 						})}
 					>
-						{m.users_list_invitations_link()}
+						{m.members_list_invitations_link()}
 					</Link>
 					<Link
-						to={"/app/users/add"}
+						to={"/app/members/add"}
 						className={buttonVariants({
 							variant: "default",
 						})}
 					>
-						{m.users_list_invite_action()}
+						{m.members_list_invite_action()}
 					</Link>
 				</PageAction>
 			</PageHeader>
 			<PageContent>
 				<DataTable
 					data={users.data}
-					columns={columns}
+					columns={memberTableColumns}
 					state={{
 						pagination: {
 							pageIndex,
@@ -120,25 +120,27 @@ function RouteComponent() {
 					}}
 				>
 					<DataTableToolbar>
-						<DataTableSearch placeholder={m.users_list_search_placeholder()} />
+						<DataTableSearch
+							placeholder={m.members_list_search_placeholder()}
+						/>
 						<DataTableToolbarActions>
 							<DataTableViewOptions />
-							<UsersDataTableSelectActions />
+							<MembersDataTableSelectActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody
 						empty={{
 							Icon: UsersIcon,
-							title: m.users_list_empty_title(),
-							description: m.users_list_empty_description(),
+							title: m.members_list_empty_title(),
+							description: m.members_list_empty_description(),
 							actions: [
 								{
 									key: "invite",
-									label: m.users_list_invite_action(),
+									label: m.members_list_invite_action(),
 									icon: PlusIcon,
 									variant: "default",
 									linkProps: {
-										to: "/app/users/add",
+										to: "/app/members/add",
 									},
 								},
 							],

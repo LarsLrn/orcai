@@ -13,7 +13,7 @@ For a practical setup sequence, use [Workspace Setup For Admins](/docs/using-orc
 
 Current administration sections in the app:
 
-- Users (`/app/users`)
+- Members (`/app/members`)
 - Groups (`/app/groups`)
 - Quotas (`/app/quotas`)
 - Analytics (`/app/analytics`)
@@ -28,19 +28,19 @@ Instance-wide actions live in the separate Instance management area,
 described below. They are not part of the active organisation's Administration
 navigation.
 
-## Users
+## Members
 
-Users (`/app/users`) is a paginated data table with search over name and email, sorting, and
+Members (`/app/members`) is a paginated data table with search over name and email, sorting, and
 table actions. It is scoped to the active organisation and acts on
-memberships: the row menu and the bulk action remove a user from the
-organisation, and the user page changes the organisation role or removes the
+memberships: the row menu and the bulk action remove a member from the
+organisation, and the member's page changes the organisation role or removes the
 membership. The account itself survives and can be invited back. Banning an
 account and deleting it live under Manage instance > Users.
 
 Primary actions:
 
-- **Invite user** (`/app/users/add`)
-- **View invitations** (`/app/users/invites`)
+- **Invite member** (`/app/members/add`)
+- **View invitations** (`/app/members/invitations`)
 - **Remove from organisation** in a row menu, and **Remove selected from
   organisation** for the selected rows
 
@@ -49,16 +49,16 @@ lists every invitation of the active organisation, including those other
 administrators and managers sent. The invitation form and the table are
 described under [Invitations](/docs/using-orcai/access-control#invitations).
 
-**Edit user** opens a user's page at `/app/users/<user id>/edit`. It shows:
+**Edit member** opens a member's page at `/app/members/<user id>/edit`. It shows:
 
-- **User information**: name, email, status, email verification and dates.
-- **Effective resource access**: every bot, block and asset the user can reach
+- **Member information**: name, email, status, email verification and dates.
+- **Effective resource access**: every bot, block and asset the member can reach
   in this organisation, with the role and where the access comes from: a direct
   grant, a group, All members, an inherited bot or block, the organisation, or
   public visibility. Use it to answer why someone can or cannot see something.
   The table pages through the list and filters it by name, resource type and
   source.
-- **User management**: **Send password reset**, **Send verification email**
+- **Member management**: **Send password reset**, **Send verification email**
   while the address is unverified, the organisation role, and **Remove from
   organisation**.
 
@@ -69,7 +69,7 @@ Admin who can sign in: the last one cannot be demoted, removed, banned or
 deleted, and a banned Admin does not count. Your own page offers no password
 reset and no removal.
 
-Removing a user from an organisation clears that organisation from the user's
+Removing a member from an organisation clears that organisation from the member's
 open sessions, and entering the app rechecks that the membership still exists.
 
 ## Groups

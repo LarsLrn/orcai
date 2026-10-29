@@ -21,7 +21,7 @@ export const useCreateOrganizationInvitationMutation = (
 				...opts,
 				onSuccess: async (...args) => {
 					await router.navigate({
-						to: "/app/users/invites",
+						to: "/app/members/invitations",
 					});
 
 					await opts.onSuccess?.(...args);

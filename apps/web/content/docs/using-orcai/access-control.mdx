@@ -24,7 +24,7 @@ create actions they see. The role picker lists each role's permissions.
 | Create bots (`create_bot`) | Yes | Yes | Yes | No |
 | Create blocks (`create_block`) | Yes | Yes | Yes | No |
 | Create assets (`create_asset`) | Yes | Yes | Yes | No |
-| Manage members (`manage_members`): Users | Yes | Yes | No | No |
+| Manage members (`manage_members`): Members | Yes | Yes | No | No |
 | Invite members (`invite_members`) | Yes | Yes | No | No |
 | Manage groups (`manage_groups`): Groups | Yes | Yes | No | No |
 | Manage quotas (`manage_quotas`): Quotas | Yes | No | No | No |
@@ -76,14 +76,14 @@ and selection pages.
 
 Current flows in app:
 
-- **Invite user** on Users opens `/app/users/add`. One form invites a batch:
+- **Invite member** on Members opens `/app/members/add`. One form invites a batch:
   it sets the **Role**, the **Expires** date (seven days ahead by default) and
   the **Email language** for everyone in it. Add addresses one at a time with
   **Add email field** or paste a list with **Bulk add emails**, then choose
   **Create invitations**. An address that already belongs to a member is
   refused with the whole batch, before any email goes out; change that
   member's role instead.
-- **View invitations** opens `/app/users/invites`, a table with the columns
+- **View invitations** opens `/app/members/invitations`, a table with the columns
   Email, Invitation ID, Expires, Status and Role. Each row offers **Copy
   invitation link** and **Delete organisation invitation**; selected rows can
   be removed with **Delete selected**, and **Download** exports the table.
@@ -269,7 +269,7 @@ The sidebar's "Your workspace" group holds the OrcAI Assistant
 always shows; its Bots, Behaviour, Repositories and Assets items need `read`.
 Administration shows when at least one of its items is allowed:
 
-- Users (`/app/users`): `manage_members`
+- Members (`/app/members`): `manage_members`
 - Groups (`/app/groups`): `manage_groups`
 - Quotas (`/app/quotas`): `manage_quotas`
 - Analytics (`/app/analytics`): `view_analytics`
@@ -301,8 +301,8 @@ Work through these in order:
    Members reaches everyone in the organisation.
 4. For a bot, check that it is published. Drafts appear in the Library only
    for those who can edit them, and chat setup offers published bots only.
-5. An administrator or manager can open the person's page under Users
-   (`/app/users/<user id>/edit`). Its **Effective resource access** table lists
+5. An administrator or manager can open the person's page under Members
+   (`/app/members/<user id>/edit`). Its **Effective resource access** table lists
    every bot, block and asset the person reaches and where the access comes
    from: a direct grant, a group, All Members, an inherited bot or block, or
    public visibility.

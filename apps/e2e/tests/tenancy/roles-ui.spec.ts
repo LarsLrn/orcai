@@ -9,8 +9,8 @@ const MANAGEMENT_PAGES = [
 		heading: "Organisation",
 	},
 	{
-		path: "/app/users",
-		heading: "Users",
+		path: "/app/members",
+		heading: "Members",
 	},
 ];
 

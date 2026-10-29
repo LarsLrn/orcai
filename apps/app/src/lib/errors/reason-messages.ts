@@ -225,7 +225,6 @@ const reasonMessages: ReasonMessages = {
 		}),
 	USER_BANNED: m.error_user_banned,
 	USER_NOT_FOUND: m.error_user_not_found,
-	USER_NOT_MEMBER: m.error_user_not_member,
 	USER_OWNS_CONTENT: m.error_user_owns_content,
 	USER_PREFERENCES_NOT_FOUND: m.error_user_preferences_not_found,
 	USER_UNBAN_FAILED: m.error_user_unban_failed,

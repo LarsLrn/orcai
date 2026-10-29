@@ -3,14 +3,19 @@ import {
 	createDeleteResponseSchema,
 	createListResponseSchema,
 } from "../shared";
-import { organizationMemberSchema } from "./schema";
+import { userWithOrganizationRoleSchema } from "../user/schema";
+import { memberAccessEntrySchema, organizationMemberSchema } from "./schema";
 
 export const listOrganizationMembersResponseSchema = createListResponseSchema(
-	organizationMemberSchema,
+	userWithOrganizationRoleSchema,
 );
 
 export const findOrganizationMemberResponseSchema = createDataResponseSchema(
-	organizationMemberSchema,
+	userWithOrganizationRoleSchema,
+);
+
+export const listMemberAccessResponseSchema = createListResponseSchema(
+	memberAccessEntrySchema,
 );
 
 export const updateOrganizationMemberResponseSchema = createDataResponseSchema(
