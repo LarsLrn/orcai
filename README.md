@@ -314,6 +314,7 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run workers:start`: run the worker bundle from `apps/workers/dist`
 - `bun run lint`: run Biome, TypeScript checks, and the migration check
 - `bun run ci`: run the same lint, migration check, test, docs type-check, and build suite used by GitHub Actions
+- `bun run prompt-evals`: run the prompt evals against real models through OpenRouter, on demand for prompt changes (see `.agents/skills/prompting/EVALS.md`)
 - `bun run stack migrate`: apply SQL migrations and the SpiceDB schema
 - `bun run stack exec -- bun run --filter @orcai/db generate`: generate a new Drizzle migration
 - `bun run --filter @orcai/db check`: fail when two migrations branch from the same parent and change the same entity; after a rebase onto `main`, regenerate the branch's migration

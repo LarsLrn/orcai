@@ -62,6 +62,7 @@
 		"precommit": "lint-staged",
 		"prepare": "husky",
 		"prepush": "bun run lint-full",
+		"prompt-evals": "bun run --filter '*' paraglide:compile && bun apps/app/scripts/prompt-evals/run.ts",
 		"stack": "bun run scripts/stack.ts",
 		"start": "bun run --filter @orcai/app start",
 		"test": "bun run --filter '*' paraglide:compile && bun test --parallel --recursive packages/**/test/*.test.ts packages/**/test/**/*.test.ts scripts/*.test.ts && bun run --filter @orcai/app test",

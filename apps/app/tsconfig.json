@@ -4,6 +4,7 @@
 		"src",
 		"compile-paraglide.ts",
 		"paraglide.config.ts",
+		"scripts",
 		"test-setup.ts",
 		"vite.config.ts"
 	],

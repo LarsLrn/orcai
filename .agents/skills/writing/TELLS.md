@@ -44,7 +44,7 @@ Patterns that make text read as generated, in our own words. OrcAI's text has al
 
 ## Leave alone
 
-Quoted text, code, identifiers, paths, environment variables, legal text that a lawyer wrote, user-authored content, and model-facing text (system prompts, tool descriptions). A literal UI label quoted in the docs keeps its exact wording.
+Quoted text, code, identifiers, paths, environment variables, legal text that a lawyer wrote, user-authored content, and model-facing text (system prompts, tool descriptions), which follows the prompting skill in `.agents/skills/prompting/`. A literal UI label quoted in the docs keeps its exact wording.
 
 ## Sources
 

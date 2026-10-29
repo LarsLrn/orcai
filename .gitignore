@@ -7,6 +7,7 @@ node_modules/
 # testing
 /coverage
 /apps/e2e/test-results
+/apps/app/scripts/prompt-evals/results
 /apps/e2e/playwright-report
 
 # TanStack Start / Vite
