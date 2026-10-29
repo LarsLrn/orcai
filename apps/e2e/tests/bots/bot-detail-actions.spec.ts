@@ -23,15 +23,26 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 		name: bot.name,
 	});
 	await expect(title).toBeVisible();
+	// The store header names the kind and the owner, the current user as "You".
+	await expect(
+		page.getByText(message("resource_kind_bot"), {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		page.getByText(
+			`${message("resource_owner_label")} ${message("resource_owner_you")}`,
+		),
+	).toBeVisible();
 
 	const startChat = page.getByRole("link", {
 		name: message("bots_detail_start_chat_action"),
 	});
 	const edit = page.getByRole("link", {
-		name: message("bots_detail_edit_action"),
+		name: message("bots_edit_action"),
 	});
 	const access = page.getByRole("button", {
-		name: message("bots_detail_access_action"),
+		name: message("bots_access_action"),
 	});
 	const moreActions = page.getByRole("button", {
 		name: message("common_more_actions"),
@@ -39,13 +50,11 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 	await expect(startChat).toBeVisible();
 	await expect(edit).toBeVisible();
 	await expect(access).toBeVisible();
-	await expect(
-		page.getByText(message("bots_detail_delete_action")),
-	).toHaveCount(0);
+	await expect(page.getByText(message("bots_delete_action"))).toHaveCount(0);
 
 	await moreActions.click();
 	await expect(page.getByRole("menuitem")).toHaveText([
-		message("bots_detail_delete_action"),
+		message("bots_delete_action"),
 	]);
 	await page.keyboard.press("Escape");
 

@@ -1,7 +1,5 @@
 import type { Block, BlockWithCapabilities } from "@orcai/schema";
-import { EditIcon, KeyRoundIcon, Trash2Icon } from "lucide-react";
-import { useState } from "react";
-import { AccessDialog } from "@/components/access/access-dialog";
+import { useBlockActions } from "@/components/blocks/block-actions";
 import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
@@ -14,8 +12,6 @@ import {
 	TileMenu,
 	TileTitle,
 } from "@/components/ui/shell/tile";
-import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
-import { hasCapability } from "@/lib/authz/capabilities";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
 import { blockKind, RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
@@ -27,43 +23,6 @@ type TileBlock = Pick<
 > & {
 	capabilities?: BlockWithCapabilities["capabilities"];
 };
-
-/** The `…` menu of a behaviour or repository tile, as far as its capabilities allow. */
-const blockTileActions = (
-	block: Pick<TileBlock, "id" | "capabilities">,
-	{
-		onAccess,
-		onDelete,
-	}: {
-		onAccess: () => void;
-		onDelete: () => void;
-	},
-): (HeaderAction | false)[] => [
-	hasCapability(block.capabilities, "edit") && {
-		key: "edit",
-		label: m.blocks_tile_edit_action(),
-		icon: EditIcon,
-		linkProps: {
-			to: "/app/hub/blocks/$blockId/edit",
-			params: {
-				blockId: block.id,
-			},
-		},
-	},
-	hasCapability(block.capabilities, "manage_access") && {
-		key: "access",
-		label: m.blocks_tile_access_action(),
-		icon: KeyRoundIcon,
-		onClick: onAccess,
-	},
-	hasCapability(block.capabilities, "delete") && {
-		key: "delete",
-		label: m.blocks_tile_delete_action(),
-		icon: Trash2Icon,
-		destructive: true,
-		onClick: onDelete,
-	},
-];
 
 const BlockTileContent = ({ block }: { block: TileBlock }) => {
 	const { Icon, well } = RESOURCE_KINDS[blockKind(block.type)];
@@ -108,16 +67,7 @@ const BlockTileContent = ({ block }: { block: TileBlock }) => {
 const BlockTile = ({ block }: { block: TileBlock }) => {
 	const kind = blockKind(block.type);
 	const { Icon, band } = RESOURCE_KINDS[kind];
-	const [isAccessOpen, setIsAccessOpen] = useState(false);
-	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
-		{},
-		{
-			names: [
-				block.name,
-			],
-			kind,
-		},
-	);
+	const { actions, dialog } = useBlockActions(block);
 
 	return (
 		<Tile>
@@ -128,29 +78,13 @@ const BlockTile = ({ block }: { block: TileBlock }) => {
 			</TileBand>
 			<BlockTileContent block={block} />
 			<TileMenu
-				actions={blockTileActions(block, {
-					onAccess: () => setIsAccessOpen(true),
-					onDelete: () =>
-						deleteBlocks({
-							refs: [
-								{
-									id: block.id,
-								},
-							],
-						}),
-				})}
+				actions={[
+					actions.edit,
+					actions.access,
+					actions.delete,
+				]}
 			/>
-			{hasCapability(block.capabilities, "manage_access") ? (
-				<AccessDialog
-					open={isAccessOpen}
-					onOpenChange={setIsAccessOpen}
-					resourceRef={{
-						type: "block",
-						id: block.id,
-					}}
-					resourceName={block.name}
-				/>
-			) : null}
+			{dialog}
 		</Tile>
 	);
 };

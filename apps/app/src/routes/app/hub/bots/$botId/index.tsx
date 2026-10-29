@@ -1,14 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-	EditIcon,
-	KeyRoundIcon,
-	MessageSquarePlusIcon,
-	Trash2Icon,
-} from "lucide-react";
-import { useState } from "react";
-import { AccessDialog } from "@/components/access/access-dialog";
+import { MessageSquarePlusIcon } from "lucide-react";
 import { MetadataCard } from "@/components/app/metadata-card";
+import { useBotActions } from "@/components/bot/bot-actions";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { BotSetupSummary } from "@/components/bot/setup/bot-setup-summary";
@@ -16,22 +10,25 @@ import {
 	ContentRenderer,
 	isContentEmpty,
 } from "@/components/editor/content-renderer";
-import {
-	enabledFeatureIds,
-	FeatureBadges,
-} from "@/components/features/feature-badges";
+import { FeatureBadges } from "@/components/features/feature-badges";
 import { Badge } from "@/components/ui/badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
-	Page,
-	PageContent,
-	PageDescription,
-	PageHeader,
-	PageTitle,
-} from "@/components/ui/shell/page";
-import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
+	DetailHeader,
+	DetailHeaderBand,
+	DetailHeaderDescription,
+	DetailHeaderHeading,
+	DetailHeaderIcon,
+	DetailHeaderMeta,
+	DetailHeaderTitle,
+} from "@/components/ui/shell/detail-header";
+import { Page, PageContent } from "@/components/ui/shell/page";
+import { ResourceOwner } from "@/components/users/resource-owner";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
+import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
+import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/hub/bots/$botId/")({
@@ -41,7 +38,6 @@ export const Route = createFileRoute("/app/hub/bots/$botId/")({
 function RouteComponent() {
 	const { botId } = Route.useParams();
 	const navigate = useNavigate();
-	const [isAccessOpen, setIsAccessOpen] = useState(false);
 
 	const { data: bot } = useSuspenseQuery(
 		orpc.bot.find.queryOptions({
@@ -93,92 +89,64 @@ function RouteComponent() {
 				]
 			: blocks.data;
 
-	const { mutate: deleteBots } = useDeleteBotsMutation(
-		{
-			onSuccess: async () => {
-				await navigate({
-					to: "/app/hub/bots",
-				});
-			},
+	const { actions, dialog } = useBotActions(bot.data, {
+		onDeleted: async () => {
+			await navigate({
+				to: "/app/hub/bots",
+			});
 		},
-		{
-			names: [
-				bot.data.name,
-			],
-		},
-	);
-	const canUse = hasCapability(bot.data.capabilities, "use");
-	const canEdit = hasCapability(bot.data.capabilities, "edit");
-	const canDelete = hasCapability(bot.data.capabilities, "delete");
-	const canManageAccess = hasCapability(bot.data.capabilities, "manage_access");
+	});
+	const { Icon, well, band, badge, label } = RESOURCE_KINDS.bot;
+	const draft = bot.data.status === "draft";
 
 	return (
 		<Page>
-			<PageHeader>
-				<PageTitle>{bot.data.name}</PageTitle>
-				<PageDescription>{bot.data.description}</PageDescription>
-				{bot.data.status === "draft" ||
-				enabledFeatureIds(bot.data.features).length > 0 ? (
-					<div className="flex flex-wrap gap-1.5">
-						{bot.data.status === "draft" ? (
-							<Badge variant="outline">{m.bots_detail_draft_badge()}</Badge>
+			<DetailHeader>
+				<DetailHeaderBand className={cn(band, draft && "opacity-45 grayscale")}>
+					<Icon />
+				</DetailHeaderBand>
+				<DetailHeaderIcon className={well}>
+					<Icon />
+				</DetailHeaderIcon>
+				<DetailHeaderHeading>
+					<DetailHeaderTitle>{bot.data.name}</DetailHeaderTitle>
+					<DetailHeaderMeta>
+						<Badge variant={badge}>{label()}</Badge>
+						{draft ? (
+							<Badge variant="outline">
+								{getPublicationStatusLabel("draft")}
+							</Badge>
 						) : null}
 						<FeatureBadges features={bot.data.features} className="contents" />
-					</div>
+						<ResourceOwner owner={bot.data.owner} />
+					</DetailHeaderMeta>
+					<HeaderActions
+						leading={draft ? null : <BotFavouriteToggle bot={bot.data} />}
+						actions={[
+							hasCapability(bot.data.capabilities, "use") && {
+								key: "start-chat",
+								label: m.bots_detail_start_chat_action(),
+								icon: MessageSquarePlusIcon,
+								variant: "default",
+								linkProps: {
+									to: "/app/chat/new",
+									search: {
+										botId: bot.data.id,
+									},
+								},
+							},
+							actions.edit,
+							actions.access,
+							actions.delete,
+						]}
+					/>
+				</DetailHeaderHeading>
+				{bot.data.description ? (
+					<DetailHeaderDescription>
+						{bot.data.description}
+					</DetailHeaderDescription>
 				) : null}
-				<HeaderActions
-					leading={
-						bot.data.status === "ready" ? (
-							<BotFavouriteToggle bot={bot.data} />
-						) : null
-					}
-					actions={[
-						canUse && {
-							key: "start-chat",
-							label: m.bots_detail_start_chat_action(),
-							icon: MessageSquarePlusIcon,
-							variant: "default",
-							linkProps: {
-								to: "/app/chat/new",
-								search: {
-									botId: bot.data.id,
-								},
-							},
-						},
-						canEdit && {
-							key: "edit",
-							label: m.bots_detail_edit_action(),
-							icon: EditIcon,
-							linkProps: {
-								to: "/app/hub/bots/$botId/setup",
-								params: {
-									botId: bot.data.id,
-								},
-							},
-						},
-						canManageAccess && {
-							key: "access",
-							label: m.bots_detail_access_action(),
-							icon: KeyRoundIcon,
-							onClick: () => setIsAccessOpen(true),
-						},
-						canDelete && {
-							key: "delete",
-							label: m.bots_detail_delete_action(),
-							icon: Trash2Icon,
-							destructive: true,
-							onClick: () =>
-								deleteBots({
-									refs: [
-										{
-											id: bot.data.id,
-										},
-									],
-								}),
-						},
-					]}
-				/>
-			</PageHeader>
+			</DetailHeader>
 
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
@@ -203,17 +171,7 @@ function RouteComponent() {
 				</div>
 			</PageContent>
 
-			{canManageAccess ? (
-				<AccessDialog
-					open={isAccessOpen}
-					onOpenChange={setIsAccessOpen}
-					resourceRef={{
-						type: "bot",
-						id: bot.data.id,
-					}}
-					resourceName={bot.data.name}
-				/>
-			) : null}
+			{dialog}
 		</Page>
 	);
 }

@@ -251,7 +251,7 @@ test("library: a page index past the last page is replaced by the last page", as
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: message("bots_tile_delete_action"),
+			name: message("bots_delete_action"),
 		})
 		.click();
 	await page

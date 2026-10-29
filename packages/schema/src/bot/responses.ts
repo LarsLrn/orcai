@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { resourceOwnerSchema } from "../resource/schema";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
@@ -15,8 +16,11 @@ export const listBotsResponseSchema = createListResponseSchema(
 	botWithCapabilitiesSchema,
 );
 
-export const findBotResponseSchema =
-	createDataResponseSchema(botWithBlocksSchema);
+export const findBotResponseSchema = createDataResponseSchema(
+	botWithBlocksSchema.extend({
+		owner: resourceOwnerSchema,
+	}),
+);
 
 export const findBotEditorResponseSchema =
 	createDataResponseSchema(botEditorSchema);

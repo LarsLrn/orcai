@@ -1,12 +1,9 @@
 import type { BotWithCapabilities } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
-import { EditIcon, KeyRoundIcon, Trash2Icon } from "lucide-react";
-import { useState } from "react";
-import { AccessDialog } from "@/components/access/access-dialog";
+import { useBotActions } from "@/components/bot/bot-actions";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { FeatureBadges } from "@/components/features/feature-badges";
 import { Badge } from "@/components/ui/badge";
-import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	Tile,
 	TileBand,
@@ -17,12 +14,9 @@ import {
 	TileMenu,
 	TileTitle,
 } from "@/components/ui/shell/tile";
-import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
-import { hasCapability } from "@/lib/authz/capabilities";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
-import { m } from "@/paraglide/messages";
 
 type TileBot = Pick<
 	BotWithCapabilities,
@@ -36,43 +30,6 @@ type TileBot = Pick<
 >;
 
 const { Icon, well, band } = RESOURCE_KINDS.bot;
-
-/** The `…` menu of a bot tile, as far as the bot's capabilities allow. */
-const botTileActions = (
-	bot: Pick<TileBot, "id" | "capabilities">,
-	{
-		onAccess,
-		onDelete,
-	}: {
-		onAccess: () => void;
-		onDelete: () => void;
-	},
-): (HeaderAction | false)[] => [
-	hasCapability(bot.capabilities, "edit") && {
-		key: "edit",
-		label: m.bots_tile_edit_action(),
-		icon: EditIcon,
-		linkProps: {
-			to: "/app/hub/bots/$botId/setup",
-			params: {
-				botId: bot.id,
-			},
-		},
-	},
-	hasCapability(bot.capabilities, "manage_access") && {
-		key: "access",
-		label: m.bots_tile_access_action(),
-		icon: KeyRoundIcon,
-		onClick: onAccess,
-	},
-	hasCapability(bot.capabilities, "delete") && {
-		key: "delete",
-		label: m.bots_tile_delete_action(),
-		icon: Trash2Icon,
-		destructive: true,
-		onClick: onDelete,
-	},
-];
 
 const BotTileContent = ({
 	bot,
@@ -120,15 +77,7 @@ const BotTile = ({
 	/** Where the tile leads; the bot's page unless given. */
 	linkProps?: LinkProps;
 }) => {
-	const [isAccessOpen, setIsAccessOpen] = useState(false);
-	const { mutate: deleteBots } = useDeleteBotsMutation(
-		{},
-		{
-			names: [
-				bot.name,
-			],
-		},
-	);
+	const { actions, dialog } = useBotActions(bot);
 	const draft = bot.status === "draft";
 
 	return (
@@ -138,31 +87,15 @@ const BotTile = ({
 			</TileBand>
 			<BotTileContent bot={bot} linkProps={linkProps} />
 			<TileMenu
-				actions={botTileActions(bot, {
-					onAccess: () => setIsAccessOpen(true),
-					onDelete: () =>
-						deleteBots({
-							refs: [
-								{
-									id: bot.id,
-								},
-							],
-						}),
-				})}
+				actions={[
+					actions.edit,
+					actions.access,
+					actions.delete,
+				]}
 			>
 				{draft ? null : <BotFavouriteToggle bot={bot} />}
 			</TileMenu>
-			{hasCapability(bot.capabilities, "manage_access") ? (
-				<AccessDialog
-					open={isAccessOpen}
-					onOpenChange={setIsAccessOpen}
-					resourceRef={{
-						type: "bot",
-						id: bot.id,
-					}}
-					resourceName={bot.name}
-				/>
-			) : null}
+			{dialog}
 		</Tile>
 	);
 };
@@ -177,4 +110,4 @@ const CompactBotTile = ({ bot }: { bot: TileBot }) => (
 	</Tile>
 );
 
-export { BotTile, botTileActions, CompactBotTile };
+export { BotTile, CompactBotTile };

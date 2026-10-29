@@ -44,6 +44,7 @@ import {
 	requireEntityPermission,
 	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
+import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 const listAssets = authed.asset.list.effect(function* ({ input, context }) {
@@ -168,8 +169,10 @@ const findAsset = authed.asset.find
 				...getColumns(dbSchema.asset),
 				organizationId: dbSchema.organization.id,
 				utilityModelId: dbSchema.organization.utilityModelId,
+				owner: ownerColumns,
 			})
 			.from(dbSchema.asset)
+			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.asset.userId))
 			.leftJoin(
 				dbSchema.resourceScope,
 				and(

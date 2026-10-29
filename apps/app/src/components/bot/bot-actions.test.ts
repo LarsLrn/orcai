@@ -7,20 +7,22 @@ mock.module("@/lib/orpc/orpc", () => ({
 	orpc: {},
 }));
 
-const { botTileActions } = await import("./bot-tile");
+const { botActions } = await import("./bot-actions");
 
 const noop = () => undefined;
 
 const actionKeys = (capabilities: Record<string, boolean>) =>
-	botTileActions(
-		{
-			id: "bot-1" as BotId,
-			capabilities,
-		},
-		{
-			onAccess: noop,
-			onDelete: noop,
-		},
+	Object.values(
+		botActions(
+			{
+				id: "bot-1" as BotId,
+				capabilities,
+			},
+			{
+				onAccess: noop,
+				onDelete: noop,
+			},
+		),
 	).flatMap((action) =>
 		action
 			? [
@@ -29,7 +31,7 @@ const actionKeys = (capabilities: Record<string, boolean>) =>
 			: [],
 	);
 
-describe("botTileActions", () => {
+describe("botActions", () => {
 	test("a bot the user may only use offers no actions", () => {
 		expect(
 			actionKeys({
