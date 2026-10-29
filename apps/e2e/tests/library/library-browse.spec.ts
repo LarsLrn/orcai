@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import type { Page } from "@playwright/test";
 import type { ApiClient } from "../../fixtures/api";
 import { uploadAsset } from "../../fixtures/assets";
@@ -273,6 +274,30 @@ test("library: the overview searches every kind in one list", async ({
 	await expect(page).toHaveURL(/\/app\/library\/behaviours\?query=/);
 	await expect(tiles(page)).toHaveCount(1);
 	await expect(tile(page, `E2E Find ${id} behaviour`)).toBeVisible();
+});
+
+test("library: a digit-only search from the address stays the search", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const org = await orgs.create("E2E Library Digits");
+	const member = api.as("member", org);
+	const digits = String(randomInt(100_000_000, 1_000_000_000));
+	await bot(member, `E2E Digits ${digits}`, "ready");
+	await bot(member, "E2E Digits other", "ready");
+
+	const page = await pageAs("member", org);
+	await enterApp(page, org.slug);
+	await open(page, `/app/library/bots?query=${digits}`);
+	await expect(page).toHaveURL(new RegExp(`query=${digits}`));
+	await expect(
+		page.getByRole("textbox", {
+			name: message("library_search_placeholder"),
+		}),
+	).toHaveValue(digits);
+	await expect(tiles(page)).toHaveCount(1);
+	await expect(tile(page, `E2E Digits ${digits}`)).toBeVisible();
 });
 
 test("library: the failed processing filter shows a failed asset and why", async ({

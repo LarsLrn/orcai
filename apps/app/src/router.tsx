@@ -5,6 +5,7 @@ import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query
 import type { ReactElement, ReactNode } from "react";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
+import { parseSearch, stringifySearch } from "./lib/router/search-params";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
@@ -19,6 +20,8 @@ export function getRouter() {
 
 	const router = createRouter({
 		routeTree,
+		parseSearch,
+		stringifySearch,
 		defaultViewTransition: true,
 		scrollRestoration: true,
 		defaultPreload: "intent",
