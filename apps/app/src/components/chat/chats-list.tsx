@@ -1,17 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { MessagesSquareIcon, PlusIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { Placeholder } from "@/components/placeholders/placeholder";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { AnimatedGroup } from "@/components/ui/motion/animated-group";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import {
+	Tile,
+	TileBody,
+	TileDescription,
+	TileFooter,
+	TileMenu,
+	TileTitle,
+} from "@/components/ui/shell/tile";
 import { Spinner } from "@/components/ui/spinner";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
@@ -63,61 +62,58 @@ const ChatsList = ({
 	}
 
 	return (
-		<AnimatedGroup
+		<div
 			className={cn(
 				"grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
 				props.className,
 			)}
-			preset="fade"
 			{...props}
 		>
 			{data.data.map((chat) => (
-				<Link
-					to={"/app/chat/$chatId"}
-					params={{
-						chatId: chat.id,
-					}}
-					key={chat.id}
-				>
-					<Card className="relative h-full transition-all hover:border-primary/50 hover:shadow-md">
-						<ChatActionsDropdown
-							chatId={chat.id}
-							title={chat.title}
-							pinned={chat.pinnedAt !== null}
+				<Tile key={chat.id}>
+					<TileBody>
+						<TileTitle
+							action={{
+								linkProps: {
+									to: "/app/chat/$chatId",
+									params: {
+										chatId: chat.id,
+									},
+								},
+							}}
 						>
-							<OverflowMenuTrigger
-								variant="ghost"
-								className="absolute top-2 right-2"
-								onClick={(e) => e.preventDefault()}
-							/>
-						</ChatActionsDropdown>
-
-						<CardHeader className="pb-2">
-							<CardTitle className="flex w-[calc(100%-1rem)] items-center gap-1.5 text-base">
+							<span className="inline-flex max-w-full items-center gap-1.5 align-bottom">
 								{chat.pinnedAt && <PinMark />}
 								{chat.parentChatId && <BranchMark />}
 								<span className="line-clamp-1 min-w-0">
 									{chat.title ?? m.chat_title_placeholder()}
 								</span>
-							</CardTitle>
-							{chat.updatedAt && (
-								<CardDescription className="text-xs">
-									{m.chat_list_card_last_updated({
-										timestamp: formatDisplayTimestamp(chat.updatedAt),
-									})}
-								</CardDescription>
-							)}
-						</CardHeader>
-						<CardContent className="pt-0">
-							<div className="flex items-center text-muted-foreground text-sm">
-								<MessagesSquareIcon className="mr-2 size-4" />
-								{m.chat_list_card_continue_action()}
-							</div>
-						</CardContent>
-					</Card>
-				</Link>
+							</span>
+						</TileTitle>
+						{chat.updatedAt && (
+							<TileDescription>
+								{m.chat_list_card_last_updated({
+									timestamp: formatDisplayTimestamp(chat.updatedAt),
+								})}
+							</TileDescription>
+						)}
+						<TileFooter>
+							<MessagesSquareIcon aria-hidden="true" className="size-4" />
+							{m.chat_list_card_continue_action()}
+						</TileFooter>
+					</TileBody>
+					<TileMenu actions={[]}>
+						<ChatActionsDropdown
+							chatId={chat.id}
+							title={chat.title}
+							pinned={chat.pinnedAt !== null}
+						>
+							<OverflowMenuTrigger variant="ghost" />
+						</ChatActionsDropdown>
+					</TileMenu>
+				</Tile>
 			))}
-		</AnimatedGroup>
+		</div>
 	);
 };
 

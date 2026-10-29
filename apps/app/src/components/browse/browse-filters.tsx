@@ -23,9 +23,11 @@ import {
 	type FilterDefinitions,
 	type FilterValues,
 } from "@/lib/browse/browse-search";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 type FilterFieldsProps<D extends FilterDefinitions> = {
+	className?: string;
 	filters: D;
 	values: FilterValues<D>;
 	onChange: (key: keyof D & string, value: string | string[] | boolean) => void;
@@ -33,20 +35,21 @@ type FilterFieldsProps<D extends FilterDefinitions> = {
 
 /** One field per filter definition: radios for a single choice, checkboxes for several or a toggle. */
 const FilterFields = <D extends FilterDefinitions>({
+	className,
 	filters,
 	values,
 	onChange,
 }: FilterFieldsProps<D>) => {
 	const id = useId();
 	return (
-		<div className="flex flex-col gap-6">
+		<div className={cn("flex flex-col gap-6", className)}>
 			{Object.entries(filters).map(([key, definition]) =>
 				definition.type === "multi" &&
 				definition.options.length === 0 ? null : (
 					<FieldSet key={key} className="gap-0">
 						<FieldLegend
 							variant="label"
-							className="mb-2 text-muted-foreground text-xs uppercase tracking-wider"
+							className="mb-2 font-medium text-muted-foreground text-sm"
 						>
 							{definition.label()}
 						</FieldLegend>
