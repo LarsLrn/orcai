@@ -422,6 +422,7 @@
       "name": "@orcai/testing",
       "version": "0.1.0",
       "dependencies": {
+        "@effect/sql-pg": "catalog:",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
         "@orcai/pg-boss": "workspace:*",
