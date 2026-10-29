@@ -83,6 +83,13 @@ Keep answers short and plain. Use British English.
 
 Refuse anything outside the course material: do not grade work, do not predict marks, and do not give personal, legal or medical advice.`;
 
+const revealStep = (node: HTMLButtonElement | null) => {
+	node?.scrollIntoView({
+		block: "nearest",
+		inline: "nearest",
+	});
+};
+
 const canEditBlock = (block: {
 	capabilities?: Partial<Record<"edit", boolean>>;
 }) => hasCapability(block.capabilities, "edit");
@@ -541,8 +548,8 @@ const BotEditorShell = ({
 	const currentStep = WIZARD_STEPS[activeStepIndex];
 
 	return (
-		<div className="grid min-w-0 grid-cols-1 gap-6">
-			<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+		<div className="@container grid min-w-0 grid-cols-1 gap-6">
+			<div className="-mx-1 flex @4xl:grid @4xl:grid-cols-6 gap-3 @4xl:overflow-visible overflow-x-auto px-1 pb-1">
 				{WIZARD_STEPS.map((step, index) => {
 					const Icon = step.icon;
 					const isLocked = !editor.id && index > 0;
@@ -552,8 +559,9 @@ const BotEditorShell = ({
 						<button
 							type="button"
 							key={step.key}
+							ref={isActive ? revealStep : undefined}
 							className={cn(
-								"min-w-0 rounded-2xl border border-border bg-background p-4 text-left transition-colors",
+								"@4xl:w-auto w-36 @4xl:min-w-0 shrink-0 rounded-2xl border border-border bg-background p-4 text-left transition-colors",
 								isActive && "border-primary bg-primary text-primary-foreground",
 								isComplete && "border-secondary bg-secondary/5",
 								isLocked &&
