@@ -32,6 +32,11 @@ export const requests: {
 	content: unknown;
 }[] = [];
 
+/** While set, the endpoint answers once it settles. */
+export const held: {
+	until?: Promise<unknown>;
+} = {};
+
 /** An OpenAI-compatible endpoint that answers JSON mode with `jsonAnswer` and text otherwise. */
 const inference = serve({
 	port: 0,
@@ -50,6 +55,7 @@ const inference = serve({
 			responseFormat: body.response_format?.type,
 			content: body.messages.at(-1)?.content,
 		});
+		await held.until;
 		return Response.json({
 			id: "description",
 			object: "chat.completion",

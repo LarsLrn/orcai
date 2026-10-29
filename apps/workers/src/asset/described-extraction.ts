@@ -1,20 +1,20 @@
-import type { AssetId, BlockId } from "@orcai/core";
+import type { AssetId } from "@orcai/core";
 import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatchInTransaction } from "@orcai/pg-boss";
+import { queueProcessing } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
 import { getObjectAsJson } from "@orcai/s3/server";
-import {
-	type AssetFileType,
-	type BucketName,
-	PROCESS_ASSET_JOB_NAME,
-} from "@orcai/schema";
-import { and, eq, sql } from "drizzle-orm";
+import type { AssetFileType, BucketName } from "@orcai/schema";
+import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { toSanitizedPgBossRunError } from "@/asset/error-summary";
+import {
+	currentIndexing,
+	type IndexingAttempt,
+} from "@/asset/pipeline-attempt";
 
 interface ProcessableAsset {
 	id: AssetId;
@@ -37,16 +37,16 @@ const isDescribed = (extraction: StoredExtractionArtifact) =>
  * processing has to describe them first and queues indexing again then.
  *
  * An extraction stored before images were described at processing goes back
- * to processing once. Processing stores the extraction before it marks the
- * asset completed, so with the completed asset's row locked the extraction
- * read again is current: a caller whose first read was stale indexes the
- * described one, and only one caller queues processing. The claim and its job
- * commit together.
+ * to processing once, admitted only by the link's current indexing attempt,
+ * which the new generation replaces. Processing stores the extraction before
+ * it marks the asset completed, so with the completed asset's row locked the
+ * extraction read again is current: a caller whose first read was stale
+ * indexes the described one, and only one caller queues processing.
  */
 export const describedExtraction = (params: {
 	jobId: string;
 	asset: ProcessableAsset;
-	blockId: BlockId;
+	attempt: IndexingAttempt;
 }) =>
 	Effect.gen(function* () {
 		const stored = yield* readExtraction(params.asset.id);
@@ -56,24 +56,12 @@ export const describedExtraction = (params: {
 
 		const db = yield* DB;
 		const { asset, blockAsset } = dbSchema;
-		const linkPending = db
-			.update(blockAsset)
-			.set({
-				indexStatus: "pending",
-				indexFailure: null,
-			})
-			.where(
-				and(
-					eq(blockAsset.assetId, params.asset.id),
-					eq(blockAsset.blockId, params.blockId),
-				),
-			);
 
 		return yield* db.transaction(() =>
 			Effect.gen(function* () {
 				const [completed] = yield* db
 					.select({
-						id: asset.id,
+						processingGeneration: asset.processingGeneration,
 					})
 					.from(asset)
 					.where(
@@ -84,7 +72,13 @@ export const describedExtraction = (params: {
 					)
 					.for("update");
 				if (!completed) {
-					yield* linkPending;
+					yield* db
+						.update(blockAsset)
+						.set({
+							indexStatus: "pending",
+							indexFailure: null,
+						})
+						.where(currentIndexing(params.attempt));
 					return undefined;
 				}
 
@@ -93,34 +87,24 @@ export const describedExtraction = (params: {
 					return current;
 				}
 
-				const [claimed] = yield* db
-					.update(asset)
-					.set({
-						processingStatus: "pending",
-						processingFailure: null,
-						processingGeneration: sql`${asset.processingGeneration} + 1`,
+				const [link] = yield* db
+					.select({
+						assetId: blockAsset.assetId,
 					})
-					.where(eq(asset.id, params.asset.id))
-					.returning({
-						generation: asset.processingGeneration,
-					});
-				yield* linkPending;
-				yield* sendJobBatchInTransaction({
-					jobName: PROCESS_ASSET_JOB_NAME,
-					jobs: [
-						{
-							data: {
-								assetRef: {
-									bucket: params.asset.bucket,
-									prefix: params.asset.prefix,
-									id: params.asset.id,
-									type: params.asset.fileType,
-								},
-								generation: claimed?.generation,
-							},
-						},
+					.from(blockAsset)
+					.where(currentIndexing(params.attempt))
+					.for("update");
+				if (!link) return undefined;
+
+				yield* queueProcessing(
+					{
+						...params.asset,
+						processingGeneration: completed.processingGeneration,
+					},
+					[
+						"completed",
 					],
-				});
+				);
 				yield* Effect.logInfo(
 					{
 						jobId: params.jobId,

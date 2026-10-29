@@ -7,7 +7,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { deletePointsByIdentifier } from "@orcai/qdrant";
+import { reconcileLinkPoints } from "@orcai/pg-boss";
 import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
@@ -372,15 +372,20 @@ export const deleteResources = (params: {
 			.from(table)
 			.where(inArray(table.id, ids))
 			.for("update");
+		// The rows cascade with the resource; their points are reconciled after the commit.
 		const indexedLinks =
-			params.resourceType === "block"
+			params.resourceType === "block" || params.resourceType === "asset"
 				? yield* db
 						.select({
 							blockId: dbSchema.blockAsset.blockId,
 							assetId: dbSchema.blockAsset.assetId,
 						})
 						.from(dbSchema.blockAsset)
-						.where(inArray(dbSchema.blockAsset.blockId, ids as BlockId[]))
+						.where(
+							params.resourceType === "block"
+								? inArray(dbSchema.blockAsset.blockId, ids as BlockId[])
+								: inArray(dbSchema.blockAsset.assetId, ids as AssetId[]),
+						)
 				: [];
 		const files =
 			params.resourceType === "asset"
@@ -426,7 +431,10 @@ const emptyDeletedData = {
 	}[],
 };
 
-/** Removes the stored files and search points of deleted resources. */
+/**
+ * Removes the stored files and search points of deleted resources. Points go
+ * through the link reconcile, so a point write still in flight lands first.
+ */
 export const removeDeletedResourceData = (deleted: readonly DeletedData[]) =>
 	Effect.all(
 		[
@@ -437,10 +445,6 @@ export const removeDeletedResourceData = (deleted: readonly DeletedData[]) =>
 						sendDeleteObjectCommand({
 							bucket: asset.bucket,
 							key: `${asset.prefix}/${asset.id}.${asset.fileType}`,
-						}),
-						deletePointsByIdentifier({
-							assetId: asset.id,
-							blockId: undefined,
 						}),
 						deletePrefixRecursively({
 							bucket: buckets.processed.name,
@@ -454,7 +458,7 @@ export const removeDeletedResourceData = (deleted: readonly DeletedData[]) =>
 			),
 			Effect.forEach(
 				deleted.flatMap((data) => data.indexedLinks),
-				(link) => deletePointsByIdentifier(link),
+				reconcileLinkPoints,
 				{
 					concurrency: 5,
 					discard: true,

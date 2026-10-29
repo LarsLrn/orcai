@@ -23,7 +23,7 @@ import {
 	markIndexingExhausted,
 	markMetadataExhausted,
 	markProcessingExhausted,
-} from "@/asset/pipeline-failure";
+} from "@/asset/pipeline-attempt";
 import type { WorkerDefinition } from "@/worker/types";
 
 export type AssetWorkerContext =

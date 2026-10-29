@@ -1,14 +1,22 @@
 import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
+import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { type Job, PgBoss, PgBossService } from "@orcai/pg-boss";
+import {
+	type Job,
+	type JobWithMetadata,
+	PgBoss,
+	PgBossService,
+	queueProcessing,
+} from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
 import { getObjectAsJson, S3Live } from "@orcai/s3/server";
 import {
+	GENERATE_ASSET_METADATA_JOB_NAME,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 } from "@orcai/schema";
@@ -18,7 +26,13 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { processAssetBatch } from "@/asset/jobs/process-asset-job";
-import { requests, seedImageAsset, suggestion } from "@/asset/test-vision";
+import { markProcessingExhausted } from "@/asset/pipeline-attempt";
+import {
+	held,
+	requests,
+	seedImageAsset,
+	suggestion,
+} from "@/asset/test-vision";
 
 const TIMEOUT = 30_000;
 
@@ -245,6 +259,142 @@ test(
 		await processOnce(job);
 		expect(await statusOf(asset.assetId)).toBe("completed");
 		expect(await indexingQueued()).toBe(1);
+	},
+	TIMEOUT,
+);
+
+/** An image asset linked to a fresh repository, with what its completion queued. */
+const seedLinked = async () => {
+	const asset = await run(
+		seedImageAsset({
+			capabilities: [
+				"text",
+				"image",
+			],
+		}),
+	);
+	const blockId = await run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const user = yield* createUser();
+			const [block] = yield* db
+				.insert(dbSchema.block)
+				.values({
+					type: "database",
+					name: "Fenced repository",
+					config: {},
+					userId: user.id,
+				})
+				.returning();
+			yield* db.insert(dbSchema.blockAsset).values({
+				blockId: block.id,
+				assetId: asset.assetId,
+			});
+			return block.id;
+		}),
+	);
+	const queued = async () => ({
+		indexing: (
+			await boss.findJobs(VECTORIZE_ASSET_JOB_NAME, {
+				data: {
+					assetId: asset.assetId,
+					blockId,
+				},
+			})
+		).length,
+		metadata: (
+			await boss.findJobs(GENERATE_ASSET_METADATA_JOB_NAME, {
+				data: {
+					assetId: asset.assetId,
+				},
+			})
+		).length,
+	});
+	return {
+		asset,
+		blockId,
+		queued,
+	};
+};
+
+/** Holds the vision endpoint until the returned release is called, once `count` requests wait. */
+const holdVision = async (count: number, start: () => Promise<unknown>[]) => {
+	const release = Promise.withResolvers<void>();
+	held.until = release.promise;
+	const running = start();
+	while (requests.length < count) {
+		await sleep(25);
+	}
+	return {
+		release: async () => {
+			release.resolve();
+			held.until = undefined;
+			await Promise.all(running);
+		},
+	};
+};
+
+test(
+	"two deliveries of one generation at once complete it once and queue its follow-ups once",
+	async () => {
+		const { asset, queued } = await seedLinked();
+		const job = delivery(asset, 0);
+
+		const both = await holdVision(2, () => [
+			processOnce(job),
+			processOnce(job),
+		]);
+		await both.release();
+
+		expect(await statusOf(asset.assetId)).toBe("completed");
+		expect(await queued()).toEqual({
+			indexing: 1,
+			metadata: 1,
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"a delivery replaced while it ran completes nothing and queues nothing",
+	async () => {
+		const { asset, queued } = await seedLinked();
+
+		const late = await holdVision(1, () => [
+			processOnce(delivery(asset, 0)),
+		]);
+		// Its job expired meanwhile, ran out of retries and was processed again.
+		await run(
+			markProcessingExhausted([
+				{
+					...delivery(asset, 0),
+					sourceOutput: {
+						message: "handler execution exceeded",
+					},
+				} as JobWithMetadata<ProcessAssetPayload>,
+			]),
+		);
+		await run(
+			queueProcessing(
+				{
+					id: asset.assetId,
+					bucket: buckets.processed.name,
+					prefix: asset.prefix,
+					fileType: "png",
+					processingGeneration: 0,
+				},
+				[
+					"failed",
+				],
+			),
+		);
+		await late.release();
+
+		expect(await statusOf(asset.assetId)).toBe("pending");
+		expect(await queued()).toEqual({
+			indexing: 0,
+			metadata: 0,
+		});
 	},
 	TIMEOUT,
 );

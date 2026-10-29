@@ -3,6 +3,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { type JobWithMetadata, PgBoss, PgBossService } from "@orcai/pg-boss";
+import { QdrantLive } from "@orcai/qdrant";
 import {
 	type PipelineFailure,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
@@ -11,17 +12,20 @@ import {
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
 import { createUser, IntegrationLive } from "@orcai/testing";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import {
 	AssetPipelineError,
+	indexingAttempt,
 	markIndexingExhausted,
+	markMetadataExhausted,
 	markProcessingExhausted,
+	processingAttempt,
 	settleIndexingAttempt,
 	settleProcessingAttempt,
-} from "@/asset/pipeline-failure";
+} from "@/asset/pipeline-attempt";
 import { ensureQueue } from "@/worker/run-worker-process";
 
 const TIMEOUT = 30_000;
@@ -41,6 +45,7 @@ boss.on("error", () => undefined);
 const runtime = ManagedRuntime.make(
 	Layer.mergeAll(
 		IntegrationLive,
+		QdrantLive,
 		Layer.succeed(PgBossService, {
 			boss,
 		}),
@@ -104,14 +109,18 @@ const seedLink = () =>
 					userId: user.id,
 				})
 				.returning();
-			yield* db.insert(dbSchema.blockAsset).values({
-				blockId: block.id,
-				assetId: asset.id,
-			});
+			const [link] = yield* db
+				.insert(dbSchema.blockAsset)
+				.values({
+					blockId: block.id,
+					assetId: asset.id,
+				})
+				.returning();
 			return {
 				asset,
 				assetId: asset.id,
 				blockId: block.id,
+				attempt: link.indexAttempt,
 			};
 		}),
 	);
@@ -155,7 +164,13 @@ const indexingOf = (link: { assetId: AssetId; blockId: BlockId }) =>
  */
 const pipelineQueue = async <T extends object>(params: {
 	attempt: (data: T) => Effect.Effect<void, unknown, DB>;
-	exhausted: (jobs: JobWithMetadata<T>[]) => Effect.Effect<void, unknown, DB>;
+	exhausted: (
+		jobs: JobWithMetadata<T>[],
+	) => Effect.Effect<
+		void,
+		unknown,
+		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
+	>;
 	retryLimit: number;
 	expireInSeconds?: number;
 }) => {
@@ -244,7 +259,10 @@ describe("processing failures", () => {
 			const { asset } = await seedLink();
 			const queue = await pipelineQueue<ProcessAssetPayload>({
 				attempt: (data) =>
-					settleProcessingAttempt(data.assetRef.id, failWith("extraction")),
+					settleProcessingAttempt(
+						processingAttempt(data),
+						failWith("extraction"),
+					),
 				exhausted: markProcessingExhausted,
 				retryLimit: 1,
 			});
@@ -270,7 +288,10 @@ describe("processing failures", () => {
 			const { asset } = await seedLink();
 			const queue = await pipelineQueue<ProcessAssetPayload>({
 				attempt: (data) =>
-					settleProcessingAttempt(data.assetRef.id, Effect.sleep("5 seconds")),
+					settleProcessingAttempt(
+						processingAttempt(data),
+						Effect.sleep("5 seconds"),
+					),
 				exhausted: markProcessingExhausted,
 				retryLimit: 1,
 				expireInSeconds: 1,
@@ -300,7 +321,7 @@ describe("processing failures", () => {
 			const { asset } = await seedLink();
 			const queue = await pipelineQueue<ProcessAssetPayload>({
 				attempt: (data) =>
-					settleProcessingAttempt(data.assetRef.id, failWith(failure)),
+					settleProcessingAttempt(processingAttempt(data), failWith(failure)),
 				exhausted: markProcessingExhausted,
 				retryLimit: 3,
 			});
@@ -327,7 +348,8 @@ describe("indexing failures", () => {
 		async () => {
 			const link = await seedLink();
 			const queue = await pipelineQueue<VectorizeAssetPayload>({
-				attempt: (data) => settleIndexingAttempt(data, failWith("other")),
+				attempt: (data) =>
+					settleIndexingAttempt(indexingAttempt(data), failWith("other")),
 				exhausted: markIndexingExhausted,
 				retryLimit: 1,
 			});
@@ -335,6 +357,7 @@ describe("indexing failures", () => {
 			await queue.send({
 				assetId: link.assetId,
 				blockId: link.blockId,
+				attempt: link.attempt,
 			});
 			await until(
 				async () => (await indexingOf(link)).status === "failed",
@@ -343,6 +366,200 @@ describe("indexing failures", () => {
 
 			expect(queue.attempts()).toBe(2);
 			expect(await indexingOf(link)).toEqual({
+				status: "failed",
+				failure: "other",
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+/** A dead-lettered job as pg-boss hands it to the handler. */
+const deadLetter = <T>(data: T, message = "extraction failed") =>
+	({
+		id: crypto.randomUUID(),
+		data,
+		sourceOutput: {
+			message,
+		},
+	}) as JobWithMetadata<T>;
+
+/** What Reprocess does: the next generation, pending, every link a new attempt. */
+const processAgain = (assetId: AssetId) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			yield* db
+				.update(dbSchema.asset)
+				.set({
+					processingStatus: "pending",
+					processingFailure: null,
+					processingGeneration: sql`${dbSchema.asset.processingGeneration} + 1`,
+				})
+				.where(eq(dbSchema.asset.id, assetId));
+			yield* db
+				.update(dbSchema.blockAsset)
+				.set({
+					indexStatus: "pending",
+					indexFailure: null,
+					indexAttempt: sql`nextval('block_asset_index_attempt_seq')`,
+				})
+				.where(eq(dbSchema.blockAsset.assetId, assetId));
+		}),
+	);
+
+const metadataOf = (assetId: AssetId) =>
+	run(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.select({
+					status: dbSchema.asset.metadataStatus,
+					failure: dbSchema.asset.metadataFailure,
+				})
+				.from(dbSchema.asset)
+				.where(eq(dbSchema.asset.id, assetId));
+			return row;
+		}),
+	);
+
+describe("replaced and finished attempts", () => {
+	test(
+		"a repeated dead letter keeps the first outcome, and one for a replaced attempt changes nothing",
+		async () => {
+			const link = await seedLink();
+			const processing = deadLetter(processPayload(link.asset));
+			const indexing = deadLetter({
+				assetId: link.assetId,
+				blockId: link.blockId,
+				attempt: link.attempt,
+			});
+
+			await run(
+				markProcessingExhausted([
+					deadLetter(processing.data, "handler execution exceeded"),
+				]),
+			);
+			await run(
+				markIndexingExhausted([
+					deadLetter(indexing.data, "handler execution exceeded"),
+				]),
+			);
+			await run(
+				markProcessingExhausted([
+					processing,
+				]),
+			);
+			await run(
+				markIndexingExhausted([
+					indexing,
+				]),
+			);
+			expect(await processingOf(link.assetId)).toEqual({
+				status: "failed",
+				failure: "timeout",
+			});
+			expect(await indexingOf(link)).toEqual({
+				status: "failed",
+				failure: "timeout",
+			});
+
+			await processAgain(link.assetId);
+			await run(
+				markProcessingExhausted([
+					processing,
+				]),
+			);
+			await run(
+				markIndexingExhausted([
+					indexing,
+				]),
+			);
+			expect(await processingOf(link.assetId)).toEqual({
+				status: "pending",
+				failure: null,
+			});
+			expect(await indexingOf(link)).toEqual({
+				status: "pending",
+				failure: null,
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"an old delivery failing after a retry was admitted writes nothing and is not retried",
+		async () => {
+			const link = await seedLink();
+			const old = {
+				processing: processingAttempt(processPayload(link.asset)),
+				indexing: indexingAttempt(link),
+			};
+			await processAgain(link.assetId);
+
+			for (const failure of [
+				"extraction",
+				"unsupported",
+			] as const) {
+				await run(settleProcessingAttempt(old.processing, failWith(failure)));
+				await run(settleIndexingAttempt(old.indexing, failWith(failure)));
+			}
+
+			expect(await processingOf(link.assetId)).toEqual({
+				status: "pending",
+				failure: null,
+			});
+			expect(await indexingOf(link)).toEqual({
+				status: "pending",
+				failure: null,
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a metadata dead letter for an earlier generation changes nothing",
+		async () => {
+			const { asset } = await seedLink();
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.asset)
+						.set({
+							metadataStatus: "pending",
+							metadataGeneration: 2,
+						})
+						.where(eq(dbSchema.asset.id, asset.id));
+				}),
+			);
+			const job = (generation: number) =>
+				deadLetter({
+					assetId: asset.id,
+					userId: asset.userId,
+					generation,
+					mode: "apply" as const,
+				});
+
+			await run(
+				markMetadataExhausted([
+					job(1),
+				]),
+			);
+			expect(await metadataOf(asset.id)).toEqual({
+				status: "pending",
+				failure: null,
+			});
+
+			await run(
+				markMetadataExhausted([
+					job(2),
+				]),
+			);
+			await run(
+				markMetadataExhausted([
+					deadLetter(job(2).data, "handler execution exceeded"),
+				]),
+			);
+			expect(await metadataOf(asset.id)).toEqual({
 				status: "failed",
 				failure: "other",
 			});

@@ -11,6 +11,7 @@ export interface QdrantCollections {
 			readonly chunkIndex: "chunk_index";
 			readonly chunkPageStart: "chunkPageStart";
 			readonly chunkPageEnd: "chunkPageEnd";
+			readonly published: "published";
 		};
 	};
 }
@@ -28,6 +29,7 @@ export const qdrantCollections = Effect.gen(function* () {
 				chunkIndex: "chunk_index",
 				chunkPageStart: "chunkPageStart",
 				chunkPageEnd: "chunkPageEnd",
+				published: "published",
 			},
 		},
 	} satisfies QdrantCollections;

@@ -1,6 +1,5 @@
 import type { OrganizationId } from "@orcai/core";
-import { DB } from "@orcai/db";
-import { sql } from "drizzle-orm";
+import { advisoryXactLock, DB } from "@orcai/db";
 import * as Context from "effect/Context";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
@@ -29,7 +28,7 @@ export const recordRelationshipFacts = (...facts: RelationshipFact[]) =>
 const ORGANIZATION_LOCK_SPACE = 72370906;
 
 const lockOrganization = (organizationId: OrganizationId) =>
-	sql`SELECT pg_advisory_xact_lock(${ORGANIZATION_LOCK_SPACE}, hashtext(${organizationId}))`;
+	advisoryXactLock(ORGANIZATION_LOCK_SPACE, organizationId);
 
 class ScopeGrew extends Data.TaggedError("ScopeGrew")<{
 	readonly organizationIds: readonly OrganizationId[];

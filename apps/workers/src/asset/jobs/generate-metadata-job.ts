@@ -24,7 +24,6 @@ import {
 	isImageFileType,
 	type MetadataSuggestion,
 } from "@orcai/schema";
-import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { summarizeErrorCause } from "@/asset/error-summary";
 import {
@@ -34,8 +33,9 @@ import {
 } from "@/asset/image-descriptions";
 import {
 	AssetPipelineError,
+	currentMetadata,
 	settleMetadataAttempt,
-} from "@/asset/pipeline-failure";
+} from "@/asset/pipeline-attempt";
 
 const METADATA_TIMEOUT_MS = 120_000;
 
@@ -55,17 +55,9 @@ const claim = (data: GenerateAssetMetadataPayload) =>
 			.update(asset)
 			.set({
 				metadataStatus: "active",
+				metadataFailure: null,
 			})
-			.where(
-				and(
-					eq(asset.id, data.assetId),
-					eq(asset.metadataGeneration, data.generation),
-					inArray(asset.metadataStatus, [
-						"pending",
-						"active",
-					]),
-				),
-			)
+			.where(currentMetadata(data))
 			.returning({
 				fileType: asset.fileType,
 			});
@@ -158,7 +150,8 @@ const imageSuggestion = (params: {
  * In `review` mode the suggestion is kept whole. In `apply` mode it fills
  * empty fields on the row as it is now, so an edit saved meanwhile wins, and
  * keeps only what it could not apply. Either way only while the job's
- * generation is the asset's.
+ * generation is the asset's and unfinished, so a duplicate delivery stores
+ * nothing.
  */
 const store = (
 	data: GenerateAssetMetadataPayload,
@@ -167,10 +160,7 @@ const store = (
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { asset } = dbSchema;
-		const current = and(
-			eq(asset.id, data.assetId),
-			eq(asset.metadataGeneration, data.generation),
-		);
+		const current = currentMetadata(data);
 
 		if (data.mode === "review") {
 			yield* db

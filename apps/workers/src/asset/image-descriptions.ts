@@ -25,7 +25,7 @@ import { getImageAsBase64 } from "@orcai/s3/server";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { summarizeErrorCause } from "@/asset/error-summary";
-import { AssetPipelineError } from "@/asset/pipeline-failure";
+import { AssetPipelineError } from "@/asset/pipeline-attempt";
 
 /** A description that takes longer counts as failed. */
 const IMAGE_DESCRIPTION_TIMEOUT_MS = 120_000;

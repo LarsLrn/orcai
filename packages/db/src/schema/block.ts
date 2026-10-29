@@ -1,9 +1,12 @@
 import type { AssetId, BlockId, ChatId, UserId } from "@orcai/core";
 import type { PublicationStatus } from "@orcai/schema";
+import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
+	bigint,
 	integer,
 	json,
+	pgSequence,
 	pgTable,
 	primaryKey,
 	text,
@@ -69,6 +72,8 @@ export const chatBlock = pgTable(
 	],
 );
 
+export const indexAttemptSequence = pgSequence("block_asset_index_attempt_seq");
+
 export const blockAsset = pgTable(
 	"block_asset",
 	{
@@ -88,6 +93,19 @@ export const blockAsset = pgTable(
 			.notNull()
 			.default("pending"),
 		indexFailure: pipelineFailureEnum("index_failure"),
+		/**
+		 * The link's current indexing attempt, new on every admission and on a
+		 * relink; a delivery for another one changes nothing.
+		 */
+		indexAttempt: bigint("index_attempt", {
+			mode: "number",
+		})
+			.notNull()
+			.default(sql`nextval('block_asset_index_attempt_seq')`),
+		/** The last attempt that completed: the only one whose points retrieval serves. */
+		indexedAttempt: bigint("indexed_attempt", {
+			mode: "number",
+		}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
 	(table) => [

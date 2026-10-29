@@ -1,5 +1,6 @@
 import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { queueIndexing } from "@orcai/pg-boss";
 import {
 	type DocumentReadiness,
 	isRetryableFailure,
@@ -13,7 +14,6 @@ import * as Effect from "effect/Effect";
 import { reprocessAsset } from "@/lib/assets/processing";
 import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
-import { enqueueIndexing } from "@/lib/blocks/database-block";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 type PipelineRow = {
@@ -263,6 +263,7 @@ const loadDocuments = (params: {
 				...getColumns(dbSchema.asset),
 				indexStatus: dbSchema.blockAsset.indexStatus,
 				indexFailure: dbSchema.blockAsset.indexFailure,
+				indexAttempt: dbSchema.blockAsset.indexAttempt,
 			})
 			.from(dbSchema.blockAsset)
 			.innerJoin(
@@ -293,13 +294,16 @@ const runRetries = (params: {
 		const admitted = yield* Effect.forEach(params.processing, reprocessAsset, {
 			concurrency: 4,
 		});
-		yield* enqueueIndexing({
-			blockId: params.blockId,
-			assetIds: params.indexing.map((document) => document.id),
-		});
+		const indexing = yield* queueIndexing(
+			params.indexing.map((document) => ({
+				assetId: document.id,
+				blockId: params.blockId,
+				attempt: document.indexAttempt,
+			})),
+		);
 		return {
 			processing: admitted.filter(Boolean).length,
-			indexing: params.indexing.length,
+			indexing: indexing.length,
 		};
 	});
 
@@ -352,7 +356,8 @@ export const retryDocument = (params: { blockId: BlockId; assetId: AssetId }) =>
 						]
 					: [],
 		});
-		if (stage === "processing" && retried.processing === 0) {
+		// Another request admitted the stage since the document was read.
+		if (retried[stage] === 0) {
 			return yield* new AppErrors.BadRequestError({
 				reason: "DOCUMENT_STILL_PREPARING",
 				message: "The document is still being prepared",

@@ -10,7 +10,7 @@ import {
 } from "@orcai/qdrant";
 import type { AssetPoint, assetPointsFiltersSchema } from "@orcai/schema";
 import { serve } from "bun";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
@@ -171,7 +171,10 @@ const repositoryOf = async (documents: number[][]) => {
 			await procedureOptions(owner, assets.zedToken ?? zedToken),
 		),
 	);
-	await storeChunks(block.data.id, assets.result, documents);
+	const indexed = await completeLinks(block.data.id);
+	await storeChunks(block.data.id, assets.result, documents, (assetId) =>
+		indexed.get(assetId),
+	);
 
 	const search = async (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 		run(
@@ -194,14 +197,43 @@ const repositoryOf = async (documents: number[][]) => {
 
 	return {
 		assets: assets.result,
+		blockId: block.data.id,
+		indexed,
 		search,
 	};
 };
 
+/** Each link's completed attempt, as the indexer leaves it. */
+const completeLinks = (blockId: BlockId) =>
+	run(
+		Effect.gen(function* () {
+			const links = yield* (yield* DB)
+				.update(dbSchema.blockAsset)
+				.set({
+					indexStatus: "completed",
+					indexedAttempt: sql`${dbSchema.blockAsset.indexAttempt}`,
+				})
+				.where(eq(dbSchema.blockAsset.blockId, blockId))
+				.returning({
+					assetId: dbSchema.blockAsset.assetId,
+					attempt: dbSchema.blockAsset.indexAttempt,
+				});
+			return new Map(
+				links.map((link) => [
+					link.assetId,
+					link.attempt,
+				]),
+			);
+		}),
+	);
+
+/** Points of `documents` at these similarities, written by `attempt` of each asset's link. */
 const storeChunks = (
 	blockId: BlockId,
 	assets: AssetId[],
 	documents: number[][],
+	attempt: (assetId: AssetId) => number | undefined,
+	published?: boolean,
 ) =>
 	run(
 		Effect.gen(function* () {
@@ -221,6 +253,8 @@ const storeChunks = (
 							chunk_index: index,
 							chunkCount: all.length,
 							createdAt: new Date().toISOString(),
+							index_attempt: attempt(assetId),
+							published,
 						},
 					})),
 				),
@@ -409,6 +443,100 @@ describe("asset titles", () => {
 
 			expect(await titles()).toEqual([
 				"Final title",
+			]);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("served points", () => {
+	/**
+	 * A repository whose one document's indexed chunk is weak, as the newer
+	 * attempt's indexing leaves it: `completed` once its completion commits.
+	 */
+	const reindexing = async ({ completed }: { completed: boolean }) => {
+		const repository = await repositoryOf([
+			[
+				WEAK,
+			],
+		]);
+		const [assetId] = repository.assets;
+		const newer = (repository.indexed.get(assetId) ?? 0) + 1;
+		await run(
+			Effect.gen(function* () {
+				yield* (yield* DB)
+					.update(dbSchema.blockAsset)
+					.set(
+						completed
+							? {
+									indexAttempt: newer,
+									indexedAttempt: newer,
+								}
+							: {
+									indexStatus: "active",
+									indexAttempt: newer,
+								},
+					)
+					.where(eq(dbSchema.blockAsset.blockId, repository.blockId));
+			}),
+		);
+		/** Strong chunks of the newer attempt. */
+		const writeNewer = (published: boolean) =>
+			storeChunks(
+				repository.blockId,
+				[
+					assetId,
+				],
+				[
+					chunks(3, STRONG),
+				],
+				() => newer,
+				published,
+			);
+		return {
+			...repository,
+			writeNewer,
+		};
+	};
+
+	for (const completed of [
+		false,
+		true,
+	]) {
+		test(
+			`unpublished chunks of a newer attempt leave the indexed ones served (${completed ? "completed, before its flip" : "running"})`,
+			async () => {
+				const { search, writeNewer } = await reindexing({
+					completed,
+				});
+				await writeNewer(false);
+
+				const { data } = await search({
+					limit: 1,
+				});
+
+				expect(similarities(data)).toEqual([
+					WEAK,
+				]);
+			},
+			TIMEOUT,
+		);
+	}
+
+	test(
+		"while both attempts are published, the newer one's chunks fill a small limit",
+		async () => {
+			const { search, writeNewer } = await reindexing({
+				completed: true,
+			});
+			await writeNewer(true);
+
+			const { data } = await search({
+				limit: 1,
+			});
+
+			expect(similarities(data)).toEqual([
+				STRONG,
 			]);
 		},
 		TIMEOUT,

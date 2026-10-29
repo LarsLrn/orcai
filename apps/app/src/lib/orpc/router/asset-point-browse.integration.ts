@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
+import { DB, dbSchema } from "@orcai/db";
 import { QdrantService, upsertPointsToQdrant } from "@orcai/qdrant";
 import type { AssetPointBrowseCursor } from "@orcai/schema";
+import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	type Actor,
@@ -39,11 +41,53 @@ type Passage = {
 	source?: "text" | "image";
 };
 
-/** Index `passages` for the asset in the repository, numbered in order. */
-const index = (blockId: BlockId, assetId: AssetId, passages: Passage[]) =>
+/**
+ * Index `passages` for the asset in the repository, numbered in order, as the
+ * link's completed attempt; or, `newer`, as a newer attempt with that publication.
+ */
+const index = (
+	blockId: BlockId,
+	assetId: AssetId,
+	passages: Passage[],
+	{
+		newer,
+	}: {
+		newer?: {
+			published: boolean;
+		};
+	} = {},
+) =>
 	run(
 		Effect.gen(function* () {
 			const { collections } = yield* QdrantService;
+			const link = and(
+				eq(dbSchema.blockAsset.blockId, blockId),
+				eq(dbSchema.blockAsset.assetId, assetId),
+			);
+			const [completed] = newer
+				? []
+				: yield* (yield* DB)
+						.update(dbSchema.blockAsset)
+						.set({
+							indexStatus: "completed",
+							indexedAttempt: sql`${dbSchema.blockAsset.indexAttempt}`,
+						})
+						.where(link)
+						.returning({
+							attempt: dbSchema.blockAsset.indexAttempt,
+						});
+			const [running] = newer
+				? yield* (yield* DB)
+						.update(dbSchema.blockAsset)
+						.set({
+							indexStatus: "active",
+							indexAttempt: sql`nextval('block_asset_index_attempt_seq')`,
+						})
+						.where(link)
+						.returning({
+							attempt: dbSchema.blockAsset.indexAttempt,
+						})
+				: [];
 			const vector = Array.from(
 				{
 					length: collections.asset.dimensions,
@@ -58,7 +102,7 @@ const index = (blockId: BlockId, assetId: AssetId, passages: Passage[]) =>
 						source: passage.source ?? "text",
 						asset_id: assetId,
 						block_id: blockId,
-						text: `${assetId} passage ${chunkIndex}`,
+						text: `${assetId} ${newer ? "newer" : "passage"} ${chunkIndex}`,
 						title: "Integration",
 						chunkPageStart: passage.page,
 						chunkPageEnd: passage.page,
@@ -67,6 +111,8 @@ const index = (blockId: BlockId, assetId: AssetId, passages: Passage[]) =>
 						chunk_index: chunkIndex,
 						chunkCount: passages.length,
 						createdAt: new Date().toISOString(),
+						index_attempt: (completed ?? running)?.attempt,
+						published: newer?.published,
 					},
 				})),
 			});
@@ -175,6 +221,92 @@ describe("browsing a repository's passages", () => {
 				20,
 			]);
 			expect(new Set(pages.flat()).size).toBe(120);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"reads only served passages, though unpublished ones come first",
+		async () => {
+			const { owner, assets, blockId, zedToken } = await repositoryWith(1);
+			const [document] = assets;
+			await index(
+				blockId,
+				document,
+				passages(3, () => 2),
+			);
+			await index(
+				blockId,
+				document,
+				passages(60, () => 1),
+				{
+					newer: {
+						published: false,
+					},
+				},
+			);
+
+			for (const assetId of [
+				document,
+				undefined,
+			]) {
+				expect(
+					(
+						await browseAll(owner, zedToken, {
+							repositoryId: blockId,
+							assetId,
+						})
+					).map((page) =>
+						[
+							...page,
+						].sort(),
+					),
+				).toEqual([
+					[
+						`${document} passage 0`,
+						`${document} passage 1`,
+						`${document} passage 2`,
+					],
+				]);
+			}
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"reads both attempts' passages while both are published",
+		async () => {
+			const { owner, assets, blockId, zedToken } = await repositoryWith(1);
+			const [document] = assets;
+			await index(
+				blockId,
+				document,
+				passages(2, () => 2),
+			);
+			await index(
+				blockId,
+				document,
+				passages(2, () => 1),
+				{
+					newer: {
+						published: true,
+					},
+				},
+			);
+
+			expect(
+				await browseAll(owner, zedToken, {
+					repositoryId: blockId,
+					assetId: document,
+				}),
+			).toEqual([
+				[
+					`${document} newer 0`,
+					`${document} newer 1`,
+					`${document} passage 0`,
+					`${document} passage 1`,
+				],
+			]);
 		},
 		TIMEOUT,
 	);

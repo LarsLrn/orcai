@@ -1,12 +1,12 @@
 import type { AssetId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatch } from "@orcai/pg-boss";
+import { queueProcessing, sendJobBatch } from "@orcai/pg-boss";
 import {
 	type AssetFileType,
 	type BucketName,
 	PROCESS_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
 type ProcessableAsset = {
@@ -19,7 +19,7 @@ type ProcessableAsset = {
 
 /**
  * Queues processing of a pending asset. A failed enqueue marks the asset
- * failed, so Retry shows.
+ * failed, so Retry shows, unless another generation was started meanwhile.
  */
 export const enqueueAssetProcessing = (asset: ProcessableAsset) =>
 	Effect.gen(function* () {
@@ -48,63 +48,28 @@ export const enqueueAssetProcessing = (asset: ProcessableAsset) =>
 						processingStatus: "failed",
 						processingFailure: "other",
 					})
-					.where(eq(dbSchema.asset.id, asset.id)),
+					.where(
+						and(
+							eq(dbSchema.asset.id, asset.id),
+							eq(
+								dbSchema.asset.processingGeneration,
+								asset.processingGeneration,
+							),
+							eq(dbSchema.asset.processingStatus, "pending"),
+						),
+					),
 			),
 		);
 	});
 
 /**
  * Processes a completed or failed asset again, as its next processing
- * generation. The asset and every repository link turn pending in one
- * transaction, so no repository claims ready for vectors about to be
- * replaced. Returns false, and queues nothing, when the asset is already
- * pending or being processed.
+ * generation. Returns false, and queues nothing, when the asset is already
+ * pending or being processed, or another request started a generation since
+ * the caller read it.
  */
-export const reprocessAsset = (
-	asset: Omit<ProcessableAsset, "processingGeneration">,
-) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-
-		const generation = yield* db.transaction(() =>
-			Effect.gen(function* () {
-				const reset = yield* db
-					.update(dbSchema.asset)
-					.set({
-						processingStatus: "pending",
-						processingFailure: null,
-						processingGeneration: sql`${dbSchema.asset.processingGeneration} + 1`,
-					})
-					.where(
-						and(
-							eq(dbSchema.asset.id, asset.id),
-							inArray(dbSchema.asset.processingStatus, [
-								"completed",
-								"failed",
-							]),
-						),
-					)
-					.returning({
-						processingGeneration: dbSchema.asset.processingGeneration,
-					});
-				const [admitted] = reset;
-				if (!admitted) return undefined;
-
-				yield* db
-					.update(dbSchema.blockAsset)
-					.set({
-						indexStatus: "pending",
-						indexFailure: null,
-					})
-					.where(eq(dbSchema.blockAsset.assetId, asset.id));
-				return admitted.processingGeneration;
-			}),
-		);
-
-		if (generation === undefined) return false;
-		yield* enqueueAssetProcessing({
-			...asset,
-			processingGeneration: generation,
-		});
-		return true;
-	});
+export const reprocessAsset = (asset: ProcessableAsset) =>
+	queueProcessing(asset, [
+		"completed",
+		"failed",
+	]).pipe(Effect.map((generation) => generation !== undefined));

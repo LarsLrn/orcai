@@ -6,6 +6,31 @@ import z from "zod/v4";
 import { QdrantError } from "./errors";
 import { QdrantService } from "./service";
 
+const asArray = <T>(value: T | T[] | null | undefined) =>
+	value == null
+		? []
+		: Array.isArray(value)
+			? value
+			: [
+					value,
+				];
+
+/** `filter`, leaving out points whose attempt has not completed. */
+export const servedFilter = (
+	filter: Schemas["Filter"] | undefined,
+): Schemas["Filter"] => ({
+	...filter,
+	must_not: [
+		...asArray(filter?.must_not),
+		{
+			key: "published",
+			match: {
+				value: false,
+			},
+		},
+	],
+});
+
 /** Qdrant records as asset points; records without a score or version get 0. */
 export const parseAssetPoints = (points: ReadonlyArray<object>) =>
 	Effect.try({
@@ -30,6 +55,7 @@ export const parseAssetPoints = (points: ReadonlyArray<object>) =>
 			}),
 	});
 
+/** The served points matching `filter`, ranked by `retrievalMode`. */
 export const queryAssetPoints = (params: {
 	embedding?: number[];
 	text?: string;
@@ -49,6 +75,7 @@ export const queryAssetPoints = (params: {
 		const hasEmbedding =
 			Array.isArray(params.embedding) && params.embedding.length > 0;
 		const hasText = typeof params.text === "string" && params.text.length > 0;
+		const filter = servedFilter(params.filter);
 
 		const points = yield* Effect.tryPromise({
 			try: async () => {
@@ -60,7 +87,7 @@ export const queryAssetPoints = (params: {
 					const response = await client.query(collections.asset.name, {
 						query: params.embedding,
 						using: "dense",
-						filter: params.filter,
+						filter,
 						limit: resolvedLimit,
 						with_payload: withPayload,
 						with_vector: withVector,
@@ -81,7 +108,7 @@ export const queryAssetPoints = (params: {
 							options: bm25Config,
 						},
 						using: "bm25",
-						filter: params.filter,
+						filter,
 						limit: resolvedLimit,
 						with_payload: withPayload,
 						with_vector: withVector,
@@ -105,13 +132,13 @@ export const queryAssetPoints = (params: {
 									options: bm25Config,
 								},
 								using: "bm25",
-								filter: params.filter,
+								filter,
 								limit: Math.max(resolvedLimit, 20),
 							},
 							{
 								query: params.embedding,
 								using: "dense",
-								filter: params.filter,
+								filter,
 								limit: Math.max(resolvedLimit, 20),
 								score_threshold: params.scoreThreshold,
 							},
@@ -128,7 +155,7 @@ export const queryAssetPoints = (params: {
 
 				const queryMetadataOnly = async () => {
 					const response = await client.scroll(collections.asset.name, {
-						filter: params.filter,
+						filter,
 						limit: resolvedLimit,
 						with_payload: withPayload,
 						with_vector: withVector,
