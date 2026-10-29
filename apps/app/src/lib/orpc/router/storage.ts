@@ -21,6 +21,7 @@ import {
 } from "@orcai/s3/server";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
+import { downloadName } from "@/lib/assets/download-name";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -249,6 +250,7 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 					bucket: true,
 					prefix: true,
 					fileType: true,
+					title: true,
 				},
 			})
 			.pipe(
@@ -290,6 +292,10 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 			bucket: input.objectKey ? buckets.processed.name : asset.bucket,
 			key: filePath,
 			expiresIn: expiry,
+			filename:
+				input.attachment && !input.objectKey
+					? downloadName(asset.title, asset.fileType)
+					: undefined,
 		}).pipe(
 			Effect.map((presignedUrl) => ({
 				url: presignedUrl,

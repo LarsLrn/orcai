@@ -16,6 +16,8 @@ export const createUploadUrlsInputSchema = z.object({
 export const createDownloadUrlInputSchema = z.object({
 	id: assetIdSchema,
 	objectKey: z.string().min(1).optional(),
+	/** Makes the browser save the file under the asset's name instead of showing it. */
+	attachment: z.boolean().optional(),
 });
 
 const multipartControlBaseSchema = z.object({
