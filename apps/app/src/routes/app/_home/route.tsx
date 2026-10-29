@@ -79,7 +79,14 @@ function RouteComponent() {
 							<TabsTrigger
 								value="use"
 								nativeButton={false}
-								render={<Link to="/app" />}
+								render={
+									<Link
+										to="/app"
+										search={{
+											view: "use",
+										}}
+									/>
+								}
 							>
 								<MessageSquareIcon />
 								{m.home_view_use_tab()}
