@@ -8,6 +8,7 @@ import {
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import {
+	completionRequests,
 	messageText,
 	openChat,
 	setUpChatModel,
@@ -62,6 +63,8 @@ const CLARIFYING: JsonValue = {
 };
 
 const QUIZ_TITLE = "Capitals";
+
+const REMARK = "Half the points; Asia needs work.";
 
 const QUIZ: JsonValue = {
 	mode: "quiz",
@@ -209,17 +212,22 @@ test("questions: the assistant asks, and continues the same reply with the answe
 	await expect(questionsButton(card, "questions_submit_action")).toHaveCount(0);
 });
 
-test("questions: a bot's quiz is answered, submitted and graded with the computed score", async ({
+const takeQuiz = async ({
 	api,
 	inference,
 	org,
 	pageAs,
+	quota,
+}: Pick<
+	Parameters<Parameters<typeof test>[2]>[0],
+	"api" | "inference" | "org" | "pageAs"
+> & {
+	quota?: Parameters<typeof setUpChatModel>[2];
 }) => {
-	const model = await setUpChatModel(api, inference);
+	const model = await setUpChatModel(api, inference, quota);
 	const member = api.as("member");
 	const bot = await createBot(member, QUESTIONS);
 	const chatId = await createBotChat(member, model, bot.id);
-	const remark = "Half the points; Asia needs work.";
 	inference.script(
 		{
 			text: "Here is your quiz.",
@@ -236,7 +244,7 @@ test("questions: a bot's quiz is answered, submitted and graded with the compute
 			],
 		},
 		{
-			text: remark,
+			text: REMARK,
 		},
 	);
 
@@ -272,9 +280,28 @@ test("questions: a bot's quiz is answered, submitted and graded with the compute
 		.fill("Kyoto");
 	await questionsButton(card, "questions_submit_quiz_action").click();
 
-	await expect(messageText(page, remark)).toBeVisible();
+	await expect(messageText(page, REMARK)).toBeVisible();
 	await turnFinished(page);
-	const log = page.getByRole("log");
+
+	return {
+		model,
+		page,
+		log: page.getByRole("log"),
+	};
+};
+
+test("questions: a bot's quiz is answered, submitted and graded with the computed score", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const { page, log } = await takeQuiz({
+		api,
+		inference,
+		org,
+		pageAs,
+	});
 	await expect(
 		log.getByText(score(2, 4), {
 			exact: true,
@@ -304,6 +331,40 @@ test("questions: a bot's quiz is answered, submitted and graded with the compute
 		messageText(page, message("gen_ui_quiz_practice_message")),
 	).toBeVisible();
 	await expect(messageText(page, "Let us practise Asia.")).toBeVisible();
+});
+
+test("questions: practising is disabled with the notice once the pool is used up", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	// The quiz takes three requests, which uses the pool up.
+	const { page, log } = await takeQuiz({
+		api,
+		inference,
+		org,
+		pageAs,
+		quota: {
+			meteringMode: "requests",
+			budgetAmount: 3,
+		},
+	});
+	const requests = completionRequests(inference).length;
+
+	const notice = page.getByRole("status").filter({
+		hasText: message("chat_quota_exhausted_notice_title"),
+	});
+	const practice = log.getByRole("button", {
+		name: message("gen_ui_quiz_practice_action"),
+	});
+	await expect(notice).toBeVisible();
+	await expect(practice).toBeDisabled();
+
+	await page.reload();
+	await expect(notice).toBeVisible();
+	await expect(practice).toBeDisabled();
+	expect(completionRequests(inference)).toHaveLength(requests);
 });
 
 test("questions: skipping tells the model the user declined", async ({
