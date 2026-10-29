@@ -47,14 +47,21 @@ const runtime = ManagedRuntime.make(
 	),
 );
 
+/** The file's own queues, each before its dead letter queue. */
+const ownQueues: string[] = [];
+
 beforeAll(() => boss.start(), TIMEOUT);
 afterAll(async () => {
+	for (const name of ownQueues) {
+		await boss.offWork(name);
+		await boss.deleteQueue(name);
+	}
 	await boss.stop({
 		graceful: false,
 		timeout: 1000,
 	});
 	await runtime.dispose();
-});
+}, TIMEOUT);
 
 const run = <A, E>(
 	effect: Effect.Effect<
@@ -155,6 +162,7 @@ const pipelineQueue = async <T extends object>(params: {
 	const name = `test-pipeline-${crypto.randomUUID()}`;
 	const deadLetter = `${name}-dead-letter`;
 	let attempts = 0;
+	ownQueues.push(name, deadLetter);
 	await boss.createQueue(deadLetter);
 	await boss.createQueue(name, {
 		retryLimit: params.retryLimit,
