@@ -142,6 +142,7 @@ function RouteComponent() {
 							actions.edit,
 							actions.access,
 							actions.listing,
+							actions.addBlocks,
 							actions.delete,
 							actions.remove,
 						]}

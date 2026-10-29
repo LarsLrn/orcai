@@ -179,6 +179,7 @@ const reasonMessages: ReasonMessages = {
 	REPOSITORY_NOT_FOUND: m.error_repository_not_found,
 	REQUEST_HEADERS_REQUIRED: m.error_request_headers_required,
 	RESOURCE_HOME_ORGANIZATION: m.error_resource_home_organization,
+	RESOURCE_NOT_INSTALLED: m.error_resource_not_installed,
 	RESOURCE_NOT_LISTED: m.error_resource_not_listed,
 	RESOURCE_NOT_USABLE_IN_ORGANIZATION:
 		m.error_resource_not_usable_in_organization,

@@ -5,6 +5,7 @@ import {
 	listCatalogue,
 } from "@/lib/catalogue/catalogue-browse";
 import {
+	installBotBlocks,
 	installResource,
 	uninstallResource,
 } from "@/lib/catalogue/install-resource";
@@ -53,6 +54,23 @@ const install = authed.catalogue.install
 		};
 	});
 
+const installBlocks = authed.catalogue.installBlocks
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		return {
+			data: {
+				addedBlocks: yield* installBotBlocks({
+					botId: input.botId,
+					organizationId: context.auth.session.activeOrganizationId,
+					actor: {
+						userId: context.auth.user.id,
+						zedToken: getZedToken(context, input),
+					},
+				}),
+			},
+		};
+	});
+
 const uninstall = authed.catalogue.uninstall
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
@@ -75,5 +93,6 @@ export const catalogueRouter = {
 	counts,
 	find,
 	install,
+	installBlocks,
 	uninstall,
 };

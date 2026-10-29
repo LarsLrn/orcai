@@ -3,6 +3,8 @@ import {
 	catalogueCountsResponseSchema,
 	findCatalogueEntryInputSchema,
 	findCatalogueEntryResponseSchema,
+	installCatalogueBotBlocksInputSchema,
+	installCatalogueBotBlocksResponseSchema,
 	installCatalogueEntryInputSchema,
 	installCatalogueEntryResponseSchema,
 	listCatalogueInputSchema,
@@ -67,6 +69,20 @@ export const catalogueContracts = {
 		)
 		.input(installCatalogueEntryInputSchema)
 		.output(installCatalogueEntryResponseSchema),
+	installBlocks: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/catalogue/install-blocks",
+				summary:
+					"Add the behaviour and repositories of a bot the active organisation added",
+				tags: [
+					"Catalogue",
+				],
+			}),
+		)
+		.input(installCatalogueBotBlocksInputSchema)
+		.output(installCatalogueBotBlocksResponseSchema),
 	uninstall: base
 		.meta(
 			openapi({

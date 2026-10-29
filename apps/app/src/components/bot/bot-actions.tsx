@@ -3,6 +3,7 @@ import { EditIcon, KeyRoundIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { useListingAction } from "@/components/access/listing-action";
+import { useAddBlocksAction } from "@/components/catalogue/add-blocks-action";
 import {
 	type Installer,
 	removeAction,
@@ -79,7 +80,10 @@ const useBotActions = (
 	}: {
 		/** After deleting the bot, or removing it from the organisation. */
 		onDeleted?: () => Promise<void>;
-		/** Offers listing in the catalogue, reading the bot's listing. */
+		/**
+		 * On the bot's page: offers listing in the catalogue, reading the
+		 * bot's listing, and adding the blocks of a bot added without them.
+		 */
 		listing?: boolean;
 	} = {},
 ) => {
@@ -95,6 +99,17 @@ const useBotActions = (
 				listing &&
 				bot.installedFrom === null &&
 				hasCapability(bot.capabilities, "manage_access"),
+		},
+	);
+	const addBlocks = useAddBlocksAction(
+		{
+			resourceType: "bot",
+			resourceId: bot.id,
+		},
+		bot.name,
+		{
+			enabled: listing && bot.installedFrom !== null,
+			overflow: true,
 		},
 	);
 	const { mutate: uninstall } = useUninstallMutation(
@@ -144,6 +159,7 @@ const useBotActions = (
 		actions: {
 			...actions,
 			listing: listingAction,
+			addBlocks,
 		},
 		dialog: actions.access ? (
 			<AccessDialog

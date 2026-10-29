@@ -338,11 +338,8 @@ test("catalogue: an entry's page is a page of its own, and Back restores the gri
 	await expect.poll(() => scrollTop(page)).toBeCloseTo(scrolled, -1);
 });
 
-test("catalogue: adding a bot with its blocks puts its behaviour and repository in the Library", async ({
-	api,
-	orgs,
-	pageAs,
-}) => {
+/** A listed bot with a behaviour and a repository, made in the worker's organisation. */
+const listedBotWithBlocks = async (api: Api) => {
 	const id = runId();
 	const author = api.as("member");
 	const template = await author.block.create({
@@ -382,6 +379,20 @@ test("catalogue: adding a bot with its blocks puts its behaviour and repository 
 			repository.data.id,
 		],
 	});
+	return {
+		id,
+		bot,
+		template: template.data,
+		repository: repository.data,
+	};
+};
+
+test("catalogue: adding a bot with its blocks puts its behaviour and repository in the Library", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const { id, bot, template, repository } = await listedBotWithBlocks(api);
 
 	const other = await orgs.create(`E2E Catalogue Blocks ${id}`);
 	const page = await pageAs("admin", other);
@@ -404,12 +415,76 @@ test("catalogue: adding a bot with its blocks puts its behaviour and repository 
 	await open(page, `/app/library?query=${id}`);
 	for (const name of [
 		bot.name,
-		template.data.name,
-		repository.data.name,
+		template.name,
+		repository.name,
 	])
 		await expect(
 			page.getByRole("link", {
 				name,
 			}),
 		).toBeVisible();
+});
+
+test("catalogue: a bot added without its blocks gets them from its Library menu", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const { id, bot, template, repository } = await listedBotWithBlocks(api);
+	const other = await orgs.create(`E2E Catalogue Later ${id}`);
+	await apiIn(api, other)
+		.as("admin")
+		.catalogue.install({
+			entry: {
+				resourceType: "bot",
+				resourceId: bot.id,
+			},
+		});
+	const label = `Add its behaviour and its repository to ${other.name}`;
+
+	const page = await pageAs("admin", other);
+	await enterApp(page, other.slug);
+	await open(page, `/app/catalogue/bots/${bot.id}`);
+	await expect(
+		page.getByRole("button", {
+			name: label,
+		}),
+	).toBeVisible();
+
+	await open(page, `/app/library/bots/${bot.id}`);
+	await page
+		.getByRole("button", {
+			name: message("common_more_actions"),
+		})
+		.click();
+	await page
+		.getByRole("menuitem", {
+			name: label,
+		})
+		.click();
+	await expect(
+		page.getByText(`2 blocks of ${bot.name} are in ${other.name} now`),
+	).toBeVisible();
+
+	await open(page, `/app/library?query=${id}`);
+	for (const name of [
+		template.name,
+		repository.name,
+	])
+		await expect(
+			page.getByRole("link", {
+				name,
+			}),
+		).toBeVisible();
+	await open(page, `/app/catalogue/bots/${bot.id}`);
+	await expect(
+		page.getByRole("link", {
+			name: message("catalogue_open_in_library_action"),
+		}),
+	).toBeVisible();
+	await expect(
+		page.getByRole("button", {
+			name: label,
+		}),
+	).toHaveCount(0);
 });

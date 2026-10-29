@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 import { useId, useState } from "react";
 import {
+	addBlocksLabel,
+	useAddBlocksAction,
+} from "@/components/catalogue/add-blocks-action";
+import {
 	useActiveOrganizationName,
 	useInstaller,
 } from "@/components/catalogue/installer";
@@ -68,28 +72,6 @@ const RowList = ({ children }: { children: React.ReactNode }) => (
 	<ul className="flex flex-col divide-y rounded-2xl border">{children}</ul>
 );
 
-/** "Also add its behaviour and N repositories", for the blocks not added yet. */
-const addBlocksLabel = (
-	blocks: CatalogueEntryDetail["blocks"],
-	organisation: string,
-) => {
-	const behaviour = blocks.some((block) => block.type === "template");
-	const count = blocks.filter((block) => block.type === "database").length;
-	if (count === 0)
-		return m.catalogue_detail_add_blocks_behaviour({
-			organisation,
-		});
-	return behaviour
-		? m.catalogue_detail_add_blocks_both({
-				organisation,
-				count,
-			})
-		: m.catalogue_detail_add_blocks_repositories({
-				organisation,
-				count,
-			});
-};
-
 /** Whether "Add" adds the bot's blocks not added yet too; unticked at first. */
 const AddBlocksOption = ({
 	blocks,
@@ -112,7 +94,7 @@ const AddBlocksOption = ({
 			/>
 			<FieldContent>
 				<FieldLabel htmlFor={id} className="font-normal">
-					{addBlocksLabel(blocks, organisation)}
+					{addBlocksLabel(blocks, organisation, "also")}
 				</FieldLabel>
 				<FieldDescription className="text-xs">
 					{m.catalogue_detail_add_blocks_description()}
@@ -309,6 +291,9 @@ export const CatalogueEntryPage = ({
 		(block) => block.state === "available",
 	);
 	const [withBlocks, setWithBlocks] = useState(false);
+	const addBlocks = useAddBlocksAction(ref, entry.name, {
+		enabled: true,
+	});
 	const openInLibrary = {
 		key: "open",
 		label: m.catalogue_open_in_library_action(),
@@ -374,6 +359,7 @@ export const CatalogueEntryPage = ({
 										},
 									]
 								: [
+										addBlocks,
 										openInLibrary,
 									]
 						}

@@ -109,6 +109,13 @@ export const installCatalogueEntryResponseSchema = createDataResponseSchema(
 	}),
 );
 
+export const installCatalogueBotBlocksResponseSchema = createDataResponseSchema(
+	z.object({
+		/** Those the organisation had are skipped. */
+		addedBlocks: z.number().int(),
+	}),
+);
+
 export const uninstallCatalogueEntryResponseSchema = createDataResponseSchema(
 	z.object({
 		/** False when the organisation did not have it. */

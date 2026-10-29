@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { botIdSchema } from "../bot/ref";
 import { organizationIdSchema } from "../organization/ref";
 import {
 	blockResourceIdentitySchema,
@@ -59,6 +60,12 @@ export const installCatalogueEntryInputSchema = z.object({
 	withBlocks: z.boolean().default(false),
 });
 
+/** Adds the blocks of a bot the organisation added, not the bot itself. */
+export const installCatalogueBotBlocksInputSchema = z.object({
+	...zedTokenSchema.shape,
+	botId: botIdSchema,
+});
+
 export const uninstallCatalogueEntryInputSchema = z.object({
 	...zedTokenSchema.shape,
 	entry: catalogueEntryRefSchema,
@@ -74,6 +81,9 @@ export type FindCatalogueEntryInput = z.infer<
 >;
 export type InstallCatalogueEntryInput = z.infer<
 	typeof installCatalogueEntryInputSchema
+>;
+export type InstallCatalogueBotBlocksInput = z.infer<
+	typeof installCatalogueBotBlocksInputSchema
 >;
 export type UninstallCatalogueEntryInput = z.infer<
 	typeof uninstallCatalogueEntryInputSchema
