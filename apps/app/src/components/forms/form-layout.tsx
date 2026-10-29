@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
 	Page,
 	PageContent,
+	PageDescription,
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
@@ -13,14 +14,17 @@ import { m } from "@/paraglide/messages";
 /** A form page: the title and the form share one centred column. */
 const FormPage = ({
 	title,
+	description,
 	children,
 }: {
 	title: string;
+	description?: string;
 	children: React.ReactNode;
 }) => (
 	<Page>
 		<PageHeader className="mx-auto w-full max-w-3xl">
 			<PageTitle>{title}</PageTitle>
+			{description && <PageDescription>{description}</PageDescription>}
 		</PageHeader>
 		<PageContent className="mx-auto w-full max-w-3xl">{children}</PageContent>
 	</Page>

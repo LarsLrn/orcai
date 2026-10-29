@@ -4154,6 +4154,8 @@
 	"orgs_form_model_clear_action": "Clear",
 	"orgs_form_name_label": "Organisation name",
 	"orgs_form_name_placeholder": "Your organisation",
+	"orgs_form_section_features_title": "Features",
+	"orgs_form_section_models_title": "Models",
 	"orgs_form_slug_label": "Slug",
 	"orgs_form_slug_placeholder": "your-organisation",
 	"orgs_form_description_label": "About the organisation",

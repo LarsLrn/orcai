@@ -4154,6 +4154,8 @@
 	"orgs_form_model_clear_action": "Entfernen",
 	"orgs_form_name_label": "Name der Organisation",
 	"orgs_form_name_placeholder": "Ihre Organisation",
+	"orgs_form_section_features_title": "Funktionen",
+	"orgs_form_section_models_title": "Modelle",
 	"orgs_form_slug_label": "Slug",
 	"orgs_form_slug_placeholder": "ihre-organisation",
 	"orgs_form_description_label": "Über die Organisation",
