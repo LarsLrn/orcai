@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { MetadataCard } from "@/components/app/metadata-card";
+import { OrganizationLogoSettings } from "@/components/images/image-settings";
 import { OrganizationForm } from "@/components/organizations/form/organization-form";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -45,7 +46,8 @@ function RouteComponent() {
 			</PageHeader>
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<Card className="lg:col-span-2">
-					<CardContent>
+					<CardContent className="flex flex-col gap-6">
+						<OrganizationLogoSettings organization={organization.data} />
 						<OrganizationForm
 							key={organization.data.id}
 							action="update"

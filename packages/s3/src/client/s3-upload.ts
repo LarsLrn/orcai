@@ -41,15 +41,12 @@ export async function uploadFileToS3(params: {
 		};
 
 		xhr.open("PUT", params.signedUrl, true);
-		xhr.setRequestHeader(
-			"Content-Type",
-			params.file.type || "application/octet-stream",
-		);
-
-		if (params.signedHeaders) {
-			for (const [key, value] of Object.entries(params.signedHeaders)) {
-				xhr.setRequestHeader(key, value);
-			}
+		// setRequestHeader appends to a header already set, so each is set once.
+		for (const [key, value] of Object.entries({
+			"Content-Type": params.file.type || "application/octet-stream",
+			...params.signedHeaders,
+		})) {
+			xhr.setRequestHeader(key, value);
 		}
 
 		xhr.send(params.file);
