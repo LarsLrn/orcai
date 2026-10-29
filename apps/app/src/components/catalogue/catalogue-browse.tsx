@@ -222,6 +222,7 @@ export const CatalogueBrowse = ({
 					/>
 					{showFilters ? (
 						<FilterFields
+							className="px-3"
 							filters={filters}
 							values={search}
 							onChange={setFilter}
