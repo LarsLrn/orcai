@@ -8,6 +8,7 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTableExportButton } from "@/components/ui/data-table/data-table-export-button";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { paginationSearchShape } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -28,7 +29,9 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/users/invites")({
-	validateSearch: listOrganizationInvitationsInputSchema,
+	validateSearch: listOrganizationInvitationsInputSchema.extend(
+		paginationSearchShape,
+	),
 	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,

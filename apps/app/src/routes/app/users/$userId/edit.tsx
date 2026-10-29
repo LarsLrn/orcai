@@ -26,6 +26,7 @@ import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
 	dataTableQuerySchema,
 	dataTableSearchDefaults,
+	paginationSearchShape,
 } from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
@@ -63,6 +64,7 @@ const searchSchema = listUserAccessInputSchema
 		zedToken: true,
 	})
 	.extend({
+		...paginationSearchShape,
 		query: dataTableQuerySchema.default(""),
 		resourceType: resourceTypeSchema.optional(),
 		source: userAccessSourceSchema.optional(),

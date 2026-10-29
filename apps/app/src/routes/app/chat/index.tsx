@@ -10,7 +10,10 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
+import {
+	dataTableQuerySchema,
+	paginationSearchShape,
+} from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
 	DataTableToolbar,
@@ -33,6 +36,7 @@ const searchSchema = listChatsInputSchema
 		zedToken: true,
 	})
 	.extend({
+		...paginationSearchShape,
 		botId: botIdSchema.optional(),
 		query: dataTableQuerySchema.default(""),
 	});

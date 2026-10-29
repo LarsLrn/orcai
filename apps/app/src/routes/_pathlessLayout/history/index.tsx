@@ -1,4 +1,3 @@
-import { paginationInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -6,6 +5,7 @@ import {
 	stripSearchParams,
 } from "@tanstack/react-router";
 import { ArrowLeftIcon, MessagesSquareIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { DataExportCard } from "@/components/account/data-export-card";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -16,13 +16,14 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
+import { paginationSearchShape } from "@/components/ui/data-table/data-table-search-params";
 import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/history/")({
-	validateSearch: paginationInputSchema,
+	validateSearch: z.object(paginationSearchShape),
 	search: {
 		middlewares: [
 			stripSearchParams({

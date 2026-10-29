@@ -36,6 +36,7 @@ import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
 	dataTableQuerySchema,
 	dataTableSearchDefaults,
+	paginationSearchShape,
 } from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
@@ -92,6 +93,7 @@ const searchSchema = quotaUsageEventListInputSchema
 		filters: true,
 	})
 	.extend({
+		...paginationSearchShape,
 		query: dataTableQuerySchema.default(""),
 		eventType: quotaUsageEventTypeSchema.optional(),
 	});

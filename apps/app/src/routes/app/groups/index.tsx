@@ -11,7 +11,10 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import { dataTableQuerySchema } from "@/components/ui/data-table/data-table-search-params";
+import {
+	dataTableQuerySchema,
+	paginationSearchShape,
+} from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -40,6 +43,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listGroupsInputSchema.extend({
+	...paginationSearchShape,
 	query: dataTableQuerySchema.default(""),
 });
 

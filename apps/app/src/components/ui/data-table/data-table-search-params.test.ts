@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { SortingState } from "@tanstack/react-table";
+import { z } from "zod/v4";
 import {
+	paginationSearchShape,
 	withPagination,
 	withQuery,
 	withSorting,
@@ -72,5 +74,65 @@ describe("withQuery", () => {
 			providerId: "p1",
 			query: "abc",
 		});
+	});
+});
+
+describe("paginationSearchShape", () => {
+	const parse = (search: object) =>
+		z.object(paginationSearchShape).parse(search);
+
+	test("defaults to the first page at the default size", () => {
+		expect(parse({})).toEqual({
+			pageIndex: 0,
+			pageSize: 20,
+		});
+	});
+
+	test("keeps valid values, including numeric strings", () => {
+		expect(
+			parse({
+				pageIndex: "3",
+				pageSize: 50,
+			}),
+		).toEqual({
+			pageIndex: 3,
+			pageSize: 50,
+		});
+	});
+
+	test.each([
+		-1,
+		0.5,
+		"0.5",
+		1e100,
+		"1e100",
+		Number.MAX_SAFE_INTEGER,
+		Number.POSITIVE_INFINITY,
+		"abc",
+		null,
+		Number.NaN,
+	])("falls back on an invalid page index %p", (pageIndex) => {
+		expect(
+			parse({
+				pageIndex,
+			}).pageIndex,
+		).toBe(0);
+	});
+
+	test.each([
+		0,
+		-5,
+		1.5,
+		"1.5",
+		5000,
+		1e100,
+		"abc",
+		null,
+	])("falls back on an invalid page size %p", (pageSize) => {
+		expect(
+			parse({
+				pageSize,
+			}).pageSize,
+		).toBe(20);
 	});
 });
