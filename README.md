@@ -94,7 +94,7 @@ Notes:
 - [Paseo](https://github.com/getpaseo/paseo) workspaces run `bun install` and `bun run stack up` automatically on creation and `bun run stack down --volumes --yes` when archived, see `paseo.json`.
 - Workers on the host need Tesseract with the `eng` (and optionally `deu`) language packs for OCR.
 - Unit tests (`bun run test`) never touch the stack. Each test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
-- Integration tests (`*.integration.ts`, `bun run test:integration`) test modules against the stack's real PostgreSQL and SpiceDB. They create their own organisations and users under unique ids and coexist with dev data, so they need no reset. `@orcai/testing` provides `integrationRuntime()` with the app's DB and SpiceDB layers and the `createUser` and `createOrganization` factories; it refuses to start before the instance is initialised (through `/init` or a `stack e2e` run), because test rows would lock first-run setup.
+- Integration tests (`*.integration.ts`, `bun run test:integration`) test modules against the stack's real PostgreSQL and SpiceDB. They create their own organisations and users under unique ids and coexist with dev data, so they need no reset. `@orcai/testing` provides `integrationRuntime()` with the app's DB and SpiceDB layers and the `createUser` and `createOrganization` factories, and `createJobQueues(boss)` for files that enqueue jobs; it refuses to start before the instance is initialised (through `/init` or a `stack e2e` run), because test rows would lock first-run setup.
 
 ### End-to-end tests
 

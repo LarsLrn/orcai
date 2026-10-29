@@ -1,12 +1,7 @@
-import { beforeAll, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
-import { PgBossService } from "@orcai/pg-boss";
 import { QdrantService, upsertPointsToQdrant } from "@orcai/qdrant";
-import {
-	type AssetPointBrowseCursor,
-	PROCESS_ASSET_JOB_NAME,
-	VECTORIZE_ASSET_JOB_NAME,
-} from "@orcai/schema";
+import type { AssetPointBrowseCursor } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import {
 	type Actor,
@@ -17,21 +12,6 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions, createAsset } =
 	authzIntegration();
-
-// Workers create the queues at boot; the tier runs none.
-beforeAll(
-	() =>
-		run(
-			Effect.gen(function* () {
-				const { boss } = yield* PgBossService;
-				yield* Effect.promise(async () => {
-					await boss.createQueue(PROCESS_ASSET_JOB_NAME);
-					await boss.createQueue(VECTORIZE_ASSET_JOB_NAME);
-				});
-			}),
-		),
-	TIMEOUT,
-);
 
 const rejection = (operation: Promise<unknown>) =>
 	operation.then(

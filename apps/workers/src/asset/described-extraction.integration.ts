@@ -20,7 +20,7 @@ import {
 	type PipelineStatus,
 	PROCESS_ASSET_JOB_NAME,
 } from "@orcai/schema";
-import { createUser, IntegrationLive } from "@orcai/testing";
+import { createJobQueues, createUser, IntegrationLive } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -54,7 +54,7 @@ const TEST_QUEUE = `test-described-extraction-${crypto.randomUUID()}`;
 
 beforeAll(async () => {
 	await boss.start();
-	await boss.createQueue(PROCESS_ASSET_JOB_NAME);
+	await createJobQueues(boss);
 	await boss.createQueue(TEST_QUEUE);
 }, TIMEOUT);
 afterAll(async () => {
