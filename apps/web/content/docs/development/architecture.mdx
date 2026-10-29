@@ -55,6 +55,18 @@ flowchart LR
 7. Workers write vector data to Qdrant.
 8. Chat tools query Qdrant and retrieve relevant content for model calls.
 
+## Profile Pictures And Logos
+
+Profile pictures and organisation logos are not assets: they need no
+processing, no SpiceDB relationships and no presigned reads.
+
+1. The browser crops the chosen image to a 256 by 256 pixel WebP and uploads it through the `profileImage` or `organizationLogo` route, which signs one WebP of at most 256 KB under `staging/` like any upload.
+2. `user.setImage` or `organization.setLogo` (organisation admins) hands the upload to the image module (`apps/app/src/lib/images/images.ts`). It checks the upload belongs to the caller, checks the stored object's type and size, copies it to a fresh key under `images/` and swaps the column under a row lock. The replaced object and the staged copy are deleted afterwards, best effort; a failure leaves a small unreferenced object, and the `staging/` lifecycle rule expires abandoned uploads. No lifecycle rule matches `images/`.
+3. `user.image` and `organization.logo` hold the image's app path, `/api/images/<users|organizations>/<id>/<uuid>.webp`, so a new image gets a new URL. Deleting an account or an organisation deletes its image the same way.
+4. `GET /api/images/...` (`apps/app/src/routes/api/images/$.ts`) streams an image to any signed-in user, 401 without a session and 404 for a path no column references. It answers `Cache-Control: private, no-cache` with an ETag, so browsers revalidate with a cheap 304 and a removal or sign-out applies at once, and `X-Content-Type-Options: nosniff`.
+
+The 256-pixel size and the dropped metadata are guaranteed for uploads through the app's crop dialog only. The server checks type and size but does not decode or re-encode images; a client calling the API directly can store any WebP-labelled bytes up to 256 KB, which the route serves only as `image/webp`.
+
 ## Authorization Flow
 
 The app stores domain records in PostgreSQL and uses SpiceDB for relationship-based authorization. Permission middleware checks whether a user can access or mutate a resource before executing protected operations.

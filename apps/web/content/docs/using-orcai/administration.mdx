@@ -354,7 +354,8 @@ changes a member's role, removes a member (on your own row this reads
 **Leave**), **Add existing user** with a role, and **Invite by email** with a
 role. The organisation always keeps one admin who can sign in, so demoting or
 removing the last one is refused. Inviting someone who is already a member is
-refused before any email goes out; change their role instead. None of this
+refused before any email goes out; change their role instead. **Remove logo**
+in the page's `…` menu deletes the organisation's logo. None of this
 gives an instance administrator access to the organisation's content.
 
 Deletion is thorough. The dialog first shows an impact preview counting the
@@ -373,7 +374,8 @@ with how many organisations each account belongs to, its
 instance role, and whether it uses two-factor authentication (**2FA**). An
 account's name opens its page (`/instance/users/<user id>`), which lists its
 organisations with its role and join date, each linking to the organisation's
-page, and carries the same actions in its `…` menu. An account is banned, unbanned, or deleted, and **Reset 2FA** helps
+page, and carries the same actions in its `…` menu. An account is banned, unbanned, or deleted, **Remove picture** deletes its
+profile picture, and **Reset 2FA** helps
 someone who lost their authenticator app and backup codes: it removes their
 second factor, passkeys and trusted devices, signs them out everywhere and emails them,
 so they sign in with their password and set up 2FA again. **Make instance
@@ -416,6 +418,7 @@ Only an instance administrator may:
 - reset an account's two-factor authentication,
 - make an account an instance administrator or remove the role,
 - delete an account,
+- remove an account's profile picture or an organisation's logo,
 - list every organisation and every user of the instance,
 - see every organisation's usage.
 
@@ -427,7 +430,16 @@ members, and an organisation administrator manages memberships only.
 
 The Organisation page (`/app/organization`) under Administration edits the active organisation's
 name, slug and logo and shows its ID and creation date. Only administrators of
-the organisation see it. To work on another organisation, switch to it with the
+the organisation see it.
+
+**Change logo** uploads a square logo the same way as a profile picture: pick
+or drop one PNG, JPEG, WebP or GIF of up to 10 MB, crop it, and the browser
+stores a 256 by 256 pixel WebP. **Remove logo** deletes it, and the
+organisation's initials show instead. The logo shows on the organisation
+picker, invitations, next to the organisation in the user menu and in instance
+management; the sidebar keeps the OrcAI logo, and emails show no logo.
+Organisation administrators cannot remove members' pictures, which belong to
+the account across organisations; an instance administrator can. To work on another organisation, switch to it with the
 organisation picker first. Creating and deleting an organisation are instance
 actions and live under Manage instance > Organisations.
 
