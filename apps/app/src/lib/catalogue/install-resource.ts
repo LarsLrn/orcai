@@ -1,4 +1,4 @@
-import type { OrganizationId } from "@orcai/core";
+import type { BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import * as Effect from "effect/Effect";
 import type { ResourceRef } from "@/lib/authz/relationship-facts";
@@ -71,8 +71,41 @@ const blocksWith = (resource: ResourceRef, withBlocks: boolean) =>
 			)
 		: Effect.succeed([]);
 
+/** The locks for adding the resource, with a bot's blocks when they come along. */
+const installLocks = (
+	resource: ResourceRef,
+	organizationId: OrganizationId,
+	withBlocks: boolean,
+) =>
+	blocksWith(resource, withBlocks).pipe(
+		Effect.flatMap((blocks) =>
+			resourceOrganizations([
+				resource,
+				...blocks,
+			]),
+		),
+		Effect.map((organizationIds) => [
+			...organizationIds,
+			organizationId,
+		]),
+	);
+
+/** Adds the bot's blocks; a block the organisation is home to is in its library already. */
+const addBlocksOf = (
+	resource: ResourceRef,
+	organizationId: OrganizationId,
+	actor: Actor,
+) =>
+	Effect.gen(function* () {
+		let addedBlocks = 0;
+		for (const block of yield* blocksWith(resource, true))
+			if ((yield* addInstall(block, organizationId, actor)) === "added")
+				addedBlocks++;
+		return addedBlocks;
+	});
+
 /*
- * Both run the installer check under the organisations' locks, which role
+ * These run the installer check under the organisations' locks, which role
  * changes take too, so a demotion committed first is seen.
  */
 
@@ -93,17 +126,10 @@ export const installResource = (params: {
 		const { resource, organizationId, actor } = params;
 		const { result } = yield* writeRelationships(
 			{
-				organizationIds: blocksWith(resource, params.withBlocks).pipe(
-					Effect.flatMap((blocks) =>
-						resourceOrganizations([
-							resource,
-							...blocks,
-						]),
-					),
-					Effect.map((organizationIds) => [
-						...organizationIds,
-						organizationId,
-					]),
+				organizationIds: installLocks(
+					resource,
+					organizationId,
+					params.withBlocks,
 				),
 			},
 			Effect.gen(function* () {
@@ -115,15 +141,51 @@ export const installResource = (params: {
 						message:
 							"This organisation is the resource's home; it is already in the library.",
 					});
-				// A block the organisation is home to is in its library already.
-				let addedBlocks = 0;
-				for (const block of yield* blocksWith(resource, params.withBlocks))
-					if ((yield* addInstall(block, organizationId, actor)) === "added")
-						addedBlocks++;
 				return {
 					changed: added === "added",
-					addedBlocks,
+					addedBlocks: params.withBlocks
+						? yield* addBlocksOf(resource, organizationId, actor)
+						: 0,
 				};
+			}),
+		);
+		return result;
+	});
+
+/**
+ * Adds the behaviour and repositories of a bot the organisation added
+ * earlier, never the bot itself: when it was removed meanwhile, this fails.
+ * Returns how many blocks it added.
+ */
+export const installBotBlocks = (params: {
+	botId: BotId;
+	organizationId: OrganizationId;
+	actor: Actor;
+}) =>
+	Effect.gen(function* () {
+		const { organizationId, actor } = params;
+		const resource = {
+			resourceType: "bot",
+			resourceId: params.botId,
+		} as const;
+		const { result } = yield* writeRelationships(
+			{
+				organizationIds: installLocks(resource, organizationId, true),
+			},
+			Effect.gen(function* () {
+				yield* requireInstaller(organizationId, actor);
+				if (!(yield* lockExistingResource(resource)))
+					return yield* new AppErrors.NotFoundError({
+						id: resource.resourceId,
+						message: "Resource not found",
+					});
+				if ((yield* scopeIn(resource, organizationId)) !== "install")
+					return yield* new AppErrors.BadRequestError({
+						reason: "RESOURCE_NOT_INSTALLED",
+						message:
+							"This bot is not added to the organisation; add it from the catalogue first.",
+					});
+				return yield* addBlocksOf(resource, organizationId, actor);
 			}),
 		);
 		return result;

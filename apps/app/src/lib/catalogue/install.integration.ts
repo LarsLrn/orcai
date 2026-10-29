@@ -162,6 +162,15 @@ const catalogue = async () => {
 				options,
 			),
 		).then(({ data }) => data);
+	const installBlocks = (actor: Actor) =>
+		call(actor, (options) =>
+			procedures.catalogue.installBlocks(
+				{
+					botId: bot,
+				},
+				options,
+			),
+		).then(({ data }) => data.addedBlocks);
 	const uninstall = (actor: Actor, ref: CatalogueEntryRef = entry.bot) =>
 		call(actor, (options) =>
 			procedures.catalogue.uninstall(
@@ -209,6 +218,7 @@ const catalogue = async () => {
 		entry,
 		install,
 		installWithBlocks,
+		installBlocks,
 		uninstall,
 		grant,
 	};
@@ -518,6 +528,83 @@ describe("adding a bot with its blocks", () => {
 				expect(await installs(s.template)).toEqual([
 					s.other,
 				]);
+			}
+		},
+		TIMEOUT,
+	);
+});
+
+describe("adding the blocks of an added bot", () => {
+	test(
+		"needs the bot added, and never adds it",
+		async () => {
+			const s = await catalogue();
+			expect(await reasonOf(s.installBlocks(s.admin))).toBe(
+				"RESOURCE_NOT_INSTALLED",
+			);
+			expect(await s.install(s.admin)).toBe(true);
+			expect(await reasonOf(s.installBlocks(s.member))).toBe(
+				"PERMISSION_DENIED",
+			);
+			expect(await s.installBlocks(s.manager)).toBe(2);
+			expect(await s.installBlocks(s.admin)).toBe(0);
+			for (const id of [
+				s.bot,
+				s.template,
+				s.repository,
+			])
+				expect(await installs(id)).toEqual([
+					s.other,
+				]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a removal committed first is not undone",
+		async () => {
+			for (const removeFirst of [
+				true,
+				false,
+			]) {
+				const s = await catalogue();
+				expect(await s.install(s.admin)).toBe(true);
+				const remove = () => reasonOf(s.uninstall(s.manager));
+				const addBlocks = () => reasonOf(s.installBlocks(s.admin));
+				const reasons: (string | undefined)[] = [];
+				// Both lock both organisations, the first in sort order first.
+				const [first] = [
+					s.home,
+					s.other,
+				].sort();
+				await queueBehindOrganizationLock(
+					first as OrganizationId,
+					async () => {
+						reasons[0] = await (removeFirst ? remove() : addBlocks());
+					},
+					async () => {
+						reasons[1] = await (removeFirst ? addBlocks() : remove());
+					},
+				);
+				expect(reasons).toEqual(
+					removeFirst
+						? [
+								undefined,
+								"RESOURCE_NOT_INSTALLED",
+							]
+						: [
+								undefined,
+								undefined,
+							],
+				);
+				expect(await installs(s.bot)).toEqual([]);
+				expect(await installs(s.repository)).toEqual(
+					removeFirst
+						? []
+						: [
+								s.other,
+							],
+				);
 			}
 		},
 		TIMEOUT,

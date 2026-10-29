@@ -38,6 +38,34 @@ export const useInstallMutation = (
 		},
 	});
 
+/** Adds the blocks of a bot the active organisation added without them. */
+export const useInstallBlocksMutation = ({
+	name,
+	organisation,
+}: {
+	name: string;
+	organisation: string;
+}) =>
+	useMutationAction({
+		mutationOptions: () => orpc.catalogue.installBlocks.mutationOptions(),
+		messages: {
+			loading: () =>
+				m.catalogue_install_blocks_toast_loading({
+					name,
+				}),
+			success: ({ data }) =>
+				m.catalogue_install_blocks_toast_success({
+					name,
+					organisation,
+					count: data.data.addedBlocks,
+				}),
+			error: () =>
+				m.catalogue_install_blocks_toast_error({
+					name,
+				}),
+		},
+	});
+
 /** Removes an entry added from the catalogue from the active organisation, after a confirm. */
 export const useUninstallMutation = (
 	{

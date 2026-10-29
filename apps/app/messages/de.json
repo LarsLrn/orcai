@@ -162,6 +162,39 @@
 	"access_visibility_toast_private": "Ressource steht nicht mehr im Katalog",
 	"access_visibility_toast_public": "Ressource steht jetzt im Katalog",
 	"catalogue_add_action": "Zu {organisation} hinzufügen",
+	"catalogue_add_blocks_behaviour": "Sein Verhalten zu {organisation} hinzufügen",
+	"catalogue_add_blocks_both": [
+		{
+			"declarations": [
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Sein Verhalten und sein Repository zu {organisation} hinzufügen",
+				"countPlural=other": "Sein Verhalten und seine {count} Repositories zu {organisation} hinzufügen"
+			}
+		}
+	],
+	"catalogue_add_blocks_repositories": [
+		{
+			"declarations": [
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Sein Repository zu {organisation} hinzufügen",
+				"countPlural=other": "Seine {count} Repositories zu {organisation} hinzufügen"
+			}
+		}
+	],
 	"catalogue_added_label": "Zu {organisation} hinzugefügt",
 	"catalogue_detail_add_blocks_behaviour": "Auch sein Verhalten zu {organisation} hinzufügen",
 	"catalogue_detail_add_blocks_both": [
@@ -249,6 +282,25 @@
 	"catalogue_filter_organisation_label": "Organisation",
 	"catalogue_filter_status_label": "Status",
 	"catalogue_from_organisation": "Von {organisation}",
+	"catalogue_install_blocks_toast_error": "Blöcke von {name} konnten nicht hinzugefügt werden",
+	"catalogue_install_blocks_toast_loading": "Blöcke von {name} werden hinzugefügt...",
+	"catalogue_install_blocks_toast_success": [
+		{
+			"declarations": [
+				"input name",
+				"input organisation",
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Ein Block von {name} ist jetzt in {organisation}",
+				"countPlural=other": "{count} Blöcke von {name} sind jetzt in {organisation}"
+			}
+		}
+	],
 	"catalogue_install_toast_error": "{name} konnte nicht hinzugefügt werden",
 	"catalogue_install_toast_loading": "{name} wird hinzugefügt...",
 	"catalogue_install_toast_success": "{name} ist jetzt in {organisation}",
@@ -2968,6 +3020,7 @@
 	"error_request_headers_required": "Der Anfrage fehlen die Header.",
 	"error_resource_not_usable_in_organization": "Diese Ressource steht Ihnen in dieser Organisation nicht zur Verfügung.",
 	"error_resource_home_organization": "Diese Organisation ist die Heimat der Ressource; sie steht bereits in der Bibliothek.",
+	"error_resource_not_installed": "Dieser Bot ist nicht mehr in der Organisation; fügen Sie ihn zuerst wieder hinzu.",
 	"error_resource_not_listed": "Nur Ressourcen, die im Katalog stehen, können hinzugefügt werden.",
 	"error_resource_scope_required": "Diese Ressource gehört nicht zu Ihrer aktiven Organisation und kann hier nicht geteilt werden.",
 	"error_self_ban_forbidden": "Sie können Ihr eigenes Konto nicht sperren.",

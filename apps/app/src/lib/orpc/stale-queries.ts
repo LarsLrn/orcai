@@ -363,6 +363,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		},
 		catalogue: {
 			install: installs,
+			installBlocks: installs,
 			uninstall: installs,
 		},
 		provider: {
