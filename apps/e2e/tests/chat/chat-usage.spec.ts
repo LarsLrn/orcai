@@ -63,6 +63,44 @@ test("chat usage: the indicator shows the context and how much of the pool is us
 	).toHaveCount(0);
 });
 
+test("chat usage: at 390 px the indicator opens a drawer that Escape closes", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference, {
+		meteringMode: "requests",
+		budgetAmount: 4,
+	});
+	const member = api.as("member");
+	const chatId = await createChat(member, model, chatName("Usage drawer"));
+	await sendTurn({
+		client: member,
+		inference,
+		chatId,
+		turn: TURN,
+	});
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await page.setViewportSize({
+		width: 390,
+		height: 844,
+	});
+	await openChat(page, chatId);
+	await usageButton(page).click();
+
+	const drawer = page.getByRole("dialog", {
+		name: message("chat_usage_title"),
+	});
+	await expect(drawer).toBeVisible();
+	await expect(drawer.getByText(/^25% used · resets in /)).toBeVisible();
+	await page.keyboard.press("Escape");
+	await expect(drawer).toBeHidden();
+	await expect(usageButton(page)).toBeFocused();
+});
+
 test("chat usage: a used-up pool blocks sending, with a notice below the composer", async ({
 	api,
 	inference,

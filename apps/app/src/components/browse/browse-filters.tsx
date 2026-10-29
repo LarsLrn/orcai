@@ -152,7 +152,7 @@ const FiltersDrawer = <D extends FilterDefinitions>(
 				<DrawerHeader>
 					<DrawerTitle>{m.browse_filters_title()}</DrawerTitle>
 				</DrawerHeader>
-				<div className="overflow-y-auto px-6 pt-1 pb-8">
+				<div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-8">
 					<FilterFields {...props} />
 				</div>
 			</DrawerContent>
