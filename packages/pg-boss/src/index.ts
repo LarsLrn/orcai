@@ -1,7 +1,9 @@
 export { type Job, type JobWithMetadata, PgBoss } from "pg-boss";
 export * from "./asset-metadata";
+export * from "./asset-pipeline";
 export * from "./errors";
 export * from "./helpers";
+export * from "./link-points";
 export * from "./monitoring";
 export * from "./probe";
 export { makePgBossLayer, PgBossService } from "./service";

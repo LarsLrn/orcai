@@ -338,6 +338,7 @@
         "@opentelemetry/core": "2.12.0",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
+        "@orcai/qdrant": "workspace:*",
         "@orcai/schema": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",

@@ -17,7 +17,7 @@ import type {
 	assetPointsFiltersSchema,
 	RetrievedAssetPoint,
 } from "@orcai/schema";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
@@ -27,39 +27,50 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
-/** The points with their asset's title as it is now; a point of an asset deleted meanwhile is left out. */
-const withAssetTitles = (points: readonly AssetPoint[]) =>
+/** The points of links that still exist, with their asset's title as it is now. */
+const linkedPoints = (points: readonly AssetPoint[]) =>
 	Effect.gen(function* () {
-		const assetIds = [
-			...new Set(points.map((point) => point.payload.asset_id)),
-		];
-		const assets =
-			assetIds.length === 0
-				? []
-				: yield* (yield* DB)
-						.select({
-							id: dbSchema.asset.id,
-							title: dbSchema.asset.title,
-						})
-						.from(dbSchema.asset)
-						.where(inArray(dbSchema.asset.id, assetIds));
-		const titles = new Map(
-			assets.map((asset) => [
-				asset.id,
-				asset.title,
+		if (points.length === 0) return [];
+		const links = yield* (yield* DB)
+			.select({
+				blockId: dbSchema.blockAsset.blockId,
+				assetId: dbSchema.blockAsset.assetId,
+				title: dbSchema.asset.title,
+			})
+			.from(dbSchema.blockAsset)
+			.innerJoin(
+				dbSchema.asset,
+				eq(dbSchema.asset.id, dbSchema.blockAsset.assetId),
+			)
+			.where(
+				and(
+					inArray(dbSchema.blockAsset.blockId, [
+						...new Set(points.map((point) => point.payload.block_id)),
+					]),
+					inArray(dbSchema.blockAsset.assetId, [
+						...new Set(points.map((point) => point.payload.asset_id)),
+					]),
+				),
+			);
+		const linkOf = new Map(
+			links.map((link) => [
+				`${link.blockId}/${link.assetId}`,
+				link,
 			]),
 		);
 
 		return points.flatMap((point): RetrievedAssetPoint[] => {
-			const title = titles.get(point.payload.asset_id);
-			return title === undefined
-				? []
-				: [
+			const link = linkOf.get(
+				`${point.payload.block_id}/${point.payload.asset_id}`,
+			);
+			return link
+				? [
 						{
 							...point,
-							title,
+							title: link.title,
 						},
-					];
+					]
+				: [];
 		});
 	});
 
@@ -68,7 +79,7 @@ const retrieveAssetPoints = (
 ) =>
 	queryPoints(filters).pipe(
 		Effect.flatMap((result) =>
-			withAssetTitles(result.data).pipe(
+			linkedPoints(result.data).pipe(
 				Effect.map((data) => ({
 					data,
 					metadata: {
@@ -415,7 +426,7 @@ const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 			limit: BROWSE_PAGE_SIZE,
 		}).pipe(
 			Effect.flatMap((page) =>
-				withAssetTitles(page.data).pipe(
+				linkedPoints(page.data).pipe(
 					Effect.map((data) => ({
 						...page,
 						data,

@@ -87,7 +87,7 @@ const ensurePayloadIndex = ({
 	collections: QdrantCollections;
 	fieldName: string;
 	fieldSchema: {
-		type: "uuid" | "integer";
+		type: "uuid" | "integer" | "bool";
 		is_tenant?: boolean;
 	};
 }) =>
@@ -227,6 +227,14 @@ const ensurePayloadIndexes = (
 				fieldName: collections.asset.index.chunkPageEnd,
 				fieldSchema: {
 					type: "integer",
+				},
+			}),
+			ensurePayloadIndex({
+				qdrant,
+				collections,
+				fieldName: collections.asset.index.published,
+				fieldSchema: {
+					type: "bool",
 				},
 			}),
 		],

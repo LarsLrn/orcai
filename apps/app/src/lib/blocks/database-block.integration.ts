@@ -1,8 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { PgBossService } from "@orcai/pg-boss";
-import { type PipelineStatus, VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
+import { PgBossService, queueIndexing, withLinkPoints } from "@orcai/pg-boss";
+import {
+	deletePointsByIdentifier,
+	QdrantService,
+	upsertPointsToQdrant,
+} from "@orcai/qdrant";
+import {
+	type PipelineStatus,
+	VECTORIZE_ASSET_JOB_NAME,
+	type VectorizeAssetPayload,
+} from "@orcai/schema";
 import { awaitLockWaiters } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
@@ -14,10 +23,8 @@ import {
 	authzIntegration,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
-import {
-	enqueueIndexing,
-	reindexBlockAssets,
-} from "@/lib/blocks/database-block";
+import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
+import { reindexBlockAssets } from "@/lib/blocks/database-block";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions, createAsset } =
@@ -90,6 +97,100 @@ const setStatus = (params: {
 						),
 					);
 			}
+		}),
+	);
+
+const linkAttempt = (assetId: AssetId, blockId: BlockId) =>
+	run(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.select({
+					attempt: dbSchema.blockAsset.indexAttempt,
+				})
+				.from(dbSchema.blockAsset)
+				.where(
+					and(
+						eq(dbSchema.blockAsset.assetId, assetId),
+						eq(dbSchema.blockAsset.blockId, blockId),
+					),
+				);
+			return row?.attempt;
+		}),
+	);
+
+/** The attempts of the indexing jobs queued for one link. */
+const queuedAttempts = (assetId: AssetId, blockId: BlockId) =>
+	run(
+		Effect.gen(function* () {
+			const { boss } = yield* PgBossService;
+			const jobs = yield* Effect.promise(() =>
+				boss.findJobs<VectorizeAssetPayload>(VECTORIZE_ASSET_JOB_NAME, {
+					data: {
+						assetId,
+						blockId,
+					},
+				}),
+			);
+			return jobs.map((job) => job.data.attempt);
+		}),
+	);
+
+/** A point of the link's `attempt`, as a vectorize delivery writes it. */
+const writePoint = (assetId: AssetId, blockId: BlockId, attempt: number) =>
+	Effect.gen(function* () {
+		const { collections } = yield* QdrantService;
+		yield* upsertPointsToQdrant({
+			points: [
+				{
+					id: crypto.randomUUID(),
+					vector: Array.from(
+						{
+							length: collections.asset.dimensions,
+						},
+						(_, dimension) => (dimension === 0 ? 1 : 0),
+					),
+					payload: {
+						source: "text",
+						asset_id: assetId,
+						block_id: blockId,
+						text: "Refunds rose in February.",
+						depth: 0,
+						tokens: 5,
+						chunk_index: 0,
+						chunkCount: 1,
+						createdAt: new Date().toISOString(),
+						index_attempt: attempt,
+					},
+				},
+			],
+		});
+	});
+
+/** The attempts of the asset's remaining points, which it then deletes. */
+const takePoints = (assetId: AssetId) =>
+	run(
+		Effect.gen(function* () {
+			const { client, collections } = yield* QdrantService;
+			const { points } = yield* Effect.promise(() =>
+				client.scroll(collections.asset.name, {
+					filter: {
+						must: [
+							{
+								key: "asset_id",
+								match: {
+									value: assetId,
+								},
+							},
+						],
+					},
+					with_payload: true,
+				}),
+			);
+			yield* deletePointsByIdentifier({
+				assetId,
+				blockId: undefined,
+			});
+			return points.map((point) => point.payload?.index_attempt);
 		}),
 	);
 
@@ -212,6 +313,13 @@ describe("reset rules", () => {
 			expect(await links(blockId)).toEqual({
 				[assetId]: "pending",
 			});
+
+			// A request that read the asset before another one admitted it admits nothing.
+			await setStatus({
+				assetId,
+				processing: "failed",
+			});
+			expect(await run(reprocessAsset(asset))).toBe(false);
 		},
 		TIMEOUT,
 	);
@@ -233,18 +341,117 @@ describe("reset rules", () => {
 			}
 
 			await run(
-				enqueueIndexing({
-					blockId,
-					assetIds: [
-						retried,
-					],
-				}),
+				queueIndexing([
+					{
+						assetId: retried,
+						blockId,
+						attempt: (await linkAttempt(retried, blockId)) ?? -1,
+					},
+				]),
 			);
 
 			expect(await links(blockId)).toEqual({
 				[retried]: "pending",
 				[other]: "failed",
 			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("overlapping admissions", () => {
+	test(
+		"two retries that read the same failed link admit it once",
+		async () => {
+			const {
+				assets: [assetId],
+				blockId,
+			} = await repositoryWith(1);
+			await setStatus({
+				assetId,
+				processing: "completed",
+				index: {
+					blockId,
+					status: "failed",
+				},
+			});
+			const observed = {
+				assetId,
+				blockId,
+				attempt: (await linkAttempt(assetId, blockId)) ?? -1,
+			};
+
+			const admitted = await Promise.all([
+				run(
+					queueIndexing([
+						observed,
+					]),
+				),
+				run(
+					queueIndexing([
+						observed,
+					]),
+				),
+			]);
+
+			expect(admitted.flat()).toHaveLength(1);
+			expect(await queuedAttempts(assetId, blockId)).toEqual([
+				await linkAttempt(assetId, blockId),
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"unlinking reconciles the link, so a relink's newer points stay",
+		async () => {
+			const {
+				assets: [assetId],
+				blockId,
+			} = await repositoryWith(1);
+			const link = and(
+				eq(dbSchema.blockAsset.assetId, assetId),
+				eq(dbSchema.blockAsset.blockId, blockId),
+			);
+			const observedLink = {
+				assetId: dbSchema.blockAsset.assetId,
+				blockId: dbSchema.blockAsset.blockId,
+				attempt: dbSchema.blockAsset.indexAttempt,
+			};
+
+			const removed = await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					const [before] = yield* db
+						.select(observedLink)
+						.from(dbSchema.blockAsset)
+						.where(link);
+					yield* writePoint(assetId, blockId, before.attempt);
+					const removed = yield* db
+						.delete(dbSchema.blockAsset)
+						.where(link)
+						.returning(observedLink);
+					const [relinked] = yield* db
+						.insert(dbSchema.blockAsset)
+						.values({
+							assetId,
+							blockId,
+						})
+						.returning(observedLink);
+					yield* writePoint(assetId, blockId, relinked.attempt);
+					return removed;
+				}),
+			);
+			await run(
+				reindexBlockAssets({
+					added: [],
+					removed,
+				}),
+			);
+
+			expect(await takePoints(assetId)).toEqual([
+				await linkAttempt(assetId, blockId),
+			]);
 		},
 		TIMEOUT,
 	);
@@ -460,22 +667,26 @@ describe("attaching while processing completes", () => {
 			);
 			await run(Deferred.await(linksRead));
 
-			await run(
+			const added = await run(
 				Effect.gen(function* () {
-					yield* (yield* DB).insert(dbSchema.blockAsset).values({
-						blockId,
-						assetId,
-					});
+					return yield* (yield* DB)
+						.insert(dbSchema.blockAsset)
+						.values({
+							blockId,
+							assetId,
+						})
+						.returning({
+							assetId: dbSchema.blockAsset.assetId,
+							blockId: dbSchema.blockAsset.blockId,
+							attempt: dbSchema.blockAsset.indexAttempt,
+						});
 				}),
 			);
 			const attach = await run(
 				Effect.forkDetach(
 					reindexBlockAssets({
-						blockId,
-						addedIds: [
-							assetId,
-						],
-						removedIds: [],
+						added,
+						removed: [],
 					}),
 				),
 			);
@@ -484,21 +695,143 @@ describe("attaching while processing completes", () => {
 			await run(Fiber.join(processing));
 			await run(Fiber.join(attach));
 
-			const queued = await run(
-				Effect.gen(function* () {
-					const { boss } = yield* PgBossService;
-					return yield* Effect.promise(() =>
-						boss.findJobs(VECTORIZE_ASSET_JOB_NAME, {
-							data: {
-								assetId,
-								blockId,
-							},
-						}),
-					);
-				}),
-			);
-			expect(queued).toHaveLength(1);
+			expect(await queuedAttempts(assetId, blockId)).toEqual([
+				await linkAttempt(assetId, blockId),
+			]);
 		},
 		TIMEOUT,
 	);
+});
+
+describe("saving a repository and processing completing", () => {
+	/** What processing does once its attempt completed: the asset, then indexing of every link. */
+	const completeProcessing = (assetId: AssetId) =>
+		run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				yield* db.transaction(() =>
+					Effect.gen(function* () {
+						yield* db
+							.update(dbSchema.asset)
+							.set({
+								processingStatus: "completed",
+							})
+							.where(eq(dbSchema.asset.id, assetId));
+						yield* queueIndexing(
+							yield* db
+								.select({
+									assetId: dbSchema.blockAsset.assetId,
+									blockId: dbSchema.blockAsset.blockId,
+									attempt: dbSchema.blockAsset.indexAttempt,
+								})
+								.from(dbSchema.blockAsset)
+								.where(eq(dbSchema.blockAsset.assetId, assetId)),
+						);
+					}),
+				);
+			}),
+		);
+
+	test(
+		"a document saved before its processing completes is queued once, by the completion",
+		async () => {
+			const {
+				assets: [assetId],
+				blockId,
+			} = await repositoryWith(1);
+			expect(await queuedAttempts(assetId, blockId)).toEqual([]);
+
+			await completeProcessing(assetId);
+			expect(await queuedAttempts(assetId, blockId)).toEqual([
+				await linkAttempt(assetId, blockId),
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a document saved after its processing completed is queued once, by the save",
+		async () => {
+			const repo = await repositoryWith(1);
+			const { asset, zedToken } = await createAsset(
+				repo.owner,
+				repo.organizationId,
+			);
+			const assetId = asset.id as AssetId;
+
+			await completeProcessing(assetId);
+			const procedures = await run(Procedures);
+			await run(
+				procedures.block.update(
+					{
+						id: repo.blockId,
+						...repository([
+							...repo.assets,
+							assetId,
+						]),
+					},
+					await procedureOptions(repo.owner, zedToken ?? repo.zedToken),
+				),
+			);
+			expect(await queuedAttempts(assetId, repo.blockId)).toEqual([
+				await linkAttempt(assetId, repo.blockId),
+			]);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("deleting a linked document or repository", () => {
+	for (const resourceType of [
+		"asset",
+		"block",
+	] as const) {
+		test(
+			`deleting the ${resourceType} removes a point written under the link lock while it ran`,
+			async () => {
+				const {
+					assets: [assetId],
+					blockId,
+				} = await repositoryWith(1);
+				const attempt = (await linkAttempt(assetId, blockId)) ?? 0;
+				const locked = await run(Deferred.make<void>());
+				const release = await run(Deferred.make<void>());
+				// A vectorize delivery that passed its check under the lock and has yet to upsert.
+				const staging = await run(
+					Effect.forkDetach(
+						withLinkPoints(
+							{
+								assetId,
+								blockId,
+							},
+							Effect.gen(function* () {
+								yield* Deferred.succeed(locked, undefined);
+								yield* Deferred.await(release);
+								yield* writePoint(assetId, blockId, attempt);
+							}),
+						),
+					),
+				);
+				await run(Deferred.await(locked));
+
+				const deleting = await run(
+					Effect.forkDetach(
+						deleteResourcesWithAuthorization({
+							resourceType,
+							resourceIds: [
+								resourceType === "asset" ? assetId : blockId,
+							],
+						}),
+					),
+				);
+				await run(awaitLockWaiters("%pg_advisory_xact_lock%"));
+				await run(Deferred.succeed(release, undefined));
+				await run(Fiber.join(staging));
+				await run(Fiber.join(deleting));
+
+				expect(await takePoints(assetId)).toEqual([]);
+			},
+			TIMEOUT,
+		);
+	}
 });

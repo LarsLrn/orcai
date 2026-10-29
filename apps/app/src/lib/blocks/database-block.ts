@@ -1,8 +1,10 @@
 import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatch } from "@orcai/pg-boss";
-import { deletePointsByIdentifier } from "@orcai/qdrant";
-import { VECTORIZE_ASSET_JOB_NAME } from "@orcai/schema";
+import {
+	type ObservedLink,
+	queueIndexing,
+	reconcileLinkPoints,
+} from "@orcai/pg-boss";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -98,28 +100,36 @@ export const replaceBlockAssets = (params: {
 		const addedIds = Arr.difference(assetIds, previousAssetIds);
 		const removedIds = Arr.difference(previousAssetIds, assetIds);
 
-		if (removedIds.length > 0) {
-			yield* db
-				.delete(dbSchema.blockAsset)
-				.where(
-					and(
-						eq(dbSchema.blockAsset.blockId, params.blockId),
-						inArray(dbSchema.blockAsset.assetId, removedIds),
-					),
-				);
-		}
-
-		if (addedIds.length > 0) {
-			yield* db
-				.insert(dbSchema.blockAsset)
-				.values(
-					addedIds.map((assetId) => ({
-						blockId: params.blockId,
-						assetId,
-					})),
-				)
-				.onConflictDoNothing();
-		}
+		const link = {
+			assetId: dbSchema.blockAsset.assetId,
+			blockId: dbSchema.blockAsset.blockId,
+			attempt: dbSchema.blockAsset.indexAttempt,
+		};
+		const removed =
+			removedIds.length > 0
+				? yield* db
+						.delete(dbSchema.blockAsset)
+						.where(
+							and(
+								eq(dbSchema.blockAsset.blockId, params.blockId),
+								inArray(dbSchema.blockAsset.assetId, removedIds),
+							),
+						)
+						.returning(link)
+				: [];
+		const added =
+			addedIds.length > 0
+				? yield* db
+						.insert(dbSchema.blockAsset)
+						.values(
+							addedIds.map((assetId) => ({
+								blockId: params.blockId,
+								assetId,
+							})),
+						)
+						.onConflictDoNothing()
+						.returning(link)
+				: [];
 
 		yield* recordRelationshipFacts(
 			RelationshipFact.BlockAssetsChanged({
@@ -130,104 +140,53 @@ export const replaceBlockAssets = (params: {
 		);
 
 		return {
-			blockId: params.blockId,
-			addedIds,
-			removedIds,
+			added,
+			removed,
 		};
 	});
 
 /**
- * Queues indexing of processed assets in one repository and marks their links
- * pending. A failed enqueue marks the links failed, so Retry shows.
- */
-export const enqueueIndexing = (params: {
-	blockId: BlockId;
-	assetIds: readonly AssetId[];
-}) =>
-	Effect.gen(function* () {
-		if (params.assetIds.length === 0) return;
-		const db = yield* DB;
-		const links = and(
-			eq(dbSchema.blockAsset.blockId, params.blockId),
-			inArray(dbSchema.blockAsset.assetId, [
-				...params.assetIds,
-			]),
-		);
-
-		yield* db
-			.update(dbSchema.blockAsset)
-			.set({
-				indexStatus: "pending",
-				indexFailure: null,
-			})
-			.where(links);
-
-		yield* sendJobBatch({
-			jobName: VECTORIZE_ASSET_JOB_NAME,
-			jobs: params.assetIds.map((assetId) => ({
-				data: {
-					assetId,
-					blockId: params.blockId,
-				},
-			})),
-		}).pipe(
-			Effect.tapError(() =>
-				db
-					.update(dbSchema.blockAsset)
-					.set({
-						indexStatus: "failed",
-						indexFailure: "other",
-					})
-					.where(links),
-			),
-		);
-	});
-
-/**
- * Drops the vectors of unlinked assets and indexes the newly linked, processed
- * ones. The rest are indexed once their processing completes.
+ * Reconciles the vectors of unlinked assets, so they go unless a relink owns
+ * them, and indexes the newly linked, processed ones. The rest are indexed
+ * once their processing completes.
  */
 export const reindexBlockAssets = (params: {
-	blockId: BlockId;
-	addedIds: readonly AssetId[];
-	removedIds: readonly AssetId[];
+	added: readonly ObservedLink[];
+	removed: readonly ObservedLink[];
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		yield* Effect.forEach(
-			params.removedIds,
-			(assetId) =>
-				deletePointsByIdentifier({
-					blockId: params.blockId,
-					assetId,
-				}),
-			{
-				concurrency: "unbounded",
-				discard: true,
-			},
-		);
-
-		if (params.addedIds.length === 0) return;
-
-		// Locks the rows without a status filter, so processing completing an asset is waited for; it queues only the links it saw.
-		const addedAssets = yield* db
-			.select({
-				id: dbSchema.asset.id,
-				processingStatus: dbSchema.asset.processingStatus,
-			})
-			.from(dbSchema.asset)
-			.where(
-				inArray(dbSchema.asset.id, [
-					...params.addedIds,
-				]),
-			)
-			.for("share");
-
-		yield* enqueueIndexing({
-			blockId: params.blockId,
-			assetIds: addedAssets
-				.filter((asset) => asset.processingStatus === "completed")
-				.map((asset) => asset.id),
+		yield* Effect.forEach(params.removed, reconcileLinkPoints, {
+			concurrency: "unbounded",
+			discard: true,
 		});
+
+		if (params.added.length === 0) return;
+
+		// Locks the rows without a status filter, so processing completing an asset is waited for; a link both queue is admitted once.
+		yield* db.transaction(() =>
+			Effect.gen(function* () {
+				const completed = new Set(
+					(yield* db
+						.select({
+							id: dbSchema.asset.id,
+							processingStatus: dbSchema.asset.processingStatus,
+						})
+						.from(dbSchema.asset)
+						.where(
+							inArray(
+								dbSchema.asset.id,
+								params.added.map((link) => link.assetId),
+							),
+						)
+						.for("share"))
+						.filter((asset) => asset.processingStatus === "completed")
+						.map((asset) => asset.id),
+				);
+				yield* queueIndexing(
+					params.added.filter((link) => completed.has(link.assetId)),
+				);
+			}),
+		);
 	});

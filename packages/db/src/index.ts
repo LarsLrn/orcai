@@ -1,3 +1,4 @@
+export { advisoryXactLock } from "./advisory-lock";
 export { DbConfigLive, DbConfigService, loadDbConfigSync } from "./config";
 export { makePgConnectionString } from "./pg-connection-string";
 export { findLatestMigration, probeDatabase } from "./probe";

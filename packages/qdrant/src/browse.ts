@@ -2,7 +2,7 @@ import type { AssetPoint, AssetPointBrowseCursor } from "@orcai/schema";
 import type { Schemas } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import { QdrantError } from "./errors";
-import { parseAssetPoints } from "./queries";
+import { parseAssetPoints, servedFilter } from "./queries";
 import { QdrantService } from "./service";
 
 type ReadingCursor = Extract<
@@ -19,7 +19,7 @@ const byChunk = (a: AssetPoint, b: AssetPoint) =>
 	a.payload.chunk_index - b.payload.chunk_index;
 
 /**
- * One page of the points matching `filter`, `limit` at most.
+ * One page of the served points matching `filter`, `limit` at most.
  *
  * Point order pages with Qdrant's scroll offset. Reading order, meant for one
  * document, goes by page, then chunk, with passages without a page last; images,
@@ -57,9 +57,10 @@ export const browseAssetPoints = (params: {
 						cause,
 					}),
 			});
-		const base = params.filter.must;
+		const filter = servedFilter(params.filter);
+		const base = filter.must;
 		const where = (...conditions: Condition[]): Schemas["Filter"] => ({
-			...params.filter,
+			...filter,
 			must: [
 				...(Array.isArray(base)
 					? base
@@ -90,7 +91,7 @@ export const browseAssetPoints = (params: {
 			const from =
 				params.cursor?.order === "point" ? params.cursor.from : undefined;
 			const result = yield* scroll({
-				filter: params.filter,
+				filter,
 				limit: params.limit,
 				offset: from,
 			});

@@ -1,9 +1,9 @@
 import { countTokens, generateManyEmbeddings } from "@orcai/ai";
-import type { AssetId, BlockId } from "@orcai/core";
+import type { AssetId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { Job } from "@orcai/pg-boss";
+import { type Job, reconcileLinkPoints, withLinkPoints } from "@orcai/pg-boss";
 import type { StoredExtractionArtifact } from "@orcai/process";
-import { deletePointsByIdentifier, upsertPointsToQdrant } from "@orcai/qdrant";
+import { upsertPointsToQdrant } from "@orcai/qdrant";
 import {
 	type AssetFileType,
 	type BucketName,
@@ -11,14 +11,20 @@ import {
 	isImageFileType,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull, lt, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { v4 as uuidv4 } from "uuid";
+import { v5 as uuidv5 } from "uuid";
 import { describedExtraction } from "@/asset/described-extraction";
 import {
 	AssetPipelineError,
+	claimIndexing,
+	currentIndexing,
+	type IndexingAttempt,
+	indexingAttempt,
 	settleIndexingAttempt,
-} from "@/asset/pipeline-failure";
+} from "@/asset/pipeline-attempt";
+
+const POINT_ID_NAMESPACE = "3f0d7c2e-5b1a-4d8e-9c6f-2a4b8e1d7f30";
 
 export const vectorizeAssetBatch = (jobs: Job<VectorizeAssetPayload>[]) =>
 	Effect.forEach(
@@ -50,25 +56,26 @@ type VectorizableChunk = {
 	fileType?: FileType;
 };
 
-const isAssetAttachedToBlock = (params: {
-	assetId: AssetId;
-	blockId: BlockId;
-}) =>
+/** Whether `attempt` may write points: the link's current, unfinished indexing, newer than its indexed one. */
+const mayStage = (attempt: IndexingAttempt) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		const { blockAsset } = dbSchema;
 		const [link] = yield* db
 			.select({
-				assetId: dbSchema.blockAsset.assetId,
+				assetId: blockAsset.assetId,
 			})
-			.from(dbSchema.blockAsset)
+			.from(blockAsset)
 			.where(
 				and(
-					eq(dbSchema.blockAsset.assetId, params.assetId),
-					eq(dbSchema.blockAsset.blockId, params.blockId),
+					currentIndexing(attempt),
+					or(
+						isNull(blockAsset.indexedAttempt),
+						lt(blockAsset.indexedAttempt, attempt.attempt),
+					),
 				),
 			);
-
-		return Boolean(link);
+		return link !== undefined;
 	});
 
 const toValidPageNumber = (value: number | undefined) =>
@@ -221,7 +228,21 @@ interface IndexedAsset {
 
 const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 	Effect.gen(function* () {
-		const { blockId, assetId } = params.job.data;
+		const attempt = indexingAttempt(params.job.data);
+		const ran = yield* Effect.exit(
+			runAttempt({
+				jobId: params.job.id,
+				attempt,
+			}),
+		);
+		// Every delivery reconciles, skipped ones too; a failed reconcile fails the job so a retry runs it again.
+		yield* reconcileLinkPoints(attempt);
+		return yield* ran;
+	});
+
+const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
+	Effect.gen(function* () {
+		const { jobId, attempt } = params;
 		const db = yield* DB;
 
 		const [asset] = yield* db
@@ -233,13 +254,13 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 				processingStatus: dbSchema.asset.processingStatus,
 			})
 			.from(dbSchema.asset)
-			.where(eq(dbSchema.asset.id, assetId));
+			.where(eq(dbSchema.asset.id, attempt.assetId));
 
 		if (!asset) {
 			return yield* Effect.logInfo(
 				{
-					jobId: params.job.id,
-					assetId,
+					jobId,
+					assetId: attempt.assetId,
 				},
 				"Skipping vectorization of a deleted asset",
 			);
@@ -248,51 +269,48 @@ const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
 		if (asset.processingStatus !== "completed") {
 			return yield* Effect.logInfo(
 				{
-					jobId: params.job.id,
-					assetId,
+					jobId,
+					assetId: attempt.assetId,
 					processingStatus: asset.processingStatus,
 				},
 				"Skipping vectorization; processing queues it again once it completes",
 			);
 		}
 
-		const isInitiallyAttached = yield* isAssetAttachedToBlock({
-			assetId,
-			blockId,
-		});
-
-		if (!isInitiallyAttached) {
+		if (!(yield* claimIndexing(attempt))) {
 			return yield* Effect.logInfo(
 				{
-					jobId: params.job.id,
-					assetId,
-					blockId,
+					jobId,
+					...attempt,
 				},
-				"Skipping stale vectorization job for detached asset",
+				"Skipping an indexing delivery that is done or replaced",
 			);
 		}
 
 		yield* settleIndexingAttempt(
-			{
-				assetId,
-				blockId,
-			},
+			attempt,
 			indexAsset({
-				jobId: params.job.id,
+				jobId,
 				asset,
-				blockId,
+				attempt,
 			}),
 		);
 	});
 
+/**
+ * Writes the attempt's points unpublished next to the link's indexed ones,
+ * then completes the attempt and makes it the indexed one; the reconcile
+ * publishes them. Point ids follow the attempt and chunk, so deliveries of
+ * one attempt write the same points.
+ */
 const indexAsset = (params: {
 	jobId: string;
 	asset: IndexedAsset;
-	blockId: BlockId;
+	attempt: IndexingAttempt;
 }) =>
 	Effect.gen(function* () {
-		const { jobId, blockId } = params;
-		const assetId = params.asset.id;
+		const { jobId, attempt } = params;
+		const { assetId, blockId } = attempt;
 		const db = yield* DB;
 
 		const extraction = yield* describedExtraction(params);
@@ -326,52 +344,52 @@ const indexAsset = (params: {
 			});
 		}
 
-		const isStillAttached = yield* isAssetAttachedToBlock({
-			assetId,
-			blockId,
-		});
-
-		if (!isStillAttached) {
+		if (!(yield* mayStage(attempt))) {
 			return yield* Effect.logInfo(
 				{
 					jobId,
-					assetId,
-					blockId,
+					...attempt,
 				},
-				"Skipping vector upsert because asset was detached during processing",
+				"Skipping vector upsert of an indexing attempt that was replaced",
 			);
 		}
 
 		yield* embedChunks({
 			chunks: mergedChunks,
-			assetId,
-			blockId,
+			attempt,
 		});
 
-		yield* db
+		const completed = yield* db
 			.update(dbSchema.blockAsset)
 			.set({
 				indexStatus: "completed",
 				indexFailure: null,
+				indexedAttempt: attempt.attempt,
 			})
-			.where(
-				and(
-					eq(dbSchema.blockAsset.assetId, assetId),
-					eq(dbSchema.blockAsset.blockId, blockId),
-				),
+			.where(currentIndexing(attempt))
+			.returning({
+				assetId: dbSchema.blockAsset.assetId,
+			});
+		if (completed.length === 0) {
+			yield* Effect.logInfo(
+				{
+					jobId,
+					...attempt,
+				},
+				"Not completing an indexing attempt that was replaced",
 			);
+		}
 	});
 
 const embedChunks = ({
 	chunks,
-	assetId,
-	blockId,
+	attempt,
 }: {
 	chunks: VectorizableChunk[];
-	assetId: AssetId;
-	blockId: BlockId;
+	attempt: IndexingAttempt;
 }) =>
 	Effect.gen(function* () {
+		const { assetId, blockId } = attempt;
 		const embedResults = yield* generateManyEmbeddings({
 			values: chunks.map((chunk) => chunk.embeddingContent),
 		});
@@ -393,6 +411,8 @@ const embedChunks = ({
 				chunk_index: chunk.chunkIndex,
 				chunkCount: chunk.chunkCount,
 				createdAt: new Date().toISOString(),
+				index_attempt: attempt.attempt,
+				published: false,
 			};
 
 			const specificPayload =
@@ -407,7 +427,10 @@ const embedChunks = ({
 						};
 
 			return {
-				id: uuidv4(),
+				id: uuidv5(
+					`${assetId}/${blockId}/${attempt.attempt}/${index}`,
+					POINT_ID_NAMESPACE,
+				),
 				vector: embedResults.embeddings[index],
 				payload: {
 					...basePayload,
@@ -416,18 +439,19 @@ const embedChunks = ({
 			};
 		});
 
-		yield* deletePointsByIdentifier({
-			assetId,
-			blockId,
-		});
-
-		const qdrantResult = yield* upsertPointsToQdrant({
-			points: metaDataChunks,
-		});
-
-		return {
-			success: true,
-			type: "kreuzberg",
-			qdrant: qdrantResult,
-		};
+		// Checked again under the lock, so no write lands after the link's reconcile moved past this attempt.
+		yield* withLinkPoints(
+			attempt,
+			Effect.gen(function* () {
+				if (!(yield* mayStage(attempt))) {
+					return yield* Effect.logInfo(
+						attempt,
+						"Skipping vector upsert of an indexing attempt that is done or replaced",
+					);
+				}
+				yield* upsertPointsToQdrant({
+					points: metaDataChunks,
+				});
+			}),
+		);
 	});

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
-import { type AssetId, type BlockId, buckets } from "@orcai/core";
+import { type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	PgBoss,
@@ -24,13 +24,14 @@ import {
 	createUser,
 	IntegrationLive,
 } from "@orcai/testing";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { describedExtraction } from "@/asset/described-extraction";
+import type { IndexingAttempt } from "@/asset/pipeline-attempt";
 
 const TIMEOUT = 30_000;
 
@@ -137,13 +138,16 @@ const seed = (processingStatus: PipelineStatus = "completed") =>
 					})),
 				)
 				.returning();
-			yield* db.insert(dbSchema.blockAsset).values(
-				blocks.map((block) => ({
-					blockId: block.id,
-					assetId: asset.id,
-					indexStatus: "active" as const,
-				})),
-			);
+			const links = yield* db
+				.insert(dbSchema.blockAsset)
+				.values(
+					blocks.map((block) => ({
+						blockId: block.id,
+						assetId: asset.id,
+						indexStatus: "active" as const,
+					})),
+				)
+				.returning();
 			const extraction = olderExtraction(asset.prefix, asset.id);
 			yield* storeExtraction(asset.id, extraction);
 			return {
@@ -153,7 +157,13 @@ const seed = (processingStatus: PipelineStatus = "completed") =>
 					prefix: asset.prefix,
 					fileType: asset.fileType,
 				},
-				blockIds: blocks.map((block) => block.id as BlockId),
+				attempts: links.map(
+					(link): IndexingAttempt => ({
+						assetId: link.assetId,
+						blockId: link.blockId,
+						attempt: link.indexAttempt,
+					}),
+				),
 				extraction,
 			};
 		}),
@@ -183,12 +193,14 @@ const stateOf = (assetId: AssetId) =>
 			const links = yield* db
 				.select({
 					status: dbSchema.blockAsset.indexStatus,
+					attempt: dbSchema.blockAsset.indexAttempt,
 				})
 				.from(dbSchema.blockAsset)
 				.where(eq(dbSchema.blockAsset.assetId, assetId));
 			return {
 				asset: asset?.status,
 				links: links.map((link) => link.status).sort(),
+				attempts: links.map((link) => link.attempt),
 			};
 		}),
 	);
@@ -196,15 +208,15 @@ const stateOf = (assetId: AssetId) =>
 test(
 	"two repositories reading an older extraction at once queue processing once",
 	async () => {
-		const { asset, blockIds } = await seed();
+		const { asset, attempts } = await seed();
 
 		const results = await Promise.all(
-			blockIds.map((blockId) =>
+			attempts.map((attempt) =>
 				run(
 					describedExtraction({
 						jobId: crypto.randomUUID(),
 						asset,
-						blockId,
+						attempt,
 					}),
 				),
 			),
@@ -215,13 +227,18 @@ test(
 			undefined,
 		]);
 		expect(await queued(asset.id)).toBe(1);
-		expect(await stateOf(asset.id)).toEqual({
+		const after = await stateOf(asset.id);
+		expect(after).toMatchObject({
 			asset: "pending",
 			links: [
 				"pending",
 				"pending",
 			],
 		});
+		// Processing queues indexing again as new attempts; the waiting ones are replaced.
+		for (const { attempt } of attempts) {
+			expect(after.attempts).not.toContain(attempt);
+		}
 	},
 	TIMEOUT,
 );
@@ -229,7 +246,7 @@ test(
 test(
 	"a reader whose extraction went stale while processing finished indexes the described one",
 	async () => {
-		const { asset, blockIds, extraction } = await seed();
+		const { asset, attempts, extraction } = await seed();
 		const locked = await run(Deferred.make<void>());
 		const release = await run(Deferred.make<void>());
 
@@ -259,7 +276,7 @@ test(
 			describedExtraction({
 				jobId: crypto.randomUUID(),
 				asset,
-				blockId: blockIds[0],
+				attempt: attempts[0],
 			}),
 		);
 		// The reader has read the older extraction and waits for the row.
@@ -277,20 +294,63 @@ test(
 test(
 	"a reader while processing runs queues nothing and waits for indexing to be queued again",
 	async () => {
-		const { asset, blockIds } = await seed("active");
+		const { asset, attempts } = await seed("active");
 
 		expect(
 			await run(
 				describedExtraction({
 					jobId: crypto.randomUUID(),
 					asset,
-					blockId: blockIds[0],
+					attempt: attempts[0],
 				}),
 			),
 		).toBeUndefined();
 		expect(await queued(asset.id)).toBe(0);
-		expect(await stateOf(asset.id)).toEqual({
+		expect(await stateOf(asset.id)).toMatchObject({
 			asset: "active",
+			links: [
+				"active",
+				"pending",
+			],
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"a replaced attempt reading an older extraction queues no processing",
+	async () => {
+		const { asset, attempts } = await seed();
+		const [replaced] = attempts;
+		await run(
+			Effect.gen(function* () {
+				yield* (yield* DB)
+					.update(dbSchema.blockAsset)
+					.set({
+						indexStatus: "pending",
+						indexAttempt: sql`nextval('block_asset_index_attempt_seq')`,
+					})
+					.where(
+						and(
+							eq(dbSchema.blockAsset.assetId, replaced.assetId),
+							eq(dbSchema.blockAsset.blockId, replaced.blockId),
+						),
+					);
+			}),
+		);
+
+		expect(
+			await run(
+				describedExtraction({
+					jobId: crypto.randomUUID(),
+					asset,
+					attempt: replaced,
+				}),
+			),
+		).toBeUndefined();
+		expect(await queued(asset.id)).toBe(0);
+		expect(await stateOf(asset.id)).toMatchObject({
+			asset: "completed",
 			links: [
 				"active",
 				"pending",

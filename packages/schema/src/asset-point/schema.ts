@@ -17,6 +17,10 @@ const baseChunkPayloadSchema = z.object({
 	chunk_index: z.number(),
 	chunkCount: z.number(),
 	createdAt: z.string(),
+	/** The link's indexing attempt that wrote the point; points without one count as attempt 0. */
+	index_attempt: z.number().int().nonnegative().optional(),
+	/** False until the attempt that wrote the point completes; points without it are served. */
+	published: z.boolean().optional(),
 });
 
 const imagePointPayloadSchema = baseChunkPayloadSchema.extend({

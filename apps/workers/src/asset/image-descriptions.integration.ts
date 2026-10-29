@@ -10,7 +10,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { describeImages } from "@/asset/image-descriptions";
-import { AssetPipelineError } from "@/asset/pipeline-failure";
+import { AssetPipelineError } from "@/asset/pipeline-attempt";
 import { requests, seedImageAsset, suggestion } from "@/asset/test-vision";
 
 const runtime = ManagedRuntime.make(

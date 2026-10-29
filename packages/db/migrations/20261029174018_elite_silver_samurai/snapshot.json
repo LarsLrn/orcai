@@ -1,0 +1,112 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "03bb4b8c-53b9-4fc6-8c10-e1f59863bae8",
+  "prevIds": [
+    "c166e69f-070b-4715-8be6-291d82ad778e"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_sequence",
+      "statementTarget": [
+        "sequence",
+        "public",
+        "block_asset_index_attempt_seq"
+      ],
+      "writes": [
+        "s|seq|public.block_asset_index_attempt_seq",
+        "n|seq|public.block_asset_index_attempt_seq",
+        "e|seq|public.block_asset_index_attempt_seq",
+        "n|rel|public.block_asset_index_attempt_seq"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "block_asset",
+        "index_attempt"
+      ],
+      "writes": [
+        "s|col|public.block_asset.index_attempt",
+        "n|col|public.block_asset.index_attempt",
+        "e|col|public.block_asset.index_attempt"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "block_asset",
+        "indexed_attempt"
+      ],
+      "writes": [
+        "s|col|public.block_asset.indexed_attempt",
+        "n|col|public.block_asset.indexed_attempt",
+        "e|col|public.block_asset.indexed_attempt"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "index_attempt",
+        "type": "bigint",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "nextval('block_asset_index_attempt_seq')",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "indexed_attempt",
+        "type": "bigint",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "block_asset_index_attempt_seq",
+        "incrementBy": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "startWith": "1",
+        "cacheSize": 1,
+        "cycle": false,
+        "entityType": "sequences"
+      }
+    }
+  ]
+}
