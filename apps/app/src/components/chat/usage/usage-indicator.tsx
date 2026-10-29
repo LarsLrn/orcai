@@ -121,7 +121,7 @@ const UsageIndicator = ({
 							{m.chat_usage_title()}
 						</DrawerTitle>
 					</DrawerHeader>
-					<div className="p-4">{body}</div>
+					<div className="min-h-0 flex-1 overflow-y-auto p-4">{body}</div>
 				</DrawerContent>
 			</Drawer>
 		);
