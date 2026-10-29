@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { DB, dbSchema } from "@orcai/db";
 import { parseImagePath, UPLOAD_ROUTES } from "@orcai/s3";
-import { isS3NotFound, sendHeadObjectCommand } from "@orcai/s3/server";
+import {
+	isS3NotFound,
+	listObjects,
+	sendDeleteObjectCommand,
+	sendHeadObjectCommand,
+} from "@orcai/s3/server";
 import type { StorageUploadRoute, UploadFileObject } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -10,8 +15,10 @@ import {
 	authzIntegration,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
+import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
+import { deleteAccounts } from "@/lib/authz/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import { referencedImage } from "./images";
+import { imageResponse, referencedImage } from "./images";
 
 const { run, organizationWith, procedureOptions, instanceAdmin } =
 	authzIntegration();
@@ -483,6 +490,144 @@ describe("instance moderation", () => {
 			expect(await imageOf(member)).toBeNull();
 			expect(await head(keyOf(picture.image))).toBeUndefined();
 			expect(await head(keyOf(logo.logo))).toBeUndefined();
+		},
+		TIMEOUT,
+	);
+});
+
+describe("deletion", () => {
+	test(
+		"deleting an account or an organisation deletes its picture or logo",
+		async () => {
+			const {
+				organizationId,
+				actors: [admin, member],
+				zedToken,
+			} = await organizationWith([
+				"admin",
+				"member",
+			]);
+			const { data: picture } = await setImage(
+				member,
+				await stagedUpload(member, "profileImage"),
+			);
+			const { organization } = await procedures();
+			const { data: logo } = await run(
+				organization.setLogo(
+					{
+						id: organizationId,
+						file: await stagedUpload(admin, "organizationLogo"),
+					},
+					await procedureOptions(admin, zedToken),
+				),
+			);
+			const moderator = await instanceAdmin(organizationId);
+
+			await run(
+				deleteAccounts({
+					userIds: [
+						member.user.id,
+					],
+					actorId: moderator.user.id,
+				}),
+			);
+			expect(await head(keyOf(picture.image))).toBeUndefined();
+
+			await run(
+				deleteOrganizationsWithAuthorization([
+					organizationId,
+				]),
+			);
+			expect(await head(keyOf(logo.logo))).toBeUndefined();
+		},
+		TIMEOUT,
+	);
+});
+
+describe("serving", () => {
+	test(
+		"answers a referenced image, revalidates it, and 404s once its object is gone",
+		async () => {
+			const {
+				actors: [member],
+			} = await organizationWith([
+				"member",
+			]);
+			const { data } = await setImage(
+				member,
+				await stagedUpload(member, "profileImage"),
+			);
+
+			const served = await run(imageResponse(data.image, null));
+			expect(served.status).toBe(200);
+			expect(served.headers.get("Content-Type")).toBe("image/webp");
+			expect(served.headers.get("Cache-Control")).toBe("private, no-cache");
+			expect(served.headers.get("X-Content-Type-Options")).toBe("nosniff");
+			expect(new Uint8Array(await served.arrayBuffer())).toEqual(
+				new Uint8Array(WEBP),
+			);
+			const etag = served.headers.get("ETag");
+			expect((await run(imageResponse(data.image, etag))).status).toBe(304);
+			expect(
+				(
+					await run(
+						imageResponse(
+							data.image.replace(
+								/[0-9a-f-]+\.webp$/,
+								`${crypto.randomUUID()}.webp`,
+							),
+							null,
+						),
+					)
+				).status,
+			).toBe(404);
+
+			await run(
+				sendDeleteObjectCommand({
+					bucket: UPLOAD_ROUTES.profileImage.bucket,
+					key: keyOf(data.image),
+				}),
+			);
+			expect((await run(imageResponse(data.image, etag))).status).toBe(404);
+			expect((await run(imageResponse(data.image, null))).status).toBe(404);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("commit racing deletion", () => {
+	test(
+		"leaves no image behind for a deleted account",
+		async () => {
+			const {
+				organizationId,
+				actors: [member],
+			} = await organizationWith([
+				"member",
+			]);
+			const file = await stagedUpload(member, "profileImage");
+			const moderator = await instanceAdmin(organizationId);
+
+			await Promise.allSettled([
+				setImage(member, file),
+				run(
+					deleteAccounts({
+						userIds: [
+							member.user.id,
+						],
+						actorId: moderator.user.id,
+					}),
+				),
+			]);
+
+			expect(
+				await run(
+					listObjects({
+						bucket: UPLOAD_ROUTES.profileImage.bucket,
+						prefix: `images/users/${member.user.id}/`,
+					}),
+				),
+			).toEqual([]);
 		},
 		TIMEOUT,
 	);

@@ -5,6 +5,7 @@ import { asc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { readImage, referencedImage } from "@/lib/images/images";
 import type { ZipArchiveWriter } from "./zip-archive";
 
 /** A stored conversation as the markdown a person reads. */
@@ -27,6 +28,23 @@ const assetFileName = (asset: { title: string; fileType: string }) => {
 		? name
 		: `${name}.${asset.fileType}`;
 };
+
+const AVATAR_ENTRY = "profile/avatar.webp";
+
+/** The profile picture's bytes; answers the entry name, or null when the object is gone. */
+const writeAvatar = (path: string, writer: ZipArchiveWriter) =>
+	Effect.gen(function* () {
+		const image = yield* referencedImage(path);
+		const object = image ? yield* readImage(image.key) : undefined;
+		if (!object) {
+			yield* Effect.logWarning({
+				operation: "data-export.avatar-missing",
+			});
+			return null;
+		}
+		yield* writer.addFile(AVATAR_ENTRY, object.body.transformToWebStream());
+		return AVATAR_ENTRY;
+	});
 
 const writeAccount = (userId: UserId, writer: ZipArchiveWriter) =>
 	Effect.gen(function* () {
@@ -59,10 +77,12 @@ const writeAccount = (userId: UserId, writer: ZipArchiveWriter) =>
 			)
 			.where(eq(dbSchema.member.userId, userId))
 			.orderBy(asc(dbSchema.member.createdAt));
+		const avatar = user?.image ? yield* writeAvatar(user.image, writer) : null;
 		yield* writer.addText(
 			"profile.json",
 			json({
 				...user,
+				image: avatar,
 				memberships,
 			}),
 		);

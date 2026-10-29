@@ -25,6 +25,7 @@ import {
 	detachMembers,
 } from "@/lib/authz/resource-access";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { deleteImages } from "@/lib/images/images";
 
 type Actor = {
 	userId: UserId;
@@ -592,7 +593,7 @@ export const deleteAccounts = (params: {
 				}),
 			);
 
-		yield* writeRelationships(
+		const { result: images } = yield* writeRelationships(
 			{
 				organizationIds: Effect.map(
 					Effect.all([
@@ -674,8 +675,10 @@ export const deleteAccounts = (params: {
 							),
 						),
 					);
+				return existingUsers.map((user) => user.image);
 			}),
 		);
+		yield* deleteImages(images);
 
 		return userIds.length;
 	});

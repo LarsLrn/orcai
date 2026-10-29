@@ -5,7 +5,7 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
-import { and, eq, getColumns, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/lib/authz/relationship-write";
 import { detachGroups, detachMembers } from "@/lib/authz/resource-access";
 import * as AppErrors from "@/lib/effect/utils/errors";
+import { deleteImages } from "@/lib/images/images";
 
 /**
  * Inserts an organization with its first admin and its All Members group.
@@ -97,12 +98,16 @@ export const deleteOrganizationsWithAuthorization = (
 			];
 			const now = new Date();
 
+			// The lock keeps a logo commit from landing on a deleted organisation.
 			const existing = yield* db
 				.select({
 					id: dbSchema.organization.id,
+					logo: dbSchema.organization.logo,
 				})
 				.from(dbSchema.organization)
-				.where(inArray(dbSchema.organization.id, ids));
+				.where(inArray(dbSchema.organization.id, ids))
+				.orderBy(asc(dbSchema.organization.id))
+				.for("update");
 
 			if (existing.length !== new Set(ids).size) {
 				return yield* Effect.fail(
@@ -203,8 +208,9 @@ export const deleteOrganizationsWithAuthorization = (
 					}),
 				),
 			);
+			return existing.map((organization) => organization.logo);
 		}),
-	);
+	).pipe(Effect.flatMap(({ result: logos }) => deleteImages(logos)));
 
 /**
  * Touches the user's role tuples in the organizations they are a member of,

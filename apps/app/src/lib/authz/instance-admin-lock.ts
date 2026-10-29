@@ -25,6 +25,7 @@ export const lockAsInstanceAdmin = (params: {
 				banned: dbSchema.user.banned,
 				email: dbSchema.user.email,
 				name: dbSchema.user.name,
+				image: dbSchema.user.image,
 				locale: dbSchema.user.locale,
 				twoFactorEnabled: dbSchema.user.twoFactorEnabled,
 			})
