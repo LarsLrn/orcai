@@ -20,7 +20,7 @@ const reasonMessages: Record<CheckReason, (check: Check) => string> = {
 	MAIL_NOT_SENT_YET: () => m.check_reason_mail_not_sent_yet(),
 	MAIL_DEAD: (check) =>
 		m.check_reason_mail_dead({
-			count: formatCount(count(check)),
+			count: count(check),
 		}),
 	CONFIG_OK: () => m.check_reason_config_ok(),
 	CONFIG_WARNINGS: (check) =>
