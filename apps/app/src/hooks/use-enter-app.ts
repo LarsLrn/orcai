@@ -1,11 +1,17 @@
 import { localeSchema } from "@orcai/schema";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useUmami } from "@/hooks/use-umami";
 import { getLocale } from "@/paraglide/runtime";
 
-/** Finishes a sign-in: into the app, which sends a user without an active organisation to the picker. */
+/**
+ * Finishes a sign-in: into the app, which sends a user without an active
+ * organisation to the picker, or back to the invitation the sign-in started from.
+ */
 export const useEnterApp = () => {
 	const navigate = useNavigate();
+	const { inv } = useSearch({
+		strict: false,
+	});
 	const { trackEvent } = useUmami();
 	const renderedLocale = getLocale();
 
@@ -15,12 +21,20 @@ export const useEnterApp = () => {
 		const storedLocale = localeSchema.safeParse(
 			"locale" in user ? user.locale : undefined,
 		);
-		if (storedLocale.success && storedLocale.data !== renderedLocale) {
-			window.location.assign("/app");
-			return;
-		}
+		const destination = inv
+			? ({
+					to: "/register",
+					search: {
+						inv,
+					},
+				} as const)
+			: ({
+					to: "/app",
+				} as const);
 		navigate({
-			to: "/app",
+			...destination,
+			reloadDocument:
+				storedLocale.success && storedLocale.data !== renderedLocale,
 		});
 	};
 };

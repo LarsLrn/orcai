@@ -1,5 +1,5 @@
 import type { SigninSchemaType } from "@orcai/schema";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { useEnterApp } from "@/hooks/use-enter-app";
 import { authClient } from "@/lib/auth/auth-client";
@@ -9,6 +9,9 @@ import { m } from "@/paraglide/messages";
 export const useSignin = () => {
 	const navigate = useNavigate();
 	const enterApp = useEnterApp();
+	const { inv } = useSearch({
+		strict: false,
+	});
 
 	return useMutationAction({
 		mutationOptions: () => ({
@@ -26,6 +29,9 @@ export const useSignin = () => {
 				if ("twoFactorRedirect" in data) {
 					navigate({
 						to: "/two-factor",
+						search: {
+							inv,
+						},
 					});
 					return;
 				}

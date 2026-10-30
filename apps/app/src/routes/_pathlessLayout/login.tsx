@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import z from "zod/v4";
 import { PasskeySignInButton } from "@/components/auth/passkey/passkey-sign-in-button";
 import { SignInForm } from "@/components/auth/signin/signin-form";
 import {
@@ -14,6 +15,10 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/login")({
+	// An invitation link's sign-in returns to the invitation.
+	validateSearch: z.object({
+		inv: z.string().optional(),
+	}),
 	loader: async ({ context: { queryClient } }) => {
 		const status = await queryClient.query(
 			orpc.bootstrap.status.queryOptions({
@@ -33,6 +38,8 @@ export const Route = createFileRoute("/_pathlessLayout/login")({
 });
 
 function RouteComponent() {
+	const { inv } = Route.useSearch();
+
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader>
@@ -49,7 +56,12 @@ function RouteComponent() {
 				<PasskeySignInButton />
 			</CardContent>
 			<CardFooter className="flex justify-end text-muted-foreground text-sm">
-				<Link to={"/forgot-password"}>
+				<Link
+					to="/forgot-password"
+					search={{
+						inv,
+					}}
+				>
 					{m.auth_login_page_forgot_password_link()}
 				</Link>
 			</CardFooter>

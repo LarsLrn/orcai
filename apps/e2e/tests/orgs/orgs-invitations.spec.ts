@@ -1,18 +1,34 @@
+import type { ZedTokenStore } from "../../fixtures/api";
 import { waitForLink } from "../../fixtures/auth/outbox";
-import { expectForbidden } from "../../fixtures/authorization";
-import { USER_PASSWORD } from "../../fixtures/constants";
-import { submitForm } from "../../fixtures/forms";
-import { expect, test } from "../../fixtures/index";
-import { message } from "../../fixtures/messages";
-import { enterApp, open } from "../../fixtures/navigation";
 import {
+	enrolTwoFactor,
+	passChallenge,
+	totpCode,
+} from "../../fixtures/auth/two-factor";
+import { expectForbidden } from "../../fixtures/authorization";
+import { type Role, USER_PASSWORD } from "../../fixtures/constants";
+import { submitForm } from "../../fixtures/forms";
+import {
+	type Api,
+	expect,
+	type Organisations,
+	test,
+} from "../../fixtures/index";
+import { message } from "../../fixtures/messages";
+import { awaitHydration, enterApp, open } from "../../fixtures/navigation";
+import { runId } from "../../fixtures/organisation";
+import {
+	acceptOnSelectionPage,
+	followAuthLink,
 	INVITED_NOTIFICATION,
 	invitationEmail,
 	inviteEmail,
 	organisationRoleOf,
 	registerFromInvitation,
+	signInFromInvitation,
+	submitSignIn,
 } from "../../fixtures/orgs/invitations";
-import { createOrgsUser } from "../../fixtures/orgs/members";
+import { addMember, createOrgsUser } from "../../fixtures/orgs/members";
 import { openGuarded } from "../../fixtures/orgs/navigation";
 import { chooseRole } from "../../fixtures/orgs/roles";
 
@@ -169,6 +185,264 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 		expect(await organisationRoleOf(api.as("admin"), user.email)).toBe(
 			"manager",
 		);
+	} finally {
+		await context.close();
+	}
+});
+
+/** A user of the worker organisation, invited to a second one, so signing in alone enters the first. */
+const invitedMember = async (
+	{
+		api,
+		appBaseURL,
+		orgs,
+		zedTokens,
+	}: {
+		api: Api;
+		appBaseURL: string;
+		orgs: Organisations;
+		zedTokens: ZedTokenStore;
+	},
+	label: string,
+	role: Role,
+) => {
+	const user = await createOrgsUser(appBaseURL, label);
+	await addMember(api.as("admin"), {
+		user,
+		role: "member",
+		zedTokens,
+	});
+	const inviting = await orgs.create(`E2E Orgs Inviting ${runId()}`);
+	await inviteEmail(api.as("admin", inviting), {
+		email: user.email,
+		role,
+	});
+
+	return {
+		user,
+		inviting,
+	};
+};
+
+test("orgs: an existing user signs in from the invitation link and lands on its acceptance", async ({
+	api,
+	appBaseURL,
+	browser,
+	orgs,
+	outbox,
+	zedTokens,
+}) => {
+	test.slow();
+
+	const { user, inviting } = await invitedMember(
+		{
+			api,
+			appBaseURL,
+			orgs,
+			zedTokens,
+		},
+		"invited-signin",
+		"member",
+	);
+
+	const link = await waitForLink(outbox, user.email, INVITED_NOTIFICATION);
+	const context = await browser.newContext({
+		locale: "en",
+	});
+	const page = await context.newPage();
+
+	try {
+		await signInFromInvitation(page, link, {
+			...user,
+			until: /\/select-organization/,
+		});
+		await acceptOnSelectionPage(page, inviting.slug);
+
+		expect(
+			await organisationRoleOf(api.as("admin", inviting), user.email),
+		).toBe("member");
+	} finally {
+		await context.close();
+	}
+});
+
+test("orgs: the second sign-in step and the sign-in pages' back links keep the invitation", async ({
+	api,
+	appBaseURL,
+	browser,
+	orgs,
+	outbox,
+	zedTokens,
+}) => {
+	test.slow();
+
+	const { user, inviting } = await invitedMember(
+		{
+			api,
+			appBaseURL,
+			orgs,
+			zedTokens,
+		},
+		"invited-2fa",
+		"viewer",
+	);
+	const { setupKey } = await enrolTwoFactor(
+		appBaseURL,
+		user.session,
+		user.password,
+	);
+
+	const link = await waitForLink(outbox, user.email, INVITED_NOTIFICATION);
+	const context = await browser.newContext({
+		locale: "en",
+	});
+	const page = await context.newPage();
+
+	try {
+		await open(page, link);
+		await followAuthLink(
+			page,
+			message("auth_register_page_signin_link"),
+			/\/login\?inv=/,
+		);
+		// Detours through the sign-in pages keep the invitation.
+		await followAuthLink(
+			page,
+			message("auth_login_page_forgot_password_link"),
+			/\/forgot-password\?inv=/,
+		);
+		await followAuthLink(
+			page,
+			message("auth_forgot_password_page_signin_link"),
+			/\/login\?inv=/,
+		);
+		await submitSignIn(page, {
+			...user,
+			until: /\/two-factor\?inv=/,
+		});
+		await awaitHydration(page);
+		await followAuthLink(
+			page,
+			message("two_factor_challenge_back_link"),
+			/\/login\?inv=/,
+		);
+		await submitSignIn(page, {
+			...user,
+			until: /\/two-factor\?inv=/,
+		});
+		await awaitHydration(page);
+		await passChallenge(page, {
+			code: await totpCode(setupKey),
+		});
+		await acceptOnSelectionPage(page, inviting.slug);
+
+		expect(
+			await organisationRoleOf(api.as("admin", inviting), user.email),
+		).toBe("viewer");
+	} finally {
+		await context.close();
+	}
+});
+
+test("orgs: a signed-in invitee opening the link lands on its acceptance, and a used link says so", async ({
+	api,
+	appBaseURL,
+	browser,
+	orgs,
+	outbox,
+	zedTokens,
+}) => {
+	test.slow();
+
+	const { user, inviting } = await invitedMember(
+		{
+			api,
+			appBaseURL,
+			orgs,
+			zedTokens,
+		},
+		"invited-signed-in",
+		"manager",
+	);
+
+	const link = await waitForLink(outbox, user.email, INVITED_NOTIFICATION);
+	const context = await browser.newContext({
+		storageState: user.session.storageState,
+		locale: "en",
+	});
+	const page = await context.newPage();
+
+	try {
+		await open(page, link);
+		await acceptOnSelectionPage(page, inviting.slug);
+
+		expect(
+			await organisationRoleOf(api.as("admin", inviting), user.email),
+		).toBe("manager");
+
+		await open(page, link);
+		await expect(
+			page.getByText(message("auth_register_page_invitation_not_found_title")),
+		).toBeVisible();
+	} finally {
+		await context.close();
+	}
+});
+
+test("orgs: a link opened under another account names the invited address and offers to sign out", async ({
+	api,
+	appBaseURL,
+	browser,
+	outbox,
+}) => {
+	test.slow();
+
+	const email = invitationEmail("other-account");
+	await inviteEmail(api.as("admin"), {
+		email,
+		role: "member",
+	});
+	const someoneElse = await createOrgsUser(appBaseURL, "other-account");
+
+	const link = await waitForLink(outbox, email, INVITED_NOTIFICATION);
+	const context = await browser.newContext({
+		storageState: someoneElse.session.storageState,
+		locale: "en",
+	});
+	const page = await context.newPage();
+
+	try {
+		await open(page, link);
+		await expect(
+			page.getByText(
+				message("auth_register_page_invitation_other_account_title"),
+			),
+		).toBeVisible();
+		await expect(
+			page.getByText(
+				message("auth_register_page_invitation_other_account_description", {
+					email,
+				}),
+			),
+		).toBeVisible();
+		await expect(
+			page.getByRole("button", {
+				name: message("orgs_invitation_accept_button"),
+			}),
+		).toHaveCount(0);
+
+		// Signing out keeps the link, so the invited address can register.
+		await page
+			.getByRole("button", {
+				name: message("auth_register_page_sign_out_action"),
+			})
+			.click();
+		await expect(
+			page.getByRole("button", {
+				name: message("auth_signup_form_submit_button"),
+			}),
+		).toBeVisible();
+		await expect(page).toHaveURL(/\/register\?inv=/);
 	} finally {
 		await context.close();
 	}

@@ -25,7 +25,7 @@
 	"email_layout_greeting": "Hello {name},",
 	"email_layout_greeting_anonymous": "Hello,",
 	"email_organization_invited_action": "Accept invitation",
-	"email_organization_invited_body": "{inviter} invited you to join {organization} with the {role} role. This invitation expires on {date}. If you already have an account, sign in instead and accept the invitation under Switch organisation in the menu with your name.",
+	"email_organization_invited_body": "{inviter} invited you to join {organization} with the {role} role. This invitation expires on {date}.",
 	"email_organization_invited_preview": "Join {organization} on OrcAI",
 	"email_organization_invited_role_admin": "Admin",
 	"email_organization_invited_role_manager": "Manager",

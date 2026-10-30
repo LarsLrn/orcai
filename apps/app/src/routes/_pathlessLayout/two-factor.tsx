@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import z from "zod/v4";
 import { TwoFactorChallengeForm } from "@/components/auth/two-factor/two-factor-challenge-form";
 import {
 	Card,
@@ -11,6 +12,10 @@ import {
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/two-factor")({
+	// An invitation link's sign-in returns to the invitation.
+	validateSearch: z.object({
+		inv: z.string().optional(),
+	}),
 	beforeLoad: ({ context }) => {
 		if (context.auth.isAuthenticated) {
 			throw redirect({
@@ -30,6 +35,8 @@ export const Route = createFileRoute("/_pathlessLayout/two-factor")({
 });
 
 function RouteComponent() {
+	const { inv } = Route.useSearch();
+
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader>
@@ -42,7 +49,14 @@ function RouteComponent() {
 				<TwoFactorChallengeForm />
 			</CardContent>
 			<CardFooter className="flex justify-end text-muted-foreground text-sm">
-				<Link to={"/login"}>{m.two_factor_challenge_back_link()}</Link>
+				<Link
+					to="/login"
+					search={{
+						inv,
+					}}
+				>
+					{m.two_factor_challenge_back_link()}
+				</Link>
 			</CardFooter>
 		</Card>
 	);
