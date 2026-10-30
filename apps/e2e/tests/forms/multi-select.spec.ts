@@ -249,6 +249,45 @@ test("forms: eligible groups show member counts and replace the default group", 
 	]);
 });
 
+test("forms: clearing All Members on a new quota pool leaves the groups empty and blocks saving", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	await createProvider(api);
+	const groups = await api.as("admin").group.list({
+		pageIndex: 0,
+		pageSize: 100,
+	});
+	const allMembersGroup = groups.data.find(
+		(candidate) => candidate.systemKey === "all_members",
+	);
+	if (!allMembersGroup) throw new Error("Missing All Members group");
+
+	const page = await pageAs("admin");
+	await enterApp(page, org.slug);
+	await open(page, "/app/quotas/add");
+
+	const allMembers = message("quotas_form_group_system_label", {
+		name: allMembersGroup.name,
+	});
+	await removeButton(page, allMembers).click();
+
+	const input = page.getByRole("combobox", {
+		name: message("quotas_form_groups_label"),
+	});
+	await expect(input).toHaveAttribute("aria-invalid", "true");
+	await expect(removeButton(page, allMembers)).toHaveCount(0);
+
+	await page
+		.getByRole("button", {
+			name: message("quotas_form_create_button"),
+		})
+		.click();
+	await expect(page).toHaveURL(/\/app\/quotas\/add$/);
+	await expect(removeButton(page, allMembers)).toHaveCount(0);
+});
+
 test("forms: an emptied eligible groups field names its error", async ({
 	api,
 	org,

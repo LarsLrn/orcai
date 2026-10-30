@@ -4625,7 +4625,7 @@
 	"orgs_invitation_form_add_email_button": "E-Mail-Feld hinzufügen",
 	"orgs_invitation_form_bulk_button": "Mehrere E-Mails hinzufügen",
 	"orgs_invitation_form_bulk_confirm_button": "E-Mails hinzufügen",
-	"orgs_invitation_form_bulk_dialog_description": "Eingefügte Adressen ersetzen die E-Mail-Felder im Formular.",
+	"orgs_invitation_form_bulk_dialog_description": "Eingefügte Adressen werden zu den E-Mail-Feldern im Formular hinzugefügt. Vorhandene Adressen und leere Zeilen werden übersprungen.",
 	"orgs_invitation_form_bulk_dialog_title": "Mehrere E-Mails hinzufügen",
 	"orgs_invitation_form_bulk_placeholder": "Eine E-Mail-Adresse pro Zeile",
 	"orgs_invitation_form_details_description": "Diese Einstellungen gelten für alle in diesem Vorgang eingeladenen Benutzer. Die Eingeladenen treten der Organisation bei, in der Sie gerade arbeiten.",

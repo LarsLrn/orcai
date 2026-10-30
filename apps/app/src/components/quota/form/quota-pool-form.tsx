@@ -2,7 +2,7 @@ import type { QuotaPoolDetail } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
 	FormActions,
 	FormNotice,
@@ -117,10 +117,6 @@ const QuotaPoolForm = ({
 		form.store,
 		(state) => state.values.modelId,
 	);
-	const selectedGroupIds = useSelector(
-		form.store,
-		(state) => state.values.groupIds,
-	);
 
 	const providerOptions = useMemo(
 		() =>
@@ -184,11 +180,17 @@ const QuotaPoolForm = ({
 		],
 	);
 
+	// All Members is the starting group of a fresh form only; clearing it stays cleared.
+	const startedWithDefaultGroup = useRef(false);
 	useEffect(() => {
-		if (action !== "create" || !defaultGroupId || selectedGroupIds.length > 0) {
+		if (
+			action !== "create" ||
+			!defaultGroupId ||
+			startedWithDefaultGroup.current
+		)
 			return;
-		}
 
+		startedWithDefaultGroup.current = true;
 		form.setFieldValue("groupIds", [
 			defaultGroupId,
 		]);
@@ -196,7 +198,6 @@ const QuotaPoolForm = ({
 		action,
 		defaultGroupId,
 		form,
-		selectedGroupIds.length,
 	]);
 
 	useEffect(() => {

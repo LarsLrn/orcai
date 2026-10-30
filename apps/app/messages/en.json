@@ -4625,7 +4625,7 @@
 	"orgs_invitation_form_add_email_button": "Add email field",
 	"orgs_invitation_form_bulk_button": "Bulk add emails",
 	"orgs_invitation_form_bulk_confirm_button": "Add emails",
-	"orgs_invitation_form_bulk_dialog_description": "Pasted addresses replace the email fields in the form.",
+	"orgs_invitation_form_bulk_dialog_description": "Pasted addresses are added to the email fields in the form. Addresses already there and empty lines are skipped.",
 	"orgs_invitation_form_bulk_dialog_title": "Bulk add emails",
 	"orgs_invitation_form_bulk_placeholder": "One email address per line",
 	"orgs_invitation_form_details_description": "These settings apply to all users invited in this batch. They join the organisation you are working in.",
