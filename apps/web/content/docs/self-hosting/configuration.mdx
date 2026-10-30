@@ -3,13 +3,11 @@ title: Configuration
 description: Required and optional environment variables for OrcAI.
 ---
 
-Runtime configuration is loaded across app and package config modules. `.env.example` is the current baseline for self-hosted environments. Every value comes from the container environment and applies when the container restarts, so one image serves any deployment. Build args only carry image identity, never deployment values. The [legal pages](#legal-pages) are the one exception.
+Runtime configuration is loaded across app and package config modules. `.env.example` is the current baseline for self-hosted environments. Every value comes from the container environment and applies when the container restarts, so one image serves any instance. The one exception is the [legal pages](#legal-pages), which are compiled into the image. Build args only carry image identity, never deployment values.
 
 Under Docker Compose, a container only sees the variables `docker-compose.yaml` passes to it. Compose sets the service addresses itself (`POSTGRES_HOST`, `VALKEY_URL`, `QDRANT_URL`, `SPICEDB_ENDPOINT`) and fills `SPICEDB_TOKEN` from `SPICEDB_GRPC_PRESHARED_KEY`. The bundled PostgreSQL always creates the user `postgres` and the database `app`, so leave `POSTGRES_USER` and `POSTGRES_DB` at those values. Compose does not pass `BETTER_AUTH_RATE_LIMIT`, `WORKER_POLLING_INTERVAL_SECONDS` or `PORT`, so setting them in `.env` has no effect until you add them to the service's `environment`.
 
-When SMTP is not configured, emails are not delivered. The local-testing fallback logs complete rendered messages, including password-reset, verification, and invitation links. Do not use log-only mode in production, and treat any captured output as credential-bearing sensitive data.
-
-Primary config modules:
+The primary config modules are:
 
 - `packages/ai/src/config.ts`
 - `packages/db/src/config.ts`
@@ -24,23 +22,23 @@ Primary config modules:
 
 | Variable | Required | Notes |
 | --- | --- | --- |
-| `BETTER_AUTH_URL` | Yes | The app's public origin, used for auth callbacks and links in emails. Passkeys are bound to its host name, so changing the domain invalidates every registered passkey; users then sign in with their password and add them again. |
+| `BETTER_AUTH_URL` | Yes | The app's public origin, used for auth callbacks and links in emails. Passkeys are bound to its host name, so changing the domain invalidates every registered passkey, and users then sign in with their password and add them again. |
 | `WEB_URL` | No | Public docs site base URL used in the app dashboard and in the OrcAI Assistant's docs links. It is also where the Assistant reads the docs unless `WEB_INTERNAL_URL` is set. Without it the Assistant cannot read the docs. |
 | `WEB_INTERNAL_URL` | No | Docs site origin the app server fetches for the Assistant. Defaults to `WEB_URL`. Docker Compose sets `http://web:3001`. |
 | `PORT` | No | Port the server listens on. Defaults to `3000` for the app and `3001` for the docs site, which their images and the Compose files expect. |
 
 Browsers need to reach three origins: the app at `BETTER_AUTH_URL`, the docs site at `WEB_URL`, and object storage at `S3_PUBLIC_ENDPOINT` (see [Object storage](#object-storage)). `docker-compose.yaml` publishes no ports, so put a reverse proxy with TLS in front of these services, or publish their ports the way `docker-compose.local.yaml` does.
 
-## Authentication And Encryption
+## Authentication and encryption
 
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `BETTER_AUTH_SECRET` | Yes | Better Auth signing secret. |
-| `BETTER_AUTH_RATE_LIMIT` | No | `false` turns off Better Auth's rate limiting, which is on in production by default. It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit. |
+| `BETTER_AUTH_RATE_LIMIT` | No | `false` turns off Better Auth's rate limiting, which is on in production by default. It keys clients by `X-Forwarded-For`, and requests without exactly one address in it share one limit. |
 | `ENCRYPTION_KEY` | Yes | Application encryption key. Any string works, but use a random value of 32 to 64 characters. Provider API keys are stored encrypted with it, so the app and the workers need the same value. |
 | `TWO_FACTOR_REQUIRED` | No | Who must use two-factor authentication: `none` (default), `admins` (instance admins) or `all`. A covered user without it is sent to set it up before using the app. |
 
-## Database And Cache
+## Database and cache
 
 | Variable | Required | Notes |
 | --- | --- | --- |
@@ -49,11 +47,11 @@ Browsers need to reach three origins: the app at `BETTER_AUTH_URL`, the docs sit
 | `POSTGRES_HOST` | Yes | PostgreSQL host. |
 | `POSTGRES_PORT` | No | PostgreSQL port, default `5432`. |
 | `POSTGRES_DB` | Yes | PostgreSQL database name. |
-| `POSTGRES_POOL_MAX` | No | The most connections each pool opens, default `10`. The app runs three pools (queries, Better Auth, pg-boss) and the workers two (queries, pg-boss); keep the total for all processes below PostgreSQL's `max_connections` (100 by default). |
+| `POSTGRES_POOL_MAX` | No | The most connections each pool opens, default `10`. The app runs three pools (queries, Better Auth, pg-boss) and the workers two (queries, pg-boss), so keep the total for all processes below PostgreSQL's `max_connections` (100 by default). |
 | `VALKEY_URL` | Yes | Valkey connection URL. |
 | `WORKER_POLLING_INTERVAL_SECONDS` | No | Replaces how often every background worker polls its queue, at least `0.5`. Unset, each worker keeps its own interval of 2 to 30 seconds. |
 
-## Object Storage
+## Object storage
 
 | Variable | Required | Notes |
 | --- | --- | --- |
@@ -65,7 +63,7 @@ Browsers need to reach three origins: the app at `BETTER_AUTH_URL`, the docs sit
 
 Browsers send files straight to object storage and download them from it, so `S3_PUBLIC_ENDPOINT` must be reachable from every user's browser. OrcAI addresses buckets by path (`https://storage.example/uploads/...`), not by subdomain. It uses two buckets, `uploads` and `processed-files`, with these fixed names, and creates them when they are missing, so the access key needs the right to create buckets unless you create both first. When object storage runs on a different origin than the app, its CORS rules must allow `PUT` with any request header from the `BETTER_AUTH_URL` origin and expose the `ETag` header, which multipart uploads read. The bundled SeaweedFS creates both buckets on startup.
 
-## AI And Retrieval
+## AI and retrieval
 
 | Variable | Required | Notes |
 | --- | --- | --- |
@@ -94,14 +92,14 @@ The `OPENAI_COMPATIBLE_*` endpoint serves embeddings only. Chats, the Assistant 
 | --- | --- | --- |
 | `SPICEDB_ENDPOINT` | Yes | SpiceDB gRPC endpoint. |
 | `SPICEDB_TOKEN` | Yes | Token used by the app. |
-| `SPICEDB_SECURITY` | No | Transport mode for SpiceDB client. Defaults to `insecure-plaintext`. Valid values: `secure`, `insecure-localhost`, `insecure-plaintext`. |
+| `SPICEDB_SECURITY` | No | Transport mode for the SpiceDB client: `secure`, `insecure-localhost` or `insecure-plaintext` (default). |
 | `SPICEDB_GRPC_PRESHARED_KEY` | Compose | Used by the Compose-managed SpiceDB service. |
 | `SPICEDB_POSTGRES_USER` | Compose | User for the Compose-managed SpiceDB database. |
 | `SPICEDB_POSTGRES_PASSWORD` | Compose | Password for the Compose-managed SpiceDB database. |
 
 ## Email
 
-Email delivery stays in log-only mode unless SMTP is configured. Only the workers read these variables, because they send every email.
+Only the workers read these variables, because they send every email. Until SMTP is configured, email stays in log-only mode for local testing and nothing is delivered. The workers then log each complete rendered message, including password reset, verification and invitation links, so do not use log-only mode in production and treat any captured log output as sensitive credentials.
 
 | Variable | Required | Notes |
 | --- | --- | --- |
@@ -118,7 +116,7 @@ Email delivery stays in log-only mode unless SMTP is configured. Only the worker
 
 | Variable | Required | Notes |
 | --- | --- | --- |
-| `UMAMI_SCRIPT_URL` | No | Umami script URL. Analytics load only when `UMAMI_WEBSITE_ID` is set too; one alone logs a warning. |
+| `UMAMI_SCRIPT_URL` | No | Umami script URL. Analytics load only when `UMAMI_WEBSITE_ID` is set too, and setting only one of them logs a warning. |
 | `UMAMI_WEBSITE_ID` | No | Umami website ID. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | No | OpenTelemetry export endpoint. |
 | `OTEL_EXPORTER_OTLP_HEADERS` | No | OpenTelemetry export headers. |

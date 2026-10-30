@@ -1,5 +1,5 @@
 ---
-title: Docker Compose Quickstart
+title: Docker Compose quickstart
 description: Start a local OrcAI stack with the repository Compose files.
 ---
 
@@ -11,11 +11,11 @@ Use the Compose quickstart when you want a runnable local stack outside the devc
 - An OpenAI-compatible endpoint that serves your embedding model. Chats use the providers an admin adds in the app.
 - A local `.env` file based on `.env.example`.
 - Values for `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS`.
-- Secrets for auth/encryption (`BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`) for anything beyond throwaway local testing.
+- Secrets for authentication and encryption (`BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`) for anything beyond throwaway local testing.
 
-## Start The Stack
+## Start the stack
 
-### Create The Environment File [step]
+### Create the environment file [step]
 
 If you do not have a local `.env` yet, create one from the example:
 
@@ -33,11 +33,7 @@ From the repository root:
 docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d --build
 ```
 
-The app is published on:
-
-```text
-http://localhost:3000
-```
+The app is then at `http://localhost:3000`.
 
 ### Initialise the instance [step]
 
@@ -45,7 +41,7 @@ On a fresh database, open `http://localhost:3000/init`. The sign-in page sends y
 
 Chats need a provider and models, which the new admin adds in the app. [Organisation setup](/docs/using-orcai/organisation-setup) walks through it.
 
-## Services And Ports
+## Services and ports
 
 The local override publishes:
 
@@ -54,7 +50,7 @@ The local override publishes:
 | OrcAI app | `3000` | Main web application |
 | OrcAI docs | `3001` | Documentation site, which the Assistant reads |
 | PostgreSQL | `5432` | Application database |
-| Valkey | `6379` | Cache and coordination |
+| Valkey | `6379` | Short-lived app state |
 | SeaweedFS S3 API | `8333` | S3-compatible object storage |
 | Qdrant HTTP | `6333` | Vector database HTTP API |
 | Qdrant gRPC | `6334` | Vector database gRPC API |
@@ -65,7 +61,7 @@ The local override publishes:
 
 Most ports can be overridden with environment variables such as `APP_PORT`, `WEB_PORT`, `POSTGRES_PORT`, `S3_PORT`, and `QDRANT_HTTP_PORT`.
 
-## Required AI Variables
+## Required AI variables
 
 The local override provides development placeholders for some secrets, but these embedding variables need real values, because assets cannot be indexed or searched without them:
 
@@ -80,29 +76,22 @@ EMBEDDING_DIMENSIONS=1024
 	Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data. Changing them requires recreating the Qdrant collection and preparing assets again.
 </Callout>
 
-## Stop The Stack
+## Stop the stack
 
 ```bash title="Repository root"
 docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
 ```
 
-Add `-v` only if you intentionally want to remove local volumes and lose stored database, object storage, Qdrant, and SpiceDB data.
+Add `-v` only to remove the local volumes, which deletes the stored database, object storage, Qdrant and SpiceDB data.
 
-## Production-Like Notes
+## Production-like notes
 
-- The local override injects development defaults for several values; treat those as non-production.
-- Without the local override, `docker-compose.yaml` publishes no ports. [Public URLs](/docs/self-hosting/configuration#public-urls) lists what browsers must reach.
-- Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data.
+The local override injects development defaults for several values, so do not use it in production. Without it, `docker-compose.yaml` publishes no ports, and [Public URLs](/docs/self-hosting/configuration#public-urls) lists what browsers must reach.
 
-## What Compose Initialises
+## What Compose initialises
 
-The Compose stack includes one-shot services for:
-
-- Application database migrations.
-- SpiceDB schema migration.
-
-SeaweedFS creates the `uploads` and `processed-files` buckets itself on startup.
+One-shot services in the Compose stack apply the database migrations and the SpiceDB schema. SeaweedFS creates the `uploads` and `processed-files` buckets itself on startup.
 
 <Callout title="TODO" type="idea">
-	Add an example `.env` for a realistic self-hosted deployment.
+	Add an example `.env` for a realistic self-hosted instance.
 </Callout>
