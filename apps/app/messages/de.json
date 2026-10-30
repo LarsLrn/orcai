@@ -3680,6 +3680,7 @@
 	"home_people_panel_title": "Personen",
 	"home_quota_panel_all_pools_action": "Alle Pools",
 	"home_quota_panel_empty_note": "Noch keine Kontingent-Pools. Niemand kann chatten, bis ein Pool einen Anbieter abdeckt.",
+	"home_quota_panel_none_active_note": "Kein Kontingent-Pool ist aktiv, daher kann niemand chatten. Aktivieren Sie einen Pool oder fügen Sie einen neuen hinzu.",
 	"home_quota_panel_title": "Kontingent-Pools",
 	"home_quota_pool_default_badge": "Standard",
 	"home_quota_pool_meta_no_period": "{provider}, kein offener Zeitraum",
