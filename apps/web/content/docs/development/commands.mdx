@@ -11,13 +11,16 @@ Run these commands from the repository root unless noted otherwise.
 
 ## Development Stack
 
-Each checkout owns an isolated Docker Compose project with per-worktree ports stored in a gitignored `.env`.
+Each checkout owns an isolated Docker Compose project with per-worktree ports stored in a gitignored `.env`. `bun run stack` starts the backing services from `docker-compose.yaml` with the `docker-compose.infra.yaml` override, which publishes them on loopback ports. The app, workers and docs site run on the host.
+
+Overrides shared by every worktree on the machine, such as a real `OPENAI_COMPATIBLE_*` endpoint for embeddings, go in `~/.config/orcai/dev.env` or the file `ORCAI_DEV_ENV_FILE` names. They are merged on top of the generated defaults whenever `.env` is created or regenerated.
 
 Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.env`. Only `dev`, `workers`, `web`, `exec` and `migrate` apply there.
 
 | Command | Purpose |
 | --- | --- |
-| `bun run stack up` | Start infrastructure, write `.env`, apply migrations and the SpiceDB schema. |
+| `bun run stack up` | Start infrastructure, write `.env`, apply migrations and the SpiceDB schema. Reuses an existing `.env`. |
+| `bun run stack up --reset` | Regenerate `.env` with new ports and secrets, then start as `up` does. |
 | `bun run stack status` | Show container state and probe every service. |
 | `bun run stack reset` | Empty every store of the stack, leaving containers and `.env` in place. Asks first. |
 | `bun run stack e2e` | Install the pinned Chromium, build the production images, reset the stack, then run the end-to-end suite against the images and the integration tier. |
@@ -29,8 +32,19 @@ Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.e
 | `bun run stack migrate` | Reapply migrations and the SpiceDB schema. |
 | `bun run stack exec -- <command>` | Run any command with `.env` loaded. |
 | `bun run stack logs [service]` | Follow infrastructure logs. |
+| `bun run stack env` | Print the path and content of `.env`, writing it first when it is missing. |
 | `bun run stack env --reset` | Regenerate `.env` with new ports and secrets. |
 | `bun run stack down --volumes` | Stop the stack and delete its data. Asks first. |
+
+These options apply to every command and can stand anywhere before `--`:
+
+| Option | Purpose |
+| --- | --- |
+| `--name <stack>` | Compose project name. Defaults to `ORCAI_STACK_NAME`, or else `orcai-<checkout folder>`. |
+| `--env-file <path>` | Env file to read and write. Defaults to `ORCAI_ENV_FILE`, or else `.env` at the repository root. |
+| `--yes` | Answer the confirmation of a destructive command up front. A caller without a terminal has to pass it. |
+
+`bun run stack --name <name>-e2e --env-file .env.e2e up` starts a second, independent stack, for example to run the end-to-end suite without touching your development data. An unknown option before `--` fails with an error, and everything after `--` reaches the command unchanged.
 
 ## Application
 
@@ -112,6 +126,8 @@ Build the docs service with:
 ```bash title="Repository root"
 bun run --filter @orcai/web build
 ```
+
+The build prerenders on a free preview port when port 3001, the docs site's own port, is occupied, so another local server does not block `bun run ci`.
 
 ## Maintenance
 
