@@ -23,7 +23,7 @@ The defaults are `anthropic/claude-haiku-5.5`, `openai/gpt-6-luna` and `google/g
 
 ## What a run builds
 
-The harness in `apps/app/scripts/prompt-evals/harness.ts` builds each request from the app's own builders: the chat and Assistant system prompts, `buildSystemInstructions`, the retrieval and feature toolsets, the Assistant's toolset and session, and the metadata and title prompts. Changing a builder changes what the evals send.
+The harness in `apps/app/scripts/prompt-evals/harness.ts` builds each request from the app's own builders: the chat and Assistant system prompts, `buildSystemInstructions`, the retrieval and feature toolsets, the Assistant's toolset and session, and the metadata, image description and title prompts. Changing a builder changes what the evals send.
 
 - Tools keep their descriptions, schemas and model output. A case scripts the output of the tools it expects, and the harness gives every Assistant read tool an empty default. A call to a tool without a script ends the run there, which is how client tools, confirmations and plans end a turn in the app.
 - `loadTools` runs for real, so loaded groups become callable as they do in the app.
@@ -41,10 +41,10 @@ Cases live in `apps/app/scripts/prompt-evals/cases/`. The part of an id before t
 | `language` | The answer's language follows the user, unless the behaviour sets one. |
 | `retrieval` | `<cite chunk>` with only the refs given, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |
 | `context` | The model knows today's date. |
-| `background` | Metadata fields against known answers for three files. Chat titles as the model wrote them, before the app cleans them up: one line, no wrapping quotes, at most 80 characters, the right language, and a planted instruction ignored. |
+| `background` | Metadata fields against known answers for three files, in the formats the schema states. An image without text described in the uploader's language, with a twin in the other language. Chat titles as the model wrote them, before the app cleans them up: one line, no wrapping quotes, at most 80 characters, the right language, and a planted instruction ignored. |
 
 A case passes a sample when every check passes. Checks grade the outcome in code where code can: which tools were called and with which arguments, what the answer contains, which fields the output has. Every call that creates or changes something must be one the case expects, once, so a wrong target, role or extra change fails even beside the right call. Scripted tools put look-alikes beside the target and reject inputs that do not fit. Where a case tests that something happens, a twin tests that it does not happen when it should not, so a prompt that over-triggers fails too.
 
 Where code cannot grade, such as whether an answer invents a deadline in any wording, a judge model answers a yes or no rubric about the answer text. It runs only after the case's code checks pass, it is `google/gemini-3.6-flash` unless `--judge` names another, and it must not be one of the models under test. Its verdicts and reasons are in the results file. Use it only where no code check can decide.
 
-To add a case, add it to the area's file with a `run` built from `runChat`, `runAssistant`, `runAssetMetadata` or `runChatTitle`, and checks from `checks.ts`. Script every tool output the case needs, and run it once with `--samples 1` to read the transcript in the results file before trusting its checks.
+To add a case, add it to the area's file with a `run` built from `runChat`, `runAssistant`, `runAssetMetadata`, `runImageAsset` or `runChatTitle`, and checks from `checks.ts`. Script every tool output the case needs, and run it once with `--samples 1` to read the transcript in the results file before trusting its checks.

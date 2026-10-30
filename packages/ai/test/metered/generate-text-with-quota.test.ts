@@ -141,3 +141,58 @@ test("a reply that does not match the structured output is charged and fails", a
 		},
 	]);
 });
+
+test("a structured reply inside a code fence parses", async () => {
+	const model = new MockLanguageModelV4({
+		doGenerate: {
+			content: [
+				{
+					type: "text",
+					text: '```json\n{"title": "Refunds"}\n```',
+				},
+			],
+			finishReason: {
+				unified: "stop",
+				raw: undefined,
+			},
+			usage: {
+				inputTokens: {
+					total: 20,
+					noCache: 20,
+					cacheRead: undefined,
+					cacheWrite: undefined,
+				},
+				outputTokens: {
+					total: 8,
+					text: 8,
+					reasoning: undefined,
+				},
+			},
+			warnings: [],
+		},
+	});
+
+	const { output } = await Effect.runPromise(
+		withQuotaServices(
+			generateTextWithQuota({
+				operation: "test.generate",
+				appRequestId: "request-1",
+				organizationId: "org-1" as OrganizationId,
+				userId: "user-1" as UserId,
+				providerId: "provider-1" as ProviderId,
+				modelId: "model-1",
+				model,
+				prompt: "Describe this.",
+				output: Output.object({
+					schema: z.object({
+						title: z.string(),
+					}),
+				}),
+			}),
+		),
+	);
+
+	expect(output).toEqual({
+		title: "Refunds",
+	});
+});

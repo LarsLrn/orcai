@@ -5,7 +5,7 @@ import { DB, dbSchema } from "@orcai/db";
 import type { StoredExtractionArtifact } from "@orcai/process";
 import { S3Live } from "@orcai/s3/server";
 import { IntegrationLive } from "@orcai/testing";
-import { like } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
@@ -113,13 +113,23 @@ test("an image asset is described in one call, charged to its organisation and u
 	});
 });
 
-test("figures already described are kept; only the others are described", async () => {
-	const { assetId, artifact } = await seed({
+test("figures already described are kept; only the others are described, in the uploader's language", async () => {
+	const { assetId, artifact, uploaderId } = await seed({
 		capabilities: [
 			"text",
 			"image",
 		],
 	});
+	await run(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.user)
+				.set({
+					locale: "de",
+				})
+				.where(eq(dbSchema.user.id, uploaderId));
+		}),
+	);
 
 	const described = await describe(
 		assetId,
@@ -138,6 +148,7 @@ test("figures already described are kept; only the others are described", async 
 	]);
 	expect(requests).toHaveLength(1);
 	expect(requests[0]?.responseFormat).toBeUndefined();
+	expect(requests[0]?.system).toContain("in German, the uploader's language");
 });
 
 test("without a utility model that reads images, an image asset is unsupported and figures are skipped", async () => {

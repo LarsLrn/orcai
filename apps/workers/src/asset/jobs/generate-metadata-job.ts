@@ -1,7 +1,7 @@
 import {
 	AiError,
-	ASSET_METADATA_INSTRUCTIONS,
 	ASSET_METADATA_MAX_OUTPUT_TOKENS,
+	assetMetadataInstructions,
 	assetMetadataOutput,
 	assetMetadataPrompt,
 	generateTextWithQuota,
@@ -94,6 +94,7 @@ const documentSuggestion = (params: {
 				languages: params.extraction.detectedLanguages,
 			},
 		});
+		const instructions = assetMetadataInstructions(params.model.kind);
 		const { output } = yield* generateTextWithQuota({
 			operation: "asset.generateMetadata",
 			appRequestId: `metadata:${params.job.data.assetId}:${params.job.data.generation}:${params.job.id}`,
@@ -102,10 +103,10 @@ const documentSuggestion = (params: {
 			providerId: params.model.providerId,
 			modelId: params.model.modelId,
 			model: params.model.language,
-			system: ASSET_METADATA_INSTRUCTIONS,
+			system: instructions,
 			prompt,
 			reservationMessages: [
-				ASSET_METADATA_INSTRUCTIONS,
+				instructions,
 				prompt,
 			],
 			output: assetMetadataOutput,
@@ -267,12 +268,11 @@ const generateClaimed = (
 	fileType: string,
 ) =>
 	Effect.gen(function* () {
-		const { organizationId } = yield* assetOwner(job.data.assetId);
 		const owner = {
-			organizationId,
+			...(yield* assetOwner(job.data.assetId)),
 			userId: job.data.userId,
 		};
-		const model = yield* utilityModel(organizationId);
+		const model = yield* utilityModel(owner.organizationId);
 		if (!model) {
 			return yield* failWith("unsupported")(
 				"The organisation has no usable utility model",

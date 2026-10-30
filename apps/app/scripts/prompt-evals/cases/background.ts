@@ -1,5 +1,6 @@
-import { type Check, outputField, titleOf } from "../checks";
-import { runAssetMetadata, runChatTitle } from "../harness";
+import { crc32, deflateSync } from "node:zlib";
+import { type Check, outputField, titleOf, writtenIn } from "../checks";
+import { runAssetMetadata, runChatTitle, runImageAsset } from "../harness";
 import type { EvalCase } from "./case";
 
 const is = (expected: string) => (value: unknown) => value === expected;
@@ -54,6 +55,87 @@ Last updated 3 March 2025
 Teaching with primary sources
 Primary sources let students read history in the words of the people who lived it. This page explains how to choose a source for a lesson, how to scaffold the first reading, and how to move from description to interpretation. ...`;
 
+const pngChunk = (type: string, data: Uint8Array) => {
+	const body = Buffer.concat([
+		Buffer.from(type, "ascii"),
+		data,
+	]);
+	const chunk = Buffer.alloc(body.length + 8);
+	chunk.writeUInt32BE(data.length, 0);
+	body.copy(chunk, 4);
+	chunk.writeUInt32BE(crc32(body), body.length + 4);
+	return chunk;
+};
+
+/** A 320×240 picture without text: a green hill, a yellow sun and a red house under a blue sky. */
+const pictureWithoutText = () => {
+	const [width, height] = [
+		320,
+		240,
+	];
+	const colour = (x: number, y: number) => {
+		if ((x - 260) ** 2 + (y - 50) ** 2 < 900)
+			return [
+				250,
+				210,
+				40,
+			];
+		if (x > 90 && x < 170 && y > 120 && y < 190)
+			return [
+				200,
+				40,
+				40,
+			];
+		if (y > 180 - 30 * Math.sin(x / 60))
+			return [
+				60,
+				160,
+				70,
+			];
+		return [
+			120,
+			180,
+			240,
+		];
+	};
+	const rows = Buffer.alloc((width * 3 + 1) * height);
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			rows.set(colour(x, y), y * (width * 3 + 1) + 1 + x * 3);
+		}
+	}
+	const header = Buffer.alloc(13);
+	header.writeUInt32BE(width, 0);
+	header.writeUInt32BE(height, 4);
+	header.set(
+		[
+			8,
+			2,
+			0,
+			0,
+			0,
+		],
+		8,
+	);
+	return Buffer.concat([
+		Buffer.from([
+			0x89,
+			0x50,
+			0x4e,
+			0x47,
+			0x0d,
+			0x0a,
+			0x1a,
+			0x0a,
+		]),
+		pngChunk("IHDR", header),
+		pngChunk("IDAT", deflateSync(rows)),
+		pngChunk("IEND", new Uint8Array()),
+	]);
+};
+
+const PICTURE = pictureWithoutText();
+
 export const backgroundCases: EvalCase[] = [
 	{
 		id: "background/metadata-article",
@@ -66,6 +148,8 @@ export const backgroundCases: EvalCase[] = [
 			outputField("sourceType", is("journal-article")),
 			outputField("doi", includes("10.1234/jcr.2024.0312")),
 			outputField("volume", is("12")),
+			outputField("pageRange", is("211-229")),
+			outputField("author", is("Keller, M.; Okafor, T.")),
 			outputField("language", is("en")),
 			outputField("title", includes("Feedback timing")),
 		],
@@ -84,7 +168,9 @@ export const backgroundCases: EvalCase[] = [
 			}),
 		checks: [
 			outputField("sourceType", is("book")),
+			outputField("title", includes("Handbuch Unterrichtsentwicklung")),
 			outputField("chapterTitle", includes("Lernen mit digitalen Medien")),
+			outputField("author", includes("Wolf, S.")),
 			outputField("pageRange", includes("87")),
 			outputField("language", is("de")),
 		],
@@ -103,6 +189,32 @@ export const backgroundCases: EvalCase[] = [
 				includes("education.archives.example/teaching/primary-sources"),
 			),
 			outputField("language", is("en")),
+		],
+	},
+	{
+		id: "background/image-without-text-de",
+		run: (model) =>
+			runImageAsset({
+				model,
+				png: PICTURE,
+				locale: "de",
+			}),
+		checks: [
+			outputField("language", is("de")),
+			outputField("description", writtenIn("de")),
+		],
+	},
+	{
+		id: "background/image-without-text-en",
+		run: (model) =>
+			runImageAsset({
+				model,
+				png: PICTURE,
+				locale: "en",
+			}),
+		checks: [
+			outputField("language", is("en")),
+			outputField("description", writtenIn("en")),
 		],
 	},
 	{
