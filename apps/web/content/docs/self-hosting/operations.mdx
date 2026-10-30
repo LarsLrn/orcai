@@ -69,29 +69,19 @@ change in the app. An event whose payload the app cannot read is moved to
 
 ## Migrations
 
-Apply application database migrations with:
+Docker Compose applies the database migrations and the SpiceDB schema with one-shot services each time the stack starts. On a manual setup, apply both with:
 
 ```bash title="Repository root"
-bun run --filter @orcai/db migrate
-```
-
-Generate a new Drizzle migration during development with:
-
-```bash title="Repository root"
-bun run --filter @orcai/db generate
-```
-
-Apply the SpiceDB schema with:
-
-```bash title="Repository root"
-bun run --filter @orcai/spice-db up
+bun run stack migrate
 ```
 
 Inspect SpiceDB schema migration status with:
 
 ```bash title="Repository root"
-bun run --filter @orcai/spice-db status
+bun run stack exec -- bun run --filter @orcai/spice-db status
 ```
+
+Package scripts do not read the root `.env`, so both commands go through `bun run stack`, which loads it.
 
 ## Health
 
@@ -103,13 +93,15 @@ Instance admins see the full picture on the Health page (`/instance/health`): ev
 
 The workers send email from the `notification_outbox` table. Each sent row records its `delivery_channel`: `smtp`, or `log` when the workers have no SMTP configuration and only wrote the message to their log. A `log` row is still marked `sent`, so check the channel, or the Health page, which warns when the latest email only reached the log. The app process has no SMTP settings of its own.
 
+Retry delays start at 30 seconds and double after each failed attempt, with up to 10 seconds of random jitter. After the tenth failed attempt the row is marked `dead`, and its `last_error` keeps the reason. The `notification-outbox-cleanup-job` runs once a day and deletes sent rows 30 days after they were sent and dead rows 30 days after they were given up.
+
 ## Workers
 
-Keep workers running alongside the app. If workers are stopped, uploads and scheduled maintenance jobs may remain queued.
+Keep workers running alongside the app. If workers are stopped, uploads and scheduled maintenance jobs may remain queued, and no email goes out, including invitations and password resets.
 
 Every process that runs pg-boss registers in its instance registry under a name: the app as `app`, the workers as `workers`, each with its host and process id. The Health page lists them and fails its workers check when no `workers` process is live.
 
-Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run up to four times, a minute apart, and an attempt times out after an hour. A job whose attempts are used up moves to its dead letter queue (`process-asset-dead-letter-job`, `vectorize-asset-dead-letter-job`), whose worker marks the asset, or the asset in that repository, as failed. The workers create the queues and their dead letter settings at startup. The failed job, with its last error, stays in the pg-boss tables until retention removes it; the worker logs carry the same error.
+Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run up to four times, a minute apart, and an attempt times out after an hour. A job whose attempts are used up moves to its dead letter queue (`process-asset-dead-letter-job`, `vectorize-asset-dead-letter-job`), whose worker marks the asset, or the asset in that repository, as failed. Metadata suggestions (`generate-asset-metadata-job`) use the same settings, and their dead letter queue (`generate-asset-metadata-dead-letter-job`) marks the suggestion as failed. The workers create the queues and their dead letter settings at startup. The failed job, with its last error, stays in the pg-boss tables until retention removes it; the worker logs carry the same error.
 
 Data exports (`data-export-job`) are the exception: the app server works them, one at a time per app instance, because their chat transcripts need the app's code. The workers still create the queue and its dead letter queue (`data-export-dead-letter-job`), and the app starts working it once both exist, so a deployment without workers cannot export data. The retry and timeout settings are the same; an export whose attempts are used up is marked failed and the user can start a new one. Stopping the app interrupts a running export, and pg-boss retries it.
 

@@ -8,7 +8,7 @@ Use the Compose quickstart when you want a runnable local stack outside the devc
 ## Prerequisites
 
 - Docker with Docker Compose.
-- A configured OpenAI-compatible endpoint for embeddings and model calls.
+- An OpenAI-compatible endpoint that serves your embedding model. Chats use the providers an admin adds in the app.
 - A local `.env` file based on `.env.example`.
 - Values for `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS`.
 - Secrets for auth/encryption (`BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`) for anything beyond throwaway local testing.
@@ -39,6 +39,12 @@ The app is published on:
 http://localhost:3000
 ```
 
+### Initialise the instance [step]
+
+On a fresh database, open `http://localhost:3000/init`. The sign-in page sends you there until the instance is initialised. The form creates the first account, which is the instance admin, and the first organisation with that account as its admin. It asks for **Organisation name**, **Organisation slug**, **Admin name**, **Admin email**, **Password** and **Confirm password**, and for consent to the privacy policy and terms of use. Once you choose **Initialise instance**, the page is no longer available, and every later account comes from an invitation (see [Creating accounts](/docs/self-hosting/operations#creating-accounts)).
+
+Chats need a provider and models, which the new admin adds in the app. [Organisation setup](/docs/using-orcai/organisation-setup) walks through it.
+
 ## Services And Ports
 
 The local override publishes:
@@ -46,6 +52,7 @@ The local override publishes:
 | Service | Default port | Purpose |
 | --- | ---: | --- |
 | OrcAI app | `3000` | Main web application |
+| OrcAI docs | `3001` | Documentation site, which the Assistant reads |
 | PostgreSQL | `5432` | Application database |
 | Valkey | `6379` | Cache and coordination |
 | SeaweedFS S3 API | `8333` | S3-compatible object storage |
@@ -56,11 +63,11 @@ The local override publishes:
 | SpiceDB metrics | `9090` | SpiceDB metrics |
 | SpiceDB PostgreSQL | `5431` | SpiceDB backing database |
 
-Most ports can be overridden with environment variables such as `APP_PORT`, `POSTGRES_PORT`, `S3_PORT`, and `QDRANT_HTTP_PORT`.
+Most ports can be overridden with environment variables such as `APP_PORT`, `WEB_PORT`, `POSTGRES_PORT`, `S3_PORT`, and `QDRANT_HTTP_PORT`.
 
 ## Required AI Variables
 
-The local override provides development placeholders for some secrets, but these AI variables must be meaningful for asset preparation and chat to work:
+The local override provides development placeholders for some secrets, but these embedding variables need real values, because assets cannot be indexed or searched without them:
 
 ```bash title=".env"
 OPENAI_COMPATIBLE_BASE_URL="https://your-ai-provider.example/v1"
@@ -84,8 +91,8 @@ Add `-v` only if you intentionally want to remove local volumes and lose stored 
 ## Production-Like Notes
 
 - The local override injects development defaults for several values; treat those as non-production.
+- Without the local override, `docker-compose.yaml` publishes no ports. [Public URLs](/docs/self-hosting/configuration#public-urls) lists what browsers must reach.
 - Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data.
-- Custom embedding model definitions are only supported in self-hosted deployments.
 
 ## What Compose Initialises
 
@@ -97,5 +104,5 @@ The Compose stack includes one-shot services for:
 SeaweedFS creates the `uploads` and `processed-files` buckets itself on startup.
 
 <Callout title="TODO" type="idea">
-	Add a first-login/admin-bootstrap flow once the production initialisation process is finalised, plus an example `.env` for a realistic self-hosted deployment.
+	Add an example `.env` for a realistic self-hosted deployment.
 </Callout>
