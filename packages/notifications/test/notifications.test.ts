@@ -197,6 +197,30 @@ describe("notification schemas and templates", () => {
 		});
 	});
 
+	test("derives implicit TLS from port 465 when SMTP_SECURE is blank", async () => {
+		const service = await Effect.runPromise(
+			EmailConfigService.pipe(
+				Effect.provide(EmailConfigLive),
+				Effect.provideService(
+					ConfigProvider.ConfigProvider,
+					ConfigProvider.fromEnv({
+						env: {
+							SMTP_HOST: "smtp.example.com",
+							SMTP_FROM: "mail@example.com",
+							SMTP_PORT: "465",
+							SMTP_SECURE: "",
+						},
+					}),
+				),
+			),
+		);
+		expect(service.config).toMatchObject({
+			mode: "smtp",
+			port: 465,
+			secure: true,
+		});
+	});
+
 	test("rejects partial SMTP configuration", async () => {
 		await expect(
 			loadEmailConfig({
