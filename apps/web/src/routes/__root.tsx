@@ -31,6 +31,16 @@ export const Route = createRootRoute({
 				rel: "stylesheet",
 				href: appCss,
 			},
+			{
+				rel: "apple-touch-icon",
+				sizes: "180x180",
+				href: "/apple-touch-icon.png",
+			},
+			{
+				rel: "icon",
+				href: "/favicon.ico",
+				sizes: "16x16 32x32",
+			},
 		],
 	}),
 	component: RootComponent,
