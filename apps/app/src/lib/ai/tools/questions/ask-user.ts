@@ -180,7 +180,7 @@ const modelAnswer = ({ question, answer }: AnsweredQuestion) => {
 };
 
 export const QUIZ_NEXT_STEP =
-	"Grade every question with showQuizResult. A question without an answer is incorrect.";
+	"Grade every question with showQuizResult in this answer.";
 
 export const SKIPPED_NEXT_STEP =
 	"The user skipped the questions. Go on without their answers, and do not ask the same again unless the user asks.";
@@ -191,7 +191,7 @@ export const askUserTool = tool<AskUserInput, AskUserOutput, NoToolContext>({
 		"Ask the user questions in the conversation and wait for their answers.",
 		"Question types: single (one option), multiple (any options), text (free text) and scale (a number between min and max).",
 		`regular mode asks up to ${MAX_QUESTIONS} clarifying questions; the user may answer some, all or none, and may skip.`,
-		`quiz mode tests the user with up to ${MAX_QUIZ_QUESTIONS} questions in titled sections, each worth points. Never put the correct answers in the call: the user sees everything in it. After the user submits, grade every question with showQuizResult.`,
+		`quiz mode tests the user with up to ${MAX_QUIZ_QUESTIONS} questions in titled sections, each worth points. Never put the correct answers in the call: the user sees everything in it.`,
 		"Returns the answers in question order, or status skipped. Do not repeat the questions or the answers in text.",
 	].join(" "),
 	inputSchema: toolInputSchema(askUserInputSchema),

@@ -34,7 +34,8 @@ const refFromSearch = (inference: InferenceMock) => {
 	const results = JSON.stringify(
 		body.messages.filter(({ role }) => role === "tool"),
 	);
-	const ref = /\[(k[0-9a-z]{6})\]/.exec(results)?.[1];
+	// Quotes are escaped inside the JSON of the messages.
+	const ref = /<passage ref=\\"(k[0-9a-z]{6})\\"/.exec(results)?.[1];
 
 	if (!ref) {
 		throw new Error("The model read no passage ref.");

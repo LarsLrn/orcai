@@ -12,6 +12,7 @@ import type { FileUIPart, TextUIPart } from "ai";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { dataTag } from "@/lib/ai/utils/data-tag";
 import { readableIds } from "@/lib/authz/content-access";
 import { permissionDenied } from "@/lib/orpc/middlewares/permission";
 import { unique } from "@/lib/utils/array-utils";
@@ -137,6 +138,20 @@ const filePart = (asset: AttachedAsset) =>
 		),
 	);
 
+/** A file's text in the tag the system prompt calls data. */
+export const attachmentText = (
+	{ title, mediaType }: Pick<AttachedAsset, "title" | "mediaType">,
+	content: string,
+) =>
+	dataTag(
+		"attachment",
+		{
+			title,
+			"media-type": mediaType,
+		},
+		truncateText(content),
+	);
+
 const documentPart = (asset: AttachedAsset) =>
 	Effect.gen(function* () {
 		const stored = yield* getObjectAsJson<StoredExtractionArtifact>({
@@ -164,14 +179,7 @@ const documentPart = (asset: AttachedAsset) =>
 			return notePart(`Attachment "${asset.title}" could not be loaded.`);
 		}
 
-		return notePart(
-			[
-				`Attached document: ${asset.title}`,
-				`Media type: ${asset.mediaType}`,
-				"Extracted content:",
-				truncateText(content),
-			].join("\n\n"),
-		);
+		return notePart(attachmentText(asset, content));
 	});
 
 const promptPart = (asset: AttachedAsset) =>

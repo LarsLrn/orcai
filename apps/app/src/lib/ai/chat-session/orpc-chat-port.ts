@@ -46,6 +46,9 @@ const invalidateAfterTurn = async (
 	);
 };
 
+/** Sent with each turn, so the prompt carries the user's local date. */
+const browserTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 export const orpcChatPort = ({
 	queryClient,
 	variant,
@@ -58,6 +61,7 @@ export const orpcChatPort = ({
 			await client.ai.chat(
 				{
 					...input,
+					timeZone: browserTimeZone(),
 					message: {
 						id: message.id,
 						role: "user",
@@ -79,9 +83,15 @@ export const orpcChatPort = ({
 		),
 	continue: async (input, signal) =>
 		eventIteratorToUnproxiedDataStream(
-			await client.ai.continue(input, {
-				signal,
-			}),
+			await client.ai.continue(
+				{
+					...input,
+					timeZone: browserTimeZone(),
+				},
+				{
+					signal,
+				},
+			),
 		),
 	find: async (input) => {
 		try {

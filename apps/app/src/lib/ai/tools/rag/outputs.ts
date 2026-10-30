@@ -1,5 +1,6 @@
 import type { ToolResultPart } from "ai";
 import { z } from "zod/v4";
+import { dataTag } from "@/lib/ai/utils/data-tag";
 import {
 	type KnowledgeBaseDocument,
 	knowledgeBaseDocumentSchema,
@@ -62,26 +63,26 @@ export const passagesOfParts = (
 			: [],
 	);
 
-const pagesLabel = ({ pageStart, pageEnd }: Passage) => {
+const pagesOf = ({ pageStart, pageEnd }: Passage) => {
 	if (pageStart === undefined) {
 		return undefined;
 	}
 
 	return pageEnd === undefined || pageEnd === pageStart
-		? `p. ${pageStart}`
-		: `pp. ${pageStart}-${pageEnd}`;
+		? `${pageStart}`
+		: `${pageStart}-${pageEnd}`;
 };
 
 const passageText = (passage: Passage) =>
-	[
-		[
-			`[${passage.ref}] ${passage.title}`,
-			pagesLabel(passage),
-		]
-			.filter(Boolean)
-			.join(", "),
+	dataTag(
+		"passage",
+		{
+			ref: passage.ref,
+			asset: passage.title,
+			pages: pagesOf(passage),
+		},
 		passage.text,
-	].join("\n");
+	);
 
 const passagesText = (passages: Passage[]) =>
 	passages.length > 0
@@ -105,7 +106,7 @@ const documentsText = (documents: KnowledgeBaseDocument[]) =>
 						`- ${document.assetId}: ${document.title}${document.citation ? ` (${document.citation})` : ""}${documentState(document)}${document.description ? `\n  ${document.description.replace(/\s+/g, " ").trim()}` : ""}`,
 				)
 				.join("\n")
-		: "No documents.";
+		: "No assets.";
 
 /** The model reads `render`'s text; an output of an older shape is gone for it. */
 const modelText =
@@ -157,7 +158,7 @@ export const pageModelOutput = modelText(
 			passagesText(passages),
 			...(matchedDocuments && matchedDocuments.length > 0
 				? [
-						`Matching documents:\n${documentsText(matchedDocuments)}`,
+						`Matching assets:\n${documentsText(matchedDocuments)}`,
 					]
 				: []),
 		].join("\n\n"),

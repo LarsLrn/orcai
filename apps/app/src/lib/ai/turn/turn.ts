@@ -40,6 +40,7 @@ import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
+import { localDate } from "@/lib/ai/agents/chat-agent-system-prompt";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
 import {
 	type AssistantTurn,
@@ -263,6 +264,7 @@ const buildAgent = ({
 				createChatAgent({
 					model: setup.model,
 					systemPrompt: setup.agent.systemPrompt,
+					today: localDate(input.timeZone),
 					databaseBlocks: setup.agent.databaseBlocks,
 					features: setup.agent.features,
 					webSearch: setup.agent.webSearch,

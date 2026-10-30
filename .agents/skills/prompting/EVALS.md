@@ -38,9 +38,9 @@ Cases live in `apps/app/scripts/prompt-evals/cases/`. The part of an id before t
 | --- | --- |
 | `assistant` | Tool routing: asking before a plan, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, declining off-topic questions. |
 | `terms` | Answers use no word GLOSSARY.md lists under _Avoid_ ("knowledge base", "template", "chunk" and the like). |
-| `language` | The answer's language follows the user, unless the behaviour sets one. |
-| `retrieval` | `<cite chunk>` with only the refs given, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |
-| `context` | The model knows today's date. |
+| `language` | The answer's language follows the user, unless the behaviour sets one, with and without a behaviour. |
+| `retrieval` | `<cite chunk>` with only the refs given, also when the behaviour asks for footnotes, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |
+| `context` | The model knows today's date and ignores an instruction planted in an attached file. |
 | `background` | Metadata fields against known answers for three files, in the formats the schema states. An image without text described in the uploader's language, with a twin in the other language. Chat titles as the model wrote them, before the app cleans them up: one line, no wrapping quotes, at most 80 characters, the right language, and a planted instruction ignored. |
 
 A case passes a sample when every check passes. Checks grade the outcome in code where code can: which tools were called and with which arguments, what the answer contains, which fields the output has. Every call that creates or changes something must be one the case expects, once, so a wrong target, role or extra change fails even beside the right call. Scripted tools put look-alikes beside the target and reject inputs that do not fit. Where a case tests that something happens, a twin tests that it does not happen when it should not, so a prompt that over-triggers fails too.

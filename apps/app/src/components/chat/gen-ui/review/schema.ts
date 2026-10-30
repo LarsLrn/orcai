@@ -16,7 +16,7 @@ const findingSchema = z.strictObject({
 	note: z
 		.string()
 		.describe(
-			"What is wrong and how to fix it. Markdown, <cite> citations allowed.",
+			"What is wrong and how to fix it. Markdown and citations allowed.",
 		),
 	excerpt: z
 		.string()
@@ -32,7 +32,7 @@ export const reviewSchema = z.strictObject({
 		.string()
 		.optional()
 		.describe(
-			"A sentence or two on the overall result. Markdown, <cite> citations allowed.",
+			"A sentence or two on the overall result. Markdown and citations allowed.",
 		),
 	items: z
 		.array(

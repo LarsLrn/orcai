@@ -28,7 +28,7 @@ export const checklistSchema = z.strictObject({
 					.string()
 					.optional()
 					.describe(
-						"Explanation shown when the row is expanded. Markdown, <cite> citations allowed.",
+						"Explanation shown when the row is expanded. Markdown and citations allowed.",
 					),
 				quote: z
 					.string()

@@ -1191,7 +1191,7 @@ describe("turn setup", () => {
 		await chat.send("How fast are refunds paid?");
 
 		expect(JSON.stringify(chat.bodies[1]?.messages)).toContain(
-			`[${ref}] Refund policy, p. 4\\nRefunds are paid within 14 days.`,
+			`<passage ref=\\"${ref}\\" asset=\\"Refund policy\\" pages=\\"4\\">\\nRefunds are paid within 14 days.\\n</passage>`,
 		);
 		expect(chat.messages().at(-1)?.metadata.citations).toEqual({
 			[ref]: {
