@@ -29,7 +29,6 @@ const ModelSelectorButton = ({
 	selectedModelId,
 	selectedProviderId,
 	onSelect,
-	excludeDeprecated = false,
 	capabilities = CHAT_CAPABILITIES,
 	variant = "compact",
 	disabled,
@@ -39,8 +38,6 @@ const ModelSelectorButton = ({
 	selectedModelId?: string;
 	selectedProviderId?: string;
 	onSelect: (model: Model, provider: Provider) => void;
-	/** Offer only models that are not deprecated. */
-	excludeDeprecated?: boolean;
 	/** The capabilities every offered model has. */
 	capabilities?: ModelCapability[];
 	variant?: "compact" | "full";
@@ -83,7 +80,7 @@ const ModelSelectorButton = ({
 				filters: {
 					providerId: providerFilterId,
 					capabilities,
-					isDeprecated: excludeDeprecated ? false : undefined,
+					isDeprecated: false,
 					search: modelSearch || undefined,
 				},
 			},

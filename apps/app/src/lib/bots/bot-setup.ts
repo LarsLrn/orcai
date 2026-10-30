@@ -245,7 +245,18 @@ const writeSetup = ({
 			modelId: setup.modelId,
 			organizationId,
 		});
-		const unusable = modelUnusableReason(model, "turn");
+		const [current] = yield* db
+			.select({
+				modelId: dbSchema.botSetup.modelId,
+			})
+			.from(dbSchema.botSetup)
+			.where(key)
+			.limit(1);
+		// A saved model that became unusable still lets the other settings change.
+		const unusable =
+			current?.modelId === setup.modelId
+				? undefined
+				: modelUnusableReason(model, "turn");
 		if (unusable) {
 			return yield* new AppErrors.BadRequestError({
 				reason: unusable,

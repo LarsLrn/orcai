@@ -268,7 +268,6 @@ const BotModelForm = ({
 								form.setFieldValue("modelId", selected.id);
 								form.setFieldValue("providerId", provider.id);
 							}}
-							excludeDeprecated
 							variant="full"
 						/>
 					</div>

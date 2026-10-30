@@ -160,7 +160,6 @@ const OrganizationModelField = <Use extends ModelUse>({
 					selectedModelId={value ?? undefined}
 					selectedProviderId={providerId}
 					onSelect={(selected) => onChange(selected.id)}
-					excludeDeprecated
 					capabilities={pickerCapabilities[setting.use]}
 					variant="full"
 					className={formTriggerText}
