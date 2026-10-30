@@ -1,5 +1,6 @@
 import type { ModelId } from "@orcai/core";
 import type { ApiClient } from "../../fixtures/api";
+import { rejection } from "../../fixtures/authorization";
 import {
 	type ChatModel,
 	completionRequests,
@@ -209,6 +210,82 @@ test("bots: moving on from the Model step saves its changes", async ({
 				).data.setup?.strength,
 		)
 		.toBe("required");
+});
+
+test("bots: a setup on a deprecated model still saves its other settings, but cannot switch to one", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const admin = api.as("admin");
+	const member = api.as("member");
+	const bot = await createBot(member, {});
+	await member.botSetup.save({
+		botId: bot.id,
+		setup: {
+			modelId: model.modelId,
+			strength: "recommended",
+			generation: {},
+		},
+	});
+	await admin.model.update({
+		id: model.modelId,
+		isDeprecated: true,
+	});
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await open(page, `/app/library/bots/${bot.id}/setup?step=4`);
+	await page
+		.getByRole("combobox", {
+			name: message("bot_setup_strength_label"),
+		})
+		.click();
+	await page
+		.getByRole("option", {
+			name: message("bot_setup_strength_required_label"),
+		})
+		.click();
+	await page
+		.getByRole("button", {
+			name: message("common_next_button"),
+		})
+		.click();
+
+	await expect(page).toHaveURL(/step=5/);
+	await expect
+		.poll(
+			async () =>
+				(
+					await member.botSetup.find({
+						botId: bot.id,
+					})
+				).data.setup,
+		)
+		.toMatchObject({
+			model: {
+				id: model.modelId,
+				usable: false,
+			},
+			strength: "required",
+		});
+
+	const other = await createBot(member, {});
+	const refused = await rejection(
+		member.botSetup.save({
+			botId: other.id,
+			setup: {
+				modelId: model.modelId,
+				strength: "recommended",
+				generation: {},
+			},
+		}),
+	);
+	expect(refused.data).toMatchObject({
+		reason: "MODEL_DEPRECATED",
+	});
 });
 
 test("bots: a required model whose provider is disabled blocks the bot's chats", async ({
