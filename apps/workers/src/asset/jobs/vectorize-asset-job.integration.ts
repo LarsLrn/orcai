@@ -402,6 +402,19 @@ const publishing = (attempt: number) => (method: string, body: string) =>
 	body.includes('"published":true') &&
 	body.includes(`"gte":${attempt},`);
 
+/** No longer serving the points of every attempt before `attempt`. */
+const unpublishingBefore =
+	(attempt: number) => (method: string, body: string) =>
+		method === "setPayload" &&
+		body.includes('"published":false') &&
+		body.includes(`"range":{"lt":${attempt}}`);
+
+/** No longer serving the points of every attempt after `attempt`. */
+const unpublishingAfter = (attempt: number) => (method: string, body: string) =>
+	method === "setPayload" &&
+	body.includes('"published":false') &&
+	body.includes(`"range":{"gte":${attempt + 1}}`);
+
 /** Deleting the points of every attempt before `attempt`. */
 const deletingBefore = (attempt: number) => (method: string, body: string) =>
 	method === "delete" && body.includes(`"range":{"lt":${attempt}}`);
@@ -762,7 +775,100 @@ test(
 );
 
 test(
-	"an earlier attempt's cleanup while the indexed one's publish is held, then failing, keeps serving",
+	"a link reads completed only once the attempt's points are served",
+	async () => {
+		const link = await seed();
+		const job = await admit(link);
+		const publish = holdWrite(publishing(job.data.attempt));
+		const running = vectorize(job);
+		await publish.reached;
+
+		expect((await linkOf(link))?.status).toBe("active");
+		expect(await servedOf(link)).toEqual([]);
+		publish.settle(true);
+		await running;
+
+		expect(await linkOf(link)).toEqual({
+			status: "completed",
+			attempt: job.data.attempt,
+		});
+		expect(await servedOf(link)).toEqual([
+			job.data.attempt,
+		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a completion that fails after publishing serves the indexed attempt again, and its retry completes",
+	async () => {
+		const link = await seed();
+		const older = await admit(link);
+		await vectorize(older);
+		const newer = await admit(link);
+		holdWrite(unpublishingBefore(newer.data.attempt)).settle(false);
+
+		await expect(vectorize(newer)).rejects.toThrow();
+
+		expect((await linkOf(link))?.status).toBe("active");
+		expect(await servedOf(link)).toEqual([
+			older.data.attempt,
+		]);
+		await vectorize(newer);
+		expect(await linkOf(link)).toEqual({
+			status: "completed",
+			attempt: newer.data.attempt,
+		});
+		expect(await pointsOf(link)).toEqual([
+			newer.data.attempt,
+		]);
+		expect(await servedOf(link)).toEqual([
+			newer.data.attempt,
+		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a retry after a completion and its reconcile failed past unpublishing the indexed attempt keeps serving",
+	async () => {
+		const link = await seed();
+		const older = await admit(link);
+		await vectorize(older);
+		const newer = await admit(link);
+		// As if the worker died before the commit: only the newer attempt is served.
+		const completion = holdWrite(unpublishingAfter(newer.data.attempt));
+		completion.settle(false);
+		const failed = vectorize(newer);
+		await completion.reached;
+		holdWrite(publishing(older.data.attempt)).settle(false);
+		await expect(failed).rejects.toThrow();
+		expect(await servedOf(link)).toEqual([
+			newer.data.attempt,
+		]);
+
+		const publish = holdWrite(publishing(newer.data.attempt));
+		const retry = vectorize(newer);
+		await publish.reached;
+		expect((await linkOf(link))?.status).toBe("active");
+		expect(await servedOf(link)).toEqual([
+			older.data.attempt,
+		]);
+		publish.settle(true);
+		await retry;
+
+		expect(await pointsOf(link)).toEqual([
+			newer.data.attempt,
+		]);
+		expect(await servedOf(link)).toEqual([
+			newer.data.attempt,
+		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"an earlier attempt's cleanup while the newer one's publish is held, then failing, keeps serving",
 	async () => {
 		const link = await seed();
 		const older = await admit(link);
@@ -792,9 +898,13 @@ test(
 		await cleanup;
 
 		expect(await linkOf(link)).toEqual({
-			status: "completed",
+			status: "active",
 			attempt: newer.data.attempt,
 		});
+		expect(await servedOf(link)).toEqual([
+			older.data.attempt,
+		]);
+		await vectorize(newer);
 		expect(await pointsOf(link)).toEqual([
 			newer.data.attempt,
 		]);

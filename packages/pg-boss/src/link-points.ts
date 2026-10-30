@@ -32,11 +32,51 @@ export const withLinkPoints = <A, E, R>(
 	});
 
 /**
- * Converges a repository link's points on its committed state: publishes the
- * indexed attempt's, then unpublishes and deletes earlier ones, and deletes
- * those of attempts replaced since and of a failed current one. The current
- * unfinished attempt's stay. Without a link, every point goes. Each step is
- * idempotent, so the next run resumes a failed one.
+ * Serves the `indexed` attempt's points and no other attempt's; `null` serves
+ * none. Runs under the link's points lock.
+ */
+export const serveIndexedAttempt = (
+	{ assetId, blockId }: Link,
+	indexed: number | null,
+) =>
+	Effect.gen(function* () {
+		const link = {
+			assetId,
+			blockId,
+		};
+		if (indexed !== null) {
+			yield* publishAttemptPoints({
+				...link,
+				attempts: {
+					from: indexed,
+					to: indexed + 1,
+				},
+				published: true,
+			});
+			yield* publishAttemptPoints({
+				...link,
+				attempts: {
+					to: indexed,
+				},
+				published: false,
+			});
+		}
+		// An attempt published by a completion that did not commit.
+		yield* publishAttemptPoints({
+			...link,
+			attempts: {
+				from: indexed === null ? undefined : indexed + 1,
+			},
+			published: false,
+		});
+	});
+
+/**
+ * Converges a repository link's points on its committed state: serves the
+ * indexed attempt's, deletes earlier ones, and deletes those of attempts
+ * replaced since and of a failed current one. The current unfinished
+ * attempt's stay. Without a link, every point goes. Each step is idempotent,
+ * so the next run resumes a failed one.
  */
 export const reconcileLinkPoints = (link: Link) =>
 	withLinkPoints(
@@ -69,22 +109,8 @@ export const reconcileLinkPoints = (link: Link) =>
 			}
 
 			const { indexed } = state;
+			yield* serveIndexedAttempt(points, indexed);
 			if (indexed !== null) {
-				yield* publishAttemptPoints({
-					...points,
-					attempts: {
-						from: indexed,
-						to: indexed + 1,
-					},
-					published: true,
-				});
-				yield* publishAttemptPoints({
-					...points,
-					attempts: {
-						to: indexed,
-					},
-					published: false,
-				});
 				yield* deleteAttemptPoints({
 					...points,
 					attempts: {
