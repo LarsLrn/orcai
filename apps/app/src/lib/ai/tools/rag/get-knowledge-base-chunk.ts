@@ -36,7 +36,7 @@ export const getKnowledgeBaseChunksTool = ({
 }) =>
 	effectTool({
 		description:
-			"Read the text around chunks from earlier results. Neighbouring chunks of one document come back as one passage.",
+			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. Use it only when you need that context, since searchKnowledgeBase already returns each passage in full.",
 		inputSchema: z.strictObject({
 			chunks: z
 				.array(z.string())
@@ -49,7 +49,7 @@ export const getKnowledgeBaseChunksTool = ({
 				.min(0)
 				.max(2)
 				.default(1)
-				.describe("Chunks to read before and after each chunk."),
+				.describe("How many passages to read before and after each one."),
 		}),
 		run: ({ chunks, neighbours }) =>
 			Effect.gen(function* () {

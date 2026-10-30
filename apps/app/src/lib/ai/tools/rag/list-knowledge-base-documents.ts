@@ -20,22 +20,24 @@ export const listKnowledgeBaseDocumentsTool = ({
 }) =>
 	effectTool({
 		description:
-			"List knowledge base documents with their asset IDs and state. Use this before page-specific retrieval or when the user mentions a document title and you need to identify the right asset. Only ready documents are searchable; a document queued, processing or indexing is still being prepared, a failed one names its failure. Tell the user rather than treating such a document as empty.",
+			"List the assets in the repositories with their ids, titles, citation labels, descriptions and preparation states. Use it when the user asks what you can search, or names an asset whose id you need. Only ready assets are searchable: one that is queued, processing or indexing is still being prepared, and a failed one names its failure. Tell the user about such an asset rather than treating it as empty.",
 		inputSchema: z.strictObject({
 			query: z
 				.string()
 				.optional()
-				.describe("Optional document-title query to narrow the list."),
+				.describe("Words from an asset's title, to narrow the list."),
 			blockId: blockIdSchema
 				.optional()
-				.describe("Optional block ID to scope the document list."),
+				.describe(
+					"Id of the one repository to list. Leave it out to list all of them.",
+				),
 			limit: z.coerce
 				.number()
 				.int()
 				.min(1)
 				.max(100)
 				.default(30)
-				.describe("Maximum number of documents to return."),
+				.describe("The most assets to return."),
 		}),
 		run: ({ query, blockId, limit }) =>
 			Effect.gen(function* () {

@@ -46,7 +46,7 @@ const genUiEntries = {
 	showChecklist: primitive({
 		schema: checklistSchema,
 		description:
-			"Show a checklist in your answer: a list of items, each with an optional status (met, partial, not_met, n_a), a one-line summary, and an expandable explanation with an optional quoted passage. Use it when you check something against a list of criteria or requirements, one row per criterion or per checked item. Leave out status for a plain list of expandable points. Use one call per list and do not repeat its content in text.",
+			"Show a checklist in your answer: a list of items, each with an optional status (met, partial, not_met, n_a), a one-line summary, and an expandable explanation with an optional quoted passage. Use it when you check something against a list of criteria or requirements, one row per criterion or per checked item. Leave out status for a plain list of expandable points. Use one call per list.",
 		read: readChecklist,
 		toMarkdown: checklistToMarkdown,
 		icon: ListChecksIcon,
@@ -56,7 +56,7 @@ const genUiEntries = {
 	showReview: primitive({
 		schema: reviewSchema,
 		description:
-			"Show a review in your answer: one or more texts checked against rules or a guide, each with findings on specific passages and, where useful, a corrected version. Use it when the user asks you to check texts such as references, outcomes or paragraphs against rules, one item per text. Quote each excerpt exactly from its item's text. Put observations not tied to one text in `general`. Use one call per review and do not repeat its content in text.",
+			"Show a review in your answer: one or more texts checked against rules or a guide, each with findings on specific passages and, where useful, a corrected version. Use it when the user asks you to check texts such as references, outcomes or paragraphs against rules, one item per text. Quote each excerpt exactly from its item's text. Put observations not tied to one text in `general`. Use one call per review.",
 		read: readReview,
 		toMarkdown: reviewToMarkdown,
 		icon: SpellCheckIcon,
@@ -66,7 +66,7 @@ const genUiEntries = {
 	showMatrix: primitive({
 		schema: matrixSchema,
 		description:
-			"Show a matrix in your answer: several items checked against the same set of criteria, as a grid of statuses (met, partial, not_met, n_a). Use it when a grid reads better than one review per item: one row per item, one column per criterion, and a note on any cell that needs explaining. Use one call per grid and do not repeat its content in text.",
+			"Show a matrix in your answer: several items checked against the same set of criteria, as a grid of statuses (met, partial, not_met, n_a). Use it when a grid reads better than one review per item: one row per item, one column per criterion, and a note on any cell that needs explaining. Use one call per grid.",
 		read: readMatrix,
 		toMarkdown: matrixToMarkdown,
 		icon: Grid3x3Icon,

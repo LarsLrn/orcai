@@ -4,9 +4,18 @@ import { chatMessageIdSchema } from "../chat-message/ref";
 import { zedTokenSchema } from "../shared";
 import { aiChatMessageSchema } from "./schema";
 
+/**
+ * The browser's IANA time zone, which sets the user's local date in the
+ * prompt. A value the server cannot use becomes none, so a send never fails on it.
+ */
+const timeZoneShape = {
+	timeZone: z.string().max(100).optional().catch(undefined),
+};
+
 export const aiChatInputSchema = z.object({
 	chatId: chatIdSchema,
 	message: aiChatMessageSchema,
+	...timeZoneShape,
 	...zedTokenSchema.shape,
 });
 
@@ -35,6 +44,7 @@ export const continueChatInputSchema = z.object({
 	messageId: chatMessageIdSchema,
 	approvals: z.array(toolApprovalDecisionSchema).max(20),
 	toolOutputs: z.array(clientToolOutputSchema).max(20).default([]),
+	...timeZoneShape,
 	...zedTokenSchema.shape,
 });
 

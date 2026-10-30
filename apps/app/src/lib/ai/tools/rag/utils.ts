@@ -285,7 +285,7 @@ export const loadReadiness = ({
 	});
 
 /**
- * Tells the model which searched repositories hold documents search cannot
+ * Tells the model which searched repositories hold assets search cannot
  * see yet, so it does not present them as empty.
  */
 export const unsearchableDocuments = (
@@ -300,7 +300,7 @@ export const unsearchableDocuments = (
 			preparing: totals.preparing,
 			failed: totals.failed,
 			note: [
-				`${totals.ready} of ${totals.total} documents in ${name} are searchable.`,
+				`${totals.ready} of ${totals.total} assets in ${JSON.stringify(name)} are searchable.`,
 				totals.preparing > 0
 					? `${totals.preparing} ${totals.preparing === 1 ? "is" : "are"} still being prepared.`
 					: undefined,

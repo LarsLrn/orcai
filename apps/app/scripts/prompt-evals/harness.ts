@@ -31,7 +31,10 @@ import {
 	type AssistantUserContext,
 	buildAssistantSystemPrompt,
 } from "@/lib/ai/agents/assistant-system-prompt";
-import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
+import {
+	buildChatAgentSystemPrompt,
+	localDate,
+} from "@/lib/ai/agents/chat-agent-system-prompt";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
 import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
@@ -39,7 +42,11 @@ import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
 import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
 import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
-import { NO_WEB_SEARCH } from "@/lib/ai/tools/web/toolset";
+import {
+	NO_WEB_SEARCH,
+	storedWebSearchTools,
+} from "@/lib/ai/tools/web/toolset";
+import { attachmentText } from "@/lib/ai/turn/attachments";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { DOCS, localDocsFetch } from "./docs";
@@ -198,34 +205,69 @@ export const runChat = async ({
 	behaviour,
 	repositories = [],
 	message,
+	attachment,
+	webSearch = false,
 	scripted = {},
 }: {
 	model: EvalModel;
-	/** The behaviour's system prompt. */
-	behaviour: string;
+	/** The behaviour's system prompt; none for a chat without one. */
+	behaviour: string | undefined;
 	repositories?: DatabaseBlock[];
 	message: string;
+	/** A file attached to the message, as the chat reads it. */
+	attachment?: Parameters<typeof attachmentText>[0] & {
+		content: string;
+	};
+	/** Offers searchWeb, the search provider's tool. */
+	webSearch?: boolean;
 	scripted?: Scripted;
 }): Promise<Transcript> => {
-	const tools =
-		repositories.length > 0
+	const offered: ToolSet = {
+		...(repositories.length > 0
 			? buildKnowledgeBaseTools({
 					blocks: repositories,
 					context: contextStub,
 					history: [],
 				})
-			: undefined;
+			: {}),
+		...(webSearch
+			? {
+					searchWeb: storedWebSearchTools().searchWeb,
+				}
+			: {}),
+	};
+	const tools = Object.keys(offered).length > 0 ? offered : undefined;
 
 	const { steps, text } = await generateText({
 		model: model.language,
-		system: buildSystemInstructions(model.kind, {
-			stable: buildChatAgentSystemPrompt({
-				systemPrompt: behaviour,
-				hasKnowledgeBaseBlocks: tools !== undefined,
+		system: buildSystemInstructions(
+			model.kind,
+			buildChatAgentSystemPrompt({
+				behaviour,
+				repositories,
 				featurePrompts: [],
+				today: localDate(Intl.DateTimeFormat().resolvedOptions().timeZone),
 			}),
-		}),
-		prompt: message,
+		),
+		messages: [
+			{
+				role: "user",
+				content: [
+					{
+						type: "text",
+						text: message,
+					},
+					...(attachment
+						? [
+								{
+									type: "text" as const,
+									text: attachmentText(attachment, attachment.content),
+								},
+							]
+						: []),
+				],
+			},
+		],
 		tools: tools && scriptTools(tools, scripted),
 		stopWhen: isStepCount(MAX_STEPS),
 	});

@@ -58,37 +58,39 @@ export const searchKnowledgeBaseTool = ({
 }) =>
 	effectTool({
 		description:
-			"Search the knowledge base by topic, entity, quote, or claim and return the full text of the best matching chunks. Call getKnowledgeBaseChunks only when you need the text around a chunk. Only ready documents are searchable: the result names repositories with documents still being prepared or that could not be prepared; tell the user when the answer may be in them.",
+			"Search the repositories by topic, name, quote or claim, and return the full text of the best matching passages, each with the ref you cite it by. Use it first for any question the repositories may answer; for a page the user names, use getKnowledgeBasePage, and for the list of assets, listKnowledgeBaseDocuments. Only ready assets are searchable: the result names repositories with assets still being prepared or that failed, and the answer may be in those, so tell the user.",
 		inputSchema: z.strictObject({
 			query: z
 				.string()
 				.min(2)
 				.optional()
 				.describe(
-					"Primary search query. Prefer one focused query over a long rewritten paragraph.",
+					"What to search for, as one focused phrase or question rather than a rewritten paragraph.",
 				),
 			queryVariants: z
 				.array(
 					z
 						.string()
 						.min(2)
-						.describe("Short alternate wording of the same search intent."),
+						.describe("Another short wording of the same search."),
 				)
 				.max(4)
 				.optional()
 				.describe(
-					"Optional short alternate phrasings. Use only when one query may miss synonyms or aliases.",
+					"Other wordings of the same search, only for synonyms or names the query may miss.",
 				),
 			assetIds: z
 				.array(assetIdSchema)
 				.max(20)
 				.optional()
 				.describe(
-					"Optional document asset IDs to scope retrieval after using listKnowledgeBaseDocuments.",
+					"Ids of the assets to search, from listKnowledgeBaseDocuments. Leave it out to search every asset.",
 				),
 			blockId: blockIdSchema
 				.optional()
-				.describe("Optional block ID to search only one knowledge base block."),
+				.describe(
+					"Id of the one repository to search. Leave it out to search all of them.",
+				),
 		}),
 		run: ({ query, queryVariants, assetIds, blockId }) =>
 			Effect.gen(function* () {

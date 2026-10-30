@@ -28,7 +28,9 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
 export const createChatAgent = (params: {
 	model: AgentModel;
-	systemPrompt: string;
+	systemPrompt: string | undefined;
+	/** The user's local date, from `localDate`. */
+	today: string;
 	databaseBlocks: DatabaseBlock[];
 	features: ResolvedFeature[];
 	webSearch: TurnWebSearch;
@@ -78,13 +80,15 @@ export const createChatAgent = (params: {
 			}),
 	});
 
-	const instructions = buildSystemInstructions(params.model.kind, {
-		stable: buildChatAgentSystemPrompt({
-			systemPrompt: params.systemPrompt,
-			hasKnowledgeBaseBlocks,
+	const instructions = buildSystemInstructions(
+		params.model.kind,
+		buildChatAgentSystemPrompt({
+			behaviour: params.systemPrompt,
+			repositories: params.databaseBlocks,
 			featurePrompts: params.features.map(({ entry }) => entry.prompt),
+			today: params.today,
 		}),
-	});
+	);
 
 	const agent = new ToolLoopAgent({
 		model: params.model.language,

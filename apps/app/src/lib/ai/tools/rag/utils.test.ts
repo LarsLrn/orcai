@@ -17,7 +17,7 @@ const repository = (
 });
 
 describe("unsearchableDocuments", () => {
-	test("leaves out repositories whose documents are all searchable", () => {
+	test("leaves out repositories whose assets are all searchable", () => {
 		expect(
 			unsearchableDocuments([
 				repository("Handbook", {
@@ -29,7 +29,7 @@ describe("unsearchableDocuments", () => {
 		).toEqual([]);
 	});
 
-	test("counts preparing and failed documents and says so", () => {
+	test("counts preparing and failed assets and says so", () => {
 		expect(
 			unsearchableDocuments([
 				repository("Handbook", {
@@ -50,7 +50,7 @@ describe("unsearchableDocuments", () => {
 				total: 120,
 				preparing: 80,
 				failed: 2,
-				note: "38 of 120 documents in Handbook are searchable. 80 are still being prepared. 2 could not be prepared.",
+				note: '38 of 120 assets in "Handbook" are searchable. 80 are still being prepared. 2 could not be prepared.',
 			},
 			{
 				repository: "Slides",
@@ -58,7 +58,7 @@ describe("unsearchableDocuments", () => {
 				total: 1,
 				preparing: 1,
 				failed: 0,
-				note: "0 of 1 documents in Slides are searchable. 1 is still being prepared.",
+				note: '0 of 1 assets in "Slides" are searchable. 1 is still being prepared.',
 			},
 		]);
 	});

@@ -33,37 +33,39 @@ export const getKnowledgeBasePageTool = ({
 }) =>
 	effectTool({
 		description:
-			"Read the text of a specific document page or nearby pages. Use this for explicit page requests after you know the document or have narrowed it down by title.",
+			"Read the passages on a page of an asset, and optionally the pages around it. Use it when the user asks about a page. Pass assetId when you know it, or else documentTitleQuery with words from the title; with neither, it reads the page in up to five assets. When the page has no text, the result lists the matching assets instead, so you can pick another.",
 		inputSchema: z.strictObject({
 			page: z.coerce
 				.number()
 				.int()
 				.min(1)
-				.describe("1-based page number to retrieve."),
-			blockId: blockIdSchema.optional(),
+				.describe("The page number, counting from 1."),
+			blockId: blockIdSchema
+				.optional()
+				.describe(
+					"Id of the one repository to read from. Leave it out to read from all of them.",
+				),
 			assetId: assetIdSchema
 				.optional()
-				.describe("Optional specific document asset ID."),
+				.describe("Id of the asset, from listKnowledgeBaseDocuments."),
 			documentTitleQuery: z
 				.string()
 				.optional()
-				.describe(
-					"Optional document-title query when assetId is not known yet.",
-				),
+				.describe("Words from the asset's title, when you do not know its id."),
 			includeAdjacentPages: z.coerce
 				.number()
 				.int()
 				.min(0)
 				.max(2)
 				.default(0)
-				.describe("Include nearby pages around the requested page."),
+				.describe("How many pages before and after the page to read as well."),
 			limit: z.coerce
 				.number()
 				.int()
 				.min(1)
 				.max(30)
 				.default(12)
-				.describe("Maximum number of returned chunks."),
+				.describe("The most passages to return."),
 		}),
 		run: ({
 			page,

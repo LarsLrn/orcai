@@ -30,7 +30,7 @@ export const matrixSchema = z.strictObject({
 								.string()
 								.optional()
 								.describe(
-									"Why the item misses the criterion and how to fix it. Markdown, <cite> citations allowed. Shown only when the status is other than met.",
+									"Why the item misses the criterion and how to fix it. Markdown and citations allowed. Shown only when the status is other than met.",
 								),
 						}),
 					)

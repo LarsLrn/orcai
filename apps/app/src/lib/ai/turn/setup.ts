@@ -55,8 +55,6 @@ import {
 } from "./context-window";
 import type { StoredChat } from "./reply-store";
 
-const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant.";
-
 /** The assistant's fixed features. */
 const ASSISTANT_FEATURES = {
 	generativeUi: {},
@@ -82,6 +80,8 @@ export type TurnRequester = {
 		name: string;
 		email: string;
 	};
+	/** The browser's IANA time zone; UTC when unknown. */
+	timeZone?: string;
 	/** The request's context, reading at the request's zedToken. */
 	context: ORPCContext;
 };
@@ -98,7 +98,8 @@ type RequestedSetup = {
 	agent:
 		| {
 				kind: "chat";
-				systemPrompt: string;
+				/** The behaviour's system prompt; none when the chat has no behaviour. */
+				systemPrompt: string | undefined;
 				databaseBlocks: DatabaseBlock[];
 				features: ResolvedFeature[];
 				webSearch: TurnWebSearch;
@@ -438,8 +439,7 @@ const chatSetup = (
 				systemPrompt:
 					bot?.template.config.systemPrompt ??
 					attachedTemplate?.config.systemPrompt ??
-					config?.systemPrompt ??
-					DEFAULT_SYSTEM_PROMPT,
+					config?.systemPrompt,
 				databaseBlocks: mergeDatabaseBlocks(
 					bot?.databaseBlocks ?? [],
 					attached.data.filter(

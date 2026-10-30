@@ -1,56 +1,132 @@
 import { describe, expect, test } from "bun:test";
 import { genUiPrompt } from "@/components/chat/gen-ui/prompt";
 import { featureCatalog } from "@/lib/ai/features/catalog";
-import { buildChatAgentSystemPrompt } from "./chat-agent-system-prompt";
+import {
+	buildChatAgentSystemPrompt,
+	localDate,
+} from "./chat-agent-system-prompt";
 
-const KNOWLEDGE_BASE = "Knowledge-base retrieval workflow:";
-const FORMATTING = "Message formatting and styling:";
+const REPOSITORIES = "Repositories:";
+const FORMATTING = "Formatting:";
+
+const readings = {
+	id: "0d8c6f5e-7b1a-4c2e-9f3d-2a1b0c9d8e7f",
+	name: 'Course "readings"',
+};
 
 describe("buildChatAgentSystemPrompt", () => {
-	test("places the Generative UI fragment between knowledge-base and formatting guidance", () => {
-		const prompt = buildChatAgentSystemPrompt({
-			systemPrompt: "You check citations.",
-			hasKnowledgeBaseBlocks: true,
-			featurePrompts: [
-				featureCatalog.generativeUi.prompt,
-			],
+	test("puts the behaviour in its own section after the rules on precedence", () => {
+		const { stable } = buildChatAgentSystemPrompt({
+			behaviour: "  You check citations.  ",
+			repositories: [],
+			featurePrompts: [],
+			today: "Friday, 30 October 2026",
 		});
 
-		const knowledgeBase = prompt.indexOf(KNOWLEDGE_BASE);
-		const fragment = prompt.indexOf(genUiPrompt);
-		const formatting = prompt.indexOf(FORMATTING);
-
-		expect(prompt.startsWith("You check citations.")).toBe(true);
-		expect(knowledgeBase).toBeGreaterThan(0);
-		expect(fragment).toBeGreaterThan(knowledgeBase);
-		expect(formatting).toBeGreaterThan(fragment);
+		expect(stable).toContain(
+			"Behaviour:\n<behaviour>\nYou check citations.\n</behaviour>",
+		);
+		expect(stable.indexOf("follow OrcAI's rule")).toBeLessThan(
+			stable.indexOf("<behaviour>"),
+		);
+		expect(stable).toContain("unless the behaviour sets the answer language");
 	});
 
-	test("places the fragment before formatting guidance without repositories", () => {
-		const prompt = buildChatAgentSystemPrompt({
-			systemPrompt: "You check citations.",
-			hasKnowledgeBaseBlocks: false,
-			featurePrompts: [
-				featureCatalog.generativeUi.prompt,
-			],
+	test("leaves the behaviour section and its precedence out without a behaviour", () => {
+		const { stable } = buildChatAgentSystemPrompt({
+			behaviour: " ",
+			repositories: [],
+			featurePrompts: [],
+			today: "Friday, 30 October 2026",
 		});
 
-		expect(prompt).not.toContain(KNOWLEDGE_BASE);
-		expect(prompt.indexOf(genUiPrompt)).toBeGreaterThan(0);
-		expect(prompt.indexOf(FORMATTING)).toBeGreaterThan(
-			prompt.indexOf(genUiPrompt),
+		expect(stable).not.toContain("<behaviour>");
+		expect(stable).not.toContain("Behaviour section");
+		expect(stable).toContain(
+			"Answer in the language of the user's latest message.",
 		);
 	});
 
-	test("leaves the fragment out when Generative UI is off", () => {
-		const prompt = buildChatAgentSystemPrompt({
-			systemPrompt: "You check citations.",
-			hasKnowledgeBaseBlocks: true,
+	test("names each repository as quoted data with its id", () => {
+		const { stable } = buildChatAgentSystemPrompt({
+			behaviour: "You check citations.",
+			repositories: [
+				readings,
+			],
 			featurePrompts: [],
+			today: "Friday, 30 October 2026",
 		});
 
-		expect(prompt).not.toContain(genUiPrompt);
-		expect(prompt).toContain(KNOWLEDGE_BASE);
-		expect(prompt).toContain(FORMATTING);
+		expect(stable).toContain(`"Course \\"readings\\"" (id ${readings.id})`);
+	});
+
+	test("orders behaviour, repositories, the Generative UI fragment and formatting", () => {
+		const { stable } = buildChatAgentSystemPrompt({
+			behaviour: "You check citations.",
+			repositories: [
+				readings,
+			],
+			featurePrompts: [
+				featureCatalog.generativeUi.prompt,
+			],
+			today: "Friday, 30 October 2026",
+		});
+
+		const behaviour = stable.indexOf("<behaviour>");
+		const repositories = stable.indexOf(REPOSITORIES);
+		const fragment = stable.indexOf(genUiPrompt);
+		const formatting = stable.indexOf(FORMATTING);
+
+		expect(behaviour).toBeGreaterThan(0);
+		expect(repositories).toBeGreaterThan(behaviour);
+		expect(fragment).toBeGreaterThan(repositories);
+		expect(formatting).toBeGreaterThan(fragment);
+	});
+
+	test("leaves the retrieval rules and the fragment out when neither applies", () => {
+		const { stable } = buildChatAgentSystemPrompt({
+			behaviour: "You check citations.",
+			repositories: [],
+			featurePrompts: [],
+			today: "Friday, 30 October 2026",
+		});
+
+		expect(stable).not.toContain(REPOSITORIES);
+		expect(stable).not.toContain(genUiPrompt);
+		expect(stable).toContain(FORMATTING);
+	});
+
+	test("puts the date in the variable part, so the stable part caches", () => {
+		const prompt = buildChatAgentSystemPrompt({
+			behaviour: "You check citations.",
+			repositories: [],
+			featurePrompts: [],
+			today: "Friday, 30 October 2026",
+		});
+
+		expect(prompt.stable).not.toContain("2026");
+		expect(prompt.variable).toBe(
+			"Today's date for the user: Friday, 30 October 2026.",
+		);
+	});
+});
+
+describe("localDate", () => {
+	const lateEvening = new Date("2026-10-30T23:30:00Z");
+
+	test("is the date in the user's time zone", () => {
+		expect(localDate("Europe/Berlin", lateEvening)).toBe(
+			"Saturday, 31 October 2026",
+		);
+		expect(localDate("America/New_York", lateEvening)).toBe(
+			"Friday, 30 October 2026",
+		);
+	});
+
+	test("falls back to UTC for a missing or unknown time zone", () => {
+		expect(localDate(undefined, lateEvening)).toBe("Friday, 30 October 2026");
+		expect(localDate("Mars/Olympus_Mons", lateEvening)).toBe(
+			"Friday, 30 October 2026",
+		);
 	});
 });

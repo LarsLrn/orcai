@@ -25,6 +25,7 @@ const aiChat = authed.ai.chat
 				name: context.auth.user.name,
 				email: context.auth.user.email,
 			},
+			timeZone: input.timeZone,
 			context: {
 				...context,
 				meta: {
@@ -54,6 +55,7 @@ const aiContinue = authed.ai.continue
 				name: context.auth.user.name,
 				email: context.auth.user.email,
 			},
+			timeZone: input.timeZone,
 			context: {
 				...context,
 				meta: {
