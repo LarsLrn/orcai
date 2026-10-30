@@ -3,18 +3,18 @@ title: Platform overview
 description: What OrcAI is, who it is for, how retrieval-backed chat works, and the main areas of the app with their paths.
 ---
 
-OrcAI is a self-hostable platform for governed, retrieval-backed AI bots. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate sources and students interact with a grounded AI tutor. Beyond that fixed instructor-student model, individuals and groups can build specialised repositories and bots for their own domains.
+OrcAI lets organisations build bots that answer from their own material and cite their sources. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate sources and students interact with a grounded AI tutor. Beyond that fixed instructor-student model, individuals and groups can build specialised repositories and bots for their own domains.
 
 ## What OrcAI does
 
-OrcAI combines asset preparation, semantic search, and chat:
+1. Members upload files to the Library, and OrcAI prepares them as assets.
+2. Repositories group assets, and behaviours set how a bot writes.
+3. A bot combines one behaviour with its repositories and features such as web search or questions and quizzes.
+4. When someone asks a bot a question, it searches its repositories for matching passages and cites them in its answer.
 
-1. Organisation members upload files.
-2. Background workers prepare the files and extract usable text or image descriptions.
-3. Assets are stored in S3-compatible object storage.
-4. Extracted text is indexed in Qdrant for retrieval.
-5. Users chat with bots or a model.
-6. Relevant context is retrieved and sent to the configured AI model endpoint.
+A chat can also run on a model alone, without a bot.
+
+Behind this, background workers read the files, an embedding model indexes them in Qdrant, and the organisation's chat models write the answers. See [Self-hosting](/docs/self-hosting) for the services an instance runs.
 
 ## Core areas
 
