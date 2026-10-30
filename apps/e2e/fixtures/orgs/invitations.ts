@@ -4,7 +4,7 @@ import type { ApiClient } from "../api";
 import { EMAIL_DOMAIN, type Role } from "../constants";
 import { submitForm } from "../forms";
 import { message } from "../messages";
-import { open } from "../navigation";
+import { awaitHydration, open } from "../navigation";
 import { runId } from "../organisation";
 
 /** The outbox type the app queues for an invitation. */
@@ -91,6 +91,84 @@ export const registerFromInvitation = async (
 		submit: message("auth_signup_form_submit_button"),
 		until: user.until ?? /\/app(\/|$)/,
 	});
+};
+
+/** Follow a link of the sign-in pages and wait for the page it opens. */
+export const followAuthLink = async (
+	page: Page,
+	name: string,
+	url: RegExp,
+): Promise<void> => {
+	const link = page.getByRole("link", {
+		name,
+	});
+	await link.click();
+	await expect(page).toHaveURL(url);
+	// The URL moves before the old page unmounts, and the forgot-password page
+	// has an Email field of its own. No target page repeats the link.
+	await expect(link).toHaveCount(0);
+	await awaitHydration(page);
+};
+
+/** Submit the sign-in form the page shows. */
+export const submitSignIn = async (
+	page: Page,
+	user: {
+		email: string;
+		password: string;
+		until: RegExp;
+	},
+): Promise<void> => {
+	await submitForm(page, {
+		fill: async () => {
+			await page.getByLabel(message("common_email_label")).fill(user.email);
+			await page
+				.getByLabel(message("common_password_label"), {
+					exact: true,
+				})
+				.fill(user.password);
+		},
+		submit: message("auth_signin_form_submit_button"),
+		until: user.until,
+	});
+};
+
+/** Open an invitation link signed out, follow its sign-in link and sign in. */
+export const signInFromInvitation = async (
+	page: Page,
+	link: string,
+	user: {
+		email: string;
+		password: string;
+		until: RegExp;
+	},
+): Promise<void> => {
+	await open(page, link);
+	await followAuthLink(
+		page,
+		message("auth_register_page_signin_link"),
+		/\/login\?inv=/,
+	);
+	await submitSignIn(page, user);
+};
+
+/** Accept the one pending invitation the selection page shows for `slug`. */
+export const acceptOnSelectionPage = async (
+	page: Page,
+	slug: string,
+): Promise<void> => {
+	await expect(page).toHaveURL(/\/select-organization/);
+	await expect(
+		page.getByText(`@${slug}`, {
+			exact: true,
+		}),
+	).toBeVisible();
+	await page
+		.getByRole("button", {
+			name: message("orgs_invitation_accept_button"),
+		})
+		.click();
+	await expect(page).toHaveURL(/\/app(\/|$)/);
 };
 
 /** The role the active organisation's user list reports for an address. */

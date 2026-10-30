@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import z from "zod/v4";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password/forgot-password-form";
 import {
 	Card,
@@ -11,10 +12,16 @@ import {
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/forgot-password")({
+	// An invitation link's sign-in returns to the invitation.
+	validateSearch: z.object({
+		inv: z.string().optional(),
+	}),
 	component: ForgotPasswordPage,
 });
 
 function ForgotPasswordPage() {
+	const { inv } = Route.useSearch();
+
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader>
@@ -27,7 +34,14 @@ function ForgotPasswordPage() {
 				<ForgotPasswordForm />
 			</CardContent>
 			<CardFooter>
-				<Link to="/login">{m.auth_forgot_password_page_signin_link()}</Link>
+				<Link
+					to="/login"
+					search={{
+						inv,
+					}}
+				>
+					{m.auth_forgot_password_page_signin_link()}
+				</Link>
 			</CardFooter>
 		</Card>
 	);

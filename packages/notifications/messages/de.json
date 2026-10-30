@@ -25,7 +25,7 @@
 	"email_layout_greeting": "Hallo {name},",
 	"email_layout_greeting_anonymous": "Hallo,",
 	"email_organization_invited_action": "Einladung annehmen",
-	"email_organization_invited_body": "{inviter} hat Sie eingeladen, {organization} mit der Rolle {role} beizutreten. Diese Einladung läuft am {date} ab. Wenn Sie bereits ein Konto haben, melden Sie sich stattdessen an und nehmen Sie die Einladung im Menü mit Ihrem Namen unter „Organisation wechseln“ an.",
+	"email_organization_invited_body": "{inviter} hat Sie eingeladen, {organization} mit der Rolle {role} beizutreten. Diese Einladung läuft am {date} ab.",
 	"email_organization_invited_preview": "Treten Sie {organization} auf OrcAI bei",
 	"email_organization_invited_role_admin": "Admin",
 	"email_organization_invited_role_manager": "Manager",

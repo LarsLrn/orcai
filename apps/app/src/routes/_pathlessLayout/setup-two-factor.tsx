@@ -60,7 +60,7 @@ function RouteComponent() {
 				/>
 			</CardContent>
 			<CardFooter className="flex justify-end">
-				<Button variant="link" onClick={signOut}>
+				<Button variant="link" onClick={() => signOut()}>
 					{m.account_user_menu_sign_out_action()}
 				</Button>
 			</CardFooter>
