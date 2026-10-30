@@ -1,17 +1,13 @@
 ---
 title: Administration
-description: The Administration pages for members, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its Assistant and utility models and web search, plus Manage instance, the instance admin and initialising a new instance.
+description: Manage members, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its Assistant and utility models and web search, plus Manage instance, the instance admin and initialising a new instance.
 ---
 
-The Administration area is permission-gated and appears in the sidebar's "Your organisation" group.
-
-Only sections allowed by your organisation permissions are shown.
-
-For a practical setup sequence, use [Organisation setup](/docs/using-orcai/organisation-setup).
+Administration appears in the sidebar's "Your organisation" group and shows only the sections your organisation permissions allow. To prepare a new organisation step by step, follow [Organisation setup](/docs/using-orcai/organisation-setup).
 
 ## Sections
 
-Current administration sections in the app:
+Administration has these sections:
 
 - Members (`/app/members`)
 - Groups (`/app/groups`)
@@ -22,17 +18,17 @@ Current administration sections in the app:
 - Organisation (`/app/organization`)
 
 Which roles see which section is listed in
-[Access Control](/docs/using-orcai/access-control#organisation-roles).
+[Access control](/docs/using-orcai/access-control#organisation-roles).
 
-Instance-wide actions live in the separate Instance management area,
-described below. They are not part of the active organisation's Administration
-navigation.
+Instance-wide actions live in the separate
+[Instance management](#instance-management) area, outside the active
+organisation's Administration navigation.
 
 ## Members
 
 Members (`/app/members`) is a paginated data table with search over name and email, sorting, and
 table actions. It is scoped to the active organisation and acts on
-memberships: the row menu and the bulk action remove a member from the
+memberships. The row menu and the bulk action remove a member from the
 organisation, and the member's page changes the organisation role or removes the
 membership. The account itself survives and can be invited back. Banning an
 account and deleting it live under Manage instance > Users.
@@ -51,22 +47,23 @@ described under [Invitations](/docs/using-orcai/access-control#invitations).
 
 **Edit member** opens a member's page at `/app/members/<user id>/edit`. It shows:
 
-- **Member information**: name, email, status, email verification and dates.
-- **Effective access**: every bot, block and asset the member can reach
-  in this organisation, with the role and where the access comes from: a direct
+- **Member information** with the name, email, status, email verification and
+  dates.
+- **Effective access** with every bot, block and asset the member can reach
+  in this organisation, the role, and where the access comes from (a direct
   grant, a group, All members, an inherited bot or block, the organisation, or
-  public visibility. Use it to answer why someone can or cannot see something.
-  The table pages through the list and filters it by name, type and
+  public visibility). Use it to find out why someone can or cannot see
+  something. The table pages through the list and filters it by name, type and
   origin.
-- **Member management**: **Send password reset**, **Send verification email**
-  while the address is unverified, the organisation role, and **Remove from
-  organisation**.
+- **Member management** with **Send password reset email**, **Send
+  verification email** while the address is unverified, the organisation role,
+  and **Remove from organisation**.
 
-Admins are protected: only an Admin can give the Admin role, change an Admin's
-role or remove an Admin, so a manager sees an Admin's page without the password
-reset, the role change or the removal. An organisation keeps at least one
-Admin who can sign in: the last one cannot be demoted, removed, banned or
-deleted, and a banned Admin does not count. Your own page offers no password
+Only an Admin can give the Admin role, change an Admin's role or remove an
+Admin, so a manager sees an Admin's page without the password reset, the role
+change or the removal. An organisation keeps at least one Admin who can sign
+in, so the last one cannot be demoted, removed, banned or deleted, and a banned
+Admin does not count. Your own page offers no password
 reset and no removal.
 
 Removing a member from an organisation clears that organisation from the member's
@@ -74,17 +71,12 @@ open sessions, and entering the app rechecks that the membership still exists.
 
 ## Groups
 
-Groups (`/app/groups`) supports:
-
-- Search
-- The member count of each group
-- Create custom groups
-- Edit and delete custom groups
-- Member management with explicit/implicit labels: a group's page adds
-  members and lists the current ones in a searchable, paged table
-
-System groups are immutable. A group opens at `/app/groups/<group id>`;
-[Access Control](/docs/using-orcai/access-control#groups) covers the All
+Groups (`/app/groups`) lists the groups with their member counts and a search.
+Custom groups can be created, edited and deleted, and system groups cannot be
+changed. A group opens at `/app/groups/<group id>`, where you add members and
+find the current ones in a searchable, paged table that marks each membership
+**Explicit** or **Implicit**.
+[Access control](/docs/using-orcai/access-control#groups) covers the All
 members group and who may see what.
 
 ## Quota pools
@@ -95,29 +87,30 @@ or one of its models, may be used in a period.
 Quota pools (`/app/quotas`) lists the pools with their period, budget, consumed and
 remaining amounts. **Add pool** opens `/app/quotas/add` with these fields:
 
-- **Name**, shown to users as the pool their usage is charged to, and an
+- **Name**, shown to members as the pool their usage is charged to, and an
   optional description.
-- **Provider**: the pool meters this provider in its metering mode, tokens or
-  requests.
-- **Model scope**: "All models from this provider", or one model.
-- **Period**: Weekly, Monthly or Yearly. The budget resets in UTC: weekly on
-  Monday, monthly on the 1st, yearly on 1 January. Each period starts with the
-  full budget; unused budget does not roll over.
-- **Budget**: the maximum tokens or requests per period.
-- **Priority**: when more than one pool could apply, the higher priority wins.
-- **Default pool**: marks the provider's default pool, shown with a Default
+- **Provider**, which the pool meters in the provider's metering mode, tokens
+  or requests.
+- **Model scope**, either **All models from this provider** or one model.
+- **Period**, which is Weekly, Monthly or Yearly. The budget resets in UTC,
+  weekly on Monday, monthly on the 1st and yearly on 1 January. Each period
+  starts with the full budget, and unused budget does not roll over.
+- **Budget**, the maximum tokens or requests per period.
+- **Priority**, which decides between pools that could both apply, where the
+  higher priority wins.
+- **Default pool**, which marks the provider's default pool with a **Default**
   badge. One active pool per provider without a model scope can carry it.
-- **Active**: an inactive pool takes no new usage.
-- **Eligible groups**: people in any of these groups can use the pool. A pool
-  with no eligible groups covers nobody; choose All members to cover everyone.
+- **Active**, which lets the pool take new usage.
+- **Eligible groups**, whose people can use the pool. A pool with no eligible
+  groups covers nobody, so choose All members to cover everyone.
 
 Pools cannot be deleted. **Deactivate pool**, in the pool page's **More actions**
-menu, stops new usage; usage already in progress still completes.
+menu, stops new usage, and usage already in progress still completes.
 
 For each chat request, OrcAI looks at the active pools of the chat's provider
 whose eligible groups include the person. A pool scoped to the chat's model
-wins over pools covering all models; among those, the higher priority wins,
-then the older pool. If no pool covers someone, they cannot chat with that
+wins over pools covering all models. Between pools of the same scope, the
+higher priority wins, then the older pool. If no pool covers someone, they cannot chat with that
 provider's models.
 
 Each reply reserves its likely cost before the model runs and is charged what
@@ -140,57 +133,59 @@ the budget frees the remaining budget straight away), the eligible groups
 with their description, type and member count, and the usage events. The
 usage events table covers every period, newest first, and filters by user and
 event type: Reserved when a call starts, Settled with the amount it actually
-used, Released when a reservation is given back, Failed when the call failed.
+used, Released when a reservation is given back, and Failed when the call failed.
 As in Analytics, people who have left the organisation and bots you cannot
 open stay unnamed, and the user search finds current members only.
 **Edit pool** opens `/app/quotas/<pool id>/edit`.
 
 In chat, the [usage indicator](/docs/using-orcai/chat#usage-indicator) shows people the pool that covers their model as a share used, with its reset time, never amounts. People who can manage quota pools get a **Manage pool** link to the pool.
 
-The OrcAI Assistant draws on the same pools as chat, through the organisation's Assistant model. Chat and conversation titles draw on the pools of the organisation's [utility model](#utility-model) when one is set. For a separate Assistant budget, create a pool for that model alone and assign it to All members; a model-specific pool wins over the provider's pools. An exhausted pool blocks the Assistant like any chat.
+The OrcAI Assistant draws on the same pools as chat, through the organisation's Assistant model. Chat and conversation titles draw on the pools of the organisation's [utility model](#utility-model) when one is set. For a separate Assistant budget, create a pool for that model alone and assign it to All members, because a model-specific pool wins over the provider's pools. An exhausted pool blocks the Assistant like any chat.
 
 ## Analytics
 
 Analytics (`/app/analytics`) shows how the organisation used its models over
-the last 7, 30 or 90 days; 30 is the default. It reads the usage that
-[quota pools](#quota-pools) metered, so tokens and requests appear as recorded: tokens for
-every call and provider requests for every step, whatever the pool's metering
-mode. The two units are never added together.
+the last 7, 30 or 90 days, with 30 as the default. It reads the usage that
+[quota pools](#quota-pools) metered, with tokens for every call and provider
+requests for every step, whatever the pool's metering mode. The two units are never added together.
 
 Each call also carries an estimated cost, worked out when the call finished
 from the [model's prices](#model-prices) and its provider's currency at that
 moment. Changing a price later never changes the cost of past calls, and
 calls from before a price was set stay without a cost. Amounts in different
-currencies are never added together or converted: a figure such as
+currencies are never added together or converted, so a figure such as
 "€12.30 + $4.10" lists each currency. Admins enter the prices by hand, so the
-estimate may differ from the provider's invoice; the page says so below the
-totals.
+estimate may differ from the provider's invoice, and the page says so below
+the totals.
 
-- **Totals**: tokens, input tokens, output tokens, requests, cache read and
+The page shows:
+
+- The totals of tokens, input tokens, output tokens, requests, cache read and
   cache write tokens, and the estimated cost with one figure per currency.
-  Below the cost, "Requests without a price" counts the calls whose model or
-  search provider had no price.
-- **Tokens per day** and **Requests per day**: one bar per UTC day.
-  **Estimated cost per day** adds one series per currency.
-- Every table below has an **Estimated cost** column; the tables stay sorted
-  by tokens, then requests.
-- **People**: usage per person, most tokens first. People who have left the
-  organisation add up to one "Former members" row, without names or email
-  addresses.
-- **Models**: usage per model and its provider. Usage recorded before
+  Below the cost, "Calls with no recorded cost" counts the calls whose model
+  or search provider had no price.
+- **Tokens per day** and **Requests per day** with one bar per UTC day, and
+  **Estimated cost per day** with one series per currency.
+- **People** with the usage per person, most tokens first. People who have
+  left the organisation add up to one "Former members" row, without names or
+  email addresses.
+- **Models** with the usage per model and its provider. Usage recorded before
   analytics existed under a pool for all of a provider's models, and usage of
   a deleted model, shows as "Model not recorded".
-- **Bots**: usage in chats with a bot. Everything else, such as chats without a
-  bot, the OrcAI Assistant and chat titles, counts as "Without a bot". Bots are
-  recorded only since analytics were added, and usage of a deleted bot moves to
-  "Without a bot". A bot shows by name only to an Admin who can open it; all
-  other bots add up to one "Other bots" row.
-- **Ratings by bot**: how many replies were rated in the range, by the bot of
-  their chat, with the count per rating and the up/down share, where up is
-  "Very much" and "A bit". A rating counts for the organisation whose quota pool
+- **Bots** with the usage in chats with a bot. Everything else, such as chats
+  without a bot, the OrcAI Assistant and chat titles, counts as "Without a
+  bot". Bots are recorded only since analytics were added, and usage of a
+  deleted bot moves to "Without a bot". A bot shows by name only to an Admin
+  who can open it, and all other bots add up to one "Other bots" row.
+- **Ratings by bot** with how many replies were rated in the range, by the
+  bot of their chat, with the count per rating and the up/down share, where up
+  is "Very much" and "A bit". A rating counts for the organisation whose quota pool
   paid for the rated reply. Ratings of replies copied into a
   [branch](/docs/using-orcai/chat) are not counted. Bots the Admin cannot open
   add up to "Other bots", as above. Message content is never shown.
+
+The People, Models and Bots tables each have an **Estimated cost** column and
+stay sorted by tokens, then requests.
 
 Only Admins see the page (`view_analytics`), and cost shows nowhere else, not
 even in a reply's usage. Deleting a provider deletes its
@@ -198,54 +193,54 @@ usage records, so its usage leaves the page too.
 
 ## Providers
 
-Providers represent model backends/endpoints available to OrcAI, and search
-providers that serve [web search](#web-search).
+A provider is a service that runs models, or a search provider that serves
+[web search](#web-search), connected with its endpoint and key.
 
 Providers (`/app/providers`) lists them with their status and metering mode.
 **Add provider** opens `/app/providers/add` with these fields:
 
-- **Kind**: **OpenAI-compatible** for any endpoint that speaks the OpenAI
-  API, **OpenAI** or **Anthropic** for their official APIs, or
+- **Kind**, which is **OpenAI-compatible** for any endpoint that speaks the
+  OpenAI API, **OpenAI** or **Anthropic** for their official APIs, or
   **Tavily (web search)** for a search provider. The kind is fixed once the
-  provider exists; to switch kind, create a new provider.
-- **Name**, shown to users wherever the provider is named.
-- **Endpoint**, required for OpenAI-compatible providers: the base URL of the
-  endpoint, including the version path. OpenAI and Anthropic providers have
+  provider exists, so to switch kind, create a new provider.
+- **Name**, shown to members wherever the provider is named.
+- **Endpoint**, the base URL of the endpoint including the version path,
+  required for OpenAI-compatible providers. OpenAI and Anthropic providers have
   no endpoint field and use the official API. Tavily providers use Tavily's
   API while the field is blank.
 - **API key**, stored encrypted. When editing, leave it blank to keep the stored key.
-- **Metering mode**: whether quota pools count tokens or requests for this provider.
-  Search providers always count requests, one per search.
-- **Currency**: the currency the provider bills in, chosen from the ISO 4217
+- **Metering mode**, whether quota pools count tokens or requests for this
+  provider. Search providers always count requests, one per search.
+- **Currency**, the currency the provider bills in, chosen from the ISO 4217
   codes, USD for providers created before prices existed. Its models' prices
-  are read in this currency. Changing it shows a warning: model prices are
+  are read in this currency. Changing it shows a warning that model prices are
   read in the new currency from now on, while past calls keep the currency
   they were recorded in.
-- **Reports cost (OpenRouter style)**, for OpenAI-compatible providers only:
-  each response's own cost, as OpenRouter sends it, is used instead of the
-  model's prices. It is in USD, so the currency is locked to USD while this is
-  on. A response without a cost falls back to the model's prices, and only a
+- **Reports cost (OpenRouter style)**, for OpenAI-compatible providers only,
+  which uses each response's own cost, as OpenRouter sends it, instead of the
+  model's prices. That cost is in USD, so the currency is locked to USD while
+  this is on. A response without a cost falls back to the model's prices, and only a
   call whose every response reported one counts its cost as reported.
-- **Price per search**, for search providers only: what one search costs,
-  for the [estimated cost](#analytics).
-- **Enabled**: only an enabled provider's models can be used in the organisation.
+- **Price per search**, for search providers only, what one search costs for
+  the [estimated cost](#analytics).
+- **Enabled**, which lets the organisation use the provider's models.
 
-A search provider has no models; it serves the organisation's web search once
+A search provider has no models. It serves the organisation's web search once
 the [Organisation page](#web-search) chooses it, and quota pools on it bound
 the searches. Its page warns while no active quota pool covers it.
 
 A provider's page (`/app/providers/<provider id>`) shows its configuration,
 model counts and a searchable, paged table of its connected models, with
 **Add model** and **Edit provider**
-(`/app/providers/<provider id>/edit`). There is no separate connection test;
-**Discover models** on the Models page is a quick check that the endpoint and
-key work.
+(`/app/providers/<provider id>/edit`). There is no separate connection test,
+and **Discover models** on the Models page is a quick check that the endpoint
+and key work.
 
-Discovery lists the models the provider offers: `/models` of the endpoint for
-OpenAI-compatible providers and of OpenAI's API for OpenAI providers, and
-Anthropic's Models API for Anthropic providers. It also takes each model's
-context window and max output tokens where the provider reports them:
-Anthropic's Models API does, and so do OpenAI-compatible servers such as
+Discovery lists the models the provider offers from `/models` of the endpoint
+for OpenAI-compatible providers, `/models` of OpenAI's API for OpenAI
+providers, and Anthropic's Models API for Anthropic providers. It also takes
+each model's context window and max output tokens where the provider reports
+them. Anthropic's Models API does, and so do OpenAI-compatible servers such as
 OpenRouter, Together AI, vLLM and Groq. OpenAI's API reports neither.
 
 With an Anthropic provider, OrcAI marks the system prompt and the messages
@@ -260,11 +255,9 @@ shows in the answer's work log as Thinking.
 
 ## Models
 
-Models are managed separately from providers and can be filtered by provider.
+Models (`/app/models`) lists models separately from providers, with:
 
-Current models page (`/app/models`) features:
-
-- Search by model/provider text
+- Search by model or provider name
 - Provider filter
 - Capabilities filter, to find the models whose capabilities are not set yet
 - **Add model** (`/app/models/add`)
@@ -276,30 +269,31 @@ A model has a name, an optional description, a provider, the **Provider model
 ID** the endpoint expects, its **Capabilities**, a **Deprecated** flag, and
 two token limits, empty when unknown:
 
-- **Context window**: how many tokens the model reads at once. A chat reply
+- **Context window**, how many tokens the model reads at once. A chat reply
   shows how full it was, and a long chat is summarised once it fills 80% of
   the window after the reply's room, so a smaller value summarises earlier and
   keeps prompts cheaper. Empty means 128,000. A reply without max tokens asks
   for at most half of it.
-- **Max output tokens**: how many tokens the model writes per reply at most. A
+- **Max output tokens**, how many tokens the model writes per reply at most. A
   chat's max tokens cannot be set higher, a reply asks for no more, and a
   limit below 16,384 lowers the pool reservation of a chat without max tokens.
 
 Discovery sets a model's capabilities where its provider reports them:
 
-- **OpenAI-compatible**: from OpenRouter's model metadata (input and output
-  modalities, and whether the model takes tools or reasoning). Other servers
-  report none.
-- **Anthropic**: **Text** and **Tool calling**, which every Claude model has,
-  plus **Image** and **Reasoning** where the Models API reports them.
-- **OpenAI**: its models API reports none.
+- OpenAI-compatible providers take them from OpenRouter's model metadata
+  (input and output modalities, and whether the model takes tools or
+  reasoning). Other servers report none.
+- Anthropic providers set **Text** and **Tool calling**, which every Claude
+  model has, plus **Image** and **Reasoning** where the Models API reports
+  them.
+- OpenAI providers set none, because OpenAI's models API reports none.
 
-Capabilities a provider does not report stay **Not set**: set them yourself
-once, on the models you want to use. Clearing every capability in the form
-makes them not set again: unknown, filled in by the next discovery where the
-provider reports them. Rediscovery never overwrites capabilities or a
-limit that are already set, so edited ones stay. A model opens at `/app/models/<model id>`, and **Edit model** at
-`/app/models/<model id>/edit`.
+Capabilities a provider does not report stay **Not set**, so set them yourself
+once on the models you want to use. Clearing every capability in the form
+makes them unknown again, and the next discovery fills them in where the
+provider reports them. Rediscovery never overwrites capabilities or a limit
+that are already set, so edited ones stay. A model opens at
+`/app/models/<model id>`, and **Edit model** at `/app/models/<model id>/edit`.
 
 ### Model prices
 
@@ -309,18 +303,19 @@ currency, for the [estimated cost](#analytics) in analytics. Each is optional:
 - **Input**, **Cache read**, **Cache write** and **Output**, per 1M tokens.
   Reasoning tokens count as output. An empty cache price uses the input price.
 - **Per request**, added for every provider request.
-- **Per web search**, for OpenAI and Anthropic models: each search the model
-  runs with its provider's own web search.
+- **Per web search**, for OpenAI and Anthropic models, for each search the
+  model runs with its provider's own web search.
 
-A model needs both an input and an output price to be priced; without them its
-calls have no cost. Once it is priced, an empty request or search price counts
+A model needs both an input and an output price to be priced. Without them its
+calls have no cost, unless its provider has **Reports cost (OpenRouter style)**
+on and every response of the call reported its cost. Once it is priced, an empty request or search price counts
 as zero. Prices apply to calls from the moment they are saved. They estimate
-what the provider bills and leave quota pools untouched: they keep counting
+what the provider bills and leave quota pools untouched, so pools keep counting
 tokens or requests. Long-context tiers, service tiers and longer-lived cache
 writes are not priced, so the estimate may differ from the invoice.
 
-<Callout title="Chat Models" type="info">
-	A model appears in chat only with at least the **Text** and **Tool calling** capabilities. Set them on each discovered model whose capabilities are not set before it can chat; until one can, the readiness checklist counts the models still waiting for them.
+<Callout title="Chat models" type="info">
+	A model appears in chat only with at least the **Text** and **Tool calling** capabilities. Set them on each discovered model whose capabilities are not set before it can chat. Until one can, the readiness checklist counts the models still waiting for them.
 </Callout>
 
 ## Instance management
@@ -331,8 +326,8 @@ shared user menu or the organisation picker, including when they have no
 organisation memberships. `/instance` opens the Health page.
 
 **Health** (`/instance/health`) shows whether the instance works. Each check
-is OK, a warning or failing, and is either required or recommended:
-PostgreSQL, SpiceDB, Qdrant and object storage are required, Valkey is
+is OK, a warning or failing, and is either required or recommended.
+PostgreSQL, SpiceDB, Qdrant and object storage are required, and Valkey is
 recommended. The page also requires a running workers process, and
 recommends email delivery over SMTP and a deployment without configuration
 warnings. A dependency that does not answer within three seconds counts as
@@ -342,9 +337,9 @@ the worker log), the processes that run background jobs with their last
 heartbeat, the jobs per queue including dead letter queues, the OrcAI,
 PostgreSQL, Qdrant and Valkey versions with the latest database migration,
 and the settings of the app process. Secrets only show whether they are set.
-The checks run when the page opens and on **Check again**; nothing polls in
-the background. **Send test email** queues an email to your own address, at
-most one a minute, through the same outbox as every other email; check again
+The checks run when the page opens and on **Check again**, and nothing polls
+in the background. **Send test email** queues an email to your own address, at
+most one a minute, through the same outbox as every other email. Check again
 to see whether it was sent and how.
 
 **Organisations** (`/instance/organizations`) lists every organisation of the
@@ -352,12 +347,12 @@ instance with its slug and member count, with search, creates one with
 **Create organisation**, and deletes one. Creating one asks for its
 **Initial admin**:
 
-- **Me**: you administer it.
-- **Existing user**: an account you pick administers it, and you are not
+- **Me**, so you administer it.
+- **Existing user**, so an account you pick administers it and you are not
   added. A banned account is refused.
-- **Invite by email**: you administer it for now and the address gets an
+- **Invite by email**, so you administer it for now and the address gets an
   admin invitation, both in one step. Once they have joined, leave the
-  organisation from its page; nothing removes you automatically.
+  organisation from its page, because nothing removes you automatically.
 
 An organisation's name opens its page (`/instance/organizations/<organisation id>`).
 It shows the organisation's readiness checklist read-only, the same checks its
@@ -368,17 +363,16 @@ changes a member's role, removes a member (on your own row this reads
 **Leave**), **Add existing user** with a role, and **Invite by email** with a
 role. The organisation always keeps one admin who can sign in, so demoting or
 removing the last one is refused. Inviting someone who is already a member is
-refused before any email goes out; change their role instead. **Remove logo**
+refused before any email goes out, so change their role instead. **Remove logo**
 in the page's `…` menu deletes the organisation's logo. None of this
 gives an instance admin access to the organisation's bots, blocks and assets.
 
-Deletion is thorough. The dialog first shows an impact preview counting the
+Before anything is deleted, the dialog shows an impact preview counting the
 memberships, pending invitations and groups that go with the organisation, plus
 the bots, behaviours, repositories and assets it is home to. It names those
 listed in the [Catalogue](/docs/using-orcai/catalogue), with the organisations that added them, since they
 lose them too. Delete is enabled only once the organisation's slug is typed
-back. The delete then removes
-all of them along with the organisation's chats, grants and authorisation
+back. The delete then removes all of them along with the organisation's chats, grants and authorisation
 relationships, and any session that had the organisation active loses it and
 lands back on the organisation selection page. Chats elsewhere that used a
 deleted bot become read-only.
@@ -388,13 +382,14 @@ with how many organisations each account belongs to, its
 instance role, and whether it uses two-factor authentication (**2FA**). An
 account's name opens its page (`/instance/users/<user id>`), which lists its
 organisations with its role and join date, each linking to the organisation's
-page, and carries the same actions in its `…` menu. An account is banned, unbanned, or deleted, **Remove picture** deletes its
-profile picture, and **Reset 2FA** helps
-someone who lost their authenticator app and backup codes: it removes their
-second factor, passkeys and trusted devices, signs them out everywhere and emails them,
-so they sign in with their password and set up 2FA again. **Make instance
-admin** and **Remove instance admin** change the account's instance role, see
-below. None of these applies to your own account. Organisation admins
+page, and carries the same actions in its `…` menu. From there you ban,
+unban or delete the account, and **Remove picture** deletes its profile
+picture. **Reset 2FA** helps someone who lost
+their authenticator app and backup codes. It removes their second factor,
+passkeys and trusted devices, signs them out everywhere and emails them, so
+they sign in with their password and set up 2FA again. **Make instance admin**
+and **Remove instance admin** change the account's
+[instance role](#the-instance-admin). None of these applies to your own account. Organisation admins
 do not see whether a member uses 2FA.
 
 **Analytics** (`/instance/analytics`) shows the instance's tokens and
@@ -465,28 +460,28 @@ on the organisation's page (see
 [Catalogue](/docs/using-orcai/catalogue#an-organisations-page)). It takes
 headings, bold and italic text, lists, quotes and links to web, email
 (`mailto:`) and phone (`tel:`) addresses, up to about 20,000 characters of
-stored content; put contact details into the text. Emptying it removes it.
+stored content. Put contact details into the text. Emptying it removes it.
 
 **Change logo** uploads a square logo the same way as a profile picture: pick
 or drop one PNG, JPEG, WebP or GIF of up to 10 MB, crop it, and the browser
 stores a 256 by 256 pixel WebP. **Remove logo** deletes it, and the
 organisation's initials show instead. The logo shows on the organisation
 picker, invitations, next to the organisation in the user menu and in instance
-management; the sidebar keeps the OrcAI logo, and emails show no logo.
-Organisation admins cannot remove members' pictures, which belong to
-the account across organisations; an instance admin can. To work on another organisation, switch to it with the
-organisation picker first. Creating and deleting an organisation are instance
-actions and live under Manage instance > Organisations.
+management. The sidebar keeps the OrcAI logo, and emails show no logo.
+Organisation admins cannot remove members' pictures, which belong to the
+account across organisations, but an instance admin can.
 
-Users switch organisation with **Switch organisation** in the user menu, which
-opens `/select-organization`.
+To work on another organisation, switch to it first with **Switch
+organisation** in the user menu, which opens `/select-organization`. Creating
+and deleting an organisation are instance actions and live under Manage
+instance > Organisations.
 
 ### Assistant model
 
 The **Assistant model** picker on the same page chooses the model the
 [OrcAI Assistant](/docs/using-orcai/assistant) answers with. It is the chat
-model picker, limited to usable models: models with tool calling, not
-deprecated, on an enabled provider. **Clear** removes the choice.
+model picker, limited to models with tool calling that are not deprecated and
+run on an enabled provider. **Clear** removes the choice.
 
 While no model is set, the Assistant is unavailable to everyone in the
 organisation. Deleting the model, or its provider, clears the setting. If the
@@ -498,9 +493,9 @@ reason, and the Assistant's replies fail until another model is chosen.
 
 The **Utility model** picker chooses the model that writes the titles of new
 chats and Assistant conversations, describes images in the Library and
-generates asset metadata, so a
-small, inexpensive model can do this work instead of each chat's own model. It offers text models that are not
-deprecated, on an enabled provider; tool calling is not required. **Clear**
+generates asset metadata, so a small, inexpensive model can do this work
+instead of each chat's own model. It offers text models that are not
+deprecated and run on an enabled provider, without requiring tool calling. **Clear**
 removes the choice.
 
 Title calls draw on the quota pools of the utility model, like any chat on
@@ -517,8 +512,8 @@ the person who uploaded the file. When the pool is used up, the file fails to
 prepare and can be retried once the pool resets. When no active pool covers
 the utility model for the uploader, create or adjust one before retrying.
 
-The utility model also [generates asset metadata](/docs/using-orcai/library#metadata-generated-with-ai):
-automatically for prepared Library uploads, and on request from the metadata
+The utility model also [generates asset metadata](/docs/using-orcai/library#metadata-generated-with-ai),
+automatically for prepared Library uploads and on request from the metadata
 editor, the Library's Assets view or the Assistant. Each run draws on the quota pools of
 the utility model, attributed to the uploader for automatic runs and to the
 person who asked otherwise. Without a utility model, no metadata is generated.
@@ -529,16 +524,17 @@ The **Web search** setting decides how bots with the
 [Web search feature](/docs/using-orcai/bots#features) search the web. It is off
 by default.
 
-- **Off**: no bot searches the web.
-- **Model's own search**: Anthropic and OpenAI models use their provider's own web
-  search tool; an Anthropic model searches at most five times per request.
-  Models on other kinds of provider get no search. The provider charges each
-  search on its own bill, which OrcAI does not meter; the search results the
-  model reads count as tokens like any other input.
-- **Search provider: _name_**: every model searches through one of the
+- **Off**, so no bot searches the web.
+- **Model's own search (Anthropic and OpenAI models)**, so Anthropic and
+  OpenAI models use their provider's own web search tool, and an Anthropic
+  model searches at most five times per request. Models on other kinds of
+  provider get no search. The provider charges each search on its own bill,
+  which OrcAI does not meter, and the search results the model reads count as
+  tokens like any other input.
+- **Search provider: _name_**, so every model searches through one of the
   organisation's search providers, such as Tavily. Each search reserves one
-  request on the provider's quota pools and is charged once it answered; a
-  failed search is not charged. When no pool covers the person, or the pool is
+  request on the provider's quota pools and is charged once it answered, and
+  a failed search is not charged. When no pool covers the person, or the pool is
   used up, the model is told that web search is unavailable and answers
   without it.
 
@@ -551,9 +547,9 @@ one. A bot chat whose web search cannot run, because the setting is off or the
 model has no search of its own, shows a notice above the composer and answers
 without searching. Deleting the chosen search provider turns web search off.
 
-## Operational Guidance
+## Operational guidance
 
-- Configure providers and models before onboarding large user groups.
+- Configure providers and models before inviting many members.
 - Keep quota pools aligned with model pricing and expected usage.
 - Use groups and grants to avoid manually maintaining per-user grants.
 
