@@ -12,11 +12,11 @@ The Account page holds your personal settings. Open it from **Account** in the u
 - **Invitations** (`/app/account/invitations`): **Organisation invitations**, with Pending, Accepted and Rejected tabs
 - **Data** (`/app/account/data`): **Export your data**, and **Legal** with links to the privacy policy and terms of use
 
-## Summary Card
+## Summary card
 
 The card at the top shows your picture, Name and Email as stored on your account. It shows no usage figures. Quota pool usage appears in each chat above the composer.
 
-## Email Verification
+## Email verification
 
 The **Email verification** card says whether your email address is verified.
 
@@ -26,9 +26,9 @@ While it is not verified, the card offers **Send verification email**, which sen
 
 The **Your profile** card edits your profile picture and your Name. Save the name with **Save profile**. Your email address cannot be changed here.
 
-**Change picture** opens a dialog: pick or drop one PNG, JPEG, WebP or GIF of up to 10 MB, drag and zoom it into the square, then **Save**. An animated GIF keeps its first frame. The browser stores a 256 by 256 pixel WebP, which drops the file's metadata, such as the GPS position of a photo. **Remove picture** deletes it, and your initials show in its place.
+**Change picture** opens a dialog where you pick or drop one PNG, JPEG, WebP or GIF of up to 10 MB, drag and zoom it into the square, and choose **Save**. An animated GIF keeps its first frame. The browser stores a 256 by 256 pixel WebP, which drops the file's metadata, such as the GPS position of a photo. **Remove picture** deletes it, and your initials show in its place.
 
-Your picture shows next to your name in the user menu, member lists and pickers of every organisation you belong to. Only signed-in users of this OrcAI instance can load it, and a removed picture disappears at once. A picture can only be set through this dialog; an address of an image elsewhere is refused.
+Your picture shows next to your name in the user menu, member lists and pickers of every organisation you belong to. Only signed-in users of this OrcAI instance can load it, and a removed picture disappears at once. A picture can only be set through this dialog, and an address of an image elsewhere is refused.
 
 ## Password
 
@@ -36,62 +36,52 @@ The **Change password** card asks for your Current password, a New password and 
 
 If you have forgotten your password, use **Forgot password?** on the sign-in page. It opens `/forgot-password`, where you request a reset email. The link in that email opens `/reset-password`, where you choose a new password.
 
-## Two-Factor Authentication
+## Two-factor authentication
 
 Two-factor authentication (2FA) asks for a code from an authenticator app, such as a password manager or a phone app, after your password. Set it up on the Security tab:
 
 1. Select **Set up two-factor authentication** and confirm your password.
 2. Scan the QR code with your authenticator app, or enter the **Setup key** by hand.
 3. Enter the six-digit code the app shows and select **Verify and turn on**.
-4. Keep the ten backup codes shown next somewhere safe: copy or download them. They are shown only once, and each signs you in once when you cannot use your authenticator app.
+4. Copy or download the ten backup codes shown next and keep them somewhere safe. They are shown only once, and each signs you in once when you cannot use your authenticator app.
 
 When you sign in, OrcAI then asks for a code from the app. **Use a backup code** switches to a backup code. **Trust this device for 30 days** skips the code on this browser for 30 days.
 
-On the Security tab, **New backup codes** replaces your backup codes, and **Turn off** turns 2FA off; both ask for your password. Turning 2FA off sends you an email. When the instance admin requires 2FA for you, **Turn off** is missing, and signing in without it set up takes you to a setup page first.
+On the Security tab, **New backup codes** replaces your backup codes and **Turn off** turns 2FA off. Both ask for your password. Turning 2FA off sends you an email. When the instance admin requires 2FA for you, **Turn off** is missing, and signing in without it set up takes you to a setup page first.
 
 If you lose your authenticator app, sign in with a backup code and set up 2FA again. Without a backup code, ask the instance admin to reset your 2FA.
 
 ## Passkeys
 
-A passkey signs you in without your password: on the sign-in page, select **Use a passkey**, and your device or security key asks for your PIN, fingerprint or face. A passkey that does not check who you are, such as a security key without a PIN, is refused. Signing in with a passkey skips the 2FA code, because the passkey already proves both.
+A passkey signs you in without your password. On the sign-in page, select **Use a passkey**, and your device or security key asks for your PIN, fingerprint or face. A passkey that does not check who you are, such as a security key without a PIN, is refused. Signing in with a passkey skips the 2FA code, because the passkey already proves both.
 
 **Add a passkey** on the Security tab registers one from this device or a security key, and you get an email about it. The list names each passkey after its provider where it can, and **Delete** removes one. Your password keeps working alongside your passkeys.
 
-A passkey belongs to the address OrcAI runs at. If the instance moves to another address, add your passkeys again. When the instance admin requires 2FA for you, a passkey alone does not meet it: set up an authenticator app as well.
+A passkey belongs to the address OrcAI runs at. If the instance moves to another address, add your passkeys again. When the instance admin requires 2FA for you, a passkey alone does not meet it, so set up an authenticator app as well.
 
 ## Invitations
 
-Accounts are by invitation. An account is created from an invitation link
-sent by an admin of the organisation you are joining; nobody can create an
-account without one. The link opens **Create your account** (`/register`), which names the
-inviting organisation, and the address is fixed by the invitation.
+You create an account from an invitation link that an admin or manager of the organisation you join sends, and nobody can create an account without one. The link opens **Create your account** (`/register`), which names the inviting organisation, and the address is fixed by the invitation.
 
-Creating an account requires the invitation ID from the link and a matching address.
-It accepts only that invitation. Other pending invitations stay visible in the
-organisation picker, even with one active organisation. With one active
-organisation and no pending invitations you enter it directly. Email
-verification remains optional for access.
+Creating the account needs the invitation ID from the link and a matching address, and it accepts only that invitation. Other pending invitations stay visible in the organisation picker, even with one active organisation. With one active organisation and no pending invitations, you enter it directly.
 
-Invitations that arrive after your account exists are listed in the
-**Organisation invitations** card on the Invitations tab and on the organisation
-selection page (`/select-organization`), where you **Accept** or **Reject**
-them. The card shows Pending first, with 12 invitations per page and Previous
+Invitations that arrive after your account exists are listed in the **Organisation invitations** card on the Invitations tab and on the organisation selection page (`/select-organization`), where you **Accept** or **Reject** them. The card shows Pending first, with 12 invitations per page and Previous
 and Next buttons within each tab.
 
 ## Data Export
 
-The **Export your data** card builds a zip archive of your data. Start it with **Export my data** and confirm; the card shows that the export is being prepared, and you can leave the page meanwhile. Only one export runs at a time.
+The **Export your data** card builds a zip archive of your data. Start it with **Export my data** and confirm, and the card shows that the export is being prepared. You can leave the page meanwhile. Only one export runs at a time.
 
 The archive holds:
 
-- `profile.json`: your name, email, language, preferences, and organisation memberships with their roles; `image` names `profile/avatar.webp`, or is empty without a picture
+- `profile.json`: your name, email, language, preferences, and organisation memberships with their roles, and an `image` field that names `profile/avatar.webp` or is empty without a picture
 - `profile/avatar.webp`: your profile picture, if you set one
 - `ratings.json` and `favourites.json`: your message ratings and favourite bots
 - `bots.json`, `blocks.json` and `assets.json`: the bots, blocks and assets you own
 - `chats/`: each of your chats, including OrcAI Assistant conversations and the chats of organisations you left, as JSON with all messages and as a Markdown transcript like the one **Download chat** saves
 - `files/`: the original file of each asset you uploaded
 
-When the archive is ready, the card offers **Download** and you receive an email that links to the Data tab. The download stays available for 24 hours, then the archive is deleted. Once an export exists the button reads **Export again**, which also asks for confirmation. You can start a new export once the previous one has finished or failed. Each export also shows in [Activity](/docs/using-orcai#activity), and a failed one stays there until a later export is ready or you hide it.
+When the archive is ready, the card offers **Download** and you receive an email that links to the Data tab. The download stays available for 24 hours, and then the archive is deleted. Once an export exists the button reads **Export again**, which also asks for confirmation. You can start a new export once the previous one has finished or failed. Each export also shows in [Activity](/docs/using-orcai#activity), and a failed one stays there until a later export is ready or you hide it.
 
 ## Emails from OrcAI
 
@@ -101,7 +91,7 @@ OrcAI emails you when something happens to your account. Each email is in the la
 | --- | --- |
 | You are invited to … | An admin or manager invites you to an organisation. |
 | Verify your email address | You create your account, or you or an admin choose **Send verification email**. |
-| Reset your OrcAI password | You request a reset with **Forgot password?**, or an admin chooses **Send password reset**. |
+| Reset your OrcAI password | You request a reset with **Forgot password?**, or an admin chooses **Send password reset email**. |
 | Your OrcAI data export is ready | An [export of your data](#data-export) is ready to download. |
 | A passkey was added to your account | A [passkey](#passkeys) is added to your account. |
 | Two-factor authentication was turned off | You turn 2FA off. |
@@ -111,7 +101,7 @@ OrcAI emails you when something happens to your account. Each email is in the la
 
 Instance admins can also send themselves a test email from the [Health page](/docs/using-orcai/administration#instance-management). The background workers send every email, so an instance without running workers sends none.
 
-## Organisation Context And Switching
+## Organisation context and switching
 
 The user menu at the bottom of the sidebar shows your active organisation and includes **Switch organisation**.
 
