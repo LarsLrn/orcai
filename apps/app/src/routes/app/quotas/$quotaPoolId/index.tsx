@@ -65,6 +65,8 @@ import {
 } from "@/hooks/mutations/use-quota-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatNumber } from "@/lib/presentation/format-number";
+import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
+import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
 import {
 	getQuotaPoolStatusLabel,
 	getQuotaPoolStatusVariant,
@@ -75,17 +77,6 @@ import { m } from "@/paraglide/messages";
 const updateBudgetFormSchema = z.object({
 	budgetAmount: z.number().int().positive(),
 });
-
-const periodTypeLabel = (periodType: "weekly" | "monthly" | "yearly") => {
-	switch (periodType) {
-		case "weekly":
-			return m.quotas_period_weekly_label();
-		case "monthly":
-			return m.quotas_period_monthly_label();
-		case "yearly":
-			return m.quotas_period_yearly_label();
-	}
-};
 
 const searchSchema = quotaUsageEventListInputSchema
 	.omit({
@@ -170,6 +161,9 @@ function RouteComponent() {
 
 	const updatePool = useUpdateQuotaPoolMutation();
 	const deactivatePool = useDeactivateQuotaPoolMutation({}, data.data.name);
+	const meteringModeLabel = getMeteringModeLabel(
+		data.data.provider.meteringMode,
+	);
 
 	const budgetForm = useAppForm({
 		defaultValues: {
@@ -205,15 +199,15 @@ function RouteComponent() {
 						{getQuotaPoolStatusLabel(data.data.isActive)}
 					</Badge>
 					<Badge variant="outline">
-						{periodTypeLabel(data.data.periodType).toUpperCase()}
+						{getQuotaPeriodLabel(data.data.periodType)}
 					</Badge>
 					<Badge
 						variant="outline"
 						className="max-w-full"
-						title={`${data.data.provider.name} / ${data.data.provider.meteringMode}`}
+						title={`${data.data.provider.name} / ${meteringModeLabel}`}
 					>
 						<span className="truncate">
-							{data.data.provider.name} / {data.data.provider.meteringMode}
+							{data.data.provider.name} / {meteringModeLabel}
 						</span>
 					</Badge>
 				</div>

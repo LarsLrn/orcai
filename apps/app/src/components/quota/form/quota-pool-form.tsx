@@ -15,6 +15,7 @@ import {
 	useUpdateQuotaPoolMutation,
 } from "@/hooks/mutations/use-quota-mutations";
 import { orpc } from "@/lib/orpc/orpc";
+import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import { m } from "@/paraglide/messages";
 import {
 	PROVIDER_WIDE_MODEL_VALUE,
@@ -127,7 +128,7 @@ const QuotaPoolForm = ({
 				value: provider.id,
 				label: m.quotas_form_provider_option_label({
 					name: provider.name,
-					meteringMode: provider.meteringMode,
+					meteringMode: getMeteringModeLabel(provider.meteringMode),
 				}),
 			})),
 		[

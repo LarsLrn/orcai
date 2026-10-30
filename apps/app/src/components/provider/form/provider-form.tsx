@@ -21,6 +21,7 @@ import {
 	useUpdateProviderMutation,
 } from "@/hooks/mutations/use-provider-mutations";
 import { currencyOptions } from "@/lib/presentation/currency";
+import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
 import { m } from "@/paraglide/messages";
 import { providerFormOptions } from "./provider-form-options";
@@ -208,8 +209,8 @@ const ProviderForm = ({
 										: m.providers_form_metering_mode_description()
 								}
 								options={providerMeteringModes.map((mode) => ({
-									value: mode.value,
-									label: mode.label,
+									value: mode,
+									label: getMeteringModeLabel(mode),
 								}))}
 								disabled={purpose === "search"}
 							/>

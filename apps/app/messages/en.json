@@ -4955,6 +4955,8 @@
 	"providers_index_add_button": "Add provider",
 	"providers_index_empty_description": "A provider connects OrcAI to a service that runs models or web search. Add one to use its models or web search.",
 	"providers_index_empty_title": "No providers yet",
+	"providers_metering_mode_requests_label": "Requests",
+	"providers_metering_mode_tokens_label": "Tokens",
 	"providers_kind_anthropic_label": "Anthropic",
 	"providers_kind_openai_compatible_label": "OpenAI-compatible",
 	"providers_kind_openai_label": "OpenAI",
@@ -5067,6 +5069,36 @@
 	"quotas_period_weekly_label": "Weekly",
 	"quotas_period_yearly_label": "Yearly",
 	"quotas_remaining_low_badge": "Low",
+	"quotas_unit_requests": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "request",
+				"countPlural=other": "requests"
+			}
+		}
+	],
+	"quotas_unit_tokens": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "token",
+				"countPlural=other": "tokens"
+			}
+		}
+	],
 	"quotas_route_page_title": "Quota pools",
 	"quotas_table_budget_column_header": "Budget",
 	"quotas_table_consumed_column_header": "Consumed",

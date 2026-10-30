@@ -16,6 +16,7 @@ import {
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import {
 	getProviderStatusLabel,
 	getProviderStatusVariant,
@@ -70,7 +71,9 @@ export const providerTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<Badge variant="outline">{row.original.meteringMode}</Badge>
+			<Badge variant="outline">
+				{getMeteringModeLabel(row.original.meteringMode)}
+			</Badge>
 		),
 		meta: {
 			label: m.providers_table_metering_column_header,
