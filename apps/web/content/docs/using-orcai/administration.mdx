@@ -1,6 +1,6 @@
 ---
 title: Administration
-description: The Administration pages for members, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its Assistant and utility models and web search, plus Manage instance and the instance admin.
+description: The Administration pages for members, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its Assistant and utility models and web search, plus Manage instance, the instance admin and initialising a new instance.
 ---
 
 The Administration area is permission-gated and appears in the sidebar's "Your organisation" group.
@@ -414,6 +414,20 @@ Most administration is scoped to one organisation. A few actions concern the
 whole instance and belong to the instance admin, an account marked with
 the instance role in the database. The first account created when an instance is
 initialised is an instance admin.
+
+### Initialise an instance
+
+A new instance has no accounts, so its sign-in and **Create account** pages lead
+to **Initialise instance** (`/init`). The form sets up the first organisation
+with its **Organisation name** and **Organisation slug**, and the first account
+with **Admin name**, **Admin email**, **Password** (at least 8 characters) and
+**Confirm password**. **Privacy consent** confirms that you agree to the
+instance's privacy policy and terms of use. **Initialise instance** creates the
+account as an instance admin and as Admin of the organisation and signs you in.
+Since nothing is configured yet, Home opens on its Manage tab, where the
+[Readiness checklist](/docs/using-orcai/organisation-setup#the-readiness-checklist)
+lists what the organisation still needs. Once any account or organisation
+exists, `/init` leads to the sign-in page.
 
 An instance admin makes another account an instance admin, or
 takes the role away again, from the Users page. The account's owner gets an

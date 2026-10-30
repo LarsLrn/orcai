@@ -41,20 +41,25 @@ The app requires authentication and an active organisation. Everything below bel
 
 Home has two tabs, each with its own address:
 
-- **Use** (`/app`): a greeting with **Take a tour**, the chat composer with bot and model pickers and attachments (sending creates a chat), and a card for your active organisation with how many bots, behaviours and repositories it lists in the Catalogue, a link to its **Organisation page** and, for admins, **Edit**. Below that card, an **Activity** card shows your running work and what needs you while there is any, and its **Show all** opens [Activity](#activity). Below the composer, **Try something** offers up to three bots to start a chat with, favourites first, and the newest Catalogue entry your organisation has not added yet. **Recent chats** lists the four chats you used most recently.
+- **Use** (`/app?view=use`): a greeting with **Take a tour**, which starts the [tour](#tour), and **About OrcAI**, which opens these docs in a new tab where the instance links them. Below the greeting are the chat composer with bot and model pickers and attachments (sending creates a chat), and a card for your active organisation with how many bots, behaviours and repositories it lists in the Catalogue, a link to its **Organisation page** and, for admins, **Edit**. Below that card, an **Activity** card shows your running work and what needs you while there is any, and its **Show all** opens [Activity](#activity). Below the composer, **Try something** offers up to three bots to start a chat with, favourites first, and the newest Catalogue entry your organisation has not added yet. **Recent chats** lists the four chats you used most recently.
 - **Manage** (`/app/manage`): the organisation's name with **Create a bot**, for admins the **Readiness checklist**, and the **Library**, **Recently changed** and **People** panels. People who manage quota pools also get the **Quota** panel with each pool's amounts; everyone else sees their pool's share in the chat composer.
 
-While a required checklist step is missing, admins who open `/app` land on Manage, and the Manage tab shows how many required steps are left. See [Organisation setup](/docs/using-orcai/organisation-setup).
+While a required checklist step is missing, admins who open `/app` land on Manage, and the Manage tab shows how many required steps are left. The **Use** tab itself never redirects. See [Organisation setup](/docs/using-orcai/organisation-setup).
 
 ### Sidebar
 
 - **Start a chat** opens the **Start a chat** page (`/app/chat/setup`).
-- The **Chats** group lists your 40 most recent chats, with rename and delete in each chat's menu. **Show all** opens the chat list (`/app/chat`).
+- The **Chats** group lists your most recent chats, up to 40 together with the pinned ones in the **Pinned** group above it, with rename and delete in each chat's menu. With more chats, **Show all … chats** below them opens the chat list (`/app/chat`).
 - The **Your organisation** group holds:
 	- **OrcAI Assistant** (`/app/assistant`), available to every member.
-	- **Library** (`/app/library`), always shown. Its items **Bots** (`/app/library/bots`), **Behaviour** (`/app/library/behaviours`), **Repositories** (`/app/library/repositories`) and **Assets** (`/app/library/assets`) need the `read` permission.
-	- **Administration**, shown when your role allows at least one of its items: **Members** (`/app/members`), **Groups** (`/app/groups`), **Quota pools** (`/app/quotas`), **Providers** (`/app/providers`), **Models** (`/app/models`) and **Organisation** (`/app/organization`). See [Access control](/docs/using-orcai/access-control) for which roles see which items.
+	- **Library** (`/app/library`), available to every member. It is one item, and the Library's own rail switches between its views. See [Library views](/docs/using-orcai/bots#library-views).
+	- **Catalogue** (`/app/catalogue`), available to every member. See [Catalogue](/docs/using-orcai/catalogue).
+	- **Administration**, shown when your role allows at least one of its items: **Members** (`/app/members`), **Groups** (`/app/groups`), **Quota pools** (`/app/quotas`), **Analytics** (`/app/analytics`), **Providers** (`/app/providers`), **Models** (`/app/models`) and **Organisation** (`/app/organization`). See [Access control](/docs/using-orcai/access-control) for which roles see which items.
 - The user menu at the bottom holds **Account** (`/app/account`), **Switch organisation** (`/select-organization`), **Manage instance** (`/instance`, for instance admins only) and **Sign out**.
+
+### Tour
+
+The first time you open the Use tab, a tour of the app starts. Its cards introduce the sidebar, **Start a chat**, the chat history and the user menu with your account, and the last card names an address for feedback. **Next** and **Previous** move between the cards, and a counter shows where you are. **Finish** on the last card or **Skip** on any other ends the tour, and it does not start on its own again. **Take a tour** runs it again at any time. A chat has its own tour, described under [In-chat features](/docs/using-orcai/chat#in-chat-features).
 
 ### Header
 
@@ -66,7 +71,7 @@ The header shows a breadcrumb trail starting from Home, **Activity**, a **Langua
 
 **Needs your attention** comes first. It shows how many metadata suggestions wait for your review in each organisation, and opens the Assets view's **Suggestions to review** filter, after switching to that organisation if needed. Below them are the failures of work you started or of your uploads that nobody else worked on: a file that was not prepared, metadata that was not generated, an asset that was not indexed in a repository, or a data export that failed. A failure opens the asset, the repository or the Data tab of your account. It leaves the list once a later attempt succeeds or the asset is gone, and its × hides it. If the same step fails again later, the new failure shows.
 
-**Running and recent** has one entry per action, newest first. Preparation, metadata and indexing after an upload belong to that upload's entry. While an entry runs, it shows its progress, such as "12 of 40 files ready". Then it reads Finished, Failed, Resolved (later attempts repaired every failure) or Expired (the export's download is gone). The arrow beside an entry lists its assets and where each stands, and for **Generate missing metadata** how many assets got each field. The entry's link opens the repository, the asset, the Data tab or the Assets view with only that entry's assets. The × hides a finished entry, and finished entries leave after 7 days.
+**Running and recent** has one entry per action, newest first. Preparation, metadata and indexing after an upload belong to that upload's entry. While an entry runs, it shows its progress, such as "12 of 40 files ready". Then it reads Finished, Failed, Resolved (later attempts repaired every failure) or Expired (the export's download is gone). The arrow beside an entry lists its assets and where each stands, and for **Generate missing metadata** how many assets got each field. The entry's link opens the repository, the asset, the Data tab or the Assets view with only that entry's assets. The × hides a finished entry, and finished entries leave after 7 days. **Show older** below the list loads earlier entries.
 
 When an upload, **Generate missing metadata**, an export or other work on several assets finishes or fails while OrcAI is open, a message says so, and its **Show** opens the list. Each message appears once, even with several tabs open.
 
