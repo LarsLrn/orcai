@@ -1,6 +1,6 @@
 ---
 title: Account
-description: The Account page and related flows, covering your name and profile picture, email verification, password change and reset, two-factor authentication, passkeys, organisation invitations, exporting your data, creating an account, switching organisation, and legal links.
+description: The Account page and related flows, covering your name and profile picture, email verification, password change and reset, two-factor authentication, passkeys, organisation invitations, exporting your data, creating an account, the emails OrcAI sends, switching organisation, and legal links.
 ---
 
 The Account page holds your personal settings. Open it from **Account** in the user menu at the bottom of the sidebar.
@@ -93,6 +93,24 @@ The archive holds:
 
 When the archive is ready, the card offers **Download** and you receive an email that links to the Data tab. The download stays available for 24 hours, then the archive is deleted. Once an export exists the button reads **Export again**, which also asks for confirmation. You can start a new export once the previous one has finished or failed. Each export also shows in [Activity](/docs/using-orcai#activity), and a failed one stays there until a later export is ready or you hide it.
 
+## Emails from OrcAI
+
+OrcAI emails you when something happens to your account. Each email is in the language you chose with the header's **Language** switcher, except an invitation, which is in the language the person who invited you picked.
+
+| Email | When it arrives |
+| --- | --- |
+| You are invited to … | An admin or manager invites you to an organisation. |
+| Verify your email address | You create your account, or you or an admin choose **Send verification email**. |
+| Reset your OrcAI password | You request a reset with **Forgot password?**, or an admin chooses **Send password reset**. |
+| Your OrcAI data export is ready | An [export of your data](#data-export) is ready to download. |
+| A passkey was added to your account | A [passkey](#passkeys) is added to your account. |
+| Two-factor authentication was turned off | You turn 2FA off. |
+| Two-factor authentication was reset | An instance admin resets your 2FA. |
+| You are now an instance admin | An instance admin gives you the instance role. |
+| You are no longer an instance admin | An instance admin takes the instance role away. |
+
+Instance admins can also send themselves a test email from the [Health page](/docs/using-orcai/administration#instance-management). The background workers send every email, so an instance without running workers sends none.
+
 ## Organisation Context And Switching
 
 The user menu at the bottom of the sidebar shows your active organisation and includes **Switch organisation**.
@@ -103,4 +121,4 @@ Chats belong to the organisation they were started in. After you leave an organi
 
 ## Legal
 
-The **Legal** section links to the Privacy policy (`/privacy`) and the Terms of use (`/tou`). Both open in a new browser tab.
+The **Legal** section links to the Privacy policy (`/privacy`) and the Terms of use (`/tou`). Both open in a new browser tab. Whoever runs the instance provides both texts, and you agree to them when you create your account.

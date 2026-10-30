@@ -116,6 +116,10 @@ If a summary cannot be written, the model reads only the newest turns that fill 
 
 A model without a known context window is assumed to read 128,000 tokens. Admins can set a smaller **Context window** on the model to summarise earlier.
 
+### Generated images
+
+When the chat model returns a PNG image in its answer, the answer shows it under **Generated image**. **Download image** saves it as a PNG file.
+
 ## Branching
 
 Every message has a **Branch from here** action. It creates a new chat that copies the history, the bot, the settings and the attached blocks, and opens it. The original chat stays as it was.

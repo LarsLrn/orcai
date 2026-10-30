@@ -69,7 +69,7 @@ The bot editor is a guided wizard with six steps:
 
 ### Bot Basics [step]
 
-Name the bot and give it a short description and a longer bot description for teammates who maintain it.
+Name the bot and give it a short description and a longer **Bot description** for teammates who maintain it, written in the [rich text editor](#detailed-descriptions).
 
 ### Behaviour [step]
 
@@ -149,6 +149,12 @@ Each block can have:
 - Capability-based actions (edit, delete, manage access)
 
 A block's page sits under its kind: `/app/library/behaviours/<block id>` or `/app/library/repositories/<block id>`; a block opened under the other kind's path is not found. It offers **Edit block** (`<page>/edit`) and **Access & groups**, with **Delete block** in the **More actions** menu.
+
+## Detailed descriptions
+
+The **Bot description** of a bot and the **Detailed description** of a behaviour or repository are rich text, for the people who maintain them. The bot's page and the block's page show them, and the model does not read them. A behaviour's **System prompt** stays plain text.
+
+On wider screens a toolbar above the text has undo and redo, headings, quotes, inline code, bold, italic, underline, strikethrough, links, bulleted and numbered lists, a horizontal rule, alignment, and **Text colour and highlight**. Selecting text opens a smaller menu with the paragraph type, the text styles and the alignment, which is also how to format on a phone.
 
 ## The Repository Page
 
