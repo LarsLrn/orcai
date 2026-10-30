@@ -69,7 +69,9 @@ test("orgs: an admin describes the organisation and a member of another reads it
 		admin.getByText("We build tutoring bots for methods courses."),
 	).toBeVisible();
 	await expect(
-		admin.getByText(message("organization_profile_active_badge")),
+		admin
+			.getByRole("main")
+			.getByText(message("organization_profile_active_badge")),
 	).toBeVisible();
 	// A new organisation lists nothing, so no count links to the catalogue.
 	await expect(listedCounts(admin).getByRole("listitem")).toHaveCount(3);
@@ -108,7 +110,9 @@ test("orgs: an admin describes the organisation and a member of another reads it
 		reader.getByText("We build tutoring bots for methods courses."),
 	).toBeVisible();
 	await expect(
-		reader.getByText(message("organization_profile_active_badge")),
+		reader
+			.getByRole("main")
+			.getByText(message("organization_profile_active_badge")),
 	).toHaveCount(0);
 	await expect(editLink(reader)).toHaveCount(0);
 });

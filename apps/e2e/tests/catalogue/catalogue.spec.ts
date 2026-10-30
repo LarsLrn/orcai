@@ -140,7 +140,7 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 	);
 	await page.reload();
 	await page
-		.getByText(message("access_grant_row_source_all_members"), {
+		.getByText(message("access_principal_picker_system_badge"), {
 			exact: true,
 		})
 		.click();
