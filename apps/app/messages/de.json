@@ -12,8 +12,8 @@
 	"access_grant_row_source_all_members": "Alle Mitglieder",
 	"access_grant_row_source_direct_group": "Direkte Gruppe",
 	"access_grant_row_source_direct_user": "Direkter Benutzer",
-	"access_grant_toast_error": "Zugriff konnte nicht aktualisiert werden",
-	"access_grant_toast_loading": "Zugriff wird aktualisiert...",
+	"access_grant_toast_error": "Der Zugriff wurde nicht aktualisiert.",
+	"access_grant_toast_loading": "Der Zugriff wird aktualisiert...",
 	"access_grant_toast_success": "Zugriff aktualisiert",
 	"access_inherited_ancestor_phrase": [
 		{
@@ -142,8 +142,8 @@
 	"access_revoke_confirm_button": "Entziehen",
 	"access_revoke_confirm_description": "Diese Person oder Gruppe verliert ihren direkten Zugriff.",
 	"access_revoke_confirm_title": "Zugriff entziehen",
-	"access_revoke_toast_error": "Zugriff konnte nicht entzogen werden",
-	"access_revoke_toast_loading": "Zugriff wird entzogen...",
+	"access_revoke_toast_error": "Der Zugriff wurde nicht entzogen.",
+	"access_revoke_toast_loading": "Der Zugriff wird entzogen...",
 	"access_revoke_toast_success": "Zugriff entzogen",
 	"access_role_editor_description": "Ansehen und bearbeiten",
 	"access_role_editor_label": "Kann bearbeiten",
@@ -157,8 +157,8 @@
 	"access_visibility_description_private": "Nur die Personen und Gruppen mit einer Freigabe haben Zugriff.",
 	"access_visibility_description_public": "Im Katalog: Jeder Benutzer dieser Instanz sieht eine Vorschau.",
 	"access_visibility_label": "Katalog",
-	"access_visibility_toast_error": "Katalogeintrag konnte nicht aktualisiert werden",
-	"access_visibility_toast_loading": "Katalogeintrag wird aktualisiert...",
+	"access_visibility_toast_error": "Der Katalogeintrag wurde nicht aktualisiert.",
+	"access_visibility_toast_loading": "Der Katalogeintrag wird aktualisiert...",
 	"access_visibility_toast_private": "Steht nicht mehr im Katalog",
 	"access_visibility_toast_public": "Steht jetzt im Katalog",
 	"catalogue_add_action": "Zu {organisation} hinzufügen",
@@ -283,8 +283,8 @@
 	"catalogue_filter_status_label": "Status",
 	"catalogue_from_organisation": "Von {organisation}",
 	"catalogue_organisation_page_link": "Über {organisation}",
-	"catalogue_install_blocks_toast_error": "Blöcke von {name} konnten nicht hinzugefügt werden",
-	"catalogue_install_blocks_toast_loading": "Blöcke von {name} werden hinzugefügt...",
+	"catalogue_install_blocks_toast_error": "Die Blöcke von {name} wurden nicht hinzugefügt.",
+	"catalogue_install_blocks_toast_loading": "Die Blöcke von {name} werden hinzugefügt...",
 	"catalogue_install_blocks_toast_success": [
 		{
 			"declarations": [
@@ -302,7 +302,7 @@
 			}
 		}
 	],
-	"catalogue_install_toast_error": "{name} konnte nicht hinzugefügt werden",
+	"catalogue_install_toast_error": "{name} wurde nicht hinzugefügt.",
 	"catalogue_install_toast_loading": "{name} wird hinzugefügt...",
 	"catalogue_install_toast_success": "{name} ist jetzt in {organisation}",
 	"catalogue_install_toast_success_with_blocks": [
@@ -366,7 +366,7 @@
 	"catalogue_uninstall_confirm_button": "Entfernen",
 	"catalogue_uninstall_confirm_description": "Die Freigaben und die Modelleinstellung in {organisation} werden mit entfernt, und Chats damit sind dort nur noch lesbar. Sie können es wieder aus dem Katalog hinzufügen.",
 	"catalogue_uninstall_confirm_title": "{name} aus {organisation} entfernen?",
-	"catalogue_uninstall_toast_error": "{name} konnte nicht entfernt werden",
+	"catalogue_uninstall_toast_error": "{name} wurde nicht entfernt.",
 	"catalogue_uninstall_toast_loading": "{name} wird entfernt...",
 	"catalogue_uninstall_toast_success": "{name} ist nicht mehr in {organisation}",
 	"catalogue_view_discover": "Entdecken",
@@ -384,8 +384,8 @@
 	"catalogue_wizard_step_sharing": "Freigabe",
 	"account_change_password_confirm_description": "Möchten Sie Ihr Passwort wirklich ändern?",
 	"account_change_password_confirm_title": "Passwort ändern",
-	"account_change_password_toast_error": "Passwort konnte nicht geändert werden",
-	"account_change_password_toast_loading": "Passwort wird geändert...",
+	"account_change_password_toast_error": "Das Passwort wurde nicht geändert.",
+	"account_change_password_toast_loading": "Das Passwort wird geändert...",
 	"account_change_password_toast_success": "Passwort geändert",
 	"account_data_export_card_description": "Ein ZIP-Archiv mit Ihrem Profil, Ihren Mitgliedschaften, Ihren Chats mit Nachrichten, Bewertungen und Favoriten, den Bots, Blöcken und Assets, die Ihnen gehören, sowie Ihren hochgeladenen Dateien. Wir benachrichtigen Sie per E-Mail, sobald es fertig ist; Sie können es 24 Stunden lang herunterladen.",
 	"account_data_export_card_title": "Ihre Daten exportieren",
@@ -396,8 +396,8 @@
 	"account_data_export_download_button": "Herunterladen",
 	"account_data_export_request_again_button": "Erneut exportieren",
 	"account_data_export_request_button": "Meine Daten exportieren",
-	"account_data_export_request_toast_error": "Export konnte nicht gestartet werden",
-	"account_data_export_request_toast_loading": "Export wird gestartet...",
+	"account_data_export_request_toast_error": "Der Export wurde nicht gestartet.",
+	"account_data_export_request_toast_loading": "Der Export wird gestartet...",
 	"account_data_export_request_toast_success": "Export gestartet",
 	"account_data_export_status_expired": "Ihr letzter Export vom {date} ist abgelaufen.",
 	"account_data_export_status_failed": "Ihr letzter Export ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
@@ -412,9 +412,9 @@
 	"account_password_card_title": "Passwort ändern",
 	"account_profile_card_description": "Passen Sie Ihre Profilinformationen an",
 	"account_profile_card_title": "Ihr Profil",
-	"account_profile_toast_error": "Profil konnte nicht aktualisiert werden",
-	"account_profile_toast_loading": "Profil wird gespeichert...",
-	"account_profile_toast_success": "Profil erfolgreich aktualisiert!",
+	"account_profile_toast_error": "Das Profil wurde nicht aktualisiert.",
+	"account_profile_toast_loading": "Das Profil wird aktualisiert...",
+	"account_profile_toast_success": "Profil aktualisiert",
 	"account_section_switcher_aria_label": "Kontobereich",
 	"account_tab_data_label": "Daten",
 	"account_tab_invitations_label": "Einladungen",
@@ -464,6 +464,7 @@
 	"activity_show_older": "Ältere anzeigen",
 	"activity_show_all": "Alle anzeigen",
 	"activity_dismiss_label": "Ausblenden: {title}",
+	"activity_dismiss_toast_error": "Der Eintrag wurde nicht ausgeblendet.",
 	"activity_run_upload_library_title": "Upload in die Bibliothek",
 	"activity_run_upload_repository_title": "Upload in {repository}",
 	"activity_run_fill_metadata_title": "Fehlende Metadaten erzeugen",
@@ -721,9 +722,9 @@
 	"assets_add_page_description": "Laden Sie Dateien hoch. Jede Datei wird sofort zu einem Asset; die Metadaten, die sie begleiten, können Sie jederzeit ergänzen.",
 	"assets_add_page_title": "Assets hinzufügen",
 	"assets_add_to_library_action": "Zur Bibliothek hinzufügen",
-	"assets_add_to_library_toast_error": "Das Asset wurde nicht zur Bibliothek hinzugefügt. Versuchen Sie es erneut.",
-	"assets_add_to_library_toast_loading": "Wird zur Bibliothek hinzugefügt...",
-	"assets_add_to_library_toast_success": "Zur Bibliothek hinzugefügt",
+	"assets_add_to_library_toast_error": "Das Asset wurde nicht zur Bibliothek hinzugefügt.",
+	"assets_add_to_library_toast_loading": "Das Asset wird zur Bibliothek hinzugefügt...",
+	"assets_add_to_library_toast_success": "Asset zur Bibliothek hinzugefügt",
 	"assets_delete_action": "Asset löschen",
 	"assets_edit_action": "Metadaten bearbeiten",
 	"assets_reprocess_action": "Erneut vorbereiten",
@@ -786,8 +787,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Das Asset wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Assets wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Das Asset wurde nicht gelöscht.",
+				"countPlural=other": "Die Assets wurden nicht gelöscht."
 			}
 		}
 	],
@@ -816,7 +817,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Asset gelöscht",
+				"countPlural=one": "Asset gelöscht",
 				"countPlural=other": "{count} Assets gelöscht"
 			}
 		}
@@ -839,14 +840,14 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Sie können höchstens {count} Datei auf einmal hochladen",
-				"countPlural=other": "Sie können höchstens {count} Dateien auf einmal hochladen"
+				"countPlural=one": "Die Dateien wurden nicht hinzugefügt. Sie können höchstens {count} Datei auf einmal hochladen.",
+				"countPlural=other": "Die Dateien wurden nicht hinzugefügt. Sie können höchstens {count} Dateien auf einmal hochladen."
 			}
 		}
 	],
 	"assets_file_uploader_rejected_toast_error": "{name} wurde nicht akzeptiert. Prüfen Sie Dateityp und Größe.",
 	"assets_file_uploader_remove_file_button": "Datei entfernen",
-	"assets_file_uploader_single_file_toast_error": "Es kann nur eine Datei auf einmal hochgeladen werden.",
+	"assets_file_uploader_single_file_toast_error": "Die Dateien wurden nicht hinzugefügt. Sie können nur eine Datei auf einmal hochladen.",
 	"assets_file_viewer_error_description": "Laden Sie die Seite neu, um es erneut zu versuchen. Eine gerade hochgeladene Datei wird möglicherweise noch vorbereitet.",
 	"assets_file_viewer_error_title": "Dieses Asset konnte nicht geladen werden",
 	"assets_file_viewer_image_error_description": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
@@ -902,8 +903,8 @@
 	"assets_metadata_backfill_confirm_button": "Erzeugen",
 	"assets_metadata_backfill_confirm_description": "{count} Bibliotheks-Assets, die Sie bearbeiten können, haben keine erzeugten Metadaten. Das Hilfsmodell füllt ihre leeren Felder im Hintergrund und nutzt das Kontingent Ihrer Organisation.",
 	"assets_metadata_backfill_confirm_title": "Fehlende Metadaten erzeugen?",
-	"assets_metadata_backfill_toast_error": "Die Erzeugung der Metadaten konnte nicht starten",
-	"assets_metadata_backfill_toast_loading": "Erzeugung der Metadaten wird gestartet...",
+	"assets_metadata_backfill_toast_error": "Die Metadatenerzeugung wurde nicht gestartet.",
+	"assets_metadata_backfill_toast_loading": "Die Metadatenerzeugung wird gestartet...",
 	"assets_metadata_backfill_toast_success": "Metadaten für {count} Assets werden erzeugt",
 	"assets_metadata_chapter_title_label": "Kapiteltitel",
 	"assets_metadata_chapter_title_placeholder": "z. B. Einleitung",
@@ -911,15 +912,15 @@
 	"assets_metadata_citation_placeholder": "z. B. Schmidt 2023",
 	"assets_metadata_description_label": "Beschreibung",
 	"assets_metadata_description_placeholder": "Zwei oder drei Sätze dazu, worum es im Asset geht",
-	"assets_metadata_dismiss_toast_error": "Vorschlag nicht verworfen",
-	"assets_metadata_dismiss_toast_loading": "Vorschlag wird verworfen...",
+	"assets_metadata_dismiss_toast_error": "Der Vorschlag wurde nicht verworfen.",
+	"assets_metadata_dismiss_toast_loading": "Der Vorschlag wird verworfen...",
 	"assets_metadata_dismiss_toast_success": "Vorschlag verworfen",
 	"assets_metadata_doi_label": "DOI",
 	"assets_metadata_external_url_label": "Externe URL",
 	"assets_metadata_failed_description": "Das Erzeugen der Metadaten ist fehlgeschlagen: {reason}",
 	"assets_metadata_generate_button": "Mit KI erzeugen",
-	"assets_metadata_generate_toast_error": "Die Erzeugung der Metadaten konnte nicht starten",
-	"assets_metadata_generate_toast_loading": "Erzeugung der Metadaten wird gestartet...",
+	"assets_metadata_generate_toast_error": "Die Metadatenerzeugung wurde nicht gestartet.",
+	"assets_metadata_generate_toast_loading": "Die Metadatenerzeugung wird gestartet...",
 	"assets_metadata_generate_toast_success": "Metadaten werden erzeugt",
 	"assets_metadata_generate_unready_hint": "Metadaten lassen sich erzeugen, sobald die Datei vorbereitet ist und in der Bibliothek liegt.",
 	"assets_metadata_generating_badge": "Metadaten werden erzeugt",
@@ -975,16 +976,31 @@
 	"assets_reprocess_confirm_button": "Ja, erneut vorbereiten",
 	"assets_reprocess_confirm_description": "Dadurch wird die Vorbereitung des Assets erneut ausgeführt und die Vektordaten aller Repositories, die es enthalten, werden aktualisiert.",
 	"assets_reprocess_confirm_title": "Asset erneut vorbereiten",
-	"assets_reprocess_toast_error": "Das Asset konnte nicht erneut vorbereitet werden",
-	"assets_reprocess_toast_loading": "Das Asset wird erneut vorbereitet...",
+	"assets_reprocess_toast_error": "Das Asset wurde nicht zur Vorbereitung eingereiht.",
+	"assets_reprocess_toast_loading": "Das Asset wird zur Vorbereitung eingereiht...",
 	"assets_reprocess_toast_success": "Asset zur Vorbereitung eingereiht",
-	"assets_save_toast_error": "Asset konnte nicht gespeichert werden",
-	"assets_save_toast_loading": "Asset wird gespeichert...",
+	"assets_save_toast_error": "Das Asset wurde nicht gespeichert.",
+	"assets_save_toast_loading": "Das Asset wird gespeichert...",
 	"assets_save_toast_success": "Asset gespeichert",
 	"assets_selected_list_dialog_description": "Aktualisieren Sie, wie dieses Asset erscheinen soll, wenn die KI es zitiert.",
 	"assets_selected_list_dialog_title": "Metadaten bearbeiten",
 	"assets_selected_list_metadata_button": "Metadaten",
 	"assets_upload_description": "Wählen Sie Dateien aus und laden Sie sie hoch. Der Fortschritt wird unten angezeigt.",
+	"assets_upload_failures_more": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} weitere Datei wurde nicht hochgeladen.",
+				"countPlural=other": "{count} weitere Dateien wurden nicht hochgeladen."
+			}
+		}
+	],
 	"assets_upload_no_files_error": "Keine Dateien zum Hochladen.",
 	"assets_upload_progress_clear_button": "Leeren",
 	"assets_upload_progress_completed_count": [
@@ -1024,8 +1040,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Datei konnte nicht hochgeladen werden. Versuchen Sie es erneut.",
-				"countPlural=other": "{count} Dateien konnten nicht hochgeladen werden. Versuchen Sie es erneut."
+				"countPlural=one": "{count} Datei wurde nicht hochgeladen.",
+				"countPlural=other": "{count} Dateien wurden nicht hochgeladen."
 			}
 		}
 	],
@@ -1674,8 +1690,8 @@
 	"auth_forgot_password_page_description": "Geben Sie Ihre E-Mail-Adresse ein, und wir senden Ihnen eine Anleitung zum Zurücksetzen, sofern ein Konto existiert.",
 	"auth_forgot_password_page_signin_link": "Zurück zur Anmeldung",
 	"auth_forgot_password_page_title": "Passwort zurücksetzen",
-	"auth_forgot_password_toast_error": "Das Zurücksetzen des Passworts konnte nicht angefordert werden",
-	"auth_forgot_password_toast_loading": "Zurücksetzen des Passworts wird angefordert...",
+	"auth_forgot_password_toast_error": "Die E-Mail zum Zurücksetzen des Passworts wurde nicht gesendet.",
+	"auth_forgot_password_toast_loading": "Das Zurücksetzen des Passworts wird angefordert...",
 	"auth_forgot_password_toast_success": "Wenn für diese Adresse ein Konto existiert, wurde eine E-Mail zum Zurücksetzen des Passworts gesendet.",
 	"auth_init_form_admin_email_label": "Admin-E-Mail",
 	"auth_init_form_admin_name_label": "Admin-Name",
@@ -1694,9 +1710,9 @@
 	"auth_init_page_description": "Richten Sie die erste Organisation und das Admin-Konto für diese Installation ein.",
 	"auth_init_page_footer": "Diese Seite ist nur verfügbar, bis die Instanz initialisiert ist.",
 	"auth_init_page_title": "Instanz initialisieren",
-	"auth_init_toast_error": "Initialisierung fehlgeschlagen",
-	"auth_init_toast_loading": "Anwendung wird initialisiert...",
-	"auth_init_toast_success": "Initialisierung erfolgreich abgeschlossen!",
+	"auth_init_toast_error": "Die Instanz wurde nicht initialisiert.",
+	"auth_init_toast_loading": "Die Instanz wird initialisiert...",
+	"auth_init_toast_success": "Instanz initialisiert",
 	"auth_layout_footer_after": ".",
 	"auth_layout_footer_before": "OrcAI ist ein Fork von",
 	"auth_layout_footer_link": "SokratesT",
@@ -1716,8 +1732,8 @@
 	"auth_register_page_signin_link": "Anmelden",
 	"auth_register_page_signin_prompt": "Sie haben bereits ein Konto?",
 	"auth_register_page_title": "Konto erstellen",
-	"auth_resend_verification_toast_error": "Die Bestätigungs-E-Mail konnte nicht erneut gesendet werden",
-	"auth_resend_verification_toast_loading": "Bestätigungs-E-Mail wird gesendet...",
+	"auth_resend_verification_toast_error": "Die Bestätigungs-E-Mail wurde nicht gesendet.",
+	"auth_resend_verification_toast_loading": "Die Bestätigungs-E-Mail wird gesendet...",
 	"auth_resend_verification_toast_success": "Wenn für diese Adresse ein Konto existiert, wurde eine Bestätigungs-E-Mail gesendet.",
 	"auth_reset_password_form_confirm_password_label": "Passwort bestätigen",
 	"auth_reset_password_form_confirm_password_placeholder": "Passwort bestätigen",
@@ -1729,15 +1745,15 @@
 	"auth_reset_password_page_invalid_title": "Ungültiger Link zum Zurücksetzen",
 	"auth_reset_password_page_request_link": "Neuen Link anfordern",
 	"auth_reset_password_page_title": "Neues Passwort wählen",
-	"auth_reset_password_toast_error": "Der Link zum Zurücksetzen ist ungültig oder abgelaufen",
-	"auth_reset_password_toast_loading": "Passwort wird zurückgesetzt...",
-	"auth_reset_password_toast_success": "Ihr Passwort wurde zurückgesetzt. Sie können sich jetzt anmelden.",
-	"auth_sign_out_toast_success": "Auf Wiedersehen!",
+	"auth_reset_password_toast_error": "Das Passwort wurde nicht zurückgesetzt.",
+	"auth_reset_password_toast_loading": "Das Passwort wird zurückgesetzt...",
+	"auth_reset_password_toast_success": "Passwort zurückgesetzt",
+	"auth_sign_out_toast_success": "Abgemeldet",
 	"auth_signin_form_submit_button": "Anmelden",
 	"auth_signin_passkey_button": "Passkey verwenden",
-	"auth_signin_toast_error": "Anmeldung fehlgeschlagen",
+	"auth_signin_toast_error": "Sie wurden nicht angemeldet.",
 	"auth_signin_toast_loading": "Anmeldung läuft...",
-	"auth_signin_toast_success": "Willkommen zurück!",
+	"auth_signin_toast_success": "Angemeldet",
 	"auth_signin_toast_two_factor": "Geben Sie Ihren zweiten Faktor ein",
 	"auth_signup_form_confirm_password_label": "Passwort bestätigen",
 	"auth_signup_form_invitation_code_label": "Einladungscode",
@@ -1751,9 +1767,9 @@
 	"auth_signup_form_review_privacy_link": "Datenschutzerklärung ansehen",
 	"auth_signup_form_review_terms_link": "Nutzungsbedingungen ansehen",
 	"auth_signup_form_submit_button": "Konto erstellen",
-	"auth_signup_toast_error": "Kontoerstellung fehlgeschlagen",
-	"auth_signup_toast_loading": "Ihr Konto wird erstellt...",
-	"auth_signup_toast_success": "Ihr Konto ist bereit.",
+	"auth_signup_toast_error": "Das Konto wurde nicht erstellt.",
+	"auth_signup_toast_loading": "Das Konto wird erstellt...",
+	"auth_signup_toast_success": "Konto erstellt",
 	"auth_verify_email_form_submit_button": "Bestätigungs-E-Mail erneut senden",
 	"auth_verify_email_page_description": "Verwenden Sie den Bestätigungslink, den wir Ihnen gesendet haben, bevor Sie sich anmelden. Es kann einige Minuten dauern, bis die Nachricht eintrifft.",
 	"auth_verify_email_page_signin_link": "Zurück zur Anmeldung",
@@ -1926,9 +1942,9 @@
 	"blocks_add_database_page_title": "Repository hinzufügen",
 	"blocks_add_template_form_description": "Konfigurieren Sie ein wiederverwendbares Verhalten.",
 	"blocks_add_template_page_title": "Verhalten hinzufügen",
-	"blocks_create_toast_error": "Block konnte nicht erstellt werden",
-	"blocks_create_toast_loading": "Block wird erstellt...",
-	"blocks_create_toast_success": "Block erfolgreich erstellt",
+	"blocks_create_toast_error": "Der Block wurde nicht erstellt.",
+	"blocks_create_toast_loading": "Der Block wird erstellt...",
+	"blocks_create_toast_success": "Block erstellt",
 	"blocks_database_config_advanced_settings_label": "Erweiterte Einstellungen",
 	"blocks_database_config_assets_description": "Dies sind die Assets, die derzeit an dieses Repository angehängt sind.",
 	"blocks_database_config_assets_title": "Assets ({count})",
@@ -2045,12 +2061,12 @@
 				"countPlural"
 			],
 			"match": {
-				"kind=repository, countPlural=one": "Das Repository wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"kind=repository, countPlural=other": "Die Repositories wurden nicht gelöscht. Versuchen Sie es erneut.",
-				"kind=behaviour, countPlural=one": "Das Verhalten wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"kind=behaviour, countPlural=other": "Die Verhaltensvorgaben wurden nicht gelöscht. Versuchen Sie es erneut.",
-				"kind=*, countPlural=one": "Der Block wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"kind=*, countPlural=other": "Die Blöcke wurden nicht gelöscht. Versuchen Sie es erneut."
+				"kind=repository, countPlural=one": "Das Repository wurde nicht gelöscht.",
+				"kind=repository, countPlural=other": "Die Repositories wurden nicht gelöscht.",
+				"kind=behaviour, countPlural=one": "Das Verhalten wurde nicht gelöscht.",
+				"kind=behaviour, countPlural=other": "Die Verhaltensvorgaben wurden nicht gelöscht.",
+				"kind=*, countPlural=one": "Der Block wurde nicht gelöscht.",
+				"kind=*, countPlural=other": "Die Blöcke wurden nicht gelöscht."
 			}
 		}
 	],
@@ -2087,11 +2103,11 @@
 				"countPlural"
 			],
 			"match": {
-				"kind=repository, countPlural=one": "{count} Repository gelöscht",
+				"kind=repository, countPlural=one": "Repository gelöscht",
 				"kind=repository, countPlural=other": "{count} Repositories gelöscht",
-				"kind=behaviour, countPlural=one": "{count} Verhaltensvorgabe gelöscht",
+				"kind=behaviour, countPlural=one": "Verhalten gelöscht",
 				"kind=behaviour, countPlural=other": "{count} Verhaltensvorgaben gelöscht",
-				"kind=*, countPlural=one": "{count} Block gelöscht",
+				"kind=*, countPlural=one": "Block gelöscht",
 				"kind=*, countPlural=other": "{count} Blöcke gelöscht"
 			}
 		}
@@ -2130,11 +2146,11 @@
 	"blocks_retrieval_mode_dense_label": "Dense",
 	"blocks_retrieval_mode_hybrid_label": "Hybrid",
 	"blocks_retrieval_mode_sparse_label": "Sparse",
-	"blocks_retry_document_toast_error": "Das Asset konnte nicht erneut versucht werden",
-	"blocks_retry_document_toast_loading": "Asset wird erneut versucht...",
+	"blocks_retry_document_toast_error": "Das Asset wurde nicht erneut eingereiht.",
+	"blocks_retry_document_toast_loading": "Das Asset wird erneut eingereiht...",
 	"blocks_retry_document_toast_success": "Asset erneut eingereiht",
-	"blocks_retry_failed_toast_error": "Die fehlgeschlagenen Assets konnten nicht erneut versucht werden",
-	"blocks_retry_failed_toast_loading": "Fehlgeschlagene Assets werden erneut versucht...",
+	"blocks_retry_failed_toast_error": "Die fehlgeschlagenen Assets wurden nicht erneut eingereiht.",
+	"blocks_retry_failed_toast_loading": "Die fehlgeschlagenen Assets werden erneut eingereiht...",
 	"blocks_retry_failed_toast_success": [
 		{
 			"declarations": [
@@ -2159,10 +2175,10 @@
 	"blocks_selector_dialog_template_empty_state_title": "Keine Verhaltensvorgaben gefunden.",
 	"blocks_selector_dialog_template_search_placeholder": "Verhaltensvorgaben suchen...",
 	"blocks_selector_dialog_template_title": "Verhalten auswählen",
-	"blocks_status_toast_error": "Blockstatus konnte nicht aktualisiert werden",
-	"blocks_status_toast_loading": "Blockstatus wird aktualisiert...",
+	"blocks_status_toast_error": "Der Status wurde nicht geändert.",
+	"blocks_status_toast_loading": "Der Status wird geändert...",
 	"blocks_status_toast_success_draft": "Block in Entwurf verschoben",
-	"blocks_status_toast_success_ready": "Block als veröffentlicht markiert",
+	"blocks_status_toast_success_ready": "Block veröffentlicht",
 	"blocks_template_config_show_system_prompt_action": "Vollständigen System-Prompt anzeigen",
 	"blocks_template_config_system_prompt_empty_state_title": "Kein System-Prompt konfiguriert.",
 	"blocks_template_form_content_label": "Detaillierte Beschreibung",
@@ -2192,9 +2208,9 @@
 	"blocks_tile_documents_failed": "{count} fehlgeschlagen",
 	"blocks_tile_documents_preparing": "{count} in Vorbereitung",
 	"blocks_tile_no_documents": "Noch keine Assets",
-	"blocks_update_toast_error": "Block konnte nicht aktualisiert werden",
-	"blocks_update_toast_loading": "Block wird aktualisiert...",
-	"blocks_update_toast_success": "Block erfolgreich aktualisiert",
+	"blocks_update_toast_error": "Der Block wurde nicht aktualisiert.",
+	"blocks_update_toast_loading": "Der Block wird aktualisiert...",
+	"blocks_update_toast_success": "Block aktualisiert",
 	"bot_setup_authors_pick_preselected": "Es ist vorausgewählt.",
 	"bot_setup_authors_pick_recommended": "{author} hat den Bot auf dieses Modell abgestimmt.",
 	"bot_setup_authors_pick_required": "{author} erfordert dieses Modell für den Bot.",
@@ -2210,8 +2226,8 @@
 	"bot_setup_description": "Empfehlen oder schreiben Sie ein Modell und Generierungseinstellungen für die Chats des Bots in dieser Organisation vor. Ohne Vorgabe wählen alle ein verfügbares Modell.",
 	"bot_setup_remove_action": "Modell entfernen",
 	"bot_setup_save_action": "Modell speichern",
-	"bot_setup_save_toast_error": "Das Modell konnte nicht gespeichert werden",
-	"bot_setup_save_toast_loading": "Modell wird gespeichert...",
+	"bot_setup_save_toast_error": "Das Modell wurde nicht gespeichert.",
+	"bot_setup_save_toast_loading": "Das Modell wird gespeichert...",
 	"bot_setup_save_toast_success": "Modell gespeichert",
 	"bot_setup_strength_label": "Verbindlichkeit",
 	"bot_setup_strength_recommended_description": "Neue Chats starten mit diesem Modell und diesen Einstellungen; ein Wechsel ist möglich.",
@@ -2291,8 +2307,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Der Bot wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Bots wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Der Bot wurde nicht gelöscht.",
+				"countPlural=other": "Die Bots wurden nicht gelöscht."
 			}
 		}
 	],
@@ -2321,7 +2337,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "1 Bot gelöscht",
+				"countPlural=one": "Bot gelöscht",
 				"countPlural=other": "{count} Bots gelöscht"
 			}
 		}
@@ -2349,13 +2365,14 @@
 	"bots_tile_model_tuned": "Abgestimmt auf {model}",
 	"bots_favourite_label": "Favorit",
 	"bots_favourite_toggle_label": "„{name}“ favorisieren",
+	"bots_favourite_toast_error": "Ihre Favoriten wurden nicht aktualisiert.",
 	"bots_favourites_group_label": "Favoriten",
 	"bots_page_title": "Bots",
-	"bots_publish_toast_error": "Bot konnte nicht veröffentlicht werden",
-	"bots_publish_toast_loading": "Bot wird veröffentlicht...",
+	"bots_publish_toast_error": "Der Bot wurde nicht veröffentlicht.",
+	"bots_publish_toast_loading": "Der Bot wird veröffentlicht...",
 	"bots_publish_toast_success": "Bot veröffentlicht",
-	"bots_save_toast_error": "Bot konnte nicht gespeichert werden",
-	"bots_save_toast_loading": "Bot wird gespeichert...",
+	"bots_save_toast_error": "Der Bot wurde nicht gespeichert.",
+	"bots_save_toast_loading": "Der Bot wird gespeichert...",
 	"bots_save_toast_success": "Bot gespeichert",
 	"bots_select_empty_state_title": "Keine Bots verfügbar",
 	"bots_select_group_aria_label": "Verfügbare Bots",
@@ -2427,8 +2444,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Sie können höchstens {count} Datei anhängen.",
-				"countPlural=other": "Sie können höchstens {count} Dateien anhängen."
+				"countPlural=one": "Die Dateien wurden nicht angehängt. Sie können höchstens {count} Datei anhängen.",
+				"countPlural=other": "Die Dateien wurden nicht angehängt. Sie können höchstens {count} Dateien anhängen."
 			}
 		}
 	],
@@ -2442,8 +2459,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Anhang konnte nicht hochgeladen werden.",
-				"countPlural=other": "{count} Anhänge konnten nicht hochgeladen werden."
+				"countPlural=one": "{count} Anhang wurde nicht hochgeladen.",
+				"countPlural=other": "{count} Anhänge wurden nicht hochgeladen."
 			}
 		}
 	],
@@ -2458,14 +2475,14 @@
 	"chat_bot_selector_no_bot_title": "Kein Bot",
 	"chat_bot_selector_search_placeholder": "Bots suchen...",
 	"chat_bot_selector_trigger_placeholder": "Bot auswählen...",
-	"chat_branch_create_failed_toast_error": "Der Zweig konnte nicht erstellt werden.",
+	"chat_branch_create_failed_toast_error": "Der Zweig wurde nicht erstellt.",
 	"chat_branch_label": "Zweig",
 	"chat_branched_from_link": "Verzweigt von {title}",
 	"chat_composer_aria_label": "Nachricht",
-	"chat_composer_attachments_missing_toast_error": "Es waren keine Anhänge zum Senden verfügbar. Bitte wiederholen Sie den Upload.",
+	"chat_composer_attachments_missing_toast_error": "Die Nachricht wurde nicht gesendet. Geben Sie Text ein oder hängen Sie die Dateien erneut an.",
 	"chat_composer_attachments_only_message": "Mit Anhängen gesendet",
 	"chat_composer_model_required_hint": "Wählen Sie ein Modell aus, um zu chatten.",
-	"chat_composer_model_required_toast_error": "Wählen Sie ein Modell aus, bevor Sie eine Nachricht senden.",
+	"chat_composer_model_required_toast_error": "Die Nachricht wurde nicht gesendet. Wählen Sie zuerst ein Modell aus.",
 	"chat_composer_placeholder": "Stellen Sie eine Frage",
 	"chat_composer_placeholder_bot_model": "Der Chat wird verfügbar, sobald das Modell des Bots bereitsteht",
 	"chat_composer_placeholder_no_model": "Der Chat wird verfügbar, sobald ein Modell bereitsteht",
@@ -2528,8 +2545,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Der Chat wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Chats wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Der Chat wurde nicht gelöscht.",
+				"countPlural=other": "Die Chats wurden nicht gelöscht."
 			}
 		}
 	],
@@ -2543,7 +2560,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Chat wird gelöscht...",
+				"countPlural=one": "Der Chat wird gelöscht...",
 				"countPlural=other": "{count} Chats werden gelöscht..."
 			}
 		}
@@ -2558,13 +2575,13 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Chat gelöscht",
+				"countPlural=one": "Chat gelöscht",
 				"countPlural=other": "{count} Chats gelöscht"
 			}
 		}
 	],
 	"chat_detail_page_title_fallback": "Chat",
-	"chat_download_failed_toast_error": "Der Chat konnte nicht heruntergeladen werden.",
+	"chat_download_failed_toast_error": "Der Chat wurde nicht heruntergeladen.",
 	"chat_earlier_messages_failed": "Frühere Nachrichten konnten nicht geladen werden.",
 	"chat_earlier_messages_loading": "Frühere Nachrichten werden geladen...",
 	"chat_history_back_link": "Zurück zu OrcAI",
@@ -2588,7 +2605,7 @@
 	"chat_history_page_title": "Chat-Verlauf",
 	"chat_history_row_description": "{organisation} · {date}",
 	"chat_image_part_download_action": "Bild herunterladen",
-	"chat_image_part_download_toast_error": "Das Bild wurde nicht heruntergeladen. Versuchen Sie es erneut.",
+	"chat_image_part_download_toast_error": "Das Bild wurde nicht heruntergeladen.",
 	"chat_image_part_download_toast_success": "Bild heruntergeladen",
 	"chat_image_part_label": "Generiertes Bild",
 	"chat_list_bot_filter_label": "Bot",
@@ -2602,9 +2619,9 @@
 	"chat_message_copy_citation_with_page": "{title}, S. {page}",
 	"chat_message_copy_label": "Kopieren",
 	"chat_message_copy_response_tooltip": "Antwort kopieren",
-	"chat_message_copy_toast_error": "Kopieren in die Zwischenablage fehlgeschlagen",
-	"chat_message_copy_toast_loading": "Wird in die Zwischenablage kopiert...",
-	"chat_message_copy_toast_success": "In die Zwischenablage kopiert!",
+	"chat_message_copy_toast_error": "Der Text wurde nicht kopiert.",
+	"chat_message_copy_toast_loading": "Der Text wird kopiert...",
+	"chat_message_copy_toast_success": "In die Zwischenablage kopiert",
 	"chat_message_copy_tooltip": "Nachricht kopieren",
 	"chat_message_rate_action_label": "Antwort bewerten",
 	"chat_message_rate_option_a_bit": "Ein wenig",
@@ -2612,9 +2629,9 @@
 	"chat_message_rate_option_not_really": "Eher nicht",
 	"chat_message_rate_option_very_much": "Sehr",
 	"chat_message_rate_prompt": "War diese Antwort hilfreich für Ihren Lernprozess?",
-	"chat_message_rate_toast_error": "Bewerten fehlgeschlagen",
-	"chat_message_rate_toast_loading": "Wird bewertet...",
-	"chat_message_rate_toast_success": "Vielen Dank für Ihr Feedback!",
+	"chat_message_rate_toast_error": "Die Bewertung wurde nicht gespeichert.",
+	"chat_message_rate_toast_loading": "Die Bewertung wird gespeichert...",
+	"chat_message_rate_toast_success": "Bewertung gespeichert",
 	"chat_message_rate_tooltip": "Bewerten Sie, wie hilfreich diese Antwort war",
 	"chat_message_history_trimmed": "Frühere Nachrichten wurden ausgelassen, damit der Verlauf in das Kontextfenster passt.",
 	"chat_message_context_limit_reached": "Angehalten: Der nächste Schritt passt nicht mehr in das Kontextfenster. Schreiben Sie eine Nachricht, um fortzufahren.",
@@ -2637,8 +2654,8 @@
 	"chat_model_tuned_hint": "Abgestimmt auf {model}",
 	"chat_new_page_title": "Neuer Chat",
 	"chat_pending_message_failed_toast_error": "Die Nachricht wurde nicht gesendet. Senden Sie sie erneut.",
-	"chat_pin_toast_error": "Der Chat konnte nicht angeheftet werden.",
-	"chat_pin_toast_loading": "Chat wird angeheftet...",
+	"chat_pin_toast_error": "Der Chat wurde nicht angeheftet.",
+	"chat_pin_toast_loading": "Der Chat wird angeheftet...",
 	"chat_pin_toast_success": "Chat angeheftet",
 	"chat_pinned_label": "Angeheftet",
 	"chat_placeholder_bot_description_fallback": "Antworten stützen sich auf die Quellen und das Verhalten dieses Bots.",
@@ -2672,8 +2689,8 @@
 	"chat_settings_attached_blocks_label": "Angehängte Blöcke",
 	"chat_settings_behaviour_dialog_description": "Hängen Sie ein wiederverwendbares Verhalten an diesen Chat an.",
 	"chat_settings_behaviour_dialog_title": "Verhalten hinzufügen",
-	"chat_settings_block_attach_failed_toast_error": "Der Block wurde nicht angehängt. Versuchen Sie es erneut.",
-	"chat_settings_block_detach_failed_toast_error": "Der Block wurde nicht entfernt. Versuchen Sie es erneut.",
+	"chat_settings_block_attach_failed_toast_error": "Der Block wurde nicht angehängt.",
+	"chat_settings_block_detach_failed_toast_error": "Der Block wurde nicht entfernt.",
 	"chat_settings_blocks_bot_managed_notice": "Bei Chats, die mit einem Bot verknüpft sind, werden die angehängten Blöcke vom Bot verwaltet.",
 	"chat_settings_blocks_hint": "Verhaltensvorgaben legen fest, wie Antworten formuliert werden. Repositories liefern dem Chat Assets für den Abruf.",
 	"chat_settings_blocks_hint_behaviour_attached": "Es kann nur ein Verhalten angehängt werden. Entfernen Sie „{name}“, um ein anderes Verhalten anzuhängen.",
@@ -2681,7 +2698,7 @@
 	"chat_settings_dialog_description": "Konfigurieren Sie das Modell und die Parameter für diesen Chat.",
 	"chat_settings_dialog_description_bot_linked": "Dieser Chat ist mit einem Bot verknüpft. Der System-Prompt ist gesperrt, aber Sie können das Modell und die Generierungsparameter ändern.",
 	"chat_settings_dialog_title": "Chat-Einstellungen",
-	"chat_settings_feature_update_failed_toast_error": "Die Funktion wurde nicht geändert. Versuchen Sie es erneut.",
+	"chat_settings_feature_update_failed_toast_error": "Die Funktion wurde nicht geändert.",
 	"chat_settings_features_bot_managed_notice": "Bei Chats, die mit einem Bot verknüpft sind, werden die Funktionen vom Bot verwaltet.",
 	"chat_settings_frequency_penalty_label": "Frequency Penalty",
 	"chat_settings_max_tokens_description": "Dieses Modell schreibt höchstens {maxOutputTokens} Token pro Antwort.",
@@ -2719,12 +2736,12 @@
 	"chat_table_bulk_delete_action": "Auswahl löschen",
 	"chat_table_date_column_header": "Datum",
 	"chat_title_placeholder": "Neuer Chat",
-	"chat_unpin_toast_error": "Der Chat konnte nicht gelöst werden.",
-	"chat_unpin_toast_loading": "Chat wird gelöst...",
+	"chat_unpin_toast_error": "Der Chat wurde nicht gelöst.",
+	"chat_unpin_toast_loading": "Der Chat wird gelöst...",
 	"chat_unpin_toast_success": "Chat gelöst",
-	"chat_update_toast_error": "Chat konnte nicht aktualisiert werden",
-	"chat_update_toast_loading": "Chat wird aktualisiert...",
-	"chat_update_toast_success": "Chat erfolgreich aktualisiert",
+	"chat_update_toast_error": "Der Chat wurde nicht aktualisiert.",
+	"chat_update_toast_loading": "Der Chat wird aktualisiert...",
+	"chat_update_toast_success": "Chat aktualisiert",
 	"chat_usage_context_overflow_hint": "Frühere Nachrichten werden zusammengefasst",
 	"chat_usage_context_title": "Kontextfenster",
 	"chat_usage_context_tokens": "{tokens} Token",
@@ -3409,8 +3426,8 @@
 	"generation_settings_provider_defaults": "Standardwerte des Anbieters",
 	"groups_create_dialog_description": "Erstellen Sie eine benutzerdefinierte Organisationsgruppe für die Zugriffsverwaltung.",
 	"groups_create_dialog_title": "Gruppe erstellen",
-	"groups_create_toast_error": "Die Gruppe wurde nicht erstellt. Prüfen Sie den Namen und versuchen Sie es erneut.",
-	"groups_create_toast_loading": "Gruppe wird erstellt...",
+	"groups_create_toast_error": "Die Gruppe wurde nicht erstellt.",
+	"groups_create_toast_loading": "Die Gruppe wird erstellt...",
 	"groups_create_toast_success": "Gruppe erstellt",
 	"groups_delete_action": "Gruppe löschen",
 	"groups_delete_confirm_description": [
@@ -3454,8 +3471,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Die Gruppe wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Gruppen wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Die Gruppe wurde nicht gelöscht.",
+				"countPlural=other": "Die Gruppen wurden nicht gelöscht."
 			}
 		}
 	],
@@ -3484,7 +3501,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Gruppe gelöscht",
+				"countPlural=one": "Gruppe gelöscht",
 				"countPlural=other": "{count} Gruppen gelöscht"
 			}
 		}
@@ -3510,8 +3527,8 @@
 	"groups_member_table_source_column_header": "Mitgliedschaft",
 	"groups_members_add_heading": "Mitglieder hinzufügen",
 	"groups_members_add_selected_action": "Auswahl hinzufügen",
-	"groups_members_add_toast_error": "Die Mitglieder wurden nicht hinzugefügt. Versuchen Sie es erneut.",
-	"groups_members_add_toast_loading": "Mitglieder werden hinzugefügt...",
+	"groups_members_add_toast_error": "Die Mitglieder wurden nicht hinzugefügt.",
+	"groups_members_add_toast_loading": "Die Mitglieder werden hinzugefügt...",
 	"groups_members_add_toast_success": "Mitglieder hinzugefügt",
 	"groups_members_card_description_custom": "Verwalten Sie die explizite Gruppenmitgliedschaft.",
 	"groups_members_card_description_system": "Alle Mitglieder der Organisation sind implizit enthalten.",
@@ -3545,7 +3562,7 @@
 			}
 		}
 	],
-	"groups_members_remove_toast_error": "Das Mitglied wurde nicht entfernt. Versuchen Sie es erneut.",
+	"groups_members_remove_toast_error": "Das Mitglied wurde nicht entfernt.",
 	"groups_members_remove_toast_loading": "Das Mitglied wird entfernt...",
 	"groups_members_remove_toast_success": "Mitglied entfernt",
 	"groups_page_title": "Gruppen",
@@ -3555,13 +3572,13 @@
 	"groups_table_kind_column_header": "Typ",
 	"groups_table_manage_action": "Gruppe verwalten",
 	"groups_table_members_column_header": "Mitglieder",
-	"groups_update_toast_error": "Die Gruppe wurde nicht aktualisiert. Versuchen Sie es erneut.",
-	"groups_update_toast_loading": "Gruppe wird gespeichert...",
+	"groups_update_toast_error": "Die Gruppe wurde nicht aktualisiert.",
+	"groups_update_toast_loading": "Die Gruppe wird aktualisiert...",
 	"groups_update_toast_success": "Gruppe aktualisiert",
 	"header_breadcrumb_menu_label": "Navigationspfad anzeigen",
 	"header_home_link_label": "Startseite",
 	"header_locale_switcher_label": "Sprache",
-	"header_locale_switcher_toast_error": "Sprache konnte nicht gespeichert werden",
+	"header_locale_switcher_toast_error": "Die Sprache wurde nicht gespeichert.",
 	"header_theme_switcher_label": "Design wechseln",
 	"home_about_link": "Über OrcAI",
 	"home_chats_section_title": "Letzte Chats",
@@ -3773,12 +3790,12 @@
 	"images_picture_change_button": "Bild ändern",
 	"images_picture_dialog_title": "Profilbild",
 	"images_picture_remove_button": "Bild entfernen",
-	"images_remove_toast_error": "Das Bild konnte nicht entfernt werden.",
-	"images_remove_toast_loading": "Bild wird entfernt…",
-	"images_remove_toast_success": "Bild entfernt.",
-	"images_save_toast_error": "Das Bild konnte nicht gespeichert werden.",
-	"images_save_toast_loading": "Bild wird gespeichert…",
-	"images_save_toast_success": "Bild gespeichert.",
+	"images_remove_toast_error": "Das Bild wurde nicht entfernt.",
+	"images_remove_toast_loading": "Das Bild wird entfernt...",
+	"images_remove_toast_success": "Bild entfernt",
+	"images_save_toast_error": "Das Bild wurde nicht gespeichert.",
+	"images_save_toast_loading": "Das Bild wird gespeichert...",
+	"images_save_toast_success": "Bild gespeichert",
 	"instance_analytics_active_users_column_header": "Aktive Personen",
 	"instance_analytics_organization_column_header": "Organisation",
 	"instance_analytics_organizations_description": "Nutzung pro Organisation, auch von Organisationen ohne Nutzung.",
@@ -3854,8 +3871,8 @@
 	"instance_health_test_email_status_dead": "Fehlgeschlagen",
 	"instance_health_test_email_status_pending": "Wartend",
 	"instance_health_test_email_status_sent": "Gesendet",
-	"instance_health_test_email_toast_error": "Die Test-E-Mail konnte nicht eingereiht werden.",
-	"instance_health_test_email_toast_loading": "Test-E-Mail wird eingereiht...",
+	"instance_health_test_email_toast_error": "Die Test-E-Mail wurde nicht eingereiht.",
+	"instance_health_test_email_toast_loading": "Die Test-E-Mail wird eingereiht...",
 	"instance_health_test_email_toast_recent": "Sie haben in dieser Minute bereits eine Test-E-Mail angefordert. Prüfen Sie erneut, um ihren Status zu sehen.",
 	"instance_health_test_email_toast_success": "Test-E-Mail an Ihre Adresse eingereiht. Prüfen Sie gleich erneut.",
 	"instance_health_unknown_value": "Unbekannt",
@@ -3867,26 +3884,26 @@
 	"instance_org_member_add_action": "Mitglied hinzufügen",
 	"instance_org_member_add_description": "Fügen Sie ein bestehendes Konto mit einer Rolle hinzu. Es wird keine E-Mail verschickt.",
 	"instance_org_member_add_title": "Bestehendes Konto hinzufügen",
-	"instance_org_member_add_toast_error": "Das Konto konnte nicht hinzugefügt werden.",
-	"instance_org_member_add_toast_loading": "Mitglied wird hinzugefügt...",
-	"instance_org_member_add_toast_success": "Mitglied hinzugefügt.",
+	"instance_org_member_add_toast_error": "Das Mitglied wurde nicht hinzugefügt.",
+	"instance_org_member_add_toast_loading": "Das Mitglied wird hinzugefügt...",
+	"instance_org_member_add_toast_success": "Mitglied hinzugefügt",
 	"instance_org_member_count": "{count} Mitglieder",
 	"instance_org_member_invite_action": "Einladung senden",
 	"instance_org_member_invite_description": "Laden Sie jemanden per E-Mail mit einer Rolle ein. Wer schon Mitglied ist, behält seine Rolle; ändern Sie sie stattdessen in der Liste.",
 	"instance_org_member_invite_title": "Per E-Mail einladen",
-	"instance_org_member_invite_toast_error": "Die Einladung konnte nicht gesendet werden.",
-	"instance_org_member_invite_toast_loading": "Einladung wird gesendet...",
-	"instance_org_member_invite_toast_success": "Einladung gesendet.",
+	"instance_org_member_invite_toast_error": "Die Einladung wurde nicht gesendet.",
+	"instance_org_member_invite_toast_loading": "Die Einladung wird gesendet...",
+	"instance_org_member_invite_toast_success": "Einladung gesendet",
 	"instance_org_member_leave_action": "Verlassen",
 	"instance_org_member_leave_confirm_title": "Diese Organisation verlassen?",
 	"instance_org_member_remove_confirm_description": "Der Zugriff auf die Organisation und ihre freigegebenen Bots, Blöcke und Assets endet. Die Organisation behält mindestens einen Admin.",
 	"instance_org_member_remove_confirm_title": "{name} entfernen?",
-	"instance_org_member_remove_toast_error": "Das Mitglied konnte nicht entfernt werden.",
-	"instance_org_member_remove_toast_loading": "Mitglied wird entfernt...",
-	"instance_org_member_remove_toast_success": "Mitglied entfernt.",
-	"instance_org_member_role_toast_error": "Die Rolle konnte nicht geändert werden.",
-	"instance_org_member_role_toast_loading": "Rolle wird geändert...",
-	"instance_org_member_role_toast_success": "Rolle geändert.",
+	"instance_org_member_remove_toast_error": "Das Mitglied wurde nicht entfernt.",
+	"instance_org_member_remove_toast_loading": "Das Mitglied wird entfernt...",
+	"instance_org_member_remove_toast_success": "Mitglied entfernt",
+	"instance_org_member_role_toast_error": "Die Rolle wurde nicht geändert.",
+	"instance_org_member_role_toast_loading": "Die Rolle wird geändert...",
+	"instance_org_member_role_toast_success": "Rolle geändert",
 	"instance_org_members_description": "Rollen ändern, Mitglieder entfernen oder austreten. Die Organisation behält immer einen Admin.",
 	"instance_org_members_empty_description": "Fügen Sie ein bestehendes Konto hinzu oder laden Sie jemanden per E-Mail ein.",
 	"instance_org_members_empty_title": "Keine Mitglieder",
@@ -3951,9 +3968,9 @@
 	"models_capability_text_label": "Text",
 	"models_capability_tool_calling_label": "Tool-Aufrufe",
 	"models_capability_video_label": "Video",
-	"models_create_toast_error": "Modell konnte nicht erstellt werden",
-	"models_create_toast_loading": "Modell wird erstellt...",
-	"models_create_toast_success": "Modell erfolgreich erstellt",
+	"models_create_toast_error": "Das Modell wurde nicht erstellt.",
+	"models_create_toast_loading": "Das Modell wird erstellt...",
+	"models_create_toast_success": "Modell erstellt",
 	"models_delete_confirm_button": [
 		{
 			"declarations": [
@@ -4010,8 +4027,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Das Modell wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Modelle wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Das Modell wurde nicht gelöscht.",
+				"countPlural=other": "Die Modelle wurden nicht gelöscht."
 			}
 		}
 	],
@@ -4040,7 +4057,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "1 Modell gelöscht",
+				"countPlural=one": "Modell gelöscht",
 				"countPlural=other": "{count} Modelle gelöscht"
 			}
 		}
@@ -4153,9 +4170,9 @@
 	"models_table_delete_menu_item": "Modell löschen",
 	"models_table_edit_menu_item": "Modell bearbeiten",
 	"models_table_view_menu_item": "Modell anzeigen",
-	"models_update_toast_error": "Modell konnte nicht aktualisiert werden",
-	"models_update_toast_loading": "Modell wird aktualisiert...",
-	"models_update_toast_success": "Modell erfolgreich aktualisiert",
+	"models_update_toast_error": "Das Modell wurde nicht aktualisiert.",
+	"models_update_toast_loading": "Das Modell wird aktualisiert...",
+	"models_update_toast_success": "Modell aktualisiert",
 	"multi_select_chip_description": "Mit Rücktaste oder Entf entfernen",
 	"multi_select_empty_state": "Keine Treffer",
 	"multi_select_input_description": "{count} ausgewählt. Am Anfang der Eingabe führt Pfeil nach links zu den ausgewählten Einträgen",
@@ -4180,8 +4197,8 @@
 	"orgs_form_web_search_provider_option": "Suchanbieter: {name}",
 	"orgs_permission_view_analytics_label": "Analysen ansehen",
 	"passkey_add_button": "Passkey hinzufügen",
-	"passkey_add_toast_error": "Passkey konnte nicht hinzugefügt werden",
-	"passkey_add_toast_loading": "Passkey wird hinzugefügt...",
+	"passkey_add_toast_error": "Der Passkey wurde nicht hinzugefügt.",
+	"passkey_add_toast_loading": "Der Passkey wird hinzugefügt...",
 	"passkey_add_toast_success": "Passkey hinzugefügt",
 	"passkey_added_at": "Hinzugefügt am {date}",
 	"passkey_card_description": "Melden Sie sich ohne Passwort an: Ihr Gerät entsperrt den Passkey mit PIN, Fingerabdruck oder Gesicht. Passkeys gehören zur Adresse dieser Seite; ändert sie sich, fügen Sie sie erneut hinzu.",
@@ -4190,8 +4207,8 @@
 	"passkey_delete_button": "{name} löschen",
 	"passkey_delete_confirm_description": "Mit diesem Passkey können Sie sich nicht mehr anmelden. Er bleibt eventuell auf Ihrem Gerät gespeichert.",
 	"passkey_delete_confirm_title": "Diesen Passkey löschen?",
-	"passkey_delete_toast_error": "Passkey konnte nicht gelöscht werden",
-	"passkey_delete_toast_loading": "Passkey wird gelöscht...",
+	"passkey_delete_toast_error": "Der Passkey wurde nicht gelöscht.",
+	"passkey_delete_toast_loading": "Der Passkey wird gelöscht...",
 	"passkey_delete_toast_success": "Passkey gelöscht",
 	"passkey_list_empty": "Noch keine Passkeys.",
 	"passkey_list_label": "Ihre Passkeys",
@@ -4336,11 +4353,11 @@
 	"tour_initial_start_chat_title": "Chat starten",
 	"tour_initial_welcome_content": "Machen wir eine kurze Tour durch die App. Klicken Sie auf „Weiter“, um fortzufahren.",
 	"tour_initial_welcome_title": "Willkommen bei OrcAI",
-	"tour_skip_toast_error": "Die Tour wurde nicht als übersprungen markiert",
+	"tour_skip_toast_error": "Die Tour wurde nicht als übersprungen markiert.",
 	"tour_skip_toast_error_description": "Sie wird beim nächsten Mal möglicherweise erneut geöffnet.",
-	"orgs_create_toast_error": "Organisation konnte nicht erstellt werden",
-	"orgs_create_toast_loading": "Organisation wird erstellt...",
-	"orgs_create_toast_success": "Organisation erfolgreich erstellt",
+	"orgs_create_toast_error": "Die Organisation wurde nicht erstellt.",
+	"orgs_create_toast_loading": "Die Organisation wird erstellt...",
+	"orgs_create_toast_success": "Organisation erstellt",
 	"orgs_delete_dialog_description": "Alles unten Aufgezählte wird mitgelöscht, und die Löschung ist endgültig.",
 	"orgs_delete_dialog_impact_groups": [
 		{
@@ -4408,7 +4425,7 @@
 	"orgs_delete_dialog_slug_label_unknown": "Geben Sie den Slug zur Bestätigung ein",
 	"orgs_delete_dialog_title": "Diese Organisation löschen?",
 	"orgs_delete_dialog_title_named": "Die Organisation {name} löschen?",
-	"orgs_delete_toast_error": "Die Organisation wurde nicht gelöscht. Versuchen Sie es erneut.",
+	"orgs_delete_toast_error": "Die Organisation wurde nicht gelöscht.",
 	"orgs_delete_toast_loading": "Die Organisation wird gelöscht...",
 	"orgs_delete_toast_success": "Organisation gelöscht",
 	"orgs_form_assistant_model_description": "Das Modell, mit dem der OrcAI Assistant antwortet. Aufgeführt sind nur Modelle mit Tool-Aufrufen, die nicht veraltet sind und deren Anbieter aktiviert ist.",
@@ -4487,12 +4504,12 @@
 	"orgs_form_utility_model_unusable_provider_disabled": "Der Anbieter des aktuellen Modells ist deaktiviert, daher verwenden Titel das Modell des jeweiligen Chats, Bilder werden nicht beschrieben und Metadaten nicht erzeugt.",
 	"orgs_form_utility_model_unusable_text_unsupported": "Das aktuelle Modell erzeugt keinen Text, daher verwenden Titel das Modell des jeweiligen Chats, Bilder werden nicht beschrieben und Metadaten nicht erzeugt.",
 	"orgs_invitation_accept_button": "Annehmen",
-	"orgs_invitation_accept_toast_error": "Einladung konnte nicht angenommen werden",
-	"orgs_invitation_accept_toast_loading": "Einladung wird angenommen...",
+	"orgs_invitation_accept_toast_error": "Die Einladung wurde nicht angenommen.",
+	"orgs_invitation_accept_toast_loading": "Die Einladung wird angenommen...",
 	"orgs_invitation_accept_toast_success": "Einladung angenommen",
-	"orgs_invitation_create_toast_error": "Einladungen konnten nicht erstellt werden",
-	"orgs_invitation_create_toast_loading": "Einladungen werden erstellt...",
-	"orgs_invitation_create_toast_success": "Einladungen erfolgreich erstellt",
+	"orgs_invitation_create_toast_error": "Die Einladungen wurden nicht erstellt.",
+	"orgs_invitation_create_toast_loading": "Die Einladungen werden erstellt...",
+	"orgs_invitation_create_toast_success": "Einladungen erstellt",
 	"orgs_invitation_delete_confirm_description": [
 		{
 			"declarations": [
@@ -4534,8 +4551,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Die Einladung wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Einladungen wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Die Einladung wurde nicht gelöscht.",
+				"countPlural=other": "Die Einladungen wurden nicht gelöscht."
 			}
 		}
 	],
@@ -4564,7 +4581,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Einladung gelöscht",
+				"countPlural=one": "Einladung gelöscht",
 				"countPlural=other": "{count} Einladungen gelöscht"
 			}
 		}
@@ -4597,8 +4614,8 @@
 	"orgs_invitation_reject_confirm_button": "Einladung ablehnen",
 	"orgs_invitation_reject_confirm_description": "Sie treten der Organisation nicht bei. Um später beizutreten, benötigen Sie eine neue Einladung.",
 	"orgs_invitation_reject_confirm_title": "Einladung zu {name} ablehnen?",
-	"orgs_invitation_reject_toast_error": "Einladung konnte nicht abgelehnt werden",
-	"orgs_invitation_reject_toast_loading": "Einladung wird abgelehnt...",
+	"orgs_invitation_reject_toast_error": "Die Einladung wurde nicht abgelehnt.",
+	"orgs_invitation_reject_toast_loading": "Die Einladung wird abgelehnt...",
 	"orgs_invitation_reject_toast_success": "Einladung abgelehnt",
 	"orgs_invitation_status_accepted": "Angenommen",
 	"orgs_invitation_status_expired": "Abgelaufen",
@@ -4665,8 +4682,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Das Mitglied wurde nicht aus der Organisation entfernt. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Mitglieder wurden nicht aus der Organisation entfernt. Versuchen Sie es erneut."
+				"countPlural=one": "Das Mitglied wurde nicht aus der Organisation entfernt.",
+				"countPlural=other": "Die Mitglieder wurden nicht aus der Organisation entfernt."
 			}
 		}
 	],
@@ -4695,13 +4712,13 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Mitglied aus der Organisation entfernt",
+				"countPlural=one": "Mitglied aus der Organisation entfernt",
 				"countPlural=other": "{count} Mitglieder aus der Organisation entfernt"
 			}
 		}
 	],
-	"orgs_member_update_toast_error": "Rolle konnte nicht aktualisiert werden",
-	"orgs_member_update_toast_loading": "Rolle wird aktualisiert...",
+	"orgs_member_update_toast_error": "Die Rolle wurde nicht aktualisiert.",
+	"orgs_member_update_toast_loading": "Die Rolle wird aktualisiert...",
 	"orgs_member_update_toast_success": "Rolle aktualisiert",
 	"orgs_permission_create_asset_label": "Assets erstellen",
 	"orgs_permission_create_block_label": "Blöcke erstellen",
@@ -4723,9 +4740,9 @@
 	"orgs_role_viewer_label": "Betrachter",
 	"orgs_settings_page_description": "Name, Slug, Logo und Beschreibung der Organisation, in der Sie gerade arbeiten.",
 	"orgs_settings_page_title": "Organisation",
-	"orgs_update_toast_error": "Organisation konnte nicht aktualisiert werden",
-	"orgs_update_toast_loading": "Organisation wird aktualisiert...",
-	"orgs_update_toast_success": "Organisation erfolgreich aktualisiert",
+	"orgs_update_toast_error": "Die Organisation wurde nicht aktualisiert.",
+	"orgs_update_toast_loading": "Die Organisation wird aktualisiert...",
+	"orgs_update_toast_success": "Organisation aktualisiert",
 	"processing_status_active_description": "Wird derzeit für Suche und Quellenangaben vorbereitet.",
 	"processing_status_active_label": "Wird verarbeitet",
 	"processing_status_completed_description": "Bereit für die Nutzung in Suche, Abruf und Quellenangaben.",
@@ -4733,9 +4750,9 @@
 	"processing_status_pending_description": "Wartet auf die Vorbereitung für Suche und Quellenangaben.",
 	"processing_status_pending_label": "In Warteschlange",
 	"providers_add_page_title": "Anbieter hinzufügen",
-	"providers_create_toast_error": "Anbieter konnte nicht erstellt werden",
-	"providers_create_toast_loading": "Anbieter wird erstellt...",
-	"providers_create_toast_success": "Anbieter erfolgreich erstellt",
+	"providers_create_toast_error": "Der Anbieter wurde nicht erstellt.",
+	"providers_create_toast_loading": "Der Anbieter wird erstellt...",
+	"providers_create_toast_success": "Anbieter erstellt",
 	"providers_delete_confirm_button": [
 		{
 			"declarations": [
@@ -4792,8 +4809,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Der Anbieter wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Anbieter wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Der Anbieter wurde nicht gelöscht.",
+				"countPlural=other": "Die Anbieter wurden nicht gelöscht."
 			}
 		}
 	],
@@ -4822,7 +4839,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "1 Anbieter gelöscht",
+				"countPlural=one": "Anbieter gelöscht",
 				"countPlural=other": "{count} Anbieter gelöscht"
 			}
 		}
@@ -4905,19 +4922,19 @@
 	"providers_table_metering_column_header": "Verbrauchserfassung",
 	"providers_table_updated_column_header": "Aktualisiert",
 	"providers_table_view_menu_item": "Anbieter anzeigen",
-	"providers_update_toast_error": "Anbieter konnte nicht aktualisiert werden",
-	"providers_update_toast_loading": "Anbieter wird aktualisiert...",
-	"providers_update_toast_success": "Anbieter erfolgreich aktualisiert",
+	"providers_update_toast_error": "Der Anbieter wurde nicht aktualisiert.",
+	"providers_update_toast_loading": "Der Anbieter wird aktualisiert...",
+	"providers_update_toast_success": "Anbieter aktualisiert",
 	"quotas_add_page_title": "Kontingent-Pool hinzufügen",
 	"quotas_consumption_progress_aria_label": "{percentage} Prozent des Budgets verbraucht",
-	"quotas_create_toast_error": "Kontingent-Pool konnte nicht erstellt werden",
-	"quotas_create_toast_loading": "Kontingent-Pool wird erstellt...",
+	"quotas_create_toast_error": "Der Kontingent-Pool wurde nicht erstellt.",
+	"quotas_create_toast_loading": "Der Kontingent-Pool wird erstellt...",
 	"quotas_create_toast_success": "Kontingent-Pool erstellt",
 	"quotas_deactivate_confirm_button": "Pool deaktivieren",
 	"quotas_deactivate_confirm_description": "Neue Chats bei diesem Anbieter werden abgelehnt, bis ein anderer aktiver Pool sie abdeckt. Bereits laufende Nutzung wird noch abgeschlossen.",
 	"quotas_deactivate_confirm_title": "Den ausgewählten Pool deaktivieren?",
 	"quotas_deactivate_confirm_title_named": "Den Pool {name} deaktivieren?",
-	"quotas_deactivate_toast_error": "Der Pool wurde nicht deaktiviert. Versuchen Sie es erneut.",
+	"quotas_deactivate_toast_error": "Der Pool wurde nicht deaktiviert.",
 	"quotas_deactivate_toast_loading": "Der Pool wird deaktiviert...",
 	"quotas_deactivate_toast_success": "Pool deaktiviert",
 	"quotas_detail_actual_amount_column_header": "Tatsächliche Menge",
@@ -5018,8 +5035,8 @@
 	"quotas_table_pool_column_header": "Pool",
 	"quotas_table_remaining_column_header": "Verbleibend",
 	"quotas_table_view_menu_item": "Pool anzeigen",
-	"quotas_update_toast_error": "Kontingent-Pool konnte nicht aktualisiert werden",
-	"quotas_update_toast_loading": "Kontingent-Pool wird aktualisiert...",
+	"quotas_update_toast_error": "Der Kontingent-Pool wurde nicht aktualisiert.",
+	"quotas_update_toast_loading": "Der Kontingent-Pool wird aktualisiert...",
 	"quotas_update_toast_success": "Kontingent-Pool aktualisiert",
 	"select_organisation_page_empty_description": "Nehmen Sie oben eine Einladung an oder wenden Sie sich an Ihren Admin, um Zugriff zu erhalten.",
 	"select_organisation_page_empty_title": "Noch keine Organisationen verfügbar",
@@ -5062,12 +5079,12 @@
 	"state_pagination_previous_page_aria_label": "Zur vorherigen Seite",
 	"two_factor_backup_code_label": "Backup-Code",
 	"two_factor_backup_codes_copy_button": "Kopieren",
-	"two_factor_backup_codes_copy_toast_error": "Backup-Codes konnten nicht kopiert werden",
+	"two_factor_backup_codes_copy_toast_error": "Die Backup-Codes wurden nicht kopiert.",
 	"two_factor_backup_codes_copy_toast_success": "Backup-Codes kopiert",
 	"two_factor_backup_codes_description": "Bewahren Sie diese Backup-Codes sicher auf. Jeder meldet Sie einmal an, wenn Sie Ihre Authenticator-App nicht nutzen können. Sie werden nur jetzt angezeigt.",
 	"two_factor_backup_codes_download_button": "Herunterladen",
 	"two_factor_backup_codes_list_label": "Backup-Codes",
-	"two_factor_backup_codes_toast_error": "Backup-Codes konnten nicht erstellt werden",
+	"two_factor_backup_codes_toast_error": "Neue Backup-Codes wurden nicht erstellt.",
 	"two_factor_backup_codes_toast_loading": "Neue Backup-Codes werden erstellt...",
 	"two_factor_backup_codes_toast_success": "Neue Backup-Codes erstellt",
 	"two_factor_card_disabled_description": "Aus: Für die Anmeldung genügt Ihr Passwort.",
@@ -5077,19 +5094,19 @@
 	"two_factor_challenge_page_description": "Geben Sie den Code aus Ihrer Authenticator-App ein.",
 	"two_factor_challenge_page_title": "Zwei-Faktor-Authentifizierung",
 	"two_factor_challenge_submit_button": "Bestätigen",
-	"two_factor_challenge_toast_error": "Anmeldung fehlgeschlagen",
-	"two_factor_challenge_toast_loading": "Code wird geprüft...",
+	"two_factor_challenge_toast_error": "Sie wurden nicht angemeldet.",
+	"two_factor_challenge_toast_loading": "Der Code wird geprüft...",
 	"two_factor_code_label": "Authentifizierungscode",
-	"two_factor_confirm_toast_error": "Zwei-Faktor-Authentifizierung konnte nicht aktiviert werden",
-	"two_factor_confirm_toast_loading": "Code wird geprüft...",
+	"two_factor_confirm_toast_error": "Die Zwei-Faktor-Authentifizierung wurde nicht aktiviert.",
+	"two_factor_confirm_toast_loading": "Der Code wird geprüft...",
 	"two_factor_confirm_toast_success": "Zwei-Faktor-Authentifizierung ist aktiviert",
 	"two_factor_disable_button": "Deaktivieren",
-	"two_factor_disable_toast_error": "Zwei-Faktor-Authentifizierung konnte nicht deaktiviert werden",
-	"two_factor_disable_toast_loading": "Zwei-Faktor-Authentifizierung wird deaktiviert...",
+	"two_factor_disable_toast_error": "Die Zwei-Faktor-Authentifizierung wurde nicht deaktiviert.",
+	"two_factor_disable_toast_loading": "Die Zwei-Faktor-Authentifizierung wird deaktiviert...",
 	"two_factor_disable_toast_success": "Zwei-Faktor-Authentifizierung ist deaktiviert",
 	"two_factor_enable_button": "Zwei-Faktor-Authentifizierung einrichten",
-	"two_factor_enable_toast_error": "Die Einrichtung konnte nicht gestartet werden",
-	"two_factor_enable_toast_loading": "Einrichtung wird gestartet...",
+	"two_factor_enable_toast_error": "Die Einrichtung wurde nicht gestartet.",
+	"two_factor_enable_toast_loading": "Die Einrichtung wird gestartet...",
 	"two_factor_enable_toast_success": "Scannen Sie den QR-Code mit Ihrer Authenticator-App",
 	"two_factor_enrolment_done_button": "Fertig",
 	"two_factor_enrolment_password_description": "Bestätigen Sie Ihr Passwort, um eine Authenticator-App einzurichten.",
@@ -5135,8 +5152,8 @@
 	"users_ban_confirm_description": "Die Person kann sich nicht anmelden, solange die Sperre besteht. Ihre Mitgliedschaften, Bots, Blöcke und Assets bleiben bestehen.",
 	"users_ban_confirm_title": "Dieses Konto sperren?",
 	"users_ban_confirm_title_named": "Das Konto {name} sperren?",
-	"users_ban_toast_error": "Das Konto wurde nicht gesperrt. Versuchen Sie es erneut.",
-	"users_ban_toast_loading": "Konto wird gesperrt...",
+	"users_ban_toast_error": "Das Konto wurde nicht gesperrt.",
+	"users_ban_toast_loading": "Das Konto wird gesperrt...",
 	"users_ban_toast_success": "Konto gesperrt",
 	"users_delete_confirm_description": [
 		{
@@ -5179,8 +5196,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Das Konto wurde nicht gelöscht. Versuchen Sie es erneut.",
-				"countPlural=other": "Die Konten wurden nicht gelöscht. Versuchen Sie es erneut."
+				"countPlural=one": "Das Konto wurde nicht gelöscht.",
+				"countPlural=other": "Die Konten wurden nicht gelöscht."
 			}
 		}
 	],
@@ -5194,7 +5211,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Konto wird gelöscht...",
+				"countPlural=one": "Das Konto wird gelöscht...",
 				"countPlural=other": "{count} Konten werden gelöscht..."
 			}
 		}
@@ -5209,7 +5226,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} Konto gelöscht",
+				"countPlural=one": "Konto gelöscht",
 				"countPlural=other": "{count} Konten gelöscht"
 			}
 		}
@@ -5218,8 +5235,8 @@
 	"users_demote_confirm_description": "Die Person verliert den Zugang zu „Instanz verwalten“. Ihre Mitgliedschaften und Rollen in Organisationen bleiben unverändert. Sie erhält darüber eine E-Mail.",
 	"users_demote_confirm_title": "Rolle als Instanz-Admin entziehen?",
 	"users_demote_confirm_title_named": "{name} die Rolle als Instanz-Admin entziehen?",
-	"users_demote_toast_error": "Die Rolle als Instanz-Admin konnte nicht entzogen werden",
-	"users_demote_toast_loading": "Rolle als Instanz-Admin wird entzogen...",
+	"users_demote_toast_error": "Die Rolle als Instanz-Admin wurde nicht entzogen.",
+	"users_demote_toast_loading": "Die Rolle als Instanz-Admin wird entzogen...",
 	"users_demote_toast_success": "Rolle als Instanz-Admin entzogen",
 	"members_edit_details_created_label": "Erstellt",
 	"members_edit_details_status_active": "Aktiv",
@@ -5231,7 +5248,7 @@
 	"members_edit_page_meta_title": "Bearbeiten",
 	"members_edit_page_title": "Mitglied bearbeiten",
 	"members_invitations_copy_link_toast_error": "Der Einladungslink wurde nicht kopiert. Kopieren Sie ihn erneut oder öffnen Sie die Einladung und kopieren Sie die Adresse von Hand.",
-	"members_invitations_copy_link_toast_loading": "Einladungslink wird kopiert...",
+	"members_invitations_copy_link_toast_loading": "Der Einladungslink wird kopiert...",
 	"members_invitations_copy_link_toast_success": "Einladungslink kopiert",
 	"members_invitations_empty_description": "Hier erscheinen die Einladungen Ihrer Organisation.",
 	"members_invitations_empty_title": "Noch keine Einladungen",
@@ -5265,25 +5282,25 @@
 	"users_promote_confirm_description": "Die Person kann dann alle Organisationen und Konten dieser Instanz verwalten, auch andere Instanz-Admins. Die Rolle gewährt nichts innerhalb einer Organisation. Sie erhält darüber eine E-Mail und muss, falls diese Instanz für Admins die Zwei-Faktor-Authentifizierung verlangt, diese einrichten, bevor sie weiterarbeiten kann.",
 	"users_promote_confirm_title": "Dieses Konto zum Instanz-Admin machen?",
 	"users_promote_confirm_title_named": "{name} zum Instanz-Admin machen?",
-	"users_promote_toast_error": "Das Konto konnte nicht zum Instanz-Admin gemacht werden",
-	"users_promote_toast_loading": "Konto wird zum Instanz-Admin gemacht...",
-	"users_promote_toast_success": "Das Konto ist jetzt Instanz-Admin",
+	"users_promote_toast_error": "Das Konto wurde nicht zum Instanz-Admin gemacht.",
+	"users_promote_toast_loading": "Das Konto wird zum Instanz-Admin gemacht...",
+	"users_promote_toast_success": "Konto zum Instanz-Admin gemacht",
 	"members_remove_from_organisation_action": "Aus der Organisation entfernen",
 	"users_reset_two_factor_confirm_button": "2FA zurücksetzen",
 	"users_reset_two_factor_confirm_description": "Damit werden Authenticator-App, Backup-Codes, Passkeys und vertrauenswürdige Geräte entfernt und die Person überall abgemeldet. Sie kann sich danach mit ihrem Passwort anmelden und die Zwei-Faktor-Authentifizierung neu einrichten. Sie erhält darüber eine E-Mail.",
 	"users_reset_two_factor_confirm_title": "Zwei-Faktor-Authentifizierung zurücksetzen?",
 	"users_reset_two_factor_confirm_title_named": "Zwei-Faktor-Authentifizierung für {name} zurücksetzen?",
-	"users_reset_two_factor_toast_error": "Zwei-Faktor-Authentifizierung konnte nicht zurückgesetzt werden",
-	"users_reset_two_factor_toast_loading": "Zwei-Faktor-Authentifizierung wird zurückgesetzt...",
+	"users_reset_two_factor_toast_error": "Die Zwei-Faktor-Authentifizierung wurde nicht zurückgesetzt.",
+	"users_reset_two_factor_toast_loading": "Die Zwei-Faktor-Authentifizierung wird zurückgesetzt...",
 	"users_reset_two_factor_toast_success": "Zwei-Faktor-Authentifizierung zurückgesetzt",
-	"users_set_active_organisation_toast_error": "Die aktive Organisation konnte nicht festgelegt werden",
-	"users_set_active_organisation_toast_loading": "Aktive Organisation wird festgelegt...",
+	"users_set_active_organisation_toast_error": "Die aktive Organisation wurde nicht festgelegt.",
+	"users_set_active_organisation_toast_loading": "Die aktive Organisation wird festgelegt...",
 	"users_set_active_organisation_toast_success": "Aktive Organisation festgelegt",
 	"members_table_bulk_remove_action": "Ausgewählte aus der Organisation entfernen",
 	"members_table_edit_action": "Mitglied bearbeiten",
 	"members_table_email_verified_column_header": "E-Mail bestätigt",
-	"users_unban_toast_error": "Die Sperre wurde nicht aufgehoben. Versuchen Sie es erneut.",
-	"users_unban_toast_loading": "Sperre wird aufgehoben...",
+	"users_unban_toast_error": "Die Sperre wurde nicht aufgehoben.",
+	"users_unban_toast_loading": "Die Sperre wird aufgehoben...",
 	"users_unban_toast_success": "Sperre aufgehoben",
 	"members_verification_not_verified": "Nicht bestätigt",
 	"members_verification_verified": "Bestätigt"

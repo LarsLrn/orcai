@@ -12,7 +12,7 @@
 	"access_grant_row_source_all_members": "All members",
 	"access_grant_row_source_direct_group": "Direct group",
 	"access_grant_row_source_direct_user": "Direct user",
-	"access_grant_toast_error": "Failed to update access",
+	"access_grant_toast_error": "Access was not updated.",
 	"access_grant_toast_loading": "Updating access...",
 	"access_grant_toast_success": "Access updated",
 	"access_inherited_ancestor_phrase": [
@@ -142,7 +142,7 @@
 	"access_revoke_confirm_button": "Revoke",
 	"access_revoke_confirm_description": "This principal will lose their direct access.",
 	"access_revoke_confirm_title": "Revoke access",
-	"access_revoke_toast_error": "Failed to revoke access",
+	"access_revoke_toast_error": "Access was not revoked.",
 	"access_revoke_toast_loading": "Revoking access...",
 	"access_revoke_toast_success": "Access revoked",
 	"access_role_editor_description": "View and edit",
@@ -157,7 +157,7 @@
 	"access_visibility_description_private": "Only the people and groups granted access can find and use it.",
 	"access_visibility_description_public": "Listed in the Catalogue: every user of this instance can preview it.",
 	"access_visibility_label": "Catalogue",
-	"access_visibility_toast_error": "Failed to update the listing",
+	"access_visibility_toast_error": "The listing was not updated.",
 	"access_visibility_toast_loading": "Updating the listing...",
 	"access_visibility_toast_private": "No longer listed in the Catalogue",
 	"access_visibility_toast_public": "Now listed in the Catalogue",
@@ -283,7 +283,7 @@
 	"catalogue_filter_status_label": "Status",
 	"catalogue_from_organisation": "From {organisation}",
 	"catalogue_organisation_page_link": "About {organisation}",
-	"catalogue_install_blocks_toast_error": "Could not add the blocks of {name}",
+	"catalogue_install_blocks_toast_error": "The blocks of {name} were not added.",
 	"catalogue_install_blocks_toast_loading": "Adding the blocks of {name}...",
 	"catalogue_install_blocks_toast_success": [
 		{
@@ -302,7 +302,7 @@
 			}
 		}
 	],
-	"catalogue_install_toast_error": "Could not add {name}",
+	"catalogue_install_toast_error": "{name} was not added.",
 	"catalogue_install_toast_loading": "Adding {name}...",
 	"catalogue_install_toast_success": "{name} is in {organisation} now",
 	"catalogue_install_toast_success_with_blocks": [
@@ -366,7 +366,7 @@
 	"catalogue_uninstall_confirm_button": "Remove",
 	"catalogue_uninstall_confirm_description": "Its sharing and model setup in {organisation} go with it, and chats with it there turn read-only. You can add it again from the Catalogue.",
 	"catalogue_uninstall_confirm_title": "Remove {name} from {organisation}?",
-	"catalogue_uninstall_toast_error": "Could not remove {name}",
+	"catalogue_uninstall_toast_error": "{name} was not removed.",
 	"catalogue_uninstall_toast_loading": "Removing {name}...",
 	"catalogue_uninstall_toast_success": "{name} is no longer in {organisation}",
 	"catalogue_view_discover": "Discover",
@@ -384,8 +384,8 @@
 	"catalogue_wizard_step_sharing": "Sharing",
 	"account_change_password_confirm_description": "Are you sure you want to change your password?",
 	"account_change_password_confirm_title": "Change password",
-	"account_change_password_toast_error": "Failed to change password",
-	"account_change_password_toast_loading": "Changing password...",
+	"account_change_password_toast_error": "The password was not changed.",
+	"account_change_password_toast_loading": "Changing the password...",
 	"account_change_password_toast_success": "Password changed",
 	"account_data_export_card_description": "A zip archive of your profile, memberships, chats with their messages, ratings, favourites, the bots, blocks and assets you own, and your uploaded files. We email you when it is ready, and you can download it for 24 hours.",
 	"account_data_export_card_title": "Export your data",
@@ -396,7 +396,7 @@
 	"account_data_export_download_button": "Download",
 	"account_data_export_request_again_button": "Export again",
 	"account_data_export_request_button": "Export my data",
-	"account_data_export_request_toast_error": "Could not start the export",
+	"account_data_export_request_toast_error": "The export was not started.",
 	"account_data_export_request_toast_loading": "Starting the export...",
 	"account_data_export_request_toast_success": "Export started",
 	"account_data_export_status_expired": "Your last export from {date} has expired.",
@@ -412,9 +412,9 @@
 	"account_password_card_title": "Change password",
 	"account_profile_card_description": "Adjust your profile information",
 	"account_profile_card_title": "Your profile",
-	"account_profile_toast_error": "Failed to update profile",
-	"account_profile_toast_loading": "Saving profile...",
-	"account_profile_toast_success": "Profile updated successfully!",
+	"account_profile_toast_error": "The profile was not updated.",
+	"account_profile_toast_loading": "Updating the profile...",
+	"account_profile_toast_success": "Profile updated",
 	"account_section_switcher_aria_label": "Account section",
 	"account_tab_data_label": "Data",
 	"account_tab_invitations_label": "Invitations",
@@ -464,6 +464,7 @@
 	"activity_show_older": "Show older",
 	"activity_show_all": "Show all",
 	"activity_dismiss_label": "Dismiss: {title}",
+	"activity_dismiss_toast_error": "The entry was not dismissed.",
 	"activity_run_upload_library_title": "Upload to Library",
 	"activity_run_upload_repository_title": "Upload to {repository}",
 	"activity_run_fill_metadata_title": "Generate missing metadata",
@@ -721,9 +722,9 @@
 	"assets_add_page_description": "Upload files. Each one becomes an asset right away; add the metadata that travels with it whenever you like.",
 	"assets_add_page_title": "Add assets",
 	"assets_add_to_library_action": "Add to Library",
-	"assets_add_to_library_toast_error": "The asset was not added to the Library. Try again.",
-	"assets_add_to_library_toast_loading": "Adding to the Library...",
-	"assets_add_to_library_toast_success": "Added to the Library",
+	"assets_add_to_library_toast_error": "The asset was not added to the Library.",
+	"assets_add_to_library_toast_loading": "Adding the asset to the Library...",
+	"assets_add_to_library_toast_success": "Asset added to the Library",
 	"assets_delete_action": "Delete asset",
 	"assets_edit_action": "Edit metadata",
 	"assets_reprocess_action": "Prepare again",
@@ -786,8 +787,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The asset was not deleted. Try again.",
-				"countPlural=other": "The assets were not deleted. Try again."
+				"countPlural=one": "The asset was not deleted.",
+				"countPlural=other": "The assets were not deleted."
 			}
 		}
 	],
@@ -816,7 +817,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} asset deleted",
+				"countPlural=one": "Asset deleted",
 				"countPlural=other": "{count} assets deleted"
 			}
 		}
@@ -839,14 +840,14 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "You can upload up to {count} file at once",
-				"countPlural=other": "You can upload up to {count} files at once"
+				"countPlural=one": "The files were not added. You can upload up to {count} file at once.",
+				"countPlural=other": "The files were not added. You can upload up to {count} files at once."
 			}
 		}
 	],
 	"assets_file_uploader_rejected_toast_error": "{name} was not accepted. Check the file type and size.",
 	"assets_file_uploader_remove_file_button": "Remove file",
-	"assets_file_uploader_single_file_toast_error": "Only one file can be uploaded at a time.",
+	"assets_file_uploader_single_file_toast_error": "The files were not added. You can upload one file at a time.",
 	"assets_file_viewer_error_description": "Reload the page to try again. A newly uploaded file may still be in preparation.",
 	"assets_file_viewer_error_title": "This asset could not be loaded",
 	"assets_file_viewer_image_error_description": "Check your connection and try again.",
@@ -902,7 +903,7 @@
 	"assets_metadata_backfill_confirm_button": "Generate",
 	"assets_metadata_backfill_confirm_description": "{count} Library assets you can edit have no generated metadata. The utility model fills their empty fields in the background and uses your organisation's quota.",
 	"assets_metadata_backfill_confirm_title": "Generate missing metadata?",
-	"assets_metadata_backfill_toast_error": "Metadata generation could not start",
+	"assets_metadata_backfill_toast_error": "Metadata generation was not started.",
 	"assets_metadata_backfill_toast_loading": "Starting metadata generation...",
 	"assets_metadata_backfill_toast_success": "Generating metadata for {count} assets",
 	"assets_metadata_chapter_title_label": "Chapter title",
@@ -911,14 +912,14 @@
 	"assets_metadata_citation_placeholder": "e.g. Schmidt 2023",
 	"assets_metadata_description_label": "Description",
 	"assets_metadata_description_placeholder": "Two or three sentences on what the asset is about",
-	"assets_metadata_dismiss_toast_error": "Suggestion not dismissed",
-	"assets_metadata_dismiss_toast_loading": "Dismissing suggestion...",
+	"assets_metadata_dismiss_toast_error": "The suggestion was not dismissed.",
+	"assets_metadata_dismiss_toast_loading": "Dismissing the suggestion...",
 	"assets_metadata_dismiss_toast_success": "Suggestion dismissed",
 	"assets_metadata_doi_label": "DOI",
 	"assets_metadata_external_url_label": "External URL",
 	"assets_metadata_failed_description": "Generating metadata failed: {reason}",
 	"assets_metadata_generate_button": "Generate with AI",
-	"assets_metadata_generate_toast_error": "Metadata generation could not start",
+	"assets_metadata_generate_toast_error": "Metadata generation was not started.",
 	"assets_metadata_generate_toast_loading": "Starting metadata generation...",
 	"assets_metadata_generate_toast_success": "Generating metadata",
 	"assets_metadata_generate_unready_hint": "Metadata can be generated once the file is prepared and in the Library.",
@@ -975,16 +976,31 @@
 	"assets_reprocess_confirm_button": "Yes, prepare it again",
 	"assets_reprocess_confirm_description": "This will rerun the asset's preparation and refresh vector data for any repositories that hold it.",
 	"assets_reprocess_confirm_title": "Prepare the asset again",
-	"assets_reprocess_toast_error": "Failed to prepare the asset again",
-	"assets_reprocess_toast_loading": "Preparing the asset again...",
+	"assets_reprocess_toast_error": "The asset was not queued for preparation.",
+	"assets_reprocess_toast_loading": "Queueing the asset for preparation...",
 	"assets_reprocess_toast_success": "Asset queued for preparation",
-	"assets_save_toast_error": "Failed to save asset",
-	"assets_save_toast_loading": "Saving asset...",
+	"assets_save_toast_error": "The asset was not saved.",
+	"assets_save_toast_loading": "Saving the asset...",
 	"assets_save_toast_success": "Asset saved",
 	"assets_selected_list_dialog_description": "Update how this asset should appear when cited by the AI.",
 	"assets_selected_list_dialog_title": "Edit metadata",
 	"assets_selected_list_metadata_button": "Metadata",
 	"assets_upload_description": "Select files and upload them. Progress appears below.",
+	"assets_upload_failures_more": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} more file was not uploaded.",
+				"countPlural=other": "{count} more files were not uploaded."
+			}
+		}
+	],
 	"assets_upload_no_files_error": "No files to upload.",
 	"assets_upload_progress_clear_button": "Clear",
 	"assets_upload_progress_completed_count": [
@@ -1024,8 +1040,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} file could not be uploaded. Try again.",
-				"countPlural=other": "{count} files could not be uploaded. Try again."
+				"countPlural=one": "{count} file was not uploaded.",
+				"countPlural=other": "{count} files were not uploaded."
 			}
 		}
 	],
@@ -1674,8 +1690,8 @@
 	"auth_forgot_password_page_description": "Enter your email address and we will send reset instructions if an account exists.",
 	"auth_forgot_password_page_signin_link": "Return to sign in",
 	"auth_forgot_password_page_title": "Reset your password",
-	"auth_forgot_password_toast_error": "Unable to request a password reset",
-	"auth_forgot_password_toast_loading": "Requesting password reset...",
+	"auth_forgot_password_toast_error": "The password reset email was not sent.",
+	"auth_forgot_password_toast_loading": "Requesting the password reset...",
 	"auth_forgot_password_toast_success": "If an account exists for that address, a password reset email has been sent.",
 	"auth_init_form_admin_email_label": "Admin email",
 	"auth_init_form_admin_name_label": "Admin name",
@@ -1694,9 +1710,9 @@
 	"auth_init_page_description": "Set up the first organisation and admin account for this deployment.",
 	"auth_init_page_footer": "This page is only available until the instance is initialised.",
 	"auth_init_page_title": "Initialise instance",
-	"auth_init_toast_error": "Initialisation failed",
-	"auth_init_toast_loading": "Initialising application...",
-	"auth_init_toast_success": "Initialisation completed successfully!",
+	"auth_init_toast_error": "The instance was not initialised.",
+	"auth_init_toast_loading": "Initialising the instance...",
+	"auth_init_toast_success": "Instance initialised",
 	"auth_layout_footer_after": ".",
 	"auth_layout_footer_before": "OrcAI is a fork of",
 	"auth_layout_footer_link": "SokratesT",
@@ -1716,8 +1732,8 @@
 	"auth_register_page_signin_link": "Sign in",
 	"auth_register_page_signin_prompt": "Already have an account?",
 	"auth_register_page_title": "Create your account",
-	"auth_resend_verification_toast_error": "Unable to resend verification email",
-	"auth_resend_verification_toast_loading": "Sending verification email...",
+	"auth_resend_verification_toast_error": "The verification email was not sent.",
+	"auth_resend_verification_toast_loading": "Sending the verification email...",
 	"auth_resend_verification_toast_success": "If an account exists for that address, a verification email has been sent.",
 	"auth_reset_password_form_confirm_password_label": "Confirm password",
 	"auth_reset_password_form_confirm_password_placeholder": "Confirm password",
@@ -1729,15 +1745,15 @@
 	"auth_reset_password_page_invalid_title": "Invalid reset link",
 	"auth_reset_password_page_request_link": "Request another link",
 	"auth_reset_password_page_title": "Choose a new password",
-	"auth_reset_password_toast_error": "The reset link is invalid or expired",
-	"auth_reset_password_toast_loading": "Resetting password...",
-	"auth_reset_password_toast_success": "Your password has been reset. You can now sign in.",
-	"auth_sign_out_toast_success": "Goodbye!",
+	"auth_reset_password_toast_error": "The password was not reset.",
+	"auth_reset_password_toast_loading": "Resetting the password...",
+	"auth_reset_password_toast_success": "Password reset",
+	"auth_sign_out_toast_success": "Signed out",
 	"auth_signin_form_submit_button": "Sign in",
 	"auth_signin_passkey_button": "Use a passkey",
-	"auth_signin_toast_error": "Sign-in failed",
+	"auth_signin_toast_error": "You were not signed in.",
 	"auth_signin_toast_loading": "Signing in...",
-	"auth_signin_toast_success": "Welcome back!",
+	"auth_signin_toast_success": "Signed in",
 	"auth_signin_toast_two_factor": "Enter your second factor",
 	"auth_signup_form_confirm_password_label": "Confirm password",
 	"auth_signup_form_invitation_code_label": "Invitation code",
@@ -1751,9 +1767,9 @@
 	"auth_signup_form_review_privacy_link": "Review privacy policy",
 	"auth_signup_form_review_terms_link": "Review terms of use",
 	"auth_signup_form_submit_button": "Create account",
-	"auth_signup_toast_error": "Account creation failed",
-	"auth_signup_toast_loading": "Creating your account...",
-	"auth_signup_toast_success": "Your account is ready.",
+	"auth_signup_toast_error": "The account was not created.",
+	"auth_signup_toast_loading": "Creating the account...",
+	"auth_signup_toast_success": "Account created",
 	"auth_verify_email_form_submit_button": "Resend verification email",
 	"auth_verify_email_page_description": "Use the verification link we sent before signing in. The message may take a few minutes to arrive.",
 	"auth_verify_email_page_signin_link": "Return to sign in",
@@ -1926,9 +1942,9 @@
 	"blocks_add_database_page_title": "Add repository",
 	"blocks_add_template_form_description": "Configure a reusable behaviour.",
 	"blocks_add_template_page_title": "Add behaviour",
-	"blocks_create_toast_error": "Failed to create block",
-	"blocks_create_toast_loading": "Creating block...",
-	"blocks_create_toast_success": "Block created successfully",
+	"blocks_create_toast_error": "The block was not created.",
+	"blocks_create_toast_loading": "Creating the block...",
+	"blocks_create_toast_success": "Block created",
 	"blocks_database_config_advanced_settings_label": "Advanced settings",
 	"blocks_database_config_assets_description": "These are the assets currently attached to this repository.",
 	"blocks_database_config_assets_title": "Assets ({count})",
@@ -2045,12 +2061,12 @@
 				"countPlural"
 			],
 			"match": {
-				"kind=repository, countPlural=one": "The repository was not deleted. Try again.",
-				"kind=repository, countPlural=other": "The repositories were not deleted. Try again.",
-				"kind=behaviour, countPlural=one": "The behaviour was not deleted. Try again.",
-				"kind=behaviour, countPlural=other": "The behaviours were not deleted. Try again.",
-				"kind=*, countPlural=one": "The block was not deleted. Try again.",
-				"kind=*, countPlural=other": "The blocks were not deleted. Try again."
+				"kind=repository, countPlural=one": "The repository was not deleted.",
+				"kind=repository, countPlural=other": "The repositories were not deleted.",
+				"kind=behaviour, countPlural=one": "The behaviour was not deleted.",
+				"kind=behaviour, countPlural=other": "The behaviours were not deleted.",
+				"kind=*, countPlural=one": "The block was not deleted.",
+				"kind=*, countPlural=other": "The blocks were not deleted."
 			}
 		}
 	],
@@ -2087,11 +2103,11 @@
 				"countPlural"
 			],
 			"match": {
-				"kind=repository, countPlural=one": "{count} repository deleted",
+				"kind=repository, countPlural=one": "Repository deleted",
 				"kind=repository, countPlural=other": "{count} repositories deleted",
-				"kind=behaviour, countPlural=one": "{count} behaviour deleted",
+				"kind=behaviour, countPlural=one": "Behaviour deleted",
 				"kind=behaviour, countPlural=other": "{count} behaviours deleted",
-				"kind=*, countPlural=one": "{count} block deleted",
+				"kind=*, countPlural=one": "Block deleted",
 				"kind=*, countPlural=other": "{count} blocks deleted"
 			}
 		}
@@ -2130,11 +2146,11 @@
 	"blocks_retrieval_mode_dense_label": "Dense",
 	"blocks_retrieval_mode_hybrid_label": "Hybrid",
 	"blocks_retrieval_mode_sparse_label": "Sparse",
-	"blocks_retry_document_toast_error": "Failed to retry the asset",
-	"blocks_retry_document_toast_loading": "Retrying asset...",
+	"blocks_retry_document_toast_error": "The asset was not queued again.",
+	"blocks_retry_document_toast_loading": "Queueing the asset again...",
 	"blocks_retry_document_toast_success": "Asset queued again",
-	"blocks_retry_failed_toast_error": "Failed to retry the failed assets",
-	"blocks_retry_failed_toast_loading": "Retrying failed assets...",
+	"blocks_retry_failed_toast_error": "The failed assets were not queued again.",
+	"blocks_retry_failed_toast_loading": "Queueing the failed assets again...",
 	"blocks_retry_failed_toast_success": [
 		{
 			"declarations": [
@@ -2159,10 +2175,10 @@
 	"blocks_selector_dialog_template_empty_state_title": "No behaviours found.",
 	"blocks_selector_dialog_template_search_placeholder": "Search behaviours...",
 	"blocks_selector_dialog_template_title": "Choose a behaviour",
-	"blocks_status_toast_error": "Failed to update block status",
-	"blocks_status_toast_loading": "Updating block status...",
+	"blocks_status_toast_error": "The status was not changed.",
+	"blocks_status_toast_loading": "Changing the status...",
 	"blocks_status_toast_success_draft": "Block moved to draft",
-	"blocks_status_toast_success_ready": "Block marked as published",
+	"blocks_status_toast_success_ready": "Block published",
 	"blocks_template_config_show_system_prompt_action": "Show full system prompt",
 	"blocks_template_config_system_prompt_empty_state_title": "No system prompt configured.",
 	"blocks_template_form_content_label": "Detailed description",
@@ -2192,9 +2208,9 @@
 	"blocks_tile_documents_failed": "{count} failed",
 	"blocks_tile_documents_preparing": "{count} preparing",
 	"blocks_tile_no_documents": "No assets yet",
-	"blocks_update_toast_error": "Failed to update block",
-	"blocks_update_toast_loading": "Updating block...",
-	"blocks_update_toast_success": "Block updated successfully",
+	"blocks_update_toast_error": "The block was not updated.",
+	"blocks_update_toast_loading": "Updating the block...",
+	"blocks_update_toast_success": "Block updated",
 	"bot_setup_authors_pick_preselected": "It is preselected.",
 	"bot_setup_authors_pick_recommended": "{author} tuned the bot for this model.",
 	"bot_setup_authors_pick_required": "{author} requires this model for the bot.",
@@ -2210,7 +2226,7 @@
 	"bot_setup_description": "Recommend or require a model and generation settings for the bot's chats in this organisation. Without one, people pick any available model.",
 	"bot_setup_remove_action": "Remove model",
 	"bot_setup_save_action": "Save model",
-	"bot_setup_save_toast_error": "The model could not be saved",
+	"bot_setup_save_toast_error": "The model was not saved.",
 	"bot_setup_save_toast_loading": "Saving the model...",
 	"bot_setup_save_toast_success": "Model saved",
 	"bot_setup_strength_label": "Strength",
@@ -2291,8 +2307,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The bot was not deleted. Try again.",
-				"countPlural=other": "The bots were not deleted. Try again."
+				"countPlural=one": "The bot was not deleted.",
+				"countPlural=other": "The bots were not deleted."
 			}
 		}
 	],
@@ -2321,7 +2337,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "1 bot deleted",
+				"countPlural=one": "Bot deleted",
 				"countPlural=other": "{count} bots deleted"
 			}
 		}
@@ -2349,13 +2365,14 @@
 	"bots_tile_model_tuned": "Tuned for {model}",
 	"bots_favourite_label": "Favourite",
 	"bots_favourite_toggle_label": "Favourite {name}",
+	"bots_favourite_toast_error": "Your favourites were not updated.",
 	"bots_favourites_group_label": "Favourites",
 	"bots_page_title": "Bots",
-	"bots_publish_toast_error": "Failed to publish bot",
-	"bots_publish_toast_loading": "Publishing bot...",
+	"bots_publish_toast_error": "The bot was not published.",
+	"bots_publish_toast_loading": "Publishing the bot...",
 	"bots_publish_toast_success": "Bot published",
-	"bots_save_toast_error": "Failed to save bot",
-	"bots_save_toast_loading": "Saving bot...",
+	"bots_save_toast_error": "The bot was not saved.",
+	"bots_save_toast_loading": "Saving the bot...",
 	"bots_save_toast_success": "Bot saved",
 	"bots_select_empty_state_title": "No bots available",
 	"bots_select_group_aria_label": "Available bots",
@@ -2427,8 +2444,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "You can only attach up to {count} file.",
-				"countPlural=other": "You can only attach up to {count} files."
+				"countPlural=one": "The files were not attached. You can attach up to {count} file.",
+				"countPlural=other": "The files were not attached. You can attach up to {count} files."
 			}
 		}
 	],
@@ -2442,8 +2459,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} attachment failed to upload.",
-				"countPlural=other": "{count} attachments failed to upload."
+				"countPlural=one": "{count} attachment was not uploaded.",
+				"countPlural=other": "{count} attachments were not uploaded."
 			}
 		}
 	],
@@ -2458,14 +2475,14 @@
 	"chat_bot_selector_no_bot_title": "No bot",
 	"chat_bot_selector_search_placeholder": "Search bots...",
 	"chat_bot_selector_trigger_placeholder": "Choose bot...",
-	"chat_branch_create_failed_toast_error": "The branch could not be created.",
+	"chat_branch_create_failed_toast_error": "The branch was not created.",
 	"chat_branch_label": "Branch",
 	"chat_branched_from_link": "Branched from {title}",
 	"chat_composer_aria_label": "Message",
-	"chat_composer_attachments_missing_toast_error": "No attachments were available to send. Please retry your upload.",
+	"chat_composer_attachments_missing_toast_error": "The message was not sent. Enter text or attach the files again.",
 	"chat_composer_attachments_only_message": "Sent with attachments",
 	"chat_composer_model_required_hint": "Select a model to start chatting.",
-	"chat_composer_model_required_toast_error": "Choose a model before sending a message.",
+	"chat_composer_model_required_toast_error": "The message was not sent. Choose a model first.",
 	"chat_composer_placeholder": "Ask a question",
 	"chat_composer_placeholder_bot_model": "Chatting opens once the bot's model is available",
 	"chat_composer_placeholder_no_model": "Chatting opens once a model is available",
@@ -2528,8 +2545,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The chat was not deleted. Try again.",
-				"countPlural=other": "The chats were not deleted. Try again."
+				"countPlural=one": "The chat was not deleted.",
+				"countPlural=other": "The chats were not deleted."
 			}
 		}
 	],
@@ -2558,13 +2575,13 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} chat deleted",
+				"countPlural=one": "Chat deleted",
 				"countPlural=other": "{count} chats deleted"
 			}
 		}
 	],
 	"chat_detail_page_title_fallback": "Chat",
-	"chat_download_failed_toast_error": "The chat could not be downloaded.",
+	"chat_download_failed_toast_error": "The chat was not downloaded.",
 	"chat_earlier_messages_failed": "Earlier messages could not be loaded.",
 	"chat_earlier_messages_loading": "Loading earlier messages...",
 	"chat_history_back_link": "Back to OrcAI",
@@ -2588,7 +2605,7 @@
 	"chat_history_page_title": "Chat history",
 	"chat_history_row_description": "{organisation} · {date}",
 	"chat_image_part_download_action": "Download image",
-	"chat_image_part_download_toast_error": "The image was not downloaded. Try again.",
+	"chat_image_part_download_toast_error": "The image was not downloaded.",
 	"chat_image_part_download_toast_success": "Image downloaded",
 	"chat_image_part_label": "Generated image",
 	"chat_list_bot_filter_label": "Bot",
@@ -2602,9 +2619,9 @@
 	"chat_message_copy_citation_with_page": "{title}, p. {page}",
 	"chat_message_copy_label": "Copy",
 	"chat_message_copy_response_tooltip": "Copy response",
-	"chat_message_copy_toast_error": "Failed to copy to clipboard",
-	"chat_message_copy_toast_loading": "Copying to clipboard...",
-	"chat_message_copy_toast_success": "Copied to clipboard!",
+	"chat_message_copy_toast_error": "The text was not copied.",
+	"chat_message_copy_toast_loading": "Copying the text...",
+	"chat_message_copy_toast_success": "Copied to clipboard",
 	"chat_message_copy_tooltip": "Copy message",
 	"chat_message_rate_action_label": "Rate response",
 	"chat_message_rate_option_a_bit": "A bit",
@@ -2612,9 +2629,9 @@
 	"chat_message_rate_option_not_really": "Not really",
 	"chat_message_rate_option_very_much": "Very much",
 	"chat_message_rate_prompt": "Was this response helpful for your learning?",
-	"chat_message_rate_toast_error": "Failed to rate",
-	"chat_message_rate_toast_loading": "Rating...",
-	"chat_message_rate_toast_success": "Thank you for your feedback!",
+	"chat_message_rate_toast_error": "The rating was not saved.",
+	"chat_message_rate_toast_loading": "Saving the rating...",
+	"chat_message_rate_toast_success": "Rating saved",
 	"chat_message_rate_tooltip": "Rate how helpful this response was",
 	"chat_message_history_trimmed": "Earlier messages were left out to fit the context window.",
 	"chat_message_context_limit_reached": "Stopped: the next step would not fit the context window. Send a message to continue.",
@@ -2637,8 +2654,8 @@
 	"chat_model_tuned_hint": "Tuned for {model}",
 	"chat_new_page_title": "New chat",
 	"chat_pending_message_failed_toast_error": "The message was not sent. Send it again.",
-	"chat_pin_toast_error": "The chat could not be pinned.",
-	"chat_pin_toast_loading": "Pinning chat...",
+	"chat_pin_toast_error": "The chat was not pinned.",
+	"chat_pin_toast_loading": "Pinning the chat...",
 	"chat_pin_toast_success": "Chat pinned",
 	"chat_pinned_label": "Pinned",
 	"chat_placeholder_bot_description_fallback": "Answers draw on this bot's sources and behaviour.",
@@ -2672,8 +2689,8 @@
 	"chat_settings_attached_blocks_label": "Attached blocks",
 	"chat_settings_behaviour_dialog_description": "Attach one reusable behaviour to this chat.",
 	"chat_settings_behaviour_dialog_title": "Add behaviour",
-	"chat_settings_block_attach_failed_toast_error": "The block was not attached. Try again.",
-	"chat_settings_block_detach_failed_toast_error": "The block was not detached. Try again.",
+	"chat_settings_block_attach_failed_toast_error": "The block was not attached.",
+	"chat_settings_block_detach_failed_toast_error": "The block was not detached.",
 	"chat_settings_blocks_bot_managed_notice": "Attached blocks are managed by the bot for bot-linked chats.",
 	"chat_settings_blocks_hint": "Behaviours set how answers are written. Repositories give the chat assets to retrieve from.",
 	"chat_settings_blocks_hint_behaviour_attached": "Only one behaviour can be attached. Remove \"{name}\" to attach another behaviour.",
@@ -2681,7 +2698,7 @@
 	"chat_settings_dialog_description": "Configure the model and parameters for this chat.",
 	"chat_settings_dialog_description_bot_linked": "This chat is linked to a bot. The system prompt is locked, but you can change the model and generation parameters.",
 	"chat_settings_dialog_title": "Chat settings",
-	"chat_settings_feature_update_failed_toast_error": "The feature was not updated. Try again.",
+	"chat_settings_feature_update_failed_toast_error": "The feature was not updated.",
 	"chat_settings_features_bot_managed_notice": "Features are managed by the bot for bot-linked chats.",
 	"chat_settings_frequency_penalty_label": "Frequency penalty",
 	"chat_settings_max_tokens_description": "This model writes at most {maxOutputTokens} tokens per reply.",
@@ -2719,12 +2736,12 @@
 	"chat_table_bulk_delete_action": "Delete selected",
 	"chat_table_date_column_header": "Date",
 	"chat_title_placeholder": "New chat",
-	"chat_unpin_toast_error": "The chat could not be unpinned.",
-	"chat_unpin_toast_loading": "Unpinning chat...",
+	"chat_unpin_toast_error": "The chat was not unpinned.",
+	"chat_unpin_toast_loading": "Unpinning the chat...",
 	"chat_unpin_toast_success": "Chat unpinned",
-	"chat_update_toast_error": "Failed to update chat",
-	"chat_update_toast_loading": "Updating chat...",
-	"chat_update_toast_success": "Chat updated successfully",
+	"chat_update_toast_error": "The chat was not updated.",
+	"chat_update_toast_loading": "Updating the chat...",
+	"chat_update_toast_success": "Chat updated",
 	"chat_usage_context_overflow_hint": "Earlier messages will be summarised",
 	"chat_usage_context_title": "Context window",
 	"chat_usage_context_tokens": "{tokens} tokens",
@@ -3409,8 +3426,8 @@
 	"generation_settings_provider_defaults": "Provider defaults",
 	"groups_create_dialog_description": "Create a custom organisation group for access management.",
 	"groups_create_dialog_title": "Create group",
-	"groups_create_toast_error": "The group was not created. Check the name and try again.",
-	"groups_create_toast_loading": "Creating group...",
+	"groups_create_toast_error": "The group was not created.",
+	"groups_create_toast_loading": "Creating the group...",
 	"groups_create_toast_success": "Group created",
 	"groups_delete_action": "Delete group",
 	"groups_delete_confirm_description": [
@@ -3454,8 +3471,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The group was not deleted. Try again.",
-				"countPlural=other": "The groups were not deleted. Try again."
+				"countPlural=one": "The group was not deleted.",
+				"countPlural=other": "The groups were not deleted."
 			}
 		}
 	],
@@ -3484,7 +3501,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} group deleted",
+				"countPlural=one": "Group deleted",
 				"countPlural=other": "{count} groups deleted"
 			}
 		}
@@ -3510,8 +3527,8 @@
 	"groups_member_table_source_column_header": "Membership",
 	"groups_members_add_heading": "Add members",
 	"groups_members_add_selected_action": "Add selected",
-	"groups_members_add_toast_error": "The members were not added. Try again.",
-	"groups_members_add_toast_loading": "Adding members...",
+	"groups_members_add_toast_error": "The members were not added.",
+	"groups_members_add_toast_loading": "Adding the members...",
 	"groups_members_add_toast_success": "Members added",
 	"groups_members_card_description_custom": "Manage explicit group membership.",
 	"groups_members_card_description_system": "All organisation members are included implicitly.",
@@ -3545,7 +3562,7 @@
 			}
 		}
 	],
-	"groups_members_remove_toast_error": "The member was not removed. Try again.",
+	"groups_members_remove_toast_error": "The member was not removed.",
 	"groups_members_remove_toast_loading": "Removing the member...",
 	"groups_members_remove_toast_success": "Member removed",
 	"groups_page_title": "Groups",
@@ -3555,13 +3572,13 @@
 	"groups_table_kind_column_header": "Type",
 	"groups_table_manage_action": "Manage group",
 	"groups_table_members_column_header": "Members",
-	"groups_update_toast_error": "The group was not updated. Try again.",
-	"groups_update_toast_loading": "Saving group...",
+	"groups_update_toast_error": "The group was not updated.",
+	"groups_update_toast_loading": "Updating the group...",
 	"groups_update_toast_success": "Group updated",
 	"header_breadcrumb_menu_label": "Show the breadcrumb trail",
 	"header_home_link_label": "Home",
 	"header_locale_switcher_label": "Language",
-	"header_locale_switcher_toast_error": "Failed to save language",
+	"header_locale_switcher_toast_error": "The language was not saved.",
 	"header_theme_switcher_label": "Toggle theme",
 	"home_about_link": "About OrcAI",
 	"home_chats_section_title": "Recent chats",
@@ -3773,12 +3790,12 @@
 	"images_picture_change_button": "Change picture",
 	"images_picture_dialog_title": "Profile picture",
 	"images_picture_remove_button": "Remove picture",
-	"images_remove_toast_error": "The image could not be removed.",
-	"images_remove_toast_loading": "Removing the image…",
-	"images_remove_toast_success": "Image removed.",
-	"images_save_toast_error": "The image could not be saved.",
-	"images_save_toast_loading": "Saving the image…",
-	"images_save_toast_success": "Image saved.",
+	"images_remove_toast_error": "The image was not removed.",
+	"images_remove_toast_loading": "Removing the image...",
+	"images_remove_toast_success": "Image removed",
+	"images_save_toast_error": "The image was not saved.",
+	"images_save_toast_loading": "Saving the image...",
+	"images_save_toast_success": "Image saved",
 	"instance_analytics_active_users_column_header": "Active people",
 	"instance_analytics_organization_column_header": "Organisation",
 	"instance_analytics_organizations_description": "Usage per organisation, including organisations without usage.",
@@ -3854,8 +3871,8 @@
 	"instance_health_test_email_status_dead": "Failed",
 	"instance_health_test_email_status_pending": "Waiting",
 	"instance_health_test_email_status_sent": "Sent",
-	"instance_health_test_email_toast_error": "The test email could not be queued.",
-	"instance_health_test_email_toast_loading": "Queueing test email...",
+	"instance_health_test_email_toast_error": "The test email was not queued.",
+	"instance_health_test_email_toast_loading": "Queueing the test email...",
 	"instance_health_test_email_toast_recent": "You already asked for a test email this minute. Check again to see its status.",
 	"instance_health_test_email_toast_success": "Test email queued for your address. Check again in a moment.",
 	"instance_health_unknown_value": "Unknown",
@@ -3867,26 +3884,26 @@
 	"instance_org_member_add_action": "Add member",
 	"instance_org_member_add_description": "Add an existing account with a role. Its owner does not get an email.",
 	"instance_org_member_add_title": "Add existing user",
-	"instance_org_member_add_toast_error": "The account could not be added.",
-	"instance_org_member_add_toast_loading": "Adding member...",
-	"instance_org_member_add_toast_success": "Member added.",
+	"instance_org_member_add_toast_error": "The member was not added.",
+	"instance_org_member_add_toast_loading": "Adding the member...",
+	"instance_org_member_add_toast_success": "Member added",
 	"instance_org_member_count": "{count} members",
 	"instance_org_member_invite_action": "Send invitation",
 	"instance_org_member_invite_description": "Invite someone by email with a role. Someone who is already a member keeps their role; change it in the list instead.",
 	"instance_org_member_invite_title": "Invite by email",
-	"instance_org_member_invite_toast_error": "The invitation could not be sent.",
-	"instance_org_member_invite_toast_loading": "Sending invitation...",
-	"instance_org_member_invite_toast_success": "Invitation sent.",
+	"instance_org_member_invite_toast_error": "The invitation was not sent.",
+	"instance_org_member_invite_toast_loading": "Sending the invitation...",
+	"instance_org_member_invite_toast_success": "Invitation sent",
 	"instance_org_member_leave_action": "Leave",
 	"instance_org_member_leave_confirm_title": "Leave this organisation?",
 	"instance_org_member_remove_confirm_description": "They lose access to the organisation and its shared bots, blocks and assets. The organisation keeps at least one admin.",
 	"instance_org_member_remove_confirm_title": "Remove {name}?",
-	"instance_org_member_remove_toast_error": "The member could not be removed.",
-	"instance_org_member_remove_toast_loading": "Removing member...",
-	"instance_org_member_remove_toast_success": "Member removed.",
-	"instance_org_member_role_toast_error": "The role could not be changed.",
-	"instance_org_member_role_toast_loading": "Changing role...",
-	"instance_org_member_role_toast_success": "Role changed.",
+	"instance_org_member_remove_toast_error": "The member was not removed.",
+	"instance_org_member_remove_toast_loading": "Removing the member...",
+	"instance_org_member_remove_toast_success": "Member removed",
+	"instance_org_member_role_toast_error": "The role was not changed.",
+	"instance_org_member_role_toast_loading": "Changing the role...",
+	"instance_org_member_role_toast_success": "Role changed",
 	"instance_org_members_description": "Change roles, remove members, or leave. The organisation always keeps one admin.",
 	"instance_org_members_empty_description": "Add an existing user or invite someone by email.",
 	"instance_org_members_empty_title": "No members",
@@ -3951,9 +3968,9 @@
 	"models_capability_text_label": "Text",
 	"models_capability_tool_calling_label": "Tool calling",
 	"models_capability_video_label": "Video",
-	"models_create_toast_error": "Failed to create model",
-	"models_create_toast_loading": "Creating model...",
-	"models_create_toast_success": "Model created successfully",
+	"models_create_toast_error": "The model was not created.",
+	"models_create_toast_loading": "Creating the model...",
+	"models_create_toast_success": "Model created",
 	"models_delete_confirm_button": [
 		{
 			"declarations": [
@@ -4010,8 +4027,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The model was not deleted. Try again.",
-				"countPlural=other": "The models were not deleted. Try again."
+				"countPlural=one": "The model was not deleted.",
+				"countPlural=other": "The models were not deleted."
 			}
 		}
 	],
@@ -4040,7 +4057,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "1 model deleted",
+				"countPlural=one": "Model deleted",
 				"countPlural=other": "{count} models deleted"
 			}
 		}
@@ -4153,9 +4170,9 @@
 	"models_table_delete_menu_item": "Delete model",
 	"models_table_edit_menu_item": "Edit model",
 	"models_table_view_menu_item": "View model",
-	"models_update_toast_error": "Failed to update model",
-	"models_update_toast_loading": "Updating model...",
-	"models_update_toast_success": "Model updated successfully",
+	"models_update_toast_error": "The model was not updated.",
+	"models_update_toast_loading": "Updating the model...",
+	"models_update_toast_success": "Model updated",
 	"multi_select_chip_description": "Press Backspace or Delete to remove",
 	"multi_select_empty_state": "No matches",
 	"multi_select_input_description": "{count} selected. From the start of the input, press Left Arrow to reach the selected items",
@@ -4180,7 +4197,7 @@
 	"orgs_form_web_search_provider_option": "Search provider: {name}",
 	"orgs_permission_view_analytics_label": "View analytics",
 	"passkey_add_button": "Add a passkey",
-	"passkey_add_toast_error": "Could not add the passkey",
+	"passkey_add_toast_error": "The passkey was not added.",
 	"passkey_add_toast_loading": "Adding the passkey...",
 	"passkey_add_toast_success": "Passkey added",
 	"passkey_added_at": "Added on {date}",
@@ -4190,7 +4207,7 @@
 	"passkey_delete_button": "Delete {name}",
 	"passkey_delete_confirm_description": "You can no longer sign in with this passkey. It may stay stored on your device.",
 	"passkey_delete_confirm_title": "Delete this passkey?",
-	"passkey_delete_toast_error": "Could not delete the passkey",
+	"passkey_delete_toast_error": "The passkey was not deleted.",
 	"passkey_delete_toast_loading": "Deleting the passkey...",
 	"passkey_delete_toast_success": "Passkey deleted",
 	"passkey_list_empty": "No passkeys yet.",
@@ -4336,11 +4353,11 @@
 	"tour_initial_start_chat_title": "Start a chat",
 	"tour_initial_welcome_content": "Let's take a quick tour through the app. Click \"Next\" to proceed.",
 	"tour_initial_welcome_title": "Welcome to OrcAI",
-	"tour_skip_toast_error": "The tour was not marked as skipped",
+	"tour_skip_toast_error": "The tour was not marked as skipped.",
 	"tour_skip_toast_error_description": "It may open again next time.",
-	"orgs_create_toast_error": "Failed to create organisation",
-	"orgs_create_toast_loading": "Creating organisation...",
-	"orgs_create_toast_success": "Organisation created successfully",
+	"orgs_create_toast_error": "The organisation was not created.",
+	"orgs_create_toast_loading": "Creating the organisation...",
+	"orgs_create_toast_success": "Organisation created",
 	"orgs_delete_dialog_description": "Everything counted below goes with it, and deletion is permanent.",
 	"orgs_delete_dialog_impact_groups": [
 		{
@@ -4408,7 +4425,7 @@
 	"orgs_delete_dialog_slug_label_unknown": "Type the slug to confirm",
 	"orgs_delete_dialog_title": "Delete this organisation?",
 	"orgs_delete_dialog_title_named": "Delete the {name} organisation?",
-	"orgs_delete_toast_error": "The organisation was not deleted. Try again.",
+	"orgs_delete_toast_error": "The organisation was not deleted.",
 	"orgs_delete_toast_loading": "Deleting the organisation...",
 	"orgs_delete_toast_success": "Organisation deleted",
 	"orgs_form_assistant_model_description": "The model the OrcAI Assistant answers with. Only models with tool calling, not deprecated, on an enabled provider are listed.",
@@ -4487,12 +4504,12 @@
 	"orgs_form_utility_model_unusable_provider_disabled": "The current model's provider is disabled, so titles use each chat's own model, images are not described and metadata is not generated.",
 	"orgs_form_utility_model_unusable_text_unsupported": "The current model does not generate text, so titles use each chat's own model, images are not described and metadata is not generated.",
 	"orgs_invitation_accept_button": "Accept",
-	"orgs_invitation_accept_toast_error": "Failed to accept invitation",
-	"orgs_invitation_accept_toast_loading": "Accepting invitation...",
+	"orgs_invitation_accept_toast_error": "The invitation was not accepted.",
+	"orgs_invitation_accept_toast_loading": "Accepting the invitation...",
 	"orgs_invitation_accept_toast_success": "Invitation accepted",
-	"orgs_invitation_create_toast_error": "Failed to create invitations",
-	"orgs_invitation_create_toast_loading": "Creating invitations...",
-	"orgs_invitation_create_toast_success": "Invitations created successfully",
+	"orgs_invitation_create_toast_error": "The invitations were not created.",
+	"orgs_invitation_create_toast_loading": "Creating the invitations...",
+	"orgs_invitation_create_toast_success": "Invitations created",
 	"orgs_invitation_delete_confirm_description": [
 		{
 			"declarations": [
@@ -4534,8 +4551,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The invitation was not deleted. Try again.",
-				"countPlural=other": "The invitations were not deleted. Try again."
+				"countPlural=one": "The invitation was not deleted.",
+				"countPlural=other": "The invitations were not deleted."
 			}
 		}
 	],
@@ -4564,7 +4581,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} invitation deleted",
+				"countPlural=one": "Invitation deleted",
 				"countPlural=other": "{count} invitations deleted"
 			}
 		}
@@ -4597,8 +4614,8 @@
 	"orgs_invitation_reject_confirm_button": "Reject invitation",
 	"orgs_invitation_reject_confirm_description": "You will not join the organisation. To join later, you need a new invitation.",
 	"orgs_invitation_reject_confirm_title": "Reject the invitation to {name}?",
-	"orgs_invitation_reject_toast_error": "Failed to reject invitation",
-	"orgs_invitation_reject_toast_loading": "Rejecting invitation...",
+	"orgs_invitation_reject_toast_error": "The invitation was not rejected.",
+	"orgs_invitation_reject_toast_loading": "Rejecting the invitation...",
 	"orgs_invitation_reject_toast_success": "Invitation rejected",
 	"orgs_invitation_status_accepted": "Accepted",
 	"orgs_invitation_status_expired": "Expired",
@@ -4665,8 +4682,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The member was not removed from the organisation. Try again.",
-				"countPlural=other": "The members were not removed from the organisation. Try again."
+				"countPlural=one": "The member was not removed from the organisation.",
+				"countPlural=other": "The members were not removed from the organisation."
 			}
 		}
 	],
@@ -4695,13 +4712,13 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} member removed from the organisation",
+				"countPlural=one": "Member removed from the organisation",
 				"countPlural=other": "{count} members removed from the organisation"
 			}
 		}
 	],
-	"orgs_member_update_toast_error": "Failed to update role",
-	"orgs_member_update_toast_loading": "Updating role...",
+	"orgs_member_update_toast_error": "The role was not updated.",
+	"orgs_member_update_toast_loading": "Updating the role...",
 	"orgs_member_update_toast_success": "Role updated",
 	"orgs_permission_create_asset_label": "Create assets",
 	"orgs_permission_create_block_label": "Create blocks",
@@ -4723,9 +4740,9 @@
 	"orgs_role_viewer_label": "Viewer",
 	"orgs_settings_page_description": "Name, slug, logo and description of the organisation you are working in.",
 	"orgs_settings_page_title": "Organisation",
-	"orgs_update_toast_error": "Failed to update organisation",
-	"orgs_update_toast_loading": "Updating organisation...",
-	"orgs_update_toast_success": "Organisation updated successfully",
+	"orgs_update_toast_error": "The organisation was not updated.",
+	"orgs_update_toast_loading": "Updating the organisation...",
+	"orgs_update_toast_success": "Organisation updated",
 	"processing_status_active_description": "Currently being prepared for search and citations.",
 	"processing_status_active_label": "Processing",
 	"processing_status_completed_description": "Ready to be used in search, retrieval, and citations.",
@@ -4733,9 +4750,9 @@
 	"processing_status_pending_description": "Waiting to be prepared for search and citations.",
 	"processing_status_pending_label": "Queued",
 	"providers_add_page_title": "Add provider",
-	"providers_create_toast_error": "Failed to create provider",
-	"providers_create_toast_loading": "Creating provider...",
-	"providers_create_toast_success": "Provider created successfully",
+	"providers_create_toast_error": "The provider was not created.",
+	"providers_create_toast_loading": "Creating the provider...",
+	"providers_create_toast_success": "Provider created",
 	"providers_delete_confirm_button": [
 		{
 			"declarations": [
@@ -4792,8 +4809,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The provider was not deleted. Try again.",
-				"countPlural=other": "The providers were not deleted. Try again."
+				"countPlural=one": "The provider was not deleted.",
+				"countPlural=other": "The providers were not deleted."
 			}
 		}
 	],
@@ -4822,7 +4839,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "1 provider deleted",
+				"countPlural=one": "Provider deleted",
 				"countPlural=other": "{count} providers deleted"
 			}
 		}
@@ -4905,19 +4922,19 @@
 	"providers_table_metering_column_header": "Metering",
 	"providers_table_updated_column_header": "Updated",
 	"providers_table_view_menu_item": "View provider",
-	"providers_update_toast_error": "Failed to update provider",
-	"providers_update_toast_loading": "Updating provider...",
-	"providers_update_toast_success": "Provider updated successfully",
+	"providers_update_toast_error": "The provider was not updated.",
+	"providers_update_toast_loading": "Updating the provider...",
+	"providers_update_toast_success": "Provider updated",
 	"quotas_add_page_title": "Add quota pool",
 	"quotas_consumption_progress_aria_label": "{percentage} per cent of the budget consumed",
-	"quotas_create_toast_error": "Failed to create quota pool",
-	"quotas_create_toast_loading": "Creating quota pool...",
+	"quotas_create_toast_error": "The quota pool was not created.",
+	"quotas_create_toast_loading": "Creating the quota pool...",
 	"quotas_create_toast_success": "Quota pool created",
 	"quotas_deactivate_confirm_button": "Deactivate pool",
 	"quotas_deactivate_confirm_description": "New chats on that provider are refused until another active pool covers them. Usage already in flight still finalises.",
 	"quotas_deactivate_confirm_title": "Deactivate the selected pool?",
 	"quotas_deactivate_confirm_title_named": "Deactivate the {name} pool?",
-	"quotas_deactivate_toast_error": "The pool was not deactivated. Try again.",
+	"quotas_deactivate_toast_error": "The pool was not deactivated.",
 	"quotas_deactivate_toast_loading": "Deactivating the pool...",
 	"quotas_deactivate_toast_success": "Pool deactivated",
 	"quotas_detail_actual_amount_column_header": "Actual amount",
@@ -5018,8 +5035,8 @@
 	"quotas_table_pool_column_header": "Pool",
 	"quotas_table_remaining_column_header": "Remaining",
 	"quotas_table_view_menu_item": "View pool",
-	"quotas_update_toast_error": "Failed to update quota pool",
-	"quotas_update_toast_loading": "Updating quota pool...",
+	"quotas_update_toast_error": "The quota pool was not updated.",
+	"quotas_update_toast_loading": "Updating the quota pool...",
 	"quotas_update_toast_success": "Quota pool updated",
 	"select_organisation_page_empty_description": "Accept an invitation above or contact your admin to get access.",
 	"select_organisation_page_empty_title": "No organisations available yet",
@@ -5062,12 +5079,12 @@
 	"state_pagination_previous_page_aria_label": "Go to previous page",
 	"two_factor_backup_code_label": "Backup code",
 	"two_factor_backup_codes_copy_button": "Copy",
-	"two_factor_backup_codes_copy_toast_error": "Could not copy the backup codes",
+	"two_factor_backup_codes_copy_toast_error": "The backup codes were not copied.",
 	"two_factor_backup_codes_copy_toast_success": "Backup codes copied",
 	"two_factor_backup_codes_description": "Keep these backup codes somewhere safe. Each one signs you in once if you cannot use your authenticator app. They are shown only now.",
 	"two_factor_backup_codes_download_button": "Download",
 	"two_factor_backup_codes_list_label": "Backup codes",
-	"two_factor_backup_codes_toast_error": "Could not create backup codes",
+	"two_factor_backup_codes_toast_error": "New backup codes were not created.",
 	"two_factor_backup_codes_toast_loading": "Creating new backup codes...",
 	"two_factor_backup_codes_toast_success": "New backup codes created",
 	"two_factor_card_disabled_description": "Off: signing in needs only your password.",
@@ -5077,18 +5094,18 @@
 	"two_factor_challenge_page_description": "Enter the code from your authenticator app.",
 	"two_factor_challenge_page_title": "Two-factor authentication",
 	"two_factor_challenge_submit_button": "Verify",
-	"two_factor_challenge_toast_error": "Sign-in failed",
+	"two_factor_challenge_toast_error": "You were not signed in.",
 	"two_factor_challenge_toast_loading": "Checking the code...",
 	"two_factor_code_label": "Authentication code",
-	"two_factor_confirm_toast_error": "Could not turn on two-factor authentication",
+	"two_factor_confirm_toast_error": "Two-factor authentication was not turned on.",
 	"two_factor_confirm_toast_loading": "Checking the code...",
 	"two_factor_confirm_toast_success": "Two-factor authentication is on",
 	"two_factor_disable_button": "Turn off",
-	"two_factor_disable_toast_error": "Could not turn off two-factor authentication",
+	"two_factor_disable_toast_error": "Two-factor authentication was not turned off.",
 	"two_factor_disable_toast_loading": "Turning off two-factor authentication...",
 	"two_factor_disable_toast_success": "Two-factor authentication is off",
 	"two_factor_enable_button": "Set up two-factor authentication",
-	"two_factor_enable_toast_error": "Could not start the setup",
+	"two_factor_enable_toast_error": "The setup was not started.",
 	"two_factor_enable_toast_loading": "Starting the setup...",
 	"two_factor_enable_toast_success": "Scan the QR code with your authenticator app",
 	"two_factor_enrolment_done_button": "Done",
@@ -5135,7 +5152,7 @@
 	"users_ban_confirm_description": "The person cannot sign in until the ban is lifted. Their memberships, bots, blocks and assets stay in place.",
 	"users_ban_confirm_title": "Ban this account?",
 	"users_ban_confirm_title_named": "Ban the account {name}?",
-	"users_ban_toast_error": "The account was not banned. Try again.",
+	"users_ban_toast_error": "The account was not banned.",
 	"users_ban_toast_loading": "Banning the account...",
 	"users_ban_toast_success": "Account banned",
 	"users_delete_confirm_description": [
@@ -5179,8 +5196,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The account was not deleted. Try again.",
-				"countPlural=other": "The accounts were not deleted. Try again."
+				"countPlural=one": "The account was not deleted.",
+				"countPlural=other": "The accounts were not deleted."
 			}
 		}
 	],
@@ -5209,7 +5226,7 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "{count} account deleted",
+				"countPlural=one": "Account deleted",
 				"countPlural=other": "{count} accounts deleted"
 			}
 		}
@@ -5218,7 +5235,7 @@
 	"users_demote_confirm_description": "They lose access to Manage instance. Their organisation memberships and roles stay as they are. They get an email about it.",
 	"users_demote_confirm_title": "Remove the instance admin role?",
 	"users_demote_confirm_title_named": "Remove the instance admin role from {name}?",
-	"users_demote_toast_error": "Could not remove the instance admin role",
+	"users_demote_toast_error": "The instance admin role was not removed.",
 	"users_demote_toast_loading": "Removing the instance admin role...",
 	"users_demote_toast_success": "Instance admin role removed",
 	"members_edit_details_created_label": "Created",
@@ -5231,7 +5248,7 @@
 	"members_edit_page_meta_title": "Edit",
 	"members_edit_page_title": "Edit member",
 	"members_invitations_copy_link_toast_error": "The invitation link was not copied. Copy it again, or open the invitation and copy the address by hand.",
-	"members_invitations_copy_link_toast_loading": "Copying invitation link...",
+	"members_invitations_copy_link_toast_loading": "Copying the invitation link...",
 	"members_invitations_copy_link_toast_success": "Invitation link copied",
 	"members_invitations_empty_description": "Invitations sent by your organisation appear here.",
 	"members_invitations_empty_title": "No invitations yet",
@@ -5265,24 +5282,24 @@
 	"users_promote_confirm_description": "They can then manage every organisation and account of this instance, including other instance admins. The role grants nothing inside an organisation. They get an email about it, and if this instance requires two-factor authentication for admins, they must set it up before they continue.",
 	"users_promote_confirm_title": "Make this account an instance admin?",
 	"users_promote_confirm_title_named": "Make {name} an instance admin?",
-	"users_promote_toast_error": "Could not make the account an instance admin",
+	"users_promote_toast_error": "The account was not made an instance admin.",
 	"users_promote_toast_loading": "Making the account an instance admin...",
-	"users_promote_toast_success": "Account is now an instance admin",
+	"users_promote_toast_success": "Account made an instance admin",
 	"members_remove_from_organisation_action": "Remove from organisation",
 	"users_reset_two_factor_confirm_button": "Reset 2FA",
 	"users_reset_two_factor_confirm_description": "This removes the authenticator app, backup codes, passkeys and trusted devices and signs the person out everywhere. They can then sign in with their password and set up two-factor authentication again. They get an email about it.",
 	"users_reset_two_factor_confirm_title": "Reset two-factor authentication?",
 	"users_reset_two_factor_confirm_title_named": "Reset two-factor authentication for {name}?",
-	"users_reset_two_factor_toast_error": "Could not reset two-factor authentication",
+	"users_reset_two_factor_toast_error": "Two-factor authentication was not reset.",
 	"users_reset_two_factor_toast_loading": "Resetting two-factor authentication...",
 	"users_reset_two_factor_toast_success": "Two-factor authentication reset",
-	"users_set_active_organisation_toast_error": "Failed to set active organisation",
-	"users_set_active_organisation_toast_loading": "Setting active organisation...",
+	"users_set_active_organisation_toast_error": "The active organisation was not set.",
+	"users_set_active_organisation_toast_loading": "Setting the active organisation...",
 	"users_set_active_organisation_toast_success": "Active organisation set",
 	"members_table_bulk_remove_action": "Remove selected from organisation",
 	"members_table_edit_action": "Edit member",
 	"members_table_email_verified_column_header": "Email verified",
-	"users_unban_toast_error": "The ban was not lifted. Try again.",
+	"users_unban_toast_error": "The ban was not lifted.",
 	"users_unban_toast_loading": "Lifting the ban...",
 	"users_unban_toast_success": "Ban lifted",
 	"members_verification_not_verified": "Not verified",

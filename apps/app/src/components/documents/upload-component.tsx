@@ -1,6 +1,7 @@
 import { ASSET_UPLOAD_ACCEPT } from "@orcai/s3/client";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { describeUploadFailures } from "@/components/documents/describe-upload-failures";
 import { FileUploader } from "@/components/documents/file-uploader";
 import { UploadProgress } from "@/components/documents/upload-progress";
 import {
@@ -15,6 +16,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { m } from "@/paraglide/messages";
 
 /** Compact drops the Card chrome and the title, for a message column. */
@@ -69,16 +71,22 @@ const UploadComponent = ({
 			loading: m.assets_upload_toast_loading({
 				count,
 			}),
-			success: ({ failures }) =>
-				failures.length === 0
-					? m.assets_upload_toast_success({
-							count,
-						})
-					: m.assets_upload_toast_error({
-							count: failures.length,
-						}),
-			error: m.assets_upload_toast_error({
-				count,
+			success: ({ failures }) => ({
+				message:
+					failures.length === 0
+						? m.assets_upload_toast_success({
+								count,
+							})
+						: m.assets_upload_toast_error({
+								count: failures.length,
+							}),
+				description: describeUploadFailures(failures),
+			}),
+			error: (error) => ({
+				message: m.assets_upload_toast_error({
+					count,
+				}),
+				description: reasonMessageOf(error),
 			}),
 		});
 		await outcome.then(onCreated, () => undefined);

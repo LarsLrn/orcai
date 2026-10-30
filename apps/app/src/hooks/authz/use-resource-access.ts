@@ -18,6 +18,7 @@ import {
 	useConfirm,
 } from "@/components/ui/dialog/confirm-dialog";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
@@ -209,9 +210,13 @@ export const useSetResourceListing = () => {
 					staleTime: 0,
 				}),
 			)
-			.catch(() => null);
+			.catch((error: unknown) => {
+				toast.error(m.access_visibility_toast_error(), {
+					description: reasonMessageOf(error),
+				});
+				return null;
+			});
 		if (!impact) {
-			toast.error(m.access_visibility_toast_error());
 			return;
 		}
 		const confirmOptions = listingConfirm(visibility, impact.data);

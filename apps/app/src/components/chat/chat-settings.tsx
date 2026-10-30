@@ -301,8 +301,10 @@ const ChatBlocksEditor = ({
 
 	const detachMutation = useMutation(
 		orpc.chatBlock.detach.mutationOptions({
-			onError: () => {
-				toast.error(m.chat_settings_block_detach_failed_toast_error());
+			onError: (error) => {
+				toast.error(m.chat_settings_block_detach_failed_toast_error(), {
+					description: reasonMessageOf(error),
+				});
 			},
 		}),
 	);
