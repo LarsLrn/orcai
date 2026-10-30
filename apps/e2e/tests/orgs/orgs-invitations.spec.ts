@@ -95,6 +95,48 @@ test("orgs: an admin invites an address through the form and the link reaches th
 	expect(created?.status).toBe("pending");
 });
 
+test("orgs: bulk add emails appends to the filled fields and skips duplicates", async ({
+	org,
+	pageAs,
+}) => {
+	const first = invitationEmail("bulk-first");
+	const second = invitationEmail("bulk-second");
+	const page = await pageAs("admin");
+
+	await enterApp(page, org.slug);
+	await openGuarded(
+		page,
+		"/app/members/add",
+		message("members_add_page_title"),
+	);
+
+	const field = (position: number) =>
+		page.getByLabel(
+			message("orgs_invitation_form_email_label", {
+				position,
+			}),
+		);
+	await field(1).fill(first);
+
+	await page
+		.getByRole("button", {
+			name: message("orgs_invitation_form_bulk_button"),
+		})
+		.click();
+	await page
+		.getByPlaceholder(message("orgs_invitation_form_bulk_placeholder"))
+		.fill(`${first.toUpperCase()}\n\n${second}\n${second}`);
+	await page
+		.getByRole("button", {
+			name: message("orgs_invitation_form_bulk_confirm_button"),
+		})
+		.click();
+
+	await expect(field(1)).toHaveValue(first);
+	await expect(field(2)).toHaveValue(second);
+	await expect(field(3)).toHaveCount(0);
+});
+
 test("orgs: an invited visitor registers from the link and joins with the invited role", async ({
 	api,
 	browser,

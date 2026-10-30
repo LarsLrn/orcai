@@ -32,6 +32,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { locales } from "@/paraglide/runtime";
+import { mergeBulkEmails } from "./merge-bulk-emails";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
@@ -72,18 +73,8 @@ const OrganizationInvitationForm = () => {
 	});
 
 	const handleBulkPaste = (textArea: HTMLTextAreaElement) => {
-		const rawEmails = textArea.value as string;
-
-		const emails = rawEmails
-			.split("\n")
-			.map((email) => email.trim())
-			.filter((email) => email.length > 0);
-
-		form.setFieldValue(
-			"items",
-			emails.map((email) => ({
-				email,
-			})),
+		form.setFieldValue("items", (rows) =>
+			mergeBulkEmails(rows, textArea.value),
 		);
 	};
 
