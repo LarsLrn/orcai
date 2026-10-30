@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import {
+	type AssetId,
+	type BlockId,
+	type BotId,
 	buckets,
+	type ChatId,
 	type ChatMessageId,
+	type MemberId,
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
@@ -219,6 +224,153 @@ const archiveOf = (userId: UserId, dataExport: DataExport) =>
 const jsonEntry = (archive: Record<string, string>, name: string) =>
 	JSON.parse(archive[name] ?? "null");
 
+const EARLY = new Date("2026-01-01T00:00:00Z");
+const TIED = new Date("2026-01-02T00:00:00Z");
+const LATE = new Date("2026-01-03T00:00:00Z");
+
+/**
+ * Rows in insert order: two that tie on creation time and are written in
+ * reverse id order, an earlier one with the highest id and a later one with the
+ * lowest, so neither insert order nor id alone gives the export order.
+ */
+const ORDERED = [
+	{
+		rank: 2,
+		createdAt: TIED,
+		role: "manager",
+	},
+	{
+		rank: 1,
+		createdAt: TIED,
+		role: "admin",
+	},
+	{
+		rank: 3,
+		createdAt: EARLY,
+		role: "viewer",
+	},
+	{
+		rank: 0,
+		createdAt: LATE,
+		role: "member",
+	},
+] as const;
+
+/** An id whose sort position is its rank, unique per call. */
+const rankedId = <Id extends string>(rank: number) =>
+	`${rank.toString(16)}${crypto.randomUUID().slice(1)}` as Id;
+
+const ordered = <Row>(rows: Row[]) =>
+	[
+		2,
+		1,
+		0,
+		3,
+	].map((index) => rows[index] as Row);
+
+/** Four rows of every exported list, ordered by creation time and then by id. */
+const seedOrdered = (userId: UserId, organizationId: OrganizationId) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const withIds = <Id extends string>() =>
+				ORDERED.map((row, index) => ({
+					...row,
+					index,
+					id: rankedId<Id>(row.rank),
+				}));
+			const members = withIds<MemberId>();
+			yield* db.insert(dbSchema.member).values(
+				members.map((row) => ({
+					id: row.id,
+					organizationId,
+					userId,
+					role: row.role,
+					createdAt: row.createdAt,
+				})),
+			);
+			const bots = withIds<BotId>();
+			yield* db.insert(dbSchema.bot).values(
+				bots.map((row) => ({
+					id: row.id,
+					name: `Bot ${row.index}`,
+					description: "",
+					contentHtml: "",
+					userId,
+					createdAt: row.createdAt,
+				})),
+			);
+			yield* db.insert(dbSchema.botFavourite).values(
+				bots.map((row) => ({
+					userId,
+					botId: row.id,
+					createdAt: row.createdAt,
+				})),
+			);
+			const blocks = withIds<BlockId>();
+			yield* db.insert(dbSchema.block).values(
+				blocks.map((row) => ({
+					id: row.id,
+					type: "template" as const,
+					name: `Block ${row.index}`,
+					config: {},
+					userId,
+					createdAt: row.createdAt,
+				})),
+			);
+			const chats = withIds<ChatId>();
+			yield* db.insert(dbSchema.chat).values(
+				chats.map((row) => ({
+					id: row.id,
+					title: `Chat ${row.index}`,
+					userId,
+					organizationId,
+					createdAt: row.createdAt,
+				})),
+			);
+			const messages = withIds<ChatMessageId>();
+			yield* db.insert(dbSchema.chatMessage).values(
+				messages.map((row) => ({
+					id: row.id,
+					chatId: chats[0]?.id as ChatId,
+					role: "user" as const,
+					parts: [],
+					attachments: [],
+					metadata: {},
+					position: row.index,
+				})),
+			);
+			yield* db.insert(dbSchema.chatMessageRating).values(
+				messages.map((row) => ({
+					messageId: row.id,
+					userId,
+					rating: "very_much" as const,
+					createdAt: row.createdAt,
+				})),
+			);
+			const assets = withIds<AssetId>();
+			yield* db.insert(dbSchema.asset).values(
+				assets.map((row) => ({
+					id: row.id,
+					bucket: buckets.main.name,
+					prefix: `users/${userId}/asset/2026/10`,
+					title: `Asset ${row.index}`,
+					fileType: "txt" as const,
+					size: 1,
+					userId,
+					createdAt: row.createdAt,
+				})),
+			);
+			return {
+				bots,
+				blocks,
+				chats,
+				messages,
+				assets,
+			};
+		}),
+	);
+
 describe("data export", () => {
 	test(
 		"builds an archive of the user's data and emails them when it is ready",
@@ -301,10 +453,12 @@ describe("data export", () => {
 				jsonEntry(archive, "assets.json").map(
 					(asset: { id: string }) => asset.id,
 				),
-			).toEqual([
-				seeded.notes.id,
-				seeded.missing.id,
-			]);
+			).toEqual(
+				[
+					seeded.notes.id,
+					seeded.missing.id,
+				].sort(),
+			);
 
 			const chat = jsonEntry(archive, `${chatName}.json`);
 			expect(chat.title).toBe("Soil: samples?");
@@ -350,6 +504,58 @@ describe("data export", () => {
 			expect(
 				await run(downloadableDataExport(other.user.id, requested.id)),
 			).toBeUndefined();
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"orders every list by creation time and then by id",
+		async () => {
+			const {
+				actors: [owner],
+				organizationId,
+			} = await organizationWith([
+				"member",
+			]);
+			const userId = owner.user.id;
+			const seeded = await seedOrdered(userId, organizationId);
+
+			const requested = await requestExport(owner);
+			await run(runDataExport(requested.id, transcriptMarkdown));
+			const archive = await archiveOf(userId, requested);
+
+			const idsOf = (
+				rows: {
+					id: string;
+				}[],
+			) => ordered(rows).map((row) => row.id);
+			const entryIds = (name: string, key: string) =>
+				jsonEntry(archive, name).map((row: Record<string, string>) => row[key]);
+			expect(
+				jsonEntry(archive, "profile.json").memberships.map(
+					(membership: { role: string }) => membership.role,
+				),
+			).toEqual([
+				"viewer",
+				"admin",
+				"manager",
+				"member",
+				"member",
+			]);
+			expect(entryIds("ratings.json", "messageId")).toEqual(
+				idsOf(seeded.messages),
+			);
+			expect(entryIds("favourites.json", "botId")).toEqual(idsOf(seeded.bots));
+			expect(entryIds("bots.json", "id")).toEqual(idsOf(seeded.bots));
+			expect(entryIds("blocks.json", "id")).toEqual(idsOf(seeded.blocks));
+			expect(entryIds("assets.json", "id")).toEqual(idsOf(seeded.assets));
+			expect(
+				Object.keys(archive).filter((name) => /^chats\/.*\.json$/.test(name)),
+			).toEqual(
+				ordered(seeded.chats).map(
+					(chat) => `chats/Chat ${chat.index} (${chat.id.slice(0, 8)}).json`,
+				),
+			);
 		},
 		TIMEOUT,
 	);
