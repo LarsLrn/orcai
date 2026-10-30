@@ -15,12 +15,9 @@ const checkItem = (page: Page, title: string) =>
 		name: message(title),
 	});
 
+// The label has a singular variant, so match its plural words.
 const failingBadge = (page: Page, count: number) =>
-	page.getByLabel(
-		message("home_manage_tab_failing_badge_label", {
-			count,
-		}),
-	);
+	page.getByLabel(`${count} checklist steps left`);
 
 test("home: a fresh organisation's admin works through the setup checklist on Manage", async ({
 	api,

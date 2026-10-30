@@ -3666,7 +3666,21 @@
 	"home_library_repositories_meta": "Searchable assets that ground answers",
 	"home_manage_create_bot_action": "Create a bot",
 	"home_manage_description": "What this organisation has, what it is spending, and what changed.",
-	"home_manage_tab_failing_badge_label": "{count} checklist steps left",
+	"home_manage_tab_failing_badge_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} checklist step left",
+				"countPlural=other": "{count} checklist steps left"
+			}
+		}
+	],
 	"home_people_groups_label": "Groups",
 	"home_people_groups_meta": "Sets of members who get access together",
 	"home_people_invitations_label": "Pending invitations",
@@ -3803,7 +3817,21 @@
 	"instance_analytics_page_description": "Usage of every organisation on this instance, as metered.",
 	"instance_analytics_page_title": "Analytics",
 	"check_reason_config_ok": "No deployment warnings.",
-	"check_reason_config_warnings": "{count} deployment warnings. Check the environment variables named below.",
+	"check_reason_config_warnings": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} deployment warning. Check the environment variables named below.",
+				"countPlural=other": "{count} deployment warnings. Check the environment variables named below."
+			}
+		}
+	],
 	"check_reason_dependency_degraded": "Reachable, but not ready for use.",
 	"check_reason_dependency_reachable": "Reachable.",
 	"check_reason_dependency_timeout": "Did not answer in time.",

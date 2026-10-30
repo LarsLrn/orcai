@@ -3666,7 +3666,21 @@
 	"home_library_repositories_meta": "Durchsuchbare Assets, die Antworten fundieren",
 	"home_manage_create_bot_action": "Bot erstellen",
 	"home_manage_description": "Was diese Organisation hat, was sie ausgibt und was sich geändert hat.",
-	"home_manage_tab_failing_badge_label": "Noch {count} Einrichtungsschritte",
+	"home_manage_tab_failing_badge_label": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Noch {count} Einrichtungsschritt",
+				"countPlural=other": "Noch {count} Einrichtungsschritte"
+			}
+		}
+	],
 	"home_people_groups_label": "Gruppen",
 	"home_people_groups_meta": "Mitglieder, die gemeinsam Zugriff erhalten",
 	"home_people_invitations_label": "Ausstehende Einladungen",
@@ -3803,7 +3817,21 @@
 	"instance_analytics_page_description": "Nutzung aller Organisationen dieser Instanz, wie gemessen.",
 	"instance_analytics_page_title": "Analysen",
 	"check_reason_config_ok": "Keine Hinweise zur Bereitstellung.",
-	"check_reason_config_warnings": "{count} Hinweise zur Bereitstellung. Prüfen Sie die unten genannten Umgebungsvariablen.",
+	"check_reason_config_warnings": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Hinweis zur Bereitstellung. Prüfen Sie die unten genannten Umgebungsvariablen.",
+				"countPlural=other": "{count} Hinweise zur Bereitstellung. Prüfen Sie die unten genannten Umgebungsvariablen."
+			}
+		}
+	],
 	"check_reason_dependency_degraded": "Erreichbar, aber nicht einsatzbereit.",
 	"check_reason_dependency_reachable": "Erreichbar.",
 	"check_reason_dependency_timeout": "Hat nicht rechtzeitig geantwortet.",

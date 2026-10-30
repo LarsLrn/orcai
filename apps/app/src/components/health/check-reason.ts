@@ -25,7 +25,7 @@ const reasonMessages: Record<CheckReason, (check: Check) => string> = {
 	CONFIG_OK: () => m.check_reason_config_ok(),
 	CONFIG_WARNINGS: (check) =>
 		m.check_reason_config_warnings({
-			count: formatCount(count(check)),
+			count: count(check),
 		}),
 	PROVIDER_READY: () => m.check_reason_provider_ready(),
 	PROVIDER_MISSING: () => m.check_reason_provider_missing(),
