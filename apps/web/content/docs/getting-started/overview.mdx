@@ -1,15 +1,15 @@
 ---
-title: Platform Overview
+title: Platform overview
 description: What OrcAI is, who it is for, how retrieval-backed chat works, and the main areas of the app with their paths.
 ---
 
-OrcAI is a self-hostable platform for governed, retrieval-backed AI bots. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate sources and students interact with a grounded AI tutor. OrcAI has since moved beyond a fixed instructor–student model: individuals and groups can build specialised repositories and bots for their own domains.
+OrcAI is a self-hostable platform for governed, retrieval-backed AI bots. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate sources and students interact with a grounded AI tutor. Beyond that fixed instructor-student model, individuals and groups can build specialised repositories and bots for their own domains.
 
 <Callout title="Documentation status" type="info">
 	The project is still in active development. Treat the current documentation as an implementation-oriented headstart rather than a complete product manual.
 </Callout>
 
-## What OrcAI Does
+## What OrcAI does
 
 OrcAI combines asset preparation, semantic search, and chat:
 
@@ -20,31 +20,31 @@ OrcAI combines asset preparation, semantic search, and chat:
 5. Users chat with bots or a model.
 6. Relevant context is retrieved and sent to the configured AI model endpoint.
 
-## Core Areas
+## Core areas
 
 - Home (`/app`): the start page after sign-in, with a Use tab (`/app?view=use`) for asking questions and a Manage tab (`/app/manage`) with an overview of the organisation and, for admins, its readiness checklist.
 - Chat (`/app/chat`): AI chats, optionally started from a bot.
 - Library (`/app/library`): everything the organisation can use, browsed by kind (Bots, Behaviours, Repositories and Assets) from one rail, with search, filters and a Mine switch. It is one item in the sidebar.
-- Catalogue (`/app/catalogue`): the bots, behaviours and repositories organisations on the instance list, to preview and add to your organisation. It is the sidebar item after Library.
+- Catalogue (`/app/catalogue`): the bots, behaviours and repositories that organisations on this instance have listed, to preview and add to your organisation. It is the sidebar item after Library.
 - OrcAI Assistant (`/app/assistant`): the built-in helper for questions about your work and about OrcAI.
 - Access control: organisations, roles, groups, invitations and sharing.
 - Administration: Members, Groups, Quota pools, Analytics, Providers, Models and Organisation for the active organisation, shown to members whose role allows them.
 - Instance management (`/instance`): health, organisations and accounts across the whole instance, for instance admins.
 
-## Suggested Reading
+## Suggested reading
 
 <Cards>
 	<Card href="/docs/using-orcai/chat" title="Start with chat">
-		Learn the primary end-user workflow: starting chats, choosing bots, and attaching sources.
+		Start chats, choose bots and attach sources.
 	</Card>
 	<Card href="/docs/using-orcai/organisation-setup" title="Set up an organisation">
-		Use the admin checklist to prepare providers, models, quota pools, assets, bots, and members.
+		Prepare providers, models, quota pools, assets, bots and members.
 	</Card>
 	<Card href="/docs/self-hosting/quickstart-compose" title="Run it locally">
 		Start a local Compose stack and see which services OrcAI needs.
 	</Card>
 </Cards>
 
-## Getting Access
+## Getting access
 
-Access to the managed service of OrcAI is currently only available via direct invites from users already on the instance. If you want to create your own organisation to invite users yourself, contact us at [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de)
+The managed OrcAI service is open only by invitation from someone already on the instance. To create your own organisation and invite people yourself, contact us at [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de).

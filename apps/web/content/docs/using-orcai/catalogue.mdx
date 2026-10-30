@@ -6,13 +6,13 @@ description: Browsing what organisations on the instance list (bots, behaviours 
 The Catalogue (`/app/catalogue`) shows the bots, behaviours and repositories
 that organisations on this instance list. Everyone signed in can browse it and
 open an entry's page. Using an entry needs your organisation to add it and to
-share it with you. Listing and what it shares are described under
-[Access Control](/docs/using-orcai/access-control#the-catalogue).
+share it with you. [Access control](/docs/using-orcai/access-control#the-catalogue)
+describes listing and what it shares.
 
 ## Browsing
 
-The Catalogue has the Library's layout. Its header has a search field; a rail
-on the left (above the results on small screens) has:
+The Catalogue has the Library's layout. Its header has a search field, and a
+rail on the left (above the results on small screens) has these parts:
 
 - The views: **Discover**, and one per kind (Bots, Behaviours, Repositories)
   with its count.
@@ -27,7 +27,7 @@ on the left (above the results on small screens) has:
 
 **Discover** shows the newest entries, then a shelf per kind with **See all**.
 While there are fewer than six entries it shows them in one grid. A search from
-Discover covers every kind; on a kind view it covers that kind. Results sort
+Discover covers every kind, and on a kind view it covers that kind. Results sort
 by **Newest** or **A to Z** and page like the Library. Search, filters, sort
 and page are part of the address, so going back from an entry's page returns
 to the same results at the same scroll position.
@@ -40,7 +40,7 @@ A check on the icon marks what your organisation already added. The
 organisation's name opens its page, and while the **Organisation** filter is
 set, a link above the results leads to each chosen organisation's page.
 
-## An Entry's Page
+## An entry's page
 
 Opening a tile shows the entry's page: its organisation and owner, its
 description, and what you need to judge it before adding it.
@@ -52,57 +52,58 @@ description, and what you need to judge it before adding it.
 
 Admins and managers see **Add to …** for your active organisation. Other
 members are told to ask them. An entry your organisation added shows
-**Added to …** and **Open in Library**; one it made itself shows **Open in
-Library**.
+**Added to …** and **Open in Library**. One it made itself shows
+**Open in Library**.
 
-## An Organisation's Page
+## An organisation's page
 
 Every organisation on the instance has a page (`/app/organizations/<id>`) that
-everyone signed in can open: from an entry's organisation in the Catalogue or
-the Library ("From …"), from the organisation picker, and from the
+everyone signed in can open from an entry's organisation in the Catalogue or
+the Library ("From …"), from the organisation picker and from the
 **Organisation** filter. It shows the organisation's logo, name and
 description, and how many bots, behaviours and repositories it lists in the
-Catalogue; each count opens the Catalogue's view of that kind filtered to the
+Catalogue, and each count opens the Catalogue's view of that kind filtered to the
 organisation. It shows no members. Its admins see **Edit**, which
 opens the [Organisation settings](/docs/using-orcai/administration#organisation)
 where the description is written, switching to that organisation first when
 another one is active.
 
-## Adding An Entry
+## Adding an entry
 
 **Add to …** adds the entry to your organisation and opens its steps.
 
 A bot's page offers **Also add its behaviour and … repositories to …** under
 its contents, unticked at first, for the blocks your organisation has not
-added yet; those it has are marked **Added to …**. Ticked, **Add to …** adds
+added yet. Those it already added are marked **Added to …**. Ticked, **Add to …** adds
 them with the bot, so your organisation can build its own bots from them. Each
-stands on its own in the Library: removing the bot later keeps them. They are
-added unshared; share them from their pages in the Library. For a bot added
+stands on its own in the Library, and removing the bot later keeps them. They
+are added unshared, so share them from their pages in the Library. For a bot added
 without them, its page in the Catalogue and the **…** menu of its page in the
 Library offer **Add its behaviour and … repositories to …** while some are
 not added yet.
 
-The steps:
+**Add to …** leads through these steps:
 
 1. **Sharing**: who in your organisation may use it. Nobody can until you
-   share it. Grants here are always for use: your organisation cannot edit,
+   share it. Grants here are always for use, so your organisation cannot edit,
    list or delete what it added.
 2. **Model** (bots only): the model the bot's chats use in your organisation,
    recommended or required, with the same settings and coverage as the bot
    editor's Model step. When the author set up a model that your organisation
-   also has and may use, it is preselected as the **Author's pick**; otherwise
+   also has and may use, it is preselected as the **Author's pick: …**. Otherwise
    pick another model or ask an admin to enable it. **Skip** leaves people
    free to pick any model.
 3. **Done**: start a chat with the bot (once it is shared with you), open it
    in the Library, or go back to the Catalogue.
 
-Leaving the steps early keeps the entry added but unshared; finish it later
-from the entry's **Access & groups** and, for a bot, its **Model in …** card in
-the Library. The entry then appears in your Library marked "From" its home
-organisation, and the **Origin** filter there separates it from what your
-organisation made. **Remove from …** in its **…** menu takes it out again.
-Changes its home organisation makes reach you right away, and taking it out
-of the Catalogue removes it from every organisation that added it.
+Leaving the steps early keeps the entry added and keeps any sharing or model
+settings you saved. Finish the rest later from the entry's **Access & groups**
+and, for a bot, its **Model in …** card in the Library. The entry then appears
+in your Library marked "From" its home organisation, and the **Origin** filter
+there separates it from what your organisation made. **Remove from …** in its
+**…** menu takes it out again. Changes its home organisation makes reach you
+right away, and taking it out of the Catalogue removes it from every
+organisation that added it.
 
 The [OrcAI Assistant](/docs/using-orcai/assistant) can search the Catalogue
 and, for admins and managers, add and remove entries after you confirm,
