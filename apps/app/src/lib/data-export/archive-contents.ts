@@ -76,7 +76,7 @@ const writeAccount = (userId: UserId, writer: ZipArchiveWriter) =>
 				eq(dbSchema.organization.id, dbSchema.member.organizationId),
 			)
 			.where(eq(dbSchema.member.userId, userId))
-			.orderBy(asc(dbSchema.member.createdAt));
+			.orderBy(asc(dbSchema.member.createdAt), asc(dbSchema.member.id));
 		const avatar = user?.image ? yield* writeAvatar(user.image, writer) : null;
 		yield* writer.addText(
 			"profile.json",
@@ -101,7 +101,10 @@ const writeAccount = (userId: UserId, writer: ZipArchiveWriter) =>
 				eq(dbSchema.chatMessage.id, dbSchema.chatMessageRating.messageId),
 			)
 			.where(eq(dbSchema.chatMessageRating.userId, userId))
-			.orderBy(asc(dbSchema.chatMessageRating.createdAt));
+			.orderBy(
+				asc(dbSchema.chatMessageRating.createdAt),
+				asc(dbSchema.chatMessageRating.messageId),
+			);
 		yield* writer.addText("ratings.json", json(ratings));
 
 		const favourites = yield* db
@@ -113,21 +116,24 @@ const writeAccount = (userId: UserId, writer: ZipArchiveWriter) =>
 			.from(dbSchema.botFavourite)
 			.innerJoin(dbSchema.bot, eq(dbSchema.bot.id, dbSchema.botFavourite.botId))
 			.where(eq(dbSchema.botFavourite.userId, userId))
-			.orderBy(asc(dbSchema.botFavourite.createdAt));
+			.orderBy(
+				asc(dbSchema.botFavourite.createdAt),
+				asc(dbSchema.botFavourite.botId),
+			);
 		yield* writer.addText("favourites.json", json(favourites));
 
 		const bots = yield* db
 			.select()
 			.from(dbSchema.bot)
 			.where(eq(dbSchema.bot.userId, userId))
-			.orderBy(asc(dbSchema.bot.createdAt));
+			.orderBy(asc(dbSchema.bot.createdAt), asc(dbSchema.bot.id));
 		yield* writer.addText("bots.json", json(bots));
 
 		const blocks = yield* db
 			.select()
 			.from(dbSchema.block)
 			.where(eq(dbSchema.block.userId, userId))
-			.orderBy(asc(dbSchema.block.createdAt));
+			.orderBy(asc(dbSchema.block.createdAt), asc(dbSchema.block.id));
 		yield* writer.addText("blocks.json", json(blocks));
 	});
 
@@ -143,7 +149,7 @@ const writeChats = (
 			.select()
 			.from(dbSchema.chat)
 			.where(eq(dbSchema.chat.userId, userId))
-			.orderBy(asc(dbSchema.chat.createdAt));
+			.orderBy(asc(dbSchema.chat.createdAt), asc(dbSchema.chat.id));
 
 		yield* Effect.forEach(
 			chats,
@@ -194,7 +200,7 @@ const writeAssets = (userId: UserId, writer: ZipArchiveWriter) =>
 			.select()
 			.from(dbSchema.asset)
 			.where(eq(dbSchema.asset.userId, userId))
-			.orderBy(asc(dbSchema.asset.createdAt));
+			.orderBy(asc(dbSchema.asset.createdAt), asc(dbSchema.asset.id));
 		yield* writer.addText("assets.json", json(assets));
 
 		yield* Effect.forEach(
