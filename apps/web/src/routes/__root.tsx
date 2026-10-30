@@ -18,12 +18,12 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "OrcAI: governed, grounded AI bots",
+				title: "OrcAI: AI that answers from your own material",
 			},
 			{
 				name: "description",
 				content:
-					"Documentation and self-hosting guides for OrcAI, a platform for governed AI bots grounded in curated knowledge.",
+					"OrcAI lets organisations build bots that answer from their own material and cite their sources. Documentation and self-hosting guides.",
 			},
 		],
 		links: [

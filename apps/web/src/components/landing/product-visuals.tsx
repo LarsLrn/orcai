@@ -1,86 +1,44 @@
-import {
-	BotIcon,
-	CheckCircle2Icon,
-	DatabaseIcon,
-	FileTextIcon,
-	ServerCogIcon,
-} from "lucide-react";
+import type { Screenshot } from "@/components/landing/content";
 import { cn } from "@/lib/cn";
 
-export const ConsoleVisual = ({ className }: { className?: string }) => (
-	<div
-		role="img"
-		aria-label="Governed knowledge bot operations console visualisation"
-		className={cn(
-			"rounded-3xl border border-landing-border bg-landing-surface-raised p-4 text-landing-foreground",
-			className,
-		)}
-	>
-		<div className="mb-4 flex items-center justify-between border-landing-border-subtle border-b pb-3">
-			<div>
-				<div className="font-medium">Organisation control</div>
-				<div className="text-landing-muted text-xs">
-					Knowledge bot configuration
-				</div>
-			</div>
-			<div className="rounded-full bg-landing-accent-tint px-2 py-1 font-medium text-landing-accent-muted text-xs">
-				Indexed
-			</div>
+export const ProductScreenshot = ({
+	screenshot,
+	priority = false,
+	className,
+}: {
+	screenshot: Screenshot;
+	priority?: boolean;
+	className?: string;
+}) => {
+	const imageProps = {
+		width: screenshot.width,
+		height: screenshot.height,
+		// Lazy loading skips the variant the theme hides.
+		loading: "lazy",
+		fetchPriority: priority ? "high" : "auto",
+		decoding: "async",
+		className: "h-auto w-full",
+	} as const;
+
+	return (
+		<div
+			className={cn(
+				"overflow-hidden rounded-2xl border border-landing-border bg-landing-surface shadow-landing-foreground/5 shadow-xl",
+				className,
+			)}
+		>
+			<img
+				{...imageProps}
+				src={screenshot.light}
+				alt={screenshot.alt}
+				className={cn(imageProps.className, "dark:hidden")}
+			/>
+			<img
+				{...imageProps}
+				src={screenshot.dark}
+				alt={screenshot.alt}
+				className={cn(imageProps.className, "hidden dark:block")}
+			/>
 		</div>
-		<div className="grid gap-3 sm:grid-cols-2">
-			{[
-				[
-					"Bots",
-					"18 configured",
-					BotIcon,
-				],
-				[
-					"Assets",
-					"246 uploaded files",
-					FileTextIcon,
-				],
-				[
-					"Repositories",
-					"8 retrieval sets",
-					DatabaseIcon,
-				],
-				[
-					"Providers",
-					"3 model endpoints",
-					ServerCogIcon,
-				],
-			].map(([label, value, Icon]) => (
-				<div
-					key={label as string}
-					className="rounded-2xl border border-landing-border-subtle bg-landing-surface p-4"
-				>
-					<div className="mb-5 flex items-center justify-between">
-						<Icon className="size-5 text-landing-muted" />
-						<div className="h-2 w-16 rounded-full bg-landing-border" />
-					</div>
-					<div className="font-medium">{label as string}</div>
-					<div className="text-landing-muted text-sm">{value as string}</div>
-				</div>
-			))}
-		</div>
-		<div className="mt-3 rounded-2xl border border-landing-border-subtle bg-landing-surface p-4">
-			<div className="mb-3 flex items-center gap-2 text-sm">
-				<CheckCircle2Icon className="size-4 text-landing-muted" />
-				Ready for governed access
-			</div>
-			<div className="grid grid-cols-5 gap-2">
-				{Array.from({
-					length: 15,
-				}).map((_, index) => (
-					<div
-						key={index}
-						className={cn(
-							"h-2 rounded-full",
-							index % 4 === 0 ? "bg-landing-accent" : "bg-landing-border",
-						)}
-					/>
-				))}
-			</div>
-		</div>
-	</div>
-);
+	);
+};
