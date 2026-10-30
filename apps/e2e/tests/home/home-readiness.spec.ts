@@ -52,9 +52,11 @@ test("home: a fresh organisation's admin works through the setup checklist on Ma
 	await open(member, "/app");
 	await expect(member).toHaveURL(/\/app\/?$/);
 	await open(member, "/app/manage");
-	await expect(member.getByText(message("readiness_card_title"))).toHaveCount(
-		0,
-	);
+	await expect(
+		member.getByText(message("readiness_card_title"), {
+			exact: true,
+		}),
+	).toHaveCount(0);
 
 	const chat = await setUpChatModel(
 		{

@@ -55,7 +55,11 @@ test("choosing an organisation loads its home page", async ({
 	await expect(
 		page.getByText(message("sidebar_chats_empty_state_title")),
 	).toBeVisible();
-	await expect(page.getByText(message("readiness_card_title"))).toBeVisible();
+	await expect(
+		page.getByText(message("readiness_card_title"), {
+			exact: true,
+		}),
+	).toBeVisible();
 	await expect(
 		page.getByRole("status", {
 			name: "Loading",
