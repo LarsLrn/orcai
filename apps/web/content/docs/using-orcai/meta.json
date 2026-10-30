@@ -5,11 +5,11 @@
 		"account",
 		"chat",
 		"assistant",
-		"content-library",
+		"library",
 		"bots",
 		"catalogue",
 		"access-control",
-		"workspace-setup",
+		"organisation-setup",
 		"administration"
 	]
 }

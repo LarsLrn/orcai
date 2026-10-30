@@ -1,20 +1,20 @@
 ---
 title: Chat
-description: Starting chats with or without a bot, the chat list, search and pinning, message actions, branching, attachments, chat settings, quota, preparing documents, retrieval and citations, and deleting chats.
+description: Starting chats with or without a bot, the chat list, search and pinning, message actions, branching, attachments, chat settings, quota pools, preparing assets, retrieval and citations, and deleting chats.
 ---
 
-Chat is the core end-user workflow in OrcAI. You can start chats with or without a bot, attach sources, branch a conversation, and tune per-chat settings.
+Chat is the core end-user workflow in OrcAI. You can start chats with or without a bot, attach sources, branch a chat, and tune per-chat settings.
 
 Conversations with the [OrcAI Assistant](/docs/using-orcai/assistant) live on their own page; the chat list shows them only in search results.
 
 ## Entry Points
 
-- **Start a chat** in the sidebar, or on the chat list (`/app/chat`), opens the chat setup page (`/app/chat/setup`).
+- **Start a chat** in the sidebar, or on the chat list (`/app/chat`), opens the **Start a chat** page (`/app/chat/setup`).
 - The composer on the Use tab of Home (`/app`) starts a chat directly, with bot and model pickers and attachments.
 - A bot under **Try something** on the Use tab starts a chat with that bot.
 - **Start chat** on a bot's page (`/app/library/bots/<bot id>`) starts a chat with that bot.
 
-The setup page (`/app/chat/setup`) offers two options:
+The **Start a chat** page (`/app/chat/setup`) offers two options:
 
 - **Use a bot**: opens the **Select a bot** dialog, which lists published bots you can access. **Start chat** continues with the chosen bot.
 - **Chat without a bot**: answers come from the model alone.
@@ -36,7 +36,7 @@ Before sending the first message, choose:
 
 The first message is text only. Attachments, behaviour and repositories are added once the chat exists.
 
-The composer is disabled with a notice below it when no chat model is available (a model needs Text and Tool calling), when no quota pool covers the chosen model for you, or when that pool is used up. Members who can fix the first two get a link: **Set up a model** to Models (`/app/models`) or **Create a quota pool** to `/app/quotas/add`. Everyone else is asked to contact an organisation admin. A used-up pool says when it resets, for example **Quota used up. Resets in 3 days.**; hover the time for the exact date. Sending opens again by itself once the pool resets.
+The composer is disabled with a notice below it when no chat model is available (a model needs Text and Tool calling), when no quota pool covers the chosen model for you, or when that pool is used up. Members who can fix the first two get a link: **Open the readiness checklist** to Home's Manage tab (`/app/manage`) or **Create a quota pool** to `/app/quotas/add`. Everyone else is asked to contact an organisation admin. A used-up pool says when it resets, for example **Quota used up. Resets in 3 days.**; hover the time for the exact date. Sending opens again by itself once the pool resets.
 
 An open chat shows the same notice below its composer when no pool covers its model or the pool is used up. You can still type, and **Stop** still ends a reply that is running, but sending waits until the notice is gone.
 
@@ -65,7 +65,7 @@ Chats of organisations you are no longer a member of are listed under **Chat his
 
 ### Bot Models
 
-A bot can recommend or require a model in your organisation (see [Bots](/docs/using-orcai/bots#model)). A new chat with the bot starts on that model and its settings.
+A bot can recommend or require a model in your organisation (see [Bots](/docs/using-orcai/bots#model-step)). A new chat with the bot starts on that model and its settings.
 
 - With a **recommended** model you can switch in the composer or chat settings. After switching, **Tuned for …** next to the picker names the model the bot was set up for.
 - With a **required** model the picker is locked; hovering it shows **Required by …**. Chat settings show the model and its generation settings read-only, and the bot's author can change them for all its chats.
@@ -95,7 +95,7 @@ The search box on the chat list finds your own chats by title and by the text of
 - Results are ordered by relevance, with title matches first, unless you sort by a column.
 - A result found in a message shows a short excerpt with the matching words marked. Opening it shows the chat at that message, which is highlighted briefly; older messages still load as you scroll up.
 
-## In-Conversation Features
+## In-Chat Features
 
 In a chat (`/app/chat/<chat id>`), OrcAI supports:
 
@@ -110,20 +110,20 @@ In a chat (`/app/chat/<chat id>`), OrcAI supports:
 
 ### Long Chats
 
-When a chat fills 80% of the model's context window, after room for the reply, its instructions and its tools, the earlier conversation is summarized for the model. While the summary is written, the reply shows **Compacting conversation…**; afterwards a divider **Earlier messages summarized** marks where the model's view starts from the summary. The summary itself is not shown, and the chat keeps every message. OpenAI models, and Anthropic models whose budget allows a trigger of at least 50,000 tokens, summarize on the provider's side, also in the middle of a long answer. Other models write the summary as a separate call before the answer, which counts against your quota like the reply.
+When a chat fills 80% of the model's context window, after room for the reply, its instructions and its tools, the earlier chat is summarised for the model. While the summary is written, the reply shows **Compacting conversation…**; afterwards a divider **Earlier messages summarised** marks where the model's view starts from the summary. The summary itself is not shown, and the chat keeps every message. OpenAI models, and Anthropic models whose budget allows a trigger of at least 50,000 tokens, summarise on the provider's side, also in the middle of a long answer. Other models write the summary as a separate call before the answer, which counts against your quota pool like the reply.
 
 If a summary cannot be written, the model reads only the newest turns that fill about three quarters of the window, and the reply says so under it. A reply whose next step would not fit stops with a notice; send a message to continue. If your message alone does not fit, it is not sent: shorten it, remove attachments, or start a new chat.
 
-A model without a known context window is assumed to read 128,000 tokens. Admins can set a smaller **Context window** on the model to summarize earlier.
+A model without a known context window is assumed to read 128,000 tokens. Admins can set a smaller **Context window** on the model to summarise earlier.
 
 ## Branching
 
 Every message has a **Branch from here** action. It creates a new chat that copies the history, the bot, the settings and the attached blocks, and opens it. The original chat stays as it was.
 
-- From an answer: the branch holds the conversation up to and including that answer, with an empty composer.
-- From a question: the branch holds the conversation before that question, and the composer is filled with its text and attachments so you can change it before sending. Nothing is sent automatically.
+- From an answer: the branch holds the chat up to and including that answer, with an empty composer.
+- From a question: the branch holds the chat before that question, and the composer is filled with its text and attachments so you can change it before sending. Nothing is sent automatically.
 
-Branches are ordinary chats. They keep the original title, show a branch icon in the sidebar and the chat list, and link back with **Branched from …** above the conversation. In the original chat, the message a branch started from lists its **Branches**.
+Branches are ordinary chats. They keep the original title, show a branch icon in the sidebar and the chat list, and link back with **Branched from …** above the messages. In the original chat, the message a branch started from lists its **Branches**.
 
 ## Attachments In Chat
 
@@ -137,7 +137,7 @@ Limits:
 - Up to 8 attachments per message
 - Up to 25 MB per uploaded file
 - Accepted types: JPEG, PNG, GIF and WebP images, PDF, TXT, CSV and Markdown, DOCX and PPTX
-- Text extracted from an attached document is cut off after 20,000 characters
+- Text extracted from an attached file is cut off after 20,000 characters
 - Up to 20 MB of images go to the model per turn, the most recent first; older images beyond that are left out with a note
 
 You can send text only, attachments only, or text with attachments.
@@ -163,16 +163,16 @@ Max tokens cannot exceed the model's max output tokens when the model has them s
 
 For bot-linked chats:
 
-- The system prompt is locked to the bot's template block
+- The system prompt is locked to the bot's behaviour
 - Attached blocks are managed by the bot, not in chat settings
 - Features are managed by the bot; the settings show them read-only
 
 For chats without a bot, **Chat blocks** holds:
 
-- **Add behaviour**: attach one behaviour block. Remove it to attach another.
+- **Add behaviour**: attach one behaviour. Remove it to attach another.
 - **Add repository**: attach one or more repositories to retrieve from.
 
-In such a chat you can also turn features such as Generative UI on and off; each switch saves immediately. Generative UI is on by default for new chats. Web search and Questions & quizzes are bot features and are not offered here.
+In such a chat you can also turn features such as Generative UI on and off; each switch saves immediately. Generative UI is on by default for new chats. Web search and Questions and quizzes are bot features and are not offered here.
 
 ## Generative UI
 
@@ -203,22 +203,22 @@ Primitives already stored in a chat keep rendering after Generative UI is turned
 
 ### Copy And Download
 
-Copying an answer and downloading the conversation include primitives as markdown, in the order they appear in the answer. A checklist becomes a list with each row's status, summary, quote and explanation; a review becomes each text as a quote with its findings and revision; a matrix becomes a table of statuses followed by its notes.
+Copying an answer and downloading the chat include primitives as markdown, in the order they appear in the answer. A checklist becomes a list with each row's status, summary, quote and explanation; a review becomes each text as a quote with its findings and revision; a matrix becomes a table of statuses followed by its notes.
 
 ## Usage Indicator
 
 A ring in the composer, next to the send button, shows how full the context window is. Open it (a sheet on phones) for two sections:
 
 - **Context window**: how much of the selected model's context window the newest reply filled, for example `7% used` and `74K / 1M tokens`, with the model's name. When the model does not state its window, only the tokens show. After switching to a model with a smaller window the share can pass 100%, and the next reply summarises earlier messages to fit. The section appears once a reply has reported its context.
-- **Pool**: the quota pool that covers the selected model for you, with a bar and, for example, `50% used · resets in 3d`; hover the reset time for the exact date. Pools are shared by their groups, so other people's chats fill them too. Members see the share used, never amounts; people who manage quotas get **Manage pool**, which opens the pool's page.
+- **Pool**: the quota pool that covers the selected model for you, with a bar and, for example, `50% used · resets in 3d`; hover the reset time for the exact date. Pools are shared by their groups, so other people's chats fill them too. Members see the share used, never amounts; people who manage quota pools get **Manage pool**, which opens the pool's page.
 
 The ring turns amber once the pool is 90% used and red when it is used up. The indicator is hidden when neither section has anything to show.
 
-## Preparing Documents
+## Preparing Assets
 
-When a repository the chat searches still has documents that are not ready, a **Preparing documents** panel sits above the composer. The repositories are the bot's and those attached to the chat; on the new chat page they are the chosen bot's. The panel shows how many of all documents are ready, for example `38/120`, with a spinner while documents are being prepared. Once only failures are left, its title says how many documents could not be prepared. It disappears when every document is ready and refreshes every five seconds while documents are being prepared.
+When a repository the chat searches still has assets that are not ready, a **Preparing assets** panel sits above the composer. The repositories are the bot's and those attached to the chat; on the new chat page they are the chosen bot's. The panel shows how many of all assets are ready, for example `38/120`, with a spinner while assets are being prepared. Once only failures are left, its title says how many assets could not be prepared. It disappears when every asset is ready and refreshes every five seconds while assets are being prepared.
 
-The panel is collapsed. Expand it for one row per repository with its status, how many of its documents are ready and how many failed. A repository you can edit links to its page, where you can retry failed documents. Only ready documents are searchable, so the model can tell you when the answer may be in a document that is not ready yet. The panel never blocks sending.
+The panel is collapsed. Expand it for one row per repository with its status, how many of its assets are ready and how many failed. A repository you can edit links to its page, where you can retry failed assets. Only ready assets are searchable, so the model can tell you when the answer may be in an asset that is not ready yet. The panel never blocks sending.
 
 ## Retrieval And Citations
 
@@ -228,7 +228,7 @@ A reply takes at most 25 steps, 20 in the OrcAI Assistant, and fewer when its qu
 
 A reply runs for at most 30 minutes. One that reaches the limit stops as if you had stopped it: what it wrote is kept, it is charged for the steps it took, and a notice under it says it reached its time limit. Send a message to continue.
 
-Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the source details with an **Open asset** link to the asset's page (`/app/library/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
+Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the asset's metadata with an **Open asset** link to the asset's page (`/app/library/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
 
 ## Web Search
 
@@ -238,7 +238,7 @@ When the organisation's web search is off, or the setting is model native and th
 
 ## Questions And Quizzes
 
-In a chat with a bot that has the Questions & quizzes feature on, the model can ask you questions in the conversation instead of in its text, and run quizzes it grades. The reply waits for your answers and continues once you send them. Questions can offer one choice, several choices, a free-text answer or a scale between two values.
+In a chat with a bot that has the Questions and quizzes feature on, the model can ask you questions in the chat instead of in its text, and run quizzes it grades. The reply waits for your answers and continues once you send them. Questions can offer one choice, several choices, a free-text answer or a scale between two values.
 
 ### Questions
 
@@ -250,7 +250,7 @@ A quiz has up to 20 questions in titled sections, one section per page, with **N
 
 After you submit, the model grades every question as correct, partly correct or incorrect and shows the result in its answer: the score, each section's subtotal, and one line per question. A question you did not get fully right also shows your answer, the expected answer, or the key points of a free-text answer, and why. OrcAI adds up the points, so the totals always match the questions. **Practise what I got wrong** asks the model for practice on what you missed.
 
-Answers are final. Afterwards the questions stay in the conversation, read-only, with the answers you gave. Copying an answer and downloading the conversation include the questions with your answers and the graded quiz as markdown.
+Answers are final. Afterwards the questions stay in the chat, read-only, with the answers you gave. Copying an answer and downloading the chat include the questions with your answers and the graded quiz as markdown.
 
 ## Deleting Chats
 

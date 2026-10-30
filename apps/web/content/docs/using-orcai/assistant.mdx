@@ -3,53 +3,53 @@ title: OrcAI Assistant
 description: The OrcAI Assistant at /app/assistant, how it answers questions about OrcAI from these docs, what it can do for each role, the plans it proposes, the actions it asks you to confirm, the questions it asks, uploading files in a conversation, its conversations, and when it is unavailable.
 ---
 
-The OrcAI Assistant is OrcAI's built-in helper. It is part of the platform, not a bot: nobody owns, edits or shares it, and its model is chosen by an administrator of your organisation. Every member can use it, whatever their role.
+The OrcAI Assistant is OrcAI's built-in helper. It is part of OrcAI, not a bot: nobody owns, edits or shares it, and its model is chosen by an admin of your organisation. Every member can use it, whatever their role.
 
-## Opening the assistant
+## Opening the Assistant
 
 Open **OrcAI Assistant** in the sidebar, or go to `/app/assistant`. The page shows a composer for a new conversation and your earlier conversations in the active organisation, most recently active first.
 
-Sending the first message starts a conversation and opens it at `/app/assistant/<id>`. The composer shows the assistant model as read-only text where a chat shows its model picker. Only an administrator can change it.
+Sending the first message starts a conversation and opens it at `/app/assistant/<id>`. The composer shows the Assistant model as read-only text where a chat shows its model picker. Only an admin can change it.
 
 ## Questions about OrcAI
 
-Ask the assistant how something in OrcAI works and it reads these docs before it answers. An answer links the app page where you act, such as Bots (`/app/library/bots`), and the docs page it came from. Both open in a new tab, so the conversation stays open. The work log of an answer lists the docs pages the assistant read, each linked.
+Ask the Assistant how something in OrcAI works and it reads these docs before it answers. An answer links the app page where you act, such as Bots (`/app/library/bots`), and the docs page it came from. Both open in a new tab, so the conversation stays open. The work log of an answer lists the docs pages the Assistant read, each linked.
 
-The assistant says so when the docs do not cover something, and it does not guess permissions, limits or settings. It knows who you are (your name, email and user id), your role in the active organisation and what that role may do, so it tailors answers to you: when a task needs a role you do not have, it says who can do it. What you claim about your role in the conversation changes nothing.
+The Assistant says so when the docs do not cover something, and it does not guess permissions, limits or settings. It knows who you are (your name, email and user id), your role in the active organisation and what that role may do, so it tailors answers to you: when a task needs a role you do not have, it says who can do it. What you claim about your role in the conversation changes nothing.
 
-The assistant answers in the language you write in. The docs are in English, so the names it gives for buttons and pages are the English ones.
+The Assistant answers in the language you write in. The docs are in English, so the names it gives for buttons and pages are the English ones.
 
-If the instance has no docs site configured, the assistant says that the docs are unavailable instead of answering from memory.
+If the instance has no docs site configured, the Assistant says that the docs are unavailable instead of answering from memory.
 
 ## Working in OrcAI
 
-The assistant can also do things for you in the active organisation. It acts as you, with your own permissions: it can do exactly what you could do on the pages yourself and nothing more. When something is not allowed, it tells you that the action was denied and why.
+The Assistant can also do things for you in the active organisation. It acts as you, with your own permissions: it can do exactly what you could do on the pages yourself and nothing more. When something is not allowed, it tells you that the action was denied and why.
 
 What it offers depends on your organisation role:
 
-- **Every role** can ask it to find bots, behaviour and repository blocks, and assets you can read, to show how a bot is set up, and to list the groups you can see.
-- **Members, managers and admins** can also have it set up bots: create and edit bots, behaviour (template) blocks and repository blocks, link a behaviour, repositories and features to a bot, find the organisation's chat models and recommend or require one for a bot in the active organisation (it reports how many of the bot's audience a quota pool covers), find what the catalogue offers, publish a bot, ask you to upload files, edit asset metadata, generate asset metadata with the utility model, retry a failed asset, and delete bots, blocks and assets. It also handles sharing: it lists who can access a bot, block or asset, finds people and groups, and grants or removes access on resources you manage. Listing in the catalogue, which opens a resource's preview to everyone on the instance, stays in the resource's access dialog; the assistant does not change it.
-- **Managers and admins** can also have it add bots, behaviours and repositories from the [catalogue](/docs/using-orcai/catalogue) to the organisation (a bot with its behaviour and repositories too, when asked) and remove them again, and set the model of a bot the organisation added. It shares what it added for use only, like the access dialog. They can also have it do people work: create, rename and delete groups and change their members, list organisation members, change roles, remove members, and invite people or withdraw invitations. Only an Admin can give or change the Admin role, through the assistant as on the Members page.
+- **Every role** can ask it to find bots, behaviours, repositories and assets you can read, to show how a bot is set up, and to list the groups you can see.
+- **Members, managers and admins** can also have it set up bots: create and edit bots, behaviours and repositories, link a behaviour, repositories and features to a bot, find the organisation's chat models and recommend or require one for a bot in the active organisation (it reports how many of the bot's audience a quota pool covers), find what the Catalogue offers, publish a bot, ask you to upload files, edit asset metadata, generate asset metadata with the utility model, retry a failed asset, and delete bots, blocks and assets. It also handles sharing: it lists who can access a bot, block or asset, finds people and groups, and grants or removes access on bots, blocks and assets you manage. Listing in the Catalogue, which opens a preview to everyone on the instance, stays in the access dialog; the Assistant does not change it.
+- **Managers and admins** can also have it add bots, behaviours and repositories from the [Catalogue](/docs/using-orcai/catalogue) to the organisation (a bot with its behaviour and repositories too, when asked) and remove them again, and set the model of a bot the organisation added. It shares what it added for use only, like the access dialog. They can also have it do people work: create, rename and delete groups and change their members, list organisation members, change roles, remove members, and invite people or withdraw invitations. Only an Admin can give or change the Admin role, through the Assistant as on the Members page.
 
-Bot setup follows the organisation role only: a viewer who holds edit on a bot edits it in the bot editor, not through the assistant.
+Working on bots follows the organisation role only: a viewer who holds **Can edit** on a bot edits it in the bot editor, not through the Assistant.
 
 Each action appears in the answer's work log as one line, such as "Delete bot “Citation check”" or "Invite 3 people as members". A failed action shows as failed with the reason.
 
-Bigger edits, such as a bot's rich description, a behaviour block's content or a repository's retrieval settings, belong in the editor. The assistant links the bot editor or the block's page for them.
+Bigger edits, such as a bot's rich description, a behaviour's content or a repository's retrieval settings, belong in the editor. The Assistant links the bot editor or the block's page for them.
 
-The assistant can answer with structured elements such as checklists, reviews and matrices, as described under [Generative UI](/docs/using-orcai/chat#generative-ui).
+The Assistant can answer with structured elements such as checklists, reviews and matrices, as described under [Generative UI](/docs/using-orcai/chat#generative-ui).
 
 ## Plans
 
-Before the assistant creates bots, behaviour blocks, repository blocks or groups, it proposes a plan: a short title and the steps it means to take. When something is unclear, such as a new bot's purpose, audience, behaviour, repositories or features, it first asks you [questions](#questions), with its suggestion as the first option, and asks again when your answers raise new questions. Once nothing that matters is open, it proposes the full plan. Changes to things that already exist, such as renaming a bot, and questions need no plan.
+Before the Assistant creates bots, behaviours, repositories or groups, it proposes a plan: a short title and the steps it means to take. When something is unclear, such as a new bot's purpose, audience, behaviour, repositories or features, it first asks you [questions](#questions), with its suggestion as the first option, and asks again when your answers raise new questions. Once nothing that matters is open, it proposes the full plan. Changes to things that already exist, such as renaming a bot, and questions need no plan.
 
-The plan sits above the input, with a tally such as "2 of 5 done". Each step shows whether it is pending, in progress, done or skipped, with its specifics below its name, and the assistant ticks the steps off as it works. Select the plan's header to collapse or expand it; it collapses by itself once every step is done or skipped.
+The plan sits above the input, with a tally such as "2 of 5 done". Each step shows whether it is pending, in progress, done or skipped, with its specifics below its name, and the Assistant ticks the steps off as it works. Select the plan's header to collapse or expand it; it collapses by itself once every step is done or skipped.
 
 A proposed plan waits for your answer:
 
-- **Approve plan** lets the assistant start. From then on it can create things for the rest of the conversation.
-- **Revise** asks what should change. The assistant adjusts the plan and proposes it again.
-- Writing a new message instead also counts as asking for changes; the assistant does not create anything until you approve a plan.
+- **Approve plan** lets the Assistant start. From then on it can create things for the rest of the conversation.
+- **Revise** asks what should change. The Assistant adjusts the plan and proposes it again.
+- Writing a new message instead also counts as asking for changes; the Assistant does not create anything until you approve a plan.
 
 Each plan update also appears in the answer's work log as one line, such as "Plan “Set up the citation bot”: 2 of 5 done". An approved plan does not replace confirmation cards: destructive and access-changing actions still ask first.
 
@@ -58,46 +58,46 @@ Each plan update also appears in the answer's work log as one line, such as "Pla
 Actions that destroy something, take access away, widen access, change a role or send something out pause the answer and show a confirmation card first:
 
 - Deleting a bot, a block or an asset (**Delete**)
-- Removing someone's access to a bot, block or asset, removing people from a group, removing members from the organisation, and removing something added from the catalogue (**Remove**)
+- Removing someone's access to a bot, block or asset, removing people from a group, removing members from the organisation, and removing something added from the Catalogue (**Remove**)
 - Withdrawing an invitation (**Withdraw**)
 - Granting access to a bot, block or asset (**Grant**)
 - Generating metadata for assets (**Generate**)
-- Adding people to a group, and adding something from the catalogue (**Add**)
+- Adding people to a group, and adding something from the Catalogue (**Add**)
 - Changing a member's role (**Change**)
 - Inviting people (**Invite**)
 
-The card names the action and offers its button and **Cancel**. Choosing the button runs the action and the assistant continues its answer. Choosing **Cancel** leaves everything as it was and marks the action **Denied**. Writing a new message instead of answering also leaves everything as it was and marks the action **Skipped**. When an answer shows several cards, the assistant continues once every card is answered.
+The card names the action and offers its button and **Cancel**. Choosing the button runs the action and the Assistant continues its answer. Choosing **Cancel** leaves everything as it was and marks the action **Denied**. Writing a new message instead of answering also leaves everything as it was and marks the action **Skipped**. When an answer shows several cards, the Assistant continues once every card is answered.
 
 Creating and editing, linking blocks and features to a bot, attaching assets to a repository, retrying an asset and publishing a bot run without a card. Creating needs an approved [plan](#plans) first.
 
-If you answered every card but the page reloaded before the assistant continued, the answer shows a **Continue** button that picks it up again. If the page reloads while some cards are still unanswered, the answers you already gave are lost; answer those cards again.
+If you answered every card but the page reloaded before the Assistant continued, the answer shows a **Continue** button that picks it up again. If the page reloads while some cards are still unanswered, the answers you already gave are lost; answer those cards again.
 
 ## Uploads
 
-When you want to add files, the assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files as on **Add assets** (`/app/library/assets/add`): each file becomes an asset as soon as its upload finishes, and the assistant gets the new assets right away and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
+When you want to add files, the Assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files as on **Add assets** (`/app/library/assets/add`): each file becomes an asset as soon as its upload finishes, and the Assistant gets the new assets right away and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
 
-Choosing **Cancel** before uploading tells the assistant that you added nothing. During an upload you are asked first, and cancelling stops the upload. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads during an upload, the files still uploading are not added and the field comes back empty.
+Choosing **Cancel** before uploading tells the Assistant that you added nothing. During an upload you are asked first, and cancelling stops the upload. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads during an upload, the files still uploading are not added and the field comes back empty.
 
-In the work log the field shows as "Uploaded 2 files" with the file titles, or as "Upload cancelled". **Metadata** next to a title opens the asset's source details, so you can add them after the assistant has carried on.
+In the work log the field shows as "Uploaded 2 files" with the file titles, or as "Upload cancelled". **Metadata** next to a title opens the asset's metadata, so you can add it after the Assistant has carried on.
 
 ## Questions
 
-When the assistant needs your input, for example before it plans, it asks up to five questions in the conversation, as in a [bot chat](/docs/using-orcai/chat#questions). Answer some, all or none and select **Submit**, or **Skip** to go on without answering. Writing a new message instead skips the questions, and the assistant reads your message as your reply. A quick yes or no may still come as a plain question in its text. It can also run a [quiz](/docs/using-orcai/chat#quizzes) when you ask for one.
+When the Assistant needs your input, for example before it plans, it asks up to five questions in the conversation, as in a [bot chat](/docs/using-orcai/chat#questions). Answer some, all or none and select **Submit**, or **Skip** to go on without answering. Writing a new message instead skips the questions, and the Assistant reads your message as your reply. A quick yes or no may still come as a plain question in its text. It can also run a [quiz](/docs/using-orcai/chat#quizzes) when you ask for one.
 
 ## Asking from other pages
 
-The bot editor (`/app/library/bots/<bot id>/setup`) and Groups (`/app/groups`) have an **Ask the assistant** button. It opens the assistant with a prefilled first message, such as "Help me set up the bot “Citation check”", which you can change before sending. The button shows only while the assistant is available in the active organisation.
+The bot editor (`/app/library/bots/<bot id>/setup`) and Groups (`/app/groups`) have an **Ask the Assistant** button. It opens the Assistant with a prefilled first message, such as "Help me set up the bot “Citation check”", which you can change before sending. The button shows only while the Assistant is available in the active organisation.
 
 ## One conversation per task
 
-Start a new conversation for each task. A long conversation is summarized like a [long chat](/docs/using-orcai/chat#long-chats), and the assistant always keeps the current plan and the tool groups it loaded in view. A conversation belongs to you and to the organisation that was active when you started it, and it is listed only while that organisation is active.
+Start a new conversation for each task. A long conversation is summarised like a [long chat](/docs/using-orcai/chat#long-chats), and the Assistant always keeps the current plan and the tool groups it loaded in view. A conversation belongs to you and to the organisation that was active when you started it, and it is listed only while that organisation is active.
 
-From the history, or from the menu under the conversation's title in the header, you can rename and delete a conversation; the title menu also downloads it. Unlike chats, an assistant conversation cannot be branched, shared or edited and resent, and it has no model selector, settings, blocks or source pickers. Copy, download, rating and Stop work as in chat, and the usage indicator shows the context and the pool that covers the assistant model.
+From the history, or from the menu under the conversation's title in the header, you can rename and delete a conversation; the title menu also downloads it. Unlike chats, an Assistant conversation cannot be branched, shared or edited and resent, and it has no model selector, settings, blocks or source pickers. Copy, download, rating and Stop work as in chat, and the usage indicator shows the context and the pool that covers the Assistant model.
 
 Assistant conversations live on their own page and do not appear in the chat list or the chat sidebar, except in the [chat search](/docs/using-orcai/chat#search) results while their organisation is active.
 
-## When the assistant is unavailable
+## When the Assistant is unavailable
 
-The assistant answers with the model an administrator chose on the [Organisation page](/docs/using-orcai/administration#organisation). Until a model is chosen, the assistant page explains that the assistant is unavailable: administrators get a link to the Organisation page, everyone else is asked to contact an admin. Existing conversations keep their transcripts and show the same notice instead of the composer.
+The Assistant answers with the model an admin chose on the [Organisation page](/docs/using-orcai/administration#organisation). Until a model is chosen, the Assistant page explains that the Assistant is unavailable: admins get a link to the Organisation page, everyone else is asked to contact an admin. Existing conversations keep their transcripts and show the same notice instead of the composer.
 
-When the administrator switches to another model, existing conversations use it from their next message on.
+When an admin switches to another model, existing conversations use it from their next message on.

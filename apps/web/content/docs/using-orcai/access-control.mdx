@@ -1,16 +1,16 @@
 ---
 title: Access Control
-description: The four organisation roles and their permissions, organisation selection, invitations, groups, resource sharing with Viewer, Editor and Manager roles, inherited access, and why someone cannot see a resource.
+description: The four organisation roles and their permissions, organisation selection, invitations, groups, sharing with the Can view, Can edit and Can manage roles, inherited access, and why someone cannot see a bot, block or asset.
 ---
 
-OrcAI uses organisation-scoped access control with capability-gated UI and resource-level grants. Authorization is enforced by backend checks and shared capability hooks in the app.
+OrcAI uses organisation-scoped access control with permission-gated UI and grants on each bot, block and asset. Authorisation is enforced by backend checks and shared permission hooks in the app.
 
 ## Access Model Overview
 
 - You sign in as a user account.
 - You operate inside one active organisation at a time.
-- Sidebar sections and actions are visible only when capability checks pass.
-- Many resources (assets, blocks, bots) support direct sharing and group-based grants.
+- Sidebar sections and actions are visible only when permission checks pass.
+- Assets, blocks and bots support direct sharing and group-based grants.
 
 ## Organisation Roles
 
@@ -20,29 +20,29 @@ create actions they see. The role picker lists each role's permissions.
 
 | Permission | Admin | Manager | Member | Viewer |
 | --- | --- | --- | --- | --- |
-| Read workspace (`read`): the app and the Library | Yes | Yes | Yes | Yes |
+| Read organisation (`read`): the app and the Library | Yes | Yes | Yes | Yes |
 | Create bots (`create_bot`) | Yes | Yes | Yes | No |
 | Create blocks (`create_block`) | Yes | Yes | Yes | No |
 | Create assets (`create_asset`) | Yes | Yes | Yes | No |
 | Manage members (`manage_members`): Members | Yes | Yes | No | No |
 | Invite members (`invite_members`) | Yes | Yes | No | No |
 | Manage groups (`manage_groups`): Groups | Yes | Yes | No | No |
-| Manage quotas (`manage_quotas`): Quotas | Yes | No | No | No |
+| Manage quota pools (`manage_quotas`): Quota pools | Yes | No | No | No |
 | View analytics (`view_analytics`): Analytics | Yes | No | No | No |
-| Add from the catalogue (`install_resource`) | Yes | Yes | No | No |
+| Add from the Catalogue (`install_resource`) | Yes | Yes | No | No |
 | Manage providers (`manage_providers`): Providers | Yes | No | No | No |
 | Manage models (`manage_models`): Models | Yes | No | No | No |
 | Manage organisation (`manage_organization`): Organisation | Yes | No | No | No |
 
-Managing administrators also needs `manage_organization`: only an Admin can
+Managing admins also needs `manage_organization`: only an Admin can
 invite someone as Admin, give the Admin role, or change or remove an Admin. An
 organisation always keeps at least one Admin.
 
 The organisation role covers organisation-wide actions. What someone may do
-with a particular bot, block or asset comes from the grants on that resource,
-described under [Resource Sharing](#resource-sharing). Every role, Viewer
+with a particular bot, block or asset comes from the grants on it,
+described under [Sharing](#sharing). Every role, Viewer
 included, can chat and use the [OrcAI Assistant](/docs/using-orcai/assistant).
-The assistant acts with your own permissions and never exceeds them.
+The Assistant acts with your own permissions and never exceeds them.
 
 ## Active Organisation
 
@@ -59,19 +59,19 @@ in the user menu and supports:
 - Choosing from available organisations
 - Filtering the organisations by name and loading more of them a page at a time
 - Accepting pending invitations to gain access
-- A **Manage instance** link to `/instance`, shown to instance administrators
+- A **Manage instance** link to `/instance`, shown to instance admins
 
 ## Invitations
 
 Invitations are used to add users into organisations, and they are the only way
-an account comes into being: registration is invitation only, enforced by the
+an account comes into being: creating an account is invitation only, enforced by the
 sign-up endpoint. The first account of an instance comes from the init flow
 instead.
 
-Invitations always go to the active organisation. Administrators and managers
+Invitations always go to the active organisation. Admins and managers
 see all of its invitations, whoever sent them, and can change or delete any of
-them, except that only administrators send, change or delete an invitation for
-the administrator role. Your own invitations, across every organisation, appear on the account
+them, except that only admins send, change or delete an invitation for
+the Admin role. Your own invitations, across every organisation, appear on the account
 and selection pages.
 
 Current flows in app:
@@ -87,11 +87,11 @@ Current flows in app:
   Email, Invitation ID, Expires, Status and Role. Each row offers **Copy
   invitation link** and **Delete organisation invitation**; selected rows can
   be removed with **Delete selected**, and **Download** exports the table.
-- Register via invitation-aware sign-up flow
+- Create an account via the invitation-aware sign-up flow
 - See and respond to organisation invitations from account and selection pages
 
 The sign-up endpoint validates the invitation ID, pending status, expiry, and
-matching email address. The register page names the inviting organisation.
+matching email address. The **Create account** page names the inviting organisation.
 Signing up accepts only the linked invitation; other invitations remain pending
 for explicit acceptance. Someone who is already a member and accepts another
 invitation to the same organisation keeps their current role. One active organisation opens directly when there are
@@ -99,14 +99,14 @@ no pending invitations. Email verification remains optional for access.
 
 ## Groups
 
-Groups are used for access assignment and resource sharing. Groups
+Groups are used for access assignment and sharing. Groups
 (`/app/groups`) lists them with search and a Type column that tells Custom
 groups from System groups; **Manage group** opens a group at
 `/app/groups/<group id>`.
 
-Every organisation has one system group, **All Members**. Every member of the
+Every organisation has one system group, All members, which group lists show as **All Members**. Every member of the
 organisation belongs to it implicitly, so its member list cannot be edited, and
-it cannot be renamed or deleted. Granting a resource to All Members shares it
+it cannot be renamed or deleted. Granting a bot, block or asset to All members shares it
 with the whole organisation.
 
 Current behaviour:
@@ -120,7 +120,7 @@ Current behaviour:
 Creating, renaming, deleting a group and changing its membership need
 `manage_groups`, so the Groups pages stay with admins and managers. Reading a
 group does not: members and viewers see the groups they belong to, plus the
-"All Members" group of their organisation. A group they are not in answers as
+All members group of their organisation. A group they are not in answers as
 if it were not there.
 
 The member picker offers only organisation members who are not yet in the
@@ -128,25 +128,25 @@ group, and several of them can be added at once.
 
 System groups are immutable in the group detail view.
 
-Members and viewers can discover colleagues by name and avatar in All Members
+Members and viewers can discover colleagues by name and avatar in All members
 and select sharing recipients by user ID. Email fields and email search require
 permission to manage groups.
 
-## Resource Sharing
+## Sharing
 
 **Access & groups** opens the access dialog on a bot's page
 (`/app/library/bots/<bot id>`), a behaviour's or repository's page
 (`/app/library/behaviours/<block id>`, `/app/library/repositories/<block id>`) and
 an asset's page (`/app/library/assets/<asset id>`). The bot editor's "Sharing and
 access" step embeds the same controls. New people and groups are added from the
-**People** and **Groups** tabs, each granted one of three resource roles:
+**People** and **Groups** tabs, each granted one of three roles:
 
-- **Viewer** can find, use and read the resource.
-- **Editor** can also edit it.
-- **Manager** can also delete it and manage its access.
+- **Can view** can find, use and read it.
+- **Can edit** can also edit it.
+- **Can manage** can also delete it and manage its access.
 
-The person who created a resource owns it and holds all of these. Listing a
-resource in the **Catalogue** or taking it out asks for confirmation either way.
+The person who created a bot, block or asset owns it and holds all of these. Listing
+it in the **Catalogue** or taking it out asks for confirmation either way.
 
 Access dialogs allow:
 
@@ -155,16 +155,16 @@ Access dialogs allow:
 - Direct grants
 - A summary of the access inherited from the bots and blocks above
 
-Listing or managing a resource's access, in its access dialog or through the
-API, needs `manage_access` on that resource: you own it or hold a `manager`
+Listing or managing access to a bot, block or asset, in its access dialog or through the
+API, needs `manage_access` on it: you own it or hold a **Can manage**
 grant on it. Organisation admins have no override. An admin who neither owns
-nor manages a resource cannot list its grants, list it in the catalogue, or
+nor manages it cannot list its grants, list it in the Catalogue, or
 share it, and its access dialog is not offered to them.
 
-Whoever holds `manage_access` on a resource shares it. Among them, organisation
+Whoever holds `manage_access` on a bot, block or asset shares it. Among them, organisation
 admins and managers may grant to every group of the organisation; members and
-viewers may grant to the groups they belong to and to "All Members", which
-only ever receives a viewer grant. Other groups are neither offered in the access dialog nor accepted by
+viewers may grant to the groups they belong to and to All members, which
+only ever receives a **Can view** grant. Other groups are neither offered in the access dialog nor accepted by
 the API. The picker leaves out anyone who already holds a direct grant.
 Several people and groups can be selected and granted the same role together.
 If any of them cannot be granted, none of them are, and the error names each
@@ -175,30 +175,30 @@ lists and changes the grants of your active organisation, and only that
 organisation's members and groups receive them. A person who leaves an
 organisation loses the grants issued there and keeps those from elsewhere.
 
-A resource that has managers keeps at least one: a grant or revoke that would
-take away its last manager is refused. A person or group that leaves still
-loses its grants, even the last manager's, when they are removed from the
+A bot, block or asset with **Can manage** grants keeps at least one: a grant or revoke that would
+take away the last one is refused. A person or group that leaves still
+loses its grants, even the last **Can manage** grant, when they are removed from the
 organisation, their account is deleted or the group is deleted. The owner keeps
-managing the resource.
+managing it.
 
-A private resource is reachable only by those it was granted to. Using a
-resource happens in your active organisation: starting a chat with a bot,
-attaching a block to a chat, or linking a block into a bot. It needs the
-resource to belong to that organisation and a grant issued there, to you, to
-one of its groups you are in, or to All Members. Owning the resource counts in
+A private bot, block or asset is reachable only by those it was granted to. Using
+one happens in your active organisation: starting a chat with a bot,
+attaching a block to a chat, or linking a block into a bot. It needs it
+to belong to that organisation and a grant issued there, to you, to
+one of its groups you are in, or to All members. Owning it counts in
 its own organisation. Access does not travel with the person: someone who
 belongs to two organisations uses in each only what is shared there.
 
 ### The Catalogue
 
 Bots, behaviours and repositories can be listed in the
-[catalogue](/docs/using-orcai/catalogue). A listed resource can be previewed by
+[Catalogue](/docs/using-orcai/catalogue). A listed bot or block can be previewed by
 every signed-in user of the instance, but using it needs the organisation to
 add it and a grant issued there. Only the
-configuration and its blocks are shared, because a resource runs with the
-providers, models and quotas of the organisation it is used in. Documents have
-no entry of their own: a listed repository publishes its documents, and the
-repository editor says so, including for documents added later.
+configuration and its blocks are shared, because a bot or block runs with the
+providers, models and quota pools of the organisation it is used in. Assets have
+no entry of their own: a listed repository lets everyone preview its assets, and the
+repository editor says so, including for assets added later.
 
 A listed bot contains only listed blocks. Listing a bot lists its unlisted
 behaviour and repositories with it: the confirmation names them, and the
@@ -207,24 +207,24 @@ bot with a block that is not listed asks the same before it saves. The OrcAI
 Assistant never lists anything, so a change it makes to a listed bot that
 needs a block listed fails and points you to the app.
 
-Admins and managers add a listed resource to their organisation
+Admins and managers add a listed bot or block to their organisation
 (`install_resource`). It then appears in that organisation's Library marked
 "From" its home organisation, and nobody there can use it until they share it.
 In an organisation that added it, its access dialog shares it for use only:
-the grants issued there are always viewer grants, to that organisation's
+the grants issued there are always **Can view** grants, to that organisation's
 members and groups, and neither listing nor inherited access is shown. Only
 the home organisation edits, lists or deletes it; the organisation that added
 it sets a bot's model there and removes it again with **Remove from …**,
-which ends its grants, its model setup and its links in that
+which ends its grants, its **Bot setup** and its links in that
 organisation, so chats with a removed bot become read-only until it is added
 and shared again. Adding something twice changes nothing.
 
-Taking a resource out of the catalogue removes it from every organisation that
+Taking a bot or block out of the Catalogue removes it from every organisation that
 added it: the confirmation names them. There, the grants issued for it end,
-their bots and chats lose the block, and a bot's model setup is deleted, so
+their bots and chats lose the block, and a bot's **Bot setup** is deleted, so
 their chats with the bot become read-only. A block that a listed bot contains
-cannot be taken out of the catalogue until that bot is taken out too or drops
-the block. Either way, nothing added to the resource afterwards reaches those
+cannot be taken out of the Catalogue until that bot is taken out too or drops
+the block. Either way, nothing added to it afterwards reaches those
 organisations.
 
 The same access manager pattern is reused for:
@@ -236,17 +236,17 @@ The same access manager pattern is reused for:
 ### Inherited Access
 
 Access cascades downwards as read-only. Sharing a bot lets its audience read
-the blocks it links and the content items those blocks carry. So a resource can
+the blocks it links and the assets those blocks carry. So a bot, block or asset can
 be widely readable while its own grant list is empty, and the access dialog
-says so: it reports the bots and blocks whose grants reach the resource, how
+says so: it reports the bots and blocks whose grants reach it, how
 many groups and people arrive that way, and whether one of them is public.
 
-Edit does not cascade: an editor or manager of a bot does not become an editor
-of its blocks, and editing a block or a content item needs a grant on it. When
-you give someone edit or manage on a bot, the access manager offers to give
-them edit on the bot's blocks too, for the blocks you can share. Because
+Edit does not cascade: **Can edit** or **Can manage** on a bot does not give **Can edit**
+on its blocks, and editing a block or an asset needs a grant on it. When
+you give someone **Can edit** or **Can manage** on a bot, the access manager offers to give
+them **Can edit** on the bot's blocks too, for the blocks you can share. Because
 linking passes read on, a bot links only blocks of its own organisation that
-its editor may use there, and a repository attaches only content items its
+its editor may use there, and a repository attaches only assets its
 editor can read. A chat with a bot uses the bot's blocks without a grant on
 each of them; a chat without a bot attaches only blocks of the chat's
 organisation.
@@ -257,52 +257,52 @@ summary's links lead. Bots and blocks the viewer cannot read are counted rather
 than named. Inherited access lasts only as long as the link above it: a direct
 grant is what survives a block being detached from its bot.
 
-Deleting a bot, block or content item removes its grants, its catalogue
+Deleting a bot, block or asset removes its grants, its Catalogue
 listing and the access it passed on through its links. Deleting an
-organisation deletes the resources it is home to, including listed ones that
+organisation deletes the bots, blocks and assets it is home to, including listed ones that
 other organisations added.
 
-## Capability-Gated Workspace Sections
+## Permission-Gated Organisation Sections
 
-The sidebar's "Your workspace" group holds the OrcAI Assistant
+The sidebar's "Your organisation" group holds the OrcAI Assistant
 (`/app/assistant`), the Library (`/app/library`) and Administration. The Library
 always shows; its Bots, Behaviour, Repositories and Assets items need `read`.
 Administration shows when at least one of its items is allowed:
 
 - Members (`/app/members`): `manage_members`
 - Groups (`/app/groups`): `manage_groups`
-- Quotas (`/app/quotas`): `manage_quotas`
+- Quota pools (`/app/quotas`): `manage_quotas`
 - Analytics (`/app/analytics`): `view_analytics`
 - Providers (`/app/providers`): `manage_providers`
 - Models (`/app/models`): `manage_models`
 - Organisation (`/app/organization`): `manage_organization`
 
 Opening one of these paths without the permission leads away from it. See
-[Workspace Administration](/docs/using-orcai/administration) for the pages.
+[Administration](/docs/using-orcai/administration) for the pages.
 
 ## Practical Guidance
 
 - Use groups for scalable access management.
 - Use direct grants for exceptional one-off access.
-- Keep high-impact capabilities (provider/model/quota management) limited to admins.
+- Keep high-impact permissions (provider/model/quota pool management) limited to admins.
 
 ## Why Can Someone Not See A Bot Or Asset?
 
 Work through these in order:
 
-1. Check that the person is a member of the resource's organisation. Grants
+1. Check that the person is a member of the bot's or asset's organisation. Grants
    go only to members and groups of that organisation, and the access dialog
    offers no one else.
-2. Open **Access & groups** on the resource. A private resource is visible to
+2. Open **Access & groups** on the bot or asset. A private one is visible to
    its owner, to the people granted it directly, to the members of the groups
    granted it, and to those who inherit access. With none of these, only its
    owner sees it.
 3. Check group membership. A grant to a group reaches only its members; All
-   Members reaches everyone in the organisation.
+   members reaches everyone in the organisation.
 4. For a bot, check that it is published. Drafts appear in the Library only
-   for those who can edit them, and chat setup offers published bots only.
-5. An administrator or manager can open the person's page under Members
-   (`/app/members/<user id>/edit`). Its **Effective resource access** table lists
+   for those who can edit them, and a new chat offers published bots only.
+5. An admin or manager can open the person's page under Members
+   (`/app/members/<user id>/edit`). Its **Effective access** table lists
    every bot, block and asset the person reaches and where the access comes
-   from: a direct grant, a group, All Members, an inherited bot or block, or
+   from: a direct grant, a group, All members, an inherited bot or block, or
    public visibility.

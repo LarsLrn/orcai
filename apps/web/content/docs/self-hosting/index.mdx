@@ -15,7 +15,7 @@ For most self-hosting experiments, start with [Docker Compose quickstart](/docs/
 
 <Cards>
 	<Card href="/docs/self-hosting/quickstart-compose" title="Docker Compose quickstart">
-		Start the app, workers, databases, object storage, authorization, and vector search locally.
+		Start the app, workers, databases, object storage, authorisation, and vector search locally.
 	</Card>
 	<Card href="/docs/self-hosting/manual-setup" title="Manual setup">
 		Run the Bun app and workers directly against services you manage yourself.
@@ -42,14 +42,14 @@ For most self-hosting experiments, start with [Docker Compose quickstart](/docs/
 
 Custom embedding model definitions are supported only when you self-host OrcAI.
 
-In managed/shared deployments, treat these as platform-level settings controlled by the hosting operator.
+In managed/shared deployments, treat these as instance-level settings controlled by the hosting operator.
 
 ## Important Caveats
 
 - OrcAI is not production-ready yet.
 - `docker-compose.local.yaml` is a development-oriented override, not a production deployment manifest.
-- AI model, embedding model, and embedding dimensions must be configured before useful content ingestion can work.
-- Changing embedding settings on an existing deployment requires recreating the Qdrant collection and reprocessing assets.
+- AI model, embedding model, and embedding dimensions must be configured before asset preparation can work.
+- Changing embedding settings on an existing deployment requires recreating the Qdrant collection and preparing assets again.
 
 ## Source Files
 

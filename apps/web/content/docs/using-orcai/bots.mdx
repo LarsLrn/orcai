@@ -1,6 +1,6 @@
 ---
 title: Bots and Behaviour
-description: The Library's bots, behaviour and repository blocks; the bot editor's steps, publishing rules, block pages, vector store actions, exploring a repository and resource roles.
+description: The Library's bots, behaviours and repositories; the bot editor's steps, publishing rules, block pages, vector store actions, exploring a repository and the roles a grant gives.
 ---
 
 Bots are reusable AI configurations that can be selected at chat start. They are authored in the Library (`/app/library`) and combine behaviour, retrieval context, and sharing settings.
@@ -13,17 +13,17 @@ The Library (`/app/library`) has five views, listed in its rail with their count
 - Bots (`/app/library/bots`)
 - Behaviours (`/app/library/behaviours`)
 - Repositories (`/app/library/repositories`)
-- Assets (`/app/library/assets`), described in [Content Library](/docs/using-orcai/content-library)
+- Assets (`/app/library/assets`), described in [Library](/docs/using-orcai/library)
 
-Library is one item in the sidebar; the rail switches views. Every role can browse it. How to search, filter and narrow it to your own items is described in [Browsing the Library](/docs/using-orcai/content-library#browsing-the-library).
+Library is one item in the sidebar; the rail switches views. Every role can browse it. How to search, filter and narrow it to your own items is described in [Browsing the Library](/docs/using-orcai/library#browsing-the-library).
 
 ## Core Concepts
 
-- Bots: named AI setups users can select when starting a chat.
-- Blocks: reusable building blocks used by bots and chats.
-- Behaviour blocks: AI behaviour blocks, whose system prompt sets the bot's role, tone and limits.
-- Repository blocks: database blocks that package assets with retrieval settings.
-- Assets: uploaded files that can be attached to repository blocks and chats.
+- Bots: named AI configurations users can select when starting a chat.
+- Blocks: behaviours and repositories, reusable by bots and chats.
+- Behaviours: blocks whose system prompt sets the bot's role, tone and limits.
+- Repositories: blocks that package assets with retrieval settings.
+- Assets: uploaded files that can be attached to repositories and chats.
 
 A bot fixes no model and no quota pool. Each chat runs on the provider and model chosen in that chat, and usage is charged to the quota pool that covers the chatting person and that provider.
 
@@ -33,7 +33,7 @@ Bots (`/app/library/bots`) have draft and published states. The Bots view lists 
 
 **New** > **Bot** appears for roles with `create_bot` (admins, managers and members).
 
-A bot is private until it is shared. Publishing does not share it: a published bot is usable only by the people and groups it was granted to. Listing it in the catalogue lets everyone preview it, together with its behaviour and repositories. See [Access Control](/docs/using-orcai/access-control#resource-sharing).
+A bot is private until it is shared. Publishing does not share it: a published bot is usable only by the people and groups it was granted to. Listing it in the Catalogue lets everyone preview it, together with its behaviour and repositories. See [Access Control](/docs/using-orcai/access-control#sharing).
 
 ## The Bot Page
 
@@ -44,7 +44,7 @@ A bot's page (`/app/library/bots/<bot id>`) shows its behaviour and repositories
 - **Access & groups**, which opens the access dialog
 - **Delete bot**, in the **More actions** (`…`) menu; the chats with the bot stay with their owners but become [read-only](/docs/using-orcai/chat#chats-and-organisations)
 
-A bot your organisation added from the [catalogue](/docs/using-orcai/catalogue) shows "From" its home organisation and is edited and deleted only there. Its admins and managers share it for use with **Access & groups** and take it out of the organisation with **Remove from …**.
+A bot your organisation added from the [Catalogue](/docs/using-orcai/catalogue) shows "From" its home organisation and is edited and deleted only there. Its admins and managers share it for use with **Access & groups** and take it out of the organisation with **Remove from …**.
 
 Every detail page follows this pattern: frequent actions are buttons in the header, and rare or destructive ones sit in the **More actions** menu.
 
@@ -71,30 +71,30 @@ The bot editor is a guided wizard with six steps:
 
 Name the bot and give it a short description and a longer bot description for teammates who maintain it.
 
-### AI Behaviour [step]
+### Behaviour [step]
 
-Write a new AI behaviour, start from an example, or choose **Use existing AI behaviour**. The system prompt has no default.
+Write a new behaviour, start from an example, or choose **Use existing behaviour**. The system prompt has no default.
 
-Below the behaviour block, the Features section lists the built-in features the bot can enable. See [Features](#features).
+Below the behaviour, the Features section lists the built-in features the bot can enable. See [Features](#features).
 
 ### Repositories [step]
 
-Attach ready repository blocks that provide retrieval context. Repositories are optional: create one, choose **Add existing repository**, or attach none.
+Attach published repositories that provide retrieval context. Repositories are optional: create one, choose **Add existing repository**, or attach none.
 
 ### Sharing And Access [step]
 
-Choose whether the bot is listed in the [catalogue](/docs/using-orcai/catalogue), and configure groups and direct grants for the intended audience. Giving someone edit or manage on the bot also offers edit on its blocks, for the blocks you can share.
+Choose whether the bot is listed in the [Catalogue](/docs/using-orcai/catalogue), and configure groups and direct grants for the intended audience. Giving someone **Can edit** or **Can manage** on the bot also offers **Can edit** on its blocks, for the blocks you can share.
 
 ### Model [step]
 
-Optionally recommend or require a model for the bot's chats in the active organisation, with **Save model**. Skip the step and people pick any available model. Models, quota pools and groups belong to one organisation, so the model is set per organisation. The bot's editors set it in the organisation the bot was created in; where an organisation added the bot from the catalogue, its admins and managers set it there, with **Edit** on the bot's **Model in …** card. **Remove model** returns the bot to a free pick.
+Optionally recommend or require a model for the bot's chats in the active organisation, with **Save model**. Skip the step and people pick any available model. Models, quota pools and groups belong to one organisation, so the model is set per organisation. The bot's editors set it in the organisation the bot was created in; where an organisation added the bot from the Catalogue, its admins and managers set it there, with **Edit** on the bot's **Model in …** card. **Remove model** returns the bot to a free pick.
 
 - **Recommended** (the default) is a starting point: new chats start on the model and its settings, and people can switch. Later changes reach only new chats.
 - **Required** decides every chat: the model and settings cannot be changed in the chat, and your changes reach existing chats too. If the model is deleted, its provider is disabled, it is deprecated, it cannot call tools, or no quota pool covers it for someone, their chats with the bot are blocked with a notice until you choose another model or an admin adds a pool.
 
 **Advanced generation settings** (temperature, top P, max tokens and the penalties) are optional, as in chat settings; unset ones keep the provider's defaults.
 
-**Quota coverage** lists the people and groups the bot is shared with in this organisation and whether a quota pool covers the model for each, through their group or All Members. It only warns; you can save either way. Admins get a link to Quotas. Only the bot's editors see the list, and only the groups and email addresses they may see elsewhere.
+**Quota coverage** lists the people and groups the bot is shared with in this organisation and whether a quota pool covers the model for each, through their group or All members. It only warns; you can save either way. Admins get a link to Quota pools. Only the bot's editors see the list, and only the groups and email addresses they may see elsewhere.
 
 ### Review And Publish [step]
 
@@ -103,19 +103,19 @@ Review the publishing checks, then choose **Save draft** to keep the bot as a dr
 The editor supports:
 
 - Creating new blocks inline
-- Linking existing blocks from block libraries; linked blocks you cannot edit appear read-only
+- Linking existing blocks from the Library; linked blocks you cannot edit appear read-only
 - Persisting linked blocks while progressing
 - Publishing when validation rules pass
 
 ## Features
 
-Features are built-in behaviours that work alongside the template and repositories. They belong to the bot, not to its behaviour block: switching the template keeps the bot's features, and the same template can be used with or without them. Each feature is a switch in the Features section of the AI Behaviour step and is saved with the bot.
+Features are built-in capabilities that work alongside the behaviour and repositories. They belong to the bot, not to its behaviour: switching the behaviour keeps the bot's features, and the same behaviour can be used with or without them. Each feature is a switch in the Features section of the Behaviour step and is saved with the bot.
 
 Available features:
 
 - Generative UI: lets the model show structured results, such as checklists, in its answer. It is on by default for new bots. See [Generative UI](/docs/using-orcai/chat#generative-ui).
 - Web search: lets the model search the web and cite the pages it used, as the organisation's [web search setting](/docs/using-orcai/administration#web-search) allows. **Allowed domains** limits the search to those domains and their subdomains, such as `example.org`; with none it searches the whole web. It is off by default. While the organisation's web search is off, or the setting is model native and the chat's model has no search of its own, the chat shows a notice and the bot answers without searching. See [Web search](/docs/using-orcai/chat#web-search).
-- Questions & quizzes: lets the model ask you structured questions in the conversation, and run quizzes it grades. It is off by default. See [Questions and quizzes](/docs/using-orcai/chat#questions-and-quizzes).
+- Questions and quizzes: lets the model ask you structured questions in the chat, and run quizzes it grades. It is off by default. See [Questions and quizzes](/docs/using-orcai/chat#questions-and-quizzes).
 
 Chats started from the bot use the bot's features. They cannot be changed in the chat settings.
 
@@ -125,71 +125,71 @@ Bot cards and the bot page show the bot's enabled features.
 
 **Publish bot** stays disabled until:
 
-- An AI behaviour block is linked
-- The AI behaviour block is marked Ready
-- Every linked repository block is marked Ready
-- Every linked repository block has at least one attached asset
+- A behaviour is linked
+- The behaviour is Published
+- Every linked repository is Published
+- Every linked repository has at least one attached asset
 
-Documents that are still being prepared or that failed do not hold publishing back. When a linked repository has such documents, the publish confirmation adds a **Documents** note per repository, for example "Handbook: 38 of 120 documents ready. 2 failed.", since only ready documents are searchable. A repository linked read-only in the editor marks each document that is not ready with its state.
+Assets that are still being prepared or that failed do not hold publishing back. When a linked repository has such assets, the publish confirmation adds an **Assets** note per repository, for example "Handbook: 38 of 120 assets ready. 2 failed.", since only ready assets are searchable. A repository linked read-only in the editor marks each asset that is not ready with its state.
 
 ## Block Types
 
 **New** > **Behaviour** opens `/app/library/behaviours/add`, and **New** > **Repository** opens `/app/library/repositories/add`; both need `create_block`.
 
-- AI behaviour (template block)
-- Repository (database block)
+- Behaviour
+- Repository
 
-A bot links one AI behaviour block and any number of repository blocks.
+A bot links one behaviour and any number of repositories.
 
 Each block can have:
 
-- Draft or Ready publication status
+- Draft or Published publication status
 - Metadata and versioning
 - Catalogue listing and grants
 - Capability-based actions (edit, delete, manage access)
 
 A block's page sits under its kind: `/app/library/behaviours/<block id>` or `/app/library/repositories/<block id>`; a block opened under the other kind's path is not found. It offers **Edit block** (`<page>/edit`) and **Access & groups**, with **Delete block** in the **More actions** menu.
 
-## Repository Blocks
+## The Repository Page
 
-A repository block's page lists its attached assets and its retrieval configuration:
+A repository's page lists its attached assets and its retrieval configuration:
 
 - **Retrieval mode**: Dense, Sparse or Hybrid
-- **References**: Minimum, Default and Maximum
+- **Passages per answer**: Minimum, Default and Maximum
 - **Passages per asset**, **Candidate limit** and **Score threshold**, under the advanced settings
 
-**Passages per asset** keeps one long document from crowding out the others: a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
+**Passages per asset** keeps one long asset from crowding out the others: a search takes at most that many passages from each asset first. When that leaves the results short, the best remaining passages fill the free places.
 
-Above the assets of a ready repository, **Explore** opens its passages at `/app/library/repositories/<block id>/explore`.
+Above the assets of a published repository, **Explore** opens its passages at `/app/library/repositories/<block id>/explore`.
 
-Each asset card shows its state in this repository: **Queued**, **Processing** (the file is read), **Indexing** (its passages are added to this repository's index), **Ready** or **Failed**. Only Ready assets are searchable. A summary above the cards says how many of the repository's documents are ready and how many failed, and refreshes while documents are being prepared. A failed card says why. If you can edit the repository, **Retry** on a failed card runs the failed step again: processing when the file failed, otherwise indexing in this repository. **Retry failed** next to **Explore** retries every failed document at once. Neither is offered for a file OrcAI cannot read or one without any text or images, since retrying cannot help.
+Each asset card shows its state in this repository: **Queued**, **Processing** (the file is read), **Indexing** (its passages are added to this repository's index), **Ready** or **Failed**. Only Ready assets are searchable. A summary above the cards says how many of the repository's assets are ready and how many failed, and refreshes while assets are being prepared. A failed card says why. If you can edit the repository, **Retry** on a failed card runs the failed step again: reading the file when that failed, otherwise indexing in this repository. **Retry failed** next to **Explore** retries every failed asset at once. Neither is offered for a file OrcAI cannot read or one without any text or images, since retrying cannot help.
 
 ## Exploring A Repository
 
-**Explore** shows the passages a ready repository's documents were split into, 50 at a time with **Load more**:
+**Explore** shows the passages a published repository's assets were split into, 50 at a time with **Load more**:
 
-- With **All documents**, passages of every document, in no particular order.
-- With one document chosen, its passages in reading order: page by page, the images of a page after its text.
-- A search shows the best matches first, as many as **Top 10**, **Top 25** or **Top 50**, with each passage's score, using the retrieval mode you choose (Hybrid, Dense or Sparse). Unlike a bot's search, it does not limit how many passages come from one document.
+- With **All assets**, passages of every asset, in no particular order.
+- With one asset chosen, its passages in reading order: page by page, the images of a page after its text.
+- A search shows the best matches first, as many as **Top 10**, **Top 25** or **Top 50**, with each passage's score, using the retrieval mode you choose (Hybrid, Dense or Sparse). Unlike a bot's search, it does not limit how many passages come from one asset.
 
-The search, mode, document and result count are kept in the page's address, so a link opens the same view.
+The search, mode, asset and result count are kept in the page's address, so a link opens the same view.
 
 This is useful for:
 
-- Validating chunk quality
+- Validating passage quality
 - Verifying retrieval mode behaviour
 - Debugging missing or low-quality results before attaching to bots
 
 ## Sharing And Access
 
-Bots, blocks and assets expose the same access dialog, **Access & groups**, for the catalogue listing, groups, and direct grants. The bot editor's sharing step embeds it.
+Bots, blocks and assets expose the same access dialog, **Access & groups**, for the Catalogue listing, groups, and direct grants. The bot editor's sharing step embeds it.
 
-A grant gives one of three resource roles:
+A grant gives one of three roles:
 
-- **Viewer** can find, use and read the resource. On a bot this is enough to chat with it.
-- **Editor** can also edit the resource.
-- **Manager** can also delete the resource and manage its access.
+- **Can view** can find, use and read the bot, block or asset. On a bot this is enough to chat with it.
+- **Can edit** can also edit it.
+- **Can manage** can also delete it and manage its access.
 
-The person who creates a resource owns it and holds every action on it. Details, including how access passes from a bot to its blocks and assets, are in [Access Control](/docs/using-orcai/access-control).
+The person who creates a bot, block or asset owns it and holds every action on it. Details, including how access passes from a bot to its blocks and assets, are in [Access Control](/docs/using-orcai/access-control).
 
-For a full setup sequence from assets to a published bot, see [Workspace Setup For Admins](/docs/using-orcai/workspace-setup).
+For a full setup sequence from assets to a published bot, see [Organisation setup](/docs/using-orcai/organisation-setup).

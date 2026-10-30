@@ -25,48 +25,48 @@ export const pillars: Array<{
 	{
 		title: "Grounded chat",
 		description:
-			"People ask questions in focused chats backed by selected source material instead of relying on generic model context.",
+			"People ask questions in focused chats backed by selected sources instead of relying on generic model context.",
 		icon: BrainCircuitIcon,
 	},
 	{
-		title: "Reusable assistants",
+		title: "Reusable bots",
 		description:
-			"Teams compose bots from purpose, response behaviour, retrieval repositories, sharing rules, and publication status.",
+			"Teams compose bots from purpose, behaviour, repositories, sharing rules, and publication status.",
 		icon: BotIcon,
 	},
 	{
-		title: "Content library",
+		title: "Library",
 		description:
-			"Upload documents, Office files, PDFs, images, and metadata-backed source items for reuse across bots and chats.",
+			"Upload PDFs, Office files, text files, and images as assets with metadata for reuse across bots and chats.",
 		icon: FileTextIcon,
 	},
 	{
 		title: "Retrieval and citations",
 		description:
-			"Processed material is indexed for semantic retrieval so answers can refer back to the knowledge base behind them.",
+			"Prepared assets are indexed for semantic retrieval so answers can cite the sources behind them.",
 		icon: DatabaseIcon,
 	},
 	{
 		title: "Controlled access",
 		description:
-			"Organizations manage groups, invitations, visibility, direct grants, and capability-gated administration.",
+			"Organisations manage groups, invitations, visibility, direct grants, and permission-gated administration.",
 		icon: LockKeyholeIcon,
 	},
 	{
 		title: "Self-hosted stack",
 		description:
-			"Run the full application, workers, storage, vector search, authorization, and databases under your own control.",
+			"Run the full application, workers, storage, vector search, authorisation, and databases under your own control.",
 		icon: ServerCogIcon,
 	},
 ];
 
 export const workflow = [
-	"Add source material to a governed content library.",
-	"Workers extract, process, and index content for retrieval.",
-	"Package material into repository blocks with retrieval settings.",
-	"Build assistants from behaviour rules, repositories, model choices, and access policy.",
-	"Users chat with assistants that retrieve relevant context from the selected knowledge base.",
-	"Admins manage providers, models, quotas, groups, sharing, and operations.",
+	"Upload files to a governed Library.",
+	"Workers extract, prepare, and index assets for retrieval.",
+	"Package assets into repositories with retrieval settings.",
+	"Build bots from behaviours, repositories, model choices, and access policy.",
+	"Users chat with bots that retrieve relevant context from the selected repositories.",
+	"Admins manage providers, models, quota pools, groups, sharing, and operations.",
 ] as const;
 
 export const audiences: Array<{
@@ -77,25 +77,25 @@ export const audiences: Array<{
 	{
 		label: "Specialist teams",
 		value:
-			"Turn internal documents, procedures, and domain references into assistants for repeatable knowledge work.",
+			"Turn internal documents, procedures, and domain references into bots for repeatable knowledge work.",
 		icon: FactoryIcon,
 	},
 	{
 		label: "Individuals",
 		value:
-			"Work against a curated personal or project knowledge base without manually pasting context into every prompt.",
+			"Work against a curated personal or project repository without manually pasting context into every prompt.",
 		icon: SparklesIcon,
 	},
 	{
 		label: "Education",
 		value:
-			"Instructors can still create course-specific assistants and learners can ask against selected material.",
+			"Instructors can still create course-specific bots and learners can ask against selected sources.",
 		icon: GraduationCapIcon,
 	},
 	{
-		label: "Administrators",
+		label: "Admins",
 		value:
-			"Keep model providers, quotas, groups, resource access, and operational dependencies explicit.",
+			"Keep model providers, quota pools, groups, access, and operational dependencies explicit.",
 		icon: UsersIcon,
 	},
 	{
@@ -115,8 +115,8 @@ export const audiences: Array<{
 export const constraints = [
 	"Open source application stack designed to run without external SaaS dependencies beyond an inference provider.",
 	"Self-hosting is supported with Docker Compose or manually managed services.",
-	"Governance is part of the product model: organizations, groups, grants, providers, models, quotas, and workers are first-class concerns.",
-	"Answer quality depends on the selected model, embedding configuration, indexed material, and retrieval setup.",
+	"Governance is part of the product model: organisations, groups, grants, providers, models, quota pools, and workers are first-class concerns.",
+	"Answer quality depends on the selected model, embedding configuration, indexed assets, and retrieval configuration.",
 	"OrcAI is in active development and not yet presented as a production-hardened operations guide.",
 	"Developed in the Sokratesᵗ and KI:edu.nrw applied project context at Rhine-Waal University.",
 ] as const;
@@ -126,37 +126,37 @@ export const stack = [
 	"Valkey",
 	"S3-compatible storage",
 	"Qdrant vector search",
-	"SpiceDB authorization",
+	"SpiceDB authorisation",
 	"Background workers",
 	"OpenAI-compatible inference",
 ] as const;
 
 export const governance = [
 	{
-		title: "Authorization you can reason about",
+		title: "Authorisation you can reason about",
 		description:
-			"Organization context, capability-gated UI, groups, invitations, visibility settings, and resource-level grants are built into the core workflows.",
+			"Organisation context, permission-gated UI, groups, invitations, visibility settings, and grants on each bot, block and asset are built into the core workflows.",
 		icon: ShieldCheckIcon,
 	},
 	{
 		title: "Provider and quota control",
 		description:
-			"Admins can configure model providers, available models, usage quotas, and the operational limits that shape AI access.",
+			"Admins can configure model providers, available models, quota pools, and the operational limits that shape AI access.",
 		icon: ServerCogIcon,
 	},
 	{
 		title: "Retrieval as infrastructure",
 		description:
-			"Content ingestion, object storage, workers, embeddings, and Qdrant indexes make knowledge bases reusable rather than ad hoc chat attachments.",
+			"Asset preparation, object storage, workers, embeddings, and Qdrant indexes make repositories reusable rather than ad hoc chat attachments.",
 		icon: NetworkIcon,
 	},
 ] as const;
 
 export const useCases = [
-	"Course and seminar assistants grounded in selected teaching material.",
-	"Project knowledge bases for teams working through technical, legal, policy, or research documents.",
-	"Internal procedure assistants that answer from approved operating manuals and reference material.",
-	"Research prototypes for evaluating retrieval-augmented chat in controlled organizational settings.",
+	"Course and seminar bots grounded in selected teaching material.",
+	"Project repositories for teams working through technical, legal, policy, or research documents.",
+	"Internal procedure bots that answer from approved operating manuals and reference material.",
+	"Research prototypes for evaluating retrieval-augmented chat in controlled organisational settings.",
 ] as const;
 
 export const primaryCta = {

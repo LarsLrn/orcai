@@ -8,7 +8,7 @@ Runtime configuration is loaded across app and package config modules. `.env.exa
 When SMTP is not configured, emails are not delivered. The local-testing fallback logs complete rendered messages, including password-reset, verification, and invitation links. Do not use log-only mode in production, and treat any captured output as credential-bearing sensitive data.
 
 <Callout title="Self-hosting scope" type="info">
-	Custom embedding model definitions are supported only in self-hosted deployments. For managed/shared deployments, these are platform-level settings controlled by the hosting operator.
+	Custom embedding model definitions are supported only in self-hosted deployments. For managed/shared deployments, these are instance-level settings controlled by the hosting operator.
 </Callout>
 
 Primary config modules:
@@ -27,8 +27,8 @@ Primary config modules:
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `BETTER_AUTH_URL` | Yes | The app's public origin, used for auth callbacks and links in emails. Passkeys are bound to its host name, so changing the domain invalidates every registered passkey; users then sign in with their password and add them again. |
-| `WEB_URL` | No | Public docs site base URL used in the app dashboard and in the assistant's docs links. It is also where the assistant reads the docs unless `WEB_INTERNAL_URL` is set. Without it the assistant cannot read the docs. |
-| `WEB_INTERNAL_URL` | No | Docs site origin the app server fetches for the assistant. Defaults to `WEB_URL`. Docker Compose sets `http://web:3001`. |
+| `WEB_URL` | No | Public docs site base URL used in the app dashboard and in the OrcAI Assistant's docs links. It is also where the Assistant reads the docs unless `WEB_INTERNAL_URL` is set. Without it the Assistant cannot read the docs. |
+| `WEB_INTERNAL_URL` | No | Docs site origin the app server fetches for the Assistant. Defaults to `WEB_URL`. Docker Compose sets `http://web:3001`. |
 
 ## Authentication And Encryption
 
@@ -37,7 +37,7 @@ Primary config modules:
 | `BETTER_AUTH_SECRET` | Yes | Better Auth signing secret. |
 | `BETTER_AUTH_RATE_LIMIT` | No | `false` turns off Better Auth's rate limiting, which is on in production by default. It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit. |
 | `ENCRYPTION_KEY` | Yes | 32 to 64 character application encryption key. Provider API keys are stored encrypted with it, so the app and the workers need the same value. |
-| `TWO_FACTOR_REQUIRED` | No | Who must use two-factor authentication: `none` (default), `admins` (instance administrators) or `all`. A covered user without it is sent to set it up before using the app. |
+| `TWO_FACTOR_REQUIRED` | No | Who must use two-factor authentication: `none` (default), `admins` (instance admins) or `all`. A covered user without it is sent to set it up before using the app. |
 
 ## Database And Cache
 
@@ -70,10 +70,10 @@ Primary config modules:
 | `OPENAI_COMPATIBLE_API_KEY` | Yes | API key for the model endpoint. |
 | `EMBEDDING_MODEL` | Yes | Embedding model exposed by the endpoint. |
 | `EMBEDDING_DIMENSIONS` | Yes | Positive integer vector size for the embedding model and Qdrant collection. |
-| `KREUZBERG_OCR_LANGUAGE` | No | OCR languages for asset processing. Defaults to `eng` in host-oriented code and `eng+deu` in Compose examples. |
+| `KREUZBERG_OCR_LANGUAGE` | No | OCR languages for asset preparation. Defaults to `eng` in host-oriented code and `eng+deu` in Compose examples. |
 
 <Callout title="Do not mix embeddings" type="warn">
-	Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported. Recreate the Qdrant collection and reprocess assets instead of mixing embeddings.
+	Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported. Recreate the Qdrant collection and prepare assets again instead of mixing embeddings.
 </Callout>
 
 ## Qdrant

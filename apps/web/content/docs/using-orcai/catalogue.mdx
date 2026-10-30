@@ -3,7 +3,7 @@ title: Catalogue
 description: Browsing what organisations on the instance list (bots, behaviours and repositories), judging an entry on its page, and adding it to your organisation with Sharing and Model.
 ---
 
-The catalogue (`/app/catalogue`) shows the bots, behaviours and repositories
+The Catalogue (`/app/catalogue`) shows the bots, behaviours and repositories
 that organisations on this instance list. Everyone signed in can browse it and
 open an entry's page. Using an entry needs your organisation to add it and to
 share it with you. Listing and what it shares are described under
@@ -11,7 +11,7 @@ share it with you. Listing and what it shares are described under
 
 ## Browsing
 
-The catalogue has the Library's layout. Its header has a search field; a rail
+The Catalogue has the Library's layout. Its header has a search field; a rail
 on the left (above the results on small screens) has:
 
 - The views: **Discover**, and one per kind (Bots, Behaviours, Repositories)
@@ -34,7 +34,7 @@ to the same results at the same scroll position.
 
 Each tile names the organisation the entry comes from and what it holds: a
 bot's behaviour and repositories, "Prompt" for a behaviour, or a repository's
-documents. A bot's tile shows the model its author set up: **Requires …** when
+assets. A bot's tile shows the model its author set up: **Requires …** when
 its chats always use that model, **Tuned for …** when it is a recommendation.
 A check on the icon marks what your organisation already added. The
 organisation's name opens its page, and while the **Organisation** filter is
@@ -45,10 +45,10 @@ set, a link above the results leads to each chosen organisation's page.
 Opening a tile shows the entry's page: its organisation and owner, its
 description, and what you need to judge it before adding it.
 
-- A bot lists its behaviour and repositories, with their documents, and says
+- A bot lists its behaviour and repositories, with their assets, and says
   which model it asks for and whether your organisation can use that model.
 - A behaviour shows its full prompt.
-- A repository shows its first documents and how many more it holds.
+- A repository shows its first assets and how many more it holds.
 
 Admins and managers see **Add to …** for your active organisation. Other
 members are told to ask them. An entry your organisation added shows
@@ -58,19 +58,19 @@ Library**.
 ## An Organisation's Page
 
 Every organisation on the instance has a page (`/app/organizations/<id>`) that
-everyone signed in can open: from an entry's organisation in the catalogue or
+everyone signed in can open: from an entry's organisation in the Catalogue or
 the Library ("From …"), from the organisation picker, and from the
 **Organisation** filter. It shows the organisation's logo, name and
 description, and how many bots, behaviours and repositories it lists in the
-catalogue; each count opens the catalogue's view of that kind filtered to the
-organisation. It shows no members. Its administrators see **Edit**, which
+Catalogue; each count opens the Catalogue's view of that kind filtered to the
+organisation. It shows no members. Its admins see **Edit**, which
 opens the [Organisation settings](/docs/using-orcai/administration#organisation)
 where the description is written, switching to that organisation first when
 another one is active.
 
 ## Adding An Entry
 
-**Add to …** adds the entry to your organisation and opens its setup.
+**Add to …** adds the entry to your organisation and opens its steps.
 
 A bot's page offers **Also add its behaviour and … repositories to …** under
 its contents, unticked at first, for the blocks your organisation has not
@@ -78,11 +78,11 @@ added yet; those it has are marked **Added to …**. Ticked, **Add to …** adds
 them with the bot, so your organisation can build its own bots from them. Each
 stands on its own in the Library: removing the bot later keeps them. They are
 added unshared; share them from their pages in the Library. For a bot added
-without them, its page in the catalogue and the **…** menu of its page in the
+without them, its page in the Catalogue and the **…** menu of its page in the
 Library offer **Add its behaviour and … repositories to …** while some are
 not added yet.
 
-The setup:
+The steps:
 
 1. **Sharing**: who in your organisation may use it. Nobody can until you
    share it. Grants here are always for use: your organisation cannot edit,
@@ -94,16 +94,16 @@ The setup:
    pick another model or ask an admin to enable it. **Skip** leaves people
    free to pick any model.
 3. **Done**: start a chat with the bot (once it is shared with you), open it
-   in the Library, or go back to the catalogue.
+   in the Library, or go back to the Catalogue.
 
-Leaving the setup early keeps the entry added but unshared; finish it later
+Leaving the steps early keeps the entry added but unshared; finish it later
 from the entry's **Access & groups** and, for a bot, its **Model in …** card in
 the Library. The entry then appears in your Library marked "From" its home
-organisation, and the **Source** filter there separates it from what your
+organisation, and the **Origin** filter there separates it from what your
 organisation made. **Remove from …** in its **…** menu takes it out again.
 Changes its home organisation makes reach you right away, and taking it out
-of the catalogue removes it from every organisation that added it.
+of the Catalogue removes it from every organisation that added it.
 
-The [OrcAI Assistant](/docs/using-orcai/assistant) can search the catalogue
+The [OrcAI Assistant](/docs/using-orcai/assistant) can search the Catalogue
 and, for admins and managers, add and remove entries after you confirm,
 including a bot together with its behaviour and repositories.

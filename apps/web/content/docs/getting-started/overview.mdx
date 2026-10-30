@@ -3,7 +3,7 @@ title: Platform Overview
 description: What OrcAI is, who it is for, how retrieval-backed chat works, and the main areas of the app with their paths.
 ---
 
-OrcAI is a self-hostable platform for governed, retrieval-backed AI assistants. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate material and students interact with a grounded AI tutor. OrcAI has since moved beyond a fixed instructor–student model: individuals and groups can build specialised knowledge bases and assistants for their own domains.
+OrcAI is a self-hostable platform for governed, retrieval-backed AI bots. It originated in the [SokratesT project](https://github.com/SokratesT/sokratest) and still supports learning workflows where instructors curate sources and students interact with a grounded AI tutor. OrcAI has since moved beyond a fixed instructor–student model: individuals and groups can build specialised repositories and bots for their own domains.
 
 <Callout title="Documentation status" type="info">
 	The project is still in active development. Treat the current documentation as an implementation-oriented headstart rather than a complete product manual.
@@ -11,25 +11,25 @@ OrcAI is a self-hostable platform for governed, retrieval-backed AI assistants. 
 
 ## What OrcAI Does
 
-OrcAI combines content ingestion, semantic search, and chat:
+OrcAI combines asset preparation, semantic search, and chat:
 
-1. Workspace members upload source material.
-2. Background workers process files and extract usable text or image descriptions.
-3. Processed content is stored in S3-compatible object storage.
-4. Extracted content is indexed in Qdrant for retrieval.
-5. Users chat with the platform.
+1. Organisation members upload files.
+2. Background workers prepare the files and extract usable text or image descriptions.
+3. Assets are stored in S3-compatible object storage.
+4. Extracted text is indexed in Qdrant for retrieval.
+5. Users chat with bots or a model.
 6. Relevant context is retrieved and sent to the configured AI model endpoint.
 
 ## Core Areas
 
-- Home (`/app`): the start page after sign-in, with a Use tab for asking questions and a Manage tab (`/app/manage`) with an overview of the organisation and, for admins, its setup checklist.
-- Chat (`/app/chat`): AI conversations, optionally started from a bot.
+- Home (`/app`): the start page after sign-in, with a Use tab for asking questions and a Manage tab (`/app/manage`) with an overview of the organisation and, for admins, its readiness checklist.
+- Chat (`/app/chat`): AI chats, optionally started from a bot.
 - Library (`/app/library`): everything the organisation can use, browsed by kind (Bots, Behaviours, Repositories and Assets) from one rail, with search, filters and a Mine switch. It is one item in the sidebar.
 - Catalogue (`/app/catalogue`): the bots, behaviours and repositories organisations on the instance list, to preview and add to your organisation. It is the sidebar item after Library.
 - OrcAI Assistant (`/app/assistant`): the built-in helper for questions about your work and about OrcAI.
-- Access control: organisations, roles, groups, invitations and resource sharing.
-- Administration: Members, Groups, Quotas, Providers, Models and Organisation for the active organisation, shown to members whose role allows them.
-- Instance management (`/instance`): health, organisations and accounts across the whole instance, for instance administrators.
+- Access control: organisations, roles, groups, invitations and sharing.
+- Administration: Members, Groups, Quota pools, Providers, Models and Organisation for the active organisation, shown to members whose role allows them.
+- Instance management (`/instance`): health, organisations and accounts across the whole instance, for instance admins.
 
 ## Suggested Reading
 
@@ -37,8 +37,8 @@ OrcAI combines content ingestion, semantic search, and chat:
 	<Card href="/docs/using-orcai/chat" title="Start with chat">
 		Learn the primary end-user workflow: starting chats, choosing bots, and attaching sources.
 	</Card>
-	<Card href="/docs/using-orcai/workspace-setup" title="Set up a workspace">
-		Use the admin checklist to prepare providers, models, quotas, content, bots, and users.
+	<Card href="/docs/using-orcai/organisation-setup" title="Set up an organisation">
+		Use the admin checklist to prepare providers, models, quota pools, assets, bots, and members.
 	</Card>
 	<Card href="/docs/self-hosting/quickstart-compose" title="Run it locally">
 		Start a local Compose stack and see which services OrcAI needs.
@@ -47,4 +47,4 @@ OrcAI combines content ingestion, semantic search, and chat:
 
 ## Getting Access
 
-Access to the managed service of OrcAI is currently only available via direct invites from users already on the platform. If you want to create your own organisation (isolated workspace) to invite users yourself, contact us at [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de)
+Access to the managed service of OrcAI is currently only available via direct invites from users already on the instance. If you want to create your own organisation to invite users yourself, contact us at [sokratest@hochschule-rhein-waal.de](mailto:sokratest@hochschule-rhein-waal.de)

@@ -51,7 +51,7 @@ The local override publishes:
 | SeaweedFS S3 API | `8333` | S3-compatible object storage |
 | Qdrant HTTP | `6333` | Vector database HTTP API |
 | Qdrant gRPC | `6334` | Vector database gRPC API |
-| SpiceDB gRPC | `50051` | Authorization service |
+| SpiceDB gRPC | `50051` | Authorisation service |
 | SpiceDB HTTP | `8080` | SpiceDB HTTP API |
 | SpiceDB metrics | `9090` | SpiceDB metrics |
 | SpiceDB PostgreSQL | `5431` | SpiceDB backing database |
@@ -60,7 +60,7 @@ Most ports can be overridden with environment variables such as `APP_PORT`, `POS
 
 ## Required AI Variables
 
-The local override provides development placeholders for some secrets, but these AI variables must be meaningful for ingestion and chat to work:
+The local override provides development placeholders for some secrets, but these AI variables must be meaningful for asset preparation and chat to work:
 
 ```bash title=".env"
 OPENAI_COMPATIBLE_BASE_URL="https://your-ai-provider.example/v1"
@@ -70,7 +70,7 @@ EMBEDDING_DIMENSIONS=1024
 ```
 
 <Callout title="Keep embeddings stable" type="warn">
-	Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data. Changing them requires recreating the Qdrant collection and reprocessing assets.
+	Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data. Changing them requires recreating the Qdrant collection and preparing assets again.
 </Callout>
 
 ## Stop The Stack
@@ -87,7 +87,7 @@ Add `-v` only if you intentionally want to remove local volumes and lose stored 
 - Keep `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` stable after indexing data.
 - Custom embedding model definitions are only supported in self-hosted deployments.
 
-## What Compose Initializes
+## What Compose Initialises
 
 The Compose stack includes one-shot services for:
 
@@ -97,5 +97,5 @@ The Compose stack includes one-shot services for:
 SeaweedFS creates the `uploads` and `processed-files` buckets itself on startup.
 
 <Callout title="TODO" type="idea">
-	Add a first-login/admin-bootstrap flow once the production initialization process is finalized, plus an example `.env` for a realistic self-hosted deployment.
+	Add a first-login/admin-bootstrap flow once the production initialisation process is finalised, plus an example `.env` for a realistic self-hosted deployment.
 </Callout>

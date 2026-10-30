@@ -71,14 +71,14 @@ function Home() {
 							<div>
 								<Eyebrow className="mb-4">Configure. Ground. Govern.</Eyebrow>
 								<h1 className="max-w-4xl text-balance font-semibold text-5xl leading-none tracking-tight sm:text-6xl">
-									Knowledge assistants you can operate on your own terms.
+									Knowledge bots you can operate on your own terms.
 								</h1>
 								<BodyCopy className="mt-6 max-w-2xl text-base leading-7">
 									OrcAI helps individuals, specialist teams, educators, and
-									research groups build AI assistants around curated knowledge
-									bases. Upload material, shape assistant behaviour, control
-									access, and run the stack without depending on external SaaS
-									services beyond an inference provider.
+									research groups build AI bots around curated repositories.
+									Upload files, shape bot behaviour, control access, and run the
+									stack without depending on external SaaS services beyond an
+									inference provider.
 								</BodyCopy>
 								<div className="mt-8 flex flex-wrap gap-3">
 									<ActionLink href={primaryCta.href} variant="primary">
@@ -116,13 +116,13 @@ function Home() {
 				<LandingSection className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
 					<Surface className="p-6">
 						<SectionHeading eyebrow="Working model">
-							From source material to governed assistant.
+							From uploaded files to governed bot.
 						</SectionHeading>
 						<BodyCopy className="mt-4">
 							Generic chat tools make people improvise context, policy, and
-							quality checks. OrcAI turns those concerns into explicit workspace
-							resources: content, repository blocks, behaviour blocks, bots,
-							access settings, providers, and quotas.
+							quality checks. OrcAI turns those concerns into explicit parts of
+							an organisation: assets, repositories, behaviours, bots, access
+							settings, providers, and quota pools.
 						</BodyCopy>
 					</Surface>
 					<Surface className="divide-y divide-landing-border-subtle p-3">
@@ -146,10 +146,9 @@ function Home() {
 							Control is part of the application, not an afterthought.
 						</SectionHeading>
 						<BodyCopy>
-							OrcAI is built for settings where the knowledge base, access
-							model, model configuration, and operating environment matter. The
-							stack is open source and can be hosted with infrastructure you
-							control.
+							OrcAI is built for settings where the repositories, access model,
+							model configuration, and operating environment matter. The stack
+							is open source and can be hosted with infrastructure you control.
 						</BodyCopy>
 					</div>
 					<div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -171,7 +170,7 @@ function Home() {
 						<BodyCopy className="mt-4">
 							The application runs with its own app process, background workers,
 							relational data, cache, object storage, vector search, and
-							authorization service. The required external boundary is an
+							authorisation service. The required external boundary is an
 							OpenAI-compatible inference endpoint for embeddings and model
 							calls.
 						</BodyCopy>
