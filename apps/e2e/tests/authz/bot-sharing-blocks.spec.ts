@@ -92,7 +92,7 @@ const pickManagerOnSharingStep = async (
 		.click();
 	await expect(
 		page.getByText(
-			message("common_selected_count_label", {
+			message("common_selected_count", {
 				count: 1,
 			}),
 		),
@@ -132,7 +132,7 @@ const grant = async (page: Page): Promise<void> => {
 	).toBeVisible();
 	await expect(
 		page.getByText(
-			message("common_selected_count_label", {
+			message("common_selected_count", {
 				count: 0,
 			}),
 		),
