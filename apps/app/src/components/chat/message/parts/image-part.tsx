@@ -2,6 +2,7 @@ import { DownloadIcon, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { m } from "@/paraglide/messages";
+import { downloadImage } from "./download-image";
 
 interface ImagePartProps {
 	url: string;
@@ -9,34 +10,9 @@ interface ImagePartProps {
 }
 
 export const ImagePart = ({ url, alt }: ImagePartProps) => {
-	const handleDownloadImage = (imageData: string, filename: string) => {
+	const handleDownloadImage = () => {
 		try {
-			// Convert base64 to blob
-			const byteCharacters = atob(imageData);
-			const byteNumbers = new Array(byteCharacters.length);
-			for (let i = 0; i < byteCharacters.length; i++) {
-				byteNumbers[i] = byteCharacters.charCodeAt(i);
-			}
-			const byteArray = new Uint8Array(byteNumbers);
-			const blob = new Blob(
-				[
-					byteArray,
-				],
-				{
-					type: "image/png",
-				},
-			);
-
-			// Create download link
-			const downloadUrl = URL.createObjectURL(blob);
-			const link = document.createElement("a");
-			link.href = downloadUrl;
-			link.download = `generated-image-${filename.slice(0, 30).replace(/[^a-zA-Z0-9]/g, "-")}.png`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(downloadUrl);
-
+			downloadImage(url);
 			toast.success(m.chat_image_part_download_toast_success());
 		} catch (_error) {
 			toast.error(m.chat_image_part_download_toast_error());
@@ -62,7 +38,7 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 					size="sm"
 					variant="default"
 					className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
-					onClick={() => handleDownloadImage(url, alt)}
+					onClick={handleDownloadImage}
 					title={m.chat_image_part_download_action()}
 				>
 					<DownloadIcon className="h-4 w-4" />
