@@ -26,7 +26,7 @@ bun install --frozen-lockfile
 
 Edit `.env` before starting the app. See [Configuration](/docs/self-hosting/configuration) for required variables.
 
-## Initialize Data Stores
+## Initialise Data Stores
 
 Run database migrations:
 
@@ -83,7 +83,7 @@ bun run workers:start
 
 ## Host OCR Notes
 
-OCR-backed asset processing runs in the worker process. When workers run outside Docker, install Tesseract and the configured language packs. Use `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both packs are installed.
+OCR-backed asset preparation runs in the worker process. When workers run outside Docker, install Tesseract and the configured language packs. Use `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both packs are installed.
 
 ## Model Customisation Scope
 

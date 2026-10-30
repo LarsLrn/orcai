@@ -9,16 +9,16 @@ This page collects operational notes that are clear from the repository. It is n
 	This page intentionally favours known-safe checks over speculative production advice.
 </Callout>
 
-## Registration
+## Creating Accounts
 
-Registration is invitation only, enforced by the sign-up endpoint itself: it
+Creating an account is invitation only, enforced by the sign-up endpoint itself: it
 requires the ID of a pending, unexpired invitation matching the address. There is no
-open sign-up to disable, and no setting turns one on.
+open account creation to disable, and no setting turns one on.
 
 - The first account of an instance comes from the init flow at `/init`,
   which writes the user directly and is therefore not affected by the rule.
 - Every later account is created from an invitation link an organisation
-  administrator sends. Signing up accepts that invitation and writes its
+  admin sends. Creating the account accepts that invitation and writes its
   membership. Other invitations remain pending for explicit acceptance.
   Membership, invitation status, and permission intent commit atomically;
   permission delivery retries from the outbox after commit.
@@ -27,7 +27,7 @@ open sign-up to disable, and no setting turns one on.
 
 ## Permission delivery
 
-Every change to memberships, groups, grants, and resources commits its
+Every change to memberships, groups, grants, bots, blocks, and assets commits its
 SpiceDB relationship changes to the `authz_outbox` table in the same
 transaction. The app delivers them to SpiceDB in commit order, one deliverer
 at a time, right after the request and every 10 seconds in the background.
@@ -97,7 +97,7 @@ bun run --filter @orcai/spice-db status
 
 `GET /api/health` answers `200` when PostgreSQL and SpiceDB answer within three seconds, and `503` otherwise. It needs no session and returns no body, so it is safe to expose to a load balancer or orchestrator. The Compose `app` healthcheck uses it.
 
-Instance administrators see the full picture on the Health page (`/instance/health`): every dependency, the background processes, queue counts, email delivery, versions and the app's configuration with secrets hidden. See [Instance management](/docs/using-orcai/administration#instance-management).
+Instance admins see the full picture on the Health page (`/instance/health`): every dependency, the background processes, queue counts, email delivery, versions and the app's configuration with secrets hidden. See [Instance management](/docs/using-orcai/administration#instance-management).
 
 ## Email delivery
 
@@ -127,14 +127,14 @@ The storage provider enforces the rule, not OrcAI. SeaweedFS runs lifecycle in i
 
 Data export archives land under `exports/` in the same bucket and can be downloaded for 24 hours. The workers delete them themselves, so the removal does not depend on the storage provider: the `data-export-expire-job` runs every ten minutes and deletes every object under `exports/` that is older than 25 hours, the 24 hour download window plus the hour an export may take to build, including archives whose export or user no longer exists. The app refuses to download an export after 24 hours before the job has run.
 
-## Asset Processing
+## Asset Preparation
 
 If OCR or extraction fails, verify:
 
 - Worker process is running.
 - Tesseract is installed when running workers on the host.
 - `KREUZBERG_OCR_LANGUAGE` only references installed language packs.
-- Images are described by the organisation's utility model, which needs the image capability; without it, image files fail and figures in documents are skipped.
+- Images are described by the organisation's utility model, which needs the image capability; without it, image files fail and figures inside files are skipped.
 - Object storage credentials and bucket setup are valid.
 
 ## Retrieval

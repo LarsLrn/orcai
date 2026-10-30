@@ -7,7 +7,7 @@ The app is translated with [Paraglide](https://inlang.com/m/gerre34r/library-inl
 
 ## Locale Resolution
 
-The locale is not in the URL. Paraglide resolves it from the `PARAGLIDE_LOCALE` cookie, then the browser's `Accept-Language`, then falls back to the base locale `en`. The language switchers in the header and on the sign-in and registration pages set the cookie and reload.
+The locale is not in the URL. Paraglide resolves it from the `PARAGLIDE_LOCALE` cookie, then the browser's `Accept-Language`, then falls back to the base locale `en`. The language switchers in the header and on the sign-in and account creation pages set the cookie and reload.
 
 Locales: `en` (base, British spelling) and `de`. `localeSchema` in `@orcai/schema` lists them for everything outside the Paraglide runtime.
 
@@ -15,7 +15,7 @@ Locales: `en` (base, British spelling) and `de`. `localeSchema` in `@orcai/schem
 
 Each user has a nullable `user.locale`, a Better Auth user field, so it travels with the session. The cookie stays the source for every request; the stored value never triggers a lookup. They meet at these points:
 
-- Registration stores the request's locale.
+- Creating an account stores the request's locale.
 - Sign-in sets the cookie from the stored value, so a new browser follows the user. A user without one gets the request's locale stored instead, which backfills accounts that predate the column.
 - A signed-in user who switches language saves the choice through Better Auth before the reload; a failed save keeps the current language.
 
@@ -45,14 +45,14 @@ access_dialog_title
 
 A key never encodes its English text, so rewording the copy leaves the key alone. When the surrounding component is renamed, rename the key with it. Interpolation uses `{name}` placeholders, plural and other variants use Paraglide's variant syntax in the message file, and copy with inline links or emphasis is split into separate messages around the marked-up part. Dates, numbers, and relative times go through `Intl` with the active locale from `getLocale()`.
 
-Out of scope for translation: content that users author, such as bot names, descriptions, documents, and organisation copy.
+Out of scope for translation: content that users author, such as bot names, descriptions, assets, and organisation copy.
 
 ## Emails
 
 Notification emails have their own catalogue in `packages/notifications/messages/<locale>.json`, with keys prefixed `email_`, so the package never imports from the app. Every outbox payload carries a `locale`; the templates pass it to each message function, to `Intl`, and to `<html lang>`. A payload without one renders in English.
 
 - Verification and password reset emails use the recipient's stored locale, falling back to the locale of the request that sent them.
-- Invitations use the language the inviter picks in the invitation form, which defaults to the inviter's own. The invitation stores no language and its link carries none; the registration page follows the visitor's cookie or browser.
+- Invitations use the language the inviter picks in the invitation form, which defaults to the inviter's own. The invitation stores no language and its link carries none; the account creation page follows the visitor's cookie or browser.
 
 The catalogue compiles to `packages/notifications/src/paraglide`, which is generated, not committed. The package has no bundler plugin, so its `paraglide:compile` script runs before the app's `dev` and `build`, the workers' `dev` and `start`, `bun run lint` and `bun run test`, and in the workers image build. A message change needs a restart of the dev server or workers.
 

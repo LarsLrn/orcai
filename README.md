@@ -13,17 +13,17 @@
 
 ## Overview
 
-OrcAI is a self-hostable platform for building governed AI assistants around curated knowledge. Individuals, specialist teams, educators, and research groups can upload source material, process and index it, compose reusable assistants, control access, and ground responses through retrieval-augmented generation (RAG).
+OrcAI is a self-hostable platform for building governed AI bots around curated knowledge. Individuals, specialist teams, educators, and research groups can upload files, prepare and index them, compose reusable bots, control access, and ground responses through retrieval-augmented generation (RAG).
 
 ## Core Capabilities
 
 - AI-assisted chat grounded in course content
-- Document ingestion and processing for PDFs, Office files, and images
+- Asset preparation for PDFs, Office files, and images
 - Semantic retrieval with Qdrant-backed vector search
-- Bot features: Generative UI for structured results such as checklists in the answer, web search, and questions and quizzes the bot asks in the conversation
+- Bot features: Generative UI for structured results such as checklists in the answer, web search, and questions and quizzes the bot asks in the chat
 - Course and invitation-based access control
-- Background job processing for ingestion workflows
-- S3-compatible object storage for uploaded and processed assets
+- Background jobs for asset preparation
+- S3-compatible object storage for uploaded and prepared assets
 - Optional observability with Umami and OpenTelemetry
 - German and English localisation support
 
@@ -48,10 +48,10 @@ OrcAI is a self-hostable platform for building governed AI assistants around cur
 - Qdrant
 - pg-boss
 
-### AI and Processing
+### AI and Extraction
 - AI SDK
 - OpenAI-compatible model endpoint
-- Kreuzberg document processing
+- Kreuzberg text extraction
 - PgBoss workers
 
 ## Development Workflows
@@ -160,7 +160,7 @@ Notes:
 - A one-shot `deps` service runs `bun install --frozen-lockfile` before the workspace container starts.
 - Application services are started manually in the workspace, so changing them does not require rebuilding or restarting the devcontainer.
 - `.devcontainer/.env` defaults `OPENAI_COMPATIBLE_BASE_URL` to an Ollama-compatible endpoint on the Docker host at `http://host.docker.internal:11434/v1`.
-- OCR-backed asset processing runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
+- OCR-backed asset preparation runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
 - OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
 - Log-only email mode writes complete messages, including authentication and invitation links, to application logs for local testing. Configure SMTP in production and treat log-only output as sensitive.
@@ -220,7 +220,7 @@ Run `bun run build`, then `bun run start` for the app and `bun run workers:start
 
 The e2e inference mock starts fresh and its worker-local scenarios reset before
 and after each test. Playwright also runs the docs image on `WEB_PORT`, or
-reuses a running `bun run stack web`, which the assistant reads through
+reuses a running `bun run stack web`, which the OrcAI Assistant reads through
 `WEB_INTERNAL_URL` during `bun run stack e2e`. Admin browser pages use sessions separate from API clients.
 Stack flags before `--` are validated; delegated flags belong after `--`.
 
@@ -240,12 +240,12 @@ Runtime configuration is loaded across app and package config modules. Every val
 ### Core URL and auth variables
 
 - `BETTER_AUTH_URL`: The app's public origin, used for auth callbacks and links in emails. Passkeys are bound to its host name, so changing the domain invalidates them.
-- `WEB_URL`: Public docs site base URL used by the app dashboard and the assistant's docs links (optional). The assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the assistant cannot read the docs.
-- `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the assistant (optional, defaults to `WEB_URL`; Docker Compose sets `http://web:3001`).
+- `WEB_URL`: Public docs site base URL used by the app dashboard and the Assistant's docs links (optional). The Assistant also reads the docs from it unless `WEB_INTERNAL_URL` is set; without it the Assistant cannot read the docs.
+- `WEB_INTERNAL_URL`: Docs site origin the app server fetches for the Assistant (optional, defaults to `WEB_URL`; Docker Compose sets `http://web:3001`).
 - `BETTER_AUTH_SECRET`: Better Auth signing secret.
 - `BETTER_AUTH_RATE_LIMIT`: `false` turns off Better Auth's rate limiting (optional; on in production by default). It keys clients by `X-Forwarded-For`; requests without exactly one address in it share one limit.
 - `ENCRYPTION_KEY`: 32 to 64 character application encryption key. Provider API keys are stored encrypted with it, so the app and the workers need the same value.
-- `TWO_FACTOR_REQUIRED`: Who must use two-factor authentication: `none` (default), `admins` (instance administrators) or `all` (optional). A covered user without it is sent to set it up before using the app.
+- `TWO_FACTOR_REQUIRED`: Who must use two-factor authentication: `none` (default), `admins` (instance admins) or `all` (optional). A covered user without it is sent to set it up before using the app.
 
 ### Required infrastructure variables
 
@@ -284,7 +284,7 @@ Model-scope note:
 
 ### Optional variables
 
-- `KREUZBERG_OCR_LANGUAGE`: OCR languages for background asset processing. Defaults to `eng`; use `eng+deu` only where both Tesseract packs are available.
+- `KREUZBERG_OCR_LANGUAGE`: OCR languages for background asset preparation. Defaults to `eng`; use `eng+deu` only where both Tesseract packs are available.
 - `WORKER_POLLING_INTERVAL_SECONDS`: Replaces how often every background worker polls its queue (pg-boss minimum 0.5). Unset, each worker keeps its own interval of 2 to 30 seconds; the e2e pipeline run uses 0.5.
 - `S3_REGION`: Defaults to `eu-central-1`.
 - `S3_PUBLIC_ENDPOINT`: Optional public endpoint for presigned URLs.
@@ -294,7 +294,7 @@ Model-scope note:
 - `OTEL_RESOURCE_ATTRIBUTES`: Optional resource attributes such as `deployment.environment=production`, attached to every exported signal of the app and the workers.
 
 Embedding note:
-- Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported right now. Recreate the Qdrant collection and reprocess assets instead of mixing old and new embeddings.
+- Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported right now. Recreate the Qdrant collection and prepare assets again instead of mixing old and new embeddings.
 
 See [.env.example](.env.example) for a current baseline.
 
@@ -361,8 +361,8 @@ OrcAI is free software licensed under the [GNU Affero General Public License, ve
 ## Architecture Summary
 
 1. Instructors upload course material.
-2. Background jobs process files and extract content.
-3. Processed content is stored in S3-compatible buckets and indexed in Qdrant.
+2. Background jobs prepare files and extract their text.
+3. Assets are stored in S3-compatible buckets and indexed in Qdrant.
 4. Students interact with the OrcAI chat interface.
 5. Relevant course context is retrieved and sent to the configured model endpoint.
 6. Responses and optional observability signals are returned through the app.

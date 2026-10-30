@@ -1,6 +1,6 @@
 ---
 title: Architecture
-description: How the OrcAI app, workers, storage, authorization, retrieval, and AI services fit together.
+description: How the OrcAI app, workers, storage, authorisation, retrieval, and AI services fit together.
 ---
 
 OrcAI is split into a main app, worker process, and infrastructure services.
@@ -33,9 +33,9 @@ flowchart LR
 - Drizzle ORM manages PostgreSQL access and migrations.
 - pg-boss coordinates background jobs.
 - Qdrant stores vector indexes.
-- SpiceDB handles authorization relationships and permission checks.
+- SpiceDB handles authorisation relationships and permission checks.
 - S3-compatible storage stores uploaded and processed files.
-- Kreuzberg and Tesseract handle document extraction and OCR.
+- Kreuzberg and Tesseract handle text extraction and OCR.
 - The AI SDK talks to each provider's API through its kind (OpenAI-compatible, OpenAI or Anthropic); titles, embeddings and workers use the instance's OpenAI-compatible endpoint.
 
 <Callout title="Generated API reference" type="info">
@@ -44,12 +44,12 @@ flowchart LR
 	the oRPC router, so it reflects the API exposed by that deployed version.
 </Callout>
 
-## Content Processing Flow
+## Asset Preparation Flow
 
-1. A user uploads material through the app. The browser puts each file under `staging/` in S3-compatible object storage with a URL the app signed.
+1. A user uploads files through the app. The browser puts each file under `staging/` in S3-compatible object storage with a URL the app signed.
 2. Right after the upload, the browser calls `asset.createFromUploads`. The intake module (`apps/app/src/lib/assets/intake.ts`) checks each staged file against the signed upload, moves it to the asset's key, and creates the asset row with its owner. Bucket, keys and origin (library or chat) come from the signed-in user and the upload route, never from the client. Each file gets its own result, and repeating an upload returns the same asset.
 3. The app creates background jobs.
-4. Workers extract content from the uploaded material.
+4. Workers extract content from the uploaded files.
 5. Workers create processed artifacts and metadata.
 6. Workers generate embeddings using the configured model endpoint.
 7. Workers write vector data to Qdrant.
@@ -58,7 +58,7 @@ flowchart LR
 ## Profile Pictures And Logos
 
 Profile pictures and organisation logos are not assets: they need no
-processing, no SpiceDB relationships and no presigned reads.
+preparation, no SpiceDB relationships and no presigned reads.
 
 1. The browser crops the chosen image to a 256 by 256 pixel WebP and uploads it through the `profileImage` or `organizationLogo` route, which signs one WebP of at most 256 KB under `staging/` like any upload.
 2. `user.setImage` or `organization.setLogo` (organisation admins) hands the upload to the image module (`apps/app/src/lib/images/images.ts`). It checks the upload belongs to the caller, checks the stored object's type and size, copies it to a fresh key under `images/` and swaps the column under a row lock. The replaced object and the staged copy are deleted afterwards, best effort; a failure leaves a small unreferenced object, and the `staging/` lifecycle rule expires abandoned uploads. No lifecycle rule matches `images/`.
@@ -67,13 +67,13 @@ processing, no SpiceDB relationships and no presigned reads.
 
 The 256-pixel size and the dropped metadata are guaranteed for uploads through the app's crop dialog only. The server checks type and size but does not decode or re-encode images; a client calling the API directly can store any WebP-labelled bytes up to 256 KB, which the route serves only as `image/webp`.
 
-## Authorization Flow
+## Authorisation Flow
 
-The app stores domain records in PostgreSQL and uses SpiceDB for relationship-based authorization. Permission middleware checks whether a user can access or mutate a resource before executing protected operations.
+The app stores domain records in PostgreSQL and uses SpiceDB for relationship-based authorisation. Permission middleware checks whether a user can access or mutate a resource before executing protected operations.
 
 ### Read Consistency
 
-Authorization reads are near real-time by default: SpiceDB answers them with `minimizeLatency`, which can miss a permission change made moments earlier. A request that writes authorization returns the resulting zedToken in the response `meta` and sets a `zed_token` cookie for 60 seconds, so the browser's following reads are at least as fresh as that write.
+Authorisation reads are near real-time by default: SpiceDB answers them with `minimizeLatency`, which can miss a permission change made moments earlier. A request that writes authorisation returns the resulting zedToken in the response `meta` and sets a `zed_token` cookie for 60 seconds, so the browser's following reads are at least as fresh as that write.
 
 The sign-up response carries the same cookie for the membership it grants, so a new account's first reads already see it.
 
@@ -87,11 +87,11 @@ A response without `meta.zedToken` means the request wrote nothing to SpiceDB in
 
 ## AI Flow
 
-Chat generation uses configured providers and models. Retrieval tools can search knowledge-base content, list documents, and fetch pages or chunks before the assistant response is generated.
+Chat generation uses configured providers and models. Retrieval tools can search repositories, list their assets, and fetch pages or passages before the model's response is generated.
 
-The OrcAI Assistant's tools call the platform's procedures as the signed-in user through the per-namespace Effect clients, so every middleware and authorization check runs as it does for the app. Core tools are always offered; the bots, sharing and people groups load on demand through `loadTools`, filtered by the user's organisation capabilities. Tools that destroy, revoke, widen access, change a role or send something out need approval: the turn pauses, and once the user answers it resumes on the same message through `ai.continue`. The assistant's plan is its newest `updatePlan` call; the first plan of a conversation needs the same approval, and create tools become callable only once a plan has been approved. How loading reaches the model depends on the provider's tool-loading strategy. With `references` (Anthropic models with tool search), every tool is declared up front, the group tools deferred. A loaded group and the create tools unlocked by the approved plan surface through `tool-reference` parts in the tool result, and create tools check for an approved plan when they run. With `active-tools` (other provider kinds and older Claude models), a loaded group's tools and the unlocked create tools join the request's tool list.
+The OrcAI Assistant's tools call OrcAI's procedures as the signed-in user through the per-namespace Effect clients, so every middleware and authorisation check runs as it does for the app. Core tools are always offered; the bots, sharing and people groups load on demand through `loadTools`, filtered by the user's organisation permissions. Tools that destroy, revoke, widen access, change a role or send something out need approval: the turn pauses, and once the user answers it resumes on the same message through `ai.continue`. The Assistant's plan is its newest `updatePlan` call; the first plan of a conversation needs the same approval, and create tools become callable only once a plan has been approved. How loading reaches the model depends on the provider's tool-loading strategy. With `references` (Anthropic models with tool search), every tool is declared up front, the group tools deferred. A loaded group and the create tools unlocked by the approved plan surface through `tool-reference` parts in the tool result, and create tools check for an approved plan when they run. With `active-tools` (other provider kinds and older Claude models), a loaded group's tools and the unlocked create tools join the request's tool list.
 
-Asset processing describes images, both image files and figures in documents, once with the organisation's utility model and stores the descriptions with the extraction; indexing reads them from there. The calls are metered against the organisation's quota pools and attributed to the uploader.
+Asset preparation describes images, both image files and figures inside files, once with the organisation's utility model and stores the descriptions with the extraction; indexing reads them from there. The calls are metered against the organisation's quota pools and attributed to the uploader.
 
 <Callout title="TODO" type="idea">
 	Document provider/model configuration from the admin UI once the expected operator workflow is confirmed.

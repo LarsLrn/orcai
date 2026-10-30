@@ -1,6 +1,6 @@
 ---
 title: Account
-description: The Account page and related flows, covering your name and profile picture, email verification, password change and reset, two-factor authentication, passkeys, organisation invitations, exporting your data, registration, switching organisation, and legal links.
+description: The Account page and related flows, covering your name and profile picture, email verification, password change and reset, two-factor authentication, passkeys, organisation invitations, exporting your data, creating an account, switching organisation, and legal links.
 ---
 
 The Account page holds your personal settings. Open it from **Account** in the user menu at the bottom of the sidebar.
@@ -14,7 +14,7 @@ The Account page holds your personal settings. Open it from **Account** in the u
 
 ## Summary Card
 
-The card at the top shows your picture, Name and Email as stored on your account. It shows no usage figures. Quota usage appears in each chat above the composer.
+The card at the top shows your picture, Name and Email as stored on your account. It shows no usage figures. Quota pool usage appears in each chat above the composer.
 
 ## Email Verification
 
@@ -47,9 +47,9 @@ Two-factor authentication (2FA) asks for a code from an authenticator app, such 
 
 When you sign in, OrcAI then asks for a code from the app. **Use a backup code** switches to a backup code. **Trust this device for 30 days** skips the code on this browser for 30 days.
 
-On the Security tab, **New backup codes** replaces your backup codes, and **Turn off** turns 2FA off; both ask for your password. Turning 2FA off sends you an email. When the administrator of your instance requires 2FA for you, **Turn off** is missing, and signing in without it set up takes you to a setup page first.
+On the Security tab, **New backup codes** replaces your backup codes, and **Turn off** turns 2FA off; both ask for your password. Turning 2FA off sends you an email. When the instance admin requires 2FA for you, **Turn off** is missing, and signing in without it set up takes you to a setup page first.
 
-If you lose your authenticator app, sign in with a backup code and set up 2FA again. Without a backup code, ask the instance administrator to reset your 2FA.
+If you lose your authenticator app, sign in with a backup code and set up 2FA again. Without a backup code, ask the instance admin to reset your 2FA.
 
 ## Passkeys
 
@@ -57,16 +57,16 @@ A passkey signs you in without your password: on the sign-in page, select **Use 
 
 **Add a passkey** on the Security tab registers one from this device or a security key, and you get an email about it. The list names each passkey after its provider where it can, and **Delete** removes one. Your password keeps working alongside your passkeys.
 
-A passkey belongs to the address OrcAI runs at. If the instance moves to another address, add your passkeys again. When the administrator of your instance requires 2FA for you, a passkey alone does not meet it: set up an authenticator app as well.
+A passkey belongs to the address OrcAI runs at. If the instance moves to another address, add your passkeys again. When the instance admin requires 2FA for you, a passkey alone does not meet it: set up an authenticator app as well.
 
 ## Invitations
 
-Registration is by invitation. An account is created from an invitation link
-sent by an administrator of the organisation you are joining; there is no open
-sign-up. The link opens the register page (`/register`), which names the
+Accounts are by invitation. An account is created from an invitation link
+sent by an admin of the organisation you are joining; nobody can create an
+account without one. The link opens **Create your account** (`/register`), which names the
 inviting organisation, and the address is fixed by the invitation.
 
-Signing up requires the invitation ID from the link and a matching address.
+Creating an account requires the invitation ID from the link and a matching address.
 It accepts only that invitation. Other pending invitations stay visible in the
 organisation picker, even with one active organisation. With one active
 organisation and no pending invitations you enter it directly. Email
@@ -97,7 +97,7 @@ When the archive is ready, the card offers **Download** and you receive an email
 
 The user menu at the bottom of the sidebar shows your active organisation and includes **Switch organisation**.
 
-**Switch organisation** opens **Select your organisation** (`/select-organization`), where you pick another organisation you belong to and see pending invitations. Instance administrators also find a **Manage instance** link there.
+**Switch organisation** opens **Select your organisation** (`/select-organization`), where you pick another organisation you belong to and see pending invitations. Instance admins also find a **Manage instance** link there.
 
 Chats belong to the organisation they were started in. After you leave an organisation, or are removed from it, your chats there stay readable but read-only under [Chat history](/docs/using-orcai/chat#chat-history), which **Select your organisation** links to even when you belong to no organisation.
 

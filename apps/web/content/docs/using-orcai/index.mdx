@@ -1,6 +1,6 @@
 ---
 title: Using OrcAI
-description: Guide to the OrcAI app for members, contributors and administrators, with the home page, sidebar, user menu and header and their paths.
+description: Guide to the OrcAI app for members, contributors and admins, with the home page, sidebar, user menu and header and their paths.
 ---
 
 This section documents the actual UX flows currently implemented in the main OrcAI app.
@@ -8,8 +8,8 @@ This section documents the actual UX flows currently implemented in the main Orc
 ## Who This Is For
 
 - People who chat with OrcAI using bots or direct model selection.
-- People who curate reusable content and bot configurations.
-- Workspace admins who manage users, groups, models, providers, and quotas.
+- People who curate reusable assets and bot configurations.
+- Organisation admins who manage members, groups, models, providers, and quota pools.
 
 ## Reading Path
 
@@ -17,19 +17,19 @@ If you are new to OrcAI, follow this order:
 
 <Cards>
 	<Card href="/docs/using-orcai/chat" title="Chat">
-		Start conversations, choose bots and models, attach sources, and tune per-chat behaviour.
+		Start chats, choose bots and models, attach sources, and tune per-chat settings.
 	</Card>
 	<Card href="/docs/using-orcai/assistant" title="OrcAI Assistant">
 		Ask the built-in helper about your work, one conversation per task.
 	</Card>
-	<Card href="/docs/using-orcai/content-library" title="Content library">
-		Upload material, track processing, reprocess assets, and prepare sources for retrieval.
+	<Card href="/docs/using-orcai/library" title="Library">
+		Upload files, track preparation, prepare assets again, and get sources ready for retrieval.
 	</Card>
 	<Card href="/docs/using-orcai/bots" title="Bots and behaviour">
-		Build reusable chat experiences with behaviour blocks and repositories.
+		Build reusable chat experiences with behaviours and repositories.
 	</Card>
-	<Card href="/docs/using-orcai/workspace-setup" title="Workspace setup">
-		Prepare a workspace before inviting end users.
+	<Card href="/docs/using-orcai/organisation-setup" title="Organisation setup">
+		Prepare an organisation before inviting end users.
 	</Card>
 </Cards>
 
@@ -41,20 +41,20 @@ The app requires authentication and an active organisation. Everything below bel
 
 Home has two tabs, each with its own address:
 
-- **Use** (`/app`): a greeting with **Take a tour**, the chat composer with bot and model pickers and attachments (sending creates a chat), and a card for your active organisation with how many bots, behaviours and repositories it lists in the catalogue, a link to its **Organisation page** and, for admins, **Edit**. Below that card, an **Activity** card shows your running work and what needs you while there is any, and its **Show all** opens [Activity](#activity). Below the composer, **Try something** offers up to three bots to start a chat with, favourites first, and the newest catalogue entry your organisation has not added yet. **Recent chats** lists the four chats you used most recently.
-- **Manage** (`/app/manage`): the organisation's name with **Create a bot**, for admins the **Organisation setup** checklist, and the **Library**, **Recently changed** and **People** panels. People who manage quotas also get the **Quota** panel with each pool's amounts; everyone else sees their pool's share in the chat composer.
+- **Use** (`/app`): a greeting with **Take a tour**, the chat composer with bot and model pickers and attachments (sending creates a chat), and a card for your active organisation with how many bots, behaviours and repositories it lists in the Catalogue, a link to its **Organisation page** and, for admins, **Edit**. Below that card, an **Activity** card shows your running work and what needs you while there is any, and its **Show all** opens [Activity](#activity). Below the composer, **Try something** offers up to three bots to start a chat with, favourites first, and the newest Catalogue entry your organisation has not added yet. **Recent chats** lists the four chats you used most recently.
+- **Manage** (`/app/manage`): the organisation's name with **Create a bot**, for admins the **Readiness checklist**, and the **Library**, **Recently changed** and **People** panels. People who manage quota pools also get the **Quota** panel with each pool's amounts; everyone else sees their pool's share in the chat composer.
 
-While a required setup step is missing, admins who open `/app` land on Manage, and the Manage tab shows how many required steps are left. See [Workspace Setup For Admins](/docs/using-orcai/workspace-setup).
+While a required checklist step is missing, admins who open `/app` land on Manage, and the Manage tab shows how many required steps are left. See [Organisation setup](/docs/using-orcai/organisation-setup).
 
 ### Sidebar
 
-- **Start a chat** opens the chat setup (`/app/chat/setup`).
+- **Start a chat** opens the **Start a chat** page (`/app/chat/setup`).
 - The **Chats** group lists your 40 most recent chats, with rename and delete in each chat's menu. **Show all** opens the chat list (`/app/chat`).
-- The **Your workspace** group holds:
+- The **Your organisation** group holds:
 	- **OrcAI Assistant** (`/app/assistant`), available to every member.
 	- **Library** (`/app/library`), always shown. Its items **Bots** (`/app/library/bots`), **Behaviour** (`/app/library/behaviours`), **Repositories** (`/app/library/repositories`) and **Assets** (`/app/library/assets`) need the `read` permission.
-	- **Administration**, shown when your role allows at least one of its items: **Members** (`/app/members`), **Groups** (`/app/groups`), **Quotas** (`/app/quotas`), **Providers** (`/app/providers`), **Models** (`/app/models`) and **Organisation** (`/app/organization`). See [Access control](/docs/using-orcai/access-control) for which roles see which items.
-- The user menu at the bottom holds **Account** (`/app/account`), **Switch organisation** (`/select-organization`), **Manage instance** (`/instance`, for instance administrators only) and **Sign out**.
+	- **Administration**, shown when your role allows at least one of its items: **Members** (`/app/members`), **Groups** (`/app/groups`), **Quota pools** (`/app/quotas`), **Providers** (`/app/providers`), **Models** (`/app/models`) and **Organisation** (`/app/organization`). See [Access control](/docs/using-orcai/access-control) for which roles see which items.
+- The user menu at the bottom holds **Account** (`/app/account`), **Switch organisation** (`/select-organization`), **Manage instance** (`/instance`, for instance admins only) and **Sign out**.
 
 ### Header
 
@@ -73,7 +73,7 @@ When an upload, **Generate missing metadata**, an export or other work on severa
 ## Important Notes
 
 - The app supports draft and published states for bots and blocks.
-- Resource-level sharing exists for assets, blocks, and bots via access dialogs.
+- Sharing exists for assets, blocks, and bots via access dialogs.
 - Some UI terms currently use British spelling (for example, Organisation, Behaviour).
 
 <Callout title="TODO" type="idea">

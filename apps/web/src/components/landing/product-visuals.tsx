@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 export const ConsoleVisual = ({ className }: { className?: string }) => (
 	<div
 		role="img"
-		aria-label="Governed knowledge assistant operations console visualization"
+		aria-label="Governed knowledge bot operations console visualisation"
 		className={cn(
 			"rounded-3xl border border-landing-border bg-landing-surface-raised p-4 text-landing-foreground",
 			className,
@@ -18,9 +18,9 @@ export const ConsoleVisual = ({ className }: { className?: string }) => (
 	>
 		<div className="mb-4 flex items-center justify-between border-landing-border-subtle border-b pb-3">
 			<div>
-				<div className="font-medium">Workspace control</div>
+				<div className="font-medium">Organisation control</div>
 				<div className="text-landing-muted text-xs">
-					Knowledge assistant configuration
+					Knowledge bot configuration
 				</div>
 			</div>
 			<div className="rounded-full bg-landing-accent-tint px-2 py-1 font-medium text-landing-accent-muted text-xs">
@@ -30,13 +30,13 @@ export const ConsoleVisual = ({ className }: { className?: string }) => (
 		<div className="grid gap-3 sm:grid-cols-2">
 			{[
 				[
-					"Assistants",
+					"Bots",
 					"18 configured",
 					BotIcon,
 				],
 				[
-					"Content",
-					"246 source items",
+					"Assets",
+					"246 uploaded files",
 					FileTextIcon,
 				],
 				[

@@ -10,13 +10,13 @@ OrcAI is a multi-service application. The app and workers are separate processes
 | Service | Role | Required for |
 | --- | --- | --- |
 | App | UI, authentication, API routes, workflows | All user-facing use |
-| Workers | Background jobs and scheduled maintenance | Content processing and quotas |
+| Workers | Background jobs and scheduled maintenance | Asset preparation and quota pools |
 | PostgreSQL | Relational application data | Core persistence |
 | Valkey | Cache and coordination | Runtime support |
-| SeaweedFS/S3 | Uploaded and processed files | Content library |
+| SeaweedFS/S3 | Uploaded and processed files | Library |
 | Qdrant | Vector indexes | Retrieval |
-| SpiceDB | Authorization relationships | Access control |
-| AI endpoint | Embeddings and chat model calls | Chat and ingestion |
+| SpiceDB | Authorisation relationships | Access control |
+| AI endpoint | Embeddings and chat model calls | Chat and preparation |
 
 ## App
 
@@ -30,7 +30,7 @@ The repository Compose stack also includes a `web` service for the documentation
 
 ## Workers
 
-Workers run background jobs for asset processing, vectorization, releasing quota reservations of replies that never ended, and quota period rollover. Workers must be running for uploaded content to become searchable. They also create the data export queues, which the app works.
+Workers run background jobs for asset preparation, vectorisation, releasing quota pool reservations of replies that never ended, and quota pool period rollover. Workers must be running for uploaded assets to become searchable. They also create the data export queues, which the app works.
 
 ## PostgreSQL
 
@@ -52,14 +52,14 @@ Qdrant stores vector indexes for retrieval. The embedding dimensions in Qdrant m
 
 ## SpiceDB
 
-SpiceDB backs authorization checks. The repository includes schema files under `packages/spice-db/src/schema` and commands to apply or inspect the schema.
+SpiceDB backs authorisation checks. The repository includes schema files under `packages/spice-db/src/schema` and commands to apply or inspect the schema.
 
 ## AI Endpoint
 
-OrcAI uses an OpenAI-compatible endpoint for embeddings; it must expose the embedding model named in `EMBEDDING_MODEL`. Chat, assistant and utility models, including image descriptions, use the providers configured in the app.
+OrcAI uses an OpenAI-compatible endpoint for embeddings; it must expose the embedding model named in `EMBEDDING_MODEL`. Chat, Assistant and utility models, including image descriptions, use the providers configured in the app.
 
 Custom embedding model definitions are only supported in self-hosted deployments.
 
-## Document Processing
+## Text Extraction
 
-Kreuzberg handles document extraction. OCR requires Tesseract in the worker environment.
+Kreuzberg extracts the text of uploaded files. OCR requires Tesseract in the worker environment.
