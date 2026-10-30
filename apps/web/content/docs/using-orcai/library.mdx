@@ -25,7 +25,7 @@ The Library (`/app/library`) shows everything your organisation can use. Its hea
 |---|---|
 | Bots | **Status** (All, Published, Drafts), **Origin**, **Only favourites** |
 | Behaviours, Repositories | **Status** (All, Published, Drafts), **Origin** |
-| Assets | **Uploaded to** (Library, Chats), **Preparation** (Any, Queued or running, Failed), **Suggestions to review** |
+| Assets | **Kept in** (Library, Chats), **Preparation** (Any, Queued or processing, Failed), **Suggestions to review** |
 | Overview, while searching | **Status**, **Origin** |
 
 **Show in Library** on an upload's [Activity](/docs/using-orcai#activity) entry opens the Assets view with only the assets of that upload, wherever they are now. A bar above the results names the entry, and its × or any filter returns to the whole view.
@@ -76,9 +76,9 @@ A file can be up to 64 MB, and one upload takes up to 100 files.
 
 ## Library and chat uploads
 
-The Assets view's **Uploaded to** filter has two choices. **Library** (the default) lists the assets uploaded on **Add assets**, in the repository editor or through the Assistant. **Chats** lists the chat uploads, the assets uploaded with a chat message. They are prepared like any other asset but kept out of the Library so it stays tidy. The Library's counts and its Overview leave chat uploads out.
+The Assets view's **Kept in** filter has two choices. **Library** (the default) lists the assets uploaded on **Add assets**, in the repository editor or through the Assistant. **Chats** lists the chat uploads, the assets uploaded with a chat message. OrcAI prepares them like any other asset, but the Library's counts and its Overview leave them out until someone adds them to the Library.
 
-**Add to Library** in a chat upload's tile menu moves it to the Library and generates its metadata like a Library upload. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads, which you delete from **Uploaded to** > **Chats**.
+**Add to Library** in a chat upload's tile menu moves it to the Library and generates its metadata like a Library upload. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads, which you delete from **Kept in** > **Chats**.
 
 The asset pickers in the repository editor and the chat composer search both, and mark chat uploads with a **Chat upload** badge.
 

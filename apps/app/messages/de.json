@@ -237,7 +237,7 @@
 	"catalogue_detail_model_none": "Funktioniert mit jedem Modell.",
 	"catalogue_detail_model_only": "Nur ein Modell, keine Blöcke.",
 	"catalogue_detail_model_recommended": "Abgestimmt auf {model}. Funktioniert auch mit anderen Modellen, die Antworten können aber abweichen.",
-	"catalogue_detail_model_required": "Erfordert {model}: Chats mit diesem Bot nutzen immer dieses Modell.",
+	"catalogue_detail_model_required": "Erfordert {model}, daher nutzen Chats mit diesem Bot immer dieses Modell.",
 	"catalogue_detail_model_unusable": "{organisation} kann es noch nicht nutzen.",
 	"catalogue_detail_model_usable": "{organisation} kann es nutzen.",
 	"catalogue_detail_more_documents": [
@@ -271,7 +271,7 @@
 			}
 		}
 	],
-	"catalogue_empty_description": "Wenn eine Organisation einen Bot, ein Verhalten oder ein Repository in den Katalog stellt, erscheint es hier für alle auf dieser Instanz.",
+	"catalogue_empty_description": "Wenn eine Organisation einen Bot, ein Verhalten oder ein Repository in den Katalog aufnimmt, erscheint es hier für alle auf dieser Instanz.",
 	"catalogue_empty_title": "Der Katalog ist leer",
 	"catalogue_filter_hide_added": "Hinzugefügte ausblenden",
 	"catalogue_filter_model_any": "Alle",
@@ -364,7 +364,7 @@
 	"catalogue_tile_added_fallback_label": "(hinzugefügt)",
 	"catalogue_tile_added_label": "(zu {organisation} hinzugefügt)",
 	"catalogue_uninstall_confirm_button": "Entfernen",
-	"catalogue_uninstall_confirm_description": "Die Freigaben und die Modelleinstellung in {organisation} werden mit entfernt, und Chats damit sind dort nur noch lesbar. Sie können es wieder aus dem Katalog hinzufügen.",
+	"catalogue_uninstall_confirm_description": "Die Freigaben in {organisation} werden mit entfernt. Ein Bot verliert dort außerdem seine Bot-Einrichtung, und Chats mit ihm sind nur noch lesbar. Sie können es wieder aus dem Katalog hinzufügen.",
 	"catalogue_uninstall_confirm_title": "{name} aus {organisation} entfernen?",
 	"catalogue_uninstall_toast_error": "{name} wurde nicht entfernt.",
 	"catalogue_uninstall_toast_loading": "{name} wird entfernt...",
@@ -372,7 +372,7 @@
 	"catalogue_view_discover": "Entdecken",
 	"catalogue_views_label": "Bereiche des Katalogs",
 	"catalogue_wizard_back_to_catalogue_action": "Zurück zum Katalog",
-	"catalogue_wizard_done_description": "Es erscheint in Ihrer Bibliothek, gekennzeichnet als von {organisation}.",
+	"catalogue_wizard_done_description": "Es erscheint in der Bibliothek mit dem Vermerk „Von {organisation}“.",
 	"catalogue_wizard_done_title": "{name} ist in {organisation}",
 	"catalogue_wizard_finish_action": "Abschließen",
 	"catalogue_wizard_sharing_description": "Niemand hier kann es nutzen, bis Sie es freigeben.",
@@ -3641,7 +3641,7 @@
 	"home_library_assets_label": "Assets",
 	"home_library_assets_meta": "Hochgeladene Dateien für Abruf und Quellenangaben",
 	"home_library_blocks_label": "Verhaltensvorgaben",
-	"home_library_blocks_meta": "Prompts und Bildgenerierung",
+	"home_library_blocks_meta": "System-Prompts für Bots",
 	"home_library_bots_label": "Bots",
 	"home_library_bots_meta": [
 		{
@@ -3668,16 +3668,16 @@
 	"home_manage_description": "Was diese Organisation hat, was sie ausgibt und was sich geändert hat.",
 	"home_manage_tab_failing_badge_label": "Noch {count} Einrichtungsschritte",
 	"home_people_groups_label": "Gruppen",
-	"home_people_groups_meta": "Wie mehreren Personen Zugriff gewährt wird",
+	"home_people_groups_meta": "Mitglieder, die gemeinsam Zugriff erhalten",
 	"home_people_invitations_label": "Ausstehende Einladungen",
 	"home_people_invitations_meta": "Gesendet, noch nicht angenommen",
 	"home_people_members_label": "Mitglieder",
-	"home_people_members_meta": "Personen, die sich bei dieser Organisation anmelden können",
+	"home_people_members_meta": "Mitglieder dieser Organisation und ihre Rollen",
 	"home_people_panel_invite_action": "Personen einladen",
 	"home_people_panel_title": "Personen",
 	"home_quota_panel_all_pools_action": "Alle Pools",
 	"home_quota_panel_empty_note": "Noch keine Kontingent-Pools. Niemand kann chatten, bis ein Pool einen Anbieter abdeckt.",
-	"home_quota_panel_title": "Kontingent",
+	"home_quota_panel_title": "Kontingent-Pools",
 	"home_quota_pool_default_badge": "Standard",
 	"home_quota_pool_meta_no_period": "{provider}, kein offener Zeitraum",
 	"home_quota_pool_meta_renews": "{provider}, erneuert sich am {date}",
@@ -3704,10 +3704,10 @@
 				"timeOfDay"
 			],
 			"match": {
-				"timeOfDay=morning": "Guten Morgen, {name}!",
-				"timeOfDay=afternoon": "Guten Tag, {name}!",
-				"timeOfDay=evening": "Guten Abend, {name}!",
-				"timeOfDay=*": "Hallo, {name}!"
+				"timeOfDay=morning": "Guten Morgen, {name}",
+				"timeOfDay=afternoon": "Guten Tag, {name}",
+				"timeOfDay=evening": "Guten Abend, {name}",
+				"timeOfDay=*": "Hallo, {name}"
 			}
 		}
 	],
@@ -3739,12 +3739,12 @@
 	"library_filter_source_installed": "Aus dem Katalog hinzugefügt",
 	"library_filter_favourites_label": "Favoriten",
 	"library_filter_favourites_only": "Nur Favoriten",
-	"library_filter_origin_label": "Hochgeladen in",
+	"library_filter_origin_label": "Abgelegt in",
 	"library_filter_origin_library": "Bibliothek",
 	"library_filter_origin_chat": "Chats",
 	"library_filter_processing_label": "Vorbereitung",
 	"library_filter_processing_any": "Beliebig",
-	"library_filter_processing_running": "Wartend oder laufend",
+	"library_filter_processing_running": "In Warteschlange oder in Verarbeitung",
 	"library_filter_processing_failed": "Fehlgeschlagen",
 	"library_filter_review_label": "Prüfung",
 	"library_filter_review_suggestions": "Vorschläge zur Prüfung",
