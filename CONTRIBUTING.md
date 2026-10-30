@@ -4,7 +4,7 @@ Thanks for helping improve OrcAI. The project is still evolving, so please open 
 
 ## Development
 
-Use Bun 1.3.10 or newer. The recommended environment is the included VS Code devcontainer; manual and Compose setup instructions are available in the [README](README.md).
+Use Bun 1.3.10 or newer. The recommended environment is the per-worktree stack that `bun run stack up` starts. The [README](README.md) also covers the VS Code devcontainer and manual setup.
 
 Create a focused branch from `main`, use Conventional Commits, and include tests and documentation when behaviour changes. Before opening a pull request, run:
 

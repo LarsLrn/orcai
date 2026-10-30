@@ -42,7 +42,7 @@ The application under test is the production images, the ones a Docker Compose d
 
 There is no seed command. A Playwright `setup` project holds one spec that initialises the reset instance through the first-run UI at `/init` with a well-known admin whose credentials and instance organisation are fixed constants. If the instance is already initialised, the spec skips itself with a visible reason. Every other project depends on `setup`, so a full run always exercises first-run setup and always has the well-known admin available.
 
-The reset happens once per run. Beyond the well-known admin, every Playwright worker creates its own organisations and users through the public API, named by worker index, and specs mutate only data inside their own worker's organisations. Users are created through the Better Auth sign-up endpoint and then given a role through the membership procedure. Creating an organisation requires the instance-admin role, so the well-known admin creates every worker organisation and becomes an admin member of each. It does not need an active organisation to perform that instance-scoped action, but membership and invitation procedures act on the active organisation, so the fixtures open a separate well-known admin session per created organisation, activate that organisation on it, and invite and remove members through it. The shared well-known admin session keeps the instance organisation active. Fixture setup still exercises the same paths the interface does. Specs that need instance-level state live in `apps/e2e/tests/instance/`; that project runs serially and completes before the parallel specs start.
+The reset happens once per run. Beyond the well-known admin, every Playwright worker creates its own organisations and users through the public API, named by worker index, and specs mutate only data inside their own worker's organisations. Users are created through the Better Auth sign-up endpoint and then given a role through the membership procedure. Creating an organisation requires the instance-admin role, so the well-known admin creates every worker organisation and becomes an admin member of each. It does not need an active organisation to perform that instance-scoped action, but membership and invitation procedures act on the active organisation, so the fixtures open a separate well-known admin session per created organisation, activate that organisation on it, and invite and remove members through it. The shared well-known admin session keeps the instance organisation active. Well-known admin browser pages sign in independently of the admin API client, so changing organisation on one session does not change the other. Fixture setup still exercises the same paths the interface does. Specs that need instance-level state live in `apps/e2e/tests/instance/`; that project runs serially and completes before the parallel specs start.
 
 ## Integration Tier
 
@@ -81,6 +81,8 @@ Specs import `test` and `expect` from `apps/e2e/fixtures/index.ts` and get their
 | `outbox.latestFor(email, type)` | test | The newest link for an address from the notification outbox table, for invitation and password-reset flows. |
 | `inference` | worker | A mock OpenAI-compatible inference server on an ephemeral port, from `fixtures/inference/fixture.ts`. Its URL is a valid provider endpoint; it records every request and can script replies and failures. |
 
+The `inference` fixture's scripted replies and failures reset before and after every test, including failed tests, and other workers keep their own scenarios.
+
 Out of scope for the suite: email delivery, real AI endpoints, and OCR. Background workers run only for the pipeline specs.
 
 ## Pipeline Specs
@@ -102,24 +104,8 @@ Rules for working on a slice:
 - Finish with `bun run stack e2e -- --grep <area>` passing.
 - Pin a defect the app has today with `test.fail()` and a comment; assert the intended behaviour, never the defect.
 
-Each area under `apps/e2e/tests/<area>/` owns its specs and may add area
-fixtures. The Playwright configuration, core fixtures, and stack tooling are
-foundation files shared by every area; coordinate before changing them.
-
 ## Continuous Integration
 
 GitHub Actions runs the suite in parallel with `validate`, split across three shard jobs with Playwright's `--shard` and a fourth job for the pipeline specs. An `e2e images` job first writes a stack environment, builds the app, docs, and workers images with `bun run stack build`, caching their layers in the GitHub Actions cache, and uploads the images as an artifact kept for a day. The images carry no stack values, so each shard job loads them, installs Chromium with the pinned `apps/e2e` Playwright, starts its own stack, which writes its own environment, runs `bun run stack e2e --yes --no-build` with its arguments (`-- --shard=<i>/3`, or `--pipeline`), and uploads its failure artifacts for seven days. Shard 1 also runs the integration tier; the other jobs pass `--no-integration`. The `setup` and `instance` projects are dependencies, so every shard runs them before its share of the rest; the pipeline job runs `setup` only. The required `e2e` job passes when the image job and every shard passed.
 
 Pull requests that only change docs content (`apps/web/content`), `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; `e2e` still reports success. Pushes to `main` always run the full suite.
-
-Worker-local inference settings reset before and after every test, including
-failed tests; other workers keep their own scenarios. Well-known-admin browser
-pages sign in independently of the admin API client. Changing organisation on
-one session does not change the other.
-
-Unknown stack flags before `--` fail with a clear error. Everything after `--`
-is preserved for the delegated command.
-
-The documentation build prerenders on a free preview port when port 3001, the
-docs site's own port, is occupied, so another local server does not block
-`bun run ci`.

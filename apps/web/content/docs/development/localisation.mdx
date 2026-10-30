@@ -54,7 +54,7 @@ Notification emails have their own catalogue in `packages/notifications/messages
 - Verification and password reset emails use the recipient's stored locale, falling back to the locale of the request that sent them.
 - Invitations use the language the inviter picks in the invitation form, which defaults to the inviter's own. The invitation stores no language and its link carries none; the account creation page follows the visitor's cookie or browser.
 
-The catalogue compiles to `packages/notifications/src/paraglide`, which is generated, not committed. The package has no bundler plugin, so its `paraglide:compile` script runs before the app's `dev` and `build`, the workers' `dev` and `start`, `bun run lint` and `bun run test`, and in the workers image build. A message change needs a restart of the dev server or workers.
+The catalogue compiles to `packages/notifications/src/paraglide`, which is generated, not committed. The package has no bundler plugin, so its `paraglide:compile` script runs before the app's and the workers' `dev` and `build` (which the workers image runs), `bun run lint` and `bun run test`. A message change needs a restart of the dev server or workers.
 
 ## German
 

@@ -13,36 +13,67 @@ flowchart LR
 	User["User"] --> App["App"]
 	App --> DB["PostgreSQL"]
 	App --> Auth["SpiceDB"]
+	App --> Cache["Valkey"]
 	App --> Jobs["pg-boss jobs"]
 	App --> Store["S3-compatible storage"]
 	Jobs --> Workers["Workers"]
 	Workers --> Store
-	Workers --> AI["OpenAI-compatible endpoint"]
+	Workers --> Providers["Model providers"]
+	Workers --> Embeddings["Embedding endpoint"]
 	Workers --> Qdrant["Qdrant"]
 	App --> Qdrant
-	App --> AI
+	App --> Providers
+	App --> Embeddings
 `}
 />
 
 ## Runtime Components
 
+- Effect carries the server code. Each package exposes its services as Effect layers, `apps/app/src/lib/effect/app-layer.ts` and `apps/workers/src/layer.ts` compose them, and oRPC procedures run as Effect handlers.
 - React 19 and TanStack Start power the user interface and server runtime.
 - TanStack Router, Query, and Form are used for client routing and data workflows.
 - oRPC defines typed backend contracts.
 - Better Auth handles authentication.
 - Drizzle ORM manages PostgreSQL access and migrations.
 - pg-boss coordinates background jobs.
+- Valkey holds short-lived app state. [Services](/docs/self-hosting/services#valkey) says what the app keeps there.
 - Qdrant stores vector indexes.
 - SpiceDB handles authorisation relationships and permission checks.
 - S3-compatible storage stores uploaded and processed files.
 - Kreuzberg and Tesseract handle text extraction and OCR.
-- The AI SDK talks to each provider's API through its kind (OpenAI-compatible, OpenAI or Anthropic); titles, embeddings and workers use the instance's OpenAI-compatible endpoint.
+- The AI SDK talks to each provider's API through its kind (OpenAI-compatible, OpenAI or Anthropic). Chats, titles, image descriptions and metadata suggestions use the providers and models an organisation configures. The instance's OpenAI-compatible endpoint serves embeddings only.
 
 <Callout title="Generated API reference" type="info">
 	Each OrcAI instance serves its live, Scalar-powered API reference at
 	`/api/doc` in the main app. The OpenAPI document is generated directly from
 	the oRPC router, so it reflects the API exposed by that deployed version.
 </Callout>
+
+## Packages
+
+The apps share their server code through the workspace packages under `packages/*`.
+
+| Package | Holds |
+| --- | --- |
+| `@orcai/ai` | Provider kinds and keys, metered model calls, embeddings, the utility model, image descriptions, metadata suggestions and web search. |
+| `@orcai/contracts` | The oRPC contracts the app implements and the end-to-end suite calls. |
+| `@orcai/core` | Ids, permission names, constants and chat helpers such as compaction. |
+| `@orcai/db` | The Drizzle schema, the migrations and the database service. |
+| `@orcai/notifications` | Email templates, their message catalogue and the notification outbox. |
+| `@orcai/observability` | The OpenTelemetry setup. |
+| `@orcai/pg-boss` | The pg-boss service and the jobs the app and workers share. |
+| `@orcai/process` | Text extraction with Kreuzberg and the processed artifacts. |
+| `@orcai/qdrant` | Vector collections, their writes and their queries. |
+| `@orcai/quota` | Quota pools: pricing, estimates, the usage ledger and enforcement. |
+| `@orcai/s3` | The object storage service, the browser upload client and the upload policy they share. |
+| `@orcai/schema` | The Zod schemas and types shared by apps and packages. |
+| `@orcai/spice-db` | The SpiceDB client, the schema and its migration and reset commands. |
+| `@orcai/testing` | The integration tier helpers, see [End-To-End Tests](/docs/development/testing#integration-tier). |
+| `@orcai/valkey` | The Valkey client service. |
+
+## Bundling
+
+The app and the workers ship as bundles. A dependency breaks only at runtime when it loads native bindings, reads its own files by path or imports a computed name, so keep such a dependency external. In the app, add it to `ssr.external` in `apps/app/vite.config.ts`, and to Nitro's `traceDeps` when it requires files the tracer cannot see. In the workers, add it to `external` in `apps/workers/build.ts` and to the workers' `dependencies`, which the image installs.
 
 ## Asset Preparation Flow
 
@@ -81,9 +112,13 @@ API consumers outside the browser can send the token back in the `X-Zed-Token` h
 
 A response without `meta.zedToken` means the request wrote nothing to SpiceDB inline; the write is queued and applied shortly after, so a read issued immediately may still see the previous state.
 
-<Callout title="TODO" type="idea">
-	Document the concrete resource types, relations, and permissions from the SpiceDB schema.
-</Callout>
+### Schema
+
+The schema is `packages/spice-db/src/schema/schema.zed`. `bun run stack migrate` applies it in development, and the `spicedb-schema` service does so under Docker Compose.
+
+An `organization` gives each member one of the relations `admin`, `manager`, `member` and `viewer`, and its permissions are the role matrix under [Organisation Roles](/docs/using-orcai/access-control#organisation-roles). A `group` belongs to one organisation and its members are users or all holders of an organisation role.
+
+`bot`, `block` and `asset` share one shape. `owner` holds only users. `manager` (**Can manage**), `editor` (**Can edit**) and `viewer` (**Can view**) hold users or group members, and `public` holds `user:*` for a Catalogue listing. Read passes down through a block's `bot` relation and an asset's `block` relation, so a bot's audience reads its blocks and their assets, while edit, delete and `manage_access` need a grant on the resource itself. A `chat` is readable and editable by its `owner` only. `packages/spice-db/test/schema.integration.ts` pins what each relation grants.
 
 ## AI Flow
 
@@ -93,9 +128,7 @@ The OrcAI Assistant's tools call OrcAI's procedures as the signed-in user throug
 
 Asset preparation describes images, both image files and figures inside files, once with the organisation's utility model and stores the descriptions with the extraction; indexing reads them from there. The calls are metered against the organisation's quota pools and attributed to the uploader.
 
-<Callout title="TODO" type="idea">
-	Document provider/model configuration from the admin UI once the expected operator workflow is confirmed.
-</Callout>
+Organisation admins configure providers and models under [Providers](/docs/using-orcai/administration#providers) and [Models](/docs/using-orcai/administration#models).
 
 ## Observability
 
