@@ -35,20 +35,14 @@ For most self-hosting experiments, start with [Docker Compose quickstart](/docs/
 - S3-compatible object storage
 - Qdrant
 - SpiceDB
-- An OpenAI-compatible inference endpoint
+- An OpenAI-compatible endpoint for embeddings
 - Background workers
-
-## Model Configuration Scope
-
-Custom embedding model definitions are supported only when you self-host OrcAI.
-
-In managed/shared deployments, treat these as instance-level settings controlled by the hosting operator.
 
 ## Important Caveats
 
 - OrcAI is not production-ready yet.
 - `docker-compose.local.yaml` is a development-oriented override, not a production deployment manifest.
-- AI model, embedding model, and embedding dimensions must be configured before asset preparation can work.
+- The embedding endpoint, model and dimensions must be set before assets can be indexed.
 - Changing embedding settings on an existing deployment requires recreating the Qdrant collection and preparing assets again.
 
 ## Source Files

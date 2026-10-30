@@ -148,10 +148,6 @@ Run this short test from a non-admin user account:
 5. Ask the OrcAI Assistant a question about OrcAI.
 6. Confirm permissions block access to bots, blocks and assets outside the user scope.
 
-## Self-Hosting Note: Custom Embedding Models
+## Embedding model
 
-Custom embedding model definitions are supported only in self-hosted deployments.
-
-For managed/shared deployments, treat these as instance-level settings controlled by the hosting operator.
-
-If you self-host, they are set with `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS` and `KREUZBERG_OCR_LANGUAGE`; see [AI And Retrieval](/docs/self-hosting/configuration#ai-and-retrieval). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and prepare the assets again.
+The embedding model is the same for every organisation on the instance, and only whoever runs the instance can change it. If you self-host, set it with `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS`, and the OCR languages with `KREUZBERG_OCR_LANGUAGE` (see [AI And Retrieval](/docs/self-hosting/configuration#ai-and-retrieval)). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and prepare the assets again.

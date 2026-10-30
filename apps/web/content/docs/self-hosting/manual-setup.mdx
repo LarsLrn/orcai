@@ -13,7 +13,7 @@ Use manual setup when you want to run OrcAI directly on a host instead of using 
 - Qdrant
 - SpiceDB
 - S3-compatible object storage
-- OpenAI-compatible inference endpoint
+- OpenAI-compatible endpoint for embeddings
 - Tesseract with `eng` and `deu` language packs if workers run on the host
 - Optional SMTP server
 
@@ -28,17 +28,13 @@ Edit `.env` before starting the app. See [Configuration](/docs/self-hosting/conf
 
 ## Initialise Data Stores
 
-Run database migrations:
+Apply the database migrations and the SpiceDB schema:
 
 ```bash title="Repository root"
-bun run --filter @orcai/db migrate
+bun run stack migrate
 ```
 
-Apply the SpiceDB schema:
-
-```bash title="Repository root"
-bun run --filter @orcai/spice-db up
-```
+Package scripts do not read the root `.env`, so run them through `bun run stack`, which loads it. `bun run stack exec -- <command>` does the same for any other command.
 
 ## Start Development Processes
 
@@ -60,11 +56,7 @@ The app is available at:
 http://localhost:3000
 ```
 
-On a fresh database, complete initial instance setup at:
-
-```text
-http://localhost:3000/init
-```
+On a fresh database, complete initial instance setup at `http://localhost:3000/init`, as described in [Initialise the instance](/docs/self-hosting/quickstart-compose#initialise-the-instance-step).
 
 ## Production Commands
 
@@ -72,22 +64,18 @@ Build and start the app:
 
 ```bash title="App process"
 bun run build
-bun run start
+bun run stack exec -- bun run start
 ```
 
 Start workers:
 
 ```bash title="Worker process"
-bun run workers:start
+bun run stack exec -- bun run workers:start
 ```
 
 ## Host OCR Notes
 
 OCR-backed asset preparation runs in the worker process. When workers run outside Docker, install Tesseract and the configured language packs. Use `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both packs are installed.
-
-## Model Customisation Scope
-
-Custom embedding model definitions are supported only when you self-host OrcAI.
 
 <Callout title="TODO" type="idea">
 	Add OS-specific installation commands for Tesseract and language packs.
