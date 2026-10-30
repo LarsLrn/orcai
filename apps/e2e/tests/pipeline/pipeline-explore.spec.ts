@@ -28,7 +28,14 @@ const document = Array.from(
 		].join("\n"),
 ).join("\n\n");
 
-const passages = (page: Page) => page.getByText(/^Point /);
+const passages = (page: Page) =>
+	page.getByText(
+		new RegExp(
+			`^${message("assets_point_id_badge", {
+				id: "",
+			})}`,
+		),
+	);
 
 const choose = async (page: Page, labelKey: string, option: string) => {
 	await page
