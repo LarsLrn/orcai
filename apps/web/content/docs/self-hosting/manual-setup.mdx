@@ -1,5 +1,5 @@
 ---
-title: Manual Setup
+title: Manual setup
 description: Run the Bun app and workers directly against managed services.
 ---
 
@@ -13,20 +13,20 @@ Use manual setup when you want to run OrcAI directly on a host instead of using 
 - Qdrant
 - SpiceDB
 - S3-compatible object storage
-- OpenAI-compatible endpoint for embeddings
+- An OpenAI-compatible endpoint for embeddings
 - Tesseract with `eng` and `deu` language packs if workers run on the host
-- Optional SMTP server
+- An SMTP server (optional)
 
-## Install Dependencies
+## Install dependencies
 
 ```bash title="Repository root"
 cp .env.example .env
 bun install --frozen-lockfile
 ```
 
-Edit `.env` before starting the app. See [Configuration](/docs/self-hosting/configuration) for required variables.
+Edit `.env` before starting the app. [Configuration](/docs/self-hosting/configuration) lists the required variables.
 
-## Initialise Data Stores
+## Initialise data stores
 
 Apply the database migrations and the SpiceDB schema:
 
@@ -36,7 +36,7 @@ bun run stack migrate
 
 Package scripts do not read the root `.env`, so run them through `bun run stack`, which loads it. `bun run stack exec -- <command>` does the same for any other command.
 
-## Start Development Processes
+## Start development processes
 
 Start the app:
 
@@ -50,15 +50,9 @@ Start background workers in a separate terminal:
 bun run workers:dev
 ```
 
-The app is available at:
+The app is then at `http://localhost:3000`. On a fresh database, complete the instance setup at `http://localhost:3000/init`, as described in [Initialise the instance](/docs/self-hosting/quickstart-compose#initialise-the-instance-step).
 
-```text
-http://localhost:3000
-```
-
-On a fresh database, complete initial instance setup at `http://localhost:3000/init`, as described in [Initialise the instance](/docs/self-hosting/quickstart-compose#initialise-the-instance-step).
-
-## Production Commands
+## Production commands
 
 Build and start the app:
 
@@ -73,7 +67,7 @@ Start workers:
 bun run stack exec -- bun run workers:start
 ```
 
-## Host OCR Notes
+## OCR on the host
 
 OCR-backed asset preparation runs in the worker process. When workers run outside Docker, install Tesseract and the configured language packs. Use `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both packs are installed.
 

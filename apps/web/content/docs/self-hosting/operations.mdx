@@ -3,27 +3,19 @@ title: Operations
 description: Maintenance notes for running OrcAI.
 ---
 
-This page collects operational notes that are clear from the repository. It is not a complete production runbook yet.
+Keep an OrcAI instance running and find out why something stopped. These notes are not a complete production runbook yet.
 
 <Callout title="Draft runbook" type="info">
-	This page intentionally favours known-safe checks over speculative production advice.
+	This page favours known-safe checks over speculative production advice.
 </Callout>
 
-## Creating Accounts
+## Creating accounts
 
-Creating an account is invitation only, enforced by the sign-up endpoint itself: it
-requires the ID of a pending, unexpired invitation matching the address. There is no
-open account creation to disable, and no setting turns one on.
+Creating an account needs an invitation. The endpoint that creates accounts requires the ID of a pending, unexpired invitation for the same address, so there is no open account creation to turn off, and no setting turns one on.
 
-- The first account of an instance comes from the init flow at `/init`,
-  which writes the user directly and is therefore not affected by the rule.
-- Every later account is created from an invitation link an organisation
-  admin sends. Creating the account accepts that invitation and writes its
-  membership. Other invitations remain pending for explicit acceptance.
-  Membership, invitation status, and permission intent commit atomically;
-  permission delivery retries from the outbox after commit.
-- Existing accounts are unaffected. Sign-in, password reset, and invitations to
-  further organisations keep working as before.
+The first account of an instance comes from the init flow at `/init`, which writes the user directly, so the rule does not apply to it. Every later account is created from an invitation link an organisation admin sends. Creating the account accepts that invitation and writes the membership, while other invitations stay pending until the user accepts them. Membership, invitation status and permission intent commit atomically, and [permission delivery](#permission-delivery) retries from the outbox after the commit.
+
+The rule does not affect existing accounts, so sign-in, password reset and invitations to further organisations keep working.
 
 ## Permission delivery
 
@@ -101,13 +93,13 @@ Keep workers running alongside the app. If workers are stopped, uploads and sche
 
 Every process that runs pg-boss registers in its instance registry under a name: the app as `app`, the workers as `workers`, each with its host and process id. The Health page lists them and fails its workers check when no `workers` process is live.
 
-Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run up to four times, a minute apart, and an attempt times out after an hour. A job whose attempts are used up moves to its dead letter queue (`process-asset-dead-letter-job`, `vectorize-asset-dead-letter-job`), whose worker marks the asset, or the asset in that repository, as failed. Metadata suggestions (`generate-asset-metadata-job`) use the same settings, and their dead letter queue (`generate-asset-metadata-dead-letter-job`) marks the suggestion as failed. The workers create the queues and their dead letter settings at startup. The failed job, with its last error, stays in the pg-boss tables until retention removes it; the worker logs carry the same error.
+Processing (`process-asset-job`) and indexing (`vectorize-asset-job`) jobs run up to four times, a minute apart, and an attempt times out after an hour. A job whose attempts are used up moves to its dead letter queue (`process-asset-dead-letter-job`, `vectorize-asset-dead-letter-job`), whose worker marks the asset, or the asset in that repository, as failed. Metadata suggestions (`generate-asset-metadata-job`) use the same settings, and their dead letter queue (`generate-asset-metadata-dead-letter-job`) marks the suggestion as failed. The workers create the queues and their dead letter settings at startup. The failed job, with its last error, stays in the pg-boss tables until retention removes it, and the worker logs carry the same error.
 
-Data exports (`data-export-job`) are the exception: the app server works them, one at a time per app instance, because their chat transcripts need the app's code. The workers still create the queue and its dead letter queue (`data-export-dead-letter-job`), and the app starts working it once both exist, so a deployment without workers cannot export data. The retry and timeout settings are the same; an export whose attempts are used up is marked failed and the user can start a new one. Stopping the app interrupts a running export, and pg-boss retries it.
+The app server works data exports (`data-export-job`) instead of the workers, one at a time per app process, because their chat transcripts need the app's code. The workers still create the queue and its dead letter queue (`data-export-dead-letter-job`), and the app starts working it once both exist, so an instance without workers cannot export data. The retry and timeout settings are the same. An export whose attempts are used up is marked failed, and the user can start a new one. Stopping the app interrupts a running export, and pg-boss retries it.
 
 The `activity-cleanup-job` runs every hour and keeps each user's activity bounded. It deletes an entry seven days after its work finished, or once the user dismissed it, and never deletes an entry whose work is still running. Failures and suggestions that need a user's attention are read from the assets and exports themselves, so the cleanup never removes one.
 
-## Upload Storage Lifecycle
+## Upload storage lifecycle
 
 Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight.
 
@@ -115,32 +107,32 @@ Each time the workers start, they put the lifecycle rule `expire-staged-uploads`
 
 The storage provider enforces the rule, not OrcAI. SeaweedFS runs lifecycle in its plugin worker, once a day, so a staged file can stay up to about two days. A storage provider without bucket lifecycle support keeps staged leftovers until you remove them.
 
-## Data Export Archives
+## Data export archives
 
-Data export archives land under `exports/` in the same bucket and can be downloaded for 24 hours. The workers delete them themselves, so the removal does not depend on the storage provider: the `data-export-expire-job` runs every ten minutes and deletes every object under `exports/` that is older than 25 hours, the 24 hour download window plus the hour an export may take to build, including archives whose export or user no longer exists. The app refuses to download an export after 24 hours before the job has run.
+Data export archives land under `exports/` in the same bucket and can be downloaded for 24 hours. The workers delete them, so removal does not depend on the storage provider. The `data-export-expire-job` runs every ten minutes and deletes every object under `exports/` older than 25 hours (the 24 hour download window plus the hour an export may take to build), including archives whose export or user no longer exists. The app refuses a download after 24 hours even before the job has run.
 
-## Asset Preparation
+## Asset preparation
 
-If OCR or extraction fails, verify:
+If OCR or extraction fails, check that:
 
-- Worker process is running.
-- Tesseract is installed when running workers on the host.
-- `KREUZBERG_OCR_LANGUAGE` only references installed language packs.
-- Images are described by the organisation's utility model, which needs the image capability; without it, image files fail and figures inside files are skipped.
-- Object storage credentials and bucket setup are valid.
+- The worker process is running.
+- Tesseract is installed when workers run on the host.
+- `KREUZBERG_OCR_LANGUAGE` only names installed language packs.
+- The organisation's utility model has the image capability. It describes images, so without it image files fail and figures inside files are skipped.
+- The object storage credentials and bucket setup are valid.
 
 ## Retrieval
 
-If retrieval quality or indexing fails, verify:
+If indexing fails or retrieval quality is poor, check:
 
 - `OPENAI_COMPATIBLE_BASE_URL` and `OPENAI_COMPATIBLE_API_KEY`.
 - `EMBEDDING_MODEL`.
 - `EMBEDDING_DIMENSIONS`.
 - Qdrant availability and API key.
 
-Do not change embedding model or dimensions on a live indexed dataset without recreating the collection and reindexing.
+Do not change the embedding model or dimensions on an instance with indexed assets without recreating the Qdrant collection and preparing the assets again.
 
-## SpiceDB Connectivity
+## SpiceDB connectivity
 
 If SpiceDB connections fail, verify:
 
@@ -149,5 +141,5 @@ If SpiceDB connections fail, verify:
 - `SPICEDB_SECURITY` matches your deployment mode.
 
 <Callout title="TODO" type="idea">
-	Add backup and restore guidance, alerting recommendations, log locations, common failure signatures, upgrade steps, and compatibility policy.
+	Add backup and restore guidance, alerting recommendations, log locations, common failure signatures, upgrade steps and a compatibility policy.
 </Callout>

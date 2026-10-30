@@ -5,14 +5,14 @@ description: Runtime services used by OrcAI.
 
 OrcAI is a multi-service application. The app and workers are separate processes that share the same backing services.
 
-## Service Map
+## Service map
 
 | Service | Role | Required for |
 | --- | --- | --- |
 | App | UI, authentication, API routes, workflows | All user-facing use |
 | Workers | Background jobs and scheduled maintenance | Asset preparation, email and quota pools |
 | PostgreSQL | Relational application data | Core persistence |
-| Valkey | Cache and coordination | Runtime support |
+| Valkey | Short-lived app state | Assistant actions |
 | SeaweedFS/S3 | Uploaded and processed files | Library |
 | Qdrant | Vector indexes | Retrieval |
 | SpiceDB | Authorisation relationships | Access control |
@@ -24,13 +24,13 @@ The main app is a Bun/TanStack Start application. It serves the user interface, 
 
 In Docker Compose, the service name is `app`. Its healthcheck calls `/api/health`, which reports whether PostgreSQL and SpiceDB answer.
 
-## Web (Docs)
+## Web (docs)
 
 The repository Compose stack also includes a `web` service for the documentation website. The app reads the docs from it, through `WEB_INTERNAL_URL`, when the OrcAI Assistant answers questions about OrcAI.
 
 ## Workers
 
-Workers run background jobs for asset preparation, vectorisation, metadata suggestions, releasing quota pool reservations of replies that never ended, and quota pool period rollover. They send every email OrcAI writes, so without them no invitation or password reset arrives. They also create the data export queues, which the app works, delete expired export archives and clean up old activity entries. Workers must be running for uploaded assets to become searchable. [Operations](/docs/self-hosting/operations#workers) lists the jobs.
+Workers run background jobs for asset preparation (including indexing), metadata suggestions, quota pool period rollover and releasing the quota pool reservations of replies that never ended. They send every email OrcAI writes, so without them no invitation or password reset arrives. They also create the data export queues, which the app works, delete expired export archives and clean up old activity entries. Workers must be running for uploaded assets to become searchable. [Operations](/docs/self-hosting/operations#workers) lists the jobs.
 
 ## PostgreSQL
 
@@ -38,13 +38,13 @@ PostgreSQL stores application data. The Compose stack uses the `pgvector/pgvecto
 
 ## Valkey
 
-Valkey is used as a cache and supporting infrastructure service by the app. Workers do not use it. The app keeps what an Assistant action created there for a day, so a repeated call of the same action does not create the items twice. If Valkey is unreachable, the app logs a warning and runs without that check. The Health page probes it.
+The app keeps short-lived state in Valkey, and the workers do not use it. The app keeps what an Assistant action created there for a day, so a repeated call of the same action does not create the items twice. If Valkey is unreachable, the app logs a warning and runs without that check. The Health page probes it.
 
-## SeaweedFS Or S3-Compatible Storage
+## SeaweedFS or S3-compatible storage
 
 Uploaded files and processed artifacts are stored in S3-compatible object storage. Compose runs SeaweedFS in single-container mode, which creates the required buckets on startup and takes its credentials from `S3_ACCESS_KEY` and `S3_SECRET_KEY`.
 
-Installations that ran the earlier MinIO service start with an empty `seaweedfs_data` volume. Copy the `uploads` and `processed-files` buckets from MinIO with an S3 tool such as `rclone sync` before switching, keeping the object keys unchanged, and keep the old `minio_data` volume until the copy is verified.
+Installations that ran the earlier MinIO service start with an empty `seaweedfs_data` volume. Before switching, copy the `uploads` and `processed-files` buckets from MinIO with an S3 tool such as `rclone sync` and keep the object keys unchanged. Keep the old `minio_data` volume until the copy is verified.
 
 ## Qdrant
 
@@ -54,10 +54,10 @@ Qdrant stores vector indexes for retrieval. The embedding dimensions in Qdrant m
 
 SpiceDB backs authorisation checks. The repository includes schema files under `packages/spice-db/src/schema` and commands to apply or inspect the schema.
 
-## AI Endpoint
+## AI endpoint
 
-OrcAI uses an OpenAI-compatible endpoint for embeddings; it must expose the embedding model named in `EMBEDDING_MODEL`. Chat, Assistant and utility models, including image descriptions, use the providers configured in the app.
+OrcAI gets embeddings from an OpenAI-compatible endpoint that serves the model named in `EMBEDDING_MODEL`. Chat, Assistant and utility models, including image descriptions, use the providers configured in the app.
 
-## Text Extraction
+## Text extraction
 
 Kreuzberg extracts the text of uploaded files. OCR requires Tesseract in the worker environment.
