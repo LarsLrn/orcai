@@ -132,9 +132,9 @@ test("assistant: a conversation is titled, shows its model, hides chat-only cont
 	await expect(chatTitleMenu(page)).toHaveText(turn.reply);
 	await chatTitleMenu(page).click();
 	await expect(page.getByRole("menuitem")).toHaveText([
-		message("chat_actions_rename_action"),
-		message("chat_actions_download_action"),
-		message("chat_actions_delete_action"),
+		message("assistant_conversation_rename_action"),
+		message("assistant_conversation_download_action"),
+		message("assistant_conversation_delete_action"),
 	]);
 	await page.keyboard.press("Escape");
 
@@ -219,7 +219,7 @@ test("assistant: the history lists the most recently active first and renames an
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: message("chat_actions_rename_action"),
+			name: message("assistant_conversation_rename_action"),
 		})
 		.click();
 	const dialog = page.getByRole("dialog");
@@ -244,13 +244,13 @@ test("assistant: the history lists the most recently active first and renames an
 		.click();
 	await page
 		.getByRole("menuitem", {
-			name: message("chat_actions_delete_action"),
+			name: message("assistant_conversation_delete_action"),
 		})
 		.click();
 	await page
 		.getByRole("alertdialog")
 		.getByRole("button", {
-			name: message("chat_actions_delete_action"),
+			name: message("assistant_conversation_delete_confirm_button"),
 		})
 		.click();
 	await expect(historyEntry(page, renamed)).toHaveCount(0);

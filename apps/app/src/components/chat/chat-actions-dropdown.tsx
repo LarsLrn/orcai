@@ -1,4 +1,5 @@
 import type { ChatId } from "@orcai/core";
+import type { ChatKind } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import {
@@ -35,17 +36,37 @@ import { m } from "@/paraglide/messages";
 /** The open chat a title menu belongs to, which adds the actions that need it. */
 type CurrentChat = {
 	zedToken?: string;
-	variant: "chat" | "assistant";
 	/** A read-only chat can still be pinned, downloaded and deleted. */
 	readOnly: boolean;
 };
+
+const COPY = {
+	chat: {
+		rename: m.chat_actions_rename_action,
+		renameTitle: m.chat_rename_dialog_title,
+		download: m.chat_actions_download_action,
+		downloadFailed: m.chat_download_failed_toast_error,
+		deleteAction: m.chat_actions_delete_action,
+		placeholder: m.chat_title_placeholder,
+		deleteRedirectTo: "/app/chat",
+	},
+	assistant: {
+		rename: m.assistant_conversation_rename_action,
+		renameTitle: m.assistant_conversation_rename_dialog_title,
+		download: m.assistant_conversation_download_action,
+		downloadFailed: m.assistant_conversation_download_failed_toast_error,
+		deleteAction: m.assistant_conversation_delete_action,
+		placeholder: m.assistant_conversation_title_placeholder,
+		deleteRedirectTo: "/app/assistant",
+	},
+} as const;
 
 const ChatActionsDropdown = ({
 	children,
 	chatId,
 	title,
 	pinned,
-	deleteRedirectTo = "/app/chat",
+	kind = "chat",
 	current,
 }: {
 	children: React.ReactElement;
@@ -53,10 +74,11 @@ const ChatActionsDropdown = ({
 	title: string | null;
 	/** Whether the chat is pinned; omitted where chats cannot be pinned. */
 	pinned?: boolean;
-	/** Where to go when the open chat is the one being deleted. */
-	deleteRedirectTo?: "/app/chat" | "/app/assistant";
+	/** An Assistant conversation has its own wording and no settings, pin or tour. */
+	kind?: ChatKind;
 	current?: CurrentChat;
 }) => {
+	const copy = COPY[kind];
 	const params = useParams({
 		strict: false,
 	});
@@ -71,7 +93,7 @@ const ChatActionsDropdown = ({
 				// Navigate away before deleting to avoid rendering a deleted chat entry.
 				if (isCurrentChatSelected) {
 					await navigate({
-						to: deleteRedirectTo,
+						to: copy.deleteRedirectTo,
 					});
 				}
 			},
@@ -80,6 +102,7 @@ const ChatActionsDropdown = ({
 			names: [
 				title,
 			],
+			kind,
 		},
 	);
 	const { mutateAsync: updateChat, isPending: isUpdatingChat } =
@@ -105,7 +128,7 @@ const ChatActionsDropdown = ({
 				zedToken: current?.zedToken,
 			});
 		} catch (error) {
-			toast.error(m.chat_download_failed_toast_error(), {
+			toast.error(copy.downloadFailed(), {
 				description: reasonMessageOf(error),
 			});
 		}
@@ -121,7 +144,7 @@ const ChatActionsDropdown = ({
 							onClick={select(() => setIsRenameDialogOpen(true))}
 						>
 							<PencilIcon />
-							{m.chat_actions_rename_action()}
+							{copy.rename()}
 						</DropdownMenuItem>
 					)}
 					{pinned !== undefined && (
@@ -139,7 +162,7 @@ const ChatActionsDropdown = ({
 								: m.chat_actions_pin_action()}
 						</DropdownMenuItem>
 					)}
-					{current?.variant === "chat" && !current.readOnly && (
+					{kind === "chat" && current && !current.readOnly && (
 						<DropdownMenuItem onClick={select(() => setIsSettingsOpen(true))}>
 							<SettingsIcon />
 							{m.chat_actions_settings_action()}
@@ -148,10 +171,10 @@ const ChatActionsDropdown = ({
 					{current && (
 						<DropdownMenuItem onClick={select(() => void handleDownload())}>
 							<DownloadIcon />
-							{m.chat_actions_download_action()}
+							{copy.download()}
 						</DropdownMenuItem>
 					)}
-					{current?.variant === "chat" && <StartTourItem onSelect={select} />}
+					{kind === "chat" && current && <StartTourItem onSelect={select} />}
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						variant="destructive"
@@ -166,7 +189,7 @@ const ChatActionsDropdown = ({
 						)}
 					>
 						<Trash2Icon />
-						{m.chat_actions_delete_action()}
+						{copy.deleteAction()}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
@@ -175,9 +198,8 @@ const ChatActionsDropdown = ({
 				onOpenChange={setIsRenameDialogOpen}
 				initialValue={title}
 				copy={{
-					title: m.chat_rename_dialog_title(),
-					description: m.chat_rename_dialog_description(),
-					placeholder: m.chat_title_placeholder(),
+					title: copy.renameTitle(),
+					placeholder: copy.placeholder(),
 					submit: m.chat_rename_dialog_submit(),
 				}}
 				isSubmitting={isUpdatingChat}
@@ -192,7 +214,7 @@ const ChatActionsDropdown = ({
 					}
 				}}
 			/>
-			{current?.variant === "chat" && (
+			{kind === "chat" && current && (
 				<ChatSettings
 					chatId={chatId}
 					zedToken={current.zedToken}
@@ -259,10 +281,9 @@ const ChatTitleMenu = ({
 			chatId={chat.data.id}
 			title={chat.data.title}
 			pinned={isAssistant ? undefined : chat.data.pinnedAt !== null}
-			deleteRedirectTo={isAssistant ? "/app/assistant" : "/app/chat"}
+			kind={chat.data.kind}
 			current={{
 				zedToken,
-				variant: isAssistant ? "assistant" : "chat",
 				readOnly: chat.data.readOnly !== null,
 			}}
 		>

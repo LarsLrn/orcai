@@ -57,7 +57,8 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 									}}
 									className="truncate font-medium text-sm after:absolute after:inset-0"
 								>
-									{conversation.title ?? m.chat_title_placeholder()}
+									{conversation.title ??
+										m.assistant_conversation_title_placeholder()}
 								</Link>
 								{conversation.updatedAt && (
 									<span className="text-muted-foreground text-xs">
@@ -70,7 +71,7 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 							<ChatActionsDropdown
 								chatId={conversation.id}
 								title={conversation.title}
-								deleteRedirectTo="/app/assistant"
+								kind="assistant"
 							>
 								<OverflowMenuTrigger
 									variant="ghost"

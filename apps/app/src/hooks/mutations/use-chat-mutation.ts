@@ -1,3 +1,4 @@
+import type { ChatKind } from "@orcai/schema";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import {
 	type DestructiveTarget,
@@ -41,27 +42,50 @@ export const usePinChatMutation = (
 
 export const useDeleteChatsMutation = (
 	opts: ReturnType<typeof orpc.chat.delete.mutationOptions> = {},
-	target?: DestructiveTarget,
+	target?: DestructiveTarget & {
+		/** An Assistant conversation is deleted one at a time and has its own wording. */
+		kind?: ChatKind;
+	},
 ) => {
+	const isConversation = target?.kind === "assistant";
+
 	return useMutationAction({
 		mutationOptions: () => orpc.chat.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
-				m.chat_delete_toast_loading({
-					count: input.refs.length,
-				}),
+				isConversation
+					? m.assistant_conversation_delete_toast_loading()
+					: m.chat_delete_toast_loading({
+							count: input.refs.length,
+						}),
 			success: ({ input }) =>
-				m.chat_delete_toast_success({
-					count: input.refs.length,
-				}),
+				isConversation
+					? m.assistant_conversation_delete_toast_success()
+					: m.chat_delete_toast_success({
+							count: input.refs.length,
+						}),
 			error: ({ input }) =>
-				m.chat_delete_toast_error({
-					count: input.refs.length,
-				}),
+				isConversation
+					? m.assistant_conversation_delete_toast_error()
+					: m.chat_delete_toast_error({
+							count: input.refs.length,
+						}),
 		},
 		confirm: (input) => {
 			const count = input.refs.length;
 			const name = singleTargetName(count, target);
+
+			if (isConversation)
+				return {
+					title: name
+						? m.assistant_conversation_delete_confirm_title_named({
+								name,
+							})
+						: m.assistant_conversation_delete_confirm_title(),
+					description: m.assistant_conversation_delete_confirm_description(),
+					confirmText: m.assistant_conversation_delete_confirm_button(),
+					cancelText: m.common_cancel_button(),
+				};
 
 			return {
 				title: name

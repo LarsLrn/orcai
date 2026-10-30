@@ -76,7 +76,9 @@ const ChatSettings = ({
 					<DialogTitle>{m.chat_settings_dialog_title()}</DialogTitle>
 					<DialogDescription>
 						{isBotLinked
-							? m.chat_settings_dialog_description_bot_linked()
+							? chat?.data.effectiveModel.source === "bot-required"
+								? m.chat_settings_dialog_description_bot_required()
+								: m.chat_settings_dialog_description_bot_suggested()
 							: m.chat_settings_dialog_description()}
 					</DialogDescription>
 				</DialogHeader>

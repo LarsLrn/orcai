@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -25,7 +24,6 @@ export const RenameDialog = ({
 	initialValue: string | null;
 	copy: {
 		title: string;
-		description: string;
 		placeholder: string;
 		submit: string;
 	};
@@ -63,7 +61,6 @@ export const RenameDialog = ({
 				>
 					<DialogHeader>
 						<DialogTitle>{copy.title}</DialogTitle>
-						<DialogDescription>{copy.description}</DialogDescription>
 					</DialogHeader>
 					<Input
 						autoFocus
