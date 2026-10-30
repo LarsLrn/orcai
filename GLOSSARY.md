@@ -65,7 +65,7 @@ The uploaded original of an asset, as it was on the uploader's disk. Used for up
 _German_: Datei
 
 **Chat upload**:
-An asset uploaded with a chat message, kept out of the Library until someone adds it.
+An asset uploaded with a chat message. The Library's default views leave it out, and the Assets view lists it under **Kept in** > **Chats** until someone adds it to the Library.
 _German_: Chat-Upload
 
 **Metadata**:

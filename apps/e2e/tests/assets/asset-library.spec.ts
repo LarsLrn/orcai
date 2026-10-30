@@ -10,7 +10,7 @@ const card = (page: Page, title: string) =>
 		hasText: title,
 	});
 
-/** An "Uploaded to" choice in the rail. */
+/** A "Kept in" choice in the rail. */
 const uploadedTo = (page: Page, key: string) =>
 	page
 		.getByRole("group", {
