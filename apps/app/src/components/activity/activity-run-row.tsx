@@ -14,7 +14,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { describeError } from "@/lib/errors/describe-error";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import {
 	fieldSummary,
@@ -235,7 +235,10 @@ export const RunRow = ({
 	const dismiss = useMutation(
 		orpc.activity.dismissRun.mutationOptions({
 			onSuccess: onDismissed,
-			onError: (error) => toast.error(describeError(error)),
+			onError: (error) =>
+				toast.error(m.activity_dismiss_toast_error(), {
+					description: reasonMessageOf(error),
+				}),
 		}),
 	);
 

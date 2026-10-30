@@ -4,6 +4,7 @@ import type { Asset, ChatMessageAttachment } from "@orcai/schema";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { describeUploadFailures } from "@/components/documents/describe-upload-failures";
 import { useAssetIntake } from "@/components/documents/use-asset-intake";
 import { m } from "@/paraglide/messages";
 
@@ -230,7 +231,7 @@ export const useChatAttachments = ({
 					count: failures.length,
 				}),
 				{
-					description: m.chat_composer_send_failed_toast_error(),
+					description: describeUploadFailures(failures),
 				},
 			);
 			return null;

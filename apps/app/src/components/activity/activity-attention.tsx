@@ -6,7 +6,7 @@ import { XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
-import { describeError } from "@/lib/errors/describe-error";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { failureSummary, failureTitle } from "@/lib/presentation/activity";
 import { m } from "@/paraglide/messages";
@@ -165,7 +165,10 @@ export const FailureRow = ({
 	const dismiss = useMutation(
 		orpc.activity.dismissFailure.mutationOptions({
 			onSuccess: onDismissed,
-			onError: (error) => toast.error(describeError(error)),
+			onError: (error) =>
+				toast.error(m.activity_dismiss_toast_error(), {
+					description: reasonMessageOf(error),
+				}),
 		}),
 	);
 

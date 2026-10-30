@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { StarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
-import { describeError } from "@/lib/errors/describe-error";
+import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -28,7 +28,10 @@ const BotFavouriteToggle = ({
 }) => {
 	const { mutate: setFavourite, isPending } = useMutation(
 		orpc.bot.setFavourite.mutationOptions({
-			onError: (error) => toast.error(describeError(error)),
+			onError: (error) =>
+				toast.error(m.bots_favourite_toast_error(), {
+					description: reasonMessageOf(error),
+				}),
 		}),
 	);
 
