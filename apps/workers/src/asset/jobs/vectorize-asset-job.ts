@@ -4,6 +4,7 @@ import { DB, dbSchema } from "@orcai/db";
 import {
 	type Job,
 	reconcileLinkPoints,
+	serveIndexedAttempt,
 	settleStage,
 	withLinkPoints,
 } from "@orcai/pg-boss";
@@ -61,14 +62,17 @@ type VectorizableChunk = {
 	fileType?: FileType;
 };
 
-/** Whether `attempt` may write points: the link's current, unfinished indexing, newer than its indexed one. */
-const mayStage = (attempt: IndexingAttempt) =>
+/**
+ * The link while `attempt` may write points: its current, unfinished
+ * indexing, newer than the indexed one.
+ */
+const stagingLink = (attempt: IndexingAttempt) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { blockAsset } = dbSchema;
 		const [link] = yield* db
 			.select({
-				assetId: blockAsset.assetId,
+				indexed: blockAsset.indexedAttempt,
 			})
 			.from(blockAsset)
 			.where(
@@ -80,7 +84,7 @@ const mayStage = (attempt: IndexingAttempt) =>
 					),
 				),
 			);
-		return link !== undefined;
+		return link;
 	});
 
 const toValidPageNumber = (value: number | undefined) =>
@@ -304,8 +308,8 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 
 /**
  * Writes the attempt's points unpublished next to the link's indexed ones,
- * then completes the attempt and makes it the indexed one; the reconcile
- * publishes them. Point ids follow the attempt and chunk, so deliveries of
+ * then completes the attempt and serves them in one step; the reconcile
+ * deletes the earlier ones. Point ids follow the attempt and chunk, so deliveries of
  * one attempt write the same points.
  */
 const indexAsset = (params: {
@@ -349,7 +353,7 @@ const indexAsset = (params: {
 			});
 		}
 
-		if (!(yield* mayStage(attempt))) {
+		if (!(yield* stagingLink(attempt))) {
 			return yield* Effect.logInfo(
 				{
 					jobId,
@@ -364,7 +368,9 @@ const indexAsset = (params: {
 			attempt,
 		});
 
-		const completed = yield* db.transaction(() =>
+		// Served before the commit, so a link never reads indexed without its points.
+		const completed = yield* withLinkPoints(
+			attempt,
 			Effect.gen(function* () {
 				const written = yield* db
 					.update(dbSchema.blockAsset)
@@ -389,6 +395,7 @@ const indexAsset = (params: {
 							state: "completed",
 						},
 					);
+					yield* serveIndexedAttempt(attempt, attempt.attempt);
 				}
 				return written;
 			}),
@@ -466,12 +473,15 @@ const embedChunks = ({
 		yield* withLinkPoints(
 			attempt,
 			Effect.gen(function* () {
-				if (!(yield* mayStage(attempt))) {
+				const link = yield* stagingLink(attempt);
+				if (!link) {
 					return yield* Effect.logInfo(
 						attempt,
 						"Skipping vector upsert of an indexing attempt that is done or replaced",
 					);
 				}
+				// A completion that did not commit may serve these points in place of the indexed ones.
+				yield* serveIndexedAttempt(attempt, link.indexed);
 				yield* upsertPointsToQdrant({
 					points: metaDataChunks,
 				});
