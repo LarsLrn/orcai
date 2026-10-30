@@ -9,7 +9,7 @@ Run these commands from the repository root unless noted otherwise.
 	Use the filtered `@orcai/web` commands when you only need to validate documentation changes.
 </Callout>
 
-## Development Stack
+## Development stack
 
 Each checkout owns an isolated Docker Compose project with per-worktree ports stored in a gitignored `.env`. `bun run stack` starts the backing services from `docker-compose.yaml` with the `docker-compose.infra.yaml` override, which publishes them on loopback ports. The app, workers and docs site run on the host.
 
@@ -57,7 +57,7 @@ These options apply to every command and can stand anywhere before `--`:
 | `bun run workers:dev` | Alias for `bun run stack workers`. |
 | `bun run workers:start` | Run the built workers. |
 
-## Quality Checks
+## Quality checks
 
 | Command | Purpose |
 | --- | --- |
@@ -66,7 +66,7 @@ These options apply to every command and can stand anywhere before `--`:
 | `bun run e2e` | Alias for `bun run stack e2e`. |
 | `bun run lint` | Run Biome, TypeScript checks, and the migration check. |
 | `bun run lint-full` | Run Biome, TypeScript checks, the migration check, and ESLint. |
-| `bun run knip` | Run unused dependency/export analysis. |
+| `bun run knip` | Find unused dependencies and exports. |
 | `bun run prepush` | Run the full pre-push check. |
 | `bun run prompt-evals` | Run the prompt evals against real models through OpenRouter. Costs money and never runs in CI, see [Contributing](/docs/development/contributing#model-facing-text). |
 
@@ -76,16 +76,16 @@ cannot hide an error that a fresh CI checkout reports.
 The migration check is `drizzle-kit check` on `packages/db/migrations`. It
 needs no database and fails when two migrations branch from the same parent
 and change the same table, column, or other entity. That happens when a branch
-with a new migration is rebased onto a `main` that gained one; regenerate the
+with a new migration is rebased onto a `main` that gained one. Regenerate the
 branch's migration on top.
 
 `lint:eslint`, which `lint-full` runs, enumerates the workspaces
 (`apps/app`, `apps/web`, then `apps/e2e`, `apps/workers`, `packages`) because
 each carries its own ESLint project settings.
 
-## End-To-End Tests
+## End-to-end tests
 
-Everything after `--` is passed to Playwright. See [End-To-End Tests](/docs/development/testing) for the full workflow.
+Everything after `--` is passed to Playwright. [End-to-end tests](/docs/development/testing) has the full workflow.
 
 | Command | Purpose |
 | --- | --- |
@@ -95,7 +95,7 @@ Everything after `--` is passed to Playwright. See [End-To-End Tests](/docs/deve
 | `bun run stack e2e --no-reset -- --grep smoke` | Reuse existing data for fast iteration. |
 | `bun run stack e2e --no-integration` | Run Playwright without the integration tier. |
 
-## Database And Authorisation
+## Database and authorisation
 
 Package scripts do not see the root `.env` on their own, so wrap them in `bun run stack exec --`.
 
@@ -107,7 +107,7 @@ Package scripts do not see the root `.env` on their own, so wrap them in `bun ru
 | `bun run stack exec -- bun run --filter @orcai/spice-db status` | Inspect SpiceDB schema migration status. |
 | `bun run stack exec -- bun run --filter @orcai/spice-db reset` | Delete every relationship, keeping the schema. Asks first, and names the endpoint it would wipe. `bun run stack reset` calls this with `--yes`. |
 
-## Documentation Web Service
+## Documentation web service
 
 Run the docs service directly with:
 

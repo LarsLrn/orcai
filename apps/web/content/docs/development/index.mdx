@@ -5,22 +5,22 @@ description: Repository development workflows and implementation notes.
 
 The OrcAI repository is a Bun workspace with applications under `apps/*` and shared packages under `packages/*`.
 
-## Main Applications
+## Main applications
 
 - `apps/app`: main OrcAI application.
 - `apps/workers`: background worker process.
 - `apps/web`: website and documentation service.
-- `apps/e2e`: Playwright end-to-end suite, see [End-To-End Tests](/docs/development/testing).
+- `apps/e2e`: Playwright end-to-end suite, see [End-to-end tests](/docs/development/testing).
 
 [Architecture](/docs/development/architecture#packages) lists the shared packages.
 
-## Recommended Workflow
+## Recommended workflow
 
 Run `bun install --frozen-lockfile`, then `bun run stack up`. This starts an isolated Docker Compose project for the checkout, writes a gitignored `.env` with per-worktree ports, applies migrations, and applies the SpiceDB schema. SeaweedFS creates the object storage buckets on startup. Start the app with `bun run stack dev` or everything with `bun run stack dev --all`. Several checkouts or worktrees can run at the same time without port conflicts.
 
 The repository also includes a VS Code devcontainer that provides the same infrastructure inside Compose. The container keeps its own environment in `.devcontainer/.env`, never the checkout's `.env`, and `bun run dev:all` serves the app on port 3000 and the docs on 3001. For details on either path, see the [README](https://github.com/LarsLrn/orcai#development-workflows) and the [Commands](/docs/development/commands) page.
 
-## Developer Pages
+## Developer pages
 
 <Cards>
 	<Card href="/docs/development/commands" title="Commands">
@@ -35,7 +35,7 @@ The repository also includes a VS Code devcontainer that provides the same infra
 	<Card href="/docs/development/glossary" title="Glossary">
 		The product terms in English and German.
 	</Card>
-	<Card href="/docs/development/testing" title="End-To-End Tests">
+	<Card href="/docs/development/testing" title="End-to-end tests">
 		Running the Playwright suite, how a run resets and isolates data, the fixtures, and the slice rules.
 	</Card>
 	<Card href="/docs/development/contributing" title="Contributing">

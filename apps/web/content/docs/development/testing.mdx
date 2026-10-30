@@ -1,17 +1,17 @@
 ---
-title: End-To-End Tests
+title: End-to-end tests
 description: How the Playwright end-to-end suite and the integration tier are run, isolated, and extended.
 ---
 
-The end-to-end suite proves that the application works against real infrastructure: a real database, real authorisation store, real object storage. Unit tests (`bun run test`) never touch the stack; the end-to-end suite always does. Each unit test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
+The end-to-end suite proves that the application works against real infrastructure: a real database, a real authorisation store and real object storage. Unit tests (`bun run test`) never touch the stack, and the end-to-end suite always does. Each unit test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
 
 ## Runner
 
 - Playwright Test on the host, Chromium only.
 - Workspace package `apps/e2e` (`@orcai/e2e`).
-- Browser locale `en`. Locators use roles and accessible names taken from the message catalogue through `fixtures/messages.ts`, never a repeated English literal; test ids only where no accessible name exists. See [Localisation](/docs/development/localisation).
+- Browser locale `en`. Locators use roles and accessible names taken from the message catalogue through `fixtures/messages.ts`, never a repeated English literal, and test ids only where no accessible name exists. See [Localisation](/docs/development/localisation).
 - Traces and screenshots are kept on failure. Test timeout 30 seconds.
-- Locally: Playwright's default worker count, no retries. On CI: two workers and one retry; flaky retries fail CI.
+- Playwright's default worker count and no retries locally. Two workers and one retry on CI, where a flaky retry fails the run.
 
 ## Workflow
 
@@ -28,23 +28,29 @@ bun run stack e2e --no-build                   # reuse the images already built
 bun run stack e2e --pipeline                   # the pipeline specs, with workers
 ```
 
-Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the [integration tier](#integration-tier) on the same stack; the run fails if either does. A full local run is `bun run stack e2e` followed by `bun run stack e2e --pipeline`; see [Pipeline Specs](#pipeline-specs).
+Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the [integration tier](#integration-tier) on the same stack, and the run fails if either does. A full local run is `bun run stack e2e` followed by `bun run stack e2e --pipeline`, see [Pipeline specs](#pipeline-specs).
 
 <Callout title="A run wipes the stack's data" type="warn">
 	A run that resets asks for confirmation first. `--yes` answers up front, and a caller without a terminal has to pass it. Unless you pass `--no-reset`, `bun run stack e2e` resets the stack first: it drops and recreates the `app` database, reapplies migrations and the SpiceDB schema, deletes all SpiceDB relationships, empties the object storage buckets, deletes the Qdrant collections, and flushes Valkey. Containers and `.env` are left in place, so a reset takes seconds. The reset refuses unless the database host is loopback, `S3_ENDPOINT` is the stack's own loopback SeaweedFS, the stack is named `orcai-*`, and nothing is listening on the app port. To keep your development data, run the suite against a second stack with `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same flags on `e2e`.
 </Callout>
 
-`bun run stack e2e` first installs the Chromium that the pinned `apps/e2e` Playwright expects into the shared Playwright cache; once it is there, the step is a no-op.
+`bun run stack e2e` first installs the Chromium that the pinned `apps/e2e` Playwright expects into the shared Playwright cache, and once it is there the step is a no-op.
 
-The application under test is the production images, the ones a Docker Compose deployment runs. Before the reset, `bun run stack e2e` builds the app and docs images (app and workers for `--pipeline`) with `docker buildx bake` from the build definitions in `docker-compose.yaml` and tags them `<stack>-app`, `<stack>-web`, and `<stack>-workers`. `--no-build` skips the build and fails when an image is missing. Playwright's `webServer` list first starts the mock inference server from `apps/e2e/fixtures/inference` on `E2E_INFERENCE_PORT`, then runs the app image on the `PORT` from the stack environment, then the docs image on `WEB_PORT`. Each container runs with `docker run --network host` and the stack environment as its env file, so it reaches the stack and the mock on loopback. The browser opens the app at `http://localhost:<PORT>`, the `BETTER_AUTH_URL` the run sets even when an older `.env` names `127.0.0.1`, because WebAuthn refuses an IP address as the passkey relying party; clients for `localhost` fall back to the 127.0.0.1 the servers bind. Each container is named after its image and removed when Playwright stops it, and `bun run stack e2e` removes leftovers before and after a run. The images run with `NODE_ENV=production`, so the run sets `BETTER_AUTH_RATE_LIMIT=false`: every request comes from loopback without a forwarded client IP and would share one rate limit. `bun run stack e2e` points the global OpenAI-compatible endpoint at the mock and names its embedding model in `EMBEDDING_MODEL`, so embeddings never reach a real provider. `bun run stack e2e` points `WEB_INTERNAL_URL` at that docs site, so the OrcAI Assistant reads the real docs, and Assistant specs compare against what the site serves. The mock always starts fresh and refuses to adopt an existing server. Because `reuseExistingServer` is enabled for the app and the docs site, a running `bun run stack web` is reused, and `bun run stack e2e --no-reset` reuses a `bun run stack dev` already listening on that port; `bun run stack e2e` then skips that image's build, and the dev server picks up code edits immediately. A reset refuses while an app is listening, because a running server caches the bootstrap status and owns the pg-boss schema it created on start; stop the dev server first or pass `--no-reset`.
+The application under test is the production images, the ones a Docker Compose deployment runs. Before the reset, `bun run stack e2e` builds the app and docs images (app and workers for `--pipeline`) with `docker buildx bake` from the build definitions in `docker-compose.yaml` and tags them `<stack>-app`, `<stack>-web`, and `<stack>-workers`. `--no-build` skips the build and fails when an image is missing.
 
-## Seed And Isolation
+Playwright's `webServer` list first starts the mock inference server from `apps/e2e/fixtures/inference` on `E2E_INFERENCE_PORT`, then runs the app image on the `PORT` from the stack environment, then the docs image on `WEB_PORT`. Each container runs with `docker run --network host` and the stack environment as its env file, so it reaches the stack and the mock on loopback. The browser opens the app at `http://localhost:<PORT>`, the `BETTER_AUTH_URL` the run sets even when an older `.env` names `127.0.0.1`, because WebAuthn refuses an IP address as the passkey relying party. Clients for `localhost` fall back to the 127.0.0.1 the servers bind. Each container is named after its image and removed when Playwright stops it, and `bun run stack e2e` removes leftovers before and after a run. The images run with `NODE_ENV=production`, and every request comes from loopback without a forwarded client IP and would share one rate limit, so the run sets `BETTER_AUTH_RATE_LIMIT=false`. `bun run stack e2e` points the global OpenAI-compatible endpoint at the mock and names its embedding model in `EMBEDDING_MODEL`, so embeddings never reach a real provider. It also points `WEB_INTERNAL_URL` at that docs site, so the OrcAI Assistant reads the real docs, and Assistant specs compare against what the site serves. The mock always starts fresh and refuses to adopt an existing server.
+
+Because `reuseExistingServer` is enabled for the app and the docs site, a running `bun run stack web` is reused, and `bun run stack e2e --no-reset` reuses a `bun run stack dev` already listening on that port. `bun run stack e2e` then skips that image's build, and the dev server picks up code edits immediately. A reset refuses while an app is listening, because a running server caches the bootstrap status and owns the pg-boss schema it created on start. Stop the dev server first or pass `--no-reset`.
+
+## Seed and isolation
 
 There is no seed command. A Playwright `setup` project holds one spec that initialises the reset instance through the first-run UI at `/init` with a well-known admin whose credentials and instance organisation are fixed constants. If the instance is already initialised, the spec skips itself with a visible reason. Every other project depends on `setup`, so a full run always exercises first-run setup and always has the well-known admin available.
 
-The reset happens once per run. Beyond the well-known admin, every Playwright worker creates its own organisations and users through the public API, named by worker index, and specs mutate only data inside their own worker's organisations. Users are created through the Better Auth sign-up endpoint and then given a role through the membership procedure. Creating an organisation requires the instance-admin role, so the well-known admin creates every worker organisation and becomes an admin member of each. It does not need an active organisation to perform that instance-scoped action, but membership and invitation procedures act on the active organisation, so the fixtures open a separate well-known admin session per created organisation, activate that organisation on it, and invite and remove members through it. The shared well-known admin session keeps the instance organisation active. Well-known admin browser pages sign in independently of the admin API client, so changing organisation on one session does not change the other. Fixture setup still exercises the same paths the interface does. Specs that need instance-level state live in `apps/e2e/tests/instance/`; that project runs serially and completes before the parallel specs start.
+The reset happens once per run. Beyond the well-known admin, every Playwright worker creates its own organisations and users through the public API, named by worker index, and specs mutate only data inside their own worker's organisations. Users are created through the Better Auth sign-up endpoint and then given a role through the membership procedure.
 
-## Integration Tier
+Creating an organisation requires the instance-admin role, so the well-known admin creates every worker organisation and becomes an admin member of each. It does not need an active organisation to perform that instance-scoped action, but membership and invitation procedures act on the active organisation, so the fixtures open a separate well-known admin session per created organisation, activate that organisation on it, and invite and remove members through it. The shared well-known admin session keeps the instance organisation active. Well-known admin browser pages sign in independently of the admin API client, so changing organisation on one session does not change the other. Fixture setup still exercises the same paths the interface does. Specs that need instance-level state live in `apps/e2e/tests/instance/`, and that project runs serially and completes before the parallel specs start.
+
+## Integration tier
 
 Modules that need real PostgreSQL, SpiceDB, or Valkey are tested through their interface in `*.integration.ts` files, alongside the unit tests. `bun test` does not discover that suffix, so `bun run test` stays free of infrastructure.
 
@@ -53,9 +59,9 @@ bun run test:integration                                        # every integrat
 bun run stack exec -- bun test ./packages/spice-db/test/schema.integration.ts   # one file
 ```
 
-`bun run test:integration` finds every `*.integration.ts` under `apps` and `packages` and runs them with `bun test --parallel` through `bun run stack exec`, so they get the stack environment. The tier needs a migrated stack, nothing else; it runs no reset.
+`bun run test:integration` finds every `*.integration.ts` under `apps` and `packages` and runs them with `bun test --parallel` through `bun run stack exec`, so they get the stack environment. The tier needs a migrated stack and nothing else, and it runs no reset.
 
-Tests create their own organisations and users under unique ids, so they coexist with development data and with each other. Bootstrap counts any user or organisation as an initialised instance, so a test row on a fresh stack would lock first-run setup; `integrationRuntime()` therefore fails until the instance is initialised through `/init` or a `bun run stack e2e` run.
+Tests create their own organisations and users under unique ids, so they coexist with development data and with each other. Bootstrap counts any user or organisation as an initialised instance. Because a test row on a fresh stack would lock first-run setup, `integrationRuntime()` fails until the instance is initialised through `/init` or a `bun run stack e2e` run.
 
 `@orcai/testing` holds the shared helpers:
 
@@ -66,7 +72,7 @@ Tests create their own organisations and users under unique ids, so they coexist
 | `createOrganization({ members })` | An organisation with a unique slug whose members hold their role in both the `member` table and SpiceDB, and the `zedToken` of that write. |
 | `createJobQueues(boss)` | Every pg-boss queue the workers create at boot. The tier runs no workers, so a file that enqueues jobs creates them all, whatever queues it expects to reach. |
 
-`packages/spice-db/test/schema.integration.ts` checks the SpiceDB schema: it writes a fixed set of relationships under per-run ids and asserts which permissions they grant and deny against the stack's applied schema.
+`packages/spice-db/test/schema.integration.ts` checks the SpiceDB schema. It writes a fixed set of relationships under per-run ids and asserts which permissions they grant and deny against the stack's applied schema.
 
 ## Fixtures
 
@@ -79,19 +85,19 @@ Specs import `test` and `expect` from `apps/e2e/fixtures/index.ts` and get their
 | `api.as(role)` | test | A typed oRPC client against `/api/rpc`, built from the shared contracts. `api.asWellKnownAdmin()` covers instance-level calls. |
 | `orgs.create(name)` | worker | An additional organisation owned by the worker, for seam tests that need two. |
 | `outbox.latestFor(email, type)` | test | The newest link for an address from the notification outbox table, for invitation and password-reset flows. |
-| `inference` | worker | A mock OpenAI-compatible inference server on an ephemeral port, from `fixtures/inference/fixture.ts`. Its URL is a valid provider endpoint; it records every request and can script replies and failures. |
+| `inference` | worker | A mock OpenAI-compatible inference server on an ephemeral port, from `fixtures/inference/fixture.ts`. Its URL is a valid provider endpoint, and it records every request and can script replies and failures. |
 
 The `inference` fixture's scripted replies and failures reset before and after every test, including failed tests, and other workers keep their own scenarios.
 
-Out of scope for the suite: email delivery, real AI endpoints, and OCR. Background workers run only for the pipeline specs.
+The suite does not cover email delivery, real AI endpoints or OCR. Background workers run only for the pipeline specs.
 
-## Pipeline Specs
+## Pipeline specs
 
-The specs in `apps/e2e/tests/pipeline/` cover upload, preparation, indexing, search, and citation with the real background workers. Only `bun run stack e2e --pipeline` runs them, and only that run starts the workers: it sets `E2E_PIPELINE`, on which the Playwright configuration selects the `setup` and `pipeline` projects and runs the workers image in place of the docs site, ready once the workers log that they started. `bun run stack e2e --pipeline` sets `WORKER_POLLING_INTERVAL_SECONDS=0.5`, so an asset is ready within seconds.
+The specs in `apps/e2e/tests/pipeline/` cover upload, preparation, indexing, search, and citation with the real background workers. Only `bun run stack e2e --pipeline` runs them, and only that run starts the workers. It sets `E2E_PIPELINE`, and with it the Playwright configuration selects the `setup` and `pipeline` projects and runs the workers image in place of the docs site, ready once the workers log that they started. `bun run stack e2e --pipeline` sets `WORKER_POLLING_INTERVAL_SECONDS=0.5`, so an asset is ready within seconds.
 
-Every other run has no workers, so no pg-boss queue exists: queueing preparation fails and an uploaded asset ends up failed with kind `other`, which the other specs rely on. A pipeline run leaves its queues behind, so reset before the next run of the rest of the suite.
+Every other run has no workers, so no pg-boss queue exists. Queueing preparation fails, and an uploaded asset ends up failed with kind `other`, which the other specs rely on. A pipeline run leaves its queues behind, so reset before the next run of the rest of the suite.
 
-Pipeline assets are txt or md files, so extraction needs no OCR. Their embeddings come from the mock inference server, whose `EMBEDDING_DIMENSIONS` matches the stack's Qdrant collection; image descriptions are not exercised. `fixtures/pipeline/repository.ts` creates a repository holding one uploaded asset and waits through `block.readiness` until nothing in it is being prepared.
+Pipeline assets are txt or md files, so extraction needs no OCR. Their embeddings come from the mock inference server, whose `EMBEDDING_DIMENSIONS` matches the stack's Qdrant collection. Image descriptions are not exercised. `fixtures/pipeline/repository.ts` creates a repository holding one uploaded asset and waits through `block.readiness` until nothing in it is being prepared.
 
 ## Slices
 
@@ -99,13 +105,13 @@ A slice is one spec area owned by one contributor or agent. A slice owns `apps/e
 
 Rules for working on a slice:
 
-- Reset before a full run; use `--no-reset` only while iterating.
+- Reset before a full run, and use `--no-reset` only while iterating.
 - Mutate data only inside your own worker's organisations.
 - Finish with `bun run stack e2e -- --grep <area>` passing.
-- Pin a defect the app has today with `test.fail()` and a comment; assert the intended behaviour, never the defect.
+- Pin a defect the app has today with `test.fail()` and a comment, and assert the intended behaviour, never the defect.
 
-## Continuous Integration
+## Continuous integration
 
-GitHub Actions runs the suite in parallel with `validate`, split across three shard jobs with Playwright's `--shard` and a fourth job for the pipeline specs. An `e2e images` job first writes a stack environment, builds the app, docs, and workers images with `bun run stack build`, caching their layers in the GitHub Actions cache, and uploads the images as an artifact kept for a day. The images carry no stack values, so each shard job loads them, installs Chromium with the pinned `apps/e2e` Playwright, starts its own stack, which writes its own environment, runs `bun run stack e2e --yes --no-build` with its arguments (`-- --shard=<i>/3`, or `--pipeline`), and uploads its failure artifacts for seven days. Shard 1 also runs the integration tier; the other jobs pass `--no-integration`. The `setup` and `instance` projects are dependencies, so every shard runs them before its share of the rest; the pipeline job runs `setup` only. The required `e2e` job passes when the image job and every shard passed.
+GitHub Actions runs the suite in parallel with `validate`, split across three shard jobs with Playwright's `--shard` and a fourth job for the pipeline specs. An `e2e images` job first writes a stack environment, builds the app, docs, and workers images with `bun run stack build`, caching their layers in the GitHub Actions cache, and uploads the images as an artifact kept for a day. The images carry no stack values, so each shard job loads them, installs Chromium with the pinned `apps/e2e` Playwright, starts its own stack, which writes its own environment, runs `bun run stack e2e --yes --no-build` with its arguments (`-- --shard=<i>/3`, or `--pipeline`), and uploads its failure artifacts for seven days. Shard 1 also runs the integration tier, and the other jobs pass `--no-integration`. The `setup` and `instance` projects are dependencies, so every shard runs them before its share of the rest, and the pipeline job runs only `setup`. The required `e2e` job passes when the image job and every shard passed.
 
-Pull requests that only change docs content (`apps/web/content`), `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; `e2e` still reports success. Pushes to `main` always run the full suite.
+Pull requests that only change docs content (`apps/web/content`), `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards, and `e2e` still reports success. Pushes to `main` always run the full suite.

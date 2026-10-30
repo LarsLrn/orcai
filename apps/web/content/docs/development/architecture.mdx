@@ -3,9 +3,9 @@ title: Architecture
 description: How the OrcAI app, workers, storage, authorisation, retrieval, and AI services fit together.
 ---
 
-OrcAI is split into a main app, worker process, and infrastructure services.
+OrcAI is split into a main app, a worker process and infrastructure services.
 
-## At A Glance
+## At a glance
 
 <Mermaid
 	chart={`
@@ -27,11 +27,11 @@ flowchart LR
 `}
 />
 
-## Runtime Components
+## Runtime components
 
 - Effect carries the server code. Each package exposes its services as Effect layers, `apps/app/src/lib/effect/app-layer.ts` and `apps/workers/src/layer.ts` compose them, and oRPC procedures run as Effect handlers.
-- React 19 and TanStack Start power the user interface and server runtime.
-- TanStack Router, Query, and Form are used for client routing and data workflows.
+- React 19 and TanStack Start run the user interface and the server.
+- TanStack Router, Query and Form handle client routing, data fetching and forms.
 - oRPC defines typed backend contracts.
 - Better Auth handles authentication.
 - Drizzle ORM manages PostgreSQL access and migrations.
@@ -44,9 +44,9 @@ flowchart LR
 - The AI SDK talks to each provider's API through its kind (OpenAI-compatible, OpenAI or Anthropic). Chats, titles, image descriptions and metadata suggestions use the providers and models an organisation configures. The instance's OpenAI-compatible endpoint serves embeddings only.
 
 <Callout title="Generated API reference" type="info">
-	Each OrcAI instance serves its live, Scalar-powered API reference at
-	`/api/doc` in the main app. The OpenAPI document is generated directly from
-	the oRPC router, so it reflects the API exposed by that deployed version.
+	Each OrcAI instance serves its API reference, rendered with Scalar, at
+	`/api/doc` in the main app. The OpenAPI document is generated from the oRPC
+	router, so it matches the API of the deployed version.
 </Callout>
 
 ## Packages
@@ -75,66 +75,71 @@ The apps share their server code through the workspace packages under `packages/
 
 The app and the workers ship as bundles. A dependency breaks only at runtime when it loads native bindings, reads its own files by path or imports a computed name, so keep such a dependency external. In the app, add it to `ssr.external` in `apps/app/vite.config.ts`, and to Nitro's `traceDeps` when it requires files the tracer cannot see. In the workers, add it to `external` in `apps/workers/build.ts` and to the workers' `dependencies`, which the image installs.
 
-## Asset Preparation Flow
+## Asset preparation flow
 
 1. A user uploads files through the app. The browser puts each file under `staging/` in S3-compatible object storage with a URL the app signed.
-2. Right after the upload, the browser calls `asset.createFromUploads`. The intake module (`apps/app/src/lib/assets/intake.ts`) checks each staged file against the signed upload, moves it to the asset's key, and creates the asset row with its owner. Bucket, keys and origin (library or chat) come from the signed-in user and the upload route, never from the client. Each file gets its own result, and repeating an upload returns the same asset.
+2. Right after the upload, the browser calls `asset.createFromUploads`. The intake module (`apps/app/src/lib/assets/intake.ts`) checks each staged file against the signed upload, moves it to the asset's key, and creates the asset row with its owner. Bucket, keys and origin (Library or chat) come from the signed-in user and the upload route, never from the client. Each file gets its own result, and repeating an upload returns the same asset.
 3. The app creates background jobs.
 4. Workers extract content from the uploaded files.
 5. Workers create processed artifacts and metadata.
 6. Workers generate embeddings using the configured model endpoint.
 7. Workers write vector data to Qdrant.
-8. Chat tools query Qdrant and retrieve relevant content for model calls.
+8. Chat tools query Qdrant and pass the matching passages to the model.
 
-## Profile Pictures And Logos
+## Profile pictures and logos
 
-Profile pictures and organisation logos are not assets: they need no
+Profile pictures and organisation logos are not assets, because they need no
 preparation, no SpiceDB relationships and no presigned reads.
 
 1. The browser crops the chosen image to a 256 by 256 pixel WebP and uploads it through the `profileImage` or `organizationLogo` route, which signs one WebP of at most 256 KB under `staging/` like any upload.
-2. `user.setImage` or `organization.setLogo` (organisation admins) hands the upload to the image module (`apps/app/src/lib/images/images.ts`). It checks the upload belongs to the caller, checks the stored object's type and size, copies it to a fresh key under `images/` and swaps the column under a row lock. The replaced object and the staged copy are deleted afterwards, best effort; a failure leaves a small unreferenced object, and the `staging/` lifecycle rule expires abandoned uploads. No lifecycle rule matches `images/`.
+2. `user.setImage` or `organization.setLogo` (organisation admins) hands the upload to the image module (`apps/app/src/lib/images/images.ts`). It checks the upload belongs to the caller, checks the stored object's type and size, copies it to a fresh key under `images/` and swaps the column under a row lock. The replaced object and the staged copy are deleted afterwards on a best-effort basis. A failure leaves a small unreferenced object, and the `staging/` lifecycle rule expires abandoned uploads. No lifecycle rule matches `images/`.
 3. `user.image` and `organization.logo` hold the image's app path, `/api/images/<users|organizations>/<id>/<uuid>.webp`, so a new image gets a new URL. Deleting an account or an organisation deletes its image the same way.
-4. `GET /api/images/...` (`apps/app/src/routes/api/images/$.ts`) streams an image to any signed-in user, 401 without a session and 404 for a path no column references. It answers `Cache-Control: private, no-cache` with an ETag, so browsers revalidate with a cheap 304 and a removal or sign-out applies at once, and `X-Content-Type-Options: nosniff`.
+4. `GET /api/images/...` (`apps/app/src/routes/api/images/$.ts`) streams an image to any signed-in user and answers 401 without a session and 404 for a path no column references. Responses carry `Cache-Control: private, no-cache` with an ETag and `X-Content-Type-Options: nosniff`, so browsers revalidate with a cheap 304 and a removal or sign-out applies at once.
 
-The 256-pixel size and the dropped metadata are guaranteed for uploads through the app's crop dialog only. The server checks type and size but does not decode or re-encode images; a client calling the API directly can store any WebP-labelled bytes up to 256 KB, which the route serves only as `image/webp`.
+The 256-pixel size and the dropped metadata are guaranteed for uploads through the app's crop dialog only. The server checks type and size but does not decode or re-encode images, so a client calling the API directly can store any WebP-labelled bytes up to 256 KB, which the route serves only as `image/webp`.
 
-## Authorisation Flow
+## Authorisation flow
 
 The app stores domain records in PostgreSQL and uses SpiceDB for relationship-based authorisation. Permission middleware checks whether a user can access or mutate a resource before executing protected operations.
 
-### Read Consistency
+### Read consistency
 
-Authorisation reads are near real-time by default: SpiceDB answers them with `minimizeLatency`, which can miss a permission change made moments earlier. A request that writes authorisation returns the resulting zedToken in the response `meta` and sets a `zed_token` cookie for 60 seconds, so the browser's following reads are at least as fresh as that write.
+SpiceDB answers authorisation reads with `minimizeLatency` by default, so a read can miss a permission change made moments earlier. A request that writes authorisation returns the resulting zedToken in the response `meta` and sets a `zed_token` cookie for 60 seconds, so the browser's following reads are at least as fresh as that write.
 
 The sign-up response carries the same cookie for the membership it grants, so a new account's first reads already see it.
 
 API consumers outside the browser can send the token back in the `X-Zed-Token` header, and some procedures also accept it as a `zedToken` input to pin the freshness of a single call.
 
-A response without `meta.zedToken` means the request wrote nothing to SpiceDB inline; the write is queued and applied shortly after, so a read issued immediately may still see the previous state.
+A response without `meta.zedToken` means the request wrote nothing to SpiceDB inline. Its write is queued and applied shortly after, so a read issued immediately may still see the previous state.
 
 ### Schema
 
 The schema is `packages/spice-db/src/schema/schema.zed`. `bun run stack migrate` applies it in development, and the `spicedb-schema` service does so under Docker Compose.
 
-An `organization` gives each member one of the relations `admin`, `manager`, `member` and `viewer`, and its permissions are the role matrix under [Organisation Roles](/docs/using-orcai/access-control#organisation-roles). A `group` belongs to one organisation and its members are users or all holders of an organisation role.
+An `organization` gives each member one of the relations `admin`, `manager`, `member` and `viewer`, and its permissions are the role matrix under [Organisation roles](/docs/using-orcai/access-control#organisation-roles). A `group` belongs to one organisation and its members are users or all holders of an organisation role.
 
 `bot`, `block` and `asset` share one shape. `owner` holds only users. `manager` (**Can manage**), `editor` (**Can edit**) and `viewer` (**Can view**) hold users or group members, and `public` holds `user:*` for a Catalogue listing. Read passes down through a block's `bot` relation and an asset's `block` relation, so a bot's audience reads its blocks and their assets, while edit, delete and `manage_access` need a grant on the resource itself. A `chat` is readable and editable by its `owner` only. `packages/spice-db/test/schema.integration.ts` pins what each relation grants.
 
-## AI Flow
+## AI flow
 
 Chat generation uses configured providers and models. Retrieval tools can search repositories, list their assets, and fetch pages or passages before the model's response is generated.
 
-The OrcAI Assistant's tools call OrcAI's procedures as the signed-in user through the per-namespace Effect clients, so every middleware and authorisation check runs as it does for the app. Core tools are always offered; the bots, sharing and people groups load on demand through `loadTools`, filtered by the user's organisation permissions. Tools that destroy, revoke, widen access, change a role or send something out need approval: the turn pauses, and once the user answers it resumes on the same message through `ai.continue`. The Assistant's plan is its newest `updatePlan` call; the first plan of a conversation needs the same approval, and create tools become callable only once a plan has been approved. How loading reaches the model depends on the provider's tool-loading strategy. With `references` (Anthropic models with tool search), every tool is declared up front, the group tools deferred. A loaded group and the create tools unlocked by the approved plan surface through `tool-reference` parts in the tool result, and create tools check for an approved plan when they run. With `active-tools` (other provider kinds and older Claude models), a loaded group's tools and the unlocked create tools join the request's tool list.
+The OrcAI Assistant's tools call OrcAI's procedures as the signed-in user through the per-namespace Effect clients, so every middleware and authorisation check runs as it does for the app. Core tools are always offered, and the bots, sharing and people groups load on demand through `loadTools`, filtered by the user's organisation permissions. Tools that destroy, revoke, widen access, change a role or send something out need approval, so the turn pauses and resumes on the same message through `ai.continue` once the user answers. The Assistant's plan is its newest `updatePlan` call. The first plan of a conversation needs the same approval, and create tools become callable only once a plan has been approved.
 
-Asset preparation describes images, both image files and figures inside files, once with the organisation's utility model and stores the descriptions with the extraction; indexing reads them from there. The calls are metered against the organisation's quota pools and attributed to the uploader.
+How loading reaches the model depends on the provider's tool-loading strategy. With `references` (Anthropic models with tool search), every tool is declared up front, the group tools deferred. A loaded group and the create tools unlocked by the approved plan surface through `tool-reference` parts in the tool result, and create tools check for an approved plan when they run. With `active-tools` (other provider kinds and older Claude models), a loaded group's tools and the unlocked create tools join the request's tool list.
+
+Asset preparation describes images, both image files and figures inside files, once with the organisation's utility model and stores the descriptions with the extraction, and indexing reads them from there. The calls are metered against the organisation's quota pools and attributed to the uploader.
 
 Organisation admins configure providers and models under [Providers](/docs/using-orcai/administration#providers) and [Models](/docs/using-orcai/administration#models).
 
 ## Observability
 
-Umami analytics is optional. OpenTelemetry export is on when `OTEL_EXPORTER_OTLP_ENDPOINT` is set; `@orcai/observability` then builds one resource for traces, logs and metrics from `OTEL_RESOURCE_ATTRIBUTES` and the service name and version, and registers the tracer and meter providers globally for libraries that use the OpenTelemetry API.
+Umami analytics is optional. When `OTEL_EXPORTER_OTLP_ENDPOINT` is set, `@orcai/observability` turns on OpenTelemetry export, builds one resource for traces, logs and metrics from `OTEL_RESOURCE_ATTRIBUTES` and the service name and version, and registers the tracer and meter providers globally for libraries that use the OpenTelemetry API.
 
-- Traces: the app opens one server span per request named `<method> <route template>` (RPC requests carry the procedure path, auth requests only the template); oRPC, Better Auth, Effect SQL, pg-boss `send`, AI SDK and HTTP client spans nest under it. A worker's `process <queue>` span continues the trace of the request that queued the job; batches of several jobs link to each producer instead. Effects started from promise-based code join the active span through `withActiveSpan` in `@orcai/observability` and `runPromise` in `apps/app/src/lib/effect/runtime.ts`; oRPC's Effect handlers and middlewares join theirs through `effect/wrap`. A client error such as a 403 does not fail the span, and a client that disconnects ends its request span with an `aborted` event.
-- Logs: Effect log records are exported with the trace and span ids of the fiber that wrote them. A failed procedure is logged once by a client interceptor: client errors at info, everything else at error with its cause.
-- Metrics: pg-boss messaging metrics (`messaging.*`, `pgboss.queue.jobs`) and the HTTP client duration, exported every minute.
-- AI calls record model, token usage and the organisation, chat, provider and model ids, never prompt or response content.
+The app opens one server span per request named `<method> <route template>`. For RPC requests the name carries the procedure path, and for auth requests only the template. oRPC, Better Auth, Effect SQL, pg-boss `send`, AI SDK and HTTP client spans nest under it. A worker's `process <queue>` span continues the trace of the request that queued the job, and a batch of several jobs links to each producer instead. Effects started from promise-based code join the active span through `withActiveSpan` in `@orcai/observability` and `runPromise` in `apps/app/src/lib/effect/runtime.ts`, and oRPC's Effect handlers and middlewares join theirs through `effect/wrap`. A client error such as a 403 does not fail the span, and a client that disconnects ends its request span with an `aborted` event.
+
+Effect log records are exported with the trace and span ids of the fiber that wrote them. A client interceptor logs a failed procedure once, a client error at info level and everything else at error level with its cause.
+
+The metrics are pg-boss messaging (`messaging.*`, `pgboss.queue.jobs`) and the HTTP client duration, exported every minute.
+
+AI calls record the model, token usage and the organisation, chat, provider and model ids, never prompt or response content.
