@@ -244,9 +244,6 @@ function RouteComponent() {
 					<Card>
 						<CardHeader>
 							<CardTitle>{m.quotas_detail_current_usage_title()}</CardTitle>
-							<CardDescription>
-								{m.quotas_detail_current_usage_description()}
-							</CardDescription>
 						</CardHeader>
 						<CardContent className="@container">
 							<div className="grid @2xl:grid-cols-4 @sm:grid-cols-2 gap-4">

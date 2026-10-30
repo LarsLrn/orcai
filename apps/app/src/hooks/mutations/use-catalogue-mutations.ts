@@ -69,9 +69,11 @@ export const useInstallBlocksMutation = ({
 /** Removes an entry added from the catalogue from the active organisation, after a confirm. */
 export const useUninstallMutation = (
 	{
+		kind,
 		name,
 		organisation,
 	}: {
+		kind: "bot" | "block";
 		name: string;
 		organisation: string;
 	},
@@ -99,7 +101,9 @@ export const useUninstallMutation = (
 				name,
 				organisation,
 			}),
-			description: m.catalogue_uninstall_confirm_description({
+			description: (kind === "bot"
+				? m.catalogue_uninstall_confirm_description_bot
+				: m.catalogue_uninstall_confirm_description_block)({
 				organisation,
 			}),
 			confirmText: m.catalogue_uninstall_confirm_button(),

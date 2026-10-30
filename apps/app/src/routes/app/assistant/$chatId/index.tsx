@@ -60,7 +60,7 @@ export const Route = createFileRoute("/app/assistant/$chatId/")({
 			meta: [
 				{
 					title: chat
-						? (chat.title ?? m.chat_title_placeholder())
+						? (chat.title ?? m.assistant_conversation_title_placeholder())
 						: m.assistant_name(),
 				},
 			],

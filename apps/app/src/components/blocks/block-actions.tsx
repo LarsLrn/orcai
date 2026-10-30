@@ -106,6 +106,7 @@ const useBlockActions = (
 	);
 	const { mutate: uninstall } = useUninstallMutation(
 		{
+			kind: "block",
 			name: block.name,
 			organisation: installer?.organisation ?? "",
 		},

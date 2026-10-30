@@ -91,6 +91,7 @@ export const chatTableColumns = columnHelper.columns([
 			<ChatActionsDropdown
 				chatId={row.original.id}
 				title={row.original.title}
+				kind={row.original.kind}
 				pinned={
 					row.original.kind === "chat"
 						? row.original.pinnedAt !== null

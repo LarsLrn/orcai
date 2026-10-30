@@ -114,6 +114,7 @@ const useBotActions = (
 	);
 	const { mutate: uninstall } = useUninstallMutation(
 		{
+			kind: "bot",
 			name: bot.name,
 			organisation: installer?.organisation ?? "",
 		},
