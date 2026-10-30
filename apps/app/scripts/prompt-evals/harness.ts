@@ -1,14 +1,19 @@
 import {
 	type AgentModel,
-	ASSET_METADATA_INSTRUCTIONS,
 	ASSET_METADATA_MAX_OUTPUT_TOKENS,
 	agentModel,
+	assetMetadataInstructions,
 	assetMetadataOutput,
 	assetMetadataPrompt,
-	buildChatTitlePrompt,
 	buildSystemInstructions,
+	chatTitlePrompt,
+	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
+	imageAssetDescriptionInstructions,
+	imageAssetDescriptionOutput,
+	jsonAnswerModel,
 	providerCompaction,
 	readAssetMetadata,
+	readImageAssetDescription,
 	sanitizeGeneratedChatTitle,
 	titleCallSettings,
 } from "@orcai/ai";
@@ -358,8 +363,8 @@ export const runAssetMetadata = async ({
 	hints?: Parameters<typeof assetMetadataPrompt>[0]["hints"];
 }): Promise<Transcript> => {
 	const { output, text } = await generateText({
-		model: model.language,
-		system: ASSET_METADATA_INSTRUCTIONS,
+		model: jsonAnswerModel(model.language),
+		system: assetMetadataInstructions(model.kind),
 		prompt: assetMetadataPrompt({
 			content,
 			hints,
@@ -376,6 +381,50 @@ export const runAssetMetadata = async ({
 	};
 };
 
+/** An image asset's search text and metadata, as the worker's image description asks for them. */
+export const runImageAsset = async ({
+	model: { model },
+	png,
+	locale,
+}: {
+	model: EvalModel;
+	png: Uint8Array;
+	locale: string;
+}): Promise<Transcript> => {
+	const { output, text } = await generateText({
+		model: jsonAnswerModel(model.language),
+		system: imageAssetDescriptionInstructions({
+			kind: model.kind,
+			locale,
+		}),
+		output: imageAssetDescriptionOutput,
+		messages: [
+			{
+				role: "user",
+				content: [
+					{
+						type: "file",
+						data: png,
+						mediaType: "image/png",
+					},
+				],
+			},
+		],
+		maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
+	});
+	const { suggestion, text: searchText } = readImageAssetDescription(output);
+
+	return {
+		text,
+		calls: [],
+		stop: "answer",
+		output: {
+			...suggestion,
+			text: searchText,
+		},
+	};
+};
+
 /** A chat title from the first message, as the title generation asks for it. */
 export const runChatTitle = async ({
 	model: { model },
@@ -386,7 +435,7 @@ export const runChatTitle = async ({
 }): Promise<Transcript> => {
 	const { text } = await generateText({
 		model: model.language,
-		prompt: buildChatTitlePrompt(message),
+		...chatTitlePrompt(message),
 		...titleCallSettings(model.kind),
 	});
 

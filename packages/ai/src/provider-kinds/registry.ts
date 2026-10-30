@@ -97,6 +97,8 @@ export interface ProviderKindServerEntry {
 	readonly callProviderOptions?: SharedV4ProviderOptions;
 	/** Without it, our own summary compacts. */
 	readonly compaction?: NativeCompaction;
+	/** A JSON answer is asked for without its schema, so the prompt lists the fields. */
+	readonly jsonWithoutSchema?: true;
 	/** How a chat title is asked for, set where the SDK turns reasoning off safely. */
 	readonly titleCallSettings?: TitleCallSettings;
 	/** The provider's own search tool, set for kinds with `nativeWebSearch`. */
@@ -134,6 +136,8 @@ export const providerKindServerEntries: Record<
 				endpoint: requireEndpoint(connection),
 			}),
 		toolChoiceNoneKeepsTools: true,
+		// JSON mode: many servers behind this kind take no JSON schema.
+		jsonWithoutSchema: true,
 	},
 	openai: {
 		createLanguageModel: ({ apiKey, fetch }, modelId) =>

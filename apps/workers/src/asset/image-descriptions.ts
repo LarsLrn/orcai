@@ -22,6 +22,7 @@ import type {
 	StoredExtractionImage,
 } from "@orcai/process";
 import { getImageAsBase64 } from "@orcai/s3/server";
+import type { Locale } from "@orcai/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { summarizeErrorCause } from "@/asset/error-summary";
@@ -30,23 +31,26 @@ import { AssetPipelineError } from "@/asset/pipeline-attempt";
 /** A description that takes longer counts as failed. */
 const IMAGE_DESCRIPTION_TIMEOUT_MS = 120_000;
 
-/** Who the model calls for an asset are metered against. */
+/** Who the model calls for an asset are metered against, and the uploader's locale for images without text. */
 export interface AssetOwner {
 	organizationId: OrganizationId;
 	userId: UserId;
+	locale: Locale;
 }
 
-/** The organisation the asset belongs to and its uploader. */
+/** The organisation the asset belongs to, its uploader and the uploader's locale. */
 export const assetOwner = (assetId: AssetId) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const { asset, resourceScope } = dbSchema;
+		const { asset, resourceScope, user } = dbSchema;
 		const [owner] = yield* db
 			.select({
 				organizationId: resourceScope.organizationId,
 				userId: asset.userId,
+				locale: user.locale,
 			})
 			.from(asset)
+			.innerJoin(user, eq(user.id, asset.userId))
 			.innerJoin(
 				resourceScope,
 				and(
@@ -65,7 +69,10 @@ export const assetOwner = (assetId: AssetId) =>
 				cause: new Error(`Asset ${assetId} belongs to no organisation`),
 			});
 		}
-		return owner satisfies AssetOwner;
+		return {
+			...owner,
+			locale: owner.locale ?? "en",
+		} satisfies AssetOwner;
 	});
 
 export const imageMediaType = (format: string) => {
@@ -167,7 +174,11 @@ export const readImageAsset = (params: {
 		const { output } = yield* describe({
 			...params,
 			image,
-			instructions: imageAssetDescriptionInstructions(hintOf(image)),
+			instructions: imageAssetDescriptionInstructions({
+				kind: params.model.kind,
+				hint: hintOf(image),
+				locale: params.owner.locale,
+			}),
 			output: imageAssetDescriptionOutput,
 		}).pipe(
 			Effect.mapError((error) =>
@@ -229,7 +240,10 @@ const describeFigures = (params: {
 			return describe({
 				...params,
 				image,
-				instructions: figureDescriptionInstructions(hintOf(image)),
+				instructions: figureDescriptionInstructions({
+					hint: hintOf(image),
+					locale: params.owner.locale,
+				}),
 			}).pipe(
 				Effect.map(({ text }) => ({
 					...image,

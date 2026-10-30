@@ -1,5 +1,21 @@
 import { describe, expect, test } from "bun:test";
-import { assetMetadataPrompt, readAssetMetadata } from "../src/asset-metadata";
+import {
+	assetMetadataInstructions,
+	assetMetadataPrompt,
+	readAssetMetadata,
+} from "../src/asset-metadata";
+
+describe("assetMetadataInstructions", () => {
+	test("lists every field from the schema where the kind sends no schema", () => {
+		const listed = assetMetadataInstructions("openai-compatible");
+
+		expect(listed.match(/^- "\w+": \S/gm)).toHaveLength(17);
+		expect(listed).toContain(
+			'- "sourceType": The kind of source, one of "book", "journal-article", "web-source", "legal-text".',
+		);
+		expect(assetMetadataInstructions("openai")).not.toContain('"sourceType"');
+	});
+});
 
 describe("assetMetadataPrompt", () => {
 	test("leads with the extraction's details and keeps the start of a long text", () => {

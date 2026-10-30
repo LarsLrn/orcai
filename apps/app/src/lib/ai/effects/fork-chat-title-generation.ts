@@ -1,5 +1,5 @@
 import {
-	buildChatTitlePrompt,
+	chatTitlePrompt,
 	generateTextWithQuota,
 	getChatTitleSourceText,
 	type MeteredModel,
@@ -10,7 +10,6 @@ import {
 } from "@orcai/ai";
 import type { ChatId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { ModelMessage } from "ai";
 import { and, eq, isNull, or } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -22,15 +21,6 @@ interface TitleMessage {
 	role: string;
 	parts: unknown;
 }
-
-const buildTitleReservationMessages = (
-	userMessageText: string,
-): ModelMessage[] => [
-	{
-		role: "user",
-		content: userMessageText,
-	},
-];
 
 interface TitleRequest {
 	chatId: ChatId;
@@ -44,6 +34,7 @@ interface TitleRequest {
 /** A chat's title from its first message, metered against `model` and without reasoning where its kind allows; null when the reply holds none. */
 export const generateChatTitle = ({ model, ...params }: TitleRequest) =>
 	Effect.gen(function* () {
+		const { system, prompt } = chatTitlePrompt(params.userMessageText);
 		const { text } = yield* generateTextWithQuota({
 			operation: "ai.chat.generateTitle",
 			appRequestId: `title:${params.chatId}:${params.userMessageId}`,
@@ -52,11 +43,13 @@ export const generateChatTitle = ({ model, ...params }: TitleRequest) =>
 			providerId: model.providerId,
 			modelId: model.modelId,
 			model: model.language,
-			prompt: buildChatTitlePrompt(params.userMessageText),
+			system,
+			prompt,
 			...titleCallSettings(model.kind),
-			reservationMessages: buildTitleReservationMessages(
-				params.userMessageText,
-			),
+			reservationMessages: [
+				system,
+				prompt,
+			],
 			timeoutMs: TITLE_GENERATION_TIMEOUT_MS,
 		});
 

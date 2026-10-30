@@ -10,6 +10,7 @@ import {
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import { AiError } from "../errors";
+import { jsonAnswerModel } from "../json-answer";
 import { aiTelemetry } from "../telemetry";
 import { startMeteredCall } from "./meter";
 
@@ -70,7 +71,7 @@ export const generateTextWithQuota = <
 		});
 
 		const baseInput = {
-			model: input.model,
+			model: input.output ? jsonAnswerModel(input.model) : input.model,
 			instructions: input.system,
 			output: input.output,
 			maxOutputTokens: input.maxOutputTokens,

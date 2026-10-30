@@ -739,7 +739,7 @@ describe("providerCompaction", () => {
 						type: "input_tokens",
 						value: 80_000,
 					},
-					instructions: expect.stringContaining("Do not call tools."),
+					instructions: expect.stringContaining("call no tools"),
 				}),
 			],
 		});

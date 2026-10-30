@@ -29,6 +29,7 @@ export const jsonAnswer: {
 /** What the endpoint received, newest last. */
 export const requests: {
 	responseFormat?: string;
+	system: unknown;
 	content: unknown;
 }[] = [];
 
@@ -53,6 +54,8 @@ const inference = serve({
 		};
 		requests.push({
 			responseFormat: body.response_format?.type,
+			system: body.messages.find((message) => message.role === "system")
+				?.content,
 			content: body.messages.at(-1)?.content,
 		});
 		await held.until;

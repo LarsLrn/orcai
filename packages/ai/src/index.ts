@@ -1,13 +1,13 @@
 export { type AgentModel, agentModel } from "./agent-model";
 export {
-	ASSET_METADATA_INSTRUCTIONS,
 	ASSET_METADATA_MAX_OUTPUT_TOKENS,
+	assetMetadataInstructions,
 	assetMetadataOutput,
 	assetMetadataPrompt,
 	readAssetMetadata,
 } from "./asset-metadata";
 export {
-	buildChatTitlePrompt,
+	chatTitlePrompt,
 	getChatTitleSourceText,
 	sanitizeGeneratedChatTitle,
 	shouldGenerateChatTitle,
@@ -29,6 +29,7 @@ export {
 	imageAssetDescriptionOutput,
 	readImageAssetDescription,
 } from "./image-description";
+export { jsonAnswerModel } from "./json-answer";
 export { generateTextWithQuota } from "./metered/generate-text-with-quota";
 export {
 	type Meter,

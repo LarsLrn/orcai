@@ -53,7 +53,7 @@ OrcAI's prompts run on whatever model an organisation connects: Claude, GPT and 
 ## Structured output
 
 - Field meaning goes in the schema's `.describe()`, which the AI SDK forwards. State formats ("page range as 12-15", "dates as YYYY-MM-DD"), make unknown fields nullable, and say what to return when the input does not fit [G-SO, V-CGO, O-SO].
-- On `openai-compatible`, OrcAI asks for JSON mode, and the AI SDK sends no schema with it. The prompt text is then the only schema the model sees, so it stays in the prompt there, rendered from the Zod schema rather than written by hand. On `anthropic` and `openai` the API carries the schema, and repeating it in the prompt lowers quality [V-CGO, O-LM].
+- On `openai-compatible`, OrcAI asks for JSON mode, and the AI SDK sends no schema with it. The prompt text is then the only schema the model sees, so it stays in the prompt there, rendered from the Zod schema by `jsonAnswerInstructions` (`packages/ai/src/json-answer.ts`) rather than written by hand. On `anthropic` and `openai` the API carries the schema, and repeating it in the prompt lowers quality [V-CGO, O-LM].
 - Code validates the output. Small models wrap JSON in code fences, return an array where the schema has a string, or spend the whole output budget on reasoning.
 
 ## Language

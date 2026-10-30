@@ -135,7 +135,7 @@ export const glossaryTerms: CodeCheck = {
 const GERMAN =
 	/\b(der|die|das|und|ist|nicht|Sie|ich|ein|eine|mit|für|auf|zu|werden|wird|können|kann|oder|auch|sich|dem|den|des)\b/g;
 const ENGLISH =
-	/\b(the|and|is|not|you|it|with|for|on|to|be|will|can|or|also|this|that|of|are|your)\b/g;
+	/\b(the|a|an|and|is|not|you|it|with|for|on|to|be|will|can|or|also|this|that|of|are|your)\b/g;
 
 /** Function words decide the language; a mixed answer fails both. */
 const language = (text: string) => {
@@ -145,6 +145,10 @@ const language = (text: string) => {
 	if (english > german * 2) return "en";
 	return "mixed";
 };
+
+/** A value written in `tag`, for background output fields. */
+export const writtenIn = (tag: "en" | "de") => (value: unknown) =>
+	typeof value === "string" && language(value) === tag;
 
 export const answersIn = (tag: "en" | "de"): CodeCheck => ({
 	name: `answers in ${tag}`,
