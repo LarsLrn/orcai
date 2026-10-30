@@ -20,6 +20,26 @@ import { m } from "@/paraglide/messages";
 
 const POOL_LIMIT = 3;
 
+/** Why no active pool shows: none exists yet, or every pool is inactive. */
+const NoActivePoolNote = () => {
+	const { data: pools } = useSuspenseQuery(
+		orpc.quota.list.queryOptions({
+			input: {
+				pageIndex: 0,
+				pageSize: 1,
+			},
+		}),
+	);
+
+	return (
+		<PanelNote>
+			{pools.rowCount === 0
+				? m.home_quota_panel_empty_note()
+				: m.home_quota_panel_none_active_note()}
+		</PanelNote>
+	);
+};
+
 /** Active quota pools with what is left in the open period, for people who manage quotas. */
 const ManageQuotaPanel = () => {
 	const { data: pools } = useSuspenseQuery(
@@ -55,7 +75,7 @@ const ManageQuotaPanel = () => {
 				</Link>
 			</PanelHeader>
 			{pools.data.length === 0 ? (
-				<PanelNote>{m.home_quota_panel_empty_note()}</PanelNote>
+				<NoActivePoolNote />
 			) : (
 				<PanelRows>
 					{pools.data.map((pool) => (

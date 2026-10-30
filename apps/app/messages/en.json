@@ -3680,6 +3680,7 @@
 	"home_people_panel_title": "People",
 	"home_quota_panel_all_pools_action": "All pools",
 	"home_quota_panel_empty_note": "No quota pools yet. Nobody can chat until a pool covers a provider.",
+	"home_quota_panel_none_active_note": "No quota pool is active, so nobody can chat. Activate a pool or add a new one.",
 	"home_quota_panel_title": "Quota pools",
 	"home_quota_pool_default_badge": "Default",
 	"home_quota_pool_meta_no_period": "{provider}, no open period",
