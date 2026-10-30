@@ -1,15 +1,15 @@
 ---
 title: Organisation setup
-description: Checklist for preparing an organisation before people start chatting, from provider, model, quota pool, Assistant and utility models to assets, repositories, bots, groups and invitations, with the app path for each step.
+description: Prepare an organisation before people start chatting, from provider, model and quota pool, Assistant and utility models to assets, repositories, bots, groups and invitations, with the app path for each step.
 ---
 
-Use this page as a practical runbook for preparing a new OrcAI organisation. Most steps need the Admin role; see [Access Control](/docs/using-orcai/access-control#organisation-roles).
+Follow these steps to prepare a new OrcAI organisation. Most steps need the [Admin role](/docs/using-orcai/access-control#organisation-roles).
 
-## The Readiness Checklist
+## The readiness checklist
 
 Admins find a **Readiness checklist** on Home's Manage tab (`/app/manage`). It is worked out from the organisation's current configuration each time, nothing is stored, and each open item links to the page that fixes it. While a required item is open, admins who open `/app` land on Manage, and the Manage tab shows the number of required items left. The **Use** tab (`/app?view=use`) still opens without the redirect. Once every item passes, the checklist shrinks to one line and stays as a health check.
 
-Required, because a chat or OrcAI Assistant turn fails without them:
+These items are required, because a chat or OrcAI Assistant turn fails without them:
 
 - **Model provider**: an enabled model provider (step 2).
 - **Chat model**: a model with tool calling, not deprecated, on an enabled provider (step 3). This is the rule a turn applies to its model.
@@ -17,23 +17,13 @@ Required, because a chat or OrcAI Assistant turn fails without them:
 - **Assistant model**: chosen and usable by the same rule (step 5).
 - **Quota pool for the Assistant**: an active pool, assigned to a group, that covers the Assistant model (step 5).
 
-Recommended:
+These items are recommended:
 
 - **Utility model**: chosen (step 5).
 - **Members**: someone besides you is a member or invited (step 8).
-- **Quota pool for every member**: every member is reached by a pool through All members or a group they belong to. An exhausted pool still counts; its remaining budget shows on the Quota pools page.
+- **Quota pool for every member**: every member is reached by a pool through All members or a group they belong to. An exhausted pool still counts, and its remaining budget shows on the Quota pools page.
 
-## Outcome
-
-After completing this checklist, users should be able to:
-
-- Sign in and join the correct organisation
-- Start chats with an approved model
-- Ask the OrcAI Assistant about OrcAI
-- Use published bots with published repositories
-- Operate within defined quota and access boundaries
-
-## 1. Confirm Access And Organisation Context
+## 1. Confirm access and organisation context
 
 - Sign in with an admin account.
 - Ensure your active organisation is correct. **Switch organisation** in the user menu opens `/select-organization`.
@@ -43,64 +33,64 @@ After completing this checklist, users should be able to:
 	If Administration is missing, your account likely does not have the required permissions.
 </Callout>
 
-## 2. Add A Provider
+## 2. Add a provider
 
 Go to Administration > Providers (`/app/providers`).
 
 - Choose **Add provider** (`/app/providers/add`) for each inference backend your organisation should use.
 - Pick the kind: **Anthropic** or **OpenAI** for their official APIs, **OpenAI-compatible** for any other endpoint that speaks the OpenAI API, or **Tavily (web search)** for a search provider that serves web search and has no models.
 - Enter the API key and the metering mode (tokens or requests), and leave the provider enabled. An OpenAI-compatible provider also needs the endpoint's base URL including the version path. Search providers always count requests, one per search.
-- Choose the **Currency** the provider bills in; USD is preselected. Turn on **Reports cost (OpenRouter style)** for an OpenAI-compatible provider that sends each response's cost, such as OpenRouter; this locks the currency to USD. For a search provider, optionally enter its **Price per search**.
+- Choose the **Currency** the provider bills in, with USD preselected. Turn on **Reports cost (OpenRouter style)** for an OpenAI-compatible provider that sends each response's cost, such as OpenRouter, which locks the currency to USD. For a search provider, optionally enter its **Price per search**.
 
-There is no separate connection test. Running **Discover models** in the next step is the check: if it lists the provider's models, the endpoint and key work. The fields are described in [Administration](/docs/using-orcai/administration#providers).
+There is no separate connection test. If **Discover models** in the next step lists the provider's models, the endpoint and key work. The fields are described in [Administration](/docs/using-orcai/administration#providers).
 
-## 3. Add A Specific Model
+## 3. Add a specific model
 
 Go to Administration > Models (`/app/models`).
 
 - Choose **Discover models** and select the provider to add the models it offers, or choose **Add model** (`/app/models/add`) to register one by hand.
 - For a model added by hand, select the provider and enter the exact **Provider model ID** the endpoint expects.
-- Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovery sets them where the provider reports them (OpenRouter and Anthropic do, OpenAI does not); the others show **Not set**. A model without both does not appear in chat. The checklist's chat model item stays open until a model has tool calling, and its **Set up** button lists the models whose capabilities are not set.
+- Give each model you want in chat the **Text** and **Tool calling** capabilities. Discovery sets them where the provider reports them (OpenRouter and Anthropic do, OpenAI does not), and the others show **Not set**. A model without both does not appear in chat. The checklist's chat model item stays open until a model has tool calling, and its **Set up** button lists the models whose capabilities are not set.
 - Optionally enter the model's **Prices** from the provider's price list, at least input and output per 1M tokens, so [Analytics](/docs/using-orcai/administration#analytics) shows an estimated cost. See [Model prices](/docs/using-orcai/administration#model-prices).
 - Save, then confirm the model appears in the list.
 
-## 4. Configure Quota Pools
+## 4. Configure quota pools
 
 Go to Administration > Quota pools (`/app/quotas`).
 
 - Choose **Add pool** (`/app/quotas/add`) and create pools aligned with your cost and usage policy.
 - Who can use a pool is set inside the pool: its **Eligible groups**, its **Priority**, and optionally the **Default pool** flag. Choose All members to cover everyone.
 
-Without a pool that covers them, people cannot chat: the composer stays disabled. Examples:
+Without a pool that covers them, people cannot chat, and the composer stays disabled. Common setups:
 
-- One shared pool: a monthly pool for the provider, eligible group All members.
-- A larger budget for a team: a second pool for the same provider, eligible group that team, with a higher priority than the shared pool.
-- A cap for one expensive model: a pool scoped to that model. A model-specific pool wins over the provider's other pools.
+- For one shared pool, add a monthly pool for the provider with All members as its eligible group.
+- To give a team a larger budget, add a second pool for the same provider with that team as its eligible group and a higher priority than the shared pool.
+- To cap one expensive model, scope a pool to that model, because a model-specific pool wins over the provider's other pools.
 
-In chat, the usage indicator in the composer shows people how much of their pool is used, as a percentage, and when it resets; amounts stay on the pool page.
+In chat, the usage indicator in the composer shows people how much of their pool is used, as a percentage, and when it resets. The amounts show only on the pool page.
 
-Recommended validation:
+To check the setup:
 
 - Choose **Start a chat** in the sidebar, then "Chat without a bot".
 - Select the newly added model.
-- Send a simple test prompt and confirm a successful response.
+- Send a simple test prompt and confirm that the model answers.
 
-## 5. Choose The Assistant And Utility Models
+## 5. Choose the Assistant and utility models
 
 Go to Administration > Organisation (`/app/organization`).
 
 - Choose a model in **Assistant model** and save. Only models with tool calling, not deprecated, on an enabled provider are listed.
 - Until a model is chosen, the [OrcAI Assistant](/docs/using-orcai/assistant) is unavailable to everyone in the organisation.
 - The Assistant draws on the same quota pools as chat. For a separate Assistant budget, add a pool for that model alone.
-- Choose a small, inexpensive model in **Utility model** to write chat and conversation titles, to describe images and to generate metadata in the Library; give it the image capability so image files can be prepared. Without one, each chat's own model writes its title, images are not described and no metadata is generated.
-- Optionally turn on **Web search** for bots with the Web search feature: **Model's own search** for Anthropic and OpenAI models, or a search provider such as Tavily, added under Providers with a quota pool of its own. See [Web search](/docs/using-orcai/administration#web-search).
+- Choose a small, inexpensive model in **Utility model** to write chat and conversation titles, to describe images and to generate metadata in the Library, and give it the image capability so image files can be prepared. Without one, each chat's own model writes its title, images are not described and no metadata is generated.
+- Optionally set **Web search** for bots with the web search feature to **Model's own search (Anthropic and OpenAI models)** or to a search provider such as Tavily, added under Providers with a quota pool of its own. See [Web search](/docs/using-orcai/administration#web-search).
 
-## 6. Prepare Assets And Retrieval
+## 6. Prepare assets and retrieval
 
 Go to Library > Assets (`/app/library/assets`).
 
 - Choose **New** > **Upload files** (`/app/library/assets/add`) and upload representative files.
-- Confirm preparation completes successfully.
+- Confirm that the assets reach Ready.
 
 Then go to Library > Repositories (`/app/library/repositories`):
 
@@ -110,7 +100,7 @@ Then go to Library > Repositories (`/app/library/repositories`):
 
 Use **Explore** on a published repository (`/app/library/repositories/<block id>/explore`) to read the passages it indexed and to sanity-check retrieval quality with test searches.
 
-## 7. Prepare Bots
+## 7. Prepare bots
 
 Go to Library > Bots (`/app/library/bots`).
 
@@ -123,19 +113,19 @@ Go to Library > Bots (`/app/library/bots`).
 
 For a course, create a group for its students, a quota pool on that group for the course's model, share the bot with the group, and require that model in the bot's Model step. Every student chat then uses the model on the course's budget.
 
-See [Bots and Behaviour](/docs/using-orcai/bots) for the editor's steps and publishing rules.
+See [Bots and behaviour](/docs/using-orcai/bots) for the editor's steps and publishing rules.
 
-## 8. Set Up Members, Groups, And Invitations
+## 8. Set up members, groups and invitations
 
 Go to Administration > Members (`/app/members`) and Administration > Groups (`/app/groups`).
 
 - Create or verify groups.
-- Invite people with **Invite member** (`/app/members/add`). The invitation form sets the email's language for the whole batch;
-  the interface itself follows each invitee's browser.
+- Invite people with **Invite member** (`/app/members/add`). The invitation form sets the email's language for the whole batch,
+  but the interface follows each invitee's browser.
 - Place members in the right groups.
 - Validate that access to bots and assets matches expectations. A member's page shows their **Effective access**.
 
-## 9. Final Smoke Test
+## 9. Final smoke test
 
 Run this short test from a non-admin user account:
 
@@ -146,8 +136,8 @@ Run this short test from a non-admin user account:
 3. Confirm model selection works.
 4. Confirm retrieval-backed answers use expected content.
 5. Ask the OrcAI Assistant a question about OrcAI.
-6. Confirm permissions block access to bots, blocks and assets outside the user scope.
+6. Confirm that the user cannot open bots, blocks and assets they have no access to.
 
 ## Embedding model
 
-The embedding model is the same for every organisation on the instance, and only whoever runs the instance can change it. If you self-host, set it with `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS`, and the OCR languages with `KREUZBERG_OCR_LANGUAGE` (see [AI And Retrieval](/docs/self-hosting/configuration#ai-and-retrieval)). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and prepare the assets again.
+The embedding model is the same for every organisation on the instance, and only whoever runs the instance can change it. If you self-host, set it with `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS`, and the OCR languages with `KREUZBERG_OCR_LANGUAGE` (see [AI and retrieval](/docs/self-hosting/configuration#ai-and-retrieval)). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and prepare the assets again.

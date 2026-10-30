@@ -1,9 +1,9 @@
 ---
 title: Library
-description: Browsing the Library (rail, Mine, filters, search, sort and the New menu) and its assets, covering upload, accepted file types and limits, metadata and citations, metadata generated with AI, preparation status, retry and preparing again, access, and how assets reach chats through repositories.
+description: Browse and filter the Library, upload assets, edit or generate their metadata, follow and retry their preparation, share them, and use them in chats through repositories.
 ---
 
-Assets (Library > Assets, `/app/library/assets`) are the reusable files OrcAI uses for retrieval, grounding, and citations.
+Assets (Library > Assets, `/app/library/assets`) are the reusable files that OrcAI searches to ground and cite answers.
 
 The Library, its pickers and the OrcAI Assistant's find tools show the bots, blocks
 and assets of your active organisation that you can read: those made there and
@@ -13,11 +13,11 @@ a shared bot contains is readable without appearing in your Library. Chat
 pickers and the bots on the home page offer only the bots shared with you in
 your active organisation.
 
-## Browsing The Library
+## Browsing the Library
 
-The Library (`/app/library`) shows everything your organisation can use. Its header has a search field and a **New** menu; a rail on the left (above the results on small screens) has:
+The Library (`/app/library`) shows everything your organisation can use. Its header has a search field and a **New** menu. A rail on the left (above the results on small screens) has:
 
-- **All | Mine**: Mine keeps to what you can edit, as owner or with **Can edit** or **Can manage**, directly or through a group. It stays on when you switch views, and the counts follow it.
+- A switch between **All** and **Mine**. **Mine** shows only what you can edit, as owner or with **Can edit** or **Can manage**, directly or through a group. It stays on when you switch views, and the counts follow it.
 - The views: **Overview** and one per kind (Bots, Behaviours, Repositories, Assets), each with its count.
 - The view's filters, on a kind view or while searching. On narrow screens they open from **Filters**, which shows how many are set.
 
@@ -37,43 +37,31 @@ leaves them out.
 
 The **Overview** shows shelves: with Mine, your **Drafts** first, then your **Favourites**, then each kind with **See all**, which opens that kind's view. With fewer than six items it shows them all in one grid.
 
-Search matches names and titles. On the Overview it searches every kind at once, in one list and one pager; on a kind view only that kind. Results are sorted **Newest** or **A to Z** and paged under the grid. Search, filters, sort, page and Mine are part of the address, so Back from a page returns to the same results and scroll position. Changing the search, a filter, the sort or Mine starts over on the first page.
+Search matches names and titles. On the Overview it searches every kind at once, in one list and one pager, and on a kind view it searches only that kind. Results are sorted **Newest** or **A to Z** and paged under the grid. Search, filters, sort, page and Mine are part of the address, so Back from a page returns to the same results and scroll position. Changing the search, a filter, the sort or Mine starts over on the first page.
 
 **New** offers **Bot**, **Behaviour**, **Repository** and **Upload files**, each for roles with the matching `create_bot`, `create_block` or `create_asset` permission. An empty Library says whether you can create something or wait for others to share, and offers **Browse the Catalogue**.
 
-Every tile opens its page. Under its name it shows its owner, or "From" and the home organisation for what your organisation added from the Catalogue. Its corner holds the star for published bots and a **…** menu with the actions your role allows. Something added from the Catalogue is edited only in its home organisation: here admins and managers share it for use and remove it with **Remove from …**, and the setup editors of an added bot set its model on its page.
+Every tile opens its page. Under its name it shows its owner, or "From" and the home organisation for what your organisation added from the Catalogue. Its corner holds the **Favourite** star for published bots and a **…** menu with the actions your role allows. Something added from the Catalogue is edited only in its home organisation. In your organisation, admins and managers share it for use and remove it with **Remove from …**, and they set an added bot's model on its page.
 
-## What You Can Do
-
-- Add assets
-- Move a chat upload into the Library
-- View an asset's details
-- Edit metadata
-- Generate metadata with AI
-- Prepare an asset again
-- Manage access and groups
-- Download the original file (if permitted)
-- Delete an asset (if permitted)
-
-## End-To-End Flow
+## End-to-end flow
 
 1. Upload files on **Add assets** (`/app/library/assets/add`). Each file becomes an asset as soon as its upload finishes, and OrcAI keeps the original in S3-compatible object storage.
-2. Add metadata to the new assets, right away or later. With a utility model, OrcAI generates it for Library uploads once the file is prepared; see [Metadata generated with AI](#metadata-generated-with-ai).
-3. A background job reads the file and extracts its text. The organisation's [utility model](/docs/using-orcai/administration#utility-model) describes each image, an image file or a figure inside a file, so its content can be found by search. The descriptions are saved with the extracted text, and indexing in every repository reuses them. When the budget runs out partway through a file, the descriptions written so far are charged but not saved, so a retry describes those images again.
+2. Add metadata to the new assets, right away or later. With a utility model, OrcAI [generates it](#metadata-generated-with-ai) for Library uploads once the file is prepared.
+3. A background job reads the file and extracts its text. The organisation's [utility model](/docs/using-orcai/administration#utility-model) describes each image, whether an image file or a figure inside a file, so its content can be found by search. The descriptions are saved with the extracted text, and indexing in every repository reuses them. When the budget runs out partway through a file, the descriptions written so far are charged but not saved, so a retry describes those images again.
 4. Add the asset to one or more repositories, from the repository editor or the bot editor's Repositories step.
 5. For each repository the asset belongs to, a background job vectorises it into that repository's index. This runs when the asset is Ready and when the asset is added to a repository.
 6. Repositories are used in bots or attached directly to chats.
 
-## Adding Assets
+## Adding assets
 
 **New** > **Upload files** in the Library opens `/app/library/assets/add`. It needs the `create_asset` permission.
 
-Intake is file upload only:
+Assets are added only by uploading files, in two steps:
 
-1. **Upload assets**: select files and **Upload files**. Each file becomes an asset as soon as its upload finishes; there is nothing else to save.
-2. **Uploaded assets**: the new assets are listed. With a utility model, each shows **Generating metadata** until its generated title and description appear; you can leave, and the results land in the Library. The upload and its preparation also show in [Activity](/docs/using-orcai#activity). **Metadata** opens **Edit metadata** for a file, and **Save** stores it at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets view.
+1. **Upload assets**: select files and **Upload files**. Each file becomes an asset as soon as its upload finishes, so there is nothing else to save.
+2. **Uploaded assets**: the new assets are listed. With a utility model, each shows **Generating metadata** until its generated title and description appear. You can leave, and the results land in the Library. The upload and its preparation also show in [Activity](/docs/using-orcai#activity). **Metadata** opens **Edit metadata** for a file, and **Save** stores it at once. Files that could not be added are listed with the reason. **Upload more** returns to the upload step, and **Done** goes to the Assets view.
 
-Leaving the page while files are still uploading asks first; leaving anyway stops the upload, and those files are not added. Once a file's asset exists, leaving loses nothing.
+Leaving the page while files are still uploading asks for confirmation. Leaving anyway stops the upload, and those files are not added. Once a file's asset exists, leaving loses nothing.
 
 The same flow runs inside an [OrcAI Assistant](/docs/using-orcai/assistant#uploads) conversation when the Assistant asks for files, and in the repository editor's **Upload new assets** dialog, which also adds the new assets to the repository.
 
@@ -84,19 +72,19 @@ Accepted file types:
 - Text: TXT, CSV, Markdown
 - Office: DOC, DOCX, XLS, XLSX, PPT, PPTX
 
-Limits: up to 64 MB per file and 100 files per upload.
+A file can be up to 64 MB, and one upload takes up to 100 files.
 
-## Library And Chat Uploads
+## Library and chat uploads
 
-The Assets view's **Uploaded to** filter has two choices. **Library** (the default) lists the assets uploaded on **Add assets**, in the repository editor or through the Assistant. **Chats** lists the files uploaded with a chat message; they are assets too, prepared like any other, but kept out of the Library so it stays tidy. The Library's counts and its Overview leave chat uploads out.
+The Assets view's **Uploaded to** filter has two choices. **Library** (the default) lists the assets uploaded on **Add assets**, in the repository editor or through the Assistant. **Chats** lists the chat uploads, the assets uploaded with a chat message. They are prepared like any other asset but kept out of the Library so it stays tidy. The Library's counts and its Overview leave chat uploads out.
 
-**Add to Library** in a chat upload's tile menu moves it to the Library and generates its metadata like a Library upload. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads; delete them from **Uploaded to** > **Chats**.
+**Add to Library** in a chat upload's tile menu moves it to the Library and generates its metadata like a Library upload. It needs edit access to the asset. Attaching a chat upload to a repository does not move it. Deleting a chat keeps its uploads, which you delete from **Uploaded to** > **Chats**.
 
 The asset pickers in the repository editor and the chat composer search both, and mark chat uploads with a **Chat upload** badge.
 
 ## Metadata
 
-The metadata travels with the asset wherever it is reused. Fields:
+The metadata travels with the asset wherever it is reused and has these fields:
 
 - **Source title**
 - **Description**: two or three sentences on what the source is about, up to 300 characters. Cards show it, and the model reads it in the list of a repository's assets to pick what to search.
@@ -108,33 +96,29 @@ The metadata travels with the asset wherever it is reused. Fields:
 	- Legal Text: **Citation label**, **Legal reference**, **Jurisdiction**
 - **External URL** (for types other than Web Source)
 
-Edit metadata later with **Edit metadata** on the asset page, which opens `/app/library/assets/<asset id>/edit`. Saving stores only the fields you changed, so metadata generated while the editor was open is kept. Changing the source type removes, on save, the fields the new type does not have.
+Edit metadata later with **Edit metadata** on the asset page, which opens `/app/library/assets/<asset id>/edit`. Saving stores only the fields you changed, so metadata generated while the editor was open is kept. When you save after changing the source type, the fields the new type does not have are removed.
 
-## Metadata Generated With AI
+## Metadata generated with AI
 
-When the organisation has a [utility model](/docs/using-orcai/administration#utility-model), it writes an asset's metadata from the start of its extracted text and the details the parser found (title, authors, keywords, page count, language): the title, the source type and its fields, a citation label in APA 7 style, a description and the language. Generated text is in the file's language. For an image file, the description written while preparing the image supplies the title, description and language. Each run draws on the utility model's quota pools.
+When the organisation has a [utility model](/docs/using-orcai/administration#utility-model), the model writes an asset's title, source type and its fields, a citation label in APA 7 style, a description and the language. It works from the start of the extracted text and the details the parser found (title, authors, keywords, page count, language). Generated text is in the file's language. For an image file, the description written while preparing the image supplies the title, description and language. Each run draws on the utility model's quota pools.
 
-- **After upload**: once a Library upload is prepared, its metadata is generated in the background. A chat upload gets it when it is added to the Library. Only empty fields are filled, and the title only while it is still the uploaded file name; values you save in the meantime always win. Fields that do not fit the source type you chose are kept for review instead.
-- **Generate with AI** in the metadata editor generates a suggestion for an asset you can edit, also for assets uploaded before or edited since. The editor shows **Generating...**; you can leave, and the asset page then says **Suggestions ready** with **Review**. **Suggested metadata** lists each field with its current and suggested value; empty fields are selected. **Use selected** puts the chosen values into the form, which saves them with **Save**; **Dismiss** drops the suggestion. The **Suggestions to review** filter on the Assets view lists every asset you can edit that has a suggestion waiting.
-- **Generate missing metadata** above the Assets view's Library uploads generates metadata, filling empty fields, for every prepared Library asset of the organisation you can edit whose metadata was never generated or failed. It asks first and shows how many assets that is.
-- The [OrcAI Assistant](/docs/using-orcai/assistant) can do the same for assets you name, after you confirm. It never overwrites values; to replace them, use **Generate with AI** or tell it the values.
+Once a Library upload is prepared, OrcAI writes its metadata in the background. A chat upload gets it when it is added to the Library. Only empty fields are filled, and the title only while it is still the uploaded file name, so values you save in the meantime always win. Fields that do not fit the source type you chose are kept for review instead.
 
-While metadata is generated, cards, the upload list and the asset page show **Generating metadata**. A failed run says why on the asset page; when the budget ran out, run it again once the pool resets. Without a utility model, nothing is generated, **Generate with AI** is disabled with a hint (admins get a link to the organisation settings), and **Generate missing metadata** is hidden. Generating metadata never affects whether an asset is ready for its repositories.
+**Generate with AI** in the metadata editor generates a suggestion for an asset you can edit, also for assets uploaded before or edited since. While the editor shows **Generating...**, you can leave, and the asset page then says **Suggestions ready** with **Review**. **Suggested metadata** lists each field with its current and suggested value, with the empty fields selected. **Use selected** puts the chosen values into the form, and **Save** stores them. **Dismiss** drops the suggestion. The **Suggestions to review** filter on the Assets view lists every asset you can edit that has a suggestion waiting.
 
-## The Asset Page
+**Generate missing metadata**, above the Library uploads in the Assets view, fills the empty fields of every prepared Library asset of the organisation that you can edit and whose metadata was never generated or failed. It asks first and shows how many assets that is.
+
+The [OrcAI Assistant](/docs/using-orcai/assistant) can do the same for assets you name, after you confirm. It never overwrites values, so to replace them, use **Generate with AI** or tell it the values.
+
+While metadata is generated, cards, the upload list and the asset page show **Generating metadata**. A failed run says why on the asset page. When the budget ran out, run it again once the pool resets. Without a utility model, nothing is generated, **Generate with AI** is disabled with a hint (admins get a link to the organisation settings), and **Generate missing metadata** is hidden. Generating metadata never affects whether an asset is ready for its repositories.
+
+## The asset page
 
 The asset page (`/app/library/assets/<asset id>`) shows a preview of the file, its **Metadata**, and its **Preparation status**.
 
-Actions, depending on your access to the asset:
+Depending on your [access](#access) to the asset, the page offers **Download** for the original file, **Edit metadata** and **Access & groups**, and its **More actions** menu holds **Prepare again** and **Delete asset**.
 
-- **Download**: download the original file.
-- **Edit metadata**: edit the metadata.
-- **Access & groups**: share the asset with people and groups. See [Access control](/docs/using-orcai/access-control).
-- **More actions** menu:
-	- **Prepare again**: run preparation again.
-	- **Delete asset**
-
-## Preparation Status And Preparing Again
+## Preparation status and preparing again
 
 Outside a repository, asset cards, the recent changes on Home and the **Preparation status** card on the asset page show how far preparation of the file is:
 
@@ -145,36 +129,38 @@ Outside a repository, asset cards, the recent changes on Home and the **Preparat
 | Ready | The file has been read and can be indexed by its repositories. |
 | Failed | Reading the file failed after its retries. |
 
-Inside a repository, each asset also has an indexing step, so its card on the repository page shows one more state, **Indexing**, between Processing and Ready, and Ready means searchable in that repository. See [The Repository Page](/docs/using-orcai/bots#the-repository-page).
+Inside a repository, each asset also has an indexing step, so its card on the [repository page](/docs/using-orcai/bots#the-repository-page) shows one more state, **Indexing**, between Processing and Ready. There, Ready means searchable in that repository.
 
-A failing step is retried automatically, so an asset stays Processing until its last attempt has failed. A failed asset says why: OrcAI cannot read the file type, or the utility model cannot read images for an image file; no text or images were found (for example a scanned PDF whose text cannot be recognised); the file could not be read; preparing it took too long; the budget ran out while describing images; or another error. The first two fail at once, since retrying cannot help. A used-up budget also fails at once, with nothing half prepared; retry once the pool resets. Without a utility model that reads images, figures in files are skipped and the rest of the file is prepared.
+A failing step is retried automatically, so an asset stays Processing until its last attempt has failed. A failed asset says why:
+
+- OrcAI cannot read the file type, or the utility model cannot read images for an image file.
+- No text or images were found, for example in a scanned PDF whose text cannot be recognised.
+- The file could not be read.
+- Preparing it took too long.
+- The budget ran out while describing images.
+- Another error.
+
+The first two fail at once, since retrying cannot help. A used-up budget also fails at once, with nothing half prepared, and you can retry once the pool resets. Without a utility model that reads images, figures in files are skipped and the rest of the file is prepared.
 
 On the **Preparation status** card, **Retry** appears for a failed asset you can edit, unless retrying cannot help, and queues preparation again.
 
-**Prepare again** is available from the tile menu in the Assets view and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then reruns preparation; the asset's repositories index it again afterwards. Prepare again is useful after parser or configuration changes.
+**Prepare again** is available from the tile menu in the Assets view and from the asset page, when the asset is not Queued or Processing and you can edit it. It asks for confirmation, then runs preparation again, and the asset's repositories index it again afterwards. Prepare again is useful after parser or configuration changes.
 
-Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds; the assets it keeps stay as they are. [Activity](/docs/using-orcai#activity) shows the uploads and retries you started and the failures that need you. Operators find failed jobs in the worker logs and the pg-boss tables.
+Each repository keeps the indexing state of each of its assets. Editing a repository indexes only the assets it adds, and the assets it keeps stay as they are. [Activity](/docs/using-orcai#activity) shows the uploads and retries you started and the failures that need you. Operators find failed jobs in the worker logs and the pg-boss tables.
 
-## Permissions And Access
+## Access
 
-Asset actions depend on your access to the asset:
+Your access to an asset decides whether you can download, edit or delete it and manage who else has access. **Access & groups** opens the shared access dialog with its **People** and **Groups** tabs, described in [Access control](/docs/using-orcai/access-control).
 
-- download
-- edit
-- delete
-- manage_access
-
-**Access & groups** opens the shared access dialog with People and Groups tabs.
-
-## Relationship To Retrieval
+## Relationship to retrieval
 
 Bots and chats do not retrieve from assets directly. Assets are added to repositories, which are then attached to bots or chats. See [Bots and behaviour](/docs/using-orcai/bots).
 
 In a chat, you can also attach an asset to a single message with the paperclip (**Attach files**) > **Choose existing assets**. The model receives the file, or its extracted text, with that message. See [Chat](/docs/using-orcai/chat#attachments-in-chat).
 
-## Instance Dependencies
+## Instance dependencies
 
-At instance level, asset workflows rely on:
+Assets rely on these parts of the instance:
 
 - S3-compatible storage
 - Worker preparation pipeline
