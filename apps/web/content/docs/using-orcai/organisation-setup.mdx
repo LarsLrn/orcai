@@ -15,13 +15,13 @@ Required, because a chat or OrcAI Assistant turn fails without them:
 - **Chat model**: a model with tool calling, not deprecated, on an enabled provider (step 3). This is the rule a turn applies to its model.
 - **Quota pool**: an active pool on such a provider that covers a chat model (no model set, or that model) and is assigned to a group (step 4).
 - **Assistant model**: chosen and usable by the same rule (step 5).
-- **Quota for the Assistant**: an active pool, assigned to a group, that covers the Assistant model (step 5).
+- **Quota pool for the Assistant**: an active pool, assigned to a group, that covers the Assistant model (step 5).
 
 Recommended:
 
 - **Utility model**: chosen (step 5).
 - **Members**: someone besides you is a member or invited (step 8).
-- **Quota for every member**: every member is reached by a pool through All members or a group they belong to. An exhausted pool still counts; its remaining budget shows on the Quota pools page.
+- **Quota pool for every member**: every member is reached by a pool through All members or a group they belong to. An exhausted pool still counts; its remaining budget shows on the Quota pools page.
 
 ## Outcome
 
@@ -93,7 +93,7 @@ Go to Administration > Organisation (`/app/organization`).
 - Until a model is chosen, the [OrcAI Assistant](/docs/using-orcai/assistant) is unavailable to everyone in the organisation.
 - The Assistant draws on the same quota pools as chat. For a separate Assistant budget, add a pool for that model alone.
 - Choose a small, inexpensive model in **Utility model** to write chat and conversation titles, to describe images and to generate metadata in the Library; give it the image capability so image files can be prepared. Without one, each chat's own model writes its title, images are not described and no metadata is generated.
-- Optionally turn on **Web search** for bots with the Web search feature: **Model native** for Anthropic and OpenAI models, or a search provider such as Tavily, added under Providers with a quota pool of its own. See [Web search](/docs/using-orcai/administration#web-search).
+- Optionally turn on **Web search** for bots with the Web search feature: **Model's own search** for Anthropic and OpenAI models, or a search provider such as Tavily, added under Providers with a quota pool of its own. See [Web search](/docs/using-orcai/administration#web-search).
 
 ## 6. Prepare Assets And Retrieval
 
