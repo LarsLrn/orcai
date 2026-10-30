@@ -20,6 +20,7 @@ import {
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-mutations";
 import { formatNumber } from "@/lib/presentation/format-number";
+import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
 import {
 	getQuotaPoolStatusLabel,
 	getQuotaPoolStatusVariant,
@@ -30,19 +31,6 @@ type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
 
 const formatAmount = (value: number | null | undefined) => {
 	return formatNumber(value, "-");
-};
-
-const formatPeriodType = (value: QuotaPoolListRow["periodType"]) => {
-	switch (value) {
-		case "weekly":
-			return m.quotas_period_weekly_label();
-		case "monthly":
-			return m.quotas_period_monthly_label();
-		case "yearly":
-			return m.quotas_period_yearly_label();
-		default:
-			return value;
-	}
 };
 
 const columnHelper = createColumnHelper<DataTableFeatures, QuotaPoolListRow>();
@@ -83,7 +71,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 				title={m.quotas_table_period_column_header()}
 			/>
 		),
-		cell: ({ row }) => formatPeriodType(row.original.periodType),
+		cell: ({ row }) => getQuotaPeriodLabel(row.original.periodType),
 		meta: {
 			label: m.quotas_table_period_column_header,
 		},

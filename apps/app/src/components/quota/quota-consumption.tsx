@@ -1,12 +1,11 @@
+import type { ProviderMeteringMode } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { formatNumber } from "@/lib/presentation/format-number";
+import { getMeteringUnit } from "@/lib/presentation/metering-mode";
 import { isLowShare, usedShareOf } from "@/lib/presentation/quota-share";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-
-/** The metering unit a quota pool's provider counts in. */
-type QuotaUnit = "tokens" | "requests";
 
 const hasAmount = (value: number | null | undefined): value is number =>
 	value !== null && value !== undefined;
@@ -18,11 +17,13 @@ const QuotaUnitLabel = ({
 	unit,
 	amount,
 }: {
-	unit: QuotaUnit | undefined;
+	unit: ProviderMeteringMode | undefined;
 	amount: number | null | undefined;
 }) =>
 	unit && hasAmount(amount) ? (
-		<span className="text-muted-foreground text-xs">{unit}</span>
+		<span className="text-muted-foreground text-xs">
+			{getMeteringUnit(unit, amount)}
+		</span>
 	) : null;
 
 const toShare = (
@@ -42,7 +43,7 @@ const QuotaConsumption = ({
 }: {
 	consumedAmount: number | null | undefined;
 	budgetAmount: number | null | undefined;
-	unit?: QuotaUnit;
+	unit?: ProviderMeteringMode;
 	className?: string;
 }) => {
 	const share = toShare(consumedAmount, budgetAmount);
@@ -79,7 +80,7 @@ const QuotaRemaining = ({
 }: {
 	remainingAmount: number | null | undefined;
 	budgetAmount: number | null | undefined;
-	unit?: QuotaUnit;
+	unit?: ProviderMeteringMode;
 	className?: string;
 }) => {
 	const isLow =

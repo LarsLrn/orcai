@@ -4955,6 +4955,8 @@
 	"providers_index_add_button": "Anbieter hinzufügen",
 	"providers_index_empty_description": "Ein Anbieter verbindet OrcAI mit einem Dienst, der Modelle oder die Websuche bereitstellt. Fügen Sie einen hinzu, um seine Modelle oder seine Websuche zu nutzen.",
 	"providers_index_empty_title": "Noch keine Anbieter",
+	"providers_metering_mode_requests_label": "Anfragen",
+	"providers_metering_mode_tokens_label": "Token",
 	"providers_kind_anthropic_label": "Anthropic",
 	"providers_kind_openai_compatible_label": "OpenAI-kompatibel",
 	"providers_kind_openai_label": "OpenAI",
@@ -5067,6 +5069,36 @@
 	"quotas_period_weekly_label": "Wöchentlich",
 	"quotas_period_yearly_label": "Jährlich",
 	"quotas_remaining_low_badge": "Niedrig",
+	"quotas_unit_requests": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Anfrage",
+				"countPlural=other": "Anfragen"
+			}
+		}
+	],
+	"quotas_unit_tokens": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Token",
+				"countPlural=other": "Token"
+			}
+		}
+	],
 	"quotas_route_page_title": "Kontingent-Pools",
 	"quotas_table_budget_column_header": "Budget",
 	"quotas_table_consumed_column_header": "Verbraucht",
