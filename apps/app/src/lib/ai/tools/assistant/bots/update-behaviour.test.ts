@@ -38,11 +38,11 @@ beforeEach(() => {
 		});
 });
 
-const { updateTemplateTool } = await import("./update-template");
+const { updateBehaviourTool } = await import("./update-behaviour");
 const { createAssistantTurn } = await import("../turn-state");
 
 const run = (input: Record<string, unknown>) =>
-	updateTemplateTool({
+	updateBehaviourTool({
 		context: {} as ORPCContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
@@ -57,7 +57,7 @@ const run = (input: Record<string, unknown>) =>
 		} as never,
 	);
 
-describe("updateTemplateTool", () => {
+describe("updateBehaviourTool", () => {
 	test("an update takes only the changed fields and keeps the rest", async () => {
 		const output = await run({
 			id: templateId,

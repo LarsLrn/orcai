@@ -4,14 +4,14 @@ import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { listModelOutput } from "./outputs";
-import type { KnowledgeBaseDocument } from "./types";
+import type { RepositoryAsset } from "./types";
 import {
-	loadDocumentCatalog,
-	rankDocumentsByQuery,
+	loadAssetCatalog,
+	rankAssetsByQuery,
 	resolveSearchBlocks,
 } from "./utils";
 
-export const listKnowledgeBaseDocumentsTool = ({
+export const listRepositoryAssetsTool = ({
 	blocks,
 	context,
 }: {
@@ -47,24 +47,24 @@ export const listKnowledgeBaseDocumentsTool = ({
 				});
 				if (targetBlocks.length === 0) {
 					return {
-						documents: [] as KnowledgeBaseDocument[],
+						assets: [] as RepositoryAsset[],
 					};
 				}
 
-				const documents = yield* loadDocumentCatalog({
+				const assets = yield* loadAssetCatalog({
 					blocks: targetBlocks,
 					context,
 				});
 
 				const ranked = query
-					? rankDocumentsByQuery({
-							documents,
+					? rankAssetsByQuery({
+							assets,
 							query,
 						})
-					: documents.slice().sort((a, b) => a.title.localeCompare(b.title));
+					: assets.slice().sort((a, b) => a.title.localeCompare(b.title));
 
 				return {
-					documents: ranked.slice(0, limit),
+					assets: ranked.slice(0, limit),
 				};
 			}),
 		toModelOutput: listModelOutput,

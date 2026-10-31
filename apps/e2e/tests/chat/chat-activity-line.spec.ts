@@ -48,7 +48,7 @@ test("a running turn shows its activity below the answer only while the work log
 			(_, index) => ({
 				toolCalls: [
 					{
-						name: "searchKnowledgeBase",
+						name: "searchRepositories",
 						input: {
 							query: `citation ${index + 1}`,
 						},

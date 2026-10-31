@@ -9,9 +9,9 @@ import {
 	effectTool,
 	mutation,
 } from "../procedure-tool";
-import { blockDescription, templateOutline } from "./block-outline";
+import { behaviourOutline, blockDescription } from "./block-outline";
 
-export const createTemplateInputSchema = z.strictObject({
+export const createBehaviourInputSchema = z.strictObject({
 	name: z.string().min(1),
 	description: blockFieldsSchema.shape.description
 		.unwrap()
@@ -25,11 +25,11 @@ export const createTemplateInputSchema = z.strictObject({
 		.describe("ready makes it available to bots. Defaults to draft."),
 });
 
-export const createTemplateTool = (deps: AssistantToolDeps) =>
+export const createBehaviourTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Create a new behaviour block (template): the reusable system prompt a bot follows. To change an existing one, use updateTemplate.",
-		inputSchema: createTemplateInputSchema,
+			"Create a new behaviour block (template): the reusable system prompt a bot follows. To change an existing one, use updateBehaviour.",
+		inputSchema: createBehaviourInputSchema,
 		run: (input, { toolCallId }) =>
 			createOnce(
 				{
@@ -58,20 +58,20 @@ export const createTemplateTool = (deps: AssistantToolDeps) =>
 						),
 					).pipe(
 						mutation("findBlocks"),
-						Effect.map(({ data }) => templateOutline(data)),
+						Effect.map(({ data }) => behaviourOutline(data)),
 					),
-					ids: (template) => [
-						template.id,
+					ids: (behaviour) => [
+						behaviour.id,
 					],
-					replay: ([templateId]) =>
+					replay: ([behaviourId]) =>
 						callProcedure(deps, (procedures, options) =>
 							procedures.block.find(
 								{
-									id: templateId as BlockId,
+									id: behaviourId as BlockId,
 								},
 								options,
 							),
-						).pipe(Effect.map(({ data }) => templateOutline(data))),
+						).pipe(Effect.map(({ data }) => behaviourOutline(data))),
 				},
 			),
 	});

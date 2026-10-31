@@ -13,12 +13,12 @@ import {
 	mutation,
 } from "../procedure-tool";
 import {
+	behaviourOutline,
 	blockDescription,
-	templateOutline,
 	wrongBlockError,
 } from "./block-outline";
 
-const updateTemplateInputSchema = z.strictObject({
+const updateBehaviourInputSchema = z.strictObject({
 	id: blockIdSchema.describe("Id of the behaviour block to update."),
 	name: z
 		.string()
@@ -44,11 +44,11 @@ const updateTemplateInputSchema = z.strictObject({
 		),
 });
 
-export const updateTemplateTool = (deps: AssistantToolDeps) =>
+export const updateBehaviourTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Update an existing behaviour block (template): name, description, system prompt and status. Give only the fields that change; everything else, including rich content, is kept. To create one, use createTemplate.",
-		inputSchema: updateTemplateInputSchema,
+			"Update an existing behaviour block (template): name, description, system prompt and status. Give only the fields that change; everything else, including rich content, is kept. To create one, use createBehaviour.",
+		inputSchema: updateBehaviourInputSchema,
 		run: (input) =>
 			Effect.gen(function* () {
 				const { id } = input;
@@ -91,6 +91,6 @@ export const updateTemplateTool = (deps: AssistantToolDeps) =>
 					),
 				).pipe(mutation("getBlock"));
 
-				return templateOutline(data);
+				return behaviourOutline(data);
 			}),
 	});

@@ -35,7 +35,7 @@ const chatWithDanglingCall = async (
 		text: "Let me search.",
 		toolCalls: [
 			{
-				name: "searchKnowledgeBase",
+				name: "searchRepositories",
 				input: {
 					query: "pending calls",
 				},

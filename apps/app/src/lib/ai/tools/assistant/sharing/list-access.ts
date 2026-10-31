@@ -7,12 +7,12 @@ import {
 } from "../procedure-tool";
 import { mergeAccess } from "./merge-access";
 import {
-	expectResource,
-	resourceTargetShape,
+	expectTarget,
+	targetShape,
 	toResourceIdentity,
 } from "./resource-target";
 
-const listAccessInputSchema = z.strictObject(resourceTargetShape);
+const listAccessInputSchema = z.strictObject(targetShape);
 
 export const listAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
@@ -26,10 +26,10 @@ export const listAccessTool = (deps: AssistantToolDeps) =>
 					[
 						callProcedure(deps, (procedures, options) =>
 							procedures.resource.listGrants(resource, options),
-						).pipe(expectResource(input)),
+						).pipe(expectTarget(input)),
 						callProcedure(deps, (procedures, options) =>
 							procedures.resource.inheritedAccess(resource, options),
-						).pipe(expectResource(input)),
+						).pipe(expectTarget(input)),
 					],
 					{
 						concurrency: "unbounded",

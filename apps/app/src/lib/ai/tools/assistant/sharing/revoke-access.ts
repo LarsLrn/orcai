@@ -7,17 +7,17 @@ import {
 	mutation,
 } from "../procedure-tool";
 import {
-	expectPrincipals,
-	expectResource,
-	principalShape,
-	resourceTargetShape,
+	expectGrantees,
+	expectTarget,
+	granteeShape,
+	targetShape,
 	toPrincipalIdentity,
 	toResourceIdentity,
 } from "./resource-target";
 
 const revokeAccessInputSchema = z.strictObject({
-	...resourceTargetShape,
-	...principalShape,
+	...targetShape,
+	...granteeShape,
 });
 
 export const revokeAccessTool = (deps: AssistantToolDeps) =>
@@ -25,32 +25,31 @@ export const revokeAccessTool = (deps: AssistantToolDeps) =>
 		description:
 			"Remove one user's or group's direct grant on a bot, block or asset. Access they have through a group or a bot above stays. The last manager cannot be removed.",
 		inputSchema: revokeAccessInputSchema,
-		run: ({ principalType, principalId, ...target }) =>
+		run: ({ granteeType, granteeId, ...target }) =>
 			Effect.gen(function* () {
-				const resource = toResourceIdentity(target);
-				const principal = toPrincipalIdentity({
-					principalType,
-					principalId,
-				});
+				const grantee = {
+					granteeType,
+					granteeId,
+				};
 				const { message } = yield* callProcedure(deps, (procedures, options) =>
 					procedures.resource.revoke(
 						{
-							...resource,
-							...principal,
+							...toResourceIdentity(target),
+							...toPrincipalIdentity(grantee),
 						},
 						options,
 					),
 				).pipe(
 					mutation("listAccess"),
-					expectResource(target),
-					expectPrincipals([
-						principal,
+					expectTarget(target),
+					expectGrantees([
+						grantee,
 					]),
 				);
 
 				return {
-					...resource,
-					...principal,
+					...target,
+					...grantee,
 					message,
 				};
 			}),

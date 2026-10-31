@@ -18,22 +18,22 @@ beforeEach(() => {
 		});
 });
 
-const { createTemplateInputSchema, createTemplateTool } = await import(
-	"./create-template"
+const { createBehaviourInputSchema, createBehaviourTool } = await import(
+	"./create-behaviour"
 );
 const { createAssistantTurn } = await import("../turn-state");
 
-describe("createTemplateTool", () => {
+describe("createBehaviourTool", () => {
 	test("the schema requires a name and a system prompt", () => {
 		expect(
-			createTemplateInputSchema.safeParse({
+			createBehaviourInputSchema.safeParse({
 				name: "New",
 			}).success,
 		).toBe(false);
 	});
 
 	test("a create is a draft with the given system prompt", async () => {
-		const output = await createTemplateTool({
+		const output = await createBehaviourTool({
 			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,

@@ -374,12 +374,12 @@ test("assistant: a call approved after a pause sees the bot saved earlier in the
 		actStep("I will share it.", {
 			name: "grantAccess",
 			input: {
-				resourceType: "bot",
-				resourceId: botId,
-				principals: [
+				targetType: "bot",
+				targetId: botId,
+				grantees: [
 					{
-						principalType: "group",
-						principalId: group.id,
+						granteeType: "group",
+						granteeId: group.id,
 					},
 				],
 				role: "viewer",

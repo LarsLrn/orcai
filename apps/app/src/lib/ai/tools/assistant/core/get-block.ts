@@ -88,7 +88,7 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 				return {
 					type: "repository" as const,
 					...common,
-					documents: readiness.totals,
+					assetTotals: readiness.totals,
 					assets: readiness.documents.map((document) => ({
 						id: document.assetId,
 						title: document.title,

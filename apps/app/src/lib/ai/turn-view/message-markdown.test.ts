@@ -114,7 +114,7 @@ describe("messageToMarkdown", () => {
 				},
 				text("let me look"),
 				{
-					type: "tool-searchKnowledgeBase",
+					type: "tool-searchRepositories",
 					toolCallId: "call-1",
 					state: "output-available",
 					input: {

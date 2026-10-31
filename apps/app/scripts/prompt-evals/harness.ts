@@ -40,7 +40,7 @@ import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
-import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
+import { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
 import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
 import {
 	NO_WEB_SEARCH,
@@ -224,7 +224,7 @@ export const runChat = async ({
 }): Promise<Transcript> => {
 	const offered: ToolSet = {
 		...(repositories.length > 0
-			? buildKnowledgeBaseTools({
+			? buildRepositoryTools({
 					blocks: repositories,
 					context: contextStub,
 					history: [],

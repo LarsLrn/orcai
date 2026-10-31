@@ -1,11 +1,11 @@
 import { pageOutputSchema } from "@/lib/ai/tools/rag/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { GetKnowledgeBasePageToolPart } from "@/lib/ai/types/tools";
+import type { GetAssetPageToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import { SourcePassages } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
 
-const pageLabel = (input: GetKnowledgeBasePageToolPart["input"]) => {
+const pageLabel = (input: GetAssetPageToolPart["input"]) => {
 	const page = input?.page;
 
 	if (page === undefined) {
@@ -24,11 +24,11 @@ const pageLabel = (input: GetKnowledgeBasePageToolPart["input"]) => {
 			});
 };
 
-export const GetKnowledgeBasePage = ({
+export const GetAssetPage = ({
 	part,
 	status,
 }: {
-	part: GetKnowledgeBasePageToolPart;
+	part: GetAssetPageToolPart;
 	status: ToolStatus | null;
 }) => (
 	<ToolEntry part={part} status={status} label={pageLabel(part.input)}>

@@ -8,44 +8,44 @@ import {
 import type * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { expectType } from "../procedure-tool";
-import { principalRef } from "./summary-refs";
+import { granteeRef } from "./summary-refs";
 
 /**
- * The resource as flat fields: the contract's discriminated unions convert to
+ * The target as flat fields: the contract's discriminated unions convert to
  * a top-level `oneOf`, which providers reject as a tool schema.
  */
-export const resourceTargetShape = {
-	resourceType: resourceTypeSchema.describe(
+export const targetShape = {
+	targetType: resourceTypeSchema.describe(
 		"bot, block (a template or repository) or asset.",
 	),
-	resourceId: z
+	targetId: z
 		.uuidv4()
 		.describe("Id of the bot, block or asset, from the find tools."),
 };
 
-export const principalShape = {
-	principalType: principalTypeSchema,
-	principalId: z
+export const granteeShape = {
+	granteeType: principalTypeSchema,
+	granteeId: z
 		.uuidv4()
-		.describe("Id of the user or group, from findPrincipals or listAccess."),
+		.describe("Id of the user or group, from findPeople or listAccess."),
 };
 
-/** Reads a not-found failure on the resource as a wrong id for its type. */
-export const expectResource = (input: {
-	resourceType: ResourceType;
-	resourceId: string;
-}) => expectType(input.resourceType, input.resourceId);
+/** Reads a not-found failure on the target as a wrong id for its type. */
+export const expectTarget = (input: {
+	targetType: ResourceType;
+	targetId: string;
+}) => expectType(input.targetType, input.targetId);
 
-/** Reads a not-found failure on a principal as a wrong member or group id. */
-export const expectPrincipals =
+/** Reads a not-found failure on a grantee as a wrong member or group id. */
+export const expectGrantees =
 	(
-		principals: readonly {
-			principalType: "user" | "group";
-			principalId: string;
+		grantees: readonly {
+			granteeType: "user" | "group";
+			granteeId: string;
 		}[],
 	) =>
 	<A, E, R>(effect: Effect.Effect<A, E, R>) => {
-		const refs = principals.map(principalRef);
+		const refs = grantees.map(granteeRef);
 		const idsOf = (kind: "member" | "group") =>
 			refs.filter((ref) => ref.kind === kind).map((ref) => ref.id);
 
@@ -56,19 +56,19 @@ export const expectPrincipals =
 	};
 
 export const toResourceIdentity = (input: {
-	resourceType: ResourceType;
-	resourceId: string;
+	targetType: ResourceType;
+	targetId: string;
 }) =>
 	resourceIdentitySchema.parse({
-		resourceType: input.resourceType,
-		resourceId: input.resourceId,
+		resourceType: input.targetType,
+		resourceId: input.targetId,
 	});
 
 export const toPrincipalIdentity = (input: {
-	principalType: "user" | "group";
-	principalId: string;
+	granteeType: "user" | "group";
+	granteeId: string;
 }) =>
 	resourcePrincipalIdentitySchema.parse({
-		principalType: input.principalType,
-		principalId: input.principalId,
+		principalType: input.granteeType,
+		principalId: input.granteeId,
 	});

@@ -1,12 +1,12 @@
 import { ClientToolEntry } from "@/components/chat/message/client-tool-renderers";
 import { isToolOfKind } from "@/lib/ai/tools/registry";
 import type { ToolPart, ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import { GetKnowledgeBaseChunks } from "./tools/get-knowledge-base-chunks";
-import { GetKnowledgeBasePage } from "./tools/get-knowledge-base-page";
-import { ListKnowledgeBaseDocuments } from "./tools/list-knowledge-base-documents";
+import { GetAssetPage } from "./tools/get-asset-page";
+import { GetPassages } from "./tools/get-passages";
+import { ListRepositoryAssets } from "./tools/list-repository-assets";
 import { NativeWebSearch } from "./tools/native-web-search";
 import { ReadDocs } from "./tools/read-docs";
-import { SearchKnowledgeBase } from "./tools/search-knowledge-base";
+import { SearchRepositories } from "./tools/search-repositories";
 import { SearchWeb } from "./tools/search-web";
 import { SummaryEntry } from "./tools/summary-entry";
 
@@ -22,14 +22,14 @@ export const ToolEntryPart = ({ part, status }: ToolEntryPartProps) => {
 	}
 
 	switch (part.type) {
-		case "tool-searchKnowledgeBase":
-			return <SearchKnowledgeBase part={part} status={status} />;
-		case "tool-getKnowledgeBaseChunks":
-			return <GetKnowledgeBaseChunks part={part} status={status} />;
-		case "tool-getKnowledgeBasePage":
-			return <GetKnowledgeBasePage part={part} status={status} />;
-		case "tool-listKnowledgeBaseDocuments":
-			return <ListKnowledgeBaseDocuments part={part} status={status} />;
+		case "tool-searchRepositories":
+			return <SearchRepositories part={part} status={status} />;
+		case "tool-getPassages":
+			return <GetPassages part={part} status={status} />;
+		case "tool-getAssetPage":
+			return <GetAssetPage part={part} status={status} />;
+		case "tool-listRepositoryAssets":
+			return <ListRepositoryAssets part={part} status={status} />;
 		case "tool-readDocs":
 			return <ReadDocs part={part} status={status} />;
 		case "tool-searchWeb":

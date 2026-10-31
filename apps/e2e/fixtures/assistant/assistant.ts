@@ -410,21 +410,21 @@ export const BOTS_TOOLS = [
 	"updateBotSetup",
 	"publishBot",
 	"deleteBot",
-	"createTemplate",
-	"updateTemplate",
+	"createBehaviour",
+	"updateBehaviour",
 	"createRepository",
 	"updateRepository",
 	"deleteBlock",
 	"updateAsset",
 	"deleteAsset",
-	"retryAsset",
+	"prepareAssetAgain",
 	"generateAssetMetadata",
 	"requestUpload",
 ];
 
 export const SHARING_TOOLS = [
 	"listAccess",
-	"findPrincipals",
+	"findPeople",
 	"grantAccess",
 	"revokeAccess",
 ];

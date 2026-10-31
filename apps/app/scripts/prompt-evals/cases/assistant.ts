@@ -89,10 +89,10 @@ const byId = <
 };
 
 interface GrantInput {
-	resourceType: string;
-	resourceId: string;
-	principals: {
-		principalId: string;
+	targetType: string;
+	targetId: string;
+	grantees: {
+		granteeId: string;
 	}[];
 	role: string;
 }
@@ -121,7 +121,7 @@ const riverside = ({
 	getBot: ({ id }: Id) => ({
 		...byId(bots, id),
 		features: {},
-		template: {
+		behaviour: {
 			id: crypto.randomUUID(),
 			name: byId(bots, id).name,
 			status: "ready",
@@ -144,10 +144,10 @@ const riverside = ({
 		groups: found(groups, query),
 		total: found(groups, query).length,
 	}),
-	findPrincipals: ({ query }: Query) => ({
-		principals: found(groups, query).map(({ id, name, description, kind }) => ({
-			principalType: "group",
-			principalId: id,
+	findPeople: ({ query }: Query) => ({
+		grantees: found(groups, query).map(({ id, name, description, kind }) => ({
+			granteeType: "group",
+			granteeId: id,
 			name,
 			description,
 			kind,
@@ -252,12 +252,12 @@ export const assistantCases: EvalCase[] = [
 				change<GrantInput>(
 					"grantAccess",
 					"Year 9 as viewer on Citation check",
-					({ resourceType, resourceId, principals, role }) =>
-						resourceType === "bot" &&
-						resourceId === citationCheck.id &&
+					({ targetType, targetId, grantees, role }) =>
+						targetType === "bot" &&
+						targetId === citationCheck.id &&
 						role === "viewer" &&
-						principals.length === 1 &&
-						principals[0]?.principalId === year9.id,
+						grantees.length === 1 &&
+						grantees[0]?.granteeId === year9.id,
 				),
 			),
 		],

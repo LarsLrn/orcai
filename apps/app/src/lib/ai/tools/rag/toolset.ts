@@ -2,14 +2,14 @@ import type { DatabaseBlock } from "@orcai/schema";
 import type { UIMessage } from "ai";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { chunkIds } from "./chunk-ref";
-import { getKnowledgeBaseChunksTool } from "./get-knowledge-base-chunk";
-import { getKnowledgeBasePageTool } from "./get-knowledge-base-page";
-import { listKnowledgeBaseDocumentsTool } from "./list-knowledge-base-documents";
+import { getAssetPageTool } from "./get-asset-page";
+import { getPassagesTool } from "./get-passages";
+import { listRepositoryAssetsTool } from "./list-repository-assets";
 import { passagesOfParts } from "./outputs";
-import { searchKnowledgeBaseTool } from "./search-knowledge-base";
+import { searchRepositoriesTool } from "./search-repositories";
 
-/** The knowledge base tools of a turn, which reads chunk refs from `history` on. */
-export const buildKnowledgeBaseTools = ({
+/** The repository tools of a turn, which reads chunk refs from `history` on. */
+export const buildRepositoryTools = ({
 	blocks,
 	context,
 	history,
@@ -25,9 +25,9 @@ export const buildKnowledgeBaseTools = ({
 	};
 
 	return {
-		searchKnowledgeBase: searchKnowledgeBaseTool(deps),
-		listKnowledgeBaseDocuments: listKnowledgeBaseDocumentsTool(deps),
-		getKnowledgeBasePage: getKnowledgeBasePageTool(deps),
-		getKnowledgeBaseChunks: getKnowledgeBaseChunksTool(deps),
+		searchRepositories: searchRepositoriesTool(deps),
+		listRepositoryAssets: listRepositoryAssetsTool(deps),
+		getAssetPage: getAssetPageTool(deps),
+		getPassages: getPassagesTool(deps),
 	};
 };

@@ -6,7 +6,10 @@ import {
 	effectTool,
 	mutation,
 } from "../procedure-tool";
-import { catalogueEntryInputSchema } from "./catalogue-entry-input";
+import {
+	catalogueEntryInputSchema,
+	toCatalogueEntry,
+} from "./catalogue-entry-input";
 
 const installInputSchema = z.strictObject({
 	entry: catalogueEntryInputSchema,
@@ -18,10 +21,10 @@ const installInputSchema = z.strictObject({
 		),
 });
 
-export const installFromCatalogueTool = (deps: AssistantToolDeps) =>
+export const addFromCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Add a bot, template or repository from the catalogue to the active organisation's library. Nobody there can use it until it is shared with grantAccess, for use only (viewer). Set an added bot's model here with updateBotSetup. Adding what the organisation has already changes nothing; with withBlocks, blocks it has already are skipped.",
+			"Add a bot, template or repository from the catalogue to the active organisation's library. Never for files: new files come in through requestUpload. Nobody there can use it until it is shared with grantAccess, for use only (viewer). Set an added bot's model here with updateBotSetup. Adding what the organisation has already changes nothing; with withBlocks, blocks it has already are skipped.",
 		inputSchema: installInputSchema,
 		run: ({ entry, withBlocks }) =>
 			Effect.gen(function* () {
@@ -30,7 +33,7 @@ export const installFromCatalogueTool = (deps: AssistantToolDeps) =>
 					(procedures, options) =>
 						procedures.catalogue.find(
 							{
-								entry,
+								entry: toCatalogueEntry(entry),
 							},
 							options,
 						),
@@ -38,7 +41,7 @@ export const installFromCatalogueTool = (deps: AssistantToolDeps) =>
 				const { data } = yield* callProcedure(deps, (procedures, options) =>
 					procedures.catalogue.install(
 						{
-							entry,
+							entry: toCatalogueEntry(entry),
 							withBlocks,
 						},
 						options,

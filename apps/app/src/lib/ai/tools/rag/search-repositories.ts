@@ -47,7 +47,7 @@ const DEFAULT_SEARCH_RESULT_LIMIT = Math.min(
 	RETRIEVAL_LIMITS.maxSnippetResultsPerCall,
 );
 
-export const searchKnowledgeBaseTool = ({
+export const searchRepositoriesTool = ({
 	blocks,
 	context,
 	chunks,
@@ -58,7 +58,7 @@ export const searchKnowledgeBaseTool = ({
 }) =>
 	effectTool({
 		description:
-			"Search the repositories by topic, name, quote or claim, and return the full text of the best matching passages, each with the ref you cite it by. Use it first for any question the repositories may answer; for a page the user names, use getKnowledgeBasePage, and for the list of assets, listKnowledgeBaseDocuments. Only ready assets are searchable: the result names repositories with assets still being prepared or that failed, and the answer may be in those, so tell the user.",
+			"Search the repositories by topic, name, quote or claim, and return the full text of the best matching passages, each with the ref you cite it by. Use it first for any question the repositories may answer; for a page the user names, use getAssetPage, and for the list of assets, listRepositoryAssets. Only ready assets are searchable: the result names repositories with assets still being prepared or that failed, and the answer may be in those, so tell the user.",
 		inputSchema: z.strictObject({
 			query: z
 				.string()
@@ -84,7 +84,7 @@ export const searchKnowledgeBaseTool = ({
 				.max(20)
 				.optional()
 				.describe(
-					"Ids of the assets to search, from listKnowledgeBaseDocuments. Leave it out to search every asset.",
+					"Ids of the assets to search, from listRepositoryAssets. Leave it out to search every asset.",
 				),
 			blockId: blockIdSchema
 				.optional()

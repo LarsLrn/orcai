@@ -8,7 +8,7 @@ export const botOutline = (bot: BotEditor) => ({
 	description: bot.description,
 	status: bot.status,
 	features: bot.features,
-	template: bot.templateBlock
+	behaviour: bot.templateBlock
 		? {
 				type: "template" as const,
 				id: bot.templateBlock.id,

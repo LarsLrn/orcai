@@ -69,7 +69,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 		{
 			toolCalls: [
 				{
-					name: "createTemplate",
+					name: "createBehaviour",
 					input: {
 						name: templateName,
 						systemPrompt: "Answer questions about the course syllabus.",
@@ -115,7 +115,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 		type: "repository",
 		assetCount: 1,
 	});
-	const templateId = template.id as BlockId;
+	const behaviourId = template.id as BlockId;
 	const repositoryId = repository.id as BlockId;
 	const loadedLine = message("assistant_tool_load_tools_summary", {
 		groups: message("assistant_tool_group_bots"),
@@ -140,7 +140,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 					input: {
 						name: botName,
 						description: "Answers syllabus questions.",
-						templateId,
+						behaviourId,
 						repositoryIds: [
 							repositoryId,
 						],
@@ -176,7 +176,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	});
 	expect(createdBot).not.toHaveProperty("created");
 	const botId = createdBot.id as BotId;
-	const templateLine = message("assistant_tool_create_template_summary", {
+	const templateLine = message("assistant_tool_create_behaviour_summary", {
 		name: quoted(templateName),
 	});
 	expect(created).toContainEqual(template);
@@ -233,7 +233,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 			generativeUi: {},
 		},
 		templateBlock: {
-			id: templateId,
+			id: behaviourId,
 		},
 	});
 	expect(bot.databaseBlocks.map((block) => block.id)).toEqual([
@@ -286,7 +286,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	const [next] = turnRequests(inference);
 	expect(historyToolCallsOf(next)).toEqual(
 		expect.arrayContaining([
-			"createTemplate",
+			"createBehaviour",
 			"createRepository",
 			"createBot",
 			"publishBot",

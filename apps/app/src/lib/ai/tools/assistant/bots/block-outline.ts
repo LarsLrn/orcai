@@ -25,7 +25,7 @@ interface SavedBlock {
 	status: PublicationStatus;
 }
 
-export const templateOutline = (block: SavedBlock) => ({
+export const behaviourOutline = (block: SavedBlock) => ({
 	type: "template" as const,
 	id: block.id,
 	name: block.name,

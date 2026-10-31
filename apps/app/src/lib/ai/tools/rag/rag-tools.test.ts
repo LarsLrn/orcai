@@ -12,11 +12,9 @@ import {
 import { chunkIds, chunkRef } from "./chunk-ref";
 import { assetPoint } from "./test-points";
 
-const { getKnowledgeBaseChunksTool } = await import(
-	"./get-knowledge-base-chunk"
-);
-const { getKnowledgeBasePageTool } = await import("./get-knowledge-base-page");
-const { searchKnowledgeBaseTool } = await import("./search-knowledge-base");
+const { getPassagesTool } = await import("./get-passages");
+const { getAssetPageTool } = await import("./get-asset-page");
+const { searchRepositoriesTool } = await import("./search-repositories");
 
 const deps = {
 	blocks: [
@@ -87,7 +85,7 @@ beforeEach(() => {
 
 afterEach(resetProcedures);
 
-describe("searchKnowledgeBase", () => {
+describe("searchRepositories", () => {
 	test("returns the full text of each chunk", async () => {
 		answers["assetPoint.searchRepository"] = () =>
 			Effect.succeed({
@@ -100,7 +98,7 @@ describe("searchKnowledgeBase", () => {
 				] satisfies AssetPoint[],
 			});
 
-		const output = await searchKnowledgeBaseTool(deps).execute?.(
+		const output = await searchRepositoriesTool(deps).execute?.(
 			{
 				query: "refund policy",
 			},
@@ -162,7 +160,7 @@ describe("searchKnowledgeBase", () => {
 				}),
 			});
 
-		const output = await searchKnowledgeBaseTool(deps).execute?.(
+		const output = await searchRepositoriesTool(deps).execute?.(
 			{
 				query: "refund policy",
 			},
@@ -194,12 +192,12 @@ describe("searchKnowledgeBase", () => {
 	});
 });
 
-describe("getKnowledgeBaseChunks", () => {
+describe("getPassages", () => {
 	test("reads around a chunk named by its ref as one passage", async () => {
 		answers["assetPoint.searchRepository"] = searchChunks;
 		const ref = chunkRef("102");
 
-		const output = await getKnowledgeBaseChunksTool({
+		const output = await getPassagesTool({
 			...deps,
 			chunks: chunkIds([
 				{
@@ -213,7 +211,7 @@ describe("getKnowledgeBaseChunks", () => {
 			]),
 		}).execute?.(
 			{
-				chunks: [
+				passages: [
 					ref,
 				],
 				neighbours: 1,
@@ -241,9 +239,9 @@ describe("getKnowledgeBaseChunks", () => {
 	test("names the chunks it could not find, without asking for unknown refs", async () => {
 		answers["assetPoint.searchRepository"] = searchChunks;
 
-		const output = await getKnowledgeBaseChunksTool(deps).execute?.(
+		const output = await getPassagesTool(deps).execute?.(
 			{
-				chunks: [
+				passages: [
 					"101",
 					"k999999",
 				],
@@ -273,7 +271,7 @@ describe("getKnowledgeBaseChunks", () => {
 	});
 });
 
-describe("getKnowledgeBasePage", () => {
+describe("getAssetPage", () => {
 	const answerCatalog = (pages: AssetPoint[]) => {
 		answers["block.readiness"] = () =>
 			Effect.succeed({
@@ -315,7 +313,7 @@ describe("getKnowledgeBasePage", () => {
 	};
 
 	const read = () =>
-		getKnowledgeBasePageTool(deps).execute?.(
+		getAssetPageTool(deps).execute?.(
 			{
 				page: 4,
 				includeAdjacentPages: 0,
@@ -339,12 +337,12 @@ describe("getKnowledgeBasePage", () => {
 		});
 	});
 
-	test("lists the matched documents when the page has no text", async () => {
+	test("lists the matched assets when the page has no text", async () => {
 		answerCatalog([]);
 
 		expect(await read()).toEqual({
 			passages: [],
-			matchedDocuments: [
+			matchedAssets: [
 				{
 					assetId: "asset-a",
 					title: "Refund policy",

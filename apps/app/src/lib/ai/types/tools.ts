@@ -1,40 +1,36 @@
 import type { InferUITool, ToolUIPart } from "ai";
 import type { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
-import type { getKnowledgeBaseChunksTool } from "@/lib/ai/tools/rag/get-knowledge-base-chunk";
-import type { getKnowledgeBasePageTool } from "@/lib/ai/tools/rag/get-knowledge-base-page";
-import type { listKnowledgeBaseDocumentsTool } from "@/lib/ai/tools/rag/list-knowledge-base-documents";
-import type { searchKnowledgeBaseTool } from "@/lib/ai/tools/rag/search-knowledge-base";
+import type { getAssetPageTool } from "@/lib/ai/tools/rag/get-asset-page";
+import type { getPassagesTool } from "@/lib/ai/tools/rag/get-passages";
+import type { listRepositoryAssetsTool } from "@/lib/ai/tools/rag/list-repository-assets";
+import type { searchRepositoriesTool } from "@/lib/ai/tools/rag/search-repositories";
 import type { searchWebTool } from "@/lib/ai/tools/web/search-web";
 
 /**
- * Search Knowledge Base Tool Part
+ * Repository tool parts
  */
-type SearchKnowledgeBaseUITool = InferUITool<
-	ReturnType<typeof searchKnowledgeBaseTool>
+type SearchRepositoriesUITool = InferUITool<
+	ReturnType<typeof searchRepositoriesTool>
 >;
-export type SearchKnowledgeBaseToolPart = ToolUIPart<{
-	searchKnowledgeBase: SearchKnowledgeBaseUITool;
+export type SearchRepositoriesToolPart = ToolUIPart<{
+	searchRepositories: SearchRepositoriesUITool;
 }>;
 
-type GetKnowledgeBaseChunksUITool = InferUITool<
-	ReturnType<typeof getKnowledgeBaseChunksTool>
->;
-export type GetKnowledgeBaseChunksToolPart = ToolUIPart<{
-	getKnowledgeBaseChunks: GetKnowledgeBaseChunksUITool;
+type GetPassagesUITool = InferUITool<ReturnType<typeof getPassagesTool>>;
+export type GetPassagesToolPart = ToolUIPart<{
+	getPassages: GetPassagesUITool;
 }>;
 
-type ListKnowledgeBaseDocumentsUITool = InferUITool<
-	ReturnType<typeof listKnowledgeBaseDocumentsTool>
+type ListRepositoryAssetsUITool = InferUITool<
+	ReturnType<typeof listRepositoryAssetsTool>
 >;
-export type ListKnowledgeBaseDocumentsToolPart = ToolUIPart<{
-	listKnowledgeBaseDocuments: ListKnowledgeBaseDocumentsUITool;
+export type ListRepositoryAssetsToolPart = ToolUIPart<{
+	listRepositoryAssets: ListRepositoryAssetsUITool;
 }>;
 
-type GetKnowledgeBasePageUITool = InferUITool<
-	ReturnType<typeof getKnowledgeBasePageTool>
->;
-export type GetKnowledgeBasePageToolPart = ToolUIPart<{
-	getKnowledgeBasePage: GetKnowledgeBasePageUITool;
+type GetAssetPageUITool = InferUITool<ReturnType<typeof getAssetPageTool>>;
+export type GetAssetPageToolPart = ToolUIPart<{
+	getAssetPage: GetAssetPageUITool;
 }>;
 
 /**

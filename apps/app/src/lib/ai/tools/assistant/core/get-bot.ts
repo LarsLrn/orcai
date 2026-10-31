@@ -42,7 +42,7 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 							),
 						).pipe(
 							Effect.map(({ data }) => ({
-								template: data.templateBlock,
+								behaviour: data.templateBlock,
 								repositories: data.databaseBlocks.map((block) => ({
 									id: block.id,
 									name: block.name,
@@ -73,7 +73,7 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 								);
 
 								return {
-									template: template?.data ?? null,
+									behaviour: template?.data ?? null,
 									repositories: readable
 										.filter(({ data }) => data.type === "database")
 										.map(({ data, assets }) => ({
@@ -93,12 +93,12 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 					description: bot.description,
 					status: bot.status,
 					features: bot.features,
-					template: links.template
+					behaviour: links.behaviour
 						? {
 								type: "template" as const,
-								id: links.template.id,
-								name: links.template.name,
-								status: links.template.status,
+								id: links.behaviour.id,
+								name: links.behaviour.name,
+								status: links.behaviour.status,
 							}
 						: null,
 					repositories: links.repositories,

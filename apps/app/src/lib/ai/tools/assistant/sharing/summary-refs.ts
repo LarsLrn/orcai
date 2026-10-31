@@ -1,20 +1,20 @@
 import type { EntityRef } from "@/lib/ai/tools/entity-kind";
 import { m } from "@/paraglide/messages";
 
-export const resourceRef = (input: {
-	resourceType: "bot" | "block" | "asset";
-	resourceId: string;
+export const targetRef = (input: {
+	targetType: "bot" | "block" | "asset";
+	targetId: string;
 }): EntityRef => ({
-	kind: input.resourceType,
-	id: input.resourceId,
+	kind: input.targetType,
+	id: input.targetId,
 });
 
-export const principalRef = (principal: {
-	principalType: "user" | "group";
-	principalId: string;
+export const granteeRef = (grantee: {
+	granteeType: "user" | "group";
+	granteeId: string;
 }): EntityRef => ({
-	kind: principal.principalType === "user" ? "member" : "group",
-	id: principal.principalId,
+	kind: grantee.granteeType === "user" ? "member" : "group",
+	id: grantee.granteeId,
 });
 
 export const quoted = (name: string) =>

@@ -1138,7 +1138,7 @@ describe("turn setup", () => {
 		]);
 
 		expect(plain).toBeGreaterThan(0);
-		// The knowledge base tools and their guidance, which a plain chat does not send.
+		// The repository tools and their guidance, which a plain chat does not send.
 		expect(withRepository - plain).toBeGreaterThan(1_000);
 	});
 
@@ -1176,7 +1176,7 @@ describe("turn setup", () => {
 			{
 				calls: [
 					{
-						name: "searchKnowledgeBase",
+						name: "searchRepositories",
 						input: {
 							query: "refunds",
 						},

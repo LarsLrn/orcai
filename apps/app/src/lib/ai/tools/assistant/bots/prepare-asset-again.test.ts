@@ -17,14 +17,14 @@ beforeEach(() => {
 		});
 });
 
-const { retryAssetTool } = await import("./retry-asset");
+const { prepareAssetAgainTool } = await import("./prepare-asset-again");
 const { createAssistantTurn } = await import("../turn-state");
 
 const assetId = crypto.randomUUID() as AssetId;
 const repositoryId = crypto.randomUUID() as BlockId;
 
 const run = (input: { assetId: AssetId; repositoryId?: BlockId }) =>
-	retryAssetTool({
+	prepareAssetAgainTool({
 		context: {} as ORPCContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
@@ -36,7 +36,7 @@ const run = (input: { assetId: AssetId; repositoryId?: BlockId }) =>
 		messages: [],
 	} as never);
 
-describe("retryAssetTool", () => {
+describe("prepareAssetAgainTool", () => {
 	test("without a repository it retries processing", async () => {
 		expect(
 			await run({

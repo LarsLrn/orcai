@@ -1,15 +1,15 @@
 import { searchOutputSchema } from "@/lib/ai/tools/rag/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { SearchKnowledgeBaseToolPart } from "@/lib/ai/types/tools";
+import type { SearchRepositoriesToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import { SourcePassages } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
 
-export const SearchKnowledgeBase = ({
+export const SearchRepositories = ({
 	part,
 	status,
 }: {
-	part: SearchKnowledgeBaseToolPart;
+	part: SearchRepositoriesToolPart;
 	status: ToolStatus | null;
 }) => {
 	const results = searchOutputSchema.safeParse(part.output).data?.results ?? [];

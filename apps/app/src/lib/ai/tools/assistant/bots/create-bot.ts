@@ -23,7 +23,7 @@ export const createBotInputSchema = z.strictObject({
 	description: botFieldsSchema.shape.description.describe(
 		"Short plain-text description shown with the bot, up to 500 characters.",
 	),
-	templateId: blockIdSchema
+	behaviourId: blockIdSchema
 		.optional()
 		.describe("Id of the behaviour block (template) the bot uses."),
 	repositoryIds: z
@@ -47,7 +47,7 @@ export const createBotPayload = (
 	contentJson: {},
 	contentHtml: "",
 	status: "draft",
-	templateBlockId: input.templateId ?? null,
+	templateBlockId: input.behaviourId ?? null,
 	databaseBlockIds: input.repositoryIds ?? [],
 	features: input.features ?? {},
 	listBlockIds: [],

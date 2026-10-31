@@ -76,13 +76,13 @@ const contentToolNames = [
 	"showMatrix",
 ];
 
-// A Checklist turn, a knowledge-base turn, then a turn with every primitive.
+// A Checklist turn, a repository turn, then a turn with every primitive.
 const history: ModelMessage[] = [
 	user("check it"),
 	...call("showChecklist", "c1"),
 	text("done 1"),
 	user("look it up"),
-	...call("searchKnowledgeBase", "s1"),
+	...call("searchRepositories", "s1"),
 	text("done 2"),
 	user("check again"),
 	...call("showChecklist", "c2"),
@@ -116,8 +116,8 @@ describe("pruneToolHistory", () => {
 			"user check it",
 			"assistant done 1",
 			"user look it up",
-			"call searchKnowledgeBase s1",
-			"result searchKnowledgeBase s1",
+			"call searchRepositories s1",
+			"result searchRepositories s1",
 			"assistant done 2",
 			"user check again",
 			"assistant done 3",
@@ -125,14 +125,14 @@ describe("pruneToolHistory", () => {
 		]);
 	});
 
-	test("prunes knowledge-base calls before the latest one", () => {
+	test("prunes repository calls before the latest one", () => {
 		const messages = [
 			user("first"),
-			...call("searchKnowledgeBase", "s1"),
+			...call("searchRepositories", "s1"),
 			text("one"),
 			user("second"),
 			...call("showChecklist", "c1"),
-			...call("getKnowledgeBaseChunks", "g1"),
+			...call("getPassages", "g1"),
 			text("two"),
 			user("third"),
 			...call("showChecklist", "c2"),
@@ -155,8 +155,8 @@ describe("pruneToolHistory", () => {
 			"user second",
 			"call showChecklist c1",
 			"result showChecklist c1",
-			"call getKnowledgeBaseChunks g1",
-			"result getKnowledgeBaseChunks g1",
+			"call getPassages g1",
+			"result getPassages g1",
 			"assistant two",
 			"user third",
 			"call showChecklist c2",
@@ -224,9 +224,9 @@ describe("pruneChatHistory", () => {
 
 	test("prunes finished turns and leaves the turn in progress as sent", () => {
 		const turn = [
-			...call("searchKnowledgeBase", "s2"),
+			...call("searchRepositories", "s2"),
 			...call("showChecklist", "c2"),
-			...call("getKnowledgeBaseChunks", "g1"),
+			...call("getPassages", "g1"),
 		];
 		const options = {
 			contentToolNames,
@@ -235,8 +235,8 @@ describe("pruneChatHistory", () => {
 		const pruned = pruneChatHistory(
 			[
 				user("first"),
-				...call("searchKnowledgeBase", "s1"),
-				...call("searchKnowledgeBase", "s0"),
+				...call("searchRepositories", "s1"),
+				...call("searchRepositories", "s0"),
 				text("one"),
 				user("second"),
 				...turn,
@@ -246,8 +246,8 @@ describe("pruneChatHistory", () => {
 
 		expect(summarize(pruned)).toEqual([
 			"user first",
-			"call searchKnowledgeBase s0",
-			"result searchKnowledgeBase s0",
+			"call searchRepositories s0",
+			"result searchRepositories s0",
 			"assistant one",
 			"user second",
 			...summarize(turn),

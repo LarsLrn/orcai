@@ -29,7 +29,7 @@ export const updateBotInputSchema = z.strictObject({
 		.describe(
 			"Short plain-text description shown with the bot, up to 500 characters. Leave out to keep the current one.",
 		),
-	templateId: blockIdSchema
+	behaviourId: blockIdSchema
 		.nullable()
 		.optional()
 		.describe(
@@ -80,9 +80,9 @@ export const updateBotPayload = (
 	contentHtml: current.contentHtml,
 	status: current.status,
 	templateBlockId:
-		input.templateId === undefined
+		input.behaviourId === undefined
 			? (current.templateBlock?.id ?? null)
-			: input.templateId,
+			: input.behaviourId,
 	databaseBlockIds:
 		input.repositoryIds ?? current.databaseBlocks.map((block) => block.id),
 	features: input.features ?? current.features,

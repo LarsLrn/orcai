@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
-	chunksModelOutput,
 	listModelOutput,
 	pageModelOutput,
+	passagesModelOutput,
 	searchModelOutput,
 } from "./outputs";
 import type { Passage } from "./types";
@@ -22,7 +22,7 @@ const passage = (fields: Partial<Passage> = {}): Passage => ({
 
 const text = (output: { type: string; value?: unknown }) => output.value;
 
-describe("knowledge base model output", () => {
+describe("repository model output", () => {
 	test("search reads as one block per passage", () => {
 		expect(
 			text(
@@ -81,7 +81,7 @@ describe("knowledge base model output", () => {
 	test("chunks name what was not found", () => {
 		expect(
 			text(
-				chunksModelOutput({
+				passagesModelOutput({
 					output: {
 						passages: [
 							passage(),
@@ -134,7 +134,7 @@ describe("knowledge base model output", () => {
 				pageModelOutput({
 					output: {
 						passages: [],
-						matchedDocuments: [
+						matchedAssets: [
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
@@ -160,7 +160,7 @@ describe("knowledge base model output", () => {
 			text(
 				listModelOutput({
 					output: {
-						documents: [
+						assets: [
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
@@ -198,7 +198,7 @@ describe("knowledge base model output", () => {
 			text(
 				listModelOutput({
 					output: {
-						documents: [
+						assets: [
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
@@ -265,7 +265,7 @@ describe("knowledge base model output", () => {
 		});
 		expect(
 			text(
-				chunksModelOutput({
+				passagesModelOutput({
 					output: {
 						chunks: [],
 					},

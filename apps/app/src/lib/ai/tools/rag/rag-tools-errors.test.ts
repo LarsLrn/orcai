@@ -6,14 +6,10 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, resetProcedures } from "../assistant/test-procedures";
 import { chunkIds } from "./chunk-ref";
 
-const { getKnowledgeBaseChunksTool } = await import(
-	"./get-knowledge-base-chunk"
-);
-const { getKnowledgeBasePageTool } = await import("./get-knowledge-base-page");
-const { listKnowledgeBaseDocumentsTool } = await import(
-	"./list-knowledge-base-documents"
-);
-const { searchKnowledgeBaseTool } = await import("./search-knowledge-base");
+const { getPassagesTool } = await import("./get-passages");
+const { getAssetPageTool } = await import("./get-asset-page");
+const { listRepositoryAssetsTool } = await import("./list-repository-assets");
+const { searchRepositoriesTool } = await import("./search-repositories");
 
 const deps = {
 	blocks: [
@@ -62,9 +58,9 @@ beforeEach(() => {
 
 afterEach(resetProcedures);
 
-describe("knowledge base tool errors", () => {
+describe("repository tool errors", () => {
 	test("a search without a query says what to provide", async () => {
-		const run = searchKnowledgeBaseTool(deps).execute?.({}, options);
+		const run = searchRepositoriesTool(deps).execute?.({}, options);
 
 		expect(await errorText(run as Promise<unknown>)).toBe(
 			"INVALID_TOOL_INPUT: Provide query or queryVariants.",
@@ -72,7 +68,7 @@ describe("knowledge base tool errors", () => {
 	});
 
 	test("a search by the dropped queries alias says what to provide", async () => {
-		const run = searchKnowledgeBaseTool(deps).execute?.(
+		const run = searchRepositoriesTool(deps).execute?.(
 			{
 				queries: [
 					"refund policy",
@@ -89,7 +85,7 @@ describe("knowledge base tool errors", () => {
 	test("a failed search keeps the procedure's reason", async () => {
 		answers["assetPoint.searchRepository"] = denied;
 
-		const run = searchKnowledgeBaseTool(deps).execute?.(
+		const run = searchRepositoriesTool(deps).execute?.(
 			{
 				query: "refund policy",
 			},
@@ -104,9 +100,9 @@ describe("knowledge base tool errors", () => {
 	test("a failed chunk read keeps the procedure's reason", async () => {
 		answers["assetPoint.searchRepository"] = denied;
 
-		const run = getKnowledgeBaseChunksTool(deps).execute?.(
+		const run = getPassagesTool(deps).execute?.(
 			{
-				chunks: [
+				passages: [
 					"101",
 				],
 				neighbours: 0,
@@ -122,7 +118,7 @@ describe("knowledge base tool errors", () => {
 	test("a failed document lookup keeps the procedure's reason", async () => {
 		answers["block.readiness"] = denied;
 
-		const run = listKnowledgeBaseDocumentsTool(deps).execute?.(
+		const run = listRepositoryAssetsTool(deps).execute?.(
 			{
 				limit: 30,
 			},
@@ -137,7 +133,7 @@ describe("knowledge base tool errors", () => {
 	test("a failed page read keeps the procedure's reason", async () => {
 		answers["block.readiness"] = denied;
 
-		const run = getKnowledgeBasePageTool(deps).execute?.(
+		const run = getAssetPageTool(deps).execute?.(
 			{
 				page: 1,
 				includeAdjacentPages: 0,
@@ -155,7 +151,7 @@ describe("knowledge base tool errors", () => {
 		answers["assetPoint.searchRepository"] = () =>
 			Effect.die(new Error("connection to qdrant:6333 refused"));
 
-		const run = searchKnowledgeBaseTool(deps).execute?.(
+		const run = searchRepositoriesTool(deps).execute?.(
 			{
 				query: "refund policy",
 			},

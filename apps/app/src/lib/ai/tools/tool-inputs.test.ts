@@ -9,7 +9,7 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import "./assistant/test-procedures";
 import { createAssistantTurn } from "./assistant/turn-state";
 import { buildQuestionTools } from "./questions/toolset";
-import { buildKnowledgeBaseTools } from "./rag/toolset";
+import { buildRepositoryTools } from "./rag/toolset";
 import { storedWebSearchTools } from "./web/toolset";
 
 const { buildAssistantTools } = await import("./assistant/toolset");
@@ -60,7 +60,7 @@ const featureTools: ToolSet = Object.assign(
 
 // The native search call is the provider's, which never validates it.
 const { [NATIVE_WEB_SEARCH_TOOL_NAME]: _, ...chatTools }: ToolSet = {
-	...buildKnowledgeBaseTools({
+	...buildRepositoryTools({
 		blocks: [],
 		context,
 		history: [],

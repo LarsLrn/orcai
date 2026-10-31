@@ -27,7 +27,7 @@ export type PlanItemInput = string | PlanItem;
 /** The tools that stay hidden until the user approved a plan. */
 export const CREATE_TOOLS = [
 	"createBot",
-	"createTemplate",
+	"createBehaviour",
 	"createRepository",
 	"createGroup",
 ];

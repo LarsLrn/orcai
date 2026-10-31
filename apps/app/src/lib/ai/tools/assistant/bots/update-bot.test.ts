@@ -110,7 +110,7 @@ describe("updateBotPayload", () => {
 					id: botId,
 					name: "Citation check",
 					description: "Checks citations.",
-					templateId: otherTemplateId,
+					behaviourId: otherTemplateId,
 					repositoryIds: [
 						otherRepositoryId,
 					],
@@ -136,7 +136,7 @@ describe("updateBotPayload", () => {
 					id: botId,
 					name: "Citation check",
 					description: "Checks citations.",
-					templateId: null,
+					behaviourId: null,
 				},
 				editor,
 			).templateBlockId,
@@ -206,7 +206,7 @@ describe("updateBotTool", () => {
 		expect(output).toMatchObject({
 			type: "bot",
 			id: botId,
-			template: {
+			behaviour: {
 				type: "template",
 				id: templateId,
 				name: "Strict",
