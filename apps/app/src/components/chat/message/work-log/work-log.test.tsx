@@ -70,6 +70,35 @@ describe("ReasoningEntry", () => {
 		rerender(<ReasoningEntry part={part} live={false} />);
 		expect(screen.queryByText(m.chat_work_log_thinking())).toBeNull();
 	});
+
+	test("offers the toggle once streamed text overflows the clamped box", () => {
+		const { rerender } = render(<ReasoningEntry part={part} live />);
+		const text = screen.getByText(part.text);
+		const showMore = () =>
+			screen.queryByRole("button", {
+				name: m.chat_work_log_clamped_text_show_more(),
+			});
+		expect(showMore()).toBeNull();
+
+		Object.defineProperty(text, "scrollHeight", {
+			configurable: true,
+			value: 120,
+		});
+		Object.defineProperty(text, "clientHeight", {
+			configurable: true,
+			value: 60,
+		});
+		rerender(
+			<ReasoningEntry
+				part={{
+					...part,
+					text: "a longer thought",
+				}}
+				live
+			/>,
+		);
+		expect(showMore()).not.toBeNull();
+	});
 });
 
 describe("SearchKnowledgeBase", () => {
