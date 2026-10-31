@@ -52,43 +52,42 @@ const DataTableBulkActions = <TData extends RowData>({
 		selectedRows,
 		table,
 	};
-	const isVisible = selectedCount > 0 && actions.length > 0;
+
+	if (selectedCount === 0 || actions.length === 0) {
+		return null;
+	}
 
 	return (
-		<div className="flex min-w-36 items-center justify-end gap-2">
-			{isVisible && (
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={
-							<Button
-								variant="outline"
-								size="sm"
-								className="h-8"
-								loading={isPending}
-								aria-label={m.data_table_bulk_actions_trigger()}
-							>
-								<ReplaceAllIcon />
-								{m.common_selected_count({
-									count: selectedCount,
-								})}
-							</Button>
-						}
-					/>
-					<DropdownMenuContent align="end" className="w-50">
-						{actions.map((action) => (
-							<DropdownMenuItem
-								key={action.label}
-								variant={action.variant}
-								disabled={isPending || resolveDisabled(action, context)}
-								onClick={() => action.onSelect(context)}
-							>
-								{action.label}
-							</DropdownMenuItem>
-						))}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			)}
-		</div>
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				render={
+					<Button
+						variant="outline"
+						size="sm"
+						className="h-8"
+						loading={isPending}
+						aria-label={m.data_table_bulk_actions_trigger()}
+					>
+						<ReplaceAllIcon />
+						{m.common_selected_count({
+							count: selectedCount,
+						})}
+					</Button>
+				}
+			/>
+			<DropdownMenuContent align="end" className="w-50">
+				{actions.map((action) => (
+					<DropdownMenuItem
+						key={action.label}
+						variant={action.variant}
+						disabled={isPending || resolveDisabled(action, context)}
+						onClick={() => action.onSelect(context)}
+					>
+						{action.label}
+					</DropdownMenuItem>
+				))}
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };
 

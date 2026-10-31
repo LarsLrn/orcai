@@ -17,7 +17,6 @@ import {
 	DataTableToolbar,
 	DataTableToolbarActions,
 } from "@/components/ui/data-table/data-table-toolbar";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
 	PageAction,
@@ -124,7 +123,6 @@ function RouteComponent() {
 							placeholder={m.members_list_search_placeholder()}
 						/>
 						<DataTableToolbarActions>
-							<DataTableViewOptions />
 							<MembersDataTableSelectActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>

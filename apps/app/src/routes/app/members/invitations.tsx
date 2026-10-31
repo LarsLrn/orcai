@@ -15,7 +15,6 @@ import {
 	DataTableToolbar,
 	DataTableToolbarActions,
 } from "@/components/ui/data-table/data-table-toolbar";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
 	PageAction,
@@ -118,7 +117,6 @@ function RouteComponent() {
 				>
 					<DataTableToolbar>
 						<DataTableToolbarActions>
-							<DataTableViewOptions />
 							<InvitationsTableActions />
 							<DataTableExportButton fileName="invitations" />
 						</DataTableToolbarActions>

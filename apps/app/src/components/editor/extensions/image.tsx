@@ -383,8 +383,8 @@ function TiptapImage(props: NodeViewProps) {
 										<ImageIcon className="mr-2 size-4" />{" "}
 										{m.editor_image_replace_action()}
 									</DropdownMenuSubTrigger>
-									<DropdownMenuSubContent className="w-fit min-w-52 p-2">
-										<div className="space-y-4">
+									<DropdownMenuSubContent className="w-fit min-w-52">
+										<div className="space-y-4 p-0.5">
 											<div>
 												<p className="mb-2 font-medium text-xs">
 													{m.editor_image_url_label()}

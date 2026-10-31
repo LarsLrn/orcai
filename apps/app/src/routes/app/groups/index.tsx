@@ -19,7 +19,6 @@ import {
 	DataTableToolbar,
 	DataTableToolbarActions,
 } from "@/components/ui/data-table/data-table-toolbar";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Dialog,
 	DialogContent,
@@ -165,7 +164,6 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch placeholder={m.groups_list_search_placeholder()} />
 						<DataTableToolbarActions>
-							<DataTableViewOptions />
 							<GroupTableActions />
 						</DataTableToolbarActions>
 					</DataTableToolbar>

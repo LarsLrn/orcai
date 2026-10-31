@@ -40,7 +40,6 @@ import {
 	DataTableToolbar,
 	DataTableToolbarActions,
 } from "@/components/ui/data-table/data-table-toolbar";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import { Separator } from "@/components/ui/separator";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
@@ -389,7 +388,6 @@ function RouteComponent() {
 									placeholder={m.providers_detail_models_search_placeholder()}
 								/>
 								<DataTableToolbarActions>
-									<DataTableViewOptions />
 									<ModelTableActions />
 								</DataTableToolbarActions>
 							</DataTableToolbar>

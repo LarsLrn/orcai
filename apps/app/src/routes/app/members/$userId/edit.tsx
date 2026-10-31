@@ -39,7 +39,6 @@ import {
 	DataTableToolbar,
 	DataTableToolbarActions,
 } from "@/components/ui/data-table/data-table-toolbar";
-import { DataTableViewOptions } from "@/components/ui/data-table/data-table-view-options";
 import {
 	Page,
 	PageContent,
@@ -289,9 +288,7 @@ function RouteComponent() {
 									})
 								}
 							/>
-							<DataTableToolbarActions>
-								<DataTableViewOptions />
-							</DataTableToolbarActions>
+							<DataTableToolbarActions />
 						</DataTableToolbar>
 						<DataTableBody
 							empty={{
