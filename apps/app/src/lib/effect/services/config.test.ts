@@ -191,4 +191,44 @@ describe("resolveDeploymentConfig", () => {
 			});
 		}
 	});
+
+	test("passes a valid feedback address to the public config", () => {
+		expect(
+			resolveDeploymentConfig({
+				feedbackEmail: "feedback@example.org",
+			}),
+		).toEqual({
+			docs: undefined,
+			publicConfig: {
+				feedbackEmail: "feedback@example.org",
+			},
+			warnings: [],
+		});
+	});
+
+	test("ignores an invalid feedback address and warns", () => {
+		expect(
+			resolveDeploymentConfig({
+				feedbackEmail: "not an address",
+			}),
+		).toEqual({
+			docs: undefined,
+			publicConfig: {},
+			warnings: [
+				"FEEDBACK_EMAIL is not a valid email address and is ignored, so the tour names no feedback address.",
+			],
+		});
+	});
+
+	test("counts an empty feedback address as unset", () => {
+		expect(
+			resolveDeploymentConfig({
+				feedbackEmail: "",
+			}),
+		).toEqual({
+			docs: undefined,
+			publicConfig: {},
+			warnings: [],
+		});
+	});
 });

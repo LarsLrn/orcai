@@ -11,6 +11,7 @@ import { m } from "@/paraglide/messages";
 
 const setTourState = mock(async (_input: unknown) => ({}));
 let storedTours: Record<string, string> = {};
+let feedbackEmail: string | undefined;
 const trackEvent = mock((_name: string, _data?: unknown) => undefined);
 
 mock.module("@/lib/orpc/orpc", () => ({
@@ -39,6 +40,11 @@ mock.module("@/lib/orpc/orpc", () => ({
 		},
 	},
 }));
+mock.module("@/hooks/use-public-config", () => ({
+	usePublicConfig: () => ({
+		feedbackEmail,
+	}),
+}));
 mock.module("@/hooks/use-umami", () => ({
 	useUmami: () => ({
 		trackEvent,
@@ -54,6 +60,7 @@ const { tourSteps } = await import("@/components/tour/tours");
 afterEach(() => {
 	cleanup();
 	storedTours = {};
+	feedbackEmail = undefined;
 	setTourState.mockClear();
 	trackEvent.mockClear();
 });
@@ -157,7 +164,7 @@ describe("TourProvider", () => {
 	test("finishing the last step completes the tour", async () => {
 		const dialog = startTour("chat");
 
-		for (const _ of tourSteps("chatTour").slice(1)) {
+		for (const _ of tourSteps("chatTour", {}).slice(1)) {
 			click(m.common_next_button());
 		}
 		expect(
@@ -176,6 +183,34 @@ describe("TourProvider", () => {
 		});
 		expect(trackEvent).toHaveBeenCalledWith("tour-completed", {
 			tour: "chatTour",
+		});
+	});
+
+	describe("last card of the initial tour", () => {
+		const lastCard = () => {
+			startTour("initial");
+			for (let i = 1; i < 6; i++) click(m.common_next_button());
+		};
+
+		test("asks for feedback with a mailto link when the instance has an address", () => {
+			feedbackEmail = "feedback@example.org";
+			lastCard();
+
+			expect(screen.getByText(/looks forward to your feedback/)).toBeDefined();
+			expect(
+				screen
+					.getByRole("link", {
+						name: "feedback@example.org",
+					})
+					.getAttribute("href"),
+			).toBe("mailto:feedback@example.org");
+		});
+
+		test("names no address without one", () => {
+			lastCard();
+
+			expect(screen.queryByText(/looks forward to your feedback/)).toBeNull();
+			expect(screen.queryByRole("link")).toBeNull();
 		});
 	});
 });

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { TourCard } from "@/components/tour/tour-card";
 import { type TourId, tourSteps } from "@/components/tour/tours";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { usePublicConfig } from "@/hooks/use-public-config";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -88,6 +89,7 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
 	const [ended, setEnded] = useState<ReadonlySet<TourId>>(new Set());
 	const primaryRef = useRef<HTMLButtonElement>(null);
 	const { trackEvent } = useUmami();
+	const { feedbackEmail } = usePublicConfig();
 	const { mutate: setTourState } = useMutation(
 		orpc.user.setTourState.mutationOptions(),
 	);
@@ -100,7 +102,11 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
 		});
 	}, []);
 
-	const steps = state ? tourSteps(state.tour) : [];
+	const steps = state
+		? tourSteps(state.tour, {
+				feedbackEmail,
+			})
+		: [];
 	const step = state ? steps[state.step] : undefined;
 
 	const goTo = (index: number) => {

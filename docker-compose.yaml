@@ -134,6 +134,9 @@ services:
       UMAMI_SCRIPT_URL: ${UMAMI_SCRIPT_URL:-}
       UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
 
+      # Feedback address named on the last card of the tour
+      FEEDBACK_EMAIL: ${FEEDBACK_EMAIL:-}
+
       # Open Telemetry
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
