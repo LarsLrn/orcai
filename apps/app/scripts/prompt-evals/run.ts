@@ -16,11 +16,12 @@ const CASES: EvalCase[] = [
 	...backgroundCases,
 ];
 
-/** A Claude, a GPT and a small open-weight model, the kind a self-hosted instance runs. */
+/** A Claude, a GPT and two small open-weight models, the kind a self-hosted instance runs. */
 const DEFAULT_MODELS = [
 	"anthropic/claude-haiku-5.5",
 	"openai/gpt-6-luna",
 	"google/gemma-4-26b-a4b-it",
+	"qwen/qwen3.6-35b-a3b",
 ];
 
 /** Grades what code cannot; it must differ from every model under test. */

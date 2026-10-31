@@ -1,6 +1,6 @@
 # Prompt evals
 
-`bun run prompt-evals` sends about 30 cases to three models through OpenRouter, three samples each, and prints a pass-rate table. It runs on demand for prompt changes and never in CI, because every run costs money and real models vary between runs.
+`bun run prompt-evals` sends about 30 cases to four models through OpenRouter, three samples each, and prints a pass-rate table. It runs on demand for prompt changes and never in CI, because every run costs money and real models vary between runs.
 
 ## Running
 
@@ -19,7 +19,7 @@ A full run costs about $0.30. For a prompt PR, run on the unchanged code first, 
 
 ## Models
 
-The defaults are `anthropic/claude-haiku-5.5`, `openai/gpt-6-luna` and `google/gemma-4-26b-a4b-it`: one small, cheap model per vendor family, the last an open-weight model of the size a self-hosted instance runs. A run with them is a cheap smoke test of a prompt change and says nothing about other models. Before claiming that a prompt works on a model a deployment uses, run the cases on that model with `--models`. Every call goes through the `openai-compatible` provider kind, the most limited one, so a JSON-mode request carries no schema and the whole system prompt is one message.
+The defaults are `anthropic/claude-haiku-5.5`, `openai/gpt-6-luna`, `google/gemma-4-26b-a4b-it` and `qwen/qwen3.6-35b-a3b`: one small, cheap model per vendor family, the last two open-weight models of the size a self-hosted instance runs. A run with them is a cheap smoke test of a prompt change and says nothing about other models. Before claiming that a prompt works on a model a deployment uses, run the cases on that model with `--models`. Every call goes through the `openai-compatible` provider kind, the most limited one, so a JSON-mode request carries no schema and the whole system prompt is one message.
 
 ## What a run builds
 
