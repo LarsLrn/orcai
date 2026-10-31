@@ -25,6 +25,8 @@ export const generateAssetMetadataPayloadSchema = z.object({
 	mode: metadataGenerationModeSchema,
 	/** The activity run that admitted the work; none for automatic work. */
 	runId: activityRunIdSchema.optional(),
+	/** Set once the generation had the file prepared again for a missing extraction. */
+	preparedAgain: z.literal(true).optional(),
 });
 
 export type GenerateAssetMetadataPayload = z.infer<

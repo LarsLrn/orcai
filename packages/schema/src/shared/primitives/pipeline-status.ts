@@ -12,7 +12,12 @@ export const pipelineStatusSchema = z.enum(PIPELINE_STATUSES);
 
 export type PipelineStatus = z.infer<typeof pipelineStatusSchema>;
 
-/** Why a pipeline failed. `unsupported`, `empty` and `quota` fail at once, since retrying right away cannot help. */
+/**
+ * Why a pipeline failed. `model` is a provider error, `answer` an answer that
+ * does not fit its schema, `output_limit` an answer cut off at its output
+ * budget, `missing_extraction` a stored extraction that is gone. Only
+ * `extraction`, `timeout`, `model`, `answer` and `other` retry on their own.
+ */
 export const PIPELINE_FAILURES = [
 	"unsupported",
 	"empty",
@@ -20,6 +25,10 @@ export const PIPELINE_FAILURES = [
 	"timeout",
 	"quota",
 	"other",
+	"model",
+	"answer",
+	"output_limit",
+	"missing_extraction",
 ] as const;
 
 export const pipelineFailureSchema = z.enum(PIPELINE_FAILURES);
@@ -30,6 +39,13 @@ export type PipelineFailure = z.infer<typeof pipelineFailureSchema>;
 export const isRetryableFailure = (failure: PipelineFailure) =>
 	failure !== "unsupported" && failure !== "empty";
 
-/** Whether the job retries on its own; a used-up quota waits for its pool to reset. */
+/**
+ * Whether the job retries on its own. A used-up quota waits for its pool to
+ * reset, the same budget is cut off again, and a missing extraction already
+ * had its file prepared again.
+ */
 export const isTransientFailure = (failure: PipelineFailure) =>
-	isRetryableFailure(failure) && failure !== "quota";
+	isRetryableFailure(failure) &&
+	failure !== "quota" &&
+	failure !== "output_limit" &&
+	failure !== "missing_extraction";

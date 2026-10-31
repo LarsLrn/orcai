@@ -9,6 +9,7 @@ import {
 	readImageAssetDescription,
 	type UtilityModel,
 	utilityModel,
+	utilityReasoning,
 } from "@orcai/ai";
 import {
 	type AssetId,
@@ -25,7 +26,7 @@ import { getImageAsBase64 } from "@orcai/s3/server";
 import type { Locale } from "@orcai/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { summarizeErrorCause } from "@/asset/error-summary";
+import { modelCallFailure, summarizeErrorCause } from "@/asset/error-summary";
 import { AssetPipelineError } from "@/asset/pipeline-attempt";
 
 /** A description that takes longer counts as failed. */
@@ -132,6 +133,7 @@ const describe = (params: {
 				params.instructions,
 			],
 			maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
+			reasoning: utilityReasoning(params.model.kind),
 			timeoutMs: IMAGE_DESCRIPTION_TIMEOUT_MS,
 		}).pipe(
 			Effect.mapError((error) =>
@@ -183,10 +185,7 @@ export const readImageAsset = (params: {
 		}).pipe(
 			Effect.mapError((error) =>
 				error instanceof AiError
-					? new AssetPipelineError({
-							failure: "other",
-							cause: summarizeErrorCause(error),
-						})
+					? modelCallFailure(error, IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS)
 					: error,
 			),
 		);

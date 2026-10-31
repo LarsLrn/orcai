@@ -19,9 +19,10 @@ export const suggestion = {
 	language: "en",
 };
 
-/** What the endpoint answers JSON mode with; a test may replace it. */
+/** What the endpoint answers JSON mode with; a test may replace it, or cut it off at the budget. */
 export const jsonAnswer: {
 	value: unknown;
+	cutOff?: boolean;
 } = {
 	value: suggestion,
 };
@@ -69,11 +70,13 @@ const inference = serve({
 					index: 0,
 					message: {
 						role: "assistant",
-						content: body.response_format
-							? JSON.stringify(jsonAnswer.value)
-							: "A photo of a lighthouse.",
+						content: jsonAnswer.cutOff
+							? ""
+							: body.response_format
+								? JSON.stringify(jsonAnswer.value)
+								: "A photo of a lighthouse.",
 					},
-					finish_reason: "stop",
+					finish_reason: jsonAnswer.cutOff ? "length" : "stop",
 				},
 			],
 			usage: {

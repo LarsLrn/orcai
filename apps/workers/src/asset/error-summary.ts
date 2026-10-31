@@ -1,4 +1,6 @@
+import { type AiError, aiFailure, failedReply } from "@orcai/ai";
 import { PgBossError } from "@orcai/pg-boss";
+import { AssetPipelineError } from "@/asset/pipeline-attempt";
 
 const MAX_ERROR_MESSAGE_LENGTH = 320;
 
@@ -111,4 +113,15 @@ export const toSanitizedPgBossRunError = (cause: unknown) =>
 	new PgBossError({
 		operation: "run",
 		cause: summarizeErrorCause(cause),
+	});
+
+/** A failed model call as the asset's failure, with what its reply says for the log. */
+export const modelCallFailure = (error: AiError, maxOutputTokens: number) =>
+	new AssetPipelineError({
+		failure: aiFailure(error),
+		cause: {
+			...summarizeErrorCause(error),
+			...failedReply(error),
+			maxOutputTokens,
+		},
 	});

@@ -255,6 +255,10 @@ const failureReasons: Record<PipelineFailure, () => string> = {
 	timeout: m.pipeline_failure_timeout,
 	quota: m.pipeline_failure_quota,
 	other: m.pipeline_failure_other,
+	model: m.pipeline_failure_model,
+	answer: m.pipeline_failure_answer,
+	output_limit: m.pipeline_failure_output_limit,
+	missing_extraction: m.pipeline_failure_missing_extraction,
 };
 
 /** A failure's muted line: its organisation and why it failed, when known. */
