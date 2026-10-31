@@ -45,6 +45,10 @@ export {
 } from "./provider-key";
 export { COMPACTION_INSTRUCTIONS } from "./provider-kinds/compaction";
 export {
+	ModelListingError,
+	type ModelListingFailure,
+} from "./provider-kinds/listing-error";
+export {
 	buildSystemInstructions,
 	createProviderLanguageModel,
 	listProviderModels,

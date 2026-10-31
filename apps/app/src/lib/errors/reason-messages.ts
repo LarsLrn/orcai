@@ -169,6 +169,11 @@ const reasonMessages: ReasonMessages = {
 	PROVIDER_METERING_MODE_NOT_ALLOWED:
 		m.error_provider_metering_mode_not_allowed,
 	PROVIDER_MODELS_FETCH_FAILED: m.error_provider_models_fetch_failed,
+	PROVIDER_MODELS_KEY_REJECTED: m.error_provider_models_key_rejected,
+	PROVIDER_MODELS_LISTING_UNSUPPORTED:
+		m.error_provider_models_listing_unsupported,
+	PROVIDER_MODELS_RESPONSE_INVALID: m.error_provider_models_response_invalid,
+	PROVIDER_MODELS_UNREACHABLE: m.error_provider_models_unreachable,
 	PROVIDER_NOT_FOUND: m.error_provider_not_found,
 	PROVIDER_PURPOSE_MISMATCH: m.error_provider_purpose_mismatch,
 	PROVIDER_SEARCH_PRICE_NOT_ALLOWED: m.error_provider_search_price_not_allowed,

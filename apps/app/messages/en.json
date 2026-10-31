@@ -3257,6 +3257,10 @@
 	"error_provider_currency_not_allowed": "A provider that reports its cost bills in USD.",
 	"error_provider_search_price_not_allowed": "Only search providers have a price per search.",
 	"error_provider_models_fetch_failed": "Models could not be fetched from the provider.",
+	"error_provider_models_key_rejected": "The provider rejected the API key, so check that it is valid and has not expired.",
+	"error_provider_models_listing_unsupported": "This endpoint does not offer a model list, but you can still add its models by hand.",
+	"error_provider_models_response_invalid": "The provider answered with a model list that could not be read.",
+	"error_provider_models_unreachable": "The provider could not be reached, so check the endpoint and try again later.",
 	"error_provider_not_found": "Provider not found.",
 	"error_provider_purpose_mismatch": "This provider cannot be used here, because models need a model provider and web search needs a search provider.",
 	"error_quota_check_failed": "The quota check failed.",
@@ -4161,6 +4165,7 @@
 	"models_discover_error_title": "Discovery failed",
 	"models_discover_no_providers_description": "Add a provider first, then discover its models.",
 	"models_discover_no_providers_title": "No providers available",
+	"models_discover_provider_dialog_description": "Read the models this provider offers and add the ones that are new.",
 	"models_discover_provider_field_description": "Select the provider to discover models from.",
 	"models_discover_provider_placeholder": "Select a provider",
 	"models_discover_success_description": [

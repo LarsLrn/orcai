@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { z } from "zod/v4";
 import { MetadataCard } from "@/components/app/metadata-card";
+import { DiscoverModels } from "@/components/model/discover-models";
 import { ModelTableActions } from "@/components/model/table/model-table-actions";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
 import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
@@ -52,6 +53,7 @@ import {
 } from "@/components/ui/shell/page";
 import {
 	Section,
+	SectionAction,
 	SectionDescription,
 	SectionHeader,
 	SectionTitle,
@@ -368,6 +370,9 @@ function RouteComponent() {
 							<SectionDescription>
 								{m.providers_detail_connected_models_description()}
 							</SectionDescription>
+							<SectionAction>
+								<DiscoverModels fixedProviderId={provider.id} />
+							</SectionAction>
 						</SectionHeader>
 						<DataTable
 							data={models.data}

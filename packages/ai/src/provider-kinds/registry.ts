@@ -10,6 +10,7 @@ import type { SystemModelMessage, Tool, ToolResultPart } from "ai";
 import { COMPACTION_INSTRUCTIONS } from "./compaction";
 import { listAnthropicModels } from "./list-anthropic-models";
 import { listOpenAIModels } from "./list-openai-models";
+import { classifyListingFailure } from "./listing-error";
 import type {
 	DiscoveredModel,
 	ProviderConnection,
@@ -274,10 +275,14 @@ export const nativeWebSearchTool = (
 ): Tool | undefined =>
 	providerKindServerEntries[kind].webSearchTool?.(allowedDomains);
 
+/** Rejects with a `ModelListingError` where the failure has a class. */
 export const listProviderModels = (
 	kind: ModelProviderKind,
 	connection: ProviderConnection,
-) => providerKindServerEntries[kind].listModels(connection);
+) =>
+	providerKindServerEntries[kind].listModels(connection).catch((cause) => {
+		throw classifyListingFailure(cause);
+	});
 
 /** Step settings that rule out tool calls where the kind keeps its tool list. */
 export const withholdToolCalls = (
