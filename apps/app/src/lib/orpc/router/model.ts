@@ -1,11 +1,16 @@
-import { listProviderModels, providerApiKey } from "@orcai/ai";
+import {
+	listProviderModels,
+	ModelListingError,
+	type ModelListingFailure,
+	providerApiKey,
+} from "@orcai/ai";
 import {
 	isModelProviderKind,
 	type OrganizationId,
 	type ProviderId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { ModelCapability, ModelSortKey } from "@orcai/schema";
+import type { ErrorReason, ModelCapability, ModelSortKey } from "@orcai/schema";
 import { ORPCError } from "@orpc/server";
 import {
 	and,
@@ -365,6 +370,13 @@ const deleteModel = authed.model.delete
 		};
 	});
 
+const LISTING_FAILURE_REASONS = {
+	unauthorized: "PROVIDER_MODELS_KEY_REJECTED",
+	unsupported: "PROVIDER_MODELS_LISTING_UNSUPPORTED",
+	unreachable: "PROVIDER_MODELS_UNREACHABLE",
+	"invalid-response": "PROVIDER_MODELS_RESPONSE_INVALID",
+} as const satisfies Record<ModelListingFailure, ErrorReason>;
+
 const discoverModels = authed.model.discover
 	.use(requireOrganizationPermission("manage_models"))
 	.effect(function* ({ input, context }) {
@@ -421,7 +433,10 @@ const discoverModels = authed.model.discover
 				}),
 			catch: (cause) =>
 				new AppErrors.BadRequestError({
-					reason: "PROVIDER_MODELS_FETCH_FAILED",
+					reason:
+						cause instanceof ModelListingError
+							? LISTING_FAILURE_REASONS[cause.failure]
+							: "PROVIDER_MODELS_FETCH_FAILED",
 					message: "Failed to fetch models from provider",
 					cause,
 				}),

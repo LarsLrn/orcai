@@ -36,14 +36,16 @@ type DiscoverResult =
 			message: string;
 	  };
 
-const DiscoverModels = () => {
+/** Without `fixedProviderId`, the dialog asks which provider to discover from. */
+const DiscoverModels = ({ fixedProviderId }: { fixedProviderId?: string }) => {
 	const providerSelectId = useId();
 	const [isOpen, setIsOpen] = useState(false);
-	const [providerId, setProviderId] = useState("");
+	const [pickedProviderId, setPickedProviderId] = useState("");
+	const providerId = fixedProviderId ?? pickedProviderId;
 	const [result, setResult] = useState<DiscoverResult | null>(null);
 
-	const providers = useQuery(
-		orpc.provider.list.queryOptions({
+	const providers = useQuery({
+		...orpc.provider.list.queryOptions({
 			input: {
 				pageIndex: 0,
 				pageSize: 200,
@@ -52,7 +54,10 @@ const DiscoverModels = () => {
 				},
 			},
 		}),
-	);
+		enabled: fixedProviderId === undefined,
+	});
+	const hasProviders =
+		fixedProviderId !== undefined || (providers.data?.data.length ?? 0) > 0;
 
 	const { mutateAsync: discoverModels, isPending } = useMutation(
 		orpc.model.discover.mutationOptions(),
@@ -61,7 +66,7 @@ const DiscoverModels = () => {
 	const handleOpenChange = (open: boolean) => {
 		setIsOpen(open);
 		if (!open) {
-			setProviderId("");
+			setPickedProviderId("");
 			setResult(null);
 		}
 	};
@@ -102,38 +107,42 @@ const DiscoverModels = () => {
 				<DialogHeader>
 					<DialogTitle>{m.models_discover_dialog_title()}</DialogTitle>
 					<DialogDescription>
-						{m.models_discover_dialog_description()}
+						{fixedProviderId === undefined
+							? m.models_discover_dialog_description()
+							: m.models_discover_provider_dialog_description()}
 					</DialogDescription>
 				</DialogHeader>
 
 				<div className="flex flex-col gap-4">
-					<Field orientation="vertical">
-						<FieldContent>
-							<FieldLabel htmlFor={providerSelectId}>
-								{m.common_provider_label()}
-							</FieldLabel>
-							<FieldDescription>
-								{m.models_discover_provider_field_description()}
-							</FieldDescription>
-						</FieldContent>
-						<OptionPicker
-							id={providerSelectId}
-							options={
-								providers.data?.data.map((provider) => ({
-									value: provider.id,
-									label: provider.name,
-								})) ?? []
-							}
-							value={providerId}
-							onChange={(value) => {
-								setProviderId(value);
-								setResult(null);
-							}}
-							placeholder={m.models_discover_provider_placeholder()}
-							disabled={isPending || (providers.data?.data.length ?? 0) === 0}
-							className="w-full"
-						/>
-					</Field>
+					{fixedProviderId === undefined && (
+						<Field orientation="vertical">
+							<FieldContent>
+								<FieldLabel htmlFor={providerSelectId}>
+									{m.common_provider_label()}
+								</FieldLabel>
+								<FieldDescription>
+									{m.models_discover_provider_field_description()}
+								</FieldDescription>
+							</FieldContent>
+							<OptionPicker
+								id={providerSelectId}
+								options={
+									providers.data?.data.map((provider) => ({
+										value: provider.id,
+										label: provider.name,
+									})) ?? []
+								}
+								value={providerId}
+								onChange={(value) => {
+									setPickedProviderId(value);
+									setResult(null);
+								}}
+								placeholder={m.models_discover_provider_placeholder()}
+								disabled={isPending || !hasProviders}
+								className="w-full"
+							/>
+						</Field>
+					)}
 
 					{providers.data?.data.length === 0 && (
 						<Alert variant="destructive">
@@ -196,7 +205,7 @@ const DiscoverModels = () => {
 					<Button
 						onClick={handleDiscoverModels}
 						loading={isPending}
-						disabled={!providerId || (providers.data?.data.length ?? 0) === 0}
+						disabled={!providerId || !hasProviders}
 					>
 						{m.models_discover_trigger_button()}
 					</Button>

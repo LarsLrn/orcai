@@ -231,10 +231,10 @@ the searches. Its page warns while no active quota pool covers it.
 
 A provider's page (`/app/providers/<provider id>`) shows its configuration,
 model counts and a searchable, paged table of its connected models, with
-**Add model** and **Edit provider**
+**Add model**, **Discover models** and **Edit provider**
 (`/app/providers/<provider id>/edit`). There is no separate connection test,
-and **Discover models** on the Models page is a quick check that the endpoint
-and key work.
+and **Discover models**, here or on the Models page, is a quick check that the
+endpoint and key work.
 
 Discovery lists the models the provider offers from `/models` of the endpoint
 for OpenAI-compatible providers, `/models` of OpenAI's API for OpenAI
@@ -242,6 +242,10 @@ providers, and Anthropic's Models API for Anthropic providers. It also takes
 each model's context window and max output tokens where the provider reports
 them. Anthropic's Models API does, and so do OpenAI-compatible servers such as
 OpenRouter, Together AI, vLLM and Groq. OpenAI's API reports neither.
+
+When discovery fails, it says why: the provider rejected the API key, the
+endpoint does not offer a model list (add its models by hand), the provider
+could not be reached, or its answer could not be read.
 
 With an Anthropic provider, OrcAI marks the system prompt and the messages
 of every request for Anthropic's prompt caching. The steps of an answer that

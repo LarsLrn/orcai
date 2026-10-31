@@ -1,6 +1,7 @@
 import { modelCapabilities } from "@orcai/core";
 import type { ModelCapability } from "@orcai/schema";
 import { z } from "zod/v4";
+import { ModelListingError, ProviderStatusError } from "./listing-error";
 import { reportedTokenCount } from "./reported-token-count";
 import type { DiscoveredModel, ProviderConnection } from "./types";
 
@@ -64,10 +65,13 @@ export const listAnthropicModels = async ({
 				"x-api-key": apiKey,
 				"anthropic-version": ANTHROPIC_VERSION,
 			},
+		}).catch((cause) => {
+			throw new ModelListingError("unreachable", cause);
 		});
 		if (!response.ok) {
-			throw new Error(
+			throw new ProviderStatusError(
 				`Anthropic Models API answered ${response.status} ${response.statusText}`,
+				response.status,
 			);
 		}
 
@@ -85,8 +89,11 @@ export const listAnthropicModels = async ({
 		if (!page.has_more) {
 			afterId = null;
 		} else if (page.last_id === null || page.last_id === afterId) {
-			throw new Error(
-				"Anthropic Models API reported more pages without advancing the cursor",
+			throw new ModelListingError(
+				"invalid-response",
+				new Error(
+					"Anthropic Models API reported more pages without advancing the cursor",
+				),
 			);
 		} else {
 			afterId = page.last_id;

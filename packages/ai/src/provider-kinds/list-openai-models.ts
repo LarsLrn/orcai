@@ -5,6 +5,18 @@ import { z } from "zod/v4";
 import { reportedTokenCount } from "./reported-token-count";
 import type { DiscoveredModel, ProviderConnection } from "./types";
 
+/** What every server's `/models` answers; the rest of a model is optional. */
+const listingSchema = z.object({
+	data: z.array(
+		z.looseObject({
+			id: z.string().min(1),
+			owned_by: z.string().optional(),
+		}),
+	),
+});
+
+type ListedModel = z.infer<typeof listingSchema>["data"][number];
+
 /** Limits some OpenAI-compatible servers add to `/models`; OpenAI's API has none. */
 const reportedLimitsSchema = z.object({
 	/** OpenRouter, Together AI */
@@ -25,7 +37,7 @@ const reportedLimitsSchema = z.object({
 });
 
 const reportedLimits = (
-	model: OpenAI.Models.Model,
+	model: ListedModel,
 ): Pick<DiscoveredModel, "contextWindow" | "maxOutputTokens"> => {
 	const limits = reportedLimitsSchema.parse(model);
 	return {
@@ -66,7 +78,7 @@ const parameterCapabilities: Record<string, ModelCapability> = {
 };
 
 const reportedCapabilities = (
-	model: OpenAI.Models.Model,
+	model: ListedModel,
 ): DiscoveredModel["capabilities"] => {
 	const metadata = reportedMetadataSchema.safeParse(model);
 	if (!metadata.success) return null;
@@ -97,15 +109,14 @@ export const listOpenAIModels = async ({
 		fetch,
 	});
 
-	const models: DiscoveredModel[] = [];
-	for await (const model of client.models.list()) {
-		models.push({
-			providerModelId: model.id,
-			name: model.id,
-			description: `Model ID: ${model.id} | Owned by ${model.owned_by}`,
-			...reportedLimits(model),
-			capabilities: reportedCapabilities(model),
-		});
-	}
-	return models;
+	const response = await client.models.list().asResponse();
+	return listingSchema.parse(await response.json()).data.map((model) => ({
+		providerModelId: model.id,
+		name: model.id,
+		description: model.owned_by
+			? `Model ID: ${model.id} | Owned by ${model.owned_by}`
+			: `Model ID: ${model.id}`,
+		...reportedLimits(model),
+		capabilities: reportedCapabilities(model),
+	}));
 };

@@ -5,6 +5,7 @@ import {
 	modelProviderKinds,
 } from "@orcai/core";
 import { listAnthropicModels } from "../src/provider-kinds/list-anthropic-models";
+import { ModelListingError } from "../src/provider-kinds/listing-error";
 import {
 	buildSystemInstructions,
 	createProviderLanguageModel,
@@ -574,13 +575,17 @@ describe("listAnthropicModels", () => {
 		]) {
 			const { fetch } = fakeFetch(...pages);
 
-			await expect(
-				listAnthropicModels({
-					apiKey: "sk-ant",
-					endpoint: null,
-					fetch,
-				}),
-			).rejects.toThrow("without advancing the cursor");
+			const error = await listAnthropicModels({
+				apiKey: "sk-ant",
+				endpoint: null,
+				fetch,
+			}).catch((cause: unknown) => cause);
+
+			expect(error).toBeInstanceOf(ModelListingError);
+			expect((error as ModelListingError).failure).toBe("invalid-response");
+			expect(((error as ModelListingError).cause as Error).message).toContain(
+				"without advancing the cursor",
+			);
 		}
 	});
 
@@ -594,6 +599,150 @@ describe("listAnthropicModels", () => {
 				fetch,
 			}),
 		).rejects.toThrow("503");
+	});
+});
+
+describe("listProviderModels failures", () => {
+	const answering = (response: () => Response | Promise<Response>) =>
+		(() =>
+			Promise.resolve().then(response)) as unknown as typeof globalThis.fetch;
+
+	const failureOf = async (
+		kind: ModelProviderKind,
+		fetch: typeof globalThis.fetch,
+	) => {
+		const error = await listProviderModels(kind, {
+			apiKey: "key",
+			endpoint: "https://llm.example.org/v1",
+			fetch,
+		}).catch((cause: unknown) => cause);
+		expect(error).toBeInstanceOf(ModelListingError);
+		return (error as ModelListingError).failure;
+	};
+
+	const kinds = [
+		"openai-compatible",
+		"openai",
+		"anthropic",
+	] as const satisfies readonly ModelProviderKind[];
+
+	for (const kind of kinds) {
+		describe(kind, () => {
+			test.each([
+				401,
+				403,
+			])("an answer of %d is an invalid key", async (status) => {
+				const fetch = answering(
+					() =>
+						new Response("denied", {
+							status,
+						}),
+				);
+				expect(await failureOf(kind, fetch)).toBe("unauthorized");
+			});
+
+			test("an answer of 404 is an endpoint without model listing", async () => {
+				const fetch = answering(
+					() =>
+						new Response("missing", {
+							status: 404,
+						}),
+				);
+				expect(await failureOf(kind, fetch)).toBe("unsupported");
+			});
+
+			test("an answer of 503 is an unreachable provider", async () => {
+				const fetch = answering(
+					() =>
+						new Response("down", {
+							status: 503,
+						}),
+				);
+				expect(await failureOf(kind, fetch)).toBe("unreachable");
+			});
+
+			test("a network error is an unreachable provider", async () => {
+				const fetch = answering(() => {
+					throw new TypeError("fetch failed");
+				});
+				expect(await failureOf(kind, fetch)).toBe("unreachable");
+			});
+
+			test("an unreadable listing is an unexpected response", async () => {
+				const fetch = answering(
+					() =>
+						new Response("not json", {
+							headers: {
+								"content-type": "application/json",
+							},
+						}),
+				);
+				expect(await failureOf(kind, fetch)).toBe("invalid-response");
+			});
+		});
+	}
+
+	test.each([
+		"openai-compatible",
+		"openai",
+	] as const)(
+		"%s: a listing without its model list is an unexpected response",
+		async (kind) => {
+			for (const body of [
+				{
+					unexpected: true,
+				},
+				{
+					data: {},
+				},
+				{
+					data: [
+						{},
+					],
+				},
+				{
+					data: [
+						{
+							id: "",
+						},
+					],
+				},
+			]) {
+				expect(
+					await failureOf(
+						kind,
+						answering(() => Response.json(body)),
+					),
+				).toBe("invalid-response");
+			}
+		},
+	);
+
+	test("a listing of the wrong shape is an unexpected response", async () => {
+		const fetch = answering(() =>
+			Response.json({
+				data: "nothing",
+				has_more: false,
+				last_id: null,
+			}),
+		);
+		expect(await failureOf("anthropic", fetch)).toBe("invalid-response");
+	});
+
+	test("other statuses pass through unclassified", async () => {
+		const fetch = answering(
+			() =>
+				new Response("bad request", {
+					status: 400,
+				}),
+		);
+		const error = await listProviderModels("openai", {
+			apiKey: "key",
+			endpoint: null,
+			fetch,
+		}).catch((cause: unknown) => cause);
+		expect(error).not.toBeInstanceOf(ModelListingError);
+		expect(error).toBeInstanceOf(Error);
 	});
 });
 
