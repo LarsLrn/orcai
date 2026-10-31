@@ -15,7 +15,10 @@ import {
 import { AssistantModelLabel } from "@/components/assistant/assistant-model-label";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { ChatAttachmentActionMenu } from "@/components/chat/attachments/chat-attachment-action-menu";
-import { ChatComposerAttachments } from "@/components/chat/attachments/chat-attachment-input";
+import {
+	ChatComposerAttachments,
+	ChatComposerDropZone,
+} from "@/components/chat/attachments/chat-attachment-input";
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
 import type { ChatDraft } from "@/components/chat/chat-draft";
@@ -129,6 +132,7 @@ const ChatInput = ({
 		setAssetPickerOpen,
 		openUploadDialog,
 		handleFileInputChange,
+		addFiles,
 		addAsset,
 		removeLocalFile,
 		removeSelectedAsset,
@@ -230,7 +234,9 @@ const ChatInput = ({
 
 			<form onSubmit={handleSubmit}>
 				{/* The group clips its overflow, so the comet sits on a wrapper hugging its corners. */}
-				<div
+				<ChatComposerDropZone
+					onFiles={addFiles}
+					disabled={isAssistant || isBusy}
 					className={cn(
 						"[--loading-ring-radius:calc(var(--radius-3xl)+6px)]",
 						(isGenerating || isStoringReply) && "loading-ring",
@@ -267,7 +273,7 @@ const ChatInput = ({
 								) : (
 									<>
 										<ChatAttachmentActionMenu
-											disabled={!canAttachMore}
+											disabled={isBusy || !canAttachMore}
 											onUploadFile={openUploadDialog}
 											onSelectFromAssets={() => setAssetPickerOpen(true)}
 										/>
@@ -313,7 +319,7 @@ const ChatInput = ({
 							</div>
 						</InputGroupAddon>
 					</InputGroup>
-				</div>
+				</ChatComposerDropZone>
 				{!isAssistant &&
 					!isModelConfigured &&
 					blocker?.reason !== "bot-model" && (

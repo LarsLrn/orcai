@@ -19,6 +19,14 @@ export const CHAT_ATTACHMENT_MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 export const CHAT_ATTACHMENT_ACCEPT =
 	UPLOAD_ROUTES.chatAttachment.allowedMimePatterns.join(",");
 
+/** The same types in the shape a drop zone takes. */
+export const CHAT_ATTACHMENT_DROP_ACCEPT = Object.fromEntries(
+	UPLOAD_ROUTES.chatAttachment.allowedMimePatterns.map((type) => [
+		type,
+		[],
+	]),
+);
+
 export const RETRIEVAL_LIMITS = {
 	maxSnippetResultsPerCall: 8,
 	maxFullChunkFetches: 8,

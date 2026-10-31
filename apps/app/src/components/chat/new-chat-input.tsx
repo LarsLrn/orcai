@@ -14,7 +14,10 @@ import {
 	PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { ChatAttachmentActionMenu } from "@/components/chat/attachments/chat-attachment-action-menu";
-import { ChatComposerAttachments } from "@/components/chat/attachments/chat-attachment-input";
+import {
+	ChatComposerAttachments,
+	ChatComposerDropZone,
+} from "@/components/chat/attachments/chat-attachment-input";
 import { useChatAttachments } from "@/components/chat/attachments/use-chat-attachments";
 import { BotSelectorButton } from "@/components/chat/bot-selector";
 import { ChatAssetPicker } from "@/components/chat/chat-asset-picker";
@@ -86,6 +89,7 @@ const NewChatInput = ({
 		setAssetPickerOpen,
 		openUploadDialog,
 		handleFileInputChange,
+		addFiles,
 		addAsset,
 		removeLocalFile,
 		removeSelectedAsset,
@@ -149,75 +153,83 @@ const NewChatInput = ({
 					accept={CHAT_ATTACHMENT_ACCEPT}
 					onChange={handleFileInputChange}
 				/>
-				<InputGroup className="overflow-hidden border-border bg-card shadow-sm">
-					<ChatComposerAttachments
-						localFiles={localFiles}
-						attachments={selectedAttachments}
-						onRemoveLocalFile={removeLocalFile}
-						onRemoveAsset={removeSelectedAsset}
-					/>
-					<InputGroupTextarea
-						name="message"
-						aria-label={m.chat_composer_aria_label()}
-						placeholder={
-							blocker
-								? blockedPlaceholders[blocker.reason]()
-								: m.chat_composer_placeholder()
-						}
-						className="field-sizing-content max-h-48 min-h-16"
-						value={messageText}
-						disabled={blocker !== undefined}
-						aria-describedby={blocker ? "chat-model-notice" : undefined}
-						onChange={(event) => setMessageText(event.target.value)}
-						onKeyDown={handleTextareaKeyDown}
-					/>
+				<ChatComposerDropZone
+					onFiles={addFiles}
+					disabled={isBusy || blocker !== undefined}
+				>
+					<InputGroup className="overflow-hidden border-border bg-card shadow-sm">
+						<ChatComposerAttachments
+							localFiles={localFiles}
+							attachments={selectedAttachments}
+							onRemoveLocalFile={removeLocalFile}
+							onRemoveAsset={removeSelectedAsset}
+						/>
+						<InputGroupTextarea
+							name="message"
+							aria-label={m.chat_composer_aria_label()}
+							placeholder={
+								blocker
+									? blockedPlaceholders[blocker.reason]()
+									: m.chat_composer_placeholder()
+							}
+							className="field-sizing-content max-h-48 min-h-16"
+							value={messageText}
+							disabled={blocker !== undefined}
+							aria-describedby={blocker ? "chat-model-notice" : undefined}
+							onChange={(event) => setMessageText(event.target.value)}
+							onKeyDown={handleTextareaKeyDown}
+						/>
 
-					<InputGroupAddon align="block-end" className="justify-between gap-1">
-						<PromptInputTools>
-							<ChatAttachmentActionMenu
-								disabled={isBusy || !canAttachMore || blocker !== undefined}
-								onUploadFile={openUploadDialog}
-								onSelectFromAssets={() => setAssetPickerOpen(true)}
-							/>
-							{onBotSelect && (
-								<BotSelectorButton
-									selectedBotId={selectedBotId}
-									onSelectBot={onBotSelect}
-									variant="compact"
+						<InputGroupAddon
+							align="block-end"
+							className="justify-between gap-1"
+						>
+							<PromptInputTools>
+								<ChatAttachmentActionMenu
+									disabled={isBusy || !canAttachMore || blocker !== undefined}
+									onUploadFile={openUploadDialog}
+									onSelectFromAssets={() => setAssetPickerOpen(true)}
+								/>
+								{onBotSelect && (
+									<BotSelectorButton
+										selectedBotId={selectedBotId}
+										onSelectBot={onBotSelect}
+										variant="compact"
+										disabled={isBusy}
+									/>
+								)}
+								<ModelPicker
+									state={modelPickerState({
+										source:
+											setup?.strength === "required" ? "bot-required" : "chat",
+										modelId: selectedModelId ?? null,
+										botSetup: setup ?? null,
+									})}
+									botName={bot?.data.name}
+									selectedModelId={selectedModelId}
+									selectedProviderId={selectedProviderId}
+									onSelect={onModelSelect}
 									disabled={isBusy}
 								/>
-							)}
-							<ModelPicker
-								state={modelPickerState({
-									source:
-										setup?.strength === "required" ? "bot-required" : "chat",
-									modelId: selectedModelId ?? null,
-									botSetup: setup ?? null,
-								})}
-								botName={bot?.data.name}
-								selectedModelId={selectedModelId}
-								selectedProviderId={selectedProviderId}
-								onSelect={onModelSelect}
-								disabled={isBusy}
-							/>
-						</PromptInputTools>
-						<div className="flex shrink-0 items-center gap-1">
-							<UsageIndicator
-								providerId={selectedProviderId}
-								modelId={selectedModelId}
-							/>
-							<PromptInputSubmit
-								status={isBusy ? "submitted" : "ready"}
-								disabled={
-									isBusy ||
-									blocker !== undefined ||
-									!hasContent ||
-									!selectedModelId
-								}
-							/>
-						</div>
-					</InputGroupAddon>
-				</InputGroup>
+							</PromptInputTools>
+							<div className="flex shrink-0 items-center gap-1">
+								<UsageIndicator
+									providerId={selectedProviderId}
+									modelId={selectedModelId}
+								/>
+								<PromptInputSubmit
+									status={isBusy ? "submitted" : "ready"}
+									disabled={
+										isBusy ||
+										blocker !== undefined ||
+										!hasContent ||
+										!selectedModelId
+									}
+								/>
+							</div>
+						</InputGroupAddon>
+					</InputGroup>
+				</ChatComposerDropZone>
 				{blocker && <ChatModelNotice blocker={blocker} />}
 			</form>
 			<ChatAssetPicker

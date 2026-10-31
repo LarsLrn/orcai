@@ -2464,6 +2464,7 @@
 			}
 		}
 	],
+	"chat_attachments_rejected_toast_error": "{name} wurde nicht angehängt, denn Chats unterstützen diesen Dateityp nicht.",
 	"chat_attachments_upload_failed_toast_error": [
 		{
 			"declarations": [
@@ -2496,6 +2497,7 @@
 	"chat_composer_aria_label": "Nachricht",
 	"chat_composer_attachments_missing_toast_error": "Die Nachricht wurde nicht gesendet. Geben Sie Text ein oder hängen Sie die Dateien erneut an.",
 	"chat_composer_attachments_only_message": "Mit Anhängen gesendet",
+	"chat_composer_drop_label": "Dateien zum Anhängen ablegen",
 	"chat_composer_model_required_hint": "Wählen Sie ein Modell aus, um zu chatten.",
 	"chat_composer_model_required_toast_error": "Die Nachricht wurde nicht gesendet. Wählen Sie zuerst ein Modell aus.",
 	"chat_composer_placeholder": "Stellen Sie eine Frage",
