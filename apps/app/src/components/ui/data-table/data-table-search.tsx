@@ -26,7 +26,7 @@ const emissionId = () => Math.random().toString(36).slice(2);
 const DataTableSearch = ({
 	placeholder,
 	debounceMs = 250,
-	className = "w-full sm:w-auto sm:min-w-40 sm:max-w-xs sm:flex-1",
+	className = "min-w-40 flex-1 sm:max-w-xs",
 }: DataTableSearchProps) => {
 	const navigate = useNavigate();
 	const location = useLocation({
