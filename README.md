@@ -288,6 +288,7 @@ The embedding model is the same for every organisation on the instance, and only
 - `S3_PUBLIC_ENDPOINT`: Endpoint in the presigned URLs that browsers upload to and download from, so it must be reachable from browsers. Defaults to `S3_ENDPOINT`.
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted. If `SMTP_SECURE` is unset, it is derived from port (`true` for 465, otherwise `false`).
 - `UMAMI_SCRIPT_URL`, `UMAMI_WEBSITE_ID`: Optional Umami analytics. Both or neither; one alone logs a warning and keeps analytics off.
+- `FEEDBACK_EMAIL`: Optional address the last card of the first tour names for feedback. Without a valid address the card says nothing about feedback.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration. Traces, logs and metrics are exported once the endpoint is set.
 - `OTEL_RESOURCE_ATTRIBUTES`: Optional resource attributes such as `deployment.environment=production`, attached to every exported signal of the app and the workers.
 

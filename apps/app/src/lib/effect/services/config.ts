@@ -3,6 +3,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import { z } from "zod/v4";
 import { TWO_FACTOR_POLICIES } from "@/lib/auth/two-factor-policy";
 
 export const appConfig = Config.all({
@@ -23,6 +24,7 @@ const deploymentEnv = Config.all({
 	webInternalUrl: Config.option(Config.String("WEB_INTERNAL_URL")),
 	umamiScriptUrl: Config.option(Config.String("UMAMI_SCRIPT_URL")),
 	umamiWebsiteId: Config.option(Config.String("UMAMI_WEBSITE_ID")),
+	feedbackEmail: Config.option(Config.String("FEEDBACK_EMAIL")),
 });
 
 type AppConfig = Config.Success<typeof appConfig>;
@@ -36,6 +38,7 @@ export interface DocsConfig {
 /** What the browser may know about this deployment. */
 export interface PublicConfig {
 	readonly docsUrl?: string;
+	readonly feedbackEmail?: string;
 	readonly umami?: {
 		readonly scriptUrl: string;
 		readonly websiteId: string;
@@ -61,13 +64,15 @@ const parseOrigin = (value: string | undefined) => {
 
 /**
  * Empty and non-http(s) URLs count as unset; without a public URL there are no
- * docs. Umami needs both values or stays off.
+ * docs. Umami needs both values or stays off. An invalid feedback address
+ * counts as unset.
  */
 export const resolveDeploymentConfig = (env: {
 	webUrl?: string;
 	webInternalUrl?: string;
 	umamiScriptUrl?: string;
 	umamiWebsiteId?: string;
+	feedbackEmail?: string;
 }): {
 	docs: DocsConfig | undefined;
 	publicConfig: PublicConfig;
@@ -89,12 +94,20 @@ export const resolveDeploymentConfig = (env: {
 				}
 			: undefined;
 
+	const feedbackEmail = env.feedbackEmail?.trim();
+	const feedbackEmailValid =
+		!feedbackEmail || z.email().safeParse(feedbackEmail).success;
+
 	return {
 		docs,
 		publicConfig: {
 			...(docs && {
 				docsUrl: docs.publicOrigin,
 			}),
+			...(feedbackEmail &&
+				feedbackEmailValid && {
+					feedbackEmail,
+				}),
 			...(umami && {
 				umami,
 			}),
@@ -122,6 +135,11 @@ export const resolveDeploymentConfig = (env: {
 						"Only one of UMAMI_SCRIPT_URL and UMAMI_WEBSITE_ID is set, so analytics stay off.",
 					]
 				: []),
+			...(feedbackEmailValid
+				? []
+				: [
+						"FEEDBACK_EMAIL is not a valid email address and is ignored, so the tour names no feedback address.",
+					]),
 		],
 	};
 };
@@ -146,6 +164,7 @@ export const AppConfigLive = Layer.effect(
 			webInternalUrl: Option.getOrUndefined(env.webInternalUrl),
 			umamiScriptUrl: Option.getOrUndefined(env.umamiScriptUrl),
 			umamiWebsiteId: Option.getOrUndefined(env.umamiWebsiteId),
+			feedbackEmail: Option.getOrUndefined(env.feedbackEmail),
 		});
 
 		for (const warning of warnings) {
