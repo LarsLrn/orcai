@@ -1,3 +1,4 @@
+import { useRouterState } from "@tanstack/react-router";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -47,6 +48,14 @@ const Pager = ({
 	onPageIndexChange: (pageIndex: number) => void;
 	onPageSizeChange: (pageSize: number) => void;
 }) => {
+	// Until a navigation lands, the shown page is stale: paging from it skips pages.
+	const navigating = useRouterState({
+		select: (state) => state.isLoading,
+	});
+	const paging = (enabled: boolean) => ({
+		disabled: !enabled || navigating,
+		focusableWhenDisabled: (enabled && navigating) || undefined,
+	});
 	const canPrevious = pageIndex > 0;
 	const canNext = pageIndex < pageCount - 1;
 
@@ -75,7 +84,7 @@ const Pager = ({
 					variant="outline"
 					className="hidden h-8 w-8 p-0 lg:flex"
 					onClick={() => onPageIndexChange(0)}
-					disabled={!canPrevious}
+					{...paging(canPrevious)}
 				>
 					<span className="sr-only">
 						{m.common_pagination_first_page_label()}
@@ -86,7 +95,7 @@ const Pager = ({
 					variant="outline"
 					className="h-8 w-8 p-0"
 					onClick={() => onPageIndexChange(pageIndex - 1)}
-					disabled={!canPrevious}
+					{...paging(canPrevious)}
 				>
 					<span className="sr-only">
 						{m.common_pagination_previous_page_label()}
@@ -97,7 +106,7 @@ const Pager = ({
 					variant="outline"
 					className="h-8 w-8 p-0"
 					onClick={() => onPageIndexChange(pageIndex + 1)}
-					disabled={!canNext}
+					{...paging(canNext)}
 				>
 					<span className="sr-only">
 						{m.common_pagination_next_page_label()}
@@ -108,7 +117,7 @@ const Pager = ({
 					variant="outline"
 					className="hidden h-8 w-8 p-0 lg:flex"
 					onClick={() => onPageIndexChange(pageCount - 1)}
-					disabled={!canNext}
+					{...paging(canNext)}
 				>
 					<span className="sr-only">
 						{m.common_pagination_last_page_label()}
