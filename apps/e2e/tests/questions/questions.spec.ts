@@ -155,6 +155,7 @@ test("questions: the assistant asks, and continues the same reply with the answe
 			}),
 		),
 	).toBeVisible();
+	await expect(questionsButton(card, "questions_submit_action")).toHaveCount(0);
 	await option(card, "radio", "Students").click();
 
 	await expect(
@@ -174,6 +175,7 @@ test("questions: the assistant asks, and continues the same reply with the answe
 			name: "What should it never do?",
 		})
 		.fill("Grade essays");
+	await expect(questionsButton(card, "questions_submit_action")).toHaveCount(0);
 	await questionsButton(card, "questions_next_action").click();
 
 	await expect(card.getByText(message("questions_review_title"))).toBeVisible();
