@@ -345,3 +345,24 @@
 @utility loading-ring-* {
 	--loading-ring-color: --value(--color-*);
 }
+
+/* Fades the sides that `useInlineOverflow` reports as hiding content. */
+@utility overflow-fade-x {
+	--fade-start: 0rem;
+	--fade-end: 0rem;
+	mask-image: linear-gradient(
+		to right,
+		transparent,
+		#000 var(--fade-start),
+		#000 calc(100% - var(--fade-end)),
+		transparent
+	);
+
+	&[data-overflow-start] {
+		--fade-start: 2.5rem;
+	}
+
+	&[data-overflow-end] {
+		--fade-end: 2.5rem;
+	}
+}

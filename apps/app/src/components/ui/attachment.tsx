@@ -2,7 +2,9 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useInlineOverflow } from "@/hooks/use-inline-overflow";
 import { cn } from "@/lib/utils";
 
 const attachmentVariants = cva(
@@ -192,11 +194,17 @@ function AttachmentTrigger({
 }
 
 function AttachmentGroup({ className, ...props }: React.ComponentProps<"div">) {
+	const [group, setGroup] = useState<HTMLDivElement | null>(null);
+	const overflow = useInlineOverflow(group);
+
 	return (
 		<div
+			ref={setGroup}
 			data-slot="attachment-group"
+			data-overflow-start={overflow.start ? "" : undefined}
+			data-overflow-end={overflow.end ? "" : undefined}
 			className={cn(
-				"scroll-fade-x scrollbar-none flex min-w-0 snap-x snap-mandatory scroll-px-1 gap-3 overflow-x-auto overscroll-x-contain py-1 *:data-[slot=attachment]:flex-none *:data-[slot=attachment]:snap-start",
+				"overflow-fade-x scrollbar-none flex min-w-0 snap-x snap-mandatory scroll-px-1 gap-3 overflow-x-auto overscroll-x-contain py-1 *:data-[slot=attachment]:flex-none *:data-[slot=attachment]:snap-start",
 				className,
 			)}
 			{...props}
