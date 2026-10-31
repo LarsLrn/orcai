@@ -78,7 +78,7 @@ interface PageInput {
 }
 
 const search = (...results: Passage[]): Scripted => ({
-	searchKnowledgeBase: () => ({
+	searchRepositories: () => ({
 		results,
 	}),
 });
@@ -97,15 +97,15 @@ const study = (message: string, scripted: Scripted) => ({
 	],
 	message,
 	scripted: {
-		listKnowledgeBaseDocuments: () => ({
-			documents: [
+		listRepositoryAssets: () => ({
+			assets: [
 				apaGuide,
 			],
 		}),
-		getKnowledgeBasePage: () => ({
+		getAssetPage: () => ({
 			passages: [],
 		}),
-		getKnowledgeBaseChunks: () => ({
+		getPassages: () => ({
 			passages: [],
 		}),
 		...search(),
@@ -158,7 +158,7 @@ export const chatCases: EvalCase[] = [
 				),
 			}),
 		checks: [
-			calls("searchKnowledgeBase"),
+			calls("searchRepositories"),
 			cites,
 			citesOnly([
 				etAl.ref,
@@ -175,7 +175,7 @@ export const chatCases: EvalCase[] = [
 				...study("When is the deadline for the final essay?", search()),
 			}),
 		checks: [
-			calls("searchKnowledgeBase"),
+			calls("searchRepositories"),
 			citesNothing,
 			omits(A_DATE),
 			judged(
@@ -310,7 +310,7 @@ export const chatCases: EvalCase[] = [
 			runChat({
 				model,
 				...study("What does page 12 of the APA guide say?", {
-					getKnowledgeBasePage: ({ page, assetId }: PageInput) => {
+					getAssetPage: ({ page, assetId }: PageInput) => {
 						if (page !== 12 || (assetId && assetId !== APA_GUIDE)) {
 							throw new Error(`NOT_FOUND: No page ${page} in that document.`);
 						}
@@ -325,7 +325,7 @@ export const chatCases: EvalCase[] = [
 			}),
 		checks: [
 			callsWith<PageInput>(
-				"getKnowledgeBasePage",
+				"getAssetPage",
 				"page 12",
 				({ page }) => page === 12,
 			),
@@ -349,7 +349,7 @@ export const chatCases: EvalCase[] = [
 			{
 				name: "searches at most twice",
 				pass: ({ calls: made }) =>
-					made.filter(({ toolName }) => toolName === "searchKnowledgeBase")
+					made.filter(({ toolName }) => toolName === "searchRepositories")
 						.length <= 2,
 			},
 			cites,
@@ -365,8 +365,8 @@ export const chatCases: EvalCase[] = [
 			runChat({
 				model,
 				...study("Which files can you search?", {
-					listKnowledgeBaseDocuments: () => ({
-						documents: [
+					listRepositoryAssets: () => ({
+						assets: [
 							apaGuide,
 							{
 								assetId: crypto.randomUUID(),

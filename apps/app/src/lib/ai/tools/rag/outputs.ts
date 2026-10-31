@@ -2,13 +2,13 @@ import type { ToolResultPart } from "ai";
 import { z } from "zod/v4";
 import { dataTag } from "@/lib/ai/utils/data-tag";
 import {
-	type KnowledgeBaseDocument,
-	knowledgeBaseDocumentSchema,
 	type Passage,
 	passageSchema,
+	type RepositoryAsset,
+	repositoryAssetSchema,
 } from "./types";
 
-/** What the knowledge base tools store; a stored output of an older shape fails to parse. */
+/** What the repository tools store; a stored output of an older shape fails to parse. */
 export const searchOutputSchema = z.object({
 	results: z.array(passageSchema),
 	notSearchable: z
@@ -20,35 +20,33 @@ export const searchOutputSchema = z.object({
 		.optional(),
 });
 
-export const chunksOutputSchema = z.object({
+export const passagesOutputSchema = z.object({
 	passages: z.array(passageSchema),
 	missing: z.array(z.string()).optional(),
 });
 
 export const pageOutputSchema = z.object({
 	passages: z.array(passageSchema),
-	matchedDocuments: z.array(knowledgeBaseDocumentSchema).optional(),
+	matchedAssets: z.array(repositoryAssetSchema).optional(),
 });
 
 export const listOutputSchema = z.object({
-	documents: z.array(knowledgeBaseDocumentSchema),
+	assets: z.array(repositoryAssetSchema),
 });
 
 const passageOutputs: Record<string, z.ZodType<Passage[]>> = {
-	searchKnowledgeBase: searchOutputSchema.transform(({ results }) => results),
-	getKnowledgeBaseChunks: chunksOutputSchema.transform(
-		({ passages }) => passages,
-	),
-	getKnowledgeBasePage: pageOutputSchema.transform(({ passages }) => passages),
+	searchRepositories: searchOutputSchema.transform(({ results }) => results),
+	getPassages: passagesOutputSchema.transform(({ passages }) => passages),
+	getAssetPage: pageOutputSchema.transform(({ passages }) => passages),
 };
 
-/** The passages a knowledge base call returned; none for other tools and older shapes. */
+/** The passages a repository call returned; none for other tools and older shapes. */
 export const passagesOf = (toolName: string, output: unknown): Passage[] =>
 	(Object.hasOwn(passageOutputs, toolName)
 		? passageOutputs[toolName].safeParse(output).data
 		: undefined) ?? [];
 
-/** The passages of a message's finished knowledge base calls. */
+/** The passages of a message's finished repository calls. */
 export const passagesOfParts = (
 	parts: readonly {
 		type: string;
@@ -89,21 +87,21 @@ const passagesText = (passages: Passage[]) =>
 		? passages.map(passageText).join("\n\n")
 		: "No matching passages.";
 
-const documentState = ({
+const assetState = ({
 	state,
 	failure,
-}: Pick<KnowledgeBaseDocument, "state" | "failure">) => {
+}: Pick<RepositoryAsset, "state" | "failure">) => {
 	if (state === "ready") return "";
 	if (failure) return ` [failed in ${failure.stage}: ${failure.kind}]`;
 	return ` [${state}, not searchable yet]`;
 };
 
-const documentsText = (documents: KnowledgeBaseDocument[]) =>
-	documents.length > 0
-		? documents
+const assetsText = (assets: RepositoryAsset[]) =>
+	assets.length > 0
+		? assets
 				.map(
-					(document) =>
-						`- ${document.assetId}: ${document.title}${document.citation ? ` (${document.citation})` : ""}${documentState(document)}${document.description ? `\n  ${document.description.replace(/\s+/g, " ").trim()}` : ""}`,
+					(asset) =>
+						`- ${asset.assetId}: ${asset.title}${asset.citation ? ` (${asset.citation})` : ""}${assetState(asset)}${asset.description ? `\n  ${asset.description.replace(/\s+/g, " ").trim()}` : ""}`,
 				)
 				.join("\n")
 		: "No assets.";
@@ -138,8 +136,8 @@ export const searchModelOutput = modelText(
 		].join("\n\n"),
 );
 
-export const chunksModelOutput = modelText(
-	chunksOutputSchema,
+export const passagesModelOutput = modelText(
+	passagesOutputSchema,
 	({ passages, missing }) =>
 		[
 			passagesText(passages),
@@ -153,17 +151,17 @@ export const chunksModelOutput = modelText(
 
 export const pageModelOutput = modelText(
 	pageOutputSchema,
-	({ passages, matchedDocuments }) =>
+	({ passages, matchedAssets }) =>
 		[
 			passagesText(passages),
-			...(matchedDocuments && matchedDocuments.length > 0
+			...(matchedAssets && matchedAssets.length > 0
 				? [
-						`Matching assets:\n${documentsText(matchedDocuments)}`,
+						`Matching assets:\n${assetsText(matchedAssets)}`,
 					]
 				: []),
 		].join("\n\n"),
 );
 
-export const listModelOutput = modelText(listOutputSchema, ({ documents }) =>
-	documentsText(documents),
+export const listModelOutput = modelText(listOutputSchema, ({ assets }) =>
+	assetsText(assets),
 );

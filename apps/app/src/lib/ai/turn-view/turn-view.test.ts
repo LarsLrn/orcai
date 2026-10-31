@@ -36,7 +36,7 @@ const reasoning = (content: string, state = "done") =>
 
 const search = (state = "output-available", extra: object = {}) =>
 	({
-		type: "tool-searchKnowledgeBase",
+		type: "tool-searchRepositories",
 		toolCallId: "call-1",
 		state,
 		input: {
@@ -533,7 +533,7 @@ describe("work log and answer", () => {
 		]);
 
 		expect(entryTypes(message)).toEqual([
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 			"tool-showChecklist",
 		]);
 		expect(answerParts(message)).toEqual([
@@ -817,9 +817,9 @@ describe("paused step", () => {
 
 		expect(entryTypes(message)).toEqual([
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 			"tool-deleteBot",
 		]);
 		expect(answerParts(message)).toEqual([
@@ -862,7 +862,7 @@ describe("paused step", () => {
 		});
 		expect(entryTypes(message)).toEqual([
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 			"tool-updatePlan",
 		]);
 		expect(toolStatuses(message).at(-1)).toBe("awaiting-approval");
@@ -949,7 +949,7 @@ describe("client call step", () => {
 
 		expect(entryTypes(message)).toEqual([
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 		]);
 		expect(message.answer).toEqual([
 			{
@@ -1012,7 +1012,7 @@ describe("client call step", () => {
 
 		expect(entryTypes(message)).toEqual([
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 			"tool-requestUpload",
 		]);
 		expect(toolStatuses(message).at(-1)).toBe("skipped");
@@ -1058,7 +1058,7 @@ describe("client call step", () => {
 
 		expect(entryTypes(message)).toEqual([
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 			"text",
 			"tool-requestUpload",
 		]);
@@ -1096,7 +1096,7 @@ describe("questions", () => {
 
 		expect(entryTypes(message)).toEqual([
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 		]);
 		expect(message.answer).toEqual([
 			{
@@ -1143,7 +1143,7 @@ describe("questions", () => {
 
 		expect(entryTypes(message)).toEqual([
 			"text",
-			"tool-searchKnowledgeBase",
+			"tool-searchRepositories",
 		]);
 		expect(message.answer.at(-1)).toMatchObject({
 			kind: "client",
@@ -1532,7 +1532,7 @@ describe("compaction", () => {
 				text("The answer."),
 			]);
 			expect(entryTypes(message)).toEqual([
-				"tool-searchKnowledgeBase",
+				"tool-searchRepositories",
 			]);
 		}
 		expect(

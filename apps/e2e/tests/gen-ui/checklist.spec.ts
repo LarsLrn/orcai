@@ -252,7 +252,7 @@ test("gen-ui: a running turn shows its activity below a checklist while the work
 		{
 			toolCalls: [
 				{
-					name: "searchKnowledgeBase",
+					name: "searchRepositories",
 					input: {
 						query: "reference style",
 					},

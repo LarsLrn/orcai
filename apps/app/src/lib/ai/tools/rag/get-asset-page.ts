@@ -11,18 +11,18 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 import type { ChunkIds } from "./chunk-ref";
 import { pageModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
-import type { KnowledgeBaseDocument, Passage } from "./types";
+import type { Passage, RepositoryAsset } from "./types";
 import {
 	compareByPageAssetChunk,
 	flattenBlockResponses,
-	loadDocumentCatalog,
+	loadAssetCatalog,
 	mergeAndSortCandidates,
-	rankDocumentsByQuery,
+	rankAssetsByQuery,
 	resolveSearchBlocks,
 	toPassage,
 } from "./utils";
 
-export const getKnowledgeBasePageTool = ({
+export const getAssetPageTool = ({
 	blocks,
 	context,
 	chunks,
@@ -33,7 +33,7 @@ export const getKnowledgeBasePageTool = ({
 }) =>
 	effectTool({
 		description:
-			"Read the passages on a page of an asset, and optionally the pages around it. Use it when the user asks about a page. Pass assetId when you know it, or else documentTitleQuery with words from the title; with neither, it reads the page in up to five assets. When the page has no text, the result lists the matching assets instead, so you can pick another.",
+			"Read the passages on a page of an asset, and optionally the pages around it. Use it when the user asks about a page. Pass assetId when you know it, or else assetTitleQuery with words from the title; with neither, it reads the page in up to five assets. When the page has no text, the result lists the matching assets instead, so you can pick another.",
 		inputSchema: z.strictObject({
 			page: z.coerce
 				.number()
@@ -47,8 +47,8 @@ export const getKnowledgeBasePageTool = ({
 				),
 			assetId: assetIdSchema
 				.optional()
-				.describe("Id of the asset, from listKnowledgeBaseDocuments."),
-			documentTitleQuery: z
+				.describe("Id of the asset, from listRepositoryAssets."),
+			assetTitleQuery: z
 				.string()
 				.optional()
 				.describe("Words from the asset's title, when you do not know its id."),
@@ -71,7 +71,7 @@ export const getKnowledgeBasePageTool = ({
 			page,
 			blockId,
 			assetId,
-			documentTitleQuery,
+			assetTitleQuery,
 			includeAdjacentPages,
 			limit,
 		}) =>
@@ -87,30 +87,30 @@ export const getKnowledgeBasePageTool = ({
 					};
 				}
 
-				const normalizedDocumentQuery = documentTitleQuery?.trim() || undefined;
+				const normalizedTitleQuery = assetTitleQuery?.trim() || undefined;
 
-				const documents = yield* loadDocumentCatalog({
+				const assets = yield* loadAssetCatalog({
 					blocks: targetBlocks,
 					context,
 				});
 
-				let matchedDocuments: KnowledgeBaseDocument[] = documents;
+				let matchedAssets: RepositoryAsset[] = assets;
 				if (assetId) {
-					matchedDocuments = matchedDocuments.filter(
-						(document) => document.assetId === assetId,
+					matchedAssets = matchedAssets.filter(
+						(asset) => asset.assetId === assetId,
 					);
 				}
 
-				if (normalizedDocumentQuery) {
-					matchedDocuments = rankDocumentsByQuery({
-						documents: matchedDocuments,
-						query: normalizedDocumentQuery,
+				if (normalizedTitleQuery) {
+					matchedAssets = rankAssetsByQuery({
+						assets: matchedAssets,
+						query: normalizedTitleQuery,
 					});
 				}
 
-				const documentsToSearch = matchedDocuments.slice(0, 5);
+				const assetsToSearch = matchedAssets.slice(0, 5);
 				const matchedAssetIds = Array.from(
-					new Set(documentsToSearch.map((document) => document.assetId)),
+					new Set(assetsToSearch.map((asset) => asset.assetId)),
 				);
 
 				if (matchedAssetIds.length === 0) {
@@ -165,11 +165,11 @@ export const getKnowledgeBasePageTool = ({
 				const passages = neighbouringRuns(points).map((run) => toPassage(run));
 				chunks.add(passages);
 
-				// Without text on the pages, the documents help pick another one.
+				// Without text on the pages, the assets help pick another one.
 				return {
 					passages,
 					...(passages.length === 0 && {
-						matchedDocuments: matchedDocuments.slice(0, 20),
+						matchedAssets: matchedAssets.slice(0, 20),
 					}),
 				};
 			}),

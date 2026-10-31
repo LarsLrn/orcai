@@ -6,24 +6,24 @@ import { askUserTool } from "@/lib/ai/tools/questions/ask-user";
 import type { QuizHistoryMessage } from "@/lib/ai/tools/questions/quiz-result";
 import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
 import type { DocsConfig } from "@/lib/effect/services/config";
+import { createBehaviourTool } from "./bots/create-behaviour";
 import { createBotTool } from "./bots/create-bot";
 import { createRepositoryTool } from "./bots/create-repository";
-import { createTemplateTool } from "./bots/create-template";
 import { deleteAssetTool } from "./bots/delete-asset";
 import { deleteBlockTool } from "./bots/delete-block";
 import { deleteBotTool } from "./bots/delete-bot";
 import { findModelsTool } from "./bots/find-models";
 import { generateAssetMetadataTool } from "./bots/generate-asset-metadata";
+import { prepareAssetAgainTool } from "./bots/prepare-asset-again";
 import { publishBotTool } from "./bots/publish-bot";
 import { requestUploadTool } from "./bots/request-upload";
-import { retryAssetTool } from "./bots/retry-asset";
 import { updateAssetTool } from "./bots/update-asset";
+import { updateBehaviourTool } from "./bots/update-behaviour";
 import { updateBotTool } from "./bots/update-bot";
 import { updateRepositoryTool } from "./bots/update-repository";
-import { updateTemplateTool } from "./bots/update-template";
+import { addFromCatalogueTool } from "./catalogue/add-from-catalogue";
 import { findCatalogueTool } from "./catalogue/find-catalogue";
-import { installFromCatalogueTool } from "./catalogue/install-from-catalogue";
-import { uninstallResourceTool } from "./catalogue/uninstall-resource";
+import { removeFromOrganisationTool } from "./catalogue/remove-from-organisation";
 import { updateBotSetupTool } from "./catalogue/update-bot-setup";
 import { findAssetsTool } from "./core/find-assets";
 import { findBlocksTool } from "./core/find-blocks";
@@ -51,7 +51,7 @@ import { removeMembersTool } from "./people/remove-members";
 import { updateGroupTool } from "./people/update-group";
 import { updatePlanTool } from "./plan/update-plan";
 import type { AssistantToolDeps } from "./procedure-tool";
-import { findPrincipalsTool } from "./sharing/find-principals";
+import { findPeopleTool } from "./sharing/find-people";
 import { grantAccessTool } from "./sharing/grant-access";
 import { listAccessTool } from "./sharing/list-access";
 import { revokeAccessTool } from "./sharing/revoke-access";
@@ -94,20 +94,20 @@ const builds = {
 	updateBotSetup: updateBotSetupTool,
 	publishBot: publishBotTool,
 	deleteBot: deleteBotTool,
-	createTemplate: createTemplateTool,
-	updateTemplate: updateTemplateTool,
+	createBehaviour: createBehaviourTool,
+	updateBehaviour: updateBehaviourTool,
 	createRepository: createRepositoryTool,
 	updateRepository: updateRepositoryTool,
 	deleteBlock: deleteBlockTool,
 	updateAsset: updateAssetTool,
 	deleteAsset: deleteAssetTool,
-	retryAsset: retryAssetTool,
+	prepareAssetAgain: prepareAssetAgainTool,
 	generateAssetMetadata: generateAssetMetadataTool,
 	requestUpload: () => requestUploadTool,
-	installFromCatalogue: installFromCatalogueTool,
-	uninstallResource: uninstallResourceTool,
+	addFromCatalogue: addFromCatalogueTool,
+	removeFromOrganisation: removeFromOrganisationTool,
 	listAccess: listAccessTool,
-	findPrincipals: findPrincipalsTool,
+	findPeople: findPeopleTool,
 	grantAccess: grantAccessTool,
 	revokeAccess: revokeAccessTool,
 	createGroup: createGroupTool,

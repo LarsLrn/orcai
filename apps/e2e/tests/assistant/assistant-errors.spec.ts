@@ -39,12 +39,12 @@ test("assistant: an approved grant on a bot the member cannot manage fails with 
 			{
 				name: "grantAccess",
 				input: {
-					resourceType: "bot",
-					resourceId: bot.id,
-					principals: [
+					targetType: "bot",
+					targetId: bot.id,
+					grantees: [
 						{
-							principalType: "user",
-							principalId: org.users.viewer.id,
+							granteeType: "user",
+							granteeId: org.users.viewer.id,
 						},
 					],
 					role: "editor",

@@ -74,7 +74,7 @@ test("pipeline: a citation by chunk ref names the uploaded document, also after 
 		{
 			toolCalls: [
 				{
-					name: "searchKnowledgeBase",
+					name: "searchRepositories",
 					input: {
 						query: QUERY,
 					},

@@ -19,8 +19,8 @@ export const mergeAccess = (
 	grants: grants
 		.map((grant) => ({
 			type: "grant" as const,
-			principalType: grant.principal.type,
-			principalId: grant.principalId,
+			granteeType: grant.principal.type,
+			granteeId: grant.principalId,
 			name: grant.principal.name,
 			...(grant.principal.type === "user" && grant.principal.email
 				? {
@@ -45,8 +45,8 @@ export const mergeAccess = (
 			? null
 			: {
 					through: inherited.ancestors.map((ancestor) => ({
-						resourceType: ancestor.resourceType,
-						resourceId: ancestor.resourceId,
+						targetType: ancestor.resourceType,
+						targetId: ancestor.resourceId,
 						name: ancestor.name,
 					})),
 					hiddenCount: inherited.hiddenAncestorCount,

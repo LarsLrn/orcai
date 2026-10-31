@@ -2,7 +2,7 @@ import { ShieldCheckIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { listAccessTool } from "./list-access";
-import { quoted, resourceRef } from "./summary-refs";
+import { quoted, targetRef } from "./summary-refs";
 
 export const listAccess = declareTool<typeof listAccessTool>()({
 	kind: "read",
@@ -16,7 +16,7 @@ export const listAccess = declareTool<typeof listAccessTool>()({
 	refs: ({ input }) =>
 		input
 			? [
-					resourceRef(input),
+					targetRef(input),
 				]
 			: [],
 	line: ({ input, output }, nameOf) => {
@@ -24,7 +24,7 @@ export const listAccess = declareTool<typeof listAccessTool>()({
 			return m.assistant_tool_list_access_name();
 		}
 
-		const resource = quoted(nameOf(resourceRef(input)));
+		const resource = quoted(nameOf(targetRef(input)));
 
 		return output
 			? m.assistant_tool_list_access_summary_found({

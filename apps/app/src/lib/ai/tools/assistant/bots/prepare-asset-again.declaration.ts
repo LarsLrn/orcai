@@ -3,15 +3,15 @@ import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import type { EntityRef } from "@/lib/ai/tools/entity-kind";
 import { m } from "@/paraglide/messages";
 import { CONTENT_CAPABILITIES } from "../capabilities";
-import type { retryAssetTool } from "./retry-asset";
+import type { prepareAssetAgainTool } from "./prepare-asset-again";
 
-export const retryAsset = declareTool<typeof retryAssetTool>()({
+export const prepareAssetAgain = declareTool<typeof prepareAssetAgainTool>()({
 	kind: "change",
 	group: "bots",
 	capabilities: CONTENT_CAPABILITIES,
 	icon: RotateCwIcon,
-	name: () => m.assistant_tool_retry_asset_name(),
-	active: () => m.assistant_tool_retry_asset_active(),
+	name: () => m.assistant_tool_prepare_asset_again_name(),
+	active: () => m.assistant_tool_prepare_asset_again_active(),
 	refs: ({ input }) =>
 		input
 			? [
@@ -31,7 +31,7 @@ export const retryAsset = declareTool<typeof retryAssetTool>()({
 			: [],
 	line: ({ input }, nameOf) => {
 		if (!input) {
-			return m.assistant_tool_retry_asset_name();
+			return m.assistant_tool_prepare_asset_again_name();
 		}
 
 		const asset = formatNames([
@@ -42,7 +42,7 @@ export const retryAsset = declareTool<typeof retryAssetTool>()({
 		]);
 
 		return input.repositoryId
-			? m.assistant_tool_retry_asset_summary_repository({
+			? m.assistant_tool_prepare_asset_again_summary_repository({
 					asset,
 					repository: formatNames([
 						nameOf({
@@ -51,7 +51,7 @@ export const retryAsset = declareTool<typeof retryAssetTool>()({
 						}),
 					]),
 				})
-			: m.assistant_tool_retry_asset_summary_processing({
+			: m.assistant_tool_prepare_asset_again_summary_processing({
 					asset,
 				});
 	},

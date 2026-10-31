@@ -6,7 +6,7 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import type { ChunkIds } from "./chunk-ref";
-import { chunksModelOutput } from "./outputs";
+import { passagesModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { PointWithBlock } from "./types";
 import { flattenBlockResponses, toPassage, withSourceBlock } from "./utils";
@@ -25,7 +25,7 @@ const neighbourIndexes = (point: PointWithBlock, neighbours: number) =>
 			index !== point.payload.chunk_index,
 	);
 
-export const getKnowledgeBaseChunksTool = ({
+export const getPassagesTool = ({
 	blocks,
 	context,
 	chunks: known,
@@ -36,9 +36,9 @@ export const getKnowledgeBaseChunksTool = ({
 }) =>
 	effectTool({
 		description:
-			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. Use it only when you need that context, since searchKnowledgeBase already returns each passage in full.",
+			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. Use it only when you need that context, since searchRepositories already returns each passage in full.",
 		inputSchema: z.strictObject({
-			chunks: z
+			passages: z
 				.array(z.string())
 				.min(1)
 				.max(RETRIEVAL_LIMITS.maxFullChunkFetches)
@@ -51,11 +51,11 @@ export const getKnowledgeBaseChunksTool = ({
 				.default(1)
 				.describe("How many passages to read before and after each one."),
 		}),
-		run: ({ chunks, neighbours }) =>
+		run: ({ passages: refs, neighbours }) =>
 			Effect.gen(function* () {
 				const procedures = yield* Procedures;
 				const ids = Array.from(
-					new Set(chunks.flatMap((chunk) => known.idOf(chunk) ?? [])),
+					new Set(refs.flatMap((ref) => known.idOf(ref) ?? [])),
 				);
 
 				const found = flattenBlockResponses(
@@ -160,8 +160,8 @@ export const getKnowledgeBaseChunksTool = ({
 					),
 				);
 				known.add(passages);
-				const missing = chunks.filter(
-					(chunk) => !requested.some((point) => point.id === known.idOf(chunk)),
+				const missing = refs.filter(
+					(ref) => !requested.some((point) => point.id === known.idOf(ref)),
 				);
 
 				return {
@@ -171,5 +171,5 @@ export const getKnowledgeBaseChunksTool = ({
 					}),
 				};
 			}),
-		toModelOutput: chunksModelOutput,
+		toModelOutput: passagesModelOutput,
 	});

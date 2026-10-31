@@ -18,7 +18,7 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { chunkRef } from "./chunk-ref";
 import { joinOverlapping } from "./passages";
-import type { KnowledgeBaseDocument, Passage, PointWithBlock } from "./types";
+import type { Passage, PointWithBlock, RepositoryAsset } from "./types";
 
 export const resolveSearchBlocks = ({
 	blocks,
@@ -117,22 +117,22 @@ export const toPassage = (
 	};
 };
 
-export const rankDocumentsByQuery = ({
-	documents,
+export const rankAssetsByQuery = ({
+	assets,
 	query,
 }: {
-	documents: KnowledgeBaseDocument[];
+	assets: RepositoryAsset[];
 	query: string;
 }) => {
 	const normalizedQuery = normalizeText(query);
 	const queryTokens = tokenize(normalizedQuery).filter(
 		(token) => token.length > 1,
 	);
-	if (queryTokens.length === 0) return documents;
+	if (queryTokens.length === 0) return assets;
 
-	return documents
-		.map((doc) => {
-			const normalizedTitle = normalizeText(doc.title);
+	return assets
+		.map((asset) => {
+			const normalizedTitle = normalizeText(asset.title);
 			const exactTokenMatches = queryTokens.filter((token) =>
 				normalizedTitle.includes(token),
 			).length;
@@ -144,13 +144,13 @@ export const rankDocumentsByQuery = ({
 				: 0;
 			const score = exactTokenMatches + phraseBonus + startsWithBonus;
 			return {
-				doc,
+				asset,
 				score,
 			};
 		})
 		.filter((item) => item.score > 0)
 		.sort((a, b) => b.score - a.score)
-		.map((item) => item.doc);
+		.map((item) => item.asset);
 };
 
 /** The most assets one `asset.list` page holds. */
@@ -171,8 +171,8 @@ const furthestDocument = (
 ): DocumentReadiness =>
 	STATE_ORDER.indexOf(b.state) < STATE_ORDER.indexOf(a.state) ? b : a;
 
-/** The documents of `blocks`, once each, with their readiness, citation and description. */
-export const loadDocumentCatalog = ({
+/** The assets of `blocks`, once each, with their readiness, citation and description. */
+export const loadAssetCatalog = ({
 	blocks,
 	context,
 }: {
@@ -242,7 +242,7 @@ export const loadDocumentCatalog = ({
 		return [
 			...documentById.values(),
 		].map(
-			(document): KnowledgeBaseDocument => ({
+			(document): RepositoryAsset => ({
 				assetId: document.assetId,
 				title: document.title,
 				citation: metadataById.get(document.assetId)?.citation ?? undefined,

@@ -139,11 +139,11 @@ describe("mergeAccess", () => {
 			],
 		]);
 		expect(merged.grants[0]).toMatchObject({
-			principalType: "user",
+			granteeType: "user",
 			email: "anna@example.org",
 		});
 		expect(merged.grants[2]).toMatchObject({
-			principalType: "group",
+			granteeType: "group",
 			allMembers: true,
 		});
 		expect(merged.grants[1]).not.toHaveProperty("allMembers");
@@ -175,8 +175,8 @@ describe("mergeAccess", () => {
 			inherited: {
 				through: [
 					{
-						resourceType: "bot",
-						resourceId: BOT_ID,
+						targetType: "bot",
+						targetId: BOT_ID,
 						name: "Citation check",
 					},
 				],

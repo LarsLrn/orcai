@@ -480,7 +480,7 @@ const knowledgeBase = {
 
 /** Searches a block the knowledge base does not hold, which finds nothing without a database. */
 const search = (query?: string): ToolCall => ({
-	name: "searchKnowledgeBase",
+	name: "searchRepositories",
 	input: {
 		...(query
 			? {

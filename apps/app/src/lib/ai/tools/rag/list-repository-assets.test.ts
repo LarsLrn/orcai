@@ -8,13 +8,11 @@ import {
 	resetProcedures,
 } from "../assistant/test-procedures";
 
-const { listKnowledgeBaseDocumentsTool } = await import(
-	"./list-knowledge-base-documents"
-);
+const { listRepositoryAssetsTool } = await import("./list-repository-assets");
 
 afterEach(resetProcedures);
 
-describe("listKnowledgeBaseDocuments", () => {
+describe("listRepositoryAssets", () => {
 	test("each document carries its state, and a failed one its failure", async () => {
 		answers["block.readiness"] = () =>
 			Effect.succeed({
@@ -65,7 +63,7 @@ describe("listKnowledgeBaseDocuments", () => {
 				],
 			});
 
-		const output = await listKnowledgeBaseDocumentsTool({
+		const output = await listRepositoryAssetsTool({
 			blocks: [
 				{
 					id: "block-1",
@@ -86,7 +84,7 @@ describe("listKnowledgeBaseDocuments", () => {
 		);
 
 		expect(output).toMatchObject({
-			documents: [
+			assets: [
 				{
 					assetId: "asset-1",
 					title: "Policies",
@@ -114,7 +112,7 @@ describe("listKnowledgeBaseDocuments", () => {
 				data: [],
 			});
 
-		await listKnowledgeBaseDocumentsTool({
+		await listRepositoryAssetsTool({
 			blocks: Array.from(
 				{
 					length: 101,

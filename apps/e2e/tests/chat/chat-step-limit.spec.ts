@@ -38,7 +38,7 @@ const searchSteps = (count: number) =>
 		(_, index) => ({
 			toolCalls: [
 				{
-					name: "searchKnowledgeBase",
+					name: "searchRepositories",
 					input: {
 						query: `citation ${index + 1}`,
 					},

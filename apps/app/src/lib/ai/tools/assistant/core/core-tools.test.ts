@@ -212,7 +212,7 @@ describe("getBot", () => {
 			features: {
 				generativeUi: {},
 			},
-			template: {
+			behaviour: {
 				type: "template",
 				id: template.id,
 				name: "Strict",
@@ -311,7 +311,7 @@ describe("getBot", () => {
 		});
 
 		expect(output).toMatchObject({
-			template: {
+			behaviour: {
 				id: template.id,
 				name: "Strict",
 				status: "ready",
@@ -372,7 +372,7 @@ describe("getBot", () => {
 		});
 
 		expect(output).toMatchObject({
-			template: null,
+			behaviour: null,
 			repositories: [],
 		});
 	});

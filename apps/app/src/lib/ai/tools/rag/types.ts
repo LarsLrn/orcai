@@ -23,7 +23,7 @@ export const passageSchema = z.object({
 
 export type Passage = z.infer<typeof passageSchema>;
 
-export const knowledgeBaseDocumentSchema = z.object({
+export const repositoryAssetSchema = z.object({
 	assetId: z.string(),
 	title: z.string(),
 	citation: z.string().optional(),
@@ -33,7 +33,7 @@ export const knowledgeBaseDocumentSchema = z.object({
 	failure: documentReadinessSchema.shape.failure.unwrap().optional(),
 });
 
-export type KnowledgeBaseDocument = z.infer<typeof knowledgeBaseDocumentSchema>;
+export type RepositoryAsset = z.infer<typeof repositoryAssetSchema>;
 
 export type PointWithBlock = RetrievedAssetPoint & {
 	sourceBlock: {

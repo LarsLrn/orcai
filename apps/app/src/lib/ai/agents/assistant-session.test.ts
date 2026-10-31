@@ -49,15 +49,15 @@ const references = providerToolLoading("anthropic", "claude-opus-5-5");
 
 /** The bots tools only admins and managers, who add from the catalogue, are offered. */
 const installerTools: readonly string[] = [
-	"installFromCatalogue",
-	"uninstallResource",
+	"addFromCatalogue",
+	"removeFromOrganisation",
 ];
 const coreWithoutMembers = ASSISTANT_TOOL_GROUPS.core.filter(
 	(name) => name !== "listMembers",
 );
 const createTools: AssistantToolName[] = [
 	"createBot",
-	"createTemplate",
+	"createBehaviour",
 	"createRepository",
 	"createGroup",
 ];
@@ -426,7 +426,7 @@ describe("plan approval", () => {
 
 		expect(session.unlockedByApproval()).toEqual([
 			"createBot",
-			"createTemplate",
+			"createBehaviour",
 			"createRepository",
 		]);
 		session.record(approved());
@@ -440,8 +440,8 @@ describe("plan approval", () => {
 				"deleteBlock",
 				"deleteAsset",
 				"generateAssetMetadata",
-				"installFromCatalogue",
-				"uninstallResource",
+				"addFromCatalogue",
+				"removeFromOrganisation",
 				"deleteGroup",
 				"revokeAccess",
 				"removeGroupMembers",

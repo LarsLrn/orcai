@@ -2,7 +2,7 @@ import { ShieldMinusIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { revokeAccessTool } from "./revoke-access";
-import { principalRef, quoted, resourceRef } from "./summary-refs";
+import { granteeRef, quoted, targetRef } from "./summary-refs";
 
 export const revokeAccess = declareTool<typeof revokeAccessTool>()({
 	kind: "change",
@@ -17,15 +17,15 @@ export const revokeAccess = declareTool<typeof revokeAccessTool>()({
 	refs: ({ input }) =>
 		input
 			? [
-					resourceRef(input),
-					principalRef(input),
+					targetRef(input),
+					granteeRef(input),
 				]
 			: [],
 	line: ({ input }, nameOf) =>
 		input
 			? m.assistant_tool_revoke_access_summary({
-					resource: quoted(nameOf(resourceRef(input))),
-					name: quoted(nameOf(principalRef(input))),
+					resource: quoted(nameOf(targetRef(input))),
+					name: quoted(nameOf(granteeRef(input))),
 				})
 			: m.assistant_tool_revoke_access_name(),
 });

@@ -3,7 +3,7 @@ import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import { getResourceRoleLabel } from "@/settings/display-config";
 import type { grantAccessTool } from "./grant-access";
-import { principalRef, quoted, resourceRef } from "./summary-refs";
+import { granteeRef, quoted, targetRef } from "./summary-refs";
 
 export const grantAccess = declareTool<typeof grantAccessTool>()({
 	kind: "change",
@@ -18,8 +18,8 @@ export const grantAccess = declareTool<typeof grantAccessTool>()({
 	refs: ({ input, output }) =>
 		input
 			? [
-					resourceRef(input),
-					...(output ? [] : input.principals.map(principalRef)),
+					targetRef(input),
+					...(output ? [] : input.grantees.map(granteeRef)),
 				]
 			: [],
 	line: ({ input, output }, nameOf) => {
@@ -29,12 +29,12 @@ export const grantAccess = declareTool<typeof grantAccessTool>()({
 
 		const names = output
 			? output.granted.map((grant) => grant.name)
-			: input.principals.map((principal) => nameOf(principalRef(principal)));
+			: input.grantees.map((grantee) => nameOf(granteeRef(grantee)));
 
 		return m.assistant_tool_grant_access_summary({
 			names: formatNames(names),
 			role: getResourceRoleLabel(input.role),
-			resource: quoted(nameOf(resourceRef(input))),
+			resource: quoted(nameOf(targetRef(input))),
 		});
 	},
 });

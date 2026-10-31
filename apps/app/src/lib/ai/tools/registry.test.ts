@@ -88,11 +88,11 @@ const pendingInputs = {
 	deleteBot: {
 		ids: ids(1),
 	},
-	createTemplate: {
+	createBehaviour: {
 		name: "Essay feedback",
 		systemPrompt: "Give feedback.",
 	},
-	updateTemplate: {
+	updateBehaviour: {
 		id: id(2),
 		systemPrompt: "Give feedback.",
 	},
@@ -116,7 +116,7 @@ const pendingInputs = {
 	deleteAsset: {
 		ids: ids(1),
 	},
-	retryAsset: {
+	prepareAssetAgain: {
 		assetId: id(3),
 		repositoryId: id(2),
 	},
@@ -127,32 +127,32 @@ const pendingInputs = {
 		reason: "Upload the style guides for the repository 'APA rules'",
 	},
 	listAccess: {
-		resourceType: "bot",
-		resourceId: id(1),
+		targetType: "bot",
+		targetId: id(1),
 	},
-	findPrincipals: {
-		resourceType: "bot",
-		resourceId: id(1),
+	findPeople: {
+		targetType: "bot",
+		targetId: id(1),
 		query: "teach",
 		limit: 25,
 		excludeGranted: false,
 	},
 	grantAccess: {
-		resourceType: "bot",
-		resourceId: id(1),
-		principals: [
+		targetType: "bot",
+		targetId: id(1),
+		grantees: [
 			{
-				principalType: "group",
-				principalId: id(4),
+				granteeType: "group",
+				granteeId: id(4),
 			},
 		],
 		role: "editor",
 	},
 	revokeAccess: {
-		resourceType: "bot",
-		resourceId: id(1),
-		principalType: "user",
-		principalId: id(5),
+		targetType: "bot",
+		targetId: id(1),
+		granteeType: "user",
+		granteeId: id(5),
 	},
 	createGroup: {
 		name: "Teaching",
@@ -498,11 +498,11 @@ const batches: Partial<
 	},
 	grantAccess: {
 		input: {
-			resourceType: "bot",
-			resourceId: id(9),
-			principals: five.map((value) => ({
-				principalType: "group",
-				principalId: value,
+			targetType: "bot",
+			targetId: id(9),
+			grantees: five.map((value) => ({
+				granteeType: "group",
+				granteeId: value,
 			})),
 			role: "viewer",
 		},
@@ -671,7 +671,7 @@ describe("readDocs summary", () => {
 describe("toolSummary", () => {
 	test("has no summary for a tool without a line or an unknown tool", () => {
 		expect(
-			toolSummary("searchKnowledgeBase", {
+			toolSummary("searchRepositories", {
 				input: {},
 			}),
 		).toBeUndefined();
@@ -700,7 +700,7 @@ describe("toolLabels", () => {
 	test("labels a declared tool from its declaration", () => {
 		expect(
 			toolLabels({
-				type: "tool-searchKnowledgeBase",
+				type: "tool-searchRepositories",
 			}),
 		).toMatchObject({
 			name: "Searched the sources",
@@ -728,13 +728,13 @@ describe("toolLabels", () => {
 	});
 });
 
-describe("installFromCatalogue summary", () => {
+describe("addFromCatalogue summary", () => {
 	const line = (withBlocks: boolean) =>
-		summaryOf("installFromCatalogue", {
+		summaryOf("addFromCatalogue", {
 			input: {
 				entry: {
-					resourceType: "bot",
-					resourceId: "00000000-0000-4000-8000-000000000001",
+					targetType: "bot",
+					targetId: "00000000-0000-4000-8000-000000000001",
 				},
 				withBlocks,
 			},

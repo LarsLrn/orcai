@@ -11,13 +11,13 @@ import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import {
 	type ChatAgentTools,
-	repairKnowledgeBaseToolCall,
+	repairRepositoryToolCall,
 } from "@/lib/ai/agents/repair-tool-call";
 import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import { createStepShaper } from "@/lib/ai/agents/step-request";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
-import { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
+import { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
 import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
 import {
 	storedWebSearchTools,
@@ -46,10 +46,10 @@ export const createChatAgent = (params: {
 	/** The stored messages the turn answers. */
 	history: readonly UIMessage[];
 }) => {
-	const hasKnowledgeBaseBlocks = params.databaseBlocks.length > 0;
+	const hasRepositories = params.databaseBlocks.length > 0;
 	const offeredTools: ToolSet = {
-		...(hasKnowledgeBaseBlocks
-			? buildKnowledgeBaseTools({
+		...(hasRepositories
+			? buildRepositoryTools({
 					blocks: params.databaseBlocks,
 					context: params.context,
 					history: params.history,
@@ -94,7 +94,7 @@ export const createChatAgent = (params: {
 		model: params.model.language,
 		// The typed tool set; prepareCall swaps in the tools offered this turn.
 		tools: {
-			...buildKnowledgeBaseTools({
+			...buildRepositoryTools({
 				blocks: [],
 				context: params.context,
 				history: [],
@@ -106,7 +106,7 @@ export const createChatAgent = (params: {
 			...storedWebSearchTools(),
 		} satisfies ChatAgentTools,
 		...aiTelemetry("chat.agent", params.telemetryIds),
-		experimental_repairToolCall: repairKnowledgeBaseToolCall,
+		experimental_repairToolCall: repairRepositoryToolCall,
 		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => ({
 			...settings,

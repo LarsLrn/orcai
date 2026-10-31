@@ -6,24 +6,24 @@ import {
 } from "@/components/chat/gen-ui/catalog";
 import type { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
+import { createBehaviour } from "./assistant/bots/create-behaviour.declaration";
 import { createBot } from "./assistant/bots/create-bot.declaration";
 import { createRepository } from "./assistant/bots/create-repository.declaration";
-import { createTemplate } from "./assistant/bots/create-template.declaration";
 import { deleteAsset } from "./assistant/bots/delete-asset.declaration";
 import { deleteBlock } from "./assistant/bots/delete-block.declaration";
 import { deleteBot } from "./assistant/bots/delete-bot.declaration";
 import { findModels } from "./assistant/bots/find-models.declaration";
 import { generateAssetMetadata } from "./assistant/bots/generate-asset-metadata.declaration";
+import { prepareAssetAgain } from "./assistant/bots/prepare-asset-again.declaration";
 import { publishBot } from "./assistant/bots/publish-bot.declaration";
 import { requestUpload } from "./assistant/bots/request-upload.declaration";
-import { retryAsset } from "./assistant/bots/retry-asset.declaration";
 import { updateAsset } from "./assistant/bots/update-asset.declaration";
+import { updateBehaviour } from "./assistant/bots/update-behaviour.declaration";
 import { updateBot } from "./assistant/bots/update-bot.declaration";
 import { updateRepository } from "./assistant/bots/update-repository.declaration";
-import { updateTemplate } from "./assistant/bots/update-template.declaration";
+import { addFromCatalogue } from "./assistant/catalogue/add-from-catalogue.declaration";
 import { findCatalogue } from "./assistant/catalogue/find-catalogue.declaration";
-import { installFromCatalogue } from "./assistant/catalogue/install-from-catalogue.declaration";
-import { uninstallResource } from "./assistant/catalogue/uninstall-resource.declaration";
+import { removeFromOrganisation } from "./assistant/catalogue/remove-from-organisation.declaration";
 import { updateBotSetup } from "./assistant/catalogue/update-bot-setup.declaration";
 import { findAssets } from "./assistant/core/find-assets.declaration";
 import { findBlocks } from "./assistant/core/find-blocks.declaration";
@@ -45,7 +45,7 @@ import { removeGroupMembers } from "./assistant/people/remove-group-members.decl
 import { removeMembers } from "./assistant/people/remove-members.declaration";
 import { updateGroup } from "./assistant/people/update-group.declaration";
 import { updatePlan } from "./assistant/plan/update-plan.declaration";
-import { findPrincipals } from "./assistant/sharing/find-principals.declaration";
+import { findPeople } from "./assistant/sharing/find-people.declaration";
 import { grantAccess } from "./assistant/sharing/grant-access.declaration";
 import { listAccess } from "./assistant/sharing/list-access.declaration";
 import { revokeAccess } from "./assistant/sharing/revoke-access.declaration";
@@ -59,10 +59,10 @@ import type {
 import { readDocs } from "./docs/read-docs.declaration";
 import type { EntityRef } from "./entity-kind";
 import { askUser } from "./questions/ask-user.declaration";
-import { getKnowledgeBaseChunks } from "./rag/get-knowledge-base-chunks.declaration";
-import { getKnowledgeBasePage } from "./rag/get-knowledge-base-page.declaration";
-import { listKnowledgeBaseDocuments } from "./rag/list-knowledge-base-documents.declaration";
-import { searchKnowledgeBase } from "./rag/search-knowledge-base.declaration";
+import { getAssetPage } from "./rag/get-asset-page.declaration";
+import { getPassages } from "./rag/get-passages.declaration";
+import { listRepositoryAssets } from "./rag/list-repository-assets.declaration";
+import { searchRepositories } from "./rag/search-repositories.declaration";
 import { nativeWebSearch } from "./web/native-web-search.declaration";
 import { searchWeb } from "./web/search-web.declaration";
 
@@ -92,10 +92,10 @@ const displayTools = Object.fromEntries(
 
 /** Every tool of plain and assistant chats; the assistant offers its own in this order. */
 const toolDeclarations = {
-	searchKnowledgeBase,
-	listKnowledgeBaseDocuments,
-	getKnowledgeBasePage,
-	getKnowledgeBaseChunks,
+	searchRepositories,
+	listRepositoryAssets,
+	getAssetPage,
+	getPassages,
 	searchWeb,
 	web_search: nativeWebSearch,
 	readDocs,
@@ -117,20 +117,20 @@ const toolDeclarations = {
 	updateBotSetup,
 	publishBot,
 	deleteBot,
-	createTemplate,
-	updateTemplate,
+	createBehaviour,
+	updateBehaviour,
 	createRepository,
 	updateRepository,
 	deleteBlock,
 	updateAsset,
 	deleteAsset,
-	retryAsset,
+	prepareAssetAgain,
 	generateAssetMetadata,
 	requestUpload,
-	installFromCatalogue,
-	uninstallResource,
+	addFromCatalogue,
+	removeFromOrganisation,
 	listAccess,
-	findPrincipals,
+	findPeople,
 	grantAccess,
 	revokeAccess,
 	createGroup,

@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { m } from "@/paraglide/messages";
 import { ActivityLine } from "./activity-line";
 import { ReasoningEntry } from "./reasoning-entry";
-import { SearchKnowledgeBase } from "./tools/search-knowledge-base";
+import { SearchRepositories } from "./tools/search-repositories";
 
 afterEach(() => {
 	cleanup();
@@ -101,21 +101,21 @@ describe("ReasoningEntry", () => {
 	});
 });
 
-describe("SearchKnowledgeBase", () => {
+describe("SearchRepositories", () => {
 	const searchPart = (output: unknown) =>
 		({
-			type: "tool-searchKnowledgeBase",
+			type: "tool-searchRepositories",
 			toolCallId: "s1",
 			state: "output-available",
 			input: {
 				query: "refunds",
 			},
 			output,
-		}) as Parameters<typeof SearchKnowledgeBase>[0]["part"];
+		}) as Parameters<typeof SearchRepositories>[0]["part"];
 
 	test("shows each result's title and text", () => {
 		render(
-			<SearchKnowledgeBase
+			<SearchRepositories
 				part={searchPart({
 					results: [
 						{
@@ -147,7 +147,7 @@ describe("SearchKnowledgeBase", () => {
 
 	test("shows an output of an older shape without results", () => {
 		render(
-			<SearchKnowledgeBase
+			<SearchRepositories
 				part={searchPart({
 					results: [
 						{

@@ -9,7 +9,7 @@ import {
 	mutation,
 } from "../procedure-tool";
 
-const retryAssetInputSchema = z.strictObject({
+const prepareAssetAgainInputSchema = z.strictObject({
 	assetId: assetIdSchema.describe("Id of the asset, from findAssets."),
 	repositoryId: blockIdSchema
 		.optional()
@@ -18,11 +18,11 @@ const retryAssetInputSchema = z.strictObject({
 		),
 });
 
-export const retryAssetTool = (deps: AssistantToolDeps) =>
+export const prepareAssetAgainTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Retry an asset. Without a repository, process the uploaded file again. With a repository, retry the document there: its processing when the file failed, otherwise its indexing in that repository. A document still being prepared has nothing to retry.",
-		inputSchema: retryAssetInputSchema,
+		inputSchema: prepareAssetAgainInputSchema,
 		run: ({ assetId, repositoryId }) =>
 			(repositoryId
 				? callProcedure(deps, (procedures, options) =>

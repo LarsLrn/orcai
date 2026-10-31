@@ -6,13 +6,16 @@ import {
 	effectTool,
 	mutation,
 } from "../procedure-tool";
-import { catalogueEntryInputSchema } from "./catalogue-entry-input";
+import {
+	catalogueEntryInputSchema,
+	toCatalogueEntry,
+} from "./catalogue-entry-input";
 
 const uninstallInputSchema = z.strictObject({
 	entry: catalogueEntryInputSchema,
 });
 
-export const uninstallResourceTool = (deps: AssistantToolDeps) =>
+export const removeFromOrganisationTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Remove a bot, template or repository the active organisation added from the catalogue. Its grants there, a bot's model setup there, and the organisation's bots' and chats' links to a block go with it; chats with a removed bot turn read-only until it is added and shared again.",
@@ -24,7 +27,7 @@ export const uninstallResourceTool = (deps: AssistantToolDeps) =>
 					(procedures, options) =>
 						procedures.catalogue.find(
 							{
-								entry,
+								entry: toCatalogueEntry(entry),
 							},
 							options,
 						),
@@ -32,7 +35,7 @@ export const uninstallResourceTool = (deps: AssistantToolDeps) =>
 				const { data } = yield* callProcedure(deps, (procedures, options) =>
 					procedures.catalogue.uninstall(
 						{
-							entry,
+							entry: toCatalogueEntry(entry),
 						},
 						options,
 					),

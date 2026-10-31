@@ -29,7 +29,7 @@ const catalogueKinds = {
 export const findCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find what organisations on this instance list in the catalogue: bots, templates and repositories, newest first. Pass an entry's `entry` to installFromCatalogue. `state` tells whether the active organisation is the entry's home, added it already, or can add it with installFromCatalogue. A bot's `model` is what its author's setup asks for.",
+			"Find what organisations on this instance list in the catalogue: bots, templates and repositories, newest first. Pass an entry's `entry` to addFromCatalogue. `state` tells whether the active organisation is the entry's home, added it already, or can add it with addFromCatalogue. A bot's `model` is what its author's setup asks for.",
 		inputSchema: findCatalogueInputSchema,
 		run: ({ query, kind, limit }) =>
 			Effect.gen(function* () {
@@ -50,12 +50,12 @@ export const findCatalogueTool = (deps: AssistantToolDeps) =>
 						entry:
 							entry.kind === "bot"
 								? {
-										resourceType: "bot" as const,
-										resourceId: entry.id,
+										targetType: "bot" as const,
+										targetId: entry.id,
 									}
 								: {
-										resourceType: "block" as const,
-										resourceId: entry.id,
+										targetType: "block" as const,
+										targetId: entry.id,
 									},
 						kind: entry.kind === "behaviour" ? "template" : entry.kind,
 						name: entry.name,
@@ -63,7 +63,7 @@ export const findCatalogueTool = (deps: AssistantToolDeps) =>
 						from: entry.source.name,
 						state: entry.state,
 						model: entry.modelHint,
-						documents: entry.documents,
+						assets: entry.documents,
 					})),
 					total: entries.rowCount,
 				};

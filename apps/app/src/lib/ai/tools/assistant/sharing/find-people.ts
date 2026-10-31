@@ -8,16 +8,16 @@ import {
 	effectTool,
 } from "../procedure-tool";
 import {
-	expectResource,
-	resourceTargetShape,
+	expectTarget,
+	targetShape,
 	toResourceIdentity,
 } from "./resource-target";
 
 const principalFilters = resourceListPrincipalsInputSchema.options[0].shape;
 
-const findPrincipalsInputSchema = z.strictObject({
-	...resourceTargetShape,
-	principalType: principalFilters.principalType.describe(
+const findPeopleInputSchema = z.strictObject({
+	...targetShape,
+	granteeType: principalFilters.principalType.describe(
 		"Only users or only groups; leave out for both.",
 	),
 	query: principalFilters.query.describe(
@@ -29,17 +29,17 @@ const findPrincipalsInputSchema = z.strictObject({
 	limit: listLimitSchema,
 });
 
-export const findPrincipalsTool = (deps: AssistantToolDeps) =>
+export const findPeopleTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Find the users and groups that could be given access to a bot, block or asset, by name. Use it to resolve names to ids before grantAccess. Needs manage access on the resource.",
-		inputSchema: findPrincipalsInputSchema,
-		run: ({ principalType, query, excludeGranted, limit, ...target }) =>
+		inputSchema: findPeopleInputSchema,
+		run: ({ granteeType, query, excludeGranted, limit, ...target }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.resource.listPrincipals(
 					{
 						...toResourceIdentity(target),
-						principalType,
+						principalType: granteeType,
 						query,
 						excludeGranted,
 						limit,
@@ -47,19 +47,19 @@ export const findPrincipalsTool = (deps: AssistantToolDeps) =>
 					options,
 				),
 			).pipe(
-				expectResource(target),
+				expectTarget(target),
 				Effect.map(({ data, rowCount }) => ({
-					principals: data.map((principal) =>
+					grantees: data.map((principal) =>
 						principal.type === "user"
 							? {
-									principalType: principal.type,
-									principalId: principal.id,
+									granteeType: principal.type,
+									granteeId: principal.id,
 									name: principal.name,
 									email: principal.email,
 								}
 							: {
-									principalType: principal.type,
-									principalId: principal.id,
+									granteeType: principal.type,
+									granteeId: principal.id,
 									name: principal.name,
 									description: principal.description,
 									kind: principal.kind,

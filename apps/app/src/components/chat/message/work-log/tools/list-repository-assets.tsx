@@ -1,42 +1,41 @@
 import { listOutputSchema } from "@/lib/ai/tools/rag/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { ListKnowledgeBaseDocumentsToolPart } from "@/lib/ai/types/tools";
+import type { ListRepositoryAssetsToolPart } from "@/lib/ai/types/tools";
 import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 import { SourcePassageList } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
 
-export const ListKnowledgeBaseDocuments = ({
+export const ListRepositoryAssets = ({
 	part,
 	status,
 }: {
-	part: ListKnowledgeBaseDocumentsToolPart;
+	part: ListRepositoryAssetsToolPart;
 	status: ToolStatus | null;
 }) => {
-	const documents =
-		listOutputSchema.safeParse(part.output).data?.documents ?? [];
+	const assets = listOutputSchema.safeParse(part.output).data?.assets ?? [];
 
 	return (
 		<ToolEntry
 			part={part}
 			status={status}
 			label={
-				documents.length > 0
+				assets.length > 0
 					? m.chat_work_log_tool_list_documents_result({
-							count: documents.length,
+							count: assets.length,
 						})
 					: m.chat_work_log_tool_list_documents_name()
 			}
 		>
-			{documents.length > 0 && (
+			{assets.length > 0 && (
 				<SourcePassageList>
-					{documents.map((document) => (
+					{assets.map((asset) => (
 						<div
-							key={document.assetId}
+							key={asset.assetId}
 							className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 shadow-xs"
 						>
 							<span className="min-w-0 flex-1 truncate font-medium text-sm">
-								{formatAssetTitle(document.title) ??
+								{formatAssetTitle(asset.title) ??
 									m.chat_source_fallback_title()}
 							</span>
 						</div>

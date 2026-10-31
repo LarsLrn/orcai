@@ -13,7 +13,7 @@ const passage = (fields: Partial<Passage>): Passage => ({
 });
 
 const searchPart = (results: Passage[]) => ({
-	type: "tool-searchKnowledgeBase",
+	type: "tool-searchRepositories",
 	toolCallId: "s1",
 	state: "output-available",
 	input: {
@@ -63,7 +63,7 @@ describe("turnCitations", () => {
 						text: "",
 						toolResults: [
 							{
-								toolName: "getKnowledgeBaseChunks",
+								toolName: "getPassages",
 								output: {
 									passages: [
 										passage({

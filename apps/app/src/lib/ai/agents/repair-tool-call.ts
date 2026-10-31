@@ -7,11 +7,11 @@ import {
 } from "ai";
 import type { GenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { QuestionTools } from "@/lib/ai/tools/questions/toolset";
-import type { buildKnowledgeBaseTools } from "@/lib/ai/tools/rag/toolset";
+import type { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
 import type { searchWebTool } from "@/lib/ai/tools/web/search-web";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 
-export type ChatAgentTools = ReturnType<typeof buildKnowledgeBaseTools> &
+export type ChatAgentTools = ReturnType<typeof buildRepositoryTools> &
 	GenUiTools &
 	QuestionTools & {
 		searchWeb: ReturnType<typeof searchWebTool>;
@@ -68,7 +68,7 @@ const normalizeStringArray = (value: unknown, maxItems: number) => {
 	return normalized.length > 0 ? normalized.slice(0, maxItems) : [];
 };
 
-const repairSearchKnowledgeBaseInput = (input: Record<string, unknown>) => {
+const repairSearchRepositoriesInput = (input: Record<string, unknown>) => {
 	const query = normalizeTrimmedString(input.query);
 	const queryVariants = normalizeStringArray(input.queryVariants, 4);
 
@@ -105,9 +105,9 @@ const repairSearchKnowledgeBaseInput = (input: Record<string, unknown>) => {
 	};
 };
 
-const repairGetKnowledgeBaseChunksInput = (input: Record<string, unknown>) => {
-	const chunks = normalizeStringArray(
-		input.chunks,
+const repairGetPassagesInput = (input: Record<string, unknown>) => {
+	const passages = normalizeStringArray(
+		input.passages,
 		RETRIEVAL_LIMITS.maxFullChunkFetches,
 	);
 	const neighbours = clampInteger({
@@ -117,7 +117,7 @@ const repairGetKnowledgeBaseChunksInput = (input: Record<string, unknown>) => {
 	});
 
 	return {
-		chunks: chunks ?? [],
+		passages: passages ?? [],
 		...(typeof neighbours === "number"
 			? {
 					neighbours,
@@ -126,7 +126,7 @@ const repairGetKnowledgeBaseChunksInput = (input: Record<string, unknown>) => {
 	};
 };
 
-const repairGetKnowledgeBasePageInput = (input: Record<string, unknown>) => {
+const repairGetAssetPageInput = (input: Record<string, unknown>) => {
 	const page = clampInteger({
 		value: input.page ?? input.pageNumber,
 		min: 1,
@@ -147,7 +147,7 @@ const repairGetKnowledgeBasePageInput = (input: Record<string, unknown>) => {
 		normalizeTrimmedString(input.assetId) ??
 		normalizeTrimmedString(input.asset_id);
 	const blockId = normalizeTrimmedString(input.blockId);
-	const documentTitleQuery = normalizeTrimmedString(input.documentTitleQuery);
+	const assetTitleQuery = normalizeTrimmedString(input.assetTitleQuery);
 
 	return {
 		...(typeof page === "number"
@@ -177,17 +177,15 @@ const repairGetKnowledgeBasePageInput = (input: Record<string, unknown>) => {
 					blockId,
 				}
 			: {}),
-		...(documentTitleQuery
+		...(assetTitleQuery
 			? {
-					documentTitleQuery,
+					assetTitleQuery,
 				}
 			: {}),
 	};
 };
 
-const repairListKnowledgeBaseDocumentsInput = (
-	input: Record<string, unknown>,
-) => {
+const repairListRepositoryAssetsInput = (input: Record<string, unknown>) => {
 	const query = normalizeTrimmedString(input.query);
 	const blockId = normalizeTrimmedString(input.blockId);
 	const limit = clampInteger({
@@ -223,21 +221,21 @@ const repairToolInput = ({
 	input: Record<string, unknown>;
 }) => {
 	switch (toolName) {
-		case "searchKnowledgeBase":
-			return repairSearchKnowledgeBaseInput(input);
-		case "getKnowledgeBaseChunks":
-			return repairGetKnowledgeBaseChunksInput(input);
-		case "getKnowledgeBasePage":
-			return repairGetKnowledgeBasePageInput(input);
-		case "listKnowledgeBaseDocuments":
-			return repairListKnowledgeBaseDocumentsInput(input);
+		case "searchRepositories":
+			return repairSearchRepositoriesInput(input);
+		case "getPassages":
+			return repairGetPassagesInput(input);
+		case "getAssetPage":
+			return repairGetAssetPageInput(input);
+		case "listRepositoryAssets":
+			return repairListRepositoryAssetsInput(input);
 		default:
 			return null;
 	}
 };
 
-/** Repairs knowledge-base tool input only; other calls are left as they are. */
-export const repairKnowledgeBaseToolCall: ToolCallRepairFunction<
+/** Repairs repository tool input only; other calls are left as they are. */
+export const repairRepositoryToolCall: ToolCallRepairFunction<
 	ChatAgentTools
 > = ({ toolCall, error }) => {
 	if (NoSuchToolError.isInstance(error)) {

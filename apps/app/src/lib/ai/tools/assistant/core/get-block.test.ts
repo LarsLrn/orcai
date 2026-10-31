@@ -151,7 +151,7 @@ describe("getBlock", () => {
 			canEdit: true,
 			canDelete: false,
 			canManageAccess: false,
-			documents: {
+			assetTotals: {
 				total: 3,
 				ready: 1,
 				preparing: 1,

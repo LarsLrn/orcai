@@ -1,19 +1,19 @@
-import { chunksOutputSchema } from "@/lib/ai/tools/rag/outputs";
+import { passagesOutputSchema } from "@/lib/ai/tools/rag/outputs";
 import type { ToolStatus } from "@/lib/ai/turn-view/turn-view";
-import type { GetKnowledgeBaseChunksToolPart } from "@/lib/ai/types/tools";
+import type { GetPassagesToolPart } from "@/lib/ai/types/tools";
 import { m } from "@/paraglide/messages";
 import { SourcePassages } from "../source-passage";
 import { ToolEntry } from "../tool-entry";
 
-export const GetKnowledgeBaseChunks = ({
+export const GetPassages = ({
 	part,
 	status,
 }: {
-	part: GetKnowledgeBaseChunksToolPart;
+	part: GetPassagesToolPart;
 	status: ToolStatus | null;
 }) => {
 	const passages =
-		chunksOutputSchema.safeParse(part.output).data?.passages ?? [];
+		passagesOutputSchema.safeParse(part.output).data?.passages ?? [];
 
 	return (
 		<ToolEntry
