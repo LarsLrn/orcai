@@ -287,7 +287,7 @@ export const conversationOf = (
 };
 
 /** Mark the chat tour seen for the page's user, so its card does not cover the chat. */
-const skipChatTour = async (page: Page): Promise<void> => {
+export const skipChatTour = async (page: Page): Promise<void> => {
 	const cookies = await page.context().cookies();
 	const client = createApiClient(
 		baseURL(),
