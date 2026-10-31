@@ -102,6 +102,8 @@ export interface ProviderKindServerEntry {
 	readonly jsonWithoutSchema?: true;
 	/** How a chat title is asked for, set where the SDK turns reasoning off safely. */
 	readonly titleCallSettings?: TitleCallSettings;
+	/** Reasoning for structured utility calls, set where the SDK sends it only to models that take it. */
+	readonly utilityReasoning?: "none" | "low";
 	/** The provider's own search tool, set for kinds with `nativeWebSearch`. */
 	readonly webSearchTool?: (allowedDomains: readonly string[]) => Tool;
 }
@@ -153,6 +155,7 @@ export const providerKindServerEntries: Record<
 				fetch,
 			}),
 		toolChoiceNoneKeepsTools: true,
+		utilityReasoning: "low",
 		webSearchTool: (allowedDomains) =>
 			openai.tools.webSearch(
 				allowedDomains.length > 0
@@ -227,6 +230,7 @@ export const providerKindServerEntries: Record<
 			reasoning: "none",
 			maxOutputTokens: 256,
 		},
+		utilityReasoning: "none",
 		compaction: {
 			source: "anthropic",
 			minimumTrigger: 50_000,
@@ -252,6 +256,10 @@ export const providerKindServerEntries: Record<
 
 export const titleCallSettings = (kind: ModelProviderKind): TitleCallSettings =>
 	providerKindServerEntries[kind].titleCallSettings ?? {};
+
+/** The reasoning a utility call asks for, or the model's default where the kind cannot say. */
+export const utilityReasoning = (kind: ModelProviderKind) =>
+	providerKindServerEntries[kind].utilityReasoning;
 
 export const createProviderLanguageModel = (
 	kind: ModelProviderKind,

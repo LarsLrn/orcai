@@ -52,3 +52,7 @@ export const isS3NotFound = (error: S3Error) => {
 		code === "NoSuchBucket"
 	);
 };
+
+/** Whether an S3 read failed because the object does not exist in a bucket that does. */
+export const isS3NoSuchKey = (error: S3Error) =>
+	getS3Code(error.cause) === "NoSuchKey";

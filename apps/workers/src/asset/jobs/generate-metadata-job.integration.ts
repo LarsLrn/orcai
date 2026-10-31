@@ -1,11 +1,17 @@
 import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
-import { type AssetId, buckets, type UserId } from "@orcai/core";
+import {
+	type ActivityRunId,
+	type AssetId,
+	buckets,
+	type UserId,
+} from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import {
 	type Job,
 	PgBoss,
 	PgBossService,
+	queueAfterProcessing,
 	queueMetadataGeneration,
 } from "@orcai/pg-boss";
 import {
@@ -19,6 +25,8 @@ import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
 	type MetadataGenerationMode,
+	PROCESS_ASSET_JOB_NAME,
+	type ProcessAssetPayload,
 } from "@orcai/schema";
 import {
 	awaitLockWaiters,
@@ -97,6 +105,7 @@ const documentAnswer = {
 beforeEach(() => {
 	requests.length = 0;
 	jsonAnswer.value = documentAnswer;
+	jsonAnswer.cutOff = false;
 });
 
 const run = <A, E>(
@@ -107,6 +116,24 @@ const run = <A, E>(
 	>,
 ) => runtime.runPromise(effect);
 
+const storeExtraction = (
+	assetId: AssetId,
+	artifact: StoredExtractionArtifact,
+	content = "Refund policy\n\nRefunds are paid within 14 days.",
+) =>
+	sendPutObjectCommand({
+		bucket: buckets.processed.name,
+		key: buildStoredExtractionKey(assetId),
+		body: Buffer.from(
+			serializeStoredExtractionArtifact({
+				...artifact,
+				content,
+				images: [],
+			}),
+		),
+		contentType: "application/json",
+	});
+
 /** A processed library document whose title is still the uploaded file's name. */
 const seedDocument = async (
 	params: {
@@ -116,6 +143,8 @@ const seedDocument = async (
 		fileName?: string | null;
 		metadata?: AssetMetadataType;
 		content?: string;
+		/** False leaves the processed document without its stored extraction. */
+		stored?: boolean;
 	} = {},
 ) => {
 	const seeded = await run(
@@ -141,20 +170,9 @@ const seedDocument = async (
 					processingStatus: "completed",
 				})
 				.where(eq(dbSchema.asset.id, seeded.assetId));
-			yield* sendPutObjectCommand({
-				bucket: buckets.processed.name,
-				key: buildStoredExtractionKey(seeded.assetId),
-				body: Buffer.from(
-					serializeStoredExtractionArtifact({
-						...seeded.artifact,
-						content:
-							params.content ??
-							"Refund policy\n\nRefunds are paid within 14 days.",
-						images: [],
-					}),
-				),
-				contentType: "application/json",
-			});
+			if (params.stored !== false) {
+				yield* storeExtraction(seeded.assetId, seeded.artifact, params.content);
+			}
 		}),
 	);
 	return seeded;
@@ -711,3 +729,379 @@ test(
 	},
 	TIMEOUT,
 );
+
+const processJobs = (assetId: AssetId) =>
+	boss.findJobs<ProcessAssetPayload>(PROCESS_ASSET_JOB_NAME, {
+		data: {
+			assetRef: {
+				id: assetId,
+			},
+		},
+	});
+
+const metadataJobs = (assetId: AssetId) =>
+	boss.findJobs<GenerateAssetMetadataPayload>(
+		GENERATE_ASSET_METADATA_JOB_NAME,
+		{
+			data: {
+				assetId,
+			},
+		},
+	);
+
+const processingOf = (assetId: AssetId) =>
+	run(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.select({
+					status: dbSchema.asset.processingStatus,
+					generation: dbSchema.asset.processingGeneration,
+				})
+				.from(dbSchema.asset)
+				.where(eq(dbSchema.asset.id, assetId));
+			return row;
+		}),
+	);
+
+const setProcessing = (assetId: AssetId, status: "completed" | "failed") =>
+	run(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.asset)
+				.set({
+					processingStatus: status,
+				})
+				.where(eq(dbSchema.asset.id, assetId));
+		}),
+	);
+
+/** What the processing job does once the file is prepared: completes it and queues what follows. */
+const completeProcessing = (
+	seeded: Awaited<ReturnType<typeof seedDocument>>,
+	runId?: ActivityRunId,
+) =>
+	run(
+		Effect.gen(function* () {
+			yield* storeExtraction(seeded.assetId, seeded.artifact);
+			const db = yield* DB;
+			yield* db.transaction(() =>
+				Effect.gen(function* () {
+					yield* db
+						.update(dbSchema.asset)
+						.set({
+							processingStatus: "completed",
+						})
+						.where(eq(dbSchema.asset.id, seeded.assetId));
+					yield* queueAfterProcessing({
+						assetId: seeded.assetId,
+						runId,
+					});
+				}),
+			);
+		}),
+	);
+
+const memberOf = (runId: ActivityRunId) =>
+	run(
+		Effect.gen(function* () {
+			const [member] = yield* (yield* DB)
+				.select({
+					processing: dbSchema.activityMember.processingState,
+					metadata: dbSchema.activityMember.metadataState,
+				})
+				.from(dbSchema.activityMember)
+				.where(eq(dbSchema.activityMember.runId, runId));
+			return member;
+		}),
+	);
+
+test(
+	"a missing extraction prepares the file again as the run's work, and the review resumes once it is prepared",
+	async () => {
+		const seeded = await seedDocument({
+			stored: false,
+		});
+		const runId = await run(
+			Effect.gen(function* () {
+				const [activityRun] = yield* (yield* DB)
+					.insert(dbSchema.activityRun)
+					.values({
+						userId: seeded.adminId,
+						kind: "suggest_metadata",
+						organizationId: seeded.organizationId,
+					})
+					.returning({
+						id: dbSchema.activityRun.id,
+					});
+				if (!activityRun) throw new Error("No run seeded");
+				return activityRun.id;
+			}),
+		);
+		await run(
+			queueMetadataGeneration({
+				assetIds: [
+					seeded.assetId,
+				],
+				mode: "review",
+				userId: seeded.adminId,
+				runId,
+			}),
+		);
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+
+		await runJob(job);
+
+		const next = await latestJob(seeded.assetId);
+		expect(requests).toHaveLength(0);
+		expect(await processingOf(seeded.assetId)).toEqual({
+			status: "pending",
+			generation: 1,
+		});
+		const [preparation] = await processJobs(seeded.assetId);
+		expect(preparation?.data).toMatchObject({
+			generation: 1,
+			runId,
+		});
+		expect(next?.data).toEqual({
+			...job.data,
+			generation: job.data.generation + 1,
+			preparedAgain: true,
+		});
+		const handedOn = (await metadataJobs(seeded.assetId)).find(
+			(queued) => queued.id === next?.id,
+		);
+		expect(handedOn?.startAfter.getTime()).toBeGreaterThan(Date.now());
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "pending",
+			generation: job.data.generation + 1,
+		});
+		expect(await memberOf(runId)).toEqual({
+			processing: "pending",
+			metadata: "pending",
+		});
+
+		// A duplicate delivery finds its generation replaced.
+		await runJob(job);
+		expect(await processJobs(seeded.assetId)).toHaveLength(1);
+		expect(await metadataJobs(seeded.assetId)).toHaveLength(2);
+
+		await completeProcessing(seeded, runId);
+		expect(await metadataJobs(seeded.assetId)).toHaveLength(2);
+		if (!next) throw new Error("No job handed on");
+		await runJob(next);
+
+		expect(requests).toHaveLength(1);
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			title: "refunds.pdf",
+			status: "completed",
+			suggestion: {
+				title: "Refund policy 2026",
+			},
+		});
+		expect(await memberOf(runId)).toEqual({
+			processing: "completed",
+			metadata: "completed",
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"a generation that finds its file still being prepared waits again without preparing it twice",
+	async () => {
+		const seeded = await seedDocument({
+			stored: false,
+		});
+		await admit(seeded.assetId, "apply");
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+		await runJob(job);
+		const waiting = await latestJob(seeded.assetId);
+		if (!waiting) throw new Error("No job handed on");
+
+		await runJob(waiting);
+
+		expect(await processJobs(seeded.assetId)).toHaveLength(1);
+		expect((await latestJob(seeded.assetId))?.data).toEqual({
+			...job.data,
+			generation: job.data.generation + 2,
+			preparedAgain: true,
+		});
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "pending",
+			failure: null,
+		});
+		expect(requests).toHaveLength(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"an extraction still missing after the file was prepared again fails as missing",
+	async () => {
+		const seeded = await seedDocument({
+			stored: false,
+		});
+		await admit(seeded.assetId, "apply");
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+		await runJob(job);
+		const waiting = await latestJob(seeded.assetId);
+		if (!waiting) throw new Error("No job handed on");
+		await setProcessing(seeded.assetId, "completed");
+
+		await runJob(waiting);
+
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "failed",
+			failure: "missing_extraction",
+		});
+		expect(await processJobs(seeded.assetId)).toHaveLength(1);
+		expect(requests).toHaveLength(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a waiting generation fails as missing when preparing the file again failed",
+	async () => {
+		const seeded = await seedDocument({
+			stored: false,
+		});
+		await admit(seeded.assetId, "apply");
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+		await runJob(job);
+		const waiting = await latestJob(seeded.assetId);
+		if (!waiting) throw new Error("No job handed on");
+		await setProcessing(seeded.assetId, "failed");
+
+		await runJob(waiting);
+
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "failed",
+			failure: "missing_extraction",
+		});
+		expect(await processJobs(seeded.assetId)).toHaveLength(1);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a delivery of a replaced generation neither prepares the file nor waits",
+	async () => {
+		const seeded = await seedDocument({
+			stored: false,
+		});
+		await admit(seeded.assetId, "apply");
+		const stale = await latestJob(seeded.assetId);
+		if (!stale) throw new Error("No job queued");
+		await admit(seeded.assetId, "review");
+
+		await runJob(stale);
+
+		expect(await processJobs(seeded.assetId)).toHaveLength(0);
+		expect(await metadataJobs(seeded.assetId)).toHaveLength(2);
+		expect(await processingOf(seeded.assetId)).toEqual({
+			status: "completed",
+			generation: 0,
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"an answer cut off at its output budget is charged and fails as cut off without a retry",
+	async () => {
+		const seeded = await seedDocument();
+		jsonAnswer.cutOff = true;
+		await admit(seeded.assetId, "apply", seeded.adminId);
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+
+		await runJob(job);
+
+		expect(requests).toHaveLength(1);
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "failed",
+			failure: "output_limit",
+		});
+		expect(await usageUsers(seeded.assetId)).toHaveLength(1);
+	},
+	TIMEOUT,
+);
+
+for (const preparedAgain of [
+	false,
+	true,
+]) {
+	test(
+		`an extraction stored between the missing read and the asset lock is used${preparedAgain ? " after the file was prepared again" : ""}`,
+		async () => {
+			const seeded = await seedDocument({
+				stored: false,
+			});
+			await admit(seeded.assetId, "review");
+			const admitted = await latestJob(seeded.assetId);
+			if (!admitted) throw new Error("No job queued");
+			const job = preparedAgain
+				? {
+						...admitted,
+						data: {
+							...admitted.data,
+							preparedAgain: true as const,
+						},
+					}
+				: admitted;
+
+			// A key share lets the claim update the asset but holds the recovery's lock.
+			const locked = await run(Deferred.make<void>());
+			const go = await run(Deferred.make<void>());
+			const holder = await run(
+				Effect.forkDetach(
+					Effect.gen(function* () {
+						const db = yield* DB;
+						yield* db.transaction(() =>
+							Effect.gen(function* () {
+								yield* db
+									.select({
+										id: dbSchema.asset.id,
+									})
+									.from(dbSchema.asset)
+									.where(eq(dbSchema.asset.id, seeded.assetId))
+									.for("key share");
+								yield* Deferred.succeed(locked, undefined);
+								yield* Deferred.await(go);
+							}),
+						);
+					}),
+				),
+			);
+			await run(Deferred.await(locked));
+			const worker = await run(
+				Effect.forkDetach(
+					generateMetadataBatch([
+						job,
+					]),
+				),
+			);
+			await run(awaitLockWaiters('%"processing_generation" from "asset"%'));
+			await run(storeExtraction(seeded.assetId, seeded.artifact));
+			await run(Deferred.succeed(go, undefined));
+			await run(Fiber.join(holder));
+			await run(Fiber.join(worker));
+
+			expect(await processJobs(seeded.assetId)).toHaveLength(0);
+			expect(requests).toHaveLength(1);
+			expect(await assetOf(seeded.assetId)).toMatchObject({
+				status: "completed",
+				generation: job.data.generation,
+				suggestion: {
+					title: "Refund policy 2026",
+				},
+			});
+		},
+		TIMEOUT,
+	);
+}

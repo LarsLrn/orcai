@@ -1,4 +1,5 @@
 export { type AgentModel, agentModel } from "./agent-model";
+export { aiFailure, failedReply } from "./ai-failure";
 export {
 	ASSET_METADATA_MAX_OUTPUT_TOKENS,
 	assetMetadataInstructions,
@@ -59,6 +60,7 @@ export {
 	providerToolLoading,
 	type ToolLoading,
 	titleCallSettings,
+	utilityReasoning,
 	withholdToolCalls,
 } from "./provider-kinds/registry";
 export type { ProviderConnection, SystemPrompt } from "./provider-kinds/types";

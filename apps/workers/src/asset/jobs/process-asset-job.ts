@@ -336,6 +336,10 @@ const processDelivery = (params: {
 			Effect.logError(
 				{
 					err,
+					jobId: params.job.id,
+					assetId: params.attempt.assetId,
+					fileType: params.job.data.assetRef.type,
+					stage: "processing",
 				},
 				"Process asset job failed",
 			),

@@ -110,7 +110,7 @@ Once a Library upload is prepared, OrcAI writes its metadata in the background. 
 
 The [OrcAI Assistant](/docs/using-orcai/assistant) can do the same for assets you name, after you confirm. It never overwrites values, so to replace them, use **Generate with AI** or tell it the values.
 
-While metadata is generated, cards, the upload list and the asset page show **Generating metadata**. A failed run says why on the asset page. When the budget ran out, run it again once the pool resets. Without a utility model, nothing is generated, **Generate with AI** is disabled with a hint (admins get a link to the organisation settings), and **Generate missing metadata** is hidden. Generating metadata never affects whether an asset is ready for its repositories.
+While metadata is generated, cards, the upload list and the asset page show **Generating metadata**. A failed run says why on the asset page: the call to the utility model failed, its answer did not have the expected form or was cut off at its length limit, the budget ran out, or the text read from the file is missing. When the budget ran out, run it again once the pool resets. When the text read from the file is gone, OrcAI prepares the file again once and then generates the metadata. Without a utility model, nothing is generated, **Generate with AI** is disabled with a hint (admins get a link to the organisation settings), and **Generate missing metadata** is hidden. Generating metadata never affects whether an asset is ready for its repositories.
 
 ## The asset page
 
@@ -138,9 +138,10 @@ A failing step is retried automatically, so an asset stays Processing until its 
 - The file could not be read.
 - Preparing it took too long.
 - The budget ran out while describing images.
+- The call to the utility model failed while describing an image file, or its answer did not have the expected form or was cut off at its length limit.
 - Another error.
 
-The first two fail at once, since retrying cannot help. A used-up budget also fails at once, with nothing half prepared, and you can retry once the pool resets. Without a utility model that reads images, figures in files are skipped and the rest of the file is prepared.
+The first two fail at once, since retrying cannot help. A used-up budget also fails at once, with nothing half prepared, and you can retry once the pool resets. An answer cut off at its length limit fails at once too, since the same request is cut off again. Without a utility model that reads images, figures in files are skipped and the rest of the file is prepared.
 
 On the **Preparation status** card, **Retry** appears for a failed asset you can edit, unless retrying cannot help, and queues preparation again.
 

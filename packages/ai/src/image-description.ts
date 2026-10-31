@@ -4,8 +4,8 @@ import { Output } from "ai";
 import { z } from "zod/v4";
 import { jsonAnswerInstructions } from "./json-answer";
 
-/** The output budget of one image description. */
-export const IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS = 1024;
+/** The output budget of one image description, with room for a reasoning model's thinking. */
+export const IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS = 4096;
 
 /** A summary of an image asset is at most this long. */
 const MAX_IMAGE_SUMMARY_LENGTH = 300;

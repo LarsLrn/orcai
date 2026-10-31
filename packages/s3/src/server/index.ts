@@ -13,7 +13,7 @@ export {
 } from "./commands";
 export type { S3Config } from "./config";
 export { S3ConfigLive, S3ConfigService } from "./config";
-export { isS3NotFound, S3Error } from "./errors";
+export { isS3NoSuchKey, isS3NotFound, S3Error } from "./errors";
 export {
 	deletePrefixRecursively,
 	getImageAsBase64,

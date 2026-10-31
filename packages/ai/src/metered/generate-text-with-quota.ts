@@ -5,6 +5,7 @@ import {
 	type LanguageModel,
 	type ModelMessage,
 	NoObjectGeneratedError,
+	NoOutputGeneratedError,
 	type OutputInterface,
 } from "ai";
 import * as Effect from "effect/Effect";
@@ -140,9 +141,26 @@ export const generateTextWithQuota = <
 			),
 		);
 
-		return {
-			text: response.text,
-			output: response.output as InferGenerateOutput<OUTPUT>,
-			usage: response.usage,
-		};
+		// The SDK reads the output lazily: a reply cut off before any text throws here, charged already.
+		return yield* Effect.try({
+			try: () => ({
+				text: response.text,
+				output: response.output as InferGenerateOutput<OUTPUT>,
+				usage: response.usage,
+			}),
+			catch: (cause) =>
+				new AiError({
+					operation: input.operation,
+					cause: NoOutputGeneratedError.isInstance(cause)
+						? new NoObjectGeneratedError({
+								message: `No output generated: the reply finished with "${response.finishReason}".`,
+								cause,
+								text: response.text,
+								response: response.response,
+								usage: response.usage,
+								finishReason: response.finishReason,
+							})
+						: cause,
+				}),
+		});
 	});

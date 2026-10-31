@@ -31,6 +31,8 @@ type JobBatch<T> = {
 			priority?: number;
 			retryLimit?: number;
 			retryDelay?: number;
+			/** Seconds before the job may run. */
+			startAfter?: number;
 		};
 	}>;
 };
@@ -51,6 +53,7 @@ const insertJobs = <T extends object>(
 						priority: job.options?.priority,
 						retryLimit: job.options?.retryLimit ?? 3,
 						retryDelay: job.options?.retryDelay ?? 60,
+						startAfter: job.options?.startAfter,
 					})),
 					options,
 				),
