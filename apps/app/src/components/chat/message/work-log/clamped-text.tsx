@@ -14,6 +14,7 @@ export const ClampedText = ({
 	const [expanded, setExpanded] = useState(false);
 	const [overflows, setOverflows] = useState(false);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: streamed text grows inside an unchanged clamped box, so no resize reports it.
 	useLayoutEffect(() => {
 		const element = ref.current;
 
@@ -30,6 +31,7 @@ export const ClampedText = ({
 		return () => observer.disconnect();
 	}, [
 		expanded,
+		children,
 	]);
 
 	return (
