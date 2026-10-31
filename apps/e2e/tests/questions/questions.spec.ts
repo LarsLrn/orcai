@@ -408,3 +408,63 @@ test("questions: skipping tells the model the user declined", async ({
 		toolResults(completionBodies(inference).at(-1)).map(String).at(-1),
 	).toContain("The user skipped the questions.");
 });
+
+test("questions: picking a quiz answer leaves the conversation where it is", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const member = api.as("member");
+	const bot = await createBot(member, QUESTIONS);
+	const chatId = await createBotChat(member, model, bot.id);
+	const title = "Long quiz";
+	inference.script({
+		toolCalls: [
+			askUserCall({
+				mode: "quiz",
+				title,
+				questions: Array.from(
+					{
+						length: 10,
+					},
+					(_, index) => ({
+						type: "single",
+						prompt: `Question ${index + 1}?`,
+						options: [
+							`First ${index + 1}`,
+							`Second ${index + 1}`,
+						],
+					}),
+				),
+			}),
+		],
+	});
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await openChat(page, chatId);
+	await ask(page, "Quiz me");
+
+	const card = questionsCard(page, title);
+	const answer = card.getByText("Second 10", {
+		exact: true,
+	});
+	await answer.scrollIntoViewIfNeeded();
+	const viewport = page.getByLabel(message("message_scroller_viewport_label"));
+	const scrollTop = () =>
+		viewport.evaluate(
+			(element) =>
+				(
+					element as unknown as {
+						scrollTop: number;
+					}
+				).scrollTop,
+		);
+	const before = await scrollTop();
+	await answer.click();
+
+	await expect(option(card, "radio", "Second 10")).toBeChecked();
+	expect(await scrollTop()).toBe(before);
+});

@@ -1,5 +1,5 @@
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
-import { type ReactNode, useId } from "react";
+import { type ComponentProps, type ReactNode, useId } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,21 +14,21 @@ const OTHER = "other";
 const optionRow =
 	"flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition-colors hover:bg-muted/50 has-data-checked:border-primary has-data-checked:bg-primary/5 has-focus-visible:border-ring";
 
-/** An option with its control; `htmlFor` is the control's id. */
-const OptionRow = ({
-	htmlFor,
-	control,
-	children,
-}: {
-	htmlFor: string;
-	control: ReactNode;
-	children: ReactNode;
-}) => (
-	<Label htmlFor={htmlFor} className={optionRow}>
-		{control}
-		<span className="min-w-0 flex-1 font-normal">{children}</span>
-	</Label>
-);
+/**
+ * Renders a control as a native button inside its option's row label. Base UI
+ * then keeps its hidden input outside the label, so a click on the row never
+ * focuses that input, which sits at the top of the message and would scroll
+ * the conversation there.
+ */
+const inOptionRow = (children: ReactNode) => ({
+	nativeButton: true,
+	render: (props: ComponentProps<"button">) => (
+		<Label className={optionRow}>
+			<button type="button" {...props} />
+			<span className="min-w-0 flex-1 font-normal">{children}</span>
+		</Label>
+	),
+});
 
 /** The Other field of a regular round's choice question; typing in it chooses Other. */
 const OtherInput = ({
@@ -96,27 +96,23 @@ export const QuestionField = ({
 					className="gap-2"
 				>
 					{question.options.map((option, index) => (
-						<OptionRow
+						<RadioGroupItem
 							key={`${index}-${option}`}
-							htmlFor={`${id}-${index}`}
-							control={
-								<RadioGroupItem value={String(index)} id={`${id}-${index}`} />
-							}
-						>
-							{option}
-						</OptionRow>
+							value={String(index)}
+							{...inOptionRow(option)}
+						/>
 					))}
 					{withOther && (
-						<OptionRow
-							htmlFor={`${id}-${OTHER}`}
-							control={<RadioGroupItem value={OTHER} id={`${id}-${OTHER}`} />}
-						>
-							<OtherInput
-								question={question}
-								draft={draft}
-								onChange={onChange}
-							/>
-						</OptionRow>
+						<RadioGroupItem
+							value={OTHER}
+							{...inOptionRow(
+								<OtherInput
+									question={question}
+									draft={draft}
+									onChange={onChange}
+								/>,
+							)}
+						/>
 					)}
 				</RadioGroup>
 			);
@@ -124,44 +120,30 @@ export const QuestionField = ({
 			return (
 				<fieldset aria-labelledby={labelledBy} className="flex flex-col gap-2">
 					{question.options.map((option, index) => (
-						<OptionRow
+						<Checkbox
 							key={`${index}-${option}`}
-							htmlFor={`${id}-${index}`}
-							control={
-								<Checkbox
-									id={`${id}-${index}`}
-									checked={draft.choices.includes(index)}
-									onCheckedChange={() =>
-										onChange(toggleChoice(question, draft, index))
-									}
-								/>
+							checked={draft.choices.includes(index)}
+							onCheckedChange={() =>
+								onChange(toggleChoice(question, draft, index))
 							}
-						>
-							{option}
-						</OptionRow>
+							{...inOptionRow(option)}
+						/>
 					))}
 					{withOther && (
-						<OptionRow
-							htmlFor={`${id}-${OTHER}`}
-							control={
-								<Checkbox
-									id={`${id}-${OTHER}`}
-									checked={draft.other !== undefined}
-									onCheckedChange={(checked) =>
-										onChange(
-											setOther(question, draft, checked ? "" : undefined),
-										)
-									}
-									aria-label={m.questions_other_label()}
-								/>
+						<Checkbox
+							checked={draft.other !== undefined}
+							onCheckedChange={(checked) =>
+								onChange(setOther(question, draft, checked ? "" : undefined))
 							}
-						>
-							<OtherInput
-								question={question}
-								draft={draft}
-								onChange={onChange}
-							/>
-						</OptionRow>
+							aria-label={m.questions_other_label()}
+							{...inOptionRow(
+								<OtherInput
+									question={question}
+									draft={draft}
+									onChange={onChange}
+								/>,
+							)}
+						/>
 					)}
 				</fieldset>
 			);
