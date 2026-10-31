@@ -206,6 +206,20 @@ describe("resolveDeploymentConfig", () => {
 		});
 	});
 
+	test("trims whitespace around the feedback address", () => {
+		expect(
+			resolveDeploymentConfig({
+				feedbackEmail: "  feedback@example.org  ",
+			}),
+		).toEqual({
+			docs: undefined,
+			publicConfig: {
+				feedbackEmail: "feedback@example.org",
+			},
+			warnings: [],
+		});
+	});
+
 	test("ignores an invalid feedback address and warns", () => {
 		expect(
 			resolveDeploymentConfig({
