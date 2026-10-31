@@ -11,8 +11,8 @@ import { QuestionField } from "./question-field";
 import { QuestionsCard } from "./questions-card";
 
 /**
- * A regular round, one question per step and a review after the last.
- * Picking a single choice moves on; Submit sends what is answered so far.
+ * A regular round, one question per step and a review after the last. Picking
+ * a single choice moves on, and only the review submits.
  */
 export const QuestionStepper = ({
 	input,
@@ -64,14 +64,15 @@ export const QuestionStepper = ({
 								{m.questions_back_action()}
 							</Button>
 						)}
-						{!reviewing && (
-							<Button variant="outline" size="sm" onClick={next}>
+						{reviewing ? (
+							<Button size="sm" onClick={() => onSubmit(drafts)}>
+								{m.questions_submit_action()}
+							</Button>
+						) : (
+							<Button size="sm" onClick={next}>
 								{m.questions_next_action()}
 							</Button>
 						)}
-						<Button size="sm" onClick={() => onSubmit(drafts)}>
-							{m.questions_submit_action()}
-						</Button>
 					</div>
 				</>
 			}
