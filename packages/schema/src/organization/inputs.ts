@@ -84,6 +84,7 @@ export const updateOrganizationInputSchema =
 		description: organizationDescriptionSchema.nullable().optional(),
 		assistantModelId: modelIdSchema.nullable().optional(),
 		utilityModelId: modelIdSchema.nullable().optional(),
+		defaultChatModelId: modelIdSchema.nullable().optional(),
 		/** Off, the model's own search, or one of the organisation's search providers. */
 		webSearch: z
 			.discriminatedUnion("mode", [

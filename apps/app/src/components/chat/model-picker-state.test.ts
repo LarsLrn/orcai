@@ -86,59 +86,52 @@ describe("starterModel", () => {
 		modelId: other,
 		providerId: crypto.randomUUID() as ProviderId,
 	};
+	const picked = {
+		modelId: crypto.randomUUID() as ModelId,
+		providerId: crypto.randomUUID() as ProviderId,
+	};
 	const ofTutor = {
 		modelId: tutor.id,
 		providerId: tutor.providerId,
 	};
-	const unusable = (strength: BotSetup["strength"]): BotSetup => ({
-		...setup(strength),
-		model: {
-			...tutor,
-			usable: false,
-		},
-	});
 
 	test("a required model is fixed, usable or not", () => {
 		for (const required of [
 			setup("required"),
-			unusable("required"),
+			{
+				...setup("required"),
+				model: {
+					...tutor,
+					usable: false,
+				},
+			},
 		]) {
 			expect(
 				starterModel({
 					setup: required,
-					picked: fallback,
-					defaultPick: fallback,
+					picked,
+					defaultModel: fallback,
 				}),
 			).toEqual(ofTutor);
 		}
 	});
 
-	test("the user's pick wins over a recommendation", () => {
+	test("the user's pick wins over the default", () => {
 		expect(
 			starterModel({
 				setup: setup("recommended"),
-				picked: fallback,
-				defaultPick: undefined,
+				picked,
+				defaultModel: fallback,
 			}),
-		).toEqual(fallback);
+		).toEqual(picked);
 	});
 
-	test("a usable recommendation comes before the default", () => {
+	test("without a pick, the default", () => {
 		expect(
 			starterModel({
 				setup: setup("recommended"),
 				picked: null,
-				defaultPick: fallback,
-			}),
-		).toEqual(ofTutor);
-	});
-
-	test("an unusable recommendation falls back to the default", () => {
-		expect(
-			starterModel({
-				setup: unusable("recommended"),
-				picked: null,
-				defaultPick: fallback,
+				defaultModel: fallback,
 			}),
 		).toEqual(fallback);
 	});

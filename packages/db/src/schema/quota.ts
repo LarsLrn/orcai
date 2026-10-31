@@ -1,6 +1,7 @@
 import type {
 	BotId,
 	GroupId,
+	ModelId,
 	OrganizationId,
 	ProviderId,
 	QuotaLedgerId,
@@ -75,9 +76,11 @@ export const quotaPool = pgTable(
 			.references(() => provider.id, {
 				onDelete: "cascade",
 			}),
-		modelId: uuid("model_id").references(() => model.id, {
-			onDelete: "set null",
-		}),
+		modelId: uuid("model_id")
+			.$type<ModelId>()
+			.references(() => model.id, {
+				onDelete: "set null",
+			}),
 		periodType: quotaPoolPeriodTypeEnum("period_type").notNull(),
 		budgetAmount: bigint("budget_amount", {
 			mode: "number",
@@ -245,9 +248,11 @@ export const quotaUsageEvent = pgTable(
 				onDelete: "cascade",
 			}),
 		/** The model the call ran on. */
-		modelId: uuid("model_id").references(() => model.id, {
-			onDelete: "set null",
-		}),
+		modelId: uuid("model_id")
+			.$type<ModelId>()
+			.references(() => model.id, {
+				onDelete: "set null",
+			}),
 		userId: uuid("user_id")
 			.$type<UserId>()
 			.references(() => user.id, {

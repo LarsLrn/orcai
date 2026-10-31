@@ -38,7 +38,11 @@ import { getZedToken } from "@/lib/authz/zed-token";
 import { findBotSetup } from "@/lib/bots/bot-setup";
 import { deleteChatsWhere, insertChat } from "@/lib/chats/chat-lifecycle";
 import { checkChatModel, checkMaxTokens } from "@/lib/chats/chat-model";
-import { effectiveModel, seededConfig } from "@/lib/chats/effective-model";
+import {
+	defaultChatModel,
+	startingConfig,
+} from "@/lib/chats/default-chat-model";
+import { effectiveModel } from "@/lib/chats/effective-model";
 import {
 	chatBotUsable,
 	chatReadOnlyReason,
@@ -435,15 +439,17 @@ const createChat = authed.chat.create
 			yield* checkFeatureRequirements(features);
 		}
 
-		const config = seededConfig(
-			input.config ?? {},
-			input.botId
+		const config = yield* startingConfig({
+			config: input.config ?? {},
+			setup: input.botId
 				? yield* findBotSetup({
 						botId: input.botId,
 						organizationId,
 					})
 				: null,
-		);
+			organizationId,
+			userId: context.auth.user.id,
+		});
 		yield* checkChatModel({
 			providerId: config.providerId,
 			modelId: config.modelId,
@@ -470,6 +476,18 @@ const createChat = authed.chat.create
 
 		return {
 			data: chat,
+		};
+	});
+
+const findDefaultModel = authed.chat.defaultModel
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		return {
+			data: yield* defaultChatModel({
+				organizationId: context.auth.session.activeOrganizationId,
+				userId: context.auth.user.id,
+				recommendedModelId: input.recommendedModelId ?? null,
+			}),
 		};
 	});
 
@@ -826,6 +844,7 @@ export const chatRouter = {
 	list: listChats,
 	history: listChatHistory,
 	create: createChat,
+	defaultModel: findDefaultModel,
 	find: findChat,
 	update: updateChat,
 	pin: pinChat,

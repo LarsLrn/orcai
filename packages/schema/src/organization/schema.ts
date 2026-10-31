@@ -23,6 +23,7 @@ export const organizationSchema = organizationFieldsSchema.extend({
 	description: organizationDescriptionSchema.nullable(),
 	assistantModelId: modelIdSchema.nullable(),
 	utilityModelId: modelIdSchema.nullable(),
+	defaultChatModelId: modelIdSchema.nullable(),
 	webSearchMode: z.enum(webSearchModes),
 	/** The search provider of the `provider` mode. */
 	webSearchProviderId: providerIdSchema.nullable(),

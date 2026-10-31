@@ -1,4 +1,10 @@
-import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
+import type {
+	BotId,
+	ModelId,
+	OrganizationId,
+	ProviderId,
+	UserId,
+} from "@orcai/core";
 import {
 	generateText,
 	type InferGenerateOutput,
@@ -23,7 +29,7 @@ interface GenerateTextWithQuotaInput<
 	organizationId: OrganizationId;
 	userId: UserId;
 	providerId: ProviderId;
-	modelId: string | null;
+	modelId: ModelId | null;
 	botId?: BotId | null;
 	model: LanguageModel;
 	messages?: ModelMessage[];

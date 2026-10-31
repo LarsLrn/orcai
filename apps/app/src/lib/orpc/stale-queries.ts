@@ -51,6 +51,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	};
 	// Organisation readiness reads providers, models, pools, groups and members.
 	const readiness = orpc.readiness.key();
+	// So does the model a new chat starts on, with the organisation's default.
+	const defaultChatModel = orpc.chat.defaultModel.key();
 
 	// Group lists and quota pools show each group's member count.
 	const groupSummaries = () => [
@@ -71,6 +73,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		}),
 		orpc.organizationMember.listAccess.key(),
 		readiness,
+		defaultChatModel,
 		readOnlyChats,
 		orpc.botSetup.coverage.key(),
 	];
@@ -136,6 +139,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.model.key(),
 		orpc.provider.find.key(),
 		readiness,
+		defaultChatModel,
 		orpc.botSetup.key(),
 		readOnlyChats,
 		orpc.bot.list.key(),
@@ -308,6 +312,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.group.key(),
 				orpc.quota.find.key(),
 				readiness,
+				defaultChatModel,
 				readOnlyChats,
 				orpc.botSetup.coverage.key(),
 			],
@@ -330,6 +335,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			update: () => [
 				orpc.organization.key(),
 				readiness,
+				defaultChatModel,
 			],
 			delete: () => [
 				orpc.organization.key(),
@@ -413,6 +419,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			update: () => [
 				orpc.provider.key(),
 				readiness,
+				defaultChatModel,
 				orpc.botSetup.key(),
 				readOnlyChats,
 			],
@@ -421,6 +428,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.provider.key(),
 				orpc.organization.key(),
 				readiness,
+				defaultChatModel,
 				orpc.botSetup.key(),
 				readOnlyChats,
 				orpc.bot.list.key(),
@@ -431,16 +439,19 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			create: () => [
 				orpc.quota.key(),
 				readiness,
+				defaultChatModel,
 				orpc.botSetup.coverage.key(),
 			],
 			update: () => [
 				orpc.quota.key(),
 				readiness,
+				defaultChatModel,
 				orpc.botSetup.coverage.key(),
 			],
 			deactivate: () => [
 				orpc.quota.key(),
 				readiness,
+				defaultChatModel,
 				orpc.botSetup.coverage.key(),
 			],
 		},

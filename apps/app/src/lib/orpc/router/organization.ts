@@ -501,6 +501,13 @@ const updateOrganization = authed.organization.update
 				use: "text",
 			});
 		}
+		if (input.defaultChatModelId) {
+			yield* requireUsableModel({
+				organizationId: input.id,
+				modelId: input.defaultChatModelId,
+				use: "turn",
+			});
+		}
 
 		const { webSearch, ...fields } = input;
 		const webSearchUpdate = webSearch

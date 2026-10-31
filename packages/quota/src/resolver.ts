@@ -1,4 +1,4 @@
-import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
+import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, asc, desc, eq, isNotNull, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -25,7 +25,7 @@ export const resolveQuotaPool: (params: {
 	organizationId: OrganizationId;
 	userId: UserId;
 	providerId: ProviderId;
-	modelId?: string | null;
+	modelId?: ModelId | null;
 }) => Effect.Effect<QuotaResolutionResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;

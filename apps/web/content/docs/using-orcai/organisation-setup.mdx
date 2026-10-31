@@ -82,6 +82,7 @@ Go to Administration > Organisation (`/app/organization`).
 - Choose a model in **Assistant model** and save. Only models with tool calling, not deprecated, on an enabled provider are listed.
 - Until a model is chosen, the [OrcAI Assistant](/docs/using-orcai/assistant) is unavailable to everyone in the organisation.
 - The Assistant draws on the same quota pools as chat. For a separate Assistant budget, add a pool for that model alone.
+- Optionally choose a model in **Default chat model** for new chats to start on. Without one, they start on the newest chat model a quota pool covers, unless the bot or the person chooses another. See [Default chat model](/docs/using-orcai/administration#default-chat-model).
 - Choose a small, inexpensive model in **Utility model** to write chat and conversation titles, to describe images and to generate metadata in the Library, and give it the image capability so image files can be prepared. Without one, each chat's own model writes its title, images are not described and no metadata is generated.
 - Optionally set **Web search** for bots with the web search feature to **Model's own search (Anthropic and OpenAI models)** or to a search provider such as Tavily, added under Providers with a quota pool of its own. See [Web search](/docs/using-orcai/administration#web-search).
 

@@ -1,6 +1,7 @@
 import type {
 	BotId,
 	GroupId,
+	ModelId,
 	OrganizationId,
 	ProviderId,
 	QuotaPeriodId,
@@ -51,7 +52,7 @@ export const createQuotaPoolWithInitialPeriod: (params: {
 	name: string;
 	description?: string | null;
 	providerId: ProviderId;
-	modelId?: string | null;
+	modelId?: ModelId | null;
 	periodType: (typeof dbSchema.quotaPool.$inferInsert)["periodType"];
 	budgetAmount: number;
 	priority: number;
@@ -336,7 +337,7 @@ export const reserveQuotaLedger: (params: {
 	quotaPoolId: QuotaPoolId;
 	quotaPeriodId: QuotaPeriodId;
 	providerId: ProviderId;
-	modelId?: string | null;
+	modelId?: ModelId | null;
 	botId?: BotId | null;
 	userId: UserId;
 	appRequestId: string;
