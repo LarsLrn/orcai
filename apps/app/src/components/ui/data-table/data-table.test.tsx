@@ -95,13 +95,17 @@ const renderTable = async ({
 	data = items,
 	rowCount = 50,
 	search = "",
+	loader,
 }: {
 	data?: Item[];
 	rowCount?: number;
 	search?: string;
+	loader?: () => Promise<void>;
 } = {}) => {
 	const rootRoute = createRootRoute({
 		validateSearch: parseSearch,
+		loaderDeps: ({ search }) => search,
+		loader,
 		component: () => {
 			const { pageIndex, pageSize, sort } = rootRoute.useSearch() as Search;
 			return (
@@ -281,6 +285,44 @@ describe("DataTable", () => {
 		);
 		await waitFor(() => {
 			expect(currentSearch(router).pageIndex).toBe(2);
+		});
+	});
+
+	test("paging waits for a pending navigation instead of paging from the stale page", async () => {
+		const gate = Promise.withResolvers<void>();
+		let loads = 0;
+		const router = await renderTable({
+			search: "?pageIndex=1",
+			loader: () => {
+				loads += 1;
+				return loads === 1 ? Promise.resolve() : gate.promise;
+			},
+		});
+		const next = screen.getByRole("button", {
+			name: m.common_pagination_next_page_label(),
+		});
+
+		await act(() => {
+			void router.navigate({
+				to: "/",
+				search: {
+					pageIndex: 0,
+					pageSize: 20,
+					sort: [],
+				},
+			});
+		});
+		expect(next.getAttribute("aria-disabled")).toBe("true");
+		fireEvent.click(next);
+		expect(currentSearch(router).pageIndex).toBe(0);
+
+		await act(() => gate.resolve());
+		await waitFor(() => {
+			expect(next.getAttribute("aria-disabled")).toBeNull();
+		});
+		fireEvent.click(next);
+		await waitFor(() => {
+			expect(currentSearch(router).pageIndex).toBe(1);
 		});
 	});
 
