@@ -1,5 +1,6 @@
 import { createApiClient } from "../../fixtures/api";
 import { untilAllowed } from "../../fixtures/authorization";
+import { skipChatTour } from "../../fixtures/chat/chat";
 import { signIn } from "../../fixtures/index";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
@@ -68,6 +69,7 @@ test("chat: the chat list follows the active organisation, and another organisat
 			}),
 		).toHaveCount(0);
 
+		await skipChatTour(page);
 		await open(page, `/app/chat/${first.data.id}`);
 		await expect(
 			page.getByText(

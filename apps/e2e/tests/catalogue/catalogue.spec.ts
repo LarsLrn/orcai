@@ -1,6 +1,11 @@
 import type { Page } from "@playwright/test";
 import { untilAllowed } from "../../fixtures/authorization";
-import { chatName, sendTurn, setUpChatModel } from "../../fixtures/chat/chat";
+import {
+	chatName,
+	sendTurn,
+	setUpChatModel,
+	skipChatTour,
+} from "../../fixtures/chat/chat";
 import type { Api } from "../../fixtures/index";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
@@ -249,6 +254,7 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 	});
 	const reader = await pageAs("member", other);
 	await enterApp(reader, other.slug);
+	await skipChatTour(reader);
 	await open(reader, `/app/chat/${chat.data.id}`);
 	await expect(
 		reader.getByText(message("chat_read_only_bot_unavailable_title")),

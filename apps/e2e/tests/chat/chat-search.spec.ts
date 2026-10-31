@@ -4,6 +4,7 @@ import {
 	messageText,
 	sendTurn,
 	setUpChatModel,
+	skipChatTour,
 } from "../../fixtures/chat/chat";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
@@ -42,6 +43,7 @@ test("the chat search finds a message and opens the chat on it", async ({
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
+	await skipChatTour(page);
 	await open(page, "/app/chat");
 	await page
 		.getByPlaceholder(message("chat_list_search_placeholder"))
