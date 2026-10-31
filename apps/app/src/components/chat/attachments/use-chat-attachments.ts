@@ -251,6 +251,7 @@ export const useChatAttachments = ({
 		setAssetPickerOpen,
 		openUploadDialog,
 		handleFileInputChange,
+		addFiles,
 		addAsset,
 		removeLocalFile,
 		removeSelectedAsset,
