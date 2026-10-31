@@ -54,6 +54,11 @@ export const organization = pgTable("organization", {
 		.references((): AnyPgColumn => model.id, {
 			onDelete: "set null",
 		}),
+	defaultChatModelId: uuid("default_chat_model_id")
+		.$type<ModelId>()
+		.references((): AnyPgColumn => model.id, {
+			onDelete: "set null",
+		}),
 	webSearchMode: organizationWebSearchModeEnum("web_search_mode")
 		.notNull()
 		.default("off"),

@@ -1,70 +1,30 @@
-import type { Model, Provider } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import type { ModelId } from "@orcai/core";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc/orpc";
 
-type ChatModelAvailability = "loading" | "ready" | "none";
-
-/** First chat-capable model on an enabled provider. */
-const useDefaultChatModel = () => {
-	const { data: providersResult, status: providersStatus } = useQuery(
-		orpc.provider.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 100,
-				filters: {
-					enabled: true,
-					purpose: "models",
-				},
-			},
+/**
+ * The model a new chat starts on when nothing requires or picks one, as the
+ * server resolves it; idle while the bot's recommendation is unknown.
+ */
+const useDefaultChatModel = (
+	recommendedModelId: ModelId | null | undefined,
+) => {
+	const { data, status } = useQuery(
+		orpc.chat.defaultModel.queryOptions({
+			input:
+				recommendedModelId === undefined
+					? skipToken
+					: {
+							recommendedModelId: recommendedModelId ?? undefined,
+						},
 		}),
 	);
-
-	const { data: modelsResult, status: modelsStatus } = useQuery(
-		orpc.model.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 20,
-				filters: {
-					capabilities: [
-						"text",
-						"tool-calling",
-					],
-				},
-			},
-		}),
-	);
-
-	const match = useMemo(() => {
-		const providers = providersResult?.data ?? [];
-		const models = modelsResult?.data ?? [];
-		for (const model of models) {
-			const provider = providers.find((p) => p.id === model.providerId);
-			if (provider) {
-				return {
-					model: model as Model,
-					provider: provider as Provider,
-				};
-			}
-		}
-		return null;
-	}, [
-		providersResult,
-		modelsResult,
-	]);
-
-	const availability: ChatModelAvailability =
-		providersStatus === "pending" || modelsStatus === "pending"
-			? "loading"
-			: match
-				? "ready"
-				: "none";
 
 	return {
-		availability,
-		defaultModel: match?.model ?? null,
-		defaultProvider: match?.provider ?? null,
+		/** Whether the organisation has no model a chat can start on. */
+		none: status === "success" && data.data === null,
+		defaultModel: data?.data ?? null,
 	};
 };
 
-export { type ChatModelAvailability, useDefaultChatModel };
+export { useDefaultChatModel };

@@ -41,8 +41,7 @@ const useChatStarter = ({
 		initialBotId,
 	);
 	const [isCreating, setIsCreating] = useState(false);
-	const { availability, defaultModel, defaultProvider } = useDefaultChatModel();
-	const { data: setupData } = useQuery(
+	const { data: setupData, status: setupStatus } = useQuery(
 		orpc.botSetup.find.queryOptions({
 			input: selectedBotId
 				? {
@@ -52,6 +51,13 @@ const useChatStarter = ({
 		}),
 	);
 	const setup = selectedBotId ? (setupData?.data.setup ?? null) : null;
+	const { none, defaultModel } = useDefaultChatModel(
+		selectedBotId && setupStatus === "pending"
+			? undefined
+			: setup?.strength === "recommended"
+				? (setup.model?.id ?? null)
+				: null,
+	);
 	const picked =
 		pick && pick.botId === selectedBotId
 			? {
@@ -63,11 +69,7 @@ const useChatStarter = ({
 	const selected = starterModel({
 		setup,
 		picked,
-		defaultPick: defaultModel &&
-			defaultProvider && {
-				modelId: defaultModel.id,
-				providerId: defaultProvider.id,
-			},
+		defaultModel,
 	});
 	const { data: quota } = useQuotaStatus({
 		providerId: selected?.providerId,
@@ -75,7 +77,7 @@ const useChatStarter = ({
 	});
 
 	const blocker = composerBlocker({
-		modelAvailable: availability !== "none" || !!selected,
+		modelAvailable: !none || !!selected,
 		quota: quota?.data,
 		requiredBy:
 			required && selectedBotId

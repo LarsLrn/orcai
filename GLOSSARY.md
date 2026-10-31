@@ -289,6 +289,10 @@ _German_: Modell
 The model a chat answers with.
 _German_: Chat-Modell
 
+**Default chat model**:
+The organisation's model that new chats start on unless their bot or the person chooses another.
+_German_: Standard-Chat-Modell
+
 **Utility model**:
 The organisation's model for background work: chat titles, image descriptions, metadata.
 _German_: Hilfsmodell

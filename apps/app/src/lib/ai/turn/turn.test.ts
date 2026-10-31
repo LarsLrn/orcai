@@ -1058,7 +1058,11 @@ describe("turn setup", () => {
 		).toBe("BadRequestError: CHAT_ORGANIZATION_MISMATCH");
 	});
 
-	test("refuses a chat without a model", async () => {
+	test("refuses a chat without a model when the organisation has none", async () => {
+		answers["chat.defaultModel"] = () =>
+			Effect.succeed({
+				data: null,
+			});
 		expect(
 			await refusalOf(
 				chatRow({

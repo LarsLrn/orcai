@@ -1,6 +1,6 @@
 ---
 title: Administration
-description: Manage members, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its Assistant and utility models and web search, plus Manage instance, the instance admin and initialising a new instance.
+description: Manage members, invitations, groups, quota pools, analytics, providers, models and the Organisation page with its Assistant, default chat and utility models and web search, plus Manage instance, the instance admin and initialising a new instance.
 ---
 
 Administration appears in the sidebar's "Your organisation" group and shows only the sections your organisation permissions allow. To prepare a new organisation step by step, follow [Organisation setup](/docs/using-orcai/organisation-setup).
@@ -493,6 +493,29 @@ organisation. Deleting the model, or its provider, clears the setting. If the
 chosen model later becomes unusable, because it is deprecated, loses tool
 calling or its provider is disabled, the setting stays, the page warns with the
 reason, and the Assistant's replies fail until another model is chosen.
+
+### Default chat model
+
+The **Default chat model** picker chooses the model new chats start on. It
+offers the same models as the Assistant model picker. **Clear** removes the
+choice.
+
+A bot's required model always decides, and a model picked in the composer
+comes next. Otherwise OrcAI preselects the first usable model that an active
+quota pool covers for the person starting the chat, in this order: the model
+the bot recommends, the default chat model, then the organisation's newest
+chat model. If no pool covers any of them, the first usable one is preselected
+and the composer says that no pool covers it. A chat created without a model,
+for example through the API, follows the same order. If its bot recommends a
+model, the chat stores the model the order picks for its creator. Otherwise it
+answers each message with the model the order picks for the person sending it.
+
+While no default is set, the order goes straight from the bot's recommendation
+to the organisation's newest chat model. If the
+chosen model becomes unusable, because it is deprecated, loses tool calling or
+its provider is disabled, the setting stays, the page warns with the reason,
+and new chats skip it until it is usable again. Deleting the model, or its
+provider, clears the setting.
 
 ### Utility model
 

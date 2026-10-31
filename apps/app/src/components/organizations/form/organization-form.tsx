@@ -71,6 +71,22 @@ const assistantModelSetting: ModelSetting<"turn"> = {
 	},
 };
 
+const defaultChatModelSetting: ModelSetting<"turn"> = {
+	use: "turn",
+	label: m.orgs_form_default_chat_model_label,
+	description: m.orgs_form_default_chat_model_description,
+	unsetHint: m.orgs_form_default_chat_model_unset_hint,
+	unusable: {
+		PROVIDER_DISABLED:
+			m.orgs_form_default_chat_model_unusable_provider_disabled,
+		MODEL_DEPRECATED: m.orgs_form_default_chat_model_unusable_deprecated,
+		MODEL_CAPABILITIES_UNKNOWN:
+			m.orgs_form_default_chat_model_unusable_capabilities_unknown,
+		MODEL_TOOLS_UNSUPPORTED:
+			m.orgs_form_default_chat_model_unusable_tools_unsupported,
+	},
+};
+
 const utilityModelSetting: ModelSetting<"text"> = {
 	use: "text",
 	label: m.orgs_form_utility_model_label,
@@ -292,6 +308,7 @@ export const OrganizationForm = ({
 					slug: organization.slug,
 					description: organization.description,
 					assistantModelId: organization.assistantModelId,
+					defaultChatModelId: organization.defaultChatModelId,
 					utilityModelId: organization.utilityModelId,
 					webSearch: webSearchChoice(organization),
 					initialAdmin: "me" as const,
@@ -303,6 +320,7 @@ export const OrganizationForm = ({
 			const {
 				description,
 				assistantModelId,
+				defaultChatModelId,
 				utilityModelId,
 				webSearch,
 				initialAdmin,
@@ -319,6 +337,11 @@ export const OrganizationForm = ({
 						"assistantModelId",
 						assistantModelId,
 						organization.assistantModelId,
+					),
+					...changedModel(
+						"defaultChatModelId",
+						defaultChatModelId,
+						organization.defaultChatModelId,
 					),
 					...changedModel(
 						"utilityModelId",
@@ -447,6 +470,16 @@ export const OrganizationForm = ({
 							children={(field) => (
 								<OrganizationModelField
 									setting={assistantModelSetting}
+									value={field.state.value}
+									onChange={field.handleChange}
+								/>
+							)}
+						/>
+						<form.AppField
+							name="defaultChatModelId"
+							children={(field) => (
+								<OrganizationModelField
+									setting={defaultChatModelSetting}
 									value={field.state.value}
 									onChange={field.handleChange}
 								/>

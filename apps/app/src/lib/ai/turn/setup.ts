@@ -359,23 +359,44 @@ const chatSetup = (
 					.pipe(Effect.mapError(failedRead("botSetup")))).data.setup
 			: null;
 		const effective = effectiveModel(config, setup);
-		if (!effective.providerId || !effective.modelId) {
-			return yield* effective.source === "bot-required"
-				? badRequest(
-						"BOT_MODEL_UNAVAILABLE",
-						"The model this bot requires is no longer available.",
-					)
-				: badRequest(
-						"CHAT_MODEL_NOT_CONFIGURED",
-						"Chat is missing model or provider configuration. Please select a model in chat settings.",
-					);
+		if (effective.source === "bot-required" && !effective.modelId) {
+			return yield* badRequest(
+				"BOT_MODEL_UNAVAILABLE",
+				"The model this bot requires is no longer available.",
+			);
+		}
+		// A chat without its own model starts each turn on the default one.
+		const chosen =
+			effective.modelId && effective.providerId
+				? {
+						modelId: effective.modelId,
+						providerId: effective.providerId,
+					}
+				: (yield* procedures.chat
+						.defaultModel(
+							{
+								recommendedModelId:
+									setup?.strength === "recommended"
+										? setup.model?.id
+										: undefined,
+							},
+							{
+								context,
+							},
+						)
+						.pipe(Effect.mapError(failedRead("defaultModel")))).data;
+		if (!chosen) {
+			return yield* badRequest(
+				"CHAT_MODEL_NOT_CONFIGURED",
+				"The organisation has no model this chat can use.",
+			);
 		}
 
 		const [model, bot, attached] = yield* Effect.all(
 			[
 				readModel({
-					modelId: effective.modelId,
-					requestedProviderId: effective.providerId,
+					modelId: chosen.modelId,
+					requestedProviderId: chosen.providerId,
 					context,
 				}),
 				chat.botId

@@ -52,29 +52,27 @@ type ModelChoice = {
 };
 
 /**
- * The model a new chat starts on: a required one is fixed; otherwise the
- * user's pick, the recommended one while usable, then the default.
+ * The model a new chat starts on: a required one is fixed, otherwise the
+ * user's pick, then the default, which already weighs a recommendation.
  */
 const starterModel = ({
 	setup,
 	picked,
-	defaultPick,
+	defaultModel,
 }: {
 	setup: BotSetup | null;
 	picked: ModelChoice | null;
-	defaultPick: ModelChoice | null | undefined;
+	defaultModel: ModelChoice | null;
 }): ModelChoice | undefined => {
-	const setupModel = setup?.model && {
-		modelId: setup.model.id,
-		providerId: setup.model.providerId,
-	};
-	if (setup?.strength === "required") return setupModel ?? undefined;
-	return (
-		picked ??
-		(setup?.model?.usable ? setupModel : undefined) ??
-		defaultPick ??
-		undefined
-	);
+	if (setup?.strength === "required") {
+		return setup.model
+			? {
+					modelId: setup.model.id,
+					providerId: setup.model.providerId,
+				}
+			: undefined;
+	}
+	return picked ?? defaultModel ?? undefined;
 };
 
 export {

@@ -25,6 +25,7 @@ const organizationFormSchema = organizationFieldsSchema
 	.extend({
 		description: descriptionFieldSchema,
 		assistantModelId: modelIdSchema.nullable(),
+		defaultChatModelId: modelIdSchema.nullable(),
 		utilityModelId: modelIdSchema.nullable(),
 		/** `off`, `native`, or the id of the search provider. */
 		webSearch: z.string(),
@@ -70,6 +71,7 @@ const defaultValues = (): z.input<typeof organizationFormSchema> => ({
 	metadata: null,
 	description: null,
 	assistantModelId: null,
+	defaultChatModelId: null,
 	utilityModelId: null,
 	webSearch: "off",
 	initialAdmin: "me",

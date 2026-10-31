@@ -1,5 +1,6 @@
 import type {
 	BotId,
+	ModelId,
 	OrganizationId,
 	ProviderId,
 	QuotaPeriodId,
@@ -23,7 +24,7 @@ interface ReserveQuotaInput {
 	organizationId: OrganizationId;
 	userId: UserId;
 	providerId: ProviderId;
-	modelId?: string | null;
+	modelId?: ModelId | null;
 	/** The bot whose chat the call runs in. */
 	botId?: BotId | null;
 	appRequestId: string;
@@ -39,7 +40,7 @@ export interface ReservedQuotaContext {
 	poolId: QuotaPoolId;
 	periodId: QuotaPeriodId;
 	providerId: ProviderId;
-	modelId: string | null;
+	modelId: ModelId | null;
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
 	reservedAmount: number;
 	budgetAmount: number;

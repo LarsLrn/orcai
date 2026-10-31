@@ -3,6 +3,8 @@ import {
 	branchChatResponseSchema,
 	createChatInputSchema,
 	createChatResponseSchema,
+	defaultChatModelInputSchema,
+	defaultChatModelResponseSchema,
 	deleteChatInputSchema,
 	deleteChatResponseSchema,
 	findChatInputSchema,
@@ -60,6 +62,19 @@ export const chatContracts = {
 		)
 		.input(createChatInputSchema)
 		.output(createChatResponseSchema),
+	defaultModel: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/chat-default-model",
+				summary: "Find the model a new chat starts on",
+				tags: [
+					"Chats",
+				],
+			}),
+		)
+		.input(defaultChatModelInputSchema)
+		.output(defaultChatModelResponseSchema),
 	find: base
 		.meta(
 			openapi({

@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
 import { chatMessageAttachmentSchema } from "../chat-message/parts/attachment";
+import { modelIdSchema } from "../model/ref";
 import { organizationIdSchema } from "../organization/ref";
+import { providerIdSchema } from "../provider/ref";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
@@ -37,6 +39,16 @@ export const findChatResponseSchema = createDataResponseSchema(
 );
 
 export const createChatResponseSchema = createDataResponseSchema(chatSchema);
+
+/** Null when the organisation has no model a chat can run on. */
+export const defaultChatModelResponseSchema = createDataResponseSchema(
+	z
+		.object({
+			modelId: modelIdSchema,
+			providerId: providerIdSchema,
+		})
+		.nullable(),
+);
 
 export const updateChatResponseSchema = createDataResponseSchema(chatSchema);
 

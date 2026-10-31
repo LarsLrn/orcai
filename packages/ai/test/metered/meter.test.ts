@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
+import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { quota, withQuotaServices } from "@orcai/quota/testing";
 import * as Effect from "effect/Effect";
 import * as Logger from "effect/Logger";
@@ -36,7 +36,7 @@ const startEffect = (maxSteps = 5) =>
 			organizationId: "org-1" as OrganizationId,
 			userId: "user-1" as UserId,
 			providerId: "provider-1" as ProviderId,
-			modelId: "model-1",
+			modelId: "model-1" as ModelId,
 			maxSteps,
 			maxOutputTokens: 512,
 			messages: [],

@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "bun:test";
-import type { OrganizationId, ProviderId, UserId } from "@orcai/core";
+import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { quota, withQuotaServices } from "@orcai/quota/testing";
 import { Output } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
@@ -17,7 +17,7 @@ const generate = (model: MockLanguageModelV4) =>
 			organizationId: "org-1" as OrganizationId,
 			userId: "user-1" as UserId,
 			providerId: "provider-1" as ProviderId,
-			modelId: "model-1",
+			modelId: "model-1" as ModelId,
 			model,
 			prompt: "Name this chat.",
 		}),
@@ -31,7 +31,7 @@ const generateTitle = (model: MockLanguageModelV4) =>
 			organizationId: "org-1" as OrganizationId,
 			userId: "user-1" as UserId,
 			providerId: "provider-1" as ProviderId,
-			modelId: "model-1",
+			modelId: "model-1" as ModelId,
 			model,
 			prompt: "Describe this.",
 			output: Output.object({
@@ -262,7 +262,7 @@ test("a structured reply inside a code fence parses", async () => {
 				organizationId: "org-1" as OrganizationId,
 				userId: "user-1" as UserId,
 				providerId: "provider-1" as ProviderId,
-				modelId: "model-1",
+				modelId: "model-1" as ModelId,
 				model,
 				prompt: "Describe this.",
 				output: Output.object({

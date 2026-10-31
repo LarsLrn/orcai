@@ -1,0 +1,90 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "00294606-026b-45a2-a4c1-b3bc59ece813",
+  "prevIds": [
+    "abe0de37-f8f6-4be9-99e7-3b6c6648d211"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "organization",
+        "default_chat_model_id"
+      ],
+      "writes": [
+        "s|col|public.organization.default_chat_model_id",
+        "n|col|public.organization.default_chat_model_id",
+        "e|col|public.organization.default_chat_model_id"
+      ],
+      "reads": [
+        "n|tbl|public.organization",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "organization"
+      ],
+      "writes": [
+        "s|fk|public.organization.organization_default_chat_model_id_model_id_fkey",
+        "n|fk|public.organization.organization_default_chat_model_id_model_id_fkey",
+        "e|fk|public.organization.organization_default_chat_model_id_model_id_fkey",
+        "n|con|public.organization.organization_default_chat_model_id_model_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.organization",
+        "n|sch|public",
+        "n|tbl|public.model",
+        "n|sch|public",
+        "n|col|public.organization.default_chat_model_id",
+        "n|col|public.model.id",
+        "e|uniqueness|public.model.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization",
+        "name": "default_chat_model_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organization",
+        "name": "organization_default_chat_model_id_model_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "default_chat_model_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "model",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    }
+  ]
+}

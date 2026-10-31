@@ -1,0 +1,2 @@
+ALTER TABLE "organization" ADD COLUMN "default_chat_model_id" uuid;--> statement-breakpoint
+ALTER TABLE "organization" ADD CONSTRAINT "organization_default_chat_model_id_model_id_fkey" FOREIGN KEY ("default_chat_model_id") REFERENCES "model"("id") ON DELETE SET NULL;
