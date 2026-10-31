@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import { m } from "@/paraglide/messages";
 
-const FEEDBACK_EMAIL = "sokratest@hochschule-rhein-waal.de";
-
 export type TourId = "initialTour" | "chatTour";
 
 export type TourStep = {
@@ -11,7 +9,14 @@ export type TourStep = {
 };
 
 /** Built on render so the texts follow the current locale. */
-export const tourSteps = (tour: TourId): TourStep[] => {
+export const tourSteps = (
+	tour: TourId,
+	{
+		feedbackEmail,
+	}: {
+		feedbackEmail?: string;
+	},
+): TourStep[] => {
 	switch (tour) {
 		case "initialTour":
 			return [
@@ -40,13 +45,19 @@ export const tourSteps = (tour: TourId): TourStep[] => {
 					content: (
 						<>
 							{m.tour_initial_complete_content()}
-							<br />
-							<a
-								className="text-accent text-sm"
-								href={`mailto:${FEEDBACK_EMAIL}`}
-							>
-								{FEEDBACK_EMAIL}
-							</a>
+							{feedbackEmail && (
+								<>
+									{" "}
+									{m.tour_initial_feedback_content()}
+									<br />
+									<a
+										className="text-accent text-sm"
+										href={`mailto:${feedbackEmail}`}
+									>
+										{feedbackEmail}
+									</a>
+								</>
+							)}
 						</>
 					),
 				},
