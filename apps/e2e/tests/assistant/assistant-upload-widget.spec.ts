@@ -1,4 +1,5 @@
-import type { AssetId } from "@orcai/core";
+import type { AssetId, ChatId } from "@orcai/core";
+import type { ApiClient } from "../../fixtures/api";
 import { holdUploads } from "../../fixtures/assets";
 import {
 	actStep,
@@ -24,9 +25,11 @@ import {
 	turnRequests,
 } from "../../fixtures/assistant/assistant";
 import {
+	continueButton,
 	discardPrompt,
 	requestUploadCall,
-	uploadTextFile,
+	uploadRow,
+	uploadTextFiles,
 	uploadWidget,
 } from "../../fixtures/assistant/upload";
 import { adoptPageZedToken } from "../../fixtures/authz/resources";
@@ -40,7 +43,21 @@ const LEAD_IN = "Upload the files here.";
 const REASON = "Upload the style guides for the repository 'APA rules'";
 const SKIPPED_SENTENCE = "Not run: the user sent a new message instead.";
 
-test("assistant: requestUpload answers with the created assets and continues the same reply", async ({
+/** What the conversation's waiting upload lists, as kept with its reply. */
+const keptAssets = async (client: ApiClient, chatId: ChatId) => {
+	const page = await client.chatMessage.list({
+		chatId,
+		limit: 100,
+	});
+	return Object.values(page.data.at(-1)?.metadata.uploads ?? {}).flatMap(
+		(kept) => kept.assets,
+	);
+};
+
+const keptTitles = async (client: ApiClient, chatId: ChatId) =>
+	(await keptAssets(client, chatId)).map((asset) => asset.title).sort();
+
+test("assistant: requestUpload lists uploads until Continue, keeps them over a reload and answers with what is left", async ({
 	api,
 	inference,
 	org,
@@ -52,6 +69,7 @@ test("assistant: requestUpload answers with the created assets and continues the
 	const chatId = await startTitledConversation(member, inference);
 	const done = "Your style guide is saved.";
 	const fileName = `${chatName("Style guide")}.txt`;
+	const removedName = `${chatName("Old draft")}.txt`;
 	inference.script(
 		loadTools("bots"),
 		actStep(LEAD_IN, requestUploadCall(REASON)),
@@ -79,9 +97,64 @@ test("assistant: requestUpload answers with the created assets and continues the
 			exact: true,
 		}),
 	).toBeVisible();
+
+	await uploadTextFiles(widget, [
+		fileName,
+		removedName,
+	]);
+	await expect(continueButton(widget)).toBeVisible();
+	await expect
+		.poll(() => keptTitles(member, chatId))
+		.toEqual(
+			[
+				fileName,
+				removedName,
+			].sort(),
+		);
+	const removedId = (await keptAssets(member, chatId)).find(
+		(asset) => asset.title === removedName,
+	)?.id;
+
+	await uploadRow(widget, removedName, fileName)
+		.getByRole("button", {
+			name: message("common_remove_button"),
+			exact: true,
+		})
+		.click();
+	await page
+		.getByRole("alertdialog")
+		.getByRole("button", {
+			name: pluralMessage("assets_delete_confirm_button", {
+				count: 1,
+			}),
+		})
+		.click();
+	await expect(
+		widget.getByText(removedName, {
+			exact: true,
+		}),
+	).toHaveCount(0);
+	await expect
+		.poll(() => keptTitles(member, chatId))
+		.toEqual([
+			fileName,
+		]);
 	expect(continuations()).toBe(0);
 
-	await uploadTextFile(widget, fileName);
+	await page.reload();
+	await awaitHydration(page);
+	await expect(
+		widget.getByText(fileName, {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		widget.getByText(removedName, {
+			exact: true,
+		}),
+	).toHaveCount(0);
+
+	await continueButton(widget).click();
 	await expect(messageText(page, done)).toBeVisible();
 	await turnFinished(page);
 	expect(continuations()).toBe(1);
@@ -103,6 +176,7 @@ test("assistant: requestUpload answers with the created assets and continues the
 	});
 	const assets =
 		isRecord(result) && Array.isArray(result.assets) ? result.assets : [];
+	expect(assets).toHaveLength(1);
 	const assetId = (
 		assets[0] as {
 			id: AssetId;
@@ -116,6 +190,17 @@ test("assistant: requestUpload answers with the created assets and continues the
 		title: fileName,
 		origin: "library",
 	});
+	expect(
+		(
+			await member.asset.list({
+				filters: {
+					ids: [
+						removedId as AssetId,
+					],
+				},
+			})
+		).data,
+	).toEqual([]);
 
 	const reply = await lastRow(member, chatId);
 	expect(toolParts(reply, "requestUpload")).toMatchObject([
@@ -132,6 +217,7 @@ test("assistant: requestUpload answers with the created assets and continues the
 			},
 		},
 	]);
+	expect(await keptAssets(member, chatId)).toEqual([]);
 
 	const line = pluralMessage("assistant_tool_request_upload_summary_saved", {
 		count: 1,
@@ -167,6 +253,59 @@ test("assistant: requestUpload answers with the created assets and continues the
 	).toHaveValue(fileName);
 });
 
+test("assistant: Cancel after an upload answers cancelled and keeps the file in the Library", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+	zedTokens,
+}) => {
+	await setUpAssistantModel(api, org, inference);
+	const member = api.as("member");
+	const chatId = await startTitledConversation(member, inference);
+	const done = "Kept in the Library, then.";
+	const fileName = `${chatName("Kept")}.txt`;
+	inference.script(
+		loadTools("bots"),
+		actStep(LEAD_IN, requestUploadCall(REASON)),
+		{
+			text: done,
+		},
+	);
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await openConversation(page, chatId);
+	await ask(page, "Add my style guide");
+
+	const widget = uploadWidget(page);
+	await uploadTextFiles(widget, [
+		fileName,
+	]);
+	await expect(continueButton(widget)).toBeVisible();
+	await widget
+		.getByRole("button", {
+			name: message("common_cancel_button"),
+			exact: true,
+		})
+		.click();
+	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
+
+	expect(toolMessages(turnRequests(inference)[2]).at(-1)).toEqual({
+		status: "cancelled",
+	});
+	await adoptPageZedToken(page, zedTokens);
+	const library = await member.asset.list({
+		filters: {
+			search: fileName,
+		},
+	});
+	expect(library.data.map((asset) => asset.title)).toEqual([
+		fileName,
+	]);
+});
+
 test("assistant: Cancel during an upload asks, aborts it and reports cancelled", async ({
 	api,
 	inference,
@@ -194,7 +333,9 @@ test("assistant: Cancel during an upload asks, aborts it and reports cancelled",
 
 	const widget = uploadWidget(page);
 	const uploads = await holdUploads(page);
-	await uploadTextFile(widget, `${chatName("Discarded")}.txt`);
+	await uploadTextFiles(widget, [
+		`${chatName("Discarded")}.txt`,
+	]);
 	const cancel = widget.getByRole("button", {
 		name: message("common_cancel_button"),
 		exact: true,

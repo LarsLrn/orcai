@@ -108,5 +108,6 @@ export const orpcChatPort = ({
 		}
 	},
 	list: async (input) => chatPageOf(await client.chatMessage.list(input)),
+	keepUploads: async (input) => (await client.ai.keepUploads(input)).data,
 	turnEnded: (message) => invalidateAfterTurn(queryClient, variant, message),
 });

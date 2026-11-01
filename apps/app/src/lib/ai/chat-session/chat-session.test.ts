@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatId, ChatMessageId } from "@orcai/core";
-import type { ContinueChatInput } from "@orcai/schema";
+import type { AssetId, ChatId, ChatMessageId } from "@orcai/core";
+import type {
+	ContinueChatInput,
+	KeepUploadsInput,
+	KeptUploads,
+} from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import type { UIMessageChunk } from "ai";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
@@ -141,6 +145,7 @@ const fakePort = (
 		replies?: (() => ReadableStream<UIMessageChunk>)[];
 		stored?: (ChatAgentUIMessage | undefined)[];
 		pages?: ChatPage[];
+		keepUploads?: (input: KeepUploadsInput) => Promise<KeptUploads>;
 	} = {},
 ) => {
 	const replies = [
@@ -163,6 +168,7 @@ const fakePort = (
 			before?: number;
 			zedToken: string | undefined;
 		}[],
+		keepUploads: [] as KeepUploadsInput[],
 		turnEnded: [] as ChatAgentUIMessage[],
 	};
 	const nextReply = () =>
@@ -196,6 +202,15 @@ const fakePort = (
 			return page
 				? Promise.resolve(page)
 				: Promise.reject(new Error("No page queued"));
+		},
+		keepUploads: (input) => {
+			calls.keepUploads.push(input);
+			return (
+				options.keepUploads?.(input) ??
+				Promise.resolve({
+					assets: [],
+				})
+			);
 		},
 		turnEnded: (message) => {
 			calls.turnEnded.push(message);
@@ -459,6 +474,188 @@ describe("ChatSession", () => {
 		expect(chat.chat.messages.at(-1)?.parts[1]).toMatchObject({
 			state: "approval-requested",
 		});
+	});
+
+	test("keeps a waiting upload's files with the reply, one write at a time", async () => {
+		const apa = {
+			id: "00000000-0000-4000-8000-000000000001" as AssetId,
+			title: "APA 7.pdf",
+		};
+		const { promise: firstWrite, resolve: release } =
+			Promise.withResolvers<KeptUploads>();
+		const { port, calls } = fakePort({
+			keepUploads: (input) =>
+				calls.keepUploads.length === 1
+					? firstWrite
+					: Promise.resolve({
+							assets: [
+								apa,
+							],
+							zedToken: input.zedToken,
+						}),
+		});
+		const chat = session(port, {
+			messages: [
+				{
+					...paused(requestUpload),
+					metadata: {
+						uploads: {
+							"upload-1": {
+								assets: [
+									apa,
+								],
+							},
+						},
+					},
+				},
+			],
+		});
+		expect(chat.answers.uploads("upload-1")?.assets).toEqual([
+			apa,
+		]);
+
+		const first = chat.answers.keepUploads({
+			toolCallId: "upload-1",
+			assetIds: [],
+			zedToken: undefined,
+		});
+		const second = chat.answers.keepUploads({
+			toolCallId: "upload-1",
+			assetIds: [
+				apa.id,
+			],
+			zedToken: "zed-upload",
+		});
+		await tick();
+		expect(calls.keepUploads).toHaveLength(1);
+
+		release({
+			assets: [],
+		});
+		await first;
+		expect(await second).toEqual({
+			assets: [
+				apa,
+			],
+			zedToken: "zed-upload",
+		});
+		expect(calls.keepUploads).toEqual([
+			{
+				chatId,
+				messageId: "reply-1" as ChatMessageId,
+				toolCallId: "upload-1",
+				assetIds: [],
+				zedToken: undefined,
+			},
+			{
+				chatId,
+				messageId: "reply-1" as ChatMessageId,
+				toolCallId: "upload-1",
+				assetIds: [
+					apa.id,
+				],
+				zedToken: "zed-upload",
+			},
+		]);
+		expect(chat.answers.uploads("upload-1")).toEqual({
+			assets: [
+				apa,
+			],
+			zedToken: "zed-upload",
+		});
+	});
+
+	test("a failed write rejects and the next one still goes out", async () => {
+		const { port, calls } = fakePort({
+			keepUploads: () =>
+				calls.keepUploads.length === 1
+					? Promise.reject(new Error("offline"))
+					: Promise.resolve({
+							assets: [],
+						}),
+		});
+		const chat = session(port, {
+			messages: [
+				paused(requestUpload),
+			],
+		});
+		const keep = () =>
+			chat.answers.keepUploads({
+				toolCallId: "upload-1",
+				assetIds: [],
+				zedToken: undefined,
+			});
+
+		expect(await keep().catch((error: Error) => error.message)).toBe("offline");
+		expect(await keep()).toEqual({
+			assets: [],
+		});
+		expect(calls.keepUploads).toHaveLength(2);
+	});
+
+	test("keeps uploads only for a call the paused step waits on", async () => {
+		const { port, calls } = fakePort();
+		const chat = session(port, {
+			messages: [
+				paused(deleteBot("approval-requested")),
+			],
+		});
+
+		await expect(
+			chat.answers.keepUploads({
+				toolCallId: "upload-1",
+				assetIds: [],
+				zedToken: undefined,
+			}),
+		).rejects.toThrow();
+
+		expect(calls.keepUploads).toEqual([]);
+		expect(chat.answers.uploads("upload-1")).toBeUndefined();
+	});
+
+	test("reloads the newest page when kept uploads find the turn moved on", async () => {
+		const { port, calls } = fakePort({
+			keepUploads: () =>
+				Promise.reject(
+					new ORPCError("CONFLICT", {
+						data: {
+							reason: "CHAT_TURN_NOT_AWAITING",
+						},
+					}),
+				),
+			pages: [
+				{
+					messages: [
+						message("reply-1", "assistant", [
+							text("Answered in another tab"),
+						]),
+					],
+					before: 1,
+					hasMore: false,
+				},
+			],
+		});
+		const chat = session(port, {
+			messages: [
+				paused(requestUpload),
+			],
+		});
+
+		await chat.answers
+			.keepUploads({
+				toolCallId: "upload-1",
+				assetIds: [],
+				zedToken: undefined,
+			})
+			.catch(() => undefined);
+		await until(() => calls.list.length === 1);
+		await tick();
+
+		expect(texts(chat)).toEqual([
+			[
+				"Answered in another tab",
+			],
+		]);
 	});
 
 	test("continues a step answered before the page loaded, and nothing else", async () => {

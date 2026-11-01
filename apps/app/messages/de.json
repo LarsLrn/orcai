@@ -877,6 +877,7 @@
 			}
 		}
 	],
+	"assets_intake_limit_reached": "Die Liste fasst bis zu {count} Dateien.",
 	"assets_intake_metadata_background_hint": "Die Metadaten werden im Hintergrund erzeugt, sodass Sie die Seite verlassen und die Ergebnisse später in Ihrer Bibliothek finden können.",
 	"assets_intake_review_description": "Diese Dateien sind als Assets gespeichert. Ergänzen Sie die Metadaten jetzt oder später in der Bibliothek.",
 	"assets_intake_review_title": "Hochgeladene Assets",
@@ -1643,8 +1644,11 @@
 	"assistant_tool_remove_members_active": "Mitglieder werden entfernt",
 	"assistant_tool_remove_members_name": "Mitglieder entfernen",
 	"assistant_tool_remove_members_summary": "{names} aus der Organisation entfernen",
+	"assistant_tool_request_upload_continue_button": "Fortfahren",
 	"assistant_tool_request_upload_edit_metadata_label": "Metadaten von {title} bearbeiten",
+	"assistant_tool_request_upload_gone": "Die aufgeführten Dateien gibt es nicht mehr. Laden Sie sie erneut hoch oder wählen Sie Abbrechen.",
 	"assistant_tool_request_upload_name": "Dateien hochladen",
+	"assistant_tool_request_upload_retry_button": "Erneut speichern",
 	"assistant_tool_request_upload_summary_cancelled": "Hochladen abgebrochen",
 	"assistant_tool_request_upload_summary_saved": [
 		{
@@ -1661,6 +1665,7 @@
 			}
 		}
 	],
+	"assistant_tool_request_upload_unsaved": "Die Liste der Dateien wurde nicht gespeichert und ginge beim Neuladen verloren.",
 	"assistant_tool_prepare_asset_again_active": "Asset wird erneut vorbereitet",
 	"assistant_tool_prepare_asset_again_name": "Asset erneut vorbereiten",
 	"assistant_tool_prepare_asset_again_summary_processing": "{asset} erneut vorbereiten",

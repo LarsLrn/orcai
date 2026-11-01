@@ -877,6 +877,7 @@
 			}
 		}
 	],
+	"assets_intake_limit_reached": "The list holds up to {count} files.",
 	"assets_intake_metadata_background_hint": "Metadata is generated in the background, so you can leave this page and find the results in your Library later.",
 	"assets_intake_review_description": "These files are saved as assets. Add metadata now or later from the Library.",
 	"assets_intake_review_title": "Uploaded assets",
@@ -1643,8 +1644,11 @@
 	"assistant_tool_remove_members_active": "Removing members",
 	"assistant_tool_remove_members_name": "Remove members",
 	"assistant_tool_remove_members_summary": "Remove {names} from the organisation",
+	"assistant_tool_request_upload_continue_button": "Continue",
 	"assistant_tool_request_upload_edit_metadata_label": "Edit the metadata of {title}",
+	"assistant_tool_request_upload_gone": "The listed files no longer exist. Upload them again or choose Cancel.",
 	"assistant_tool_request_upload_name": "Upload files",
+	"assistant_tool_request_upload_retry_button": "Save again",
 	"assistant_tool_request_upload_summary_cancelled": "Upload cancelled",
 	"assistant_tool_request_upload_summary_saved": [
 		{
@@ -1661,6 +1665,7 @@
 			}
 		}
 	],
+	"assistant_tool_request_upload_unsaved": "The list of files was not saved, so a reload would lose it.",
 	"assistant_tool_prepare_asset_again_active": "Preparing asset again",
 	"assistant_tool_prepare_asset_again_name": "Prepare asset again",
 	"assistant_tool_prepare_asset_again_summary_processing": "Prepare {asset} again",

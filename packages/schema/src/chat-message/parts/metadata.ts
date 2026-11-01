@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { assetIdSchema } from "../../asset/ref";
 import { chatMessageAttachmentSchema } from "./attachment";
 
 /** The source a `<cite chunk>` ref of the reply names. */
@@ -10,6 +11,25 @@ export const chatMessageCitationSchema = z.object({
 });
 
 export type ChatMessageCitation = z.infer<typeof chatMessageCitationSchema>;
+
+/** A file a `requestUpload` call lists. */
+export const uploadedAssetSchema = z.object({
+	id: assetIdSchema,
+	title: z.string().min(1),
+});
+
+export type UploadedAsset = z.infer<typeof uploadedAssetSchema>;
+
+/** How many files one `requestUpload` call lists at most. */
+export const MAX_KEPT_UPLOADS = 100;
+
+/** The files a waiting `requestUpload` call lists so far, and the zedToken of their newest upload. */
+export const keptUploadsSchema = z.object({
+	assets: z.array(uploadedAssetSchema).max(MAX_KEPT_UPLOADS),
+	zedToken: z.string().optional(),
+});
+
+export type KeptUploads = z.infer<typeof keptUploadsSchema>;
 
 export const chatMessageMetadataSchema = z.object({
 	model: z.string().optional(),
@@ -58,6 +78,8 @@ export const chatMessageMetadataSchema = z.object({
 	timeLimitReached: z.boolean().optional(),
 	/** The sources of the chunk refs the reply cites, by ref. */
 	citations: z.record(z.string(), chatMessageCitationSchema).optional(),
+	/** What each waiting `requestUpload` call lists so far, by call id. */
+	uploads: z.record(z.string(), keptUploadsSchema).optional(),
 });
 
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;

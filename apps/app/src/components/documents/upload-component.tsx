@@ -28,6 +28,7 @@ const UploadComponent = ({
 	description,
 	uploadLabel,
 	variant = "page",
+	maxFileCount = 100,
 	onPendingChange,
 	onCreated,
 }: {
@@ -35,6 +36,7 @@ const UploadComponent = ({
 	description?: string;
 	uploadLabel?: string;
 	variant?: UploadVariant;
+	maxFileCount?: number;
 	/** True from the click until the assets exist. */
 	onPendingChange?: (pending: boolean) => void;
 	onCreated: (outcome: AssetIntakeOutcome) => void;
@@ -98,7 +100,7 @@ const UploadComponent = ({
 				value={files}
 				onValueChange={setFiles}
 				progresses={progresses}
-				maxFileCount={100}
+				maxFileCount={maxFileCount}
 				maxSize={64 * 1024 * 1024}
 				multiple
 				accept={{

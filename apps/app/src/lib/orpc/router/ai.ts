@@ -1,7 +1,8 @@
 import { streamToEventIterator } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { DrizzleReplyStore } from "@/lib/ai/turn/drizzle-reply-store";
-import { continueTurn, startTurn } from "@/lib/ai/turn/turn";
+import { continueTurn, keepUploads, startTurn } from "@/lib/ai/turn/turn";
+import { ownUploads } from "@/lib/assets/own-uploads";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -69,7 +70,35 @@ const aiContinue = authed.ai.continue
 		return streamToEventIterator(stream);
 	});
 
+const aiKeepUploads = authed.ai.keepUploads
+	.use(requireActiveOrganizationMiddleware)
+	.use(requireChatEdit)
+	.effect(function* ({ input, context }) {
+		const organizationId = context.auth.session.activeOrganizationId;
+		const assets = yield* ownUploads(input.assetIds, {
+			userId: context.auth.user.id,
+			organizationId,
+			zedToken: getZedToken(context, input),
+		});
+		const data = yield* keepUploads({
+			chatId: input.chatId,
+			organizationId,
+			context,
+			replyId: input.messageId,
+			toolCallId: input.toolCallId,
+			kept: {
+				assets,
+				zedToken: input.zedToken,
+			},
+		}).pipe(Effect.provide(DrizzleReplyStore));
+
+		return {
+			data,
+		};
+	});
+
 export const aiRouter = {
 	chat: aiChat,
 	continue: aiContinue,
+	keepUploads: aiKeepUploads,
 };

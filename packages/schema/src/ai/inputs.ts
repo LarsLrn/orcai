@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
+import { assetIdSchema } from "../asset/ref";
 import { chatIdSchema } from "../chat/ref";
+import { MAX_KEPT_UPLOADS } from "../chat-message/parts/metadata";
 import { chatMessageIdSchema } from "../chat-message/ref";
 import { zedTokenSchema } from "../shared";
 import { aiChatMessageSchema } from "./schema";
@@ -49,3 +51,15 @@ export const continueChatInputSchema = z.object({
 });
 
 export type ContinueChatInput = z.infer<typeof continueChatInputSchema>;
+
+/** The files a waiting `requestUpload` call lists so far, kept with its reply. */
+export const keepUploadsInputSchema = z.object({
+	chatId: chatIdSchema,
+	messageId: chatMessageIdSchema,
+	toolCallId: toolCallIdSchema,
+	assetIds: z.array(assetIdSchema).max(MAX_KEPT_UPLOADS),
+	/** What the newest upload returned, which also reads the assets. */
+	...zedTokenSchema.shape,
+});
+
+export type KeepUploadsInput = z.infer<typeof keepUploadsInputSchema>;
