@@ -18,6 +18,7 @@ import {
 	IntegrationLive,
 } from "@orcai/testing";
 import { and, count, eq, ne, sql } from "drizzle-orm";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
@@ -25,6 +26,7 @@ import { Client } from "pg";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AppLayer } from "@/lib/effect/app-layer";
+import { AuthzLive } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const ORGANIZATION_LOCK_SPACE = 72370906;
@@ -130,6 +132,99 @@ const queueBehindOrganizationLock = async (
 		await client.query("ROLLBACK").catch(() => undefined);
 		await client.end();
 	}
+};
+
+class RolledBack extends Data.TaggedError("RolledBack")<{
+	readonly value: unknown;
+}> {}
+
+/**
+ * Runs `body` in a transaction that is rolled back, returning its value, so
+ * the outbox events it fails hold back no other file once it ends.
+ */
+export const rolledBack = <A, E, R>(body: Effect.Effect<A, E, R>) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db
+			.transaction(() =>
+				Effect.flatMap(body, (value) =>
+					Effect.fail(
+						new RolledBack({
+							value,
+						}),
+					),
+				),
+			)
+			.pipe(
+				Effect.catch((error) =>
+					error instanceof RolledBack
+						? Effect.succeed(error.value as A)
+						: Effect.fail(error),
+				),
+			);
+	});
+
+/**
+ * A SpiceDB whose writes naming `objectId` as resource or subject fail until
+ * `recover` is called: sent to a closed port, or naming a relation the schema
+ * lacks. Other files' events, which a delivery may reach first, still succeed.
+ */
+export const failingWritesAbout = (
+	objectId: string,
+	failure: "unavailable" | "schema not applied",
+) => {
+	const unreachable = v1.NewClient(
+		"unreachable",
+		"127.0.0.1:1",
+		v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
+	).promises;
+	let failing = true;
+	const spiceDb = Layer.effect(
+		SpiceDbService,
+		Effect.gen(function* () {
+			const { spice } = yield* SpiceDbService;
+			const writeRelationships = (request: v1.WriteRelationshipsRequest) => {
+				if (
+					!failing ||
+					!request.updates.some(
+						({ relationship }) =>
+							relationship?.resource?.objectId === objectId ||
+							relationship?.subject?.object?.objectId === objectId,
+					)
+				)
+					return spice.writeRelationships(request);
+				if (failure === "unavailable")
+					return unreachable.writeRelationships(request);
+				return spice.writeRelationships({
+					...request,
+					updates: request.updates.map((update) => ({
+						...update,
+						relationship: update.relationship && {
+							...update.relationship,
+							relation: "not_yet_in_schema",
+						},
+					})),
+				});
+			};
+			return {
+				spice: new Proxy(spice, {
+					get: (target, key) =>
+						key === "writeRelationships"
+							? writeRelationships
+							: Reflect.get(target, key),
+				}),
+			};
+		}),
+	);
+	return {
+		authz: Layer.fresh(AuthzLive).pipe(Layer.provide(spiceDb)),
+		recover: () => {
+			failing = false;
+		},
+		close: () => {
+			unreachable.close();
+		},
+	};
 };
 
 /**

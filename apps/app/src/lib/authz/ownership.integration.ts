@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { v1 } from "@authzed/authzed-node";
 import type {
 	AssetId,
 	BlockId,
@@ -9,20 +8,19 @@ import type {
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { SpiceDbService } from "@orcai/spice-db";
 import { createOrganization, createUser } from "@orcai/testing";
 import { and, eq, inArray, ne, sql } from "drizzle-orm";
-import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
 import {
 	type Actor,
 	authzIntegration,
+	failingWritesAbout,
 	queueBehindOrganizationLock,
+	rolledBack,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
 import { handOverItem } from "@/lib/authz/ownership";
-import { AuthzLive, AuthzService } from "@/lib/effect/services/authz";
+import { AuthzService } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const {
@@ -1191,69 +1189,6 @@ describe("handing one item over", () => {
 	);
 });
 
-class RolledBack extends Data.TaggedError("RolledBack")<{
-	readonly value: unknown;
-}> {}
-
-/** Runs `body` in a transaction that is rolled back, so its failing outbox events hold back no other file. */
-const rolledBack = <A, E, R>(body: Effect.Effect<A, E, R>) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		return yield* db
-			.transaction(() =>
-				Effect.flatMap(body, (value) =>
-					Effect.fail(
-						new RolledBack({
-							value,
-						}),
-					),
-				),
-			)
-			.pipe(
-				Effect.catch((error) =>
-					error instanceof RolledBack
-						? Effect.succeed(error.value as A)
-						: Effect.fail(error),
-				),
-			);
-	});
-
-/** A SpiceDB that refuses every write until `recover` is called. */
-const unavailableSpiceDb = () => {
-	const unreachable = v1.NewClient(
-		"unreachable",
-		"127.0.0.1:1",
-		v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
-	).promises;
-	let failing = true;
-	const spiceDb = Layer.effect(
-		SpiceDbService,
-		Effect.gen(function* () {
-			const { spice } = yield* SpiceDbService;
-			return {
-				spice: new Proxy(spice, {
-					get: (target, key) =>
-						key === "writeRelationships"
-							? (request: v1.WriteRelationshipsRequest) =>
-									failing
-										? unreachable.writeRelationships(request)
-										: spice.writeRelationships(request)
-							: Reflect.get(target, key),
-				}),
-			};
-		}),
-	);
-	return {
-		authz: Layer.fresh(AuthzLive).pipe(Layer.provide(spiceDb)),
-		recover: () => {
-			failing = false;
-		},
-		close: () => {
-			unreachable.close();
-		},
-	};
-};
-
 describe("handing over while SpiceDB is unavailable", () => {
 	test(
 		"commits in Postgres, and the next handover checks Postgres ownership",
@@ -1271,7 +1206,7 @@ describe("handing over while SpiceDB is unavailable", () => {
 				resourceType: "bot" as const,
 				resourceId: content.botId,
 			};
-			const spice = unavailableSpiceDb();
+			const spice = failingWritesAbout(content.botId, "unavailable");
 
 			const outcome = await run(
 				rolledBack(
