@@ -63,7 +63,11 @@ describe("toolInputSchema", () => {
 
 	test("slims the display tools too", async () => {
 		const json = JSON.stringify(
-			await asSchema(buildGenUiTools().showChecklist.inputSchema).jsonSchema,
+			await asSchema(
+				buildGenUiTools({
+					citations: true,
+				}).showChecklist.inputSchema,
+			).jsonSchema,
 		);
 
 		expect(json).not.toContain("$schema");

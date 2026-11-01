@@ -8,7 +8,6 @@ import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import type { ChunkIds } from "./chunk-ref";
 import { pageModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { Passage, RepositoryAsset } from "./types";
@@ -25,11 +24,9 @@ import {
 export const getAssetPageTool = ({
 	blocks,
 	context,
-	chunks,
 }: {
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
-	chunks: ChunkIds;
 }) =>
 	effectTool({
 		description:
@@ -163,7 +160,6 @@ export const getAssetPageTool = ({
 					.slice(0, limit);
 
 				const passages = neighbouringRuns(points).map((run) => toPassage(run));
-				chunks.add(passages);
 
 				// Without text on the pages, the assets help pick another one.
 				return {

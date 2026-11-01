@@ -10,7 +10,6 @@ import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
-import type { ChunkIds } from "./chunk-ref";
 import { searchModelOutput } from "./outputs";
 import type { Passage } from "./types";
 import {
@@ -50,11 +49,9 @@ const DEFAULT_SEARCH_RESULT_LIMIT = Math.min(
 export const searchRepositoriesTool = ({
 	blocks,
 	context,
-	chunks,
 }: {
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
-	chunks: ChunkIds;
 }) =>
 	effectTool({
 		description:
@@ -177,8 +174,6 @@ export const searchRepositoriesTool = ({
 							point,
 						]),
 					);
-
-				chunks.add(boundedResults);
 
 				return {
 					results: boundedResults,

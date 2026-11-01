@@ -42,12 +42,19 @@ import { v4 as uuidv4 } from "uuid";
 import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { localDate } from "@/lib/ai/agents/chat-agent-system-prompt";
+import {
+	type ChatSources,
+	chatSources,
+	citableText,
+	displayCallText,
+	type StreamedCitations,
+} from "@/lib/ai/citations/chat-sources";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
 import {
 	type AssistantTurn,
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
-import { turnCitations } from "@/lib/ai/tools/rag/citations";
+import { toolKindOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
@@ -81,12 +88,9 @@ type TurnInput = TurnRequester & {
 	stop: AbortSignal | undefined;
 };
 
-type TurnStep = MeterStep & {
-	text: string;
-	toolResults: readonly {
-		toolName: string;
-		output: unknown;
-	}[];
+/** What a reply streams as metadata; the settled reply stores no withdrawn citation. */
+type StreamedMetadata = Omit<ChatMessageMetadata, "citations"> & {
+	citations?: StreamedCitations;
 };
 
 type TurnStreamOptions = {
@@ -96,21 +100,23 @@ type TurnStreamOptions = {
 	maxSteps: number;
 	promptTokens: number | undefined;
 	replyId: ChatMessageId;
-	onStepEnd: (step: TurnStep) => void;
+	onStepEnd: (step: MeterStep) => void;
 	onEnd: (event: {
-		responseMessage: UIMessage<ChatMessageMetadata>;
+		responseMessage: UIMessage<StreamedMetadata>;
 		outcome: UIMessageStreamOutcome;
 	}) => Promise<void>;
 	onError: (error: unknown) => string;
 	messageMetadata: (
 		part: TextStreamPart<ToolSet>,
-	) => ChatMessageMetadata | undefined;
+	) => StreamedMetadata | undefined;
 };
 
 /** An agent of either chat kind, streamed the same way. */
 type TurnAgent = {
 	/** Every tool its stored calls may name. */
 	tools: ToolSet;
+	/** The chat's sources, which its calls add to as they finish. */
+	sources: ChatSources;
 	/** The tools its requests may send this turn. */
 	offeredTools: () => ToolSet;
 	instructions: SystemModelMessage[];
@@ -126,6 +132,7 @@ const turnAgent = <Tools extends ToolSet>({
 	instructions,
 	offeredTools,
 	contextFull,
+	sources,
 }: {
 	agent: Agent<
 		{
@@ -137,8 +144,10 @@ const turnAgent = <Tools extends ToolSet>({
 	instructions: SystemModelMessage[];
 	offeredTools: () => ToolSet;
 	contextFull: () => boolean;
+	sources: ChatSources;
 }): TurnAgent => ({
 	tools: agent.tools,
+	sources,
 	offeredTools,
 	instructions,
 	contextFull,
@@ -149,7 +158,7 @@ const turnAgent = <Tools extends ToolSet>({
 			// Each chat kind stores only its own agent's tool parts.
 			originalMessages: options.originalMessages as InferAgentUIMessage<
 				typeof agent,
-				ChatMessageMetadata
+				StreamedMetadata
 			>[],
 			abortSignal: options.abortSignal,
 			options: {
@@ -265,10 +274,11 @@ const buildAgent = ({
 		providerId: setup.providerId,
 		modelId: setup.modelId,
 	};
+	const sources = chatSources(history);
 	if (setup.agent.kind === "chat") {
 		return {
-			agent: turnAgent(
-				createChatAgent({
+			agent: turnAgent({
+				...createChatAgent({
 					model: setup.model,
 					systemPrompt: setup.agent.systemPrompt,
 					today: localDate(input.timeZone),
@@ -280,8 +290,10 @@ const buildAgent = ({
 					telemetryIds,
 					context: input.context,
 					history,
+					sources,
 				}),
-			),
+				sources,
+			}),
 			assistantTurn: undefined,
 		};
 	}
@@ -292,8 +304,8 @@ const buildAgent = ({
 		replyId,
 	});
 	return {
-		agent: turnAgent(
-			createAssistantAgent({
+		agent: turnAgent({
+			...createAssistantAgent({
 				model: setup.model,
 				callSettings: setup.callSettings,
 				compaction: setup.compaction,
@@ -305,8 +317,10 @@ const buildAgent = ({
 				telemetryIds,
 				context: input.context,
 				turn: assistantTurn,
+				sources,
 			}),
-		),
+			sources,
+		}),
 		assistantTurn,
 	};
 };
@@ -459,20 +473,78 @@ const streamTurn = ({
 					};
 		};
 
-		const steps: TurnStep[] = [];
+		const { sources } = agent;
+		const continued = messages.find(({ id }) => id === replyId);
+		// What the reply may cite in: what a continued reply wrote, then what streams.
+		let citable = citableText(continued?.parts ?? []);
+		// What the client holds: it merges each streamed set into the reply's metadata.
+		let shown: StreamedCitations = {
+			...(continued?.metadata as ChatMessageMetadata | undefined)?.citations,
+		};
+		/** The citations that changed since the client last got them; null withdraws one. */
+		const citationChanges = () => {
+			const cited = sources.citations(citable);
+			const changes: StreamedCitations = Object.fromEntries([
+				...Object.entries(cited).filter(
+					([ref, citation]) =>
+						JSON.stringify(shown[ref]) !== JSON.stringify(citation),
+				),
+				...Object.keys(shown)
+					.filter((ref) => shown[ref] !== null && !Object.hasOwn(cited, ref))
+					.map((ref) => [
+						ref,
+						null,
+					]),
+			]);
+			shown = {
+				...shown,
+				...changes,
+			};
+
+			return Object.keys(changes).length > 0 ? changes : undefined;
+		};
+		const changedCitations = () => {
+			const citations = citationChanges();
+
+			return (
+				citations && {
+					citations,
+				}
+			);
+		};
 
 		const settledReply = ({
 			parts,
 			metadata,
-		}: Pick<UIMessage<ChatMessageMetadata>, "parts" | "metadata">) =>
-			({
+		}: Pick<UIMessage<StreamedMetadata>, "parts" | "metadata">) => {
+			// The whole reply resolves again, so a ref that became ambiguous loses its entry.
+			const { citations: _, ...streamed } = metadata ?? {};
+			const settled = withoutContinuationClaim(streamed);
+			const citations = sources.citations(citableText(parts));
+
+			return {
 				// A turn that produced nothing leaves no reply.
 				parts: parts.every((part) => part.type === "step-start") ? [] : parts,
 				metadata: {
-					...withoutContinuationClaim(metadata ?? {}),
+					...settled,
+					...(Object.keys(citations).length > 0 && {
+						citations,
+					}),
 					...writtenZedToken(),
 				},
-			}) satisfies ReplyContent;
+			} satisfies ReplyContent;
+		};
+		const logCollisions = () =>
+			Effect.forEach(
+				sources.collisions(),
+				({ ref, identities }) =>
+					Effect.logWarning(
+						`chat ${input.chatId} ref ${ref} names more than one source: ${identities.join(", ")}`,
+					),
+				{
+					discard: true,
+				},
+			);
 
 		const streamAgent = (
 			sent: PromptFit,
@@ -486,7 +558,6 @@ const streamTurn = ({
 				promptTokens: sent.promptTokens,
 				replyId,
 				onStepEnd: (step) => {
-					steps.push(step);
 					meter.step(step);
 				},
 				onEnd: ({ responseMessage, outcome }) =>
@@ -504,6 +575,7 @@ const streamTurn = ({
 									),
 								),
 								Effect.andThen(meter.settle(meteredOutcome(outcome.status))),
+								Effect.andThen(Effect.suspend(logCollisions)),
 							),
 					),
 				// Also called for every failed tool call, whose error text it returns.
@@ -517,6 +589,26 @@ const streamTurn = ({
 					return streamErrorText(error);
 				},
 				messageMetadata: (part) => {
+					if (part.type === "text-start") {
+						citable += "\n";
+					}
+					if (part.type === "text-delta") {
+						citable += part.text;
+						return part.text.includes(">") ? changedCitations() : undefined;
+					}
+					// A call's sources can make a cited ref ambiguous.
+					if (part.type === "tool-result") {
+						return changedCitations();
+					}
+					if (
+						part.type === "tool-call" &&
+						toolKindOf({
+							type: `tool-${part.toolName}`,
+						}) === "display"
+					) {
+						citable += `\n${displayCallText(part.input)}`;
+						return changedCitations();
+					}
 					if (part.type === "abort" && timeLimitReached) {
 						return {
 							timeLimitReached: true,
@@ -533,15 +625,11 @@ const streamTurn = ({
 						};
 					}
 					if (part.type === "finish") {
-						const cited = turnCitations({
-							prompt: sent.messages,
-							replyId,
-							steps,
-						});
+						const citations = citationChanges();
 						return {
 							totalUsage: part.totalUsage,
-							...(cited && {
-								citations: cited,
+							...(citations && {
+								citations,
 							}),
 							...(contextWindow !== null && {
 								contextWindow,

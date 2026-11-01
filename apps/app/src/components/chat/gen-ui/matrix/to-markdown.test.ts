@@ -14,7 +14,7 @@ describe("showMatrix markdown", () => {
 				"| Black & Wiliam (1998) | Met | Met | Met |",
 				"| Shute (2008) | Met | Not checkable | Partly met |",
 				"",
-				'- **Hattie & Timperley (2007), Authors** (Not met): Use a comma and an ampersand. <cite title="APA" page="286">§9.8</cite>',
+				"- **Hattie & Timperley (2007), Authors** (Not met): Use a comma and an ampersand. <cite ref=kgol9ts>§9.8</cite>",
 				"- **Hattie & Timperley (2007), Title** (Not met): Use sentence case.",
 				"- **Hattie & Timperley (2007), DOI** (Partly met): Write the DOI as a URL.",
 				"- **Shute (2008), Title** (Not checkable): The title is cut off in the paste.",

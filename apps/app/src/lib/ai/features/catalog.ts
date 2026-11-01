@@ -22,6 +22,8 @@ interface FeatureTurn {
 	webSearch: TurnWebSearch;
 	/** The stored conversation the turn answers. */
 	history: readonly QuizHistoryMessage[];
+	/** The turn has a Citations section. */
+	citations: boolean;
 }
 
 export interface FeatureEntry<Settings extends z.ZodType = z.ZodType> {
@@ -32,7 +34,7 @@ export interface FeatureEntry<Settings extends z.ZodType = z.ZodType> {
 		turn: FeatureTurn;
 	}): ToolSet;
 	/** Appended to the system prompt while the feature is enabled. */
-	prompt: string;
+	prompt(turn: Pick<FeatureTurn, "citations">): string;
 	/** Other feature ids that must be enabled too. */
 	requires: readonly string[];
 }
@@ -47,7 +49,7 @@ const feature = <Settings extends z.ZodType>(
 export const featureCatalog = {
 	generativeUi: {
 		settingsSchema: generativeUiSettingsSchema,
-		buildTools: () => buildGenUiTools(),
+		buildTools: ({ turn }) => buildGenUiTools(turn),
 		prompt: genUiPrompt,
 		requires: [],
 	},
@@ -59,7 +61,7 @@ export const featureCatalog = {
 				webSearch: turn.webSearch,
 				allowedDomains: settings.allowedDomains,
 			}),
-		prompt: "",
+		prompt: () => "",
 		requires: [],
 	}),
 	questions: {
@@ -68,7 +70,7 @@ export const featureCatalog = {
 			buildQuestionTools({
 				history: turn.history,
 			}),
-		prompt: questionsPrompt,
+		prompt: () => questionsPrompt,
 		requires: [],
 	},
 } satisfies Record<FeatureId, FeatureEntry>;

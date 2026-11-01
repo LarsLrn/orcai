@@ -2,7 +2,6 @@ import type { ChatId } from "@orcai/core";
 import type { ChatBranchLink } from "@orcai/schema";
 import { PlayIcon } from "lucide-react";
 import { type ReactNode, use, useMemo, useRef, useState } from "react";
-import type { LinkSafetyConfig } from "streamdown";
 import { CitationsContext } from "@/components/ai-elements/cite";
 import {
 	Message,
@@ -21,7 +20,6 @@ import { StepAnswersContext } from "@/components/chat/step-answers";
 import { Button } from "@/components/ui/button";
 import { useMessageScrollerInView } from "@/components/ui/message-scroller";
 import { InView } from "@/components/ui/motion/in-view";
-import { messageCitations } from "@/lib/ai/tools/rag/citations";
 import { citedWebSources } from "@/lib/ai/tools/web/sources";
 import type { MessageView } from "@/lib/ai/turn-view/turn-view";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
@@ -34,6 +32,8 @@ import { MessageSources } from "./message-sources";
 import { MessageCompacted } from "./metadata/message-compacted";
 import { MessageContextNotice } from "./metadata/message-context-notice";
 
+const NO_CITATIONS = {};
+
 interface MessageBlockProps {
 	view: MessageView;
 	chatId: ChatId;
@@ -42,8 +42,6 @@ interface MessageBlockProps {
 	branches?: ChatBranchLink[];
 	onBranch?: () => void;
 	branching?: boolean;
-	/** Overrides the default confirmation for links in the answer. */
-	linkSafety?: LinkSafetyConfig;
 }
 
 const MessageEntrance = ({
@@ -89,7 +87,6 @@ export const MessageBlock = ({
 	branches = [],
 	onBranch,
 	branching,
-	linkSafety,
 }: MessageBlockProps) => {
 	const { message, running, workLog, answer, missing, activity } = view;
 	const variant = message.role === "user" ? "sent" : "received";
@@ -98,12 +95,8 @@ export const MessageBlock = ({
 	const workLogRef = useRef<HTMLDivElement>(null);
 	const [activityRef, activityInView] = useMessageScrollerInView();
 	const answers = use(StepAnswersContext);
-	const citations = useMemo(
-		() => messageCitations(message),
-		[
-			message,
-		],
-	);
+	// The server resolves refs; a cite without an entry shows as its text.
+	const citations = message.metadata?.citations ?? NO_CITATIONS;
 	const webSources = useMemo(
 		() => citedWebSources(message.parts),
 		[
@@ -159,7 +152,6 @@ export const MessageBlock = ({
 									key={`${part.part.type}${message.id}${i}`}
 									answer={part}
 									running={running}
-									linkSafety={linkSafety}
 								/>
 							))}
 							{!running && <MessageSources sources={webSources} />}

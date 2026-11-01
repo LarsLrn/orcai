@@ -1,11 +1,11 @@
 import type { DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
-import type { ChunkIds } from "./chunk-ref";
 import { passagesModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { PointWithBlock } from "./types";
@@ -25,16 +25,25 @@ const neighbourIndexes = (point: PointWithBlock, neighbours: number) =>
 			index !== point.payload.chunk_index,
 	);
 
+/** What Qdrant takes for a point id: a UUID or an unsigned integer. */
+const POINT_ID =
+	/^(?:[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}|\d+)$/i;
+
 export const getPassagesTool = ({
 	blocks,
 	context,
-	chunks: known,
+	sources,
 }: {
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
-	chunks: ChunkIds;
-}) =>
-	effectTool({
+	sources: ChatSources;
+}) => {
+	/** The point id a passage ref names, or the point id given; undefined for anything else. */
+	const pointIdOf = (refOrId: string) =>
+		(refOrId.startsWith("k") ? sources.identityOf(refOrId) : undefined) ??
+		(POINT_ID.test(refOrId) ? refOrId : undefined);
+
+	return effectTool({
 		description:
 			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. Use it only when you need that context, since searchRepositories already returns each passage in full.",
 		inputSchema: z.strictObject({
@@ -42,7 +51,7 @@ export const getPassagesTool = ({
 				.array(z.string())
 				.min(1)
 				.max(RETRIEVAL_LIMITS.maxFullChunkFetches)
-				.describe("Refs of passages from earlier results, such as k7f3a2."),
+				.describe("Refs of passages from earlier results, such as kgol9ts."),
 			neighbours: z.coerce
 				.number()
 				.int()
@@ -55,7 +64,7 @@ export const getPassagesTool = ({
 			Effect.gen(function* () {
 				const procedures = yield* Procedures;
 				const ids = Array.from(
-					new Set(refs.flatMap((ref) => known.idOf(ref) ?? [])),
+					new Set(refs.flatMap((ref) => pointIdOf(ref) ?? [])),
 				);
 
 				const found = flattenBlockResponses(
@@ -159,9 +168,8 @@ export const getPassagesTool = ({
 						run.find((point) => requested.includes(point)),
 					),
 				);
-				known.add(passages);
 				const missing = refs.filter(
-					(ref) => !requested.some((point) => point.id === known.idOf(ref)),
+					(ref) => !requested.some((point) => point.id === pointIdOf(ref)),
 				);
 
 				return {
@@ -173,3 +181,4 @@ export const getPassagesTool = ({
 			}),
 		toModelOutput: passagesModelOutput,
 	});
+};

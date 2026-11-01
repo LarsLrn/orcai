@@ -41,6 +41,27 @@ describe("dataTag", () => {
 				},
 				"Text.",
 			),
-		).toBe('<passage ref="k000001">\nText.\n</passage>');
+		).toBe("<passage ref=k000001>\nText.\n</passage>");
+	});
+
+	test("writes a well-formed ref without quotes and quotes any other", () => {
+		expect(
+			dataTag(
+				"passage",
+				{
+					ref: "kgol9ts",
+				},
+				"Text.",
+			),
+		).toBe("<passage ref=kgol9ts>\nText.\n</passage>");
+		expect(
+			dataTag(
+				"passage",
+				{
+					ref: 'k1" x="y',
+				},
+				"Text.",
+			),
+		).toBe('<passage ref="k1&quot; x=&quot;y">\nText.\n</passage>');
 	});
 });

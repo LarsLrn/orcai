@@ -4,6 +4,7 @@ import { asSchema, type ToolSet } from "ai";
 import * as Effect from "effect/Effect";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
+import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { featureCatalog } from "@/lib/ai/features/catalog";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import "./assistant/test-procedures";
@@ -53,6 +54,7 @@ const featureTools: ToolSet = Object.assign(
 					search: () => Effect.succeed([]),
 				},
 				history: [],
+				citations: true,
 			},
 		}),
 	),
@@ -63,9 +65,11 @@ const { [NATIVE_WEB_SEARCH_TOOL_NAME]: _, ...chatTools }: ToolSet = {
 	...buildRepositoryTools({
 		blocks: [],
 		context,
-		history: [],
+		sources: chatSources([]),
 	}),
-	...buildGenUiTools(),
+	...buildGenUiTools({
+		citations: true,
+	}),
 	...buildQuestionTools({
 		history: [],
 	}),

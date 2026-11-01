@@ -148,34 +148,102 @@ describe("messageToMarkdown", () => {
 		);
 	});
 
-	test("writes both cite forms as the cited text and its source", () => {
-		expect(
-			messageToMarkdown(
+	describe("citations", () => {
+		const citations = {
+			kgol9ts: {
+				kind: "asset",
+				assetId: "a2",
+				title: "Refund policy.pdf",
+				page: 4,
+			},
+			k5m2x0q: {
+				kind: "asset",
+				assetId: "a3",
+				title: "Travel policy",
+			},
+			do8r8j2: {
+				kind: "docs",
+				path: "/docs/using-orcai/bots",
+				title: "Bots",
+			},
+			w2jpxug: {
+				kind: "web",
+				url: "https://www.who.int/news-room/fact-sheets/detail/malaria",
+				title: "Malaria",
+			},
+		};
+		const cited = message(
+			"assistant",
+			[
+				text(
+					[
+						"Paid <cite ref=kgol9ts>within 14 days</cite>.",
+						'Booked <cite ref="k5m2x0q">by train</cite>.',
+						"Set up <cite ref=do8r8j2>in the Library</cite>.",
+						"Spread <cite ref=w2jpxug>by mosquitoes</cite>.",
+						"Kept <cite ref=k000000>for a year</cite>.",
+					].join(" "),
+				),
+			],
+			{
+				citations,
+			},
+		);
+
+		test("writes each cite as the cited text and its source", () => {
+			expect(
+				messageToMarkdown(cited, {
+					docsUrl: "https://docs.example.org/",
+				}),
+			).toBe(
+				"Paid within 14 days (Refund policy, p. 4). Booked by train (Travel policy). Set up in the Library (Bots, https://docs.example.org/docs/using-orcai/bots). Spread by mosquitoes (Malaria, https://www.who.int/news-room/fact-sheets/detail/malaria). Kept for a year.",
+			);
+		});
+
+		test("writes cites in a transcript the same way", () => {
+			expect(messageToTranscriptMarkdown(cited)).toContain(
+				"Paid within 14 days (Refund policy, p. 4).",
+			);
+		});
+
+		test("names a docs page by its title without the docs URL", () => {
+			expect(messageToMarkdown(cited)).toContain(
+				"Set up in the Library (Bots).",
+			);
+		});
+
+		test("writes cites in nested prose fields of display parts", () => {
+			const markdown = messageToMarkdown(
 				message(
 					"assistant",
 					[
-						text(
-							[
-								'Paid <cite chunk="k7f3a2">within 14 days</cite>.',
-								'Booked <cite assetid="a1" title="Travel policy" page="2">by train</cite>.',
-								'Kept <cite chunk="k000000">for a year</cite>.',
-							].join(" "),
-						),
-					],
-					{
-						citations: {
-							k7f3a2: {
-								assetId: "a2",
-								title: "Refund policy.pdf",
-								page: 4,
+						{
+							type: "tool-showChecklist",
+							toolCallId: "call-1",
+							state: "output-available",
+							input: {
+								...checklistInput,
+								items: [
+									{
+										...checklistInput.items[0],
+										body: "Listed <cite ref=kgol9ts>in full</cite>.",
+									},
+								],
+							},
+							output: {
+								shown: true,
 							},
 						},
+					],
+					{
+						citations,
 					},
 				),
-			),
-		).toBe(
-			"Paid within 14 days (Refund policy, p. 4). Booked by train (Travel policy, p. 2). Kept for a year.",
-		);
+			);
+
+			expect(markdown).toContain("Listed in full (Refund policy, p. 4).");
+			expect(markdown).not.toContain("<cite");
+		});
 	});
 
 	test("user messages join all their text parts", () => {

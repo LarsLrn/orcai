@@ -14,11 +14,12 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import { LinkSafetyContext } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
-import { assistantLinkSafety } from "@/components/assistant/assistant-link-safety";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
+import { chatLinkSafety } from "@/components/chat/link-confirm";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
 import { DocumentsPanel } from "@/components/documents/readiness/documents-panel";
 import { useChatRepositoryIds } from "@/components/documents/readiness/use-repository-readiness";
@@ -86,10 +87,15 @@ const Chat = ({
 }) => {
 	const isAssistant = variant === "assistant";
 	const { docsUrl } = usePublicConfig();
-	const assistantLinks = useMemo(
-		() => assistantLinkSafety(docsUrl),
+	const linkSafety = useMemo(
+		() =>
+			chatLinkSafety({
+				docsUrl,
+				appPaths: isAssistant,
+			}),
 		[
 			docsUrl,
+			isAssistant,
 		],
 	);
 	const { session, messages, phase, error } = useChatSession({
@@ -190,107 +196,114 @@ const Chat = ({
 
 	return (
 		<StepAnswersContext value={session.answers}>
-			<ReplySender chat={chat?.data} send={sendText} busy={view.busy}>
-				<div className="flex size-full min-h-0 min-w-0 flex-col">
-					{!isAssistant && chat?.data.parentChat && (
-						<div className="mx-auto flex w-full max-w-200 px-4 pb-2">
-							<BranchedFrom parentChat={chat.data.parentChat} />
-						</div>
-					)}
-					<Conversation>
-						<EarlierMessages
-							hasEarlier={session.hasEarlier}
-							loadEarlier={session.loadEarlier}
-							firstMessageId={messages[0]?.id}
-						/>
-						<ConversationContent className="mx-auto w-full max-w-200">
-							{view.messages.map((messageView) => {
-								const { id: messageId, role } = messageView.message;
-								return (
-									<MessageScrollerItem
-										key={messageId}
-										messageId={messageId}
-										scrollAnchor={role === "user"}
-										data-highlighted={messageId === highlightedId || undefined}
-										className={cn(
-											focusMessageId &&
-												"rounded-xl transition-colors duration-700 data-highlighted:bg-accent-brand/10",
-										)}
-									>
-										<MessageBlock
-											view={messageView}
-											chatId={id}
-											animate={!session.wasLoaded(messageId)}
-											branches={branchesByMessage.get(messageId)}
-											onBranch={
-												canBranch ? () => branchFrom(messageId) : undefined
-											}
-											branching={
-												branchChat.isPending &&
-												branchChat.variables?.messageId === messageId
-											}
-											linkSafety={isAssistant ? assistantLinks : undefined}
-										/>
-									</MessageScrollerItem>
-								);
-							})}
-							{messages.length === 0 && (
-								<MessageScrollerItem className="flex flex-1 flex-col justify-center">
-									{isAssistant ? (
-										<AssistantPlaceholder className="h-full justify-center" />
-									) : (
-										<ChatPlaceholder />
-									)}
-								</MessageScrollerItem>
-							)}
-							{phase === "sending" && (
-								<MessageScrollerItem className="w-full text-foreground">
-									<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
-								</MessageScrollerItem>
-							)}
-							{phase === "error" && (
-								<MessageScrollerItem
-									role="alert"
-									className="w-full space-y-1 rounded-xl bg-destructive/10 px-4 py-3 text-sm"
-								>
-									<p className="text-destructive">{m.chat_response_failed()}</p>
-									{error && (
-										<p className="wrap-anywhere text-muted-foreground text-xs">
-											{describeError(error)}
-										</p>
-									)}
-								</MessageScrollerItem>
-							)}
-						</ConversationContent>
-						<ConversationScrollButton />
-						{focusMessageId && <ScrollToMessage messageId={focusMessageId} />}
-					</Conversation>
-
-					<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
-						{readOnly !== null && chat ? (
-							<ChatReadOnlyNotice
-								reason={readOnly}
-								organizationName={chat.data.organization.name}
-							/>
-						) : isAssistant ? (
-							<>
-								<PlanPanel plan={view.plan} busy={view.busy} />
-								<DocumentsPanel blockIds={repositoryIds} />
-								<AssistantComposerGate>{composer}</AssistantComposerGate>
-							</>
-						) : (
-							<>
-								<WebSearchNotice
-									botId={chat?.data.botId}
-									providerId={chat?.data.effectiveModel.providerId ?? undefined}
-								/>
-								<DocumentsPanel blockIds={repositoryIds} />
-								{composer}
-							</>
+			<LinkSafetyContext value={linkSafety}>
+				<ReplySender chat={chat?.data} send={sendText} busy={view.busy}>
+					<div className="flex size-full min-h-0 min-w-0 flex-col">
+						{!isAssistant && chat?.data.parentChat && (
+							<div className="mx-auto flex w-full max-w-200 px-4 pb-2">
+								<BranchedFrom parentChat={chat.data.parentChat} />
+							</div>
 						)}
+						<Conversation>
+							<EarlierMessages
+								hasEarlier={session.hasEarlier}
+								loadEarlier={session.loadEarlier}
+								firstMessageId={messages[0]?.id}
+							/>
+							<ConversationContent className="mx-auto w-full max-w-200">
+								{view.messages.map((messageView) => {
+									const { id: messageId, role } = messageView.message;
+									return (
+										<MessageScrollerItem
+											key={messageId}
+											messageId={messageId}
+											scrollAnchor={role === "user"}
+											data-highlighted={
+												messageId === highlightedId || undefined
+											}
+											className={cn(
+												focusMessageId &&
+													"rounded-xl transition-colors duration-700 data-highlighted:bg-accent-brand/10",
+											)}
+										>
+											<MessageBlock
+												view={messageView}
+												chatId={id}
+												animate={!session.wasLoaded(messageId)}
+												branches={branchesByMessage.get(messageId)}
+												onBranch={
+													canBranch ? () => branchFrom(messageId) : undefined
+												}
+												branching={
+													branchChat.isPending &&
+													branchChat.variables?.messageId === messageId
+												}
+											/>
+										</MessageScrollerItem>
+									);
+								})}
+								{messages.length === 0 && (
+									<MessageScrollerItem className="flex flex-1 flex-col justify-center">
+										{isAssistant ? (
+											<AssistantPlaceholder className="h-full justify-center" />
+										) : (
+											<ChatPlaceholder />
+										)}
+									</MessageScrollerItem>
+								)}
+								{phase === "sending" && (
+									<MessageScrollerItem className="w-full text-foreground">
+										<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
+									</MessageScrollerItem>
+								)}
+								{phase === "error" && (
+									<MessageScrollerItem
+										role="alert"
+										className="w-full space-y-1 rounded-xl bg-destructive/10 px-4 py-3 text-sm"
+									>
+										<p className="text-destructive">
+											{m.chat_response_failed()}
+										</p>
+										{error && (
+											<p className="wrap-anywhere text-muted-foreground text-xs">
+												{describeError(error)}
+											</p>
+										)}
+									</MessageScrollerItem>
+								)}
+							</ConversationContent>
+							<ConversationScrollButton />
+							{focusMessageId && <ScrollToMessage messageId={focusMessageId} />}
+						</Conversation>
+
+						<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">
+							{readOnly !== null && chat ? (
+								<ChatReadOnlyNotice
+									reason={readOnly}
+									organizationName={chat.data.organization.name}
+								/>
+							) : isAssistant ? (
+								<>
+									<PlanPanel plan={view.plan} busy={view.busy} />
+									<DocumentsPanel blockIds={repositoryIds} />
+									<AssistantComposerGate>{composer}</AssistantComposerGate>
+								</>
+							) : (
+								<>
+									<WebSearchNotice
+										botId={chat?.data.botId}
+										providerId={
+											chat?.data.effectiveModel.providerId ?? undefined
+										}
+									/>
+									<DocumentsPanel blockIds={repositoryIds} />
+									{composer}
+								</>
+							)}
+						</div>
 					</div>
-				</div>
-			</ReplySender>
+				</ReplySender>
+			</LinkSafetyContext>
 		</StepAnswersContext>
 	);
 };

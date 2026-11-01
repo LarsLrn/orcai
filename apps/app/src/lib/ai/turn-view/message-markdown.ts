@@ -1,4 +1,6 @@
-import { type Citations, messageCitations } from "@/lib/ai/tools/rag/citations";
+import type { ChatMessageCitation } from "@orcai/schema";
+import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
+import { replaceCiteTags } from "@/lib/ai/citations/cite-tag";
 import { toolCallMarkdown } from "@/lib/ai/tools/registry";
 import {
 	type AnswerPart,
@@ -9,82 +11,62 @@ import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
 
-const CITE = /<cite\b([^>]*)>([\s\S]*?)<\/cite>/g;
-const ATTRIBUTE = /([\w-]+)\s*=\s*"([^"]*)"/g;
+/** How a cited source reads in copied text; a docs page names its URL only with the docs URL known. */
+const sourceText = (
+	citation: ChatMessageCitation,
+	docsUrl: string | undefined,
+) => {
+	switch (citation.kind) {
+		case "asset": {
+			const title =
+				formatAssetTitle(citation.title) ?? m.chat_source_fallback_title();
 
-const unescapeAttribute = (value: string) =>
-	value.replaceAll("&quot;", '"').replaceAll("&amp;", "&");
-
-/** The source a cite tag names by chunk ref, or by title and page in older answers. */
-const citeSource = (
-	attributes: string,
-	citations: Citations,
-):
-	| {
-			title: string;
-			page?: number;
-	  }
-	| undefined => {
-	const values = new Map(
-		Array.from(attributes.matchAll(ATTRIBUTE), ([, name, value]) => [
-			name,
-			unescapeAttribute(value),
-		]),
-	);
-	const chunk = values.get("chunk");
-
-	if (chunk !== undefined) {
-		return Object.hasOwn(citations, chunk) ? citations[chunk] : undefined;
-	}
-
-	const page = Number.parseInt(
-		values.get("page") ??
-			values.get("pageNumber") ??
-			values.get("page_number") ??
-			"",
-		10,
-	);
-
-	return {
-		title: values.get("title") ?? "",
-		...(Number.isInteger(page) &&
-			page > 0 && {
-				page,
-			}),
-	};
-};
-
-/** Cite tags as `cited text (Title, p. N)`; a ref without a source leaves the cited text. */
-const citationsAsText = (text: string, citations: Citations) =>
-	text.replace(CITE, (_, attributes: string, cited: string) => {
-		const source = citeSource(attributes, citations);
-
-		if (!source) {
-			return cited;
-		}
-
-		const title =
-			formatAssetTitle(source.title) ?? m.chat_source_fallback_title();
-
-		return `${cited} (${
-			source.page === undefined
+			return citation.page === undefined
 				? title
 				: m.chat_message_copy_citation_with_page({
 						title,
-						page: source.page,
-					})
-		})`;
+						page: citation.page,
+					});
+		}
+		case "docs":
+			return docsUrl
+				? `${citation.title}, ${docsUrl.replace(/\/$/, "")}${citation.path}`
+				: citation.title;
+		case "web":
+			return `${citation.title}, ${citation.url}`;
+	}
+};
+
+/** Cite tags as `cited text (Source)`; a ref without a source leaves the cited text. */
+const citationsAsText = (
+	text: string,
+	citations: StreamedCitations,
+	docsUrl: string | undefined,
+) =>
+	replaceCiteTags(text, ({ ref, text: cited }) => {
+		const citation =
+			ref !== undefined && Object.hasOwn(citations, ref)
+				? citations[ref]
+				: null;
+
+		return citation ? `${cited} (${sourceText(citation, docsUrl)})` : cited;
 	});
 
 const answerPartMarkdown = (
 	answer: AnswerPart,
-	citations: Citations,
+	citations: StreamedCitations,
+	docsUrl: string | undefined,
 ): string | undefined => {
 	switch (answer.kind) {
 		case "text":
-			return citationsAsText(answer.part.text, citations);
-		case "display":
-			return toolCallMarkdown(answer.part) ?? m.gen_ui_cannot_display();
+			return citationsAsText(answer.part.text, citations, docsUrl);
+		case "display": {
+			const markdown = toolCallMarkdown(answer.part);
+
+			return markdown === undefined
+				? m.gen_ui_cannot_display()
+				: citationsAsText(markdown, citations, docsUrl);
+		}
 		case "client":
 			return toolCallMarkdown(answer.part);
 		default:
@@ -97,11 +79,18 @@ const answerPartMarkdown = (
  * parts and questions in order for assistant messages, all text for user
  * messages.
  */
-export const messageToMarkdown = ({ message, answer }: MessageView): string => {
-	const citations = messageCitations(message);
+export const messageToMarkdown = (
+	{ message, answer }: MessageView,
+	{
+		docsUrl,
+	}: {
+		docsUrl?: string;
+	} = {},
+): string => {
+	const citations = message.metadata?.citations ?? {};
 	const blocks =
 		message.role === "assistant"
-			? answer.map((part) => answerPartMarkdown(part, citations))
+			? answer.map((part) => answerPartMarkdown(part, citations, docsUrl))
 			: message.parts.map((part) =>
 					part.type === "text" ? part.text : undefined,
 				);

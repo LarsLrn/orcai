@@ -13,7 +13,7 @@ describe("showChecklist markdown", () => {
 						status: "not_met",
 						summary: "Authors, Title",
 						quote: "Hattie, J. and Timperley, H.\nThe Power of Feedback",
-						body: '- **Authors**: use an ampersand. <cite title="APA" page="286">§9.8</cite>\n\nSee the manual.',
+						body: "- **Authors**: use an ampersand. <cite ref=kgol9ts>§9.8</cite>\n\nSee the manual.",
 					},
 					{
 						label: "Black & Wiliam (1998)",
@@ -38,7 +38,7 @@ describe("showChecklist markdown", () => {
 				"  > Hattie, J. and Timperley, H.",
 				"  > The Power of Feedback",
 				"",
-				'  - **Authors**: use an ampersand. <cite title="APA" page="286">§9.8</cite>',
+				"  - **Authors**: use an ampersand. <cite ref=kgol9ts>§9.8</cite>",
 				"",
 				"  See the manual.",
 				"",

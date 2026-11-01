@@ -3,14 +3,16 @@ import { RAG_SETTINGS } from "@orcai/core";
 import { selectDiversePoints } from "@orcai/qdrant";
 import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { chatSources } from "@/lib/ai/citations/chat-sources";
+import { sourceRef } from "@/lib/ai/citations/source-ref";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
 	answers,
 	procedureCalls,
 	resetProcedures,
 } from "../assistant/test-procedures";
-import { chunkIds, chunkRef } from "./chunk-ref";
 import { assetPoint } from "./test-points";
+import type { Passage } from "./types";
 
 const { getPassagesTool } = await import("./get-passages");
 const { getAssetPageTool } = await import("./get-asset-page");
@@ -27,8 +29,26 @@ const deps = {
 	context: {
 		secureCookies: false,
 	} as ORPCContext,
-	chunks: chunkIds([]),
+	sources: chatSources([]),
 };
+
+/** The sources of a chat whose earlier search returned `results`. */
+const sourcesOf = (...results: Passage[]) =>
+	chatSources([
+		{
+			parts: [
+				{
+					type: "tool-searchRepositories",
+					state: "output-available",
+					output: {
+						results,
+					},
+				} as {
+					type: string;
+				},
+			],
+		},
+	]);
 
 const options = {
 	toolCallId: "call",
@@ -195,20 +215,18 @@ describe("searchRepositories", () => {
 describe("getPassages", () => {
 	test("reads around a chunk named by its ref as one passage", async () => {
 		answers["assetPoint.searchRepository"] = searchChunks;
-		const ref = chunkRef("102");
+		const ref = sourceRef("passage", "102");
 
 		const output = await getPassagesTool({
 			...deps,
-			chunks: chunkIds([
-				{
-					ref,
-					id: "102",
-					assetId: "asset-a",
-					title: "Refund policy",
-					blockName: "Handbook",
-					text: "of the request being approved.",
-				},
-			]),
+			sources: sourcesOf({
+				ref,
+				id: "102",
+				assetId: "asset-a",
+				title: "Refund policy",
+				blockName: "Handbook",
+				text: "of the request being approved.",
+			}),
 		}).execute?.(
 			{
 				passages: [
@@ -253,7 +271,7 @@ describe("getPassages", () => {
 		expect(output).toMatchObject({
 			passages: [
 				{
-					ref: chunkRef("101"),
+					ref: sourceRef("passage", "101"),
 					id: "101",
 				},
 			],
@@ -268,6 +286,49 @@ describe("getPassages", () => {
 				],
 			},
 		});
+	});
+});
+
+describe("getPassages with an ambiguous ref", () => {
+	test("finds nothing for a ref two passages claim", async () => {
+		answers["assetPoint.searchRepository"] = searchChunks;
+		const passage = {
+			ref: "k111111",
+			assetId: "asset-a",
+			title: "Refund policy",
+			blockName: "Handbook",
+			text: "Text.",
+		};
+
+		const output = await getPassagesTool({
+			...deps,
+			sources: sourcesOf(
+				{
+					...passage,
+					id: "101",
+				},
+				{
+					...passage,
+					id: "102",
+				},
+			),
+		}).execute?.(
+			{
+				passages: [
+					"k111111",
+				],
+				neighbours: 0,
+			},
+			options,
+		);
+
+		expect(output).toEqual({
+			passages: [],
+			missing: [
+				"k111111",
+			],
+		});
+		expect(procedureCalls).toEqual([]);
 	});
 });
 

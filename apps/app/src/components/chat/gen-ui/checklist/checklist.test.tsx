@@ -21,11 +21,30 @@ mock.module("@/lib/orpc/orpc", () => ({
 const { Checklist } = await import(
 	"@/components/chat/gen-ui/checklist/checklist"
 );
+const { CitationsContext } = await import("@/components/ai-elements/cite");
 
 afterEach(cleanup);
 
-const apa = (page: number, text: string) =>
-	`<cite title="APA Publication Manual, 7th ed." page="${page}">${text}</cite>`;
+/** The answer's citations, as the server resolved them, by the page each names. */
+const apaPages = {
+	286: "kgol9ts",
+	299: "k5m2x0q",
+} as const;
+
+const citations = Object.fromEntries(
+	Object.entries(apaPages).map(([page, ref]) => [
+		ref,
+		{
+			kind: "asset" as const,
+			assetId: "9b2d4c6e-1f3a-4b5c-8d7e-0a1b2c3d4e5f",
+			title: "APA Publication Manual, 7th ed.",
+			page: Number(page),
+		},
+	]),
+);
+
+const apa = (page: keyof typeof apaPages, text: string) =>
+	`<cite ref=${apaPages[page]}>${text}</cite>`;
 
 const statusList = {
 	title: "APA 7 check",
@@ -181,7 +200,11 @@ describe("Checklist", () => {
 	});
 
 	test("expands a row to the quote above the body", async () => {
-		render(<Checklist view={readChecklist(statusList)} streaming={false} />);
+		render(
+			<CitationsContext value={citations}>
+				<Checklist view={readChecklist(statusList)} streaming={false} />
+			</CitationsContext>,
+		);
 
 		const trigger = triggerOf("Hattie & Timperley (2007)");
 		expect(trigger.getAttribute("aria-expanded")).toBe("false");

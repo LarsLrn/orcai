@@ -17,6 +17,7 @@ import {
 } from "@/lib/ai/agents/assistant-tool-lines";
 import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import { createStepShaper } from "@/lib/ai/agents/step-request";
+import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import {
 	offeredAssistantToolNames,
@@ -43,6 +44,8 @@ export const createAssistantAgent = (
 		history: readonly StoredMessage[];
 		/** The conversation's current plan. */
 		plan: Plan | undefined;
+		/** The chat's sources, which the turn's calls add to. */
+		sources: ChatSources;
 		telemetryIds: {
 			organizationId: string;
 			chatId: string;
@@ -61,6 +64,7 @@ export const createAssistantAgent = (
 				turn: {
 					webSearch: NO_WEB_SEARCH,
 					history: params.history,
+					citations: false,
 				},
 			}),
 		);
@@ -116,7 +120,11 @@ export const createAssistantAgent = (
 		buildAssistantSystemPrompt({
 			docs: params.docs,
 			userContext: params.userContext,
-			featurePrompts: params.features.map(({ entry }) => entry.prompt),
+			featurePrompts: params.features.map(({ entry }) =>
+				entry.prompt({
+					citations: false,
+				}),
+			),
 			toolGroups,
 			plan: params.plan,
 		}),
@@ -150,6 +158,7 @@ export const createAssistantAgent = (
 					toolOutput,
 				]);
 				session.record(toolOutput);
+				params.sources.record(toolOutput.toolName, toolOutput.output);
 			}
 		},
 		output: Output.text(),

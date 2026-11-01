@@ -16,7 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import type { Citations } from "@/lib/ai/tools/rag/citations";
+import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
@@ -27,13 +27,13 @@ const CiteCardShell = ({
 	children,
 }: {
 	title: string;
-	page?: number | null;
+	page?: number;
 	children: ReactNode;
 }) => (
 	<div className="space-y-3 p-4">
 		<h4 className="font-medium text-sm leading-snug">{title}</h4>
 		{children}
-		{page == null ? null : (
+		{page === undefined ? null : (
 			<p className="text-muted-foreground text-xs">
 				{m.ai_elements_cite_page_label({
 					page,
@@ -50,7 +50,7 @@ const CiteCardContent = ({
 }: {
 	assetId: AssetId;
 	title: string;
-	page?: number | null;
+	page?: number;
 }) => {
 	const { data, isLoading, isError } = useQuery(
 		orpc.asset.find.queryOptions({
@@ -118,18 +118,18 @@ const CiteCardContent = ({
 	);
 };
 
-/** The sources of the chunk refs the message cites. */
-export const CitationsContext = createContext<Citations>({});
+/** The sources of the refs the message cites, as the server resolved them. */
+export const CitationsContext = createContext<StreamedCitations>({});
 
-const CitePill = ({
+const AssetPill = ({
 	rawAssetId,
 	title,
 	page,
 	children,
 }: {
-	rawAssetId: string | undefined;
-	title: string | undefined;
-	page: number | null;
+	rawAssetId: string;
+	title: string;
+	page: number | undefined;
 	children?: ReactNode;
 }) => {
 	const [hasOpened, setHasOpened] = useState(false);
@@ -139,7 +139,7 @@ const CitePill = ({
 		: undefined;
 	const assetTitle = formatAssetTitle(title) ?? m.chat_source_fallback_title();
 	const pillLabel =
-		page == null
+		page === undefined
 			? assetTitle
 			: m.ai_elements_cite_pill_label_with_page({
 					title: assetTitle,
@@ -158,6 +158,9 @@ const CitePill = ({
 			>
 				<InlineCitationCardTrigger
 					label={pillLabel}
+					aria-label={m.ai_elements_cite_asset_aria_label({
+						label: pillLabel,
+					})}
 					sources={[]}
 					className="border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20"
 				/>
@@ -182,70 +185,35 @@ const CitePill = ({
 };
 
 /**
- * A citation by chunk ref, resolved from the message's citations, or by the
- * asset id, title and page of older answers. An unknown ref is plain text.
+ * A citation by ref, as `<cite ref=R>` or `<cite ref="R">`, resolved from the
+ * message's citations. A ref without a source is plain text.
  */
 export const CiteComponent = ({
-	chunk,
-	assetid,
-	assetId,
-	asset_id,
-	title,
-	page,
-	pageNumber,
-	page_number,
+	ref,
 	children,
 }: {
-	chunk?: string;
-	assetid?: string;
-	assetId?: string;
-	asset_id?: string;
-	title?: string;
-	page?: string;
-	pageNumber?: string;
-	page_number?: string;
+	/** The tag's `ref` attribute, which Streamdown passes as the `ref` prop. */
+	ref?: unknown;
 	children?: ReactNode;
 }) => {
 	const citations = use(CitationsContext);
+	const citation =
+		typeof ref === "string" && Object.hasOwn(citations, ref)
+			? citations[ref]
+			: undefined;
 
-	if (chunk === undefined) {
-		return (
-			<CitePill
-				rawAssetId={assetid ?? assetId ?? asset_id}
-				title={title}
-				page={parsePageNumber(page ?? pageNumber ?? page_number)}
-			>
-				{children}
-			</CitePill>
-		);
+	switch (citation?.kind) {
+		case "asset":
+			return (
+				<AssetPill
+					rawAssetId={citation.assetId}
+					title={citation.title}
+					page={citation.page}
+				>
+					{children}
+				</AssetPill>
+			);
+		default:
+			return <>{children}</>;
 	}
-
-	const citation = Object.hasOwn(citations, chunk)
-		? citations[chunk]
-		: undefined;
-
-	return citation ? (
-		<CitePill
-			rawAssetId={citation.assetId}
-			title={citation.title}
-			page={citation.page ?? null}
-		>
-			{children}
-		</CitePill>
-	) : (
-		children
-	);
-};
-
-const parsePageNumber = (page?: string) => {
-	if (!page) {
-		return null;
-	}
-
-	const parsed = Number.parseInt(page, 10);
-	if (!Number.isInteger(parsed) || parsed < 1) {
-		return null;
-	}
-
-	return parsed;
 };

@@ -2,10 +2,16 @@ import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 import type { AssetId, BotId, ChatMessageId } from "@orcai/core";
 import { METERED_CALL_TIMEOUT_MS } from "@orcai/quota";
 import { quota } from "@orcai/quota/testing";
+import {
+	readUIMessageStream,
+	simulateReadableStream,
+	type UIMessage,
+	type UIMessageChunk,
+} from "ai";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { sourceRef } from "../citations/source-ref";
 import { answers, resetProcedures } from "../tools/assistant/test-procedures";
-import { chunkRef } from "../tools/rag/chunk-ref";
 import { assetPoint } from "../tools/rag/test-points";
 import {
 	answerSetup,
@@ -1147,63 +1153,249 @@ describe("turn setup", () => {
 		expect(withRepository - plain).toBeGreaterThan(1_000);
 	});
 
-	test("stores the sources of the chunk refs the reply cites", async () => {
-		answerSetup({
-			providerKind: "anthropic",
-			providerModelId: "claude-opus-5-5",
-			chatBlocks: [
-				{
-					id: crypto.randomUUID(),
-					type: "database",
-					name: "Handbook",
-					config: {},
-				},
-			],
-		});
-		answers["block.readiness"] = () =>
-			Effect.succeed({
-				data: [],
-			});
-		answers["assetPoint.searchRepository"] = () =>
-			Effect.succeed({
-				data: [
-					assetPoint({
-						id: "c1",
-						index: 1,
-						text: "Refunds are paid within 14 days.",
-						pageStart: 4,
-					}),
-				],
-			});
-		const ref = chunkRef("c1");
-		const chat = await conversation(chatRow(), "anthropic");
-		chat.script([
-			{
-				calls: [
+	describe("citations", () => {
+		const repositoryChat = async () => {
+			answerSetup({
+				providerKind: "anthropic",
+				providerModelId: "claude-opus-5-5",
+				chatBlocks: [
 					{
-						name: "searchRepositories",
-						input: {
-							query: "refunds",
-						},
+						id: crypto.randomUUID(),
+						type: "database",
+						name: "Handbook",
+						config: {},
 					},
 				],
-			},
-			{
-				text: `Paid <cite chunk="${ref}">within 14 days</cite>, as <cite chunk="k000000">promised</cite>.`,
-			},
-		]);
+			});
+			answers["block.readiness"] = () =>
+				Effect.succeed({
+					data: [],
+				});
+			answers["assetPoint.searchRepository"] = () =>
+				Effect.succeed({
+					data: [
+						assetPoint({
+							id: "c1",
+							index: 1,
+							text: "Refunds are paid within 14 days.",
+							pageStart: 4,
+						}),
+					],
+				});
+			return await conversation(chatRow(), "anthropic");
+		};
+		const ref = sourceRef("passage", "c1");
+		const refund = {
+			kind: "asset" as const,
+			assetId: "asset-a",
+			title: "Refund policy",
+			page: 4,
+		};
+		const searched = {
+			calls: [
+				{
+					name: "searchRepositories",
+					input: {
+						query: "refunds",
+					},
+				},
+			],
+		};
+		const metadataChunks = (chunks: unknown[]) =>
+			chunks.flatMap((chunk) => {
+				const { type, messageMetadata } = chunk as {
+					type: string;
+					messageMetadata?: {
+						citations?: unknown;
+					};
+				};
+				return type === "message-metadata" || type === "finish"
+					? [
+							{
+								type,
+								citations: messageMetadata?.citations,
+							},
+						]
+					: [];
+			});
 
-		await chat.send("How fast are refunds paid?");
+		test("stores the sources of the refs the reply cites", async () => {
+			const chat = await repositoryChat();
+			chat.script([
+				searched,
+				{
+					text: `Paid <cite ref=${ref}>within 14 days</cite>, as <cite ref=k000000>promised</cite>.`,
+				},
+			]);
 
-		expect(JSON.stringify(chat.bodies[1]?.messages)).toContain(
-			`<passage ref=\\"${ref}\\" asset=\\"Refund policy\\" pages=\\"4\\">\\nRefunds are paid within 14 days.\\n</passage>`,
-		);
-		expect(chat.messages().at(-1)?.metadata.citations).toEqual({
-			[ref]: {
-				assetId: "asset-a",
-				title: "Refund policy",
-				page: 4,
-			},
+			await chat.send("How fast are refunds paid?");
+
+			expect(JSON.stringify(chat.bodies[1]?.messages)).toContain(
+				`<passage ref=${ref} asset=\\"Refund policy\\" pages=\\"4\\">\\nRefunds are paid within 14 days.\\n</passage>`,
+			);
+			expect(chat.messages().at(-1)?.metadata.citations).toEqual({
+				[ref]: refund,
+			});
+		});
+
+		test("streams a citation once its tag is written, before the reply finishes", async () => {
+			const chat = await repositoryChat();
+			chat.script([
+				searched,
+				{
+					text: `Paid <cite ref="${ref}">within 14 days</cite>.`,
+				},
+			]);
+
+			const chunks = await chat.send("How fast are refunds paid?");
+			const metadata = metadataChunks(chunks);
+			const streamed = metadata.findIndex(
+				({ type, citations }) =>
+					type === "message-metadata" && citations !== undefined,
+			);
+
+			expect(metadata[streamed]?.citations).toEqual({
+				[ref]: refund,
+			});
+			expect(streamed).toBeLessThan(
+				metadata.findIndex(({ type }) => type === "finish"),
+			);
+		});
+
+		test("a follow-up cites a source of an earlier turn without searching again", async () => {
+			const chat = await repositoryChat();
+			chat.script([
+				searched,
+				{
+					text: "Refunds are paid within 14 days.",
+				},
+			]);
+			await chat.send("How fast are refunds paid?");
+			chat.script([
+				{
+					text: `As I said, <cite ref=${ref}>within 14 days</cite>.`,
+				},
+			]);
+
+			const chunks = await chat.send("Say it again with the source.");
+
+			expect(
+				metadataChunks(chunks).find(
+					({ type, citations }) =>
+						type === "message-metadata" && citations !== undefined,
+				)?.citations,
+			).toEqual({
+				[ref]: refund,
+			});
+			expect(chat.messages().at(-1)?.metadata.citations).toEqual({
+				[ref]: refund,
+			});
+		});
+
+		/** The reply as the client builds it from the stream, from `message` on when it continues one. */
+		const clientCitations = async (chunks: unknown[], message?: UIMessage) => {
+			let reply: UIMessage | undefined;
+			for await (const built of readUIMessageStream({
+				message,
+				stream: simulateReadableStream({
+					chunks: chunks as UIMessageChunk[],
+					initialDelayInMs: null,
+					chunkDelayInMs: null,
+				}),
+			})) {
+				reply = built;
+			}
+			return (
+				reply?.metadata as
+					| {
+							citations?: Record<string, unknown>;
+					  }
+					| undefined
+			)?.citations;
+		};
+
+		test("withdraws a streamed citation once a later call makes its ref ambiguous", async () => {
+			const chat = await repositoryChat();
+			// Two point ids whose refs collide.
+			const [first, second] = [
+				"https://example.com/3f49a11da1fabbf4",
+				"https://example.com/f0afd2db51eaec07",
+			];
+			const shared = sourceRef("passage", first);
+			expect(sourceRef("passage", second)).toBe(shared);
+			let searches = 0;
+			answers["assetPoint.searchRepository"] = () => {
+				searches += 1;
+				return Effect.succeed({
+					data: [
+						assetPoint({
+							id: searches === 1 ? first : second,
+							index: searches,
+							pageStart: 4,
+						}),
+					],
+				});
+			};
+			chat.script([
+				searched,
+				{
+					text: `Paid <cite ref=${shared}>within 14 days</cite>.`,
+					calls: [
+						{
+							name: "searchRepositories",
+							input: {
+								query: "more refunds",
+							},
+						},
+					],
+				},
+				{
+					text: "Done.",
+				},
+			]);
+
+			const chunks = await chat.send("How fast are refunds paid?");
+			const streamed = metadataChunks(chunks).filter(
+				({ citations }) => citations !== undefined,
+			);
+
+			expect(streamed.at(0)?.citations).toEqual({
+				[shared]: refund,
+			});
+			expect((await clientCitations(chunks))?.[shared]).toBeNull();
+			expect(chat.messages().at(-1)?.metadata.citations).toBeUndefined();
+		});
+
+		test("a continued reply keeps only the citations the chat still resolves", async () => {
+			const chat = await pausedAssistant();
+			const paused = chat.messages().at(-1);
+			if (!paused) {
+				throw new Error("no paused reply");
+			}
+			paused.metadata.citations = {
+				[ref]: refund,
+			};
+			paused.parts.push({
+				type: "text",
+				text: `Earlier <cite ref=${ref}>text</cite>.`,
+			} as (typeof paused.parts)[number]);
+			chat.script([
+				{
+					text: "Done.",
+				},
+			]);
+
+			const client = {
+				id: paused.id,
+				role: "assistant",
+				parts: paused.parts,
+				metadata: paused.metadata,
+			} as UIMessage;
+
+			const chunks = await chat.decide(false);
+
+			expect(chat.messages().at(-1)?.metadata.citations).toBeUndefined();
+			expect((await clientCitations(chunks, client))?.[ref]).toBeNull();
 		});
 	});
 

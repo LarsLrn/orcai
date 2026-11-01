@@ -23,7 +23,7 @@ export const referenceMatrix = {
 			cells: {
 				authors: {
 					status: "not_met",
-					note: 'Use a comma and an ampersand. <cite title="APA" page="286">§9.8</cite>',
+					note: "Use a comma and an ampersand. <cite ref=kgol9ts>§9.8</cite>",
 				},
 				title: {
 					status: "not_met",

@@ -17,6 +17,7 @@ const offeredTools = (
 				turn: {
 					webSearch,
 					history: [],
+					citations: true,
 				},
 			}),
 		),

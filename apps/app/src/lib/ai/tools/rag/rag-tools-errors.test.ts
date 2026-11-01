@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { DatabaseBlock } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
+import { chatSources } from "@/lib/ai/citations/chat-sources";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, resetProcedures } from "../assistant/test-procedures";
-import { chunkIds } from "./chunk-ref";
 
 const { getPassagesTool } = await import("./get-passages");
 const { getAssetPageTool } = await import("./get-asset-page");
@@ -22,7 +22,7 @@ const deps = {
 	context: {
 		secureCookies: false,
 	} as ORPCContext,
-	chunks: chunkIds([]),
+	sources: chatSources([]),
 };
 
 const options = {

@@ -97,7 +97,7 @@ _German_: Passage, pl. Passagen
 _Avoid_: chunk, reference, references (for the count per answer), Verweis
 
 **Citation**:
-A marker in an answer that points to the passage and asset it came from.
+A marker in an answer that points to a source the chat retrieved, such as a passage and its asset.
 _German_: Quellenangabe
 _Avoid_: reference, Zitat, Verweis
 

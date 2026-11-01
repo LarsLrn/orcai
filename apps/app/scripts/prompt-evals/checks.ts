@@ -1,3 +1,6 @@
+import { displayCallText } from "@/lib/ai/citations/chat-sources";
+import { citeTags } from "@/lib/ai/citations/cite-tag";
+import { SOURCE_REF } from "@/lib/ai/citations/source-ref";
 import { toolDeclarationOf } from "@/lib/ai/tools/registry";
 import type { Transcript } from "./harness";
 
@@ -157,34 +160,93 @@ export const answersIn = (tag: "en" | "de"): CodeCheck => ({
 		language(text.replace(/<cite\b[\s\S]*?<\/cite>|<[^>]+>/g, "")) === tag,
 });
 
-/** The opening tag alone, as the app collects a reply's sources. */
-const CITE = /<cite\b[^>]*?\bchunk="([^"]*)"/g;
-
-const citedRefs = (text: string) =>
+/** What an answer cites in, as the app reads it: its text and its display calls. */
+const citable = ({ text, calls: made }: Transcript) =>
 	[
-		...text.matchAll(CITE),
-	].map(([, ref]) => ref);
+		text,
+		...made
+			.filter(({ toolName }) => toolDeclarationOf(toolName)?.kind === "display")
+			.map(({ input }) => displayCallText(input)),
+	].join("\n");
+
+const tagsOf = (transcript: Transcript) => citeTags(citable(transcript));
+
+const citedRefsOf = (transcript: Transcript) =>
+	tagsOf(transcript).flatMap(({ ref }) => (ref === undefined ? [] : ref));
 
 export const cites: CodeCheck = {
-	name: "cites with <cite chunk>",
-	pass: ({ text }) => citedRefs(text).length > 0,
+	name: "cites with <cite ref>",
+	pass: (transcript) => citedRefsOf(transcript).length > 0,
+};
+
+/** Each cite has a well-formed ref, cited text and a closing tag. */
+export const citesComplete: CodeCheck = {
+	name: "writes every cite complete",
+	pass: (transcript) =>
+		tagsOf(transcript).every(
+			({ ref, text }) =>
+				ref !== undefined &&
+				SOURCE_REF.test(ref) &&
+				text !== undefined &&
+				text.trim() !== "",
+		),
 };
 
 export const citesNothing: CodeCheck = {
 	name: "cites nothing",
-	pass: ({ text }) => !/<cite\b/.test(text),
+	pass: (transcript) => tagsOf(transcript).length === 0,
 };
+
+export const citesAll = (refs: readonly string[]): CodeCheck => ({
+	name: "cites every ref it needs",
+	pass: (transcript) => {
+		const cited = citedRefsOf(transcript);
+		return refs.every((ref) => cited.includes(ref));
+	},
+});
 
 export const citesOnly = (refs: readonly string[]): CodeCheck => ({
 	name: "cites only the refs it was given",
-	pass: ({ text }) => citedRefs(text).every((ref) => refs.includes(ref)),
+	pass: (transcript) =>
+		citedRefsOf(transcript).every((ref) => refs.includes(ref)),
 });
+
+/** A cite inside a display call's prose, the app's display fields. */
+export const citesInDisplay = (refs: readonly string[]): CodeCheck => ({
+	name: "cites in a display field",
+	pass: ({ calls: made }) =>
+		made.some(
+			({ toolName, input }) =>
+				toolDeclarationOf(toolName)?.kind === "display" &&
+				citeTags(displayCallText(input)).some(
+					({ ref }) => ref !== undefined && refs.includes(ref),
+				),
+		),
+});
+
+const LEGACY_ATTRIBUTES = new Set([
+	"chunk",
+	"assetid",
+	"asset_id",
+	"title",
+	"page",
+	"pagenumber",
+	"page_number",
+]);
+
+export const noLegacyCite: CodeCheck = {
+	name: "uses no older cite attributes",
+	pass: (transcript) =>
+		tagsOf(transcript).every(({ attributes }) =>
+			attributes.every((name) => !LEGACY_ATTRIBUTES.has(name.toLowerCase())),
+		),
+};
 
 /** No footnotes, bracketed refs or Sources section in place of `<cite>`. */
 export const noOtherCitationStyle: CodeCheck = {
 	name: "uses no other citation style",
 	pass: ({ text }) =>
-		!/\[\^?\d+\]|\[k[a-z0-9]{6}\]|^#*\s*\**(Sources|References)\**:?\s*$/im.test(
+		!/\[\^?\d+\]|\[[kadw][a-z0-9]{6}\]|^#*\s*\**(Sources|References)\**:?\s*$/im.test(
 			text,
 		),
 };

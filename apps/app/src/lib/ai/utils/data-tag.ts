@@ -1,9 +1,17 @@
+import { SOURCE_REF } from "@/lib/ai/citations/source-ref";
+
 const escapeAttribute = (value: string) =>
 	value
 		.replaceAll("&", "&amp;")
 		.replaceAll('"', "&quot;")
 		.replaceAll("<", "&lt;")
 		.replaceAll(">", "&gt;");
+
+/** A well-formed ref goes without quotes, as the model writes it in `<cite>`. */
+const attribute = (key: string, value: string) =>
+	key === "ref" && SOURCE_REF.test(value)
+		? ` ${key}=${value}`
+		: ` ${key}="${escapeAttribute(value)}"`;
 
 /**
  * Untrusted text in a tag the system prompt calls data. Attribute values are
@@ -20,7 +28,7 @@ export const dataTag = (
 				value === undefined
 					? []
 					: [
-							` ${key}="${escapeAttribute(value)}"`,
+							attribute(key, value),
 						],
 			)
 			.join("")}>`,

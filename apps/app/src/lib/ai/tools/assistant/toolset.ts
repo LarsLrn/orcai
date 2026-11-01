@@ -63,7 +63,9 @@ type BuildDeps = AssistantToolDeps & {
 	history: readonly QuizHistoryMessage[];
 };
 
-const displayTools = buildGenUiTools();
+const displayTools = buildGenUiTools({
+	citations: false,
+});
 
 const builds = {
 	readDocs: ({ docs }: BuildDeps) =>

@@ -8,6 +8,7 @@ import {
 	type MessageActionsProps,
 } from "@/components/ai-elements/message";
 import { MessageRate } from "@/components/chat/message/message-rate";
+import { usePublicConfig } from "@/hooks/use-public-config";
 import { messageToMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import type { MessageView } from "@/lib/ai/turn-view/turn-view";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
@@ -30,16 +31,24 @@ export const MessageActions = ({
 	branching?: boolean;
 } & MessageActionsProps) => {
 	const [, copy] = useCopyToClipboard();
+	const { docsUrl } = usePublicConfig();
 
 	const handleCopy = () => {
-		toast.promise(copy(messageToMarkdown(view)), {
-			loading: m.chat_message_copy_toast_loading(),
-			success: m.chat_message_copy_toast_success(),
-			error: (error) => ({
-				message: m.chat_message_copy_toast_error(),
-				description: reasonMessageOf(error),
-			}),
-		});
+		toast.promise(
+			copy(
+				messageToMarkdown(view, {
+					docsUrl,
+				}),
+			),
+			{
+				loading: m.chat_message_copy_toast_loading(),
+				success: m.chat_message_copy_toast_success(),
+				error: (error) => ({
+					message: m.chat_message_copy_toast_error(),
+					description: reasonMessageOf(error),
+				}),
+			},
+		);
 	};
 
 	const branchAction = onBranch && (

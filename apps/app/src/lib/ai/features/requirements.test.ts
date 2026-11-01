@@ -7,7 +7,7 @@ import { checkFeatureRequirements } from "./requirements";
 const entry = (requires: readonly string[]): FeatureEntry => ({
 	settingsSchema: z.object({}),
 	buildTools: () => ({}),
-	prompt: "",
+	prompt: () => "",
 	requires,
 });
 
