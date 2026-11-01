@@ -7,7 +7,7 @@ export const Route = createFileRoute("/app/quota-pools")({
 	loader: async ({ context: { queryClient } }) => {
 		await ensureOrganizationCapability({
 			queryClient,
-			permission: "manage_quotas",
+			permission: "manage_quota_pools",
 			redirectTo: "/app",
 		});
 	},

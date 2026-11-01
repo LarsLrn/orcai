@@ -57,7 +57,7 @@ const CreateBotAction = () => {
 const QuotaPanelSlot = () => {
 	const { data } = useOrganizationCapabilities();
 
-	if (!hasCapability(data?.data.capabilities, "manage_quotas")) {
+	if (!hasCapability(data?.data.capabilities, "manage_quota_pools")) {
 		return null;
 	}
 

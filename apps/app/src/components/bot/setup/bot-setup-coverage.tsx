@@ -28,11 +28,11 @@ const BotSetupCoverage = ({
 		}),
 	);
 	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_quotas",
+		"manage_quota_pools",
 	]);
 	const canManageQuotaPools = hasCapability(
 		capabilities?.data.capabilities,
-		"manage_quotas",
+		"manage_quota_pools",
 	);
 
 	if (!coverage) {

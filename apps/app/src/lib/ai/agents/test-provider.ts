@@ -525,7 +525,7 @@ export const memberCapabilities: Record<OrganizationCapability, boolean> = {
 	create_asset: true,
 	manage_providers: false,
 	manage_models: false,
-	manage_quotas: false,
+	manage_quota_pools: false,
 	view_analytics: false,
 	install_resource: false,
 };

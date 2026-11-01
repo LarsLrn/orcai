@@ -33,7 +33,7 @@ export const AUTHZ_PERMISSIONS_BY_ENTITY = {
 		"create_asset",
 		"manage_providers",
 		"manage_models",
-		"manage_quotas",
+		"manage_quota_pools",
 		"view_analytics",
 		"install_resource",
 	],

@@ -72,7 +72,7 @@ export const sidebarMenu: SidebarMenuItem[] = [
 			},
 			{
 				title: m.sidebar_menu_quota_pools_item,
-				requires: "manage_quotas",
+				requires: "manage_quota_pools",
 				linkProps: {
 					to: "/app/quota-pools",
 				},

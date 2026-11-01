@@ -97,7 +97,7 @@ const ChatModelNotice = ({
 	);
 	const { data: capabilities } = useOrganizationCapabilities([
 		"manage_models",
-		"manage_quotas",
+		"manage_quota_pools",
 	]);
 	// Managers reach a used-up pool through the usage indicator.
 	const canFix =
@@ -105,7 +105,7 @@ const ChatModelNotice = ({
 		reason !== "bot-model" &&
 		hasCapability(
 			capabilities?.data.capabilities,
-			reason === "model" ? "manage_models" : "manage_quotas",
+			reason === "model" ? "manage_models" : "manage_quota_pools",
 		);
 	const organizationName =
 		organization?.data.name ?? m.chat_model_notice_organisation_fallback();
