@@ -31,7 +31,7 @@ const manager: CapabilitySet = {
 	manage_members: true,
 	manage_groups: true,
 	invite_members: true,
-	install_resource: true,
+	add_from_catalogue: true,
 };
 const admin: CapabilitySet = {
 	...manager,
@@ -48,7 +48,7 @@ const activeTools: ToolLoading = {
 const references = providerToolLoading("anthropic", "claude-opus-5-5");
 
 /** The bots tools only admins and managers, who add from the catalogue, are offered. */
-const installerTools: readonly string[] = [
+const adderTools: readonly string[] = [
 	"addFromCatalogue",
 	"removeFromOrganisation",
 ];
@@ -174,7 +174,7 @@ describe("active tools", () => {
 		expect(activeWith(member, DEFERRED_TOOL_GROUPS, true)).toEqual([
 			...coreWithoutMembers,
 			...ASSISTANT_TOOL_GROUPS.bots.filter(
-				(name) => !installerTools.includes(name),
+				(name) => !adderTools.includes(name),
 			),
 			...ASSISTANT_TOOL_GROUPS.sharing,
 		]);

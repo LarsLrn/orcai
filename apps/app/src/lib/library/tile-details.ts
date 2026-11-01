@@ -109,7 +109,7 @@ export const homeOrganizations = (
 		const lookup = (id: string) => homes.get(id) ?? null;
 		if (ids.length === 0 || !organizationId) return lookup;
 		const home = dbSchema.resourceScope;
-		const install = alias(dbSchema.resourceScope, "install");
+		const added = alias(dbSchema.resourceScope, "added");
 		const rows = yield* (yield* DB)
 			.select({
 				resourceId: home.resourceId,
@@ -117,12 +117,12 @@ export const homeOrganizations = (
 				name: dbSchema.organization.name,
 				logo: dbSchema.organization.logo,
 			})
-			.from(install)
+			.from(added)
 			.innerJoin(
 				home,
 				and(
-					eq(home.resourceType, install.resourceType),
-					eq(home.resourceId, install.resourceId),
+					eq(home.resourceType, added.resourceType),
+					eq(home.resourceId, added.resourceId),
 					eq(home.isPrimary, true),
 					isNull(home.endedAt),
 				),
@@ -133,13 +133,13 @@ export const homeOrganizations = (
 			)
 			.where(
 				and(
-					eq(install.resourceType, resourceType),
-					inArray(install.resourceId, [
+					eq(added.resourceType, resourceType),
+					inArray(added.resourceId, [
 						...ids,
 					]),
-					eq(install.organizationId, organizationId),
-					not(install.isPrimary),
-					isNull(install.endedAt),
+					eq(added.organizationId, organizationId),
+					not(added.isPrimary),
+					isNull(added.endedAt),
 				),
 			);
 		for (const { resourceId, ...organization } of rows)

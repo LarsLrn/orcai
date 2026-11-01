@@ -15,14 +15,14 @@ import { AccessDialog } from "@/components/access/access-dialog";
 import { useListingAction } from "@/components/access/listing-action";
 import { useAddBlocksAction } from "@/components/catalogue/add-blocks-action";
 import {
-	type Installer,
+	type CatalogueAdder,
 	removeAction,
-	useInstaller,
-} from "@/components/catalogue/installer";
+	useCatalogueAdder,
+} from "@/components/catalogue/catalogue-adder";
 import { HandOverDialog } from "@/components/ownership/hand-over-dialog";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
-import { useUninstallMutation } from "@/hooks/mutations/use-catalogue-mutations";
+import { useCatalogueRemoveMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
 
@@ -34,7 +34,7 @@ type ActionBot = Pick<BotWithCapabilities, "id" | "name" | "capabilities"> & {
 /**
  * A bot's own actions, each present as far as its capabilities allow. Its
  * home edits, shares and deletes it, and its owner, the `viewerId`, hands it
- * over; where it was added from the catalogue, the `installer` shares it for
+ * over; where it was added from the catalogue, the `adder` shares it for
  * use and removes it.
  */
 const botActions = (
@@ -52,17 +52,17 @@ const botActions = (
 	},
 	{
 		viewerId,
-		installer,
+		adder,
 	}: {
 		viewerId: string;
-		installer?: Installer;
+		adder?: CatalogueAdder;
 	},
 ): Record<
 	"edit" | "access" | "handOver" | "delete" | "remove",
 	HeaderAction | false
 > => {
-	const installed = bot.homeOrganization !== null;
-	const home = installed ? undefined : bot.capabilities;
+	const added = bot.homeOrganization !== null;
+	const home = added ? undefined : bot.capabilities;
 	return {
 		edit: hasCapability(home, "edit") && {
 			key: "edit",
@@ -75,15 +75,15 @@ const botActions = (
 				},
 			},
 		},
-		access: (installed
-			? installer !== undefined
+		access: (added
+			? adder !== undefined
 			: hasCapability(home, "manage_access")) && {
 			key: "access",
 			label: m.bots_access_action(),
 			icon: KeyRoundIcon,
 			onClick: onAccess,
 		},
-		handOver: !installed &&
+		handOver: !added &&
 			bot.owner.id === viewerId && {
 				key: "hand-over",
 				label: m.ownership_hand_over_action(),
@@ -98,8 +98,7 @@ const botActions = (
 			destructive: true,
 			onClick: onDelete,
 		},
-		remove:
-			installed && installer !== undefined && removeAction(installer, onRemove),
+		remove: added && adder !== undefined && removeAction(adder, onRemove),
 	};
 };
 
@@ -124,7 +123,7 @@ const useBotActions = (
 	});
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
 	const [isHandOverOpen, setIsHandOverOpen] = useState(false);
-	const installer = useInstaller();
+	const adder = useCatalogueAdder();
 	const listingAction = useListingAction(
 		{
 			type: "bot",
@@ -148,11 +147,11 @@ const useBotActions = (
 			overflow: true,
 		},
 	);
-	const { mutate: uninstall } = useUninstallMutation(
+	const { mutate: remove } = useCatalogueRemoveMutation(
 		{
 			kind: "bot",
 			name: bot.name,
-			organisation: installer?.organisation ?? "",
+			organisation: adder?.organisation ?? "",
 		},
 		{
 			onSuccess: onDeleted,
@@ -183,7 +182,7 @@ const useBotActions = (
 					],
 				}),
 			onRemove: () =>
-				uninstall({
+				remove({
 					entry: {
 						resourceType: "bot",
 						resourceId: bot.id,
@@ -192,7 +191,7 @@ const useBotActions = (
 		},
 		{
 			viewerId: auth.user.id,
-			installer,
+			adder,
 		},
 	);
 

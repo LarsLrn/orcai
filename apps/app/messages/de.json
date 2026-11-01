@@ -106,7 +106,7 @@
 	"access_list_action": "In den Katalog aufnehmen",
 	"access_make_private_confirm_button": "Aus dem Katalog nehmen",
 	"access_make_private_confirm_description": "Benutzer ohne direkten oder geerbten Zugriff sehen keine Vorschau mehr.",
-	"access_make_private_confirm_installs": "Der Bot oder Block wird aus den Organisationen entfernt, die ihn hinzugefügt haben: {organizationNames}. Was dort darauf aufbaut, funktioniert nicht mehr.",
+	"access_make_private_confirm_added": "Der Bot oder Block wird aus den Organisationen entfernt, die ihn hinzugefügt haben: {organizationNames}. Was dort darauf aufbaut, funktioniert nicht mehr.",
 	"access_make_private_confirm_title": "Aus dem Katalog nehmen?",
 	"access_manager_add_description": "Geben Sie jemandem in dieser Organisation Zugriff.",
 	"access_manager_add_heading": "Personen und Gruppen hinzufügen",
@@ -118,8 +118,8 @@
 	"access_manager_groups_hint_description": "Verwenden Sie nach Möglichkeit Gruppen für Kurse, Kohorten oder Teams. Direkte Freigaben eignen sich am besten für Ausnahmen und einzelne Mitwirkende.",
 	"access_manager_groups_hint_title": "Gruppen sind meist der richtige Ausgangspunkt",
 	"access_manager_public_alert_description": "Jeder Benutzer dieser Instanz sieht eine Vorschau. Organisationen nutzen den Bot oder Block erst, wenn sie ihn hinzufügen und für ihre Mitglieder freigeben.",
-	"access_manager_installed_alert_title": "Hinzugefügt von {organisation}",
-	"access_manager_installed_alert_description": "Die Heimatorganisation bearbeitet den Bot oder Block. Hier geben Sie ihn für Ihre Gruppen und Mitglieder frei, die ihn nutzen, aber nicht bearbeiten können.",
+	"access_manager_added_alert_title": "Hinzugefügt von {organisation}",
+	"access_manager_added_alert_description": "Die Heimatorganisation bearbeitet den Bot oder Block. Hier geben Sie ihn für Ihre Gruppen und Mitglieder frei, die ihn nutzen, aber nicht bearbeiten können.",
 	"access_manager_public_alert_title": "Steht im Katalog",
 	"access_manager_tab_groups": "Gruppen",
 	"access_manager_tab_people": "Personen",
@@ -230,7 +230,7 @@
 			}
 		}
 	],
-	"catalogue_detail_ask_installer": "Um es zu {organisation} hinzuzufügen, fragen Sie einen Admin oder Manager.",
+	"catalogue_detail_ask_adder": "Um es zu {organisation} hinzuzufügen, fragen Sie einen Admin oder Manager.",
 	"catalogue_detail_contents_label": "Inhalt",
 	"catalogue_detail_inside_label": "Was enthalten ist",
 	"catalogue_detail_model_label": "Modell",
@@ -283,9 +283,9 @@
 	"catalogue_filter_status_label": "Status",
 	"catalogue_from_organisation": "Von {organisation}",
 	"catalogue_organisation_page_link": "Über {organisation}",
-	"catalogue_install_blocks_toast_error": "Die Blöcke von {name} wurden nicht hinzugefügt.",
-	"catalogue_install_blocks_toast_loading": "Die Blöcke von {name} werden hinzugefügt...",
-	"catalogue_install_blocks_toast_success": [
+	"catalogue_add_blocks_toast_error": "Die Blöcke von {name} wurden nicht hinzugefügt.",
+	"catalogue_add_blocks_toast_loading": "Die Blöcke von {name} werden hinzugefügt...",
+	"catalogue_add_blocks_toast_success": [
 		{
 			"declarations": [
 				"input name",
@@ -302,10 +302,10 @@
 			}
 		}
 	],
-	"catalogue_install_toast_error": "{name} wurde nicht hinzugefügt.",
-	"catalogue_install_toast_loading": "{name} wird hinzugefügt...",
-	"catalogue_install_toast_success": "{name} ist jetzt in {organisation}",
-	"catalogue_install_toast_success_with_blocks": [
+	"catalogue_add_toast_error": "{name} wurde nicht hinzugefügt.",
+	"catalogue_add_toast_loading": "{name} wird hinzugefügt...",
+	"catalogue_add_toast_success": "{name} ist jetzt in {organisation}",
+	"catalogue_add_toast_success_with_blocks": [
 		{
 			"declarations": [
 				"input name",
@@ -363,13 +363,13 @@
 	"catalogue_shelf_new": "Neu im Katalog",
 	"catalogue_tile_added_fallback_label": "(hinzugefügt)",
 	"catalogue_tile_added_label": "(zu {organisation} hinzugefügt)",
-	"catalogue_uninstall_confirm_button": "Entfernen",
-	"catalogue_uninstall_confirm_description_block": "Die Freigaben in {organisation} werden mit entfernt. Dort erstellte Bots verwenden den Block nicht mehr, ebenso Chats dort, an die er angehängt ist. Sie können ihn wieder aus dem Katalog hinzufügen.",
-	"catalogue_uninstall_confirm_description_bot": "Die Freigaben in {organisation} werden mit entfernt, ebenso die Bot-Einrichtung dort. Chats mit dem Bot sind nur noch lesbar. Sie können ihn wieder aus dem Katalog hinzufügen.",
-	"catalogue_uninstall_confirm_title": "{name} aus {organisation} entfernen?",
-	"catalogue_uninstall_toast_error": "{name} wurde nicht entfernt.",
-	"catalogue_uninstall_toast_loading": "{name} wird entfernt...",
-	"catalogue_uninstall_toast_success": "{name} ist nicht mehr in {organisation}",
+	"catalogue_remove_confirm_button": "Entfernen",
+	"catalogue_remove_confirm_description_block": "Die Freigaben in {organisation} werden mit entfernt. Dort erstellte Bots verwenden den Block nicht mehr, ebenso Chats dort, an die er angehängt ist. Sie können ihn wieder aus dem Katalog hinzufügen.",
+	"catalogue_remove_confirm_description_bot": "Die Freigaben in {organisation} werden mit entfernt, ebenso die Bot-Einrichtung dort. Chats mit dem Bot sind nur noch lesbar. Sie können ihn wieder aus dem Katalog hinzufügen.",
+	"catalogue_remove_confirm_title": "{name} aus {organisation} entfernen?",
+	"catalogue_remove_toast_error": "{name} wurde nicht entfernt.",
+	"catalogue_remove_toast_loading": "{name} wird entfernt...",
+	"catalogue_remove_toast_success": "{name} ist nicht mehr in {organisation}",
 	"catalogue_view_discover": "Entdecken",
 	"catalogue_views_label": "Bereiche des Katalogs",
 	"catalogue_wizard_back_to_catalogue_action": "Zurück zum Katalog",
@@ -3184,7 +3184,7 @@
 	"error_bot_repository_not_ready": "Setzen Sie „{blockName}“ auf Veröffentlicht, bevor Sie diesen Bot veröffentlichen.",
 	"error_bot_setup_forbidden": "Nur Personen, die den Bot in seiner Heimatorganisation bearbeiten können, oder, wo er aus dem Katalog hinzugefügt wurde, Admins und Manager können sein Modell hier ändern.",
 	"error_chat_upload_not_in_library": "Chat-Uploads können nicht in ein Repository. Fügen Sie das Asset zuerst zur Bibliothek hinzu.",
-	"error_install_grants_viewer_only": "Bots und Blöcke aus dem Katalog können nur zur Nutzung freigegeben werden, nicht zum Bearbeiten oder Verwalten.",
+	"error_add_grants_viewer_only": "Bots und Blöcke aus dem Katalog können nur zur Nutzung freigegeben werden, nicht zum Bearbeiten oder Verwalten.",
 	"error_chat_blocks_unavailable": "Die Blöcke dieses Chats konnten nicht geladen werden.",
 	"error_chat_bot_blocks_immutable": "Die Blöcke eines mit einem Bot verknüpften Chats können nicht direkt geändert werden.",
 	"error_chat_bot_deleted": "Der Bot dieses Chats wurde gelöscht, daher ist der Chat schreibgeschützt. Laden Sie ihn herunter, um ihn zu behalten.",
@@ -3292,7 +3292,7 @@
 	"error_request_headers_required": "Der Anfrage fehlen die Header.",
 	"error_resource_not_usable_in_organization": "Dieser Bot, Block oder dieses Asset steht Ihnen in dieser Organisation nicht zur Verfügung.",
 	"error_resource_home_organization": "Dies ist die Heimatorganisation dieses Bots oder Blocks, daher steht er bereits in der Bibliothek.",
-	"error_resource_not_installed": "Dieser Bot ist nicht mehr in der Organisation, daher fügen Sie ihn zuerst aus dem Katalog hinzu.",
+	"error_resource_not_added": "Dieser Bot ist nicht mehr in der Organisation, daher fügen Sie ihn zuerst aus dem Katalog hinzu.",
 	"error_resource_not_listed": "Nur Bots und Blöcke, die im Katalog stehen, können hinzugefügt werden.",
 	"error_resource_scope_required": "Dieser Bot, Block oder dieses Asset gehört nicht zu Ihrer aktiven Organisation und kann hier nicht freigegeben werden.",
 	"error_self_ban_forbidden": "Sie können Ihr eigenes Konto nicht sperren.",
@@ -4252,7 +4252,7 @@
 	"multi_select_remove_option_label": "{label} entfernen",
 	"multi_select_show_options": "Optionen anzeigen",
 	"orgs_delete_dialog_listed_heading": "Im Katalog und mit ihr gelöscht:",
-	"orgs_delete_dialog_listed_installs": "hinzugefügt von {organizationNames}",
+	"orgs_delete_dialog_listed_added": "hinzugefügt von {organizationNames}",
 	"orgs_form_initial_admin_email_invalid": "Geben Sie eine gültige E-Mail-Adresse ein.",
 	"orgs_form_initial_admin_email_label": "E-Mail des Admins",
 	"orgs_form_initial_admin_invite_description": "Sie werden jetzt Admin, und die Person erhält eine Admin-Einladung. Verlassen Sie die Organisation, sobald sie beigetreten ist.",
@@ -4808,7 +4808,7 @@
 	"orgs_permission_create_asset_label": "Assets erstellen",
 	"orgs_permission_create_block_label": "Blöcke erstellen",
 	"orgs_permission_create_bot_label": "Bots erstellen",
-	"orgs_permission_install_resource_label": "Aus dem Katalog hinzufügen",
+	"orgs_permission_add_from_catalogue_label": "Aus dem Katalog hinzufügen",
 	"orgs_permission_invite_members_label": "Mitglieder einladen",
 	"orgs_permission_manage_groups_label": "Gruppen verwalten",
 	"orgs_permission_manage_members_label": "Mitglieder verwalten",

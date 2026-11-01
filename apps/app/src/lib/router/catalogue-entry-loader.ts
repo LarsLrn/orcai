@@ -11,7 +11,7 @@ import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound } from "@/lib/router/not-found";
 
-/** The entry as `catalogue.find`, `install` and `uninstall` name it. */
+/** The entry as `catalogue.find`, `add` and `remove` name it. */
 export const catalogueEntryRef = (
 	kind: CatalogueKind,
 	id: string,
@@ -65,7 +65,7 @@ export const loadAddedCatalogueEntry = async (params: {
 }) => {
 	await ensureOrganizationCapability({
 		queryClient: params.queryClient,
-		permission: "install_resource",
+		permission: "add_from_catalogue",
 	});
 	const entry = await loadCatalogueEntry(params);
 	if (entry.data.state !== "added")

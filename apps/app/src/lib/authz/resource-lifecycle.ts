@@ -297,7 +297,7 @@ const teardownResourceAuthorization = (params: {
 		);
 	});
 
-/** Whether the organisation is the resource's home, has it installed, or neither. */
+/** Whether the organisation is the resource's home, has it added from the catalogue, or neither. */
 export const scopeIn = (
 	resource: ResourceRef,
 	organizationId: OrganizationId,
@@ -318,7 +318,7 @@ export const scopeIn = (
 				),
 			);
 		if (!scope) return undefined;
-		return scope.isPrimary ? ("home" as const) : ("install" as const);
+		return scope.isPrimary ? ("home" as const) : ("added" as const);
 	});
 
 /** The resource's home organisation, where it was made and is owned. */

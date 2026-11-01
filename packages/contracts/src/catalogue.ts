@@ -1,16 +1,16 @@
 import {
+	addCatalogueBotBlocksInputSchema,
+	addCatalogueBotBlocksResponseSchema,
+	addCatalogueEntryInputSchema,
+	addCatalogueEntryResponseSchema,
 	catalogueCountsInputSchema,
 	catalogueCountsResponseSchema,
 	findCatalogueEntryInputSchema,
 	findCatalogueEntryResponseSchema,
-	installCatalogueBotBlocksInputSchema,
-	installCatalogueBotBlocksResponseSchema,
-	installCatalogueEntryInputSchema,
-	installCatalogueEntryResponseSchema,
 	listCatalogueInputSchema,
 	listCatalogueResponseSchema,
-	uninstallCatalogueEntryInputSchema,
-	uninstallCatalogueEntryResponseSchema,
+	removeCatalogueEntryInputSchema,
+	removeCatalogueEntryResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -56,24 +56,24 @@ export const catalogueContracts = {
 		)
 		.input(findCatalogueEntryInputSchema)
 		.output(findCatalogueEntryResponseSchema),
-	install: base
+	add: base
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/catalogue/install",
+				path: "/catalogue/add",
 				summary: "Add a catalogue entry to the active organisation",
 				tags: [
 					"Catalogue",
 				],
 			}),
 		)
-		.input(installCatalogueEntryInputSchema)
-		.output(installCatalogueEntryResponseSchema),
-	installBlocks: base
+		.input(addCatalogueEntryInputSchema)
+		.output(addCatalogueEntryResponseSchema),
+	addBlocks: base
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/catalogue/install-blocks",
+				path: "/catalogue/add-blocks",
 				summary:
 					"Add the behaviour and repositories of a bot the active organisation added",
 				tags: [
@@ -81,13 +81,13 @@ export const catalogueContracts = {
 				],
 			}),
 		)
-		.input(installCatalogueBotBlocksInputSchema)
-		.output(installCatalogueBotBlocksResponseSchema),
-	uninstall: base
+		.input(addCatalogueBotBlocksInputSchema)
+		.output(addCatalogueBotBlocksResponseSchema),
+	remove: base
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/catalogue/uninstall",
+				path: "/catalogue/remove",
 				summary:
 					"Remove an entry added from the catalogue from the active organisation",
 				tags: [
@@ -95,6 +95,6 @@ export const catalogueContracts = {
 				],
 			}),
 		)
-		.input(uninstallCatalogueEntryInputSchema)
-		.output(uninstallCatalogueEntryResponseSchema),
+		.input(removeCatalogueEntryInputSchema)
+		.output(removeCatalogueEntryResponseSchema),
 };

@@ -139,8 +139,8 @@ const botWithTwoOrganizations = async () => {
 			)
 		).data.capabilities;
 
-	/** Scopes the bot to the second organisation, as an install will. */
-	const install = () =>
+	/** Scopes the bot to the second organisation, as adding from the Catalogue will. */
+	const add = () =>
 		run(
 			Effect.gen(function* () {
 				yield* (yield* DB).insert(dbSchema.resourceScope).values({
@@ -192,7 +192,7 @@ const botWithTwoOrganizations = async () => {
 		bot,
 		createChat,
 		canUse,
-		install,
+		add,
 		grantInOther,
 		token: () => token,
 		/** Reads later calls at least as fresh as a write made outside the procedures. */
@@ -269,7 +269,7 @@ describe("using a resource in an organisation", () => {
 	);
 
 	test(
-		"an installed bot's blocks load in a turn without installing them",
+		"an added bot's blocks load in a turn without adding them",
 		async () => {
 			const {
 				other,
@@ -281,14 +281,14 @@ describe("using a resource in an organisation", () => {
 				bot,
 				createChat,
 				canUse,
-				install,
+				add,
 				grantInOther,
 				token,
 			} = await botWithTwoOrganizations();
 			expect(await reasonOf(createChat(viewer, bot.id))).toBe(
 				"RESOURCE_NOT_USABLE_IN_ORGANIZATION",
 			);
-			await install();
+			await add();
 			await grantInOther();
 			expect(await canUse(viewer)).toMatchObject({
 				use: true,
@@ -298,7 +298,7 @@ describe("using a resource in an organisation", () => {
 				procedures.provider.create(
 					{
 						name: `Use ${crypto.randomUUID()}`,
-						description: "Serves the installed bot.",
+						description: "Serves the added bot.",
 						kind: "openai-compatible",
 						endpoint: "http://127.0.0.1:9/v1",
 						apiKey: "key",
@@ -327,7 +327,7 @@ describe("using a resource in an organisation", () => {
 			const { data: chat } = await call(viewer, (options) =>
 				procedures.chat.create(
 					{
-						title: "Installed chat",
+						title: "Added chat",
 						botId: bot.id,
 						config: {
 							modelId: model.id,

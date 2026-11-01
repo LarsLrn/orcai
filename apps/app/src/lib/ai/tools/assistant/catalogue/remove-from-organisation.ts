@@ -11,7 +11,7 @@ import {
 	toCatalogueEntry,
 } from "./catalogue-entry-input";
 
-const uninstallInputSchema = z.strictObject({
+const removeInputSchema = z.strictObject({
 	entry: catalogueEntryInputSchema,
 });
 
@@ -19,7 +19,7 @@ export const removeFromOrganisationTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Remove a bot, behaviour or repository the active organisation added from the Catalogue. Its grants here, a bot's model setup here, and the organisation's bots' and chats' links to a block go with it. Chats with a removed bot turn read-only until it is added and shared again.",
-		inputSchema: uninstallInputSchema,
+		inputSchema: removeInputSchema,
 		run: ({ entry }) =>
 			Effect.gen(function* () {
 				const { data: found } = yield* callProcedure(
@@ -33,7 +33,7 @@ export const removeFromOrganisationTool = (deps: AssistantToolDeps) =>
 						),
 				);
 				const { data } = yield* callProcedure(deps, (procedures, options) =>
-					procedures.catalogue.uninstall(
+					procedures.catalogue.remove(
 						{
 							entry: toCatalogueEntry(entry),
 						},

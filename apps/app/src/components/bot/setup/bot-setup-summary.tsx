@@ -68,20 +68,14 @@ const OwnUsability = ({ model }: { model: NonNullable<BotSetup["model"]> }) => {
 
 /** The bot's model in the active organisation, on its detail page. */
 /** Where a bot's setup is edited: its editor's Model step, or a dialog where the organisation added it from the catalogue. */
-const EditSetup = ({
-	botId,
-	installed,
-}: {
-	botId: BotId;
-	installed: boolean;
-}) => {
+const EditSetup = ({ botId, added }: { botId: BotId; added: boolean }) => {
 	const [open, setOpen] = useState(false);
 	const className = buttonVariants({
 		variant: "outline",
 		size: "sm",
 		className: "self-start",
 	});
-	if (!installed)
+	if (!added)
 		return (
 			<Link
 				to="/app/library/bots/$botId/setup"
@@ -116,11 +110,11 @@ const EditSetup = ({
 
 const BotSetupSummary = ({
 	botId,
-	installed,
+	added,
 }: {
 	botId: BotId;
 	/** The active organisation added the bot from the catalogue. */
-	installed: boolean;
+	added: boolean;
 }) => {
 	const { auth } = useRouteContext({
 		from: "/app",
@@ -183,7 +177,7 @@ const BotSetupSummary = ({
 						{m.bot_setup_summary_free()}
 					</p>
 				)}
-				{canEdit && <EditSetup botId={botId} installed={installed} />}
+				{canEdit && <EditSetup botId={botId} added={added} />}
 			</CardContent>
 		</Card>
 	);

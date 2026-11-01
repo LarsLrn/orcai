@@ -32,7 +32,7 @@ const organizationPermissionLabels: Record<
 	manage_models: m.orgs_permission_manage_models_label,
 	manage_quota_pools: m.orgs_permission_manage_quota_pools_label,
 	view_analytics: m.orgs_permission_view_analytics_label,
-	install_resource: m.orgs_permission_install_resource_label,
+	add_from_catalogue: m.orgs_permission_add_from_catalogue_label,
 };
 
 export const getOrganizationRoleLabel = (role: OrganizationRole) =>

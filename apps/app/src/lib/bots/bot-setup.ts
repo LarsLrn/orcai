@@ -31,7 +31,7 @@ type SetupKey = {
 
 /**
  * Whether the user edits the bot's setup in the organisation: they edit the
- * bot in its home, or add from the catalogue where it was installed.
+ * bot in its home, or add from the catalogue where it was added.
  */
 export const canEditBotSetup = ({
 	botId,
@@ -169,8 +169,8 @@ const organizationModel = ({
 /**
  * Stores the bot's setup in the organisation, or removes it with null. The
  * user must edit the setup there, checked under the bot's and the
- * organisation's locks, which uninstalling takes too, so a setup never
- * outlives its install. The model must belong to the organisation and serve
+ * organisation's locks, which removing takes too, so a setup never
+ * outlives its addition. The model must belong to the organisation and serve
  * turns, and the generation settings must fit it; the provider follows from
  * the model.
  */

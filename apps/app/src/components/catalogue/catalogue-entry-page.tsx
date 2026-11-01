@@ -16,8 +16,8 @@ import {
 } from "@/components/catalogue/add-blocks-action";
 import {
 	useActiveOrganizationName,
-	useInstaller,
-} from "@/components/catalogue/installer";
+	useCatalogueAdder,
+} from "@/components/catalogue/catalogue-adder";
 import { HomeOrganizationName } from "@/components/catalogue/resource-provenance";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,7 +40,7 @@ import {
 import { Page, PageContent } from "@/components/ui/shell/page";
 import { TileMark } from "@/components/ui/shell/tile";
 import { ResourceOwner } from "@/components/users/resource-owner";
-import { useInstallMutation } from "@/hooks/mutations/use-catalogue-mutations";
+import { useCatalogueAddMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { libraryLink } from "@/lib/navigation/library-link";
@@ -280,9 +280,9 @@ export const CatalogueEntryPage = ({
 		}),
 	);
 	const entry = data.data;
-	const installer = useInstaller();
+	const adder = useCatalogueAdder();
 	const organisation = useActiveOrganizationName();
-	const { mutateAsync: install, isPending } = useInstallMutation({
+	const { mutateAsync: add, isPending } = useCatalogueAddMutation({
 		name: entry.name,
 		organisation: organisation ?? "",
 	});
@@ -333,16 +333,16 @@ export const CatalogueEntryPage = ({
 						actions={
 							entry.state === "available"
 								? [
-										installer && {
+										adder && {
 											key: "add",
 											label: m.catalogue_add_action({
-												organisation: installer.organisation,
+												organisation: adder.organisation,
 											}),
 											icon: PackagePlusIcon,
 											variant: "default",
 											loading: isPending,
 											onClick: async () => {
-												const result = await install({
+												const result = await add({
 													entry: ref,
 													withBlocks: withBlocks && addableBlocks.length > 0,
 												});
@@ -372,9 +372,9 @@ export const CatalogueEntryPage = ({
 			</DetailHeader>
 
 			<PageContent className="flex max-w-3xl flex-col gap-6">
-				{entry.state === "available" && !installer && organisation ? (
+				{entry.state === "available" && !adder && organisation ? (
 					<p className="text-muted-foreground text-sm">
-						{m.catalogue_detail_ask_installer({
+						{m.catalogue_detail_ask_adder({
 							organisation,
 						})}
 					</p>
@@ -383,11 +383,11 @@ export const CatalogueEntryPage = ({
 					<>
 						<BotContents entry={entry} organisation={organisation}>
 							{entry.state === "available" &&
-							installer &&
+							adder &&
 							addableBlocks.length > 0 ? (
 								<AddBlocksOption
 									blocks={addableBlocks}
-									organisation={installer.organisation}
+									organisation={adder.organisation}
 									checked={withBlocks}
 									onCheckedChange={setWithBlocks}
 								/>

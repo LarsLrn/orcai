@@ -107,7 +107,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	const handedOver = (output: { handedOver: unknown }) =>
 		output.handedOver ? owners() : [];
 	// Adding from the catalogue changes the library, and removing ends what the organisation built on it.
-	const installs = () => [
+	const additions = () => [
 		...libraryLists(),
 		orpc.bot.find.key(),
 		orpc.block.find.key(),
@@ -407,9 +407,9 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 		},
 		catalogue: {
-			install: installs,
-			installBlocks: installs,
-			uninstall: installs,
+			add: additions,
+			addBlocks: additions,
+			remove: additions,
 		},
 		provider: {
 			create: () => [

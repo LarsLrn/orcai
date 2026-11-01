@@ -106,7 +106,7 @@
 	"access_list_action": "List in the Catalogue",
 	"access_make_private_confirm_button": "Unlist",
 	"access_make_private_confirm_description": "Users without direct or inherited access can no longer preview it.",
-	"access_make_private_confirm_installs": "It is removed from the organisations that added it: {organizationNames}. What they built on it stops working there.",
+	"access_make_private_confirm_added": "It is removed from the organisations that added it: {organizationNames}. What they built on it stops working there.",
 	"access_make_private_confirm_title": "Remove from the Catalogue?",
 	"access_manager_add_description": "Give someone in this organisation access.",
 	"access_manager_add_heading": "Add people and groups",
@@ -118,8 +118,8 @@
 	"access_manager_groups_hint_description": "Use groups for classes, cohorts, or teams whenever possible. Direct grants are best for exceptions and individual collaborators.",
 	"access_manager_groups_hint_title": "Groups are usually the right place to start",
 	"access_manager_public_alert_description": "Every user of this instance can preview it. Organisations use it only once they add it and share it with their members.",
-	"access_manager_installed_alert_title": "Added from {organisation}",
-	"access_manager_installed_alert_description": "Its home organisation edits it. Here you share it with your groups and members, who can use it but not edit it.",
+	"access_manager_added_alert_title": "Added from {organisation}",
+	"access_manager_added_alert_description": "Its home organisation edits it. Here you share it with your groups and members, who can use it but not edit it.",
 	"access_manager_public_alert_title": "Listed in the Catalogue",
 	"access_manager_tab_groups": "Groups",
 	"access_manager_tab_people": "People",
@@ -230,7 +230,7 @@
 			}
 		}
 	],
-	"catalogue_detail_ask_installer": "To add it to {organisation}, ask an admin or manager.",
+	"catalogue_detail_ask_adder": "To add it to {organisation}, ask an admin or manager.",
 	"catalogue_detail_contents_label": "Contents",
 	"catalogue_detail_inside_label": "What's inside",
 	"catalogue_detail_model_label": "Model",
@@ -283,9 +283,9 @@
 	"catalogue_filter_status_label": "Status",
 	"catalogue_from_organisation": "From {organisation}",
 	"catalogue_organisation_page_link": "About {organisation}",
-	"catalogue_install_blocks_toast_error": "The blocks of {name} were not added.",
-	"catalogue_install_blocks_toast_loading": "Adding the blocks of {name}...",
-	"catalogue_install_blocks_toast_success": [
+	"catalogue_add_blocks_toast_error": "The blocks of {name} were not added.",
+	"catalogue_add_blocks_toast_loading": "Adding the blocks of {name}...",
+	"catalogue_add_blocks_toast_success": [
 		{
 			"declarations": [
 				"input name",
@@ -302,10 +302,10 @@
 			}
 		}
 	],
-	"catalogue_install_toast_error": "{name} was not added.",
-	"catalogue_install_toast_loading": "Adding {name}...",
-	"catalogue_install_toast_success": "{name} is in {organisation} now",
-	"catalogue_install_toast_success_with_blocks": [
+	"catalogue_add_toast_error": "{name} was not added.",
+	"catalogue_add_toast_loading": "Adding {name}...",
+	"catalogue_add_toast_success": "{name} is in {organisation} now",
+	"catalogue_add_toast_success_with_blocks": [
 		{
 			"declarations": [
 				"input name",
@@ -363,13 +363,13 @@
 	"catalogue_shelf_new": "New in the Catalogue",
 	"catalogue_tile_added_fallback_label": "(added)",
 	"catalogue_tile_added_label": "(added to {organisation})",
-	"catalogue_uninstall_confirm_button": "Remove",
-	"catalogue_uninstall_confirm_description_block": "Its grants in {organisation} go with it. Bots created there stop using it, and so do chats there that have it attached. You can add it again from the Catalogue.",
-	"catalogue_uninstall_confirm_description_bot": "Its grants in {organisation} go with it, and so does its bot setup there. Chats with it turn read-only. You can add it again from the Catalogue.",
-	"catalogue_uninstall_confirm_title": "Remove {name} from {organisation}?",
-	"catalogue_uninstall_toast_error": "{name} was not removed.",
-	"catalogue_uninstall_toast_loading": "Removing {name}...",
-	"catalogue_uninstall_toast_success": "{name} is no longer in {organisation}",
+	"catalogue_remove_confirm_button": "Remove",
+	"catalogue_remove_confirm_description_block": "Its grants in {organisation} go with it. Bots created there stop using it, and so do chats there that have it attached. You can add it again from the Catalogue.",
+	"catalogue_remove_confirm_description_bot": "Its grants in {organisation} go with it, and so does its bot setup there. Chats with it turn read-only. You can add it again from the Catalogue.",
+	"catalogue_remove_confirm_title": "Remove {name} from {organisation}?",
+	"catalogue_remove_toast_error": "{name} was not removed.",
+	"catalogue_remove_toast_loading": "Removing {name}...",
+	"catalogue_remove_toast_success": "{name} is no longer in {organisation}",
 	"catalogue_view_discover": "Discover",
 	"catalogue_views_label": "Catalogue sections",
 	"catalogue_wizard_back_to_catalogue_action": "Back to Catalogue",
@@ -3184,7 +3184,7 @@
 	"error_bot_repository_not_ready": "Set \"{blockName}\" to Published before publishing this bot.",
 	"error_bot_setup_forbidden": "Only people who can edit the bot in its home organisation, or admins and managers where it was added from the Catalogue, can change its model here.",
 	"error_chat_upload_not_in_library": "Chat uploads cannot go into a repository. Add the asset to the Library first.",
-	"error_install_grants_viewer_only": "Bots and blocks added from the Catalogue can be shared for use only, not for editing or managing.",
+	"error_add_grants_viewer_only": "Bots and blocks added from the Catalogue can be shared for use only, not for editing or managing.",
 	"error_chat_blocks_unavailable": "The blocks of this chat could not be loaded.",
 	"error_chat_bot_blocks_immutable": "The blocks of a chat linked to a bot cannot be changed directly.",
 	"error_chat_bot_deleted": "The bot of this chat was deleted, so the chat is read-only. Download it to keep it.",
@@ -3292,7 +3292,7 @@
 	"error_request_headers_required": "The request is missing its headers.",
 	"error_resource_not_usable_in_organization": "This bot, block or asset is not available to you in this organisation.",
 	"error_resource_home_organization": "This is the home organisation of this bot or block, so it is already in the Library.",
-	"error_resource_not_installed": "This bot is no longer in the organisation, so add it from the Catalogue first.",
+	"error_resource_not_added": "This bot is no longer in the organisation, so add it from the Catalogue first.",
 	"error_resource_not_listed": "Only bots and blocks listed in the Catalogue can be added.",
 	"error_resource_scope_required": "This bot, block or asset does not belong to your active organisation, so it cannot be shared here.",
 	"error_self_ban_forbidden": "You cannot ban your own account.",
@@ -4252,7 +4252,7 @@
 	"multi_select_remove_option_label": "Remove {label}",
 	"multi_select_show_options": "Show options",
 	"orgs_delete_dialog_listed_heading": "Listed in the Catalogue and deleted with it:",
-	"orgs_delete_dialog_listed_installs": "added by {organizationNames}",
+	"orgs_delete_dialog_listed_added": "added by {organizationNames}",
 	"orgs_form_initial_admin_email_invalid": "Enter a valid email address.",
 	"orgs_form_initial_admin_email_label": "Admin's email",
 	"orgs_form_initial_admin_invite_description": "You become admin now and they get an admin invitation. Leave the organisation once they have joined.",
@@ -4808,7 +4808,7 @@
 	"orgs_permission_create_asset_label": "Create assets",
 	"orgs_permission_create_block_label": "Create blocks",
 	"orgs_permission_create_bot_label": "Create bots",
-	"orgs_permission_install_resource_label": "Add from the Catalogue",
+	"orgs_permission_add_from_catalogue_label": "Add from the Catalogue",
 	"orgs_permission_invite_members_label": "Invite members",
 	"orgs_permission_manage_groups_label": "Manage groups",
 	"orgs_permission_manage_members_label": "Manage members",

@@ -244,7 +244,7 @@ describe("organization.profile", () => {
 		"counts what the catalogue lists for the organisation, not what it added",
 		async () => {
 			const s = await organizations();
-			// The second organisation adds the bot, as an install does.
+			// The second organisation adds the bot, as adding from the Catalogue does.
 			await run(
 				Effect.gen(function* () {
 					yield* (yield* DB).insert(dbSchema.resourceScope).values({

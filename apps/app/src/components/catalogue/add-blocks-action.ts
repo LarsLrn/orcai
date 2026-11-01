@@ -1,9 +1,9 @@
 import type { CatalogueEntryDetail, CatalogueEntryRef } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { PackagePlusIcon } from "lucide-react";
-import { useInstaller } from "@/components/catalogue/installer";
+import { useCatalogueAdder } from "@/components/catalogue/catalogue-adder";
 import type { HeaderAction } from "@/components/ui/shell/actions";
-import { useInstallBlocksMutation } from "@/hooks/mutations/use-catalogue-mutations";
+import { useCatalogueAddBlocksMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -55,9 +55,8 @@ export const useAddBlocksAction = (
 		overflow?: boolean;
 	},
 ): HeaderAction | false => {
-	const installer = useInstaller();
-	const active =
-		enabled && installer !== undefined && entry.resourceType === "bot";
+	const adder = useCatalogueAdder();
+	const active = enabled && adder !== undefined && entry.resourceType === "bot";
 	const { data } = useQuery({
 		...orpc.catalogue.find.queryOptions({
 			input: {
@@ -66,9 +65,9 @@ export const useAddBlocksAction = (
 		}),
 		enabled: active,
 	});
-	const { mutate, isPending } = useInstallBlocksMutation({
+	const { mutate, isPending } = useCatalogueAddBlocksMutation({
 		name,
-		organisation: installer?.organisation ?? "",
+		organisation: adder?.organisation ?? "",
 	});
 	const blocks =
 		data?.data.blocks.filter((block) => block.state === "available") ?? [];
@@ -76,7 +75,7 @@ export const useAddBlocksAction = (
 
 	return {
 		key: "add-blocks",
-		label: addBlocksLabel(blocks, installer.organisation, "add"),
+		label: addBlocksLabel(blocks, adder.organisation, "add"),
 		icon: PackagePlusIcon,
 		overflow,
 		loading: isPending,

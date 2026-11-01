@@ -8,7 +8,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 /** The user adds from the catalogue to the active organisation, named here. */
-export type Installer = {
+export type CatalogueAdder = {
 	organisation: string;
 };
 
@@ -28,25 +28,25 @@ export const useActiveOrganizationName = () => {
 };
 
 /** Set when the user may add from the catalogue to the active organisation and remove what it added. */
-export const useInstaller = (): Installer | undefined => {
+export const useCatalogueAdder = (): CatalogueAdder | undefined => {
 	const { data: capabilities } = useOrganizationCapabilities();
 	const organisation = useActiveOrganizationName();
 	return organisation !== undefined &&
-		hasCapability(capabilities?.data.capabilities, "install_resource")
+		hasCapability(capabilities?.data.capabilities, "add_from_catalogue")
 		? {
 				organisation,
 			}
 		: undefined;
 };
 
-/** "Remove from <org>": uninstalls a resource the organisation added from the catalogue. */
+/** "Remove from <org>": removes a resource the organisation added from the catalogue. */
 export const removeAction = (
-	installer: Installer,
+	adder: CatalogueAdder,
 	onRemove: () => void,
 ): HeaderAction => ({
 	key: "remove",
 	label: m.catalogue_remove_action({
-		organisation: installer.organisation,
+		organisation: adder.organisation,
 	}),
 	icon: PackageMinusIcon,
 	destructive: true,

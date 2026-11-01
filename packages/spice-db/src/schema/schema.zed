@@ -18,7 +18,7 @@ definition organization {
 	permission manage_models = admin
 	permission manage_quota_pools = admin
 	permission view_analytics = admin
-	permission install_resource = admin + manager
+	permission add_from_catalogue = admin + manager
 }
 
 definition group {

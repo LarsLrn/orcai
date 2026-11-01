@@ -7,7 +7,7 @@ export const addFromCatalogue = declareTool<typeof addFromCatalogueTool>()({
 	kind: "change",
 	group: "bots",
 	capabilities: [
-		"install_resource",
+		"add_from_catalogue",
 	],
 	confirm: "add",
 	icon: PackagePlusIcon,

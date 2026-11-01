@@ -14,13 +14,13 @@ import {
 	MessageSquarePlusIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { InstalledAccessContent } from "@/components/access/access-manager-content";
+import { AddedAccessContent } from "@/components/access/access-manager-content";
 import {
 	BotModelStep,
 	type BotModelStepHandle,
 } from "@/components/bot/setup/bot-model-step";
+import { useActiveOrganizationName } from "@/components/catalogue/catalogue-adder";
 import { catalogueReturnLink } from "@/components/catalogue/catalogue-browse";
-import { useActiveOrganizationName } from "@/components/catalogue/installer";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
@@ -125,7 +125,7 @@ const SharingStep = ({
 			</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<InstalledAccessContent
+			<AddedAccessContent
 				resourceRef={
 					entryRef.resourceType === "bot"
 						? {
@@ -225,7 +225,7 @@ const DoneStep = ({
  * Sets up an entry the active organisation added: Sharing, then Model for
  * bots, then Done. Each step saves through its own procedure.
  */
-export const CatalogueInstallWizard = ({
+export const CatalogueAddWizard = ({
 	kind,
 	id,
 	from,

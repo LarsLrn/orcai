@@ -11,7 +11,7 @@ import {
 	toCatalogueEntry,
 } from "./catalogue-entry-input";
 
-const installInputSchema = z.strictObject({
+const addInputSchema = z.strictObject({
 	entry: catalogueEntryInputSchema,
 	withBlocks: z
 		.boolean()
@@ -25,7 +25,7 @@ export const addFromCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Add a bot, behaviour or repository from the Catalogue to the active organisation's Library. For new files, use requestUpload instead. Nobody in the organisation can use it until it is shared with grantAccess, for use only (role viewer). Set an added bot's model with updateBotSetup. Adding what the organisation has already changes nothing, and with withBlocks the blocks it has already are skipped.",
-		inputSchema: installInputSchema,
+		inputSchema: addInputSchema,
 		run: ({ entry, withBlocks }) =>
 			Effect.gen(function* () {
 				const { data: found } = yield* callProcedure(
@@ -39,7 +39,7 @@ export const addFromCatalogueTool = (deps: AssistantToolDeps) =>
 						),
 				);
 				const { data } = yield* callProcedure(deps, (procedures, options) =>
-					procedures.catalogue.install(
+					procedures.catalogue.add(
 						{
 							entry: toCatalogueEntry(entry),
 							withBlocks,
