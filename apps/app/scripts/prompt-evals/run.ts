@@ -148,7 +148,13 @@ const commit = execFileSync("git", [
 	.trim();
 const modelIds = args.models?.split(",") ?? DEFAULT_MODELS;
 const sampleCount = Number(args.samples);
-const cases = CASES.filter(({ id }) => !args.cases || id.includes(args.cases));
+const prefixes = args.cases
+	?.split(",")
+	.map((prefix) => prefix.trim())
+	.filter((prefix) => prefix !== "");
+const cases = CASES.filter(
+	({ id }) => !prefixes || prefixes.some((prefix) => id.startsWith(prefix)),
+);
 const cost: Record<string, number> = Object.fromEntries(
 	modelIds.map((id) => [
 		id,

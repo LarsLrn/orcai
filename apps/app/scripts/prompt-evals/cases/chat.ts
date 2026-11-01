@@ -16,6 +16,7 @@ import {
 	glossaryTerms,
 	judged,
 	mentions,
+	mentionsDate,
 	noLegacyCite,
 	noOtherCitationStyle,
 	omits,
@@ -192,25 +193,6 @@ export const A_DATE = new RegExp(
 	].join("|"),
 	"i",
 );
-
-/** Today's local date in the forms an answer may write it. */
-const today = () => {
-	const now = new Date();
-	const day = now.getDate();
-	const month = now.toLocaleString("en", {
-		month: "long",
-	});
-	const year = now.getFullYear();
-	return new RegExp(
-		[
-			`${year}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-			`${day}(st|nd|rd|th)? ${month},? ${year}`,
-			`${month} ${day}(st|nd|rd|th)?,? ${year}`,
-			`${day}\\.\\s?${now.getMonth() + 1}\\.\\s?${year}`,
-		].join("|"),
-		"i",
-	);
-};
 
 const OFFICE_HELPER =
 	"You help the staff of Riverside School with questions about health and safety on school trips. Answer in two to four sentences.";
@@ -844,7 +826,7 @@ export const chatCases: EvalCase[] = [
 				message: "What is today's date? Answer with the date only.",
 			}),
 		checks: [
-			mentions(today()),
+			mentionsDate(new Date()),
 		],
 	},
 	{

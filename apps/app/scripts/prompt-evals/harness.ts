@@ -52,6 +52,10 @@ import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
+import type {
+	AskUserInput,
+	AskUserOutput,
+} from "@/lib/ai/tools/questions/ask-user";
 import { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
 import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
 import {
@@ -251,7 +255,8 @@ const scriptTools = (
 		}),
 	);
 
-const stopOf = (steps: readonly StepResult<ToolSet>[]) => {
+/** The calls of the last step that got no result: a client tool or a pause. */
+const openCalls = (steps: readonly StepResult<ToolSet>[]) => {
 	const last = steps.at(-1);
 	const answered = new Set(
 		last?.content.flatMap((part) =>
@@ -262,13 +267,17 @@ const stopOf = (steps: readonly StepResult<ToolSet>[]) => {
 				: [],
 		),
 	);
-	const open = (last?.toolCalls ?? []).filter(
+	return (last?.toolCalls ?? []).filter(
 		({ toolCallId }) => !answered.has(toolCallId),
 	);
+};
+
+const stopOf = (steps: readonly StepResult<ToolSet>[]) => {
+	const open = openCalls(steps);
 	if (open.length > 0) {
 		return `call to ${open.map(({ toolName }) => toolName).join(", ")}`;
 	}
-	return last?.finishReason === "tool-calls" ? "step limit" : "answer";
+	return steps.at(-1)?.finishReason === "tool-calls" ? "step limit" : "answer";
 };
 
 const transcriptOf = (
@@ -529,17 +538,126 @@ export interface ApprovedPlan {
 	loaded?: DeferredToolGroup[];
 }
 
-/** The Assistant with its fixed features, the docs, and the core tool group to start. */
+/** The user's day in every Assistant run, one no model can take for its own today. */
+export const ASSISTANT_DATE = new Date(2027, 1, 17, 12);
+
+/** The user's answers to one askUser round, as the questions card sends them. */
+export type Answerer = (input: AskUserInput) => AskUserOutput;
+
+/**
+ * What the user does where the Assistant pauses, in order: answer its
+ * questions, approve its plan, or write again after an answer. One answers
+ * reply covers every askUser round in a row.
+ */
+export type Reply =
+	| {
+			answers: Answerer;
+	  }
+	| {
+			approve: true;
+	  }
+	| {
+			message: string;
+	  };
+
+/** Rounds of questions one answers reply covers before the run counts as stuck. */
+const MAX_ANSWER_ROUNDS = 3;
+
+/** The tool message `reply` sends where `steps` paused; nothing when it does not fit there. */
+const replyMessage = async (
+	reply: Reply,
+	steps: readonly StepResult<ToolSet>[],
+	tools: ToolSet,
+): Promise<ModelMessage | undefined> => {
+	const open = openCalls(steps);
+	const approvals = (steps.at(-1)?.content ?? []).flatMap((part) =>
+		part.type === "tool-approval-request"
+			? [
+					part,
+				]
+			: [],
+	);
+
+	if ("message" in reply) {
+		return open.length === 0
+			? {
+					role: "user",
+					content: reply.message,
+				}
+			: undefined;
+	}
+	if ("approve" in reply) {
+		return open.length === 1 &&
+			approvals.length === 1 &&
+			approvals[0].toolCall.toolName === "updatePlan"
+			? {
+					role: "tool",
+					content: [
+						{
+							type: "tool-approval-response",
+							approvalId: approvals[0].approvalId,
+							approved: true,
+						},
+					],
+				}
+			: undefined;
+	}
+	if (
+		open.length === 0 ||
+		approvals.length > 0 ||
+		open.some(({ toolName }) => toolName !== "askUser")
+	) {
+		return undefined;
+	}
+
+	return {
+		role: "tool",
+		content: await Promise.all(
+			open.map(async ({ toolCallId, toolName, input }) => {
+				const output = reply.answers(input as AskUserInput);
+				return {
+					type: "tool-result" as const,
+					toolCallId,
+					toolName,
+					output: (await tools.askUser?.toModelOutput?.({
+						toolCallId,
+						input,
+						output,
+					})) ?? {
+						type: "json",
+						value: output,
+					},
+				};
+			}),
+		),
+	};
+};
+
+/** The plan the user sees: the newest updatePlan call's input. */
+const latestPlan = (steps: readonly StepResult<ToolSet>[]) =>
+	steps
+		.flatMap(({ toolCalls }) => toolCalls)
+		.filter(({ toolName }) => toolName === "updatePlan")
+		.at(-1)?.input as Plan | undefined;
+
+/**
+ * The Assistant with its fixed features, the docs, and the core tool group
+ * to start. Each reply continues the conversation through the same session,
+ * as the next request would; the run ends after the last reply, or where a
+ * reply does not fit the pause.
+ */
 export const runAssistant = async ({
 	model: { model },
 	message,
 	approved,
+	replies = [],
 	scripted = {},
 }: {
 	model: EvalModel;
 	message: string;
-	/** Runs the continuation after the approval instead of a reply to `message`. */
+	/** Starts with the continuation after the approval instead of a reply to `message`. */
 	approved?: ApprovedPlan;
+	replies?: readonly Reply[];
 	scripted?: Scripted;
 }): Promise<Transcript> => {
 	const features = await Effect.runPromise(
@@ -596,44 +714,84 @@ export const runAssistant = async ({
 		CONTENT_TOOL_NAMES.filter((name) => !featureTools.has(name)),
 	);
 
-	const { steps, text } = await generateText({
-		model: model.language,
-		system: buildSystemInstructions(
-			model.kind,
-			buildAssistantSystemPrompt({
-				docs: DOCS,
-				userContext: admin,
-				featurePrompts: features.map(({ entry }) =>
-					entry.prompt({
-						citations: true,
-					}),
-				),
-				toolGroups: offeredToolGroups(admin.capabilities),
-				plan: approved?.plan,
+	const generate = (messages: ModelMessage[], plan: Plan | undefined) =>
+		generateText({
+			model: model.language,
+			system: buildSystemInstructions(
+				model.kind,
+				buildAssistantSystemPrompt({
+					docs: DOCS,
+					userContext: admin,
+					featurePrompts: features.map(({ entry }) =>
+						entry.prompt({
+							citations: true,
+						}),
+					),
+					toolGroups: offeredToolGroups(admin.capabilities),
+					plan,
+					today: localDate(
+						Intl.DateTimeFormat().resolvedOptions().timeZone,
+						ASSISTANT_DATE,
+					),
+				}),
+			),
+			messages,
+			tools,
+			toolApproval: session.toolApproval,
+			stopWhen: isStepCount(MAX_STEPS),
+			prepareStep: () => ({
+				activeTools: session
+					.activeTools()
+					.filter((name) => !disabled.has(name)),
 			}),
-		),
-		messages: [
-			{
-				role: "user",
-				content: message,
+			// Also sees the approved call, which runs before the first step.
+			onToolExecutionEnd: ({ toolOutput }) => {
+				if (toolOutput.type === "tool-result") {
+					session.record(toolOutput);
+				}
 			},
-			...(approved ? await approvalMessages(approved, tools, session) : []),
-		],
-		tools,
-		toolApproval: session.toolApproval,
-		stopWhen: isStepCount(MAX_STEPS),
-		prepareStep: () => ({
-			activeTools: session.activeTools().filter((name) => !disabled.has(name)),
-		}),
-		// Also sees the approved call, which runs before the first step.
-		onToolExecutionEnd: ({ toolOutput }) => {
-			if (toolOutput.type === "tool-result") {
-				session.record(toolOutput);
-			}
-		},
-	});
+		});
 
-	return transcriptOf(steps, text);
+	const messages: ModelMessage[] = [
+		{
+			role: "user",
+			content: message,
+		},
+		...(approved ? await approvalMessages(approved, tools, session) : []),
+	];
+	const steps: StepResult<ToolSet>[] = [];
+	let result = await generate(messages, approved?.plan);
+	steps.push(...result.steps);
+
+	let next = 0;
+	let rounds = 0;
+	while (next < replies.length) {
+		const reply = replies[next];
+		const sent = await replyMessage(reply, result.steps, tools);
+		if (!sent) {
+			// An answers reply gives way to the next reply once the questions stop.
+			if ("answers" in reply && rounds > 0) {
+				next++;
+				rounds = 0;
+				continue;
+			}
+			break;
+		}
+		if ("answers" in reply) {
+			rounds++;
+			if (rounds === MAX_ANSWER_ROUNDS) {
+				next++;
+				rounds = 0;
+			}
+		} else {
+			next++;
+		}
+		messages.push(...result.response.messages, sent);
+		result = await generate(messages, latestPlan(steps) ?? approved?.plan);
+		steps.push(...result.steps);
+	}
+
+	return transcriptOf(steps, result.text);
 };
 
 /** Metadata of one document, as the worker's metadata job asks for it. */

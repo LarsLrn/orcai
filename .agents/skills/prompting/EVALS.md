@@ -10,9 +10,16 @@ Any OpenAI-compatible endpoint works instead: set `PROMPT_EVALS_ENDPOINT` to its
 
 ```bash title="Repository root"
 bun run prompt-evals                                    # every case, default models, 3 samples
-bun run prompt-evals --cases retrieval                  # cases whose id contains "retrieval"
+bun run prompt-evals --cases retrieval,context/knows   # cases whose id starts with "retrieval" or "context/knows"
 bun run prompt-evals --models qwen/qwen3.7-flash --samples 1
 bun run prompt-evals --compare apps/app/scripts/prompt-evals/results/<file>.json
+```
+
+A change to the Assistant's prompt or tool descriptions runs the Assistant suite:
+
+```bash title="Repository root"
+bun run prompt-evals --samples 6 \
+  --cases assistant/,terms/assistant-,language/assistant-german,language/german-cites-docs,context/assistant-
 ```
 
 Each run writes its samples, with every answer text and tool call, to `apps/app/scripts/prompt-evals/results/` (gitignored) and prints the file's path and the cost OpenRouter reported. `--compare` prints each cell as before → after against an earlier results file. The totals compare only the cases both runs hold, and the report lists the others. `--concurrency` sets the parallel requests (6 by default), and `--judge` the judge model.
@@ -32,6 +39,8 @@ The harness in `apps/app/scripts/prompt-evals/harness.ts` builds each request fr
 - `readDocs` reads the checkout's docs as the docs site serves them: `apps/web/scripts/docs-fetch.ts` compiles the pages with the site's fumadocs-mdx config and answers with the site's own index and page text. A docs change counts too.
 - A run is one user turn of up to 8 steps. History pruning, compaction, quota and the last-step note are not part of it.
 - `runAssistant` with `approved` runs the continuation after the user approved a plan instead: the history holds the request, the groups loaded before the plan, the reply proposing the plan, and the approval. The approved `updatePlan` call runs first, as it does in the app.
+- `runAssistant` with `replies` goes on where the Assistant pauses, in the same session: an answers reply answers its `askUser` rounds, an approve reply approves its plan, and a message reply writes again after an answer. The plan in the system prompt follows the newest `updatePlan` call. The run ends after the last reply, or where a reply does not fit the pause.
+- The Assistant's prompt carries a fixed date, `ASSISTANT_DATE`, so a case can check it.
 
 ## Cases
 
@@ -39,11 +48,11 @@ Cases live in `apps/app/scripts/prompt-evals/cases/`. The part of an id before t
 
 | Area | Checks |
 | --- | --- |
-| `assistant` | Tool routing: asking before a plan, starting work once the plan is approved, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, declining off-topic questions. |
-| `terms` | Answers use no word GLOSSARY.md lists under _Avoid_ ("knowledge base", "template", "chunk" and the like). |
+| `assistant` | Tool routing: asking with `askUser` before a plan and creating only after its approval, starting work once the plan is approved, a behaviour written in Markdown, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, declining off-topic questions. |
+| `terms` | Answers use no word GLOSSARY.md lists under _Avoid_ ("knowledge base", "template", "chunk" and the like), and say Published for the `ready` status. |
 | `language` | The answer's language follows the user, unless the behaviour sets one, with and without a behaviour. |
 | `retrieval` | `<cite chunk>` with only the refs given, also when the behaviour asks for footnotes, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |
-| `context` | The model knows today's date and ignores an instruction planted in an attached file. |
+| `context` | The chat and the Assistant know today's date, and the chat ignores an instruction planted in an attached file. |
 | `background` | Metadata fields against known answers for three files, in the formats the schema states. An image without text described in the uploader's language, with a twin in the other language. Chat titles as the model wrote them, before the app cleans them up: one line, no wrapping quotes, at most 80 characters, the right language, and a planted instruction ignored. |
 
 A case passes a sample when every check passes. Checks grade the outcome in code where code can: which tools were called and with which arguments, what the answer contains, which fields the output has. Every call that creates or changes something must be one the case expects, once, so a wrong target, role or extra change fails even beside the right call. Scripted tools put look-alikes beside the target and reject inputs that do not fit. Where a case tests that something happens, a twin tests that it does not happen when it should not, so a prompt that over-triggers fails too.
