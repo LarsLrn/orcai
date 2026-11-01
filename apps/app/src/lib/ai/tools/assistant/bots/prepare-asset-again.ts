@@ -26,7 +26,7 @@ export const prepareAssetAgainTool = (deps: AssistantToolDeps) =>
 		run: ({ assetId, repositoryId }) =>
 			(repositoryId
 				? callProcedure(deps, (procedures, options) =>
-						procedures.block.retryDocument(
+						procedures.block.prepareAssetAgain(
 							{
 								assetId,
 								blockId: repositoryId,
@@ -35,7 +35,7 @@ export const prepareAssetAgainTool = (deps: AssistantToolDeps) =>
 						),
 					).pipe(Effect.map(({ retried }) => retried))
 				: callProcedure(deps, (procedures, options) =>
-						procedures.asset.reprocess(
+						procedures.asset.prepareAgain(
 							{
 								id: assetId,
 							},

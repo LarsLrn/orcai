@@ -17,7 +17,7 @@ import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
-import { reprocessAsset } from "@/lib/assets/processing";
+import { prepareAssetAgain } from "@/lib/assets/processing";
 import {
 	type Actor,
 	authzIntegration,
@@ -338,7 +338,7 @@ describe("chat uploads in repositories", () => {
 
 describe("reset rules", () => {
 	test(
-		"reprocessing turns the asset and every link pending, once",
+		"preparingAgain turns the asset and every link pending, once",
 		async () => {
 			const { assets, blockId } = await repositoryWith(1);
 			const [assetId] = assets;
@@ -359,8 +359,8 @@ describe("reset rules", () => {
 				}),
 			);
 
-			expect(await run(reprocessAsset(asset))).toBe(true);
-			expect(await run(reprocessAsset(asset))).toBe(false);
+			expect(await run(prepareAssetAgain(asset))).toBe(true);
+			expect(await run(prepareAssetAgain(asset))).toBe(false);
 
 			const [after] = await run(
 				Effect.gen(function* () {
@@ -386,7 +386,7 @@ describe("reset rules", () => {
 				assetId,
 				processing: "failed",
 			});
-			expect(await run(reprocessAsset(asset))).toBe(false);
+			expect(await run(prepareAssetAgain(asset))).toBe(false);
 		},
 		TIMEOUT,
 	);
@@ -619,7 +619,7 @@ describe("retrying assets", () => {
 
 			expect(
 				await run(
-					procedures.block.retryFailed(
+					procedures.block.prepareFailedAgain(
 						{
 							blockId,
 						},
@@ -656,7 +656,7 @@ describe("retrying assets", () => {
 
 			expect(
 				await run(
-					procedures.block.retryDocument(
+					procedures.block.prepareAssetAgain(
 						{
 							blockId,
 							assetId: empty,
@@ -669,7 +669,7 @@ describe("retrying assets", () => {
 			});
 			await expect(
 				run(
-					procedures.block.retryDocument(
+					procedures.block.prepareAssetAgain(
 						{
 							blockId,
 							assetId: preparing,

@@ -191,7 +191,7 @@ const AssetTile = ({
 					actions.access,
 					actions.handOver,
 					actions.addToLibrary,
-					actions.reprocess,
+					actions.prepareAgain,
 					actions.delete,
 				]}
 			/>

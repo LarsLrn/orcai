@@ -20,7 +20,7 @@ import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	useAddAssetToLibraryMutation,
 	useDeleteAssetsMutation,
-	useReprocessAssetMutation,
+	usePrepareAssetAgainMutation,
 } from "@/hooks/mutations/use-asset-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
@@ -55,18 +55,18 @@ const assetActions = (
 		onAccess,
 		onHandOver,
 		onAddToLibrary,
-		onReprocess,
+		onPrepareAgain,
 		onDelete,
 	}: {
 		onAccess: () => void;
 		onHandOver: () => void;
 		onAddToLibrary: () => void;
-		onReprocess: () => void;
+		onPrepareAgain: () => void;
 		onDelete: () => void;
 	},
 	viewer: Viewer,
 ): Record<
-	"edit" | "access" | "handOver" | "addToLibrary" | "reprocess" | "delete",
+	"edit" | "access" | "handOver" | "addToLibrary" | "prepareAgain" | "delete",
 	HeaderAction | false
 > => {
 	const canEdit = hasCapability(asset.capabilities, "edit");
@@ -109,13 +109,13 @@ const assetActions = (
 				overflow: true,
 				onClick: onAddToLibrary,
 			},
-		reprocess: canEdit &&
+		prepareAgain: canEdit &&
 			!processing && {
-				key: "reprocess",
-				label: m.assets_reprocess_action(),
+				key: "prepareAgain",
+				label: m.assets_prepare_again_action(),
 				icon: RefreshCwIcon,
 				overflow: true,
-				onClick: onReprocess,
+				onClick: onPrepareAgain,
 			},
 		delete: hasCapability(asset.capabilities, "delete") && {
 			key: "delete",
@@ -154,7 +154,7 @@ const useAssetActions = (
 		},
 	);
 	const { mutate: addToLibrary } = useAddAssetToLibraryMutation();
-	const { mutate: reprocessAsset } = useReprocessAssetMutation();
+	const { mutate: prepareAssetAgain } = usePrepareAssetAgainMutation();
 	const { mutate: deleteAssets } = useDeleteAssetsMutation(
 		{
 			onSuccess: onDeleted,
@@ -175,8 +175,8 @@ const useAssetActions = (
 				addToLibrary({
 					id: asset.id,
 				}),
-			onReprocess: () =>
-				reprocessAsset({
+			onPrepareAgain: () =>
+				prepareAssetAgain({
 					id: asset.id,
 				}),
 			onDelete: () =>

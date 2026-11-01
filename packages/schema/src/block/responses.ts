@@ -65,7 +65,7 @@ export const blockReadinessResponseSchema = createDataResponseSchema(
 );
 
 /** Which stage the retry runs again: processing the file or indexing it here. */
-export const retryDocumentResponseSchema = z.object({
+export const prepareRepositoryAssetAgainResponseSchema = z.object({
 	retried: z.enum([
 		"processing",
 		"indexing",
@@ -73,7 +73,7 @@ export const retryDocumentResponseSchema = z.object({
 });
 
 /** How many failed assets were queued again, by stage. */
-export const retryFailedDocumentsResponseSchema = z.object({
+export const prepareRepositoryFailedAgainResponseSchema = z.object({
 	processing: z.number().int(),
 	indexing: z.number().int(),
 });

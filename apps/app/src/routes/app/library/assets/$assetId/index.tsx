@@ -102,7 +102,7 @@ function RouteComponent() {
 							actions.access,
 							actions.handOver,
 							actions.addToLibrary,
-							actions.reprocess,
+							actions.prepareAgain,
 							actions.listing,
 							actions.delete,
 						]}

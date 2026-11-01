@@ -54,7 +54,7 @@ const unreadableImage = (failure: PipelineFailure, fileType: FileType) =>
 	failure === "unsupported" && isImageFileType(fileType);
 
 /** Whether processing a failed file again can help. */
-export const canReprocess = (failure: PipelineFailure, fileType: FileType) =>
+export const canPrepareAgain = (failure: PipelineFailure, fileType: FileType) =>
 	isRetryableFailure(failure) || unreadableImage(failure, fileType);
 
 /** Why preparing a file failed, in words; says so when retrying cannot help. */

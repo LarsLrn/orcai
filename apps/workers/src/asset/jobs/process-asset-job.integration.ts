@@ -157,8 +157,8 @@ const chargedCalls = (assetId: AssetId) =>
 		}),
 	);
 
-/** What the asset page's Reprocess does to the asset: the next generation, pending. */
-const reprocess = (assetId: AssetId) =>
+/** What the asset page's Prepare again does to the asset: the next generation, pending. */
+const prepareAgain = (assetId: AssetId) =>
 	run(
 		Effect.gen(function* () {
 			yield* (yield* DB)
@@ -199,7 +199,7 @@ test(
 		);
 		expect(extraction.images[0]?.text).toBe(suggestion.text);
 
-		await reprocess(asset.assetId);
+		await prepareAgain(asset.assetId);
 		await processOnce(first);
 		expect(await statusOf(asset.assetId)).toBe("pending");
 

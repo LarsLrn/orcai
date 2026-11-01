@@ -10,7 +10,7 @@ import { homeOrganization, inActivityRun } from "@/lib/activity/admission";
 import { listAssetTiles } from "@/lib/assets/asset-list";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
-import { reprocessAsset } from "@/lib/assets/processing";
+import { prepareAssetAgain } from "@/lib/assets/processing";
 import { requireReadable } from "@/lib/authz/content-access";
 import { requireEligibleOwner } from "@/lib/authz/eligible-owner";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
@@ -305,7 +305,7 @@ const deleteAssets = authed.asset.delete
 		};
 	});
 
-const reprocessAssetProcedure = authed.asset.reprocess
+const prepareAssetAgainProcedure = authed.asset.prepareAgain
 	.use(
 		requireEntityPermission("asset", "edit", {
 			entityId: "id",
@@ -332,7 +332,7 @@ const reprocessAssetProcedure = authed.asset.reprocess
 				organizationId: homeOrganization("asset", asset.id),
 			},
 			(runId) =>
-				reprocessAsset(asset, {
+				prepareAssetAgain(asset, {
 					id: runId,
 				}),
 		);
@@ -460,7 +460,7 @@ export const assetRouter = {
 	addToLibrary: addAssetToLibrary,
 	find: findAsset,
 	delete: deleteAssets,
-	reprocess: reprocessAssetProcedure,
+	prepareAgain: prepareAssetAgainProcedure,
 	generateMetadata: generateAssetMetadata,
 	dismissMetadataSuggestion,
 	missingMetadata,

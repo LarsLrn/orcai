@@ -13,8 +13,8 @@ import {
 	listAssetsResponseSchema,
 	missingMetadataInputSchema,
 	missingMetadataResponseSchema,
-	reprocessAssetInputSchema,
-	reprocessAssetResponseSchema,
+	prepareAssetAgainInputSchema,
+	prepareAssetAgainResponseSchema,
 	saveAssetInputSchema,
 	saveAssetResponseSchema,
 	statusResponseSchema,
@@ -102,19 +102,19 @@ export const assetContracts = {
 		)
 		.input(deleteAssetsInputSchema)
 		.output(deleteAssetsResponseSchema),
-	reprocess: base
+	prepareAgain: base
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/assets/{id}/reprocess",
+				path: "/assets/{id}/prepare-again",
 				summary: "Process an asset again",
 				tags: [
 					"Assets",
 				],
 			}),
 		)
-		.input(reprocessAssetInputSchema)
-		.output(reprocessAssetResponseSchema),
+		.input(prepareAssetAgainInputSchema)
+		.output(prepareAssetAgainResponseSchema),
 	generateMetadata: base
 		.meta(
 			openapi({

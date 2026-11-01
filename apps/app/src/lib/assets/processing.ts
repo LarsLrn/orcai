@@ -91,7 +91,7 @@ export const queueFirstProcessing = (
  * asset is already pending or being processed, or another request started a
  * generation since the caller read it.
  */
-export const reprocessAsset = (
+export const prepareAssetAgain = (
 	asset: ProcessableAsset,
 	run?: {
 		id: ActivityRunId;

@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/shell/section";
 import { Spinner } from "@/components/ui/spinner";
 import {
-	useRetryDocumentMutation,
-	useRetryFailedDocumentsMutation,
+	usePrepareRepositoryAssetAgainMutation,
+	usePrepareRepositoryFailedAgainMutation,
 } from "@/hooks/mutations/use-block-mutations";
 import { m } from "@/paraglide/messages";
 
@@ -208,10 +208,10 @@ const AssetSection = ({
 		canEdit &&
 		Boolean(asset?.failure) &&
 		isRetryableFailure(asset?.failure?.kind ?? "other");
-	const { mutate: retryDocument, isPending: retryingDocument } =
-		useRetryDocumentMutation();
-	const { mutate: retryFailed, isPending: retryingFailed } =
-		useRetryFailedDocumentsMutation();
+	const { mutate: prepareAssetAgain, isPending: preparingAssetAgain } =
+		usePrepareRepositoryAssetAgainMutation();
+	const { mutate: prepareFailedAgain, isPending: preparingFailedAgain } =
+		usePrepareRepositoryFailedAgainMutation();
 
 	return (
 		<Section>
@@ -228,11 +228,11 @@ const AssetSection = ({
 					actions={[
 						readiness?.assets.some(retryable) && {
 							key: "retry-failed",
-							label: m.blocks_database_config_retry_failed_action(),
+							label: m.blocks_database_config_prepare_failed_again_action(),
 							icon: RotateCwIcon,
-							disabled: retryingFailed,
+							disabled: preparingFailedAgain,
 							onClick: () =>
-								retryFailed({
+								prepareFailedAgain({
 									blockId,
 								}),
 						},
@@ -269,9 +269,9 @@ const AssetSection = ({
 													key: "retry",
 													label: m.assets_tile_retry_action(),
 													icon: RotateCwIcon,
-													disabled: retryingDocument,
+													disabled: preparingAssetAgain,
 													onClick: () =>
-														retryDocument({
+														prepareAssetAgain({
 															blockId,
 															assetId: entry.id,
 														}),

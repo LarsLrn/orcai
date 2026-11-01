@@ -20,8 +20,8 @@ import {
 } from "@/lib/blocks/database-block";
 import {
 	loadRepositoryReadiness,
-	retryDocument,
-	retryFailedDocuments,
+	prepareRepositoryAssetAgain,
+	prepareRepositoryFailedAgain,
 } from "@/lib/blocks/readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
@@ -379,27 +379,27 @@ const blockReadiness = authed.block.readiness.effect(function* ({
 	};
 });
 
-const retryBlockDocument = authed.block.retryDocument
+const prepareAssetAgainProcedure = authed.block.prepareAssetAgain
 	.use(
 		requireEntityPermission("block", "edit", {
 			entityId: "blockId",
 		}),
 	)
 	.effect(function* ({ input, context }) {
-		return yield* retryDocument({
+		return yield* prepareRepositoryAssetAgain({
 			...input,
 			userId: context.auth.user.id,
 		});
 	});
 
-const retryFailedBlockDocuments = authed.block.retryFailed
+const prepareFailedAgainProcedure = authed.block.prepareFailedAgain
 	.use(
 		requireEntityPermission("block", "edit", {
 			entityId: "blockId",
 		}),
 	)
 	.effect(function* ({ input, context }) {
-		return yield* retryFailedDocuments({
+		return yield* prepareRepositoryFailedAgain({
 			...input,
 			userId: context.auth.user.id,
 		});
@@ -412,6 +412,6 @@ export const blockRouter = {
 	update: updateBlock,
 	delete: deleteBlocks,
 	readiness: blockReadiness,
-	retryDocument: retryBlockDocument,
-	retryFailed: retryFailedBlockDocuments,
+	prepareAssetAgain: prepareAssetAgainProcedure,
+	prepareFailedAgain: prepareFailedAgainProcedure,
 };

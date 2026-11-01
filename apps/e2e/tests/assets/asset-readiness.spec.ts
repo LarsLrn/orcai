@@ -132,7 +132,7 @@ test("assets: the repository page shows a failed asset with why and Retry", asyn
 	await expect(page.getByText(message("pipeline_failure_other"))).toBeVisible();
 	await expect(
 		page.getByRole("button", {
-			name: message("blocks_database_config_retry_failed_action"),
+			name: message("blocks_database_config_prepare_failed_again_action"),
 		}),
 	).toBeVisible();
 	await page
