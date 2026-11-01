@@ -1,8 +1,8 @@
 import type { OrganizationId, UserId } from "@orcai/core";
 import { dbSchema } from "@orcai/db";
 import type {
+	LibraryOrigin,
 	LibraryScope,
-	LibrarySource,
 	PublicationStatusFilter,
 } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
@@ -40,7 +40,7 @@ const lookup = (
  * so the lists and counts of one request share them.
  *
  * Published resources need read and drafts need edit; scope "edit" asks for
- * edit on both. Assets have no status. `source` tells what the organisation
+ * edit on both. Assets have no status. `origin` tells what the organisation
  * made from what it added from the catalogue.
  */
 export const libraryAccess = (reader: Reader) =>
@@ -63,11 +63,11 @@ export const libraryAccess = (reader: Reader) =>
 			{
 				scope = "all",
 				status = "ready",
-				source = "all",
+				origin = "all",
 			}: {
 				scope?: LibraryScope;
 				status?: PublicationStatusFilter;
-				source?: LibrarySource;
+				origin?: LibraryOrigin;
 			},
 		) =>
 			Effect.gen(function* () {
@@ -77,7 +77,7 @@ export const libraryAccess = (reader: Reader) =>
 						inArray(table.id, allowed),
 					);
 				const shared = [
-					inLibrary(resource, table.id, reader.organizationId, source),
+					inLibrary(resource, table.id, reader.organizationId, origin),
 					readableNow(resource, table.id, reader.userId),
 				];
 				if (resource === "asset" || scope === "edit") {

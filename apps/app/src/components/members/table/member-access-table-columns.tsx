@@ -1,7 +1,7 @@
 import {
-	MEMBER_ACCESS_SOURCE,
+	MEMBER_ACCESS_ORIGIN,
 	type MemberAccessEntry,
-	type MemberAccessSource,
+	type MemberAccessOrigin,
 	type ResourceType,
 } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
@@ -23,22 +23,22 @@ const roleVariant: Record<
 	manager: "default",
 };
 
-const sourceLabel = (source: MemberAccessSource) =>
+const originLabel = (origin: MemberAccessOrigin) =>
 	({
-		[MEMBER_ACCESS_SOURCE.DIRECT_USER]:
-			m.members_access_overview_source_direct_user(),
-		[MEMBER_ACCESS_SOURCE.DIRECT_GROUP]:
-			m.members_access_overview_source_direct_group(),
-		[MEMBER_ACCESS_SOURCE.DIRECT_GROUP_ALL_MEMBERS]:
-			m.members_access_overview_source_all_members(),
-		[MEMBER_ACCESS_SOURCE.INHERITED_ORGANIZATION]:
-			m.members_access_overview_source_inherited_organisation(),
-		[MEMBER_ACCESS_SOURCE.INHERITED_BOT]:
-			m.members_access_overview_source_inherited_bot(),
-		[MEMBER_ACCESS_SOURCE.INHERITED_BLOCK]:
-			m.members_access_overview_source_inherited_block(),
-		[MEMBER_ACCESS_SOURCE.PUBLIC]: m.members_access_overview_source_public(),
-	})[source];
+		[MEMBER_ACCESS_ORIGIN.DIRECT_USER]:
+			m.members_access_overview_origin_direct_user(),
+		[MEMBER_ACCESS_ORIGIN.DIRECT_GROUP]:
+			m.members_access_overview_origin_direct_group(),
+		[MEMBER_ACCESS_ORIGIN.DIRECT_GROUP_ALL_MEMBERS]:
+			m.members_access_overview_origin_all_members(),
+		[MEMBER_ACCESS_ORIGIN.INHERITED_ORGANIZATION]:
+			m.members_access_overview_origin_inherited_organisation(),
+		[MEMBER_ACCESS_ORIGIN.INHERITED_BOT]:
+			m.members_access_overview_origin_inherited_bot(),
+		[MEMBER_ACCESS_ORIGIN.INHERITED_BLOCK]:
+			m.members_access_overview_origin_inherited_block(),
+		[MEMBER_ACCESS_ORIGIN.PUBLIC]: m.members_access_overview_origin_public(),
+	})[origin];
 
 const typeLabel = (type: ResourceType) =>
 	({
@@ -65,10 +65,10 @@ export const memberAccessTypeOptions = () =>
 		label: typeLabel(value),
 	}));
 
-export const memberAccessSourceOptions = () =>
-	Object.values(MEMBER_ACCESS_SOURCE).map((value) => ({
+export const memberAccessOriginOptions = () =>
+	Object.values(MEMBER_ACCESS_ORIGIN).map((value) => ({
 		value,
-		label: sourceLabel(value),
+		label: originLabel(value),
 	}));
 
 const ResourceLink = ({ access }: { access: MemberAccessEntry }) => {
@@ -173,19 +173,19 @@ export const memberAccessTableColumns = columnHelper.columns([
 			label: m.members_access_overview_role_column_header,
 		},
 	}),
-	columnHelper.accessor("source", {
+	columnHelper.accessor("origin", {
 		size: 200,
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.members_access_overview_source_column_header()}
+				title={m.members_access_overview_origin_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
-			<Badge variant="outline">{sourceLabel(row.original.source)}</Badge>
+			<Badge variant="outline">{originLabel(row.original.origin)}</Badge>
 		),
 		meta: {
-			label: m.members_access_overview_source_column_header,
+			label: m.members_access_overview_origin_column_header,
 		},
 	}),
 ]);

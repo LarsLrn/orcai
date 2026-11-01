@@ -101,7 +101,7 @@ export const listBotTiles = (params: {
 			yield* params.access.condition("bot", {
 				scope: input.filters?.scope,
 				status: input.filters?.status,
-				source: input.filters?.source,
+				origin: input.filters?.origin,
 			}),
 			input.filters?.usable ? yield* params.access.usable("bot") : undefined,
 			input.search

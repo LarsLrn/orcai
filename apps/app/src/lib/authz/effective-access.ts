@@ -6,12 +6,12 @@ import {
 	type BlockType,
 	blockIdSchema,
 	botIdSchema,
-	inheritedSourceByResourceType,
+	inheritedOriginByResourceType,
 	type ListMemberAccessInput,
+	type MemberAccessOrigin,
 	type MemberAccessSortKey,
-	type MemberAccessSource,
-	memberAccessSourceSchema,
-	RESOURCE_GRANT_SOURCE,
+	memberAccessOriginSchema,
+	RESOURCE_GRANT_ORIGIN,
 	RESOURCE_TYPES,
 	type ResourceGrantRole,
 	type ResourceType,
@@ -50,7 +50,7 @@ const resourceName = sql<
  * Where the access comes from: the strongest direct grant to the user or one
  * of their groups, else public visibility, else the resource's parent.
  */
-const accessSource = (params: {
+const accessOrigin = (params: {
 	userId: UserId;
 	groupIds: GroupId[];
 	allMembersGroupId: GroupId | undefined;
@@ -65,21 +65,21 @@ const accessSource = (params: {
 			: undefined,
 	);
 	const directSource = sql`case
-		when ${grant.principalType} = 'user' then ${RESOURCE_GRANT_SOURCE.DIRECT_USER}
-		when ${grant.principalId} = ${params.allMembersGroupId ?? null} then ${RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS}
-		else ${RESOURCE_GRANT_SOURCE.DIRECT_GROUP}
+		when ${grant.principalType} = 'user' then ${RESOURCE_GRANT_ORIGIN.DIRECT_USER}
+		when ${grant.principalId} = ${params.allMembersGroupId ?? null} then ${RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS}
+		else ${RESOURCE_GRANT_ORIGIN.DIRECT_GROUP}
 	end`;
 	const roleRank = sql`case ${grant.role} when 'manager' then 3 when 'editor' then 2 else 1 end`;
 	const inherited = sql`case ${scope.resourceType}
 		${sql.join(
 			RESOURCE_TYPES.map(
-				(type) => sql`when ${type} then ${inheritedSourceByResourceType[type]}`,
+				(type) => sql`when ${type} then ${inheritedOriginByResourceType[type]}`,
 			),
 			sql` `,
 		)}
 	end`;
 
-	return sql<MemberAccessSource>`coalesce(
+	return sql<MemberAccessOrigin>`coalesce(
 		(select ${directSource} from ${grant}
 			where ${grant.resourceType} = ${scope.resourceType}
 				and ${grant.resourceId} = ${scope.resourceId}
@@ -87,12 +87,12 @@ const accessSource = (params: {
 				and ${principal}
 			order by ${roleRank} desc, ${grant.createdAt} asc
 			limit 1),
-		(select ${RESOURCE_GRANT_SOURCE.PUBLIC} from ${dbSchema.resourceVisibility}
+		(select ${RESOURCE_GRANT_ORIGIN.PUBLIC} from ${dbSchema.resourceVisibility}
 			where ${dbSchema.resourceVisibility.resourceType} = ${scope.resourceType}
 				and ${dbSchema.resourceVisibility.resourceId} = ${scope.resourceId}
 				and ${dbSchema.resourceVisibility.visibility} = 'public'),
 		${inherited}
-	)`.mapWith((value) => memberAccessSourceSchema.parse(value));
+	)`.mapWith((value) => memberAccessOriginSchema.parse(value));
 };
 
 /** The strongest role the user holds on each resource, from SpiceDB. */
@@ -223,7 +223,7 @@ export const effectiveAccess = (
 			},
 		);
 
-		const source = accessSource({
+		const origin = accessOrigin({
 			userId,
 			groupIds: [
 				...groupMemberships.map((membership) => membership.groupId),
@@ -241,7 +241,7 @@ export const effectiveAccess = (
 			isNull(scope.endedAt),
 			readableClause,
 			search ? ilike(resourceName, search) : undefined,
-			filters?.source ? eq(source, filters.source) : undefined,
+			filters?.origin ? eq(origin, filters.origin) : undefined,
 		);
 
 		const orderBy = yield* buildOrderBy({
@@ -249,7 +249,7 @@ export const effectiveAccess = (
 			allowlist: {
 				resourceName,
 				resourceType: scope.resourceType,
-				source,
+				origin,
 			} satisfies Record<MemberAccessSortKey, SortExpression>,
 			defaultOrder: [
 				asc(resourceName),
@@ -268,7 +268,7 @@ export const effectiveAccess = (
 						resourceId: scope.resourceId,
 						resourceName,
 						blockType: dbSchema.block.type,
-						source,
+						origin,
 					})
 					.from(scope)
 					.leftJoin(
@@ -368,7 +368,7 @@ export const effectiveAccess = (
 			const entry = {
 				resourceId: row.resourceId,
 				resourceName: row.resourceName,
-				source: row.source,
+				origin: row.origin,
 				role: roles[row.resourceType].get(row.resourceId) ?? "viewer",
 			};
 

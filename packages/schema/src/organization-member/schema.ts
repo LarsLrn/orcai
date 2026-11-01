@@ -6,10 +6,10 @@ import {
 	assetResourceIdentitySchema,
 	blockResourceIdentitySchema,
 	botResourceIdentitySchema,
-	RESOURCE_GRANT_SOURCE,
+	RESOURCE_GRANT_ORIGIN,
 	type ResourceType,
+	resourceGrantOriginSchema,
 	resourceGrantRoleSchema,
-	resourceGrantSourceSchema,
 } from "../resource/schema";
 import { userIdSchema } from "../user/ref";
 
@@ -32,29 +32,29 @@ export const organizationMemberSchema = organizationMemberFieldsSchema.extend({
 	createdAt: z.coerce.date().nullable(),
 });
 
-export const MEMBER_ACCESS_SOURCE = {
-	...RESOURCE_GRANT_SOURCE,
+export const MEMBER_ACCESS_ORIGIN = {
+	...RESOURCE_GRANT_ORIGIN,
 	INHERITED_ORGANIZATION: "inherited:organization",
 } as const;
 
-export const inheritedSourceByResourceType: Record<
+export const inheritedOriginByResourceType: Record<
 	ResourceType,
-	| typeof MEMBER_ACCESS_SOURCE.INHERITED_ORGANIZATION
-	| z.infer<typeof resourceGrantSourceSchema>
+	| typeof MEMBER_ACCESS_ORIGIN.INHERITED_ORGANIZATION
+	| z.infer<typeof resourceGrantOriginSchema>
 > = {
-	bot: MEMBER_ACCESS_SOURCE.INHERITED_ORGANIZATION,
-	block: MEMBER_ACCESS_SOURCE.INHERITED_BOT,
-	asset: MEMBER_ACCESS_SOURCE.INHERITED_BLOCK,
+	bot: MEMBER_ACCESS_ORIGIN.INHERITED_ORGANIZATION,
+	block: MEMBER_ACCESS_ORIGIN.INHERITED_BOT,
+	asset: MEMBER_ACCESS_ORIGIN.INHERITED_BLOCK,
 };
 
-export const memberAccessSourceSchema = z.union([
-	resourceGrantSourceSchema,
-	z.literal(MEMBER_ACCESS_SOURCE.INHERITED_ORGANIZATION),
+export const memberAccessOriginSchema = z.union([
+	resourceGrantOriginSchema,
+	z.literal(MEMBER_ACCESS_ORIGIN.INHERITED_ORGANIZATION),
 ]);
 
 const memberAccessFields = {
 	role: resourceGrantRoleSchema,
-	source: memberAccessSourceSchema,
+	origin: memberAccessOriginSchema,
 	resourceName: z.string().nullable(),
 };
 
@@ -69,4 +69,4 @@ export const memberAccessEntrySchema = z.discriminatedUnion("resourceType", [
 
 export type OrganizationMember = z.infer<typeof organizationMemberSchema>;
 export type MemberAccessEntry = z.infer<typeof memberAccessEntrySchema>;
-export type MemberAccessSource = z.infer<typeof memberAccessSourceSchema>;
+export type MemberAccessOrigin = z.infer<typeof memberAccessOriginSchema>;

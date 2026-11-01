@@ -59,7 +59,7 @@ test("groups: a group grant opens a private block to the group's members", async
 	});
 	expect(granted.data).toHaveLength(1);
 	expect(granted.data[0]?.principal.type).toBe("group");
-	expect(granted.data[0]?.source).toBe("direct:group");
+	expect(granted.data[0]?.origin).toBe("direct:group");
 
 	const found = await api.as("viewer").block.find({
 		id: resourceId,
@@ -314,7 +314,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 	expect(grant).toBeDefined();
 	expect(grant?.principalType).toBe("group");
 	expect(grant?.role).toBe("editor");
-	expect(grant?.source).toBe("direct:group");
+	expect(grant?.origin).toBe("direct:group");
 	expect(grant?.principal.name).toBe(name);
 
 	// `listPrincipals` keeps reporting the group; the access manager is what
@@ -415,7 +415,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 	});
 	expect(outsiderGrant.data[0]?.principal.type).toBe("group");
 
-	// A grant to the system group is reported as the "All Members" source.
+	// A grant to the system group is reported with the all members origin.
 	const allMembers = await systemGroup(api.as("admin"));
 
 	await api.as("member").resource.grant({
@@ -437,7 +437,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 	const systemGrant = withSystemGroup.data.find(
 		(candidate) => String(candidate.principalId) === String(allMembers.id),
 	);
-	expect(systemGrant?.source).toBe("direct:group:all_members");
+	expect(systemGrant?.origin).toBe("direct:group:all_members");
 
 	// Every member of the organisation reads it through that group.
 	await api.as("viewer").block.find({

@@ -1,6 +1,6 @@
 import {
 	type InheritedAccess,
-	RESOURCE_GRANT_SOURCE,
+	RESOURCE_GRANT_ORIGIN,
 	type ResourceGrant,
 	type ResourceGrantRole,
 } from "@orcai/schema";
@@ -28,7 +28,7 @@ export const mergeAccess = (
 					}
 				: {}),
 			role: grant.role,
-			...(grant.source === RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS
+			...(grant.origin === RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS
 				? {
 						allMembers: true,
 					}

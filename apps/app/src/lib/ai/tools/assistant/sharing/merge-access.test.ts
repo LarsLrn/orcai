@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	type InheritedAccess,
-	RESOURCE_GRANT_SOURCE,
+	RESOURCE_GRANT_ORIGIN,
 	type ResourceGrant,
 	type ResourceGrantRole,
 } from "@orcai/schema";
@@ -64,12 +64,12 @@ const grant = (
 						systemKey: principal.allMembers ? "all_members" : null,
 						organizationId: principalId,
 					},
-		source:
+		origin:
 			principal.type === "user"
-				? RESOURCE_GRANT_SOURCE.DIRECT_USER
+				? RESOURCE_GRANT_ORIGIN.DIRECT_USER
 				: principal.allMembers
-					? RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS
-					: RESOURCE_GRANT_SOURCE.DIRECT_GROUP,
+					? RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS
+					: RESOURCE_GRANT_ORIGIN.DIRECT_GROUP,
 	} as ResourceGrant;
 };
 

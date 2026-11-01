@@ -5,9 +5,9 @@ import { botIdSchema } from "../bot/ref";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
 import {
+	libraryOriginSchema,
 	libraryScopeSchema,
 	librarySortSchema,
-	librarySourceSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
@@ -78,13 +78,13 @@ export const listBlocksInputSchema = paginationInputSchema.extend({
 			/** Published blocks unless given. */
 			status: publicationStatusFilterSchema.optional(),
 			scope: libraryScopeSchema.optional(),
-			source: librarySourceSchema.optional(),
+			origin: libraryOriginSchema.optional(),
 			...searchFilterSchema.shape,
 		})
 		.refine(
-			(filters) => !(filters.botId && (filters.scope || filters.source)),
+			(filters) => !(filters.botId && (filters.scope || filters.origin)),
 			{
-				message: "A bot's blocks have no scope or source",
+				message: "A bot's blocks have no scope or origin",
 				path: [
 					"scope",
 				],

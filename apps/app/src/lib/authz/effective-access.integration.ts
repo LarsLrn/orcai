@@ -140,7 +140,7 @@ const sharedBlocks = async () => {
 		);
 		return {
 			rows: data.map(
-				(entry) => `${entry.resourceName}:${entry.role}:${entry.source}`,
+				(entry) => `${entry.resourceName}:${entry.role}:${entry.origin}`,
 			),
 			rowCount,
 		};
@@ -155,7 +155,7 @@ const sharedBlocks = async () => {
 
 describe("effective access", () => {
 	test(
-		"lists each resource with its role and the strongest source, by name",
+		"lists each resource with its role and the strongest origin, by name",
 		async () => {
 			const { admin, listAccess } = await sharedBlocks();
 
@@ -179,7 +179,7 @@ describe("effective access", () => {
 			expect(
 				await listAccess(member, {
 					filters: {
-						source: "public",
+						origin: "public",
 					},
 				}),
 			).toEqual({

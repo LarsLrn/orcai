@@ -744,7 +744,7 @@ describe("the library with installs", () => {
 		"lists an installed repository from its home and loads its assets through it",
 		async () => {
 			const s = await catalogue();
-			const repositories = (source: "all" | "own" | "installed") =>
+			const repositories = (origin: "all" | "own" | "added") =>
 				s
 					.call(s.member, (options) =>
 						s.procedures.block.list(
@@ -753,7 +753,7 @@ describe("the library with installs", () => {
 								pageSize: 50,
 								filters: {
 									type: "database",
-									source,
+									origin,
 								},
 							},
 							options,
@@ -776,7 +776,7 @@ describe("the library with installs", () => {
 				},
 			];
 			expect(await repositories("all")).toEqual(listed);
-			expect(await repositories("installed")).toEqual(listed);
+			expect(await repositories("added")).toEqual(listed);
 			expect(await repositories("own")).toEqual([]);
 
 			const { data: assets } = await s.call(s.member, (options) =>

@@ -5,7 +5,7 @@ import type {
 } from "@orcai/schema";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	RESOURCE_GRANT_SOURCE,
+	RESOURCE_GRANT_ORIGIN,
 } from "@orcai/schema";
 import { Badge } from "@/components/ui/badge";
 import { m } from "@/paraglide/messages";
@@ -18,9 +18,9 @@ const isAllMembersGrant = (grant: ResourceGrant) =>
 	grant.principal.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
 
 const isDirectGrant = (grant: ResourceGrant) =>
-	grant.source === RESOURCE_GRANT_SOURCE.DIRECT_USER ||
-	grant.source === RESOURCE_GRANT_SOURCE.DIRECT_GROUP ||
-	grant.source === RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS;
+	grant.origin === RESOURCE_GRANT_ORIGIN.DIRECT_USER ||
+	grant.origin === RESOURCE_GRANT_ORIGIN.DIRECT_GROUP ||
+	grant.origin === RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS;
 
 /** States the All Members consequence from the grants a bot already holds. */
 const describeAllMembersAccess = (grants: ResourceGrant[]) => {

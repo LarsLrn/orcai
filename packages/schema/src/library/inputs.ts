@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import {
+	libraryOriginSchema,
 	libraryScopeSchema,
 	librarySortSchema,
-	librarySourceSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
 
@@ -22,8 +22,8 @@ export const searchLibraryInputSchema = paginationInputSchema.extend({
 	...zedTokenSchema.shape,
 	search: z.string().optional(),
 	scope: libraryScopeSchema.default("all"),
-	/** Assets are never added from the catalogue: "installed" leaves them out. */
-	source: librarySourceSchema.default("all"),
+	/** Assets are never added from the Catalogue: "added" leaves them out. */
+	origin: libraryOriginSchema.default("all"),
 	/** Assets have no status: drafts leave them out. */
 	status: publicationStatusFilterSchema.default("all"),
 	sort: librarySortSchema.default("newest"),

@@ -148,7 +148,7 @@ export const resourcePrincipalSchema = z.discriminatedUnion("type", [
 	groupPrincipalSchema,
 ]);
 
-export const RESOURCE_GRANT_SOURCE = {
+export const RESOURCE_GRANT_ORIGIN = {
 	DIRECT_USER: "direct:user",
 	DIRECT_GROUP: "direct:group",
 	DIRECT_GROUP_ALL_MEMBERS: "direct:group:all_members",
@@ -157,25 +157,25 @@ export const RESOURCE_GRANT_SOURCE = {
 	PUBLIC: "public",
 } as const;
 
-export const resourceGrantSourceSchema = z.enum([
-	RESOURCE_GRANT_SOURCE.DIRECT_USER,
-	RESOURCE_GRANT_SOURCE.DIRECT_GROUP,
-	RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS,
-	RESOURCE_GRANT_SOURCE.INHERITED_BOT,
-	RESOURCE_GRANT_SOURCE.INHERITED_BLOCK,
-	RESOURCE_GRANT_SOURCE.PUBLIC,
+export const resourceGrantOriginSchema = z.enum([
+	RESOURCE_GRANT_ORIGIN.DIRECT_USER,
+	RESOURCE_GRANT_ORIGIN.DIRECT_GROUP,
+	RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS,
+	RESOURCE_GRANT_ORIGIN.INHERITED_BOT,
+	RESOURCE_GRANT_ORIGIN.INHERITED_BLOCK,
+	RESOURCE_GRANT_ORIGIN.PUBLIC,
 ]);
 
-export const directGrantSourceSchema = z.enum([
-	RESOURCE_GRANT_SOURCE.DIRECT_USER,
-	RESOURCE_GRANT_SOURCE.DIRECT_GROUP,
-	RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS,
+export const directGrantOriginSchema = z.enum([
+	RESOURCE_GRANT_ORIGIN.DIRECT_USER,
+	RESOURCE_GRANT_ORIGIN.DIRECT_GROUP,
+	RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS,
 ]);
 
 export const resourceGrantSchema = createResourceScopedSchema({
 	...resourceGrantFieldsSchema,
 	principal: resourcePrincipalSchema,
-	source: directGrantSourceSchema,
+	origin: directGrantOriginSchema,
 });
 
 /** A bot or block a resource hangs off, whose grants cascade down to it. */
@@ -294,10 +294,10 @@ export type ResourceGrantRole = z.infer<typeof resourceGrantRoleSchema>;
 export type ResourceVisibility = z.infer<typeof resourceVisibilitySchema>;
 export type ListingImpact = z.infer<typeof listingImpactSchema>;
 export type PrincipalType = z.infer<typeof principalTypeSchema>;
-export type ResourceGrantSource = z.infer<typeof resourceGrantSourceSchema>;
+export type ResourceGrantOrigin = z.infer<typeof resourceGrantOriginSchema>;
 export type ResourceOwner = z.infer<typeof resourceOwnerSchema>;
 export type SourceOrganization = z.infer<typeof sourceOrganizationSchema>;
-export type DirectGrantSource = z.infer<typeof directGrantSourceSchema>;
+export type DirectGrantOrigin = z.infer<typeof directGrantOriginSchema>;
 export type ResourceRef = z.infer<typeof resourceRefSchema>;
 export type ResourceIdentity = z.infer<typeof resourceIdentitySchema>;
 export type ResourceGrant = z.infer<typeof resourceGrantSchema>;
