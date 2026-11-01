@@ -1,4 +1,4 @@
-import { blockIdSchema } from "@orcai/schema";
+import { assetOriginSchema, blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import {
@@ -15,15 +15,20 @@ const findAssetsInputSchema = z.strictObject({
 	repositoryId: blockIdSchema
 		.optional()
 		.describe("Only assets attached to this repository, from findBlocks."),
+	origin: assetOriginSchema
+		.optional()
+		.describe(
+			"library for Library assets only, the ones a repository accepts. chat for chat uploads only. Leave out for both.",
+		),
 	limit: listLimitSchema,
 });
 
 export const findAssetsTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find assets (uploaded documents) by title among those the user can read, optionally only those attached to one repository. Without a query it lists them all, newest first. Origin chat marks a file uploaded in a chat rather than to the library.",
+			"Find assets (uploaded documents) by title among those the user can read, optionally only those attached to one repository. Without a query it lists them all, newest first. Origin chat marks a chat upload: it stays out of repositories until someone adds it to the Library.",
 		inputSchema: findAssetsInputSchema,
-		run: ({ query, repositoryId, limit }) =>
+		run: ({ query, repositoryId, origin, limit }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.asset.list(
 					{
@@ -31,6 +36,7 @@ export const findAssetsTool = (deps: AssistantToolDeps) =>
 						filters: {
 							search: query,
 							repositoryId,
+							origin,
 						},
 					},
 					options,

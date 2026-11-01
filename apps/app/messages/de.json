@@ -3170,6 +3170,7 @@
 	"error_bot_repository_empty": "Fügen Sie „{blockName}“ mindestens ein Asset hinzu, bevor Sie veröffentlichen.",
 	"error_bot_repository_not_ready": "Setzen Sie „{blockName}“ auf Veröffentlicht, bevor Sie diesen Bot veröffentlichen.",
 	"error_bot_setup_forbidden": "Nur Personen, die den Bot in seiner Heimatorganisation bearbeiten können, oder, wo er aus dem Katalog hinzugefügt wurde, Admins und Manager können sein Modell hier ändern.",
+	"error_chat_upload_not_in_library": "Chat-Uploads können nicht in ein Repository. Fügen Sie das Asset zuerst zur Bibliothek hinzu.",
 	"error_install_grants_viewer_only": "Bots und Blöcke aus dem Katalog können nur zur Nutzung freigegeben werden, nicht zum Bearbeiten oder Verwalten.",
 	"error_chat_blocks_unavailable": "Die Blöcke dieses Chats konnten nicht geladen werden.",
 	"error_chat_bot_blocks_immutable": "Die Blöcke eines mit einem Bot verknüpften Chats können nicht direkt geändert werden.",

@@ -111,6 +111,30 @@ export const replaceBlockAssets = (params: {
 		const addedIds = Arr.difference(assetIds, previousAssetIds);
 		const removedIds = Arr.difference(previousAssetIds, assetIds);
 
+		// Chat uploads stay personal, so only Library assets join a repository.
+		const [chatUpload] =
+			addedIds.length > 0
+				? yield* db
+						.select({
+							id: dbSchema.asset.id,
+						})
+						.from(dbSchema.asset)
+						.where(
+							and(
+								inArray(dbSchema.asset.id, addedIds),
+								eq(dbSchema.asset.origin, "chat"),
+							),
+						)
+						.limit(1)
+				: [];
+		if (chatUpload)
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: "CHAT_UPLOAD_NOT_IN_LIBRARY",
+					message: "Only Library assets can be linked to a repository.",
+				}),
+			);
+
 		const link = {
 			assetId: dbSchema.blockAsset.assetId,
 			blockId: dbSchema.blockAsset.blockId,
