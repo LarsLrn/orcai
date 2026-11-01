@@ -1,23 +1,22 @@
 import { describe, expect, test } from "bun:test";
-import { v1 } from "@authzed/authzed-node";
 import type { BlockId, GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
-import { SpiceDbService, type TupleMutation } from "@orcai/spice-db";
+import type { TupleMutation } from "@orcai/spice-db";
 import { createUser } from "@orcai/testing";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
-import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
 import * as TestClock from "effect/testing/TestClock";
 import {
 	authzIntegration,
+	failingWritesAbout,
 	queueBehindOrganizationLock,
+	rolledBack,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
 import {
-	AuthzLive,
 	AuthzService,
 	enqueueRelationshipMutations,
 } from "@/lib/effect/services/authz";
@@ -73,33 +72,6 @@ const outboxStates = (eventIds: readonly string[]) =>
 				retrying: row?.retrying,
 			};
 		});
-	});
-
-class RolledBack extends Data.TaggedError("RolledBack")<{
-	readonly value: unknown;
-}> {}
-
-/** Runs `body` in a transaction that is rolled back, returning its value. */
-const rolledBack = <A, E, R>(body: Effect.Effect<A, E, R>) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		return yield* db
-			.transaction(() =>
-				Effect.flatMap(body, (value) =>
-					Effect.fail(
-						new RolledBack({
-							value,
-						}),
-					),
-				),
-			)
-			.pipe(
-				Effect.catch((error) =>
-					error instanceof RolledBack
-						? Effect.succeed(error.value as A)
-						: Effect.fail(error),
-				),
-			);
 	});
 
 const allMembersGroupOf = (organizationId: OrganizationId) =>
@@ -452,67 +424,6 @@ describe("ordered delivery", () => {
 });
 
 describe("failed delivery", () => {
-	/**
-	 * A SpiceDB whose writes about `subjectId` fail until `recover` is called:
-	 * sent to a closed port, or naming a relation the schema lacks.
-	 */
-	const failingWritesAbout = (
-		subjectId: UserId,
-		failure: "unavailable" | "schema not applied",
-	) => {
-		const unreachable = v1.NewClient(
-			"unreachable",
-			"127.0.0.1:1",
-			v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
-		).promises;
-		let failing = true;
-		const spiceDb = Layer.effect(
-			SpiceDbService,
-			Effect.gen(function* () {
-				const { spice } = yield* SpiceDbService;
-				const writeRelationships = (request: v1.WriteRelationshipsRequest) => {
-					if (
-						!failing ||
-						!request.updates.some(
-							(update) =>
-								update.relationship?.subject?.object?.objectId === subjectId,
-						)
-					)
-						return spice.writeRelationships(request);
-					if (failure === "unavailable")
-						return unreachable.writeRelationships(request);
-					return spice.writeRelationships({
-						...request,
-						updates: request.updates.map((update) => ({
-							...update,
-							relationship: update.relationship && {
-								...update.relationship,
-								relation: "not_yet_in_schema",
-							},
-						})),
-					});
-				};
-				return {
-					spice: new Proxy(spice, {
-						get: (target, key) =>
-							key === "writeRelationships"
-								? writeRelationships
-								: Reflect.get(target, key),
-					}),
-				};
-			}),
-		);
-		return {
-			authz: Layer.fresh(AuthzLive).pipe(Layer.provide(spiceDb)),
-			recover: () => {
-				failing = false;
-			},
-			close: () => {
-				unreachable.close();
-			},
-		};
-	};
-
 	const capturedLogs = () => {
 		const lines: {
 			level: string;
