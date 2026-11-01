@@ -17,6 +17,7 @@ import { useSelector } from "@tanstack/react-store";
 import { PlusIcon, XIcon } from "lucide-react";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import { CompactBlockTile } from "@/components/blocks/block-tile";
 import { CompactBotTile } from "@/components/bot/bot-tile";
@@ -234,16 +235,19 @@ const ChatConfigEditor = ({
 						</p>
 					</>
 				) : (
-					<form.AppField
-						name="systemPrompt"
-						children={(field) => (
-							<field.TextareaField
-								label={m.chat_settings_system_prompt_label()}
-								placeholder={m.chat_settings_system_prompt_placeholder()}
-								rows={4}
-							/>
-						)}
-					/>
+					<>
+						<form.AppField
+							name="systemPrompt"
+							children={(field) => (
+								<field.TextareaField
+									label={m.chat_settings_system_prompt_label()}
+									placeholder={m.authoring_behaviour_example()}
+									rows={4}
+								/>
+							)}
+						/>
+						<BehaviourDocsLink />
+					</>
 				)}
 			</div>
 

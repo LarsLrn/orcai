@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
 import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
+import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
 import {
 	type BotEditorFormValues,
 	createDefaultBuilderDatabaseBlock,
@@ -74,14 +75,6 @@ import { formatList } from "@/lib/presentation/format-list";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-
-const EXAMPLE_SYSTEM_PROMPT = `You are the course assistant for this module.
-
-Answer only from the repositories attached to you, and name the document each answer came from. If the material does not cover the question, say so and point the person to the course team.
-
-Keep answers short and plain. Use British English.
-
-Refuse anything outside the course material: do not grade work, do not predict marks, and do not give personal, legal or medical advice.`;
 
 const revealStep = (node: HTMLButtonElement | null) => {
 	node?.scrollIntoView({
@@ -710,11 +703,12 @@ const BotEditorShell = ({
 													children={(field) => (
 														<field.TextareaField
 															label={m.authoring_behaviour_system_prompt_label()}
-															placeholder={EXAMPLE_SYSTEM_PROMPT}
+															placeholder={m.authoring_behaviour_example()}
 															rows={12}
 														/>
 													)}
 												/>
+												<BehaviourDocsLink />
 												<div className="flex flex-wrap items-center gap-3">
 													<Button
 														variant="outline"
@@ -725,7 +719,7 @@ const BotEditorShell = ({
 														onClick={() =>
 															form.setFieldValue(
 																"templateBlock.config.systemPrompt",
-																EXAMPLE_SYSTEM_PROMPT,
+																m.authoring_behaviour_example(),
 															)
 														}
 													>
