@@ -3170,6 +3170,7 @@
 	"error_bot_repository_empty": "Attach at least one asset to \"{blockName}\" before publishing.",
 	"error_bot_repository_not_ready": "Set \"{blockName}\" to Published before publishing this bot.",
 	"error_bot_setup_forbidden": "Only people who can edit the bot in its home organisation, or admins and managers where it was added from the Catalogue, can change its model here.",
+	"error_chat_upload_not_in_library": "Chat uploads cannot go into a repository. Add the asset to the Library first.",
 	"error_install_grants_viewer_only": "Bots and blocks added from the Catalogue can be shared for use only, not for editing or managing.",
 	"error_chat_blocks_unavailable": "The blocks of this chat could not be loaded.",
 	"error_chat_bot_blocks_immutable": "The blocks of a chat linked to a bot cannot be changed directly.",

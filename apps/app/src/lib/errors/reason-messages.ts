@@ -92,6 +92,7 @@ const reasonMessages: ReasonMessages = {
 	CHAT_TOOL_OUTPUT_INVALID: m.error_chat_tool_output_invalid,
 	CHAT_TURN_DECISIONS_INCOMPLETE: m.error_chat_turn_decisions_incomplete,
 	CHAT_TURN_NOT_AWAITING: m.error_chat_turn_not_awaiting,
+	CHAT_UPLOAD_NOT_IN_LIBRARY: m.error_chat_upload_not_in_library,
 	CURRENT_PASSWORD_INCORRECT: m.error_current_password_incorrect,
 	DATA_EXPORT_IN_PROGRESS: m.error_data_export_in_progress,
 	DEFAULT_REFERENCES_OUT_OF_RANGE: m.error_default_references_out_of_range,

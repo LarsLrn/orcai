@@ -268,6 +268,74 @@ describe("repository asset links", () => {
 	);
 });
 
+describe("chat uploads in repositories", () => {
+	test(
+		"a chat upload is refused until it is added to the Library",
+		async () => {
+			const {
+				owner,
+				organizationId,
+				assets: [held],
+				blockId,
+				zedToken,
+			} = await repositoryWith(1);
+			const upload = await createAsset(owner, organizationId);
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.asset)
+						.set({
+							origin: "chat",
+						})
+						.where(eq(dbSchema.asset.id, upload.asset.id));
+				}),
+			);
+			const procedures = await run(Procedures);
+			const link = async () =>
+				run(
+					procedures.block.update(
+						{
+							id: blockId,
+							...repository([
+								held,
+								upload.asset.id,
+							]),
+						},
+						await procedureOptions(owner, upload.zedToken ?? zedToken),
+					),
+				);
+
+			expect(
+				await link().then(
+					() => undefined,
+					(error: unknown) => error,
+				),
+			).toMatchObject({
+				reason: "CHAT_UPLOAD_NOT_IN_LIBRARY",
+			});
+			expect(await links(blockId)).toEqual({
+				[held]: "pending",
+			});
+
+			await run(
+				procedures.asset.addToLibrary(
+					{
+						id: upload.asset.id,
+					},
+					await procedureOptions(owner, upload.zedToken ?? zedToken),
+				),
+			);
+			await link();
+
+			expect(await links(blockId)).toEqual({
+				[held]: "pending",
+				[upload.asset.id]: "pending",
+			});
+		},
+		TIMEOUT,
+	);
+});
+
 describe("reset rules", () => {
 	test(
 		"reprocessing turns the asset and every link pending, once",

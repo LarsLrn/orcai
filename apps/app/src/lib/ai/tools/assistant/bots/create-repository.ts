@@ -33,7 +33,9 @@ export const createRepositoryInputSchema = z.strictObject({
 	assetIds: z
 		.array(assetIdSchema)
 		.optional()
-		.describe("Ids of the assets the repository holds, from findAssets."),
+		.describe(
+			"Ids of the Library assets the repository holds, from findAssets with origin library.",
+		),
 });
 
 export const createRepositoryTool = (deps: AssistantToolDeps) =>
