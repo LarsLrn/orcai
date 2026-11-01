@@ -22,7 +22,7 @@ describe("editor extensions", () => {
 		expect(warnings.filter((w) => w.includes("Duplicate"))).toEqual([]);
 		expect(names).toContain("link");
 		expect(names).toContain("underline");
-		expect(names).toContain("image");
+		expect(names).not.toContain("image");
 	});
 
 	test("a description written with every tool is a valid stored description", () => {

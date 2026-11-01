@@ -302,23 +302,6 @@
 	background-color: var(--editor-bg-subtle);
 }
 
-/* Images */
-.ProseMirror img {
-	max-width: 100%;
-	height: auto;
-	border-radius: 8px;
-	border: 1px solid var(--editor-border-default);
-	box-shadow: var(--editor-shadow-sm);
-	transition: all var(--editor-transition-normal);
-	display: block;
-	margin: var(--editor-spacing-1) auto;
-}
-
-.ProseMirror img:hover {
-	box-shadow: var(--editor-shadow-lg);
-	transform: translateY(-2px);
-}
-
 /* Horizontal Rule */
 .ProseMirror hr {
 	margin: var(--editor-spacing-8) 0;

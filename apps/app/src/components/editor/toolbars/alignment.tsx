@@ -31,9 +31,6 @@ export const AlignmentTooolbar = () => {
 		editor?.chain().focus().setTextAlign(value).run();
 	};
 
-	const isDisabled =
-		editor?.isActive("image") ?? editor?.isActive("video") ?? false;
-
 	const currentTextAlign = () => {
 		if (
 			editor?.isActive({
@@ -122,7 +119,6 @@ export const AlignmentTooolbar = () => {
 				<TooltipTrigger
 					render={
 						<DropdownMenuTrigger
-							disabled={isDisabled}
 							render={
 								<Button
 									type="button"
