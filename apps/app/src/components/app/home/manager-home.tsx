@@ -53,7 +53,7 @@ const CreateBotAction = () => {
 	);
 };
 
-/** Pool amounts are for people who manage quotas; everyone else sees their share in chat. */
+/** Pool amounts are for people who manage quota pools; everyone else sees their share in chat. */
 const QuotaPanelSlot = () => {
 	const { data } = useOrganizationCapabilities();
 

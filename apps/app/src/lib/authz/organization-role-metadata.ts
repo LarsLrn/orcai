@@ -30,7 +30,7 @@ const organizationPermissionLabels: Record<
 	create_asset: m.orgs_permission_create_asset_label,
 	manage_providers: m.orgs_permission_manage_providers_label,
 	manage_models: m.orgs_permission_manage_models_label,
-	manage_quotas: m.orgs_permission_manage_quotas_label,
+	manage_quotas: m.orgs_permission_manage_quota_pools_label,
 	view_analytics: m.orgs_permission_view_analytics_label,
 	install_resource: m.orgs_permission_install_resource_label,
 };

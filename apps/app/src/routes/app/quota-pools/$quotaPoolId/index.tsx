@@ -61,7 +61,7 @@ import { useAppForm } from "@/hooks/form";
 import {
 	useDeactivateQuotaPoolMutation,
 	useUpdateQuotaPoolMutation,
-} from "@/hooks/mutations/use-quota-mutations";
+} from "@/hooks/mutations/use-quota-pool-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatNumber } from "@/lib/presentation/format-number";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
@@ -104,7 +104,7 @@ const eventsInput = (
 	sort,
 });
 
-export const Route = createFileRoute("/app/quotas/$quotaPoolId/")({
+export const Route = createFileRoute("/app/quota-pools/$quotaPoolId/")({
 	validateSearch: searchSchema,
 	search: {
 		middlewares: [
@@ -120,7 +120,7 @@ export const Route = createFileRoute("/app/quotas/$quotaPoolId/")({
 		await Promise.all([
 			orNotFound(
 				queryClient.query(
-					orpc.quota.find.queryOptions({
+					orpc.quotaPool.find.queryOptions({
 						input: {
 							id: quotaPoolId,
 						},
@@ -129,7 +129,7 @@ export const Route = createFileRoute("/app/quotas/$quotaPoolId/")({
 				),
 			),
 			queryClient.query(
-				orpc.quota.listEvents.queryOptions({
+				orpc.quotaPool.listEvents.queryOptions({
 					input: eventsInput(quotaPoolId, deps),
 					staleTime: "static",
 				}),
@@ -145,7 +145,7 @@ function RouteComponent() {
 	const search = Route.useSearch();
 
 	const { data } = useSuspenseQuery(
-		orpc.quota.find.queryOptions({
+		orpc.quotaPool.find.queryOptions({
 			input: {
 				id: quotaPoolId,
 			},
@@ -153,7 +153,7 @@ function RouteComponent() {
 	);
 
 	const { data: events } = useSuspenseQuery(
-		orpc.quota.listEvents.queryOptions({
+		orpc.quotaPool.listEvents.queryOptions({
 			input: eventsInput(quotaPoolId, search),
 		}),
 	);
@@ -214,11 +214,11 @@ function RouteComponent() {
 					actions={[
 						{
 							key: "edit",
-							label: m.quotas_detail_edit_button(),
+							label: m.quota_pools_detail_edit_button(),
 							icon: EditIcon,
 							variant: "default",
 							linkProps: {
-								to: "/app/quotas/$quotaPoolId/edit",
+								to: "/app/quota-pools/$quotaPoolId/edit",
 								params: {
 									quotaPoolId: data.data.id,
 								},
@@ -226,7 +226,7 @@ function RouteComponent() {
 						},
 						data.data.isActive && {
 							key: "deactivate",
-							label: m.quotas_detail_deactivate_button(),
+							label: m.quota_pools_detail_deactivate_button(),
 							icon: PowerOffIcon,
 							destructive: true,
 							loading: deactivatePool.isPending,
@@ -242,13 +242,15 @@ function RouteComponent() {
 				<div className="space-y-6 lg:col-span-2">
 					<Card>
 						<CardHeader>
-							<CardTitle>{m.quotas_detail_current_usage_title()}</CardTitle>
+							<CardTitle>
+								{m.quota_pools_detail_current_usage_title()}
+							</CardTitle>
 						</CardHeader>
 						<CardContent className="@container">
 							<div className="grid @2xl:grid-cols-4 @sm:grid-cols-2 gap-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										{m.quotas_detail_budget_metric_label()}
+										{m.quota_pools_detail_budget_metric_label()}
 									</div>
 									<div className="font-semibold text-lg">
 										{formatNumber(data.data.currentLedger?.budgetAmount)}
@@ -256,7 +258,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										{m.quotas_detail_consumed_metric_label()}
+										{m.quota_pools_detail_consumed_metric_label()}
 									</div>
 									<QuotaConsumption
 										className="font-semibold text-lg"
@@ -267,7 +269,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										{m.quotas_detail_reserved_metric_label()}
+										{m.quota_pools_detail_reserved_metric_label()}
 									</div>
 									<div className="font-semibold text-lg">
 										{formatNumber(data.data.currentLedger?.reservedAmount)}
@@ -275,7 +277,7 @@ function RouteComponent() {
 								</div>
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
-										{m.quotas_detail_remaining_metric_label()}
+										{m.quota_pools_detail_remaining_metric_label()}
 									</div>
 									<QuotaRemaining
 										className="font-semibold text-lg"
@@ -290,7 +292,9 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>{m.quotas_detail_adjust_budget_title()}</CardTitle>
+							<CardTitle>
+								{m.quota_pools_detail_adjust_budget_title()}
+							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<form
@@ -305,17 +309,17 @@ function RouteComponent() {
 										name="budgetAmount"
 										children={(field) => (
 											<field.TextField
-												label={m.quotas_detail_new_budget_label()}
+												label={m.quota_pools_detail_new_budget_label()}
 												type="number"
 												min={1}
-												description={m.quotas_detail_new_budget_description()}
+												description={m.quota_pools_detail_new_budget_description()}
 											/>
 										)}
 									/>
 								</div>
 								<budgetForm.AppForm>
 									<budgetForm.SubmitButton
-										label={m.quotas_detail_update_budget_button()}
+										label={m.quota_pools_detail_update_budget_button()}
 									/>
 								</budgetForm.AppForm>
 							</form>
@@ -324,9 +328,11 @@ function RouteComponent() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>{m.quotas_detail_eligible_groups_title()}</CardTitle>
+							<CardTitle>
+								{m.quota_pools_detail_eligible_groups_title()}
+							</CardTitle>
 							<CardDescription>
-								{m.quotas_detail_eligible_groups_description()}
+								{m.quota_pools_detail_eligible_groups_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -345,9 +351,11 @@ function RouteComponent() {
 
 				<Section className="gap-4 lg:col-span-3">
 					<SectionHeader>
-						<SectionTitle>{m.quotas_detail_usage_events_title()}</SectionTitle>
+						<SectionTitle>
+							{m.quota_pools_detail_usage_events_title()}
+						</SectionTitle>
 						<SectionDescription>
-							{m.quotas_detail_usage_events_description()}
+							{m.quota_pools_detail_usage_events_description()}
 						</SectionDescription>
 					</SectionHeader>
 					<DataTable
@@ -367,10 +375,10 @@ function RouteComponent() {
 					>
 						<DataTableToolbar>
 							<DataTableSearch
-								placeholder={m.quotas_events_search_placeholder()}
+								placeholder={m.quota_pools_events_search_placeholder()}
 							/>
 							<DataTableSelectFilter
-								label={m.quotas_detail_event_column_header()}
+								label={m.quota_pools_detail_event_column_header()}
 								value={search.eventType}
 								options={quotaUsageEventTypeOptions()}
 								onChange={(eventType) =>
@@ -390,8 +398,8 @@ function RouteComponent() {
 						<DataTableBody
 							empty={{
 								Icon: ReceiptTextIcon,
-								title: m.quotas_events_empty_title(),
-								description: m.quotas_events_empty_description(),
+								title: m.quota_pools_events_empty_title(),
+								description: m.quota_pools_events_empty_description(),
 							}}
 							filters={{
 								query: search.query,

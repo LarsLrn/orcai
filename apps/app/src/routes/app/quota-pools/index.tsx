@@ -22,7 +22,7 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/quotas/")({
+export const Route = createFileRoute("/app/quota-pools/")({
 	validateSearch: quotaPoolListInputSchema.extend(paginationSearchShape),
 	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/app/quotas/")({
 		deps: { pageIndex, pageSize, sort },
 	}) => {
 		await queryClient.query(
-			orpc.quota.list.queryOptions({
+			orpc.quotaPool.list.queryOptions({
 				input: {
 					pageIndex,
 					pageSize,
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/app/quotas/")({
 function RouteComponent() {
 	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: pools } = useSuspenseQuery(
-		orpc.quota.list.queryOptions({
+		orpc.quotaPool.list.queryOptions({
 			input: {
 				pageIndex,
 				pageSize,
@@ -62,15 +62,15 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{m.quotas_index_page_title()}</PageTitle>
+				<PageTitle>{m.quota_pools_index_page_title()}</PageTitle>
 				<PageAction>
 					<Link
-						to="/app/quotas/add"
+						to="/app/quota-pools/add"
 						className={buttonVariants({
 							variant: "default",
 						})}
 					>
-						{m.quotas_index_add_button()}
+						{m.quota_pools_index_add_button()}
 					</Link>
 				</PageAction>
 			</PageHeader>
@@ -96,16 +96,16 @@ function RouteComponent() {
 					<DataTableBody
 						empty={{
 							Icon: GaugeIcon,
-							title: m.quotas_index_empty_title(),
-							description: m.quotas_index_empty_description(),
+							title: m.quota_pools_index_empty_title(),
+							description: m.quota_pools_index_empty_description(),
 							actions: [
 								{
 									key: "add",
-									label: m.quotas_index_add_button(),
+									label: m.quota_pools_index_add_button(),
 									icon: PlusIcon,
 									variant: "default",
 									linkProps: {
-										to: "/app/quotas/add",
+										to: "/app/quota-pools/add",
 									},
 								},
 							],

@@ -3,7 +3,6 @@ import { DB, dbSchema } from "@orcai/db";
 import {
 	createQuotaPool as createQuotaPoolCommand,
 	deactivateQuotaPool as deactivateQuotaPoolCommand,
-	resolveQuotaPool,
 	updateQuotaPool as updateQuotaPoolCommand,
 	type WriteQuotaPoolResult,
 } from "@orcai/quota";
@@ -19,7 +18,6 @@ import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
-import { usedShareOf } from "@/lib/presentation/quota-share";
 import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
@@ -102,7 +100,7 @@ const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
 		};
 	});
 
-const listQuotaPools = authed.quota.list
+const listQuotaPools = authed.quotaPool.list
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -197,7 +195,7 @@ const listQuotaPools = authed.quota.list
 		};
 	});
 
-const findQuotaPool = authed.quota.find
+const findQuotaPool = authed.quotaPool.find
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -281,7 +279,7 @@ const findQuotaPool = authed.quota.find
 		};
 	});
 
-const listQuotaUsageEvents = authed.quota.listEvents
+const listQuotaUsageEvents = authed.quotaPool.listEvents
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -376,7 +374,7 @@ const listQuotaUsageEvents = authed.quota.listEvents
 		};
 	});
 
-const createQuotaPool = authed.quota.create
+const createQuotaPool = authed.quotaPool.create
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -404,7 +402,7 @@ const createQuotaPool = authed.quota.create
 		};
 	});
 
-const updateQuotaPool = authed.quota.update
+const updateQuotaPool = authed.quotaPool.update
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -423,7 +421,7 @@ const updateQuotaPool = authed.quota.update
 		};
 	});
 
-const deactivateQuotaPool = authed.quota.deactivate
+const deactivateQuotaPool = authed.quotaPool.deactivate
 	.use(requireOrganizationPermission("manage_quotas"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -447,62 +445,11 @@ const deactivateQuotaPool = authed.quota.deactivate
 		};
 	});
 
-const quotaStatus = authed.quota.status
-	.use(requireOrganizationPermission("read"))
-	.effect(function* ({ input, context }) {
-		const organizationId = context.auth.session.activeOrganizationId;
-		const [model] = yield* (yield* DB)
-			.select({
-				id: dbSchema.model.id,
-			})
-			.from(dbSchema.model)
-			.innerJoin(
-				dbSchema.provider,
-				eq(dbSchema.provider.id, dbSchema.model.providerId),
-			)
-			.where(
-				and(
-					eq(dbSchema.model.id, input.modelId),
-					eq(dbSchema.provider.id, input.providerId),
-					eq(dbSchema.provider.organizationId, organizationId),
-				),
-			)
-			.limit(1);
-		if (!model) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					reason: "MODEL_NOT_FOUND",
-					message: "Model not found for this provider",
-				}),
-			);
-		}
-
-		const { winningPool } = yield* resolveQuotaPool({
-			organizationId,
-			userId: context.auth.user.id,
-			providerId: input.providerId,
-			modelId: input.modelId,
-		});
-
-		return {
-			data: {
-				available: winningPool !== null,
-				pool: winningPool && {
-					id: winningPool.pool.id,
-					name: winningPool.pool.name,
-					usedShare: usedShareOf(winningPool.ledger),
-					periodEndsAt: winningPool.period.endsAt,
-				},
-			},
-		};
-	});
-
-export const quotaRouter = {
+export const quotaPoolRouter = {
 	list: listQuotaPools,
 	create: createQuotaPool,
 	find: findQuotaPool,
 	listEvents: listQuotaUsageEvents,
 	update: updateQuotaPool,
 	deactivate: deactivateQuotaPool,
-	status: quotaStatus,
 };

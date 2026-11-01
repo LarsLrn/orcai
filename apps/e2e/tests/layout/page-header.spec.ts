@@ -41,7 +41,7 @@ for (const width of WIDTHS) {
 			(candidate) => candidate.systemKey === "all_members",
 		);
 		if (!allMembers) throw new Error("Missing All Members group");
-		const pool = await admin.quota.create({
+		const pool = await admin.quotaPool.create({
 			name: `${LONG("Q")}${run}`,
 			providerId: provider.data.id,
 			periodType: "monthly",
@@ -62,13 +62,13 @@ for (const width of WIDTHS) {
 			"/app/groups",
 			"/app/models",
 			"/app/providers",
-			"/app/quotas",
+			"/app/quota-pools",
 			"/app/members",
 			"/app/chat",
 			"/app/analytics",
 			`/app/groups/${group.data.id}`,
 			`/app/providers/${provider.data.id}`,
-			`/app/quotas/${pool.data.id}`,
+			`/app/quota-pools/${pool.data.id}`,
 		];
 		for (const path of paths) {
 			await open(page, path);

@@ -376,7 +376,7 @@ test("web-search: a search provider without a quota pool shows a warning that en
 		notice(page).getByRole("link", {
 			name: message("providers_search_pool_notice_action"),
 		}),
-	).toHaveAttribute("href", "/app/quotas/add");
+	).toHaveAttribute("href", "/app/quota-pools/add");
 
 	await openGuarded(page, `/app/providers/${search.id}`, search.name);
 	await expect(notice(page)).toBeVisible();
@@ -388,7 +388,7 @@ test("web-search: a search provider without a quota pool shows a warning that en
 		})
 	).data.find((group) => group.systemKey === "all_members");
 	if (!allMembers) throw new Error("Missing All Members group");
-	await admin.quota.create({
+	await admin.quotaPool.create({
 		name: chatName("Search Pool"),
 		providerId: search.id,
 		periodType: "monthly",

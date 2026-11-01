@@ -108,7 +108,7 @@ export const setUpChatModel = async (
 	);
 	if (!allMembers) throw new Error("Missing All Members group");
 
-	await admin.quota.create({
+	await admin.quotaPool.create({
 		name: chatName("Pool"),
 		providerId,
 		periodType: "monthly",

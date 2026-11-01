@@ -38,7 +38,7 @@ import { Route as AppMembersRouteRouteImport } from './routes/app/members/route'
 import { Route as AppModelsRouteRouteImport } from './routes/app/models/route'
 import { Route as AppOrganizationRouteRouteImport } from './routes/app/organization/route'
 import { Route as AppProvidersRouteRouteImport } from './routes/app/providers/route'
-import { Route as AppQuotasRouteRouteImport } from './routes/app/quotas/route'
+import { Route as AppQuotaPoolsRouteRouteImport } from './routes/app/quota-pools/route'
 import { Route as InstanceIndexRouteImport } from './routes/instance/index'
 import { Route as PathlessLayoutHistoryIndexRouteImport } from './routes/_pathlessLayout/history/index'
 import { Route as PathlessLayoutHistoryChatIdRouteImport } from './routes/_pathlessLayout/history/$chatId'
@@ -78,9 +78,9 @@ import { Route as AppOrganizationsOrganizationIdRouteImport } from './routes/app
 import { Route as AppProvidersIndexRouteImport } from './routes/app/providers/index'
 import { Route as AppProvidersProviderIdRouteRouteImport } from './routes/app/providers/$providerId/route'
 import { Route as AppProvidersAddRouteImport } from './routes/app/providers/add'
-import { Route as AppQuotasIndexRouteImport } from './routes/app/quotas/index'
-import { Route as AppQuotasQuotaPoolIdRouteRouteImport } from './routes/app/quotas/$quotaPoolId/route'
-import { Route as AppQuotasAddRouteImport } from './routes/app/quotas/add'
+import { Route as AppQuotaPoolsIndexRouteImport } from './routes/app/quota-pools/index'
+import { Route as AppQuotaPoolsQuotaPoolIdRouteRouteImport } from './routes/app/quota-pools/$quotaPoolId/route'
+import { Route as AppQuotaPoolsAddRouteImport } from './routes/app/quota-pools/add'
 import { Route as InstanceAnalyticsIndexRouteImport } from './routes/instance/analytics/index'
 import { Route as InstanceHealthIndexRouteImport } from './routes/instance/health/index'
 import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
@@ -114,8 +114,8 @@ import { Route as AppModelsModelIdIndexRouteImport } from './routes/app/models/$
 import { Route as AppModelsModelIdEditRouteImport } from './routes/app/models/$modelId/edit'
 import { Route as AppProvidersProviderIdIndexRouteImport } from './routes/app/providers/$providerId/index'
 import { Route as AppProvidersProviderIdEditRouteImport } from './routes/app/providers/$providerId/edit'
-import { Route as AppQuotasQuotaPoolIdIndexRouteImport } from './routes/app/quotas/$quotaPoolId/index'
-import { Route as AppQuotasQuotaPoolIdEditRouteImport } from './routes/app/quotas/$quotaPoolId/edit'
+import { Route as AppQuotaPoolsQuotaPoolIdIndexRouteImport } from './routes/app/quota-pools/$quotaPoolId/index'
+import { Route as AppQuotaPoolsQuotaPoolIdEditRouteImport } from './routes/app/quota-pools/$quotaPoolId/edit'
 import { Route as InstanceOrganizationsOrganizationIdIndexRouteImport } from './routes/instance/organizations/$organizationId/index'
 import { Route as InstanceUsersUserIdIndexRouteImport } from './routes/instance/users/$userId/index'
 import { Route as AppCatalogueBehavioursIdIndexRouteImport } from './routes/app/catalogue/behaviours/$id/index'
@@ -283,9 +283,9 @@ const AppProvidersRouteRoute = AppProvidersRouteRouteImport.update({
   path: '/providers',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppQuotasRouteRoute = AppQuotasRouteRouteImport.update({
-  id: '/quotas',
-  path: '/quotas',
+const AppQuotaPoolsRouteRoute = AppQuotaPoolsRouteRouteImport.update({
+  id: '/quota-pools',
+  path: '/quota-pools',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const InstanceIndexRoute = InstanceIndexRouteImport.update({
@@ -490,21 +490,21 @@ const AppProvidersAddRoute = AppProvidersAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppProvidersRouteRoute,
 } as any)
-const AppQuotasIndexRoute = AppQuotasIndexRouteImport.update({
+const AppQuotaPoolsIndexRoute = AppQuotaPoolsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppQuotasRouteRoute,
+  getParentRoute: () => AppQuotaPoolsRouteRoute,
 } as any)
-const AppQuotasQuotaPoolIdRouteRoute =
-  AppQuotasQuotaPoolIdRouteRouteImport.update({
+const AppQuotaPoolsQuotaPoolIdRouteRoute =
+  AppQuotaPoolsQuotaPoolIdRouteRouteImport.update({
     id: '/$quotaPoolId',
     path: '/$quotaPoolId',
-    getParentRoute: () => AppQuotasRouteRoute,
+    getParentRoute: () => AppQuotaPoolsRouteRoute,
   } as any)
-const AppQuotasAddRoute = AppQuotasAddRouteImport.update({
+const AppQuotaPoolsAddRoute = AppQuotaPoolsAddRouteImport.update({
   id: '/add',
   path: '/add',
-  getParentRoute: () => AppQuotasRouteRoute,
+  getParentRoute: () => AppQuotaPoolsRouteRoute,
 } as any)
 const InstanceAnalyticsIndexRoute = InstanceAnalyticsIndexRouteImport.update({
   id: '/analytics/',
@@ -687,17 +687,17 @@ const AppProvidersProviderIdEditRoute =
     path: '/edit',
     getParentRoute: () => AppProvidersProviderIdRouteRoute,
   } as any)
-const AppQuotasQuotaPoolIdIndexRoute =
-  AppQuotasQuotaPoolIdIndexRouteImport.update({
+const AppQuotaPoolsQuotaPoolIdIndexRoute =
+  AppQuotaPoolsQuotaPoolIdIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
+    getParentRoute: () => AppQuotaPoolsQuotaPoolIdRouteRoute,
   } as any)
-const AppQuotasQuotaPoolIdEditRoute =
-  AppQuotasQuotaPoolIdEditRouteImport.update({
+const AppQuotaPoolsQuotaPoolIdEditRoute =
+  AppQuotaPoolsQuotaPoolIdEditRouteImport.update({
     id: '/edit',
     path: '/edit',
-    getParentRoute: () => AppQuotasQuotaPoolIdRouteRoute,
+    getParentRoute: () => AppQuotaPoolsQuotaPoolIdRouteRoute,
   } as any)
 const InstanceOrganizationsOrganizationIdIndexRoute =
   InstanceOrganizationsOrganizationIdIndexRouteImport.update({
@@ -816,7 +816,7 @@ export interface FileRoutesByFullPath {
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
-  '/app/quotas': typeof AppQuotasRouteRouteWithChildren
+  '/app/quota-pools': typeof AppQuotaPoolsRouteRouteWithChildren
   '/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/init': typeof PathlessLayoutInitRoute
   '/login': typeof PathlessLayoutLoginRoute
@@ -838,7 +838,7 @@ export interface FileRoutesByFullPath {
   '/app/members/$userId': typeof AppMembersUserIdRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
-  '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
+  '/app/quota-pools/$quotaPoolId': typeof AppQuotaPoolsQuotaPoolIdRouteRouteWithChildren
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
   '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
   '/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
@@ -858,7 +858,7 @@ export interface FileRoutesByFullPath {
   '/app/models/add': typeof AppModelsAddRoute
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
-  '/app/quotas/add': typeof AppQuotasAddRoute
+  '/app/quota-pools/add': typeof AppQuotaPoolsAddRoute
   '/history/': typeof PathlessLayoutHistoryIndexRoute
   '/app/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -872,7 +872,7 @@ export interface FileRoutesByFullPath {
   '/app/models/': typeof AppModelsIndexRoute
   '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
-  '/app/quotas/': typeof AppQuotasIndexRoute
+  '/app/quota-pools/': typeof AppQuotaPoolsIndexRoute
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
@@ -891,7 +891,7 @@ export interface FileRoutesByFullPath {
   '/app/members/$userId/edit': typeof AppMembersUserIdEditRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
-  '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
+  '/app/quota-pools/$quotaPoolId/edit': typeof AppQuotaPoolsQuotaPoolIdEditRoute
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/catalogue/behaviours/': typeof AppCatalogueBehavioursIndexRoute
   '/app/catalogue/bots/': typeof AppCatalogueBotsIndexRoute
@@ -905,7 +905,7 @@ export interface FileRoutesByFullPath {
   '/app/members/$userId/': typeof AppMembersUserIdIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
-  '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
+  '/app/quota-pools/$quotaPoolId/': typeof AppQuotaPoolsQuotaPoolIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
   '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
@@ -957,7 +957,7 @@ export interface FileRoutesByTo {
   '/app/models/add': typeof AppModelsAddRoute
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
-  '/app/quotas/add': typeof AppQuotasAddRoute
+  '/app/quota-pools/add': typeof AppQuotaPoolsAddRoute
   '/history': typeof PathlessLayoutHistoryIndexRoute
   '/app/account': typeof AppAccountIndexRoute
   '/app/analytics': typeof AppAnalyticsIndexRoute
@@ -970,7 +970,7 @@ export interface FileRoutesByTo {
   '/app/models': typeof AppModelsIndexRoute
   '/app/organization': typeof AppOrganizationIndexRoute
   '/app/providers': typeof AppProvidersIndexRoute
-  '/app/quotas': typeof AppQuotasIndexRoute
+  '/app/quota-pools': typeof AppQuotaPoolsIndexRoute
   '/instance/analytics': typeof InstanceAnalyticsIndexRoute
   '/instance/health': typeof InstanceHealthIndexRoute
   '/instance/organizations': typeof InstanceOrganizationsIndexRoute
@@ -982,7 +982,7 @@ export interface FileRoutesByTo {
   '/app/members/$userId/edit': typeof AppMembersUserIdEditRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
-  '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
+  '/app/quota-pools/$quotaPoolId/edit': typeof AppQuotaPoolsQuotaPoolIdEditRoute
   '/app/assistant/$chatId': typeof AppAssistantChatIdIndexRoute
   '/app/catalogue/behaviours': typeof AppCatalogueBehavioursIndexRoute
   '/app/catalogue/bots': typeof AppCatalogueBotsIndexRoute
@@ -996,7 +996,7 @@ export interface FileRoutesByTo {
   '/app/members/$userId': typeof AppMembersUserIdIndexRoute
   '/app/models/$modelId': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId': typeof AppProvidersProviderIdIndexRoute
-  '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdIndexRoute
+  '/app/quota-pools/$quotaPoolId': typeof AppQuotaPoolsQuotaPoolIdIndexRoute
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId': typeof InstanceUsersUserIdIndexRoute
   '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
@@ -1034,7 +1034,7 @@ export interface FileRoutesById {
   '/app/models': typeof AppModelsRouteRouteWithChildren
   '/app/organization': typeof AppOrganizationRouteRouteWithChildren
   '/app/providers': typeof AppProvidersRouteRouteWithChildren
-  '/app/quotas': typeof AppQuotasRouteRouteWithChildren
+  '/app/quota-pools': typeof AppQuotaPoolsRouteRouteWithChildren
   '/_pathlessLayout/forgot-password': typeof PathlessLayoutForgotPasswordRoute
   '/_pathlessLayout/init': typeof PathlessLayoutInitRoute
   '/_pathlessLayout/login': typeof PathlessLayoutLoginRoute
@@ -1056,7 +1056,7 @@ export interface FileRoutesById {
   '/app/members/$userId': typeof AppMembersUserIdRouteRouteWithChildren
   '/app/models/$modelId': typeof AppModelsModelIdRouteRouteWithChildren
   '/app/providers/$providerId': typeof AppProvidersProviderIdRouteRouteWithChildren
-  '/app/quotas/$quotaPoolId': typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
+  '/app/quota-pools/$quotaPoolId': typeof AppQuotaPoolsQuotaPoolIdRouteRouteWithChildren
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdRouteRouteWithChildren
   '/instance/users/$userId': typeof InstanceUsersUserIdRouteRouteWithChildren
   '/_pathlessLayout/history/$chatId': typeof PathlessLayoutHistoryChatIdRoute
@@ -1076,7 +1076,7 @@ export interface FileRoutesById {
   '/app/models/add': typeof AppModelsAddRoute
   '/app/organizations/$organizationId': typeof AppOrganizationsOrganizationIdRoute
   '/app/providers/add': typeof AppProvidersAddRoute
-  '/app/quotas/add': typeof AppQuotasAddRoute
+  '/app/quota-pools/add': typeof AppQuotaPoolsAddRoute
   '/_pathlessLayout/history/': typeof PathlessLayoutHistoryIndexRoute
   '/app/_home/': typeof AppHomeIndexRoute
   '/app/account/': typeof AppAccountIndexRoute
@@ -1090,7 +1090,7 @@ export interface FileRoutesById {
   '/app/models/': typeof AppModelsIndexRoute
   '/app/organization/': typeof AppOrganizationIndexRoute
   '/app/providers/': typeof AppProvidersIndexRoute
-  '/app/quotas/': typeof AppQuotasIndexRoute
+  '/app/quota-pools/': typeof AppQuotaPoolsIndexRoute
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
@@ -1109,7 +1109,7 @@ export interface FileRoutesById {
   '/app/members/$userId/edit': typeof AppMembersUserIdEditRoute
   '/app/models/$modelId/edit': typeof AppModelsModelIdEditRoute
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
-  '/app/quotas/$quotaPoolId/edit': typeof AppQuotasQuotaPoolIdEditRoute
+  '/app/quota-pools/$quotaPoolId/edit': typeof AppQuotaPoolsQuotaPoolIdEditRoute
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
   '/app/catalogue/behaviours/': typeof AppCatalogueBehavioursIndexRoute
   '/app/catalogue/bots/': typeof AppCatalogueBotsIndexRoute
@@ -1123,7 +1123,7 @@ export interface FileRoutesById {
   '/app/members/$userId/': typeof AppMembersUserIdIndexRoute
   '/app/models/$modelId/': typeof AppModelsModelIdIndexRoute
   '/app/providers/$providerId/': typeof AppProvidersProviderIdIndexRoute
-  '/app/quotas/$quotaPoolId/': typeof AppQuotasQuotaPoolIdIndexRoute
+  '/app/quota-pools/$quotaPoolId/': typeof AppQuotaPoolsQuotaPoolIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
   '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
@@ -1160,7 +1160,7 @@ export interface FileRouteTypes {
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
-    | '/app/quotas'
+    | '/app/quota-pools'
     | '/forgot-password'
     | '/init'
     | '/login'
@@ -1182,7 +1182,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
-    | '/app/quotas/$quotaPoolId'
+    | '/app/quota-pools/$quotaPoolId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
     | '/history/$chatId'
@@ -1202,7 +1202,7 @@ export interface FileRouteTypes {
     | '/app/models/add'
     | '/app/organizations/$organizationId'
     | '/app/providers/add'
-    | '/app/quotas/add'
+    | '/app/quota-pools/add'
     | '/history/'
     | '/app/'
     | '/app/account/'
@@ -1216,7 +1216,7 @@ export interface FileRouteTypes {
     | '/app/models/'
     | '/app/organization/'
     | '/app/providers/'
-    | '/app/quotas/'
+    | '/app/quota-pools/'
     | '/instance/analytics/'
     | '/instance/health/'
     | '/instance/organizations/'
@@ -1235,7 +1235,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId/edit'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
-    | '/app/quotas/$quotaPoolId/edit'
+    | '/app/quota-pools/$quotaPoolId/edit'
     | '/app/assistant/$chatId/'
     | '/app/catalogue/behaviours/'
     | '/app/catalogue/bots/'
@@ -1249,7 +1249,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId/'
     | '/app/models/$modelId/'
     | '/app/providers/$providerId/'
-    | '/app/quotas/$quotaPoolId/'
+    | '/app/quota-pools/$quotaPoolId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
     | '/app/catalogue/behaviours/$id/add'
@@ -1301,7 +1301,7 @@ export interface FileRouteTypes {
     | '/app/models/add'
     | '/app/organizations/$organizationId'
     | '/app/providers/add'
-    | '/app/quotas/add'
+    | '/app/quota-pools/add'
     | '/history'
     | '/app/account'
     | '/app/analytics'
@@ -1314,7 +1314,7 @@ export interface FileRouteTypes {
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
-    | '/app/quotas'
+    | '/app/quota-pools'
     | '/instance/analytics'
     | '/instance/health'
     | '/instance/organizations'
@@ -1326,7 +1326,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId/edit'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
-    | '/app/quotas/$quotaPoolId/edit'
+    | '/app/quota-pools/$quotaPoolId/edit'
     | '/app/assistant/$chatId'
     | '/app/catalogue/behaviours'
     | '/app/catalogue/bots'
@@ -1340,7 +1340,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
-    | '/app/quotas/$quotaPoolId'
+    | '/app/quota-pools/$quotaPoolId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
     | '/app/catalogue/behaviours/$id/add'
@@ -1377,7 +1377,7 @@ export interface FileRouteTypes {
     | '/app/models'
     | '/app/organization'
     | '/app/providers'
-    | '/app/quotas'
+    | '/app/quota-pools'
     | '/_pathlessLayout/forgot-password'
     | '/_pathlessLayout/init'
     | '/_pathlessLayout/login'
@@ -1399,7 +1399,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId'
     | '/app/models/$modelId'
     | '/app/providers/$providerId'
-    | '/app/quotas/$quotaPoolId'
+    | '/app/quota-pools/$quotaPoolId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
     | '/_pathlessLayout/history/$chatId'
@@ -1419,7 +1419,7 @@ export interface FileRouteTypes {
     | '/app/models/add'
     | '/app/organizations/$organizationId'
     | '/app/providers/add'
-    | '/app/quotas/add'
+    | '/app/quota-pools/add'
     | '/_pathlessLayout/history/'
     | '/app/_home/'
     | '/app/account/'
@@ -1433,7 +1433,7 @@ export interface FileRouteTypes {
     | '/app/models/'
     | '/app/organization/'
     | '/app/providers/'
-    | '/app/quotas/'
+    | '/app/quota-pools/'
     | '/instance/analytics/'
     | '/instance/health/'
     | '/instance/organizations/'
@@ -1452,7 +1452,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId/edit'
     | '/app/models/$modelId/edit'
     | '/app/providers/$providerId/edit'
-    | '/app/quotas/$quotaPoolId/edit'
+    | '/app/quota-pools/$quotaPoolId/edit'
     | '/app/assistant/$chatId/'
     | '/app/catalogue/behaviours/'
     | '/app/catalogue/bots/'
@@ -1466,7 +1466,7 @@ export interface FileRouteTypes {
     | '/app/members/$userId/'
     | '/app/models/$modelId/'
     | '/app/providers/$providerId/'
-    | '/app/quotas/$quotaPoolId/'
+    | '/app/quota-pools/$quotaPoolId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
     | '/app/catalogue/behaviours/$id/add'
@@ -1704,11 +1704,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProvidersRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/quotas': {
-      id: '/app/quotas'
-      path: '/quotas'
-      fullPath: '/app/quotas'
-      preLoaderRoute: typeof AppQuotasRouteRouteImport
+    '/app/quota-pools': {
+      id: '/app/quota-pools'
+      path: '/quota-pools'
+      fullPath: '/app/quota-pools'
+      preLoaderRoute: typeof AppQuotaPoolsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/instance/': {
@@ -1984,26 +1984,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProvidersAddRouteImport
       parentRoute: typeof AppProvidersRouteRoute
     }
-    '/app/quotas/': {
-      id: '/app/quotas/'
+    '/app/quota-pools/': {
+      id: '/app/quota-pools/'
       path: '/'
-      fullPath: '/app/quotas/'
-      preLoaderRoute: typeof AppQuotasIndexRouteImport
-      parentRoute: typeof AppQuotasRouteRoute
+      fullPath: '/app/quota-pools/'
+      preLoaderRoute: typeof AppQuotaPoolsIndexRouteImport
+      parentRoute: typeof AppQuotaPoolsRouteRoute
     }
-    '/app/quotas/$quotaPoolId': {
-      id: '/app/quotas/$quotaPoolId'
+    '/app/quota-pools/$quotaPoolId': {
+      id: '/app/quota-pools/$quotaPoolId'
       path: '/$quotaPoolId'
-      fullPath: '/app/quotas/$quotaPoolId'
-      preLoaderRoute: typeof AppQuotasQuotaPoolIdRouteRouteImport
-      parentRoute: typeof AppQuotasRouteRoute
+      fullPath: '/app/quota-pools/$quotaPoolId'
+      preLoaderRoute: typeof AppQuotaPoolsQuotaPoolIdRouteRouteImport
+      parentRoute: typeof AppQuotaPoolsRouteRoute
     }
-    '/app/quotas/add': {
-      id: '/app/quotas/add'
+    '/app/quota-pools/add': {
+      id: '/app/quota-pools/add'
       path: '/add'
-      fullPath: '/app/quotas/add'
-      preLoaderRoute: typeof AppQuotasAddRouteImport
-      parentRoute: typeof AppQuotasRouteRoute
+      fullPath: '/app/quota-pools/add'
+      preLoaderRoute: typeof AppQuotaPoolsAddRouteImport
+      parentRoute: typeof AppQuotaPoolsRouteRoute
     }
     '/instance/analytics/': {
       id: '/instance/analytics/'
@@ -2236,19 +2236,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProvidersProviderIdEditRouteImport
       parentRoute: typeof AppProvidersProviderIdRouteRoute
     }
-    '/app/quotas/$quotaPoolId/': {
-      id: '/app/quotas/$quotaPoolId/'
+    '/app/quota-pools/$quotaPoolId/': {
+      id: '/app/quota-pools/$quotaPoolId/'
       path: '/'
-      fullPath: '/app/quotas/$quotaPoolId/'
-      preLoaderRoute: typeof AppQuotasQuotaPoolIdIndexRouteImport
-      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
+      fullPath: '/app/quota-pools/$quotaPoolId/'
+      preLoaderRoute: typeof AppQuotaPoolsQuotaPoolIdIndexRouteImport
+      parentRoute: typeof AppQuotaPoolsQuotaPoolIdRouteRoute
     }
-    '/app/quotas/$quotaPoolId/edit': {
-      id: '/app/quotas/$quotaPoolId/edit'
+    '/app/quota-pools/$quotaPoolId/edit': {
+      id: '/app/quota-pools/$quotaPoolId/edit'
       path: '/edit'
-      fullPath: '/app/quotas/$quotaPoolId/edit'
-      preLoaderRoute: typeof AppQuotasQuotaPoolIdEditRouteImport
-      parentRoute: typeof AppQuotasQuotaPoolIdRouteRoute
+      fullPath: '/app/quota-pools/$quotaPoolId/edit'
+      preLoaderRoute: typeof AppQuotaPoolsQuotaPoolIdEditRouteImport
+      parentRoute: typeof AppQuotaPoolsQuotaPoolIdRouteRoute
     }
     '/instance/organizations/$organizationId/': {
       id: '/instance/organizations/$organizationId/'
@@ -2864,37 +2864,37 @@ const AppProvidersRouteRouteChildren: AppProvidersRouteRouteChildren = {
 const AppProvidersRouteRouteWithChildren =
   AppProvidersRouteRoute._addFileChildren(AppProvidersRouteRouteChildren)
 
-interface AppQuotasQuotaPoolIdRouteRouteChildren {
-  AppQuotasQuotaPoolIdEditRoute: typeof AppQuotasQuotaPoolIdEditRoute
-  AppQuotasQuotaPoolIdIndexRoute: typeof AppQuotasQuotaPoolIdIndexRoute
+interface AppQuotaPoolsQuotaPoolIdRouteRouteChildren {
+  AppQuotaPoolsQuotaPoolIdEditRoute: typeof AppQuotaPoolsQuotaPoolIdEditRoute
+  AppQuotaPoolsQuotaPoolIdIndexRoute: typeof AppQuotaPoolsQuotaPoolIdIndexRoute
 }
 
-const AppQuotasQuotaPoolIdRouteRouteChildren: AppQuotasQuotaPoolIdRouteRouteChildren =
+const AppQuotaPoolsQuotaPoolIdRouteRouteChildren: AppQuotaPoolsQuotaPoolIdRouteRouteChildren =
   {
-    AppQuotasQuotaPoolIdEditRoute: AppQuotasQuotaPoolIdEditRoute,
-    AppQuotasQuotaPoolIdIndexRoute: AppQuotasQuotaPoolIdIndexRoute,
+    AppQuotaPoolsQuotaPoolIdEditRoute: AppQuotaPoolsQuotaPoolIdEditRoute,
+    AppQuotaPoolsQuotaPoolIdIndexRoute: AppQuotaPoolsQuotaPoolIdIndexRoute,
   }
 
-const AppQuotasQuotaPoolIdRouteRouteWithChildren =
-  AppQuotasQuotaPoolIdRouteRoute._addFileChildren(
-    AppQuotasQuotaPoolIdRouteRouteChildren,
+const AppQuotaPoolsQuotaPoolIdRouteRouteWithChildren =
+  AppQuotaPoolsQuotaPoolIdRouteRoute._addFileChildren(
+    AppQuotaPoolsQuotaPoolIdRouteRouteChildren,
   )
 
-interface AppQuotasRouteRouteChildren {
-  AppQuotasQuotaPoolIdRouteRoute: typeof AppQuotasQuotaPoolIdRouteRouteWithChildren
-  AppQuotasAddRoute: typeof AppQuotasAddRoute
-  AppQuotasIndexRoute: typeof AppQuotasIndexRoute
+interface AppQuotaPoolsRouteRouteChildren {
+  AppQuotaPoolsQuotaPoolIdRouteRoute: typeof AppQuotaPoolsQuotaPoolIdRouteRouteWithChildren
+  AppQuotaPoolsAddRoute: typeof AppQuotaPoolsAddRoute
+  AppQuotaPoolsIndexRoute: typeof AppQuotaPoolsIndexRoute
 }
 
-const AppQuotasRouteRouteChildren: AppQuotasRouteRouteChildren = {
-  AppQuotasQuotaPoolIdRouteRoute: AppQuotasQuotaPoolIdRouteRouteWithChildren,
-  AppQuotasAddRoute: AppQuotasAddRoute,
-  AppQuotasIndexRoute: AppQuotasIndexRoute,
+const AppQuotaPoolsRouteRouteChildren: AppQuotaPoolsRouteRouteChildren = {
+  AppQuotaPoolsQuotaPoolIdRouteRoute:
+    AppQuotaPoolsQuotaPoolIdRouteRouteWithChildren,
+  AppQuotaPoolsAddRoute: AppQuotaPoolsAddRoute,
+  AppQuotaPoolsIndexRoute: AppQuotaPoolsIndexRoute,
 }
 
-const AppQuotasRouteRouteWithChildren = AppQuotasRouteRoute._addFileChildren(
-  AppQuotasRouteRouteChildren,
-)
+const AppQuotaPoolsRouteRouteWithChildren =
+  AppQuotaPoolsRouteRoute._addFileChildren(AppQuotaPoolsRouteRouteChildren)
 
 interface AppRouteRouteChildren {
   AppHomeRouteRoute: typeof AppHomeRouteRouteWithChildren
@@ -2909,7 +2909,7 @@ interface AppRouteRouteChildren {
   AppModelsRouteRoute: typeof AppModelsRouteRouteWithChildren
   AppOrganizationRouteRoute: typeof AppOrganizationRouteRouteWithChildren
   AppProvidersRouteRoute: typeof AppProvidersRouteRouteWithChildren
-  AppQuotasRouteRoute: typeof AppQuotasRouteRouteWithChildren
+  AppQuotaPoolsRouteRoute: typeof AppQuotaPoolsRouteRouteWithChildren
   AppOrganizationsOrganizationIdRoute: typeof AppOrganizationsOrganizationIdRoute
 }
 
@@ -2926,7 +2926,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppModelsRouteRoute: AppModelsRouteRouteWithChildren,
   AppOrganizationRouteRoute: AppOrganizationRouteRouteWithChildren,
   AppProvidersRouteRoute: AppProvidersRouteRouteWithChildren,
-  AppQuotasRouteRoute: AppQuotasRouteRouteWithChildren,
+  AppQuotaPoolsRouteRoute: AppQuotaPoolsRouteRouteWithChildren,
   AppOrganizationsOrganizationIdRoute: AppOrganizationsOrganizationIdRoute,
 }
 

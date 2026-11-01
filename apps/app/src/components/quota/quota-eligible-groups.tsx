@@ -21,7 +21,7 @@ const QuotaEligibleGroups = ({
 }) =>
 	assignments.length === 0 ? (
 		<p className="text-muted-foreground text-sm">
-			{m.quotas_detail_no_groups_label()}
+			{m.quota_pools_detail_no_groups_label()}
 		</p>
 	) : (
 		<ItemGroup className="gap-2">
@@ -58,7 +58,7 @@ const QuotaEligibleGroups = ({
 						) : null}
 					</ItemContent>
 					<ItemActions className="text-muted-foreground tabular-nums">
-						{m.quotas_detail_group_member_count({
+						{m.quota_pools_detail_group_member_count({
 							count: group.memberCount,
 						})}
 					</ItemActions>

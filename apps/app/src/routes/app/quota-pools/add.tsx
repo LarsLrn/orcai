@@ -3,7 +3,7 @@ import { FormPage } from "@/components/forms/form-layout";
 import { QuotaPoolForm } from "@/components/quota/form/quota-pool-form";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/quotas/add")({
+export const Route = createFileRoute("/app/quota-pools/add")({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/app/quotas/add")({
 
 function RouteComponent() {
 	return (
-		<FormPage title={m.quotas_add_page_title()}>
+		<FormPage title={m.quota_pools_add_page_title()}>
 			<QuotaPoolForm action="create" />
 		</FormPage>
 	);

@@ -60,7 +60,7 @@ const QuotaConsumption = ({
 					</span>
 					<Progress
 						value={percentage}
-						aria-label={m.quotas_consumption_progress_aria_label({
+						aria-label={m.quota_pools_consumption_progress_aria_label({
 							percentage,
 						})}
 						className="w-16 gap-0 **:data-[slot=progress-track]:h-1.5"
@@ -106,7 +106,7 @@ const QuotaRemaining = ({
 			</span>
 			<QuotaUnitLabel unit={unit} amount={remainingAmount} />
 			{isLow ? (
-				<Badge variant="warning">{m.quotas_remaining_low_badge()}</Badge>
+				<Badge variant="warning">{m.quota_pools_remaining_low_badge()}</Badge>
 			) : null}
 		</div>
 	);

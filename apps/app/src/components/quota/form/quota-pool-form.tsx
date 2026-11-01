@@ -13,7 +13,7 @@ import { useAppForm } from "@/hooks/form";
 import {
 	useCreateQuotaPoolMutation,
 	useUpdateQuotaPoolMutation,
-} from "@/hooks/mutations/use-quota-mutations";
+} from "@/hooks/mutations/use-quota-pool-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import { m } from "@/paraglide/messages";
@@ -34,7 +34,7 @@ const QuotaPoolForm = ({
 	const updateQuotaPool = useUpdateQuotaPoolMutation({
 		onSuccess: (result) =>
 			navigate({
-				to: "/app/quotas/$quotaPoolId",
+				to: "/app/quota-pools/$quotaPoolId",
 				params: {
 					quotaPoolId: result.data.id,
 				},
@@ -122,7 +122,7 @@ const QuotaPoolForm = ({
 		() =>
 			(providers.data?.data ?? []).map((provider) => ({
 				value: provider.id,
-				label: m.quotas_form_provider_option_label({
+				label: m.quota_pools_form_provider_option_label({
 					name: provider.name,
 					meteringMode: getMeteringModeLabel(provider.meteringMode),
 				}),
@@ -137,7 +137,7 @@ const QuotaPoolForm = ({
 			return [
 				{
 					value: PROVIDER_WIDE_MODEL_VALUE,
-					label: m.quotas_form_model_scope_all_option(),
+					label: m.quota_pools_form_model_scope_all_option(),
 				},
 			];
 		}
@@ -152,7 +152,7 @@ const QuotaPoolForm = ({
 		return [
 			{
 				value: PROVIDER_WIDE_MODEL_VALUE,
-				label: m.quotas_form_model_scope_all_option(),
+				label: m.quota_pools_form_model_scope_all_option(),
 			},
 			...matchingModels,
 		];
@@ -167,11 +167,11 @@ const QuotaPoolForm = ({
 				value: group.id,
 				label:
 					group.kind === "system"
-						? m.quotas_form_group_system_label({
+						? m.quota_pools_form_group_system_label({
 								name: group.name,
 							})
 						: group.name,
-				hint: m.quotas_detail_group_member_count({
+				hint: m.quota_pools_detail_group_member_count({
 					count: group.memberCount,
 				}),
 			})),
@@ -225,8 +225,8 @@ const QuotaPoolForm = ({
 					children={(field) => (
 						<field.TextField
 							label={m.common_name_label()}
-							description={m.quotas_form_name_description()}
-							placeholder={m.quotas_form_name_placeholder()}
+							description={m.quota_pools_form_name_description()}
+							placeholder={m.quota_pools_form_name_placeholder()}
 							width="medium"
 						/>
 					)}
@@ -236,8 +236,8 @@ const QuotaPoolForm = ({
 					children={(field) => (
 						<field.SelectField
 							label={m.common_provider_label()}
-							placeholder={m.quotas_form_provider_placeholder()}
-							description={m.quotas_form_provider_description()}
+							placeholder={m.quota_pools_form_provider_placeholder()}
+							description={m.quota_pools_form_provider_description()}
 							options={providerOptions}
 							disabled={action === "update"}
 						/>
@@ -248,20 +248,20 @@ const QuotaPoolForm = ({
 					children={(field) => (
 						<field.TextareaField
 							label={m.common_description_label()}
-							placeholder={m.quotas_form_description_placeholder()}
+							placeholder={m.quota_pools_form_description_placeholder()}
 						/>
 					)}
 				/>
 			</FormSection>
 
-			<FormSection title={m.quotas_form_budget_section_title()}>
+			<FormSection title={m.quota_pools_form_budget_section_title()}>
 				<form.AppField
 					name="modelId"
 					children={(field) => (
 						<field.SelectField
-							label={m.quotas_form_model_scope_label()}
-							placeholder={m.quotas_form_model_scope_placeholder()}
-							description={m.quotas_form_model_scope_description()}
+							label={m.quota_pools_form_model_scope_label()}
+							placeholder={m.quota_pools_form_model_scope_placeholder()}
+							description={m.quota_pools_form_model_scope_description()}
 							options={modelOptions}
 							width="medium"
 						/>
@@ -271,21 +271,21 @@ const QuotaPoolForm = ({
 					name="periodType"
 					children={(field) => (
 						<field.SelectField
-							label={m.quotas_form_period_label()}
-							placeholder={m.quotas_form_period_placeholder()}
-							description={m.quotas_form_period_description()}
+							label={m.quota_pools_form_period_label()}
+							placeholder={m.quota_pools_form_period_placeholder()}
+							description={m.quota_pools_form_period_description()}
 							options={[
 								{
 									value: "weekly",
-									label: m.quotas_period_weekly_label(),
+									label: m.quota_pools_period_weekly_label(),
 								},
 								{
 									value: "monthly",
-									label: m.quotas_period_monthly_label(),
+									label: m.quota_pools_period_monthly_label(),
 								},
 								{
 									value: "yearly",
-									label: m.quotas_period_yearly_label(),
+									label: m.quota_pools_period_yearly_label(),
 								},
 							]}
 						/>
@@ -296,10 +296,10 @@ const QuotaPoolForm = ({
 						name="budgetAmount"
 						children={(field) => (
 							<field.TextField
-								label={m.quotas_form_budget_label()}
+								label={m.quota_pools_form_budget_label()}
 								type="number"
 								min={1}
-								description={m.quotas_form_budget_description()}
+								description={m.quota_pools_form_budget_description()}
 							/>
 						)}
 					/>
@@ -307,23 +307,23 @@ const QuotaPoolForm = ({
 						name="priority"
 						children={(field) => (
 							<field.TextField
-								label={m.quotas_form_priority_label()}
+								label={m.quota_pools_form_priority_label()}
 								type="number"
-								description={m.quotas_form_priority_description()}
+								description={m.quota_pools_form_priority_description()}
 							/>
 						)}
 					/>
 				</FormPair>
 			</FormSection>
 
-			<FormSection title={m.quotas_form_access_section_title()}>
+			<FormSection title={m.quota_pools_form_access_section_title()}>
 				<form.AppField
 					name="groupIds"
 					children={(field) => (
 						<field.MultiSelectField
-							label={m.quotas_form_groups_label()}
-							placeholder={m.quotas_form_groups_placeholder()}
-							description={m.quotas_form_groups_description()}
+							label={m.quota_pools_form_groups_label()}
+							placeholder={m.quota_pools_form_groups_placeholder()}
+							description={m.quota_pools_form_groups_description()}
 							options={eligibleGroupOptions}
 						/>
 					)}
@@ -332,8 +332,8 @@ const QuotaPoolForm = ({
 					name="isDefault"
 					children={(field) => (
 						<field.SwitchField
-							label={m.quotas_form_default_label()}
-							description={m.quotas_form_default_description()}
+							label={m.quota_pools_form_default_label()}
+							description={m.quota_pools_form_default_description()}
 						/>
 					)}
 				/>
@@ -345,14 +345,14 @@ const QuotaPoolForm = ({
 					children={(field) => (
 						<field.SwitchField
 							label={m.common_status_active_label()}
-							description={m.quotas_form_active_description()}
+							description={m.quota_pools_form_active_description()}
 						/>
 					)}
 				/>
 			</FormSection>
 
 			{action === "create" && (
-				<FormNotice>{m.quotas_form_undeletable_notice()}</FormNotice>
+				<FormNotice>{m.quota_pools_form_undeletable_notice()}</FormNotice>
 			)}
 
 			<form.AppForm>
@@ -360,8 +360,8 @@ const QuotaPoolForm = ({
 					<form.SubmitButton
 						label={
 							action === "create"
-								? m.quotas_form_create_button()
-								: m.quotas_form_save_changes_button()
+								? m.quota_pools_form_create_button()
+								: m.quota_pools_form_save_changes_button()
 						}
 					/>
 				</FormActions>

@@ -109,7 +109,7 @@ const organizationWithModels = async () => {
 	};
 	const pool = (modelId: ModelId, groupId: GroupId) =>
 		call((options) =>
-			procedures.quota.create(
+			procedures.quotaPool.create(
 				{
 					name: `Default ${crypto.randomUUID()}`,
 					providerId: provider.id,

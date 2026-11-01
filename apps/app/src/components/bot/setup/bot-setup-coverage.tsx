@@ -30,7 +30,7 @@ const BotSetupCoverage = ({
 	const { data: capabilities } = useOrganizationCapabilities([
 		"manage_quotas",
 	]);
-	const canManageQuotas = hasCapability(
+	const canManageQuotaPools = hasCapability(
 		capabilities?.data.capabilities,
 		"manage_quotas",
 	);
@@ -101,16 +101,16 @@ const BotSetupCoverage = ({
 					{m.bot_setup_coverage_warning()}
 				</p>
 			)}
-			{canManageQuotas && covered < principals.length && (
+			{canManageQuotaPools && covered < principals.length && (
 				<Link
-					to="/app/quotas"
+					to="/app/quota-pools"
 					className={buttonVariants({
 						variant: "outline",
 						size: "sm",
 						className: "self-start",
 					})}
 				>
-					{m.bot_setup_coverage_quotas_action()}
+					{m.bot_setup_coverage_quota_pools_action()}
 				</Link>
 			)}
 		</section>

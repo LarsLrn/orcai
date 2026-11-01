@@ -122,7 +122,7 @@ const organizationWithModels = async () => {
 			),
 		);
 		await run(
-			procedures.quota.create(
+			procedures.quotaPool.create(
 				{
 					name: `Integration ${crypto.randomUUID()}`,
 					providerId: provider.id,

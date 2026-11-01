@@ -57,7 +57,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	// Group lists and quota pools show each group's member count.
 	const groupSummaries = () => [
 		orpc.group.list.key(),
-		orpc.quota.find.key(),
+		orpc.quotaPool.find.key(),
 	];
 	const groupMembership = ({ groupId }: Inputs["group"]["addMembers"]) => [
 		...groupSummaries(),
@@ -305,12 +305,12 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 			update: () => [
 				orpc.group.key(),
-				orpc.quota.find.key(),
+				orpc.quotaPool.find.key(),
 				readiness,
 			],
 			delete: () => [
 				orpc.group.key(),
-				orpc.quota.find.key(),
+				orpc.quotaPool.find.key(),
 				readiness,
 				defaultChatModel,
 				readOnlyChats,
@@ -435,20 +435,23 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.library.key(),
 			],
 		},
-		quota: {
+		quotaPool: {
 			create: () => [
+				orpc.quotaPool.key(),
 				orpc.quota.key(),
 				readiness,
 				defaultChatModel,
 				orpc.botSetup.coverage.key(),
 			],
 			update: () => [
+				orpc.quotaPool.key(),
 				orpc.quota.key(),
 				readiness,
 				defaultChatModel,
 				orpc.botSetup.coverage.key(),
 			],
 			deactivate: () => [
+				orpc.quotaPool.key(),
 				orpc.quota.key(),
 				readiness,
 				defaultChatModel,

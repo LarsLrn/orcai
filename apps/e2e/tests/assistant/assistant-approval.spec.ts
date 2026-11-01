@@ -531,7 +531,7 @@ test("assistant: a continuation refused for quota stores nothing", async ({
 	if (!approvalId) throw new Error("The reply did not pause");
 
 	const allMembers = await systemGroup(admin);
-	await admin.quota.create({
+	await admin.quotaPool.create({
 		name: chatName("Exhausted Pool"),
 		providerId: model.providerId,
 		modelId: model.modelId,

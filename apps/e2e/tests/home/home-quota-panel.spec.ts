@@ -31,12 +31,12 @@ test("home: the quota panel tells no pool from no active pool", async ({
 		},
 		inference,
 	);
-	const { data: pools } = await adminApi.quota.list({
+	const { data: pools } = await adminApi.quotaPool.list({
 		pageIndex: 0,
 		pageSize: 100,
 	});
 	for (const pool of pools) {
-		await adminApi.quota.deactivate({
+		await adminApi.quotaPool.deactivate({
 			id: pool.id,
 		});
 	}

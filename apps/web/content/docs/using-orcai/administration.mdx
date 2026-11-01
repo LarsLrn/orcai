@@ -11,7 +11,7 @@ Administration has these sections:
 
 - Members (`/app/members`)
 - Groups (`/app/groups`)
-- Quota pools (`/app/quotas`)
+- Quota pools (`/app/quota-pools`)
 - Analytics (`/app/analytics`)
 - Providers (`/app/providers`)
 - Models (`/app/models`)
@@ -94,8 +94,8 @@ members group and who may see what.
 A quota pool bounds how much one provider,
 or one of its models, may be used in a period.
 
-Quota pools (`/app/quotas`) lists the pools with their period, budget, consumed and
-remaining amounts. **Add pool** opens `/app/quotas/add` with these fields:
+Quota pools (`/app/quota-pools`) lists the pools with their period, budget, consumed and
+remaining amounts. **Add pool** opens `/app/quota-pools/add` with these fields:
 
 - **Name**, shown to members as the pool their usage is charged to, and an
   optional description.
@@ -137,7 +137,7 @@ A call runs for at most 30 minutes. A reservation still open 35 minutes after
 it was made, such as one left by a server that stopped mid-reply, is released
 by the workers within five minutes.
 
-**View pool** opens `/app/quotas/<pool id>`, with the current period's
+**View pool** opens `/app/quota-pools/<pool id>`, with the current period's
 budget, consumed, reserved and remaining amounts, **Adjust budget** (raising
 the budget frees the remaining budget straight away), the eligible groups
 with their description, type and member count, and the usage events. The
@@ -146,7 +146,7 @@ event type: Reserved when a call starts, Settled with the amount it actually
 used, Released when a reservation is given back, and Failed when the call failed.
 As in Analytics, people who have left the organisation and bots you cannot
 open stay unnamed, and the user search finds current members only.
-**Edit pool** opens `/app/quotas/<pool id>/edit`.
+**Edit pool** opens `/app/quota-pools/<pool id>/edit`.
 
 In chat, the [usage indicator](/docs/using-orcai/chat#usage-indicator) shows people the pool that covers their model as a share used, with its reset time, never amounts. People who can manage quota pools get a **Manage pool** link to the pool.
 

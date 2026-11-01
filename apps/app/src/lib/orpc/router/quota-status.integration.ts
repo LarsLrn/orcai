@@ -134,7 +134,7 @@ const quotaOrganization = async () => {
 
 	const addPool = async (budgetAmount: number) =>
 		run(
-			procedures.quota.create(
+			procedures.quotaPool.create(
 				{
 					name: `Quota ${crypto.randomUUID()}`,
 					providerId: covered.providerId,
@@ -271,12 +271,12 @@ describe("quota status model check", () => {
 
 describe("quota pool amounts", () => {
 	test(
-		"are for people who manage quotas",
+		"are for people who manage quota pools",
 		async () => {
 			const org = await quotaOrganization();
 			const pool = await org.addPool(1_000_000);
 			const list = async (actor: Actor) =>
-				org.procedures.quota.list(
+				org.procedures.quotaPool.list(
 					{
 						pageIndex: 0,
 						pageSize: 10,
@@ -284,7 +284,7 @@ describe("quota pool amounts", () => {
 					await org.options(actor),
 				);
 			const find = async (actor: Actor) =>
-				org.procedures.quota.find(
+				org.procedures.quotaPool.find(
 					{
 						id: pool.id,
 					},

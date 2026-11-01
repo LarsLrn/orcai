@@ -341,7 +341,7 @@ test("assistant: the quota status and refusals follow the pool of the assistant 
 	);
 	if (!allMembers) throw new Error("Missing All Members group");
 	const poolName = chatName("Assistant Pool");
-	await admin.quota.create({
+	await admin.quotaPool.create({
 		name: poolName,
 		providerId: model.providerId,
 		modelId: model.modelId,
