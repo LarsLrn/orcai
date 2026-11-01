@@ -275,13 +275,14 @@ const buildAgent = ({
 		modelId: setup.modelId,
 	};
 	const sources = chatSources(history);
+	const today = localDate(input.timeZone);
 	if (setup.agent.kind === "chat") {
 		return {
 			agent: turnAgent({
 				...createChatAgent({
 					model: setup.model,
 					systemPrompt: setup.agent.systemPrompt,
-					today: localDate(input.timeZone),
+					today,
 					databaseBlocks: setup.agent.databaseBlocks,
 					features: setup.agent.features,
 					webSearch: setup.agent.webSearch,
@@ -318,6 +319,7 @@ const buildAgent = ({
 				features: setup.agent.features,
 				history,
 				plan: latestPlanPart(history)?.input,
+				today,
 				telemetryIds,
 				context: input.context,
 				turn: assistantTurn,

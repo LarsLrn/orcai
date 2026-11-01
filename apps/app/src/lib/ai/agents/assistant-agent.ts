@@ -44,6 +44,8 @@ export const createAssistantAgent = (
 		history: readonly StoredMessage[];
 		/** The conversation's current plan. */
 		plan: Plan | undefined;
+		/** The user's local date, from `localDate`. */
+		today: string;
 		/** The chat's sources, which the turn's calls add to. */
 		sources: ChatSources;
 		telemetryIds: {
@@ -129,6 +131,7 @@ export const createAssistantAgent = (
 			),
 			toolGroups,
 			plan: params.plan,
+			today: params.today,
 		}),
 	);
 
