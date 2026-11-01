@@ -46,7 +46,7 @@ const readinessSummary = (page: Page, ready: number, total: number) =>
 const retryOffers = (page: Page) =>
 	page
 		.getByRole("button", {
-			name: message("blocks_database_config_retry_failed_action"),
+			name: message("blocks_database_config_prepare_failed_again_action"),
 			exact: true,
 		})
 		.or(

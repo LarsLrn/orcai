@@ -122,27 +122,27 @@ export const useSetBlockStatusMutation = (
 	});
 };
 
-export const useRetryDocumentMutation = () => {
+export const usePrepareRepositoryAssetAgainMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.block.retryDocument.mutationOptions(),
+		mutationOptions: () => orpc.block.prepareAssetAgain.mutationOptions(),
 		messages: {
-			loading: m.blocks_retry_document_toast_loading(),
-			success: m.blocks_retry_document_toast_success(),
-			error: m.blocks_retry_document_toast_error(),
+			loading: m.blocks_prepare_asset_again_toast_loading(),
+			success: m.blocks_prepare_asset_again_toast_success(),
+			error: m.blocks_prepare_asset_again_toast_error(),
 		},
 	});
 };
 
-export const useRetryFailedDocumentsMutation = () => {
+export const usePrepareRepositoryFailedAgainMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.block.retryFailed.mutationOptions(),
+		mutationOptions: () => orpc.block.prepareFailedAgain.mutationOptions(),
 		messages: {
-			loading: m.blocks_retry_failed_toast_loading(),
+			loading: m.blocks_prepare_failed_again_toast_loading(),
 			success: ({ data }) =>
-				m.blocks_retry_failed_toast_success({
+				m.blocks_prepare_failed_again_toast_success({
 					count: data.processing + data.indexing,
 				}),
-			error: m.blocks_retry_failed_toast_error(),
+			error: m.blocks_prepare_failed_again_toast_error(),
 		},
 	});
 };

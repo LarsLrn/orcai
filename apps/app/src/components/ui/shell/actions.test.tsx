@@ -79,7 +79,7 @@ describe("HeaderActions", () => {
 			<HeaderActions
 				actions={[
 					action("Edit"),
-					action("Reprocess", {
+					action("Prepare again", {
 						overflow: true,
 					}),
 				]}
@@ -88,7 +88,7 @@ describe("HeaderActions", () => {
 
 		expect(inlineLabels()).toEqual([
 			"Edit",
-			"Reprocess",
+			"Prepare again",
 		]);
 		expect(menuTrigger()).toBeNull();
 	});
@@ -121,7 +121,7 @@ describe("HeaderActions", () => {
 						destructive: true,
 					}),
 					action("Download"),
-					action("Reprocess", {
+					action("Prepare again", {
 						overflow: true,
 					}),
 					action("Archive", {
@@ -135,7 +135,7 @@ describe("HeaderActions", () => {
 			"Download",
 		]);
 		expect(await openMenu()).toEqual([
-			"Reprocess",
+			"Prepare again",
 			"Archive",
 			"Delete",
 		]);

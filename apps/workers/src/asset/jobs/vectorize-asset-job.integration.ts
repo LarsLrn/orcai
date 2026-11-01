@@ -639,7 +639,7 @@ test(
 		const older = await admit(link);
 		// The earlier delivery stopped between its upsert and its reconcile.
 		await writePoint(link, older.data.attempt);
-		// Reprocess replaces the attempt and leaves processing unfinished.
+		// Prepare again replaces the attempt and leaves processing unfinished.
 		await run(
 			Effect.gen(function* () {
 				const db = yield* DB;

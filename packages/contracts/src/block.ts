@@ -9,10 +9,10 @@ import {
 	findBlockResponseSchema,
 	listBlocksInputSchema,
 	listBlocksResponseSchema,
-	retryDocumentInputSchema,
-	retryDocumentResponseSchema,
-	retryFailedDocumentsInputSchema,
-	retryFailedDocumentsResponseSchema,
+	prepareRepositoryAssetAgainInputSchema,
+	prepareRepositoryAssetAgainResponseSchema,
+	prepareRepositoryFailedAgainInputSchema,
+	prepareRepositoryFailedAgainResponseSchema,
 	updateBlockInputSchema,
 	updateBlockResponseSchema,
 } from "@orcai/schema";
@@ -98,30 +98,30 @@ export const blockContracts = {
 		)
 		.input(blockReadinessInputSchema)
 		.output(blockReadinessResponseSchema),
-	retryDocument: base
+	prepareAssetAgain: base
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/blocks/{blockId}/assets/{assetId}/retry",
+				path: "/blocks/{blockId}/assets/{assetId}/prepare-again",
 				summary: "Retry a failed asset in a repository",
 				tags: [
 					"Blocks",
 				],
 			}),
 		)
-		.input(retryDocumentInputSchema)
-		.output(retryDocumentResponseSchema),
-	retryFailed: base
+		.input(prepareRepositoryAssetAgainInputSchema)
+		.output(prepareRepositoryAssetAgainResponseSchema),
+	prepareFailedAgain: base
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/blocks/{blockId}/assets/retry-failed",
+				path: "/blocks/{blockId}/assets/prepare-failed-again",
 				summary: "Retry every failed asset in a repository",
 				tags: [
 					"Blocks",
 				],
 			}),
 		)
-		.input(retryFailedDocumentsInputSchema)
-		.output(retryFailedDocumentsResponseSchema),
+		.input(prepareRepositoryFailedAgainInputSchema)
+		.output(prepareRepositoryFailedAgainResponseSchema),
 };

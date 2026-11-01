@@ -6,12 +6,12 @@ import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
 	resetProcedures();
-	answers["asset.reprocess"] = () =>
+	answers["asset.prepareAgain"] = () =>
 		Effect.succeed({
 			success: true,
 			message: "",
 		});
-	answers["block.retryDocument"] = () =>
+	answers["block.prepareAssetAgain"] = () =>
 		Effect.succeed({
 			retried: "indexing",
 		});
@@ -49,7 +49,7 @@ describe("prepareAssetAgainTool", () => {
 		});
 		expect(procedureCalls).toEqual([
 			{
-				procedure: "asset.reprocess",
+				procedure: "asset.prepareAgain",
 				input: {
 					id: assetId,
 				},
@@ -71,7 +71,7 @@ describe("prepareAssetAgainTool", () => {
 		});
 		expect(procedureCalls).toEqual([
 			{
-				procedure: "block.retryDocument",
+				procedure: "block.prepareAssetAgain",
 				input: {
 					assetId,
 					blockId: repositoryId,

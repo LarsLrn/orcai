@@ -30,7 +30,7 @@ const handlers = {
 	onAccess: noop,
 	onHandOver: noop,
 	onAddToLibrary: noop,
-	onReprocess: noop,
+	onPrepareAgain: noop,
 	onDelete: noop,
 };
 
@@ -68,12 +68,12 @@ describe("assetActions", () => {
 			"edit",
 			"access",
 			"add-to-library",
-			"reprocess",
+			"prepareAgain",
 			"delete!",
 		]);
 	});
 
-	test("an asset in processing cannot be reprocessed", () => {
+	test("an asset in processing cannot be prepared again", () => {
 		expect(
 			actionKeys(
 				assetActions(

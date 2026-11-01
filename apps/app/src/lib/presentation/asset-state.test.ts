@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { canReprocess } from "./asset-state";
+import { canPrepareAgain } from "./asset-state";
 
-describe("canReprocess", () => {
+describe("canPrepareAgain", () => {
 	test("allows an image the utility model could not read, not another unsupported file", () => {
-		expect(canReprocess("unsupported", "png")).toBe(true);
-		expect(canReprocess("unsupported", "docx")).toBe(false);
+		expect(canPrepareAgain("unsupported", "png")).toBe(true);
+		expect(canPrepareAgain("unsupported", "docx")).toBe(false);
 	});
 
 	test("follows whether a person's retry helps otherwise", () => {
-		expect(canReprocess("quota", "pdf")).toBe(true);
-		expect(canReprocess("empty", "png")).toBe(false);
+		expect(canPrepareAgain("quota", "pdf")).toBe(true);
+		expect(canPrepareAgain("empty", "png")).toBe(false);
 	});
 });

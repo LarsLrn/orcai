@@ -12,7 +12,7 @@ import {
 import { and, asc, eq, getColumns, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { homeOrganization, inActivityRun } from "@/lib/activity/admission";
-import { reprocessAsset } from "@/lib/assets/processing";
+import { prepareAssetAgain } from "@/lib/assets/processing";
 import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -283,14 +283,14 @@ const loadAssets = (params: {
 			);
 	});
 
-type RetryDocument = Effect.Success<ReturnType<typeof loadAssets>>[number];
+type PreparableAsset = Effect.Success<ReturnType<typeof loadAssets>>[number];
 
 /** Retries the assets' stages as one retry run of the user's in the repository. */
 const runRetries = (params: {
 	userId: UserId;
 	blockId: BlockId;
-	processing: readonly RetryDocument[];
-	indexing: readonly RetryDocument[];
+	processing: readonly PreparableAsset[];
+	indexing: readonly PreparableAsset[];
 }) =>
 	inActivityRun(
 		{
@@ -303,7 +303,7 @@ const runRetries = (params: {
 			Effect.gen(function* () {
 				// An asset another request already queued is not admitted again.
 				const admitted = yield* Effect.forEach(params.processing, (asset) =>
-					reprocessAsset(asset, {
+					prepareAssetAgain(asset, {
 						id: runId,
 						blockId: params.blockId,
 					}),
@@ -328,7 +328,7 @@ const runRetries = (params: {
  * otherwise indexing in this repository. An asset still being prepared has
  * nothing to retry.
  */
-export const retryDocument = (params: {
+export const prepareRepositoryAssetAgain = (params: {
 	userId: UserId;
 	blockId: BlockId;
 	assetId: AssetId;
@@ -390,7 +390,7 @@ export const retryDocument = (params: {
 	});
 
 /** Retries every failed asset of the repository that retrying can help. */
-export const retryFailedDocuments = (params: {
+export const prepareRepositoryFailedAgain = (params: {
 	userId: UserId;
 	blockId: BlockId;
 }) =>

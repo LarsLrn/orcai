@@ -231,7 +231,7 @@ describe("invalidateStaleQueries", () => {
 			() =>
 				new MutationObserver(
 					queryClient,
-					orpc.asset.reprocess.mutationOptions(),
+					orpc.asset.prepareAgain.mutationOptions(),
 				).mutate({} as never),
 			() =>
 				new MutationObserver(
@@ -256,7 +256,7 @@ describe("invalidateStaleQueries", () => {
 			() =>
 				new MutationObserver(
 					queryClient,
-					orpc.block.retryFailed.mutationOptions(),
+					orpc.block.prepareFailedAgain.mutationOptions(),
 				).mutate({} as never),
 			() =>
 				new MutationObserver(

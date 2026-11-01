@@ -164,7 +164,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			createFromUploads: assetsAndReadiness,
 			save: assetsAndReadiness,
 			delete: assetsAndReadiness,
-			reprocess: assetsAndReadiness,
+			prepareAgain: assetsAndReadiness,
 			generateMetadata: assetsAndReadiness,
 			dismissMetadataSuggestion: () => [
 				orpc.asset.key(),
@@ -196,8 +196,8 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.bot.list.key(),
 				activity,
 			],
-			retryDocument: assetsAndReadiness,
-			retryFailed: assetsAndReadiness,
+			prepareAssetAgain: assetsAndReadiness,
+			prepareFailedAgain: assetsAndReadiness,
 		},
 		bot: {
 			save: (input) => [

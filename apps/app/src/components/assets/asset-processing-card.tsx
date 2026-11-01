@@ -10,9 +10,9 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { InfoDot } from "@/components/ui/composed/info-dot";
-import { useReprocessAssetMutation } from "@/hooks/mutations/use-asset-mutations";
+import { usePrepareAssetAgainMutation } from "@/hooks/mutations/use-asset-mutations";
 import {
-	canReprocess,
+	canPrepareAgain,
 	getPipelineFailureDescription,
 } from "@/lib/presentation/asset-state";
 import {
@@ -35,8 +35,8 @@ const AssetProcessingCard = ({
 	canEdit: boolean;
 	className?: string;
 }) => {
-	const { mutate: reprocessAsset, isPending: reprocessing } =
-		useReprocessAssetMutation();
+	const { mutate: prepareAssetAgain, isPending: preparingAgain } =
+		usePrepareAssetAgainMutation();
 	const {
 		label,
 		variant,
@@ -66,13 +66,13 @@ const AssetProcessingCard = ({
 				</Badge>
 				{canEdit &&
 					asset.processingStatus === "failed" &&
-					canReprocess(failure ?? "other", asset.fileType) && (
+					canPrepareAgain(failure ?? "other", asset.fileType) && (
 						<Button
 							variant="outline"
 							size="sm"
-							disabled={reprocessing}
+							disabled={preparingAgain}
 							onClick={() =>
-								reprocessAsset({
+								prepareAssetAgain({
 									id: asset.id,
 								})
 							}

@@ -389,7 +389,7 @@ const deadLetter = <T>(data: T, message = "extraction failed") =>
 		},
 	}) as JobWithMetadata<T>;
 
-/** What Reprocess does: the next generation, pending, every link a new attempt. */
+/** What Prepare again does: the next generation, pending, every link a new attempt. */
 const processAgain = (assetId: AssetId) =>
 	run(
 		Effect.gen(function* () {

@@ -131,9 +131,13 @@ const endProcessing = (
 		}),
 	);
 
-const reprocess = async (actor: Actor, assetId: AssetId, zedToken?: string) => {
+const prepareAgain = async (
+	actor: Actor,
+	assetId: AssetId,
+	zedToken?: string,
+) => {
 	await run(
-		(await procedures()).asset.reprocess(
+		(await procedures()).asset.prepareAgain(
 			{
 				id: assetId,
 			},
@@ -142,7 +146,7 @@ const reprocess = async (actor: Actor, assetId: AssetId, zedToken?: string) => {
 	);
 	const { running } = await summary(actor, zedToken);
 	const started = running.find((entry) => entry.asset?.id === assetId);
-	if (!started) throw new Error("The reprocess started no run");
+	if (!started) throw new Error("Preparing again started no run");
 	return started.id;
 };
 
@@ -216,7 +220,7 @@ describe("activity runs", () => {
 				}),
 			]);
 
-			const first = await reprocess(owner, asset.id, zedToken);
+			const first = await prepareAgain(owner, asset.id, zedToken);
 			expect(await summary(owner, zedToken)).toMatchObject({
 				running: [
 					{
@@ -247,7 +251,7 @@ describe("activity runs", () => {
 				}),
 			]);
 
-			const second = await reprocess(owner, asset.id, zedToken);
+			const second = await prepareAgain(owner, asset.id, zedToken);
 			expect(await stateOf(owner, first, zedToken)).toBe("failed");
 			await endProcessing(asset.id, second, "completed");
 			expect(await stateOf(owner, first, zedToken)).toBe("resolved");
@@ -270,7 +274,7 @@ describe("activity runs", () => {
 			const { asset } = created;
 			const zedToken = created.zedToken ?? organizationToken;
 			await setProcessing(asset.id, "completed");
-			const runId = await reprocess(owner, asset.id, zedToken);
+			const runId = await prepareAgain(owner, asset.id, zedToken);
 			const failure = await endProcessing(asset.id, runId, "failed");
 			const p = await procedures();
 			const options = await procedureOptions(stranger.owner, stranger.zedToken);
@@ -388,7 +392,7 @@ describe("activity runs", () => {
 				),
 			);
 			const token = granted.meta?.zedToken ?? zedToken;
-			const runId = await reprocess(member, asset.id, token);
+			const runId = await prepareAgain(member, asset.id, token);
 			await endProcessing(asset.id, runId, "failed");
 			expect((await attentionOf(member, token)).failures).toHaveLength(1);
 			// The failure of work the member asked for is theirs, not the uploader's.
@@ -443,7 +447,7 @@ describe("activity runs", () => {
 			const { asset } = created;
 			const zedToken = created.zedToken ?? organizationToken;
 			await setProcessing(asset.id, "completed");
-			const runId = await reprocess(member, asset.id, zedToken);
+			const runId = await prepareAgain(member, asset.id, zedToken);
 			await endProcessing(asset.id, runId, "failed");
 			expect(
 				await runsOf(
@@ -507,7 +511,7 @@ describe("activity runs", () => {
 			const { asset } = created;
 			const zedToken = created.zedToken ?? organizationToken;
 			await setProcessing(asset.id, "completed");
-			const runId = await reprocess(owner, asset.id, zedToken);
+			const runId = await prepareAgain(owner, asset.id, zedToken);
 			await endProcessing(asset.id, runId, "failed");
 			// A second asset keeps the run from being empty, which the cleanup would delete.
 			const kept = await createAsset(owner, organizationId);
@@ -567,7 +571,7 @@ describe("activity runs", () => {
 			await setProcessing(asset.id, "completed");
 			const p = await procedures();
 			const options = await procedureOptions(owner, zedToken);
-			const first = await reprocess(owner, asset.id, zedToken);
+			const first = await prepareAgain(owner, asset.id, zedToken);
 			await expect(
 				run(
 					p.activity.dismissRun(
@@ -609,7 +613,7 @@ describe("activity runs", () => {
 				),
 			).toEqual([]);
 
-			const second = await reprocess(owner, asset.id, zedToken);
+			const second = await prepareAgain(owner, asset.id, zedToken);
 			const again = await endProcessing(asset.id, second, "failed");
 			expect(again).not.toBe(failure);
 			expect((await attentionOf(owner, zedToken)).failures).toEqual([

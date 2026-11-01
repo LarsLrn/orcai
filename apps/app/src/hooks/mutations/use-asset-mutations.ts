@@ -76,18 +76,18 @@ export const useDeleteAssetsMutation = (
 	});
 };
 
-export const useReprocessAssetMutation = () => {
+export const usePrepareAssetAgainMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.asset.reprocess.mutationOptions(),
+		mutationOptions: () => orpc.asset.prepareAgain.mutationOptions(),
 		messages: {
-			loading: m.assets_reprocess_toast_loading(),
-			success: m.assets_reprocess_toast_success(),
-			error: m.assets_reprocess_toast_error(),
+			loading: m.assets_prepare_again_toast_loading(),
+			success: m.assets_prepare_again_toast_success(),
+			error: m.assets_prepare_again_toast_error(),
 		},
 		confirm: {
-			title: m.assets_reprocess_confirm_title(),
-			description: m.assets_reprocess_confirm_description(),
-			confirmText: m.assets_reprocess_confirm_button(),
+			title: m.assets_prepare_again_confirm_title(),
+			description: m.assets_prepare_again_confirm_description(),
+			confirmText: m.assets_prepare_again_confirm_button(),
 		},
 	});
 };
