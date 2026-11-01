@@ -1,5 +1,5 @@
 import {
-	type DocumentState,
+	type AssetState,
 	type FileType,
 	isImageFileType,
 	isRetryableFailure,
@@ -9,15 +9,15 @@ import { LoaderCircleIcon } from "lucide-react";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { m } from "@/paraglide/messages";
 
-const documentStateLabels: Record<DocumentState, () => string> = {
-	queued: m.document_state_queued_label,
-	processing: m.document_state_processing_label,
-	indexing: m.document_state_indexing_label,
-	ready: m.document_state_ready_label,
-	failed: m.document_state_failed_label,
+const assetStateLabels: Record<AssetState, () => string> = {
+	queued: m.asset_state_queued_label,
+	processing: m.asset_state_processing_label,
+	indexing: m.asset_state_indexing_label,
+	ready: m.asset_state_ready_label,
+	failed: m.asset_state_failed_label,
 };
 
-const documentStateVariants: Record<DocumentState, BadgeItem["variant"]> = {
+const assetStateVariants: Record<AssetState, BadgeItem["variant"]> = {
 	queued: "info",
 	processing: "processing",
 	indexing: "processing",
@@ -25,12 +25,12 @@ const documentStateVariants: Record<DocumentState, BadgeItem["variant"]> = {
 	failed: "danger",
 };
 
-/** The status badge of a document in a repository. */
-export const documentStateBadge = (state: DocumentState): BadgeItem => {
+/** The status badge of an asset in a repository. */
+export const assetStateBadge = (state: AssetState): BadgeItem => {
 	const working = state === "processing" || state === "indexing";
 	return {
-		label: documentStateLabels[state](),
-		variant: documentStateVariants[state],
+		label: assetStateLabels[state](),
+		variant: assetStateVariants[state],
 		icon: working ? LoaderCircleIcon : undefined,
 		className: working ? "[&>svg]:animate-spin" : undefined,
 	};

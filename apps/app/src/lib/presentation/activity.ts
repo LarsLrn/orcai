@@ -298,13 +298,13 @@ export const memberStage = (member: ActivityMember): MemberStage | null => {
 };
 
 export const memberStageLabels: Record<MemberStage, () => string> = {
-	failed: m.document_state_failed_label,
-	processing: m.document_state_processing_label,
-	indexing: m.document_state_indexing_label,
+	failed: m.asset_state_failed_label,
+	processing: m.asset_state_processing_label,
+	indexing: m.asset_state_indexing_label,
 	metadata: m.activity_stage_metadata,
 	updated: m.activity_member_updated,
 	unchanged: m.activity_member_unchanged,
-	ready: m.document_state_ready_label,
+	ready: m.asset_state_ready_label,
 	stopped: m.activity_member_stopped,
 };
 

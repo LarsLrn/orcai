@@ -1,4 +1,4 @@
-import type { UploadFailure } from "@/components/documents/use-asset-intake";
+import type { UploadFailure } from "@/components/assets/use-asset-intake";
 import { m } from "@/paraglide/messages";
 
 /** The first failure's reason, and how many more files failed. */

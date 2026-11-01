@@ -39,8 +39,8 @@ import { literalSearch } from "@/lib/utils/literal-search";
  * instance may preview an entry.
  */
 
-/** How many documents an entry's page previews. */
-const DOCUMENT_PREVIEW_SIZE = 5;
+/** How many assets an entry's page previews. */
+const ASSET_PREVIEW_SIZE = 5;
 
 type EntryFilters = {
 	kind?: CatalogueKind;
@@ -320,7 +320,7 @@ const hydrate = (
 								modelName,
 							}
 						: null,
-				documents: null,
+				assets: null,
 			});
 		for (const { type, ...block } of blocks)
 			tiles.set(block.id, {
@@ -329,7 +329,7 @@ const hydrate = (
 				state: stateOf(block.id),
 				contents: null,
 				modelHint: null,
-				documents: type === "database" ? totals(block.id).ready : null,
+				assets: type === "database" ? totals(block.id).ready : null,
 			});
 		return page.flatMap((entry) => tiles.get(entry.id) ?? []);
 	});
@@ -521,7 +521,7 @@ const authorsPick = (botId: BotId, organizationId: OrganizationId) =>
 
 /**
  * A bot's behaviour and repositories, with each repository's published
- * documents and how each relates to the organisation.
+ * assets and how each relates to the organisation.
  */
 const botBlocks = (botId: BotId, organizationId: OrganizationId) =>
 	Effect.gen(function* () {
@@ -557,12 +557,12 @@ const botBlocks = (botId: BotId, organizationId: OrganizationId) =>
 				block.type === "template"
 					? ("template" as const)
 					: ("database" as const),
-			documents: block.type === "database" ? totals(block.id).ready : null,
+			assets: block.type === "database" ? totals(block.id).ready : null,
 		}));
 	});
 
-/** A repository's first published documents. */
-const documentPreview = (blockId: BlockId) =>
+/** A repository's first published assets. */
+const assetPreview = (blockId: BlockId) =>
 	Effect.gen(function* () {
 		const rows = yield* (yield* DB)
 			.select({
@@ -582,7 +582,7 @@ const documentPreview = (blockId: BlockId) =>
 				),
 			)
 			.orderBy(asc(dbSchema.asset.title), asc(dbSchema.asset.id))
-			.limit(DOCUMENT_PREVIEW_SIZE);
+			.limit(ASSET_PREVIEW_SIZE);
 		return rows.map((row) => ({
 			id: row.id as AssetId,
 			title: row.title,
@@ -637,7 +637,7 @@ const entryDetail = (
 			blocks: [],
 			authorsPick: null,
 			prompt: null,
-			documentPreview: [],
+			assetPreview: [],
 		};
 		switch (entry.resourceType) {
 			case "bot": {
@@ -662,7 +662,7 @@ const entryDetail = (
 				if (tile.kind === "repository")
 					return {
 						...detail,
-						documentPreview: yield* documentPreview(entry.resourceId),
+						assetPreview: yield* assetPreview(entry.resourceId),
 					};
 				const [block] = yield* db
 					.select({

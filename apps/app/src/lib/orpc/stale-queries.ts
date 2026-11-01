@@ -149,7 +149,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	// The user's activity lists the work they start and the failures and suggestions it leaves.
 	const activity = orpc.activity.key();
 
-	// Readiness lists each document's title and state; repository tiles count them.
+	// Readiness lists each asset's title and state; repository tiles count them.
 	const assetsAndReadiness = () => [
 		orpc.asset.key(),
 		orpc.block.readiness.key(),

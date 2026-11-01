@@ -526,7 +526,7 @@ describe("overlapping admissions", () => {
 
 describe("block.readiness", () => {
 	test(
-		"reports each readable repository's documents and leaves out the rest",
+		"reports each readable repository's assets and leaves out the rest",
 		async () => {
 			const { owner, assets, blockId, zedToken } = await repositoryWith(3);
 			const [ready, failed] = assets;
@@ -571,8 +571,7 @@ describe("block.readiness", () => {
 			});
 			expect(repository.capabilities.edit).toBe(true);
 			expect(
-				repository.documents.find((document) => document.assetId === failed)
-					?.failure,
+				repository.assets.find((asset) => asset.assetId === failed)?.failure,
 			).toEqual({
 				stage: "processing",
 				kind: "other",
@@ -583,9 +582,9 @@ describe("block.readiness", () => {
 	);
 });
 
-describe("retrying documents", () => {
+describe("retrying assets", () => {
 	test(
-		"retries the failed stage, skips failures retrying cannot fix, and refuses documents still preparing",
+		"retries the failed stage, skips failures retrying cannot fix, and refuses assets still preparing",
 		async () => {
 			const { owner, assets, blockId, zedToken } = await repositoryWith(4);
 			const [processingFailed, indexingFailed, empty, preparing] = assets;
@@ -679,7 +678,7 @@ describe("retrying documents", () => {
 					),
 				),
 			).rejects.toMatchObject({
-				reason: "DOCUMENT_STILL_PREPARING",
+				reason: "ASSET_STILL_PREPARING",
 			});
 		},
 		TIMEOUT,
@@ -800,7 +799,7 @@ describe("saving a repository and processing completing", () => {
 		);
 
 	test(
-		"a document saved before its processing completes is queued once, by the completion",
+		"an asset saved before its processing completes is queued once, by the completion",
 		async () => {
 			const {
 				assets: [assetId],
@@ -817,7 +816,7 @@ describe("saving a repository and processing completing", () => {
 	);
 
 	test(
-		"a document saved after its processing completed is queued once, by the save",
+		"an asset saved after its processing completed is queued once, by the save",
 		async () => {
 			const repo = await repositoryWith(1);
 			const { asset, zedToken } = await createAsset(
@@ -848,7 +847,7 @@ describe("saving a repository and processing completing", () => {
 	);
 });
 
-describe("deleting a linked document or repository", () => {
+describe("deleting a linked asset or repository", () => {
 	for (const resourceType of [
 		"asset",
 		"block",

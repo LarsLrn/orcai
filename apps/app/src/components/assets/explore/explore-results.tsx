@@ -1,7 +1,7 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import type { AssetPointBrowseCursor, RetrievalMode } from "@orcai/schema";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { DisplayPoint } from "@/components/documents/chunks/display-point";
+import { DisplayPoint } from "@/components/assets/chunks/display-point";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -21,7 +21,7 @@ const Pending = () => (
 	</div>
 );
 
-/** The repository's passages page by page; one document's in reading order. */
+/** The repository's passages page by page; one asset's in reading order. */
 export const ExploreBrowse = ({
 	repositoryId,
 	assetId,
@@ -29,7 +29,7 @@ export const ExploreBrowse = ({
 	repositoryId: BlockId;
 	assetId?: AssetId;
 }) => {
-	// The key holds the repository and document, so changing either starts over.
+	// The key holds the repository and asset, so changing either starts over.
 	const { data, status, fetchNextPage, hasNextPage, isFetchingNextPage } =
 		useInfiniteQuery(
 			orpc.assetPoint.browseRepository.infiniteOptions({
@@ -84,7 +84,7 @@ export const ExploreBrowse = ({
 	);
 };
 
-/** The top `topK` passages for the query, ranked, without the per-document cap a bot's search applies. */
+/** The top `topK` passages for the query, ranked, without the per-asset cap a bot's search applies. */
 export const ExploreSearch = ({
 	repositoryId,
 	query,

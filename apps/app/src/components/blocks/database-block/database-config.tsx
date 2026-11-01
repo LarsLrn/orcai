@@ -1,15 +1,15 @@
 import type { BlockId } from "@orcai/core";
 import {
 	type Asset,
+	type AssetReadiness,
 	type DatabaseBlock,
-	type DocumentReadiness,
 	isRetryableFailure,
 	type RepositoryReadiness,
 } from "@orcai/schema";
 import { ChevronDownIcon, RotateCwIcon, TelescopeIcon } from "lucide-react";
 import { useState } from "react";
-import { CompactAssetTile } from "@/components/documents/asset-tile";
-import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
+import { CompactAssetTile } from "@/components/assets/asset-tile";
+import { useRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import { ContentRenderer } from "@/components/editor/content-renderer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -198,16 +198,16 @@ const AssetSection = ({
 	]);
 	const readiness = data?.data[0];
 	const canEdit = readiness?.capabilities.edit === true;
-	const documentById = new Map(
-		readiness?.documents.map((document) => [
-			document.assetId,
-			document,
+	const assetById = new Map(
+		readiness?.assets.map((asset) => [
+			asset.assetId,
+			asset,
 		]),
 	);
-	const retryable = (document: DocumentReadiness | undefined) =>
+	const retryable = (asset: AssetReadiness | undefined) =>
 		canEdit &&
-		Boolean(document?.failure) &&
-		isRetryableFailure(document?.failure?.kind ?? "other");
+		Boolean(asset?.failure) &&
+		isRetryableFailure(asset?.failure?.kind ?? "other");
 	const { mutate: retryDocument, isPending: retryingDocument } =
 		useRetryDocumentMutation();
 	const { mutate: retryFailed, isPending: retryingFailed } =
@@ -226,7 +226,7 @@ const AssetSection = ({
 				</SectionDescription>
 				<HeaderActions
 					actions={[
-						readiness?.documents.some(retryable) && {
+						readiness?.assets.some(retryable) && {
 							key: "retry-failed",
 							label: m.blocks_database_config_retry_failed_action(),
 							icon: RotateCwIcon,
@@ -256,14 +256,14 @@ const AssetSection = ({
 			<SectionContent>
 				<SectionGrid>
 					{assets.map((entry) => {
-						const document = documentById.get(entry.id);
+						const assetReadiness = assetById.get(entry.id);
 						return (
 							<CompactAssetTile
 								key={entry.id}
 								asset={entry}
-								document={document}
+								readiness={assetReadiness}
 								actions={
-									retryable(document)
+									retryable(assetReadiness)
 										? [
 												{
 													key: "retry",
@@ -288,7 +288,7 @@ const AssetSection = ({
 	);
 };
 
-/** How many of the repository's documents are searchable, preparing or failed. */
+/** How many of the repository's assets are searchable, preparing or failed. */
 const ReadinessSummary = ({
 	totals,
 }: {

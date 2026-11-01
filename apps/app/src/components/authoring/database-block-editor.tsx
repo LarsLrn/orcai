@@ -8,9 +8,9 @@ import {
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
-import { AssetLibraryPicker } from "@/components/documents/shared/asset-library-picker";
-import { SelectedAssetList } from "@/components/documents/shared/selected-asset-list";
+import { AssetIntakeFlow } from "@/components/assets/shared/asset-intake-flow";
+import { AssetLibraryPicker } from "@/components/assets/shared/asset-library-picker";
+import { SelectedAssetList } from "@/components/assets/shared/selected-asset-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

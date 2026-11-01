@@ -224,7 +224,7 @@ const publishBot = authed.bot.publish
 						params: {
 							blockName: databaseBlock.name,
 						},
-						message: `Attach at least one document to "${databaseBlock.name}" before publishing.`,
+						message: `Attach at least one asset to "${databaseBlock.name}" before publishing.`,
 					}),
 				);
 			}

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AssetIntakeFlow } from "@/components/documents/shared/asset-intake-flow";
+import { AssetIntakeFlow } from "@/components/assets/shared/asset-intake-flow";
 import {
 	Page,
 	PageContent,

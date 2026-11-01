@@ -1,7 +1,7 @@
 import type { Asset, AssetWithCapabilities } from "@orcai/schema";
 import { LoaderCircleIcon, PencilIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import { AssetMetadataDialog } from "@/components/documents/shared/asset-metadata-dialog";
+import { AssetMetadataDialog } from "@/components/assets/shared/asset-metadata-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { hasCapability } from "@/lib/authz/capabilities";

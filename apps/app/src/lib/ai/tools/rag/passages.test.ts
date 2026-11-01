@@ -31,7 +31,7 @@ describe("neighbouringRuns", () => {
 	const ids = (runs: ReturnType<typeof neighbouringRuns>) =>
 		runs.map((run) => run.map((chunk) => chunk.id));
 
-	test("joins neighbouring chunks of one document in chunk order", () => {
+	test("joins neighbouring chunks of one asset in chunk order", () => {
 		expect(
 			ids(
 				neighbouringRuns([
@@ -58,7 +58,7 @@ describe("neighbouringRuns", () => {
 		]);
 	});
 
-	test("splits at gaps and between documents, in the order first seen", () => {
+	test("splits at gaps and between assets, in the order first seen", () => {
 		expect(
 			ids(
 				neighbouringRuns([

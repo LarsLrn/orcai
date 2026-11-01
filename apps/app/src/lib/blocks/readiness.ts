@@ -2,7 +2,7 @@ import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { queueIndexing } from "@orcai/pg-boss";
 import {
-	type DocumentReadiness,
+	type AssetReadiness,
 	isRetryableFailure,
 	type PipelineFailure,
 	type PipelineStatus,
@@ -25,9 +25,9 @@ type PipelineRow = {
 };
 
 /** The one place that combines an asset's processing with its indexing in a repository. */
-export const documentState = (
+export const assetState = (
 	row: PipelineRow,
-): Pick<DocumentReadiness, "state" | "failure"> => {
+): Pick<AssetReadiness, "state" | "failure"> => {
 	switch (row.processingStatus) {
 		case "pending":
 			return {
@@ -72,8 +72,8 @@ export const documentState = (
 	}
 };
 
-/** `documentState`'s state in SQL, for totals counted in the database; the two must agree. */
-const documentStateSql = sql<DocumentReadiness["state"]>`case
+/** `assetState`'s state in SQL, for totals counted in the database; the two must agree. */
+const assetStateSql = sql<AssetReadiness["state"]>`case
 	when ${dbSchema.asset.processingStatus} = 'pending' then 'queued'
 	when ${dbSchema.asset.processingStatus} = 'active' then 'processing'
 	when ${dbSchema.asset.processingStatus} = 'failed' then 'failed'
@@ -82,11 +82,11 @@ const documentStateSql = sql<DocumentReadiness["state"]>`case
 	else 'failed'
 end`;
 
-const countWhere = (states: readonly DocumentReadiness["state"][]) =>
-	sql<number>`(count(*) filter (where ${documentStateSql} in ${states}))::int`;
+const countWhere = (states: readonly AssetReadiness["state"][]) =>
+	sql<number>`(count(*) filter (where ${assetStateSql} in ${states}))::int`;
 
 /**
- * The document totals of the repositories among `blockIds`, counted in one
+ * The asset totals of the repositories among `blockIds`, counted in one
  * query, as a lookup by block id. Callers check access.
  */
 export const repositoryTotals = (blockIds: readonly BlockId[]) =>
@@ -134,12 +134,12 @@ export const repositoryTotals = (blockIds: readonly BlockId[]) =>
 	});
 
 export const readinessTotals = (
-	documents: readonly Pick<DocumentReadiness, "state">[],
+	assets: readonly Pick<AssetReadiness, "state">[],
 ): RepositoryReadiness["totals"] => {
-	const count = (states: readonly DocumentReadiness["state"][]) =>
-		documents.filter((document) => states.includes(document.state)).length;
+	const count = (states: readonly AssetReadiness["state"][]) =>
+		assets.filter((asset) => states.includes(asset.state)).length;
 	return {
-		total: documents.length,
+		total: assets.length,
 		ready: count([
 			"ready",
 		]),
@@ -231,13 +231,13 @@ export const loadRepositoryReadiness = (params: {
 			const name = nameById.get(blockId);
 			const blockCapabilities = capabilities.get(blockId);
 			if (name === undefined || !blockCapabilities) return [];
-			const documents = rows
+			const assets = rows
 				.filter((row) => row.blockId === blockId)
 				.map(
-					(row): DocumentReadiness => ({
+					(row): AssetReadiness => ({
 						assetId: row.assetId,
 						title: row.title,
-						...documentState(row),
+						...assetState(row),
 					}),
 				);
 			return [
@@ -245,15 +245,15 @@ export const loadRepositoryReadiness = (params: {
 					blockId,
 					name,
 					capabilities: blockCapabilities,
-					totals: readinessTotals(documents),
-					documents,
+					totals: readinessTotals(assets),
+					assets,
 				},
 			];
 		});
 	});
 
-/** The repository's documents with what a retry needs, optionally only some. */
-const loadDocuments = (params: {
+/** The repository's assets with what a retry needs, optionally only some. */
+const loadAssets = (params: {
 	blockId: BlockId;
 	assetIds?: readonly AssetId[];
 }) =>
@@ -283,9 +283,9 @@ const loadDocuments = (params: {
 			);
 	});
 
-type RetryDocument = Effect.Success<ReturnType<typeof loadDocuments>>[number];
+type RetryDocument = Effect.Success<ReturnType<typeof loadAssets>>[number];
 
-/** Retries the documents' stages as one retry run of the user's in the repository. */
+/** Retries the assets' stages as one retry run of the user's in the repository. */
 const runRetries = (params: {
 	userId: UserId;
 	blockId: BlockId;
@@ -301,18 +301,18 @@ const runRetries = (params: {
 		},
 		(runId) =>
 			Effect.gen(function* () {
-				// A document another request already queued is not admitted again.
-				const admitted = yield* Effect.forEach(params.processing, (document) =>
-					reprocessAsset(document, {
+				// An asset another request already queued is not admitted again.
+				const admitted = yield* Effect.forEach(params.processing, (asset) =>
+					reprocessAsset(asset, {
 						id: runId,
 						blockId: params.blockId,
 					}),
 				);
 				const indexing = yield* queueIndexing(
-					params.indexing.map((document) => ({
-						assetId: document.id,
+					params.indexing.map((asset) => ({
+						assetId: asset.id,
 						blockId: params.blockId,
-						attempt: document.indexAttempt,
+						attempt: asset.indexAttempt,
 					})),
 					runId,
 				);
@@ -324,8 +324,8 @@ const runRetries = (params: {
 	);
 
 /**
- * Runs one document's stage again: processing when the file failed,
- * otherwise indexing in this repository. A document still being prepared has
+ * Runs one asset's stage again: processing when the file failed,
+ * otherwise indexing in this repository. An asset still being prepared has
  * nothing to retry.
  */
 export const retryDocument = (params: {
@@ -334,20 +334,20 @@ export const retryDocument = (params: {
 	assetId: AssetId;
 }) =>
 	Effect.gen(function* () {
-		const [document] = yield* loadDocuments({
+		const [asset] = yield* loadAssets({
 			blockId: params.blockId,
 			assetIds: [
 				params.assetId,
 			],
 		});
-		if (!document) {
+		if (!asset) {
 			return yield* new AppErrors.NotFoundError({
 				reason: "ASSET_NOT_ATTACHED",
 				message: "Asset not attached to this repository",
 			});
 		}
 
-		const { state, failure } = documentState(document);
+		const { state, failure } = assetState(asset);
 		const stage =
 			state === "failed"
 				? failure?.stage
@@ -356,8 +356,8 @@ export const retryDocument = (params: {
 					: undefined;
 		if (!stage) {
 			return yield* new AppErrors.BadRequestError({
-				reason: "DOCUMENT_STILL_PREPARING",
-				message: "The document is still being prepared",
+				reason: "ASSET_STILL_PREPARING",
+				message: "The asset is still being prepared",
 			});
 		}
 
@@ -367,21 +367,21 @@ export const retryDocument = (params: {
 			processing:
 				stage === "processing"
 					? [
-							document,
+							asset,
 						]
 					: [],
 			indexing:
 				stage === "indexing"
 					? [
-							document,
+							asset,
 						]
 					: [],
 		});
-		// Another request admitted the stage since the document was read.
+		// Another request admitted the stage since the asset was read.
 		if (retried[stage] === 0) {
 			return yield* new AppErrors.BadRequestError({
-				reason: "DOCUMENT_STILL_PREPARING",
-				message: "The document is still being prepared",
+				reason: "ASSET_STILL_PREPARING",
+				message: "The asset is still being prepared",
 			});
 		}
 		return {
@@ -389,18 +389,18 @@ export const retryDocument = (params: {
 		};
 	});
 
-/** Retries every failed document of the repository that retrying can help. */
+/** Retries every failed asset of the repository that retrying can help. */
 export const retryFailedDocuments = (params: {
 	userId: UserId;
 	blockId: BlockId;
 }) =>
 	Effect.gen(function* () {
-		const failed = (yield* loadDocuments(params)).flatMap((document) => {
-			const { failure } = documentState(document);
+		const failed = (yield* loadAssets(params)).flatMap((asset) => {
+			const { failure } = assetState(asset);
 			return failure && isRetryableFailure(failure.kind)
 				? [
 						{
-							document,
+							asset,
 							stage: failure.stage,
 						},
 					]
@@ -412,9 +412,9 @@ export const retryFailedDocuments = (params: {
 			blockId: params.blockId,
 			processing: failed
 				.filter((entry) => entry.stage === "processing")
-				.map((entry) => entry.document),
+				.map((entry) => entry.asset),
 			indexing: failed
 				.filter((entry) => entry.stage === "indexing")
-				.map((entry) => entry.document),
+				.map((entry) => entry.asset),
 		});
 	});

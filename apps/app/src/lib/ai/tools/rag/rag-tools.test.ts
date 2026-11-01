@@ -137,7 +137,7 @@ describe("searchRepositories", () => {
 			longText,
 		]);
 	});
-	test("shows the repository's per-document selection, recalled for more than it shows", async () => {
+	test("shows the repository's per-asset selection, recalled for more than it shows", async () => {
 		const ranked = [
 			...Array.from(
 				{
@@ -346,7 +346,7 @@ describe("getAssetPage", () => {
 							preparing: 0,
 							failed: 0,
 						},
-						documents: [
+						assets: [
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
@@ -383,7 +383,7 @@ describe("getAssetPage", () => {
 			options,
 		);
 
-	test("returns the page's passages without the documents it matched", async () => {
+	test("returns the page's passages without the assets it matched", async () => {
 		answerCatalog([
 			chunks[0],
 		]);

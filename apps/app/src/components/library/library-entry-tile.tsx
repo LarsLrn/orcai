@@ -1,7 +1,7 @@
 import type { LibraryEntry } from "@orcai/schema";
+import { AssetTile } from "@/components/assets/asset-tile";
 import { BlockTile } from "@/components/blocks/block-tile";
 import { BotTile } from "@/components/bot/bot-tile";
-import { AssetTile } from "@/components/documents/asset-tile";
 
 /** The tile of one item of a mixed library list. */
 export const LibraryEntryTile = ({ entry }: { entry: LibraryEntry }) =>

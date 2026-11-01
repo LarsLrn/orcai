@@ -25,7 +25,7 @@ const reasonOf = (operation: Promise<unknown>) =>
 
 /**
  * A listed, published bot with a behaviour and a repository holding one
- * document, made in a home organisation; a second organisation with an
+ * asset, made in a home organisation; a second organisation with an
  * admin, a manager and a member; and a third organisation.
  */
 const catalogue = async () => {
@@ -64,8 +64,8 @@ const catalogue = async () => {
 		return result;
 	};
 
-	const document = await createAsset(author, home);
-	token = document.zedToken ?? token;
+	const created = await createAsset(author, home);
+	token = created.zedToken ?? token;
 	const create = (type: "template" | "database") =>
 		call(author, (options) =>
 			procedures.block.create(
@@ -87,7 +87,7 @@ const catalogue = async () => {
 							contentJson: null,
 							status: "ready",
 							assets: [
-								document.asset.id,
+								created.asset.id,
 							],
 							config: {
 								minReferences: 1,
@@ -212,7 +212,7 @@ const catalogue = async () => {
 		bot,
 		template,
 		repository,
-		document: document.asset.id,
+		asset: created.asset.id,
 		entry,
 		install,
 		installWithBlocks,
@@ -741,7 +741,7 @@ describe("an organisation's chats with an installed bot", () => {
 
 describe("the library with installs", () => {
 	test(
-		"lists an installed repository from its home and loads its documents through it",
+		"lists an installed repository from its home and loads its assets through it",
 		async () => {
 			const s = await catalogue();
 			const repositories = (source: "all" | "own" | "installed") =>
@@ -779,7 +779,7 @@ describe("the library with installs", () => {
 			expect(await repositories("installed")).toEqual(listed);
 			expect(await repositories("own")).toEqual([]);
 
-			const { data: documents } = await s.call(s.member, (options) =>
+			const { data: assets } = await s.call(s.member, (options) =>
 				s.procedures.asset.list(
 					{
 						pageIndex: 0,
@@ -791,8 +791,8 @@ describe("the library with installs", () => {
 					options,
 				),
 			);
-			expect(documents.map((asset) => asset.id)).toEqual([
-				s.document,
+			expect(assets.map((asset) => asset.id)).toEqual([
+				s.asset,
 			]);
 			const { data: libraryAssets } = await s.call(s.member, (options) =>
 				s.procedures.asset.list(

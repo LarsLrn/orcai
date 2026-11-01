@@ -135,7 +135,7 @@ const storeExtraction = (
 	});
 
 /** A processed library document whose title is still the uploaded file's name. */
-const seedDocument = async (
+const seedAsset = async (
 	params: {
 		pool?: boolean;
 		budget?: number;
@@ -286,7 +286,7 @@ const usageUsers = (assetId: AssetId) =>
 test(
 	"apply fills empty fields and the file-name title, metered against the asset's organisation and the user who asked",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			metadata: {
 				author: "Kept Author",
 			},
@@ -323,7 +323,7 @@ test(
 test(
 	"apply keeps a value saved after the job was queued, and a title without a known file name",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			fileName: null,
 		});
 		await admit(seeded.assetId, "apply");
@@ -355,7 +355,7 @@ test(
 test(
 	"apply keeps the fields of another source type for review",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			metadata: {
 				sourceType: "book",
 			},
@@ -383,7 +383,7 @@ test(
 test(
 	"review keeps the whole suggestion and applies nothing",
 	async () => {
-		const seeded = await seedDocument();
+		const seeded = await seedAsset();
 		await admit(seeded.assetId, "review", seeded.adminId);
 		const job = await latestJob(seeded.assetId);
 		if (!job) throw new Error("No job queued");
@@ -406,7 +406,7 @@ test(
 test(
 	"a second apply while one runs is not admitted; a review supersedes it, and the first job's result is dropped",
 	async () => {
-		const seeded = await seedDocument();
+		const seeded = await seedAsset();
 		const first = await admit(seeded.assetId, "apply");
 		const second = await admit(seeded.assetId, "apply");
 		expect(first.admitted).toEqual([
@@ -430,7 +430,7 @@ test(
 test(
 	"a delivery replayed after its run completed calls nothing and changes nothing",
 	async () => {
-		const seeded = await seedDocument();
+		const seeded = await seedAsset();
 		await admit(seeded.assetId, "review");
 		const job = await latestJob(seeded.assetId);
 		if (!job) throw new Error("No job queued");
@@ -463,7 +463,7 @@ test(
 test(
 	"the quota reservation counts the document, so a pool that covers only the reply refuses",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			budget: 2_000,
 			content: "Refunds are paid within 14 days. ".repeat(1_000),
 		});
@@ -485,7 +485,7 @@ test(
 test(
 	"simultaneous apply triggers admit one generation",
 	async () => {
-		const seeded = await seedDocument();
+		const seeded = await seedAsset();
 
 		const results = await Promise.all(
 			[
@@ -515,7 +515,7 @@ test(
 test(
 	"a refused quota fails with quota, and only an asset with a utility model is admitted",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			pool: false,
 		});
 		await admit(seeded.assetId, "apply");
@@ -606,7 +606,7 @@ test(
 test(
 	"apply storing while its member's repository is deleted deadlocks, and the victim runs again without a second model call",
 	async () => {
-		const seeded = await seedDocument();
+		const seeded = await seedAsset();
 		const { blockId, runId } = await run(
 			Effect.gen(function* () {
 				const db = yield* DB;
@@ -777,7 +777,7 @@ const setProcessing = (assetId: AssetId, status: "completed" | "failed") =>
 
 /** What the processing job does once the file is prepared: completes it and queues what follows. */
 const completeProcessing = (
-	seeded: Awaited<ReturnType<typeof seedDocument>>,
+	seeded: Awaited<ReturnType<typeof seedAsset>>,
 	runId?: ActivityRunId,
 ) =>
 	run(
@@ -818,7 +818,7 @@ const memberOf = (runId: ActivityRunId) =>
 test(
 	"a missing extraction prepares the file again as the run's work, and the review resumes once it is prepared",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			stored: false,
 		});
 		const runId = await run(
@@ -910,7 +910,7 @@ test(
 test(
 	"a generation that finds its file still being prepared waits again without preparing it twice",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			stored: false,
 		});
 		await admit(seeded.assetId, "apply");
@@ -940,7 +940,7 @@ test(
 test(
 	"an extraction still missing after the file was prepared again fails as missing",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			stored: false,
 		});
 		await admit(seeded.assetId, "apply");
@@ -966,7 +966,7 @@ test(
 test(
 	"a waiting generation fails as missing when preparing the file again failed",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			stored: false,
 		});
 		await admit(seeded.assetId, "apply");
@@ -991,7 +991,7 @@ test(
 test(
 	"a delivery of a replaced generation neither prepares the file nor waits",
 	async () => {
-		const seeded = await seedDocument({
+		const seeded = await seedAsset({
 			stored: false,
 		});
 		await admit(seeded.assetId, "apply");
@@ -1014,7 +1014,7 @@ test(
 test(
 	"an answer cut off at its output budget is charged and fails as cut off without a retry",
 	async () => {
-		const seeded = await seedDocument();
+		const seeded = await seedAsset();
 		jsonAnswer.cutOff = true;
 		await admit(seeded.assetId, "apply", seeded.adminId);
 		const job = await latestJob(seeded.assetId);
@@ -1039,7 +1039,7 @@ for (const preparedAgain of [
 	test(
 		`an extraction stored between the missing read and the asset lock is used${preparedAgain ? " after the file was prepared again" : ""}`,
 		async () => {
-			const seeded = await seedDocument({
+			const seeded = await seedAsset({
 				stored: false,
 			});
 			await admit(seeded.assetId, "review");

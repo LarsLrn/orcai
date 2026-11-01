@@ -240,7 +240,7 @@
 	"catalogue_detail_model_required": "Requires {model}, so chats with this bot always use it.",
 	"catalogue_detail_model_unusable": "{organisation} cannot use it yet.",
 	"catalogue_detail_model_usable": "{organisation} can use it.",
-	"catalogue_detail_more_documents": [
+	"catalogue_detail_more_assets": [
 		{
 			"declarations": [
 				"input count",
@@ -256,7 +256,7 @@
 		}
 	],
 	"catalogue_detail_prompt_label": "Prompt",
-	"catalogue_detail_repository_documents": [
+	"catalogue_detail_repository_assets": [
 		{
 			"declarations": [
 				"input count",
@@ -1881,10 +1881,10 @@
 	"authoring_publish_summary_all_members_ungranted": "The All members group has no grant, so organisation members do not gain access automatically.",
 	"authoring_publish_summary_all_members_ungranted_before_publish": "The All members group has no grant, so only the groups and people listed below can use this bot once it is published.",
 	"authoring_publish_summary_direct_grants_label": "Direct grants:",
-	"authoring_publish_summary_documents_description": "You can publish now. Only ready assets are searchable, and the bot answers from the rest once they are prepared.",
-	"authoring_publish_summary_documents_fact_label": "Assets",
-	"authoring_publish_summary_documents_failed": "{count} failed.",
-	"authoring_publish_summary_documents_ready": "{name}: {ready} of {total} assets ready.",
+	"authoring_publish_summary_assets_description": "You can publish now. Only ready assets are searchable, and the bot answers from the rest once they are prepared.",
+	"authoring_publish_summary_assets_fact_label": "Assets",
+	"authoring_publish_summary_assets_failed": "{count} failed.",
+	"authoring_publish_summary_assets_ready": "{name}: {ready} of {total} assets ready.",
 	"authoring_publish_summary_grants_unavailable": "The groups and direct grants could not be loaded, so they are not shown here. Open the sharing and access step to check them.",
 	"authoring_publish_summary_no_group_grants": "No group has been granted access.",
 	"authoring_publish_summary_no_user_grants": "No person holds a direct grant.",
@@ -2147,14 +2147,14 @@
 	"blocks_edit_database_page_title": "Edit repository",
 	"blocks_edit_template_page_title": "Edit behaviour",
 	"blocks_explore_browse_all_hint": "Passages of all assets, in no particular order. Choose an asset to read it in order.",
-	"blocks_explore_browse_document_hint": "Passages in the asset's order, page by page, with images after the text of their page.",
+	"blocks_explore_browse_asset_hint": "Passages in the asset's order, page by page, with images after the text of their page.",
 	"blocks_explore_browse_empty_description": "Passages appear once the assets are prepared.",
 	"blocks_explore_browse_empty_title": "No passages yet",
 	"blocks_explore_browse_error_description": "Try again.",
 	"blocks_explore_browse_error_title": "Passages could not be loaded",
 	"blocks_explore_description": "Read the passages this repository's assets were split into, or search them the way a bot does.",
-	"blocks_explore_document_all": "All assets",
-	"blocks_explore_document_label": "Asset",
+	"blocks_explore_asset_all": "All assets",
+	"blocks_explore_asset_label": "Asset",
 	"blocks_explore_heading": "Explore {name}",
 	"blocks_explore_load_more": "Load more",
 	"blocks_explore_mode_label": "Retrieval mode",
@@ -2220,7 +2220,7 @@
 	"blocks_template_form_system_prompt_placeholder": "Explain the bot's role, answer style, and constraints.",
 	"blocks_template_form_update_submit_button": "Update behaviour",
 	"blocks_tile_behaviour_contents": "System prompt",
-	"blocks_tile_documents": [
+	"blocks_tile_assets": [
 		{
 			"declarations": [
 				"input count",
@@ -2235,9 +2235,9 @@
 			}
 		}
 	],
-	"blocks_tile_documents_failed": "{count} failed",
-	"blocks_tile_documents_preparing": "{count} preparing",
-	"blocks_tile_no_documents": "No assets yet",
+	"blocks_tile_assets_failed": "{count} failed",
+	"blocks_tile_assets_preparing": "{count} preparing",
+	"blocks_tile_no_assets": "No assets yet",
 	"blocks_update_toast_error": "The block was not updated.",
 	"blocks_update_toast_loading": "Updating the block...",
 	"blocks_update_toast_success": "Block updated",
@@ -2865,9 +2865,9 @@
 	"chat_work_log_tool_get_page_name": "Read a page",
 	"chat_work_log_tool_get_page_range": "Read pages {from} to {to}",
 	"chat_work_log_tool_get_page_single": "Read page {page}",
-	"chat_work_log_tool_list_documents_active": "Listing the sources",
-	"chat_work_log_tool_list_documents_name": "Listed the available sources",
-	"chat_work_log_tool_list_documents_result": [
+	"chat_work_log_tool_list_repository_assets_active": "Listing the sources",
+	"chat_work_log_tool_list_repository_assets_name": "Listed the available sources",
+	"chat_work_log_tool_list_repository_assets_result": [
 		{
 			"declarations": [
 				"input count",
@@ -3046,14 +3046,14 @@
 	"data_table_view_options_trigger": "View",
 	"dialog_select_empty_state": "No results found.",
 	"dialog_select_filter_placeholder": "Filter",
-	"document_state_failed_label": "Failed",
-	"document_state_indexing_label": "Indexing",
-	"document_state_processing_label": "Processing",
-	"document_state_queued_label": "Queued",
-	"document_state_ready_label": "Ready",
-	"documents_panel_collapse": "Hide repositories",
-	"documents_panel_expand": "Show repositories",
-	"documents_panel_failed_title": [
+	"asset_state_failed_label": "Failed",
+	"asset_state_indexing_label": "Indexing",
+	"asset_state_processing_label": "Processing",
+	"asset_state_queued_label": "Queued",
+	"asset_state_ready_label": "Ready",
+	"assets_panel_collapse": "Hide repositories",
+	"assets_panel_expand": "Show repositories",
+	"assets_panel_failed_title": [
 		{
 			"declarations": [
 				"input count",
@@ -3068,13 +3068,13 @@
 			}
 		}
 	],
-	"documents_panel_preparing_title": "Preparing assets",
-	"documents_panel_region": "Asset preparation",
-	"documents_panel_repository_count": "{ready} of {total}",
-	"documents_panel_repository_failed": "Some assets could not be prepared",
-	"documents_panel_repository_failed_count": "{count} failed",
-	"documents_panel_repository_preparing": "Assets are being prepared",
-	"documents_panel_repository_ready": "All assets ready",
+	"assets_panel_preparing_title": "Preparing assets",
+	"assets_panel_region": "Asset preparation",
+	"assets_panel_repository_count": "{ready} of {total}",
+	"assets_panel_repository_failed": "Some assets could not be prepared",
+	"assets_panel_repository_failed_count": "{count} failed",
+	"assets_panel_repository_preparing": "Assets are being prepared",
+	"assets_panel_repository_ready": "All assets ready",
 	"editor_colour_blue_option": "Blue",
 	"editor_colour_brown_option": "Brown",
 	"editor_colour_default_option": "Default",
@@ -3207,7 +3207,7 @@
 	"error_current_password_incorrect": "Current password is incorrect.",
 	"error_data_export_in_progress": "An export of your data is already being prepared.",
 	"error_default_references_out_of_range": "The default number of passages must lie between the minimum and the maximum.",
-	"error_document_still_preparing": "This asset is still being prepared, so there is nothing to retry yet.",
+	"error_asset_still_preparing": "This asset is still being prepared, so there is nothing to retry yet.",
 	"error_email_already_registered": "An account with this email address already exists.",
 	"error_email_not_verified": "Verify your email address before signing in.",
 	"error_entity_ids_required": "No valid entries were selected.",

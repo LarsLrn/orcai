@@ -3,12 +3,12 @@ import type { Asset, AssetWithCapabilities } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon } from "lucide-react";
 import { useState } from "react";
-import { SelectedAssetList } from "@/components/documents/shared/selected-asset-list";
+import { SelectedAssetList } from "@/components/assets/shared/selected-asset-list";
 import {
 	UploadComponent,
 	type UploadVariant,
-} from "@/components/documents/upload-component";
-import type { UploadFailure } from "@/components/documents/use-asset-intake";
+} from "@/components/assets/upload-component";
+import type { UploadFailure } from "@/components/assets/use-asset-intake";
 import { Button } from "@/components/ui/button";
 import {
 	Card,

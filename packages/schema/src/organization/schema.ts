@@ -63,7 +63,7 @@ export type OrganizationWithMemberCount = z.infer<
 
 /**
  * What deleting an organisation takes with it; `homeResources` are the bots,
- * behaviours, repositories and documents it is home to, `listedResources`
+ * behaviours, repositories and assets it is home to, `listedResources`
  * those of them in the catalogue, with the organisations that added them.
  */
 export const organizationDeletionImpactSchema = z.object({

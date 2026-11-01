@@ -517,22 +517,22 @@ describe("listing while tuples lag", () => {
 	);
 });
 
-describe("documents", () => {
+describe("assets", () => {
 	test(
 		"are listed only through their repository, and a listed one can be unlisted",
 		async () => {
 			const s = await twoOrganizations();
 			const { asset, zedToken } = await createAsset(s.author, s.home);
 			s.advance(zedToken);
-			const document = {
+			const ref = {
 				resourceType: "asset",
 				resourceId: asset.id,
 			} as const;
 
-			expect(
-				await reasonOf(s.setVisibility(s.author, document, "public")),
-			).toBe("ASSET_LISTING_UNSUPPORTED");
-			expect(await s.visibilityOf(document)).toBe("private");
+			expect(await reasonOf(s.setVisibility(s.author, ref, "public"))).toBe(
+				"ASSET_LISTING_UNSUPPORTED",
+			);
+			expect(await s.visibilityOf(ref)).toBe("private");
 
 			await run(
 				Effect.gen(function* () {
@@ -544,8 +544,8 @@ describe("documents", () => {
 						.where(eq(dbSchema.resourceVisibility.resourceId, asset.id));
 				}),
 			);
-			await s.setVisibility(s.author, document, "private");
-			expect(await s.visibilityOf(document)).toBe("private");
+			await s.setVisibility(s.author, ref, "private");
+			expect(await s.visibilityOf(ref)).toBe("private");
 		},
 		TIMEOUT,
 	);
@@ -674,7 +674,7 @@ describe("unlisting", () => {
 	);
 
 	test(
-		"keeps a document added afterwards away from the former installer",
+		"keeps an asset added afterwards away from the former installer",
 		async () => {
 			const s = await twoOrganizations();
 			await s.setVisibility(s.author, blockRef(s.repository), "public");

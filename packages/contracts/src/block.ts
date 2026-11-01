@@ -90,7 +90,7 @@ export const blockContracts = {
 			openapi({
 				method: "POST",
 				path: "/blocks/readiness",
-				summary: "Document readiness of repositories",
+				summary: "Asset readiness of repositories",
 				tags: [
 					"Blocks",
 				],
@@ -102,8 +102,8 @@ export const blockContracts = {
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/blocks/{blockId}/documents/{assetId}/retry",
-				summary: "Retry a failed document in a repository",
+				path: "/blocks/{blockId}/assets/{assetId}/retry",
+				summary: "Retry a failed asset in a repository",
 				tags: [
 					"Blocks",
 				],
@@ -115,8 +115,8 @@ export const blockContracts = {
 		.meta(
 			openapi({
 				method: "POST",
-				path: "/blocks/{blockId}/documents/retry-failed",
-				summary: "Retry every failed document in a repository",
+				path: "/blocks/{blockId}/assets/retry-failed",
+				summary: "Retry every failed asset in a repository",
 				tags: [
 					"Blocks",
 				],

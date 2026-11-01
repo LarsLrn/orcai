@@ -8,7 +8,7 @@ import {
 import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { librarySortSchema } from "../shared/library";
 
-/** The kinds the catalogue lists; documents are published through their repository. */
+/** The kinds the catalogue lists; assets are published through their repository. */
 export const catalogueKindSchema = z.enum([
 	"bot",
 	"behaviour",

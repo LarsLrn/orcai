@@ -240,7 +240,7 @@
 	"catalogue_detail_model_required": "Erfordert {model}, daher nutzen Chats mit diesem Bot immer dieses Modell.",
 	"catalogue_detail_model_unusable": "{organisation} kann es noch nicht nutzen.",
 	"catalogue_detail_model_usable": "{organisation} kann es nutzen.",
-	"catalogue_detail_more_documents": [
+	"catalogue_detail_more_assets": [
 		{
 			"declarations": [
 				"input count",
@@ -256,7 +256,7 @@
 		}
 	],
 	"catalogue_detail_prompt_label": "Prompt",
-	"catalogue_detail_repository_documents": [
+	"catalogue_detail_repository_assets": [
 		{
 			"declarations": [
 				"input count",
@@ -1881,10 +1881,10 @@
 	"authoring_publish_summary_all_members_ungranted": "Die Gruppe Alle Mitglieder hat keine Freigabe, sodass Mitglieder der Organisation nicht automatisch Zugriff erhalten.",
 	"authoring_publish_summary_all_members_ungranted_before_publish": "Die Gruppe Alle Mitglieder hat keine Freigabe, sodass nur die unten aufgeführten Gruppen und Personen diesen Bot nutzen können, sobald er veröffentlicht ist.",
 	"authoring_publish_summary_direct_grants_label": "Direkte Freigaben:",
-	"authoring_publish_summary_documents_description": "Sie können jetzt veröffentlichen. Nur bereite Assets sind durchsuchbar, und der Bot antwortet aus den übrigen, sobald sie vorbereitet sind.",
-	"authoring_publish_summary_documents_fact_label": "Assets",
-	"authoring_publish_summary_documents_failed": "{count} fehlgeschlagen.",
-	"authoring_publish_summary_documents_ready": "{name}: {ready} von {total} Assets bereit.",
+	"authoring_publish_summary_assets_description": "Sie können jetzt veröffentlichen. Nur bereite Assets sind durchsuchbar, und der Bot antwortet aus den übrigen, sobald sie vorbereitet sind.",
+	"authoring_publish_summary_assets_fact_label": "Assets",
+	"authoring_publish_summary_assets_failed": "{count} fehlgeschlagen.",
+	"authoring_publish_summary_assets_ready": "{name}: {ready} von {total} Assets bereit.",
 	"authoring_publish_summary_grants_unavailable": "Die Gruppen und direkten Freigaben konnten nicht geladen werden und werden hier daher nicht angezeigt. Öffnen Sie den Schritt Freigabe und Zugriff, um sie zu prüfen.",
 	"authoring_publish_summary_no_group_grants": "Keiner Gruppe wurde Zugriff gewährt.",
 	"authoring_publish_summary_no_user_grants": "Keine Person hat eine direkte Freigabe.",
@@ -2147,14 +2147,14 @@
 	"blocks_edit_database_page_title": "Repository bearbeiten",
 	"blocks_edit_template_page_title": "Verhalten bearbeiten",
 	"blocks_explore_browse_all_hint": "Passagen aller Assets, ohne bestimmte Reihenfolge. Wählen Sie ein Asset, um es der Reihe nach zu lesen.",
-	"blocks_explore_browse_document_hint": "Passagen in der Reihenfolge des Assets, Seite für Seite, mit Bildern nach dem Text ihrer Seite.",
+	"blocks_explore_browse_asset_hint": "Passagen in der Reihenfolge des Assets, Seite für Seite, mit Bildern nach dem Text ihrer Seite.",
 	"blocks_explore_browse_empty_description": "Passagen erscheinen, sobald die Assets vorbereitet sind.",
 	"blocks_explore_browse_empty_title": "Noch keine Passagen",
 	"blocks_explore_browse_error_description": "Versuchen Sie es erneut.",
 	"blocks_explore_browse_error_title": "Passagen konnten nicht geladen werden",
 	"blocks_explore_description": "Lesen Sie die Passagen, in die die Assets dieses Repositorys aufgeteilt wurden, oder durchsuchen Sie sie wie ein Bot.",
-	"blocks_explore_document_all": "Alle Assets",
-	"blocks_explore_document_label": "Asset",
+	"blocks_explore_asset_all": "Alle Assets",
+	"blocks_explore_asset_label": "Asset",
 	"blocks_explore_heading": "{name} durchsuchen",
 	"blocks_explore_load_more": "Mehr laden",
 	"blocks_explore_mode_label": "Abrufmodus",
@@ -2220,7 +2220,7 @@
 	"blocks_template_form_system_prompt_placeholder": "Erläutern Sie die Rolle des Bots, den Antwortstil und die Einschränkungen.",
 	"blocks_template_form_update_submit_button": "Verhalten aktualisieren",
 	"blocks_tile_behaviour_contents": "System-Prompt",
-	"blocks_tile_documents": [
+	"blocks_tile_assets": [
 		{
 			"declarations": [
 				"input count",
@@ -2235,9 +2235,9 @@
 			}
 		}
 	],
-	"blocks_tile_documents_failed": "{count} fehlgeschlagen",
-	"blocks_tile_documents_preparing": "{count} in Vorbereitung",
-	"blocks_tile_no_documents": "Noch keine Assets",
+	"blocks_tile_assets_failed": "{count} fehlgeschlagen",
+	"blocks_tile_assets_preparing": "{count} in Vorbereitung",
+	"blocks_tile_no_assets": "Noch keine Assets",
 	"blocks_update_toast_error": "Der Block wurde nicht aktualisiert.",
 	"blocks_update_toast_loading": "Der Block wird aktualisiert...",
 	"blocks_update_toast_success": "Block aktualisiert",
@@ -2865,9 +2865,9 @@
 	"chat_work_log_tool_get_page_name": "Seite gelesen",
 	"chat_work_log_tool_get_page_range": "Seiten {from} bis {to} gelesen",
 	"chat_work_log_tool_get_page_single": "Seite {page} gelesen",
-	"chat_work_log_tool_list_documents_active": "Quellen werden aufgelistet",
-	"chat_work_log_tool_list_documents_name": "Verfügbare Quellen aufgelistet",
-	"chat_work_log_tool_list_documents_result": [
+	"chat_work_log_tool_list_repository_assets_active": "Quellen werden aufgelistet",
+	"chat_work_log_tool_list_repository_assets_name": "Verfügbare Quellen aufgelistet",
+	"chat_work_log_tool_list_repository_assets_result": [
 		{
 			"declarations": [
 				"input count",
@@ -3046,14 +3046,14 @@
 	"data_table_view_options_trigger": "Ansicht",
 	"dialog_select_empty_state": "Keine Ergebnisse gefunden.",
 	"dialog_select_filter_placeholder": "Filter",
-	"document_state_failed_label": "Fehlgeschlagen",
-	"document_state_indexing_label": "Wird indiziert",
-	"document_state_processing_label": "Wird verarbeitet",
-	"document_state_queued_label": "In Warteschlange",
-	"document_state_ready_label": "Bereit",
-	"documents_panel_collapse": "Repositories ausblenden",
-	"documents_panel_expand": "Repositories anzeigen",
-	"documents_panel_failed_title": [
+	"asset_state_failed_label": "Fehlgeschlagen",
+	"asset_state_indexing_label": "Wird indiziert",
+	"asset_state_processing_label": "Wird verarbeitet",
+	"asset_state_queued_label": "In Warteschlange",
+	"asset_state_ready_label": "Bereit",
+	"assets_panel_collapse": "Repositories ausblenden",
+	"assets_panel_expand": "Repositories anzeigen",
+	"assets_panel_failed_title": [
 		{
 			"declarations": [
 				"input count",
@@ -3068,13 +3068,13 @@
 			}
 		}
 	],
-	"documents_panel_preparing_title": "Assets werden vorbereitet",
-	"documents_panel_region": "Asset-Vorbereitung",
-	"documents_panel_repository_count": "{ready} von {total}",
-	"documents_panel_repository_failed": "Einige Assets konnten nicht vorbereitet werden",
-	"documents_panel_repository_failed_count": "{count} fehlgeschlagen",
-	"documents_panel_repository_preparing": "Assets werden vorbereitet",
-	"documents_panel_repository_ready": "Alle Assets bereit",
+	"assets_panel_preparing_title": "Assets werden vorbereitet",
+	"assets_panel_region": "Asset-Vorbereitung",
+	"assets_panel_repository_count": "{ready} von {total}",
+	"assets_panel_repository_failed": "Einige Assets konnten nicht vorbereitet werden",
+	"assets_panel_repository_failed_count": "{count} fehlgeschlagen",
+	"assets_panel_repository_preparing": "Assets werden vorbereitet",
+	"assets_panel_repository_ready": "Alle Assets bereit",
 	"editor_colour_blue_option": "Blau",
 	"editor_colour_brown_option": "Braun",
 	"editor_colour_default_option": "Standard",
@@ -3207,7 +3207,7 @@
 	"error_current_password_incorrect": "Das aktuelle Passwort ist falsch.",
 	"error_data_export_in_progress": "Ein Export Ihrer Daten wird bereits vorbereitet.",
 	"error_default_references_out_of_range": "Die Standardanzahl an Passagen muss zwischen dem Minimum und dem Maximum liegen.",
-	"error_document_still_preparing": "Dieses Asset wird noch vorbereitet, daher gibt es noch nichts zu wiederholen.",
+	"error_asset_still_preparing": "Dieses Asset wird noch vorbereitet, daher gibt es noch nichts zu wiederholen.",
 	"error_email_already_registered": "Es gibt bereits ein Konto mit dieser E-Mail-Adresse.",
 	"error_email_not_verified": "Bestätigen Sie Ihre E-Mail-Adresse, bevor Sie sich anmelden.",
 	"error_entity_ids_required": "Es wurden keine gültigen Einträge ausgewählt.",

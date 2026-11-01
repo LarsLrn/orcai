@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { AssetForm } from "@/components/documents/form/asset-form";
+import { AssetForm } from "@/components/assets/form/asset-form";
 import {
 	Page,
 	PageContent,

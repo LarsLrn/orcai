@@ -15,6 +15,8 @@ import {
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
+import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
@@ -23,8 +25,6 @@ import {
 	LinkSafetyContext,
 } from "@/components/chat/link-confirm";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
-import { DocumentsPanel } from "@/components/documents/readiness/documents-panel";
-import { useChatRepositoryIds } from "@/components/documents/readiness/use-repository-readiness";
 import {
 	MessageScrollerItem,
 	useMessageScroller,
@@ -287,7 +287,7 @@ const Chat = ({
 							) : isAssistant ? (
 								<>
 									<PlanPanel plan={view.plan} busy={view.busy} />
-									<DocumentsPanel blockIds={repositoryIds} />
+									<AssetsPanel blockIds={repositoryIds} />
 									<AssistantComposerGate>{composer}</AssistantComposerGate>
 								</>
 							) : (
@@ -298,7 +298,7 @@ const Chat = ({
 											chat?.data.effectiveModel.providerId ?? undefined
 										}
 									/>
-									<DocumentsPanel blockIds={repositoryIds} />
+									<AssetsPanel blockIds={repositoryIds} />
 									{composer}
 								</>
 							)}

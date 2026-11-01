@@ -1,6 +1,6 @@
 import type {
+	AssetState,
 	BotEditor,
-	DocumentState,
 	PublicationStatus,
 	ResourceGrant,
 } from "@orcai/schema";
@@ -11,6 +11,7 @@ import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessManagerContent } from "@/components/access/access-manager-content";
 import { toLinkedBlocks } from "@/components/access/block-edit-offer";
+import { useRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
 import {
@@ -42,7 +43,6 @@ import {
 	BotModelStep,
 	type BotModelStepHandle,
 } from "@/components/bot/setup/bot-model-step";
-import { useRepositoryReadiness } from "@/components/documents/readiness/use-repository-readiness";
 import { FeaturesSection } from "@/components/features/features-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,7 @@ import {
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
-import { documentStateBadge } from "@/lib/presentation/document-state";
+import { assetStateBadge } from "@/lib/presentation/asset-state";
 import { formatList } from "@/lib/presentation/format-list";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
@@ -826,7 +826,7 @@ const BotEditorShell = ({
 						</div>
 					) : null}
 
-					{currentStep.key === "documents" ? (
+					{currentStep.key === "repositories" ? (
 						<div className="grid min-w-0 grid-cols-1 gap-4">
 							{editor.databaseBlocks.length === 0 ? (
 								<div className="min-w-0 rounded-2xl border border-dashed bg-background/70 p-6">
@@ -1340,14 +1340,10 @@ const ReadOnlyTemplateCard = ({
 	);
 };
 
-/** A document's state in the repository; nothing once it is ready. */
-const DocumentStateBadge = ({
-	state,
-}: {
-	state: DocumentState | undefined;
-}) => {
+/** An asset's state in the repository; nothing once it is ready. */
+const AssetStateBadge = ({ state }: { state: AssetState | undefined }) => {
 	if (!state || state === "ready") return null;
-	const { label, variant } = documentStateBadge(state);
+	const { label, variant } = assetStateBadge(state);
 	return <Badge variant={variant}>{label}</Badge>;
 };
 
@@ -1367,9 +1363,9 @@ const ReadOnlyDatabaseCard = ({
 			: [],
 	);
 	const stateById = new Map(
-		readiness?.data[0]?.documents.map((document) => [
-			document.assetId,
-			document.state,
+		readiness?.data[0]?.assets.map((asset) => [
+			asset.assetId,
+			asset.state,
 		]),
 	);
 
@@ -1400,7 +1396,7 @@ const ReadOnlyDatabaseCard = ({
 								className="flex items-center justify-between gap-2"
 							>
 								<span className="truncate">{asset.title}</span>
-								<DocumentStateBadge state={stateById.get(asset.id)} />
+								<AssetStateBadge state={stateById.get(asset.id)} />
 							</li>
 						))}
 					</ul>

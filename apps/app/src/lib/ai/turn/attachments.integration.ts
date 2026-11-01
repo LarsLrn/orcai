@@ -80,11 +80,7 @@ const privateImage = async (
 };
 
 /** A PDF asset only its owner can read, with `content` as its stored extraction. */
-const privateDocument = async (
-	owner: UserId,
-	title: string,
-	content: string,
-) => {
+const privateAsset = async (owner: UserId, title: string, content: string) => {
 	const asset = await run(
 		Effect.gen(function* () {
 			const [row] = yield* (yield* DB)
@@ -414,8 +410,8 @@ describe("chat attachments", () => {
 	test("a file cut at the text limit is marked truncated, a file within it is not", async () => {
 		const owner = await newUser();
 		const limit = CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH;
-		const whole = await privateDocument(owner, "Essay", "a".repeat(limit));
-		const cut = await privateDocument(owner, "Thesis", "a".repeat(limit + 1));
+		const whole = await privateAsset(owner, "Essay", "a".repeat(limit));
+		const cut = await privateAsset(owner, "Thesis", "a".repeat(limit + 1));
 		const reader = {
 			userId: owner,
 			zedToken: cut.zedToken,

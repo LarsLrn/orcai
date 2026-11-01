@@ -99,7 +99,7 @@ export const getPassagesTool = ({
 					(id) => found.find((point) => point.id === id) ?? [],
 				);
 
-				const documents = new Map<
+				const assets = new Map<
 					string,
 					{
 						point: PointWithBlock;
@@ -108,19 +108,19 @@ export const getPassagesTool = ({
 				>();
 				for (const point of requested) {
 					const key = `${point.sourceBlock.id}:${point.payload.asset_id}:${point.payload.source}`;
-					const document = documents.get(key) ?? {
+					const asset = assets.get(key) ?? {
 						point,
 						indexes: new Set<number>(),
 					};
 					for (const index of neighbourIndexes(point, neighbours)) {
-						document.indexes.add(index);
+						asset.indexes.add(index);
 					}
-					documents.set(key, document);
+					assets.set(key, asset);
 				}
 
 				const around = yield* Effect.forEach(
 					[
-						...documents.values(),
+						...assets.values(),
 					].filter(({ indexes }) => indexes.size > 0),
 					({ point, indexes }) =>
 						procedures.assetPoint

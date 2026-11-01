@@ -105,7 +105,7 @@ export const assetPointsFiltersSchema = z.object({
 
 /**
  * Where a browse continues: from a point in point-id order across the
- * repository, or after a passage in one document's reading order (page, then
+ * repository, or after a passage in one asset's reading order (page, then
  * chunk; passages without a page last).
  */
 export const assetPointBrowseCursorSchema = z.discriminatedUnion("order", [

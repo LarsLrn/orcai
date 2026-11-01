@@ -11,11 +11,11 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import {
 	preparedReadiness,
-	repositoryWithDocument,
+	repositoryWithAsset,
 } from "../../fixtures/pipeline/repository";
 
 const readyRepository = (client: ApiClient) =>
-	repositoryWithDocument(client, {
+	repositoryWithAsset(client, {
 		label: "Syllabus",
 		content:
 			"# Syllabus\n\nWeek one covers cell biology. Week two covers genetics.\n",
@@ -23,15 +23,15 @@ const readyRepository = (client: ApiClient) =>
 
 /** Whitespace only: extraction finds nothing, which retrying cannot change. */
 const emptyRepository = (client: ApiClient) =>
-	repositoryWithDocument(client, {
+	repositoryWithAsset(client, {
 		label: "Blank",
 		content: " \n\n \n",
 		type: "text/plain",
 	});
 
-const documentsPanel = (page: Page) =>
+const assetsPanel = (page: Page) =>
 	page.getByRole("region", {
-		name: message("documents_panel_region"),
+		name: message("assets_panel_region"),
 	});
 
 const readinessSummary = (page: Page, ready: number, total: number) =>
@@ -42,7 +42,7 @@ const readinessSummary = (page: Page, ready: number, total: number) =>
 		}),
 	});
 
-/** The header's Retry failed, or a document tile's menu, which holds only Retry. */
+/** The header's Retry failed, or an asset tile's menu, which holds only Retry. */
 const retryOffers = (page: Page) =>
 	page
 		.getByRole("button", {
@@ -81,13 +81,13 @@ test("pipeline: a chat shows which of its repositories are ready and which faile
 	await enterApp(page, org.slug);
 	await openChat(page, chatId);
 
-	const trigger = documentsPanel(page).getByRole("button", {
+	const trigger = assetsPanel(page).getByRole("button", {
 		name: /1 asset could not be prepared.*1\/2/,
 	});
 	await expect(trigger).toBeVisible();
 	await trigger.click();
 
-	const readyRow = documentsPanel(page)
+	const readyRow = assetsPanel(page)
 		.getByRole("listitem")
 		.filter({
 			has: page.getByRole("link", {
@@ -96,19 +96,19 @@ test("pipeline: a chat shows which of its repositories are ready and which faile
 		});
 	await expect(
 		readyRow.getByRole("img", {
-			name: message("documents_panel_repository_ready"),
+			name: message("assets_panel_repository_ready"),
 		}),
 	).toBeVisible();
 	await expect(
 		readyRow.getByText(
-			message("documents_panel_repository_count", {
+			message("assets_panel_repository_count", {
 				ready: 1,
 				total: 1,
 			}),
 		),
 	).toBeVisible();
 
-	const emptyRow = documentsPanel(page)
+	const emptyRow = assetsPanel(page)
 		.getByRole("listitem")
 		.filter({
 			has: page.getByRole("link", {
@@ -117,19 +117,19 @@ test("pipeline: a chat shows which of its repositories are ready and which faile
 		});
 	await expect(
 		emptyRow.getByRole("img", {
-			name: message("documents_panel_repository_failed"),
+			name: message("assets_panel_repository_failed"),
 		}),
 	).toBeVisible();
 	await expect(
 		emptyRow.getByText(
-			message("documents_panel_repository_failed_count", {
+			message("assets_panel_repository_failed_count", {
 				count: 1,
 			}),
 		),
 	).toBeVisible();
 });
 
-test("pipeline: the repository page shows a prepared document as ready", async ({
+test("pipeline: the repository page shows a prepared asset as ready", async ({
 	api,
 	org,
 	pageAs,
@@ -145,14 +145,14 @@ test("pipeline: the repository page shows a prepared document as ready", async (
 		timeout: 20_000,
 	});
 	await expect(
-		page.getByText(message("document_state_ready_label"), {
+		page.getByText(message("asset_state_ready_label"), {
 			exact: true,
 		}),
 	).toBeVisible();
 	await expect(retryOffers(page)).toHaveCount(0);
 });
 
-test("pipeline: the repository page says why an empty document failed and offers no retry", async ({
+test("pipeline: the repository page says why an empty asset failed and offers no retry", async ({
 	api,
 	org,
 	pageAs,
@@ -160,7 +160,7 @@ test("pipeline: the repository page says why an empty document failed and offers
 	const member = api.as("member");
 	const repository = await emptyRepository(member);
 	const readiness = await preparedReadiness(member, repository.blockId);
-	expect(readiness.documents).toMatchObject([
+	expect(readiness.assets).toMatchObject([
 		{
 			state: "failed",
 			failure: {
@@ -180,7 +180,7 @@ test("pipeline: the repository page says why an empty document failed and offers
 		}),
 	);
 	await expect(
-		page.getByText(message("document_state_failed_label"), {
+		page.getByText(message("asset_state_failed_label"), {
 			exact: true,
 		}),
 	).toBeVisible();

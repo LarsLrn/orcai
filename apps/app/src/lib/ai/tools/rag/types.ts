@@ -1,12 +1,12 @@
 import type { BlockId } from "@orcai/core";
 import {
+	assetReadinessSchema,
 	type DatabaseBlock,
-	documentReadinessSchema,
 	type RetrievedAssetPoint,
 } from "@orcai/schema";
 import { z } from "zod/v4";
 
-/** Text of one document read as one piece: a chunk, or neighbouring chunks joined. */
+/** Text of one asset read as one piece: a chunk, or neighbouring chunks joined. */
 export const passageSchema = z.object({
 	/** What the model cites the passage by. */
 	ref: z.string(),
@@ -28,9 +28,9 @@ export const repositoryAssetSchema = z.object({
 	title: z.string(),
 	citation: z.string().optional(),
 	description: z.string().optional(),
-	/** Only ready documents are searchable. */
-	state: documentReadinessSchema.shape.state,
-	failure: documentReadinessSchema.shape.failure.unwrap().optional(),
+	/** Only ready assets are searchable. */
+	state: assetReadinessSchema.shape.state,
+	failure: assetReadinessSchema.shape.failure.unwrap().optional(),
 });
 
 export type RepositoryAsset = z.infer<typeof repositoryAssetSchema>;

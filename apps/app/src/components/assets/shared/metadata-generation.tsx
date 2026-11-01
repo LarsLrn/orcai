@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { LoaderCircleIcon, SparklesIcon } from "lucide-react";
 import { useId, useState } from "react";
-import type { AssetMetadataDraft } from "@/components/documents/shared/asset-metadata-editor";
+import type { AssetMetadataDraft } from "@/components/assets/shared/asset-metadata-editor";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,7 +20,7 @@ import {
 } from "@/hooks/mutations/use-asset-mutations";
 import { useUtilityModel } from "@/hooks/use-utility-model";
 import { orpc } from "@/lib/orpc/orpc";
-import { getPipelineFailureDescription } from "@/lib/presentation/document-state";
+import { getPipelineFailureDescription } from "@/lib/presentation/asset-state";
 import { metadataFieldLabels } from "@/lib/presentation/metadata-fields";
 import {
 	isAssetWorking,

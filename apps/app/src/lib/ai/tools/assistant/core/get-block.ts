@@ -16,7 +16,7 @@ const getBlockInputSchema = z.strictObject({
 	),
 });
 
-/** Document states and totals of one repository. */
+/** Asset states and totals of one repository. */
 const readinessOf = (deps: AssistantToolDeps, repositoryId: BlockId) =>
 	callProcedure(deps, (procedures, options) =>
 		procedures.block.readiness(
@@ -89,11 +89,11 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 					type: "repository" as const,
 					...common,
 					assetTotals: readiness.totals,
-					assets: readiness.documents.map((document) => ({
-						id: document.assetId,
-						title: document.title,
-						state: document.state,
-						failure: document.failure ?? undefined,
+					assets: readiness.assets.map((asset) => ({
+						id: asset.assetId,
+						title: asset.title,
+						state: asset.state,
+						failure: asset.failure ?? undefined,
 					})),
 				};
 			}),

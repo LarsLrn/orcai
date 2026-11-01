@@ -1,7 +1,7 @@
 import type { OrganizationId } from "@orcai/core";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import { useUploadFiles } from "@/components/documents/use-upload-files";
+import { useUploadFiles } from "@/components/assets/use-upload-files";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";

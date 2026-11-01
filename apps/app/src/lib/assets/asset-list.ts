@@ -104,7 +104,7 @@ const runAssetIds = (runId: ActivityRunId, userId: UserId) =>
 		);
 	});
 
-/** One page of a repository's documents, of known assets, of a run's assets, or of the active organisation's library. */
+/** One page of a repository's assets, of known assets, of a run's assets, or of the active organisation's library. */
 export const listAssetTiles = (params: {
 	input: ListAssetsInput;
 	reader: Reader;
@@ -123,7 +123,7 @@ export const listAssetTiles = (params: {
 			: known;
 		if (repositoryId) yield* requireReadable("block", repositoryId, reader);
 
-		// A repository's documents, known ids and a run's assets are contents; the rest is the library.
+		// A repository's assets, known ids and a run's assets are contents; the rest is the library.
 		const where = and(
 			repositoryId
 				? inArray(

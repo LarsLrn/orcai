@@ -14,7 +14,7 @@ import { useReprocessAssetMutation } from "@/hooks/mutations/use-asset-mutations
 import {
 	canReprocess,
 	getPipelineFailureDescription,
-} from "@/lib/presentation/document-state";
+} from "@/lib/presentation/asset-state";
 import {
 	getProcessingStatusDescription,
 	processingStatusBadge,

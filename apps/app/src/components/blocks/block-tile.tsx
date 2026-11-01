@@ -37,33 +37,33 @@ type TileBlock = Pick<
 
 /** A block as library lists return it, with its tile details. */
 type BrowseBlock = TileBlock &
-	Pick<BlockListItem, "owner" | "documents" | "installedFrom">;
+	Pick<BlockListItem, "owner" | "assets" | "installedFrom">;
 
-/** A repository's document count, and badges for those still processing or failed. */
+/** A repository's asset count, and badges for those still processing or failed. */
 const repositoryFooter = (
-	documents: RepositoryTotals,
+	assets: RepositoryTotals,
 ): {
 	label: string;
 	badges: BadgeItem[];
 } => ({
 	label:
-		documents.total === 0
-			? m.blocks_tile_no_documents()
-			: m.blocks_tile_documents({
-					count: documents.total,
+		assets.total === 0
+			? m.blocks_tile_no_assets()
+			: m.blocks_tile_assets({
+					count: assets.total,
 				}),
 	badges: [
-		documents.preparing > 0 && {
-			label: m.blocks_tile_documents_preparing({
-				count: documents.preparing,
+		assets.preparing > 0 && {
+			label: m.blocks_tile_assets_preparing({
+				count: assets.preparing,
 			}),
 			variant: "info" as const,
 			icon: LoaderCircleIcon,
 			className: "[&>svg]:animate-spin",
 		},
-		documents.failed > 0 && {
-			label: m.blocks_tile_documents_failed({
-				count: documents.failed,
+		assets.failed > 0 && {
+			label: m.blocks_tile_assets_failed({
+				count: assets.failed,
 			}),
 			variant: "danger" as const,
 		},
@@ -73,15 +73,15 @@ const repositoryFooter = (
 const BlockTileContent = ({
 	block,
 	provenance,
-	documents,
+	assets,
 }: {
 	block: TileBlock;
 	provenance?: React.ReactNode;
-	/** A repository's documents, when known. */
-	documents?: RepositoryTotals | null;
+	/** A repository's assets, when known. */
+	assets?: RepositoryTotals | null;
 }) => {
 	const { Icon, well } = RESOURCE_KINDS[blockKind(block.type)];
-	const repository = documents ? repositoryFooter(documents) : null;
+	const repository = assets ? repositoryFooter(assets) : null;
 
 	return (
 		<>
@@ -145,7 +145,7 @@ const BlockTile = ({ block }: { block: BrowseBlock }) => {
 						/>
 					</TileProvenance>
 				}
-				documents={block.documents}
+				assets={block.assets}
 			/>
 			<TileMenu
 				actions={[

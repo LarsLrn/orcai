@@ -24,8 +24,8 @@ export const blockListItemSchema = z.intersection(
 		owner: resourceOwnerSchema,
 		/** Set when the active organisation added the block from the catalogue. */
 		installedFrom: sourceOrganizationSchema.nullable(),
-		/** A repository's document counts; null for behaviours. */
-		documents: repositoryTotalsSchema.nullable(),
+		/** A repository's asset counts; null for behaviours. */
+		assets: repositoryTotalsSchema.nullable(),
 	}),
 );
 
@@ -72,7 +72,7 @@ export const retryDocumentResponseSchema = z.object({
 	]),
 });
 
-/** How many failed documents were queued again, by stage. */
+/** How many failed assets were queued again, by stage. */
 export const retryFailedDocumentsResponseSchema = z.object({
 	processing: z.number().int(),
 	indexing: z.number().int(),

@@ -145,7 +145,7 @@ test("activity: a failed upload needs attention until dismissed, and its entry o
 				}),
 				hasNotText: uploadTitle,
 			}),
-	).toContainText(message("document_state_failed_label"));
+	).toContainText(message("asset_state_failed_label"));
 
 	await panel(page)
 		.getByRole("link", {

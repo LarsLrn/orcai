@@ -13,7 +13,7 @@ const { listRepositoryAssetsTool } = await import("./list-repository-assets");
 afterEach(resetProcedures);
 
 describe("listRepositoryAssets", () => {
-	test("each document carries its state, and a failed one its failure", async () => {
+	test("each asset carries its state, and a failed one its failure", async () => {
 		answers["block.readiness"] = () =>
 			Effect.succeed({
 				data: [
@@ -26,7 +26,7 @@ describe("listRepositoryAssets", () => {
 							preparing: 0,
 							failed: 1,
 						},
-						documents: [
+						assets: [
 							{
 								assetId: "asset-1",
 								title: "Policies",

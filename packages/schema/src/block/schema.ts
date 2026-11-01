@@ -145,8 +145,8 @@ export function isDatabaseBlock(block: Block): block is DatabaseBlock {
 	return block.type === "database";
 }
 
-/** How far one document in a repository is from being searchable. */
-export const documentStateSchema = z.enum([
+/** How far one asset in a repository is from being searchable. */
+export const assetStateSchema = z.enum([
 	"queued",
 	"processing",
 	"indexing",
@@ -154,10 +154,10 @@ export const documentStateSchema = z.enum([
 	"failed",
 ]);
 
-export const documentReadinessSchema = z.object({
+export const assetReadinessSchema = z.object({
 	assetId: assetIdSchema,
 	title: z.string(),
-	state: documentStateSchema,
+	state: assetStateSchema,
 	/** Set when `state` is failed: the stage that failed and why. */
 	failure: z
 		.object({
@@ -183,10 +183,10 @@ export const repositoryReadinessSchema = z.object({
 	name: z.string(),
 	capabilities: entityCapabilitiesSchema,
 	totals: repositoryTotalsSchema,
-	documents: z.array(documentReadinessSchema),
+	assets: z.array(assetReadinessSchema),
 });
 
-export type DocumentState = z.infer<typeof documentStateSchema>;
-export type DocumentReadiness = z.infer<typeof documentReadinessSchema>;
+export type AssetState = z.infer<typeof assetStateSchema>;
+export type AssetReadiness = z.infer<typeof assetReadinessSchema>;
 export type RepositoryReadiness = z.infer<typeof repositoryReadinessSchema>;
 export type RepositoryTotals = z.infer<typeof repositoryTotalsSchema>;

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { unsearchableDocuments } from "./utils";
+import { unsearchableAssets } from "./utils";
 
 const repository = (
 	name: string,
@@ -16,10 +16,10 @@ const repository = (
 	},
 });
 
-describe("unsearchableDocuments", () => {
+describe("unsearchableAssets", () => {
 	test("leaves out repositories whose assets are all searchable", () => {
 		expect(
-			unsearchableDocuments([
+			unsearchableAssets([
 				repository("Handbook", {
 					ready: 3,
 					preparing: 0,
@@ -31,7 +31,7 @@ describe("unsearchableDocuments", () => {
 
 	test("counts preparing and failed assets and says so", () => {
 		expect(
-			unsearchableDocuments([
+			unsearchableAssets([
 				repository("Handbook", {
 					ready: 38,
 					preparing: 80,

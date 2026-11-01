@@ -47,8 +47,8 @@ export const catalogueEntrySchema = z.object({
 		.nullable(),
 	/** A bot's model; null when it works with any model, and for blocks. */
 	modelHint: catalogueModelHintSchema.nullable(),
-	/** A repository's published documents; null for bots and behaviours. */
-	documents: z.number().int().nullable(),
+	/** A repository's published assets; null for bots and behaviours. */
+	assets: z.number().int().nullable(),
 });
 
 export const listCatalogueResponseSchema =
@@ -72,8 +72,8 @@ const catalogueBlockSummarySchema = z.object({
 	name: z.string(),
 	type: blockTypeSchema,
 	description: z.string().nullable(),
-	/** A repository's published documents; null for behaviours. */
-	documents: z.number().int().nullable(),
+	/** A repository's published assets; null for behaviours. */
+	assets: z.number().int().nullable(),
 });
 
 /** What an entry's page shows to judge it before adding it. */
@@ -87,8 +87,8 @@ export const catalogueEntryDetailSchema = catalogueEntrySchema.extend({
 	authorsPick: modelIdSchema.nullable(),
 	/** A behaviour's prompt. */
 	prompt: z.string().nullable(),
-	/** A repository's first published documents. */
-	documentPreview: z.array(
+	/** A repository's first published assets. */
+	assetPreview: z.array(
 		z.object({
 			id: assetIdSchema,
 			title: z.string(),

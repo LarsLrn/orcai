@@ -294,8 +294,8 @@ const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 	});
 
 /**
- * The ready repository's member documents among `requested`, or all of them.
- * Membership is read on every call, so a detached document drops out at once.
+ * The ready repository's member assets among `requested`, or all of them.
+ * Membership is read on every call, so a detached asset drops out at once.
  */
 const repositoryAssetScope = (
 	repositoryId: BlockId,

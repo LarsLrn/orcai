@@ -14,7 +14,7 @@ export const searchRepositoryAssetPointsInputSchema = z.object({
 });
 
 /**
- * A page of a repository's passages in point order, or of one of its documents
+ * A page of a repository's passages in point order, or of one of its assets
  * with `assetId` in reading order; a cursor continues only the order it came from.
  */
 export const browseRepositoryAssetPointsInputSchema = z

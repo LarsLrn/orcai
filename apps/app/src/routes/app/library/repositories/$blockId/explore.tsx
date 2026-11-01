@@ -9,7 +9,7 @@ import {
 	ExploreSearch,
 	TOP_K_OPTIONS,
 	type TopK,
-} from "@/components/documents/explore/explore-results";
+} from "@/components/assets/explore/explore-results";
 import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ const searchSchema = z.object({
 	/** A search query; without one the page browses. */
 	q: z.string().optional().catch(undefined),
 	mode: retrievalModeSchema.optional().catch(undefined),
-	/** One document of the repository. */
+	/** One asset of the repository. */
 	asset: assetIdSchema.optional().catch(undefined),
 	k: z.coerce
 		.number()
@@ -36,7 +36,7 @@ const searchSchema = z.object({
 		.catch(undefined),
 });
 
-const ALL_DOCUMENTS = "all";
+const ALL_ASSETS = "all";
 
 export const Route = createFileRoute(
 	"/app/library/repositories/$blockId/explore",
@@ -77,24 +77,22 @@ function RouteComponent() {
 		}),
 	);
 
-	const documents = [
+	const assetOptions = [
 		{
-			value: ALL_DOCUMENTS,
-			label: m.blocks_explore_document_all(),
+			value: ALL_ASSETS,
+			label: m.blocks_explore_asset_all(),
 		},
-		...(repository.assets ?? []).map((document) => ({
-			value: document.id as string,
-			label: document.title,
+		...(repository.assets ?? []).map((entry) => ({
+			value: entry.id as string,
+			label: entry.title,
 		})),
 	];
-	const assetId = repository.assets?.find(
-		(document) => document.id === asset,
-	)?.id;
+	const assetId = repository.assets?.find((entry) => entry.id === asset)?.id;
 
 	const hint = q
 		? m.blocks_explore_search_hint()
 		: assetId
-			? m.blocks_explore_browse_document_hint()
+			? m.blocks_explore_browse_asset_hint()
 			: m.blocks_explore_browse_all_hint();
 
 	return (
@@ -124,20 +122,20 @@ function RouteComponent() {
 					/>
 					<div className="flex flex-wrap items-center gap-2">
 						<OptionPicker
-							options={documents}
-							value={assetId ?? ALL_DOCUMENTS}
+							options={assetOptions}
+							value={assetId ?? ALL_ASSETS}
 							onChange={(value) =>
 								navigate({
 									search: (previous) => ({
 										...previous,
 										asset:
-											value === ALL_DOCUMENTS
+											value === ALL_ASSETS
 												? undefined
 												: assetIdSchema.parse(value),
 									}),
 								})
 							}
-							aria-label={m.blocks_explore_document_label()}
+							aria-label={m.blocks_explore_asset_label()}
 							className="w-64 max-w-full"
 						/>
 						{q ? (

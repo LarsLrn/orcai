@@ -22,7 +22,7 @@ export const RAG_SETTINGS = {
 
 	/**
 	 * Chunks per asset admitted before other assets get a turn. Keeps one
-	 * verbose document from crowding out the rest; when fewer assets match,
+	 * verbose asset from crowding out the rest; when fewer assets match,
 	 * the next-best chunks of any asset fill the remaining slots.
 	 */
 	maxPerAsset: 2,

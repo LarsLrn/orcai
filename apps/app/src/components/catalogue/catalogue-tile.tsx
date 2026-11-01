@@ -19,19 +19,19 @@ import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
-/** What the entry holds: a bot's blocks, "Prompt", or a repository's documents. */
+/** What the entry holds: a bot's blocks, "Prompt", or a repository's assets. */
 const catalogueContentsLabel = (
-	entry: Pick<CatalogueEntry, "kind" | "contents" | "documents">,
+	entry: Pick<CatalogueEntry, "kind" | "contents" | "assets">,
 ) =>
 	entry.contents
 		? botContentsLabel(entry.contents)
 		: entry.kind === "behaviour"
 			? m.blocks_tile_behaviour_contents()
-			: entry.documents
-				? m.blocks_tile_documents({
-						count: entry.documents,
+			: entry.assets
+				? m.blocks_tile_assets({
+						count: entry.assets,
 					})
-				: m.blocks_tile_no_documents();
+				: m.blocks_tile_no_assets();
 
 /** An entry on a catalogue page: band, the source organisation and the "Added" mark. */
 const CatalogueTile = ({ entry }: { entry: CatalogueEntry }) => {

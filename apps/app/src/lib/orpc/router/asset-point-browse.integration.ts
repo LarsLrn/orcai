@@ -228,15 +228,15 @@ describe("browsing a repository's passages", () => {
 		"reads only served passages, though unpublished ones come first",
 		async () => {
 			const { owner, assets, blockId, zedToken } = await repositoryWith(1);
-			const [document] = assets;
+			const [asset] = assets;
 			await index(
 				blockId,
-				document,
+				asset,
 				passages(3, () => 2),
 			);
 			await index(
 				blockId,
-				document,
+				asset,
 				passages(60, () => 1),
 				{
 					newer: {
@@ -246,7 +246,7 @@ describe("browsing a repository's passages", () => {
 			);
 
 			for (const assetId of [
-				document,
+				asset,
 				undefined,
 			]) {
 				expect(
@@ -262,9 +262,9 @@ describe("browsing a repository's passages", () => {
 					),
 				).toEqual([
 					[
-						`${document} passage 0`,
-						`${document} passage 1`,
-						`${document} passage 2`,
+						`${asset} passage 0`,
+						`${asset} passage 1`,
+						`${asset} passage 2`,
 					],
 				]);
 			}
@@ -276,15 +276,15 @@ describe("browsing a repository's passages", () => {
 		"reads both attempts' passages while both are published",
 		async () => {
 			const { owner, assets, blockId, zedToken } = await repositoryWith(1);
-			const [document] = assets;
+			const [asset] = assets;
 			await index(
 				blockId,
-				document,
+				asset,
 				passages(2, () => 2),
 			);
 			await index(
 				blockId,
-				document,
+				asset,
 				passages(2, () => 1),
 				{
 					newer: {
@@ -296,14 +296,14 @@ describe("browsing a repository's passages", () => {
 			expect(
 				await browseAll(owner, zedToken, {
 					repositoryId: blockId,
-					assetId: document,
+					assetId: asset,
 				}),
 			).toEqual([
 				[
-					`${document} newer 0`,
-					`${document} newer 1`,
-					`${document} passage 0`,
-					`${document} passage 1`,
+					`${asset} newer 0`,
+					`${asset} newer 1`,
+					`${asset} passage 0`,
+					`${asset} passage 1`,
 				],
 			]);
 		},
@@ -311,12 +311,12 @@ describe("browsing a repository's passages", () => {
 	);
 
 	test(
-		"reads one document by page, images on their page, and ends on an exact multiple",
+		"reads one asset by page, images on their page, and ends on an exact multiple",
 		async () => {
 			const { owner, assets, blockId, zedToken } = await repositoryWith(2);
-			const [document, other] = assets;
+			const [asset, other] = assets;
 			// 98 text passages over 49 pages, then two images on pages 1 and 2.
-			await index(blockId, document, [
+			await index(blockId, asset, [
 				...passages(98, (position) => 1 + Math.floor(position / 2)),
 				{
 					page: 1,
@@ -331,7 +331,7 @@ describe("browsing a repository's passages", () => {
 
 			const pages = await browseAll(owner, zedToken, {
 				repositoryId: blockId,
-				assetId: document,
+				assetId: asset,
 			});
 
 			expect(pages.map((page) => page.length)).toEqual([
@@ -339,14 +339,14 @@ describe("browsing a repository's passages", () => {
 				50,
 			]);
 			expect(pages[0].slice(0, 6)).toEqual([
-				`${document} passage 0`,
-				`${document} passage 1`,
-				`${document} passage 98`,
-				`${document} passage 2`,
-				`${document} passage 3`,
-				`${document} passage 99`,
+				`${asset} passage 0`,
+				`${asset} passage 1`,
+				`${asset} passage 98`,
+				`${asset} passage 2`,
+				`${asset} passage 3`,
+				`${asset} passage 99`,
 			]);
-			expect(pages[1].at(-1)).toBe(`${document} passage 97`);
+			expect(pages[1].at(-1)).toBe(`${asset} passage 97`);
 		},
 		TIMEOUT,
 	);
@@ -370,7 +370,7 @@ describe("browsing a repository's passages", () => {
 	);
 
 	test(
-		"shows nothing of a document outside the repository, or detached from it",
+		"shows nothing of an asset outside the repository, or detached from it",
 		async () => {
 			const { owner, organizationId, assets, blockId, zedToken } =
 				await repositoryWith(2);
@@ -420,16 +420,16 @@ describe("browsing a repository's passages", () => {
 	);
 
 	test(
-		"stops at a document detached between two pages",
+		"stops at an asset detached between two pages",
 		async () => {
 			const { owner, assets, blockId, zedToken } = await repositoryWith(2);
-			const [document, kept] = assets;
-			await index(blockId, document, passages(60));
+			const [asset, kept] = assets;
+			await index(blockId, asset, passages(60));
 			await index(blockId, kept, passages(60));
 
 			const first = await browse(owner, zedToken, {
 				repositoryId: blockId,
-				assetId: document,
+				assetId: asset,
 			});
 			expect(first.data).toHaveLength(50);
 			const procedures = await run(Procedures);
@@ -448,7 +448,7 @@ describe("browsing a repository's passages", () => {
 			expect(
 				await browse(owner, updated.meta?.zedToken ?? zedToken, {
 					repositoryId: blockId,
-					assetId: document,
+					assetId: asset,
 					cursor: first.nextCursor ?? undefined,
 				}),
 			).toEqual({
