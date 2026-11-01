@@ -11,7 +11,8 @@ import {
 } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions, outboxDelivered, readTuples } =
+	authzIntegration();
 
 const rejection = (operation: Promise<unknown>) =>
 	operation.then(
@@ -127,6 +128,20 @@ const members = async () => {
 			),
 		);
 
+	const remove = (actor: Actor, chatId: ChatId) =>
+		call(actor, (options) =>
+			procedures.chat.delete(
+				{
+					refs: [
+						{
+							id: chatId,
+						},
+					],
+				},
+				options,
+			),
+		);
+
 	const branch = async (
 		actor: Actor,
 		chatId: ChatId,
@@ -188,6 +203,7 @@ const members = async () => {
 		list,
 		search,
 		pin,
+		remove,
 		branch,
 		listMessages,
 	};
@@ -400,6 +416,36 @@ describe("chat pins", () => {
 			expect(await rejection(pin(owner, conversation, true))).toMatchObject({
 				reason: "ASSISTANT_CONVERSATION_IMMUTABLE",
 			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("chat deletion", () => {
+	test(
+		"removes the chat's relationships",
+		async () => {
+			const { owner, createChat, remove } = await members();
+			const { chatId } = await createChat(owner, "Gone");
+			await outboxDelivered(chatId);
+			expect(
+				await readTuples({
+					resourceType: "chat",
+					resourceId: chatId,
+				}),
+			).toEqual([
+				`owner@user:${owner.user.id}`,
+			]);
+
+			await remove(owner, chatId);
+			await outboxDelivered(chatId);
+
+			expect(
+				await readTuples({
+					resourceType: "chat",
+					resourceId: chatId,
+				}),
+			).toEqual([]);
 		},
 		TIMEOUT,
 	);

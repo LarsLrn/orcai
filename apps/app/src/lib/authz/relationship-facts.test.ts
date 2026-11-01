@@ -415,6 +415,21 @@ describe("projectRelationshipFacts", () => {
 		]);
 	});
 
+	test("a deleted chat loses its owner and bot", () => {
+		expect(
+			project(
+				RelationshipFact.ChatDeleted({
+					chatId,
+					ownerId,
+					botId,
+				}),
+			),
+		).toEqual([
+			`delete chat:${chatId}#owner@user:${ownerId}`,
+			`delete chat:${chatId}#bot@bot:${botId}`,
+		]);
+	});
+
 	test("an unlinked chat bot is deleted", () => {
 		expect(
 			project(
@@ -705,6 +720,13 @@ const samples: Record<RelationshipFact["_tag"], RelationshipFact[]> = {
 	ChatBotUnlinked: [
 		RelationshipFact.ChatBotUnlinked({
 			chatId,
+			botId,
+		}),
+	],
+	ChatDeleted: [
+		RelationshipFact.ChatDeleted({
+			chatId,
+			ownerId,
 			botId,
 		}),
 	],

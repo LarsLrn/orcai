@@ -107,6 +107,11 @@ export type RelationshipFact = Data.TaggedEnum<{
 		chatId: ChatId;
 		botId: BotId;
 	};
+	ChatDeleted: {
+		chatId: ChatId;
+		ownerId: UserId;
+		botId: BotId | null;
+	};
 }>;
 
 export const RelationshipFact = Data.taggedEnum<RelationshipFact>();
@@ -210,6 +215,40 @@ const linkChange = <Id extends string>(
 	];
 };
 
+const chatTuples = (
+	{
+		chatId,
+		ownerId,
+		botId,
+	}: {
+		chatId: ChatId;
+		ownerId: UserId;
+		botId: BotId | null;
+	},
+	operation: Operation,
+): TupleMutation[] => [
+	{
+		resourceType: "chat",
+		resourceId: chatId,
+		relation: "owner",
+		subjectType: "user",
+		subjectId: ownerId,
+		operation,
+	},
+	...(botId !== null
+		? [
+				{
+					resourceType: "chat",
+					resourceId: chatId,
+					relation: "bot",
+					subjectType: "bot",
+					subjectId: botId,
+					operation,
+				} satisfies TupleMutation,
+			]
+		: []),
+];
+
 const projectFact = RelationshipFact.$match({
 	ResourceCreated: ({ resource, ownerId, visibility }) => [
 		resourceTuple(resource, "owner", "touch", {
@@ -291,28 +330,8 @@ const projectFact = RelationshipFact.$match({
 				operation,
 			}),
 		),
-	ChatCreated: ({ chatId, ownerId, botId }): TupleMutation[] => [
-		{
-			resourceType: "chat",
-			resourceId: chatId,
-			relation: "owner",
-			subjectType: "user",
-			subjectId: ownerId,
-			operation: "touch",
-		},
-		...(botId !== null
-			? [
-					{
-						resourceType: "chat",
-						resourceId: chatId,
-						relation: "bot",
-						subjectType: "bot",
-						subjectId: botId,
-						operation: "touch",
-					} satisfies TupleMutation,
-				]
-			: []),
-	],
+	ChatCreated: (chat) => chatTuples(chat, "touch"),
+	ChatDeleted: (chat) => chatTuples(chat, "delete"),
 	ChatBotUnlinked: ({ chatId, botId }): TupleMutation[] => [
 		{
 			resourceType: "chat",

@@ -33,14 +33,10 @@ import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { requireUsableInOrganization } from "@/lib/authz/organization-use";
-import { RelationshipFact } from "@/lib/authz/relationship-facts";
-import {
-	recordRelationshipFacts,
-	writeRelationships,
-} from "@/lib/authz/relationship-write";
-import { lockExistingResource } from "@/lib/authz/resource-lifecycle";
+import { writeRelationships } from "@/lib/authz/relationship-write";
 import { getZedToken } from "@/lib/authz/zed-token";
 import { findBotSetup } from "@/lib/bots/bot-setup";
+import { deleteChatsWhere, insertChat } from "@/lib/chats/chat-lifecycle";
 import { checkChatModel, checkMaxTokens } from "@/lib/chats/chat-model";
 import { effectiveModel, seededConfig } from "@/lib/chats/effective-model";
 import {
@@ -259,35 +255,6 @@ const chatNotFound = (id: ChatId) =>
 		reason: "CHAT_NOT_FOUND",
 		id,
 		message: "Chat not found",
-	});
-
-/** Inserts a chat and records its owner and bot; call it in a {@link writeRelationships}. */
-export const insertChat = (values: typeof dbSchema.chat.$inferInsert) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		// Held until commit, so a bot deletion marks this chat or refuses it.
-		if (
-			values.botId &&
-			!(yield* lockExistingResource({
-				resourceType: "bot",
-				resourceId: values.botId,
-			}))
-		) {
-			return yield* new AppErrors.NotFoundError({
-				reason: "BOT_NOT_FOUND",
-				id: values.botId,
-				message: "Bot not found",
-			});
-		}
-		const [chat] = yield* db.insert(dbSchema.chat).values(values).returning();
-		yield* recordRelationshipFacts(
-			RelationshipFact.ChatCreated({
-				chatId: chat.id,
-				ownerId: chat.userId,
-				botId: chat.botId,
-			}),
-		);
-		return chat;
 	});
 
 const findChat = authed.chat.find
@@ -702,11 +669,12 @@ const deleteChats = authed.chat.delete
 		),
 	)
 	.effect(function* ({ context }) {
-		const db = yield* DB;
-
-		yield* db
-			.delete(dbSchema.chat)
-			.where(inArray(dbSchema.chat.id, context.allowedIds));
+		yield* writeRelationships(
+			{
+				organizationIds: [],
+			},
+			deleteChatsWhere(inArray(dbSchema.chat.id, context.allowedIds)),
+		);
 
 		return {
 			success: true,
