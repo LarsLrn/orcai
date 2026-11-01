@@ -17,7 +17,6 @@ import { TableRow } from "@tiptap/extension-table-row";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Typography from "@tiptap/extension-typography";
-import { Youtube } from "@tiptap/extension-youtube";
 import type { DOMOutputSpec } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
@@ -25,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { ImageExtension } from "./extensions/image";
 import { MathExtension } from "./extensions/math";
+import { TiptapYoutube } from "./extensions/youtube";
 
 const TiptapStarterKit = StarterKit.configure({
 	bulletList: {
@@ -161,13 +161,6 @@ const DragHandle = GlobalDragHandle.configure({
 	excludedTags: [
 		"table",
 	],
-});
-
-export const TiptapYoutube = Youtube.configure({
-	HTMLAttributes: {
-		class: cn("border border-muted"),
-	},
-	nocookie: true,
 });
 
 const TiptapCharacterCount = CharacterCount;

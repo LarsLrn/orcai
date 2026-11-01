@@ -5,6 +5,7 @@ import { AlignmentTooolbar } from "./alignment";
 import { BlockquoteToolbar } from "./blockquote";
 import { BoldToolbar } from "./bold";
 import { BulletListToolbar } from "./bullet-list";
+import { ClearFormattingToolbar } from "./clear-formatting";
 import { CodeToolbar } from "./code";
 import { ColorHighlightToolbar } from "./color-and-highlight";
 import { HeadingsToolbar } from "./headings";
@@ -14,55 +15,56 @@ import { LinkToolbar } from "./link";
 import { OrderedListToolbar } from "./ordered-list";
 import { RedoToolbar } from "./redo";
 import { StrikeThroughToolbar } from "./strikethrough";
+import { TableToolbar } from "./table";
 import { ToolbarProvider } from "./toolbar-provider";
 import { UnderlineToolbar } from "./underline";
 import { UndoToolbar } from "./undo";
+import { YoutubeToolbar } from "./youtube";
+
+const GroupSeparator = () => (
+	<Separator orientation="vertical" className="mx-1 h-7" />
+);
 
 export const EditorToolbar = ({ editor }: { editor: Editor }) => {
 	return (
-		<div className="sticky top-0 hidden w-full border-b bg-background sm:block">
+		<div className="sticky top-0 w-full border-b bg-background">
 			<ToolbarProvider editor={editor}>
 				<ScrollArea className="h-fit py-0.5">
-					<div>
-						<div className="flex items-center gap-1 px-2">
-							{/* History Group */}
-							<UndoToolbar />
-							<RedoToolbar />
-							<Separator orientation="vertical" className="mx-1 h-7" />
+					<div className="flex w-max items-center gap-1 px-2">
+						<UndoToolbar />
+						<RedoToolbar />
+						<GroupSeparator />
 
-							{/* Text Structure Group */}
-							<HeadingsToolbar />
-							<BlockquoteToolbar />
-							<CodeToolbar />
-							{/* <CodeBlockToolbar /> */}
-							<Separator orientation="vertical" className="mx-1 h-7" />
+						<HeadingsToolbar />
+						<GroupSeparator />
 
-							{/* Basic Formatting Group */}
-							<BoldToolbar />
-							<ItalicToolbar />
-							<UnderlineToolbar />
-							<StrikeThroughToolbar />
-							<LinkToolbar />
-							<Separator orientation="vertical" className="mx-1 h-7" />
+						<BoldToolbar />
+						<ItalicToolbar />
+						<UnderlineToolbar />
+						<StrikeThroughToolbar />
+						<CodeToolbar />
+						<ColorHighlightToolbar />
+						<GroupSeparator />
 
-							{/* Lists & Structure Group */}
-							<BulletListToolbar />
-							<OrderedListToolbar />
-							<HorizontalRuleToolbar />
-							<Separator orientation="vertical" className="mx-1 h-7" />
+						<LinkToolbar />
+						<GroupSeparator />
 
-							{/* Alignment Group */}
-							<AlignmentTooolbar />
-							<Separator orientation="vertical" className="mx-1 h-7" />
+						<BulletListToolbar />
+						<OrderedListToolbar />
+						<BlockquoteToolbar />
+						<GroupSeparator />
 
-							{/* Media & Styling Group */}
-							<ColorHighlightToolbar />
-							<Separator orientation="vertical" className="mx-1 h-7" />
+						<AlignmentTooolbar />
+						<GroupSeparator />
 
-							<div className="flex-1" />
-						</div>
+						<TableToolbar />
+						<YoutubeToolbar />
+						<HorizontalRuleToolbar />
+						<GroupSeparator />
+
+						<ClearFormattingToolbar />
 					</div>
-					<ScrollBar className="hidden" orientation="horizontal" />
+					<ScrollBar orientation="horizontal" />
 				</ScrollArea>
 			</ToolbarProvider>
 		</div>

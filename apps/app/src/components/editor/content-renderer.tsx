@@ -2,14 +2,14 @@ import "./tiptap.css";
 
 import type { JSONContent } from "@tiptap/core";
 import { getSchema, isNodeEmpty } from "@tiptap/core";
-import { getEmbedUrlFromYoutubeUrl } from "@tiptap/extension-youtube";
 import { Node } from "@tiptap/pm/model";
 import { renderToReactElement } from "@tiptap/static-renderer/pm/react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { descriptionExtensions, extensions, TiptapYoutube } from "./extensions";
+import { descriptionExtensions, extensions } from "./extensions";
 import { renderMathToString } from "./extensions/math";
+import { YOUTUBE_IFRAME_CLASS, youtubeEmbedUrl } from "./extensions/youtube";
 
 type Extensions = typeof extensions | typeof descriptionExtensions;
 
@@ -69,17 +69,12 @@ const ContentRenderer = ({
 								<div data-youtube-video="">
 									<iframe
 										title={m.editor_youtube_title()}
-										className={TiptapYoutube.options.HTMLAttributes.class}
+										className={YOUTUBE_IFRAME_CLASS}
 										src={
-											getEmbedUrlFromYoutubeUrl({
-												...TiptapYoutube.options,
-												url: node.attrs.src,
-												startAt: node.attrs.start || 0,
-											}) ?? undefined
+											youtubeEmbedUrl(node.attrs.src, node.attrs.start) ??
+											undefined
 										}
-										width={node.attrs.width}
-										height={node.attrs.height}
-										allowFullScreen={TiptapYoutube.options.allowFullscreen}
+										allowFullScreen
 									/>
 								</div>
 							),
