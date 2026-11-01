@@ -126,8 +126,25 @@ access** step embeds the same controls. New people and groups are added from the
 - **Can edit** can also edit it.
 - **Can manage** can also delete it and manage its access.
 
-The person who created a bot, block or asset owns it and holds all of these. Listing
-a bot or block in the Catalogue and taking it out both ask for confirmation.
+The owner of a bot, block or asset holds all of these. Whoever creates it owns
+it until it is handed over. Listing a bot or block in the Catalogue and taking
+it out both ask for confirmation.
+
+### Hand over
+
+The owner gives a bot, behaviour, repository or Library asset to another member
+with **Hand over** in its `…` menu. The dialog lists the members of the
+organisation who can own content, that is Members, Managers and Admins who are
+not banned. The new owner holds every action on it, and you keep **Can manage**.
+Listings and grants stay as they are. Only the owner sees **Hand over**, and
+it works only while the item's own organisation is your active organisation.
+Something added from the Catalogue has no **Hand over**, and an item opened
+from another organisation refuses it with the reason in the dialog. A chat
+upload stays with whoever uploaded it.
+
+Removing a member, making one a Viewer and deleting an account hand their
+content over as well, as [Administration](/docs/using-orcai/administration#members)
+describes.
 
 The access dialog holds the group grants, the direct grants and a summary of
 the access inherited from the bots and blocks above. For a bot or block it
