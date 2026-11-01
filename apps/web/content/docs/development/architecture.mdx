@@ -108,6 +108,8 @@ SpiceDB answers authorisation reads with `minimizeLatency` by default, so a read
 
 The sign-up response carries the same cookie for the membership it grants, so a new account's first reads already see it.
 
+A chat turn streams its answer, so its response is under way before its tools write. When a turn whose tools wrote ends, the browser calls `ai.recordTurnWrites`, and that response sets the cookie from the token stored with the reply.
+
 API consumers outside the browser can send the token back in the `X-Zed-Token` header, and some procedures also accept it as a `zedToken` input to pin the freshness of a single call.
 
 A response without `meta.zedToken` means the request wrote nothing to SpiceDB inline. Its write is queued and applied shortly after, so a read issued immediately may still see the previous state.

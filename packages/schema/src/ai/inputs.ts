@@ -63,3 +63,12 @@ export const keepUploadsInputSchema = z.object({
 });
 
 export type KeepUploadsInput = z.infer<typeof keepUploadsInputSchema>;
+
+/** A finished reply whose turn wrote, so later reads see the writes. */
+export const recordTurnWritesInputSchema = z.object({
+	chatId: chatIdSchema,
+	messageId: chatMessageIdSchema,
+	...zedTokenSchema.shape,
+});
+
+export type RecordTurnWritesInput = z.infer<typeof recordTurnWritesInputSchema>;
