@@ -1,10 +1,12 @@
 # Prompt evals
 
-`bun run prompt-evals` sends about 30 cases to four models through OpenRouter, three samples each, and prints a pass-rate table. It runs on demand for prompt changes and never in CI, because every run costs money and real models vary between runs.
+`bun run prompt-evals` sends about 30 cases to four models through OpenRouter by default, three samples each, and prints a pass-rate table. It runs on demand for prompt changes and never in CI, because every run costs money and real models vary between runs.
 
 ## Running
 
 The key comes from `OPENROUTER_API_KEY`, or else from `~/.config/orcai/openrouter.env`. The script never prints it.
+
+Any OpenAI-compatible endpoint works instead: set `PROMPT_EVALS_ENDPOINT` to its base URL and `PROMPT_EVALS_API_KEY`, and pass its model ids to `--models` and `--judge`. `PROMPT_EVALS_RPM` caps the requests started per minute across all models and the judge. Rate-limited (429) and briefly unavailable (502 to 504) responses are retried with backoff. Only OpenRouter reports a cost, so other endpoints print none.
 
 ```bash title="Repository root"
 bun run prompt-evals                                    # every case, default models, 3 samples
