@@ -39,6 +39,8 @@ type AttachmentPart = FileUIPart | TextUIPart;
 /** What an attachment adds to its message for the model. */
 type BuiltAttachment = {
 	parts: AttachmentPart[];
+	/** The file's text was cut, so the model read only its start. */
+	truncated?: boolean;
 };
 
 /** The assets among `assetIds` the reader may read, by id. */
@@ -122,6 +124,9 @@ const truncateText = (
 	text: string,
 	limit = CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH,
 ) => (text.length <= limit ? text : `${text.slice(0, limit)}\n\n[Truncated]`);
+
+const isTruncated = (content: string) =>
+	content.length > CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH;
 
 const textPart = (text: string): AttachmentPart => ({
 	type: "text",
@@ -209,6 +214,7 @@ const documentAttachment = (asset: AttachedAsset) =>
 			parts: [
 				textPart(attachmentText(asset, content)),
 			],
+			truncated: isTruncated(content),
 		} satisfies BuiltAttachment;
 	});
 
@@ -229,9 +235,10 @@ const buildAttachment = (asset: AttachedAsset) =>
 	);
 
 /**
- * User messages with their attachments as parts the model reads. An
- * attachment the reader can no longer read, or whose asset is gone, becomes a
- * note saying so, as do images past the turn's image budget.
+ * User messages with their attachments as parts the model reads, and the ones
+ * whose text was cut marked `truncated`. An attachment the reader can no
+ * longer read, or whose asset is gone, becomes a note saying so, as do images
+ * past the turn's image budget.
  */
 export const withAttachmentParts = (
 	messages: ChatAgentUIMessage[],
@@ -289,6 +296,14 @@ export const withAttachmentParts = (
 				? message
 				: {
 						...message,
+						attachments: attachments.map((attachment) =>
+							built.get(attachment.assetId)?.truncated
+								? {
+										...attachment,
+										truncated: true,
+									}
+								: attachment,
+						),
 						parts: [
 							...message.parts,
 							...attachments.flatMap(

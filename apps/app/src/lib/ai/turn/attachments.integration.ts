@@ -7,6 +7,11 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import {
+	buildStoredExtractionKey,
+	createImageOnlyStoredExtractionArtifact,
+	serializeStoredExtractionArtifact,
+} from "@orcai/process";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import { writeRelationshipMutations } from "@orcai/spice-db";
 import {
@@ -18,6 +23,7 @@ import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { sourceRef } from "@/lib/ai/citations/source-ref";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH } from "@/settings/constants";
 import { attachAssets, withAttachmentParts } from "./attachments";
 
 const runtime = integrationRuntime();
@@ -62,6 +68,52 @@ const privateImage = async (
 				key: `${row.prefix}/${row.id}.png`,
 				body: Buffer.from(PIXEL, "base64"),
 				contentType: "image/png",
+			});
+			return row;
+		}),
+	);
+	const { zedToken } = await relate(asset.id, "owner", owner);
+	return {
+		asset,
+		zedToken,
+	};
+};
+
+/** A PDF asset only its owner can read, with `content` as its stored extraction. */
+const privateDocument = async (
+	owner: UserId,
+	title: string,
+	content: string,
+) => {
+	const asset = await run(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.insert(dbSchema.asset)
+				.values({
+					bucket: buckets.main.name,
+					prefix: `users/${owner}/chatAttachment/2026/10`,
+					title,
+					fileType: "pdf",
+					size: content.length,
+					userId: owner,
+				})
+				.returning();
+			yield* sendPutObjectCommand({
+				bucket: buckets.processed.name,
+				key: buildStoredExtractionKey(row.id),
+				body: Buffer.from(
+					serializeStoredExtractionArtifact({
+						...createImageOnlyStoredExtractionArtifact({
+							mimeType: "application/pdf",
+							format: "pdf",
+							sourceBucket: row.bucket,
+							sourcePath: row.prefix,
+						}),
+						content,
+						images: [],
+					}),
+				),
+				contentType: "application/json",
 			});
 			return row;
 		}),
@@ -356,6 +408,55 @@ describe("chat attachments", () => {
 				filename: "New plan",
 				url: `data:image/png;base64,${PIXEL}`,
 			},
+		]);
+	});
+
+	test("a file cut at the text limit is marked truncated, a file within it is not", async () => {
+		const owner = await newUser();
+		const limit = CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH;
+		const whole = await privateDocument(owner, "Essay", "a".repeat(limit));
+		const cut = await privateDocument(owner, "Thesis", "a".repeat(limit + 1));
+		const reader = {
+			userId: owner,
+			zedToken: cut.zedToken,
+		};
+		const attached = await run(
+			attachAssets(
+				[
+					{
+						assetId: whole.asset.id,
+					},
+					{
+						assetId: cut.asset.id,
+					},
+				],
+				reader,
+			),
+		);
+
+		const [prompt] = await run(
+			withAttachmentParts(
+				[
+					question(attached),
+				],
+				reader,
+			),
+		);
+
+		expect(
+			prompt.attachments?.map(({ title, truncated }) => [
+				title,
+				truncated,
+			]),
+		).toEqual([
+			[
+				"Essay",
+				undefined,
+			],
+			[
+				"Thesis",
+				true,
+			],
 		]);
 	});
 });

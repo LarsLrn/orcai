@@ -19,6 +19,7 @@ export const ChatMessageAttachments = ({
 					title={attachment.title}
 					mediaType={attachment.fileType}
 					size={attachment.size}
+					truncated={attachment.truncated}
 				/>
 			))}
 		</AttachmentGroup>

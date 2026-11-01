@@ -8,11 +8,15 @@ export const chatAttachmentRefSchema = z.object({
 	assetId: assetIdSchema,
 });
 
-/** What a message shows of an attached asset; storage comes from the asset when read. */
+/**
+ * What a message shows of an attached asset; storage comes from the asset
+ * when read. `truncated` marks a file the model read only the start of.
+ */
 export const chatMessageAttachmentSchema = chatAttachmentRefSchema.extend({
 	title: z.string().min(1),
 	fileType: z.string().min(1),
 	size: z.number().int().nonnegative(),
+	truncated: z.boolean().optional(),
 });
 
 export type ChatAttachmentRef = z.infer<typeof chatAttachmentRefSchema>;

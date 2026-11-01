@@ -2449,6 +2449,7 @@
 	"chat_attachment_menu_assets_action": "Vorhandene Assets wählen",
 	"chat_attachment_menu_trigger": "Dateien anhängen",
 	"chat_attachment_menu_upload_action": "Datei hochladen",
+	"chat_attachment_truncated_notice": "Nur der erste Teil dieser Datei wurde gelesen.",
 	"chat_attachments_capacity_toast_warning": [
 		{
 			"declarations": [

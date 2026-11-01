@@ -180,6 +180,61 @@ test("chat: a reply cites an attachment by the ref its tag carries, also after a
 	await cited();
 });
 
+test("chat: a file cut at the text limit shows its notice on the badge, also after a reload", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const member = api.as("member");
+	const chatId = await createChat(member, model, chatName("Attachment cut"));
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await openChat(page, chatId);
+	await page.locator('input[type="file"]').setInputFiles([
+		{
+			name: "thesis.txt",
+			mimeType: "text/plain",
+			buffer: Buffer.from("Chapter one. ".repeat(2000)),
+		},
+		{
+			name: "summary.txt",
+			mimeType: "text/plain",
+			buffer: Buffer.from("A short summary."),
+		},
+	]);
+	inference.respondWith({
+		text: "Read the start.",
+	});
+	await composer(page).fill("Here is my thesis.");
+	await page
+		.getByRole("button", {
+			name: message("ai_elements_prompt_input_submit_aria_label"),
+		})
+		.click();
+	await turnFinished(page);
+
+	const notice = message("chat_attachment_truncated_notice");
+	const noticeOn = (name: string) =>
+		page
+			.getByRole("log")
+			.locator('[data-slot="attachment"]')
+			.filter({
+				hasText: name,
+			})
+			.getByText(notice);
+	const shown = async () => {
+		await expect(noticeOn("thesis.txt")).toBeVisible();
+		await expect(noticeOn("summary.txt")).toHaveCount(0);
+	};
+	await shown();
+
+	await page.reload();
+	await shown();
+});
+
 type DroppedFile = {
 	name: string;
 	type: string;

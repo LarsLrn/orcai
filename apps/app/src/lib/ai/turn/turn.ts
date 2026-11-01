@@ -800,6 +800,13 @@ export const startTurn = (
 		);
 
 		const prompt = yield* withAttachmentParts(messages, reader);
+		// What the model read of the question's files is stored with it.
+		const storedQuestion = {
+			...question,
+			attachments:
+				prompt.find((message) => message.id === question.id)?.attachments ??
+				question.attachments,
+		};
 		const fit = yield* fitPrompt({
 			setup,
 			agent,
@@ -822,7 +829,7 @@ export const startTurn = (
 						id: closedReply.id,
 						parts: closedReply.parts,
 					},
-					question,
+					question: storedQuestion,
 					replyId,
 				})
 				.pipe(

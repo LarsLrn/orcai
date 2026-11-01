@@ -13,6 +13,7 @@ import type {
 	ChatAgentTools,
 	ChatAgentUIMessage,
 } from "@/lib/ai/types/chat-agent-message";
+import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { errorReasonOf } from "@/lib/errors/describe-error";
 
 /** Stored messages, oldest first, and the cursor to the page before them. */
@@ -418,7 +419,35 @@ export class ChatSession {
 				this.#setStoring(false);
 			}
 		}
+		await this.#adoptStoredAttachments().catch(() => undefined);
 		await this.#port.turnEnded(message);
+	}
+
+	/** Takes over the attachments the server stored with the question, which record what it could read of each file. */
+	async #adoptStoredAttachments() {
+		const question = this.chat.messages.at(-2);
+		if (
+			question?.role !== "user" ||
+			question.attachments !== undefined ||
+			getChatMessageAttachments(question).length === 0
+		) {
+			return;
+		}
+		const stored = await this.#port.find({
+			chatId: this.#chatId,
+			id: question.id,
+			zedToken: this.#zedToken,
+		});
+		if (!stored?.attachments) return;
+		const { attachments } = stored;
+		this.chat.messages = this.chat.messages.map((current) =>
+			current.id === question.id
+				? {
+						...current,
+						attachments,
+					}
+				: current,
+		);
 	}
 
 	/** Resolves once the reply is filled in or dropped, so the next turn's context includes it. */
