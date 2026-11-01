@@ -54,6 +54,7 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 
 	await moreActions.click();
 	await expect(page.getByRole("menuitem")).toHaveText([
+		message("ownership_hand_over_action"),
 		message("access_list_action"),
 		message("bots_delete_action"),
 	]);
@@ -76,6 +77,7 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 	await expect(confirmListing).toBeHidden();
 	await moreActions.click();
 	await expect(page.getByRole("menuitem")).toHaveText([
+		message("ownership_hand_over_action"),
 		message("access_unlist_action"),
 		message("bots_delete_action"),
 	]);
