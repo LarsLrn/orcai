@@ -35,11 +35,11 @@ import {
 } from "@/components/ui/shell/page";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/chat/setup")({
+export const Route = createFileRoute("/app/chat/start")({
 	head: () => ({
 		meta: [
 			{
-				title: m.chat_setup_page_title(),
+				title: m.chat_start_page_title(),
 			},
 		],
 	}),
@@ -54,8 +54,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader className="text-center">
-				<PageTitle>{m.chat_setup_page_title()}</PageTitle>
-				<PageDescription>{m.chat_setup_page_description()}</PageDescription>
+				<PageTitle>{m.chat_start_page_title()}</PageTitle>
+				<PageDescription>{m.chat_start_page_description()}</PageDescription>
 			</PageHeader>
 
 			<PageContent className="grid gap-6 md:grid-cols-2">
@@ -70,21 +70,21 @@ function RouteComponent() {
 										<BotIcon className="h-8 w-8 text-primary" />
 									</div>
 									<CardTitle className="text-xl">
-										{m.chat_setup_bot_card_title()}
+										{m.chat_start_bot_card_title()}
 									</CardTitle>
 									<CardDescription>
-										{m.chat_setup_bot_card_description()}
+										{m.chat_start_bot_card_description()}
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
 									<div className="space-y-2 text-muted-foreground text-sm">
 										<div className="flex items-center gap-2">
 											<SparklesIcon className="h-4 w-4 shrink-0" />
-											<span>{m.chat_setup_bot_card_point_ready()}</span>
+											<span>{m.chat_start_bot_card_point_ready()}</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<UserIcon className="h-4 w-4 shrink-0" />
-											<span>{m.chat_setup_bot_card_point_configured()}</span>
+											<span>{m.chat_start_bot_card_point_configured()}</span>
 										</div>
 									</div>
 								</CardContent>
@@ -94,9 +94,9 @@ function RouteComponent() {
 
 					<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
 						<DialogHeader>
-							<DialogTitle>{m.chat_setup_bot_dialog_title()}</DialogTitle>
+							<DialogTitle>{m.chat_start_bot_dialog_title()}</DialogTitle>
 							<DialogDescription>
-								{m.chat_setup_bot_dialog_description()}
+								{m.chat_start_bot_dialog_description()}
 							</DialogDescription>
 						</DialogHeader>
 
@@ -118,7 +118,7 @@ function RouteComponent() {
 									})
 								}
 							>
-								{m.chat_setup_bot_dialog_start_action()}
+								{m.chat_start_bot_dialog_start_action()}
 							</Button>
 						</div>
 					</DialogContent>
@@ -139,21 +139,21 @@ function RouteComponent() {
 								<MessageSquarePlusIcon className="h-8 w-8 text-primary" />
 							</div>
 							<CardTitle className="text-xl">
-								{m.chat_setup_solo_card_title()}
+								{m.chat_start_solo_card_title()}
 							</CardTitle>
 							<CardDescription>
-								{m.chat_setup_solo_card_description()}
+								{m.chat_start_solo_card_description()}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-2 text-muted-foreground text-sm">
 								<div className="flex items-center gap-2">
 									<MessageSquarePlusIcon className="h-4 w-4 shrink-0" />
-									<span>{m.chat_setup_solo_card_point_knowledge()}</span>
+									<span>{m.chat_start_solo_card_point_knowledge()}</span>
 								</div>
 								<div className="flex items-center gap-2">
 									<SparklesIcon className="h-4 w-4 shrink-0" />
-									<span>{m.chat_setup_solo_card_point_model()}</span>
+									<span>{m.chat_start_solo_card_point_model()}</span>
 								</div>
 							</div>
 						</CardContent>
@@ -164,7 +164,7 @@ function RouteComponent() {
 			<Separator className="my-2" />
 
 			<PageFooter className="text-center text-muted-foreground text-sm">
-				<p>{m.chat_setup_footer_note()}</p>
+				<p>{m.chat_start_footer_note()}</p>
 			</PageFooter>
 		</Page>
 	);

@@ -58,7 +58,7 @@ import { Route as AppAssistantIndexRouteImport } from './routes/app/assistant/in
 import { Route as AppCatalogueIndexRouteImport } from './routes/app/catalogue/index'
 import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
-import { Route as AppChatSetupRouteImport } from './routes/app/chat/setup'
+import { Route as AppChatStartRouteImport } from './routes/app/chat/start'
 import { Route as AppGroupsIndexRouteImport } from './routes/app/groups/index'
 import { Route as AppGroupsGroupIdRouteRouteImport } from './routes/app/groups/$groupId/route'
 import { Route as AppLibraryIndexRouteImport } from './routes/app/library/index'
@@ -386,9 +386,9 @@ const AppChatNewRoute = AppChatNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AppChatRouteRoute,
 } as any)
-const AppChatSetupRoute = AppChatSetupRouteImport.update({
-  id: '/setup',
-  path: '/setup',
+const AppChatStartRoute = AppChatStartRouteImport.update({
+  id: '/start',
+  path: '/start',
   getParentRoute: () => AppChatRouteRoute,
 } as any)
 const AppGroupsIndexRoute = AppGroupsIndexRouteImport.update({
@@ -852,7 +852,7 @@ export interface FileRoutesByFullPath {
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
-  '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/chat/start': typeof AppChatStartRoute
   '/app/members/add': typeof AppMembersAddRoute
   '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
@@ -951,7 +951,7 @@ export interface FileRoutesByTo {
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
-  '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/chat/start': typeof AppChatStartRoute
   '/app/members/add': typeof AppMembersAddRoute
   '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
@@ -1070,7 +1070,7 @@ export interface FileRoutesById {
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
-  '/app/chat/setup': typeof AppChatSetupRoute
+  '/app/chat/start': typeof AppChatStartRoute
   '/app/members/add': typeof AppMembersAddRoute
   '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
@@ -1196,7 +1196,7 @@ export interface FileRouteTypes {
     | '/app/account/invitations'
     | '/app/account/security'
     | '/app/chat/new'
-    | '/app/chat/setup'
+    | '/app/chat/start'
     | '/app/members/add'
     | '/app/members/invitations'
     | '/app/models/add'
@@ -1295,7 +1295,7 @@ export interface FileRouteTypes {
     | '/app/account/invitations'
     | '/app/account/security'
     | '/app/chat/new'
-    | '/app/chat/setup'
+    | '/app/chat/start'
     | '/app/members/add'
     | '/app/members/invitations'
     | '/app/models/add'
@@ -1413,7 +1413,7 @@ export interface FileRouteTypes {
     | '/app/account/invitations'
     | '/app/account/security'
     | '/app/chat/new'
-    | '/app/chat/setup'
+    | '/app/chat/start'
     | '/app/members/add'
     | '/app/members/invitations'
     | '/app/models/add'
@@ -1844,11 +1844,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatNewRouteImport
       parentRoute: typeof AppChatRouteRoute
     }
-    '/app/chat/setup': {
-      id: '/app/chat/setup'
-      path: '/setup'
-      fullPath: '/app/chat/setup'
-      preLoaderRoute: typeof AppChatSetupRouteImport
+    '/app/chat/start': {
+      id: '/app/chat/start'
+      path: '/start'
+      fullPath: '/app/chat/start'
+      preLoaderRoute: typeof AppChatStartRouteImport
       parentRoute: typeof AppChatRouteRoute
     }
     '/app/groups/': {
@@ -2552,14 +2552,14 @@ const AppCatalogueRouteRouteWithChildren =
 
 interface AppChatRouteRouteChildren {
   AppChatNewRoute: typeof AppChatNewRoute
-  AppChatSetupRoute: typeof AppChatSetupRoute
+  AppChatStartRoute: typeof AppChatStartRoute
   AppChatIndexRoute: typeof AppChatIndexRoute
   AppChatChatIdIndexRoute: typeof AppChatChatIdIndexRoute
 }
 
 const AppChatRouteRouteChildren: AppChatRouteRouteChildren = {
   AppChatNewRoute: AppChatNewRoute,
-  AppChatSetupRoute: AppChatSetupRoute,
+  AppChatStartRoute: AppChatStartRoute,
   AppChatIndexRoute: AppChatIndexRoute,
   AppChatChatIdIndexRoute: AppChatChatIdIndexRoute,
 }
