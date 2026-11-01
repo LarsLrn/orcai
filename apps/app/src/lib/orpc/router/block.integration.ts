@@ -15,7 +15,6 @@ const behaviour = (status: PublicationStatus) => ({
 	name: "Integration behaviour",
 	description: null,
 	contentJson: null,
-	contentHtml: null,
 	status,
 	config: {
 		systemPrompt: "Integration prompt",

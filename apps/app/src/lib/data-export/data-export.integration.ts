@@ -54,7 +54,6 @@ const seed = (userId: UserId, organizationId: OrganizationId) =>
 				.values({
 					name: "Export bot",
 					description: "",
-					contentHtml: "",
 					userId,
 				})
 				.returning();
@@ -295,7 +294,6 @@ const seedOrdered = (userId: UserId, organizationId: OrganizationId) =>
 					id: row.id,
 					name: `Bot ${row.index}`,
 					description: "",
-					contentHtml: "",
 					userId,
 					createdAt: row.createdAt,
 				})),

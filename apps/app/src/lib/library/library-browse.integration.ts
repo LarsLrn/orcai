@@ -49,7 +49,6 @@ const stocked = async () => {
 						name,
 						description: null,
 						contentJson: null,
-						contentHtml: null,
 						status: "ready",
 						config: {
 							minReferences: 1,

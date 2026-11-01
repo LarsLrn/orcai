@@ -56,7 +56,6 @@ const quizChat = async () => {
 				.values({
 					name: `Quiz bot ${crypto.randomUUID()}`,
 					description: "Integration bot",
-					contentHtml: "",
 					userId: user.id,
 					features: {
 						questions: {},

@@ -7,7 +7,6 @@ import { z } from "zod/v4";
 
 const templateBlockFormSchema = createTemplateBlockInputSchema.extend({
 	description: z.string(),
-	contentHtml: z.string(),
 });
 
 const defaultValues = (
@@ -16,7 +15,6 @@ const defaultValues = (
 	name: block?.name || "",
 	description: block?.description ?? "",
 	contentJson: block?.contentJson ?? null,
-	contentHtml: block?.contentHtml ?? "",
 	type: "template",
 	status: block?.status || "draft",
 	config: {

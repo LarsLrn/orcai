@@ -76,7 +76,6 @@ const botWithTwoOrganizations = async () => {
 								name: "Use behaviour",
 								description: null,
 								contentJson: null,
-								contentHtml: null,
 								status: "ready",
 								config: {
 									systemPrompt: "Answer from the handbook.",
@@ -87,7 +86,6 @@ const botWithTwoOrganizations = async () => {
 								name: "Use repository",
 								description: null,
 								contentJson: null,
-								contentHtml: null,
 								status: "ready",
 								assets: [],
 								config: {

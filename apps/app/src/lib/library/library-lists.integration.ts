@@ -735,7 +735,6 @@ describe("library lists", () => {
 							name: `Repository ${index} ${tag}`,
 							description: null,
 							contentJson: null,
-							contentHtml: null,
 							status: "ready",
 							config: defaultDatabaseBlockConfig,
 							assets: assetIds,
@@ -861,7 +860,6 @@ describe("library lists", () => {
 						name: `Elsewhere ${tag}`,
 						description: null,
 						contentJson: null,
-						contentHtml: null,
 						status: "draft",
 						config: {
 							systemPrompt: "",

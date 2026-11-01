@@ -8,7 +8,6 @@ const databaseBlockGroupDefaultValues = {
 	name: "",
 	description: "",
 	contentJson: null as unknown,
-	contentHtml: "",
 	minReferences: 1,
 	defaultReferences: 4,
 	maxReferences: 8,
@@ -22,7 +21,6 @@ const databaseBlockTopLevelFieldMap = {
 	name: "name",
 	description: "description",
 	contentJson: "contentJson",
-	contentHtml: "contentHtml",
 	minReferences: "config.minReferences",
 	defaultReferences: "config.defaultReferences",
 	maxReferences: "config.maxReferences",
@@ -37,7 +35,6 @@ const createDatabaseBlockBuilderFieldMap = (index: number) =>
 		name: `databaseBlocks[${index}].name`,
 		description: `databaseBlocks[${index}].description`,
 		contentJson: `databaseBlocks[${index}].contentJson`,
-		contentHtml: `databaseBlocks[${index}].contentHtml`,
 		minReferences: `databaseBlocks[${index}].config.minReferences`,
 		defaultReferences: `databaseBlocks[${index}].config.defaultReferences`,
 		maxReferences: `databaseBlocks[${index}].config.maxReferences`,
@@ -107,7 +104,6 @@ const DatabaseBlockFieldGroup = withFieldGroup({
 						children={(field) => (
 							<field.BlockEditorField
 								label={m.blocks_database_form_content_label()}
-								htmlFieldName="contentHtml"
 							/>
 						)}
 					/>

@@ -9,7 +9,6 @@ import { z } from "zod/v4";
 
 const databaseBlockFormSchema = createDatabaseBlockInputSchema.extend({
 	description: z.string(),
-	contentHtml: z.string(),
 	config: createDatabaseBlockInputSchema.shape.config.extend({
 		scoreThreshold: z.number().min(0).max(1),
 		retrievalMode: retrievalModeSchema,
@@ -25,7 +24,6 @@ const defaultValues = (
 	name: block?.name || "",
 	description: block?.description ?? "",
 	contentJson: block?.contentJson ?? null,
-	contentHtml: block?.contentHtml ?? "",
 	type: "database",
 	status: block?.status || "draft",
 	config: {

@@ -41,7 +41,6 @@ const block = (type: "template" | "database", config: object) => ({
 	contentJson: {
 		type: "doc",
 	},
-	contentHtml: "<p>Rich</p>",
 	config,
 	capabilities: {
 		read: true,

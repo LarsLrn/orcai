@@ -91,7 +91,6 @@ const authorWithBot = async () => {
 				name: "Effective behaviour",
 				description: null,
 				contentJson: null,
-				contentHtml: null,
 				status: "ready",
 				config: {
 					systemPrompt: "Be brief.",

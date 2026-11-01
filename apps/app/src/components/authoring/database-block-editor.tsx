@@ -47,7 +47,6 @@ const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
 	type: "database" as const,
 	description: "",
 	contentJson: null,
-	contentHtml: "",
 	status: "draft" as DatabaseBlock["status"],
 	config: {
 		...defaultDatabaseBlockConfig,

@@ -40,7 +40,6 @@ const published = (): Values =>
 		name: "Course bot",
 		description: "Answers course questions",
 		contentJson: {},
-		contentHtml: "",
 		status: "ready",
 		capabilities: ownerCapabilities("bot"),
 		templateBlock: {
@@ -49,7 +48,6 @@ const published = (): Values =>
 			name: "Course behaviour",
 			description: null,
 			contentJson: null,
-			contentHtml: null,
 			status: "ready",
 			config: {
 				systemPrompt: "Answer from the course material.",
@@ -63,7 +61,6 @@ const published = (): Values =>
 				name: "Course repository",
 				description: null,
 				contentJson: null,
-				contentHtml: null,
 				status: "ready",
 				config: {
 					minReferences: 1,

@@ -17,7 +17,6 @@ const createDefaultTemplateBlock = (params?: { botName: string }) => ({
 			})
 		: m.authoring_template_block_default_name(),
 	description: "",
-	contentHtml: "",
 	contentJson: null,
 	type: "template" as const,
 	status: "draft" as TemplateBlock["status"],

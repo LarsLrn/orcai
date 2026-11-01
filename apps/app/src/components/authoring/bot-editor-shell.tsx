@@ -255,7 +255,6 @@ const BotEditorShell = ({
 			name: block.data.name,
 			description: block.data.description ?? "",
 			contentJson: block.data.contentJson,
-			contentHtml: block.data.contentHtml ?? "",
 			type: "template" as const,
 			status: block.data.status,
 			config: block.data.config,
@@ -291,7 +290,6 @@ const BotEditorShell = ({
 			type: "database" as const,
 			description: block.data.description ?? "",
 			contentJson: block.data.contentJson,
-			contentHtml: block.data.contentHtml ?? "",
 			status: block.data.status,
 			config: block.data.config,
 			assetIds: block.assets?.map((asset) => asset.id) ?? [],
@@ -669,7 +667,6 @@ const BotEditorShell = ({
 										children={(field) => (
 											<field.BlockEditorField
 												label={m.authoring_basics_content_label()}
-												htmlFieldName="contentHtml"
 											/>
 										)}
 									/>
@@ -758,7 +755,6 @@ const BotEditorShell = ({
 												children={(field) => (
 													<field.BlockEditorField
 														label={m.authoring_behaviour_content_label()}
-														htmlFieldName="templateBlock.contentHtml"
 													/>
 												)}
 											/>

@@ -17,7 +17,6 @@ const storedBot = (features: BotEditor["features"]) =>
 		name: "Stored",
 		description: "Stored bot",
 		contentJson: {},
-		contentHtml: "",
 		status: "draft",
 		capabilities: {},
 		templateBlock: null,

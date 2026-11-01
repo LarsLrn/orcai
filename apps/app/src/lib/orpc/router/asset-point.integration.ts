@@ -159,7 +159,6 @@ const repositoryOf = async (documents: number[][]) => {
 				name: "Integration repository",
 				description: null,
 				contentJson: null,
-				contentHtml: null,
 				status: "ready",
 				assets: assets.result,
 				config: {

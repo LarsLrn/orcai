@@ -6,7 +6,6 @@ const templateBlockGroupDefaultValues = {
 	name: "",
 	description: "",
 	contentJson: null as unknown,
-	contentHtml: "",
 	systemPrompt: "",
 };
 
@@ -14,7 +13,6 @@ const templateBlockTopLevelFieldMap = {
 	name: "name",
 	description: "description",
 	contentJson: "contentJson",
-	contentHtml: "contentHtml",
 	systemPrompt: "config.systemPrompt",
 } as const;
 
@@ -64,7 +62,6 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						children={(field) => (
 							<field.BlockEditorField
 								label={m.blocks_template_form_content_label()}
-								htmlFieldName="contentHtml"
 							/>
 						)}
 					/>

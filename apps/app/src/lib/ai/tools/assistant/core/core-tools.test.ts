@@ -50,7 +50,6 @@ const bot = (
 	contentJson: {
 		type: "doc",
 	},
-	contentHtml: "<p>Rich</p>",
 	capabilities: {
 		read: true,
 		edit: canEdit,
@@ -70,7 +69,6 @@ const block = (
 	contentJson: {
 		type: "doc",
 	},
-	contentHtml: "<p>Rich</p>",
 	capabilities: {
 		read: true,
 	},
@@ -346,7 +344,6 @@ describe("getBot", () => {
 			canManageAccess: true,
 		});
 		expect(Object.keys(output)).not.toContain("contentJson");
-		expect(Object.keys(output)).not.toContain("contentHtml");
 		expect(procedureCalls.map((call) => call.procedure)).toEqual([
 			"bot.find",
 			"bot.findEditor",

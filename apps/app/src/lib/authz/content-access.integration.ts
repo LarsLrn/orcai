@@ -65,7 +65,6 @@ const sharedRepository = async () => {
 				name: "Shared repository",
 				description: null,
 				contentJson: null,
-				contentHtml: null,
 				status: "ready",
 				assets: [
 					assetId,
@@ -118,7 +117,6 @@ const sharedRepository = async () => {
 				name: "Own behaviour",
 				description: null,
 				contentJson: null,
-				contentHtml: null,
 				status: "ready",
 				config: {
 					systemPrompt: "",
@@ -251,7 +249,6 @@ const sharedRepository = async () => {
 						name: "Copied repository",
 						description: null,
 						contentJson: null,
-						contentHtml: null,
 						status: "ready",
 						assets: [
 							assetId,

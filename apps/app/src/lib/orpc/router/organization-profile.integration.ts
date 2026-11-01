@@ -105,7 +105,6 @@ const organizations = async () => {
 							name,
 							description: null,
 							contentJson: null,
-							contentHtml: null,
 							status,
 							config: {
 								systemPrompt: "Answer from the handbook.",
@@ -116,7 +115,6 @@ const organizations = async () => {
 							name,
 							description: null,
 							contentJson: null,
-							contentHtml: null,
 							status,
 							assets: [],
 							config: {

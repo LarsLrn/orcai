@@ -35,7 +35,6 @@ export const bot = pgTable("bot", {
 		length: 500,
 	}).notNull(),
 	contentJson: json("content_json").notNull().default({}),
-	contentHtml: text("content_html").notNull(),
 	status: text("status").$type<PublicationStatus>().notNull().default("ready"),
 	userId: uuid("user_id")
 		.$type<UserId>()

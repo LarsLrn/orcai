@@ -93,7 +93,6 @@ const twoOrganizations = async () => {
 								name,
 								description: null,
 								contentJson: null,
-								contentHtml: null,
 								status: "ready",
 								config: {
 									systemPrompt: "Answer from the handbook.",
@@ -104,7 +103,6 @@ const twoOrganizations = async () => {
 								name,
 								description: null,
 								contentJson: null,
-								contentHtml: null,
 								status: "ready",
 								assets: [],
 								config: {
@@ -707,7 +705,6 @@ describe("unlisting", () => {
 						name: "Unlisted repository",
 						description: null,
 						contentJson: null,
-						contentHtml: null,
 						status: "ready",
 						assets: [
 							assetId,

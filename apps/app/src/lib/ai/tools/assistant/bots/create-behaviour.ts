@@ -48,7 +48,6 @@ export const createBehaviourTool = (deps: AssistantToolDeps) =>
 										? null
 										: blockDescription(input.description),
 								contentJson: null,
-								contentHtml: null,
 								status: input.status ?? "draft",
 								config: {
 									systemPrompt: input.systemPrompt,

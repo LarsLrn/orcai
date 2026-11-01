@@ -38,7 +38,6 @@ const block = (id: BlockId, name: string) => ({
 	capabilities: {},
 	description: null,
 	contentJson: null,
-	contentHtml: null,
 	status: "ready" as const,
 });
 
@@ -49,7 +48,6 @@ const editor: BotEditor = {
 	contentJson: {
 		type: "doc",
 	},
-	contentHtml: "<p>Rich</p>",
 	status: "ready",
 	templateBlock: {
 		...block(templateId, "Strict"),
@@ -102,7 +100,6 @@ describe("createBotPayload", () => {
 			name: "New bot",
 			description: "Does things.",
 			contentJson: {},
-			contentHtml: "",
 			status: "draft",
 			templateBlockId: null,
 			databaseBlockIds: [

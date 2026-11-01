@@ -181,7 +181,6 @@ const twoOrganizations = async () => {
 				name: "Org block",
 				description: null,
 				contentJson: null,
-				contentHtml: null,
 				status: "draft",
 				config: {
 					systemPrompt: "",

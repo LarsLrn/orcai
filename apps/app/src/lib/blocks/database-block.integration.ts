@@ -35,7 +35,6 @@ const repository = (assets: AssetId[]) => ({
 	name: "Integration repository",
 	description: null,
 	contentJson: null,
-	contentHtml: null,
 	status: "ready" as const,
 	assets,
 	config: {
