@@ -16,6 +16,7 @@ import type { ResourceType } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
+import { requireEligibleOwner } from "@/lib/authz/eligible-owner";
 import {
 	RelationshipFact,
 	type ResourceRef,
@@ -33,8 +34,9 @@ type ResourceVisibility =
 	typeof dbSchema.resourceVisibility.$inferSelect.visibility;
 
 /**
- * Records a new resource's organization scope, visibility and owner. Call it
- * in the {@link writeRelationships} that inserts the resource row.
+ * Records a new resource's organization scope, visibility and owner, once the
+ * owner may own content there. Call it in the {@link writeRelationships} that
+ * inserts the resource row, holding the organization's lock.
  */
 export const initializeResourceAuthorization = (params: {
 	resource: ResourceRef;
@@ -46,6 +48,10 @@ export const initializeResourceAuthorization = (params: {
 		const db = yield* DB;
 		const now = new Date();
 		const visibility = params.visibility ?? "private";
+		yield* requireEligibleOwner({
+			organizationId: params.organizationId,
+			userId: params.ownerUserId,
+		});
 
 		yield* db.insert(dbSchema.resourceScope).values({
 			...params.resource,
@@ -313,6 +319,26 @@ export const scopeIn = (
 			);
 		if (!scope) return undefined;
 		return scope.isPrimary ? ("home" as const) : ("install" as const);
+	});
+
+/** The resource's home organisation, where it was made and is owned. */
+export const homeOrganizationId = (resource: ResourceRef) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [scope] = yield* db
+			.select({
+				organizationId: dbSchema.resourceScope.organizationId,
+			})
+			.from(dbSchema.resourceScope)
+			.where(
+				and(
+					eq(dbSchema.resourceScope.resourceType, resource.resourceType),
+					eq(dbSchema.resourceScope.resourceId, resource.resourceId),
+					eq(dbSchema.resourceScope.isPrimary, true),
+					isNull(dbSchema.resourceScope.endedAt),
+				),
+			);
+		return scope?.organizationId;
 	});
 
 /** The organizations the resources are scoped to, whose write locks guard them. */
