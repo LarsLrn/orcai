@@ -12,6 +12,12 @@ const CITABLE = {
 		example:
 			"Malaria <cite ref=w2jpxug>is a life-threatening disease that some types of mosquitoes spread to people</cite>.",
 	},
+	docs: {
+		tag: "<docs-page>",
+		// sourceRef("docs", "/docs/using-orcai/bots")
+		example:
+			"<cite ref=do8r8j2>A bot answers with one behaviour, its repositories and its features</cite>. You build it under [Bots](/app/library/bots).",
+	},
 } as const;
 
 export type CitableKind = keyof typeof CITABLE;

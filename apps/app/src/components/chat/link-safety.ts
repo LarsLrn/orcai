@@ -1,3 +1,5 @@
+import { docsMarkdownPath } from "@orcai/core";
+
 export interface TrustedLinks {
 	appOrigin: string;
 	docsUrl: string | undefined;
@@ -12,7 +14,7 @@ export const isTrustedLink = (
 ) => {
 	const target = URL.parse(url, appOrigin);
 
-	if (!target) {
+	if (!target || target.username || target.password) {
 		return false;
 	}
 
@@ -30,9 +32,10 @@ export const isTrustedLink = (
 		return false;
 	}
 
-	const docsPath = docs.pathname.replace(/\/$/, "");
+	const base = docs.pathname.replace(/\/$/, "");
 
 	return (
-		target.pathname === docsPath || target.pathname.startsWith(`${docsPath}/`)
+		target.pathname.startsWith(`${base}/`) &&
+		docsMarkdownPath(target.pathname.slice(base.length)) !== undefined
 	);
 };

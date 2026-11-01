@@ -63,9 +63,18 @@ type BuildDeps = AssistantToolDeps & {
 	history: readonly QuizHistoryMessage[];
 };
 
-const displayTools = buildGenUiTools({
-	citations: false,
-});
+// Prose fields cite docs pages, the Assistant's only citable source.
+const displayTools = {
+	docs: buildGenUiTools({
+		citations: true,
+	}),
+	none: buildGenUiTools({
+		citations: false,
+	}),
+};
+
+const displayToolsFor = (docs: DocsConfig | undefined) =>
+	docs ? displayTools.docs : displayTools.none;
 
 const builds = {
 	readDocs: ({ docs }: BuildDeps) =>
@@ -73,9 +82,9 @@ const builds = {
 			docs,
 		}),
 	askUser: () => askUserTool,
-	showChecklist: () => displayTools.showChecklist,
-	showReview: () => displayTools.showReview,
-	showMatrix: () => displayTools.showMatrix,
+	showChecklist: ({ docs }: BuildDeps) => displayToolsFor(docs).showChecklist,
+	showReview: ({ docs }: BuildDeps) => displayToolsFor(docs).showReview,
+	showMatrix: ({ docs }: BuildDeps) => displayToolsFor(docs).showMatrix,
 	showQuizResult: ({ history }: BuildDeps) =>
 		buildQuestionTools({
 			history,

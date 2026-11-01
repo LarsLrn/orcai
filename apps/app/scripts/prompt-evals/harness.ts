@@ -581,7 +581,7 @@ export const runAssistant = async ({
 					turn: {
 						webSearch: NO_WEB_SEARCH,
 						history: [],
-						citations: false,
+						citations: true,
 					},
 				}),
 			),
@@ -600,7 +600,7 @@ export const runAssistant = async ({
 				userContext: admin,
 				featurePrompts: features.map(({ entry }) =>
 					entry.prompt({
-						citations: false,
+						citations: true,
 					}),
 				),
 				toolGroups: offeredToolGroups(admin.capabilities),

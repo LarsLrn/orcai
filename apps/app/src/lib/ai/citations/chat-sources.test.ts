@@ -45,6 +45,24 @@ const webPart = (...urls: string[]) => ({
 	},
 });
 
+const docsPart = (path: string | null) => ({
+	type: "tool-readDocs",
+	toolCallId: crypto.randomUUID(),
+	state: "output-available",
+	input:
+		path === null
+			? {}
+			: {
+					path,
+				},
+	output: {
+		path,
+		title: path === null ? null : "Bots and behaviour",
+		url: `https://docs.example.org${path ?? "/docs"}`,
+		content: "",
+	},
+});
+
 const message = (...parts: object[]) => ({
 	parts: parts as {
 		type: string;
@@ -230,6 +248,24 @@ describe("chatSources", () => {
 				],
 			},
 		]);
+	});
+
+	test("a docs page read issues a d ref by its path; the index issues none", () => {
+		const sources = chatSources([
+			message(docsPart(null), docsPart("/docs/using-orcai/bots")),
+		]);
+
+		expect(
+			sources.citations(
+				`${cite("do8r8j2")} ${cite(sourceRef("docs", "/docs"))}`,
+			),
+		).toEqual({
+			do8r8j2: {
+				kind: "docs",
+				path: "/docs/using-orcai/bots",
+				title: "Bots and behaviour",
+			},
+		});
 	});
 
 	test("ignores calls without sources, unfinished calls and outputs of an older shape", () => {

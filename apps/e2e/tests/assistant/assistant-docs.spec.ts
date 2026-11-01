@@ -25,6 +25,8 @@ import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 
 const BOTS_PATH = "/docs/using-orcai/bots";
+// sourceRef("docs", BOTS_PATH), which the model reads beside the page.
+const BOTS_REF = "do8r8j2";
 const docsUrl = (process.env.WEB_URL ?? "").replace(/\/$/, "");
 const docsFetchUrl = (process.env.WEB_INTERNAL_URL ?? "").replace(/\/$/, "");
 
@@ -68,25 +70,7 @@ const ask = async (
 		}),
 	);
 
-/** The `content` of each successful readDocs result a request carries. */
-const docsContentsOf = (body: unknown): unknown[] =>
-	toolResultsOf(body).flatMap((result) => {
-		try {
-			const parsed: unknown = JSON.parse(result);
-
-			return parsed !== null &&
-				typeof parsed === "object" &&
-				"content" in parsed
-				? [
-						parsed.content,
-					]
-				: [];
-		} catch {
-			return [];
-		}
-	});
-
-test("assistant: a member's question is answered from the docs with app and docs links", async ({
+test("assistant: a member's question is answered from the docs with an app link and a docs citation, also after a reload", async ({
 	api,
 	inference,
 	org,
@@ -116,7 +100,7 @@ test("assistant: a member's question is answered from the docs with app and docs
 			],
 		},
 		{
-			text: `${answer} Open [Bots](/app/library/bots), read [the bots page](${docsUrl}${BOTS_PATH}) or [elsewhere](https://example.org/).`,
+			text: `<cite ref=${BOTS_REF}>${answer}</cite> Open [Bots](/app/library/bots) or [elsewhere](https://example.org/).`,
 		},
 	);
 
@@ -134,10 +118,14 @@ test("assistant: a member's question is answered from the docs with app and docs
 	expect(offeredToolsOf(requests[0])).toContain("readDocs");
 	const index = await servedDocs("/llms.txt");
 	const botsPage = await servedDocs(`${BOTS_PATH}.md`);
-	expect(docsContentsOf(requests[1])).toEqual([
+	const botsTitle = /^# (.+) \(/.exec(botsPage)?.[1] ?? "";
+	// The index lists pages without refs; a page arrives in a docs-page tag with its ref.
+	expect(toolResultsOf(requests[1])).toEqual([
 		index,
 	]);
-	expect(docsContentsOf(requests[2])).toContain(botsPage);
+	expect(toolResultsOf(requests[2])).toContain(
+		`<docs-page ref=${BOTS_REF} title="${botsTitle}" path="${BOTS_PATH}">\n${botsPage}\n</docs-page>`,
+	);
 
 	await log
 		.getByRole("button", {
@@ -150,7 +138,7 @@ test("assistant: a member's question is answered from the docs with app and docs
 		}),
 	).toBeVisible();
 	const docsLink = log.getByRole("link", {
-		name: /^# (.+) \(/.exec(botsPage)?.[1] ?? "",
+		name: botsTitle,
 		exact: true,
 	});
 	await expect(docsLink).toHaveAttribute("href", `${docsUrl}${BOTS_PATH}`);
@@ -173,6 +161,39 @@ test("assistant: a member's question is answered from the docs with app and docs
 		})
 		.click();
 	await expect(linkConfirmation(page)).toBeVisible();
+	await linkConfirmation(page)
+		.getByRole("button", {
+			name: message("common_cancel_button"),
+		})
+		.click();
+	await expect(linkConfirmation(page)).toHaveCount(0);
+
+	// The docs citation opens its page, a trusted docs link, without asking.
+	const citation = log.getByRole("button", {
+		name: message("ai_elements_cite_docs_aria_label", {
+			title: botsTitle,
+		}),
+		exact: true,
+	});
+	await expect(citation).toHaveText(botsTitle);
+	await citation.click();
+	const card = page.getByRole("dialog");
+	await expect(
+		card.getByText(message("ai_elements_cite_docs_source")),
+	).toBeVisible();
+	const docsOpened = page.context().waitForEvent("page");
+	await card
+		.getByRole("button", {
+			name: message("ai_elements_cite_open_page_action"),
+		})
+		.click();
+	const docsPage = await docsOpened;
+	await expect(docsPage).toHaveURL(`${docsUrl}${BOTS_PATH}`);
+	await expect(linkConfirmation(page)).toHaveCount(0);
+	await docsPage.close();
+
+	await page.reload();
+	await expect(citation).toHaveText(botsTitle);
 });
 
 test("assistant: the user's identity and role section end the system prompt after a stable part shared by every role", async ({

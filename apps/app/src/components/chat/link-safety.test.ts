@@ -13,8 +13,9 @@ describe("isTrustedLink", () => {
 		"/app/library/bots",
 		"/app/library/bots/123?tab=access",
 		"https://orcai.example.org/app/organization",
-		"https://docs.example.org",
+		"https://docs.example.org/docs",
 		"https://docs.example.org/docs/using-orcai/bots",
+		"https://docs.example.org/docs/using-orcai/bots#bot-lifecycle",
 	])("trusts %p", (url) => {
 		expect(isTrustedLink(url, origins)).toBe(true);
 	});
@@ -28,6 +29,11 @@ describe("isTrustedLink", () => {
 		"https://docs.example.org.evil.example/docs",
 		"javascript:alert(1)",
 		"mailto:someone@example.org",
+		"https://docs.example.org",
+		"https://docs.example.org/not-a-docs-page",
+		"https://docs.example.org/docs/../account",
+		"https://user:password@docs.example.org/docs/using-orcai/bots",
+		"https://user:password@orcai.example.org/app/library",
 	])("asks before opening %p", (url) => {
 		expect(isTrustedLink(url, origins)).toBe(false);
 	});

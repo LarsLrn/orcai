@@ -654,6 +654,8 @@
 	"activity_library_run_filter_clear": "Show all assets",
 	"ai_elements_attachment_remove_label": "Remove {name}",
 	"ai_elements_cite_asset_aria_label": "Citation of the asset {label}",
+	"ai_elements_cite_docs_aria_label": "Citation of the docs page {title}",
+	"ai_elements_cite_docs_source": "OrcAI docs",
 	"ai_elements_cite_load_error": "The metadata could not be loaded.",
 	"ai_elements_cite_loading_label": "Loading the metadata",
 	"ai_elements_cite_open_asset_action": "Open asset",

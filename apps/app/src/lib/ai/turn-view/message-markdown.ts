@@ -1,3 +1,4 @@
+import { docsPageUrl } from "@orcai/core";
 import type { ChatMessageCitation } from "@orcai/schema";
 import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
 import { replaceCiteTags } from "@/lib/ai/citations/cite-tag";
@@ -28,10 +29,11 @@ const sourceText = (
 						page: citation.page,
 					});
 		}
-		case "docs":
-			return docsUrl
-				? `${citation.title}, ${docsUrl.replace(/\/$/, "")}${citation.path}`
-				: citation.title;
+		case "docs": {
+			const url = docsUrl && docsPageUrl(docsUrl, citation.path);
+
+			return url ? `${citation.title}, ${url}` : citation.title;
+		}
 		case "web":
 			return `${citation.title}, ${citation.url}`;
 	}

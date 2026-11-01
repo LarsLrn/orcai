@@ -13,13 +13,13 @@ Sending the first message starts a conversation and opens it at `/app/assistant/
 
 ## Questions about OrcAI
 
-Ask the Assistant how something in OrcAI works and it reads these docs before it answers. An answer links the app page where you act, such as Bots (`/app/library/bots`), and the docs page it came from. Both open in a new tab, so the conversation stays open. The work log of an answer lists the docs pages the Assistant read, each linked.
+Ask the Assistant how something in OrcAI works and it reads these docs before it answers. An answer cites the docs page each statement came from and links the app page where you act, such as Bots (`/app/library/bots`). A docs citation shows the page's title, and opening it shows the title with an **Open page** action. Copying an answer writes a docs citation as the cited text followed by the page's title and address in parentheses. Docs pages and app pages open in a new tab without asking, so the conversation stays open. The work log of an answer lists the docs pages the Assistant read, each linked. Like every citation, a docs citation promises that the Assistant read the page in this conversation, not that the page supports the sentence.
 
 The Assistant says so when the docs do not cover something, and it does not guess permissions, limits or settings. It knows who you are (your name, email and user id), your role in the active organisation and what that role may do, so it tailors answers to you. When a task needs a role you do not have, it says who can do it. What you claim about your role in the conversation changes nothing.
 
 The Assistant answers in the language you write in. The docs are in English, so the names it gives for buttons and pages are the English ones.
 
-If the instance has no docs site configured, the Assistant says that the docs are unavailable instead of answering from memory.
+If the instance has no docs site configured, the Assistant says that the docs are unavailable instead of answering from memory. Docs citations in earlier answers then show and copy the page's title only.
 
 ## Working in OrcAI
 

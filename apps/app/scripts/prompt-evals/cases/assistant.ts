@@ -5,9 +5,15 @@ import {
 	callsBefore,
 	change,
 	changesOnly,
+	cites,
+	citesComplete,
+	citesIssued,
+	citesNothing,
 	doesNotCall,
 	glossaryTerms,
 	mentions,
+	noLegacyCite,
+	noOtherCitationStyle,
 	omits,
 } from "../checks";
 import { type ApprovedPlan, runAssistant, type Scripted } from "../harness";
@@ -317,6 +323,40 @@ export const assistantCases: EvalCase[] = [
 		],
 	},
 	{
+		id: "assistant/action-cites-nothing",
+		run: assistant(
+			'Share my bot "Citation check" with the group "Year 9" so they can use it.',
+			{
+				bots: [
+					citationCheck,
+					...otherBots,
+				],
+				groups: [
+					year9,
+					...otherGroups,
+				],
+			},
+		),
+		checks: [
+			calls("grantAccess"),
+			citesNothing,
+		],
+	},
+	{
+		id: "assistant/how-to-cites-docs",
+		run: assistant(
+			"How do I publish a bot so that the people I share it with can use it?",
+		),
+		checks: [
+			answers,
+			cites,
+			citesComplete,
+			citesIssued,
+			noLegacyCite,
+			noOtherCitationStyle,
+		],
+	},
+	{
 		id: "assistant/ambiguous-name-asks",
 		run: assistant("Delete my bot Helper.", {
 			bots: [
@@ -417,6 +457,19 @@ export const assistantCases: EvalCase[] = [
 		run: assistant("Wie lade ich Dateien in ein Repository hoch?"),
 		checks: [
 			answersIn("de"),
+		],
+	},
+	{
+		id: "language/german-cites-docs",
+		run: assistant(
+			"Wie veröffentliche ich einen Bot, damit die Personen, mit denen ich ihn teile, ihn nutzen können?",
+		),
+		checks: [
+			answersIn("de"),
+			cites,
+			citesComplete,
+			citesIssued,
+			noOtherCitationStyle,
 		],
 	},
 ];
