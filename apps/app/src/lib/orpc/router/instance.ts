@@ -12,6 +12,7 @@ import {
 	changeMemberRole as changeOrganizationMemberRole,
 	removeMembers,
 } from "@/lib/authz/organization-membership";
+import { eligibleReceivers, ownedContent } from "@/lib/authz/ownership";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -247,10 +248,11 @@ const addMember = authed.instance.addMember
 const changeMemberRole = authed.instance.changeMemberRole
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
-		yield* changeOrganizationMemberRole({
+		const { handedOver } = yield* changeOrganizationMemberRole({
 			organizationId: input.organizationId,
 			userId: input.userId,
 			role: input.role,
+			receiverId: input.receiverId,
 			actor: {
 				kind: "instance-admin",
 				userId: context.auth.user.id,
@@ -258,17 +260,19 @@ const changeMemberRole = authed.instance.changeMemberRole
 		});
 		return {
 			success: true,
+			handedOver: handedOver ?? null,
 		};
 	});
 
 const removeMember = authed.instance.removeMember
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
-		yield* removeMembers({
+		const handedOver = yield* removeMembers({
 			organizationId: input.organizationId,
 			userIds: [
 				input.userId,
 			],
+			receiverId: input.receiverId,
 			actor: {
 				kind: "instance-admin",
 				userId: context.auth.user.id,
@@ -276,6 +280,38 @@ const removeMember = authed.instance.removeMember
 		});
 		return {
 			success: true,
+			handedOver: handedOver ?? null,
+		};
+	});
+
+const listOwnedContent = authed.instance.ownedContent
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input, context }) {
+		const data = yield* ownedContent({
+			userIds: input.userIds,
+			organizationId: input.organizationId,
+			receiverDefault: input.organizationId
+				? {
+						kind: "actor",
+						actorId: context.auth.user.id,
+					}
+				: {
+						kind: "first-admin",
+					},
+		});
+		return {
+			data,
+			rowCount: data.length,
+		};
+	});
+
+const listReceivers = authed.instance.receivers
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input }) {
+		const data = yield* eligibleReceivers(input);
+		return {
+			data,
+			rowCount: data.length,
 		};
 	});
 
@@ -335,6 +371,8 @@ export const instanceRouter = {
 	addMember,
 	changeMemberRole,
 	removeMember,
+	ownedContent: listOwnedContent,
+	receivers: listReceivers,
 	inviteMember,
 	removeUserImage,
 	removeOrganizationLogo,

@@ -6,12 +6,17 @@ import {
 	findInstanceUserInputSchema,
 	findInstanceUserResponseSchema,
 	findOrganizationReadinessResponseSchema,
+	handOverActionResponseSchema,
 	instanceMembershipActionResponseSchema,
 	inviteInstanceOrganizationMemberInputSchema,
+	listContentReceiversResponseSchema,
+	listInstanceContentReceiversInputSchema,
 	listInstanceOrganizationMembersInputSchema,
 	listInstanceOrganizationMembersResponseSchema,
+	listInstanceOwnedContentInputSchema,
 	listInstanceUserMembershipsInputSchema,
 	listInstanceUserMembershipsResponseSchema,
+	listOwnedContentResponseSchema,
 	removeInstanceImageResponseSchema,
 	removeInstanceOrganizationLogoInputSchema,
 	removeInstanceOrganizationMemberInputSchema,
@@ -103,7 +108,7 @@ export const instanceContracts = {
 			}),
 		)
 		.input(updateInstanceOrganizationMemberInputSchema)
-		.output(instanceMembershipActionResponseSchema),
+		.output(handOverActionResponseSchema),
 	removeMember: base
 		.meta(
 			openapi({
@@ -115,7 +120,31 @@ export const instanceContracts = {
 			}),
 		)
 		.input(removeInstanceOrganizationMemberInputSchema)
-		.output(instanceMembershipActionResponseSchema),
+		.output(handOverActionResponseSchema),
+	ownedContent: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/instance/owned-content",
+				summary: "List what accounts own, per organisation",
+				tags,
+				description:
+					"Bots, blocks and Library assets, with the receiver a handover defaults to.",
+			}),
+		)
+		.input(listInstanceOwnedContentInputSchema)
+		.output(listOwnedContentResponseSchema),
+	receivers: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/instance/organizations/{organizationId}/receivers",
+				summary: "List the members who may receive content in an organisation",
+				tags,
+			}),
+		)
+		.input(listInstanceContentReceiversInputSchema)
+		.output(listContentReceiversResponseSchema),
 	inviteMember: base
 		.meta(
 			openapi({

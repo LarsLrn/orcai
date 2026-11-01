@@ -415,6 +415,24 @@ describe("projectRelationshipFacts", () => {
 		]);
 	});
 
+	test("a new owner replaces the old one", () => {
+		expect(
+			project(
+				RelationshipFact.OwnerChanged({
+					resource: {
+						resourceType: "bot",
+						resourceId: botId,
+					},
+					from: ownerId,
+					to: userId,
+				}),
+			),
+		).toEqual([
+			`delete bot:${botId}#owner@user:${ownerId}`,
+			`touch bot:${botId}#owner@user:${userId}`,
+		]);
+	});
+
 	test("a deleted chat loses its owner and bot", () => {
 		expect(
 			project(
@@ -721,6 +739,16 @@ const samples: Record<RelationshipFact["_tag"], RelationshipFact[]> = {
 		RelationshipFact.ChatBotUnlinked({
 			chatId,
 			botId,
+		}),
+	],
+	OwnerChanged: [
+		RelationshipFact.OwnerChanged({
+			resource: {
+				resourceType: "asset",
+				resourceId: assetId,
+			},
+			from: ownerId,
+			to: userId,
 		}),
 	],
 	ChatDeleted: [

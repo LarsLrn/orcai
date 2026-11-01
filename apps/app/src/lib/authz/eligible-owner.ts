@@ -9,7 +9,9 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 /** Roles that may own content: every role that can create it. */
-const OWNER_ROLES = ORGANIZATION_ROLES.filter((role) => role !== "viewer");
+export const OWNER_ROLES = ORGANIZATION_ROLES.filter(
+	(role) => role !== "viewer",
+);
 
 /** The user is not banned, or their ban has expired. */
 export const notBanned = () =>

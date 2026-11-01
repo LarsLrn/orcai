@@ -3,10 +3,14 @@ import {
 	deleteOrganizationMembersResponseSchema,
 	findOrganizationMemberInputSchema,
 	findOrganizationMemberResponseSchema,
+	listContentReceiversInputSchema,
+	listContentReceiversResponseSchema,
 	listMemberAccessInputSchema,
 	listMemberAccessResponseSchema,
 	listOrganizationMembersInputSchema,
 	listOrganizationMembersResponseSchema,
+	listOwnedContentInputSchema,
+	listOwnedContentResponseSchema,
 	updateOrganizationMemberInputSchema,
 	updateOrganizationMemberResponseSchema,
 } from "@orcai/schema";
@@ -79,4 +83,30 @@ export const organizationMemberContracts = {
 		)
 		.input(deleteOrganizationMembersInputSchema)
 		.output(deleteOrganizationMembersResponseSchema),
+	ownedContent: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/members/owned-content",
+				summary: "List what members own in the active organization",
+				tags: [
+					"Organization Members",
+				],
+			}),
+		)
+		.input(listOwnedContentInputSchema)
+		.output(listOwnedContentResponseSchema),
+	receivers: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/members/receivers",
+				summary: "List the members who may receive content",
+				tags: [
+					"Organization Members",
+				],
+			}),
+		)
+		.input(listContentReceiversInputSchema)
+		.output(listContentReceiversResponseSchema),
 };

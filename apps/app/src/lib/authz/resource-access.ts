@@ -277,6 +277,95 @@ const principalRejections = (params: {
 	});
 
 /**
+ * Gives every principal `role` on the resource, replacing their current grant
+ * issued in the organisation, once each may receive it. Call it in a
+ * {@link writeRelationships} holding the resource's organisation locks, after
+ * checking that `grantedBy` may grant there.
+ */
+export const writeGrants = (params: {
+	resource: ResourceRef;
+	organizationId: OrganizationId;
+	principals: readonly GrantPrincipal[];
+	role: ResourceGrantRole;
+	grantedBy: UserId;
+	managedOrganizations: ReadonlySet<OrganizationId>;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const now = new Date();
+		const rejections = yield* principalRejections({
+			principals: params.principals,
+			role: params.role,
+			organizationIds: [
+				params.organizationId,
+			],
+			managedOrganizations: params.managedOrganizations,
+			actorId: params.grantedBy,
+		});
+		if (rejections.length > 0)
+			return yield* Effect.fail(
+				new AppErrors.BadRequestError({
+					reason: "GRANT_PRINCIPALS_INVALID",
+					params: {
+						rejections,
+					},
+					message: "Grant principals rejected",
+				}),
+			);
+
+		const active = yield* activeGrants(params.resource, params.organizationId);
+		const existingByPrincipal = new Map(
+			active.map((grant) => [
+				principalKey(grant),
+				grant,
+			]),
+		);
+
+		yield* ensureManagerRemains(active, (managers) => {
+			for (const principal of params.principals) {
+				if (params.role === "manager") {
+					managers.add(principalKey(principal));
+				} else {
+					managers.delete(principalKey(principal));
+				}
+			}
+		});
+
+		const written: ActiveGrant[] = [];
+		const replaced: ActiveGrant[] = [];
+		for (const principal of params.principals) {
+			const existing = existingByPrincipal.get(principalKey(principal));
+
+			if (existing) {
+				yield* db
+					.update(dbSchema.resourceGrant)
+					.set({
+						revokedAt: now,
+					})
+					.where(eq(dbSchema.resourceGrant.id, existing.id));
+				replaced.push(existing);
+			}
+
+			const [grant] = yield* db
+				.insert(dbSchema.resourceGrant)
+				.values({
+					...params.resource,
+					...principal,
+					role: params.role,
+					organizationId: params.organizationId,
+					grantedBy: params.grantedBy,
+					createdAt: now,
+					revokedAt: null,
+				})
+				.returning();
+			written.push(grant);
+		}
+		yield* recordGrantChanges(replaced, written);
+
+		return written;
+	});
+
+/**
  * Gives every principal `role` on the resource, replacing their current
  * grant issued in the organisation. The actor must administer the resource
  * there, and principals must belong to it, both checked under the resource's
@@ -291,8 +380,6 @@ export const grantResourceAccess = (params: {
 	actor: Actor;
 }) =>
 	Effect.gen(function* () {
-		const db = yield* DB;
-		const now = new Date();
 		const managedOrganizations = params.principals.some(
 			(principal) => principal.principalType === "group",
 		)
@@ -338,79 +425,14 @@ export const grantResourceAccess = (params: {
 							}),
 						);
 
-					const rejections = yield* principalRejections({
+					return yield* writeGrants({
+						resource: params.resource,
+						organizationId: params.organizationId,
 						principals: params.principals,
 						role: params.role,
-						organizationIds: [
-							params.organizationId,
-						],
+						grantedBy: params.actor.userId,
 						managedOrganizations,
-						actorId: params.actor.userId,
 					});
-					if (rejections.length > 0)
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "GRANT_PRINCIPALS_INVALID",
-								params: {
-									rejections,
-								},
-								message: "Grant principals rejected",
-							}),
-						);
-
-					const active = yield* activeGrants(
-						params.resource,
-						params.organizationId,
-					);
-					const existingByPrincipal = new Map(
-						active.map((grant) => [
-							principalKey(grant),
-							grant,
-						]),
-					);
-
-					yield* ensureManagerRemains(active, (managers) => {
-						for (const principal of params.principals) {
-							if (params.role === "manager") {
-								managers.add(principalKey(principal));
-							} else {
-								managers.delete(principalKey(principal));
-							}
-						}
-					});
-
-					const written: ActiveGrant[] = [];
-					const replaced: ActiveGrant[] = [];
-					for (const principal of params.principals) {
-						const existing = existingByPrincipal.get(principalKey(principal));
-
-						if (existing) {
-							yield* db
-								.update(dbSchema.resourceGrant)
-								.set({
-									revokedAt: now,
-								})
-								.where(eq(dbSchema.resourceGrant.id, existing.id));
-							replaced.push(existing);
-						}
-
-						const [grant] = yield* db
-							.insert(dbSchema.resourceGrant)
-							.values({
-								...params.resource,
-								...principal,
-								role: params.role,
-								organizationId: params.organizationId,
-								grantedBy: params.actor.userId,
-								createdAt: now,
-								revokedAt: null,
-							})
-							.returning();
-						written.push(grant);
-					}
-					yield* recordGrantChanges(replaced, written);
-
-					return written;
 				}),
 		);
 

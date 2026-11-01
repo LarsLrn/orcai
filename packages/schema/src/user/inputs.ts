@@ -40,6 +40,15 @@ export const setInstanceRoleInputSchema = z.object({
 
 export const deleteUsersInputSchema = z.object({
 	userIds: userIdSchema.array().min(1),
+	/** Who receives what the accounts own, per organisation; its earliest admin when left out. */
+	receivers: z
+		.array(
+			z.object({
+				organizationId: organizationIdSchema,
+				userId: userIdSchema,
+			}),
+		)
+		.default([]),
 });
 
 export const meInputSchema = z.object({});

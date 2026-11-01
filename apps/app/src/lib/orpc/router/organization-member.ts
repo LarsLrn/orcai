@@ -7,6 +7,7 @@ import {
 	changeMemberRole,
 	removeMembers,
 } from "@/lib/authz/organization-membership";
+import { eligibleReceivers, ownedContent } from "@/lib/authz/ownership";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -177,38 +178,70 @@ const listMemberAccess = authed.organizationMember.listAccess
 const updateOrganizationMember = authed.organizationMember.update
 	.use(requireOrganizationPermission("manage_members"))
 	.effect(function* ({ input, context }) {
-		const member = yield* changeMemberRole({
+		const { member, handedOver } = yield* changeMemberRole({
 			organizationId: context.auth.session.activeOrganizationId,
 			userId: input.userId,
 			role: input.role,
+			receiverId: input.receiverId,
 			actor: {
 				kind: "member",
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
 			},
 		});
 
 		return {
 			data: member,
+			handedOver: handedOver ?? null,
 		};
 	});
 
 const deleteOrganizationMembers = authed.organizationMember.delete
 	.use(requireOrganizationPermission("manage_members"))
 	.effect(function* ({ input, context }) {
-		yield* removeMembers({
+		const handedOver = yield* removeMembers({
 			organizationId: context.auth.session.activeOrganizationId,
 			userIds: input.refs.map((ref) => ref.userId),
+			receiverId: input.receiverId,
 			actor: {
 				kind: "member",
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
 			},
 		});
 
 		return {
 			success: true,
 			message: "Organization members deleted successfully",
+			handedOver: handedOver ?? null,
+		};
+	});
+
+const listOwnedContent = authed.organizationMember.ownedContent
+	.use(requireOrganizationPermission("manage_members"))
+	.effect(function* ({ input, context }) {
+		const data = yield* ownedContent({
+			userIds: input.userIds,
+			organizationId: context.auth.session.activeOrganizationId,
+			receiverDefault: {
+				kind: "actor",
+				actorId: context.auth.user.id,
+			},
+		});
+		return {
+			data,
+			rowCount: data.length,
+		};
+	});
+
+const listReceivers = authed.organizationMember.receivers
+	.use(requireOrganizationPermission("manage_members"))
+	.effect(function* ({ input, context }) {
+		const data = yield* eligibleReceivers({
+			organizationId: context.auth.session.activeOrganizationId,
+			search: input.search,
+		});
+		return {
+			data,
+			rowCount: data.length,
 		};
 	});
 
@@ -218,4 +251,6 @@ export const organizationMemberRouter = {
 	listAccess: listMemberAccess,
 	update: updateOrganizationMember,
 	delete: deleteOrganizationMembers,
+	ownedContent: listOwnedContent,
+	receivers: listReceivers,
 };
