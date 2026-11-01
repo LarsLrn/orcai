@@ -3,20 +3,30 @@ import {
 	answersIn,
 	calls,
 	callsBefore,
+	callsWith,
 	change,
 	changesOnly,
 	cites,
 	citesComplete,
 	citesIssued,
 	citesNothing,
+	createsAfter,
 	doesNotCall,
 	glossaryTerms,
 	mentions,
+	mentionsDate,
 	noLegacyCite,
 	noOtherCitationStyle,
 	omits,
 } from "../checks";
-import { type ApprovedPlan, runAssistant, type Scripted } from "../harness";
+import {
+	type Answerer,
+	type ApprovedPlan,
+	ASSISTANT_DATE,
+	type Reply,
+	runAssistant,
+	type Scripted,
+} from "../harness";
 import type { EvalCase } from "./case";
 
 const bot = (name: string, status: "draft" | "ready" = "ready") => ({
@@ -194,13 +204,49 @@ const riverside = ({
 });
 
 const assistant =
-	(message: string, library: Library = {}): EvalCase["run"] =>
+	(
+		message: string,
+		library: Library = {},
+		replies: Reply[] = [],
+	): EvalCase["run"] =>
 	(model) =>
 		runAssistant({
 			model,
 			message,
+			replies,
 			scripted: riverside(library),
 		});
+
+/** Takes every suggested option, the first, and answers each text question with `text`. */
+const acceptSuggestions =
+	(text: string): Answerer =>
+	({ questions }) => ({
+		status: "answered",
+		answers: questions.map((question) => {
+			switch (question.type) {
+				case "text":
+					return {
+						type: "text",
+						text,
+					};
+				case "scale":
+					return {
+						type: "scale",
+						value: Math.round((question.min + question.max) / 2),
+					};
+				default:
+					return {
+						type: "choice",
+						choices: [
+							0,
+						],
+					};
+			}
+		}),
+	});
+
+/** Every line in capitals, a pseudo-heading such as "TONE AND STYLE:". */
+const capitalsLine = /^[^a-z\n]*[A-Z]{2}[^a-z\n]*[A-Z]{2}[^a-z\n]*$/m;
 
 const SPANISH_DRILL =
 	'Create a bot named "Spanish drill" for my year 9 class. Its behaviour: quiz the students on Spanish vocabulary, one word at a time, and correct each answer in one sentence. It needs no repositories and no features. Use the default model.';
@@ -229,23 +275,56 @@ const spanishDrillPlan: ApprovedPlan = {
 
 /** The continuation after the user approved the plan. */
 const approvedPlan =
-	(plan: ApprovedPlan): EvalCase["run"] =>
+	(plan: ApprovedPlan, message = SPANISH_DRILL): EvalCase["run"] =>
 	(model) =>
 		runAssistant({
 			model,
-			message: SPANISH_DRILL,
+			message,
 			approved: plan,
 			scripted: riverside({}),
 		});
 
+const ESSAY_COACH =
+	'Create a behaviour named "Essay coach" for first-year students writing their first academic essays. It gives feedback on structure, argument and citations, asks one question back at a time, keeps each answer to four to six sentences, and refers questions about grades to the course team.';
+
+const essayCoachPlan: ApprovedPlan = {
+	leadIn: "I will create the behaviour Essay coach.",
+	loaded: [
+		"bots",
+	],
+	plan: {
+		title: "Create Essay coach",
+		items: [
+			{
+				label: "Create the behaviour",
+				details:
+					"Essay coach for first-year students: feedback on structure, argument and citations, one question back at a time, four to six sentences per answer, grade questions go to the course team.",
+				status: "pending",
+			},
+		],
+	},
+};
+
 export const assistantCases: EvalCase[] = [
 	{
-		id: "assistant/new-bot-asks-first",
+		id: "assistant/plan-asks-with-askuser",
 		run: assistant(
 			"Create a bot that helps my students practise Spanish vocabulary.",
+			{},
+			[
+				{
+					answers: acceptSuggestions(
+						"Spanish drill, for my year 9 class: quiz them on vocabulary one word at a time and correct each answer in one sentence. No repositories, no features, the default model.",
+					),
+				},
+				{
+					approve: true,
+				},
+			],
 		),
 		checks: [
 			callsBefore("askUser", "updatePlan"),
+			createsAfter("updatePlan"),
 		],
 	},
 	{
@@ -274,6 +353,20 @@ export const assistantCases: EvalCase[] = [
 		checks: [
 			callsBefore("loadTools", "createBehaviour", "createBot"),
 			callsBefore("createBehaviour", "createBot"),
+		],
+	},
+	{
+		id: "assistant/behaviour-markdown",
+		run: approvedPlan(essayCoachPlan, ESSAY_COACH),
+		checks: [
+			callsWith<{
+				systemPrompt: string;
+			}>(
+				"createBehaviour",
+				"a system prompt with Markdown headings and no lines in capitals",
+				({ systemPrompt }) =>
+					/^#{1,3} \S/m.test(systemPrompt) && !capitalsLine.test(systemPrompt),
+			),
 		],
 	},
 	{
@@ -450,6 +543,33 @@ export const assistantCases: EvalCase[] = [
 		checks: [
 			answers,
 			glossaryTerms,
+		],
+	},
+	{
+		id: "terms/assistant-published",
+		run: assistant(
+			'Can my students use my bot "Citation check" yet? What is its status?',
+			{
+				bots: [
+					citationCheck,
+					...otherBots,
+				],
+			},
+		),
+		checks: [
+			answers,
+			mentions(/published/i),
+			omits(/\bready\b/i),
+			omits(/\b(not|isn['’]t)\s+(yet\s+)?published\b|\bunpublished\b/i),
+		],
+	},
+	{
+		id: "context/assistant-knows-the-date",
+		run: assistant(
+			"What is today's date? I want to put it in my bot's description.",
+		),
+		checks: [
+			mentionsDate(ASSISTANT_DATE),
 		],
 	},
 	{

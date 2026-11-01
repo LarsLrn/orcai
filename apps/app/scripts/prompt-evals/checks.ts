@@ -113,6 +113,23 @@ export const callsBefore = (first: string, ...later: string[]): CodeCheck => ({
 	},
 });
 
+const createsSomething = (toolName: string) =>
+	toolDeclarationOf(toolName)?.kind === "create";
+
+/** A create tool is called, and only after `first`. */
+export const createsAfter = (first: string): CodeCheck => ({
+	name: `creates only after ${first}`,
+	pass: (transcript) => {
+		const called = names(transcript);
+		const index = called.indexOf(first);
+		return (
+			index !== -1 &&
+			called.slice(index + 1).some(createsSomething) &&
+			!called.slice(0, index).some(createsSomething)
+		);
+	},
+});
+
 export const answers: CodeCheck = {
 	name: "answers in text",
 	pass: ({ text }) => text.trim().length > 0,
@@ -122,6 +139,25 @@ export const mentions = (pattern: RegExp): CodeCheck => ({
 	name: `mentions ${pattern}`,
 	pass: ({ text }) => pattern.test(text),
 });
+
+/** `date`, as the user's local calendar day, in a form an answer may write it. */
+export const mentionsDate = (date: Date): CodeCheck => {
+	const day = date.getDate();
+	const monthNumber = date.getMonth() + 1;
+	const month = date.toLocaleString("en", {
+		month: "long",
+	});
+	const year = date.getFullYear();
+	const forms = [
+		`${year}-${String(monthNumber).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+		`${day}(st|nd|rd|th)?( of)? ${month},? ${year}`,
+		`${month} ${day}(st|nd|rd|th)?,? ${year}`,
+		`0?${day}\\.\\s?0?${monthNumber}\\.\\s?${year}`,
+		`0?${day}/0?${monthNumber}/${year}`,
+	];
+
+	return mentions(new RegExp(`(?<!\\d)(${forms.join("|")})(?!\\d)`, "i"));
+};
 
 export const omits = (pattern: RegExp): CodeCheck => ({
 	name: `omits ${pattern}`,
