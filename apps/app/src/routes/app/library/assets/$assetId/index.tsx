@@ -100,6 +100,7 @@ function RouteComponent() {
 							},
 							actions.edit,
 							actions.access,
+							actions.handOver,
 							actions.addToLibrary,
 							actions.reprocess,
 							actions.listing,

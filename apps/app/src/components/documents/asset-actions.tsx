@@ -1,6 +1,12 @@
-import type { Asset, AssetWithCapabilities } from "@orcai/schema";
+import type {
+	Asset,
+	AssetWithCapabilities,
+	ResourceOwner,
+} from "@orcai/schema";
+import { useRouteContext } from "@tanstack/react-router";
 import {
 	EditIcon,
+	HandshakeIcon,
 	KeyRoundIcon,
 	LibraryIcon,
 	RefreshCwIcon,
@@ -9,6 +15,7 @@ import {
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { useListingAction } from "@/components/access/listing-action";
+import { HandOverDialog } from "@/components/ownership/hand-over-dialog";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	useAddAssetToLibraryMutation,
@@ -22,25 +29,44 @@ type ActionAsset = Pick<
 	Asset,
 	"id" | "title" | "origin" | "processingStatus"
 > & {
+	owner: Pick<ResourceOwner, "id">;
 	capabilities?: AssetWithCapabilities["capabilities"];
+	/**
+	 * The asset's home organisation, as its page reads it (null when the reader
+	 * cannot read it); left out on Library tiles, which list only the active
+	 * organisation's own assets.
+	 */
+	organizationId?: string | null;
 };
 
-/** An asset's own actions, each present as far as its capabilities and state allow. */
+type Viewer = {
+	id: string;
+	activeOrganizationId: string | undefined;
+};
+
+/**
+ * An asset's own actions, each present as far as its capabilities and state
+ * allow. Its owner, the `viewer`, hands a Library asset over from its home
+ * organisation.
+ */
 const assetActions = (
 	asset: Omit<ActionAsset, "title">,
 	{
 		onAccess,
+		onHandOver,
 		onAddToLibrary,
 		onReprocess,
 		onDelete,
 	}: {
 		onAccess: () => void;
+		onHandOver: () => void;
 		onAddToLibrary: () => void;
 		onReprocess: () => void;
 		onDelete: () => void;
 	},
+	viewer: Viewer,
 ): Record<
-	"edit" | "access" | "addToLibrary" | "reprocess" | "delete",
+	"edit" | "access" | "handOver" | "addToLibrary" | "reprocess" | "delete",
 	HeaderAction | false
 > => {
 	const canEdit = hasCapability(asset.capabilities, "edit");
@@ -65,6 +91,16 @@ const assetActions = (
 			icon: KeyRoundIcon,
 			onClick: onAccess,
 		},
+		handOver: asset.origin === "library" &&
+			asset.owner.id === viewer.id &&
+			(asset.organizationId === undefined ||
+				asset.organizationId === viewer.activeOrganizationId) && {
+				key: "hand-over",
+				label: m.ownership_hand_over_action(),
+				icon: HandshakeIcon,
+				overflow: true,
+				onClick: onHandOver,
+			},
 		addToLibrary: canEdit &&
 			asset.origin === "chat" && {
 				key: "add-to-library",
@@ -103,7 +139,11 @@ const useAssetActions = (
 		listing?: boolean;
 	} = {},
 ) => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
+	const [isHandOverOpen, setIsHandOverOpen] = useState(false);
 	const listingAction = useListingAction(
 		{
 			type: "asset",
@@ -126,40 +166,65 @@ const useAssetActions = (
 		},
 	);
 
+	const actions = assetActions(
+		asset,
+		{
+			onAccess: () => setIsAccessOpen(true),
+			onHandOver: () => setIsHandOverOpen(true),
+			onAddToLibrary: () =>
+				addToLibrary({
+					id: asset.id,
+				}),
+			onReprocess: () =>
+				reprocessAsset({
+					id: asset.id,
+				}),
+			onDelete: () =>
+				deleteAssets({
+					refs: [
+						{
+							id: asset.id,
+						},
+					],
+				}),
+		},
+		{
+			id: auth.user.id,
+			activeOrganizationId: auth.session.activeOrganizationId ?? undefined,
+		},
+	);
+
 	return {
 		actions: {
-			...assetActions(asset, {
-				onAccess: () => setIsAccessOpen(true),
-				onAddToLibrary: () =>
-					addToLibrary({
-						id: asset.id,
-					}),
-				onReprocess: () =>
-					reprocessAsset({
-						id: asset.id,
-					}),
-				onDelete: () =>
-					deleteAssets({
-						refs: [
-							{
-								id: asset.id,
-							},
-						],
-					}),
-			}),
+			...actions,
 			listing: listingAction,
 		},
-		dialog: hasCapability(asset.capabilities, "manage_access") ? (
-			<AccessDialog
-				open={isAccessOpen}
-				onOpenChange={setIsAccessOpen}
-				resourceRef={{
-					type: "asset",
-					id: asset.id,
-				}}
-				resourceName={asset.title}
-			/>
-		) : null,
+		dialog: (
+			<>
+				{actions.access ? (
+					<AccessDialog
+						open={isAccessOpen}
+						onOpenChange={setIsAccessOpen}
+						resourceRef={{
+							type: "asset",
+							id: asset.id,
+						}}
+						resourceName={asset.title}
+					/>
+				) : null}
+				{actions.handOver ? (
+					<HandOverDialog
+						open={isHandOverOpen}
+						onOpenChange={setIsHandOverOpen}
+						resource={{
+							resourceType: "asset",
+							resourceId: asset.id,
+						}}
+						name={asset.title}
+					/>
+				) : null}
+			</>
+		),
 	};
 };
 

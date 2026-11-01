@@ -84,6 +84,7 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 								variant: "default",
 							},
 							actions.access,
+							actions.handOver,
 							actions.listing,
 							actions.delete,
 							actions.remove,

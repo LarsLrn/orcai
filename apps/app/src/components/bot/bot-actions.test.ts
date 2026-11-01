@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { BotId, OrganizationId } from "@orcai/core";
+import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import type { SourceOrganization } from "@orcai/schema";
 import type { Installer } from "@/components/catalogue/installer";
 
@@ -18,9 +18,11 @@ const actionKeys = (
 	{
 		installedFrom = null,
 		installer,
+		ownerId = "owner-1" as UserId,
 	}: {
 		installedFrom?: SourceOrganization | null;
 		installer?: Installer;
+		ownerId?: UserId;
 	} = {},
 ) =>
 	Object.values(
@@ -28,14 +30,21 @@ const actionKeys = (
 			{
 				id: "bot-1" as BotId,
 				capabilities,
+				owner: {
+					id: ownerId,
+				},
 				installedFrom,
 			},
 			{
 				onAccess: noop,
+				onHandOver: noop,
 				onDelete: noop,
 				onRemove: noop,
 			},
-			installer,
+			{
+				viewerId: "viewer-1",
+				installer,
+			},
 		),
 	).flatMap((action) =>
 		action
@@ -112,6 +121,41 @@ describe("botActions", () => {
 			"edit",
 			"access",
 			"delete!",
+		]);
+	});
+
+	test("only its owner hands a bot over, and only from its home", () => {
+		const owner = {
+			edit: true,
+			manage_access: true,
+			delete: true,
+		};
+		const viewerId = "viewer-1" as UserId;
+		expect(
+			actionKeys(owner, {
+				ownerId: viewerId,
+			}),
+		).toEqual([
+			"edit",
+			"access",
+			"hand-over",
+			"delete!",
+		]);
+		expect(
+			actionKeys(owner, {
+				ownerId: viewerId,
+				installedFrom: {
+					id: "organization-1" as OrganizationId,
+					name: "Writing Centre",
+					logo: null,
+				},
+				installer: {
+					organisation: "Methods Lab",
+				},
+			}),
+		).toEqual([
+			"access",
+			"remove!",
 		]);
 	});
 });

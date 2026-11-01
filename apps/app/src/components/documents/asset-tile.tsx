@@ -189,6 +189,7 @@ const AssetTile = ({
 				actions={[
 					actions.edit,
 					actions.access,
+					actions.handOver,
 					actions.addToLibrary,
 					actions.reprocess,
 					actions.delete,

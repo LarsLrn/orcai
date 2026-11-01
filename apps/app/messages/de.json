@@ -5460,6 +5460,13 @@
 	"ownership_receiver_change_button": "Ändern",
 	"ownership_receiver_search_placeholder": "Mitglieder suchen",
 	"ownership_receiver_empty": "Kein Mitglied gefunden, das Inhalte erhalten kann.",
+	"ownership_hand_over_action": "Übergeben",
+	"ownership_hand_over_title": "{name} übergeben?",
+	"ownership_hand_over_description": "Das Mitglied dieser Organisation, das Sie wählen, wird Eigentümer, und Sie behalten die Rolle Kann verwalten.",
+	"ownership_hand_over_confirm": "{name} wird Eigentümer.",
+	"ownership_hand_over_toast_loading": "{name} wird übergeben...",
+	"ownership_hand_over_toast_success": "{name} übergeben",
+	"ownership_hand_over_toast_error": "{name} wurde nicht übergeben.",
 	"ownership_viewer_confirm_title": "{name} zum Betrachter machen?",
 	"ownership_viewer_confirm_description": "Betrachter chatten und lesen, können aber keine Bots, Blöcke oder Assets besitzen.",
 	"ownership_viewer_confirm_button": "Rolle ändern"
