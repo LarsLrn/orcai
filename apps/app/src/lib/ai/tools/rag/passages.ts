@@ -20,7 +20,7 @@ export const joinOverlapping = (text: string, next: string) => {
 };
 
 const assetKey = (point: PointWithBlock) =>
-	`${point.sourceBlock.id}:${point.payload.asset_id}:${point.payload.source}`;
+	`${point.repository.id}:${point.payload.asset_id}:${point.payload.source}`;
 
 const passageKey = (point: PointWithBlock) =>
 	`${assetKey(point)}:${point.payload.chunk_index}`;

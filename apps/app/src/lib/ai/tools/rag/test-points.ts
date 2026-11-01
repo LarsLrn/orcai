@@ -44,8 +44,8 @@ export const assetPoint = ({
 
 export const point = (fields: PointFields): PointWithBlock => ({
 	...assetPoint(fields),
-	sourceBlock: {
+	repository: {
 		id: "block-1",
 		name: "Handbook",
-	} as PointWithBlock["sourceBlock"],
+	} as PointWithBlock["repository"],
 });

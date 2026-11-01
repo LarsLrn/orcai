@@ -36,7 +36,7 @@ export const repositoryAssetSchema = z.object({
 export type RepositoryAsset = z.infer<typeof repositoryAssetSchema>;
 
 export type PointWithBlock = RetrievedAssetPoint & {
-	sourceBlock: {
+	repository: {
 		id: BlockId;
 		name: DatabaseBlock["name"];
 	};
