@@ -32,7 +32,7 @@ const readinessOf = (deps: AssistantToolDeps, repositoryId: BlockId) =>
 export const getBlockTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Read one behaviour or repository by id: name, description, status and what the user may do with it. A behaviour (type template) comes with its system prompt. A repository comes with its asset totals and each asset's preparation state there: queued, processing, indexing, ready or failed, with the failed stage and reason. Only ready assets are searchable.",
+			"Read one behaviour or repository by id: name, description, status and what the user may do with it. A behaviour comes with its system prompt. A repository comes with its asset totals and each asset's preparation state there: queued, processing, indexing, ready or failed, with the failed stage and reason. Only ready assets are searchable.",
 		inputSchema: getBlockInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {
@@ -68,15 +68,15 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 					canManageAccess: block.capabilities.manage_access === true,
 				};
 
-				if (block.type === "template") {
+				if (block.type === "behaviour") {
 					return {
-						type: "template" as const,
+						type: "behaviour" as const,
 						...common,
 						systemPrompt: block.config.systemPrompt,
 					};
 				}
 
-				if (block.type !== "database") {
+				if (block.type !== "repository") {
 					return yield* Effect.fail(notFound);
 				}
 

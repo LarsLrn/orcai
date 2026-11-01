@@ -14,35 +14,35 @@ import { hasCapability } from "@/lib/authz/capabilities";
 import { errorReasonOf } from "@/lib/errors/describe-error";
 import type { client } from "@/lib/orpc/orpc";
 
-type TemplateBlockValues = NonNullable<BotEditorFormValues["templateBlock"]>;
-type DatabaseBlockValues = BotEditorFormValues["databaseBlocks"][number];
+type BehaviourValues = NonNullable<BotEditorFormValues["behaviour"]>;
+type RepositoryValues = BotEditorFormValues["repositories"][number];
 
-export const toTemplateBlockInput = (block: TemplateBlockValues) => ({
+export const toBehaviourInput = (block: BehaviourValues) => ({
 	name: block.name,
 	description: block.description.trim() ? block.description : null,
 	contentJson: block.contentJson ?? null,
-	type: "template" as const,
+	type: "behaviour" as const,
 	status: block.status,
 	config: block.config,
 });
 
-export const toDatabaseBlockInput = (block: DatabaseBlockValues) => ({
+export const toRepositoryInput = (block: RepositoryValues) => ({
 	name: block.name,
 	description: block.description.trim() ? block.description : null,
 	contentJson: block.contentJson ?? null,
-	type: "database" as const,
+	type: "repository" as const,
 	status: block.status,
 	config: block.config,
 	assets: block.assetIds ?? [],
 	uploadRunIds: block.uploadRunIds,
 });
 
-const toBlockInput = (block: TemplateBlockValues | DatabaseBlockValues) =>
-	block.type === "template"
-		? toTemplateBlockInput(block)
-		: toDatabaseBlockInput(block);
+const toBlockInput = (block: BehaviourValues | RepositoryValues) =>
+	block.type === "behaviour"
+		? toBehaviourInput(block)
+		: toRepositoryInput(block);
 
-type BlockValues = TemplateBlockValues | DatabaseBlockValues;
+type BlockValues = BehaviourValues | RepositoryValues;
 
 /**
  * What the server holds: the bot as last saved, and every block the editor
@@ -59,12 +59,12 @@ export const botEditorBaseline = (
 	bot,
 	blocks: new Map(
 		[
-			...(bot.templateBlock
+			...(bot.behaviour
 				? [
-						bot.templateBlock,
+						bot.behaviour,
 					]
 				: []),
-			...bot.databaseBlocks,
+			...bot.repositories,
 		].flatMap((block) =>
 			block.id
 				? [
@@ -86,17 +86,17 @@ export const withSavedBlock = (
 	},
 ): BotEditorBaseline => ({
 	bot:
-		block.type === "template"
+		block.type === "behaviour"
 			? {
 					...baseline.bot,
-					templateBlock:
-						baseline.bot.templateBlock?.id === block.id
+					behaviour:
+						baseline.bot.behaviour?.id === block.id
 							? block
-							: baseline.bot.templateBlock,
+							: baseline.bot.behaviour,
 				}
 			: {
 					...baseline.bot,
-					databaseBlocks: baseline.bot.databaseBlocks.map((saved) =>
+					repositories: baseline.bot.repositories.map((saved) =>
 						saved.id === block.id ? block : saved,
 					),
 				},
@@ -129,15 +129,15 @@ const botFields = (values: BotEditorFormValues, status: PublicationStatus) => ({
 	contentJson: values.contentJson,
 	status,
 	features: values.features,
-	templateBlockId: values.templateBlock?.id,
-	databaseBlockIds: values.databaseBlocks.map((block) => block.id),
+	behaviourId: values.behaviour?.id,
+	repositoryIds: values.repositories.map((block) => block.id),
 });
 
 export type BotEditorSavePlan = {
 	values: BotEditorFormValues;
 	status: PublicationStatus;
-	templateBlock: BlockWrite;
-	databaseBlocks: BlockWrite[];
+	behaviour: BlockWrite;
+	repositories: BlockWrite[];
 	bot: boolean;
 };
 
@@ -154,15 +154,15 @@ export const planBotEditorSave = ({
 	baseline: BotEditorBaseline;
 	status?: PublicationStatus;
 }): BotEditorSavePlan | null => {
-	const templateBlock = values.templateBlock
-		? blockWrite(values.templateBlock, baseline.blocks)
+	const behaviour = values.behaviour
+		? blockWrite(values.behaviour, baseline.blocks)
 		: null;
-	const databaseBlocks = values.databaseBlocks.map((block) =>
+	const repositories = values.repositories.map((block) =>
 		blockWrite(block, baseline.blocks),
 	);
 	const blockWrites = [
-		templateBlock,
-		...databaseBlocks,
+		behaviour,
+		...repositories,
 	];
 	const bot =
 		!values.id ||
@@ -176,8 +176,8 @@ export const planBotEditorSave = ({
 		? {
 				values,
 				status,
-				templateBlock,
-				databaseBlocks,
+				behaviour,
+				repositories,
 				bot,
 			}
 		: null;
@@ -194,9 +194,9 @@ type BotEditorProcedures = {
 	saveBot: (input: Inputs["bot"]["save"]) => Promise<Outputs["bot"]["save"]>;
 };
 
-/** A block write the server committed; `slot` is "template" or the repository's index. */
+/** A block write the server committed; `slot` is "behaviour" or the repository's index. */
 export type BotEditorBlockSaved = {
-	slot: "template" | number;
+	slot: "behaviour" | number;
 	block: BlockValues & {
 		id: BlockId;
 	};
@@ -275,17 +275,13 @@ export const executeBotEditorSave = async (
 		return saved;
 	};
 
-	const templateBlock = plan.values.templateBlock
-		? await writeBlock(
-				plan.values.templateBlock,
-				plan.templateBlock,
-				"template",
-			)
+	const behaviour = plan.values.behaviour
+		? await writeBlock(plan.values.behaviour, plan.behaviour, "behaviour")
 		: null;
-	const databaseBlocks: DatabaseBlockValues[] = [];
-	for (const [index, block] of plan.values.databaseBlocks.entries()) {
-		databaseBlocks.push(
-			await writeBlock(block, plan.databaseBlocks[index] ?? null, index),
+	const repositories: RepositoryValues[] = [];
+	for (const [index, block] of plan.values.repositories.entries()) {
+		repositories.push(
+			await writeBlock(block, plan.repositories[index] ?? null, index),
 		);
 	}
 
@@ -304,8 +300,8 @@ export const executeBotEditorSave = async (
 			description: plan.values.description,
 			contentJson: plan.values.contentJson as SaveBotInput["contentJson"],
 			status: plan.status,
-			templateBlockId: templateBlock?.id ?? null,
-			databaseBlockIds: databaseBlocks.flatMap((block) =>
+			behaviourId: behaviour?.id ?? null,
+			repositoryIds: repositories.flatMap((block) =>
 				block.id
 					? [
 							block.id,

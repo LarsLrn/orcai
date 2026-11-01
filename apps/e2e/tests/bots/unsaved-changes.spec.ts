@@ -85,12 +85,12 @@ test("bots: saving and changing steps never ask, leaving with edits does", async
 	await expect(page).toHaveURL(/\/app\/?$/);
 });
 
-const memberBot = async (api: Api, withTemplate = false) => {
+const memberBot = async (api: Api, withBehaviour = false) => {
 	const member = api.as("member");
-	const template = withTemplate
+	const behaviour = withBehaviour
 		? await member.block.create({
-				type: "template",
-				name: `E2E Unsaved Template ${runId()}`,
+				type: "behaviour",
+				name: `E2E Unsaved Behaviour ${runId()}`,
 				status: "ready",
 				config: {
 					systemPrompt: "Created by the unsaved changes spec.",
@@ -101,8 +101,8 @@ const memberBot = async (api: Api, withTemplate = false) => {
 		name: `E2E Unsaved Bot ${runId()}`,
 		description: "Created by the unsaved changes spec.",
 		status: "draft",
-		templateBlockId: template?.data.id ?? null,
-		databaseBlockIds: [],
+		behaviourId: behaviour?.data.id ?? null,
+		repositoryIds: [],
 	});
 
 	return bot.data;
@@ -116,11 +116,11 @@ const openUploadDialog = async (page: Page) => {
 		.click();
 	await page
 		.getByRole("button", {
-			name: message("authoring_database_block_upload_new_action"),
+			name: message("authoring_repository_upload_new_action"),
 		})
 		.click();
 	return page.getByRole("dialog", {
-		name: message("authoring_database_block_upload_dialog_title"),
+		name: message("authoring_repository_upload_dialog_title"),
 	});
 };
 
@@ -173,7 +173,7 @@ test("bots: closing the upload dialog asks only while an upload is in flight", a
 
 	await page
 		.getByRole("button", {
-			name: message("authoring_database_block_upload_new_action"),
+			name: message("authoring_repository_upload_new_action"),
 		})
 		.click();
 	await uploadNotes(uploadDialog, "kept-notes.txt");
@@ -217,7 +217,7 @@ test("bots: assets uploaded in the repository dialog are selected at once", asyn
 	).toBeVisible();
 	await expect(
 		page.getByText(
-			message("authoring_database_block_attached_badge", {
+			message("authoring_repository_attached_badge", {
 				count: 1,
 			}),
 		),

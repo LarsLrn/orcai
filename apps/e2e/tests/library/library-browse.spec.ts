@@ -110,13 +110,13 @@ const bot = (client: ApiClient, name: string, status: "ready" | "draft") =>
 		name,
 		description: "Created by the library browse spec.",
 		status,
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 
 const behaviour = (client: ApiClient, name: string) =>
 	client.block.create({
-		type: "template",
+		type: "behaviour",
 		name,
 		status: "ready",
 		config: {

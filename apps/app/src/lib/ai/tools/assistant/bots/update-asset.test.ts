@@ -9,7 +9,7 @@ const assetId = crypto.randomUUID() as AssetId;
 const stored: AssetMetadataType = {
 	sourceType: "book",
 	author: "Ada Lovelace",
-	citation: "Lovelace 1843",
+	citationLabel: "Lovelace 1843",
 };
 
 beforeEach(() => {
@@ -45,7 +45,7 @@ describe("updateAssetTool", () => {
 			{
 				id: assetId,
 				metadata: {
-					citation: "Lovelace 1843, note G",
+					citationLabel: "Lovelace 1843, note G",
 				},
 			},
 			{
@@ -62,7 +62,7 @@ describe("updateAssetTool", () => {
 			{
 				id: assetId,
 				metadata: {
-					citation: "Lovelace 1843, note G",
+					citationLabel: "Lovelace 1843, note G",
 				},
 			},
 		]);

@@ -183,48 +183,47 @@ const publishBot = authed.bot.publish
 			organizationId: context.auth.session.activeOrganizationId,
 		});
 
-		if (!editor.data.templateBlock) {
+		if (!editor.data.behaviour) {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
 					reason: "BOT_BEHAVIOUR_BLOCK_REQUIRED",
-					message: "Bots need a template block before they can be published.",
+					message: "Bots need a behaviour before they can be published.",
 				}),
 			);
 		}
 
-		if (editor.data.templateBlock.status !== "ready") {
+		if (editor.data.behaviour.status !== "ready") {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
 					reason: "BOT_BEHAVIOUR_BLOCK_NOT_READY",
-					message:
-						'Set the AI behaviour block to "ready" before publishing this bot.',
+					message: "Publish the bot's behaviour before publishing this bot.",
 				}),
 			);
 		}
 
 		yield* checkFeatureRequirements(editor.data.features);
 
-		for (const databaseBlock of editor.data.databaseBlocks) {
-			if (databaseBlock.status !== "ready") {
+		for (const repository of editor.data.repositories) {
+			if (repository.status !== "ready") {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
 						reason: "BOT_REPOSITORY_NOT_READY",
 						params: {
-							blockName: databaseBlock.name,
+							blockName: repository.name,
 						},
-						message: `Set "${databaseBlock.name}" to "ready" before publishing this bot.`,
+						message: `Set "${repository.name}" to "ready" before publishing this bot.`,
 					}),
 				);
 			}
 
-			if (databaseBlock.assetIds.length === 0) {
+			if (repository.assetIds.length === 0) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
 						reason: "BOT_REPOSITORY_EMPTY",
 						params: {
-							blockName: databaseBlock.name,
+							blockName: repository.name,
 						},
-						message: `Attach at least one asset to "${databaseBlock.name}" before publishing.`,
+						message: `Attach at least one asset to "${repository.name}" before publishing.`,
 					}),
 				);
 			}

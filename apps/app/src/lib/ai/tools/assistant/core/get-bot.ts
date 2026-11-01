@@ -42,8 +42,8 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 							),
 						).pipe(
 							Effect.map(({ data }) => ({
-								behaviour: data.templateBlock,
-								repositories: data.databaseBlocks.map((block) => ({
+								behaviour: data.behaviour,
+								repositories: data.repositories.map((block) => ({
 									id: block.id,
 									name: block.name,
 									status: block.status,
@@ -68,14 +68,14 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 						).pipe(
 							Effect.map((found) => {
 								const readable = found.filter((block) => block !== undefined);
-								const template = readable.find(
-									({ data }) => data.type === "template",
+								const behaviour = readable.find(
+									({ data }) => data.type === "behaviour",
 								);
 
 								return {
-									behaviour: template?.data ?? null,
+									behaviour: behaviour?.data ?? null,
 									repositories: readable
-										.filter(({ data }) => data.type === "database")
+										.filter(({ data }) => data.type === "repository")
 										.map(({ data, assets }) => ({
 											id: data.id,
 											name: data.name,
@@ -95,7 +95,7 @@ export const getBotTool = (deps: AssistantToolDeps) =>
 					features: bot.features,
 					behaviour: links.behaviour
 						? {
-								type: "template" as const,
+								type: "behaviour" as const,
 								id: links.behaviour.id,
 								name: links.behaviour.name,
 								status: links.behaviour.status,

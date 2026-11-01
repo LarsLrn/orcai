@@ -1142,7 +1142,7 @@ describe("turn setup", () => {
 		const withRepository = await estimate([
 			{
 				id: crypto.randomUUID(),
-				type: "database",
+				type: "repository",
 				name: "Handbook",
 				config: {},
 			},
@@ -1161,7 +1161,7 @@ describe("turn setup", () => {
 				chatBlocks: [
 					{
 						id: crypto.randomUUID(),
-						type: "database",
+						type: "repository",
 						name: "Handbook",
 						config: {},
 					},
@@ -1406,7 +1406,7 @@ describe("turn setup", () => {
 				data: [
 					{
 						id: crypto.randomUUID(),
-						type: "template",
+						type: "behaviour",
 						config: {
 							systemPrompt: "You are the bot.",
 						},
@@ -1444,16 +1444,16 @@ describe("turn setup", () => {
 		]);
 	});
 
-	test("prefers an attached template's prompt over the chat's own", async () => {
+	test("prefers an attached behaviour's prompt over the chat's own", async () => {
 		answerSetup({
 			providerKind: "anthropic",
 			providerModelId: "claude-opus-5-5",
 			chatBlocks: [
 				{
 					id: crypto.randomUUID(),
-					type: "template",
+					type: "behaviour",
 					config: {
-						systemPrompt: "You are the template.",
+						systemPrompt: "You are the behaviour.",
 					},
 				},
 			],
@@ -1476,7 +1476,7 @@ describe("turn setup", () => {
 		await chat.send("Hi");
 
 		const system = JSON.stringify(chat.bodies[0]?.system);
-		expect(system).toContain("You are the template.");
+		expect(system).toContain("You are the behaviour.");
 		expect(system).not.toContain("You are the chat.");
 	});
 });

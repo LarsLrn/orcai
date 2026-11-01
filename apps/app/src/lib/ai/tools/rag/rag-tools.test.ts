@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { RAG_SETTINGS } from "@orcai/core";
 import { selectDiversePoints } from "@orcai/qdrant";
-import type { AssetPoint, DatabaseBlock } from "@orcai/schema";
+import type { AssetPoint, Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { sourceRef } from "@/lib/ai/citations/source-ref";
@@ -25,7 +25,7 @@ const deps = {
 			name: "Handbook",
 			config: {},
 		},
-	] as unknown as DatabaseBlock[],
+	] as unknown as Repository[],
 	context: {
 		secureCookies: false,
 	} as ORPCContext,

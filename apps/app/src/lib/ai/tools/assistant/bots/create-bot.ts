@@ -48,8 +48,8 @@ export const createBotPayload = (
 	description: input.description,
 	contentJson: {},
 	status: "draft",
-	templateBlockId: input.behaviourId ?? null,
-	databaseBlockIds: input.repositoryIds ?? [],
+	behaviourId: input.behaviourId ?? null,
+	repositoryIds: input.repositoryIds ?? [],
 	features: input.features ?? {},
 	listBlockIds: [],
 });
@@ -61,7 +61,7 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 		inputSchema: createBotInputSchema,
 		run: (input, { toolCallId }) => {
 			const payload = createBotPayload(input);
-			const { templateBlockId, databaseBlockIds } = payload;
+			const { behaviourId, repositoryIds } = payload;
 
 			return createOnce(
 				{
@@ -75,15 +75,15 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 					).pipe(
 						mutation("findBots"),
 						expectType("block", [
-							...(templateBlockId
+							...(behaviourId
 								? [
-										templateBlockId,
+										behaviourId,
 									]
 								: []),
-							...databaseBlockIds,
+							...repositoryIds,
 						]),
-						expectType("template", templateBlockId ?? []),
-						expectType("repository", databaseBlockIds),
+						expectType("behaviour", behaviourId ?? []),
+						expectType("repository", repositoryIds),
 						Effect.map(({ data }) => botOutline(data)),
 						Effect.flatMap((bot) =>
 							input.setup === undefined

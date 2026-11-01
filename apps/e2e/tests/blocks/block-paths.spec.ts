@@ -13,14 +13,14 @@ test("blocks: each kind's add page opens its own form", async ({
 	await open(page, "/app/library/behaviours/add");
 	await expect(
 		page.getByRole("button", {
-			name: message("blocks_template_form_create_submit_button"),
+			name: message("blocks_behaviour_form_create_submit_button"),
 		}),
 	).toBeVisible();
 
 	await open(page, "/app/library/repositories/add");
 	await expect(
 		page.getByRole("button", {
-			name: message("blocks_database_form_create_submit_button"),
+			name: message("blocks_repository_form_create_submit_button"),
 		}),
 	).toBeVisible();
 });
@@ -32,7 +32,7 @@ test("blocks: a behaviour under the repositories path is not found", async ({
 }) => {
 	const name = `E2E Block Path ${runId()}`;
 	const block = await api.as("member").block.create({
-		type: "template",
+		type: "behaviour",
 		name,
 		status: "ready",
 		config: {

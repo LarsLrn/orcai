@@ -138,20 +138,20 @@ export const createChat = async (
 	return chat.data.id;
 };
 
-/** A repository block of the client's own, attached to the chat. */
+/** A repository of the client's own, attached to the chat. */
 export const attachRepository = async (
 	client: ApiClient,
 	chatId: ChatId,
 ): Promise<void> => {
 	const block = await client.block.create({
-		type: "database",
+		type: "repository",
 		name: chatName("Repository"),
 		status: "ready",
 		assets: [],
 		config: {
-			minReferences: 1,
-			maxReferences: 5,
-			defaultReferences: 3,
+			minPassages: 1,
+			maxPassages: 5,
+			defaultPassages: 3,
 		},
 	});
 

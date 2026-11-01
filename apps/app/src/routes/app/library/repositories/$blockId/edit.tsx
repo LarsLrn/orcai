@@ -1,7 +1,7 @@
-import { isDatabaseBlock } from "@orcai/schema";
+import { isRepository } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { DatabaseBlockForm } from "@/components/blocks/database-block/form/database-block-form";
+import { RepositoryForm } from "@/components/blocks/repository/form/repository-form";
 import {
 	Page,
 	PageContent,
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/app/library/repositories/$blockId/edit")(
 		head: () => ({
 			meta: [
 				{
-					title: m.blocks_edit_database_page_title(),
+					title: m.blocks_edit_repository_page_title(),
 				},
 			],
 		}),
@@ -47,11 +47,11 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{m.blocks_edit_database_page_title()}</PageTitle>
+				<PageTitle>{m.blocks_edit_repository_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
-				{isDatabaseBlock(block.data) ? (
-					<DatabaseBlockForm
+				{isRepository(block.data) ? (
+					<RepositoryForm
 						action="update"
 						block={block.data}
 						assets={block.assets}

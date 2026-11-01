@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
+import { BehaviourForm } from "@/components/blocks/behaviour/form/behaviour-form";
 import {
 	Page,
 	PageContent,
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/app/library/behaviours/add")({
 	head: () => ({
 		meta: [
 			{
-				title: m.blocks_add_template_page_title(),
+				title: m.blocks_add_behaviour_page_title(),
 			},
 		],
 	}),
@@ -32,13 +32,13 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{m.blocks_add_template_page_title()}</PageTitle>
+				<PageTitle>{m.blocks_add_behaviour_page_title()}</PageTitle>
 				<PageDescription>
-					{m.blocks_add_template_form_description()}
+					{m.blocks_add_behaviour_form_description()}
 				</PageDescription>
 			</PageHeader>
 			<PageContent>
-				<TemplateBlockForm action="create" />
+				<BehaviourForm action="create" />
 			</PageContent>
 		</Page>
 	);

@@ -99,9 +99,9 @@ const CiteCardContent = ({
 			{metadata?.author && (
 				<p className="text-muted-foreground text-xs">{metadata.author}</p>
 			)}
-			{metadata?.citation && (
+			{metadata?.citationLabel && (
 				<p className="text-muted-foreground text-xs italic">
-					{metadata.citation}
+					{metadata.citationLabel}
 				</p>
 			)}
 			<Link

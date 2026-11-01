@@ -3,10 +3,10 @@ import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import {
 	addMember,
+	behaviourInput,
 	chooseRole,
 	createThrowawayUser,
 	reachPage,
-	templateBlock,
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
@@ -23,7 +23,7 @@ test("members: the edit page shows what an admin may know about a user", async (
 
 	// A block only this test grants, so the table carries a row of its own.
 	const blockName = `E2E Users Block ${runId()}`;
-	const block = await api.as("admin").block.create(templateBlock(blockName));
+	const block = await api.as("admin").block.create(behaviourInput(blockName));
 	await api.as("admin").resource.grant({
 		resourceType: "block",
 		resourceId: block.data.id,

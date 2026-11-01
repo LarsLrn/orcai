@@ -58,7 +58,7 @@ const bot = (
 
 const block = (
 	name: string,
-	type: "template" | "database",
+	type: "behaviour" | "repository",
 	status: "draft" | "ready" = "ready",
 ) => ({
 	id: id<BlockId>(),
@@ -149,9 +149,9 @@ describe("findBots", () => {
 });
 
 describe("getBot", () => {
-	const template = block("Strict", "template");
-	const repository = block("Sources", "database", "draft");
-	const hidden = block("Hidden", "database");
+	const behaviour = block("Strict", "behaviour");
+	const repository = block("Sources", "repository", "draft");
+	const hidden = block("Hidden", "repository");
 	const assets = [
 		id<AssetId>(),
 		id<AssetId>(),
@@ -164,7 +164,7 @@ describe("getBot", () => {
 				generativeUi: {},
 			},
 			blockIds: [
-				template.id,
+				behaviour.id,
 				repository.id,
 				hidden.id,
 			],
@@ -178,9 +178,9 @@ describe("getBot", () => {
 		});
 		answers["bot.find"] = () => Effect.succeed(reader);
 		answers["block.find"] = (input: { id: BlockId }) =>
-			input.id === template.id
+			input.id === behaviour.id
 				? Effect.succeed({
-						data: template,
+						data: behaviour,
 					})
 				: input.id === repository.id
 					? Effect.succeed({
@@ -211,8 +211,8 @@ describe("getBot", () => {
 				generativeUi: {},
 			},
 			behaviour: {
-				type: "template",
-				id: template.id,
+				type: "behaviour",
+				id: behaviour.id,
 				name: "Strict",
 				status: "ready",
 			},
@@ -246,13 +246,13 @@ describe("getBot", () => {
 			Effect.succeed({
 				data: {
 					...editable.data,
-					templateBlock: {
-						...template,
+					behaviour: {
+						...behaviour,
 						config: {
 							systemPrompt: "Be strict.",
 						},
 					},
-					databaseBlocks: [
+					repositories: [
 						{
 							...repository,
 							assetIds: assets,
@@ -310,7 +310,7 @@ describe("getBot", () => {
 
 		expect(output).toMatchObject({
 			behaviour: {
-				id: template.id,
+				id: behaviour.id,
 				name: "Strict",
 				status: "ready",
 			},
@@ -352,7 +352,7 @@ describe("getBot", () => {
 		]);
 	});
 
-	test("a bot without a template has none", async () => {
+	test("a bot without a behaviour has none", async () => {
 		const reader = found({
 			read: true,
 		});
@@ -376,9 +376,9 @@ describe("getBot", () => {
 });
 
 describe("findBlocks", () => {
-	test("a repository search lists ready and draft database blocks", async () => {
-		const readyBlock = block("Sources", "database");
-		const draftBlock = block("Sources draft", "database", "draft");
+	test("a repository search lists ready and draft repositories", async () => {
+		const readyBlock = block("Sources", "repository");
+		const draftBlock = block("Sources draft", "repository", "draft");
 		answers["block.list"] = () =>
 			Effect.succeed({
 				data: [
@@ -417,7 +417,7 @@ describe("findBlocks", () => {
 			{
 				pageSize: 10,
 				filters: {
-					type: "database",
+					type: "repository",
 					status: "all",
 					search: "sources",
 				},

@@ -1,34 +1,34 @@
 import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
-import { TemplateBlockEditor } from "@/components/authoring/template-block-editor";
+import { BehaviourEditor } from "@/components/authoring/behaviour-editor";
 import { withFieldGroup } from "@/hooks/form";
 import { m } from "@/paraglide/messages";
 
-const templateBlockGroupDefaultValues = {
+const behaviourGroupDefaultValues = {
 	name: "",
 	description: "",
 	contentJson: null as unknown,
 	systemPrompt: "",
 };
 
-const templateBlockTopLevelFieldMap = {
+const behaviourTopLevelFieldMap = {
 	name: "name",
 	description: "description",
 	contentJson: "contentJson",
 	systemPrompt: "config.systemPrompt",
 } as const;
 
-const TemplateBlockFieldGroup = withFieldGroup({
-	defaultValues: templateBlockGroupDefaultValues,
+const BehaviourFieldGroup = withFieldGroup({
+	defaultValues: behaviourGroupDefaultValues,
 	render: function Render({ group }) {
 		return (
-			<TemplateBlockEditor
+			<BehaviourEditor
 				nameField={
 					<group.AppField
 						name="name"
 						children={(field) => (
 							<field.TextField
 								label={m.common_name_label()}
-								placeholder={m.blocks_template_form_name_placeholder()}
+								placeholder={m.blocks_behaviour_form_name_placeholder()}
 							/>
 						)}
 					/>
@@ -39,8 +39,8 @@ const TemplateBlockFieldGroup = withFieldGroup({
 							name="systemPrompt"
 							children={(field) => (
 								<field.TextareaField
-									label={m.blocks_template_form_system_prompt_label()}
-									placeholder={m.blocks_template_form_system_prompt_placeholder()}
+									label={m.blocks_behaviour_form_system_prompt_label()}
+									placeholder={m.blocks_behaviour_form_system_prompt_placeholder()}
 									rows={12}
 								/>
 							)}
@@ -53,8 +53,8 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						name="description"
 						children={(field) => (
 							<field.TextareaField
-								label={m.blocks_template_form_description_label()}
-								placeholder={m.blocks_template_form_description_placeholder()}
+								label={m.blocks_behaviour_form_description_label()}
+								placeholder={m.blocks_behaviour_form_description_placeholder()}
 								rows={4}
 							/>
 						)}
@@ -65,7 +65,7 @@ const TemplateBlockFieldGroup = withFieldGroup({
 						name="contentJson"
 						children={(field) => (
 							<field.BlockEditorField
-								label={m.blocks_template_form_content_label()}
+								label={m.blocks_behaviour_form_content_label()}
 							/>
 						)}
 					/>
@@ -75,4 +75,4 @@ const TemplateBlockFieldGroup = withFieldGroup({
 	},
 });
 
-export { TemplateBlockFieldGroup, templateBlockTopLevelFieldMap };
+export { BehaviourFieldGroup, behaviourTopLevelFieldMap };

@@ -19,7 +19,7 @@ import {
 	initializeResourceAuthorization,
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
-import { loadDatabaseBlockAssets } from "@/lib/blocks/database-block";
+import { loadRepositoryAssets } from "@/lib/blocks/repository";
 import { isListed, listBlocksOfListedBot } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
@@ -58,8 +58,8 @@ export const loadBotEditor = (params: {
 			.where(eq(dbSchema.botBlock.botId, params.id))
 			.pipe(Effect.map((rows) => rows as Block[]));
 
-		const templateBlock = blocks.find((block) => block.type === "template");
-		const databaseBlocks = blocks.filter((block) => block.type === "database");
+		const behaviour = blocks.find((block) => block.type === "behaviour");
+		const repositories = blocks.filter((block) => block.type === "repository");
 		const blockCapabilities = yield* getManyEntityCapabilities({
 			entityType: "block",
 			entityIds: blocks.map((block) => block.id),
@@ -75,11 +75,11 @@ export const loadBotEditor = (params: {
 			zedToken: params.zedToken,
 		});
 
-		const databaseBlocksWithAssets = yield* Effect.forEach(
-			databaseBlocks,
+		const repositoriesWithAssets = yield* Effect.forEach(
+			repositories,
 			(block) =>
 				Effect.gen(function* () {
-					const assets = yield* loadDatabaseBlockAssets({
+					const assets = yield* loadRepositoryAssets({
 						blockId: block.id,
 						userId: params.userId,
 						organizationId: params.organizationId,
@@ -106,16 +106,16 @@ export const loadBotEditor = (params: {
 				description: bot.description,
 				contentJson: bot.contentJson as Bot["contentJson"],
 				status: bot.status,
-				templateBlock: templateBlock
+				behaviour: behaviour
 					? {
-							...templateBlock,
-							type: "template" as const,
+							...behaviour,
+							type: "behaviour" as const,
 							capabilities:
-								blockCapabilities.get(templateBlock.id) ??
+								blockCapabilities.get(behaviour.id) ??
 								emptyCapabilities("block"),
 						}
 					: null,
-				databaseBlocks: databaseBlocksWithAssets,
+				repositories: repositoriesWithAssets,
 				features: bot.features,
 				capabilities: botCapabilities,
 			},
@@ -125,15 +125,15 @@ export const loadBotEditor = (params: {
 const resolveLinkedBlocksForSave = (params: { input: SaveBotInput }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const templateBlockId = params.input.templateBlockId;
-		const databaseBlockIds = Array.from(new Set(params.input.databaseBlockIds));
+		const behaviourId = params.input.behaviourId;
+		const repositoryIds = Array.from(new Set(params.input.repositoryIds));
 		const nextBlockIds = [
-			...(templateBlockId
+			...(behaviourId
 				? [
-						templateBlockId,
+						behaviourId,
 					]
 				: []),
-			...databaseBlockIds,
+			...repositoryIds,
 		];
 
 		if (nextBlockIds.length === 0) {
@@ -164,25 +164,21 @@ const resolveLinkedBlocksForSave = (params: { input: SaveBotInput }) =>
 			]),
 		);
 
-		if (
-			templateBlockId &&
-			blockById.get(templateBlockId)?.type !== "template"
-		) {
+		if (behaviourId && blockById.get(behaviourId)?.type !== "behaviour") {
 			return yield* Effect.fail(
 				new AppErrors.BadRequestError({
 					reason: "BEHAVIOUR_BLOCK_TYPE_INVALID",
-					message: "Linked AI behaviour block must be a template block.",
+					message: "The linked behaviour id must name a behaviour.",
 				}),
 			);
 		}
 
-		for (const databaseBlockId of databaseBlockIds) {
-			if (blockById.get(databaseBlockId)?.type !== "database") {
+		for (const repositoryId of repositoryIds) {
+			if (blockById.get(repositoryId)?.type !== "repository") {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
 						reason: "REPOSITORY_BLOCK_TYPE_INVALID",
-						message:
-							"Linked content collection block must be a database block.",
+						message: "Every linked repository id must name a repository.",
 					}),
 				);
 			}

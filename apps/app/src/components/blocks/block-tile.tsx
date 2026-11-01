@@ -24,7 +24,7 @@ import {
 import { blockPaths } from "@/lib/navigation/block-paths";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
-import { blockKind, RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -80,7 +80,7 @@ const BlockTileContent = ({
 	/** A repository's assets, when known. */
 	assets?: RepositoryTotals | null;
 }) => {
-	const { Icon, well } = RESOURCE_KINDS[blockKind(block.type)];
+	const { Icon, well } = RESOURCE_KINDS[block.type];
 	const repository = assets ? repositoryFooter(assets) : null;
 
 	return (
@@ -106,7 +106,7 @@ const BlockTileContent = ({
 					<TileDescription>{block.description}</TileDescription>
 				) : null}
 				<TileFooter>
-					{block.type === "template" ? (
+					{block.type === "behaviour" ? (
 						<span>{m.blocks_tile_behaviour_contents()}</span>
 					) : null}
 					{repository ? <span>{repository.label}</span> : null}
@@ -124,7 +124,7 @@ const BlockTileContent = ({
 
 /** A behaviour or repository on a browsing surface: band and its `…` menu. */
 const BlockTile = ({ block }: { block: BrowseBlock }) => {
-	const kind = blockKind(block.type);
+	const kind = block.type;
 	const { Icon, band } = RESOURCE_KINDS[kind];
 	const { actions, dialog } = useBlockActions(block);
 

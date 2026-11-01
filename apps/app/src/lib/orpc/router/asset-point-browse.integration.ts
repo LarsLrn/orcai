@@ -22,16 +22,16 @@ const rejection = (operation: Promise<unknown>) =>
 	);
 
 const repository = (assets: AssetId[]) => ({
-	type: "database" as const,
+	type: "repository" as const,
 	name: "Integration repository",
 	description: null,
 	contentJson: null,
 	status: "ready" as const,
 	assets,
 	config: {
-		minReferences: 1,
-		maxReferences: 5,
-		defaultReferences: 3,
+		minPassages: 1,
+		maxPassages: 5,
+		defaultPassages: 3,
 	},
 });
 

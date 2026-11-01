@@ -51,8 +51,8 @@ export const botDetails = (
 				db
 					.select({
 						botId: dbSchema.botBlock.botId,
-						behaviour: sql<boolean>`bool_or(${dbSchema.block.type} = 'template')`,
-						repositories: sql<number>`(count(*) filter (where ${dbSchema.block.type} = 'database'))::int`,
+						behaviour: sql<boolean>`bool_or(${dbSchema.block.type} = 'behaviour')`,
+						repositories: sql<number>`(count(*) filter (where ${dbSchema.block.type} = 'repository'))::int`,
 					})
 					.from(dbSchema.botBlock)
 					.innerJoin(

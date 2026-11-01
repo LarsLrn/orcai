@@ -4,11 +4,11 @@ import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
-const templateId = crypto.randomUUID() as BlockId;
+const behaviourId = crypto.randomUUID() as BlockId;
 
 const stored = {
-	id: templateId,
-	type: "template",
+	id: behaviourId,
+	type: "behaviour",
 	name: "Strict",
 	description: "Marks hard.",
 	contentJson: {
@@ -30,7 +30,7 @@ beforeEach(() => {
 	answers["block.update"] = (input: { name: string; status: string }) =>
 		Effect.succeed({
 			data: {
-				id: templateId,
+				id: behaviourId,
 				name: input.name,
 				status: input.status,
 			},
@@ -59,7 +59,7 @@ const run = (input: Record<string, unknown>) =>
 describe("updateBehaviourTool", () => {
 	test("an update takes only the changed fields and keeps the rest", async () => {
 		const output = await run({
-			id: templateId,
+			id: behaviourId,
 			systemPrompt: "Be kind.",
 		});
 
@@ -67,8 +67,8 @@ describe("updateBehaviourTool", () => {
 			procedureCalls.find(({ procedure }) => procedure === "block.update")
 				?.input,
 		).toEqual({
-			id: templateId,
-			type: "template",
+			id: behaviourId,
+			type: "behaviour",
 			name: "Strict",
 			description: "Marks hard.",
 			contentJson: {
@@ -80,29 +80,29 @@ describe("updateBehaviourTool", () => {
 			},
 		});
 		expect(output).toEqual({
-			type: "template",
-			id: templateId,
+			type: "behaviour",
+			id: behaviourId,
 			name: "Strict",
 			status: "ready",
 		});
 	});
 
-	test("a repository id reads as no template with that id", async () => {
+	test("a repository id reads as no behaviour with that id", async () => {
 		answers["block.find"] = () =>
 			Effect.succeed({
 				data: {
 					...stored,
-					type: "database",
+					type: "repository",
 				},
 			});
 
 		await expect(
 			run({
-				id: templateId,
+				id: behaviourId,
 				name: "Renamed",
 			}),
 		).rejects.toThrow(
-			`BEHAVIOUR_BLOCK_TYPE_INVALID: No behaviour with id ${templateId}. Ids of other kinds (bots, repositories, assets, groups, members, invitations) are not behaviour ids. That id is a repository.`,
+			`BEHAVIOUR_BLOCK_TYPE_INVALID: No behaviour with id ${behaviourId}. Ids of other kinds (bots, repositories, assets, groups, members, invitations) are not behaviour ids. That id is a repository.`,
 		);
 	});
 });

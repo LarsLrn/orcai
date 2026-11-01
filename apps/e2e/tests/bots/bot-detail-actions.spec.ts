@@ -12,8 +12,8 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 		name: `E2E Detail Actions Bot ${runId()}`,
 		description: "Created by the detail actions spec.",
 		status: "ready",
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 
 	const page = await pageAs("member");

@@ -36,7 +36,7 @@ const assetsPanel = (page: Page) =>
 
 const readinessSummary = (page: Page, ready: number, total: number) =>
 	page.getByRole("status").filter({
-		hasText: message("blocks_database_config_readiness_summary", {
+		hasText: message("blocks_repository_config_readiness_summary", {
 			ready,
 			total,
 		}),
@@ -46,7 +46,7 @@ const readinessSummary = (page: Page, ready: number, total: number) =>
 const retryOffers = (page: Page) =>
 	page
 		.getByRole("button", {
-			name: message("blocks_database_config_prepare_failed_again_action"),
+			name: message("blocks_repository_config_prepare_failed_again_action"),
 			exact: true,
 		})
 		.or(
@@ -175,7 +175,7 @@ test("pipeline: the repository page says why an empty asset failed and offers no
 	await open(page, `/app/library/repositories/${repository.blockId}`);
 
 	await expect(readinessSummary(page, 0, 1)).toContainText(
-		message("blocks_database_config_readiness_failed", {
+		message("blocks_repository_config_readiness_failed", {
 			count: 1,
 		}),
 	);

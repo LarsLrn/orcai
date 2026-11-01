@@ -32,7 +32,7 @@ export const createGenUiChat = async (
 	return chat.data.id;
 };
 
-/** A draft bot with a template and the given features. */
+/** A draft bot with a behaviour and the given features. */
 export const createBot = async (
 	client: ApiClient,
 	features: Record<string, unknown> = GEN_UI,
@@ -40,9 +40,9 @@ export const createBot = async (
 	id: BotId;
 	name: string;
 }> => {
-	const template = await client.block.create({
-		type: "template",
-		name: chatName("Template"),
+	const behaviour = await client.block.create({
+		type: "behaviour",
+		name: chatName("Behaviour"),
 		status: "ready",
 		config: {
 			systemPrompt: "Created by the gen-ui slice.",
@@ -52,8 +52,8 @@ export const createBot = async (
 		name: chatName("Bot"),
 		description: "Created by the gen-ui slice.",
 		status: "draft",
-		templateBlockId: template.data.id,
-		databaseBlockIds: [],
+		behaviourId: behaviour.data.id,
+		repositoryIds: [],
 		features,
 	});
 

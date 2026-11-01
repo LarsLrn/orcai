@@ -108,7 +108,7 @@ const seedLink = () =>
 			const [block] = yield* db
 				.insert(dbSchema.block)
 				.values({
-					type: "database",
+					type: "repository",
 					name: "Integration repository",
 					config: {},
 					userId: user.id,

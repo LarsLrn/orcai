@@ -1,4 +1,4 @@
-import { groupsName, templateBlock } from "../../fixtures/groups/groups";
+import { behaviourInput, groupsName } from "../../fixtures/groups/groups";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -23,7 +23,7 @@ test("groups: the access manager shows the group grant on the block page", async
 	});
 
 	const blockName = groupsName("Access Manager Block");
-	const block = await api.as("member").block.create(templateBlock(blockName));
+	const block = await api.as("member").block.create(behaviourInput(blockName));
 
 	await api.as("member").resource.grant({
 		resourceType: "block",
@@ -128,7 +128,7 @@ test("groups: the access manager grants several people at once", async ({
 	pageAs,
 }) => {
 	const blockName = groupsName("Batch Grant Block");
-	const block = await api.as("member").block.create(templateBlock(blockName));
+	const block = await api.as("member").block.create(behaviourInput(blockName));
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);

@@ -194,7 +194,7 @@ export const loadRepositoryReadiness = (params: {
 					.where(
 						and(
 							inArray(dbSchema.block.id, repositoryIds),
-							eq(dbSchema.block.type, "database"),
+							eq(dbSchema.block.type, "repository"),
 						),
 					),
 				db

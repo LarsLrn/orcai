@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import type { DatabaseBlock } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
@@ -18,7 +18,7 @@ const deps = {
 			name: "Handbook",
 			config: {},
 		},
-	] as unknown as DatabaseBlock[],
+	] as unknown as Repository[],
 	context: {
 		secureCookies: false,
 	} as ORPCContext,

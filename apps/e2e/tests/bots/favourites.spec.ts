@@ -21,8 +21,8 @@ test("bots: a starred bot shows in the library's and the selector's favourites",
 		name: `E2E Favourite Bot ${runId()}`,
 		description: "Created by the favourites spec.",
 		status: "ready",
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 	// The chat tour's card would cover the chat the bot starts.
 	await member.user.setTourState({

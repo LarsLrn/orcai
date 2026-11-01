@@ -75,7 +75,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 						<span className="font-medium">{formatFileSize(asset.size)}</span>
 					</div>
 
-					{asset.metadata.citation && (
+					{asset.metadata.citationLabel && (
 						<div className="flex items-center gap-2">
 							<FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
 							<span className="text-muted-foreground">
@@ -83,9 +83,9 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 							</span>
 							<span
 								className="truncate font-medium text-xs"
-								title={asset.metadata.citation}
+								title={asset.metadata.citationLabel}
 							>
-								{asset.metadata.citation}
+								{asset.metadata.citationLabel}
 							</span>
 						</div>
 					)}

@@ -4,7 +4,7 @@ import {
 	buildSystemInstructions,
 	type ProviderCompaction,
 } from "@orcai/ai";
-import type { DatabaseBlock } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import { Output, ToolLoopAgent, type ToolSet, type UIMessage } from "ai";
 import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
@@ -33,7 +33,7 @@ export const createChatAgent = (params: {
 	systemPrompt: string | undefined;
 	/** The user's local date, from `localDate`. */
 	today: string;
-	databaseBlocks: DatabaseBlock[];
+	repositories: Repository[];
 	features: ResolvedFeature[];
 	webSearch: TurnWebSearch;
 	callSettings: ChatCallSettings;
@@ -52,7 +52,7 @@ export const createChatAgent = (params: {
 	/** The chat's sources, which the turn's calls add to. */
 	sources: ChatSources;
 }) => {
-	const hasRepositories = params.databaseBlocks.length > 0;
+	const hasRepositories = params.repositories.length > 0;
 	// Native search issues no refs, so only the search provider's results are citable.
 	const searchesWeb =
 		params.webSearch.kind === "provider" &&
@@ -78,7 +78,7 @@ export const createChatAgent = (params: {
 	const offeredTools: ToolSet = {
 		...(hasRepositories
 			? buildRepositoryTools({
-					blocks: params.databaseBlocks,
+					blocks: params.repositories,
 					context: params.context,
 					sources: params.sources,
 				})
@@ -113,7 +113,7 @@ export const createChatAgent = (params: {
 		params.model.kind,
 		buildChatAgentSystemPrompt({
 			behaviour: params.systemPrompt,
-			repositories: params.databaseBlocks,
+			repositories: params.repositories,
 			featurePrompts: params.features.map(({ entry }) =>
 				entry.prompt({
 					citations,

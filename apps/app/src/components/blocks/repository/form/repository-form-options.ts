@@ -1,15 +1,15 @@
 import type { AssetId } from "@orcai/core";
 import {
-	createDatabaseBlockInputSchema,
-	type DatabaseBlock,
+	createRepositoryInputSchema,
+	type Repository,
 	retrievalModeSchema,
 } from "@orcai/schema";
 import { formOptions } from "@tanstack/react-form";
 import { z } from "zod/v4";
 
-const databaseBlockFormSchema = createDatabaseBlockInputSchema.extend({
+const repositoryFormSchema = createRepositoryInputSchema.extend({
 	description: z.string(),
-	config: createDatabaseBlockInputSchema.shape.config.extend({
+	config: createRepositoryInputSchema.shape.config.extend({
 		scoreThreshold: z.number().min(0).max(1),
 		retrievalMode: retrievalModeSchema,
 		candidateLimit: z.number().int().min(1).max(200),
@@ -18,18 +18,18 @@ const databaseBlockFormSchema = createDatabaseBlockInputSchema.extend({
 });
 
 const defaultValues = (
-	block?: DatabaseBlock,
+	block?: Repository,
 	assetIds?: AssetId[],
-): z.input<typeof databaseBlockFormSchema> => ({
+): z.input<typeof repositoryFormSchema> => ({
 	name: block?.name || "",
 	description: block?.description ?? "",
 	contentJson: block?.contentJson ?? null,
-	type: "database",
+	type: "repository",
 	status: block?.status || "draft",
 	config: {
-		maxReferences: block?.config.maxReferences ?? 8,
-		minReferences: block?.config.minReferences ?? 1,
-		defaultReferences: block?.config.defaultReferences ?? 4,
+		maxPassages: block?.config.maxPassages ?? 8,
+		minPassages: block?.config.minPassages ?? 1,
+		defaultPassages: block?.config.defaultPassages ?? 4,
 		retrievalMode: block?.config.retrievalMode ?? "hybrid",
 		scoreThreshold: block?.config.scoreThreshold ?? 0.2,
 		candidateLimit: block?.config.candidateLimit ?? 40,
@@ -39,13 +39,13 @@ const defaultValues = (
 	uploadRunIds: [],
 });
 
-export const databaseBlockFormOptions = (
-	block?: DatabaseBlock,
+export const repositoryFormOptions = (
+	block?: Repository,
 	assetIds?: AssetId[],
 ) =>
 	formOptions({
 		defaultValues: defaultValues(block, assetIds),
 		validators: {
-			onChange: databaseBlockFormSchema,
+			onChange: repositoryFormSchema,
 		},
 	});

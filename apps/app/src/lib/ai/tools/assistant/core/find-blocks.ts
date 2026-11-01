@@ -1,6 +1,6 @@
+import { blockTypeSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { blockTypeOf } from "@/lib/ai/tools/entity-kind";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -9,14 +9,9 @@ import {
 import { listLimitSchema, listQuerySchema } from "./list-input";
 
 const findBlocksInputSchema = z.strictObject({
-	type: z
-		.enum([
-			"template",
-			"repository",
-		])
-		.describe(
-			"template: a behaviour, the system prompt a bot follows. repository: assets a bot searches to answer from.",
-		),
+	type: blockTypeSchema.describe(
+		"behaviour: the system prompt a bot follows. repository: assets a bot searches to answer from.",
+	),
 	query: listQuerySchema,
 	limit: listLimitSchema,
 });
@@ -33,7 +28,7 @@ export const findBlocksTool = (deps: AssistantToolDeps) =>
 						{
 							pageSize: limit,
 							filters: {
-								type: blockTypeOf(type),
+								type,
 								status: "all",
 								search: query,
 							},

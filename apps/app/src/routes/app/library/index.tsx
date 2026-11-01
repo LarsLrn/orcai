@@ -213,7 +213,7 @@ const Overview = ({ scope }: { scope: LibraryScope }) => {
 									: view.view === "asset"
 										? entry.kind === "asset"
 										: entry.kind === "block" &&
-											(entry.block.type === "template") ===
+											(entry.block.type === "behaviour") ===
 												(view.view === "behaviour"),
 							)
 							.map((entry) => (

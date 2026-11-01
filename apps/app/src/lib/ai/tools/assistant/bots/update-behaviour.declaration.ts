@@ -15,7 +15,7 @@ export const updateBehaviour = declareTool<typeof updateBehaviourTool>()({
 		!output && input && !input.name
 			? [
 					{
-						kind: "template",
+						kind: "behaviour",
 						id: input.id,
 					},
 				]
@@ -26,7 +26,7 @@ export const updateBehaviour = declareTool<typeof updateBehaviourTool>()({
 			: input &&
 				(input.name ??
 					nameOf({
-						kind: "template",
+						kind: "behaviour",
 						id: input.id,
 					}));
 

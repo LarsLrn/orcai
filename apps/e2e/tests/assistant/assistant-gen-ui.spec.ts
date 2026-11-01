@@ -38,7 +38,7 @@ test("assistant: a checklist renders in the assistant's answer", async ({
 							{
 								label: "Behaviour block",
 								status: "met",
-								summary: "A ready template is linked.",
+								summary: "A ready behaviour is linked.",
 							},
 							{
 								label: "Repository",

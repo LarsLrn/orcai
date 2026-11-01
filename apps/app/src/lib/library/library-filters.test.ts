@@ -80,11 +80,11 @@ describe("library filters", () => {
 	test.each([
 		[
 			"behaviour",
-			"template",
+			"behaviour",
 		],
 		[
 			"repository",
-			"database",
+			"repository",
 		],
 	] as const)("%s lists blocks of type %s", (view, type) => {
 		expect(

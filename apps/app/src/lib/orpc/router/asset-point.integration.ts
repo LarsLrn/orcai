@@ -155,16 +155,16 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 	const block = await run(
 		procedures.block.create(
 			{
-				type: "database",
+				type: "repository",
 				name: "Integration repository",
 				description: null,
 				contentJson: null,
 				status: "ready",
 				assets: assets.result,
 				config: {
-					minReferences: 1,
-					maxReferences: 5,
-					defaultReferences: 3,
+					minPassages: 1,
+					maxPassages: 5,
+					defaultPassages: 3,
 				},
 			},
 			await procedureOptions(owner, assets.zedToken ?? zedToken),

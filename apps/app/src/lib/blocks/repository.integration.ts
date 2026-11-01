@@ -24,23 +24,23 @@ import {
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
-import { reindexBlockAssets } from "@/lib/blocks/database-block";
+import { reindexBlockAssets } from "@/lib/blocks/repository";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions, createAsset } =
 	authzIntegration();
 
 const repository = (assets: AssetId[]) => ({
-	type: "database" as const,
+	type: "repository" as const,
 	name: "Integration repository",
 	description: null,
 	contentJson: null,
 	status: "ready" as const,
 	assets,
 	config: {
-		minReferences: 1,
-		maxReferences: 5,
-		defaultReferences: 3,
+		minPassages: 1,
+		maxPassages: 5,
+		defaultPassages: 3,
 	},
 });
 

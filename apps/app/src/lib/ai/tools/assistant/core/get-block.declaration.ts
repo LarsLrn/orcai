@@ -24,8 +24,8 @@ export const getBlock = declareTool<typeof getBlockTool>()({
 				name: output.name,
 			});
 
-			return output.type === "template"
-				? m.assistant_tool_get_block_summary_template({
+			return output.type === "behaviour"
+				? m.assistant_tool_get_block_summary_behaviour({
 						name,
 					})
 				: m.assistant_tool_get_block_summary_repository({

@@ -3,9 +3,9 @@ import { assetSchema, assetWithCapabilitiesSchema } from "../asset/schema";
 import { entityCapabilitiesSchema } from "../authorization";
 import { blockIdSchema } from "../block/ref";
 import {
+	behaviourSchema,
 	blockFieldsSchema,
-	databaseBlockSchema,
-	templateBlockSchema,
+	repositorySchema,
 } from "../block/schema";
 import { botSetupStrengthSchema } from "../bot-setup/schema";
 import { featuresSchema } from "../feature/schema";
@@ -79,16 +79,16 @@ const botEditorBlockSchema = z.object({
 	status: publicationStatusSchema,
 });
 
-export const botEditorTemplateBlockSchema = botEditorBlockSchema
+export const botEditorBehaviourSchema = botEditorBlockSchema
 	.extend({
-		type: templateBlockSchema.shape.type.default("template"),
-		config: templateBlockSchema.shape.config,
+		type: behaviourSchema.shape.type.default("behaviour"),
+		config: behaviourSchema.shape.config,
 	})
 	.nullable();
 
-export const botEditorDatabaseBlockSchema = botEditorBlockSchema.extend({
-	type: z.literal("database").default("database"),
-	config: databaseBlockSchema.shape.config,
+export const botEditorRepositorySchema = botEditorBlockSchema.extend({
+	type: z.literal("repository").default("repository"),
+	config: repositorySchema.shape.config,
 	assetIds: z.array(assetSchema.shape.id).default([]),
 	assets: z.array(assetWithCapabilitiesSchema).default([]),
 });
@@ -99,8 +99,8 @@ export const botEditorSchema = z.object({
 	description: botFieldsSchema.shape.description,
 	contentJson: botFieldsSchema.shape.contentJson.default({}),
 	status: publicationStatusSchema,
-	templateBlock: botEditorTemplateBlockSchema,
-	databaseBlocks: z.array(botEditorDatabaseBlockSchema),
+	behaviour: botEditorBehaviourSchema,
+	repositories: z.array(botEditorRepositorySchema),
 	features: featuresSchema.default({}),
 	capabilities: entityCapabilitiesSchema,
 });

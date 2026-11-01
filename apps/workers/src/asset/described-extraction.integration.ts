@@ -139,7 +139,7 @@ const seed = (processingStatus: PipelineStatus = "completed") =>
 						"First",
 						"Second",
 					].map((name) => ({
-						type: "database" as const,
+						type: "repository" as const,
 						name: `${name} repository`,
 						config: {},
 						userId: user.id,

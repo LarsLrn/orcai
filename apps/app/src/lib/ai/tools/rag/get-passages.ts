@@ -1,4 +1,4 @@
-import type { DatabaseBlock } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import type { ChatSources } from "@/lib/ai/citations/chat-sources";
@@ -34,7 +34,7 @@ export const getPassagesTool = ({
 	context,
 	sources,
 }: {
-	blocks: DatabaseBlock[];
+	blocks: Repository[];
 	context: ORPCContext;
 	sources: ChatSources;
 }) => {

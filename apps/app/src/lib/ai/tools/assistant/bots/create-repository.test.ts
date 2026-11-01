@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
-import { defaultDatabaseBlockConfig } from "@orcai/schema";
+import { defaultRepositoryConfig } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
@@ -57,10 +57,10 @@ describe("createRepositoryTool", () => {
 			{
 				procedure: "block.create",
 				input: expect.objectContaining({
-					type: "database",
+					type: "repository",
 					name: "New",
 					status: "draft",
-					config: defaultDatabaseBlockConfig,
+					config: defaultRepositoryConfig,
 					assets: [
 						asset,
 					],

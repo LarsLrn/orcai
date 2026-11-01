@@ -10,12 +10,12 @@ import {
 import { m } from "@/paraglide/messages";
 
 const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
-	const templateBlock = blocks.find((b) => b.type === "template");
-	const databaseBlocks = blocks.filter((b) => b.type === "database");
+	const behaviour = blocks.find((b) => b.type === "behaviour");
+	const repositories = blocks.filter((b) => b.type === "repository");
 
 	return (
 		<>
-			{templateBlock && (
+			{behaviour && (
 				<Section>
 					<SectionHeader>
 						<SectionTitle>{m.bots_blocks_behaviour_title()}</SectionTitle>
@@ -23,10 +23,10 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 							{m.bots_blocks_behaviour_description()}
 						</SectionDescription>
 					</SectionHeader>
-					<CompactBlockTile block={templateBlock} />
+					<CompactBlockTile block={behaviour} />
 				</Section>
 			)}
-			{databaseBlocks.length > 0 && (
+			{repositories.length > 0 && (
 				<Section>
 					<SectionHeader>
 						<SectionTitle>{m.bots_blocks_repositories_title()}</SectionTitle>
@@ -35,7 +35,7 @@ const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
 						</SectionDescription>
 					</SectionHeader>
 					<SectionGrid>
-						{databaseBlocks.map((block) => (
+						{repositories.map((block) => (
 							<CompactBlockTile key={block.id} block={block} />
 						))}
 					</SectionGrid>

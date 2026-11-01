@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { defaultDatabaseBlockConfig, type PipelineStatus } from "@orcai/schema";
+import { defaultRepositoryConfig, type PipelineStatus } from "@orcai/schema";
 import { createOrganization } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -76,7 +76,7 @@ describe("library lists", () => {
 					procedures.block.list(
 						{
 							filters: {
-								type: "template",
+								type: "behaviour",
 								search: tag,
 								scope,
 							},
@@ -148,7 +148,7 @@ describe("library lists", () => {
 							pageSize: 2,
 							sort: "name",
 							filters: {
-								type: "template",
+								type: "behaviour",
 								search: tag,
 								status,
 							},
@@ -194,7 +194,7 @@ describe("library lists", () => {
 				procedures.block.list(
 					{
 						filters: {
-							type: "template",
+							type: "behaviour",
 							search: tag,
 							status: "draft",
 						},
@@ -216,7 +216,7 @@ describe("library lists", () => {
 			const { admin, member, procedures, call, behaviour, share, toMember } =
 				await organization();
 			const tag = crypto.randomUUID();
-			const template = await behaviour(admin, `Behaviour ${tag}`);
+			const behaviourId = await behaviour(admin, `Behaviour ${tag}`);
 			const save = (name: string, status: "ready" | "draft") =>
 				call(admin, (options) =>
 					procedures.bot.save(
@@ -224,7 +224,7 @@ describe("library lists", () => {
 							name,
 							description: "Integration bot",
 							status,
-							templateBlockId: template,
+							behaviourId,
 						},
 						options,
 					),
@@ -506,7 +506,7 @@ describe("library lists", () => {
 						name: "Parent bot",
 						description: "Integration bot",
 						status: "draft",
-						templateBlockId: blockId,
+						behaviourId: blockId,
 					},
 					options,
 				),
@@ -731,12 +731,12 @@ describe("library lists", () => {
 				const { data } = await call(member, (options) =>
 					procedures.block.create(
 						{
-							type: "database",
+							type: "repository",
 							name: `Repository ${index} ${tag}`,
 							description: null,
 							contentJson: null,
 							status: "ready",
-							config: defaultDatabaseBlockConfig,
+							config: defaultRepositoryConfig,
 							assets: assetIds,
 						},
 						options,
@@ -776,7 +776,7 @@ describe("library lists", () => {
 					procedures.block.list(
 						{
 							filters: {
-								type: "database",
+								type: "repository",
 								search: tag,
 							},
 						},
@@ -804,7 +804,7 @@ describe("library lists", () => {
 					procedures.block.list(
 						{
 							filters: {
-								type: "database",
+								type: "repository",
 								search,
 							},
 						},
@@ -854,7 +854,7 @@ describe("library lists", () => {
 			const { data: foreign } = await call(away, (options) =>
 				procedures.block.create(
 					{
-						type: "template",
+						type: "behaviour",
 						name: `Elsewhere ${tag}`,
 						description: null,
 						contentJson: null,

@@ -229,7 +229,7 @@ test(
 				const [block] = yield* db
 					.insert(dbSchema.block)
 					.values({
-						type: "database",
+						type: "repository",
 						name: "Crash repository",
 						config: {},
 						userId: user.id,
@@ -282,7 +282,7 @@ const seedLinked = async () => {
 			const [block] = yield* db
 				.insert(dbSchema.block)
 				.values({
-					type: "database",
+					type: "repository",
 					name: "Fenced repository",
 					config: {},
 					userId: user.id,
@@ -411,7 +411,7 @@ test(
 				const [other] = yield* db
 					.insert(dbSchema.block)
 					.values({
-						type: "database",
+						type: "repository",
 						name: "Other repository",
 						config: {},
 						userId: asset.uploaderId,

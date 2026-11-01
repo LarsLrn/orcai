@@ -177,7 +177,7 @@ const twoOrganizations = async () => {
 	} = await call(
 		procedures.block.create(
 			{
-				type: "template",
+				type: "behaviour",
 				name: "Org block",
 				description: null,
 				contentJson: null,

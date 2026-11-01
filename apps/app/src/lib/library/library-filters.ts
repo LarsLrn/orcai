@@ -198,7 +198,7 @@ export const libraryListInput = {
 		sort: search.sort,
 		filters: {
 			...filterInput(libraryFilters.behaviour, search),
-			type: "template",
+			type: "behaviour",
 			scope: search.scope,
 			search: search.query || undefined,
 		},
@@ -209,7 +209,7 @@ export const libraryListInput = {
 		sort: search.sort,
 		filters: {
 			...filterInput(libraryFilters.repository, search),
-			type: "database",
+			type: "repository",
 			scope: search.scope,
 			search: search.query || undefined,
 		},

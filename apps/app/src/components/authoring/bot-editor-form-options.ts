@@ -1,39 +1,39 @@
 import type { ActivityRunId, BlockId, BotId } from "@orcai/core";
 import {
 	type AssetWithCapabilities,
+	type Behaviour,
 	type BotEditor,
-	type DatabaseBlock,
 	DEFAULT_FEATURES,
 	type EntityCapabilities,
 	type FeatureId,
 	type Features,
 	type PublicationStatus,
-	type TemplateBlock,
+	type Repository,
 } from "@orcai/schema";
-import { createDefaultDatabaseBlock } from "@/components/authoring/database-block-editor";
-import { createDefaultTemplateBlock } from "@/components/authoring/template-block-editor";
+import { createDefaultBehaviour } from "@/components/authoring/behaviour-editor";
+import { createDefaultRepository } from "@/components/authoring/repository-editor";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 
-type BotEditorTemplateBlock = {
+type BotEditorBehaviour = {
 	id?: BlockId;
 	capabilities: EntityCapabilities<"block">;
 	name: string;
 	description: string;
 	contentJson: unknown;
-	type: "template";
+	type: "behaviour";
 	status: PublicationStatus;
-	config: TemplateBlock["config"];
+	config: Behaviour["config"];
 };
 
-type BotEditorDatabaseBlock = {
+type BotEditorRepository = {
 	id?: BlockId;
 	capabilities: EntityCapabilities<"block">;
 	name: string;
 	description: string;
 	contentJson: unknown;
-	type: "database";
+	type: "repository";
 	status: PublicationStatus;
-	config: DatabaseBlock["config"];
+	config: Repository["config"];
 	assetIds: string[];
 	assets: AssetWithCapabilities[];
 	/** Uploads in this editor whose assets the save indexes as part of their run. */
@@ -55,8 +55,8 @@ export type BotEditorFormValues = {
 	contentJson: unknown;
 	status: PublicationStatus;
 	capabilities: EntityCapabilities<"bot">;
-	templateBlock: BotEditorTemplateBlock | null;
-	databaseBlocks: BotEditorDatabaseBlock[];
+	behaviour: BotEditorBehaviour | null;
+	repositories: BotEditorRepository[];
 	features: BotEditorFeatures;
 };
 
@@ -74,19 +74,19 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 		delete: true,
 		manage_access: true,
 	},
-	templateBlock: editor?.templateBlock
+	behaviour: editor?.behaviour
 		? {
-				...editor.templateBlock,
-				description: editor.templateBlock.description ?? "",
-				contentJson: editor.templateBlock.contentJson ?? null,
+				...editor.behaviour,
+				description: editor.behaviour.description ?? "",
+				contentJson: editor.behaviour.contentJson ?? null,
 			}
 		: null,
-	databaseBlocks:
-		editor?.databaseBlocks.map((databaseBlock) => ({
-			...databaseBlock,
-			description: databaseBlock.description ?? "",
-			contentJson: databaseBlock.contentJson ?? null,
-			assetIds: databaseBlock.assetIds ?? [],
+	repositories:
+		editor?.repositories.map((repository) => ({
+			...repository,
+			description: repository.description ?? "",
+			contentJson: repository.contentJson ?? null,
+			assetIds: repository.assetIds ?? [],
 			uploadRunIds: [],
 		})) ?? [],
 	features: editor ? editor.features : DEFAULT_FEATURES,
@@ -94,10 +94,10 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 
 export { toBotEditorFormValues };
 
-export const createDefaultBuilderDatabaseBlock = (params?: {
+export const createDefaultBuilderRepository = (params?: {
 	botName: string;
-}): BotEditorFormValues["databaseBlocks"][number] => {
-	const block = createDefaultDatabaseBlock(params);
+}): BotEditorFormValues["repositories"][number] => {
+	const block = createDefaultRepository(params);
 
 	return {
 		...block,
@@ -114,10 +114,10 @@ export const createDefaultBuilderDatabaseBlock = (params?: {
 	};
 };
 
-export const createDefaultBuilderTemplateBlock = (): NonNullable<
-	BotEditorFormValues["templateBlock"]
+export const createDefaultBuilderBehaviour = (): NonNullable<
+	BotEditorFormValues["behaviour"]
 > => {
-	const block = createDefaultTemplateBlock();
+	const block = createDefaultBehaviour();
 
 	return {
 		...block,

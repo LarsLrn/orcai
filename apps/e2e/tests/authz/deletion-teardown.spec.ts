@@ -3,10 +3,10 @@ import { expectDenied } from "../../fixtures/authorization";
 import {
 	accessIds,
 	authzName,
+	behaviourInput,
 	botSave,
-	databaseBlock,
 	grantUser,
-	templateBlock,
+	repositoryInput,
 } from "../../fixtures/authz/resources";
 import { expect, test } from "../../fixtures/index";
 
@@ -17,12 +17,12 @@ test("authz: deleting a bot takes away the read it passed on to its blocks", asy
 	const member = api.as("member");
 	const viewer = api.as("viewer");
 	const block = await member.block.create(
-		templateBlock(authzName("Deleted Bot Template")),
+		behaviourInput(authzName("Deleted Bot Behaviour")),
 	);
 	const bot = await member.bot.save(
 		botSave({
 			name: authzName("Deleted Bot"),
-			templateBlockId: block.data.id,
+			behaviourId: block.data.id,
 		}),
 	);
 	await grantUser(
@@ -69,7 +69,7 @@ test("authz: a deleted block leaves no access entry behind", async ({
 	const member = api.as("member");
 	const viewer = api.as("viewer");
 	const block = await member.block.create(
-		templateBlock(authzName("Deleted Block")),
+		behaviourInput(authzName("Deleted Block")),
 	);
 	await grantUser(
 		member,
@@ -115,7 +115,7 @@ test("authz: a deleted asset leaves no access entry and no repository link behin
 		"viewer",
 	);
 	const repository = await member.block.create(
-		databaseBlock(authzName("Deleted Asset Repository"), [
+		repositoryInput(authzName("Deleted Asset Repository"), [
 			asset.id,
 		]),
 	);

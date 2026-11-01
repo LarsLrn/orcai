@@ -19,9 +19,9 @@ test("analytics: an admin sees usage and ratings of a bot they cannot open as ot
 	test.slow();
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	const template = await member.block.create({
-		type: "template",
-		name: chatName("Analytics template"),
+	const behaviour = await member.block.create({
+		type: "behaviour",
+		name: chatName("Analytics behaviour"),
 		status: "ready",
 		config: {
 			systemPrompt: "Created by the analytics slice.",
@@ -31,8 +31,8 @@ test("analytics: an admin sees usage and ratings of a bot they cannot open as ot
 		name: chatName("Analytics bot"),
 		description: "Created by the analytics slice.",
 		status: "ready",
-		templateBlockId: template.data.id,
-		databaseBlockIds: [],
+		behaviourId: behaviour.data.id,
+		repositoryIds: [],
 	});
 	const { data: chat } = await member.chat.create({
 		title: chatName("Analytics"),

@@ -2,7 +2,6 @@ import type { BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type {
 	AccessAncestor,
-	BlockType,
 	ResourceGrant as ResourceGrantView,
 	ResourceIdentity,
 	ResourcePrincipal,
@@ -376,7 +375,7 @@ const getInheritedAccess = authed.resource.inheritedAccess
 				resourceType: "block" as const,
 				resourceId: row.id,
 				name: row.name,
-				blockType: row.type as BlockType,
+				blockType: row.type,
 			})),
 		];
 

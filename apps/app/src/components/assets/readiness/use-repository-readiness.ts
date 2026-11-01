@@ -43,7 +43,7 @@ const useBotRepositoryIds = (botId: BotId | null | undefined) => {
 						pageSize: BLOCK_READINESS_MAX_IDS,
 						filters: {
 							botId,
-							type: "database",
+							type: "repository",
 						},
 					}
 				: skipToken,
@@ -71,7 +71,7 @@ export const useChatRepositoryIds = (params: {
 	return [
 		...botRepositoryIds,
 		...(params.chatId ? (attached?.data ?? []) : [])
-			.filter((block) => block.type === "database")
+			.filter((block) => block.type === "repository")
 			.map((block) => block.id),
 	];
 };

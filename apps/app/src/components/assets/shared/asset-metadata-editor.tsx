@@ -18,7 +18,7 @@ type AssetMetadataDraft = {
 };
 
 const createDefaultAssetMetadata = (): Asset["metadata"] => ({
-	citation: "",
+	citationLabel: "",
 	externalUrl: "",
 	pageRange: "",
 	author: "",
@@ -76,10 +76,10 @@ const BookFields = ({
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
-			label={m.assets_metadata_citation_label()}
-			value={metadata.citation ?? ""}
-			placeholder={m.assets_metadata_citation_placeholder()}
-			onChange={(v) => onFieldChange("citation", v)}
+			label={m.assets_metadata_citation_label_label()}
+			value={metadata.citationLabel ?? ""}
+			placeholder={m.assets_metadata_citation_label_placeholder()}
+			onChange={(v) => onFieldChange("citationLabel", v)}
 		/>
 		<MetadataField
 			label={m.assets_metadata_chapter_title_label()}
@@ -111,10 +111,10 @@ const JournalArticleFields = ({
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
-			label={m.assets_metadata_citation_label()}
-			value={metadata.citation ?? ""}
-			placeholder={m.assets_metadata_citation_placeholder()}
-			onChange={(v) => onFieldChange("citation", v)}
+			label={m.assets_metadata_citation_label_label()}
+			value={metadata.citationLabel ?? ""}
+			placeholder={m.assets_metadata_citation_label_placeholder()}
+			onChange={(v) => onFieldChange("citationLabel", v)}
 		/>
 		<MetadataField
 			label={m.assets_metadata_journal_name_label()}
@@ -164,10 +164,10 @@ const WebSourceFields = ({
 			onChange={(v) => onFieldChange("author", v)}
 		/>
 		<MetadataField
-			label={m.assets_metadata_citation_label()}
-			value={metadata.citation ?? ""}
-			placeholder={m.assets_metadata_citation_placeholder()}
-			onChange={(v) => onFieldChange("citation", v)}
+			label={m.assets_metadata_citation_label_label()}
+			value={metadata.citationLabel ?? ""}
+			placeholder={m.assets_metadata_citation_label_placeholder()}
+			onChange={(v) => onFieldChange("citationLabel", v)}
 		/>
 		<MetadataField
 			label={m.assets_metadata_website_name_label()}
@@ -200,10 +200,10 @@ const LegalTextFields = ({
 }) => (
 	<>
 		<MetadataField
-			label={m.assets_metadata_citation_label()}
-			value={metadata.citation ?? ""}
-			placeholder={m.assets_metadata_citation_placeholder()}
-			onChange={(v) => onFieldChange("citation", v)}
+			label={m.assets_metadata_citation_label_label()}
+			value={metadata.citationLabel ?? ""}
+			placeholder={m.assets_metadata_citation_label_placeholder()}
+			onChange={(v) => onFieldChange("citationLabel", v)}
 		/>
 		<MetadataField
 			label={m.assets_metadata_legal_reference_label()}

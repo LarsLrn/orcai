@@ -32,9 +32,9 @@ const run = async <Input, Output>(
 
 const id = <Id extends string>() => crypto.randomUUID() as Id;
 
-const block = (type: "template" | "database", config: object) => ({
+const block = (type: "behaviour" | "repository", config: object) => ({
 	id: id<BlockId>(),
-	name: type === "template" ? "Strict" : "Sources",
+	name: type === "behaviour" ? "Strict" : "Sources",
 	type,
 	status: "ready",
 	description: null,
@@ -51,22 +51,22 @@ const block = (type: "template" | "database", config: object) => ({
 beforeEach(resetProcedures);
 
 describe("getBlock", () => {
-	test("a template comes with its system prompt and no rich content", async () => {
-		const template = block("template", {
+	test("a behaviour comes with its system prompt and no rich content", async () => {
+		const behaviour = block("behaviour", {
 			systemPrompt: "Be strict.",
 		});
 		answers["block.find"] = () =>
 			Effect.succeed({
-				data: template,
+				data: behaviour,
 			});
 
 		const output = await run(getBlockTool(deps()), {
-			id: template.id,
+			id: behaviour.id,
 		});
 
 		expect(output).toEqual({
-			type: "template",
-			id: template.id,
+			type: "behaviour",
+			id: behaviour.id,
 			name: "Strict",
 			description: null,
 			status: "ready",
@@ -82,12 +82,12 @@ describe("getBlock", () => {
 
 	test("a repository lists its asset totals and each asset's state", async () => {
 		const config = {
-			minReferences: 1,
-			maxReferences: 8,
-			defaultReferences: 4,
+			minPassages: 1,
+			maxPassages: 8,
+			defaultPassages: 4,
 			retrievalMode: "hybrid" as const,
 		};
-		const repository = block("database", config);
+		const repository = block("repository", config);
 		const [ready, failed, queued] = [
 			id<AssetId>(),
 			id<AssetId>(),

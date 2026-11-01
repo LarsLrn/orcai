@@ -260,7 +260,7 @@ test(
 					const [block] = yield* db
 						.insert(dbSchema.block)
 						.values({
-							type: "database",
+							type: "repository",
 							name: "Cleanup repository",
 							config: {},
 							userId: user.id,

@@ -43,7 +43,7 @@ export const createBehaviourTool = (deps: AssistantToolDeps) =>
 					create: callProcedure(deps, (procedures, options) =>
 						procedures.block.create(
 							{
-								type: "template",
+								type: "behaviour",
 								name: input.name,
 								description:
 									input.description === undefined

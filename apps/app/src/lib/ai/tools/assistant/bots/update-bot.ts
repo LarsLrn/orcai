@@ -54,10 +54,10 @@ type StoredBot = Pick<
 	BotEditor,
 	"id" | "name" | "description" | "contentJson" | "status" | "features"
 > & {
-	templateBlock: {
+	behaviour: {
 		id: BlockId;
 	} | null;
-	databaseBlocks: {
+	repositories: {
 		id: BlockId;
 	}[];
 };
@@ -72,12 +72,12 @@ export const updateBotPayload = (
 	description: input.description ?? current.description,
 	contentJson: current.contentJson,
 	status: current.status,
-	templateBlockId:
+	behaviourId:
 		input.behaviourId === undefined
-			? (current.templateBlock?.id ?? null)
+			? (current.behaviour?.id ?? null)
 			: input.behaviourId,
-	databaseBlockIds:
-		input.repositoryIds ?? current.databaseBlocks.map((block) => block.id),
+	repositoryIds:
+		input.repositoryIds ?? current.repositories.map((block) => block.id),
 	features: input.features ?? current.features,
 	// The assistant never lists; a listed bot's new blocks wait for the owner in the app.
 	listBlockIds: [],
@@ -102,22 +102,22 @@ export const updateBotTool = (deps: AssistantToolDeps) =>
 						),
 				).pipe(expectType("bot", id));
 				const payload = updateBotPayload(input, current);
-				const { templateBlockId, databaseBlockIds } = payload;
+				const { behaviourId, repositoryIds } = payload;
 
 				const bot = yield* callProcedure(deps, (procedures, options) =>
 					procedures.bot.save(payload, options),
 				).pipe(
 					mutation("getBot"),
 					expectType("block", [
-						...(templateBlockId
+						...(behaviourId
 							? [
-									templateBlockId,
+									behaviourId,
 								]
 							: []),
-						...databaseBlockIds,
+						...repositoryIds,
 					]),
-					expectType("template", templateBlockId ?? []),
-					expectType("repository", databaseBlockIds),
+					expectType("behaviour", behaviourId ?? []),
+					expectType("repository", repositoryIds),
 					Effect.map(({ data }) => botOutline(data)),
 				);
 				return input.setup === undefined

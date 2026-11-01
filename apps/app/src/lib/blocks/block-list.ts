@@ -63,7 +63,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 				}),
 				repositoryTotals(
 					blocks
-						.filter((block) => block.type === "database")
+						.filter((block) => block.type === "repository")
 						.map((block) => block.id),
 				),
 				homeOrganizations("block", ids, reader.organizationId),
@@ -76,7 +76,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 		return blocks.map((block) => ({
 			...block,
 			capabilities: capabilities.get(block.id) ?? emptyCapabilities("block"),
-			assets: block.type === "database" ? totals(block.id) : null,
+			assets: block.type === "repository" ? totals(block.id) : null,
 			homeOrganization: homes(block.id),
 		}));
 	});

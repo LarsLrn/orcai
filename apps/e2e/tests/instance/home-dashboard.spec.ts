@@ -44,8 +44,8 @@ test("home: long bot and catalogue names wrap inside a phone screen", async ({
 			name,
 			description: "Created by the home phone spec.",
 			status: "ready",
-			templateBlockId: null,
-			databaseBlockIds: [],
+			behaviourId: null,
+			repositoryIds: [],
 		});
 	}
 
@@ -53,7 +53,7 @@ test("home: long bot and catalogue names wrap inside a phone screen", async ({
 	const author = api.as("admin", source);
 	const entryName = longName(runId());
 	const { data: behaviour } = await author.block.create({
-		type: "template",
+		type: "behaviour",
 		name: entryName,
 		status: "ready",
 		config: {

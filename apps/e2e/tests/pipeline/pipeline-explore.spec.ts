@@ -71,7 +71,7 @@ test("pipeline: Explore browses a repository with Load more, reads an asset in o
 	await open(page, `/app/library/repositories/${repository.blockId}`);
 	await page
 		.getByRole("link", {
-			name: message("blocks_database_config_explore_action"),
+			name: message("blocks_repository_config_explore_action"),
 			exact: true,
 		})
 		.click();

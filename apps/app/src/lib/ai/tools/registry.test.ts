@@ -39,7 +39,7 @@ const pendingInputs = {
 		id: id(1),
 	},
 	findBlocks: {
-		type: "template",
+		type: "behaviour",
 		query: "essay",
 		limit: 20,
 	},

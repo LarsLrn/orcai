@@ -1,4 +1,4 @@
-import { blockIdSchema, type DatabaseBlock } from "@orcai/schema";
+import { blockIdSchema, type Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
@@ -15,7 +15,7 @@ export const listRepositoryAssetsTool = ({
 	blocks,
 	context,
 }: {
-	blocks: DatabaseBlock[];
+	blocks: Repository[];
 	context: ORPCContext;
 }) =>
 	effectTool({

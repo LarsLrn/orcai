@@ -14,18 +14,19 @@ import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import { useRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
+import { BehaviourEditor } from "@/components/authoring/behaviour-editor";
 import {
 	type BotEditorFormValues,
-	createDefaultBuilderDatabaseBlock,
-	createDefaultBuilderTemplateBlock,
+	createDefaultBuilderBehaviour,
+	createDefaultBuilderRepository,
 	toBotEditorFormValues,
 } from "@/components/authoring/bot-editor-form-options";
 import {
 	type BotEditorBlockSaved,
 	botEditorBaseline,
 	planBotEditorSave,
-	toDatabaseBlockInput,
-	toTemplateBlockInput,
+	toBehaviourInput,
+	toRepositoryInput,
 	withSavedBlock,
 } from "@/components/authoring/bot-editor-save";
 import { WIZARD_STEPS } from "@/components/authoring/bot-editor-steps";
@@ -33,12 +34,11 @@ import {
 	describeAllMembersAccess,
 	PublishSummary,
 } from "@/components/authoring/publish-summary";
-import { TemplateBlockEditor } from "@/components/authoring/template-block-editor";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import {
-	createDatabaseBlockBuilderFieldMap,
-	DatabaseBlockFieldGroup,
-} from "@/components/blocks/database-block/form/database-block-field-group";
+	createRepositoryBuilderFieldMap,
+	RepositoryFieldGroup,
+} from "@/components/blocks/repository/form/repository-field-group";
 import {
 	BotModelStep,
 	type BotModelStepHandle,
@@ -90,25 +90,25 @@ const canEditBlock = (block: {
 const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
 
-	if (!editor.templateBlock) {
+	if (!editor.behaviour) {
 		issues.push(m.authoring_publish_issue_behaviour_missing());
 	}
-	if (editor.templateBlock && editor.templateBlock.status !== "ready") {
+	if (editor.behaviour && editor.behaviour.status !== "ready") {
 		issues.push(m.authoring_publish_issue_behaviour_not_ready());
 	}
 
-	for (const databaseBlock of editor.databaseBlocks) {
-		if (databaseBlock.status !== "ready") {
+	for (const repository of editor.repositories) {
+		if (repository.status !== "ready") {
 			issues.push(
 				m.authoring_publish_issue_repository_not_ready({
-					name: databaseBlock.name,
+					name: repository.name,
 				}),
 			);
 		}
-		if (databaseBlock.assetIds.length === 0) {
+		if (repository.assetIds.length === 0) {
 			issues.push(
 				m.authoring_publish_issue_repository_no_assets({
-					name: databaseBlock.name,
+					name: repository.name,
 				}),
 			);
 		}
@@ -131,10 +131,8 @@ const BotEditorShell = ({
 	const confirm = useConfirm();
 	const { availability: assistantAvailability } = useAssistantModel();
 	const [internalStepIndex, setInternalStepIndex] = useState(0);
-	const [isTemplateBlockLibraryOpen, setIsTemplateBlockLibraryOpen] =
-		useState(false);
-	const [isDatabaseBlockLibraryOpen, setIsDatabaseBlockLibraryOpen] =
-		useState(false);
+	const [isBehaviourLibraryOpen, setIsBehaviourLibraryOpen] = useState(false);
+	const [isRepositoryLibraryOpen, setIsRepositoryLibraryOpen] = useState(false);
 	const [wizardAction, setWizardAction] = useState<
 		"back" | "next" | "draft" | "publish" | null
 	>(null);
@@ -164,7 +162,7 @@ const BotEditorShell = ({
 		],
 	);
 	const readiness = useRepositoryReadiness(
-		editor.databaseBlocks.flatMap((block) =>
+		editor.repositories.flatMap((block) =>
 			block.id
 				? [
 						block.id,
@@ -229,7 +227,7 @@ const BotEditorShell = ({
 		}
 	};
 
-	const handleSelectExistingTemplateBlock = async (blockId: string) => {
+	const handleSelectExistingBehaviour = async (blockId: string) => {
 		const block = await queryClient.query(
 			orpc.block.find.queryOptions({
 				input: {
@@ -238,25 +236,25 @@ const BotEditorShell = ({
 			}),
 		);
 
-		if (block.data.type !== "template") {
+		if (block.data.type !== "behaviour") {
 			return;
 		}
 
-		const templateBlock = {
+		const behaviour = {
 			id: block.data.id,
 			capabilities: block.data.capabilities,
 			name: block.data.name,
 			description: block.data.description ?? "",
 			contentJson: block.data.contentJson,
-			type: "template" as const,
+			type: "behaviour" as const,
 			status: block.data.status,
 			config: block.data.config,
-		} satisfies NonNullable<BotEditorFormValues["templateBlock"]>;
-		setBaseline((current) => withSavedBlock(current, templateBlock));
-		form.setFieldValue("templateBlock", templateBlock);
+		} satisfies NonNullable<BotEditorFormValues["behaviour"]>;
+		setBaseline((current) => withSavedBlock(current, behaviour));
+		form.setFieldValue("behaviour", behaviour);
 	};
 
-	const handleAddExistingDatabaseBlock = async (blockId: string) => {
+	const handleAddExistingRepository = async (blockId: string) => {
 		const block = await queryClient.query(
 			orpc.block.find.queryOptions({
 				input: {
@@ -265,12 +263,12 @@ const BotEditorShell = ({
 			}),
 		);
 
-		if (block.data.type !== "database") {
+		if (block.data.type !== "repository") {
 			return;
 		}
 
-		const alreadyLinked = editor.databaseBlocks.some(
-			(databaseBlock) => databaseBlock.id === block.data.id,
+		const alreadyLinked = editor.repositories.some(
+			(repository) => repository.id === block.data.id,
 		);
 		if (alreadyLinked) {
 			return;
@@ -280,7 +278,7 @@ const BotEditorShell = ({
 			id: block.data.id,
 			capabilities: block.data.capabilities,
 			name: block.data.name,
-			type: "database" as const,
+			type: "repository" as const,
 			description: block.data.description ?? "",
 			contentJson: block.data.contentJson,
 			status: block.data.status,
@@ -288,11 +286,11 @@ const BotEditorShell = ({
 			assetIds: block.assets?.map((asset) => asset.id) ?? [],
 			assets: block.assets ?? [],
 			uploadRunIds: [],
-		} satisfies BotEditorFormValues["databaseBlocks"][number];
+		} satisfies BotEditorFormValues["repositories"][number];
 
 		setBaseline((current) => withSavedBlock(current, linkedBlock));
-		form.setFieldValue("databaseBlocks", [
-			...editor.databaseBlocks,
+		form.setFieldValue("repositories", [
+			...editor.repositories,
 			linkedBlock,
 		]);
 	};
@@ -306,10 +304,10 @@ const BotEditorShell = ({
 	const handleBlockSaved = ({ slot, block, zedToken }: BotEditorBlockSaved) => {
 		zedTokenRef.current = zedToken ?? zedTokenRef.current;
 		setBaseline((current) => withSavedBlock(current, block));
-		if (slot === "template") {
-			form.setFieldValue("templateBlock.id", block.id);
+		if (slot === "behaviour") {
+			form.setFieldValue("behaviour.id", block.id);
 		} else {
-			form.setFieldValue(`databaseBlocks[${slot}].id`, block.id);
+			form.setFieldValue(`repositories[${slot}].id`, block.id);
 		}
 	};
 
@@ -445,28 +443,28 @@ const BotEditorShell = ({
 		});
 	};
 
-	const handleTemplateBlockStatusChange = async (status: PublicationStatus) => {
-		const templateBlock = editor.templateBlock;
-		if (!templateBlock || templateBlock.status === status) {
+	const handleBehaviourStatusChange = async (status: PublicationStatus) => {
+		const behaviour = editor.behaviour;
+		if (!behaviour || behaviour.status === status) {
 			return;
 		}
 
-		if (!templateBlock.id) {
-			form.setFieldValue("templateBlock", {
-				...templateBlock,
+		if (!behaviour.id) {
+			form.setFieldValue("behaviour", {
+				...behaviour,
 				status,
 			});
 			return;
 		}
 
-		if (!canEditBlock(templateBlock)) {
+		if (!canEditBlock(behaviour)) {
 			return;
 		}
 
 		const result = await setBlockStatus({
-			id: templateBlock.id,
-			...toTemplateBlockInput({
-				...templateBlock,
+			id: behaviour.id,
+			...toBehaviourInput({
+				...behaviour,
 				status,
 			}),
 		});
@@ -475,28 +473,28 @@ const BotEditorShell = ({
 		}
 
 		const savedBlock = {
-			...templateBlock,
-			id: templateBlock.id,
+			...behaviour,
+			id: behaviour.id,
 			status,
 		};
 		setBaseline((current) => withSavedBlock(current, savedBlock));
-		form.setFieldValue("templateBlock", savedBlock);
+		form.setFieldValue("behaviour", savedBlock);
 	};
 
-	const handleDatabaseBlockStatusChange = async (params: {
+	const handleRepositoryStatusChange = async (params: {
 		blockId?: string;
 		blockIndex: number;
 		status: PublicationStatus;
 	}) => {
-		const databaseBlock = editor.databaseBlocks[params.blockIndex];
-		if (!databaseBlock || databaseBlock.status === params.status) {
+		const repository = editor.repositories[params.blockIndex];
+		if (!repository || repository.status === params.status) {
 			return;
 		}
 
-		if (!databaseBlock.id) {
+		if (!repository.id) {
 			form.setFieldValue(
-				"databaseBlocks",
-				editor.databaseBlocks.map((block, index) =>
+				"repositories",
+				editor.repositories.map((block, index) =>
 					index === params.blockIndex
 						? {
 								...block,
@@ -508,14 +506,14 @@ const BotEditorShell = ({
 			return;
 		}
 
-		if (!canEditBlock(databaseBlock)) {
+		if (!canEditBlock(repository)) {
 			return;
 		}
 
 		const result = await setBlockStatus({
-			id: databaseBlock.id,
-			...toDatabaseBlockInput({
-				...databaseBlock,
+			id: repository.id,
+			...toRepositoryInput({
+				...repository,
 				status: params.status,
 			}),
 		});
@@ -524,14 +522,14 @@ const BotEditorShell = ({
 		}
 
 		const savedBlock = {
-			...databaseBlock,
-			id: databaseBlock.id,
+			...repository,
+			id: repository.id,
 			status: params.status,
 		};
 		setBaseline((current) => withSavedBlock(current, savedBlock));
 		form.setFieldValue(
-			"databaseBlocks",
-			editor.databaseBlocks.map((block) =>
+			"repositories",
+			editor.repositories.map((block) =>
 				block.id === savedBlock.id ? savedBlock : block,
 			),
 		);
@@ -670,24 +668,23 @@ const BotEditorShell = ({
 
 					{currentStep.key === "behavior" ? (
 						<div className="grid min-w-0 grid-cols-1 gap-4">
-							{editor.templateBlock ? (
+							{editor.behaviour ? (
 								<div className="flex flex-wrap justify-end gap-2">
 									<Button
 										variant="outline"
-										onClick={() => setIsTemplateBlockLibraryOpen(true)}
+										onClick={() => setIsBehaviourLibraryOpen(true)}
 									>
 										{m.authoring_behaviour_use_existing_action()}
 									</Button>
 								</div>
 							) : null}
 
-							{editor.templateBlock ? (
-								canEditBlock(editor.templateBlock) ||
-								!editor.templateBlock.id ? (
-									<TemplateBlockEditor
+							{editor.behaviour ? (
+								canEditBlock(editor.behaviour) || !editor.behaviour.id ? (
+									<BehaviourEditor
 										nameField={
 											<form.AppField
-												name="templateBlock.name"
+												name="behaviour.name"
 												children={(field) => (
 													<field.TextField
 														label={m.common_name_label()}
@@ -699,7 +696,7 @@ const BotEditorShell = ({
 										systemPromptField={
 											<div className="space-y-2">
 												<form.AppField
-													name="templateBlock.config.systemPrompt"
+													name="behaviour.config.systemPrompt"
 													children={(field) => (
 														<field.TextareaField
 															label={m.authoring_behaviour_system_prompt_label()}
@@ -714,11 +711,11 @@ const BotEditorShell = ({
 														variant="outline"
 														size="sm"
 														disabled={
-															!!editor.templateBlock?.config.systemPrompt.trim()
+															!!editor.behaviour?.config.systemPrompt.trim()
 														}
 														onClick={() =>
 															form.setFieldValue(
-																"templateBlock.config.systemPrompt",
+																"behaviour.config.systemPrompt",
 																m.authoring_behaviour_example(),
 															)
 														}
@@ -733,7 +730,7 @@ const BotEditorShell = ({
 										}
 										descriptionField={
 											<form.AppField
-												name="templateBlock.description"
+												name="behaviour.description"
 												children={(field) => (
 													<field.TextareaField
 														label={m.authoring_behaviour_description_label()}
@@ -745,7 +742,7 @@ const BotEditorShell = ({
 										}
 										contentField={
 											<form.AppField
-												name="templateBlock.contentJson"
+												name="behaviour.contentJson"
 												children={(field) => (
 													<field.BlockEditorField
 														label={m.authoring_behaviour_content_label()}
@@ -755,7 +752,7 @@ const BotEditorShell = ({
 										}
 									/>
 								) : (
-									<ReadOnlyTemplateCard block={editor.templateBlock} />
+									<ReadOnlyBehaviourCard block={editor.behaviour} />
 								)
 							) : (
 								<Card className="min-w-0 rounded-2xl">
@@ -772,8 +769,8 @@ const BotEditorShell = ({
 											<Button
 												onClick={() =>
 													form.setFieldValue(
-														"templateBlock",
-														createDefaultBuilderTemplateBlock(),
+														"behaviour",
+														createDefaultBuilderBehaviour(),
 													)
 												}
 											>
@@ -781,7 +778,7 @@ const BotEditorShell = ({
 											</Button>
 											<Button
 												variant="outline"
-												onClick={() => setIsTemplateBlockLibraryOpen(true)}
+												onClick={() => setIsBehaviourLibraryOpen(true)}
 											>
 												{m.authoring_behaviour_use_existing_action()}
 											</Button>
@@ -805,20 +802,18 @@ const BotEditorShell = ({
 							</Card>
 
 							<BlockSelectorDialog
-								open={isTemplateBlockLibraryOpen}
-								onOpenChange={setIsTemplateBlockLibraryOpen}
-								type="template"
+								open={isBehaviourLibraryOpen}
+								onOpenChange={setIsBehaviourLibraryOpen}
+								type="behaviour"
 								includeDrafts
 								selectedIds={
-									editor.templateBlock?.id
+									editor.behaviour?.id
 										? [
-												editor.templateBlock.id,
+												editor.behaviour.id,
 											]
 										: []
 								}
-								onSelect={(block) =>
-									handleSelectExistingTemplateBlock(block.id)
-								}
+								onSelect={(block) => handleSelectExistingBehaviour(block.id)}
 								title={m.authoring_behaviour_library_dialog_title()}
 								description={m.authoring_behaviour_library_dialog_description()}
 								searchPlaceholder={m.authoring_behaviour_library_search_placeholder()}
@@ -828,7 +823,7 @@ const BotEditorShell = ({
 
 					{currentStep.key === "repositories" ? (
 						<div className="grid min-w-0 grid-cols-1 gap-4">
-							{editor.databaseBlocks.length === 0 ? (
+							{editor.repositories.length === 0 ? (
 								<div className="min-w-0 rounded-2xl border border-dashed bg-background/70 p-6">
 									<div className="font-medium">
 										{m.authoring_repositories_empty_state_title()}
@@ -839,9 +834,9 @@ const BotEditorShell = ({
 									<div className="mt-4 flex flex-wrap gap-2">
 										<Button
 											onClick={() =>
-												form.setFieldValue("databaseBlocks", [
-													...editor.databaseBlocks,
-													createDefaultBuilderDatabaseBlock({
+												form.setFieldValue("repositories", [
+													...editor.repositories,
+													createDefaultBuilderRepository({
 														botName: editor.name,
 													}),
 												])
@@ -851,7 +846,7 @@ const BotEditorShell = ({
 										</Button>
 										<Button
 											variant="outline"
-											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
+											onClick={() => setIsRepositoryLibraryOpen(true)}
 										>
 											{m.authoring_repositories_use_existing_action()}
 										</Button>
@@ -862,36 +857,36 @@ const BotEditorShell = ({
 									<div className="flex flex-wrap justify-end gap-2">
 										<Button
 											variant="outline"
-											onClick={() => setIsDatabaseBlockLibraryOpen(true)}
+											onClick={() => setIsRepositoryLibraryOpen(true)}
 										>
 											{m.authoring_repositories_add_existing_action()}
 										</Button>
 									</div>
 
-									{editor.databaseBlocks.map((databaseBlock, index) =>
-										canEditBlock(databaseBlock) || !databaseBlock.id ? (
-											<DatabaseBlockFieldGroup
-												key={databaseBlock.id ?? `database-block-${index}`}
+									{editor.repositories.map((repository, index) =>
+										canEditBlock(repository) || !repository.id ? (
+											<RepositoryFieldGroup
+												key={repository.id ?? `repository-${index}`}
 												form={form}
-												fields={createDatabaseBlockBuilderFieldMap(index)}
-												blockId={databaseBlock.id}
-												assetIds={databaseBlock.assetIds}
+												fields={createRepositoryBuilderFieldMap(index)}
+												blockId={repository.id}
+												assetIds={repository.assetIds}
 												onAssetIdsChange={(ids) => {
 													form.setFieldValue(
-														`databaseBlocks[${index}].assetIds`,
+														`repositories[${index}].assetIds`,
 														ids,
 													);
 												}}
-												assets={databaseBlock.assets}
+												assets={repository.assets}
 												onAssetsChange={(assets) => {
 													form.setFieldValue(
-														`databaseBlocks[${index}].assets`,
+														`repositories[${index}].assets`,
 														assets,
 													);
 												}}
 												onUploadRun={(runId) => {
 													form.setFieldValue(
-														`databaseBlocks[${index}].uploadRunIds`,
+														`repositories[${index}].uploadRunIds`,
 														(runIds) => [
 															...runIds,
 															runId,
@@ -900,21 +895,21 @@ const BotEditorShell = ({
 												}}
 												onRemove={() =>
 													form.setFieldValue(
-														"databaseBlocks",
-														editor.databaseBlocks.filter(
+														"repositories",
+														editor.repositories.filter(
 															(_, existingIndex) => existingIndex !== index,
 														),
 													)
 												}
 											/>
 										) : (
-											<ReadOnlyDatabaseCard
-												key={databaseBlock.id}
-												block={databaseBlock}
+											<ReadOnlyRepositoryCard
+												key={repository.id}
+												block={repository}
 												onDetach={() =>
 													form.setFieldValue(
-														"databaseBlocks",
-														editor.databaseBlocks.filter(
+														"repositories",
+														editor.repositories.filter(
 															(_, existingIndex) => existingIndex !== index,
 														),
 													)
@@ -927,9 +922,9 @@ const BotEditorShell = ({
 										className="justify-self-start"
 										variant="outline"
 										onClick={() =>
-											form.setFieldValue("databaseBlocks", [
-												...editor.databaseBlocks,
-												createDefaultBuilderDatabaseBlock({
+											form.setFieldValue("repositories", [
+												...editor.repositories,
+												createDefaultBuilderRepository({
 													botName: editor.name,
 												}),
 											])
@@ -941,19 +936,19 @@ const BotEditorShell = ({
 							)}
 
 							<BlockSelectorDialog
-								open={isDatabaseBlockLibraryOpen}
-								onOpenChange={setIsDatabaseBlockLibraryOpen}
-								type="database"
+								open={isRepositoryLibraryOpen}
+								onOpenChange={setIsRepositoryLibraryOpen}
+								type="repository"
 								includeDrafts
-								selectedIds={editor.databaseBlocks.flatMap((databaseBlock) =>
-									databaseBlock.id
+								selectedIds={editor.repositories.flatMap((repository) =>
+									repository.id
 										? [
-												databaseBlock.id,
+												repository.id,
 											]
 										: [],
 								)}
 								onSelect={async (block) => {
-									await handleAddExistingDatabaseBlock(block.id);
+									await handleAddExistingRepository(block.id);
 								}}
 								title={m.authoring_repositories_library_dialog_title()}
 								description={m.authoring_repositories_library_dialog_description()}
@@ -980,8 +975,8 @@ const BotEditorShell = ({
 							visibility={visibility.data?.data.visibility}
 							grantCount={grants.data?.data.length ?? 0}
 							issues={publishIssues}
-							onTemplateBlockStatusChange={handleTemplateBlockStatusChange}
-							onDatabaseBlockStatusChange={handleDatabaseBlockStatusChange}
+							onBehaviourStatusChange={handleBehaviourStatusChange}
+							onRepositoryStatusChange={handleRepositoryStatusChange}
 							isSettingBlockStatus={isSettingBlockStatus}
 						/>
 					) : null}
@@ -1114,16 +1109,16 @@ const ReviewSection = ({
 	visibility,
 	grantCount,
 	issues,
-	onTemplateBlockStatusChange,
-	onDatabaseBlockStatusChange,
+	onBehaviourStatusChange,
+	onRepositoryStatusChange,
 	isSettingBlockStatus,
 }: {
 	editor: BotEditorFormValues;
 	visibility?: "private" | "public";
 	grantCount: number;
 	issues: string[];
-	onTemplateBlockStatusChange: (status: PublicationStatus) => void;
-	onDatabaseBlockStatusChange: (params: {
+	onBehaviourStatusChange: (status: PublicationStatus) => void;
+	onRepositoryStatusChange: (params: {
 		blockId?: string;
 		blockIndex: number;
 		status: PublicationStatus;
@@ -1160,30 +1155,28 @@ const ReviewSection = ({
 						{m.authoring_review_behaviour_label()}
 					</div>
 					<div className="mt-2 rounded-xl border p-4 text-sm">
-						{editor.templateBlock ? (
+						{editor.behaviour ? (
 							<>
-								<div className="font-medium">{editor.templateBlock.name}</div>
+								<div className="font-medium">{editor.behaviour.name}</div>
 								<div className="mt-1 text-muted-foreground">
 									{m.authoring_review_behaviour_hint()}
 								</div>
 								<div className="mt-3 max-w-sm space-y-2">
-									<Label htmlFor="review-template-status">
+									<Label htmlFor="review-behaviour-status">
 										{m.authoring_review_behaviour_status_label()}
 									</Label>
 									<OptionPicker
-										id="review-template-status"
+										id="review-behaviour-status"
 										options={publicationStatusOptions}
-										value={editor.templateBlock.status}
-										onChange={onTemplateBlockStatusChange}
+										value={editor.behaviour.status}
+										onChange={onBehaviourStatusChange}
 										disabled={
 											Boolean(
-												editor.templateBlock.id &&
-													!canEditBlock(editor.templateBlock),
+												editor.behaviour.id && !canEditBlock(editor.behaviour),
 											) || isSettingBlockStatus
 										}
 									/>
-									{editor.templateBlock.id &&
-									!canEditBlock(editor.templateBlock) ? (
+									{editor.behaviour.id && !canEditBlock(editor.behaviour) ? (
 										<p className="text-muted-foreground text-xs">
 											{m.authoring_review_behaviour_readonly_hint()}
 										</p>
@@ -1205,20 +1198,20 @@ const ReviewSection = ({
 						{m.authoring_review_repositories_label()}
 					</div>
 					<div className="mt-2 space-y-3">
-						{editor.databaseBlocks.length === 0 ? (
+						{editor.repositories.length === 0 ? (
 							<div className="rounded-xl border p-4 text-muted-foreground text-sm">
 								{m.authoring_review_repositories_empty_state()}
 							</div>
 						) : (
-							editor.databaseBlocks.map((databaseBlock, index) => (
+							editor.repositories.map((repository, index) => (
 								<div
-									key={databaseBlock.id ?? `review-db-${index}`}
+									key={repository.id ?? `review-db-${index}`}
 									className="rounded-xl border p-4"
 								>
-									<div className="font-medium">{databaseBlock.name}</div>
+									<div className="font-medium">{repository.name}</div>
 									<div className="mt-1 text-muted-foreground text-sm">
 										{m.authoring_attached_asset_count({
-											count: databaseBlock.assetIds.length,
+											count: repository.assetIds.length,
 										})}
 									</div>
 									<div className="mt-3 max-w-sm space-y-2">
@@ -1228,21 +1221,20 @@ const ReviewSection = ({
 										<OptionPicker
 											id={`review-db-status-${index}`}
 											options={publicationStatusOptions}
-											value={databaseBlock.status}
+											value={repository.status}
 											onChange={(status) =>
-												onDatabaseBlockStatusChange({
-													blockId: databaseBlock.id,
+												onRepositoryStatusChange({
+													blockId: repository.id,
 													blockIndex: index,
 													status,
 												})
 											}
 											disabled={
-												Boolean(
-													databaseBlock.id && !canEditBlock(databaseBlock),
-												) || isSettingBlockStatus
+												Boolean(repository.id && !canEditBlock(repository)) ||
+												isSettingBlockStatus
 											}
 										/>
-										{databaseBlock.id && !canEditBlock(databaseBlock) ? (
+										{repository.id && !canEditBlock(repository) ? (
 											<p className="text-muted-foreground text-xs">
 												{m.authoring_review_repository_readonly_hint()}
 											</p>
@@ -1296,10 +1288,10 @@ const ReviewSection = ({
 	);
 };
 
-const ReadOnlyTemplateCard = ({
+const ReadOnlyBehaviourCard = ({
 	block,
 }: {
-	block: NonNullable<BotEditorFormValues["templateBlock"]>;
+	block: NonNullable<BotEditorFormValues["behaviour"]>;
 }) => {
 	const navigate = useNavigate();
 
@@ -1347,11 +1339,11 @@ const AssetStateBadge = ({ state }: { state: AssetState | undefined }) => {
 	return <Badge variant={variant}>{label}</Badge>;
 };
 
-const ReadOnlyDatabaseCard = ({
+const ReadOnlyRepositoryCard = ({
 	block,
 	onDetach,
 }: {
-	block: BotEditorFormValues["databaseBlocks"][number];
+	block: BotEditorFormValues["repositories"][number];
 	onDetach: () => void;
 }) => {
 	const navigate = useNavigate();

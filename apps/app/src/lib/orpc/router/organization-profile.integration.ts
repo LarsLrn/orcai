@@ -93,13 +93,13 @@ const organizations = async () => {
 		draft: `Draft behaviour ${crypto.randomUUID()}`,
 	};
 	const createBlock = (
-		type: "template" | "database",
+		type: "behaviour" | "repository",
 		status: "ready" | "draft" = "ready",
 		name = `Profile ${type} ${crypto.randomUUID()}`,
 	): Promise<BlockId> =>
 		call(author, (options) =>
 			procedures.block.create(
-				type === "template"
+				type === "behaviour"
 					? {
 							type,
 							name,
@@ -118,9 +118,9 @@ const organizations = async () => {
 							status,
 							assets: [],
 							config: {
-								minReferences: 1,
-								maxReferences: 5,
-								defaultReferences: 3,
+								minPassages: 1,
+								maxPassages: 5,
+								defaultPassages: 3,
 							},
 						},
 				options,
@@ -139,25 +139,25 @@ const organizations = async () => {
 			),
 		);
 
-	const template = await createBlock("template");
-	const repository = await createBlock("database");
-	await createBlock("database", "ready", names.unlisted);
-	const draft = await createBlock("template", "draft", names.draft);
+	const behaviour = await createBlock("behaviour");
+	const repository = await createBlock("repository");
+	await createBlock("repository", "ready", names.unlisted);
+	const draft = await createBlock("behaviour", "draft", names.draft);
 	const { data: bot } = await call(author, (options) =>
 		procedures.bot.save(
 			{
 				name: `Profile bot ${crypto.randomUUID()}`,
 				description: "Integration bot",
 				status: "ready",
-				templateBlockId: template,
-				databaseBlockIds: [
+				behaviourId: behaviour,
+				repositoryIds: [
 					repository,
 				],
 			},
 			options,
 		),
 	);
-	await list("block", template);
+	await list("block", behaviour);
 	await list("block", repository);
 	await list("bot", bot.id);
 	await list("block", draft);

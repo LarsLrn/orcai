@@ -174,7 +174,7 @@ beforeEach(() => {
 			data: [
 				{
 					id: crypto.randomUUID(),
-					type: "template",
+					type: "behaviour",
 					config: {
 						systemPrompt: "You quiz the user.",
 					},

@@ -48,8 +48,8 @@ const names = (kind: string, id: string) =>
 		"C",
 	].map((suffix) => `E2E Pager ${kind} ${id} ${suffix}`);
 
-const template = (name: string, status: "ready" | "draft") => ({
-	type: "template" as const,
+const behaviour = (name: string, status: "ready" | "draft") => ({
+	type: "behaviour" as const,
 	name,
 	status,
 	config: {
@@ -75,7 +75,7 @@ const grids = [
 		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
 			for (const title of titles) {
-				await member.block.create(template(title, "ready"));
+				await member.block.create(behaviour(title, "ready"));
 			}
 		},
 	},
@@ -86,14 +86,14 @@ const grids = [
 		seed: async (member: ApiClient, titles: string[]) => {
 			for (const title of titles) {
 				await member.block.create({
-					type: "database",
+					type: "repository",
 					name: title,
 					status: "ready",
 					assets: [],
 					config: {
-						minReferences: 1,
-						maxReferences: 5,
-						defaultReferences: 3,
+						minPassages: 1,
+						maxPassages: 5,
+						defaultPassages: 3,
 					},
 				});
 			}
@@ -109,8 +109,8 @@ const grids = [
 					name: title,
 					description: "Created by the library paging spec.",
 					status: "ready",
-					templateBlockId: null,
-					databaseBlockIds: [],
+					behaviourId: null,
+					repositoryIds: [],
 				});
 			}
 		},
@@ -176,22 +176,22 @@ test("library: published bots and the user's drafts page together, newest first"
 		name: published[0],
 		description: "Created by the library paging spec.",
 		status: "ready",
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 	await member.bot.save({
 		name: draft[0],
 		description: "Created by the library paging spec.",
 		status: "draft",
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 	await member.bot.save({
 		name: published[1],
 		description: "Created by the library paging spec.",
 		status: "ready",
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 
 	const page = await pageAs("member", org);
@@ -217,8 +217,8 @@ test("library: a page index past the last page is replaced by the last page", as
 			name,
 			description: "Created by the library paging spec.",
 			status: "draft",
-			templateBlockId: null,
-			databaseBlockIds: [],
+			behaviourId: null,
+			repositoryIds: [],
 		});
 	}
 

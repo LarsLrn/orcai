@@ -1,4 +1,4 @@
-import type { TemplateBlock } from "@orcai/schema";
+import type { Behaviour } from "@orcai/schema";
 import { SparklesIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {
@@ -10,22 +10,22 @@ import {
 } from "@/components/ui/card";
 import { m } from "@/paraglide/messages";
 
-const createDefaultTemplateBlock = (params?: { botName: string }) => ({
+const createDefaultBehaviour = (params?: { botName: string }) => ({
 	name: params?.botName
-		? m.authoring_template_block_default_name_named({
+		? m.authoring_behaviour_default_name_named({
 				botName: params.botName,
 			})
-		: m.authoring_template_block_default_name(),
+		: m.authoring_behaviour_default_name(),
 	description: "",
 	contentJson: null,
-	type: "template" as const,
-	status: "draft" as TemplateBlock["status"],
+	type: "behaviour" as const,
+	status: "draft" as Behaviour["status"],
 	config: {
 		systemPrompt: "",
 	},
 });
 
-const TemplateBlockEditor = ({
+const BehaviourEditor = ({
 	nameField,
 	systemPromptField,
 	descriptionField,
@@ -42,10 +42,10 @@ const TemplateBlockEditor = ({
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<SparklesIcon className="h-5 w-5" />
-						{m.authoring_template_block_title()}
+						{m.authoring_behaviour_title()}
 					</CardTitle>
 					<CardDescription>
-						{m.authoring_template_block_description()}
+						{m.authoring_behaviour_description()}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -59,4 +59,4 @@ const TemplateBlockEditor = ({
 	);
 };
 
-export { createDefaultTemplateBlock, TemplateBlockEditor };
+export { BehaviourEditor, createDefaultBehaviour };

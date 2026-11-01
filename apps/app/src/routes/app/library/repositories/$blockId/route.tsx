@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/library/repositories/$blockId")({
 		loadBlockOfType({
 			queryClient,
 			blockId,
-			type: "database",
+			type: "repository",
 		}),
 	head: ({ loaderData }) => ({
 		meta: [

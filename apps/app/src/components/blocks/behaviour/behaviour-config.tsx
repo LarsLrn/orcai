@@ -1,4 +1,4 @@
-import type { TemplateBlock } from "@orcai/schema";
+import type { Behaviour } from "@orcai/schema";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { Markdown } from "@/components/app/markdown";
@@ -12,14 +12,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { m } from "@/paraglide/messages";
 
-const TemplateBlockConfigCard = ({
+const BehaviourConfigCard = ({
 	config,
 	description,
 	contentJson,
 }: {
-	config: TemplateBlock["config"];
-	description: TemplateBlock["description"];
-	contentJson: TemplateBlock["contentJson"];
+	config: Behaviour["config"];
+	description: Behaviour["description"];
+	contentJson: Behaviour["contentJson"];
 }) => {
 	const [isSystemPromptOpen, setIsSystemPromptOpen] = useState(false);
 
@@ -49,7 +49,7 @@ const TemplateBlockConfigCard = ({
 						>
 							<CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border bg-muted/30 px-4 py-3 text-left">
 								<span className="font-medium text-sm">
-									{m.blocks_template_config_show_system_prompt_action()}
+									{m.blocks_behaviour_config_show_system_prompt_action()}
 								</span>
 								<ChevronDownIcon
 									className={`size-4 text-muted-foreground transition-transform ${isSystemPromptOpen ? "rotate-180" : ""}`}
@@ -65,7 +65,7 @@ const TemplateBlockConfigCard = ({
 				)}
 				{!config.systemPrompt && (
 					<p className="text-muted-foreground text-sm">
-						{m.blocks_template_config_system_prompt_empty_state_title()}
+						{m.blocks_behaviour_config_system_prompt_empty_state_title()}
 					</p>
 				)}
 			</CardContent>
@@ -73,4 +73,4 @@ const TemplateBlockConfigCard = ({
 	);
 };
 
-export { TemplateBlockConfigCard };
+export { BehaviourConfigCard };

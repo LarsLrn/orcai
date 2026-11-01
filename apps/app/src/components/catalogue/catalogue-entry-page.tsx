@@ -45,7 +45,7 @@ import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { libraryLink } from "@/lib/navigation/library-link";
 import { orpc } from "@/lib/orpc/orpc";
-import { blockKind, RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { catalogueEntryRef } from "@/lib/router/catalogue-entry-loader";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -123,7 +123,7 @@ const BotContents = ({
 				</li>
 			) : (
 				entry.blocks.map((block) => {
-					const kind = blockKind(block.type);
+					const kind = block.type;
 					const { Icon, well, label } = RESOURCE_KINDS[kind];
 					return (
 						<li key={block.id} className="flex items-center gap-3 p-3">

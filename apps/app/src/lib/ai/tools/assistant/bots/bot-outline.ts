@@ -8,15 +8,15 @@ export const botOutline = (bot: BotEditor) => ({
 	description: bot.description,
 	status: bot.status,
 	features: bot.features,
-	behaviour: bot.templateBlock
+	behaviour: bot.behaviour
 		? {
-				type: "template" as const,
-				id: bot.templateBlock.id,
-				name: bot.templateBlock.name,
-				status: bot.templateBlock.status,
+				type: "behaviour" as const,
+				id: bot.behaviour.id,
+				name: bot.behaviour.name,
+				status: bot.behaviour.status,
 			}
 		: null,
-	repositories: bot.databaseBlocks.map((block) => ({
+	repositories: bot.repositories.map((block) => ({
 		id: block.id,
 		name: block.name,
 		status: block.status,

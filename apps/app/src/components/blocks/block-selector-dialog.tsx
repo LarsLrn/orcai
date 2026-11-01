@@ -24,25 +24,25 @@ import { m } from "@/paraglide/messages";
 const BLOCK_PAGE_SIZE = 12;
 
 const getCopy = (type: BlockType) =>
-	type === "template"
+	type === "behaviour"
 		? {
-				title: m.blocks_selector_dialog_template_title(),
-				description: m.blocks_selector_dialog_template_description(),
+				title: m.blocks_selector_dialog_behaviour_title(),
+				description: m.blocks_selector_dialog_behaviour_description(),
 				searchPlaceholder:
-					m.blocks_selector_dialog_template_search_placeholder(),
-				empty: m.blocks_selector_dialog_template_empty_state_title(),
+					m.blocks_selector_dialog_behaviour_search_placeholder(),
+				empty: m.blocks_selector_dialog_behaviour_empty_state_title(),
 			}
 		: {
-				title: m.blocks_selector_dialog_database_title(),
-				description: m.blocks_selector_dialog_database_description(),
+				title: m.blocks_selector_dialog_repository_title(),
+				description: m.blocks_selector_dialog_repository_description(),
 				searchPlaceholder:
-					m.blocks_selector_dialog_database_search_placeholder(),
-				empty: m.blocks_selector_dialog_database_empty_state_title(),
+					m.blocks_selector_dialog_repository_search_placeholder(),
+				empty: m.blocks_selector_dialog_repository_empty_state_title(),
 			};
 
 const iconByType: Record<BlockType, typeof SparklesIcon> = {
-	template: SparklesIcon,
-	database: BookOpenIcon,
+	behaviour: SparklesIcon,
+	repository: BookOpenIcon,
 };
 
 const BlockSelectorDialog = ({

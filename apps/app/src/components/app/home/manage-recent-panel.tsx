@@ -102,7 +102,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 				>
 					<RecentRowBody
 						kind={
-							entry.blockType === "database"
+							entry.blockType === "repository"
 								? m.home_recent_repository_kind()
 								: m.home_recent_block_kind()
 						}

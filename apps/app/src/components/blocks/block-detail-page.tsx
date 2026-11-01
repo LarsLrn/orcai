@@ -2,9 +2,9 @@ import type { BlockId } from "@orcai/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { MetadataCard } from "@/components/app/metadata-card";
+import { BehaviourConfigCard } from "@/components/blocks/behaviour/behaviour-config";
 import { useBlockActions } from "@/components/blocks/block-actions";
-import { DatabaseBlockConfigCard } from "@/components/blocks/database-block/database-config";
-import { TemplateBlockConfigCard } from "@/components/blocks/template-block/template-config";
+import { RepositoryConfigCard } from "@/components/blocks/repository/repository-config";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { Badge } from "@/components/ui/badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
@@ -20,7 +20,7 @@ import { Page, PageContent } from "@/components/ui/shell/page";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
-import { blockKind, RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
+import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 
 export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
@@ -42,7 +42,7 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 		}),
 	);
 
-	const kind = blockKind(block.data.type);
+	const kind = block.data.type;
 	const { actions, dialog } = useBlockActions(block.data, {
 		listing: true,
 		onDeleted: async () => {
@@ -95,15 +95,15 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
-					{block.data.type === "template" && (
-						<TemplateBlockConfigCard
+					{block.data.type === "behaviour" && (
+						<BehaviourConfigCard
 							config={block.data.config}
 							description={block.data.description}
 							contentJson={block.data.contentJson}
 						/>
 					)}
-					{block.data.type === "database" && block.assets && (
-						<DatabaseBlockConfigCard
+					{block.data.type === "repository" && block.assets && (
+						<RepositoryConfigCard
 							blockId={block.data.id}
 							config={block.data.config}
 							description={block.data.description}

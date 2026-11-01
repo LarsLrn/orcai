@@ -14,9 +14,9 @@ import { runId } from "../organisation";
 export const groupsName = (label: string): string =>
 	`E2E Groups ${label} ${runId()}`;
 
-/** A template block, the one grantable resource that needs no model, provider, or worker. */
-export const templateBlock = (name: string) => ({
-	type: "template" as const,
+/** A behaviour, the one grantable resource that needs no model, provider, or worker. */
+export const behaviourInput = (name: string) => ({
+	type: "behaviour" as const,
 	name,
 	status: "ready" as const,
 	config: {
@@ -25,25 +25,25 @@ export const templateBlock = (name: string) => ({
 });
 
 /**
- * A database block, the kind a bot links as a repository and the only kind
+ * A repository, the kind a bot links as a repository and the only kind
  * that carries assets.
  */
-export const databaseBlock = (name: string, assets: AssetId[] = []) => ({
-	type: "database" as const,
+export const repositoryInput = (name: string, assets: AssetId[] = []) => ({
+	type: "repository" as const,
 	name,
 	status: "ready" as const,
 	assets,
 	config: {
-		minReferences: 1,
-		maxReferences: 5,
-		defaultReferences: 3,
+		minPassages: 1,
+		maxPassages: 5,
+		defaultPassages: 3,
 	},
 });
 
 /**
  * The inheritance chain the authz schema cascades over: a bot linking a
- * template block and a database block, and an asset inside that database
- * block. `bot.save` writes the `block#bot` relationship that makes
+ * behaviour and a repository, and an asset inside that repository.
+ * `bot.save` writes the `block#bot` relationship that makes
  * `block.read` include `bot->read`.
  */
 export const inheritanceChain = async (params: {
@@ -52,19 +52,19 @@ export const inheritanceChain = async (params: {
 }): Promise<{
 	botId: BotId;
 	botName: string;
-	templateBlockId: BlockId;
-	databaseBlockId: BlockId;
+	behaviourId: BlockId;
+	repositoryId: BlockId;
 	assetId: AssetId;
 }> => {
-	const template = await params.api.block.create(
-		templateBlock(groupsName(`${params.label} Template`)),
+	const behaviour = await params.api.block.create(
+		behaviourInput(groupsName(`${params.label} Behaviour`)),
 	);
 	const asset = await uploadAsset(
 		params.api,
 		groupsName(`${params.label} Asset`),
 	);
-	const database = await params.api.block.create(
-		databaseBlock(groupsName(`${params.label} Database`), [
+	const repository = await params.api.block.create(
+		repositoryInput(groupsName(`${params.label} Repository`), [
 			asset.id,
 		]),
 	);
@@ -73,17 +73,17 @@ export const inheritanceChain = async (params: {
 		name: botName,
 		description: "Created by the groups slice.",
 		status: "draft",
-		templateBlockId: template.data.id,
-		databaseBlockIds: [
-			database.data.id,
+		behaviourId: behaviour.data.id,
+		repositoryIds: [
+			repository.data.id,
 		],
 	});
 
 	return {
 		botId: bot.data.id,
 		botName,
-		templateBlockId: template.data.id,
-		databaseBlockId: database.data.id,
+		behaviourId: behaviour.data.id,
+		repositoryId: repository.data.id,
 		assetId: asset.id,
 	};
 };

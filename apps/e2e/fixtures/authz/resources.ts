@@ -9,26 +9,26 @@ import { runId } from "../organisation";
 export const authzName = (label: string): string =>
 	`E2E Authz ${label} ${runId()}`;
 
-export const TEMPLATE_PROMPT = "Created by the authz slice.";
+export const BEHAVIOUR_PROMPT = "Created by the authz slice.";
 
-export const templateBlock = (name: string) => ({
-	type: "template" as const,
+export const behaviourInput = (name: string) => ({
+	type: "behaviour" as const,
 	name,
 	status: "ready" as const,
 	config: {
-		systemPrompt: TEMPLATE_PROMPT,
+		systemPrompt: BEHAVIOUR_PROMPT,
 	},
 });
 
 const DATABASE_CONFIG = {
-	minReferences: 1,
-	maxReferences: 5,
-	defaultReferences: 3,
+	minPassages: 1,
+	maxPassages: 5,
+	defaultPassages: 3,
 };
 
-/** A repository: the database block a bot links and the only kind carrying assets. */
-export const databaseBlock = (name: string, assets: AssetId[] = []) => ({
-	type: "database" as const,
+/** A repository: the repository a bot links and the only kind carrying assets. */
+export const repositoryInput = (name: string, assets: AssetId[] = []) => ({
+	type: "repository" as const,
 	name,
 	status: "ready" as const,
 	assets,
@@ -36,13 +36,13 @@ export const databaseBlock = (name: string, assets: AssetId[] = []) => ({
 });
 
 /** `block.update` input for a repository; `assets` is the full list it keeps. */
-export const databaseBlockUpdate = (
+export const repositoryUpdate = (
 	id: BlockId,
 	name: string,
 	assets: AssetId[],
 ) => ({
 	id,
-	...databaseBlock(name, assets),
+	...repositoryInput(name, assets),
 });
 
 /** `asset.save` input renaming an existing asset. */
@@ -52,19 +52,19 @@ export const assetRename = (id: AssetId, title: string) => ({
 	metadata: {},
 });
 
-/** `bot.save` input linking a template and repositories. */
+/** `bot.save` input linking a behaviour and repositories. */
 export const botSave = (params: {
 	name: string;
-	templateBlockId: BlockId | null;
-	databaseBlockIds?: BlockId[];
+	behaviourId: BlockId | null;
+	repositoryIds?: BlockId[];
 	id?: BotId;
 }) => ({
 	id: params.id,
 	name: params.name,
 	description: "Created by the authz slice.",
 	status: "draft" as const,
-	templateBlockId: params.templateBlockId,
-	databaseBlockIds: params.databaseBlockIds ?? [],
+	behaviourId: params.behaviourId,
+	repositoryIds: params.repositoryIds ?? [],
 });
 
 /** Grant one user a role on a resource. */

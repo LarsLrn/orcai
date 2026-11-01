@@ -21,16 +21,16 @@ import { enterApp, open } from "../../fixtures/navigation";
 const repositoryWithFailedAsset = async (client: ApiClient) => {
 	const asset = await uploadAsset(client, chatName("Unprepared Asset"));
 	const block = await client.block.create({
-		type: "database",
+		type: "repository",
 		name: chatName("Unprepared Repository"),
 		status: "ready",
 		assets: [
 			asset.id,
 		],
 		config: {
-			minReferences: 1,
-			maxReferences: 5,
-			defaultReferences: 3,
+			minPassages: 1,
+			maxPassages: 5,
+			defaultPassages: 3,
 		},
 	});
 
@@ -114,13 +114,13 @@ test("assets: the repository page shows a failed asset with why and Retry", asyn
 
 	await expect(
 		page.getByRole("status").filter({
-			hasText: message("blocks_database_config_readiness_summary", {
+			hasText: message("blocks_repository_config_readiness_summary", {
 				ready: 0,
 				total: 1,
 			}),
 		}),
 	).toContainText(
-		message("blocks_database_config_readiness_failed", {
+		message("blocks_repository_config_readiness_failed", {
 			count: 1,
 		}),
 	);
@@ -132,7 +132,7 @@ test("assets: the repository page shows a failed asset with why and Retry", asyn
 	await expect(page.getByText(message("pipeline_failure_other"))).toBeVisible();
 	await expect(
 		page.getByRole("button", {
-			name: message("blocks_database_config_prepare_failed_again_action"),
+			name: message("blocks_repository_config_prepare_failed_again_action"),
 		}),
 	).toBeVisible();
 	await page

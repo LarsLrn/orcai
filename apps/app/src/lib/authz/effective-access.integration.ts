@@ -32,7 +32,7 @@ const sharedBlocks = async () => {
 		const { data, meta } = await run(
 			procedures.block.create(
 				{
-					type: "template",
+					type: "behaviour",
 					name,
 					description: null,
 					contentJson: null,

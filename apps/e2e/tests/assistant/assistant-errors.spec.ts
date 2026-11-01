@@ -169,7 +169,7 @@ test("assistant: attaching an asset the member cannot read relays ASSET_LINK_FOR
 		pageIndex: 0,
 		pageSize: 10,
 		filters: {
-			type: "database",
+			type: "repository",
 			status: "draft",
 			search: name,
 		},

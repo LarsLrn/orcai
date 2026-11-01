@@ -51,8 +51,8 @@ export const createBot = async (
 		name,
 		description: "Created by the assistant approval specs.",
 		status: "draft",
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 
 	return {

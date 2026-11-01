@@ -61,7 +61,7 @@ const sharedRepository = async () => {
 	const { data: repository } = await call(author, (options) =>
 		procedures.block.create(
 			{
-				type: "database",
+				type: "repository",
 				name: "Shared repository",
 				description: null,
 				contentJson: null,
@@ -70,9 +70,9 @@ const sharedRepository = async () => {
 					assetId,
 				],
 				config: {
-					minReferences: 1,
-					maxReferences: 5,
-					defaultReferences: 3,
+					minPassages: 1,
+					maxPassages: 5,
+					defaultPassages: 3,
 				},
 			},
 			options,
@@ -84,7 +84,7 @@ const sharedRepository = async () => {
 				name: `Content bot ${crypto.randomUUID()}`,
 				description: "Integration bot",
 				status: "draft",
-				databaseBlockIds: [
+				repositoryIds: [
 					repository.id,
 				],
 			},
@@ -113,7 +113,7 @@ const sharedRepository = async () => {
 	const { data: ownBlock } = await call(member, (options) =>
 		procedures.block.create(
 			{
-				type: "template",
+				type: "behaviour",
 				name: "Own behaviour",
 				description: null,
 				contentJson: null,
@@ -131,7 +131,7 @@ const sharedRepository = async () => {
 				name: `Own bot ${crypto.randomUUID()}`,
 				description: "Integration bot",
 				status: "draft",
-				templateBlockId: ownBlock.id,
+				behaviourId: ownBlock.id,
 			},
 			options,
 		),
@@ -245,7 +245,7 @@ const sharedRepository = async () => {
 			call(member, (options) =>
 				procedures.block.create(
 					{
-						type: "database",
+						type: "repository",
 						name: "Copied repository",
 						description: null,
 						contentJson: null,
@@ -254,9 +254,9 @@ const sharedRepository = async () => {
 							assetId,
 						],
 						config: {
-							minReferences: 1,
-							maxReferences: 5,
-							defaultReferences: 3,
+							minPassages: 1,
+							maxPassages: 5,
+							defaultPassages: 3,
 						},
 					},
 					options,

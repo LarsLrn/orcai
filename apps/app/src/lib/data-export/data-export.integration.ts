@@ -64,7 +64,7 @@ const seed = (userId: UserId, organizationId: OrganizationId) =>
 			const [block] = yield* db
 				.insert(dbSchema.block)
 				.values({
-					type: "template",
+					type: "behaviour",
 					name: "Export block",
 					config: {},
 					userId,
@@ -309,7 +309,7 @@ const seedOrdered = (userId: UserId, organizationId: OrganizationId) =>
 			yield* db.insert(dbSchema.block).values(
 				blocks.map((row) => ({
 					id: row.id,
-					type: "template" as const,
+					type: "behaviour" as const,
 					name: `Block ${row.index}`,
 					config: {},
 					userId,

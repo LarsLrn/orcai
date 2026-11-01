@@ -1,6 +1,7 @@
 import type { AssetId, BlockId, BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
+	behaviourSchema,
 	type CatalogueEntry,
 	type CatalogueEntryDetail,
 	type CatalogueEntryRef,
@@ -8,7 +9,6 @@ import {
 	type CatalogueModelFilter,
 	type ListCatalogueInput,
 	modelUnusableReason,
-	templateBlockSchema,
 } from "@orcai/schema";
 import {
 	type AnyColumn,
@@ -86,7 +86,7 @@ const modelCondition = (model: CatalogueModelFilter) => {
 	return model === "none" ? not(asks) : asks;
 };
 
-const blockKind = sql<CatalogueKind>`case when ${dbSchema.block.type} = 'template' then 'behaviour' else 'repository' end`;
+const blockKind = sql<CatalogueKind>`${dbSchema.block.type}`;
 
 /** Every entry the filters let through, as one subquery of kind, id, name, creation time and home. */
 const entries = (filters: EntryFilters) =>
@@ -158,10 +158,7 @@ const entries = (filters: EntryFilters) =>
 					matches(dbSchema.block.name),
 					fromOrganizations,
 					kind === "behaviour" || kind === "repository"
-						? eq(
-								dbSchema.block.type,
-								kind === "behaviour" ? "template" : "database",
-							)
+						? eq(dbSchema.block.type, kind)
 						: undefined,
 					notAdded("block", dbSchema.block.id),
 					entry?.resourceType === "block"
@@ -325,11 +322,11 @@ const hydrate = (
 		for (const { type, ...block } of blocks)
 			tiles.set(block.id, {
 				...block,
-				kind: type === "template" ? "behaviour" : "repository",
+				kind: type,
 				state: stateOf(block.id),
 				contents: null,
 				modelHint: null,
-				assets: type === "database" ? totals(block.id).ready : null,
+				assets: type === "repository" ? totals(block.id).ready : null,
 			});
 		return page.flatMap((entry) => tiles.get(entry.id) ?? []);
 	});
@@ -542,7 +539,7 @@ const botBlocks = (botId: BotId, organizationId: OrganizationId) =>
 		const [totals, stateOf] = yield* Effect.all([
 			repositoryTotals(
 				blocks
-					.filter((block) => block.type === "database")
+					.filter((block) => block.type === "repository")
 					.map((block) => block.id),
 			),
 			entryStates(
@@ -553,11 +550,7 @@ const botBlocks = (botId: BotId, organizationId: OrganizationId) =>
 		return blocks.map((block) => ({
 			...block,
 			state: stateOf(block.id),
-			type:
-				block.type === "template"
-					? ("template" as const)
-					: ("database" as const),
-			assets: block.type === "database" ? totals(block.id).ready : null,
+			assets: block.type === "repository" ? totals(block.id).ready : null,
 		}));
 	});
 
@@ -670,9 +663,7 @@ const entryDetail = (
 					})
 					.from(dbSchema.block)
 					.where(eq(dbSchema.block.id, entry.resourceId));
-				const config = templateBlockSchema.shape.config.safeParse(
-					block?.config,
-				);
+				const config = behaviourSchema.shape.config.safeParse(block?.config);
 				return {
 					...detail,
 					prompt: config.success ? config.data.systemPrompt : null,

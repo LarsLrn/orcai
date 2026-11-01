@@ -97,7 +97,8 @@ const documentAnswer = {
 	accessDate: null,
 	legalReference: null,
 	jurisdiction: null,
-	citation: "Lovelace, A. (2026). Refund policy. Journal of Policy, 4(2), 1-9.",
+	citationLabel:
+		"Lovelace, A. (2026). Refund policy. Journal of Policy, 4(2), 1-9.",
 	description: "How and when refunds are paid.",
 	language: "en",
 };
@@ -303,7 +304,7 @@ test(
 				author: "Kept Author",
 				sourceType: "journal-article",
 				journalName: "Journal of Policy",
-				citation: documentAnswer.citation,
+				citationLabel: documentAnswer.citationLabel,
 				description: documentAnswer.description,
 				language: "en",
 			},
@@ -613,7 +614,7 @@ test(
 				const [block] = yield* db
 					.insert(dbSchema.block)
 					.values({
-						type: "database",
+						type: "repository",
 						name: "Deleted repository",
 						config: {},
 						userId: seeded.adminId,

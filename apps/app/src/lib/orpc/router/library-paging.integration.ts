@@ -74,7 +74,7 @@ describe("library lists with equal creation times", () => {
 				const block = await run(
 					procedures.block.create(
 						{
-							type: "template",
+							type: "behaviour",
 							name: `Paging behaviour ${index}`,
 							description: null,
 							contentJson: null,
@@ -98,7 +98,7 @@ describe("library lists with equal creation times", () => {
 							pageIndex,
 							pageSize: PAGE_SIZE,
 							filters: {
-								type: "template",
+								type: "behaviour",
 								status: "ready",
 							},
 						},

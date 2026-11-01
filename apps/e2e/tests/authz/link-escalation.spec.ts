@@ -5,13 +5,13 @@ import { expectDenied, expectForbidden } from "../../fixtures/authorization";
 import {
 	assetRename,
 	authzName,
+	BEHAVIOUR_PROMPT,
+	behaviourInput,
 	botSave,
-	databaseBlock,
-	databaseBlockUpdate,
 	expectAssetLinkForbidden,
 	grantUser,
-	TEMPLATE_PROMPT,
-	templateBlock,
+	repositoryInput,
+	repositoryUpdate,
 } from "../../fixtures/authz/resources";
 import { expect, test } from "../../fixtures/index";
 
@@ -21,8 +21,8 @@ test("authz: linking a readable block into one's own bot does not grant edit on 
 }) => {
 	const member = api.as("member");
 	const manager = api.as("manager");
-	const name = authzName("Linked Template");
-	const block = await member.block.create(templateBlock(name));
+	const name = authzName("Linked Behaviour");
+	const block = await member.block.create(behaviourInput(name));
 	await grantUser(
 		member,
 		{
@@ -36,14 +36,14 @@ test("authz: linking a readable block into one's own bot does not grant edit on 
 	await manager.bot.save(
 		botSave({
 			name: authzName("Manager Bot"),
-			templateBlockId: block.data.id,
+			behaviourId: block.data.id,
 		}),
 	);
 
 	await expectForbidden(
 		manager.block.update({
 			id: block.data.id,
-			...templateBlock(authzName("Hijacked")),
+			...behaviourInput(authzName("Hijacked")),
 			config: {
 				systemPrompt: "Changed through a linking bot.",
 			},
@@ -55,7 +55,7 @@ test("authz: linking a readable block into one's own bot does not grant edit on 
 	});
 	expect(found.data.name).toBe(name);
 	expect(found.data.config).toEqual({
-		systemPrompt: TEMPLATE_PROMPT,
+		systemPrompt: BEHAVIOUR_PROMPT,
 	});
 });
 
@@ -66,12 +66,12 @@ test("authz: an editor of a bot reads its blocks but cannot edit them", async ({
 	const member = api.as("member");
 	const manager = api.as("manager");
 	const block = await member.block.create(
-		templateBlock(authzName("Bot Template")),
+		behaviourInput(authzName("Bot Behaviour")),
 	);
 	const bot = await member.bot.save(
 		botSave({
 			name: authzName("Shared Bot"),
-			templateBlockId: block.data.id,
+			behaviourId: block.data.id,
 		}),
 	);
 	await grantUser(
@@ -89,7 +89,7 @@ test("authz: an editor of a bot reads its blocks but cannot edit them", async ({
 		botSave({
 			id: bot.data.id,
 			name: renamed,
-			templateBlockId: block.data.id,
+			behaviourId: block.data.id,
 		}),
 	);
 	expect(saved.data.name).toBe(renamed);
@@ -97,8 +97,8 @@ test("authz: an editor of a bot reads its blocks but cannot edit them", async ({
 	const editor = await manager.bot.findEditor({
 		id: bot.data.id,
 	});
-	expect(editor.data.templateBlock?.id).toBe(block.data.id);
-	expect(editor.data.templateBlock?.capabilities).toMatchObject({
+	expect(editor.data.behaviour?.id).toBe(block.data.id);
+	expect(editor.data.behaviour?.capabilities).toMatchObject({
 		read: true,
 		edit: false,
 	});
@@ -106,7 +106,7 @@ test("authz: an editor of a bot reads its blocks but cannot edit them", async ({
 	await expectForbidden(
 		manager.block.update({
 			id: block.data.id,
-			...templateBlock(authzName("Hijacked")),
+			...behaviourInput(authzName("Hijacked")),
 		}),
 	);
 });
@@ -121,7 +121,7 @@ test("authz: a repository cannot be created with an asset the caller cannot read
 
 	await expectAssetLinkForbidden(
 		manager.block.create(
-			databaseBlock(name, [
+			repositoryInput(name, [
 				asset.id,
 			]),
 		),
@@ -131,7 +131,7 @@ test("authz: a repository cannot be created with an asset the caller cannot read
 		pageIndex: 0,
 		pageSize: 1000,
 		filters: {
-			type: "database",
+			type: "repository",
 		},
 	});
 	expect(blocks.data.map((block) => block.name)).not.toContain(name);
@@ -152,14 +152,14 @@ test("authz: adding an unreadable asset to a repository leaves it unchanged", as
 	const foreign = await uploadAsset(member, authzName("Foreign Asset"));
 	const name = authzName("Own Repository");
 	const repository = await manager.block.create(
-		databaseBlock(name, [
+		repositoryInput(name, [
 			own.id,
 		]),
 	);
 
 	await expectAssetLinkForbidden(
 		manager.block.update(
-			databaseBlockUpdate(repository.data.id, authzName("Renamed"), [
+			repositoryUpdate(repository.data.id, authzName("Renamed"), [
 				own.id,
 				foreign.id,
 			]),
@@ -180,7 +180,7 @@ test("authz: a repository cannot be created with an asset id that does not exist
 }) => {
 	await expectAssetLinkForbidden(
 		api.as("manager").block.create(
-			databaseBlock(authzName("Unknown Asset Repository"), [
+			repositoryInput(authzName("Unknown Asset Repository"), [
 				assetIdSchema.parse(randomUUID()),
 			]),
 		),
@@ -206,7 +206,7 @@ test("authz: attaching a readable asset passes read on, not edit", async ({
 	);
 
 	const repository = await manager.block.create(
-		databaseBlock(authzName("Attaching Repository"), [
+		repositoryInput(authzName("Attaching Repository"), [
 			asset.id,
 		]),
 	);
@@ -243,7 +243,7 @@ test("authz: an editor of a repository keeps and detaches its assets without edi
 	const manager = api.as("manager");
 	const asset = await uploadAsset(member, authzName("Kept Asset"));
 	const repository = await member.block.create(
-		databaseBlock(authzName("Shared Repository"), [
+		repositoryInput(authzName("Shared Repository"), [
 			asset.id,
 		]),
 	);
@@ -259,7 +259,7 @@ test("authz: an editor of a repository keeps and detaches its assets without edi
 
 	const renamed = authzName("Renamed Repository");
 	const kept = await manager.block.update(
-		databaseBlockUpdate(repository.data.id, renamed, [
+		repositoryUpdate(repository.data.id, renamed, [
 			asset.id,
 		]),
 	);
@@ -280,7 +280,7 @@ test("authz: an editor of a repository keeps and detaches its assets without edi
 	);
 
 	const detached = await manager.block.update(
-		databaseBlockUpdate(repository.data.id, renamed, []),
+		repositoryUpdate(repository.data.id, renamed, []),
 	);
 	expect(detached.assets ?? []).toEqual([]);
 
@@ -296,7 +296,7 @@ test("authz: an asset created in one call attaches in the next without a retry",
 	const asset = await uploadAsset(manager, authzName("Fresh Asset"));
 
 	const repository = await manager.block.create(
-		databaseBlock(authzName("Fresh Repository"), [
+		repositoryInput(authzName("Fresh Repository"), [
 			asset.id,
 		]),
 	);

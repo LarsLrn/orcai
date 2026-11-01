@@ -47,14 +47,14 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	const member = api.as("member");
 	const chatId = await startTitledConversation(member, inference);
 	const asset = await uploadAsset(member, chatName("Syllabus"));
-	const templateName = chatName("Template");
+	const behaviourName = chatName("Behaviour");
 	const repositoryName = chatName("Repository");
 	const botName = chatName("Bot");
 	const done = "Your bot is published.";
 	await approvePlan(member, chatId, inference, {
 		title: "Set up the syllabus bot",
 		items: [
-			"Create the template and repository",
+			"Create the behaviour and repository",
 			"Create the bot",
 			"Publish the bot",
 		],
@@ -71,7 +71,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 				{
 					name: "createBehaviour",
 					input: {
-						name: templateName,
+						name: behaviourName,
 						systemPrompt: "Answer questions about the course syllabus.",
 						status: "ready",
 					},
@@ -105,17 +105,17 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	await ask(page, "Set up a syllabus bot and publish it");
 
 	const saved = toolMessages(await heldTurnRequest(inference, 3));
-	const template = resultNamed(saved, templateName);
+	const behaviour = resultNamed(saved, behaviourName);
 	const repository = resultNamed(saved, repositoryName);
-	expect(template).toMatchObject({
-		type: "template",
+	expect(behaviour).toMatchObject({
+		type: "behaviour",
 		status: "ready",
 	});
 	expect(repository).toMatchObject({
 		type: "repository",
 		assetCount: 1,
 	});
-	const behaviourId = template.id as BlockId;
+	const behaviourId = behaviour.id as BlockId;
 	const repositoryId = repository.id as BlockId;
 	const loadedLine = message("assistant_tool_load_tools_summary", {
 		groups: message("assistant_tool_group_bots"),
@@ -176,10 +176,10 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	});
 	expect(createdBot).not.toHaveProperty("created");
 	const botId = createdBot.id as BotId;
-	const templateLine = message("assistant_tool_create_behaviour_summary", {
-		name: quoted(templateName),
+	const behaviourLine = message("assistant_tool_create_behaviour_summary", {
+		name: quoted(behaviourName),
 	});
-	expect(created).toContainEqual(template);
+	expect(created).toContainEqual(behaviour);
 
 	inference.script(
 		{
@@ -232,11 +232,11 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 		features: {
 			generativeUi: {},
 		},
-		templateBlock: {
+		behaviour: {
 			id: behaviourId,
 		},
 	});
-	expect(bot.databaseBlocks.map((block) => block.id)).toEqual([
+	expect(bot.repositories.map((block) => block.id)).toEqual([
 		repositoryId,
 	]);
 	const { assets } = await member.block.find({
@@ -253,7 +253,7 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	});
 	for (const line of [
 		loadedLine,
-		templateLine,
+		behaviourLine,
 		message("assistant_tool_create_repository_summary", {
 			name: quoted(repositoryName),
 		}),
