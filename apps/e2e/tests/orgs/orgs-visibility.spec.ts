@@ -13,7 +13,7 @@ const templateBlock = (name: string) => ({
 	name,
 	status: "ready" as const,
 	config: {
-		systemPrompt: "Created by the tenancy visibility seam test.",
+		systemPrompt: "Created by the organisation visibility test.",
 	},
 });
 
