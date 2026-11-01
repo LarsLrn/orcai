@@ -1,6 +1,7 @@
 import { BookOpenIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
+import { docsSources } from "./outputs";
 import type { readDocsTool } from "./read-docs";
 
 export const readDocs = declareTool<typeof readDocsTool>()({
@@ -25,4 +26,5 @@ export const readDocs = declareTool<typeof readDocsTool>()({
 					path: output.path,
 				});
 	},
+	sources: docsSources,
 });

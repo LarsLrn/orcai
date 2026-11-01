@@ -1,10 +1,10 @@
 import type { AssetId } from "@orcai/core";
-import { safeExternalUrl } from "@orcai/core";
+import { docsMarkdownPath, docsPageUrl, safeExternalUrl } from "@orcai/core";
 import type { AssetMetadataType } from "@orcai/schema";
 import { assetIdSchema, sourceTypeLabels } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ExternalLinkIcon, GlobeIcon } from "lucide-react";
+import { BookOpenIcon, ExternalLinkIcon, GlobeIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { createContext, use, useState } from "react";
 import {
@@ -19,6 +19,7 @@ import { hostOf } from "@/components/chat/message/work-log/web-source";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { usePublicConfig } from "@/hooks/use-public-config";
 import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatAssetTitle } from "@/lib/presentation/asset-title";
@@ -237,6 +238,61 @@ const WebPill = ({
 	);
 };
 
+/** A docs page; without the docs URL known, the card names it only. */
+const DocsPill = ({
+	path,
+	title,
+	children,
+}: {
+	path: string;
+	title: string;
+	children?: ReactNode;
+}) => {
+	const { docsUrl } = usePublicConfig();
+	const url = docsUrl && docsPageUrl(docsUrl, path);
+
+	return (
+		<InlineCitation>
+			<InlineCitationText className="group-hover:bg-transparent">
+				{children}
+			</InlineCitationText>
+			<InlineCitationCard>
+				<InlineCitationCardTrigger
+					label={title}
+					aria-label={m.ai_elements_cite_docs_aria_label({
+						title,
+					})}
+					sources={[]}
+					className="border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20"
+				/>
+				<InlineCitationCardBody>
+					<CiteCardShell title={title}>
+						{url ? (
+							<>
+								<p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+									<BookOpenIcon className="size-3 shrink-0" />
+									{m.ai_elements_cite_docs_source()}
+								</p>
+								<ConfirmedLink
+									href={url}
+									className={buttonVariants({
+										variant: "outline",
+										size: "sm",
+										className: "w-full",
+									})}
+								>
+									{m.ai_elements_cite_open_page_action()}
+									<ExternalLinkIcon className="size-3" />
+								</ConfirmedLink>
+							</>
+						) : null}
+					</CiteCardShell>
+				</InlineCitationCardBody>
+			</InlineCitationCard>
+		</InlineCitation>
+	);
+};
+
 /**
  * A citation by ref, as `<cite ref=R>` or `<cite ref="R">`, resolved from the
  * message's citations. A ref without a source is plain text.
@@ -273,6 +329,16 @@ export const CiteComponent = ({
 					<WebPill url={citation.url} title={citation.title}>
 						{children}
 					</WebPill>
+				);
+			}
+			return <>{children}</>;
+		case "docs":
+			// As for web: a streamed path keeps to the stored rule.
+			if (docsMarkdownPath(citation.path)?.path === citation.path) {
+				return (
+					<DocsPill path={citation.path} title={citation.title}>
+						{children}
+					</DocsPill>
 				);
 			}
 			return <>{children}</>;

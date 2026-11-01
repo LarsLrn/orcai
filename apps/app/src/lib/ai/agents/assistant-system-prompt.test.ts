@@ -297,6 +297,23 @@ describe("buildAssistantSystemPrompt", () => {
 		expect(stable).not.toContain("not available on this instance");
 	});
 
+	test("cites docs pages by ref only when the docs are configured", () => {
+		expect(
+			buildAssistantStablePrompt({
+				docs,
+				featurePrompts,
+			}),
+		).toContain(
+			"Citations:\n- Each <docs-page> tag carries a ref, such as ref=do8r8j2.",
+		);
+		expect(
+			buildAssistantStablePrompt({
+				docs: undefined,
+				featurePrompts,
+			}),
+		).not.toContain("<cite");
+	});
+
 	test("says the docs are unavailable without docs config", () => {
 		const stable = buildAssistantStablePrompt({
 			docs: undefined,

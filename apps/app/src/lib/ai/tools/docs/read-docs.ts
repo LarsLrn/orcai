@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { DocsConfig } from "@/lib/effect/services/config";
+import { readDocsModelOutput } from "./outputs";
 
 const FETCH_TIMEOUT = "10 seconds";
 const DOCS_CONTENT_TYPES = new Set([
@@ -96,7 +97,7 @@ export const readDocs = ({
 export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
 	effectTool({
 		description:
-			"Read the OrcAI docs: without a path the index of all pages with their descriptions, with a path one page as Markdown.",
+			"Read the OrcAI docs: without a path the index of all pages with their descriptions, with a path one page as Markdown in a <docs-page> tag with its ref, title and path.",
 		inputSchema: z.strictObject({
 			path: z
 				.string()
@@ -109,6 +110,7 @@ export const readDocsTool = ({ docs }: { docs: DocsConfig | undefined }) =>
 					"A docs page path exactly as listed in the docs index, for example `/docs/using-orcai/bots`. Omit it to read the index.",
 				),
 		}),
+		toModelOutput: readDocsModelOutput,
 		run: ({ path }) =>
 			(docs
 				? readDocs({

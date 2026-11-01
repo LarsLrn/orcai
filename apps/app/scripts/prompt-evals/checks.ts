@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { displayCallText } from "@/lib/ai/citations/chat-sources";
 import { citeTags } from "@/lib/ai/citations/cite-tag";
 import { SOURCE_REF } from "@/lib/ai/citations/source-ref";
@@ -206,6 +207,21 @@ export const citesAll = (refs: readonly string[]): CodeCheck => ({
 	},
 });
 
+/** Each cited ref names a source a call of the run issued. */
+export const citesIssued: CodeCheck = {
+	name: "cites only refs its calls issued",
+	pass: (transcript) => {
+		const issued = new Set(
+			transcript.calls.flatMap(({ toolName, output }) =>
+				(toolDeclarationOf(toolName)?.sources?.(output) ?? []).map(
+					({ ref }) => ref,
+				),
+			),
+		);
+		return citedRefsOf(transcript).every((ref) => issued.has(ref));
+	},
+};
+
 export const citesOnly = (refs: readonly string[]): CodeCheck => ({
 	name: "cites only the refs it was given",
 	pass: (transcript) =>
@@ -243,17 +259,32 @@ export const noLegacyCite: CodeCheck = {
 		),
 };
 
-/** The URLs of the pages the run's web searches returned. */
-const resultUrls = ({ calls: made }: Transcript) =>
-	made.flatMap(({ toolName, output }) =>
-		toolName === "searchWeb"
-			? (searchWebOutputSchema.safeParse(output).data?.results ?? []).map(
-					({ url }) => url,
-				)
-			: [],
-	);
+const docsPageSchema = z.object({
+	path: z.string(),
+	url: z.string(),
+});
 
-/** No footnotes, bracketed refs, Sources section or Markdown links to search results in place of `<cite>`. */
+/** The pages the run's web searches returned and the docs pages it read, by URL and docs path. */
+const resultUrls = ({ calls: made }: Transcript) =>
+	made.flatMap(({ toolName, output }) => {
+		if (toolName === "searchWeb") {
+			return (searchWebOutputSchema.safeParse(output).data?.results ?? []).map(
+				({ url }) => url,
+			);
+		}
+		const page =
+			toolName === "readDocs"
+				? docsPageSchema.safeParse(output).data
+				: undefined;
+		return page
+			? [
+					page.url,
+					page.path,
+				]
+			: [];
+	});
+
+/** No footnotes, bracketed refs, Sources section or Markdown links to search results or read docs pages in place of `<cite>`. */
 export const noOtherCitationStyle: CodeCheck = {
 	name: "uses no other citation style",
 	pass: (transcript) =>

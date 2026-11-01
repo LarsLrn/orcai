@@ -54,6 +54,8 @@ export const createAssistantAgent = (
 		};
 	},
 ) => {
+	// The docs are the Assistant's only citable source.
+	const citations = params.docs !== undefined;
 	const featureTools: ToolSet = {};
 	for (const { entry, settings } of params.features) {
 		Object.assign(
@@ -64,7 +66,7 @@ export const createAssistantAgent = (
 				turn: {
 					webSearch: NO_WEB_SEARCH,
 					history: params.history,
-					citations: false,
+					citations,
 				},
 			}),
 		);
@@ -122,7 +124,7 @@ export const createAssistantAgent = (
 			userContext: params.userContext,
 			featurePrompts: params.features.map(({ entry }) =>
 				entry.prompt({
-					citations: false,
+					citations,
 				}),
 			),
 			toolGroups,

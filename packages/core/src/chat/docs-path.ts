@@ -13,3 +13,9 @@ export const docsMarkdownPath = (path: string) => {
 		fetchPath: normalised === "/docs" ? "/docs/index.md" : `${normalised}.md`,
 	};
 };
+
+/** A docs page's URL on the docs site; none for a path that is not one as `docsMarkdownPath` writes it. */
+export const docsPageUrl = (docsUrl: string, path: string) =>
+	docsMarkdownPath(path)?.path === path
+		? `${docsUrl.replace(/\/$/, "")}${path}`
+		: undefined;

@@ -2,6 +2,7 @@ import type { SystemPrompt } from "@orcai/ai";
 import type { OrganizationRole } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { buildFormattingGuidance } from "@/lib/ai/agents/chat-agent-system-prompt";
+import { citationRules } from "@/lib/ai/citations/citation-rules";
 import type { DeferredToolGroup } from "@/lib/ai/tools/assistant/groups";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { DocsConfig } from "@/lib/effect/services/config";
@@ -93,7 +94,7 @@ const answerForm = (docs: DocsConfig | undefined) =>
 		...(docs
 			? [
 					"- Link the app page where the user acts, as a Markdown link to the app path the docs name for it: [<page name>](<app path>).",
-					"- Link the docs page the answer came from, using the url that readDocs returned.",
+					"- Cite the docs pages the answer came from with their refs instead of linking them, as the Citations section says.",
 				]
 			: []),
 		"- Answer in the language the user writes in. Name UI elements the way the docs do.",
@@ -119,10 +120,16 @@ export const buildAssistantStablePrompt = ({
 		toolGuidance,
 		planGuidance,
 		answerForm(docs),
+		docs &&
+			citationRules([
+				"docs",
+			]),
 		buildFormattingGuidance(),
 		...featurePrompts,
 		roleSectionNote,
-	].join("\n\n");
+	]
+		.filter((section) => section !== undefined)
+		.join("\n\n");
 
 /** A JSON string literal, with the line and C1 control characters JSON leaves raw escaped too. */
 const quoted = (value: string) =>

@@ -13,6 +13,14 @@ mock.module("@/lib/orpc/orpc", () => ({
 	orpc: {},
 }));
 
+const DOCS_URL = "https://docs.example.org";
+let docsUrl: string | undefined = DOCS_URL;
+mock.module("@/hooks/use-public-config", () => ({
+	usePublicConfig: () => ({
+		docsUrl,
+	}),
+}));
+
 const { MessageResponse } = await import("./message");
 const { CitationsContext } = await import("./cite");
 const { chatLinkSafety, LinkSafetyContext } = await import(
@@ -34,10 +42,15 @@ const citations: Citations = {
 		url: "https://www.who.int/news-room/fact-sheets/detail/malaria",
 		title: "Malaria",
 	},
+	do8r8j2: {
+		kind: "docs",
+		path: "/docs/using-orcai/bots",
+		title: "Bots and behaviour",
+	},
 };
 
 const linkSafety = chatLinkSafety({
-	docsUrl: "https://docs.example.org",
+	docsUrl: DOCS_URL,
 	appPaths: false,
 });
 
@@ -50,7 +63,33 @@ const renderAnswer = (markdown: string) =>
 		</LinkSafetyContext>,
 	);
 
-afterEach(cleanup);
+afterEach(() => {
+	cleanup();
+	docsUrl = DOCS_URL;
+});
+
+/** Records the pages `window.open` opens while `run` runs. */
+const opening = async (run: (opened: unknown[]) => Promise<void>) => {
+	const opened: unknown[] = [];
+	const open = window.open;
+	window.open = ((...args: unknown[]) => {
+		opened.push(args[0]);
+		return null;
+	}) as typeof window.open;
+	// The trusted check reads the app's origin from the page.
+	(
+		window as unknown as {
+			happyDOM: {
+				setURL: (url: string) => void;
+			};
+		}
+	).happyDOM.setURL("https://orcai.example.org/app");
+	try {
+		await run(opened);
+	} finally {
+		window.open = open;
+	}
+};
 
 describe("CiteComponent", () => {
 	test.each([
@@ -162,6 +201,84 @@ describe("CiteComponent", () => {
 		expect(screen.queryByRole("button")).toBeNull();
 	});
 
+	test("names a docs page by its title, and its card opens the page without asking", async () => {
+		await opening(async (opened) => {
+			renderAnswer(
+				"<cite ref=do8r8j2>A bot answers with one behaviour</cite>.",
+			);
+
+			fireEvent.click(
+				await screen.findByRole("button", {
+					name: "Citation of the docs page Bots and behaviour",
+				}),
+			);
+			expect(await screen.findByText("OrcAI docs")).toBeTruthy();
+			fireEvent.click(
+				screen.getByRole("button", {
+					name: "Open page",
+				}),
+			);
+
+			await waitFor(() =>
+				expect(opened).toEqual([
+					"https://docs.example.org/docs/using-orcai/bots",
+				]),
+			);
+			expect(screen.queryByRole("alertdialog")).toBeNull();
+		});
+	});
+
+	test("without the docs URL, a docs card names the page only", async () => {
+		docsUrl = undefined;
+		renderAnswer("<cite ref=do8r8j2>A bot answers with one behaviour</cite>.");
+
+		fireEvent.click(
+			await screen.findByRole("button", {
+				name: "Citation of the docs page Bots and behaviour",
+			}),
+		);
+
+		expect(await screen.findAllByText("Bots and behaviour")).not.toHaveLength(
+			0,
+		);
+		expect(screen.queryByText("OrcAI docs")).toBeNull();
+		expect(
+			screen.queryByRole("button", {
+				name: "Open page",
+			}),
+		).toBeNull();
+	});
+
+	test.each([
+		"/docs/../app",
+		"https://evil.example/docs/x",
+		"/docs/using-orcai/bots.md",
+	])(
+		"shows a docs citation of an invalid path as plain text: %p",
+		async (path) => {
+			const { container } = render(
+				<CitationsContext
+					value={{
+						do8r8j2: {
+							kind: "docs",
+							path,
+							title: "Planted",
+						},
+					}}
+				>
+					<MessageResponse>
+						{"<cite ref=do8r8j2>A bot answers</cite>."}
+					</MessageResponse>
+				</CitationsContext>,
+			);
+
+			await waitFor(() =>
+				expect(container.textContent).toContain("A bot answers"),
+			);
+			expect(screen.queryByRole("button")).toBeNull();
+		},
+	);
+
 	test.each([
 		"Paid <cite ref=k000000>soon</cite>.",
 		'Paid <cite chunk="kgol9ts">soon</cite>.',
@@ -223,21 +340,7 @@ describe("link confirmation", () => {
 	});
 
 	test("opens a docs link without asking", async () => {
-		const opened: unknown[] = [];
-		const open = window.open;
-		window.open = ((...args: unknown[]) => {
-			opened.push(args[0]);
-			return null;
-		}) as typeof window.open;
-		// The trusted check reads the app's origin from the page.
-		(
-			window as unknown as {
-				happyDOM: {
-					setURL: (url: string) => void;
-				};
-			}
-		).happyDOM.setURL("https://orcai.example.org/app");
-		try {
+		await opening(async (opened) => {
 			renderAnswer(
 				"See [Bots](https://docs.example.org/docs/using-orcai/bots).",
 			);
@@ -253,8 +356,6 @@ describe("link confirmation", () => {
 				]),
 			);
 			expect(screen.queryByRole("alertdialog")).toBeNull();
-		} finally {
-			window.open = open;
-		}
+		});
 	});
 });
