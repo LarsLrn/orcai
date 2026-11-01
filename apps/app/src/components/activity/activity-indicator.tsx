@@ -116,6 +116,7 @@ export const ActivityIndicator = () => {
 			<PopoverContent
 				align="end"
 				sideOffset={10}
+				positionMethod="fixed"
 				className="w-[min(26rem,calc(100vw-1rem))] gap-0 p-0"
 			>
 				<div className="border-b px-4 py-3">
