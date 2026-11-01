@@ -2449,6 +2449,7 @@
 	"chat_attachment_menu_assets_action": "Choose existing assets",
 	"chat_attachment_menu_trigger": "Attach files",
 	"chat_attachment_menu_upload_action": "Upload file",
+	"chat_attachment_truncated_notice": "Only the first part of this file was read.",
 	"chat_attachments_capacity_toast_warning": [
 		{
 			"declarations": [

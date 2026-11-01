@@ -1,4 +1,10 @@
-import { FileTextIcon, ImageIcon, PaperclipIcon, XIcon } from "lucide-react";
+import {
+	FileTextIcon,
+	ImageIcon,
+	PaperclipIcon,
+	TriangleAlertIcon,
+	XIcon,
+} from "lucide-react";
 import {
 	Attachment,
 	AttachmentAction,
@@ -22,12 +28,13 @@ const mediaIcon = (mediaType: string) => {
 	return PaperclipIcon;
 };
 
-/** One attached file: a preview, its name, type and size, and an optional remove action. */
+/** One attached file: a preview, its name, type and size, a notice when only its start was read, and an optional remove action. */
 export const FileAttachment = ({
 	title,
 	mediaType,
 	size,
 	previewUrl,
+	truncated,
 	onRemove,
 	className,
 }: {
@@ -35,6 +42,7 @@ export const FileAttachment = ({
 	mediaType: string;
 	size: number;
 	previewUrl?: string;
+	truncated?: boolean;
 	onRemove?: () => void;
 	className?: string;
 }) => {
@@ -56,6 +64,12 @@ export const FileAttachment = ({
 				<AttachmentDescription>
 					{getFileTypeLabel(mediaType)} · {formatFileSize(size)}
 				</AttachmentDescription>
+				{truncated && (
+					<AttachmentDescription className="flex items-start gap-1 whitespace-normal">
+						<TriangleAlertIcon className="mt-px size-3 shrink-0 text-amber-600" />
+						{m.chat_attachment_truncated_notice()}
+					</AttachmentDescription>
+				)}
 			</AttachmentContent>
 			{onRemove && (
 				<AttachmentActions>

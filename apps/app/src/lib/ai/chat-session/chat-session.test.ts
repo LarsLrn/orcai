@@ -923,4 +923,48 @@ describe("ChatSession", () => {
 		).toBeUndefined();
 		expect(calls.chat).toHaveLength(1);
 	});
+
+	test("takes over the attachments the server stored with the question", async () => {
+		const attached = {
+			assetId: "00000000-0000-4000-8000-0000000000a1" as AssetId,
+			title: "Thesis.pdf",
+			fileType: "application/pdf",
+			size: 4096,
+		};
+		const { port, calls } = fakePort({
+			replies: [
+				() => streamOf(reply("reply-1", "Hello")),
+			],
+			stored: [
+				{
+					...message("stored", "user", []),
+					attachments: [
+						{
+							...attached,
+							truncated: true,
+						},
+					],
+				},
+			],
+		});
+		const chat = session(port);
+
+		await chat.send({
+			text: "Summarise it",
+			metadata: {
+				attachments: [
+					attached,
+				],
+			},
+		});
+
+		const [question] = chat.chat.messages;
+		expect(question?.attachments).toEqual([
+			{
+				...attached,
+				truncated: true,
+			},
+		]);
+		expect(calls.find).toHaveLength(1);
+	});
 });
