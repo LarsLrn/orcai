@@ -5,6 +5,8 @@ import { userIdSchema } from "../user/ref";
 
 const ownersSchema = userIdSchema.array().min(1).max(100);
 const receiverSearchSchema = z.string().trim().max(200).optional();
+/** Users the change is about, left out of the list since they cannot receive. */
+const excludedReceiversSchema = userIdSchema.array().max(100).optional();
 
 export const listOwnedContentInputSchema = z.object({
 	userIds: ownersSchema,
@@ -12,6 +14,7 @@ export const listOwnedContentInputSchema = z.object({
 
 export const listContentReceiversInputSchema = z.object({
 	search: receiverSearchSchema,
+	excluded: excludedReceiversSchema,
 });
 
 export const listInstanceOwnedContentInputSchema = z.object({
@@ -23,6 +26,7 @@ export const listInstanceOwnedContentInputSchema = z.object({
 export const listInstanceContentReceiversInputSchema = z.object({
 	organizationId: organizationIdSchema,
 	search: receiverSearchSchema,
+	excluded: excludedReceiversSchema,
 });
 
 export const resourceHandOverInputSchema = createResourceScopedSchema({

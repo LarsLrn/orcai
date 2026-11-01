@@ -1355,7 +1355,9 @@ describe("reading what members own", () => {
 					bots: 1,
 					blocks: 1,
 					assets: 1,
-					defaultReceiverId: admin.user.id,
+					defaultReceiver: expect.objectContaining({
+						id: admin.user.id,
+					}),
 				}),
 			]);
 			const { data: receivers } = await call(admin, (procedures, options) =>
@@ -1367,6 +1369,19 @@ describe("reading what members own", () => {
 					owner.user.id,
 				].sort(),
 			);
+			const { data: others } = await call(admin, (procedures, options) =>
+				procedures.organizationMember.receivers(
+					{
+						excluded: [
+							owner.user.id,
+						],
+					},
+					options,
+				),
+			);
+			expect(others.map((receiver) => receiver.id)).toEqual([
+				admin.user.id,
+			]);
 		},
 		TIMEOUT,
 	);
@@ -1443,7 +1458,7 @@ describe("reading what members own", () => {
 							options,
 						),
 					)
-				).data[0]?.defaultReceiverId;
+				).data[0]?.defaultReceiver?.id;
 
 			expect(await deletionDefault()).toBe(bannedAdmin.user.id);
 			await quietly.ban(bannedAdmin.user.id);

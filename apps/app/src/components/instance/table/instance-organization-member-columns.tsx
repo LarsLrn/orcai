@@ -2,7 +2,10 @@ import type { OrganizationId, UserId } from "@orcai/core";
 import type { InstanceOrganizationMember } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { useState } from "react";
 import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
+import { HandOverConfirmDialog } from "@/components/ownership/hand-over-confirm-dialog";
+import { useRoleChange } from "@/components/ownership/use-role-change";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -28,19 +31,34 @@ const RoleCell = ({
 	member: InstanceOrganizationMember;
 }) => {
 	const changeRole = useChangeInstanceMemberRoleMutation();
+	const roleChange = useRoleChange({
+		scope: {
+			kind: "instance",
+			organizationId,
+		},
+		member: {
+			id: member.userId,
+			name: member.name,
+		},
+		change: (role, receiverId) =>
+			changeRole.mutateAsync({
+				organizationId,
+				userId: member.userId,
+				role,
+				receiverId,
+			}),
+		pending: changeRole.isPending,
+	});
 
 	return (
-		<OrganizationRolePicker
-			value={member.role}
-			disabled={changeRole.isPending}
-			onValueChange={(role) =>
-				changeRole.mutate({
-					organizationId,
-					userId: member.userId,
-					role,
-				})
-			}
-		/>
+		<>
+			<OrganizationRolePicker
+				value={member.role}
+				disabled={changeRole.isPending}
+				onValueChange={(role) => void roleChange.request(role)}
+			/>
+			{roleChange.dialog}
+		</>
 	);
 };
 
@@ -54,25 +72,47 @@ const RemoveCell = ({
 	viewerId: UserId;
 }) => {
 	const self = member.userId === viewerId;
-	const remove = useRemoveInstanceMemberMutation({
-		name: member.name,
-		self,
-	});
+	const remove = useRemoveInstanceMemberMutation();
+	const [isOpen, setIsOpen] = useState(false);
+	const actionLabel = self
+		? m.instance_org_member_leave_action()
+		: m.common_remove_button();
 
 	return (
-		<Button
-			variant="ghost"
-			size="sm"
-			loading={remove.isPending}
-			onClick={() =>
-				remove.mutate({
+		<>
+			<Button variant="ghost" size="sm" onClick={() => setIsOpen(true)}>
+				{actionLabel}
+			</Button>
+			<HandOverConfirmDialog
+				open={isOpen}
+				onOpenChange={setIsOpen}
+				title={
+					self
+						? m.instance_org_member_leave_confirm_title()
+						: m.instance_org_member_remove_confirm_title({
+								name: member.name,
+							})
+				}
+				description={m.instance_org_member_remove_confirm_description()}
+				confirmText={actionLabel}
+				scope={{
+					kind: "instance",
 					organizationId,
-					userId: member.userId,
-				})
-			}
-		>
-			{self ? m.instance_org_member_leave_action() : m.common_remove_button()}
-		</Button>
+				}}
+				userIds={[
+					member.userId,
+				]}
+				pending={remove.isPending}
+				onConfirm={async ([receiver]) => {
+					const result = await remove.mutateAsync({
+						organizationId,
+						userId: member.userId,
+						receiverId: receiver?.userId,
+					});
+					if (result.status === "success") setIsOpen(false);
+				}}
+			/>
+		</>
 	);
 };
 

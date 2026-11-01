@@ -7,11 +7,11 @@ import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+/** Deletes accounts; the dialog confirms and picks who receives what they own. */
 export const useDeleteUsersMutation = (
 	opts: ReturnType<typeof orpc.user.delete.mutationOptions> = {},
-	target?: DestructiveTarget,
-) => {
-	return useMutationAction({
+) =>
+	useMutationAction({
 		mutationOptions: () => orpc.user.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
@@ -27,27 +27,7 @@ export const useDeleteUsersMutation = (
 					count: input.userIds.length,
 				}),
 		},
-		confirm: (input) => {
-			const count = input.userIds.length;
-			const name = singleTargetName(count, target);
-
-			return {
-				title: name
-					? m.users_delete_confirm_title_named({
-							name,
-						})
-					: m.users_delete_confirm_title({
-							count,
-						}),
-				description: m.users_delete_confirm_description({
-					count,
-				}),
-				confirmText: m.common_delete_button(),
-				cancelText: m.common_cancel_button(),
-			};
-		},
 	});
-};
 
 export const useBanUserMutation = (
 	opts: ReturnType<typeof orpc.user.ban.mutationOptions> = {},

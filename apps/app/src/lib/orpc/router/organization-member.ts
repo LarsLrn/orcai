@@ -238,6 +238,7 @@ const listReceivers = authed.organizationMember.receivers
 		const data = yield* eligibleReceivers({
 			organizationId: context.auth.session.activeOrganizationId,
 			search: input.search,
+			excluded: input.excluded,
 		});
 		return {
 			data,

@@ -24,29 +24,13 @@ export const useChangeInstanceMemberRoleMutation = () =>
 		},
 	});
 
-/** Removes a member; on the admin's own row it reads as leaving. */
-export const useRemoveInstanceMemberMutation = (target: {
-	name: string;
-	self: boolean;
-}) =>
+export const useRemoveInstanceMemberMutation = () =>
 	useMutationAction({
 		mutationOptions: () => orpc.instance.removeMember.mutationOptions(),
 		messages: {
 			loading: m.instance_org_member_remove_toast_loading(),
 			success: m.instance_org_member_remove_toast_success(),
 			error: m.instance_org_member_remove_toast_error(),
-		},
-		confirm: {
-			title: target.self
-				? m.instance_org_member_leave_confirm_title()
-				: m.instance_org_member_remove_confirm_title({
-						name: target.name,
-					}),
-			description: m.instance_org_member_remove_confirm_description(),
-			confirmText: target.self
-				? m.instance_org_member_leave_action()
-				: m.common_remove_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});
 

@@ -409,6 +409,13 @@ export const handOverAccountsContent = (params: {
 		);
 	});
 
+const receiverColumns = {
+	id: dbSchema.user.id,
+	name: dbSchema.user.name,
+	email: dbSchema.user.email,
+	image: dbSchema.user.image,
+};
+
 /**
  * What the users own, per home organisation, with the receiver a handover
  * would default to. Only organisations where they own something appear. The
@@ -435,16 +442,22 @@ export const ownedContent = (params: {
 			.orderBy(asc(dbSchema.organization.name));
 		return yield* Effect.forEach(organizations, (organization) =>
 			Effect.gen(function* () {
+				const receiverId = yield* defaultReceiverId({
+					organizationId: organization.id,
+					rule: params.receiverDefault,
+					excluded: params.userIds,
+				});
+				const [defaultReceiver] = receiverId
+					? yield* db
+							.select(receiverColumns)
+							.from(dbSchema.user)
+							.where(eq(dbSchema.user.id, receiverId))
+					: [];
 				return {
 					organizationId: organization.id,
 					organizationName: organization.name,
 					...countKinds(byOrganization[organization.id] ?? []),
-					defaultReceiverId:
-						(yield* defaultReceiverId({
-							organizationId: organization.id,
-							rule: params.receiverDefault,
-							excluded: params.userIds,
-						})) ?? null,
+					defaultReceiver: defaultReceiver ?? null,
 				};
 			}),
 		);
@@ -464,12 +477,7 @@ export const eligibleReceivers = (params: {
 		const search = params.search?.trim();
 		const pattern = search ? literalSearch(search) : undefined;
 		const candidates = yield* db
-			.select({
-				id: dbSchema.user.id,
-				name: dbSchema.user.name,
-				email: dbSchema.user.email,
-				image: dbSchema.user.image,
-			})
+			.select(receiverColumns)
 			.from(dbSchema.member)
 			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
 			.where(

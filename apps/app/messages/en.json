@@ -5271,8 +5271,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "The account leaves every organisation it belongs to, and the person can no longer sign in. Deletion is permanent.",
-				"countPlural=other": "The accounts leave every organisation they belong to, and those people can no longer sign in. Deletion is permanent."
+				"countPlural=one": "The account leaves every organisation it belongs to, and the person can no longer sign in. Its chats and chat uploads are deleted. Deletion is permanent.",
+				"countPlural=other": "The accounts leave every organisation they belong to, and those people can no longer sign in. Their chats and chat uploads are deleted. Deletion is permanent."
 			}
 		}
 	],
@@ -5409,5 +5409,58 @@
 	"users_unban_toast_loading": "Lifting the ban...",
 	"users_unban_toast_success": "Ban lifted",
 	"members_verification_not_verified": "Not verified",
-	"members_verification_verified": "Verified"
+	"members_verification_verified": "Verified",
+	"ownership_count_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 bot",
+				"countPlural=other": "{count} bots"
+			}
+		}
+	],
+	"ownership_count_blocks": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 block",
+				"countPlural=other": "{count} blocks"
+			}
+		}
+	],
+	"ownership_count_assets": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 asset",
+				"countPlural=other": "{count} assets"
+			}
+		}
+	],
+	"ownership_receiver_label": "Hand over to",
+	"ownership_receiver_description": "The member you choose receives {content}.",
+	"ownership_receiver_change_button": "Change",
+	"ownership_receiver_search_placeholder": "Search members",
+	"ownership_receiver_empty": "No member found who can receive content.",
+	"ownership_viewer_confirm_title": "Make {name} a Viewer?",
+	"ownership_viewer_confirm_description": "Viewers chat and read, but they cannot own bots, blocks or assets.",
+	"ownership_viewer_confirm_button": "Change role"
 }

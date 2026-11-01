@@ -8,17 +8,16 @@ import {
 	UserCogIcon,
 	UserMinusIcon,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { RemoveMembersDialog } from "@/components/members/remove-members-dialog";
 import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
+import { useRoleChange } from "@/components/ownership/use-role-change";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useForgotPassword } from "@/hooks/mutations/use-forgot-password";
-import {
-	useDeleteOrganizationMembersMutation,
-	useUpdateOrganizationMemberMutation,
-} from "@/hooks/mutations/use-organization-member-mutations";
+import { useUpdateOrganizationMemberMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
 import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
 import { m } from "@/paraglide/messages";
@@ -34,14 +33,20 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 	const passwordReset = useForgotPassword();
 	const verificationEmail = useResendVerificationEmail();
 	const updateMember = useUpdateOrganizationMemberMutation();
-	const removeMember = useDeleteOrganizationMembersMutation(
-		{},
-		{
-			names: [
-				member.email,
-			],
+	const roleChange = useRoleChange({
+		scope: {
+			kind: "active-organization",
 		},
-	);
+		member,
+		change: (role, receiverId) =>
+			updateMember.mutateAsync({
+				userId: member.id,
+				role,
+				receiverId,
+			}),
+		pending: updateMember.isPending,
+	});
+	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
 	const canManageProtectedMember =
@@ -52,22 +57,6 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 	const isProtectedAdmin =
 		member.organizationRole === ORGANIZATION_ADMIN_ROLE &&
 		!canManageOrganization;
-
-	const handleRemoveFromOrganisation = async () => {
-		const result = await removeMember.mutateAsync({
-			refs: [
-				{
-					userId: member.id,
-				},
-			],
-		});
-
-		if (result.status === "success") {
-			await navigate({
-				to: "/app/members",
-			});
-		}
-	};
 
 	const assignableRoles = useMemo(
 		() =>
@@ -133,12 +122,7 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 						</p>
 						<OrganizationRolePicker
 							value={member.organizationRole}
-							onValueChange={(nextRole) =>
-								updateMember.mutate({
-									userId: member.id,
-									role: nextRole,
-								})
-							}
+							onValueChange={(nextRole) => void roleChange.request(nextRole)}
 							variant="full"
 							disabled={updateMember.isPending || isProtectedAdmin}
 							title={m.members_manage_role_picker_title()}
@@ -150,8 +134,7 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 						<div className="flex flex-wrap gap-2">
 							<Button
 								variant="destructive"
-								loading={removeMember.isPending}
-								onClick={() => void handleRemoveFromOrganisation()}
+								onClick={() => setIsRemoveOpen(true)}
 							>
 								<UserMinusIcon className="h-4 w-4" />
 								{m.members_remove_from_organisation_action()}
@@ -160,6 +143,21 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 					) : null}
 				</CardContent>
 			</Card>
+			{roleChange.dialog}
+			{canMutateUserAccount ? (
+				<RemoveMembersDialog
+					members={[
+						member,
+					]}
+					open={isRemoveOpen}
+					onOpenChange={setIsRemoveOpen}
+					onRemoved={() =>
+						navigate({
+							to: "/app/members",
+						})
+					}
+				/>
+			) : null}
 		</div>
 	);
 };
