@@ -9,6 +9,8 @@ import {
 	Trash2Icon,
 	UndoIcon,
 } from "lucide-react";
+import { type ReactNode, useState } from "react";
+import { HandOverConfirmDialog } from "@/components/ownership/hand-over-confirm-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -32,7 +34,10 @@ import {
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import { m } from "@/paraglide/messages";
 
-/** What an instance admin can do to an account; nothing for their own. */
+/**
+ * What an instance admin can do to an account, nothing for their own, with
+ * the dialog that confirms deleting it.
+ */
 export const useInstanceUserActions = (
 	user: Pick<
 		InstanceUser,
@@ -41,7 +46,10 @@ export const useInstanceUserActions = (
 	options: {
 		onDeleted?: () => void;
 	} = {},
-): HeaderAction[] => {
+): {
+	actions: HeaderAction[];
+	dialog: ReactNode;
+} => {
 	const { auth } = useAuthenticatedRouteContext();
 	const target = {
 		names: [
@@ -50,12 +58,8 @@ export const useInstanceUserActions = (
 	};
 	const banUser = useBanUserMutation({}, target);
 	const unbanUser = useUnbanUserMutation();
-	const deleteUsers = useDeleteUsersMutation(
-		{
-			onSuccess: options.onDeleted,
-		},
-		target,
-	);
+	const deleteUsers = useDeleteUsersMutation();
+	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 	const resetTwoFactor = useResetTwoFactorMutation({}, target);
 	const setInstanceRole = useSetInstanceRoleMutation({}, target);
 	const removeImage = useRemoveUserImageMutation({
@@ -63,7 +67,10 @@ export const useInstanceUserActions = (
 	});
 
 	if (user.id === auth.user.id) {
-		return [];
+		return {
+			actions: [],
+			dialog: null,
+		};
 	}
 
 	const actions: (HeaderAction | false)[] = [
@@ -136,20 +143,49 @@ export const useInstanceUserActions = (
 			label: m.instance_users_table_delete_menu_item(),
 			icon: Trash2Icon,
 			destructive: true,
-			onClick: () =>
-				deleteUsers.mutate({
-					userIds: [
-						user.id,
-					],
-				}),
+			onClick: () => setIsDeleteOpen(true),
 		},
 	];
-	return actions.filter((action) => action !== false);
+	return {
+		actions: actions.filter((action) => action !== false),
+		dialog: (
+			<HandOverConfirmDialog
+				open={isDeleteOpen}
+				onOpenChange={setIsDeleteOpen}
+				title={m.users_delete_confirm_title_named({
+					name: user.email,
+				})}
+				description={m.users_delete_confirm_description({
+					count: 1,
+				})}
+				confirmText={m.common_delete_button()}
+				scope={{
+					kind: "instance",
+				}}
+				userIds={[
+					user.id,
+				]}
+				pending={deleteUsers.isPending}
+				onConfirm={async (receivers) => {
+					const result = await deleteUsers.mutateAsync({
+						userIds: [
+							user.id,
+						],
+						receivers,
+					});
+					if (result.status === "success") {
+						setIsDeleteOpen(false);
+						options.onDeleted?.();
+					}
+				}}
+			/>
+		),
+	};
 };
 
 /** The same actions as a table row's `…` menu. */
 export const InstanceUserRowMenu = ({ user }: { user: InstanceUser }) => {
-	const actions = useInstanceUserActions(user);
+	const { actions, dialog } = useInstanceUserActions(user);
 	if (actions.length === 0) {
 		return null;
 	}
@@ -157,25 +193,28 @@ export const InstanceUserRowMenu = ({ user }: { user: InstanceUser }) => {
 	const destructive = actions.filter((action) => action.destructive);
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-			<DropdownMenuContent align="end">
-				{regular.map((action) => (
-					<DropdownMenuItem key={action.key} onClick={action.onClick}>
-						{action.label}
-					</DropdownMenuItem>
-				))}
-				<DropdownMenuSeparator />
-				{destructive.map((action) => (
-					<DropdownMenuItem
-						key={action.key}
-						variant="destructive"
-						onClick={action.onClick}
-					>
-						{action.label}
-					</DropdownMenuItem>
-				))}
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
+				<DropdownMenuContent align="end">
+					{regular.map((action) => (
+						<DropdownMenuItem key={action.key} onClick={action.onClick}>
+							{action.label}
+						</DropdownMenuItem>
+					))}
+					<DropdownMenuSeparator />
+					{destructive.map((action) => (
+						<DropdownMenuItem
+							key={action.key}
+							variant="destructive"
+							onClick={action.onClick}
+						>
+							{action.label}
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuContent>
+			</DropdownMenu>
+			{dialog}
+		</>
 	);
 };

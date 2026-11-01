@@ -1,10 +1,11 @@
 import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { UserWithOrganizationRole } from "@orcai/schema";
 import { useRouteContext } from "@tanstack/react-router";
+import { useState } from "react";
+import { RemoveMembersDialog } from "@/components/members/remove-members-dialog";
 import { DataTableBulkActions } from "@/components/ui/data-table/data-table-bulk-actions";
 import { useTable } from "@/components/ui/data-table/data-table-context";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { m } from "@/paraglide/messages";
 
 const MembersDataTableSelectActions = () => {
@@ -15,11 +16,8 @@ const MembersDataTableSelectActions = () => {
 	const { data: capabilities } = useOrganizationCapabilities([
 		"manage_organization",
 	]);
-	const removeMembers = useDeleteOrganizationMembersMutation({
-		onSuccess: () => {
-			table.resetRowSelection();
-		},
-	});
+	const [removing, setRemoving] = useState<UserWithOrganizationRole[]>([]);
+	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
 	const selectedRows = table.getSelectedRowModel().rows;
@@ -31,25 +29,30 @@ const MembersDataTableSelectActions = () => {
 	);
 
 	return (
-		<DataTableBulkActions<UserWithOrganizationRole>
-			isPending={removeMembers.isPending}
-			actions={
-				hasProtectedSelection
-					? []
-					: [
-							{
-								label: m.members_table_bulk_remove_action(),
-								variant: "destructive",
-								onSelect: ({ selectedRows }) =>
-									removeMembers.mutate({
-										refs: selectedRows.map((row) => ({
-											userId: row.original.id,
-										})),
-									}),
-							},
-						]
-			}
-		/>
+		<>
+			<DataTableBulkActions<UserWithOrganizationRole>
+				actions={
+					hasProtectedSelection
+						? []
+						: [
+								{
+									label: m.members_table_bulk_remove_action(),
+									variant: "destructive",
+									onSelect: ({ selectedRows }) => {
+										setRemoving(selectedRows.map((row) => row.original));
+										setIsRemoveOpen(true);
+									},
+								},
+							]
+				}
+			/>
+			<RemoveMembersDialog
+				members={removing}
+				open={isRemoveOpen}
+				onOpenChange={setIsRemoveOpen}
+				onRemoved={() => table.resetRowSelection()}
+			/>
+		</>
 	);
 };
 

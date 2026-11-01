@@ -5271,8 +5271,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "Das Konto verlässt alle Organisationen, denen es angehört, und die Person kann sich nicht mehr anmelden. Das Löschen ist endgültig.",
-				"countPlural=other": "Die Konten verlassen alle Organisationen, denen sie angehören, und diese Personen können sich nicht mehr anmelden. Das Löschen ist endgültig."
+				"countPlural=one": "Das Konto verlässt alle Organisationen, denen es angehört, und die Person kann sich nicht mehr anmelden. Ihre Chats und Chat-Uploads werden gelöscht. Das Löschen ist endgültig.",
+				"countPlural=other": "Die Konten verlassen alle Organisationen, denen sie angehören, und diese Personen können sich nicht mehr anmelden. Ihre Chats und Chat-Uploads werden gelöscht. Das Löschen ist endgültig."
 			}
 		}
 	],
@@ -5409,5 +5409,58 @@
 	"users_unban_toast_loading": "Die Sperre wird aufgehoben...",
 	"users_unban_toast_success": "Sperre aufgehoben",
 	"members_verification_not_verified": "Nicht bestätigt",
-	"members_verification_verified": "Bestätigt"
+	"members_verification_verified": "Bestätigt",
+	"ownership_count_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Bot",
+				"countPlural=other": "{count} Bots"
+			}
+		}
+	],
+	"ownership_count_blocks": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Block",
+				"countPlural=other": "{count} Blöcke"
+			}
+		}
+	],
+	"ownership_count_assets": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Asset",
+				"countPlural=other": "{count} Assets"
+			}
+		}
+	],
+	"ownership_receiver_label": "Übergeben an",
+	"ownership_receiver_description": "Das gewählte Mitglied erhält {content}.",
+	"ownership_receiver_change_button": "Ändern",
+	"ownership_receiver_search_placeholder": "Mitglieder suchen",
+	"ownership_receiver_empty": "Kein Mitglied gefunden, das Inhalte erhalten kann.",
+	"ownership_viewer_confirm_title": "{name} zum Betrachter machen?",
+	"ownership_viewer_confirm_description": "Betrachter chatten und lesen, können aber keine Bots, Blöcke oder Assets besitzen.",
+	"ownership_viewer_confirm_button": "Rolle ändern"
 }

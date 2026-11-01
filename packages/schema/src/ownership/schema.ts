@@ -14,20 +14,20 @@ export const handedOverSchema = z.object({
 	...ownedCountsShape,
 });
 
-/** What users own in one organisation, and who would receive it by default. */
-export const ownedContentSchema = z.object({
-	organizationId: organizationIdSchema,
-	organizationName: z.string(),
-	...ownedCountsShape,
-	defaultReceiverId: userIdSchema.nullable(),
-});
-
 /** A member who may receive content. */
 export const contentReceiverSchema = z.object({
 	id: userIdSchema,
 	name: z.string(),
 	email: z.string(),
 	image: z.string().nullable(),
+});
+
+/** What users own in one organisation, and who would receive it by default. */
+export const ownedContentSchema = z.object({
+	organizationId: organizationIdSchema,
+	organizationName: z.string(),
+	...ownedCountsShape,
+	defaultReceiver: contentReceiverSchema.nullable(),
 });
 
 export type HandedOver = z.infer<typeof handedOverSchema>;

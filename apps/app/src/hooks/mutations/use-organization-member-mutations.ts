@@ -1,8 +1,4 @@
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import {
-	type DestructiveTarget,
-	singleTargetName,
-} from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -19,12 +15,14 @@ export const useUpdateOrganizationMemberMutation = (
 	});
 };
 
-/** Removes memberships from the active organisation. The accounts stay. */
+/**
+ * Removes memberships from the active organisation. The accounts stay, and
+ * the removal dialog confirms and picks who receives what they own.
+ */
 export const useDeleteOrganizationMembersMutation = (
 	opts: ReturnType<typeof orpc.organizationMember.delete.mutationOptions> = {},
-	target?: DestructiveTarget,
-) => {
-	return useMutationAction({
+) =>
+	useMutationAction({
 		mutationOptions: () => orpc.organizationMember.delete.mutationOptions(opts),
 		messages: {
 			loading: ({ input }) =>
@@ -40,24 +38,4 @@ export const useDeleteOrganizationMembersMutation = (
 					count: input.refs.length,
 				}),
 		},
-		confirm: (input) => {
-			const count = input.refs.length;
-			const name = singleTargetName(count, target);
-
-			return {
-				title: name
-					? m.orgs_member_delete_confirm_title_named({
-							name,
-						})
-					: m.orgs_member_delete_confirm_title({
-							count,
-						}),
-				description: m.orgs_member_delete_confirm_description({
-					count,
-				}),
-				confirmText: m.common_remove_button(),
-				cancelText: m.common_cancel_button(),
-			};
-		},
 	});
-};

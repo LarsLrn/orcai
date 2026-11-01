@@ -2,6 +2,8 @@ import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { UserWithOrganizationRole } from "@orcai/schema";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { useState } from "react";
+import { RemoveMembersDialog } from "@/components/members/remove-members-dialog";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
@@ -16,7 +18,6 @@ import {
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
-import { useDeleteOrganizationMembersMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
 import { m } from "@/paraglide/messages";
 
@@ -111,57 +112,47 @@ const MemberActions = ({ member }: { member: UserWithOrganizationRole }) => {
 		member.id !== auth.user.id &&
 		(member.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
 			canManageOrganization);
+	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-			<DropdownMenuContent align="end">
-				<DropdownMenuLinkItem
-					render={
-						<Link
-							to={"/app/members/$userId/edit"}
-							params={{
-								userId: member.id,
-							}}
-						/>
-					}
-				>
-					{m.members_table_edit_action()}
-				</DropdownMenuLinkItem>
-				{canRemoveMember ? (
-					<>
-						<DropdownMenuSeparator />
-						<RemoveItem member={member} />
-					</>
-				) : null}
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
-};
-
-const RemoveItem = ({ member }: { member: UserWithOrganizationRole }) => {
-	const { mutate: removeMembers } = useDeleteOrganizationMembersMutation(
-		{},
-		{
-			names: [
-				member.email,
-			],
-		},
-	);
-	return (
-		<DropdownMenuItem
-			variant="destructive"
-			onClick={() =>
-				removeMembers({
-					refs: [
-						{
-							userId: member.id,
-						},
-					],
-				})
-			}
-		>
-			{m.members_remove_from_organisation_action()}
-		</DropdownMenuItem>
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
+				<DropdownMenuContent align="end">
+					<DropdownMenuLinkItem
+						render={
+							<Link
+								to={"/app/members/$userId/edit"}
+								params={{
+									userId: member.id,
+								}}
+							/>
+						}
+					>
+						{m.members_table_edit_action()}
+					</DropdownMenuLinkItem>
+					{canRemoveMember ? (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								variant="destructive"
+								onClick={() => setIsRemoveOpen(true)}
+							>
+								{m.members_remove_from_organisation_action()}
+							</DropdownMenuItem>
+						</>
+					) : null}
+				</DropdownMenuContent>
+			</DropdownMenu>
+			{canRemoveMember ? (
+				<RemoveMembersDialog
+					members={[
+						member,
+					]}
+					open={isRemoveOpen}
+					onOpenChange={setIsRemoveOpen}
+				/>
+			) : null}
+		</>
 	);
 };

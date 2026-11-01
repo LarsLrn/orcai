@@ -97,7 +97,7 @@ function RouteComponent() {
 			input: membershipsInput(userId, search),
 		}),
 	);
-	const actions = useInstanceUserActions(user, {
+	const { actions, dialog } = useInstanceUserActions(user, {
 		onDeleted: () =>
 			void navigate({
 				to: "/instance/users",
@@ -177,6 +177,7 @@ function RouteComponent() {
 					</DataTable>
 				</Section>
 			</PageContent>
+			{dialog}
 		</Page>
 	);
 }
