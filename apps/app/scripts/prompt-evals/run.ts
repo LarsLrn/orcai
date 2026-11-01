@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { assistantCases } from "./cases/assistant";
 import { backgroundCases } from "./cases/background";
+import { behaviourCases } from "./cases/behaviour";
 import type { EvalCase } from "./cases/case";
 import { chatCases } from "./cases/chat";
 import type { CodeCheck, JudgedCheck } from "./checks";
@@ -20,6 +21,7 @@ import {
 const CASES: EvalCase[] = [
 	...assistantCases,
 	...chatCases,
+	...behaviourCases,
 	...backgroundCases,
 ];
 

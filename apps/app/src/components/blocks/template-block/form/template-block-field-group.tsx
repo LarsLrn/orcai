@@ -1,3 +1,4 @@
+import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
 import { TemplateBlockEditor } from "@/components/authoring/template-block-editor";
 import { withFieldGroup } from "@/hooks/form";
 import { m } from "@/paraglide/messages";
@@ -33,16 +34,19 @@ const TemplateBlockFieldGroup = withFieldGroup({
 					/>
 				}
 				systemPromptField={
-					<group.AppField
-						name="systemPrompt"
-						children={(field) => (
-							<field.TextareaField
-								label={m.blocks_template_form_system_prompt_label()}
-								placeholder={m.blocks_template_form_system_prompt_placeholder()}
-								rows={12}
-							/>
-						)}
-					/>
+					<div className="space-y-2">
+						<group.AppField
+							name="systemPrompt"
+							children={(field) => (
+								<field.TextareaField
+									label={m.blocks_template_form_system_prompt_label()}
+									placeholder={m.blocks_template_form_system_prompt_placeholder()}
+									rows={12}
+								/>
+							)}
+						/>
+						<BehaviourDocsLink />
+					</div>
 				}
 				descriptionField={
 					<group.AppField

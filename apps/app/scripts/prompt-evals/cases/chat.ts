@@ -50,11 +50,11 @@ const passage = (
 	};
 };
 
-const etAl = passage(
+export const etAl = passage(
 	"For a work with three or more authors, give only the surname of the first author followed by 'et al.' in every in-text citation, including the first one.",
 	8,
 );
-const twoAuthors = passage(
+export const twoAuthors = passage(
 	"For a work with two authors, name both authors in every in-text citation and join them with an ampersand inside parentheses, for example (Smith & Jones, 2020).",
 	8,
 );
@@ -142,7 +142,7 @@ interface PageInput {
 	assetId?: string;
 }
 
-const search = (...results: Passage[]): Scripted => ({
+export const search = (...results: Passage[]): Scripted => ({
 	searchRepositories: () => ({
 		results,
 	}),
@@ -155,7 +155,7 @@ const apaGuide = {
 };
 
 /** The study helper over "Course readings"; every retrieval tool answers, `scripted` decides what. */
-const study = (message: string, scripted: Scripted) => ({
+export const study = (message: string, scripted: Scripted) => ({
 	behaviour: STUDY_HELPER,
 	repositories: [
 		readings,
@@ -182,7 +182,7 @@ const MONTH =
 	"(January|February|March|April|May|June|July|August|September|October|November|December)";
 
 /** A date written out, the cheap check before the judge reads for relative ones. */
-const A_DATE = new RegExp(
+export const A_DATE = new RegExp(
 	[
 		`\\b\\d{1,2}(st|nd|rd|th)?\\s+(of\\s+)?${MONTH}\\b`,
 		`\\b${MONTH}\\s+\\d{1,2}\\b`,

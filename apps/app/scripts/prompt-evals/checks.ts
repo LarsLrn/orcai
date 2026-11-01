@@ -251,6 +251,15 @@ export const noOtherCitationStyle: CodeCheck = {
 		),
 };
 
+/** No line that opens a list of sources, as a heading or a label, in English or German. */
+export const noSourceList: CodeCheck = {
+	name: "writes no source list",
+	pass: ({ text }) =>
+		!/^[#>*_\s-]*(Sources?|References?|Quellen(angaben|verzeichnis)?|Quelle|Literatur(verzeichnis)?|Referenzen)[*_\s]*(:|$)/im.test(
+			text,
+		),
+};
+
 /** A field of a background run's parsed output. */
 export const outputField = (
 	name: string,
