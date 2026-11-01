@@ -11,13 +11,15 @@ import {
 
 /**
  * Deletes a batch and returns the targets' names, read beforehand so the
- * summary can still show them once the targets are gone. With `canDelete`
+ * summary can still show them once the targets are gone, with what the
+ * delete returned when it ran. With `canDelete`
  * only the deletable targets are sent, and the rest, unreadable ones
  * included, are skipped; without it the batch deletes everything or fails.
  */
 export const deleteNamed = <
 	Id extends string,
 	Found,
+	Removed,
 	E,
 	Kind extends EntityKind,
 	FoundKind extends EntityKind = Kind,
@@ -48,7 +50,7 @@ export const deleteNamed = <
 			ids: Id[],
 			procedures: ProcedureClients,
 			options: ProcedureOptions,
-		) => Effect.Effect<unknown, E>;
+		) => Effect.Effect<Removed, E>;
 		/** The read tool that shows whether a failed delete went through. */
 		verify: string;
 	},
@@ -90,14 +92,15 @@ export const deleteNamed = <
 			.filter((target) => target.deletable && !target.found)
 			.map((target) => target.id);
 
-		if (sent.length > 0) {
-			yield* callProcedure(deps, (procedures, options) =>
-				remove(sent, procedures, options),
-			).pipe(
-				mutation(verify),
-				expectType(type, missing.length > 0 ? missing : sent),
-			);
-		}
+		const removed =
+			sent.length > 0
+				? yield* callProcedure(deps, (procedures, options) =>
+						remove(sent, procedures, options),
+					).pipe(
+						mutation(verify),
+						expectType(type, missing.length > 0 ? missing : sent),
+					)
+				: undefined;
 
 		const named = ({ type, id, name }: (typeof targets)[number]) => ({
 			type,
@@ -108,5 +111,6 @@ export const deleteNamed = <
 		return {
 			deleted: targets.filter((target) => target.deletable).map(named),
 			skipped: targets.filter((target) => !target.deletable).map(named),
+			removed,
 		};
 	});
