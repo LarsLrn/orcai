@@ -570,7 +570,7 @@ describe("detaching principals that leave", () => {
 });
 
 /**
- * A block homed in one organisation and scoped to a second one as installs
+ * A block homed in one organisation and scoped to a second one as adding
  * will be, with a member of both and a sharer in the second.
  */
 const blockInTwoOrganizations = async () => {

@@ -2,7 +2,7 @@ import type { HomeOrganization, ResourceRef } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import {
 	AccessManagerContent,
-	InstalledAccessContent,
+	AddedAccessContent,
 } from "@/components/access/access-manager-content";
 import { toLinkedBlocks } from "@/components/access/block-edit-offer";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,7 @@ const AccessDialog = ({
 
 				<DialogBody>
 					{homeOrganization ? (
-						<InstalledAccessContent
+						<AddedAccessContent
 							resourceRef={resourceRef}
 							from={homeOrganization}
 						/>

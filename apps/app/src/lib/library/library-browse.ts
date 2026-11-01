@@ -47,7 +47,7 @@ type EntryFilters = {
  * Every library item the reader may list and the filters let through, of
  * every kind, as one subquery of kind, id, name and creation time. Assets
  * are those uploaded to the library; having no status, drafts leave them
- * out, and never added from the catalogue, so do installs.
+ * out, and never added from the catalogue, so do added resources.
  */
 const entries = (access: LibraryAccess, filters: EntryFilters) =>
 	Effect.gen(function* () {

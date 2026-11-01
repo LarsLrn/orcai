@@ -3,7 +3,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 /** Adds a catalogue entry to the active organisation. */
-export const useInstallMutation = (
+export const useCatalogueAddMutation = (
 	{
 		name,
 		organisation,
@@ -11,35 +11,35 @@ export const useInstallMutation = (
 		name: string;
 		organisation: string;
 	},
-	opts: ReturnType<typeof orpc.catalogue.install.mutationOptions> = {},
+	opts: ReturnType<typeof orpc.catalogue.add.mutationOptions> = {},
 ) =>
 	useMutationAction({
-		mutationOptions: () => orpc.catalogue.install.mutationOptions(opts),
+		mutationOptions: () => orpc.catalogue.add.mutationOptions(opts),
 		messages: {
 			loading: () =>
-				m.catalogue_install_toast_loading({
+				m.catalogue_add_toast_loading({
 					name,
 				}),
 			success: ({ data }) =>
 				data.data.addedBlocks > 0
-					? m.catalogue_install_toast_success_with_blocks({
+					? m.catalogue_add_toast_success_with_blocks({
 							name,
 							organisation,
 							count: data.data.addedBlocks,
 						})
-					: m.catalogue_install_toast_success({
+					: m.catalogue_add_toast_success({
 							name,
 							organisation,
 						}),
 			error: () =>
-				m.catalogue_install_toast_error({
+				m.catalogue_add_toast_error({
 					name,
 				}),
 		},
 	});
 
 /** Adds the blocks of a bot the active organisation added without them. */
-export const useInstallBlocksMutation = ({
+export const useCatalogueAddBlocksMutation = ({
 	name,
 	organisation,
 }: {
@@ -47,27 +47,27 @@ export const useInstallBlocksMutation = ({
 	organisation: string;
 }) =>
 	useMutationAction({
-		mutationOptions: () => orpc.catalogue.installBlocks.mutationOptions(),
+		mutationOptions: () => orpc.catalogue.addBlocks.mutationOptions(),
 		messages: {
 			loading: () =>
-				m.catalogue_install_blocks_toast_loading({
+				m.catalogue_add_blocks_toast_loading({
 					name,
 				}),
 			success: ({ data }) =>
-				m.catalogue_install_blocks_toast_success({
+				m.catalogue_add_blocks_toast_success({
 					name,
 					organisation,
 					count: data.data.addedBlocks,
 				}),
 			error: () =>
-				m.catalogue_install_blocks_toast_error({
+				m.catalogue_add_blocks_toast_error({
 					name,
 				}),
 		},
 	});
 
 /** Removes an entry added from the catalogue from the active organisation, after a confirm. */
-export const useUninstallMutation = (
+export const useCatalogueRemoveMutation = (
 	{
 		kind,
 		name,
@@ -77,35 +77,35 @@ export const useUninstallMutation = (
 		name: string;
 		organisation: string;
 	},
-	opts: ReturnType<typeof orpc.catalogue.uninstall.mutationOptions> = {},
+	opts: ReturnType<typeof orpc.catalogue.remove.mutationOptions> = {},
 ) =>
 	useMutationAction({
-		mutationOptions: () => orpc.catalogue.uninstall.mutationOptions(opts),
+		mutationOptions: () => orpc.catalogue.remove.mutationOptions(opts),
 		messages: {
 			loading: () =>
-				m.catalogue_uninstall_toast_loading({
+				m.catalogue_remove_toast_loading({
 					name,
 				}),
 			success: () =>
-				m.catalogue_uninstall_toast_success({
+				m.catalogue_remove_toast_success({
 					name,
 					organisation,
 				}),
 			error: () =>
-				m.catalogue_uninstall_toast_error({
+				m.catalogue_remove_toast_error({
 					name,
 				}),
 		},
 		confirm: () => ({
-			title: m.catalogue_uninstall_confirm_title({
+			title: m.catalogue_remove_confirm_title({
 				name,
 				organisation,
 			}),
 			description: (kind === "bot"
-				? m.catalogue_uninstall_confirm_description_bot
-				: m.catalogue_uninstall_confirm_description_block)({
+				? m.catalogue_remove_confirm_description_bot
+				: m.catalogue_remove_confirm_description_block)({
 				organisation,
 			}),
-			confirmText: m.catalogue_uninstall_confirm_button(),
+			confirmText: m.catalogue_remove_confirm_button(),
 		}),
 	});

@@ -9,8 +9,8 @@ import {
 import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
 import { revokeIssuedGrants } from "@/lib/authz/resource-access";
 
-/** The resource's installs: its active scopes other than its home. */
-const installScopes = (resource: ResourceRef) =>
+/** The resource's added scopes: its active scopes other than its home. */
+const addedScopes = (resource: ResourceRef) =>
 	and(
 		eq(dbSchema.resourceScope.resourceType, resource.resourceType),
 		eq(dbSchema.resourceScope.resourceId, resource.resourceId),
@@ -18,8 +18,8 @@ const installScopes = (resource: ResourceRef) =>
 		isNull(dbSchema.resourceScope.endedAt),
 	);
 
-/** The organisations that installed the resource, with their names. */
-export const installingOrganizations = (resource: ResourceRef) =>
+/** The organisations that added the resource, with their names. */
+export const addingOrganizations = (resource: ResourceRef) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		return yield* db
@@ -32,7 +32,7 @@ export const installingOrganizations = (resource: ResourceRef) =>
 				dbSchema.organization,
 				eq(dbSchema.organization.id, dbSchema.resourceScope.organizationId),
 			)
-			.where(installScopes(resource))
+			.where(addedScopes(resource))
 			.orderBy(dbSchema.organization.name);
 	});
 
@@ -104,14 +104,14 @@ const unlinkBlock = (
 	});
 
 /**
- * Ends the resource's installs, in `organizationIds` or everywhere, with
+ * Ends the resource's added scopes, in `organizationIds` or everywhere, with
  * what each organisation built on it: the grants issued there, its bots'
  * links to a block and its chats' attachments of it, and a bot's setup
  * there. The organisations' chats with a bot turn read-only. Call it in a
  * {@link writeRelationships} that holds the resource's organisation locks;
- * returns the organisations whose install ended.
+ * returns the organisations whose added scope ended.
  */
-export const endInstalls = (params: {
+export const endAddedScopes = (params: {
 	resource: ResourceRef;
 	organizationIds?: readonly OrganizationId[];
 	now: Date;
@@ -125,7 +125,7 @@ export const endInstalls = (params: {
 			})
 			.where(
 				and(
-					installScopes(params.resource),
+					addedScopes(params.resource),
 					params.organizationIds
 						? inArray(dbSchema.resourceScope.organizationId, [
 								...params.organizationIds,

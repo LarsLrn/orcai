@@ -72,7 +72,7 @@ const catalogue = async () => {
 				type === "template"
 					? {
 							type,
-							name: `Install behaviour ${crypto.randomUUID()}`,
+							name: `Add behaviour ${crypto.randomUUID()}`,
 							description: null,
 							contentJson: null,
 							status: "ready",
@@ -82,7 +82,7 @@ const catalogue = async () => {
 						}
 					: {
 							type,
-							name: `Install repository ${crypto.randomUUID()}`,
+							name: `Add repository ${crypto.randomUUID()}`,
 							description: null,
 							contentJson: null,
 							status: "ready",
@@ -103,7 +103,7 @@ const catalogue = async () => {
 	const { data: saved } = await call(author, (options) =>
 		procedures.bot.save(
 			{
-				name: `Install bot ${crypto.randomUUID()}`,
+				name: `Add bot ${crypto.randomUUID()}`,
 				description: "Integration bot",
 				status: "ready",
 				templateBlockId: template,
@@ -141,18 +141,18 @@ const catalogue = async () => {
 		},
 	} satisfies Record<string, CatalogueEntryRef>;
 
-	const install = (actor: Actor, ref: CatalogueEntryRef = entry.bot) =>
+	const add = (actor: Actor, ref: CatalogueEntryRef = entry.bot) =>
 		call(actor, (options) =>
-			procedures.catalogue.install(
+			procedures.catalogue.add(
 				{
 					entry: ref,
 				},
 				options,
 			),
 		).then(({ data }) => data.changed);
-	const installWithBlocks = (actor: Actor) =>
+	const addWithBlocks = (actor: Actor) =>
 		call(actor, (options) =>
-			procedures.catalogue.install(
+			procedures.catalogue.add(
 				{
 					entry: entry.bot,
 					withBlocks: true,
@@ -160,18 +160,18 @@ const catalogue = async () => {
 				options,
 			),
 		).then(({ data }) => data);
-	const installBlocks = (actor: Actor) =>
+	const addBlocks = (actor: Actor) =>
 		call(actor, (options) =>
-			procedures.catalogue.installBlocks(
+			procedures.catalogue.addBlocks(
 				{
 					botId: bot,
 				},
 				options,
 			),
 		).then(({ data }) => data.addedBlocks);
-	const uninstall = (actor: Actor, ref: CatalogueEntryRef = entry.bot) =>
+	const remove = (actor: Actor, ref: CatalogueEntryRef = entry.bot) =>
 		call(actor, (options) =>
-			procedures.catalogue.uninstall(
+			procedures.catalogue.remove(
 				{
 					entry: ref,
 				},
@@ -214,16 +214,16 @@ const catalogue = async () => {
 		repository,
 		asset: created.asset.id,
 		entry,
-		install,
-		installWithBlocks,
-		installBlocks,
-		uninstall,
+		add,
+		addWithBlocks,
+		addBlocks,
+		remove,
 		grant,
 	};
 };
 
-/** The organisations with an active install of the resource. */
-const installs = (resourceId: BotId | BlockId) =>
+/** The organisations the resource is added to. */
+const addedTo = (resourceId: BotId | BlockId) =>
 	run(
 		Effect.gen(function* () {
 			const rows = yield* (yield* DB)
@@ -242,27 +242,27 @@ const installs = (resourceId: BotId | BlockId) =>
 		}),
 	);
 
-describe("installing from the catalogue", () => {
+describe("adding from the catalogue", () => {
 	test(
 		"admins and managers add a listed entry once; members and the home cannot",
 		async () => {
 			const s = await catalogue();
-			expect(await reasonOf(s.install(s.member))).toBe("PERMISSION_DENIED");
-			expect(await s.install(s.admin)).toBe(true);
-			expect(await s.install(s.manager)).toBe(false);
-			expect(await installs(s.bot)).toEqual([
+			expect(await reasonOf(s.add(s.member))).toBe("PERMISSION_DENIED");
+			expect(await s.add(s.admin)).toBe(true);
+			expect(await s.add(s.manager)).toBe(false);
+			expect(await addedTo(s.bot)).toEqual([
 				s.other,
 			]);
-			expect(await reasonOf(s.install(s.author))).toBe(
+			expect(await reasonOf(s.add(s.author))).toBe(
 				"RESOURCE_HOME_ORGANIZATION",
 			);
-			expect(await reasonOf(s.uninstall(s.author))).toBe(
+			expect(await reasonOf(s.remove(s.author))).toBe(
 				"RESOURCE_HOME_ORGANIZATION",
 			);
 
-			expect(await s.uninstall(s.manager)).toBe(true);
-			expect(await s.uninstall(s.admin)).toBe(false);
-			expect(await installs(s.bot)).toEqual([]);
+			expect(await s.remove(s.manager)).toBe(true);
+			expect(await s.remove(s.admin)).toBe(false);
+			expect(await addedTo(s.bot)).toEqual([]);
 		},
 		TIMEOUT,
 	);
@@ -282,7 +282,7 @@ describe("installing from the catalogue", () => {
 					options,
 				),
 			);
-			expect(await reasonOf(s.install(s.admin))).toBe("RESOURCE_NOT_LISTED");
+			expect(await reasonOf(s.add(s.admin))).toBe("RESOURCE_NOT_LISTED");
 			expect(
 				await reasonOf(
 					s.call(s.admin, (options) =>
@@ -300,14 +300,14 @@ describe("installing from the catalogue", () => {
 	);
 
 	test(
-		"an install racing an unlist never outlives the listing",
+		"adding while it is unlisted never outlives the listing",
 		async () => {
-			for (const installFirst of [
+			for (const addFirst of [
 				true,
 				false,
 			]) {
 				const s = await catalogue();
-				const install = () => reasonOf(s.install(s.admin));
+				const add = () => reasonOf(s.add(s.admin));
 				const unlist = () =>
 					reasonOf(
 						s.call(s.author, (options) =>
@@ -326,14 +326,14 @@ describe("installing from the catalogue", () => {
 				await queueBehindOrganizationLock(
 					s.home,
 					async () => {
-						reasons[0] = await (installFirst ? install() : unlist());
+						reasons[0] = await (addFirst ? add() : unlist());
 					},
 					async () => {
-						reasons[1] = await (installFirst ? unlist() : install());
+						reasons[1] = await (addFirst ? unlist() : add());
 					},
 				);
 				expect(reasons).toEqual(
-					installFirst
+					addFirst
 						? [
 								undefined,
 								undefined,
@@ -343,7 +343,7 @@ describe("installing from the catalogue", () => {
 								"RESOURCE_NOT_LISTED",
 							],
 				);
-				expect(await installs(s.bot)).toEqual([]);
+				expect(await addedTo(s.bot)).toEqual([]);
 			}
 		},
 		TIMEOUT,
@@ -355,7 +355,7 @@ describe("adding a bot with its blocks", () => {
 		"admins and managers add the bot's blocks once, each on its own; members cannot",
 		async () => {
 			const s = await catalogue();
-			expect(await reasonOf(s.installWithBlocks(s.member))).toBe(
+			expect(await reasonOf(s.addWithBlocks(s.member))).toBe(
 				"PERMISSION_DENIED",
 			);
 			for (const id of [
@@ -363,22 +363,22 @@ describe("adding a bot with its blocks", () => {
 				s.template,
 				s.repository,
 			])
-				expect(await installs(id)).toEqual([]);
+				expect(await addedTo(id)).toEqual([]);
 
-			expect(await s.installWithBlocks(s.admin)).toEqual({
+			expect(await s.addWithBlocks(s.admin)).toEqual({
 				changed: true,
 				addedBlocks: 2,
 			});
-			expect(await s.installWithBlocks(s.manager)).toEqual({
+			expect(await s.addWithBlocks(s.manager)).toEqual({
 				changed: false,
 				addedBlocks: 0,
 			});
-			expect(await s.uninstall(s.admin)).toBe(true);
-			expect(await installs(s.bot)).toEqual([]);
-			expect(await installs(s.template)).toEqual([
+			expect(await s.remove(s.admin)).toBe(true);
+			expect(await addedTo(s.bot)).toEqual([]);
+			expect(await addedTo(s.template)).toEqual([
 				s.other,
 			]);
-			expect(await installs(s.repository)).toEqual([
+			expect(await addedTo(s.repository)).toEqual([
 				s.other,
 			]);
 		},
@@ -389,16 +389,16 @@ describe("adding a bot with its blocks", () => {
 		"blocks added already are skipped",
 		async () => {
 			const s = await catalogue();
-			expect(await s.install(s.admin, s.entry.repository)).toBe(true);
-			expect(await s.install(s.admin)).toBe(true);
-			expect(await s.installWithBlocks(s.admin)).toEqual({
+			expect(await s.add(s.admin, s.entry.repository)).toBe(true);
+			expect(await s.add(s.admin)).toBe(true);
+			expect(await s.addWithBlocks(s.admin)).toEqual({
 				changed: false,
 				addedBlocks: 1,
 			});
-			expect(await installs(s.template)).toEqual([
+			expect(await addedTo(s.template)).toEqual([
 				s.other,
 			]);
-			expect(await installs(s.repository)).toEqual([
+			expect(await addedTo(s.repository)).toEqual([
 				s.other,
 			]);
 		},
@@ -413,7 +413,7 @@ describe("adding a bot with its blocks", () => {
 				s.procedures.block.create(
 					{
 						type: "database",
-						name: `Install own repository ${crypto.randomUUID()}`,
+						name: `Add own repository ${crypto.randomUUID()}`,
 						description: null,
 						contentJson: null,
 						status: "ready",
@@ -441,13 +441,13 @@ describe("adding a bot with its blocks", () => {
 					options,
 				),
 			);
-			expect(await s.install(s.author, ownRef)).toBe(true);
+			expect(await s.add(s.author, ownRef)).toBe(true);
 			await s.grant(s.author, s.author, "viewer", ownRef);
 			await s.call(s.author, (options) =>
 				s.procedures.bot.save(
 					{
 						id: s.bot,
-						name: `Install bot ${crypto.randomUUID()}`,
+						name: `Add bot ${crypto.randomUUID()}`,
 						description: "Integration bot",
 						status: "ready",
 						templateBlockId: s.template,
@@ -460,14 +460,14 @@ describe("adding a bot with its blocks", () => {
 				),
 			);
 
-			expect(await s.installWithBlocks(s.admin)).toEqual({
+			expect(await s.addWithBlocks(s.admin)).toEqual({
 				changed: true,
 				addedBlocks: 2,
 			});
-			expect(await installs(own.id)).toEqual([
+			expect(await addedTo(own.id)).toEqual([
 				s.home,
 			]);
-			expect(await installs(s.repository)).toEqual([
+			expect(await addedTo(s.repository)).toEqual([
 				s.other,
 			]);
 		},
@@ -477,18 +477,18 @@ describe("adding a bot with its blocks", () => {
 	test(
 		"a block taken out of the bot and unlisted meanwhile never stays added",
 		async () => {
-			for (const installFirst of [
+			for (const addFirst of [
 				true,
 				false,
 			]) {
 				const s = await catalogue();
-				const install = () => s.installWithBlocks(s.admin);
+				const add = () => s.addWithBlocks(s.admin);
 				const removeAndUnlist = async () => {
 					await s.call(s.author, (options) =>
 						s.procedures.bot.save(
 							{
 								id: s.bot,
-								name: `Install bot ${crypto.randomUUID()}`,
+								name: `Add bot ${crypto.randomUUID()}`,
 								description: "Integration bot",
 								status: "ready",
 								templateBlockId: s.template,
@@ -512,17 +512,17 @@ describe("adding a bot with its blocks", () => {
 				await queueBehindOrganizationLock(
 					s.home,
 					async () => {
-						if (installFirst) added = (await install()).addedBlocks;
+						if (addFirst) added = (await add()).addedBlocks;
 						else await removeAndUnlist();
 					},
 					async () => {
-						if (installFirst) await removeAndUnlist();
-						else added = (await install()).addedBlocks;
+						if (addFirst) await removeAndUnlist();
+						else added = (await add()).addedBlocks;
 					},
 				);
-				expect(added).toBe(installFirst ? 2 : 1);
-				expect(await installs(s.repository)).toEqual([]);
-				expect(await installs(s.template)).toEqual([
+				expect(added).toBe(addFirst ? 2 : 1);
+				expect(await addedTo(s.repository)).toEqual([]);
+				expect(await addedTo(s.template)).toEqual([
 					s.other,
 				]);
 			}
@@ -536,21 +536,17 @@ describe("adding the blocks of an added bot", () => {
 		"needs the bot added, and never adds it",
 		async () => {
 			const s = await catalogue();
-			expect(await reasonOf(s.installBlocks(s.admin))).toBe(
-				"RESOURCE_NOT_INSTALLED",
-			);
-			expect(await s.install(s.admin)).toBe(true);
-			expect(await reasonOf(s.installBlocks(s.member))).toBe(
-				"PERMISSION_DENIED",
-			);
-			expect(await s.installBlocks(s.manager)).toBe(2);
-			expect(await s.installBlocks(s.admin)).toBe(0);
+			expect(await reasonOf(s.addBlocks(s.admin))).toBe("RESOURCE_NOT_ADDED");
+			expect(await s.add(s.admin)).toBe(true);
+			expect(await reasonOf(s.addBlocks(s.member))).toBe("PERMISSION_DENIED");
+			expect(await s.addBlocks(s.manager)).toBe(2);
+			expect(await s.addBlocks(s.admin)).toBe(0);
 			for (const id of [
 				s.bot,
 				s.template,
 				s.repository,
 			])
-				expect(await installs(id)).toEqual([
+				expect(await addedTo(id)).toEqual([
 					s.other,
 				]);
 		},
@@ -565,9 +561,9 @@ describe("adding the blocks of an added bot", () => {
 				false,
 			]) {
 				const s = await catalogue();
-				expect(await s.install(s.admin)).toBe(true);
-				const remove = () => reasonOf(s.uninstall(s.manager));
-				const addBlocks = () => reasonOf(s.installBlocks(s.admin));
+				expect(await s.add(s.admin)).toBe(true);
+				const remove = () => reasonOf(s.remove(s.manager));
+				const addBlocks = () => reasonOf(s.addBlocks(s.admin));
 				const reasons: (string | undefined)[] = [];
 				// Both lock both organisations, the first in sort order first.
 				const [first] = [
@@ -587,15 +583,15 @@ describe("adding the blocks of an added bot", () => {
 					removeFirst
 						? [
 								undefined,
-								"RESOURCE_NOT_INSTALLED",
+								"RESOURCE_NOT_ADDED",
 							]
 						: [
 								undefined,
 								undefined,
 							],
 				);
-				expect(await installs(s.bot)).toEqual([]);
-				expect(await installs(s.repository)).toEqual(
+				expect(await addedTo(s.bot)).toEqual([]);
+				expect(await addedTo(s.repository)).toEqual(
 					removeFirst
 						? []
 						: [
@@ -608,21 +604,21 @@ describe("adding the blocks of an added bot", () => {
 	);
 });
 
-describe("sharing an installed resource", () => {
+describe("sharing an added resource", () => {
 	test(
-		"installers share it in their organisation for use only, to its own principals",
+		"adders share it in their organisation for use only, to its own principals",
 		async () => {
 			const s = await catalogue();
 			expect(await reasonOf(s.grant(s.admin, s.member))).toBe(
 				"RESOURCE_SCOPE_REQUIRED",
 			);
-			await s.install(s.admin);
+			await s.add(s.admin);
 
 			expect(await reasonOf(s.grant(s.member, s.member))).toBe(
 				"PERMISSION_DENIED",
 			);
 			expect(await reasonOf(s.grant(s.manager, s.member, "editor"))).toBe(
-				"INSTALL_GRANTS_VIEWER_ONLY",
+				"ADD_GRANTS_VIEWER_ONLY",
 			);
 			expect(await reasonOf(s.grant(s.manager, s.author))).toBe(
 				"GRANT_PRINCIPALS_INVALID",
@@ -657,10 +653,10 @@ describe("sharing an installed resource", () => {
 	);
 
 	test(
-		"installers edit the bot's setup there, not its definition",
+		"adders edit the bot's setup there, not its definition",
 		async () => {
 			const s = await catalogue();
-			await s.install(s.admin);
+			await s.add(s.admin);
 			const setupOf = (actor: Actor) =>
 				s
 					.call(actor, (options) =>
@@ -698,17 +694,17 @@ describe("sharing an installed resource", () => {
 	);
 });
 
-describe("an organisation's chats with an installed bot", () => {
+describe("an organisation's chats with an added bot", () => {
 	test(
-		"turn read-only on uninstall and writable again after a reinstall and share",
+		"turn read-only on remove and writable again after a adding again and share",
 		async () => {
 			const s = await catalogue();
-			await s.install(s.admin);
+			await s.add(s.admin);
 			await s.grant(s.admin, s.member);
 			const { data: chat } = await s.call(s.member, (options) =>
 				s.procedures.chat.create(
 					{
-						title: "Installed bot chat",
+						title: "Added bot chat",
 						botId: s.bot,
 					},
 					options,
@@ -727,10 +723,10 @@ describe("an organisation's chats with an installed bot", () => {
 					.then(({ data }) => data.readOnly);
 			expect(await readOnly()).toBeNull();
 
-			await s.uninstall(s.admin);
+			await s.remove(s.admin);
 			expect(await readOnly()).toBe("bot-unavailable");
 
-			await s.install(s.admin);
+			await s.add(s.admin);
 			expect(await readOnly()).toBe("bot-unavailable");
 			await s.grant(s.admin, s.member);
 			expect(await readOnly()).toBeNull();
@@ -739,9 +735,9 @@ describe("an organisation's chats with an installed bot", () => {
 	);
 });
 
-describe("the library with installs", () => {
+describe("the library with added resources", () => {
 	test(
-		"lists an installed repository from its home and loads its assets through it",
+		"lists an added repository from its home and loads its assets through it",
 		async () => {
 			const s = await catalogue();
 			const repositories = (origin: "all" | "own" | "added") =>
@@ -767,7 +763,7 @@ describe("the library with installs", () => {
 					);
 			expect(await repositories("all")).toEqual([]);
 
-			await s.install(s.admin, s.entry.repository);
+			await s.add(s.admin, s.entry.repository);
 			await s.grant(s.admin, s.member, "viewer", s.entry.repository);
 			const listed = [
 				{
@@ -805,17 +801,17 @@ describe("the library with installs", () => {
 			);
 			expect(libraryAssets).toEqual([]);
 
-			await s.uninstall(s.admin, s.entry.repository);
+			await s.remove(s.admin, s.entry.repository);
 			expect(await repositories("all")).toEqual([]);
 		},
 		TIMEOUT,
 	);
 
 	test(
-		"chat pickers offer an installed bot only to those it is shared with",
+		"chat pickers offer an added bot only to those it is shared with",
 		async () => {
 			const s = await catalogue();
-			await s.install(s.admin);
+			await s.add(s.admin);
 			const bots = (usable: boolean) =>
 				s
 					.call(s.member, (options) =>
@@ -879,7 +875,7 @@ describe("the catalogue", () => {
 				"repository:home",
 			]);
 
-			await s.install(s.admin);
+			await s.add(s.admin);
 			expect(await states(s.member)).toEqual([
 				"behaviour:available",
 				"bot:added",
@@ -949,18 +945,18 @@ const demoteInPostgres = (actor: Actor, organizationId: OrganizationId) =>
 		}),
 	);
 
-describe("installers demoted", () => {
+describe("adders demoted", () => {
 	test(
-		"lose installing, sharing and setup before their tuples follow",
+		"lose adding, sharing and setup before their tuples follow",
 		async () => {
 			const s = await catalogue();
-			await s.install(s.admin);
+			await s.add(s.admin);
 			await demoteInPostgres(s.manager, s.other);
 
-			expect(await reasonOf(s.install(s.manager, s.entry.repository))).toBe(
+			expect(await reasonOf(s.add(s.manager, s.entry.repository))).toBe(
 				"PERMISSION_DENIED",
 			);
-			expect(await reasonOf(s.uninstall(s.manager))).toBe("PERMISSION_DENIED");
+			expect(await reasonOf(s.remove(s.manager))).toBe("PERMISSION_DENIED");
 			expect(await reasonOf(s.grant(s.manager, s.member))).toBe(
 				"PERMISSION_DENIED",
 			);
@@ -973,7 +969,7 @@ describe("installers demoted", () => {
 				),
 			);
 			expect(setup.canEdit).toBe(false);
-			expect(await installs(s.bot)).toEqual([
+			expect(await addedTo(s.bot)).toEqual([
 				s.other,
 			]);
 		},
@@ -981,7 +977,7 @@ describe("installers demoted", () => {
 	);
 
 	test(
-		"by a role change queued first cannot install",
+		"by a role change queued first cannot add",
 		async () => {
 			const s = await catalogue();
 			let reason: string | undefined = "not run";
@@ -998,31 +994,31 @@ describe("installers demoted", () => {
 						),
 					),
 				async () => {
-					reason = await reasonOf(s.install(s.manager));
+					reason = await reasonOf(s.add(s.manager));
 				},
 			);
 			expect(reason).toBe("PERMISSION_DENIED");
-			expect(await installs(s.bot)).toEqual([]);
+			expect(await addedTo(s.bot)).toEqual([]);
 		},
 		TIMEOUT,
 	);
 });
 
-describe("an installed bot's setup", () => {
+describe("an added bot's setup", () => {
 	test(
-		"never outlives the install a save races",
+		"never outlives the addition a save races",
 		async () => {
 			for (const saveFirst of [
 				true,
 				false,
 			]) {
 				const s = await catalogue();
-				await s.install(s.admin);
+				await s.add(s.admin);
 				const { data: provider } = await s.call(s.admin, (options) =>
 					s.procedures.provider.create(
 						{
-							name: `Install ${crypto.randomUUID()}`,
-							description: "Serves the install test.",
+							name: `Add ${crypto.randomUUID()}`,
+							description: "Serves the addition test.",
 							kind: "openai-compatible",
 							endpoint: "http://127.0.0.1:9/v1",
 							apiKey: "key",
@@ -1036,8 +1032,8 @@ describe("an installed bot's setup", () => {
 					s.procedures.model.create(
 						{
 							providerId: provider.id,
-							providerModelId: `install-${crypto.randomUUID()}`,
-							name: "Install model",
+							providerModelId: `add-${crypto.randomUUID()}`,
+							name: "Add model",
 							description: "A chat model.",
 							isDeprecated: false,
 							capabilities: [
@@ -1065,7 +1061,7 @@ describe("an installed bot's setup", () => {
 							),
 						),
 					);
-				const uninstall = () => reasonOf(s.uninstall(s.admin));
+				const remove = () => reasonOf(s.remove(s.admin));
 				const reasons: (string | undefined)[] = [];
 				// Both lock the bot's home and this organisation, in id order.
 				const [firstLocked] = [
@@ -1075,10 +1071,10 @@ describe("an installed bot's setup", () => {
 				await queueBehindOrganizationLock(
 					firstLocked,
 					async () => {
-						reasons[0] = await (saveFirst ? save() : uninstall());
+						reasons[0] = await (saveFirst ? save() : remove());
 					},
 					async () => {
-						reasons[1] = await (saveFirst ? uninstall() : save());
+						reasons[1] = await (saveFirst ? remove() : save());
 					},
 				);
 				expect(reasons).toEqual(

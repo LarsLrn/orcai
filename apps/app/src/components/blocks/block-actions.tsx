@@ -15,14 +15,14 @@ import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { useListingAction } from "@/components/access/listing-action";
 import {
-	type Installer,
+	type CatalogueAdder,
 	removeAction,
-	useInstaller,
-} from "@/components/catalogue/installer";
+	useCatalogueAdder,
+} from "@/components/catalogue/catalogue-adder";
 import { HandOverDialog } from "@/components/ownership/hand-over-dialog";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
-import { useUninstallMutation } from "@/hooks/mutations/use-catalogue-mutations";
+import { useCatalogueRemoveMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import { blockKind } from "@/lib/presentation/resource-kind";
@@ -38,7 +38,7 @@ type ActionBlock = Pick<Block, "id" | "type" | "name"> & {
  * A behaviour's or repository's own actions, each present as far as its
  * capabilities allow. Its home edits, shares and deletes it, and its owner,
  * the `viewerId`, hands it over; where it was added from the catalogue, the
- * `installer` shares it for use and removes it.
+ * `adder` shares it for use and removes it.
  */
 const blockActions = (
 	block: Pick<
@@ -58,17 +58,17 @@ const blockActions = (
 	},
 	{
 		viewerId,
-		installer,
+		adder,
 	}: {
 		viewerId: string;
-		installer?: Installer;
+		adder?: CatalogueAdder;
 	},
 ): Record<
 	"edit" | "access" | "handOver" | "delete" | "remove",
 	HeaderAction | false
 > => {
-	const installed = block.homeOrganization !== null;
-	const home = installed ? undefined : block.capabilities;
+	const added = block.homeOrganization !== null;
+	const home = added ? undefined : block.capabilities;
 	return {
 		edit: hasCapability(home, "edit") && {
 			key: "edit",
@@ -81,15 +81,15 @@ const blockActions = (
 				},
 			},
 		},
-		access: (installed
-			? installer !== undefined
+		access: (added
+			? adder !== undefined
 			: hasCapability(home, "manage_access")) && {
 			key: "access",
 			label: m.blocks_access_action(),
 			icon: KeyRoundIcon,
 			onClick: onAccess,
 		},
-		handOver: !installed &&
+		handOver: !added &&
 			block.owner.id === viewerId && {
 				key: "hand-over",
 				label: m.ownership_hand_over_action(),
@@ -104,8 +104,7 @@ const blockActions = (
 			destructive: true,
 			onClick: onDelete,
 		},
-		remove:
-			installed && installer !== undefined && removeAction(installer, onRemove),
+		remove: added && adder !== undefined && removeAction(adder, onRemove),
 	};
 };
 
@@ -127,7 +126,7 @@ const useBlockActions = (
 	});
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
 	const [isHandOverOpen, setIsHandOverOpen] = useState(false);
-	const installer = useInstaller();
+	const adder = useCatalogueAdder();
 	const listingAction = useListingAction(
 		{
 			type: "block",
@@ -140,11 +139,11 @@ const useBlockActions = (
 				hasCapability(block.capabilities, "manage_access"),
 		},
 	);
-	const { mutate: uninstall } = useUninstallMutation(
+	const { mutate: remove } = useCatalogueRemoveMutation(
 		{
 			kind: "block",
 			name: block.name,
-			organisation: installer?.organisation ?? "",
+			organisation: adder?.organisation ?? "",
 		},
 		{
 			onSuccess: onDeleted,
@@ -176,7 +175,7 @@ const useBlockActions = (
 					],
 				}),
 			onRemove: () =>
-				uninstall({
+				remove({
 					entry: {
 						resourceType: "block",
 						resourceId: block.id,
@@ -185,7 +184,7 @@ const useBlockActions = (
 		},
 		{
 			viewerId: auth.user.id,
-			installer,
+			adder,
 		},
 	);
 

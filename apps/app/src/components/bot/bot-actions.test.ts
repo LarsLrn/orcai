@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import type { HomeOrganization } from "@orcai/schema";
-import type { Installer } from "@/components/catalogue/installer";
+import type { CatalogueAdder } from "@/components/catalogue/catalogue-adder";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({
@@ -17,11 +17,11 @@ const actionKeys = (
 	capabilities: Record<string, boolean>,
 	{
 		homeOrganization = null,
-		installer,
+		adder,
 		ownerId = "owner-1" as UserId,
 	}: {
 		homeOrganization?: HomeOrganization | null;
-		installer?: Installer;
+		adder?: CatalogueAdder;
 		ownerId?: UserId;
 	} = {},
 ) =>
@@ -43,7 +43,7 @@ const actionKeys = (
 			},
 			{
 				viewerId: "viewer-1",
-				installer,
+				adder,
 			},
 		),
 	).flatMap((action) =>
@@ -84,7 +84,7 @@ describe("botActions", () => {
 		]);
 	});
 
-	test("a bot added from the catalogue is shared and removed by installers, never edited or deleted here", () => {
+	test("a bot added from the catalogue is shared and removed by adders, never edited or deleted here", () => {
 		const homeOrganization = {
 			id: "organization-1" as OrganizationId,
 			name: "Writing Centre",
@@ -103,7 +103,7 @@ describe("botActions", () => {
 		expect(
 			actionKeys(editor, {
 				homeOrganization,
-				installer: {
+				adder: {
 					organisation: "Methods Lab",
 				},
 			}),
@@ -113,7 +113,7 @@ describe("botActions", () => {
 		]);
 		expect(
 			actionKeys(editor, {
-				installer: {
+				adder: {
 					organisation: "Methods Lab",
 				},
 			}),
@@ -149,7 +149,7 @@ describe("botActions", () => {
 					name: "Writing Centre",
 					logo: null,
 				},
-				installer: {
+				adder: {
 					organisation: "Methods Lab",
 				},
 			}),

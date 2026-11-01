@@ -12,7 +12,7 @@ const originCondition = {
 
 /**
  * Whether the resource in `id` belongs to the organisation's library: it has
- * an active scope there, its home or an install from the catalogue. Lists,
+ * an active scope there, its home or an addition from the catalogue. Lists,
  * pickers and find tools show only these; what a bot or repository contains
  * loads through it instead.
  */

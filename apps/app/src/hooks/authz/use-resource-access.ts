@@ -129,7 +129,7 @@ export const useRevokeResourceAccess = () =>
 
 /**
  * The confirm for listing or unlisting, naming the blocks listed with a bot
- * and the organisations whose installs end; null when the server refuses the
+ * and the organisations that added it lose it; null when the server refuses the
  * change anyway and names what blocks it.
  */
 export const listingConfirm = (
@@ -165,11 +165,11 @@ export const listingConfirm = (
 		title: m.access_make_private_confirm_title(),
 		description: [
 			m.access_make_private_confirm_description(),
-			...(impact.installingOrganizations.length > 0
+			...(impact.addingOrganizations.length > 0
 				? [
-						m.access_make_private_confirm_installs({
+						m.access_make_private_confirm_added({
 							organizationNames: formatList(
-								impact.installingOrganizations.map(
+								impact.addingOrganizations.map(
 									(organization) => organization.name,
 								),
 							),

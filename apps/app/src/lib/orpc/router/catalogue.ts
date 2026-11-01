@@ -1,14 +1,14 @@
 import { getZedToken } from "@/lib/authz/zed-token";
 import {
+	addBotBlocks,
+	addResource,
+	removeResource,
+} from "@/lib/catalogue/add-resource";
+import {
 	catalogueCounts,
 	findCatalogueEntry,
 	listCatalogue,
 } from "@/lib/catalogue/catalogue-browse";
-import {
-	installBotBlocks,
-	installResource,
-	uninstallResource,
-} from "@/lib/catalogue/install-resource";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 
@@ -38,11 +38,11 @@ const find = authed.catalogue.find
 		};
 	});
 
-const install = authed.catalogue.install
+const add = authed.catalogue.add
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		return {
-			data: yield* installResource({
+			data: yield* addResource({
 				resource: input.entry,
 				organizationId: context.auth.session.activeOrganizationId,
 				withBlocks: input.withBlocks,
@@ -54,12 +54,12 @@ const install = authed.catalogue.install
 		};
 	});
 
-const installBlocks = authed.catalogue.installBlocks
+const addBlocks = authed.catalogue.addBlocks
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		return {
 			data: {
-				addedBlocks: yield* installBotBlocks({
+				addedBlocks: yield* addBotBlocks({
 					botId: input.botId,
 					organizationId: context.auth.session.activeOrganizationId,
 					actor: {
@@ -71,12 +71,12 @@ const installBlocks = authed.catalogue.installBlocks
 		};
 	});
 
-const uninstall = authed.catalogue.uninstall
+const remove = authed.catalogue.remove
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		return {
 			data: {
-				changed: yield* uninstallResource({
+				changed: yield* removeResource({
 					resource: input.entry,
 					organizationId: context.auth.session.activeOrganizationId,
 					actor: {
@@ -92,7 +92,7 @@ export const catalogueRouter = {
 	list,
 	counts,
 	find,
-	install,
-	installBlocks,
-	uninstall,
+	add,
+	addBlocks,
+	remove,
 };

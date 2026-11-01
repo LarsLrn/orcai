@@ -245,7 +245,7 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 		},
 	});
 
-	// Unlisting ends the install: the chat stays readable but read-only.
+	// Unlisting removes it from the organisation: the chat stays readable but read-only.
 	await member.resource.setVisibility({
 		resourceType: "bot",
 		resourceId: bot.id,
@@ -323,7 +323,7 @@ test("catalogue: an entry's page is a page of its own, and Back restores the gri
 	await expect(page.getByText("Behaviour 17 of the grid.")).toBeVisible();
 	await expect(
 		page.getByText(
-			message("catalogue_detail_ask_installer", {
+			message("catalogue_detail_ask_adder", {
 				organisation: other.name,
 			}),
 		),
@@ -440,7 +440,7 @@ test("catalogue: a bot added without its blocks gets them from its Library menu"
 	const other = await orgs.create(`E2E Catalogue Later ${id}`);
 	await apiIn(api, other)
 		.as("admin")
-		.catalogue.install({
+		.catalogue.add({
 			entry: {
 				resourceType: "bot",
 				resourceId: bot.id,

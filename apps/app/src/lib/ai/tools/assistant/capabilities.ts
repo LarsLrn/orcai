@@ -7,8 +7,8 @@ export const CONTENT_CAPABILITIES = [
 	"create_asset",
 ] as const satisfies OrganizationCapability[];
 
-/** Any of these offers the catalogue tools: authors find entries, installers add them. */
+/** Any of these offers the catalogue tools: authors find entries, adders add them. */
 export const CATALOGUE_CAPABILITIES = [
 	...CONTENT_CAPABILITIES,
-	"install_resource",
+	"add_from_catalogue",
 ] as const satisfies OrganizationCapability[];

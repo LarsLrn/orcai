@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CatalogueInstallWizard } from "@/components/catalogue/catalogue-install-wizard";
+import { CatalogueAddWizard } from "@/components/catalogue/catalogue-add-wizard";
 import { loadAddedCatalogueEntry } from "@/lib/router/catalogue-entry-loader";
 
 export const Route = createFileRoute("/app/catalogue/bots/$id/add")({
@@ -17,5 +17,5 @@ export const Route = createFileRoute("/app/catalogue/bots/$id/add")({
 function RouteComponent() {
 	const { id } = Route.useParams();
 	const { from } = Route.useSearch();
-	return <CatalogueInstallWizard kind="bot" id={id} from={from} />;
+	return <CatalogueAddWizard kind="bot" id={id} from={from} />;
 }

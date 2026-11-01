@@ -240,7 +240,7 @@ export const homeOrganizationSchema = z.object({
 /**
  * What changing a resource's listing involves: the bot's unlisted blocks that
  * listing it lists too, the listed bots that keep a block listed, and the
- * organisations whose installs unlisting ends.
+ * organisations that added it, which unlisting removes it from.
  */
 export const listingImpactSchema = z.object({
 	unlistedBlocks: z.array(
@@ -256,7 +256,7 @@ export const listingImpactSchema = z.object({
 			name: z.string(),
 		}),
 	),
-	installingOrganizations: z.array(
+	addingOrganizations: z.array(
 		z.object({
 			id: organizationIdSchema,
 			name: z.string(),

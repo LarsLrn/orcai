@@ -17,8 +17,11 @@ import {
 	lockExistingResource,
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
+import {
+	addingOrganizations,
+	endAddedScopes,
+} from "@/lib/catalogue/added-scopes";
 import { blocksToList } from "@/lib/catalogue/exposure";
-import { endInstalls, installingOrganizations } from "@/lib/catalogue/installs";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 type Actor = {
@@ -218,7 +221,7 @@ export const listingImpact = (resource: ResourceRef, actor: Actor) =>
 			resource.resourceType === "block"
 				? listedBotsContaining(resource.resourceId)
 				: Effect.succeed([]),
-			installingOrganizations(resource),
+			addingOrganizations(resource),
 		]);
 		return {
 			unlistedBlocks: blocks
@@ -229,13 +232,13 @@ export const listingImpact = (resource: ResourceRef, actor: Actor) =>
 					canManageAccess,
 				})),
 			listedBots,
-			installingOrganizations: organizations,
+			addingOrganizations: organizations,
 		};
 	});
 
 /**
  * Lists or unlists a resource. Listing a bot lists its unlisted blocks with
- * it ({@link listBlocksOfListedBot}); unlisting ends every install, and is
+ * it ({@link listBlocksOfListedBot}); unlisting ends every added scope, and is
  * refused for a block a listed bot contains.
  */
 export const setListing = (params: {
@@ -310,7 +313,7 @@ export const setListing = (params: {
 								"Listed bots contain this block; unlist them or remove the block from them first.",
 						});
 				}
-				yield* endInstalls({
+				yield* endAddedScopes({
 					resource,
 					now: new Date(),
 				});
@@ -330,14 +333,14 @@ export const setListing = (params: {
 
 /**
  * The bots and blocks the organisation is home to that are listed in the
- * catalogue, with the organisations that installed them. Unlisting ends
- * installs, so an installed resource is always listed.
+ * catalogue, with the organisations that added them. Unlisting ends
+ * added scopes, so an added resource is always listed.
  */
 export const listedHomeResources = (organizationId: OrganizationId) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { resourceScope: home, resourceVisibility: visibility } = dbSchema;
-		const install = alias(dbSchema.resourceScope, "install");
+		const added = alias(dbSchema.resourceScope, "added");
 		const name = sql<string>`coalesce(${dbSchema.bot.name}, ${dbSchema.block.name})`;
 		const resources = yield* db
 			.select({
@@ -379,24 +382,24 @@ export const listedHomeResources = (organizationId: OrganizationId) =>
 			.orderBy(home.resourceType, name);
 		if (resources.length === 0) return [];
 
-		const installs = yield* db
+		const addedScopes = yield* db
 			.select({
-				resourceId: install.resourceId,
+				resourceId: added.resourceId,
 				name: dbSchema.organization.name,
 			})
-			.from(install)
+			.from(added)
 			.innerJoin(
 				dbSchema.organization,
-				eq(dbSchema.organization.id, install.organizationId),
+				eq(dbSchema.organization.id, added.organizationId),
 			)
 			.where(
 				and(
 					inArray(
-						install.resourceId,
+						added.resourceId,
 						resources.map((resource) => resource.resourceId),
 					),
-					eq(install.isPrimary, false),
-					isNull(install.endedAt),
+					eq(added.isPrimary, false),
+					isNull(added.endedAt),
 				),
 			)
 			.orderBy(dbSchema.organization.name);
@@ -404,7 +407,7 @@ export const listedHomeResources = (organizationId: OrganizationId) =>
 			resourceType: resource.resourceType as "bot" | "block",
 			resourceId: resource.resourceId,
 			name: resource.name,
-			installingOrganizations: installs
+			addingOrganizations: addedScopes
 				.filter((row) => row.resourceId === resource.resourceId)
 				.map((row) => row.name),
 		}));

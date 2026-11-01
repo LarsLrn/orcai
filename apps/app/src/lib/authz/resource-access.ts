@@ -414,12 +414,11 @@ export const grantResourceAccess = (params: {
 
 					if (
 						params.role !== "viewer" &&
-						(yield* scopeIn(params.resource, params.organizationId)) ===
-							"install"
+						(yield* scopeIn(params.resource, params.organizationId)) === "added"
 					)
 						return yield* Effect.fail(
 							new AppErrors.BadRequestError({
-								reason: "INSTALL_GRANTS_VIEWER_ONLY",
+								reason: "ADD_GRANTS_VIEWER_ONLY",
 								message:
 									"Resources added from the catalogue can be shared for use only, not for editing or managing.",
 							}),

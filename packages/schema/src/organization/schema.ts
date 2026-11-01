@@ -82,7 +82,7 @@ export const organizationDeletionImpactSchema = z.object({
 			]),
 			resourceId: z.string(),
 			name: z.string(),
-			installingOrganizations: z.array(z.string()),
+			addingOrganizations: z.array(z.string()),
 		}),
 	),
 });

@@ -19,25 +19,25 @@ export type Actor = {
 };
 
 /** Whether the user may add from the catalogue to the organisation and remove what was added. */
-const installerRoles = ORGANIZATION_ROLES.filter((role) =>
+const adderRoles = ORGANIZATION_ROLES.filter((role) =>
 	(
 		ORGANIZATION_ROLE_PERMISSIONS[role] as readonly OrganizationPermission[]
-	).includes("install_resource"),
+	).includes("add_from_catalogue"),
 );
 
 /**
  * Whether the user may add from the catalogue to the organisation and remove
- * what was added: SpiceDB `install_resource`, and a committed role that holds
+ * what was added: SpiceDB `add_from_catalogue`, and a committed role that holds
  * it, so a demotion counts before its tuples arrive.
  */
-export const canInstallIn = (organizationId: OrganizationId, actor: Actor) =>
+export const canAddIn = (organizationId: OrganizationId, actor: Actor) =>
 	Effect.gen(function* () {
 		const [permitted, [membership]] = yield* Effect.all(
 			[
 				checkEntityPermission({
 					entityType: "organization",
 					entityId: organizationId,
-					permission: "install_resource",
+					permission: "add_from_catalogue",
 					userId: actor.userId,
 					zedToken: actor.zedToken,
 				}),
@@ -50,7 +50,7 @@ export const canInstallIn = (organizationId: OrganizationId, actor: Actor) =>
 						and(
 							eq(dbSchema.member.organizationId, organizationId),
 							eq(dbSchema.member.userId, actor.userId),
-							inArray(dbSchema.member.role, installerRoles),
+							inArray(dbSchema.member.role, adderRoles),
 						),
 					),
 			],
@@ -63,8 +63,8 @@ export const canInstallIn = (organizationId: OrganizationId, actor: Actor) =>
 
 /**
  * Whether the user administers the resource in the organisation: with
- * `homePermission` on it in its home, with `install_resource` where it is
- * installed. Installers share it there and set a bot's setup, but never edit
+ * `homePermission` on it in its home, with `add_from_catalogue` where it is
+ * added. Adders share it there and set a bot's setup, but never edit
  * its definition.
  */
 export const administersIn = (params: {
@@ -84,8 +84,8 @@ export const administersIn = (params: {
 					userId: actor.userId,
 					zedToken: actor.zedToken,
 				});
-			case "install":
-				return yield* canInstallIn(params.organizationId, actor);
+			case "added":
+				return yield* canAddIn(params.organizationId, actor);
 			case undefined:
 				return false;
 		}
@@ -101,7 +101,7 @@ export const requireAdministersIn = (
 			() =>
 				new AppErrors.ForbiddenError({
 					reason: "PERMISSION_DENIED",
-					message: `You do not have the "${params.homePermission}" permission on this ${params.resource.resourceType} in this organisation, nor "install_resource" where it was added from the catalogue.`,
+					message: `You do not have the "${params.homePermission}" permission on this ${params.resource.resourceType} in this organisation, nor "add_from_catalogue" where it was added from the catalogue.`,
 				}),
 		),
 		Effect.asVoid,

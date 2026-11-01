@@ -41,7 +41,7 @@ const reasonOf = async (operation: Promise<unknown>) =>
 /**
  * An author's draft bot with a behaviour and a repository in its home
  * organisation, a member there, and a second organisation with an admin and
- * a viewer that installs resources through direct scope rows.
+ * a viewer that adds resources through direct scope rows.
  */
 const twoOrganizations = async () => {
 	const {
@@ -170,8 +170,8 @@ const twoOrganizations = async () => {
 			)
 		).data.visibility;
 
-	/** Scopes the resource to the second organisation, as an install will. */
-	const install = (resource: ResourceRef) =>
+	/** Scopes the resource to the second organisation, as adding from the Catalogue will. */
+	const add = (resource: ResourceRef) =>
 		run(
 			Effect.gen(function* () {
 				yield* (yield* DB).insert(dbSchema.resourceScope).values({
@@ -220,7 +220,7 @@ const twoOrganizations = async () => {
 		bot,
 		setVisibility,
 		visibilityOf,
-		install,
+		add,
 		grantInOther,
 		token: () => token,
 		/** Reads later calls at least as fresh as a write made outside the procedures. */
@@ -242,8 +242,8 @@ const blockRef = (blockId: BlockId) =>
 		resourceId: blockId,
 	}) as const;
 
-/** The organisations the resource is installed in. */
-const installedIn = (resource: ResourceRef) =>
+/** The organisations the resource is added to. */
+const addedIn = (resource: ResourceRef) =>
 	run(
 		Effect.gen(function* () {
 			const rows = yield* (yield* DB)
@@ -572,15 +572,15 @@ describe("unlisting", () => {
 	);
 
 	test(
-		"ends every install with the installing organisation's grants, setup, links and attachments",
+		"ends every addition with the adding organisation's grants, setup, links and attachments",
 		async () => {
 			const s = await twoOrganizations();
 			await s.setVisibility(s.author, botRef(s.bot), "public", [
 				s.template,
 				s.repository,
 			]);
-			await s.install(botRef(s.bot));
-			await s.install(blockRef(s.repository));
+			await s.add(botRef(s.bot));
+			await s.add(blockRef(s.repository));
 			await s.grantInOther(botRef(s.bot), s.viewer);
 			await s.grantInOther(blockRef(s.repository), s.otherAdmin);
 			await run(
@@ -600,7 +600,7 @@ describe("unlisting", () => {
 			const { data: chat } = await s.call(s.otherAdmin, (options) =>
 				s.procedures.chat.create(
 					{
-						title: "Installed repository chat",
+						title: "Added repository chat",
 					},
 					options,
 				),
@@ -623,7 +623,7 @@ describe("unlisting", () => {
 			);
 
 			await s.setVisibility(s.author, botRef(s.bot), "private");
-			expect(await installedIn(botRef(s.bot))).toEqual([]);
+			expect(await addedIn(botRef(s.bot))).toEqual([]);
 			expect(await activeGrantsIn(botRef(s.bot), s.other)).toEqual([]);
 			expect(
 				await run(
@@ -644,7 +644,7 @@ describe("unlisting", () => {
 			).toEqual([]);
 
 			await s.setVisibility(s.author, blockRef(s.repository), "private");
-			expect(await installedIn(blockRef(s.repository))).toEqual([]);
+			expect(await addedIn(blockRef(s.repository))).toEqual([]);
 			expect(await activeGrantsIn(blockRef(s.repository), s.other)).toEqual([]);
 			expect(await linkedBots(s.repository)).toEqual([
 				s.bot,
@@ -674,11 +674,11 @@ describe("unlisting", () => {
 	);
 
 	test(
-		"keeps an asset added afterwards away from the former installer",
+		"keeps an asset added afterwards away from the former adder",
 		async () => {
 			const s = await twoOrganizations();
 			await s.setVisibility(s.author, blockRef(s.repository), "public");
-			await s.install(blockRef(s.repository));
+			await s.add(blockRef(s.repository));
 			await s.grantInOther(blockRef(s.repository), s.viewer);
 			const findRepository = () =>
 				s.call(s.viewer, (options) =>
@@ -820,7 +820,7 @@ describe("deleting the home organisation", () => {
 				s.template,
 				s.repository,
 			]);
-			await s.install(botRef(s.bot));
+			await s.add(botRef(s.bot));
 			const admin = await instanceAdmin(s.home);
 			const [{ data: impact }, [other]] = await Promise.all([
 				run(
@@ -846,7 +846,7 @@ describe("deleting the home organisation", () => {
 			expect(
 				impact.listedResources.map((resource) => [
 					resource.resourceId,
-					resource.installingOrganizations,
+					resource.addingOrganizations,
 				]),
 			).toEqual(
 				expect.arrayContaining([

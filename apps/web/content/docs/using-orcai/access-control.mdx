@@ -22,7 +22,7 @@ create actions they see. The role picker lists each role's permissions.
 | Manage groups (`manage_groups`): Groups | Yes | Yes | No | No |
 | Manage quota pools (`manage_quota_pools`): Quota pools | Yes | No | No | No |
 | View analytics (`view_analytics`): Analytics | Yes | No | No | No |
-| Add from the Catalogue (`install_resource`) | Yes | Yes | No | No |
+| Add from the Catalogue (`add_from_catalogue`) | Yes | Yes | No | No |
 | Manage providers (`manage_providers`): Providers | Yes | No | No | No |
 | Manage models (`manage_models`): Models | Yes | No | No | No |
 | Manage organisation (`manage_organization`): Organisation | Yes | No | No | No |
@@ -205,7 +205,7 @@ Assistant never lists anything, so a change it makes to a listed bot that
 needs a block listed fails and points you to the app.
 
 Admins and managers add a listed bot or block to their organisation
-(`install_resource`). It then appears in that organisation's Library marked
+(`add_from_catalogue`). It then appears in that organisation's Library marked
 "From" its home organisation, and nobody there can use it until they share it.
 In an organisation that added it, its access dialog shares it for use only,
 so the grants issued there are always **Can view** grants, to that organisation's

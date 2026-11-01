@@ -141,13 +141,13 @@ const DeleteOrganizationDialog = ({
 										{impact.data.listedResources.map((resource) => (
 											<li key={resource.resourceId}>
 												{resource.name}
-												{resource.installingOrganizations.length > 0 ? (
+												{resource.addingOrganizations.length > 0 ? (
 													<span className="text-muted-foreground">
 														{" "}
 														(
-														{m.orgs_delete_dialog_listed_installs({
+														{m.orgs_delete_dialog_listed_added({
 															organizationNames: formatList(
-																resource.installingOrganizations,
+																resource.addingOrganizations,
 															),
 														})}
 														)

@@ -171,7 +171,7 @@ function RouteComponent() {
 				<div className="space-y-6">
 					<BotSetupSummary
 						botId={bot.data.id}
-						installed={bot.data.homeOrganization !== null}
+						added={bot.data.homeOrganization !== null}
 					/>
 					<MetadataCard
 						createdAt={bot.data.createdAt}

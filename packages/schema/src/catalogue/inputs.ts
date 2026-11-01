@@ -53,7 +53,7 @@ export const findCatalogueEntryInputSchema = z.object({
 	entry: catalogueEntryRefSchema,
 });
 
-export const installCatalogueEntryInputSchema = z.object({
+export const addCatalogueEntryInputSchema = z.object({
 	...zedTokenSchema.shape,
 	entry: catalogueEntryRefSchema,
 	/** Adds a bot's behaviour and repositories too; ignored for blocks. */
@@ -61,12 +61,12 @@ export const installCatalogueEntryInputSchema = z.object({
 });
 
 /** Adds the blocks of a bot the organisation added, not the bot itself. */
-export const installCatalogueBotBlocksInputSchema = z.object({
+export const addCatalogueBotBlocksInputSchema = z.object({
 	...zedTokenSchema.shape,
 	botId: botIdSchema,
 });
 
-export const uninstallCatalogueEntryInputSchema = z.object({
+export const removeCatalogueEntryInputSchema = z.object({
 	...zedTokenSchema.shape,
 	entry: catalogueEntryRefSchema,
 });
@@ -79,12 +79,12 @@ export type CatalogueCountsInput = z.infer<typeof catalogueCountsInputSchema>;
 export type FindCatalogueEntryInput = z.infer<
 	typeof findCatalogueEntryInputSchema
 >;
-export type InstallCatalogueEntryInput = z.infer<
-	typeof installCatalogueEntryInputSchema
+export type AddCatalogueEntryInput = z.infer<
+	typeof addCatalogueEntryInputSchema
 >;
-export type InstallCatalogueBotBlocksInput = z.infer<
-	typeof installCatalogueBotBlocksInputSchema
+export type AddCatalogueBotBlocksInput = z.infer<
+	typeof addCatalogueBotBlocksInputSchema
 >;
-export type UninstallCatalogueEntryInput = z.infer<
-	typeof uninstallCatalogueEntryInputSchema
+export type RemoveCatalogueEntryInput = z.infer<
+	typeof removeCatalogueEntryInputSchema
 >;

@@ -100,7 +100,7 @@ export const findCatalogueEntryResponseSchema = createDataResponseSchema(
 	catalogueEntryDetailSchema,
 );
 
-export const installCatalogueEntryResponseSchema = createDataResponseSchema(
+export const addCatalogueEntryResponseSchema = createDataResponseSchema(
 	z.object({
 		/** False when the organisation had it already. */
 		changed: z.boolean(),
@@ -109,14 +109,14 @@ export const installCatalogueEntryResponseSchema = createDataResponseSchema(
 	}),
 );
 
-export const installCatalogueBotBlocksResponseSchema = createDataResponseSchema(
+export const addCatalogueBotBlocksResponseSchema = createDataResponseSchema(
 	z.object({
 		/** Those the organisation had are skipped. */
 		addedBlocks: z.number().int(),
 	}),
 );
 
-export const uninstallCatalogueEntryResponseSchema = createDataResponseSchema(
+export const removeCatalogueEntryResponseSchema = createDataResponseSchema(
 	z.object({
 		/** False when the organisation did not have it. */
 		changed: z.boolean(),

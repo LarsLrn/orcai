@@ -325,7 +325,7 @@ const AccessManagerContent = ({
 	);
 };
 
-const INSTALLED_ROLES = [
+const ADDED_ROLES = [
 	"viewer",
 ] as const satisfies ResourceGrantRole[];
 
@@ -333,7 +333,7 @@ const INSTALLED_ROLES = [
  * Access to a resource the active organisation added from the catalogue:
  * its home edits it, so here it is shared for use only.
  */
-const InstalledAccessContent = ({
+const AddedAccessContent = ({
 	resourceRef,
 	from,
 }: {
@@ -344,19 +344,19 @@ const InstalledAccessContent = ({
 		<Alert>
 			<PackageCheckIcon className="h-4 w-4" />
 			<AlertTitle>
-				{m.access_manager_installed_alert_title({
+				{m.access_manager_added_alert_title({
 					organisation: from.name,
 				})}
 			</AlertTitle>
 			<AlertDescription>
-				{m.access_manager_installed_alert_description()}
+				{m.access_manager_added_alert_description()}
 			</AlertDescription>
 		</Alert>
 
 		<GroupsHint />
 
-		<GrantManager resourceRef={resourceRef} roles={INSTALLED_ROLES} />
+		<GrantManager resourceRef={resourceRef} roles={ADDED_ROLES} />
 	</div>
 );
 
-export { AccessManagerContent, InstalledAccessContent };
+export { AccessManagerContent, AddedAccessContent };

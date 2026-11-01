@@ -1,7 +1,7 @@
 import type { CatalogueEntry } from "@orcai/schema";
 import { botContentsLabel, botModelHintBadge } from "@/components/bot/bot-tile";
+import { useActiveOrganizationName } from "@/components/catalogue/catalogue-adder";
 import { useCatalogueOrigin } from "@/components/catalogue/catalogue-browse";
-import { useActiveOrganizationName } from "@/components/catalogue/installer";
 import { HomeOrganizationName } from "@/components/catalogue/resource-provenance";
 import {
 	Tile,

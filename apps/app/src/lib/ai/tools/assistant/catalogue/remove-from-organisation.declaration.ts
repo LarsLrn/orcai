@@ -9,7 +9,7 @@ export const removeFromOrganisation = declareTool<
 	kind: "change",
 	group: "bots",
 	capabilities: [
-		"install_resource",
+		"add_from_catalogue",
 	],
 	confirm: "remove",
 	icon: PackageMinusIcon,
