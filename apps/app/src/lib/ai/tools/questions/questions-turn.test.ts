@@ -19,14 +19,14 @@ import {
 
 const botId = crypto.randomUUID() as BotId;
 
-/** A bot with these features, and the template every bot has. */
+/** A bot with these features, and the behaviour every bot has. */
 const answerBot = (features: Record<string, unknown>) => {
 	answers["block.list"] = () =>
 		Effect.succeed({
 			data: [
 				{
 					id: crypto.randomUUID(),
-					type: "template",
+					type: "behaviour",
 					config: {
 						systemPrompt: "You are the bot.",
 					},

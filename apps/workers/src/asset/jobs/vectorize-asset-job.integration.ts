@@ -226,7 +226,7 @@ const seed = (
 			const [block] = yield* db
 				.insert(dbSchema.block)
 				.values({
-					type: "database",
+					type: "repository",
 					name: "Indexed repository",
 					config: {},
 					userId: user.id,

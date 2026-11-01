@@ -14,57 +14,57 @@ export const contentJsonSchema = z.custom<object>(
 );
 
 export const blockTypeSchema = z.enum([
-	"template",
-	"database",
+	"behaviour",
+	"repository",
 ]);
 
-export const referencesConfigSchema = z
+export const passagesConfigSchema = z
 	.object({
-		minReferences: z.number().int().min(1),
-		maxReferences: z.number().int().min(1),
-		defaultReferences: z.number().int().min(1),
+		minPassages: z.number().int().min(1),
+		maxPassages: z.number().int().min(1),
+		defaultPassages: z.number().int().min(1),
 	})
 	.check((ctx) => {
-		if (ctx.value.maxReferences < ctx.value.minReferences) {
+		if (ctx.value.maxPassages < ctx.value.minPassages) {
 			ctx.issues.push({
 				code: "custom",
 				params: {
-					reason: "REFERENCE_RANGE_INVALID" satisfies ErrorReason,
+					reason: "PASSAGE_RANGE_INVALID" satisfies ErrorReason,
 				},
 				path: [
-					"maxReferences",
+					"maxPassages",
 				],
 				input: ctx.value,
 			});
 		}
 		if (
-			ctx.value.defaultReferences < ctx.value.minReferences ||
-			ctx.value.defaultReferences > ctx.value.maxReferences
+			ctx.value.defaultPassages < ctx.value.minPassages ||
+			ctx.value.defaultPassages > ctx.value.maxPassages
 		) {
 			ctx.issues.push({
 				code: "custom",
 				params: {
-					reason: "DEFAULT_REFERENCES_OUT_OF_RANGE" satisfies ErrorReason,
+					reason: "DEFAULT_PASSAGES_OUT_OF_RANGE" satisfies ErrorReason,
 				},
 				path: [
-					"defaultReferences",
+					"defaultPassages",
 				],
 				input: ctx.value,
 			});
 		}
 	});
 
-export const templateBlockSchema = z.object({
-	type: z.literal("template"),
+export const behaviourSchema = z.object({
+	type: z.literal("behaviour"),
 	config: z.object({
 		systemPrompt: z.string(),
 	}),
 });
 
-export const databaseBlockSchema = z.object({
-	type: z.literal("database"),
+export const repositorySchema = z.object({
+	type: z.literal("repository"),
 	config: z.object({
-		...referencesConfigSchema.shape,
+		...passagesConfigSchema.shape,
 		scoreThreshold: z.number().min(0).max(1).optional(),
 		retrievalMode: retrievalModeSchema.optional(),
 		candidateLimit: z.number().int().min(1).max(200).optional(),
@@ -73,15 +73,15 @@ export const databaseBlockSchema = z.object({
 });
 
 /** The retrieval settings a new repository starts with. */
-export const defaultDatabaseBlockConfig = {
-	minReferences: 1,
-	maxReferences: 8,
-	defaultReferences: 4,
+export const defaultRepositoryConfig = {
+	minPassages: 1,
+	maxPassages: 8,
+	defaultPassages: 4,
 	retrievalMode: "hybrid",
 	scoreThreshold: 0.2,
 	candidateLimit: 40,
 	maxPerAsset: 6,
-} as const satisfies z.infer<typeof databaseBlockSchema.shape.config>;
+} as const satisfies z.infer<typeof repositorySchema.shape.config>;
 
 export const blockFieldsSchema = z.object({
 	name: z.string(),
@@ -104,8 +104,8 @@ const blockBaseSchema = blockFieldsSchema.extend({
 });
 
 export const blockSchema = z.discriminatedUnion("type", [
-	blockBaseSchema.extend(templateBlockSchema.shape),
-	blockBaseSchema.extend(databaseBlockSchema.shape),
+	blockBaseSchema.extend(behaviourSchema.shape),
+	blockBaseSchema.extend(repositorySchema.shape),
 ]);
 
 export const blockWithCapabilitiesSchema = z.intersection(
@@ -119,30 +119,30 @@ export type Block = z.infer<typeof blockSchema>;
 export type BlockWithCapabilities = z.infer<typeof blockWithCapabilitiesSchema>;
 
 export type BlockConfigType =
-	| z.infer<typeof templateBlockSchema.shape.config>
-	| z.infer<typeof databaseBlockSchema.shape.config>;
+	| z.infer<typeof behaviourSchema.shape.config>
+	| z.infer<typeof repositorySchema.shape.config>;
 
 export type BlockType = z.infer<typeof blockTypeSchema>;
 
-export type TemplateBlock = Extract<
+export type Behaviour = Extract<
 	Block,
 	{
-		type: "template";
+		type: "behaviour";
 	}
 >;
-export type DatabaseBlock = Extract<
+export type Repository = Extract<
 	Block,
 	{
-		type: "database";
+		type: "repository";
 	}
 >;
 
-export function isTemplateBlock(block: Block): block is TemplateBlock {
-	return block.type === "template";
+export function isBehaviour(block: Block): block is Behaviour {
+	return block.type === "behaviour";
 }
 
-export function isDatabaseBlock(block: Block): block is DatabaseBlock {
-	return block.type === "database";
+export function isRepository(block: Block): block is Repository {
+	return block.type === "repository";
 }
 
 /** How far one asset in a repository is from being searchable. */

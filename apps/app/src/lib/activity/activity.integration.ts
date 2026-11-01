@@ -879,7 +879,7 @@ describe("activity summary cost", () => {
 });
 
 const repository = (assets: AssetId[], uploadRunIds: ActivityRunId[]) => ({
-	type: "database" as const,
+	type: "repository" as const,
 	name: "Activity repository",
 	description: null,
 	contentJson: null,
@@ -887,9 +887,9 @@ const repository = (assets: AssetId[], uploadRunIds: ActivityRunId[]) => ({
 	assets,
 	uploadRunIds,
 	config: {
-		minReferences: 1,
-		maxReferences: 5,
-		defaultReferences: 3,
+		minPassages: 1,
+		maxPassages: 5,
+		defaultPassages: 3,
 	},
 });
 

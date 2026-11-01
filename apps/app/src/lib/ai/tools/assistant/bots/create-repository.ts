@@ -2,7 +2,7 @@ import type { BlockId } from "@orcai/core";
 import {
 	assetIdSchema,
 	blockFieldsSchema,
-	defaultDatabaseBlockConfig,
+	defaultRepositoryConfig,
 	publicationStatusSchema,
 } from "@orcai/schema";
 import * as Effect from "effect/Effect";
@@ -54,7 +54,7 @@ export const createRepositoryTool = (deps: AssistantToolDeps) =>
 					create: callProcedure(deps, (procedures, options) =>
 						procedures.block.create(
 							{
-								type: "database",
+								type: "repository",
 								name: input.name,
 								description:
 									input.description === undefined
@@ -63,7 +63,7 @@ export const createRepositoryTool = (deps: AssistantToolDeps) =>
 								contentJson: null,
 								status: input.status ?? "draft",
 								config: {
-									...defaultDatabaseBlockConfig,
+									...defaultRepositoryConfig,
 								},
 								assets: uniqueAssetIds(input.assetIds ?? []),
 							},

@@ -19,7 +19,7 @@ const homeLink = (page: Page) =>
 		name: message("sidebar_logo_home_link_label"),
 	});
 
-/** A member's own template block, open in its edit form. */
+/** A member's own behaviour, open in its edit form. */
 const openBlockEditor = async ({
 	api,
 	org,
@@ -31,7 +31,7 @@ const openBlockEditor = async ({
 }) => {
 	const name = `E2E Unsaved ${runId()}`;
 	const block = await api.as("member").block.create({
-		type: "template",
+		type: "behaviour",
 		name,
 		status: "ready",
 		config: {
@@ -104,7 +104,7 @@ test("blocks: saving navigates without asking", async ({
 
 	await page
 		.getByRole("button", {
-			name: message("blocks_template_form_update_submit_button"),
+			name: message("blocks_behaviour_form_update_submit_button"),
 		})
 		.click();
 	await expect(page).toHaveURL(new RegExp(`${detailPath}$`));

@@ -2,8 +2,8 @@ import type { ActivityRunId, BlockId } from "@orcai/core";
 import {
 	type Asset,
 	type AssetWithCapabilities,
-	type DatabaseBlock,
-	defaultDatabaseBlockConfig,
+	defaultRepositoryConfig,
+	type Repository,
 } from "@orcai/schema";
 import { ChevronDownIcon, DatabaseIcon, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -38,18 +38,18 @@ import { useConfirmDiscard } from "@/hooks/use-unsaved-changes-guard";
 import { emptyCapabilities, ownerCapabilities } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
 
-const createDefaultDatabaseBlock = (params?: { botName: string }) => ({
+const createDefaultRepository = (params?: { botName: string }) => ({
 	name: params?.botName
-		? m.authoring_database_block_default_name_named({
+		? m.authoring_repository_default_name_named({
 				botName: params.botName,
 			})
-		: m.authoring_database_block_default_name(),
-	type: "database" as const,
+		: m.authoring_repository_default_name(),
+	type: "repository" as const,
 	description: "",
 	contentJson: null,
-	status: "draft" as DatabaseBlock["status"],
+	status: "draft" as Repository["status"],
 	config: {
-		...defaultDatabaseBlockConfig,
+		...defaultRepositoryConfig,
 	},
 	assetIds: [],
 	assets: [],
@@ -74,13 +74,13 @@ const mergeAssets = (
 	];
 };
 
-const DatabaseBlockEditor = ({
+const RepositoryEditor = ({
 	nameField,
 	descriptionField,
 	contentField,
-	minReferencesField,
-	defaultReferencesField,
-	maxReferencesField,
+	minPassagesField,
+	defaultPassagesField,
+	maxPassagesField,
 	candidateLimitField,
 	maxPerAssetField,
 	scoreThresholdField,
@@ -96,9 +96,9 @@ const DatabaseBlockEditor = ({
 	nameField: ReactNode;
 	descriptionField: ReactNode;
 	contentField: ReactNode;
-	minReferencesField: ReactNode;
-	defaultReferencesField: ReactNode;
-	maxReferencesField: ReactNode;
+	minPassagesField: ReactNode;
+	defaultPassagesField: ReactNode;
+	maxPassagesField: ReactNode;
 	candidateLimitField: ReactNode;
 	maxPerAssetField: ReactNode;
 	scoreThresholdField: ReactNode;
@@ -151,10 +151,10 @@ const DatabaseBlockEditor = ({
 				<div>
 					<CardTitle className="flex items-center gap-2">
 						<DatabaseIcon className="h-5 w-5" />
-						{m.authoring_database_block_title()}
+						{m.authoring_repository_title()}
 					</CardTitle>
 					<CardDescription>
-						{m.authoring_database_block_description()}
+						{m.authoring_repository_description()}
 					</CardDescription>
 				</div>
 				{onRemove ? (
@@ -173,14 +173,14 @@ const DatabaseBlockEditor = ({
 					<div className="flex flex-wrap items-center justify-between gap-3">
 						<div>
 							<div className="font-medium text-sm">
-								{m.authoring_database_block_assets_title()}
+								{m.authoring_repository_assets_title()}
 							</div>
 							<div className="text-muted-foreground text-sm">
-								{m.authoring_database_block_assets_description()}
+								{m.authoring_repository_assets_description()}
 							</div>
 							{visibility.data?.data.visibility === "public" ? (
 								<div className="text-muted-foreground text-sm">
-									{m.authoring_database_block_listed_note()}
+									{m.authoring_repository_listed_note()}
 								</div>
 							) : null}
 						</div>
@@ -191,7 +191,7 @@ const DatabaseBlockEditor = ({
 								onClick={() => setIsLibraryOpen((current) => !current)}
 							>
 								<PlusIcon />
-								{m.authoring_database_block_add_existing_action()}
+								{m.authoring_repository_add_existing_action()}
 							</Button>
 							<Button
 								variant="outline"
@@ -199,7 +199,7 @@ const DatabaseBlockEditor = ({
 								onClick={() => setIsUploadOpen((current) => !current)}
 							>
 								<PlusIcon />
-								{m.authoring_database_block_upload_new_action()}
+								{m.authoring_repository_upload_new_action()}
 							</Button>
 						</div>
 					</div>
@@ -208,10 +208,10 @@ const DatabaseBlockEditor = ({
 						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
 								<DialogTitle>
-									{m.authoring_database_block_library_dialog_title()}
+									{m.authoring_repository_library_dialog_title()}
 								</DialogTitle>
 								<DialogDescription>
-									{m.authoring_database_block_library_dialog_description()}
+									{m.authoring_repository_library_dialog_description()}
 								</DialogDescription>
 							</DialogHeader>
 							<AssetLibraryPicker
@@ -248,10 +248,10 @@ const DatabaseBlockEditor = ({
 						<DialogContent className="max-h-[88vh] sm:max-w-5xl">
 							<DialogHeader>
 								<DialogTitle>
-									{m.authoring_database_block_upload_dialog_title()}
+									{m.authoring_repository_upload_dialog_title()}
 								</DialogTitle>
 								<DialogDescription>
-									{m.authoring_database_block_upload_dialog_description()}
+									{m.authoring_repository_upload_dialog_description()}
 								</DialogDescription>
 							</DialogHeader>
 							<AssetIntakeFlow
@@ -279,14 +279,14 @@ const DatabaseBlockEditor = ({
 					<div className="flex items-center justify-between gap-3">
 						<div>
 							<div className="font-medium text-sm">
-								{m.authoring_database_block_attached_title()}
+								{m.authoring_repository_attached_title()}
 							</div>
 							<div className="text-muted-foreground text-sm">
-								{m.authoring_database_block_attached_description()}
+								{m.authoring_repository_attached_description()}
 							</div>
 						</div>
 						<Badge variant="secondary">
-							{m.authoring_database_block_attached_badge({
+							{m.authoring_repository_attached_badge({
 								count: assets.length,
 							})}
 						</Badge>
@@ -303,7 +303,7 @@ const DatabaseBlockEditor = ({
 						/>
 					) : (
 						<div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center text-muted-foreground text-sm">
-							{m.authoring_database_block_assets_empty_state()}
+							{m.authoring_repository_assets_empty_state()}
 						</div>
 					)}
 				</div>
@@ -312,10 +312,10 @@ const DatabaseBlockEditor = ({
 					<CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border bg-muted/15 px-4 py-3 text-left">
 						<div>
 							<div className="font-medium text-sm">
-								{m.authoring_database_block_advanced_title()}
+								{m.authoring_repository_advanced_title()}
 							</div>
 							<div className="text-muted-foreground text-sm">
-								{m.authoring_database_block_advanced_description()}
+								{m.authoring_repository_advanced_description()}
 							</div>
 						</div>
 						<ChevronDownIcon
@@ -326,9 +326,9 @@ const DatabaseBlockEditor = ({
 					</CollapsibleTrigger>
 					<CollapsibleContent className="pt-4">
 						<div className="grid gap-4 md:grid-cols-3">
-							{minReferencesField}
-							{defaultReferencesField}
-							{maxReferencesField}
+							{minPassagesField}
+							{defaultPassagesField}
+							{maxPassagesField}
 						</div>
 
 						<div className="mt-4 grid gap-4 md:grid-cols-3">
@@ -344,4 +344,4 @@ const DatabaseBlockEditor = ({
 	);
 };
 
-export { createDefaultDatabaseBlock, DatabaseBlockEditor };
+export { createDefaultRepository, RepositoryEditor };

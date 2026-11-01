@@ -1,5 +1,5 @@
 import type { AssetId, BlockId, ChatId, UserId } from "@orcai/core";
-import type { PublicationStatus } from "@orcai/schema";
+import type { BlockType, PublicationStatus } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
@@ -21,7 +21,7 @@ import { chat } from "./chat";
 
 export const block = pgTable("block", {
 	id: uuid("id").$type<BlockId>().primaryKey().defaultRandom(),
-	type: text("type").notNull(),
+	type: text("type").$type<BlockType>().notNull(),
 	name: text("name").notNull(),
 	description: varchar("description", {
 		length: 500,

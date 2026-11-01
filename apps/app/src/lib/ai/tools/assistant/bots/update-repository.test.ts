@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
-import { defaultDatabaseBlockConfig } from "@orcai/schema";
+import { defaultRepositoryConfig } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -15,8 +15,8 @@ const [a, b, c, d] = Array.from(
 );
 
 const config = {
-	...defaultDatabaseBlockConfig,
-	maxReferences: 12,
+	...defaultRepositoryConfig,
+	maxPassages: 12,
 };
 
 beforeEach(() => {
@@ -25,7 +25,7 @@ beforeEach(() => {
 		Effect.succeed({
 			data: {
 				id: repositoryId,
-				type: "database",
+				type: "repository",
 				name: "Sources",
 				description: "Primary sources.",
 				contentJson: {
@@ -96,7 +96,7 @@ describe("updateRepositoryTool", () => {
 				procedure: "block.update",
 				input: {
 					id: repositoryId,
-					type: "database",
+					type: "repository",
 					name: "Sources",
 					description: "Primary sources.",
 					contentJson: {
@@ -150,12 +150,12 @@ describe("updateRepositoryTool", () => {
 		]);
 	});
 
-	test("a template id reads as no repository with that id", async () => {
+	test("a behaviour id reads as no repository with that id", async () => {
 		answers["block.find"] = () =>
 			Effect.succeed({
 				data: {
 					id: repositoryId,
-					type: "template",
+					type: "behaviour",
 				},
 			});
 

@@ -61,11 +61,11 @@ export const updateBehaviourTool = (deps: AssistantToolDeps) =>
 							},
 							options,
 						),
-				).pipe(expectType("template", id));
+				).pipe(expectType("behaviour", id));
 
-				if (current.type !== "template") {
+				if (current.type !== "behaviour") {
 					return yield* Effect.fail(
-						wrongBlockError("template", id, current.type),
+						wrongBlockError("behaviour", id, current.type),
 					);
 				}
 
@@ -73,7 +73,7 @@ export const updateBehaviourTool = (deps: AssistantToolDeps) =>
 					procedures.block.update(
 						{
 							id,
-							type: "template",
+							type: "behaviour",
 							name: input.name ?? current.name,
 							description:
 								input.description === undefined

@@ -1,4 +1,4 @@
-import type { AssetWithCapabilities, DatabaseBlock } from "@orcai/schema";
+import type { AssetWithCapabilities, Repository } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { useState } from "react";
@@ -11,18 +11,18 @@ import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 import {
-	DatabaseBlockFieldGroup,
-	databaseBlockTopLevelFieldMap,
-} from "./database-block-field-group";
-import { databaseBlockFormOptions } from "./database-block-form-options";
+	RepositoryFieldGroup,
+	repositoryTopLevelFieldMap,
+} from "./repository-field-group";
+import { repositoryFormOptions } from "./repository-form-options";
 
-const DatabaseBlockForm = ({
+const RepositoryForm = ({
 	action,
 	block,
 	assets,
 }: {
 	action: "create" | "update";
-	block?: DatabaseBlock;
+	block?: Repository;
 	assets?: AssetWithCapabilities[];
 }) => {
 	const { mutateAsync: createBlock } = useCreateBlockMutation();
@@ -42,7 +42,7 @@ const DatabaseBlockForm = ({
 	);
 
 	const form = useAppForm({
-		...databaseBlockFormOptions(
+		...repositoryFormOptions(
 			block,
 			assets?.map((asset) => asset.id),
 		),
@@ -85,9 +85,9 @@ const DatabaseBlockForm = ({
 				)}
 			/>
 
-			<DatabaseBlockFieldGroup
+			<RepositoryFieldGroup
 				form={form}
-				fields={databaseBlockTopLevelFieldMap}
+				fields={repositoryTopLevelFieldMap}
 				assetIds={assetIds ?? []}
 				onAssetIdsChange={(ids) => form.setFieldValue("assets", ids)}
 				assets={selectedAssets}
@@ -106,8 +106,8 @@ const DatabaseBlockForm = ({
 				<form.SubmitButton
 					label={
 						action === "create"
-							? m.blocks_database_form_create_submit_button()
-							: m.blocks_database_form_update_submit_button()
+							? m.blocks_repository_form_create_submit_button()
+							: m.blocks_repository_form_update_submit_button()
 					}
 				/>
 			</form.AppForm>
@@ -115,4 +115,4 @@ const DatabaseBlockForm = ({
 	);
 };
 
-export { DatabaseBlockForm };
+export { RepositoryForm };

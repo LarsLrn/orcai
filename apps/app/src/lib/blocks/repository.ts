@@ -23,7 +23,7 @@ import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
-export const loadDatabaseBlockAssets = (params: {
+export const loadRepositoryAssets = (params: {
 	blockId: BlockId;
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
@@ -85,7 +85,7 @@ export const requireReadableAssets = (params: {
 	});
 
 /**
- * Replaces a database block's asset links and records the change. Kept links
+ * Replaces a repository's asset links and records the change. Kept links
  * keep their index state; new ones start pending, and those from the user's
  * `uploadRunIds` are indexed as part of their upload. Call it in
  * `writeRelationships`, then pass the result to {@link reindexBlockAssets}.

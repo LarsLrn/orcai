@@ -322,7 +322,7 @@ export const authzIntegration = () => {
 		const { data, meta } = await run(
 			procedures.block.create(
 				{
-					type: "template",
+					type: "behaviour",
 					name: "Integration block",
 					description: null,
 					contentJson: null,

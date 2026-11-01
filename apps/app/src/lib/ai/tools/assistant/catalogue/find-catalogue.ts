@@ -1,3 +1,4 @@
+import { catalogueKindSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { listLimitSchema, listQuerySchema } from "../core/list-input";
@@ -9,24 +10,11 @@ import {
 
 const findCatalogueInputSchema = z.strictObject({
 	query: listQuerySchema,
-	kind: z
-		.enum([
-			"bot",
-			"template",
-			"repository",
-		])
+	kind: catalogueKindSchema
 		.optional()
-		.describe(
-			"Only entries of this kind (template: a behaviour). Every kind when left out.",
-		),
+		.describe("Only entries of this kind. Every kind when left out."),
 	limit: listLimitSchema,
 });
-
-const catalogueKinds = {
-	bot: "bot",
-	template: "behaviour",
-	repository: "repository",
-} as const;
 
 export const findCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
@@ -41,7 +29,7 @@ export const findCatalogueTool = (deps: AssistantToolDeps) =>
 							pageIndex: 0,
 							pageSize: limit,
 							search: query,
-							kind: kind && catalogueKinds[kind],
+							kind,
 						},
 						options,
 					),
@@ -59,7 +47,7 @@ export const findCatalogueTool = (deps: AssistantToolDeps) =>
 										targetType: "block" as const,
 										targetId: entry.id,
 									},
-						kind: entry.kind === "behaviour" ? "template" : entry.kind,
+						kind: entry.kind,
 						name: entry.name,
 						description: entry.description,
 						from: entry.homeOrganization.name,

@@ -30,16 +30,16 @@ export const repositoryWithAsset = async (
 		type,
 	});
 	const block = await client.block.create({
-		type: "database",
+		type: "repository",
 		name: pipelineName(`${label} Repository`),
 		status: "ready",
 		assets: [
 			asset.id,
 		],
 		config: {
-			minReferences: 1,
-			maxReferences: 5,
-			defaultReferences: 3,
+			minPassages: 1,
+			maxPassages: 5,
+			defaultPassages: 3,
 			scoreThreshold: 0,
 		},
 	});

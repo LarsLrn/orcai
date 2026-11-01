@@ -1,4 +1,3 @@
-import type { Block } from "@orcai/schema";
 import {
 	BotIcon,
 	BrainCircuitIcon,
@@ -51,6 +50,3 @@ export const RESOURCE_KINDS = {
 		band: string;
 	}
 >;
-
-export const blockKind = (type: Block["type"]) =>
-	type === "template" ? "behaviour" : "repository";

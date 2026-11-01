@@ -4,14 +4,14 @@ import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
-const templateId = crypto.randomUUID() as BlockId;
+const behaviourId = crypto.randomUUID() as BlockId;
 
 beforeEach(() => {
 	resetProcedures();
 	answers["block.create"] = (input: { name: string; status: string }) =>
 		Effect.succeed({
 			data: {
-				id: templateId,
+				id: behaviourId,
 				name: input.name,
 				status: input.status,
 			},
@@ -56,7 +56,7 @@ describe("createBehaviourTool", () => {
 			{
 				procedure: "block.create",
 				input: {
-					type: "template",
+					type: "behaviour",
 					name: "Strict",
 					description: null,
 					contentJson: null,
@@ -68,8 +68,8 @@ describe("createBehaviourTool", () => {
 			},
 		]);
 		expect(output).toEqual({
-			type: "template",
-			id: templateId,
+			type: "behaviour",
+			id: behaviourId,
 			name: "Strict",
 			status: "draft",
 		});

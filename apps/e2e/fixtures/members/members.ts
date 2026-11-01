@@ -47,9 +47,9 @@ export const createThrowawayUser = async (
 	};
 };
 
-/** A template block, the one grantable resource that needs no model, provider, or worker. */
-export const templateBlock = (name: string) => ({
-	type: "template" as const,
+/** A behaviour, the one grantable resource that needs no model, provider, or worker. */
+export const behaviourInput = (name: string) => ({
+	type: "behaviour" as const,
 	name,
 	status: "ready" as const,
 	config: {

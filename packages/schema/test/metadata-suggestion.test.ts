@@ -12,7 +12,8 @@ const suggestion = {
 	metadata: {
 		sourceType: "journal-article" as const,
 		author: "Ada Lovelace",
-		citation: "Lovelace, A. (2026). Refunds. Journal of Policy, 4(2), 1-9.",
+		citationLabel:
+			"Lovelace, A. (2026). Refunds. Journal of Policy, 4(2), 1-9.",
 		journalName: "Journal of Policy",
 		description: "How refunds are paid.",
 		language: "en",
@@ -27,7 +28,7 @@ describe("applyMetadataSuggestion", () => {
 				fileName: "refunds.pdf",
 				metadata: {
 					author: "Kept Author",
-					citation: "",
+					citationLabel: "",
 				},
 			},
 			suggestion,
@@ -38,7 +39,7 @@ describe("applyMetadataSuggestion", () => {
 			metadata: {
 				sourceType: "journal-article",
 				author: "Kept Author",
-				citation: suggestion.metadata.citation,
+				citationLabel: suggestion.metadata.citationLabel,
 				journalName: "Journal of Policy",
 				description: "How refunds are paid.",
 				language: "en",
@@ -46,7 +47,7 @@ describe("applyMetadataSuggestion", () => {
 			review: null,
 			filled: [
 				"title",
-				"citation",
+				"citationLabel",
 				"sourceType",
 				"journalName",
 				"description",
@@ -99,7 +100,7 @@ describe("applyMetadataSuggestion", () => {
 			metadata: {
 				sourceType: "journal-article",
 				author: "Ada Lovelace",
-				citation: suggestion.metadata.citation,
+				citationLabel: suggestion.metadata.citationLabel,
 				journalName: "Journal of Policy",
 			},
 		});
@@ -134,9 +135,9 @@ describe("metadataReviewFields", () => {
 				accept: false,
 			},
 			{
-				field: "citation",
+				field: "citationLabel",
 				current: "",
-				suggested: suggestion.metadata.citation,
+				suggested: suggestion.metadata.citationLabel,
 				accept: true,
 			},
 			{
@@ -188,7 +189,7 @@ describe("metadataReviewFields", () => {
 				requiresType: true,
 			},
 			{
-				field: "citation",
+				field: "citationLabel",
 				accept: false,
 				requiresType: true,
 			},
@@ -284,7 +285,7 @@ describe("metadataReviewFields", () => {
 				requiresType: true,
 			},
 			{
-				field: "citation",
+				field: "citationLabel",
 				accept: true,
 				requiresType: true,
 			},
@@ -314,13 +315,13 @@ describe("fitMetadataToSourceType", () => {
 				sourceType: "legal-text",
 				journalName: "Journal of Policy",
 				doi: "10.1/x",
-				citation: "BGB § 1",
+				citationLabel: "BGB § 1",
 				description: "About refunds.",
 				externalUrl: "https://example.org",
 			}),
 		).toEqual({
 			sourceType: "legal-text",
-			citation: "BGB § 1",
+			citationLabel: "BGB § 1",
 			description: "About refunds.",
 			externalUrl: "https://example.org",
 		});

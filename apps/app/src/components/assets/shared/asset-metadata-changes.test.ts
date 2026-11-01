@@ -8,7 +8,7 @@ describe("changedAssetFields", () => {
 				{
 					title: "refunds.pdf",
 					metadata: {
-						citation: "",
+						citationLabel: "",
 						author: "Ada",
 						doi: "10.1/x",
 					},
@@ -16,7 +16,7 @@ describe("changedAssetFields", () => {
 				{
 					title: "Refund policy",
 					metadata: {
-						citation: "",
+						citationLabel: "",
 						author: "Ada",
 						doi: "",
 						journalName: "Journal of Policy",

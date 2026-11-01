@@ -84,10 +84,10 @@ const authorWithBot = async () => {
 		).data;
 	const chatModel = await createModel("Chat model");
 	const botModel = await createModel("Bot model");
-	const { data: template } = await call((options) =>
+	const { data: behaviour } = await call((options) =>
 		procedures.block.create(
 			{
-				type: "template",
+				type: "behaviour",
 				name: "Effective behaviour",
 				description: null,
 				contentJson: null,
@@ -105,7 +105,7 @@ const authorWithBot = async () => {
 				name: `Effective bot ${crypto.randomUUID()}`,
 				description: "Integration bot",
 				status: "draft",
-				templateBlockId: template.id,
+				behaviourId: behaviour.id,
 			},
 			options,
 		),

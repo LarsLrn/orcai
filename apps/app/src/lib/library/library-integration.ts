@@ -51,7 +51,7 @@ export const libraryIntegration = () => {
 				await call(owner, (options) =>
 					procedures.block.create(
 						{
-							type: "template",
+							type: "behaviour",
 							name,
 							description: null,
 							contentJson: null,

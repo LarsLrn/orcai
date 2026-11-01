@@ -6,7 +6,7 @@ export const metadataFieldLabels: Record<AppliedMetadataField, () => string> = {
 	title: m.assets_metadata_source_title_label,
 	sourceType: m.assets_metadata_source_type_label,
 	author: m.assets_metadata_author_label,
-	citation: m.assets_metadata_citation_label,
+	citationLabel: m.assets_metadata_citation_label_label,
 	chapterTitle: m.assets_metadata_chapter_title_label,
 	pageRange: m.assets_metadata_page_range_label,
 	journalName: m.assets_metadata_journal_name_label,

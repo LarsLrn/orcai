@@ -21,7 +21,7 @@ const COUNT_INPUT = {
 } as const;
 
 const ManageLibraryPanel = () => {
-	const [publishedBots, draftBots, templates, repositories, assets] =
+	const [publishedBots, draftBots, behaviours, repositories, assets] =
 		useSuspenseQueries({
 			queries: [
 				orpc.bot.list.queryOptions({
@@ -39,7 +39,7 @@ const ManageLibraryPanel = () => {
 					input: {
 						...COUNT_INPUT,
 						filters: {
-							type: "template",
+							type: "behaviour",
 						},
 					},
 				}),
@@ -47,7 +47,7 @@ const ManageLibraryPanel = () => {
 					input: {
 						...COUNT_INPUT,
 						filters: {
-							type: "database",
+							type: "repository",
 						},
 					},
 				}),
@@ -87,7 +87,7 @@ const ManageLibraryPanel = () => {
 		{
 			label: m.home_library_blocks_label(),
 			meta: m.home_library_blocks_meta(),
-			count: templates.data.rowCount,
+			count: behaviours.data.rowCount,
 			linkProps: {
 				to: "/app/library/behaviours",
 			},

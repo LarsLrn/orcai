@@ -25,7 +25,6 @@ import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { useCatalogueRemoveMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { blockPaths } from "@/lib/navigation/block-paths";
-import { blockKind } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 type ActionBlock = Pick<Block, "id" | "type" | "name"> & {
@@ -157,7 +156,7 @@ const useBlockActions = (
 			names: [
 				block.name,
 			],
-			kind: blockKind(block.type),
+			kind: block.type,
 		},
 	);
 

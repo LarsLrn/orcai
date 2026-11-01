@@ -18,9 +18,8 @@ interface EntityKindSpec {
 	plural?: string;
 	/** The concrete kinds whose ids this kind takes. */
 	covers?: readonly string[];
-	/** A block of this type, and the reason a block of the other type fails with. */
+	/** A block type: the reason a block of the other type fails with. */
 	block?: {
-		type: BlockType;
 		wrongTypeReason: ErrorReason;
 	};
 	/** Failure reasons, and NOT_FOUND entities, that mean there is no such one. */
@@ -75,11 +74,10 @@ const kinds = {
 				}),
 		},
 	},
-	template: {
+	behaviour: {
 		label: "behaviour",
 		plural: "behaviours",
 		block: {
-			type: "template",
 			wrongTypeReason: "BEHAVIOUR_BLOCK_TYPE_INVALID",
 		},
 		missing: {
@@ -96,7 +94,6 @@ const kinds = {
 		label: "repository",
 		plural: "repositories",
 		block: {
-			type: "database",
 			wrongTypeReason: "REPOSITORY_BLOCK_TYPE_INVALID",
 		},
 		missing: {
@@ -114,7 +111,7 @@ const kinds = {
 	block: {
 		label: "behaviour or repository",
 		covers: [
-			"template",
+			"behaviour",
 			"repository",
 		],
 		missing: {
@@ -290,13 +287,8 @@ export const wrongBlockText = (
 	id: string,
 	actual: BlockType,
 ) => {
-	const found = entries.find(([, spec]) => spec.block?.type === actual);
-
-	return `${wrongIdText(expected, id, kinds[expected].block.wrongTypeReason)} That id is a ${found?.[1].label ?? actual}.`;
+	return `${wrongIdText(expected, id, kinds[expected].block.wrongTypeReason)} That id is a ${kinds[actual].label}.`;
 };
-
-export const blockTypeOf = (kind: BlockKind): BlockType =>
-	kinds[kind].block.type;
 
 /**
  * Whether a failure means there is no such `kind`: by its reason, or, without

@@ -59,7 +59,7 @@ function RouteComponent() {
 			</PageHeader>
 
 			<PageContent className="grid gap-6 md:grid-cols-2">
-				{/* Bot Template Option */}
+				{/* Bot option */}
 				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 					<DialogTrigger
 						nativeButton={false}

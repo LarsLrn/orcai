@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { DatabaseBlock } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
@@ -52,7 +52,7 @@ describe("listRepositoryAssets", () => {
 					{
 						id: "asset-1",
 						metadata: {
-							citation: "Handbook 2026",
+							citationLabel: "Handbook 2026",
 							description: "Rules for staff.",
 						},
 					},
@@ -70,7 +70,7 @@ describe("listRepositoryAssets", () => {
 					name: "Handbook",
 					config: {},
 				},
-			] as unknown as DatabaseBlock[],
+			] as unknown as Repository[],
 			context: {} as ORPCContext,
 		}).execute?.(
 			{
@@ -88,7 +88,7 @@ describe("listRepositoryAssets", () => {
 				{
 					assetId: "asset-1",
 					title: "Policies",
-					citation: "Handbook 2026",
+					citationLabel: "Handbook 2026",
 					description: "Rules for staff.",
 					state: "ready",
 					failure: undefined,
@@ -122,7 +122,7 @@ describe("listRepositoryAssets", () => {
 					name: `Repository ${index}`,
 					config: {},
 				}),
-			) as unknown as DatabaseBlock[],
+			) as unknown as Repository[],
 			context: {} as ORPCContext,
 		}).execute?.(
 			{

@@ -14,7 +14,7 @@ describe("wrongIdText", () => {
 		);
 	});
 
-	test("a block takes template and repository ids", () => {
+	test("a block takes behaviour and repository ids", () => {
 		expect(
 			wrongIdText(
 				"block",
@@ -32,19 +32,19 @@ describe("wrongIdText", () => {
 
 describe("wrongBlockText", () => {
 	test("names the expected kind and what the block is", () => {
-		expect(wrongBlockText("template", "b-1", "database")).toBe(
+		expect(wrongBlockText("behaviour", "b-1", "repository")).toBe(
 			"BEHAVIOUR_BLOCK_TYPE_INVALID: No behaviour with id b-1. Ids of other kinds (bots, repositories, assets, groups, members, invitations) are not behaviour ids. That id is a repository.",
 		);
 	});
 });
 
 describe("isMissing", () => {
-	test("a block of the other type is a missing template, not a missing repository", () => {
+	test("a block of the other type is a missing behaviour, not a missing repository", () => {
 		const failure = {
 			reason: "BEHAVIOUR_BLOCK_TYPE_INVALID",
 		};
 
-		expect(isMissing("template", failure)).toBe(true);
+		expect(isMissing("behaviour", failure)).toBe(true);
 		expect(isMissing("repository", failure)).toBe(false);
 	});
 

@@ -25,7 +25,7 @@ const openBehaviourEditor = async ({
 	};
 }) => {
 	const block = await api.as("member").block.create({
-		type: "template",
+		type: "behaviour",
 		name: `E2E Editor Inserts ${runId()}`,
 		status: "ready",
 		config: {
@@ -44,7 +44,7 @@ const openBehaviourEditor = async ({
 	return {
 		page,
 		detailPath,
-		editor: page.getByLabel(message("blocks_template_form_content_label")),
+		editor: page.getByLabel(message("blocks_behaviour_form_content_label")),
 	};
 };
 
@@ -91,7 +91,7 @@ test("blocks: a behaviour's description takes a table and a YouTube video", asyn
 
 	await page
 		.getByRole("button", {
-			name: message("blocks_template_form_update_submit_button"),
+			name: message("blocks_behaviour_form_update_submit_button"),
 		})
 		.click();
 	await expect(page).toHaveURL(new RegExp(`${detailPath}$`));

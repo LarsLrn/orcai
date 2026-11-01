@@ -29,8 +29,7 @@ export const deleteBlockTool = (deps: AssistantToolDeps) =>
 						},
 						options,
 					),
-				typeOf: ({ data }) =>
-					data.type === "template" ? "template" : "repository",
+				typeOf: ({ data }) => data.type,
 				name: ({ data }) => data.name,
 				canDelete: ({ data }) => data.capabilities.delete === true,
 				verify: "findBlocks",

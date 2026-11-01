@@ -21,7 +21,7 @@ test.afterEach(async ({ api, org }) => {
 const metadataReply = (fields: {
 	title: string;
 	description: string;
-	citation: string;
+	citationLabel: string;
 }) =>
 	JSON.stringify({
 		sourceType: null,
@@ -44,7 +44,7 @@ const metadataReply = (fields: {
 const GENERATED = {
 	title: "Refund policy",
 	description: "When and how refunds are paid.",
-	citation: "Finance Office, 2026",
+	citationLabel: "Finance Office, 2026",
 };
 
 const uploadDocument = (client: ApiClient, label: string) =>
@@ -99,7 +99,7 @@ test("pipeline: a library upload gets its metadata from the utility model", asyn
 	expect(after.title).toBe(GENERATED.title);
 	expect(after.metadata).toMatchObject({
 		description: GENERATED.description,
-		citation: GENERATED.citation,
+		citationLabel: GENERATED.citationLabel,
 		language: "en",
 	});
 	expect(after.metadataSuggestion).toBeNull();
@@ -133,7 +133,7 @@ test("pipeline: Generate with AI suggests metadata to review before saving", asy
 	const suggested = {
 		title: "Refund rules",
 		description: "The rules for paying refunds, with deadlines.",
-		citation: GENERATED.citation,
+		citationLabel: GENERATED.citationLabel,
 	};
 	inference.respondWith({
 		model: utilityModel,
@@ -177,7 +177,7 @@ test("pipeline: Generate with AI suggests metadata to review before saving", asy
 	// Fields with a value start rejected; unchanged fields are not listed.
 	await expect(field("assets_metadata_source_title_label")).not.toBeChecked();
 	await expect(field("assets_metadata_description_label")).not.toBeChecked();
-	await expect(field("assets_metadata_citation_label")).toHaveCount(0);
+	await expect(field("assets_metadata_citation_label_label")).toHaveCount(0);
 
 	await field("assets_metadata_description_label").check();
 	await review
@@ -273,12 +273,12 @@ test("pipeline: saving an editor opened before generation keeps the generated fi
 			return [
 				data.title,
 				data.metadata.description,
-				data.metadata.citation,
+				data.metadata.citationLabel,
 			];
 		})
 		.toEqual([
 			"Refunds, edited",
 			GENERATED.description,
-			GENERATED.citation,
+			GENERATED.citationLabel,
 		]);
 });

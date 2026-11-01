@@ -5,10 +5,10 @@ import { expect, test } from "../../fixtures/index";
 import {
 	addMember,
 	adoptZedToken,
+	behaviourInput,
 	createThrowawayUser,
 	memberRow,
 	reachPage,
-	templateBlock,
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -51,7 +51,7 @@ test("members: removing a member hands their block to the member chosen", async 
 		organizationId: org.id,
 	});
 	const name = `E2E Handed Block ${user.id}`;
-	const { data: block } = await client.block.create(templateBlock(name));
+	const { data: block } = await client.block.create(behaviourInput(name));
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -121,7 +121,7 @@ test("members: deleting an account in the instance hands its content to the orga
 		organizationId: org.id,
 	});
 	const { data: block } = await client.block.create(
-		templateBlock(`E2E Deleted Owner ${user.id}`),
+		behaviourInput(`E2E Deleted Owner ${user.id}`),
 	);
 	const [owned] = (
 		await api.asWellKnownAdmin().instance.ownedContent({
@@ -181,8 +181,8 @@ test("members: the owner hands a bot over and keeps Can manage", async ({
 		name,
 		description: "Created by the members slice.",
 		status: "ready",
-		templateBlockId: null,
-		databaseBlockIds: [],
+		behaviourId: null,
+		repositoryIds: [],
 	});
 
 	const page = await pageAs("member");

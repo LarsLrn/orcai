@@ -91,7 +91,7 @@ const assetsText = (assets: RepositoryAsset[]) =>
 		? assets
 				.map(
 					(asset) =>
-						`- ${asset.assetId}: ${asset.title}${asset.citation ? ` (${asset.citation})` : ""}${assetState(asset)}${asset.description ? `\n  ${asset.description.replace(/\s+/g, " ").trim()}` : ""}`,
+						`- ${asset.assetId}: ${asset.title}${asset.citationLabel ? ` (${asset.citationLabel})` : ""}${assetState(asset)}${asset.description ? `\n  ${asset.description.replace(/\s+/g, " ").trim()}` : ""}`,
 				)
 				.join("\n")
 		: "No assets.";

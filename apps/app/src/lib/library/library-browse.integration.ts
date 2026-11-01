@@ -45,15 +45,15 @@ const stocked = async () => {
 			await call(owner, (options) =>
 				procedures.block.create(
 					{
-						type: "database",
+						type: "repository",
 						name,
 						description: null,
 						contentJson: null,
 						status: "ready",
 						config: {
-							minReferences: 1,
-							maxReferences: 5,
-							defaultReferences: 3,
+							minPassages: 1,
+							maxPassages: 5,
+							defaultPassages: 3,
 						},
 					},
 					options,

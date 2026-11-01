@@ -1,7 +1,7 @@
-import { isTemplateBlock } from "@orcai/schema";
+import { isBehaviour } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { TemplateBlockForm } from "@/components/blocks/template-block/form/template-block-form";
+import { BehaviourForm } from "@/components/blocks/behaviour/form/behaviour-form";
 import {
 	Page,
 	PageContent,
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/app/library/behaviours/$blockId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: m.blocks_edit_template_page_title(),
+				title: m.blocks_edit_behaviour_page_title(),
 			},
 		],
 	}),
@@ -45,11 +45,11 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader>
-				<PageTitle>{m.blocks_edit_template_page_title()}</PageTitle>
+				<PageTitle>{m.blocks_edit_behaviour_page_title()}</PageTitle>
 			</PageHeader>
 			<PageContent>
-				{isTemplateBlock(block.data) ? (
-					<TemplateBlockForm action="update" block={block.data} />
+				{isBehaviour(block.data) ? (
+					<BehaviourForm action="update" block={block.data} />
 				) : null}
 			</PageContent>
 		</Page>

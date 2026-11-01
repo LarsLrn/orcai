@@ -54,7 +54,7 @@ const repository = (name: string) => ({
 	name,
 	description: `${name} for Research methods.`,
 	status: "ready",
-	type: "database",
+	type: "repository",
 });
 const courseReadings = repository("Course readings");
 

@@ -81,13 +81,13 @@ const twoOrganizations = async () => {
 
 	const createBlock = async (
 		actor: Actor,
-		type: "template" | "database",
+		type: "behaviour" | "repository",
 		name = `Listing ${type} ${crypto.randomUUID()}`,
 	): Promise<BlockId> =>
 		(
 			await call(actor, (options) =>
 				procedures.block.create(
-					type === "template"
+					type === "behaviour"
 						? {
 								type,
 								name,
@@ -106,9 +106,9 @@ const twoOrganizations = async () => {
 								status: "ready",
 								assets: [],
 								config: {
-									minReferences: 1,
-									maxReferences: 5,
-									defaultReferences: 3,
+									minPassages: 1,
+									maxPassages: 5,
+									defaultPassages: 3,
 								},
 							},
 					options,
@@ -120,8 +120,8 @@ const twoOrganizations = async () => {
 		actor: Actor,
 		bot: {
 			id?: BotId;
-			templateBlockId?: BlockId;
-			databaseBlockIds: BlockId[];
+			behaviourId?: BlockId;
+			repositoryIds: BlockId[];
 			listBlockIds?: BlockId[];
 		},
 	) =>
@@ -137,11 +137,11 @@ const twoOrganizations = async () => {
 			),
 		).then(({ data }) => data.id);
 
-	const template = await createBlock(author, "template");
-	const repository = await createBlock(author, "database");
+	const behaviour = await createBlock(author, "behaviour");
+	const repository = await createBlock(author, "repository");
 	const bot = await saveBot(author, {
-		templateBlockId: template,
-		databaseBlockIds: [
+		behaviourId: behaviour,
+		repositoryIds: [
 			repository,
 		],
 	});
@@ -215,7 +215,7 @@ const twoOrganizations = async () => {
 		call,
 		createBlock,
 		saveBot,
-		template,
+		behaviour,
 		repository,
 		bot,
 		setVisibility,
@@ -303,7 +303,7 @@ describe("listing a bot", () => {
 		"lists its unlisted blocks only with manage_access on each and once confirmed",
 		async () => {
 			const s = await twoOrganizations();
-			const membersRepository = await s.createBlock(s.member, "database");
+			const membersRepository = await s.createBlock(s.member, "repository");
 			await s.call(s.member, (options) =>
 				s.procedures.resource.grant(
 					{
@@ -322,8 +322,8 @@ describe("listing a bot", () => {
 			);
 			await s.saveBot(s.author, {
 				id: s.bot,
-				templateBlockId: s.template,
-				databaseBlockIds: [
+				behaviourId: s.behaviour,
+				repositoryIds: [
 					s.repository,
 					membersRepository,
 				],
@@ -331,7 +331,7 @@ describe("listing a bot", () => {
 
 			const forbidden = await outcomeOf(
 				s.setVisibility(s.author, botRef(s.bot), "public", [
-					s.template,
+					s.behaviour,
 					s.repository,
 					membersRepository,
 				]),
@@ -341,14 +341,14 @@ describe("listing a bot", () => {
 
 			await s.saveBot(s.author, {
 				id: s.bot,
-				templateBlockId: s.template,
-				databaseBlockIds: [
+				behaviourId: s.behaviour,
+				repositoryIds: [
 					s.repository,
 				],
 			});
 			const unconfirmed = await outcomeOf(
 				s.setVisibility(s.author, botRef(s.bot), "public", [
-					s.template,
+					s.behaviour,
 				]),
 			);
 			expect(unconfirmed).toEqual({
@@ -363,13 +363,13 @@ describe("listing a bot", () => {
 			});
 
 			await s.setVisibility(s.author, botRef(s.bot), "public", [
-				s.template,
+				s.behaviour,
 				s.repository,
 			]);
 			expect(
 				await Promise.all([
 					s.visibilityOf(botRef(s.bot)),
-					s.visibilityOf(blockRef(s.template)),
+					s.visibilityOf(blockRef(s.behaviour)),
 					s.visibilityOf(blockRef(s.repository)),
 				]),
 			).toEqual([
@@ -386,14 +386,14 @@ describe("listing a bot", () => {
 		async () => {
 			const s = await twoOrganizations();
 			await s.setVisibility(s.author, botRef(s.bot), "public", [
-				s.template,
+				s.behaviour,
 				s.repository,
 			]);
-			const added = await s.createBlock(s.author, "database");
+			const added = await s.createBlock(s.author, "repository");
 			const bot = {
 				id: s.bot,
-				templateBlockId: s.template,
-				databaseBlockIds: [
+				behaviourId: s.behaviour,
+				repositoryIds: [
 					s.repository,
 					added,
 				],
@@ -423,7 +423,7 @@ describe("listing while tuples lag", () => {
 	/** The author manages the member's repository and links it into their bot. */
 	const managedRepository = async () => {
 		const s = await twoOrganizations();
-		const membersRepository = await s.createBlock(s.member, "database");
+		const membersRepository = await s.createBlock(s.member, "repository");
 		await s.call(s.member, (options) =>
 			s.procedures.resource.grant(
 				{
@@ -442,8 +442,8 @@ describe("listing while tuples lag", () => {
 		);
 		await s.saveBot(s.author, {
 			id: s.bot,
-			templateBlockId: s.template,
-			databaseBlockIds: [
+			behaviourId: s.behaviour,
+			repositoryIds: [
 				membersRepository,
 			],
 		});
@@ -489,7 +489,7 @@ describe("listing while tuples lag", () => {
 			expect(
 				await reasonOf(
 					s.setVisibility(s.author, botRef(s.bot), "public", [
-						s.template,
+						s.behaviour,
 						s.membersRepository,
 					]),
 				),
@@ -557,7 +557,7 @@ describe("unlisting", () => {
 		async () => {
 			const s = await twoOrganizations();
 			await s.setVisibility(s.author, botRef(s.bot), "public", [
-				s.template,
+				s.behaviour,
 				s.repository,
 			]);
 
@@ -576,7 +576,7 @@ describe("unlisting", () => {
 		async () => {
 			const s = await twoOrganizations();
 			await s.setVisibility(s.author, botRef(s.bot), "public", [
-				s.template,
+				s.behaviour,
 				s.repository,
 			]);
 			await s.add(botRef(s.bot));
@@ -593,7 +593,7 @@ describe("unlisting", () => {
 				}),
 			);
 			const otherBot = await s.saveBot(s.otherAdmin, {
-				databaseBlockIds: [
+				repositoryIds: [
 					s.repository,
 				],
 			});
@@ -701,7 +701,7 @@ describe("unlisting", () => {
 				s.procedures.block.update(
 					{
 						id: s.repository,
-						type: "database",
+						type: "repository",
 						name: "Unlisted repository",
 						description: null,
 						contentJson: null,
@@ -710,9 +710,9 @@ describe("unlisting", () => {
 							assetId,
 						],
 						config: {
-							minReferences: 1,
-							maxReferences: 5,
-							defaultReferences: 3,
+							minPassages: 1,
+							maxPassages: 5,
+							defaultPassages: 3,
 						},
 					},
 					options,
@@ -741,10 +741,10 @@ describe("a bot save and a block unlist", () => {
 	const listedBotWithListedRepository = async () => {
 		const s = await twoOrganizations();
 		await s.setVisibility(s.author, botRef(s.bot), "public", [
-			s.template,
+			s.behaviour,
 			s.repository,
 		]);
-		const added = await s.createBlock(s.author, "database");
+		const added = await s.createBlock(s.author, "repository");
 		await s.setVisibility(s.author, blockRef(added), "public");
 		return {
 			...s,
@@ -752,8 +752,8 @@ describe("a bot save and a block unlist", () => {
 			save: () =>
 				s.saveBot(s.author, {
 					id: s.bot,
-					templateBlockId: s.template,
-					databaseBlockIds: [
+					behaviourId: s.behaviour,
+					repositoryIds: [
 						s.repository,
 						added,
 					],
@@ -817,7 +817,7 @@ describe("deleting the home organisation", () => {
 		async () => {
 			const s = await twoOrganizations();
 			await s.setVisibility(s.author, botRef(s.bot), "public", [
-				s.template,
+				s.behaviour,
 				s.repository,
 			]);
 			await s.add(botRef(s.bot));
@@ -857,7 +857,7 @@ describe("deleting the home organisation", () => {
 						],
 					],
 					[
-						s.template,
+						s.behaviour,
 						[],
 					],
 					[

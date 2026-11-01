@@ -22,9 +22,9 @@ const { updateBotPayload, updateBotTool } = await import("./update-bot");
 const { createAssistantTurn } = await import("../turn-state");
 
 const botId = crypto.randomUUID() as BotId;
-const templateId = crypto.randomUUID() as BlockId;
+const behaviourId = crypto.randomUUID() as BlockId;
 const repositoryId = crypto.randomUUID() as BlockId;
-const otherTemplateId = crypto.randomUUID() as BlockId;
+const otherBehaviourId = crypto.randomUUID() as BlockId;
 const otherRepositoryId = crypto.randomUUID() as BlockId;
 
 const block = (id: BlockId, name: string) => ({
@@ -44,21 +44,21 @@ const editor: BotEditor = {
 		type: "doc",
 	},
 	status: "ready",
-	templateBlock: {
-		...block(templateId, "Strict"),
-		type: "template",
+	behaviour: {
+		...block(behaviourId, "Strict"),
+		type: "behaviour",
 		config: {
 			systemPrompt: "Be strict.",
 		},
 	},
-	databaseBlocks: [
+	repositories: [
 		{
 			...block(repositoryId, "Sources"),
-			type: "database",
+			type: "repository",
 			config: {
-				minReferences: 1,
-				maxReferences: 8,
-				defaultReferences: 4,
+				minPassages: 1,
+				maxPassages: 8,
+				defaultPassages: 4,
 			},
 			assetIds: [],
 			assets: [],
@@ -89,8 +89,8 @@ describe("updateBotPayload", () => {
 				type: "doc",
 			},
 			status: "ready",
-			templateBlockId: templateId,
-			databaseBlockIds: [
+			behaviourId: behaviourId,
+			repositoryIds: [
 				repositoryId,
 			],
 			features: {
@@ -107,7 +107,7 @@ describe("updateBotPayload", () => {
 					id: botId,
 					name: "Citation check",
 					description: "Checks citations.",
-					behaviourId: otherTemplateId,
+					behaviourId: otherBehaviourId,
 					repositoryIds: [
 						otherRepositoryId,
 					],
@@ -117,15 +117,15 @@ describe("updateBotPayload", () => {
 			),
 		).toMatchObject({
 			status: "ready",
-			templateBlockId: otherTemplateId,
-			databaseBlockIds: [
+			behaviourId: otherBehaviourId,
+			repositoryIds: [
 				otherRepositoryId,
 			],
 			features: {},
 		});
 	});
 
-	test("null unlinks the template", () => {
+	test("null unlinks the behaviour", () => {
 		expect(
 			updateBotPayload(
 				{
@@ -135,7 +135,7 @@ describe("updateBotPayload", () => {
 					behaviourId: null,
 				},
 				editor,
-			).templateBlockId,
+			).behaviourId,
 		).toBeNull();
 	});
 
@@ -151,7 +151,7 @@ describe("updateBotPayload", () => {
 		).toMatchObject({
 			name: "Citation check",
 			description: "Checks citations.",
-			templateBlockId: templateId,
+			behaviourId: behaviourId,
 			features: {},
 		});
 	});
@@ -189,8 +189,8 @@ describe("updateBotTool", () => {
 				id: botId,
 				name: "Renamed",
 				status: "ready",
-				templateBlockId: templateId,
-				databaseBlockIds: [
+				behaviourId: behaviourId,
+				repositoryIds: [
 					repositoryId,
 				],
 				features: {
@@ -202,8 +202,8 @@ describe("updateBotTool", () => {
 			type: "bot",
 			id: botId,
 			behaviour: {
-				type: "template",
-				id: templateId,
+				type: "behaviour",
+				id: behaviourId,
 				name: "Strict",
 			},
 			repositories: [
@@ -353,11 +353,11 @@ describe("updateBotTool", () => {
 		);
 	});
 
-	test("a template among the repositories reads as a wrong repository id", async () => {
+	test("a behaviour among the repositories reads as a wrong repository id", async () => {
 		answers["bot.save"] = () =>
 			Effect.fail(
 				new ORPCError("BAD_REQUEST", {
-					message: "Linked content collection block must be a database block.",
+					message: "Every linked repository id must name a repository.",
 					data: {
 						reason: "REPOSITORY_BLOCK_TYPE_INVALID",
 					},
@@ -368,11 +368,11 @@ describe("updateBotTool", () => {
 			run({
 				id: botId,
 				repositoryIds: [
-					otherTemplateId,
+					otherBehaviourId,
 				],
 			}),
 		).rejects.toThrow(
-			`REPOSITORY_BLOCK_TYPE_INVALID: No repository with id ${otherTemplateId}.`,
+			`REPOSITORY_BLOCK_TYPE_INVALID: No repository with id ${otherBehaviourId}.`,
 		);
 	});
 });

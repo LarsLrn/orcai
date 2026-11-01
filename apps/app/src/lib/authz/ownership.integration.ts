@@ -301,7 +301,7 @@ const contentOf = async (
 				name: "Owned bot",
 				description: "Owned bot",
 				status: "draft",
-				templateBlockId: block.blockId,
+				behaviourId: block.blockId,
 			},
 			options,
 		),

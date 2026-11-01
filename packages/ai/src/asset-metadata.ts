@@ -98,7 +98,7 @@ const assetMetadataSchema = z.object({
 		.describe(
 			'For a legal text, the country or body whose law it is, such as "Germany" or "EU".',
 		),
-	citation: z
+	citationLabel: z
 		.string()
 		.nullable()
 		.describe(

@@ -16,10 +16,10 @@ import {
 } from "@orcai/core";
 import { reservedOutputTokens } from "@orcai/quota";
 import {
-	type DatabaseBlock,
 	type ModelTokenLimits,
 	type ModelUnusableReason,
 	modelUnusableReason,
+	type Repository,
 } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
@@ -100,7 +100,7 @@ type RequestedSetup = {
 				kind: "chat";
 				/** The behaviour's system prompt; none when the chat has no behaviour. */
 				systemPrompt: string | undefined;
-				databaseBlocks: DatabaseBlock[];
+				repositories: Repository[];
 				features: ResolvedFeature[];
 				webSearch: TurnWebSearch;
 		  }
@@ -258,7 +258,7 @@ const devToolsMiddleware = Effect.gen(function* () {
 	];
 });
 
-/** A bot's template, its database blocks and its features. */
+/** A bot's behaviour, its repositories and its features. */
 const botSettings = ({
 	botId,
 	context,
@@ -301,30 +301,27 @@ const botSettings = ({
 			},
 		);
 
-		const template = blocks.data.find((block) => block.type === "template");
-		if (!template) {
+		const behaviour = blocks.data.find((block) => block.type === "behaviour");
+		if (!behaviour) {
 			return yield* new AiError({
-				operation: "turn.setup.missingTemplateBlock",
-				cause: new Error("Bot-linked chat has no template block."),
+				operation: "turn.setup.missingBehaviour",
+				cause: new Error("Bot-linked chat has no behaviour."),
 			});
 		}
 
 		// The bot is authorized, so its blocks come with it.
 		return {
-			template,
-			databaseBlocks: blocks.data.filter(
-				(block): block is Extract<typeof block, DatabaseBlock> =>
-					block.type === "database",
+			behaviour,
+			repositories: blocks.data.filter(
+				(block): block is Extract<typeof block, Repository> =>
+					block.type === "repository",
 			),
 			features: bot.features,
 		};
 	});
 
 /** Adds the attached blocks the base set does not hold yet. */
-const mergeDatabaseBlocks = (
-	base: DatabaseBlock[],
-	attached: DatabaseBlock[],
-) => {
+const mergeRepositories = (base: Repository[], attached: Repository[]) => {
 	const ids = new Set(base.map((block) => block.id));
 	return [
 		...base,
@@ -431,8 +428,8 @@ const chatSetup = (
 			},
 		);
 
-		const attachedTemplate = attached.data.find(
-			(block) => block.type === "template",
+		const attachedBehaviour = attached.data.find(
+			(block) => block.type === "behaviour",
 		);
 		const features = yield* resolveFeatures(
 			bot ? bot.features : config?.features,
@@ -456,16 +453,16 @@ const chatSetup = (
 			maxSteps: CHAT_AGENT_MAX_STEPS,
 			agent: {
 				kind: "chat",
-				// A bot's template wins, then an attached template, then the chat's own prompt.
+				// A bot's behaviour wins, then an attached behaviour, then the chat's own prompt.
 				systemPrompt:
-					bot?.template.config.systemPrompt ??
-					attachedTemplate?.config.systemPrompt ??
+					bot?.behaviour.config.systemPrompt ??
+					attachedBehaviour?.config.systemPrompt ??
 					config?.systemPrompt,
-				databaseBlocks: mergeDatabaseBlocks(
-					bot?.databaseBlocks ?? [],
+				repositories: mergeRepositories(
+					bot?.repositories ?? [],
 					attached.data.filter(
-						(block): block is Extract<typeof block, DatabaseBlock> =>
-							block.type === "database",
+						(block): block is Extract<typeof block, Repository> =>
+							block.type === "repository",
 					),
 				),
 				features,

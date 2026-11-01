@@ -17,7 +17,7 @@ import {
 	sanitizeGeneratedChatTitle,
 	titleCallSettings,
 } from "@orcai/ai";
-import type { DatabaseBlock } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import {
 	generateText,
 	isStepCount,
@@ -302,9 +302,9 @@ export const repository = (name: string) =>
 	({
 		id: crypto.randomUUID(),
 		name,
-		type: "database",
+		type: "repository",
 		config: {},
-	}) as unknown as DatabaseBlock;
+	}) as unknown as Repository;
 
 export const runChat = async ({
 	model: { model },
@@ -320,7 +320,7 @@ export const runChat = async ({
 	model: EvalModel;
 	/** The behaviour's system prompt; none for a chat without one. */
 	behaviour: string | undefined;
-	repositories?: DatabaseBlock[];
+	repositories?: Repository[];
 	message: string;
 	/** A file attached to the message, as the chat reads it. */
 	attachment?: Parameters<typeof attachmentText>[0] & {

@@ -138,7 +138,7 @@ describe("repository model output", () => {
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
-								citation: "Finance, 2024",
+								citationLabel: "Finance, 2024",
 								state: "ready",
 							},
 						],
@@ -202,7 +202,7 @@ describe("repository model output", () => {
 							{
 								assetId: "asset-a",
 								title: "Refund policy",
-								citation: "Finance, 2024",
+								citationLabel: "Finance, 2024",
 								description: "How and when refunds\n- are paid.",
 								state: "ready",
 							},

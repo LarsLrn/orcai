@@ -11,7 +11,7 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 const { run, organizationWith, procedureOptions } = authzIntegration();
 
 const behaviour = (status: PublicationStatus) => ({
-	type: "template" as const,
+	type: "behaviour" as const,
 	name: "Integration behaviour",
 	description: null,
 	contentJson: null,
@@ -21,7 +21,7 @@ const behaviour = (status: PublicationStatus) => ({
 	},
 });
 
-/** A behaviour block in `status`, linked to a ready bot. */
+/** A behaviour in `status`, linked to a ready bot. */
 const behaviourOfReadyBot = async (status: PublicationStatus) => {
 	const {
 		organizationId,
@@ -43,7 +43,7 @@ const behaviourOfReadyBot = async (status: PublicationStatus) => {
 				name: "Integration bot",
 				description: "Integration bot",
 				status: "ready",
-				templateBlockId: block.data.id,
+				behaviourId: block.data.id,
 			},
 			await procedureOptions(owner, block.meta?.zedToken ?? zedToken),
 		),

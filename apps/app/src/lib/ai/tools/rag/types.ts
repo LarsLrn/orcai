@@ -1,7 +1,7 @@
 import type { BlockId } from "@orcai/core";
 import {
 	assetReadinessSchema,
-	type DatabaseBlock,
+	type Repository,
 	type RetrievedAssetPoint,
 } from "@orcai/schema";
 import { z } from "zod/v4";
@@ -26,7 +26,7 @@ export type Passage = z.infer<typeof passageSchema>;
 export const repositoryAssetSchema = z.object({
 	assetId: z.string(),
 	title: z.string(),
-	citation: z.string().optional(),
+	citationLabel: z.string().optional(),
 	description: z.string().optional(),
 	/** Only ready assets are searchable. */
 	state: assetReadinessSchema.shape.state,
@@ -38,6 +38,6 @@ export type RepositoryAsset = z.infer<typeof repositoryAssetSchema>;
 export type PointWithBlock = RetrievedAssetPoint & {
 	repository: {
 		id: BlockId;
-		name: DatabaseBlock["name"];
+		name: Repository["name"];
 	};
 };

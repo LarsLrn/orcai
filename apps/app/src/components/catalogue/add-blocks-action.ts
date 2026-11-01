@@ -27,8 +27,8 @@ export const addBlocksLabel = (
 	wording: keyof typeof labels,
 ) => {
 	const label = labels[wording];
-	const behaviour = blocks.some((block) => block.type === "template");
-	const count = blocks.filter((block) => block.type === "database").length;
+	const behaviour = blocks.some((block) => block.type === "behaviour");
+	const count = blocks.filter((block) => block.type === "repository").length;
 	if (count === 0)
 		return label.behaviour({
 			organisation,

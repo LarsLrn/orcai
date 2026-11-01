@@ -66,10 +66,10 @@ const catalogue = async () => {
 
 	const created = await createAsset(author, home);
 	token = created.zedToken ?? token;
-	const create = (type: "template" | "database") =>
+	const create = (type: "behaviour" | "repository") =>
 		call(author, (options) =>
 			procedures.block.create(
-				type === "template"
+				type === "behaviour"
 					? {
 							type,
 							name: `Add behaviour ${crypto.randomUUID()}`,
@@ -90,24 +90,24 @@ const catalogue = async () => {
 								created.asset.id,
 							],
 							config: {
-								minReferences: 1,
-								maxReferences: 5,
-								defaultReferences: 3,
+								minPassages: 1,
+								maxPassages: 5,
+								defaultPassages: 3,
 							},
 						},
 				options,
 			),
 		).then(({ data }) => data.id);
-	const template = await create("template");
-	const repository = await create("database");
+	const behaviour = await create("behaviour");
+	const repository = await create("repository");
 	const { data: saved } = await call(author, (options) =>
 		procedures.bot.save(
 			{
 				name: `Add bot ${crypto.randomUUID()}`,
 				description: "Integration bot",
 				status: "ready",
-				templateBlockId: template,
-				databaseBlockIds: [
+				behaviourId: behaviour,
+				repositoryIds: [
 					repository,
 				],
 			},
@@ -122,7 +122,7 @@ const catalogue = async () => {
 				resourceId: bot,
 				visibility: "public",
 				listBlockIds: [
-					template,
+					behaviour,
 					repository,
 				],
 			},
@@ -210,7 +210,7 @@ const catalogue = async () => {
 		procedures,
 		call,
 		bot,
-		template,
+		behaviour,
 		repository,
 		asset: created.asset.id,
 		entry,
@@ -360,7 +360,7 @@ describe("adding a bot with its blocks", () => {
 			);
 			for (const id of [
 				s.bot,
-				s.template,
+				s.behaviour,
 				s.repository,
 			])
 				expect(await addedTo(id)).toEqual([]);
@@ -375,7 +375,7 @@ describe("adding a bot with its blocks", () => {
 			});
 			expect(await s.remove(s.admin)).toBe(true);
 			expect(await addedTo(s.bot)).toEqual([]);
-			expect(await addedTo(s.template)).toEqual([
+			expect(await addedTo(s.behaviour)).toEqual([
 				s.other,
 			]);
 			expect(await addedTo(s.repository)).toEqual([
@@ -395,7 +395,7 @@ describe("adding a bot with its blocks", () => {
 				changed: false,
 				addedBlocks: 1,
 			});
-			expect(await addedTo(s.template)).toEqual([
+			expect(await addedTo(s.behaviour)).toEqual([
 				s.other,
 			]);
 			expect(await addedTo(s.repository)).toEqual([
@@ -412,16 +412,16 @@ describe("adding a bot with its blocks", () => {
 			const { data: own } = await s.call(s.admin, (options) =>
 				s.procedures.block.create(
 					{
-						type: "database",
+						type: "repository",
 						name: `Add own repository ${crypto.randomUUID()}`,
 						description: null,
 						contentJson: null,
 						status: "ready",
 						assets: [],
 						config: {
-							minReferences: 1,
-							maxReferences: 5,
-							defaultReferences: 3,
+							minPassages: 1,
+							maxPassages: 5,
+							defaultPassages: 3,
 						},
 					},
 					options,
@@ -450,8 +450,8 @@ describe("adding a bot with its blocks", () => {
 						name: `Add bot ${crypto.randomUUID()}`,
 						description: "Integration bot",
 						status: "ready",
-						templateBlockId: s.template,
-						databaseBlockIds: [
+						behaviourId: s.behaviour,
+						repositoryIds: [
 							s.repository,
 							own.id,
 						],
@@ -491,8 +491,8 @@ describe("adding a bot with its blocks", () => {
 								name: `Add bot ${crypto.randomUUID()}`,
 								description: "Integration bot",
 								status: "ready",
-								templateBlockId: s.template,
-								databaseBlockIds: [],
+								behaviourId: s.behaviour,
+								repositoryIds: [],
 							},
 							options,
 						),
@@ -522,7 +522,7 @@ describe("adding a bot with its blocks", () => {
 				);
 				expect(added).toBe(addFirst ? 2 : 1);
 				expect(await addedTo(s.repository)).toEqual([]);
-				expect(await addedTo(s.template)).toEqual([
+				expect(await addedTo(s.behaviour)).toEqual([
 					s.other,
 				]);
 			}
@@ -543,7 +543,7 @@ describe("adding the blocks of an added bot", () => {
 			expect(await s.addBlocks(s.admin)).toBe(0);
 			for (const id of [
 				s.bot,
-				s.template,
+				s.behaviour,
 				s.repository,
 			])
 				expect(await addedTo(id)).toEqual([
@@ -679,8 +679,8 @@ describe("sharing an added resource", () => {
 								name: "Renamed",
 								description: "Integration bot",
 								status: "ready",
-								templateBlockId: s.template,
-								databaseBlockIds: [
+								behaviourId: s.behaviour,
+								repositoryIds: [
 									s.repository,
 								],
 							},
@@ -748,7 +748,7 @@ describe("the library with added resources", () => {
 								pageIndex: 0,
 								pageSize: 50,
 								filters: {
-									type: "database",
+									type: "repository",
 									origin,
 								},
 							},
@@ -901,7 +901,7 @@ describe("the catalogue", () => {
 			});
 			expect(detail.blocks.map((block) => block.id).sort()).toEqual(
 				[
-					s.template,
+					s.behaviour,
 					s.repository,
 				].sort(),
 			);
@@ -1136,7 +1136,7 @@ const pausedOn = async <A>(
 };
 
 /** Unlists the behaviour and saves an unpublished draft of it, in Postgres. */
-const unlistAndDraft = (template: BlockId) =>
+const unlistAndDraft = (behaviour: BlockId) =>
 	run(
 		Effect.gen(function* () {
 			const db = yield* DB;
@@ -1148,7 +1148,7 @@ const unlistAndDraft = (template: BlockId) =>
 				.where(
 					and(
 						eq(dbSchema.resourceVisibility.resourceType, "block"),
-						eq(dbSchema.resourceVisibility.resourceId, template),
+						eq(dbSchema.resourceVisibility.resourceId, behaviour),
 					),
 				);
 			yield* db
@@ -1159,7 +1159,7 @@ const unlistAndDraft = (template: BlockId) =>
 						systemPrompt: "Unpublished draft.",
 					},
 				})
-				.where(eq(dbSchema.block.id, template));
+				.where(eq(dbSchema.block.id, behaviour));
 		}),
 	);
 
@@ -1177,13 +1177,13 @@ describe("an entry's page", () => {
 							{
 								entry: {
 									resourceType: "block",
-									resourceId: s.template,
+									resourceId: s.behaviour,
 								},
 							},
 							options,
 						),
 					),
-				() => unlistAndDraft(s.template),
+				() => unlistAndDraft(s.behaviour),
 			);
 			expect(data.prompt).toBe("Answer from the handbook.");
 			expect(data.description).toBeNull();
@@ -1214,10 +1214,10 @@ describe("a catalogue page", () => {
 							options,
 						),
 					),
-				() => unlistAndDraft(s.template),
+				() => unlistAndDraft(s.behaviour),
 			);
 			expect(data.map((entry) => entry.id)).toEqual([
-				s.template,
+				s.behaviour,
 			]);
 			expect(data[0].description).toBeNull();
 		},

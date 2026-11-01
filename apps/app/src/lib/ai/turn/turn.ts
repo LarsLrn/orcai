@@ -283,7 +283,7 @@ const buildAgent = ({
 					model: setup.model,
 					systemPrompt: setup.agent.systemPrompt,
 					today,
-					databaseBlocks: setup.agent.databaseBlocks,
+					repositories: setup.agent.repositories,
 					features: setup.agent.features,
 					webSearch: setup.agent.webSearch,
 					callSettings: setup.callSettings,

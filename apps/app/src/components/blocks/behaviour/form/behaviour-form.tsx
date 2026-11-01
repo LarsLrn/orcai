@@ -1,4 +1,4 @@
-import type { TemplateBlock } from "@orcai/schema";
+import type { Behaviour } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppForm } from "@/hooks/form";
 import {
@@ -9,17 +9,17 @@ import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 import {
-	TemplateBlockFieldGroup,
-	templateBlockTopLevelFieldMap,
-} from "./template-block-field-group";
-import { templateBlockFormOptions } from "./template-block-form-options";
+	BehaviourFieldGroup,
+	behaviourTopLevelFieldMap,
+} from "./behaviour-field-group";
+import { behaviourFormOptions } from "./behaviour-form-options";
 
-const TemplateBlockForm = ({
+const BehaviourForm = ({
 	action,
 	block,
 }: {
 	action: "create" | "update";
-	block?: TemplateBlock;
+	block?: Behaviour;
 }) => {
 	const { mutateAsync: createBlock } = useCreateBlockMutation();
 	const navigate = useNavigate();
@@ -35,7 +35,7 @@ const TemplateBlockForm = ({
 	});
 
 	const form = useAppForm({
-		...templateBlockFormOptions(block),
+		...behaviourFormOptions(block),
 		onSubmit: async ({ value }) => {
 			if (action === "update" && block) {
 				await updateBlock({
@@ -75,17 +75,14 @@ const TemplateBlockForm = ({
 				)}
 			/>
 
-			<TemplateBlockFieldGroup
-				form={form}
-				fields={templateBlockTopLevelFieldMap}
-			/>
+			<BehaviourFieldGroup form={form} fields={behaviourTopLevelFieldMap} />
 
 			<form.AppForm>
 				<form.SubmitButton
 					label={
 						action === "create"
-							? m.blocks_template_form_create_submit_button()
-							: m.blocks_template_form_update_submit_button()
+							? m.blocks_behaviour_form_create_submit_button()
+							: m.blocks_behaviour_form_update_submit_button()
 					}
 				/>
 			</form.AppForm>
@@ -93,4 +90,4 @@ const TemplateBlockForm = ({
 	);
 };
 
-export { TemplateBlockForm };
+export { BehaviourForm };

@@ -3,8 +3,8 @@ import { createBlockInputSchema, updateBlockInputSchema } from "../src";
 
 const id = "11111111-1111-4111-8111-111111111111";
 
-const template = {
-	type: "template",
+const behaviour = {
+	type: "behaviour",
 	name: "Tutor",
 	status: "draft",
 	config: {
@@ -12,14 +12,14 @@ const template = {
 	},
 };
 
-const database = {
-	type: "database",
+const repository = {
+	type: "repository",
 	name: "Readings",
 	status: "draft",
 	config: {
-		minReferences: 1,
-		maxReferences: 5,
-		defaultReferences: 3,
+		minPassages: 1,
+		maxPassages: 5,
+		defaultPassages: 3,
 	},
 	assets: [],
 };
@@ -35,9 +35,9 @@ const imageGeneration = {
 };
 
 describe("createBlockInputSchema", () => {
-	test("accepts template and database blocks", () => {
-		expect(createBlockInputSchema.safeParse(template).success).toBe(true);
-		expect(createBlockInputSchema.safeParse(database).success).toBe(true);
+	test("accepts behaviours and repositories", () => {
+		expect(createBlockInputSchema.safeParse(behaviour).success).toBe(true);
+		expect(createBlockInputSchema.safeParse(repository).success).toBe(true);
 	});
 
 	test("rejects image generation blocks", () => {
@@ -48,16 +48,16 @@ describe("createBlockInputSchema", () => {
 });
 
 describe("updateBlockInputSchema", () => {
-	test("accepts template and database blocks", () => {
+	test("accepts behaviours and repositories", () => {
 		expect(
 			updateBlockInputSchema.safeParse({
-				...template,
+				...behaviour,
 				id,
 			}).success,
 		).toBe(true);
 		expect(
 			updateBlockInputSchema.safeParse({
-				...database,
+				...repository,
 				id,
 			}).success,
 		).toBe(true);

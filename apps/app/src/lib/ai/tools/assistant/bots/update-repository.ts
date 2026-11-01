@@ -64,7 +64,7 @@ export const updateRepositoryTool = (deps: AssistantToolDeps) =>
 						),
 					).pipe(expectType("repository", id));
 
-				if (current.type !== "database") {
+				if (current.type !== "repository") {
 					return yield* Effect.fail(
 						wrongBlockError("repository", id, current.type),
 					);
@@ -74,7 +74,7 @@ export const updateRepositoryTool = (deps: AssistantToolDeps) =>
 					procedures.block.update(
 						{
 							id,
-							type: "database",
+							type: "repository",
 							name: input.name ?? current.name,
 							description:
 								input.description === undefined

@@ -19,8 +19,8 @@ const storedBot = (features: BotEditor["features"]) =>
 		contentJson: {},
 		status: "draft",
 		capabilities: {},
-		templateBlock: null,
-		databaseBlocks: [],
+		behaviour: null,
+		repositories: [],
 		features,
 	}) as unknown as BotEditor;
 

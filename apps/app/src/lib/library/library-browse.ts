@@ -98,7 +98,7 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 				db
 					.select(
 						fields(
-							sql<LibraryKind>`case when ${dbSchema.block.type} = 'template' then 'behaviour' else 'repository' end`,
+							sql<LibraryKind>`${dbSchema.block.type}`,
 							dbSchema.block,
 							dbSchema.block.name,
 						),
@@ -278,7 +278,7 @@ export const libraryOverview = (input: LibraryOverviewInput, reader: Reader) =>
 			pageSize: SHELF_SIZE,
 			sort: "newest",
 		} as const;
-		const blocksOf = (type: "template" | "database") =>
+		const blocksOf = (type: "behaviour" | "repository") =>
 			listBlockTiles({
 				input: {
 					...shelf,
@@ -332,8 +332,8 @@ export const libraryOverview = (input: LibraryOverviewInput, reader: Reader) =>
 						reader,
 						access,
 					}),
-					blocksOf("template"),
-					blocksOf("database"),
+					blocksOf("behaviour"),
+					blocksOf("repository"),
 					listAssetTiles({
 						input: {
 							...shelf,

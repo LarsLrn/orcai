@@ -26,7 +26,7 @@ interface SavedBlock {
 }
 
 export const behaviourOutline = (block: SavedBlock) => ({
-	type: "template" as const,
+	type: "behaviour" as const,
 	id: block.id,
 	name: block.name,
 	status: block.status,

@@ -13,11 +13,11 @@ import {
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { blockIdSchema } from "./ref";
 import {
+	behaviourSchema,
 	blockFieldsSchema,
 	blockTypeSchema,
 	contentJsonSchema,
-	databaseBlockSchema,
-	templateBlockSchema,
+	repositorySchema,
 } from "./schema";
 
 const blockWriteFieldsSchema = blockFieldsSchema.extend({
@@ -28,40 +28,40 @@ const blockWriteFieldsSchema = blockFieldsSchema.extend({
 	version: blockFieldsSchema.shape.version.optional(),
 });
 
-export const createTemplateBlockInputSchema = blockWriteFieldsSchema.extend(
-	templateBlockSchema.shape,
+export const createBehaviourInputSchema = blockWriteFieldsSchema.extend(
+	behaviourSchema.shape,
 );
 
-export const createDatabaseBlockInputSchema = blockWriteFieldsSchema.extend({
-	...databaseBlockSchema.shape,
+export const createRepositoryInputSchema = blockWriteFieldsSchema.extend({
+	...repositorySchema.shape,
 	assets: z.array(assetIdSchema).default([]),
 	/** The user's upload runs whose newly linked assets this save indexes. */
 	uploadRunIds: z.array(activityRunIdSchema).max(100).default([]),
 });
 
 export const createBlockInputSchema = z.discriminatedUnion("type", [
-	createTemplateBlockInputSchema,
-	createDatabaseBlockInputSchema,
+	createBehaviourInputSchema,
+	createRepositoryInputSchema,
 ]);
 
 const updateBlockFieldsSchema = blockWriteFieldsSchema.extend({
 	id: blockIdSchema,
 });
 
-export const updateTemplateBlockInputSchema = updateBlockFieldsSchema.extend(
-	templateBlockSchema.shape,
+export const updateBehaviourInputSchema = updateBlockFieldsSchema.extend(
+	behaviourSchema.shape,
 );
 
-export const updateDatabaseBlockInputSchema = updateBlockFieldsSchema.extend({
-	...databaseBlockSchema.shape,
+export const updateRepositoryInputSchema = updateBlockFieldsSchema.extend({
+	...repositorySchema.shape,
 	assets: z.array(assetIdSchema).default([]),
 	/** The user's upload runs whose newly linked assets this save indexes. */
 	uploadRunIds: z.array(activityRunIdSchema).max(100).default([]),
 });
 
 export const updateBlockInputSchema = z.discriminatedUnion("type", [
-	updateTemplateBlockInputSchema,
-	updateDatabaseBlockInputSchema,
+	updateBehaviourInputSchema,
+	updateRepositoryInputSchema,
 ]);
 
 export const listBlocksInputSchema = paginationInputSchema.extend({

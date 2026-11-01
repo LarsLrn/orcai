@@ -13,16 +13,16 @@ import {
 import { getZedToken } from "@/lib/authz/zed-token";
 import { listBlockTiles } from "@/lib/blocks/block-list";
 import {
-	loadDatabaseBlockAssets,
-	reindexBlockAssets,
-	replaceBlockAssets,
-	requireReadableAssets,
-} from "@/lib/blocks/database-block";
-import {
 	loadRepositoryReadiness,
 	prepareRepositoryAssetAgain,
 	prepareRepositoryFailedAgain,
 } from "@/lib/blocks/readiness";
+import {
+	loadRepositoryAssets,
+	reindexBlockAssets,
+	replaceBlockAssets,
+	requireReadableAssets,
+} from "@/lib/blocks/repository";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
 import { homeOrganizations } from "@/lib/library/tile-details";
@@ -115,8 +115,8 @@ const findBlock = authed.block.find
 			homeOrganization: homes(block.id),
 		};
 
-		if (block.type === "database") {
-			const assets = yield* loadDatabaseBlockAssets({
+		if (block.type === "repository") {
+			const assets = yield* loadRepositoryAssets({
 				blockId: input.id,
 				userId: context.auth.user.id,
 				organizationId: context.auth.session.activeOrganizationId,
@@ -139,7 +139,7 @@ const createBlock = authed.block.create
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
-		if (input.type === "database") {
+		if (input.type === "repository") {
 			yield* requireReadableAssets({
 				assetIds: input.assets,
 				userId: context.auth.user.id,
@@ -182,7 +182,7 @@ const createBlock = authed.block.create
 				return {
 					block,
 					links:
-						input.type === "database"
+						input.type === "repository"
 							? yield* replaceBlockAssets({
 									blockId: block.id,
 									assetIds: input.assets,
@@ -194,7 +194,7 @@ const createBlock = authed.block.create
 			}),
 		);
 
-		if (input.type === "database" && links) {
+		if (input.type === "repository" && links) {
 			yield* reindexBlockAssets(links);
 
 			return {
@@ -218,7 +218,7 @@ const updateBlock = authed.block.update
 		const db = yield* DB;
 
 		const previousAssetIds =
-			input.type === "database"
+			input.type === "repository"
 				? (yield* db
 						.select({
 							assetId: dbSchema.blockAsset.assetId,
@@ -229,7 +229,7 @@ const updateBlock = authed.block.update
 					)
 				: [];
 
-		if (input.type === "database") {
+		if (input.type === "repository") {
 			yield* requireReadableAssets({
 				assetIds: input.assets.filter(
 					(assetId) => !previousAssetIds.includes(assetId),
@@ -309,7 +309,7 @@ const updateBlock = authed.block.update
 				return {
 					block,
 					links:
-						input.type === "database" && block.type === "database"
+						input.type === "repository" && block.type === "repository"
 							? yield* replaceBlockAssets({
 									blockId: block.id,
 									assetIds: input.assets,
@@ -321,7 +321,7 @@ const updateBlock = authed.block.update
 			}),
 		);
 
-		if (input.type === "database" && links) {
+		if (input.type === "repository" && links) {
 			yield* reindexBlockAssets(links);
 
 			return {

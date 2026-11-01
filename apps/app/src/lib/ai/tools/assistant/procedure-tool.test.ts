@@ -109,8 +109,7 @@ describe("expectType", () => {
 			runAssistantTool(
 				Effect.fail(
 					new ORPCError("BAD_REQUEST", {
-						message:
-							"Linked content collection block must be a database block.",
+						message: "Every linked repository id must name a repository.",
 						data: {
 							reason: "REPOSITORY_BLOCK_TYPE_INVALID",
 						},

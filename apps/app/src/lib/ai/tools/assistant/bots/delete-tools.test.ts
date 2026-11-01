@@ -11,7 +11,7 @@ const records = new Map<
 	{
 		name: string;
 		canDelete: boolean;
-		type?: "template" | "database";
+		type?: "behaviour" | "repository";
 	}
 >();
 
@@ -102,12 +102,12 @@ describe("delete tools", () => {
 		records.set(own, {
 			name: "Strict",
 			canDelete: true,
-			type: "template",
+			type: "behaviour",
 		});
 		records.set(shared, {
 			name: "Sources",
 			canDelete: false,
-			type: "database",
+			type: "repository",
 		});
 
 		const output = await deleteBlockTool(deps()).execute?.(
@@ -124,7 +124,7 @@ describe("delete tools", () => {
 		expect(output).toEqual({
 			deleted: [
 				{
-					type: "template",
+					type: "behaviour",
 					id: own,
 					name: "Strict",
 				},

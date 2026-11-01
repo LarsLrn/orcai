@@ -128,7 +128,7 @@ test("orgs: the catalogue links a listed entry's organisation to its page, whose
 	const name = `E2E Orgs Profile Behaviour ${runId()}`;
 	const author = api.as("member");
 	const { data: behaviour } = await author.block.create({
-		type: "template",
+		type: "behaviour",
 		name,
 		status: "ready",
 		config: {

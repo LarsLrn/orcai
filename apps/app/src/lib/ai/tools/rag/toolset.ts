@@ -1,4 +1,4 @@
-import type { DatabaseBlock } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { getAssetPageTool } from "./get-asset-page";
@@ -12,7 +12,7 @@ export const buildRepositoryTools = ({
 	context,
 	sources,
 }: {
-	blocks: DatabaseBlock[];
+	blocks: Repository[];
 	context: ORPCContext;
 	sources: ChatSources;
 }) => ({

@@ -42,9 +42,9 @@ const published = (): Values =>
 		contentJson: {},
 		status: "ready",
 		capabilities: ownerCapabilities("bot"),
-		templateBlock: {
+		behaviour: {
 			id: behaviourId,
-			type: "template",
+			type: "behaviour",
 			name: "Course behaviour",
 			description: null,
 			contentJson: null,
@@ -54,18 +54,18 @@ const published = (): Values =>
 			},
 			capabilities: ownerCapabilities("block"),
 		},
-		databaseBlocks: [
+		repositories: [
 			{
 				id: repositoryId,
-				type: "database",
+				type: "repository",
 				name: "Course repository",
 				description: null,
 				contentJson: null,
 				status: "ready",
 				config: {
-					minReferences: 1,
-					maxReferences: 5,
-					defaultReferences: 3,
+					minPassages: 1,
+					maxPassages: 5,
+					defaultPassages: 3,
 				},
 				capabilities: ownerCapabilities("block"),
 				assetIds: [
@@ -167,8 +167,8 @@ const save = async ({
 				call("saveBot", input, {
 					data: {
 						...values,
-						templateBlock: null,
-						databaseBlocks: [],
+						behaviour: null,
+						repositories: [],
 					},
 				}),
 		},
@@ -188,9 +188,9 @@ const names = ({ calls }: Awaited<ReturnType<typeof save>>) =>
 	calls.map(([name]) => name);
 
 const withRepository = (values: Values, name: string) => {
-	const [repository] = values.databaseBlocks;
+	const [repository] = values.repositories;
 	if (repository) {
-		values.databaseBlocks.push({
+		values.repositories.push({
 			...repository,
 			id: undefined,
 			name,
@@ -201,7 +201,7 @@ const withRepository = (values: Values, name: string) => {
 };
 
 const libraryBehaviour = () => {
-	const behaviour = published().templateBlock;
+	const behaviour = published().behaviour;
 	if (!behaviour) {
 		throw new Error("The published bot has a behaviour");
 	}
@@ -245,8 +245,8 @@ describe("saving the bot editor", () => {
 		expect(calls[0]?.[1]).toMatchObject({
 			name: "Renamed bot",
 			status: "ready",
-			templateBlockId: behaviourId,
-			databaseBlockIds: [
+			behaviourId: behaviourId,
+			repositoryIds: [
 				repositoryId,
 			],
 		});
@@ -254,8 +254,8 @@ describe("saving the bot editor", () => {
 
 	test("an edited behaviour updates only that block", async () => {
 		const values = published();
-		if (values.templateBlock) {
-			values.templateBlock.config = {
+		if (values.behaviour) {
+			values.behaviour.config = {
 				systemPrompt: "Answer briefly.",
 			};
 		}
@@ -285,12 +285,12 @@ describe("saving the bot editor", () => {
 			saved,
 			values,
 		]) {
-			if (editor.templateBlock) {
-				editor.templateBlock.capabilities = emptyCapabilities("block");
+			if (editor.behaviour) {
+				editor.behaviour.capabilities = emptyCapabilities("block");
 			}
 		}
-		if (values.templateBlock) {
-			values.templateBlock.name = "Changed elsewhere";
+		if (values.behaviour) {
+			values.behaviour.name = "Changed elsewhere";
 		}
 
 		expect(
@@ -313,7 +313,7 @@ describe("saving the bot editor", () => {
 			"saveBot",
 		]);
 		expect(calls[1]?.[1]).toMatchObject({
-			databaseBlockIds: [
+			repositoryIds: [
 				repositoryId,
 				createdId,
 			],
@@ -322,7 +322,7 @@ describe("saving the bot editor", () => {
 
 	test("an unchanged library block is linked without writing it", async () => {
 		const values = published();
-		values.templateBlock = libraryBehaviour();
+		values.behaviour = libraryBehaviour();
 
 		const { calls } = await save({
 			values,
@@ -336,7 +336,7 @@ describe("saving the bot editor", () => {
 			[
 				"saveBot",
 				expect.objectContaining({
-					templateBlockId: libraryId,
+					behaviourId: libraryId,
 				}),
 			],
 		]);
@@ -344,7 +344,7 @@ describe("saving the bot editor", () => {
 
 	test("an edited library block is written with the bot that links it", async () => {
 		const values = published();
-		values.templateBlock = {
+		values.behaviour = {
 			...libraryBehaviour(),
 			name: "Library behaviour, edited",
 		};
@@ -367,8 +367,8 @@ describe("saving the bot editor", () => {
 
 	test("after a failed bot save, a retry writes only what is still unsaved", async () => {
 		const values = withRepository(published(), "New repository");
-		if (values.templateBlock) {
-			values.templateBlock.name = "Edited behaviour";
+		if (values.behaviour) {
+			values.behaviour.name = "Edited behaviour";
 		}
 
 		const failed = await save({
@@ -379,7 +379,7 @@ describe("saving the bot editor", () => {
 		expect(failed.error).toBeInstanceOf(Error);
 		expect(failed.blocksSaved).toEqual([
 			expect.objectContaining({
-				slot: "template",
+				slot: "behaviour",
 				block: expect.objectContaining({
 					id: behaviourId,
 					name: "Edited behaviour",
@@ -398,9 +398,7 @@ describe("saving the bot editor", () => {
 		for (const { slot, block } of failed.blocksSaved) {
 			baseline = withSavedBlock(baseline, block);
 			const target =
-				slot === "template"
-					? retried.templateBlock
-					: retried.databaseBlocks[slot];
+				slot === "behaviour" ? retried.behaviour : retried.repositories[slot];
 			if (target) {
 				target.id = block.id;
 			}
@@ -414,7 +412,7 @@ describe("saving the bot editor", () => {
 			[
 				"saveBot",
 				expect.objectContaining({
-					databaseBlockIds: [
+					repositoryIds: [
 						repositoryId,
 						createdId,
 					],
@@ -423,8 +421,8 @@ describe("saving the bot editor", () => {
 		]);
 
 		const reverted = structuredClone(retried);
-		if (reverted.templateBlock) {
-			reverted.templateBlock.name = "Course behaviour";
+		if (reverted.behaviour) {
+			reverted.behaviour.name = "Course behaviour";
 		}
 		expect(
 			names(
@@ -441,8 +439,8 @@ describe("saving the bot editor", () => {
 
 	test("a failed block write reports nothing for it", async () => {
 		const values = published();
-		if (values.templateBlock) {
-			values.templateBlock.name = "Edited behaviour";
+		if (values.behaviour) {
+			values.behaviour.name = "Edited behaviour";
 		}
 
 		const failed = await save({

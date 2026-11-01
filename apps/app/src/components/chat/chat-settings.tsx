@@ -284,8 +284,8 @@ const ChatBlocksEditor = ({
 	chatId: ChatId;
 	zedToken?: string;
 }) => {
-	const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
-	const [isDatabasePickerOpen, setIsDatabasePickerOpen] = useState(false);
+	const [isBehaviourPickerOpen, setIsBehaviourPickerOpen] = useState(false);
+	const [isRepositoryPickerOpen, setIsRepositoryPickerOpen] = useState(false);
 	const { data: attachedBlocks } = useQuery(
 		orpc.chatBlock.list.queryOptions({
 			input: {
@@ -316,14 +316,14 @@ const ChatBlocksEditor = ({
 	);
 
 	const attached = attachedBlocks?.data ?? [];
-	const attachedTemplateBlock = attached.find(
-		(block) => block.type === "template",
+	const attachedBehaviour = attached.find(
+		(block) => block.type === "behaviour",
 	);
-	const attachedTemplateIds = attached
-		.filter((block) => block.type === "template")
+	const attachedBehaviourIds = attached
+		.filter((block) => block.type === "behaviour")
 		.map((block) => block.id);
-	const attachedDatabaseIds = attached
-		.filter((block) => block.type === "database")
+	const attachedRepositoryIds = attached
+		.filter((block) => block.type === "repository")
 		.map((block) => block.id);
 
 	return (
@@ -335,8 +335,8 @@ const ChatBlocksEditor = ({
 					<Button
 						type="button"
 						variant="outline"
-						onClick={() => setIsTemplatePickerOpen(true)}
-						disabled={!!attachedTemplateBlock || attachMutation.isPending}
+						onClick={() => setIsBehaviourPickerOpen(true)}
+						disabled={!!attachedBehaviour || attachMutation.isPending}
 					>
 						<PlusIcon className="mr-2 size-4" />
 						{m.chat_settings_add_behaviour_action()}
@@ -344,7 +344,7 @@ const ChatBlocksEditor = ({
 					<Button
 						type="button"
 						variant="outline"
-						onClick={() => setIsDatabasePickerOpen(true)}
+						onClick={() => setIsRepositoryPickerOpen(true)}
 						disabled={attachMutation.isPending}
 					>
 						<PlusIcon className="mr-2 size-4" />
@@ -352,9 +352,9 @@ const ChatBlocksEditor = ({
 					</Button>
 				</div>
 				<p className="text-muted-foreground text-sm">
-					{attachedTemplateBlock
+					{attachedBehaviour
 						? m.chat_settings_blocks_hint_behaviour_attached({
-								name: attachedTemplateBlock.name,
+								name: attachedBehaviour.name,
 							})
 						: m.chat_settings_blocks_hint()}
 				</p>
@@ -392,10 +392,10 @@ const ChatBlocksEditor = ({
 			))}
 
 			<BlockSelectorDialog
-				open={isTemplatePickerOpen}
-				onOpenChange={setIsTemplatePickerOpen}
-				type="template"
-				selectedIds={attachedTemplateIds}
+				open={isBehaviourPickerOpen}
+				onOpenChange={setIsBehaviourPickerOpen}
+				type="behaviour"
+				selectedIds={attachedBehaviourIds}
 				onSelect={async (block) => {
 					await attachMutation.mutateAsync({
 						chatId,
@@ -407,10 +407,10 @@ const ChatBlocksEditor = ({
 				description={m.chat_settings_behaviour_dialog_description()}
 			/>
 			<BlockSelectorDialog
-				open={isDatabasePickerOpen}
-				onOpenChange={setIsDatabasePickerOpen}
-				type="database"
-				selectedIds={attachedDatabaseIds}
+				open={isRepositoryPickerOpen}
+				onOpenChange={setIsRepositoryPickerOpen}
+				type="repository"
+				selectedIds={attachedRepositoryIds}
 				onSelect={async (block) => {
 					await attachMutation.mutateAsync({
 						chatId,

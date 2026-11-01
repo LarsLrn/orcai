@@ -8,7 +8,7 @@ import {
 	type AssetReadiness,
 	type AssetState,
 	BLOCK_READINESS_MAX_IDS,
-	type DatabaseBlock,
+	type Repository,
 	type RepositoryReadiness,
 	type RetrievedAssetPoint,
 } from "@orcai/schema";
@@ -24,7 +24,7 @@ export const resolveSearchBlocks = ({
 	blocks,
 	blockId,
 }: {
-	blocks: DatabaseBlock[];
+	blocks: Repository[];
 	blockId?: string;
 }) => {
 	if (!blockId) return blocks;
@@ -52,7 +52,7 @@ const withBlockSource = ({
 	block,
 	points,
 }: {
-	block: DatabaseBlock;
+	block: Repository;
 	points: RetrievedAssetPoint[];
 }): PointWithBlock[] =>
 	withRepository({
@@ -67,7 +67,7 @@ export const withRepository = ({
 	points,
 }: {
 	repositoryId: BlockId;
-	repositoryName: DatabaseBlock["name"];
+	repositoryName: Repository["name"];
 	points: RetrievedAssetPoint[];
 }): PointWithBlock[] =>
 	points.map((point) => ({
@@ -80,7 +80,7 @@ export const withRepository = ({
 
 export const flattenBlockResponses = (
 	blockResponses: Array<{
-		block: DatabaseBlock;
+		block: Repository;
 		response: {
 			data: RetrievedAssetPoint[];
 		};
@@ -173,7 +173,7 @@ export const loadAssetCatalog = ({
 	blocks,
 	context,
 }: {
-	blocks: DatabaseBlock[];
+	blocks: Repository[];
 	context: ORPCContext;
 }) =>
 	Effect.gen(function* () {
@@ -226,7 +226,7 @@ export const loadAssetCatalog = ({
 						[
 							asset.id,
 							asset.metadata as {
-								citation?: string;
+								citationLabel?: string;
 								description?: string;
 							} | null,
 						] as const,
@@ -239,7 +239,8 @@ export const loadAssetCatalog = ({
 			(asset): RepositoryAsset => ({
 				assetId: asset.assetId,
 				title: asset.title,
-				citation: metadataById.get(asset.assetId)?.citation ?? undefined,
+				citationLabel:
+					metadataById.get(asset.assetId)?.citationLabel ?? undefined,
 				description: metadataById.get(asset.assetId)?.description ?? undefined,
 				state: asset.state,
 				failure: asset.failure ?? undefined,
@@ -251,7 +252,7 @@ export const loadReadiness = ({
 	blocks,
 	context,
 }: {
-	blocks: DatabaseBlock[];
+	blocks: Repository[];
 	context: ORPCContext;
 }) =>
 	Effect.gen(function* () {

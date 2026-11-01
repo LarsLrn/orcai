@@ -4,12 +4,12 @@ import { expectForbidden } from "../../fixtures/authorization";
 import {
 	adoptPageZedToken,
 	authzName,
+	behaviourInput,
 	botSave,
-	databaseBlock,
-	databaseBlockUpdate,
 	grantRole,
 	grantUser,
-	templateBlock,
+	repositoryInput,
+	repositoryUpdate,
 } from "../../fixtures/authz/resources";
 import {
 	type Api,
@@ -22,22 +22,22 @@ import { enterApp, open } from "../../fixtures/navigation";
 
 const SHARING_STEP = 3;
 
-/** The member's bot linking the member's template and a repository the admin shared with the member as viewer. */
+/** The member's bot linking the member's behaviour and a repository the admin shared with the member as viewer. */
 const sharedBot = async (
 	api: Api,
 	org: WorkerOrganisation,
 ): Promise<{
 	botId: BotId;
-	templateId: BlockId;
-	templateName: string;
+	behaviourId: BlockId;
+	behaviourName: string;
 	repositoryId: BlockId;
 }> => {
 	const member = api.as("member");
 	const admin = api.as("admin");
-	const templateName = authzName("Offer Template");
-	const template = await member.block.create(templateBlock(templateName));
+	const behaviourName = authzName("Offer Behaviour");
+	const behaviour = await member.block.create(behaviourInput(behaviourName));
 	const repository = await admin.block.create(
-		databaseBlock(authzName("Admin Repository")),
+		repositoryInput(authzName("Admin Repository")),
 	);
 	await grantUser(
 		admin,
@@ -51,8 +51,8 @@ const sharedBot = async (
 	const bot = await member.bot.save(
 		botSave({
 			name: authzName("Offer Bot"),
-			templateBlockId: template.data.id,
-			databaseBlockIds: [
+			behaviourId: behaviour.data.id,
+			repositoryIds: [
 				repository.data.id,
 			],
 		}),
@@ -60,8 +60,8 @@ const sharedBot = async (
 
 	return {
 		botId: bot.data.id,
-		templateId: template.data.id,
-		templateName,
+		behaviourId: behaviour.data.id,
+		behaviourName,
 		repositoryId: repository.data.id,
 	};
 };
@@ -156,7 +156,7 @@ test("authz: sharing a bot as editor gives edit on the blocks the sharer can sha
 	await expect(
 		page.getByText(
 			message("access_manager_block_edit_offer_covers", {
-				names: shared.templateName,
+				names: shared.behaviourName,
 			}),
 			{
 				exact: true,
@@ -172,13 +172,13 @@ test("authz: sharing a bot as editor gives edit on the blocks the sharer can sha
 
 	const manager = api.as("manager");
 	const renamed = await manager.block.update({
-		id: shared.templateId,
-		...templateBlock(authzName("Offer Template Renamed")),
+		id: shared.behaviourId,
+		...behaviourInput(authzName("Offer Behaviour Renamed")),
 	});
-	expect(renamed.data.id).toBe(shared.templateId);
+	expect(renamed.data.id).toBe(shared.behaviourId);
 	await expectForbidden(
 		manager.block.update(
-			databaseBlockUpdate(
+			repositoryUpdate(
 				shared.repositoryId,
 				authzName("Admin Repository Renamed"),
 				[],
@@ -191,7 +191,7 @@ test("authz: sharing a bot as editor gives edit on the blocks the sharer can sha
 			api.as("member"),
 			{
 				resourceType: "block",
-				resourceId: shared.templateId,
+				resourceId: shared.behaviourId,
 			},
 			org.users.manager.id,
 		),
@@ -245,15 +245,15 @@ test("authz: sharing a bot without the offer, or as viewer, grants nothing on it
 			member,
 			{
 				resourceType: "block",
-				resourceId: shared.templateId,
+				resourceId: shared.behaviourId,
 			},
 			org.users.manager.id,
 		),
 	).toBeUndefined();
 	await expectForbidden(
 		api.as("manager").block.update({
-			id: shared.templateId,
-			...templateBlock(authzName("Offer Template Renamed")),
+			id: shared.behaviourId,
+			...behaviourInput(authzName("Offer Behaviour Renamed")),
 		}),
 	);
 });
@@ -268,11 +268,11 @@ test("authz: the block edit offer never demotes a block manager", async ({
 
 	const shared = await sharedBot(api, org);
 	const member = api.as("member");
-	const template = {
+	const behaviour = {
 		resourceType: "block" as const,
-		resourceId: shared.templateId,
+		resourceId: shared.behaviourId,
 	};
-	await grantUser(member, template, org.users.manager.id, "manager");
+	await grantUser(member, behaviour, org.users.manager.id, "manager");
 
 	const page = await pageAs("member");
 	await pickManagerOnSharingStep(page, org, shared.botId);
@@ -292,7 +292,7 @@ test("authz: the block edit offer never demotes a block manager", async ({
 			org.users.manager.id,
 		),
 	).toBe("editor");
-	expect(await grantRole(member, template, org.users.manager.id)).toBe(
+	expect(await grantRole(member, behaviour, org.users.manager.id)).toBe(
 		"manager",
 	);
 });

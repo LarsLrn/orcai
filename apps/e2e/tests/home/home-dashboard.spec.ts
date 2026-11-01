@@ -32,7 +32,7 @@ test("home: the organisation card counts what the organisation lists and leads t
 		state: "completed",
 	});
 	const { data: behaviour } = await admin.block.create({
-		type: "template",
+		type: "behaviour",
 		name: `E2E Home Behaviour ${runId()}`,
 		status: "ready",
 		config: {

@@ -22,13 +22,13 @@ export const findBlocks = declareTool<typeof findBlocksTool>()({
 				})
 			: undefined;
 
-		if (input?.type === "template") {
+		if (input?.type === "behaviour") {
 			return quoted
-				? m.assistant_tool_find_blocks_summary_templates_query({
+				? m.assistant_tool_find_blocks_summary_behaviours_query({
 						count,
 						query: quoted,
 					})
-				: m.assistant_tool_find_blocks_summary_templates({
+				: m.assistant_tool_find_blocks_summary_behaviours({
 						count,
 					});
 		}

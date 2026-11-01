@@ -29,7 +29,7 @@ export const languageTag = (tag: string) => {
 
 export const metadataSchema = z.object({
 	sourceType: z.enum(sourceTypes).optional(),
-	citation: z.string().optional(),
+	citationLabel: z.string().optional(),
 	externalUrl: z.string().optional(),
 	pageRange: z.string().optional(),
 	author: z.string().optional(),
@@ -67,13 +67,13 @@ const TYPE_INDEPENDENT_FIELDS = [
 export const SOURCE_TYPE_FIELDS = {
 	book: [
 		"author",
-		"citation",
+		"citationLabel",
 		"chapterTitle",
 		"pageRange",
 	],
 	"journal-article": [
 		"author",
-		"citation",
+		"citationLabel",
 		"journalName",
 		"volume",
 		"issueNumber",
@@ -82,12 +82,12 @@ export const SOURCE_TYPE_FIELDS = {
 	],
 	"web-source": [
 		"author",
-		"citation",
+		"citationLabel",
 		"websiteName",
 		"accessDate",
 	],
 	"legal-text": [
-		"citation",
+		"citationLabel",
 		"legalReference",
 		"jurisdiction",
 	],

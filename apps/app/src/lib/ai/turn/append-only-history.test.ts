@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { isDeepStrictEqual } from "node:util";
 import type { ModelProviderKind } from "@orcai/core";
-import type { DatabaseBlock } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import type { UIMessage } from "ai";
 import * as Effect from "effect/Effect";
 import type { Body, ToolCall } from "../agents/test-provider";
@@ -473,10 +473,10 @@ const rewrites = (requests: ModelRequest[], exceptions: Exception[]) =>
 
 const knowledgeBase = {
 	id: crypto.randomUUID(),
-	type: "database",
+	type: "repository",
 	name: "Papers",
 	config: {},
-} as DatabaseBlock;
+} as Repository;
 
 /** Searches a block the knowledge base does not hold, which finds nothing without a database. */
 const search = (query?: string): ToolCall => ({

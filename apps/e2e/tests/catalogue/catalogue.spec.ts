@@ -56,8 +56,8 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 	const id = runId();
 	const member = api.as("member");
 	const authorModel = await setUpChatModel(api, inference);
-	const template = await member.block.create({
-		type: "template",
+	const behaviour = await member.block.create({
+		type: "behaviour",
 		name: `E2E Catalogue Behaviour ${id}`,
 		status: "ready",
 		config: {
@@ -68,8 +68,8 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 		name: `E2E Catalogue Bot ${id}`,
 		description: "Listed by the catalogue spec.",
 		status: "ready",
-		templateBlockId: template.data.id,
-		databaseBlockIds: [],
+		behaviourId: behaviour.data.id,
+		repositoryIds: [],
 	});
 	await member.botSetup.save({
 		botId: bot.id,
@@ -98,7 +98,7 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 	await expect(
 		confirmListing.getByText(
 			message("access_publish_confirm_blocks", {
-				blockNames: template.data.name,
+				blockNames: behaviour.data.name,
 			}),
 		),
 	).toBeVisible();
@@ -129,7 +129,7 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 			name: bot.name,
 		}),
 	).toBeVisible();
-	await expect(page.getByText(template.data.name)).toBeVisible();
+	await expect(page.getByText(behaviour.data.name)).toBeVisible();
 	await page
 		.getByRole("button", {
 			name: message("catalogue_add_action", {
@@ -280,7 +280,7 @@ test("catalogue: an entry's page is a page of its own, and Back restores the gri
 		(_, position) => position,
 	)) {
 		const block = await author.block.create({
-			type: "template",
+			type: "behaviour",
 			name: `E2E Catalogue Grid ${id} ${String(index).padStart(2, "0")}`,
 			status: "ready",
 			config: {
@@ -348,8 +348,8 @@ test("catalogue: an entry's page is a page of its own, and Back restores the gri
 const listedBotWithBlocks = async (api: Api) => {
 	const id = runId();
 	const author = api.as("member");
-	const template = await author.block.create({
-		type: "template",
+	const behaviour = await author.block.create({
+		type: "behaviour",
 		name: `E2E Catalogue Blocks Behaviour ${id}`,
 		status: "ready",
 		config: {
@@ -357,22 +357,22 @@ const listedBotWithBlocks = async (api: Api) => {
 		},
 	});
 	const repository = await author.block.create({
-		type: "database",
+		type: "repository",
 		name: `E2E Catalogue Blocks Repository ${id}`,
 		status: "ready",
 		assets: [],
 		config: {
-			minReferences: 1,
-			maxReferences: 5,
-			defaultReferences: 3,
+			minPassages: 1,
+			maxPassages: 5,
+			defaultPassages: 3,
 		},
 	});
 	const { data: bot } = await author.bot.save({
 		name: `E2E Catalogue Blocks Bot ${id}`,
 		description: "Listed with its blocks by the catalogue spec.",
 		status: "ready",
-		templateBlockId: template.data.id,
-		databaseBlockIds: [
+		behaviourId: behaviour.data.id,
+		repositoryIds: [
 			repository.data.id,
 		],
 	});
@@ -381,14 +381,14 @@ const listedBotWithBlocks = async (api: Api) => {
 		resourceId: bot.id,
 		visibility: "public",
 		listBlockIds: [
-			template.data.id,
+			behaviour.data.id,
 			repository.data.id,
 		],
 	});
 	return {
 		id,
 		bot,
-		template: template.data,
+		behaviour: behaviour.data,
 		repository: repository.data,
 	};
 };
@@ -398,7 +398,7 @@ test("catalogue: adding a bot with its blocks puts its behaviour and repository 
 	orgs,
 	pageAs,
 }) => {
-	const { id, bot, template, repository } = await listedBotWithBlocks(api);
+	const { id, bot, behaviour, repository } = await listedBotWithBlocks(api);
 
 	const other = await orgs.create(`E2E Catalogue Blocks ${id}`);
 	const page = await pageAs("admin", other);
@@ -421,7 +421,7 @@ test("catalogue: adding a bot with its blocks puts its behaviour and repository 
 	await open(page, `/app/library?query=${id}`);
 	for (const name of [
 		bot.name,
-		template.name,
+		behaviour.name,
 		repository.name,
 	])
 		await expect(
@@ -436,7 +436,7 @@ test("catalogue: a bot added without its blocks gets them from its Library menu"
 	orgs,
 	pageAs,
 }) => {
-	const { id, bot, template, repository } = await listedBotWithBlocks(api);
+	const { id, bot, behaviour, repository } = await listedBotWithBlocks(api);
 	const other = await orgs.create(`E2E Catalogue Later ${id}`);
 	await apiIn(api, other)
 		.as("admin")
@@ -474,7 +474,7 @@ test("catalogue: a bot added without its blocks gets them from its Library menu"
 
 	await open(page, `/app/library?query=${id}`);
 	for (const name of [
-		template.name,
+		behaviour.name,
 		repository.name,
 	])
 		await expect(
@@ -507,7 +507,7 @@ test("catalogue: the sort dropdown orders the grid and the filter card's toggle 
 		"B",
 	]) {
 		const block = await author.block.create({
-			type: "template",
+			type: "behaviour",
 			name: `E2E Catalogue Sort ${id} ${letter}`,
 			status: "ready",
 			config: {

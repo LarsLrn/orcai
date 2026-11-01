@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/library/behaviours/$blockId")({
 		loadBlockOfType({
 			queryClient,
 			blockId,
-			type: "template",
+			type: "behaviour",
 		}),
 	head: ({ loaderData }) => ({
 		meta: [

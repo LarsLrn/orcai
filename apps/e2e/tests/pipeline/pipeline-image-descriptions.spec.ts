@@ -40,16 +40,16 @@ const uploadImage = (client: ApiClient, label: string) =>
 
 const repositoryOf = async (client: ApiClient, assetId: AssetId) => {
 	const block = await client.block.create({
-		type: "database",
+		type: "repository",
 		name: pipelineName("Images Repository"),
 		status: "ready",
 		assets: [
 			assetId,
 		],
 		config: {
-			minReferences: 1,
-			maxReferences: 5,
-			defaultReferences: 3,
+			minPassages: 1,
+			maxPassages: 5,
+			defaultPassages: 3,
 			scoreThreshold: 0,
 		},
 	});

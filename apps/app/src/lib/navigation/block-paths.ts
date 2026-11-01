@@ -2,7 +2,7 @@ import type { BlockType } from "@orcai/schema";
 
 /** Where a block type lives in the library. */
 export const blockPaths = (type: BlockType) =>
-	type === "database"
+	type === "repository"
 		? ({
 				list: "/app/library/repositories",
 				add: "/app/library/repositories/add",

@@ -2,8 +2,8 @@ import type { BlockId } from "@orcai/core";
 import {
 	type Asset,
 	type AssetReadiness,
-	type DatabaseBlock,
 	isRetryableFailure,
+	type Repository,
 	type RepositoryReadiness,
 } from "@orcai/schema";
 import { ChevronDownIcon, RotateCwIcon, TelescopeIcon } from "lucide-react";
@@ -35,9 +35,7 @@ import {
 } from "@/hooks/mutations/use-block-mutations";
 import { m } from "@/paraglide/messages";
 
-const getRetrievalModeLabel = (
-	mode: DatabaseBlock["config"]["retrievalMode"],
-) =>
+const getRetrievalModeLabel = (mode: Repository["config"]["retrievalMode"]) =>
 	mode === "dense"
 		? m.blocks_retrieval_mode_dense_label()
 		: mode === "sparse"
@@ -45,7 +43,7 @@ const getRetrievalModeLabel = (
 			: m.blocks_retrieval_mode_hybrid_label();
 
 /** --- Main Card --- */
-const DatabaseBlockConfigCard = ({
+const RepositoryConfigCard = ({
 	blockId,
 	config,
 	description,
@@ -54,9 +52,9 @@ const DatabaseBlockConfigCard = ({
 	explorable,
 }: {
 	blockId: BlockId;
-	config: DatabaseBlock["config"];
-	description: DatabaseBlock["description"];
-	contentJson: DatabaseBlock["contentJson"];
+	config: Repository["config"];
+	description: Repository["description"];
+	contentJson: Repository["contentJson"];
 	assets: Asset[];
 	/** A ready repository can be explored. */
 	explorable: boolean;
@@ -82,10 +80,10 @@ const DatabaseBlockConfigCard = ({
 
 					<div className="space-y-1">
 						<div className="font-medium text-sm">
-							{m.blocks_database_config_retrieval_title()}
+							{m.blocks_repository_config_retrieval_title()}
 						</div>
 						<p className="text-muted-foreground text-sm">
-							{m.blocks_database_config_retrieval_description()}
+							{m.blocks_repository_config_retrieval_description()}
 						</p>
 					</div>
 
@@ -93,7 +91,7 @@ const DatabaseBlockConfigCard = ({
 					<div className="flex items-center justify-between">
 						<div className="space-y-1">
 							<div className="text-muted-foreground text-xs uppercase">
-								{m.blocks_database_config_retrieval_mode_label()}
+								{m.blocks_repository_config_retrieval_mode_label()}
 							</div>
 							<Badge variant="secondary">
 								{getRetrievalModeLabel(config.retrievalMode)}
@@ -105,31 +103,31 @@ const DatabaseBlockConfigCard = ({
 
 					<div className="space-y-2">
 						<div className="font-medium text-sm">
-							{m.blocks_database_config_references_title()}
+							{m.blocks_repository_config_passages_title()}
 						</div>
 						<div className="grid grid-cols-3 gap-3">
 							<div className="rounded-xl border bg-muted/30 p-3 text-center">
 								<div className="font-semibold text-xl tabular-nums">
-									{config.minReferences}
+									{config.minPassages}
 								</div>
 								<div className="mt-1 text-muted-foreground text-xs">
-									{m.blocks_database_config_min_references_label()}
+									{m.blocks_repository_config_min_passages_label()}
 								</div>
 							</div>
 							<div className="rounded-xl border bg-muted/30 p-3 text-center">
 								<div className="font-semibold text-xl tabular-nums">
-									{config.defaultReferences}
+									{config.defaultPassages}
 								</div>
 								<div className="mt-1 text-muted-foreground text-xs">
-									{m.blocks_database_config_default_references_label()}
+									{m.blocks_repository_config_default_passages_label()}
 								</div>
 							</div>
 							<div className="rounded-xl border bg-muted/30 p-3 text-center">
 								<div className="font-semibold text-xl tabular-nums">
-									{config.maxReferences}
+									{config.maxPassages}
 								</div>
 								<div className="mt-1 text-muted-foreground text-xs">
-									{m.blocks_database_config_max_references_label()}
+									{m.blocks_repository_config_max_passages_label()}
 								</div>
 							</div>
 						</div>
@@ -141,7 +139,7 @@ const DatabaseBlockConfigCard = ({
 					<Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
 						<CollapsibleTrigger className="flex w-full items-center justify-between text-sm">
 							<span className="font-medium">
-								{m.blocks_database_config_advanced_settings_label()}
+								{m.blocks_repository_config_advanced_settings_label()}
 							</span>
 							<ChevronDownIcon
 								className={`size-4 text-muted-foreground transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`}
@@ -154,7 +152,7 @@ const DatabaseBlockConfigCard = ({
 										{config.scoreThreshold ?? 0.2}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										{m.blocks_database_config_score_threshold_label()}
+										{m.blocks_repository_config_score_threshold_label()}
 									</div>
 								</div>
 								<div className="rounded-xl border bg-muted/30 p-3 text-center">
@@ -162,7 +160,7 @@ const DatabaseBlockConfigCard = ({
 										{config.candidateLimit ?? 40}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										{m.blocks_database_config_candidate_limit_label()}
+										{m.blocks_repository_config_candidate_limit_label()}
 									</div>
 								</div>
 								<div className="rounded-xl border bg-muted/30 p-3 text-center">
@@ -170,7 +168,7 @@ const DatabaseBlockConfigCard = ({
 										{config.maxPerAsset ?? 6}
 									</div>
 									<div className="mt-1 text-muted-foreground text-xs">
-										{m.blocks_database_config_per_asset_label()}
+										{m.blocks_repository_config_per_asset_label()}
 									</div>
 								</div>
 							</div>
@@ -217,18 +215,18 @@ const AssetSection = ({
 		<Section>
 			<SectionHeader>
 				<SectionTitle>
-					{m.blocks_database_config_assets_title({
+					{m.blocks_repository_config_assets_title({
 						count: assets.length,
 					})}
 				</SectionTitle>
 				<SectionDescription>
-					{m.blocks_database_config_assets_description()}
+					{m.blocks_repository_config_assets_description()}
 				</SectionDescription>
 				<HeaderActions
 					actions={[
 						readiness?.assets.some(retryable) && {
 							key: "retry-failed",
-							label: m.blocks_database_config_prepare_failed_again_action(),
+							label: m.blocks_repository_config_prepare_failed_again_action(),
 							icon: RotateCwIcon,
 							disabled: preparingFailedAgain,
 							onClick: () =>
@@ -238,7 +236,7 @@ const AssetSection = ({
 						},
 						explorable && {
 							key: "explore",
-							label: m.blocks_database_config_explore_action(),
+							label: m.blocks_repository_config_explore_action(),
 							icon: TelescopeIcon,
 							linkProps: {
 								to: "/app/library/repositories/$blockId/explore",
@@ -300,14 +298,14 @@ const ReadinessSummary = ({
 	>
 		{totals.preparing > 0 && <Spinner className="size-3.5" />}
 		<span>
-			{m.blocks_database_config_readiness_summary({
+			{m.blocks_repository_config_readiness_summary({
 				ready: totals.ready,
 				total: totals.total,
 			})}
 		</span>
 		{totals.failed > 0 && (
 			<span className="text-status-danger">
-				{m.blocks_database_config_readiness_failed({
+				{m.blocks_repository_config_readiness_failed({
 					count: totals.failed,
 				})}
 			</span>
@@ -315,4 +313,4 @@ const ReadinessSummary = ({
 	</p>
 );
 
-export { DatabaseBlockConfigCard };
+export { RepositoryConfigCard };

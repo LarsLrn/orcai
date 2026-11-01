@@ -317,7 +317,7 @@ const repositoryAssetScope = (
 			.where(eq(dbSchema.block.id, repositoryId));
 
 		const repository = rows[0];
-		if (repository?.type !== "database" || repository.status !== "ready") {
+		if (repository?.type !== "repository" || repository.status !== "ready") {
 			return yield* Effect.fail(
 				new AppErrors.NotFoundError({
 					reason: "REPOSITORY_NOT_FOUND",

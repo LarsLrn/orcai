@@ -29,7 +29,7 @@ const { createBotInputSchema, createBotPayload, createBotTool } = await import(
 const { createAssistantTurn } = await import("../turn-state");
 
 const botId = crypto.randomUUID() as BotId;
-const templateId = crypto.randomUUID() as BlockId;
+const behaviourId = crypto.randomUUID() as BlockId;
 const repositoryId = crypto.randomUUID() as BlockId;
 
 const block = (id: BlockId, name: string) => ({
@@ -49,21 +49,21 @@ const editor: BotEditor = {
 		type: "doc",
 	},
 	status: "ready",
-	templateBlock: {
-		...block(templateId, "Strict"),
-		type: "template",
+	behaviour: {
+		...block(behaviourId, "Strict"),
+		type: "behaviour",
 		config: {
 			systemPrompt: "Be strict.",
 		},
 	},
-	databaseBlocks: [
+	repositories: [
 		{
 			...block(repositoryId, "Sources"),
-			type: "database",
+			type: "repository",
 			config: {
-				minReferences: 1,
-				maxReferences: 8,
-				defaultReferences: 4,
+				minPassages: 1,
+				maxPassages: 8,
+				defaultPassages: 4,
 			},
 			assetIds: [],
 			assets: [],
@@ -101,8 +101,8 @@ describe("createBotPayload", () => {
 			description: "Does things.",
 			contentJson: {},
 			status: "draft",
-			templateBlockId: null,
-			databaseBlockIds: [
+			behaviourId: null,
+			repositoryIds: [
 				repositoryId,
 			],
 			features: {

@@ -5,12 +5,12 @@ import {
 	untilAllowed,
 } from "../../fixtures/authorization";
 import {
+	behaviourInput,
 	blockIds,
 	groupsName,
 	inheritanceChain,
 	outsiderMember,
 	systemGroup,
-	templateBlock,
 } from "../../fixtures/groups/groups";
 import { expect, test } from "../../fixtures/index";
 
@@ -34,7 +34,7 @@ test("groups: a group grant opens a private block to the group's members", async
 	});
 
 	const blockName = groupsName("Granted Block");
-	const block = await api.as("member").block.create(templateBlock(blockName));
+	const block = await api.as("member").block.create(behaviourInput(blockName));
 	const resourceId = block.data.id;
 
 	// Nothing is granted to the viewer yet, and a block is private on creation.
@@ -80,7 +80,7 @@ test("groups: a group grant opens a private block to the group's members", async
 	// A viewer grant reads, it does not write.
 	await expectDenied(
 		api.as("viewer").block.update({
-			...templateBlock(`${blockName} By A Viewer`),
+			...behaviourInput(`${blockName} By A Viewer`),
 			id: resourceId,
 		}),
 	);
@@ -99,7 +99,7 @@ test("groups: a group grant opens a private block to the group's members", async
 
 	const editedName = `${blockName} Edited`;
 	const updated = await api.as("viewer").block.update({
-		...templateBlock(editedName),
+		...behaviourInput(editedName),
 		id: resourceId,
 	});
 	expect(updated.data.name).toBe(editedName);
@@ -139,7 +139,7 @@ test("groups: revoking the group grant closes the block again", async ({
 
 	const block = await api
 		.as("member")
-		.block.create(templateBlock(groupsName("Revoked Block")));
+		.block.create(behaviourInput(groupsName("Revoked Block")));
 	const resourceId = block.data.id;
 
 	await api.as("member").resource.grant({
@@ -202,7 +202,7 @@ test("groups: deleting a group revokes what it was granted", async ({
 
 	const block = await api
 		.as("member")
-		.block.create(templateBlock(groupsName("Orphaned Block")));
+		.block.create(behaviourInput(groupsName("Orphaned Block")));
 	const resourceId = block.data.id;
 
 	await api.as("member").resource.grant({
@@ -265,7 +265,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 
 	const block = await api
 		.as("member")
-		.block.create(templateBlock(groupsName("Listed Block")));
+		.block.create(behaviourInput(groupsName("Listed Block")));
 	const resourceId = block.data.id;
 
 	// A group of the organisation the block is scoped to is grantable.
@@ -340,7 +340,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 	// The sign-up hook makes the new user a member, and no response carries the
 	// token of that write.
 	const outsiderBlock = await untilAllowed(() =>
-		outsider.client.block.create(templateBlock(groupsName("Outsider Block"))),
+		outsider.client.block.create(behaviourInput(groupsName("Outsider Block"))),
 	);
 
 	const outsiderPrincipals = await outsider.client.resource.listPrincipals({
@@ -490,7 +490,7 @@ test("groups: the principal list leaves out whoever already holds a grant", asyn
 	});
 
 	const blockName = groupsName("Exclude Granted Block");
-	const block = await api.as("member").block.create(templateBlock(blockName));
+	const block = await api.as("member").block.create(behaviourInput(blockName));
 	const resourceId = block.data.id;
 
 	const offered = async (principalType: "group" | "user") =>
@@ -571,7 +571,7 @@ test("groups: a batch grant lands whole, or not at all", async ({
 	});
 
 	const blockName = groupsName("Batch Block");
-	const block = await api.as("member").block.create(templateBlock(blockName));
+	const block = await api.as("member").block.create(behaviourInput(blockName));
 	const resourceId = block.data.id;
 
 	const granted = await api.as("member").resource.grant({
@@ -656,7 +656,7 @@ test("groups: a batch that would demote the last manager writes nothing", async 
 	org,
 }) => {
 	const blockName = groupsName("Last Manager Block");
-	const block = await api.as("member").block.create(templateBlock(blockName));
+	const block = await api.as("member").block.create(behaviourInput(blockName));
 	const resourceId = block.data.id;
 
 	// The block's only manager grant, so demoting it trips the manager floor.
@@ -731,7 +731,7 @@ test("groups: a block reports the access it inherits from its bot", async ({
 	// nobody yet: it reports who a resource is shared with, not who owns it.
 	const before = await api.as("member").resource.inheritedAccess({
 		resourceType: "block",
-		resourceId: chain.templateBlockId,
+		resourceId: chain.behaviourId,
 	});
 	expect(before.data.botCount).toBe(1);
 	expect(before.data.groupCount).toBe(0);
@@ -751,11 +751,11 @@ test("groups: a block reports the access it inherits from its bot", async ({
 
 	const own = await api.as("member").resource.listGrants({
 		resourceType: "block",
-		resourceId: chain.templateBlockId,
+		resourceId: chain.behaviourId,
 	});
 	const after = await api.as("member").resource.inheritedAccess({
 		resourceType: "block",
-		resourceId: chain.templateBlockId,
+		resourceId: chain.behaviourId,
 	});
 
 	// The grant lives on the bot, so the block's own list stays empty while the
@@ -794,7 +794,7 @@ test("groups: an asset reports access inherited two hops up", async ({
 	).data;
 
 	// `asset.read` includes `block->read`, which includes `bot->read`, so the
-	// walk has to climb past the database block to the bot above it.
+	// walk has to climb past the repository to the bot above it.
 	expect(inherited.blockCount).toBe(1);
 	expect(inherited.botCount).toBe(1);
 	expect(inherited.ancestors.map((ancestor) => ancestor.resourceType)).toEqual(

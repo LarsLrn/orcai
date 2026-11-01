@@ -30,7 +30,7 @@ test("bots: paging through a published bot writes nothing", async ({
 }) => {
 	const member = api.as("member");
 	const behaviour = await member.block.create({
-		type: "template",
+		type: "behaviour",
 		name: `E2E Paging Behaviour ${runId()}`,
 		status: "ready",
 		config: {
@@ -39,22 +39,22 @@ test("bots: paging through a published bot writes nothing", async ({
 	});
 	// A ready bot may link a repository that is still a draft.
 	const repository = await member.block.create({
-		type: "database",
+		type: "repository",
 		name: `E2E Paging Repository ${runId()}`,
 		status: "draft",
 		assets: [],
 		config: {
-			minReferences: 1,
-			maxReferences: 5,
-			defaultReferences: 3,
+			minPassages: 1,
+			maxPassages: 5,
+			defaultPassages: 3,
 		},
 	});
 	const bot = await member.bot.save({
 		name: `E2E Paging Bot ${runId()}`,
 		description: "Created by the paging spec.",
 		status: "ready",
-		templateBlockId: behaviour.data.id,
-		databaseBlockIds: [
+		behaviourId: behaviour.data.id,
+		repositoryIds: [
 			repository.data.id,
 		],
 	});
@@ -90,7 +90,7 @@ test("bots: a step with changes saves once, with one toast", async ({
 }) => {
 	const member = api.as("member");
 	const behaviour = await member.block.create({
-		type: "template",
+		type: "behaviour",
 		name: `E2E Paging Behaviour ${runId()}`,
 		status: "ready",
 		config: {
@@ -101,8 +101,8 @@ test("bots: a step with changes saves once, with one toast", async ({
 		name: `E2E Paging Bot ${runId()}`,
 		description: "Created by the paging spec.",
 		status: "ready",
-		templateBlockId: behaviour.data.id,
-		databaseBlockIds: [],
+		behaviourId: behaviour.data.id,
+		repositoryIds: [],
 	});
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);

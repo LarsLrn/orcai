@@ -4,12 +4,12 @@ import { expect, test } from "../../fixtures/index";
 import { runId } from "../../fixtures/organisation";
 
 /**
- * A template block is the one resource with visibility that a test can create
+ * A behaviour is the one resource with visibility that a test can create
  * through the API alone: a bot needs a model and an asset needs the upload and
  * the background workers, neither of which an e2e run has.
  */
-const templateBlock = (name: string) => ({
-	type: "template" as const,
+const behaviourInput = (name: string) => ({
+	type: "behaviour" as const,
 	name,
 	status: "ready" as const,
 	config: {
@@ -30,7 +30,7 @@ test("a private block is hidden from another member of the organisation until it
 }) => {
 	const created = await api
 		.as("member")
-		.block.create(templateBlock(`E2E Private Block ${runId()}`));
+		.block.create(behaviourInput(`E2E Private Block ${runId()}`));
 	const resourceId = created.data.id;
 
 	const visibility = await api.as("member").resource.getVisibility({
@@ -88,7 +88,7 @@ test("a private block is hidden from another organisation", async ({
 
 	const created = await api
 		.as("member")
-		.block.create(templateBlock(`E2E Shared Block ${runId()}`));
+		.block.create(behaviourInput(`E2E Shared Block ${runId()}`));
 	const resourceId = created.data.id;
 
 	for (const role of ROLES) {
@@ -116,7 +116,7 @@ test("a public block is previewed from another organisation but not listed there
 
 	const created = await api
 		.as("member")
-		.block.create(templateBlock(`E2E Public Block ${runId()}`));
+		.block.create(behaviourInput(`E2E Public Block ${runId()}`));
 	const resourceId = created.data.id;
 
 	const madePublic = await api.as("member").resource.setVisibility({

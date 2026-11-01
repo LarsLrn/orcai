@@ -154,8 +154,8 @@ const attachChatBlock = authed.chatBlock.attach
 				),
 			);
 
-		if (block.type === "template") {
-			const existingTemplateAttachments = yield* db
+		if (block.type === "behaviour") {
+			const existingBehaviourAttachments = yield* db
 				.select({
 					blockId: dbSchema.chatBlock.blockId,
 				})
@@ -167,20 +167,20 @@ const attachChatBlock = authed.chatBlock.attach
 				.where(
 					and(
 						eq(dbSchema.chatBlock.chatId, input.chatId),
-						eq(dbSchema.block.type, "template"),
+						eq(dbSchema.block.type, "behaviour"),
 					),
 				);
 
-			const hasOtherTemplate = existingTemplateAttachments.some(
+			const hasOtherBehaviour = existingBehaviourAttachments.some(
 				(attachment) => attachment.blockId !== input.blockId,
 			);
 
-			if (hasOtherTemplate) {
+			if (hasOtherBehaviour) {
 				return yield* Effect.fail(
 					new AppErrors.BadRequestError({
-						reason: "CHAT_TEMPLATE_BLOCK_ALREADY_ATTACHED",
+						reason: "CHAT_BEHAVIOUR_ALREADY_ATTACHED",
 						message:
-							"This chat already has a template block attached. Remove it before attaching another one.",
+							"This chat already has a behaviour attached. Remove it before attaching another one.",
 					}),
 				);
 			}

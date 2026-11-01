@@ -16,9 +16,9 @@ const withoutZedToken = (cookieHeader: string) =>
 		.filter((cookie) => !cookie.startsWith(`${ZED_TOKEN_COOKIE}=`))
 		.join("; ");
 
-/** A template block, the one grantable resource that needs no model, provider, or worker. */
-const templateBlock = (name: string) => ({
-	type: "template" as const,
+/** A behaviour, the one grantable resource that needs no model, provider, or worker. */
+const behaviourInput = (name: string) => ({
+	type: "behaviour" as const,
 	name,
 	status: "ready" as const,
 	config: {
@@ -32,7 +32,7 @@ test("a grant made over the API is visible on the first page load of the granted
 	pageAs,
 }) => {
 	const blockName = authzName("First Load Block");
-	const block = await api.as("member").block.create(templateBlock(blockName));
+	const block = await api.as("member").block.create(behaviourInput(blockName));
 
 	// The owner grants: `manage_access` on a block is its owner plus a manager.
 	await api.as("member").resource.grant({
@@ -66,7 +66,7 @@ test("a grant and a revoke are both readable over the API without waiting", asyn
 }) => {
 	const block = await api
 		.as("member")
-		.block.create(templateBlock(authzName("Immediate Read Block")));
+		.block.create(behaviourInput(authzName("Immediate Read Block")));
 	const resourceId = block.data.id;
 
 	await api.as("member").resource.grant({
@@ -141,10 +141,10 @@ test("a block created in the browser is readable on the page the creation naviga
 		fill: async () => {
 			await page.getByLabel(message("common_name_label")).fill(blockName);
 			await page
-				.getByLabel(message("blocks_template_form_system_prompt_label"))
+				.getByLabel(message("blocks_behaviour_form_system_prompt_label"))
 				.fill("Created through the browser by the authz freshness slice.");
 		},
-		submit: message("blocks_template_form_create_submit_button"),
+		submit: message("blocks_behaviour_form_create_submit_button"),
 		// The created block, not the add page it was submitted from.
 		until: /\/app\/library\/behaviours\/(?!add$)[^/]+$/,
 	});

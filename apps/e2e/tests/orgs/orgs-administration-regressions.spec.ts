@@ -1,5 +1,5 @@
 import { userIdSchema } from "@orcai/schema";
-import { templateBlock } from "../../fixtures/groups/groups";
+import { behaviourInput } from "../../fixtures/groups/groups";
 import { expect, test } from "../../fixtures/index";
 import { runId } from "../../fixtures/organisation";
 
@@ -46,7 +46,7 @@ test("directory omits and cannot search emails for ordinary roles", async ({
 		expect(emailSearch.rowCount).toBe(role === "manager" ? 1 : 0);
 	}
 	const member = api.as("member");
-	const block = await member.block.create(templateBlock("Directory share"));
+	const block = await member.block.create(behaviourInput("Directory share"));
 	const principals = await member.resource.listPrincipals({
 		resourceType: "block",
 		resourceId: block.data.id,

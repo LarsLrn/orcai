@@ -1,6 +1,5 @@
 import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { BlockType } from "@orcai/schema";
 import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import { type AnyColumn, and, desc, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -132,7 +131,7 @@ export const recentResources = (params: {
 			...blocks.map((block) => ({
 				resourceType: "block" as const,
 				...block,
-				blockType: block.blockType as BlockType,
+				blockType: block.blockType,
 			})),
 			...assets.map((asset) => ({
 				resourceType: "asset" as const,

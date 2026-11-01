@@ -162,7 +162,7 @@ test("members: deleting an account hands its content to the chosen member", asyn
 		organizationId: org.id,
 	});
 	const { data: block } = await client.block.create({
-		type: "template",
+		type: "behaviour",
 		name: `E2E Users Owned ${user.id}`,
 		status: "ready",
 		config: {
@@ -216,7 +216,7 @@ test("members: a removed user loses the access its groups and grants gave it", a
 	});
 
 	const block = (name: string) => ({
-		type: "template" as const,
+		type: "behaviour" as const,
 		name,
 		status: "ready" as const,
 		config: {

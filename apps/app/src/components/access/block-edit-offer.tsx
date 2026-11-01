@@ -23,14 +23,14 @@ type BotBlock = {
 	capabilities: Partial<Record<"manage_access", boolean>>;
 };
 
-/** The bot's saved template and repositories. */
+/** The bot's saved behaviour and repositories. */
 export const toLinkedBlocks = (bot: {
-	templateBlock: BotBlock | null;
-	databaseBlocks: BotBlock[];
+	behaviour: BotBlock | null;
+	repositories: BotBlock[];
 }): LinkedBlock[] =>
 	[
-		bot.templateBlock,
-		...bot.databaseBlocks,
+		bot.behaviour,
+		...bot.repositories,
 	].flatMap((block) =>
 		block?.id
 			? [

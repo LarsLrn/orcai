@@ -136,10 +136,10 @@ const organizationWithModels = async () => {
 
 	/** A bot of the admin, shared with the organisation, whose setup recommends `modelId`. */
 	const botRecommending = async (modelId: ModelId) => {
-		const { data: template } = await call((options) =>
+		const { data: behaviour } = await call((options) =>
 			procedures.block.create(
 				{
-					type: "template",
+					type: "behaviour",
 					name: "Default behaviour",
 					description: null,
 					contentJson: null,
@@ -157,7 +157,7 @@ const organizationWithModels = async () => {
 					name: `Default bot ${crypto.randomUUID()}`,
 					description: "Integration bot",
 					status: "draft",
-					templateBlockId: template.id,
+					behaviourId: behaviour.id,
 				},
 				options,
 			),

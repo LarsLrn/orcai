@@ -65,12 +65,12 @@ const botWithTwoOrganizations = async () => {
 
 	const createBlock = async (
 		actor: Actor,
-		type: "template" | "database",
+		type: "behaviour" | "repository",
 	): Promise<BlockId> =>
 		(
 			await call(actor, (options) =>
 				procedures.block.create(
-					type === "template"
+					type === "behaviour"
 						? {
 								type,
 								name: "Use behaviour",
@@ -89,9 +89,9 @@ const botWithTwoOrganizations = async () => {
 								status: "ready",
 								assets: [],
 								config: {
-									minReferences: 1,
-									maxReferences: 5,
-									defaultReferences: 3,
+									minPassages: 1,
+									maxPassages: 5,
+									defaultPassages: 3,
 								},
 							},
 					options,
@@ -99,16 +99,16 @@ const botWithTwoOrganizations = async () => {
 			)
 		).data.id;
 
-	const template = await createBlock(author, "template");
-	const repository = await createBlock(author, "database");
+	const behaviour = await createBlock(author, "behaviour");
+	const repository = await createBlock(author, "repository");
 	const { data: bot } = await call(author, (options) =>
 		procedures.bot.save(
 			{
 				name: `Use bot ${crypto.randomUUID()}`,
 				description: "Integration bot",
 				status: "draft",
-				templateBlockId: template,
-				databaseBlockIds: [
+				behaviourId: behaviour,
+				repositoryIds: [
 					repository,
 				],
 			},
@@ -187,7 +187,7 @@ const botWithTwoOrganizations = async () => {
 		procedures,
 		call,
 		createBlock,
-		template,
+		behaviour,
 		repository,
 		bot,
 		createChat,
@@ -213,7 +213,7 @@ describe("using a resource in an organisation", () => {
 				procedures,
 				call,
 				bot,
-				template,
+				behaviour,
 				repository,
 				createChat,
 				canUse,
@@ -225,7 +225,7 @@ describe("using a resource in an organisation", () => {
 						resourceId: bot.id,
 						visibility: "public",
 						listBlockIds: [
-							template,
+							behaviour,
 							repository,
 						],
 					},
@@ -356,11 +356,11 @@ describe("using a resource in an organisation", () => {
 			expect(
 				setup.agent.kind === "chat" && {
 					systemPrompt: setup.agent.systemPrompt,
-					databaseBlocks: setup.agent.databaseBlocks.map((block) => block.id),
+					repositories: setup.agent.repositories.map((block) => block.id),
 				},
 			).toEqual({
 				systemPrompt: "Answer from the handbook.",
-				databaseBlocks: [
+				repositories: [
 					repository,
 				],
 			});
@@ -377,11 +377,11 @@ describe("using a resource in an organisation", () => {
 				procedures,
 				call,
 				createBlock,
-				template,
+				behaviour,
 				bot,
 				advance,
 			} = await botWithTwoOrganizations();
-			const save = async (actor: Actor, databaseBlockIds: BlockId[]) =>
+			const save = async (actor: Actor, repositoryIds: BlockId[]) =>
 				reasonOf(
 					call(actor, (options) =>
 						procedures.bot.save(
@@ -390,8 +390,8 @@ describe("using a resource in an organisation", () => {
 								name: bot.name,
 								description: bot.description,
 								status: "draft",
-								templateBlockId: template,
-								databaseBlockIds,
+								behaviourId: behaviour,
+								repositoryIds,
 							},
 							options,
 						),
@@ -421,14 +421,14 @@ describe("using a resource in an organisation", () => {
 				elsewhere.id as OrganizationId,
 				author.user.id,
 			);
-			const foreign = await createBlock(authorElsewhere, "database");
+			const foreign = await createBlock(authorElsewhere, "repository");
 			expect(
 				await save(author, [
 					foreign,
 				]),
 			).toBe("BLOCK_LINK_FORBIDDEN");
 
-			const listed = await createBlock(member, "database");
+			const listed = await createBlock(member, "repository");
 			await call(member, (options) =>
 				procedures.resource.setVisibility(
 					{
@@ -445,7 +445,7 @@ describe("using a resource in an organisation", () => {
 				]),
 			).toBe("BLOCK_LINK_FORBIDDEN");
 
-			const own = await createBlock(author, "database");
+			const own = await createBlock(author, "repository");
 			expect(
 				await save(author, [
 					own,
