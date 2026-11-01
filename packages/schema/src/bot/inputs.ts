@@ -51,7 +51,6 @@ export const saveBotInputSchema = z.object({
 	name: botFieldsSchema.shape.name,
 	description: botFieldsSchema.shape.description,
 	contentJson: botContentJsonSchema.default({}),
-	contentHtml: botFieldsSchema.shape.contentHtml.default(""),
 	status: publicationStatusSchema,
 	templateBlockId: blockIdSchema.nullable().default(null),
 	databaseBlockIds: z.array(blockIdSchema).default([]),

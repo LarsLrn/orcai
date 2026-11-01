@@ -31,7 +31,6 @@ beforeEach(() => {
 				contentJson: {
 					type: "doc",
 				},
-				contentHtml: "<p>Rich</p>",
 				status: "ready",
 				config,
 				capabilities: {},
@@ -103,7 +102,6 @@ describe("updateRepositoryTool", () => {
 					contentJson: {
 						type: "doc",
 					},
-					contentHtml: "<p>Rich</p>",
 					status: "ready",
 					config,
 					assets: [

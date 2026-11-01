@@ -78,7 +78,6 @@ describe("library lists with equal creation times", () => {
 							name: `Paging behaviour ${index}`,
 							description: null,
 							contentJson: null,
-							contentHtml: null,
 							status: "ready",
 							config: {
 								systemPrompt: "Paging prompt",

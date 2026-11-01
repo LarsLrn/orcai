@@ -87,7 +87,6 @@ export const blockFieldsSchema = z.object({
 	name: z.string(),
 	description: z.string().max(500).nullable(),
 	contentJson: contentJsonSchema.nullable(),
-	contentHtml: z.string().nullable(),
 	status: publicationStatusSchema,
 	forkedFromId: blockIdSchema.nullable(),
 	version: z.number().int(),

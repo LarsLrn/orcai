@@ -33,7 +33,6 @@ const block = (id: BlockId, name: string) => ({
 	capabilities: {},
 	description: null,
 	contentJson: null,
-	contentHtml: null,
 	status: "ready" as const,
 });
 
@@ -44,7 +43,6 @@ const editor: BotEditor = {
 	contentJson: {
 		type: "doc",
 	},
-	contentHtml: "<p>Rich</p>",
 	status: "ready",
 	templateBlock: {
 		...block(templateId, "Strict"),
@@ -90,7 +88,6 @@ describe("updateBotPayload", () => {
 			contentJson: {
 				type: "doc",
 			},
-			contentHtml: "<p>Rich</p>",
 			status: "ready",
 			templateBlockId: templateId,
 			databaseBlockIds: [
@@ -120,7 +117,6 @@ describe("updateBotPayload", () => {
 			),
 		).toMatchObject({
 			status: "ready",
-			contentHtml: "<p>Rich</p>",
 			templateBlockId: otherTemplateId,
 			databaseBlockIds: [
 				otherRepositoryId,
@@ -193,7 +189,6 @@ describe("updateBotTool", () => {
 				id: botId,
 				name: "Renamed",
 				status: "ready",
-				contentHtml: "<p>Rich</p>",
 				templateBlockId: templateId,
 				databaseBlockIds: [
 					repositoryId,

@@ -20,7 +20,6 @@ type BotEditorTemplateBlock = {
 	name: string;
 	description: string;
 	contentJson: unknown;
-	contentHtml: string;
 	type: "template";
 	status: PublicationStatus;
 	config: TemplateBlock["config"];
@@ -32,7 +31,6 @@ type BotEditorDatabaseBlock = {
 	name: string;
 	description: string;
 	contentJson: unknown;
-	contentHtml: string;
 	type: "database";
 	status: PublicationStatus;
 	config: DatabaseBlock["config"];
@@ -55,7 +53,6 @@ export type BotEditorFormValues = {
 	name: string;
 	description: string;
 	contentJson: unknown;
-	contentHtml: string;
 	status: PublicationStatus;
 	capabilities: EntityCapabilities<"bot">;
 	templateBlock: BotEditorTemplateBlock | null;
@@ -68,7 +65,6 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 	name: editor?.name ?? "",
 	description: editor?.description ?? "",
 	contentJson: editor?.contentJson ?? {},
-	contentHtml: editor?.contentHtml ?? "",
 	status: editor?.status ?? "draft",
 	capabilities: editor?.capabilities ?? {
 		...emptyCapabilities("bot"),
@@ -83,7 +79,6 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 				...editor.templateBlock,
 				description: editor.templateBlock.description ?? "",
 				contentJson: editor.templateBlock.contentJson ?? null,
-				contentHtml: editor.templateBlock.contentHtml ?? "",
 			}
 		: null,
 	databaseBlocks:
@@ -91,7 +86,6 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 			...databaseBlock,
 			description: databaseBlock.description ?? "",
 			contentJson: databaseBlock.contentJson ?? null,
-			contentHtml: databaseBlock.contentHtml ?? "",
 			assetIds: databaseBlock.assetIds ?? [],
 			uploadRunIds: [],
 		})) ?? [],
@@ -109,7 +103,6 @@ export const createDefaultBuilderDatabaseBlock = (params?: {
 		...block,
 		description: block.description ?? "",
 		contentJson: block.contentJson ?? null,
-		contentHtml: block.contentHtml ?? "",
 		assetIds: block.assetIds ?? [],
 		uploadRunIds: [],
 		capabilities: {
@@ -130,7 +123,6 @@ export const createDefaultBuilderTemplateBlock = (): NonNullable<
 		...block,
 		description: block.description ?? "",
 		contentJson: block.contentJson ?? null,
-		contentHtml: block.contentHtml ?? "",
 		capabilities: {
 			...emptyCapabilities("block"),
 			edit: true,

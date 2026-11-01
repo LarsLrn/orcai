@@ -105,7 +105,6 @@ export const loadBotEditor = (params: {
 				name: bot.name,
 				description: bot.description,
 				contentJson: bot.contentJson as Bot["contentJson"],
-				contentHtml: bot.contentHtml,
 				status: bot.status,
 				templateBlock: templateBlock
 					? {
@@ -296,7 +295,6 @@ const resolveBot = (params: {
 					name: params.input.name,
 					description: params.input.description,
 					contentJson: params.input.contentJson,
-					contentHtml: params.input.contentHtml,
 					status: currentStatus,
 					features: params.input.features,
 					updatedAt: new Date(),
@@ -315,7 +313,6 @@ const resolveBot = (params: {
 				name: params.input.name,
 				description: params.input.description,
 				contentJson: params.input.contentJson,
-				contentHtml: params.input.contentHtml,
 				status: currentStatus,
 				features: params.input.features,
 				userId: params.userId,

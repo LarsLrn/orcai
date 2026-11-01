@@ -52,13 +52,7 @@ export const updateBotInputSchema = z.strictObject({
 /** The parts of the stored bot an update keeps when the model leaves them out. */
 type StoredBot = Pick<
 	BotEditor,
-	| "id"
-	| "name"
-	| "description"
-	| "contentJson"
-	| "contentHtml"
-	| "status"
-	| "features"
+	"id" | "name" | "description" | "contentJson" | "status" | "features"
 > & {
 	templateBlock: {
 		id: BlockId;
@@ -77,7 +71,6 @@ export const updateBotPayload = (
 	name: input.name ?? current.name,
 	description: input.description ?? current.description,
 	contentJson: current.contentJson,
-	contentHtml: current.contentHtml,
 	status: current.status,
 	templateBlockId:
 		input.behaviourId === undefined

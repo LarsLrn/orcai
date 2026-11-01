@@ -24,7 +24,6 @@ const blockWriteFieldsSchema = blockFieldsSchema.extend({
 	name: z.string().min(1),
 	description: blockFieldsSchema.shape.description.optional(),
 	contentJson: contentJsonSchema.nullable().optional(),
-	contentHtml: blockFieldsSchema.shape.contentHtml.optional(),
 	forkedFromId: blockFieldsSchema.shape.forkedFromId.optional(),
 	version: blockFieldsSchema.shape.version.optional(),
 });

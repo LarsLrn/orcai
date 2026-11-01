@@ -55,7 +55,6 @@ export const libraryIntegration = () => {
 							name,
 							description: null,
 							contentJson: null,
-							contentHtml: null,
 							status,
 							config: {
 								systemPrompt: "",

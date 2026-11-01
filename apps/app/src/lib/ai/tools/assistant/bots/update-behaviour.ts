@@ -80,7 +80,6 @@ export const updateBehaviourTool = (deps: AssistantToolDeps) =>
 									? current.description
 									: blockDescription(input.description),
 							contentJson: current.contentJson,
-							contentHtml: current.contentHtml,
 							status: input.status ?? current.status,
 							config: {
 								...current.config,

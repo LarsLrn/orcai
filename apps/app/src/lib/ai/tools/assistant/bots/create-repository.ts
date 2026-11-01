@@ -59,7 +59,6 @@ export const createRepositoryTool = (deps: AssistantToolDeps) =>
 										? null
 										: blockDescription(input.description),
 								contentJson: null,
-								contentHtml: null,
 								status: input.status ?? "draft",
 								config: {
 									...defaultDatabaseBlockConfig,

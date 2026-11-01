@@ -26,7 +26,6 @@ export const botFieldsSchema = z.object({
 	name: z.string().min(1),
 	description: z.string().min(1).max(500),
 	contentJson: botContentJsonSchema,
-	contentHtml: z.string(),
 	status: publicationStatusSchema,
 	forkedFromId: botIdSchema.nullable(),
 	version: z.number().int(),
@@ -77,7 +76,6 @@ const botEditorBlockSchema = z.object({
 	name: z.string().min(1),
 	description: blockFieldsSchema.shape.description,
 	contentJson: blockFieldsSchema.shape.contentJson,
-	contentHtml: blockFieldsSchema.shape.contentHtml,
 	status: publicationStatusSchema,
 });
 
@@ -100,7 +98,6 @@ export const botEditorSchema = z.object({
 	name: botFieldsSchema.shape.name,
 	description: botFieldsSchema.shape.description,
 	contentJson: botFieldsSchema.shape.contentJson.default({}),
-	contentHtml: botFieldsSchema.shape.contentHtml.default(""),
 	status: publicationStatusSchema,
 	templateBlock: botEditorTemplateBlockSchema,
 	databaseBlocks: z.array(botEditorDatabaseBlockSchema),

@@ -45,7 +45,6 @@ export const createBotPayload = (
 	name: input.name,
 	description: input.description,
 	contentJson: {},
-	contentHtml: "",
 	status: "draft",
 	templateBlockId: input.behaviourId ?? null,
 	databaseBlockIds: input.repositoryIds ?? [],

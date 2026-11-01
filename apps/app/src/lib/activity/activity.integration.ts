@@ -879,7 +879,6 @@ const repository = (assets: AssetId[], uploadRunIds: ActivityRunId[]) => ({
 	name: "Activity repository",
 	description: null,
 	contentJson: null,
-	contentHtml: null,
 	status: "ready" as const,
 	assets,
 	uploadRunIds,

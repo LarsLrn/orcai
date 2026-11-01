@@ -14,7 +14,6 @@ const stored = {
 	contentJson: {
 		type: "doc",
 	},
-	contentHtml: "<p>Rich</p>",
 	status: "ready",
 	config: {
 		systemPrompt: "Be strict.",
@@ -75,7 +74,6 @@ describe("updateBehaviourTool", () => {
 			contentJson: {
 				type: "doc",
 			},
-			contentHtml: "<p>Rich</p>",
 			status: "ready",
 			config: {
 				systemPrompt: "Be kind.",

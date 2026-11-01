@@ -27,7 +27,6 @@ export const block = pgTable("block", {
 		length: 500,
 	}),
 	contentJson: json("content_json"),
-	contentHtml: text("content_html"),
 	config: json("config").notNull(),
 	status: text("status").$type<PublicationStatus>().notNull().default("ready"),
 	userId: uuid("user_id")

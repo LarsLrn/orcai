@@ -75,7 +75,6 @@ const catalogue = async () => {
 							name: `Install behaviour ${crypto.randomUUID()}`,
 							description: null,
 							contentJson: null,
-							contentHtml: null,
 							status: "ready",
 							config: {
 								systemPrompt: "Answer from the handbook.",
@@ -86,7 +85,6 @@ const catalogue = async () => {
 							name: `Install repository ${crypto.randomUUID()}`,
 							description: null,
 							contentJson: null,
-							contentHtml: null,
 							status: "ready",
 							assets: [
 								document.asset.id,
@@ -418,7 +416,6 @@ describe("adding a bot with its blocks", () => {
 						name: `Install own repository ${crypto.randomUUID()}`,
 						description: null,
 						contentJson: null,
-						contentHtml: null,
 						status: "ready",
 						assets: [],
 						config: {

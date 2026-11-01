@@ -65,8 +65,8 @@ describe("listed bots with unlisted blocks", () => {
 			};
 			const bot = async (blockIds: string[]) => {
 				const id = await insertId(
-					`INSERT INTO bot (name, description, content_html, user_id)
-					 VALUES ('Bot', '', '', $1) RETURNING id`,
+					`INSERT INTO bot (name, description, user_id)
+					 VALUES ('Bot', '', $1) RETURNING id`,
 					[
 						userId,
 					],

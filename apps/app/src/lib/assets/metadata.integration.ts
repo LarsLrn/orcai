@@ -261,7 +261,6 @@ describe("asset metadata generation", () => {
 						name: "Listed repository",
 						description: null,
 						contentJson: null,
-						contentHtml: null,
 						status: "ready",
 						assets: [
 							created.asset.id,

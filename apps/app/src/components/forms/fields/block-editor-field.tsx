@@ -13,23 +13,9 @@ const BlockEditor = lazy(() =>
 type BlockEditorFieldProps = {
 	label: string;
 	description?: string;
-	/** Field name to sync HTML content to (optional) */
-	htmlFieldName?: string;
 };
 
-const resolveSiblingFieldName = (fieldName: string, siblingField: string) => {
-	if (siblingField.includes(".") || siblingField.includes("[")) {
-		return siblingField;
-	}
-
-	return fieldName.replace(/[^.[\]]+$/u, siblingField);
-};
-
-const BlockEditorField = ({
-	label,
-	description,
-	htmlFieldName,
-}: BlockEditorFieldProps) => {
+const BlockEditorField = ({ label, description }: BlockEditorFieldProps) => {
 	const { field, ...state } = useFormField<Content>(label, description);
 
 	return (
@@ -41,16 +27,6 @@ const BlockEditorField = ({
 					content={field.state.value}
 					onUpdate={(editor) => {
 						field.handleChange(editor.getJSON() as Content);
-						if (htmlFieldName) {
-							const htmlTargetFieldName = resolveSiblingFieldName(
-								String(field.name),
-								htmlFieldName,
-							);
-							field.form.setFieldValue(
-								htmlTargetFieldName as never,
-								editor.getHTML() as never,
-							);
-						}
 					}}
 				/>
 			</Suspense>
