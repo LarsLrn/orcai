@@ -110,7 +110,7 @@ function RouteComponent() {
 				<PageTitle>{m.chat_list_page_title()}</PageTitle>
 				<PageAction>
 					<ChatHistoryLink />
-					<Link to="/app/chat/setup" className={buttonVariants()}>
+					<Link to="/app/chat/start" className={buttonVariants()}>
 						{m.chat_start_action()}
 					</Link>
 				</PageAction>
@@ -167,7 +167,7 @@ function RouteComponent() {
 									icon: PlusIcon,
 									variant: "default",
 									linkProps: {
-										to: "/app/chat/setup",
+										to: "/app/chat/start",
 									},
 								},
 							],
