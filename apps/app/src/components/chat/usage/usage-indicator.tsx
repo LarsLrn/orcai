@@ -53,7 +53,7 @@ const UsageIndicator = ({
 		}),
 	);
 	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_quotas",
+		"manage_quota_pools",
 	]);
 
 	const view = usageView({
@@ -92,7 +92,7 @@ const UsageIndicator = ({
 			view={view}
 			managePool={
 				view.pool &&
-				hasCapability(capabilities?.data.capabilities, "manage_quotas") ? (
+				hasCapability(capabilities?.data.capabilities, "manage_quota_pools") ? (
 					<Link
 						to="/app/quota-pools/$quotaPoolId"
 						params={{

@@ -35,7 +35,7 @@ describe("capability schemas", () => {
 	});
 
 	test("defines organization role presets", () => {
-		expect(ORGANIZATION_ROLE_PERMISSIONS.admin).toContain("manage_quotas");
+		expect(ORGANIZATION_ROLE_PERMISSIONS.admin).toContain("manage_quota_pools");
 		expect(ORGANIZATION_ROLE_PERMISSIONS.manager).toContain("manage_groups");
 		expect(ORGANIZATION_ROLE_PERMISSIONS.manager).not.toContain(
 			"manage_models",

@@ -38,7 +38,7 @@ const admin: CapabilitySet = {
 	manage_organization: true,
 	manage_providers: true,
 	manage_models: true,
-	manage_quotas: true,
+	manage_quota_pools: true,
 	view_analytics: true,
 };
 

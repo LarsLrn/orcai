@@ -101,7 +101,7 @@ const getCurrentPeriodAndLedger = (params: { quotaPoolId: QuotaPoolId }) =>
 	});
 
 const listQuotaPools = authed.quotaPool.list
-	.use(requireOrganizationPermission("manage_quotas"))
+	.use(requireOrganizationPermission("manage_quota_pools"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -196,7 +196,7 @@ const listQuotaPools = authed.quotaPool.list
 	});
 
 const findQuotaPool = authed.quotaPool.find
-	.use(requireOrganizationPermission("manage_quotas"))
+	.use(requireOrganizationPermission("manage_quota_pools"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -280,7 +280,7 @@ const findQuotaPool = authed.quotaPool.find
 	});
 
 const listQuotaUsageEvents = authed.quotaPool.listEvents
-	.use(requireOrganizationPermission("manage_quotas"))
+	.use(requireOrganizationPermission("manage_quota_pools"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -375,7 +375,7 @@ const listQuotaUsageEvents = authed.quotaPool.listEvents
 	});
 
 const createQuotaPool = authed.quotaPool.create
-	.use(requireOrganizationPermission("manage_quotas"))
+	.use(requireOrganizationPermission("manage_quota_pools"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const created = yield* createQuotaPoolCommand({
@@ -403,7 +403,7 @@ const createQuotaPool = authed.quotaPool.create
 	});
 
 const updateQuotaPool = authed.quotaPool.update
-	.use(requireOrganizationPermission("manage_quotas"))
+	.use(requireOrganizationPermission("manage_quota_pools"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const updated = yield* updateQuotaPoolCommand({
@@ -422,7 +422,7 @@ const updateQuotaPool = authed.quotaPool.update
 	});
 
 const deactivateQuotaPool = authed.quotaPool.deactivate
-	.use(requireOrganizationPermission("manage_quotas"))
+	.use(requireOrganizationPermission("manage_quota_pools"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const deactivated = yield* deactivateQuotaPoolCommand({
