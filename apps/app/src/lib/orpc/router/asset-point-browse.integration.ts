@@ -94,20 +94,20 @@ const index = (
 				(_, position) => (position === 0 ? 1 : 0),
 			);
 			yield* upsertPointsToQdrant({
-				points: passages.map((passage, chunkIndex) => ({
+				points: passages.map((passage, passageIndex) => ({
 					id: crypto.randomUUID(),
 					vector,
 					payload: {
 						source: passage.source ?? "text",
 						asset_id: assetId,
 						block_id: blockId,
-						text: `${assetId} ${newer ? "newer" : "passage"} ${chunkIndex}`,
+						text: `${assetId} ${newer ? "newer" : "passage"} ${passageIndex}`,
 						title: "Integration",
 						chunkPageStart: passage.page,
 						chunkPageEnd: passage.page,
 						depth: 0,
 						tokens: 2,
-						chunk_index: chunkIndex,
+						chunk_index: passageIndex,
 						chunkCount: passages.length,
 						createdAt: new Date().toISOString(),
 						index_attempt: (completed ?? running)?.attempt,
@@ -488,7 +488,7 @@ describe("browsing a repository's passages", () => {
 						cursor: {
 							order: "reading",
 							page: 1,
-							chunkIndex: 0,
+							passageIndex: 0,
 						},
 					}),
 				),

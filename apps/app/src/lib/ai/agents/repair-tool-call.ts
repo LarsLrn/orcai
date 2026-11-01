@@ -108,7 +108,7 @@ const repairSearchRepositoriesInput = (input: Record<string, unknown>) => {
 const repairGetPassagesInput = (input: Record<string, unknown>) => {
 	const passages = normalizeStringArray(
 		input.passages,
-		RETRIEVAL_LIMITS.maxFullChunkFetches,
+		RETRIEVAL_LIMITS.maxFullPassageFetches,
 	);
 	const neighbours = clampInteger({
 		value: input.neighbours,

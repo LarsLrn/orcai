@@ -100,13 +100,13 @@ export const assetPointsFiltersSchema = z.object({
 	page: z.number().int().min(1).optional(),
 	pageFrom: z.number().int().min(1).optional(),
 	pageTo: z.number().int().min(1).optional(),
-	chunkIndices: z.array(z.number().int().min(0)).optional(),
+	passageIndices: z.array(z.number().int().min(0)).optional(),
 });
 
 /**
  * Where a browse continues: from a point in point-id order across the
  * repository, or after a passage in one asset's reading order (page, then
- * chunk; passages without a page last).
+ * passage index; passages without a page last).
  */
 export const assetPointBrowseCursorSchema = z.discriminatedUnion("order", [
 	z.object({
@@ -116,7 +116,7 @@ export const assetPointBrowseCursorSchema = z.discriminatedUnion("order", [
 	z.object({
 		order: z.literal("reading"),
 		page: z.number().int().min(1).nullable(),
-		chunkIndex: z.number().int().min(0),
+		passageIndex: z.number().int().min(0),
 	}),
 ]);
 

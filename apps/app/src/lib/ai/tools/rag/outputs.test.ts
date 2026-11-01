@@ -78,7 +78,7 @@ describe("repository model output", () => {
 		).toBe("No matching passages.");
 	});
 
-	test("chunks name what was not found", () => {
+	test("passages name what was not found", () => {
 		expect(
 			text(
 				passagesModelOutput({

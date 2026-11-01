@@ -29,7 +29,7 @@ export const CHAT_ATTACHMENT_DROP_ACCEPT = Object.fromEntries(
 
 export const RETRIEVAL_LIMITS = {
 	maxSnippetResultsPerCall: 8,
-	maxFullChunkFetches: 8,
+	maxFullPassageFetches: 8,
 } as const;
 
 export const AUTHZ = {

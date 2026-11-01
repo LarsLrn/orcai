@@ -22,7 +22,8 @@ import {
 } from "../../fixtures/pipeline/repository";
 
 const QUERY = "refund deadline";
-const CHUNK = "Refunds are paid within 14 days of the request being approved.";
+const PASSAGE =
+	"Refunds are paid within 14 days of the request being approved.";
 
 /** The ref the model read in the search result of the latest tool step. */
 const refFromSearch = (inference: InferenceMock) => {
@@ -63,7 +64,7 @@ test("pipeline: a citation by ref names the uploaded asset, also after a reload"
 	const chatId = await createGenUiChat(member, model, chatName("Citations"));
 	const repository = await repositoryWithAsset(member, {
 		label: "Refund Policy",
-		content: `# Refunds\n\n${CHUNK}\n`,
+		content: `# Refunds\n\n${PASSAGE}\n`,
 	});
 	await member.chatBlock.attach({
 		chatId,
@@ -90,7 +91,7 @@ test("pipeline: a citation by ref names the uploaded asset, also after a reload"
 	await ask(member, chatId, "How fast are refunds paid?");
 	const ref = refFromSearch(inference);
 	expect(JSON.stringify(completionRequests(inference).at(-1)?.body)).toContain(
-		CHUNK,
+		PASSAGE,
 	);
 
 	const page = await pageAs("member");

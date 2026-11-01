@@ -97,7 +97,7 @@ describe("repository tool errors", () => {
 		);
 	});
 
-	test("a failed chunk read keeps the procedure's reason", async () => {
+	test("a failed passage read keeps the procedure's reason", async () => {
 		answers["assetPoint.searchRepository"] = denied;
 
 		const run = getPassagesTool(deps).execute?.(

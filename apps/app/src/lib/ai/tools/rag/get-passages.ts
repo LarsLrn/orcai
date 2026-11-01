@@ -11,7 +11,7 @@ import { neighbouringRuns } from "./passages";
 import type { PointWithBlock } from "./types";
 import { flattenBlockResponses, toPassage, withSourceBlock } from "./utils";
 
-/** The chunk indexes within `neighbours` of `point`, without its own. */
+/** The passage indexes within `neighbours` of `point`, without its own. */
 const neighbourIndexes = (point: PointWithBlock, neighbours: number) =>
 	Array.from(
 		{
@@ -50,7 +50,7 @@ export const getPassagesTool = ({
 			passages: z
 				.array(z.string())
 				.min(1)
-				.max(RETRIEVAL_LIMITS.maxFullChunkFetches)
+				.max(RETRIEVAL_LIMITS.maxFullPassageFetches)
 				.describe("Refs of passages from earlier results, such as kgol9ts."),
 			neighbours: z.coerce
 				.number()
@@ -131,10 +131,10 @@ export const getPassagesTool = ({
 										assetIds: [
 											point.payload.asset_id,
 										],
-										chunkIndices: [
+										passageIndices: [
 											...indexes,
 										],
-										// Text and image chunks of one asset share indexes.
+										// Text and image passages of one asset share indexes.
 										limit: indexes.size * 2,
 									},
 								},

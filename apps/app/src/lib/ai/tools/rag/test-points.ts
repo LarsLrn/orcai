@@ -11,7 +11,7 @@ interface PointFields {
 	pageEnd?: number;
 }
 
-/** A text chunk of the "Handbook" block, as search procedures return it. */
+/** A text point of the "Handbook" block, as search procedures return it. */
 export const assetPoint = ({
 	id,
 	index,
