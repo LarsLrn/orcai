@@ -135,7 +135,7 @@ describe("invalidateStaleQueries", () => {
 			() =>
 				new MutationObserver(
 					queryClient,
-					orpc.quota.create.mutationOptions(),
+					orpc.quotaPool.create.mutationOptions(),
 				).mutate({} as never),
 			() =>
 				new MutationObserver(

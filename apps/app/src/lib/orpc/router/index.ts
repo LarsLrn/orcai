@@ -23,7 +23,8 @@ import { organizationRouter } from "./organization";
 import { organizationInvitationRouter } from "./organization-invitation";
 import { organizationMemberRouter } from "./organization-member";
 import { providerRouter } from "./provider";
-import { quotaRouter } from "./quota";
+import { quotaPoolRouter } from "./quota-pool";
+import { quotaRouter } from "./quota-status";
 import { readinessRouter } from "./readiness";
 import { resourceRouter } from "./resource";
 import { storageRouter } from "./storage";
@@ -37,6 +38,7 @@ export const router = {
 	organizationInvitation: organizationInvitationRouter,
 	provider: providerRouter,
 	quota: quotaRouter,
+	quotaPool: quotaPoolRouter,
 	readiness: readinessRouter,
 	resource: resourceRouter,
 	group: groupRouter,

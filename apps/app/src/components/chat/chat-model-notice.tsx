@@ -165,7 +165,7 @@ const ChatModelNotice = ({
 					</div>
 					{canFix && (
 						<Link
-							to={reason === "model" ? "/app/manage" : "/app/quotas/add"}
+							to={reason === "model" ? "/app/manage" : "/app/quota-pools/add"}
 							className={buttonVariants({
 								variant: "outline",
 								size: "sm",

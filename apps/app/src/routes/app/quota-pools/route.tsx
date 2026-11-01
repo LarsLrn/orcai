@@ -3,7 +3,7 @@ import { LoadingPage } from "@/components/app/loading/loading-page";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/quotas")({
+export const Route = createFileRoute("/app/quota-pools")({
 	loader: async ({ context: { queryClient } }) => {
 		await ensureOrganizationCapability({
 			queryClient,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/quotas")({
 	head: () => ({
 		meta: [
 			{
-				title: m.quotas_route_page_title(),
+				title: m.quota_pools_route_page_title(),
 			},
 		],
 	}),

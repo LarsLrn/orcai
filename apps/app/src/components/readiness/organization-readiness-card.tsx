@@ -31,7 +31,7 @@ const checks: Record<
 	},
 	pool: {
 		title: m.readiness_check_pool_title,
-		fix: "/app/quotas",
+		fix: "/app/quota-pools",
 	},
 	"assistant-model": {
 		title: m.readiness_check_assistant_model_title,
@@ -39,7 +39,7 @@ const checks: Record<
 	},
 	"assistant-pool": {
 		title: m.readiness_check_assistant_pool_title,
-		fix: "/app/quotas",
+		fix: "/app/quota-pools",
 	},
 	"utility-model": {
 		title: m.readiness_check_utility_model_title,
@@ -51,7 +51,7 @@ const checks: Record<
 	},
 	coverage: {
 		title: m.readiness_check_coverage_title,
-		fix: "/app/quotas",
+		fix: "/app/quota-pools",
 	},
 };
 

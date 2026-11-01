@@ -23,7 +23,7 @@ const POOL_LIMIT = 3;
 /** Why no active pool shows: none exists yet, or every pool is inactive. */
 const NoActivePoolNote = () => {
 	const { data: pools } = useSuspenseQuery(
-		orpc.quota.list.queryOptions({
+		orpc.quotaPool.list.queryOptions({
 			input: {
 				pageIndex: 0,
 				pageSize: 1,
@@ -40,10 +40,10 @@ const NoActivePoolNote = () => {
 	);
 };
 
-/** Active quota pools with what is left in the open period, for people who manage quotas. */
+/** Active quota pools with what is left in the open period, for people who manage quota pools. */
 const ManageQuotaPanel = () => {
 	const { data: pools } = useSuspenseQuery(
-		orpc.quota.list.queryOptions({
+		orpc.quotaPool.list.queryOptions({
 			input: {
 				pageIndex: 0,
 				pageSize: POOL_LIMIT,
@@ -65,7 +65,7 @@ const ManageQuotaPanel = () => {
 			<PanelHeader>
 				<PanelTitle>{m.home_quota_panel_title()}</PanelTitle>
 				<Link
-					to="/app/quotas"
+					to="/app/quota-pools"
 					className={buttonVariants({
 						variant: "ghost",
 						size: "sm",
@@ -81,7 +81,7 @@ const ManageQuotaPanel = () => {
 					{pools.data.map((pool) => (
 						<Link
 							key={pool.id}
-							to="/app/quotas/$quotaPoolId"
+							to="/app/quota-pools/$quotaPoolId"
 							params={{
 								quotaPoolId: pool.id,
 							}}

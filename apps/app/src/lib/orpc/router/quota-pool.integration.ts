@@ -107,7 +107,7 @@ const pooledOrganization = async () => {
 		),
 	);
 	const { data: pool } = await run(
-		procedures.quota.create(
+		procedures.quotaPool.create(
 			{
 				name: `Quota events ${crypto.randomUUID()}`,
 				providerId: provider.id,
@@ -170,7 +170,7 @@ const pooledOrganization = async () => {
 	const ledger = async () =>
 		(
 			await run(
-				procedures.quota.find(
+				procedures.quotaPool.find(
 					{
 						id: pool.id,
 					},
@@ -181,7 +181,7 @@ const pooledOrganization = async () => {
 
 	const events = async (filters?: QuotaUsageEventListInput["filters"]) =>
 		run(
-			procedures.quota.listEvents(
+			procedures.quotaPool.listEvents(
 				{
 					quotaPoolId: pool.id,
 					filters,

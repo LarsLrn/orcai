@@ -95,7 +95,7 @@ const organizationWithSearch = async (budget: number) => {
 	);
 	const asAdmin = () => procedureOptions(admin, meta?.zedToken ?? zedToken);
 	await run(
-		procedures.quota.create(
+		procedures.quotaPool.create(
 			{
 				name: `Search pool ${crypto.randomUUID()}`,
 				providerId: provider.id,

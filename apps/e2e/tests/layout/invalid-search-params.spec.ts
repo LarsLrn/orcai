@@ -10,7 +10,7 @@ const TABLE_PATHS = [
 	"/app/members",
 	"/app/members/invitations",
 	"/app/providers",
-	"/app/quotas",
+	"/app/quota-pools",
 ];
 
 const OTHER_PATHS = [
@@ -38,7 +38,7 @@ for (const path of [
 	}) => {
 		const admin = api.as("admin");
 
-		if (path === "/app/providers" || path === "/app/quotas") {
+		if (path === "/app/providers" || path === "/app/quota-pools") {
 			const provider = await untilAllowed(() =>
 				admin.provider.create({
 					name: `Paging ${runId()}`,
@@ -58,7 +58,7 @@ for (const path of [
 				(candidate) => candidate.systemKey === "all_members",
 			);
 			if (!allMembers) throw new Error("Missing All Members group");
-			await admin.quota.create({
+			await admin.quotaPool.create({
 				name: `Paging ${runId()}`,
 				providerId: provider.data.id,
 				periodType: "monthly",

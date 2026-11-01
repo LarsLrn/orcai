@@ -10,8 +10,8 @@ const meteringUnits: Record<
 	ProviderMeteringMode,
 	(inputs: { count: number }) => string
 > = {
-	tokens: m.quotas_unit_tokens,
-	requests: m.quotas_unit_requests,
+	tokens: m.quota_pools_unit_tokens,
+	requests: m.quota_pools_unit_requests,
 };
 
 export const getMeteringModeLabel = (mode: ProviderMeteringMode) =>

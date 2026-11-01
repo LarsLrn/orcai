@@ -199,21 +199,21 @@ test("forms: eligible groups show member counts and replace the default group", 
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await open(page, "/app/quotas/add");
+	await open(page, "/app/quota-pools/add");
 
 	const poolName = formsName("Pool");
 	await page.getByLabel(message("common_name_label")).fill(poolName);
 	await pickProvider(page, providerName);
 	await page
 		.getByRole("spinbutton", {
-			name: message("quotas_form_budget_label"),
+			name: message("quota_pools_form_budget_label"),
 		})
 		.fill("100");
 
 	const input = page.getByRole("combobox", {
-		name: message("quotas_form_groups_label"),
+		name: message("quota_pools_form_groups_label"),
 	});
-	const allMembers = message("quotas_form_group_system_label", {
+	const allMembers = message("quota_pools_form_group_system_label", {
 		name: allMembersGroup.name,
 	});
 	await expect(removeButton(page, allMembers)).toBeVisible();
@@ -236,12 +236,12 @@ test("forms: eligible groups show member counts and replace the default group", 
 
 	await page
 		.getByRole("button", {
-			name: message("quotas_form_create_button"),
+			name: message("quota_pools_form_create_button"),
 		})
 		.click();
-	await expect(page).toHaveURL(/\/app\/quotas\/[0-9a-f-]{36}$/);
+	await expect(page).toHaveURL(/\/app\/quota-pools\/[0-9a-f-]{36}$/);
 
-	const { data: pool } = await api.as("admin").quota.find({
+	const { data: pool } = await api.as("admin").quotaPool.find({
 		id: quotaPoolIdSchema.parse(new URL(page.url()).pathname.split("/").at(-1)),
 	});
 	expect(pool.assignments.map((assignment) => assignment.groupId)).toEqual([
@@ -266,25 +266,25 @@ test("forms: clearing All Members on a new quota pool leaves the groups empty an
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await open(page, "/app/quotas/add");
+	await open(page, "/app/quota-pools/add");
 
-	const allMembers = message("quotas_form_group_system_label", {
+	const allMembers = message("quota_pools_form_group_system_label", {
 		name: allMembersGroup.name,
 	});
 	await removeButton(page, allMembers).click();
 
 	const input = page.getByRole("combobox", {
-		name: message("quotas_form_groups_label"),
+		name: message("quota_pools_form_groups_label"),
 	});
 	await expect(input).toHaveAttribute("aria-invalid", "true");
 	await expect(removeButton(page, allMembers)).toHaveCount(0);
 
 	await page
 		.getByRole("button", {
-			name: message("quotas_form_create_button"),
+			name: message("quota_pools_form_create_button"),
 		})
 		.click();
-	await expect(page).toHaveURL(/\/app\/quotas\/add$/);
+	await expect(page).toHaveURL(/\/app\/quota-pools\/add$/);
 	await expect(removeButton(page, allMembers)).toHaveCount(0);
 });
 
@@ -305,7 +305,7 @@ test("forms: an emptied eligible groups field names its error", async ({
 	const { data: group } = await admin.group.create({
 		name: groupName,
 	});
-	const { data: pool } = await admin.quota.create({
+	const { data: pool } = await admin.quotaPool.create({
 		name: formsName("Pool"),
 		providerId: provider.id,
 		periodType: "monthly",
@@ -317,10 +317,10 @@ test("forms: an emptied eligible groups field names its error", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await open(page, `/app/quotas/${pool.id}/edit`);
+	await open(page, `/app/quota-pools/${pool.id}/edit`);
 
 	const input = page.getByRole("combobox", {
-		name: message("quotas_form_groups_label"),
+		name: message("quota_pools_form_groups_label"),
 	});
 	await expect(input).not.toHaveAttribute("aria-invalid", "true");
 	await removeButton(page, groupName).click();
@@ -337,7 +337,7 @@ test("forms: an emptied eligible groups field names its error", async ({
 	const errorText = (await error.textContent()) ?? "";
 	expect(errorText).not.toBe("");
 	await expect(input).toHaveAccessibleDescription(
-		`${message("quotas_form_groups_description")} ${errorText}`,
+		`${message("quota_pools_form_groups_description")} ${errorText}`,
 	);
 });
 
@@ -356,7 +356,7 @@ test("forms: long lists scroll inside a still popup", async ({
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
-	await open(page, "/app/quotas/add");
+	await open(page, "/app/quota-pools/add");
 	await page.setViewportSize({
 		width: 1280,
 		height: 400,
@@ -374,7 +374,7 @@ test("forms: long lists scroll inside a still popup", async ({
 	await page.keyboard.press("Escape");
 
 	const groups = page.getByRole("combobox", {
-		name: message("quotas_form_groups_label"),
+		name: message("quota_pools_form_groups_label"),
 	});
 	await groups.scrollIntoViewIfNeeded();
 	await page

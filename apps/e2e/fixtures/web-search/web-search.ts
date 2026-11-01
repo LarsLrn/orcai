@@ -34,7 +34,7 @@ export const setUpSearchProvider = async (
 	);
 	if (!allMembers) throw new Error("Missing All Members group");
 
-	await admin.quota.create({
+	await admin.quotaPool.create({
 		name: chatName("Search Pool"),
 		providerId: provider.data.id,
 		periodType: "monthly",

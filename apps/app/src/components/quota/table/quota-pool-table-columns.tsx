@@ -18,7 +18,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
-import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-mutations";
+import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-pool-mutations";
 import { formatNumber } from "@/lib/presentation/format-number";
 import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
 import {
@@ -41,13 +41,13 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_table_pool_column_header()}
+				title={m.quota_pools_table_pool_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
 			<div className="min-w-0 space-y-1">
 				<Link
-					to="/app/quotas/$quotaPoolId"
+					to="/app/quota-pools/$quotaPoolId"
 					params={{
 						quotaPoolId: row.original.id,
 					}}
@@ -61,19 +61,19 @@ export const quotaPoolTableColumns = columnHelper.columns([
 			</div>
 		),
 		meta: {
-			label: m.quotas_table_pool_column_header,
+			label: m.quota_pools_table_pool_column_header,
 		},
 	}),
 	columnHelper.accessor("periodType", {
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_table_period_column_header()}
+				title={m.quota_pools_table_period_column_header()}
 			/>
 		),
 		cell: ({ row }) => getQuotaPeriodLabel(row.original.periodType),
 		meta: {
-			label: m.quotas_table_period_column_header,
+			label: m.quota_pools_table_period_column_header,
 		},
 	}),
 	columnHelper.display({
@@ -82,7 +82,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_table_budget_column_header()}
+				title={m.quota_pools_table_budget_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -98,7 +98,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_table_consumed_column_header()}
+				title={m.quota_pools_table_consumed_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -115,7 +115,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_table_remaining_column_header()}
+				title={m.quota_pools_table_remaining_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -141,7 +141,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 					{getQuotaPoolStatusLabel(row.original.isActive)}
 				</Badge>
 				{row.original.isDefault ? (
-					<Badge variant="outline">{m.quotas_table_default_badge()}</Badge>
+					<Badge variant="outline">{m.quota_pools_table_default_badge()}</Badge>
 				) : null}
 			</div>
 		),
@@ -158,26 +158,26 @@ export const quotaPoolTableColumns = columnHelper.columns([
 					<DropdownMenuLinkItem
 						render={
 							<Link
-								to="/app/quotas/$quotaPoolId"
+								to="/app/quota-pools/$quotaPoolId"
 								params={{
 									quotaPoolId: row.original.id,
 								}}
 							/>
 						}
 					>
-						{m.quotas_table_view_menu_item()}
+						{m.quota_pools_table_view_menu_item()}
 					</DropdownMenuLinkItem>
 					<DropdownMenuLinkItem
 						render={
 							<Link
-								to="/app/quotas/$quotaPoolId/edit"
+								to="/app/quota-pools/$quotaPoolId/edit"
 								params={{
 									quotaPoolId: row.original.id,
 								}}
 							/>
 						}
 					>
-						{m.quotas_table_edit_menu_item()}
+						{m.quota_pools_table_edit_menu_item()}
 					</DropdownMenuLinkItem>
 					<DropdownMenuSeparator />
 					<DeactivateItem pool={row.original} />
@@ -200,7 +200,7 @@ const DeactivateItem = ({ pool }: { pool: QuotaPoolListRow }) => {
 				})
 			}
 		>
-			{m.quotas_table_deactivate_menu_item()}
+			{m.quota_pools_table_deactivate_menu_item()}
 		</DropdownMenuItem>
 	);
 };

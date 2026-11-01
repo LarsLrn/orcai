@@ -94,7 +94,7 @@ const UsageIndicator = ({
 				view.pool &&
 				hasCapability(capabilities?.data.capabilities, "manage_quotas") ? (
 					<Link
-						to="/app/quotas/$quotaPoolId"
+						to="/app/quota-pools/$quotaPoolId"
 						params={{
 							quotaPoolId: view.pool.id,
 						}}

@@ -30,6 +30,7 @@ import { organizationInvitationContracts } from "./organization-invitation";
 import { organizationMemberContracts } from "./organization-member";
 import { providerContracts } from "./provider";
 import { quotaContracts } from "./quota";
+import { quotaPoolContracts } from "./quota-pool";
 import { readinessContracts } from "./readiness";
 import { resourceContracts } from "./resource";
 import { storageContracts } from "./storage";
@@ -62,6 +63,7 @@ export const contracts = {
 	organizationMember: organizationMemberContracts,
 	provider: providerContracts,
 	quota: quotaContracts,
+	quotaPool: quotaPoolContracts,
 	readiness: readinessContracts,
 	resource: resourceContracts,
 	storage: storageContracts,
@@ -100,6 +102,7 @@ export {
 	organizationMemberContracts,
 	providerContracts,
 	quotaContracts,
+	quotaPoolContracts,
 	readinessContracts,
 	resourceContracts,
 	storageContracts,

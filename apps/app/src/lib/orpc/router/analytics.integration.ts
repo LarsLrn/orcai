@@ -172,7 +172,7 @@ const meteredOrganization = async (
 			),
 		);
 		await run(
-			procedures.quota.create(
+			procedures.quotaPool.create(
 				{
 					name: `Analytics ${crypto.randomUUID()}`,
 					providerId: provider.id,

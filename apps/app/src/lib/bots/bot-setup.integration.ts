@@ -178,7 +178,7 @@ const organizationWithBot = async () => {
 	}) =>
 		(
 			await call(admin, (options) =>
-				procedures.quota.create(
+				procedures.quotaPool.create(
 					{
 						name: `Setup pool ${crypto.randomUUID()}`,
 						periodType: "monthly",

@@ -119,7 +119,7 @@ const UsageBody = ({
 	managePool,
 }: {
 	view: UsageView;
-	/** A link to the pool for people who manage quotas. */
+	/** A link to the pool for people who manage quota pools. */
 	managePool?: ReactNode;
 }) => (
 	<div className="flex flex-col gap-3 text-sm">

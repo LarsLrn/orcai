@@ -13,13 +13,13 @@ import { m } from "@/paraglide/messages";
 const eventTypeLabel = (eventType: QuotaUsageEventType) => {
 	switch (eventType) {
 		case "reserved":
-			return m.quotas_event_type_reserved();
+			return m.quota_pools_event_type_reserved();
 		case "finalized":
-			return m.quotas_event_type_finalized();
+			return m.quota_pools_event_type_finalized();
 		case "released":
-			return m.quotas_event_type_released();
+			return m.quota_pools_event_type_released();
 		case "failed":
-			return m.quotas_event_type_failed();
+			return m.quota_pools_event_type_failed();
 	}
 };
 
@@ -54,7 +54,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_events_time_column_header()}
+				title={m.quota_pools_events_time_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -63,7 +63,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			</span>
 		),
 		meta: {
-			label: m.quotas_events_time_column_header,
+			label: m.quota_pools_events_time_column_header,
 		},
 	}),
 	columnHelper.accessor("eventType", {
@@ -71,7 +71,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_detail_event_column_header()}
+				title={m.quota_pools_detail_event_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -80,7 +80,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			</Badge>
 		),
 		meta: {
-			label: m.quotas_detail_event_column_header,
+			label: m.quota_pools_detail_event_column_header,
 		},
 	}),
 	columnHelper.accessor("user", {
@@ -89,7 +89,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_events_user_column_header()}
+				title={m.quota_pools_events_user_column_header()}
 			/>
 		),
 		cell: ({ row: { original } }) =>
@@ -103,12 +103,12 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			) : (
 				<span className="text-muted-foreground">
 					{original.user.kind === "deleted"
-						? m.quotas_events_deleted_user_label()
-						: m.quotas_events_former_member_label()}
+						? m.quota_pools_events_deleted_user_label()
+						: m.quota_pools_events_former_member_label()}
 				</span>
 			),
 		meta: {
-			label: m.quotas_events_user_column_header,
+			label: m.quota_pools_events_user_column_header,
 		},
 	}),
 	columnHelper.accessor("model", {
@@ -117,14 +117,14 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_events_model_column_header()}
+				title={m.quota_pools_events_model_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
 			<span className="truncate">{row.original.model?.name ?? "—"}</span>
 		),
 		meta: {
-			label: m.quotas_events_model_column_header,
+			label: m.quota_pools_events_model_column_header,
 		},
 	}),
 	columnHelper.accessor("bot", {
@@ -133,7 +133,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_events_bot_column_header()}
+				title={m.quota_pools_events_bot_column_header()}
 			/>
 		),
 		cell: ({ row: { original } }) => {
@@ -145,13 +145,13 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 				case "other":
 					return (
 						<span className="text-muted-foreground">
-							{m.quotas_events_other_bot_label()}
+							{m.quota_pools_events_other_bot_label()}
 						</span>
 					);
 			}
 		},
 		meta: {
-			label: m.quotas_events_bot_column_header,
+			label: m.quota_pools_events_bot_column_header,
 		},
 	}),
 	columnHelper.accessor("reservedAmount", {
@@ -159,7 +159,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_detail_reserved_amount_column_header()}
+				title={m.quota_pools_detail_reserved_amount_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -168,7 +168,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			</span>
 		),
 		meta: {
-			label: m.quotas_detail_reserved_amount_column_header,
+			label: m.quota_pools_detail_reserved_amount_column_header,
 		},
 	}),
 	columnHelper.accessor("actualAmount", {
@@ -176,7 +176,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_detail_actual_amount_column_header()}
+				title={m.quota_pools_detail_actual_amount_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -185,7 +185,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			</span>
 		),
 		meta: {
-			label: m.quotas_detail_actual_amount_column_header,
+			label: m.quota_pools_detail_actual_amount_column_header,
 		},
 	}),
 	columnHelper.accessor("totalTokens", {
@@ -194,7 +194,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_events_tokens_column_header()}
+				title={m.quota_pools_events_tokens_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -203,7 +203,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			</span>
 		),
 		meta: {
-			label: m.quotas_events_tokens_column_header,
+			label: m.quota_pools_events_tokens_column_header,
 		},
 	}),
 	columnHelper.accessor("appRequestId", {
@@ -212,7 +212,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
-				title={m.quotas_detail_request_column_header()}
+				title={m.quota_pools_detail_request_column_header()}
 			/>
 		),
 		cell: ({ row }) => (
@@ -224,7 +224,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			</span>
 		),
 		meta: {
-			label: m.quotas_detail_request_column_header,
+			label: m.quota_pools_detail_request_column_header,
 		},
 	}),
 ]);

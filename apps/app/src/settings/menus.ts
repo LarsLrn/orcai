@@ -71,10 +71,10 @@ export const sidebarMenu: SidebarMenuItem[] = [
 				icon: UserCogIcon,
 			},
 			{
-				title: m.sidebar_menu_quotas_item,
+				title: m.sidebar_menu_quota_pools_item,
 				requires: "manage_quotas",
 				linkProps: {
-					to: "/app/quotas",
+					to: "/app/quota-pools",
 				},
 				icon: WalletIcon,
 			},

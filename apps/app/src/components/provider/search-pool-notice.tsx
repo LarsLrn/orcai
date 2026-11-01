@@ -13,7 +13,7 @@ export const SearchPoolNotice = ({
 	providerId: ProviderId | null;
 }) => {
 	const { data: pools } = useQuery(
-		orpc.quota.list.queryOptions({
+		orpc.quotaPool.list.queryOptions({
 			input: providerId
 				? {
 						pageIndex: 0,
@@ -37,7 +37,10 @@ export const SearchPoolNotice = ({
 			<AlertTitle>{m.providers_search_pool_notice_title()}</AlertTitle>
 			<AlertDescription>
 				{m.providers_search_pool_notice_description()}{" "}
-				<Link to="/app/quotas/add" className="underline underline-offset-3">
+				<Link
+					to="/app/quota-pools/add"
+					className="underline underline-offset-3"
+				>
 					{m.providers_search_pool_notice_action()}
 				</Link>
 			</AlertDescription>
