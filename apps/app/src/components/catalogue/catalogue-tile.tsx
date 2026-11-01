@@ -2,7 +2,7 @@ import type { CatalogueEntry } from "@orcai/schema";
 import { botContentsLabel, botModelHintBadge } from "@/components/bot/bot-tile";
 import { useCatalogueOrigin } from "@/components/catalogue/catalogue-browse";
 import { useActiveOrganizationName } from "@/components/catalogue/installer";
-import { SourceOrganizationName } from "@/components/catalogue/resource-provenance";
+import { HomeOrganizationName } from "@/components/catalogue/resource-provenance";
 import {
 	Tile,
 	TileBadges,
@@ -77,7 +77,7 @@ const CatalogueTile = ({ entry }: { entry: CatalogueEntry }) => {
 					) : null}
 				</TileTitle>
 				<TileProvenance>
-					<SourceOrganizationName organization={entry.source} />
+					<HomeOrganizationName organization={entry.homeOrganization} />
 				</TileProvenance>
 				<TileDescription>{entry.description}</TileDescription>
 				<TileFooter>

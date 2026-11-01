@@ -118,7 +118,7 @@ const CatalogueTeaser = ({ entry }: { entry: CatalogueEntry }) => (
 			<span className="block truncate text-muted-foreground text-xs">
 				{entry.description ? `${entry.description} ` : null}
 				{m.catalogue_from_organisation({
-					organisation: entry.source.name,
+					organisation: entry.homeOrganization.name,
 				})}
 			</span>
 		</span>

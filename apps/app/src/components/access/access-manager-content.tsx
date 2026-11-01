@@ -1,10 +1,10 @@
 import type {
+	HomeOrganization,
 	PrincipalType,
 	ResourceGrantRole,
 	ResourcePrincipal,
 	ResourcePrincipalIdentity,
 	ResourceRef,
-	SourceOrganization,
 } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import {
@@ -338,7 +338,7 @@ const InstalledAccessContent = ({
 	from,
 }: {
 	resourceRef: ResourceRef;
-	from: SourceOrganization;
+	from: HomeOrganization;
 }) => (
 	<div className="space-y-6">
 		<Alert>

@@ -62,7 +62,7 @@ export const findCatalogueTool = (deps: AssistantToolDeps) =>
 						kind: entry.kind === "behaviour" ? "template" : entry.kind,
 						name: entry.name,
 						description: entry.description,
-						from: entry.source.name,
+						from: entry.homeOrganization.name,
 						state: entry.state,
 						model: entry.modelHint,
 						assets: entry.assets,

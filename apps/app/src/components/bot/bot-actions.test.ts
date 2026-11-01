@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
-import type { SourceOrganization } from "@orcai/schema";
+import type { HomeOrganization } from "@orcai/schema";
 import type { Installer } from "@/components/catalogue/installer";
 
 // The real client resolves server configuration at import time.
@@ -16,11 +16,11 @@ const noop = () => undefined;
 const actionKeys = (
 	capabilities: Record<string, boolean>,
 	{
-		installedFrom = null,
+		homeOrganization = null,
 		installer,
 		ownerId = "owner-1" as UserId,
 	}: {
-		installedFrom?: SourceOrganization | null;
+		homeOrganization?: HomeOrganization | null;
 		installer?: Installer;
 		ownerId?: UserId;
 	} = {},
@@ -33,7 +33,7 @@ const actionKeys = (
 				owner: {
 					id: ownerId,
 				},
-				installedFrom,
+				homeOrganization,
 			},
 			{
 				onAccess: noop,
@@ -85,7 +85,7 @@ describe("botActions", () => {
 	});
 
 	test("a bot added from the catalogue is shared and removed by installers, never edited or deleted here", () => {
-		const installedFrom = {
+		const homeOrganization = {
 			id: "organization-1" as OrganizationId,
 			name: "Writing Centre",
 			logo: null,
@@ -97,12 +97,12 @@ describe("botActions", () => {
 		};
 		expect(
 			actionKeys(editor, {
-				installedFrom,
+				homeOrganization,
 			}),
 		).toEqual([]);
 		expect(
 			actionKeys(editor, {
-				installedFrom,
+				homeOrganization,
 				installer: {
 					organisation: "Methods Lab",
 				},
@@ -144,7 +144,7 @@ describe("botActions", () => {
 		expect(
 			actionKeys(owner, {
 				ownerId: viewerId,
-				installedFrom: {
+				homeOrganization: {
 					id: "organization-1" as OrganizationId,
 					name: "Writing Centre",
 					logo: null,

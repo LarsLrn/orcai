@@ -121,7 +121,7 @@ function RouteComponent() {
 						<FeatureBadges features={bot.data.features} className="contents" />
 						<ResourceProvenance
 							owner={bot.data.owner}
-							installedFrom={bot.data.installedFrom}
+							homeOrganization={bot.data.homeOrganization}
 						/>
 					</DetailHeaderMeta>
 					<HeaderActions
@@ -171,7 +171,7 @@ function RouteComponent() {
 				<div className="space-y-6">
 					<BotSetupSummary
 						botId={bot.data.id}
-						installed={bot.data.installedFrom !== null}
+						installed={bot.data.homeOrganization !== null}
 					/>
 					<MetadataCard
 						createdAt={bot.data.createdAt}

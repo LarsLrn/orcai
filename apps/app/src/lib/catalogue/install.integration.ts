@@ -762,7 +762,7 @@ describe("the library with installs", () => {
 					.then(({ data }) =>
 						data.map((block) => ({
 							id: block.id,
-							from: block.installedFrom?.id ?? null,
+							from: block.homeOrganization?.id ?? null,
 						})),
 					);
 			expect(await repositories("all")).toEqual([]);
@@ -898,7 +898,7 @@ describe("the catalogue", () => {
 					options,
 				),
 			);
-			expect(detail.source.id).toBe(s.home);
+			expect(detail.homeOrganization.id).toBe(s.home);
 			expect(detail.contents).toEqual({
 				behaviour: true,
 				repositories: 1,

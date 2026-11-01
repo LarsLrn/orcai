@@ -17,7 +17,7 @@ import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { repositoryTotals } from "@/lib/blocks/readiness";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
-import { installedFrom, type TileQuery } from "@/lib/library/tile-details";
+import { homeOrganizations, type TileQuery } from "@/lib/library/tile-details";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -52,7 +52,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 		})[];
 
 		const ids = blocks.map((block) => block.id);
-		const [capabilities, totals, sources] = yield* Effect.all(
+		const [capabilities, totals, homes] = yield* Effect.all(
 			[
 				getManyEntityCapabilities({
 					entityType: "block",
@@ -66,7 +66,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 						.filter((block) => block.type === "database")
 						.map((block) => block.id),
 				),
-				installedFrom("block", ids, reader.organizationId),
+				homeOrganizations("block", ids, reader.organizationId),
 			],
 			{
 				concurrency: "unbounded",
@@ -77,7 +77,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 			...block,
 			capabilities: capabilities.get(block.id) ?? emptyCapabilities("block"),
 			assets: block.type === "database" ? totals(block.id) : null,
-			installedFrom: sources(block.id),
+			homeOrganization: homes(block.id),
 		}));
 	});
 

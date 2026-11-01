@@ -37,7 +37,7 @@ type TileBlock = Pick<
 
 /** A block as library lists return it, with its tile details. */
 type BrowseBlock = TileBlock &
-	Pick<BlockListItem, "owner" | "assets" | "installedFrom">;
+	Pick<BlockListItem, "owner" | "assets" | "homeOrganization">;
 
 /** A repository's asset count, and badges for those still processing or failed. */
 const repositoryFooter = (
@@ -141,7 +141,7 @@ const BlockTile = ({ block }: { block: BrowseBlock }) => {
 					<TileProvenance>
 						<ResourceProvenance
 							owner={block.owner}
-							installedFrom={block.installedFrom}
+							homeOrganization={block.homeOrganization}
 						/>
 					</TileProvenance>
 				}

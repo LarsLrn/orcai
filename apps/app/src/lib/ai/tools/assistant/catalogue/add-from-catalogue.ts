@@ -50,7 +50,7 @@ export const addFromCatalogueTool = (deps: AssistantToolDeps) =>
 				return {
 					...entry,
 					name: found.name,
-					from: found.source.name,
+					from: found.homeOrganization.name,
 					added: data.changed,
 					addedBlocks: data.addedBlocks,
 				};

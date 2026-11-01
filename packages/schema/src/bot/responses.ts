@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import {
+	homeOrganizationSchema,
 	resourceOwnerSchema,
-	sourceOrganizationSchema,
 } from "../resource/schema";
 import {
 	createDataResponseSchema,
@@ -22,7 +22,7 @@ export const findBotResponseSchema = createDataResponseSchema(
 	botWithBlocksSchema.extend({
 		owner: resourceOwnerSchema,
 		/** Set when the active organisation added the bot from the catalogue. */
-		installedFrom: sourceOrganizationSchema.nullable(),
+		homeOrganization: homeOrganizationSchema.nullable(),
 	}),
 );
 

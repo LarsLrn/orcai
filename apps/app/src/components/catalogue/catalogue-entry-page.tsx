@@ -18,7 +18,7 @@ import {
 	useActiveOrganizationName,
 	useInstaller,
 } from "@/components/catalogue/installer";
-import { SourceOrganizationName } from "@/components/catalogue/resource-provenance";
+import { HomeOrganizationName } from "@/components/catalogue/resource-provenance";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -316,7 +316,7 @@ export const CatalogueEntryPage = ({
 					<DetailHeaderTitle>{entry.name}</DetailHeaderTitle>
 					<DetailHeaderMeta>
 						<Badge variant={badge}>{label()}</Badge>
-						<SourceOrganizationName organization={entry.source} />
+						<HomeOrganizationName organization={entry.homeOrganization} />
 						<ResourceOwner owner={entry.owner} />
 					</DetailHeaderMeta>
 					<HeaderActions

@@ -211,7 +211,7 @@ const entryStates = (ids: readonly string[], organizationId: OrganizationId) =>
 		};
 	});
 
-const sourceColumns = {
+const homeOrganizationColumns = {
 	id: dbSchema.organization.id,
 	name: dbSchema.organization.name,
 	logo: dbSchema.organization.logo,
@@ -245,7 +245,7 @@ const hydrate = (
 								description: dbSchema.bot.description,
 								createdAt: dbSchema.bot.createdAt,
 								owner: ownerColumns,
-								source: sourceColumns,
+								homeOrganization: homeOrganizationColumns,
 								strength: dbSchema.botSetup.strength,
 								modelName: dbSchema.model.name,
 							})
@@ -281,7 +281,7 @@ const hydrate = (
 								description: dbSchema.block.description,
 								createdAt: dbSchema.block.createdAt,
 								owner: ownerColumns,
-								source: sourceColumns,
+								homeOrganization: homeOrganizationColumns,
 							})
 							.from(dbSchema.block)
 							.innerJoin(
@@ -438,7 +438,7 @@ export const catalogueCounts = (search: string | undefined) =>
 				}),
 				organizations: db
 					.select({
-						...sourceColumns,
+						...homeOrganizationColumns,
 						entries: count(),
 					})
 					.from(all)

@@ -229,8 +229,8 @@ export const resourceOwnerSchema = z.object({
 	image: z.string().nullable(),
 });
 
-/** The organisation a resource added from the catalogue comes from: its home. */
-export const sourceOrganizationSchema = z.object({
+/** The organisation that made a resource and the only one that edits it. */
+export const homeOrganizationSchema = z.object({
 	id: organizationIdSchema,
 	name: z.string(),
 	/** The app path of the logo. */
@@ -296,7 +296,7 @@ export type ListingImpact = z.infer<typeof listingImpactSchema>;
 export type PrincipalType = z.infer<typeof principalTypeSchema>;
 export type ResourceGrantOrigin = z.infer<typeof resourceGrantOriginSchema>;
 export type ResourceOwner = z.infer<typeof resourceOwnerSchema>;
-export type SourceOrganization = z.infer<typeof sourceOrganizationSchema>;
+export type HomeOrganization = z.infer<typeof homeOrganizationSchema>;
 export type DirectGrantOrigin = z.infer<typeof directGrantOriginSchema>;
 export type ResourceRef = z.infer<typeof resourceRefSchema>;
 export type ResourceIdentity = z.infer<typeof resourceIdentitySchema>;

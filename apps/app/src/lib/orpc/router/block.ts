@@ -25,7 +25,7 @@ import {
 } from "@/lib/blocks/readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
-import { installedFrom } from "@/lib/library/tile-details";
+import { homeOrganizations } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
 import {
 	type CheckManyPermissionInputFor,
@@ -88,7 +88,7 @@ const findBlock = authed.block.find
 			);
 		}
 
-		const [capabilities, sources] = yield* Effect.all(
+		const [capabilities, homes] = yield* Effect.all(
 			[
 				getEntityCapabilities({
 					entityType: "block",
@@ -97,7 +97,7 @@ const findBlock = authed.block.find
 					organizationId: context.auth.session.activeOrganizationId,
 					zedToken: getZedToken(context, input),
 				}),
-				installedFrom(
+				homeOrganizations(
 					"block",
 					[
 						input.id,
@@ -112,7 +112,7 @@ const findBlock = authed.block.find
 		const found = {
 			...block,
 			capabilities,
-			installedFrom: sources(block.id),
+			homeOrganization: homes(block.id),
 		};
 
 		if (block.type === "database") {

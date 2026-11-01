@@ -1,6 +1,6 @@
 import type { BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { BotListItem, SourceOrganization } from "@orcai/schema";
+import type { BotListItem, HomeOrganization } from "@orcai/schema";
 import { and, eq, inArray, isNull, not, type SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
@@ -99,14 +99,14 @@ export const botDetails = (
  * For each resource the organisation added from the catalogue, the
  * organisation it comes from, as a lookup by id; null for the rest.
  */
-export const installedFrom = (
+export const homeOrganizations = (
 	resourceType: "bot" | "block",
 	ids: readonly string[],
 	organizationId: OrganizationId | undefined,
 ) =>
 	Effect.gen(function* () {
-		const sources = new Map<string, SourceOrganization>();
-		const lookup = (id: string) => sources.get(id) ?? null;
+		const homes = new Map<string, HomeOrganization>();
+		const lookup = (id: string) => homes.get(id) ?? null;
 		if (ids.length === 0 || !organizationId) return lookup;
 		const home = dbSchema.resourceScope;
 		const install = alias(dbSchema.resourceScope, "install");
@@ -142,7 +142,7 @@ export const installedFrom = (
 					isNull(install.endedAt),
 				),
 			);
-		for (const { resourceId, ...source } of rows)
-			sources.set(resourceId, source);
+		for (const { resourceId, ...organization } of rows)
+			homes.set(resourceId, organization);
 		return lookup;
 	});

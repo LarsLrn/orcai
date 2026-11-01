@@ -1,7 +1,7 @@
 import type {
 	BotWithCapabilities,
+	HomeOrganization,
 	ResourceOwner,
-	SourceOrganization,
 } from "@orcai/schema";
 import { useRouteContext } from "@tanstack/react-router";
 import {
@@ -28,7 +28,7 @@ import { m } from "@/paraglide/messages";
 
 type ActionBot = Pick<BotWithCapabilities, "id" | "name" | "capabilities"> & {
 	owner: Pick<ResourceOwner, "id">;
-	installedFrom: SourceOrganization | null;
+	homeOrganization: HomeOrganization | null;
 };
 
 /**
@@ -38,7 +38,7 @@ type ActionBot = Pick<BotWithCapabilities, "id" | "name" | "capabilities"> & {
  * use and removes it.
  */
 const botActions = (
-	bot: Pick<ActionBot, "id" | "capabilities" | "owner" | "installedFrom">,
+	bot: Pick<ActionBot, "id" | "capabilities" | "owner" | "homeOrganization">,
 	{
 		onAccess,
 		onHandOver,
@@ -61,7 +61,7 @@ const botActions = (
 	"edit" | "access" | "handOver" | "delete" | "remove",
 	HeaderAction | false
 > => {
-	const installed = bot.installedFrom !== null;
+	const installed = bot.homeOrganization !== null;
 	const home = installed ? undefined : bot.capabilities;
 	return {
 		edit: hasCapability(home, "edit") && {
@@ -133,7 +133,7 @@ const useBotActions = (
 		{
 			enabled:
 				listing &&
-				bot.installedFrom === null &&
+				bot.homeOrganization === null &&
 				hasCapability(bot.capabilities, "manage_access"),
 		},
 	);
@@ -144,7 +144,7 @@ const useBotActions = (
 		},
 		bot.name,
 		{
-			enabled: listing && bot.installedFrom !== null,
+			enabled: listing && bot.homeOrganization !== null,
 			overflow: true,
 		},
 	);
@@ -213,7 +213,7 @@ const useBotActions = (
 							id: bot.id,
 						}}
 						resourceName={bot.name}
-						installedFrom={bot.installedFrom}
+						homeOrganization={bot.homeOrganization}
 					/>
 				) : null}
 				{actions.handOver ? (

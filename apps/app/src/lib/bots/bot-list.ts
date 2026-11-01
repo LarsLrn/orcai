@@ -18,7 +18,7 @@ import { favouriteOf, isFavourite } from "@/lib/bots/bot-favourites";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
 import {
 	botDetails,
-	installedFrom,
+	homeOrganizations,
 	type TileQuery,
 } from "@/lib/library/tile-details";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
@@ -61,7 +61,7 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 			: select;
 
 		const ids = rows.map((bot) => bot.id);
-		const [capabilities, details, sources] = yield* Effect.all(
+		const [capabilities, details, homes] = yield* Effect.all(
 			[
 				getManyEntityCapabilities({
 					entityType: "bot",
@@ -71,7 +71,7 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 					zedToken: reader.zedToken,
 				}),
 				botDetails(ids, reader.organizationId),
-				installedFrom("bot", ids, reader.organizationId),
+				homeOrganizations("bot", ids, reader.organizationId),
 			],
 			{
 				concurrency: "unbounded",
@@ -83,7 +83,7 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 			contentJson: bot.contentJson as Bot["contentJson"],
 			capabilities: capabilities.get(bot.id) ?? emptyCapabilities("bot"),
 			...details(bot.id),
-			installedFrom: sources(bot.id),
+			homeOrganization: homes(bot.id),
 		}));
 	});
 
