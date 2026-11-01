@@ -45,6 +45,12 @@ export const resourceListingImpactInputSchema = resourceIdentitySchema;
 
 export const resourceGetVisibilityInputSchema = resourceIdentitySchema;
 
+/** Resources by id, of which only those the user can read come back. */
+export const resourceFindManyInputSchema = z.object({
+	resources: z.array(resourceIdentitySchema).min(1).max(50),
+	...zedTokenSchema.shape,
+});
+
 export const resourceListRecentInputSchema = z.object({
 	limit: z.number().int().positive().max(20).default(8),
 	...zedTokenSchema.shape,

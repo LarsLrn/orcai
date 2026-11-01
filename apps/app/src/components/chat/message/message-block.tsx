@@ -10,6 +10,10 @@ import {
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { TurnZedTokenContext } from "@/components/assistant/tool-summary-line";
+import {
+	useWrittenResources,
+	WrittenResourcesContext,
+} from "@/components/assistant/written-resources";
 import { MessageBranches } from "@/components/chat/branch-links";
 import { ActivityLine } from "@/components/chat/message/work-log/activity-line";
 import {
@@ -103,6 +107,10 @@ export const MessageBlock = ({
 			message,
 		],
 	);
+	const writtenResources = useWrittenResources(
+		answer,
+		message.metadata?.zedToken,
+	);
 
 	const showSteps = () => {
 		setWorkLogOpen(true);
@@ -133,62 +141,64 @@ export const MessageBlock = ({
 				className="grid grid-cols-1"
 			>
 				<TurnZedTokenContext value={message.metadata?.zedToken}>
-					<CitationsContext value={citations}>
-						<MessageContent>
-							<ChatMessageAttachments attachments={messageAttachments} />
-							{workLog.length > 0 && (
-								<WorkLog
-									ref={workLogRef}
-									entries={workLog}
-									running={running}
-									activity={activity}
-									open={workLogOpen}
-									onOpenChange={setWorkLogOpen}
-									activityRef={activityRef}
-								/>
-							)}
-							{answer.map((part, i) => (
-								<MessagePartRenderer
-									key={`${part.part.type}${message.id}${i}`}
-									answer={part}
-									running={running}
-								/>
-							))}
-							{!running && <MessageSources sources={webSources} />}
-							{(missing === "step-limit" || missing === "no-answer") && (
-								<p className="text-muted-foreground text-sm">
-									{missing === "step-limit"
-										? m.chat_reply_step_limit()
-										: m.chat_reply_no_answer()}
-								</p>
-							)}
-							{view.canContinue && answers && (
-								<Button
-									variant="outline"
-									size="sm"
-									className="w-fit"
-									onClick={() => void answers.continue()}
-								>
-									<PlayIcon data-icon="inline-start" />
-									{m.assistant_turn_continue_action()}
-								</Button>
-							)}
-							{running && (
-								<ActivityLine
-									label={activity ? activityLabel(activity) : null}
-									shown={
-										workLog.length === 0 ||
-										!activityInView ||
-										answer.some(
-											(part) =>
-												part.kind === "display" || part.kind === "client",
-										)
-									}
-									onShowSteps={workLog.length > 0 ? showSteps : undefined}
-								/>
-							)}
-						</MessageContent>
-					</CitationsContext>
+					<WrittenResourcesContext value={writtenResources}>
+						<CitationsContext value={citations}>
+							<MessageContent>
+								<ChatMessageAttachments attachments={messageAttachments} />
+								{workLog.length > 0 && (
+									<WorkLog
+										ref={workLogRef}
+										entries={workLog}
+										running={running}
+										activity={activity}
+										open={workLogOpen}
+										onOpenChange={setWorkLogOpen}
+										activityRef={activityRef}
+									/>
+								)}
+								{answer.map((part, i) => (
+									<MessagePartRenderer
+										key={`${part.part.type}${message.id}${i}`}
+										answer={part}
+										running={running}
+									/>
+								))}
+								{!running && <MessageSources sources={webSources} />}
+								{(missing === "step-limit" || missing === "no-answer") && (
+									<p className="text-muted-foreground text-sm">
+										{missing === "step-limit"
+											? m.chat_reply_step_limit()
+											: m.chat_reply_no_answer()}
+									</p>
+								)}
+								{view.canContinue && answers && (
+									<Button
+										variant="outline"
+										size="sm"
+										className="w-fit"
+										onClick={() => void answers.continue()}
+									>
+										<PlayIcon data-icon="inline-start" />
+										{m.assistant_turn_continue_action()}
+									</Button>
+								)}
+								{running && (
+									<ActivityLine
+										label={activity ? activityLabel(activity) : null}
+										shown={
+											workLog.length === 0 ||
+											!activityInView ||
+											answer.some(
+												(part) =>
+													part.kind === "display" || part.kind === "client",
+											)
+										}
+										onShowSteps={workLog.length > 0 ? showSteps : undefined}
+									/>
+								)}
+							</MessageContent>
+						</CitationsContext>
+					</WrittenResourcesContext>
 				</TurnZedTokenContext>
 				<MessageToolbar>
 					<MessageActions

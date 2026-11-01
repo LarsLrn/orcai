@@ -38,4 +38,9 @@ export const updateBot = declareTool<typeof updateBotTool>()({
 					]),
 				});
 	},
+	written: ({ id, name }) => ({
+		kind: "bot",
+		id,
+		name,
+	}),
 });

@@ -22,4 +22,9 @@ export const createBehaviour = declareTool<typeof createBehaviourTool>()({
 				})
 			: m.assistant_tool_create_behaviour_name();
 	},
+	written: ({ id, name }) => ({
+		kind: "behaviour",
+		id,
+		name,
+	}),
 });

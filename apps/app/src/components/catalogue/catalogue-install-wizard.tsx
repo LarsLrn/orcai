@@ -31,7 +31,8 @@ import {
 } from "@/components/ui/card";
 import { hasCapability } from "@/lib/authz/capabilities";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
-import { cataloguePaths, libraryLink } from "@/lib/navigation/catalogue-paths";
+import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
+import { libraryLink } from "@/lib/navigation/library-link";
 import { orpc } from "@/lib/orpc/orpc";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { catalogueEntryRef } from "@/lib/router/catalogue-entry-loader";

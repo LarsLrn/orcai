@@ -38,4 +38,9 @@ export const updateRepository = declareTool<typeof updateRepositoryTool>()({
 					]),
 				});
 	},
+	written: ({ id, name }) => ({
+		kind: "repository",
+		id,
+		name,
+	}),
 });

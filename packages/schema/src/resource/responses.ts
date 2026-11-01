@@ -6,6 +6,7 @@ import {
 import {
 	inheritedAccessSchema,
 	listingImpactSchema,
+	namedResourceSchema,
 	recentResourceSchema,
 	resourceGrantSchema,
 	resourcePrincipalSchema,
@@ -36,6 +37,9 @@ export const resourceRevokeResponseSchema = statusResponseSchema;
 export const resourceGetVisibilityResponseSchema = createDataResponseSchema(
 	resourceVisibilityDataSchema,
 );
+
+export const resourceFindManyResponseSchema =
+	createListResponseSchema(namedResourceSchema);
 
 export const resourceListRecentResponseSchema =
 	createListResponseSchema(recentResourceSchema);

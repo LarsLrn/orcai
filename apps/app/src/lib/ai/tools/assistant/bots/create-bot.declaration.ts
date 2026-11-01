@@ -22,4 +22,9 @@ export const createBot = declareTool<typeof createBotTool>()({
 				})
 			: m.assistant_tool_create_bot_name();
 	},
+	written: ({ id, name }) => ({
+		kind: "bot",
+		id,
+		name,
+	}),
 });

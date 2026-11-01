@@ -185,6 +185,45 @@ const updatePlan = (
 			: {}),
 	}) as unknown as ToolPart;
 
+const writeBot = (
+	tool: "createBot" | "updateBot",
+	name: string,
+	state = "output-available",
+) =>
+	({
+		type: `tool-${tool}`,
+		toolCallId: `${tool}-${name}`,
+		state,
+		input: {
+			id: "bot-1",
+			name,
+		},
+		...(state === "output-available"
+			? {
+					output: {
+						type: "bot",
+						id: "bot-1",
+						name,
+					},
+				}
+			: {}),
+	}) as unknown as ToolPart;
+
+const updateAsset = () =>
+	({
+		type: "tool-updateAsset",
+		toolCallId: "asset-1",
+		state: "output-available",
+		input: {
+			id: "asset-1",
+		},
+		output: {
+			type: "asset",
+			id: "asset-1",
+			title: "Style guide",
+		},
+	}) as unknown as ToolPart;
+
 const reply = (
 	parts: MessagePart[],
 	metadata: {
@@ -1149,6 +1188,141 @@ describe("questions", () => {
 			kind: "client",
 			status: "running",
 		});
+	});
+});
+
+describe("resource cards", () => {
+	const cards = (message: MessageView) =>
+		message.answer.flatMap((answer) =>
+			answer.kind === "resource"
+				? [
+						answer.resource,
+					]
+				: [],
+		);
+
+	test("a call that wrote a resource stays in the work log and shows a card in the answer", () => {
+		const message = view([
+			text("Creating it"),
+			writeBot("createBot", "Tutor"),
+			text("Done"),
+		]);
+
+		expect(entryTypes(message)).toEqual([
+			"text",
+			"tool-createBot",
+		]);
+		expect(message.answer.map((answer) => answer.kind)).toEqual([
+			"resource",
+			"text",
+		]);
+		expect(cards(message)).toEqual([
+			{
+				kind: "bot",
+				id: "bot-1",
+				name: "Tutor",
+			},
+		]);
+	});
+
+	test("an asset card is named by its title", () => {
+		expect(
+			cards(
+				view([
+					updateAsset(),
+				]),
+			),
+		).toEqual([
+			{
+				kind: "asset",
+				id: "asset-1",
+				name: "Style guide",
+			},
+		]);
+	});
+
+	test("one card per resource, where it first appears, as it was last written", () => {
+		const message = view([
+			writeBot("createBot", "Tutor"),
+			updateAsset(),
+			writeBot("updateBot", "Writing tutor"),
+			text("Done"),
+		]);
+
+		expect(cards(message)).toEqual([
+			{
+				kind: "bot",
+				id: "bot-1",
+				name: "Writing tutor",
+			},
+			{
+				kind: "asset",
+				id: "asset-1",
+				name: "Style guide",
+			},
+		]);
+	});
+
+	test("a card settles once the turn has ended and stored its writes", () => {
+		const parts = [
+			writeBot("createBot", "Tutor"),
+		];
+		const settled = (message: MessageView) =>
+			message.answer.map((answer) =>
+				answer.kind === "resource" ? answer.settled : undefined,
+			);
+
+		expect(settled(streaming(parts))).toEqual([
+			false,
+		]);
+		expect(
+			settled(
+				view(parts, {
+					phase: "storing",
+				}),
+			),
+		).toEqual([
+			false,
+		]);
+		expect(settled(view(parts))).toEqual([
+			true,
+		]);
+		expect(
+			settled(
+				view(parts, {
+					phase: "streaming",
+					latest: false,
+				}),
+			),
+		).toEqual([
+			true,
+		]);
+	});
+
+	test("an unfinished call shows no card", () => {
+		expect(
+			cards(
+				streaming([
+					writeBot("createBot", "Tutor", "input-available"),
+				]),
+			),
+		).toEqual([]);
+	});
+
+	test("a finished turn with only cards shows its last text before them", () => {
+		const message = view([
+			text("Creating the bot"),
+			writeBot("createBot", "Tutor"),
+		]);
+
+		expect(entryKinds(message)).toEqual([
+			"tool",
+		]);
+		expect(message.answer.map((answer) => answer.kind)).toEqual([
+			"text",
+			"resource",
+		]);
+		expect(message.missing).toBeUndefined();
 	});
 });
 

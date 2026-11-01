@@ -55,6 +55,7 @@ import type {
 	ToolCall,
 	ToolDeclaration,
 	ToolKind,
+	WrittenResource,
 } from "./declaration";
 import { readDocs } from "./docs/read-docs.declaration";
 import type { EntityRef } from "./entity-kind";
@@ -309,6 +310,24 @@ export const toolCallMarkdown = (part: {
 			input: part.input,
 			output: part.output,
 		});
+	} catch {
+		return undefined;
+	}
+};
+
+/** The resource a finished call wrote; undefined for other calls and calls that do not fit. */
+export const writtenResource = (part: {
+	type: string;
+	state?: string;
+	output?: unknown;
+}): WrittenResource | undefined => {
+	const written = partDeclaration(part)?.written;
+
+	if (!written || part.state !== "output-available") {
+		return undefined;
+	}
+	try {
+		return written(part.output);
 	} catch {
 		return undefined;
 	}

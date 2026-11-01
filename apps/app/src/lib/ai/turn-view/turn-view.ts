@@ -1,4 +1,5 @@
 import { compactionSource, isCompactionPart } from "@orcai/core";
+import type { WrittenResource } from "@/lib/ai/tools/declaration";
 import {
 	type ClientToolName,
 	isConversationalTool,
@@ -6,6 +7,7 @@ import {
 	type ToolName,
 	type ToolNameOf,
 	toolNameOf,
+	writtenResource,
 } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import {
@@ -118,7 +120,21 @@ export type AnswerPart =
 			part: ClientToolPart;
 			status: ToolStatus | null;
 			answerable: boolean;
+	  }
+	| {
+			kind: "resource";
+			part: ToolPart;
+			resource: WrittenResource;
+			/** The turn ended and its writes are visible to later reads. */
+			settled: boolean;
 	  };
+
+type ResourceAnswer = Extract<
+	AnswerPart,
+	{
+		kind: "resource";
+	}
+>;
 
 /** What a running turn is doing while no answer text streams. */
 export type Activity =
@@ -283,6 +299,26 @@ const missingAnswer = (
 	return message.metadata?.stepLimitReached ? "step-limit" : "no-answer";
 };
 
+const resourceKey = ({ resource }: ResourceAnswer) =>
+	`${resource.kind}:${resource.id}`;
+
+/** One card per resource, where it first appears, as it was last written. */
+const resourcesOnce = (answer: readonly AnswerPart[]) => {
+	const latest = new Map<string, ResourceAnswer>();
+	for (const part of answer) {
+		if (part.kind === "resource") latest.set(resourceKey(part), part);
+	}
+
+	const shown = new Set<string>();
+	return answer.flatMap((part) => {
+		if (part.kind !== "resource") return part;
+		const key = resourceKey(part);
+		if (shown.has(key)) return [];
+		shown.add(key);
+		return latest.get(key) ?? part;
+	});
+};
+
 /** The step under way, if the work log ends on one. */
 const activeStep = (entries: readonly WorkEntry[]): Activity | undefined => {
 	const last = entries.at(-1);
@@ -304,8 +340,10 @@ const activeStep = (entries: readonly WorkEntry[]): Activity | undefined => {
 /**
  * Splits a message's parts into the work log and the answer, both in stream
  * order. Text right before a working tool call is progress and goes to the
- * work log; other text and display primitives are the answer. A finished
- * turn whose answer would be empty shows its last text as the answer.
+ * work log; other text and display primitives are the answer. A call that
+ * wrote a library resource stays in the work log and shows the resource as a
+ * card in the answer, once per resource, settled once the chat is idle. A finished turn whose answer would
+ * hold no more than cards shows its last text as the answer.
  * A paused step's text and the calls it waits on, client calls included, are
  * the answer too, except a plan, which the plan panel approves. Questions stay
  * in the answer once answered.
@@ -389,6 +427,15 @@ const viewMessage = (
 				answerable: false,
 			};
 		}
+		const resource = writtenResource(part);
+		if (resource) {
+			return {
+				kind: "resource",
+				part,
+				resource,
+				settled: !latest || canAnswer(phase),
+			};
+		}
 		return isAnswerDisplayPart(part)
 			? {
 					kind: "display",
@@ -397,9 +444,19 @@ const viewMessage = (
 			: undefined;
 	};
 
-	let answer = parts.flatMap((part, index) => answerPartOf(part, index) ?? []);
+	const answerAt = parts.flatMap((part, index) => {
+		const answer = answerPartOf(part, index);
+		return answer
+			? [
+					{
+						index,
+						answer,
+					},
+				]
+			: [];
+	});
 
-	if (!running && answer.length === 0) {
+	if (!running && answerAt.every(({ answer }) => answer.kind === "resource")) {
 		const index = parts.reduce(
 			(found, part, at) =>
 				part.type === "text" && !isBlankText(part) ? at : found,
@@ -408,14 +465,18 @@ const viewMessage = (
 		const lastText = parts[index];
 		if (lastText?.type === "text") {
 			interim.delete(index);
-			answer = [
-				{
+			answerAt.push({
+				index,
+				answer: {
 					kind: "text",
 					part: lastText,
 				},
-			];
+			});
+			answerAt.sort((a, b) => a.index - b.index);
 		}
 	}
+
+	const answer = resourcesOnce(answerAt.map(({ answer }) => answer));
 
 	const workLog: WorkEntry[] = [];
 	parts.forEach((part, index) => {

@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import type { z } from "zod/v4";
 import type { Source } from "@/lib/ai/citations/source-ref";
 import { formatList } from "@/lib/presentation/format-list";
+import type { ResourceKind } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 import type { EntityKind, EntityRef } from "./entity-kind";
 
@@ -36,6 +37,13 @@ export type ConfirmationVerb =
 
 /** Looked-up name, or a placeholder while loading or when it cannot be read. */
 export type NameOf = (ref: EntityRef) => string;
+
+/** A library resource a call created or changed. */
+export interface WrittenResource {
+	kind: ResourceKind;
+	id: string;
+	name: string;
+}
 
 /** A call whose input is complete, as its summary reads it; `output` once it ran. */
 export interface ToolCall<Input, Output> {
@@ -72,6 +80,8 @@ export interface ToolDeclaration<Input = unknown, Output = unknown> {
 	refs?(call: ToolCall<Input, Output>): EntityRef[];
 	/** The one line, such as "Delete bot “Citation check”". */
 	line?(call: ToolCall<Input, Output>, nameOf: NameOf): string;
+	/** The resource the call wrote, which the answer shows as a card. */
+	written?(output: Output): WrittenResource;
 }
 
 type BuiltTool = Tool | ((...args: never[]) => Tool);
