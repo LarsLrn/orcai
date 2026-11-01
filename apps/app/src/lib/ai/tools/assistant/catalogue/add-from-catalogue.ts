@@ -24,7 +24,7 @@ const installInputSchema = z.strictObject({
 export const addFromCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Add a bot, template or repository from the catalogue to the active organisation's library. Never for files: new files come in through requestUpload. Nobody there can use it until it is shared with grantAccess, for use only (viewer). Set an added bot's model here with updateBotSetup. Adding what the organisation has already changes nothing; with withBlocks, blocks it has already are skipped.",
+			"Add a bot, behaviour or repository from the Catalogue to the active organisation's Library. For new files, use requestUpload instead. Nobody in the organisation can use it until it is shared with grantAccess, for use only (role viewer). Set an added bot's model with updateBotSetup. Adding what the organisation has already changes nothing, and with withBlocks the blocks it has already are skipped.",
 		inputSchema: installInputSchema,
 		run: ({ entry, withBlocks }) =>
 			Effect.gen(function* () {

@@ -11,7 +11,7 @@ import {
 export const addGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Add members of the active organisation to a custom group, by user id (from listMembers). They gain the access the group holds.",
+			"Add members of the active organisation to a custom group, by user id from listMembers. They gain the access the group holds.",
 		inputSchema: addGroupMembersInputSchema.strict(),
 		run: (input) =>
 			callProcedure(deps, (procedures, options) =>

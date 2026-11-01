@@ -12,7 +12,7 @@ import { botOutline } from "./bot-outline";
 export const publishBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Publish a draft bot so its audience can chat with it. Needs a ready behaviour block, and every linked repository ready with at least one asset; otherwise the error names what is missing.",
+			"Publish a draft bot so the people it is shared with can chat with it. It needs a published behaviour, and every linked repository published with at least one asset. Otherwise the error names what is missing.",
 		inputSchema: publishBotInputSchema.strict(),
 		run: ({ id }) =>
 			callProcedure(deps, (procedures, options) =>

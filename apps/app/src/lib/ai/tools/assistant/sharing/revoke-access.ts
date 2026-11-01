@@ -23,7 +23,7 @@ const revokeAccessInputSchema = z.strictObject({
 export const revokeAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Remove one user's or group's direct grant on a bot, block or asset. Access they have through a group or a bot above stays. The last manager cannot be removed.",
+			"Remove one user's or group's direct grant on a bot, block or asset. Access they have through a group, or through a bot or block it belongs to, stays. The last manager keeps the role.",
 		inputSchema: revokeAccessInputSchema,
 		run: ({ granteeType, granteeId, ...target }) =>
 			Effect.gen(function* () {

@@ -22,14 +22,14 @@ import {
 } from "./block-outline";
 
 export const createRepositoryInputSchema = z.strictObject({
-	name: z.string().min(1),
+	name: z.string().min(1).describe("The repository's name, a few words."),
 	description: blockFieldsSchema.shape.description
 		.unwrap()
 		.optional()
 		.describe("Short plain-text description, up to 500 characters."),
 	status: publicationStatusSchema
 		.optional()
-		.describe("ready makes it available to bots. Defaults to draft."),
+		.describe("ready: Published, so bots can use it. Defaults to draft."),
 	assetIds: z
 		.array(assetIdSchema)
 		.optional()
@@ -41,7 +41,7 @@ export const createRepositoryInputSchema = z.strictObject({
 export const createRepositoryTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Create a new repository (database block) with the default retrieval settings, optionally holding assets. To change an existing one, use updateRepository.",
+			"Create a new repository with the default retrieval settings, optionally holding Library assets. To change an existing one, use updateRepository.",
 		inputSchema: createRepositoryInputSchema,
 		run: (input, { toolCallId }) =>
 			createOnce(

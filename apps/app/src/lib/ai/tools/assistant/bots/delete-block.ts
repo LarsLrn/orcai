@@ -10,14 +10,14 @@ const deleteBlockInputSchema = z.strictObject({
 		.min(1)
 		.max(20)
 		.describe(
-			"Ids of the behaviour blocks or repositories to delete, from findBlocks or getBot.",
+			"Ids of the behaviours or repositories to delete, from findBlocks or getBot.",
 		),
 });
 
 export const deleteBlockTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Delete behaviour blocks or repositories for good; bots using them lose the link, the assets in a repository stay. Skips blocks the user may not delete.",
+			"Delete behaviours or repositories for good. Bots using them lose the link, and the assets in a repository stay in the Library. Skips blocks the user may not delete.",
 		inputSchema: deleteBlockInputSchema,
 		run: ({ ids }) =>
 			deleteNamed(deps, ids, {

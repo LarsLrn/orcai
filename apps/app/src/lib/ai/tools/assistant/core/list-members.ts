@@ -20,7 +20,7 @@ const listMembersInputSchema = z.strictObject({
 export const listMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"List the members of the active organisation with their names, emails and organisation roles.",
+			"List the members of the active organisation with their names, emails and organisation roles. Use it to find the user id the people tools take.",
 		inputSchema: listMembersInputSchema,
 		run: ({ query, limit }) =>
 			callProcedure(deps, (procedures, options) =>

@@ -206,7 +206,7 @@ describe("getBlock", () => {
 				id: missing,
 			}),
 		).rejects.toThrow(
-			`BLOCK_NOT_FOUND: No template or repository with id ${missing}`,
+			`BLOCK_NOT_FOUND: No behaviour or repository with id ${missing}`,
 		);
 	});
 });

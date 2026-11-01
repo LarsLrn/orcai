@@ -12,7 +12,7 @@ import {
 
 const getBlockInputSchema = z.strictObject({
 	id: blockIdSchema.describe(
-		"Id of the AI behaviour (template) or repository, from findBlocks or getBot.",
+		"Id of the behaviour or repository, from findBlocks or getBot.",
 	),
 });
 
@@ -32,12 +32,12 @@ const readinessOf = (deps: AssistantToolDeps, repositoryId: BlockId) =>
 export const getBlockTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Read one AI behaviour (template) or repository by id: name, description, status and what the user may do with it. A template comes with its system prompt; a repository with its document totals and each attached asset's state there: queued, processing, indexing, ready or failed (with the failed stage and reason). Only ready documents are searchable.",
+			"Read one behaviour or repository by id: name, description, status and what the user may do with it. A behaviour (type template) comes with its system prompt. A repository comes with its asset totals and each asset's preparation state there: queued, processing, indexing, ready or failed, with the failed stage and reason. Only ready assets are searchable.",
 		inputSchema: getBlockInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {
 				const notFound = new AssistantToolError(
-					`BLOCK_NOT_FOUND: No template or repository with id ${id} that the user can read. Look ids up with findBlocks; bot ids belong to getBot.`,
+					`BLOCK_NOT_FOUND: No behaviour or repository with id ${id} that the user can read. Look ids up with findBlocks; bot ids belong to getBot.`,
 				);
 
 				const { data: block } = yield* callProcedure(

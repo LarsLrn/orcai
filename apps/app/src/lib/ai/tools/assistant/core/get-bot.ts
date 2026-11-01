@@ -17,7 +17,7 @@ const getBotInputSchema = z.strictObject({
 export const getBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Read one bot: its name, description, status, features, linked AI behaviour (template) and repositories, its model in the active organisation (with quota coverage for its editors), and what the user may do with it.",
+			"Read one bot: its name, description, status, features, behaviour and repositories, its model in the active organisation (with quota pool coverage for its editors), and what the user may do with it.",
 		inputSchema: getBotInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {

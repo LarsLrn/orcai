@@ -50,7 +50,7 @@ export const inviteMembers = (
 export const inviteMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Invite people by email to join the active organisation with a role. Each gets an email with a registration link that is valid for 7 days.",
+			"Invite people by email to join the active organisation with a role. Each gets an email with a link to join that is valid for 7 days.",
 		inputSchema: inviteMembersInputSchema,
 		run: (input, { toolCallId }) =>
 			createOnce(

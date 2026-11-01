@@ -18,7 +18,7 @@ const updateBotSetupInputSchema = z.strictObject({
 export const updateBotSetupTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Set or remove a bot's model in the active organisation, with how many of its audience a quota pool covers. Works for bots added from the catalogue, whose definition only their home organisation changes; for the user's own bots updateBot does the same with other changes.",
+			"Set or remove a bot's model in the active organisation, with how many of its audience a quota pool covers. It works for bots added from the Catalogue, which only their home organisation edits. For the organisation's own bots, updateBot does the same alongside other changes.",
 		inputSchema: updateBotSetupInputSchema,
 		run: ({ id, setup }) =>
 			Effect.gen(function* () {

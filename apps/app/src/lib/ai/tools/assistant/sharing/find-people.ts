@@ -32,7 +32,7 @@ const findPeopleInputSchema = z.strictObject({
 export const findPeopleTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find the users and groups that could be given access to a bot, block or asset, by name. Use it to resolve names to ids before grantAccess. Needs manage access on the resource.",
+			"Find the users and groups that could be given access to a bot, block or asset, by name. Use it to resolve names to ids before grantAccess. The user needs Can manage on the item.",
 		inputSchema: findPeopleInputSchema,
 		run: ({ granteeType, query, excludeGranted, limit, ...target }) =>
 			callProcedure(deps, (procedures, options) =>

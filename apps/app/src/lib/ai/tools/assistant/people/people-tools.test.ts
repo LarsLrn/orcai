@@ -163,7 +163,7 @@ describe("deleteGroup with a wrong id", () => {
 		);
 
 		expect(String((error as Error).message)).toBe(
-			`GROUP_NOT_FOUND: No group with id ${id(9)}. Ids of other kinds (bots, templates, repositories, assets, members, invitations) are not group ids.`,
+			`GROUP_NOT_FOUND: No group with id ${id(9)}. Ids of other kinds (bots, behaviours, repositories, assets, members, invitations) are not group ids.`,
 		);
 	});
 });

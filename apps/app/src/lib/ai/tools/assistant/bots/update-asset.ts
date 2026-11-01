@@ -30,7 +30,7 @@ const updateAssetInputSchema = z.strictObject({
 export const updateAssetTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Change an asset's title or citation metadata. Only the given metadata fields change. Uploading new assets happens on the upload page, not here.",
+			"Change an asset's title or metadata. Only the given metadata fields change. To add new assets, use requestUpload.",
 		inputSchema: updateAssetInputSchema,
 		run: ({ id, title, metadata }) =>
 			Effect.gen(function* () {

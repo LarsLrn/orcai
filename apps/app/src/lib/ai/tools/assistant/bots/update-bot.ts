@@ -33,7 +33,7 @@ export const updateBotInputSchema = z.strictObject({
 		.nullable()
 		.optional()
 		.describe(
-			"Id of the behaviour block (template) the bot uses; null unlinks it. Leave out to keep the current one.",
+			"Id of the behaviour the bot follows; null unlinks it. Leave out to keep the current one.",
 		),
 	repositoryIds: z
 		.array(blockIdSchema)
@@ -86,7 +86,7 @@ export const updateBotPayload = (
 export const updateBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Update an existing bot: name, description, behaviour block, repositories, features and its model in the active organisation, with how many of its audience a quota pool covers. A setup that fails comes back as setupError while the other changes are saved. Give only the fields that change; everything else, including status and rich content, is kept. To create a bot, use createBot.",
+			"Update an existing bot: name, description, behaviour, repositories, features and its model in the active organisation, with how many of its audience a quota pool covers. Give only the fields that change. Everything else, including the status and the rich description, is kept. A setup that fails comes back as setupError while the other changes are saved. To create a bot, use createBot.",
 		inputSchema: updateBotInputSchema,
 		run: (input) =>
 			Effect.gen(function* () {
