@@ -31,6 +31,7 @@ The harness in `apps/app/scripts/prompt-evals/harness.ts` builds each request fr
 - `loadTools` runs for real, so loaded groups become callable as they do in the app.
 - `readDocs` reads the checkout's docs as the docs site serves them: `apps/web/scripts/docs-fetch.ts` compiles the pages with the site's fumadocs-mdx config and answers with the site's own index and page text. A docs change counts too.
 - A run is one user turn of up to 8 steps. History pruning, compaction, quota and the last-step note are not part of it.
+- `runAssistant` with `approved` runs the continuation after the user approved a plan instead: the history holds the request, the groups loaded before the plan, the reply proposing the plan, and the approval. The approved `updatePlan` call runs first, as it does in the app.
 
 ## Cases
 
@@ -38,7 +39,7 @@ Cases live in `apps/app/scripts/prompt-evals/cases/`. The part of an id before t
 
 | Area | Checks |
 | --- | --- |
-| `assistant` | Tool routing: asking before a plan, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, declining off-topic questions. |
+| `assistant` | Tool routing: asking before a plan, starting work once the plan is approved, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, declining off-topic questions. |
 | `terms` | Answers use no word GLOSSARY.md lists under _Avoid_ ("knowledge base", "template", "chunk" and the like). |
 | `language` | The answer's language follows the user, unless the behaviour sets one, with and without a behaviour. |
 | `retrieval` | `<cite chunk>` with only the refs given, also when the behaviour asks for footnotes, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |

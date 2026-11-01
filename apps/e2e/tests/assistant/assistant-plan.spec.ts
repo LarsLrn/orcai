@@ -97,6 +97,10 @@ const toolResultFor = (body: unknown, callId: string | undefined): unknown =>
 			isRecord(entry) && entry.role === "tool" && entry.tool_call_id === callId,
 	)?.content;
 
+/** The parsed result a request sends the model for a call. */
+const parsedResultFor = (body: unknown, callId: string | undefined): unknown =>
+	JSON.parse(String(toolResultFor(body, callId)));
+
 /** The parsed arguments of a request's newest call of a tool. */
 const lastCallInput = (body: unknown, name: string): unknown => {
 	const calls = (
@@ -166,10 +170,11 @@ test("assistant: the create tools are offered once a plan is approved, from the 
 	const chatId = await startTitledConversation(member, inference);
 	const botName = chatName("Planned Bot");
 	const done = "The bot is set up.";
+	const proposal = planCall("Set up the course bot", STEPS);
 
 	inference.script(
 		loadTools("bots"),
-		actStep(PROPOSAL, planCall("Set up the course bot", STEPS)),
+		actStep(PROPOSAL, proposal),
 		{
 			toolCalls: [
 				createBotCall(botName),
@@ -218,6 +223,12 @@ test("assistant: the create tools are offered once a plan is approved, from the 
 	for (const request of resumed) {
 		expect(offeredTools(request)).toEqual(expect.arrayContaining(BOTS_TOOLS));
 	}
+	// The provider drops the approval itself, so the result tells the model.
+	expect(parsedResultFor(resumed[0], proposal.id)).toEqual({
+		updated: true,
+		approved: true,
+		unlockedTools: CREATE_TOOLS.filter((name) => BOTS_TOOLS.includes(name)),
+	});
 	const reply = await lastRow(member, chatId);
 	expect(toolParts(reply, "updatePlan")).toMatchObject([
 		{
@@ -304,10 +315,13 @@ test("assistant: a proposed plan waits above the composer and Approve plan runs 
 		},
 	];
 
+	const proposal = planCall(title, STEPS);
+	const startedCall = planCall(title, started);
+
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
 	await openConversation(page, chatId);
-	inference.script(actStep(PROPOSAL, planCall(title, STEPS)));
+	inference.script(actStep(PROPOSAL, proposal));
 	await ask(page, "Set up a course bot");
 
 	const panel = planPanel(page);
@@ -343,7 +357,7 @@ test("assistant: a proposed plan waits above the composer and Approve plan runs 
 	inference.script(
 		{
 			toolCalls: [
-				planCall(title, started),
+				startedCall,
 				loadToolsCall("bots"),
 			],
 		},
@@ -401,6 +415,16 @@ test("assistant: a proposed plan waits above the composer and Approve plan runs 
 			state: "output-available",
 		},
 	]);
+
+	// Approved before any group loaded, the plan unlocks no tool yet; later plans need no approval.
+	const [, approving, afterStart] = turnRequests(inference);
+	expect(parsedResultFor(approving, proposal.id)).toEqual({
+		updated: true,
+		approved: true,
+	});
+	expect(parsedResultFor(afterStart, startedCall.id)).toEqual({
+		updated: true,
+	});
 });
 
 test("assistant: after approval a new plan runs without approval, reopens the panel, and survives a reload", async ({
