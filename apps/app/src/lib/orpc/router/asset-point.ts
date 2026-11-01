@@ -125,7 +125,7 @@ const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 			page: input.filters.page,
 			pageFrom: input.filters.pageFrom,
 			pageTo: input.filters.pageTo,
-			chunkIndices: input.filters.chunkIndices,
+			chunkIndices: input.filters.passageIndices,
 		});
 
 		if (!input.filters.queries || input.filters.queries.length === 0) {

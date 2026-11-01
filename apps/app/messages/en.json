@@ -968,7 +968,7 @@
 	"assets_page_title": "Assets",
 	"assets_point_asset_badge": "Asset {id}",
 	"assets_point_block_badge": "Repository {id}",
-	"assets_point_chunk_label": "Passage",
+	"assets_point_passage_label": "Passage",
 	"assets_point_depth_label": "Depth",
 	"assets_point_details_badge": "Details",
 	"assets_point_id_badge": "ID {id}",
@@ -2844,9 +2844,9 @@
 	"chat_work_log_compacting": "Summarising earlier messages...",
 	"chat_work_log_tool_details_label": "Details",
 	"chat_work_log_tool_generic_active": "Running {tool}",
-	"chat_work_log_tool_get_chunks_active": "Reading passages",
-	"chat_work_log_tool_get_chunks_name": "Read the passages",
-	"chat_work_log_tool_get_chunks_result": [
+	"chat_work_log_tool_get_passages_active": "Reading passages",
+	"chat_work_log_tool_get_passages_name": "Read the passages",
+	"chat_work_log_tool_get_passages_result": [
 		{
 			"declarations": [
 				"input count",

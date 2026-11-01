@@ -12,7 +12,7 @@ import { pageModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { Passage, RepositoryAsset } from "./types";
 import {
-	compareByPageAssetChunk,
+	compareByPageAssetPassage,
 	flattenBlockResponses,
 	loadAssetCatalog,
 	mergeAndSortCandidates,
@@ -156,7 +156,7 @@ export const getAssetPageTool = ({
 				const points = mergeAndSortCandidates(
 					flattenBlockResponses(blockResponses),
 				)
-					.sort(compareByPageAssetChunk)
+					.sort(compareByPageAssetPassage)
 					.slice(0, limit);
 
 				const passages = neighbouringRuns(points).map((run) => toPassage(run));

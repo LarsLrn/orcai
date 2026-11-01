@@ -6,11 +6,11 @@ import {
 } from "@orcai/schema";
 import { z } from "zod/v4";
 
-/** Text of one asset read as one piece: a chunk, or neighbouring chunks joined. */
+/** Text of one asset read as one piece: a point, or neighbouring points joined. */
 export const passageSchema = z.object({
 	/** What the model cites the passage by. */
 	ref: z.string(),
-	/** The point id of the chunk the passage was read for. */
+	/** The point id the passage was read for. */
 	id: z.string(),
 	assetId: z.string(),
 	title: z.string(),

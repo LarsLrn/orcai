@@ -58,7 +58,7 @@ const options = {
 
 const longText = `${"Refunds are paid within fourteen days. ".repeat(25)}End.`;
 
-const chunks = [
+const points = [
 	assetPoint({
 		id: "101",
 		index: 1,
@@ -83,16 +83,16 @@ const chunks = [
 type SearchInput = {
 	filters: {
 		pointIds?: string[];
-		chunkIndices?: number[];
+		passageIndices?: number[];
 	};
 };
 
-const searchChunks = ({ filters }: SearchInput) =>
+const searchPoints = ({ filters }: SearchInput) =>
 	Effect.succeed({
-		data: chunks.filter(
-			(chunk) =>
-				filters.pointIds?.includes(chunk.id) ??
-				filters.chunkIndices?.includes(chunk.payload.chunk_index),
+		data: points.filter(
+			(point) =>
+				filters.pointIds?.includes(point.id) ??
+				filters.passageIndices?.includes(point.payload.chunk_index),
 		),
 	});
 
@@ -106,7 +106,7 @@ beforeEach(() => {
 afterEach(resetProcedures);
 
 describe("searchRepositories", () => {
-	test("returns the full text of each chunk", async () => {
+	test("returns the full text of each passage", async () => {
 		answers["assetPoint.searchRepository"] = () =>
 			Effect.succeed({
 				data: [
@@ -213,8 +213,8 @@ describe("searchRepositories", () => {
 });
 
 describe("getPassages", () => {
-	test("reads around a chunk named by its ref as one passage", async () => {
-		answers["assetPoint.searchRepository"] = searchChunks;
+	test("reads around a point named by its ref as one passage", async () => {
+		answers["assetPoint.searchRepository"] = searchPoints;
 		const ref = sourceRef("passage", "102");
 
 		const output = await getPassagesTool({
@@ -254,8 +254,8 @@ describe("getPassages", () => {
 		});
 	});
 
-	test("names the chunks it could not find, without asking for unknown refs", async () => {
-		answers["assetPoint.searchRepository"] = searchChunks;
+	test("names the passages it could not find, without asking for unknown refs", async () => {
+		answers["assetPoint.searchRepository"] = searchPoints;
 
 		const output = await getPassagesTool(deps).execute?.(
 			{
@@ -291,7 +291,7 @@ describe("getPassages", () => {
 
 describe("getPassages with an ambiguous ref", () => {
 	test("finds nothing for a ref two passages claim", async () => {
-		answers["assetPoint.searchRepository"] = searchChunks;
+		answers["assetPoint.searchRepository"] = searchPoints;
 		const passage = {
 			ref: "k111111",
 			assetId: "asset-a",
@@ -385,7 +385,7 @@ describe("getAssetPage", () => {
 
 	test("returns the page's passages without the assets it matched", async () => {
 		answerCatalog([
-			chunks[0],
+			points[0],
 		]);
 
 		expect(await read()).toEqual({

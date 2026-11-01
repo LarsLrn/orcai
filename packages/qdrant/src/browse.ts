@@ -130,7 +130,7 @@ export const browseAssetPoints = (params: {
 							{
 								key: CHUNK,
 								range: {
-									gt: after.chunkIndex,
+									gt: after.passageIndex,
 								},
 							},
 						],
@@ -198,7 +198,7 @@ export const browseAssetPoints = (params: {
 								{
 									key: CHUNK,
 									range: {
-										gt: after.chunkIndex,
+										gt: after.passageIndex,
 									},
 								},
 							]
@@ -218,7 +218,7 @@ export const browseAssetPoints = (params: {
 					? ({
 							order: "reading",
 							page: pageOf(last),
-							chunkIndex: last.payload.chunk_index,
+							passageIndex: last.payload.chunk_index,
 						} as const)
 					: null,
 		};

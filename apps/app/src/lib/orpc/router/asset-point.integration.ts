@@ -109,7 +109,7 @@ const STRONG = 0.8;
 const WEAK = 0.4;
 const UNRELATED = 0.1;
 
-/** A ready repository of assets whose chunks lie at these similarities to the query. */
+/** A ready repository of assets whose passages lie at these similarities to the query. */
 const repositoryOf = async (passageSimilarities: number[][]) => {
 	const {
 		organizationId,
@@ -171,7 +171,7 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 		),
 	);
 	const indexed = await completeLinks(block.data.id);
-	await storeChunks(
+	await storePassages(
 		block.data.id,
 		assets.result,
 		passageSimilarities,
@@ -230,7 +230,7 @@ const completeLinks = (blockId: BlockId) =>
 	);
 
 /** Points of `passageSimilarities` at these similarities, written by `attempt` of each asset's link. */
-const storeChunks = (
+const storePassages = (
 	blockId: BlockId,
 	assets: AssetId[],
 	passageSimilarities: number[][],
@@ -249,7 +249,7 @@ const storeChunks = (
 							source: "text" as const,
 							asset_id: assetId,
 							block_id: blockId,
-							text: `Chunk ${index} at ${similarity}`,
+							text: `Passage ${index} at ${similarity}`,
 							depth: 0,
 							tokens: 4,
 							chunk_index: index,
@@ -272,7 +272,7 @@ const perAsset = (points: AssetPoint[]) => {
 	return counts;
 };
 
-const chunks = (count: number, similarity: number) =>
+const passages = (count: number, similarity: number) =>
 	Array.from(
 		{
 			length: count,
@@ -289,8 +289,8 @@ describe("repository search", () => {
 		async () => {
 			const { search } = await repositoryOf([
 				[
-					...chunks(12, STRONG),
-					...chunks(2, UNRELATED),
+					...passages(12, STRONG),
+					...passages(2, UNRELATED),
 				],
 			]);
 
@@ -298,19 +298,19 @@ describe("repository search", () => {
 				limit: 10,
 			});
 
-			expect(similarities(data)).toEqual(chunks(10, STRONG));
+			expect(similarities(data)).toEqual(passages(10, STRONG));
 		},
 		TIMEOUT,
 	);
 
 	test(
-		"backfills only with chunks a recall pass admits, and leaves the rest of the slots empty",
+		"backfills only with passages a recall pass admits, and leaves the rest of the slots empty",
 		async () => {
 			const { search } = await repositoryOf([
 				[
-					...chunks(4, STRONG),
+					...passages(4, STRONG),
 					WEAK,
-					...chunks(2, UNRELATED),
+					...passages(2, UNRELATED),
 				],
 			]);
 
@@ -319,7 +319,7 @@ describe("repository search", () => {
 			});
 
 			expect(similarities(data)).toEqual([
-				...chunks(4, STRONG),
+				...passages(4, STRONG),
 				WEAK,
 			]);
 			expect(metadata?.scoreThreshold).toBeCloseTo(0.28);
@@ -328,12 +328,12 @@ describe("repository search", () => {
 	);
 
 	test(
-		"caps chunks per asset when enough assets match",
+		"caps passages per asset when enough assets match",
 		async () => {
 			const { search, assets } = await repositoryOf([
-				chunks(4, STRONG),
-				chunks(4, STRONG),
-				chunks(4, STRONG),
+				passages(4, STRONG),
+				passages(4, STRONG),
+				passages(4, STRONG),
 			]);
 
 			const { data } = await search({
@@ -356,8 +356,8 @@ describe("repository search", () => {
 		"fills what the cap leaves from the asset with more matches",
 		async () => {
 			const { search, assets } = await repositoryOf([
-				chunks(8, STRONG),
-				chunks(1, STRONG),
+				passages(8, STRONG),
+				passages(1, STRONG),
 			]);
 
 			const { data } = await search({
@@ -379,7 +379,7 @@ describe("repository search", () => {
 				search,
 				assets: [strong, first, second],
 			} = await repositoryOf([
-				chunks(12, STRONG),
+				passages(12, STRONG),
 				[
 					WEAK,
 				],
@@ -453,7 +453,7 @@ describe("asset titles", () => {
 
 describe("served points", () => {
 	/**
-	 * A repository whose one asset's indexed chunk is weak, as the newer
+	 * A repository whose one asset's indexed passage is weak, as the newer
 	 * attempt's indexing leaves it: `completed` once its completion commits.
 	 */
 	const reindexing = async ({ completed }: { completed: boolean }) => {
@@ -482,15 +482,15 @@ describe("served points", () => {
 					.where(eq(dbSchema.blockAsset.blockId, repository.blockId));
 			}),
 		);
-		/** Strong chunks of the newer attempt. */
+		/** Strong passages of the newer attempt. */
 		const writeNewer = (published: boolean) =>
-			storeChunks(
+			storePassages(
 				repository.blockId,
 				[
 					assetId,
 				],
 				[
-					chunks(3, STRONG),
+					passages(3, STRONG),
 				],
 				() => newer,
 				published,
@@ -506,7 +506,7 @@ describe("served points", () => {
 		true,
 	]) {
 		test(
-			`unpublished chunks of a newer attempt leave the indexed ones served (${completed ? "completed, before its flip" : "running"})`,
+			`unpublished passages of a newer attempt leave the indexed ones served (${completed ? "completed, before its flip" : "running"})`,
 			async () => {
 				const { search, writeNewer } = await reindexing({
 					completed,
@@ -526,7 +526,7 @@ describe("served points", () => {
 	}
 
 	test(
-		"while both attempts are published, the newer one's chunks fill a small limit",
+		"while both attempts are published, the newer one's passages fill a small limit",
 		async () => {
 			const { search, writeNewer } = await reindexing({
 				completed: true,

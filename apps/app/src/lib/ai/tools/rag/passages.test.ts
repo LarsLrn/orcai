@@ -3,7 +3,7 @@ import { joinOverlapping, neighbouringRuns } from "./passages";
 import { point } from "./test-points";
 
 describe("joinOverlapping", () => {
-	test("drops the start the next chunk repeats", () => {
+	test("drops the start the next passage repeats", () => {
 		expect(
 			joinOverlapping(
 				"Refunds are paid within 14 days of the request being approved.",
@@ -29,9 +29,9 @@ describe("joinOverlapping", () => {
 
 describe("neighbouringRuns", () => {
 	const ids = (runs: ReturnType<typeof neighbouringRuns>) =>
-		runs.map((run) => run.map((chunk) => chunk.id));
+		runs.map((run) => run.map((point) => point.id));
 
-	test("joins neighbouring chunks of one asset in chunk order", () => {
+	test("joins neighbouring passages of one asset in index order", () => {
 		expect(
 			ids(
 				neighbouringRuns([
@@ -96,7 +96,7 @@ describe("neighbouringRuns", () => {
 		]);
 	});
 
-	test("reads a chunk found twice once", () => {
+	test("reads a passage found twice once", () => {
 		expect(
 			ids(
 				neighbouringRuns([

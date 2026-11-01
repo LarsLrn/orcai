@@ -21,10 +21,10 @@ export const GetPassages = ({
 			status={status}
 			label={
 				passages.length > 0
-					? m.chat_work_log_tool_get_chunks_result({
+					? m.chat_work_log_tool_get_passages_result({
 							count: passages.length,
 						})
-					: m.chat_work_log_tool_get_chunks_name()
+					: m.chat_work_log_tool_get_passages_name()
 			}
 		>
 			<SourcePassages passages={passages} />

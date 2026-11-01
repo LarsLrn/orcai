@@ -118,7 +118,7 @@ const DisplayPoint = ({
 							{typeof payload.chunk_index === "number" &&
 								payload.chunkCount != null && (
 									<div className="flex items-center justify-between text-muted-foreground text-sm">
-										<span>{m.assets_point_chunk_label()}</span>
+										<span>{m.assets_point_passage_label()}</span>
 										<span className="font-medium text-foreground">
 											{payload.chunk_index + 1} / {payload.chunkCount}
 										</span>

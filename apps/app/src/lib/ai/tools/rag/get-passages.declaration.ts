@@ -7,8 +7,8 @@ import { passageSources, passagesOutputSchema } from "./outputs";
 export const getPassages = declareTool<typeof getPassagesTool>()({
 	kind: "read",
 	icon: FileTextIcon,
-	name: m.chat_work_log_tool_get_chunks_name,
-	active: m.chat_work_log_tool_get_chunks_active,
+	name: m.chat_work_log_tool_get_passages_name,
+	active: m.chat_work_log_tool_get_passages_active,
 	sources: (output) =>
 		passageSources(passagesOutputSchema.safeParse(output).data?.passages ?? []),
 });

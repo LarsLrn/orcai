@@ -93,7 +93,7 @@ export const flattenBlockResponses = (
 		}),
 	);
 
-/** A run of neighbouring chunks of one asset as one passage, named for `anchor`. */
+/** A run of neighbouring points of one asset as one passage, named for `anchor`. */
 export const toPassage = (
 	run: PointWithBlock[],
 	anchor: PointWithBlock = run[0],
@@ -305,7 +305,7 @@ export const unsearchableAssets = (
 				.join(" "),
 		}));
 
-export const compareByPageAssetChunk = (
+export const compareByPageAssetPassage = (
 	a: PointWithBlock,
 	b: PointWithBlock,
 ) => {

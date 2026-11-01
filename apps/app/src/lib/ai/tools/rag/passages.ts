@@ -1,6 +1,6 @@
 import type { PointWithBlock } from "./types";
 
-// Chunks overlap by up to 200 chars; a shorter shared edge is likely chance.
+// Passages overlap by up to 200 chars; a shorter shared edge is likely chance.
 const MAX_OVERLAP = 400;
 const MIN_OVERLAP = 20;
 
@@ -19,20 +19,20 @@ export const joinOverlapping = (text: string, next: string) => {
 	return `${head}\n\n${tail}`;
 };
 
-const documentKey = (point: PointWithBlock) =>
+const assetKey = (point: PointWithBlock) =>
 	`${point.sourceBlock.id}:${point.payload.asset_id}:${point.payload.source}`;
 
-const chunkKey = (point: PointWithBlock) =>
-	`${documentKey(point)}:${point.payload.chunk_index}`;
+const passageKey = (point: PointWithBlock) =>
+	`${assetKey(point)}:${point.payload.chunk_index}`;
 
 /**
- * Groups points into runs of neighbouring chunks of one asset, each in
- * chunk order, without repeats. Runs come in the order of their first point.
+ * Groups points into runs of neighbouring points of one asset, each in
+ * index order, without repeats. Runs come in the order of their first point.
  */
 export const neighbouringRuns = (points: PointWithBlock[]) => {
 	const seen = new Set<string>();
 	const unique = points.filter((point) => {
-		const key = chunkKey(point);
+		const key = passageKey(point);
 		if (seen.has(key)) {
 			return false;
 		}
@@ -49,7 +49,7 @@ export const neighbouringRuns = (points: PointWithBlock[]) => {
 		...unique,
 	].sort(
 		(a, b) =>
-			documentKey(a).localeCompare(documentKey(b)) ||
+			assetKey(a).localeCompare(assetKey(b)) ||
 			a.payload.chunk_index - b.payload.chunk_index,
 	);
 
@@ -60,7 +60,7 @@ export const neighbouringRuns = (points: PointWithBlock[]) => {
 		if (
 			run &&
 			last &&
-			documentKey(last) === documentKey(point) &&
+			assetKey(last) === assetKey(point) &&
 			point.payload.chunk_index === last.payload.chunk_index + 1
 		) {
 			run.push(point);

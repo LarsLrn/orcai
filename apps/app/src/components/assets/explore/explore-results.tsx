@@ -1,7 +1,7 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import type { AssetPointBrowseCursor, RetrievalMode } from "@orcai/schema";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { DisplayPoint } from "@/components/assets/chunks/display-point";
+import { DisplayPoint } from "@/components/assets/passages/display-point";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
