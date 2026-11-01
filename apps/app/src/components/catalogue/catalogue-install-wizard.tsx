@@ -137,7 +137,7 @@ const SharingStep = ({
 								id: entryRef.resourceId,
 							}
 				}
-				from={entry.source}
+				from={entry.homeOrganization}
 			/>
 		</CardContent>
 	</Card>
@@ -179,7 +179,7 @@ const DoneStep = ({
 				</h2>
 				<p className="text-muted-foreground text-sm">
 					{m.catalogue_wizard_done_description({
-						organisation: entry.source.name,
+						organisation: entry.homeOrganization.name,
 					})}
 				</p>
 			</div>
@@ -340,7 +340,7 @@ export const CatalogueInstallWizard = ({
 							? {
 									hint: entry.modelHint,
 									modelId: entry.authorsPick,
-									author: entry.source.name,
+									author: entry.homeOrganization.name,
 									organisation,
 								}
 							: undefined

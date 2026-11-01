@@ -1,15 +1,15 @@
-import type { ResourceOwner as Owner, SourceOrganization } from "@orcai/schema";
+import type { HomeOrganization, ResourceOwner as Owner } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { ResourceOwner } from "@/components/users/resource-owner";
 import { m } from "@/paraglide/messages";
 
 /** The organisation a resource comes from, with its logo, linking to its page above a tile's own link. */
-const SourceOrganizationName = ({
+const HomeOrganizationName = ({
 	organization,
 	label = organization.name,
 }: {
-	organization: SourceOrganization;
+	organization: HomeOrganization;
 	/** What names it; its name unless given. */
 	label?: string;
 }) => (
@@ -29,20 +29,20 @@ const SourceOrganizationName = ({
 /** Who a resource comes from: its owner, or "From <org>" when the organisation added it from the catalogue. */
 const ResourceProvenance = ({
 	owner,
-	installedFrom,
+	homeOrganization,
 }: {
 	owner: Owner;
-	installedFrom: SourceOrganization | null;
+	homeOrganization: HomeOrganization | null;
 }) =>
-	installedFrom ? (
-		<SourceOrganizationName
-			organization={installedFrom}
+	homeOrganization ? (
+		<HomeOrganizationName
+			organization={homeOrganization}
 			label={m.catalogue_from_organisation({
-				organisation: installedFrom.name,
+				organisation: homeOrganization.name,
 			})}
 		/>
 	) : (
 		<ResourceOwner owner={owner} />
 	);
 
-export { ResourceProvenance, SourceOrganizationName };
+export { HomeOrganizationName, ResourceProvenance };

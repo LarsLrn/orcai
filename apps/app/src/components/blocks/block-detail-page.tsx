@@ -74,7 +74,7 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 						) : null}
 						<ResourceProvenance
 							owner={block.data.owner}
-							installedFrom={block.data.installedFrom}
+							homeOrganization={block.data.homeOrganization}
 						/>
 					</DetailHeaderMeta>
 					<HeaderActions

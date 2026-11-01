@@ -1,8 +1,8 @@
 import type {
 	Block,
 	BlockWithCapabilities,
+	HomeOrganization,
 	ResourceOwner,
-	SourceOrganization,
 } from "@orcai/schema";
 import { useRouteContext } from "@tanstack/react-router";
 import {
@@ -31,7 +31,7 @@ import { m } from "@/paraglide/messages";
 type ActionBlock = Pick<Block, "id" | "type" | "name"> & {
 	capabilities?: BlockWithCapabilities["capabilities"];
 	owner: Pick<ResourceOwner, "id">;
-	installedFrom: SourceOrganization | null;
+	homeOrganization: HomeOrganization | null;
 };
 
 /**
@@ -43,7 +43,7 @@ type ActionBlock = Pick<Block, "id" | "type" | "name"> & {
 const blockActions = (
 	block: Pick<
 		ActionBlock,
-		"id" | "type" | "capabilities" | "owner" | "installedFrom"
+		"id" | "type" | "capabilities" | "owner" | "homeOrganization"
 	>,
 	{
 		onAccess,
@@ -67,7 +67,7 @@ const blockActions = (
 	"edit" | "access" | "handOver" | "delete" | "remove",
 	HeaderAction | false
 > => {
-	const installed = block.installedFrom !== null;
+	const installed = block.homeOrganization !== null;
 	const home = installed ? undefined : block.capabilities;
 	return {
 		edit: hasCapability(home, "edit") && {
@@ -136,7 +136,7 @@ const useBlockActions = (
 		{
 			enabled:
 				listing &&
-				block.installedFrom === null &&
+				block.homeOrganization === null &&
 				hasCapability(block.capabilities, "manage_access"),
 		},
 	);
@@ -205,7 +205,7 @@ const useBlockActions = (
 							id: block.id,
 						}}
 						resourceName={block.name}
-						installedFrom={block.installedFrom}
+						homeOrganization={block.homeOrganization}
 					/>
 				) : null}
 				{actions.handOver ? (

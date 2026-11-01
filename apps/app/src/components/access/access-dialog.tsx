@@ -1,4 +1,4 @@
-import type { ResourceRef, SourceOrganization } from "@orcai/schema";
+import type { HomeOrganization, ResourceRef } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import {
 	AccessManagerContent,
@@ -25,7 +25,7 @@ type AccessDialogProps = {
 	resourceRef: ResourceRef;
 	resourceName?: string;
 	/** Set when the active organisation added the resource from the catalogue. */
-	installedFrom?: SourceOrganization | null;
+	homeOrganization?: HomeOrganization | null;
 };
 
 const AccessDialog = ({
@@ -33,13 +33,13 @@ const AccessDialog = ({
 	onOpenChange,
 	resourceRef,
 	resourceName,
-	installedFrom,
+	homeOrganization,
 }: AccessDialogProps) => {
 	const resource = getResourceTypeLabel(resourceRef.type);
 	const botEditor = useQuery(
 		orpc.bot.findEditor.queryOptions({
 			input:
-				open && resourceRef.type === "bot" && !installedFrom
+				open && resourceRef.type === "bot" && !homeOrganization
 					? {
 							id: resourceRef.id,
 						}
@@ -65,10 +65,10 @@ const AccessDialog = ({
 				</DialogHeader>
 
 				<DialogBody>
-					{installedFrom ? (
+					{homeOrganization ? (
 						<InstalledAccessContent
 							resourceRef={resourceRef}
-							from={installedFrom}
+							from={homeOrganization}
 						/>
 					) : (
 						<AccessManagerContent

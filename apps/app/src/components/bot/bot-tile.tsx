@@ -36,7 +36,7 @@ type TileBot = Pick<
 
 /** A bot as library lists return it, with its tile details. */
 type BrowseBot = TileBot &
-	Pick<BotListItem, "owner" | "contents" | "modelHint" | "installedFrom">;
+	Pick<BotListItem, "owner" | "contents" | "modelHint" | "homeOrganization">;
 
 const { Icon, well, band } = RESOURCE_KINDS.bot;
 
@@ -144,7 +144,7 @@ const BotTile = ({
 					<TileProvenance>
 						<ResourceProvenance
 							owner={bot.owner}
-							installedFrom={bot.installedFrom}
+							homeOrganization={bot.homeOrganization}
 						/>
 					</TileProvenance>
 				}

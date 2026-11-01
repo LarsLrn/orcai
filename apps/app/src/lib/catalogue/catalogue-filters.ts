@@ -1,9 +1,9 @@
 import {
 	type CatalogueCountsInput,
 	type CatalogueKind,
+	type HomeOrganization,
 	type ListCatalogueInput,
 	organizationIdSchema,
-	type SourceOrganization,
 } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
@@ -22,7 +22,7 @@ import { m } from "@/paraglide/messages";
  * organisations to pick from are the ones with entries.
  */
 export const catalogueFilters = (
-	organizations: readonly SourceOrganization[] = [],
+	organizations: readonly HomeOrganization[] = [],
 ) => {
 	const organizationIds = multiFilter({
 		label: m.catalogue_filter_organisation_label,

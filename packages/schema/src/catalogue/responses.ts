@@ -5,8 +5,8 @@ import { blockTypeSchema } from "../block/schema";
 import { botSetupStrengthSchema } from "../bot-setup/schema";
 import { modelIdSchema } from "../model/ref";
 import {
+	homeOrganizationSchema,
 	resourceOwnerSchema,
-	sourceOrganizationSchema,
 } from "../resource/schema";
 import { createDataResponseSchema, createListResponseSchema } from "../shared";
 import { catalogueKindSchema } from "./inputs";
@@ -35,7 +35,7 @@ export const catalogueEntrySchema = z.object({
 	name: z.string(),
 	description: z.string().nullable(),
 	createdAt: z.coerce.date().nullable(),
-	source: sourceOrganizationSchema,
+	homeOrganization: homeOrganizationSchema,
 	owner: resourceOwnerSchema,
 	state: catalogueEntryStateSchema,
 	/** A bot's blocks; null for behaviours and repositories. */
@@ -59,7 +59,7 @@ export const catalogueCountsResponseSchema = createDataResponseSchema(
 		counts: z.record(catalogueKindSchema, z.number().int()),
 		/** The organisations with entries, by name, with how many each lists. */
 		organizations: z.array(
-			sourceOrganizationSchema.extend({
+			homeOrganizationSchema.extend({
 				entries: z.number().int(),
 			}),
 		),
