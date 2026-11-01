@@ -69,6 +69,16 @@ reset and no removal.
 Removing a member from an organisation clears that organisation from the member's
 open sessions, and entering the app rechecks that the membership still exists.
 
+Content always belongs to a Member, Manager or Admin of its organisation, so
+removing members and making a member a Viewer hand the bots, behaviours,
+repositories and Library assets they own there to one other member. The confirmation counts them and preselects
+you when you can own content there. **Change** picks another Member, Manager or
+Admin who is not banned and not part of the same change. Listings, additions in
+other organisations and grants stay as they are, and only the owner changes.
+Chats and chat uploads stay with the person. To split content between several
+people, receive it all and pass single items on with
+[Hand over](/docs/using-orcai/access-control#hand-over).
+
 ## Groups
 
 Groups (`/app/groups`) lists the groups with their member counts and a search.
@@ -396,6 +406,13 @@ they sign in with their password and set up 2FA again. **Make instance admin**
 and **Remove instance admin** change the account's
 [instance role](#the-instance-admin). None of these applies to your own account. Organisation admins
 do not see whether a member uses 2FA.
+
+Deleting an account hands what it owns to one member per organisation, in
+every organisation where it owns a bot, behaviour, repository or Library asset,
+whether it is still a member there or not. The confirmation lists those
+organisations and preselects each one's earliest Admin who is not banned, and
+**Change** picks another. The account's chats and chat uploads are deleted with
+it.
 
 **Analytics** (`/instance/analytics`) shows the instance's tokens and
 requests over the last 7, 30 or 90 days, per UTC day, and every organisation's

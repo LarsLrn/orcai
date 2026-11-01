@@ -65,7 +65,7 @@ The uploaded original of an asset, as it was on the uploader's disk. Used for up
 _German_: Datei
 
 **Chat upload**:
-An asset uploaded with a chat message. The Library's default views leave it out, and the Assets view lists it under **Kept in** > **Chats** until someone adds it to the Library.
+An asset uploaded with a chat message. The Library's default views leave it out, and the Assets view lists it under **Kept in** > **Chats** until someone adds it to the Library. Only then can it go into a repository.
 _German_: Chat-Upload
 
 **Metadata**:
@@ -206,8 +206,13 @@ Not a user-facing word. Name the kind (bot, behaviour, repository, asset) or wri
 _Avoid_: resource, Ressource
 
 **Owner**:
-The member who created a bot, block or asset.
+The member a bot, block or asset belongs to.
 _German_: Eigentümer
+
+**Hand over**:
+Make another member the owner of a bot, block or asset. Removing a member, making one a Viewer and deleting an account hand over what they own.
+_German_: übergeben, „Übergeben an“ for the receiver
+_Avoid_: transfer, übertragen
 
 **Share**:
 Give people or groups access to a bot, block or asset.
