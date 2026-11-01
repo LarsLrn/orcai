@@ -22,7 +22,6 @@ import StarterKit from "@tiptap/starter-kit";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { ImageExtension } from "./extensions/image";
 import { MathExtension } from "./extensions/math";
 import { TiptapYoutube } from "./extensions/youtube";
 
@@ -149,13 +148,6 @@ const TiptapTableCell = TableCell.configure({
 	},
 });
 
-const TiptapImage = ImageExtension.configure({
-	allowBase64: false,
-	HTMLAttributes: {
-		class: cn("mx-auto rounded border"),
-	},
-});
-
 const DragHandle = GlobalDragHandle.configure({
 	dragHandleWidth: 25,
 	excludedTags: [
@@ -210,7 +202,6 @@ export const extensions = [
 	Highlight.configure({
 		multicolor: true,
 	}),
-	TiptapImage,
 	MathExtension,
 	Typography,
 ];
