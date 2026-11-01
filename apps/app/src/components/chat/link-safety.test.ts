@@ -1,12 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { isTrustedAssistantLink } from "./assistant-link-safety";
+import { isTrustedLink } from "./link-safety";
 
 const origins = {
 	appOrigin: "https://orcai.example.org",
 	docsUrl: "https://docs.example.org",
+	appPaths: true,
 };
 
-describe("isTrustedAssistantLink", () => {
+describe("isTrustedLink", () => {
 	test.each([
 		"/app",
 		"/app/library/bots",
@@ -15,7 +16,7 @@ describe("isTrustedAssistantLink", () => {
 		"https://docs.example.org",
 		"https://docs.example.org/docs/using-orcai/bots",
 	])("trusts %p", (url) => {
-		expect(isTrustedAssistantLink(url, origins)).toBe(true);
+		expect(isTrustedLink(url, origins)).toBe(true);
 	});
 
 	test.each([
@@ -28,7 +29,7 @@ describe("isTrustedAssistantLink", () => {
 		"javascript:alert(1)",
 		"mailto:someone@example.org",
 	])("asks before opening %p", (url) => {
-		expect(isTrustedAssistantLink(url, origins)).toBe(false);
+		expect(isTrustedLink(url, origins)).toBe(false);
 	});
 
 	test("trusts only paths under a docs URL with a path", () => {
@@ -38,22 +39,37 @@ describe("isTrustedAssistantLink", () => {
 		};
 
 		expect(
-			isTrustedAssistantLink(
+			isTrustedLink(
 				"https://example.org/orcai-docs/docs/using-orcai",
 				docsUnderPath,
 			),
 		).toBe(true);
-		expect(
-			isTrustedAssistantLink("https://example.org/other", docsUnderPath),
-		).toBe(false);
+		expect(isTrustedLink("https://example.org/other", docsUnderPath)).toBe(
+			false,
+		);
 	});
 
 	test("trusts no docs links without a docs URL", () => {
 		expect(
-			isTrustedAssistantLink("https://docs.example.org/docs", {
+			isTrustedLink("https://docs.example.org/docs", {
 				...origins,
 				docsUrl: undefined,
 			}),
 		).toBe(false);
+	});
+
+	test("trusts app paths only where the chat allows them", () => {
+		expect(
+			isTrustedLink("/app/library/bots", {
+				...origins,
+				appPaths: false,
+			}),
+		).toBe(false);
+		expect(
+			isTrustedLink("https://docs.example.org/docs", {
+				...origins,
+				appPaths: false,
+			}),
+		).toBe(true);
 	});
 });

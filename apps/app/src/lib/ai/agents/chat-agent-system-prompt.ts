@@ -1,4 +1,8 @@
 import type { SystemPrompt } from "@orcai/ai";
+import {
+	type CitableKind,
+	citationRules,
+} from "@/lib/ai/citations/citation-rules";
 
 const role =
 	"You answer a user in a chat in OrcAI, where organisations set up bots for their members.";
@@ -40,15 +44,7 @@ const repositoryGuidance = (
 		`- You can search these repositories: ${repositories.map(({ id, name }) => `${quoted(name)} (id ${id})`).join(", ")}.`,
 		"- Answer from their passages whenever a question may be covered by them. Start with one focused search, and search again only when the first result is clearly incomplete, since a repeated search adds no new evidence. When the user asks about a page, read it with getAssetPage instead of searching.",
 		"- When no passage answers the question, say that the repositories do not cover it rather than guessing. If another of your tools fits the question, such as web search, use it for that part.",
-		"",
-		"Citations:",
-		'- Each <passage> tag carries a ref, such as ref="k7f3a2". Cite every sentence that uses a passage, inline at that sentence, with that ref: <cite chunk="k7f3a2">the sentence or clause it supports</cite>. The app shows each citation with its asset and page.',
-		"- Cite only refs of passages you retrieved, and only for what those passages say.",
-		"- Cite passages in this form only, since the app renders no footnotes, bracketed numbers or source lists. A web page has no ref: cite it with a Markdown link to its url, such as [Page title](https://example.org/page), since the app removes HTML links.",
-		"",
-		"<example>",
-		'For a work with three or more authors, <cite chunk="k7f3a2">give only the first author\'s surname followed by et al.</cite>',
-		"</example>",
+		"- A web page has no ref: cite it with a Markdown link to its url, such as [Page title](https://example.org/page), since the app removes HTML links.",
 	].join("\n");
 
 export const buildFormattingGuidance = () =>
@@ -83,6 +79,7 @@ export const buildChatAgentSystemPrompt = ({
 	behaviour,
 	repositories,
 	featurePrompts,
+	citable,
 	today,
 }: {
 	/** The behaviour's system prompt, if the chat has one. */
@@ -93,6 +90,8 @@ export const buildChatAgentSystemPrompt = ({
 	}[];
 	/** Prompt fragments of the features enabled this turn. */
 	featurePrompts: readonly string[];
+	/** The kinds of source the turn's answer can cite. */
+	citable: readonly CitableKind[];
 	/** The user's local date, from `localDate`. */
 	today: string;
 }): SystemPrompt => {
@@ -104,6 +103,7 @@ export const buildChatAgentSystemPrompt = ({
 			precedence(trimmed !== undefined),
 			trimmed && behaviourSection(trimmed),
 			repositories.length > 0 && repositoryGuidance(repositories),
+			citationRules(citable),
 			...featurePrompts.map((prompt) => prompt.trim()),
 			buildFormattingGuidance(),
 		]

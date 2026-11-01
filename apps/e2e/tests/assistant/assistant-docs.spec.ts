@@ -36,8 +36,11 @@ const servedDocs = async (path: string): Promise<string> => {
 	return await response.text();
 };
 
-/** Streamdown's link-safety confirmation, which has no dialog role. */
-const linkConfirmation = (page: Page) => page.getByText("Open external link?");
+/** OrcAI's confirmation before a link in an answer leaves the app. */
+const linkConfirmation = (page: Page) =>
+	page.getByRole("alertdialog", {
+		name: message("chat_link_confirm_title"),
+	});
 
 const submit = (page: Page) =>
 	page.getByRole("button", {

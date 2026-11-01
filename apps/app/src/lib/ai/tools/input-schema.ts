@@ -9,6 +9,8 @@ import { z } from "zod/v4";
  */
 export const toolInputSchema = <Input>(
 	schema: z.ZodType<Input>,
+	/** A description to give a schema node in place of its own. */
+	describe?: (node: z.core.$ZodType) => string | undefined,
 ): Schema<Input> =>
 	jsonSchema<Input>(
 		() => {
@@ -16,9 +18,13 @@ export const toolInputSchema = <Input>(
 				target: "draft-7",
 				io: "input",
 				reused: "inline",
-				override: ({ jsonSchema: node }) => {
+				override: ({ zodSchema, jsonSchema: node }) => {
 					if (node.format === "uuid") {
 						node.pattern = undefined;
+					}
+					const description = describe?.(zodSchema);
+					if (description !== undefined) {
+						node.description = description;
 					}
 				},
 			});

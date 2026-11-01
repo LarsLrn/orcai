@@ -6,8 +6,7 @@ describe("showReview markdown", () => {
 		expect(
 			displayToolMarkdown("showReview", {
 				title: "APA 7 check",
-				summary:
-					'Two entries need work. <cite title="APA" page="286">§9.8</cite>',
+				summary: "Two entries need work. <cite ref=kgol9ts>§9.8</cite>",
 				items: [
 					{
 						label: "Hattie & Timperley (2007)",
@@ -18,7 +17,7 @@ describe("showReview markdown", () => {
 							{
 								label: "Authors",
 								severity: "error",
-								note: 'Use an ampersand. <cite title="APA" page="286">§9.8</cite>',
+								note: "Use an ampersand. <cite ref=kgol9ts>§9.8</cite>",
 								excerpt: "Hattie, J. and Timperley, H.",
 							},
 							{
@@ -46,14 +45,14 @@ describe("showReview markdown", () => {
 			[
 				"### APA 7 check",
 				"",
-				'Two entries need work. <cite title="APA" page="286">§9.8</cite>',
+				"Two entries need work. <cite ref=kgol9ts>§9.8</cite>",
 				"",
 				"**Hattie & Timperley (2007)** (Not met)",
 				"",
 				"> Hattie, J. and Timperley, H. (2007).",
 				"> The Power of Feedback.",
 				"",
-				'- **Authors** (Error): Use an ampersand. <cite title="APA" page="286">§9.8</cite> ("Hattie, J. and Timperley, H.")',
+				'- **Authors** (Error): Use an ampersand. <cite ref=kgol9ts>§9.8</cite> ("Hattie, J. and Timperley, H.")',
 				"- **Title** (Warning): Sentence case.",
 				"",
 				"  See the manual.",

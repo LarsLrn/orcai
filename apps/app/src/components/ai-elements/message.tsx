@@ -1,6 +1,7 @@
 import type { UIMessage } from "ai";
 import type { ComponentProps } from "react";
-import { createContext, memo, useContext } from "react";
+import { createContext, memo, use, useContext } from "react";
+import type { LinkSafetyConfig } from "streamdown";
 import { CiteComponent } from "@/components/ai-elements/cite";
 import {
 	StreamdownContent,
@@ -105,16 +106,14 @@ const streamdownComponents = {
 
 const streamdownAllowedTags = {
 	cite: [
-		"chunk",
-		"assetid",
-		"assetId",
-		"asset_id",
-		"title",
-		"page",
-		"pageNumber",
-		"page_number",
+		"ref",
 	],
 };
+
+/** How links in the answers of a chat confirm before they open. */
+export const LinkSafetyContext = createContext<LinkSafetyConfig | undefined>(
+	undefined,
+);
 
 const streamdownLiteralTagContent = [
 	"cite",
@@ -124,6 +123,7 @@ export const MessageResponse = memo(
 	({ className, ...props }: MessageResponseProps) => (
 		<StreamdownContent
 			allowedTags={streamdownAllowedTags}
+			linkSafety={use(LinkSafetyContext)}
 			className={cn(
 				"wrap-break-word w-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
 				"[&_h1]:font-semibold [&_h1]:text-2xl [&_h1]:tracking-tight [&_h2]:font-semibold [&_h2]:text-base [&_h2]:tracking-tight [&_h3]:font-medium [&_h3]:text-sm [&_h4]:font-medium [&_h4]:text-sm",

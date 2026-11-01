@@ -2,6 +2,7 @@ import type { OrganizationCapability } from "@orcai/schema";
 import type { InferToolInput, InferToolOutput, Tool } from "ai";
 import type { LucideIcon } from "lucide-react";
 import type { z } from "zod/v4";
+import type { Source } from "@/lib/ai/citations/source-ref";
 import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 import type { EntityKind, EntityRef } from "./entity-kind";
@@ -60,6 +61,8 @@ export interface ToolDeclaration<Input = unknown, Output = unknown> {
 	conversational?: true;
 	/** The call as the user sees it, for transcripts and summaries. */
 	markdown?(call: ToolCall<Input, Output>): string | undefined;
+	/** The sources a finished call issued, which answers in its chat may cite. */
+	sources?(output: Output): Source[];
 	icon: LucideIcon;
 	/** Entry label before the input is complete. */
 	name: () => string;

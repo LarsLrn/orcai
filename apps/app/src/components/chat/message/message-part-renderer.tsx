@@ -1,5 +1,4 @@
 import { use } from "react";
-import type { LinkSafetyConfig } from "streamdown";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { ConfirmationCard } from "@/components/assistant/confirmation-card";
 import { DisplayPart } from "@/components/chat/gen-ui/display-part";
@@ -11,21 +10,15 @@ import { ImagePart } from "./parts/image-part";
 const MessagePartRenderer = ({
 	answer,
 	running,
-	linkSafety,
 }: {
 	answer: AnswerPart;
 	running: boolean;
-	linkSafety?: LinkSafetyConfig;
 }) => {
 	const answers = use(StepAnswersContext);
 
 	switch (answer.kind) {
 		case "text":
-			return (
-				<MessageResponse linkSafety={linkSafety}>
-					{answer.part.text}
-				</MessageResponse>
-			);
+			return <MessageResponse>{answer.part.text}</MessageResponse>;
 		case "file":
 			return answer.part.mediaType === "image/png" ? (
 				<ImagePart url={answer.part.url} alt={answer.part.type} />

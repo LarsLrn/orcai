@@ -1,3 +1,4 @@
+import { docsMarkdownPath } from "@orcai/core";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
@@ -5,7 +6,6 @@ import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { DocsConfig } from "@/lib/effect/services/config";
 
-const DOCS_PATH = /^\/docs(\/[a-z0-9]+(-[a-z0-9]+)*)*$/;
 const FETCH_TIMEOUT = "10 seconds";
 const DOCS_CONTENT_TYPES = new Set([
 	"text/markdown",
@@ -20,20 +20,6 @@ const unavailable = () =>
 	new ReadDocsError({
 		message: "AI_TOOL_FAILED: The docs are unavailable right now.",
 	});
-
-/** The page path without one trailing `/` or `.md`, and the docs site path serving its Markdown. */
-export const docsMarkdownPath = (path: string) => {
-	const normalised = path.replace(/(\/|\.md)$/, "");
-
-	if (!DOCS_PATH.test(normalised)) {
-		return undefined;
-	}
-
-	return {
-		path: normalised,
-		fetchPath: normalised === "/docs" ? "/docs/index.md" : `${normalised}.md`,
-	};
-};
 
 /** The title of a page whose first line is `# <title> (<url>)`. */
 export const docsPageTitle = (content: string) =>

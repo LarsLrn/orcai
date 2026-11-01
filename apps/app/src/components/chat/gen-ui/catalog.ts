@@ -13,6 +13,7 @@ import { checklistToMarkdown } from "@/components/chat/gen-ui/checklist/to-markd
 import { readMatrix } from "@/components/chat/gen-ui/matrix/cells";
 import { matrixSchema } from "@/components/chat/gen-ui/matrix/schema";
 import { matrixToMarkdown } from "@/components/chat/gen-ui/matrix/to-markdown";
+import { proseDescription } from "@/components/chat/gen-ui/prose";
 import { readQuizResult } from "@/components/chat/gen-ui/quiz-result/read";
 import { quizResultToMarkdown } from "@/components/chat/gen-ui/quiz-result/to-markdown";
 import { readReview } from "@/components/chat/gen-ui/review/findings";
@@ -124,23 +125,31 @@ export type GenUiTools = {
 	>;
 };
 
-const displayTool = ({
-	schema,
-	description,
-}: Pick<PrimitiveEntry<z.ZodType, unknown>, "schema" | "description">) =>
+const displayTool = (
+	{
+		schema,
+		description,
+	}: Pick<PrimitiveEntry<z.ZodType, unknown>, "schema" | "description">,
+	turn: {
+		citations: boolean;
+	},
+) =>
 	tool({
 		description,
-		inputSchema: toolInputSchema(schema),
+		inputSchema: toolInputSchema(schema, (node) =>
+			proseDescription(node, turn),
+		),
 		execute: async () => ({
 			shown: true as const,
 		}),
 	});
 
-export const buildGenUiTools = (): GenUiTools =>
+/** The display tools, whose prose fields take citations when the turn can cite. */
+export const buildGenUiTools = (turn: { citations: boolean }): GenUiTools =>
 	Object.fromEntries(
 		Object.entries(genUiEntries).map(([name, entry]) => [
 			name,
-			displayTool(entry),
+			displayTool(entry, turn),
 		]),
 	) as GenUiTools;
 

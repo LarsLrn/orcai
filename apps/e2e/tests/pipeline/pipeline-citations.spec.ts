@@ -4,16 +4,17 @@ import {
 	chatName,
 	completionRequests,
 	composer,
-	createChat,
 	messageText,
 	openChat,
 	setUpChatModel,
 } from "../../fixtures/chat/chat";
+import { createGenUiChat } from "../../fixtures/gen-ui/gen-ui";
 import {
 	expect,
 	type InferenceMock,
 	test,
 } from "../../fixtures/inference/fixture";
+import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
 	preparedReadiness,
@@ -34,8 +35,7 @@ const refFromSearch = (inference: InferenceMock) => {
 	const results = JSON.stringify(
 		body.messages.filter(({ role }) => role === "tool"),
 	);
-	// Quotes are escaped inside the JSON of the messages.
-	const ref = /<passage ref=\\"(k[0-9a-z]{6})\\"/.exec(results)?.[1];
+	const ref = /<passage [^>]*?\bref=(k[0-9a-z]{6})\b/.exec(results)?.[1];
 
 	if (!ref) {
 		throw new Error("The model read no passage ref.");
@@ -46,11 +46,13 @@ const refFromSearch = (inference: InferenceMock) => {
 
 const citation = (page: Page, title: string) =>
 	page.getByRole("log").getByRole("button", {
-		name: title,
+		name: message("ai_elements_cite_asset_aria_label", {
+			label: title,
+		}),
 		exact: true,
 	});
 
-test("pipeline: a citation by chunk ref names the uploaded document, also after a reload", async ({
+test("pipeline: a citation by ref names the uploaded document, also after a reload", async ({
 	api,
 	inference,
 	org,
@@ -58,7 +60,7 @@ test("pipeline: a citation by chunk ref names the uploaded document, also after 
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	const chatId = await createChat(member, model, chatName("Citations"));
+	const chatId = await createGenUiChat(member, model, chatName("Citations"));
 	const repository = await repositoryWithDocument(member, {
 		label: "Refund Policy",
 		content: `# Refunds\n\n${CHUNK}\n`,
@@ -94,15 +96,58 @@ test("pipeline: a citation by chunk ref names the uploaded document, also after 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
 	await openChat(page, chatId);
-	inference.script({
-		text: `Refunds are paid <cite chunk="${ref}">within 14 days</cite>.`,
-	});
+	// A follow-up cites the earlier search's ref, in its text and in a display field.
+	inference.script(
+		{
+			text: `Refunds are paid <cite ref=${ref}>within 14 days</cite>.`,
+			toolCalls: [
+				{
+					name: "showChecklist",
+					input: {
+						title: "Refund check",
+						items: [
+							{
+								label: "Deadline",
+								status: "met",
+								summary: "Paid in time.",
+								body: `Paid <cite ref=${ref}>within two weeks</cite>.`,
+							},
+						],
+					},
+				},
+			],
+		},
+		{
+			text: "That is the rule.",
+		},
+	);
 	await composer(page).fill("Cite it.");
 	await composer(page).press("Enter");
 
-	await expect(messageText(page, "within 14 days")).toBeVisible();
-	await expect(citation(page, repository.asset.title)).toBeVisible();
+	const citations = citation(page, repository.asset.title);
+	const expanded = async () => {
+		await expect(messageText(page, "within 14 days")).toBeVisible();
+		await page
+			.getByRole("log")
+			.getByRole("button", {
+				name: /Deadline/,
+			})
+			.click();
+		await expect(
+			page.getByRole("log").getByText("within two weeks"),
+		).toBeVisible();
+		await expect(citations).toHaveCount(2);
+	};
+	await expanded();
 
 	await page.reload();
-	await expect(citation(page, repository.asset.title)).toBeVisible();
+	await expanded();
+
+	// The card opens the asset in the app, which asks nothing.
+	await citations.first().click();
+	await expect(
+		page.getByRole("link", {
+			name: message("ai_elements_cite_open_asset_action"),
+		}),
+	).toHaveAttribute("href", /\/app\/library\/assets\//);
 });

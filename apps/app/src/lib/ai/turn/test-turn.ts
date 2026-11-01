@@ -183,10 +183,13 @@ export const runTurn = <A, E>(
 	);
 
 /** Reads a turn's stream to its end, which runs the agent and settles the reply. */
+/** Reads the stream to its end, which runs the turn, and returns its chunks. */
 export const drain = async (stream: AsyncIterable<unknown>) => {
-	for await (const _ of stream) {
-		// The turn runs as the stream is read.
+	const chunks: unknown[] = [];
+	for await (const chunk of stream) {
+		chunks.push(chunk);
 	}
+	return chunks;
 };
 
 /**

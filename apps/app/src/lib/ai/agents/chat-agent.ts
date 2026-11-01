@@ -15,6 +15,8 @@ import {
 } from "@/lib/ai/agents/repair-tool-call";
 import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
 import { createStepShaper } from "@/lib/ai/agents/step-request";
+import type { ChatSources } from "@/lib/ai/citations/chat-sources";
+import type { CitableKind } from "@/lib/ai/citations/citation-rules";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";
 import { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
@@ -45,14 +47,22 @@ export const createChatAgent = (params: {
 	context: ORPCContext;
 	/** The stored messages the turn answers. */
 	history: readonly UIMessage[];
+	/** The chat's sources, which the turn's calls add to. */
+	sources: ChatSources;
 }) => {
 	const hasRepositories = params.databaseBlocks.length > 0;
+	const citable: CitableKind[] = hasRepositories
+		? [
+				"passage",
+			]
+		: [];
+	const citations = citable.length > 0;
 	const offeredTools: ToolSet = {
 		...(hasRepositories
 			? buildRepositoryTools({
 					blocks: params.databaseBlocks,
 					context: params.context,
-					history: params.history,
+					sources: params.sources,
 				})
 			: {}),
 	};
@@ -65,6 +75,7 @@ export const createChatAgent = (params: {
 				turn: {
 					webSearch: params.webSearch,
 					history: params.history,
+					citations,
 				},
 			}),
 		);
@@ -85,7 +96,12 @@ export const createChatAgent = (params: {
 		buildChatAgentSystemPrompt({
 			behaviour: params.systemPrompt,
 			repositories: params.databaseBlocks,
-			featurePrompts: params.features.map(({ entry }) => entry.prompt),
+			featurePrompts: params.features.map(({ entry }) =>
+				entry.prompt({
+					citations,
+				}),
+			),
+			citable,
 			today: params.today,
 		}),
 	);
@@ -97,9 +113,11 @@ export const createChatAgent = (params: {
 			...buildRepositoryTools({
 				blocks: [],
 				context: params.context,
-				history: [],
+				sources: params.sources,
 			}),
-			...buildGenUiTools(),
+			...buildGenUiTools({
+				citations,
+			}),
 			...buildQuestionTools({
 				history: [],
 			}),
@@ -120,7 +138,12 @@ export const createChatAgent = (params: {
 					: undefined,
 			...steps.forTurn(options),
 		}),
-		onToolExecutionEnd: ({ toolOutput }) => steps.recordExecution(toolOutput),
+		onToolExecutionEnd: ({ toolOutput }) => {
+			steps.recordExecution(toolOutput);
+			if (toolOutput.type === "tool-result") {
+				params.sources.record(toolOutput.toolName, toolOutput.output);
+			}
+		},
 		output: Output.text(),
 	});
 

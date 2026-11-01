@@ -11,7 +11,7 @@ const entry = (
 ): FeatureEntry => ({
 	settingsSchema,
 	buildTools: () => ({}),
-	prompt: "",
+	prompt: () => "",
 	requires,
 });
 

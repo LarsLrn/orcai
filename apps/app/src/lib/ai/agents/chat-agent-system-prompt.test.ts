@@ -20,6 +20,7 @@ describe("buildChatAgentSystemPrompt", () => {
 			behaviour: "  You check citations.  ",
 			repositories: [],
 			featurePrompts: [],
+			citable: [],
 			today: "Friday, 30 October 2026",
 		});
 
@@ -37,6 +38,7 @@ describe("buildChatAgentSystemPrompt", () => {
 			behaviour: " ",
 			repositories: [],
 			featurePrompts: [],
+			citable: [],
 			today: "Friday, 30 October 2026",
 		});
 
@@ -54,6 +56,7 @@ describe("buildChatAgentSystemPrompt", () => {
 				readings,
 			],
 			featurePrompts: [],
+			citable: [],
 			today: "Friday, 30 October 2026",
 		});
 
@@ -67,14 +70,21 @@ describe("buildChatAgentSystemPrompt", () => {
 				readings,
 			],
 			featurePrompts: [
-				featureCatalog.generativeUi.prompt,
+				featureCatalog.generativeUi.prompt({
+					citations: false,
+				}),
 			],
+			citable: [],
 			today: "Friday, 30 October 2026",
 		});
 
 		const behaviour = stable.indexOf("<behaviour>");
 		const repositories = stable.indexOf(REPOSITORIES);
-		const fragment = stable.indexOf(genUiPrompt);
+		const fragment = stable.indexOf(
+			genUiPrompt({
+				citations: false,
+			}),
+		);
 		const formatting = stable.indexOf(FORMATTING);
 
 		expect(behaviour).toBeGreaterThan(0);
@@ -88,12 +98,59 @@ describe("buildChatAgentSystemPrompt", () => {
 			behaviour: "You check citations.",
 			repositories: [],
 			featurePrompts: [],
+			citable: [],
 			today: "Friday, 30 October 2026",
 		});
 
 		expect(stable).not.toContain(REPOSITORIES);
-		expect(stable).not.toContain(genUiPrompt);
+		expect(stable).not.toContain(
+			genUiPrompt({
+				citations: false,
+			}),
+		);
 		expect(stable).toContain(FORMATTING);
+	});
+
+	test("cites only in a turn with sources, in the unquoted ref form", () => {
+		const cited = buildChatAgentSystemPrompt({
+			behaviour: undefined,
+			repositories: [
+				readings,
+			],
+			featurePrompts: [],
+			citable: [
+				"passage",
+			],
+			today: "Friday, 30 October 2026",
+		}).stable;
+		const uncited = buildChatAgentSystemPrompt({
+			behaviour: undefined,
+			repositories: [],
+			featurePrompts: [],
+			citable: [],
+			today: "Friday, 30 October 2026",
+		}).stable;
+
+		expect(cited.indexOf("Citations:")).toBeGreaterThan(
+			cited.indexOf(REPOSITORIES),
+		);
+		expect(cited).toContain("<cite ref=kgol9ts>");
+		expect(cited).not.toMatch(/<cite [^>]*"|chunk=|k7f3a2/);
+		expect(uncited).not.toContain("Citations:");
+		expect(uncited).not.toContain("<cite");
+	});
+
+	test("lets display tool prose cite only when the turn can cite", () => {
+		expect(
+			genUiPrompt({
+				citations: true,
+			}),
+		).toContain("Markdown and citations");
+		expect(
+			genUiPrompt({
+				citations: false,
+			}),
+		).not.toContain("citation");
 	});
 
 	test("puts the date in the variable part, so the stable part caches", () => {
@@ -101,6 +158,7 @@ describe("buildChatAgentSystemPrompt", () => {
 			behaviour: "You check citations.",
 			repositories: [],
 			featurePrompts: [],
+			citable: [],
 			today: "Friday, 30 October 2026",
 		});
 

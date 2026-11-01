@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { providerCompaction } from "@orcai/ai";
 import type { ModelProviderKind } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
+import { chatSources } from "@/lib/ai/citations/chat-sources";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { resetProcedures } from "../tools/assistant/test-procedures";
 import { answerSetup, assistantRow, conversation } from "../turn/test-turn";
@@ -322,6 +323,7 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 			context: {
 				secureCookies: false,
 			} as ORPCContext,
+			sources: chatSources([]),
 			turn: createAssistantTurn({
 				zedToken: undefined,
 				chatId: "chat",

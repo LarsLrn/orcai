@@ -1,3 +1,4 @@
+import { safeExternalUrl } from "@orcai/core";
 import { searchWebOutputSchema } from "./outputs";
 
 /** Markdown link targets and bare URLs, either with balanced parentheses such as `/Orca_(band)`. */
@@ -19,6 +20,7 @@ export interface CitedWebSource {
 /**
  * The web pages a reply cites, in order: the URL sources the model's own
  * search attached, then the `searchWeb` results the reply's text links to.
+ * Only http and https URLs without credentials count.
  */
 export const citedWebSources = (
 	parts: readonly {
@@ -42,7 +44,8 @@ export const citedWebSources = (
 		if (
 			part.type === "source-url" &&
 			"url" in part &&
-			typeof part.url === "string"
+			typeof part.url === "string" &&
+			safeExternalUrl(part.url)
 		) {
 			sources.set(part.url, {
 				url: part.url,
@@ -55,7 +58,11 @@ export const citedWebSources = (
 		if (part.type === "tool-searchWeb" && "output" in part) {
 			for (const result of searchWebOutputSchema.safeParse(part.output).data
 				?.results ?? []) {
-				if (linked.has(result.url) && !sources.has(result.url)) {
+				if (
+					linked.has(result.url) &&
+					!sources.has(result.url) &&
+					safeExternalUrl(result.url)
+				) {
 					sources.set(result.url, {
 						url: result.url,
 						title: result.title,

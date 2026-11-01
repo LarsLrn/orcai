@@ -1,33 +1,36 @@
 import type { DatabaseBlock } from "@orcai/schema";
-import type { UIMessage } from "ai";
+import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import { chunkIds } from "./chunk-ref";
 import { getAssetPageTool } from "./get-asset-page";
 import { getPassagesTool } from "./get-passages";
 import { listRepositoryAssetsTool } from "./list-repository-assets";
-import { passagesOfParts } from "./outputs";
 import { searchRepositoriesTool } from "./search-repositories";
 
-/** The repository tools of a turn, which reads chunk refs from `history` on. */
+/** The repository tools of a turn, which reads passage refs from the chat's `sources`. */
 export const buildRepositoryTools = ({
 	blocks,
 	context,
-	history,
+	sources,
 }: {
 	blocks: DatabaseBlock[];
 	context: ORPCContext;
-	history: readonly UIMessage[];
-}) => {
-	const deps = {
+	sources: ChatSources;
+}) => ({
+	searchRepositories: searchRepositoriesTool({
 		blocks,
 		context,
-		chunks: chunkIds(history.flatMap(({ parts }) => passagesOfParts(parts))),
-	};
-
-	return {
-		searchRepositories: searchRepositoriesTool(deps),
-		listRepositoryAssets: listRepositoryAssetsTool(deps),
-		getAssetPage: getAssetPageTool(deps),
-		getPassages: getPassagesTool(deps),
-	};
-};
+	}),
+	listRepositoryAssets: listRepositoryAssetsTool({
+		blocks,
+		context,
+	}),
+	getAssetPage: getAssetPageTool({
+		blocks,
+		context,
+	}),
+	getPassages: getPassagesTool({
+		blocks,
+		context,
+		sources,
+	}),
+});

@@ -14,9 +14,9 @@ import {
 } from "@orcai/schema";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
+import { sourceRef } from "@/lib/ai/citations/source-ref";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import { chunkRef } from "./chunk-ref";
 import { joinOverlapping } from "./passages";
 import type { Passage, PointWithBlock, RepositoryAsset } from "./types";
 
@@ -103,7 +103,7 @@ export const toPassage = (
 	const ends = run.flatMap((point) => point.payload.chunkPageEnd ?? []);
 
 	return {
-		ref: chunkRef(anchor.id),
+		ref: sourceRef("passage", anchor.id),
 		id: anchor.id,
 		assetId: first.payload.asset_id,
 		title: first.title,

@@ -38,7 +38,8 @@ const CHECKLIST: JsonValue = {
 			label: "Publication year",
 			status: "partial",
 			summary: "One year lacks parentheses.",
-			body: `${BODY_TEXT} <cite assetid="00000000-0000-4000-8000-000000000000" title="APA Style Guide" page="12">after the author</cite>.`,
+			// No source in this chat issued the ref, so the cite shows as its text.
+			body: `${BODY_TEXT} <cite ref=kgol9ts>after the author</cite>.`,
 			quote: QUOTE,
 		},
 		{
@@ -157,11 +158,14 @@ test("gen-ui: a checklist renders in the answer between the turn's text", async 
 	await yearRow.click();
 	await expect(log.getByText(QUOTE)).toBeVisible();
 	await expect(log.getByText(BODY_TEXT)).toBeVisible();
+	await expect(log.getByText("after the author")).toBeVisible();
 	await expect(
 		log.getByRole("button", {
-			name: /APA Style Guide/,
+			name: message("ai_elements_cite_asset_aria_label", {
+				label: "",
+			}).trim(),
 		}),
-	).toBeVisible();
+	).toHaveCount(0);
 
 	await page.reload();
 	await expect(title).toBeVisible();

@@ -221,6 +221,10 @@ A reply runs for at most 30 minutes. One that reaches the limit stops as if you 
 
 Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the asset's metadata with an **Open asset** link to the asset's page (`/app/library/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
 
+A citation promises that the chat retrieved the source, not that the source supports the sentence. Check the source before you rely on it. An answer can cite any source retrieved earlier in the same chat without searching again, and a branch can cite the sources of the messages it copied. A cited asset that was deleted or that you can no longer read still shows the citation, and opening it says that its metadata could not be loaded.
+
+Links in an answer and the pages listed under **Sources** ask before they open a page outside OrcAI. **Open external link?** shows the address, and **Open link** opens it in a new tab. Links to these docs open without asking.
+
 ## Web search
 
 In a chat with a bot that has the Web search feature on, the model can search the web while the organisation's [web search setting](/docs/using-orcai/administration#web-search) allows it. Each search is a step in the work log, such as **Searched the web for “orca pods”, 3 pages**, and expanding it shows the pages it found, each linking to the page. Pages the answer cites are listed under it as **Sources**, each linking to the page. With the allowed domains set, only pages on those domains and their subdomains are searched.

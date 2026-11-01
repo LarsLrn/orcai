@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { proseField } from "@/components/chat/gen-ui/prose";
 import { statusSchema } from "@/components/chat/gen-ui/status";
 
 export const checklistSchema = z.strictObject({
@@ -24,12 +25,9 @@ export const checklistSchema = z.strictObject({
 					.describe(
 						"One-line plain-text summary, visible while the row is collapsed.",
 					),
-				body: z
-					.string()
-					.optional()
-					.describe(
-						"Explanation shown when the row is expanded. Markdown and citations allowed.",
-					),
+				body: proseField(
+					"Explanation shown when the row is expanded.",
+				).optional(),
 				quote: z
 					.string()
 					.optional()

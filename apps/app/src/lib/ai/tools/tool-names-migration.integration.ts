@@ -5,7 +5,12 @@ import { Client } from "pg";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import type { CapabilitySet } from "./assistant/groups";
 import type { NameOf } from "./declaration";
-import { listOutputSchema, pageOutputSchema, passagesOf } from "./rag/outputs";
+import {
+	listOutputSchema,
+	pageOutputSchema,
+	passagesOutputSchema,
+	searchOutputSchema,
+} from "./rag/outputs";
 import { toolLabels, toolSummary } from "./registry";
 
 const MIGRATION = new URL(
@@ -581,18 +586,16 @@ describe("tool names migration", () => {
 			asset,
 		]);
 		expect(
-			passagesOf(
-				"searchRepositories",
+			searchOutputSchema.parse(
 				partOf("repository", "tool-searchRepositories").output,
-			),
+			).results,
 		).toEqual([
 			passage,
 		]);
 		expect(
-			passagesOf(
-				"getPassages",
+			passagesOutputSchema.parse(
 				partOf("repository", "tool-getPassages").output,
-			),
+			).passages,
 		).toEqual([
 			passage,
 		]);

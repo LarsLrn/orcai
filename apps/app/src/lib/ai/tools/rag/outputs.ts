@@ -1,5 +1,6 @@
 import type { ToolResultPart } from "ai";
 import { z } from "zod/v4";
+import type { Source } from "@/lib/ai/citations/source-ref";
 import { dataTag } from "@/lib/ai/utils/data-tag";
 import {
 	type Passage,
@@ -34,32 +35,21 @@ export const listOutputSchema = z.object({
 	assets: z.array(repositoryAssetSchema),
 });
 
-const passageOutputs: Record<string, z.ZodType<Passage[]>> = {
-	searchRepositories: searchOutputSchema.transform(({ results }) => results),
-	getPassages: passagesOutputSchema.transform(({ passages }) => passages),
-	getAssetPage: pageOutputSchema.transform(({ passages }) => passages),
-};
-
-/** The passages a repository call returned; none for other tools and older shapes. */
-export const passagesOf = (toolName: string, output: unknown): Passage[] =>
-	(Object.hasOwn(passageOutputs, toolName)
-		? passageOutputs[toolName].safeParse(output).data
-		: undefined) ?? [];
-
-/** The passages of a message's finished repository calls. */
-export const passagesOfParts = (
-	parts: readonly {
-		type: string;
-	}[],
-) =>
-	parts.flatMap((part) =>
-		part.type.startsWith("tool-") &&
-		"state" in part &&
-		part.state === "output-available" &&
-		"output" in part
-			? passagesOf(part.type.slice("tool-".length), part.output)
-			: [],
-	);
+/** A passage's source; a passage on one page names the page. */
+export const passageSources = (passages: Passage[]): Source[] =>
+	passages.map(({ ref, id, assetId, title, pageStart, pageEnd }) => ({
+		ref,
+		identity: id,
+		citation: {
+			kind: "asset",
+			assetId,
+			title,
+			...(pageStart !== undefined &&
+				pageStart === pageEnd && {
+					page: pageStart,
+				}),
+		},
+	}));
 
 const pagesOf = ({ pageStart, pageEnd }: Passage) => {
 	if (pageStart === undefined) {

@@ -49,7 +49,7 @@ const toolGuidance = [
 	"- Your tools call OrcAI as the current user, so they can do exactly what this user may do and nothing more.",
 	"- Find things with the find and list tools and resolve names to ids before you act. When a name matches several items, ask which one is meant with askUser.",
 	"- Some tools ask the user to confirm before they run. Never ask for a confirmation in prose that a tool already asks for.",
-	"- When the user wants to add files, call requestUpload from the bots group: the user uploads in the conversation and you get the new asset ids. requestUpload never attaches them: when they belong in a repository, attach them with createRepository or updateRepository.",
+	"- When the user wants to add files, call requestUpload from the bots group as your next step, with no plan and no question first: its upload field is where the user picks the files or cancels, and you get the new asset ids. requestUpload never attaches them: when they belong in a repository, attach them with createRepository or updateRepository.",
 	"- Bigger edits, such as a bot's rich description, template content or a repository's retrieval settings, belong in the editor: link /app/library/bots/<bot id>/setup or the block's page.",
 	"- What the organisation added from the catalogue comes from another organisation, which alone edits it. Here it can only be shared for use and given a model with updateBotSetup.",
 	"- Listing in the catalogue (a preview for everyone on the instance) is set only in the access dialog of the bot's, block's or asset's page, never by you. When asked, link that page. A listed bot contains only listed blocks: when a change to one fails because a block is not listed, link the bot's page so its owner confirms there.",
@@ -96,7 +96,6 @@ const answerForm = (docs: DocsConfig | undefined) =>
 					"- Link the docs page the answer came from, using the url that readDocs returned.",
 				]
 			: []),
-		"- Do not use <cite> tags.",
 		"- Answer in the language the user writes in. Name UI elements the way the docs do.",
 	].join("\n");
 

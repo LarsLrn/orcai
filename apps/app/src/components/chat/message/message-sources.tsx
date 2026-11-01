@@ -1,11 +1,12 @@
 import { GlobeIcon } from "lucide-react";
+import { ConfirmedLink } from "@/components/chat/link-confirm";
 import { hostOf } from "@/components/chat/message/work-log/web-source";
 import { badgeVariants } from "@/components/ui/badge";
 import type { CitedWebSource } from "@/lib/ai/tools/web/sources";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-/** The web pages an answer cites, each a link to the page. */
+/** The web pages an answer cites, each a link to the page that asks before it opens. */
 export const MessageSources = ({ sources }: { sources: CitedWebSource[] }) =>
 	sources.length > 0 && (
 		<section
@@ -17,11 +18,9 @@ export const MessageSources = ({ sources }: { sources: CitedWebSource[] }) =>
 				{m.chat_web_sources_label()}
 			</span>
 			{sources.map((source) => (
-				<a
+				<ConfirmedLink
 					key={source.url}
 					href={source.url}
-					target="_blank"
-					rel="noopener noreferrer"
 					title={source.title ?? source.url}
 					className={cn(
 						badgeVariants({
@@ -31,7 +30,7 @@ export const MessageSources = ({ sources }: { sources: CitedWebSource[] }) =>
 					)}
 				>
 					<span className="truncate">{source.title || hostOf(source.url)}</span>
-				</a>
+				</ConfirmedLink>
 			))}
 		</section>
 	);

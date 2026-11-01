@@ -27,6 +27,8 @@ import {
 	type ToolSet,
 } from "ai";
 import * as Effect from "effect/Effect";
+import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
+import { genUiPrompt } from "@/components/chat/gen-ui/prompt";
 import {
 	type AssistantSession,
 	createAssistantSession,
@@ -39,6 +41,8 @@ import {
 	buildChatAgentSystemPrompt,
 	localDate,
 } from "@/lib/ai/agents/chat-agent-system-prompt";
+import { chatSources } from "@/lib/ai/citations/chat-sources";
+import type { CitableKind } from "@/lib/ai/citations/citation-rules";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
 import {
 	type DeferredToolGroup,
@@ -295,6 +299,8 @@ export const runChat = async ({
 	message,
 	attachment,
 	webSearch = false,
+	generativeUi = false,
+	history = [],
 	scripted = {},
 }: {
 	model: EvalModel;
@@ -308,16 +314,33 @@ export const runChat = async ({
 	};
 	/** Offers searchWeb, the search provider's tool. */
 	webSearch?: boolean;
+	/** Offers the display tools, with the Generative UI fragment. */
+	generativeUi?: boolean;
+	/** Earlier turns, as the model reads them, before the message. */
+	history?: ModelMessage[];
 	scripted?: Scripted;
 }): Promise<Transcript> => {
+	const citable: CitableKind[] =
+		repositories.length > 0
+			? [
+					"passage",
+				]
+			: [];
+	const citations = citable.length > 0;
+	const displayTools = generativeUi
+		? buildGenUiTools({
+				citations,
+			})
+		: {};
 	const offered: ToolSet = {
 		...(repositories.length > 0
 			? buildRepositoryTools({
 					blocks: repositories,
 					context: contextStub,
-					history: [],
+					sources: chatSources([]),
 				})
 			: {}),
+		...displayTools,
 		...(webSearch
 			? {
 					searchWeb: storedWebSearchTools().searchWeb,
@@ -333,11 +356,19 @@ export const runChat = async ({
 			buildChatAgentSystemPrompt({
 				behaviour,
 				repositories,
-				featurePrompts: [],
+				featurePrompts: generativeUi
+					? [
+							genUiPrompt({
+								citations,
+							}),
+						]
+					: [],
+				citable,
 				today: localDate(Intl.DateTimeFormat().resolvedOptions().timeZone),
 			}),
 		),
 		messages: [
+			...history,
 			{
 				role: "user",
 				content: [
@@ -356,7 +387,7 @@ export const runChat = async ({
 				],
 			},
 		],
-		tools: tools && scriptTools(tools, scripted),
+		tools: tools && scriptTools(tools, scripted, Object.keys(displayTools)),
 		stopWhen: isStepCount(MAX_STEPS),
 	});
 
@@ -539,6 +570,7 @@ export const runAssistant = async ({
 					turn: {
 						webSearch: NO_WEB_SEARCH,
 						history: [],
+						citations: false,
 					},
 				}),
 			),
@@ -555,7 +587,11 @@ export const runAssistant = async ({
 			buildAssistantSystemPrompt({
 				docs: DOCS,
 				userContext: admin,
-				featurePrompts: features.map(({ entry }) => entry.prompt),
+				featurePrompts: features.map(({ entry }) =>
+					entry.prompt({
+						citations: false,
+					}),
+				),
 				toolGroups: offeredToolGroups(admin.capabilities),
 				plan: approved?.plan,
 			}),

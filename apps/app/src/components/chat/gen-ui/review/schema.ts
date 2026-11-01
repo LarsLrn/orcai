@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { proseField } from "@/components/chat/gen-ui/prose";
 
 export const severitySchema = z.enum([
 	"error",
@@ -13,11 +14,7 @@ const findingSchema = z.strictObject({
 	severity: severitySchema.describe(
 		"error: breaks the rule. warning: partly follows it or is doubtful. info: an observation that needs no change.",
 	),
-	note: z
-		.string()
-		.describe(
-			"What is wrong and how to fix it. Markdown and citations allowed.",
-		),
+	note: proseField("What is wrong and how to fix it."),
 	excerpt: z
 		.string()
 		.optional()
@@ -28,12 +25,7 @@ const findingSchema = z.strictObject({
 
 export const reviewSchema = z.strictObject({
 	title: z.string().describe("Short heading, plain text."),
-	summary: z
-		.string()
-		.optional()
-		.describe(
-			"A sentence or two on the overall result. Markdown and citations allowed.",
-		),
+	summary: proseField("A sentence or two on the overall result.").optional(),
 	items: z
 		.array(
 			z.strictObject({

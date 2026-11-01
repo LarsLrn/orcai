@@ -97,11 +97,32 @@ test("web-search: a bot answers with a cited page from the search provider", asy
 	const sources = page.getByRole("region", {
 		name: message("chat_web_sources_label"),
 	});
-	await expect(
-		sources.getByRole("link", {
-			name: "Mock search result for orca pods",
+	const source = sources.getByRole("button", {
+		name: "Mock search result for orca pods",
+	});
+
+	// A source and a link in the answer ask before they leave the app.
+	const confirmation = page.getByRole("alertdialog", {
+		name: message("chat_link_confirm_title"),
+	});
+	for (const link of [
+		source,
+		page.getByRole("log").getByRole("button", {
+			name: "the guide",
 		}),
-	).toHaveAttribute("href", "https://docs.example.org/search-result");
+	]) {
+		await link.click();
+		await expect(confirmation).toBeVisible();
+		await expect(
+			confirmation.getByText("https://docs.example.org/search-result"),
+		).toBeVisible();
+		await confirmation
+			.getByRole("button", {
+				name: message("common_cancel_button"),
+			})
+			.click();
+		await expect(confirmation).toHaveCount(0);
+	}
 
 	// The work log stays mounted while folded.
 	await expect(

@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { proseField } from "@/components/chat/gen-ui/prose";
 import { statusSchema } from "@/components/chat/gen-ui/status";
 
 export const matrixSchema = z.strictObject({
@@ -26,12 +27,9 @@ export const matrixSchema = z.strictObject({
 							status: statusSchema.describe(
 								"Outcome of the check. met: fully satisfied. partial: partly satisfied. not_met: not satisfied. n_a: cannot be checked.",
 							),
-							note: z
-								.string()
-								.optional()
-								.describe(
-									"Why the item misses the criterion and how to fix it. Markdown and citations allowed. Shown only when the status is other than met.",
-								),
+							note: proseField(
+								"Why the item misses the criterion and how to fix it, shown only when the status is other than met.",
+							).optional(),
 						}),
 					)
 					.describe("One cell per column, keyed by the column's key."),
