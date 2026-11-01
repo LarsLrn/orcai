@@ -14,7 +14,7 @@ export const organizationInvitationFieldsSchema = z.object({
 	role: organizationRoleSchema,
 	status: organizationInvitationStatusSchema,
 	expiresAt: z.coerce.date(),
-	inviterId: userIdSchema,
+	inviterId: userIdSchema.nullable(),
 });
 
 export const organizationInvitationSchema =

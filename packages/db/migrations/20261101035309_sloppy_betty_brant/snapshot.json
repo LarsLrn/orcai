@@ -1,0 +1,719 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "abe0de37-f8f6-4be9-99e7-3b6c6648d211",
+  "prevIds": [
+    "c168fed8-e401-45c5-bc5f-9eb0e8abbdff"
+  ],
+  "footprints": [
+    {
+      "statementType": "rename_constraint",
+      "statementTarget": [
+        "table",
+        "public",
+        "block"
+      ],
+      "writes": [
+        "s|fk|public.block.block_user_id_user_id_fk",
+        "n|fk|public.block.block_user_id_user_id_fk",
+        "n|con|public.block.block_user_id_user_id_fk",
+        "s|fk|public.block.block_user_id_user_id_fkey",
+        "n|fk|public.block.block_user_id_user_id_fkey",
+        "n|con|public.block.block_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.block",
+        "n|sch|public",
+        "e|col|public.block.user_id"
+      ]
+    },
+    {
+      "statementType": "rename_constraint",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot"
+      ],
+      "writes": [
+        "s|fk|public.bot.bot_user_id_user_id_fk",
+        "n|fk|public.bot.bot_user_id_user_id_fk",
+        "n|con|public.bot.bot_user_id_user_id_fk",
+        "s|fk|public.bot.bot_user_id_user_id_fkey",
+        "n|fk|public.bot.bot_user_id_user_id_fkey",
+        "n|con|public.bot.bot_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "e|col|public.bot.user_id"
+      ]
+    },
+    {
+      "statementType": "rename_constraint",
+      "statementTarget": [
+        "table",
+        "public",
+        "invitation"
+      ],
+      "writes": [
+        "s|fk|public.invitation.invitation_inviter_id_user_id_fk",
+        "n|fk|public.invitation.invitation_inviter_id_user_id_fk",
+        "n|con|public.invitation.invitation_inviter_id_user_id_fk",
+        "s|fk|public.invitation.invitation_inviter_id_user_id_fkey",
+        "n|fk|public.invitation.invitation_inviter_id_user_id_fkey",
+        "n|con|public.invitation.invitation_inviter_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invitation",
+        "n|sch|public",
+        "e|col|public.invitation.inviter_id"
+      ]
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "invitation",
+        "inviter_id"
+      ],
+      "writes": [
+        "s|colprop|public.invitation.inviter_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.invitation",
+        "n|sch|public",
+        "n|col|public.invitation.inviter_id"
+      ],
+      "sqlHash": "801ffee9c882d088"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "group",
+        "created_by"
+      ],
+      "writes": [
+        "s|colprop|public.group.created_by.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.group",
+        "n|sch|public",
+        "n|col|public.group.created_by"
+      ],
+      "sqlHash": "9b67071ff87f6663"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "group_member",
+        "added_by"
+      ],
+      "writes": [
+        "s|colprop|public.group_member.added_by.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.group_member",
+        "n|sch|public",
+        "n|col|public.group_member.added_by"
+      ],
+      "sqlHash": "b0f728e5b1921019"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resource_grant",
+        "granted_by"
+      ],
+      "writes": [
+        "s|colprop|public.resource_grant.granted_by.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.resource_grant",
+        "n|sch|public",
+        "n|col|public.resource_grant.granted_by"
+      ],
+      "sqlHash": "3665cf15c23fbd96"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resource_scope",
+        "assigned_by"
+      ],
+      "writes": [
+        "s|colprop|public.resource_scope.assigned_by.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.resource_scope",
+        "n|sch|public",
+        "n|col|public.resource_scope.assigned_by"
+      ],
+      "sqlHash": "86afc631e87d9144"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resource_visibility",
+        "updated_by"
+      ],
+      "writes": [
+        "s|colprop|public.resource_visibility.updated_by.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.resource_visibility",
+        "n|sch|public",
+        "n|col|public.resource_visibility.updated_by"
+      ],
+      "sqlHash": "2a3bfb1cc0255cd9"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "quota_pool",
+        "created_by_user_id"
+      ],
+      "writes": [
+        "s|colprop|public.quota_pool.created_by_user_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool",
+        "n|sch|public",
+        "n|col|public.quota_pool.created_by_user_id"
+      ],
+      "sqlHash": "15a7d7aa977b8e6e"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "quota_pool_audit_log",
+        "actor_user_id"
+      ],
+      "writes": [
+        "s|colprop|public.quota_pool_audit_log.actor_user_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool_audit_log",
+        "n|sch|public",
+        "n|col|public.quota_pool_audit_log.actor_user_id"
+      ],
+      "sqlHash": "8a101c97ff27c6ce"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "quota_pool_group_assignment",
+        "created_by_user_id"
+      ],
+      "writes": [
+        "s|colprop|public.quota_pool_group_assignment.created_by_user_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool_group_assignment",
+        "n|sch|public",
+        "n|col|public.quota_pool_group_assignment.created_by_user_id"
+      ],
+      "sqlHash": "613c1ebd1a4cc24b"
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "quota_usage_event",
+        "user_id"
+      ],
+      "writes": [
+        "s|colprop|public.quota_usage_event.user_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.quota_usage_event",
+        "n|sch|public",
+        "n|col|public.quota_usage_event.user_id"
+      ],
+      "sqlHash": "36cbeb91811ede31"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invitation"
+      ],
+      "writes": [
+        "s|fk|public.invitation.invitation_inviter_id_user_id_fkey",
+        "n|fk|public.invitation.invitation_inviter_id_user_id_fkey",
+        "e|fk|public.invitation.invitation_inviter_id_user_id_fkey",
+        "n|con|public.invitation.invitation_inviter_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invitation",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.invitation.inviter_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "0e91210ae9fd34e3"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "block"
+      ],
+      "writes": [
+        "s|fk|public.block.block_user_id_user_id_fkey",
+        "n|fk|public.block.block_user_id_user_id_fkey",
+        "e|fk|public.block.block_user_id_user_id_fkey",
+        "n|con|public.block.block_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.block",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.block.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "f5c7c6193e194366"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bot"
+      ],
+      "writes": [
+        "s|fk|public.bot.bot_user_id_user_id_fkey",
+        "n|fk|public.bot.bot_user_id_user_id_fkey",
+        "e|fk|public.bot.bot_user_id_user_id_fkey",
+        "n|con|public.bot.bot_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bot",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.bot.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "4e109ddd85f961ef"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "group"
+      ],
+      "writes": [
+        "s|fk|public.group.group_created_by_user_id_fkey",
+        "n|fk|public.group.group_created_by_user_id_fkey",
+        "e|fk|public.group.group_created_by_user_id_fkey",
+        "n|con|public.group.group_created_by_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.group",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.group.created_by",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "bb05483a7a3c6d11"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "group_member"
+      ],
+      "writes": [
+        "s|fk|public.group_member.group_member_added_by_user_id_fkey",
+        "n|fk|public.group_member.group_member_added_by_user_id_fkey",
+        "e|fk|public.group_member.group_member_added_by_user_id_fkey",
+        "n|con|public.group_member.group_member_added_by_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.group_member",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.group_member.added_by",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "6b32c5cb87b2ed5a"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "resource_grant"
+      ],
+      "writes": [
+        "s|fk|public.resource_grant.resource_grant_granted_by_user_id_fkey",
+        "n|fk|public.resource_grant.resource_grant_granted_by_user_id_fkey",
+        "e|fk|public.resource_grant.resource_grant_granted_by_user_id_fkey",
+        "n|con|public.resource_grant.resource_grant_granted_by_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.resource_grant",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.resource_grant.granted_by",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "bd5d55bcd9575606"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "resource_scope"
+      ],
+      "writes": [
+        "s|fk|public.resource_scope.resource_scope_assigned_by_user_id_fkey",
+        "n|fk|public.resource_scope.resource_scope_assigned_by_user_id_fkey",
+        "e|fk|public.resource_scope.resource_scope_assigned_by_user_id_fkey",
+        "n|con|public.resource_scope.resource_scope_assigned_by_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.resource_scope",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.resource_scope.assigned_by",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "f3401b09f01cf20d"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "resource_visibility"
+      ],
+      "writes": [
+        "s|fk|public.resource_visibility.resource_visibility_updated_by_user_id_fkey",
+        "n|fk|public.resource_visibility.resource_visibility_updated_by_user_id_fkey",
+        "e|fk|public.resource_visibility.resource_visibility_updated_by_user_id_fkey",
+        "n|con|public.resource_visibility.resource_visibility_updated_by_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.resource_visibility",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.resource_visibility.updated_by",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "90533b85b5ebfc56"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "quota_pool"
+      ],
+      "writes": [
+        "s|fk|public.quota_pool.quota_pool_created_by_user_id_user_id_fkey",
+        "n|fk|public.quota_pool.quota_pool_created_by_user_id_user_id_fkey",
+        "e|fk|public.quota_pool.quota_pool_created_by_user_id_user_id_fkey",
+        "n|con|public.quota_pool.quota_pool_created_by_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.quota_pool.created_by_user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "b8d7111110dccf23"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "quota_pool_audit_log"
+      ],
+      "writes": [
+        "s|fk|public.quota_pool_audit_log.quota_pool_audit_log_actor_user_id_user_id_fkey",
+        "n|fk|public.quota_pool_audit_log.quota_pool_audit_log_actor_user_id_user_id_fkey",
+        "e|fk|public.quota_pool_audit_log.quota_pool_audit_log_actor_user_id_user_id_fkey",
+        "n|con|public.quota_pool_audit_log.quota_pool_audit_log_actor_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool_audit_log",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.quota_pool_audit_log.actor_user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "80c4d2eb28266a5c"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "quota_pool_group_assignment"
+      ],
+      "writes": [
+        "s|fk|public.quota_pool_group_assignment.quota_pool_group_assignment_created_by_user_id_user_id_fkey",
+        "n|fk|public.quota_pool_group_assignment.quota_pool_group_assignment_created_by_user_id_user_id_fkey",
+        "e|fk|public.quota_pool_group_assignment.quota_pool_group_assignment_created_by_user_id_user_id_fkey",
+        "n|con|public.quota_pool_group_assignment.quota_pool_group_assignment_created_by_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool_group_assignment",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.quota_pool_group_assignment.created_by_user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "176e3a0daf7f82ca"
+    },
+    {
+      "statementType": "recreate_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "quota_usage_event"
+      ],
+      "writes": [
+        "s|fk|public.quota_usage_event.quota_usage_event_user_id_user_id_fkey",
+        "n|fk|public.quota_usage_event.quota_usage_event_user_id_user_id_fkey",
+        "e|fk|public.quota_usage_event.quota_usage_event_user_id_user_id_fkey",
+        "n|con|public.quota_usage_event.quota_usage_event_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.quota_usage_event",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.quota_usage_event.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ],
+      "sqlHash": "3c1982bbe79d6a63"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "rename",
+      "key": "fks\u0000[\"public\",\"block\",\"block_user_id_user_id_fk\"]",
+      "set": {
+        "name": "block_user_id_user_id_fkey"
+      }
+    },
+    {
+      "op": "rename",
+      "key": "fks\u0000[\"public\",\"bot\",\"bot_user_id_user_id_fk\"]",
+      "set": {
+        "name": "bot_user_id_user_id_fkey"
+      }
+    },
+    {
+      "op": "rename",
+      "key": "fks\u0000[\"public\",\"invitation\",\"invitation_inviter_id_user_id_fk\"]",
+      "set": {
+        "name": "invitation_inviter_id_user_id_fkey"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"invitation\",\"inviter_id\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"group\",\"created_by\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"group_member\",\"added_by\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"resource_grant\",\"granted_by\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"resource_scope\",\"assigned_by\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"resource_visibility\",\"updated_by\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"quota_pool\",\"created_by_user_id\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"quota_pool_audit_log\",\"actor_user_id\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"quota_pool_group_assignment\",\"created_by_user_id\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"quota_usage_event\",\"user_id\"]",
+      "set": {
+        "notNull": false
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"invitation\",\"invitation_inviter_id_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"block\",\"block_user_id_user_id_fkey\"]",
+      "set": {
+        "onDelete": "NO ACTION"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"bot\",\"bot_user_id_user_id_fkey\"]",
+      "set": {
+        "onDelete": "NO ACTION"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"group\",\"group_created_by_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"group_member\",\"group_member_added_by_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"resource_grant\",\"resource_grant_granted_by_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"resource_scope\",\"resource_scope_assigned_by_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"resource_visibility\",\"resource_visibility_updated_by_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"quota_pool\",\"quota_pool_created_by_user_id_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"quota_pool_audit_log\",\"quota_pool_audit_log_actor_user_id_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"quota_pool_group_assignment\",\"quota_pool_group_assignment_created_by_user_id_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "fks\u0000[\"public\",\"quota_usage_event\",\"quota_usage_event_user_id_user_id_fkey\"]",
+      "set": {
+        "onDelete": "SET NULL"
+      }
+    }
+  ]
+}

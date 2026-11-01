@@ -4,6 +4,7 @@ import type { BotId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { QuotaUsageEventListInput } from "@orcai/schema";
 import { createOrganization, createUser } from "@orcai/testing";
+import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	type Actor,
@@ -13,7 +14,7 @@ import {
 import { removeMembers } from "@/lib/authz/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
-const { run, signIn, procedureOptions } = authzIntegration();
+const { run, signIn, procedureOptions, instanceAdmin } = authzIntegration();
 
 /** The newest zedToken any call returned; every call reads at least at it. */
 let token: string | undefined;
@@ -166,6 +167,18 @@ const pooledOrganization = async () => {
 			}),
 		);
 
+	const ledger = async () =>
+		(
+			await run(
+				procedures.quota.find(
+					{
+						id: pool.id,
+					},
+					await options(admin),
+				),
+			)
+		).data.currentLedger;
+
 	const events = async (filters?: QuotaUsageEventListInput["filters"]) =>
 		run(
 			procedures.quota.listEvents(
@@ -186,6 +199,7 @@ const pooledOrganization = async () => {
 		member,
 		bot,
 		meter,
+		ledger,
 		events,
 	};
 };
@@ -289,6 +303,64 @@ describe("quota usage events", () => {
 					})
 				).rowCount,
 			).toBe(1);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"show a deleted account's usage as deleted and keep the pool's totals",
+		async () => {
+			const org = await pooledOrganization();
+			await org.meter(org.member);
+			await org.meter(org.admin);
+			const before = await org.ledger();
+			const instance = await instanceAdmin(org.organizationId);
+			const procedures = await run(Procedures);
+			track(
+				await run(
+					procedures.user.delete(
+						{
+							userIds: [
+								org.member.user.id,
+							],
+						},
+						await options(instance),
+					),
+				),
+			);
+
+			const after = await org.ledger();
+			expect(after?.consumedAmount).toBeGreaterThan(0);
+			expect(after).toEqual(before);
+			const all = await org.events({
+				eventType: "finalized",
+			});
+			expect(all.data.map(({ user }) => user)).toEqual([
+				{
+					kind: "member",
+					id: org.admin.user.id,
+					name: org.admin.user.name,
+					email: org.admin.user.email,
+				},
+				{
+					kind: "deleted",
+				},
+			]);
+			const attributions = await run(
+				Effect.gen(function* () {
+					const rows = yield* (yield* DB)
+						.select({
+							userId: dbSchema.quotaUsageEvent.userId,
+						})
+						.from(dbSchema.quotaUsageEvent)
+						.where(
+							eq(dbSchema.quotaUsageEvent.organizationId, org.organizationId),
+						);
+					return rows.map(({ userId }) => userId);
+				}),
+			);
+			expect(attributions).toContain(null);
+			expect(attributions).not.toContain(org.member.user.id);
 		},
 		TIMEOUT,
 	);

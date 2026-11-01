@@ -20,13 +20,15 @@ type Viewer = {
 export const usageIdentities = (params: {
 	organizationId: OrganizationId;
 	viewer: Viewer;
-	userIds: readonly UserId[];
+	userIds: readonly (UserId | null)[];
 	botIds: readonly (BotId | null)[];
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const { user, member, bot } = dbSchema;
-		const userIds = unique(params.userIds);
+		const userIds = unique(
+			params.userIds.filter((userId): userId is UserId => userId !== null),
+		);
 		const botIds = unique(
 			params.botIds.filter((botId): botId is BotId => botId !== null),
 		);
@@ -91,7 +93,11 @@ export const usageIdentities = (params: {
 		);
 
 		return {
-			person: (userId: UserId): UsagePerson => {
+			person: (userId: UserId | null): UsagePerson => {
+				if (userId === null)
+					return {
+						kind: "deleted",
+					};
 				const person = people.get(userId);
 				return person
 					? {

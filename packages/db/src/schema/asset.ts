@@ -71,7 +71,6 @@ export const asset = pgTable(
 		metadataGeneration: integer("metadata_generation").notNull().default(0),
 		fileType: assetFileTypeEnum("file_type").notNull(),
 		origin: assetOriginEnum("origin").notNull().default("library"),
-		// TODO: Check what should be done if user deletes account
 		userId: uuid("user_id")
 			.$type<UserId>()
 			.notNull()

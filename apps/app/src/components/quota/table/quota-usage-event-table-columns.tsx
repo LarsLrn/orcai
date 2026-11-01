@@ -102,7 +102,9 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 				</div>
 			) : (
 				<span className="text-muted-foreground">
-					{m.quotas_events_former_member_label()}
+					{original.user.kind === "deleted"
+						? m.quotas_events_deleted_user_label()
+						: m.quotas_events_former_member_label()}
 				</span>
 			),
 		meta: {

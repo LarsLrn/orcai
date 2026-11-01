@@ -75,8 +75,9 @@ export const group = pgTable(
 		systemKey: groupSystemKeyEnum("system_key"),
 		createdBy: uuid("created_by")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 		deletedAt: timestamp("deleted_at"),
@@ -112,8 +113,9 @@ export const groupMember = pgTable(
 			}),
 		addedBy: uuid("added_by")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		removedAt: timestamp("removed_at"),
 	},
@@ -144,8 +146,9 @@ export const resourceGrant = pgTable(
 			}),
 		grantedBy: uuid("granted_by")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		revokedAt: timestamp("revoked_at"),
 	},
@@ -182,8 +185,9 @@ export const resourceVisibility = pgTable(
 			.default("private"),
 		updatedBy: uuid("updated_by")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 	},
 	(table) => [
@@ -214,8 +218,9 @@ export const resourceScope = pgTable(
 		assignedAt: timestamp("assigned_at").notNull().defaultNow(),
 		assignedBy: uuid("assigned_by")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		endedAt: timestamp("ended_at"),
 	},
 	(table) => [

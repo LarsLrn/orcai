@@ -32,9 +32,7 @@ export const block = pgTable("block", {
 	userId: uuid("user_id")
 		.$type<UserId>()
 		.notNull()
-		.references(() => user.id, {
-			onDelete: "cascade",
-		}),
+		.references(() => user.id),
 	forkedFromId: uuid("forked_from_id")
 		.$type<BlockId>()
 		.references((): AnyPgColumn => block.id, {
