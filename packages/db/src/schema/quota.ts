@@ -87,8 +87,9 @@ export const quotaPool = pgTable(
 		isActive: boolean("is_active").notNull().default(true),
 		createdByUserId: uuid("created_by_user_id")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 	},
@@ -128,8 +129,9 @@ export const quotaPoolGroupAssignment = pgTable(
 		isActive: boolean("is_active").notNull().default(true),
 		createdByUserId: uuid("created_by_user_id")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at").notNull().defaultNow(),
 	},
@@ -248,8 +250,9 @@ export const quotaUsageEvent = pgTable(
 		}),
 		userId: uuid("user_id")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		/** The bot whose chat the call ran in. */
 		botId: uuid("bot_id")
 			.$type<BotId>()
@@ -364,8 +367,9 @@ export const quotaPoolAuditLog = pgTable(
 			}),
 		actorUserId: uuid("actor_user_id")
 			.$type<UserId>()
-			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
 		actionType: text("action_type").notNull(),
 		beforeState: json("before_state").$type<Record<string, unknown>>(),
 		afterState: json("after_state").$type<Record<string, unknown>>(),

@@ -363,7 +363,7 @@ export const organizationAnalytics = ({
 					...row,
 					user: identities.person(userId),
 				})),
-				(row) => (row.user.kind === "member" ? row.user.id : "former"),
+				(row) => (row.user.kind === "member" ? row.user.id : row.user.kind),
 			).sort(byUsage),
 			bots: byKey(
 				bots.map(({ botId, ...row }) => ({

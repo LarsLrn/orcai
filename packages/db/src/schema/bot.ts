@@ -39,9 +39,7 @@ export const bot = pgTable("bot", {
 	userId: uuid("user_id")
 		.$type<UserId>()
 		.notNull()
-		.references(() => user.id, {
-			onDelete: "cascade",
-		}),
+		.references(() => user.id),
 	forkedFromId: uuid("forked_from_id")
 		.$type<BotId>()
 		.references((): AnyPgColumn => bot.id, {

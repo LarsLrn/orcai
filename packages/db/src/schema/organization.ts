@@ -100,8 +100,9 @@ export const invitation = pgTable("invitation", {
 	expiresAt: timestamp("expires_at").notNull(),
 	inviterId: uuid("inviter_id")
 		.$type<UserId>()
-		.notNull()
-		.references(() => user.id),
+		.references(() => user.id, {
+			onDelete: "set null",
+		}),
 	createdAt: timestamp("created_at").defaultNow(),
 	updatedAt: timestamp("updated_at").defaultNow(),
 });

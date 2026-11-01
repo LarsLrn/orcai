@@ -45,7 +45,7 @@ export const quotaPoolSchema = quotaPoolFieldsSchema.extend({
 	organizationId: organizationIdSchema,
 	description: z.string().nullable(),
 	modelId: modelIdSchema.nullable(),
-	createdByUserId: userIdSchema,
+	createdByUserId: userIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 	updatedAt: z.coerce.date(),
 });
@@ -55,7 +55,7 @@ export const quotaPoolGroupAssignmentSchema = z.object({
 	quotaPoolId: quotaPoolIdSchema,
 	groupId: groupIdSchema,
 	isActive: z.boolean(),
-	createdByUserId: userIdSchema,
+	createdByUserId: userIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 	updatedAt: z.coerce.date(),
 });

@@ -125,7 +125,11 @@ function RouteComponent() {
 												/>
 											) : (
 												<TwoLineName
-													primary={m.analytics_former_members_label()}
+													primary={
+														row.user.kind === "deleted"
+															? m.analytics_deleted_users_label()
+															: m.analytics_former_members_label()
+													}
 												/>
 											)
 										}

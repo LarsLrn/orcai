@@ -22,7 +22,7 @@ export const groupSchema = groupFieldsSchema.extend({
 	description: z.string().nullable(),
 	kind: groupKindSchema,
 	systemKey: groupSystemKeySchema.nullable(),
-	createdBy: userIdSchema,
+	createdBy: userIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 	updatedAt: z.coerce.date(),
 	deletedAt: z.coerce.date().nullable(),
@@ -32,7 +32,7 @@ export const groupMemberSchema = z.object({
 	id: groupMemberIdSchema,
 	groupId: groupIdSchema,
 	userId: userIdSchema,
-	addedBy: userIdSchema,
+	addedBy: userIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 	removedAt: z.coerce.date().nullable(),
 });

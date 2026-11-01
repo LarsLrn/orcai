@@ -117,7 +117,7 @@ const resourceGrantFieldsSchema = {
 		groupIdSchema,
 	]),
 	role: resourceGrantRoleSchema,
-	grantedBy: userIdSchema,
+	grantedBy: userIdSchema.nullable(),
 	createdAt: z.coerce.date(),
 	revokedAt: z.coerce.date().nullable(),
 };
@@ -213,7 +213,7 @@ export const inheritedAccessSchema = z.object({
 export const resourceVisibilityRecordSchema = createResourceScopedSchema({
 	id: z.uuidv4(),
 	visibility: resourceVisibilitySchema,
-	updatedBy: userIdSchema,
+	updatedBy: userIdSchema.nullable(),
 	updatedAt: z.coerce.date(),
 });
 

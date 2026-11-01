@@ -2,7 +2,10 @@ import { z } from "zod/v4";
 import { botIdSchema } from "../bot/ref";
 import { userIdSchema } from "../user/ref";
 
-/** A current member, or someone who has left the organisation, unnamed. */
+/**
+ * A current member, someone who has left the organisation, unnamed, or a
+ * deleted account.
+ */
 export const usagePersonSchema = z.discriminatedUnion("kind", [
 	z.object({
 		kind: z.literal("member"),
@@ -12,6 +15,9 @@ export const usagePersonSchema = z.discriminatedUnion("kind", [
 	}),
 	z.object({
 		kind: z.literal("former"),
+	}),
+	z.object({
+		kind: z.literal("deleted"),
 	}),
 ]);
 
