@@ -10,7 +10,7 @@ import {
 	mentions,
 	omits,
 } from "../checks";
-import { runAssistant, type Scripted } from "../harness";
+import { type ApprovedPlan, runAssistant, type Scripted } from "../harness";
 import type { EvalCase } from "./case";
 
 const bot = (name: string, status: "draft" | "ready" = "ready") => ({
@@ -196,6 +196,42 @@ const assistant =
 			scripted: riverside(library),
 		});
 
+const SPANISH_DRILL =
+	'Create a bot named "Spanish drill" for my year 9 class. Its behaviour: quiz the students on Spanish vocabulary, one word at a time, and correct each answer in one sentence. It needs no repositories and no features. Use the default model.';
+
+const spanishDrillPlan: ApprovedPlan = {
+	leadIn:
+		"I will create the behaviour first and then the bot that uses it with the default model.",
+	plan: {
+		title: "Set up Spanish drill",
+		items: [
+			{
+				label: "Create the behaviour",
+				details:
+					"Quiz year 9 students on Spanish vocabulary, one word at a time, and correct each answer in one sentence.",
+				status: "pending",
+			},
+			{
+				label: "Create the bot",
+				details:
+					"Spanish drill with that behaviour, the default model, no repositories and no features.",
+				status: "pending",
+			},
+		],
+	},
+};
+
+/** The continuation after the user approved the plan. */
+const approvedPlan =
+	(plan: ApprovedPlan): EvalCase["run"] =>
+	(model) =>
+		runAssistant({
+			model,
+			message: SPANISH_DRILL,
+			approved: plan,
+			scripted: riverside({}),
+		});
+
 export const assistantCases: EvalCase[] = [
 	{
 		id: "assistant/new-bot-asks-first",
@@ -208,12 +244,30 @@ export const assistantCases: EvalCase[] = [
 	},
 	{
 		id: "assistant/new-bot-specified-plans",
-		run: assistant(
-			'Create a bot named "Spanish drill" for my year 9 class. Its behaviour: quiz the students on Spanish vocabulary, one word at a time, and correct each answer in one sentence. It needs no repositories and no features. Use the default model.',
-		),
+		run: assistant(SPANISH_DRILL),
 		checks: [
 			calls("updatePlan"),
 			doesNotCall("askUser"),
+		],
+	},
+	{
+		id: "assistant/approved-plan-creates",
+		run: approvedPlan({
+			...spanishDrillPlan,
+			loaded: [
+				"bots",
+			],
+		}),
+		checks: [
+			callsBefore("createBehaviour", "createBot"),
+		],
+	},
+	{
+		id: "assistant/approved-plan-loads-and-creates",
+		run: approvedPlan(spanishDrillPlan),
+		checks: [
+			callsBefore("loadTools", "createBehaviour", "createBot"),
+			callsBefore("createBehaviour", "createBot"),
 		],
 	},
 	{

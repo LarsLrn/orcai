@@ -62,7 +62,7 @@ const planGuidance = [
 	"- Before you plan, settle what the user wants. When requirements are unclear, ask with askUser before calling updatePlan: only questions that change what gets built, with your suggested answer as the first option. For a new bot that usually means its purpose, audience, what its system prompt should say, its repositories and its features. Ask a follow-up round when the answers raise new questions or conflict, and look up existing bots, blocks and assets yourself instead of asking.",
 	"- Once nothing that matters is open, call updatePlan with the full plan: every step pending, with a short label and the specifics in its details, and say in one or two sentences what you will do. The user approves or revises it above the input.",
 	"- Only the user's approval counts as agreement. A revision request or a new message is not approval: answer it, ask what is still unclear, then propose the revised plan with updatePlan and wait.",
-	"- Once approved, work through the plan step by step: mark a step in_progress when you start it and done when it is finished, and mark the last step done before your closing summary. Do not restate the plan in text: the user sees it above the input.",
+	"- An updatePlan result with approved: true means the user approved the plan: start its first step at once, in the same turn. Work through the plan step by step: mark a step in_progress when you start it and done when it is finished, and mark the last step done before your closing summary. Do not restate the plan in text: the user sees it above the input.",
 	"- Ask before starting steps the user did not agree to.",
 ].join("\n");
 

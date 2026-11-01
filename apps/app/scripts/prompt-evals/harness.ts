@@ -21,12 +21,16 @@ import type { DatabaseBlock } from "@orcai/schema";
 import {
 	generateText,
 	isStepCount,
+	type ModelMessage,
 	type StepResult,
 	type Tool,
 	type ToolSet,
 } from "ai";
 import * as Effect from "effect/Effect";
-import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
+import {
+	type AssistantSession,
+	createAssistantSession,
+} from "@/lib/ai/agents/assistant-session";
 import {
 	type AssistantUserContext,
 	buildAssistantSystemPrompt,
@@ -36,7 +40,11 @@ import {
 	localDate,
 } from "@/lib/ai/agents/chat-agent-system-prompt";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
-import { offeredToolGroups } from "@/lib/ai/tools/assistant/groups";
+import {
+	type DeferredToolGroup,
+	offeredToolGroups,
+} from "@/lib/ai/tools/assistant/groups";
+import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
@@ -382,14 +390,109 @@ const readLocalDocs = ({ path }: { path?: string }) =>
 		}).pipe(Effect.mapError(({ message }) => new Error(message))),
 	);
 
+/** The paused reply and the user's approval, with the groups it loaded recorded. */
+const approvalMessages = async (
+	{ plan, leadIn, loaded = [] }: ApprovedPlan,
+	tools: ToolSet,
+	session: AssistantSession,
+): Promise<ModelMessage[]> => {
+	const loading: ModelMessage[] = [];
+	if (loaded.length > 0) {
+		const toolCallId = "call_load";
+		const input = {
+			groups: loaded,
+		};
+		const output = await tools.loadTools?.execute?.(input, {
+			toolCallId,
+			messages: [],
+		} as never);
+		session.record({
+			toolCallId,
+			toolName: "loadTools",
+			output,
+		});
+		loading.push(
+			{
+				role: "assistant",
+				content: [
+					{
+						type: "tool-call",
+						toolCallId,
+						toolName: "loadTools",
+						input,
+					},
+				],
+			},
+			{
+				role: "tool",
+				content: [
+					{
+						type: "tool-result",
+						toolCallId,
+						toolName: "loadTools",
+						output: {
+							type: "json",
+							value: output,
+						},
+					},
+				],
+			},
+		);
+	}
+
+	return [
+		...loading,
+		{
+			role: "assistant",
+			content: [
+				{
+					type: "text",
+					text: leadIn,
+				},
+				{
+					type: "tool-call",
+					toolCallId: "call_plan",
+					toolName: "updatePlan",
+					input: plan,
+				},
+				{
+					type: "tool-approval-request",
+					approvalId: "approval_plan",
+					toolCallId: "call_plan",
+				},
+			],
+		},
+		{
+			role: "tool",
+			content: [
+				{
+					type: "tool-approval-response",
+					approvalId: "approval_plan",
+					approved: true,
+				},
+			],
+		},
+	];
+};
+
+/** The reply to `message` proposed this plan, after loading `loaded`, and the user approved it. */
+export interface ApprovedPlan {
+	plan: Plan;
+	leadIn: string;
+	loaded?: DeferredToolGroup[];
+}
+
 /** The Assistant with its fixed features, the docs, and the core tool group to start. */
 export const runAssistant = async ({
 	model: { model },
 	message,
+	approved,
 	scripted = {},
 }: {
 	model: EvalModel;
 	message: string;
+	/** Runs the continuation after the approval instead of a reply to `message`. */
+	approved?: ApprovedPlan;
 	scripted?: Scripted;
 }): Promise<Transcript> => {
 	const features = await Effect.runPromise(
@@ -423,6 +526,7 @@ export const runAssistant = async ({
 			},
 			[
 				"loadTools",
+				"updatePlan",
 			],
 		),
 	);
@@ -453,21 +557,27 @@ export const runAssistant = async ({
 				userContext: admin,
 				featurePrompts: features.map(({ entry }) => entry.prompt),
 				toolGroups: offeredToolGroups(admin.capabilities),
-				plan: undefined,
+				plan: approved?.plan,
 			}),
 		),
-		prompt: message,
+		messages: [
+			{
+				role: "user",
+				content: message,
+			},
+			...(approved ? await approvalMessages(approved, tools, session) : []),
+		],
 		tools,
+		toolApproval: session.toolApproval,
 		stopWhen: isStepCount(MAX_STEPS),
-		prepareStep: ({ steps: done }) => {
-			for (const result of done.at(-1)?.toolResults ?? []) {
-				session.record(result);
+		prepareStep: () => ({
+			activeTools: session.activeTools().filter((name) => !disabled.has(name)),
+		}),
+		// Also sees the approved call, which runs before the first step.
+		onToolExecutionEnd: ({ toolOutput }) => {
+			if (toolOutput.type === "tool-result") {
+				session.record(toolOutput);
 			}
-			return {
-				activeTools: session
-					.activeTools()
-					.filter((name) => !disabled.has(name)),
-			};
 		},
 	});
 
