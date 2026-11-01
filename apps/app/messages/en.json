@@ -5460,6 +5460,13 @@
 	"ownership_receiver_change_button": "Change",
 	"ownership_receiver_search_placeholder": "Search members",
 	"ownership_receiver_empty": "No member found who can receive content.",
+	"ownership_hand_over_action": "Hand over",
+	"ownership_hand_over_title": "Hand over {name}?",
+	"ownership_hand_over_description": "The member you choose from this organisation becomes the owner, and you keep Can manage on it.",
+	"ownership_hand_over_confirm": "{name} becomes the owner.",
+	"ownership_hand_over_toast_loading": "Handing over {name}...",
+	"ownership_hand_over_toast_success": "{name} handed over",
+	"ownership_hand_over_toast_error": "{name} was not handed over.",
 	"ownership_viewer_confirm_title": "Make {name} a Viewer?",
 	"ownership_viewer_confirm_description": "Viewers chat and read, but they cannot own bots, blocks or assets.",
 	"ownership_viewer_confirm_button": "Change role"

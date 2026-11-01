@@ -141,6 +141,7 @@ function RouteComponent() {
 							},
 							actions.edit,
 							actions.access,
+							actions.handOver,
 							actions.listing,
 							actions.addBlocks,
 							actions.delete,

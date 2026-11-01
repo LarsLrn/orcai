@@ -1,9 +1,16 @@
 import type {
 	Block,
 	BlockWithCapabilities,
+	ResourceOwner,
 	SourceOrganization,
 } from "@orcai/schema";
-import { EditIcon, KeyRoundIcon, Trash2Icon } from "lucide-react";
+import { useRouteContext } from "@tanstack/react-router";
+import {
+	EditIcon,
+	HandshakeIcon,
+	KeyRoundIcon,
+	Trash2Icon,
+} from "lucide-react";
 import { useState } from "react";
 import { AccessDialog } from "@/components/access/access-dialog";
 import { useListingAction } from "@/components/access/listing-action";
@@ -12,6 +19,7 @@ import {
 	removeAction,
 	useInstaller,
 } from "@/components/catalogue/installer";
+import { HandOverDialog } from "@/components/ownership/hand-over-dialog";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { useUninstallMutation } from "@/hooks/mutations/use-catalogue-mutations";
@@ -22,27 +30,43 @@ import { m } from "@/paraglide/messages";
 
 type ActionBlock = Pick<Block, "id" | "type" | "name"> & {
 	capabilities?: BlockWithCapabilities["capabilities"];
+	owner: Pick<ResourceOwner, "id">;
 	installedFrom: SourceOrganization | null;
 };
 
 /**
  * A behaviour's or repository's own actions, each present as far as its
- * capabilities allow. Its home edits, shares and deletes it; where it was
- * added from the catalogue, the `installer` shares it for use and removes it.
+ * capabilities allow. Its home edits, shares and deletes it, and its owner,
+ * the `viewerId`, hands it over; where it was added from the catalogue, the
+ * `installer` shares it for use and removes it.
  */
 const blockActions = (
-	block: Pick<ActionBlock, "id" | "type" | "capabilities" | "installedFrom">,
+	block: Pick<
+		ActionBlock,
+		"id" | "type" | "capabilities" | "owner" | "installedFrom"
+	>,
 	{
 		onAccess,
+		onHandOver,
 		onDelete,
 		onRemove,
 	}: {
 		onAccess: () => void;
+		onHandOver: () => void;
 		onDelete: () => void;
 		onRemove: () => void;
 	},
-	installer?: Installer,
-): Record<"edit" | "access" | "delete" | "remove", HeaderAction | false> => {
+	{
+		viewerId,
+		installer,
+	}: {
+		viewerId: string;
+		installer?: Installer;
+	},
+): Record<
+	"edit" | "access" | "handOver" | "delete" | "remove",
+	HeaderAction | false
+> => {
 	const installed = block.installedFrom !== null;
 	const home = installed ? undefined : block.capabilities;
 	return {
@@ -65,6 +89,14 @@ const blockActions = (
 			icon: KeyRoundIcon,
 			onClick: onAccess,
 		},
+		handOver: !installed &&
+			block.owner.id === viewerId && {
+				key: "hand-over",
+				label: m.ownership_hand_over_action(),
+				icon: HandshakeIcon,
+				overflow: true,
+				onClick: onHandOver,
+			},
 		delete: hasCapability(home, "delete") && {
 			key: "delete",
 			label: m.blocks_delete_action(),
@@ -90,7 +122,11 @@ const useBlockActions = (
 		listing?: boolean;
 	} = {},
 ) => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
 	const [isAccessOpen, setIsAccessOpen] = useState(false);
+	const [isHandOverOpen, setIsHandOverOpen] = useState(false);
 	const installer = useInstaller();
 	const listingAction = useListingAction(
 		{
@@ -130,6 +166,7 @@ const useBlockActions = (
 		block,
 		{
 			onAccess: () => setIsAccessOpen(true),
+			onHandOver: () => setIsHandOverOpen(true),
 			onDelete: () =>
 				deleteBlocks({
 					refs: [
@@ -146,7 +183,10 @@ const useBlockActions = (
 					},
 				}),
 		},
-		installer,
+		{
+			viewerId: auth.user.id,
+			installer,
+		},
 	);
 
 	return {
@@ -154,18 +194,33 @@ const useBlockActions = (
 			...actions,
 			listing: listingAction,
 		},
-		dialog: actions.access ? (
-			<AccessDialog
-				open={isAccessOpen}
-				onOpenChange={setIsAccessOpen}
-				resourceRef={{
-					type: "block",
-					id: block.id,
-				}}
-				resourceName={block.name}
-				installedFrom={block.installedFrom}
-			/>
-		) : null,
+		dialog: (
+			<>
+				{actions.access ? (
+					<AccessDialog
+						open={isAccessOpen}
+						onOpenChange={setIsAccessOpen}
+						resourceRef={{
+							type: "block",
+							id: block.id,
+						}}
+						resourceName={block.name}
+						installedFrom={block.installedFrom}
+					/>
+				) : null}
+				{actions.handOver ? (
+					<HandOverDialog
+						open={isHandOverOpen}
+						onOpenChange={setIsHandOverOpen}
+						resource={{
+							resourceType: "block",
+							resourceId: block.id,
+						}}
+						name={block.name}
+					/>
+				) : null}
+			</>
+		),
 	};
 };
 

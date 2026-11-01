@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { AssetId } from "@orcai/core";
+import type { AssetId, UserId } from "@orcai/core";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({
@@ -15,12 +15,20 @@ const asset = (
 	id: "asset-1" as AssetId,
 	origin: "library",
 	processingStatus: "completed",
+	owner: {
+		id: "owner-1" as UserId,
+	},
 	...overrides,
 });
 
 const noop = () => undefined;
+const viewer = {
+	id: "viewer-1",
+	activeOrganizationId: "organization-1",
+};
 const handlers = {
 	onAccess: noop,
+	onHandOver: noop,
 	onAddToLibrary: noop,
 	onReprocess: noop,
 	onDelete: noop,
@@ -37,7 +45,7 @@ const actionKeys = (actions: ReturnType<typeof assetActions>) =>
 
 describe("assetActions", () => {
 	test("offers nothing without capabilities", () => {
-		expect(actionKeys(assetActions(asset(), handlers))).toEqual([]);
+		expect(actionKeys(assetActions(asset(), handlers, viewer))).toEqual([]);
 	});
 
 	test("an editable chat upload offers adding it to the library, Delete last and destructive", () => {
@@ -53,6 +61,7 @@ describe("assetActions", () => {
 						},
 					}),
 					handlers,
+					viewer,
 				),
 			),
 		).toEqual([
@@ -75,10 +84,68 @@ describe("assetActions", () => {
 						},
 					}),
 					handlers,
+					viewer,
 				),
 			),
 		).toEqual([
 			"edit",
 		]);
+	});
+
+	test("only its owner hands over a Library asset, never a chat upload", () => {
+		const owned = {
+			owner: {
+				id: "viewer-1" as UserId,
+			},
+		};
+		expect(actionKeys(assetActions(asset(owned), handlers, viewer))).toEqual([
+			"hand-over",
+		]);
+		expect(
+			actionKeys(
+				assetActions(
+					asset({
+						...owned,
+						origin: "chat",
+					}),
+					handlers,
+					viewer,
+				),
+			),
+		).toEqual([]);
+	});
+
+	test("an asset's page offers Hand over only from its home organisation", () => {
+		const owned = {
+			owner: {
+				id: "viewer-1" as UserId,
+			},
+		};
+		expect(
+			actionKeys(
+				assetActions(
+					asset({
+						...owned,
+						organizationId: "organization-1",
+					}),
+					handlers,
+					viewer,
+				),
+			),
+		).toEqual([
+			"hand-over",
+		]);
+		expect(
+			actionKeys(
+				assetActions(
+					asset({
+						...owned,
+						organizationId: "organization-2",
+					}),
+					handlers,
+					viewer,
+				),
+			),
+		).toEqual([]);
 	});
 });

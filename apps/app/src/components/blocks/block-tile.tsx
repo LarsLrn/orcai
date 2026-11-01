@@ -151,6 +151,7 @@ const BlockTile = ({ block }: { block: BrowseBlock }) => {
 				actions={[
 					actions.edit,
 					actions.access,
+					actions.handOver,
 					actions.delete,
 					actions.remove,
 				]}

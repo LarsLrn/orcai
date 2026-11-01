@@ -160,6 +160,7 @@ const BotTile = ({
 				actions={[
 					actions.edit,
 					actions.access,
+					actions.handOver,
 					actions.delete,
 					actions.remove,
 				]}
