@@ -1,4 +1,5 @@
 import { botIdSchema } from "@orcai/schema";
+import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { deleteNamed } from "../named-delete";
 import { type AssistantToolDeps, effectTool } from "../procedure-tool";
@@ -38,7 +39,12 @@ export const deleteBotTool = (deps: AssistantToolDeps) =>
 						},
 						options,
 					),
-			}),
+			}).pipe(
+				Effect.map(({ deleted, skipped }) => ({
+					deleted,
+					skipped,
+				})),
+			),
 		toModelOutput: ({ output }) => ({
 			type: "json",
 			value: {

@@ -204,6 +204,60 @@ describe("removeMembers", () => {
 			},
 		]);
 	});
+
+	test("names the receiver of the content that moved", async () => {
+		answers["organizationMember.delete"] = () =>
+			Effect.succeed({
+				success: true,
+				handedOver: {
+					receiverId: id(1),
+					bots: 2,
+					blocks: 1,
+					assets: 0,
+				},
+			});
+
+		const output = await runPromise(
+			removeMembers(
+				deps(),
+				[
+					id(2) as UserId,
+				],
+				id(1) as UserId,
+			),
+		);
+
+		expect<unknown>(output).toEqual({
+			removed: [
+				{
+					type: "member",
+					id: id(2),
+					name: "Anna",
+				},
+			],
+			handedOver: {
+				receiver: {
+					type: "member",
+					id: id(1),
+					name: "Teaching",
+				},
+				bots: 2,
+				blocks: 1,
+				assets: 0,
+			},
+		});
+		expect(procedureCalls[1]).toEqual({
+			procedure: "organizationMember.delete",
+			input: {
+				refs: [
+					{
+						userId: id(2),
+					},
+				],
+				receiverId: id(1),
+			},
+		});
+	});
 });
 
 describe("cancelInvitation", () => {
