@@ -59,6 +59,60 @@ test("activity: an idle user gets the empty list from the keyboard", async ({
 	await expect(trigger(page)).toBeFocused();
 });
 
+// The e2e package has no DOM lib; these are the browser members the check reads.
+type Measured = {
+	getBoundingClientRect(): {
+		top: number;
+	};
+};
+type Viewport = {
+	scrollY: number;
+	scrollTo(x: number, y: number): void;
+};
+
+test("activity: the list stays below its trigger when the page scrolls under it", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const created = await orgs.create(`E2E Activity Scroll ${runId()}`);
+	await api.as("member", created).user.setTourState({
+		tourId: "initialTour",
+		state: "completed",
+	});
+	const page = await pageAs("member", created);
+	// Short enough for the Library to scroll, wide enough for the popover.
+	await page.setViewportSize({
+		width: 900,
+		height: 560,
+	});
+	await enterApp(page, created.slug);
+	await open(page, "/app/library");
+	await trigger(page).click();
+
+	const title = panel(page).getByText(message("activity_empty_title"));
+	await expect(title).toBeVisible();
+
+	// The trigger sits in the sticky header, so a page scroll (a test runner
+	// scrolling a target into view) must not move the list, not even for the
+	// frame before it is positioned again. Read synchronously.
+	const { scrolled, shift } = await title.evaluate((element) => {
+		const target = element as unknown as Measured;
+		const view = globalThis as unknown as Viewport;
+		const before = target.getBoundingClientRect().top;
+
+		view.scrollTo(0, 200);
+
+		return {
+			scrolled: view.scrollY,
+			shift: target.getBoundingClientRect().top - before,
+		};
+	});
+
+	expect(scrolled).toBeGreaterThan(0);
+	expect(shift).toBe(0);
+});
+
 test("activity: a failed upload needs attention until dismissed, and its entry opens its assets in the Library", async ({
 	api,
 	orgs,
