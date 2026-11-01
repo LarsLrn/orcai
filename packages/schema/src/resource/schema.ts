@@ -284,6 +284,11 @@ export const recentResourceSchema = z.discriminatedUnion("resourceType", [
 	}),
 ]);
 
+/** A resource the user can read, named as it is now. */
+export const namedResourceSchema = createResourceScopedSchema({
+	name: z.string(),
+});
+
 export type ResourceType = z.infer<typeof resourceTypeSchema>;
 export type ResourceGrantRole = z.infer<typeof resourceGrantRoleSchema>;
 export type ResourceVisibility = z.infer<typeof resourceVisibilitySchema>;
@@ -297,6 +302,7 @@ export type ResourceRef = z.infer<typeof resourceRefSchema>;
 export type ResourceIdentity = z.infer<typeof resourceIdentitySchema>;
 export type ResourceGrant = z.infer<typeof resourceGrantSchema>;
 export type RecentResource = z.infer<typeof recentResourceSchema>;
+export type NamedResource = z.infer<typeof namedResourceSchema>;
 export type ResourcePrincipal = z.infer<typeof resourcePrincipalSchema>;
 export type ResourcePrincipalIdentity = z.infer<
 	typeof resourcePrincipalIdentitySchema

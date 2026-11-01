@@ -33,4 +33,9 @@ export const updateBotSetup = declareTool<typeof updateBotSetupTool>()({
 					}),
 				})
 			: m.assistant_tool_update_bot_setup_name(),
+	written: ({ id, name }) => ({
+		kind: "bot",
+		id,
+		name,
+	}),
 });

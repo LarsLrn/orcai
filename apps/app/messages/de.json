@@ -1138,6 +1138,8 @@
 			}
 		}
 	],
+	"assistant_resource_card_open_action": "Öffnen",
+	"assistant_resource_card_unavailable": "Nicht mehr verfügbar",
 	"assistant_starter_create_failed_toast_error": "Die Unterhaltung wurde nicht erstellt. Senden Sie die Nachricht erneut.",
 	"assistant_tool_add_group_members_active": "Gruppenmitglieder werden hinzugefügt",
 	"assistant_tool_add_group_members_name": "Gruppenmitglieder hinzufügen",

@@ -38,4 +38,9 @@ export const updateBehaviour = declareTool<typeof updateBehaviourTool>()({
 					]),
 				});
 	},
+	written: ({ id, name }) => ({
+		kind: "behaviour",
+		id,
+		name,
+	}),
 });

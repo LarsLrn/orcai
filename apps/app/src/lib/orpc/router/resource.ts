@@ -39,6 +39,7 @@ import { listingImpact, setListing } from "@/lib/catalogue/listing";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
+import { readableResources } from "@/lib/resources/readable";
 import { recentResources } from "@/lib/resources/recents";
 import { literalSearch } from "@/lib/utils/literal-search";
 import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
@@ -667,6 +668,23 @@ const getListingImpact = authed.resource.listingImpact
 		};
 	});
 
+const findManyResources = authed.resource.findMany.effect(function* ({
+	input,
+	context,
+}) {
+	const data = yield* readableResources({
+		resources: input.resources,
+		userId: context.auth.user.id,
+		organizationId: context.auth.session.activeOrganizationId,
+		zedToken: getZedToken(context, input),
+	});
+
+	return {
+		data,
+		rowCount: data.length,
+	};
+});
+
 const listRecentResources = authed.resource.listRecent.effect(function* ({
 	input,
 	context,
@@ -715,6 +733,7 @@ const handOver = authed.resource.handOver
 	});
 
 export const resourceRouter = {
+	findMany: findManyResources,
 	listGrants: listResourceGrants,
 	inheritedAccess: getInheritedAccess,
 	listPrincipals: listResourcePrincipals,

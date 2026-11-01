@@ -38,4 +38,9 @@ export const updateAsset = declareTool<typeof updateAssetTool>()({
 					]),
 				});
 	},
+	written: ({ id, title }) => ({
+		kind: "asset",
+		id,
+		name: title,
+	}),
 });

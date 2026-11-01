@@ -1138,6 +1138,8 @@
 			}
 		}
 	],
+	"assistant_resource_card_open_action": "Open",
+	"assistant_resource_card_unavailable": "No longer available",
 	"assistant_starter_create_failed_toast_error": "The conversation was not created. Try sending the message again.",
 	"assistant_tool_add_group_members_active": "Adding group members",
 	"assistant_tool_add_group_members_name": "Add group members",

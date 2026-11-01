@@ -22,4 +22,9 @@ export const createRepository = declareTool<typeof createRepositoryTool>()({
 				})
 			: m.assistant_tool_create_repository_name();
 	},
+	written: ({ id, name }) => ({
+		kind: "repository",
+		id,
+		name,
+	}),
 });

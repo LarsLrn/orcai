@@ -1,5 +1,7 @@
 import {
 	listContentReceiversResponseSchema,
+	resourceFindManyInputSchema,
+	resourceFindManyResponseSchema,
 	resourceGetVisibilityInputSchema,
 	resourceGetVisibilityResponseSchema,
 	resourceGrantInputSchema,
@@ -65,6 +67,20 @@ export const resourceContracts = {
 		)
 		.input(resourceListPrincipalsInputSchema)
 		.output(resourceListPrincipalsResponseSchema),
+	findMany: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/resources/find",
+				summary:
+					"Find the given resources the user can read, with their current names",
+				tags: [
+					"Resources",
+				],
+			}),
+		)
+		.input(resourceFindManyInputSchema)
+		.output(resourceFindManyResponseSchema),
 	listRecent: base
 		.meta(
 			openapi({

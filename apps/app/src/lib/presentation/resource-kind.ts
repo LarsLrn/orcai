@@ -9,7 +9,7 @@ import {
 import type { Badge } from "@/components/ui/badge";
 import { m } from "@/paraglide/messages";
 
-type ResourceKind = "bot" | "behaviour" | "repository" | "asset";
+export type ResourceKind = "bot" | "behaviour" | "repository" | "asset";
 
 /** How a resource kind looks: its name, glyph, badge, icon well and band tint. */
 export const RESOURCE_KINDS = {
