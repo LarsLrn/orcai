@@ -100,7 +100,7 @@ describe("expectType", () => {
 		);
 
 		expect((error as Error).message).toBe(
-			"GROUP_NOT_FOUND: No group with id g-1. Ids of other kinds (bots, templates, repositories, assets, members, invitations) are not group ids.",
+			"GROUP_NOT_FOUND: No group with id g-1. Ids of other kinds (bots, behaviours, repositories, assets, members, invitations) are not group ids.",
 		);
 	});
 
@@ -126,7 +126,7 @@ describe("expectType", () => {
 		);
 
 		expect((error as Error).message).toBe(
-			"REPOSITORY_BLOCK_TYPE_INVALID: No repository with one of the ids r-1, r-2. Ids of other kinds (bots, templates, assets, groups, members, invitations) are not repository ids.",
+			"REPOSITORY_BLOCK_TYPE_INVALID: No repository with one of the ids r-1, r-2. Ids of other kinds (bots, behaviours, assets, groups, members, invitations) are not repository ids.",
 		);
 	});
 

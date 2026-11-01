@@ -15,7 +15,7 @@ const listGroupsInputSchema = z.strictObject({
 export const listGroupsTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"List the groups of the active organisation that the user can see, by name. System groups such as All Members are managed by OrcAI.",
+			"List the groups of the active organisation that the user can see, by name. System groups such as All members are managed by OrcAI.",
 		inputSchema: listGroupsInputSchema,
 		run: ({ query, limit }) =>
 			callProcedure(deps, (procedures, options) =>

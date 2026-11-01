@@ -16,7 +16,7 @@ import { granteeRef } from "./summary-refs";
  */
 export const targetShape = {
 	targetType: resourceTypeSchema.describe(
-		"bot, block (a template or repository) or asset.",
+		"bot, block (a behaviour or repository) or asset.",
 	),
 	targetId: z
 		.uuidv4()

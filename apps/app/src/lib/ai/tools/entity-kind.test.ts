@@ -4,13 +4,13 @@ import { isMissing, wrongBlockText, wrongIdText } from "./entity-kind";
 describe("wrongIdText", () => {
 	test("an invitation's hint names every other kind", () => {
 		expect(wrongIdText("invitation", "i-1", "INVITATION_NOT_FOUND")).toBe(
-			"INVITATION_NOT_FOUND: No invitation with id i-1. Ids of other kinds (bots, templates, repositories, assets, groups, members) are not invitation ids.",
+			"INVITATION_NOT_FOUND: No invitation with id i-1. Ids of other kinds (bots, behaviours, repositories, assets, groups, members) are not invitation ids.",
 		);
 	});
 
 	test("other kinds' hints name invitations", () => {
 		expect(wrongIdText("member", "u-1", "MEMBER_NOT_FOUND")).toEndWith(
-			"Ids of other kinds (bots, templates, repositories, assets, groups, invitations) are not member ids.",
+			"Ids of other kinds (bots, behaviours, repositories, assets, groups, invitations) are not member ids.",
 		);
 	});
 
@@ -25,7 +25,7 @@ describe("wrongIdText", () => {
 				"BLOCK_NOT_FOUND",
 			),
 		).toBe(
-			"BLOCK_NOT_FOUND: No template or repository with one of the ids b-1, b-2. Ids of other kinds (bots, assets, groups, members, invitations) are not template or repository ids.",
+			"BLOCK_NOT_FOUND: No behaviour or repository with one of the ids b-1, b-2. Ids of other kinds (bots, assets, groups, members, invitations) are not behaviour or repository ids.",
 		);
 	});
 });
@@ -33,7 +33,7 @@ describe("wrongIdText", () => {
 describe("wrongBlockText", () => {
 	test("names the expected kind and what the block is", () => {
 		expect(wrongBlockText("template", "b-1", "database")).toBe(
-			"BEHAVIOUR_BLOCK_TYPE_INVALID: No template with id b-1. Ids of other kinds (bots, repositories, assets, groups, members, invitations) are not template ids. That id is a repository.",
+			"BEHAVIOUR_BLOCK_TYPE_INVALID: No behaviour with id b-1. Ids of other kinds (bots, repositories, assets, groups, members, invitations) are not behaviour ids. That id is a repository.",
 		);
 	});
 });

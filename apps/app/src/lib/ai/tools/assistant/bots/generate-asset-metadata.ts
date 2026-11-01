@@ -19,7 +19,7 @@ const generateAssetMetadataInputSchema = z.strictObject({
 export const generateAssetMetadataTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Generate metadata (title, source type, bibliographic fields, citation, description, language) for library assets with the organisation's utility model, in the background. Only assets whose metadata was never generated or failed are queued. Only empty fields are filled, and the title only while it is still the uploaded file's name; nothing else is overwritten. To replace values, point the user to Generate with AI in the asset's metadata editor, or use updateAsset with the values the user gives.",
+			"Generate metadata (title, source type, bibliographic fields, citation label, description, language) for Library assets with the organisation's utility model, in the background. Only assets whose metadata was never generated or failed are queued. Only empty fields are filled, and the title only while it is still the uploaded file's name. To replace values, point the user to Generate with AI in the asset's metadata editor, or use updateAsset with the values the user gives.",
 		inputSchema: generateAssetMetadataInputSchema,
 		run: (input) => {
 			const assetIds = [
@@ -48,7 +48,7 @@ export const generateAssetMetadataTool = (deps: AssistantToolDeps) =>
 					"Queued assets get their metadata in the background; findAssets shows it once it has run.",
 					...(output.skipped > 0
 						? [
-								"Skipped assets already have generated metadata or are being generated, are not prepared library assets of this organisation, the user may not edit them, or the organisation has no utility model.",
+								"Skipped assets already have generated metadata or are being generated, are not prepared Library assets of this organisation, the user may not edit them, or the organisation has no utility model.",
 							]
 						: []),
 				].join(" "),

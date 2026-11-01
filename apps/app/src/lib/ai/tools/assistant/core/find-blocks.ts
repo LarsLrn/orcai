@@ -15,7 +15,7 @@ const findBlocksInputSchema = z.strictObject({
 			"repository",
 		])
 		.describe(
-			"template: an AI behaviour (system prompt) a bot follows. repository: a collection of assets a bot answers from.",
+			"template: a behaviour, the system prompt a bot follows. repository: assets a bot searches to answer from.",
 		),
 	query: listQuerySchema,
 	limit: listLimitSchema,
@@ -24,7 +24,7 @@ const findBlocksInputSchema = z.strictObject({
 export const findBlocksTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find AI behaviours (templates) or repositories by name: published ones the user can read and drafts they can edit. Without a query it lists them all, newest first.",
+			"Find behaviours or repositories by name: published ones the user can read and drafts they can edit. Without a query it lists them all, newest first.",
 		inputSchema: findBlocksInputSchema,
 		run: ({ type, query, limit }) =>
 			Effect.gen(function* () {

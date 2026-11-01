@@ -18,7 +18,7 @@ export const catalogueEntryInputSchema = z
 		}),
 	])
 	.describe(
-		'The entry from findCatalogue: targetType "bot" with a bot id, or "block" with a template or repository id.',
+		'The entry from findCatalogue: targetType "bot" with a bot id, or "block" with a behaviour or repository id.',
 	);
 
 export const toCatalogueEntry = (

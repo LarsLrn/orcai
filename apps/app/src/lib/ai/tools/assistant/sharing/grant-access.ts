@@ -24,14 +24,14 @@ const grantAccessInputSchema = z.strictObject({
 		.max(50)
 		.describe("The users and groups that get the role."),
 	role: resourceGrantRoleSchema.describe(
-		"viewer reads and uses, editor also edits, manager also manages access.",
+		"viewer: Can view, to read and use it. editor: Can edit, also to edit it. manager: Can manage, also to manage its access.",
 	),
 });
 
 export const grantAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Give users or groups a role on one bot, block or asset; a principal that already has a role gets the new one instead. It grants on the named resource only, not on a bot's template or repositories. Needs manage access on the resource. A catalogue listing (a preview for everyone on the instance) is set only in the resource's access dialog in the app, never by the assistant.",
+			"Give users or groups a role on one bot, block or asset. Someone who already has a role there gets the new one instead. It grants on the named item only, not on a bot's behaviour or repositories. The user needs Can manage on the item.",
 		inputSchema: grantAccessInputSchema,
 		run: ({ grantees, role, ...target }) =>
 			Effect.gen(function* () {

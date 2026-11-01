@@ -102,7 +102,7 @@ describe("updateBehaviourTool", () => {
 				name: "Renamed",
 			}),
 		).rejects.toThrow(
-			`BEHAVIOUR_BLOCK_TYPE_INVALID: No template with id ${templateId}. Ids of other kinds (bots, repositories, assets, groups, members, invitations) are not template ids. That id is a repository.`,
+			`BEHAVIOUR_BLOCK_TYPE_INVALID: No behaviour with id ${templateId}. Ids of other kinds (bots, repositories, assets, groups, members, invitations) are not behaviour ids. That id is a repository.`,
 		);
 	});
 });

@@ -36,7 +36,7 @@ export const requestUploadTool = tool<
 	NoToolContext
 >({
 	description:
-		"Show the user an upload field in the conversation to add files as assets. It only creates assets: it never attaches them to a repository. Returns the ids and titles of the saved assets, or status cancelled. To put the files in a repository, attach them afterwards with createRepository or updateRepository. After cancelled, do not call it again unless the user asks.",
+		"Show the user an upload field in the conversation to add files as assets. The user uploads the files, reviews the list and chooses Continue, and the result holds the new assets, or status cancelled. It only adds the assets to the Library and puts none in a repository, so attach them afterwards with createRepository or updateRepository. After cancelled, call it again only when the user asks.",
 	inputSchema: toolInputSchema(requestUploadInputSchema),
 	outputSchema: requestUploadOutputSchema,
 	toModelOutput: ({ output }) => ({

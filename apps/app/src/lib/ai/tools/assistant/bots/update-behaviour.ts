@@ -19,7 +19,7 @@ import {
 } from "./block-outline";
 
 const updateBehaviourInputSchema = z.strictObject({
-	id: blockIdSchema.describe("Id of the behaviour block to update."),
+	id: blockIdSchema.describe("Id of the behaviour to update."),
 	name: z
 		.string()
 		.min(1)
@@ -35,19 +35,19 @@ const updateBehaviourInputSchema = z.strictObject({
 		.string()
 		.optional()
 		.describe(
-			"The system prompt that sets how a bot using it answers. Leave out to keep the current one.",
+			"The whole new system prompt, in the Markdown form createBehaviour describes. Leave out to keep the current one.",
 		),
 	status: publicationStatusSchema
 		.optional()
 		.describe(
-			"ready makes it available to bots. Leave out to keep the current status.",
+			"ready: Published, so bots can use it. Leave out to keep the current status.",
 		),
 });
 
 export const updateBehaviourTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Update an existing behaviour block (template): name, description, system prompt and status. Give only the fields that change; everything else, including rich content, is kept. To create one, use createBehaviour.",
+			"Update an existing behaviour: name, description, system prompt and status. Give only the fields that change. Everything else, including its rich content, is kept. To create one, use createBehaviour.",
 		inputSchema: updateBehaviourInputSchema,
 		run: (input) =>
 			Effect.gen(function* () {

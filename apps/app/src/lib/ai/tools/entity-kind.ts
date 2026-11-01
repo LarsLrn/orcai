@@ -76,8 +76,8 @@ const kinds = {
 		},
 	},
 	template: {
-		label: "template",
-		plural: "templates",
+		label: "behaviour",
+		plural: "behaviours",
 		block: {
 			type: "template",
 			wrongTypeReason: "BEHAVIOUR_BLOCK_TYPE_INVALID",
@@ -112,7 +112,7 @@ const kinds = {
 		name: blockName,
 	},
 	block: {
-		label: "template or repository",
+		label: "behaviour or repository",
 		covers: [
 			"template",
 			"repository",

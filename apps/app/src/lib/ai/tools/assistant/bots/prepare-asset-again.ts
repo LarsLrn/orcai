@@ -14,14 +14,14 @@ const prepareAssetAgainInputSchema = z.strictObject({
 	repositoryId: blockIdSchema
 		.optional()
 		.describe(
-			"Give the repository to retry the document there; leave out to process the file again.",
+			"The repository to retry the asset in. Leave out to prepare the uploaded file again.",
 		),
 });
 
 export const prepareAssetAgainTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Retry an asset. Without a repository, process the uploaded file again. With a repository, retry the document there: its processing when the file failed, otherwise its indexing in that repository. A document still being prepared has nothing to retry.",
+			"Prepare an asset again, as Prepare again does in the app. Without a repository, OrcAI reads the uploaded file again, for a Ready or a Failed asset. With a repository, it retries the asset there after a failure: its processing when the file failed, otherwise its indexing in that repository. An asset still being prepared has nothing to retry.",
 		inputSchema: prepareAssetAgainInputSchema,
 		run: ({ assetId, repositoryId }) =>
 			(repositoryId
@@ -58,7 +58,7 @@ export const prepareAssetAgainTool = (deps: AssistantToolDeps) =>
 			value: {
 				...output,
 				note: output.repositoryId
-					? "The document is queued; getBlock on the repository shows its state once it has run."
+					? "The asset is queued in the repository; getBlock on the repository shows its state once it has run."
 					: "The file is queued for processing; findAssets shows its status once it has run.",
 			},
 		}),

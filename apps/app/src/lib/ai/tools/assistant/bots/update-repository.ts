@@ -36,20 +36,20 @@ const updateRepositoryInputSchema = z.strictObject({
 	status: publicationStatusSchema
 		.optional()
 		.describe(
-			"ready makes it available to bots. Leave out to keep the current status.",
+			"ready: Published, so bots can use it. Leave out to keep the current status.",
 		),
 	assetIds: z
 		.array(assetIdSchema)
 		.optional()
 		.describe(
-			"Ids of every Library asset the repository holds, from findAssets with origin library; replaces the current set, [] empties it. Detached assets themselves stay. Leave out to keep the current assets.",
+			"Ids of every Library asset the repository holds, from findAssets with origin library; replaces the current set, [] empties it. Assets taken out stay in the Library. Leave out to keep the current assets.",
 		),
 });
 
 export const updateRepositoryTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Update an existing repository (database block): name, description, status and which assets it holds. Give only the fields that change; everything else, including retrieval settings and rich content, is kept. To add or remove one asset, read the current ones with findAssets (repositoryId) and send the full new assetIds. To create one, use createRepository.",
+			"Update an existing repository: name, description, status and which assets it holds. Give only the fields that change. Everything else, including the retrieval settings and rich content, is kept. To add or remove one asset, read the current ones with findAssets (repositoryId) and send the full new assetIds. To create one, use createRepository.",
 		inputSchema: updateRepositoryInputSchema,
 		run: (input) =>
 			Effect.gen(function* () {

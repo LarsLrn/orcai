@@ -165,7 +165,7 @@ describe("updateRepositoryTool", () => {
 				name: "Renamed",
 			}),
 		).rejects.toThrow(
-			`REPOSITORY_BLOCK_TYPE_INVALID: No repository with id ${repositoryId}. Ids of other kinds (bots, templates, assets, groups, members, invitations) are not repository ids. That id is a template.`,
+			`REPOSITORY_BLOCK_TYPE_INVALID: No repository with id ${repositoryId}. Ids of other kinds (bots, behaviours, assets, groups, members, invitations) are not repository ids. That id is a behaviour.`,
 		);
 		expect(procedureCalls.map(({ procedure }) => procedure)).toEqual([
 			"block.find",

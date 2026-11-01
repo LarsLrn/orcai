@@ -16,7 +16,7 @@ const findModelsInputSchema = z.strictObject({
 export const findModelsTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find the chat models of the active organisation by name, for a bot's setup.",
+			"Find the chat models of the active organisation by name, for a bot's setup. It lists only models that can serve chats. Pass a model's id as setup.modelId to createBot, updateBot or updateBotSetup.",
 		inputSchema: findModelsInputSchema,
 		run: ({ query, limit }) =>
 			callProcedure(deps, (procedures, options) =>

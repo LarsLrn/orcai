@@ -81,7 +81,7 @@ export const cancelInvitations = (
 export const cancelInvitationTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Withdraw invitations to the active organisation, so their links stop working.",
+			"Withdraw invitations to the active organisation, so they can no longer be accepted.",
 		inputSchema: cancelInvitationInputSchema,
 		run: ({ ids }) => cancelInvitations(deps, ids),
 	});

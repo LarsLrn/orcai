@@ -31,7 +31,7 @@ const toFoundBot = (bot: {
 export const findBotsTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Find bots by name: published bots the user can use and drafts they can edit. Without a query it lists them all. `favourite` marks the published bots the user starred.",
+			"Find bots by name: published bots the user can use and drafts they can edit. Without a query it lists them all. `favourite` marks the published bots the user made a favourite.",
 		inputSchema: findBotsInputSchema,
 		run: ({ query, limit }) =>
 			Effect.gen(function* () {

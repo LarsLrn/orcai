@@ -24,7 +24,7 @@ const listGroupMembersInputSchema = groupMembersQuerySchema
 export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"List the members of a group. Members of the All Members group are every organisation member (source implicit).",
+			"List the members of a group. The All members group holds every member of the organisation, with source implicit.",
 		inputSchema: listGroupMembersInputSchema,
 		run: ({ groupId, query, limit }) =>
 			callProcedure(deps, (procedures, options) =>

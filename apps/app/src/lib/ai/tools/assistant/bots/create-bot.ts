@@ -25,7 +25,9 @@ export const createBotInputSchema = z.strictObject({
 	),
 	behaviourId: blockIdSchema
 		.optional()
-		.describe("Id of the behaviour block (template) the bot uses."),
+		.describe(
+			"Id of the behaviour the bot follows, from findBlocks or createBehaviour.",
+		),
 	repositoryIds: z
 		.array(blockIdSchema)
 		.optional()
@@ -55,7 +57,7 @@ export const createBotPayload = (
 export const createBotTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Create a new draft bot: name and description, optionally its behaviour block, repositories, features and its model in the active organisation, with how many of its audience a quota pool covers. A setup that fails comes back as setupError next to the created bot; fix it with updateBot. To change an existing bot, use updateBot. Publish with publishBot.",
+			"Create a new draft bot with its name and description, and optionally its behaviour, repositories, features and its model in the active organisation. The result says how many of the bot's audience a quota pool covers. A setup that fails comes back as setupError next to the created bot, so fix it with updateBot. To change an existing bot, use updateBot. To publish it, use publishBot.",
 		inputSchema: createBotInputSchema,
 		run: (input, { toolCallId }) => {
 			const payload = createBotPayload(input);
