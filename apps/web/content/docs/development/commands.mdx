@@ -68,7 +68,7 @@ These options apply to every command and can stand anywhere before `--`:
 | `bun run lint-full` | Run Biome, TypeScript checks, the migration check, and ESLint. |
 | `bun run knip` | Find unused dependencies and exports. |
 | `bun run prepush` | Run the full pre-push check. |
-| `bun run prompt-evals` | Run the prompt evals against real models through OpenRouter. Costs money and never runs in CI, see [Contributing](/docs/development/contributing#model-facing-text). |
+| `bun run prompt-evals` | Run the prompt evals against real models through OpenRouter or `PROMPT_EVALS_ENDPOINT`. Costs money and never runs in CI, see [Contributing](/docs/development/contributing#model-facing-text). |
 
 The TypeScript check passes `--force` to `tsgo --build`, so stale build info
 cannot hide an error that a fresh CI checkout reports.

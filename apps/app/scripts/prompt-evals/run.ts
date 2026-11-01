@@ -8,7 +8,14 @@ import { backgroundCases } from "./cases/background";
 import type { EvalCase } from "./cases/case";
 import { chatCases } from "./cases/chat";
 import type { CodeCheck, JudgedCheck } from "./checks";
-import { judge, openRouterModel, type Transcript } from "./harness";
+import {
+	describeError,
+	evalModel,
+	judge,
+	limitedFetch,
+	OPENROUTER,
+	type Transcript,
+} from "./harness";
 
 const CASES: EvalCase[] = [
 	...assistantCases,
@@ -84,7 +91,11 @@ const { values: args } = parseArgs({
 	},
 });
 
+const custom = process.env.PROMPT_EVALS_ENDPOINT;
 const apiKey = (() => {
+	if (custom) {
+		return process.env.PROMPT_EVALS_API_KEY;
+	}
 	if (process.env.OPENROUTER_API_KEY) {
 		return process.env.OPENROUTER_API_KEY;
 	}
@@ -98,9 +109,29 @@ const apiKey = (() => {
 })();
 
 if (!apiKey) {
-	console.error(`Set OPENROUTER_API_KEY or put it in ${KEY_FILE}.`);
+	console.error(
+		custom
+			? "Set PROMPT_EVALS_API_KEY for PROMPT_EVALS_ENDPOINT."
+			: `Set OPENROUTER_API_KEY or put it in ${KEY_FILE}.`,
+	);
 	process.exit(1);
 }
+
+const perMinute = process.env.PROMPT_EVALS_RPM
+	? Number(process.env.PROMPT_EVALS_RPM)
+	: undefined;
+if (
+	perMinute !== undefined &&
+	!(Number.isInteger(perMinute) && perMinute > 0)
+) {
+	console.error("PROMPT_EVALS_RPM must be a positive integer.");
+	process.exit(1);
+}
+const endpoint = {
+	url: custom ?? OPENROUTER,
+	apiKey,
+	fetch: limitedFetch(perMinute),
+};
 
 const before = args.compare
 	? (JSON.parse(readFileSync(args.compare, "utf8")) as Run)
@@ -126,11 +157,11 @@ if (modelIds.includes(args.judge)) {
 	console.error(`The judge ${args.judge} must not be a model under test.`);
 	process.exit(1);
 }
-const judgeModel = openRouterModel(args.judge, apiKey, (spent) => {
+const judgeModel = evalModel(args.judge, endpoint, (spent) => {
 	cost[`${args.judge} (judge)`] = (cost[`${args.judge} (judge)`] ?? 0) + spent;
 });
 const models = modelIds.map((id) =>
-	openRouterModel(id, apiKey, (spent) => {
+	evalModel(id, endpoint, (spent) => {
 		cost[id] = (cost[id] ?? 0) + spent;
 	}),
 );
@@ -181,19 +212,17 @@ const jobs = cases.flatMap((evalCase) =>
 						stop: transcript.stop,
 					};
 				} catch (error) {
+					const described = describeError(error, apiKey);
 					return {
 						...base,
 						pass: false,
 						failed: [
 							"run",
 						],
-						error: error instanceof Error ? error.message : String(error),
+						error: described.message,
 						judged: [],
 						// What the model wrote when no object could be read from it.
-						text:
-							error instanceof Error && "text" in error
-								? String(error.text)
-								: "",
+						text: described.text,
 						calls: [],
 						stop: "error",
 					};
@@ -303,9 +332,13 @@ console.log(
 					`Only in ${before?.commit}, left out: ${onlyBefore.join(", ")}.`,
 				]
 			: []),
-		`Cost: ${Object.entries(cost)
-			.map(([id, spent]) => `${id} $${spent.toFixed(4)}`)
-			.join(", ")}, total $${total.toFixed(4)}.`,
+		...(custom
+			? []
+			: [
+					`Cost: ${Object.entries(cost)
+						.map(([id, spent]) => `${id} $${spent.toFixed(4)}`)
+						.join(", ")}, total $${total.toFixed(4)}.`,
+				]),
 		`Samples: ${out}`,
 	].join("\n"),
 );

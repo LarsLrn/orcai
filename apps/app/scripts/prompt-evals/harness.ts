@@ -53,12 +53,47 @@ import { DOCS, localDocsFetch } from "./docs";
 
 /**
  * Builds each request the way the app does, from its own prompt builders and
- * toolsets, and sends it through the `openai-compatible` kind to OpenRouter.
+ * toolsets, and sends it through the `openai-compatible` kind to the configured endpoint.
  * Tools run only where a case scripts their output; a call to any other tool
  * ends the run there, as a client tool or a confirmation would.
  */
 
-const OPENROUTER = "https://openrouter.ai/api/v1";
+export const OPENROUTER = "https://openrouter.ai/api/v1";
+
+/** Statuses a provider sends while it is limited or the model is briefly unavailable. */
+const RETRYABLE = new Set([
+	429,
+	502,
+	503,
+	504,
+]);
+const MAX_RETRIES = 4;
+const BACKOFF_MS = 2_000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Holds requests back so no more than `perMinute` start in any minute. */
+export const rateLimiter = (perMinute: number) => {
+	const starts: number[] = [];
+	let queue: Promise<void> = Promise.resolve();
+	return () => {
+		const turn = queue.then(async () => {
+			for (;;) {
+				const now = Date.now();
+				while (starts.length > 0 && now - starts[0] >= 60_000) {
+					starts.shift();
+				}
+				if (starts.length < perMinute) {
+					starts.push(now);
+					return;
+				}
+				await sleep(60_000 - (now - starts[0]));
+			}
+		});
+		queue = turn;
+		return turn;
+	};
+};
 
 /** Steps a run may take before it counts as stuck. */
 const MAX_STEPS = 8;
@@ -92,20 +127,65 @@ const contextStub = {
 	secureCookies: false,
 } as ORPCContext;
 
-/** The model with every OpenRouter response's cost added to `onCost`. */
-export const openRouterModel = (
+export interface Endpoint {
+	url: string;
+	apiKey: string;
+	/** Shared by every model on the endpoint, so one limit covers them all. */
+	fetch: typeof globalThis.fetch;
+}
+
+/**
+ * Wraps `fetch` to wait for the endpoint's rate limit and to retry limited or
+ * unavailable responses with backoff, so a run counts a request as failed only
+ * after it was tried several times.
+ */
+export const limitedFetch = (perMinute?: number): typeof globalThis.fetch => {
+	const turn = perMinute ? rateLimiter(perMinute) : undefined;
+	return (async (input: RequestInfo | URL, init?: RequestInit) => {
+		for (let attempt = 0; ; attempt++) {
+			await turn?.();
+			const response = await fetch(input, init);
+			if (!RETRYABLE.has(response.status) || attempt === MAX_RETRIES) {
+				return response;
+			}
+			const after = Number(response.headers.get("retry-after"));
+			await sleep(
+				Number.isFinite(after) && after > 0
+					? after * 1_000
+					: BACKOFF_MS * 2 ** attempt,
+			);
+		}
+	}) as typeof globalThis.fetch;
+};
+
+/** The message and any model text of a failed run, without the endpoint's key. */
+export const describeError = (error: unknown, secret: string) => {
+	const clean = (text: string) => text.replaceAll(secret, "[redacted]");
+	return {
+		message: clean(error instanceof Error ? error.message : String(error)),
+		text: clean(
+			error instanceof Error && "text" in error ? String(error.text) : "",
+		),
+	};
+};
+
+/** The model on `endpoint`; `onCost` receives the cost an OpenRouter response reports. */
+export const evalModel = (
 	id: string,
-	apiKey: string,
+	endpoint: Endpoint,
 	onCost: (cost: number) => void,
 ): EvalModel => ({
 	id,
 	model: agentModel({
 		kind: "openai-compatible",
 		connection: {
-			apiKey,
-			endpoint: OPENROUTER,
+			apiKey: endpoint.apiKey,
+			endpoint: endpoint.url,
 			fetch: (async (input: RequestInfo | URL, init?: RequestInit) => {
-				const response = await fetch(input, init);
+				const response = await endpoint.fetch(input, init);
+				if (endpoint.url !== OPENROUTER) {
+					return response;
+				}
 				const body: unknown = await response
 					.clone()
 					.json()
