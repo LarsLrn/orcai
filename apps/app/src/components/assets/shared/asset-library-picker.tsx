@@ -29,7 +29,7 @@ const AssetLibraryPicker = ({
 				pageSize: 24,
 				filters: {
 					search: debouncedSearch.trim() || undefined,
-					origin: "library",
+					keptIn: "library",
 				},
 			},
 		}),

@@ -63,7 +63,7 @@ test("assets: an upload is an asset without another click", async ({
 	expect(data).toMatchObject([
 		{
 			title: name,
-			origin: "library",
+			keptIn: "library",
 		},
 	]);
 });

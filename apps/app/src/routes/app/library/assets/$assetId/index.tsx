@@ -80,10 +80,10 @@ function RouteComponent() {
 					<DetailHeaderMeta>
 						<Badge variant={badge}>{label()}</Badge>
 						<span>{getFileTypeLabel(asset.data.fileType)}</span>
-						{asset.data.origin === "chat" ? (
+						{asset.data.keptIn === "chat" ? (
 							<Badge variant="outline">
 								<MessageSquareIcon aria-hidden="true" />
-								{m.assets_origin_chat_badge()}
+								{m.assets_chat_upload_badge()}
 							</Badge>
 						) : null}
 						<ResourceOwner owner={asset.data.owner} />

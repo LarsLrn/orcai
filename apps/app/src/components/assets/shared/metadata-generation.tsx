@@ -195,7 +195,7 @@ const MetadataGeneration = ({
 			? asset.metadataSuggestion
 			: null;
 	const ready =
-		asset.origin === "library" && asset.processingStatus === "completed";
+		asset.keptIn === "library" && asset.processingStatus === "completed";
 
 	const apply = (accepted: MetadataReviewField[]) => {
 		const metadata: AssetMetadataType = {

@@ -437,7 +437,7 @@ describe("findAssets", () => {
 						id: assetId,
 						title: "Handbook",
 						processingStatus: "completed",
-						origin: "chat",
+						keptIn: "chat",
 						metadata: {
 							authors: [
 								"Anna",
@@ -463,7 +463,7 @@ describe("findAssets", () => {
 					id: assetId,
 					title: "Handbook",
 					processingStatus: "completed",
-					origin: "chat",
+					keptIn: "chat",
 					canEdit: true,
 				},
 			],

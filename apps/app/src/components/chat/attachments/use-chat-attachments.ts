@@ -49,7 +49,7 @@ export const useChatAttachments = ({
 		useState<ChatMessageAttachment[]>(initialAttachments);
 	const [assetPickerOpen, setAssetPickerOpen] = useState(false);
 
-	// Uploads become chat-origin assets when the message is sent.
+	// Uploads become chat uploads when the message is sent.
 	const {
 		intake,
 		isPending: isUploading,

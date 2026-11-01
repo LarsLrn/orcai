@@ -92,21 +92,21 @@ export const libraryFilters = {
 		source,
 	},
 	asset: {
-		origin: singleFilter({
-			label: m.library_filter_origin_label,
+		keptIn: singleFilter({
+			label: m.library_filter_kept_in_label,
 			options: [
 				{
 					value: "library",
-					label: m.library_filter_origin_library,
+					label: m.library_filter_kept_in_library,
 				},
 				{
 					value: "chat",
-					label: m.library_filter_origin_chat,
+					label: m.library_filter_kept_in_chat,
 				},
 			],
 			defaultValue: "library",
 			toInput: (value) => ({
-				origin: value,
+				keptIn: value,
 			}),
 		}),
 		processing: singleFilter({

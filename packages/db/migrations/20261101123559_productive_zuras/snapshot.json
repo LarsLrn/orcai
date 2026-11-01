@@ -1,0 +1,65 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "9a8addf9-5c31-4e34-93cb-0b44d3696bd6",
+  "prevIds": [
+    "df48e25a-ae36-4ac3-a2a9-89c1a53959a4"
+  ],
+  "footprints": [
+    {
+      "statementType": "rename_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "asset_origin"
+      ],
+      "writes": [
+        "s|enum|public.asset_origin",
+        "n|enum|public.asset_origin",
+        "n|type|public.asset_origin",
+        "s|enum|public.asset_kept_in",
+        "n|enum|public.asset_kept_in",
+        "n|type|public.asset_kept_in"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "rename_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "asset",
+        "origin"
+      ],
+      "writes": [
+        "s|col|public.asset.origin",
+        "n|col|public.asset.origin",
+        "s|col|public.asset.kept_in",
+        "n|col|public.asset.kept_in"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "rename",
+      "key": "enums\u0000[\"public\",\"asset_origin\"]",
+      "set": {
+        "name": "asset_kept_in"
+      }
+    },
+    {
+      "op": "rename",
+      "key": "columns\u0000[\"public\",\"asset\",\"origin\"]",
+      "set": {
+        "name": "kept_in"
+      }
+    }
+  ]
+}

@@ -285,7 +285,7 @@ describe("chat uploads in repositories", () => {
 					yield* (yield* DB)
 						.update(dbSchema.asset)
 						.set({
-							origin: "chat",
+							keptIn: "chat",
 						})
 						.where(eq(dbSchema.asset.id, upload.asset.id));
 				}),

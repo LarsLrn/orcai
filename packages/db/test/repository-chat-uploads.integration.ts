@@ -2,10 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { Client } from "pg";
 
-const MIGRATION = new URL(
-	"../migrations/20261101035249_sloppy_the_enforcers/migration.sql",
-	import.meta.url,
-);
+const migration = (name: string) =>
+	readFileSync(
+		new URL(`../migrations/${name}/migration.sql`, import.meta.url),
+		"utf8",
+	).split("--> statement-breakpoint");
+
+const MIGRATION = migration("20261101035249_sloppy_the_enforcers");
+const KEPT_IN = migration("20261101123559_productive_zuras");
 
 const connect = async () => {
 	const client = new Client({
@@ -20,10 +24,14 @@ const connect = async () => {
 };
 
 describe("chat uploads held by repositories", () => {
-	test("join the Library, others stay chat uploads, and a second run changes nothing", async () => {
+	test("join the Library, others stay chat uploads, a second run changes nothing, and the kept_in rename keeps them", async () => {
 		const client = await connect();
 		try {
 			await client.query("BEGIN");
+			// The schema this migration ran on, before kept_in.
+			await client.query(
+				"ALTER TABLE asset RENAME COLUMN kept_in TO origin; ALTER TYPE asset_kept_in RENAME TO asset_origin",
+			);
 			const suffix = crypto.randomUUID();
 			const {
 				rows: [user],
@@ -80,10 +88,7 @@ describe("chat uploads held by repositories", () => {
 				);
 
 			const migrate = async () => {
-				for (const statement of readFileSync(MIGRATION, "utf8").split(
-					"--> statement-breakpoint",
-				))
-					await client.query(statement);
+				for (const statement of MIGRATION) await client.query(statement);
 			};
 			const state = async () => ({
 				assets: (
@@ -138,6 +143,20 @@ describe("chat uploads held by repositories", () => {
 
 			await migrate();
 			expect(await state()).toEqual(migrated);
+
+			for (const statement of KEPT_IN) await client.query(statement);
+			const { rows } = await client.query<{
+				title: string;
+				kept_in: string;
+			}>("SELECT title, kept_in FROM asset WHERE user_id = $1 ORDER BY title", [
+				user.id,
+			]);
+			expect(rows).toEqual(
+				migrated.assets.map(({ title, origin }) => ({
+					title,
+					kept_in: origin,
+				})),
+			);
 		} finally {
 			await client.query("ROLLBACK");
 			await client.end();

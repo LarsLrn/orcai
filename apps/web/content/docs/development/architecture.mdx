@@ -78,7 +78,7 @@ The app and the workers ship as bundles. A dependency breaks only at runtime whe
 ## Asset preparation flow
 
 1. A user uploads files through the app. The browser puts each file under `staging/` in S3-compatible object storage with a URL the app signed.
-2. Right after the upload, the browser calls `asset.createFromUploads`. The intake module (`apps/app/src/lib/assets/intake.ts`) checks each staged file against the signed upload, moves it to the asset's key, and creates the asset row with its owner. Bucket, keys and origin (Library or chat) come from the signed-in user and the upload route, never from the client. Each file gets its own result, and repeating an upload returns the same asset.
+2. Right after the upload, the browser calls `asset.createFromUploads`. The intake module (`apps/app/src/lib/assets/intake.ts`) checks each staged file against the signed upload, moves it to the asset's key, and creates the asset row with its owner. Bucket, keys and where it is kept (Library or chat) come from the signed-in user and the upload route, never from the client. Each file gets its own result, and repeating an upload returns the same asset.
 3. The app creates background jobs.
 4. Workers extract content from the uploaded files.
 5. Workers create processed artifacts and metadata.

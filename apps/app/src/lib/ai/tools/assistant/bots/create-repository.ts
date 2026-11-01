@@ -34,7 +34,7 @@ export const createRepositoryInputSchema = z.strictObject({
 		.array(assetIdSchema)
 		.optional()
 		.describe(
-			"Ids of the Library assets the repository holds, from findAssets with origin library.",
+			"Ids of the Library assets the repository holds, from findAssets with keptIn library.",
 		),
 });
 

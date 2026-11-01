@@ -42,7 +42,7 @@ const updateRepositoryInputSchema = z.strictObject({
 		.array(assetIdSchema)
 		.optional()
 		.describe(
-			"Ids of every Library asset the repository holds, from findAssets with origin library; replaces the current set, [] empties it. Assets taken out stay in the Library. Leave out to keep the current assets.",
+			"Ids of every Library asset the repository holds, from findAssets with keptIn library; replaces the current set, [] empties it. Assets taken out stay in the Library. Leave out to keep the current assets.",
 		),
 });
 

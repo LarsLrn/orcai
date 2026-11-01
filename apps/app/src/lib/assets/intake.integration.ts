@@ -240,7 +240,7 @@ describe("createAssetsFromUploads", () => {
 				id: file.objectKey,
 				title: "notes.txt",
 				fileType: "txt",
-				origin: "chat",
+				keptIn: "chat",
 				processingStatus: "pending",
 				userId: owner.actor.user.id,
 				prefix: file.objectMetadata.prefix.slice(UPLOAD_STAGING_PREFIX.length),
@@ -458,7 +458,7 @@ describe("createAssetsFromUploads", () => {
 
 			expect(again.id).toBe(first.id);
 			expect(await assetRows(first.id)).toHaveLength(1);
-			expect(first.origin).toBe("library");
+			expect(first.keptIn).toBe("library");
 		},
 		TIMEOUT,
 	);
@@ -505,7 +505,7 @@ describe("createAssetsFromUploads", () => {
 describe("chat uploads", () => {
 	const listIds = async (
 		{ actor, zedToken }: Member,
-		origin: "library" | "chat",
+		keptIn: "library" | "chat",
 	) => {
 		const procedures = await run(Procedures);
 		const { data } = await run(
@@ -514,7 +514,7 @@ describe("chat uploads", () => {
 					pageIndex: 0,
 					pageSize: 100,
 					filters: {
-						origin,
+						keptIn,
 					},
 				},
 				await procedureOptions(actor, zedToken),
@@ -572,7 +572,7 @@ describe("chat uploads", () => {
 					await procedureOptions(owner.actor, withToken.zedToken),
 				),
 			);
-			expect(data.origin).toBe("library");
+			expect(data.keptIn).toBe("library");
 			expect(await listIds(withToken, "library")).toContain(asset.id);
 			expect(await listIds(withToken, "chat")).not.toContain(asset.id);
 		},

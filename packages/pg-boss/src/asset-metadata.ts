@@ -62,7 +62,7 @@ export const queueMetadataGeneration = (params: {
 							inArray(asset.id, [
 								...params.assetIds,
 							]),
-							eq(asset.origin, "library"),
+							eq(asset.keptIn, "library"),
 							eq(asset.processingStatus, "completed"),
 							exists(
 								db

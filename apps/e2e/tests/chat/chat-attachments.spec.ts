@@ -38,7 +38,7 @@ for (const file of [
 		modelReads: `data:image/png;base64,${PIXEL.toString("base64")}`,
 	},
 ] as const) {
-	test(`chat: an uploaded ${file.kind} attachment is a chat-origin asset the model reads`, async ({
+	test(`chat: an uploaded ${file.kind} attachment is a chat upload the model reads`, async ({
 		api,
 		inference,
 		org,
@@ -112,7 +112,7 @@ for (const file of [
 		expect(asset.data).toMatchObject({
 			title: file.name,
 			fileType: file.fileType,
-			origin: "chat",
+			keptIn: "chat",
 		});
 	});
 }

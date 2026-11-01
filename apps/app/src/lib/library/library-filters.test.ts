@@ -30,7 +30,7 @@ describe("library filters", () => {
 				scope: "everyone",
 				sort: "oldest",
 				status: "archived",
-				origin: "email",
+				keptIn: "email",
 				processing: "stuck",
 				favourite: "maybe",
 			}),
@@ -107,13 +107,13 @@ describe("library filters", () => {
 		});
 	});
 
-	test("assets map origin and processing; any processing is no filter", () => {
+	test("assets map keptIn and processing; any processing is no filter", () => {
 		expect(libraryListInput.asset(parse("asset", {}))).toEqual({
 			pageIndex: 0,
 			pageSize: 20,
 			sort: "newest",
 			filters: {
-				origin: "library",
+				keptIn: "library",
 				scope: "all",
 				search: undefined,
 			},
@@ -121,12 +121,12 @@ describe("library filters", () => {
 		expect(
 			libraryListInput.asset(
 				parse("asset", {
-					origin: "chat",
+					keptIn: "chat",
 					processing: "failed",
 				}),
 			).filters,
 		).toEqual({
-			origin: "chat",
+			keptIn: "chat",
 			processing: "failed",
 			scope: "all",
 			search: undefined,
@@ -141,7 +141,7 @@ describe("library filters", () => {
 				}),
 			).filters,
 		).toEqual({
-			origin: "library",
+			keptIn: "library",
 			suggestions: true,
 			scope: "all",
 			search: undefined,
@@ -204,7 +204,7 @@ describe("library filters", () => {
 			activeFilterCount(
 				libraryFilters.asset,
 				parse("asset", {
-					origin: "chat",
+					keptIn: "chat",
 				}),
 			),
 		).toBe(1);
@@ -216,7 +216,7 @@ describe("library filters", () => {
 				parse("asset", {
 					scope: "edit",
 					query: "",
-					origin: "chat",
+					keptIn: "chat",
 				}),
 			),
 		).toEqual({

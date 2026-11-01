@@ -81,7 +81,7 @@ const assetCandidates = (userId: UserId) =>
 			)
 			.where(
 				and(
-					eq(asset.origin, "library"),
+					eq(asset.keptIn, "library"),
 					or(processingFailed, metadataFailed, suggested),
 				),
 			);

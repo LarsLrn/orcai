@@ -146,8 +146,8 @@ export const listAssetTiles = (params: {
 			input.filters?.search
 				? ilike(dbSchema.asset.title, literalSearch(input.filters.search))
 				: undefined,
-			input.filters?.origin
-				? eq(dbSchema.asset.origin, input.filters.origin)
+			input.filters?.keptIn
+				? eq(dbSchema.asset.keptIn, input.filters.keptIn)
 				: undefined,
 			processing
 				? inArray(

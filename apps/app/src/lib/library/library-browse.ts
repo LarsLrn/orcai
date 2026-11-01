@@ -122,7 +122,7 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 							.where(
 								and(
 									assets,
-									eq(dbSchema.asset.origin, "library"),
+									eq(dbSchema.asset.keptIn, "library"),
 									matches(dbSchema.asset.title),
 								),
 							),
@@ -339,7 +339,7 @@ export const libraryOverview = (input: LibraryOverviewInput, reader: Reader) =>
 							...shelf,
 							filters: {
 								scope,
-								origin: "library",
+								keptIn: "library",
 							},
 						},
 						reader,
