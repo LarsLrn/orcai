@@ -1,10 +1,11 @@
 import {
+	type ChatMessageAttachment,
 	type ChatMessageCitation,
 	chatMessageCitationSchema,
 } from "@orcai/schema";
 import { toolDeclarationOf, toolKindOf } from "@/lib/ai/tools/registry";
 import { citedRefs } from "./cite-tag";
-import type { Source } from "./source-ref";
+import { type Source, sourceRef } from "./source-ref";
 
 /** Sources by the refs that name them. */
 export type Citations = Record<string, ChatMessageCitation>;
@@ -73,17 +74,33 @@ const callSources = (toolName: string, output: unknown): Source[] => {
 	}
 };
 
+/** An attachment's source, issued whether or not its tag was built, since only the tag tells the model its ref. */
+const attachmentSource = ({
+	assetId,
+	title,
+}: Pick<ChatMessageAttachment, "assetId" | "title">): Source => ({
+	ref: sourceRef("attachment", assetId),
+	identity: assetId,
+	citation: {
+		kind: "asset",
+		assetId,
+		title,
+	},
+});
+
 const hasPage = ({ citation }: Source) =>
 	citation.kind === "asset" && citation.page !== undefined;
 
 /**
- * Every source a chat issued: those of its stored messages, and those its
- * turn records as calls finish. A ref two identities claim is ambiguous and
- * names nothing.
+ * Every source a chat issued: those of its stored messages and their
+ * attachments, and those its turn records as calls finish. A ref two
+ * identities claim is ambiguous and names nothing.
  */
 export const chatSources = (
 	history: readonly {
+		role?: string;
 		parts: readonly Part[];
+		attachments?: readonly Pick<ChatMessageAttachment, "assetId" | "title">[];
 	}[],
 ) => {
 	const sources = new Map<string, Source>();
@@ -116,9 +133,12 @@ export const chatSources = (
 		}
 	};
 
-	for (const { parts } of history) {
+	for (const { role, parts, attachments = [] } of history) {
 		for (const part of parts) {
 			partSources(part).forEach(add);
+		}
+		if (role === "user") {
+			attachments.map(attachmentSource).forEach(add);
 		}
 	}
 

@@ -47,6 +47,8 @@ export const createChatAgent = (params: {
 	context: ORPCContext;
 	/** The stored messages the turn answers. */
 	history: readonly UIMessage[];
+	/** Whether a user message of the chat has an attachment. */
+	hasAttachments: boolean;
 	/** The chat's sources, which the turn's calls add to. */
 	sources: ChatSources;
 }) => {
@@ -64,6 +66,11 @@ export const createChatAgent = (params: {
 		...(searchesWeb
 			? ([
 					"web",
+				] as const)
+			: []),
+		...(params.hasAttachments
+			? ([
+					"attachment",
 				] as const)
 			: []),
 	];

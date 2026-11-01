@@ -11,6 +11,7 @@ import type { ChatAttachmentRef, ChatMessageAttachment } from "@orcai/schema";
 import type { FileUIPart, TextUIPart } from "ai";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { sourceRef } from "@/lib/ai/citations/source-ref";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { dataTag } from "@/lib/ai/utils/data-tag";
 import { readableIds } from "@/lib/authz/content-access";
@@ -34,6 +35,11 @@ type AttachedAsset = Pick<
 };
 
 type AttachmentPart = FileUIPart | TextUIPart;
+
+/** What an attachment adds to its message for the model. */
+type BuiltAttachment = {
+	parts: AttachmentPart[];
+};
 
 /** The assets among `assetIds` the reader may read, by id. */
 const readableAssets = (assetIds: readonly AssetId[], reader: Reader) =>
@@ -117,42 +123,62 @@ const truncateText = (
 	limit = CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH,
 ) => (text.length <= limit ? text : `${text.slice(0, limit)}\n\n[Truncated]`);
 
-const notePart = (text: string): AttachmentPart => ({
+const textPart = (text: string): AttachmentPart => ({
 	type: "text",
 	text,
 });
 
+/** An attachment that reaches the model as a note instead, which carries no ref. */
+const note = (text: string): BuiltAttachment => ({
+	parts: [
+		textPart(text),
+	],
+});
+
+type TaggedAsset = {
+	id: string;
+	title: string;
+	mediaType: string;
+};
+
+/** The tag the system prompt calls data, with the ref that cites the attachment. */
+const attachmentTag = ({ id, title, mediaType }: TaggedAsset, text: string) =>
+	dataTag(
+		"attachment",
+		{
+			ref: sourceRef("attachment", id),
+			title,
+			"media-type": mediaType,
+		},
+		text,
+	);
+
+/** A file's text in its attachment tag. */
+export const attachmentText = (asset: TaggedAsset, content: string) =>
+	attachmentTag(asset, truncateText(content));
+
 // Inline data, so the model never fetches a signed URL.
-const filePart = (asset: AttachedAsset) =>
+const imageAttachment = (asset: AttachedAsset) =>
 	getImageAsBase64({
 		bucket: asset.bucket,
 		name: objectKey(asset),
 	}).pipe(
 		Effect.map(
-			(base64): AttachmentPart => ({
-				type: "file",
-				mediaType: asset.mediaType,
-				filename: asset.title,
-				url: `data:${asset.mediaType};base64,${base64}`,
+			(base64): BuiltAttachment => ({
+				parts: [
+					textPart(attachmentTag(asset, "Image in the next part.")),
+					{
+						type: "file",
+						mediaType: asset.mediaType,
+						filename: asset.title,
+						url: `data:${asset.mediaType};base64,${base64}`,
+					},
+				],
 			}),
 		),
 	);
 
-/** A file's text in the tag the system prompt calls data. */
-export const attachmentText = (
-	{ title, mediaType }: Pick<AttachedAsset, "title" | "mediaType">,
-	content: string,
-) =>
-	dataTag(
-		"attachment",
-		{
-			title,
-			"media-type": mediaType,
-		},
-		truncateText(content),
-	);
-
-const documentPart = (asset: AttachedAsset) =>
+const documentAttachment = (asset: AttachedAsset) =>
 	Effect.gen(function* () {
 		const stored = yield* getObjectAsJson<StoredExtractionArtifact>({
 			bucket: buckets.processed.name,
@@ -176,16 +202,20 @@ const documentPart = (asset: AttachedAsset) =>
 					)).content.trim();
 
 		if (content.length === 0) {
-			return notePart(`Attachment "${asset.title}" could not be loaded.`);
+			return note(`Attachment "${asset.title}" could not be loaded.`);
 		}
 
-		return notePart(attachmentText(asset, content));
+		return {
+			parts: [
+				textPart(attachmentText(asset, content)),
+			],
+		} satisfies BuiltAttachment;
 	});
 
-const promptPart = (asset: AttachedAsset) =>
+const buildAttachment = (asset: AttachedAsset) =>
 	(asset.mediaType.startsWith("image/")
-		? filePart(asset)
-		: documentPart(asset)
+		? imageAttachment(asset)
+		: documentAttachment(asset)
 	).pipe(
 		Effect.catch((error) =>
 			Effect.logError("chat attachment could not be loaded", error).pipe(
@@ -193,7 +223,7 @@ const promptPart = (asset: AttachedAsset) =>
 					assetId: asset.id,
 					fileType: asset.fileType,
 				}),
-				Effect.as(notePart(`Attachment "${asset.title}" could not be loaded.`)),
+				Effect.as(note(`Attachment "${asset.title}" could not be loaded.`)),
 			),
 		),
 	);
@@ -223,7 +253,7 @@ export const withAttachmentParts = (
 		if (assetIds.length === 0) return messages;
 
 		const assets = yield* readableAssets(assetIds, reader);
-		const parts = new Map<AssetId, AttachmentPart>();
+		const built = new Map<AssetId, BuiltAttachment>();
 		let imageBytes = 0;
 		const loaded = assetIds
 			.flatMap((assetId) => assets.get(assetId) ?? [])
@@ -231,9 +261,9 @@ export const withAttachmentParts = (
 				if (!asset.mediaType.startsWith("image/")) return true;
 				imageBytes += asset.size;
 				if (imageBytes <= CHAT_ATTACHMENT_MAX_IMAGE_BYTES) return true;
-				parts.set(
+				built.set(
 					asset.id,
-					notePart(
+					note(
 						`Attachment "${asset.title}" is left out to keep the request small.`,
 					),
 				);
@@ -242,8 +272,10 @@ export const withAttachmentParts = (
 		yield* Effect.forEach(
 			loaded,
 			(asset) =>
-				promptPart(asset).pipe(
-					Effect.tap((part) => Effect.sync(() => parts.set(asset.id, part))),
+				buildAttachment(asset).pipe(
+					Effect.tap((attachment) =>
+						Effect.sync(() => built.set(asset.id, attachment)),
+					),
 				),
 			{
 				concurrency: 3,
@@ -259,12 +291,14 @@ export const withAttachmentParts = (
 						...message,
 						parts: [
 							...message.parts,
-							...attachments.map(
+							...attachments.flatMap(
 								(attachment) =>
-									parts.get(attachment.assetId) ??
-									notePart(
-										`Attachment "${attachment.title}" is no longer available.`,
-									),
+									(
+										built.get(attachment.assetId) ??
+										note(
+											`Attachment "${attachment.title}" is no longer available.`,
+										)
+									).parts,
 							),
 						],
 					};

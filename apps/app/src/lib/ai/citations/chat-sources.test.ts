@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { AssetId } from "@orcai/core";
 import type { Passage } from "@/lib/ai/tools/rag/types";
 import { chatSources, citableText } from "./chat-sources";
 import { sourceRef } from "./source-ref";
@@ -266,6 +267,62 @@ describe("chatSources", () => {
 				title: "Bots and behaviour",
 			},
 		});
+	});
+
+	test("every attachment of a user message issues one a ref by its asset, built for the model or not", () => {
+		const notes = {
+			assetId: "6c1d0e2f-8a3b-4c5d-9e7f-0a1b2c3d4e5f" as AssetId,
+			title: "Trip notes.txt",
+		};
+		const plan = {
+			assetId: "9b2e4f6a-1c3d-4e5f-8a7b-6c5d4e3f2a1b" as AssetId,
+			title: "Floor plan.png",
+		};
+		const sources = chatSources([
+			{
+				role: "user",
+				parts: [],
+				attachments: [
+					notes,
+				],
+			},
+			{
+				role: "user",
+				parts: [],
+				attachments: [
+					notes,
+					plan,
+				],
+			},
+			{
+				role: "assistant",
+				parts: [],
+				attachments: [
+					{
+						assetId: "asset-of-a-reply" as AssetId,
+						title: "Not an attachment",
+					},
+				],
+			},
+		]);
+
+		expect(
+			sources.citations(
+				`${cite("au733ur")} ${cite("ay37yap")} ${cite(sourceRef("attachment", "asset-of-a-reply"))}`,
+			),
+		).toEqual({
+			au733ur: {
+				kind: "asset",
+				assetId: notes.assetId,
+				title: "Trip notes.txt",
+			},
+			ay37yap: {
+				kind: "asset",
+				assetId: plan.assetId,
+				title: "Floor plan.png",
+			},
+		});
+		expect(sources.collisions()).toEqual([]);
 	});
 
 	test("ignores calls without sources, unfinished calls and outputs of an older shape", () => {
