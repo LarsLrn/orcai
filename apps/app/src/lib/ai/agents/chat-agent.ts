@@ -51,11 +51,22 @@ export const createChatAgent = (params: {
 	sources: ChatSources;
 }) => {
 	const hasRepositories = params.databaseBlocks.length > 0;
-	const citable: CitableKind[] = hasRepositories
-		? [
-				"passage",
-			]
-		: [];
+	// Native search issues no refs, so only the search provider's results are citable.
+	const searchesWeb =
+		params.webSearch.kind === "provider" &&
+		params.features.some(({ id }) => id === "webSearch");
+	const citable: CitableKind[] = [
+		...(hasRepositories
+			? ([
+					"passage",
+				] as const)
+			: []),
+		...(searchesWeb
+			? ([
+					"web",
+				] as const)
+			: []),
+	];
 	const citations = citable.length > 0;
 	const offeredTools: ToolSet = {
 		...(hasRepositories

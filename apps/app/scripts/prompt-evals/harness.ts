@@ -113,6 +113,8 @@ const MAX_STEPS = 8;
 export interface ToolCallRecord {
 	toolName: string;
 	input: unknown;
+	/** What the call returned, when it ran. */
+	output?: unknown;
 }
 
 /** What a run did, for the checks. */
@@ -275,9 +277,12 @@ const transcriptOf = (
 ): Transcript => ({
 	text,
 	calls: steps.flatMap((step) =>
-		step.toolCalls.map(({ toolName, input }) => ({
+		step.toolCalls.map(({ toolCallId, toolName, input }) => ({
 			toolName,
 			input,
+			output: step.toolResults.find(
+				(result) => result.toolCallId === toolCallId,
+			)?.output,
 		})),
 	),
 	stop: stopOf(steps),
@@ -320,12 +325,18 @@ export const runChat = async ({
 	history?: ModelMessage[];
 	scripted?: Scripted;
 }): Promise<Transcript> => {
-	const citable: CitableKind[] =
-		repositories.length > 0
-			? [
+	const citable: CitableKind[] = [
+		...(repositories.length > 0
+			? ([
 					"passage",
-				]
-			: [];
+				] as const)
+			: []),
+		...(webSearch
+			? ([
+					"web",
+				] as const)
+			: []),
+	];
 	const citations = citable.length > 0;
 	const displayTools = generativeUi
 		? buildGenUiTools({

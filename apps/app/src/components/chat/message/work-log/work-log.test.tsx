@@ -1,9 +1,14 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+	chatLinkSafety,
+	LinkSafetyContext,
+} from "@/components/chat/link-confirm";
 import { m } from "@/paraglide/messages";
 import { ActivityLine } from "./activity-line";
 import { ReasoningEntry } from "./reasoning-entry";
 import { SearchRepositories } from "./tools/search-repositories";
+import { SearchWeb } from "./tools/search-web";
 
 afterEach(() => {
 	cleanup();
@@ -163,5 +168,63 @@ describe("SearchRepositories", () => {
 
 		expect(screen.getByText(m.chat_work_log_tool_search_name())).toBeTruthy();
 		expect(screen.queryByText("Refund policy")).toBeNull();
+	});
+});
+
+describe("SearchWeb", () => {
+	test("each page asks before it opens; a page the app does not open is no link", async () => {
+		render(
+			<LinkSafetyContext
+				value={chatLinkSafety({
+					docsUrl: undefined,
+					appPaths: false,
+				})}
+			>
+				<SearchWeb
+					part={
+						{
+							type: "tool-searchWeb",
+							toolCallId: "w1",
+							state: "output-available",
+							input: {
+								query: "malaria",
+							},
+							output: {
+								results: [
+									{
+										url: "https://www.who.int/news-room/fact-sheets/detail/malaria",
+										title: "Malaria",
+										content: "Malaria is preventable.",
+									},
+									{
+										url: "javascript:alert(1)",
+										title: "Planted",
+										content: "",
+									},
+								],
+							},
+						} as Parameters<typeof SearchWeb>[0]["part"]
+					}
+					status={null}
+				/>
+			</LinkSafetyContext>,
+		);
+
+		expect(
+			screen.queryByRole("button", {
+				name: "Planted",
+			}),
+		).toBeNull();
+		expect(screen.getByText("Planted")).toBeTruthy();
+		fireEvent.click(
+			screen.getByRole("button", {
+				name: "Malaria",
+			}),
+		);
+		expect(
+			await screen.findByRole("alertdialog", {
+				name: m.chat_link_confirm_title(),
+			}),
+		).toBeTruthy();
 	});
 });

@@ -1,9 +1,10 @@
 import type { AssetId } from "@orcai/core";
+import { safeExternalUrl } from "@orcai/core";
 import type { AssetMetadataType } from "@orcai/schema";
 import { assetIdSchema, sourceTypeLabels } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon, GlobeIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { createContext, use, useState } from "react";
 import {
@@ -13,6 +14,8 @@ import {
 	InlineCitationCardTrigger,
 	InlineCitationText,
 } from "@/components/ai-elements/inline-citation";
+import { ConfirmedLink } from "@/components/chat/link-confirm";
+import { hostOf } from "@/components/chat/message/work-log/web-source";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -184,6 +187,56 @@ const AssetPill = ({
 	);
 };
 
+const WebPill = ({
+	url,
+	title,
+	children,
+}: {
+	url: string;
+	title: string;
+	children?: ReactNode;
+}) => {
+	const host = hostOf(url);
+	const pageTitle = title || host;
+
+	return (
+		<InlineCitation>
+			<InlineCitationText className="group-hover:bg-transparent">
+				{children}
+			</InlineCitationText>
+			<InlineCitationCard>
+				<InlineCitationCardTrigger
+					label={host}
+					aria-label={m.ai_elements_cite_web_aria_label({
+						title: pageTitle,
+					})}
+					sources={[]}
+					className="border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20"
+				/>
+				<InlineCitationCardBody>
+					<CiteCardShell title={pageTitle}>
+						<p className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
+							<GlobeIcon className="size-3 shrink-0" />
+							<span className="truncate">{host}</span>
+						</p>
+						<ConfirmedLink
+							href={url}
+							className={buttonVariants({
+								variant: "outline",
+								size: "sm",
+								className: "w-full",
+							})}
+						>
+							{m.ai_elements_cite_open_page_action()}
+							<ExternalLinkIcon className="size-3" />
+						</ConfirmedLink>
+					</CiteCardShell>
+				</InlineCitationCardBody>
+			</InlineCitationCard>
+		</InlineCitation>
+	);
+};
+
 /**
  * A citation by ref, as `<cite ref=R>` or `<cite ref="R">`, resolved from the
  * message's citations. A ref without a source is plain text.
@@ -213,6 +266,16 @@ export const CiteComponent = ({
 					{children}
 				</AssetPill>
 			);
+		case "web":
+			// The schema checks stored URLs; this keeps a streamed one to the same rule.
+			if (safeExternalUrl(citation.url)) {
+				return (
+					<WebPill url={citation.url} title={citation.title}>
+						{children}
+					</WebPill>
+				);
+			}
+			return <>{children}</>;
 		default:
 			return <>{children}</>;
 	}

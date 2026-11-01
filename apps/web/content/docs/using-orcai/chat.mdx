@@ -227,7 +227,9 @@ Links in an answer and the pages listed under **Sources** ask before they open a
 
 ## Web search
 
-In a chat with a bot that has the Web search feature on, the model can search the web while the organisation's [web search setting](/docs/using-orcai/administration#web-search) allows it. Each search is a step in the work log, such as **Searched the web for “orca pods”, 3 pages**, and expanding it shows the pages it found, each linking to the page. Pages the answer cites are listed under it as **Sources**, each linking to the page. With the allowed domains set, only pages on those domains and their subdomains are searched.
+In a chat with a bot that has the Web search feature on, the model can search the web while the organisation's [web search setting](/docs/using-orcai/administration#web-search) allows it. Each search is a step in the work log, such as **Searched the web for “orca pods”, 3 pages**, and expanding it shows the pages it found, each linking to the page. With the allowed domains set, only pages on those domains and their subdomains are searched.
+
+With a search provider, the answer cites the pages it uses inline, as it cites assets. A web citation shows the page's host, and opening it shows the page's title and host with an **Open page** action. Copying an answer writes a web citation as the cited text followed by the page's title and address in parentheses. With the model's own search, the answer cites nothing inline. The pages an answer cites, and the pages the model's own search reports, are listed under the answer as **Sources**. Like links in the answer, **Open page**, the pages under **Sources** and the pages in the work log ask before they open.
 
 When the organisation's web search is off, or the setting is model native and the chat's model has no search of its own, a notice above the composer says so and the bot answers without searching.
 

@@ -1,12 +1,12 @@
 import type { UIMessage } from "ai";
 import type { ComponentProps } from "react";
 import { createContext, memo, use, useContext } from "react";
-import type { LinkSafetyConfig } from "streamdown";
 import { CiteComponent } from "@/components/ai-elements/cite";
 import {
 	StreamdownContent,
 	type StreamdownContentProps,
 } from "@/components/ai-elements/streamdown-content";
+import { LinkSafetyContext } from "@/components/chat/link-confirm";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,11 +109,6 @@ const streamdownAllowedTags = {
 		"ref",
 	],
 };
-
-/** How links in the answers of a chat confirm before they open. */
-export const LinkSafetyContext = createContext<LinkSafetyConfig | undefined>(
-	undefined,
-);
 
 const streamdownLiteralTagContent = [
 	"cite",

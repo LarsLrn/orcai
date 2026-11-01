@@ -6,6 +6,12 @@ const CITABLE = {
 		example:
 			"For a work with three or more authors, <cite ref=kgol9ts>give only the first author's surname followed by et al.</cite>",
 	},
+	web: {
+		tag: "<web-result>",
+		// sourceRef("web", "https://www.who.int/news-room/fact-sheets/detail/malaria")
+		example:
+			"Malaria <cite ref=w2jpxug>is a life-threatening disease that some types of mosquitoes spread to people</cite>.",
+	},
 } as const;
 
 export type CitableKind = keyof typeof CITABLE;
@@ -26,7 +32,7 @@ export const citationRules = (kinds: readonly CitableKind[]) => {
 
 	return [
 		"Citations:",
-		`- Each ${tags} tag carries a ref, such as ref=${ref}. Cite every sentence that uses one by wrapping the words it supports in a cite tag with that ref, written without quotes: <cite ref=${ref}>the sentence or clause it supports</cite>. Every cite tag wraps words and ends with </cite>, since the app shows the wrapped words with their source.`,
+		`- Each ${tags} tag carries a ref, such as ref=${ref}. Cite every sentence that uses one by wrapping the words it supports in a cite tag with that ref, written without quotes: <cite ref=${ref}>the sentence or clause it supports</cite>. Put the opening tag right before those words and </cite> right after them, since the app shows the wrapped words with their source.`,
 		"- Cite only refs of tags you were given in this conversation, and only for what those sources say.",
 		"- Cite in this form only, since the app renders no footnotes, bracketed numbers or source lists.",
 		"",

@@ -29,6 +29,22 @@ const searchPart = (...results: Passage[]) => ({
 	},
 });
 
+const webPart = (...urls: string[]) => ({
+	type: "tool-searchWeb",
+	toolCallId: crypto.randomUUID(),
+	state: "output-available",
+	input: {
+		query: "q",
+	},
+	output: {
+		results: urls.map((url) => ({
+			url,
+			title: `Title of ${url}`,
+			content: "",
+		})),
+	},
+});
+
 const message = (...parts: object[]) => ({
 	parts: parts as {
 		type: string;
@@ -138,6 +154,79 @@ describe("chatSources", () => {
 					"p1",
 					"p2",
 					"p3",
+				],
+			},
+		]);
+	});
+
+	test("an empty or unclosed trailing cite still names its source", () => {
+		const cited = passage("p1");
+		const sources = chatSources([
+			message(searchPart(cited)),
+		]);
+
+		for (const text of [
+			`Paid within 14 days <cite ref=${cited.ref}></cite>.`,
+			`Paid within 14 days<cite ref=${cited.ref}>.`,
+		]) {
+			expect(Object.keys(sources.citations(text))).toEqual([
+				cited.ref,
+			]);
+		}
+	});
+
+	test("a web result issues a w ref by its URL; a URL the app does not open issues none", () => {
+		const malaria = "https://www.who.int/news-room/fact-sheets/detail/malaria";
+		const sources = chatSources([
+			message(
+				webPart(
+					malaria,
+					"javascript:alert(1)",
+					"https://user:secret@example.org/page",
+				),
+			),
+		]);
+
+		expect(
+			sources.citations(
+				[
+					malaria,
+					"javascript:alert(1)",
+					"https://user:secret@example.org/page",
+				]
+					.map((url) => cite(sourceRef("web", url)))
+					.join(" "),
+			),
+		).toEqual({
+			w2jpxug: {
+				kind: "web",
+				url: malaria,
+				title: `Title of ${malaria}`,
+			},
+		});
+	});
+
+	test("two URLs on one web ref name nothing, across history and this turn", () => {
+		const sources = chatSources([
+			message(webPart("https://example.com/3f49a11da1fabbf4")),
+		]);
+		sources.record("searchWeb", {
+			results: [
+				{
+					url: "https://example.com/f0afd2db51eaec07",
+					title: "Second",
+					content: "",
+				},
+			],
+		});
+
+		expect(sources.citations(cite("wy8esxs"))).toEqual({});
+		expect(sources.collisions()).toEqual([
+			{
+				ref: "wy8esxs",
+				identities: [
+					"https://example.com/3f49a11da1fabbf4",
+					"https://example.com/f0afd2db51eaec07",
 				],
 			},
 		]);

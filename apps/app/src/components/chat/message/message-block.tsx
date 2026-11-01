@@ -102,9 +102,10 @@ export const MessageBlock = ({
 	// The server resolves refs; a cite without an entry shows as its text.
 	const citations = message.metadata?.citations ?? NO_CITATIONS;
 	const webSources = useMemo(
-		() => citedWebSources(message.parts),
+		() => citedWebSources(message.parts, citations),
 		[
-			message,
+			message.parts,
+			citations,
 		],
 	);
 	const writtenResources = useWrittenResources(
