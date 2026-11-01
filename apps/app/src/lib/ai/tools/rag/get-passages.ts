@@ -9,7 +9,7 @@ import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import { passagesModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { PointWithBlock } from "./types";
-import { flattenBlockResponses, toPassage, withSourceBlock } from "./utils";
+import { flattenBlockResponses, toPassage, withRepository } from "./utils";
 
 /** The passage indexes within `neighbours` of `point`, without its own. */
 const neighbourIndexes = (point: PointWithBlock, neighbours: number) =>
@@ -107,7 +107,7 @@ export const getPassagesTool = ({
 					}
 				>();
 				for (const point of requested) {
-					const key = `${point.sourceBlock.id}:${point.payload.asset_id}:${point.payload.source}`;
+					const key = `${point.repository.id}:${point.payload.asset_id}:${point.payload.source}`;
 					const asset = assets.get(key) ?? {
 						point,
 						indexes: new Set<number>(),
@@ -126,7 +126,7 @@ export const getPassagesTool = ({
 						procedures.assetPoint
 							.searchRepository(
 								{
-									repositoryId: point.sourceBlock.id,
+									repositoryId: point.repository.id,
 									filters: {
 										assetIds: [
 											point.payload.asset_id,
@@ -144,9 +144,9 @@ export const getPassagesTool = ({
 							)
 							.pipe(
 								Effect.map((response) =>
-									withSourceBlock({
-										sourceBlockId: point.sourceBlock.id,
-										sourceBlockName: point.sourceBlock.name,
+									withRepository({
+										repositoryId: point.repository.id,
+										repositoryName: point.repository.name,
 										points: response.data.filter(
 											(neighbour) =>
 												neighbour.payload.source === point.payload.source,

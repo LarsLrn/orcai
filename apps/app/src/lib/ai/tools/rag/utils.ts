@@ -55,26 +55,26 @@ const withBlockSource = ({
 	block: DatabaseBlock;
 	points: RetrievedAssetPoint[];
 }): PointWithBlock[] =>
-	withSourceBlock({
-		sourceBlockId: block.id,
-		sourceBlockName: block.name,
+	withRepository({
+		repositoryId: block.id,
+		repositoryName: block.name,
 		points,
 	});
 
-export const withSourceBlock = ({
-	sourceBlockId,
-	sourceBlockName,
+export const withRepository = ({
+	repositoryId,
+	repositoryName,
 	points,
 }: {
-	sourceBlockId: BlockId;
-	sourceBlockName: DatabaseBlock["name"];
+	repositoryId: BlockId;
+	repositoryName: DatabaseBlock["name"];
 	points: RetrievedAssetPoint[];
 }): PointWithBlock[] =>
 	points.map((point) => ({
 		...point,
-		sourceBlock: {
-			id: sourceBlockId,
-			name: sourceBlockName,
+		repository: {
+			id: repositoryId,
+			name: repositoryName,
 		},
 	}));
 
@@ -107,7 +107,7 @@ export const toPassage = (
 		id: anchor.id,
 		assetId: first.payload.asset_id,
 		title: first.title,
-		blockName: first.sourceBlock.name,
+		blockName: first.repository.name,
 		pageStart: starts.length > 0 ? Math.min(...starts) : undefined,
 		pageEnd: ends.length > 0 ? Math.max(...ends) : undefined,
 		totalPages: first.payload.documentTotalPages,
