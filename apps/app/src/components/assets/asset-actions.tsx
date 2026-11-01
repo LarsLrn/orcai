@@ -27,7 +27,7 @@ import { m } from "@/paraglide/messages";
 
 type ActionAsset = Pick<
 	Asset,
-	"id" | "title" | "origin" | "processingStatus"
+	"id" | "title" | "keptIn" | "processingStatus"
 > & {
 	owner: Pick<ResourceOwner, "id">;
 	capabilities?: AssetWithCapabilities["capabilities"];
@@ -91,7 +91,7 @@ const assetActions = (
 			icon: KeyRoundIcon,
 			onClick: onAccess,
 		},
-		handOver: asset.origin === "library" &&
+		handOver: asset.keptIn === "library" &&
 			asset.owner.id === viewer.id &&
 			(asset.organizationId === undefined ||
 				asset.organizationId === viewer.activeOrganizationId) && {
@@ -102,7 +102,7 @@ const assetActions = (
 				onClick: onHandOver,
 			},
 		addToLibrary: canEdit &&
-			asset.origin === "chat" && {
+			asset.keptIn === "chat" && {
 				key: "add-to-library",
 				label: m.assets_add_to_library_action(),
 				icon: LibraryIcon,

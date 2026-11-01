@@ -13,7 +13,7 @@ const asset = (
 	overrides: Partial<Parameters<typeof assetActions>[0]> = {},
 ): Parameters<typeof assetActions>[0] => ({
 	id: "asset-1" as AssetId,
-	origin: "library",
+	keptIn: "library",
 	processingStatus: "completed",
 	owner: {
 		id: "owner-1" as UserId,
@@ -53,7 +53,7 @@ describe("assetActions", () => {
 			actionKeys(
 				assetActions(
 					asset({
-						origin: "chat",
+						keptIn: "chat",
 						capabilities: {
 							edit: true,
 							manage_access: true,
@@ -106,7 +106,7 @@ describe("assetActions", () => {
 				assetActions(
 					asset({
 						...owned,
-						origin: "chat",
+						keptIn: "chat",
 					}),
 					handlers,
 					viewer,

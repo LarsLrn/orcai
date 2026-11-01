@@ -11,8 +11,8 @@ import {
 } from "../shared/primitives/pipeline-status";
 import { bucketSchema } from "../storage/parts/buckets";
 import { userIdSchema } from "../user/ref";
+import { assetKeptInSchema } from "./parts/kept-in";
 import { metadataSchema, metadataSuggestionSchema } from "./parts/metadata";
-import { assetOriginSchema } from "./parts/origin";
 import { assetIdSchema } from "./ref";
 
 export const assetFieldsSchema = z.object({
@@ -36,7 +36,7 @@ export const assetSchema = assetFieldsSchema.extend({
 	/** The metadata generation the suggestion belongs to. */
 	metadataGeneration: z.number().int(),
 	fileType: assetFileTypeSchema,
-	origin: assetOriginSchema,
+	keptIn: assetKeptInSchema,
 	userId: userIdSchema,
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
@@ -57,8 +57,8 @@ export const assetFiltersSchema = z
 		search: z.string().optional(),
 		/** Only assets attached to this repository. */
 		repositoryId: blockIdSchema.optional(),
-		/** Only assets of this origin; both when left out. */
-		origin: assetOriginSchema.optional(),
+		/** Only assets kept there; both when left out. */
+		keptIn: assetKeptInSchema.optional(),
 		scope: libraryScopeSchema.optional(),
 		/** Only assets queued or being processed, or only failed ones. */
 		processing: z

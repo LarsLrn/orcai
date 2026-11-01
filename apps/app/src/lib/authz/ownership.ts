@@ -127,7 +127,7 @@ const ownedItems = (params: {
 			.where(
 				and(
 					inArray(asset.userId, userIds),
-					eq(asset.origin, "library"),
+					eq(asset.keptIn, "library"),
 					inOrganization,
 				),
 			);
@@ -542,7 +542,7 @@ const lockOwner = (resource: ResourceRef) =>
 				const [row] = yield* db
 					.select({
 						ownerId: dbSchema.asset.userId,
-						origin: dbSchema.asset.origin,
+						keptIn: dbSchema.asset.keptIn,
 					})
 					.from(dbSchema.asset)
 					.where(eq(dbSchema.asset.id, resource.resourceId))
@@ -550,7 +550,7 @@ const lockOwner = (resource: ResourceRef) =>
 				return (
 					row && {
 						ownerId: row.ownerId,
-						chatUpload: row.origin === "chat",
+						chatUpload: row.keptIn === "chat",
 					}
 				);
 			}

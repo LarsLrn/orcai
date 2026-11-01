@@ -43,7 +43,7 @@ type TileAsset = Pick<
 	| "title"
 	| "metadata"
 	| "fileType"
-	| "origin"
+	| "keptIn"
 	| "processingStatus"
 	| "processingFailure"
 	| "metadataStatus"
@@ -133,10 +133,10 @@ const AssetTileBody = ({
 			) : null}
 			<TileFooter>
 				<span>{getFileTypeLabel(asset.fileType)}</span>
-				{asset.origin === "chat" ? (
+				{asset.keptIn === "chat" ? (
 					<Badge variant="outline">
 						<MessageSquareIcon aria-hidden="true" />
-						{m.assets_origin_chat_badge()}
+						{m.assets_chat_upload_badge()}
 					</Badge>
 				) : null}
 				<TileBadges badges={badges} />

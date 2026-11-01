@@ -18,7 +18,7 @@ import {
 import {
 	type Asset,
 	type AssetIntakeResult,
-	type AssetOrigin,
+	type AssetKeptIn,
 	type AssetUploadRoute,
 	assetFileTypeSchema,
 	assetIdSchema,
@@ -38,10 +38,10 @@ import { queueFirstProcessing } from "@/lib/assets/processing";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 
-const ORIGIN_BY_ROUTE = {
+const KEPT_IN_BY_ROUTE = {
 	asset: "library",
 	chatAttachment: "chat",
-} as const satisfies Record<AssetUploadRoute, AssetOrigin>;
+} as const satisfies Record<AssetUploadRoute, AssetKeptIn>;
 
 /** A file the intake refuses, with the reason the client translates. */
 class UploadRejected extends Data.TaggedError("UploadRejected")<{
@@ -197,7 +197,7 @@ const createAssetFromUpload = (
 						fileName: file.name,
 						size: file.size,
 						fileType: plan.fileType,
-						origin: ORIGIN_BY_ROUTE[intake.route],
+						keptIn: KEPT_IN_BY_ROUTE[intake.route],
 						bucket: plan.bucket,
 						prefix: plan.prefix,
 						userId: intake.userId,
@@ -289,7 +289,7 @@ const intakeResult = (
 /**
  * Creates one asset per uploaded file: checks the staged object, moves it to
  * the asset's key, and inserts the row with its owner and organization and
- * its processing job in one transaction, so an asset never lacks its job. Bucket, keys and origin come from the caller and the
+ * its processing job in one transaction, so an asset never lacks its job. Bucket, keys and where it is kept come from the caller and the
  * route, never from the client. A library upload is an activity run; calls
  * with the same `uploadKey` add to one run.
  *

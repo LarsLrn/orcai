@@ -215,7 +215,7 @@ const addAssetToLibrary = authed.asset.addToLibrary
 				const [asset] = yield* db
 					.update(dbSchema.asset)
 					.set({
-						origin: "library",
+						keptIn: "library",
 						updatedAt: new Date(),
 					})
 					.where(eq(dbSchema.asset.id, input.id))

@@ -14,7 +14,7 @@ const card = (page: Page, title: string) =>
 const uploadedTo = (page: Page, key: string) =>
 	page
 		.getByRole("group", {
-			name: message("library_filter_origin_label"),
+			name: message("library_filter_kept_in_label"),
 		})
 		.getByRole("radio", {
 			name: message(key),
@@ -37,16 +37,18 @@ test("assets: chat uploads have their own filter until added to the library", as
 	await enterApp(page, org.slug);
 	await open(page, "/app/library/assets");
 
-	await expect(uploadedTo(page, "library_filter_origin_library")).toBeChecked();
+	await expect(
+		uploadedTo(page, "library_filter_kept_in_library"),
+	).toBeChecked();
 	await expect(card(page, libraryTitle)).toBeVisible();
 	await expect(card(page, chatTitle)).toHaveCount(0);
 
-	await uploadedTo(page, "library_filter_origin_chat").click();
-	await expect(page).toHaveURL(/origin=chat/);
+	await uploadedTo(page, "library_filter_kept_in_chat").click();
+	await expect(page).toHaveURL(/keptIn=chat/);
 	const chatCard = card(page, chatTitle);
 	await expect(chatCard).toBeVisible();
 	await expect(
-		chatCard.getByText(message("assets_origin_chat_badge"), {
+		chatCard.getByText(message("assets_chat_upload_badge"), {
 			exact: true,
 		}),
 	).toBeVisible();
@@ -64,12 +66,12 @@ test("assets: chat uploads have their own filter until added to the library", as
 		.click();
 	await expect(chatCard).toHaveCount(0);
 
-	await uploadedTo(page, "library_filter_origin_library").click();
-	await expect(page).not.toHaveURL(/origin=/);
+	await uploadedTo(page, "library_filter_kept_in_library").click();
+	await expect(page).not.toHaveURL(/keptIn=/);
 	const added = card(page, chatTitle);
 	await expect(added).toBeVisible();
 	await expect(
-		added.getByText(message("assets_origin_chat_badge"), {
+		added.getByText(message("assets_chat_upload_badge"), {
 			exact: true,
 		}),
 	).toHaveCount(0);

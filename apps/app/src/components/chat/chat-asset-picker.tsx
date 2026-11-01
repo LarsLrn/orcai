@@ -96,9 +96,9 @@ export const ChatAssetPicker = ({
 										<span className="truncate font-medium text-sm">
 											{asset.title}
 										</span>
-										{asset.origin === "chat" ? (
+										{asset.keptIn === "chat" ? (
 											<Badge variant="outline" className="shrink-0">
-												{m.assets_origin_chat_badge()}
+												{m.assets_chat_upload_badge()}
 											</Badge>
 										) : null}
 									</div>

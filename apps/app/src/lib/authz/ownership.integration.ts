@@ -80,23 +80,23 @@ const quietly = {
 				yield* (yield* DB)
 					.update(dbSchema.asset)
 					.set({
-						origin: "chat",
+						keptIn: "chat",
 					})
 					.where(eq(dbSchema.asset.id, assetId));
 			}),
 		),
 };
 
-const originOf = (assetId: AssetId) =>
+const keptInOf = (assetId: AssetId) =>
 	run(
 		Effect.gen(function* () {
 			const [row] = yield* (yield* DB)
 				.select({
-					origin: dbSchema.asset.origin,
+					keptIn: dbSchema.asset.keptIn,
 				})
 				.from(dbSchema.asset)
 				.where(eq(dbSchema.asset.id, assetId));
-			return row?.origin;
+			return row?.keptIn;
 		}),
 	);
 
@@ -174,7 +174,7 @@ describe("adding a chat upload to the Library", () => {
 				).toMatchObject({
 					reason: "PERMISSION_DENIED",
 				});
-				expect(await originOf(assetId)).toBe("chat");
+				expect(await keptInOf(assetId)).toBe("chat");
 			}
 		},
 		TIMEOUT,
@@ -219,7 +219,7 @@ describe("adding a chat upload to the Library", () => {
 			).rejects.toMatchObject({
 				reason: "PERMISSION_DENIED",
 			});
-			expect(await originOf(asset.id)).toBe("chat");
+			expect(await keptInOf(asset.id)).toBe("chat");
 		},
 		TIMEOUT,
 	);

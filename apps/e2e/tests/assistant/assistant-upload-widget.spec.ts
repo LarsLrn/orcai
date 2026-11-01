@@ -188,7 +188,7 @@ test("assistant: requestUpload lists uploads until Continue, keeps them over a r
 	});
 	expect(asset.data).toMatchObject({
 		title: fileName,
-		origin: "library",
+		keptIn: "library",
 	});
 	expect(
 		(

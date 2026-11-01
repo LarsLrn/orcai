@@ -171,7 +171,7 @@ describe("library lists with equal creation times", () => {
 							pageIndex,
 							pageSize: PAGE_SIZE,
 							filters: {
-								origin: "library",
+								keptIn: "library",
 							},
 						},
 						await options(zedToken),

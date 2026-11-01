@@ -45,7 +45,7 @@ export const assetsMissingMetadata = (params: {
 				and(
 					inArray(asset.id, editable as AssetId[]),
 					eq(resourceScope.organizationId, params.organizationId),
-					eq(asset.origin, "library"),
+					eq(asset.keptIn, "library"),
 					eq(asset.processingStatus, "completed"),
 					or(isNull(asset.metadataStatus), eq(asset.metadataStatus, "failed")),
 				),

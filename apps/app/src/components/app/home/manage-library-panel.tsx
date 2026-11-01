@@ -55,7 +55,7 @@ const ManageLibraryPanel = () => {
 					input: {
 						...COUNT_INPUT,
 						filters: {
-							origin: "library",
+							keptIn: "library",
 						},
 					},
 				}),

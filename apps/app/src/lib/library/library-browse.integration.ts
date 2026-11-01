@@ -63,7 +63,7 @@ const stocked = async () => {
 	const titled = async (
 		owner: Actor,
 		title: string,
-		origin: "library" | "chat" = "library",
+		keptIn: "library" | "chat" = "library",
 	) => {
 		const id: AssetId = await asset(owner);
 		await run(
@@ -72,7 +72,7 @@ const stocked = async () => {
 					.update(dbSchema.asset)
 					.set({
 						title,
-						origin,
+						keptIn,
 					})
 					.where(eq(dbSchema.asset.id, id));
 			}),

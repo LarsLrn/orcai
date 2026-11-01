@@ -122,7 +122,7 @@ export const replaceBlockAssets = (params: {
 						.where(
 							and(
 								inArray(dbSchema.asset.id, addedIds),
-								eq(dbSchema.asset.origin, "chat"),
+								eq(dbSchema.asset.keptIn, "chat"),
 							),
 						)
 						.limit(1)

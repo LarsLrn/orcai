@@ -104,7 +104,7 @@ function RouteComponent() {
 				title={m.library_view_asset()}
 				rowCount={assets.rowCount}
 				actions={
-					search.origin === "library" && !search.run ? (
+					search.keptIn === "library" && !search.run ? (
 						<GenerateMissingMetadataAction />
 					) : null
 				}

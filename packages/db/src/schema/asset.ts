@@ -1,7 +1,7 @@
 import type { AssetId, UserId } from "@orcai/core";
 import {
 	ASSET_FILE_TYPES,
-	ASSET_ORIGINS,
+	ASSET_KEPT_IN,
 	type AssetMetadataType,
 	type BucketName,
 	type MetadataSuggestion,
@@ -23,7 +23,7 @@ import { user } from "./auth";
 
 export const assetFileTypeEnum = pgEnum("asset_file_type", ASSET_FILE_TYPES);
 
-export const assetOriginEnum = pgEnum("asset_origin", ASSET_ORIGINS);
+export const assetKeptInEnum = pgEnum("asset_kept_in", ASSET_KEPT_IN);
 
 export const pipelineStatusEnum = pgEnum("pipeline_status", PIPELINE_STATUSES);
 
@@ -70,7 +70,7 @@ export const asset = pgTable(
 		/** Counts metadata generations; a job or review for an earlier one changes nothing. */
 		metadataGeneration: integer("metadata_generation").notNull().default(0),
 		fileType: assetFileTypeEnum("file_type").notNull(),
-		origin: assetOriginEnum("origin").notNull().default("library"),
+		keptIn: assetKeptInEnum("kept_in").notNull().default("library"),
 		userId: uuid("user_id")
 			.$type<UserId>()
 			.notNull()

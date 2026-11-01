@@ -728,7 +728,7 @@ export const deleteAccounts = (params: {
 					.where(
 						and(
 							inArray(dbSchema.asset.userId, userIds),
-							eq(dbSchema.asset.origin, "chat"),
+							eq(dbSchema.asset.keptIn, "chat"),
 						),
 					);
 				const uploads = yield* deleteResources({

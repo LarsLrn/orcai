@@ -17,7 +17,7 @@ const asset = (
 	title: "Methods handbook",
 	metadata: {},
 	fileType: "pdf",
-	origin: "library",
+	keptIn: "library",
 	processingStatus: "completed",
 	processingFailure: null,
 	metadataStatus: null,
