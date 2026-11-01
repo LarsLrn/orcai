@@ -43,7 +43,7 @@ const invitedMember = async (
 		admin,
 		role: "member",
 		name: `E2E Tenancy ${label}`,
-		email: `e2e-tenancy-${label}-${runId()}@${EMAIL_DOMAIN}`,
+		email: `e2e-orgs-${label}-${runId()}@${EMAIL_DOMAIN}`,
 	});
 
 	return userIdSchema.parse(session.userId);
@@ -154,7 +154,7 @@ test("no organisation role may delete an organisation", async ({
 
 test("the instance admin deletes an organisation", async ({ api, orgs }) => {
 	const throwaway = await orgs.create("E2E Instance Admin Deletes");
-	const invitee = `e2e-tenancy-deleted-org-${runId()}@${EMAIL_DOMAIN}`;
+	const invitee = `e2e-orgs-deleted-org-${runId()}@${EMAIL_DOMAIN}`;
 	// Invitations go to the caller's active organisation. The throwaway admin's
 	// membership comes from the sign-up hook, which answers no zedToken.
 	const throwawayAdmin = api.as("admin", throwaway);
@@ -205,12 +205,12 @@ test("only the instance admin creates an organisation", async ({ api }) => {
 		await expectForbidden(
 			api.as(role).organization.create({
 				name: `E2E Tenancy Create ${role}`,
-				slug: `e2e-tenancy-${role}-${runId()}`,
+				slug: `e2e-orgs-${role}-${runId()}`,
 			}),
 		);
 	}
 
-	const slug = `e2e-tenancy-instance-${runId()}`;
+	const slug = `e2e-orgs-instance-${runId()}`;
 	const created = await api.asWellKnownAdmin().organization.create({
 		name: "E2E Tenancy Create Instance",
 		slug,

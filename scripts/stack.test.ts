@@ -16,13 +16,13 @@ describe("parseOptions", () => {
 			"e2e",
 			"--",
 			"--grep",
-			"tenancy",
+			"orgs",
 		]);
 
 		expect(options.command).toBe("e2e");
 		expect(options.args).toEqual([
 			"--grep",
-			"tenancy",
+			"orgs",
 		]);
 		expect(options.flags.has("grep")).toBe(false);
 	});
