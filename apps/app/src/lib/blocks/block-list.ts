@@ -118,7 +118,7 @@ export const listBlockTiles = (params: {
 			: yield* params.access.condition("block", {
 					scope: input.filters?.scope,
 					status,
-					source: input.filters?.source,
+					origin: input.filters?.origin,
 				});
 		const where = and(
 			visible,

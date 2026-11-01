@@ -4,9 +4,9 @@ import type {
 	LibraryCounts,
 	LibraryEntry,
 	LibraryKind,
+	LibraryOrigin,
 	LibraryOverviewInput,
 	LibraryScope,
-	LibrarySource,
 	PublicationStatusFilter,
 	SearchLibraryInput,
 } from "@orcai/schema";
@@ -39,7 +39,7 @@ const SHELF_SIZE = 12;
 type EntryFilters = {
 	scope: LibraryScope;
 	status: PublicationStatusFilter;
-	source?: LibrarySource;
+	origin?: LibraryOrigin;
 	search?: string;
 };
 
@@ -52,7 +52,7 @@ type EntryFilters = {
 const entries = (access: LibraryAccess, filters: EntryFilters) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const { scope, status, source } = filters;
+		const { scope, status, origin } = filters;
 		const matches = (column: AnyColumn) =>
 			filters.search ? ilike(column, literalSearch(filters.search)) : undefined;
 		const [bots, blocks, assets] = yield* Effect.all(
@@ -60,12 +60,12 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 				access.condition("bot", {
 					scope,
 					status,
-					source,
+					origin,
 				}),
 				access.condition("block", {
 					scope,
 					status,
-					source,
+					origin,
 				}),
 				access.condition("asset", {
 					scope,
@@ -107,7 +107,7 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 					.where(and(blocks, matches(dbSchema.block.name))),
 			);
 		return (
-			status === "draft" || source === "installed"
+			status === "draft" || origin === "added"
 				? union
 				: union.unionAll(
 						db
@@ -312,7 +312,7 @@ export const libraryOverview = (input: LibraryOverviewInput, reader: Reader) =>
 								{
 									...shelf,
 									scope,
-									source: "all",
+									origin: "all",
 									status: "draft",
 								},
 								reader,

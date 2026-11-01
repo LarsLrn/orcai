@@ -10,7 +10,7 @@ import type {
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	groupIdSchema,
-	RESOURCE_GRANT_SOURCE,
+	RESOURCE_GRANT_ORIGIN,
 	userIdSchema,
 } from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
@@ -51,12 +51,12 @@ type GroupPrincipal = Extract<
 	}
 >;
 
-const grantSourceForGroup = (
+const grantOriginForGroup = (
 	params: Pick<GroupPrincipal, "kind" | "systemKey">,
 ) =>
 	params.kind === "system" && params.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY
-		? RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS
-		: RESOURCE_GRANT_SOURCE.DIRECT_GROUP;
+		? RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS
+		: RESOURCE_GRANT_ORIGIN.DIRECT_GROUP;
 
 type ActiveGrant = typeof dbSchema.resourceGrant.$inferSelect;
 type AncestorRef = AccessAncestor extends infer Ancestor
@@ -87,7 +87,7 @@ const splitPrincipalIds = (
 		),
 });
 
-/** Attaches the principal and source to grant rows; rows whose principal is gone are dropped. */
+/** Attaches the principal and origin to grant rows; rows whose principal is gone are dropped. */
 const hydrateGrants = (params: {
 	grants: ActiveGrant[];
 	resource: ResourceIdentity;
@@ -166,7 +166,7 @@ const hydrateGrants = (params: {
 							type: "user",
 							...principal,
 						},
-						source: RESOURCE_GRANT_SOURCE.DIRECT_USER,
+						origin: RESOURCE_GRANT_ORIGIN.DIRECT_USER,
 					});
 				}
 				continue;
@@ -181,7 +181,7 @@ const hydrateGrants = (params: {
 						type: "group",
 						...principal,
 					},
-					source: grantSourceForGroup(principal),
+					origin: grantOriginForGroup(principal),
 				});
 			}
 		}

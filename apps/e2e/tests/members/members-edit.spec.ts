@@ -85,7 +85,7 @@ test("members: the edit page shows what an admin may know about a user", async (
 		}),
 	).toBeVisible();
 	await expect(
-		accessRow.getByText(message("members_access_overview_source_direct_user"), {
+		accessRow.getByText(message("members_access_overview_origin_direct_user"), {
 			exact: true,
 		}),
 	).toBeVisible();

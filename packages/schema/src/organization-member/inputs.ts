@@ -6,7 +6,7 @@ import { createSortingInputSchema } from "../shared/sorting";
 import { userIdSchema } from "../user/ref";
 import { userFiltersSchema } from "../user/schema";
 import {
-	memberAccessSourceSchema,
+	memberAccessOriginSchema,
 	organizationMemberMutableFieldsSchema,
 	organizationMemberSchema,
 } from "./schema";
@@ -33,7 +33,7 @@ export const findOrganizationMemberInputSchema = organizationMemberSchema
 export const memberAccessSortKeySchema = z.enum([
 	"resourceName",
 	"resourceType",
-	"source",
+	"origin",
 ]);
 
 export const listMemberAccessInputSchema = paginationInputSchema.extend({
@@ -42,7 +42,7 @@ export const listMemberAccessInputSchema = paginationInputSchema.extend({
 		.object({
 			search: z.string().trim().max(200).optional(),
 			resourceType: resourceTypeSchema.optional(),
-			source: memberAccessSourceSchema.optional(),
+			origin: memberAccessOriginSchema.optional(),
 		})
 		.optional(),
 	...createSortingInputSchema(memberAccessSortKeySchema).shape,

@@ -31,6 +31,7 @@ describe("library filters", () => {
 				sort: "oldest",
 				status: "archived",
 				keptIn: "email",
+				origin: "installed",
 				processing: "stuck",
 				favourite: "maybe",
 			}),
@@ -45,7 +46,7 @@ describe("library filters", () => {
 					query: "tutor",
 					sort: "name",
 					status: "draft",
-					source: "own",
+					origin: "own",
 					favourite: true,
 					pageIndex: 2,
 					pageSize: 50,
@@ -58,7 +59,7 @@ describe("library filters", () => {
 			sort: "name",
 			filters: {
 				status: "draft",
-				source: "own",
+				origin: "own",
 				favourite: true,
 				scope: "edit",
 			},
@@ -70,7 +71,7 @@ describe("library filters", () => {
 			sort: "newest",
 			filters: {
 				status: "all",
-				source: "all",
+				origin: "all",
 				scope: "all",
 			},
 		});
@@ -99,7 +100,7 @@ describe("library filters", () => {
 			sort: "newest",
 			filters: {
 				status: "ready",
-				source: "all",
+				origin: "all",
 				type,
 				scope: "all",
 				search: "notes",
@@ -162,13 +163,13 @@ describe("library filters", () => {
 		).not.toHaveProperty("suggestions");
 	});
 
-	test("the overview searches every kind with the status and source filters", () => {
+	test("the overview searches every kind with the status and origin filters", () => {
 		expect(
 			libraryListInput.overview(
 				parse("overview", {
 					query: "methods",
 					status: "draft",
-					source: "installed",
+					origin: "added",
 					scope: "edit",
 				}),
 			),
@@ -179,7 +180,7 @@ describe("library filters", () => {
 			scope: "edit",
 			sort: "newest",
 			status: "draft",
-			source: "installed",
+			origin: "added",
 		});
 	});
 

@@ -17,10 +17,10 @@ export const publicationStatusFilterSchema = z.enum([
 ]);
 
 /** Everything in the library, what the organisation made, or what it added from the catalogue. */
-export const librarySourceSchema = z.enum([
+export const libraryOriginSchema = z.enum([
 	"all",
 	"own",
-	"installed",
+	"added",
 ]);
 
 export const librarySortSchema = z.enum([
@@ -32,7 +32,7 @@ export type LibraryScope = z.infer<typeof libraryScopeSchema>;
 export type PublicationStatusFilter = z.infer<
 	typeof publicationStatusFilterSchema
 >;
-export type LibrarySource = z.infer<typeof librarySourceSchema>;
+export type LibraryOrigin = z.infer<typeof libraryOriginSchema>;
 export type LibrarySort = z.infer<typeof librarySortSchema>;
 
 /** The kinds a library browses, one rail entry and one path each. */

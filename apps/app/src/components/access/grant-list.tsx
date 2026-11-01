@@ -52,7 +52,7 @@ const GrantList = ({
 		>
 			{filteredGrants.map((grant) => (
 				<GrantEditorRow
-					key={`${grant.principalType}:${grant.principalId}:${grant.source}`}
+					key={`${grant.principalType}:${grant.principalId}:${grant.origin}`}
 					grant={grant}
 					disabled={disabled}
 					onChangeRole={onChangeRole && ((role) => onChangeRole(grant, role))}

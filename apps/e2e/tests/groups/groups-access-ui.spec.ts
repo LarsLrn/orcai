@@ -62,7 +62,7 @@ test("groups: the access manager shows the group grant on the block page", async
 	// The grant list names the group and where the grant comes from.
 	await expect(page.getByText(groupName).first()).toBeVisible();
 	await expect(
-		page.getByText(message("access_grant_row_source_direct_group"), {
+		page.getByText(message("access_grant_row_origin_direct_group"), {
 			exact: true,
 		}),
 	).toBeVisible();
@@ -96,7 +96,7 @@ test("groups: the access manager shows the group grant on the block page", async
 	).toBeVisible();
 
 	await expect(
-		page.getByText(message("access_grant_row_source_direct_group"), {
+		page.getByText(message("access_grant_row_origin_direct_group"), {
 			exact: true,
 		}),
 	).toBeHidden();
@@ -187,7 +187,7 @@ test("groups: the access manager grants several people at once", async ({
 	// the source badges are what says two direct grants arrived, and an empty
 	// selection says the picker no longer offers them.
 	await expect(
-		page.getByText(message("access_grant_row_source_direct_user"), {
+		page.getByText(message("access_grant_row_origin_direct_user"), {
 			exact: true,
 		}),
 	).toHaveCount(2);

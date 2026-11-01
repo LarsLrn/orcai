@@ -1,11 +1,11 @@
 import type {
-	DirectGrantSource,
+	DirectGrantOrigin,
 	ResourceGrant,
 	ResourceGrantRole,
 } from "@orcai/schema";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
-	RESOURCE_GRANT_SOURCE,
+	RESOURCE_GRANT_ORIGIN,
 } from "@orcai/schema";
 import { Trash2Icon, UsersIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -18,15 +18,15 @@ import {
 	getResourceRoleOptions,
 } from "@/settings/display-config";
 
-const sourceLabel = (source: DirectGrantSource) =>
+const originLabel = (origin: DirectGrantOrigin) =>
 	({
-		[RESOURCE_GRANT_SOURCE.DIRECT_USER]:
-			m.access_grant_row_source_direct_user(),
-		[RESOURCE_GRANT_SOURCE.DIRECT_GROUP]:
-			m.access_grant_row_source_direct_group(),
-		[RESOURCE_GRANT_SOURCE.DIRECT_GROUP_ALL_MEMBERS]:
-			m.access_grant_row_source_all_members(),
-	})[source];
+		[RESOURCE_GRANT_ORIGIN.DIRECT_USER]:
+			m.access_grant_row_origin_direct_user(),
+		[RESOURCE_GRANT_ORIGIN.DIRECT_GROUP]:
+			m.access_grant_row_origin_direct_group(),
+		[RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS]:
+			m.access_grant_row_origin_all_members(),
+	})[origin];
 
 const GrantEditorRow = ({
 	grant,
@@ -60,7 +60,7 @@ const GrantEditorRow = ({
 						<p className="truncate font-medium text-sm">
 							{grant.principal.name}
 						</p>
-						<Badge variant="outline">{sourceLabel(grant.source)}</Badge>
+						<Badge variant="outline">{originLabel(grant.origin)}</Badge>
 					</div>
 					<p className="truncate text-muted-foreground text-xs">
 						{grant.principal.type === "user"

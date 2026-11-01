@@ -41,25 +41,25 @@ const status = singleFilter({
 	}),
 });
 
-const source = singleFilter({
-	label: m.library_filter_source_label,
+const origin = singleFilter({
+	label: m.library_filter_origin_label,
 	options: [
 		{
 			value: "all",
-			label: m.library_filter_source_all,
+			label: m.library_filter_origin_all,
 		},
 		{
 			value: "own",
-			label: m.library_filter_source_own,
+			label: m.library_filter_origin_own,
 		},
 		{
-			value: "installed",
-			label: m.library_filter_source_installed,
+			value: "added",
+			label: m.library_filter_origin_added,
 		},
 	],
 	defaultValue: "all",
 	toInput: (value) => ({
-		source: value,
+		origin: value,
 	}),
 });
 
@@ -67,11 +67,11 @@ const source = singleFilter({
 export const libraryFilters = {
 	overview: {
 		status,
-		source,
+		origin,
 	},
 	bot: {
 		status,
-		source,
+		origin,
 		favourite: toggleFilter({
 			label: m.library_filter_favourites_label,
 			optionLabel: m.library_filter_favourites_only,
@@ -85,11 +85,11 @@ export const libraryFilters = {
 	},
 	behaviour: {
 		status,
-		source,
+		origin,
 	},
 	repository: {
 		status,
-		source,
+		origin,
 	},
 	asset: {
 		keptIn: singleFilter({

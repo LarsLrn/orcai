@@ -1,7 +1,7 @@
 import type { UserId } from "@orcai/core";
 import {
 	listMemberAccessInputSchema,
-	memberAccessSourceSchema,
+	memberAccessOriginSchema,
 	resourceTypeSchema,
 } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ import {
 import type { z } from "zod/v4";
 import { ManageMember } from "@/components/members/manage-member";
 import {
-	memberAccessSourceOptions,
+	memberAccessOriginOptions,
 	memberAccessTableColumns,
 	memberAccessTypeOptions,
 } from "@/components/members/table/member-access-table-columns";
@@ -66,7 +66,7 @@ const searchSchema = listMemberAccessInputSchema
 		...paginationSearchShape,
 		query: dataTableQuerySchema.default(""),
 		resourceType: resourceTypeSchema.optional(),
-		source: memberAccessSourceSchema.optional(),
+		origin: memberAccessOriginSchema.optional(),
 	});
 
 const accessInput = (
@@ -77,14 +77,14 @@ const accessInput = (
 		sort,
 		query,
 		resourceType,
-		source,
+		origin,
 	}: z.infer<typeof searchSchema>,
 ) => ({
 	userId,
 	filters: {
 		search: query || undefined,
 		resourceType,
-		source,
+		origin,
 	},
 	pageIndex,
 	pageSize,
@@ -279,12 +279,12 @@ function RouteComponent() {
 								}
 							/>
 							<DataTableSelectFilter
-								label={m.members_access_overview_source_column_header()}
-								value={search.source}
-								options={memberAccessSourceOptions()}
-								onChange={(source) =>
+								label={m.members_access_overview_origin_column_header()}
+								value={search.origin}
+								options={memberAccessOriginOptions()}
+								onChange={(origin) =>
 									setFilter({
-										source,
+										origin,
 									})
 								}
 							/>
@@ -300,7 +300,7 @@ function RouteComponent() {
 							filters={{
 								query: search.query,
 								resourceType: search.resourceType,
-								source: search.source,
+								origin: search.origin,
 							}}
 						/>
 						<DataTablePagination />

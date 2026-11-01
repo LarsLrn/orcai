@@ -53,11 +53,11 @@ test("members: a user in two organisations switches the active one", async ({
 	// This user owns nothing and was granted nothing, so it holds no access of
 	// its own. Public means visible to every signed-in user of the instance,
 	// so a public resource a parallel worker created is listed here too: what
-	// the assertion pins is the absence of any other source.
+	// the assertion pins is the absence of any other origin.
 	expect(
 		access.data
-			.filter((entry) => entry.source !== "public")
-			.map((entry) => entry.source),
+			.filter((entry) => entry.origin !== "public")
+			.map((entry) => entry.origin),
 	).toEqual([]);
 
 	const { context, page } = await pageForSession(browser, user.session);
