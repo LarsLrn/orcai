@@ -12,8 +12,14 @@ import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { reprocessAsset } from "@/lib/assets/processing";
 import { requireReadable } from "@/lib/authz/content-access";
+import { requireEligibleOwner } from "@/lib/authz/eligible-owner";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
-import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
+import { writeRelationships } from "@/lib/authz/relationship-write";
+import {
+	deleteResourcesWithAuthorization,
+	homeOrganizationId,
+	resourceOrganizations,
+} from "@/lib/authz/resource-lifecycle";
 import { getZedToken } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
@@ -176,17 +182,49 @@ const addAssetToLibrary = authed.asset.addToLibrary
 	)
 	.effect(function* ({ input }) {
 		const db = yield* DB;
+		const resource = {
+			resourceType: "asset" as const,
+			resourceId: input.id,
+		};
 
-		const [asset] = yield* db
-			.update(dbSchema.asset)
-			.set({
-				origin: "library",
-				updatedAt: new Date(),
-			})
-			.where(eq(dbSchema.asset.id, input.id))
-			.returning({
-				...getColumns(dbSchema.asset),
-			});
+		// A Library asset is new content, so its owner must still be able to own it.
+		const { result: asset } = yield* writeRelationships(
+			{
+				organizationIds: resourceOrganizations([
+					resource,
+				]),
+			},
+			Effect.gen(function* () {
+				const [owner] = yield* db
+					.select({
+						userId: dbSchema.asset.userId,
+					})
+					.from(dbSchema.asset)
+					.where(eq(dbSchema.asset.id, input.id))
+					.for("update");
+				const organizationId = yield* homeOrganizationId(resource);
+				if (!owner || !organizationId)
+					return yield* new AppErrors.NotFoundError({
+						reason: "ASSET_NOT_FOUND",
+						message: "Asset not found",
+					});
+				yield* requireEligibleOwner({
+					organizationId,
+					userId: owner.userId,
+				});
+				const [asset] = yield* db
+					.update(dbSchema.asset)
+					.set({
+						origin: "library",
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.asset.id, input.id))
+					.returning({
+						...getColumns(dbSchema.asset),
+					});
+				return asset;
+			}),
+		);
 
 		const admitted = yield* queueMetadataGeneration({
 			assetIds: [

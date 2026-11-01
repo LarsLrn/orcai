@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { createOrganization } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
@@ -106,12 +107,19 @@ describe("ai.keepUploads", () => {
 		async () => {
 			const { organizationId, owner, other, keep, storedUploads } =
 				await waitingUpload();
-			const elsewhere = await organizationWith([
-				"member",
-			]);
+			const elsewhere = await run(
+				createOrganization({
+					members: [
+						{
+							userId: owner.user.id,
+							role: "member",
+						},
+					],
+				}),
+			);
 			const own = await createAsset(owner, organizationId);
 			const others = await createAsset(other, organizationId);
-			const foreign = await createAsset(owner, elsewhere.organizationId);
+			const foreign = await createAsset(owner, elsewhere.organization.id);
 			const missing = crypto.randomUUID() as AssetId;
 
 			const { data } = await keep(

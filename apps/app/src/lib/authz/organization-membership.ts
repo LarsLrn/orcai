@@ -8,11 +8,12 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { checkEntityPermission } from "@orcai/spice-db";
-import { and, eq, getColumns, inArray, isNull, lt, or } from "drizzle-orm";
+import { and, eq, getColumns, inArray } from "drizzle-orm";
 import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import { SqlError } from "effect/sql";
+import { notBanned } from "@/lib/authz/eligible-owner";
 import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
@@ -125,11 +126,7 @@ const ensureAdminRemains = (params: {
 				and(
 					eq(dbSchema.member.organizationId, params.organizationId),
 					eq(dbSchema.member.role, ORGANIZATION_ADMIN_ROLE),
-					or(
-						isNull(dbSchema.user.banned),
-						eq(dbSchema.user.banned, false),
-						lt(dbSchema.user.banExpires, new Date()),
-					),
+					notBanned(),
 				),
 			);
 		const remaining = admins.filter(
