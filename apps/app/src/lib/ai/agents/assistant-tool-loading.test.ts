@@ -314,6 +314,7 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 			features: [],
 			history: [],
 			plan: undefined,
+			today: "Friday, 30 October 2026",
 			telemetryIds: {
 				organizationId: "org",
 				chatId: "chat",
