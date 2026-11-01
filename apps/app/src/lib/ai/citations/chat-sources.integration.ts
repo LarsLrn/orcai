@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatId, ChatMessageId } from "@orcai/core";
+import type { AssetId, ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import * as Effect from "effect/Effect";
 import { DrizzleReplyStore } from "@/lib/ai/turn/drizzle-reply-store";
@@ -20,7 +20,18 @@ const passage = (id: string) => ({
 	text: `Text ${id}`,
 });
 
-/** A question, then a reply that searched and found `pointId`. */
+const attachedAssets = new Map<string, AssetId>();
+
+/** The asset a question of turn `label` attaches. */
+const assetOf = (label: string) => {
+	const known = attachedAssets.get(label);
+	if (known) return known;
+	const assetId = crypto.randomUUID() as AssetId;
+	attachedAssets.set(label, assetId);
+	return assetId;
+};
+
+/** A question with an attachment, then a reply that searched and found `pointId`. */
 const searchTurn = (pointId: string) => [
 	{
 		role: "user",
@@ -28,6 +39,14 @@ const searchTurn = (pointId: string) => [
 			{
 				type: "text",
 				text: "Search.",
+			},
+		],
+		attachments: [
+			{
+				assetId: assetOf(pointId),
+				title: `File ${pointId}`,
+				fileType: "text/plain",
+				size: 1,
 			},
 		],
 	},
@@ -51,31 +70,39 @@ const searchTurn = (pointId: string) => [
 	},
 ];
 
-const cites = (...ids: string[]) =>
-	ids
-		.map((id) => `<cite ref=${sourceRef("passage", id)}>${id}</cite>`)
+/** The refs of turn `label`'s passage and attachment. */
+const refsOf = (label: string) => [
+	sourceRef("passage", label),
+	sourceRef("attachment", assetOf(label)),
+];
+
+const cites = (...labels: string[]) =>
+	labels
+		.flatMap(refsOf)
+		.map((ref) => `<cite ref=${ref}>${ref}</cite>`)
 		.join(" ");
 
 describe("chat sources of a branch", () => {
 	test(
-		"resolve the copied messages only, not what the parent found later or another chat found",
+		"resolve the passages and attachments of the copied messages only, not what the parent added later or other chats hold",
 		async () => {
 			const {
-				actors: [owner],
+				actors: [owner, other],
 				zedToken,
 			} = await organizationWith([
+				"member",
 				"member",
 			]);
 			const procedures = await run(Procedures);
 			let token = zedToken;
 
-			const createChat = async (turns: string[]) => {
+			const createChat = async (turns: string[], actor = owner) => {
 				const { data: chat, meta } = await run(
 					procedures.chat.create(
 						{
 							title: "Sources",
 						},
-						await procedureOptions(owner, token),
+						await procedureOptions(actor, token),
 					),
 				);
 				token = meta?.zedToken ?? token;
@@ -90,7 +117,7 @@ describe("chat sources of a branch", () => {
 									chatId: chat.id,
 									role: message.role,
 									parts: message.parts,
-									attachments: [],
+									attachments: message.attachments ?? [],
 									metadata: {},
 									position,
 								})),
@@ -115,10 +142,12 @@ describe("chat sources of a branch", () => {
 					}).pipe(Effect.provide(DrizzleReplyStore)),
 				);
 				return chatSources(
-					(loaded?.messages ?? []).map(({ parts }) => ({
+					(loaded?.messages ?? []).map(({ role, parts, attachments }) => ({
+						role,
 						parts: parts as {
 							type: string;
 						}[],
+						attachments,
 					})),
 				);
 			};
@@ -130,6 +159,12 @@ describe("chat sources of a branch", () => {
 			await createChat([
 				"elsewhere",
 			]);
+			await createChat(
+				[
+					"foreign",
+				],
+				other,
+			);
 			const { data: branch } = await run(
 				procedures.chat.branch(
 					{
@@ -141,19 +176,17 @@ describe("chat sources of a branch", () => {
 				),
 			);
 
-			const cited = cites("before", "after", "elsewhere");
+			const cited = cites("before", "after", "elsewhere", "foreign");
+			const resolved = async (chatId: ChatId) =>
+				Object.keys((await sourcesOf(chatId)).citations(cited)).sort();
 
-			expect(
-				Object.keys((await sourcesOf(branch.id)).citations(cited)),
-			).toEqual([
-				sourceRef("passage", "before"),
-			]);
-			expect(
-				Object.keys((await sourcesOf(parent.chatId)).citations(cited)),
-			).toEqual([
-				sourceRef("passage", "before"),
-				sourceRef("passage", "after"),
-			]);
+			expect(await resolved(branch.id)).toEqual(refsOf("before").sort());
+			expect(await resolved(parent.chatId)).toEqual(
+				[
+					...refsOf("before"),
+					...refsOf("after"),
+				].sort(),
+			);
 		},
 		TIMEOUT,
 	);

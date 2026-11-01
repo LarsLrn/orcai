@@ -290,6 +290,10 @@ const buildAgent = ({
 					telemetryIds,
 					context: input.context,
 					history,
+					hasAttachments: history.some(
+						(message) =>
+							message.role === "user" && (message.attachments?.length ?? 0) > 0,
+					),
 					sources,
 				}),
 				sources,

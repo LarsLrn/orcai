@@ -2,11 +2,13 @@ import type { Page } from "@playwright/test";
 import { adoptPageZedToken } from "../../fixtures/authz/resources";
 import {
 	chatName,
+	completionRequests,
 	composer,
 	createChat,
 	openChat,
 	sendTurn,
 	setUpChatModel,
+	turnFinished,
 } from "../../fixtures/chat/chat";
 import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
@@ -114,6 +116,69 @@ for (const file of [
 		});
 	});
 }
+
+test("chat: a reply cites an attachment by the ref its tag carries, also after a reload", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const member = api.as("member");
+	const chatId = await createChat(member, model, chatName("Attachment cite"));
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await openChat(page, chatId);
+	const submit = page.getByRole("button", {
+		name: message("ai_elements_prompt_input_submit_aria_label"),
+	});
+	await page.locator('input[type="file"]').setInputFiles({
+		name: "trip-notes.txt",
+		mimeType: "text/plain",
+		buffer: Buffer.from("The field trip leaves at eight from the north gate."),
+	});
+	inference.respondWith({
+		text: "Got the notes.",
+	});
+	await composer(page).fill("Here are the trip notes.");
+	await submit.click();
+	await turnFinished(page);
+
+	const ref = JSON.stringify(completionRequests(inference).at(-1)?.body).match(
+		/<attachment ref=(a[0-9a-z]{6}) title=/,
+	)?.[1];
+	if (!ref) throw new Error("The model read no attachment ref");
+
+	// A later turn cites the attachment of an earlier message.
+	inference.respondWith({
+		text: `The trip <cite ref=${ref}>leaves at eight</cite>.`,
+	});
+	await composer(page).fill("When does the trip leave?");
+	await submit.click();
+	await turnFinished(page);
+
+	const citation = page.getByRole("log").getByRole("button", {
+		name: message("ai_elements_cite_asset_aria_label", {
+			label: "trip-notes",
+		}),
+		exact: true,
+	});
+	const cited = async () => {
+		await expect(citation).toHaveText("trip-notes");
+		await citation.click();
+		await expect(
+			page.getByRole("dialog").getByRole("link", {
+				name: message("ai_elements_cite_open_asset_action"),
+			}),
+		).toHaveAttribute("href", /\/app\/library\/assets\//);
+		await page.keyboard.press("Escape");
+	};
+	await cited();
+
+	await page.reload();
+	await cited();
+});
 
 type DroppedFile = {
 	name: string;

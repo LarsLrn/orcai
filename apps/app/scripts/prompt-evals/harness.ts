@@ -336,6 +336,11 @@ export const runChat = async ({
 					"web",
 				] as const)
 			: []),
+		...(attachment
+			? ([
+					"attachment",
+				] as const)
+			: []),
 	];
 	const citations = citable.length > 0;
 	const displayTools = generativeUi

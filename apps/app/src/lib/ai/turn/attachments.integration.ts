@@ -16,6 +16,7 @@ import {
 } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { sourceRef } from "@/lib/ai/citations/source-ref";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { attachAssets, withAttachmentParts } from "./attachments";
 
@@ -234,6 +235,14 @@ describe("chat attachments", () => {
 			zedToken: shared.zedToken,
 		});
 		expect(before).toEqual([
+			{
+				type: "text",
+				text: [
+					`<attachment ref=${sourceRef("attachment", asset.id)} title="Floor plan" media-type="image/png">`,
+					"Image in the next part.",
+					"</attachment>",
+				].join("\n"),
+			},
 			{
 				type: "file",
 				mediaType: "image/png",

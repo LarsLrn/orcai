@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { genUiPrompt } from "@/components/chat/gen-ui/prompt";
+import type { CitableKind } from "@/lib/ai/citations/citation-rules";
 import { featureCatalog } from "@/lib/ai/features/catalog";
 import {
 	buildChatAgentSystemPrompt,
@@ -138,6 +139,32 @@ describe("buildChatAgentSystemPrompt", () => {
 		expect(cited).not.toMatch(/<cite [^>]*"|chunk=|k7f3a2/);
 		expect(uncited).not.toContain("Citations:");
 		expect(uncited).not.toContain("<cite");
+	});
+
+	test("names the tag of every kind the turn can cite", () => {
+		const prompt = (citable: CitableKind[]) =>
+			buildChatAgentSystemPrompt({
+				behaviour: undefined,
+				repositories: [],
+				featurePrompts: [],
+				citable,
+				today: "Friday, 30 October 2026",
+			}).stable;
+
+		expect(
+			prompt([
+				"attachment",
+			]),
+		).toContain("- Each <attachment> tag carries a ref, such as ref=au733ur.");
+		expect(
+			prompt([
+				"passage",
+				"web",
+				"attachment",
+			]),
+		).toContain(
+			"- Each <passage>, <web-result> and <attachment> tag carries a ref, such as ref=kgol9ts.",
+		);
 	});
 
 	test("lets display tool prose cite only when the turn can cite", () => {

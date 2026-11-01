@@ -142,6 +142,8 @@ You can send text only, attachments only, or text with attachments.
 
 You can attach only assets you can read. The model reads a message's attachments again on every later turn while you can still read them. Once you lose access to an asset or it is deleted, the model is told that attachment is no longer available.
 
+Answers can [cite](#retrieval-and-citations) the attachments of any message in the chat, as they cite retrieved passages.
+
 ## Chat settings
 
 Open **Chat settings** from the chat menu, under the chat's title in the header. It has these settings:
@@ -219,9 +221,9 @@ A reply takes at most 25 steps, 20 in the OrcAI Assistant, and fewer when its qu
 
 A reply runs for at most 30 minutes. One that reaches the limit stops as if you had stopped it. What it wrote is kept, it is charged for the steps it took, and a notice under it says it reached its time limit. Send a message to continue.
 
-Answers cite their sources inline. A citation shows the asset's title and page, and opening it shows the asset's metadata with an **Open asset** link to the asset's page (`/app/library/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
+Answers cite their sources inline. A citation shows the asset's title and page, or only the title for an attachment, and opening it shows the asset's metadata with an **Open asset** link to the asset's page (`/app/library/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
 
-A citation promises that the chat retrieved the source, not that the source supports the sentence. Check the source before you rely on it. An answer can cite any source retrieved earlier in the same chat without searching again, and a branch can cite the sources of the messages it copied. A cited asset that was deleted or that you can no longer read still shows the citation, and opening it says that its metadata could not be loaded.
+A citation promises that the chat retrieved the source or that a message attached it, not that the source supports the sentence. Check the source before you rely on it. An answer can cite any source retrieved earlier in the same chat without searching again, and a branch can cite the sources of the messages it copied. A cited asset that was deleted or that you can no longer read still shows the citation, and opening it says that its metadata could not be loaded.
 
 Links in an answer and the pages listed under **Sources** ask before they open a page outside OrcAI. **Open external link?** shows the address, and **Open link** opens it in a new tab. Links to these docs open without asking.
 
