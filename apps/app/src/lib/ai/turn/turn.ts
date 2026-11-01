@@ -18,6 +18,7 @@ import type {
 	AiChatInput,
 	ChatMessageMetadata,
 	ClientToolOutput,
+	KeptUploads,
 	ToolApprovalDecision,
 } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
@@ -47,6 +48,7 @@ import {
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
 import { turnCitations } from "@/lib/ai/tools/rag/citations";
+import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
@@ -59,6 +61,7 @@ import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	applyTurnDecisions,
+	isContinuationClaimLive,
 	withoutContinuationClaim,
 } from "./apply-turn-decisions";
 import { attachAssets, withAttachmentParts } from "./attachments";
@@ -201,7 +204,11 @@ const botUsable = (botId: BotId, context: ORPCContext) =>
 			);
 	});
 
-const loadChat = ({ chatId, organizationId, context }: TurnInput) =>
+const loadChat = ({
+	chatId,
+	organizationId,
+	context,
+}: Pick<TurnInput, "chatId" | "organizationId" | "context">) =>
 	Effect.gen(function* () {
 		const loaded = yield* (yield* ReplyStore).load(chatId);
 		if (!loaded) {
@@ -843,10 +850,11 @@ export const continueTurn = (
 									}),
 						);
 					}
+					const { uploads: _, ...metadata } = reply?.metadata ?? {};
 					return Effect.succeed({
 						parts: applied.parts,
 						metadata: {
-							...reply?.metadata,
+							...metadata,
 							continuedAt: now.toISOString(),
 						},
 					});
@@ -920,4 +928,54 @@ export const continueTurn = (
 				),
 			);
 		}).pipe(Effect.onError(() => meter.settle("unused")));
+	});
+
+/** Stores the files a waiting `requestUpload` call lists, so the reply shows them after a reload. */
+export const keepUploads = ({
+	replyId,
+	toolCallId,
+	kept,
+	...input
+}: Pick<TurnInput, "chatId" | "organizationId" | "context"> & {
+	replyId: ChatMessageId;
+	toolCallId: string;
+	kept: KeptUploads;
+}) =>
+	Effect.gen(function* () {
+		const { chat } = yield* loadChat(input);
+		const chatId = chat.id;
+		const now = new Date();
+		const stored = yield* (yield* ReplyStore).claim({
+			chatId,
+			replyId,
+			update: (reply) => {
+				const waiting =
+					reply &&
+					!isContinuationClaimLive(reply.metadata.continuedAt, now) &&
+					pausedStep({
+						role: reply.role,
+						parts: reply.parts as UIMessage["parts"],
+					})?.awaiting.some(
+						(part) =>
+							part.toolCallId === toolCallId &&
+							part.type === "tool-requestUpload",
+					);
+				if (!waiting) {
+					return Effect.fail(
+						turnNotAwaiting("The upload request is no longer waiting."),
+					);
+				}
+				return Effect.succeed({
+					parts: reply.parts as UIMessage["parts"],
+					metadata: {
+						...reply.metadata,
+						uploads: {
+							...reply.metadata.uploads,
+							[toolCallId]: kept,
+						},
+					},
+				});
+			},
+		});
+		return stored.metadata.uploads?.[toolCallId] ?? kept;
 	});

@@ -1,6 +1,10 @@
 import { Chat } from "@ai-sdk/react";
-import type { ChatId, ChatMessageId } from "@orcai/core";
-import type { ContinueChatInput } from "@orcai/schema";
+import type { AssetId, ChatId, ChatMessageId } from "@orcai/core";
+import type {
+	ContinueChatInput,
+	KeepUploadsInput,
+	KeptUploads,
+} from "@orcai/schema";
 import type { ChatStatus, InferUITools, UIMessageChunk } from "ai";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import type { ChatPhase, ClientToolName } from "@/lib/ai/turn-view/turn-view";
@@ -51,6 +55,8 @@ export interface ChatPort {
 		before?: number;
 		zedToken: string | undefined;
 	}) => Promise<ChatPage>;
+	/** Stores the files a waiting `requestUpload` call lists with its reply. */
+	keepUploads: (input: KeepUploadsInput) => Promise<KeptUploads>;
 	/** Refreshes what a finished turn may have changed. */
 	turnEnded: (message: ChatAgentUIMessage) => Promise<void>;
 }
@@ -74,6 +80,17 @@ export interface StepAnswers {
 	}) => void;
 	/** Runs a step whose answers are all in but that has not run, as after a reload. */
 	continue: () => Promise<void>;
+	/** What a waiting `requestUpload` call lists so far. */
+	uploads: (toolCallId: string) => KeptUploads | undefined;
+	/**
+	 * Stores the files a waiting `requestUpload` call lists, so a reload shows
+	 * them, and resolves with those the user can still use, with current titles.
+	 */
+	keepUploads: (input: {
+		toolCallId: string;
+		assetIds: AssetId[];
+		zedToken: string | undefined;
+	}) => Promise<KeptUploads>;
 }
 
 export const phaseOf = (status: ChatStatus, storing: boolean): ChatPhase => {
@@ -116,6 +133,7 @@ export class ChatSession {
 	#hasMore: boolean;
 	#loadingEarlier: Promise<boolean> | undefined;
 	#sentFirst = false;
+	#keeping: Promise<unknown> = Promise.resolve();
 
 	constructor({
 		chatId,
@@ -247,6 +265,44 @@ export class ChatSession {
 			await this.chat.sendMessage();
 			await this.#settled;
 		},
+		uploads: (toolCallId) =>
+			this.chat.lastMessage?.metadata?.uploads?.[toolCallId],
+		keepUploads: ({ toolCallId, assetIds, zedToken }) => {
+			const last = this.chat.lastMessage;
+			const step = this.#answerableStep();
+			if (
+				!last ||
+				!step?.awaiting.some((call) => call.toolCallId === toolCallId)
+			) {
+				return Promise.reject(new Error("The upload request is not waiting"));
+			}
+			// One write at a time, so the last list wins.
+			const write = this.#keeping.then(() =>
+				this.#port.keepUploads({
+					chatId: this.#chatId,
+					messageId: last.id,
+					toolCallId,
+					assetIds,
+					zedToken,
+				}),
+			);
+			this.#keeping = write.then(
+				() => undefined,
+				() => undefined,
+			);
+			return write.then(
+				(kept) => {
+					this.#keepLocally(last.id, toolCallId, kept);
+					return kept;
+				},
+				(error: unknown) => {
+					if (errorReasonOf(error)?.reason === "CHAT_TURN_NOT_AWAITING") {
+						this.#reloadLatest().catch(() => undefined);
+					}
+					throw error;
+				},
+			);
+		},
 	};
 
 	/**
@@ -371,6 +427,24 @@ export class ChatSession {
 		this.chat.messages = [
 			...this.chat.messages.filter((message) => !storedIds.has(message.id)),
 			...page.messages,
+		];
+	}
+
+	#keepLocally(messageId: string, toolCallId: string, kept: KeptUploads) {
+		const last = this.chat.lastMessage;
+		if (last?.id !== messageId) return;
+		this.chat.messages = [
+			...this.chat.messages.slice(0, -1),
+			{
+				...last,
+				metadata: {
+					...last.metadata,
+					uploads: {
+						...last.metadata?.uploads,
+						[toolCallId]: kept,
+					},
+				},
+			},
 		];
 	}
 

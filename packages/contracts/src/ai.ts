@@ -2,6 +2,8 @@ import {
 	aiChatInputSchema,
 	aiChatResponseSchema,
 	continueChatInputSchema,
+	keepUploadsInputSchema,
+	keepUploadsResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -33,4 +35,17 @@ export const aiContracts = {
 		)
 		.input(continueChatInputSchema)
 		.output(aiChatResponseSchema),
+	keepUploads: base
+		.meta(
+			openapi({
+				method: "PUT",
+				path: "/ai/uploads",
+				summary: "Keep the files a waiting upload request lists",
+				tags: [
+					"AI",
+				],
+			}),
+		)
+		.input(keepUploadsInputSchema)
+		.output(keepUploadsResponseSchema),
 };

@@ -1,4 +1,4 @@
-import { assetIdSchema } from "@orcai/schema";
+import { uploadedAssetSchema } from "@orcai/schema";
 import { tool } from "ai";
 import { z } from "zod/v4";
 import { toolInputSchema } from "@/lib/ai/tools/input-schema";
@@ -16,14 +16,7 @@ export const requestUploadInputSchema = z.strictObject({
 export const requestUploadOutputSchema = z.discriminatedUnion("status", [
 	z.object({
 		status: z.literal("saved"),
-		assets: z
-			.array(
-				z.object({
-					id: assetIdSchema,
-					title: z.string().min(1),
-				}),
-			)
-			.min(1),
+		assets: z.array(uploadedAssetSchema).min(1),
 	}),
 	z.object({
 		status: z.literal("cancelled"),

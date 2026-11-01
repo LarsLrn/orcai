@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, spyOn, test } from "bun:test";
-import type { BotId, ChatMessageId } from "@orcai/core";
+import type { AssetId, BotId, ChatMessageId } from "@orcai/core";
 import { METERED_CALL_TIMEOUT_MS } from "@orcai/quota";
 import { quota } from "@orcai/quota/testing";
 import * as Effect from "effect/Effect";
@@ -18,6 +18,7 @@ import {
 } from "./test-turn";
 
 const { ReplyStore } = await import("./reply-store");
+const { keepUploads } = await import("./turn");
 const { memoryReplyStore } = await import("./memory-reply-store");
 const AppErrors = await import("@/lib/effect/utils/errors");
 
@@ -1281,5 +1282,132 @@ describe("turn setup", () => {
 		const system = JSON.stringify(chat.bodies[0]?.system);
 		expect(system).toContain("You are the template.");
 		expect(system).not.toContain("You are the chat.");
+	});
+});
+
+describe("keepUploads", () => {
+	const apa = {
+		id: crypto.randomUUID() as AssetId,
+		title: "APA 7.pdf",
+	};
+
+	/** An assistant conversation whose reply waits for an upload. */
+	const waitingUpload = async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		chat.script([
+			{
+				calls: [
+					{
+						name: "requestUpload",
+						input: {
+							reason: "Upload the style guide.",
+						},
+					},
+				],
+			},
+		]);
+		await chat.send("Make a bot from my style guide");
+		const reply = chat.messages().at(-1);
+		const call = reply?.parts.find(
+			(
+				part,
+			): part is {
+				toolCallId: string;
+			} => typeof part === "object" && part !== null && "toolCallId" in part,
+		);
+		const keep = (toolCallId = call?.toolCallId ?? "") =>
+			chat.run(
+				keepUploads({
+					...chat.requester,
+					chatId: chat.chatId,
+					replyId: reply?.id as ChatMessageId,
+					toolCallId,
+					kept: {
+						assets: [
+							apa,
+						],
+						zedToken: "zed-upload",
+					},
+				}),
+			);
+		return {
+			chat,
+			toolCallId: call?.toolCallId ?? "",
+			keep,
+		};
+	};
+
+	test("keeps what a waiting upload lists with the reply until the call is answered", async () => {
+		const { chat, toolCallId, keep } = await waitingUpload();
+
+		expect(await keep()).toEqual({
+			assets: [
+				apa,
+			],
+			zedToken: "zed-upload",
+		});
+		expect(chat.messages().at(-1)?.metadata.uploads).toEqual({
+			[toolCallId]: {
+				assets: [
+					apa,
+				],
+				zedToken: "zed-upload",
+			},
+		});
+
+		chat.script([
+			{
+				text: "Got it.",
+			},
+		]);
+		await chat.answer([
+			{
+				toolCallId,
+				output: {
+					status: "saved",
+					assets: [
+						apa,
+					],
+				},
+			},
+		]);
+
+		expect(chat.messages().at(-1)?.metadata.uploads).toBeUndefined();
+		expect(await refusal(() => keep())).toBe(
+			"ConflictError: CHAT_TURN_NOT_AWAITING",
+		);
+	});
+
+	test("refuses a call that is not a waiting upload", async () => {
+		const { chat, keep } = await waitingUpload();
+		const paused = chat.messages().at(-1);
+
+		expect(await refusal(() => keep("other-call"))).toBe(
+			"ConflictError: CHAT_TURN_NOT_AWAITING",
+		);
+		expect(chat.messages().at(-1)).toEqual(paused);
+	});
+
+	test("refuses a conversation of another organisation", async () => {
+		const { chat, toolCallId } = await waitingUpload();
+		const reply = chat.messages().at(-1);
+
+		expect(
+			await refusal(() =>
+				chat.run(
+					keepUploads({
+						...chat.requester,
+						organizationId: crypto.randomUUID() as typeof ORGANIZATION_ID,
+						chatId: chat.chatId,
+						replyId: reply?.id as ChatMessageId,
+						toolCallId,
+						kept: {
+							assets: [],
+						},
+					}),
+				),
+			),
+		).toBe("BadRequestError: CHAT_ORGANIZATION_MISMATCH");
+		expect(chat.messages().at(-1)).toEqual(reply);
 	});
 });

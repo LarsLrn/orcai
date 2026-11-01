@@ -74,9 +74,9 @@ If you answered every card but the page reloaded before the Assistant continued,
 
 ## Uploads
 
-When you want to add files, the Assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files as on **Add assets** (`/app/library/assets/add`). Each file becomes an asset as soon as its upload finishes, and the Assistant gets the new assets right away and carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
+When you want to add files, the Assistant shows an **Upload files** field in the conversation, with a line saying what the files are for. Upload the files as on **Add assets** (`/app/library/assets/add`). Each file becomes an asset as soon as its upload finishes, and the field lists it. **Upload more** adds further files, and **Remove** deletes an asset after you confirm. **Continue** gives the Assistant the files in the list, and it carries on, for example by attaching them to a repository. The field needs the right to create assets, which members, managers and admins have.
 
-Choosing **Cancel** before uploading tells the Assistant that you added nothing. During an upload you are asked first, and cancelling stops the upload. Writing a new message instead closes the field and marks it **Skipped**. If the page reloads during an upload, the files still uploading are not added and the field comes back empty.
+**Cancel** tells the Assistant that you added nothing, and the files you already uploaded stay in the Library. During an upload you are asked first, and cancelling stops the upload. Writing a new message instead closes the field and marks it **Skipped**. The list holds up to 100 files and is stored with the conversation, so after a reload the field shows it again. If storing it fails, the field says so and **Save again** retries. Files still uploading when the page reloads are not added, and files deleted elsewhere drop out of the list when you choose **Continue**.
 
 In the work log the field shows as "Uploaded 2 files" with the file titles, or as "Upload cancelled". **Metadata** next to a title opens the asset's metadata, so you can add it after the Assistant has carried on.
 
