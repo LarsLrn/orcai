@@ -1,0 +1,57 @@
+---
+title: Write a behaviour
+description: Write the system prompt of a behaviour, with what OrcAI already handles, a structure and an example to start from, the usual pitfalls, and how to test a behaviour in a chat.
+---
+
+A behaviour is a system prompt in a block, the instructions the model reads before every answer. It shapes a bot's answers more than any other setting, and a short, specific one works best. You write it in the **Behaviour** step of the [bot editor](/docs/using-orcai/bots#creating-or-editing-a-bot), on a behaviour's own page under **Library** > **Behaviours**, or in [chat settings](/docs/using-orcai/chat#chat-settings) for a chat without a bot.
+
+## What OrcAI already handles
+
+A behaviour does not need to repeat what OrcAI tells the model on its own.
+
+When a bot has repositories, OrcAI has the model search them, answer from the passages it finds and say so when they do not cover a question. It also has the model cite each sentence that uses a passage, and the chat shows each citation with its asset and page. A citation shows which retrieved source a sentence used. It does not prove that the source supports the sentence, so people still check the sources of an answer that matters.
+
+The model answers in the language of the user's latest message, so without a language line a German question gets a German answer. A behaviour that names a language overrides this. A behaviour written in one language can also pull answers into that language, so where people ask in several, a line such as "Answer in the language of the question" keeps them apart.
+
+OrcAI also tells the model how to format answers, with Markdown, code blocks, maths and diagrams. Passages, attachments and web pages count as data, so the model ignores instructions written inside them.
+
+Where a behaviour conflicts with one of these rules, OrcAI's rule wins, because the app relies on it to show the answer correctly. The answer language is the exception, since a behaviour may set it.
+
+## Structure
+
+A behaviour usually covers these points, each in a sentence or two:
+
+- The role, such as the course assistant for a module
+- The audience, such as first-year students who are new to academic work
+- The task, meaning what the bot helps with
+- The tone and the length of an answer
+- The limits, meaning what is outside the role and who to point people to
+- What to do when the material does not answer a question
+
+Give a measure where you can. "Two to four sentences" tells the model more than "short". Describe what the bot should do, and keep the limits to the few that matter for the course or team.
+
+## Example
+
+**Start from an example** in the Behaviour step fills the field with this text. It comes in the language of your OrcAI interface. The German version adds a line to answer in the language of the question, because a behaviour written in German pulls answers into German.
+
+```text title="Example behaviour"
+You are the course assistant for this module. The students are in their first year and new to academic work.
+
+Help with the module's content and how the course is organised. Answer in two to four sentences, in a plain and friendly tone. When the material does not answer a question, point the student to the course team.
+
+Grading, predicted marks and personal, legal or medical advice are outside this role, so refer those questions to the course team.
+```
+
+It names a role and an audience, gives a concrete length and tone, states what the bot covers, and keeps its limits to one sentence. It leaves out searching and citing, which OrcAI handles.
+
+## Pitfalls
+
+Asking for source lists, footnotes or "name the document each answer came from" conflicts with how OrcAI shows citations. OrcAI's rule wins, so the answer can end up with both styles or with neither. Leave citations to OrcAI.
+
+Pasting documents into the system prompt costs more than a repository does, because the model reads the whole prompt before every answer. Nothing in it is searched or cited, so upload the files as [assets](/docs/using-orcai/library), add them to a [repository](/docs/using-orcai/bots#block-types) and attach that repository to the bot.
+
+## Test a behaviour
+
+Start a chat with the bot and ask questions the material covers, questions it does not cover and a question in another language, such as German. Check that the answers cite the right sources, that the bot says so when the material has no answer, that they follow the length and tone you set, and that they come in the language of the question. A bot is private until it is shared, so you can publish and test it alone. To try a draft behaviour first, paste its text into the system prompt in the chat settings of a chat without a bot.
+
+Change one thing at a time and ask the same questions again.
