@@ -96,7 +96,7 @@ const reasonMessages: ReasonMessages = {
 	CURRENT_PASSWORD_INCORRECT: m.error_current_password_incorrect,
 	DATA_EXPORT_IN_PROGRESS: m.error_data_export_in_progress,
 	DEFAULT_REFERENCES_OUT_OF_RANGE: m.error_default_references_out_of_range,
-	DOCUMENT_STILL_PREPARING: m.error_document_still_preparing,
+	ASSET_STILL_PREPARING: m.error_asset_still_preparing,
 	EMAIL_ALREADY_REGISTERED: m.error_email_already_registered,
 	EMAIL_NOT_VERIFIED: m.error_email_not_verified,
 	ENTITY_IDS_REQUIRED: m.error_entity_ids_required,

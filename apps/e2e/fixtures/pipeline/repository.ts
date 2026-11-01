@@ -10,10 +10,10 @@ export const pipelineName = (label: string): string =>
 	`E2E Pipeline ${label} ${runId()}`;
 
 /**
- * A repository of the client's own holding one document with `content`,
+ * A repository of the client's own holding one asset with `content`,
  * uploaded as `type`. The workers prepare it after the upload.
  */
-export const repositoryWithDocument = async (
+export const repositoryWithAsset = async (
 	client: ApiClient,
 	{
 		label,
@@ -51,7 +51,7 @@ export const repositoryWithDocument = async (
 	};
 };
 
-/** Waits until no document of the repository is still being prepared. */
+/** Waits until no asset of the repository is still being prepared. */
 export const preparedReadiness = async (
 	client: ApiClient,
 	blockId: BlockId,

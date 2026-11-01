@@ -9,7 +9,7 @@ import { useState } from "react";
 import { ComposerPanel } from "@/components/chat/composer-panel";
 import { Spinner } from "@/components/ui/spinner";
 import { m } from "@/paraglide/messages";
-import { documentsPanelView } from "./documents-panel-view";
+import { assetsPanelView } from "./assets-panel-view";
 
 const RepositoryStatusIcon = ({
 	totals,
@@ -19,7 +19,7 @@ const RepositoryStatusIcon = ({
 	if (totals.preparing > 0) {
 		return (
 			<Spinner
-				aria-label={m.documents_panel_repository_preparing()}
+				aria-label={m.assets_panel_repository_preparing()}
 				className="size-4 shrink-0 text-muted-foreground"
 			/>
 		);
@@ -28,7 +28,7 @@ const RepositoryStatusIcon = ({
 		return (
 			<CircleAlertIcon
 				role="img"
-				aria-label={m.documents_panel_repository_failed()}
+				aria-label={m.assets_panel_repository_failed()}
 				className="size-4 shrink-0 text-status-danger"
 			/>
 		);
@@ -36,7 +36,7 @@ const RepositoryStatusIcon = ({
 	return (
 		<CircleCheckIcon
 			role="img"
-			aria-label={m.documents_panel_repository_ready()}
+			aria-label={m.assets_panel_repository_ready()}
 			className="size-4 shrink-0 text-status-success"
 		/>
 	);
@@ -62,14 +62,14 @@ const RepositoryRow = ({ repository }: { repository: RepositoryReadiness }) => {
 				<span className="min-w-0 truncate">{repository.name}</span>
 			)}
 			<span className="ml-auto shrink-0 text-muted-foreground text-xs tabular-nums">
-				{m.documents_panel_repository_count({
+				{m.assets_panel_repository_count({
 					ready: totals.ready,
 					total: totals.total,
 				})}
 			</span>
 			{totals.failed > 0 && (
 				<span className="shrink-0 text-status-danger text-xs tabular-nums">
-					{m.documents_panel_repository_failed_count({
+					{m.assets_panel_repository_failed_count({
 						count: totals.failed,
 					})}
 				</span>
@@ -79,16 +79,16 @@ const RepositoryRow = ({ repository }: { repository: RepositoryReadiness }) => {
 };
 
 /**
- * How far the documents of these repositories are from searchable. Collapsed
- * by default; gone once every document is ready.
+ * How far the assets of these repositories are from searchable. Collapsed
+ * by default; gone once every asset is ready.
  */
-export const DocumentsPanelCard = ({
+export const AssetsPanelCard = ({
 	repositories,
 }: {
 	repositories: RepositoryReadiness[];
 }) => {
 	const [open, setOpen] = useState(false);
-	const view = documentsPanelView(repositories);
+	const view = assetsPanelView(repositories);
 
 	if (!view) {
 		return null;
@@ -98,7 +98,7 @@ export const DocumentsPanelCard = ({
 
 	return (
 		<ComposerPanel
-			label={m.documents_panel_region()}
+			label={m.assets_panel_region()}
 			icon={
 				preparing ? (
 					<Spinner className="text-muted-foreground" />
@@ -111,16 +111,16 @@ export const DocumentsPanelCard = ({
 			}
 			title={
 				preparing
-					? m.documents_panel_preparing_title()
-					: m.documents_panel_failed_title({
+					? m.assets_panel_preparing_title()
+					: m.assets_panel_failed_title({
 							count: view.failed,
 						})
 			}
 			tally={`${view.ready}/${view.total}`}
 			open={open}
 			onOpenChange={setOpen}
-			expandLabel={m.documents_panel_expand()}
-			collapseLabel={m.documents_panel_collapse()}
+			expandLabel={m.assets_panel_expand()}
+			collapseLabel={m.assets_panel_collapse()}
 		>
 			<ul className="space-y-1.5 px-4 py-2.5">
 				{repositories.map((repository) => (

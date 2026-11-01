@@ -21,8 +21,8 @@ const reasonOf = (operation: Promise<unknown>) =>
 	);
 
 /**
- * An author's bot with a repository holding one document, shared with a
- * member who reaches the repository and the document only through the bot.
+ * An author's bot with a repository holding one asset, shared with a
+ * member who reaches the repository and the asset only through the bot.
  */
 const sharedRepository = async () => {
 	const {
@@ -224,7 +224,7 @@ const sharedRepository = async () => {
 	const withoutTuples = (change: Effect.Effect<unknown, unknown, DB>) =>
 		run(change);
 
-	/** Why the member cannot carry the document into a message or their own repository. */
+	/** Why the member cannot carry the asset into a message or their own repository. */
 	const admissions = async () => ({
 		message: await reasonOf(
 			run(
@@ -388,7 +388,7 @@ describe("reading contents while tuples lag", () => {
 	);
 
 	test(
-		"a removed bot link closes the repository and its documents before its tuple goes",
+		"a removed bot link closes the repository and its assets before its tuple goes",
 		async () => {
 			const { admissions, repositoryId, reads, unlinkWithoutTuples } =
 				await sharedRepository();

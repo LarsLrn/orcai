@@ -3,12 +3,12 @@ import { BLOCK_READINESS_MAX_IDS } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc/orpc";
 
-/** How often readiness refreshes while a document is still being prepared. */
+/** How often readiness refreshes while an asset is still being prepared. */
 const PREPARING_POLL_MS = 5000;
 
 /**
  * Readiness of the readable repositories among `blockIds`, polled every five
- * seconds while some document is still being prepared.
+ * seconds while some asset is still being prepared.
  */
 export const useRepositoryReadiness = (blockIds: readonly BlockId[]) => {
 	const ids = [

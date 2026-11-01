@@ -274,7 +274,7 @@ export const setListing = (params: {
 				return yield* new AppErrors.BadRequestError({
 					reason: "ASSET_LISTING_UNSUPPORTED",
 					message:
-						"Documents are not listed on their own; list the repository that holds them.",
+						"Assets are not listed on their own; list the repository that holds them.",
 				});
 			// SpiceDB may still hold a manager grant revoked moments ago.
 			const managed: ReadonlySet<string> = yield* managedIds(

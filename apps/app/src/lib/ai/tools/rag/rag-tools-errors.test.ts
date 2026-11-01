@@ -115,7 +115,7 @@ describe("repository tool errors", () => {
 		);
 	});
 
-	test("a failed document lookup keeps the procedure's reason", async () => {
+	test("a failed asset lookup keeps the procedure's reason", async () => {
 		answers["block.readiness"] = denied;
 
 		const run = listRepositoryAssetsTool(deps).execute?.(

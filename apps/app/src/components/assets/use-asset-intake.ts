@@ -1,7 +1,7 @@
 import type { ActivityRunId } from "@orcai/core";
 import type { Asset, AssetUploadRoute } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
-import { useUploadFiles } from "@/components/documents/use-upload-files";
+import { useUploadFiles } from "@/components/assets/use-upload-files";
 import { reasonMessage } from "@/lib/errors/reason-messages";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";

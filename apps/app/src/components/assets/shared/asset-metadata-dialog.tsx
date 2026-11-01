@@ -1,11 +1,11 @@
 import type { Asset } from "@orcai/schema";
 import { useState } from "react";
-import { changedAssetFields } from "@/components/documents/shared/asset-metadata-changes";
+import { changedAssetFields } from "@/components/assets/shared/asset-metadata-changes";
 import {
 	AssetMetadataEditor,
 	createDefaultAssetMetadata,
-} from "@/components/documents/shared/asset-metadata-editor";
-import { MetadataGeneration } from "@/components/documents/shared/metadata-generation";
+} from "@/components/assets/shared/asset-metadata-editor";
+import { MetadataGeneration } from "@/components/assets/shared/metadata-generation";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,

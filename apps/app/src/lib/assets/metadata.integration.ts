@@ -274,7 +274,7 @@ describe("asset metadata generation", () => {
 					await procedureOptions(owner, created.zedToken ?? zedToken),
 				),
 			);
-			// A document is listed through its repository.
+			// An asset is listed through its repository.
 			const { meta } = await run(
 				procedures.resource.setVisibility(
 					{

@@ -80,7 +80,7 @@ export const assetFiltersSchema = z
 			),
 		{
 			message:
-				"A repository's documents, known ids and a run's assets have no scope or suggestions",
+				"A repository's assets, known ids and a run's assets have no scope or suggestions",
 			path: [
 				"scope",
 			],

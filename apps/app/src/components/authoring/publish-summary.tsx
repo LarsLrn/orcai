@@ -129,22 +129,22 @@ const PublishSummary = ({
 			</Fact>
 
 			{unready.length > 0 ? (
-				<Fact label={m.authoring_publish_summary_documents_fact_label()}>
+				<Fact label={m.authoring_publish_summary_assets_fact_label()}>
 					{unready.map(({ blockId, name, totals }) => (
 						<p key={blockId}>
-							{m.authoring_publish_summary_documents_ready({
+							{m.authoring_publish_summary_assets_ready({
 								name,
 								ready: totals.ready,
 								total: totals.total,
 							})}
 							{totals.failed > 0
-								? ` ${m.authoring_publish_summary_documents_failed({
+								? ` ${m.authoring_publish_summary_assets_failed({
 										count: totals.failed,
 									})}`
 								: null}
 						</p>
 					))}
-					<p>{m.authoring_publish_summary_documents_description()}</p>
+					<p>{m.authoring_publish_summary_assets_description()}</p>
 				</Fact>
 			) : null}
 

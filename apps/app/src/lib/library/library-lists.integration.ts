@@ -680,11 +680,11 @@ describe("library lists", () => {
 	);
 
 	test(
-		"repository document counts match the readiness summary",
+		"repository asset counts match the readiness summary",
 		async () => {
 			const { member, procedures, call, asset, token } = await organization();
 			const tag = crypto.randomUUID();
-			// Processing and indexing states, as documentState combines them.
+			// Processing and indexing states, as assetState combines them.
 			const states: [
 				PipelineStatus,
 				PipelineStatus,
@@ -818,13 +818,11 @@ describe("library lists", () => {
 			expect(await statementsFor(tag)).toBe(emptyOnly);
 			for (const repository of readiness.data) {
 				expect(
-					listed.data.find((row) => row.id === repository.blockId)?.documents,
+					listed.data.find((row) => row.id === repository.blockId)?.assets,
 				).toEqual(repository.totals);
 			}
 			expect(
-				listed.data
-					.map((row) => row.documents?.total ?? -1)
-					.sort((a, b) => a - b),
+				listed.data.map((row) => row.assets?.total ?? -1).sort((a, b) => a - b),
 			).toEqual([
 				0,
 				7,

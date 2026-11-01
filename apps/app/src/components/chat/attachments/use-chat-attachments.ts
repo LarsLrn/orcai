@@ -4,8 +4,8 @@ import type { Asset, ChatMessageAttachment } from "@orcai/schema";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { describeUploadFailures } from "@/components/documents/describe-upload-failures";
-import { useAssetIntake } from "@/components/documents/use-asset-intake";
+import { describeUploadFailures } from "@/components/assets/describe-upload-failures";
+import { useAssetIntake } from "@/components/assets/use-asset-intake";
 import { m } from "@/paraglide/messages";
 
 export type LocalChatFile = {

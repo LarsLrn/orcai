@@ -2,7 +2,7 @@ import type { AssetWithCapabilities } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
-import { CompactAssetTile } from "@/components/documents/asset-tile";
+import { CompactAssetTile } from "@/components/assets/asset-tile";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { orpc } from "@/lib/orpc/orpc";

@@ -1,11 +1,11 @@
 import type {
 	Asset,
 	AssetListItem,
+	AssetReadiness,
 	AssetWithCapabilities,
-	DocumentReadiness,
 } from "@orcai/schema";
 import { MessageSquareIcon } from "lucide-react";
-import { useAssetActions } from "@/components/documents/asset-actions";
+import { useAssetActions } from "@/components/assets/asset-actions";
 import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
@@ -22,11 +22,11 @@ import {
 	TileTitle,
 } from "@/components/ui/shell/tile";
 import { ResourceOwner } from "@/components/users/resource-owner";
-import type { BadgeItem } from "@/lib/presentation/badge-item";
 import {
-	documentStateBadge,
+	assetStateBadge,
 	getPipelineFailureDescription,
-} from "@/lib/presentation/document-state";
+} from "@/lib/presentation/asset-state";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import {
 	generatingMetadataBadge,
@@ -52,7 +52,7 @@ type TileAsset = Pick<
 };
 
 /** Its state in a repository, shown instead of its processing. */
-type TileDocument = Pick<DocumentReadiness, "state" | "failure">;
+type TileReadiness = Pick<AssetReadiness, "state" | "failure">;
 
 const { Icon, well, band } = RESOURCE_KINDS.asset;
 
@@ -62,19 +62,19 @@ const { Icon, well, band } = RESOURCE_KINDS.asset;
  */
 const assetTileState = (
 	asset: TileAsset,
-	document?: TileDocument,
+	readiness?: TileReadiness,
 ): {
 	badges: BadgeItem[];
 	description: string | null;
 	failed: boolean;
 } => {
-	const failure = document
-		? document.failure?.kind
+	const failure = readiness
+		? readiness.failure?.kind
 		: asset.processingStatus === "failed"
 			? (asset.processingFailure ?? "other")
 			: undefined;
-	const state = document
-		? documentStateBadge(document.state)
+	const state = readiness
+		? assetStateBadge(readiness.state)
 		: asset.processingStatus === "completed"
 			? null
 			: processingStatusBadge(asset.processingStatus);
@@ -111,16 +111,16 @@ const assetTileState = (
 
 const AssetTileBody = ({
 	asset,
-	document,
+	readiness,
 	title,
 	provenance,
 }: {
 	asset: TileAsset;
-	document?: TileDocument;
+	readiness?: TileReadiness;
 	title: React.ReactNode;
 	provenance?: React.ReactNode;
 }) => {
-	const { badges, description, failed } = assetTileState(asset, document);
+	const { badges, description, failed } = assetTileState(asset, readiness);
 
 	return (
 		<TileBody>
@@ -201,17 +201,17 @@ const AssetTile = ({
 };
 
 /**
- * An asset in context: a repository's document with its state and the
+ * An asset in context: a repository's asset with its state and the
  * context's actions, or a picker's choice when `selection` is given.
  */
 const CompactAssetTile = ({
 	asset,
-	document,
+	readiness,
 	actions = [],
 	selection,
 }: {
 	asset: TileAsset;
-	document?: TileDocument;
+	readiness?: TileReadiness;
 	actions?: HeaderAction[];
 	selection?: {
 		selected: boolean;
@@ -225,7 +225,7 @@ const CompactAssetTile = ({
 		</TileIcon>
 		<AssetTileBody
 			asset={asset}
-			document={document}
+			readiness={readiness}
 			title={
 				selection ? (
 					<TileTitle

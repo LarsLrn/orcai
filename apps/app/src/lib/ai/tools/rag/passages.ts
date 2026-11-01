@@ -26,7 +26,7 @@ const chunkKey = (point: PointWithBlock) =>
 	`${documentKey(point)}:${point.payload.chunk_index}`;
 
 /**
- * Groups points into runs of neighbouring chunks of one document, each in
+ * Groups points into runs of neighbouring chunks of one asset, each in
  * chunk order, without repeats. Runs come in the order of their first point.
  */
 export const neighbouringRuns = (points: PointWithBlock[]) => {

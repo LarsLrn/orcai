@@ -57,7 +57,7 @@ describe("prepareAssetAgainTool", () => {
 		]);
 	});
 
-	test("with a repository it retries the document there", async () => {
+	test("with a repository it retries the asset there", async () => {
 		expect(
 			await run({
 				assetId,

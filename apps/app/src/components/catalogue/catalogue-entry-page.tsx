@@ -138,10 +138,10 @@ const BotContents = ({
 							<div className="min-w-0 flex-1">
 								<p className="truncate font-medium text-sm">{block.name}</p>
 								<p className="text-muted-foreground text-xs">
-									{block.documents === null
+									{block.assets === null
 										? label()
-										: m.catalogue_detail_repository_documents({
-												count: block.documents,
+										: m.catalogue_detail_repository_assets({
+												count: block.assets,
 											})}
 								</p>
 							</div>
@@ -225,29 +225,29 @@ const BehaviourPrompt = ({ prompt }: { prompt: string | null }) => (
 	</details>
 );
 
-/** A repository's first published documents, and how many more it holds. */
+/** A repository's first published assets, and how many more it holds. */
 const RepositoryContents = ({ entry }: { entry: CatalogueEntryDetail }) => {
-	const more = (entry.documents ?? 0) - entry.documentPreview.length;
+	const more = (entry.assets ?? 0) - entry.assetPreview.length;
 	return (
 		<Section label={m.catalogue_detail_contents_label()}>
 			<RowList>
-				{entry.documentPreview.length === 0 ? (
+				{entry.assetPreview.length === 0 ? (
 					<li className="p-3 text-muted-foreground text-sm">
-						{m.blocks_tile_no_documents()}
+						{m.blocks_tile_no_assets()}
 					</li>
 				) : null}
-				{entry.documentPreview.map((document) => (
-					<li key={document.id} className="flex items-center gap-3 p-3 text-sm">
+				{entry.assetPreview.map((asset) => (
+					<li key={asset.id} className="flex items-center gap-3 p-3 text-sm">
 						<FileTextIcon
 							className="size-4 shrink-0 text-muted-foreground"
 							aria-hidden="true"
 						/>
-						<span className="min-w-0 truncate">{document.title}</span>
+						<span className="min-w-0 truncate">{asset.title}</span>
 					</li>
 				))}
 				{more > 0 ? (
 					<li className="p-3 text-muted-foreground text-xs">
-						{m.catalogue_detail_more_documents({
+						{m.catalogue_detail_more_assets({
 							count: more,
 						})}
 					</li>

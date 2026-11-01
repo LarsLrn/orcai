@@ -17,11 +17,11 @@ const repository = (
 	name,
 	capabilities: {},
 	totals,
-	documents: [],
+	assets: [],
 });
 
 describe("PublishSummary", () => {
-	test("notes each repository whose documents are not all ready", () => {
+	test("notes each repository whose assets are not all ready", () => {
 		render(
 			<PublishSummary
 				grants={[]}
@@ -45,11 +45,11 @@ describe("PublishSummary", () => {
 
 		expect(
 			screen.getByText(
-				`${m.authoring_publish_summary_documents_ready({
+				`${m.authoring_publish_summary_assets_ready({
 					name: "Handbook",
 					ready: 38,
 					total: 120,
-				})} ${m.authoring_publish_summary_documents_failed({
+				})} ${m.authoring_publish_summary_assets_failed({
 					count: 2,
 				})}`,
 			),
@@ -57,11 +57,11 @@ describe("PublishSummary", () => {
 		expect(screen.queryByText(/Slides/)).toBeNull();
 	});
 
-	test("adds no note when every document is ready", () => {
+	test("adds no note when every asset is ready", () => {
 		render(<PublishSummary grants={[]} grantsAvailable repositories={[]} />);
 
 		expect(
-			screen.queryByText(m.authoring_publish_summary_documents_fact_label()),
+			screen.queryByText(m.authoring_publish_summary_assets_fact_label()),
 		).toBeNull();
 	});
 });

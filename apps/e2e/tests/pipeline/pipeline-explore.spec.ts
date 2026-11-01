@@ -5,7 +5,7 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import {
 	preparedReadiness,
-	repositoryWithDocument,
+	repositoryWithAsset,
 } from "../../fixtures/pipeline/repository";
 
 const SECTIONS = 70;
@@ -16,7 +16,7 @@ const ABSENT = "marmaladequasar";
 const marker = (index: number) => `Marker-${String(index).padStart(3, "0")}`;
 
 /** Sections of about 700 characters, so the chunker (1,000 at most) keeps one per passage. */
-const document = Array.from(
+const asset = Array.from(
 	{
 		length: SECTIONS,
 	},
@@ -51,7 +51,7 @@ const choose = async (page: Page, labelKey: string, option: string) => {
 		.click();
 };
 
-test("pipeline: Explore browses a repository with Load more, reads a document in order and finds a passage", async ({
+test("pipeline: Explore browses a repository with Load more, reads an asset in order and finds a passage", async ({
 	api,
 	inference,
 	org,
@@ -59,9 +59,9 @@ test("pipeline: Explore browses a repository with Load more, reads a document in
 }) => {
 	await setUpChatModel(api, inference);
 	const member = api.as("member");
-	const repository = await repositoryWithDocument(member, {
+	const repository = await repositoryWithAsset(member, {
 		label: "Explore Handbook",
-		content: document,
+		content: asset,
 	});
 	const readiness = await preparedReadiness(member, repository.blockId);
 	expect(readiness.totals.ready).toBe(1);
@@ -83,7 +83,7 @@ test("pipeline: Explore browses a repository with Load more, reads a document in
 		}),
 	).toBeVisible();
 
-	// Every document: one page of 50, then the rest.
+	// Every asset: one page of 50, then the rest.
 	await expect(
 		page.getByText(message("blocks_explore_browse_all_hint")),
 	).toBeVisible();
@@ -95,10 +95,10 @@ test("pipeline: Explore browses a repository with Load more, reads a document in
 	await expect(loadMore).toHaveCount(0);
 	expect(await passages(page).count()).toBeGreaterThan(50);
 
-	// Choosing the document starts over, in reading order.
-	await choose(page, "blocks_explore_document_label", repository.asset.title);
+	// Choosing the asset starts over, in reading order.
+	await choose(page, "blocks_explore_asset_label", repository.asset.title);
 	await expect(
-		page.getByText(message("blocks_explore_browse_document_hint")),
+		page.getByText(message("blocks_explore_browse_asset_hint")),
 	).toBeVisible();
 	await expect(passages(page)).toHaveCount(50);
 	const order = (

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { canReprocess } from "./document-state";
+import { canReprocess } from "./asset-state";
 
 describe("canReprocess", () => {
 	test("allows an image the utility model could not read, not another unsupported file", () => {

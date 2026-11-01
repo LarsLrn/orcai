@@ -1,17 +1,17 @@
 import type { RepositoryReadiness } from "@orcai/schema";
 
-export type DocumentsPanelView = {
-	/** Preparing while any document is; otherwise only failures are left. */
+export type AssetsPanelView = {
+	/** Preparing while any asset is; otherwise only failures are left. */
 	status: "preparing" | "failed";
 	ready: number;
 	total: number;
 	failed: number;
 };
 
-/** What the panel shows, or nothing once every document is ready. */
-export const documentsPanelView = (
+/** What the panel shows, or nothing once every asset is ready. */
+export const assetsPanelView = (
 	repositories: readonly Pick<RepositoryReadiness, "totals">[],
-): DocumentsPanelView | undefined => {
+): AssetsPanelView | undefined => {
 	const sum = (key: keyof RepositoryReadiness["totals"]) =>
 		repositories.reduce((total, { totals }) => total + totals[key], 0);
 	const preparing = sum("preparing");

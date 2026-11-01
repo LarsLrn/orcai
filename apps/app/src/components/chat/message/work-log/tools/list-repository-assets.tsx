@@ -21,10 +21,10 @@ export const ListRepositoryAssets = ({
 			status={status}
 			label={
 				assets.length > 0
-					? m.chat_work_log_tool_list_documents_result({
+					? m.chat_work_log_tool_list_repository_assets_result({
 							count: assets.length,
 						})
-					: m.chat_work_log_tool_list_documents_name()
+					: m.chat_work_log_tool_list_repository_assets_name()
 			}
 		>
 			{assets.length > 0 && (

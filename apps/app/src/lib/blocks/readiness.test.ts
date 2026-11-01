@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
-	type DocumentState,
+	type AssetState,
 	PIPELINE_STATUSES,
 	type PipelineStatus,
 } from "@orcai/schema";
-import { documentState, readinessTotals } from "./readiness";
+import { assetState, readinessTotals } from "./readiness";
 
 const row = (
 	processingStatus: PipelineStatus,
@@ -16,24 +16,22 @@ const row = (
 	indexFailure: null,
 });
 
-describe("documentState", () => {
+describe("assetState", () => {
 	test.each([
 		...PIPELINE_STATUSES,
 	])(
 		"processing decides while it is not completed (index %s)",
 		(indexStatus) => {
-			expect(documentState(row("pending", indexStatus)).state).toBe("queued");
-			expect(documentState(row("active", indexStatus)).state).toBe(
-				"processing",
-			);
-			expect(documentState(row("failed", indexStatus)).state).toBe("failed");
+			expect(assetState(row("pending", indexStatus)).state).toBe("queued");
+			expect(assetState(row("active", indexStatus)).state).toBe("processing");
+			expect(assetState(row("failed", indexStatus)).state).toBe("failed");
 		},
 	);
 
-	test("a processed document is indexing until its link is indexed", () => {
+	test("a processed asset is indexing until its link is indexed", () => {
 		expect(
 			PIPELINE_STATUSES.map(
-				(indexStatus) => documentState(row("completed", indexStatus)).state,
+				(indexStatus) => assetState(row("completed", indexStatus)).state,
 			),
 		).toEqual([
 			"indexing",
@@ -45,7 +43,7 @@ describe("documentState", () => {
 
 	test("a failure names its stage and kind", () => {
 		expect(
-			documentState({
+			assetState({
 				...row("failed", "failed"),
 				processingFailure: "empty",
 				indexFailure: "timeout",
@@ -55,7 +53,7 @@ describe("documentState", () => {
 			kind: "empty",
 		});
 		expect(
-			documentState({
+			assetState({
 				...row("completed", "failed"),
 				indexFailure: "timeout",
 			}).failure,
@@ -66,15 +64,15 @@ describe("documentState", () => {
 	});
 
 	test("a failure without a recorded kind counts as other", () => {
-		expect(documentState(row("completed", "failed")).failure).toEqual({
+		expect(assetState(row("completed", "failed")).failure).toEqual({
 			stage: "indexing",
 			kind: "other",
 		});
 	});
 
-	test("only failed documents carry a failure", () => {
+	test("only failed assets carry a failure", () => {
 		expect(
-			documentState({
+			assetState({
 				...row("active", "pending"),
 				processingFailure: "extraction",
 			}).failure,
@@ -83,7 +81,7 @@ describe("documentState", () => {
 });
 
 describe("readinessTotals", () => {
-	test("counts ready, preparing and failed documents", () => {
+	test("counts ready, preparing and failed assets", () => {
 		expect(
 			readinessTotals(
 				(
@@ -94,7 +92,7 @@ describe("readinessTotals", () => {
 						"ready",
 						"ready",
 						"failed",
-					] satisfies DocumentState[]
+					] satisfies AssetState[]
 				).map((state) => ({
 					state,
 				})),

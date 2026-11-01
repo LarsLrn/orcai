@@ -14,11 +14,11 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
 /**
- * A repository of the client's own holding one uploaded document. Outside the
+ * A repository of the client's own holding one uploaded asset. Outside the
  * pipeline specs no workers run, so queueing its processing fails and the
- * document fails with kind `other`.
+ * asset fails with kind `other`.
  */
-const repositoryWithFailedDocument = async (client: ApiClient) => {
+const repositoryWithFailedAsset = async (client: ApiClient) => {
 	const asset = await uploadAsset(client, chatName("Unprepared Asset"));
 	const block = await client.block.create({
 		type: "database",
@@ -41,12 +41,12 @@ const repositoryWithFailedDocument = async (client: ApiClient) => {
 	};
 };
 
-const documentsPanel = (page: Page) =>
+const assetsPanel = (page: Page) =>
 	page.getByRole("region", {
-		name: message("documents_panel_region"),
+		name: message("assets_panel_region"),
 	});
 
-test("documents: a chat shows the documents of its repositories that could not be prepared", async ({
+test("assets: a chat shows the assets of its repositories that could not be prepared", async ({
 	api,
 	inference,
 	org,
@@ -54,7 +54,7 @@ test("documents: a chat shows the documents of its repositories that could not b
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
-	const repository = await repositoryWithFailedDocument(member);
+	const repository = await repositoryWithFailedAsset(member);
 	const chatId = await createChat(member, model, chatName("Readiness"));
 	await member.chatBlock.attach({
 		chatId,
@@ -65,18 +65,18 @@ test("documents: a chat shows the documents of its repositories that could not b
 	await enterApp(page, org.slug);
 	await openChat(page, chatId);
 
-	const trigger = documentsPanel(page).getByRole("button", {
+	const trigger = assetsPanel(page).getByRole("button", {
 		name: /1 asset could not be prepared.*0\/1/,
 	});
 	await expect(trigger).toBeVisible();
 	await expect(
-		documentsPanel(page).getByRole("link", {
+		assetsPanel(page).getByRole("link", {
 			name: repository.name,
 		}),
 	).toHaveCount(0);
 
 	await trigger.click();
-	const row = documentsPanel(page).getByRole("listitem");
+	const row = assetsPanel(page).getByRole("listitem");
 	await expect(
 		row.getByRole("link", {
 			name: repository.name,
@@ -84,7 +84,7 @@ test("documents: a chat shows the documents of its repositories that could not b
 	).toBeVisible();
 	await expect(
 		row.getByText(
-			message("documents_panel_repository_count", {
+			message("assets_panel_repository_count", {
 				ready: 0,
 				total: 1,
 			}),
@@ -92,7 +92,7 @@ test("documents: a chat shows the documents of its repositories that could not b
 	).toBeVisible();
 	await expect(
 		row.getByText(
-			message("documents_panel_repository_failed_count", {
+			message("assets_panel_repository_failed_count", {
 				count: 1,
 			}),
 		),
@@ -100,13 +100,13 @@ test("documents: a chat shows the documents of its repositories that could not b
 	await expect(composer(page)).toBeEnabled();
 });
 
-test("documents: the repository page shows a failed document with why and Retry", async ({
+test("assets: the repository page shows a failed asset with why and Retry", async ({
 	api,
 	org,
 	pageAs,
 }) => {
 	const member = api.as("member");
-	const repository = await repositoryWithFailedDocument(member);
+	const repository = await repositoryWithFailedAsset(member);
 
 	const page = await pageAs("member");
 	await enterApp(page, org.slug);
@@ -125,7 +125,7 @@ test("documents: the repository page shows a failed document with why and Retry"
 		}),
 	);
 	await expect(
-		page.getByText(message("document_state_failed_label"), {
+		page.getByText(message("asset_state_failed_label"), {
 			exact: true,
 		}),
 	).toBeVisible();

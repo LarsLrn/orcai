@@ -336,7 +336,7 @@ describe("chatSources", () => {
 					type: "tool-searchRepositories",
 					state: "output-available",
 					output: {
-						documents: [],
+						assets: [],
 					},
 				},
 				{

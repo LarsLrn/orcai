@@ -1,9 +1,9 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { DownloadIcon, MessageSquareIcon } from "lucide-react";
-import { useAssetActions } from "@/components/documents/asset-actions";
-import { FileViewer } from "@/components/documents/file-viewer";
-import { MetadataStatusNotice } from "@/components/documents/shared/metadata-generation";
+import { useAssetActions } from "@/components/assets/asset-actions";
+import { FileViewer } from "@/components/assets/file-viewer";
+import { MetadataStatusNotice } from "@/components/assets/shared/metadata-generation";
 import { Badge } from "@/components/ui/badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {

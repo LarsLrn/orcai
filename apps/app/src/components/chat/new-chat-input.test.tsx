@@ -14,7 +14,7 @@ import {
 	screen,
 	waitFor,
 } from "@testing-library/react";
-import type { AssetIntakeOutcome } from "@/components/documents/use-asset-intake";
+import type { AssetIntakeOutcome } from "@/components/assets/use-asset-intake";
 
 const intake = mock(
 	async (_files: File[]): Promise<AssetIntakeOutcome> => ({
@@ -39,7 +39,7 @@ mock.module("@/lib/orpc/orpc", () => ({
 		},
 	},
 }));
-mock.module("@/components/documents/use-asset-intake", () => ({
+mock.module("@/components/assets/use-asset-intake", () => ({
 	useAssetIntake: () => ({
 		intake,
 		reset: () => undefined,

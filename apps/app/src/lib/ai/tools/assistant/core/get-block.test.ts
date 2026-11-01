@@ -80,7 +80,7 @@ describe("getBlock", () => {
 		]);
 	});
 
-	test("a repository lists its document totals and each document's state", async () => {
+	test("a repository lists its asset totals and each asset's state", async () => {
 		const config = {
 			minReferences: 1,
 			maxReferences: 8,
@@ -110,7 +110,7 @@ describe("getBlock", () => {
 							preparing: 1,
 							failed: 1,
 						},
-						documents: [
+						assets: [
 							{
 								assetId: ready,
 								title: "Handbook",

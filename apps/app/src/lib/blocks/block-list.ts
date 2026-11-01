@@ -76,7 +76,7 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 		return blocks.map((block) => ({
 			...block,
 			capabilities: capabilities.get(block.id) ?? emptyCapabilities("block"),
-			documents: block.type === "database" ? totals(block.id) : null,
+			assets: block.type === "database" ? totals(block.id) : null,
 			installedFrom: sources(block.id),
 		}));
 	});

@@ -109,8 +109,8 @@ const STRONG = 0.8;
 const WEAK = 0.4;
 const UNRELATED = 0.1;
 
-/** A ready repository of documents whose chunks lie at these similarities to the query. */
-const repositoryOf = async (documents: number[][]) => {
+/** A ready repository of assets whose chunks lie at these similarities to the query. */
+const repositoryOf = async (passageSimilarities: number[][]) => {
 	const {
 		organizationId,
 		actors: [owner],
@@ -125,7 +125,7 @@ const repositoryOf = async (documents: number[][]) => {
 					organizationId,
 				],
 			},
-			Effect.forEach(documents, () =>
+			Effect.forEach(passageSimilarities, () =>
 				Effect.gen(function* () {
 					const [asset] = yield* (yield* DB)
 						.insert(dbSchema.asset)
@@ -171,8 +171,11 @@ const repositoryOf = async (documents: number[][]) => {
 		),
 	);
 	const indexed = await completeLinks(block.data.id);
-	await storeChunks(block.data.id, assets.result, documents, (assetId) =>
-		indexed.get(assetId),
+	await storeChunks(
+		block.data.id,
+		assets.result,
+		passageSimilarities,
+		(assetId) => indexed.get(assetId),
 	);
 
 	const search = async (filters: z.infer<typeof assetPointsFiltersSchema>) =>
@@ -226,11 +229,11 @@ const completeLinks = (blockId: BlockId) =>
 		}),
 	);
 
-/** Points of `documents` at these similarities, written by `attempt` of each asset's link. */
+/** Points of `passageSimilarities` at these similarities, written by `attempt` of each asset's link. */
 const storeChunks = (
 	blockId: BlockId,
 	assets: AssetId[],
-	documents: number[][],
+	passageSimilarities: number[][],
 	attempt: (assetId: AssetId) => number | undefined,
 	published?: boolean,
 ) =>
@@ -238,8 +241,8 @@ const storeChunks = (
 		Effect.gen(function* () {
 			stored.push(...assets);
 			yield* upsertPointsToQdrant({
-				points: assets.flatMap((assetId, document) =>
-					documents[document].map((similarity, index, all) => ({
+				points: assets.flatMap((assetId, assetIndex) =>
+					passageSimilarities[assetIndex].map((similarity, index, all) => ({
 						id: crypto.randomUUID(),
 						vector: at(similarity),
 						payload: {
@@ -282,7 +285,7 @@ const similarities = (points: AssetPoint[]) =>
 
 describe("repository search", () => {
 	test(
-		"fills the limit from a single document",
+		"fills the limit from a single asset",
 		async () => {
 			const { search } = await repositoryOf([
 				[
@@ -325,7 +328,7 @@ describe("repository search", () => {
 	);
 
 	test(
-		"caps chunks per document when enough documents match",
+		"caps chunks per asset when enough assets match",
 		async () => {
 			const { search, assets } = await repositoryOf([
 				chunks(4, STRONG),
@@ -350,7 +353,7 @@ describe("repository search", () => {
 	);
 
 	test(
-		"fills what the cap leaves from the document with more matches",
+		"fills what the cap leaves from the asset with more matches",
 		async () => {
 			const { search, assets } = await repositoryOf([
 				chunks(8, STRONG),
@@ -370,7 +373,7 @@ describe("repository search", () => {
 	);
 
 	test(
-		"a recall budget above the limit finds the documents a strong one would crowd out",
+		"a recall budget above the limit finds the assets a strong one would crowd out",
 		async () => {
 			const {
 				search,
@@ -450,7 +453,7 @@ describe("asset titles", () => {
 
 describe("served points", () => {
 	/**
-	 * A repository whose one document's indexed chunk is weak, as the newer
+	 * A repository whose one asset's indexed chunk is weak, as the newer
 	 * attempt's indexing leaves it: `completed` once its completion commits.
 	 */
 	const reindexing = async ({ completed }: { completed: boolean }) => {

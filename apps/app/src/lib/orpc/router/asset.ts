@@ -338,7 +338,7 @@ const reprocessAssetProcedure = authed.asset.reprocess
 		);
 		if (!admitted) {
 			return yield* new AppErrors.BadRequestError({
-				reason: "DOCUMENT_STILL_PREPARING",
+				reason: "ASSET_STILL_PREPARING",
 				message: "The asset is still being processed",
 			});
 		}

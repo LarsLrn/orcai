@@ -8,6 +8,6 @@ export const listRepositoryAssets = declareTool<
 >()({
 	kind: "read",
 	icon: LibraryIcon,
-	name: m.chat_work_log_tool_list_documents_name,
-	active: m.chat_work_log_tool_list_documents_active,
+	name: m.chat_work_log_tool_list_repository_assets_name,
+	active: m.chat_work_log_tool_list_repository_assets_active,
 });

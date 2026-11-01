@@ -4,13 +4,13 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
+import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
 import type { ChatDraft } from "@/components/chat/chat-draft";
 import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
 import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
-import { DocumentsPanel } from "@/components/documents/readiness/documents-panel";
-import { useChatRepositoryIds } from "@/components/documents/readiness/use-repository-readiness";
 import { MessageScrollerItem } from "@/components/ui/message-scroller";
 
 const NewChat = ({
@@ -58,7 +58,7 @@ const NewChat = ({
 					botId={selectedBotId}
 					providerId={selectedProviderId}
 				/>
-				<DocumentsPanel blockIds={repositoryIds} />
+				<AssetsPanel blockIds={repositoryIds} />
 				<NewChatInput
 					selectedBotId={selectedBotId}
 					selectedModelId={selectedModelId}

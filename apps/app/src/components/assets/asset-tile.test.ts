@@ -115,7 +115,7 @@ describe("assetTileState", () => {
 		});
 	});
 
-	test("a repository document shows its document state, even when ready", () => {
+	test("a repository asset shows its asset state, even when ready", () => {
 		expect(
 			assetTileState(asset(), {
 				state: "ready",
@@ -123,7 +123,7 @@ describe("assetTileState", () => {
 			}).badges,
 		).toMatchObject([
 			{
-				label: m.document_state_ready_label(),
+				label: m.asset_state_ready_label(),
 				variant: "success",
 			},
 		]);

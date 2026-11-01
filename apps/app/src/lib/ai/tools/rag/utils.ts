@@ -5,10 +5,10 @@ import {
 	tokenize,
 } from "@orcai/core";
 import {
+	type AssetReadiness,
+	type AssetState,
 	BLOCK_READINESS_MAX_IDS,
 	type DatabaseBlock,
-	type DocumentReadiness,
-	type DocumentState,
 	type RepositoryReadiness,
 	type RetrievedAssetPoint,
 } from "@orcai/schema";
@@ -93,7 +93,7 @@ export const flattenBlockResponses = (
 		}),
 	);
 
-/** A run of neighbouring chunks of one document as one passage, named for `anchor`. */
+/** A run of neighbouring chunks of one asset as one passage, named for `anchor`. */
 export const toPassage = (
 	run: PointWithBlock[],
 	anchor: PointWithBlock = run[0],
@@ -156,8 +156,8 @@ export const rankAssetsByQuery = ({
 /** The most assets one `asset.list` page holds. */
 const ASSET_PAGE_SIZE = 1000;
 
-/** Ready first: a document ready in one searched repository is searchable. */
-const STATE_ORDER: readonly DocumentState[] = [
+/** Ready first: an asset ready in one searched repository is searchable. */
+const STATE_ORDER: readonly AssetState[] = [
 	"ready",
 	"indexing",
 	"processing",
@@ -165,10 +165,7 @@ const STATE_ORDER: readonly DocumentState[] = [
 	"failed",
 ];
 
-const furthestDocument = (
-	a: DocumentReadiness,
-	b: DocumentReadiness,
-): DocumentReadiness =>
+const furthestAsset = (a: AssetReadiness, b: AssetReadiness): AssetReadiness =>
 	STATE_ORDER.indexOf(b.state) < STATE_ORDER.indexOf(a.state) ? b : a;
 
 /** The assets of `blocks`, once each, with their readiness, citation and description. */
@@ -186,24 +183,21 @@ export const loadAssetCatalog = ({
 			context,
 		});
 
-		const documentById = new Map<string, DocumentReadiness>();
-		for (const document of repositories.flatMap(
-			(repository) => repository.documents,
+		const assetById = new Map<string, AssetReadiness>();
+		for (const asset of repositories.flatMap(
+			(repository) => repository.assets,
 		)) {
-			const known = documentById.get(document.assetId);
-			documentById.set(
-				document.assetId,
-				known ? furthestDocument(known, document) : document,
-			);
+			const known = assetById.get(asset.assetId);
+			assetById.set(asset.assetId, known ? furthestAsset(known, asset) : asset);
 		}
-		if (documentById.size === 0) {
+		if (assetById.size === 0) {
 			return [];
 		}
 
 		const assetPages = yield* Effect.forEach(
 			Arr.chunksOf(
 				[
-					...documentById.keys(),
+					...assetById.keys(),
 				] as AssetId[],
 				ASSET_PAGE_SIZE,
 			),
@@ -240,16 +234,15 @@ export const loadAssetCatalog = ({
 		);
 
 		return [
-			...documentById.values(),
+			...assetById.values(),
 		].map(
-			(document): RepositoryAsset => ({
-				assetId: document.assetId,
-				title: document.title,
-				citation: metadataById.get(document.assetId)?.citation ?? undefined,
-				description:
-					metadataById.get(document.assetId)?.description ?? undefined,
-				state: document.state,
-				failure: document.failure ?? undefined,
+			(asset): RepositoryAsset => ({
+				assetId: asset.assetId,
+				title: asset.title,
+				citation: metadataById.get(asset.assetId)?.citation ?? undefined,
+				description: metadataById.get(asset.assetId)?.description ?? undefined,
+				state: asset.state,
+				failure: asset.failure ?? undefined,
 			}),
 		);
 	});
@@ -288,7 +281,7 @@ export const loadReadiness = ({
  * Tells the model which searched repositories hold assets search cannot
  * see yet, so it does not present them as empty.
  */
-export const unsearchableDocuments = (
+export const unsearchableAssets = (
 	repositories: readonly Pick<RepositoryReadiness, "name" | "totals">[],
 ) =>
 	repositories

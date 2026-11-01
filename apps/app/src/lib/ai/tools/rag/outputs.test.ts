@@ -193,7 +193,7 @@ describe("repository model output", () => {
 		);
 	});
 
-	test("a document's description follows its line, on one line", () => {
+	test("an asset's description follows its line, on one line", () => {
 		expect(
 			text(
 				listModelOutput({

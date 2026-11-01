@@ -63,7 +63,7 @@ export const findCatalogueTool = (deps: AssistantToolDeps) =>
 						from: entry.source.name,
 						state: entry.state,
 						model: entry.modelHint,
-						assets: entry.documents,
+						assets: entry.assets,
 					})),
 					total: entries.rowCount,
 				};

@@ -9,7 +9,7 @@ import { m } from "@/paraglide/messages";
 
 /**
  * Lists the resource in the catalogue or takes it out, for those who manage
- * its access. A document is never listed on its own, so it only offers to
+ * its access. An asset is never listed on its own, so it only offers to
  * take out one listed earlier.
  */
 export const useListingAction = (

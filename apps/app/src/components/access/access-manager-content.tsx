@@ -294,7 +294,7 @@ const AccessManagerContent = ({
 				<InheritedAccessSummary inherited={inherited.data.data} />
 			)}
 
-			{/* Documents are published through their repository; one listed earlier can still be unlisted. */}
+			{/* Assets are published through their repository; one listed earlier can still be unlisted. */}
 			{resourceRef.type !== "asset" || currentVisibility === "public" ? (
 				<VisibilityToggle
 					visibility={currentVisibility}

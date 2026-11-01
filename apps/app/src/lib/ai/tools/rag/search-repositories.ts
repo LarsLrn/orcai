@@ -18,7 +18,7 @@ import {
 	mergeAndSortCandidates,
 	resolveSearchBlocks,
 	toPassage,
-	unsearchableDocuments,
+	unsearchableAssets,
 } from "./utils";
 
 const normalizeQueries = ({
@@ -162,7 +162,7 @@ export const searchRepositoriesTool = ({
 						concurrency: "unbounded",
 					},
 				);
-				const notSearchable = unsearchableDocuments(repositories);
+				const notSearchable = unsearchableAssets(repositories);
 
 				const candidates = mergeAndSortCandidates(
 					flattenBlockResponses(blockResponses),

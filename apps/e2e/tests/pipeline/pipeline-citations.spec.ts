@@ -18,7 +18,7 @@ import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
 	preparedReadiness,
-	repositoryWithDocument,
+	repositoryWithAsset,
 } from "../../fixtures/pipeline/repository";
 
 const QUERY = "refund deadline";
@@ -52,7 +52,7 @@ const citation = (page: Page, title: string) =>
 		exact: true,
 	});
 
-test("pipeline: a citation by ref names the uploaded document, also after a reload", async ({
+test("pipeline: a citation by ref names the uploaded asset, also after a reload", async ({
 	api,
 	inference,
 	org,
@@ -61,7 +61,7 @@ test("pipeline: a citation by ref names the uploaded document, also after a relo
 	const model = await setUpChatModel(api, inference);
 	const member = api.as("member");
 	const chatId = await createGenUiChat(member, model, chatName("Citations"));
-	const repository = await repositoryWithDocument(member, {
+	const repository = await repositoryWithAsset(member, {
 		label: "Refund Policy",
 		content: `# Refunds\n\n${CHUNK}\n`,
 	});

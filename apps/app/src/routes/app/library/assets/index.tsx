@@ -6,8 +6,8 @@ import {
 } from "@tanstack/react-router";
 import { SparklesIcon } from "lucide-react";
 import { RunFilter } from "@/components/activity/run-filter";
+import { AssetTile } from "@/components/assets/asset-tile";
 import { NoResults } from "@/components/browse/browse-layout";
-import { AssetTile } from "@/components/documents/asset-tile";
 import { LibraryEmpty } from "@/components/library/library-empty";
 import { LibraryResults } from "@/components/library/library-results";
 import { Button } from "@/components/ui/button";

@@ -22,7 +22,7 @@ export const WIZARD_STEPS = [
 		icon: SparklesIcon,
 	},
 	{
-		key: "documents",
+		key: "repositories",
 		title: m.authoring_wizard_step_repositories_title,
 		description: m.authoring_wizard_step_repositories_description,
 		icon: BookOpenIcon,
