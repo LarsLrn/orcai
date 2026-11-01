@@ -167,6 +167,7 @@ const deleteUsers = authed.user.delete
 	.effect(function* ({ input, context }) {
 		const deletedCount = yield* deleteAccounts({
 			userIds: input.userIds,
+			receivers: input.receivers,
 			actorId: context.auth.user.id,
 		});
 

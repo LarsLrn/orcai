@@ -3273,6 +3273,7 @@
 	"error_quota_groups_invalid": "Eine oder mehrere Gruppenzuweisungen sind ungültig.",
 	"error_quota_pool_not_found": "Kontingent-Pool nicht gefunden.",
 	"error_quota_pool_unavailable": "Für diese Anfrage ist kein Kontingent-Pool verfügbar.",
+	"error_receiver_not_eligible": "Die Inhalte kann nur erhalten, wer in der Organisation Mitglied, Manager oder Admin ist, nicht gesperrt ist und nicht von dieser Änderung betroffen ist.",
 	"error_reference_range_invalid": "Die maximale Anzahl an Passagen darf nicht kleiner als die minimale sein.",
 	"error_repository_block_type_invalid": "Der verknüpfte Block muss ein Repository sein.",
 	"error_repository_not_found": "Repository nicht gefunden.",
@@ -3306,7 +3307,6 @@
 	"error_upload_too_many_files": "Zu viele Dateien. Laden Sie höchstens {maxFiles} hoch.",
 	"error_user_banned": "Dieses Konto ist gesperrt.",
 	"error_user_not_found": "Benutzer nicht gefunden.",
-	"error_user_owns_content": "Dieses Konto besitzt noch Gruppen, Bots, Blöcke, Assets, Freigaben oder Einladungen und kann daher noch nicht gelöscht werden.",
 	"error_user_preferences_not_found": "Benutzereinstellungen nicht gefunden.",
 	"error_user_unban_failed": "Die Sperre des Benutzers konnte nicht aufgehoben werden.",
 	"error_validation_array_too_big": [

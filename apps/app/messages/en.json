@@ -3273,6 +3273,7 @@
 	"error_quota_groups_invalid": "One or more group assignments are invalid.",
 	"error_quota_pool_not_found": "Quota pool not found.",
 	"error_quota_pool_unavailable": "No quota pool is available for this request.",
+	"error_receiver_not_eligible": "Choose a Member, Manager or Admin of the organisation who is not banned and not part of this change to receive the content.",
 	"error_reference_range_invalid": "The maximum number of passages cannot be less than the minimum.",
 	"error_repository_block_type_invalid": "The linked block must be a repository.",
 	"error_repository_not_found": "Repository not found.",
@@ -3306,7 +3307,6 @@
 	"error_upload_too_many_files": "Too many files. Upload at most {maxFiles}.",
 	"error_user_banned": "This account is banned.",
 	"error_user_not_found": "User not found.",
-	"error_user_owns_content": "This account still owns groups, bots, blocks, assets, grants or invitations, so it cannot be deleted yet.",
 	"error_user_preferences_not_found": "User preferences not found.",
 	"error_user_unban_failed": "The user could not be unbanned.",
 	"error_validation_array_too_big": [

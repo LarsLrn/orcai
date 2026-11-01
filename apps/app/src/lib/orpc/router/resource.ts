@@ -26,6 +26,7 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
+import { handOverItem, itemReceivers } from "@/lib/authz/ownership";
 import {
 	activeGrants,
 	grantResourceAccess,
@@ -683,6 +684,36 @@ const listRecentResources = authed.resource.listRecent.effect(function* ({
 	};
 });
 
+const listReceivers = authed.resource.receivers
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		const data = yield* itemReceivers({
+			resource: input,
+			actorId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			search: input.search,
+		});
+		return {
+			data,
+			rowCount: data.length,
+		};
+	});
+
+const handOver = authed.resource.handOver
+	.use(requireActiveOrganizationMiddleware)
+	.effect(function* ({ input, context }) {
+		yield* handOverItem({
+			resource: input,
+			actorId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			receiverId: input.receiverId,
+		});
+		return {
+			success: true,
+			message: "Handed over",
+		};
+	});
+
 export const resourceRouter = {
 	listGrants: listResourceGrants,
 	inheritedAccess: getInheritedAccess,
@@ -693,4 +724,6 @@ export const resourceRouter = {
 	getVisibility: getResourceVisibility,
 	listingImpact: getListingImpact,
 	setVisibility,
+	receivers: listReceivers,
+	handOver,
 };

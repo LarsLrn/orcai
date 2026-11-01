@@ -264,7 +264,6 @@ describe("quota usage events", () => {
 					actor: {
 						kind: "member",
 						userId: org.admin.user.id,
-						zedToken: token,
 					},
 				}),
 			);

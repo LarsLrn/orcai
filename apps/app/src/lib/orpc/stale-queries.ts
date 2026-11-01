@@ -94,6 +94,15 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.catalogue.key(),
 		orpc.organization.profile.key(),
 	];
+	// Library tiles and item pages show the owner.
+	const owners = () => [
+		...libraryLists(),
+		orpc.bot.find.key(),
+		orpc.block.find.key(),
+		orpc.asset.find.key(),
+	];
+	const handedOver = (output: { handedOver: unknown }) =>
+		output.handedOver ? owners() : [];
 	// Adding from the catalogue changes the library, and removing ends what the organisation built on it.
 	const installs = () => [
 		...libraryLists(),
@@ -355,8 +364,14 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		// Instance admins change memberships of any organisation.
 		instance: {
 			addMember: instanceMembership,
-			changeMemberRole: instanceMembership,
-			removeMember: instanceMembership,
+			changeMemberRole: (_input, output) => [
+				...instanceMembership(),
+				...handedOver(output),
+			],
+			removeMember: (_input, output) => [
+				...instanceMembership(),
+				...handedOver(output),
+			],
 			// Readiness counts pending invitations.
 			inviteMember: () => [
 				orpc.organizationInvitation.key(),
@@ -367,13 +382,14 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			removeOrganizationLogo: logos,
 		},
 		organizationMember: {
-			update: () => [
+			update: (_input, output) => [
 				orpc.organizationMember.key(),
 				orpc.authorization.key(),
 				readiness,
+				...handedOver(output),
 			],
 			// A member who leaves loses the organisation's activity.
-			delete: () => [
+			delete: (_input, output) => [
 				orpc.user.listAll.key(),
 				orpc.organizationMember.key(),
 				orpc.organization.find.key(),
@@ -381,6 +397,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				readiness,
 				readOnlyChats,
 				activity,
+				...handedOver(output),
 			],
 		},
 		catalogue: {
@@ -430,6 +447,11 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		resource: {
 			grant: resourceAccess,
 			revoke: resourceAccess,
+			// The previous owner keeps Can manage.
+			handOver: (input) => [
+				...resourceAccess(input),
+				...owners(),
+			],
 			setVisibility: (input) => [
 				orpc.resource.getVisibility.key({
 					input: {
@@ -459,13 +481,14 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			],
 		},
 		user: {
-			// Deleting accounts removes their memberships.
+			// Deleting accounts removes their memberships and hands over what they own.
 			delete: () => [
 				orpc.user.key(),
 				orpc.organizationMember.key(),
 				orpc.organization.find.key(),
 				readiness,
 				orpc.instance.key(),
+				...owners(),
 			],
 			ban: () => [
 				orpc.user.key(),

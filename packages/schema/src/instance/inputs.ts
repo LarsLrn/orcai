@@ -55,11 +55,15 @@ export const updateInstanceOrganizationMemberInputSchema = z.object({
 	organizationId: organizationIdSchema,
 	userId: userIdSchema,
 	role: organizationRoleSchema,
+	/** Who receives what a member made a Viewer owns; the acting admin when left out and eligible. */
+	receiverId: userIdSchema.optional(),
 });
 
 export const removeInstanceOrganizationMemberInputSchema = z.object({
 	organizationId: organizationIdSchema,
 	userId: userIdSchema,
+	/** Who receives what the removed member owns; the acting admin when left out and eligible. */
+	receiverId: userIdSchema.optional(),
 });
 
 export const removeInstanceUserImageInputSchema = z.object({

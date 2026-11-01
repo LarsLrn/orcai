@@ -1,10 +1,6 @@
 import { createApiClient } from "../../fixtures/api";
 import { pageForSession } from "../../fixtures/auth/users";
-import {
-	expectDenied,
-	expectForbidden,
-	rejection,
-} from "../../fixtures/authorization";
+import { expectDenied, expectForbidden } from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import {
@@ -147,7 +143,7 @@ test("members: an admin deletes a user's account", async ({
 	);
 });
 
-test("members: an account that still owns content is not deleted halfway", async ({
+test("members: deleting an account hands its content to the chosen member", async ({
 	api,
 	org,
 	zedTokens,
@@ -165,11 +161,7 @@ test("members: an account that still owns content is not deleted halfway", async
 	await client.user.setActiveOrganization({
 		organizationId: org.id,
 	});
-
-	// Creating a block leaves `resource_scope.assigned_by` and
-	// `resource_visibility.updated_by` pointing at the account, and neither
-	// cascades, so the account cannot go until that content is handed over.
-	await client.block.create({
+	const { data: block } = await client.block.create({
 		type: "template",
 		name: `E2E Users Owned ${user.id}`,
 		status: "ready",
@@ -178,30 +170,23 @@ test("members: an account that still owns content is not deleted halfway", async
 		},
 	});
 
-	const refused = await rejection(
-		api.asWellKnownAdmin().user.delete({
-			userIds: [
-				user.id,
-			],
-		}),
-	);
-	expect(refused.code).toBe("CONFLICT");
-	expect(refused.data).toMatchObject({
-		reason: "USER_OWNS_CONTENT",
+	const deleted = await api.asWellKnownAdmin().user.delete({
+		userIds: [
+			user.id,
+		],
+		receivers: [
+			{
+				organizationId: org.id,
+				userId: org.users.admin.id,
+			},
+		],
 	});
+	expect(deleted.deletedCount).toBe(1);
 
-	// The refusal leaves nothing half done: the membership and the account are
-	// both still there.
-	const listed = await api.as("admin").organizationMember.list({
-		pageIndex: 0,
-		pageSize: 100,
+	const found = await api.as("admin").block.find({
+		id: block.id,
 	});
-	expect(listed.data.map((entry) => entry.email)).toContain(user.email);
-
-	const found = await api.as("admin").organizationMember.find({
-		userId: user.id,
-	});
-	expect(found.data.id).toBe(user.id);
+	expect(found.data.userId).toBe(org.users.admin.id);
 });
 
 test("members: a removed user loses the access its groups and grants gave it", async ({

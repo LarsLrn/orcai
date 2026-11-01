@@ -1,8 +1,6 @@
-import {
-	createDataResponseSchema,
-	createDeleteResponseSchema,
-	createListResponseSchema,
-} from "../shared";
+import { handOverActionResponseSchema } from "../ownership/responses";
+import { handedOverSchema } from "../ownership/schema";
+import { createDataResponseSchema, createListResponseSchema } from "../shared";
 import { userWithOrganizationRoleSchema } from "../user/schema";
 import { memberAccessEntrySchema, organizationMemberSchema } from "./schema";
 
@@ -20,7 +18,9 @@ export const listMemberAccessResponseSchema = createListResponseSchema(
 
 export const updateOrganizationMemberResponseSchema = createDataResponseSchema(
 	organizationMemberSchema,
-);
+).extend({
+	handedOver: handedOverSchema.nullable(),
+});
 
 export const deleteOrganizationMembersResponseSchema =
-	createDeleteResponseSchema();
+	handOverActionResponseSchema;

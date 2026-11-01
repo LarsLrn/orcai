@@ -7,7 +7,7 @@ import type {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { createUser } from "@orcai/testing";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	type Actor,
@@ -24,8 +24,14 @@ import {
 	removeMembers,
 } from "@/lib/authz/organization-membership";
 
-const { run, organizationWith, outboxDelivered, readTuples, instanceAdmin } =
-	authzIntegration();
+const {
+	run,
+	organizationWith,
+	outboxDelivered,
+	readTuples,
+	instanceAdmin,
+	createBlock,
+} = authzIntegration();
 
 const rejection = (operation: Promise<unknown>) =>
 	operation.then(
@@ -35,11 +41,9 @@ const rejection = (operation: Promise<unknown>) =>
 
 type Organization = Awaited<ReturnType<typeof organizationWith>>;
 
-/** The actor, reading the organization's roles at least as new as its creation. */
-const actorOf = (organization: Organization, actor: Actor) => ({
+const actorOf = (actor: Actor) => ({
 	kind: "member" as const,
 	userId: actor.user.id,
-	zedToken: organization.zedToken,
 });
 
 const changeRole =
@@ -55,7 +59,7 @@ const changeRole =
 				organizationId: organization.organizationId,
 				userId: target.user.id,
 				role,
-				actor: actorOf(organization, actor),
+				actor: actorOf(actor),
 			}),
 		);
 
@@ -67,7 +71,7 @@ const remove =
 				userIds: [
 					target.user.id,
 				],
-				actor: actorOf(organization, actor),
+				actor: actorOf(actor),
 			}),
 		);
 
@@ -179,7 +183,7 @@ describe("role change and removal", () => {
 				changeRole(organization, second, first, "member"),
 			);
 			expect(rejected).toMatchObject({
-				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+				reason: "PERMISSION_DENIED",
 			});
 			expect(await rolesOf(organizationId)).toEqual({
 				members: [
@@ -196,7 +200,7 @@ describe("role change and removal", () => {
 	);
 
 	test(
-		"a removal queued after a role change that left one admin is rejected",
+		"a removal of an admin queued after the actor became a manager is rejected",
 		async () => {
 			const organization = await organizationWith([
 				"admin",
@@ -212,7 +216,7 @@ describe("role change and removal", () => {
 				remove(organization, second, first),
 			);
 			expect(rejected).toMatchObject({
-				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+				reason: "ORGANIZATION_ADMIN_REQUIRED",
 			});
 			expect(await rolesOf(organizationId)).toEqual({
 				members: [
@@ -245,7 +249,7 @@ describe("role change and removal", () => {
 				remove(organization, first, second),
 			);
 			expect(rejected).toMatchObject({
-				reason: "LAST_ORGANIZATION_ADMIN_REQUIRED",
+				reason: "PERMISSION_DENIED",
 			});
 			expect(await rolesOf(organizationId)).toEqual({
 				members: [
@@ -255,6 +259,87 @@ describe("role change and removal", () => {
 					`admin@${second.user.id}`,
 				],
 			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a manager demoted before their tuples arrive takes no member's content",
+		async () => {
+			const organization = await organizationWith([
+				"admin",
+				"manager",
+				"member",
+			]);
+			const {
+				organizationId,
+				zedToken,
+				actors: [, demoted, target],
+			} = organization;
+			const { blockId } = await createBlock(target, zedToken);
+			await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					yield* db
+						.update(dbSchema.member)
+						.set({
+							role: "member",
+						})
+						.where(
+							and(
+								eq(dbSchema.member.organizationId, organizationId),
+								eq(dbSchema.member.userId, demoted.user.id),
+							),
+						);
+				}),
+			);
+			const takeover = {
+				organizationId,
+				receiverId: demoted.user.id,
+				actor: actorOf(demoted),
+			};
+			expect(
+				await rejection(
+					run(
+						changeMemberRole({
+							...takeover,
+							userId: target.user.id,
+							role: "viewer",
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "PERMISSION_DENIED",
+			});
+			expect(
+				await rejection(
+					run(
+						removeMembers({
+							...takeover,
+							userIds: [
+								target.user.id,
+							],
+						}),
+					),
+				),
+			).toMatchObject({
+				reason: "PERMISSION_DENIED",
+			});
+			const [block] = await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					return yield* db
+						.select({
+							userId: dbSchema.block.userId,
+						})
+						.from(dbSchema.block)
+						.where(eq(dbSchema.block.id, blockId));
+				}),
+			);
+			expect(block.userId).toBe(target.user.id);
+			expect((await rolesOf(organizationId)).members).toContain(
+				`member@${target.user.id}`,
+			);
 		},
 		TIMEOUT,
 	);

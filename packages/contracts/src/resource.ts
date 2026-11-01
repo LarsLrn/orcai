@@ -1,8 +1,11 @@
 import {
+	listContentReceiversResponseSchema,
 	resourceGetVisibilityInputSchema,
 	resourceGetVisibilityResponseSchema,
 	resourceGrantInputSchema,
 	resourceGrantResponseSchema,
+	resourceHandOverInputSchema,
+	resourceHandOverResponseSchema,
 	resourceInheritedAccessInputSchema,
 	resourceInheritedAccessResponseSchema,
 	resourceListGrantsInputSchema,
@@ -11,6 +14,7 @@ import {
 	resourceListingImpactResponseSchema,
 	resourceListPrincipalsInputSchema,
 	resourceListPrincipalsResponseSchema,
+	resourceListReceiversInputSchema,
 	resourceListRecentInputSchema,
 	resourceListRecentResponseSchema,
 	resourceRevokeInputSchema,
@@ -139,4 +143,31 @@ export const resourceContracts = {
 		)
 		.input(resourceSetVisibilityInputSchema)
 		.output(resourceSetVisibilityResponseSchema),
+	receivers: base
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/resources/{resourceType}/{resourceId}/receivers",
+				summary: "List the members the owner may hand a resource to",
+				tags: [
+					"Resources",
+				],
+			}),
+		)
+		.input(resourceListReceiversInputSchema)
+		.output(listContentReceiversResponseSchema),
+	handOver: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/resources/{resourceType}/{resourceId}/hand-over",
+				summary: "Hand a resource over to another member",
+				tags: [
+					"Resources",
+				],
+				description: "Only the owner; they keep Can manage on it.",
+			}),
+		)
+		.input(resourceHandOverInputSchema)
+		.output(resourceHandOverResponseSchema),
 };

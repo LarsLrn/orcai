@@ -1,20 +1,24 @@
 import {
 	normalizeEmail,
 	ORGANIZATION_ADMIN_ROLE,
+	ORGANIZATION_ROLE_PERMISSIONS,
 	type OrganizationId,
 	type OrganizationInvitationId,
+	type OrganizationPermission,
 	type OrganizationRole,
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { checkEntityPermission } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
-import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
-import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import { SqlError } from "effect/sql";
 import { notBanned } from "@/lib/authz/eligible-owner";
 import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
+import {
+	handOverAccountsContent,
+	handOverOwnedContent,
+	ownedContentOrganizations,
+} from "@/lib/authz/ownership";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
@@ -26,6 +30,11 @@ import {
 	detachMembers,
 	issuedGrantOrganizations,
 } from "@/lib/authz/resource-access";
+import {
+	deleteResources,
+	removeDeletedResourceData,
+} from "@/lib/authz/resource-lifecycle";
+import { deleteChatsWhere } from "@/lib/chats/chat-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { deleteImages } from "@/lib/images/images";
 
@@ -36,13 +45,14 @@ type Actor = {
 
 /**
  * Who changes memberships: a member, through their organization role, or an
- * instance admin, who need not belong to the organization and is checked
- * against their account inside the write.
+ * instance admin, who need not belong to the organization. Both are checked
+ * inside the write.
  */
 export type MembershipActor =
-	| ({
+	| {
 			kind: "member";
-	  } & Actor)
+			userId: UserId;
+	  }
 	| {
 			kind: "instance-admin";
 			userId: UserId;
@@ -64,26 +74,61 @@ const canManageOrganizationAdmins = (
 		zedToken: actor.zedToken,
 	});
 
-/** Whether the actor may touch admin memberships; an instance admin always may. */
-const managesOrganizationAdmins = (
-	organizationId: OrganizationId,
-	actor: MembershipActor,
-) =>
-	actor.kind === "instance-admin"
-		? Effect.succeed(true)
-		: canManageOrganizationAdmins(organizationId, actor);
+const grants = (role: OrganizationRole, permission: OrganizationPermission) =>
+	(
+		ORGANIZATION_ROLE_PERMISSIONS[role] as readonly OrganizationPermission[]
+	).includes(permission);
 
-/** Under the organization lock: fails unless an instance admin actor still is one, and locks the targets' accounts. */
-const confirmInstanceAdmin = (
-	actor: MembershipActor,
-	userIds: readonly UserId[],
-) =>
-	actor.kind === "instance-admin"
-		? lockAsInstanceAdmin({
-				actorId: actor.userId,
-				userIds,
+/**
+ * Under the organization lock: fails unless the actor still manages members
+ * by their committed role, so a demotion counts before its tuples arrive, and
+ * answers whether they may touch admin memberships. An instance admin always
+ * may; their account and the targets' accounts are locked.
+ */
+const confirmAuthority = (params: {
+	organizationId: OrganizationId;
+	actor: MembershipActor;
+	userIds: readonly UserId[];
+}) =>
+	Effect.gen(function* () {
+		if (params.actor.kind === "instance-admin") {
+			yield* lockAsInstanceAdmin({
+				actorId: params.actor.userId,
+				userIds: params.userIds,
+			});
+			return {
+				managesAdmins: true,
+			};
+		}
+		const db = yield* DB;
+		const [membership] = yield* db
+			.select({
+				role: dbSchema.member.role,
 			})
-		: Effect.succeed([]);
+			.from(dbSchema.member)
+			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
+			.where(
+				and(
+					eq(dbSchema.member.organizationId, params.organizationId),
+					eq(dbSchema.member.userId, params.actor.userId),
+					notBanned(),
+				),
+			);
+		if (!membership || !grants(membership.role, "manage_members"))
+			return yield* Effect.fail(
+				new AppErrors.ForbiddenError({
+					reason: "PERMISSION_DENIED",
+					message: "Managing members requires the manage_members permission.",
+					data: {
+						entityType: "organization",
+						permission: "manage_members",
+					},
+				}),
+			);
+		return {
+			managesAdmins: grants(membership.role, "manage_organization"),
+		};
+	});
 
 const adminControlRequired = () =>
 	new AppErrors.ForbiddenError({
@@ -148,20 +193,20 @@ const memberNotFound = (userId: UserId) =>
 		message: "Member not found",
 	});
 
-/** Changes a member's role. Only admins touch the admin role, and one admin remains. */
+/**
+ * Changes a member's role. Only admins touch the admin role, and one admin
+ * remains. A member made a Viewer first hands their content to `receiverId`,
+ * or by default to the actor.
+ */
 export const changeMemberRole = (params: {
 	organizationId: OrganizationId;
 	userId: UserId;
 	role: OrganizationRole | undefined;
+	receiverId?: UserId;
 	actor: MembershipActor;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const managesAdmins = yield* managesOrganizationAdmins(
-			params.organizationId,
-			params.actor,
-		);
-
 		const { result } = yield* writeRelationships(
 			{
 				organizationIds: [
@@ -169,9 +214,13 @@ export const changeMemberRole = (params: {
 				],
 			},
 			Effect.gen(function* () {
-				yield* confirmInstanceAdmin(params.actor, [
-					params.userId,
-				]);
+				const { managesAdmins } = yield* confirmAuthority({
+					organizationId: params.organizationId,
+					actor: params.actor,
+					userIds: [
+						params.userId,
+					],
+				});
 				const [existing] = yield* db
 					.select({
 						role: dbSchema.member.role,
@@ -204,6 +253,21 @@ export const changeMemberRole = (params: {
 						],
 					});
 
+				const handedOver =
+					role === "viewer" && existing.role !== "viewer"
+						? yield* handOverOwnedContent({
+								organizationId: params.organizationId,
+								fromUserIds: [
+									params.userId,
+								],
+								receiverId: params.receiverId,
+								receiverDefault: {
+									kind: "actor",
+									actorId: params.actor.userId,
+								},
+							})
+						: undefined;
+
 				const [member] = yield* db
 					.update(dbSchema.member)
 					.set({
@@ -228,7 +292,10 @@ export const changeMemberRole = (params: {
 					}),
 				);
 
-				return member;
+				return {
+					member,
+					handedOver,
+				};
 			}),
 		);
 		return result;
@@ -236,22 +303,19 @@ export const changeMemberRole = (params: {
 
 /**
  * Removes members from the organization and detaches their access there. Only
- * admins remove admins, and one admin remains.
+ * admins remove admins, and one admin remains. What they own there goes first
+ * to `receiverId`, or by default to the actor.
  */
 export const removeMembers = (params: {
 	organizationId: OrganizationId;
 	userIds: readonly UserId[];
+	receiverId?: UserId;
 	actor: MembershipActor;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const now = new Date();
-		const managesAdmins = yield* managesOrganizationAdmins(
-			params.organizationId,
-			params.actor,
-		);
-
-		yield* writeRelationships(
+		const { result } = yield* writeRelationships(
 			{
 				organizationIds: issuedGrantOrganizations({
 					organizationIds: [
@@ -261,7 +325,11 @@ export const removeMembers = (params: {
 				}),
 			},
 			Effect.gen(function* () {
-				yield* confirmInstanceAdmin(params.actor, params.userIds);
+				const { managesAdmins } = yield* confirmAuthority({
+					organizationId: params.organizationId,
+					actor: params.actor,
+					userIds: params.userIds,
+				});
 				const members = yield* db
 					.select({
 						userId: dbSchema.member.userId,
@@ -276,7 +344,7 @@ export const removeMembers = (params: {
 							]),
 						),
 					);
-				if (members.length === 0) return;
+				if (members.length === 0) return undefined;
 				const userIds = members.map((member) => member.userId);
 
 				if (
@@ -290,6 +358,16 @@ export const removeMembers = (params: {
 						leaving: userIds,
 					});
 				}
+
+				const handedOver = yield* handOverOwnedContent({
+					organizationId: params.organizationId,
+					fromUserIds: userIds,
+					receiverId: params.receiverId,
+					receiverDefault: {
+						kind: "actor",
+						actorId: params.actor.userId,
+					},
+				});
 
 				yield* db
 					.delete(dbSchema.member)
@@ -326,8 +404,10 @@ export const removeMembers = (params: {
 					userIds,
 					now,
 				});
+				return handedOver;
 			}),
 		);
+		return result;
 	});
 
 /**
@@ -354,9 +434,12 @@ export const addMember = (params: {
 				],
 			},
 			Effect.gen(function* () {
-				const [target] = yield* confirmInstanceAdmin(params.actor, [
-					params.userId,
-				]);
+				const [target] = yield* lockAsInstanceAdmin({
+					actorId: params.actor.userId,
+					userIds: [
+						params.userId,
+					],
+				});
 				const [organization] = yield* db
 					.select({
 						id: dbSchema.organization.id,
@@ -552,24 +635,18 @@ const membershipOrganizations = (userIds: readonly UserId[]) =>
 		return rows.map((row) => row.organizationId);
 	});
 
-const isConstraintViolation = (error: unknown) =>
-	error instanceof EffectDrizzleQueryError &&
-	Cause.isCause(error.cause) &&
-	(() => {
-		const failure = Cause.squash(error.cause);
-		return (
-			failure instanceof SqlError.SqlError &&
-			failure.reason._tag === "ConstraintError"
-		);
-	})();
-
 /**
- * Deletes accounts with their memberships, sessions and access. Every
- * organization they belong to keeps an admin, and the instance keeps an
- * instance admin.
+ * Deletes accounts with their memberships, sessions, access, chats and chat
+ * uploads. What they own goes, per organization, to the receiver named in
+ * `receivers` or to its earliest admin. Every organization they belong to
+ * keeps an admin, and the instance keeps an instance admin.
  */
 export const deleteAccounts = (params: {
 	userIds: readonly UserId[];
+	receivers?: readonly {
+		organizationId: OrganizationId;
+		userId: UserId;
+	}[];
 	actorId: UserId;
 }) =>
 	Effect.gen(function* () {
@@ -594,12 +671,13 @@ export const deleteAccounts = (params: {
 				}),
 			);
 
-		const { result: images } = yield* writeRelationships(
+		const { result: deleted } = yield* writeRelationships(
 			{
 				organizationIds: Effect.map(
 					Effect.all([
 						membershipOrganizations(userIds),
 						accountAccessOrganizations(userIds),
+						ownedContentOrganizations(userIds),
 					]),
 					(lists) => lists.flat(),
 				),
@@ -637,6 +715,27 @@ export const deleteAccounts = (params: {
 						leaving: userIds,
 					});
 
+				yield* handOverAccountsContent({
+					userIds,
+					receivers: params.receivers ?? [],
+				});
+				yield* deleteChatsWhere(inArray(dbSchema.chat.userId, userIds));
+				const chatUploads = yield* db
+					.select({
+						id: dbSchema.asset.id,
+					})
+					.from(dbSchema.asset)
+					.where(
+						and(
+							inArray(dbSchema.asset.userId, userIds),
+							eq(dbSchema.asset.origin, "chat"),
+						),
+					);
+				const uploads = yield* deleteResources({
+					resourceType: "asset",
+					resourceIds: chatUploads.map((upload) => upload.id),
+				});
+
 				yield* db
 					.delete(dbSchema.member)
 					.where(inArray(dbSchema.member.userId, userIds));
@@ -663,23 +762,17 @@ export const deleteAccounts = (params: {
 					.where(inArray(dbSchema.account.userId, userIds));
 				yield* db
 					.delete(dbSchema.user)
-					.where(inArray(dbSchema.user.id, userIds))
-					.pipe(
-						Effect.catchIf(isConstraintViolation, (cause) =>
-							Effect.fail(
-								new AppErrors.ConflictError({
-									reason: "USER_OWNS_CONTENT",
-									message:
-										"This account still owns groups, resources, grants or invitations, so it cannot be deleted yet. Hand that content over first.",
-									cause,
-								}),
-							),
-						),
-					);
-				return existingUsers.map((user) => user.image);
+					.where(inArray(dbSchema.user.id, userIds));
+				return {
+					images: existingUsers.map((user) => user.image),
+					uploads,
+				};
 			}),
 		);
-		yield* deleteImages(images);
+		yield* deleteImages(deleted.images);
+		yield* removeDeletedResourceData([
+			deleted.uploads,
+		]);
 
 		return userIds.length;
 	});

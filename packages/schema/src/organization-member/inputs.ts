@@ -49,9 +49,13 @@ export const listMemberAccessInputSchema = paginationInputSchema.extend({
 	...zedTokenSchema.shape,
 });
 
+/** Who receives what a member made a Viewer or removed owns; the acting member when left out and eligible. */
+const receiverIdSchema = userIdSchema.optional();
+
 export const updateOrganizationMemberInputSchema =
 	organizationMemberMutableFieldsSchema.extend({
 		userId: organizationMemberSchema.shape.userId,
+		receiverId: receiverIdSchema,
 	});
 
 export const deleteOrganizationMembersInputSchema = z.object({
@@ -59,6 +63,7 @@ export const deleteOrganizationMembersInputSchema = z.object({
 		key: "userId",
 		value: userIdSchema,
 	}),
+	receiverId: receiverIdSchema,
 });
 
 export type ListOrganizationMembersInput = z.infer<
