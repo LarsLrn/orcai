@@ -131,6 +131,43 @@ const reply = (
 	},
 ];
 
+/** A reply whose `createBot` call wrote, at the turn's zedToken. */
+const writingReply = (id: string, zedToken: string): UIMessageChunk[] => [
+	{
+		type: "start",
+		messageId: id,
+		messageMetadata: {
+			zedToken,
+		},
+	},
+	{
+		type: "start-step",
+	},
+	{
+		type: "tool-input-available",
+		toolCallId: "create-1",
+		toolName: "createBot",
+		input: {
+			name: "Tutor",
+		},
+	},
+	{
+		type: "tool-output-available",
+		toolCallId: "create-1",
+		output: {
+			type: "bot",
+			id: "bot-1",
+			name: "Tutor",
+		},
+	},
+	{
+		type: "finish-step",
+	},
+	{
+		type: "finish",
+	},
+];
+
 const streamOf = (chunks: UIMessageChunk[]) =>
 	new ReadableStream<UIMessageChunk>({
 		start: (controller) => {
@@ -146,6 +183,7 @@ const fakePort = (
 		stored?: (ChatAgentUIMessage | undefined)[];
 		pages?: ChatPage[];
 		keepUploads?: (input: KeepUploadsInput) => Promise<KeptUploads>;
+		recordWrites?: () => Promise<void>;
 	} = {},
 ) => {
 	const replies = [
@@ -169,6 +207,7 @@ const fakePort = (
 			zedToken: string | undefined;
 		}[],
 		keepUploads: [] as KeepUploadsInput[],
+		recordWrites: [] as Parameters<ChatPort["recordWrites"]>[0][],
 		turnEnded: [] as ChatAgentUIMessage[],
 	};
 	const nextReply = () =>
@@ -211,6 +250,10 @@ const fakePort = (
 					assets: [],
 				})
 			);
+		},
+		recordWrites: (input) => {
+			calls.recordWrites.push(input);
+			return options.recordWrites?.() ?? Promise.resolve();
 		},
 		turnEnded: (message) => {
 			calls.turnEnded.push(message);
@@ -270,6 +313,7 @@ describe("ChatSession", () => {
 		expect(calls.turnEnded.map((message): string => message.id)).toEqual([
 			"reply-1",
 		]);
+		expect(calls.recordWrites).toEqual([]);
 
 		await chat.send({
 			text: "Once more",
@@ -307,6 +351,36 @@ describe("ChatSession", () => {
 		turn.close();
 		await sent;
 		expect(chat.phase).toBe("idle");
+	});
+
+	test("a turn whose tools wrote is storing until its writes are recorded", async () => {
+		const recorded = Promise.withResolvers<void>();
+		const { port, calls } = fakePort({
+			replies: [
+				() => streamOf(writingReply("reply-1", "zed-turn")),
+			],
+			recordWrites: () => recorded.promise,
+		});
+		const chat = session(port);
+		const sent = chat.send({
+			text: "Create the bot",
+		});
+
+		await until(() => calls.recordWrites.length === 1);
+		expect(chat.phase).toBe("storing");
+		expect(calls.turnEnded).toEqual([]);
+
+		recorded.resolve();
+		await sent;
+		expect(chat.phase).toBe("idle");
+		expect(calls.recordWrites).toEqual([
+			{
+				chatId,
+				messageId: "reply-1" as ChatMessageId,
+				zedToken: "zed-turn",
+			},
+		]);
+		expect(calls.turnEnded).toHaveLength(1);
 	});
 
 	test("a stopped reply is storing until the server has it", async () => {

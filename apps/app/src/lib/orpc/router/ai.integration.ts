@@ -150,3 +150,86 @@ describe("ai.keepUploads", () => {
 		TIMEOUT,
 	);
 });
+
+describe("ai.recordTurnWrites", () => {
+	/** An assistant conversation of the first member whose stored reply carries the token of an asset its turn wrote. */
+	const finishedTurn = async () => {
+		const {
+			organizationId,
+			actors: [owner, other],
+			zedToken,
+		} = await organizationWith([
+			"member",
+			"member",
+		]);
+		const procedures = await run(Procedures);
+		const { data: chat, meta } = await run(
+			procedures.assistant.create({}, await procedureOptions(owner, zedToken)),
+		);
+		const written = await createAsset(owner, organizationId);
+		const replyId = crypto.randomUUID() as ChatMessageId;
+		await run(
+			Effect.gen(function* () {
+				yield* (yield* DB).insert(dbSchema.chatMessage).values({
+					id: replyId,
+					chatId: chat.id,
+					role: "assistant",
+					parts: [
+						{
+							type: "text",
+							text: "Done.",
+						},
+					],
+					attachments: [],
+					metadata: {
+						zedToken: written.zedToken,
+					},
+					position: 0,
+				});
+			}),
+		);
+		return {
+			owner,
+			other,
+			writtenToken: written.zedToken,
+			record: async (actor: typeof owner) =>
+				run(
+					procedures.ai.recordTurnWrites(
+						{
+							chatId: chat.id,
+							messageId: replyId,
+							zedToken: meta?.zedToken,
+						},
+						await procedureOptions(actor, zedToken),
+					),
+				),
+		};
+	};
+
+	test(
+		"hands the stored reply's token to the response, which sets the cookie",
+		async () => {
+			const { owner, writtenToken, record } = await finishedTurn();
+
+			expect(await record(owner)).toEqual({
+				success: true,
+				meta: {
+					zedToken: writtenToken,
+				},
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"refuses a member who cannot read the conversation",
+		async () => {
+			const { other, record } = await finishedTurn();
+
+			await expect(record(other)).rejects.toMatchObject({
+				_tag: "ForbiddenError",
+			});
+		},
+		TIMEOUT,
+	);
+});

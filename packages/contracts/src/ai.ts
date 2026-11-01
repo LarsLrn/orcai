@@ -4,6 +4,8 @@ import {
 	continueChatInputSchema,
 	keepUploadsInputSchema,
 	keepUploadsResponseSchema,
+	recordTurnWritesInputSchema,
+	statusResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
@@ -48,4 +50,17 @@ export const aiContracts = {
 		)
 		.input(keepUploadsInputSchema)
 		.output(keepUploadsResponseSchema),
+	recordTurnWrites: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/ai/turn-writes",
+				summary: "Make a finished turn's writes visible to later reads",
+				tags: [
+					"AI",
+				],
+			}),
+		)
+		.input(recordTurnWritesInputSchema)
+		.output(statusResponseSchema),
 };

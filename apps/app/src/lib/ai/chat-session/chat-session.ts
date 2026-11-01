@@ -6,6 +6,7 @@ import type {
 	KeptUploads,
 } from "@orcai/schema";
 import type { ChatStatus, InferUITools, UIMessageChunk } from "ai";
+import { staleDataOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import type { ChatPhase, ClientToolName } from "@/lib/ai/turn-view/turn-view";
 import type {
@@ -57,6 +58,12 @@ export interface ChatPort {
 	}) => Promise<ChatPage>;
 	/** Stores the files a waiting `requestUpload` call lists with its reply. */
 	keepUploads: (input: KeepUploadsInput) => Promise<KeptUploads>;
+	/** Makes the writes of a finished turn's tools visible to the browser's later reads. */
+	recordWrites: (input: {
+		chatId: ChatId;
+		messageId: ChatMessageId;
+		zedToken: string | undefined;
+	}) => Promise<void>;
 	/** Refreshes what a finished turn may have changed. */
 	turnEnded: (message: ChatAgentUIMessage) => Promise<void>;
 }
@@ -387,14 +394,29 @@ export class ChatSession {
 		isError: boolean;
 	}) {
 		this.#zedToken = message.metadata?.zedToken ?? this.#zedToken;
-		// A finished stream closes after the reply is stored; any other ending may still be saving.
-		if (isAbort || isDisconnect || isError) {
-			this.#setStoring(true);
-			await this.#waitForStored(message.id).finally(() =>
-				this.#setStoring(false),
-			);
-		} else {
+		const cutOff = isAbort || isDisconnect || isError;
+		const wrote = staleDataOf(message).length > 0;
+		if (!cutOff) {
 			this.#answerZedToken = undefined;
+		}
+		if (cutOff || wrote) {
+			this.#setStoring(true);
+			try {
+				// A finished stream closes after the reply is stored; any other ending may still be saving.
+				if (cutOff) await this.#waitForStored(message.id);
+				if (wrote) {
+					// A failed handover only leaves the next reads less fresh.
+					await this.#port
+						.recordWrites({
+							chatId: this.#chatId,
+							messageId: message.id,
+							zedToken: message.metadata?.zedToken,
+						})
+						.catch(() => undefined);
+				}
+			} finally {
+				this.#setStoring(false);
+			}
 		}
 		await this.#port.turnEnded(message);
 	}
