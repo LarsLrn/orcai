@@ -33,6 +33,11 @@ const WEB_SEARCH = {
 	},
 };
 
+const RESULT_URL = "https://docs.example.org/search-result";
+const RESULT_TITLE = "Mock search result for orca pods";
+// sourceRef("web", RESULT_URL), which the model reads beside the result.
+const RESULT_REF = "wiww64s";
+
 // Specs here set the worker organisation's web search; later specs expect it off.
 test.afterEach(async ({ api, org }) => {
 	await api.as("admin").organization.update({
@@ -43,7 +48,7 @@ test.afterEach(async ({ api, org }) => {
 	});
 });
 
-test("web-search: a bot answers with a cited page from the search provider", async ({
+test("web-search: a bot cites a page from the search provider, also after a reload", async ({
 	api,
 	inference,
 	org,
@@ -67,7 +72,7 @@ test("web-search: a bot answers with a cited page from the search provider", asy
 			],
 		},
 		{
-			text: "Orcas live in pods, see [the guide](https://docs.example.org/search-result).",
+			text: `Orcas <cite ref=${RESULT_REF}>live in pods</cite>, see [the guide](${RESULT_URL}).`,
 		},
 	);
 
@@ -91,38 +96,63 @@ test("web-search: a bot answers with a cited page from the search provider", asy
 	});
 	expect(offeredTools(completionBodies(inference)[0])).toContain("searchWeb");
 	expect(JSON.stringify(toolResults(completionBodies(inference)[1]))).toContain(
-		"https://docs.example.org/search-result",
+		`<web-result ref=${RESULT_REF}`,
 	);
 
-	const sources = page.getByRole("region", {
-		name: message("chat_web_sources_label"),
+	const citation = page.getByRole("log").getByRole("button", {
+		name: message("ai_elements_cite_web_aria_label", {
+			title: RESULT_TITLE,
+		}),
+		exact: true,
 	});
-	const source = sources.getByRole("button", {
-		name: "Mock search result for orca pods",
-	});
+	const source = page
+		.getByRole("region", {
+			name: message("chat_web_sources_label"),
+		})
+		.getByRole("button", {
+			name: RESULT_TITLE,
+		});
+	const cited = async () => {
+		await expect(citation).toHaveText("docs.example.org");
+		await expect(source).toBeVisible();
+	};
+	await cited();
 
-	// A source and a link in the answer ask before they leave the app.
+	// A source, the citation card and a link in the answer ask before they leave the app.
 	const confirmation = page.getByRole("alertdialog", {
 		name: message("chat_link_confirm_title"),
 	});
-	for (const link of [
-		source,
-		page.getByRole("log").getByRole("button", {
-			name: "the guide",
-		}),
-	]) {
-		await link.click();
+	const confirmed = async (open: () => Promise<void>) => {
+		await open();
 		await expect(confirmation).toBeVisible();
-		await expect(
-			confirmation.getByText("https://docs.example.org/search-result"),
-		).toBeVisible();
+		await expect(confirmation.getByText(RESULT_URL)).toBeVisible();
 		await confirmation
 			.getByRole("button", {
 				name: message("common_cancel_button"),
 			})
 			.click();
 		await expect(confirmation).toHaveCount(0);
-	}
+	};
+	await confirmed(() => source.click());
+	await confirmed(() =>
+		page
+			.getByRole("log")
+			.getByRole("button", {
+				name: "the guide",
+			})
+			.click(),
+	);
+	await confirmed(async () => {
+		await citation.click();
+		await expect(
+			page.getByRole("dialog").getByText(RESULT_TITLE),
+		).toBeVisible();
+		await page
+			.getByRole("button", {
+				name: message("ai_elements_cite_open_page_action"),
+			})
+			.click();
+	});
 
 	// The work log stays mounted while folded.
 	await expect(
@@ -130,6 +160,9 @@ test("web-search: a bot answers with a cited page from the search provider", asy
 			exact: true,
 		}),
 	).toBeAttached();
+
+	await page.reload();
+	await cited();
 });
 
 test("web-search: a bot with web search warns while the organisation's search is off and still answers", async ({

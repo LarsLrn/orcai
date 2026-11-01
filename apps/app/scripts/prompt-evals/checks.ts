@@ -2,6 +2,7 @@ import { displayCallText } from "@/lib/ai/citations/chat-sources";
 import { citeTags } from "@/lib/ai/citations/cite-tag";
 import { SOURCE_REF } from "@/lib/ai/citations/source-ref";
 import { toolDeclarationOf } from "@/lib/ai/tools/registry";
+import { searchWebOutputSchema } from "@/lib/ai/tools/web/outputs";
 import type { Transcript } from "./harness";
 
 /** A property of a run, graded in code. */
@@ -242,12 +243,30 @@ export const noLegacyCite: CodeCheck = {
 		),
 };
 
-/** No footnotes, bracketed refs or Sources section in place of `<cite>`. */
+/** The URLs of the pages the run's web searches returned. */
+const resultUrls = ({ calls: made }: Transcript) =>
+	made.flatMap(({ toolName, output }) =>
+		toolName === "searchWeb"
+			? (searchWebOutputSchema.safeParse(output).data?.results ?? []).map(
+					({ url }) => url,
+				)
+			: [],
+	);
+
+/** No footnotes, bracketed refs, Sources section or Markdown links to search results in place of `<cite>`. */
 export const noOtherCitationStyle: CodeCheck = {
 	name: "uses no other citation style",
-	pass: ({ text }) =>
+	pass: (transcript) =>
 		!/\[\^?\d+\]|\[[kadw][a-z0-9]{6}\]|^#*\s*\**(Sources|References)\**:?\s*$/im.test(
-			text,
+			transcript.text,
+		) &&
+		resultUrls(transcript).every(
+			(url) =>
+				![
+					`](${url})`,
+					`](${url} `,
+					`](<${url}>`,
+				].some((link) => transcript.text.includes(link)),
 		),
 };
 

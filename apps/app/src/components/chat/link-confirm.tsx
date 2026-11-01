@@ -1,6 +1,5 @@
-import { type ComponentProps, use, useState } from "react";
+import { type ComponentProps, createContext, use, useState } from "react";
 import type { LinkSafetyConfig, LinkSafetyModalProps } from "streamdown";
-import { LinkSafetyContext } from "@/components/ai-elements/message";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -13,6 +12,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { m } from "@/paraglide/messages";
 import { isTrustedLink, type TrustedLinks } from "./link-safety";
+
+/** How links in the answers of a chat confirm before they open. */
+export const LinkSafetyContext = createContext<LinkSafetyConfig | undefined>(
+	undefined,
+);
 
 /** Asks before a link in an answer leaves OrcAI. */
 const LinkConfirmDialog = ({

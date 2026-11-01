@@ -14,12 +14,14 @@ import {
 	ConversationContent,
 	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { LinkSafetyContext } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
-import { chatLinkSafety } from "@/components/chat/link-confirm";
+import {
+	chatLinkSafety,
+	LinkSafetyContext,
+} from "@/components/chat/link-confirm";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
 import { DocumentsPanel } from "@/components/documents/readiness/documents-panel";
 import { useChatRepositoryIds } from "@/components/documents/readiness/use-repository-readiness";
