@@ -15,10 +15,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-	formatDisplayDate,
-	formatDisplayTimestamp,
-} from "@/lib/presentation/format-timestamp";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { m } from "@/paraglide/messages";
 
 const CopyableId = ({ value }: { value: string }) => {
@@ -58,15 +55,7 @@ const MetadataCard = ({
 	createdAt?: Date | string | null;
 	updatedAt?: Date | string | null;
 }) => {
-	const formatDate = (date: Date | string) => {
-		const dateObj = typeof date === "string" ? new Date(date) : date;
-		return formatDisplayTimestamp(dateObj);
-	};
-
-	const formatDateShort = (date: Date | string) => {
-		const dateObj = typeof date === "string" ? new Date(date) : date;
-		return formatDisplayDate(dateObj);
-	};
+	const displayTime = useDisplayTime();
 
 	if (!createdAt && !updatedAt && !visibility && !id) {
 		return null;
@@ -120,9 +109,11 @@ const MetadataCard = ({
 							</div>
 							<Tooltip>
 								<TooltipTrigger className="text-muted-foreground text-right text-xs">
-									{formatDateShort(createdAt)}
+									{displayTime.date(createdAt)}
 								</TooltipTrigger>
-								<TooltipContent>{formatDate(createdAt)}</TooltipContent>
+								<TooltipContent>
+									{displayTime.timestamp(createdAt)}
+								</TooltipContent>
 							</Tooltip>
 						</div>
 					)}
@@ -134,9 +125,11 @@ const MetadataCard = ({
 							</div>
 							<Tooltip>
 								<TooltipTrigger className="text-muted-foreground text-right text-xs">
-									{formatDateShort(updatedAt)}
+									{displayTime.date(updatedAt)}
 								</TooltipTrigger>
-								<TooltipContent>{formatDate(updatedAt)}</TooltipContent>
+								<TooltipContent>
+									{displayTime.timestamp(updatedAt)}
+								</TooltipContent>
 							</Tooltip>
 						</div>
 					)}

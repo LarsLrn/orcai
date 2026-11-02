@@ -1,6 +1,7 @@
 import type { ModelListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
 	getModelStatusLabel,
@@ -126,7 +126,9 @@ export const modelTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
+			<span>
+				<DisplayTimestamp value={row.original.createdAt || ""} />
+			</span>
 		),
 		meta: {
 			label: m.common_created_column_header,

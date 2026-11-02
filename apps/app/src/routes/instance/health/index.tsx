@@ -19,8 +19,8 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -49,6 +49,7 @@ function RouteComponent() {
 		refetch,
 		isFetching,
 	} = useSuspenseQuery(healthQuery());
+	const displayTime = useDisplayTime();
 
 	return (
 		<Page>
@@ -56,7 +57,7 @@ function RouteComponent() {
 				<PageTitle>{m.instance_health_page_title()}</PageTitle>
 				<PageDescription>
 					{m.instance_health_page_description({
-						date: formatDisplayTimestamp(health.checkedAt),
+						date: displayTime.timestamp(health.checkedAt),
 					})}
 				</PageDescription>
 				<PageAction>

@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { getLocale, overwriteGetLocale } from "@/paraglide/runtime";
-import { formatRelativeTime } from "./format-timestamp";
+import {
+	formatDisplayDate,
+	formatDisplayTimestamp,
+	formatRelativeTime,
+} from "./format-timestamp";
 
 const originalGetLocale = getLocale;
 
@@ -87,5 +91,22 @@ describe("formatRelativeTime", () => {
 				now,
 			}),
 		).toBe("gerade eben");
+	});
+});
+
+describe("formatDisplayTimestamp", () => {
+	test("writes the moment in the given time zone", () => {
+		overwriteGetLocale(() => "en");
+		const lateEvening = Date.UTC(2026, 9, 28, 22, 30);
+
+		expect(formatDisplayTimestamp(lateEvening, "UTC")).toBe(
+			"28 Oct 2026, 22:30",
+		);
+		expect(formatDisplayTimestamp(lateEvening, "Europe/Berlin")).toBe(
+			"28 Oct 2026, 23:30",
+		);
+		expect(formatDisplayDate(lateEvening, "Pacific/Kiritimati")).toBe(
+			"29 Oct 2026",
+		);
 	});
 });

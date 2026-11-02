@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -10,10 +11,7 @@ import {
 	formatCompactNumber,
 	formatPercent,
 } from "@/lib/presentation/format-number";
-import {
-	formatDisplayTimestamp,
-	formatRelativeTime,
-} from "@/lib/presentation/format-timestamp";
+import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import type { UsageView } from "./usage-view";
@@ -106,7 +104,7 @@ const PoolSection = ({
 				})}
 			</TooltipTrigger>
 			<TooltipContent>
-				{formatDisplayTimestamp(pool.periodEndsAt)}
+				<DisplayTimestamp value={pool.periodEndsAt} />
 			</TooltipContent>
 		</Tooltip>
 		{managePool}

@@ -1,6 +1,7 @@
 import type { InstanceUser } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
@@ -8,7 +9,6 @@ import { InstanceUserRowMenu } from "@/components/users/instance-user-actions";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import { formatCount } from "@/lib/presentation/format-number";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, InstanceUser>();
@@ -105,7 +105,9 @@ export const instanceUserTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
+			<span>
+				<DisplayTimestamp value={row.original.createdAt || ""} />
+			</span>
 		),
 		meta: {
 			label: m.common_created_column_header,

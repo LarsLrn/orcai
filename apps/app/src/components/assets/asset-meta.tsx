@@ -16,17 +16,15 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import { formatFileSize } from "@/lib/presentation/format-file-size";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
-const formatDate = (date: Date | null): string => {
-	if (!date) return m.assets_meta_unknown_date();
-	return formatDisplayDate(date);
-};
-
 const AssetMeta = ({ asset }: { asset: Asset }) => {
+	const displayTime = useDisplayTime();
+	const formatDate = (date: Date | null) =>
+		date ? displayTime.date(date) : m.assets_meta_unknown_date();
 	const fileTypeLabel = getFileTypeLabel(asset.fileType);
 
 	return (

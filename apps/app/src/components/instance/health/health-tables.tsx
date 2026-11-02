@@ -5,6 +5,7 @@ import type {
 	InstanceVersions,
 } from "@orcai/schema";
 import type { ReactNode } from "react";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -21,8 +22,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { formatCount } from "@/lib/presentation/format-number";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const HealthCard = ({
@@ -98,15 +99,17 @@ export const ProcessesCard = ({
 									)}
 								</TableCell>
 								<TableCell>
-									{formatDisplayTimestamp(process.startedOn)}
+									<DisplayTimestamp value={process.startedOn} />
 								</TableCell>
 								<TableCell>
-									{formatDisplayTimestamp(process.heartbeatOn)}
+									<DisplayTimestamp value={process.heartbeatOn} />
 								</TableCell>
 								<TableCell>
-									{process.lastWorkerErrorOn
-										? formatDisplayTimestamp(process.lastWorkerErrorOn)
-										: m.instance_health_none()}
+									{process.lastWorkerErrorOn ? (
+										<DisplayTimestamp value={process.lastWorkerErrorOn} />
+									) : (
+										m.instance_health_none()
+									)}
 								</TableCell>
 							</TableRow>
 						))}
@@ -208,57 +211,61 @@ const KeyValueTable = ({
 
 const unknown = () => m.instance_health_unknown_value();
 
-export const VersionsCard = ({ versions }: { versions: InstanceVersions }) => (
-	<HealthCard
-		title={m.instance_health_versions_title()}
-		description={m.instance_health_versions_description()}
-	>
-		<KeyValueTable
-			rows={[
-				{
-					key: "app",
-					label: m.instance_health_version_app_label(),
-					value: versions.app,
-				},
-				{
-					key: "postgres",
-					label: m.instance_health_check_postgres_title(),
-					value: versions.postgres ?? unknown(),
-				},
-				{
-					key: "qdrant",
-					label: m.instance_health_check_qdrant_title(),
-					value: versions.qdrant ?? unknown(),
-				},
-				{
-					key: "valkey",
-					label: m.instance_health_check_valkey_title(),
-					value: versions.valkey ?? unknown(),
-				},
-				{
-					key: "migration",
-					label: m.instance_health_version_migration_label(),
-					value: versions.migration ? (
-						<span className="flex flex-col">
-							<span className="font-mono text-xs">
-								{versions.migration.name}
-							</span>
-							{versions.migration.appliedAt && (
-								<span className="text-muted-foreground text-xs">
-									{m.instance_health_version_migration_applied({
-										date: formatDisplayTimestamp(versions.migration.appliedAt),
-									})}
+export const VersionsCard = ({ versions }: { versions: InstanceVersions }) => {
+	const displayTime = useDisplayTime();
+
+	return (
+		<HealthCard
+			title={m.instance_health_versions_title()}
+			description={m.instance_health_versions_description()}
+		>
+			<KeyValueTable
+				rows={[
+					{
+						key: "app",
+						label: m.instance_health_version_app_label(),
+						value: versions.app,
+					},
+					{
+						key: "postgres",
+						label: m.instance_health_check_postgres_title(),
+						value: versions.postgres ?? unknown(),
+					},
+					{
+						key: "qdrant",
+						label: m.instance_health_check_qdrant_title(),
+						value: versions.qdrant ?? unknown(),
+					},
+					{
+						key: "valkey",
+						label: m.instance_health_check_valkey_title(),
+						value: versions.valkey ?? unknown(),
+					},
+					{
+						key: "migration",
+						label: m.instance_health_version_migration_label(),
+						value: versions.migration ? (
+							<span className="flex flex-col">
+								<span className="font-mono text-xs">
+									{versions.migration.name}
 								</span>
-							)}
-						</span>
-					) : (
-						unknown()
-					),
-				},
-			]}
-		/>
-	</HealthCard>
-);
+								{versions.migration.appliedAt && (
+									<span className="text-muted-foreground text-xs">
+										{m.instance_health_version_migration_applied({
+											date: displayTime.timestamp(versions.migration.appliedAt),
+										})}
+									</span>
+								)}
+							</span>
+						) : (
+							unknown()
+						),
+					},
+				]}
+			/>
+		</HealthCard>
+	);
+};
 
 const configValue = (entry: ConfigEntry) => {
 	switch (entry.kind) {

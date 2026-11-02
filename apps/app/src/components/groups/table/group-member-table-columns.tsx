@@ -2,13 +2,13 @@ import type { GroupId } from "@orcai/core";
 import type { GroupMemberRow } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Trash2Icon } from "lucide-react";
+import { DisplayDate } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { useRemoveGroupMembersMutation } from "@/hooks/mutations/use-group-mutations";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, GroupMemberRow>();
@@ -99,7 +99,11 @@ export const groupMemberTableColumns = (groupId: GroupId) =>
 				/>
 			),
 			cell: ({ row }) =>
-				row.original.addedAt ? formatDisplayDate(row.original.addedAt) : "—",
+				row.original.addedAt ? (
+					<DisplayDate value={row.original.addedAt} />
+				) : (
+					"—"
+				),
 			meta: {
 				label: m.groups_member_table_added_column_header,
 			},

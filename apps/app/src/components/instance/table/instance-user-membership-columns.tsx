@@ -1,11 +1,11 @@
 import type { InstanceUserMembership } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { DisplayDate } from "@/components/app/display-time";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
@@ -56,7 +56,9 @@ export const instanceUserMembershipColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) =>
-			row.original.joinedAt ? formatDisplayDate(row.original.joinedAt) : null,
+			row.original.joinedAt ? (
+				<DisplayDate value={row.original.joinedAt} />
+			) : null,
 		meta: {
 			label: m.instance_detail_joined_column_header,
 		},

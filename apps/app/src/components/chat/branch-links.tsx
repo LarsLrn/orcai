@@ -1,7 +1,7 @@
 import type { ChatBranchLink, ChatLink } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { GitBranchIcon } from "lucide-react";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -31,7 +31,10 @@ const BranchedFrom = ({ parentChat }: { parentChat: ChatLink }) => (
 );
 
 /** Branch titles repeat the parent's often, so equal ones carry their creation time. */
-const labelBranches = (branches: ChatBranchLink[]) => {
+const labelBranches = (
+	branches: ChatBranchLink[],
+	formatTimestamp: (value: Date) => string,
+) => {
 	const titleOf = (branch: ChatBranchLink) =>
 		branch.title ?? m.chat_title_placeholder();
 	const counts = new Map<string, number>();
@@ -47,7 +50,7 @@ const labelBranches = (branches: ChatBranchLink[]) => {
 			title,
 			createdAt:
 				(counts.get(title) ?? 0) > 1 && branch.createdAt
-					? formatDisplayTimestamp(branch.createdAt)
+					? formatTimestamp(branch.createdAt)
 					: undefined,
 		};
 	});
@@ -59,34 +62,40 @@ const MessageBranches = ({
 }: {
 	branches: ChatBranchLink[];
 	className?: string;
-}) => (
-	<div
-		className={cn(
-			"text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 text-xs",
-			className,
-		)}
-	>
-		<span className="inline-flex items-center gap-1.5">
-			<GitBranchIcon aria-hidden="true" className="size-3.5 shrink-0" />
-			{m.chat_message_branches_label()}
-		</span>
-		{labelBranches(branches).map(({ branch, title, createdAt }) => (
-			<Link
-				key={branch.id}
-				to="/app/chat/$chatId"
-				params={{
-					chatId: branch.id,
-				}}
-				title={createdAt ? `${title} (${createdAt})` : title}
-				className="text-foreground flex max-w-full min-w-0 py-1 underline-offset-4 hover:underline sm:max-w-80"
-			>
-				<span className="truncate">{title}</span>
-				{createdAt && (
-					<span className="shrink-0 whitespace-pre"> ({createdAt})</span>
-				)}
-			</Link>
-		))}
-	</div>
-);
+}) => {
+	const displayTime = useDisplayTime();
+
+	return (
+		<div
+			className={cn(
+				"text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 text-xs",
+				className,
+			)}
+		>
+			<span className="inline-flex items-center gap-1.5">
+				<GitBranchIcon aria-hidden="true" className="size-3.5 shrink-0" />
+				{m.chat_message_branches_label()}
+			</span>
+			{labelBranches(branches, displayTime.timestamp).map(
+				({ branch, title, createdAt }) => (
+					<Link
+						key={branch.id}
+						to="/app/chat/$chatId"
+						params={{
+							chatId: branch.id,
+						}}
+						title={createdAt ? `${title} (${createdAt})` : title}
+						className="text-foreground flex max-w-full min-w-0 py-1 underline-offset-4 hover:underline sm:max-w-80"
+					>
+						<span className="truncate">{title}</span>
+						{createdAt && (
+							<span className="shrink-0 whitespace-pre"> ({createdAt})</span>
+						)}
+					</Link>
+				),
+			)}
+		</div>
+	);
+};
 
 export { BranchedFrom, BranchMark, MessageBranches };

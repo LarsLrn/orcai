@@ -12,8 +12,8 @@ import {
 	useAddPasskeyMutation,
 	useDeletePasskeyMutation,
 } from "@/hooks/mutations/use-passkey-mutations";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { authClient } from "@/lib/auth/auth-client";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 /** The signed-in user's passkeys: add one, or delete one. */
@@ -21,6 +21,7 @@ export const PasskeyCard = () => {
 	const { data: passkeys, isPending } = authClient.useListPasskeys();
 	const { mutate: addPasskey, isPending: isAdding } = useAddPasskeyMutation();
 	const { mutate: deletePasskey } = useDeletePasskeyMutation();
+	const displayTime = useDisplayTime();
 
 	return (
 		<Card>
@@ -50,7 +51,7 @@ export const PasskeyCard = () => {
 											{passkey.createdAt && (
 												<span className="text-muted-foreground text-xs">
 													{m.passkey_added_at({
-														date: formatDisplayDate(passkey.createdAt),
+														date: displayTime.date(passkey.createdAt),
 													})}
 												</span>
 											)}

@@ -6,6 +6,7 @@ import type {
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { DisplayDate } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -18,7 +19,6 @@ import {
 } from "@/components/ui/composed/panel";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
 import { m } from "@/paraglide/messages";
 
@@ -63,7 +63,7 @@ const RecentRowBody = ({
 			<p className="text-muted-foreground truncate text-xs">{kind}</p>
 		</div>
 		<span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-			{formatDisplayDate(changedAt)}
+			<DisplayDate value={changedAt} />
 		</span>
 	</>
 );

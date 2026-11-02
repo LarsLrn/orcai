@@ -12,9 +12,9 @@ import {
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRequestDataExportMutation } from "@/hooks/mutations/use-data-export-mutation";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatFileSize } from "@/lib/presentation/format-file-size";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 /** How often the status refreshes while an export is being prepared. */
@@ -23,18 +23,19 @@ const IN_FLIGHT_POLL_MS = 3000;
 const isInFlight = (dataExport: DataExport | null | undefined) =>
 	dataExport?.status === "pending" || dataExport?.status === "processing";
 
-const statusText = (dataExport: DataExport) => {
+const statusText = (
+	dataExport: DataExport,
+	formatTimestamp: (value: Date) => string,
+) => {
 	switch (dataExport.status) {
 		case "pending":
 		case "processing":
 			return m.account_data_export_status_pending();
 		case "ready":
 			return m.account_data_export_status_ready({
-				date: formatDisplayTimestamp(
-					dataExport.completedAt ?? dataExport.createdAt,
-				),
+				date: formatTimestamp(dataExport.completedAt ?? dataExport.createdAt),
 				size: formatFileSize(dataExport.size ?? 0),
-				expiresAt: formatDisplayTimestamp(
+				expiresAt: formatTimestamp(
 					dataExport.expiresAt ?? dataExport.createdAt,
 				),
 			});
@@ -42,14 +43,13 @@ const statusText = (dataExport: DataExport) => {
 			return m.account_data_export_status_failed();
 		case "expired":
 			return m.account_data_export_status_expired({
-				date: formatDisplayTimestamp(
-					dataExport.completedAt ?? dataExport.createdAt,
-				),
+				date: formatTimestamp(dataExport.completedAt ?? dataExport.createdAt),
 			});
 	}
 };
 
 export function DataExportCard() {
+	const displayTime = useDisplayTime();
 	const { data, isPending } = useQuery(
 		orpc.dataExport.latest.queryOptions({
 			input: {},
@@ -100,7 +100,7 @@ export function DataExportCard() {
 						{inFlight ? (
 							<LoaderCircleIcon className="size-4 animate-spin" />
 						) : null}
-						{statusText(dataExport)}
+						{statusText(dataExport, displayTime.timestamp)}
 					</p>
 				) : null}
 				<div className="flex flex-wrap gap-2">

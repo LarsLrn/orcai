@@ -5,8 +5,8 @@ import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { Button } from "@/components/ui/button";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { Spinner } from "@/components/ui/spinner";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -27,6 +27,7 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 	);
 	const conversations = data?.data ?? [];
 	const hasMore = conversations.length < (data?.rowCount ?? 0);
+	const displayTime = useDisplayTime();
 
 	return (
 		<section
@@ -63,7 +64,7 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 								{conversation.updatedAt && (
 									<span className="text-muted-foreground text-xs">
 										{m.chat_list_card_last_updated({
-											timestamp: formatDisplayTimestamp(conversation.updatedAt),
+											timestamp: displayTime.timestamp(conversation.updatedAt),
 										})}
 									</span>
 								)}
