@@ -48,7 +48,7 @@ Installations that ran the earlier MinIO service start with an empty `seaweedfs_
 
 ## Qdrant
 
-Qdrant stores vector indexes for retrieval. The embedding dimensions in Qdrant must match `EMBEDDING_DIMENSIONS`.
+Qdrant stores vector indexes for retrieval. Each embedding model has its own collection, named `orcai-chunks-g<generation>-<model>-<dimensions>`, whose vector size is the model's dimensions.
 
 ## SpiceDB
 
@@ -56,7 +56,7 @@ SpiceDB backs authorisation checks. The repository includes schema files under `
 
 ## AI endpoint
 
-OrcAI gets embeddings from an OpenAI-compatible endpoint that serves the model named in `EMBEDDING_MODEL`. Chat, Assistant and utility models, including image descriptions, use the providers configured in the app.
+OrcAI gets embeddings from the OpenAI-compatible endpoint and model an instance admin saves on the instance **Settings** page (see [Embeddings](/docs/self-hosting/configuration#embeddings)). Chat, Assistant and utility models, including image descriptions, use the providers configured in the app.
 
 ## Text extraction
 

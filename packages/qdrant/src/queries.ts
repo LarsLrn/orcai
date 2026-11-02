@@ -4,6 +4,7 @@ import type { Schemas } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
 import { QdrantError } from "./errors";
+import { EmbeddingGeneration } from "./generation";
 import { QdrantService } from "./service";
 
 const asArray = <T>(value: T | T[] | null | undefined) =>
@@ -67,7 +68,8 @@ export const queryAssetPoints = (params: {
 	retrievalMode?: RetrievalMode;
 }) =>
 	Effect.gen(function* () {
-		const { client, collections, bm25Config } = yield* QdrantService;
+		const { client, bm25Config } = yield* QdrantService;
+		const { collection } = yield* EmbeddingGeneration;
 		const resolvedLimit = params.limit ?? 10;
 		const withPayload = params.withPayload ?? true;
 		const withVector = params.withVector ?? false;
@@ -84,7 +86,7 @@ export const queryAssetPoints = (params: {
 						return [];
 					}
 
-					const response = await client.query(collections.asset.name, {
+					const response = await client.query(collection, {
 						query: params.embedding,
 						using: "dense",
 						filter,
@@ -101,7 +103,7 @@ export const queryAssetPoints = (params: {
 						return [];
 					}
 
-					const response = await client.query(collections.asset.name, {
+					const response = await client.query(collection, {
 						query: {
 							text: params.text,
 							model: "qdrant/bm25",
@@ -123,7 +125,7 @@ export const queryAssetPoints = (params: {
 						return [];
 					}
 
-					const response = await client.query(collections.asset.name, {
+					const response = await client.query(collection, {
 						prefetch: [
 							{
 								query: {
@@ -154,7 +156,7 @@ export const queryAssetPoints = (params: {
 				};
 
 				const queryMetadataOnly = async () => {
-					const response = await client.scroll(collections.asset.name, {
+					const response = await client.scroll(collection, {
 						filter,
 						limit: resolvedLimit,
 						with_payload: withPayload,

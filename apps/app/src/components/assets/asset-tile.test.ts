@@ -140,4 +140,22 @@ describe("assetTileState", () => {
 			failed: true,
 		});
 	});
+
+	test("indexing waits for the embedding setup until there is one", () => {
+		expect(
+			assetTileState(
+				asset(),
+				{
+					state: "indexing",
+					failure: null,
+				},
+				false,
+			).badges,
+		).toMatchObject([
+			{
+				label: m.asset_state_waiting_for_embeddings_label(),
+				variant: "info",
+			},
+		]);
+	});
 });

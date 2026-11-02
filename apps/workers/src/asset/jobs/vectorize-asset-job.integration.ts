@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
-import { AiConfigService } from "@orcai/ai";
+import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, type BlockId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
@@ -9,6 +9,8 @@ import {
 	PgBoss,
 	PgBossService,
 	queueIndexing,
+	reconcileEmbeddings,
+	reconcileLinkPoints,
 } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
@@ -16,10 +18,14 @@ import {
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
 import {
-	deletePointsByIdentifier,
+	configureEmbeddings,
+	EmbeddingGeneration,
+	EmbeddingIndex,
+	onActiveGeneration,
 	QdrantLive,
 	QdrantService,
 	upsertPointsToQdrant,
+	writeGeneration,
 } from "@orcai/qdrant";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import type { VectorizeAssetPayload } from "@orcai/schema";
@@ -28,13 +34,13 @@ import {
 	createJobQueues,
 	createUser,
 	IntegrationLive,
+	IsolatedEmbeddingIndexLive,
 } from "@orcai/testing";
 import { serve } from "bun";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
-import * as Redacted from "effect/Redacted";
 import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
 import { markIndexingExhausted } from "@/asset/pipeline-attempt";
 
@@ -59,12 +65,7 @@ const embedding = {
 	waiting: [] as ReturnType<typeof Promise.withResolvers<boolean>>[],
 };
 
-const dimensions = await Effect.runPromise(
-	QdrantService.pipe(
-		Effect.map(({ collections }) => collections.asset.dimensions),
-		Effect.provide(QdrantLive),
-	),
-);
+const dimensions = 8;
 
 /**
  * An OpenAI-compatible endpoint that embeds every value as the same vector,
@@ -147,43 +148,37 @@ const InterceptedQdrantLive = Layer.effect(
 ).pipe(Layer.provide(QdrantLive));
 
 const runtime = ManagedRuntime.make(
-	Layer.mergeAll(
-		IntegrationLive,
-		S3Live,
-		InterceptedQdrantLive,
-		Layer.succeed(PgBossService, {
-			boss,
-		}),
-		Layer.succeed(AiConfigService, {
-			config: {
-				baseUrl: `${embeddings.url.origin}/v1`,
-				apiKey: Redacted.make("key"),
-				embedding: {
-					model: "integration",
-				},
-			},
-		}),
+	IsolatedEmbeddingIndexLive().pipe(
+		Layer.provideMerge(
+			Layer.mergeAll(
+				IntegrationLive,
+				S3Live,
+				InterceptedQdrantLive,
+				EncryptionKeyLive,
+				Layer.succeed(PgBossService, {
+					boss,
+				}),
+			),
+		),
 	),
 );
-
-const indexed: AssetId[] = [];
 
 beforeAll(async () => {
 	await boss.start();
 	await createJobQueues(boss);
+	await runtime.runPromise(
+		configureEmbeddings({
+			baseUrl: `${embeddings.url.origin}/v1`,
+			apiKey: "key",
+			model: "integration",
+			dimensions,
+		}),
+	);
 }, TIMEOUT);
 afterEach(() => {
 	intercept = () => undefined;
 });
 afterAll(async () => {
-	await runtime.runPromise(
-		Effect.forEach(indexed, (assetId) =>
-			deletePointsByIdentifier({
-				assetId,
-				blockId: undefined,
-			}),
-		),
-	);
 	await embeddings.stop(true);
 	await boss.stop({
 		graceful: false,
@@ -222,7 +217,6 @@ const seed = (
 					processingStatus: "completed",
 				})
 				.returning();
-			indexed.push(asset.id);
 			const [block] = yield* db
 				.insert(dbSchema.block)
 				.values({
@@ -347,9 +341,14 @@ const publishedOf = async (link: { assetId: AssetId; blockId: BlockId }) =>
 const payloadsOf = (link: { assetId: AssetId; blockId: BlockId }) =>
 	run(
 		Effect.gen(function* () {
-			const { client, collections } = yield* QdrantService;
+			const { client } = yield* QdrantService;
+			const collection = yield* onActiveGeneration(
+				EmbeddingGeneration.pipe(
+					Effect.map((generation) => generation.collection),
+				),
+			);
 			const { points } = yield* Effect.promise(() =>
-				client.scroll(collections.asset.name, {
+				client.scroll(collection, {
 					filter: {
 						must: [
 							{
@@ -438,32 +437,34 @@ const writePoint = (
 	published?: boolean,
 ) =>
 	run(
-		upsertPointsToQdrant({
-			points: [
-				{
-					id: crypto.randomUUID(),
-					vector: Array.from(
-						{
-							length: dimensions,
+		writeGeneration(
+			upsertPointsToQdrant({
+				points: [
+					{
+						id: crypto.randomUUID(),
+						vector: Array.from(
+							{
+								length: dimensions,
+							},
+							(_, dimension) => (dimension === 1 ? 1 : 0),
+						),
+						payload: {
+							source: "text",
+							asset_id: link.assetId,
+							block_id: link.blockId,
+							text: "Refunds fell in January.",
+							depth: 0,
+							tokens: 5,
+							chunk_index: 0,
+							chunkCount: 1,
+							createdAt: new Date().toISOString(),
+							index_attempt: attempt,
+							published,
 						},
-						(_, dimension) => (dimension === 1 ? 1 : 0),
-					),
-					payload: {
-						source: "text",
-						asset_id: link.assetId,
-						block_id: link.blockId,
-						text: "Refunds fell in January.",
-						depth: 0,
-						tokens: 5,
-						chunk_index: 0,
-						chunkCount: 1,
-						createdAt: new Date().toISOString(),
-						index_attempt: attempt,
-						published,
 					},
-				},
-			],
-		}),
+				],
+			}),
+		),
 	);
 
 test(
@@ -530,7 +531,7 @@ test(
 					eq(dbSchema.blockAsset.blockId, link.blockId),
 				);
 				yield* db.delete(dbSchema.blockAsset).where(where);
-				yield* deletePointsByIdentifier(link);
+				yield* reconcileLinkPoints(link);
 				yield* db.insert(dbSchema.blockAsset).values(link);
 			}),
 		);
@@ -911,6 +912,128 @@ test(
 		expect(await servedOf(link)).toEqual([
 			newer.data.attempt,
 		]);
+	},
+	TIMEOUT,
+);
+
+/** Activates a newer generation as a model change would, with a collection of its own. */
+const switchGeneration = () =>
+	run(
+		Effect.gen(function* () {
+			const { settings } = yield* EmbeddingIndex;
+			yield* (yield* DB).update(settings).set({
+				embeddingGeneration: sql`nextval('embedding_generation_seq')`,
+				embeddingCollection: sql`${settings.embeddingCollection} || '-next'`,
+			});
+		}),
+	);
+
+const reconcile = (link: { blockId: BlockId }) =>
+	run(
+		EmbeddingIndex.pipe(
+			Effect.flatMap((index) =>
+				reconcileEmbeddings.pipe(
+					Effect.provideService(EmbeddingIndex, {
+						...index,
+						blockIds: [
+							link.blockId,
+						],
+					}),
+				),
+			),
+		),
+	);
+
+test(
+	"a point write in flight holds a save of the embedding setting until it is done",
+	async () => {
+		const link = await seed();
+		const job = await admit(link);
+		const upsert = holdWrite((method) => method === "upsert");
+		const running = vectorize(job);
+		await upsert.reached;
+
+		// Another app process, on a connection of its own.
+		const index = await run(EmbeddingIndex);
+		const other = ManagedRuntime.make(
+			Layer.mergeAll(IntegrationLive, QdrantLive, EncryptionKeyLive),
+		);
+		let saved = false;
+		const save = other
+			.runPromise(
+				configureEmbeddings({
+					baseUrl: `${embeddings.url.origin}/v1`,
+					apiKey: "key",
+					model: "integration",
+					dimensions,
+				}).pipe(Effect.provideService(EmbeddingIndex, index)),
+			)
+			.then(() => {
+				saved = true;
+			});
+		await sleep(300);
+		expect(saved).toBe(false);
+
+		upsert.settle(true);
+		await save;
+		await running;
+		await other.dispose();
+
+		expect(await linkOf(link)).toEqual({
+			status: "completed",
+			attempt: job.data.attempt,
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"a delivery whose generation was replaced while it embedded writes nothing, is not retried, and is admitted again",
+	async () => {
+		const link = await seed();
+		const job = await admit(link);
+		const late = await held(job);
+
+		await switchGeneration();
+		late.settle(0, true);
+		const [settled] = await late.done();
+
+		expect(settled.status).toBe("fulfilled");
+		expect(await linkOf(link)).toEqual({
+			status: "active",
+			attempt: job.data.attempt,
+		});
+		expect(await pointsOf(link)).toEqual([]);
+
+		expect(await reconcile(link)).toBe(1);
+		const readmitted = await linkOf(link);
+		expect(readmitted?.status).toBe("pending");
+		expect(readmitted?.attempt).toBeGreaterThan(job.data.attempt);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a delivery paused between its point write and its completion completes nothing on a replaced generation",
+	async () => {
+		const link = await seed();
+		const job = await admit(link);
+		const upsert = holdWrite((method) => method === "upsert");
+		const running = vectorize(job);
+		await upsert.reached;
+		// Past its generation check, so its points land in the old collection.
+		await switchGeneration();
+		upsert.settle(true);
+		const [settled] = await Promise.allSettled([
+			running,
+		]);
+
+		expect(settled.status).toBe("fulfilled");
+		expect(await linkOf(link)).toEqual({
+			status: "active",
+			attempt: job.data.attempt,
+		});
+		expect(await pointsOf(link)).toEqual([]);
 	},
 	TIMEOUT,
 );

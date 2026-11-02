@@ -20,6 +20,7 @@ These items are required, because a chat or OrcAI Assistant turn fails without t
 These items are recommended:
 
 - **Utility model**: chosen (step 5).
+- **File search**: an instance admin has set up embeddings (see [Embedding model](#embedding-model)). Until then, repository search is unavailable.
 - **Members**: someone besides you is a member or invited (step 8).
 - **Quota pool for every member**: every member is reached by a pool through All members or a group they belong to. An exhausted pool still counts, and its remaining budget shows on the Quota pools page.
 
@@ -141,4 +142,4 @@ Run this short test from a non-admin user account:
 
 ## Embedding model
 
-The embedding model is the same for every organisation on the instance, and only whoever runs the instance can change it. If you self-host, set it with `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS`, and the OCR languages with `KREUZBERG_OCR_LANGUAGE` (see [AI and retrieval](/docs/self-hosting/configuration#ai-and-retrieval)). If you change the embedding model or dimensions on an existing indexed dataset, you must recreate the vector collection and prepare the assets again.
+The embedding model is the same for every organisation on the instance, and only an instance admin sets it, on the instance **Settings** page (see [Embeddings](/docs/self-hosting/configuration#embeddings)). Changing the model is not possible yet. If you self-host, set the OCR languages with `KREUZBERG_OCR_LANGUAGE` (see [AI and retrieval](/docs/self-hosting/configuration#ai-and-retrieval)).

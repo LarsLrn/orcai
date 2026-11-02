@@ -1,62 +1,108 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { embed, embedMany } from "ai";
+import { APICallError, embedMany } from "ai";
+import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import * as Redacted from "effect/Redacted";
-import { AiConfigService } from "./config";
 import { AiError } from "./errors";
 import { aiTelemetry } from "./telemetry";
 
+/** An OpenAI-compatible endpoint and the embedding model it serves. */
+export interface EmbeddingConnection {
+	readonly baseUrl: string;
+	readonly apiKey: string;
+	readonly model: string;
+}
+
 const trimNewlines = (input: string) => input.replaceAll("\\n", " ");
 
-const getProvider = Effect.gen(function* () {
-	const { config } = yield* AiConfigService;
-
-	return createOpenAI({
-		baseURL: config.baseUrl,
-		apiKey: Redacted.value(config.apiKey),
+const embeddingModel = (connection: EmbeddingConnection) =>
+	createOpenAI({
+		baseURL: connection.baseUrl,
+		apiKey: connection.apiKey,
 		name: "globalProvider",
+	}).embedding(connection.model);
+
+const embed = (
+	connection: EmbeddingConnection,
+	values: readonly string[],
+	maxRetries?: number,
+) =>
+	embedMany({
+		model: embeddingModel(connection),
+		values: values.map(trimNewlines),
+		maxRetries,
+		...aiTelemetry("ai.embedMany"),
+	}).then(({ embeddings }) => embeddings);
+
+/** One vector per value, in order. */
+export const embedValues = (
+	connection: EmbeddingConnection,
+	values: readonly string[],
+) =>
+	Effect.tryPromise({
+		try: () => embed(connection, values),
+		catch: (cause) =>
+			new AiError({
+				operation: "embedValues",
+				cause,
+			}),
 	});
-});
 
-export const generateEmbedding = (params: { value: string }) =>
-	Effect.gen(function* () {
-		const { config } = yield* AiConfigService;
-		const provider = yield* getProvider;
+export type EmbeddingTestFailure =
+	| "key-rejected"
+	| "unreachable"
+	| "model-not-found"
+	| "invalid-response";
 
-		const input = trimNewlines(params.value);
-		return yield* Effect.tryPromise({
-			try: () =>
-				embed({
-					model: provider.embedding(config.embedding.model),
-					value: input,
-					...aiTelemetry("ai.embed"),
-				}),
-			catch: (cause) =>
-				new AiError({
-					operation: "generateEmbedding",
-					cause,
-				}),
-		});
-	});
+/** Why a test embedding failed, as far as the endpoint's answer says. */
+export class EmbeddingTestError extends Data.TaggedError("EmbeddingTestError")<{
+	readonly failure: EmbeddingTestFailure;
+	readonly cause: unknown;
+}> {}
 
-export const generateManyEmbeddings = (params: { values: string[] }) =>
-	Effect.gen(function* () {
-		const { config } = yield* AiConfigService;
-		const provider = yield* getProvider;
+const mentionsModel = (error: APICallError) =>
+	/model/i.test(`${error.message} ${error.responseBody ?? ""}`);
 
-		const input = params.values.map((value) => trimNewlines(value));
+const testFailure = (cause: unknown): EmbeddingTestFailure => {
+	if (!APICallError.isInstance(cause)) return "invalid-response";
+	const status = cause.statusCode;
+	if (status === undefined || status >= 500) return "unreachable";
+	if (status === 401 || status === 403) return "key-rejected";
+	if (
+		status === 404 ||
+		((status === 400 || status === 422) && mentionsModel(cause))
+	) {
+		return "model-not-found";
+	}
+	return "invalid-response";
+};
 
-		return yield* Effect.tryPromise({
-			try: () =>
-				embedMany({
-					model: provider.embedding(config.embedding.model),
-					values: input,
-					...aiTelemetry("ai.embedMany"),
-				}),
-			catch: (cause) =>
-				new AiError({
-					operation: "generateManyEmbeddings",
-					cause,
-				}),
-		});
-	});
+/** Embeds one probe value: the model's dimensions, or why the endpoint cannot embed. */
+export const testEmbedding = (connection: EmbeddingConnection) =>
+	Effect.tryPromise({
+		try: () =>
+			embed(
+				connection,
+				[
+					"OrcAI",
+				],
+				0,
+			),
+		catch: (cause) =>
+			new EmbeddingTestError({
+				failure: testFailure(cause),
+				cause,
+			}),
+	}).pipe(
+		Effect.flatMap(([vector]) =>
+			Array.isArray(vector) &&
+			vector.length > 0 &&
+			vector.every((value) => Number.isFinite(value))
+				? Effect.succeed(vector.length)
+				: Effect.fail(
+						new EmbeddingTestError({
+							failure: "invalid-response",
+							cause: new Error("The endpoint returned no usable vector"),
+						}),
+					),
+		),
+	);

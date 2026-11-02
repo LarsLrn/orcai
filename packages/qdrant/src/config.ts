@@ -3,16 +3,6 @@ import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as Schema from "effect/Schema";
-
-const embeddingDimensionsConfig = Config.schema(
-	Schema.Int.check(
-		Schema.isGreaterThan(0, {
-			message: "Expected a positive integer",
-		}),
-	),
-	"EMBEDDING_DIMENSIONS",
-);
 
 export const defaultBm25Config = {
 	tokenizer: "multilingual",
@@ -30,9 +20,6 @@ const qdrantConfig = Config.all({
 	qdrant: Config.all({
 		url: Config.String("QDRANT_URL"),
 		apiKey: Config.Redacted("QDRANT_API_KEY"),
-	}),
-	embedding: Config.all({
-		dimensions: embeddingDimensionsConfig,
 	}),
 });
 

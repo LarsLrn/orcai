@@ -3,13 +3,20 @@
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
+	"scripts": {
+		"seed:dev": "bun scripts/seed-dev-embeddings.ts"
+	},
 	"exports": {
 		".": "./src/index.ts"
 	},
 	"dependencies": {
+		"@effect/sql-pg": "catalog:",
+		"@orcai/ai": "workspace:*",
 		"@orcai/core": "workspace:*",
+		"@orcai/db": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"@qdrant/qdrant-js": "catalog:",
+		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"zod": "catalog:"
 	}

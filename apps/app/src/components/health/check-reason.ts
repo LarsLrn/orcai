@@ -27,6 +27,12 @@ const reasonMessages: Record<CheckReason, (check: Check) => string> = {
 		m.check_reason_config_warnings({
 			count: count(check),
 		}),
+	EMBEDDINGS_READY: () => m.check_reason_embeddings_ready(),
+	EMBEDDINGS_NOT_CONFIGURED: () => m.check_reason_embeddings_not_configured(),
+	EMBEDDINGS_COLLECTION_MISSING: () =>
+		m.check_reason_embeddings_collection_missing(),
+	EMBEDDINGS_COLLECTION_MISMATCH: () =>
+		m.check_reason_embeddings_collection_mismatch(),
 	PROVIDER_READY: () => m.check_reason_provider_ready(),
 	PROVIDER_MISSING: () => m.check_reason_provider_missing(),
 	CHAT_MODEL_READY: () => m.check_reason_chat_model_ready(),

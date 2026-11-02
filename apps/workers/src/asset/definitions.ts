@@ -1,7 +1,7 @@
 import type { PgClient } from "@effect/sql-pg";
-import type { AiConfigService, EncryptionKey } from "@orcai/ai";
+import type { EncryptionKey } from "@orcai/ai";
 import type { DB } from "@orcai/db";
-import type { PgBossService } from "@orcai/pg-boss";
+import { type PgBossService, reconcileEmbeddings } from "@orcai/pg-boss";
 import type { QdrantService } from "@orcai/qdrant";
 import type { S3Service } from "@orcai/s3/server";
 import {
@@ -12,10 +12,12 @@ import {
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
+	RECONCILE_EMBEDDINGS_JOB_NAME,
 	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
+import * as Effect from "effect/Effect";
 import { generateMetadataBatch } from "@/asset/jobs/generate-metadata-job";
 import { processAssetBatch } from "@/asset/jobs/process-asset-job";
 import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
@@ -31,7 +33,6 @@ export type AssetWorkerContext =
 	| S3Service
 	| QdrantService
 	| PgBossService
-	| AiConfigService
 	| EncryptionKey
 	| PgClient.PgClient;
 
@@ -96,5 +97,27 @@ export const assetWorkerDefinitions = [
 			pollingIntervalSeconds: 2,
 		},
 		handler: markIndexingExhausted,
+	}),
+	assetWorker({
+		name: RECONCILE_EMBEDDINGS_JOB_NAME,
+		schedule: "* * * * *",
+		workOptions: {
+			batchSize: 1,
+			localConcurrency: 1,
+			pollingIntervalSeconds: 5,
+		},
+		handler: () =>
+			reconcileEmbeddings.pipe(
+				Effect.tap((admitted) =>
+					admitted > 0
+						? Effect.logInfo(
+								{
+									admitted,
+								},
+								"Admitted repository links to the active embedding generation",
+							)
+						: Effect.void,
+				),
+			),
 	}),
 ] as const;

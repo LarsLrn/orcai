@@ -7,6 +7,7 @@ import {
 	type ProviderKind,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { embeddingSettings } from "@orcai/qdrant";
 import {
 	type ModelCapability,
 	modelUnusableReason,
@@ -37,6 +38,8 @@ export interface ReadinessSnapshot {
 	}[];
 	readonly assistantModelId: ModelId | null;
 	readonly utilityModelId: ModelId | null;
+	/** Whether an instance admin set up embeddings, so files can be searched. */
+	readonly embeddingsConfigured: boolean;
 	readonly memberCount: number;
 	readonly pendingInvitations: number;
 }
@@ -189,6 +192,10 @@ export const evaluateReadiness = (
 				ok: "UTILITY_MODEL_READY",
 				failed: "UTILITY_MODEL_MISSING",
 			}),
+			check("embeddings", "recommended", snapshot.embeddingsConfigured, {
+				ok: "EMBEDDINGS_READY",
+				failed: "EMBEDDINGS_NOT_CONFIGURED",
+			}),
 			check(
 				"members",
 				"recommended",
@@ -224,6 +231,7 @@ const readSnapshot = (organizationId: OrganizationId) =>
 			[organization],
 			[members],
 			[invitations],
+			embeddings,
 		] = yield* Effect.all(
 			[
 				db
@@ -304,6 +312,7 @@ const readSnapshot = (organizationId: OrganizationId) =>
 							gt(dbSchema.invitation.expiresAt, new Date()),
 						),
 					),
+				embeddingSettings,
 			],
 			{
 				concurrency: "unbounded",
@@ -331,6 +340,7 @@ const readSnapshot = (organizationId: OrganizationId) =>
 			],
 			assistantModelId: organization?.assistantModelId ?? null,
 			utilityModelId: organization?.utilityModelId ?? null,
+			embeddingsConfigured: embeddings !== undefined,
 			memberCount: members?.count ?? 0,
 			pendingInvitations: invitations?.count ?? 0,
 		} satisfies ReadinessSnapshot;

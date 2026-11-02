@@ -9,6 +9,7 @@ export const ORGANIZATION_CHECK_IDS = [
 	"assistant-model",
 	"assistant-pool",
 	"utility-model",
+	"embeddings",
 	"members",
 	"coverage",
 ] as const;

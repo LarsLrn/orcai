@@ -7,6 +7,7 @@ import {
 	type StageTarget,
 	settleStage,
 } from "@orcai/pg-boss";
+import { StaleEmbeddingGenerationError } from "@orcai/qdrant";
 import {
 	type GenerateAssetMetadataPayload,
 	isTransientFailure,
@@ -38,6 +39,8 @@ export type IndexingAttempt = {
 	readonly blockId: BlockId;
 	readonly attempt: number;
 	readonly runId?: ActivityRunId;
+	/** A re-embed: the stored extraction as it is, never prepared again. */
+	readonly fromStoredExtraction: boolean;
 };
 
 /** A metadata delivery's attempt: the asset's generation it was queued for. */
@@ -62,6 +65,7 @@ export const indexingAttempt = (
 	blockId: data.blockId,
 	attempt: data.attempt ?? 0,
 	runId: data.runId,
+	fromStoredExtraction: data.fromStoredExtraction ?? false,
 });
 
 const unfinished = (status: Column) =>
@@ -173,8 +177,9 @@ const processingTarget =
 			);
 		});
 
+/** The link's indexing; with `generation`, only while admitted into it. */
 const indexingTarget =
-	(attempt: IndexingAttempt): Target =>
+	(attempt: IndexingAttempt, generation?: number): Target =>
 	(values) =>
 		Effect.gen(function* () {
 			const db = yield* DB;
@@ -194,7 +199,14 @@ const indexingTarget =
 						indexFailure: failureValue(values.failure, blockAsset.indexFailure),
 						indexFailureId: failureIdValue(values),
 					})
-					.where(currentIndexing(attempt))
+					.where(
+						and(
+							currentIndexing(attempt),
+							generation === undefined
+								? undefined
+								: eq(blockAsset.embeddingGeneration, generation),
+						),
+					)
 					.returning({
 						failureId: blockAsset.indexFailureId,
 					}),
@@ -241,17 +253,20 @@ const claim = (target: Target) =>
 export const claimProcessing = (attempt: ProcessingAttempt) =>
 	claim(processingTarget(attempt));
 
-/** Whether the delivery may run: its attempt is current and unfinished, now active. */
-export const claimIndexing = (attempt: IndexingAttempt) =>
-	claim(indexingTarget(attempt));
+/**
+ * Whether the delivery may run on the embedding generation: its attempt is
+ * current, unfinished and admitted into that generation, now active.
+ */
+export const claimIndexing = (attempt: IndexingAttempt, generation: number) =>
+	claim(indexingTarget(attempt, generation));
 
 /**
  * Runs a claimed attempt and keeps the stored status honest. A transient
  * failure records its kind and fails the job so pg-boss retries it; the dead
  * letter handler marks it failed once retries run out. Any other failure
  * marks it failed at once and completes the job. The attempt writes
- * completed itself. Once a newer attempt replaced it, it writes nothing and
- * is not retried.
+ * completed itself. Once a newer attempt or embedding generation replaced it,
+ * it writes nothing and is not retried.
  */
 const settleAttempt = <A, E, R>(
 	target: Target,
@@ -259,6 +274,14 @@ const settleAttempt = <A, E, R>(
 ) =>
 	attempt.pipe(
 		Effect.catch((error) => {
+			if (error instanceof StaleEmbeddingGenerationError) {
+				return Effect.logInfo(
+					{
+						error,
+					},
+					"Not retrying an attempt whose embedding generation was replaced",
+				);
+			}
 			const failure =
 				error instanceof AssetPipelineError ? error.failure : "other";
 			return isTransientFailure(failure)

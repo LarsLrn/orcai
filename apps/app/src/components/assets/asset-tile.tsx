@@ -22,6 +22,7 @@ import {
 	TileTitle,
 } from "@/components/ui/shell/tile";
 import { ResourceOwner } from "@/components/users/resource-owner";
+import { useEmbeddingsConfigured } from "@/hooks/use-embeddings-configured";
 import {
 	assetStateBadge,
 	getPipelineFailureDescription,
@@ -63,6 +64,7 @@ const { Icon, well, band } = RESOURCE_KINDS.asset;
 const assetTileState = (
 	asset: TileAsset,
 	readiness?: TileReadiness,
+	embeddingsConfigured = true,
 ): {
 	badges: BadgeItem[];
 	description: string | null;
@@ -74,7 +76,7 @@ const assetTileState = (
 			? (asset.processingFailure ?? "other")
 			: undefined;
 	const state = readiness
-		? assetStateBadge(readiness.state)
+		? assetStateBadge(readiness.state, embeddingsConfigured)
 		: asset.processingStatus === "completed"
 			? null
 			: processingStatusBadge(asset.processingStatus);
@@ -120,7 +122,12 @@ const AssetTileBody = ({
 	title: React.ReactNode;
 	provenance?: React.ReactNode;
 }) => {
-	const { badges, description, failed } = assetTileState(asset, readiness);
+	const embeddingsConfigured = useEmbeddingsConfigured();
+	const { badges, description, failed } = assetTileState(
+		asset,
+		readiness,
+		embeddingsConfigured,
+	);
 
 	return (
 		<TileBody>

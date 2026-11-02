@@ -18,6 +18,7 @@ export * from "./feature";
 export * from "./group";
 export * from "./instance";
 export * from "./instance-health";
+export * from "./instance-settings";
 export * from "./jobs";
 export * from "./library";
 export * from "./model";

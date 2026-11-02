@@ -67,6 +67,7 @@ import {
 	usePublishBotMutation,
 	useSaveBotEditorMutation,
 } from "@/hooks/mutations/use-bot-mutations";
+import { useEmbeddingsConfigured } from "@/hooks/use-embeddings-configured";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
@@ -1334,8 +1335,9 @@ const ReadOnlyBehaviourCard = ({
 
 /** An asset's state in the repository; nothing once it is ready. */
 const AssetStateBadge = ({ state }: { state: AssetState | undefined }) => {
+	const embeddingsConfigured = useEmbeddingsConfigured();
 	if (!state || state === "ready") return null;
-	const { label, variant } = assetStateBadge(state);
+	const { label, variant } = assetStateBadge(state, embeddingsConfigured);
 	return <Badge variant={variant}>{label}</Badge>;
 };
 

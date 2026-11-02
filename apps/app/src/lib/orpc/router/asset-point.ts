@@ -1,4 +1,3 @@
-import { generateEmbedding } from "@orcai/ai";
 import type { BlockId } from "@orcai/core";
 import { RAG_SETTINGS } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
@@ -6,7 +5,9 @@ import {
 	browseAssetPoints,
 	buildQdrantFilter,
 	dedupeById,
+	EmbeddingGeneration,
 	mergeRecallCandidates,
+	onActiveGeneration,
 	queryAssetPoints,
 	rerankHybrid,
 	resolveScoreThreshold,
@@ -74,10 +75,25 @@ const linkedPoints = (points: readonly AssetPoint[]) =>
 		});
 	});
 
+/** Runs `read` on the active embedding generation; without one, search is unavailable. */
+const onSearchGeneration = <A, E, R>(read: Effect.Effect<A, E, R>) =>
+	onActiveGeneration(read).pipe(
+		Effect.catchTag("EmbeddingsNotConfiguredError", (cause) =>
+			Effect.fail(
+				new AppErrors.ConflictError({
+					reason: "EMBEDDINGS_NOT_CONFIGURED",
+					message:
+						"Search is unavailable until an instance admin sets up embeddings.",
+					cause,
+				}),
+			),
+		),
+	);
+
 const retrieveAssetPoints = (
 	filters: z.infer<typeof assetPointsFiltersSchema>,
 ) =>
-	queryPoints(filters).pipe(
+	onSearchGeneration(queryPoints(filters)).pipe(
 		Effect.flatMap((result) =>
 			linkedPoints(result.data).pipe(
 				Effect.map((data) => ({
@@ -193,27 +209,13 @@ const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 			},
 		];
 
-		const variants =
-			retrievalMode === "sparse"
-				? searchQueries.map((query) => ({
-						query,
-						embedding: undefined,
-					}))
-				: yield* Effect.forEach(
-						searchQueries,
-						(query) =>
-							generateEmbedding({
-								value: query,
-							}).pipe(
-								Effect.map(({ embedding }) => ({
-									query,
-									embedding,
-								})),
-							),
-						{
-							concurrency: 4,
-						},
-					);
+		const { embed } = yield* EmbeddingGeneration;
+		const embeddings =
+			retrievalMode === "sparse" ? undefined : yield* embed(searchQueries);
+		const variants = searchQueries.map((query, index) => ({
+			query,
+			embedding: embeddings?.[index],
+		}));
 
 		const recallCandidates = new Map<
 			string,
@@ -404,27 +406,29 @@ const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 			};
 		}
 
-		return yield* browseAssetPoints({
-			filter: {
-				must: [
-					{
-						key: "block_id",
-						match: {
-							value: input.repositoryId,
+		return yield* onSearchGeneration(
+			browseAssetPoints({
+				filter: {
+					must: [
+						{
+							key: "block_id",
+							match: {
+								value: input.repositoryId,
+							},
 						},
-					},
-					{
-						key: "asset_id",
-						match: {
-							any: assetIds,
+						{
+							key: "asset_id",
+							match: {
+								any: assetIds,
+							},
 						},
-					},
-				],
-			},
-			order: input.assetId ? "reading" : "point",
-			cursor: input.cursor,
-			limit: BROWSE_PAGE_SIZE,
-		}).pipe(
+					],
+				},
+				order: input.assetId ? "reading" : "point",
+				cursor: input.cursor,
+				limit: BROWSE_PAGE_SIZE,
+			}),
+		).pipe(
 			Effect.flatMap((page) =>
 				linkedPoints(page.data).pipe(
 					Effect.map((data) => ({

@@ -323,10 +323,14 @@ const runRetries = (params: {
 			}),
 	);
 
+/** The stage a retry runs: indexing without its stored extraction prepares the file again. */
+const retryStage = (failure: NonNullable<AssetReadiness["failure"]>) =>
+	failure.kind === "missing_extraction" ? "processing" : failure.stage;
+
 /**
- * Runs one asset's stage again: processing when the file failed,
- * otherwise indexing in this repository. An asset still being prepared has
- * nothing to retry.
+ * Runs one asset's stage again: processing when the file failed or its
+ * stored extraction is missing, otherwise indexing in this repository. An
+ * asset still being prepared has nothing to retry.
  */
 export const prepareRepositoryAssetAgain = (params: {
 	userId: UserId;
@@ -350,7 +354,7 @@ export const prepareRepositoryAssetAgain = (params: {
 		const { state, failure } = assetState(asset);
 		const stage =
 			state === "failed"
-				? failure?.stage
+				? failure && retryStage(failure)
 				: state === "ready"
 					? "indexing"
 					: undefined;
@@ -401,7 +405,7 @@ export const prepareRepositoryFailedAgain = (params: {
 				? [
 						{
 							asset,
-							stage: failure.stage,
+							stage: retryStage(failure),
 						},
 					]
 				: [];

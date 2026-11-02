@@ -1,4 +1,4 @@
-import { AiConfigService, EncryptionKey } from "@orcai/ai";
+import { EncryptionKey } from "@orcai/ai";
 import type { ProbeResult } from "@orcai/core";
 import {
 	DB,
@@ -11,6 +11,8 @@ import {
 import { otlpEndpointHost } from "@orcai/observability";
 import { type PgBossProbeResult, probePgBoss } from "@orcai/pg-boss";
 import {
+	embeddingSettings,
+	inspectActiveCollection,
 	probeQdrant,
 	QdrantConfigLive,
 	QdrantConfigService,
@@ -37,6 +39,7 @@ import * as Cause from "effect/Cause";
 import type * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import { AppConfigService } from "@/lib/effect/services/config";
 import { version } from "../../../package.json" with { type: "json" };
 import { summarizeConfig } from "./config-summary";
@@ -71,6 +74,12 @@ export interface HealthSources<R> {
 	readonly probes: {
 		readonly [K in DependencyId]: Effect.Effect<ProbeResult, unknown, R>;
 	};
+	/** The active embedding collection as Qdrant has it; undefined before setup. */
+	readonly embeddings: Effect.Effect<
+		EmbeddingsInspection | undefined,
+		unknown,
+		R
+	>;
 	readonly pgBoss: Effect.Effect<PgBossProbeResult, unknown, R>;
 	readonly mail: Effect.Effect<InstanceMail, unknown, R>;
 	readonly migration: Effect.Effect<InstanceVersions["migration"], unknown, R>;
@@ -79,6 +88,8 @@ export interface HealthSources<R> {
 	readonly appVersion: string;
 	readonly timeout: Duration.Input;
 }
+
+type EmbeddingsInspection = Effect.Success<typeof inspectActiveCollection>;
 
 const describeFailure = (cause: Cause.Cause<unknown>) => {
 	const error = Cause.squash(cause);
@@ -169,6 +180,50 @@ const dependencyCheck = (
 				status: "failing",
 				reason: "DEPENDENCY_DEGRADED",
 				detail: outcome.value.detail,
+			};
+};
+
+const embeddingsCheck = (
+	outcome: Outcome<EmbeddingsInspection | undefined>,
+	timeout: Duration.Input,
+): InstanceCheck => {
+	const check = {
+		id: "embeddings",
+		severity: "required",
+	} as const;
+	if (outcome._tag !== "Done") {
+		return {
+			...check,
+			...unreachable(outcome, timeout),
+		};
+	}
+	const inspection = outcome.value;
+	if (!inspection) {
+		return {
+			...check,
+			status: "failing",
+			reason: "EMBEDDINGS_NOT_CONFIGURED",
+		};
+	}
+	if (inspection.collectionDimensions === null) {
+		return {
+			...check,
+			status: "failing",
+			reason: "EMBEDDINGS_COLLECTION_MISSING",
+			detail: inspection.collection,
+		};
+	}
+	return inspection.collectionDimensions === inspection.dimensions
+		? {
+				...check,
+				status: "ok",
+				reason: "EMBEDDINGS_READY",
+			}
+		: {
+				...check,
+				status: "failing",
+				reason: "EMBEDDINGS_COLLECTION_MISMATCH",
+				detail: `${inspection.collection}: ${inspection.collectionDimensions} dimensions, expected ${inspection.dimensions}`,
 			};
 };
 
@@ -279,20 +334,22 @@ export const checkInstance = <R>(
 	Effect.gen(function* () {
 		const { timeout } = sources;
 		const ids = Object.keys(DEPENDENCIES) as DependencyId[];
-		const [dependencies, pgBoss, mail, migration, config] = yield* Effect.all(
-			[
-				Effect.forEach(ids, (id) => settle(sources.probes[id], timeout), {
+		const [dependencies, embeddings, pgBoss, mail, migration, config] =
+			yield* Effect.all(
+				[
+					Effect.forEach(ids, (id) => settle(sources.probes[id], timeout), {
+						concurrency: "unbounded",
+					}),
+					settle(sources.embeddings, timeout),
+					settle(sources.pgBoss, timeout),
+					settle(sources.mail, timeout),
+					settle(sources.migration, timeout),
+					settle(sources.config, timeout),
+				],
+				{
 					concurrency: "unbounded",
-				}),
-				settle(sources.pgBoss, timeout),
-				settle(sources.mail, timeout),
-				settle(sources.migration, timeout),
-				settle(sources.config, timeout),
-			],
-			{
-				concurrency: "unbounded",
-			},
-		);
+				},
+			);
 		const byId = Object.fromEntries(
 			ids.map((id, index) => [
 				id,
@@ -304,6 +361,7 @@ export const checkInstance = <R>(
 		return {
 			checks: [
 				...ids.map((id) => dependencyCheck(id, byId[id], timeout)),
+				embeddingsCheck(embeddings, timeout),
 				workersCheck(pgBoss, timeout),
 				mailCheck(mail, timeout),
 				configCheck(sources.configWarnings),
@@ -407,7 +465,7 @@ const mailSummary = (viewerEmail: string) =>
 
 const appProcessConfig = Effect.gen(function* () {
 	const app = yield* AppConfigService;
-	const { config: ai } = yield* AiConfigService;
+	const embeddings = yield* embeddingSettings;
 	const { config: db } = yield* DbConfigService;
 	const { config: spice } = yield* SpiceDbConfigService;
 	const { config: qdrant } = yield* QdrantConfigService;
@@ -422,13 +480,16 @@ const appProcessConfig = Effect.gen(function* () {
 		umami: app.publicConfig.umami,
 		postgres: db.postgres,
 		spicedb: spice.spice,
-		qdrant: {
-			...qdrant.qdrant,
-			embeddingDimensions: qdrant.embedding.dimensions,
-		},
+		qdrant: qdrant.qdrant,
 		valkey: valkey.valkey,
 		s3,
-		ai,
+		embeddings: {
+			baseUrl: embeddings?.baseUrl,
+			apiKey: Redacted.make(embeddings ? "set" : ""),
+			model: embeddings?.model,
+			dimensions: embeddings?.dimensions,
+			collection: embeddings?.collection,
+		},
 		otel: {
 			endpointHost: otlpEndpointHost(),
 		},
@@ -456,6 +517,7 @@ export const instanceHealth = (viewer: { readonly email: string }) =>
 			| Effect.Services<typeof probeQdrant>
 			| Effect.Services<typeof probeS3>
 			| Effect.Services<typeof probeValkey>
+			| Effect.Services<typeof inspectActiveCollection>
 			| Effect.Services<typeof probePgBoss>
 			| Effect.Services<typeof mail>
 			| Effect.Services<typeof appProcessConfig>
@@ -467,6 +529,7 @@ export const instanceHealth = (viewer: { readonly email: string }) =>
 				s3: probeS3,
 				valkey: probeValkey,
 			},
+			embeddings: inspectActiveCollection,
 			pgBoss: probePgBoss,
 			mail,
 			migration: findLatestMigration,

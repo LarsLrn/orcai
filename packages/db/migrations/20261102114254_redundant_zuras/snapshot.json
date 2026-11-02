@@ -1,0 +1,267 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "e21fe8b4-2bd3-4356-8426-51383fdf7279",
+  "prevIds": [
+    "4e9251c4-7bc2-4bab-9820-30d19215d014"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_sequence",
+      "statementTarget": [
+        "sequence",
+        "public",
+        "embedding_generation_seq"
+      ],
+      "writes": [
+        "s|seq|public.embedding_generation_seq",
+        "n|seq|public.embedding_generation_seq",
+        "e|seq|public.embedding_generation_seq",
+        "n|rel|public.embedding_generation_seq"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "instance_settings"
+      ],
+      "writes": [
+        "s|tbl|public.instance_settings",
+        "n|tbl|public.instance_settings",
+        "e|tbl|public.instance_settings",
+        "n|rel|public.instance_settings",
+        "n|type|public.instance_settings",
+        "n|rel|public.instance_settings_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "block_asset",
+        "embedding_generation"
+      ],
+      "writes": [
+        "s|col|public.block_asset.embedding_generation",
+        "n|col|public.block_asset.embedding_generation",
+        "e|col|public.block_asset.embedding_generation"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "instance_settings",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "embedding_generation",
+        "type": "bigint",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "id",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "true",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_generation",
+        "type": "bigint",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_base_url",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_api_key_encrypted",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_model",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_dimensions",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_collection",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "instance_settings_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "instance_settings_singleton",
+        "value": "\"id\"",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "instance_settings_embedding_complete",
+        "value": "(embedding_generation is null and embedding_base_url is null and embedding_api_key_encrypted is null and embedding_model is null and embedding_dimensions is null and embedding_collection is null) or (embedding_generation is not null and embedding_base_url is not null and embedding_api_key_encrypted is not null and embedding_model is not null and embedding_dimensions is not null and embedding_collection is not null)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "embedding_generation_seq",
+        "incrementBy": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "startWith": "1",
+        "cacheSize": 1,
+        "cycle": false,
+        "entityType": "sequences"
+      }
+    }
+  ]
+}

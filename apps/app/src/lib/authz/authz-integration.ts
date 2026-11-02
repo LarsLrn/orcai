@@ -10,6 +10,7 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
+import { EmbeddingIndex, type EmbeddingIndexScope } from "@orcai/qdrant";
 import { SpiceDbService } from "@orcai/spice-db";
 import {
 	createJobQueues,
@@ -18,6 +19,7 @@ import {
 	IntegrationLive,
 } from "@orcai/testing";
 import { and, count, eq, ne, sql } from "drizzle-orm";
+import * as Context from "effect/Context";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -227,17 +229,46 @@ export const failingWritesAbout = (
 	};
 };
 
+/** Call options whose procedures run on `index` instead of the instance's embedding index. */
+export const onEmbeddingIndex = <
+	O extends {
+		readonly context: {
+			readonly "effect/context": Context.Context<never>;
+		};
+	},
+>(
+	options: O,
+	index: EmbeddingIndexScope,
+): O => ({
+	...options,
+	context: {
+		...options.context,
+		"effect/context": Context.add(
+			options.context["effect/context"],
+			EmbeddingIndex,
+			index,
+		),
+	},
+});
+
 /**
  * The app's layers over the stack, disposed after the file, with helpers that
- * create organizations, users and resources and read both stores.
+ * create organizations, users and resources and read both stores. With
+ * `embeddingIndex`, everything runs on it instead of the instance's.
  */
-export const authzIntegration = () => {
+export const authzIntegration = (
+	options: { readonly embeddingIndex?: EmbeddingIndexScope } = {},
+) => {
 	// Loading the router while the app layer builds blocks the event loop for
 	// seconds, so the instance check connects only once it is built.
 	const runtime = ManagedRuntime.make(
-		Layer.mergeAll(IntegrationLive, JobQueuesLive).pipe(
-			Layer.provideMerge(AppLayer),
-		),
+		Layer.mergeAll(
+			IntegrationLive,
+			JobQueuesLive,
+			options.embeddingIndex
+				? Layer.succeed(EmbeddingIndex, options.embeddingIndex)
+				: Layer.empty,
+		).pipe(Layer.provideMerge(AppLayer)),
 	);
 	afterAll(() => runtime.dispose());
 

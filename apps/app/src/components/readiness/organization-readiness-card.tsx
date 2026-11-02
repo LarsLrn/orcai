@@ -18,7 +18,8 @@ const checks: Record<
 	OrganizationCheckId,
 	{
 		title: () => string;
-		fix: LinkProps["to"];
+		/** Where a manager fixes it; none when only an instance admin can. */
+		fix?: LinkProps["to"];
 	}
 > = {
 	provider: {
@@ -44,6 +45,9 @@ const checks: Record<
 	"utility-model": {
 		title: m.readiness_check_utility_model_title,
 		fix: "/app/organization",
+	},
+	embeddings: {
+		title: m.readiness_check_embeddings_title,
 	},
 	members: {
 		title: m.readiness_check_members_title,
@@ -107,11 +111,11 @@ export const OrganizationReadinessCard = () => {
 							>
 								{m.readiness_fix_action()}
 							</Link>
-						) : (
+						) : checks[check.id].fix ? (
 							<Link to={checks[check.id].fix} className={fixClassName}>
 								{m.readiness_fix_action()}
 							</Link>
-						)
+						) : null
 					}
 				/>
 			</CardContent>

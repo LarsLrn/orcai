@@ -7,6 +7,7 @@ export const INSTANCE_CHECK_IDS = [
 	"qdrant",
 	"s3",
 	"valkey",
+	"embeddings",
 	"workers",
 	"mail",
 	"config",

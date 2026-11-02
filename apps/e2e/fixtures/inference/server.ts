@@ -6,7 +6,7 @@ import {
 } from "node:http";
 import type { AddressInfo } from "node:net";
 
-/** The models the mock serves; `EMBEDDING_MODEL` points at the embedding model. */
+/** The models the mock serves; the setup project saves the embedding model on the Settings page. */
 export const INFERENCE_MOCK_MODELS = {
 	chat: "e2e-mock-chat",
 	embedding: "e2e-mock-embedding",

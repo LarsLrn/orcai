@@ -79,15 +79,14 @@ a 401.
   held responses, and restarts the counters. Call it at the top of a spec: the
   fixture is worker-scoped, so the mock outlives a single test.
 
-## The global endpoint
+## The embedding endpoint
 
-Only a provider entity's `endpoint` is per request. Embeddings read
-`OPENAI_COMPATIBLE_BASE_URL` from the environment, so pointing those at the mock means the app has to start with the
-mock's URL already known. `fixtures/inference/serve.ts` is that entry: it
-starts the mock on `E2E_INFERENCE_PORT` with `EMBEDDING_DIMENSIONS` and stays
-up. It is the first `webServer` entry in `apps/e2e/playwright.config.ts`, so
-it comes up before the app, and `scripts/stack.ts` points the app's
-`OPENAI_COMPATIBLE_BASE_URL` at it for every `bun run stack e2e` run.
+Only a provider entity's `endpoint` is per request. Embeddings use the
+instance's embedding setting, which the `setup` project saves on the Settings
+page right after `/init`: the mock's URL, any key and its embedding model.
+`fixtures/inference/serve.ts` starts that mock on `E2E_INFERENCE_PORT` with
+1024 dimensions and keeps it up. It is the first `webServer` entry in
+`apps/e2e/playwright.config.ts`, so it answers the setting's test embedding.
 
 The global mock refuses to reuse an existing server. Worker-local mocks reset
 settings and recorded requests before and after each test, including failures.

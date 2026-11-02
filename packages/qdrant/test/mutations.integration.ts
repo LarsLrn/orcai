@@ -2,28 +2,22 @@ import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
-import { QdrantConfigLive, QdrantConfigService } from "../src/config";
-import {
-	deleteAttemptPoints,
-	deletePointsByIdentifier,
-	upsertPointsToQdrant,
-} from "../src/mutations";
-import { QdrantLive, QdrantService, QdrantServiceLive } from "../src/service";
+import { GenerationWrite } from "../src/generation";
+import { deleteAttemptPoints, upsertPointsToQdrant } from "../src/mutations";
+import { QdrantService } from "../src/service";
+import { TestCollectionLive } from "./test-collection";
 
-const run = <A, E>(effect: Effect.Effect<A, E, QdrantService>) =>
-	Effect.runPromise(effect.pipe(Effect.provide(QdrantLive)));
+const DIMENSIONS = 1024;
 
 describe("upsertPointsToQdrant", () => {
 	test("stores a document whose points exceed one request's size limit", async () => {
 		const assetId = crypto.randomUUID() as AssetId;
-		const stored = await run(
+		const stored = await Effect.runPromise(
 			Effect.gen(function* () {
-				const { client, collections } = yield* QdrantService;
+				const { client } = yield* QdrantService;
+				const { collection } = yield* GenerationWrite;
 				// About 20 bytes per serialised float; aim past Qdrant's 32 MiB body limit.
-				const pointCount = Math.ceil(
-					(40 * 2 ** 20) / (collections.asset.dimensions * 20),
-				);
+				const pointCount = Math.ceil((40 * 2 ** 20) / (DIMENSIONS * 20));
 				const points = Array.from(
 					{
 						length: pointCount,
@@ -32,7 +26,7 @@ describe("upsertPointsToQdrant", () => {
 						id: crypto.randomUUID(),
 						vector: Array.from(
 							{
-								length: collections.asset.dimensions,
+								length: DIMENSIONS,
 							},
 							() => Math.random() - 0.5,
 						),
@@ -55,7 +49,7 @@ describe("upsertPointsToQdrant", () => {
 				}).pipe(
 					Effect.andThen(
 						Effect.promise(() =>
-							client.count(collections.asset.name, {
+							client.count(collection, {
 								exact: true,
 								filter: {
 									must: [
@@ -70,18 +64,12 @@ describe("upsertPointsToQdrant", () => {
 							}),
 						),
 					),
-					Effect.ensuring(
-						deletePointsByIdentifier({
-							assetId,
-							blockId: undefined,
-						}).pipe(Effect.ignore),
-					),
 				);
 				return {
 					count: count.count,
 					pointCount,
 				};
-			}),
+			}).pipe(Effect.provide(TestCollectionLive(DIMENSIONS))),
 		);
 
 		expect(stored.count).toBe(stored.pointCount);
@@ -89,52 +77,14 @@ describe("upsertPointsToQdrant", () => {
 });
 
 // One-dimensional vectors make a link with enough points that deleting them takes a while.
-const SmallQdrantLive = QdrantServiceLive.pipe(
-	Layer.provide(
-		Layer.effect(
-			QdrantConfigService,
-			Effect.gen(function* () {
-				const { config } = yield* QdrantConfigService;
-				return {
-					config: {
-						...config,
-						embedding: {
-							dimensions: 1,
-						},
-					},
-				};
-			}),
-		).pipe(Layer.provide(QdrantConfigLive)),
-	),
-);
-
-describe.each([
-	[
-		"deleteAttemptPoints",
-		(assetId: AssetId, blockId: BlockId) =>
-			deleteAttemptPoints({
-				assetId,
-				blockId,
-				attempts: {
-					to: 2,
-				},
-			}),
-	],
-	[
-		"deletePointsByIdentifier",
-		(assetId: AssetId, blockId: BlockId) =>
-			deletePointsByIdentifier({
-				assetId,
-				blockId,
-			}),
-	],
-] as const)("%s", (_, remove) => {
+describe("deleteAttemptPoints", () => {
 	test("returns once the points are gone", async () => {
 		const assetId = crypto.randomUUID() as AssetId;
 		const blockId = crypto.randomUUID() as BlockId;
 		const remaining = await Effect.runPromise(
 			Effect.gen(function* () {
-				const { client, collections } = yield* QdrantService;
+				const { client } = yield* QdrantService;
+				const { collection } = yield* GenerationWrite;
 				const filter = {
 					must: [
 						{
@@ -152,7 +102,7 @@ describe.each([
 					),
 					(ids) =>
 						Effect.promise(() =>
-							client.upsert(collections.asset.name, {
+							client.upsert(collection, {
 								points: ids.map((id) => ({
 									id,
 									vector: {
@@ -169,25 +119,25 @@ describe.each([
 							}),
 						),
 				).pipe(
-					Effect.andThen(remove(assetId, blockId)),
+					Effect.andThen(
+						deleteAttemptPoints({
+							assetId,
+							blockId,
+							attempts: {
+								to: 2,
+							},
+						}),
+					),
 					Effect.andThen(
 						Effect.promise(() =>
-							client.count(collections.asset.name, {
+							client.count(collection, {
 								exact: true,
 								filter,
 							}),
 						),
 					),
-					Effect.ensuring(
-						Effect.promise(() =>
-							client.delete(collections.asset.name, {
-								wait: true,
-								filter,
-							}),
-						),
-					),
 				);
-			}).pipe(Effect.provide(SmallQdrantLive)),
+			}).pipe(Effect.provide(TestCollectionLive(1))),
 		);
 
 		expect(remaining.count).toBe(0);

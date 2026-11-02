@@ -1,10 +1,30 @@
 export * from "./browse";
+export { assetPointIndex } from "./collections";
 export type { QdrantConfig } from "./config";
 export {
 	QdrantConfigLive,
 	QdrantConfigService,
 } from "./config";
-export { QdrantError } from "./errors";
+export {
+	EmbeddingModelChangeError,
+	EmbeddingsNotConfiguredError,
+	QdrantError,
+	StaleEmbeddingGenerationError,
+} from "./errors";
+export {
+	activeGeneration,
+	configureEmbeddings,
+	EmbeddingGeneration,
+	EmbeddingIndex,
+	type EmbeddingIndexScope,
+	embeddingSettings,
+	GenerationWrite,
+	inspectActiveCollection,
+	maintainCollections,
+	onActiveGeneration,
+	storedEmbeddingApiKey,
+	writeGeneration,
+} from "./generation";
 export * from "./mutations";
 export { probeQdrant } from "./probe";
 export * from "./queries";

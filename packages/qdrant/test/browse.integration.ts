@@ -1,14 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import type { AssetPointBrowseCursor } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as ManagedRuntime from "effect/ManagedRuntime";
 import { browseAssetPoints } from "../src/browse";
-import {
-	deletePointsByIdentifier,
-	upsertPointsToQdrant,
-} from "../src/mutations";
+import { upsertPointsToQdrant } from "../src/mutations";
 import { QdrantLive, QdrantService } from "../src/service";
+import { TestCollectionLive } from "./test-collection";
 
 let calls = 0;
 
@@ -35,8 +34,13 @@ const CountingQdrant = Layer.effect(
 	}),
 ).pipe(Layer.provide(QdrantLive));
 
-const run = <A, E>(effect: Effect.Effect<A, E, QdrantService>) =>
-	Effect.runPromise(effect.pipe(Effect.provide(CountingQdrant)));
+const dimensions = 4;
+const runtime = ManagedRuntime.make(
+	TestCollectionLive(dimensions, CountingQdrant),
+);
+const run = runtime.runPromise;
+
+afterAll(() => runtime.dispose());
 
 describe("browseAssetPoints in reading order", () => {
 	test("pages a document of more than 1,000 passages with at most four requests a page", async () => {
@@ -71,10 +75,9 @@ describe("browseAssetPoints in reading order", () => {
 
 		const pages = await run(
 			Effect.gen(function* () {
-				const { collections } = yield* QdrantService;
 				const vector = Array.from(
 					{
-						length: collections.asset.dimensions,
+						length: dimensions,
 					},
 					(_, position) => (position === 0 ? 1 : 0),
 				);
@@ -135,14 +138,7 @@ describe("browseAssetPoints in reading order", () => {
 					cursor = page.nextCursor ?? undefined;
 				} while (cursor);
 				return read;
-			}).pipe(
-				Effect.ensuring(
-					deletePointsByIdentifier({
-						assetId,
-						blockId,
-					}).pipe(Effect.ignore),
-				),
-			),
+			}),
 		);
 
 		const expected = [

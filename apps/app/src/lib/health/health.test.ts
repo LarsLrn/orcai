@@ -33,6 +33,11 @@ const sources = (
 		s3: ok,
 		valkey: ok,
 	},
+	embeddings: Effect.succeed({
+		collection: "orcai-chunks-g1-bge-m3-1024",
+		dimensions: 1024,
+		collectionDimensions: 1024,
+	}),
 	pgBoss: Effect.succeed({
 		ok: true,
 		processes: [
@@ -93,6 +98,10 @@ describe("checkInstance", () => {
 			],
 			[
 				"valkey",
+				"ok",
+			],
+			[
+				"embeddings",
 				"ok",
 			],
 			[
@@ -162,6 +171,47 @@ describe("checkInstance", () => {
 			status: "failing",
 			reason: "DEPENDENCY_DEGRADED",
 			detail: "Bucket not reachable: uploads.",
+		});
+	});
+
+	test("fails embeddings until they are set up, and a missing or mismatched collection", async () => {
+		const embeddingsCheck = async (
+			embeddings: HealthSources<never>["embeddings"],
+		) =>
+			(
+				await run({
+					embeddings,
+				})
+			).checks.find((check) => check.id === "embeddings");
+
+		expect(await embeddingsCheck(Effect.succeed(undefined))).toMatchObject({
+			status: "failing",
+			severity: "required",
+			reason: "EMBEDDINGS_NOT_CONFIGURED",
+		});
+		expect(
+			await embeddingsCheck(
+				Effect.succeed({
+					collection: "orcai-chunks-g2-bge-m3-1024",
+					dimensions: 1024,
+					collectionDimensions: null,
+				}),
+			),
+		).toMatchObject({
+			status: "failing",
+			reason: "EMBEDDINGS_COLLECTION_MISSING",
+		});
+		expect(
+			await embeddingsCheck(
+				Effect.succeed({
+					collection: "orcai-chunks-g2-bge-m3-1024",
+					dimensions: 1024,
+					collectionDimensions: 768,
+				}),
+			),
+		).toMatchObject({
+			status: "failing",
+			reason: "EMBEDDINGS_COLLECTION_MISMATCH",
 		});
 	});
 

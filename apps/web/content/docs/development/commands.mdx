@@ -13,7 +13,9 @@ Run these commands from the repository root unless noted otherwise.
 
 Each checkout owns an isolated Docker Compose project with per-worktree ports stored in a gitignored `.env`. `bun run stack` starts the backing services from `docker-compose.yaml` with the `docker-compose.infra.yaml` override, which publishes them on loopback ports. The app, workers and docs site run on the host.
 
-Overrides shared by every worktree on the machine, such as a real `OPENAI_COMPATIBLE_*` endpoint for embeddings, go in `~/.config/orcai/dev.env` or the file `ORCAI_DEV_ENV_FILE` names. They are merged on top of the generated defaults whenever `.env` is created or regenerated.
+Overrides shared by every worktree on the machine go in `~/.config/orcai/dev.env` or the file `ORCAI_DEV_ENV_FILE` names. They are merged on top of the generated defaults whenever `.env` is created or regenerated.
+
+`bun run stack up` and `bun run stack reset` seed a placeholder embedding setting (`http://127.0.0.1:11434/v1`, model `baai/bge-m3`, 1024 dimensions) unless one is stored. Change it to a real endpoint on the instance **Settings** page.
 
 Inside the devcontainer, `ORCAI_ENV_FILE` points the runner at `.devcontainer/.env`. Only `dev`, `workers`, `web`, `exec` and `migrate` apply there.
 

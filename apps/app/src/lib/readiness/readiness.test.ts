@@ -58,6 +58,7 @@ const ready: ReadinessSnapshot = {
 	],
 	assistantModelId: chat,
 	utilityModelId: textOnly,
+	embeddingsConfigured: true,
 	memberCount: 2,
 	pendingInvitations: 0,
 };
@@ -88,6 +89,7 @@ describe("evaluateReadiness", () => {
 			"assistant-model": "ok",
 			"assistant-pool": "ok",
 			"utility-model": "ok",
+			embeddings: "ok",
 			members: "ok",
 			coverage: "ok",
 		});
@@ -100,6 +102,7 @@ describe("evaluateReadiness", () => {
 			pools: [],
 			assistantModelId: null,
 			utilityModelId: null,
+			embeddingsConfigured: false,
 			memberCount: 1,
 			pendingInvitations: 0,
 		};
@@ -110,11 +113,15 @@ describe("evaluateReadiness", () => {
 			"assistant-model": "failing",
 			"assistant-pool": "failing",
 			"utility-model": "warning",
+			embeddings: "warning",
 			members: "warning",
 			coverage: "warning",
 		});
 		expect(checkOf(fresh, "assistant-model", 1)?.reason).toBe(
 			"ASSISTANT_MODEL_MISSING",
+		);
+		expect(checkOf(fresh, "embeddings", 1)?.reason).toBe(
+			"EMBEDDINGS_NOT_CONFIGURED",
 		);
 	});
 
