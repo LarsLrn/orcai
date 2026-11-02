@@ -57,7 +57,7 @@ change in the app. An event whose payload the app cannot read is moved to
 
 ## Migrations
 
-Docker Compose applies the database migrations and the SpiceDB schema with one-shot services each time the stack starts. The SpiceDB schema is written only after the database migrations succeed, so a failed migration leaves both unchanged. On a manual setup, apply both with:
+Docker Compose applies the database migrations and the SpiceDB schema with one-shot services each time the stack starts. The SpiceDB schema is written only after the database migrations succeed, so a failed migration leaves both unchanged. The one-shot services do not restart, so a failed migration stops the start at once. Coolify ignores them in the application status once they have exited. On a manual setup, apply both with:
 
 ```bash title="Repository root"
 bun run stack migrate

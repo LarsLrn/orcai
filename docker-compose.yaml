@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,7 +41,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: app
-    restart: on-failure:5
+    restart: "no"
 
   # SeaweedFS S3-Compatible Object Storage
   seaweedfs:
@@ -248,7 +248,7 @@ services:
       SPICEDB_DATASTORE_ENGINE: postgres
       SPICEDB_DATASTORE_CONN_URI: postgres://${SPICEDB_POSTGRES_USER:-postgres}:${SPICEDB_POSTGRES_PASSWORD:-postgres}@spicedb-database:5432/spicedb
     healthcheck:
-      test: ["CMD", "spicedb", "datastore", "head"]
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:50051"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -261,7 +261,7 @@ services:
   spicedb-migrate:
     image: "authzed/spicedb:v1.57.0"
     command: "migrate head"
-    restart: on-failure:5
+    restart: "no"
     environment:
       SPICEDB_SKIP_RELEASE_CHECK: "true"
       SPICEDB_DATASTORE_ENGINE: postgres
@@ -283,7 +283,7 @@ services:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
-    restart: on-failure:5
+    restart: "no"
 
   spicedb-database:
     image: "postgres:17.11"
@@ -297,7 +297,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${SPICEDB_POSTGRES_USER:-postgres} -d spicedb",
+          "pg_isready -h 127.0.0.1 -U ${SPICEDB_POSTGRES_USER:-postgres} -d spicedb",
         ]
       interval: 10s
       timeout: 5s
