@@ -1,6 +1,10 @@
 import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { EmbeddingIndex, maintainCollections } from "@orcai/qdrant";
+import {
+	EmbeddingIndex,
+	maintainCollections,
+	writeGeneration,
+} from "@orcai/qdrant";
 import {
 	isRetryableFailure,
 	PIPELINE_FAILURES,
@@ -8,13 +12,17 @@ import {
 } from "@orcai/schema";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { type ObservedLink, queueIndexing } from "./asset-pipeline";
+import {
+	type ObservedLink,
+	queueIndexing,
+	queueProcessing,
+} from "./asset-pipeline";
 
 const ADMISSION_BATCH = 500;
 
 /**
  * Failures embedding the stored extraction again can help. A missing
- * extraction needs its file prepared again, which a repository's retry does.
+ * extraction needs its asset prepared again instead.
  */
 const REEMBEDDABLE_FAILURES: readonly PipelineFailure[] =
 	PIPELINE_FAILURES.filter(
@@ -176,6 +184,68 @@ export const retryFailedEmbeddings = Effect.gen(function* () {
 	);
 });
 
+/**
+ * Prepares every asset again whose stored extraction a failed link of the
+ * active generation is missing, a batch at a time, once per asset; its
+ * processing indexes every link of the asset again when it completes. An
+ * asset already being prepared is skipped. Returns the assets queued.
+ */
+export const prepareMissingExtractionsAgain = Effect.gen(function* () {
+	const db = yield* DB;
+	const { settings } = yield* EmbeddingIndex;
+	const { asset, blockAsset } = dbSchema;
+	const links = yield* embeddable;
+	const missing = (...conditions: ReturnType<typeof and>[]) =>
+		db
+			.selectDistinct({
+				id: asset.id,
+				bucket: asset.bucket,
+				prefix: asset.prefix,
+				fileType: asset.fileType,
+				processingGeneration: asset.processingGeneration,
+			})
+			.from(blockAsset)
+			.innerJoin(asset, eq(asset.id, blockAsset.assetId))
+			.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
+			.where(
+				links.where(
+					links.inActive,
+					eq(blockAsset.indexStatus, "failed"),
+					eq(blockAsset.indexFailure, "missing_extraction"),
+					...conditions,
+				),
+			);
+	// Checked again under the generation lock, so a switch since the batch was read queues nothing.
+	const prepare = (
+		selected: Effect.Success<ReturnType<typeof missing>>[number],
+	) =>
+		writeGeneration(
+			Effect.gen(function* () {
+				const [still] = yield* missing(eq(asset.id, selected.id));
+				return still
+					? yield* queueProcessing(still, [
+							"completed",
+						])
+					: undefined;
+			}),
+		).pipe(
+			Effect.catchTag("EmbeddingsNotConfiguredError", () =>
+				Effect.succeed(undefined),
+			),
+		);
+	let queued = 0;
+	while (true) {
+		const assets = yield* missing().limit(ADMISSION_BATCH);
+		if (assets.length === 0) return queued;
+		const admitted = (yield* Effect.forEach(assets, prepare)).filter(
+			(generation) => generation !== undefined,
+		).length;
+		queued += admitted;
+		// Every asset went to another request meanwhile; the next click looks again.
+		if (admitted === 0) return queued;
+	}
+});
+
 /** How far the active generation got in one organisation's repositories. */
 export type OrganizationEmbeddingProgress = {
 	/** Null for repositories without a home organisation. */
@@ -239,6 +309,9 @@ export const embeddingProgress = Effect.gen(function* () {
 		.select({
 			failure: blockAsset.indexFailure,
 			count: sql<number>`count(*)`.mapWith(Number),
+			assets: sql<number>`count(distinct ${blockAsset.assetId})`.mapWith(
+				Number,
+			),
 		})
 		.from(blockAsset)
 		.innerJoin(dbSchema.asset, eq(dbSchema.asset.id, blockAsset.assetId))
@@ -265,5 +338,8 @@ export const embeddingProgress = Effect.gen(function* () {
 		retryable: failureCounts
 			.filter(({ failure }) => REEMBEDDABLE_FAILURES.includes(failure))
 			.reduce((sum, { count }) => sum + count, 0),
+		preparable:
+			failures.find(({ failure }) => failure === "missing_extraction")
+				?.assets ?? 0,
 	};
 });

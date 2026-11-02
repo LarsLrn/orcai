@@ -9,6 +9,7 @@ import {
 	type Job,
 	PgBoss,
 	PgBossService,
+	prepareMissingExtractionsAgain,
 	queueIndexing,
 	reconcileEmbeddings,
 	retryFailedEmbeddings,
@@ -31,6 +32,8 @@ import {
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	type PipelineFailure,
+	PROCESS_ASSET_JOB_NAME,
+	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
@@ -363,6 +366,8 @@ const indexes = {
 	retried: await testEmbeddingIndex(),
 	failedBefore: await testEmbeddingIndex(),
 	racingFlag: await testEmbeddingIndex(),
+	preparedAgain: await testEmbeddingIndex(),
+	preparedWhileSwitching: await testEmbeddingIndex(),
 };
 
 /** The rebuild flag as stored, before any derivation. */
@@ -740,6 +745,7 @@ test(
 				},
 			],
 			retryable: 1,
+			preparable: 1,
 		});
 		expect(JSON.stringify(progress)).not.toContain(broken.blockId);
 		expect(JSON.stringify(progress)).not.toContain("refunds.pdf");
@@ -845,6 +851,162 @@ test(
 		await reconciling;
 
 		expect(await rebuildFlagOf(index)).toBe(true);
+	},
+	TIMEOUT,
+);
+
+/** Links the asset to one more fresh repository. */
+const linkAgain = (link: Link): Promise<Link> =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const user = yield* createUser();
+			const [block] = yield* db
+				.insert(dbSchema.block)
+				.values({
+					type: "repository",
+					name: "Second repository",
+					config: {},
+					userId: user.id,
+				})
+				.returning();
+			yield* db.insert(dbSchema.blockAsset).values({
+				blockId: block.id,
+				assetId: link.assetId,
+			});
+			return {
+				assetId: link.assetId,
+				blockId: block.id as BlockId,
+			};
+		}),
+	);
+
+/** The asset's processing as stored, and its queued processing jobs. */
+const processingOf = (link: Link) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const { asset } = dbSchema;
+			const [row] = yield* (yield* DB)
+				.select({
+					status: asset.processingStatus,
+					generation: asset.processingGeneration,
+				})
+				.from(asset)
+				.where(eq(asset.id, link.assetId));
+			const { boss } = yield* PgBossService;
+			const jobs = yield* Effect.promise(() =>
+				boss.findJobs<ProcessAssetPayload>(PROCESS_ASSET_JOB_NAME, {
+					data: {
+						assetRef: {
+							id: link.assetId,
+						},
+					},
+				}),
+			);
+			return {
+				...row,
+				jobs: jobs.length,
+			};
+		}),
+	);
+
+test(
+	"Prepare again queues each asset missing its stored extraction in the active generation once, also under a double click, and indexes it again in every repository",
+	async () => {
+		const index = indexes.preparedAgain;
+		const missing = await seed();
+		const embeddedElsewhere = await linkAgain(missing);
+		const other = await seed();
+		const earlier = await seed();
+		const links = [
+			missing,
+			embeddedElsewhere,
+			other,
+			earlier,
+		];
+		await configure(index, links);
+		await on(index, links, reconcileEmbeddings);
+		await settle(missing, "failed", "missing_extraction");
+		await settle(embeddedElsewhere, "completed");
+		await settle(other, "failed", "other");
+		await settle(earlier, "failed", "missing_extraction");
+		// A failure of another generation is not this one's.
+		await runtime.runPromise(
+			Effect.gen(function* () {
+				const { blockAsset } = dbSchema;
+				yield* (yield* DB)
+					.update(blockAsset)
+					.set({
+						embeddingGeneration: null,
+					})
+					.where(
+						and(
+							eq(blockAsset.assetId, earlier.assetId),
+							eq(blockAsset.blockId, earlier.blockId),
+						),
+					);
+			}),
+		);
+		expect((await on(index, links, embeddingProgress))?.preparable).toBe(1);
+		const before = await Promise.all(links.map(processingOf));
+
+		const queued = await Promise.all([
+			on(index, links, prepareMissingExtractionsAgain),
+			on(index, links, prepareMissingExtractionsAgain),
+		]);
+		expect(queued[0] + queued[1]).toBe(1);
+
+		expect(await processingOf(missing)).toEqual({
+			status: "pending",
+			generation: Number(before[0]?.generation) + 1,
+			jobs: 1,
+		});
+		for (const link of [
+			missing,
+			embeddedElsewhere,
+		]) {
+			expect(await linkOf(link)).toMatchObject({
+				status: "pending",
+				failure: null,
+			});
+		}
+		expect(await processingOf(other)).toEqual(before[2]);
+		expect(await processingOf(earlier)).toEqual(before[3]);
+		expect(await on(index, links, prepareMissingExtractionsAgain)).toBe(0);
+		expect((await on(index, links, embeddingProgress))?.preparable).toBe(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"Prepare again read before a switch queues nothing once the switch lands",
+	async () => {
+		const index = indexes.preparedWhileSwitching;
+		const link = await seed();
+		await configure(index, link);
+		await on(index, link, reconcileEmbeddings);
+		await settle(link, "failed", "missing_extraction");
+		const before = await processingOf(link);
+
+		// The switch holds the generation lock until its collection exists.
+		const release = Promise.withResolvers<void>();
+		creating = release.promise;
+		const switching = configure(index, link, "integration-switched");
+		await sleep(200);
+		const preparing = on(index, link, prepareMissingExtractionsAgain);
+		await runtime.runPromise(
+			awaitLockWaiters("%pg_advisory_xact_lock_shared%"),
+		);
+		release.resolve();
+		creating = undefined;
+		await switching;
+
+		expect(await preparing).toBe(0);
+		expect(await processingOf(link)).toEqual(before);
+		expect(await linkOf(link)).toMatchObject({
+			status: "failed",
+			failure: "missing_extraction",
+		});
 	},
 	TIMEOUT,
 );

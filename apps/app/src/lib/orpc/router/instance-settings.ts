@@ -8,6 +8,7 @@ import {
 import {
 	embeddingProgress as countEmbeddings,
 	embeddingsRebuilding,
+	prepareMissingExtractionsAgain as prepareAgain,
 	retryFailedEmbeddings as retryFailed,
 	sendJobBatch,
 } from "@orcai/pg-boss";
@@ -258,6 +259,17 @@ const retryFailedEmbeddings = authed.instanceSettings.retryFailedEmbeddings
 		};
 	});
 
+const prepareMissingExtractionsAgain =
+	authed.instanceSettings.prepareMissingExtractionsAgain
+		.use(requireInstanceAdminMiddleware)
+		.effect(function* () {
+			return {
+				data: {
+					queued: yield* prepareAgain,
+				},
+			};
+		});
+
 export const instanceSettingsRouter = {
 	find,
 	embeddingsStatus,
@@ -266,4 +278,5 @@ export const instanceSettingsRouter = {
 	embeddingProgress,
 	reembedEmbeddings,
 	retryFailedEmbeddings,
+	prepareMissingExtractionsAgain,
 };

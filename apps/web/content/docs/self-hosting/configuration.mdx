@@ -90,10 +90,11 @@ Saving another model, the same model name with other dimensions, or another pass
 
 The **Search index** section below the setting counts the assets in repositories per organisation: embedded with the current model, waiting, and failed, with the failure reasons as counts. It names no file or repository. While assets wait, it refreshes every few seconds.
 
-- **Retry failed assets** embeds the failed assets again from their stored text and leaves every embedded asset as it is. It skips assets whose stored text is missing, and those need **Prepare again** in their repository.
+- **Retry failed assets** embeds the failed assets again from their stored text and leaves every embedded asset as it is. It skips assets whose stored text is missing.
+- **Prepare assets again** appears when assets failed because their stored text is missing, as with files prepared before OrcAI described images. It prepares each of them again once, so the workers read the file again, describe its images with the utility model of the asset's organisation and embed it in every repository that holds it. Assets already being prepared are skipped.
 - **Re-embed everything** embeds every asset in a repository again with the current setting, into a new collection, for when the endpoint's vectors changed without a new model name.
 
-Both ask for confirmation with the number of assets first. Rate limits of the endpoint count as temporary failures, which the workers retry with a delay before an asset counts as failed.
+All three ask for confirmation with the number of assets first. Rate limits of the endpoint count as temporary failures, which the workers retry with a delay before an asset counts as failed.
 
 Until embeddings are set up, uploads still work and OrcAI prepares the assets, but their indexing shows "Waiting for the embedding setup" and repository search is unavailable. Instance admins see a banner in the app that links to Settings, and the Health page fails its **Embeddings** check. Once the setting is saved, the workers index every waiting asset within about a minute, so nothing has to be uploaded again.
 

@@ -48,6 +48,8 @@ export const embeddingProgressSchema = z.object({
 	),
 	/** Failed files Retry failed embeds again. */
 	retryable: z.number().int().nonnegative(),
+	/** Distinct assets whose stored extraction is missing, which need preparing again. */
+	preparable: z.number().int().nonnegative(),
 });
 
 export type EmbeddingProgress = z.infer<typeof embeddingProgressSchema>;

@@ -312,6 +312,10 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.instanceSettings.embeddingProgress.key(),
 				...assetsAndReadiness(),
 			],
+			prepareMissingExtractionsAgain: () => [
+				orpc.instanceSettings.embeddingProgress.key(),
+				...assetsAndReadiness(),
+			],
 		},
 		group: {
 			create: () => [

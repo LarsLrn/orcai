@@ -4099,8 +4099,44 @@
 			}
 		}
 	],
-	"instance_settings_index_retry_confirm_description": "OrcAI embeds them again from their stored text, and assets already embedded stay as they are. An asset whose stored text is missing needs preparing again in its repository.",
+	"instance_settings_index_retry_confirm_description": "OrcAI embeds them again from their stored text, and assets already embedded stay as they are. An asset whose stored text is missing needs preparing again instead.",
 	"instance_settings_index_retry_confirm_button": "Retry",
+	"instance_settings_index_prepare_again_description": "Some assets have no stored text to embed and need preparing again. OrcAI then reads their files again and describes their images with the utility model of each organisation.",
+	"instance_settings_index_prepare_again_button": "Prepare assets again",
+	"instance_settings_index_prepare_again_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Prepare 1 asset again?",
+				"countPlural=other": "Prepare {count} assets again?"
+			}
+		}
+	],
+	"instance_settings_index_prepare_again_confirm_description": "OrcAI prepares them again in every repository that holds them, also where they are already embedded.",
+	"instance_settings_index_prepare_again_confirm_button": "Prepare again",
+	"instance_settings_index_prepare_again_toast_loading": "Queueing the assets for preparation...",
+	"instance_settings_index_prepare_again_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 asset queued for preparation",
+				"countPlural=other": "{count} assets queued for preparation"
+			}
+		}
+	],
+	"instance_settings_index_prepare_again_toast_error": "The assets were not queued for preparation.",
 	"instance_settings_index_reembed_button": "Re-embed everything",
 	"instance_settings_index_reembed_confirm_title": "Re-embed every asset?",
 	"instance_settings_index_reembed_confirm_description": [

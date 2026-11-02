@@ -46,3 +46,10 @@ export const retryFailedEmbeddingsResponseSchema = createDataResponseSchema(
 		admitted: z.number().int().nonnegative(),
 	}),
 );
+
+export const prepareMissingExtractionsAgainResponseSchema =
+	createDataResponseSchema(
+		z.object({
+			queued: z.number().int().nonnegative(),
+		}),
+	);

@@ -7,6 +7,8 @@ import {
 	findEmbeddingsStatusResponseSchema,
 	findInstanceSettingsInputSchema,
 	findInstanceSettingsResponseSchema,
+	prepareMissingExtractionsAgainInputSchema,
+	prepareMissingExtractionsAgainResponseSchema,
 	reembedEmbeddingsInputSchema,
 	reembedEmbeddingsResponseSchema,
 	retryFailedEmbeddingsInputSchema,
@@ -107,4 +109,17 @@ export const instanceSettingsContracts = {
 		)
 		.input(retryFailedEmbeddingsInputSchema)
 		.output(retryFailedEmbeddingsResponseSchema),
+	prepareMissingExtractionsAgain: base
+		.meta(
+			openapi({
+				method: "POST",
+				path: "/instance/settings/embeddings/prepare-again",
+				summary: "Prepare the assets again whose stored text is missing",
+				tags,
+				description:
+					"Queues each asset whose failed embedding misses its stored extraction once. Reading the file again also describes its images. Assets already being prepared are skipped.",
+			}),
+		)
+		.input(prepareMissingExtractionsAgainInputSchema)
+		.output(prepareMissingExtractionsAgainResponseSchema),
 };

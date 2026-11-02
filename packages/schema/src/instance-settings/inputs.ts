@@ -45,3 +45,5 @@ export const reembedEmbeddingsInputSchema = z.object({
 });
 
 export const retryFailedEmbeddingsInputSchema = z.object({});
+
+export const prepareMissingExtractionsAgainInputSchema = z.object({});

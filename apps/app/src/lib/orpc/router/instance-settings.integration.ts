@@ -160,7 +160,7 @@ const actors = async () => {
 
 describe("instance settings", () => {
 	test(
-		"only instance admins read, change, list models, count, retry and re-embed; anyone signed in sees whether search works",
+		"only instance admins read, change, list models, count, retry, prepare again and re-embed; anyone signed in sees whether search works",
 		async () => {
 			const { member } = await actors();
 			const { procedures, options } = await call(member, indexes.denial);
@@ -206,6 +206,14 @@ describe("instance settings", () => {
 					),
 					reasonOf(
 						run(
+							procedures.instanceSettings.prepareMissingExtractionsAgain(
+								{},
+								options,
+							),
+						),
+					),
+					reasonOf(
+						run(
 							procedures.instanceSettings.reembedEmbeddings(
 								{
 									generation: 1,
@@ -216,6 +224,7 @@ describe("instance settings", () => {
 					),
 				]),
 			).toEqual([
+				"INSTANCE_ADMIN_REQUIRED",
 				"INSTANCE_ADMIN_REQUIRED",
 				"INSTANCE_ADMIN_REQUIRED",
 				"INSTANCE_ADMIN_REQUIRED",
@@ -422,6 +431,7 @@ describe("instance settings", () => {
 				organizations: [],
 				failures: [],
 				retryable: 0,
+				preparable: 0,
 			});
 		},
 		TIMEOUT,
