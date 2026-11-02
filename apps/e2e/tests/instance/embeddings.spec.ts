@@ -5,7 +5,7 @@ import { expect, test } from "../../fixtures/index";
 import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/fixture";
 import { failWithMissingExtraction } from "../../fixtures/instance/missing-extraction";
 import { message } from "../../fixtures/messages";
-import { open } from "../../fixtures/navigation";
+import { awaitHydration, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
 test.describe.configure({
@@ -24,6 +24,11 @@ const saveModel = async (page: Page, model: string) => {
 			name: message("instance_settings_embeddings_save_button"),
 		})
 		.click();
+};
+
+/** A confirmed model or passage prefix change creates a Qdrant collection and its indexes before it answers. */
+const NEW_COLLECTION_SAVE = {
+	timeout: 15_000,
 };
 
 /** The confirmation dialog, which states how many assets it re-embeds. */
@@ -62,6 +67,7 @@ test("instance: changing the embedding model asks first and states how many asse
 		.click();
 	await expect(dialog).toBeHidden();
 	await page.reload();
+	await awaitHydration(page);
 	await expect(modelField(page)).toHaveValue(INFERENCE_MOCK_MODELS.embedding);
 
 	await saveModel(page, ALTERNATIVE_MODEL);
@@ -72,8 +78,9 @@ test("instance: changing the embedding model asks first and states how many asse
 		.click();
 	await expect(
 		page.getByText(message("instance_settings_embeddings_saved_toast")),
-	).toBeVisible();
+	).toBeVisible(NEW_COLLECTION_SAVE);
 	await page.reload();
+	await awaitHydration(page);
 	await expect(modelField(page)).toHaveValue(ALTERNATIVE_MODEL);
 
 	// Back to the model the other specs use, confirmed the same way.
@@ -85,7 +92,7 @@ test("instance: changing the embedding model asks first and states how many asse
 		.click();
 	await expect(
 		page.getByText(message("instance_settings_embeddings_saved_toast")),
-	).toBeVisible();
+	).toBeVisible(NEW_COLLECTION_SAVE);
 });
 
 test("instance: another query prefix saves at once, another passage prefix asks first", async ({
@@ -130,6 +137,7 @@ test("instance: another query prefix saves at once, another passage prefix asks 
 	await expect(saved).toBeVisible();
 	await expect(dialog).toBeHidden();
 	await page.reload();
+	await awaitHydration(page);
 	await expect(queryPrefix).toHaveValue(instruction);
 
 	await passagePrefix.fill("passage: ");
@@ -143,8 +151,9 @@ test("instance: another query prefix saves at once, another passage prefix asks 
 		"OrcAI embeds 0 assets in repositories again with the new passage prefix.",
 	);
 	await confirm.click();
-	await expect(saved).toBeVisible();
+	await expect(saved).toBeVisible(NEW_COLLECTION_SAVE);
 	await page.reload();
+	await awaitHydration(page);
 	await expect(passagePrefix).toHaveValue("passage: ");
 
 	// Back to no prefixes for the other specs.
@@ -152,8 +161,9 @@ test("instance: another query prefix saves at once, another passage prefix asks 
 	await passagePrefix.fill("");
 	await save.click();
 	await confirm.click();
-	await expect(saved).toBeVisible();
+	await expect(saved).toBeVisible(NEW_COLLECTION_SAVE);
 	await page.reload();
+	await awaitHydration(page);
 	await expect(queryPrefix).toHaveValue("");
 	await expect(passagePrefix).toHaveValue("");
 });
@@ -234,6 +244,7 @@ test("instance: Prepare assets again shows for an asset missing its stored text 
 	});
 	try {
 		await page.reload();
+		await awaitHydration(page);
 		await expect(
 			page.getByText(
 				message("instance_settings_index_prepare_again_description"),
