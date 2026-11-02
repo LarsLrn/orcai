@@ -4099,8 +4099,44 @@
 			}
 		}
 	],
-	"instance_settings_index_retry_confirm_description": "OrcAI erzeugt ihre Embeddings aus dem gespeicherten Text neu, und bereits eingebettete Assets bleiben unverändert. Ein Asset ohne gespeicherten Text muss in seinem Repository erneut vorbereitet werden.",
+	"instance_settings_index_retry_confirm_description": "OrcAI erzeugt ihre Embeddings aus dem gespeicherten Text neu, und bereits eingebettete Assets bleiben unverändert. Ein Asset ohne gespeicherten Text muss stattdessen erneut vorbereitet werden.",
 	"instance_settings_index_retry_confirm_button": "Erneut versuchen",
+	"instance_settings_index_prepare_again_description": "Einige Assets haben keinen gespeicherten Text für Embeddings und müssen erneut vorbereitet werden. OrcAI liest dann ihre Dateien erneut und beschreibt ihre Bilder mit dem Hilfsmodell der jeweiligen Organisation.",
+	"instance_settings_index_prepare_again_button": "Assets erneut vorbereiten",
+	"instance_settings_index_prepare_again_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Asset erneut vorbereiten?",
+				"countPlural=other": "{count} Assets erneut vorbereiten?"
+			}
+		}
+	],
+	"instance_settings_index_prepare_again_confirm_description": "OrcAI bereitet sie in allen Repositories, die sie enthalten, erneut vor, auch dort, wo sie bereits eingebettet sind.",
+	"instance_settings_index_prepare_again_confirm_button": "Erneut vorbereiten",
+	"instance_settings_index_prepare_again_toast_loading": "Die Assets werden zur Vorbereitung eingereiht...",
+	"instance_settings_index_prepare_again_toast_success": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 Asset zur Vorbereitung eingereiht",
+				"countPlural=other": "{count} Assets zur Vorbereitung eingereiht"
+			}
+		}
+	],
+	"instance_settings_index_prepare_again_toast_error": "Die Assets wurden nicht zur Vorbereitung eingereiht.",
 	"instance_settings_index_reembed_button": "Alles neu einbetten",
 	"instance_settings_index_reembed_confirm_title": "Alle Assets neu einbetten?",
 	"instance_settings_index_reembed_confirm_description": [

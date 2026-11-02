@@ -52,6 +52,29 @@ export const SearchIndexSection = ({
 			},
 		},
 	});
+	const prepareAgain = useMutationAction({
+		mutationOptions: () =>
+			orpc.instanceSettings.prepareMissingExtractionsAgain.mutationOptions(),
+		messages: {
+			loading: m.instance_settings_index_prepare_again_toast_loading(),
+			success: ({ data }) =>
+				m.instance_settings_index_prepare_again_toast_success({
+					count: data.data.queued,
+				}),
+			error: m.instance_settings_index_prepare_again_toast_error(),
+		},
+		confirm: {
+			title: m.instance_settings_index_prepare_again_confirm_title({
+				count: progress.preparable,
+			}),
+			description:
+				m.instance_settings_index_prepare_again_confirm_description(),
+			confirmText: m.instance_settings_index_prepare_again_confirm_button(),
+			confirmButton: {
+				variant: "default",
+			},
+		},
+	});
 	const reembed = useMutationAction({
 		mutationOptions: () =>
 			orpc.instanceSettings.reembedEmbeddings.mutationOptions(),
@@ -151,7 +174,22 @@ export const SearchIndexSection = ({
 				</section>
 			)}
 
+			{progress.preparable > 0 && (
+				<p className="text-muted-foreground text-sm">
+					{m.instance_settings_index_prepare_again_description()}
+				</p>
+			)}
+
 			<div className="flex flex-wrap justify-end gap-2">
+				{progress.preparable > 0 && (
+					<Button
+						variant="outline"
+						loading={prepareAgain.isPending}
+						onClick={() => void prepareAgain.mutateAsync({})}
+					>
+						{m.instance_settings_index_prepare_again_button()}
+					</Button>
+				)}
 				<Button
 					variant="outline"
 					disabled={progress.retryable === 0}

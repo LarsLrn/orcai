@@ -1,8 +1,12 @@
+import type { AssetId, BlockId } from "@orcai/core";
 import type { Page } from "@playwright/test";
+import { uploadAsset } from "../../fixtures/assets";
 import { expect, test } from "../../fixtures/index";
 import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/fixture";
+import { failWithMissingExtraction } from "../../fixtures/instance/missing-extraction";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
+import { runId } from "../../fixtures/organisation";
 
 test.describe.configure({
 	mode: "serial",
@@ -189,4 +193,65 @@ test("instance: Re-embed everything asks first, and Retry failed waits for a fai
 	await expect(
 		page.getByText(message("embeddings_rebuild_notice_title")),
 	).toBeHidden();
+});
+
+test("instance: Prepare assets again shows for an asset missing its stored text and asks first with the count", async ({
+	api,
+	pageAsWellKnownAdmin,
+}) => {
+	const page = await pageAsWellKnownAdmin();
+	await open(page, "/instance/settings");
+	const prepareAgain = page.getByRole("button", {
+		name: message("instance_settings_index_prepare_again_button"),
+	});
+	await expect(
+		page.getByRole("heading", {
+			name: message("instance_settings_index_title"),
+		}),
+	).toBeVisible();
+	await expect(prepareAgain).toBeHidden();
+
+	const client = api.as("admin");
+	const name = `Missing extraction ${runId()}`;
+	const asset = await uploadAsset(client, `${name}.txt`);
+	const block = await client.block.create({
+		type: "repository",
+		name,
+		status: "ready",
+		assets: [
+			asset.id,
+		],
+		config: {
+			minPassages: 1,
+			maxPassages: 5,
+			defaultPassages: 3,
+			scoreThreshold: 0,
+		},
+	});
+	const restore = await failWithMissingExtraction({
+		assetId: asset.id as AssetId,
+		blockId: block.data.id as BlockId,
+	});
+	try {
+		await page.reload();
+		await expect(
+			page.getByText(
+				message("instance_settings_index_prepare_again_description"),
+			),
+		).toBeVisible();
+		await prepareAgain.click();
+		const dialog = confirmation(page, "Prepare 1 asset again?");
+		await expect(dialog).toContainText(
+			message("instance_settings_index_prepare_again_confirm_description"),
+		);
+		await dialog
+			.getByRole("button", {
+				name: message("common_cancel_button"),
+			})
+			.click();
+		await expect(dialog).toBeHidden();
+	} finally {
+		// The other specs count no prepared asset.
+		await restore();
+	}
 });
