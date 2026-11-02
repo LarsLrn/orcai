@@ -45,6 +45,10 @@ import {
 	chatMessageRatingEnum,
 } from "./chat-message";
 import { dataExport, dataExportStatusEnum } from "./data-export";
+import { instanceSettings } from "./instance-settings";
+
+export { instanceSettingsIn } from "./instance-settings";
+
 import { model, provider, providerMeteringModeEnum } from "./model";
 import {
 	notificationDeliveryChannelEnum,
@@ -102,6 +106,7 @@ export const dbSchema = {
 	organization,
 	member,
 	invitation,
+	instanceSettings,
 	resourceGrant,
 	resourceScope,
 	resourceVisibility,

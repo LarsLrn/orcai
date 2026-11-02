@@ -1,4 +1,4 @@
-export { advisoryXactLock } from "./advisory-lock";
+export { advisoryXactLock, advisoryXactLockShared } from "./advisory-lock";
 export { DbConfigLive, DbConfigService, loadDbConfigSync } from "./config";
 export { retryDeadlocks } from "./deadlock-retry";
 export { makePgConnectionString } from "./pg-connection-string";

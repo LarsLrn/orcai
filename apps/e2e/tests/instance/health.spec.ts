@@ -11,6 +11,7 @@ const DEPENDENCIES = [
 	"instance_health_check_postgres_title",
 	"instance_health_check_spicedb_title",
 	"instance_health_check_qdrant_title",
+	"instance_health_check_embeddings_title",
 	"instance_health_check_s3_title",
 	"instance_health_check_valkey_title",
 ];

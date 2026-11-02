@@ -298,6 +298,13 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				orpc.health.instance.key(),
 			],
 		},
+		instanceSettings: {
+			updateEmbeddings: () => [
+				orpc.instanceSettings.key(),
+				orpc.health.instance.key(),
+				readiness,
+			],
+		},
 		group: {
 			create: () => [
 				orpc.group.key(),

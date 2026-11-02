@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Required and optional environment variables for OrcAI.
+description: Required and optional environment variables for OrcAI, and the embedding setting instance admins save in the app.
 ---
 
 Runtime configuration is loaded across app and package config modules. `.env.example` is the current baseline for self-hosted environments. Every value comes from the container environment and applies when the container restarts, so one image serves any instance. The one exception is the [legal pages](#legal-pages), which are compiled into the image. Build args only carry image identity, never deployment values.
@@ -67,17 +67,25 @@ Browsers send files straight to object storage and download them from it, so `S3
 
 | Variable | Required | Notes |
 | --- | --- | --- |
-| `OPENAI_COMPATIBLE_BASE_URL` | Yes | Base URL for an OpenAI-compatible API. |
-| `OPENAI_COMPATIBLE_API_KEY` | Yes | API key for the model endpoint. |
-| `EMBEDDING_MODEL` | Yes | Embedding model exposed by the endpoint. |
-| `EMBEDDING_DIMENSIONS` | Yes | Positive integer vector size for the embedding model and Qdrant collection. |
 | `KREUZBERG_OCR_LANGUAGE` | No | OCR languages for asset preparation. Defaults to `eng` in host-oriented code and `eng+deu` in Compose examples. |
 
-The `OPENAI_COMPATIBLE_*` endpoint serves embeddings only. Chats, the Assistant and the utility model use the providers each organisation adds in the app. The embedding model is the same for every organisation on the instance, and only these variables set it.
+No environment variable sets the embedding endpoint. An instance admin sets it in the app, as described under [Embeddings](#embeddings). Chats, the Assistant and the utility model use the providers each organisation adds in the app.
 
-<Callout title="Do not mix embeddings" type="warn">
-	Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported. Recreate the Qdrant collection and prepare assets again instead of mixing embeddings.
-</Callout>
+## Embeddings
+
+The embedding endpoint and model are the same for every organisation on the instance and are stored in the database. An instance admin sets them under Manage instance > **Settings** (`/instance/settings`), in the **Embeddings** section:
+
+- **Base URL**, the address of any OpenAI-compatible endpoint, usually ending in `/v1`.
+- **API key**, stored encrypted with `ENCRYPTION_KEY` and never shown again. Leaving it empty when you edit the setting keeps the stored key.
+- **Model**, the embedding model. **Load models** reads the endpoint's `/models` list, and for an endpoint without a list you enter the model name.
+
+**Save and test** runs a test embedding first. If it fails, nothing is saved and the page shows the reason: the endpoint rejected the key, could not be reached, does not know the model, or answered with something other than a vector. If it succeeds, OrcAI reads the dimensions from the test vector, so there is no field for them.
+
+Each embedding model has its own Qdrant collection, named `orcai-chunks-g<generation>-<model>-<dimensions>`. The first save creates it and embeds every asset in a repository again from its stored extracted text, so no file is read again and no image is described again. Changing the API key or the base URL while keeping the model applies at once, without embedding anything again. Changing the model is not possible yet, and saving another model is rejected.
+
+Until embeddings are set up, uploads still work and OrcAI prepares the assets, but their indexing shows "Waiting for the embedding setup" and repository search is unavailable. Instance admins see a banner in the app that links to Settings, and the Health page fails its **Embeddings** check. Once the setting is saved, the workers index every waiting asset within about a minute, so nothing has to be uploaded again.
+
+An instance that set its embedding model through environment variables keeps its vectors in a collection named `orcai-chunks-<dimensions>`. After the update, search is unavailable until an instance admin saves the embedding setting. Saving embeds every asset in a repository again into the new collection and deletes the old one. OrcAI does not read the old embedding variables, so remove them from `.env`.
 
 ## Qdrant
 

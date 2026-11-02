@@ -41,7 +41,7 @@ For most self-hosting experiments, start with [Docker Compose quickstart](/docs/
 ## Caveats
 
 - `docker-compose.local.yaml` is a development override, not a production deployment manifest.
-- Assets cannot be indexed until the embedding endpoint, model and dimensions are set. Changing them on an existing instance means recreating the Qdrant collection and preparing the assets again.
+- Assets cannot be indexed until an instance admin sets up [embeddings](/docs/self-hosting/configuration#embeddings) in the app. Changing the embedding model is not possible yet.
 
 ## Source files
 

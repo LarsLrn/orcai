@@ -13,7 +13,7 @@ import {
 	queueIndexing,
 	settleStage,
 } from "@orcai/pg-boss";
-import { awaitLockWaiters } from "@orcai/testing";
+import { awaitLockWaiters, testEmbeddingIndex } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -42,7 +42,14 @@ import {
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration();
+	authzIntegration({
+		// Indexing is queued once embeddings are set up; nothing embeds here.
+		embeddingIndex: await testEmbeddingIndex({
+			baseUrl: "http://127.0.0.1:9/v1",
+			model: "integration",
+			dimensions: 4,
+		}),
+	});
 
 const procedures = () => run(Procedures);
 

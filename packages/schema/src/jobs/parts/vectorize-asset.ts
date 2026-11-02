@@ -10,6 +10,8 @@ export const vectorizeAssetPayloadSchema = z.object({
 	attempt: z.number().int().nonnegative().optional(),
 	/** The activity run that admitted the work; none for automatic work. */
 	runId: activityRunIdSchema.optional(),
+	/** Embeds the stored extraction as it is: a re-embed never prepares the file again. */
+	fromStoredExtraction: z.boolean().optional(),
 });
 
 export type VectorizeAssetPayload = z.infer<typeof vectorizeAssetPayloadSchema>;

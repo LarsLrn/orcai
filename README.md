@@ -89,7 +89,8 @@ Useful commands:
 Notes:
 - `stack up` is idempotent and reuses an existing `.env`.
 - `stack reset`, `stack e2e` without `--no-reset`, and `stack down --volumes` are potentially destructive in the current environment and ask for confirmation first.
-- Machine-wide overrides such as a real `OPENAI_COMPATIBLE_*` endpoint belong in `~/.config/orcai/dev.env` (or the file named by `ORCAI_DEV_ENV_FILE`). They are merged whenever `.env` is created.
+- Machine-wide overrides belong in `~/.config/orcai/dev.env` (or the file named by `ORCAI_DEV_ENV_FILE`). They are merged whenever `.env` is created.
+- `stack up` and `stack reset` seed a placeholder embedding setting (`http://127.0.0.1:11434/v1`, model `baai/bge-m3`, 1024 dimensions) unless one is stored. Change it to a real endpoint on the instance Settings page (`/instance/settings`).
 - `bun run stack --name <name> --env-file <path> up` starts an additional independent stack, which is how you run end-to-end tests without touching this worktree's dev data.
 - [Paseo](https://github.com/getpaseo/paseo) workspaces run `bun install` and `bun run stack up` automatically on creation and `bun run stack down --volumes --yes` when archived, see `paseo.json`.
 - Workers on the host need Tesseract with the `eng` (and optionally `deu`) language packs for OCR.
@@ -116,10 +117,10 @@ Everything after `--` is passed to Playwright. After Playwright, whatever its re
 Notes:
 - The app is served at `http://localhost:<PORT>` (`BETTER_AUTH_URL`), because WebAuthn refuses an IP address as the passkey relying party; the servers bind 127.0.0.1, and `stack e2e` uses that origin even when an older `.env` names `127.0.0.1`.
 - The application under test is the production images. `stack e2e` builds the app and docs images (app and workers for `--pipeline`) from the `docker-compose.yaml` build definitions with `docker buildx bake`, tags them `<stack>-app`, `<stack>-web`, and `<stack>-workers`, and Playwright runs them on the host network with the stack environment. The run sets `BETTER_AUTH_RATE_LIMIT=false`, because every request comes from loopback. With `--no-reset`, a `bun run stack dev` already listening on the stack's port is reused, so local iteration needs no rebuild. A reset refuses while an app is listening, because a running server keeps stale state in memory; stop it first or pass `--no-reset`.
-- A Playwright `setup` project initialises the reset instance through the first-run UI with a well-known admin. There is no separate seed step.
+- A Playwright `setup` project initialises the reset instance through the first-run UI with a well-known admin, then saves the mock inference server as the embedding endpoint on the Settings page. There is no separate seed step.
 - Locators use roles and accessible names read from `apps/app/messages/en.json` through `apps/e2e/fixtures/messages.ts`, so specs follow the copy. See [Development docs: Localisation](apps/web/content/docs/development/localisation.mdx).
 - Each Playwright worker creates its own organisations and users through the public API, so specs run in parallel without sharing data.
-- A mock OpenAI-compatible inference server (`apps/e2e/fixtures/inference`) runs on `E2E_INFERENCE_PORT` for the whole suite; `stack e2e` points the app's global endpoint at it, and specs that configure a provider start their own on an ephemeral port. No run reaches a real provider.
+- A mock OpenAI-compatible inference server (`apps/e2e/fixtures/inference`) runs on `E2E_INFERENCE_PORT` for the whole suite and serves the embeddings (model `e2e-mock-embedding`, 1024 dimensions). Specs that configure a provider start their own on an ephemeral port. No run reaches a real provider.
 - To keep your dev data, run the suite against a second stack: `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same command with those flags.
 - Only `bun run stack e2e --pipeline` starts the background workers (polling every 0.5 s) and runs the upload-to-citation specs in `apps/e2e/tests/pipeline`; every other run has no pg-boss queues, so uploads end up failed. A full local run is `bun run stack e2e`, then `bun run stack e2e --pipeline`.
 - GitHub Actions builds the images once in an `e2e images` job, with layers cached in the GitHub Actions cache, and every shard loads and runs them. It uses the pinned workspace Playwright, splits the suite across three shards with the integration tier on the first, runs the pipeline specs in a fourth job, fails on flaky retries, and uploads each failing shard's report. Pull requests that only change `apps/web/content`, the root `LICENSE`, or Markdown outside `apps/app`, `apps/workers`, and `packages` skip the shards; the required `e2e` check still passes.
@@ -154,12 +155,12 @@ What starts automatically:
 
 Notes:
 - The container never reads the checkout's `.env`, which belongs to `bun run stack`. Service addresses and dev credentials are fixed in the Compose override.
-- `.devcontainer/.env` holds the secrets, the ports and the inference settings, and overrides Compose values. Put a real `OPENAI_COMPATIBLE_*` endpoint, `SMTP_*` and `OTEL_*` there, then restart `bun run dev:all`. If VS Code forwards SeaweedFS to a port other than 8333, set `S3_PUBLIC_ENDPOINT` there.
+- `.devcontainer/.env` holds the secrets and the ports, and overrides Compose values. Put `SMTP_*` and `OTEL_*` there, then restart `bun run dev:all`. If VS Code forwards SeaweedFS to a port other than 8333, set `S3_PUBLIC_ENDPOINT` there.
 - Deleting `.devcontainer/.env` and running `bun scripts/devcontainer-env.ts` makes new secrets. Stored provider keys become unreadable and sessions end.
 - `bun run dev`, `dev:all` and `bun run stack workers|web|exec|migrate` work in the container. The Docker-driven stack commands are host-only, and `bun run stack env --reset` must not run in the container, because it would write host-stack values into `.devcontainer/.env`.
 - A one-shot `deps` service runs `bun install --frozen-lockfile` before the workspace container starts.
 - Application services are started manually in the workspace, so changing them does not require rebuilding or restarting the devcontainer.
-- `.devcontainer/.env` defaults `OPENAI_COMPATIBLE_BASE_URL` to an Ollama-compatible endpoint on the Docker host at `http://host.docker.internal:11434/v1`.
+- The devcontainer seeds no embedding setting. After `/init`, set the embedding endpoint on the instance Settings page, for example an Ollama-compatible endpoint on the Docker host at `http://host.docker.internal:11434/v1`.
 - OCR-backed asset preparation runs in the worker process and requires Tesseract plus the `eng` and `deu` language packs when you run workers outside Docker.
 - OCR language defaults to `eng` on host setups. Set `KREUZBERG_OCR_LANGUAGE=eng+deu` only where both Tesseract packs are installed.
 - Email delivery stays in log-only mode unless `SMTP_HOST` and `SMTP_FROM` are both configured.
@@ -193,8 +194,7 @@ docker compose -f docker-compose.yaml -f docker-compose.local.yaml down
 
 Notes:
 - The local override injects development defaults for required application variables.
-- For embeddings, you still need a configured `OPENAI_COMPATIBLE_*` endpoint. Chats and image descriptions use the providers an admin adds in the app.
-- `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` must match across the app, workers, and Qdrant collection. Changing them on an existing deployment is not supported right now.
+- Embeddings need an OpenAI-compatible endpoint, which an instance admin sets on the instance Settings page after `/init`. Chats and image descriptions use the providers an admin adds in the app.
 - SeaweedFS creates the buckets on startup, and a one-shot service applies the SpiceDB schema once the database migrations have succeeded.
 
 ### Manual host setup
@@ -271,14 +271,11 @@ SpiceDB optional:
 
 - `SPICEDB_SECURITY`: Transport mode for SpiceDB client. Valid values: `secure`, `insecure-localhost`, `insecure-plaintext` (default).
 
-### Required AI variables
+### Embeddings
 
-- `OPENAI_COMPATIBLE_BASE_URL`
-- `OPENAI_COMPATIBLE_API_KEY`
-- `EMBEDDING_MODEL`: Embedding model exposed by your configured OpenAI-compatible endpoint.
-- `EMBEDDING_DIMENSIONS`: Positive integer output size of `EMBEDDING_MODEL` and Qdrant dense vector size.
+No environment variable sets the embedding endpoint. An instance admin saves the OpenAI-compatible base URL, API key and model on the instance Settings page (`/instance/settings`), and **Save and test** stores them only after a test embedding works and reads the dimensions from it. The setting lives in PostgreSQL with the key encrypted by `ENCRYPTION_KEY`. It is the same for every organisation on the instance, and chats use the providers an admin adds in the app.
 
-The embedding model is the same for every organisation on the instance, and only these variables set it. Chats use the providers an admin adds in the app.
+Until embeddings are set up, uploads are prepared and wait for indexing, and repository search is unavailable. Each embedding model gets its own Qdrant collection, `orcai-chunks-g<generation>-<model>-<dimensions>`. The first save creates it, embeds every repository asset again from its stored extraction, and deletes the `orcai-chunks-<dimensions>` collection of an instance that set its embedding model through environment variables. Changing the API key or base URL applies at once, and changing the model is not possible yet. See [Self-hosting docs: Configuration](apps/web/content/docs/self-hosting/configuration.mdx).
 
 ### Optional variables
 
@@ -291,9 +288,6 @@ The embedding model is the same for every organisation on the instance, and only
 - `FEEDBACK_EMAIL`: Optional address the last card of the first tour names for feedback. Without a valid address the card says nothing about feedback.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration. Traces, logs and metrics are exported once the endpoint is set.
 - `OTEL_RESOURCE_ATTRIBUTES`: Optional resource attributes such as `deployment.environment=production`, attached to every exported signal of the app and the workers.
-
-Embedding note:
-- Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported right now. Recreate the Qdrant collection and prepare assets again instead of mixing old and new embeddings.
 
 See [.env.example](.env.example) for a current baseline.
 

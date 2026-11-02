@@ -3,6 +3,7 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import { QdrantError } from "./errors";
+import { GenerationWrite } from "./generation";
 import { QdrantService } from "./service";
 
 interface Point {
@@ -14,17 +15,18 @@ interface Point {
 // Qdrant rejects request bodies over 32 MiB; 64 points stay far below it.
 const UPSERT_BATCH_SIZE = 64;
 
-/** Upserts in batches; a failure is reported once every batch has settled, so nothing lands after it. */
+/** Upserts into the generation being written, in batches; a failure is reported once every batch has settled, so nothing lands after it. */
 export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 	Effect.gen(function* () {
-		const { client, collections, bm25Config } = yield* QdrantService;
+		const { client, bm25Config } = yield* QdrantService;
+		const { collection } = yield* GenerationWrite;
 
 		const settled = yield* Effect.forEach(
 			Arr.chunksOf(points, UPSERT_BATCH_SIZE),
 			(batch) =>
 				Effect.tryPromise({
 					try: async () =>
-						client.upsert(collections.asset.name, {
+						client.upsert(collection, {
 							points: batch.map((point) => ({
 								id: point.id,
 								vector: {
@@ -121,11 +123,12 @@ const linkPointsFilter = ({ assetId, blockId, attempts }: LinkPoints) => ({
 export const deleteAttemptPoints = (points: LinkPoints) =>
 	Effect.gen(function* () {
 		if (isEmpty(points.attempts)) return;
-		const { client, collections } = yield* QdrantService;
+		const { client } = yield* QdrantService;
+		const { collection } = yield* GenerationWrite;
 
 		yield* Effect.tryPromise({
 			try: () =>
-				client.delete(collections.asset.name, {
+				client.delete(collection, {
 					wait: true,
 					filter: linkPointsFilter(points),
 				}),
@@ -145,11 +148,12 @@ export const publishAttemptPoints = (
 ) =>
 	Effect.gen(function* () {
 		if (isEmpty(points.attempts)) return;
-		const { client, collections } = yield* QdrantService;
+		const { client } = yield* QdrantService;
+		const { collection } = yield* GenerationWrite;
 
 		yield* Effect.tryPromise({
 			try: () =>
-				client.setPayload(collections.asset.name, {
+				client.setPayload(collection, {
 					payload: {
 						published: points.published,
 					},
@@ -159,57 +163,6 @@ export const publishAttemptPoints = (
 				new QdrantError({
 					operation: "publish",
 					cause,
-				}),
-		});
-	});
-
-export const deletePointsByIdentifier = ({
-	assetId,
-	blockId,
-}: {
-	assetId: AssetPointPayload["asset_id"];
-	blockId: AssetPointPayload["block_id"] | undefined;
-}) =>
-	Effect.gen(function* () {
-		const { client, collections } = yield* QdrantService;
-
-		const filters: Array<{
-			key: string;
-			match: {
-				value: string | number;
-			};
-		}> = [];
-
-		if (assetId !== undefined) {
-			filters.push({
-				key: "asset_id",
-				match: {
-					value: assetId,
-				},
-			});
-		}
-
-		if (blockId !== undefined) {
-			filters.push({
-				key: "block_id",
-				match: {
-					value: blockId,
-				},
-			});
-		}
-
-		return yield* Effect.tryPromise({
-			try: async () =>
-				client.delete(collections.asset.name, {
-					wait: true,
-					filter: {
-						must: filters,
-					},
-				}),
-			catch: (error) =>
-				new QdrantError({
-					operation: "delete",
-					cause: error,
 				}),
 		});
 	});

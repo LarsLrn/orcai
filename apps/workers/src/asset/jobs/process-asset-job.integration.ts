@@ -15,6 +15,7 @@ import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
+import { EmbeddingIndex } from "@orcai/qdrant";
 import { getObjectAsJson, S3Live } from "@orcai/s3/server";
 import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
@@ -22,7 +23,12 @@ import {
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { createJobQueues, createUser, IntegrationLive } from "@orcai/testing";
+import {
+	createJobQueues,
+	createUser,
+	IntegrationLive,
+	testEmbeddingIndex,
+} from "@orcai/testing";
 import { and, eq, like, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -67,6 +73,15 @@ const runtime = ManagedRuntime.make(
 		IntegrationLive,
 		S3Live,
 		EncryptionKeyLive,
+		// Completion queues indexing once embeddings are set up; nothing embeds here.
+		Layer.succeed(
+			EmbeddingIndex,
+			await testEmbeddingIndex({
+				baseUrl: "http://127.0.0.1:9/v1",
+				model: "integration",
+				dimensions: 4,
+			}),
+		),
 		Layer.succeed(PgBossService, {
 			boss: flakyBoss,
 		}),

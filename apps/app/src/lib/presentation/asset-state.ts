@@ -25,8 +25,20 @@ const assetStateVariants: Record<AssetState, BadgeItem["variant"]> = {
 	failed: "danger",
 };
 
-/** The status badge of an asset in a repository. */
-export const assetStateBadge = (state: AssetState): BadgeItem => {
+/**
+ * The status badge of an asset in a repository. Before embeddings are set
+ * up, indexing waits for them.
+ */
+export const assetStateBadge = (
+	state: AssetState,
+	embeddingsConfigured: boolean,
+): BadgeItem => {
+	if (state === "indexing" && !embeddingsConfigured) {
+		return {
+			label: m.asset_state_waiting_for_embeddings_label(),
+			variant: "info",
+		};
+	}
 	const working = state === "processing" || state === "indexing";
 	return {
 		label: assetStateLabels[state](),

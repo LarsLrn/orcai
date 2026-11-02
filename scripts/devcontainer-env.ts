@@ -14,10 +14,6 @@ export function writeDevcontainerEnv(file: string): boolean {
 				WEB_PORT: "3001",
 				BETTER_AUTH_SECRET: randomSecret(48),
 				ENCRYPTION_KEY: randomSecret(32),
-				OPENAI_COMPATIBLE_BASE_URL: "http://host.docker.internal:11434/v1",
-				OPENAI_COMPATIBLE_API_KEY: "ollama",
-				EMBEDDING_MODEL: "baai/bge-m3",
-				EMBEDDING_DIMENSIONS: "1024",
 			},
 			[
 				"Generated once for the devcontainer by `bun scripts/devcontainer-env.ts`.",

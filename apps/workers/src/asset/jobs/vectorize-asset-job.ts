@@ -1,4 +1,4 @@
-import { countTokens, generateManyEmbeddings } from "@orcai/ai";
+import { countTokens } from "@orcai/ai";
 import type { AssetId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
@@ -9,7 +9,12 @@ import {
 	withLinkPoints,
 } from "@orcai/pg-boss";
 import type { StoredExtractionArtifact } from "@orcai/process";
-import { upsertPointsToQdrant } from "@orcai/qdrant";
+import {
+	EmbeddingGeneration,
+	EmbeddingsNotConfiguredError,
+	onActiveGeneration,
+	upsertPointsToQdrant,
+} from "@orcai/qdrant";
 import {
 	type AssetFileType,
 	type BucketName,
@@ -286,30 +291,48 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 			);
 		}
 
-		if (!(yield* claimIndexing(attempt))) {
-			return yield* Effect.logInfo(
-				{
-					jobId,
-					...attempt,
-				},
-				"Skipping an indexing delivery that is done or replaced",
-			);
-		}
+		yield* onActiveGeneration(
+			Effect.gen(function* () {
+				const { generation } = yield* EmbeddingGeneration;
+				if (!(yield* claimIndexing(attempt, generation))) {
+					return yield* Effect.logInfo(
+						{
+							jobId,
+							...attempt,
+							generation,
+						},
+						"Skipping an indexing delivery that is done, replaced or for another embedding generation",
+					);
+				}
 
-		yield* settleIndexingAttempt(
-			attempt,
-			indexAsset({
-				jobId,
-				asset,
-				attempt,
+				yield* settleIndexingAttempt(
+					attempt,
+					indexAsset({
+						jobId,
+						asset,
+						attempt,
+					}),
+				);
 			}),
+		).pipe(
+			Effect.catchIf(
+				(error) => error instanceof EmbeddingsNotConfiguredError,
+				() =>
+					Effect.logInfo(
+						{
+							jobId,
+							...attempt,
+						},
+						"Indexing waits for the embedding setup",
+					),
+			),
 		);
 	});
 
 /**
- * Writes the attempt's points unpublished next to the link's indexed ones,
- * then completes the attempt and serves them in one step; the reconcile
- * deletes the earlier ones. Point ids follow the attempt and chunk, so deliveries of
+ * Writes the attempt's points unpublished next to the link's indexed ones in
+ * the generation's collection, then completes the attempt and serves them in
+ * one step; the reconcile deletes the earlier ones. Point ids follow the attempt and chunk, so deliveries of
  * one attempt write the same points.
  */
 const indexAsset = (params: {
@@ -420,9 +443,8 @@ const embedChunks = ({
 }) =>
 	Effect.gen(function* () {
 		const { assetId, blockId } = attempt;
-		const embedResults = yield* generateManyEmbeddings({
-			values: chunks.map((chunk) => chunk.embeddingContent),
-		});
+		const { embed } = yield* EmbeddingGeneration;
+		const vectors = yield* embed(chunks.map((chunk) => chunk.embeddingContent));
 
 		const metaDataChunks = chunks.map((chunk, index) => {
 			const basePayload = {
@@ -461,7 +483,7 @@ const embedChunks = ({
 					`${assetId}/${blockId}/${attempt.attempt}/${index}`,
 					POINT_ID_NAMESPACE,
 				),
-				vector: embedResults.embeddings[index],
+				vector: vectors[index],
 				payload: {
 					...basePayload,
 					...specificPayload,

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
+import { EncryptionKeyLive } from "@orcai/ai";
 import type { ActivityRunId, AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
@@ -16,7 +17,11 @@ import {
 	type ProcessAssetPayload,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { createUser, IntegrationLive } from "@orcai/testing";
+import {
+	createUser,
+	IntegrationLive,
+	IsolatedEmbeddingIndexLive,
+} from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -47,13 +52,19 @@ const boss = new PgBoss({
 });
 boss.on("error", () => undefined);
 
+// Indexing never gets as far as Qdrant here, so the index stays without embeddings.
 const runtime = ManagedRuntime.make(
-	Layer.mergeAll(
-		IntegrationLive,
-		QdrantLive,
-		Layer.succeed(PgBossService, {
-			boss,
-		}),
+	IsolatedEmbeddingIndexLive().pipe(
+		Layer.provideMerge(
+			Layer.mergeAll(
+				IntegrationLive,
+				QdrantLive,
+				EncryptionKeyLive,
+				Layer.succeed(PgBossService, {
+					boss,
+				}),
+			),
+		),
 	),
 );
 

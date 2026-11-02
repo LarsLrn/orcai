@@ -1,7 +1,9 @@
 import type { AssetPoint, AssetPointBrowseCursor } from "@orcai/schema";
 import type { Schemas } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
+import { assetPointIndex } from "./collections";
 import { QdrantError } from "./errors";
+import { EmbeddingGeneration } from "./generation";
 import { parseAssetPoints, servedFilter } from "./queries";
 import { QdrantService } from "./service";
 
@@ -40,9 +42,9 @@ export const browseAssetPoints = (params: {
 	limit: number;
 }) =>
 	Effect.gen(function* () {
-		const { client, collections } = yield* QdrantService;
-		const collection = collections.asset.name;
-		const { chunkIndex: CHUNK, chunkPageStart: PAGE } = collections.asset.index;
+		const { client } = yield* QdrantService;
+		const { collection } = yield* EmbeddingGeneration;
+		const { chunkIndex: CHUNK, chunkPageStart: PAGE } = assetPointIndex;
 		const scroll = (request: Schemas["ScrollRequest"]) =>
 			Effect.tryPromise({
 				try: () =>

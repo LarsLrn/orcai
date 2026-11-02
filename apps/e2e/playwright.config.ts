@@ -127,9 +127,8 @@ export default defineConfig({
 					},
 				},
 			],
-	// Started in order. The mock inference server comes first because the app
-	// reads its global endpoint (`OPENAI_COMPATIBLE_BASE_URL`, set by
-	// `bun run stack e2e` to this URL) once at start.
+	// Started in order. The mock inference server comes first: the setup
+	// project saves it as the embedding endpoint, which runs a test embedding.
 	webServer: [
 		{
 			command: "bun fixtures/inference/serve.ts",

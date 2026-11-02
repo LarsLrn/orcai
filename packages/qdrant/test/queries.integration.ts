@@ -2,15 +2,14 @@ import { afterAll, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import type { RetrievalMode } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import {
-	deletePointsByIdentifier,
-	upsertPointsToQdrant,
-} from "../src/mutations";
+import * as ManagedRuntime from "effect/ManagedRuntime";
+import { upsertPointsToQdrant } from "../src/mutations";
 import { queryAssetPoints } from "../src/queries";
-import { QdrantLive, QdrantService } from "../src/service";
+import { TestCollectionLive } from "./test-collection";
 
-const run = <A, E>(effect: Effect.Effect<A, E, QdrantService>) =>
-	Effect.runPromise(effect.pipe(Effect.provide(QdrantLive)));
+const dimensions = 8;
+const runtime = ManagedRuntime.make(TestCollectionLive(dimensions));
+const run = runtime.runPromise;
 
 const assetId = crypto.randomUUID() as AssetId;
 
@@ -63,12 +62,11 @@ const ids = Object.fromEntries(
 
 const stored = run(
 	Effect.gen(function* () {
-		const { collections } = yield* QdrantService;
 		yield* upsertPointsToQdrant({
 			points: Object.entries(points).map(
 				([name, { similarity, text }], index) => ({
 					id: ids[name],
-					vector: at(similarity, collections.asset.dimensions),
+					vector: at(similarity, dimensions),
 					payload: {
 						source: "text" as const,
 						asset_id: assetId,
@@ -83,21 +81,13 @@ const stored = run(
 				}),
 			),
 		});
-		return collections.asset.dimensions;
 	}),
 );
 
-afterAll(() =>
-	run(
-		deletePointsByIdentifier({
-			assetId,
-			blockId: undefined,
-		}),
-	),
-);
+afterAll(() => runtime.dispose());
 
 const search = async (retrievalMode: RetrievalMode) => {
-	const dimensions = await stored;
+	await stored;
 	const found = await run(
 		queryAssetPoints({
 			embedding: at(1, dimensions),

@@ -1,6 +1,10 @@
 import type { AssetId, BlockId } from "@orcai/core";
 import { advisoryXactLock, DB, dbSchema } from "@orcai/db";
-import { deleteAttemptPoints, publishAttemptPoints } from "@orcai/qdrant";
+import {
+	deleteAttemptPoints,
+	publishAttemptPoints,
+	writeGeneration,
+} from "@orcai/qdrant";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
@@ -11,25 +15,27 @@ type Link = {
 	readonly blockId: BlockId;
 };
 
-/** Runs `body` in a transaction holding the link's points lock, so writes to its Qdrant points never interleave. */
+/**
+ * Runs `body` on the active embedding generation's collection, in a
+ * transaction holding the link's points lock, so writes to its Qdrant points
+ * never interleave and never outlive their generation.
+ */
 export const withLinkPoints = <A, E, R>(
 	link: Link,
 	body: Effect.Effect<A, E, R>,
 ) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		return yield* db.transaction(() =>
-			Effect.gen(function* () {
-				yield* db.execute(
-					advisoryXactLock(
-						LINK_POINTS_LOCK_SPACE,
-						`${link.assetId}/${link.blockId}`,
-					),
-				);
-				return yield* body;
-			}),
-		);
-	});
+	writeGeneration(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			yield* db.execute(
+				advisoryXactLock(
+					LINK_POINTS_LOCK_SPACE,
+					`${link.assetId}/${link.blockId}`,
+				),
+			);
+			return yield* body;
+		}),
+	);
 
 /**
  * Serves the `indexed` attempt's points and no other attempt's; `null` serves
@@ -76,7 +82,8 @@ export const serveIndexedAttempt = (
  * indexed attempt's, deletes earlier ones, and deletes those of attempts
  * replaced since and of a failed current one. The current unfinished
  * attempt's stay. Without a link, every point goes. Each step is idempotent,
- * so the next run resumes a failed one.
+ * so the next run resumes a failed one. Before embeddings are set up there
+ * are no points.
  */
 export const reconcileLinkPoints = (link: Link) =>
 	withLinkPoints(
@@ -126,4 +133,4 @@ export const reconcileLinkPoints = (link: Link) =>
 				},
 			});
 		}),
-	);
+	).pipe(Effect.catchTag("EmbeddingsNotConfiguredError", () => Effect.void));

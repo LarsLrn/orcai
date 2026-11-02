@@ -42,8 +42,9 @@
  * `e2e` runs the images on the host network with the stack environment.
  * `e2e --no-reset` reuses an app already listening on PORT, for example
  * `bun run stack dev`, and skips building its image. An e2e run also starts
- * a mock inference server on E2E_INFERENCE_PORT and points the app's global
- * OpenAI-compatible endpoint at it; a reused app keeps its own endpoint.
+ * a mock inference server on E2E_INFERENCE_PORT, which the setup project saves
+ * as the embedding endpoint right after `/init`; `up` and `reset` seed a
+ * placeholder endpoint for development instead.
  * After Playwright, `e2e` runs `bun run test:integration` against the same
  * stack, whatever Playwright's result; `--no-integration` skips it.
  * `e2e --pipeline` runs the specs in `apps/e2e/tests/pipeline` instead of the
@@ -299,14 +300,6 @@ function defaultEnv(stackName: string, ports: Ports): Env {
 		SPICEDB_SECURITY: "insecure-plaintext",
 		SPICEDB_POSTGRES_USER: "postgres",
 		SPICEDB_POSTGRES_PASSWORD: "postgres",
-
-		// No inference endpoint ships with the stack. Point these at a real
-		// OpenAI-compatible endpoint (for example through ~/.config/orcai/dev.env)
-		// before exercising embeddings.
-		OPENAI_COMPATIBLE_BASE_URL: "http://127.0.0.1:11434/v1",
-		OPENAI_COMPATIBLE_API_KEY: "dev-openai-compatible-key",
-		EMBEDDING_MODEL: "baai/bge-m3",
-		EMBEDDING_DIMENSIONS: "1024",
 
 		// Workers on the host need Tesseract with matching language packs.
 		KREUZBERG_OCR_LANGUAGE: "eng",
@@ -591,6 +584,21 @@ async function runOrThrow(
 	if (code !== 0) {
 		throw new Error(`${label} failed with exit code ${String(code)}`);
 	}
+}
+
+/** A dev stack embeds with a placeholder endpoint until an admin saves another on the Settings page. */
+async function seedDevEmbeddings(env: Env): Promise<void> {
+	await runOrThrow(
+		"Seeding the dev embedding setting",
+		[
+			"bun",
+			"run",
+			"--filter",
+			"@orcai/qdrant",
+			"seed:dev",
+		],
+		env,
+	);
 }
 
 async function migrate(env: Env): Promise<void> {
@@ -910,9 +918,9 @@ async function reset(options: Options, env: Env): Promise<void> {
 
 /**
  * The e2e suite runs a mock OpenAI-compatible server
- * (`apps/e2e/fixtures/inference/serve.ts`) on `E2E_INFERENCE_PORT` and points
- * the app's global inference endpoint at it, so embeddings and chat titles
- * never reach a real provider. The assistant reads the docs site that
+ * (`apps/e2e/fixtures/inference/serve.ts`) on `E2E_INFERENCE_PORT`; its setup
+ * project saves the mock as the instance's embedding endpoint right after
+ * `/init`, so embeddings never reach a real provider. The assistant reads the docs site that
  * Playwright runs on `WEB_PORT` through `WEB_INTERNAL_URL`. Env files written
  * before the port existed get the slot the allocator would have chosen. With
  * `--no-reset` and an app already listening, that app keeps the endpoints it
@@ -930,9 +938,6 @@ function e2eEnv(env: Env, pipeline: boolean): Env {
 		// Also for a stack whose `.env` predates the host name.
 		BETTER_AUTH_URL: appUrlFor(envValue(env, "PORT")),
 		E2E_INFERENCE_PORT: inferencePort,
-		OPENAI_COMPATIBLE_BASE_URL: `http://127.0.0.1:${inferencePort}/v1`,
-		OPENAI_COMPATIBLE_API_KEY: "e2e-mock-key",
-		EMBEDDING_MODEL: "e2e-mock-embedding",
 		WEB_INTERNAL_URL: `http://127.0.0.1:${envValue(env, "WEB_PORT")}`,
 		// Every request comes from loopback without a forwarded client IP, so
 		// the production limiter would put the whole suite in one bucket.
@@ -1312,6 +1317,7 @@ async function main(): Promise<number> {
 			const env = await loadOrCreateEnv(options, options.flags.has("reset"));
 			await composeUp(options, env);
 			await migrate(env);
+			await seedDevEmbeddings(env);
 			printSummary(options, env);
 			return 0;
 		}
@@ -1357,9 +1363,12 @@ async function main(): Promise<number> {
 		case "migrate":
 			await migrate(requireEnv(options));
 			return 0;
-		case "reset":
-			await reset(options, requireEnv(options));
+		case "reset": {
+			const env = requireEnv(options);
+			await reset(options, env);
+			await seedDevEmbeddings(env);
 			return 0;
+		}
 		case "build":
 			await buildImages(
 				options,

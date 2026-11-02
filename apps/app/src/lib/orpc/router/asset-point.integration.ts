@@ -1,23 +1,22 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { AiConfigService } from "@orcai/ai";
 import { type AssetId, type BlockId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
-	deletePointsByIdentifier,
-	QdrantLive,
-	QdrantService,
+	EmbeddingIndex,
+	type EmbeddingIndexScope,
 	upsertPointsToQdrant,
+	writeGeneration,
 } from "@orcai/qdrant";
 import type { AssetPoint, assetPointsFiltersSchema } from "@orcai/schema";
+import { testEmbeddingIndex } from "@orcai/testing";
 import { serve } from "bun";
 import { eq, sql } from "drizzle-orm";
-import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
-import * as Redacted from "effect/Redacted";
 import type { z } from "zod/v4";
 import {
 	type Actor,
 	authzIntegration,
+	onEmbeddingIndex,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
 import { writeRelationships } from "@/lib/authz/relationship-write";
@@ -26,11 +25,7 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions } = authzIntegration();
 
-const dimensions = await run(
-	QdrantService.pipe(
-		Effect.map(({ collections }) => collections.asset.dimensions),
-	),
-);
+const dimensions = 8;
 
 /** A unit vector at cosine `similarity` to every query's embedding. */
 const at = (similarity: number) =>
@@ -67,41 +62,22 @@ const embeddings = serve({
 		}),
 });
 
-const stored: AssetId[] = [];
-// The shared runtime is disposed by the time this runs.
-afterAll(async () => {
-	await embeddings.stop(true);
-	await Effect.runPromise(
-		Effect.forEach(stored, (assetId) =>
-			deletePointsByIdentifier({
-				assetId,
-				blockId: undefined,
-			}),
-		).pipe(Effect.provide(QdrantLive)),
-	);
+const configuredIndex = await testEmbeddingIndex({
+	baseUrl: `${embeddings.url.origin}/v1`,
+	model: "integration",
+	dimensions,
 });
+const unconfiguredIndex = await testEmbeddingIndex();
 
-/** The actor's call options with queries embedded by the endpoint above. */
-const embeddingThroughEndpoint = async (actor: Actor, zedToken?: string) => {
-	const options = await procedureOptions(actor, zedToken);
-	return {
-		context: {
-			...options.context,
-			"effect/context": Context.add(
-				options.context["effect/context"],
-				AiConfigService,
-				{
-					config: {
-						baseUrl: `${embeddings.url.origin}/v1`,
-						apiKey: Redacted.make("key"),
-						embedding: {
-							model: "integration",
-						},
-					},
-				},
-			),
-		},
-	};
+afterAll(() => embeddings.stop(true));
+
+/** The actor's call options on `index`, whose queries the endpoint above embeds. */
+const embeddingThroughEndpoint = async (
+	actor: Actor,
+	zedToken?: string,
+	index: EmbeddingIndexScope = configuredIndex,
+) => {
+	return onEmbeddingIndex(await procedureOptions(actor, zedToken), index);
 };
 
 const STRONG = 0.8;
@@ -178,7 +154,10 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 		(assetId) => indexed.get(assetId),
 	);
 
-	const search = async (filters: z.infer<typeof assetPointsFiltersSchema>) =>
+	const search = async (
+		filters: z.infer<typeof assetPointsFiltersSchema>,
+		index?: EmbeddingIndexScope,
+	) =>
 		run(
 			procedures.assetPoint.searchRepository(
 				{
@@ -193,7 +172,17 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 						...filters,
 					},
 				},
-				await embeddingThroughEndpoint(owner, block.meta?.zedToken),
+				await embeddingThroughEndpoint(owner, block.meta?.zedToken, index),
+			),
+		);
+
+	const browse = async (index?: EmbeddingIndexScope) =>
+		run(
+			procedures.assetPoint.browseRepository(
+				{
+					repositoryId: block.data.id,
+				},
+				await embeddingThroughEndpoint(owner, block.meta?.zedToken, index),
 			),
 		);
 
@@ -202,6 +191,7 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 		blockId: block.data.id,
 		indexed,
 		search,
+		browse,
 	};
 };
 
@@ -238,9 +228,8 @@ const storePassages = (
 	published?: boolean,
 ) =>
 	run(
-		Effect.gen(function* () {
-			stored.push(...assets);
-			yield* upsertPointsToQdrant({
+		writeGeneration(
+			upsertPointsToQdrant({
 				points: assets.flatMap((assetId, assetIndex) =>
 					passageSimilarities[assetIndex].map((similarity, index, all) => ({
 						id: crypto.randomUUID(),
@@ -260,8 +249,8 @@ const storePassages = (
 						},
 					})),
 				),
-			});
-		}),
+			}),
+		).pipe(Effect.provideService(EmbeddingIndex, configuredIndex)),
 	);
 
 const perAsset = (points: AssetPoint[]) => {
@@ -540,6 +529,54 @@ describe("served points", () => {
 			expect(similarities(data)).toEqual([
 				STRONG,
 			]);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("before embeddings are set up", () => {
+	test(
+		"dense, sparse and queryless search and browsing fail as not configured",
+		async () => {
+			const { search, browse } = await repositoryOf([
+				passages(2, STRONG),
+			]);
+			const reasonOf = (call: Promise<unknown>) =>
+				call.then(
+					() => undefined,
+					(error: { reason?: string }) => error.reason,
+				);
+
+			for (const retrievalMode of [
+				"dense",
+				"sparse",
+				"hybrid",
+			] as const) {
+				expect(
+					await reasonOf(
+						search(
+							{
+								retrievalMode,
+							},
+							unconfiguredIndex,
+						),
+					),
+				).toBe("EMBEDDINGS_NOT_CONFIGURED");
+			}
+			expect(
+				await reasonOf(
+					search(
+						{
+							queries: undefined,
+						},
+						unconfiguredIndex,
+					),
+				),
+			).toBe("EMBEDDINGS_NOT_CONFIGURED");
+			expect(await reasonOf(browse(unconfiguredIndex))).toBe(
+				"EMBEDDINGS_NOT_CONFIGURED",
+			);
+			expect((await search({})).data.length).toBeGreaterThan(0);
 		},
 		TIMEOUT,
 	);

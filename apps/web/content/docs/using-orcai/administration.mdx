@@ -336,26 +336,35 @@ writes are not priced, so the estimate may differ from the invoice.
 ## Instance management
 
 Instance management is a separate application area under `/instance`, with
-its own sidebar and four pages. Instance admins can open it from the
+its own sidebar and five pages. Instance admins can open it from the
 shared user menu or the organisation picker, including when they have no
 organisation memberships. `/instance` opens the Health page.
 
 **Health** (`/instance/health`) shows whether the instance works. Each check
 is OK, a warning or failing, and is either required or recommended.
 PostgreSQL, SpiceDB, Qdrant and object storage are required, and Valkey is
-recommended. The page also requires a running workers process, and
-recommends email delivery over SMTP and a deployment without configuration
-warnings. A dependency that does not answer within three seconds counts as
+recommended. **Embeddings** is required too and passes once embeddings are set
+up and the active Qdrant collection exists with the model's dimensions. The
+page also requires a running workers process, and recommends email delivery
+over SMTP and a deployment without configuration warnings. A dependency that does not answer within three seconds counts as
 failing. Below the checks it lists the outbox (waiting and given-up emails,
 the latest error, and whether the latest email went out over SMTP or only to
 the worker log), the processes that run background jobs with their last
 heartbeat, the jobs per queue including dead letter queues, the OrcAI,
 PostgreSQL, Qdrant and Valkey versions with the latest database migration,
-and the settings of the app process. Secrets only show whether they are set.
+and the settings of the app process, including the stored embedding endpoint,
+model, dimensions and collection. Secrets only show whether they are set.
 The checks run when the page opens and on **Check again**, and nothing polls
 in the background. **Send test email** queues an email to your own address, at
 most one a minute, through the same outbox as every other email. Check again
 to see whether it was sent and how.
+
+**Settings** (`/instance/settings`) has the **Embeddings** section, which sets
+the OpenAI-compatible endpoint and model that embed every organisation's
+repository assets and search queries. **Save and test** saves them only after
+a test embedding works. [Embeddings](/docs/self-hosting/configuration#embeddings)
+describes the fields. Until they are set up, repository search is unavailable,
+and instance admins see a banner in the app that links to this page.
 
 **Organisations** (`/instance/organizations`) lists every organisation of the
 instance with its slug and member count, with search, creates one with
@@ -440,7 +449,10 @@ with its **Organisation name** and **Organisation slug**, and the first account
 with **Admin name**, **Admin email**, **Password** (at least 8 characters) and
 **Confirm password**. **Privacy consent** confirms that you agree to the
 instance's privacy policy and terms of use. **Initialise instance** creates the
-account as an instance admin and as Admin of the organisation and signs you in.
+account as an instance admin and as Admin of the organisation, signs you in and
+opens the instance **Settings** page to set up
+[embeddings](/docs/self-hosting/configuration#embeddings). **Set up later** goes
+to the app instead, and uploads are not searchable until embeddings are set up.
 Since nothing is configured yet, Home opens on its Manage tab, where the
 [Readiness checklist](/docs/using-orcai/organisation-setup#the-readiness-checklist)
 lists what the organisation still needs. Once any account or organisation

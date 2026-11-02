@@ -1,4 +1,4 @@
-import { AiConfigLive, AiTelemetryLive, EncryptionKeyLive } from "@orcai/ai";
+import { AiTelemetryLive, EncryptionKeyLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { EmailConfigLive, EmailLive } from "@orcai/notifications";
 import { makePgBossLayer } from "@orcai/pg-boss";
@@ -16,7 +16,6 @@ export const BackgroundWorkerLayer = Layer.mergeAll(
 	}),
 	S3Live,
 	QdrantLive,
-	AiConfigLive,
 	EncryptionKeyLive,
 	EmailLive.pipe(Layer.provide(EmailConfigLive)),
 );

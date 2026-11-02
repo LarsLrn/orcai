@@ -45,8 +45,9 @@ export const useInit = () => {
 			onSuccess: () => {
 				trackEvent("app-init");
 				refetchSession();
+				// The first admin sets embeddings up next, or skips to the app.
 				navigate({
-					to: "/app",
+					to: "/instance/settings",
 					replace: true,
 				});
 			},

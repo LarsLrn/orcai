@@ -112,6 +112,13 @@ export const blockAsset = pgTable(
 		indexedAttempt: bigint("indexed_attempt", {
 			mode: "number",
 		}),
+		/**
+		 * The embedding generation the current attempt indexes into; null when
+		 * it was admitted before embeddings were set up.
+		 */
+		embeddingGeneration: bigint("embedding_generation", {
+			mode: "number",
+		}),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
 	(table) => [

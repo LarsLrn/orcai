@@ -85,6 +85,7 @@ import { Route as InstanceAnalyticsIndexRouteImport } from './routes/instance/an
 import { Route as InstanceHealthIndexRouteImport } from './routes/instance/health/index'
 import { Route as InstanceOrganizationsIndexRouteImport } from './routes/instance/organizations/index'
 import { Route as InstanceOrganizationsOrganizationIdRouteRouteImport } from './routes/instance/organizations/$organizationId/route'
+import { Route as InstanceSettingsIndexRouteImport } from './routes/instance/settings/index'
 import { Route as InstanceUsersIndexRouteImport } from './routes/instance/users/index'
 import { Route as InstanceUsersUserIdRouteRouteImport } from './routes/instance/users/$userId/route'
 import { Route as AppAssistantChatIdIndexRouteImport } from './routes/app/assistant/$chatId/index'
@@ -528,6 +529,11 @@ const InstanceOrganizationsOrganizationIdRouteRoute =
     path: '/organizations/$organizationId',
     getParentRoute: () => InstanceRouteRoute,
   } as any)
+const InstanceSettingsIndexRoute = InstanceSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => InstanceRouteRoute,
+} as any)
 const InstanceUsersIndexRoute = InstanceUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -876,6 +882,7 @@ export interface FileRoutesByFullPath {
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
+  '/instance/settings/': typeof InstanceSettingsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/catalogue/behaviours/$id': typeof AppCatalogueBehavioursIdRouteRouteWithChildren
   '/app/catalogue/bots/$id': typeof AppCatalogueBotsIdRouteRouteWithChildren
@@ -974,6 +981,7 @@ export interface FileRoutesByTo {
   '/instance/analytics': typeof InstanceAnalyticsIndexRoute
   '/instance/health': typeof InstanceHealthIndexRoute
   '/instance/organizations': typeof InstanceOrganizationsIndexRoute
+  '/instance/settings': typeof InstanceSettingsIndexRoute
   '/instance/users': typeof InstanceUsersIndexRoute
   '/app/library/assets/add': typeof AppLibraryAssetsAddRoute
   '/app/library/behaviours/add': typeof AppLibraryBehavioursAddRoute
@@ -1094,6 +1102,7 @@ export interface FileRoutesById {
   '/instance/analytics/': typeof InstanceAnalyticsIndexRoute
   '/instance/health/': typeof InstanceHealthIndexRoute
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
+  '/instance/settings/': typeof InstanceSettingsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
   '/app/catalogue/behaviours/$id': typeof AppCatalogueBehavioursIdRouteRouteWithChildren
   '/app/catalogue/bots/$id': typeof AppCatalogueBotsIdRouteRouteWithChildren
@@ -1220,6 +1229,7 @@ export interface FileRouteTypes {
     | '/instance/analytics/'
     | '/instance/health/'
     | '/instance/organizations/'
+    | '/instance/settings/'
     | '/instance/users/'
     | '/app/catalogue/behaviours/$id'
     | '/app/catalogue/bots/$id'
@@ -1318,6 +1328,7 @@ export interface FileRouteTypes {
     | '/instance/analytics'
     | '/instance/health'
     | '/instance/organizations'
+    | '/instance/settings'
     | '/instance/users'
     | '/app/library/assets/add'
     | '/app/library/behaviours/add'
@@ -1437,6 +1448,7 @@ export interface FileRouteTypes {
     | '/instance/analytics/'
     | '/instance/health/'
     | '/instance/organizations/'
+    | '/instance/settings/'
     | '/instance/users/'
     | '/app/catalogue/behaviours/$id'
     | '/app/catalogue/bots/$id'
@@ -2031,6 +2043,13 @@ declare module '@tanstack/react-router' {
       path: '/organizations/$organizationId'
       fullPath: '/instance/organizations/$organizationId'
       preLoaderRoute: typeof InstanceOrganizationsOrganizationIdRouteRouteImport
+      parentRoute: typeof InstanceRouteRoute
+    }
+    '/instance/settings/': {
+      id: '/instance/settings/'
+      path: '/settings'
+      fullPath: '/instance/settings/'
+      preLoaderRoute: typeof InstanceSettingsIndexRouteImport
       parentRoute: typeof InstanceRouteRoute
     }
     '/instance/users/': {
@@ -2970,6 +2989,7 @@ interface InstanceRouteRouteChildren {
   InstanceAnalyticsIndexRoute: typeof InstanceAnalyticsIndexRoute
   InstanceHealthIndexRoute: typeof InstanceHealthIndexRoute
   InstanceOrganizationsIndexRoute: typeof InstanceOrganizationsIndexRoute
+  InstanceSettingsIndexRoute: typeof InstanceSettingsIndexRoute
   InstanceUsersIndexRoute: typeof InstanceUsersIndexRoute
 }
 
@@ -2981,6 +3001,7 @@ const InstanceRouteRouteChildren: InstanceRouteRouteChildren = {
   InstanceAnalyticsIndexRoute: InstanceAnalyticsIndexRoute,
   InstanceHealthIndexRoute: InstanceHealthIndexRoute,
   InstanceOrganizationsIndexRoute: InstanceOrganizationsIndexRoute,
+  InstanceSettingsIndexRoute: InstanceSettingsIndexRoute,
   InstanceUsersIndexRoute: InstanceUsersIndexRoute,
 }
 

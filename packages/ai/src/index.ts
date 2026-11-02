@@ -13,15 +13,14 @@ export {
 	sanitizeGeneratedChatTitle,
 	shouldGenerateChatTitle,
 } from "./chat-title";
-export {
-	AiConfigLive,
-	AiConfigService,
-} from "./config";
 export { countTokens } from "./count-tokens";
 export { AiError, QuotaDeniedError } from "./errors";
 export {
-	generateEmbedding,
-	generateManyEmbeddings,
+	type EmbeddingConnection,
+	EmbeddingTestError,
+	type EmbeddingTestFailure,
+	embedValues,
+	testEmbedding,
 } from "./generate-embedding";
 export {
 	figureDescriptionInstructions,
@@ -39,6 +38,7 @@ export {
 	startMeteredCall,
 } from "./metered/meter";
 export {
+	decryptApiKey,
 	EncryptionKey,
 	EncryptionKeyLive,
 	encryptApiKey,

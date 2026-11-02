@@ -1,19 +1,33 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { QdrantService, upsertPointsToQdrant } from "@orcai/qdrant";
+import {
+	EmbeddingIndex,
+	upsertPointsToQdrant,
+	writeGeneration,
+} from "@orcai/qdrant";
 import type { AssetPointBrowseCursor } from "@orcai/schema";
+import { testEmbeddingIndex } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	type Actor,
 	authzIntegration,
+	onEmbeddingIndex,
 	TIMEOUT,
 } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
 const { run, organizationWith, procedureOptions, createAsset } =
 	authzIntegration();
+
+const dimensions = 4;
+// Browsing embeds nothing, so the endpoint is never called.
+const embeddingIndex = await testEmbeddingIndex({
+	baseUrl: "http://127.0.0.1:9/v1",
+	model: "integration",
+	dimensions,
+});
 
 const rejection = (operation: Promise<unknown>) =>
 	operation.then(
@@ -58,7 +72,6 @@ const index = (
 ) =>
 	run(
 		Effect.gen(function* () {
-			const { collections } = yield* QdrantService;
 			const link = and(
 				eq(dbSchema.blockAsset.blockId, blockId),
 				eq(dbSchema.blockAsset.assetId, assetId),
@@ -89,33 +102,35 @@ const index = (
 				: [];
 			const vector = Array.from(
 				{
-					length: collections.asset.dimensions,
+					length: dimensions,
 				},
 				(_, position) => (position === 0 ? 1 : 0),
 			);
-			yield* upsertPointsToQdrant({
-				points: passages.map((passage, passageIndex) => ({
-					id: crypto.randomUUID(),
-					vector,
-					payload: {
-						source: passage.source ?? "text",
-						asset_id: assetId,
-						block_id: blockId,
-						text: `${assetId} ${newer ? "newer" : "passage"} ${passageIndex}`,
-						title: "Integration",
-						chunkPageStart: passage.page,
-						chunkPageEnd: passage.page,
-						depth: 0,
-						tokens: 2,
-						chunk_index: passageIndex,
-						chunkCount: passages.length,
-						createdAt: new Date().toISOString(),
-						index_attempt: (completed ?? running)?.attempt,
-						published: newer?.published,
-					},
-				})),
-			});
-		}),
+			yield* writeGeneration(
+				upsertPointsToQdrant({
+					points: passages.map((passage, passageIndex) => ({
+						id: crypto.randomUUID(),
+						vector,
+						payload: {
+							source: passage.source ?? "text",
+							asset_id: assetId,
+							block_id: blockId,
+							text: `${assetId} ${newer ? "newer" : "passage"} ${passageIndex}`,
+							title: "Integration",
+							chunkPageStart: passage.page,
+							chunkPageEnd: passage.page,
+							depth: 0,
+							tokens: 2,
+							chunk_index: passageIndex,
+							chunkCount: passages.length,
+							createdAt: new Date().toISOString(),
+							index_attempt: (completed ?? running)?.attempt,
+							published: newer?.published,
+						},
+					})),
+				}),
+			);
+		}).pipe(Effect.provideService(EmbeddingIndex, embeddingIndex)),
 	);
 
 /** A ready repository of `count` fresh assets, owned by a member; with an outsider of the organisation. */
@@ -165,7 +180,7 @@ const browse = async (
 	return run(
 		procedures.assetPoint.browseRepository(
 			input,
-			await procedureOptions(actor, zedToken),
+			onEmbeddingIndex(await procedureOptions(actor, zedToken), embeddingIndex),
 		),
 	);
 };

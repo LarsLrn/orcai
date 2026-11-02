@@ -5,6 +5,7 @@ import {
 	ChartColumnIcon,
 	HeartPulseIcon,
 	type LucideIcon,
+	SettingsIcon,
 	UsersIcon,
 } from "lucide-react";
 import { NavUser } from "@/components/account/nav-user";
@@ -34,6 +35,7 @@ const InstanceSidebar = () => {
 		title: string;
 		to:
 			| "/instance/health"
+			| "/instance/settings"
 			| "/instance/organizations"
 			| "/instance/users"
 			| "/instance/analytics";
@@ -43,6 +45,11 @@ const InstanceSidebar = () => {
 			title: m.instance_sidebar_health_nav_label(),
 			to: "/instance/health",
 			icon: HeartPulseIcon,
+		},
+		{
+			title: m.instance_sidebar_settings_nav_label(),
+			to: "/instance/settings",
+			icon: SettingsIcon,
 		},
 		{
 			title: m.instance_sidebar_organisations_nav_label(),

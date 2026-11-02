@@ -19,7 +19,7 @@ describe("writeDevcontainerEnv", () => {
 		});
 	});
 
-	test("writes the ports, fresh secrets and inference defaults", () => {
+	test("writes the ports and fresh secrets", () => {
 		const file = path.join(dir, ".env");
 
 		expect(writeDevcontainerEnv(file)).toBe(true);
@@ -27,11 +27,7 @@ describe("writeDevcontainerEnv", () => {
 		const env = parseEnv(readFileSync(file, "utf8"));
 		expect(Object.keys(env).sort()).toEqual([
 			"BETTER_AUTH_SECRET",
-			"EMBEDDING_DIMENSIONS",
-			"EMBEDDING_MODEL",
 			"ENCRYPTION_KEY",
-			"OPENAI_COMPATIBLE_API_KEY",
-			"OPENAI_COMPATIBLE_BASE_URL",
 			"PORT",
 			"WEB_PORT",
 		]);

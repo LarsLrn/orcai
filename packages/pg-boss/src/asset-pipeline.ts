@@ -1,5 +1,6 @@
 import type { ActivityRunId, AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { activeGeneration } from "@orcai/qdrant";
 import {
 	type AssetFileType,
 	type BucketName,
@@ -25,14 +26,20 @@ export type ObservedLink = {
 
 /**
  * Starts a new indexing attempt on each link whose attempt is still the one
- * observed, and queues its job in the same transaction. A link another
- * admission got to first is left to it, so overlapping callers admit it once,
- * and a delivery of an earlier attempt changes nothing. The links admitted
- * are `runId`'s work, or automatic without it. Returns them.
+ * observed, into the active embedding generation, and queues its job in the
+ * same transaction. A link another admission got to first is left to it, so
+ * overlapping callers admit it once, and a delivery of an earlier attempt
+ * changes nothing. The links admitted are `runId`'s work, or automatic
+ * without it. Before embeddings are set up the links wait without a job,
+ * automatic work the embedding reconciler admits once they are. A re-embed
+ * indexes `fromStoredExtraction`. Returns the links admitted.
  */
 export const queueIndexing = (
 	observed: readonly ObservedLink[],
 	runId?: ActivityRunId,
+	options: {
+		readonly fromStoredExtraction?: boolean;
+	} = {},
 ) =>
 	Effect.gen(function* () {
 		if (observed.length === 0) return [];
@@ -41,6 +48,7 @@ export const queueIndexing = (
 
 		return yield* db.transaction(() =>
 			Effect.gen(function* () {
+				const generation = yield* activeGeneration;
 				const admitted = yield* db
 					.update(blockAsset)
 					.set({
@@ -49,6 +57,7 @@ export const queueIndexing = (
 						indexFailureId: null,
 						indexActorId: runActor(runId),
 						indexAttempt: nextIndexAttempt,
+						embeddingGeneration: generation ?? null,
 					})
 					.where(
 						or(
@@ -66,21 +75,29 @@ export const queueIndexing = (
 						blockId: blockAsset.blockId,
 						attempt: blockAsset.indexAttempt,
 					});
-				if (admitted.length > 0) {
-					yield* admitStage(
-						runId,
-						admitted.map((link) => ({
-							stage: "indexing",
-							assetId: link.assetId,
-							blockId: link.blockId,
-						})),
-					);
+				if (admitted.length === 0) return admitted;
+
+				const queued = generation === undefined ? undefined : runId;
+				yield* admitStage(
+					queued,
+					admitted.map((link) => ({
+						stage: "indexing",
+						assetId: link.assetId,
+						blockId: link.blockId,
+					})),
+				);
+				if (generation !== undefined) {
 					yield* sendJobBatchInTransaction<VectorizeAssetPayload>({
 						jobName: VECTORIZE_ASSET_JOB_NAME,
 						jobs: admitted.map((link) => ({
 							data: {
 								...link,
 								runId,
+								...(options.fromStoredExtraction
+									? {
+											fromStoredExtraction: true,
+										}
+									: {}),
 							},
 						})),
 					});

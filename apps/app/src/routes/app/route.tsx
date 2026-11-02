@@ -8,6 +8,7 @@ import * as Effect from "effect/Effect";
 import { Header } from "@/components/app/header";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
+import { EmbeddingsSetupBanner } from "@/components/instance/settings/embeddings-setup-banner";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUmami } from "@/hooks/use-umami";
@@ -134,6 +135,7 @@ function RouteComponent() {
 				<AppSidebar />
 				<SidebarInset className="max-w-full">
 					<Header />
+					<EmbeddingsSetupBanner />
 					<div className="isolate mx-auto flex w-full flex-1 flex-col px-2 py-6 md:px-6">
 						<Outlet />
 					</div>

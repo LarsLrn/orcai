@@ -6,12 +6,13 @@ import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
-import { getObjectAsJson } from "@orcai/s3/server";
+import { getObjectAsJson, isS3NoSuchKey } from "@orcai/s3/server";
 import type { AssetFileType, BucketName } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { toSanitizedPgBossRunError } from "@/asset/error-summary";
 import {
+	AssetPipelineError,
 	currentIndexing,
 	type IndexingAttempt,
 } from "@/asset/pipeline-attempt";
@@ -23,18 +24,47 @@ interface ProcessableAsset {
 	fileType: AssetFileType;
 }
 
-const readExtraction = (assetId: AssetId) =>
+const getExtraction = (assetId: AssetId) =>
 	getObjectAsJson<StoredExtractionArtifact>({
 		bucket: buckets.processed.name,
 		name: buildStoredExtractionKey(assetId),
-	}).pipe(Effect.mapError(toSanitizedPgBossRunError));
+	});
+
+const readExtraction = (assetId: AssetId) =>
+	getExtraction(assetId).pipe(Effect.mapError(toSanitizedPgBossRunError));
 
 const isDescribed = (extraction: StoredExtractionArtifact) =>
 	extraction.images.every((image) => image.text !== undefined);
 
 /**
+ * The stored extraction of a re-embed: as it is, with its images described.
+ * One that is gone or older than image descriptions fails
+ * `missing_extraction`, for a person to prepare the file again.
+ */
+const storedExtraction = (assetId: AssetId) =>
+	getExtraction(assetId).pipe(
+		Effect.catchIf(isS3NoSuchKey, () => Effect.succeed(undefined)),
+		Effect.mapError(toSanitizedPgBossRunError),
+		Effect.flatMap((stored) =>
+			stored && isDescribed(stored)
+				? Effect.succeed(stored)
+				: Effect.fail(
+						new AssetPipelineError({
+							failure: "missing_extraction",
+							cause: new Error(
+								stored
+									? "The stored extraction predates image descriptions"
+									: "The stored extraction is missing",
+							),
+						}),
+					),
+		),
+	);
+
+/**
  * The asset's stored extraction with its images described, or undefined when
- * processing has to describe them first and queues indexing again then.
+ * processing has to describe them first and queues indexing again then. A
+ * re-embed takes the stored one as it is.
  *
  * An extraction stored before images were described at processing goes back
  * to processing once, admitted only by the link's current indexing attempt,
@@ -49,6 +79,9 @@ export const describedExtraction = (params: {
 	attempt: IndexingAttempt;
 }) =>
 	Effect.gen(function* () {
+		if (params.attempt.fromStoredExtraction) {
+			return yield* storedExtraction(params.asset.id);
+		}
 		const stored = yield* readExtraction(params.asset.id);
 		if (isDescribed(stored)) {
 			return stored;

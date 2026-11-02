@@ -3,16 +3,18 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService, queueIndexing, withLinkPoints } from "@orcai/pg-boss";
 import {
-	deletePointsByIdentifier,
+	EmbeddingGeneration,
+	onActiveGeneration,
 	QdrantService,
 	upsertPointsToQdrant,
+	writeGeneration,
 } from "@orcai/qdrant";
 import {
 	type PipelineStatus,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { awaitLockWaiters } from "@orcai/testing";
+import { awaitLockWaiters, testEmbeddingIndex } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -27,8 +29,16 @@ import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle
 import { reindexBlockAssets } from "@/lib/blocks/repository";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 
+const dimensions = 4;
+// Indexing never embeds here, so the endpoint is never called.
 const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration();
+	authzIntegration({
+		embeddingIndex: await testEmbeddingIndex({
+			baseUrl: "http://127.0.0.1:9/v1",
+			model: "integration",
+			dimensions,
+		}),
+	});
 
 const repository = (assets: AssetId[]) => ({
 	type: "repository" as const,
@@ -136,15 +146,14 @@ const queuedAttempts = (assetId: AssetId, blockId: BlockId) =>
 
 /** A point of the link's `attempt`, as a vectorize delivery writes it. */
 const writePoint = (assetId: AssetId, blockId: BlockId, attempt: number) =>
-	Effect.gen(function* () {
-		const { collections } = yield* QdrantService;
-		yield* upsertPointsToQdrant({
+	writeGeneration(
+		upsertPointsToQdrant({
 			points: [
 				{
 					id: crypto.randomUUID(),
 					vector: Array.from(
 						{
-							length: collections.asset.dimensions,
+							length: dimensions,
 						},
 						(_, dimension) => (dimension === 0 ? 1 : 0),
 					),
@@ -162,16 +171,27 @@ const writePoint = (assetId: AssetId, blockId: BlockId, attempt: number) =>
 					},
 				},
 			],
-		});
-	});
+		}),
+	);
 
 /** The attempts of the asset's remaining points, which it then deletes. */
 const takePoints = (assetId: AssetId) =>
 	run(
 		Effect.gen(function* () {
-			const { client, collections } = yield* QdrantService;
+			const { client } = yield* QdrantService;
+			const { collection } = yield* onActiveGeneration(EmbeddingGeneration);
+			const filter = {
+				must: [
+					{
+						key: "asset_id",
+						match: {
+							value: assetId,
+						},
+					},
+				],
+			};
 			const { points } = yield* Effect.promise(() =>
-				client.scroll(collections.asset.name, {
+				client.scroll(collection, {
 					filter: {
 						must: [
 							{
@@ -185,10 +205,12 @@ const takePoints = (assetId: AssetId) =>
 					with_payload: true,
 				}),
 			);
-			yield* deletePointsByIdentifier({
-				assetId,
-				blockId: undefined,
-			});
+			yield* Effect.promise(() =>
+				client.delete(collection, {
+					wait: true,
+					filter,
+				}),
+			);
 			return points.map((point) => point.payload?.index_attempt);
 		}),
 	);
@@ -679,6 +701,86 @@ describe("retrying assets", () => {
 				),
 			).rejects.toMatchObject({
 				reason: "ASSET_STILL_PREPARING",
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("retrying an asset whose stored extraction is gone", () => {
+	test(
+		"prepares the file again, since indexing would read the same missing extraction",
+		async () => {
+			const { owner, assets, blockId, zedToken } = await repositoryWith(2);
+			for (const assetId of assets) {
+				await setStatus({
+					assetId,
+					processing: "completed",
+					index: {
+						blockId,
+						status: "failed",
+					},
+				});
+			}
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.blockAsset)
+						.set({
+							indexFailure: "missing_extraction",
+						})
+						.where(eq(dbSchema.blockAsset.blockId, blockId));
+				}),
+			);
+			const procedures = await run(Procedures);
+			const options = await procedureOptions(owner, zedToken);
+			const [one, other] = assets;
+
+			expect(
+				await run(
+					procedures.block.prepareAssetAgain(
+						{
+							blockId,
+							assetId: one,
+						},
+						options,
+					),
+				),
+			).toEqual({
+				retried: "processing",
+			});
+			expect(
+				await run(
+					procedures.block.prepareFailedAgain(
+						{
+							blockId,
+						},
+						options,
+					),
+				),
+			).toEqual({
+				processing: 1,
+				indexing: 0,
+			});
+			const processing = await run(
+				Effect.gen(function* () {
+					return yield* (yield* DB)
+						.select({
+							status: dbSchema.asset.processingStatus,
+						})
+						.from(dbSchema.asset)
+						.where(eq(dbSchema.asset.id, other));
+				}),
+			);
+			expect(processing).toEqual([
+				{
+					status: "pending",
+				},
+			]);
+			// Processing queues indexing again once it stored a new extraction.
+			expect(await links(blockId)).toEqual({
+				[one]: "pending",
+				[other]: "pending",
 			});
 		},
 		TIMEOUT,

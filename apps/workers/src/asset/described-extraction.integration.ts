@@ -171,6 +171,7 @@ const seed = (processingStatus: PipelineStatus = "completed") =>
 						assetId: link.assetId,
 						blockId: link.blockId,
 						attempt: link.indexAttempt,
+						fromStoredExtraction: false,
 					}),
 				),
 				extraction,

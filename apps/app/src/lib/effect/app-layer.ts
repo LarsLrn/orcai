@@ -1,4 +1,4 @@
-import { AiConfigLive, AiTelemetryLive, EncryptionKeyLive } from "@orcai/ai";
+import { AiTelemetryLive, EncryptionKeyLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { makePgBossLayer } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
@@ -20,7 +20,6 @@ const BaseInfra = Layer.mergeAll(
 	}),
 	ValkeyLive,
 	QdrantLive,
-	AiConfigLive,
 	EncryptionKeyLive,
 ).pipe(Layer.provideMerge(AppConfigLive));
 

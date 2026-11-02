@@ -3,30 +3,19 @@ import * as Effect from "effect/Effect";
 import { QdrantError } from "./errors";
 import { QdrantService } from "./service";
 
+/** Whether Qdrant answers; the embedding check covers the active collection. */
 export const probeQdrant = Effect.gen(function* () {
-	const { client, collections } = yield* QdrantService;
-	const [versionInfo, existence] = yield* Effect.tryPromise({
-		try: () =>
-			Promise.all([
-				client.versionInfo(),
-				client.collectionExists(collections.asset.name),
-			]),
+	const { client } = yield* QdrantService;
+	const versionInfo = yield* Effect.tryPromise({
+		try: () => client.versionInfo(),
 		catch: (cause) =>
 			new QdrantError({
 				operation: "probe",
 				cause,
 			}),
 	});
-
-	const result: ProbeResult = existence.exists
-		? {
-				ok: true,
-				version: versionInfo.version,
-			}
-		: {
-				ok: false,
-				version: versionInfo.version,
-				detail: `Collection "${collections.asset.name}" is missing.`,
-			};
-	return result;
+	return {
+		ok: true,
+		version: versionInfo.version,
+	} satisfies ProbeResult;
 });
