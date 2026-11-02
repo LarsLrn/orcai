@@ -15,6 +15,7 @@ import {
 	CodeBlockLine,
 } from "@/components/ui/code-block";
 import { useHighlightedCode } from "@/hooks/use-highlighted-code";
+import { appOrigin, markdownImage } from "@/lib/presentation/markdown-image";
 import { cn } from "@/lib/utils";
 
 const reactMarkdownPlugins = {
@@ -79,6 +80,22 @@ const components: Options["components"] = {
 			{children}
 		</a>
 	),
+	img: ({ node, src, alt, ...props }) => {
+		const image = markdownImage(src, appOrigin());
+		if (!image) return alt;
+		return "load" in image ? (
+			<img src={image.load} alt={alt} {...props} />
+		) : (
+			<a
+				className="text-primary font-medium underline"
+				href={image.link}
+				rel="noreferrer"
+				target="_blank"
+			>
+				{alt || image.link}
+			</a>
+		);
+	},
 	h1: ({ node, children, className, ...props }) => (
 		<h1
 			className={cn("mt-6 mb-2 text-3xl font-semibold", className)}
