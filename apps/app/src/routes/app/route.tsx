@@ -11,10 +11,12 @@ import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
 import { EmbeddingsSetupBanner } from "@/components/instance/settings/embeddings-setup-banner";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { organizationCapabilitiesQuery } from "@/hooks/authz/use-capabilities";
 import { useUmami } from "@/hooks/use-umami";
 import { auth } from "@/lib/auth/auth";
 import { runPromise } from "@/lib/effect/runtime";
 import { recordRequestUser } from "@/lib/observability/request-span";
+import { orpc } from "@/lib/orpc/orpc";
 
 /** Recheck membership and clear an obsolete active organisation. */
 const hasActiveOrganizationMembership = createServerFn({
@@ -115,6 +117,20 @@ export const Route = createFileRoute("/app")({
 				},
 			},
 		};
+	},
+	// The sidebar and pages read these with `useQuery`. Loaded here, the server
+	// renders with them too, so a later-hydrating page cannot see them first.
+	loader: async ({ context: { queryClient, auth } }) => {
+		await Promise.allSettled([
+			queryClient.query(
+				orpc.organization.find.queryOptions({
+					input: {
+						id: auth.session.activeOrganizationId,
+					},
+				}),
+			),
+			queryClient.query(organizationCapabilitiesQuery()),
+		]);
 	},
 	component: RouteComponent,
 	pendingComponent: LoadingPage,

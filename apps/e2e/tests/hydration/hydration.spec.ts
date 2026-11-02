@@ -1,4 +1,8 @@
 import type { Page } from "@playwright/test";
+import {
+	setAssistantModel,
+	startConversation,
+} from "../../fixtures/assistant/assistant";
 import { untilAllowed } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -20,6 +24,17 @@ const recordPageErrors = (page: Page) => {
 	});
 
 	return errors;
+};
+
+/**
+ * Slow the page's CPU, not its network, so a query the sidebar fetches after
+ * the shell hydrates lands before React hydrates the page content.
+ */
+const slowCpu = async (page: Page) => {
+	const session = await page.context().newCDPSession(page);
+	await session.send("Emulation.setCPUThrottlingRate", {
+		rate: 6,
+	});
 };
 
 const openEach = async (page: Page, errors: string[], paths: string[]) => {
@@ -73,6 +88,7 @@ test("hydration: organisation pages with dates match the server in another time 
 		"/history",
 		"/app/members/invitations",
 		"/app/providers",
+		"/app/providers?pageIndex=-1&pageSize=abc",
 		"/app/models",
 		`/app/members/${org.users.member.id}/edit`,
 	]);
@@ -106,4 +122,81 @@ test("hydration: instance pages with dates match the server in another time zone
 		`/instance/users/${org.users.admin.id}`,
 		`/instance/organizations/${org.id}`,
 	]);
+});
+
+test("hydration: an entry added from the catalogue matches the server in the catalogue and the Library", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const id = runId();
+	const author = api.as("member");
+	const { data: behaviour } = await author.block.create({
+		type: "behaviour",
+		name: `E2E Hydration ${id}`,
+		status: "ready",
+		config: {
+			systemPrompt: "A listed behaviour.",
+		},
+	});
+	await author.resource.setVisibility({
+		resourceType: "block",
+		resourceId: behaviour.id,
+		visibility: "public",
+		listBlockIds: [],
+	});
+
+	const other = await orgs.create(`E2E Hydration ${id}`);
+	await untilAllowed(() =>
+		api.as("admin", other).catalogue.add({
+			entry: {
+				resourceType: "block",
+				resourceId: behaviour.id,
+			},
+		}),
+	);
+	const page = await pageAs("admin", other);
+	const errors = recordPageErrors(page);
+
+	await enterApp(page, other.slug);
+	await slowCpu(page);
+	await openEach(
+		page,
+		errors,
+		[
+			`/app/catalogue/behaviours?query=${id}`,
+			`/app/library?query=${id}`,
+		].flatMap((path) => [
+			path,
+			path,
+		]),
+	);
+});
+
+// The sidebar fetches the organisation and its capabilities once the shell
+// hydrates, often before the page does. A page reading them must not see them
+// first, which a few loads catch nearly every time.
+test("hydration: a page reading the organisation matches the server", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	await setAssistantModel(api.as("admin"), org, null);
+	const chatId = await startConversation(api.as("member"));
+
+	const page = await pageAs("member");
+	const errors = recordPageErrors(page);
+
+	await enterApp(page, org.slug);
+	await slowCpu(page);
+	await openEach(
+		page,
+		errors,
+		Array.from(
+			{
+				length: 4,
+			},
+			() => `/app/assistant/${chatId}`,
+		),
+	);
 });
