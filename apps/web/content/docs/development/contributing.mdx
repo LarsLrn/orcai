@@ -59,7 +59,7 @@ bun run stack e2e
 
 ## Git hooks and CI
 
-- `pre-commit` runs `lint-staged`, which applies Biome's safe fixes and formatting to the staged files and fails on remaining errors.
+- `pre-commit` runs `lint-staged`, which applies Biome's safe fixes and formatting to the staged files and fails on remaining errors. Biome lints Markdown but does not format it, because it pads table columns.
 - `commit-msg` runs commitlint.
 - `pre-push` runs `bun run prepush`, which is `bun run lint-full`.
 

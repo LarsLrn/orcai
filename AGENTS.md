@@ -23,7 +23,8 @@ slice rules.
 
 - Conventional Commits.
 - Biome owns formatting and general linting, including the Drizzle rules;
-  ESLint carries only the package-specific TanStack rules.
+  ESLint carries only the package-specific TanStack rules. Markdown is linted
+  but not formatted, because Biome pads table columns.
 - When a workflow or configuration changes, update `README.md` and
   `apps/web/content/docs` in the same change.
 - An e2e slice owns `apps/e2e/tests/<area>/` and may add
