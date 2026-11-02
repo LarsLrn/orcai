@@ -31,6 +31,7 @@
 				"src/router.tsx",
 				"src/client.tsx",
 				"src/server.ts",
+				"src/lib/server/nitro-content-security-policy.ts",
 				"src/**/*.test.{ts,tsx}",
 				"src/**/*.integration.ts"
 			],
