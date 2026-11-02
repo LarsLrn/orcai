@@ -221,12 +221,12 @@ function RouteComponent() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="@container">
-							<div className="grid @2xl:grid-cols-4 @sm:grid-cols-2 gap-4">
+							<div className="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
 										{m.providers_detail_endpoint_host_label()}
 									</div>
-									<div className="wrap-anywhere mt-1 font-semibold text-sm">
+									<div className="mt-1 text-sm font-semibold wrap-anywhere">
 										{endpointHost}
 									</div>
 								</div>
@@ -236,7 +236,7 @@ function RouteComponent() {
 											<div className="text-muted-foreground text-xs uppercase">
 												{m.providers_detail_active_models_label()}
 											</div>
-											<div className="mt-1 font-semibold text-sm">
+											<div className="mt-1 text-sm font-semibold">
 												{activeModelCount}
 											</div>
 										</div>
@@ -244,7 +244,7 @@ function RouteComponent() {
 											<div className="text-muted-foreground text-xs uppercase">
 												{m.providers_detail_deprecated_models_label()}
 											</div>
-											<div className="mt-1 font-semibold text-sm">
+											<div className="mt-1 text-sm font-semibold">
 												{provider.models.deprecated}
 											</div>
 										</div>
@@ -252,7 +252,7 @@ function RouteComponent() {
 											<div className="text-muted-foreground text-xs uppercase">
 												{m.providers_detail_capability_coverage_label()}
 											</div>
-											<div className="mt-1 font-semibold text-sm">
+											<div className="mt-1 text-sm font-semibold">
 												{supportedCapabilities.length}
 											</div>
 										</div>
@@ -271,7 +271,7 @@ function RouteComponent() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<ServerIcon className="h-4 w-4" />
 									{m.providers_form_kind_label()}
 								</div>
@@ -279,7 +279,7 @@ function RouteComponent() {
 							</div>
 							<Separator />
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<ServerIcon className="h-4 w-4" />
 									{m.providers_form_endpoint_label()}
 								</div>
@@ -288,14 +288,14 @@ function RouteComponent() {
 										{m.providers_detail_endpoint_default()}
 									</span>
 								) : (
-									<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
+									<code className="bg-muted/40 rounded border px-2 py-1 font-mono text-xs">
 										{provider.endpoint}
 									</code>
 								)}
 							</div>
 							<Separator />
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<CoinsIcon className="h-4 w-4" />
 									{m.providers_form_currency_label()}
 								</div>
@@ -309,7 +309,7 @@ function RouteComponent() {
 								<>
 									<Separator />
 									<div className="flex items-start justify-between gap-4">
-										<div className="flex items-center gap-2 text-muted-foreground text-sm">
+										<div className="text-muted-foreground flex items-center gap-2 text-sm">
 											<CoinsIcon className="h-4 w-4" />
 											{m.providers_form_search_price_label()}
 										</div>

@@ -194,7 +194,7 @@ const BlockSelectorDialog = ({
 				className={cn("sm:max-w-3xl", className)}
 			>
 				<div>
-					<div className="font-medium text-base">{title ?? copy.title}</div>
+					<div className="text-base font-medium">{title ?? copy.title}</div>
 					<div className="text-muted-foreground text-sm">
 						{description ?? copy.description}
 					</div>

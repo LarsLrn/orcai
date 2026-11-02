@@ -22,27 +22,27 @@ const WebSourceRow = ({ source }: { source: WebSource }) => {
 	const title = source.title || hostOf(source.url);
 
 	return (
-		<div className="rounded-lg border border-border bg-background px-3 py-1.5 shadow-xs">
+		<div className="border-border bg-background rounded-lg border px-3 py-1.5 shadow-xs">
 			<div className="flex items-center gap-2">
 				{safeExternalUrl(source.url) ? (
 					<ConfirmedLink
 						href={source.url}
-						className="flex min-w-0 flex-1 items-center gap-1.5 text-left font-medium text-sm hover:underline"
+						className="flex min-w-0 flex-1 items-center gap-1.5 text-left text-sm font-medium hover:underline"
 					>
 						<span className="truncate">{title}</span>
-						<ExternalLinkIcon className="size-3 shrink-0 text-muted-foreground" />
+						<ExternalLinkIcon className="text-muted-foreground size-3 shrink-0" />
 					</ConfirmedLink>
 				) : (
-					<span className="min-w-0 flex-1 truncate font-medium text-sm">
+					<span className="min-w-0 flex-1 truncate text-sm font-medium">
 						{title}
 					</span>
 				)}
-				<span className="hidden max-w-[40%] shrink-0 truncate text-muted-foreground text-xs sm:inline">
+				<span className="text-muted-foreground hidden max-w-[40%] shrink-0 truncate text-xs sm:inline">
 					{hostOf(source.url)}
 				</span>
 			</div>
 			{source.content && (
-				<ClampedText className="mt-1 text-muted-foreground">
+				<ClampedText className="text-muted-foreground mt-1">
 					{source.content}
 				</ClampedText>
 			)}

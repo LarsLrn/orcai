@@ -76,7 +76,7 @@ function RouteComponent() {
 					{m.chat_actions_download_action()}
 				</Button>
 			</div>
-			<h1 className="px-1 font-semibold text-xl tracking-tight">
+			<h1 className="px-1 text-xl font-semibold tracking-tight">
 				{chat.title ?? m.chat_title_placeholder()}
 			</h1>
 			<Card className="h-[70dvh] min-h-0 py-0">

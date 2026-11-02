@@ -30,7 +30,7 @@ export const BackupCodes = ({ codes }: { codes: readonly string[] }) => (
 		</p>
 		<ul
 			aria-label={m.two_factor_backup_codes_list_label()}
-			className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-4 font-mono text-sm"
+			className="bg-muted grid grid-cols-2 gap-2 rounded-lg p-4 font-mono text-sm"
 		>
 			{codes.map((code) => (
 				<li key={code}>{code}</li>

@@ -203,7 +203,7 @@ export const TwoFactorCard = ({
 					{enabled ? (
 						<ShieldCheckIcon className="h-4 w-4 text-green-600" />
 					) : (
-						<ShieldOffIcon className="h-4 w-4 text-muted-foreground" />
+						<ShieldOffIcon className="text-muted-foreground h-4 w-4" />
 					)}
 					{enabled
 						? m.two_factor_card_enabled_description()

@@ -23,7 +23,7 @@ export const ProductScreenshot = ({
 	return (
 		<div
 			className={cn(
-				"overflow-hidden rounded-2xl border border-landing-border bg-landing-surface shadow-landing-foreground/5 shadow-xl",
+				"border-landing-border bg-landing-surface shadow-landing-foreground/5 overflow-hidden rounded-2xl border shadow-xl",
 				className,
 			)}
 		>

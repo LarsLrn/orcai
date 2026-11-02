@@ -48,7 +48,7 @@ function RouteComponent() {
 			<CardContent>
 				<TwoFactorChallengeForm />
 			</CardContent>
-			<CardFooter className="flex justify-end text-muted-foreground text-sm">
+			<CardFooter className="text-muted-foreground flex justify-end text-sm">
 				<Link
 					to="/login"
 					search={{

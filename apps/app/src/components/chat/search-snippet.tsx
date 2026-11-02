@@ -2,12 +2,12 @@ import type { ChatSearchSnippet } from "@orcai/schema";
 
 /** A search hit's surrounding text with the matched terms marked. */
 const SearchSnippet = ({ snippet }: { snippet: ChatSearchSnippet }) => (
-	<p className="line-clamp-2 text-muted-foreground text-xs">
+	<p className="text-muted-foreground line-clamp-2 text-xs">
 		{snippet.map((segment, index) =>
 			segment.highlighted ? (
 				<mark
 					key={index}
-					className="rounded-sm bg-accent-brand/15 text-foreground"
+					className="bg-accent-brand/15 text-foreground rounded-sm"
 				>
 					{segment.text}
 				</mark>

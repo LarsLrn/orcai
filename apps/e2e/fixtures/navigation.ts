@@ -57,7 +57,7 @@ const hydrationGap = (): string | null => {
 		return "React has not committed the shell";
 	}
 
-	const describe = (element: Node | null | undefined) => {
+	const describeElement = (element: Node | null | undefined) => {
 		if (!element?.getAttribute) return "nothing rendered";
 
 		const attributes = [
@@ -99,11 +99,11 @@ const hydrationGap = (): string | null => {
 
 			while (element && element.nodeType !== 1) element = element.nextSibling;
 
-			return `boundary <!--${dehydrated.data}--> is not hydrated: ${describe(element)}`;
+			return `boundary <!--${dehydrated.data}--> is not hydrated: ${describeElement(element)}`;
 		}
 
 		if (fiber.tag === 13 && fiber.memoizedState) {
-			return `boundary shows its fallback: ${describe(firstElement(fiber.child?.sibling ?? null))}`;
+			return `boundary shows its fallback: ${describeElement(firstElement(fiber.child?.sibling ?? null))}`;
 		}
 
 		if (fiber.sibling) fibers.push(fiber.sibling);

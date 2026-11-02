@@ -50,13 +50,13 @@ const TextField = ({
 					onChange={handleChange}
 					className={cn(
 						isNumber &&
-							"text-right tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+							"[appearance:textfield] text-right tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
 						unit && "pr-16",
 						className,
 					)}
 				/>
 				{unit && (
-					<span className="pointer-events-none absolute inset-y-0 right-0 flex min-w-14 items-center justify-center border-l px-2 font-mono text-muted-foreground text-xs">
+					<span className="text-muted-foreground pointer-events-none absolute inset-y-0 right-0 flex min-w-14 items-center justify-center border-l px-2 font-mono text-xs">
 						{unit}
 					</span>
 				)}

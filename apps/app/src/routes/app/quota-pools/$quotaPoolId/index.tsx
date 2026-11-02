@@ -247,12 +247,12 @@ function RouteComponent() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="@container">
-							<div className="grid @2xl:grid-cols-4 @sm:grid-cols-2 gap-4">
+							<div className="grid gap-4 @sm:grid-cols-2 @2xl:grid-cols-4">
 								<div>
 									<div className="text-muted-foreground text-xs uppercase">
 										{m.quota_pools_detail_budget_metric_label()}
 									</div>
-									<div className="font-semibold text-lg">
+									<div className="text-lg font-semibold">
 										{formatNumber(data.data.currentLedger?.budgetAmount)}
 									</div>
 								</div>
@@ -261,7 +261,7 @@ function RouteComponent() {
 										{m.quota_pools_detail_consumed_metric_label()}
 									</div>
 									<QuotaConsumption
-										className="font-semibold text-lg"
+										className="text-lg font-semibold"
 										consumedAmount={data.data.currentLedger?.consumedAmount}
 										budgetAmount={data.data.currentLedger?.budgetAmount}
 										unit={data.data.provider.meteringMode}
@@ -271,7 +271,7 @@ function RouteComponent() {
 									<div className="text-muted-foreground text-xs uppercase">
 										{m.quota_pools_detail_reserved_metric_label()}
 									</div>
-									<div className="font-semibold text-lg">
+									<div className="text-lg font-semibold">
 										{formatNumber(data.data.currentLedger?.reservedAmount)}
 									</div>
 								</div>
@@ -280,7 +280,7 @@ function RouteComponent() {
 										{m.quota_pools_detail_remaining_metric_label()}
 									</div>
 									<QuotaRemaining
-										className="font-semibold text-lg"
+										className="text-lg font-semibold"
 										remainingAmount={data.data.currentLedger?.remainingAmount}
 										budgetAmount={data.data.currentLedger?.budgetAmount}
 										unit={data.data.provider.meteringMode}

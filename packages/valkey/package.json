@@ -9,6 +9,6 @@
 	"dependencies": {
 		"@orcai/core": "workspace:*",
 		"effect": "catalog:",
-		"redis": "6.3.0"
+		"redis": "6.3.1"
 	}
 }

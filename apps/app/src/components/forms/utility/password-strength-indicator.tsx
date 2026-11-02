@@ -68,7 +68,7 @@ const PasswordStrengthIndicator = ({
 	return (
 		<>
 			<div
-				className="mt-3 mb-4 h-1 w-full overflow-hidden rounded-full bg-border"
+				className="bg-border mt-3 mb-4 h-1 w-full overflow-hidden rounded-full"
 				role="progressbar"
 				aria-valuenow={strengthScore}
 				aria-valuemin={0}
@@ -88,7 +88,7 @@ const PasswordStrengthIndicator = ({
 			{/* Password strength description */}
 			<p
 				id={`${fieldName}-description`}
-				className="mb-2 font-medium text-foreground text-sm"
+				className="text-foreground mb-2 text-sm font-medium"
 			>
 				{m.forms_password_strength_summary({
 					strength: getStrengthText(strengthScore),

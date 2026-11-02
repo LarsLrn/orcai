@@ -27,7 +27,7 @@ const RunningRing = () => (
 	<svg
 		aria-hidden="true"
 		viewBox="0 0 32 32"
-		className="absolute inset-0 size-8 animate-spin text-status-processing [animation-duration:1.4s] motion-reduce:animate-none"
+		className="text-status-processing absolute inset-0 size-8 animate-spin [animation-duration:1.4s] motion-reduce:animate-none"
 	>
 		<circle
 			cx="16"
@@ -83,7 +83,7 @@ export const ActivityIndicator = () => {
 			{attention > 0 ? (
 				<span
 					aria-hidden="true"
-					className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 font-medium text-[10px] text-primary-foreground tabular-nums ring-2 ring-sidebar"
+					className="bg-primary text-primary-foreground ring-sidebar absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium tabular-nums ring-2"
 				>
 					{attention > 99 ? "99+" : attention}
 				</span>
@@ -97,7 +97,7 @@ export const ActivityIndicator = () => {
 				<DrawerTrigger render={trigger} />
 				<DrawerContent className="pb-4">
 					<DrawerHeader className="border-b pb-3">
-						<DrawerTitle className="text-start font-heading font-semibold">
+						<DrawerTitle className="font-heading text-start font-semibold">
 							{m.activity_title()}
 						</DrawerTitle>
 					</DrawerHeader>

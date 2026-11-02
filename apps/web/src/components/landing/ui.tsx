@@ -17,7 +17,7 @@ export function Surface({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
 			className={cn(
-				"rounded-3xl border border-landing-border bg-landing-surface-raised",
+				"border-landing-border bg-landing-surface-raised rounded-3xl border",
 				className,
 			)}
 			{...props}
@@ -29,7 +29,7 @@ export function Eyebrow({ className, ...props }: ComponentProps<"p">) {
 	return (
 		<p
 			className={cn(
-				"font-medium text-landing-muted text-xs uppercase tracking-[0.12em]",
+				"text-landing-muted text-xs font-medium tracking-[0.12em] uppercase",
 				className,
 			)}
 			{...props}
@@ -51,7 +51,7 @@ export function SectionHeading({
 			{eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
 			<h2
 				className={cn(
-					"text-balance font-semibold text-3xl leading-tight tracking-tight",
+					"text-3xl leading-tight font-semibold tracking-tight text-balance",
 					eyebrow && "mt-4",
 				)}
 			>
@@ -85,7 +85,7 @@ export function ActionLink({
 		<a
 			className={cn(
 				"inline-flex items-center gap-2 rounded-full border px-5 py-2.5 font-medium transition-[color,background-color,border-color,opacity]",
-				"focus-visible:outline-2 focus-visible:outline-landing-accent focus-visible:outline-offset-2",
+				"focus-visible:outline-landing-accent focus-visible:outline-2 focus-visible:outline-offset-2",
 				actionVariants[variant],
 				className,
 			)}

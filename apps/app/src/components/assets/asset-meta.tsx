@@ -39,7 +39,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 							render={
 								<Badge
 									variant="outline"
-									className="font-medium text-xs uppercase"
+									className="text-xs font-medium uppercase"
 								>
 									{fileTypeLabel}
 								</Badge>
@@ -52,7 +52,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 			<CardContent>
 				<div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1">
 					<div className="flex items-center gap-2">
-						<Calendar className="h-4 w-4 text-muted-foreground" />
+						<Calendar className="text-muted-foreground h-4 w-4" />
 						<span className="text-muted-foreground">
 							{m.assets_meta_created_label()}
 						</span>
@@ -60,7 +60,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 					</div>
 
 					<div className="flex items-center gap-2">
-						<Clock className="h-4 w-4 text-muted-foreground" />
+						<Clock className="text-muted-foreground h-4 w-4" />
 						<span className="text-muted-foreground">
 							{m.assets_meta_updated_label()}
 						</span>
@@ -68,7 +68,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 					</div>
 
 					<div className="flex items-center gap-2">
-						<HardDrive className="h-4 w-4 text-muted-foreground" />
+						<HardDrive className="text-muted-foreground h-4 w-4" />
 						<span className="text-muted-foreground">
 							{m.assets_meta_size_label()}
 						</span>
@@ -77,12 +77,12 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 
 					{asset.metadata.citationLabel && (
 						<div className="flex items-center gap-2">
-							<FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+							<FileSpreadsheet className="text-muted-foreground h-4 w-4" />
 							<span className="text-muted-foreground">
 								{m.assets_meta_citation_label()}
 							</span>
 							<span
-								className="truncate font-medium text-xs"
+								className="truncate text-xs font-medium"
 								title={asset.metadata.citationLabel}
 							>
 								{asset.metadata.citationLabel}
@@ -92,7 +92,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 
 					{asset.metadata.externalUrl && (
 						<div className="flex items-center gap-2">
-							<ExternalLink className="h-4 w-4 text-muted-foreground" />
+							<ExternalLink className="text-muted-foreground h-4 w-4" />
 							<span className="text-muted-foreground">
 								{m.assets_meta_source_url_label()}
 							</span>
@@ -100,7 +100,7 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 								href={asset.metadata.externalUrl}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="truncate font-medium text-primary text-xs hover:underline"
+								className="text-primary truncate text-xs font-medium hover:underline"
 								title={asset.metadata.externalUrl}
 							>
 								{m.assets_meta_view_source_link()}
@@ -110,12 +110,12 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 
 					{asset.metadata.chapterTitle && (
 						<div className="flex items-center gap-2">
-							<BookMarkedIcon className="h-4 w-4 text-muted-foreground" />
+							<BookMarkedIcon className="text-muted-foreground h-4 w-4" />
 							<span className="text-muted-foreground">
 								{m.assets_meta_chapter_label()}
 							</span>
 							<span
-								className="truncate font-medium text-xs"
+								className="truncate text-xs font-medium"
 								title={asset.metadata.chapterTitle}
 							>
 								{asset.metadata.chapterTitle}
@@ -125,12 +125,12 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 
 					{asset.metadata.pageRange && (
 						<div className="flex items-center gap-2">
-							<MoveHorizontalIcon className="h-4 w-4 text-muted-foreground" />
+							<MoveHorizontalIcon className="text-muted-foreground h-4 w-4" />
 							<span className="text-muted-foreground">
 								{m.assets_meta_page_range_label()}
 							</span>
 							<span
-								className="truncate font-medium text-xs"
+								className="truncate text-xs font-medium"
 								title={asset.metadata.pageRange}
 							>
 								{asset.metadata.pageRange}
@@ -140,12 +140,12 @@ const AssetMeta = ({ asset }: { asset: Asset }) => {
 
 					{asset.metadata.author && (
 						<div className="flex items-center gap-2">
-							<SignatureIcon className="h-4 w-4 text-muted-foreground" />
+							<SignatureIcon className="text-muted-foreground h-4 w-4" />
 							<span className="text-muted-foreground">
 								{m.assets_meta_author_label()}
 							</span>
 							<span
-								className="truncate font-medium text-xs"
+								className="truncate text-xs font-medium"
 								title={asset.metadata.author}
 							>
 								{asset.metadata.author}

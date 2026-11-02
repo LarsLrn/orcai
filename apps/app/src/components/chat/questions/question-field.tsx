@@ -190,7 +190,7 @@ export const QuestionField = ({
 							<RadioPrimitive.Root
 								key={value}
 								value={String(value)}
-								className="flex min-w-10 cursor-pointer items-center justify-center rounded-xl border px-3 py-2 text-sm tabular-nums outline-none transition-colors hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground"
+								className="hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-ring/30 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground flex min-w-10 cursor-pointer items-center justify-center rounded-xl border px-3 py-2 text-sm tabular-nums transition-colors outline-none focus-visible:ring-3"
 							>
 								{value}
 							</RadioPrimitive.Root>
@@ -199,7 +199,7 @@ export const QuestionField = ({
 					{(question.minLabel || question.maxLabel) && (
 						<p
 							id={`${id}-labels`}
-							className="flex justify-between gap-4 text-muted-foreground text-xs"
+							className="text-muted-foreground flex justify-between gap-4 text-xs"
 						>
 							<span>
 								{question.minLabel &&

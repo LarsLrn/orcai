@@ -95,7 +95,7 @@ export const UploadWidget = ({
 					{upload.problem && (
 						<div
 							role="alert"
-							className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-status-danger/40 px-4 py-3 text-sm"
+							className="border-status-danger/40 flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-4 py-3 text-sm"
 						>
 							<span>
 								{upload.problem === "unsaved"

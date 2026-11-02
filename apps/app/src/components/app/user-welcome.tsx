@@ -24,7 +24,7 @@ const UserWelcome = () => {
 
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-			<h1 className="font-heading font-semibold text-3xl tracking-tight">
+			<h1 className="font-heading text-3xl font-semibold tracking-tight">
 				{m.home_welcome_heading({
 					timeOfDay: greetingTime,
 					name: auth.user.name?.split(" ")[0] ?? "",

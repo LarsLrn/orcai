@@ -28,11 +28,11 @@ export const Checklist = ({
 	const withHeader = Boolean(title || description || withStatus);
 
 	return (
-		<div className="overflow-hidden rounded-xl border bg-card">
+		<div className="bg-card overflow-hidden rounded-xl border">
 			{withHeader && (
 				<div className="flex items-start justify-between gap-4 border-b px-4 py-3">
 					<div className="min-w-0 space-y-1">
-						{title && <h3 className="font-medium text-sm">{title}</h3>}
+						{title && <h3 className="text-sm font-medium">{title}</h3>}
 						{description && (
 							<p className="text-muted-foreground text-xs">{description}</p>
 						)}
@@ -49,7 +49,7 @@ export const Checklist = ({
 							<Collapsible>
 								<CollapsibleTrigger
 									disabled={!expandable}
-									className="group flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-muted/50 disabled:cursor-default disabled:hover:bg-transparent data-panel-open:bg-muted/40"
+									className="group hover:bg-muted/50 data-panel-open:bg-muted/40 flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm disabled:cursor-default disabled:hover:bg-transparent"
 								>
 									{withStatus && (
 										<StatusIcon status={status} pending={streaming} />
@@ -57,7 +57,7 @@ export const Checklist = ({
 									<span className="min-w-0 flex-1">
 										<span className="block">{item.label}</span>
 										{item.summary && (
-											<span className="block text-muted-foreground text-xs">
+											<span className="text-muted-foreground block text-xs">
 												{item.summary}
 											</span>
 										)}
@@ -70,7 +70,7 @@ export const Checklist = ({
 									<ChevronDownIcon
 										aria-hidden
 										className={cn(
-											"size-4 shrink-0 text-muted-foreground transition-transform group-data-panel-open:rotate-180",
+											"text-muted-foreground size-4 shrink-0 transition-transform group-data-panel-open:rotate-180",
 											!expandable && "invisible",
 										)}
 									/>
@@ -78,7 +78,7 @@ export const Checklist = ({
 								{expandable && (
 									<CollapsibleContent
 										className={cn(
-											"space-y-2 px-4 pb-3 text-muted-foreground text-sm",
+											"text-muted-foreground space-y-2 px-4 pb-3 text-sm",
 											withStatus && "pl-11",
 										)}
 									>

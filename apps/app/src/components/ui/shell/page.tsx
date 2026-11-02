@@ -15,7 +15,7 @@ const PageHeader = ({ className, ...props }: React.ComponentProps<"div">) => {
 		<div
 			data-slot="page-header"
 			className={cn(
-				"group/page-header @container/page-header relative grid auto-rows-min items-start gap-3 @max-3xl/page-header:*:col-span-full has-data-[slot=header-actions]:grid-cols-[minmax(0,1fr)_auto] has-data-[slot=page-action]:grid-cols-[minmax(0,1fr)_auto] has-data-[slot=page-description]:grid-rows-[auto_auto] @max-3xl/page-header:*:data-[slot=page-action]:row-start-3 @max-3xl/page-header:*:data-[slot=header-actions]:contents @max-3xl/page-header:*:data-[slot=page-action]:justify-self-start @max-3xl/page-header:has-data-[slot=header-actions-menu]:*:data-[slot=page-title]:col-span-1 [.border-b]:pb-6",
+				"group/page-header @container/page-header relative grid auto-rows-min items-start gap-3 has-data-[slot=header-actions]:grid-cols-[minmax(0,1fr)_auto] has-data-[slot=page-action]:grid-cols-[minmax(0,1fr)_auto] has-data-[slot=page-description]:grid-rows-[auto_auto] @max-3xl/page-header:*:col-span-full @max-3xl/page-header:*:data-[slot=header-actions]:contents @max-3xl/page-header:*:data-[slot=page-action]:row-start-3 @max-3xl/page-header:*:data-[slot=page-action]:justify-self-start @max-3xl/page-header:has-data-[slot=header-actions-menu]:*:data-[slot=page-title]:col-span-1 [.border-b]:pb-6",
 				className,
 			)}
 			{...props}
@@ -28,7 +28,7 @@ const PageTitle = ({ className, ...props }: React.ComponentProps<"h1">) => {
 		<h1
 			data-slot="page-title"
 			className={cn(
-				"min-w-0 max-w-4xl text-balance break-words font-heading font-semibold text-3xl tracking-tight md:text-4xl",
+				"font-heading max-w-4xl min-w-0 text-3xl font-semibold tracking-tight text-balance break-words md:text-4xl",
 				className,
 			)}
 			{...props}
@@ -44,7 +44,7 @@ const PageDescription = ({
 		<p
 			data-slot="page-description"
 			className={cn(
-				"min-w-0 max-w-3xl break-words text-muted-foreground text-sm leading-relaxed md:text-base",
+				"text-muted-foreground max-w-3xl min-w-0 text-sm leading-relaxed break-words md:text-base",
 				className,
 			)}
 			{...props}

@@ -90,7 +90,7 @@ const SignUpForm = ({
 				)}
 			/>
 
-			<div className="space-y-4 rounded-2xl border bg-background/50 p-4 shadow-sm">
+			<div className="bg-background/50 space-y-4 rounded-2xl border p-4 shadow-sm">
 				<div className="space-y-2">
 					<h3 className="font-semibold">
 						{m.auth_signup_form_privacy_policy_title()}

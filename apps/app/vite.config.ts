@@ -13,11 +13,6 @@ export default defineConfig(({ command }) => ({
 		strictPort: true,
 		// Dev servers are reached through per-worktree proxy hostnames.
 		allowedHosts: true,
-		// Devtools already pipes browser console output; forwarding it twice loops.
-		forwardConsole: {
-			unhandledErrors: true,
-			logLevels: [],
-		},
 	},
 	ssr: {
 		external: [
@@ -71,11 +66,9 @@ export default defineConfig(({ command }) => ({
 				preset: "bun",
 				compressPublicAssets: true,
 				// Bun provides undici, as in `ssr.external`.
-				unenv: {
-					external: [
-						"undici",
-					],
-				},
+				builtinModules: [
+					"undici",
+				],
 				// Copied whole: its loader requires files the tracer cannot see.
 				traceDeps: [
 					"@kreuzberg/node*",

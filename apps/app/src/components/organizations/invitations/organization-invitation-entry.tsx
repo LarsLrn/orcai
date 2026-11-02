@@ -91,7 +91,7 @@ export function OrganizationInvitationEntry({
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="py-2">
-				<div className="flex flex-col text-muted-foreground text-sm">
+				<div className="text-muted-foreground flex flex-col text-sm">
 					<div className="flex items-center gap-2">
 						<CalendarIcon className="h-3.5 w-3.5" />
 						<span>

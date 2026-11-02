@@ -34,7 +34,7 @@ const SectionHeader = ({
 		<div
 			data-slot="section-header"
 			className={cn(
-				"group/section-header @container/section-header grid auto-rows-min items-start gap-2 has-data-[slot=header-actions]:grid-cols-[1fr_auto] has-data-[slot=section-action]:grid-cols-[1fr_auto] has-data-[slot=section-description]:grid-rows-[auto_auto] max-sm:has-data-[slot=section-action]:grid-cols-1 max-sm:*:data-[slot=section-action]:col-start-1 max-sm:*:data-[slot=section-action]:row-start-3 max-sm:*:data-[slot=header-actions]:contents max-sm:*:data-[slot=section-action]:justify-self-start max-sm:has-data-[slot=header-actions]:*:col-span-full max-sm:has-data-[slot=header-actions-menu]:*:data-[slot=section-title]:col-span-1 [.border-b]:pb-5",
+				"group/section-header @container/section-header grid auto-rows-min items-start gap-2 has-data-[slot=header-actions]:grid-cols-[1fr_auto] has-data-[slot=section-action]:grid-cols-[1fr_auto] has-data-[slot=section-description]:grid-rows-[auto_auto] max-sm:has-data-[slot=header-actions]:*:col-span-full max-sm:has-data-[slot=section-action]:grid-cols-1 max-sm:*:data-[slot=header-actions]:contents max-sm:*:data-[slot=section-action]:col-start-1 max-sm:*:data-[slot=section-action]:row-start-3 max-sm:*:data-[slot=section-action]:justify-self-start max-sm:has-data-[slot=header-actions-menu]:*:data-[slot=section-title]:col-span-1 [.border-b]:pb-5",
 				className,
 			)}
 			{...props}
@@ -47,7 +47,7 @@ const SectionTitle = ({ className, ...props }: React.ComponentProps<"h2">) => {
 		<h2
 			data-slot="section-title"
 			className={cn(
-				"text-balance font-heading font-semibold text-2xl text-foreground/70 tracking-tight md:text-2xl",
+				"font-heading text-foreground/70 text-2xl font-semibold tracking-tight text-balance md:text-2xl",
 				className,
 			)}
 			{...props}

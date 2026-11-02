@@ -6,7 +6,7 @@ const PinMark = ({ className }: { className?: string }) => (
 	<PinIcon
 		role="img"
 		aria-label={m.chat_pinned_label()}
-		className={cn("size-3.5 shrink-0 text-muted-foreground", className)}
+		className={cn("text-muted-foreground size-3.5 shrink-0", className)}
 	/>
 );
 

@@ -15,7 +15,7 @@ const BehaviourDocsLink = () => {
 			href={`${docsUrl.replace(/\/$/, "")}/docs/using-orcai/behaviours`}
 			target="_blank"
 			rel="noopener noreferrer"
-			className="inline-flex items-center gap-1 text-muted-foreground text-xs underline-offset-4 hover:text-foreground hover:underline"
+			className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline"
 		>
 			{m.authoring_behaviour_docs_link()}
 			<ExternalLinkIcon className="size-3" />

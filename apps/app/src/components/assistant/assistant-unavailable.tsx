@@ -51,12 +51,12 @@ const AssistantUnavailable = ({
 			<div
 				role="status"
 				className={cn(
-					"flex flex-col gap-3 rounded-2xl bg-muted/60 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between",
+					"bg-muted/60 flex flex-col gap-3 rounded-2xl px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between",
 					className,
 				)}
 			>
 				<div className="flex items-start gap-2.5">
-					<CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-foreground" />
+					<CircleAlertIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 					<div className="flex flex-col gap-0.5">
 						<p className="text-foreground">{m.assistant_unavailable_title()}</p>
 						<p className="text-muted-foreground">{description}</p>

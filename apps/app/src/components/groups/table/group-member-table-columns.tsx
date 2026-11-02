@@ -58,7 +58,7 @@ export const groupMemberTableColumns = (groupId: GroupId) =>
 					<div className="min-w-0">
 						<p className="truncate font-medium">{row.original.user.name}</p>
 						{row.original.user.email ? (
-							<p className="truncate text-muted-foreground text-xs">
+							<p className="text-muted-foreground truncate text-xs">
 								{row.original.user.email}
 							</p>
 						) : null}

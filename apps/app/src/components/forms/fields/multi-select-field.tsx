@@ -124,7 +124,7 @@ const MultiSelectField = ({
 							<ComboboxItem key={option.value} value={option.value}>
 								<span className="block truncate">{option.label}</span>
 								{option.hint ? (
-									<span className="block truncate text-muted-foreground text-xs">
+									<span className="text-muted-foreground block truncate text-xs">
 										{option.hint}
 									</span>
 								) : null}

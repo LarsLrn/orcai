@@ -66,7 +66,7 @@ export const RatingBreakdown = ({
 		</CardHeader>
 		<CardContent>
 			{ratings.length === 0 ? (
-				<p className="py-6 text-center text-muted-foreground text-sm">
+				<p className="text-muted-foreground py-6 text-center text-sm">
 					{m.analytics_ratings_empty()}
 				</p>
 			) : (

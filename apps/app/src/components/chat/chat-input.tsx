@@ -242,7 +242,7 @@ const ChatInput = ({
 						(isGenerating || isStoringReply) && "loading-ring",
 					)}
 				>
-					<InputGroup className="overflow-hidden border-border bg-card shadow-sm">
+					<InputGroup className="border-border bg-card overflow-hidden shadow-sm">
 						{!isAssistant && (
 							<ChatComposerAttachments
 								localFiles={localFiles}
@@ -323,7 +323,7 @@ const ChatInput = ({
 				{!isAssistant &&
 					!isModelConfigured &&
 					blocker?.reason !== "bot-model" && (
-						<p className="mt-2 text-muted-foreground text-xs">
+						<p className="text-muted-foreground mt-2 text-xs">
 							{m.chat_composer_model_required_hint()}
 						</p>
 					)}

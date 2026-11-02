@@ -36,12 +36,12 @@ const SelectedAssetList = ({
 				return (
 					<div
 						key={asset.id}
-						className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border bg-background px-4 py-3 shadow-xs"
+						className="bg-background flex flex-wrap items-start justify-between gap-3 rounded-2xl border px-4 py-3 shadow-xs"
 					>
 						<div className="min-w-0 flex-1">
-							<div className="truncate font-medium text-sm">{asset.title}</div>
+							<div className="truncate text-sm font-medium">{asset.title}</div>
 							{asset.metadata.description ? (
-								<p className="mt-1 line-clamp-2 text-muted-foreground text-sm">
+								<p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
 									{asset.metadata.description}
 								</p>
 							) : null}

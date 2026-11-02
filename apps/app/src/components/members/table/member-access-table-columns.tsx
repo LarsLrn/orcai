@@ -145,7 +145,7 @@ export const memberAccessTableColumns = columnHelper.columns([
 		cell: ({ row }) => {
 			const Icon = typeIcon[row.original.resourceType];
 			return (
-				<span className="inline-flex items-center gap-1.5 text-muted-foreground">
+				<span className="text-muted-foreground inline-flex items-center gap-1.5">
 					<Icon aria-hidden="true" className="size-3.5" />
 					{typeLabel(row.original.resourceType)}
 				</span>

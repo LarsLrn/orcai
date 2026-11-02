@@ -50,28 +50,28 @@ export const UploadProgress = ({
 	};
 
 	return (
-		<Card className="w-full border-border/50 bg-card/50 backdrop-blur-sm">
+		<Card className="border-border/50 bg-card/50 w-full backdrop-blur-sm">
 			<CardHeader className="pb-3">
 				<div className="flex items-center justify-between">
 					<CardTitle className="flex items-center gap-2 text-base">
 						{isPending ? (
 							<>
-								<Loader2 className="h-4 w-4 animate-spin text-status-processing" />
+								<Loader2 className="text-status-processing h-4 w-4 animate-spin" />
 								{m.assets_upload_progress_pending_title()}
 							</>
 						) : isError ? (
 							<>
-								<AlertCircle className="h-4 w-4 text-destructive" />
+								<AlertCircle className="text-destructive h-4 w-4" />
 								{m.assets_upload_progress_error_title()}
 							</>
 						) : allSucceeded ? (
 							<>
-								<CheckCircle className="h-4 w-4 text-status-success" />
+								<CheckCircle className="text-status-success h-4 w-4" />
 								{m.assets_upload_progress_success_title()}
 							</>
 						) : (
 							<>
-								<AlertCircle className="h-4 w-4 text-status-warning" />
+								<AlertCircle className="text-status-warning h-4 w-4" />
 								{m.assets_upload_progress_partial_title()}
 							</>
 						)}
@@ -126,8 +126,8 @@ export const UploadProgress = ({
 			<CardContent className="pt-0">
 				{/* Critical Error Display */}
 				{isError && error && (
-					<div className="mb-4 rounded-2xl border border-destructive/20 bg-destructive/5 p-3">
-						<div className="flex items-center gap-2 text-destructive text-sm">
+					<div className="border-destructive/20 bg-destructive/5 mb-4 rounded-2xl border p-3">
+						<div className="text-destructive flex items-center gap-2 text-sm">
 							<AlertCircle className="h-4 w-4" />
 							<span className="font-medium">
 								{m.assets_upload_progress_error_label()}
@@ -184,10 +184,10 @@ export const UploadProgress = ({
 								{/* File Info */}
 								<div className="min-w-0 flex-1">
 									<div className="mb-1 flex items-center justify-between">
-										<p className="truncate font-medium text-sm">
+										<p className="truncate text-sm font-medium">
 											{fileInfo.name}
 										</p>
-										<div className="flex items-center gap-2 text-muted-foreground text-xs">
+										<div className="text-muted-foreground flex items-center gap-2 text-xs">
 											<span>{formatFileSize(fileInfo.size)}</span>
 											{(isUploading || isPending) && (
 												<span>{formatProgress(fileInfo.progress)}</span>
@@ -205,14 +205,14 @@ export const UploadProgress = ({
 
 									{/* Error Message */}
 									{isFailed && "error" in fileInfo && (
-										<p className="mt-1 text-status-danger text-xs">
+										<p className="text-status-danger mt-1 text-xs">
 											{fileInfo.error.message}
 										</p>
 									)}
 
 									{/* Success Message */}
 									{isComplete && (
-										<p className="mt-1 text-status-success text-xs">
+										<p className="text-status-success mt-1 text-xs">
 											{m.assets_upload_progress_file_success_label()}
 										</p>
 									)}
@@ -224,7 +224,7 @@ export const UploadProgress = ({
 
 				{/* Action Buttons */}
 				{isSettled && (
-					<div className="mt-4 flex justify-end gap-2 border-border/50 border-t pt-3">
+					<div className="border-border/50 mt-4 flex justify-end gap-2 border-t pt-3">
 						<Button variant="outline" size="sm" onClick={handleReset}>
 							{m.assets_upload_progress_clear_button()}
 						</Button>

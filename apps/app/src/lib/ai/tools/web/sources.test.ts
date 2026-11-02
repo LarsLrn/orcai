@@ -7,6 +7,16 @@ const web = (url: string, title = `Title of ${url}`) => ({
 	title,
 });
 
+const urlCitation = (url: string, title?: string) => ({
+	source: {
+		type: "source" as const,
+		sourceType: "url" as const,
+		id: url,
+		url,
+		title,
+	},
+});
+
 describe("citedWebSources", () => {
 	test("lists the web pages the reply cites, in the order it cites them", () => {
 		expect(
@@ -32,33 +42,27 @@ describe("citedWebSources", () => {
 		]);
 	});
 
-	test("adds the model's own URL sources once each", () => {
+	test("adds the pages the model's own search cites, once each", () => {
 		expect(
 			citedWebSources(
 				[
 					{
-						type: "source-url",
-						sourceId: "1",
-						url: "https://example.org/a",
-						title: "A",
+						type: "text",
+						text: "First claim. Second claim.",
+						citations: [
+							urlCitation("https://example.org/a", "A"),
+							urlCitation("https://example.org/a"),
+							urlCitation("https://example.org/b"),
+						],
 					},
 					{
-						type: "source-url",
-						sourceId: "2",
-						url: "https://example.org/a",
+						type: "text",
+						text: "Third claim.",
+						citations: [
+							urlCitation("https://example.org/cited", "Other title"),
+						],
 					},
-					{
-						type: "source-url",
-						sourceId: "3",
-						url: "https://example.org/b",
-					},
-					{
-						type: "source-url",
-						sourceId: "4",
-						url: "https://example.org/cited",
-						title: "Other title",
-					},
-				] as never,
+				],
 				{
 					wcited0: web("https://example.org/cited", "Cited"),
 				},
@@ -79,16 +83,38 @@ describe("citedWebSources", () => {
 		]);
 	});
 
-	test("lists no page the app does not open", () => {
+	test("lists no page the model's own search only retrieved", () => {
 		expect(
 			citedWebSources(
 				[
 					{
 						type: "source-url",
 						sourceId: "1",
-						url: "javascript:alert(1)",
+						url: "https://example.org/retrieved",
+						title: "Retrieved",
 					},
-				] as never,
+					{
+						type: "text",
+						text: "No claim.",
+					},
+				],
+				{},
+			),
+		).toEqual([]);
+	});
+
+	test("lists no page the app does not open", () => {
+		expect(
+			citedWebSources(
+				[
+					{
+						type: "text",
+						text: "A claim.",
+						citations: [
+							urlCitation("javascript:alert(1)"),
+						],
+					},
+				],
 				{
 					wcreds0: web("https://user:secret@example.org/page"),
 				},

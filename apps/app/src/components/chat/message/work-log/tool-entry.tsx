@@ -44,7 +44,7 @@ export const ToolEntry = ({
 	return (
 		<div className="min-w-0">
 			<div className="flex items-center gap-2">
-				<span className="min-w-0 flex-1 truncate font-medium text-sm">
+				<span className="min-w-0 flex-1 truncate text-sm font-medium">
 					{label}
 				</span>
 				{status && (
@@ -56,7 +56,7 @@ export const ToolEntry = ({
 					</Badge>
 				)}
 			</div>
-			{failure && <p className="mt-1 text-status-danger text-xs">{failure}</p>}
+			{failure && <p className="text-status-danger mt-1 text-xs">{failure}</p>}
 			{children}
 			<ToolDetails
 				label={
@@ -85,7 +85,7 @@ const ToolDetails = ({
 
 	return (
 		<Collapsible open={open} onOpenChange={setOpen} className="mt-2">
-			<CollapsibleTrigger className="flex items-center gap-1 text-muted-foreground text-xs transition-colors duration-150 hover:text-foreground">
+			<CollapsibleTrigger className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs transition-colors duration-150">
 				{label}
 				<ChevronDownIcon
 					className={cn(
@@ -94,7 +94,7 @@ const ToolDetails = ({
 					)}
 				/>
 			</CollapsibleTrigger>
-			<CollapsibleContent className="mt-1.5 space-y-2 rounded-md bg-muted/40 p-2">
+			<CollapsibleContent className="bg-muted/40 mt-1.5 space-y-2 rounded-md p-2">
 				{children}
 			</CollapsibleContent>
 		</Collapsible>

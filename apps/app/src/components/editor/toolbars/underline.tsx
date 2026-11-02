@@ -49,7 +49,7 @@ const UnderlineToolbar = ({
 			/>
 			<TooltipContent>
 				<span>{m.editor_toolbar_underline_tooltip()}</span>
-				<span className="ml-1 text-gray-11 text-xs">(cmd + u)</span>
+				<span className="text-gray-11 ml-1 text-xs">(cmd + u)</span>
 			</TooltipContent>
 		</Tooltip>
 	);

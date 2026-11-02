@@ -67,7 +67,7 @@ const DataTableBody = ({
 	}
 
 	return (
-		<div className="overflow-hidden rounded-2xl border bg-card">
+		<div className="bg-card overflow-hidden rounded-2xl border">
 			<Table className="[&_td:first-child]:ps-5 [&_td:last-child]:pe-5 [&_th:first-child]:ps-5 [&_th:last-child]:pe-5">
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (

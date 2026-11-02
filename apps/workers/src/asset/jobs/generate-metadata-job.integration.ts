@@ -605,6 +605,73 @@ test(
 );
 
 test(
+	"an apply that changes nothing records no applied field on its run member",
+	async () => {
+		const { title: _, ...answered } = documentAnswer;
+		const seeded = await seedAsset({
+			fileName: null,
+			metadata: Object.fromEntries(
+				Object.entries(answered).filter(([, value]) => value !== null),
+			) as AssetMetadataType,
+		});
+		const runId = await run(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				return yield* db.transaction(() =>
+					Effect.gen(function* () {
+						const [inserted] = yield* db
+							.insert(dbSchema.activityRun)
+							.values({
+								userId: seeded.adminId,
+								kind: "upload",
+								organizationId: seeded.organizationId,
+							})
+							.returning({
+								id: dbSchema.activityRun.id,
+							});
+						if (!inserted) throw new Error("Nothing seeded");
+						yield* db.insert(dbSchema.activityMember).values({
+							runId: inserted.id,
+							assetId: seeded.assetId,
+						});
+						return inserted.id;
+					}),
+				);
+			}),
+		);
+		await run(
+			queueMetadataGeneration({
+				assetIds: [
+					seeded.assetId,
+				],
+				mode: "apply",
+				userId: seeded.adminId,
+				runId,
+			}),
+		);
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+
+		await runJob(job);
+
+		const [member] = await run(
+			Effect.gen(function* () {
+				return yield* (yield* DB)
+					.select({
+						appliedFields: dbSchema.activityMember.appliedFields,
+					})
+					.from(dbSchema.activityMember)
+					.where(eq(dbSchema.activityMember.runId, runId));
+			}),
+		);
+		expect(member).toEqual({
+			appliedFields: [],
+		});
+	},
+	TIMEOUT,
+);
+
+test(
 	"apply storing while its member's repository is deleted deadlocks, and the victim runs again without a second model call",
 	async () => {
 		const seeded = await seedAsset();

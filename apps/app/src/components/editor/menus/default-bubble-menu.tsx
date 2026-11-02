@@ -129,15 +129,15 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 				return true;
 			}}
 		>
-			<div className="relative max-w-[90vw] overflow-hidden rounded-md border bg-popover shadow-xl">
+			<div className="bg-popover relative max-w-[90vw] overflow-hidden rounded-md border shadow-xl">
 				{/* Left scroll indicator */}
 				{canScrollLeft && (
 					<button
 						type="button"
 						onClick={handleScrollLeft}
-						className="absolute top-0 left-0 z-10 flex h-full w-8 items-center justify-center bg-gradient-to-r from-popover/95 via-popover/80 to-transparent transition-colors duration-200 hover:from-popover"
+						className="from-popover/95 via-popover/80 hover:from-popover absolute top-0 left-0 z-10 flex h-full w-8 items-center justify-center bg-gradient-to-r to-transparent transition-colors duration-200"
 					>
-						<ChevronLeft className="h-4 w-4 text-foreground drop-shadow-sm" />
+						<ChevronLeft className="text-foreground h-4 w-4 drop-shadow-sm" />
 					</button>
 				)}
 
@@ -146,9 +146,9 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 					<button
 						type="button"
 						onClick={handleScrollRight}
-						className="absolute top-0 right-0 z-10 flex h-full w-8 items-center justify-center bg-gradient-to-l from-popover/95 via-popover/80 to-transparent transition-colors duration-200 hover:from-popover"
+						className="from-popover/95 via-popover/80 hover:from-popover absolute top-0 right-0 z-10 flex h-full w-8 items-center justify-center bg-gradient-to-l to-transparent transition-colors duration-200"
 					>
-						<ChevronRight className="h-4 w-4 text-foreground drop-shadow-sm" />
+						<ChevronRight className="text-foreground h-4 w-4 drop-shadow-sm" />
 					</button>
 				)}
 
@@ -157,7 +157,7 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 				<div
 					ref={scrollContainerRef}
 					className={cn(
-						"scrollbar-hide flex h-9 select-none overflow-x-auto rounded-md",
+						"scrollbar-hide flex h-9 overflow-x-auto rounded-md select-none",
 						"cursor-grab active:cursor-grabbing",
 					)}
 					onMouseDown={handleMouseDown}

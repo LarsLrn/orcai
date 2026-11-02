@@ -60,7 +60,7 @@ const InheritedAccessSummary = ({
 		<div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-dashed p-3">
 			<div className="flex min-w-0 flex-col gap-1">
 				<div className="flex items-center gap-2">
-					<Share2Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+					<Share2Icon className="text-muted-foreground h-4 w-4 shrink-0" />
 					<p className="text-muted-foreground text-xs">
 						{isShared
 							? m.access_inherited_summary_shared({
@@ -74,7 +74,7 @@ const InheritedAccessSummary = ({
 				</div>
 				{inherited.throughPublic && (
 					<div className="flex items-center gap-2">
-						<GlobeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+						<GlobeIcon className="text-muted-foreground h-4 w-4 shrink-0" />
 						<p className="text-muted-foreground text-xs">
 							{m.access_inherited_public_note()}
 						</p>
@@ -92,7 +92,7 @@ const InheritedAccessSummary = ({
 				/>
 				<PopoverContent align="end" className="w-80 gap-3">
 					<div className="space-y-1">
-						<p className="font-medium text-sm">
+						<p className="text-sm font-medium">
 							{m.access_inherited_details_title()}
 						</p>
 						<p className="text-muted-foreground text-xs">
@@ -119,7 +119,7 @@ const InheritedAccessSummary = ({
 														blockId: ancestor.resourceId,
 													}
 										}
-										className="block truncate rounded-lg px-2 py-1 text-sm hover:bg-muted"
+										className="hover:bg-muted block truncate rounded-lg px-2 py-1 text-sm"
 									>
 										{ancestor.name}
 									</Link>

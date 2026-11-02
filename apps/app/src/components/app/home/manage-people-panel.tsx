@@ -41,9 +41,9 @@ const PeopleRow = ({
 		<>
 			<div className="flex min-w-0 flex-col gap-1">
 				<span className="truncate font-medium">{label}</span>
-				<p className="truncate text-muted-foreground text-xs">{meta}</p>
+				<p className="text-muted-foreground truncate text-xs">{meta}</p>
 			</div>
-			<span className="shrink-0 font-medium text-base tabular-nums">
+			<span className="shrink-0 text-base font-medium tabular-nums">
 				{formatCount(count)}
 			</span>
 		</>

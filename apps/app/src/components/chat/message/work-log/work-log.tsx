@@ -76,11 +76,11 @@ const isLive = (entry: WorkEntry) =>
 
 const EntryIcon = ({ entry }: { entry: WorkEntry }) => {
 	if (entry.kind === "reasoning") {
-		return <BrainIcon className="size-3 text-muted-foreground" />;
+		return <BrainIcon className="text-muted-foreground size-3" />;
 	}
 
 	if (entry.kind === "text") {
-		return <MessageSquareTextIcon className="size-3 text-muted-foreground" />;
+		return <MessageSquareTextIcon className="text-muted-foreground size-3" />;
 	}
 
 	const Icon = toolLabels(entry.part).icon;
@@ -125,16 +125,16 @@ export const WorkLog = ({
 			ref={ref}
 			open={open}
 			onOpenChange={onOpenChange}
-			className="not-prose w-full min-w-0 shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted/20"
+			className="not-prose border-border/60 bg-muted/20 w-full min-w-0 shrink-0 overflow-hidden rounded-xl border"
 		>
 			<CollapsibleTrigger
 				ref={indicatorRef}
-				className="flex w-full items-center gap-2 px-3 py-2 text-left text-muted-foreground text-sm transition-colors duration-150 hover:text-foreground"
+				className="text-muted-foreground hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors duration-150"
 			>
 				{running ? (
 					<Loader2Icon className="size-4 shrink-0 animate-spin" />
 				) : failed > 0 ? (
-					<CircleAlertIcon className="size-4 shrink-0 text-status-danger" />
+					<CircleAlertIcon className="text-status-danger size-4 shrink-0" />
 				) : (
 					<ListChecksIcon className="size-4 shrink-0" />
 				)}
@@ -153,12 +153,12 @@ export const WorkLog = ({
 				keepMounted
 				className="border-border/60 border-t px-3 py-3"
 			>
-				<ol className="ms-2 border-border border-s">
+				<ol className="border-border ms-2 border-s">
 					{entries.map((entry) => (
 						<li key={entry.id} className="relative ps-5 pb-4 last:pb-0">
 							<span
 								ref={open && isLive(entry) ? indicatorRef : undefined}
-								className="absolute -inset-s-2.5 top-0 grid size-5 place-items-center rounded-full border border-border bg-background"
+								className="border-border bg-background absolute -inset-s-2.5 top-0 grid size-5 place-items-center rounded-full border"
 							>
 								<EntryIcon entry={entry} />
 							</span>

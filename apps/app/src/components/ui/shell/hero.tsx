@@ -15,7 +15,7 @@ const Hero = ({ className, ...props }: React.ComponentProps<"div">) => {
 		<div
 			data-slot="hero"
 			className={cn(
-				"relative overflow-hidden rounded-2xl border bg-card shadow-xl ring-1 ring-foreground/10",
+				"bg-card ring-foreground/10 relative overflow-hidden rounded-2xl border shadow-xl ring-1",
 				className,
 			)}
 			{...props}
@@ -29,7 +29,7 @@ const HeroGradient = ({ className, ...props }: React.ComponentProps<"div">) => {
 			data-slot="hero-gradient"
 			aria-hidden="true"
 			className={cn(
-				"pointer-events-none absolute inset-0 bg-linear-to-br from-primary/20 via-accent-brand/15 to-transparent",
+				"from-primary/20 via-accent-brand/15 pointer-events-none absolute inset-0 bg-linear-to-br to-transparent",
 				className,
 			)}
 			{...props}
@@ -55,7 +55,7 @@ const HeroContent = ({ className, ...props }: React.ComponentProps<"div">) => {
 		<div
 			data-slot="hero-content"
 			className={cn(
-				"flex w-full flex-col gap-6 text-card-foreground",
+				"text-card-foreground flex w-full flex-col gap-6",
 				className,
 			)}
 			{...props}

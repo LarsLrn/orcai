@@ -50,7 +50,7 @@ const BotFavouriteToggle = ({
 				name: bot.name,
 			})}
 			className={cn(
-				"px-2 aria-pressed:bg-transparent aria-pressed:hover:bg-muted",
+				"aria-pressed:hover:bg-muted px-2 aria-pressed:bg-transparent",
 				className,
 			)}
 		>

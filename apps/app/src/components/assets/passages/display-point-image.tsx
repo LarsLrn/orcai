@@ -31,13 +31,13 @@ const DisplayPointImage = ({
 				title={m.assets_point_image_error_title()}
 				description={m.assets_point_image_error_description()}
 				Icon={ImageOffIcon}
-				className="min-h-52 rounded-lg border bg-background"
+				className="bg-background min-h-52 rounded-lg border"
 			/>
 		);
 	}
 
 	return (
-		<div className="overflow-hidden rounded-lg border bg-background">
+		<div className="bg-background overflow-hidden rounded-lg border">
 			<img
 				src={data.url}
 				alt={m.assets_point_image_alt()}

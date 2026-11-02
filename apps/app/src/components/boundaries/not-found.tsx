@@ -13,14 +13,14 @@ export function NotFound({ children }: { children?: any }) {
 				<Card>
 					<CardContent className="space-y-6 p-8">
 						{/* Error Icon */}
-						<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-							<AlertCircle className="h-8 w-8 text-muted-foreground" />
+						<div className="bg-muted mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+							<AlertCircle className="text-muted-foreground h-8 w-8" />
 						</div>
 
 						{/* Error Code */}
 						<div className="space-y-2">
-							<h1 className="font-semibold text-4xl text-foreground">404</h1>
-							<h2 className="font-semibold text-lg text-muted-foreground">
+							<h1 className="text-foreground text-4xl font-semibold">404</h1>
+							<h2 className="text-muted-foreground text-lg font-semibold">
 								{m.boundaries_not_found_title()}
 							</h2>
 						</div>

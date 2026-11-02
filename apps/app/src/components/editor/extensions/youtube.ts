@@ -62,7 +62,7 @@ export const youtubeEmbedUrl = (input: unknown, start?: unknown) => {
 };
 
 export const YOUTUBE_IFRAME_CLASS = cn(
-	"aspect-video h-auto w-full border border-muted",
+	"border-muted aspect-video h-auto w-full border",
 );
 
 /** YouTube embeds stored and shown only as `youtube-nocookie.com` addresses. */

@@ -117,7 +117,7 @@ export const ImageUploadDialog = ({
 				<DialogBody>
 					{source ? (
 						<div className="flex flex-col gap-4">
-							<div className="relative h-[min(18rem,45dvh)] w-full overflow-hidden rounded-md bg-muted">
+							<div className="bg-muted relative h-[min(18rem,45dvh)] w-full overflow-hidden rounded-md">
 								<Cropper
 									image={source.url}
 									crop={crop}
@@ -155,7 +155,7 @@ export const ImageUploadDialog = ({
 						/>
 					)}
 					{error ? (
-						<p role="alert" className="mt-4 text-destructive text-sm">
+						<p role="alert" className="text-destructive mt-4 text-sm">
 							{error}
 						</p>
 					) : null}

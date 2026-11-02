@@ -42,7 +42,7 @@ export const AnsweredQuestions = ({
 			{pages.map((page, index) => (
 				<div key={index} className="flex flex-col gap-2">
 					{page.title && (
-						<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+						<h4 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
 							{page.title}
 						</h4>
 					)}

@@ -68,7 +68,7 @@ export const ChatAssetPicker = ({
 				</DialogHeader>
 
 				<div className="relative">
-					<SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+					<SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
 					<Input
 						className="pl-9"
 						placeholder={m.chat_asset_picker_search_placeholder()}
@@ -93,7 +93,7 @@ export const ChatAssetPicker = ({
 							>
 								<div className="min-w-0">
 									<div className="flex min-w-0 items-center gap-2">
-										<span className="truncate font-medium text-sm">
+										<span className="truncate text-sm font-medium">
 											{asset.title}
 										</span>
 										{asset.keptIn === "chat" ? (
@@ -102,7 +102,7 @@ export const ChatAssetPicker = ({
 											</Badge>
 										) : null}
 									</div>
-									<div className="truncate text-muted-foreground text-xs">
+									<div className="text-muted-foreground truncate text-xs">
 										{getFileTypeLabel(asset.fileType)} ·{" "}
 										{formatFileSize(asset.size)}
 									</div>

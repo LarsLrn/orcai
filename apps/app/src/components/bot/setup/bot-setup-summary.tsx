@@ -151,7 +151,7 @@ const BotSetupSummary = ({
 				{setup ? (
 					<>
 						<div className="flex flex-wrap items-center gap-2">
-							<span className="font-medium text-sm">
+							<span className="text-sm font-medium">
 								{setup.model?.name ?? m.chat_model_locked_missing_label()}
 							</span>
 							<Badge variant="secondary">

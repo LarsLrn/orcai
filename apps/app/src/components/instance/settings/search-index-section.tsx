@@ -158,7 +158,7 @@ export const SearchIndexSection = ({
 					aria-label={m.instance_settings_index_failures_title()}
 					className="flex flex-col gap-2"
 				>
-					<h3 className="font-medium text-sm">
+					<h3 className="text-sm font-medium">
 						{m.instance_settings_index_failures_title()}
 					</h3>
 					<ul className="flex flex-col gap-1 text-sm">

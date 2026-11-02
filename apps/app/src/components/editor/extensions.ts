@@ -43,20 +43,20 @@ const TiptapStarterKit = StarterKit.configure({
 	},
 	blockquote: {
 		HTMLAttributes: {
-			class: cn("border-gray-600 border-l-4"),
+			class: cn("border-l-4 border-gray-600"),
 		},
 	},
 	codeBlock: false,
 	code: {
 		HTMLAttributes: {
 			class: cn(
-				"rounded-lg bg-muted px-1.5 py-1 font-medium font-mono text-red-700 before:content-none after:content-none dark:bg-muted/90 dark:text-red-400",
+				"bg-muted dark:bg-muted/90 rounded-lg px-1.5 py-1 font-mono font-medium text-red-700 before:content-none after:content-none dark:text-red-400",
 			),
 		},
 	},
 	horizontalRule: {
 		HTMLAttributes: {
-			class: cn("my-4 border-border bg-border"),
+			class: cn("border-border bg-border my-4"),
 		},
 	},
 	dropcursor: {
@@ -137,14 +137,14 @@ const TiptapTable = Table.extend({
 const TiptapTableHeader = TableHeader.configure({
 	HTMLAttributes: {
 		class: cn(
-			"min-w-[150px] border border-default bg-muted p-2 text-start font-semibold dark:bg-gray-900",
+			"border-default bg-muted min-w-[150px] border p-2 text-start font-semibold dark:bg-gray-900",
 		),
 	},
 });
 
 const TiptapTableCell = TableCell.configure({
 	HTMLAttributes: {
-		class: cn("min-w-[150px] border border-default p-2 align-middle"),
+		class: cn("border-default min-w-[150px] border p-2 align-middle"),
 	},
 });
 

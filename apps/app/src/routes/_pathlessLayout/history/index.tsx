@@ -75,10 +75,10 @@ function RouteComponent() {
 				{m.chat_history_back_link()}
 			</Link>
 			<div className="space-y-2 text-center">
-				<h1 className="font-semibold text-2xl tracking-tight">
+				<h1 className="text-2xl font-semibold tracking-tight">
 					{m.chat_history_page_title()}
 				</h1>
-				<p className="text-lg text-muted-foreground">
+				<p className="text-muted-foreground text-lg">
 					{m.chat_history_page_description()}
 				</p>
 			</div>
@@ -89,7 +89,7 @@ function RouteComponent() {
 						<li key={chat.id}>
 							<Card
 								size="sm"
-								className="relative transition-colors hover:bg-muted/40 has-focus-visible:ring-[3px] has-focus-visible:ring-ring/75"
+								className="hover:bg-muted/40 has-focus-visible:ring-ring/75 relative transition-colors has-focus-visible:ring-[3px]"
 							>
 								<CardHeader>
 									<CardTitle>
@@ -119,10 +119,10 @@ function RouteComponent() {
 			) : (
 				<Card className="py-12 text-center">
 					<CardContent>
-						<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-							<MessagesSquareIcon className="h-8 w-8 text-muted-foreground" />
+						<div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+							<MessagesSquareIcon className="text-muted-foreground h-8 w-8" />
 						</div>
-						<p className="text-lg text-muted-foreground">
+						<p className="text-muted-foreground text-lg">
 							{m.chat_history_empty_title()}
 						</p>
 					</CardContent>

@@ -110,10 +110,10 @@ function RouteComponent() {
 					value={activeTab}
 					onChange={navigateToRoute}
 					aria-label={m.account_section_switcher_aria_label()}
-					className="@xl:hidden w-full"
+					className="w-full @xl:hidden"
 				/>
 				<Tabs
-					className="@xl:flex hidden"
+					className="hidden @xl:flex"
 					value={activeTab}
 					onValueChange={navigateToRoute}
 				>

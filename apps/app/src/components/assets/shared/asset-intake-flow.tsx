@@ -177,15 +177,15 @@ const AssetIntakeFlow = ({
 			{failures.length > 0 ? (
 				<div
 					role="alert"
-					className="space-y-1 rounded-2xl border border-status-danger/40 px-4 py-3 text-sm"
+					className="border-status-danger/40 space-y-1 rounded-2xl border px-4 py-3 text-sm"
 				>
 					<div className="flex items-center gap-2 font-medium">
-						<AlertCircleIcon className="size-4 text-status-danger" />
+						<AlertCircleIcon className="text-status-danger size-4" />
 						{m.assets_intake_failed_title({
 							count: failures.length,
 						})}
 					</div>
-					<ul className="space-y-0.5 text-muted-foreground">
+					<ul className="text-muted-foreground space-y-0.5">
 						{failures.map((failure, index) => (
 							<li key={`${failure.name}-${index}`}>
 								{failure.name}: {failure.message}

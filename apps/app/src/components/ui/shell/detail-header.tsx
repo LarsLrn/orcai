@@ -32,7 +32,7 @@ const DetailHeaderBand = ({
 		data-slot="detail-header-band"
 		aria-hidden="true"
 		className={cn(
-			"relative h-28 overflow-hidden rounded-3xl bg-linear-to-br sm:h-36 [&>svg]:absolute [&>svg]:-right-6 [&>svg]:-bottom-10 [&>svg]:size-40 [&>svg]:text-foreground/[0.07] sm:[&>svg]:size-52",
+			"[&>svg]:text-foreground/[0.07] relative h-28 overflow-hidden rounded-3xl bg-linear-to-br sm:h-36 [&>svg]:absolute [&>svg]:-right-6 [&>svg]:-bottom-10 [&>svg]:size-40 sm:[&>svg]:size-52",
 			className,
 		)}
 		{...props}
@@ -47,12 +47,12 @@ const DetailHeaderIcon = ({
 }: React.ComponentProps<"div">) => (
 	<div
 		data-slot="detail-header-icon"
-		className="relative z-10 -mt-10 ml-5 w-fit rounded-3xl border-4 border-background bg-background shadow-sm sm:ml-8 [&_[data-slot=tile-mark]]:-right-1 [&_[data-slot=tile-mark]]:-bottom-1 [&_[data-slot=tile-mark]]:size-6 [&_[data-slot=tile-mark]]:ring-background"
+		className="border-background bg-background [&_[data-slot=tile-mark]]:ring-background relative z-10 -mt-10 ml-5 w-fit rounded-3xl border-4 shadow-sm sm:ml-8 [&_[data-slot=tile-mark]]:-right-1 [&_[data-slot=tile-mark]]:-bottom-1 [&_[data-slot=tile-mark]]:size-6"
 		{...props}
 	>
 		<div
 			className={cn(
-				"flex size-16 items-center justify-center rounded-2xl bg-muted [&>svg]:size-8",
+				"bg-muted flex size-16 items-center justify-center rounded-2xl [&>svg]:size-8",
 				className,
 			)}
 		>
@@ -87,7 +87,7 @@ const DetailHeaderMeta = ({
 	<div
 		data-slot="detail-header-meta"
 		className={cn(
-			"flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-muted-foreground text-sm",
+			"text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-sm",
 			className,
 		)}
 		{...props}

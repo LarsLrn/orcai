@@ -90,7 +90,7 @@ export const CheckList = <TCheck extends Check>({
 						</ItemTitle>
 						<ItemDescription>{checkReasonMessage(check)}</ItemDescription>
 						{check.detail && (
-							<pre className="mt-1 whitespace-pre-wrap break-words font-mono text-muted-foreground text-xs">
+							<pre className="text-muted-foreground mt-1 font-mono text-xs break-words whitespace-pre-wrap">
 								{check.detail}
 							</pre>
 						)}

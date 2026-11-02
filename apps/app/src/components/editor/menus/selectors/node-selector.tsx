@@ -156,7 +156,7 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 			<PopoverTrigger
 				render={
 					<Button variant="ghost" className="rounded-none">
-						<span className="me-2 whitespace-nowrap text-sm">{name}</span>
+						<span className="me-2 text-sm whitespace-nowrap">{name}</span>
 						<ChevronDownIcon className="size-3" />
 					</Button>
 				}
@@ -168,7 +168,7 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 							type="button"
 							key={item.name}
 							onClick={() => item.onClick(editor)}
-							className="flex cursor-pointer items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+							className="hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center rounded-md px-2 py-1.5 text-sm"
 						>
 							<item.icon className="me-2 size-3.5" />
 							<span>{item.name}</span>

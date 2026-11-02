@@ -1,11 +1,20 @@
 import { describe, expect, test } from "bun:test";
-import type { ModelProviderKind } from "@orcai/core";
-import { type ModelMessage, ToolLoopAgent, tool } from "ai";
-import { MockLanguageModelV4 } from "ai/test";
+import {
+	createAgentUIStream,
+	type ModelMessage,
+	ToolLoopAgent,
+	tool,
+	type UIMessageChunk,
+} from "ai";
+import { convertArrayToReadableStream, MockLanguageModelV4 } from "ai/test";
 import { z } from "zod/v4";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import { stepBudgetOptionsSchema } from "./step-budget";
-import { createStepShaper, FINAL_STEP_NOTE } from "./step-request";
+import {
+	createStepShaper,
+	FINAL_STEP_NOTE,
+	lastStepToolCalls,
+} from "./step-request";
 
 const MAX_STEPS = 3;
 
@@ -78,7 +87,6 @@ const toolHungryModel = () => {
  * narrows the tools on every step as the assistant's plan gating does.
  */
 const runTurn = async (
-	providerKind: ModelProviderKind,
 	maxSteps = MAX_STEPS,
 	activeTools?: "search"[],
 	room?: {
@@ -90,7 +98,6 @@ const runTurn = async (
 	const { model, calls } = toolHungryModel();
 	const pruned: ModelMessage[][] = [];
 	const steps = createStepShaper({
-		providerKind,
 		prune: (messages) => {
 			pruned.push(messages);
 			return messages;
@@ -160,7 +167,7 @@ const errorTexts = (messages: ModelMessage[]) =>
 
 describe("createStepShaper", () => {
 	test("prunes failures as the reply stores them, before the final-step note", async () => {
-		const { pruned } = await runTurn("openai");
+		const { pruned } = await runTurn();
 
 		expect(pruned).toHaveLength(MAX_STEPS);
 		expect(errorTexts(pruned.at(-1) ?? [])).toEqual([
@@ -172,7 +179,7 @@ describe("createStepShaper", () => {
 	});
 
 	test("a turn that keeps calling tools ends with an answer on the last step", async () => {
-		const { result, calls } = await runTurn("openai");
+		const { result, calls } = await runTurn();
 
 		expect(calls).toHaveLength(MAX_STEPS);
 		expect(result.text).toBe("Here is what I found so far.");
@@ -189,18 +196,8 @@ describe("createStepShaper", () => {
 		expect(lastPromptText(finalCall as CallOptions)).toBe(FINAL_STEP_NOTE);
 	});
 
-	test("on Anthropic the last step gets the note and keeps its tools", async () => {
-		const { result, calls } = await runTurn("anthropic");
-
-		expect(result.text).toBe("Here is what I found so far.");
-		const finalCall = calls.at(-1) as CallOptions;
-		expect(finalCall.toolChoice?.type).toBe("auto");
-		expect(finalCall.tools).toHaveLength(2);
-		expect(lastPromptText(finalCall)).toBe(FINAL_STEP_NOTE);
-	});
-
 	test("the last step keeps the tool narrowing of the steps before it", async () => {
-		const { result, calls } = await runTurn("anthropic", MAX_STEPS, [
+		const { result, calls } = await runTurn(MAX_STEPS, [
 			"search",
 		]);
 
@@ -218,7 +215,7 @@ describe("createStepShaper", () => {
 			1,
 			2,
 		]) {
-			const { result, calls } = await runTurn("openai", maxSteps);
+			const { result, calls } = await runTurn(maxSteps);
 
 			expect(calls).toHaveLength(maxSteps);
 			expect(result.text).toBe("Here is what I found so far.");
@@ -245,15 +242,10 @@ describe("createStepShaper", () => {
 			);
 
 		test("a step that outgrows it leaves out the tool calls of the steps before the latest", async () => {
-			const { result, calls, contextFull } = await runTurn(
-				"openai-compatible",
-				4,
-				undefined,
-				{
-					promptTokens: 800,
-					result: bigResult,
-				},
-			);
+			const { result, calls, contextFull } = await runTurn(4, undefined, {
+				promptTokens: 800,
+				result: bigResult,
+			});
 
 			expect(calls.map(toolResultIds)).toEqual([
 				[],
@@ -273,18 +265,113 @@ describe("createStepShaper", () => {
 		});
 
 		test("the turn stops when even the latest step's calls do not fit", async () => {
-			const { calls, contextFull } = await runTurn(
-				"openai-compatible",
-				4,
-				undefined,
-				{
-					promptTokens: 300,
-					result: bigResult,
-				},
-			);
+			const { calls, contextFull } = await runTurn(4, undefined, {
+				promptTokens: 300,
+				result: bigResult,
+			});
 
 			expect(calls).toHaveLength(2);
 			expect(contextFull).toBe(true);
 		});
+	});
+});
+
+describe("lastStepToolCalls", () => {
+	/** Streams a turn whose model calls the search tool on every step, the last one included. */
+	const streamStubbornTurn = async (transform: boolean) => {
+		let searches = 0;
+		const steps = createStepShaper({
+			prune: (messages) => messages,
+		});
+		const agent = new ToolLoopAgent({
+			model: new MockLanguageModelV4({
+				doStream: () =>
+					Promise.resolve({
+						stream: convertArrayToReadableStream([
+							{
+								type: "tool-call",
+								toolCallId: `call-${searches}`,
+								toolName: "search",
+								input: "{}",
+							},
+							{
+								type: "finish",
+								finishReason: {
+									unified: "tool-calls",
+									raw: undefined,
+								},
+								usage,
+							},
+						]),
+					}),
+			}),
+			tools: {
+				search: tool({
+					inputSchema: z.object({}),
+					execute: () => {
+						searches += 1;
+						return Promise.resolve("a result");
+					},
+				}),
+			},
+			callOptionsSchema: stepBudgetOptionsSchema,
+			prepareCall: ({ options, ...settings }) => {
+				const turn = steps.forTurn(options);
+				return {
+					...settings,
+					stopWhen: turn.stopWhen,
+					prepareStep: turn.prepareStep,
+				};
+			},
+		});
+		const chunks: UIMessageChunk[] = [];
+		for await (const chunk of await createAgentUIStream({
+			agent,
+			uiMessages: [
+				{
+					id: "question",
+					role: "user",
+					parts: [
+						{
+							type: "text",
+							text: "Check every citation.",
+						},
+					],
+				},
+			],
+			options: {
+				maxSteps: MAX_STEPS,
+			},
+			experimental_transform: transform
+				? [
+						lastStepToolCalls(),
+					]
+				: [],
+			onError: () => "failed",
+		})) {
+			chunks.push(chunk);
+		}
+		return {
+			chunks,
+			searches,
+		};
+	};
+
+	test("a last step that calls tools anyway ends in tool calls, running none of them", async () => {
+		const { chunks, searches } = await streamStubbornTurn(true);
+
+		expect(searches).toBe(MAX_STEPS - 1);
+		expect(chunks.filter((chunk) => chunk.type === "error")).toEqual([]);
+		expect(chunks.at(-1)).toMatchObject({
+			type: "finish",
+			finishReason: "tool-calls",
+		});
+	});
+
+	test("without it the SDK reports those calls as an error", async () => {
+		const { chunks, searches } = await streamStubbornTurn(false);
+
+		expect(searches).toBe(MAX_STEPS - 1);
+		expect(chunks.some((chunk) => chunk.type === "error")).toBe(true);
 	});
 });

@@ -38,7 +38,7 @@ const GroupMemberAdd = ({ group }: { group: Group }) => {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<UsersIcon className="size-4 text-muted-foreground" />
+					<UsersIcon className="text-muted-foreground size-4" />
 					{m.groups_members_add_heading()}
 				</CardTitle>
 				<CardDescription>

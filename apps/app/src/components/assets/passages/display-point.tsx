@@ -48,12 +48,12 @@ const DisplayPoint = ({
 			<CardHeader className="space-y-3">
 				<div className="flex flex-wrap items-start justify-between gap-3">
 					<div className="space-y-1">
-						<CardTitle className="wrap-break-word text-lg leading-tight">
+						<CardTitle className="text-lg leading-tight wrap-break-word">
 							{point.title || payload.source || id}
 						</CardTitle>
-						<CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-sm">
+						<CardDescription className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
 							{payload.source && (
-								<span className="font-medium text-foreground">
+								<span className="text-foreground font-medium">
 									{payload.source}
 								</span>
 							)}
@@ -100,7 +100,7 @@ const DisplayPoint = ({
 							render={
 								<Badge
 									variant="outline"
-									className="cursor-pointer border border-dashed text-muted-foreground"
+									className="text-muted-foreground cursor-pointer border border-dashed"
 								>
 									{m.assets_point_details_badge()}
 								</Badge>
@@ -108,34 +108,34 @@ const DisplayPoint = ({
 						/>
 						<HoverCardContent className="space-y-2">
 							{typeof payload.depth === "number" && (
-								<div className="flex items-center justify-between text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center justify-between text-sm">
 									<span>{m.assets_point_depth_label()}</span>
-									<span className="font-medium text-foreground">
+									<span className="text-foreground font-medium">
 										{payload.depth}
 									</span>
 								</div>
 							)}
 							{typeof payload.chunk_index === "number" &&
 								payload.chunkCount != null && (
-									<div className="flex items-center justify-between text-muted-foreground text-sm">
+									<div className="text-muted-foreground flex items-center justify-between text-sm">
 										<span>{m.assets_point_passage_label()}</span>
-										<span className="font-medium text-foreground">
+										<span className="text-foreground font-medium">
 											{payload.chunk_index + 1} / {payload.chunkCount}
 										</span>
 									</div>
 								)}
 							{typeof payload.tokens === "number" && (
-								<div className="flex items-center justify-between text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center justify-between text-sm">
 									<span>{m.assets_point_tokens_label()}</span>
-									<span className="font-medium text-foreground">
+									<span className="text-foreground font-medium">
 										{payload.tokens}
 									</span>
 								</div>
 							)}
 							{pageRange && (
-								<div className="flex items-center justify-between text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center justify-between text-sm">
 									<span>{m.assets_point_pages_label()}</span>
-									<span className="font-medium text-foreground">
+									<span className="text-foreground font-medium">
 										{pageRange}
 									</span>
 								</div>
@@ -147,7 +147,7 @@ const DisplayPoint = ({
 			<CardContent className="pt-0">
 				<div
 					className={cn(
-						"rounded-xl bg-background/60 p-4",
+						"bg-background/60 rounded-xl p-4",
 						imageObjectKey && "grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]",
 					)}
 				>

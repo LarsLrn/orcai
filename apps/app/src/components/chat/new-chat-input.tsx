@@ -157,7 +157,7 @@ const NewChatInput = ({
 					onFiles={addFiles}
 					disabled={isBusy || blocker !== undefined}
 				>
-					<InputGroup className="overflow-hidden border-border bg-card shadow-sm">
+					<InputGroup className="border-border bg-card overflow-hidden shadow-sm">
 						<ChatComposerAttachments
 							localFiles={localFiles}
 							attachments={selectedAttachments}

@@ -38,7 +38,7 @@ const LinkConfirmDialog = ({
 					{m.chat_link_confirm_description()}
 				</AlertDialogDescription>
 			</AlertDialogHeader>
-			<p className="break-all rounded-md bg-muted px-3 py-2 font-mono text-xs">
+			<p className="bg-muted rounded-md px-3 py-2 font-mono text-xs break-all">
 				{url}
 			</p>
 			<AlertDialogFooter>

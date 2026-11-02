@@ -60,7 +60,7 @@ export const StatusIcon = ({
 				aria-hidden
 				data-status="pending"
 				className={cn(
-					"size-4 shrink-0 animate-pulse text-muted-foreground",
+					"text-muted-foreground size-4 shrink-0 animate-pulse",
 					className,
 				)}
 			/>

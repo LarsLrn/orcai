@@ -98,7 +98,7 @@ const ManageQuotaPanel = () => {
 										</Badge>
 									) : null}
 								</div>
-								<p className="truncate text-muted-foreground text-xs">
+								<p className="text-muted-foreground truncate text-xs">
 									{pool.currentPeriod
 										? m.home_quota_pool_meta_renews({
 												provider: pool.provider.name,

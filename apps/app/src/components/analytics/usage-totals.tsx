@@ -34,22 +34,22 @@ export const UsageTotals = ({ totals }: { totals: AnalyticsUsage }) => {
 	return (
 		<Card>
 			<CardContent className="@container">
-				<dl className="grid @2xl:grid-cols-4 grid-cols-2 gap-4">
+				<dl className="grid grid-cols-2 gap-4 @2xl:grid-cols-4">
 					{metrics.map(([label, value]) => (
 						<div key={label}>
 							<dt className="text-muted-foreground text-xs uppercase">
 								{label}
 							</dt>
-							<dd className="font-semibold text-lg tabular-nums">
+							<dd className="text-lg font-semibold tabular-nums">
 								{formatCount(value)}
 							</dd>
 						</div>
 					))}
-					<div className="@2xl:col-span-2 col-span-2">
+					<div className="col-span-2 @2xl:col-span-2">
 						<dt className="text-muted-foreground text-xs uppercase">
 							{m.analytics_metric_cost()}
 						</dt>
-						<dd className="font-semibold text-lg tabular-nums">
+						<dd className="text-lg font-semibold tabular-nums">
 							{formatCosts(totals.cost, m.analytics_cost_none())}
 						</dd>
 						{totals.unpriced > 0 && (

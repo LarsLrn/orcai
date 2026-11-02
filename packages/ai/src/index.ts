@@ -61,7 +61,6 @@ export {
 	type ToolLoading,
 	titleCallSettings,
 	utilityReasoning,
-	withholdToolCalls,
 } from "./provider-kinds/registry";
 export type { ProviderConnection, SystemPrompt } from "./provider-kinds/types";
 export { AiTelemetryLive, aiTelemetry } from "./telemetry";

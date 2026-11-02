@@ -1,5 +1,6 @@
 import { safeExternalUrl } from "@orcai/core";
 import type { ChatMessageCitation } from "@orcai/schema";
+import type { UIMessage } from "ai";
 
 export interface CitedWebSource {
 	url: string;
@@ -7,14 +8,12 @@ export interface CitedWebSource {
 }
 
 /**
- * The web pages a reply cites, in order: its web citations, then the URL
- * sources the model's own search attached. Only http and https URLs without
- * credentials count.
+ * The web pages a reply cites, in order: its web citations, then the pages
+ * the model's own search cites in the text. Pages it only retrieved do not
+ * count, nor do URLs other than http and https without credentials.
  */
 export const citedWebSources = (
-	parts: readonly {
-		type: string;
-	}[],
+	parts: UIMessage["parts"],
 	citations: Readonly<Record<string, ChatMessageCitation | null>>,
 ): CitedWebSource[] => {
 	const sources = new Map<string, CitedWebSource>();
@@ -33,17 +32,12 @@ export const citedWebSources = (
 		}
 	}
 	for (const part of parts) {
-		if (
-			part.type === "source-url" &&
-			"url" in part &&
-			typeof part.url === "string"
-		) {
-			add(
-				part.url,
-				"title" in part && typeof part.title === "string"
-					? part.title
-					: undefined,
-			);
+		if (part.type === "text") {
+			for (const { source } of part.citations ?? []) {
+				if (source.sourceType === "url") {
+					add(source.url, source.title);
+				}
+			}
 		}
 	}
 

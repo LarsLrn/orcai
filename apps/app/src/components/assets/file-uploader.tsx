@@ -228,8 +228,8 @@ const FileUploader = (props: FileUploaderProps) => {
 					<div
 						{...getRootProps()}
 						className={cn(
-							"group relative grid h-52 w-full cursor-pointer place-items-center rounded-2xl border-2 border-muted-foreground/25 border-dashed px-5 py-2.5 text-center transition hover:bg-muted/25",
-							"ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+							"group border-muted-foreground/25 hover:bg-muted/25 relative grid h-52 w-full cursor-pointer place-items-center rounded-2xl border-2 border-dashed px-5 py-2.5 text-center transition",
+							"ring-offset-background focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
 							isDragActive && "border-muted-foreground/50",
 							isDisabled && "pointer-events-none opacity-60",
 							className,
@@ -241,11 +241,11 @@ const FileUploader = (props: FileUploaderProps) => {
 							<div className="flex flex-col items-center justify-center gap-4 sm:px-5">
 								<div className="rounded-full border border-dashed p-3">
 									<Upload
-										className="size-7 text-muted-foreground"
+										className="text-muted-foreground size-7"
 										aria-hidden="true"
 									/>
 								</div>
-								<p className="font-medium text-muted-foreground">
+								<p className="text-muted-foreground font-medium">
 									{m.assets_file_uploader_drop_active_label()}
 								</p>
 							</div>
@@ -253,12 +253,12 @@ const FileUploader = (props: FileUploaderProps) => {
 							<div className="flex flex-col items-center justify-center gap-4 sm:px-5">
 								<div className="rounded-full border border-dashed p-3">
 									<Upload
-										className="size-7 text-muted-foreground"
+										className="text-muted-foreground size-7"
 										aria-hidden="true"
 									/>
 								</div>
 								<div className="flex flex-col gap-px">
-									<p className="font-medium text-muted-foreground">
+									<p className="text-muted-foreground font-medium">
 										{m.assets_file_uploader_drop_idle_label()}
 									</p>
 									<p className="text-muted-foreground/70 text-sm">
@@ -315,7 +315,7 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
 				{isFileWithPreview(file) ? <FilePreview file={file} /> : null}
 				<div className="flex w-full flex-col gap-2">
 					<div className="flex flex-col gap-px">
-						<p className="line-clamp-1 font-medium text-foreground/80 text-sm">
+						<p className="text-foreground/80 line-clamp-1 text-sm font-medium">
 							{file.name}
 						</p>
 						<p className="text-muted-foreground text-xs">
@@ -370,6 +370,6 @@ function FilePreview({ file }: FilePreviewProps) {
 	}
 
 	return (
-		<FileText className="size-10 text-muted-foreground" aria-hidden="true" />
+		<FileText className="text-muted-foreground size-10" aria-hidden="true" />
 	);
 }

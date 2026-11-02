@@ -44,7 +44,7 @@ const BotSetupCoverage = ({
 	return (
 		<section className="flex flex-col gap-3" aria-labelledby="bot-coverage">
 			<div className="flex flex-wrap items-baseline justify-between gap-2">
-				<h3 id="bot-coverage" className="font-medium text-sm">
+				<h3 id="bot-coverage" className="text-sm font-medium">
 					{m.bot_setup_coverage_title()}
 				</h3>
 				{principals.length > 0 && (
@@ -79,8 +79,8 @@ const BotSetupCoverage = ({
 							<span
 								className={
 									covered
-										? "inline-flex shrink-0 items-center gap-1 text-foreground"
-										: "inline-flex shrink-0 items-center gap-1 text-muted-foreground"
+										? "text-foreground inline-flex shrink-0 items-center gap-1"
+										: "text-muted-foreground inline-flex shrink-0 items-center gap-1"
 								}
 							>
 								{covered ? (

@@ -215,7 +215,7 @@ export const StreamdownContent = ({
 }: StreamdownContentProps) => (
 	<Streamdown
 		className={cn(
-			"[&_li>p:not(:first-child)]:mt-2 [&_li>p]:block [&_ol]:list-outside [&_ol]:pl-6 [&_ul]:list-outside [&_ul]:pl-6",
+			"[&_li>p]:block [&_li>p:not(:first-child)]:mt-2 [&_ol]:list-outside [&_ol]:pl-6 [&_ul]:list-outside [&_ul]:pl-6",
 			"[&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden",
 			className,
 		)}

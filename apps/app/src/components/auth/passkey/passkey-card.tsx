@@ -44,9 +44,9 @@ export const PasskeyCard = () => {
 									className="flex items-center justify-between gap-2 px-4 py-2"
 								>
 									<div className="flex items-center gap-3">
-										<KeyRoundIcon className="size-4 text-muted-foreground" />
+										<KeyRoundIcon className="text-muted-foreground size-4" />
 										<div className="flex flex-col">
-											<span className="font-medium text-sm">{name}</span>
+											<span className="text-sm font-medium">{name}</span>
 											{passkey.createdAt && (
 												<span className="text-muted-foreground text-xs">
 													{m.passkey_added_at({

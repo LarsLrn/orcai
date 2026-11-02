@@ -60,9 +60,9 @@ const RecentRowBody = ({
 				<span className="truncate font-medium">{name}</span>
 				{badge}
 			</div>
-			<p className="truncate text-muted-foreground text-xs">{kind}</p>
+			<p className="text-muted-foreground truncate text-xs">{kind}</p>
 		</div>
-		<span className="shrink-0 text-muted-foreground text-xs tabular-nums">
+		<span className="text-muted-foreground shrink-0 text-xs tabular-nums">
 			{formatDisplayDate(changedAt)}
 		</span>
 	</>

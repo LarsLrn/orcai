@@ -3,7 +3,7 @@ import { m } from "@/paraglide/messages";
 
 const AssistantPlaceholder = ({ className }: { className?: string }) => (
 	<div className={cn("flex flex-col gap-1 text-center", className)}>
-		<h2 className="font-heading font-semibold text-xl">
+		<h2 className="font-heading text-xl font-semibold">
 			{m.assistant_placeholder_title()}
 		</h2>
 		<p className="text-muted-foreground text-sm">

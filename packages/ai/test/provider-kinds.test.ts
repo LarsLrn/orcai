@@ -14,7 +14,6 @@ import {
 	providerCompaction,
 	providerKindServerEntries,
 	providerToolLoading,
-	withholdToolCalls,
 } from "../src/provider-kinds/registry";
 
 interface Recorded {
@@ -746,7 +745,7 @@ describe("listProviderModels failures", () => {
 	});
 });
 
-describe("withholdToolCalls", () => {
+describe("toolChoice none", () => {
 	const requestBodyWithToolChoiceNone = async (kind: ModelProviderKind) => {
 		const { fetch, requests } = fakeFetch();
 		const model = createProviderLanguageModel(
@@ -781,21 +780,11 @@ describe("withholdToolCalls", () => {
 		};
 	};
 
-	test("rules out tool calls only where the tool list stays in the request", async () => {
+	test("keeps the tool list in the request, so the prompt prefix stays as it was", async () => {
 		for (const kind of modelProviderKinds) {
 			const body = await requestBodyWithToolChoiceNone(kind);
-			const keepsTools = (body.tools?.length ?? 0) > 0;
 
-			expect(providerKindServerEntries[kind].toolChoiceNoneKeepsTools).toBe(
-				keepsTools,
-			);
-			expect(withholdToolCalls(kind)).toEqual(
-				keepsTools
-					? {
-							toolChoice: "none",
-						}
-					: {},
-			);
+			expect(body.tools).toHaveLength(1);
 		}
 	});
 });

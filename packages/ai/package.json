@@ -7,11 +7,11 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/anthropic": "4.0.78",
-		"@ai-sdk/openai": "4.0.91",
-		"@ai-sdk/openai-compatible": "3.0.67",
-		"@ai-sdk/otel": "1.0.137",
-		"@ai-sdk/provider": "4.0.26",
+		"@ai-sdk/anthropic": "4.0.93",
+		"@ai-sdk/openai": "4.0.106",
+		"@ai-sdk/openai-compatible": "3.0.82",
+		"@ai-sdk/otel": "1.0.158",
+		"@ai-sdk/provider": "4.0.35",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",
 		"@orcai/quota": "workspace:*",
@@ -20,7 +20,7 @@
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"llama-tokenizer-js": "1.2.2",
-		"openai": "7.32.0",
+		"openai": "7.45.1",
 		"zod": "catalog:"
 	}
 }

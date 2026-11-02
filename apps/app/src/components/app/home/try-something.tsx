@@ -43,13 +43,13 @@ const newChatLink = (bot: BotListItem) =>
 	}) as const;
 
 const FeaturedBot = ({ bot }: { bot: BotListItem }) => (
-	<article className="group/feat relative flex min-h-56 flex-col justify-end overflow-hidden rounded-3xl border bg-linear-to-br from-kind-bot/30 via-kind-bot/10 to-accent-brand/25 p-6 shadow-xs transition hover:shadow-xl has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/75 sm:row-span-2">
+	<article className="group/feat from-kind-bot/30 via-kind-bot/10 to-accent-brand/25 has-[:focus-visible]:ring-ring/75 relative flex min-h-56 flex-col justify-end overflow-hidden rounded-3xl border bg-linear-to-br p-6 shadow-xs transition hover:shadow-xl has-[:focus-visible]:ring-3 sm:row-span-2">
 		<BotGlyph
 			aria-hidden="true"
-			className="absolute -top-6 -right-6 size-48 text-foreground/[0.06] transition-transform motion-safe:group-hover/feat:scale-110"
+			className="text-foreground/[0.06] absolute -top-6 -right-6 size-48 transition-transform motion-safe:group-hover/feat:scale-110"
 		/>
 		{bot.isFavourite ? (
-			<p className="mb-2 flex items-center gap-1.5 text-muted-foreground text-xs">
+			<p className="text-muted-foreground mb-2 flex items-center gap-1.5 text-xs">
 				<StarIcon
 					aria-hidden="true"
 					className="size-3.5 fill-amber-400 text-amber-400"
@@ -57,7 +57,7 @@ const FeaturedBot = ({ bot }: { bot: BotListItem }) => (
 				{m.home_try_favourite_label()}
 			</p>
 		) : null}
-		<h3 className="line-clamp-2 break-words font-heading font-semibold text-2xl tracking-tight">
+		<h3 className="font-heading line-clamp-2 text-2xl font-semibold tracking-tight break-words">
 			<Link
 				{...newChatLink(bot)}
 				className="outline-none after:absolute after:inset-0"
@@ -66,11 +66,11 @@ const FeaturedBot = ({ bot }: { bot: BotListItem }) => (
 			</Link>
 		</h3>
 		{bot.description ? (
-			<p className="mt-2 line-clamp-3 max-w-md break-words text-foreground/75">
+			<p className="text-foreground/75 mt-2 line-clamp-3 max-w-md break-words">
 				{bot.description}
 			</p>
 		) : null}
-		<span className="mt-4 flex items-center gap-1.5 font-medium text-sm">
+		<span className="mt-4 flex items-center gap-1.5 text-sm font-medium">
 			{m.chat_start_action()}
 			<ArrowRightIcon
 				aria-hidden="true"
@@ -104,18 +104,18 @@ const CatalogueTeaser = ({ entry }: { entry: CatalogueEntry }) => (
 		params={{
 			id: entry.id,
 		}}
-		className="flex items-center gap-4 rounded-3xl border border-dashed p-4 outline-none hover:border-foreground/25 hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/75"
+		className="hover:border-foreground/25 hover:bg-muted/50 focus-visible:ring-ring/75 flex items-center gap-4 rounded-3xl border border-dashed p-4 outline-none focus-visible:ring-3"
 	>
-		<span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-brand/15 text-accent-brand">
+		<span className="bg-accent-brand/15 text-accent-brand flex size-10 shrink-0 items-center justify-center rounded-xl">
 			<CompassIcon aria-hidden="true" className="size-5" />
 		</span>
 		<span className="min-w-0 flex-1">
-			<span className="line-clamp-2 break-words font-medium text-sm">
+			<span className="line-clamp-2 text-sm font-medium break-words">
 				{m.home_try_catalogue_new({
 					name: entry.name,
 				})}
 			</span>
-			<span className="block truncate text-muted-foreground text-xs">
+			<span className="text-muted-foreground block truncate text-xs">
 				{entry.description ? `${entry.description} ` : null}
 				{m.catalogue_from_organisation({
 					organisation: entry.homeOrganization.name,
@@ -124,7 +124,7 @@ const CatalogueTeaser = ({ entry }: { entry: CatalogueEntry }) => (
 		</span>
 		<ArrowRightIcon
 			aria-hidden="true"
-			className="size-4 shrink-0 text-muted-foreground"
+			className="text-muted-foreground size-4 shrink-0"
 		/>
 	</Link>
 );

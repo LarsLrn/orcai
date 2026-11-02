@@ -79,7 +79,7 @@ const RepositoryConfigCard = ({
 					)}
 
 					<div className="space-y-1">
-						<div className="font-medium text-sm">
+						<div className="text-sm font-medium">
 							{m.blocks_repository_config_retrieval_title()}
 						</div>
 						<p className="text-muted-foreground text-sm">
@@ -102,31 +102,31 @@ const RepositoryConfigCard = ({
 					<Separator />
 
 					<div className="space-y-2">
-						<div className="font-medium text-sm">
+						<div className="text-sm font-medium">
 							{m.blocks_repository_config_passages_title()}
 						</div>
 						<div className="grid grid-cols-3 gap-3">
-							<div className="rounded-xl border bg-muted/30 p-3 text-center">
-								<div className="font-semibold text-xl tabular-nums">
+							<div className="bg-muted/30 rounded-xl border p-3 text-center">
+								<div className="text-xl font-semibold tabular-nums">
 									{config.minPassages}
 								</div>
-								<div className="mt-1 text-muted-foreground text-xs">
+								<div className="text-muted-foreground mt-1 text-xs">
 									{m.blocks_repository_config_min_passages_label()}
 								</div>
 							</div>
-							<div className="rounded-xl border bg-muted/30 p-3 text-center">
-								<div className="font-semibold text-xl tabular-nums">
+							<div className="bg-muted/30 rounded-xl border p-3 text-center">
+								<div className="text-xl font-semibold tabular-nums">
 									{config.defaultPassages}
 								</div>
-								<div className="mt-1 text-muted-foreground text-xs">
+								<div className="text-muted-foreground mt-1 text-xs">
 									{m.blocks_repository_config_default_passages_label()}
 								</div>
 							</div>
-							<div className="rounded-xl border bg-muted/30 p-3 text-center">
-								<div className="font-semibold text-xl tabular-nums">
+							<div className="bg-muted/30 rounded-xl border p-3 text-center">
+								<div className="text-xl font-semibold tabular-nums">
 									{config.maxPassages}
 								</div>
-								<div className="mt-1 text-muted-foreground text-xs">
+								<div className="text-muted-foreground mt-1 text-xs">
 									{m.blocks_repository_config_max_passages_label()}
 								</div>
 							</div>
@@ -142,32 +142,32 @@ const RepositoryConfigCard = ({
 								{m.blocks_repository_config_advanced_settings_label()}
 							</span>
 							<ChevronDownIcon
-								className={`size-4 text-muted-foreground transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`}
+								className={`text-muted-foreground size-4 transition-transform ${isAdvancedOpen ? "rotate-180" : ""}`}
 							/>
 						</CollapsibleTrigger>
 						<CollapsibleContent className="pt-4">
 							<div className="grid grid-cols-3 gap-3">
-								<div className="rounded-xl border bg-muted/30 p-3 text-center">
-									<div className="font-semibold text-xl tabular-nums">
+								<div className="bg-muted/30 rounded-xl border p-3 text-center">
+									<div className="text-xl font-semibold tabular-nums">
 										{config.scoreThreshold ?? 0.2}
 									</div>
-									<div className="mt-1 text-muted-foreground text-xs">
+									<div className="text-muted-foreground mt-1 text-xs">
 										{m.blocks_repository_config_score_threshold_label()}
 									</div>
 								</div>
-								<div className="rounded-xl border bg-muted/30 p-3 text-center">
-									<div className="font-semibold text-xl tabular-nums">
+								<div className="bg-muted/30 rounded-xl border p-3 text-center">
+									<div className="text-xl font-semibold tabular-nums">
 										{config.candidateLimit ?? 40}
 									</div>
-									<div className="mt-1 text-muted-foreground text-xs">
+									<div className="text-muted-foreground mt-1 text-xs">
 										{m.blocks_repository_config_candidate_limit_label()}
 									</div>
 								</div>
-								<div className="rounded-xl border bg-muted/30 p-3 text-center">
-									<div className="font-semibold text-xl tabular-nums">
+								<div className="bg-muted/30 rounded-xl border p-3 text-center">
+									<div className="text-xl font-semibold tabular-nums">
 										{config.maxPerAsset ?? 6}
 									</div>
-									<div className="mt-1 text-muted-foreground text-xs">
+									<div className="text-muted-foreground mt-1 text-xs">
 										{m.blocks_repository_config_per_asset_label()}
 									</div>
 								</div>
@@ -294,7 +294,7 @@ const ReadinessSummary = ({
 }) => (
 	<p
 		role="status"
-		className="flex items-center gap-2 text-muted-foreground text-sm"
+		className="text-muted-foreground flex items-center gap-2 text-sm"
 	>
 		{totals.preparing > 0 && <Spinner className="size-3.5" />}
 		<span>

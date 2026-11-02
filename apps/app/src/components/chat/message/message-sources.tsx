@@ -13,7 +13,7 @@ export const MessageSources = ({ sources }: { sources: CitedWebSource[] }) =>
 			aria-label={m.chat_web_sources_label()}
 			className="not-prose flex flex-wrap items-center gap-1.5"
 		>
-			<span className="flex items-center gap-1 text-muted-foreground text-xs">
+			<span className="text-muted-foreground flex items-center gap-1 text-xs">
 				<GlobeIcon className="size-3" />
 				{m.chat_web_sources_label()}
 			</span>
@@ -26,7 +26,7 @@ export const MessageSources = ({ sources }: { sources: CitedWebSource[] }) =>
 						badgeVariants({
 							variant: "secondary",
 						}),
-						"min-w-0 max-w-48 rounded-full border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20",
+						"bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 max-w-48 min-w-0 rounded-full border-transparent text-xs font-medium transition-colors duration-150",
 					)}
 				>
 					<span className="truncate">{source.title || hostOf(source.url)}</span>

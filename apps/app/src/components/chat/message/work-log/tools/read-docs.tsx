@@ -20,7 +20,7 @@ const PageLabel = ({ title, url }: { title: string; url: string }) => {
 				href={url}
 				target="_blank"
 				rel="noreferrer"
-				className="underline underline-offset-2 hover:text-primary"
+				className="hover:text-primary underline underline-offset-2"
 			>
 				{title}
 			</a>

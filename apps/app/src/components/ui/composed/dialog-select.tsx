@@ -163,7 +163,7 @@ function DialogSelectTrigger({
 	return (
 		<DialogTrigger
 			className={cn(
-				"flex w-fit min-w-0 items-center justify-between gap-1.5 whitespace-nowrap rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+				"border-input bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 flex w-fit min-w-0 items-center justify-between gap-1.5 rounded-4xl border px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 				!hasValue && "text-muted-foreground",
 				className,
 			)}
@@ -173,7 +173,7 @@ function DialogSelectTrigger({
 			<span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-left">
 				{hasValue ? children : placeholder}
 			</span>
-			<ChevronDownIcon className="size-4 text-muted-foreground" />
+			<ChevronDownIcon className="text-muted-foreground size-4" />
 		</DialogTrigger>
 	);
 }
@@ -221,7 +221,7 @@ function DialogSelectSearch({
 			</InputGroupAddon>
 			<Input
 				data-slot="input-group-control"
-				className="h-full border-none bg-transparent shadow-none outline-none ring-0 focus-visible:border-none focus-visible:ring-0"
+				className="h-full border-none bg-transparent shadow-none ring-0 outline-none focus-visible:border-none focus-visible:ring-0"
 				value={value}
 				onChange={(e) => onValueChange(e.target.value)}
 				{...props}
@@ -321,7 +321,7 @@ function DialogSelectGroup({
 			className={cn("flex min-w-0 flex-col gap-1", className)}
 			{...props}
 		>
-			<legend className="mb-1 px-3.5 pt-2 font-medium text-muted-foreground text-xs">
+			<legend className="text-muted-foreground mb-1 px-3.5 pt-2 text-xs font-medium">
 				{label}
 			</legend>
 			{children}
@@ -360,7 +360,7 @@ function DialogSelectItem({
 			size="sm"
 			variant="default"
 			className={cn(
-				"cursor-pointer select-none rounded-2xl transition-colors hover:bg-muted",
+				"hover:bg-muted cursor-pointer rounded-2xl transition-colors select-none",
 				isSelected && "bg-muted",
 				disabled && "pointer-events-none opacity-50",
 				className,
@@ -386,7 +386,7 @@ function DialogSelectItem({
 			</ItemContent>
 			{trailing && <div className="ml-auto shrink-0">{trailing}</div>}
 			{isSelected && (
-				<CheckIcon className="ml-auto size-4 shrink-0 text-primary" />
+				<CheckIcon className="text-primary ml-auto size-4 shrink-0" />
 			)}
 		</Item>
 	);
@@ -405,7 +405,7 @@ function DialogSelectEmpty({
 		<div
 			data-slot="dialog-select-empty"
 			className={cn(
-				"flex flex-col items-center justify-center py-8 text-center text-muted-foreground text-sm",
+				"text-muted-foreground flex flex-col items-center justify-center py-8 text-center text-sm",
 				className,
 			)}
 			{...props}
@@ -474,7 +474,7 @@ function DialogSelectPagination({
 					/>
 				</PaginationItem>
 				<PaginationItem>
-					<span className="px-2 text-muted-foreground text-sm">
+					<span className="text-muted-foreground px-2 text-sm">
 						{page + 1} / {pageCount}
 					</span>
 				</PaginationItem>

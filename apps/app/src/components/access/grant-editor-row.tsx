@@ -51,18 +51,18 @@ const GrantEditorRow = ({
 				{grant.principal.type === "user" ? (
 					<UserAvatar user={grant.principal} size="sm" />
 				) : (
-					<div className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+					<div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-full">
 						<UsersIcon className="h-4 w-4" />
 					</div>
 				)}
 				<div className="min-w-0">
 					<div className="flex items-center gap-2">
-						<p className="truncate font-medium text-sm">
+						<p className="truncate text-sm font-medium">
 							{grant.principal.name}
 						</p>
 						<Badge variant="outline">{originLabel(grant.origin)}</Badge>
 					</div>
-					<p className="truncate text-muted-foreground text-xs">
+					<p className="text-muted-foreground truncate text-xs">
 						{grant.principal.type === "user"
 							? grant.principal.email
 							: grant.principal.description ||

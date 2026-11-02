@@ -82,9 +82,9 @@ export const OrganizationReadinessCard = () => {
 		return (
 			<p
 				role="status"
-				className="flex items-center gap-2 text-muted-foreground text-sm"
+				className="text-muted-foreground flex items-center gap-2 text-sm"
 			>
-				<CircleCheckIcon className="size-4 text-status-success" />
+				<CircleCheckIcon className="text-status-success size-4" />
 				{m.readiness_ready_line()}
 			</p>
 		);

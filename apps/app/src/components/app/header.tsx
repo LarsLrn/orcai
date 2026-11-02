@@ -50,7 +50,7 @@ const Header = ({ homeTo = "/app" }: { homeTo?: "/app" | "/instance" }) => {
 	const TitleMenu = current?.titleMenu;
 
 	return (
-		<header className="sticky top-2 z-10 mx-2 flex h-12 min-w-0 shrink-0 items-center gap-2 rounded-lg border bg-sidebar px-4 text-muted-foreground shadow-sm">
+		<header className="bg-sidebar text-muted-foreground sticky top-2 z-10 mx-2 flex h-12 min-w-0 shrink-0 items-center gap-2 rounded-lg border px-4 shadow-sm">
 			<SidebarTrigger className="-ml-1 shrink-0" variant="ghost" />
 			<Separator
 				orientation="vertical"

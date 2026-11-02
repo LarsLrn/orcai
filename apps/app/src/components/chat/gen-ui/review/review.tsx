@@ -52,12 +52,12 @@ const Annotated = ({
 			<mark
 				key={number}
 				className={cn(
-					"rounded-sm text-foreground underline decoration-2 underline-offset-3",
+					"text-foreground rounded-sm underline decoration-2 underline-offset-3",
 					markTone[findings[finding].severity ?? "info"],
 				)}
 			>
 				{text.slice(start, end)}
-				<sup className="ml-0.5 font-medium text-[10px] text-muted-foreground">
+				<sup className="text-muted-foreground ml-0.5 text-[10px] font-medium">
 					{number}
 				</sup>
 			</mark>,
@@ -75,7 +75,7 @@ const Diff = ({ before, after }: { before: string; after: string }) => {
 	if (retainedShare(tokens) < 0.5) {
 		return (
 			<div className={cn(textClass, "space-y-1.5")}>
-				<p className="text-status-danger line-through decoration-status-danger/50">
+				<p className="text-status-danger decoration-status-danger/50 line-through">
 					{before}
 				</p>
 				<p className="text-status-success">{revised}</p>
@@ -90,14 +90,14 @@ const Diff = ({ before, after }: { before: string; after: string }) => {
 				) : token.kind === "add" ? (
 					<ins
 						key={index}
-						className="rounded-sm bg-status-success/15 text-status-success no-underline"
+						className="bg-status-success/15 text-status-success rounded-sm no-underline"
 					>
 						{token.text}
 					</ins>
 				) : (
 					<del
 						key={index}
-						className="rounded-sm bg-status-danger/10 text-status-danger"
+						className="bg-status-danger/10 text-status-danger rounded-sm"
 					>
 						{token.text}
 					</del>
@@ -128,14 +128,14 @@ const Findings = ({
 					<div className="min-w-0 flex-1">
 						<span className="font-medium">
 							{number !== undefined && (
-								<sup className="mr-1 text-[10px] text-muted-foreground">
+								<sup className="text-muted-foreground mr-1 text-[10px]">
 									{number}
 								</sup>
 							)}
 							{finding.label}
 						</span>{" "}
 						{finding.note && (
-							<MessageResponse className="inline text-muted-foreground [&>p]:inline">
+							<MessageResponse className="text-muted-foreground inline [&>p]:inline">
 								{finding.note}
 							</MessageResponse>
 						)}
@@ -187,7 +187,7 @@ const ItemRow = ({
 		<li className="space-y-2.5 px-4 py-3">
 			<div className="flex items-center gap-2">
 				<StatusIcon status={itemStatus(item.findings)} pending={streaming} />
-				<span className="flex-1 font-medium text-sm">{item.label}</span>
+				<span className="flex-1 text-sm font-medium">{item.label}</span>
 				{item.findings && findings.length === 0 && (
 					<span className="text-muted-foreground text-xs">
 						{m.gen_ui_review_no_findings()}
@@ -256,11 +256,11 @@ export const Review = ({
 	const shown = hasRevisions ? tab : "findings";
 
 	return (
-		<div className="overflow-hidden rounded-xl border bg-card">
+		<div className="bg-card overflow-hidden rounded-xl border">
 			<div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
 				<div className="min-w-0 space-y-1">
 					{title ? (
-						<h3 className="font-medium text-sm">{title}</h3>
+						<h3 className="text-sm font-medium">{title}</h3>
 					) : (
 						<Skeleton className="h-4 w-40" />
 					)}
@@ -295,7 +295,7 @@ export const Review = ({
 			</div>
 
 			{summary && shown === "findings" && (
-				<div className="border-b px-4 py-3 text-muted-foreground text-sm">
+				<div className="text-muted-foreground border-b px-4 py-3 text-sm">
 					<MessageResponse>{summary}</MessageResponse>
 				</div>
 			)}
@@ -313,8 +313,8 @@ export const Review = ({
 						/>
 					))}
 					{general.length > 0 && (
-						<li className="space-y-2.5 bg-muted/30 px-4 py-3">
-							<span className="font-medium text-sm">
+						<li className="bg-muted/30 space-y-2.5 px-4 py-3">
+							<span className="text-sm font-medium">
 								{m.gen_ui_review_overall()}
 							</span>
 							<Findings findings={general} />

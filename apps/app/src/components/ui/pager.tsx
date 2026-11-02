@@ -62,7 +62,7 @@ const Pager = ({
 	return (
 		<div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:gap-x-8">
 			<div className="flex items-center space-x-2">
-				<p className="whitespace-nowrap font-medium text-sm">
+				<p className="text-sm font-medium whitespace-nowrap">
 					{m.data_table_pagination_rows_per_page_label()}
 				</p>
 				<OptionPicker
@@ -74,7 +74,7 @@ const Pager = ({
 				/>
 			</div>
 			<div className="flex items-center space-x-2">
-				<div className="flex w-25 items-center justify-center font-medium text-sm">
+				<div className="flex w-25 items-center justify-center text-sm font-medium">
 					{m.data_table_pagination_position({
 						page: pageIndex + 1,
 						pageCount,

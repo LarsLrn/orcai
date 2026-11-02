@@ -49,7 +49,7 @@ const StrikeThroughToolbar = ({
 			/>
 			<TooltipContent>
 				<span>{m.editor_toolbar_strikethrough_tooltip()}</span>
-				<span className="ml-1 text-gray-11 text-xs">(cmd + shift + x)</span>
+				<span className="text-gray-11 ml-1 text-xs">(cmd + shift + x)</span>
 			</TooltipContent>
 		</Tooltip>
 	);

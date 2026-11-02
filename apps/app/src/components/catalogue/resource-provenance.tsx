@@ -19,7 +19,7 @@ const HomeOrganizationName = ({
 			organizationId: organization.id,
 		}}
 		data-slot="source-organization"
-		className="relative z-10 flex min-w-0 items-center gap-1.5 rounded-sm outline-none hover:text-foreground hover:underline focus-visible:ring-3 focus-visible:ring-ring/75"
+		className="hover:text-foreground focus-visible:ring-ring/75 relative z-10 flex min-w-0 items-center gap-1.5 rounded-sm outline-none hover:underline focus-visible:ring-3"
 	>
 		<OrganizationLogo organization={organization} size="sm" />
 		<span className="truncate">{label}</span>

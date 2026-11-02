@@ -189,7 +189,7 @@ const ModelSelectorButton = ({
 			<DialogSelectTrigger
 				className={cn(
 					variant === "compact"
-						? "max-w-60 border-transparent bg-transparent px-2 hover:bg-muted"
+						? "hover:bg-muted max-w-60 border-transparent bg-transparent px-2"
 						: "w-full justify-between",
 					className,
 				)}

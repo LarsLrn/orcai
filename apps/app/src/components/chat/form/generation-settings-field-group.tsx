@@ -31,9 +31,9 @@ export const GenerationSettingsFieldGroup = withFieldGroup({
 
 		return (
 			<Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
-				<CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border bg-muted/15 px-4 py-3 text-left">
+				<CollapsibleTrigger className="bg-muted/15 flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left">
 					<div>
-						<div className="font-medium text-sm">
+						<div className="text-sm font-medium">
 							{m.chat_settings_advanced_title()}
 						</div>
 						<div className="text-muted-foreground text-sm">

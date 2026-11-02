@@ -67,7 +67,7 @@ export const ToolOutput = ({ output, errorText }: ToolOutputProps) => {
 	if (errorText) {
 		return (
 			<ToolField label={m.ai_elements_tool_error_label()}>
-				<p className="wrap-anywhere text-destructive text-xs">
+				<p className="text-destructive text-xs wrap-anywhere">
 					{describeError(errorText)}
 				</p>
 			</ToolField>

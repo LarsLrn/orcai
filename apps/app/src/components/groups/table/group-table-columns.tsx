@@ -34,12 +34,12 @@ export const groupTableColumns = columnHelper.columns([
 					params={{
 						groupId: row.original.id,
 					}}
-					className="truncate font-medium text-sm hover:underline"
+					className="truncate text-sm font-medium hover:underline"
 				>
 					{row.original.name}
 				</Link>
 				{row.original.description && (
-					<p className="truncate text-muted-foreground text-xs">
+					<p className="text-muted-foreground truncate text-xs">
 						{row.original.description}
 					</p>
 				)}

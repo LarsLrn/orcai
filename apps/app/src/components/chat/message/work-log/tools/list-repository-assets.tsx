@@ -32,9 +32,9 @@ export const ListRepositoryAssets = ({
 					{assets.map((asset) => (
 						<div
 							key={asset.assetId}
-							className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 shadow-xs"
+							className="border-border bg-background flex items-center gap-2 rounded-lg border px-3 py-1.5 shadow-xs"
 						>
-							<span className="min-w-0 flex-1 truncate font-medium text-sm">
+							<span className="min-w-0 flex-1 truncate text-sm font-medium">
 								{formatAssetTitle(asset.title) ??
 									m.chat_source_fallback_title()}
 							</span>

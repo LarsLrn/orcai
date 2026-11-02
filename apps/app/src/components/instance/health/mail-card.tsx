@@ -139,7 +139,7 @@ export const MailCard = ({ mail }: { mail: InstanceMail | null }) => {
 										<TableHead scope="row" className="w-1/3">
 											{row.label}
 										</TableHead>
-										<TableCell className="whitespace-normal break-all">
+										<TableCell className="break-all whitespace-normal">
 											{row.value}
 										</TableCell>
 									</TableRow>
@@ -148,7 +148,7 @@ export const MailCard = ({ mail }: { mail: InstanceMail | null }) => {
 						</Table>
 					</div>
 				) : (
-					<p className="py-6 text-center text-muted-foreground text-sm">
+					<p className="text-muted-foreground py-6 text-center text-sm">
 						{m.instance_health_mail_unavailable()}
 					</p>
 				)}

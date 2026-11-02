@@ -101,7 +101,7 @@ const DescriptionEditor = ({
 	return (
 		<div
 			data-invalid={invalid || undefined}
-			className="overflow-hidden rounded-2xl border border-transparent bg-input/50 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 data-invalid:border-destructive data-invalid:ring-3 data-invalid:ring-destructive/20"
+			className="bg-input/50 focus-within:border-ring focus-within:ring-ring/30 data-invalid:border-destructive data-invalid:ring-destructive/20 overflow-hidden rounded-2xl border border-transparent transition-[color,box-shadow] focus-within:ring-3 data-invalid:ring-3"
 		>
 			<ToolbarProvider editor={editor}>
 				<ScrollArea className="border-border/60 border-b">
@@ -123,7 +123,7 @@ const DescriptionEditor = ({
 			</ToolbarProvider>
 			<EditorContent
 				editor={editor}
-				className="description-editor prose prose-sm dark:prose-invert prose-li:my-1 max-h-[50vh] max-w-none overflow-y-auto prose-headings:font-heading prose-headings:font-semibold prose-h3:text-base text-base md:text-sm [&_li>p]:my-0"
+				className="description-editor prose prose-sm dark:prose-invert prose-li:my-1 prose-headings:font-heading prose-headings:font-semibold prose-h3:text-base max-h-[50vh] max-w-none overflow-y-auto text-base md:text-sm [&_li>p]:my-0"
 			/>
 		</div>
 	);

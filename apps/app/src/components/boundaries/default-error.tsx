@@ -57,13 +57,13 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 				<Card>
 					<CardContent className="space-y-6 p-8">
 						{/* Error Icon */}
-						<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-							<AlertTriangle className="h-8 w-8 text-destructive" />
+						<div className="bg-destructive/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+							<AlertTriangle className="text-destructive h-8 w-8" />
 						</div>
 
 						{/* Error Title */}
 						<div className="space-y-2">
-							<h1 className="font-semibold text-2xl text-foreground">
+							<h1 className="text-foreground text-2xl font-semibold">
 								{m.boundaries_default_error_title()}
 							</h1>
 							{hasValidationErrors ? (
@@ -71,14 +71,14 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 									{validationMessages.map((msg) => (
 										<div
 											key={msg}
-											className="rounded-md bg-destructive/10 px-3 py-2 text-destructive text-sm"
+											className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm"
 										>
 											{msg}
 										</div>
 									))}
 								</div>
 							) : (
-								<h2 className="font-semibold text-lg text-muted-foreground">
+								<h2 className="text-muted-foreground text-lg font-semibold">
 									{describeError(error)}
 								</h2>
 							)}
@@ -89,8 +89,8 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							<p className="mb-4">{m.boundaries_default_error_description()}</p>
 
 							{/* Error Component (collapsible details) */}
-							<details className="rounded-md bg-muted/50 p-3 text-left text-xs">
-								<summary className="cursor-pointer font-medium text-muted-foreground hover:text-foreground">
+							<details className="bg-muted/50 rounded-md p-3 text-left text-xs">
+								<summary className="text-muted-foreground hover:text-foreground cursor-pointer font-medium">
 									{m.boundaries_default_error_details_summary()}
 								</summary>
 								<div className="mt-2 font-mono">

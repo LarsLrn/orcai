@@ -74,7 +74,7 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center gap-2">
-							<UserCogIcon className="h-5 w-5 text-primary" />
+							<UserCogIcon className="text-primary h-5 w-5" />
 							{m.members_manage_card_title()}
 						</CardTitle>
 						{member.banned && (
@@ -117,7 +117,7 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 						</div>
 					) : null}
 					<div className="max-w-sm space-y-2">
-						<p className="font-medium text-sm">
+						<p className="text-sm font-medium">
 							{m.members_organisation_role_label()}
 						</p>
 						<OrganizationRolePicker
