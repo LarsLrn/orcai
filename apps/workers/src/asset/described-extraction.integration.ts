@@ -432,23 +432,28 @@ test(
 		const [attempt] = attempts;
 		const runId = await run(
 			Effect.gen(function* () {
-				const [created] = yield* (yield* DB)
-					.insert(dbSchema.activityRun)
-					.values({
-						userId,
-						kind: "retry",
-					})
-					.returning({
-						id: dbSchema.activityRun.id,
-					});
-				yield* admitStage(created.id, [
-					{
-						stage: "indexing",
-						assetId: attempt.assetId,
-						blockId: attempt.blockId,
-					},
-				]);
-				return created.id;
+				const db = yield* DB;
+				return yield* db.transaction(() =>
+					Effect.gen(function* () {
+						const [created] = yield* db
+							.insert(dbSchema.activityRun)
+							.values({
+								userId,
+								kind: "retry",
+							})
+							.returning({
+								id: dbSchema.activityRun.id,
+							});
+						yield* admitStage(created.id, [
+							{
+								stage: "indexing",
+								assetId: attempt.assetId,
+								blockId: attempt.blockId,
+							},
+						]);
+						return created.id;
+					}),
+				);
 			}),
 		);
 

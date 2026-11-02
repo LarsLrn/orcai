@@ -275,6 +275,8 @@ services:
     depends_on:
       spicedb:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: on-failure:5
 
   spicedb-database:

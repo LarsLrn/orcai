@@ -421,21 +421,26 @@ test(
 					blockId: other.id,
 					assetId: asset.assetId,
 				});
-				const [created] = yield* db
-					.insert(dbSchema.activityRun)
-					.values({
-						userId: asset.uploaderId,
-						kind: "upload",
-						blockId,
-					})
-					.returning();
-				yield* admitStage(created.id, [
-					{
-						stage: "processing",
-						assetId: asset.assetId,
-						blockId,
-					},
-				]);
+				const created = yield* db.transaction(() =>
+					Effect.gen(function* () {
+						const [inserted] = yield* db
+							.insert(dbSchema.activityRun)
+							.values({
+								userId: asset.uploaderId,
+								kind: "upload",
+								blockId,
+							})
+							.returning();
+						yield* admitStage(inserted.id, [
+							{
+								stage: "processing",
+								assetId: asset.assetId,
+								blockId,
+							},
+						]);
+						return inserted;
+					}),
+				);
 				return {
 					elsewhere: other.id,
 					runId: created.id,

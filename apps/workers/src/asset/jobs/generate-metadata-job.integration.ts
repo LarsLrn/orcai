@@ -622,22 +622,27 @@ test(
 					.returning({
 						id: dbSchema.block.id,
 					});
-				const [activityRun] = yield* db
-					.insert(dbSchema.activityRun)
-					.values({
-						userId: seeded.adminId,
-						kind: "upload",
-						organizationId: seeded.organizationId,
-					})
-					.returning({
-						id: dbSchema.activityRun.id,
-					});
-				if (!block || !activityRun) throw new Error("Nothing seeded");
-				yield* db.insert(dbSchema.activityMember).values({
-					runId: activityRun.id,
-					assetId: seeded.assetId,
-					blockId: block.id,
-				});
+				const activityRun = yield* db.transaction(() =>
+					Effect.gen(function* () {
+						const [inserted] = yield* db
+							.insert(dbSchema.activityRun)
+							.values({
+								userId: seeded.adminId,
+								kind: "upload",
+								organizationId: seeded.organizationId,
+							})
+							.returning({
+								id: dbSchema.activityRun.id,
+							});
+						if (!block || !inserted) throw new Error("Nothing seeded");
+						yield* db.insert(dbSchema.activityMember).values({
+							runId: inserted.id,
+							assetId: seeded.assetId,
+							blockId: block.id,
+						});
+						return inserted;
+					}),
+				);
 				return {
 					blockId: block.id,
 					runId: activityRun.id,
@@ -824,28 +829,31 @@ test(
 		});
 		const runId = await run(
 			Effect.gen(function* () {
-				const [activityRun] = yield* (yield* DB)
-					.insert(dbSchema.activityRun)
-					.values({
-						userId: seeded.adminId,
-						kind: "suggest_metadata",
-						organizationId: seeded.organizationId,
-					})
-					.returning({
-						id: dbSchema.activityRun.id,
-					});
-				if (!activityRun) throw new Error("No run seeded");
-				return activityRun.id;
-			}),
-		);
-		await run(
-			queueMetadataGeneration({
-				assetIds: [
-					seeded.assetId,
-				],
-				mode: "review",
-				userId: seeded.adminId,
-				runId,
+				const db = yield* DB;
+				return yield* db.transaction(() =>
+					Effect.gen(function* () {
+						const [activityRun] = yield* db
+							.insert(dbSchema.activityRun)
+							.values({
+								userId: seeded.adminId,
+								kind: "suggest_metadata",
+								organizationId: seeded.organizationId,
+							})
+							.returning({
+								id: dbSchema.activityRun.id,
+							});
+						if (!activityRun) throw new Error("No run seeded");
+						yield* queueMetadataGeneration({
+							assetIds: [
+								seeded.assetId,
+							],
+							mode: "review",
+							userId: seeded.adminId,
+							runId: activityRun.id,
+						});
+						return activityRun.id;
+					}),
+				);
 			}),
 		);
 		const job = await latestJob(seeded.assetId);

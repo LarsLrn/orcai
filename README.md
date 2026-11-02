@@ -195,7 +195,7 @@ Notes:
 - The local override injects development defaults for required application variables.
 - For embeddings, you still need a configured `OPENAI_COMPATIBLE_*` endpoint. Chats and image descriptions use the providers an admin adds in the app.
 - `EMBEDDING_MODEL` and `EMBEDDING_DIMENSIONS` must match across the app, workers, and Qdrant collection. Changing them on an existing deployment is not supported right now.
-- SeaweedFS creates the buckets on startup, and a one-shot service applies the SpiceDB schema.
+- SeaweedFS creates the buckets on startup, and a one-shot service applies the SpiceDB schema once the database migrations have succeeded.
 
 ### Manual host setup
 

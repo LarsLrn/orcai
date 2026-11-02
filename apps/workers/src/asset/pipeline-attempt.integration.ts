@@ -578,22 +578,26 @@ const admitProcessing = (asset: { id: AssetId; userId: UserId }) =>
 	run(
 		Effect.gen(function* () {
 			const db = yield* DB;
-			const [created] = yield* db
-				.insert(dbSchema.activityRun)
-				.values({
-					userId: asset.userId,
-					kind: "retry",
-				})
-				.returning({
-					id: dbSchema.activityRun.id,
-				});
-			yield* admitStage(created.id, [
-				{
-					stage: "processing",
-					assetId: asset.id,
-				},
-			]);
-			return created.id;
+			return yield* db.transaction(() =>
+				Effect.gen(function* () {
+					const [created] = yield* db
+						.insert(dbSchema.activityRun)
+						.values({
+							userId: asset.userId,
+							kind: "retry",
+						})
+						.returning({
+							id: dbSchema.activityRun.id,
+						});
+					yield* admitStage(created.id, [
+						{
+							stage: "processing",
+							assetId: asset.id,
+						},
+					]);
+					return created.id;
+				}),
+			);
 		}),
 	);
 
