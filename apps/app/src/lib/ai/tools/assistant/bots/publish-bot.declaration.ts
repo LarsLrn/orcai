@@ -37,4 +37,9 @@ export const publishBot = declareTool<typeof publishBotTool>()({
 					]),
 				});
 	},
+	written: ({ id, name }) => ({
+		kind: "bot",
+		id,
+		name,
+	}),
 });

@@ -186,7 +186,7 @@ const updatePlan = (
 	}) as unknown as ToolPart;
 
 const writeBot = (
-	tool: "createBot" | "updateBot",
+	tool: "createBot" | "updateBot" | "publishBot",
 	name: string,
 	state = "output-available",
 ) =>
@@ -1217,6 +1217,22 @@ describe("resource cards", () => {
 			"text",
 		]);
 		expect(cards(message)).toEqual([
+			{
+				kind: "bot",
+				id: "bot-1",
+				name: "Tutor",
+			},
+		]);
+	});
+
+	test("publishing a bot shows its card", () => {
+		expect(
+			cards(
+				view([
+					writeBot("publishBot", "Tutor"),
+				]),
+			),
+		).toEqual([
 			{
 				kind: "bot",
 				id: "bot-1",
