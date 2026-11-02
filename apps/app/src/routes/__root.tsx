@@ -218,12 +218,7 @@ function RootDocument({
 						<TooltipProvider>
 							{children}
 
-							<Toaster
-								mobilePosition="top-right"
-								mobileOffset={{
-									top: "60px",
-								}}
-							/>
+							<Toaster />
 							<TanStackDevtools
 								config={{
 									position: "bottom-right",

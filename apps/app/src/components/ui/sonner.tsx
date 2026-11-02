@@ -7,17 +7,14 @@ import {
 } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import { useTheme } from "@/components/app/theme-provider";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { m } from "@/paraglide/messages";
 
-const Toaster = ({
-	mobilePosition = "bottom-right",
-	...props
-}: {
-	mobilePosition?: ToasterProps["position"];
-} & ToasterProps) => {
+const belowHeader = {
+	top: "60px",
+};
+
+const Toaster = (props: ToasterProps) => {
 	const { theme = "system" } = useTheme();
-	const isMobile = useIsMobile();
 
 	return (
 		<Sonner
@@ -38,7 +35,9 @@ const Toaster = ({
 					"--border-radius": "var(--radius)",
 				} as React.CSSProperties
 			}
-			position={isMobile ? mobilePosition : props.position}
+			position="top-right"
+			offset={belowHeader}
+			mobileOffset={belowHeader}
 			closeButton
 			toastOptions={{
 				closeButtonAriaLabel: m.toast_close_button_label(),
