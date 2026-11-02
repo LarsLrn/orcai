@@ -1,5 +1,6 @@
 import type { EmailDeliveryChannel, InstanceMail } from "@orcai/schema";
 import { MailIcon } from "lucide-react";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +20,6 @@ import {
 } from "@/components/ui/table";
 import { useSendTestEmailMutation } from "@/hooks/mutations/use-send-test-email-mutation";
 import { formatCount } from "@/lib/presentation/format-number";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const channelLabel = (channel: EmailDeliveryChannel | null) => {
@@ -99,9 +99,9 @@ export const MailCard = ({ mail }: { mail: InstanceMail | null }) => {
 								<span>{channelLabel(testEmail.deliveryChannel)}</span>
 							)}
 							<span className="text-muted-foreground text-xs">
-								{formatDisplayTimestamp(
-									testEmail.sentAt ?? testEmail.createdAt,
-								)}
+								<DisplayTimestamp
+									value={testEmail.sentAt ?? testEmail.createdAt}
+								/>
 							</span>
 						</span>
 					) : (

@@ -2,6 +2,7 @@ import type { BotId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { CircleAlertIcon } from "lucide-react";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { MODEL_STEP_INDEX } from "@/components/authoring/bot-editor-steps";
 import type { ComposerBlocker } from "@/components/chat/composer-blocker";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,10 +14,7 @@ import {
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	formatDisplayTimestamp,
-	formatRelativeTime,
-} from "@/lib/presentation/format-timestamp";
+import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -148,7 +146,7 @@ const ChatModelNotice = ({
 										})}
 									</TooltipTrigger>
 									<TooltipContent>
-										{formatDisplayTimestamp(blocker.resetsAt)}
+										<DisplayTimestamp value={blocker.resetsAt} />
 									</TooltipContent>
 								</Tooltip>
 							</p>

@@ -25,6 +25,7 @@ import {
 import { ConfirmDialogProvider } from "@/components/ui/dialog/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getRenderTimeZone } from "@/hooks/use-display-time";
 import { auth } from "@/lib/auth/auth";
 import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
 import { runPromise } from "@/lib/effect/runtime";
@@ -95,12 +96,14 @@ export const Route = createRootRouteWithContext<{
 }>()({
 	beforeLoad: async () => {
 		const theme = getThemePreference();
+		const timeZone = getRenderTimeZone();
 		const session = await getSession();
 
 		// Check if session and user actually exist
 		if (!session?.session || !session?.user) {
 			return {
 				theme,
+				timeZone,
 				auth: {
 					isAuthenticated: false as const,
 				},
@@ -109,6 +112,7 @@ export const Route = createRootRouteWithContext<{
 
 		return {
 			theme,
+			timeZone,
 			auth: {
 				isAuthenticated: true as const,
 				session: session.session,

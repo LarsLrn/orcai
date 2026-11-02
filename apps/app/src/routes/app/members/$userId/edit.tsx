@@ -18,6 +18,7 @@ import {
 	MailIcon,
 } from "lucide-react";
 import type { z } from "zod/v4";
+import { DisplayDate } from "@/components/app/display-time";
 import { ManageMember } from "@/components/members/manage-member";
 import {
 	memberAccessOriginOptions,
@@ -53,7 +54,6 @@ import {
 } from "@/components/ui/shell/section";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listMemberAccessInputSchema
@@ -220,7 +220,7 @@ function RouteComponent() {
 										{m.members_edit_details_created_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
-										{formatDisplayDate(member.data.createdAt)}
+										<DisplayDate value={member.data.createdAt} />
 									</p>
 								</div>
 							</div>
@@ -232,7 +232,7 @@ function RouteComponent() {
 										{m.members_edit_details_updated_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
-										{formatDisplayDate(member.data.updatedAt)}
+										<DisplayDate value={member.data.updatedAt} />
 									</p>
 								</div>
 							</div>

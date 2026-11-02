@@ -3,11 +3,11 @@ import type {
 	QuotaUsageEventType,
 } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { formatNumber } from "@/lib/presentation/format-number";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const eventTypeLabel = (eventType: QuotaUsageEventType) => {
@@ -59,7 +59,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		),
 		cell: ({ row }) => (
 			<span className="whitespace-nowrap tabular-nums">
-				{formatDisplayTimestamp(row.original.occurredAt)}
+				<DisplayTimestamp value={row.original.occurredAt} />
 			</span>
 		),
 		meta: {

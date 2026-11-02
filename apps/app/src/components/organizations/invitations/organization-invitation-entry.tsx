@@ -14,7 +14,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { m } from "@/paraglide/messages";
 import { OrganizationInvitationActions } from "./organization-invitation-actions";
 
@@ -65,6 +65,7 @@ export function OrganizationInvitationEntry({
 }: OrganizationInvitationEntryProps) {
 	const isPending = invitation.status === "pending";
 	const isExpired = isPending && invitation.expiresAt < new Date();
+	const displayTime = useDisplayTime();
 
 	return (
 		<Card className="w-full">
@@ -97,7 +98,7 @@ export function OrganizationInvitationEntry({
 						<span>
 							{invitation.createdAt
 								? m.orgs_invitation_invited_on({
-										date: formatDisplayDate(invitation.createdAt),
+										date: displayTime.date(invitation.createdAt),
 									})
 								: m.orgs_invitation_invited_on_unknown()}
 						</span>
@@ -107,7 +108,7 @@ export function OrganizationInvitationEntry({
 							<Clock4Icon className="h-3.5 w-3.5" />
 							<span>
 								{m.orgs_invitation_expires_on({
-									date: formatDisplayDate(invitation.expiresAt),
+									date: displayTime.date(invitation.expiresAt),
 								})}
 							</span>
 						</div>

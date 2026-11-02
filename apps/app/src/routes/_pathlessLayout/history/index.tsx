@@ -18,8 +18,8 @@ import {
 import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
 import { paginationSearchShape } from "@/components/ui/data-table/data-table-search-params";
 import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/history/")({
@@ -57,6 +57,7 @@ function RouteComponent() {
 		}),
 	);
 	const rows = history.data;
+	const displayTime = useDisplayTime();
 	useClampedPageIndex({
 		rowCount: history.rowCount,
 		pageIndex,
@@ -107,7 +108,7 @@ function RouteComponent() {
 										{m.chat_history_row_description({
 											organisation: chat.organizationName,
 											date: chat.updatedAt
-												? formatDisplayDate(chat.updatedAt)
+												? displayTime.date(chat.updatedAt)
 												: "",
 										})}
 									</CardDescription>

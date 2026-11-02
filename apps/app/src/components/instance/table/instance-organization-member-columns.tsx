@@ -3,6 +3,7 @@ import type { InstanceOrganizationMember } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
+import { DisplayDate } from "@/components/app/display-time";
 import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
 import { HandOverConfirmDialog } from "@/components/ownership/hand-over-confirm-dialog";
 import { useRoleChange } from "@/components/ownership/use-role-change";
@@ -15,7 +16,6 @@ import {
 	useChangeInstanceMemberRoleMutation,
 	useRemoveInstanceMemberMutation,
 } from "@/hooks/mutations/use-instance-membership-mutations";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
@@ -190,7 +190,9 @@ export const instanceOrganizationMemberColumns = (
 				/>
 			),
 			cell: ({ row }) =>
-				row.original.joinedAt ? formatDisplayDate(row.original.joinedAt) : null,
+				row.original.joinedAt ? (
+					<DisplayDate value={row.original.joinedAt} />
+				) : null,
 			meta: {
 				label: m.instance_detail_joined_column_header,
 			},

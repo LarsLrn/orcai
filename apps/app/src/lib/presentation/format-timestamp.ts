@@ -8,8 +8,8 @@ const REGIONAL_LOCALES: Record<string, string> = {
 	de: "de-DE",
 };
 
-const getFormatter = (locale: string, withTime: boolean) => {
-	const key = `${locale}:${withTime ? "datetime" : "date"}`;
+const getFormatter = (locale: string, timeZone: string, withTime: boolean) => {
+	const key = `${locale}:${timeZone}:${withTime ? "datetime" : "date"}`;
 	const cached = formatterCache.get(key);
 	if (cached) {
 		return cached;
@@ -20,19 +20,24 @@ const getFormatter = (locale: string, withTime: boolean) => {
 		{
 			dateStyle: "medium",
 			timeStyle: withTime ? "short" : undefined,
+			timeZone,
 		},
 	);
 	formatterCache.set(key, formatter);
 	return formatter;
 };
 
-/** Date and time, written the way the active locale writes it. */
-export const formatDisplayTimestamp = (value: Date | string | number) =>
-	getFormatter(getLocale(), true).format(new Date(value));
+/** Date and time in `timeZone`, written the way the active locale writes it. */
+export const formatDisplayTimestamp = (
+	value: Date | string | number,
+	timeZone: string,
+) => getFormatter(getLocale(), timeZone, true).format(new Date(value));
 
-/** Date only, written the way the active locale writes it. */
-export const formatDisplayDate = (value: Date | string | number) =>
-	getFormatter(getLocale(), false).format(new Date(value));
+/** Date only in `timeZone`, written the way the active locale writes it. */
+export const formatDisplayDate = (
+	value: Date | string | number,
+	timeZone: string,
+) => getFormatter(getLocale(), timeZone, false).format(new Date(value));
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;

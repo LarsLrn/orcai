@@ -2,6 +2,7 @@ import type { OrganizationWithMemberCount } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { DeleteOrganizationDialog } from "@/components/organizations/delete-organization-dialog";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -13,7 +14,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
@@ -75,7 +75,9 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
+			<span>
+				<DisplayTimestamp value={row.original.createdAt || ""} />
+			</span>
 		),
 		meta: {
 			label: m.common_created_column_header,

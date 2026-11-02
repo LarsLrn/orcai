@@ -1,6 +1,7 @@
 import type { Provider } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import {
 	getProviderStatusLabel,
@@ -87,7 +87,9 @@ export const providerTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<span>{formatDisplayTimestamp(row.original.createdAt || "")}</span>
+			<span>
+				<DisplayTimestamp value={row.original.createdAt || ""} />
+			</span>
 		),
 		meta: {
 			label: m.common_created_column_header,
@@ -101,7 +103,9 @@ export const providerTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<span>{formatDisplayTimestamp(row.original.updatedAt || "")}</span>
+			<span>
+				<DisplayTimestamp value={row.original.updatedAt || ""} />
+			</span>
 		),
 		meta: {
 			label: m.providers_table_updated_column_header,

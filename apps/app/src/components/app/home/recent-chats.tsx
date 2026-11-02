@@ -4,11 +4,9 @@ import { Link } from "@tanstack/react-router";
 import { BotIcon, MessagesSquareIcon } from "lucide-react";
 import { BranchMark } from "@/components/chat/branch-links";
 import { PinMark } from "@/components/chat/pin-mark";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	formatDisplayDate,
-	formatRelativeTime,
-} from "@/lib/presentation/format-timestamp";
+import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 import { HomeSection } from "./home-section";
 
@@ -26,14 +24,14 @@ export const recentChatsInput = {
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** "12 minutes ago" within the week, the date after that. */
-const updatedLabel = (at: Date) =>
-	Date.now() - at.getTime() < WEEK_MS
-		? formatRelativeTime(at)
-		: formatDisplayDate(at);
-
 const RecentChatRow = ({ chat }: { chat: ChatListRow }) => {
 	const updatedAt = chat.updatedAt ?? chat.createdAt;
+	const displayTime = useDisplayTime();
+	// "12 minutes ago" within the week, the date after that.
+	const updatedLabel = (at: Date) =>
+		Date.now() - at.getTime() < WEEK_MS
+			? formatRelativeTime(at)
+			: displayTime.date(at);
 
 	return (
 		<Link
@@ -63,7 +61,7 @@ const RecentChatRow = ({ chat }: { chat: ChatListRow }) => {
 					{updatedAt && (
 						<>
 							{" · "}
-							{/* The server's clock and locale may differ by a minute or a word. */}
+							{/* The server's clock may differ by a minute. */}
 							<time
 								dateTime={updatedAt.toISOString()}
 								suppressHydrationWarning={true}

@@ -6,6 +6,7 @@ import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { toast } from "sonner";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
@@ -20,7 +21,6 @@ import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
@@ -57,7 +57,9 @@ export const invitationsTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<span>{formatDisplayTimestamp(row.original.expiresAt || "")}</span>
+			<span>
+				<DisplayTimestamp value={row.original.expiresAt || ""} />
+			</span>
 		),
 		meta: {
 			label: m.members_invitations_table_expires_column_header,

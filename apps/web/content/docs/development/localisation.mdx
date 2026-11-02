@@ -45,6 +45,10 @@ access_dialog_title
 
 A key never encodes its English text, so rewording the copy leaves the key alone. When the surrounding component is renamed, rename the key with it. Interpolation uses `{name}` placeholders, plural and other variants use Paraglide's variant syntax in the message file, and copy with inline links or emphasis is split into separate messages around the marked-up part. Dates, numbers, and relative times go through `Intl` with the active locale from `getLocale()`.
 
+## Dates and time zones
+
+Dates show in the browser's time zone, and the server renders them too. Components format them with `useDisplayTime()` from `apps/app/src/hooks/use-display-time.ts`, or with `<DisplayTimestamp>` and `<DisplayDate>` in table cells, never with `Intl` and a bare `Date`. The hook stores the browser's zone in the `time_zone` cookie. The server renders in the zone that cookie names, UTC without one, and hydration uses the same zone, so the markup matches before React switches to the browser's. A relative time such as "5 minutes ago" depends on the clock, which differs between server and browser, so a server-rendered one sets `suppressHydrationWarning` on its element, as the recent chats on the home page do.
+
 Content that users author, such as bot names, descriptions, assets and organisation copy, is not translated.
 
 ## Emails

@@ -1,6 +1,7 @@
 import type { ChatListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
+import { DisplayTimestamp } from "@/components/app/display-time";
 import { BranchMark } from "@/components/chat/branch-links";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
 import { PinMark } from "@/components/chat/pin-mark";
@@ -9,7 +10,6 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
-import { formatDisplayTimestamp } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ChatListRow>();
@@ -75,9 +75,11 @@ export const chatTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) =>
-			row.original.updatedAt
-				? formatDisplayTimestamp(row.original.updatedAt)
-				: "—",
+			row.original.updatedAt ? (
+				<DisplayTimestamp value={row.original.updatedAt} />
+			) : (
+				"—"
+			),
 		meta: {
 			label: m.chat_table_date_column_header,
 		},

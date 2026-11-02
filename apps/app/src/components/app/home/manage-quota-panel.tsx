@@ -14,8 +14,8 @@ import {
 	PanelTitle,
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
+import { useDisplayTime } from "@/hooks/use-display-time";
 import { orpc } from "@/lib/orpc/orpc";
-import { formatDisplayDate } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
 
 const POOL_LIMIT = 3;
@@ -60,6 +60,8 @@ const ManageQuotaPanel = () => {
 		}),
 	);
 
+	const displayTime = useDisplayTime();
+
 	return (
 		<Panel>
 			<PanelHeader>
@@ -102,7 +104,7 @@ const ManageQuotaPanel = () => {
 									{pool.currentPeriod
 										? m.home_quota_pool_meta_renews({
 												provider: pool.provider.name,
-												date: formatDisplayDate(pool.currentPeriod.endsAt),
+												date: displayTime.date(pool.currentPeriod.endsAt),
 											})
 										: m.home_quota_pool_meta_no_period({
 												provider: pool.provider.name,
