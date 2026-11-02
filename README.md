@@ -285,9 +285,9 @@ Until embeddings are set up, uploads are prepared and wait for indexing, and rep
 - `KREUZBERG_OCR_LANGUAGE`: OCR languages for background asset preparation. Defaults to `eng`; use `eng+deu` only where both Tesseract packs are available.
 - `WORKER_POLLING_INTERVAL_SECONDS`: Replaces how often every background worker polls its queue (pg-boss minimum 0.5). Unset, each worker keeps its own interval of 2 to 30 seconds; the e2e pipeline run uses 0.5.
 - `S3_REGION`: Defaults to `eu-central-1`.
-- `S3_PUBLIC_ENDPOINT`: Endpoint in the presigned URLs that browsers upload to and download from, so it must be reachable from browsers. Defaults to `S3_ENDPOINT`.
+- `S3_PUBLIC_ENDPOINT`: Endpoint in the presigned URLs that browsers upload to and download from, so it must be reachable from browsers. Defaults to `S3_ENDPOINT`. The app's Content Security Policy allows its origin.
 - `SMTP_*`: Optional. If you enable SMTP delivery, `SMTP_HOST` and `SMTP_FROM` must both be set. `SMTP_USERNAME` and `SMTP_PASSWORD` must either both be set or both be omitted. If `SMTP_SECURE` is unset, it is derived from port (`true` for 465, otherwise `false`).
-- `UMAMI_SCRIPT_URL`, `UMAMI_WEBSITE_ID`: Optional Umami analytics. Both or neither; one alone logs a warning and keeps analytics off.
+- `UMAMI_SCRIPT_URL`, `UMAMI_WEBSITE_ID`: Optional Umami analytics. Both or neither; one alone logs a warning and keeps analytics off. With both set, the Content Security Policy allows the script's origin.
 - `FEEDBACK_EMAIL`: Optional address the last card of the first tour names for feedback. Without a valid address the card says nothing about feedback.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`: Optional OpenTelemetry export configuration. Traces, logs and metrics are exported once the endpoint is set.
 - `OTEL_RESOURCE_ATTRIBUTES`: Optional resource attributes such as `deployment.environment=production`, attached to every exported signal of the app and the workers.

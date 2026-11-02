@@ -29,6 +29,8 @@ The primary config modules are:
 
 Browsers need to reach three origins: the app at `BETTER_AUTH_URL`, the docs site at `WEB_URL`, and object storage at `S3_PUBLIC_ENDPOINT` (see [Object storage](#object-storage)). `docker-compose.yaml` publishes no ports, so put a reverse proxy with TLS in front of these services, or publish their ports the way `docker-compose.local.yaml` does.
 
+The app sends a Content Security Policy with every response. Browsers then load content only from the app itself, from object storage at `S3_PUBLIC_ENDPOINT` (or `S3_ENDPOINT` when it is unset), from YouTube's privacy-enhanced embeds, and from the Umami script's origin when `UMAMI_SCRIPT_URL` and `UMAMI_WEBSITE_ID` are set. Both origins come from this configuration, so the policy follows a changed value after a restart. Each response carries its own nonce for the page's scripts, so a reverse proxy must pass the `Content-Security-Policy` header through unchanged, add no second policy, and not cache pages.
+
 ## Authentication and encryption
 
 | Variable | Required | Notes |

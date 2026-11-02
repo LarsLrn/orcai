@@ -65,6 +65,9 @@ export default defineConfig(({ command }) => ({
 			nitro({
 				preset: "bun",
 				compressPublicAssets: true,
+				plugins: [
+					"./src/lib/server/nitro-content-security-policy.ts",
+				],
 				// Bun provides undici, as in `ssr.external`.
 				builtinModules: [
 					"undici",

@@ -2,11 +2,15 @@ import { createHydrationOptions } from "@orpc/tanstack-query";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import { getGlobalStartContext } from "@tanstack/react-start";
 import type { ReactElement, ReactNode } from "react";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
 import { parseSearch, stringifySearch } from "./lib/router/search-params";
 import { routeTree } from "./routeTree.gen";
+
+// Typed here because the request context's type depends on the router's.
+const requestNonce = (): string | undefined => getGlobalStartContext()?.nonce;
 
 export function getRouter() {
 	const queryClient = new QueryClient({
@@ -30,6 +34,9 @@ export function getRouter() {
 		context: {
 			queryClient,
 		},
+		ssr: {
+			nonce: requestNonce(),
+		},
 	});
 
 	setupRouterSsrQueryIntegration({
@@ -43,6 +50,12 @@ export function getRouter() {
 declare module "@tanstack/react-router" {
 	interface Register {
 		router: ReturnType<typeof getRouter>;
+		server: {
+			requestContext: {
+				/** Allows the server-rendered inline scripts under the Content Security Policy. */
+				nonce: string;
+			};
+		};
 	}
 
 	interface StaticDataRouteOption {
