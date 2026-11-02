@@ -1,4 +1,4 @@
-import type { EmbeddingSettings } from "@orcai/schema";
+import { type EmbeddingSettings, embeddingPrefixSchema } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
@@ -21,11 +21,14 @@ const embeddingsFormSchema = (keyStored: boolean) =>
 		baseUrl: z.url(),
 		apiKey: keyStored ? z.string() : z.string().trim().min(1),
 		model: z.string().trim().min(1),
+		queryPrefix: embeddingPrefixSchema,
+		passagePrefix: embeddingPrefixSchema,
 	});
 
 /**
  * The endpoint the instance embeds with; saving runs a test embedding first.
- * Another model asks first, since it re-embeds the `files` of every repository.
+ * Another model or passage prefix asks first, since it re-embeds the `files`
+ * of every repository.
  */
 export const EmbeddingsSection = ({
 	embeddings,
@@ -50,6 +53,8 @@ export const EmbeddingsSection = ({
 			baseUrl: embeddings?.baseUrl ?? "",
 			apiKey: "",
 			model: embeddings?.model ?? "",
+			queryPrefix: embeddings?.queryPrefix ?? "",
+			passagePrefix: embeddings?.passagePrefix ?? "",
 		},
 		validators: {
 			onChange: embeddingsFormSchema(embeddings !== null),
@@ -61,6 +66,8 @@ export const EmbeddingsSection = ({
 					baseUrl: value.baseUrl,
 					apiKey: value.apiKey,
 					model: value.model,
+					queryPrefix: value.queryPrefix,
+					passagePrefix: value.passagePrefix,
 					reembedGeneration,
 				});
 				formApi.setFieldValue("apiKey", "");
@@ -77,16 +84,35 @@ export const EmbeddingsSection = ({
 					) {
 						throw error;
 					}
-					const confirmed = await confirm({
-						title: m.instance_settings_embeddings_model_change_confirm_title(),
-						description:
-							m.instance_settings_embeddings_model_change_confirm_description({
-								count: files,
-								model: value.model,
-							}),
-						confirmText:
-							m.instance_settings_embeddings_model_change_confirm_button(),
-					});
+					const confirmed = await confirm(
+						value.model === embeddings?.model &&
+							value.passagePrefix !== embeddings.passagePrefix
+							? {
+									title:
+										m.instance_settings_embeddings_passage_prefix_confirm_title(),
+									description:
+										m.instance_settings_embeddings_passage_prefix_confirm_description(
+											{
+												count: files,
+											},
+										),
+									confirmText:
+										m.instance_settings_embeddings_passage_prefix_confirm_button(),
+								}
+							: {
+									title:
+										m.instance_settings_embeddings_model_change_confirm_title(),
+									description:
+										m.instance_settings_embeddings_model_change_confirm_description(
+											{
+												count: files,
+												model: value.model,
+											},
+										),
+									confirmText:
+										m.instance_settings_embeddings_model_change_confirm_button(),
+								},
+					);
 					// The confirmation is for the generation this page shows.
 					if (confirmed) await saveWith(embeddings?.generation);
 				}
@@ -99,6 +125,12 @@ export const EmbeddingsSection = ({
 		baseUrl: state.values.baseUrl,
 		apiKey: state.values.apiKey,
 	}));
+	const passagePrefixChanged = useSelector(
+		form.store,
+		(state) =>
+			embeddings !== null &&
+			state.values.passagePrefix !== embeddings.passagePrefix,
+	);
 
 	const loadModels = async () => {
 		setFailure(null);
@@ -206,6 +238,43 @@ export const EmbeddingsSection = ({
 						</Button>
 					</div>
 				</div>
+
+				<form.AppField
+					name="queryPrefix"
+					children={(field) => (
+						<field.TextareaField
+							label={m.instance_settings_embeddings_query_prefix_label()}
+							description={m.instance_settings_embeddings_query_prefix_description()}
+							rows={2}
+							spellCheck={false}
+							className="min-h-16 font-mono"
+						/>
+					)}
+				/>
+
+				<form.AppField
+					name="passagePrefix"
+					children={(field) => (
+						<field.TextareaField
+							label={m.instance_settings_embeddings_passage_prefix_label()}
+							description={m.instance_settings_embeddings_passage_prefix_description()}
+							rows={2}
+							spellCheck={false}
+							className="min-h-16 font-mono"
+						/>
+					)}
+				/>
+				{passagePrefixChanged && (
+					<Alert>
+						<TriangleAlertIcon />
+						<AlertTitle>
+							{m.instance_settings_embeddings_passage_prefix_changed_title()}
+						</AlertTitle>
+						<AlertDescription>
+							{m.instance_settings_embeddings_passage_prefix_changed_description()}
+						</AlertDescription>
+					</Alert>
+				)}
 
 				{embeddings && (
 					<p className="text-muted-foreground text-sm">

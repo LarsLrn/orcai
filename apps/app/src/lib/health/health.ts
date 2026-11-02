@@ -488,6 +488,8 @@ const appProcessConfig = Effect.gen(function* () {
 			apiKey: Redacted.make(embeddings ? "set" : ""),
 			model: embeddings?.model,
 			dimensions: embeddings?.dimensions,
+			queryPrefix: embeddings?.queryPrefix,
+			passagePrefix: embeddings?.passagePrefix,
 			collection: embeddings?.collection,
 		},
 		otel: {

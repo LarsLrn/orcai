@@ -14,6 +14,8 @@ const program = Effect.gen(function* () {
 		apiKey: "dev-openai-compatible-key",
 		model: "baai/bge-m3",
 		dimensions: 1024,
+		queryPrefix: "",
+		passagePrefix: "",
 	});
 	yield* Effect.logInfo("Seeded the dev embedding setting");
 });

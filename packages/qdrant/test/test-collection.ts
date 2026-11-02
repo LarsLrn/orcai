@@ -25,7 +25,9 @@ export const TestCollectionLive = (
 						model: "test",
 						dimensions,
 						collection,
-						embed: () =>
+						embedQueries: () =>
+							Effect.die(new Error("Test collections embed nothing")),
+						embedPassages: () =>
 							Effect.die(new Error("Test collections embed nothing")),
 					});
 				}),

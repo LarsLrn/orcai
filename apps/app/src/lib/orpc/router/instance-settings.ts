@@ -77,6 +77,8 @@ const currentEmbeddings = embeddingSettings.pipe(
 					baseUrl: settings.baseUrl,
 					model: settings.model,
 					dimensions: settings.dimensions,
+					queryPrefix: settings.queryPrefix,
+					passagePrefix: settings.passagePrefix,
 					apiKeySet: true,
 				}
 			: null,
@@ -173,6 +175,8 @@ const updateEmbeddings = authed.instanceSettings.updateEmbeddings
 				apiKey,
 				model: input.model,
 				dimensions,
+				queryPrefix: input.queryPrefix,
+				passagePrefix: input.passagePrefix,
 			},
 			{
 				reembedGeneration: input.reembedGeneration,
@@ -183,7 +187,7 @@ const updateEmbeddings = authed.instanceSettings.updateEmbeddings
 					new AppErrors.ConflictError({
 						reason: "EMBEDDING_MODEL_CHANGE_UNCONFIRMED",
 						message:
-							"Another embedding model re-embeds every file and needs confirming",
+							"Another embedding model or passage prefix re-embeds every file and needs confirming",
 						cause,
 					}),
 				),
@@ -207,6 +211,8 @@ const updateEmbeddings = authed.instanceSettings.updateEmbeddings
 				baseUrl: input.baseUrl,
 				model: input.model,
 				dimensions,
+				queryPrefix: input.queryPrefix,
+				passagePrefix: input.passagePrefix,
 				apiKeySet: true,
 			},
 		};

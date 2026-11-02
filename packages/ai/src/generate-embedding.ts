@@ -24,22 +24,32 @@ const embeddingModel = (connection: EmbeddingConnection) =>
 const embed = (
 	connection: EmbeddingConnection,
 	values: readonly string[],
-	maxRetries?: number,
+	{
+		prefix = "",
+		maxRetries,
+	}: {
+		prefix?: string;
+		maxRetries?: number;
+	} = {},
 ) =>
 	embedMany({
 		model: embeddingModel(connection),
-		values: values.map(trimNewlines),
+		values: values.map((value) => prefix + trimNewlines(value)),
 		maxRetries,
 		...aiTelemetry("ai.embedMany"),
 	}).then(({ embeddings }) => embeddings);
 
-/** One vector per value, in order. */
+/** One vector per value, in order, each embedded after `prefix` exactly as given. */
 export const embedValues = (
 	connection: EmbeddingConnection,
 	values: readonly string[],
+	prefix?: string,
 ) =>
 	Effect.tryPromise({
-		try: () => embed(connection, values),
+		try: () =>
+			embed(connection, values, {
+				prefix,
+			}),
 		catch: (cause) =>
 			new AiError({
 				operation: "embedValues",
@@ -85,7 +95,9 @@ export const testEmbedding = (connection: EmbeddingConnection) =>
 				[
 					"OrcAI",
 				],
-				0,
+				{
+					maxRetries: 0,
+				},
 			),
 		catch: (cause) =>
 			new EmbeddingTestError({

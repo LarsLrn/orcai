@@ -9,6 +9,10 @@ export const embeddingSettingsSchema = z.object({
 	model: z.string(),
 	/** The length of the model's vectors, read from a test embedding. */
 	dimensions: z.number().int().positive(),
+	/** Text the model expects before every search query; empty for none. */
+	queryPrefix: z.string(),
+	/** Text the model expects before every passage; empty for none. */
+	passagePrefix: z.string(),
 	apiKeySet: z.boolean(),
 });
 

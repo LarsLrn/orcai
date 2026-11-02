@@ -61,11 +61,16 @@ boss.on("error", () => undefined);
  */
 const embedding = {
 	requests: 0,
+	inputs: [] as string[],
 	holding: false,
 	waiting: [] as ReturnType<typeof Promise.withResolvers<boolean>>[],
 };
 
 const dimensions = 8;
+const prefixes = {
+	queryPrefix: "query: ",
+	passagePrefix: "passage:\n",
+};
 
 /**
  * An OpenAI-compatible endpoint that embeds every value as the same vector,
@@ -78,6 +83,7 @@ const embeddings = serve({
 			input: string[];
 		};
 		embedding.requests += 1;
+		embedding.inputs.push(...body.input);
 		if (embedding.holding) {
 			const settled = Promise.withResolvers<boolean>();
 			embedding.waiting.push(settled);
@@ -172,6 +178,7 @@ beforeAll(async () => {
 			apiKey: "key",
 			model: "integration",
 			dimensions,
+			...prefixes,
 		}),
 	);
 }, TIMEOUT);
@@ -489,6 +496,25 @@ test(
 			true,
 		]);
 		expect(embedding.requests).toBeGreaterThan(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"passages are embedded after the passage prefix, while their stored and lexical text stay without it",
+	async () => {
+		const link = await seed();
+		const job = await admit(link);
+		const before = embedding.inputs.length;
+
+		await vectorize(job);
+
+		expect(embedding.inputs.slice(before)).toEqual([
+			"passage:\nRefunds rose in February.",
+		]);
+		const [payload] = await payloadsOf(link);
+		expect(payload?.text).toBe("Refunds rose in February.");
+		expect(payload?.lexical_text).toBeUndefined();
 	},
 	TIMEOUT,
 );
@@ -966,6 +992,7 @@ test(
 					apiKey: "key",
 					model: "integration",
 					dimensions,
+					...prefixes,
 				}).pipe(Effect.provideService(EmbeddingIndex, index)),
 			)
 			.then(() => {

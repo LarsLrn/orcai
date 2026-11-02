@@ -1,0 +1,2 @@
+ALTER TABLE "instance_settings" ADD COLUMN "embedding_query_prefix" text DEFAULT '' NOT NULL;--> statement-breakpoint
+ALTER TABLE "instance_settings" ADD COLUMN "embedding_passage_prefix" text DEFAULT '' NOT NULL;

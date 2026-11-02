@@ -4045,6 +4045,29 @@
 	],
 	"instance_settings_embeddings_model_change_confirm_button": "Change the model",
 	"instance_settings_embeddings_model_unlisted_description": "This endpoint offers no model list, so enter the model's name.",
+	"instance_settings_embeddings_query_prefix_label": "Query prefix",
+	"instance_settings_embeddings_query_prefix_description": "Some models expect fixed text before every search query, and their documentation names it. OrcAI puts it in front of each query, line breaks included. Leave the field empty otherwise.",
+	"instance_settings_embeddings_passage_prefix_label": "Passage prefix",
+	"instance_settings_embeddings_passage_prefix_description": "Some models expect fixed text before every passage of an asset, and their documentation names it. OrcAI puts it in front of each passage it embeds, line breaks included. Leave the field empty otherwise.",
+	"instance_settings_embeddings_passage_prefix_changed_title": "Passage prefix changed",
+	"instance_settings_embeddings_passage_prefix_changed_description": "Saving it embeds every asset in repositories again.",
+	"instance_settings_embeddings_passage_prefix_confirm_title": "Change the passage prefix?",
+	"instance_settings_embeddings_passage_prefix_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "OrcAI embeds 1 asset in a repository again with the new passage prefix. Search finds only assets embedded with it until the re-embedding finishes.",
+				"countPlural=other": "OrcAI embeds {count} assets in repositories again with the new passage prefix. Search finds only assets embedded with it until the re-embedding finishes."
+			}
+		}
+	],
+	"instance_settings_embeddings_passage_prefix_confirm_button": "Change the prefix",
 	"instance_settings_embeddings_save_button": "Save and test",
 	"instance_settings_embeddings_saved_toast": "Embeddings saved",
 	"instance_settings_embeddings_title": "Embeddings",

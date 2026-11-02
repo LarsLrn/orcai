@@ -66,7 +66,7 @@ export const instanceSettingsContracts = {
 				summary: "Set the embedding endpoint",
 				tags,
 				description:
-					"Runs a test embedding first and stores nothing when it fails. The dimensions come from its result. Without an API key, the stored one is kept. Another model or another size re-embeds every file into a new collection and needs `reembed`.",
+					"Runs a test embedding first and stores nothing when it fails. The dimensions come from its result. Without an API key, the stored one is kept. Another model, another size or another passage prefix re-embeds every file into a new collection and needs `reembedGeneration`. Another query prefix applies at once.",
 			}),
 		)
 		.input(updateEmbeddingSettingsInputSchema)

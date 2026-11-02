@@ -4045,6 +4045,29 @@
 	],
 	"instance_settings_embeddings_model_change_confirm_button": "Modell wechseln",
 	"instance_settings_embeddings_model_unlisted_description": "Dieser Endpunkt bietet keine Modellliste an, geben Sie daher den Namen des Modells ein.",
+	"instance_settings_embeddings_query_prefix_label": "Präfix für Suchanfragen",
+	"instance_settings_embeddings_query_prefix_description": "Manche Modelle erwarten vor jeder Suchanfrage einen festen Text, den ihre Dokumentation nennt. OrcAI setzt ihn vor jede Suchanfrage, Zeilenumbrüche eingeschlossen. Lassen Sie das Feld sonst leer.",
+	"instance_settings_embeddings_passage_prefix_label": "Präfix für Passagen",
+	"instance_settings_embeddings_passage_prefix_description": "Manche Modelle erwarten vor jeder Passage eines Assets einen festen Text, den ihre Dokumentation nennt. OrcAI setzt ihn vor jede Passage, für die es ein Embedding erzeugt, Zeilenumbrüche eingeschlossen. Lassen Sie das Feld sonst leer.",
+	"instance_settings_embeddings_passage_prefix_changed_title": "Präfix für Passagen geändert",
+	"instance_settings_embeddings_passage_prefix_changed_description": "Beim Speichern erzeugt OrcAI die Embeddings für alle Assets in Repositories neu.",
+	"instance_settings_embeddings_passage_prefix_confirm_title": "Präfix für Passagen ändern?",
+	"instance_settings_embeddings_passage_prefix_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "OrcAI erzeugt die Embeddings für 1 Asset in einem Repository mit dem neuen Präfix neu. Die Suche findet nur Assets mit den neuen Embeddings, bis alle neu erzeugt sind.",
+				"countPlural=other": "OrcAI erzeugt die Embeddings für {count} Assets in Repositories mit dem neuen Präfix neu. Die Suche findet nur Assets mit den neuen Embeddings, bis alle neu erzeugt sind."
+			}
+		}
+	],
+	"instance_settings_embeddings_passage_prefix_confirm_button": "Präfix ändern",
 	"instance_settings_embeddings_save_button": "Speichern und testen",
 	"instance_settings_embeddings_saved_toast": "Embeddings gespeichert",
 	"instance_settings_embeddings_title": "Embeddings",

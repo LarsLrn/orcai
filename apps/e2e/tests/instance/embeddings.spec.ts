@@ -84,6 +84,76 @@ test("instance: changing the embedding model asks first and states how many asse
 	).toBeVisible();
 });
 
+test("instance: another query prefix saves at once, another passage prefix asks first", async ({
+	pageAsWellKnownAdmin,
+}) => {
+	const page = await pageAsWellKnownAdmin();
+	await open(page, "/instance/settings");
+	const queryPrefix = page.getByLabel(
+		message("instance_settings_embeddings_query_prefix_label"),
+	);
+	const passagePrefix = page.getByLabel(
+		message("instance_settings_embeddings_passage_prefix_label"),
+	);
+	await expect(
+		page.getByText(
+			message("instance_settings_embeddings_query_prefix_description"),
+		),
+	).toBeVisible();
+	await expect(
+		page.getByText(
+			message("instance_settings_embeddings_passage_prefix_description"),
+		),
+	).toBeVisible();
+	const save = page.getByRole("button", {
+		name: message("instance_settings_embeddings_save_button"),
+	});
+	const saved = page.getByText(
+		message("instance_settings_embeddings_saved_toast"),
+	);
+	const dialog = confirmation(
+		page,
+		message("instance_settings_embeddings_passage_prefix_confirm_title"),
+	);
+	const confirm = dialog.getByRole("button", {
+		name: message("instance_settings_embeddings_passage_prefix_confirm_button"),
+	});
+
+	const instruction =
+		"Instruct: Given a question, retrieve passages that answer it\nQuery: ";
+	await queryPrefix.fill(instruction);
+	await save.click();
+	await expect(saved).toBeVisible();
+	await expect(dialog).toBeHidden();
+	await page.reload();
+	await expect(queryPrefix).toHaveValue(instruction);
+
+	await passagePrefix.fill("passage: ");
+	await expect(
+		page.getByText(
+			message("instance_settings_embeddings_passage_prefix_changed_title"),
+		),
+	).toBeVisible();
+	await save.click();
+	await expect(dialog).toContainText(
+		"OrcAI embeds 0 assets in repositories again with the new passage prefix.",
+	);
+	await confirm.click();
+	await expect(saved).toBeVisible();
+	await page.reload();
+	await expect(passagePrefix).toHaveValue("passage: ");
+
+	// Back to no prefixes for the other specs.
+	await queryPrefix.fill("");
+	await passagePrefix.fill("");
+	await save.click();
+	await confirm.click();
+	await expect(saved).toBeVisible();
+	await page.reload();
+	await expect(queryPrefix).toHaveValue("");
+	await expect(passagePrefix).toHaveValue("");
+});
+
 test("instance: Re-embed everything asks first, and Retry failed waits for a failed asset", async ({
 	pageAsWellKnownAdmin,
 }) => {
