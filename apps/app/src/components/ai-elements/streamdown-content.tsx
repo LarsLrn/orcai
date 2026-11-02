@@ -1,20 +1,40 @@
 import { cjk } from "@streamdown/cjk";
 import { code } from "@streamdown/code";
 import { math } from "@streamdown/math";
-import { mermaid } from "@streamdown/mermaid";
-import type { ComponentProps } from "react";
-import { Streamdown } from "streamdown";
+import { type DiagramPlugin, mermaid } from "@streamdown/mermaid";
+import { type ComponentProps, useMemo } from "react";
+import { type Components, defaultComponents, Streamdown } from "streamdown";
+import {
+	appOrigin,
+	diagramLoadsNothing,
+	markdownImage,
+} from "@/lib/presentation/markdown-image";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import "katex/dist/katex.min.css";
 import "streamdown/styles.css";
 
 export type StreamdownContentProps = ComponentProps<typeof Streamdown>;
 
+const appDiagrams: DiagramPlugin = {
+	...mermaid,
+	getMermaid: (config) => {
+		const instance = mermaid.getMermaid(config);
+		return {
+			...instance,
+			render: (id, source) =>
+				diagramLoadsNothing(source)
+					? instance.render(id, source)
+					: Promise.reject(new Error(m.ai_elements_diagram_blocked())),
+		};
+	},
+};
+
 const plugins = {
 	cjk,
 	code,
 	math,
-	mermaid,
+	mermaid: appDiagrams,
 };
 
 const fenceOpen =
@@ -207,23 +227,49 @@ export const normaliseMathDelimiters = (markdown: string) => {
 	return output.join("\n");
 };
 
+const MarkdownImage: Components["img"] = (props) => {
+	const image = markdownImage(props.src, appOrigin());
+	if (!image) return props.alt;
+	return "load" in image ? (
+		<defaultComponents.img {...props} src={image.load} />
+	) : (
+		<defaultComponents.a href={image.link}>
+			{props.alt || image.link}
+		</defaultComponents.a>
+	);
+};
+
 // Streamdown puts markers inside and inlines item paragraphs, which runs loose items together.
 export const StreamdownContent = ({
 	className,
 	children,
+	components,
 	...props
-}: StreamdownContentProps) => (
-	<Streamdown
-		className={cn(
-			"[&_li>p]:block [&_li>p:not(:first-child)]:mt-2 [&_ol]:list-outside [&_ol]:pl-6 [&_ul]:list-outside [&_ul]:pl-6",
-			"[&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden",
-			className,
-		)}
-		plugins={plugins}
-		{...props}
-	>
-		{typeof children === "string"
-			? normaliseMathDelimiters(children)
-			: children}
-	</Streamdown>
-);
+}: StreamdownContentProps) => {
+	const withImages = useMemo(
+		() => ({
+			...components,
+			img: MarkdownImage,
+		}),
+		[
+			components,
+		],
+	);
+
+	return (
+		<Streamdown
+			className={cn(
+				"[&_li>p]:block [&_li>p:not(:first-child)]:mt-2 [&_ol]:list-outside [&_ol]:pl-6 [&_ul]:list-outside [&_ul]:pl-6",
+				"[&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden",
+				className,
+			)}
+			plugins={plugins}
+			components={withImages}
+			{...props}
+		>
+			{typeof children === "string"
+				? normaliseMathDelimiters(children)
+				: children}
+		</Streamdown>
+	);
+};
