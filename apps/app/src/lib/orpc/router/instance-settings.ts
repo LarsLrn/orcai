@@ -5,10 +5,16 @@ import {
 	type ModelListingFailure,
 	testEmbedding,
 } from "@orcai/ai";
-import { sendJobBatch } from "@orcai/pg-boss";
+import {
+	embeddingProgress as countEmbeddings,
+	embeddingsRebuilding,
+	retryFailedEmbeddings as retryFailed,
+	sendJobBatch,
+} from "@orcai/pg-boss";
 import {
 	configureEmbeddings,
 	embeddingSettings,
+	reembedEmbeddings as reembed,
 	storedEmbeddingApiKey,
 } from "@orcai/qdrant";
 import { type ErrorReason, RECONCILE_EMBEDDINGS_JOB_NAME } from "@orcai/schema";
@@ -44,10 +50,30 @@ const apiKeyOf = (apiKey: string | undefined) =>
 		return key;
 	});
 
+/** Wakes the reconciler, which moves every file onto a new generation; its schedule catches up when the wake-up cannot be queued. */
+const wakeReconciler = sendJobBatch({
+	jobName: RECONCILE_EMBEDDINGS_JOB_NAME,
+	jobs: [
+		{
+			data: {},
+		},
+	],
+}).pipe(
+	Effect.catch((error) =>
+		Effect.logWarning(
+			{
+				error,
+			},
+			"Could not wake the embedding reconciler",
+		),
+	),
+);
+
 const currentEmbeddings = embeddingSettings.pipe(
 	Effect.map((settings) =>
 		settings
 			? {
+					generation: settings.generation,
 					baseUrl: settings.baseUrl,
 					model: settings.model,
 					dimensions: settings.dimensions,
@@ -72,6 +98,7 @@ const embeddingsStatus = authed.instanceSettings.embeddingsStatus.effect(
 		return {
 			data: {
 				configured: (yield* embeddingSettings) !== undefined,
+				rebuilding: yield* embeddingsRebuilding,
 			},
 		};
 	},
@@ -140,47 +167,87 @@ const updateEmbeddings = authed.instanceSettings.updateEmbeddings
 					}),
 			),
 		);
-		yield* configureEmbeddings({
-			baseUrl: input.baseUrl,
-			apiKey,
-			model: input.model,
-			dimensions,
-		}).pipe(
+		const { generation } = yield* configureEmbeddings(
+			{
+				baseUrl: input.baseUrl,
+				apiKey,
+				model: input.model,
+				dimensions,
+			},
+			{
+				reembedGeneration: input.reembedGeneration,
+			},
+		).pipe(
 			Effect.catchTag("EmbeddingModelChangeError", (cause) =>
 				Effect.fail(
 					new AppErrors.ConflictError({
-						reason: "EMBEDDING_MODEL_CHANGE_UNSUPPORTED",
-						message: "The embedding model cannot be changed yet",
+						reason: "EMBEDDING_MODEL_CHANGE_UNCONFIRMED",
+						message:
+							"Another embedding model re-embeds every file and needs confirming",
+						cause,
+					}),
+				),
+			),
+			Effect.catchTag("EmbeddingGenerationChangedError", (cause) =>
+				Effect.fail(
+					new AppErrors.ConflictError({
+						reason: "EMBEDDING_SETTING_CHANGED",
+						message:
+							"Another save changed the embedding setting since the model change was confirmed",
 						cause,
 					}),
 				),
 			),
 		);
-		// The reconciler's schedule catches up when the wake-up cannot be queued.
-		yield* sendJobBatch({
-			jobName: RECONCILE_EMBEDDINGS_JOB_NAME,
-			jobs: [
-				{
-					data: {},
-				},
-			],
-		}).pipe(
-			Effect.catch((error) =>
-				Effect.logWarning(
-					{
-						error,
-					},
-					"Could not wake the embedding reconciler",
-				),
-			),
-		);
+		yield* wakeReconciler;
 
 		return {
 			data: {
+				generation,
 				baseUrl: input.baseUrl,
 				model: input.model,
 				dimensions,
 				apiKeySet: true,
+			},
+		};
+	});
+
+const embeddingProgress = authed.instanceSettings.embeddingProgress
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* () {
+		return {
+			data: (yield* countEmbeddings) ?? null,
+		};
+	});
+
+const reembedEmbeddings = authed.instanceSettings.reembedEmbeddings
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* ({ input }) {
+		const { started } = yield* reembed(input.generation).pipe(
+			Effect.catchTag("EmbeddingsNotConfiguredError", (cause) =>
+				Effect.fail(
+					new AppErrors.BadRequestError({
+						reason: "EMBEDDINGS_NOT_CONFIGURED",
+						message: "Embeddings are not set up",
+						cause,
+					}),
+				),
+			),
+		);
+		if (started) yield* wakeReconciler;
+		return {
+			data: {
+				started,
+			},
+		};
+	});
+
+const retryFailedEmbeddings = authed.instanceSettings.retryFailedEmbeddings
+	.use(requireInstanceAdminMiddleware)
+	.effect(function* () {
+		return {
+			data: {
+				admitted: yield* retryFailed,
 			},
 		};
 	});
@@ -190,4 +257,7 @@ export const instanceSettingsRouter = {
 	embeddingsStatus,
 	discoverEmbeddingModels,
 	updateEmbeddings,
+	embeddingProgress,
+	reembedEmbeddings,
+	retryFailedEmbeddings,
 };

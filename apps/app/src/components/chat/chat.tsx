@@ -25,6 +25,7 @@ import {
 	LinkSafetyContext,
 } from "@/components/chat/link-confirm";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
+import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
 import {
 	MessageScrollerItem,
 	useMessageScroller,
@@ -298,6 +299,7 @@ const Chat = ({
 											chat?.data.effectiveModel.providerId ?? undefined
 										}
 									/>
+									<ChatEmbeddingsRebuildNotice repositoryIds={repositoryIds} />
 									<AssetsPanel blockIds={repositoryIds} />
 									{composer}
 								</>

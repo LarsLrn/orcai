@@ -4,11 +4,14 @@ import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, type BlockId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
+	embeddingProgress,
+	embeddingsRebuilding,
 	type Job,
 	PgBoss,
 	PgBossService,
 	queueIndexing,
 	reconcileEmbeddings,
+	retryFailedEmbeddings,
 } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
@@ -17,6 +20,7 @@ import {
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
 import {
+	activeGeneration,
 	configureEmbeddings,
 	EmbeddingIndex,
 	type EmbeddingIndexScope,
@@ -26,11 +30,14 @@ import {
 } from "@orcai/qdrant";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
+	type PipelineFailure,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
 import {
+	awaitLockWaiters,
 	createJobQueues,
+	createOrganization,
 	createUser,
 	IntegrationLive,
 	testEmbeddingIndex,
@@ -137,10 +144,10 @@ type Link = {
 	readonly blockId: BlockId;
 };
 
-/** Runs `effect` on `index`, whose reconciler sees only `link`'s repository. */
+/** Runs `effect` on `index`, whose reconciler sees only the links' repositories. */
 const on = <A, E>(
 	index: EmbeddingIndexScope,
-	link: Link,
+	link: Link | readonly Link[],
 	effect: Effect.Effect<
 		A,
 		E,
@@ -151,22 +158,37 @@ const on = <A, E>(
 		effect.pipe(
 			Effect.provideService(EmbeddingIndex, {
 				...index,
-				blockIds: [
-					link.blockId,
-				],
+				blockIds: (Array.isArray(link)
+					? link
+					: [
+							link,
+						]
+				).map(({ blockId }) => blockId),
 			}),
 		),
 	);
 
-const configure = (index: EmbeddingIndexScope, link: Link) =>
+const configure = (
+	index: EmbeddingIndexScope,
+	link: Link | readonly Link[],
+	model = "integration",
+) =>
 	on(
 		index,
 		link,
-		configureEmbeddings({
-			baseUrl: `${embeddings.url.origin}/v1`,
-			apiKey: "key",
-			model: "integration",
-			dimensions: DIMENSIONS,
+		Effect.gen(function* () {
+			const active = yield* activeGeneration;
+			return yield* configureEmbeddings(
+				{
+					baseUrl: `${embeddings.url.origin}/v1`,
+					apiKey: "key",
+					model,
+					dimensions: DIMENSIONS,
+				},
+				{
+					reembedGeneration: active,
+				},
+			);
 		}),
 	);
 
@@ -293,8 +315,10 @@ const admit = async (link: Link, index: EmbeddingIndexScope) => {
 	);
 };
 
-const generationOf = async (index: EmbeddingIndexScope, link: Link) =>
-	(await on(index, link, embeddingSettings))?.generation;
+const generationOf = async (
+	index: EmbeddingIndexScope,
+	link: Link | readonly Link[],
+) => (await on(index, link, embeddingSettings))?.generation;
 
 const collectionsOf = (index: EmbeddingIndexScope) =>
 	runtime.runPromise(
@@ -312,7 +336,7 @@ const collectionsOf = (index: EmbeddingIndexScope) =>
 
 const vectorize = (
 	index: EmbeddingIndexScope,
-	link: Link,
+	link: Link | readonly Link[],
 	data: VectorizeAssetPayload,
 ) =>
 	on(
@@ -333,7 +357,62 @@ const indexes = {
 	legacy: await testEmbeddingIndex(),
 	undescribed: await testEmbeddingIndex(),
 	wiped: await testEmbeddingIndex(),
+	switched: await testEmbeddingIndex(),
+	retried: await testEmbeddingIndex(),
+	failedBefore: await testEmbeddingIndex(),
+	racingFlag: await testEmbeddingIndex(),
 };
+
+/** The rebuild flag as stored, before any derivation. */
+const rebuildFlagOf = (index: EmbeddingIndexScope) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const [row] = yield* (yield* DB)
+				.select({
+					flag: index.settings.embeddingRebuilding,
+				})
+				.from(index.settings);
+			return row?.flag;
+		}),
+	);
+
+/** How many points the collection holds. */
+const pointsIn = (collection: string) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const { client } = yield* QdrantService;
+			const { count } = yield* Effect.promise(() =>
+				client.count(collection, {
+					exact: true,
+				}),
+			);
+			return count;
+		}),
+	);
+
+/** Sets the link's indexing to `status`, failed with `failure`. */
+const settle = (
+	link: Link,
+	status: "completed" | "failed",
+	failure?: PipelineFailure,
+) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const { blockAsset } = dbSchema;
+			yield* (yield* DB)
+				.update(blockAsset)
+				.set({
+					indexStatus: status,
+					indexFailure: failure ?? null,
+				})
+				.where(
+					and(
+						eq(blockAsset.assetId, link.assetId),
+						eq(blockAsset.blockId, link.blockId),
+					),
+				);
+		}),
+	);
 
 test(
 	"before setup a link waits without a job, and the first setup indexes it from its stored extraction",
@@ -519,6 +598,251 @@ test(
 		expect(await collectionsOf(index)).toEqual([
 			String(settings?.collection),
 		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a model change moves search to a new collection at once, deletes the old one and re-embeds every link, and a job of the old model writes nothing",
+	async () => {
+		const index = indexes.switched;
+		const links = [
+			await seed(),
+			await seed(),
+		];
+		const [indexed, inFlight] = links;
+		await configure(index, links);
+		const before = await on(index, links, embeddingSettings);
+		await on(index, links, reconcileEmbeddings);
+		const [indexedJob] = await jobsOf(indexed);
+		const [oldJob] = await jobsOf(inFlight);
+		await vectorize(index, links, indexedJob);
+		expect(await linkOf(indexed)).toMatchObject({
+			status: "completed",
+		});
+		const oldPoints = await pointsIn(String(before?.collection));
+		expect(oldPoints).toBeGreaterThan(0);
+
+		await configure(index, links, "another");
+		const after = await on(index, links, embeddingSettings);
+		expect(after?.model).toBe("another");
+		expect(await on(index, links, embeddingsRebuilding)).toBe(true);
+
+		// Admitted for the old model, delivered after the switch: nothing lands anywhere.
+		const pending = await linkOf(inFlight);
+		await vectorize(index, links, oldJob);
+		expect(await linkOf(inFlight)).toEqual(pending);
+		expect(await pointsIn(String(after?.collection))).toBe(0);
+
+		expect(await on(index, links, reconcileEmbeddings)).toBe(2);
+		expect(await collectionsOf(index)).toEqual([
+			String(after?.collection),
+		]);
+		for (const link of links) {
+			expect(await linkOf(link)).toMatchObject({
+				status: "pending",
+				generation: after?.generation,
+			});
+		}
+		expect(await on(index, links, embeddingsRebuilding)).toBe(true);
+
+		for (const link of links) {
+			const jobs = await jobsOf(link);
+			const current = await linkOf(link);
+			const job = jobs.find(({ attempt }) => attempt === current?.attempt);
+			expect(job).toMatchObject({
+				fromStoredExtraction: true,
+			});
+			if (job) await vectorize(index, links, job);
+			expect(await linkOf(link)).toMatchObject({
+				status: "completed",
+				generation: after?.generation,
+			});
+		}
+		expect(await pointsIn(String(after?.collection))).toBe(oldPoints * 2);
+
+		// Every link settled: the rebuild is over.
+		expect(await on(index, links, embeddingsRebuilding)).toBe(false);
+	},
+	TIMEOUT,
+);
+
+test(
+	"Retry failed admits only the failed links re-embedding can help, and the counts name no file",
+	async () => {
+		const index = indexes.retried;
+		const links = [
+			await seed(),
+			await seed(),
+			await seed(),
+			await seed(),
+			await seed(),
+		];
+		// The last one stays waiting.
+		const [embedded, broken, missing, empty] = links;
+		const { organization } = await runtime.runPromise(createOrganization());
+		await runtime.runPromise(
+			Effect.gen(function* () {
+				yield* (yield* DB).insert(dbSchema.resourceScope).values(
+					[
+						embedded,
+						broken,
+					].map((link) => ({
+						resourceType: "block" as const,
+						resourceId: link.blockId,
+						organizationId: organization.id,
+					})),
+				);
+			}),
+		);
+		await configure(index, links);
+		await on(index, links, reconcileEmbeddings);
+		await settle(embedded, "completed");
+		await settle(broken, "failed", "other");
+		await settle(missing, "failed", "missing_extraction");
+		await settle(empty, "failed", "empty");
+		const generation = await generationOf(index, links);
+
+		const progress = await on(index, links, embeddingProgress);
+		expect(progress).toEqual({
+			generation: Number(generation),
+			rebuilding: true,
+			organizations: [
+				{
+					organizationId: organization.id,
+					name: organization.name,
+					embedded: 1,
+					waiting: 0,
+					failed: 1,
+				},
+				{
+					organizationId: null,
+					name: null,
+					embedded: 0,
+					waiting: 1,
+					failed: 2,
+				},
+			],
+			failures: [
+				{
+					failure: "empty",
+					count: 1,
+				},
+				{
+					failure: "other",
+					count: 1,
+				},
+				{
+					failure: "missing_extraction",
+					count: 1,
+				},
+			],
+			retryable: 1,
+		});
+		expect(JSON.stringify(progress)).not.toContain(broken.blockId);
+		expect(JSON.stringify(progress)).not.toContain("refunds.pdf");
+
+		const before = await Promise.all(links.map(linkOf));
+		expect(await on(index, links, retryFailedEmbeddings)).toBe(1);
+
+		const after = await Promise.all(links.map(linkOf));
+		expect(after[1]).toMatchObject({
+			status: "pending",
+			failure: null,
+			generation,
+		});
+		expect(after[1]?.attempt).not.toBe(before[1]?.attempt);
+		expect([
+			after[0],
+			after[2],
+			after[3],
+			after[4],
+		]).toEqual([
+			before[0],
+			before[2],
+			before[3],
+			before[4],
+		]);
+		const jobs = await jobsOf(broken);
+		expect(
+			jobs.find(({ attempt }) => attempt === after[1]?.attempt),
+		).toMatchObject({
+			fromStoredExtraction: true,
+		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"a link that failed before setup counts as waiting until the new generation embeds it",
+	async () => {
+		const index = indexes.failedBefore;
+		const link = await seed();
+		await admit(link, index);
+		await settle(link, "failed", "other");
+		expect(await linkOf(link)).toMatchObject({
+			generation: null,
+		});
+
+		await configure(index, link);
+
+		expect(await on(index, link, embeddingsRebuilding)).toBe(true);
+		expect((await on(index, link, embeddingProgress))?.organizations).toEqual([
+			{
+				organizationId: null,
+				name: null,
+				embedded: 0,
+				waiting: 1,
+				failed: 0,
+			},
+		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a reconciler ending a rebuild leaves the flag of a generation started meanwhile",
+	async () => {
+		const index = indexes.racingFlag;
+		const link = await seed();
+		await configure(index, link);
+		await on(index, link, reconcileEmbeddings);
+		await settle(link, "completed");
+		const generation = Number(await generationOf(index, link));
+		expect(await rebuildFlagOf(index)).toBe(true);
+
+		// Another save holds the settings row while the reconciler ends the rebuild.
+		const locked = Promise.withResolvers<void>();
+		const release = Promise.withResolvers<void>();
+		const saving = runtime.runPromise(
+			Effect.gen(function* () {
+				const db = yield* DB;
+				yield* db.transaction(() =>
+					Effect.gen(function* () {
+						yield* db.select().from(index.settings).for("update");
+						locked.resolve();
+						yield* Effect.promise(() => release.promise);
+						yield* db
+							.update(index.settings)
+							.set({
+								embeddingGeneration: generation + 1_000_000,
+								embeddingRebuilding: true,
+							})
+							.where(eq(index.settings.id, true));
+					}),
+				);
+			}),
+		);
+		await locked.promise;
+		const reconciling = on(index, link, reconcileEmbeddings);
+		await runtime.runPromise(
+			awaitLockWaiters("%update%instance_settings%embedding_rebuilding%"),
+		);
+		release.resolve();
+		await saving;
+		await reconciling;
+
+		expect(await rebuildFlagOf(index)).toBe(true);
 	},
 	TIMEOUT,
 );

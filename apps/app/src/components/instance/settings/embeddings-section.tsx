@@ -9,8 +9,9 @@ import { z } from "zod/v4";
 import { FormSection } from "@/components/forms/form-layout";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import { useAppForm } from "@/hooks/form";
-import { describeError } from "@/lib/errors/describe-error";
+import { describeError, errorReasonOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
@@ -22,11 +23,16 @@ const embeddingsFormSchema = (keyStored: boolean) =>
 		model: z.string().trim().min(1),
 	});
 
-/** The endpoint the instance embeds with; saving runs a test embedding first. */
+/**
+ * The endpoint the instance embeds with; saving runs a test embedding first.
+ * Another model asks first, since it re-embeds the `files` of every repository.
+ */
 export const EmbeddingsSection = ({
 	embeddings,
+	files,
 }: {
 	embeddings: EmbeddingSettings | null;
+	files: number;
 }) => {
 	const modelListId = useId();
 	const [models, setModels] = useState<readonly string[] | null>(null);
@@ -37,6 +43,7 @@ export const EmbeddingsSection = ({
 	const save = useMutation(
 		orpc.instanceSettings.updateEmbeddings.mutationOptions(),
 	);
+	const confirm = useConfirm();
 
 	const form = useAppForm({
 		defaultValues: {
@@ -49,14 +56,40 @@ export const EmbeddingsSection = ({
 		},
 		onSubmit: async ({ value, formApi }) => {
 			setFailure(null);
-			try {
+			const saveWith = async (reembedGeneration?: number) => {
 				await save.mutateAsync({
 					baseUrl: value.baseUrl,
 					apiKey: value.apiKey,
 					model: value.model,
+					reembedGeneration,
 				});
 				formApi.setFieldValue("apiKey", "");
 				toast.success(m.instance_settings_embeddings_saved_toast());
+			};
+			try {
+				try {
+					await saveWith();
+				} catch (error) {
+					// The server knows the dimensions, so it decides whether the model changes.
+					if (
+						errorReasonOf(error)?.reason !==
+						"EMBEDDING_MODEL_CHANGE_UNCONFIRMED"
+					) {
+						throw error;
+					}
+					const confirmed = await confirm({
+						title: m.instance_settings_embeddings_model_change_confirm_title(),
+						description:
+							m.instance_settings_embeddings_model_change_confirm_description({
+								count: files,
+								model: value.model,
+							}),
+						confirmText:
+							m.instance_settings_embeddings_model_change_confirm_button(),
+					});
+					// The confirmation is for the generation this page shows.
+					if (confirmed) await saveWith(embeddings?.generation);
+				}
 			} catch (error) {
 				setFailure(describeError(error));
 			}

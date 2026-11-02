@@ -3158,6 +3158,8 @@
 	"embeddings_setup_banner_action": "Set up embeddings",
 	"embeddings_setup_banner_description": "Uploaded files are not searchable until embeddings are set up.",
 	"embeddings_setup_banner_title": "Embeddings are not set up",
+	"embeddings_rebuild_notice_title": "Search is being rebuilt",
+	"embeddings_rebuild_notice_description": "OrcAI embeds every asset in a repository again, so search results can be incomplete for now.",
 	"error_active_organization_required": "Select an organisation first.",
 	"error_activity_failure_not_found": "This problem is already solved or dismissed.",
 	"error_activity_run_not_found": "This activity no longer exists.",
@@ -3217,9 +3219,10 @@
 	"error_embedding_api_key_required": "Enter the API key of the embedding endpoint.",
 	"error_embedding_endpoint_unreachable": "The embedding endpoint could not be reached, so check the base URL and try again later.",
 	"error_embedding_key_rejected": "The embedding endpoint rejected the API key, so check that it is valid and has not expired.",
-	"error_embedding_model_change_unsupported": "Embeddings already use another model, and changing the model is not possible yet.",
+	"error_embedding_model_change_unconfirmed": "Another model embeds every asset in a repository again, so confirm the change first.",
 	"error_embedding_model_not_found": "The endpoint does not know this model, so check its name.",
 	"error_embedding_response_invalid": "The endpoint answered the test embedding with something other than a vector, so check that the model creates embeddings.",
+	"error_embedding_setting_changed": "Another instance admin changed the embedding setting meanwhile. Reload the page and confirm the change again.",
 	"error_embeddings_not_configured": "Search is unavailable until an instance admin sets up embeddings.",
 	"error_entity_ids_required": "No valid entries were selected.",
 	"error_feature_requirement_missing": "{feature} requires {requirement} to be turned on.",
@@ -4023,12 +4026,80 @@
 	"instance_settings_embeddings_load_models_button": "Load models",
 	"instance_settings_embeddings_model_description": "Load the endpoint's models to pick one, or enter the model's name.",
 	"instance_settings_embeddings_model_label": "Model",
+	"instance_settings_embeddings_model_change_confirm_title": "Change the embedding model?",
+	"instance_settings_embeddings_model_change_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"input model",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "OrcAI embeds 1 asset in a repository again with {model}. Search uses the new model at once and finds only assets embedded with it until the re-embedding finishes.",
+				"countPlural=other": "OrcAI embeds {count} assets in repositories again with {model}. Search uses the new model at once and finds only assets embedded with it until the re-embedding finishes."
+			}
+		}
+	],
+	"instance_settings_embeddings_model_change_confirm_button": "Change the model",
 	"instance_settings_embeddings_model_unlisted_description": "This endpoint offers no model list, so enter the model's name.",
 	"instance_settings_embeddings_save_button": "Save and test",
 	"instance_settings_embeddings_saved_toast": "Embeddings saved",
 	"instance_settings_embeddings_title": "Embeddings",
 	"instance_settings_embeddings_unset_description": "Uploads are not searchable until embeddings are set up. OrcAI prepares files uploaded meanwhile and indexes them once you save the setup.",
 	"instance_settings_embeddings_unset_title": "Embeddings are not set up",
+	"instance_settings_index_title": "Search index",
+	"instance_settings_index_description": "Assets in repositories embedded with the current model, counted per organisation.",
+	"instance_settings_index_progress": "{embedded} of {total} assets in repositories embedded",
+	"instance_settings_index_empty": "No repository holds a prepared asset yet.",
+	"instance_settings_index_organization_column": "Organisation",
+	"instance_settings_index_embedded_column": "Embedded",
+	"instance_settings_index_waiting_column": "Waiting",
+	"instance_settings_index_failed_column": "Failed",
+	"instance_settings_index_no_organization": "Without an organisation",
+	"instance_settings_index_failures_title": "Failure reasons",
+	"instance_settings_index_retry_button": "Retry failed assets",
+	"instance_settings_index_retry_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Retry 1 failed asset?",
+				"countPlural=other": "Retry {count} failed assets?"
+			}
+		}
+	],
+	"instance_settings_index_retry_confirm_description": "OrcAI embeds them again from their stored text, and assets already embedded stay as they are. An asset whose stored text is missing needs preparing again in its repository.",
+	"instance_settings_index_retry_confirm_button": "Retry",
+	"instance_settings_index_reembed_button": "Re-embed everything",
+	"instance_settings_index_reembed_confirm_title": "Re-embed every asset?",
+	"instance_settings_index_reembed_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "OrcAI embeds 1 asset in a repository again with the current model, into a new collection. Search uses it at once and finds only assets embedded again until the re-embedding finishes.",
+				"countPlural=other": "OrcAI embeds {count} assets in repositories again with the current model, into a new collection. Search uses it at once and finds only assets embedded again until the re-embedding finishes."
+			}
+		}
+	],
+	"instance_settings_index_reembed_confirm_button": "Re-embed",
+	"instance_settings_index_reembed_toast_loading": "Starting the re-embedding...",
+	"instance_settings_index_reembed_toast_replaced": "Another change already started a re-embedding",
+	"instance_settings_index_reembed_toast_success": "Re-embedding started",
+	"instance_settings_index_reembed_toast_error": "The re-embedding was not started.",
 	"instance_settings_page_description": "Settings that apply to the whole instance.",
 	"instance_settings_page_title": "Settings",
 	"instance_sidebar_analytics_nav_label": "Analytics",

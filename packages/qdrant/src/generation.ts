@@ -24,6 +24,7 @@ import {
 	generationCollectionName,
 } from "./collections";
 import {
+	EmbeddingGenerationChangedError,
 	EmbeddingModelChangeError,
 	EmbeddingsNotConfiguredError,
 	StaleEmbeddingGenerationError,
@@ -273,91 +274,162 @@ export const inspectActiveCollection = Effect.gen(function* () {
 	};
 });
 
-/**
- * Stores the endpoint the instance embeds with, with the key its test
- * embedding used. The first setup starts a generation with its own
- * collection; the same model and dimensions update the active generation in
- * place. Another model or size fails `EmbeddingModelChangeError`. Holds the
- * generation lock exclusively, so saves run one at a time and no point write
- * straddles a new generation. Returns whether it started one.
- */
-export const configureEmbeddings = (setup: {
+type GenerationSetup = {
 	readonly baseUrl: string;
-	readonly apiKey: string;
+	readonly apiKeyEncrypted: string;
 	readonly model: string;
 	readonly dimensions: number;
-}) =>
+};
+
+/**
+ * Makes `setup` the active generation under a new number with a collection
+ * of its own, whose files are re-embedded until they have all settled.
+ * Needs the generation lock held exclusively.
+ */
+const startGeneration = (setup: GenerationSetup) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const scope = yield* EmbeddingIndex;
-		const { settings } = scope;
+		const pg = yield* PgClient.PgClient;
+		const [{ generation }] = yield* pg<{
+			generation: number;
+		}>`select nextval('embedding_generation_seq')::int as generation`;
+		const values = {
+			embeddingGeneration: generation,
+			embeddingBaseUrl: setup.baseUrl,
+			embeddingApiKeyEncrypted: setup.apiKeyEncrypted,
+			embeddingModel: setup.model,
+			embeddingDimensions: setup.dimensions,
+			embeddingCollection: generationCollectionName(
+				scope.collectionPrefix,
+				generation,
+				setup.model,
+				setup.dimensions,
+			),
+			embeddingRebuilding: true,
+			updatedAt: new Date(),
+		};
+		const { client } = yield* QdrantService;
+		yield* ensureCollection(
+			client,
+			values.embeddingCollection,
+			setup.dimensions,
+		);
+		yield* db
+			.insert(scope.settings)
+			.values({
+				id: true,
+				...values,
+			})
+			.onConflictDoUpdate({
+				target: scope.settings.id,
+				set: values,
+			});
+		return generation;
+	});
+
+/** Runs `body` in a transaction holding the generation lock exclusively, so saves run one at a time and no point write straddles a new generation. */
+const exclusively = <A, E, R>(body: Effect.Effect<A, E, R>) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
 		return yield* db.transaction(() =>
-			Effect.gen(function* () {
-				yield* lockGenerations(true);
-				const stored = yield* readStored;
-				const apiKeyEncrypted = yield* encryptApiKey(setup.apiKey);
-				if (stored) {
-					if (
-						stored.model !== setup.model ||
-						stored.dimensions !== setup.dimensions
-					) {
-						return yield* new EmbeddingModelChangeError({
-							model: setup.model,
-							dimensions: setup.dimensions,
-						});
-					}
-					yield* db
-						.update(settings)
-						.set({
-							embeddingBaseUrl: setup.baseUrl,
-							embeddingApiKeyEncrypted: apiKeyEncrypted,
-							updatedAt: new Date(),
-						})
-						.where(eq(settings.id, true));
-					return {
-						started: false,
-					};
-				}
-				const pg = yield* PgClient.PgClient;
-				const [{ generation }] = yield* pg<{
-					generation: number;
-				}>`select nextval('embedding_generation_seq')::int as generation`;
-				const values = {
-					embeddingGeneration: generation,
-					embeddingBaseUrl: setup.baseUrl,
-					embeddingApiKeyEncrypted: apiKeyEncrypted,
-					embeddingModel: setup.model,
-					embeddingDimensions: setup.dimensions,
-					embeddingCollection: generationCollectionName(
-						scope.collectionPrefix,
-						generation,
-						setup.model,
-						setup.dimensions,
-					),
-					updatedAt: new Date(),
-				};
-				const { client } = yield* QdrantService;
-				yield* ensureCollection(
-					client,
-					values.embeddingCollection,
-					setup.dimensions,
-				);
-				yield* db
-					.insert(settings)
-					.values({
-						id: true,
-						...values,
-					})
-					.onConflictDoUpdate({
-						target: settings.id,
-						set: values,
-					});
-				return {
-					started: true,
-				};
-			}),
+			lockGenerations(true).pipe(Effect.andThen(body)),
 		);
 	});
+
+/**
+ * Stores the endpoint the instance embeds with, with the key its test
+ * embedding used. The same model and dimensions update the active generation
+ * in place. The first setup, and another model or size when the caller
+ * confirmed replacing the active generation (`reembedGeneration`), start a
+ * new generation: search moves to its empty collection at once and every
+ * file is embedded again. Unconfirmed, another model or size fails
+ * `EmbeddingModelChangeError`. Any save confirmed for a generation another
+ * save has replaced since fails `EmbeddingGenerationChangedError`. Returns the active
+ * generation and whether it started.
+ */
+export const configureEmbeddings = (
+	setup: {
+		readonly baseUrl: string;
+		readonly apiKey: string;
+		readonly model: string;
+		readonly dimensions: number;
+	},
+	options: {
+		readonly reembedGeneration?: number;
+	} = {},
+) =>
+	exclusively(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const { settings } = yield* EmbeddingIndex;
+			const stored = yield* readStored;
+			const apiKeyEncrypted = yield* encryptApiKey(setup.apiKey);
+			// A confirmation for a replaced generation must not touch its successor either.
+			if (
+				stored &&
+				options.reembedGeneration !== undefined &&
+				options.reembedGeneration !== stored.generation
+			) {
+				return yield* new EmbeddingGenerationChangedError({
+					generation: stored.generation,
+				});
+			}
+			const sameModel =
+				stored?.model === setup.model && stored.dimensions === setup.dimensions;
+			if (stored && sameModel) {
+				yield* db
+					.update(settings)
+					.set({
+						embeddingBaseUrl: setup.baseUrl,
+						embeddingApiKeyEncrypted: apiKeyEncrypted,
+						updatedAt: new Date(),
+					})
+					.where(eq(settings.id, true));
+				return {
+					started: false,
+					generation: stored.generation,
+				};
+			}
+			if (stored && options.reembedGeneration === undefined) {
+				return yield* new EmbeddingModelChangeError({
+					model: setup.model,
+					dimensions: setup.dimensions,
+				});
+			}
+			return {
+				started: true,
+				generation: yield* startGeneration({
+					baseUrl: setup.baseUrl,
+					apiKeyEncrypted,
+					model: setup.model,
+					dimensions: setup.dimensions,
+				}),
+			};
+		}),
+	);
+
+/**
+ * Embeds every file again with the active setup, into a new generation and
+ * collection, when `generation` is still the active one; a repeated request
+ * finds it replaced and starts nothing. Returns whether it started one.
+ */
+export const reembedEmbeddings = (generation: number) =>
+	exclusively(
+		Effect.gen(function* () {
+			const stored = yield* readStored;
+			if (!stored) return yield* new EmbeddingsNotConfiguredError();
+			if (stored.generation !== generation) {
+				return {
+					started: false,
+				};
+			}
+			yield* startGeneration(stored);
+			return {
+				started: true,
+			};
+		}),
+	);
 
 /**
  * Keeps Qdrant on the active generation: its collection exists, every other
