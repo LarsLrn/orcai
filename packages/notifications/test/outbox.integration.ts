@@ -1,19 +1,22 @@
 import { describe, expect, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
-import { DB, DrizzleLive, dbSchema } from "@orcai/db";
 import {
-	type JobWithMetadata,
-	makePgBossLayer,
-	PgBossService,
-} from "@orcai/pg-boss";
+	DB,
+	DbConfigLive,
+	DbConfigService,
+	DrizzleLive,
+	dbSchema,
+	makePgConnectionString,
+} from "@orcai/db";
+import { PgBoss, PgBossService, TestClock } from "@orcai/pg-boss";
 import {
 	type EmailDeliveryChannel,
 	NOTIFICATION_OUTBOX_JOB_NAME,
 } from "@orcai/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
 import {
 	EmailService,
 	notificationOutboxValues,
@@ -25,54 +28,56 @@ class Rollback<A> extends Data.TaggedError("Rollback")<{
 	readonly value: A;
 }> {}
 
-const deliverOne = (channel: EmailDeliveryChannel) =>
+const emailVia = (channel: EmailDeliveryChannel) =>
+	Layer.succeed(EmailService, {
+		send: () =>
+			Effect.succeed({
+				channel,
+			}),
+	});
+
+/** A due row that is processed first, ahead of the stack's own. */
+const insertOldestRow = Effect.gen(function* () {
+	const db = yield* DB;
+	const suffix = crypto.randomUUID();
+	const [row] = yield* db
+		.insert(dbSchema.notificationOutbox)
+		.values({
+			...notificationOutboxValues(
+				{
+					type: "instance.test-email",
+					recipient: `admin-${suffix}@example.test`,
+					locale: "en",
+					healthUrl: "https://example.test/instance/health",
+				},
+				`outbox-${suffix}`,
+			),
+			nextAttemptAt: new Date("2000-01-01T00:00:00.000Z"),
+			createdAt: new Date("2000-01-01T00:00:00.000Z"),
+		})
+		.returning();
+	return row;
+});
+
+/** Runs `scenario` in a rolled-back transaction, so a drain leaves other files' rows alone. */
+const rolledBack = <E, R>(scenario: Effect.Effect<string, E, R>) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const suffix = crypto.randomUUID();
 		return yield* db
 			.transaction(() =>
 				Effect.gen(function* () {
-					// The oldest due row is processed first, ahead of the stack's own.
-					const [row] = yield* db
-						.insert(dbSchema.notificationOutbox)
-						.values({
-							...notificationOutboxValues(
-								{
-									type: "instance.test-email",
-									recipient: `admin-${suffix}@example.test`,
-									locale: "en",
-									healthUrl: "https://example.test/instance/health",
-								},
-								`outbox-channel-${suffix}`,
-							),
-							nextAttemptAt: new Date("2000-01-01T00:00:00.000Z"),
-							createdAt: new Date("2000-01-01T00:00:00.000Z"),
-						})
-						.returning();
-					yield* processNextNotification();
-					const [sent] = yield* db
+					const rowId = yield* Effect.orDie(scenario);
+					const [seen] = yield* db
 						.select()
 						.from(dbSchema.notificationOutbox)
-						.where(eq(dbSchema.notificationOutbox.id, row.id));
+						.where(eq(dbSchema.notificationOutbox.id, rowId));
 					return yield* new Rollback({
-						value: sent,
+						value: seen,
 					});
 				}),
 			)
 			.pipe(Effect.catchTag("Rollback", ({ value }) => Effect.succeed(value)));
-	}).pipe(
-		Effect.provide(
-			Layer.mergeAll(
-				DrizzleLive,
-				Layer.succeed(EmailService, {
-					send: () =>
-						Effect.succeed({
-							channel,
-						}),
-				}),
-			),
-		),
-	);
+	});
 
 describe("notification outbox", () => {
 	for (const channel of [
@@ -80,7 +85,15 @@ describe("notification outbox", () => {
 		"log",
 	] as const) {
 		test(`records ${channel} delivery on the sent row`, async () => {
-			const row = await Effect.runPromise(deliverOne(channel));
+			const row = await Effect.runPromise(
+				rolledBack(
+					Effect.gen(function* () {
+						const row = yield* insertOldestRow;
+						yield* processNextNotification();
+						return row.id;
+					}),
+				).pipe(Effect.provide(Layer.mergeAll(DrizzleLive, emailVia(channel)))),
+			);
 			expect(row).toMatchObject({
 				status: "sent",
 				deliveryChannel: channel,
@@ -89,63 +102,79 @@ describe("notification outbox", () => {
 	}
 });
 
-// The wake's singleton slot, as pg-boss buckets it.
-const SLOT_MS = 5_000;
-const slotOf = (job: Pick<JobWithMetadata, "singletonOn">) =>
-	job.singletonOn?.getTime() ?? 0;
-
-test("a wake in a slot whose drain already started queues a drain in a later slot", async () => {
-	// Start just after a slot boundary, so both wakes fall into one slot.
-	await sleep(SLOT_MS - (Date.now() % SLOT_MS) + 100);
-	const slotEnd = Date.now() - (Date.now() % SLOT_MS) + SLOT_MS;
-	const { drain, next, inSlot } = await Effect.runPromise(
-		Effect.gen(function* () {
-			const { boss } = yield* PgBossService;
-			yield* Effect.promise(() =>
-				boss.createQueue(NOTIFICATION_OUTBOX_JOB_NAME),
-			);
-			yield* wakeNotificationWorker;
-			// The worker takes every waiting drain, so a row inserted now needs a new one.
-			const draining = yield* Effect.promise(() =>
-				boss.fetch(NOTIFICATION_OUTBOX_JOB_NAME, {
-					batchSize: 1000,
-					includeMetadata: true,
-				}),
-			);
-			const drain = draining
-				.filter((job) => job.singletonOn !== null)
-				.sort((a, b) => slotOf(b) - slotOf(a))
-				.at(0);
-			yield* wakeNotificationWorker;
-			const inSlot = Date.now() < slotEnd;
-			const next = (yield* Effect.promise(() =>
-				boss.findJobs(NOTIFICATION_OUTBOX_JOB_NAME, {
-					queued: true,
-				}),
-			)).filter((job) => drain && slotOf(job) > slotOf(drain));
-			for (const ids of [
-				draining.map((job) => job.id),
-				next.map((job) => job.id),
-			]) {
-				if (ids.length === 0) continue;
+/** pg-boss in a schema of its own on a hand-driven clock: no other file wakes its queue. */
+const isolatedPgBoss = (clock: TestClock) =>
+	Layer.effect(
+		PgBossService,
+		Effect.acquireRelease(
+			Effect.gen(function* () {
+				const { config } = yield* DbConfigService;
+				const schema = `outbox_wake_${crypto.randomUUID().replaceAll("-", "")}`;
+				const boss = new PgBoss({
+					connectionString: Redacted.value(
+						makePgConnectionString(config.postgres),
+					),
+					schema,
+					clock,
+				});
+				yield* Effect.promise(() => boss.start());
 				yield* Effect.promise(() =>
-					boss.deleteJob(NOTIFICATION_OUTBOX_JOB_NAME, ids),
+					boss.createQueue(NOTIFICATION_OUTBOX_JOB_NAME),
 				);
-			}
-			return {
-				drain,
-				next,
-				inSlot,
-			};
-		}).pipe(
-			Effect.provide(
-				makePgBossLayer({
-					instanceName: "notifications-integration",
+				return {
+					boss,
+					schema,
+				};
+			}),
+			({ boss, schema }) =>
+				Effect.gen(function* () {
+					const db = yield* DB;
+					yield* Effect.promise(() =>
+						boss.stop({
+							graceful: false,
+						}),
+					);
+					yield* db
+						.execute(sql.raw(`DROP SCHEMA ${schema} CASCADE`))
+						.pipe(Effect.orDie);
 				}),
+		),
+	).pipe(Layer.provide(DbConfigLive));
+
+test("a row added while a drain runs is drained after the next wake", async () => {
+	// Time stands still until the tick, so both wakes fall into one slot.
+	const clock = new TestClock("2026-01-01T00:00:01.000Z");
+	const row = await Effect.runPromise(
+		rolledBack(
+			Effect.gen(function* () {
+				const { boss } = yield* PgBossService;
+				// What the worker does with each drain it fetches.
+				const work = Effect.gen(function* () {
+					const drains = yield* Effect.promise(() =>
+						boss.fetch(NOTIFICATION_OUTBOX_JOB_NAME, {
+							batchSize: 10,
+						}),
+					);
+					for (const _ of drains) yield* processNextNotification();
+				});
+				yield* wakeNotificationWorker;
+				yield* work;
+				// The drain is still running and has already looked for rows.
+				const row = yield* insertOldestRow;
+				yield* wakeNotificationWorker;
+				yield* Effect.promise(() => clock.tick(10_000));
+				yield* work;
+				return row.id;
+			}),
+		).pipe(
+			Effect.provide(
+				isolatedPgBoss(clock).pipe(
+					Layer.provideMerge(Layer.mergeAll(DrizzleLive, emailVia("log"))),
+				),
 			),
 		),
 	);
-	expect(drain).toBeDefined();
-	expect(inSlot).toBe(true);
-	expect(next).toHaveLength(1);
-}, 15_000);
+	expect(row).toMatchObject({
+		status: "sent",
+	});
+});

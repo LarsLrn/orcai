@@ -1,4 +1,4 @@
-export { type Job, type JobWithMetadata, PgBoss } from "pg-boss";
+export { type Job, type JobWithMetadata, PgBoss, TestClock } from "pg-boss";
 export * from "./activity";
 export * from "./asset-metadata";
 export * from "./asset-pipeline";
