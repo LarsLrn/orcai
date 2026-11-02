@@ -6,6 +6,7 @@ export {
 	QdrantConfigService,
 } from "./config";
 export {
+	EmbeddingGenerationChangedError,
 	EmbeddingModelChangeError,
 	EmbeddingsNotConfiguredError,
 	QdrantError,
@@ -22,6 +23,7 @@ export {
 	inspectActiveCollection,
 	maintainCollections,
 	onActiveGeneration,
+	reembedEmbeddings,
 	storedEmbeddingApiKey,
 	writeGeneration,
 } from "./generation";

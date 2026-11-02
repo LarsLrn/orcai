@@ -3158,6 +3158,8 @@
 	"embeddings_setup_banner_action": "Embeddings einrichten",
 	"embeddings_setup_banner_description": "Hochgeladene Dateien sind nicht durchsuchbar, bis die Embeddings eingerichtet sind.",
 	"embeddings_setup_banner_title": "Embeddings sind nicht eingerichtet",
+	"embeddings_rebuild_notice_title": "Die Suche wird neu aufgebaut",
+	"embeddings_rebuild_notice_description": "OrcAI erzeugt die Embeddings aller Assets in Repositories neu, daher können Suchergebnisse vorerst unvollständig sein.",
 	"error_active_organization_required": "Wählen Sie zuerst eine Organisation aus.",
 	"error_activity_failure_not_found": "Dieses Problem ist bereits gelöst oder ausgeblendet.",
 	"error_activity_run_not_found": "Diese Aktivität gibt es nicht mehr.",
@@ -3217,9 +3219,10 @@
 	"error_embedding_api_key_required": "Geben Sie den API-Schlüssel des Embedding-Endpunkts ein.",
 	"error_embedding_endpoint_unreachable": "Der Embedding-Endpunkt ist nicht erreichbar, prüfen Sie daher die Basis-URL und versuchen Sie es später erneut.",
 	"error_embedding_key_rejected": "Der Embedding-Endpunkt hat den API-Schlüssel abgelehnt, prüfen Sie daher, ob er gültig und nicht abgelaufen ist.",
-	"error_embedding_model_change_unsupported": "Die Embeddings nutzen bereits ein anderes Modell, und das Modell lässt sich noch nicht wechseln.",
+	"error_embedding_model_change_unconfirmed": "Ein anderes Modell erzeugt die Embeddings aller Assets in Repositories neu, bestätigen Sie den Wechsel daher zuerst.",
 	"error_embedding_model_not_found": "Der Endpunkt kennt dieses Modell nicht, prüfen Sie daher seinen Namen.",
 	"error_embedding_response_invalid": "Der Endpunkt hat auf das Test-Embedding keinen Vektor geliefert, prüfen Sie daher, ob das Modell Embeddings erzeugt.",
+	"error_embedding_setting_changed": "Ein anderer Instanz-Admin hat die Embedding-Einstellung inzwischen geändert. Laden Sie die Seite neu und bestätigen Sie den Wechsel erneut.",
 	"error_embeddings_not_configured": "Die Suche ist nicht verfügbar, bis ein Instanz-Admin die Embeddings einrichtet.",
 	"error_entity_ids_required": "Es wurden keine gültigen Einträge ausgewählt.",
 	"error_feature_requirement_missing": "{feature} setzt voraus, dass {requirement} aktiviert ist.",
@@ -4023,12 +4026,80 @@
 	"instance_settings_embeddings_load_models_button": "Modelle laden",
 	"instance_settings_embeddings_model_description": "Laden Sie die Modelle des Endpunkts, um eines zu wählen, oder geben Sie den Namen des Modells ein.",
 	"instance_settings_embeddings_model_label": "Modell",
+	"instance_settings_embeddings_model_change_confirm_title": "Embedding-Modell wechseln?",
+	"instance_settings_embeddings_model_change_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"input model",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "OrcAI erzeugt die Embeddings für 1 Asset in einem Repository mit {model} neu. Die Suche nutzt sofort das neue Modell und findet nur Assets mit dessen Embeddings, bis alle neu erzeugt sind.",
+				"countPlural=other": "OrcAI erzeugt die Embeddings für {count} Assets in Repositories mit {model} neu. Die Suche nutzt sofort das neue Modell und findet nur Assets mit dessen Embeddings, bis alle neu erzeugt sind."
+			}
+		}
+	],
+	"instance_settings_embeddings_model_change_confirm_button": "Modell wechseln",
 	"instance_settings_embeddings_model_unlisted_description": "Dieser Endpunkt bietet keine Modellliste an, geben Sie daher den Namen des Modells ein.",
 	"instance_settings_embeddings_save_button": "Speichern und testen",
 	"instance_settings_embeddings_saved_toast": "Embeddings gespeichert",
 	"instance_settings_embeddings_title": "Embeddings",
 	"instance_settings_embeddings_unset_description": "Uploads sind nicht durchsuchbar, bis die Embeddings eingerichtet sind. OrcAI bereitet Dateien, die Sie bis dahin hochladen, vor und indiziert sie, sobald Sie die Einrichtung speichern.",
 	"instance_settings_embeddings_unset_title": "Embeddings sind nicht eingerichtet",
+	"instance_settings_index_title": "Suchindex",
+	"instance_settings_index_description": "Assets in Repositories mit Embeddings des aktuellen Modells, gezählt je Organisation.",
+	"instance_settings_index_progress": "Embeddings für {embedded} von {total} Assets in Repositories erzeugt",
+	"instance_settings_index_empty": "Noch kein Repository enthält ein vorbereitetes Asset.",
+	"instance_settings_index_organization_column": "Organisation",
+	"instance_settings_index_embedded_column": "Eingebettet",
+	"instance_settings_index_waiting_column": "Wartend",
+	"instance_settings_index_failed_column": "Fehlgeschlagen",
+	"instance_settings_index_no_organization": "Ohne Organisation",
+	"instance_settings_index_failures_title": "Fehlergründe",
+	"instance_settings_index_retry_button": "Fehlgeschlagene Assets erneut versuchen",
+	"instance_settings_index_retry_confirm_title": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "1 fehlgeschlagenes Asset erneut versuchen?",
+				"countPlural=other": "{count} fehlgeschlagene Assets erneut versuchen?"
+			}
+		}
+	],
+	"instance_settings_index_retry_confirm_description": "OrcAI erzeugt ihre Embeddings aus dem gespeicherten Text neu, und bereits eingebettete Assets bleiben unverändert. Ein Asset ohne gespeicherten Text muss in seinem Repository erneut vorbereitet werden.",
+	"instance_settings_index_retry_confirm_button": "Erneut versuchen",
+	"instance_settings_index_reembed_button": "Alles neu einbetten",
+	"instance_settings_index_reembed_confirm_title": "Alle Assets neu einbetten?",
+	"instance_settings_index_reembed_confirm_description": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "OrcAI erzeugt die Embeddings für 1 Asset in einem Repository mit dem aktuellen Modell in einer neuen Collection neu. Die Suche nutzt sie sofort und findet nur Assets mit neuen Embeddings, bis alle neu erzeugt sind.",
+				"countPlural=other": "OrcAI erzeugt die Embeddings für {count} Assets in Repositories mit dem aktuellen Modell in einer neuen Collection neu. Die Suche nutzt sie sofort und findet nur Assets mit neuen Embeddings, bis alle neu erzeugt sind."
+			}
+		}
+	],
+	"instance_settings_index_reembed_confirm_button": "Neu einbetten",
+	"instance_settings_index_reembed_toast_loading": "Das Neueinbetten wird gestartet...",
+	"instance_settings_index_reembed_toast_replaced": "Eine andere Änderung hat das Neueinbetten bereits gestartet",
+	"instance_settings_index_reembed_toast_success": "Neueinbetten gestartet",
+	"instance_settings_index_reembed_toast_error": "Das Neueinbetten wurde nicht gestartet.",
 	"instance_settings_page_description": "Einstellungen für die gesamte Instanz.",
 	"instance_settings_page_title": "Einstellungen",
 	"instance_sidebar_analytics_nav_label": "Analysen",

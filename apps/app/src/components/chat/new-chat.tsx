@@ -11,6 +11,7 @@ import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
 import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
+import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
 import { MessageScrollerItem } from "@/components/ui/message-scroller";
 
 const NewChat = ({
@@ -58,6 +59,7 @@ const NewChat = ({
 					botId={selectedBotId}
 					providerId={selectedProviderId}
 				/>
+				<ChatEmbeddingsRebuildNotice repositoryIds={repositoryIds} />
 				<AssetsPanel blockIds={repositoryIds} />
 				<NewChatInput
 					selectedBotId={selectedBotId}

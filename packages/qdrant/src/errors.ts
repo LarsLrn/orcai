@@ -17,10 +17,17 @@ export class StaleEmbeddingGenerationError extends Data.TaggedError(
 	readonly generation: number;
 }> {}
 
-/** A different embedding model or size needs a new generation. */
+/** Another embedding model or size re-embeds every file, which the caller did not confirm. */
 export class EmbeddingModelChangeError extends Data.TaggedError(
 	"EmbeddingModelChangeError",
 )<{
 	readonly model: string;
 	readonly dimensions: number;
+}> {}
+
+/** Another save replaced the generation a confirmed model change was meant for. */
+export class EmbeddingGenerationChangedError extends Data.TaggedError(
+	"EmbeddingGenerationChangedError",
+)<{
+	readonly generation: number;
 }> {}

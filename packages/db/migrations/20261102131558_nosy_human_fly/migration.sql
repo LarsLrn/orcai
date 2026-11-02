@@ -1,0 +1,1 @@
+ALTER TABLE "instance_settings" ADD COLUMN "embedding_rebuilding" boolean DEFAULT false NOT NULL;

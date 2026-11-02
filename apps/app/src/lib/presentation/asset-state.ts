@@ -61,6 +61,10 @@ const failureDescriptions: Record<PipelineFailure, () => string> = {
 	missing_extraction: m.pipeline_failure_missing_extraction,
 };
 
+/** Why a pipeline failed, in words, whatever the file. */
+export const describePipelineFailure = (failure: PipelineFailure) =>
+	failureDescriptions[failure]();
+
 /** An image the utility model could not read can be processed again once an admin picks one that can. */
 const unreadableImage = (failure: PipelineFailure, fileType: FileType) =>
 	failure === "unsupported" && isImageFileType(fileType);
@@ -76,4 +80,4 @@ export const getPipelineFailureDescription = (
 ) =>
 	unreadableImage(failure, fileType)
 		? m.pipeline_failure_unsupported_image()
-		: failureDescriptions[failure]();
+		: describePipelineFailure(failure);

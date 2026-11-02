@@ -102,10 +102,11 @@ const reasonMessages: ReasonMessages = {
 	EMBEDDING_API_KEY_REQUIRED: m.error_embedding_api_key_required,
 	EMBEDDING_ENDPOINT_UNREACHABLE: m.error_embedding_endpoint_unreachable,
 	EMBEDDING_KEY_REJECTED: m.error_embedding_key_rejected,
-	EMBEDDING_MODEL_CHANGE_UNSUPPORTED:
-		m.error_embedding_model_change_unsupported,
+	EMBEDDING_MODEL_CHANGE_UNCONFIRMED:
+		m.error_embedding_model_change_unconfirmed,
 	EMBEDDING_MODEL_NOT_FOUND: m.error_embedding_model_not_found,
 	EMBEDDING_RESPONSE_INVALID: m.error_embedding_response_invalid,
+	EMBEDDING_SETTING_CHANGED: m.error_embedding_setting_changed,
 	ENTITY_IDS_REQUIRED: m.error_entity_ids_required,
 	FEATURE_REQUIREMENT_MISSING: ({ feature, requirement }) =>
 		m.error_feature_requirement_missing({

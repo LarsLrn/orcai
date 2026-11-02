@@ -364,7 +364,11 @@ the OpenAI-compatible endpoint and model that embed every organisation's
 repository assets and search queries. **Save and test** saves them only after
 a test embedding works. [Embeddings](/docs/self-hosting/configuration#embeddings)
 describes the fields. Until they are set up, repository search is unavailable,
-and instance admins see a banner in the app that links to this page.
+and instance admins see a banner in the app that links to this page. Changing
+the model embeds every asset in a repository again after a confirmation, and
+the **Search index** section counts the progress per organisation, with
+**Retry failed assets** and **Re-embed everything**, as described under
+[Change the model](/docs/self-hosting/configuration#change-the-model).
 
 **Organisations** (`/instance/organizations`) lists every organisation of the
 instance with its slug and member count, with search, creates one with

@@ -39,6 +39,8 @@ const columns = () => ({
 	embeddingModel: text("embedding_model"),
 	embeddingDimensions: integer("embedding_dimensions"),
 	embeddingCollection: text("embedding_collection"),
+	/** Files are re-embedded into the active generation until every one has settled. */
+	embeddingRebuilding: boolean("embedding_rebuilding").notNull().default(false),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

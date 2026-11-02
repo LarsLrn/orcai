@@ -1,0 +1,47 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "6606fd42-def7-4d60-8f03-a12778ca937c",
+  "prevIds": [
+    "e21fe8b4-2bd3-4356-8426-51383fdf7279"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "instance_settings",
+        "embedding_rebuilding"
+      ],
+      "writes": [
+        "s|col|public.instance_settings.embedding_rebuilding",
+        "n|col|public.instance_settings.embedding_rebuilding",
+        "e|col|public.instance_settings.embedding_rebuilding"
+      ],
+      "reads": [
+        "n|tbl|public.instance_settings",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_rebuilding",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    }
+  ]
+}
