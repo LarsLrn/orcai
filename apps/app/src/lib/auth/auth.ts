@@ -36,7 +36,13 @@ import { acceptInvitation } from "@/lib/authz/organization-membership";
 import { secureCookiesFor, zedTokenCookieOptions } from "@/lib/authz/zed-token";
 import { runPromise } from "@/lib/effect/runtime";
 import { loadAppConfigSync } from "@/lib/effect/services/config";
-import { cookieMaxAge, cookieName, getLocale } from "@/paraglide/runtime";
+import {
+	cookieMaxAge,
+	cookieName,
+	cookieSameSite,
+	cookieSecure,
+	getLocale,
+} from "@/paraglide/runtime";
 import { COOKIES } from "@/settings/constants";
 
 const cfg = loadAppConfigSync();
@@ -266,6 +272,11 @@ export const auth = betterAuth({
 				ctx.setCookie(cookieName, stored.data, {
 					path: "/",
 					maxAge: cookieMaxAge,
+					sameSite: cookieSameSite,
+					secure:
+						cookieSecure === "auto"
+							? ctx.context.baseURL.startsWith("https:")
+							: cookieSecure,
 				});
 				return;
 			}
