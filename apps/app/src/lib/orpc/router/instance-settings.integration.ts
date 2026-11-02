@@ -20,6 +20,10 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 const DIMENSIONS = 6;
 const WIDE_DIMENSIONS = 8;
 const API_KEY = "sk-integration-secret";
+const NO_PREFIXES = {
+	queryPrefix: "",
+	passagePrefix: "",
+};
 
 /** The next request to `/held`, with its key, waiting for the test to let it through. */
 let held:
@@ -123,6 +127,7 @@ const indexes = {
 	failures: await testEmbeddingIndex(),
 	saves: await testEmbeddingIndex(),
 	changes: await testEmbeddingIndex(),
+	prefixes: await testEmbeddingIndex(),
 	reembed: await testEmbeddingIndex(),
 	confirming: await testEmbeddingIndex(),
 	sameTarget: await testEmbeddingIndex(),
@@ -168,6 +173,7 @@ describe("instance settings", () => {
 					run(
 						procedures.instanceSettings.updateEmbeddings(
 							{
+								...NO_PREFIXES,
 								baseUrl: endpoint("ok"),
 								apiKey: API_KEY,
 								model: "integration-embedding",
@@ -235,6 +241,7 @@ describe("instance settings", () => {
 					run(
 						procedures.instanceSettings.updateEmbeddings(
 							{
+								...NO_PREFIXES,
 								baseUrl,
 								apiKey,
 								model: "integration-embedding",
@@ -273,6 +280,7 @@ describe("instance settings", () => {
 			const saved = await run(
 				procedures.instanceSettings.updateEmbeddings(
 					{
+						...NO_PREFIXES,
 						baseUrl: endpoint("ok"),
 						apiKey: API_KEY,
 						model: "integration-embedding",
@@ -294,6 +302,7 @@ describe("instance settings", () => {
 				baseUrl: endpoint("ok"),
 				model: "integration-embedding",
 				dimensions: DIMENSIONS,
+				...NO_PREFIXES,
 				apiKeySet: true,
 			});
 			expect(found.data.embeddings).toEqual(saved.data);
@@ -318,6 +327,7 @@ describe("instance settings", () => {
 			await run(
 				procedures.instanceSettings.updateEmbeddings(
 					{
+						...NO_PREFIXES,
 						baseUrl: endpoint("ok-too"),
 						model: "integration-embedding",
 					},
@@ -347,6 +357,7 @@ describe("instance settings", () => {
 				run(
 					procedures.instanceSettings.updateEmbeddings(
 						{
+							...NO_PREFIXES,
 							baseUrl,
 							apiKey: API_KEY,
 							model,
@@ -417,6 +428,73 @@ describe("instance settings", () => {
 	);
 
 	test(
+		"another passage prefix re-embeds only once confirmed, while another query prefix applies in place",
+		async () => {
+			const { admin } = await actors();
+			const { procedures, options } = await call(admin, indexes.prefixes);
+			const save = (prefixes: typeof NO_PREFIXES, reembedGeneration?: number) =>
+				run(
+					procedures.instanceSettings.updateEmbeddings(
+						{
+							baseUrl: endpoint("ok"),
+							apiKey: API_KEY,
+							model: "integration-embedding",
+							...prefixes,
+							reembedGeneration,
+						},
+						options,
+					),
+				);
+			const settings = () =>
+				run(
+					embeddingSettings.pipe(
+						Effect.provideService(EmbeddingIndex, indexes.prefixes),
+					),
+				);
+			await save(NO_PREFIXES);
+			const first = await settings();
+			const queryPrefix =
+				"Instruct: Given a question, retrieve passages that answer it\nQuery: ";
+
+			await save({
+				queryPrefix,
+				passagePrefix: "",
+			});
+			const queried = await settings();
+			expect(queried).toEqual(
+				first && {
+					...first,
+					queryPrefix,
+				},
+			);
+
+			const prefixed = {
+				queryPrefix,
+				passagePrefix: "passage: ",
+			};
+			expect(await reasonOf(save(prefixed))).toBe(
+				"EMBEDDING_MODEL_CHANGE_UNCONFIRMED",
+			);
+			expect(await settings()).toEqual(queried);
+
+			await save(prefixed, first?.generation);
+			const changed = await settings();
+			expect(changed).toMatchObject({
+				model: first?.model,
+				dimensions: first?.dimensions,
+				...prefixed,
+			});
+			expect(changed?.generation).toBeGreaterThan(first?.generation ?? 0);
+			expect(changed?.collection).not.toBe(first?.collection);
+			expect(
+				(await run(procedures.instanceSettings.find({}, options))).data
+					.embeddings,
+			).toMatchObject(prefixed);
+		},
+		TIMEOUT,
+	);
+
+	test(
 		"two admins confirming different models for the same generation: one switches, the other is told to confirm again",
 		async () => {
 			const { admin } = await actors();
@@ -425,6 +503,7 @@ describe("instance settings", () => {
 				run(
 					procedures.instanceSettings.updateEmbeddings(
 						{
+							...NO_PREFIXES,
 							baseUrl: endpoint("ok"),
 							apiKey: API_KEY,
 							model,
@@ -466,6 +545,7 @@ describe("instance settings", () => {
 				run(
 					procedures.instanceSettings.updateEmbeddings(
 						{
+							...NO_PREFIXES,
 							baseUrl,
 							apiKey: API_KEY,
 							model: reembedGeneration ? "model-b" : "integration-embedding",
@@ -521,6 +601,7 @@ describe("instance settings", () => {
 			await run(
 				procedures.instanceSettings.updateEmbeddings(
 					{
+						...NO_PREFIXES,
 						baseUrl: endpoint("ok"),
 						apiKey: API_KEY,
 						model: "integration-embedding",
@@ -598,6 +679,7 @@ describe("instance settings", () => {
 				run(
 					procedures.instanceSettings.updateEmbeddings(
 						{
+							...NO_PREFIXES,
 							baseUrl,
 							apiKey,
 							model: "integration-embedding",

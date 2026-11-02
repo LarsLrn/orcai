@@ -39,6 +39,12 @@ const columns = () => ({
 	embeddingModel: text("embedding_model"),
 	embeddingDimensions: integer("embedding_dimensions"),
 	embeddingCollection: text("embedding_collection"),
+	/** Text before every search query the active generation embeds; may change in place. */
+	embeddingQueryPrefix: text("embedding_query_prefix").notNull().default(""),
+	/** Text before every passage the active generation embeds; another one starts a new generation. */
+	embeddingPassagePrefix: text("embedding_passage_prefix")
+		.notNull()
+		.default(""),
 	/** Files are re-embedded into the active generation until every one has settled. */
 	embeddingRebuilding: boolean("embedding_rebuilding").notNull().default(false),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),

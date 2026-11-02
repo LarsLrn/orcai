@@ -76,6 +76,8 @@ export const testEmbeddingIndex = async (embeddings?: {
 	readonly baseUrl: string;
 	readonly model: string;
 	readonly dimensions: number;
+	readonly queryPrefix?: string;
+	readonly passagePrefix?: string;
 }) => {
 	const runtime = ManagedRuntime.make(
 		IsolatedEmbeddingIndexLive().pipe(
@@ -88,6 +90,8 @@ export const testEmbeddingIndex = async (embeddings?: {
 	if (embeddings) {
 		await runtime.runPromise(
 			configureEmbeddings({
+				queryPrefix: "",
+				passagePrefix: "",
 				...embeddings,
 				apiKey: "key",
 			}),

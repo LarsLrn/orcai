@@ -13,6 +13,9 @@ const apiKeySchema = z
 	.optional()
 	.transform((apiKey) => apiKey || undefined);
 
+/** Kept exactly as entered: spaces and line breaks are part of what the model expects. */
+export const embeddingPrefixSchema = z.string().max(1000);
+
 export const discoverEmbeddingModelsInputSchema = z.object({
 	baseUrl: endpointSchema,
 	apiKey: apiKeySchema,
@@ -22,9 +25,13 @@ export const updateEmbeddingSettingsInputSchema = z.object({
 	baseUrl: endpointSchema,
 	apiKey: apiKeySchema,
 	model: z.string().trim().min(1),
+	/** Text before every search query; changing it applies at once. */
+	queryPrefix: embeddingPrefixSchema,
+	/** Text before every passage; changing it re-embeds every file. */
+	passagePrefix: embeddingPrefixSchema,
 	/**
-	 * The active generation the admin confirmed replacing when the model or
-	 * its dimensions change, which re-embeds every file. A save that replaced
+	 * The active generation the admin confirmed replacing when the model, its
+	 * dimensions or the passage prefix change, which re-embeds every file. A save that replaced
 	 * it meanwhile makes the change fail.
 	 */
 	reembedGeneration: z.number().int().positive().optional(),

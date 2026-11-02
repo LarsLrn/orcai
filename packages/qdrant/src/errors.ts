@@ -17,7 +17,7 @@ export class StaleEmbeddingGenerationError extends Data.TaggedError(
 	readonly generation: number;
 }> {}
 
-/** Another embedding model or size re-embeds every file, which the caller did not confirm. */
+/** Another embedding model, size or passage prefix re-embeds every file, which the caller did not confirm. */
 export class EmbeddingModelChangeError extends Data.TaggedError(
 	"EmbeddingModelChangeError",
 )<{

@@ -41,31 +41,43 @@ const at = (similarity: number) =>
 					: 0,
 	);
 
+/** Every value the endpoint below embedded. */
+const embedded: string[] = [];
+
 /** An OpenAI-compatible endpoint that embeds every query as the same vector. */
 const embeddings = serve({
 	port: 0,
-	fetch: () =>
-		Response.json({
+	fetch: async (request) => {
+		const { input } = (await request.json()) as {
+			input: string[];
+		};
+		embedded.push(...input);
+		return Response.json({
 			object: "list",
-			data: [
-				{
-					object: "embedding",
-					index: 0,
-					embedding: at(1),
-				},
-			],
+			data: input.map((_, index) => ({
+				object: "embedding",
+				index,
+				embedding: at(1),
+			})),
 			model: "integration",
 			usage: {
 				prompt_tokens: 1,
 				total_tokens: 1,
 			},
-		}),
+		});
+	},
 });
+
+// E5 instruct models expect this before a query, line break included.
+const QUERY_PREFIX =
+	"Instruct: Given a question, retrieve passages that answer it\nQuery: ";
 
 const configuredIndex = await testEmbeddingIndex({
 	baseUrl: `${embeddings.url.origin}/v1`,
 	model: "integration",
 	dimensions,
+	queryPrefix: QUERY_PREFIX,
+	passagePrefix: "passage: ",
 });
 const unconfiguredIndex = await testEmbeddingIndex();
 
@@ -273,6 +285,29 @@ const similarities = (points: AssetPoint[]) =>
 	points.map((point) => Number(point.payload.text.split(" at ")[1]));
 
 describe("repository search", () => {
+	test(
+		"embeds each query after the query prefix, not the passage prefix",
+		async () => {
+			const { search } = await repositoryOf([
+				passages(1, STRONG),
+			]);
+			const before = embedded.length;
+
+			await search({
+				queries: [
+					"refund",
+					"late fee",
+				],
+			});
+
+			expect(embedded.slice(before)).toEqual([
+				`${QUERY_PREFIX}refund`,
+				`${QUERY_PREFIX}late fee`,
+			]);
+		},
+		TIMEOUT,
+	);
+
 	test(
 		"fills the limit from a single asset",
 		async () => {

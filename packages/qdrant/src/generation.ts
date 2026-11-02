@@ -60,9 +60,13 @@ export class EmbeddingGeneration extends Context.Service<
 		readonly model: string;
 		readonly dimensions: number;
 		readonly collection: string;
-		/** One vector per value from the generation's model. */
-		readonly embed: (
-			values: readonly string[],
+		/** One vector per search query from the generation's model, after its query prefix. */
+		readonly embedQueries: (
+			queries: readonly string[],
+		) => Effect.Effect<number[][], AiError>;
+		/** One vector per passage from the generation's model, after its passage prefix. */
+		readonly embedPassages: (
+			passages: readonly string[],
 		) => Effect.Effect<number[][], AiError>;
 	}
 >()("EmbeddingGeneration") {}
@@ -82,6 +86,8 @@ type StoredGeneration = {
 	readonly model: string;
 	readonly dimensions: number;
 	readonly collection: string;
+	readonly queryPrefix: string;
+	readonly passagePrefix: string;
 };
 
 const readStored = Effect.gen(function* () {
@@ -95,6 +101,8 @@ const readStored = Effect.gen(function* () {
 			model: settings.embeddingModel,
 			dimensions: settings.embeddingDimensions,
 			collection: settings.embeddingCollection,
+			queryPrefix: settings.embeddingQueryPrefix,
+			passagePrefix: settings.embeddingPassagePrefix,
 		})
 		.from(settings);
 	return row?.generation == null ? undefined : (row as StoredGeneration);
@@ -126,7 +134,10 @@ const snapshotOf = (stored: StoredGeneration) =>
 			model: stored.model,
 			dimensions: stored.dimensions,
 			collection: stored.collection,
-			embed: (values) => embedValues(connection, values),
+			embedQueries: (queries) =>
+				embedValues(connection, queries, stored.queryPrefix),
+			embedPassages: (passages) =>
+				embedValues(connection, passages, stored.passagePrefix),
 		});
 	});
 
@@ -247,6 +258,8 @@ export const embeddingSettings = readStored.pipe(
 					model: stored.model,
 					dimensions: stored.dimensions,
 					collection: stored.collection,
+					queryPrefix: stored.queryPrefix,
+					passagePrefix: stored.passagePrefix,
 				}
 			: undefined,
 	),
@@ -279,6 +292,8 @@ type GenerationSetup = {
 	readonly apiKeyEncrypted: string;
 	readonly model: string;
 	readonly dimensions: number;
+	readonly queryPrefix: string;
+	readonly passagePrefix: string;
 };
 
 /**
@@ -300,6 +315,8 @@ const startGeneration = (setup: GenerationSetup) =>
 			embeddingApiKeyEncrypted: setup.apiKeyEncrypted,
 			embeddingModel: setup.model,
 			embeddingDimensions: setup.dimensions,
+			embeddingQueryPrefix: setup.queryPrefix,
+			embeddingPassagePrefix: setup.passagePrefix,
 			embeddingCollection: generationCollectionName(
 				scope.collectionPrefix,
 				generation,
@@ -339,11 +356,12 @@ const exclusively = <A, E, R>(body: Effect.Effect<A, E, R>) =>
 
 /**
  * Stores the endpoint the instance embeds with, with the key its test
- * embedding used. The same model and dimensions update the active generation
- * in place. The first setup, and another model or size when the caller
- * confirmed replacing the active generation (`reembedGeneration`), start a
- * new generation: search moves to its empty collection at once and every
- * file is embedded again. Unconfirmed, another model or size fails
+ * embedding used. The same model, dimensions and passage prefix update the
+ * active generation in place, the query prefix included. The first setup,
+ * and another model, size or passage prefix when the caller confirmed
+ * replacing the active generation (`reembedGeneration`), start a new
+ * generation: search moves to its empty collection at once and every file
+ * is embedded again. Unconfirmed, such a change fails
  * `EmbeddingModelChangeError`. Any save confirmed for a generation another
  * save has replaced since fails `EmbeddingGenerationChangedError`. Returns the active
  * generation and whether it started.
@@ -354,6 +372,8 @@ export const configureEmbeddings = (
 		readonly apiKey: string;
 		readonly model: string;
 		readonly dimensions: number;
+		readonly queryPrefix: string;
+		readonly passagePrefix: string;
 	},
 	options: {
 		readonly reembedGeneration?: number;
@@ -375,14 +395,18 @@ export const configureEmbeddings = (
 					generation: stored.generation,
 				});
 			}
-			const sameModel =
-				stored?.model === setup.model && stored.dimensions === setup.dimensions;
-			if (stored && sameModel) {
+			// Vectors stay comparable only with the same model, size and passage prefix.
+			const sameVectors =
+				stored?.model === setup.model &&
+				stored.dimensions === setup.dimensions &&
+				stored.passagePrefix === setup.passagePrefix;
+			if (stored && sameVectors) {
 				yield* db
 					.update(settings)
 					.set({
 						embeddingBaseUrl: setup.baseUrl,
 						embeddingApiKeyEncrypted: apiKeyEncrypted,
+						embeddingQueryPrefix: setup.queryPrefix,
 						updatedAt: new Date(),
 					})
 					.where(eq(settings.id, true));
@@ -404,6 +428,8 @@ export const configureEmbeddings = (
 					apiKeyEncrypted,
 					model: setup.model,
 					dimensions: setup.dimensions,
+					queryPrefix: setup.queryPrefix,
+					passagePrefix: setup.passagePrefix,
 				}),
 			};
 		}),

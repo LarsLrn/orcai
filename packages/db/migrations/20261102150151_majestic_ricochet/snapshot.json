@@ -1,0 +1,81 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "4675146d-903f-42ba-9151-9bbe018101b8",
+  "prevIds": [
+    "6606fd42-def7-4d60-8f03-a12778ca937c"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "instance_settings",
+        "embedding_query_prefix"
+      ],
+      "writes": [
+        "s|col|public.instance_settings.embedding_query_prefix",
+        "n|col|public.instance_settings.embedding_query_prefix",
+        "e|col|public.instance_settings.embedding_query_prefix"
+      ],
+      "reads": [
+        "n|tbl|public.instance_settings",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "instance_settings",
+        "embedding_passage_prefix"
+      ],
+      "writes": [
+        "s|col|public.instance_settings.embedding_passage_prefix",
+        "n|col|public.instance_settings.embedding_passage_prefix",
+        "e|col|public.instance_settings.embedding_passage_prefix"
+      ],
+      "reads": [
+        "n|tbl|public.instance_settings",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_query_prefix",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "''",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "instance_settings",
+        "name": "embedding_passage_prefix",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "''",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    }
+  ]
+}

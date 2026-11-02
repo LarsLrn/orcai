@@ -184,6 +184,8 @@ const configure = (
 					apiKey: "key",
 					model,
 					dimensions: DIMENSIONS,
+					queryPrefix: "",
+					passagePrefix: "",
 				},
 				{
 					reembedGeneration: active,

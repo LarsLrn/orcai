@@ -443,8 +443,10 @@ const embedChunks = ({
 }) =>
 	Effect.gen(function* () {
 		const { assetId, blockId } = attempt;
-		const { embed } = yield* EmbeddingGeneration;
-		const vectors = yield* embed(chunks.map((chunk) => chunk.embeddingContent));
+		const { embedPassages } = yield* EmbeddingGeneration;
+		const vectors = yield* embedPassages(
+			chunks.map((chunk) => chunk.embeddingContent),
+		);
 
 		const metaDataChunks = chunks.map((chunk, index) => {
 			const basePayload = {

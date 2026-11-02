@@ -209,9 +209,11 @@ const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 			},
 		];
 
-		const { embed } = yield* EmbeddingGeneration;
+		const { embedQueries } = yield* EmbeddingGeneration;
 		const embeddings =
-			retrievalMode === "sparse" ? undefined : yield* embed(searchQueries);
+			retrievalMode === "sparse"
+				? undefined
+				: yield* embedQueries(searchQueries);
 		const variants = searchQueries.map((query, index) => ({
 			query,
 			embedding: embeddings?.[index],
