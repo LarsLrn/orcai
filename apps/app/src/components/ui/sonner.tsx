@@ -35,7 +35,7 @@ const Toaster = (props: ToasterProps) => {
 					"--border-radius": "var(--radius)",
 				} as React.CSSProperties
 			}
-			position="top-right"
+			position="top-center"
 			offset={belowHeader}
 			mobileOffset={belowHeader}
 			closeButton
