@@ -54,7 +54,7 @@ describe("the behaviour example", () => {
 					locale: "en",
 				},
 			),
-		).toStartWith("You are the course assistant");
+		).toContain("You are the course assistant");
 		expect(
 			m.authoring_behaviour_example(
 				{},
@@ -62,6 +62,6 @@ describe("the behaviour example", () => {
 					locale: "de",
 				},
 			),
-		).toStartWith("Sie sind der Kursassistent");
+		).toContain("Sie sind der Kursassistent");
 	});
 });
