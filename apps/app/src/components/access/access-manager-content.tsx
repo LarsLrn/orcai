@@ -149,7 +149,7 @@ const GrantManager = ({
 			<div className="rounded-2xl border p-4">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<p className="font-medium text-sm">
+						<p className="text-sm font-medium">
 							{m.access_manager_add_heading()}
 						</p>
 						<p className="text-muted-foreground text-xs">
@@ -157,7 +157,7 @@ const GrantManager = ({
 						</p>
 					</div>
 					{(isMutating || grants.isFetching) && (
-						<Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+						<Loader2Icon className="text-muted-foreground h-4 w-4 animate-spin" />
 					)}
 				</div>
 
@@ -313,7 +313,7 @@ const AccessManagerContent = ({
 				busy={listing.isPending}
 			/>
 
-			<div className="rounded-2xl border border-dashed p-3 text-muted-foreground text-xs">
+			<div className="text-muted-foreground rounded-2xl border border-dashed p-3 text-xs">
 				{getResourceAccessHint(resourceRef.type)}
 				{resourceName
 					? ` ${m.access_manager_current_resource({

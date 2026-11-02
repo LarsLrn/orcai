@@ -55,7 +55,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 				>
 					{row.original.name}
 				</Link>
-				<div className="truncate text-muted-foreground text-xs">
+				<div className="text-muted-foreground truncate text-xs">
 					{row.original.provider.name}
 				</div>
 			</div>

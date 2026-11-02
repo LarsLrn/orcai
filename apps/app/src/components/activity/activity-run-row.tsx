@@ -36,19 +36,19 @@ const STAGE_ICONS = {
 	failed: <CircleAlertIcon className="text-status-danger" aria-hidden="true" />,
 	processing: (
 		<LoaderCircleIcon
-			className="animate-spin text-status-processing"
+			className="text-status-processing animate-spin"
 			aria-hidden="true"
 		/>
 	),
 	indexing: (
 		<LoaderCircleIcon
-			className="animate-spin text-status-processing"
+			className="text-status-processing animate-spin"
 			aria-hidden="true"
 		/>
 	),
 	metadata: (
 		<LoaderCircleIcon
-			className="animate-spin text-status-processing"
+			className="text-status-processing animate-spin"
 			aria-hidden="true"
 		/>
 	),
@@ -69,7 +69,7 @@ const closeActivity = () => activityOpen.set(false);
 const RunLink = ({ run }: { run: ActivityRun }) => {
 	const className = cn(
 		textLink,
-		"inline-block font-medium text-primary text-xs",
+		"text-primary inline-block text-xs font-medium",
 	);
 	if (run.kind === "export") {
 		return (
@@ -150,7 +150,7 @@ const RunDetails = ({ run }: { run: ActivityRun }) => {
 	const remaining = (first?.rowCount ?? 0) - rows.length;
 
 	if (members.isPending && run.kind !== "export") {
-		return <Spinner className="mt-3 text-muted-foreground" />;
+		return <Spinner className="text-muted-foreground mt-3" />;
 	}
 
 	return (
@@ -161,7 +161,7 @@ const RunDetails = ({ run }: { run: ActivityRun }) => {
 					<button
 						type="button"
 						onClick={() => void members.refetch()}
-						className={cn(textLink, "font-medium text-primary")}
+						className={cn(textLink, "text-primary font-medium")}
 					>
 						{m.common_retry_button()}
 					</button>
@@ -193,7 +193,7 @@ const RunDetails = ({ run }: { run: ActivityRun }) => {
 									{member.asset.title}
 								</Link>
 								{stage ? (
-									<span className="ml-auto shrink-0 text-muted-foreground">
+									<span className="text-muted-foreground ml-auto shrink-0">
 										{memberStageLabels[stage]()}
 									</span>
 								) : null}
@@ -247,10 +247,10 @@ export const RunRow = ({
 			<div className="flex items-start gap-3 rounded-xl px-2 py-2">
 				<RunWell run={run} />
 				<div className="min-w-0 flex-1">
-					<p className="truncate font-medium text-sm" title={title}>
+					<p className="truncate text-sm font-medium" title={title}>
 						{title}
 					</p>
-					<p className="truncate text-muted-foreground text-xs">
+					<p className="text-muted-foreground truncate text-xs">
 						{runSummary(run)}
 					</p>
 					{run.state === "running" &&
@@ -261,7 +261,7 @@ export const RunRow = ({
 					{expanded ? <RunDetails run={run} /> : null}
 				</div>
 				<span className="flex shrink-0 items-center gap-1">
-					<span className="hidden text-muted-foreground text-xs sm:inline">
+					<span className="text-muted-foreground hidden text-xs sm:inline">
 						{formatRelativeTime(run.createdAt, {
 							style: "narrow",
 						})}

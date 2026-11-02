@@ -85,7 +85,7 @@ export const QuestionStepper = ({
 								<button
 									type="button"
 									onClick={() => setStep(number - 1)}
-									className="flex w-full flex-col gap-0.5 rounded-xl px-3 py-2 text-left text-sm hover:bg-muted/50"
+									className="hover:bg-muted/50 flex w-full flex-col gap-0.5 rounded-xl px-3 py-2 text-left text-sm"
 								>
 									<span className="font-medium">
 										{number}. {reviewed.prompt}
@@ -102,7 +102,7 @@ export const QuestionStepper = ({
 				</ol>
 			) : (
 				<div key={step} className="flex flex-col gap-3">
-					<p id={promptId} className="font-medium text-sm">
+					<p id={promptId} className="text-sm font-medium">
 						{question.prompt}
 					</p>
 					<QuestionField

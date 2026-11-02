@@ -22,15 +22,15 @@ export const QuestionsCard = ({
 	return (
 		<section
 			aria-labelledby={titleId}
-			className="not-prose overflow-hidden rounded-xl border bg-card"
+			className="not-prose bg-card overflow-hidden rounded-xl border"
 		>
 			<header className="flex items-center gap-3 border-b px-4 py-3">
 				<MessageCircleQuestionMarkIcon
 					aria-hidden
-					className="size-4 shrink-0 text-muted-foreground"
+					className="text-muted-foreground size-4 shrink-0"
 				/>
 				<div className="min-w-0 flex-1">
-					<h3 id={titleId} className="font-medium text-sm">
+					<h3 id={titleId} className="text-sm font-medium">
 						{title ?? m.questions_card_title()}
 					</h3>
 					{progress && (

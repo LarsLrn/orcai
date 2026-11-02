@@ -5,7 +5,7 @@ import { m } from "@/paraglide/messages";
 const MessageCompacted = () => (
 	<div className="relative my-2 h-5 text-xs">
 		<Separator className="absolute inset-0 top-1/2" />
-		<span className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground">
+		<span className="bg-background text-muted-foreground relative mx-auto block w-fit px-2">
 			{m.chat_message_compacted()}
 		</span>
 	</div>

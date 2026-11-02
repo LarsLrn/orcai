@@ -41,14 +41,14 @@ const Fact = ({
 	children: React.ReactNode;
 }) => (
 	<div className="space-y-1.5">
-		<div className="font-medium text-sm">{label}</div>
-		<div className="space-y-1 text-muted-foreground text-sm">{children}</div>
+		<div className="text-sm font-medium">{label}</div>
+		<div className="text-muted-foreground space-y-1 text-sm">{children}</div>
 	</div>
 );
 
 const PrincipalLine = ({ grant }: { grant: ResourceGrant }) => (
 	<div className="flex min-w-0 flex-wrap items-center gap-2">
-		<span className="wrap-break-word min-w-0">{grant.principal.name}</span>
+		<span className="min-w-0 wrap-break-word">{grant.principal.name}</span>
 		<Badge variant="outline">{roleLabel(grant.role)}</Badge>
 		{isAllMembersGrant(grant) ? (
 			<Badge variant="secondary">

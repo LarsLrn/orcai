@@ -75,7 +75,23 @@
 				"noFallthroughSwitchClause": "error",
 				"noVar": "error",
 				"useAwait": "warn", // Typically async functions without await don't need it
-				"noDeprecatedImports": "error"
+				"noDeprecatedImports": "error",
+				"noDrizzleDeleteWithoutWhere": {
+					"level": "error",
+					"options": {
+						"drizzleObjectName": [
+							"db"
+						]
+					}
+				},
+				"noDrizzleUpdateWithoutWhere": {
+					"level": "error",
+					"options": {
+						"drizzleObjectName": [
+							"db"
+						]
+					}
+				}
 			},
 			"correctness": {
 				"useExhaustiveDependencies": "error",
@@ -95,21 +111,9 @@
 				"noAccumulatingSpread": "warn"
 			},
 			"nursery": {
-				"useSortedClasses": {
+				"useTailwindSortedClasses": {
 					"level": "error",
-					"fix": "safe",
-					"options": {
-						"attributes": [
-							"classList"
-						],
-						"functions": [
-							"clsx",
-							"cva",
-							"cn",
-							"tw",
-							"tw.*"
-						]
-					}
+					"fix": "safe"
 				}
 			}
 		}
@@ -140,6 +144,11 @@
 			"tailwindDirectives": true
 		}
 	},
+	"markdown": {
+		"parser": {
+			"frontmatter": true
+		}
+	},
 	"assist": {
 		"enabled": true,
 		"actions": {
@@ -147,5 +156,20 @@
 				"organizeImports": "on"
 			}
 		}
+	},
+	"tailwind": {
+		"attributes": [
+			"class",
+			"className",
+			"classList"
+		],
+		"mergeFunctions": [
+			"clsx",
+			"cn",
+			"tw"
+		],
+		"variantFunctions": [
+			"cva"
+		]
 	}
 }

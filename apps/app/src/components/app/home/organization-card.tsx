@@ -48,15 +48,15 @@ const OrganizationCard = () => {
 	return (
 		<aside
 			aria-label={m.organization_profile_active_badge()}
-			className="overflow-hidden rounded-3xl border bg-card shadow-xs"
+			className="bg-card overflow-hidden rounded-3xl border shadow-xs"
 		>
-			<div className="flex items-center gap-4 border-b bg-muted/40 p-5">
+			<div className="bg-muted/40 flex items-center gap-4 border-b p-5">
 				<OrganizationLogo
 					organization={organization}
 					className="size-16 rounded-xl after:rounded-xl [&_[data-slot=avatar-fallback]]:rounded-xl [&_[data-slot=avatar-fallback]]:text-lg [&_img]:rounded-xl"
 				/>
 				<div className="min-w-0">
-					<h2 className="line-clamp-2 break-words font-heading font-semibold text-xl leading-tight tracking-tight">
+					<h2 className="font-heading line-clamp-2 text-xl leading-tight font-semibold tracking-tight break-words">
 						{organization.name}
 					</h2>
 					<p className="text-muted-foreground text-xs">
@@ -101,13 +101,13 @@ const OrganizationCard = () => {
 										}}
 										className={cn(
 											row,
-											"outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/75",
+											"hover:bg-muted focus-visible:ring-ring/75 outline-none focus-visible:ring-3",
 										)}
 									>
 										{body}
 										<ChevronRightIcon
 											aria-hidden="true"
-											className="ml-auto size-4 text-muted-foreground"
+											className="text-muted-foreground ml-auto size-4"
 										/>
 									</Link>
 								)}

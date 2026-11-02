@@ -66,8 +66,8 @@ function RouteComponent() {
 						render={
 							<Card className="group cursor-pointer justify-between transition-shadow hover:shadow-lg">
 								<CardHeader className="text-center">
-									<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-										<BotIcon className="h-8 w-8 text-primary" />
+									<div className="bg-primary/10 group-hover:bg-primary/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full transition-colors">
+										<BotIcon className="text-primary h-8 w-8" />
 									</div>
 									<CardTitle className="text-xl">
 										{m.chat_start_bot_card_title()}
@@ -77,7 +77,7 @@ function RouteComponent() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<div className="space-y-2 text-muted-foreground text-sm">
+									<div className="text-muted-foreground space-y-2 text-sm">
 										<div className="flex items-center gap-2">
 											<SparklesIcon className="h-4 w-4 shrink-0" />
 											<span>{m.chat_start_bot_card_point_ready()}</span>
@@ -135,8 +135,8 @@ function RouteComponent() {
 						}
 					>
 						<CardHeader className="text-center">
-							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10 transition-colors group-hover:bg-secondary/20">
-								<MessageSquarePlusIcon className="h-8 w-8 text-primary" />
+							<div className="bg-secondary/10 group-hover:bg-secondary/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full transition-colors">
+								<MessageSquarePlusIcon className="text-primary h-8 w-8" />
 							</div>
 							<CardTitle className="text-xl">
 								{m.chat_start_solo_card_title()}
@@ -146,7 +146,7 @@ function RouteComponent() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className="space-y-2 text-muted-foreground text-sm">
+							<div className="text-muted-foreground space-y-2 text-sm">
 								<div className="flex items-center gap-2">
 									<MessageSquarePlusIcon className="h-4 w-4 shrink-0" />
 									<span>{m.chat_start_solo_card_point_knowledge()}</span>
@@ -163,7 +163,7 @@ function RouteComponent() {
 
 			<Separator className="my-2" />
 
-			<PageFooter className="text-center text-muted-foreground text-sm">
+			<PageFooter className="text-muted-foreground text-center text-sm">
 				<p>{m.chat_start_footer_note()}</p>
 			</PageFooter>
 		</Page>

@@ -32,13 +32,13 @@ available. Import from here only when a spec needs an endpoint that answers.
 
 ## Endpoints
 
-| Endpoint | Behaviour |
-| --- | --- |
-| `GET /v1/models` | `e2e-mock-chat` and `e2e-mock-embedding`, both owned by `orcai-e2e`. The chat model reports a context window of 32,768 tokens in vLLM's `max_model_len`. |
-| `POST /v1/chat/completions` | `Mock inference reply to: <last user message>`, `finish_reason: "stop"`, usage in every response. `stream: true` sends the same text as Server-Sent Events, one delta per word, then `[DONE]`; `stream_options.include_usage` adds a final usage chunk. |
-| `POST /v1/search` | Tavily's search: `{ query, results, response_time, ... }` with one page per request, `https://<first include_domains entry, else example.org>/search-result`, titled `Mock search result for <query>`. A Tavily provider whose `endpoint` is the mock's URL searches here. |
-| `POST /v1/embeddings` | A vector per input, single string or array. Length is the request's `dimensions`, else the `embeddingDimensions` option, else 1024. The same input always yields the same vector. |
-| anything else | 404 with an OpenAI-style error body. |
+| Endpoint                    | Behaviour                                                                                                                                                                                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /v1/models`            | `e2e-mock-chat` and `e2e-mock-embedding`, both owned by `orcai-e2e`. The chat model reports a context window of 32,768 tokens in vLLM's `max_model_len`.                                                                                                                   |
+| `POST /v1/chat/completions` | `Mock inference reply to: <last user message>`, `finish_reason: "stop"`, usage in every response. `stream: true` sends the same text as Server-Sent Events, one delta per word, then `[DONE]`; `stream_options.include_usage` adds a final usage chunk.                    |
+| `POST /v1/search`           | Tavily's search: `{ query, results, response_time, ... }` with one page per request, `https://<first include_domains entry, else example.org>/search-result`, titled `Mock search result for <query>`. A Tavily provider whose `endpoint` is the mock's URL searches here. |
+| `POST /v1/embeddings`       | A vector per input, single string or array. Length is the request's `dimensions`, else the `embeddingDimensions` option, else 1024. The same input always yields the same vector.                                                                                          |
+| anything else               | 404 with an OpenAI-style error body.                                                                                                                                                                                                                                       |
 
 The mock answers for any `model` it is asked for and echoes the name back. It
 accepts any `Authorization` header, or none, unless it is started with

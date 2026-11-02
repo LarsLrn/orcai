@@ -39,7 +39,7 @@ export const ClampedText = ({
 			<p
 				ref={ref}
 				className={cn(
-					"wrap-anywhere whitespace-pre-wrap text-sm leading-relaxed",
+					"text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap",
 					!expanded && "line-clamp-3",
 					className,
 				)}
@@ -50,7 +50,7 @@ export const ClampedText = ({
 				<button
 					type="button"
 					onClick={() => setExpanded((value) => !value)}
-					className="mt-1 text-muted-foreground text-xs transition-colors duration-150 hover:text-foreground"
+					className="text-muted-foreground hover:text-foreground mt-1 text-xs transition-colors duration-150"
 				>
 					{expanded
 						? m.chat_work_log_clamped_text_show_less()

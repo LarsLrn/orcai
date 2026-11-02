@@ -540,7 +540,7 @@ const BotEditorShell = ({
 
 	return (
 		<div className="@container grid min-w-0 grid-cols-1 gap-6">
-			<div className="-mx-1 flex @4xl:grid @4xl:grid-cols-6 gap-3 @4xl:overflow-visible overflow-x-auto px-1 pb-1">
+			<div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 @4xl:grid @4xl:grid-cols-6 @4xl:overflow-visible">
 				{WIZARD_STEPS.map((step, index) => {
 					const Icon = step.icon;
 					const isLocked = !editor.id && index > 0;
@@ -552,11 +552,11 @@ const BotEditorShell = ({
 							key={step.key}
 							ref={isActive ? revealStep : undefined}
 							className={cn(
-								"@4xl:w-auto w-36 @4xl:min-w-0 shrink-0 rounded-2xl border border-border bg-background p-4 text-left transition-colors",
+								"border-border bg-background w-36 shrink-0 rounded-2xl border p-4 text-left transition-colors @4xl:w-auto @4xl:min-w-0",
 								isActive && "border-primary bg-primary text-primary-foreground",
 								isComplete && "border-secondary bg-secondary/5",
 								isLocked &&
-									"cursor-not-allowed border-border/60 border-dashed bg-transparent opacity-55",
+									"border-border/60 cursor-not-allowed border-dashed bg-transparent opacity-55",
 							)}
 							onClick={async () => {
 								if (!isLocked && (await leaveModelStep())) {
@@ -577,7 +577,7 @@ const BotEditorShell = ({
 									{index + 1}
 								</Badge>
 							</div>
-							<div className="wrap-break-word font-medium text-xs">
+							<div className="text-xs font-medium wrap-break-word">
 								{step.title()}
 							</div>
 						</button>
@@ -585,11 +585,11 @@ const BotEditorShell = ({
 				})}
 			</div>
 
-			<div className="min-w-0 sm:rounded-4xl sm:border sm:bg-muted/25 sm:p-6 sm:shadow-inner">
+			<div className="sm:bg-muted/25 min-w-0 sm:rounded-4xl sm:border sm:p-6 sm:shadow-inner">
 				<div className="mb-6 flex flex-wrap items-start justify-between gap-3">
 					<div>
-						<h2 className="font-semibold text-2xl">{currentStep.title()}</h2>
-						<p className="mt-2 max-w-2xl text-muted-foreground">
+						<h2 className="text-2xl font-semibold">{currentStep.title()}</h2>
+						<p className="text-muted-foreground mt-2 max-w-2xl">
 							{currentStep.description()}
 						</p>
 					</div>
@@ -825,11 +825,11 @@ const BotEditorShell = ({
 					{currentStep.key === "repositories" ? (
 						<div className="grid min-w-0 grid-cols-1 gap-4">
 							{editor.repositories.length === 0 ? (
-								<div className="min-w-0 rounded-2xl border border-dashed bg-background/70 p-6">
+								<div className="bg-background/70 min-w-0 rounded-2xl border border-dashed p-6">
 									<div className="font-medium">
 										{m.authoring_repositories_empty_state_title()}
 									</div>
-									<div className="mt-2 text-muted-foreground text-sm">
+									<div className="text-muted-foreground mt-2 text-sm">
 										{m.authoring_repositories_empty_state_description()}
 									</div>
 									<div className="mt-4 flex flex-wrap gap-2">
@@ -982,7 +982,7 @@ const BotEditorShell = ({
 						/>
 					) : null}
 
-					<div className="grid min-w-0 grid-cols-[auto_auto] items-center justify-between gap-3 rounded-2xl border bg-background p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+					<div className="bg-background grid min-w-0 grid-cols-[auto_auto] items-center justify-between gap-3 rounded-2xl border p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
 						<Button
 							variant="outline"
 							className="col-start-1 row-start-1"
@@ -994,7 +994,7 @@ const BotEditorShell = ({
 							{m.common_back_button()}
 						</Button>
 						<span
-							className="col-span-2 row-start-2 text-muted-foreground text-xs sm:col-span-1 sm:col-start-2 sm:row-start-1"
+							className="text-muted-foreground col-span-2 row-start-2 text-xs sm:col-span-1 sm:col-start-2 sm:row-start-1"
 							aria-live="polite"
 						>
 							{isSaving
@@ -1129,21 +1129,21 @@ const ReviewSection = ({
 	const publicationStatusOptions = getPublicationStatusOptions();
 
 	return (
-		<Card className="min-w-0 rounded-2xl border-border/70 bg-background">
+		<Card className="border-border/70 bg-background min-w-0 rounded-2xl">
 			<CardHeader>
 				<CardTitle>{m.authoring_review_title()}</CardTitle>
 				<CardDescription>{m.authoring_review_description()}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-6">
 				<div>
-					<div className="font-medium text-sm">
+					<div className="text-sm font-medium">
 						{m.authoring_review_bot_label()}
 					</div>
 					<div className="mt-2 rounded-xl border p-4">
 						<div className="font-medium">
 							{editor.name || m.authoring_review_bot_untitled()}
 						</div>
-						<div className="mt-1 text-muted-foreground text-sm">
+						<div className="text-muted-foreground mt-1 text-sm">
 							{editor.description || m.authoring_review_bot_no_description()}
 						</div>
 					</div>
@@ -1152,14 +1152,14 @@ const ReviewSection = ({
 				<Separator />
 
 				<div>
-					<div className="font-medium text-sm">
+					<div className="text-sm font-medium">
 						{m.authoring_review_behaviour_label()}
 					</div>
 					<div className="mt-2 rounded-xl border p-4 text-sm">
 						{editor.behaviour ? (
 							<>
 								<div className="font-medium">{editor.behaviour.name}</div>
-								<div className="mt-1 text-muted-foreground">
+								<div className="text-muted-foreground mt-1">
 									{m.authoring_review_behaviour_hint()}
 								</div>
 								<div className="mt-3 max-w-sm space-y-2">
@@ -1195,12 +1195,12 @@ const ReviewSection = ({
 				<Separator />
 
 				<div>
-					<div className="font-medium text-sm">
+					<div className="text-sm font-medium">
 						{m.authoring_review_repositories_label()}
 					</div>
 					<div className="mt-2 space-y-3">
 						{editor.repositories.length === 0 ? (
-							<div className="rounded-xl border p-4 text-muted-foreground text-sm">
+							<div className="text-muted-foreground rounded-xl border p-4 text-sm">
 								{m.authoring_review_repositories_empty_state()}
 							</div>
 						) : (
@@ -1210,7 +1210,7 @@ const ReviewSection = ({
 									className="rounded-xl border p-4"
 								>
 									<div className="font-medium">{repository.name}</div>
-									<div className="mt-1 text-muted-foreground text-sm">
+									<div className="text-muted-foreground mt-1 text-sm">
 										{m.authoring_attached_asset_count({
 											count: repository.assetIds.length,
 										})}
@@ -1251,20 +1251,20 @@ const ReviewSection = ({
 
 				<div className="grid gap-4 md:grid-cols-2">
 					<div className="rounded-xl border p-4">
-						<div className="font-medium text-sm">
+						<div className="text-sm font-medium">
 							{m.authoring_review_visibility_label()}
 						</div>
-						<div className="mt-1 text-muted-foreground text-sm">
+						<div className="text-muted-foreground mt-1 text-sm">
 							{visibility === "public"
 								? m.authoring_review_visibility_public()
 								: m.authoring_review_visibility_private()}
 						</div>
 					</div>
 					<div className="rounded-xl border p-4">
-						<div className="font-medium text-sm">
+						<div className="text-sm font-medium">
 							{m.authoring_review_grants_label()}
 						</div>
-						<div className="mt-1 text-muted-foreground text-sm">
+						<div className="text-muted-foreground mt-1 text-sm">
 							{m.authoring_review_grant_count({
 								count: grantCount,
 							})}
@@ -1273,8 +1273,8 @@ const ReviewSection = ({
 				</div>
 
 				{issues.length > 0 ? (
-					<div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-						<div className="font-medium text-destructive text-sm">
+					<div className="border-destructive/30 bg-destructive/5 rounded-xl border p-4">
+						<div className="text-destructive text-sm font-medium">
 							{m.authoring_review_issues_title()}
 						</div>
 						<ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
@@ -1383,7 +1383,7 @@ const ReadOnlyRepositoryCard = ({
 					})}
 				</div>
 				{block.assets.length > 0 ? (
-					<ul className="space-y-2 rounded-xl border bg-muted/20 p-3 text-sm">
+					<ul className="bg-muted/20 space-y-2 rounded-xl border p-3 text-sm">
 						{block.assets.map((asset) => (
 							<li
 								key={asset.id}

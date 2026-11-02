@@ -48,14 +48,14 @@ function RouteComponent() {
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">
 				<SignInForm />
-				<div className="flex items-center gap-3 text-muted-foreground text-xs">
+				<div className="text-muted-foreground flex items-center gap-3 text-xs">
 					<Separator className="flex-1" />
 					{m.auth_login_page_or_separator()}
 					<Separator className="flex-1" />
 				</div>
 				<PasskeySignInButton />
 			</CardContent>
-			<CardFooter className="flex justify-end text-muted-foreground text-sm">
+			<CardFooter className="text-muted-foreground flex justify-end text-sm">
 				<Link
 					to="/forgot-password"
 					search={{

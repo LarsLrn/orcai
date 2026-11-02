@@ -18,7 +18,7 @@ const InfoDot = ({ content }: InfoDotProps) => {
 				render={
 					<button
 						type="button"
-						className="inline-flex shrink-0 rounded-full text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/75"
+						className="text-muted-foreground focus-visible:ring-ring/75 inline-flex shrink-0 rounded-full outline-none focus-visible:ring-3"
 					/>
 				}
 			>

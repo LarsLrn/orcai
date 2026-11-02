@@ -90,8 +90,8 @@ export const ReceiverPicker = ({
 			<div className="flex items-center gap-2 rounded-xl border p-2">
 				<UserAvatar user={value} />
 				<div className="min-w-0 flex-1">
-					<p className="truncate font-medium text-sm">{value.name}</p>
-					<p className="truncate text-muted-foreground text-xs">
+					<p className="truncate text-sm font-medium">{value.name}</p>
+					<p className="text-muted-foreground truncate text-xs">
 						{value.email}
 					</p>
 				</div>

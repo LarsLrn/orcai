@@ -45,7 +45,7 @@ const BotRadioGroup = ({
 		{heading ? (
 			<h3
 				id={`bot-select-${id}`}
-				className="font-medium text-muted-foreground text-xs"
+				className="text-muted-foreground text-xs font-medium"
 			>
 				{label}
 			</h3>
@@ -66,7 +66,7 @@ const BotRadioGroup = ({
 					<FieldLabel
 						key={bot.id}
 						htmlFor={itemId}
-						className="cursor-pointer transition-colors hover:bg-muted/50 has-data-checked:border-primary has-focus-visible:border-ring has-data-checked:bg-primary/5 has-focus-visible:ring-3 has-focus-visible:ring-ring/30"
+						className="hover:bg-muted/50 has-data-checked:border-primary has-focus-visible:border-ring has-data-checked:bg-primary/5 has-focus-visible:ring-ring/30 cursor-pointer transition-colors has-focus-visible:ring-3"
 					>
 						<Field orientation="horizontal">
 							<RadioGroupItem
@@ -145,7 +145,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 			<div className="relative">
 				<SearchIcon
 					aria-hidden="true"
-					className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground"
+					className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform"
 				/>
 				<Input
 					aria-label={m.bots_select_search_placeholder()}
@@ -158,10 +158,10 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 			{/* Results */}
 			<div className="flex-1 space-y-3 overflow-y-auto">
 				{status === "error" && (
-					<div className="py-8 text-center text-destructive">
+					<div className="text-destructive py-8 text-center">
 						<p>{m.bots_select_load_error_title()}</p>
 						{error && (
-							<p className="mt-2 text-muted-foreground text-sm">
+							<p className="text-muted-foreground mt-2 text-sm">
 								{error instanceof Error
 									? describeError(error)
 									: m.bots_select_load_error_description()}
@@ -197,7 +197,7 @@ const BotSelect = ({ onBotSelect, selectedBot }: BotSelectProps) => {
 				{status === "success" && (
 					<div className="flex flex-col gap-2 p-1">
 						{bots.length === 0 ? (
-							<div className="py-8 text-center text-muted-foreground">
+							<div className="text-muted-foreground py-8 text-center">
 								{searchQuery
 									? m.bots_select_no_results({
 											query: searchQuery,

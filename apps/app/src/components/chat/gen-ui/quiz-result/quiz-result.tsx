@@ -50,9 +50,9 @@ const GradedRow = ({ question }: { question: GradedQuestion }) => {
 					</span>
 				</div>
 				{!correct && (
-					<dl className="space-y-1 text-muted-foreground">
+					<dl className="text-muted-foreground space-y-1">
 						<div>
-							<dt className="font-medium text-foreground">
+							<dt className="text-foreground font-medium">
 								{m.gen_ui_quiz_your_answer()}
 							</dt>
 							<dd className={cn(!question.answer && "italic")}>
@@ -61,7 +61,7 @@ const GradedRow = ({ question }: { question: GradedQuestion }) => {
 						</div>
 						{question.expected && (
 							<div>
-								<dt className="font-medium text-foreground">
+								<dt className="text-foreground font-medium">
 									{m.gen_ui_quiz_expected()}
 								</dt>
 								<dd>
@@ -93,7 +93,7 @@ export const QuizResult = ({
 
 	if (!result) {
 		return (
-			<div className="space-y-2 rounded-xl border bg-card px-4 py-3">
+			<div className="bg-card space-y-2 rounded-xl border px-4 py-3">
 				<Skeleton className="h-4 w-1/3" />
 				<Skeleton className="h-4 w-full" />
 				<Skeleton className="h-4 w-2/3" />
@@ -107,19 +107,19 @@ export const QuizResult = ({
 	const multipleSections = result.sections.length > 1;
 
 	return (
-		<div className="not-prose overflow-hidden rounded-xl border bg-card">
+		<div className="not-prose bg-card overflow-hidden rounded-xl border">
 			<div className="flex items-center justify-between gap-4 border-b px-4 py-3">
-				<h3 className="font-medium text-sm">
+				<h3 className="text-sm font-medium">
 					{result.title ?? m.gen_ui_quiz_result_title()}
 				</h3>
-				<span className="font-medium text-sm tabular-nums">
+				<span className="text-sm font-medium tabular-nums">
 					{score(result)}
 				</span>
 			</div>
 			{result.sections.map((section, index) => (
 				<section key={index} className="border-b last:border-b-0">
 					{multipleSections && (
-						<div className="flex justify-between gap-4 bg-muted/40 px-4 py-1.5 text-muted-foreground text-xs">
+						<div className="bg-muted/40 text-muted-foreground flex justify-between gap-4 px-4 py-1.5 text-xs">
 							<span>{section.title ?? m.gen_ui_quiz_section_untitled()}</span>
 							<span className="tabular-nums">{score(section)}</span>
 						</div>

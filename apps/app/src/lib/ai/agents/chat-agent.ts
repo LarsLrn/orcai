@@ -99,7 +99,6 @@ export const createChatAgent = (params: {
 		);
 	}
 	const steps = createStepShaper({
-		providerKind: params.model.kind,
 		prune: (messages) =>
 			pruneChatHistory(messages, {
 				contentToolNames: CONTENT_TOOL_NAMES,
@@ -142,7 +141,7 @@ export const createChatAgent = (params: {
 			...storedWebSearchTools(),
 		} satisfies ChatAgentTools,
 		...aiTelemetry("chat.agent", params.telemetryIds),
-		experimental_repairToolCall: repairRepositoryToolCall,
+		repairToolCall: repairRepositoryToolCall,
 		callOptionsSchema: stepBudgetOptionsSchema,
 		prepareCall: ({ options, ...settings }) => ({
 			...settings,

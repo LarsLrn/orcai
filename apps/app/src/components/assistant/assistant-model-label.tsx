@@ -12,7 +12,7 @@ const AssistantModelLabel = ({ className }: { className?: string }) => {
 		<span
 			title={m.assistant_composer_model_hint()}
 			className={cn(
-				"min-w-0 max-w-60 truncate px-2 text-muted-foreground text-sm",
+				"text-muted-foreground max-w-60 min-w-0 truncate px-2 text-sm",
 				className,
 			)}
 		>

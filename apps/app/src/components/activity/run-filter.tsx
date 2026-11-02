@@ -22,10 +22,10 @@ export const RunFilter = ({ runId }: { runId: ActivityRunId }) => {
 	const run = data?.data[0];
 
 	return (
-		<div className="mb-4 flex items-center gap-2 rounded-xl border bg-muted/40 py-1.5 ps-3 pe-1.5 text-sm">
+		<div className="bg-muted/40 mb-4 flex items-center gap-2 rounded-xl border py-1.5 ps-3 pe-1.5 text-sm">
 			<ActivityIcon
 				aria-hidden="true"
-				className="size-4 shrink-0 text-muted-foreground"
+				className="text-muted-foreground size-4 shrink-0"
 			/>
 			<span className="min-w-0 flex-1 truncate">
 				{m.activity_library_run_filter({

@@ -185,7 +185,7 @@ export const PlanPanel = ({
 				) : (
 					<ListTodoIcon
 						aria-hidden
-						className="size-4 shrink-0 text-muted-foreground"
+						className="text-muted-foreground size-4 shrink-0"
 					/>
 				)
 			}
@@ -232,7 +232,7 @@ export const PlanPanel = ({
 									)}
 								</span>
 								{item.details && (
-									<p className="wrap-anywhere whitespace-pre-line text-muted-foreground text-xs">
+									<p className="text-muted-foreground text-xs wrap-anywhere whitespace-pre-line">
 										{item.details}
 									</p>
 								)}

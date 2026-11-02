@@ -135,7 +135,7 @@ const DatetimeField = ({
 					<div className="flex">
 						<div className="flex flex-col">
 							<div className="p-3 pb-0">
-								<Label className="px-1 font-medium text-sm">
+								<Label className="px-1 text-sm font-medium">
 									{m.forms_datetime_field_date_label()}
 								</Label>
 							</div>
@@ -157,7 +157,7 @@ const DatetimeField = ({
 								<div className="flex flex-col gap-3 p-3">
 									<Label
 										htmlFor={`${id}-time`}
-										className="px-1 font-medium text-sm"
+										className="px-1 text-sm font-medium"
 									>
 										{m.forms_datetime_field_time_label()}
 									</Label>
@@ -167,7 +167,7 @@ const DatetimeField = ({
 										step="1"
 										value={getTimeValue()}
 										onChange={(e) => handleTimeChange(e.target.value)}
-										className="w-32 appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+										className="bg-background w-32 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
 									/>
 								</div>
 							</div>

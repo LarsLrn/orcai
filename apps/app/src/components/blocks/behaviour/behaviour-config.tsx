@@ -47,16 +47,16 @@ const BehaviourConfigCard = ({
 							open={isSystemPromptOpen}
 							onOpenChange={setIsSystemPromptOpen}
 						>
-							<CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border bg-muted/30 px-4 py-3 text-left">
-								<span className="font-medium text-sm">
+							<CollapsibleTrigger className="bg-muted/30 flex w-full items-center justify-between rounded-md border px-4 py-3 text-left">
+								<span className="text-sm font-medium">
 									{m.blocks_behaviour_config_show_system_prompt_action()}
 								</span>
 								<ChevronDownIcon
-									className={`size-4 text-muted-foreground transition-transform ${isSystemPromptOpen ? "rotate-180" : ""}`}
+									className={`text-muted-foreground size-4 transition-transform ${isSystemPromptOpen ? "rotate-180" : ""}`}
 								/>
 							</CollapsibleTrigger>
 							<CollapsibleContent className="pt-2">
-								<div className="rounded-md border bg-muted/30 p-4">
+								<div className="bg-muted/30 rounded-md border p-4">
 									<Markdown>{config.systemPrompt}</Markdown>
 								</div>
 							</CollapsibleContent>

@@ -87,18 +87,18 @@ export const SuggestionsRow = ({
 				organizationId={organization.id}
 				className={coverClassName}
 			>
-				<span className="block font-medium text-sm">
+				<span className="block text-sm font-medium">
 					{m.activity_suggestions_title({
 						count,
 					})}
 				</span>
-				<span className="block truncate text-muted-foreground text-xs">
+				<span className="text-muted-foreground block truncate text-xs">
 					{organization.name}
 				</span>
 			</ReviewSuggestionsLink>
 			<span
 				aria-hidden="true"
-				className="mt-1 shrink-0 font-medium text-primary text-xs"
+				className="text-primary mt-1 shrink-0 text-xs font-medium"
 			>
 				{m.activity_suggestions_review()}
 			</span>
@@ -177,8 +177,8 @@ export const FailureRow = ({
 			<div className={rowClassName}>
 				<AttentionWell kind="failure" className="mt-0.5" />
 				<FailureLink failure={failure}>
-					<span className="block break-words font-medium text-sm">{title}</span>
-					<span className="line-clamp-2 text-muted-foreground text-xs">
+					<span className="block text-sm font-medium break-words">{title}</span>
+					<span className="text-muted-foreground line-clamp-2 text-xs">
 						{failureSummary(failure)}
 					</span>
 				</FailureLink>

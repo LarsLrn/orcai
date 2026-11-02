@@ -102,10 +102,10 @@ function PendingInvitationsSection({
 	return (
 		<Card>
 			<CardContent>
-				<h2 className="font-semibold text-xl">
+				<h2 className="text-xl font-semibold">
 					{m.select_organisation_page_pending_invitations_title()}
 				</h2>
-				<p className="mt-1 mb-4 text-muted-foreground text-sm">
+				<p className="text-muted-foreground mt-1 mb-4 text-sm">
 					{m.select_organisation_page_pending_invitations_description()}
 				</p>
 				<OrganizationInvitationsList mode="pending" onAccepted={onAccepted} />
@@ -165,10 +165,10 @@ function RouteComponent() {
 				</div>
 			)}
 			<div className="space-y-2 text-center">
-				<h1 className="font-semibold text-2xl tracking-tight">
+				<h1 className="text-2xl font-semibold tracking-tight">
 					{m.select_organisation_page_title()}
 				</h1>
-				<p className="text-lg text-muted-foreground">
+				<p className="text-muted-foreground text-lg">
 					{m.select_organisation_page_subtitle()}
 				</p>
 			</div>
@@ -227,7 +227,7 @@ function RouteComponent() {
 			</div>
 
 			{rowCount === 0 && trimmedSearch ? (
-				<p className="text-center text-muted-foreground text-sm">
+				<p className="text-muted-foreground text-center text-sm">
 					{m.select_organisation_page_no_match({
 						search: trimmedSearch,
 					})}
@@ -237,10 +237,10 @@ function RouteComponent() {
 			{rowCount === 0 && !trimmedSearch && (
 				<Card className="py-12 text-center">
 					<CardContent>
-						<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-							<BuildingIcon className="h-8 w-8 text-muted-foreground" />
+						<div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+							<BuildingIcon className="text-muted-foreground h-8 w-8" />
 						</div>
-						<p className="mb-4 text-lg text-muted-foreground">
+						<p className="text-muted-foreground mb-4 text-lg">
 							{m.select_organisation_page_empty_title()}
 						</p>
 						<p className="text-muted-foreground text-sm">

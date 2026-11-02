@@ -60,7 +60,7 @@ export const InitialAdminField = ({
 
 	return (
 		<div className="flex min-w-0 flex-col gap-3">
-			<p id={`${id}-label`} className="font-medium text-sm">
+			<p id={`${id}-label`} className="text-sm font-medium">
 				{m.orgs_form_initial_admin_label()}
 			</p>
 			<RadioGroup

@@ -67,7 +67,7 @@ export const RequestUpload = ({
 	return (
 		<ToolEntry part={part} status={status} label={line}>
 			{assets.length > 0 ? (
-				<ul className="mt-1 space-y-0.5 text-muted-foreground text-xs">
+				<ul className="text-muted-foreground mt-1 space-y-0.5 text-xs">
 					{assets.map((asset) => (
 						<li key={asset.id} className="flex items-center gap-2">
 							<span className="min-w-0 truncate">{asset.title}</span>

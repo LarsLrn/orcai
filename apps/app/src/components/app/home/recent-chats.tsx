@@ -41,9 +41,9 @@ const RecentChatRow = ({ chat }: { chat: ChatListRow }) => {
 			params={{
 				chatId: chat.id,
 			}}
-			className="group/row flex items-center gap-3 rounded-xl px-3 py-2.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/75"
+			className="group/row hover:bg-muted focus-visible:ring-ring/75 flex items-center gap-3 rounded-xl px-3 py-2.5 outline-none focus-visible:ring-3"
 		>
-			<span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover/row:bg-background [&>svg]:size-4">
+			<span className="bg-muted text-muted-foreground group-hover/row:bg-background flex size-8 shrink-0 items-center justify-center rounded-lg [&>svg]:size-4">
 				{chat.botId ? (
 					<BotIcon aria-hidden="true" className="text-kind-bot" />
 				) : (
@@ -51,14 +51,14 @@ const RecentChatRow = ({ chat }: { chat: ChatListRow }) => {
 				)}
 			</span>
 			<span className="min-w-0 flex-1">
-				<span className="flex items-center gap-1.5 font-medium text-sm">
+				<span className="flex items-center gap-1.5 text-sm font-medium">
 					{chat.pinnedAt && <PinMark />}
 					{chat.parentChatId && <BranchMark />}
 					<span className="truncate">
 						{chat.title ?? m.chat_title_placeholder()}
 					</span>
 				</span>
-				<span className="block truncate text-muted-foreground text-xs">
+				<span className="text-muted-foreground block truncate text-xs">
 					{chat.botName ?? m.chat_bot_selector_no_bot_title()}
 					{updatedAt && (
 						<>

@@ -31,7 +31,7 @@ const CopyableId = ({ value }: { value: string }) => {
 					<button
 						type="button"
 						onClick={() => copy(value)}
-						className="group flex min-w-0 items-center gap-1.5 font-mono text-muted-foreground text-xs transition-colors hover:text-foreground"
+						className="group text-muted-foreground hover:text-foreground flex min-w-0 items-center gap-1.5 font-mono text-xs transition-colors"
 					>
 						<span className="truncate">{value}</span>
 						{copiedValue ? (
@@ -83,7 +83,7 @@ const MetadataCard = ({
 				<div className="space-y-2.5 text-sm">
 					{id && (
 						<div className="flex items-center justify-between gap-4">
-							<div className="flex items-center gap-2 text-muted-foreground">
+							<div className="text-muted-foreground flex items-center gap-2">
 								<HashIcon className="size-3.5 shrink-0" />
 								<span>{m.app_metadata_card_id_label()}</span>
 							</div>
@@ -92,7 +92,7 @@ const MetadataCard = ({
 					)}
 					{visibility && (
 						<div className="flex items-center justify-between gap-4">
-							<div className="flex items-center gap-2 text-muted-foreground">
+							<div className="text-muted-foreground flex items-center gap-2">
 								{visibility === "public" ? (
 									<GlobeIcon className="size-3.5 shrink-0" />
 								) : (
@@ -114,12 +114,12 @@ const MetadataCard = ({
 					)}
 					{createdAt && (
 						<div className="flex items-center justify-between gap-4">
-							<div className="flex items-center gap-2 text-muted-foreground">
+							<div className="text-muted-foreground flex items-center gap-2">
 								<CalendarIcon className="size-3.5 shrink-0" />
 								<span>{m.app_metadata_card_created_label()}</span>
 							</div>
 							<Tooltip>
-								<TooltipTrigger className="text-right text-muted-foreground text-xs">
+								<TooltipTrigger className="text-muted-foreground text-right text-xs">
 									{formatDateShort(createdAt)}
 								</TooltipTrigger>
 								<TooltipContent>{formatDate(createdAt)}</TooltipContent>
@@ -128,12 +128,12 @@ const MetadataCard = ({
 					)}
 					{updatedAt && (
 						<div className="flex items-center justify-between gap-4">
-							<div className="flex items-center gap-2 text-muted-foreground">
+							<div className="text-muted-foreground flex items-center gap-2">
 								<ClockIcon className="size-3.5 shrink-0" />
 								<span>{m.app_metadata_card_updated_label()}</span>
 							</div>
 							<Tooltip>
-								<TooltipTrigger className="text-right text-muted-foreground text-xs">
+								<TooltipTrigger className="text-muted-foreground text-right text-xs">
 									{formatDateShort(updatedAt)}
 								</TooltipTrigger>
 								<TooltipContent>{formatDate(updatedAt)}</TooltipContent>

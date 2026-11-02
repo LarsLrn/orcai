@@ -17,11 +17,11 @@ const ChatReadOnlyNotice = ({
 		id="chat-read-only-notice"
 		role="status"
 		className={cn(
-			"flex items-start gap-2.5 rounded-2xl bg-muted/60 px-4 py-3 text-sm",
+			"bg-muted/60 flex items-start gap-2.5 rounded-2xl px-4 py-3 text-sm",
 			className,
 		)}
 	>
-		<LockIcon className="mt-0.5 size-4 shrink-0 text-foreground" />
+		<LockIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 		<p className="text-foreground">
 			{reason === "bot-deleted"
 				? m.chat_read_only_bot_deleted_title()

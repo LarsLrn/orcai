@@ -169,10 +169,10 @@ const RepositoryEditor = ({
 				{descriptionField}
 				{contentField}
 
-				<div className="min-w-0 rounded-xl border border-dashed bg-muted/20 p-4">
+				<div className="bg-muted/20 min-w-0 rounded-xl border border-dashed p-4">
 					<div className="flex flex-wrap items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">
+							<div className="text-sm font-medium">
 								{m.authoring_repository_assets_title()}
 							</div>
 							<div className="text-muted-foreground text-sm">
@@ -278,7 +278,7 @@ const RepositoryEditor = ({
 				<div className="space-y-3">
 					<div className="flex items-center justify-between gap-3">
 						<div>
-							<div className="font-medium text-sm">
+							<div className="text-sm font-medium">
 								{m.authoring_repository_attached_title()}
 							</div>
 							<div className="text-muted-foreground text-sm">
@@ -302,16 +302,16 @@ const RepositoryEditor = ({
 							onAssetUpdated={updateAsset}
 						/>
 					) : (
-						<div className="rounded-xl border border-dashed bg-muted/10 p-6 text-center text-muted-foreground text-sm">
+						<div className="bg-muted/10 text-muted-foreground rounded-xl border border-dashed p-6 text-center text-sm">
 							{m.authoring_repository_assets_empty_state()}
 						</div>
 					)}
 				</div>
 
 				<Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
-					<CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border bg-muted/15 px-4 py-3 text-left">
+					<CollapsibleTrigger className="bg-muted/15 flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left">
 						<div>
-							<div className="font-medium text-sm">
+							<div className="text-sm font-medium">
 								{m.authoring_repository_advanced_title()}
 							</div>
 							<div className="text-muted-foreground text-sm">

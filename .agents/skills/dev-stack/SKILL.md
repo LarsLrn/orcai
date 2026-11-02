@@ -28,8 +28,8 @@ Valkey, SeaweedFS, Qdrant, SpiceDB, and the generated `.env` ports.
 
 `bun run stack reset` is destructive and has no undo. It clears every store
 while leaving containers and `.env` in place, and refuses to run while an
-   app is listening on the stack port. Use `bun run stack env --reset` only to
-   regenerate ports and secrets after a collision.
+app is listening on the stack port. Use `bun run stack env --reset` only to
+regenerate ports and secrets after a collision.
 
 Every destructive command asks for confirmation, and refuses outright when
 nothing can answer. You have no terminal, so pass `--yes` to `reset`, to `e2e`

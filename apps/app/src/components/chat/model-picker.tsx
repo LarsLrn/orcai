@@ -37,7 +37,7 @@ const ModelPicker = ({
 							// biome-ignore lint/a11y/noNoninteractiveTabindex: the tooltip says why the model cannot change
 							tabIndex={0}
 							className={cn(
-								"inline-flex h-8 min-w-0 items-center gap-1.5 rounded-md px-2 text-muted-foreground text-sm",
+								"text-muted-foreground inline-flex h-8 min-w-0 items-center gap-1.5 rounded-md px-2 text-sm",
 								className,
 							)}
 						/>
@@ -67,7 +67,7 @@ const ModelPicker = ({
 				className={className}
 			/>
 			{state.kind === "tuned" && (
-				<span className="hidden truncate text-muted-foreground text-xs sm:inline">
+				<span className="text-muted-foreground hidden truncate text-xs sm:inline">
 					{m.chat_model_tuned_hint({
 						model: state.modelName,
 					})}

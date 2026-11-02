@@ -48,7 +48,7 @@ const SearchablePicker = <TItem,>({
 	return (
 		<div className="space-y-2">
 			<div className="relative">
-				<SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+				<SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
 				<Input
 					aria-label={placeholder}
 					placeholder={placeholder}
@@ -99,7 +99,7 @@ const SearchablePicker = <TItem,>({
 					})}
 
 					{!isLoading && items.length === 0 && (
-						<div className="p-4 text-center text-muted-foreground text-sm">
+						<div className="text-muted-foreground p-4 text-center text-sm">
 							{emptyText}
 						</div>
 					)}

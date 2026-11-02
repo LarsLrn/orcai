@@ -226,7 +226,7 @@ const Chat = ({
 											}
 											className={cn(
 												focusMessageId &&
-													"rounded-xl transition-colors duration-700 data-highlighted:bg-accent-brand/10",
+													"data-highlighted:bg-accent-brand/10 rounded-xl transition-colors duration-700",
 											)}
 										>
 											<MessageBlock
@@ -255,20 +255,20 @@ const Chat = ({
 									</MessageScrollerItem>
 								)}
 								{phase === "sending" && (
-									<MessageScrollerItem className="w-full text-foreground">
+									<MessageScrollerItem className="text-foreground w-full">
 										<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
 									</MessageScrollerItem>
 								)}
 								{phase === "error" && (
 									<MessageScrollerItem
 										role="alert"
-										className="w-full space-y-1 rounded-xl bg-destructive/10 px-4 py-3 text-sm"
+										className="bg-destructive/10 w-full space-y-1 rounded-xl px-4 py-3 text-sm"
 									>
 										<p className="text-destructive">
 											{m.chat_response_failed()}
 										</p>
 										{error && (
-											<p className="wrap-anywhere text-muted-foreground text-xs">
+											<p className="text-muted-foreground text-xs wrap-anywhere">
 												{describeError(error)}
 											</p>
 										)}

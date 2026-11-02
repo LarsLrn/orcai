@@ -29,7 +29,7 @@ const ContextSection = ({
 		<div className="flex items-baseline justify-between gap-3">
 			<h3 className="font-medium">{m.chat_usage_context_title()}</h3>
 			{context.modelName && (
-				<span className="min-w-0 truncate text-muted-foreground text-xs">
+				<span className="text-muted-foreground min-w-0 truncate text-xs">
 					{context.modelName}
 				</span>
 			)}
@@ -81,7 +81,7 @@ const PoolSection = ({
 		data-low={pool.low || undefined}
 		className="group/pool flex flex-col gap-1.5"
 	>
-		<h3 className="min-w-0 truncate font-medium group-data-low/pool:text-status-warning">
+		<h3 className="group-data-low/pool:text-status-warning min-w-0 truncate font-medium">
 			{pool.name}
 		</h3>
 		<Progress
@@ -95,7 +95,7 @@ const PoolSection = ({
 		<Tooltip>
 			<TooltipTrigger
 				render={
-					<p className="w-fit text-muted-foreground text-xs group-data-low/pool:text-status-warning" />
+					<p className="text-muted-foreground group-data-low/pool:text-status-warning w-fit text-xs" />
 				}
 			>
 				{m.chat_usage_pool_share({

@@ -39,22 +39,22 @@ const ActivityCard = () => {
 	return (
 		<section
 			aria-labelledby={headingId}
-			className="overflow-hidden rounded-3xl border bg-card shadow-xs"
+			className="bg-card overflow-hidden rounded-3xl border shadow-xs"
 		>
-			<div className="flex items-center gap-2 border-b bg-muted/40 px-5 py-3">
-				<h2 id={headingId} className="font-heading font-semibold text-base">
+			<div className="bg-muted/40 flex items-center gap-2 border-b px-5 py-3">
+				<h2 id={headingId} className="font-heading text-base font-semibold">
 					{m.activity_title()}
 				</h2>
 				{running.length > 0 ? (
 					<Loader2Icon
 						aria-hidden="true"
-						className="size-3.5 animate-spin text-status-processing"
+						className="text-status-processing size-3.5 animate-spin"
 					/>
 				) : null}
 				<button
 					type="button"
 					onClick={openActivity}
-					className="ml-auto rounded-sm text-muted-foreground text-xs outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/75"
+					className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/75 ml-auto rounded-sm text-xs outline-none focus-visible:ring-3"
 				>
 					{m.activity_show_all()}
 				</button>
@@ -70,7 +70,7 @@ const ActivityCard = () => {
 									{title}
 								</span>
 								{measured ? (
-									<span className="shrink-0 text-muted-foreground text-xs tabular-nums">
+									<span className="text-muted-foreground shrink-0 text-xs tabular-nums">
 										{m.activity_progress_short({
 											done: run.progress.done,
 											total: run.progress.total,
@@ -79,7 +79,7 @@ const ActivityCard = () => {
 								) : null}
 							</div>
 							{measured ? <RunProgress run={run} label={title} /> : null}
-							<p className="truncate text-muted-foreground text-xs">
+							<p className="text-muted-foreground truncate text-xs">
 								{[
 									runStage(run),
 									run.organization?.name,
@@ -109,7 +109,7 @@ const ActivityCard = () => {
 									</span>
 									<ChevronRightIcon
 										aria-hidden="true"
-										className="size-4 text-muted-foreground"
+										className="text-muted-foreground size-4"
 									/>
 								</ReviewSuggestionsLink>
 							</li>
@@ -129,7 +129,7 @@ const ActivityCard = () => {
 									</span>
 									<ChevronRightIcon
 										aria-hidden="true"
-										className="size-4 text-muted-foreground"
+										className="text-muted-foreground size-4"
 									/>
 								</button>
 							</li>

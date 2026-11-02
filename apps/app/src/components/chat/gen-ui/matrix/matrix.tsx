@@ -41,10 +41,10 @@ export const Matrix = ({
 	const withHeader = Boolean(title) || statuses.some(Boolean);
 
 	return (
-		<div className="overflow-hidden rounded-xl border bg-card">
+		<div className="bg-card overflow-hidden rounded-xl border">
 			{withHeader && (
 				<div className="flex items-center justify-between gap-4 border-b px-4 py-3">
-					{title && <h3 className="min-w-0 font-medium text-sm">{title}</h3>}
+					{title && <h3 className="min-w-0 text-sm font-medium">{title}</h3>}
 					<Tally statuses={statuses} className="ml-auto" />
 				</div>
 			)}
@@ -76,7 +76,7 @@ export const Matrix = ({
 									<TableRow
 										className={cn(
 											expandable && "cursor-pointer",
-											isOpen && "border-b-0 bg-muted/40",
+											isOpen && "bg-muted/40 border-b-0",
 										)}
 										onClick={expandable ? () => toggle(rowIndex) : undefined}
 									>
@@ -101,7 +101,7 @@ export const Matrix = ({
 												<button
 													type="button"
 													aria-expanded={isOpen}
-													className="inline-flex items-center gap-1 rounded-sm text-muted-foreground text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+													className="text-muted-foreground focus-visible:ring-ring inline-flex items-center gap-1 rounded-sm text-xs outline-none focus-visible:ring-2"
 													onClick={(event) => {
 														event.stopPropagation();
 														toggle(rowIndex);
@@ -125,7 +125,7 @@ export const Matrix = ({
 										<TableRow className="bg-muted/40 hover:bg-muted/40">
 											<TableCell
 												colSpan={columns.length + 2}
-												className="whitespace-normal px-4 pt-0 pb-3"
+												className="px-4 pt-0 pb-3 whitespace-normal"
 											>
 												<ul className="space-y-1.5">
 													{notes.map((note) => (
@@ -135,7 +135,7 @@ export const Matrix = ({
 																<span className="font-medium">
 																	{note.column.label}
 																</span>{" "}
-																<MessageResponse className="inline text-muted-foreground [&>p]:inline">
+																<MessageResponse className="text-muted-foreground inline [&>p]:inline">
 																	{note.note}
 																</MessageResponse>
 															</div>

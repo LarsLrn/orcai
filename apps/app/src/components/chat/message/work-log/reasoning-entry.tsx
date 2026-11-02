@@ -37,7 +37,7 @@ export const ReasoningEntry = ({
 
 	return (
 		<div className="min-w-0">
-			<p className="font-medium text-sm">
+			<p className="text-sm font-medium">
 				{streaming ? (
 					<Shimmer as="span" duration={1}>
 						{m.chat_work_log_thinking()}
@@ -51,7 +51,7 @@ export const ReasoningEntry = ({
 				)}
 			</p>
 			{part.text.trim() !== "" && (
-				<ClampedText className="mt-1 text-muted-foreground">
+				<ClampedText className="text-muted-foreground mt-1">
 					{part.text}
 				</ClampedText>
 			)}

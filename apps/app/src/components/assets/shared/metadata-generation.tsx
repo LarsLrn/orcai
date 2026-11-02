@@ -72,7 +72,7 @@ const MetadataReview = ({
 			className="space-y-3 rounded-2xl border px-4 py-3"
 		>
 			<div className="space-y-1">
-				<h3 id={`${id}-title`} className="font-medium text-sm">
+				<h3 id={`${id}-title`} className="text-sm font-medium">
 					{m.assets_metadata_review_title()}
 				</h3>
 				<p className="text-muted-foreground text-sm">
@@ -108,7 +108,7 @@ const MetadataReview = ({
 							<span className="block font-medium">
 								{metadataFieldLabels[field.field]()}
 							</span>
-							<span className="block text-muted-foreground line-through">
+							<span className="text-muted-foreground block line-through">
 								{shown(field.field, field.current)}
 							</span>
 							<span className="block break-words">
@@ -266,7 +266,7 @@ const MetadataGeneration = ({
 				</p>
 			) : null}
 			{!working && asset.metadataStatus === "failed" ? (
-				<p role="alert" className="text-sm text-status-danger">
+				<p role="alert" className="text-status-danger text-sm">
 					{m.assets_metadata_failed_description({
 						reason: getPipelineFailureDescription(
 							asset.metadataFailure ?? "other",
@@ -307,7 +307,7 @@ const MetadataStatusNotice = ({
 		return (
 			<p
 				role="status"
-				className="flex items-center gap-2 text-muted-foreground text-sm"
+				className="text-muted-foreground flex items-center gap-2 text-sm"
 			>
 				<LoaderCircleIcon className="size-4 animate-spin" />
 				{m.assets_metadata_generating_badge()}
@@ -320,7 +320,7 @@ const MetadataStatusNotice = ({
 	return (
 		<div
 			role="status"
-			className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-muted/60 px-4 py-3 text-sm"
+			className="bg-muted/60 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm"
 		>
 			<span className="flex items-center gap-2">
 				<SparklesIcon className="size-4" />

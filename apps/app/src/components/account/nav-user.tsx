@@ -47,7 +47,7 @@ const NavUser = () => {
 						render={
 							<SidebarMenuButton
 								size="lg"
-								className="border bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:bg-background/50"
+								className="bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:bg-background/50 border"
 							>
 								<UserAvatar user={auth.user} />
 								<div className="grid flex-1 text-left text-sm leading-tight">
@@ -55,7 +55,7 @@ const NavUser = () => {
 										{auth.user.name}
 									</span>
 									{organization && (
-										<span className="truncate text-muted-foreground text-xs">
+										<span className="text-muted-foreground truncate text-xs">
 											{organization.name}
 										</span>
 									)}

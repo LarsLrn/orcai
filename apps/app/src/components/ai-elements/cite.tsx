@@ -35,7 +35,7 @@ const CiteCardShell = ({
 	children: ReactNode;
 }) => (
 	<div className="space-y-3 p-4">
-		<h4 className="font-medium text-sm leading-snug">{title}</h4>
+		<h4 className="text-sm leading-snug font-medium">{title}</h4>
 		{children}
 		{page === undefined ? null : (
 			<p className="text-muted-foreground text-xs">
@@ -67,7 +67,7 @@ const CiteCardContent = ({
 	if (isLoading) {
 		return (
 			<CiteCardShell title={title} page={page}>
-				<p className="flex items-center gap-2 text-muted-foreground text-xs">
+				<p className="text-muted-foreground flex items-center gap-2 text-xs">
 					<Spinner className="size-3" />
 					{m.ai_elements_cite_loading_label()}
 				</p>
@@ -166,7 +166,7 @@ const AssetPill = ({
 						label: pillLabel,
 					})}
 					sources={[]}
-					className="border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20"
+					className="bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 border-transparent text-xs font-medium transition-colors duration-150"
 				/>
 				<InlineCitationCardBody>
 					{resolvedAssetId && hasOpened ? (
@@ -212,11 +212,11 @@ const WebPill = ({
 						title: pageTitle,
 					})}
 					sources={[]}
-					className="border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20"
+					className="bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 border-transparent text-xs font-medium transition-colors duration-150"
 				/>
 				<InlineCitationCardBody>
 					<CiteCardShell title={pageTitle}>
-						<p className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
+						<p className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs">
 							<GlobeIcon className="size-3 shrink-0" />
 							<span className="truncate">{host}</span>
 						</p>
@@ -263,13 +263,13 @@ const DocsPill = ({
 						title,
 					})}
 					sources={[]}
-					className="border-transparent bg-accent-brand/10 font-medium text-accent-brand text-xs transition-colors duration-150 hover:bg-accent-brand/20"
+					className="bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 border-transparent text-xs font-medium transition-colors duration-150"
 				/>
 				<InlineCitationCardBody>
 					<CiteCardShell title={title}>
 						{url ? (
 							<>
-								<p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+								<p className="text-muted-foreground flex items-center gap-1.5 text-xs">
 									<BookOpenIcon className="size-3 shrink-0" />
 									{m.ai_elements_cite_docs_source()}
 								</p>

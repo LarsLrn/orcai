@@ -16,7 +16,7 @@ function PathlessLayoutComponent() {
 		<main className="flex min-h-screen flex-col">
 			<AuroraBackground className="fixed inset-0 -z-10 h-full w-full" />
 
-			<div className="fixed top-4 right-4 z-20 flex gap-2 text-foreground">
+			<div className="text-foreground fixed top-4 right-4 z-20 flex gap-2">
 				<ThemeSwitcher className="size-8 px-0" />
 				<LocaleSwitcher />
 			</div>
@@ -27,13 +27,13 @@ function PathlessLayoutComponent() {
 				<Outlet />
 			</div>
 
-			<footer className="mx-auto my-4 w-full max-w-xl px-2 py-2 text-center text-muted-foreground text-xs">
+			<footer className="text-muted-foreground mx-auto my-4 w-full max-w-xl px-2 py-2 text-center text-xs">
 				{m.auth_layout_footer_before()}{" "}
 				<a
 					href="https://github.com/SokratesT/sokratest"
 					target="_blank"
 					rel="noopener noreferrer"
-					className="rounded-sm text-primary underline-offset-4 outline-none transition-[color,box-shadow] hover:underline focus-visible:ring-3 focus-visible:ring-ring/30"
+					className="text-primary focus-visible:ring-ring/30 rounded-sm underline-offset-4 transition-[color,box-shadow] outline-none hover:underline focus-visible:ring-3"
 				>
 					{m.auth_layout_footer_link()}
 				</a>

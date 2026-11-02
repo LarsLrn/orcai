@@ -44,7 +44,7 @@ const HealthCard = ({
 );
 
 const Empty = ({ children }: { children: ReactNode }) => (
-	<p className="py-6 text-center text-muted-foreground text-sm">{children}</p>
+	<p className="text-muted-foreground py-6 text-center text-sm">{children}</p>
 );
 
 export const ProcessesCard = ({
@@ -196,7 +196,7 @@ const KeyValueTable = ({
 						<TableHead scope="row" className="w-1/3 font-mono text-xs">
 							{row.label}
 						</TableHead>
-						<TableCell className="whitespace-normal break-all">
+						<TableCell className="break-all whitespace-normal">
 							{row.value}
 						</TableCell>
 					</TableRow>

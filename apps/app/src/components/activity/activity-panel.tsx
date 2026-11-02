@@ -29,10 +29,10 @@ const Section = ({
 	children: React.ReactNode;
 }) => (
 	<section className="py-2">
-		<h3 className="flex items-center gap-2 px-4 py-1.5 font-medium text-muted-foreground text-xs">
+		<h3 className="text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs font-medium">
 			{title}
 			{count ? (
-				<span className="rounded-full bg-muted px-1.5 text-foreground tabular-nums">
+				<span className="bg-muted text-foreground rounded-full px-1.5 tabular-nums">
 					{count}
 				</span>
 			) : null}
@@ -91,7 +91,7 @@ export const ActivityPanel = ({
 	}
 	if (attention.isError || runs.isError) {
 		return (
-			<p className="px-4 py-8 text-center text-muted-foreground text-sm">
+			<p className="text-muted-foreground px-4 py-8 text-center text-sm">
 				{m.activity_load_error()}
 			</p>
 		);

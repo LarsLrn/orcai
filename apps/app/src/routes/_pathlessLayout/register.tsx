@@ -163,14 +163,14 @@ function RouteComponent() {
 					/>
 				</div>
 			</CardContent>
-			<CardFooter className="flex-wrap gap-x-1 text-muted-foreground text-sm">
+			<CardFooter className="text-muted-foreground flex-wrap gap-x-1 text-sm">
 				{m.auth_register_page_signin_prompt()}
 				<Link
 					to="/login"
 					search={{
 						inv: invitation.invitationId,
 					}}
-					className="rounded-sm text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/30"
+					className="text-primary focus-visible:ring-ring/30 rounded-sm underline-offset-4 outline-none hover:underline focus-visible:ring-3"
 				>
 					{m.auth_register_page_signin_link()}
 				</Link>

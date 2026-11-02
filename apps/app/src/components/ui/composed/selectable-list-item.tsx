@@ -35,7 +35,7 @@ const SelectableListItem = <T extends string>({
 			variant="ghost"
 			aria-pressed={isSelected}
 			className={cn(
-				"flex h-auto w-full items-center justify-between border-muted px-2 py-1 text-left text-sm hover:bg-muted/50",
+				"border-muted hover:bg-muted/50 flex h-auto w-full items-center justify-between px-2 py-1 text-left text-sm",
 				isSelected && "bg-muted",
 				className,
 			)}
@@ -49,20 +49,20 @@ const SelectableListItem = <T extends string>({
 			<div className="flex min-w-0 items-center gap-3">
 				{leading ??
 					(Icon && (
-						<div className="flex size-8 items-center justify-center rounded-full text-muted-foreground">
+						<div className="text-muted-foreground flex size-8 items-center justify-center rounded-full">
 							<Icon className="h-4 w-4" />
 						</div>
 					))}
 				<div className={cn("min-w-0", !Icon && !leading && "pl-3")}>
 					<div className="flex items-center gap-2">
-						<p className="truncate font-medium text-sm">{option.label}</p>
+						<p className="truncate text-sm font-medium">{option.label}</p>
 						{option.badge && (
 							<Badge variant="outline" className="text-sm">
 								{option.badge}
 							</Badge>
 						)}
 					</div>
-					<p className="truncate text-muted-foreground text-xs">
+					<p className="text-muted-foreground truncate text-xs">
 						{option.description}
 					</p>
 				</div>
@@ -73,7 +73,7 @@ const SelectableListItem = <T extends string>({
 				<span
 					aria-hidden="true"
 					data-checked={isSelected || undefined}
-					className="flex size-4 shrink-0 items-center justify-center rounded-[5px] border border-transparent bg-card text-primary-foreground data-checked:border-primary data-checked:bg-primary"
+					className="bg-card text-primary-foreground data-checked:border-primary data-checked:bg-primary flex size-4 shrink-0 items-center justify-center rounded-[5px] border border-transparent"
 				>
 					{isSelected && <CheckIcon className="size-3.5" />}
 				</span>

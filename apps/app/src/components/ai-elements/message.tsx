@@ -120,8 +120,8 @@ export const MessageResponse = memo(
 			allowedTags={streamdownAllowedTags}
 			linkSafety={use(LinkSafetyContext)}
 			className={cn(
-				"wrap-break-word w-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
-				"[&_h1]:font-semibold [&_h1]:text-2xl [&_h1]:tracking-tight [&_h2]:font-semibold [&_h2]:text-base [&_h2]:tracking-tight [&_h3]:font-medium [&_h3]:text-sm [&_h4]:font-medium [&_h4]:text-sm",
+				"w-full wrap-break-word [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+				"[&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h2]:text-base [&_h2]:font-semibold [&_h2]:tracking-tight [&_h3]:text-sm [&_h3]:font-medium [&_h4]:text-sm [&_h4]:font-medium",
 				"[&_table]:rounded-xl [&_table]:text-sm",
 				className,
 			)}

@@ -9,6 +9,7 @@ export const AiTelemetryLive = Layer.effectDiscard(
 		registerTelemetry(
 			new OpenTelemetry({
 				runtimeContext: true,
+				agentSpanName: "functionId",
 			}),
 		),
 	),

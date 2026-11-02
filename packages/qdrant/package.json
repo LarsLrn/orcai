@@ -10,7 +10,6 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@effect/sql-pg": "catalog:",
 		"@orcai/ai": "workspace:*",
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",

@@ -45,10 +45,10 @@ const FormSection = ({
 	return (
 		<section
 			aria-labelledby={`${id}-title`}
-			className="rounded-3xl border bg-card shadow-xs"
+			className="bg-card rounded-3xl border shadow-xs"
 		>
 			<header className="flex flex-col gap-1 border-b px-4 py-4 sm:px-6">
-				<h2 id={`${id}-title`} className="font-heading font-semibold text-base">
+				<h2 id={`${id}-title`} className="font-heading text-base font-semibold">
 					{title}
 				</h2>
 				{description && (
@@ -71,7 +71,7 @@ const FormPair = ({ children }: { children: React.ReactNode }) => (
 
 /** A note about the whole form, above its actions. */
 const FormNotice = ({ children }: { children: React.ReactNode }) => (
-	<p className="flex items-start gap-2 px-1 text-muted-foreground text-sm">
+	<p className="text-muted-foreground flex items-start gap-2 px-1 text-sm">
 		<InfoIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 		{children}
 	</p>

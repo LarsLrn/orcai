@@ -32,17 +32,17 @@ function Home() {
 			<main className="landing-page bg-landing-canvas text-landing-foreground">
 				<LandingSection className="py-6">
 					<Surface className="bg-landing-surface p-4">
-						<div className="flex flex-wrap items-center justify-between gap-3 border-landing-border-subtle border-b px-2 pb-4 text-sm">
+						<div className="border-landing-border-subtle flex flex-wrap items-center justify-between gap-3 border-b px-2 pb-4 text-sm">
 							<Link
 								to="/docs/$"
-								className="text-landing-muted transition-colors hover:text-landing-foreground"
+								className="text-landing-muted hover:text-landing-foreground transition-colors"
 							>
 								OrcAI documentation
 							</Link>
 							<div className="flex flex-wrap gap-2">
 								<a
 									href={siteConfig.repository.url}
-									className="rounded-full bg-landing-accent-tint px-3 py-1 font-medium text-landing-accent-muted text-xs transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-landing-accent focus-visible:outline-offset-2"
+									className="bg-landing-accent-tint text-landing-accent-muted focus-visible:outline-landing-accent rounded-full px-3 py-1 text-xs font-medium transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2"
 								>
 									Open source
 								</a>
@@ -51,7 +51,7 @@ function Home() {
 									params={{
 										_splat: "self-hosting",
 									}}
-									className="rounded-full border border-landing-border px-3 py-1 text-xs transition-colors hover:bg-landing-surface-hover focus-visible:outline-2 focus-visible:outline-landing-accent focus-visible:outline-offset-2"
+									className="border-landing-border hover:bg-landing-surface-hover focus-visible:outline-landing-accent rounded-full border px-3 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
 								>
 									Self-hostable
 								</Link>
@@ -60,7 +60,7 @@ function Home() {
 
 						<div className="grid gap-10 px-1 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-6 lg:py-14">
 							<div>
-								<h1 className="max-w-4xl text-balance font-semibold text-4xl leading-none tracking-tight sm:text-6xl">
+								<h1 className="max-w-4xl text-4xl leading-none font-semibold tracking-tight text-balance sm:text-6xl">
 									AI that answers from your own material.
 								</h1>
 								<BodyCopy className="mt-6 max-w-2xl text-lg leading-8">
@@ -80,7 +80,7 @@ function Home() {
 										<Code2Icon className="size-4" /> GitHub
 									</ActionLink>
 								</div>
-								<p className="mt-6 text-landing-muted text-sm">
+								<p className="text-landing-muted mt-6 text-sm">
 									Made for teaching and learning, research groups and specialist
 									teams.
 								</p>
@@ -116,7 +116,7 @@ function Home() {
 						<ul className="mt-6 grid gap-x-8 gap-y-4 md:grid-cols-2 lg:grid-cols-3">
 							{moreFeatures.map((item) => (
 								<li key={item.text} className="flex items-start gap-3">
-									<item.icon className="mt-0.5 size-5 shrink-0 text-landing-muted" />
+									<item.icon className="text-landing-muted mt-0.5 size-5 shrink-0" />
 									<BodyCopy>{item.text}</BodyCopy>
 								</li>
 							))}

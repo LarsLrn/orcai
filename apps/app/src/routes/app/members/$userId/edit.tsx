@@ -161,7 +161,7 @@ function RouteComponent() {
 							<div className="flex items-center gap-2">
 								<UserAvatar user={member.data} size="sm" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">{m.common_name_label()}</p>
+									<p className="text-sm font-medium">{m.common_name_label()}</p>
 									<p className="text-muted-foreground text-sm">
 										{member.data.name}
 									</p>
@@ -169,9 +169,9 @@ function RouteComponent() {
 							</div>
 
 							<div className="flex items-center gap-2">
-								<MailIcon className="h-4 w-4 text-primary" />
+								<MailIcon className="text-primary h-4 w-4" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">
+									<p className="text-sm font-medium">
 										{m.common_email_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
@@ -181,9 +181,9 @@ function RouteComponent() {
 							</div>
 
 							<div className="flex items-center gap-2">
-								<BadgeIcon className="h-4 w-4 text-primary" />
+								<BadgeIcon className="text-primary h-4 w-4" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">
+									<p className="text-sm font-medium">
 										{m.members_edit_details_status_label()}
 									</p>
 									<div className="flex items-center gap-2">
@@ -200,9 +200,9 @@ function RouteComponent() {
 							</div>
 
 							<div className="flex items-center gap-2">
-								<MailCheckIcon className="h-4 w-4 text-primary" />
+								<MailCheckIcon className="text-primary h-4 w-4" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">
+									<p className="text-sm font-medium">
 										{m.members_edit_details_verification_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
@@ -214,9 +214,9 @@ function RouteComponent() {
 							</div>
 
 							<div className="flex items-center gap-2">
-								<CalendarIcon className="h-4 w-4 text-primary" />
+								<CalendarIcon className="text-primary h-4 w-4" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">
+									<p className="text-sm font-medium">
 										{m.members_edit_details_created_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">
@@ -226,9 +226,9 @@ function RouteComponent() {
 							</div>
 
 							<div className="flex items-center gap-2">
-								<CalendarIcon className="h-4 w-4 text-primary" />
+								<CalendarIcon className="text-primary h-4 w-4" />
 								<div className="space-y-0.5">
-									<p className="font-medium text-sm">
+									<p className="text-sm font-medium">
 										{m.members_edit_details_updated_label()}
 									</p>
 									<p className="text-muted-foreground text-sm">

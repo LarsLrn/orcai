@@ -35,7 +35,7 @@ const UserStats = ({
 						<p className="text-muted-foreground text-xs">
 							{m.common_name_label()}
 						</p>
-						<p className="font-medium text-sm">{auth.user.name}</p>
+						<p className="text-sm font-medium">{auth.user.name}</p>
 					</div>
 				</div>
 
@@ -45,7 +45,7 @@ const UserStats = ({
 						<p className="text-muted-foreground text-xs">
 							{m.common_email_label()}
 						</p>
-						<p className="font-medium text-sm">{auth.user.email}</p>
+						<p className="text-sm font-medium">{auth.user.email}</p>
 					</div>
 				</div>
 			</CardContent>

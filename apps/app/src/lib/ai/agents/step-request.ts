@@ -1,10 +1,10 @@
-import { withholdToolCalls } from "@orcai/ai";
-import type { ModelProviderKind } from "@orcai/core";
 import {
 	isStepCount,
 	type ModelMessage,
 	type StepResult,
 	type StopCondition,
+	type StreamTextTransform,
+	ToolChoiceViolationError,
 	type ToolSet,
 } from "ai";
 import type { z } from "zod/v4";
@@ -22,13 +22,13 @@ export const FINAL_STEP_NOTE =
 /**
  * Shapes every step's request the same way for each agent: failures as the
  * stored reply reads them, then the agent's pruning, then the turn's prompt
- * room, then on the budget's last step a note asking for an answer. The note
- * comes last so pruning never mistakes it for a new turn, and as a user
- * message it keeps the prompt prefix as it was. A turn whose next step would
- * not fit its prompt room even without the earlier steps' tool calls stops.
+ * room, then on the budget's last step no tool calls and a note asking for
+ * an answer. The note comes last so pruning never mistakes it for a new turn,
+ * and as a user message it keeps the prompt prefix as it was. A turn whose
+ * next step would not fit its prompt room even without the earlier steps'
+ * tool calls stops.
  */
 export const createStepShaper = (params: {
-	providerKind: ModelProviderKind;
 	prune: (messages: ModelMessage[]) => ModelMessage[];
 }) => {
 	// Calls approved in an earlier request fail before the first step, outside every step's content.
@@ -106,7 +106,7 @@ export const createStepShaper = (params: {
 								messages: sent,
 							}
 						: {
-								...withholdToolCalls(params.providerKind),
+								toolChoice: "none" as const,
 								messages: [
 									...sent,
 									{
@@ -120,3 +120,36 @@ export const createStepShaper = (params: {
 		},
 	};
 };
+
+/**
+ * Streams a last step whose model called tools anyway as a step that ended in
+ * tool calls, which the turn reads as its step limit. The SDK runs none of
+ * those calls and reports them as an error.
+ */
+export const lastStepToolCalls =
+	<TOOLS extends ToolSet>(): StreamTextTransform<TOOLS> =>
+	() => {
+		let rejected = false;
+		return new TransformStream({
+			transform(part, controller) {
+				if (
+					part.type === "error" &&
+					ToolChoiceViolationError.isInstance(part.error) &&
+					part.error.toolChoice.type === "none"
+				) {
+					rejected = true;
+					return;
+				}
+				controller.enqueue(
+					rejected &&
+						(part.type === "finish-step" || part.type === "finish") &&
+						part.finishReason === "error"
+						? {
+								...part,
+								finishReason: "tool-calls",
+							}
+						: part,
+				);
+			},
+		});
+	};

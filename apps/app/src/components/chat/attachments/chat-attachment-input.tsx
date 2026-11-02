@@ -49,7 +49,7 @@ export const ChatComposerDropZone = ({
 		>
 			{children}
 			{isDragActive && (
-				<div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-3xl border-2 border-primary border-dashed bg-card/90 font-medium text-sm">
+				<div className="border-primary bg-card/90 pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-3xl border-2 border-dashed text-sm font-medium">
 					{m.chat_composer_drop_label()}
 				</div>
 			)}

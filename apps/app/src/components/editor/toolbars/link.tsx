@@ -75,7 +75,7 @@ const LinkToolbar = ({
 								>
 									<p className="mr-2 text-base">↗</p>
 									<p
-										className={"underline decoration-gray-7 underline-offset-4"}
+										className={"decoration-gray-7 underline underline-offset-4"}
 									>
 										{m.editor_toolbar_link_button()}
 									</p>
@@ -122,7 +122,7 @@ const LinkToolbar = ({
 									{href && (
 										<Button
 											size="sm"
-											className="h-8 text-gray-11"
+											className="text-gray-11 h-8"
 											variant="ghost"
 											onClick={() => {
 												editor?.chain().focus().unsetLink().run();

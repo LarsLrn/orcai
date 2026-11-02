@@ -15,7 +15,7 @@ const DataTablePagination = () => {
 
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-2">
-			<div className="grow whitespace-nowrap text-muted-foreground text-sm">
+			<div className="text-muted-foreground grow text-sm whitespace-nowrap">
 				{hasSelectionColumn
 					? m.data_table_pagination_selected_rows({
 							selected: table.getFilteredSelectedRowModel().rows.length,

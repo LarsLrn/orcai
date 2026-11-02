@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: .devcontainer/Dockerfile.workspace
     working_dir: /workspaces/orcai
-    command: [ "bun", "install", "--frozen-lockfile", "--ignore-scripts" ]
+    command: ["bun", "install", "--frozen-lockfile", "--ignore-scripts"]
     volumes:
       - .:/workspaces/orcai:cached
     environment:
@@ -29,7 +29,7 @@ services:
       context: .
       dockerfile: .devcontainer/Dockerfile.workspace
     working_dir: /workspaces/orcai
-    command: [ "/bin/sh", "-c", "while sleep 1000; do :; done" ]
+    command: ["/bin/sh", "-c", "while sleep 1000; do :; done"]
     volumes:
       - .:/workspaces/orcai:cached
     extra_hosts:
@@ -96,7 +96,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d spicedb" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d spicedb"]
 
   spicedb-migrate:
     environment:

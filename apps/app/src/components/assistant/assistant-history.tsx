@@ -33,7 +33,7 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 			aria-labelledby={headingId}
 			className={cn("flex flex-col gap-3", className)}
 		>
-			<h2 id={headingId} className="font-heading font-semibold text-base">
+			<h2 id={headingId} className="font-heading text-base font-semibold">
 				{m.assistant_history_title()}
 			</h2>
 			{status === "pending" ? (
@@ -43,11 +43,11 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 					{m.assistant_history_empty()}
 				</p>
 			) : (
-				<ul className="flex flex-col divide-y rounded-xl border bg-card">
+				<ul className="bg-card flex flex-col divide-y rounded-xl border">
 					{conversations.map((conversation) => (
 						<li
 							key={conversation.id}
-							className="relative flex items-center gap-3 px-4 py-2.5 transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-muted/50"
+							className="hover:bg-muted/50 relative flex items-center gap-3 px-4 py-2.5 transition-colors first:rounded-t-xl last:rounded-b-xl"
 						>
 							<div className="flex min-w-0 flex-1 flex-col">
 								<Link
@@ -55,7 +55,7 @@ const AssistantHistory = ({ className }: { className?: string }) => {
 									params={{
 										chatId: conversation.id,
 									}}
-									className="truncate font-medium text-sm after:absolute after:inset-0"
+									className="truncate text-sm font-medium after:absolute after:inset-0"
 								>
 									{conversation.title ??
 										m.assistant_conversation_title_placeholder()}

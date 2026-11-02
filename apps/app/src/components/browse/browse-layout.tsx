@@ -70,7 +70,7 @@ const BrowseNav = ({
 				{...item.linkProps}
 				aria-current={item.active ? "page" : undefined}
 				className={cn(
-					"flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/75",
+					"hover:bg-muted focus-visible:ring-ring/75 flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors outline-none focus-visible:ring-[3px]",
 					item.active && "bg-muted font-medium",
 					orientation === "horizontal" && "rounded-full border",
 				)}
@@ -101,9 +101,9 @@ const BrowseResultsHeader = ({
 	children?: React.ReactNode;
 }) => (
 	<div className="flex flex-wrap items-center justify-between gap-3">
-		<h2 className="font-heading font-semibold text-xl tracking-tight">
+		<h2 className="font-heading text-xl font-semibold tracking-tight">
 			{title}{" "}
-			<span className="font-normal text-muted-foreground tabular-nums">
+			<span className="text-muted-foreground font-normal tabular-nums">
 				{count}
 			</span>
 		</h2>
@@ -140,13 +140,13 @@ const Shelf = ({
 }) => (
 	<section className="flex flex-col gap-1">
 		<div className="flex items-center justify-between gap-3">
-			<h2 className="font-heading font-semibold text-foreground/80 text-xl tracking-tight">
+			<h2 className="font-heading text-foreground/80 text-xl font-semibold tracking-tight">
 				{title}
 			</h2>
 			{seeAll ? (
 				<Link
 					{...seeAll}
-					className="flex shrink-0 items-center gap-0.5 rounded-full px-2 py-1 font-medium text-primary text-sm outline-none hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/75"
+					className="text-primary hover:bg-muted focus-visible:ring-ring/75 flex shrink-0 items-center gap-0.5 rounded-full px-2 py-1 text-sm font-medium outline-none focus-visible:ring-[3px]"
 				>
 					{m.browse_see_all_action()}
 					<ChevronRightIcon aria-hidden="true" className="size-4" />

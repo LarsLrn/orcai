@@ -33,13 +33,13 @@ const FilterableList = ({
 	return (
 		<section aria-labelledby={titleId} className="space-y-3">
 			<div className="flex items-center gap-2">
-				<Icon className="h-4 w-4 text-muted-foreground" />
-				<p id={titleId} className="font-medium text-sm">
+				<Icon className="text-muted-foreground h-4 w-4" />
+				<p id={titleId} className="text-sm font-medium">
 					{title}
 				</p>
 			</div>
 			<div className="relative max-w-sm">
-				<SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+				<SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
 				<Input
 					className="pl-9"
 					aria-label={placeholder}
@@ -51,7 +51,7 @@ const FilterableList = ({
 			</div>
 			<div className="max-h-64 overflow-auto">
 				{isEmpty ? (
-					<div className="rounded-xl border border-dashed p-4 text-center text-muted-foreground text-sm">
+					<div className="text-muted-foreground rounded-xl border border-dashed p-4 text-center text-sm">
 						{emptyText}
 					</div>
 				) : (

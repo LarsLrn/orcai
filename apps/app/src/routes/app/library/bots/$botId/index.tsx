@@ -159,7 +159,7 @@ function RouteComponent() {
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
 					{isContentEmpty(bot.data.contentJson) ? null : (
-						<div className="mt-2 rounded-md border bg-muted/30 p-3 text-sm">
+						<div className="bg-muted/30 mt-2 rounded-md border p-3 text-sm">
 							<div className="prose prose-sm max-w-none">
 								<ContentRenderer content={bot.data.contentJson} />
 							</div>

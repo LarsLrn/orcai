@@ -40,9 +40,9 @@ export const ChatEmbeddingsRebuildNotice = ({
 	return (
 		<div
 			role="status"
-			className="flex items-start gap-2.5 rounded-2xl bg-muted/60 px-4 py-3 text-sm"
+			className="bg-muted/60 flex items-start gap-2.5 rounded-2xl px-4 py-3 text-sm"
 		>
-			<RefreshCwIcon className="mt-0.5 size-4 shrink-0 text-foreground" />
+			<RefreshCwIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 			<p className="text-foreground">
 				{m.embeddings_rebuild_notice_description()}
 			</p>

@@ -109,7 +109,6 @@ export const createAssistantAgent = (
 
 	const toolLines = createToolLines(params.history);
 	const steps = createStepShaper({
-		providerKind: params.model.kind,
 		prune: (messages) =>
 			pruneAssistantHistory(messages, {
 				lines: toolLines.lines,

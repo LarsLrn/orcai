@@ -27,7 +27,7 @@ export const InlineCitationText = ({
 	...props
 }: InlineCitationTextProps) => (
 	<span
-		className={cn("transition-colors group-hover:bg-accent", className)}
+		className={cn("group-hover:bg-accent transition-colors", className)}
 		{...props}
 	/>
 );
@@ -53,7 +53,7 @@ export const InlineCitationCardTrigger = ({
 		render={
 			<Badge
 				className={cn(
-					"ml-1 inline-flex min-w-0 max-w-48 rounded-full align-middle",
+					"ml-1 inline-flex max-w-48 min-w-0 rounded-full align-middle",
 					className,
 				)}
 				variant="secondary"

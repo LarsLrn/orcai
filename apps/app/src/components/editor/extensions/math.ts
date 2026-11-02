@@ -5,6 +5,7 @@ import { render, renderToString } from "katex";
 
 const katexOptions = {
 	throwOnError: false,
+	trust: false,
 };
 
 const renderMathToString = (latex: string) =>

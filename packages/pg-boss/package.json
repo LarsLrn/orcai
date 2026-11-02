@@ -15,6 +15,6 @@
 		"@orcai/schema": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
-		"pg-boss": "12.37.1"
+		"pg-boss": "12.38.0"
 	}
 }

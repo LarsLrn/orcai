@@ -140,11 +140,11 @@ const ManageLibraryPanel = () => {
 					>
 						<div className="flex min-w-0 flex-col gap-1">
 							<span className="truncate font-medium">{row.label}</span>
-							<p className="truncate text-muted-foreground text-xs">
+							<p className="text-muted-foreground truncate text-xs">
 								{row.meta}
 							</p>
 						</div>
-						<span className="shrink-0 font-medium text-base tabular-nums">
+						<span className="shrink-0 text-base font-medium tabular-nums">
 							{formatCount(row.count)}
 						</span>
 					</Link>

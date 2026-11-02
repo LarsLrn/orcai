@@ -76,7 +76,7 @@ const Stepper = ({
 			>
 				<span
 					className={cn(
-						"flex size-6 shrink-0 items-center justify-center rounded-full border font-medium text-xs",
+						"flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium",
 						position < index &&
 							"border-primary bg-primary text-primary-foreground",
 						position === index && "border-primary text-primary",
@@ -96,7 +96,7 @@ const Stepper = ({
 					{STEP_LABELS[step]()}
 				</span>
 				{position < steps.length - 1 ? (
-					<span aria-hidden="true" className="h-px flex-1 bg-border" />
+					<span aria-hidden="true" className="bg-border h-px flex-1" />
 				) : null}
 			</li>
 		))}
@@ -166,12 +166,12 @@ const DoneStep = ({
 		}),
 	);
 	return (
-		<div className="flex flex-col items-center gap-4 rounded-2xl border bg-card px-6 py-10 text-center">
-			<div className="flex size-14 items-center justify-center rounded-full bg-status-success/12 text-status-success">
+		<div className="bg-card flex flex-col items-center gap-4 rounded-2xl border px-6 py-10 text-center">
+			<div className="bg-status-success/12 text-status-success flex size-14 items-center justify-center rounded-full">
 				<CheckIcon aria-hidden="true" className="size-7" />
 			</div>
 			<div className="flex flex-col gap-1">
-				<h2 className="font-heading font-semibold text-xl">
+				<h2 className="font-heading text-xl font-semibold">
 					{m.catalogue_wizard_done_title({
 						name: entry.name,
 						organisation,
@@ -312,7 +312,7 @@ export const CatalogueAddWizard = ({
 							organisation,
 						})}
 					</p>
-					<h1 className="break-words font-heading font-semibold text-3xl tracking-tight">
+					<h1 className="font-heading text-3xl font-semibold tracking-tight break-words">
 						{entry.name}
 					</h1>
 				</div>
@@ -321,7 +321,7 @@ export const CatalogueAddWizard = ({
 			<h2
 				ref={stepHeading}
 				tabIndex={-1}
-				className="-mb-4 font-medium text-muted-foreground text-sm outline-none"
+				className="text-muted-foreground -mb-4 text-sm font-medium outline-none"
 			>
 				{m.catalogue_wizard_step_heading({
 					position: index + 1,

@@ -41,7 +41,7 @@ const BotModelNotice = ({ botId }: { botId: BotId }) => {
 	return (
 		<>
 			<div className="flex items-start gap-2.5">
-				<CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-foreground" />
+				<CircleAlertIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 				<p className="text-foreground">
 					{m.chat_bot_model_notice_title({
 						bot: bot?.data.name ?? m.chat_bot_model_notice_bot_fallback(),
@@ -115,7 +115,7 @@ const ChatModelNotice = ({
 			id="chat-model-notice"
 			role="status"
 			className={cn(
-				"flex flex-col gap-3 rounded-2xl bg-muted/60 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between",
+				"bg-muted/60 flex flex-col gap-3 rounded-2xl px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between",
 				className,
 			)}
 		>
@@ -124,7 +124,7 @@ const ChatModelNotice = ({
 			) : (
 				<>
 					<div className="flex items-start gap-2.5">
-						<CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-foreground" />
+						<CircleAlertIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 						{reason === "model" ? (
 							<p className="text-foreground">
 								{m.chat_model_notice_title({

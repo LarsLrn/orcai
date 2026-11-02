@@ -86,12 +86,6 @@ export interface ProviderKindServerEntry {
 	) => Promise<DiscoveredModel[]>;
 	/** Sent on the stable system part; set for kinds that cache prompts. */
 	readonly stablePromptOptions?: SystemModelMessage["providerOptions"];
-	/**
-	 * Whether `toolChoice: "none"` keeps the tool list in the request. The
-	 * Anthropic provider drops the list instead, which changes the prefix that
-	 * cached prompts and thinking blocks are bound to.
-	 */
-	readonly toolChoiceNoneKeepsTools: boolean;
 	/** Defaults to active tools. */
 	readonly toolLoading?: (modelId: string) => ToolLoading;
 	/** Sent with every call of the kind. */
@@ -138,7 +132,6 @@ export const providerKindServerEntries: Record<
 				...connection,
 				endpoint: requireEndpoint(connection),
 			}),
-		toolChoiceNoneKeepsTools: true,
 		// JSON mode: many servers behind this kind take no JSON schema.
 		jsonWithoutSchema: true,
 	},
@@ -154,7 +147,6 @@ export const providerKindServerEntries: Record<
 				endpoint: null,
 				fetch,
 			}),
-		toolChoiceNoneKeepsTools: true,
 		utilityReasoning: "low",
 		webSearchTool: (allowedDomains) =>
 			openai.tools.webSearch(
@@ -211,7 +203,6 @@ export const providerKindServerEntries: Record<
 				},
 			},
 		},
-		toolChoiceNoneKeepsTools: false,
 		webSearchTool: (allowedDomains) =>
 			anthropic.tools.webSearch_20260318({
 				maxUses: ANTHROPIC_WEB_SEARCHES_PER_TURN,
@@ -291,18 +282,6 @@ export const listProviderModels = (
 	providerKindServerEntries[kind].listModels(connection).catch((cause) => {
 		throw classifyListingFailure(cause);
 	});
-
-/** Step settings that rule out tool calls where the kind keeps its tool list. */
-export const withholdToolCalls = (
-	kind: ModelProviderKind,
-): {
-	toolChoice?: "none";
-} =>
-	providerKindServerEntries[kind].toolChoiceNoneKeepsTools
-		? {
-				toolChoice: "none",
-			}
-		: {};
 
 /**
  * The system messages of a call. Kinds that cache get the stable part on its

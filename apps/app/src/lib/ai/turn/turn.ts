@@ -42,6 +42,7 @@ import { v4 as uuidv4 } from "uuid";
 import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { localDate } from "@/lib/ai/agents/chat-agent-system-prompt";
+import { lastStepToolCalls } from "@/lib/ai/agents/step-request";
 import {
 	type ChatSources,
 	chatSources,
@@ -166,12 +167,13 @@ const turnAgent = <Tools extends ToolSet>({
 				promptTokens: options.promptTokens,
 			},
 			generateMessageId: () => options.replyId,
-			// The model's own web search cites its pages as URL sources.
-			sendSources: true,
-			experimental_transform: smoothStream({
-				delayInMs: 20,
-				chunking: "word",
-			}),
+			experimental_transform: [
+				lastStepToolCalls(),
+				smoothStream({
+					delayInMs: 20,
+					chunking: "word",
+				}),
+			],
 			onStepEnd: options.onStepEnd,
 			onEnd: options.onEnd,
 			onError: options.onError,

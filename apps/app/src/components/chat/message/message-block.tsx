@@ -124,7 +124,7 @@ export const MessageBlock = ({
 	// A reply exists from the first chunk on, before the model has written anything.
 	if (missing === "waiting") {
 		return (
-			<div className="w-full text-foreground">
+			<div className="text-foreground w-full">
 				<Shimmer>{m.chat_waiting_for_model()}</Shimmer>
 			</div>
 		);
@@ -216,7 +216,7 @@ export const MessageBlock = ({
 						<div className="mt-1 flex items-center justify-end gap-2">
 							<MessageContextNotice message={message} />
 							{message.metadata?.model && (
-								<span className="wrap-anywhere min-w-0 text-muted-foreground text-xs">
+								<span className="text-muted-foreground min-w-0 text-xs wrap-anywhere">
 									{message.metadata.model}
 								</span>
 							)}

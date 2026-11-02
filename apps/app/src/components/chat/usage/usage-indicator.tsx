@@ -76,7 +76,7 @@ const UsageIndicator = ({
 			size="icon-sm"
 			aria-label={m.chat_usage_trigger_aria_label()}
 			className={cn(
-				"shrink-0 text-muted-foreground",
+				"text-muted-foreground shrink-0",
 				view.tone === "warning" && "text-status-warning",
 				view.tone === "danger" && "text-status-danger",
 			)}

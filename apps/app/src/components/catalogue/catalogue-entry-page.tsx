@@ -51,7 +51,7 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-	<h2 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+	<h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
 		{children}
 	</h2>
 );
@@ -118,7 +118,7 @@ const BotContents = ({
 	<Section label={m.catalogue_detail_inside_label()}>
 		<RowList>
 			{entry.blocks.length === 0 ? (
-				<li className="p-3 text-muted-foreground text-sm">
+				<li className="text-muted-foreground p-3 text-sm">
 					{m.catalogue_detail_model_only()}
 				</li>
 			) : (
@@ -136,7 +136,7 @@ const BotContents = ({
 								<Icon aria-hidden="true" />
 							</span>
 							<div className="min-w-0 flex-1">
-								<p className="truncate font-medium text-sm">{block.name}</p>
+								<p className="truncate text-sm font-medium">{block.name}</p>
 								<p className="text-muted-foreground text-xs">
 									{block.assets === null
 										? label()
@@ -146,7 +146,7 @@ const BotContents = ({
 								</p>
 							</div>
 							{block.state === "added" && organisation !== undefined ? (
-								<span className="shrink-0 text-muted-foreground text-xs">
+								<span className="text-muted-foreground shrink-0 text-xs">
 									{m.catalogue_added_label({
 										organisation,
 									})}
@@ -212,14 +212,14 @@ const BotModel = ({
 /** A behaviour's full prompt, open to read before adding it. */
 const BehaviourPrompt = ({ prompt }: { prompt: string | null }) => (
 	<details className="group flex flex-col rounded-2xl border p-4" open>
-		<summary className="flex cursor-pointer list-none items-center justify-between rounded-sm font-semibold text-muted-foreground text-xs uppercase tracking-wider outline-none focus-visible:ring-[3px] focus-visible:ring-ring/75">
+		<summary className="text-muted-foreground focus-visible:ring-ring/75 flex cursor-pointer list-none items-center justify-between rounded-sm text-xs font-semibold tracking-wider uppercase outline-none focus-visible:ring-[3px]">
 			{m.catalogue_detail_prompt_label()}
 			<ChevronDownIcon
 				className="size-4 transition-transform group-open:rotate-180"
 				aria-hidden="true"
 			/>
 		</summary>
-		<pre className="mt-3 whitespace-pre-wrap break-words rounded-xl bg-muted/60 p-4 font-mono text-xs leading-relaxed">
+		<pre className="bg-muted/60 mt-3 rounded-xl p-4 font-mono text-xs leading-relaxed break-words whitespace-pre-wrap">
 			{prompt}
 		</pre>
 	</details>
@@ -232,21 +232,21 @@ const RepositoryContents = ({ entry }: { entry: CatalogueEntryDetail }) => {
 		<Section label={m.catalogue_detail_contents_label()}>
 			<RowList>
 				{entry.assetPreview.length === 0 ? (
-					<li className="p-3 text-muted-foreground text-sm">
+					<li className="text-muted-foreground p-3 text-sm">
 						{m.blocks_tile_no_assets()}
 					</li>
 				) : null}
 				{entry.assetPreview.map((asset) => (
 					<li key={asset.id} className="flex items-center gap-3 p-3 text-sm">
 						<FileTextIcon
-							className="size-4 shrink-0 text-muted-foreground"
+							className="text-muted-foreground size-4 shrink-0"
 							aria-hidden="true"
 						/>
 						<span className="min-w-0 truncate">{asset.title}</span>
 					</li>
 				))}
 				{more > 0 ? (
-					<li className="p-3 text-muted-foreground text-xs">
+					<li className="text-muted-foreground p-3 text-xs">
 						{m.catalogue_detail_more_assets({
 							count: more,
 						})}

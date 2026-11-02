@@ -90,7 +90,7 @@ export const QuizPager = ({
 		>
 			<div key={page} className="flex flex-col gap-5">
 				{section.title && (
-					<h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+					<h4 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
 						{section.title}
 					</h4>
 				)}
@@ -98,12 +98,12 @@ export const QuizPager = ({
 					const promptId = `${id}-${number}`;
 					return (
 						<div key={number} className="flex flex-col gap-3">
-							<p id={promptId} className="flex gap-2 font-medium text-sm">
+							<p id={promptId} className="flex gap-2 text-sm font-medium">
 								<span className="flex-1">
 									{number}. {question.prompt}
 								</span>
 								{showPoints && (
-									<span className="shrink-0 font-normal text-muted-foreground text-xs">
+									<span className="text-muted-foreground shrink-0 text-xs font-normal">
 										{m.questions_points({
 											count: pointsOf(question),
 										})}

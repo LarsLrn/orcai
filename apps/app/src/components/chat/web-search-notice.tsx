@@ -68,9 +68,9 @@ export const WebSearchNotice = ({
 	return (
 		<div
 			role="status"
-			className="flex items-start gap-2.5 rounded-2xl bg-muted/60 px-4 py-3 text-sm"
+			className="bg-muted/60 flex items-start gap-2.5 rounded-2xl px-4 py-3 text-sm"
 		>
-			<GlobeIcon className="mt-0.5 size-4 shrink-0 text-foreground" />
+			<GlobeIcon className="text-foreground mt-0.5 size-4 shrink-0" />
 			<p className="text-foreground">
 				{source.reason === "off"
 					? m.chat_web_search_notice_off()

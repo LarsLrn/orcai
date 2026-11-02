@@ -83,7 +83,7 @@ const OptionPicker = <T extends string>({
 						<Item size="xs" className="w-full p-0">
 							<ItemContent className="gap-0">
 								<ItemTitle>{option.label}</ItemTitle>
-								<ItemDescription className="text-wrap text-xs">
+								<ItemDescription className="text-xs text-wrap">
 									{option.description}
 								</ItemDescription>
 							</ItemContent>

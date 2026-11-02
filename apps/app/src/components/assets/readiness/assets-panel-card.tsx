@@ -20,7 +20,7 @@ const RepositoryStatusIcon = ({
 		return (
 			<Spinner
 				aria-label={m.assets_panel_repository_preparing()}
-				className="size-4 shrink-0 text-muted-foreground"
+				className="text-muted-foreground size-4 shrink-0"
 			/>
 		);
 	}
@@ -29,7 +29,7 @@ const RepositoryStatusIcon = ({
 			<CircleAlertIcon
 				role="img"
 				aria-label={m.assets_panel_repository_failed()}
-				className="size-4 shrink-0 text-status-danger"
+				className="text-status-danger size-4 shrink-0"
 			/>
 		);
 	}
@@ -37,7 +37,7 @@ const RepositoryStatusIcon = ({
 		<CircleCheckIcon
 			role="img"
 			aria-label={m.assets_panel_repository_ready()}
-			className="size-4 shrink-0 text-status-success"
+			className="text-status-success size-4 shrink-0"
 		/>
 	);
 };
@@ -61,14 +61,14 @@ const RepositoryRow = ({ repository }: { repository: RepositoryReadiness }) => {
 			) : (
 				<span className="min-w-0 truncate">{repository.name}</span>
 			)}
-			<span className="ml-auto shrink-0 text-muted-foreground text-xs tabular-nums">
+			<span className="text-muted-foreground ml-auto shrink-0 text-xs tabular-nums">
 				{m.assets_panel_repository_count({
 					ready: totals.ready,
 					total: totals.total,
 				})}
 			</span>
 			{totals.failed > 0 && (
-				<span className="shrink-0 text-status-danger text-xs tabular-nums">
+				<span className="text-status-danger shrink-0 text-xs tabular-nums">
 					{m.assets_panel_repository_failed_count({
 						count: totals.failed,
 					})}
@@ -105,7 +105,7 @@ export const AssetsPanelCard = ({
 				) : (
 					<TriangleAlertIcon
 						aria-hidden
-						className="size-4 shrink-0 text-status-warning"
+						className="text-status-warning size-4 shrink-0"
 					/>
 				)
 			}

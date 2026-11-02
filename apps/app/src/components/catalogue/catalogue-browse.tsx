@@ -168,7 +168,7 @@ const PickedOrganizations = ({
 	);
 	if (picked.length === 0) return null;
 	return (
-		<ul className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">
+		<ul className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-sm">
 			{picked.map((organization) => (
 				<li key={organization.id}>
 					<Link
@@ -176,7 +176,7 @@ const PickedOrganizations = ({
 						params={{
 							organizationId: organization.id,
 						}}
-						className="group/org flex items-center gap-1.5 rounded-sm outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/75"
+						className="group/org hover:text-foreground focus-visible:ring-ring/75 flex items-center gap-1.5 rounded-sm outline-none focus-visible:ring-3"
 					>
 						<OrganizationLogo organization={organization} size="sm" />
 						<span className="group-hover/org:underline">

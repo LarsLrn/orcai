@@ -133,7 +133,7 @@ const ScopeSwitch = ({
 		value={scope}
 		onValueChange={(value) => onScope(value as LibraryScope)}
 		aria-label={m.library_scope_label()}
-		className="grid grid-cols-2 rounded-full bg-muted p-1 text-sm"
+		className="bg-muted grid grid-cols-2 rounded-full p-1 text-sm"
 	>
 		{(
 			[
@@ -153,8 +153,8 @@ const ScopeSwitch = ({
 				key={value}
 				value={value}
 				className={cn(
-					"flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/75",
-					"data-checked:bg-background data-checked:font-medium data-checked:text-foreground data-checked:shadow-xs",
+					"text-muted-foreground hover:text-foreground focus-visible:ring-ring/75 flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition-colors outline-none focus-visible:ring-[3px]",
+					"data-checked:bg-background data-checked:text-foreground data-checked:font-medium data-checked:shadow-xs",
 				)}
 			>
 				<Icon aria-hidden="true" className="size-3.5" />

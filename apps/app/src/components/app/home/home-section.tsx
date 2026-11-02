@@ -22,7 +22,7 @@ const HomeSection = ({
 				<SectionTitle id={titleId}>{title}</SectionTitle>
 				<Link
 					{...linkProps}
-					className="shrink-0 rounded-sm text-muted-foreground text-sm outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/75"
+					className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/75 shrink-0 rounded-sm text-sm outline-none focus-visible:ring-3"
 				>
 					{linkLabel}
 				</Link>

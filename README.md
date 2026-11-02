@@ -30,6 +30,7 @@ OrcAI is a self-hostable platform for building governed AI bots around curated k
 ## Stack
 
 ### Application
+
 - React 19
 - TanStack Start
 - TanStack Router / Query / Form
@@ -38,6 +39,7 @@ OrcAI is a self-hostable platform for building governed AI bots around curated k
 - TipTap
 
 ### Backend
+
 - Bun
 - oRPC
 - Better Auth
@@ -49,6 +51,7 @@ OrcAI is a self-hostable platform for building governed AI bots around curated k
 - pg-boss
 
 ### AI and Extraction
+
 - AI SDK
 - OpenAI-compatible model endpoint
 - Kreuzberg text extraction

@@ -9,7 +9,7 @@ const BranchMark = ({ className }: { className?: string }) => (
 	<GitBranchIcon
 		role="img"
 		aria-label={m.chat_branch_label()}
-		className={cn("size-3.5 shrink-0 text-muted-foreground", className)}
+		className={cn("text-muted-foreground size-3.5 shrink-0", className)}
 	/>
 );
 
@@ -19,7 +19,7 @@ const BranchedFrom = ({ parentChat }: { parentChat: ChatLink }) => (
 		params={{
 			chatId: parentChat.id,
 		}}
-		className="inline-flex min-w-0 max-w-full items-center gap-1.5 py-1 text-muted-foreground text-xs underline-offset-4 hover:text-foreground hover:underline"
+		className="text-muted-foreground hover:text-foreground inline-flex max-w-full min-w-0 items-center gap-1.5 py-1 text-xs underline-offset-4 hover:underline"
 	>
 		<GitBranchIcon aria-hidden="true" className="size-3.5 shrink-0" />
 		<span className="truncate">
@@ -62,7 +62,7 @@ const MessageBranches = ({
 }) => (
 	<div
 		className={cn(
-			"flex min-w-0 flex-wrap items-center gap-x-3 text-muted-foreground text-xs",
+			"text-muted-foreground flex min-w-0 flex-wrap items-center gap-x-3 text-xs",
 			className,
 		)}
 	>
@@ -78,7 +78,7 @@ const MessageBranches = ({
 					chatId: branch.id,
 				}}
 				title={createdAt ? `${title} (${createdAt})` : title}
-				className="flex min-w-0 max-w-full py-1 text-foreground underline-offset-4 hover:underline sm:max-w-80"
+				className="text-foreground flex max-w-full min-w-0 py-1 underline-offset-4 hover:underline sm:max-w-80"
 			>
 				<span className="truncate">{title}</span>
 				{createdAt && (

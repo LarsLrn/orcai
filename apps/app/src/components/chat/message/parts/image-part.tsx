@@ -21,12 +21,12 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 
 	return (
 		<div className="mb-6 space-y-4">
-			<div className="flex items-center space-x-2 text-muted-foreground text-sm">
+			<div className="text-muted-foreground flex items-center space-x-2 text-sm">
 				<ImageIcon className="h-4 w-4" />
 				<span>{m.chat_image_part_label()}</span>
 			</div>
 
-			<div className="group relative overflow-hidden rounded-xl border bg-muted/20 shadow-sm transition-all hover:shadow-md">
+			<div className="group bg-muted/20 relative overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-md">
 				<img
 					src={url}
 					alt={alt}

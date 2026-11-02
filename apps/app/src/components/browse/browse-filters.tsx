@@ -48,7 +48,7 @@ const FilterRow = ({
 }) => (
 	<FieldLabel
 		htmlFor={id}
-		className="-mx-2 w-auto items-center gap-3 rounded-lg px-2 py-1.5 font-normal hover:bg-muted has-data-checked:bg-muted has-data-checked:font-medium"
+		className="hover:bg-muted has-data-checked:bg-muted -mx-2 w-auto items-center gap-3 rounded-lg px-2 py-1.5 font-normal has-data-checked:font-medium"
 	>
 		{control}
 		<span className="min-w-0 break-words">{children}</span>
@@ -69,11 +69,11 @@ const FilterFields = <D extends FilterDefinitions>({
 				definition.options.length === 0 ? null : (
 					<FieldSet
 						key={key}
-						className="block gap-0 rounded-2xl border bg-card px-3 pb-2 shadow-xs [&>*:not(legend)]:clear-both"
+						className="bg-card block gap-0 rounded-2xl border px-3 pb-2 shadow-xs [&>*:not(legend)]:clear-both"
 					>
 						<FieldLegend
 							variant="label"
-							className="float-left -mx-3 mb-2 w-[calc(100%+1.5rem)] border-b px-3 py-2.5 font-medium text-foreground text-sm"
+							className="text-foreground float-left -mx-3 mb-2 w-[calc(100%+1.5rem)] border-b px-3 py-2.5 text-sm font-medium"
 						>
 							{definition.label()}
 						</FieldLegend>

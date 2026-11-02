@@ -200,7 +200,7 @@ const OrganizationModelField = <Use extends ModelUse>({
 			{unusableReason && (
 				<p
 					id={unusableId}
-					className="flex items-start gap-2 text-destructive text-sm"
+					className="text-destructive flex items-start gap-2 text-sm"
 				>
 					<TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
 					{setting.unusable[unusableReason]()}

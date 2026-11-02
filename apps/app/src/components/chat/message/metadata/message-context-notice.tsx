@@ -15,7 +15,7 @@ const MessageContextNotice = ({ message }: { message: ChatAgentUIMessage }) => {
 	const Icon = metadata?.timeLimitReached ? TimerOffIcon : HistoryIcon;
 
 	return notice ? (
-		<span className="flex min-w-0 items-center gap-1 text-muted-foreground text-xs">
+		<span className="text-muted-foreground flex min-w-0 items-center gap-1 text-xs">
 			<Icon className="size-3.5 shrink-0" />
 			{notice}
 		</span>

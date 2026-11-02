@@ -50,7 +50,7 @@ export const UsageBreakdown = <Row extends AnalyticsUsage>({
 		</CardHeader>
 		<CardContent>
 			{rows.length === 0 ? (
-				<p className="py-6 text-center text-muted-foreground text-sm">
+				<p className="text-muted-foreground py-6 text-center text-sm">
 					{empty}
 				</p>
 			) : (
@@ -93,7 +93,7 @@ export const UsageBreakdown = <Row extends AnalyticsUsage>({
 									<TableCell className="text-right tabular-nums">
 										{formatCount(row.requests)}
 									</TableCell>
-									<TableCell className="whitespace-nowrap text-right tabular-nums">
+									<TableCell className="text-right whitespace-nowrap tabular-nums">
 										{formatCosts(row.cost, m.analytics_cost_none())}
 									</TableCell>
 								</TableRow>
@@ -117,7 +117,7 @@ export const TwoLineName = ({
 	<div className="min-w-0">
 		<div className="truncate font-medium">{primary}</div>
 		{secondary ? (
-			<div className="truncate text-muted-foreground text-xs">{secondary}</div>
+			<div className="text-muted-foreground truncate text-xs">{secondary}</div>
 		) : null}
 	</div>
 );

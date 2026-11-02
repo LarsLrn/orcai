@@ -57,10 +57,10 @@ const ListedCount = ({
 				<Icon aria-hidden="true" />
 			</span>
 			<span className="flex-1">
-				<span className="block font-heading font-semibold text-2xl tabular-nums leading-tight">
+				<span className="font-heading block text-2xl leading-tight font-semibold tabular-nums">
 					{count}
 				</span>
-				<span className="block text-muted-foreground text-sm">
+				<span className="text-muted-foreground block text-sm">
 					{kindCount[kind](count)}
 				</span>
 			</span>
@@ -85,13 +85,13 @@ const ListedCount = ({
 				}}
 				className={cn(
 					card,
-					"group/count shadow-xs transition hover:border-foreground/15 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/75",
+					"group/count hover:border-foreground/15 focus-visible:ring-ring/75 shadow-xs transition hover:shadow-md focus-visible:ring-3",
 				)}
 			>
 				{body}
 				<ArrowRightIcon
 					aria-hidden="true"
-					className="size-4 text-muted-foreground transition-transform motion-safe:group-hover/count:translate-x-1"
+					className="text-muted-foreground size-4 transition-transform motion-safe:group-hover/count:translate-x-1"
 				/>
 			</Link>
 		</li>
@@ -162,7 +162,7 @@ const OrganizationProfilePage = ({
 				organization={organization}
 				className="size-24 rounded-3xl shadow-md after:rounded-3xl [&_[data-slot=avatar-fallback]]:rounded-3xl [&_[data-slot=avatar-fallback]]:text-2xl [&_img]:rounded-3xl"
 			/>
-			<h1 className="text-balance font-heading font-semibold text-4xl tracking-tight">
+			<h1 className="font-heading text-4xl font-semibold tracking-tight text-balance">
 				{organization.name}
 			</h1>
 			{isActive || canEdit ? (
@@ -181,7 +181,7 @@ const OrganizationProfilePage = ({
 
 		<section
 			aria-label={m.organization_profile_description_label()}
-			className="rounded-3xl border bg-card p-6 shadow-xs md:p-10"
+			className="bg-card rounded-3xl border p-6 shadow-xs md:p-10"
 		>
 			{isContentEmpty(organization.description, descriptionExtensions) ? (
 				<p className="text-muted-foreground text-sm">

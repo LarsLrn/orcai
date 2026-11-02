@@ -210,7 +210,7 @@ function RootDocument({
 			</head>
 			<body
 				className={cn(
-					"flex min-h-svh flex-col bg-background font-sans antialiased",
+					"bg-background flex min-h-svh flex-col font-sans antialiased",
 				)}
 			>
 				<ConfirmDialogProvider>

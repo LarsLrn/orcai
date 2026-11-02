@@ -81,7 +81,7 @@ export const AllowedDomainsField = ({
 								{onChange && (
 									<button
 										type="button"
-										className="rounded-sm p-0.5 hover:bg-muted"
+										className="hover:bg-muted rounded-sm p-0.5"
 										aria-label={m.feature_web_search_domain_remove({
 											domain,
 										})}

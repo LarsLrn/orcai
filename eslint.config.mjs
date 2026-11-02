@@ -3,7 +3,6 @@
 import pluginQuery from "@tanstack/eslint-plugin-query";
 import pluginRouter from "@tanstack/eslint-plugin-router";
 import { defineConfig } from "eslint/config";
-import pluginDrizzle from "eslint-plugin-drizzle";
 import tseslint from "typescript-eslint";
 
 const typeScriptFiles = [
@@ -11,10 +10,6 @@ const typeScriptFiles = [
 ];
 const appTypeScriptFiles = [
 	"apps/*/**/*.{ts,tsx,mts,cts}",
-];
-const workspaceTypeScriptFiles = [
-	"apps/*/**/*.{ts,tsx,mts,cts}",
-	"packages/*/**/*.{ts,tsx,mts,cts}",
 ];
 
 export default defineConfig([
@@ -59,30 +54,6 @@ export default defineConfig([
 			"@tanstack/query/no-void-query-fn": "error",
 			"@tanstack/query/prefer-query-options": "error",
 			"@tanstack/query/stable-query-client": "error",
-		},
-	},
-	{
-		files: workspaceTypeScriptFiles,
-		plugins: {
-			drizzle: pluginDrizzle,
-		},
-		rules: {
-			"drizzle/enforce-delete-with-where": [
-				"error",
-				{
-					drizzleObjectName: [
-						"db",
-					],
-				},
-			],
-			"drizzle/enforce-update-with-where": [
-				"error",
-				{
-					drizzleObjectName: [
-						"db",
-					],
-				},
-			],
 		},
 	},
 ]);

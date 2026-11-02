@@ -1,4 +1,3 @@
-import { PgClient } from "@effect/sql-pg";
 import {
 	type AiError,
 	decryptApiKey,
@@ -13,7 +12,7 @@ import {
 	DB,
 	dbSchema,
 } from "@orcai/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -305,10 +304,12 @@ const startGeneration = (setup: GenerationSetup) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const scope = yield* EmbeddingIndex;
-		const pg = yield* PgClient.PgClient;
-		const [{ generation }] = yield* pg<{
+		const [{ generation }] = yield* db.execute<{
 			generation: number;
-		}>`select nextval('embedding_generation_seq')::int as generation`;
+		}>(
+			sql`select nextval('embedding_generation_seq')::int as generation`,
+			"objects",
+		);
 		const values = {
 			embeddingGeneration: generation,
 			embeddingBaseUrl: setup.baseUrl,

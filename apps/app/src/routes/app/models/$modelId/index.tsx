@@ -171,27 +171,27 @@ function RouteComponent() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<TagIcon className="h-4 w-4" />
 									{m.models_form_provider_model_id_label()}
 								</div>
-								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
+								<code className="bg-muted/40 rounded border px-2 py-1 font-mono text-xs">
 									{model.providerModelId}
 								</code>
 							</div>
 							<Separator />
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<LinkIcon className="h-4 w-4" />
 									{m.models_detail_provider_id_label()}
 								</div>
-								<code className="rounded border bg-muted/40 px-2 py-1 font-mono text-xs">
+								<code className="bg-muted/40 rounded border px-2 py-1 font-mono text-xs">
 									{model.providerId}
 								</code>
 							</div>
 							<Separator />
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<ServerIcon className="h-4 w-4" />
 									{m.models_detail_provider_kind_label()}
 								</div>
@@ -199,7 +199,7 @@ function RouteComponent() {
 							</div>
 							<Separator />
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<ScanTextIcon className="h-4 w-4" />
 									{m.models_form_context_window_label()}
 								</div>
@@ -212,7 +212,7 @@ function RouteComponent() {
 							</div>
 							<Separator />
 							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+								<div className="text-muted-foreground flex items-center gap-2 text-sm">
 									<TextCursorInputIcon className="h-4 w-4" />
 									{m.models_form_max_output_tokens_label()}
 								</div>
@@ -240,7 +240,7 @@ function RouteComponent() {
 								<Fragment key={label}>
 									{index > 0 && <Separator />}
 									<div className="flex items-start justify-between gap-4">
-										<div className="flex items-center gap-2 text-muted-foreground text-sm">
+										<div className="text-muted-foreground flex items-center gap-2 text-sm">
 											<CoinsIcon className="h-4 w-4" />
 											{label}
 										</div>
@@ -292,7 +292,7 @@ function RouteComponent() {
 							<div className="flex flex-wrap items-center justify-between gap-3">
 								<div className="min-w-0">
 									<p className="font-semibold">{provider.name}</p>
-									<p className="truncate text-muted-foreground text-sm">
+									<p className="text-muted-foreground truncate text-sm">
 										{provider.endpoint ?? m.providers_detail_endpoint_default()}
 									</p>
 								</div>

@@ -44,26 +44,26 @@ export const ComposerPanel = ({
 	return (
 		<section
 			aria-labelledby={regionId}
-			className="not-prose overflow-hidden rounded-xl border bg-card text-sm"
+			className="not-prose bg-card overflow-hidden rounded-xl border text-sm"
 		>
 			<h2 id={regionId} className="sr-only">
 				{label}
 			</h2>
 			<Collapsible open={open} onOpenChange={onOpenChange}>
-				<CollapsibleTrigger className="group flex w-full items-center gap-2 px-4 py-2.5 text-left hover:bg-muted/50">
+				<CollapsibleTrigger className="group hover:bg-muted/50 flex w-full items-center gap-2 px-4 py-2.5 text-left">
 					<ChevronDownIcon
 						aria-hidden
-						className="size-4 shrink-0 -rotate-90 text-muted-foreground transition-transform group-data-panel-open:rotate-0"
+						className="text-muted-foreground size-4 shrink-0 -rotate-90 transition-transform group-data-panel-open:rotate-0"
 					/>
 					{icon}
 					<span className="min-w-0 truncate font-medium">{title}</span>
 					{tally && (
-						<span className="shrink-0 text-muted-foreground text-xs tabular-nums">
+						<span className="text-muted-foreground shrink-0 text-xs tabular-nums">
 							{tally}
 						</span>
 					)}
 					{!open && summary && (
-						<span className="min-w-0 flex-1 truncate text-muted-foreground text-xs">
+						<span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
 							{summary}
 						</span>
 					)}

@@ -96,7 +96,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 			original.user.kind === "member" ? (
 				<div className="min-w-0">
 					<p className="truncate font-medium">{original.user.name}</p>
-					<p className="truncate text-muted-foreground text-xs">
+					<p className="text-muted-foreground truncate text-xs">
 						{original.user.email}
 					</p>
 				</div>
@@ -217,7 +217,7 @@ export const quotaUsageEventTableColumns = columnHelper.columns([
 		),
 		cell: ({ row }) => (
 			<span
-				className="block max-w-48 truncate font-mono text-muted-foreground text-xs"
+				className="text-muted-foreground block max-w-48 truncate font-mono text-xs"
 				title={row.original.appRequestId}
 			>
 				{row.original.appRequestId}

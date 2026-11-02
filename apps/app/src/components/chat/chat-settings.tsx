@@ -112,7 +112,7 @@ const ChatSettings = ({
 										<BotFeatures botId={chat.data.botId} />
 									</Suspense>
 									<Separator />
-									<div className="flex flex-col gap-2 text-muted-foreground text-sm">
+									<div className="text-muted-foreground flex flex-col gap-2 text-sm">
 										<p>{m.chat_settings_blocks_bot_managed_notice()}</p>
 										<p>{m.chat_settings_features_bot_managed_notice()}</p>
 									</div>
@@ -330,7 +330,7 @@ const ChatBlocksEditor = ({
 		<div className="flex flex-col gap-3">
 			<Label className="text-base">{m.chat_settings_blocks_label()}</Label>
 
-			<div className="space-y-3 rounded-2xl border border-dashed bg-muted/15 p-4">
+			<div className="bg-muted/15 space-y-3 rounded-2xl border border-dashed p-4">
 				<div className="grid gap-2 sm:grid-cols-2">
 					<Button
 						type="button"

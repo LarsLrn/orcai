@@ -49,7 +49,7 @@ const BoldToolbar = ({
 			/>
 			<TooltipContent>
 				<span>{m.editor_toolbar_bold_tooltip()}</span>
-				<span className="ml-1 text-gray-11 text-xs">(cmd + b)</span>
+				<span className="text-gray-11 ml-1 text-xs">(cmd + b)</span>
 			</TooltipContent>
 		</Tooltip>
 	);
