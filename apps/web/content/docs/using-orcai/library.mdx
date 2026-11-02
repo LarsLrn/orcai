@@ -173,7 +173,3 @@ The embedding model and vector dimensions must stay compatible with existing col
 <Callout title="Embedding compatibility" type="warn">
 	Changing `EMBEDDING_MODEL` or `EMBEDDING_DIMENSIONS` after assets have already been indexed is not supported right now. Recreate the Qdrant collection and prepare assets again instead.
 </Callout>
-
-<Callout title="TODO" type="idea">
-	Document per-type parsing limits, OCR behaviour for image-heavy PDFs in mixed-language files (see `KREUZBERG_OCR_LANGUAGE` in [Configuration](/docs/self-hosting/configuration#ai-and-retrieval)), and troubleshooting for failed or stuck preparation.
-</Callout>
