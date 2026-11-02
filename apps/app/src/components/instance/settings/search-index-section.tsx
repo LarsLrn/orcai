@@ -1,4 +1,6 @@
 import type { EmbeddingProgress } from "@orcai/schema";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { FormSection } from "@/components/forms/form-layout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -15,6 +17,8 @@ import { orpc } from "@/lib/orpc/orpc";
 import { describePipelineFailure } from "@/lib/presentation/asset-state";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
+
+const PREPARING_POLL_MS = 5_000;
 
 /** The files embedded, waiting and failed per organisation, without naming any of them. */
 export const SearchIndexSection = ({
@@ -59,7 +63,7 @@ export const SearchIndexSection = ({
 			loading: m.instance_settings_index_prepare_again_toast_loading(),
 			success: ({ data }) =>
 				m.instance_settings_index_prepare_again_toast_success({
-					count: data.data.queued,
+					count: data.data.assets,
 				}),
 			error: m.instance_settings_index_prepare_again_toast_error(),
 		},
@@ -74,6 +78,15 @@ export const SearchIndexSection = ({
 				variant: "default",
 			},
 		},
+	});
+	const [preparing, setPreparing] = useState(false);
+	// Preparing again starts in the background, after the mutation returned; once queued the assets wait.
+	useQuery({
+		...orpc.instanceSettings.embeddingProgress.queryOptions({
+			input: {},
+		}),
+		enabled: preparing && progress.preparable > 0,
+		refetchInterval: PREPARING_POLL_MS,
 	});
 	const reembed = useMutationAction({
 		mutationOptions: () =>
@@ -185,7 +198,10 @@ export const SearchIndexSection = ({
 					<Button
 						variant="outline"
 						loading={prepareAgain.isPending}
-						onClick={() => void prepareAgain.mutateAsync({})}
+						onClick={async () => {
+							const result = await prepareAgain.mutateAsync({});
+							if (result.status === "success") setPreparing(true);
+						}}
 					>
 						{m.instance_settings_index_prepare_again_button()}
 					</Button>

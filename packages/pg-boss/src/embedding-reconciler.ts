@@ -9,14 +9,16 @@ import {
 	isRetryableFailure,
 	PIPELINE_FAILURES,
 	type PipelineFailure,
+	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 } from "@orcai/schema";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	type ObservedLink,
 	queueIndexing,
 	queueProcessing,
 } from "./asset-pipeline";
+import { sendJobBatch } from "./helpers";
 
 const ADMISSION_BATCH = 500;
 
@@ -38,6 +40,16 @@ const embeddable = Effect.gen(function* () {
 	const { settings, blockIds } = yield* EmbeddingIndex;
 	const { asset, blockAsset } = dbSchema;
 	const db = yield* DB;
+	const inIndex = (...conditions: ReturnType<typeof and>[]) =>
+		and(
+			blockIds
+				? inArray(blockAsset.blockId, [
+						...blockIds,
+					])
+				: undefined,
+			...conditions,
+		);
+	const inActive = sql`${blockAsset.embeddingGeneration} is not distinct from ${settings.embeddingGeneration}`;
 	return {
 		links: () =>
 			db
@@ -50,18 +62,29 @@ const embeddable = Effect.gen(function* () {
 				.innerJoin(asset, eq(asset.id, blockAsset.assetId))
 				.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`),
 		where: (...conditions: ReturnType<typeof and>[]) =>
-			and(
-				eq(asset.processingStatus, "completed"),
-				blockIds
-					? inArray(blockAsset.blockId, [
-							...blockIds,
-						])
-					: undefined,
+			inIndex(eq(asset.processingStatus, "completed"), ...conditions),
+		/**
+		 * The links counted toward a generation: those `where` selects, and
+		 * those of an asset being prepared again after it was indexed in any
+		 * generation, which its processing indexes in the active one.
+		 */
+		counted: (...conditions: ReturnType<typeof and>[]) =>
+			inIndex(
+				or(
+					eq(asset.processingStatus, "completed"),
+					and(
+						inArray(asset.processingStatus, [
+							"pending",
+							"active",
+						]),
+						isNotNull(blockAsset.embeddingGeneration),
+					),
+				),
 				...conditions,
 			),
-		inActive: sql`${blockAsset.embeddingGeneration} is not distinct from ${settings.embeddingGeneration}`,
+		inActive,
 		settled: and(
-			sql`${blockAsset.embeddingGeneration} is not distinct from ${settings.embeddingGeneration}`,
+			inActive,
 			inArray(blockAsset.indexStatus, [
 				"completed",
 				"failed",
@@ -88,7 +111,7 @@ const admitAll = <E, R>(
 		}
 	});
 
-/** The active generation, and whether some link of a prepared asset has not settled in it since it started. */
+/** The active generation, and whether some counted link has not settled in it since it started. */
 const rebuildState = Effect.gen(function* () {
 	const db = yield* DB;
 	const { settings } = yield* EmbeddingIndex;
@@ -98,7 +121,7 @@ const rebuildState = Effect.gen(function* () {
 			generation: settings.embeddingGeneration,
 			rebuilding: sql<boolean>`${settings.embeddingRebuilding} and exists (${links
 				.links()
-				.where(links.where(sql`not (${links.settled})`))
+				.where(links.counted(sql`not (${links.settled})`))
 				.limit(1)})`,
 		})
 		.from(settings);
@@ -110,7 +133,7 @@ const rebuildState = Effect.gen(function* () {
 
 /**
  * Whether files are being re-embedded after a new generation started: some
- * link of a prepared asset has not settled in it yet. Search finds only the
+ * counted link has not settled in it yet. Search finds only the
  * links already embedded meanwhile.
  */
 export const embeddingsRebuilding = rebuildState.pipe(
@@ -184,6 +207,38 @@ export const retryFailedEmbeddings = Effect.gen(function* () {
 	);
 });
 
+/** The failed links of the active generation missing their stored extraction. Join `settings` too. */
+const missingExtraction = Effect.gen(function* () {
+	const { blockAsset } = dbSchema;
+	const links = yield* embeddable;
+	return (...conditions: ReturnType<typeof and>[]) =>
+		links.where(
+			links.inActive,
+			eq(blockAsset.indexStatus, "failed"),
+			eq(blockAsset.indexFailure, "missing_extraction"),
+			...conditions,
+		);
+});
+
+/** How many assets a failed link of the active generation misses the stored extraction of. */
+const preparableAssets = Effect.gen(function* () {
+	const db = yield* DB;
+	const { settings } = yield* EmbeddingIndex;
+	const { asset, blockAsset } = dbSchema;
+	const missing = yield* missingExtraction;
+	const [row] = yield* db
+		.select({
+			assets: sql<number>`count(distinct ${blockAsset.assetId})`.mapWith(
+				Number,
+			),
+		})
+		.from(blockAsset)
+		.innerJoin(asset, eq(asset.id, blockAsset.assetId))
+		.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
+		.where(missing());
+	return row?.assets ?? 0;
+});
+
 /**
  * Prepares every asset again whose stored extraction a failed link of the
  * active generation is missing, a batch at a time, once per asset; its
@@ -194,8 +249,8 @@ export const prepareMissingExtractionsAgain = Effect.gen(function* () {
 	const db = yield* DB;
 	const { settings } = yield* EmbeddingIndex;
 	const { asset, blockAsset } = dbSchema;
-	const links = yield* embeddable;
-	const missing = (...conditions: ReturnType<typeof and>[]) =>
+	const missing = yield* missingExtraction;
+	const assetsMissing = (...conditions: ReturnType<typeof and>[]) =>
 		db
 			.selectDistinct({
 				id: asset.id,
@@ -207,21 +262,14 @@ export const prepareMissingExtractionsAgain = Effect.gen(function* () {
 			.from(blockAsset)
 			.innerJoin(asset, eq(asset.id, blockAsset.assetId))
 			.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
-			.where(
-				links.where(
-					links.inActive,
-					eq(blockAsset.indexStatus, "failed"),
-					eq(blockAsset.indexFailure, "missing_extraction"),
-					...conditions,
-				),
-			);
+			.where(missing(...conditions));
 	// Checked again under the generation lock, so a switch since the batch was read queues nothing.
 	const prepare = (
-		selected: Effect.Success<ReturnType<typeof missing>>[number],
+		selected: Effect.Success<ReturnType<typeof assetsMissing>>[number],
 	) =>
 		writeGeneration(
 			Effect.gen(function* () {
-				const [still] = yield* missing(eq(asset.id, selected.id));
+				const [still] = yield* assetsMissing(eq(asset.id, selected.id));
 				return still
 					? yield* queueProcessing(still, [
 							"completed",
@@ -235,15 +283,34 @@ export const prepareMissingExtractionsAgain = Effect.gen(function* () {
 		);
 	let queued = 0;
 	while (true) {
-		const assets = yield* missing().limit(ADMISSION_BATCH);
+		const assets = yield* assetsMissing().limit(ADMISSION_BATCH);
 		if (assets.length === 0) return queued;
 		const admitted = (yield* Effect.forEach(assets, prepare)).filter(
 			(generation) => generation !== undefined,
 		).length;
 		queued += admitted;
-		// Every asset went to another request meanwhile; the next click looks again.
+		// Every asset went to another admission meanwhile; the next run looks again.
 		if (admitted === 0) return queued;
 	}
+});
+
+/**
+ * Queues the job that runs `prepareMissingExtractionsAgain`, unless one is
+ * already waiting. Returns how many assets it is to prepare.
+ */
+export const startPreparingMissingExtractionsAgain = Effect.gen(function* () {
+	const assets = yield* preparableAssets;
+	if (assets > 0) {
+		yield* sendJobBatch({
+			jobName: PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+			jobs: [
+				{
+					data: {},
+				},
+			],
+		});
+	}
+	return assets;
 });
 
 /** How far the active generation got in one organisation's repositories. */
@@ -302,16 +369,13 @@ export const embeddingProgress = Effect.gen(function* () {
 			),
 		)
 		.leftJoin(organization, eq(organization.id, resourceScope.organizationId))
-		.where(links.where())
+		.where(links.counted())
 		.groupBy(organization.id, organization.name)
 		.orderBy(organization.name);
 	const failures = yield* db
 		.select({
 			failure: blockAsset.indexFailure,
 			count: sql<number>`count(*)`.mapWith(Number),
-			assets: sql<number>`count(distinct ${blockAsset.assetId})`.mapWith(
-				Number,
-			),
 		})
 		.from(blockAsset)
 		.innerJoin(dbSchema.asset, eq(dbSchema.asset.id, blockAsset.assetId))
@@ -338,8 +402,6 @@ export const embeddingProgress = Effect.gen(function* () {
 		retryable: failureCounts
 			.filter(({ failure }) => REEMBEDDABLE_FAILURES.includes(failure))
 			.reduce((sum, { count }) => sum + count, 0),
-		preparable:
-			failures.find(({ failure }) => failure === "missing_extraction")
-				?.assets ?? 0,
+		preparable: yield* preparableAssets,
 	};
 });

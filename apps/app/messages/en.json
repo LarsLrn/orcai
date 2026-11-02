@@ -4118,7 +4118,7 @@
 			}
 		}
 	],
-	"instance_settings_index_prepare_again_confirm_description": "OrcAI prepares them again in every repository that holds them, also where they are already embedded.",
+	"instance_settings_index_prepare_again_confirm_description": "OrcAI queues them in the background and prepares them again in every repository that holds them, also where they are already embedded.",
 	"instance_settings_index_prepare_again_confirm_button": "Prepare again",
 	"instance_settings_index_prepare_again_toast_loading": "Queueing the assets for preparation...",
 	"instance_settings_index_prepare_again_toast_success": [
@@ -4131,8 +4131,8 @@
 				"countPlural"
 			],
 			"match": {
-				"countPlural=one": "1 asset queued for preparation",
-				"countPlural=other": "{count} assets queued for preparation"
+				"countPlural=one": "1 asset is being queued for preparation",
+				"countPlural=other": "{count} assets are being queued for preparation"
 			}
 		}
 	],

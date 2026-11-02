@@ -50,6 +50,6 @@ export const retryFailedEmbeddingsResponseSchema = createDataResponseSchema(
 export const prepareMissingExtractionsAgainResponseSchema =
 	createDataResponseSchema(
 		z.object({
-			queued: z.number().int().nonnegative(),
+			assets: z.number().int().nonnegative(),
 		}),
 	);

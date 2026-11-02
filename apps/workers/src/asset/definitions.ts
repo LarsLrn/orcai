@@ -1,7 +1,11 @@
 import type { PgClient } from "@effect/sql-pg";
 import type { EncryptionKey } from "@orcai/ai";
 import type { DB } from "@orcai/db";
-import { type PgBossService, reconcileEmbeddings } from "@orcai/pg-boss";
+import {
+	type PgBossService,
+	prepareMissingExtractionsAgain,
+	reconcileEmbeddings,
+} from "@orcai/pg-boss";
 import type { QdrantService } from "@orcai/qdrant";
 import type { S3Service } from "@orcai/s3/server";
 import {
@@ -9,6 +13,7 @@ import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
 	type JobQueue,
+	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
@@ -117,6 +122,25 @@ export const assetWorkerDefinitions = [
 								"Admitted repository links to the active embedding generation",
 							)
 						: Effect.void,
+				),
+			),
+	}),
+	assetWorker({
+		name: PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+		workOptions: {
+			batchSize: 1,
+			localConcurrency: 1,
+			pollingIntervalSeconds: 2,
+		},
+		handler: () =>
+			prepareMissingExtractionsAgain.pipe(
+				Effect.tap((queued) =>
+					Effect.logInfo(
+						{
+							queued,
+						},
+						"Queued assets missing their stored extraction for preparation",
+					),
 				),
 			),
 	}),
