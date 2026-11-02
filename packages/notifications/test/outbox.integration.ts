@@ -1,6 +1,15 @@
 import { describe, expect, test } from "bun:test";
+import { setTimeout as sleep } from "node:timers/promises";
 import { DB, DrizzleLive, dbSchema } from "@orcai/db";
-import type { EmailDeliveryChannel } from "@orcai/schema";
+import {
+	type JobWithMetadata,
+	makePgBossLayer,
+	PgBossService,
+} from "@orcai/pg-boss";
+import {
+	type EmailDeliveryChannel,
+	NOTIFICATION_OUTBOX_JOB_NAME,
+} from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
@@ -9,6 +18,7 @@ import {
 	EmailService,
 	notificationOutboxValues,
 	processNextNotification,
+	wakeNotificationWorker,
 } from "../src";
 
 class Rollback<A> extends Data.TaggedError("Rollback")<{
@@ -78,3 +88,64 @@ describe("notification outbox", () => {
 		});
 	}
 });
+
+// The wake's singleton slot, as pg-boss buckets it.
+const SLOT_MS = 5_000;
+const slotOf = (job: Pick<JobWithMetadata, "singletonOn">) =>
+	job.singletonOn?.getTime() ?? 0;
+
+test("a wake in a slot whose drain already started queues a drain in a later slot", async () => {
+	// Start just after a slot boundary, so both wakes fall into one slot.
+	await sleep(SLOT_MS - (Date.now() % SLOT_MS) + 100);
+	const slotEnd = Date.now() - (Date.now() % SLOT_MS) + SLOT_MS;
+	const { drain, next, inSlot } = await Effect.runPromise(
+		Effect.gen(function* () {
+			const { boss } = yield* PgBossService;
+			yield* Effect.promise(() =>
+				boss.createQueue(NOTIFICATION_OUTBOX_JOB_NAME),
+			);
+			yield* wakeNotificationWorker;
+			// The worker takes every waiting drain, so a row inserted now needs a new one.
+			const draining = yield* Effect.promise(() =>
+				boss.fetch(NOTIFICATION_OUTBOX_JOB_NAME, {
+					batchSize: 1000,
+					includeMetadata: true,
+				}),
+			);
+			const drain = draining
+				.filter((job) => job.singletonOn !== null)
+				.sort((a, b) => slotOf(b) - slotOf(a))
+				.at(0);
+			yield* wakeNotificationWorker;
+			const inSlot = Date.now() < slotEnd;
+			const next = (yield* Effect.promise(() =>
+				boss.findJobs(NOTIFICATION_OUTBOX_JOB_NAME, {
+					queued: true,
+				}),
+			)).filter((job) => drain && slotOf(job) > slotOf(drain));
+			for (const ids of [
+				draining.map((job) => job.id),
+				next.map((job) => job.id),
+			]) {
+				if (ids.length === 0) continue;
+				yield* Effect.promise(() =>
+					boss.deleteJob(NOTIFICATION_OUTBOX_JOB_NAME, ids),
+				);
+			}
+			return {
+				drain,
+				next,
+				inSlot,
+			};
+		}).pipe(
+			Effect.provide(
+				makePgBossLayer({
+					instanceName: "notifications-integration",
+				}),
+			),
+		),
+	);
+	expect(drain).toBeDefined();
+	expect(inSlot).toBe(true);
+	expect(next).toHaveLength(1);
+}, 15_000);

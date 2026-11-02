@@ -27,17 +27,17 @@ export const notificationOutboxValues = (
 	};
 };
 
+/** Debounced, not throttled: a wake after a drain started still gets one in the next slot. */
 export const wakeNotificationWorker = Effect.gen(function* () {
 	const { boss } = yield* PgBossService;
 	yield* Effect.tryPromise({
 		try: () =>
-			boss.send(
+			boss.sendDebounced(
 				NOTIFICATION_OUTBOX_JOB_NAME,
 				{},
-				{
-					singletonKey: OUTBOX_WAKE_SINGLETON_KEY,
-					singletonSeconds: OUTBOX_WAKE_SINGLETON_SECONDS,
-				},
+				null,
+				OUTBOX_WAKE_SINGLETON_SECONDS,
+				OUTBOX_WAKE_SINGLETON_KEY,
 			),
 		catch: (cause) => cause,
 	});
