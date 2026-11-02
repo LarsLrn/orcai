@@ -6,7 +6,6 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import { paraglideOptions } from "./paraglide.config.ts";
 
 export default defineConfig(({ command }) => ({
 	server: {
@@ -46,7 +45,9 @@ export default defineConfig(({ command }) => ({
 	},
 	plugins: [
 		devtools(), // must be first plugin
-		paraglideVitePlugin(paraglideOptions),
+		paraglideVitePlugin({
+			project: "./project.inlang",
+		}),
 		tailwindcss(),
 		tanstackStart({
 			importProtection: {

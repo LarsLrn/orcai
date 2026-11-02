@@ -10,7 +10,7 @@
 		"build": "bun run --filter @orcai/notifications paraglide:compile && vite build",
 		"dev": "bun run --filter @orcai/notifications paraglide:compile && vite dev --host 127.0.0.1",
 		"machine-translate": "inlang machine translate --project project.inlang",
-		"paraglide:compile": "bun run compile-paraglide.ts",
+		"paraglide:compile": "paraglide-js compile --project ./project.inlang --silent",
 		"start": "bun .output/server/index.mjs",
 		"test": "NODE_ENV=test bun test --parallel"
 	},

@@ -2,8 +2,7 @@
 	"extends": "../../tsconfig.base.json",
 	"include": [
 		"src",
-		"compile-paraglide.ts",
-		"paraglide.config.ts",
+		"project.inlang/paraglide.config.ts",
 		"scripts",
 		"test-setup.ts",
 		"vite.config.ts"

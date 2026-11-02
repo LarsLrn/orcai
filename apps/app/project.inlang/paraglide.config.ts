@@ -1,7 +1,6 @@
-import type { CompilerOptions } from "@inlang/paraglide-js";
+import { defineConfig } from "@inlang/paraglide-js";
 
-export const paraglideOptions = {
-	project: "./project.inlang",
+export default defineConfig({
 	outdir: "./src/paraglide",
 	outputStructure: "message-modules",
 	cookieName: "PARAGLIDE_LOCALE",
@@ -10,4 +9,4 @@ export const paraglideOptions = {
 		"preferredLanguage",
 		"baseLocale",
 	],
-} satisfies CompilerOptions;
+});
