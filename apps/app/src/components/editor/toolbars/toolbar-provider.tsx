@@ -34,12 +34,12 @@ export const useToolbar = () => {
 	return context;
 };
 
-/** Whether a mark or node is active, kept current as the editor changes. */
-export const useToolbarActive = (name: string) => {
+/** Reads the editor for a toolbar control, kept current as the editor changes. */
+export const useToolbarState = <T,>(selector: (editor: Editor) => T) => {
 	const { editor } = useToolbar();
 
 	return useEditorState({
 		editor,
-		selector: ({ editor: current }) => current.isActive(name),
+		selector: ({ editor: current }) => selector(current),
 	});
 };

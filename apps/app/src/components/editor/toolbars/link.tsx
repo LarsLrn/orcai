@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 /** Any allowed address, to ask whether the selection can take a link. */
 export const LINK_PROBE = "https://example.com";
@@ -28,6 +28,13 @@ const LinkToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
+	const { canLink, isActive, href } = useToolbarState((current) => ({
+		canLink: current.can().setLink({
+			href: LINK_PROBE,
+		}),
+		isActive: current.isActive("link"),
+		href: current.getAttributes("link").href,
+	}));
 	const [link, setLink] = useState("");
 
 	const handleConfirm = () => {
@@ -43,9 +50,9 @@ const LinkToolbar = ({
 	};
 
 	useEffect(() => {
-		setLink(editor?.getAttributes("link").href ?? "");
+		setLink(href ?? "");
 	}, [
-		editor,
+		href,
 	]);
 
 	return (
@@ -54,22 +61,14 @@ const LinkToolbar = ({
 				<TooltipTrigger
 					render={
 						<PopoverTrigger
-							disabled={
-								!editor
-									?.can()
-									.chain()
-									.setLink({
-										href: LINK_PROBE,
-									})
-									.run()
-							}
+							disabled={!canLink}
 							render={
 								<Button
 									variant="ghost"
 									size="sm"
 									className={cn(
 										"h-8 w-max px-3 font-normal",
-										editor?.isActive("link") && "bg-accent",
+										isActive && "bg-accent",
 										className,
 									)}
 									{...props}
@@ -120,7 +119,7 @@ const LinkToolbar = ({
 									}}
 								/>
 								<div className="flex items-center gap-3">
-									{editor?.getAttributes("link").href && (
+									{href && (
 										<Button
 											size="sm"
 											className="h-8 text-gray-11"
@@ -135,7 +134,7 @@ const LinkToolbar = ({
 										</Button>
 									)}
 									<Button size="sm" className="h-8" onClick={handleConfirm}>
-										{editor?.getAttributes("link").href
+										{href
 											? m.editor_toolbar_link_update_button()
 											: m.common_confirm_button()}
 									</Button>

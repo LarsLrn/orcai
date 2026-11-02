@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 type Level = 1 | 2 | 3 | 4;
 
@@ -36,11 +36,14 @@ export const HeadingsToolbar = ({
 }) => {
 	const { editor } = useToolbar();
 	const isMobile = useMediaQuery("(max-width: 640px)");
-	const activeLevel = levels.find((level) =>
-		editor?.isActive("heading", {
-			level,
-		}),
-	);
+	const { activeLevel, isHeading } = useToolbarState((current) => ({
+		activeLevel: levels.find((level) =>
+			current.isActive("heading", {
+				level,
+			}),
+		),
+		isHeading: current.isActive("heading"),
+	}));
 
 	if (isMobile) {
 		return (
@@ -53,7 +56,7 @@ export const HeadingsToolbar = ({
 			>
 				<MobileToolbarItem
 					onClick={() => editor?.chain().focus().setParagraph().run()}
-					active={!editor?.isActive("heading")}
+					active={!isHeading}
 				>
 					{m.editor_toolbar_headings_normal_option()}
 				</MobileToolbarItem>
@@ -69,9 +72,7 @@ export const HeadingsToolbar = ({
 								})
 								.run()
 						}
-						active={editor?.isActive("heading", {
-							level,
-						})}
+						active={activeLevel === level}
 					>
 						H{level}
 					</MobileToolbarItem>
@@ -93,7 +94,7 @@ export const HeadingsToolbar = ({
 									size="sm"
 									className={cn(
 										"h-8 w-max gap-1 px-3 font-normal",
-										editor?.isActive("heading") && "bg-accent",
+										isHeading && "bg-accent",
 										className,
 									)}
 									{...props}
@@ -110,7 +111,7 @@ export const HeadingsToolbar = ({
 								onClick={() => editor?.chain().focus().setParagraph().run()}
 								className={cn(
 									"flex h-fit items-center gap-2",
-									!editor?.isActive("heading") && "bg-accent",
+									!isHeading && "bg-accent",
 								)}
 							>
 								{m.editor_toolbar_headings_normal_option()}
@@ -129,9 +130,7 @@ export const HeadingsToolbar = ({
 									}
 									className={cn(
 										"flex items-center gap-2",
-										editor?.isActive("heading", {
-											level,
-										}) && "bg-accent",
+										activeLevel === level && "bg-accent",
 									)}
 								>
 									H{level}

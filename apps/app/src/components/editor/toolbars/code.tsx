@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarActive } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const CodeToolbar = ({
 	className,
@@ -17,7 +17,10 @@ const CodeToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const isActive = useToolbarActive("code");
+	const { isActive, canToggle } = useToolbarState((current) => ({
+		isActive: current.isActive("code"),
+		canToggle: current.can().toggleCode(),
+	}));
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -37,7 +40,7 @@ const CodeToolbar = ({
 							editor?.chain().focus().toggleCode().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().toggleCode().run()}
+						disabled={!canToggle}
 						{...props}
 					>
 						{children ?? <Code2 className="h-4 w-4" />}

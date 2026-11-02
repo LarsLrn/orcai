@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const UndoToolbar = ({
 	className,
@@ -17,6 +17,7 @@ const UndoToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
+	const canUndo = useToolbarState((current) => current.can().undo());
 
 	return (
 		<Tooltip>
@@ -32,7 +33,7 @@ const UndoToolbar = ({
 							editor?.chain().focus().undo().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().undo().run()}
+						disabled={!canUndo}
 						{...props}
 					>
 						{children ?? <Undo2 className="h-4 w-4" />}

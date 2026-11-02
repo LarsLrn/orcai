@@ -27,7 +27,7 @@ const GroupSeparator = () => (
 
 export const EditorToolbar = ({ editor }: { editor: Editor }) => {
 	return (
-		<div className="sticky top-0 w-full border-b bg-background">
+		<div className="w-full border-b bg-background">
 			<ToolbarProvider editor={editor}>
 				<ScrollArea className="h-fit py-0.5">
 					<div className="flex w-max items-center gap-1 px-2">

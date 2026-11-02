@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const COLOUR_IDS = [
 	"default",
@@ -125,8 +125,15 @@ export const ColorHighlightToolbar = () => {
 
 	const textColours = colourOptions("text");
 	const highlightColours = colourOptions("highlight");
-	const currentColor = editor?.getAttributes("textStyle").color;
-	const currentHighlight = editor?.getAttributes("highlight").color;
+	const { currentColor, currentHighlight, isDisabled } = useToolbarState(
+		(current) => ({
+			currentColor: current.getAttributes("textStyle").color,
+			currentHighlight: current.getAttributes("highlight").color,
+			isDisabled:
+				!current.can().chain().setHighlight().run() ||
+				!current.can().chain().setColor("").run(),
+		}),
+	);
 
 	const handleSetColor = (color: string) => {
 		editor
@@ -151,10 +158,6 @@ export const ColorHighlightToolbar = () => {
 			)
 			.run();
 	};
-
-	const isDisabled =
-		!editor?.can().chain().setHighlight().run() ||
-		!editor?.can().chain().setColor("").run();
 
 	if (isMobile) {
 		return (

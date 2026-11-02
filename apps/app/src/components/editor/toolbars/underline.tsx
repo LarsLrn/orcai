@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarActive } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const UnderlineToolbar = ({
 	className,
@@ -17,7 +17,10 @@ const UnderlineToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const isActive = useToolbarActive("underline");
+	const { isActive, canToggle } = useToolbarState((current) => ({
+		isActive: current.isActive("underline"),
+		canToggle: current.can().toggleUnderline(),
+	}));
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -37,7 +40,7 @@ const UnderlineToolbar = ({
 							editor?.chain().focus().toggleUnderline().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().toggleUnderline().run()}
+						disabled={!canToggle}
 						{...props}
 					>
 						{children ?? <UnderlineIcon className="h-4 w-4" />}

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarActive } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const StrikeThroughToolbar = ({
 	className,
@@ -17,7 +17,10 @@ const StrikeThroughToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const isActive = useToolbarActive("strike");
+	const { isActive, canToggle } = useToolbarState((current) => ({
+		isActive: current.isActive("strike"),
+		canToggle: current.can().toggleStrike(),
+	}));
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -37,7 +40,7 @@ const StrikeThroughToolbar = ({
 							editor?.chain().focus().toggleStrike().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().toggleStrike().run()}
+						disabled={!canToggle}
 						{...props}
 					>
 						{children ?? <Strikethrough className="h-4 w-4" />}
