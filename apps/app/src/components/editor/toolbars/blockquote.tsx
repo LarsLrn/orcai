@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarActive } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const BlockquoteToolbar = ({
 	className,
@@ -17,7 +17,10 @@ const BlockquoteToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const isActive = useToolbarActive("blockquote");
+	const { isActive, canToggle } = useToolbarState((current) => ({
+		isActive: current.isActive("blockquote"),
+		canToggle: current.can().toggleBlockquote(),
+	}));
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -37,7 +40,7 @@ const BlockquoteToolbar = ({
 							editor?.chain().focus().toggleBlockquote().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().toggleBlockquote().run()}
+						disabled={!canToggle}
 						{...props}
 					>
 						{children ?? <TextQuote className="h-4 w-4" />}

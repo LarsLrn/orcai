@@ -1,4 +1,3 @@
-import { useEditorState } from "@tiptap/react";
 import type { VariantProps } from "class-variance-authority";
 import { Table } from "lucide-react";
 import { Button, type buttonVariants } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const NEW_TABLE = {
 	rows: 3,
@@ -24,10 +23,9 @@ const TableToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const canInsert = useEditorState({
-		editor,
-		selector: ({ editor: current }) => current.can().insertTable(NEW_TABLE),
-	});
+	const canInsert = useToolbarState((current) =>
+		current.can().insertTable(NEW_TABLE),
+	);
 	return (
 		<Tooltip>
 			<TooltipTrigger

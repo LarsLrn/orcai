@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const RedoToolbar = ({
 	className,
@@ -17,6 +17,7 @@ const RedoToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
+	const canRedo = useToolbarState((current) => current.can().redo());
 
 	return (
 		<Tooltip>
@@ -32,7 +33,7 @@ const RedoToolbar = ({
 							editor?.chain().focus().redo().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().redo().run()}
+						disabled={!canRedo}
 						{...props}
 					>
 						{children ?? <Redo2 className="h-4 w-4" />}

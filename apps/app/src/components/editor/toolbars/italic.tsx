@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarActive } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const ItalicToolbar = ({
 	className,
@@ -17,7 +17,10 @@ const ItalicToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const isActive = useToolbarActive("italic");
+	const { isActive, canToggle } = useToolbarState((current) => ({
+		isActive: current.isActive("italic"),
+		canToggle: current.can().toggleItalic(),
+	}));
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -37,7 +40,7 @@ const ItalicToolbar = ({
 							editor?.chain().focus().toggleItalic().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().toggleItalic().run()}
+						disabled={!canToggle}
 						{...props}
 					>
 						{children ?? <ItalicIcon className="h-4 w-4" />}

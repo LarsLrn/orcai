@@ -22,7 +22,14 @@ import {
 } from "@/components/ui/tooltip";
 import { m } from "@/paraglide/messages";
 import { MobileToolbarGroup, MobileToolbarItem } from "./mobile-toolbar-group";
-import { useToolbar } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
+
+const ALIGNMENTS = [
+	"left",
+	"center",
+	"right",
+	"justify",
+] as const;
 
 export const AlignmentTooolbar = () => {
 	const { editor } = useToolbar();
@@ -31,38 +38,14 @@ export const AlignmentTooolbar = () => {
 		editor?.chain().focus().setTextAlign(value).run();
 	};
 
-	const currentTextAlign = () => {
-		if (
-			editor?.isActive({
-				textAlign: "left",
-			})
-		) {
-			return "left";
-		}
-		if (
-			editor?.isActive({
-				textAlign: "center",
-			})
-		) {
-			return "center";
-		}
-		if (
-			editor?.isActive({
-				textAlign: "right",
-			})
-		) {
-			return "right";
-		}
-		if (
-			editor?.isActive({
-				textAlign: "justify",
-			})
-		) {
-			return "justify";
-		}
-
-		return "left";
-	};
+	const textAlign = useToolbarState(
+		(current) =>
+			ALIGNMENTS.find((value) =>
+				current.isActive({
+					textAlign: value,
+				}),
+			) ?? "left",
+	);
 
 	const alignmentOptions = [
 		{
@@ -95,7 +78,7 @@ export const AlignmentTooolbar = () => {
 		return (
 			<MobileToolbarGroup
 				label={
-					alignmentOptions[findIndex(currentTextAlign())]?.name ??
+					alignmentOptions[findIndex(textAlign)]?.name ??
 					m.editor_toolbar_alignment_left_option()
 				}
 			>
@@ -103,7 +86,7 @@ export const AlignmentTooolbar = () => {
 					<MobileToolbarItem
 						key={option.value}
 						onClick={() => handleAlign(option.value)}
-						active={currentTextAlign() === option.value}
+						active={textAlign === option.value}
 					>
 						<span className="mr-2">{option.icon}</span>
 						{option.name}
@@ -127,9 +110,9 @@ export const AlignmentTooolbar = () => {
 									className="h-8 w-max font-normal"
 								>
 									<span className="mr-2">
-										{alignmentOptions[findIndex(currentTextAlign())]?.icon}
+										{alignmentOptions[findIndex(textAlign)]?.icon}
 									</span>
-									{alignmentOptions[findIndex(currentTextAlign())]?.name}
+									{alignmentOptions[findIndex(textAlign)]?.name}
 									<ChevronDown />
 								</Button>
 							}
@@ -150,7 +133,7 @@ export const AlignmentTooolbar = () => {
 							<span className="mr-2">{option.icon}</span>
 							{option.name}
 
-							{option.value === currentTextAlign() && (
+							{option.value === textAlign && (
 								<Check className="ml-auto h-4 w-4" />
 							)}
 						</DropdownMenuItem>

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarActive } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const OrderedListToolbar = ({
 	className,
@@ -17,7 +17,10 @@ const OrderedListToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const isActive = useToolbarActive("orderedList");
+	const { isActive, canToggle } = useToolbarState((current) => ({
+		isActive: current.isActive("orderedList"),
+		canToggle: current.can().toggleOrderedList(),
+	}));
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -37,7 +40,7 @@ const OrderedListToolbar = ({
 							editor?.chain().focus().toggleOrderedList().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().toggleOrderedList().run()}
+						disabled={!canToggle}
 						{...props}
 					>
 						{children ?? <ListOrdered className="h-4 w-4" />}

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarActive } from "./toolbar-provider";
+import { useToolbar, useToolbarState } from "./toolbar-provider";
 
 const BoldToolbar = ({
 	className,
@@ -17,7 +17,10 @@ const BoldToolbar = ({
 	...props
 }: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
 	const { editor } = useToolbar();
-	const isActive = useToolbarActive("bold");
+	const { isActive, canToggle } = useToolbarState((current) => ({
+		isActive: current.isActive("bold"),
+		canToggle: current.can().toggleBold(),
+	}));
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -37,7 +40,7 @@ const BoldToolbar = ({
 							editor?.chain().focus().toggleBold().run();
 							onClick?.(e);
 						}}
-						disabled={!editor?.can().chain().focus().toggleBold().run()}
+						disabled={!canToggle}
 						{...props}
 					>
 						{children ?? <BoldIcon className="h-4 w-4" />}

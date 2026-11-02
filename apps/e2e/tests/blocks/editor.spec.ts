@@ -26,10 +26,10 @@ const openBehaviourEditor = async ({
 }) => {
 	const block = await api.as("member").block.create({
 		type: "behaviour",
-		name: `E2E Editor Inserts ${runId()}`,
+		name: `E2E Editor ${runId()}`,
 		status: "ready",
 		config: {
-			systemPrompt: "Created by the editor inserts spec.",
+			systemPrompt: "Created by the editor spec.",
 		},
 	});
 	const detailPath = `/app/library/behaviours/${block.data.id}`;
@@ -53,6 +53,66 @@ const toolbarButton = (page: Page, key: string) =>
 		name: message(key),
 		exact: true,
 	});
+
+test("blocks: undo and redo follow edits in a behaviour's description", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const { page, editor } = await openBehaviourEditor({
+		api,
+		org,
+		pageAs,
+	});
+	const undo = toolbarButton(page, "editor_toolbar_undo_tooltip");
+	const redo = toolbarButton(page, "editor_toolbar_redo_tooltip");
+	await expect(undo).toBeDisabled();
+	await expect(redo).toBeDisabled();
+
+	await editor.click();
+	await page.keyboard.press("End");
+	await page.keyboard.type(" Typed.");
+	await expect(undo).toBeEnabled();
+
+	await undo.click();
+	await expect(editor).not.toContainText("Typed.");
+	await expect(redo).toBeEnabled();
+	await expect(undo).toBeDisabled();
+
+	await redo.click();
+	await expect(editor).toContainText("Typed.");
+	await expect(redo).toBeDisabled();
+});
+
+test("blocks: the toolbar shows the heading at the cursor", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const { page, editor } = await openBehaviourEditor({
+		api,
+		org,
+		pageAs,
+	});
+	await editor.click();
+
+	await page
+		.getByRole("button", {
+			name: message("editor_toolbar_headings_normal_option"),
+		})
+		.click();
+	await page
+		.getByRole("menuitem", {
+			name: "H2",
+		})
+		.click();
+	await expect(editor.getByRole("heading")).toHaveCount(1);
+	await expect(
+		page.getByRole("button", {
+			name: "H2",
+		}),
+	).toBeVisible();
+});
 
 test("blocks: a behaviour's description takes a table and a YouTube video", async ({
 	api,
