@@ -2,7 +2,7 @@ import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import { logErrorCause, withActiveSpan } from "@orcai/observability";
 import type { JobWithMetadata } from "@orcai/pg-boss";
 import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
-import type { JobQueue } from "@orcai/schema";
+import { JOB_QUEUE_POLICIES, type JobQueue } from "@orcai/schema";
 import * as Cause from "effect/Cause";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
@@ -35,7 +35,10 @@ export const ensureQueue = (
 		yield* Effect.logInfo(`Ensuring queue ${name} exists`);
 		yield* Effect.tryPromise({
 			try: async () => {
-				await boss.createQueue(name, queueOptions);
+				await boss.createQueue(name, {
+					...queueOptions,
+					policy: JOB_QUEUE_POLICIES[name],
+				});
 				await boss.updateQueue(name, {
 					...queueOptions,
 					deadLetter: options.deadLetter ?? null,

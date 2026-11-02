@@ -8,9 +8,9 @@ import {
 import {
 	embeddingProgress as countEmbeddings,
 	embeddingsRebuilding,
-	prepareMissingExtractionsAgain as prepareAgain,
 	retryFailedEmbeddings as retryFailed,
 	sendJobBatch,
+	startPreparingMissingExtractionsAgain,
 } from "@orcai/pg-boss";
 import {
 	configureEmbeddings,
@@ -265,7 +265,7 @@ const prepareMissingExtractionsAgain =
 		.effect(function* () {
 			return {
 				data: {
-					queued: yield* prepareAgain,
+					assets: yield* startPreparingMissingExtractionsAgain,
 				},
 			};
 		});

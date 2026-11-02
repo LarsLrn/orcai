@@ -13,6 +13,7 @@ import {
 	queueIndexing,
 	reconcileEmbeddings,
 	retryFailedEmbeddings,
+	startPreparingMissingExtractionsAgain,
 } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionKey,
@@ -28,10 +29,12 @@ import {
 	embeddingSettings,
 	QdrantLive,
 	QdrantService,
+	servedFilter,
 } from "@orcai/qdrant";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	type PipelineFailure,
+	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -50,6 +53,7 @@ import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
+import { assetWorkerDefinitions } from "@/asset/definitions";
 import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
 
 const TIMEOUT = 30_000;
@@ -368,6 +372,7 @@ const indexes = {
 	racingFlag: await testEmbeddingIndex(),
 	preparedAgain: await testEmbeddingIndex(),
 	preparedWhileSwitching: await testEmbeddingIndex(),
+	preparedInBackground: await testEmbeddingIndex(),
 };
 
 /** The rebuild flag as stored, before any derivation. */
@@ -391,6 +396,36 @@ const pointsIn = (collection: string) =>
 			const { count } = yield* Effect.promise(() =>
 				client.count(collection, {
 					exact: true,
+				}),
+			);
+			return count;
+		}),
+	);
+
+/** How many points search finds for the link in the collection. */
+const servedPointsOf = (collection: string, link: Link) =>
+	runtime.runPromise(
+		Effect.gen(function* () {
+			const { client } = yield* QdrantService;
+			const { count } = yield* Effect.promise(() =>
+				client.count(collection, {
+					exact: true,
+					filter: servedFilter({
+						must: [
+							{
+								key: "block_id",
+								match: {
+									value: link.blockId,
+								},
+							},
+							{
+								key: "asset_id",
+								match: {
+									value: link.assetId,
+								},
+							},
+						],
+					}),
 				}),
 			);
 			return count;
@@ -1007,6 +1042,120 @@ test(
 			status: "failed",
 			failure: "missing_extraction",
 		});
+	},
+	TIMEOUT,
+);
+
+test(
+	"Prepare again starts in the background: the request queues one job and no asset, a second request while it waits adds none, the job queues the asset once also when retried, search keeps the asset where it was embedded, and its links wait while it is prepared, also across a model change",
+	async () => {
+		const index = indexes.preparedInBackground;
+		const missing = await seed();
+		const embeddedElsewhere = await linkAgain(missing);
+		const links = [
+			missing,
+			embeddedElsewhere,
+		];
+		await configure(index, links);
+		const settings = await on(index, links, embeddingSettings);
+		await on(index, links, reconcileEmbeddings);
+		const [job] = await jobsOf(embeddedElsewhere);
+		if (job) await vectorize(index, links, job);
+		await settle(missing, "failed", "missing_extraction");
+		const served = await servedPointsOf(
+			String(settings?.collection),
+			embeddedElsewhere,
+		);
+		expect(served).toBeGreaterThan(0);
+		const before = await processingOf(missing);
+
+		await boss.deleteQueuedJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME);
+		const queuedJobs = async () =>
+			(
+				await boss.findJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, {
+					queued: true,
+				})
+			).length;
+
+		expect(await on(index, links, startPreparingMissingExtractionsAgain)).toBe(
+			1,
+		);
+		expect(await processingOf(missing)).toEqual(before);
+		expect(await queuedJobs()).toBe(1);
+		expect(await on(index, links, startPreparingMissingExtractionsAgain)).toBe(
+			1,
+		);
+		expect(await queuedJobs()).toBe(1);
+
+		const worker = assetWorkerDefinitions.find(
+			({ name }) => name === PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+		);
+		await on(index, links, worker?.handler([]) ?? Effect.void);
+		await on(index, links, worker?.handler([]) ?? Effect.void);
+		expect(await processingOf(missing)).toEqual({
+			status: "pending",
+			generation: Number(before.generation) + 1,
+			jobs: 1,
+		});
+		expect(await linkOf(embeddedElsewhere)).toMatchObject({
+			status: "pending",
+		});
+		expect(
+			await servedPointsOf(String(settings?.collection), embeddedElsewhere),
+		).toBe(served);
+
+		// Preparing, both links wait, so the counts keep refreshing until they settle.
+		const counts = async () => {
+			const progress = await on(index, links, embeddingProgress);
+			const sum = (key: "embedded" | "waiting" | "failed") =>
+				progress?.organizations.reduce((total, row) => total + row[key], 0);
+			return {
+				embedded: sum("embedded"),
+				waiting: sum("waiting"),
+				failed: sum("failed"),
+				preparable: progress?.preparable,
+			};
+		};
+		const preparing = {
+			embedded: 0,
+			waiting: 2,
+			failed: 0,
+			preparable: 0,
+		};
+		expect(await counts()).toEqual(preparing);
+		const processing = (status: "active" | "failed") =>
+			runtime.runPromise(
+				Effect.gen(function* () {
+					const { asset } = dbSchema;
+					yield* (yield* DB)
+						.update(asset)
+						.set({
+							processingStatus: status,
+						})
+						.where(eq(asset.id, missing.assetId));
+				}),
+			);
+		await processing("active");
+		expect(await counts()).toEqual(preparing);
+		// A model change meanwhile: its processing indexes the links in the new generation.
+		await configure(index, links, "integration-switched-while-preparing");
+		expect(await counts()).toEqual(preparing);
+		expect(await on(index, links, embeddingsRebuilding)).toBe(true);
+		// A failed preparation stays with the asset's processing failure.
+		await processing("failed");
+		expect(await counts()).toEqual({
+			embedded: 0,
+			waiting: 0,
+			failed: 0,
+			preparable: 0,
+		});
+		expect(await on(index, links, embeddingsRebuilding)).toBe(false);
+
+		await boss.deleteQueuedJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME);
+		expect(await on(index, links, startPreparingMissingExtractionsAgain)).toBe(
+			0,
+		);
+		expect(await queuedJobs()).toBe(0);
 	},
 	TIMEOUT,
 );
