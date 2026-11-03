@@ -1,4 +1,3 @@
-import type { BlockId } from "@orcai/core";
 import {
 	assetIdSchema,
 	blockFieldsSchema,
@@ -10,7 +9,6 @@ import { z } from "zod/v4";
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	createOnce,
 	effectTool,
 	expectType,
 	mutation,
@@ -43,49 +41,28 @@ export const createRepositoryTool = (deps: AssistantToolDeps) =>
 		description:
 			"Create a new repository with the default retrieval settings, optionally holding Library assets. To change an existing one, use updateRepository.",
 		inputSchema: createRepositoryInputSchema,
-		run: (input, { toolCallId }) =>
-			createOnce(
-				{
-					scope: deps.turn.scope,
-					toolCallId,
-					input,
-				},
-				{
-					create: callProcedure(deps, (procedures, options) =>
-						procedures.block.create(
-							{
-								type: "repository",
-								name: input.name,
-								description:
-									input.description === undefined
-										? null
-										: blockDescription(input.description),
-								contentJson: null,
-								status: input.status ?? "draft",
-								config: {
-									...defaultRepositoryConfig,
-								},
-								assets: uniqueAssetIds(input.assetIds ?? []),
-							},
-							options,
-						),
-					).pipe(
-						mutation("findBlocks"),
-						expectType("asset", input.assetIds ?? []),
-						Effect.map(repositoryOutline),
-					),
-					ids: (repository) => [
-						repository.id,
-					],
-					replay: ([repositoryId]) =>
-						callProcedure(deps, (procedures, options) =>
-							procedures.block.find(
-								{
-									id: repositoryId as BlockId,
-								},
-								options,
-							),
-						).pipe(Effect.map(repositoryOutline)),
-				},
+		run: (input) =>
+			callProcedure(deps, (procedures, options) =>
+				procedures.block.create(
+					{
+						type: "repository",
+						name: input.name,
+						description:
+							input.description === undefined
+								? null
+								: blockDescription(input.description),
+						contentJson: null,
+						status: input.status ?? "draft",
+						config: {
+							...defaultRepositoryConfig,
+						},
+						assets: uniqueAssetIds(input.assetIds ?? []),
+					},
+					options,
+				),
+			).pipe(
+				mutation("findBlocks"),
+				expectType("asset", input.assetIds ?? []),
+				Effect.map(repositoryOutline),
 			),
 	});

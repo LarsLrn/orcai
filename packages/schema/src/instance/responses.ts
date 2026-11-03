@@ -1,4 +1,6 @@
+import { z } from "zod/v4";
 import { organizationWithMemberCountSchema } from "../organization/schema";
+import { skippedInviteeSchema } from "../organization-invitation/schema";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
@@ -24,5 +26,10 @@ export const listInstanceOrganizationMembersResponseSchema =
 	createListResponseSchema(instanceOrganizationMemberSchema);
 
 export const instanceMembershipActionResponseSchema = statusResponseSchema;
+
+export const inviteInstanceOrganizationMemberResponseSchema =
+	statusResponseSchema.extend({
+		skipped: z.array(skippedInviteeSchema),
+	});
 
 export const removeInstanceImageResponseSchema = statusResponseSchema;

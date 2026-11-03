@@ -53,10 +53,6 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
 
-  valkey:
-    ports:
-      - "${VALKEY_PORT:-6379}:6379"
-
   qdrant:
     environment:
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:-dev-qdrant-key}

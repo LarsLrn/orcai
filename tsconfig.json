@@ -47,9 +47,6 @@
 			"path": "./packages/observability"
 		},
 		{
-			"path": "./packages/valkey"
-		},
-		{
 			"path": "./packages/quota"
 		},
 		{

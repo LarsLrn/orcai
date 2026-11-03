@@ -6,7 +6,6 @@ const titles: Record<InstanceCheckId, () => string> = {
 	spicedb: m.instance_health_check_spicedb_title,
 	qdrant: m.instance_health_check_qdrant_title,
 	s3: m.instance_health_check_s3_title,
-	valkey: m.instance_health_check_valkey_title,
 	embeddings: m.instance_health_check_embeddings_title,
 	workers: m.instance_health_check_workers_title,
 	mail: m.instance_health_check_mail_title,

@@ -31,7 +31,6 @@ const sources = (
 			version: "1.15.0",
 		}),
 		s3: ok,
-		valkey: ok,
 	},
 	embeddings: Effect.succeed({
 		collection: "orcai-chunks-g1-bge-m3-1024",
@@ -97,10 +96,6 @@ describe("checkInstance", () => {
 				"ok",
 			],
 			[
-				"valkey",
-				"ok",
-			],
-			[
 				"embeddings",
 				"ok",
 			],
@@ -141,7 +136,7 @@ describe("checkInstance", () => {
 				spicedb: Effect.fail({
 					cause: new Error("connect ECONNREFUSED"),
 				}),
-				valkey: Effect.die(new Error("boom")),
+				s3: Effect.die(new Error("boom")),
 			},
 		});
 		expect(checks.find((check) => check.id === "spicedb")).toMatchObject({
@@ -149,9 +144,9 @@ describe("checkInstance", () => {
 			reason: "DEPENDENCY_UNREACHABLE",
 			detail: "connect ECONNREFUSED",
 		});
-		expect(checks.find((check) => check.id === "valkey")).toMatchObject({
+		expect(checks.find((check) => check.id === "s3")).toMatchObject({
 			status: "failing",
-			severity: "recommended",
+			severity: "required",
 			detail: "boom",
 		});
 	});
@@ -289,7 +284,6 @@ describe("checkInstance", () => {
 			app: "1.2.3",
 			postgres: "17.11",
 			qdrant: "1.15.0",
-			valkey: null,
 			migration: {
 				name: "20261028115531_furry_valeria_richards",
 				appliedAt: new Date("2026-10-28T12:00:00.000Z"),

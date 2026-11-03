@@ -633,20 +633,21 @@ describe("invitation acceptance", () => {
 				actors: [admin],
 			} = organization;
 			const invitee = await run(createUser());
+			const lapsed = await run(createUser());
 			const stranger = await run(createUser());
 			const invitation = await invite(organization, {
 				email: invitee.email,
 				role: "member",
 			});
 			const expired = await invite(organization, {
-				email: invitee.email,
+				email: lapsed.email,
 				role: "member",
 				expiresAt: new Date(Date.now() - 60_000),
 			});
 			expect(await rejection(accept(invitation.id, stranger)())).toMatchObject({
 				reason: "INVITATION_RESPONSE_FORBIDDEN",
 			});
-			expect(await rejection(accept(expired.id, invitee)())).toMatchObject({
+			expect(await rejection(accept(expired.id, lapsed)())).toMatchObject({
 				reason: "INVITATION_EXPIRED",
 			});
 			expect(await statusOf(invitation.id)).toBe("pending");

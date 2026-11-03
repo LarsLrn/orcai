@@ -6,6 +6,7 @@ import {
 } from "@/hooks/mutations/destructive-target";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
+import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
 export const useCreateOrganizationInvitationMutation = (
@@ -29,7 +30,12 @@ export const useCreateOrganizationInvitationMutation = (
 			}),
 		messages: {
 			loading: m.orgs_invitation_create_toast_loading(),
-			success: m.orgs_invitation_create_toast_success(),
+			success: ({ data }) =>
+				data.skipped.length > 0
+					? m.orgs_invitation_create_toast_skipped({
+							emails: formatList(data.skipped.map((invitee) => invitee.email)),
+						})
+					: m.orgs_invitation_create_toast_success(),
 			error: m.orgs_invitation_create_toast_error(),
 		},
 	});

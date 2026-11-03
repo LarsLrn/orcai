@@ -32,8 +32,6 @@ describe("callProcedure", () => {
 			context,
 			turn: createAssistantTurn({
 				zedToken: "request-token",
-				chatId: "chat",
-				replyId: "reply",
 			}),
 		};
 		const seen: (ReadRevision | undefined)[] = [];

@@ -23,8 +23,6 @@ const assistantTools: ToolSet = buildAssistantTools({
 	context,
 	turn: createAssistantTurn({
 		zedToken: undefined,
-		chatId: "chat",
-		replyId: "reply",
 	}),
 	docs: undefined,
 	history: [],

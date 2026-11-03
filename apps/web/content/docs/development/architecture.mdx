@@ -13,7 +13,6 @@ flowchart LR
 	User["User"] --> App["App"]
 	App --> DB["PostgreSQL"]
 	App --> Auth["SpiceDB"]
-	App --> Cache["Valkey"]
 	App --> Jobs["pg-boss jobs"]
 	App --> Store["S3-compatible storage"]
 	Jobs --> Workers["Workers"]
@@ -36,7 +35,6 @@ flowchart LR
 - Better Auth handles authentication.
 - Drizzle ORM manages PostgreSQL access and migrations.
 - pg-boss coordinates background jobs.
-- Valkey holds short-lived app state. [Services](/docs/self-hosting/services#valkey) says what the app keeps there.
 - Qdrant stores vector indexes.
 - SpiceDB handles authorisation relationships and permission checks.
 - S3-compatible storage stores uploaded and processed files.
@@ -69,7 +67,6 @@ The apps share their server code through the workspace packages under `packages/
 | `@orcai/schema` | The Zod schemas and types shared by apps and packages. |
 | `@orcai/spice-db` | The SpiceDB client, the schema and its migration and reset commands. |
 | `@orcai/testing` | The integration tier helpers, see [End-To-End Tests](/docs/development/testing#integration-tier). |
-| `@orcai/valkey` | The Valkey client service. |
 
 ## Bundling
 

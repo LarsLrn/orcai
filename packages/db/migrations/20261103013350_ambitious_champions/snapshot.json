@@ -1,0 +1,64 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "bd0b6b78-e48a-4240-b23a-f6c78c193825",
+  "prevIds": [
+    "4675146d-903f-42ba-9151-9bbe018101b8"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invitation",
+        "invitation_org_pending_email_unique"
+      ],
+      "writes": [
+        "s|idx|public.invitation_org_pending_email_unique",
+        "n|idx|public.invitation_org_pending_email_unique",
+        "e|idx|public.invitation_org_pending_email_unique",
+        "n|rel|public.invitation_org_pending_email_unique"
+      ],
+      "reads": [
+        "n|tbl|public.invitation",
+        "n|sch|public",
+        "n|col|public.invitation.organization_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invitation",
+        "name": "invitation_org_pending_email_unique",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "lower(trim(\"email\"))",
+            "isExpression": true,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"status\" = 'pending'",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    }
+  ]
+}

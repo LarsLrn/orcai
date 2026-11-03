@@ -132,9 +132,9 @@ function Home() {
 						<BodyCopy className="mt-4">
 							OrcAI is open source under the AGPL-3.0 and runs with Docker
 							Compose. Besides the app and its background workers, it uses
-							PostgreSQL, Valkey, S3-compatible storage, Qdrant and SpiceDB.
-							Language models come from the providers each organisation
-							connects, and embeddings from an OpenAI-compatible endpoint.
+							PostgreSQL, S3-compatible storage, Qdrant and SpiceDB. Language
+							models come from the providers each organisation connects, and
+							embeddings from an OpenAI-compatible endpoint.
 						</BodyCopy>
 						<div className="mt-6 flex flex-wrap gap-3">
 							<ActionLink href="/docs/self-hosting" variant="primary">

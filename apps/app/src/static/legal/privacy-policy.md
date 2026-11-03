@@ -54,7 +54,7 @@ OrcAI supports configurable OpenAI-compatible services. These services may be se
 
 ## 6. Storage, retrieval, and other services
 
-An OrcAI deployment can use services including PostgreSQL, S3-compatible object storage, Qdrant, SpiceDB, Valkey, email delivery, analytics, and observability providers. These may run on the Operator's own infrastructure or be supplied by third parties.
+An OrcAI deployment can use services including PostgreSQL, S3-compatible object storage, Qdrant, SpiceDB, email delivery, analytics, and observability providers. These may run on the Operator's own infrastructure or be supplied by third parties.
 
 The recipients, processors, hosting locations, security measures, and contractual safeguards therefore depend on this deployment. The Operator must disclose the services it uses where required.
 

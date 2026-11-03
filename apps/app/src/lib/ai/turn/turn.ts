@@ -270,13 +270,11 @@ const buildAgent = ({
 	setup,
 	input,
 	history,
-	replyId,
 	turnZedToken,
 }: {
 	setup: TurnSetup;
 	input: TurnInput;
 	history: ChatAgentUIMessage[];
-	replyId: ChatMessageId;
 	turnZedToken: string | undefined;
 }): {
 	agent: TurnAgent;
@@ -319,8 +317,6 @@ const buildAgent = ({
 
 	const assistantTurn = createAssistantTurn({
 		zedToken: turnZedToken,
-		chatId: input.chatId,
-		replyId,
 	});
 	return {
 		agent: turnAgent({
@@ -797,7 +793,6 @@ export const startTurn = (
 				...history,
 				question as ChatAgentUIMessage,
 			],
-			replyId,
 			turnZedToken: turnStartToken(input),
 		});
 		const { closedHistory, closedReply } = closeLastReply(history, agent.tools);
@@ -920,7 +915,6 @@ export const continueTurn = (
 				setup,
 				input,
 				history: unclaimed,
-				replyId: input.replyId,
 				turnZedToken: undefined,
 			}).agent,
 			prompt: unclaimed,
@@ -987,7 +981,6 @@ export const continueTurn = (
 					setup,
 					input,
 					history,
-					replyId: input.replyId,
 					turnZedToken:
 						input.toolOutputs.length > 0 && input.clientZedToken !== undefined
 							? input.clientZedToken

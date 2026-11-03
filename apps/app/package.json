@@ -123,7 +123,6 @@
 		"@orcai/schema": "workspace:*",
 		"@orcai/spice-db": "workspace:*",
 		"@orcai/testing": "workspace:*",
-		"@orcai/valkey": "workspace:*",
 		"@rolldown/plugin-babel": "0.2.4",
 		"@tailwindcss/typography": "0.5.20",
 		"@tailwindcss/vite": "catalog:",

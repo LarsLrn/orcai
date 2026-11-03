@@ -14,8 +14,6 @@ const tools: ToolSet = buildAssistantTools({
 	} as ORPCContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
-		chatId: "chat",
-		replyId: "reply",
 	}),
 	docs: undefined,
 	history: [],

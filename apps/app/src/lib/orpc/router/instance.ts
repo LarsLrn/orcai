@@ -322,7 +322,7 @@ const listReceivers = authed.instance.receivers
 const inviteMember = authed.instance.inviteMember
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
-		yield* inviteToOrganization({
+		const { skipped } = yield* inviteToOrganization({
 			organizationId: input.organizationId,
 			emails: [
 				input.email,
@@ -339,6 +339,7 @@ const inviteMember = authed.instance.inviteMember
 		});
 		return {
 			success: true,
+			skipped,
 		};
 	});
 

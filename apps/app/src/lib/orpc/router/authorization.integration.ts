@@ -104,8 +104,6 @@ describe("authorization reads at an input token", () => {
 				},
 				turn: createAssistantTurn({
 					zedToken: beforeDemotion,
-					chatId: "chat",
-					replyId: "reply",
 				}),
 			});
 

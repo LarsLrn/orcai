@@ -327,8 +327,6 @@ describe("a stored loadTools result replayed on Anthropic", () => {
 			sources: chatSources([]),
 			turn: createAssistantTurn({
 				zedToken: undefined,
-				chatId: "chat",
-				replyId: "reply",
 			}),
 		});
 		const messages = await convertToModelMessages(

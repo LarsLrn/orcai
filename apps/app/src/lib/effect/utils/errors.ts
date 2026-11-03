@@ -15,7 +15,6 @@ import type {
 	NotFoundEntity,
 } from "@orcai/schema";
 import type { SpiceDbError } from "@orcai/spice-db";
-import type { ValkeyError } from "@orcai/valkey";
 import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core/errors";
 import * as Data from "effect/Data";
 import type { SqlError } from "effect/sql";
@@ -45,7 +44,6 @@ export const ErrorTags = {
 	SPICE_DB: "SpiceDbError",
 	S3: "S3Error",
 	QDRANT: "QdrantError",
-	VALKEY: "ValkeyError",
 	PROCESS: "ProcessError",
 	DRIZZLE_QUERY: "EffectDrizzleQueryError",
 	SQL: "SqlError",
@@ -166,7 +164,6 @@ export type AppError =
 	| BadRequestError
 	| S3Error
 	| QdrantError
-	| ValkeyError
 	| ProcessError
 	| EffectDrizzleQueryError
 	| SqlError.SqlError

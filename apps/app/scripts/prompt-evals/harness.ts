@@ -678,8 +678,6 @@ export const runAssistant = async ({
 				context: contextStub,
 				turn: createAssistantTurn({
 					zedToken: undefined,
-					chatId: "eval",
-					replyId: "eval",
 				}),
 				session,
 				docs: DOCS,

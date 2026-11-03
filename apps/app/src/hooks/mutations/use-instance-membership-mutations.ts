@@ -41,7 +41,15 @@ export const useInviteInstanceMemberMutation = (
 		mutationOptions: () => orpc.instance.inviteMember.mutationOptions(opts),
 		messages: {
 			loading: m.instance_org_member_invite_toast_loading(),
-			success: m.instance_org_member_invite_toast_success(),
+			success: ({ data }) => {
+				const [skipped] = data.skipped;
+				if (!skipped) {
+					return m.instance_org_member_invite_toast_success();
+				}
+				return skipped.reason === "member"
+					? m.instance_org_member_invite_toast_member()
+					: m.instance_org_member_invite_toast_pending();
+			},
 			error: m.instance_org_member_invite_toast_error(),
 		},
 	});

@@ -9,6 +9,7 @@ import { organizationInvitationValidationReasonSchema } from "./parts/validation
 import {
 	organizationInvitationListItemSchema,
 	organizationInvitationSchema,
+	skippedInviteeSchema,
 } from "./schema";
 
 export const listOrganizationInvitationsResponseSchema =
@@ -18,7 +19,9 @@ export const listMyOrganizationInvitationsResponseSchema =
 	createListResponseSchema(organizationInvitationListItemSchema);
 
 export const createOrganizationInvitationsResponseSchema =
-	createDataResponseSchema(z.array(organizationInvitationSchema));
+	createDataResponseSchema(z.array(organizationInvitationSchema)).extend({
+		skipped: z.array(skippedInviteeSchema),
+	});
 
 export const findOrganizationInvitationResponseSchema =
 	createDataResponseSchema(organizationInvitationSchema);

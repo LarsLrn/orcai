@@ -6,16 +6,12 @@
 #
 # Use with:
 #   docker compose -p <stack> -f docker-compose.yaml -f docker-compose.infra.yaml up -d --wait \
-#     postgres valkey seaweedfs qdrant spicedb-database spicedb-migrate spicedb
+#     postgres seaweedfs qdrant spicedb-database spicedb-migrate spicedb
 
 services:
   postgres:
     ports:
       - "127.0.0.1:${POSTGRES_PORT:?}:5432"
-
-  valkey:
-    ports:
-      - "127.0.0.1:${VALKEY_PORT:?}:6379"
 
   seaweedfs:
     ports:

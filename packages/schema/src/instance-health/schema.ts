@@ -6,7 +6,6 @@ export const INSTANCE_CHECK_IDS = [
 	"spicedb",
 	"qdrant",
 	"s3",
-	"valkey",
 	"embeddings",
 	"workers",
 	"mail",
@@ -85,7 +84,6 @@ export const instanceVersionsSchema = z.object({
 	app: z.string(),
 	postgres: z.string().nullable(),
 	qdrant: z.string().nullable(),
-	valkey: z.string().nullable(),
 	migration: z
 		.object({
 			name: z.string(),

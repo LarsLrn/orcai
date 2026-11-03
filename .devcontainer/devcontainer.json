@@ -9,7 +9,6 @@
 		"deps",
 		"workspace",
 		"postgres",
-		"valkey",
 		"migrations",
 		"seaweedfs",
 		"qdrant",
@@ -25,7 +24,6 @@
 		3000,
 		3001,
 		4206,
-		"valkey:6379",
 		"qdrant:6333",
 		"seaweedfs:8333",
 		"postgres:5432"
@@ -39,9 +37,6 @@
 		},
 		"4206": {
 			"label": "OrcAI App Devtools"
-		},
-		"valkey:6379": {
-			"label": "Valkey"
 		},
 		"qdrant:6333": {
 			"label": "Qdrant Vector DB"

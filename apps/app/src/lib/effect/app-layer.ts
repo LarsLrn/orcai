@@ -4,7 +4,6 @@ import { makePgBossLayer } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
 import { S3Live } from "@orcai/s3/server";
 import { SpiceDbLive } from "@orcai/spice-db";
-import { ValkeyLive } from "@orcai/valkey";
 import * as Layer from "effect/Layer";
 import { ProceduresLive } from "@/lib/orpc/implementation/procedures";
 import { AuthzLive } from "./services/authz";
@@ -15,7 +14,6 @@ const BaseInfra = Layer.mergeAll(
 	DrizzleLive,
 	SpiceDbLive,
 	S3Live,
-	ValkeyLive,
 	QdrantLive,
 	EncryptionKeyLive,
 ).pipe(Layer.provideMerge(AppConfigLive));

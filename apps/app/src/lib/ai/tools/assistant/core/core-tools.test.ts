@@ -18,8 +18,6 @@ const deps = () => ({
 	} as ORPCContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
-		chatId: "chat",
-		replyId: "reply",
 	}),
 });
 

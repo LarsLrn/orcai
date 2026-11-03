@@ -14,15 +14,22 @@ export const inviteMembers = declareTool<typeof inviteMembersTool>()({
 	icon: MailPlusIcon,
 	name: () => m.assistant_tool_invite_members_name(),
 	active: () => m.assistant_tool_invite_members_active(),
-	line: ({ input, output }) =>
-		input
-			? m.assistant_tool_invite_members_summary({
-					names: formatNames(
-						output
-							? output.invited.map((invitation) => invitation.email)
-							: input.emails,
-					),
-					role: getOrganizationRoleLabel(input.role),
-				})
-			: m.assistant_tool_invite_members_name(),
+	line: ({ input, output }) => {
+		if (!input) {
+			return m.assistant_tool_invite_members_name();
+		}
+		if (output && output.invited.length === 0) {
+			return m.assistant_tool_invite_members_skipped({
+				names: formatNames(output.skipped.map((invitee) => invitee.email)),
+			});
+		}
+		return m.assistant_tool_invite_members_summary({
+			names: formatNames(
+				output
+					? output.invited.map((invitation) => invitation.email)
+					: input.emails,
+			),
+			role: getOrganizationRoleLabel(input.role),
+		});
+	},
 });

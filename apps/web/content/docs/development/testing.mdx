@@ -31,7 +31,7 @@ bun run stack e2e --pipeline                   # the pipeline specs, with worker
 Everything after `--` is passed to Playwright. After Playwright, whatever its result, the run executes the [integration tier](#integration-tier) on the same stack, and the run fails if either does. A full local run is `bun run stack e2e` followed by `bun run stack e2e --pipeline`, see [Pipeline specs](#pipeline-specs).
 
 <Callout title="A run wipes the stack's data" type="warn">
-	A run that resets asks for confirmation first. `--yes` answers up front, and a caller without a terminal has to pass it. Unless you pass `--no-reset`, `bun run stack e2e` resets the stack first: it drops and recreates the `app` database, reapplies migrations and the SpiceDB schema, deletes all SpiceDB relationships, empties the object storage buckets, deletes the Qdrant collections, and flushes Valkey. Containers and `.env` are left in place, so a reset takes seconds. The reset refuses unless the database host is loopback, `S3_ENDPOINT` is the stack's own loopback SeaweedFS, the stack is named `orcai-*`, and nothing is listening on the app port. To keep your development data, run the suite against a second stack with `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same flags on `e2e`.
+	A run that resets asks for confirmation first. `--yes` answers up front, and a caller without a terminal has to pass it. Unless you pass `--no-reset`, `bun run stack e2e` resets the stack first: it drops and recreates the `app` database, reapplies migrations and the SpiceDB schema, deletes all SpiceDB relationships, empties the object storage buckets, and deletes the Qdrant collections. Containers and `.env` are left in place, so a reset takes seconds. The reset refuses unless the database host is loopback, `S3_ENDPOINT` is the stack's own loopback SeaweedFS, the stack is named `orcai-*`, and nothing is listening on the app port. To keep your development data, run the suite against a second stack with `bun run stack --name <name>-e2e --env-file .env.e2e up`, then the same flags on `e2e`.
 </Callout>
 
 `bun run stack e2e` first installs the Chromium that the pinned `apps/e2e` Playwright expects into the shared Playwright cache, and once it is there the step is a no-op.
@@ -52,7 +52,7 @@ Creating an organisation requires the instance-admin role, so the well-known adm
 
 ## Integration tier
 
-Modules that need real PostgreSQL, SpiceDB, or Valkey are tested through their interface in `*.integration.ts` files, alongside the unit tests. `bun test` does not discover that suffix, so `bun run test` stays free of infrastructure.
+Modules that need real PostgreSQL or SpiceDB are tested through their interface in `*.integration.ts` files, alongside the unit tests. `bun test` does not discover that suffix, so `bun run test` stays free of infrastructure.
 
 ```bash title="Repository root"
 bun run test:integration                                        # every integration file

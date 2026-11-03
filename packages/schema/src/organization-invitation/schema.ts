@@ -28,6 +28,17 @@ export type OrganizationInvitation = z.infer<
 	typeof organizationInvitationSchema
 >;
 
+/** An address an invite left out: already a member, or invited and not yet expired. */
+export const skippedInviteeSchema = z.object({
+	email: z.email(),
+	reason: z.enum([
+		"member",
+		"pending",
+	]),
+});
+
+export type SkippedInvitee = z.infer<typeof skippedInviteeSchema>;
+
 export const organizationInvitationFiltersSchema = z.object({
 	status: organizationInvitationStatusSchema.optional(),
 });

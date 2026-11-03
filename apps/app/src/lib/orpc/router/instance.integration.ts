@@ -227,7 +227,7 @@ describe("instance procedures", () => {
 	);
 
 	test(
-		"refuse to invite someone who is already a member, before any email",
+		"skip someone who is already a member, without an email",
 		async () => {
 			const {
 				organizationId,
@@ -241,40 +241,47 @@ describe("instance procedures", () => {
 			const { instance, organizationInvitation } = await procedures();
 
 			expect(
-				await rejection(
-					run(
-						instance.inviteMember(
-							{
-								organizationId,
-								email: member.user.email.toUpperCase(),
-								role: "admin",
-							},
-							await procedureOptions(instanceActor),
-						),
+				await run(
+					instance.inviteMember(
+						{
+							organizationId,
+							email: member.user.email.toUpperCase(),
+							role: "admin",
+						},
+						await procedureOptions(instanceActor),
 					),
 				),
 			).toMatchObject({
-				reason: "INVITEE_ALREADY_MEMBER",
+				skipped: [
+					{
+						email: member.user.email.toUpperCase(),
+						reason: "member",
+					},
+				],
 			});
 			expect(
-				await rejection(
-					run(
-						organizationInvitation.create(
-							{
-								role: "member",
-								expiresAt: new Date(Date.now() + 86_400_000),
-								items: [
-									{
-										email: member.user.email,
-									},
-								],
-							},
-							await procedureOptions(admin, zedToken),
-						),
+				await run(
+					organizationInvitation.create(
+						{
+							role: "member",
+							expiresAt: new Date(Date.now() + 86_400_000),
+							items: [
+								{
+									email: member.user.email,
+								},
+							],
+						},
+						await procedureOptions(admin, zedToken),
 					),
 				),
 			).toMatchObject({
-				reason: "INVITEE_ALREADY_MEMBER",
+				data: [],
+				skipped: [
+					{
+						email: member.user.email,
+						reason: "member",
+					},
+				],
 			});
 			expect(await invitationsOf(organizationId)).toEqual([]);
 			expect(await invitationEmailsTo(member.user.email)).toEqual([]);

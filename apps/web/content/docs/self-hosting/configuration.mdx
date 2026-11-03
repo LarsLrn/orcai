@@ -5,7 +5,7 @@ description: Required and optional environment variables for OrcAI, and the embe
 
 Runtime configuration is loaded across app and package config modules. `.env.example` is the current baseline for self-hosted environments. Every value comes from the container environment and applies when the container restarts, so one image serves any instance. The one exception is the [legal pages](#legal-pages), which are compiled into the image. Build args only carry image identity, never deployment values.
 
-Under Docker Compose, a container only sees the variables `docker-compose.yaml` passes to it. Compose sets the service addresses itself (`POSTGRES_HOST`, `VALKEY_URL`, `QDRANT_URL`, `SPICEDB_ENDPOINT`) and fills `SPICEDB_TOKEN` from `SPICEDB_GRPC_PRESHARED_KEY`. The bundled PostgreSQL always creates the user `postgres` and the database `app`, so leave `POSTGRES_USER` and `POSTGRES_DB` at those values. Compose does not pass `BETTER_AUTH_RATE_LIMIT`, `WORKER_POLLING_INTERVAL_SECONDS` or `PORT`, so setting them in `.env` has no effect until you add them to the service's `environment`.
+Under Docker Compose, a container only sees the variables `docker-compose.yaml` passes to it. Compose sets the service addresses itself (`POSTGRES_HOST`, `QDRANT_URL`, `SPICEDB_ENDPOINT`) and fills `SPICEDB_TOKEN` from `SPICEDB_GRPC_PRESHARED_KEY`. The bundled PostgreSQL always creates the user `postgres` and the database `app`, so leave `POSTGRES_USER` and `POSTGRES_DB` at those values. Compose does not pass `BETTER_AUTH_RATE_LIMIT`, `WORKER_POLLING_INTERVAL_SECONDS` or `PORT`, so setting them in `.env` has no effect until you add them to the service's `environment`.
 
 The primary config modules are:
 
@@ -15,7 +15,6 @@ The primary config modules are:
 - `packages/qdrant/src/config.ts`
 - `packages/s3/src/server/config.ts`
 - `packages/spice-db/src/config.ts`
-- `packages/valkey/src/config.ts`
 - `apps/app/src/lib/effect/services/config.ts`
 
 ## Public URLs
@@ -50,7 +49,6 @@ The app sends a Content Security Policy with every response. Browsers then load 
 | `POSTGRES_PORT` | No | PostgreSQL port, default `5432`. |
 | `POSTGRES_DB` | Yes | PostgreSQL database name. |
 | `POSTGRES_POOL_MAX` | No | The most connections each pool opens, default `10`. The app runs three pools (queries, Better Auth, pg-boss) and the workers two (queries, pg-boss), so keep the total for all processes below PostgreSQL's `max_connections` (100 by default). |
-| `VALKEY_URL` | Yes | Valkey connection URL. |
 | `WORKER_POLLING_INTERVAL_SECONDS` | No | Replaces how often every background worker polls its queue, at least `0.5`. Unset, each worker keeps its own interval of 2 to 30 seconds. |
 
 ## Object storage
