@@ -55,7 +55,10 @@ import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
-import { closeLastReply } from "@/lib/ai/utils/close-pending-tool-parts";
+import {
+	closeLastReply,
+	closeRunningToolParts,
+} from "@/lib/ai/utils/close-pending-tool-parts";
 import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
 import { readRevision } from "@/lib/authz/zed-token";
 import { chatBotUsable, requireWritableChat } from "@/lib/chats/read-only";
@@ -523,7 +526,10 @@ const streamTurn = ({
 
 			return {
 				// A turn that produced nothing leaves no reply.
-				parts: parts.every((part) => part.type === "step-start") ? [] : parts,
+				parts: parts.every((part) => part.type === "step-start")
+					? []
+					: // A call the turn stopped mid-run needs a result before the model reads the reply again.
+						closeRunningToolParts(parts, agent.tools),
 				metadata: {
 					...settled,
 					...(Object.keys(citations).length > 0 && {

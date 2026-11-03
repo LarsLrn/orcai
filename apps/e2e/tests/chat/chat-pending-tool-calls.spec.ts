@@ -24,7 +24,7 @@ const CALL_ID = "call_e2e_dangling";
 const INTERRUPTED =
 	"Not completed: the turn was interrupted. If the call changes something, it may have been applied; check before retrying.";
 
-/** A chat whose last reply holds a search call that never got a result. */
+/** A chat whose last reply holds a search call the turn never ran. */
 const chatWithDanglingCall = async (
 	client: ApiClient,
 	chatId: ChatId,
@@ -89,7 +89,7 @@ const interruptedBadge = async (page: Page) => {
 		});
 };
 
-test("a reply with a call left without a result does not block the next message", async ({
+test("a reply whose call never ran stores it as interrupted, and the next message goes on", async ({
 	api,
 	inference,
 	org,
@@ -101,7 +101,8 @@ test("a reply with a call left without a result does not block the next message"
 	await chatWithDanglingCall(member, chatId, inference);
 
 	expect(await storedCall(member, chatId)).toMatchObject({
-		state: "input-available",
+		state: "output-error",
+		errorText: INTERRUPTED,
 	});
 
 	const page = await pageAs("member");

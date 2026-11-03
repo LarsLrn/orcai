@@ -5,6 +5,7 @@ import { askUserTool } from "@/lib/ai/tools/questions/ask-user";
 import {
 	closeCopiedToolParts,
 	closePendingToolParts,
+	closeRunningToolParts,
 	TOOL_CLOSE_SENTENCES,
 	toolCloseCode,
 } from "./close-pending-tool-parts";
@@ -340,6 +341,62 @@ describe("closePendingToolParts", () => {
 			"step-start",
 			"output-available",
 			"output-error",
+		]);
+	});
+});
+
+describe("closeRunningToolParts", () => {
+	test("fails the running calls as interrupted and leaves the ones waiting on the user", () => {
+		const approval: Part = {
+			type: "tool-search",
+			toolCallId: "call-2",
+			state: "approval-requested",
+			input: {
+				query: "q",
+			},
+			approval: {
+				id: "approval-2",
+			},
+		};
+		const clientCall: Part = {
+			type: "tool-pick",
+			toolCallId: "call-3",
+			state: "input-available",
+			input: {
+				options: [
+					"a",
+				],
+			},
+		};
+
+		expect(
+			closeRunningToolParts(
+				[
+					{
+						type: "tool-search",
+						toolCallId: "call-1",
+						state: "input-available",
+						input: {
+							query: "q",
+						},
+					},
+					approval,
+					clientCall,
+				],
+				tools,
+			),
+		).toEqual([
+			{
+				type: "tool-search",
+				toolCallId: "call-1",
+				state: "output-error",
+				input: {
+					query: "q",
+				},
+				errorText: TOOL_CLOSE_SENTENCES.interrupted,
+			},
+			approval,
+			clientCall,
 		]);
 	});
 });
