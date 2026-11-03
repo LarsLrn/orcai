@@ -2673,6 +2673,7 @@
 	"chat_message_rate_tooltip": "Bewerten Sie, wie hilfreich diese Antwort war",
 	"chat_message_history_trimmed": "Frühere Nachrichten wurden ausgelassen, damit der Verlauf in das Kontextfenster passt.",
 	"chat_message_context_limit_reached": "Die Antwort wurde angehalten, weil der nächste Schritt nicht mehr in das Kontextfenster passt, und Sie können mit einer neuen Nachricht fortfahren.",
+	"chat_message_interrupted": "Diese Antwort wurde unterbrochen.",
 	"chat_message_time_limit_reached": "Die Antwort wurde angehalten, weil sie ihr Zeitlimit erreicht hat, und Sie können mit einer neuen Nachricht fortfahren.",
 	"chat_message_compacted": "Frühere Nachrichten zusammengefasst",
 	"chat_model_locked_missing_label": "Modell nicht verfügbar",

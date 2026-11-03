@@ -121,7 +121,7 @@ const STORE_POLL_ATTEMPTS = 40;
 /**
  * One chat's turns in the browser, built on the SDK's `Chat`: sending, stopping,
  * answering and continuing a paused step, the zedTokens each request reads at,
- * waiting for a cut-off reply to be stored, reloading after a conflict, older
+ * showing a cut-off reply as it was stored, reloading after a conflict, older
  * pages, and refreshing what a turn changed. React renders `chat` through
  * `useChat({ chat })`.
  */
@@ -404,7 +404,7 @@ export class ChatSession {
 			this.#setStoring(true);
 			try {
 				// A finished stream closes after the reply is stored; any other ending may still be saving.
-				if (cutOff) await this.#waitForStored(message.id);
+				if (cutOff) await this.#adoptStored(message.id);
 				if (wrote) {
 					// A failed handover only leaves the next reads less fresh.
 					await this.#port
@@ -450,8 +450,11 @@ export class ChatSession {
 		);
 	}
 
-	/** Resolves once the reply is filled in or dropped, so the next turn's context includes it. */
-	async #waitForStored(id: ChatMessageId) {
+	/**
+	 * Waits until the server settled the reply, filled in or dropped, and shows
+	 * it as stored, so the next turn's context and the reply's notices match.
+	 */
+	async #adoptStored(id: ChatMessageId) {
 		for (let attempt = 0; attempt < STORE_POLL_ATTEMPTS; attempt++) {
 			try {
 				const reply = await this.#port.find({
@@ -459,7 +462,18 @@ export class ChatSession {
 					id,
 					zedToken: this.#zedToken,
 				});
-				if (!reply || reply.parts.length > 0) return;
+				// A claimed reply is still being continued.
+				if (
+					!reply ||
+					(reply.parts.length > 0 && !reply.metadata?.continuedAt)
+				) {
+					this.chat.messages = reply
+						? this.chat.messages.map((current) =>
+								current.id === id ? reply : current,
+							)
+						: this.chat.messages.filter((current) => current.id !== id);
+					return;
+				}
 			} catch {
 				// Retried until the attempts run out.
 			}

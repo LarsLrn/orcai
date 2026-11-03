@@ -650,13 +650,12 @@ const streamTurn = ({
 							...(sent.trimmed && {
 								historyTrimmed: true,
 							}),
-							...(part.finishReason === "tool-calls" &&
-								meter.spent() && {
-									stepLimitReached: true,
-								}),
-							...(agent.contextFull() && {
-								contextLimitReached: true,
-							}),
+							// Explicit, so a finished continuation clears what the paused reply said.
+							stepLimitReached:
+								part.finishReason === "tool-calls" && meter.spent(),
+							contextLimitReached: agent.contextFull(),
+							timeLimitReached: false,
+							interrupted: part.finishReason === "interrupted",
 						};
 					}
 				},
@@ -955,7 +954,15 @@ export const continueTurn = (
 									}),
 						);
 					}
-					const { uploads: _, ...metadata } = reply?.metadata ?? {};
+					const {
+						uploads: _,
+						// The continuation finds out anew why the reply stops.
+						stepLimitReached: _step,
+						contextLimitReached: _context,
+						timeLimitReached: _time,
+						interrupted: _interrupted,
+						...metadata
+					} = reply?.metadata ?? {};
 					return Effect.succeed({
 						parts: applied.parts,
 						metadata: {

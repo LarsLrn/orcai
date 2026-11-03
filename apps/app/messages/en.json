@@ -2673,6 +2673,7 @@
 	"chat_message_rate_tooltip": "Rate how helpful this answer was",
 	"chat_message_history_trimmed": "Earlier messages were left out to fit the context window.",
 	"chat_message_context_limit_reached": "The answer stopped because the next step would not fit the context window, and you can send a message to continue.",
+	"chat_message_interrupted": "This reply was cut off.",
 	"chat_message_time_limit_reached": "The answer stopped because it reached its time limit, and you can send a message to continue.",
 	"chat_message_compacted": "Earlier messages summarised",
 	"chat_model_locked_missing_label": "Model unavailable",

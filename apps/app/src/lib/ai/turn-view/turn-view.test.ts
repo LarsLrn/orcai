@@ -228,6 +228,7 @@ const reply = (
 	parts: MessagePart[],
 	metadata: {
 		stepLimitReached?: boolean;
+		interrupted?: boolean;
 		contextTokens?: number;
 	} = {},
 	id = "reply",
@@ -260,6 +261,7 @@ const view = (
 		latest?: boolean;
 		metadata?: {
 			stepLimitReached?: boolean;
+			interrupted?: boolean;
 		};
 	} = {},
 ): MessageView =>
@@ -1375,6 +1377,21 @@ describe("missing answer", () => {
 				},
 			).missing,
 		).toBe("step-limit");
+	});
+
+	test("a cut-off reply without an answer leaves the why to its notice", () => {
+		expect(
+			view(
+				[
+					search(),
+				],
+				{
+					metadata: {
+						interrupted: true,
+					},
+				},
+			).missing,
+		).toBeUndefined();
 	});
 
 	test("nothing stands in for a reply under way, an answer or a question", () => {

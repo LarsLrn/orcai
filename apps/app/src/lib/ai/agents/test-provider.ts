@@ -16,6 +16,8 @@ export type Step = {
 	inputTokens?: number;
 	/** The provider refuses the request instead. */
 	refused?: true;
+	/** The stream ends before the provider's completion events. */
+	cutOff?: true;
 };
 
 export type Body = Record<string, unknown>;
@@ -470,6 +472,13 @@ const eventStream = (events: string[]) => {
 	});
 };
 
+/** How many events at the end of a kind's stream signal its completion. */
+const COMPLETION_EVENTS: Record<ModelProviderKind, number> = {
+	anthropic: 2,
+	openai: 1,
+	"openai-compatible": 3,
+};
+
 /** A fetch that records each request body and answers with the next scripted step. */
 export const scriptedFetch = (kind: ModelProviderKind) => {
 	const bodies: Body[] = [];
@@ -488,13 +497,15 @@ export const scriptedFetch = (kind: ModelProviderKind) => {
 		}
 		const reply = identify(step, kind === "anthropic" ? "toolu" : "call");
 		if (body.stream === true) {
+			const events =
+				kind === "anthropic"
+					? anthropicEvents(reply)
+					: kind === "openai"
+						? responsesEvents(reply)
+						: openAIEvents(reply);
 			return Promise.resolve(
 				eventStream(
-					kind === "anthropic"
-						? anthropicEvents(reply)
-						: kind === "openai"
-							? responsesEvents(reply)
-							: openAIEvents(reply),
+					step.cutOff ? events.slice(0, -COMPLETION_EVENTS[kind]) : events,
 				),
 			);
 		}
