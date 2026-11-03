@@ -100,14 +100,20 @@ export const grantedPermissions = <
 
 		for (const pair of responses.flatMap((response) => response.pairs)) {
 			if (pair.response.oneofKind !== "item") {
+				const status =
+					pair.response.oneofKind === "error" ? pair.response.error : undefined;
 				return yield* new SpiceDbError({
 					operation: "query",
-					cause: new Error(
-						`Bulk check of ${params.entityType}:${pair.request?.resource?.objectId}#${pair.request?.permission} failed: ${
-							pair.response.oneofKind === "error"
-								? pair.response.error.message
-								: "empty response"
-						}`,
+					// The item's gRPC status, so an outage reads as one.
+					cause: Object.assign(
+						new Error(
+							`Bulk check of ${params.entityType}:${pair.request?.resource?.objectId}#${pair.request?.permission} failed: ${
+								status?.message ?? "empty response"
+							}`,
+						),
+						{
+							code: status?.code,
+						},
 					),
 				});
 			}

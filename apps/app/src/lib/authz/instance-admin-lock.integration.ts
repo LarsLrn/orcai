@@ -163,3 +163,61 @@ describe("two instance admins acting on each other at once", () => {
 			TIMEOUT,
 		);
 });
+
+describe("unbanning", () => {
+	const unban = async (actor: Actor, userId: string) =>
+		run(
+			(await run(Procedures)).user.unban(
+				{
+					userId: userId as Actor["user"]["id"],
+				},
+				await procedureOptions(actor),
+			),
+		);
+
+	test(
+		"lifts a ban, unless the admin was banned in the meantime",
+		async () => {
+			const {
+				organizationId,
+				actors: [member],
+			} = await organizationWith([
+				"member",
+			]);
+			const first = await instanceAdmin(organizationId);
+			const second = await instanceAdmin(organizationId);
+			await run(await actions.ban(second, member));
+			await run(await actions.ban(second, first));
+
+			expect(
+				await unban(first, member.user.id).then(
+					() => undefined,
+					(error: { reason?: string }) => error.reason,
+				),
+			).toBe("INSTANCE_ADMIN_REQUIRED");
+			expect(
+				await standing([
+					member,
+				]),
+			).toEqual([
+				"banned",
+			]);
+
+			await unban(second, member.user.id);
+			expect(
+				await standing([
+					member,
+				]),
+			).toEqual([
+				"user",
+			]);
+			expect(
+				await unban(second, crypto.randomUUID()).then(
+					() => undefined,
+					(error: { reason?: string }) => error.reason,
+				),
+			).toBe("USER_NOT_FOUND");
+		},
+		TIMEOUT,
+	);
+});

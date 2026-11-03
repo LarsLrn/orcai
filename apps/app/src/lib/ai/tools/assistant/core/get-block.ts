@@ -1,9 +1,8 @@
 import type { BlockId } from "@orcai/core";
 import { blockIdSchema } from "@orcai/schema";
-import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { AssistantToolError } from "@/lib/ai/tools/tool-error";
+import { AssistantToolError, isUnreadable } from "@/lib/ai/tools/tool-error";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -50,12 +49,7 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 							options,
 						),
 				).pipe(
-					Effect.mapError((error) =>
-						error instanceof ORPCError &&
-						(error.code === "NOT_FOUND" || error.code === "FORBIDDEN")
-							? notFound
-							: error,
-					),
+					Effect.mapError((error) => (isUnreadable(error) ? notFound : error)),
 				);
 
 				const common = {

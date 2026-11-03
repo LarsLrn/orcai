@@ -2,14 +2,13 @@ import { DB, dbSchema } from "@orcai/db";
 import type { InstanceUserSortKey } from "@orcai/schema";
 import { count, desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { auth } from "@/lib/auth/auth";
 import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
 import { setInstanceRole } from "@/lib/authz/instance-role-change";
 import {
 	banAccount,
 	deleteAccounts,
+	unbanAccount,
 } from "@/lib/authz/organization-membership";
-import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import {
@@ -17,18 +16,6 @@ import {
 	type SortExpression,
 } from "@/lib/orpc/router/helpers/sorting";
 import { literalSearch } from "@/lib/utils/literal-search";
-
-/** Better Auth reads the caller's session from the request headers. */
-const requireRequestHeaders = (headers: Headers | undefined) =>
-	Effect.fromNullishOr(headers).pipe(
-		Effect.mapError(
-			() =>
-				new AppErrors.BadRequestError({
-					reason: "REQUEST_HEADERS_REQUIRED",
-					message: "Request headers are required for this action.",
-				}),
-		),
-	);
 
 const listAllUsers = authed.user.listAll
 	.use(requireInstanceAdminMiddleware)
@@ -109,25 +96,9 @@ const banUser = authed.user.ban
 const unbanUser = authed.user.unban
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input, context }) {
-		const headers = yield* requireRequestHeaders(context.reqHeaders);
-
-		yield* Effect.tryPromise({
-			try: () =>
-				auth.api.unbanUser({
-					body: {
-						userId: input.userId,
-					},
-					headers,
-				}),
-			catch: (error) =>
-				new AppErrors.BadRequestError({
-					reason: "USER_UNBAN_FAILED",
-					message:
-						error instanceof Error
-							? error.message
-							: "Failed to unban the user.",
-					cause: error,
-				}),
+		yield* unbanAccount({
+			userId: input.userId,
+			actorId: context.auth.user.id,
 		});
 
 		return {

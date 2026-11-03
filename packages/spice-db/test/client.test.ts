@@ -6,6 +6,8 @@ import * as Exit from "effect/Exit";
 import {
 	checkEntityPermission,
 	grantedPermissions,
+	grpcStatusOf,
+	isUnavailable,
 	permittedEntityIds,
 	SpiceDbError,
 	SpiceDbService,
@@ -22,6 +24,8 @@ const { HAS_PERMISSION, NO_PERMISSION, CONDITIONAL_PERMISSION } =
 const fakeSpice = (params: {
 	grants?: readonly string[];
 	failing?: readonly string[];
+	/** The gRPC status the failing items answer with, FAILED_PRECONDITION by default. */
+	failingCode?: number;
 }) => {
 	const permissionship = (resourceId = "", permission = "") =>
 		params.grants?.includes(`${resourceId}#${permission}`)
@@ -48,7 +52,7 @@ const fakeSpice = (params: {
 									response: {
 										oneofKind: "error" as const,
 										error: {
-											code: 9,
+											code: params.failingCode ?? 9,
 											message: "max depth exceeded",
 											details: [],
 										},
@@ -207,33 +211,61 @@ describe("grantedPermissions", () => {
 		]);
 	});
 
-	test("fails when SpiceDB cannot evaluate an item", async () => {
-		const spice = fakeSpice({
-			grants: [
-				`${assetA}#read`,
-			],
-			failing: [
-				`${assetB}#read`,
-			],
-		});
+	test.each([
+		[
+			14,
+			"UNAVAILABLE",
+			true,
+		],
+		[
+			4,
+			"DEADLINE_EXCEEDED",
+			true,
+		],
+		[
+			8,
+			"RESOURCE_EXHAUSTED",
+			true,
+		],
+		[
+			9,
+			"FAILED_PRECONDITION",
+			false,
+		],
+	])(
+		"fails with an item's gRPC status %i (%s), unavailable: %p",
+		async (code, name, unavailable) => {
+			const spice = fakeSpice({
+				grants: [
+					`${assetA}#read`,
+				],
+				failing: [
+					`${assetB}#read`,
+				],
+				failingCode: code,
+			});
 
-		const exit = await run(
-			Effect.flip(
-				permittedEntityIds({
-					entityType: "asset",
-					entityIds: [
-						assetA,
-						assetB,
-					],
-					permission: "read",
-					userId,
-				}),
-			),
-			spice,
-		);
+			const exit = await run(
+				Effect.flip(
+					permittedEntityIds({
+						entityType: "asset",
+						entityIds: [
+							assetA,
+							assetB,
+						],
+						permission: "read",
+						userId,
+					}),
+				),
+				spice,
+			);
 
-		expect(Exit.isSuccess(exit) && exit.value).toBeInstanceOf(SpiceDbError);
-	});
+			const error = Exit.isSuccess(exit) ? exit.value : undefined;
+			expect(error).toBeInstanceOf(SpiceDbError);
+			expect(error && grpcStatusOf(error)).toBe(name);
+			expect(error && isUnavailable(error)).toBe(unavailable);
+		},
+	);
 
 	test("asks SpiceDB nothing for no entities", async () => {
 		const spice = fakeSpice({});

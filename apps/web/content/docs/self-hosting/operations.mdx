@@ -134,3 +134,5 @@ If SpiceDB connections fail, verify:
 - `SPICEDB_ENDPOINT`.
 - `SPICEDB_TOKEN`.
 - `SPICEDB_SECURITY` matches your deployment mode.
+
+While SpiceDB is unreachable, users can still list and switch their organisations, but every page and action that checks a permission shows "Permissions could not be checked right now." and the health check answers `503`. Requests wait at most `SPICEDB_READ_TIMEOUT` (5 seconds by default) for a permission check before they fail.

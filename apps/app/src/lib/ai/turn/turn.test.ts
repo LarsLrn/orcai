@@ -1573,9 +1573,6 @@ describe("turn setup", () => {
 				data: {
 					id: botId,
 					features: {},
-					capabilities: {
-						use: true,
-					},
 				},
 			});
 		const chat = await conversation(

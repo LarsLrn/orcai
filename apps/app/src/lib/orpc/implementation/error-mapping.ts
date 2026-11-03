@@ -1,4 +1,5 @@
 import { logFailure } from "@orcai/observability";
+import { isUnavailable } from "@orcai/spice-db";
 import {
 	COMMON_ERROR_STATUS_MAP,
 	ORPCError,
@@ -11,7 +12,11 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import { SqlError } from "effect/sql";
-import { type AppError, ErrorTags } from "@/lib/effect/utils/errors";
+import {
+	type AppError,
+	ErrorTags,
+	UnavailableError,
+} from "@/lib/effect/utils/errors";
 
 type AnyORPCError = ORPCError<ORPCErrorCode, unknown>;
 
@@ -115,6 +120,20 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 				},
 				cause: error,
 			});
+		// Other SpiceDB failures, a malformed token among them, stay a 500.
+		case ErrorTags.SPICE_DB:
+			return isUnavailable(error)
+				? appErrorToORPCError(
+						new UnavailableError({
+							reason: "PERMISSIONS_UNAVAILABLE",
+							message:
+								"Permissions could not be checked right now. Try again shortly.",
+							cause: error,
+						}),
+					)
+				: new ORPCError("INTERNAL_SERVER_ERROR", {
+						cause: error,
+					});
 		case ErrorTags.DRIZZLE_QUERY:
 		case ErrorTags.SQL:
 			return uniqueViolationConstraint(error) !== undefined

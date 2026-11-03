@@ -1,5 +1,7 @@
-import { v1 } from "@authzed/authzed-node";
+import { deadlineInterceptor, v1 } from "@authzed/authzed-node";
+import { InterceptingCall, type Interceptor } from "@grpc/grpc-js";
 import * as Context from "effect/Context";
+import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
@@ -23,6 +25,23 @@ const securityModeMap: Record<SpiceDbSecurityMode, v1.ClientSecurity> = {
 	"insecure-plaintext": v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
 };
 
+const READS = new Set(
+	[
+		"CheckPermission",
+		"CheckBulkPermissions",
+		"LookupResources",
+	].map((method) => `/authzed.api.v1.PermissionsService/${method}`),
+);
+
+/** Ends a permission read after `timeout`, so a request does not wait on an unreachable SpiceDB. */
+const readDeadline = (timeout: Duration.Duration): Interceptor => {
+	const deadline = deadlineInterceptor(Duration.toMillis(timeout));
+	return (options, nextCall) =>
+		READS.has(options.method_definition.path)
+			? deadline(options, nextCall)
+			: new InterceptingCall(nextCall(options));
+};
+
 export const SpiceDbServiceLive = Layer.effect(
 	SpiceDbService,
 	Effect.gen(function* () {
@@ -35,6 +54,13 @@ export const SpiceDbServiceLive = Layer.effect(
 					Redacted.value(config.spice.token),
 					config.spice.endpoint,
 					security,
+					// The default preconnect, the permissions service.
+					undefined,
+					{
+						interceptors: [
+							readDeadline(config.spice.readTimeout),
+						],
+					},
 				),
 			catch: (error) =>
 				new SpiceDbError({

@@ -4,6 +4,7 @@ import {
 	QuotaUnavailableError,
 	QuotaWriteFailedError,
 } from "@orcai/quota";
+import { SpiceDbError } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/effect";
 import { call, ORPCError, os } from "@orpc/server";
 import * as Cause from "effect/Cause";
@@ -39,6 +40,15 @@ const rejection = (promise: Promise<unknown>) =>
 		},
 		(error: unknown) => error,
 	);
+
+/** A failed SpiceDB read carrying a gRPC status code. */
+const spiceDbFailure = (code: number) =>
+	new SpiceDbError({
+		operation: "query",
+		cause: Object.assign(new Error("SpiceDB call failed"), {
+			code,
+		}),
+	});
 
 const forbidden = () =>
 	new AppErrors.ForbiddenError({
@@ -124,6 +134,18 @@ describe("mapEffectErrors", () => {
 			"SERVICE_UNAVAILABLE",
 			"QUOTA_CHECK_FAILED",
 		],
+		// UNAVAILABLE
+		[
+			spiceDbFailure(14),
+			"SERVICE_UNAVAILABLE",
+			"PERMISSIONS_UNAVAILABLE",
+		],
+		// DEADLINE_EXCEEDED
+		[
+			spiceDbFailure(4),
+			"SERVICE_UNAVAILABLE",
+			"PERMISSIONS_UNAVAILABLE",
+		],
 	])(
 		"a %s answers %s with reason %s and no cause",
 		async (failure, code, reason) => {
@@ -143,6 +165,21 @@ describe("mapEffectErrors", () => {
 			});
 		},
 	);
+
+	test("a SpiceDB failure other than unavailability, like a malformed token, answers as an internal error", async () => {
+		// INVALID_ARGUMENT
+		const procedure = base
+			.use(guard(Effect.fail(spiceDbFailure(3))))
+			.handler(() => "unreachable");
+
+		const error = (await rejection(
+			call(procedure, undefined, {
+				context,
+			}),
+		)) as ORPCError<string, unknown>;
+
+		expect(error.code).toBe("INTERNAL_SERVER_ERROR");
+	});
 
 	test("a defect alongside a client error answers as an internal error", async () => {
 		const procedure = base
