@@ -15,7 +15,7 @@ export const useSignOut = () => {
 			to: "/",
 		},
 	) => {
-		await authClient.signOut({
+		const { error } = await authClient.signOut({
 			fetchOptions: {
 				onSuccess: async (_ctx) => {
 					trackEvent("auth-signout");
@@ -26,6 +26,9 @@ export const useSignOut = () => {
 				},
 			},
 		});
+		if (error) {
+			toast.error(m.auth_sign_out_toast_error());
+		}
 	};
 
 	return {

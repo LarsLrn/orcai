@@ -17,7 +17,6 @@ export { isS3NoSuchKey, isS3NotFound, S3Error } from "./errors";
 export {
 	deletePrefixRecursively,
 	getImageAsBase64,
-	getObjectAsJson,
 	getObjectAsString,
 	listObjects,
 } from "./object-helpers";

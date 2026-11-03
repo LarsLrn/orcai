@@ -17,7 +17,7 @@ import {
 	validateOrganizationInvitationResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
-import { base } from "./base";
+import { base, withoutSession } from "./base";
 
 export const organizationInvitationContracts = {
 	list: base
@@ -81,6 +81,7 @@ export const organizationInvitationContracts = {
 				tags: [
 					"Organization Invitations",
 				],
+				spec: withoutSession,
 			}),
 		)
 		.input(validateOrganizationInvitationInputSchema)

@@ -8,9 +8,11 @@ export {
 	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,
 	createStoredExtractionArtifact,
-	deserializeStoredExtractionArtifact,
+	readStoredExtraction,
 	STORED_EXTRACTION_FILE_NAME,
+	StoredExtractionError,
 	serializeStoredExtractionArtifact,
+	writeStoredExtraction,
 } from "./artifact";
 export { ProcessError } from "./errors";
 export type { ExtractionProfile } from "./extract";

@@ -1,3 +1,4 @@
+import { logErrorCause } from "@orcai/observability";
 import { ORPCError } from "@orpc/client";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -61,9 +62,16 @@ export const toolErrorText = (error: unknown): string => {
 	return "INTERNAL_SERVER_ERROR: The request failed on the server.";
 };
 
+/** Whether the server answered the call; anything else failed on the server. */
+const isAnswered = (error: unknown): boolean =>
+	error instanceof AssistantToolError
+		? error.cause === undefined || isAnswered(error.cause)
+		: error instanceof ORPCError && error.code !== "INTERNAL_SERVER_ERROR";
+
 /**
  * Runs a tool's effect with the call's abort signal. A failure or defect
- * rejects with an `AssistantToolError`, which the SDK turns into the tool error.
+ * rejects with an `AssistantToolError`, which the SDK turns into the tool
+ * error; one that failed on the server is logged and kept as its cause.
  */
 export const runAssistantTool = <A, E>(
 	effect: Effect.Effect<A, E, AppRuntimeContext>,
@@ -72,12 +80,20 @@ export const runAssistantTool = <A, E>(
 	runPromise(
 		effect.pipe(
 			Effect.catchCause(
-				(cause): Effect.Effect<never, E | AssistantToolError> =>
-					Cause.hasInterruptsOnly(cause)
-						? Effect.failCause(cause)
-						: Effect.fail(
-								new AssistantToolError(toolErrorText(Cause.squash(cause))),
-							),
+				(cause): Effect.Effect<never, E | AssistantToolError> => {
+					if (Cause.hasInterruptsOnly(cause)) return Effect.failCause(cause);
+					const error = Cause.squash(cause);
+					const failed = Effect.fail(
+						new AssistantToolError(toolErrorText(error), {
+							cause: error,
+						}),
+					);
+					return isAnswered(error)
+						? failed
+						: logErrorCause("Assistant tool failed", cause).pipe(
+								Effect.andThen(failed),
+							);
+				},
 			),
 		),
 		{

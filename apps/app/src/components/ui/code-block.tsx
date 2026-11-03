@@ -3,6 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -134,7 +135,7 @@ function CodeBlockCopyButton({
 					navigator.clipboard
 						.writeText(value)
 						.then(() => setCopied(true))
-						.catch(() => undefined);
+						.catch(() => toast.error(m.code_block_copy_toast_error()));
 				}}
 				{...props}
 			>

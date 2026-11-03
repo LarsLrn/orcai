@@ -77,10 +77,6 @@ export const serializeStoredExtractionArtifact = (
 	artifact: StoredExtractionArtifact,
 ) => JSON.stringify(artifact);
 
-export const deserializeStoredExtractionArtifact = (
-	content: string,
-): StoredExtractionArtifact => JSON.parse(content) as StoredExtractionArtifact;
-
 export const buildProcessedAssetPrefix = (assetId: string) => `${assetId}`;
 
 export const buildStoredExtractionKey = (assetId: string) =>

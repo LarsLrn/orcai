@@ -280,4 +280,34 @@ describe("delete tools", () => {
 			},
 		]);
 	});
+
+	test("a target the server fails to read fails the call instead of counting as missing", async () => {
+		const [deletable, unread] = Array.from(
+			{
+				length: 2,
+			},
+			() => crypto.randomUUID() as AssetId,
+		);
+		records.set(deletable, {
+			name: "Draft notes",
+			canDelete: true,
+		});
+		answers["asset.find"] = (input: { id: string }) =>
+			input.id === unread
+				? Effect.fail(new ORPCError("INTERNAL_SERVER_ERROR"))
+				: find(input);
+
+		const output = deleteAssetTool(deps()).execute?.(
+			{
+				ids: [
+					deletable,
+					unread,
+				],
+			},
+			options,
+		);
+
+		await expect(output).rejects.toThrow("INTERNAL_SERVER_ERROR");
+		expect(deleteCalls()).toEqual([]);
+	});
 });

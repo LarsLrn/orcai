@@ -107,14 +107,6 @@ export const getObjectAsString = (input: {
 		Effect.map((bytes) => Buffer.from(bytes).toString("utf-8")),
 	);
 
-export const getObjectAsJson = <T>(input: {
-	bucket: BucketName;
-	name: string;
-}) =>
-	getObjectAsString(input).pipe(
-		Effect.map((content) => JSON.parse(content) as T),
-	);
-
 export const getImageAsBase64 = (input: { bucket: BucketName; name: string }) =>
 	getObjectBytes(input).pipe(
 		Effect.map((bytes) => Buffer.from(bytes).toString("base64")),

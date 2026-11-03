@@ -20,7 +20,6 @@
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"llama-tokenizer-js": "1.2.2",
-		"openai": "7.45.1",
 		"zod": "catalog:"
 	}
 }

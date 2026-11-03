@@ -11,6 +11,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { PgBossService } from "@orcai/pg-boss";
 import {
 	DATA_EXPORT_TTL_MS,
 	dataExportKey,
@@ -26,6 +27,7 @@ import {
 } from "@zip.js/zip.js/index-native.js";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
@@ -36,6 +38,7 @@ import {
 import {
 	downloadableDataExport,
 	failDataExports,
+	requestDataExport,
 	runDataExport,
 } from "./data-export";
 
@@ -585,6 +588,41 @@ describe("data export", () => {
 			expect(
 				await run(downloadableDataExport(owner.user.id, requested.id)),
 			).toBeUndefined();
+			expect((await requestExport(owner)).status).toBe("pending");
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a request stopped while it queues its job leaves no export in flight",
+		async () => {
+			const {
+				actors: [owner],
+			} = await organizationWith([
+				"member",
+			]);
+			const queueing = Promise.withResolvers<void>();
+			const stalledQueue = {
+				boss: {
+					insert: () => {
+						queueing.resolve();
+						return new Promise<never>(() => undefined);
+					},
+				},
+			} as unknown as PgBossService["Service"];
+
+			await run(
+				Effect.gen(function* () {
+					const request = yield* Effect.forkChild(
+						requestDataExport(owner.user.id).pipe(
+							Effect.provideService(PgBossService, stalledQueue),
+						),
+					);
+					yield* Effect.promise(() => queueing.promise);
+					yield* Fiber.interrupt(request);
+				}),
+			);
+
 			expect((await requestExport(owner)).status).toBe("pending");
 		},
 		TIMEOUT,

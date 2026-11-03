@@ -117,9 +117,7 @@ export const insertInvitations = (params: InvitationParams) =>
 	});
 
 export const wakeInvitationEmails = wakeNotificationWorker.pipe(
-	Effect.catch((cause) =>
-		Effect.logWarning(`notification.wake.failed cause=${String(cause)}`),
-	),
+	Effect.catch((cause) => Effect.logWarning("notification.wake.failed", cause)),
 );
 
 /** Invites `emails` to the organization with `role` and queues their emails. */

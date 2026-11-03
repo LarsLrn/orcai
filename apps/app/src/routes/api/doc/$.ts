@@ -32,7 +32,11 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 			title: "OrcAI API Documentation",
 			version: "1.0.0",
 		},
+		// The ZedToken is optional, so a request may send the bearer token alone.
 		security: [
+			{
+				bearerAuth: [],
+			},
 			{
 				bearerAuth: [],
 				zedToken: [],

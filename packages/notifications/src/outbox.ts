@@ -62,7 +62,7 @@ export const enqueueNotification = (
 		if (inserted.length === 0) return false;
 		yield* wakeNotificationWorker.pipe(
 			Effect.catch((cause) =>
-				Effect.logWarning(`notification.wake.failed cause=${String(cause)}`),
+				Effect.logWarning("notification.wake.failed", cause),
 			),
 		);
 		return true;

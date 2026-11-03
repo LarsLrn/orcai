@@ -150,6 +150,9 @@ export const mutation =
 						: Effect.fail(
 								new AssistantToolError(
 									`${toolErrorText(error)} The change may have been applied anyway; check with ${verify} before retrying.`,
+									{
+										cause: error,
+									},
 								),
 							);
 				},

@@ -1,5 +1,6 @@
 import type { OrganizationId } from "@orcai/core";
 import { advisoryXactLock, DB, retryDeadlocks } from "@orcai/db";
+import { logFailure } from "@orcai/observability";
 import * as Context from "effect/Context";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
@@ -127,7 +128,9 @@ export const writeRelationships = <A, E, R, ES = never, RS = never>(
 
 		const { zedToken } = yield* authz.deliverRelationshipEvents(eventIds).pipe(
 			Effect.catch((cause) =>
-				Effect.logError(`authz.delivery_failed cause=${String(cause)}`).pipe(
+				logFailure("authz.delivery_failed", cause, {
+					expected: false,
+				}).pipe(
 					Effect.as({
 						zedToken: undefined,
 					}),

@@ -9,7 +9,11 @@ import {
 	type StoredExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
-import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
+import {
+	S3Live,
+	sendDeleteObjectCommand,
+	sendPutObjectCommand,
+} from "@orcai/s3/server";
 import {
 	type PipelineStatus,
 	PROCESS_ASSET_JOB_NAME,
@@ -210,6 +214,67 @@ test(
 		for (const { attempt } of attempts) {
 			expect(after.attempts).not.toContain(attempt);
 		}
+	},
+	TIMEOUT,
+);
+
+test.each([
+	[
+		"gone",
+		(assetId: AssetId) =>
+			sendDeleteObjectCommand({
+				bucket: buckets.processed.name,
+				key: buildStoredExtractionKey(assetId),
+			}),
+	],
+	[
+		"unreadable",
+		(assetId: AssetId) =>
+			sendPutObjectCommand({
+				bucket: buckets.processed.name,
+				key: buildStoredExtractionKey(assetId),
+				body: Buffer.from('{"content":'),
+				contentType: "application/json",
+			}),
+	],
+	[
+		"malformed inside its chunks",
+		(assetId: AssetId) =>
+			storeExtraction(assetId, {
+				...described(olderExtraction("users/someone/asset", assetId)),
+				chunks: [
+					{
+						content: "Refunds take ten days.",
+						metadata: {
+							chunkIndex: 0,
+							totalChunks: 1,
+							headingContext: {},
+						},
+					},
+				] as unknown as StoredExtractionArtifact["chunks"],
+			}),
+	],
+])(
+	"an extraction that is %s fails as missing, for preparing the file again",
+	async (_, spoil) => {
+		const {
+			asset,
+			attempts: [attempt],
+		} = await seed();
+		await run(spoil(asset.id));
+
+		const failure = await run(
+			describedExtraction({
+				jobId: crypto.randomUUID(),
+				asset,
+				attempt: attempt as IndexingAttempt,
+			}).pipe(Effect.flip),
+		);
+
+		expect(failure).toMatchObject({
+			_tag: "AssetPipelineError",
+			failure: "missing_extraction",
+		});
 	},
 	TIMEOUT,
 );

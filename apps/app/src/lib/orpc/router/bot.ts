@@ -124,15 +124,7 @@ const findBotEditor = authed.bot.findEditor
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: readRevision(context, input),
-		}).pipe(
-			Effect.mapError(
-				() =>
-					new AppErrors.NotFoundError({
-						reason: "BOT_NOT_FOUND",
-						message: "Bot not found",
-					}),
-			),
-		);
+		});
 	});
 
 const saveBot = authed.bot.save

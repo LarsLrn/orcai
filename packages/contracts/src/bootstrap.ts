@@ -5,7 +5,7 @@ import {
 	bootstrapStatusResponseSchema,
 } from "@orcai/schema";
 import { openapi } from "@orpc/openapi";
-import { base } from "./base";
+import { base, withoutSession } from "./base";
 
 export const bootstrapContracts = {
 	status: base
@@ -17,6 +17,7 @@ export const bootstrapContracts = {
 				tags: [
 					"Bootstrap",
 				],
+				spec: withoutSession,
 			}),
 		)
 		.input(bootstrapStatusInputSchema)
@@ -30,6 +31,7 @@ export const bootstrapContracts = {
 				tags: [
 					"Bootstrap",
 				],
+				spec: withoutSession,
 			}),
 		)
 		.input(bootstrapInitializeInputSchema)

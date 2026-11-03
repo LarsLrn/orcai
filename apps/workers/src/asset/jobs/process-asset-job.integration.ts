@@ -12,13 +12,10 @@ import {
 	queueProcessing,
 } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
-import {
-	buildStoredExtractionKey,
-	type StoredExtractionArtifact,
-} from "@orcai/process";
+import { readStoredExtraction } from "@orcai/process";
 import { EmbeddingIndex } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
-import { getObjectAsJson, S3Live } from "@orcai/s3/server";
+import { S3Live } from "@orcai/s3/server";
 import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type ProcessAssetPayload,
@@ -184,12 +181,7 @@ test(
 		// pg-boss delivers it again when its completion was not acknowledged.
 		await processOnce(first);
 		expect(await statusOf(asset.assetId)).toBe("completed");
-		const extraction = await run(
-			getObjectAsJson<StoredExtractionArtifact>({
-				bucket: buckets.processed.name,
-				name: buildStoredExtractionKey(asset.assetId),
-			}),
-		);
+		const extraction = await run(readStoredExtraction(asset.assetId));
 		expect(extraction.images[0]?.text).toBe(suggestion.text);
 
 		await prepareAgain(asset.assetId);

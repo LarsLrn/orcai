@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"@kreuzberg/node": "catalog:",
+		"@orcai/core": "workspace:*",
 		"@orcai/s3": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"effect": "catalog:"
