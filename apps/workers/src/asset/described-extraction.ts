@@ -1,6 +1,11 @@
 import type { AssetId } from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
-import { queueProcessing } from "@orcai/pg-boss";
+import {
+	AssetPipelineError,
+	currentIndexing,
+	type IndexingAttempt,
+	queueProcessing,
+} from "@orcai/preparation";
 import {
 	readStoredExtraction,
 	type StoredExtractionArtifact,
@@ -9,11 +14,6 @@ import type { AssetFileType, BucketName } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { summarizeErrorCause } from "@/asset/error-summary";
-import {
-	AssetPipelineError,
-	currentIndexing,
-	type IndexingAttempt,
-} from "@/asset/pipeline-attempt";
 
 interface ProcessableAsset {
 	id: AssetId;

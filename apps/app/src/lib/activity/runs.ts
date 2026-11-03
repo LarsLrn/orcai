@@ -6,7 +6,7 @@ import type {
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { runningRun } from "@orcai/pg-boss";
+import { runningRun } from "@orcai/preparation";
 import type {
 	ActivityMember,
 	ActivityRun,

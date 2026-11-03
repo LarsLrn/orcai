@@ -1,0 +1,23 @@
+{
+	"name": "@orcai/preparation",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@orcai/core": "workspace:*",
+		"@orcai/db": "workspace:*",
+		"@orcai/pg-boss": "workspace:*",
+		"@orcai/qdrant": "workspace:*",
+		"@orcai/schema": "workspace:*",
+		"drizzle-orm": "catalog:",
+		"effect": "catalog:"
+	},
+	"devDependencies": {
+		"@orcai/ai": "workspace:*",
+		"@orcai/quota": "workspace:*",
+		"@orcai/testing": "workspace:*"
+	}
+}

@@ -11,7 +11,7 @@ import {
 	queueIndexing,
 	reconcileLinkPoints,
 	replaceIndexing,
-} from "@orcai/pg-boss";
+} from "@orcai/preparation";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Arr from "effect/Array";

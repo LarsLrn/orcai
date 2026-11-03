@@ -7,14 +7,12 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
-import {
-	type Job,
-	type PgBoss,
-	PgBossService,
-	queueAfterProcessing,
-	queueMetadataGeneration,
-} from "@orcai/pg-boss";
+import { type Job, type PgBoss, PgBossService } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+import {
+	completeProcessing,
+	queueMetadataGeneration,
+} from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
@@ -810,29 +808,25 @@ const setProcessing = (assetId: AssetId, status: "completed" | "failed") =>
 		}),
 	);
 
-/** What the processing job does once the file is prepared: completes it and queues what follows. */
-const completeProcessing = (
+/** What the processing job does once the file is prepared: stores the extraction and completes the current generation. */
+const completeCurrentProcessing = (
 	seeded: Awaited<ReturnType<typeof seedAsset>>,
 	runId?: ActivityRunId,
 ) =>
 	run(
 		Effect.gen(function* () {
 			yield* storeExtraction(seeded.assetId, seeded.artifact);
-			const db = yield* DB;
-			yield* db.transaction(() =>
-				Effect.gen(function* () {
-					yield* db
-						.update(dbSchema.asset)
-						.set({
-							processingStatus: "completed",
-						})
-						.where(eq(dbSchema.asset.id, seeded.assetId));
-					yield* queueAfterProcessing({
-						assetId: seeded.assetId,
-						runId,
-					});
-				}),
-			);
+			const [row] = yield* (yield* DB)
+				.select({
+					generation: dbSchema.asset.processingGeneration,
+				})
+				.from(dbSchema.asset)
+				.where(eq(dbSchema.asset.id, seeded.assetId));
+			yield* completeProcessing({
+				assetId: seeded.assetId,
+				generation: row.generation,
+				runId,
+			});
 		}),
 	);
 
@@ -924,7 +918,7 @@ test(
 		expect(await processJobs(seeded.assetId)).toHaveLength(1);
 		expect(await metadataJobs(seeded.assetId)).toHaveLength(2);
 
-		await completeProcessing(seeded, runId);
+		await completeCurrentProcessing(seeded, runId);
 		expect(await metadataJobs(seeded.assetId)).toHaveLength(2);
 		if (!next) throw new Error("No job handed on");
 		await runJob(next);

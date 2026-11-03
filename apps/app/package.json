@@ -116,6 +116,7 @@
 		"@orcai/notifications": "workspace:*",
 		"@orcai/observability": "workspace:*",
 		"@orcai/pg-boss": "workspace:*",
+		"@orcai/preparation": "workspace:*",
 		"@orcai/process": "workspace:*",
 		"@orcai/qdrant": "workspace:*",
 		"@orcai/quota": "workspace:*",

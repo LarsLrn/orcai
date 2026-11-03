@@ -1,5 +1,6 @@
 import type { ActivityRunId, AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { sendJobBatchInTransaction } from "@orcai/pg-boss";
 import { activeGeneration } from "@orcai/qdrant";
 import {
 	type AssetFileType,
@@ -13,7 +14,6 @@ import {
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { admitStage, runActor } from "./activity";
-import { sendJobBatchInTransaction } from "./helpers";
 
 const nextIndexAttempt = sql<number>`nextval('block_asset_index_attempt_seq')`;
 

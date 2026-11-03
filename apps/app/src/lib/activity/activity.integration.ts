@@ -5,14 +5,14 @@ import {
 	buckets,
 	type OrganizationId,
 } from "@orcai/core";
-import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
+import { DB, dbSchema } from "@orcai/db";
 import {
 	admitStage,
+	completeProcessing,
 	newFailureId,
-	queueAfterProcessing,
 	queueIndexing,
 	settleStage,
-} from "@orcai/pg-boss";
+} from "@orcai/preparation";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import { awaitLockWaiters, holdLock, reasonOf } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
@@ -972,35 +972,20 @@ const membersOf = (runId: ActivityRunId) =>
 		}),
 	);
 
-/** The worker's processing completion: the fenced write and what follows it. */
-const completeProcessing = (assetId: AssetId, runId: ActivityRunId) =>
+/** The worker's processing completion of the asset's current generation. */
+const completeCurrentProcessing = (assetId: AssetId, runId: ActivityRunId) =>
 	Effect.gen(function* () {
-		const db = yield* DB;
-		yield* retryDeadlocks(
-			db.transaction(() =>
-				Effect.gen(function* () {
-					const completed = yield* db
-						.update(dbSchema.asset)
-						.set({
-							processingStatus: "completed",
-						})
-						.where(
-							and(
-								eq(dbSchema.asset.id, assetId),
-								sql`${dbSchema.asset.processingStatus} in ('pending', 'active')`,
-							),
-						)
-						.returning({
-							id: dbSchema.asset.id,
-						});
-					if (completed.length === 0) return;
-					yield* queueAfterProcessing({
-						assetId,
-						runId,
-					});
-				}),
-			),
-		);
+		const [row] = yield* (yield* DB)
+			.select({
+				generation: dbSchema.asset.processingGeneration,
+			})
+			.from(dbSchema.asset)
+			.where(eq(dbSchema.asset.id, assetId));
+		yield* completeProcessing({
+			assetId,
+			generation: row.generation,
+			runId,
+		});
 	});
 
 /** Whether a traced transaction ran its statement `first` more than once. */
@@ -1355,7 +1340,7 @@ describe("repository save with upload runs", () => {
 				),
 			);
 			const completion = await run(
-				Effect.forkDetach(traced(completeProcessing(assetId, runId))),
+				Effect.forkDetach(traced(completeCurrentProcessing(assetId, runId))),
 			);
 			await run(awaitLockWaiters("%activity_member%"));
 			const deletion = run(
@@ -1450,7 +1435,7 @@ describe("repository save with upload runs", () => {
 			await run(awaitLockWaiters("%block_asset%"));
 			// Completion holds the asset and waits for the repository.
 			const completion = await run(
-				Effect.forkDetach(traced(completeProcessing(assetId, runId))),
+				Effect.forkDetach(traced(completeCurrentProcessing(assetId, runId))),
 			);
 			await run(awaitLockWaiters("%for key share%"));
 			await run(release);
@@ -1590,7 +1575,7 @@ describe("repository save with upload runs", () => {
 				),
 			);
 			const completion = await run(
-				Effect.forkDetach(completeProcessing(assetId, runId)),
+				Effect.forkDetach(completeCurrentProcessing(assetId, runId)),
 			);
 			await run(awaitLockWaiters("%for key share%"));
 			// The save links and binds, commits, then waits for completion to index.

@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { liveJobs, waitingRun } from "@orcai/pg-boss";
+import { liveJobs } from "@orcai/pg-boss";
 import { activeGeneration } from "@orcai/qdrant";
 import {
 	GENERATE_ASSET_METADATA_DEAD_LETTER_JOB_NAME,
@@ -15,6 +15,7 @@ import {
 } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { waitingRun } from "./activity";
 import {
 	failStrandedIndexing,
 	failStrandedMetadata,
@@ -22,7 +23,7 @@ import {
 	indexingAttempt,
 	processingAttempt,
 	unfinished,
-} from "@/asset/pipeline-attempt";
+} from "./attempt";
 
 const PROCESSING = new Set<JobQueue>([
 	PROCESS_ASSET_JOB_NAME,

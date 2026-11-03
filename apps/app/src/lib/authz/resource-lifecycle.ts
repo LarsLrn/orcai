@@ -7,7 +7,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { reconcileLinkPoints, replaceIndexing } from "@orcai/pg-boss";
+import { reconcileLinkPoints, replaceIndexing } from "@orcai/preparation";
 import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,

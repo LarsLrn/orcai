@@ -1,8 +1,16 @@
 import { beforeAll, expect, test } from "bun:test";
 import { type ActivityRunId, type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { admitStage, type PgBoss, PgBossService } from "@orcai/pg-boss";
+import { type PgBoss, PgBossService } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+import {
+	AssetPipelineError,
+	admitStage,
+	claimProcessing,
+	type IndexingAttempt,
+	processingAttempt,
+	settleProcessingAttempt,
+} from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,
@@ -30,13 +38,6 @@ import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import { describedExtraction } from "@/asset/described-extraction";
-import {
-	AssetPipelineError,
-	claimProcessing,
-	type IndexingAttempt,
-	processingAttempt,
-	settleProcessingAttempt,
-} from "@/asset/pipeline-attempt";
 
 const TIMEOUT = 30_000;
 

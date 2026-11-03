@@ -13,7 +13,6 @@
 		"@orcai/core": "workspace:*",
 		"@orcai/db": "workspace:*",
 		"@orcai/observability": "workspace:*",
-		"@orcai/qdrant": "workspace:*",
 		"@orcai/schema": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",

@@ -4,7 +4,6 @@ import { EncryptionKeyLive } from "@orcai/ai";
 import type { ActivityRunId, AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
-	admitStage,
 	defineWorker,
 	type JobWithMetadata,
 	type PgBoss,
@@ -13,6 +12,17 @@ import {
 	TestClock,
 } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+import {
+	AssetPipelineError,
+	admitStage,
+	indexingAttempt,
+	markIndexingExhausted,
+	markMetadataExhausted,
+	markProcessingExhausted,
+	processingAttempt,
+	settleIndexingAttempt,
+	settleProcessingAttempt,
+} from "@orcai/preparation";
 import { QdrantLive } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
 import { QuotaUnavailableError } from "@orcai/quota";
@@ -33,16 +43,6 @@ import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
 import type * as ManagedRuntime from "effect/ManagedRuntime";
 import * as Scope from "effect/Scope";
-import {
-	AssetPipelineError,
-	indexingAttempt,
-	markIndexingExhausted,
-	markMetadataExhausted,
-	markProcessingExhausted,
-	processingAttempt,
-	settleIndexingAttempt,
-	settleProcessingAttempt,
-} from "@/asset/pipeline-attempt";
 
 const TIMEOUT = 30_000;
 

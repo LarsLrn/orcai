@@ -4,7 +4,6 @@ import { EncryptionKeyLive } from "@orcai/ai";
 import type { ActivityRunId, AssetId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
-	admitStage,
 	defineWorker,
 	type JobWithMetadata,
 	liveJobs,
@@ -14,6 +13,15 @@ import {
 	TestClock,
 } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+import {
+	AssetPipelineError,
+	admitStage,
+	failStrandedStages,
+	processingAttempt,
+	type StrandedStages,
+	settleProcessingAttempt,
+	strandedStages,
+} from "@orcai/preparation";
 import { activeGeneration, EmbeddingIndex, QdrantLive } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import {
@@ -27,16 +35,6 @@ import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
 import * as Scope from "effect/Scope";
-import {
-	AssetPipelineError,
-	processingAttempt,
-	settleProcessingAttempt,
-} from "@/asset/pipeline-attempt";
-import {
-	failStrandedStages,
-	type StrandedStages,
-	strandedStages,
-} from "@/asset/preparation-sweep";
 
 const TIMEOUT = 30_000;
 

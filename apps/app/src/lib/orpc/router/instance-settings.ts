@@ -5,13 +5,13 @@ import {
 	type ModelListingFailure,
 	testEmbedding,
 } from "@orcai/ai";
+import { sendJobBatch } from "@orcai/pg-boss";
 import {
 	embeddingProgress as countEmbeddings,
 	embeddingsRebuilding,
 	retryFailedEmbeddings as retryFailed,
-	sendJobBatch,
 	startPreparingMissingExtractionsAgain,
-} from "@orcai/pg-boss";
+} from "@orcai/preparation";
 import {
 	configureEmbeddings,
 	embeddingSettings,

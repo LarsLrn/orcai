@@ -1,13 +1,19 @@
 import { countTokens } from "@orcai/ai";
 import type { AssetId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { Job } from "@orcai/pg-boss";
 import {
-	type Job,
+	AssetPipelineError,
+	claimIndexing,
+	completeIndexing,
+	currentIndexing,
+	type IndexingAttempt,
+	indexingAttempt,
 	reconcileLinkPoints,
 	serveIndexedAttempt,
-	settleStage,
+	settleIndexingAttempt,
 	withLinkPoints,
-} from "@orcai/pg-boss";
+} from "@orcai/preparation";
 import type { StoredExtractionArtifact } from "@orcai/process";
 import {
 	EmbeddingGeneration,
@@ -26,14 +32,6 @@ import { and, eq, isNull, lt, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v5 as uuidv5 } from "uuid";
 import { describedExtraction } from "@/asset/described-extraction";
-import {
-	AssetPipelineError,
-	claimIndexing,
-	currentIndexing,
-	type IndexingAttempt,
-	indexingAttempt,
-	settleIndexingAttempt,
-} from "@/asset/pipeline-attempt";
 
 const POINT_ID_NAMESPACE = "3f0d7c2e-5b1a-4d8e-9c6f-2a4b8e1d7f30";
 
@@ -331,7 +329,6 @@ const indexAsset = (params: {
 	Effect.gen(function* () {
 		const { jobId, attempt } = params;
 		const { assetId, blockId } = attempt;
-		const db = yield* DB;
 
 		const extraction = yield* describedExtraction(params);
 		if (!extraction) {
@@ -379,39 +376,8 @@ const indexAsset = (params: {
 			attempt,
 		});
 
-		// Served before the commit, so a link never reads indexed without its points.
-		const completed = yield* withLinkPoints(
-			attempt,
-			Effect.gen(function* () {
-				const written = yield* db
-					.update(dbSchema.blockAsset)
-					.set({
-						indexStatus: "completed",
-						indexFailure: null,
-						indexedAttempt: attempt.attempt,
-					})
-					.where(currentIndexing(attempt))
-					.returning({
-						assetId: dbSchema.blockAsset.assetId,
-					});
-				if (written.length > 0) {
-					yield* settleStage(
-						attempt.runId,
-						{
-							stage: "indexing",
-							assetId,
-							blockId,
-						},
-						{
-							state: "completed",
-						},
-					);
-					yield* serveIndexedAttempt(attempt, attempt.attempt);
-				}
-				return written;
-			}),
-		);
-		if (completed.length === 0) {
+		const completed = yield* completeIndexing(attempt);
+		if (!completed) {
 			yield* Effect.logInfo(
 				{
 					jobId,

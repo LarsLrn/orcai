@@ -1,8 +1,12 @@
+import { defineWorker } from "@orcai/pg-boss";
 import {
-	defineWorker,
+	markIndexingExhausted,
+	markMetadataExhausted,
+	markProcessingExhausted,
 	prepareMissingExtractionsAgain,
 	reconcileEmbeddings,
-} from "@orcai/pg-boss";
+	sweepPreparation,
+} from "@orcai/preparation";
 import {
 	GENERATE_ASSET_METADATA_DEAD_LETTER_JOB_NAME,
 	GENERATE_ASSET_METADATA_JOB_NAME,
@@ -18,12 +22,6 @@ import * as Effect from "effect/Effect";
 import { generateMetadata } from "@/asset/jobs/generate-metadata-job";
 import { processAsset } from "@/asset/jobs/process-asset-job";
 import { vectorizeAsset } from "@/asset/jobs/vectorize-asset-job";
-import {
-	markIndexingExhausted,
-	markMetadataExhausted,
-	markProcessingExhausted,
-} from "@/asset/pipeline-attempt";
-import { sweepPreparation } from "@/asset/preparation-sweep";
 
 export const assetWorkers = [
 	defineWorker({

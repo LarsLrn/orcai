@@ -3,14 +3,14 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, type BlockId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { Job, JobWithMetadata } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
-	type Job,
-	type JobWithMetadata,
+	markIndexingExhausted,
 	queueIndexing,
 	reconcileEmbeddings,
 	reconcileLinkPoints,
-} from "@orcai/pg-boss";
-import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+} from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,
@@ -41,7 +41,6 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { vectorizeAsset } from "@/asset/jobs/vectorize-asset-job";
-import { markIndexingExhausted } from "@/asset/pipeline-attempt";
 
 const TIMEOUT = 30_000;
 
