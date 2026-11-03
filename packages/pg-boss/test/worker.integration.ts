@@ -5,6 +5,9 @@ import {
 	DATA_EXPORT_EXPIRE_JOB_NAME,
 	DATA_EXPORT_JOB_NAME,
 	type JobQueue,
+	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
+	PROCESS_ASSET_JOB_NAME,
+	processAssetPayloadSchema,
 } from "@orcai/schema";
 import { integrationRuntime } from "@orcai/testing";
 import * as Effect from "effect/Effect";
@@ -125,6 +128,61 @@ test("a failing job runs as often as the queue table says, logs each failure onc
 		retryBackoff,
 		expireInSeconds,
 	});
+});
+
+test("a job whose payload the definition rejects fails without running the handler or retrying, and so does its dead letter", async () => {
+	const pgBoss = await boss();
+	const handled: string[] = [];
+	errors.length = 0;
+	const handler = (job: { id: string }) =>
+		Effect.sync(() => {
+			handled.push(job.id);
+		});
+	await work([
+		defineWorker({
+			queue: PROCESS_ASSET_JOB_NAME,
+			payload: processAssetPayloadSchema,
+			concurrency: 1,
+			pollingIntervalSeconds: 60,
+			handler,
+		}),
+		defineWorker({
+			queue: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
+			payload: processAssetPayloadSchema,
+			concurrency: 1,
+			pollingIntervalSeconds: 60,
+			handler,
+		}),
+	]);
+
+	const marker = crypto.randomUUID();
+	const id =
+		(await pgBoss.send(PROCESS_ASSET_JOB_NAME, {
+			marker,
+		})) ?? "";
+	const deadLetter = async () =>
+		(
+			await pgBoss.findJobs(PROCESS_ASSET_DEAD_LETTER_JOB_NAME, {
+				data: {
+					marker,
+				},
+			})
+		)[0];
+	await until(async () => (await deadLetter())?.state === "failed");
+
+	expect(handled).toEqual([]);
+	expect(await pgBoss.getJobById(PROCESS_ASSET_JOB_NAME, id)).toMatchObject({
+		state: "failed",
+		retryCount: 0,
+	});
+	expect(await deadLetter()).toMatchObject({
+		sourceId: id,
+		retryCount: 0,
+	});
+	expect(errors).toEqual([
+		"Job payload is malformed",
+		"Job payload is malformed",
+	]);
 });
 
 test("closing the scope stops the workers and interrupts a running job, which pg-boss retries", async () => {

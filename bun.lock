@@ -341,6 +341,7 @@
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
         "pg-boss": "12.38.0",
+        "zod": "catalog:",
       },
       "devDependencies": {
         "@orcai/testing": "workspace:*",

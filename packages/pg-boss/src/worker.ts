@@ -5,7 +5,8 @@ import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 import * as FiberSet from "effect/FiberSet";
 import * as Option from "effect/Option";
-import type { JobWithMetadata } from "pg-boss";
+import type { JobResult, JobWithMetadata } from "pg-boss";
+import { z } from "zod/v4";
 import { PgBossWorkersError } from "./errors";
 import { ensureQueues, QUEUES, startupRetry } from "./queues";
 import { PgBossService } from "./service";
@@ -15,6 +16,11 @@ export interface WorkerDefinition<TPayload, R> {
 	/** Jobs this process runs at once. */
 	readonly concurrency: number;
 	readonly pollingIntervalSeconds: number;
+	/**
+	 * What the handler reads from the job. A job it rejects fails without
+	 * retries and goes to the dead letter queue, if the queue has one.
+	 */
+	readonly payload?: z.ZodType;
 	/** A failure fails the job, which pg-boss retries as the queue table says. */
 	readonly handler: (
 		job: JobWithMetadata<TPayload>,
@@ -22,8 +28,10 @@ export interface WorkerDefinition<TPayload, R> {
 }
 
 export const defineWorker = <TPayload, R>(
-	definition: WorkerDefinition<TPayload, R>,
-) => definition;
+	definition: WorkerDefinition<TPayload, R> & {
+		readonly payload?: z.ZodType<TPayload>;
+	},
+): WorkerDefinition<TPayload, R> => definition;
 
 /** Replaces every worker's polling interval, for test stacks that cannot wait. */
 const pollingIntervalOverride = Config.option(
@@ -34,13 +42,71 @@ const register = <R>(
 	definition: WorkerDefinition<never, R>,
 	run: (
 		effect: Effect.Effect<void, unknown, R>,
-		options: Effect.RunOptions,
+		options?: Effect.RunOptions,
 	) => Promise<void>,
 	pollingIntervalSeconds: number | undefined,
 ) =>
 	Effect.gen(function* () {
 		const { boss } = yield* PgBossService;
-		const { queue, handler } = definition;
+		const { queue, handler, payload } = definition;
+		const annotations = (job: JobWithMetadata<never>) =>
+			Effect.annotateLogs({
+				queue,
+				jobId: job.id,
+				retryCount: job.retryCount,
+			});
+		const work = async (job: JobWithMetadata<never>): Promise<JobResult[]> => {
+			const decoded = payload?.safeParse(job.data);
+			if (decoded?.success === false) {
+				const message = z.prettifyError(decoded.error);
+				await run(
+					Effect.logError("Job payload is malformed").pipe(
+						annotations(job),
+						Effect.annotateLogs({
+							issues: message,
+						}),
+					),
+				);
+				return [
+					{
+						id: job.id,
+						status: "deadletter",
+						output: {
+							message,
+						},
+					},
+				];
+			}
+			await run(
+				// Joins the `process <queue>` span pg-boss calls this in.
+				withActiveSpan(
+					handler(
+						decoded
+							? {
+									...job,
+									data: decoded.data as never,
+								}
+							: job,
+					).pipe(
+						Effect.tapCause((cause) =>
+							Cause.hasInterruptsOnly(cause)
+								? Effect.void
+								: logErrorCause("Job failed", cause).pipe(annotations(job)),
+						),
+					),
+				),
+				// pg-boss aborts a job that outlives its expiry.
+				{
+					signal: job.signal,
+				},
+			);
+			return [
+				{
+					id: job.id,
+					status: "completed",
+				},
+			];
+		};
 		yield* Effect.tryPromise({
 			try: () =>
 				boss.work(
@@ -51,30 +117,9 @@ const register = <R>(
 						pollingIntervalSeconds:
 							pollingIntervalSeconds ?? definition.pollingIntervalSeconds,
 						includeMetadata: true,
+						perJobResults: true,
 					},
-					([job]: JobWithMetadata<never>[]) =>
-						run(
-							// Joins the `process <queue>` span pg-boss calls this in.
-							withActiveSpan(
-								handler(job).pipe(
-									Effect.tapCause((cause) =>
-										Cause.hasInterruptsOnly(cause)
-											? Effect.void
-											: logErrorCause("Job failed", cause).pipe(
-													Effect.annotateLogs({
-														queue,
-														jobId: job.id,
-														retryCount: job.retryCount,
-													}),
-												),
-									),
-								),
-							),
-							// pg-boss aborts a job that outlives its expiry.
-							{
-								signal: job.signal,
-							},
-						),
+					([job]: JobWithMetadata<never>[]) => work(job),
 				),
 			catch: (cause) =>
 				new PgBossWorkersError({

@@ -1,14 +1,15 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import type { BucketName } from "@orcai/schema";
 
-export type StoredExtractionImage = Omit<
-	ExtractedImage,
-	"data" | "ocrResult"
-> & {
+/** An image as extraction found it, before the utility model describes it. */
+export type ExtractionImage = Omit<ExtractedImage, "data" | "ocrResult"> & {
 	sourceBucket?: BucketName;
 	sourcePath?: string;
-	/** What the utility model read in the image, for search; null when it was skipped, missing until described. */
-	text?: string | null;
+};
+
+export type StoredExtractionImage = ExtractionImage & {
+	/** What the utility model read in the image, for search; null when it was skipped. */
+	text: string | null;
 };
 
 /** Metadata the utility model suggests for an image asset. */
@@ -30,6 +31,14 @@ export type StoredExtractionArtifact = {
 	qualityScore: ExtractionResult["qualityScore"];
 	processingWarnings: NonNullable<ExtractionResult["processingWarnings"]>;
 	images: StoredExtractionImage[];
-	/** Set for image assets once their image is described. */
+	/** Set for image assets. */
 	metadataSuggestion?: ImageMetadataSuggestion;
+};
+
+/** An extraction before its images are described, which processing does before it stores it. */
+export type ExtractionArtifact = Omit<
+	StoredExtractionArtifact,
+	"images" | "metadataSuggestion"
+> & {
+	images: ExtractionImage[];
 };

@@ -71,19 +71,7 @@ const index = (
 				eq(dbSchema.blockAsset.blockId, blockId),
 				eq(dbSchema.blockAsset.assetId, assetId),
 			);
-			const [completed] = newer
-				? []
-				: yield* (yield* DB)
-						.update(dbSchema.blockAsset)
-						.set({
-							indexStatus: "completed",
-							indexedAttempt: sql`${dbSchema.blockAsset.indexAttempt}`,
-						})
-						.where(link)
-						.returning({
-							attempt: dbSchema.blockAsset.indexAttempt,
-						});
-			const [running] = newer
+			const [attempt] = newer
 				? yield* (yield* DB)
 						.update(dbSchema.blockAsset)
 						.set({
@@ -94,7 +82,16 @@ const index = (
 						.returning({
 							attempt: dbSchema.blockAsset.indexAttempt,
 						})
-				: [];
+				: yield* (yield* DB)
+						.update(dbSchema.blockAsset)
+						.set({
+							indexStatus: "completed",
+							indexedAttempt: sql`${dbSchema.blockAsset.indexAttempt}`,
+						})
+						.where(link)
+						.returning({
+							attempt: dbSchema.blockAsset.indexAttempt,
+						});
 			const vector = Array.from(
 				{
 					length: dimensions,
@@ -119,8 +116,8 @@ const index = (
 							chunk_index: passageIndex,
 							chunkCount: passages.length,
 							createdAt: new Date().toISOString(),
-							index_attempt: (completed ?? running)?.attempt,
-							published: newer?.published,
+							index_attempt: attempt?.attempt ?? 0,
+							published: newer?.published ?? true,
 						},
 					})),
 				}),

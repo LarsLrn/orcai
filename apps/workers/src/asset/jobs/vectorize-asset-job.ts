@@ -1,5 +1,4 @@
 import { countTokens } from "@orcai/ai";
-import type { AssetId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
 import {
@@ -14,7 +13,10 @@ import {
 	settleIndexingAttempt,
 	withLinkPoints,
 } from "@orcai/preparation";
-import type { StoredExtractionArtifact } from "@orcai/process";
+import {
+	readStoredExtraction,
+	type StoredExtractionArtifact,
+} from "@orcai/process";
 import {
 	EmbeddingGeneration,
 	EmbeddingsNotConfiguredError,
@@ -22,8 +24,6 @@ import {
 	upsertPointsToQdrant,
 } from "@orcai/qdrant";
 import {
-	type AssetFileType,
-	type BucketName,
 	type FileType,
 	isImageFileType,
 	type VectorizeAssetPayload,
@@ -31,7 +31,7 @@ import {
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v5 as uuidv5 } from "uuid";
-import { describedExtraction } from "@/asset/described-extraction";
+import { summarizeErrorCause } from "@/asset/error-summary";
 
 const POINT_ID_NAMESPACE = "3f0d7c2e-5b1a-4d8e-9c6f-2a4b8e1d7f30";
 
@@ -219,12 +219,27 @@ const buildImageChunks = (
 	});
 };
 
-interface IndexedAsset {
-	id: AssetId;
-	bucket: BucketName;
-	prefix: string;
-	fileType: AssetFileType;
-}
+/**
+ * The stored extraction. One that is gone, or in a shape this version cannot
+ * read, fails `missing_extraction`, which processing prepares again.
+ */
+const readExtraction = (assetId: IndexingAttempt["assetId"]) =>
+	readStoredExtraction(assetId).pipe(
+		Effect.mapError(
+			(error) =>
+				new AssetPipelineError(
+					error._tag === "StoredExtractionError"
+						? {
+								failure: "missing_extraction",
+								cause: error,
+							}
+						: {
+								failure: "other",
+								cause: summarizeErrorCause(error),
+							},
+				),
+		),
+	);
 
 export const vectorizeAsset = (job: Job<VectorizeAssetPayload>) =>
 	Effect.gen(function* () {
@@ -247,10 +262,6 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 
 		const [asset] = yield* db
 			.select({
-				id: dbSchema.asset.id,
-				bucket: dbSchema.asset.bucket,
-				prefix: dbSchema.asset.prefix,
-				fileType: dbSchema.asset.fileType,
 				processingStatus: dbSchema.asset.processingStatus,
 			})
 			.from(dbSchema.asset)
@@ -295,7 +306,6 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 					attempt,
 					indexAsset({
 						jobId,
-						asset,
 						attempt,
 					}),
 				);
@@ -321,19 +331,17 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
  * one step; the reconcile deletes the earlier ones. Point ids follow the attempt and chunk, so deliveries of
  * one attempt write the same points.
  */
-const indexAsset = (params: {
+const indexAsset = ({
+	jobId,
+	attempt,
+}: {
 	jobId: string;
-	asset: IndexedAsset;
 	attempt: IndexingAttempt;
 }) =>
 	Effect.gen(function* () {
-		const { jobId, attempt } = params;
 		const { assetId, blockId } = attempt;
 
-		const extraction = yield* describedExtraction(params);
-		if (!extraction) {
-			return;
-		}
+		const extraction = yield* readExtraction(assetId);
 
 		const textChunks = buildTextChunks({
 			extraction,

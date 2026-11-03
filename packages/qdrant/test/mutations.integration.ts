@@ -42,6 +42,8 @@ describe("upsertPointsToQdrant", () => {
 							chunk_index: index,
 							chunkCount: pointCount,
 							createdAt: new Date().toISOString(),
+							index_attempt: 1,
+							published: true,
 						},
 					}),
 				);

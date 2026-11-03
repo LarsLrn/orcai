@@ -2,7 +2,7 @@ import { afterAll } from "bun:test";
 import { encryptApiKey } from "@orcai/ai";
 import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createImageOnlyStoredExtractionArtifact } from "@orcai/process";
+import { createImageOnlyExtractionArtifact } from "@orcai/process";
 import { createQuotaPoolWithInitialPeriod } from "@orcai/quota";
 import { assetObjectKey } from "@orcai/s3";
 import { sendPutObjectCommand } from "@orcai/s3/server";
@@ -207,7 +207,7 @@ export const seedImageAsset = (params: {
 			uploaderId: uploader.id,
 			assetId: asset.id,
 			prefix: asset.prefix,
-			artifact: createImageOnlyStoredExtractionArtifact({
+			artifact: createImageOnlyExtractionArtifact({
 				mimeType: "image/png",
 				format: "png",
 				sourceBucket: buckets.processed.name,

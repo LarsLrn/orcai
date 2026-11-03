@@ -107,8 +107,9 @@ const documentSuggestion = (params: {
 	});
 
 /**
- * What the image asset's processing suggested; a review, or an extraction
- * without one, reads the image again.
+ * What the image asset's processing suggested; a review reads the image
+ * again. An extraction without a suggestion is one processing has to prepare
+ * again.
  */
 const imageSuggestion = (params: {
 	job: Job<GenerateAssetMetadataPayload>;
@@ -117,10 +118,12 @@ const imageSuggestion = (params: {
 	extraction: StoredExtractionArtifact;
 }) =>
 	Effect.gen(function* () {
-		const stored = params.extraction.metadataSuggestion;
 		const { title, ...metadata } =
-			stored && params.job.data.mode === "apply"
-				? stored
+			params.job.data.mode === "apply"
+				? (params.extraction.metadataSuggestion ??
+					(yield* failWith("missing_extraction")(
+						"The stored extraction has no metadata suggestion",
+					)))
 				: params.model.capabilities.includes("image")
 					? (yield* readImageAsset({
 							assetId: params.job.data.assetId,

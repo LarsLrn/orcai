@@ -1,31 +1,33 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import { processedAssetPrefix } from "@orcai/s3";
 import type { BucketName } from "@orcai/schema";
-import type { StoredExtractionArtifact, StoredExtractionImage } from "./types";
+import type {
+	ExtractionArtifact,
+	ExtractionImage,
+	StoredExtractionArtifact,
+} from "./types";
 
 const STORED_EXTRACTION_FILE_NAME = "extraction.json";
 
-const stripInlineImageFields = (
-	image: ExtractedImage,
-): StoredExtractionImage => {
+const stripInlineImageFields = (image: ExtractedImage): ExtractionImage => {
 	const { data: _data, ocrResult: _ocrResult, ...rest } = image;
 
 	return rest;
 };
 
-export const createStoredExtractionArtifact = (params: {
+export const createExtractionArtifact = (params: {
 	result: ExtractionResult;
 	transformImage?: (
-		image: StoredExtractionImage,
+		image: ExtractionImage,
 		index: number,
-	) => StoredExtractionImage | undefined;
-}): StoredExtractionArtifact => {
+	) => ExtractionImage | undefined;
+}): ExtractionArtifact => {
 	const images = (params.result.images ?? [])
 		.map(stripInlineImageFields)
 		.map((image, index) =>
 			params.transformImage ? params.transformImage(image, index) : image,
 		)
-		.filter((image): image is StoredExtractionImage => image !== undefined);
+		.filter((image): image is ExtractionImage => image !== undefined);
 
 	return {
 		content: params.result.content,
@@ -41,12 +43,12 @@ export const createStoredExtractionArtifact = (params: {
 	};
 };
 
-export const createImageOnlyStoredExtractionArtifact = (params: {
+export const createImageOnlyExtractionArtifact = (params: {
 	mimeType: string;
 	format: string;
 	sourceBucket: BucketName;
 	sourcePath: string;
-}): StoredExtractionArtifact =>
+}): ExtractionArtifact =>
 	({
 		content: "",
 		mimeType: params.mimeType,
@@ -72,7 +74,7 @@ export const createImageOnlyStoredExtractionArtifact = (params: {
 				sourcePath: params.sourcePath,
 			},
 		],
-	}) as StoredExtractionArtifact;
+	}) as ExtractionArtifact;
 
 export const serializeStoredExtractionArtifact = (
 	artifact: StoredExtractionArtifact,

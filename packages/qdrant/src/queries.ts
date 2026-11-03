@@ -21,12 +21,12 @@ export const servedFilter = (
 	filter: Schemas["Filter"] | undefined,
 ): Schemas["Filter"] => ({
 	...filter,
-	must_not: [
-		...asArray(filter?.must_not),
+	must: [
+		...asArray(filter?.must),
 		{
 			key: "published",
 			match: {
-				value: false,
+				value: true,
 			},
 		},
 	],

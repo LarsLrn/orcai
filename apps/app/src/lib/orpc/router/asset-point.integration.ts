@@ -164,7 +164,7 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 		block.data.id,
 		assets.result,
 		passageSimilarities,
-		(assetId) => indexed.get(assetId),
+		(assetId) => indexed.get(assetId) ?? 0,
 	);
 
 	const search = async (
@@ -237,8 +237,8 @@ const storePassages = (
 	blockId: BlockId,
 	assets: AssetId[],
 	passageSimilarities: number[][],
-	attempt: (assetId: AssetId) => number | undefined,
-	published?: boolean,
+	attempt: (assetId: AssetId) => number,
+	published = true,
 ) =>
 	run(
 		writeGeneration(

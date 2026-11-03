@@ -224,6 +224,7 @@ const failWith = (failure: PipelineFailure) =>
 const processPayload = (asset: {
 	id: AssetId;
 	prefix: string;
+	processingGeneration: number;
 }): ProcessAssetPayload => ({
 	assetRef: {
 		bucket: "uploads",
@@ -231,6 +232,7 @@ const processPayload = (asset: {
 		id: asset.id,
 		type: "pdf",
 	},
+	generation: asset.processingGeneration,
 });
 
 describe("processing failures", () => {

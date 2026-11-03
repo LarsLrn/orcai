@@ -91,6 +91,8 @@ describe("browseAssetPoints in reading order", () => {
 							chunk_index: passage.chunkIndex,
 							chunkCount: passages.length,
 							createdAt: new Date().toISOString(),
+							index_attempt: 1,
+							published: true,
 						},
 					})),
 				});

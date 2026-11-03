@@ -1,8 +1,8 @@
 export {
 	buildStoredExtractionImageKey,
 	buildStoredExtractionKey,
-	createImageOnlyStoredExtractionArtifact,
-	createStoredExtractionArtifact,
+	createExtractionArtifact,
+	createImageOnlyExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "./artifact/storage";
 export {
@@ -10,6 +10,8 @@ export {
 	writeStoredExtraction,
 } from "./artifact/stored-extraction";
 export type {
+	ExtractionArtifact,
+	ExtractionImage,
 	StoredExtractionArtifact,
 	StoredExtractionImage,
 } from "./artifact/types";

@@ -19,6 +19,8 @@ import {
 import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import { AssetPipelineError } from "@orcai/preparation";
 import type {
+	ExtractionArtifact,
+	ExtractionImage,
 	StoredExtractionArtifact,
 	StoredExtractionImage,
 } from "@orcai/process";
@@ -72,7 +74,7 @@ export const imageMediaType = (format: string) => {
 	return normalized === "jpg" ? "image/jpeg" : `image/${normalized}`;
 };
 
-const hintOf = (image: StoredExtractionImage) =>
+const hintOf = (image: ExtractionImage) =>
 	[
 		image.description,
 		image.sourcePath,
@@ -86,7 +88,7 @@ const describe = (params: {
 	jobId: string;
 	owner: AssetOwner;
 	model: UtilityModel;
-	image: StoredExtractionImage & {
+	image: ExtractionImage & {
 		sourcePath: string;
 	};
 	instructions: string;
@@ -135,7 +137,7 @@ const describe = (params: {
 		);
 	});
 
-const withSource = (image: StoredExtractionImage) =>
+const withSource = (image: ExtractionImage) =>
 	image.sourcePath
 		? {
 				...image,
@@ -149,7 +151,7 @@ export const readImageAsset = (params: {
 	jobId: string;
 	owner: AssetOwner;
 	model: UtilityModel;
-	artifact: StoredExtractionArtifact;
+	artifact: ExtractionArtifact;
 }) =>
 	Effect.gen(function* () {
 		const [stored] = params.artifact.images;
@@ -189,7 +191,7 @@ const describeImageAsset = (params: {
 	jobId: string;
 	owner: AssetOwner;
 	model: UtilityModel;
-	artifact: StoredExtractionArtifact;
+	artifact: ExtractionArtifact;
 }) =>
 	readImageAsset(params).pipe(
 		Effect.map(
@@ -211,16 +213,16 @@ const describeFigures = (params: {
 	jobId: string;
 	owner: AssetOwner;
 	model: UtilityModel;
-	artifact: StoredExtractionArtifact;
+	artifact: ExtractionArtifact;
 }) =>
 	Effect.forEach(
 		params.artifact.images,
-		(stored) => {
-			const image = withSource(stored);
-			if (stored.text !== undefined || !image) {
-				return Effect.succeed({
-					...stored,
-					text: stored.text ?? null,
+		(extracted) => {
+			const image = withSource(extracted);
+			if (!image) {
+				return Effect.succeed<StoredExtractionImage>({
+					...extracted,
+					text: null,
 				});
 			}
 
@@ -268,22 +270,24 @@ const describeFigures = (params: {
 	);
 
 /**
- * Describes every image of the artifact not described yet with the asset
- * organisation's utility model, metered against the uploader. Without a model
- * that reads images, figures are skipped and an image asset fails
- * `unsupported`. A failed figure is skipped; a failed image asset fails. A
+ * Describes every image of the artifact with the asset organisation's
+ * utility model, metered against the uploader. Without a model that reads
+ * images, figures are skipped and an image asset fails `unsupported`. A failed figure is skipped; a failed image asset fails. A
  * quota that refuses any call fails the asset with `quota`.
  */
 export const describeImages = (params: {
 	assetId: AssetId;
 	jobId: string;
-	artifact: StoredExtractionArtifact;
+	artifact: ExtractionArtifact;
 	imageAsset: boolean;
 }) =>
 	Effect.gen(function* () {
 		const { artifact } = params;
-		if (artifact.images.every((image) => image.text !== undefined)) {
-			return artifact;
+		if (artifact.images.length === 0) {
+			return {
+				...artifact,
+				images: [],
+			} satisfies StoredExtractionArtifact;
 		}
 
 		const owner = yield* assetOwner(params.assetId);
@@ -307,7 +311,7 @@ export const describeImages = (params: {
 				...artifact,
 				images: artifact.images.map((image) => ({
 					...image,
-					text: image.text ?? null,
+					text: null,
 				})),
 			} satisfies StoredExtractionArtifact;
 		}
