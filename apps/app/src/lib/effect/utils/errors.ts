@@ -1,7 +1,12 @@
-import type { AiError, QuotaDeniedError } from "@orcai/ai";
+import type { AiError } from "@orcai/ai";
 import type { PgBossError } from "@orcai/pg-boss";
 import type { ProcessError } from "@orcai/process";
 import type { QdrantError } from "@orcai/qdrant";
+import type {
+	QuotaDeniedError,
+	QuotaUnavailableError,
+	QuotaWriteFailedError,
+} from "@orcai/quota";
 import type { S3Error } from "@orcai/s3/server";
 import type {
 	AnyErrorParams,
@@ -32,6 +37,8 @@ export const ErrorTags = {
 	// AI errors
 	AI: "AiError",
 	QUOTA_DENIED: "QuotaDeniedError",
+	QUOTA_UNAVAILABLE: "QuotaUnavailableError",
+	QUOTA_WRITE_FAILED: "QuotaWriteFailedError",
 
 	// Infrastructure errors
 	PG_BOSS: "PgBossError",
@@ -165,5 +172,7 @@ export type AppError =
 	| SqlError.SqlError
 	| AiError
 	| QuotaDeniedError
+	| QuotaUnavailableError
+	| QuotaWriteFailedError
 	| AuthzError
 	| InternalError;

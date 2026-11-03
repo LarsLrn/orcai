@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { startMeteredCall } from "@orcai/ai";
+import { meteredStep } from "@orcai/ai";
 import type { BotId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { startMeteredCall } from "@orcai/quota";
 import type { QuotaUsageEventListInput } from "@orcai/schema";
 import { createOrganization, createUser } from "@orcai/testing";
 import { eq } from "drizzle-orm";
@@ -128,26 +129,28 @@ const pooledOrganization = async () => {
 					providerId: provider.id,
 					modelId: model.id,
 					botId,
-					maxSteps: 1,
-					messages: [],
+					maxRequests: 1,
+					inputTokens: 0,
 				});
-				call.step({
-					usage: {
-						inputTokens: 3,
-						inputTokenDetails: {
-							noCacheTokens: 3,
-							cacheReadTokens: undefined,
-							cacheWriteTokens: undefined,
+				yield* call.record(
+					meteredStep({
+						usage: {
+							inputTokens: 3,
+							inputTokenDetails: {
+								noCacheTokens: 3,
+								cacheReadTokens: undefined,
+								cacheWriteTokens: undefined,
+							},
+							outputTokens: 2,
+							outputTokenDetails: {
+								textTokens: 2,
+								reasoningTokens: undefined,
+							},
+							totalTokens: 5,
 						},
-						outputTokens: 2,
-						outputTokenDetails: {
-							textTokens: 2,
-							reasoningTokens: undefined,
-						},
-						totalTokens: 5,
-					},
-					toolCalls: [],
-				});
+						toolCalls: [],
+					}),
+				);
 				yield* call.settle("completed");
 			}),
 		);

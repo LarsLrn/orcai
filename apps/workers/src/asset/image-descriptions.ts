@@ -5,7 +5,6 @@ import {
 	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
 	imageAssetDescriptionInstructions,
 	imageAssetDescriptionOutput,
-	QuotaDeniedError,
 	readImageAssetDescription,
 	type UtilityModel,
 	utilityModel,
@@ -129,20 +128,17 @@ const describe = (params: {
 					],
 				},
 			],
-			reservationMessages: [
-				params.instructions,
-			],
 			maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
 			reasoning: utilityReasoning(params.model.kind),
 			timeoutMs: IMAGE_DESCRIPTION_TIMEOUT_MS,
 		}).pipe(
-			Effect.mapError((error) =>
-				error instanceof QuotaDeniedError
-					? new AssetPipelineError({
-							failure: "quota",
-							cause: error,
-						})
-					: error,
+			Effect.catchTag("QuotaDeniedError", (denied) =>
+				Effect.fail(
+					new AssetPipelineError({
+						failure: "quota",
+						cause: denied,
+					}),
+				),
 			),
 		);
 	});

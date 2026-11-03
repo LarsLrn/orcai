@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 import type { AssetId, BotId, ChatMessageId } from "@orcai/core";
-import { METERED_CALL_TIMEOUT_MS } from "@orcai/quota";
+import { METERED_CALL_TIMEOUT_MS, promptTokens } from "@orcai/quota";
 import { quota } from "@orcai/quota/testing";
 import {
 	readUIMessageStream,
@@ -129,9 +129,66 @@ describe("startTurn", () => {
 				],
 			],
 		]);
-		expect(quota.calls.finalize).toHaveLength(1);
-		expect(quota.calls.finalize[0]?.steps).toHaveLength(1);
-		expect(quota.calls.release).toEqual([]);
+		expect(quota.calls.settle).toHaveLength(1);
+		expect(quota.calls.settle[0]?.steps).toHaveLength(1);
+	});
+
+	test("reserves the turn's instructions and tools along with its messages", async () => {
+		const chat = await conversation(chatRow(), "anthropic");
+		chat.script([
+			{
+				text: "Hello.",
+			},
+		]);
+
+		await chat.send("Hi");
+
+		const [question] = chat.messages();
+		expect(quota.calls.reserve[0]?.inputTokens).toBeGreaterThan(
+			promptTokens([
+				question,
+			]),
+		);
+	});
+
+	test("records each finished step while the turn runs", async () => {
+		const chat = await conversation(
+			chatRow({
+				config: {
+					...chatRow().config,
+					features: {
+						generativeUi: {},
+					},
+				} as never,
+			}),
+			"anthropic",
+		);
+		chat.script([
+			{
+				calls: [
+					{
+						name: "showChecklist",
+						input: {
+							items: [
+								{
+									label: "Scope",
+								},
+							],
+						},
+					},
+				],
+			},
+			{
+				text: "Checked.",
+			},
+		]);
+
+		await chat.send("Check it");
+
+		expect(quota.calls.record.map(({ steps }) => steps.length)).toEqual([
+			1,
+			2,
+		]);
 	});
 
 	test("charges a stopped turn the tokens of its finished steps", async () => {
@@ -179,8 +236,8 @@ describe("startTurn", () => {
 
 		await chat.send("Check it", stop.signal);
 
-		expect(quota.calls.finalize).toHaveLength(1);
-		expect(quota.calls.finalize[0]?.steps).toMatchObject([
+		expect(quota.calls.settle).toHaveLength(1);
+		expect(quota.calls.settle[0]?.steps).toMatchObject([
 			{
 				totalTokens: 2,
 			},
@@ -241,8 +298,8 @@ describe("startTurn", () => {
 			timer.mockRestore();
 		}
 
-		expect(quota.calls.finalize).toHaveLength(1);
-		expect(quota.calls.finalize[0]?.steps).toHaveLength(1);
+		expect(quota.calls.settle).toHaveLength(1);
+		expect(quota.calls.settle[0]?.steps).toHaveLength(1);
 		expect(chat.messages().at(-1)?.metadata.timeLimitReached).toBe(true);
 	});
 
@@ -254,8 +311,9 @@ describe("startTurn", () => {
 		expect(chat.messages().map((message) => message.role)).toEqual([
 			"user",
 		]);
-		expect(quota.calls.release).toEqual([
+		expect(quota.calls.settle).toEqual([
 			expect.objectContaining({
+				steps: [],
 				reason: "provider_failure",
 			}),
 		]);
@@ -263,7 +321,7 @@ describe("startTurn", () => {
 
 	test("stores nothing when the quota refuses the turn", async () => {
 		quota.pool = {
-			denial: "exhausted",
+			denial: "QUOTA_EXHAUSTED",
 		};
 		const chat = await conversation(chatRow(), "anthropic");
 
@@ -302,11 +360,10 @@ describe("startTurn", () => {
 			),
 		).toBe("BadRequestError: CHAT_MESSAGE_ID_TAKEN");
 		expect(chat.messages()).toHaveLength(2);
-		expect(quota.calls.release).toEqual([
-			expect.objectContaining({
-				reason: "app_failure",
-			}),
-		]);
+		expect(quota.calls.settle.at(-1)).toMatchObject({
+			steps: [],
+			reason: "app_failure",
+		});
 	});
 
 	test("closes the last reply's pending calls when a new message supersedes them", async () => {
@@ -370,7 +427,7 @@ describe("startTurn", () => {
 			),
 		);
 
-		expect(quota.calls.finalize).toHaveLength(1);
+		expect(quota.calls.settle).toHaveLength(1);
 	});
 });
 
@@ -446,7 +503,7 @@ describe("context window", () => {
 		await chat.send("Hi");
 
 		expect(chat.bodies[0]?.max_tokens).toBe(4_000);
-		expect(quota.calls.reserve[0]?.maxExpectedOutputTokens).toBe(4_000);
+		expect(quota.calls.reserve[0]?.maxOutputTokens).toBe(4_000);
 	});
 
 	test("meters a continuation by the prompt that fits, before claiming the reply", async () => {
@@ -477,9 +534,10 @@ describe("context window", () => {
 
 		await chat.decide(false);
 
-		const metered = JSON.stringify(quota.calls.reserve.at(-1)?.messages);
-		expect(metered).not.toContain(long("a"));
-		expect(metered).toContain(long("c"));
+		// Each long turn is about 30 000 tokens; only the latest is kept.
+		const reserved = quota.calls.reserve.at(-1)?.inputTokens ?? 0;
+		expect(reserved).toBeGreaterThan(30_000);
+		expect(reserved).toBeLessThan(60_000);
 		expect(JSON.stringify(chat.bodies.at(-1)?.messages)).not.toContain(
 			long("a"),
 		);
@@ -538,7 +596,7 @@ describe("context window", () => {
 			16_384,
 			16_384,
 		]);
-		expect(quota.calls.reserve.at(-1)?.maxExpectedOutputTokens).toBe(16_384);
+		expect(quota.calls.reserve.at(-1)?.maxOutputTokens).toBe(16_384);
 	});
 
 	test("refuses a message that alone outgrows the window, before storing or reserving anything", async () => {
@@ -981,7 +1039,7 @@ describe("continueTurn", () => {
 		const chat = await pausedAssistant();
 		const paused = chat.messages().at(-1);
 		quota.pool = {
-			denial: "exhausted",
+			denial: "QUOTA_EXHAUSTED",
 		};
 
 		expect(await refusal(() => chat.decide(true))).toBe(
@@ -1003,8 +1061,9 @@ describe("continueTurn", () => {
 		expect(await refusal(() => chat.decide(true))).toBe(
 			"ConflictError: CHAT_TURN_NOT_AWAITING",
 		);
-		expect(quota.calls.release).toEqual([
+		expect(quota.calls.settle).toEqual([
 			expect.objectContaining({
+				steps: [],
 				reason: "app_failure",
 			}),
 		]);

@@ -4,6 +4,7 @@ import { DB, dbSchema } from "@orcai/db";
 import { serve } from "bun";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 import { AssistantToolError } from "../tool-error";
@@ -11,7 +12,10 @@ import { turnWebSearch } from "./turn-web-search";
 
 const { run, organizationWith, procedureOptions } = appIntegration();
 
-/** A Tavily stand-in that fails each search whose query starts with `fail`. */
+/**
+ * A Tavily stand-in that fails each search whose query starts with `fail`,
+ * finds nothing for `empty` and answers `hang` only once it is aborted.
+ */
 const searches: string[] = [];
 const tavily = serve({
 	port: 0,
@@ -20,6 +24,21 @@ const tavily = serve({
 			query: string;
 		};
 		searches.push(query);
+		if (query.startsWith("hang")) {
+			await new Promise((resolve) =>
+				request.signal.addEventListener("abort", resolve),
+			);
+			return new Response(null, {
+				status: 499,
+			});
+		}
+		if (query.startsWith("empty")) {
+			return Response.json({
+				query,
+				results: [],
+				response_time: 0.01,
+			});
+		}
 		if (query.startsWith("fail")) {
 			return Response.json(
 				{
@@ -154,25 +173,32 @@ const organizationWithSearch = async (budget: number) => {
 	};
 };
 
-const search = (
+const searchOf = (
 	webSearch: Awaited<ReturnType<typeof organizationWithSearch>>["webSearch"],
 	query: string,
+	signal?: AbortSignal,
 ) => {
 	if (webSearch.kind !== "provider") {
 		throw new Error(`Expected search by provider, got ${webSearch.kind}`);
 	}
-	return run(
-		webSearch
-			.search({
+	return webSearch
+		.search(
+			{
 				query,
 				allowedDomains: [
 					"example.org",
 				],
 				maxResults: 5,
-			})
-			.pipe(Effect.result),
-	);
+			},
+			signal,
+		)
+		.pipe(Effect.result);
 };
+
+const search = (
+	webSearch: Awaited<ReturnType<typeof organizationWithSearch>>["webSearch"],
+	query: string,
+) => run(searchOf(webSearch, query));
 
 /** The provider's ledger and terminal usage events. */
 const metering = (providerId: ProviderId) =>
@@ -193,6 +219,7 @@ const metering = (providerId: ProviderId) =>
 			const events = yield* db
 				.select({
 					botId: dbSchema.quotaUsageEvent.botId,
+					eventType: dbSchema.quotaUsageEvent.eventType,
 				})
 				.from(dbSchema.quotaUsageEvent)
 				.where(eq(dbSchema.quotaUsageEvent.providerId, providerId));
@@ -202,6 +229,7 @@ const metering = (providerId: ProviderId) =>
 				botIds: [
 					...new Set(events.map((event) => event.botId)),
 				],
+				eventTypes: events.map((event) => event.eventType).sort(),
 			};
 		}),
 	);
@@ -227,6 +255,55 @@ describe("web search by a search provider", () => {
 				botIds: [
 					botId,
 				],
+				eventTypes: [
+					"finalized",
+					"reserved",
+				],
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"charges a search that found nothing",
+		async () => {
+			const { providerId, webSearch } = await organizationWithSearch(5);
+
+			const answered = await search(webSearch, "empty ocean");
+
+			expect(answered._tag === "Success" && answered.success).toEqual([]);
+			expect(await metering(providerId)).toMatchObject({
+				consumed: 1,
+				reserved: 0,
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"gives the request back when the search is cancelled, without a failure",
+		async () => {
+			const { providerId, webSearch } = await organizationWithSearch(5);
+
+			await run(
+				Effect.gen(function* () {
+					const searching = yield* Effect.forkChild(
+						searchOf(webSearch, "hang on"),
+					);
+					while (!searches.includes("hang on")) {
+						yield* Effect.sleep("10 millis");
+					}
+					yield* Fiber.interrupt(searching);
+				}),
+			);
+
+			expect(await metering(providerId)).toMatchObject({
+				consumed: 0,
+				reserved: 0,
+				eventTypes: [
+					"released",
+					"reserved",
+				],
 			});
 		},
 		TIMEOUT,
@@ -248,6 +325,38 @@ describe("web search by a search provider", () => {
 			expect(await metering(providerId)).toMatchObject({
 				consumed: 0,
 				reserved: 0,
+				eventTypes: [
+					"failed",
+					"released",
+					"reserved",
+				],
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"gives the request back when the turn stops the search, without a failure",
+		async () => {
+			const { providerId, webSearch } = await organizationWithSearch(5);
+			const stop = new AbortController();
+
+			const searching = run(
+				searchOf(webSearch, "hang until stopped", stop.signal),
+			);
+			while (!searches.includes("hang until stopped")) {
+				await new Promise((resolve) => setTimeout(resolve, 10));
+			}
+			stop.abort();
+			await searching;
+
+			expect(await metering(providerId)).toMatchObject({
+				consumed: 0,
+				reserved: 0,
+				eventTypes: [
+					"released",
+					"reserved",
+				],
 			});
 		},
 		TIMEOUT,

@@ -1,4 +1,9 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+import {
+	QuotaDeniedError,
+	QuotaUnavailableError,
+	QuotaWriteFailedError,
+} from "@orcai/quota";
 import { middlewareGen } from "@orpc/effect";
 import { call, ORPCError, os } from "@orpc/server";
 import * as Cause from "effect/Cause";
@@ -93,6 +98,51 @@ describe("mapEffectErrors", () => {
 		expect(error).toBeInstanceOf(ORPCError);
 		expect((error as ORPCError<string, unknown>).code).toBe("FORBIDDEN");
 	});
+
+	test.each([
+		[
+			new QuotaDeniedError({
+				reason: "QUOTA_EXHAUSTED",
+				message: "Used up.",
+			}),
+			"BAD_REQUEST",
+			"QUOTA_EXHAUSTED",
+		],
+		[
+			new QuotaUnavailableError({
+				message: "Unreadable.",
+				cause: new Error("connection refused"),
+			}),
+			"SERVICE_UNAVAILABLE",
+			"QUOTA_CHECK_FAILED",
+		],
+		[
+			new QuotaWriteFailedError({
+				message: "Unwritable.",
+				cause: new Error("connection refused"),
+			}),
+			"SERVICE_UNAVAILABLE",
+			"QUOTA_CHECK_FAILED",
+		],
+	])(
+		"a %s answers %s with reason %s and no cause",
+		async (failure, code, reason) => {
+			const procedure = base
+				.use(guard(Effect.fail(failure)))
+				.handler(() => "unreachable");
+
+			const error = (await rejection(
+				call(procedure, undefined, {
+					context,
+				}),
+			)) as ORPCError<string, unknown>;
+
+			expect(error.code).toBe(code);
+			expect(error.toJSON().data).toEqual({
+				reason,
+			});
+		},
+	);
 
 	test("a defect alongside a client error answers as an internal error", async () => {
 		const procedure = base

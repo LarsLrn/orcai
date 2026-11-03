@@ -4,6 +4,7 @@ import { and, eq, lte } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
+import { type QuotaUnavailableError, unavailable } from "./errors";
 
 type QuotaPeriodState = {
 	pool: Pick<
@@ -68,7 +69,7 @@ const openPeriodOf = (quotaPoolId: QuotaPoolId) =>
  */
 export const openQuotaPeriod: (params: {
 	quotaPoolId: QuotaPoolId;
-}) => Effect.Effect<QuotaPeriodState, unknown, DB> = (params) =>
+}) => Effect.Effect<QuotaPeriodState, QuotaUnavailableError, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const readOpenPeriod = db
@@ -162,7 +163,7 @@ export const openQuotaPeriod: (params: {
 				};
 			}),
 		);
-	});
+	}).pipe(unavailable);
 
 /**
  * Opens the current period of each pool on its own: a pool that fails is
@@ -191,7 +192,7 @@ export const rollOverQuotaPeriods = (poolIds: readonly QuotaPoolId[]) =>
 export const listExpiredOpenQuotaPeriods: (params?: {
 	now?: Date;
 	limit?: number;
-}) => Effect.Effect<QuotaPoolId[], unknown, DB> = (params) =>
+}) => Effect.Effect<QuotaPoolId[], QuotaUnavailableError, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const now = params?.now ?? new Date();
@@ -214,4 +215,4 @@ export const listExpiredOpenQuotaPeriods: (params?: {
 			)
 			.limit(params?.limit ?? 200);
 		return rows.map((row) => row.poolId);
-	});
+	}).pipe(unavailable);

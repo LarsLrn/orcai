@@ -3,6 +3,7 @@ import {
 	compactionPoint,
 	compactionSource,
 } from "@orcai/core";
+import { charTokens, promptTokens } from "@orcai/quota";
 import type { ChatMessageMetadata } from "@orcai/schema";
 import {
 	asSchema,
@@ -22,21 +23,13 @@ const COMPACTION_TRIGGER = 0.8;
 /** Trimming cuts below the budget, so the next turns keep the cached prefix instead of trimming again. */
 const TRIM_TARGET = 0.75;
 
-/** Providers bill an image by its size; this covers a large one. */
-const IMAGE_TOKENS = 1_600;
-
 /** How the summary of the earlier conversation reaches the model, ahead of the latest turn. */
 export const SUMMARY_PREFIX = "Summary of the earlier conversation:\n\n";
 
-const charTokens = (value: unknown) =>
-	Math.ceil(JSON.stringify(value).length / 4);
-
 const messageTokens = (message: UIMessage) =>
-	message.parts.reduce(
-		(sum, part) =>
-			sum + (part.type === "file" ? IMAGE_TOKENS : charTokens(part)),
-		0,
-	);
+	promptTokens([
+		message,
+	]);
 
 /** How the provider's count of a reply's context compares to the estimate it was sent with. */
 const scaleOf = (message: UIMessage<ChatMessageMetadata> | undefined) => {
@@ -46,23 +39,6 @@ const scaleOf = (message: UIMessage<ChatMessageMetadata> | undefined) => {
 				(recorded.contextEstimate + messageTokens(message as UIMessage))
 		: undefined;
 };
-
-const modelMessageTokens = (messages: ModelMessage[]) =>
-	messages.reduce(
-		(sum, message) =>
-			sum +
-			(typeof message.content === "string"
-				? charTokens(message.content)
-				: message.content.reduce(
-						(partSum, part) =>
-							partSum +
-							(part.type === "file" || part.type === "image"
-								? IMAGE_TOKENS
-								: charTokens(part)),
-						0,
-					)),
-		0,
-	);
 
 /** The estimate of what every request sends besides the messages. */
 export const requestTokens = async ({
@@ -349,12 +325,12 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
  * they still do not fit.
  */
 export const fitStep = (messages: ModelMessage[], tokens: number) => {
-	if (modelMessageTokens(messages) <= tokens) {
+	if (promptTokens(messages) <= tokens) {
 		return messages;
 	}
 	const pruned = pruneMessages({
 		messages,
 		toolCalls: "before-last-2-messages",
 	});
-	return modelMessageTokens(pruned) <= tokens ? pruned : undefined;
+	return promptTokens(pruned) <= tokens ? pruned : undefined;
 };

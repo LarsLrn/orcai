@@ -76,10 +76,6 @@ export const summarizeHistory = ({
 		model: setup.model.language,
 		system: COMPACTION_INSTRUCTIONS,
 		prompt,
-		reservationMessages: [
-			COMPACTION_INSTRUCTIONS,
-			prompt,
-		],
 		maxOutputTokens: Math.min(
 			setup.callSettings.maxOutputTokens,
 			SUMMARY_MAX_OUTPUT_TOKENS,

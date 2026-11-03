@@ -1,131 +1,107 @@
 import { describe, expect, test } from "bun:test";
-import {
-	estimateQuotaReservationAmount,
-	reservedOutputTokens,
-} from "../src/estimator";
+import { charTokens, promptTokens, reservationAmount } from "../src/estimator";
 
-describe("estimateQuotaReservationAmount", () => {
-	describe("requests metering", () => {
-		test("reserves the maximum provider requests of the call", () => {
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "requests",
-				maxExpectedProviderRequests: 25,
-				messages: [
-					{
-						role: "user",
-						content: "hello",
-					},
-				],
-			});
-
-			expect(result).toBe(25);
-		});
+describe("promptTokens", () => {
+	test("counts text at four characters per token", () => {
+		expect(
+			promptTokens([
+				"a".repeat(38),
+			]),
+		).toBe(10);
 	});
 
-	describe("tokens metering", () => {
-		test("uses the default output cap when the prompt estimate is tiny", () => {
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "tokens",
-				maxExpectedProviderRequests: 25,
-				messages: [],
-			});
+	test("counts a UI message by its parts and a file as a large image", () => {
+		const text = {
+			type: "text",
+			text: "hello",
+		};
 
-			expect(result).toBe(16_385);
-		});
+		expect(
+			promptTokens([
+				{
+					id: "m1",
+					role: "user",
+					parts: [
+						text,
+						{
+							type: "file",
+							mediaType: "image/png",
+							url: `data:image/png;base64,${"A".repeat(100_000)}`,
+						},
+					],
+				},
+			]),
+		).toBe(charTokens(text) + 1_600);
+	});
 
-		test("adds the default output token cap to the prompt estimate", () => {
-			const messages = [
+	test("counts a model message by its content, images and files alike", () => {
+		expect(
+			promptTokens([
+				{
+					role: "system",
+					content: "Be brief.",
+				},
 				{
 					role: "user",
-					content: "hello",
+					content: [
+						{
+							type: "image",
+							image: "A".repeat(100_000),
+						},
+						{
+							type: "file",
+							data: "A".repeat(100_000),
+							mediaType: "application/pdf",
+						},
+					],
 				},
-			];
-			const promptEstimate = Math.ceil(JSON.stringify(messages).length / 4);
-
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "tokens",
-				maxExpectedProviderRequests: 25,
-				messages,
-			});
-
-			expect(result).toBe(Math.max(512, promptEstimate + 16_384));
-		});
-
-		test("uses the provided maximum output tokens", () => {
-			const messages = [
-				{
-					role: "user",
-					content: "hi",
-				},
-			];
-			const promptEstimate = Math.ceil(JSON.stringify(messages).length / 4);
-
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "tokens",
-				maxExpectedProviderRequests: 25,
-				maxExpectedOutputTokens: 256,
-				messages,
-			});
-
-			expect(result).toBe(Math.max(512, promptEstimate + 256));
-		});
-
-		test("a call without its own cap reserves the default output", () => {
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "tokens",
-				maxExpectedProviderRequests: 25,
-				messages: [],
-			});
-
-			expect(result).toBe(16_385);
-		});
-
-		test("respects the minimum token reservation", () => {
-			const result = estimateQuotaReservationAmount({
-				meteringMode: "tokens",
-				maxExpectedProviderRequests: 25,
-				maxExpectedOutputTokens: 1,
-				messages: [
-					{
-						role: "user",
-						content: "x",
-					},
-				],
-			});
-
-			expect(result).toBe(512);
-		});
+			]),
+		).toBe(charTokens("Be brief.") + 3_200);
 	});
 });
 
-describe("reservedOutputTokens", () => {
-	test("a smaller model max output lowers the default", () => {
+describe("reservationAmount", () => {
+	test("reserves the call's requests with requests metering", () => {
 		expect(
-			reservedOutputTokens({
-				modelMaxOutputTokens: 4_096,
+			reservationAmount({
+				meteringMode: "requests",
+				maxRequests: 25,
+				inputTokens: 10_000,
+				maxOutputTokens: 2_000,
 			}),
-		).toBe(4_096);
+		).toBe(25);
 	});
 
-	test("a larger or unknown model max output keeps the default", () => {
+	test("reserves the input and the output cap with tokens metering", () => {
 		expect(
-			reservedOutputTokens({
-				modelMaxOutputTokens: 128_000,
+			reservationAmount({
+				meteringMode: "tokens",
+				maxRequests: 25,
+				inputTokens: 10_000,
+				maxOutputTokens: 2_000,
 			}),
-		).toBe(16_384);
-		expect(
-			reservedOutputTokens({
-				modelMaxOutputTokens: null,
-			}),
-		).toBe(16_384);
+		).toBe(12_000);
 	});
 
-	test("prefers the call's cap over the model's max output", () => {
+	test("reserves 4,096 output tokens without a cap", () => {
 		expect(
-			reservedOutputTokens({
-				maxExpectedOutputTokens: 1_000,
-				modelMaxOutputTokens: 128_000,
+			reservationAmount({
+				meteringMode: "tokens",
+				maxRequests: 1,
+				inputTokens: 1_000,
+				maxOutputTokens: undefined,
 			}),
-		).toBe(1_000);
+		).toBe(5_096);
+	});
+
+	test("reserves at least 512 tokens", () => {
+		expect(
+			reservationAmount({
+				meteringMode: "tokens",
+				maxRequests: 1,
+				inputTokens: 10,
+				maxOutputTokens: 100,
+			}),
+		).toBe(512);
 	});
 });

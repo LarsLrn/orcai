@@ -14,7 +14,6 @@ import {
 	type ProviderId,
 	type UserId,
 } from "@orcai/core";
-import { reservedOutputTokens } from "@orcai/quota";
 import {
 	type ModelTokenLimits,
 	type ModelUnusableReason,
@@ -541,6 +540,9 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 		} satisfies RequestedSetup;
 	});
 
+/** The output a chat without its own cap gets, within the model's maximum. */
+const DEFAULT_MAX_OUTPUT_TOKENS = 16_384;
+
 /**
  * Without its own cap a call reserves a guess at its output, which leaves at
  * least half the context window to the prompt. The rest is the budget, which
@@ -553,9 +555,8 @@ const withLimits = (setup: RequestedSetup): TurnSetup => {
 		setup.callSettings.maxOutputTokens ??
 		Math.min(
 			half,
-			reservedOutputTokens({
-				modelMaxOutputTokens: setup.tokenLimits.maxOutputTokens,
-			}),
+			setup.tokenLimits.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
+			DEFAULT_MAX_OUTPUT_TOKENS,
 		);
 	const budget = promptBudget({
 		contextWindow,

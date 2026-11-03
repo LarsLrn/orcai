@@ -2,6 +2,7 @@ import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, asc, desc, eq, isNotNull, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { type QuotaUnavailableError, unavailable } from "./errors";
 
 interface CandidateRow {
 	pool: typeof dbSchema.quotaPool.$inferSelect;
@@ -20,7 +21,9 @@ export const resolveQuotaPool: (params: {
 	userId: UserId;
 	providerId: ProviderId;
 	modelId?: ModelId | null;
-}) => Effect.Effect<QuotaResolutionResult, unknown, DB> = (params) =>
+}) => Effect.Effect<QuotaResolutionResult, QuotaUnavailableError, DB> = (
+	params,
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
@@ -127,4 +130,4 @@ export const resolveQuotaPool: (params: {
 			winningPool: orderedRows[0] ?? null,
 			orderedCandidatePoolIds: orderedRows.map((row) => row.pool.id),
 		} satisfies QuotaResolutionResult;
-	});
+	}).pipe(unavailable);

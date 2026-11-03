@@ -5,6 +5,7 @@ import type {
 	ProviderId,
 	UserId,
 } from "@orcai/core";
+import { meteredCall, promptTokens } from "@orcai/quota";
 import {
 	generateText,
 	type InferGenerateOutput,
@@ -19,7 +20,7 @@ import * as Exit from "effect/Exit";
 import { AiError } from "../errors";
 import { jsonAnswerModel } from "../json-answer";
 import { aiTelemetry } from "../telemetry";
-import { startMeteredCall } from "./meter";
+import { meteredStep } from "./metered-step";
 
 interface GenerateTextWithQuotaInput<
 	OUTPUT extends OutputInterface = OutputInterface<string, string>,
@@ -33,7 +34,6 @@ interface GenerateTextWithQuotaInput<
 	botId?: BotId | null;
 	model: LanguageModel;
 	messages?: ModelMessage[];
-	reservationMessages?: unknown[];
 	system?: string;
 	prompt?: string;
 	/** Structured output; a reply that does not match is charged and fails. */
@@ -49,7 +49,10 @@ interface GenerateTextWithQuotaInput<
 	maxExpectedProviderRequests?: number;
 }
 
-/** One generation metered against the quota of the organisation and user. */
+/**
+ * One generation metered against the quota of the organisation and user. Each
+ * finished step is charged, also when the call fails or is stopped after it.
+ */
 export const generateTextWithQuota = <
 	OUTPUT extends OutputInterface = OutputInterface<string, string>,
 >(
@@ -65,108 +68,108 @@ export const generateTextWithQuota = <
 			});
 		}
 
-		const meter = yield* startMeteredCall({
-			organizationId: input.organizationId,
-			userId: input.userId,
-			providerId: input.providerId,
-			modelId: input.modelId,
-			botId: input.botId,
-			appRequestId: input.appRequestId,
-			maxOutputTokens: input.maxOutputTokens,
-			maxSteps: input.maxExpectedProviderRequests ?? 1,
-			messages: input.reservationMessages ?? messages,
-		});
-
-		const baseInput = {
-			model: input.output ? jsonAnswerModel(input.model) : input.model,
-			instructions: input.system,
-			output: input.output,
-			maxOutputTokens: input.maxOutputTokens,
-			reasoning: input.reasoning,
-			temperature: input.temperature,
-			topP: input.topP,
-			frequencyPenalty: input.frequencyPenalty,
-			presencePenalty: input.presencePenalty,
-			abortSignal: AbortSignal.any([
-				...(input.abortSignal
-					? [
-							input.abortSignal,
-						]
-					: []),
-				meter.deadline,
-			]),
-			...(input.timeoutMs !== undefined && {
-				timeout: {
-					totalMs: input.timeoutMs,
-				},
-			}),
-			...aiTelemetry(input.operation, {
+		return yield* meteredCall(
+			{
 				organizationId: input.organizationId,
+				userId: input.userId,
 				providerId: input.providerId,
-			}),
-		};
-
-		let answered = false;
-		const providerCall = Effect.tryPromise({
-			try: () =>
-				input.prompt
-					? generateText({
-							...baseInput,
-							prompt: input.prompt,
-						})
-					: generateText({
-							...baseInput,
-							messages,
-						}),
-			catch: (cause) => {
-				// The provider answered, so the reply is charged even though it does not parse.
-				if (NoObjectGeneratedError.isInstance(cause) && cause.usage) {
-					answered = true;
-					meter.step({
-						usage: cause.usage,
-						toolCalls: [],
-					});
-				}
-				return new AiError({
-					operation: input.operation,
-					cause,
-				});
+				modelId: input.modelId,
+				botId: input.botId,
+				appRequestId: input.appRequestId,
+				maxOutputTokens: input.maxOutputTokens,
+				maxRequests: input.maxExpectedProviderRequests ?? 1,
+				inputTokens: promptTokens([
+					...(input.system === undefined
+						? []
+						: [
+								input.system,
+							]),
+					...(input.prompt
+						? [
+								input.prompt,
+							]
+						: messages),
+				]),
 			},
-		});
+			(call) =>
+				Effect.gen(function* () {
+					const baseInput = {
+						model: input.output ? jsonAnswerModel(input.model) : input.model,
+						instructions: input.system,
+						output: input.output,
+						maxOutputTokens: input.maxOutputTokens,
+						reasoning: input.reasoning,
+						temperature: input.temperature,
+						topP: input.topP,
+						frequencyPenalty: input.frequencyPenalty,
+						presencePenalty: input.presencePenalty,
+						abortSignal: AbortSignal.any([
+							...(input.abortSignal
+								? [
+										input.abortSignal,
+									]
+								: []),
+							call.deadline,
+						]),
+						...(input.timeoutMs !== undefined && {
+							timeout: {
+								totalMs: input.timeoutMs,
+							},
+						}),
+						onStepEnd: (step: Parameters<typeof meteredStep>[0]) =>
+							Effect.runPromise(call.record(meteredStep(step))),
+						...aiTelemetry(input.operation, {
+							organizationId: input.organizationId,
+							providerId: input.providerId,
+						}),
+					};
 
-		const response = yield* providerCall.pipe(
-			Effect.tap((response) =>
-				Effect.sync(() => {
-					for (const step of response.steps) {
-						meter.step(step);
-					}
-				}),
-			),
-			Effect.onExit((exit) =>
-				meter.settle(Exit.isSuccess(exit) || answered ? "completed" : "failed"),
-			),
-		);
-
-		// The SDK reads the output lazily: a reply cut off before any text throws here, charged already.
-		return yield* Effect.try({
-			try: () => ({
-				text: response.text,
-				output: response.output as InferGenerateOutput<OUTPUT>,
-				usage: response.usage,
-			}),
-			catch: (cause) =>
-				new AiError({
-					operation: input.operation,
-					cause: NoOutputGeneratedError.isInstance(cause)
-						? new NoObjectGeneratedError({
-								message: `No output generated: the reply finished with "${response.finishReason}".`,
+					const response = yield* Effect.tryPromise({
+						try: () =>
+							input.prompt
+								? generateText({
+										...baseInput,
+										prompt: input.prompt,
+									})
+								: generateText({
+										...baseInput,
+										messages,
+									}),
+						catch: (cause) =>
+							new AiError({
+								operation: input.operation,
 								cause,
-								text: response.text,
-								response: response.response,
-								usage: response.usage,
-								finishReason: response.finishReason,
-							})
-						: cause,
+							}),
+					});
+
+					// The SDK reads the output lazily: a reply cut off before any text throws here, charged already.
+					return yield* Effect.try({
+						try: () => ({
+							text: response.text,
+							output: response.output as InferGenerateOutput<OUTPUT>,
+							usage: response.usage,
+						}),
+						catch: (cause) =>
+							new AiError({
+								operation: input.operation,
+								cause: NoOutputGeneratedError.isInstance(cause)
+									? new NoObjectGeneratedError({
+											message: `No output generated: the reply finished with "${response.finishReason}".`,
+											cause,
+											text: response.text,
+											response: response.response,
+											usage: response.usage,
+											finishReason: response.finishReason,
+										})
+									: cause,
+							}),
+					});
 				}),
-		});
+			(exit) =>
+				Exit.isSuccess(exit)
+					? "completed"
+					: Exit.hasInterrupts(exit) || input.abortSignal?.aborted
+						? "cancelled"
+						: "failed",
+		);
 	});

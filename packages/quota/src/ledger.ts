@@ -12,9 +12,10 @@ import { and, eq, inArray, lt, notExists, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
+import { type QuotaWriteFailedError, writeFailed } from "./errors";
 import { openQuotaPeriod } from "./period";
-import type { EventCost } from "./pricing";
-import type { UsageCounts } from "./usage";
+import { type PriceList, priceSteps } from "./pricing";
+import { type MeteredStep, usageCounts } from "./usage";
 
 type QuotaPool = typeof dbSchema.quotaPool.$inferSelect;
 type QuotaPeriod = typeof dbSchema.quotaPeriod.$inferSelect;
@@ -44,11 +45,6 @@ type LedgerReserveResult =
 			status: "exhausted" | "inactive";
 	  };
 
-type LedgerTransitionResult = {
-	inserted: boolean;
-	reserved: QuotaUsageEvent;
-} | null;
-
 export const createQuotaPoolWithInitialPeriod: (params: {
 	organizationId: OrganizationId;
 	name: string;
@@ -62,9 +58,11 @@ export const createQuotaPoolWithInitialPeriod: (params: {
 	isActive?: boolean;
 	createdByUserId: UserId;
 	assignedGroupIds: GroupId[];
-}) => Effect.Effect<CreateQuotaPoolWithInitialPeriodResult, unknown, DB> = (
-	params,
-) =>
+}) => Effect.Effect<
+	CreateQuotaPoolWithInitialPeriodResult,
+	QuotaWriteFailedError,
+	DB
+> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const now = new Date();
@@ -127,7 +125,7 @@ export const createQuotaPoolWithInitialPeriod: (params: {
 				};
 			}),
 		);
-	});
+	}).pipe(writeFailed("The quota pool could not be created."));
 
 export const updateQuotaPoolBudget: (params: {
 	poolId: QuotaPoolId;
@@ -319,281 +317,275 @@ export const reserveQuotaLedger: (params: {
 		return yield* db.transaction(() => reserveOnCurrentPeriod(false));
 	});
 
-export const findReservedQuotaEvent = (params: { reservationKey: string }) =>
+/** Why a reservation was given back without a charge. */
+export type ReleaseReason =
+	| "provider_failure"
+	| "app_failure"
+	| "cancelled"
+	| "expired";
+
+/** The reservation's own event row, locked: tally writes and settling take it in turn. */
+const lockReservation = (reservationKey: string) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		return yield* db.query.quotaUsageEvent.findFirst({
-			where: {
-				AND: [
-					{
-						reservationKey: params.reservationKey,
-					},
-					{
-						eventType: "reserved",
-					},
-				],
-			},
-		});
+		const event = dbSchema.quotaUsageEvent;
+		const [reserved] = yield* db
+			.select()
+			.from(event)
+			.where(
+				and(
+					eq(event.reservationKey, reservationKey),
+					eq(event.eventType, "reserved"),
+				),
+			)
+			.limit(1)
+			.for("update");
+		if (!reserved) {
+			return undefined;
+		}
+		const [settled] = yield* db
+			.select({
+				id: event.id,
+			})
+			.from(event)
+			.where(
+				and(
+					eq(event.reservationKey, reservationKey),
+					inArray(event.eventType, [
+						"finalized",
+						"released",
+					]),
+				),
+			)
+			.limit(1);
+		return {
+			reserved,
+			settled: settled !== undefined,
+		};
 	});
 
-export const finalizeQuotaLedger: (params: {
+/** The steps a call stored with its reservation so far. */
+const storedSteps = (reserved: QuotaUsageEvent): readonly MeteredStep[] => {
+	const steps = reserved.metadata?.steps;
+	return Array.isArray(steps) ? (steps as MeteredStep[]) : [];
+};
+
+/**
+ * Stores a call's steps so far with its reservation, summed into its usage
+ * counts. Each write carries every step and only a longer one replaces it, so
+ * a repeated write counts nothing twice. Refused once the reservation settled.
+ */
+export const recordQuotaUsage: (params: {
 	reservationKey: string;
-	appRequestId: string;
-	actualAmount: number;
-	usage: UsageCounts & Partial<EventCost>;
-}) => Effect.Effect<LedgerTransitionResult, unknown, DB> = (params) =>
+	steps: readonly MeteredStep[];
+}) => Effect.Effect<"recorded" | "settled" | "missing", unknown, DB> = (
+	params,
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const now = new Date();
+		const event = dbSchema.quotaUsageEvent;
 
-		return yield* db.transaction((tx) =>
+		return yield* db.transaction(() =>
 			Effect.gen(function* () {
-				const reserved = yield* tx.query.quotaUsageEvent.findFirst({
-					where: {
-						AND: [
-							{
-								reservationKey: params.reservationKey,
-							},
-							{
-								eventType: "reserved",
-							},
-						],
-					},
-				});
-
-				if (!reserved) {
-					return null;
+				const reservation = yield* lockReservation(params.reservationKey);
+				if (!reservation) {
+					return "missing" as const;
 				}
-
-				// Lock the ledger row
-				yield* tx
-					.select({
-						id: dbSchema.quotaLedger.id,
-					})
-					.from(dbSchema.quotaLedger)
-					.where(
-						and(
-							eq(dbSchema.quotaLedger.quotaPoolId, reserved.quotaPoolId),
-							eq(dbSchema.quotaLedger.quotaPeriodId, reserved.quotaPeriodId),
-						),
-					)
-					.limit(1)
-					.for("update");
-
-				const inserted = yield* tx
-					.insert(dbSchema.quotaUsageEvent)
-					.values({
-						organizationId: reserved.organizationId,
-						quotaPoolId: reserved.quotaPoolId,
-						quotaPeriodId: reserved.quotaPeriodId,
-						providerId: reserved.providerId,
-						modelId: reserved.modelId,
-						botId: reserved.botId,
-						userId: reserved.userId,
-						appRequestId: params.appRequestId,
-						eventType: "finalized",
-						reservationKey: reserved.reservationKey,
-						meteringMode: reserved.meteringMode,
-						reservedAmount: reserved.reservedAmount,
-						actualAmount: params.actualAmount,
-						...params.usage,
-						occurredAt: now,
-						createdAt: now,
-					})
-					.onConflictDoNothing()
-					.returning({
-						id: dbSchema.quotaUsageEvent.id,
-					});
-
-				if (inserted.length === 0) {
-					return {
-						inserted: false,
-						reserved,
-					};
+				if (reservation.settled) {
+					return "settled" as const;
 				}
-
-				yield* tx
-					.update(dbSchema.quotaLedger)
+				yield* db
+					.update(event)
 					.set({
-						reservedAmount: sql`greatest(0, ${dbSchema.quotaLedger.reservedAmount} - ${reserved.reservedAmount})`,
-						consumedAmount: sql`${dbSchema.quotaLedger.consumedAmount} + ${params.actualAmount}`,
-						remainingAmount: sql`greatest(0, ${dbSchema.quotaLedger.budgetAmount} - (greatest(0, ${dbSchema.quotaLedger.reservedAmount} - ${reserved.reservedAmount})) - (${dbSchema.quotaLedger.consumedAmount} + ${params.actualAmount}))`,
-						version: sql`${dbSchema.quotaLedger.version} + 1`,
-						updatedAt: now,
+						...usageCounts(params.steps),
+						metadata: {
+							...reservation.reserved.metadata,
+							steps: params.steps,
+						},
 					})
 					.where(
 						and(
-							eq(dbSchema.quotaLedger.quotaPoolId, reserved.quotaPoolId),
-							eq(dbSchema.quotaLedger.quotaPeriodId, reserved.quotaPeriodId),
+							eq(event.id, reservation.reserved.id),
+							sql`coalesce(${event.requestCount}, 0) < ${params.steps.length}`,
 						),
 					);
-
-				return {
-					inserted: true,
-					reserved,
-				};
+				return "recorded" as const;
 			}),
 		);
 	});
 
-export const releaseQuotaLedger: (params: {
+/**
+ * Ends a reservation once: charges its steps, the caller's or else those
+ * stored with it, and frees the rest; without steps it releases all of it.
+ * Null when there is no such reservation.
+ */
+export const settleQuotaReservation: (params: {
 	reservationKey: string;
-	appRequestId: string;
-	reason: "provider_failure" | "app_failure" | "cancelled" | "expired";
-	includeFailureEvent?: boolean;
-}) => Effect.Effect<LedgerTransitionResult, unknown, DB> = (params) =>
+	/** What the call reported; the stored steps count when they are more. */
+	steps: readonly MeteredStep[] | undefined;
+	reason: ReleaseReason;
+	prices: PriceList | null;
+}) => Effect.Effect<
+	{
+		inserted: boolean;
+		charged: boolean;
+	} | null,
+	unknown,
+	DB
+> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const now = new Date();
 
-		return yield* db.transaction((tx) =>
+		return yield* db.transaction(() =>
 			Effect.gen(function* () {
-				const reserved = yield* tx.query.quotaUsageEvent.findFirst({
-					where: {
-						AND: [
-							{
-								reservationKey: params.reservationKey,
-							},
-							{
-								eventType: "reserved",
-							},
-						],
-					},
-				});
-
-				if (!reserved) {
+				const reservation = yield* lockReservation(params.reservationKey);
+				if (!reservation) {
 					return null;
 				}
-
-				// Lock the ledger row
-				yield* tx
+				const { reserved } = reservation;
+				if (reservation.settled) {
+					return {
+						inserted: false,
+						charged: false,
+					};
+				}
+				const stored = storedSteps(reserved);
+				const steps =
+					params.steps !== undefined && params.steps.length >= stored.length
+						? params.steps
+						: stored;
+				const recovered = steps === stored;
+				const charged = steps.length > 0;
+				const ledgerOf = and(
+					eq(dbSchema.quotaLedger.quotaPoolId, reserved.quotaPoolId),
+					eq(dbSchema.quotaLedger.quotaPeriodId, reserved.quotaPeriodId),
+				);
+				yield* db
 					.select({
 						id: dbSchema.quotaLedger.id,
 					})
 					.from(dbSchema.quotaLedger)
-					.where(
-						and(
-							eq(dbSchema.quotaLedger.quotaPoolId, reserved.quotaPoolId),
-							eq(dbSchema.quotaLedger.quotaPeriodId, reserved.quotaPeriodId),
-						),
-					)
+					.where(ledgerOf)
 					.limit(1)
 					.for("update");
 
-				const inserted = yield* tx
-					.insert(dbSchema.quotaUsageEvent)
-					.values({
-						organizationId: reserved.organizationId,
-						quotaPoolId: reserved.quotaPoolId,
-						quotaPeriodId: reserved.quotaPeriodId,
-						providerId: reserved.providerId,
-						modelId: reserved.modelId,
-						botId: reserved.botId,
-						userId: reserved.userId,
-						appRequestId: params.appRequestId,
-						eventType: "released",
-						reservationKey: reserved.reservationKey,
-						meteringMode: reserved.meteringMode,
-						reservedAmount: reserved.reservedAmount,
-						actualAmount: 0,
-						metadata: {
-							reason: params.reason,
-						},
-						occurredAt: now,
-						createdAt: now,
-					})
-					.onConflictDoNothing()
-					.returning({
-						id: dbSchema.quotaUsageEvent.id,
+				const terminal = {
+					organizationId: reserved.organizationId,
+					quotaPoolId: reserved.quotaPoolId,
+					quotaPeriodId: reserved.quotaPeriodId,
+					providerId: reserved.providerId,
+					modelId: reserved.modelId,
+					botId: reserved.botId,
+					userId: reserved.userId,
+					appRequestId: reserved.appRequestId,
+					reservationKey: reserved.reservationKey,
+					meteringMode: reserved.meteringMode,
+					reservedAmount: reserved.reservedAmount,
+					occurredAt: now,
+					createdAt: now,
+				};
+				const freed = sql`greatest(0, ${dbSchema.quotaLedger.reservedAmount} - ${reserved.reservedAmount})`;
+
+				if (charged) {
+					const counts = usageCounts(steps);
+					const actualAmount =
+						reserved.meteringMode === "requests"
+							? steps.length
+							: (counts.totalTokens ?? 0);
+					yield* db.insert(dbSchema.quotaUsageEvent).values({
+						...terminal,
+						eventType: "finalized",
+						actualAmount,
+						...counts,
+						...priceSteps(steps, params.prices),
+						metadata: recovered
+							? {
+									recoveredAfterInterruption: true,
+								}
+							: undefined,
 					});
-
-				if (inserted.length === 0) {
-					return {
-						inserted: false,
-						reserved,
-					};
-				}
-
-				yield* tx
-					.update(dbSchema.quotaLedger)
-					.set({
-						reservedAmount: sql`greatest(0, ${dbSchema.quotaLedger.reservedAmount} - ${reserved.reservedAmount})`,
-						remainingAmount: sql`greatest(0, ${dbSchema.quotaLedger.budgetAmount} - (greatest(0, ${dbSchema.quotaLedger.reservedAmount} - ${reserved.reservedAmount})) - ${dbSchema.quotaLedger.consumedAmount})`,
-						version: sql`${dbSchema.quotaLedger.version} + 1`,
-						updatedAt: now,
-					})
-					.where(
-						and(
-							eq(dbSchema.quotaLedger.quotaPoolId, reserved.quotaPoolId),
-							eq(dbSchema.quotaLedger.quotaPeriodId, reserved.quotaPeriodId),
-						),
-					);
-
-				if (params.includeFailureEvent) {
-					yield* tx
-						.insert(dbSchema.quotaUsageEvent)
-						.values({
-							organizationId: reserved.organizationId,
-							quotaPoolId: reserved.quotaPoolId,
-							quotaPeriodId: reserved.quotaPeriodId,
-							providerId: reserved.providerId,
-							modelId: reserved.modelId,
-							botId: reserved.botId,
-							userId: reserved.userId,
-							appRequestId: params.appRequestId,
-							eventType: "failed",
-							reservationKey: reserved.reservationKey,
-							meteringMode: reserved.meteringMode,
-							reservedAmount: reserved.reservedAmount,
+					yield* db
+						.update(dbSchema.quotaLedger)
+						.set({
+							reservedAmount: freed,
+							consumedAmount: sql`${dbSchema.quotaLedger.consumedAmount} + ${actualAmount}`,
+							remainingAmount: sql`greatest(0, ${dbSchema.quotaLedger.budgetAmount} - ${freed} - (${dbSchema.quotaLedger.consumedAmount} + ${actualAmount}))`,
+							version: sql`${dbSchema.quotaLedger.version} + 1`,
+							updatedAt: now,
+						})
+						.where(ledgerOf);
+				} else {
+					yield* db.insert(dbSchema.quotaUsageEvent).values([
+						{
+							...terminal,
+							eventType: "released",
 							actualAmount: 0,
 							metadata: {
 								reason: params.reason,
 							},
-							occurredAt: now,
-							createdAt: now,
+						},
+						// Only a provider that failed shows as a failure.
+						...(params.reason === "provider_failure"
+							? [
+									{
+										...terminal,
+										eventType: "failed" as const,
+										actualAmount: 0,
+										metadata: {
+											reason: params.reason,
+										},
+									},
+								]
+							: []),
+					]);
+					yield* db
+						.update(dbSchema.quotaLedger)
+						.set({
+							reservedAmount: freed,
+							remainingAmount: sql`greatest(0, ${dbSchema.quotaLedger.budgetAmount} - ${freed} - ${dbSchema.quotaLedger.consumedAmount})`,
+							version: sql`${dbSchema.quotaLedger.version} + 1`,
+							updatedAt: now,
 						})
-						.onConflictDoNothing({
-							target: [
-								dbSchema.quotaUsageEvent.reservationKey,
-								dbSchema.quotaUsageEvent.eventType,
-							],
-						});
+						.where(ledgerOf);
 				}
 
 				return {
 					inserted: true,
-					reserved,
+					charged,
 				};
 			}),
 		);
 	});
 
 /**
- * Releases reservations in open periods that were never settled and were made
- * before `reservedBefore`, as when the process running the call died.
+ * Reservations made before `reservedBefore` that never settled, in open and
+ * closed periods alike, as when the process running the call died.
  */
-export const releaseStaleQuotaReservations: (params: {
+export const listStaleQuotaReservations: (params: {
 	reservedBefore: Date;
 	limit: number;
-}) => Effect.Effect<number, unknown, DB> = (params) =>
+}) => Effect.Effect<
+	{
+		reservationKey: string;
+		providerId: ProviderId;
+		modelId: ModelId | null;
+	}[],
+	unknown,
+	DB
+> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const event = dbSchema.quotaUsageEvent;
 		const settlement = alias(event, "settlement");
 
-		const stale = yield* db
+		return yield* db
 			.select({
 				reservationKey: event.reservationKey,
-				appRequestId: event.appRequestId,
+				providerId: event.providerId,
+				modelId: event.modelId,
 			})
 			.from(event)
-			.innerJoin(
-				dbSchema.quotaPeriod,
-				and(
-					eq(dbSchema.quotaPeriod.id, event.quotaPeriodId),
-					eq(dbSchema.quotaPeriod.status, "open"),
-				),
-			)
 			.where(
 				and(
 					eq(event.eventType, "reserved"),
@@ -617,18 +609,4 @@ export const releaseStaleQuotaReservations: (params: {
 				),
 			)
 			.limit(params.limit);
-
-		const released = yield* Effect.forEach(
-			stale,
-			(reservation) =>
-				releaseQuotaLedger({
-					...reservation,
-					reason: "expired",
-				}),
-			{
-				concurrency: 10,
-			},
-		);
-
-		return released.filter((result) => result?.inserted).length;
 	});

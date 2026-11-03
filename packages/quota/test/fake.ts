@@ -1,17 +1,24 @@
 import { mock } from "bun:test";
-import type { QuotaPeriodId, QuotaPoolId } from "@orcai/core";
 import { DB } from "@orcai/db";
 import * as Effect from "effect/Effect";
-import * as realQuota from "../src";
+import * as Schedule from "effect/Schedule";
+import * as realEnforcement from "../src/enforcement";
+import {
+	QuotaDeniedError,
+	QuotaUnavailableError,
+	QuotaWriteFailedError,
+} from "../src/errors";
+import { QuotaRetry } from "../src/metered-call";
 
 /**
- * Fakes the quota enforcement of this package for a test file: set `pool`
- * per test and read what was reserved, finalized and released from `calls`.
+ * Fakes the reservations of this package for a test file, under the real
+ * metered call: set `pool` per test and read what was reserved, recorded and
+ * settled from `calls`.
  */
 
-type Reserve = typeof realQuota.reserveForAppRequest;
-type Finalize = typeof realQuota.finalizeAppRequestQuota;
-type Release = typeof realQuota.releaseAppRequestQuota;
+type Reserve = typeof realEnforcement.reserveForAppRequest;
+type Record = typeof realEnforcement.recordReservationUsage;
+type Settle = typeof realEnforcement.settleReservation;
 
 type Pool =
 	| {
@@ -20,7 +27,10 @@ type Pool =
 			remaining: number;
 	  }
 	| {
-			denial: "no_pool" | "exhausted";
+			denial: QuotaDeniedError["reason"];
+	  }
+	| {
+			unavailable: true;
 	  };
 
 const defaultPool = (): Pool => ({
@@ -28,90 +38,104 @@ const defaultPool = (): Pool => ({
 	remaining: 100,
 });
 
+/** The retries a test runs with: twice, without waiting. */
+const TEST_RETRY = Schedule.recurs(2);
+
 export const quota = {
 	pool: defaultPool(),
-	/** Makes the next calls of an operation fail with this error. */
-	failures: {} as Partial<Record<"reserve" | "finalize" | "release", Error>>,
+	/** How many of the next calls of an operation fail. */
+	failures: {} as Partial<globalThis.Record<"record" | "settle", number>>,
+	/** Holds each record until it resolves. */
+	recordGate: undefined as Promise<void> | undefined,
 	calls: {
 		reserve: [] as Parameters<Reserve>[0][],
-		finalize: [] as Parameters<Finalize>[0][],
-		release: [] as Parameters<Release>[0][],
+		record: [] as Parameters<Record>[0][],
+		settle: [] as Parameters<Settle>[0][],
 	},
 	reset: () => {
 		quota.pool = defaultPool();
 		quota.failures = {};
+		quota.recordGate = undefined;
 		quota.calls.reserve.length = 0;
-		quota.calls.finalize.length = 0;
-		quota.calls.release.length = 0;
+		quota.calls.record.length = 0;
+		quota.calls.settle.length = 0;
 	},
 };
 
-const failureOf = (operation: keyof typeof quota.failures) =>
-	quota.failures[operation] === undefined
-		? Effect.void
-		: Effect.fail(quota.failures[operation]);
+const failureOf = (operation: keyof typeof quota.failures) => {
+	const remaining = quota.failures[operation] ?? 0;
+	if (remaining === 0) {
+		return Effect.void;
+	}
+	quota.failures[operation] = remaining - 1;
+	return Effect.fail(
+		new QuotaWriteFailedError({
+			message: `${operation} failed`,
+			cause: new Error(`${operation} failed`),
+		}),
+	);
+};
 
 const reserveForAppRequest: Reserve = (input) =>
-	Effect.suspend(() => {
+	Effect.suspend((): ReturnType<Reserve> => {
 		quota.calls.reserve.push(input);
 		const pool = quota.pool;
+		if ("unavailable" in pool) {
+			return Effect.fail(
+				new QuotaUnavailableError({
+					message: "The quota could not be read.",
+					cause: new Error("connection refused"),
+				}),
+			);
+		}
+		if ("denial" in pool || pool.remaining < 1) {
+			return Effect.fail(
+				new QuotaDeniedError({
+					reason: "denial" in pool ? pool.denial : "QUOTA_EXHAUSTED",
+					message: "Denied by the fake quota.",
+				}),
+			);
+		}
+		return Effect.succeed({
+			reservationKey: `res_${input.appRequestId}`,
+			appRequestId: input.appRequestId,
+			providerId: input.providerId,
+			modelId: input.modelId,
+			meteringMode: pool.meteringMode,
+			reservedAmount:
+				pool.meteringMode === "requests"
+					? Math.min(pool.remaining, input.maxRequests)
+					: pool.remaining,
+		});
+	});
 
-		return failureOf("reserve").pipe(
-			Effect.as(
-				"denial" in pool
-					? {
-							allowed: false,
-							denialReason: pool.denial,
-						}
-					: pool.remaining < 1
-						? {
-								allowed: false,
-								denialReason: "exhausted" as const,
-							}
-						: {
-								allowed: true,
-								reservation: {
-									reservationKey: `res_${input.appRequestId}`,
-									appRequestId: input.appRequestId,
-									poolId: "pool" as QuotaPoolId,
-									periodId: "period" as QuotaPeriodId,
-									providerId: input.providerId,
-									modelId: input.modelId ?? null,
-									meteringMode: pool.meteringMode,
-									reservedAmount:
-										pool.meteringMode === "requests"
-											? Math.min(
-													pool.remaining,
-													input.maxExpectedProviderRequests,
-												)
-											: pool.remaining,
-									budgetAmount: pool.remaining,
-									periodEndsAt: new Date(0),
-								},
-							},
-			),
+const recordReservationUsage: Record = (input) =>
+	Effect.suspend(() => {
+		const gate = quota.recordGate;
+		return (gate ? Effect.promise(() => gate) : Effect.void).pipe(
+			Effect.andThen(() => {
+				quota.calls.record.push(input);
+				return failureOf("record");
+			}),
 		);
 	});
 
-const finalizeAppRequestQuota: Finalize = (input) =>
+const settleReservation: Settle = (input) =>
 	Effect.suspend(() => {
-		quota.calls.finalize.push(input);
-		return failureOf("finalize");
+		quota.calls.settle.push(input);
+		return failureOf("settle");
 	});
 
-const releaseAppRequestQuota: Release = (input) =>
-	Effect.suspend(() => {
-		quota.calls.release.push(input);
-		return failureOf("release");
-	});
-
-mock.module("../src/index.ts", () => ({
-	...realQuota,
+mock.module("../src/enforcement.ts", () => ({
+	...realEnforcement,
 	reserveForAppRequest,
-	finalizeAppRequestQuota,
-	releaseAppRequestQuota,
+	recordReservationUsage,
+	settleReservation,
 }));
 
-/** Provides the services the quota calls require; the fakes use none of them. */
+/** Provides what the quota calls require; the fakes use no database, and retries do not wait. */
 export const withQuotaServices = <A, E>(effect: Effect.Effect<A, E, DB>) =>
-	effect.pipe(Effect.provideService(DB, {} as never));
+	effect.pipe(
+		Effect.provideService(DB, {} as never),
+		Effect.provideService(QuotaRetry, TEST_RETRY),
+	);

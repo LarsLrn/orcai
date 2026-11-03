@@ -1,5 +1,6 @@
 import { beforeEach, expect, test } from "bun:test";
 import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
+import { promptTokens } from "@orcai/quota";
 import { quota, withQuotaServices } from "@orcai/quota/testing";
 import { Output } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
@@ -127,13 +128,80 @@ test("a generation is charged the usage the model reported", async () => {
 	const { text } = await Effect.runPromise(generate(model));
 
 	expect(text).toBe("A title");
-	expect(quota.calls.finalize[0]?.steps).toMatchObject([
+	expect(quota.calls.settle[0]?.steps).toMatchObject([
 		{
 			inputTokens: 12,
 			outputTokens: 3,
 			totalTokens: 15,
 		},
 	]);
+});
+
+test("the reservation counts the instructions and the prompt", async () => {
+	await Effect.runPromise(
+		withQuotaServices(
+			generateTextWithQuota({
+				operation: "test.generate",
+				appRequestId: "request-1",
+				organizationId: "org-1" as OrganizationId,
+				userId: "user-1" as UserId,
+				providerId: "provider-1" as ProviderId,
+				modelId: "model-1" as ModelId,
+				model: reply({
+					text: "A title",
+					finishReason: "stop",
+					outputTokens: 2,
+				}),
+				system: "Name the chat.",
+				prompt: "Refunds for a cancelled course",
+				maxOutputTokens: 256,
+			}),
+		),
+	);
+
+	expect(quota.calls.reserve[0]).toMatchObject({
+		inputTokens: promptTokens([
+			"Name the chat.",
+			"Refunds for a cancelled course",
+		]),
+		maxOutputTokens: 256,
+	});
+});
+
+test("a generation stopped before its reply ended is released as cancelled", async () => {
+	const stop = new AbortController();
+	const model = new MockLanguageModelV4({
+		doGenerate: ({ abortSignal }) =>
+			new Promise((_, reject) => {
+				abortSignal?.addEventListener("abort", () =>
+					reject(abortSignal.reason),
+				);
+				stop.abort();
+			}),
+	});
+
+	await Effect.runPromise(
+		Effect.flip(
+			withQuotaServices(
+				generateTextWithQuota({
+					operation: "test.generate",
+					appRequestId: "request-1",
+					organizationId: "org-1" as OrganizationId,
+					userId: "user-1" as UserId,
+					providerId: "provider-1" as ProviderId,
+					modelId: "model-1" as ModelId,
+					model,
+					prompt: "Summarise.",
+					abortSignal: stop.signal,
+				}),
+			),
+		),
+	);
+
+	expect(quota.calls.settle[0]).toMatchObject({
+		steps: [],
+		reason: "cancelled",
+	});
 });
 
 test("a failed generation releases its reservation", async () => {
@@ -144,8 +212,10 @@ test("a failed generation releases its reservation", async () => {
 	const error = await Effect.runPromise(Effect.flip(generate(model)));
 
 	expect(aiFailure(aiError(error))).toBe("model");
-	expect(quota.calls.finalize).toEqual([]);
-	expect(quota.calls.release[0]?.reason).toBe("provider_failure");
+	expect(quota.calls.settle[0]).toMatchObject({
+		steps: [],
+		reason: "provider_failure",
+	});
 });
 
 test("a reply that does not match the structured output is charged and fails", async () => {
@@ -165,8 +235,7 @@ test("a reply that does not match the structured output is charged and fails", a
 		_tag: "AiError",
 	});
 	expect(aiFailure(aiError(error))).toBe("answer");
-	expect(quota.calls.release).toEqual([]);
-	expect(quota.calls.finalize[0]?.steps).toMatchObject([
+	expect(quota.calls.settle[0]?.steps).toMatchObject([
 		{
 			inputTokens: 20,
 			outputTokens: 2,
@@ -195,8 +264,7 @@ test("a reply cut off at its budget before any text is charged and fails as cut 
 		outputTokens: 1024,
 		reasoningTokens: 1024,
 	});
-	expect(quota.calls.release).toEqual([]);
-	expect(quota.calls.finalize[0]?.steps).toMatchObject([
+	expect(quota.calls.settle[0]?.steps).toMatchObject([
 		{
 			outputTokens: 1024,
 		},
@@ -217,7 +285,7 @@ test("a reply cut off inside its object fails as cut off", async () => {
 	);
 
 	expect(aiFailure(aiError(error))).toBe("output_limit");
-	expect(quota.calls.finalize[0]?.steps).toMatchObject([
+	expect(quota.calls.settle[0]?.steps).toMatchObject([
 		{
 			outputTokens: 1024,
 		},
