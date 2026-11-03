@@ -121,7 +121,10 @@ export const formatNames = (names: string[]) => {
 		: formatList(quoted);
 };
 
-/** Names a batch's targets, from the output once there is one. */
+/**
+ * Names a batch's targets: from the output once there is one, before that by
+ * the name the input gives a target, else by its current name.
+ */
 export const batchSummary = <
 	Build extends BuiltTool,
 	Input = InferToolInput<ToolOf<Build>>,
@@ -129,44 +132,50 @@ export const batchSummary = <
 >({
 	kind,
 	ids,
+	pendingName,
 	named,
 	summary,
 }: {
 	kind: EntityKind;
 	ids: (input: Input | undefined) => readonly string[] | undefined;
+	/** The name a call gives the target, such as a rename's new name. */
+	pendingName?: (input: Input) => string | undefined;
 	named: (output: Output) => {
 		id: string;
 		name?: string;
 	}[];
 	summary: (inputs: { names: string; count: number }) => string;
-}): Pick<ToolDeclaration<Input, Output>, "refs" | "line"> => ({
-	refs: (call) =>
-		call.output
-			? []
-			: (ids(call.input) ?? []).map((id) => ({
-					kind,
-					id,
-				})),
-	line: (call, nameOf) => {
-		const names = call.output
-			? named(call.output).map(
-					(target) =>
-						target.name ??
-						nameOf({
+}): Pick<ToolDeclaration<Input, Output>, "refs" | "line"> => {
+	const pending = ({ input }: ToolCall<Input, Output>) =>
+		(ids(input) ?? []).map((id) => ({
+			id,
+			name: input === undefined ? undefined : pendingName?.(input),
+		}));
+
+	return {
+		refs: (call) =>
+			call.output
+				? []
+				: pending(call)
+						.filter((target) => target.name === undefined)
+						.map(({ id }) => ({
 							kind,
-							id: target.id,
-						}),
-				)
-			: (ids(call.input) ?? []).map((id) =>
+							id,
+						})),
+		line: (call, nameOf) => {
+			const names = (call.output ? named(call.output) : pending(call)).map(
+				(target) =>
+					target.name ??
 					nameOf({
 						kind,
-						id,
+						id: target.id,
 					}),
-				);
+			);
 
-		return summary({
-			names: formatNames(names),
-			count: names.length,
-		});
-	},
-});
+			return summary({
+				names: formatNames(names),
+				count: names.length,
+			});
+		},
+	};
+};

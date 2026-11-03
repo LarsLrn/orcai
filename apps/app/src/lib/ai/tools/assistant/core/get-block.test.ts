@@ -190,21 +190,14 @@ describe("getBlock", () => {
 
 	test("an unknown or unreadable id names the expected types", async () => {
 		const missing = id<BlockId>();
-		answers["block.find"] = () =>
-			Effect.fail(
-				new ORPCError("FORBIDDEN", {
-					data: {
-						reason: "PERMISSION_DENIED",
-					},
-				}),
-			);
+		answers["block.find"] = () => Effect.fail(new ORPCError("NOT_FOUND"));
 
 		await expect(
 			run(getBlockTool(deps()), {
 				id: missing,
 			}),
 		).rejects.toThrow(
-			`BLOCK_NOT_FOUND: No behaviour or repository with id ${missing}`,
+			`NOT_FOUND: No behaviour or repository with id ${missing}. Ids of other kinds (bots,`,
 		);
 	});
 });

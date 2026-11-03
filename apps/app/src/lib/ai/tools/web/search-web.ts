@@ -1,6 +1,6 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import type { MeteredWebSearch } from "./metered-web-search";
 import { type SearchWebOutput, searchWebModelOutput } from "./outputs";
 

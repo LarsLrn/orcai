@@ -1,32 +1,17 @@
 import { COMMON_ERROR_STATUS_MAP, ORPCError } from "@orpc/client";
-import {
-	type Tool,
-	type ToolExecuteFunction,
-	type ToolExecutionOptions,
-	type ToolResultPart,
-	tool,
-} from "ai";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import type { z } from "zod/v4";
 import {
 	type EntityKind,
 	isMissing,
 	wrongIdText,
 } from "@/lib/ai/tools/entity-kind";
-import { toolInputSchema } from "@/lib/ai/tools/input-schema";
-import type { AppRuntimeContext } from "@/lib/effect/runtime";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
 	type ProcedureClients,
 	Procedures,
 } from "@/lib/orpc/implementation/procedures";
-import {
-	AssistantToolError,
-	isRecord,
-	runAssistantTool,
-	toolErrorText,
-} from "../tool-error";
+import { AssistantToolError, isRecord, toolErrorText } from "../tool-error";
 import type { AssistantTurn } from "./turn-state";
 
 export interface ProcedureOptions {
@@ -157,58 +142,3 @@ export const mutation =
 				},
 			),
 		);
-
-/**
- * `tool()` with no tool context. Left to inference, a `toModelOutput` that
- * reads the output widens the context type and breaks the agent's settings.
- */
-export type NoToolContext = Record<string, never>;
-
-export type AssistantTool<Input, Output> = Tool<
-	Input,
-	Output,
-	NoToolContext
-> & {
-	execute: ToolExecuteFunction<Input, Output, NoToolContext>;
-};
-
-export const assistantTool = <Input, Output>({
-	inputSchema,
-	...definition
-}: Omit<AssistantTool<Input, Output>, "inputSchema"> & {
-	inputSchema: z.ZodType<Input>;
-}): AssistantTool<Input, Output> =>
-	// The SDK's conditional tool types do not resolve over a generic Input and Output.
-	tool({
-		...definition,
-		inputSchema: toolInputSchema(inputSchema),
-	} as unknown as AssistantTool<Input, Output>);
-
-/**
- * A tool whose call runs `run` with the call's abort signal. A failure or
- * defect becomes the tool error the model reads.
- */
-export const effectTool = <Input, Output>({
-	run,
-	inputSchema,
-	...definition
-}: {
-	description: string;
-	inputSchema: z.ZodType<Input>;
-	run: (
-		input: Input,
-		options: ToolExecutionOptions<NoToolContext>,
-	) => Effect.Effect<Output, unknown, AppRuntimeContext>;
-	toModelOutput?: (options: {
-		toolCallId: string;
-		input: Input;
-		output: Output;
-	}) => ToolResultPart["output"];
-}): AssistantTool<Input, Output> =>
-	// The SDK's conditional tool types do not resolve over a generic Input and Output.
-	({
-		...definition,
-		inputSchema: toolInputSchema(inputSchema),
-		execute: (input: Input, options: ToolExecutionOptions<NoToolContext>) =>
-			runAssistantTool(run(input, options), options.abortSignal),
-	}) as unknown as AssistantTool<Input, Output>;

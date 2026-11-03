@@ -2,7 +2,7 @@ import { docsMarkdownPath } from "@orcai/core";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { DocsConfig } from "@/lib/effect/services/config";
 import { readDocsModelOutput } from "./outputs";

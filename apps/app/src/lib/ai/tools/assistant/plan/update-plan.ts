@@ -1,6 +1,9 @@
 import type { z } from "zod/v4";
 import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
-import { type AssistantTool, assistantTool } from "../procedure-tool";
+import {
+	type AssistantTool,
+	assistantTool,
+} from "@/lib/ai/tools/tool-builders";
 import { planSchema } from "./plan";
 
 export type UpdatePlanOutput = {

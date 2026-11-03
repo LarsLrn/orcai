@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { GroupId, OrganizationInvitationId, UserId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
+import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { cookieName } from "@/paraglide/runtime";
@@ -54,6 +55,30 @@ const done = () =>
 		message: "",
 	});
 
+const unavailable = () =>
+	Effect.fail(
+		new ORPCError("SERVICE_UNAVAILABLE", {
+			message: "Permissions could not be checked right now. Try again shortly.",
+			data: {
+				reason: "PERMISSIONS_UNAVAILABLE",
+			},
+		}),
+	);
+
+const UNAVAILABLE_TEXT =
+	"PERMISSIONS_UNAVAILABLE: Permissions could not be checked right now. Try again shortly.";
+
+const handingOver = () =>
+	Effect.succeed({
+		success: true,
+		handedOver: {
+			receiverId: id(1),
+			bots: 2,
+			blocks: 1,
+			assets: 0,
+		},
+	});
+
 beforeEach(() => {
 	resetProcedures();
 	answers["group.find"] = find;
@@ -90,8 +115,11 @@ beforeEach(() => {
 });
 
 const { deleteGroups } = await import("./delete-group");
-const { removeMembers } = await import("./remove-members");
-const { cancelInvitations } = await import("./cancel-invitation");
+const { removeMembers, removeMembersTool } = await import("./remove-members");
+const { changeMemberRoleTool } = await import("./change-member-role");
+const { cancelInvitations, cancelInvitationTool } = await import(
+	"./cancel-invitation"
+);
 const { inviteMembers } = await import("./invite-members");
 const { createAssistantTurn } = await import("../turn-state");
 
@@ -106,6 +134,13 @@ const deps = (reqHeaders?: Headers) => ({
 });
 
 const callNames = () => procedureCalls.map(({ procedure }) => procedure);
+
+const execute = <Input, Output>(tool: Tool<Input, Output>, input: Input) =>
+	tool.execute?.(input, {
+		toolCallId: "call-1",
+		messages: [],
+		context: {},
+	});
 
 describe("deleteGroup", () => {
 	test("returns the names read before the delete", async () => {
@@ -209,16 +244,7 @@ describe("removeMembers", () => {
 	});
 
 	test("names the receiver of the content that moved", async () => {
-		answers["organizationMember.delete"] = () =>
-			Effect.succeed({
-				success: true,
-				handedOver: {
-					receiverId: id(1),
-					bots: 2,
-					blocks: 1,
-					assets: 0,
-				},
-			});
+		answers["organizationMember.delete"] = handingOver;
 
 		const output = await runPromise(
 			removeMembers(
@@ -261,6 +287,100 @@ describe("removeMembers", () => {
 			},
 		});
 	});
+
+	test("leaves out a receiver name it cannot find", async () => {
+		answers["organizationMember.delete"] = handingOver;
+		answers["organizationMember.find"] = ({ userId }: { userId: string }) =>
+			userId === id(1)
+				? Effect.fail(new ORPCError("NOT_FOUND"))
+				: findMember({
+						userId,
+					});
+
+		const output = await runPromise(
+			removeMembers(
+				deps(),
+				[
+					id(2) as UserId,
+				],
+				id(1) as UserId,
+			),
+		);
+
+		expect<unknown>(output).toMatchObject({
+			handedOver: {
+				receiver: {
+					id: id(1),
+					name: undefined,
+				},
+			},
+		});
+	});
+});
+
+describe("a receiver lookup that fails after the change", () => {
+	const lookupFails = () => {
+		answers["organizationMember.find"] = ({ userId }: { userId: string }) =>
+			userId === id(1)
+				? unavailable()
+				: findMember({
+						userId,
+					});
+	};
+	const appliedText = `${UNAVAILABLE_TEXT} The change was applied, only naming its receiver failed; check with listMembers before retrying.`;
+
+	test("removeMembers says the removal was applied and keeps its write", async () => {
+		answers["organizationMember.delete"] = handingOver;
+		lookupFails();
+		const tool = deps();
+
+		await expect(
+			execute(removeMembersTool(tool), {
+				userIds: [
+					id(2) as UserId,
+				],
+				receiverId: id(1) as UserId,
+			}),
+		).rejects.toThrow(appliedText);
+		expect(tool.turn.writes.all()).toEqual([
+			{
+				path: "organizationMember.delete",
+				handedOver: true,
+			},
+		]);
+	});
+
+	test("changeMemberRole says the role change was applied and keeps its write", async () => {
+		answers["organizationMember.update"] = () =>
+			Effect.succeed({
+				data: {
+					userId: id(2),
+					role: "viewer",
+				},
+				handedOver: {
+					receiverId: id(1),
+					bots: 1,
+					blocks: 0,
+					assets: 0,
+				},
+			});
+		lookupFails();
+		const tool = deps();
+
+		await expect(
+			execute(changeMemberRoleTool(tool), {
+				userId: id(2) as UserId,
+				role: "viewer",
+				receiverId: id(1) as UserId,
+			}),
+		).rejects.toThrow(appliedText);
+		expect(tool.turn.writes.all()).toEqual([
+			{
+				path: "organizationMember.update",
+				handedOver: true,
+			},
+		]);
+	});
 });
 
 describe("cancelInvitation", () => {
@@ -290,6 +410,21 @@ describe("cancelInvitation", () => {
 			"organizationInvitation.find",
 			"organizationInvitation.find",
 			"organizationInvitation.delete",
+		]);
+	});
+
+	test("reports permissions that cannot be checked and withdraws nothing", async () => {
+		answers["organizationInvitation.find"] = unavailable;
+
+		await expect(
+			execute(cancelInvitationTool(deps()), {
+				ids: [
+					id(3) as OrganizationInvitationId,
+				],
+			}),
+		).rejects.toThrow(UNAVAILABLE_TEXT);
+		expect(callNames()).toEqual([
+			"organizationInvitation.find",
 		]);
 	});
 });

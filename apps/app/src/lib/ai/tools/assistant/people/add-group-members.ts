@@ -1,9 +1,9 @@
 import { addGroupMembersInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";

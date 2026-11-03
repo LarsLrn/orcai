@@ -732,6 +732,42 @@ describe("block summaries", () => {
 	});
 });
 
+describe.each([
+	[
+		"updateBot",
+		"name",
+	],
+	[
+		"updateAsset",
+		"title",
+	],
+])("%s summary", (name, field) => {
+	test("names the target by its new name before it runs, then by the output", () => {
+		const pending = summaryOf(name, {
+			input: {
+				id: id(1),
+				[field]: "Renamed",
+			},
+		});
+
+		expect(pending.refs).toEqual([]);
+		expect(pending.line(lookedUp)).toContain("Renamed");
+
+		const finished = summaryOf(name, {
+			input: {
+				id: id(1),
+				[field]: "Renamed",
+			},
+			output: {
+				id: id(1),
+				[field]: "Saved",
+			},
+		});
+
+		expect(finished.line(lookedUp)).toContain("Saved");
+	});
+});
+
 describe("toolSummary", () => {
 	test("has no summary for a tool without a line or an unknown tool", () => {
 		expect(

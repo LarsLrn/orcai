@@ -1,6 +1,7 @@
 import { catalogueKindSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	listPage,
 	listPageSchema,
@@ -8,11 +9,7 @@ import {
 	listQuerySchema,
 	PAGING_NOTE,
 } from "../core/list-input";
-import {
-	type AssistantToolDeps,
-	callProcedure,
-	effectTool,
-} from "../procedure-tool";
+import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
 
 const findCatalogueInputSchema = z.strictObject({
 	query: listQuerySchema,
