@@ -21,8 +21,7 @@ const emailActionUrlSchema = z
 const base = z.object({
 	recipient: z.email(),
 	recipientName: z.string().optional(),
-	// Rows queued before emails were localised carry no locale.
-	locale: localeSchema.default("en"),
+	locale: localeSchema,
 });
 
 const organizationInvitedSchema = base.extend({

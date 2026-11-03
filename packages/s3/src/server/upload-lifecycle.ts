@@ -26,16 +26,11 @@ export const UPLOAD_LIFECYCLE_RULES = [
 	},
 ] as const satisfies LifecycleRule[];
 
-const RETIRED_RULE_IDS = [
-	"expire-data-exports",
-] as const;
+const MANAGED_RULE_IDS = new Set<string>(
+	UPLOAD_LIFECYCLE_RULES.map((rule) => rule.ID),
+);
 
-const MANAGED_RULE_IDS = new Set<string>([
-	...UPLOAD_LIFECYCLE_RULES.map((rule) => rule.ID),
-	...RETIRED_RULE_IDS,
-]);
-
-/** Idempotent: puts these rules on the uploads bucket, drops retired ones and keeps any other rule. */
+/** Idempotent: puts these rules on the uploads bucket and keeps any other rule. */
 export const ensureUploadLifecycle = Effect.gen(function* () {
 	yield* ensureBuckets;
 	const current = yield* sendGetBucketLifecycleConfigurationCommand({

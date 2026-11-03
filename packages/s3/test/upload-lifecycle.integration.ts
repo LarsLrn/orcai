@@ -23,7 +23,7 @@ const FOREIGN_RULE = {
 } as const;
 
 describe("ensureUploadLifecycle", () => {
-	test("replaces the rules of an earlier release and keeps rules it does not own", async () => {
+	test("replaces its own rule and keeps rules it does not own", async () => {
 		const ruleIds = await run(
 			Effect.gen(function* () {
 				yield* ensureUploadLifecycle;
@@ -36,16 +36,6 @@ describe("ensureUploadLifecycle", () => {
 						bucket: buckets.main.name,
 						rules: [
 							FOREIGN_RULE,
-							{
-								ID: "expire-data-exports",
-								Status: "Enabled",
-								Filter: {
-									Prefix: "exports/",
-								},
-								Expiration: {
-									Days: 1,
-								},
-							},
 							{
 								ID: "expire-staged-uploads",
 								Status: "Enabled",

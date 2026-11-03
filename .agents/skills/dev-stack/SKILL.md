@@ -100,10 +100,9 @@ An e2e slice owns `apps/e2e/tests/<area>/` and may add
 `apps/e2e/fixtures/<area>/`. The Playwright config, core fixtures, stack
 script, this skill, `AGENTS.md`, `README.md`, and public development docs are
 foundation files. Stop and report when a slice needs one of them changed.
-Create test data through fixtures. There are two direct-store exceptions,
-because no public API can produce their data: the serial outbox
-failure-injection spec and the chat migration spec, which seeds legacy rows
-in a throwaway database. Keep such setup isolated and clean it up reliably.
+Create test data through fixtures. There is one direct-store exception,
+because no public API can produce its data: the serial outbox
+failure-injection spec. Keep such setup isolated and clean it up reliably.
 
 Locate elements by role and accessible English name; add a test id only when
 no accessible name exists. Pin a current defect with `test.fail()` while
