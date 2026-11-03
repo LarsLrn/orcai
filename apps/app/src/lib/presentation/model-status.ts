@@ -1,12 +1,13 @@
-import type { Badge } from "@/components/ui/badge";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { m } from "@/paraglide/messages";
 
-export const getModelStatusLabel = (isDeprecated: boolean) =>
+export const modelStatusBadge = (isDeprecated: boolean): BadgeItem =>
 	isDeprecated
-		? m.common_status_deprecated_label()
-		: m.common_status_active_label();
-
-export const getModelStatusVariant = (
-	isDeprecated: boolean,
-): React.ComponentProps<typeof Badge>["variant"] =>
-	isDeprecated ? "warning" : "success";
+		? {
+				label: m.common_status_deprecated_label(),
+				variant: "warning",
+			}
+		: {
+				label: m.common_status_active_label(),
+				variant: "success",
+			};

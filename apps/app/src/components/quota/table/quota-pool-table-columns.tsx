@@ -7,6 +7,7 @@ import {
 	QuotaRemaining,
 } from "@/components/quota/quota-consumption";
 import { Badge } from "@/components/ui/badge";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
@@ -14,10 +15,7 @@ import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-pool-mutations";
 import { formatNumber } from "@/lib/presentation/format-number";
 import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
-import {
-	getQuotaPoolStatusLabel,
-	getQuotaPoolStatusVariant,
-} from "@/lib/presentation/quota-pool-status";
+import { quotaPoolStatusBadge } from "@/lib/presentation/quota-pool-status";
 import { m } from "@/paraglide/messages";
 
 type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
@@ -169,9 +167,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 		),
 		cell: ({ row }) => (
 			<div className="flex flex-wrap items-center gap-1">
-				<Badge variant={getQuotaPoolStatusVariant(row.original.isActive)}>
-					{getQuotaPoolStatusLabel(row.original.isActive)}
-				</Badge>
+				<StateBadge badge={quotaPoolStatusBadge(row.original.isActive)} />
 				{row.original.isDefault ? (
 					<Badge variant="outline">{m.quota_pools_table_default_badge()}</Badge>
 				) : null}

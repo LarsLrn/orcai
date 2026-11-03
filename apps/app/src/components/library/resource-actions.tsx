@@ -39,11 +39,13 @@ import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { useCatalogueRemoveMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { blockPaths } from "@/lib/navigation/block-paths";
+import type { ResourceKind } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 /** A bot, block or asset as its actions read it. */
 type ActionItem = {
 	ref: ResourceRef;
+	kind: ResourceKind;
 	capabilities: EntityCapabilities<ResourceRef["type"]> | undefined;
 	/** Set where the active organisation added the item from the catalogue. */
 	homeOrganization: HomeOrganization | null;
@@ -214,6 +216,7 @@ const useResourceActions = (
 						open={isAccessOpen}
 						onOpenChange={setIsAccessOpen}
 						resourceRef={item.ref}
+						kind={item.kind}
 						resourceName={item.name}
 						homeOrganization={item.homeOrganization}
 					/>
@@ -289,6 +292,7 @@ const useBotActions = (
 				type: "bot",
 				id: bot.id,
 			},
+			kind: "bot",
 			name: bot.name,
 			capabilities: bot.capabilities,
 			homeOrganization: bot.homeOrganization,
@@ -351,6 +355,7 @@ const useBlockActions = (
 				type: "block",
 				id: block.id,
 			},
+			kind: block.type,
 			name: block.name,
 			capabilities: block.capabilities,
 			homeOrganization: block.homeOrganization,
@@ -445,6 +450,7 @@ const useAssetActions = (
 				type: "asset",
 				id: asset.id,
 			},
+			kind: "asset",
 			name: asset.title,
 			capabilities: asset.capabilities,
 			homeOrganization: null,

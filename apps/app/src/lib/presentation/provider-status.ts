@@ -1,10 +1,13 @@
-import type { Badge } from "@/components/ui/badge";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { m } from "@/paraglide/messages";
 
-export const getProviderStatusLabel = (enabled: boolean) =>
-	enabled ? m.common_status_enabled_label() : m.common_status_disabled_label();
-
-export const getProviderStatusVariant = (
-	enabled: boolean,
-): React.ComponentProps<typeof Badge>["variant"] =>
-	enabled ? "success" : "secondary";
+export const providerStatusBadge = (enabled: boolean): BadgeItem =>
+	enabled
+		? {
+				label: m.common_status_enabled_label(),
+				variant: "success",
+			}
+		: {
+				label: m.common_status_disabled_label(),
+				variant: "secondary",
+			};

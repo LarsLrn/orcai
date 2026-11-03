@@ -1,5 +1,5 @@
 import { type PublicationStatus, publicationStatusSchema } from "@orcai/schema";
-import type { Badge } from "@/components/ui/badge";
+import type { BadgeItem } from "@/lib/presentation/badge-item";
 import { m } from "@/paraglide/messages";
 
 const publicationStatusLabels: Record<PublicationStatus, () => string> = {
@@ -7,16 +7,15 @@ const publicationStatusLabels: Record<PublicationStatus, () => string> = {
 	ready: m.common_status_ready_label,
 };
 
-export const getPublicationStatusLabel = (status: PublicationStatus) =>
-	publicationStatusLabels[status]();
-
 export const getPublicationStatusOptions = () =>
 	publicationStatusSchema.options.map((status) => ({
 		value: status,
-		label: getPublicationStatusLabel(status),
+		label: publicationStatusLabels[status](),
 	}));
 
-export const getPublicationStatusVariant = (
+export const publicationStatusBadge = (
 	status: PublicationStatus,
-): React.ComponentProps<typeof Badge>["variant"] =>
-	status === "ready" ? "success" : "outline";
+): BadgeItem => ({
+	label: publicationStatusLabels[status](),
+	variant: status === "ready" ? "success" : "outline",
+});

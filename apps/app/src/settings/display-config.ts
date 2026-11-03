@@ -14,12 +14,6 @@ const resourceRoleDescriptions: Record<ResourceGrantRole, () => string> = {
 	manager: m.access_role_manager_description,
 };
 
-const resourceTypeLabels: Record<ResourceType, () => string> = {
-	bot: m.access_resource_bot_label,
-	block: m.access_resource_block_label,
-	asset: m.access_resource_asset_label,
-};
-
 const resourceAccessHints: Record<ResourceType, () => string> = {
 	bot: m.access_resource_bot_hint,
 	block: m.access_resource_block_hint,
@@ -41,9 +35,6 @@ export const getResourceRoleOptions = () =>
 		label: resourceRoleLabels[role](),
 		description: resourceRoleDescriptions[role](),
 	}));
-
-export const getResourceTypeLabel = (type: ResourceType) =>
-	resourceTypeLabels[type]();
 
 export const getResourceAccessHint = (type: ResourceType) =>
 	resourceAccessHints[type]();

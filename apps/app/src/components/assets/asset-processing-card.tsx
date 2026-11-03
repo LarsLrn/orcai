@@ -1,6 +1,5 @@
 import { type Asset, canPrepareAgain } from "@orcai/schema";
 import { RotateCwIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,6 +9,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { InfoDot } from "@/components/ui/composed/info-dot";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { usePrepareAssetAgainMutation } from "@/hooks/mutations/use-asset-mutations";
 import { getPipelineFailureDescription } from "@/lib/presentation/asset-state";
 import {
@@ -34,12 +34,6 @@ const AssetProcessingCard = ({
 }) => {
 	const { mutate: prepareAssetAgain, isPending: preparingAgain } =
 		usePrepareAssetAgainMutation();
-	const {
-		label,
-		variant,
-		icon: Icon,
-		className: badgeClassName,
-	} = processingStatusBadge(asset.processingStatus);
 	const failure =
 		asset.processingStatus === "failed" ? asset.processingFailure : null;
 
@@ -57,10 +51,7 @@ const AssetProcessingCard = ({
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="flex items-center gap-2">
-				<Badge variant={variant} className={badgeClassName}>
-					{Icon ? <Icon /> : null}
-					{label}
-				</Badge>
+				<StateBadge badge={processingStatusBadge(asset.processingStatus)} />
 				{canEdit &&
 					asset.processingStatus === "failed" &&
 					canPrepareAgain(failure ?? "other", asset.fileType) && (

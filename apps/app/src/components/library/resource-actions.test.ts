@@ -57,6 +57,7 @@ const actionKeys = (
 		resourceActions(
 			{
 				ref,
+				kind: ref.type === "block" ? "behaviour" : ref.type,
 				capabilities,
 				homeOrganization,
 				editLink: {

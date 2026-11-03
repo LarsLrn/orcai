@@ -7,7 +7,7 @@ import type {
 import { LoaderCircleIcon } from "lucide-react";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { useBlockActions } from "@/components/library/resource-actions";
-import { Badge } from "@/components/ui/badge";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {
 	Tile,
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/shell/tile";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
-import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
+import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -112,9 +112,7 @@ const BlockTileContent = ({
 					{repository ? <span>{repository.label}</span> : null}
 					{repository ? <TileBadges badges={repository.badges} /> : null}
 					{block.status === "draft" ? (
-						<Badge variant="outline">
-							{getPublicationStatusLabel("draft")}
-						</Badge>
+						<StateBadge badge={publicationStatusBadge("draft")} />
 					) : null}
 				</TileFooter>
 			</TileBody>

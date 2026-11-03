@@ -16,13 +16,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { orpc } from "@/lib/orpc/orpc";
+import type { ResourceKind } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
-import { getResourceTypeLabel } from "@/settings/display-config";
 
 type AccessDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	resourceRef: ResourceRef;
+	kind: ResourceKind;
 	resourceName?: string;
 	/** Set when the active organisation added the resource from the catalogue. */
 	homeOrganization?: HomeOrganization | null;
@@ -32,10 +33,10 @@ const AccessDialog = ({
 	open,
 	onOpenChange,
 	resourceRef,
+	kind,
 	resourceName,
 	homeOrganization,
 }: AccessDialogProps) => {
-	const resource = getResourceTypeLabel(resourceRef.type);
 	const botEditor = useQuery(
 		orpc.bot.findEditor.queryOptions({
 			input:
@@ -55,11 +56,11 @@ const AccessDialog = ({
 					<DialogDescription>
 						{resourceName
 							? m.access_dialog_description_named({
-									resource,
+									kind,
 									name: resourceName,
 								})
 							: m.access_dialog_description({
-									resource,
+									kind,
 								})}
 					</DialogDescription>
 				</DialogHeader>

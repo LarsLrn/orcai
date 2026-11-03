@@ -24,6 +24,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { Separator } from "@/components/ui/separator";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
@@ -36,15 +37,9 @@ import {
 import { orpc } from "@/lib/orpc/orpc";
 import { formatNumber, formatPrice } from "@/lib/presentation/format-number";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
-import {
-	getModelStatusLabel,
-	getModelStatusVariant,
-} from "@/lib/presentation/model-status";
+import { modelStatusBadge } from "@/lib/presentation/model-status";
 import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
-import {
-	getProviderStatusLabel,
-	getProviderStatusVariant,
-} from "@/lib/presentation/provider-status";
+import { providerStatusBadge } from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/models/$modelId/")({
@@ -113,14 +108,12 @@ function RouteComponent() {
 				<PageTitle>{model.name}</PageTitle>
 				<PageDescription>{model.description}</PageDescription>
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={getModelStatusVariant(model.isDeprecated)}>
-						{model.isDeprecated ? (
-							<BadgeX className="size-3" />
-						) : (
-							<BadgeCheck className="size-3" />
-						)}
-						{getModelStatusLabel(model.isDeprecated)}
-					</Badge>
+					<StateBadge
+						badge={{
+							...modelStatusBadge(model.isDeprecated),
+							icon: model.isDeprecated ? BadgeX : BadgeCheck,
+						}}
+					/>
 					<Badge variant="outline">
 						<SparklesIcon className="size-3" />
 						{m.models_detail_capability_count_badge({
@@ -296,14 +289,12 @@ function RouteComponent() {
 										{provider.endpoint ?? m.providers_detail_endpoint_default()}
 									</p>
 								</div>
-								<Badge variant={getProviderStatusVariant(provider.enabled)}>
-									{provider.enabled ? (
-										<BadgeCheck className="h-3 w-3" />
-									) : (
-										<BadgeX className="h-3 w-3" />
-									)}
-									{getProviderStatusLabel(provider.enabled)}
-								</Badge>
+								<StateBadge
+									badge={{
+										...providerStatusBadge(provider.enabled),
+										icon: provider.enabled ? BadgeCheck : BadgeX,
+									}}
+								/>
 							</div>
 							<Separator />
 							<Link

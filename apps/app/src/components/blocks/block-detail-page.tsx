@@ -7,6 +7,7 @@ import { RepositoryConfigCard } from "@/components/blocks/repository/repository-
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { useBlockActions } from "@/components/library/resource-actions";
 import { Badge } from "@/components/ui/badge";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
 	DetailHeader,
@@ -19,7 +20,7 @@ import {
 import { Page, PageContent } from "@/components/ui/shell/page";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
-import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
+import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 
@@ -68,9 +69,7 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 					<DetailHeaderMeta>
 						<Badge variant={badge}>{label()}</Badge>
 						{draft ? (
-							<Badge variant="outline">
-								{getPublicationStatusLabel("draft")}
-							</Badge>
+							<StateBadge badge={publicationStatusBadge("draft")} />
 						) : null}
 						<ResourceProvenance
 							owner={block.data.owner}

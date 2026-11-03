@@ -52,7 +52,7 @@ describe("assetTileState", () => {
 			).badges,
 		).toMatchObject([
 			{
-				label: m.processing_status_pending_label(),
+				label: m.asset_state_queued_label(),
 				variant: "info",
 			},
 		]);
@@ -64,7 +64,7 @@ describe("assetTileState", () => {
 			).badges,
 		).toMatchObject([
 			{
-				label: m.processing_status_active_label(),
+				label: m.asset_state_processing_label(),
 				variant: "processing",
 			},
 		]);
@@ -106,7 +106,7 @@ describe("assetTileState", () => {
 		).toMatchObject({
 			badges: [
 				{
-					label: m.processing_status_failed_label(),
+					label: m.asset_state_failed_label(),
 					variant: "danger",
 				},
 			],
