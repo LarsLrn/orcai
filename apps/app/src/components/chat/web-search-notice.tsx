@@ -1,8 +1,8 @@
 import type { ProviderId } from "@orcai/core";
 import { webSearchSource } from "@orcai/core";
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
 import { GlobeIcon } from "lucide-react";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -17,9 +17,6 @@ export const WebSearchNotice = ({
 	botId?: string | null;
 	providerId?: ProviderId | null;
 }) => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
 	const { data: bot } = useQuery(
 		orpc.bot.find.queryOptions({
 			input: botId
@@ -30,17 +27,7 @@ export const WebSearchNotice = ({
 		}),
 	);
 	const enabled = bot?.data.features.webSearch !== undefined;
-	const organizationId = auth.session.activeOrganizationId;
-	const { data: organization } = useQuery(
-		orpc.organization.find.queryOptions({
-			input:
-				enabled && organizationId
-					? {
-							id: organizationId,
-						}
-					: skipToken,
-		}),
-	);
+	const { data: organization } = useActiveOrganization();
 	const needsModel = organization?.data.webSearchMode === "native";
 	const { data: provider } = useQuery(
 		orpc.provider.find.queryOptions({

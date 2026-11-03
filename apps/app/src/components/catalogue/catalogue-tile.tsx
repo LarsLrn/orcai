@@ -1,6 +1,5 @@
 import type { CatalogueEntry } from "@orcai/schema";
 import { botContentsLabel, botModelHintBadge } from "@/components/bot/bot-tile";
-import { useActiveOrganizationName } from "@/components/catalogue/catalogue-adder";
 import { useCatalogueOrigin } from "@/components/catalogue/catalogue-browse";
 import { HomeOrganizationName } from "@/components/catalogue/resource-provenance";
 import {
@@ -15,6 +14,7 @@ import {
 	TileProvenance,
 	TileTitle,
 } from "@/components/ui/shell/tile";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
@@ -36,7 +36,7 @@ const catalogueContentsLabel = (
 /** An entry on a catalogue page: band, the source organisation and the "Added" mark. */
 const CatalogueTile = ({ entry }: { entry: CatalogueEntry }) => {
 	const { Icon, well, band } = RESOURCE_KINDS[entry.kind];
-	const organisation = useActiveOrganizationName();
+	const organisation = useActiveOrganization().data?.data.name;
 	const from = useCatalogueOrigin();
 	const added = entry.state === "added";
 	const modelHint = botModelHintBadge(entry.modelHint);

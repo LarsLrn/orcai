@@ -1,4 +1,3 @@
-import { skipToken, useQuery } from "@tanstack/react-query";
 import { useHydrated } from "@tanstack/react-router";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import {
@@ -18,22 +17,14 @@ import {
 import { UserAvatar } from "@/components/users/user-avatar";
 import { useSignOut } from "@/hooks/actions/use-sign-out";
 import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
-import { orpc } from "@/lib/orpc/orpc";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { m } from "@/paraglide/messages";
 import { UserMenuActions } from "./user-menu-actions";
 
 const NavUser = () => {
 	const { signOut } = useSignOut();
 	const { auth } = useAuthenticatedRouteContext();
-	const { data: activeOrganization } = useQuery(
-		orpc.organization.find.queryOptions({
-			input: auth.session.activeOrganizationId
-				? {
-						id: auth.session.activeOrganizationId,
-					}
-				: skipToken,
-		}),
-	);
+	const { data: activeOrganization } = useActiveOrganization();
 	// The server renders the query as pending even when its data reaches the
 	// browser before hydration, so the organisation waits for hydration.
 	const hydrated = useHydrated();

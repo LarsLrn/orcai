@@ -19,7 +19,6 @@ import {
 	BotModelStep,
 	type BotModelStepHandle,
 } from "@/components/bot/setup/bot-model-step";
-import { useActiveOrganizationName } from "@/components/catalogue/catalogue-adder";
 import { catalogueReturnLink } from "@/components/catalogue/catalogue-browse";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -29,6 +28,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
@@ -243,7 +243,7 @@ export const CatalogueAddWizard = ({
 		}),
 	);
 	const entry = data.data;
-	const organisation = useActiveOrganizationName() ?? "";
+	const organisation = useActiveOrganization().data?.data.name ?? "";
 	const steps = stepsFor(entry);
 	const [index, setIndex] = useState(0);
 	const [saving, setSaving] = useState(false);

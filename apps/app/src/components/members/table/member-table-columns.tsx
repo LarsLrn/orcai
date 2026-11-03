@@ -1,6 +1,5 @@
-import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { UserWithOrganizationRole } from "@orcai/schema";
-import { Link, useRouteContext } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
 import { RemoveMembersDialog } from "@/components/members/remove-members-dialog";
@@ -10,7 +9,7 @@ import type { DataTableFeatures } from "@/components/ui/data-table/data-table-fe
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { UserAvatar } from "@/components/users/user-avatar";
-import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { useMembershipControl } from "@/hooks/authz/use-membership-control";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
 import { m } from "@/paraglide/messages";
 
@@ -20,16 +19,7 @@ const columnHelper = createColumnHelper<
 >();
 
 const useMemberRowActions = (member: UserWithOrganizationRole) => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-	const { data: capabilities } = useOrganizationCapabilities();
-	const canManageOrganization =
-		capabilities?.data.capabilities.manage_organization === true;
-	const canRemoveMember =
-		member.id !== auth.user.id &&
-		(member.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
-			canManageOrganization);
+	const canRemoveMember = useMembershipControl().canManageMember(member);
 	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
 
 	return {

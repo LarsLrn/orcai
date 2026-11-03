@@ -1,94 +1,21 @@
-import { DB, dbSchema } from "@orcai/db";
-import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
-import { and, eq } from "drizzle-orm";
-import * as Effect from "effect/Effect";
 import { Header } from "@/components/app/header";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
 import { EmbeddingsSetupBanner } from "@/components/instance/settings/embeddings-setup-banner";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { useUmami } from "@/hooks/use-umami";
-import { auth } from "@/lib/auth/auth";
 import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
 import { ensureSignedIn } from "@/lib/authz/route-guards";
-import { runPromise } from "@/lib/effect/runtime";
-import { recordRequestUser } from "@/lib/observability/request-span";
-import { orpc } from "@/lib/orpc/orpc";
-
-/** Recheck membership and clear an obsolete active organisation. */
-const hasActiveOrganizationMembership = createServerFn({
-	method: "GET",
-}).handler(async () => {
-	const { headers } = getRequest();
-	const sessionData = await auth.api.getSession({
-		headers,
-	});
-	if (sessionData) recordRequestUser(sessionData.user.id);
-	if (!sessionData?.session.activeOrganizationId) {
-		return false;
-	}
-
-	const { session } = sessionData;
-	const organizationId = organizationIdSchema.parse(
-		session.activeOrganizationId,
-	);
-	const userId = userIdSchema.parse(sessionData.user.id);
-
-	return await runPromise(
-		Effect.gen(function* () {
-			const db = yield* DB;
-
-			const membership = yield* db.query.member.findFirst({
-				where: {
-					organizationId: {
-						eq: organizationId,
-					},
-					userId: {
-						eq: userId,
-					},
-				},
-				columns: {
-					id: true,
-				},
-			});
-
-			if (membership) {
-				return true;
-			}
-
-			yield* db
-				.update(dbSchema.session)
-				.set({
-					activeOrganizationId: null,
-				})
-				.where(
-					and(
-						eq(dbSchema.session.id, session.id),
-						eq(dbSchema.session.activeOrganizationId, organizationId),
-					),
-				);
-
-			return false;
-		}),
-	);
-});
 
 export const Route = createFileRoute("/app")({
-	beforeLoad: async ({ context }) => {
+	beforeLoad: ({ context }) => {
 		const auth = ensureSignedIn(context.auth);
+		const { activeOrganizationId } = auth.session;
 
-		if (!auth.session.activeOrganizationId) {
-			throw redirect({
-				to: "/select-organization",
-				statusCode: 302,
-			});
-		}
-
-		if (!(await hasActiveOrganizationMembership())) {
+		if (!activeOrganizationId) {
 			throw redirect({
 				to: "/select-organization",
 				statusCode: 302,
@@ -100,9 +27,7 @@ export const Route = createFileRoute("/app")({
 				...auth,
 				session: {
 					...auth.session,
-					activeOrganizationId: organizationIdSchema.parse(
-						auth.session.activeOrganizationId,
-					),
+					activeOrganizationId,
 				},
 			},
 		};
@@ -112,11 +37,7 @@ export const Route = createFileRoute("/app")({
 	loader: async ({ context: { queryClient, auth } }) => {
 		await Promise.allSettled([
 			queryClient.query(
-				orpc.organization.find.queryOptions({
-					input: {
-						id: auth.session.activeOrganizationId,
-					},
-				}),
+				activeOrganizationQuery(auth.session.activeOrganizationId),
 			),
 			queryClient.query(organizationCapabilitiesQuery()),
 		]);
@@ -129,10 +50,7 @@ function RouteComponent() {
 	const { auth } = Route.useRouteContext();
 	const { identifyUser } = useUmami();
 
-	identifyUser(auth.user.id, {
-		email: auth.user.email,
-		name: auth.user.name,
-	});
+	identifyUser(auth.user);
 
 	return (
 		<SidebarProvider>

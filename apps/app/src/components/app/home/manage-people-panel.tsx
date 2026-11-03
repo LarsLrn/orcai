@@ -11,6 +11,7 @@ import {
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
@@ -98,11 +99,7 @@ const ManagePeoplePanel = () => {
 
 	const [organization, groups] = useSuspenseQueries({
 		queries: [
-			orpc.organization.find.queryOptions({
-				input: {
-					id: auth.session.activeOrganizationId,
-				},
-			}),
+			activeOrganizationQuery(auth.session.activeOrganizationId),
 			orpc.group.list.queryOptions({
 				input: COUNT_INPUT,
 			}),

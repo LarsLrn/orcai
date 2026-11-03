@@ -1,7 +1,7 @@
 import type { BotId } from "@orcai/core";
 import type { BotSetup } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useRouteContext } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { MODEL_STEP_INDEX } from "@/components/authoring/bot-editor-steps";
 import { BotModelStep } from "@/components/bot/setup/bot-model-step";
@@ -17,6 +17,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -116,16 +117,7 @@ const BotSetupSummary = ({
 	/** The active organisation added the bot from the catalogue. */
 	added: boolean;
 }) => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-	const { data: organization } = useQuery(
-		orpc.organization.find.queryOptions({
-			input: {
-				id: auth.session.activeOrganizationId,
-			},
-		}),
-	);
+	const { data: organization } = useActiveOrganization();
 	const { data: found } = useQuery(
 		orpc.botSetup.find.queryOptions({
 			input: {

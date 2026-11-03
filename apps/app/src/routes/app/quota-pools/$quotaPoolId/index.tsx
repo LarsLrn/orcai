@@ -68,7 +68,6 @@ import { formatNumber } from "@/lib/presentation/format-number";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
 import { quotaPoolStatusBadge } from "@/lib/presentation/quota-pool-status";
-import { orNotFound } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
 const updateBudgetFormSchema = z.object({
@@ -115,24 +114,12 @@ export const Route = createFileRoute("/app/quota-pools/$quotaPoolId/")({
 		params: { quotaPoolId },
 		deps,
 	}) => {
-		await Promise.all([
-			orNotFound(
-				queryClient.query(
-					orpc.quotaPool.find.queryOptions({
-						input: {
-							id: quotaPoolId,
-						},
-						staleTime: "static",
-					}),
-				),
-			),
-			queryClient.query(
-				orpc.quotaPool.listEvents.queryOptions({
-					input: eventsInput(quotaPoolId, deps),
-					staleTime: "static",
-				}),
-			),
-		]);
+		await queryClient.query(
+			orpc.quotaPool.listEvents.queryOptions({
+				input: eventsInput(quotaPoolId, deps),
+				staleTime: "static",
+			}),
+		);
 	},
 	component: RouteComponent,
 });

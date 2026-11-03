@@ -14,10 +14,7 @@ import {
 	addBlocksLabel,
 	useAddBlocksAction,
 } from "@/components/catalogue/add-blocks-action";
-import {
-	useActiveOrganizationName,
-	useCatalogueAdder,
-} from "@/components/catalogue/catalogue-adder";
+import { useCatalogueAdder } from "@/components/catalogue/catalogue-adder";
 import { HomeOrganizationName } from "@/components/catalogue/resource-provenance";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -41,6 +38,7 @@ import { Page, PageContent } from "@/components/ui/shell/page";
 import { TileMark } from "@/components/ui/shell/tile";
 import { ResourceOwner } from "@/components/users/resource-owner";
 import { useCatalogueAddMutation } from "@/hooks/mutations/use-catalogue-mutations";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { libraryLink } from "@/lib/navigation/library-link";
@@ -281,7 +279,7 @@ export const CatalogueEntryPage = ({
 	);
 	const entry = data.data;
 	const adder = useCatalogueAdder();
-	const organisation = useActiveOrganizationName();
+	const organisation = useActiveOrganization().data?.data.name;
 	const { mutateAsync: add, isPending } = useCatalogueAddMutation({
 		name: entry.name,
 		organisation: organisation ?? "",
