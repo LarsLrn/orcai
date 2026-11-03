@@ -2,8 +2,10 @@ import type { BlockId } from "@orcai/core";
 import type { Block, BlockType } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useDebounceValue } from "usehooks-ts";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	DialogSelect,
 	DialogSelectContent,
@@ -13,6 +15,7 @@ import {
 	DialogSelectPagination,
 	DialogSelectSearch,
 } from "@/components/ui/composed/dialog-select";
+import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import {
 	getPublicationStatusLabel,
@@ -73,6 +76,7 @@ const BlockSelectorDialog = ({
 	className?: string;
 }) => {
 	const [search, setSearch] = useState("");
+	const [debouncedSearch] = useDebounceValue(search, 300);
 	const [page, setPage] = useState(0);
 
 	useEffect(() => {
@@ -84,95 +88,27 @@ const BlockSelectorDialog = ({
 		open,
 	]);
 
-	const readyBlocksQuery = useQuery(
+	const blocksQuery = useQuery(
 		orpc.block.list.queryOptions({
 			input: {
-				pageIndex: 0,
-				pageSize: 200,
+				pageIndex: page,
+				pageSize: BLOCK_PAGE_SIZE,
 				filters: {
 					type,
-					status: "ready",
+					status: includeDrafts ? "all" : "ready",
+					search: debouncedSearch.trim() || undefined,
 				},
 			},
 			enabled: open,
 		}),
 	);
 
-	const draftBlocksQuery = useQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 200,
-				filters: {
-					type,
-					status: "draft",
-				},
-			},
-			enabled: open && includeDrafts,
-		}),
-	);
-
-	const readyBlocks = readyBlocksQuery.data?.data ?? [];
-	const draftBlocks = includeDrafts ? (draftBlocksQuery.data?.data ?? []) : [];
-	const blocks = useMemo(() => {
-		if (!includeDrafts) {
-			return readyBlocks;
-		}
-
-		const seen = new Set<string>();
-		const merged: Block[] = [];
-
-		for (const block of [
-			...readyBlocks,
-			...draftBlocks,
-		]) {
-			if (!seen.has(block.id)) {
-				seen.add(block.id);
-				merged.push(block);
-			}
-		}
-
-		return merged;
-	}, [
-		draftBlocks,
-		includeDrafts,
-		readyBlocks,
-	]);
-
-	const filteredBlocks = useMemo(() => {
-		const query = search.trim().toLowerCase();
-		if (!query) {
-			return blocks;
-		}
-		return blocks.filter((block) => block.name.toLowerCase().includes(query));
-	}, [
-		blocks,
-		search,
-	]);
-
-	const pageCount = Math.max(
-		1,
-		Math.ceil(filteredBlocks.length / BLOCK_PAGE_SIZE),
-	);
-	const currentPage = Math.min(page, pageCount - 1);
-	const pagedBlocks = filteredBlocks.slice(
-		currentPage * BLOCK_PAGE_SIZE,
-		(currentPage + 1) * BLOCK_PAGE_SIZE,
+	const blocks = blocksQuery.isError ? [] : (blocksQuery.data?.data ?? []);
+	const pageCount = Math.ceil(
+		(blocksQuery.data?.rowCount ?? 0) / BLOCK_PAGE_SIZE,
 	);
 	const selectedSet = new Set(selectedIds);
 	const disabledSet = new Set(disabledIds);
-	const blockById = useMemo(
-		() =>
-			new Map(
-				blocks.map((block) => [
-					block.id,
-					block,
-				]),
-			),
-		[
-			blocks,
-		],
-	);
 	const Icon = iconByType[type];
 	const copy = getCopy(type);
 
@@ -180,7 +116,7 @@ const BlockSelectorDialog = ({
 		<DialogSelect
 			value={null}
 			onValueChange={(blockId) => {
-				const block = blockById.get((blockId as BlockId) ?? "");
+				const block = blocks.find((entry) => entry.id === blockId);
 				if (!block) {
 					return;
 				}
@@ -208,14 +144,9 @@ const BlockSelectorDialog = ({
 					placeholder={searchPlaceholder ?? copy.searchPlaceholder}
 				/>
 				<DialogSelectList
-					loading={
-						readyBlocksQuery.isLoading ||
-						readyBlocksQuery.isFetching ||
-						(includeDrafts &&
-							(draftBlocksQuery.isLoading || draftBlocksQuery.isFetching))
-					}
+					loading={blocksQuery.isLoading || blocksQuery.isFetching}
 				>
-					{pagedBlocks.map((block) => {
+					{blocks.map((block) => {
 						const isSelected = selectedSet.has(block.id);
 						const isDisabled = isSelected || disabledSet.has(block.id);
 
@@ -247,16 +178,26 @@ const BlockSelectorDialog = ({
 							/>
 						);
 					})}
-					{!readyBlocksQuery.isLoading &&
-						!readyBlocksQuery.isFetching &&
-						(!includeDrafts ||
-							(!draftBlocksQuery.isLoading && !draftBlocksQuery.isFetching)) &&
-						pagedBlocks.length === 0 && (
+					{blocksQuery.isError ? (
+						<DialogSelectEmpty role="alert">
+							{describeError(blocksQuery.error)}
+							<Button
+								variant="outline"
+								size="sm"
+								className="mt-3"
+								onClick={() => void blocksQuery.refetch()}
+							>
+								{m.common_retry_button()}
+							</Button>
+						</DialogSelectEmpty>
+					) : (
+						blocks.length === 0 && (
 							<DialogSelectEmpty>{emptyText ?? copy.empty}</DialogSelectEmpty>
-						)}
+						)
+					)}
 				</DialogSelectList>
 				<DialogSelectPagination
-					page={currentPage}
+					page={page}
 					pageCount={pageCount}
 					onPageChange={setPage}
 				/>
