@@ -1,5 +1,5 @@
 import type { ActivityRunId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import type { ListAssetsInput, PipelineStatus } from "@orcai/schema";
 import {
 	and,
@@ -19,7 +19,6 @@ import { readableIds, requireReadable } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
 import type { TileQuery } from "@/lib/library/tile-details";
-import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 const assetOrder = {

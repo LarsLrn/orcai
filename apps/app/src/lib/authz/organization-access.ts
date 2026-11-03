@@ -14,8 +14,8 @@ import {
 } from "@orcai/spice-db";
 import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { permissionDenied } from "@/lib/authz/permission-denied";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { permissionDenied } from "@/lib/orpc/middlewares/permission/core";
 
 /** Whether the role holds the permission; every organisation permission derives from a role. */
 export const roleGrants = (

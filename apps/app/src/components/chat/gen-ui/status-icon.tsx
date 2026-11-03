@@ -6,11 +6,7 @@ import {
 	type LucideIcon,
 	TriangleAlertIcon,
 } from "lucide-react";
-import {
-	type Status,
-	statusLabel,
-	tally,
-} from "@/components/chat/gen-ui/status";
+import { type Status, statusLabel, tally } from "@/lib/ai/tools/gen-ui/status";
 import { cn } from "@/lib/utils";
 
 export const statusTone: Record<Status, string> = {

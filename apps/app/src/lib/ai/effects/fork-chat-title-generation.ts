@@ -1,10 +1,8 @@
 import {
 	chatTitlePrompt,
 	generateTextWithQuota,
-	getChatTitleSourceText,
 	type MeteredModel,
 	sanitizeGeneratedChatTitle,
-	shouldGenerateChatTitle,
 	titleCallSettings,
 	utilityModel,
 } from "@orcai/ai";
@@ -15,6 +13,33 @@ import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 
 const TITLE_GENERATION_TIMEOUT_MS = 15_000;
+
+const isTextPart = (
+	part: unknown,
+): part is {
+	type: "text";
+	text: string;
+} =>
+	typeof part === "object" &&
+	part !== null &&
+	"type" in part &&
+	part.type === "text" &&
+	"text" in part &&
+	typeof part.text === "string";
+
+const shouldGenerateChatTitle = (title: string | null | undefined) =>
+	title == null || title.trim() === "";
+
+const getChatTitleSourceText = (message: { parts: unknown[] }) => {
+	const text = message.parts
+		.filter(isTextPart)
+		.map((part) => part.text)
+		.join(" ")
+		.replaceAll(/\s+/g, " ")
+		.trim();
+
+	return text.length > 0 ? text : null;
+};
 
 interface TitleMessage {
 	id: string;

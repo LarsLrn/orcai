@@ -8,7 +8,6 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
-import { paginationSearchShape } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -21,6 +20,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
+import { paginationSearchShape } from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

@@ -10,10 +10,6 @@ import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
-	dataTableQuerySchema,
-	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
-import {
 	DataTableToolbar,
 	DataTableToolbarActions,
 } from "@/components/ui/data-table/data-table-toolbar";
@@ -25,6 +21,10 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import {
+	dataTableQuerySchema,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { proseField } from "@/components/chat/gen-ui/prose";
+import { proseField } from "@/lib/ai/tools/gen-ui/prose";
 
 export const severitySchema = z.enum([
 	"error",

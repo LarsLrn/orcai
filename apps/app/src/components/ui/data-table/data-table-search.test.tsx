@@ -14,9 +14,9 @@ import {
 } from "@testing-library/react";
 import { useState } from "react";
 import { z } from "zod/v4";
+import { dataTableQuerySchema } from "@/lib/browse/data-table-search-params";
 import { m } from "@/paraglide/messages";
 import { DataTableSearch } from "./data-table-search";
-import { dataTableQuerySchema } from "./data-table-search-params";
 
 const DEBOUNCE_MS = 20;
 const LOADER_MS = 60;

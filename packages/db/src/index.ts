@@ -6,6 +6,9 @@ export {
 } from "./advisory-lock";
 export { DbConfigLive, DbConfigService, loadDbConfigSync } from "./config";
 export { retryDeadlocks } from "./deadlock-retry";
+export { buildOrderBy, type SortExpression } from "./order-by";
+export { ownerColumns } from "./owner-columns";
+export { pageOf } from "./paging";
 export { makePgConnectionString } from "./pg-connection-string";
 export { findLatestMigration, probeDatabase } from "./probe";
 export {
@@ -29,3 +32,4 @@ export {
 	PgClientLive,
 	PgClientServiceLive,
 } from "./service";
+export { uniqueViolationConstraint } from "./sql-failure";

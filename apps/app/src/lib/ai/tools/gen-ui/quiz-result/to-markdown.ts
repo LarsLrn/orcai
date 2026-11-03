@@ -1,6 +1,6 @@
-import { indent } from "@/components/chat/gen-ui/markdown";
-import type { QuizResultView } from "@/components/chat/gen-ui/quiz-result/read";
-import { verdictLabel } from "@/components/chat/gen-ui/quiz-result/verdict";
+import { indent } from "@/lib/ai/tools/gen-ui/markdown";
+import type { QuizResultView } from "@/lib/ai/tools/gen-ui/quiz-result/read";
+import { verdictLabel } from "@/lib/ai/tools/gen-ui/quiz-result/verdict";
 import type { QuizResult } from "@/lib/ai/tools/questions/quiz-result";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";

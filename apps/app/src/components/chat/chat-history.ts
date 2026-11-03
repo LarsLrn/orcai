@@ -1,15 +1,13 @@
 import type { ChatId } from "@orcai/core";
 import { downloadConversation } from "@/components/ai-elements/conversation";
 import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import {
+	type ChatAgentUIMessage,
+	toChatAgentMessages,
+} from "@/lib/ai/types/chat-agent-message";
 import { client } from "@/lib/orpc/orpc";
 
 const EXPORT_PAGE_SIZE = 100;
-
-/** Stored parts are untyped; the chat's UI message type is inferred from its tools. */
-export const toChatAgentMessages = (
-	messages: unknown[],
-): ChatAgentUIMessage[] => messages as ChatAgentUIMessage[];
 
 const fetchWholeChat = async ({
 	chatId,

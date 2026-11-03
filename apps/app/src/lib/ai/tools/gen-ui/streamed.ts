@@ -1,4 +1,4 @@
-import { type Status, statusSchema } from "@/components/chat/gen-ui/status";
+import { type Status, statusSchema } from "@/lib/ai/tools/gen-ui/status";
 
 // Streamed input is unvalidated, so every field may be missing or malformed.
 

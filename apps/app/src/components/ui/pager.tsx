@@ -7,22 +7,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptionPicker } from "@/components/ui/composed/option-picker";
+import { PAGE_SIZES } from "@/lib/browse/data-table-search-params";
 import { m } from "@/paraglide/messages";
-
-const PAGE_SIZES = [
-	20,
-	30,
-	50,
-	100,
-	200,
-];
 
 const PAGE_SIZE_OPTIONS = PAGE_SIZES.map((pageSize) => ({
 	value: `${pageSize}`,
 	label: `${pageSize}`,
 }));
-
-const DEFAULT_PAGE_SIZE = PAGE_SIZES[0];
 
 const pageSizeOptions = (pageSize: number) =>
 	PAGE_SIZES.includes(pageSize)
@@ -129,4 +120,4 @@ const Pager = ({
 	);
 };
 
-export { DEFAULT_PAGE_SIZE, Pager };
+export { Pager };

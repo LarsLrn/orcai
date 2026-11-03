@@ -1,11 +1,10 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, uniqueViolationConstraint } from "@orcai/db";
 import { and, asc, desc, eq, max } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Result from "effect/Result";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mapping";
 import { ReplyStore } from "./reply-store";
 
 const CHAT_MESSAGE_PRIMARY_KEY = "chat_message_pkey";

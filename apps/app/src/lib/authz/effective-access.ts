@@ -1,5 +1,11 @@
 import type { OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	assetIdSchema,
@@ -25,11 +31,6 @@ import {
 import { and, asc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { grantReaches } from "@/lib/authz/reaching-groups";
-import { pageOf } from "@/lib/orpc/router/helpers/paging";
-import {
-	buildOrderBy,
-	type SortExpression,
-} from "@/lib/orpc/router/helpers/sorting";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 const scope = dbSchema.resourceScope;
@@ -185,7 +186,7 @@ export const effectiveAccess = (
 			filters?.origin ? eq(origin, filters.origin) : undefined,
 		);
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: params.sort,
 			allowlist: {
 				resourceName,

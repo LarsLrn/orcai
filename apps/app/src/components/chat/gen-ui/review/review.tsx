@@ -3,6 +3,14 @@ import { type ReactNode, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { copyRevision } from "@/components/chat/gen-ui/review/copy";
 import {
+	retainedShare,
+	wordDiff,
+} from "@/components/chat/gen-ui/review/word-diff";
+import { StatusIcon, Tally } from "@/components/chat/gen-ui/status-icon";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
 	anchorFindings,
 	itemStatus,
 	type ReviewView,
@@ -11,16 +19,8 @@ import {
 	severityLabel,
 	severityStatus,
 	stripEmphasis,
-} from "@/components/chat/gen-ui/review/findings";
-import type { Severity } from "@/components/chat/gen-ui/review/schema";
-import {
-	retainedShare,
-	wordDiff,
-} from "@/components/chat/gen-ui/review/word-diff";
-import { StatusIcon, Tally } from "@/components/chat/gen-ui/status-icon";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+} from "@/lib/ai/tools/gen-ui/review/findings";
+import type { Severity } from "@/lib/ai/tools/gen-ui/review/schema";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

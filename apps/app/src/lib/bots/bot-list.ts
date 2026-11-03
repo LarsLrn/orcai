@@ -1,4 +1,4 @@
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import type { Bot, ListBotsInput } from "@orcai/schema";
 import {
 	and,
@@ -21,7 +21,6 @@ import {
 	homeOrganizations,
 	type TileQuery,
 } from "@/lib/library/tile-details";
-import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 const orderBy = {

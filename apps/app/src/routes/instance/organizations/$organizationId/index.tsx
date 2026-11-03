@@ -26,11 +26,6 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import {
-	dataTableQuerySchema,
-	dataTableSearchDefaults,
-	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
 import { DataTableToolbar } from "@/components/ui/data-table/data-table-toolbar";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
@@ -48,6 +43,11 @@ import {
 } from "@/components/ui/shell/section";
 import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
 import { useRemoveOrganizationLogoMutation } from "@/hooks/mutations/use-instance-image-mutations";
+import {
+	dataTableQuerySchema,
+	dataTableSearchDefaults,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";

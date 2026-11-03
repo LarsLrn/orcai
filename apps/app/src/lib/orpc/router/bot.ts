@@ -1,5 +1,5 @@
 import type { BotId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import type { Bot } from "@orcai/schema";
 import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -25,7 +25,6 @@ import {
 	requirePermission,
 	requireReadableEntity,
 } from "@/lib/orpc/middlewares/permission";
-import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
 const listBots = authed.bot.list.use(requireOrganization()).effect(function* ({
 	input,

@@ -1,5 +1,11 @@
 import { normalizeEmail } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import type {
 	ListOrganizationInvitationsInput,
 	OrganizationInvitationSortKey,
@@ -19,8 +25,6 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import { pageOf } from "./helpers/paging";
-import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const invitationOrderBy = (sort: ListOrganizationInvitationsInput["sort"]) =>
 	buildOrderBy({
@@ -57,7 +61,7 @@ const listInvitations = (
 				: undefined,
 		);
 
-		const orderBy = yield* invitationOrderBy(input.sort);
+		const orderBy = invitationOrderBy(input.sort);
 
 		return yield* pageOf(
 			db

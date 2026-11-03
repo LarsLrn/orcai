@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import * as Effect from "effect/Effect";
-import { referenceMatrix } from "@/components/chat/gen-ui/matrix/fixtures";
-import { referenceReview } from "@/components/chat/gen-ui/review/fixtures";
+import { referenceMatrix } from "@/lib/ai/tools/gen-ui/matrix/fixtures";
+import { referenceReview } from "@/lib/ai/tools/gen-ui/review/fixtures";
 import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
 import { resolveFeatures } from "./resolve-features";
 

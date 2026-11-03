@@ -1,9 +1,9 @@
 import type {
 	ChecklistItem,
 	ChecklistView,
-} from "@/components/chat/gen-ui/checklist/read";
-import { indent } from "@/components/chat/gen-ui/markdown";
-import { statusLabel } from "@/components/chat/gen-ui/status";
+} from "@/lib/ai/tools/gen-ui/checklist/read";
+import { indent } from "@/lib/ai/tools/gen-ui/markdown";
+import { statusLabel } from "@/lib/ai/tools/gen-ui/status";
 
 const itemToMarkdown = (item: ChecklistItem) => {
 	const head = [

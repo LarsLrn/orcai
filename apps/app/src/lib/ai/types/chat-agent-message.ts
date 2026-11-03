@@ -17,3 +17,8 @@ export type ChatAgentUIMessage = Omit<
 	id: ChatMessageId;
 	attachments?: ChatMessageAttachment[];
 };
+
+/** Stored parts are untyped; the chat's UI message type is inferred from its tools. */
+export const toChatAgentMessages = (
+	messages: unknown[],
+): ChatAgentUIMessage[] => messages as ChatAgentUIMessage[];

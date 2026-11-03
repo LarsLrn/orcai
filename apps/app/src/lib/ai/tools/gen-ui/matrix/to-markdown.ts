@@ -1,8 +1,5 @@
-import {
-	type MatrixView,
-	rowNotes,
-} from "@/components/chat/gen-ui/matrix/cells";
-import { statusLabel } from "@/components/chat/gen-ui/status";
+import { type MatrixView, rowNotes } from "@/lib/ai/tools/gen-ui/matrix/cells";
+import { statusLabel } from "@/lib/ai/tools/gen-ui/status";
 
 const tableCell = (text: string) =>
 	text.replaceAll("|", "\\|").replaceAll("\n", " ");

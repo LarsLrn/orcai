@@ -1,4 +1,4 @@
-import type { Status } from "@/components/chat/gen-ui/status";
+import type { Status } from "@/lib/ai/tools/gen-ui/status";
 import type { Verdict } from "@/lib/ai/tools/questions/quiz-result";
 import { m } from "@/paraglide/messages";
 

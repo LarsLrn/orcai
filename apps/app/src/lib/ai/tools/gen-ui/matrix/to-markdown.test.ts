@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
-import { referenceMatrix } from "@/components/chat/gen-ui/matrix/fixtures";
+import { displayToolMarkdown } from "@/lib/ai/tools/gen-ui/catalog";
+import { referenceMatrix } from "@/lib/ai/tools/gen-ui/matrix/fixtures";
 
 describe("showMatrix markdown", () => {
 	test("writes a table of status labels and the notes", () => {

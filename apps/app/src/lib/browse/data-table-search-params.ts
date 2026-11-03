@@ -1,7 +1,16 @@
 import { paginationInputSchema } from "@orcai/schema";
 import type { PaginationState } from "@tanstack/react-table";
 import { z } from "zod/v4";
-import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
+
+export const PAGE_SIZES = [
+	20,
+	30,
+	50,
+	100,
+	200,
+];
+
+export const DEFAULT_PAGE_SIZE = PAGE_SIZES[0];
 
 /** The `query` search param a data table search edits. */
 export const dataTableQuerySchema = z.string().trim().max(100);
@@ -60,7 +69,7 @@ export const withQuery = <TSearch extends object>(
  */
 export const dataTableSearchDefaults = {
 	pageIndex: 0,
-	pageSize: 20,
+	pageSize: DEFAULT_PAGE_SIZE,
 	sort: [],
 	query: "",
 };

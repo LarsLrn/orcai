@@ -1,4 +1,4 @@
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import { repositoryTotals } from "@orcai/preparation";
 import type { Block, ListBlocksInput, ResourceOwner } from "@orcai/schema";
 import {
@@ -18,7 +18,6 @@ import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
 import { homeOrganizations, type TileQuery } from "@/lib/library/tile-details";
-import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 const blockOrder = {

@@ -9,7 +9,13 @@ import {
 	type OrganizationId,
 	type ProviderId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import type { ErrorReason, ModelCapability, ModelSortKey } from "@orcai/schema";
 import { ORPCError } from "@orpc/server";
 import {
@@ -31,8 +37,6 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
-import { pageOf } from "./helpers/paging";
-import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 import {
 	mapCreateModelInputToModelInsertValues,
 	mapUpdateModelInputToModelUpdateValues,
@@ -87,7 +91,7 @@ const listModels = authed.model.list
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.model.name,

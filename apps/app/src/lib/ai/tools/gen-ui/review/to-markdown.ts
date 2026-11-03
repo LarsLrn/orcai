@@ -1,12 +1,12 @@
-import { indent } from "@/components/chat/gen-ui/markdown";
+import { indent } from "@/lib/ai/tools/gen-ui/markdown";
 import {
 	itemStatus,
 	type ReviewView,
 	type StreamedFinding,
 	type StreamedItem,
 	severityLabel,
-} from "@/components/chat/gen-ui/review/findings";
-import { statusLabel } from "@/components/chat/gen-ui/status";
+} from "@/lib/ai/tools/gen-ui/review/findings";
+import { statusLabel } from "@/lib/ai/tools/gen-ui/status";
 import { m } from "@/paraglide/messages";
 
 const listItem = (text: string) =>

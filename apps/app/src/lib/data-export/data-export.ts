@@ -1,5 +1,5 @@
 import { buckets, type DataExportId, type UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, uniqueViolationConstraint } from "@orcai/db";
 import { enqueueNotification } from "@orcai/notifications";
 import { sendJobBatchInTransaction } from "@orcai/pg-boss";
 import { inActivityRun } from "@orcai/preparation";
@@ -14,7 +14,6 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { uniqueViolationConstraint } from "@/lib/orpc/implementation/error-mapping";
 import { withLocale } from "@/lib/presentation/with-locale";
 import { type Transcript, writeDataExportContents } from "./archive-contents";
 import { writeZipArchive } from "./zip-archive";

@@ -1,7 +1,7 @@
 import type { Tool } from "ai";
-import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
 import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
 import { readDocsTool } from "@/lib/ai/tools/docs/read-docs";
+import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
 import { askUserTool } from "@/lib/ai/tools/questions/ask-user";
 import type { QuizHistoryMessage } from "@/lib/ai/tools/questions/quiz-result";
 import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";

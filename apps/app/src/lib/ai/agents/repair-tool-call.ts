@@ -5,7 +5,7 @@ import {
 	NoSuchToolError,
 	type ToolCallRepairFunction,
 } from "ai";
-import type { GenUiTools } from "@/components/chat/gen-ui/catalog";
+import type { GenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
 import type { QuestionTools } from "@/lib/ai/tools/questions/toolset";
 import type { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
 import type { searchWebTool } from "@/lib/ai/tools/web/search-web";

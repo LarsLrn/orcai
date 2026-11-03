@@ -16,9 +16,11 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
-import { paginationSearchShape } from "@/components/ui/data-table/data-table-search-params";
-import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
 import { useDisplayTime } from "@/hooks/use-display-time";
+import {
+	DEFAULT_PAGE_SIZE,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

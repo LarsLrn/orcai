@@ -1,5 +1,11 @@
 import type { OrganizationId } from "@orcai/core";
-import { DB, dbSchema, homeOrganization, homeScopeOf } from "@orcai/db";
+import {
+	DB,
+	dbSchema,
+	homeOrganization,
+	homeScopeOf,
+	ownerColumns,
+} from "@orcai/db";
 import { admit, inActivityRun, prepareAssetAgain } from "@orcai/preparation";
 import { UPLOAD_ROUTES } from "@orcai/s3";
 import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
@@ -29,7 +35,6 @@ import {
 	requireEntityPermission,
 	requireReadableEntity,
 } from "@/lib/orpc/middlewares/permission";
-import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
 const listAssets = authed.asset.list
 	.use(requireOrganization())

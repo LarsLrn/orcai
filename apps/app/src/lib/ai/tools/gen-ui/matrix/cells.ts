@@ -1,10 +1,10 @@
-import type { Status } from "@/components/chat/gen-ui/status";
+import type { Status } from "@/lib/ai/tools/gen-ui/status";
 import {
 	isRecord,
 	listOf,
 	statusOf,
 	textOf,
-} from "@/components/chat/gen-ui/streamed";
+} from "@/lib/ai/tools/gen-ui/streamed";
 
 export type MatrixColumn = {
 	key: string;

@@ -1,4 +1,4 @@
-import type { ReviewInput } from "@/components/chat/gen-ui/review/schema";
+import type { ReviewInput } from "@/lib/ai/tools/gen-ui/review/schema";
 
 /** Cites by the refs of passages from three guides. */
 const apa = (text: string) => `<cite ref=kgol9ts>${text}</cite>`;

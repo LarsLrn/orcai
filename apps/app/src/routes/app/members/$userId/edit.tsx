@@ -30,11 +30,6 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import {
-	dataTableQuerySchema,
-	dataTableSearchDefaults,
-	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
 	DataTableToolbar,
@@ -53,6 +48,11 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { UserAvatar } from "@/components/users/user-avatar";
+import {
+	dataTableQuerySchema,
+	dataTableSearchDefaults,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

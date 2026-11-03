@@ -1,4 +1,4 @@
-import type { MatrixInput } from "@/components/chat/gen-ui/matrix/schema";
+import type { MatrixInput } from "@/lib/ai/tools/gen-ui/matrix/schema";
 
 /** Four references against the parts of an APA 7 entry. */
 export const referenceMatrix = {

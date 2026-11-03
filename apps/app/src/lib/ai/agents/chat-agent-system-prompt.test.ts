@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { genUiPrompt } from "@/components/chat/gen-ui/prompt";
 import type { CitableKind } from "@/lib/ai/citations/citation-rules";
 import { featureCatalog } from "@/lib/ai/features/catalog";
+import { genUiPrompt } from "@/lib/ai/tools/gen-ui/prompt";
 import {
 	buildChatAgentSystemPrompt,
 	localDate,

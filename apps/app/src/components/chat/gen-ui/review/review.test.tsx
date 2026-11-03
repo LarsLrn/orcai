@@ -7,12 +7,12 @@ import {
 	waitFor,
 	within,
 } from "@testing-library/react";
-import { readReview } from "@/components/chat/gen-ui/review/findings";
+import { readReview } from "@/lib/ai/tools/gen-ui/review/findings";
 import {
 	outcomesReview,
 	referenceReview,
-} from "@/components/chat/gen-ui/review/fixtures";
-import { reviewSchema } from "@/components/chat/gen-ui/review/schema";
+} from "@/lib/ai/tools/gen-ui/review/fixtures";
+import { reviewSchema } from "@/lib/ai/tools/gen-ui/review/schema";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({

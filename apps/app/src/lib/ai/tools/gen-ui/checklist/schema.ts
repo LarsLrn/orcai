@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { proseField } from "@/components/chat/gen-ui/prose";
-import { statusSchema } from "@/components/chat/gen-ui/status";
+import { proseField } from "@/lib/ai/tools/gen-ui/prose";
+import { statusSchema } from "@/lib/ai/tools/gen-ui/status";
 
 export const checklistSchema = z.strictObject({
 	title: z.string().optional().describe("Short heading, plain text."),
