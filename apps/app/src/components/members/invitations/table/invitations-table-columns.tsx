@@ -102,9 +102,7 @@ const ActionsCell = ({
 	invitation: OrganizationInvitation;
 }) => {
 	const router = useRouter();
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	const canDeleteInvitation =
 		invitation.role !== ORGANIZATION_ADMIN_ROLE ||
 		capabilities?.data.capabilities.manage_organization === true;

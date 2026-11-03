@@ -23,9 +23,7 @@ const AssistantUnavailable = ({
 	variant?: "page" | "inline";
 	className?: string;
 }) => {
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	const canFix = hasCapability(
 		capabilities?.data.capabilities,
 		"manage_organization",

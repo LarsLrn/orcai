@@ -103,9 +103,7 @@ const MemberActions = ({ member }: { member: UserWithOrganizationRole }) => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
 	const canRemoveMember =

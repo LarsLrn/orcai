@@ -3,7 +3,6 @@ import {
 	openAccountPage,
 } from "../../fixtures/account/navigation";
 import { createAccountUser } from "../../fixtures/account/users";
-import { pageForSession } from "../../fixtures/auth/users";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 
@@ -13,8 +12,8 @@ const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 test("account: the invitations card shows a pending invitation and accepting it adds the membership", async ({
 	api,
 	appBaseURL,
-	browser,
 	orgs,
+	pageForSession,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
@@ -35,58 +34,54 @@ test("account: the invitations card shows a pending invitation and accepting it 
 		],
 	});
 
-	const { context, page } = await pageForSession(browser, user.session);
+	const page = await pageForSession(user.session);
 
-	try {
-		await openAccountPage(page, "invitations");
+	await openAccountPage(page, "invitations");
 
-		const invitations = accountCard(
-			page,
-			message("account_invitations_card_title"),
-		);
+	const invitations = accountCard(
+		page,
+		message("account_invitations_card_title"),
+	);
 
-		// The list carries the organisation's name and slug, so the invitee
-		// can tell the entries apart without reading the organisation.
-		const entry = invitations
-			.getByText(`@${second.slug}`, {
-				exact: true,
-			})
-			.locator('xpath=ancestor::div[@data-slot="card"][1]');
+	// The list carries the organisation's name and slug, so the invitee
+	// can tell the entries apart without reading the organisation.
+	const entry = invitations
+		.getByText(`@${second.slug}`, {
+			exact: true,
+		})
+		.locator('xpath=ancestor::div[@data-slot="card"][1]');
 
-		await expect(entry).toBeVisible();
-		await expect(
-			entry.getByText(message("orgs_invitation_status_pending")),
-		).toBeVisible();
+	await expect(entry).toBeVisible();
+	await expect(
+		entry.getByText(message("orgs_invitation_status_pending")),
+	).toBeVisible();
 
-		await entry
-			.getByRole("button", {
-				name: message("orgs_invitation_accept_button"),
-			})
-			.click();
-		await expect(
-			page.getByText(message("orgs_invitation_accept_toast_success")),
-		).toBeVisible();
+	await entry
+		.getByRole("button", {
+			name: message("orgs_invitation_accept_button"),
+		})
+		.click();
+	await expect(
+		page.getByText(message("orgs_invitation_accept_toast_success")),
+	).toBeVisible();
 
-		// Accepting writes the membership, which the user's own organisation
-		// list reports from the database.
-		const organisations = await user.api.organization.list({
-			pageIndex: 0,
-			pageSize: 100,
-		});
+	// Accepting writes the membership, which the user's own organisation
+	// list reports from the database.
+	const organisations = await user.api.organization.list({
+		pageIndex: 0,
+		pageSize: 100,
+	});
 
-		expect(
-			organisations.data.map((organisation) => organisation.slug),
-		).toContain(second.slug);
-	} finally {
-		await context.close();
-	}
+	expect(organisations.data.map((organisation) => organisation.slug)).toContain(
+		second.slug,
+	);
 });
 
 test("account: the invitations card names the inviting organisation", async ({
 	api,
 	appBaseURL,
-	browser,
 	orgs,
+	pageForSession,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
@@ -105,27 +100,23 @@ test("account: the invitations card names the inviting organisation", async ({
 		],
 	});
 
-	const { context, page } = await pageForSession(browser, user.session);
+	const page = await pageForSession(user.session);
 
-	try {
-		await openAccountPage(page, "invitations");
+	await openAccountPage(page, "invitations");
 
-		const invitations = accountCard(
-			page,
-			message("account_invitations_card_title"),
-		);
+	const invitations = accountCard(
+		page,
+		message("account_invitations_card_title"),
+	);
 
-		await expect(
-			invitations.getByText(second.name, {
-				exact: true,
-			}),
-		).toBeVisible();
-		await expect(
-			invitations.getByText(`@${second.slug}`, {
-				exact: true,
-			}),
-		).toBeVisible();
-	} finally {
-		await context.close();
-	}
+	await expect(
+		invitations.getByText(second.name, {
+			exact: true,
+		}),
+	).toBeVisible();
+	await expect(
+		invitations.getByText(`@${second.slug}`, {
+			exact: true,
+		}),
+	).toBeVisible();
 });

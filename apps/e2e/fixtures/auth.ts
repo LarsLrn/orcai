@@ -13,7 +13,7 @@ export type Session = {
 	email: string;
 	/** Value for a `cookie` request header, for API calls. */
 	cookieHeader: string;
-	/** Playwright storage state, for `browser.newContext`. */
+	/** Playwright storage state, for `newContext`. */
 	storageState: StorageState;
 	/** The `zed_token` the response set, when it granted authorisation. */
 	zedToken?: string;

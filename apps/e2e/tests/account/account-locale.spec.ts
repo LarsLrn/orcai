@@ -1,7 +1,6 @@
 import { storedLocaleOf } from "../../fixtures/account/locale";
 import { openAppPage, switchLocale } from "../../fixtures/account/navigation";
 import { createAccountUser } from "../../fixtures/account/users";
-import { pageForSession } from "../../fixtures/auth/users";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
@@ -16,7 +15,7 @@ const WELCOME = {
 test("account: a user switches the interface language to German and back", async ({
 	api,
 	appBaseURL,
-	browser,
+	pageForSession,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
@@ -24,39 +23,36 @@ test("account: a user switches the interface language to German and back", async
 		admin: api.as("admin"),
 	});
 
-	const { context, page } = await pageForSession(browser, user.session);
+	const page = await pageForSession(user.session);
 
-	try {
-		await openAppPage(page, "/app", page.getByText(WELCOME.en));
+	await openAppPage(page, "/app", page.getByText(WELCOME.en));
 
-		await switchLocale(page, {
-			menuLabel: message("header_locale_switcher_label"),
-			item: "Deutsch",
-			until: "de",
-		});
+	await switchLocale(page, {
+		menuLabel: message("header_locale_switcher_label"),
+		item: "Deutsch",
+		until: "de",
+	});
 
-		await expect(page.getByText(WELCOME.de)).toBeVisible();
-		await expect(page.locator("html")).toHaveAttribute("lang", "de");
+	await expect(page.getByText(WELCOME.de)).toBeVisible();
+	await expect(page.locator("html")).toHaveAttribute("lang", "de");
 
-		// A signed-in switch is stored for the user as well, so switching back
-		// restores both the cookie and the stored preference.
-		await switchLocale(page, {
-			menuLabel: message("header_locale_switcher_label", {}, "de"),
-			item: "English",
-			until: "en",
-		});
+	// A signed-in switch is stored for the user as well, so switching back
+	// restores both the cookie and the stored preference.
+	await switchLocale(page, {
+		menuLabel: message("header_locale_switcher_label", {}, "de"),
+		item: "English",
+		until: "en",
+	});
 
-		await expect(page.getByText(WELCOME.en)).toBeVisible();
-		await expect(page.locator("html")).toHaveAttribute("lang", "en");
-	} finally {
-		await context.close();
-	}
+	await expect(page.getByText(WELCOME.en)).toBeVisible();
+	await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
 test("account: a language chosen in the header follows the user into a new browser", async ({
 	api,
 	appBaseURL,
-	browser,
+	newContext,
+	pageForSession,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
@@ -64,58 +60,47 @@ test("account: a language chosen in the header follows the user into a new brows
 		admin: api.as("admin"),
 	});
 
-	const first = await pageForSession(browser, user.session);
+	const first = await pageForSession(user.session);
 
-	try {
-		await openAppPage(first.page, "/app", first.page.getByText(WELCOME.en));
+	await openAppPage(first, "/app", first.getByText(WELCOME.en));
 
-		await switchLocale(first.page, {
-			menuLabel: message("header_locale_switcher_label"),
-			item: "Deutsch",
-			until: "de",
-		});
-	} finally {
-		await first.context.close();
-	}
+	await switchLocale(first, {
+		menuLabel: message("header_locale_switcher_label"),
+		item: "Deutsch",
+		until: "de",
+	});
 
 	// The switcher saves before it reloads, so the choice is already stored.
 	expect(await storedLocaleOf(appBaseURL, user.session)).toBe("de");
 
 	// An English browser without any cookie signs in and is handed the stored
 	// language.
-	const context = await browser.newContext({
-		locale: "en",
+	const context = await newContext();
+	const page = await context.newPage();
+
+	await open(page, "/login");
+	await expect(page.locator("html")).toHaveAttribute("lang", "en");
+
+	await submitForm(page, {
+		fill: async () => {
+			await page.getByLabel(message("common_email_label")).fill(user.email);
+			await page
+				.getByLabel(message("common_password_label"), {
+					exact: true,
+				})
+				.fill(user.password);
+		},
+		submit: message("auth_signin_form_submit_button"),
+		until: /\/app(\/|$)/,
 	});
 
-	try {
-		const page = await context.newPage();
+	await expect(page.locator("html")).toHaveAttribute("lang", "de");
+	await expect(page.getByText(WELCOME.de)).toBeVisible();
 
-		await open(page, "/login");
-		await expect(page.locator("html")).toHaveAttribute("lang", "en");
-
-		await submitForm(page, {
-			fill: async () => {
-				await page.getByLabel(message("common_email_label")).fill(user.email);
-				await page
-					.getByLabel(message("common_password_label"), {
-						exact: true,
-					})
-					.fill(user.password);
-			},
-			submit: message("auth_signin_form_submit_button"),
-			until: /\/app(\/|$)/,
-		});
-
-		await expect(page.locator("html")).toHaveAttribute("lang", "de");
-		await expect(page.getByText(WELCOME.de)).toBeVisible();
-
-		const cookie = (await context.cookies()).find(
-			(candidate) => candidate.name === "PARAGLIDE_LOCALE",
-		);
-		expect(cookie?.value).toBe("de");
-		// The client runtime reads the cookie, so it must not be HTTP-only.
-		expect(cookie?.httpOnly).toBe(false);
-	} finally {
-		await context.close();
-	}
+	const cookie = (await context.cookies()).find(
+		(candidate) => candidate.name === "PARAGLIDE_LOCALE",
+	);
+	expect(cookie?.value).toBe("de");
+	// The client runtime reads the cookie, so it must not be HTTP-only.
+	expect(cookie?.httpOnly).toBe(false);
 });

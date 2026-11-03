@@ -4,7 +4,6 @@ import {
 	themeToggle,
 } from "../../fixtures/account/navigation";
 import { createAccountUser } from "../../fixtures/account/users";
-import { pageForSession } from "../../fixtures/auth/users";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
@@ -36,7 +35,7 @@ test("account: a user switches the theme and the choice survives a reload", asyn
 test("account: skipping the app tour is remembered for the user", async ({
 	api,
 	appBaseURL,
-	browser,
+	pageForSession,
 }) => {
 	const user = await createAccountUser({
 		baseURL: appBaseURL,
@@ -44,35 +43,31 @@ test("account: skipping the app tour is remembered for the user", async ({
 		admin: api.as("admin"),
 		initialTour: "unseen",
 	});
-	const { context, page } = await pageForSession(browser, user.session);
+	const page = await pageForSession(user.session);
 
-	try {
-		const tourCard = page.getByRole("dialog", {
-			name: message("tour_initial_welcome_title"),
+	const tourCard = page.getByRole("dialog", {
+		name: message("tour_initial_welcome_title"),
+	});
+
+	// A user who has not seen the tour gets it on the app home.
+	await openAppPage(page, "/app", tourCard);
+
+	await page
+		.getByRole("button", {
+			name: message("tour_card_skip_button"),
+		})
+		.click();
+
+	// Skipping is silent in the UI, so the card going away is the only signal.
+	await expect(tourCard).toHaveCount(0);
+
+	await expect
+		.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
+		.toEqual({
+			initialTour: "skipped",
 		});
 
-		// A user who has not seen the tour gets it on the app home.
-		await openAppPage(page, "/app", tourCard);
-
-		await page
-			.getByRole("button", {
-				name: message("tour_card_skip_button"),
-			})
-			.click();
-
-		// Skipping is silent in the UI, so the card going away is the only signal.
-		await expect(tourCard).toHaveCount(0);
-
-		await expect
-			.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
-			.toEqual({
-				initialTour: "skipped",
-			});
-
-		// The state is the user's, so the tour stays away on the next load.
-		await open(page, "/app");
-		await expect(tourCard).toHaveCount(0);
-	} finally {
-		await context.close();
-	}
+	// The state is the user's, so the tour stays away on the next load.
+	await open(page, "/app");
+	await expect(tourCard).toHaveCount(0);
 });

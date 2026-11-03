@@ -26,9 +26,7 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	const navigate = useNavigate();
 	const passwordReset = useForgotPassword();
 	const verificationEmail = useResendVerificationEmail();

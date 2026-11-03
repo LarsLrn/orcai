@@ -18,7 +18,7 @@ import { addMember, createOrgsUser } from "../../fixtures/orgs/members";
 test("assistant: a user in two organisations sees each one's conversations only there", async ({
 	api,
 	appBaseURL,
-	browser,
+	newContext,
 	org,
 	orgs,
 	zedTokens,
@@ -85,20 +85,15 @@ test("assistant: a user in two organisations sees each one's conversations only 
 		).data.kind,
 	).toBe("assistant");
 
-	const context = await browser.newContext({
+	const context = await newContext({
 		storageState: second.session.storageState,
-		locale: "en",
 	});
-	try {
-		const page = await context.newPage();
-		await enterApp(page, other.slug);
-		await open(page, `/app/assistant/${firstChatId}`);
-		await expect(
-			page.getByText(message("boundaries_not_found_title")),
-		).toBeVisible();
-	} finally {
-		await context.close();
-	}
+	const page = await context.newPage();
+	await enterApp(page, other.slug);
+	await open(page, `/app/assistant/${firstChatId}`);
+	await expect(
+		page.getByText(message("boundaries_not_found_title")),
+	).toBeVisible();
 });
 
 test("assistant: a conversation can only be renamed or deleted", async ({

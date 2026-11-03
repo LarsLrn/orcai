@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import type { Browser, BrowserContext, Page } from "@playwright/test";
 import type { Session } from "../auth";
 import { EMAIL_DOMAIN, USER_PASSWORD } from "../constants";
 import { signUpUnaffiliated } from "../organisation";
@@ -33,24 +32,5 @@ export const createAuthUser = async (
 		email,
 		password: USER_PASSWORD,
 		session,
-	};
-};
-
-/** A page carrying a session captured earlier. The caller closes the context. */
-export const pageForSession = async (
-	browser: Browser,
-	session: Session,
-): Promise<{
-	context: BrowserContext;
-	page: Page;
-}> => {
-	const context = await browser.newContext({
-		storageState: session.storageState,
-		locale: "en",
-	});
-
-	return {
-		context,
-		page: await context.newPage(),
 	};
 };

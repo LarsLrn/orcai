@@ -91,6 +91,10 @@ Import the shared fixtures from `apps/e2e/fixtures/index.ts`; use the
 inference fixture for specs that need a provider endpoint. Open pages and
 submit forms with the core fixture helpers so server-rendered hydration is
 handled consistently.
+Every page from the fixtures fails its test on an uncaught error, which
+includes a React hydration mismatch. Specs get no `browser` or `playwright`
+fixture and lint refuses Playwright's launchers and `.browser()` there: open
+further contexts with `newContext` or `pageForSession`.
 
 An e2e slice owns `apps/e2e/tests/<area>/` and may add
 `apps/e2e/fixtures/<area>/`. The Playwright config, core fixtures, stack

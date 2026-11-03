@@ -1,0 +1,5 @@
+language js
+
+`$owner.browser()` where {
+	register_diagnostic(span=$owner, message="Open further contexts with the newContext fixture, whose pages fail the test on uncaught errors.")
+}

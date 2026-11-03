@@ -1,5 +1,6 @@
 import {
-	type Browser,
+	type BrowserContext,
+	type BrowserContextOptions,
 	type CDPSession,
 	devices,
 	type Locator,
@@ -21,20 +22,19 @@ const PHONE = devices["Pixel 7"];
 
 /** A touch phone page, entered at desktop width because the organisation picker needs it. */
 const phonePage = async (params: {
-	browser: Browser;
+	newContext: (options?: BrowserContextOptions) => Promise<BrowserContext>;
 	org: WorkerOrganisation;
 	role: Role;
 	seedZedToken: (page: Page) => Promise<void>;
 	height?: number;
 }) => {
-	const context = await params.browser.newContext({
+	const context = await params.newContext({
 		...PHONE,
 		viewport: {
 			width: 1280,
 			height: 900,
 		},
 		storageState: params.org.storageStates[params.role],
-		locale: "en",
 	});
 	const page = await context.newPage();
 	await params.seedZedToken(page);
@@ -108,8 +108,8 @@ const boxOf = async (target: Locator) => {
 
 test("layout: on a touch phone the usage drawer closes with a swipe down", async ({
 	api,
-	browser,
 	inference,
+	newContext,
 	org,
 	seedZedToken,
 }) => {
@@ -130,7 +130,7 @@ test("layout: on a touch phone the usage drawer closes with a swipe down", async
 	});
 
 	const { page, cdp } = await phonePage({
-		browser,
+		newContext,
 		org,
 		role: "member",
 		seedZedToken,
@@ -157,16 +157,15 @@ test("layout: on a touch phone the usage drawer closes with a swipe down", async
 		400,
 	);
 	await expect(drawer).toBeHidden();
-	await page.context().close();
 });
 
 test("layout: on a short touch phone the filters drawer scrolls to its last option", async ({
-	browser,
+	newContext,
 	org,
 	seedZedToken,
 }) => {
 	const { page, cdp } = await phonePage({
-		browser,
+		newContext,
 		org,
 		role: "member",
 		seedZedToken,
@@ -202,5 +201,4 @@ test("layout: on a short touch phone the filters drawer scrolls to its last opti
 	await expect(drawer).toBeVisible();
 	await last.tap();
 	await expect(last).toBeChecked();
-	await page.context().close();
 });

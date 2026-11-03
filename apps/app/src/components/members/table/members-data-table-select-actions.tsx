@@ -13,9 +13,7 @@ const MembersDataTableSelectActions = () => {
 		from: "/app",
 	});
 	const { table } = useTable<UserWithOrganizationRole>();
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	const [removing, setRemoving] = useState<UserWithOrganizationRole[]>([]);
 	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
 	const canManageOrganization =

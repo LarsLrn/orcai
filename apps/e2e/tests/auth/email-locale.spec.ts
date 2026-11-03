@@ -25,7 +25,7 @@ const VERIFY_COPY = {
 
 test("auth: registering from a German browser queues a German verification email", async ({
 	api,
-	browser,
+	newContext,
 	outbox,
 }) => {
 	const email = invitationEmail("verify-de");
@@ -36,49 +36,45 @@ test("auth: registering from a German browser queues a German verification email
 	const link = await waitForLink(outbox, email, INVITED_NOTIFICATION);
 
 	// No cookie: the browser's Accept-Language alone picks German.
-	const context = await browser.newContext({
+	const context = await newContext({
 		locale: "de-DE",
 	});
 
-	try {
-		const page = await context.newPage();
+	const page = await context.newPage();
 
-		await open(page, link);
-		await expect(page.locator("html")).toHaveAttribute("lang", "de");
+	await open(page, link);
+	await expect(page.locator("html")).toHaveAttribute("lang", "de");
 
-		await submitForm(page, {
-			fill: async () => {
-				await page
-					.getByLabel(message("auth_signup_form_name_label", {}, "de"), {
-						exact: true,
-					})
-					.fill("E2E Auth Deutsch");
-				await page
-					.getByLabel(message("auth_signup_form_password_label", {}, "de"), {
-						exact: true,
-					})
-					.fill(USER_PASSWORD);
-				await page
-					.getByLabel(
-						message("auth_signup_form_confirm_password_label", {}, "de"),
-					)
-					.fill(USER_PASSWORD);
+	await submitForm(page, {
+		fill: async () => {
+			await page
+				.getByLabel(message("auth_signup_form_name_label", {}, "de"), {
+					exact: true,
+				})
+				.fill("E2E Auth Deutsch");
+			await page
+				.getByLabel(message("auth_signup_form_password_label", {}, "de"), {
+					exact: true,
+				})
+				.fill(USER_PASSWORD);
+			await page
+				.getByLabel(
+					message("auth_signup_form_confirm_password_label", {}, "de"),
+				)
+				.fill(USER_PASSWORD);
 
-				const consent = page.getByRole("switch", {
-					name: message("auth_signup_form_privacy_consent_label", {}, "de"),
-				});
-				await consent.check();
-				await expect(consent).toBeChecked();
-			},
-			submit: message("auth_signup_form_submit_button", {}, "de"),
-			until: /\/app(\/|$)/,
-		});
-		await expect(
-			page.getByText(message("home_try_title", {}, "de")),
-		).toBeVisible();
-	} finally {
-		await context.close();
-	}
+			const consent = page.getByRole("switch", {
+				name: message("auth_signup_form_privacy_consent_label", {}, "de"),
+			});
+			await consent.check();
+			await expect(consent).toBeChecked();
+		},
+		submit: message("auth_signup_form_submit_button", {}, "de"),
+		until: /\/app(\/|$)/,
+	});
+	await expect(
+		page.getByText(message("home_try_title", {}, "de")),
+	).toBeVisible();
 
 	await expectEmailIn(
 		await queuedEmail(outbox, email, VERIFY_NOTIFICATION),

@@ -93,10 +93,7 @@ const ChatModelNotice = ({
 			enabled: reason === "model" && !!auth.session.activeOrganizationId,
 		}),
 	);
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_models",
-		"manage_quota_pools",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	// Managers reach a used-up pool through the usage indicator.
 	const canFix =
 		reason !== "exhausted" &&

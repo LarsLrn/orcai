@@ -72,9 +72,7 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	const canManageOrganization =
 		capabilities?.data.capabilities.manage_organization === true;
 

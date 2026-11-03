@@ -15,17 +15,6 @@ test.use({
 	timezoneId: TIME_ZONE,
 });
 
-/** Uncaught page errors, which is where React reports a hydration mismatch. */
-const recordPageErrors = (page: Page) => {
-	const errors: string[] = [];
-
-	page.on("pageerror", (error) => {
-		errors.push(`${page.url()}: ${error.message}`);
-	});
-
-	return errors;
-};
-
 /**
  * Slow the page's CPU, not its network, so a query the sidebar fetches after
  * the shell hydrates lands before React hydrates the page content.
@@ -37,10 +26,10 @@ const slowCpu = async (page: Page) => {
 	});
 };
 
-const openEach = async (page: Page, errors: string[], paths: string[]) => {
+// The shared fixtures fail the test on a hydration mismatch.
+const openEach = async (page: Page, paths: string[]) => {
 	for (const path of paths) {
 		await open(page, path);
-		expect(errors, path).toEqual([]);
 	}
 };
 
@@ -77,11 +66,10 @@ test("hydration: organisation pages with dates match the server in another time 
 	});
 
 	const page = await pageAs("admin");
-	const errors = recordPageErrors(page);
 
 	// The first load has no time zone cookie yet, later ones do.
 	await enterApp(page, org.slug);
-	await openEach(page, errors, [
+	await openEach(page, [
 		"/app",
 		"/app/chat",
 		`/app/chat/${chat.id}`,
@@ -112,9 +100,8 @@ test("hydration: instance pages with dates match the server in another time zone
 	pageAsWellKnownAdmin,
 }) => {
 	const page = await pageAsWellKnownAdmin();
-	const errors = recordPageErrors(page);
 
-	await openEach(page, errors, [
+	await openEach(page, [
 		"/instance",
 		"/instance/health",
 		"/instance/users",
@@ -156,13 +143,11 @@ test("hydration: an entry added from the catalogue matches the server in the cat
 		}),
 	);
 	const page = await pageAs("admin", other);
-	const errors = recordPageErrors(page);
 
 	await enterApp(page, other.slug);
 	await slowCpu(page);
 	await openEach(
 		page,
-		errors,
 		[
 			`/app/catalogue/behaviours?query=${id}`,
 			`/app/library?query=${id}`,
@@ -185,13 +170,11 @@ test("hydration: a page reading the organisation matches the server", async ({
 	const chatId = await startConversation(api.as("member"));
 
 	const page = await pageAs("member");
-	const errors = recordPageErrors(page);
 
 	await enterApp(page, org.slug);
 	await slowCpu(page);
 	await openEach(
 		page,
-		errors,
 		Array.from(
 			{
 				length: 4,
@@ -199,4 +182,21 @@ test("hydration: a page reading the organisation matches the server", async ({
 			() => `/app/assistant/${chatId}`,
 		),
 	);
+});
+
+// The Library's own "New" menu fetches the creation capabilities once the
+// page around the list hydrates. The empty list must not see them first.
+test("hydration: an empty Library kind matches the server", async ({
+	orgs,
+	pageAs,
+}) => {
+	const empty = await orgs.create(`E2E Empty Library ${runId()}`);
+	const page = await pageAs("admin", empty);
+
+	await enterApp(page, empty.slug);
+	await slowCpu(page);
+	await openEach(page, [
+		"/app/library/bots",
+		"/app/library/bots",
+	]);
 });
