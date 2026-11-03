@@ -225,21 +225,36 @@ export class ChatSession {
 		this.#zedToken = zedToken ?? this.#zedToken;
 	}
 
-	/** Resolves once the turn and anything it continued into are stored and refreshed. */
+	/**
+	 * Resolves once the turn and anything it continued into are stored and
+	 * refreshed, with whether the message reached the transcript: a stop while
+	 * it is prepared leaves it out.
+	 */
 	send = async (message: OutgoingMessage) => {
 		await this.#settled;
+		const shown = new Set(this.chat.messages.map(({ id }) => id));
 		await this.chat.sendMessage(message);
+		const reached = this.chat.messages.some(
+			({ id, role }) => role === "user" && !shown.has(id),
+		);
 		await this.#settled;
+		return reached;
 	};
 
-	/** Sends a chat's opening message once, while it has none. */
+	/** Sends a chat's opening message once, while it has none; one that never reached the transcript may be sent again. */
 	sendFirst(message: OutgoingMessage) {
 		if (this.#sentFirst || this.chat.messages.length > 0) return undefined;
 		this.#sentFirst = true;
-		return this.send(message).catch((error: unknown) => {
-			this.#sentFirst = false;
-			throw error;
-		});
+		return this.send(message).then(
+			(reached) => {
+				this.#sentFirst = reached;
+				return reached;
+			},
+			(error: unknown) => {
+				this.#sentFirst = false;
+				throw error;
+			},
+		);
 	}
 
 	/** Resolves once the cut-off reply is stored. */

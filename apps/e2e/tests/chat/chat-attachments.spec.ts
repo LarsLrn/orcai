@@ -1,18 +1,21 @@
 import type { Page } from "@playwright/test";
+import { turnRequests } from "../../fixtures/assistant/assistant";
 import { adoptPageZedToken } from "../../fixtures/authz/resources";
 import {
 	chatName,
 	completionRequests,
 	composer,
 	createChat,
+	messageText,
 	openChat,
 	sendTurn,
 	setUpChatModel,
 	turnFinished,
 } from "../../fixtures/chat/chat";
 import { expect, test } from "../../fixtures/inference/fixture";
+import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/server";
 import { message } from "../../fixtures/messages";
-import { enterApp } from "../../fixtures/navigation";
+import { enterApp, open } from "../../fixtures/navigation";
 
 // A 1x1 PNG.
 const PIXEL = Buffer.from(
@@ -116,6 +119,52 @@ for (const file of [
 		});
 	});
 }
+
+test("chat: a chat started with a file opens on that message, sent once with the file", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	await setUpChatModel(api, inference);
+	// The chat tour's card would cover the chat the page starts.
+	await api.as("member").user.setTourState({
+		tourId: "chatTour",
+		state: "completed",
+	});
+	const question = `Plan the trip ${crypto.randomUUID()}`;
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await open(page, "/app/chat/new");
+	// The starter sends nothing until the default model is selected.
+	await expect(
+		page.getByRole("button", {
+			name: INFERENCE_MOCK_MODELS.chat,
+		}),
+	).toBeVisible();
+	await page.locator('input[type="file"]').setInputFiles({
+		name: "start-notes.txt",
+		mimeType: "text/plain",
+		buffer: Buffer.from("The bus leaves at eight from the north gate."),
+	});
+	inference.respondWith({
+		text: "Got the start notes.",
+	});
+	await composer(page).fill(question);
+	await composer(page).press("Enter");
+
+	await expect(page).toHaveURL(/\/app\/chat\/[0-9a-f-]{36}/);
+	await expect(messageText(page, question)).toBeVisible();
+	await expect(messageText(page, "Got the start notes.")).toBeVisible();
+	const turns = turnRequests(inference).filter((body) =>
+		JSON.stringify(body).includes(question),
+	);
+	expect(turns).toHaveLength(1);
+	expect(JSON.stringify(turns[0])).toContain(
+		"The bus leaves at eight from the north gate.",
+	);
+});
 
 test("chat: a reply cites an attachment by the ref its tag carries, also after a reload", async ({
 	api,

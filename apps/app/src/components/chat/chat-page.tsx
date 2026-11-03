@@ -77,14 +77,13 @@ export const ChatPage = ({
 	zedToken,
 	focusMessageId,
 	loaded,
-	variant,
 }: {
 	chatId: ChatId;
 	zedToken?: string;
 	focusMessageId?: ChatMessageId;
 	loaded: Awaited<ReturnType<typeof loadChatPage>>;
-	variant?: "chat" | "assistant";
 }) => {
+	const { kind } = loaded.chat.data;
 	const router = useRouter();
 	const matchId = useMatch({
 		strict: false,
@@ -114,7 +113,7 @@ export const ChatPage = ({
 		matchId,
 	]);
 
-	useAutoStartTour("chatTour", variant !== "assistant");
+	useAutoStartTour("chatTour", kind === "chat");
 
 	const pendingState = useRouterState({
 		select: (state) => state.location.state.pendingMessage,
@@ -142,7 +141,7 @@ export const ChatPage = ({
 				focusMessageId={focusMessageId}
 				pendingMessage={pendingMessage}
 				draft={draft}
-				variant={variant}
+				kind={kind}
 			/>
 		</div>
 	);

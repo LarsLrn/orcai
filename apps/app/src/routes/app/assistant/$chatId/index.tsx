@@ -78,7 +78,6 @@ function RouteComponent() {
 			zedToken={zedToken}
 			focusMessageId={message}
 			loaded={Route.useLoaderData()}
-			variant="assistant"
 		/>
 	);
 }

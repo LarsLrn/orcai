@@ -2,11 +2,6 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { AssetId, ModelId, ProviderId } from "@orcai/core";
 import type { Asset } from "@orcai/schema";
 import {
-	QueryClient,
-	QueryClientProvider,
-	skipToken,
-} from "@tanstack/react-query";
-import {
 	act,
 	cleanup,
 	fireEvent,
@@ -24,21 +19,6 @@ const intake = mock(
 	}),
 );
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {
-		bot: {
-			find: {
-				queryOptions: () => ({
-					queryKey: [
-						"bot.find",
-					],
-					queryFn: skipToken,
-				}),
-			},
-		},
-	},
-}));
 mock.module("@/components/assets/use-asset-intake", () => ({
 	useAssetIntake: () => ({
 		intake,
@@ -46,23 +26,17 @@ mock.module("@/components/assets/use-asset-intake", () => ({
 		isPending: false,
 	}),
 }));
-mock.module("@/components/chat/model-picker", () => ({
-	ModelPicker: () => null,
-}));
 mock.module("@/components/chat/usage/usage-indicator", () => ({
 	UsageIndicator: () => null,
 }));
 mock.module("@/components/chat/chat-asset-picker", () => ({
 	ChatAssetPicker: () => null,
 }));
-mock.module("@/components/chat/bot-selector", () => ({
-	BotSelectorButton: () => null,
-}));
 mock.module("@/components/chat/chat-model-notice", () => ({
 	ChatModelNotice: () => null,
 }));
 
-const { NewChatInput } = await import("./new-chat-input");
+const { Composer } = await import("./composer");
 
 const assetOf = (name: string) =>
 	({
@@ -85,15 +59,14 @@ const fileOf = (name: string) =>
 
 const composer = (onSend: (draft: unknown) => Promise<boolean>) => {
 	const view = render(
-		<QueryClientProvider client={new QueryClient()}>
-			<NewChatInput
-				selectedModelId={crypto.randomUUID() as ModelId}
-				selectedProviderId={crypto.randomUUID() as ProviderId}
-				onModelSelect={() => undefined}
-				onSend={onSend}
-				isCreating={false}
-			/>
-		</QueryClientProvider>,
+		<Composer
+			onSend={onSend}
+			model={{
+				modelId: crypto.randomUUID() as ModelId,
+				providerId: crypto.randomUUID() as ProviderId,
+			}}
+			tools={() => null}
+		/>,
 	);
 	const fileInput = view.container.querySelector(
 		"input[type=file]",
@@ -118,6 +91,14 @@ const composer = (onSend: (draft: unknown) => Promise<boolean>) => {
 				// The submit handler goes on once the upload settles.
 				await intake.mock.results.at(-1)?.value;
 			}),
+		pressEnter: (init: { isComposing?: boolean; keyCode?: number } = {}) =>
+			act(async () => {
+				fireEvent.keyDown(textarea, {
+					key: "Enter",
+					...init,
+				});
+				await intake.mock.results.at(-1)?.value;
+			}),
 		textarea,
 	};
 };
@@ -128,7 +109,7 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-describe("NewChatInput", () => {
+describe("Composer", () => {
 	test("a failed upload keeps the draft and the failed file and starts no chat", async () => {
 		const broken = fileOf("broken.txt");
 		intake.mockResolvedValueOnce({
@@ -242,5 +223,97 @@ describe("NewChatInput", () => {
 				}),
 			],
 		});
+	});
+
+	test("Enter sends, but not while it confirms an IME composition", async () => {
+		const onSend = mock(async (_draft: unknown) => true);
+		const view = composer(onSend);
+
+		view.type("こんにちは");
+		await view.pressEnter({
+			isComposing: true,
+		});
+		expect(onSend).not.toHaveBeenCalled();
+		// Safari's confirming keydown comes after the composition, as key code 229.
+		await view.pressEnter({
+			keyCode: 229,
+		});
+		expect(onSend).not.toHaveBeenCalled();
+		expect((view.textarea as HTMLTextAreaElement).value).toBe("こんにちは");
+
+		await view.pressEnter();
+		await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
+		expect(onSend.mock.calls[0]?.[0]).toEqual({
+			text: "こんにちは",
+			attachments: [],
+		});
+		expect((view.textarea as HTMLTextAreaElement).value).toBe("");
+	});
+
+	const pendingSend = async () => {
+		const notes = assetOf("notes.txt");
+		intake.mockResolvedValueOnce({
+			assets: [
+				notes,
+			],
+			failures: [],
+			zedToken: undefined,
+		});
+		const send = Promise.withResolvers<boolean>();
+		const onSend = mock((_draft: unknown) => send.promise);
+		const view = composer(onSend);
+
+		view.attach(fileOf("notes.txt"));
+		view.type("Summarise this");
+		await view.submit();
+		await waitFor(() => expect(onSend).toHaveBeenCalledTimes(1));
+		const settle = (outcome: () => void) =>
+			act(async () => {
+				const settled = send.promise.catch(() => undefined);
+				outcome();
+				await settled;
+			});
+		return {
+			view,
+			reach: () => settle(() => send.resolve(true)),
+			miss: () => settle(() => send.resolve(false)),
+			refuse: () => settle(() => send.reject(new Error("Network down"))),
+		};
+	};
+
+	const value = (view: ReturnType<typeof composer>) =>
+		(view.textarea as HTMLTextAreaElement).value;
+
+	test("a sent message leaves the composer at once and stays out once it reached the transcript", async () => {
+		const { view, reach } = await pendingSend();
+
+		expect(value(view)).toBe("");
+		expect(screen.queryByText("notes.txt")).toBeNull();
+		await reach();
+		expect(value(view)).toBe("");
+		expect(screen.queryByText("notes.txt")).toBeNull();
+	});
+
+	test("a refused send, or one stopped before it reached the transcript, comes back into an empty composer", async () => {
+		for (const end of [
+			"refuse",
+			"miss",
+		] as const) {
+			const pending = await pendingSend();
+
+			await pending[end]();
+			expect(value(pending.view)).toBe("Summarise this");
+			expect(screen.getByText("notes.txt")).toBeTruthy();
+			cleanup();
+		}
+	});
+
+	test("a refused send keeps what the user wrote meanwhile", async () => {
+		const { view, refuse } = await pendingSend();
+
+		view.type("Something else");
+		await refuse();
+		expect(value(view)).toBe("Something else");
+		expect(screen.queryByText("notes.txt")).toBeNull();
 	});
 });

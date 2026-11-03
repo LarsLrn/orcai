@@ -1,5 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import type { ChatId } from "@orcai/core";
+import type { ChatKind } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { ChatSession, phaseOf } from "@/lib/ai/chat-session/chat-session";
@@ -10,13 +11,13 @@ export const useChatSession = ({
 	chatId,
 	page,
 	zedToken,
-	variant,
+	kind,
 }: {
 	chatId: ChatId;
 	/** The newest page as the loader fetched it. */
 	page: Parameters<typeof chatPageOf>[0];
 	zedToken: string | undefined;
-	variant: "chat" | "assistant";
+	kind: ChatKind;
 }) => {
 	const queryClient = useQueryClient();
 	const [session] = useState(
@@ -27,7 +28,7 @@ export const useChatSession = ({
 				zedToken,
 				port: orpcChatPort({
 					queryClient,
-					variant,
+					kind,
 				}),
 			}),
 	);

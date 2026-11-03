@@ -80,11 +80,7 @@ function RouteComponent() {
 				{chat.title ?? m.chat_title_placeholder()}
 			</h1>
 			<Card className="h-[70dvh] min-h-0 py-0">
-				<Chat
-					id={chatId}
-					page={loaded.messages}
-					variant={chat.kind === "assistant" ? "assistant" : "chat"}
-				/>
+				<Chat id={chatId} page={loaded.messages} kind={chat.kind} />
 			</Card>
 		</div>
 	);

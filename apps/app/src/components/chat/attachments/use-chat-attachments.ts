@@ -188,6 +188,11 @@ export const useChatAttachments = ({
 		resetUploadState();
 	};
 
+	/** Puts back the attachments of a message that was not sent, in place of none. */
+	const restoreAttachments = (attachments: ChatMessageAttachment[]) => {
+		setSelectedAttachments(attachments);
+	};
+
 	/**
 	 * Uploads the local files and keeps their assets as selected attachments, so
 	 * a retry reuses them. Resolves null when an upload failed: the failed files
@@ -256,6 +261,7 @@ export const useChatAttachments = ({
 		removeLocalFile,
 		removeSelectedAsset,
 		clearAttachments,
+		restoreAttachments,
 		resolveAttachmentsForSend,
 	};
 };

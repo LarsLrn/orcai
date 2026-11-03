@@ -1,13 +1,12 @@
-import type { BotId, ChatId } from "@orcai/core";
+import type { BotId } from "@orcai/core";
 import {
 	Conversation,
 	ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
 import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
-import type { ChatDraft } from "@/components/chat/chat-draft";
 import { ChatPlaceholder } from "@/components/chat/chat-placeholder";
-import { NewChatInput } from "@/components/chat/new-chat-input";
+import { NewChatComposer } from "@/components/chat/new-chat-composer";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
 import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
@@ -16,31 +15,11 @@ import {
 	MessageScrollerItem,
 } from "@/components/ui/message-scroller";
 
-const NewChat = ({
-	botId,
-	onChatCreated,
-}: {
-	botId?: BotId;
-	onChatCreated: (
-		chatId: ChatId,
-		pendingMessage: ChatDraft,
-		zedToken?: string,
-	) => void;
-}) => {
-	const {
-		selectedBotId,
-		selectedModelId,
-		selectedProviderId,
-		blocker,
-		setup,
-		isCreating,
-		handleModelSelect,
-		handleBotSelect,
-		handleSend,
-	} = useChatStarter({
+const NewChat = ({ botId }: { botId?: BotId }) => {
+	const starter = useChatStarter({
 		initialBotId: botId,
-		onChatCreated,
 	});
+	const { selectedBotId, selectedProviderId } = starter;
 	const repositoryIds = useChatRepositoryIds({
 		botId: selectedBotId,
 	});
@@ -63,17 +42,7 @@ const NewChat = ({
 				/>
 				<ChatEmbeddingsRebuildNotice repositoryIds={repositoryIds} />
 				<AssetsPanel blockIds={repositoryIds} />
-				<NewChatInput
-					selectedBotId={selectedBotId}
-					selectedModelId={selectedModelId}
-					selectedProviderId={selectedProviderId}
-					onBotSelect={handleBotSelect}
-					onModelSelect={handleModelSelect}
-					onSend={handleSend}
-					isCreating={isCreating}
-					blocker={blocker}
-					setup={setup}
-				/>
+				<NewChatComposer starter={starter} />
 			</div>
 		</div>
 	);
