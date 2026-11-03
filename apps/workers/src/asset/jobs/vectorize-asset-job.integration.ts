@@ -6,8 +6,8 @@ import { DB, dbSchema } from "@orcai/db";
 import type { Job, JobWithMetadata } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
+	admit as admitPreparation,
 	markIndexingExhausted,
-	queueIndexing,
 	reconcileEmbeddings,
 	reconcileLinkPoints,
 } from "@orcai/preparation";
@@ -247,14 +247,21 @@ const seed = (
 /** Starts a new indexing attempt on the link, as Save or Retry does; its job. */
 const admit = async (link: { assetId: AssetId; blockId: BlockId }) => {
 	const current = await linkOf(link);
-	const [data] = await run(
-		queueIndexing([
-			{
-				...link,
-				attempt: current?.attempt ?? -1,
-			},
-		]),
+	const [admitted] = await run(
+		admitPreparation({
+			stage: "indexing",
+			links: [
+				{
+					...link,
+					attempt: current?.attempt ?? -1,
+				},
+			],
+		}),
 	);
+	const data = admitted && {
+		...link,
+		attempt: (await linkOf(link))?.attempt,
+	};
 	return {
 		id: crypto.randomUUID(),
 		name: "vectorize-asset",

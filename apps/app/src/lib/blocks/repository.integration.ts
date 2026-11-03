@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { PgBossService } from "@orcai/pg-boss";
-import { queueIndexing, withLinkPoints } from "@orcai/preparation";
+import { ensureQueues, PgBossService } from "@orcai/pg-boss";
+import { admit, type ObservedLink, withLinkPoints } from "@orcai/preparation";
 import {
 	EmbeddingGeneration,
 	onActiveGeneration,
@@ -22,9 +22,8 @@ import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
-import { prepareAssetAgain } from "@/lib/assets/processing";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
-import { reindexBlockAssets } from "@/lib/blocks/repository";
+import { reconcileRemovedLinks } from "@/lib/blocks/repository";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
@@ -246,6 +245,33 @@ const repositoryWith = async (count: number) => {
 	};
 };
 
+/** Starts an indexing attempt on each link still at its observed attempt. */
+const indexAgain = (links: readonly ObservedLink[]) =>
+	admit({
+		stage: "indexing",
+		links,
+	});
+
+/** Prepares the asset again from its observed generation; whether it was admitted. */
+const prepareAgain = async (asset: typeof dbSchema.asset.$inferSelect) =>
+	(
+		await run(
+			admit({
+				stage: "processing",
+				assets: [
+					{
+						id: asset.id,
+						generation: asset.processingGeneration,
+					},
+				],
+				from: [
+					"completed",
+					"failed",
+				],
+			}),
+		)
+	).length > 0;
+
 describe("repository asset links", () => {
 	test(
 		"start pending, and an edit keeps the state of the links it keeps",
@@ -381,8 +407,8 @@ describe("reset rules", () => {
 				}),
 			);
 
-			expect(await run(prepareAssetAgain(asset))).toBe(true);
-			expect(await run(prepareAssetAgain(asset))).toBe(false);
+			expect(await prepareAgain(asset)).toBe(true);
+			expect(await prepareAgain(asset)).toBe(false);
 
 			const [after] = await run(
 				Effect.gen(function* () {
@@ -408,7 +434,7 @@ describe("reset rules", () => {
 				assetId,
 				processing: "failed",
 			});
-			expect(await run(prepareAssetAgain(asset))).toBe(false);
+			expect(await prepareAgain(asset)).toBe(false);
 		},
 		TIMEOUT,
 	);
@@ -430,7 +456,7 @@ describe("reset rules", () => {
 			}
 
 			await run(
-				queueIndexing([
+				indexAgain([
 					{
 						assetId: retried,
 						blockId,
@@ -472,12 +498,12 @@ describe("overlapping admissions", () => {
 
 			const admitted = await Promise.all([
 				run(
-					queueIndexing([
+					indexAgain([
 						observed,
 					]),
 				),
 				run(
-					queueIndexing([
+					indexAgain([
 						observed,
 					]),
 				),
@@ -532,8 +558,7 @@ describe("overlapping admissions", () => {
 				}),
 			);
 			await run(
-				reindexBlockAssets({
-					added: [],
+				reconcileRemovedLinks({
 					removed,
 				}),
 			);
@@ -806,8 +831,14 @@ describe("attaching while processing completes", () => {
 	test(
 		"an asset completing as it is attached is queued for indexing in the new repository",
 		async () => {
-			const { owner, organizationId, blockId } = await repositoryWith(1);
-			const { asset } = await createAsset(owner, organizationId);
+			const {
+				owner,
+				organizationId,
+				blockId,
+				assets,
+				zedToken: repoToken,
+			} = await repositoryWith(1);
+			const { asset, zedToken } = await createAsset(owner, organizationId);
 			const assetId = asset.id as AssetId;
 			await run(
 				Effect.gen(function* () {
@@ -850,27 +881,20 @@ describe("attaching while processing completes", () => {
 			);
 			await run(Deferred.await(linksRead));
 
-			const added = await run(
-				Effect.gen(function* () {
-					return yield* (yield* DB)
-						.insert(dbSchema.blockAsset)
-						.values({
-							blockId,
-							assetId,
-						})
-						.returning({
-							assetId: dbSchema.blockAsset.assetId,
-							blockId: dbSchema.blockAsset.blockId,
-							attempt: dbSchema.blockAsset.indexAttempt,
-						});
-				}),
-			);
+			const procedures = await run(Procedures);
+			const options = await procedureOptions(owner, zedToken ?? repoToken);
 			const attach = await run(
 				Effect.forkDetach(
-					reindexBlockAssets({
-						added,
-						removed: [],
-					}),
+					procedures.block.update(
+						{
+							id: blockId,
+							...repository([
+								...assets,
+								assetId,
+							]),
+						},
+						options,
+					),
 				),
 			);
 			await run(awaitLockWaiters("%for share%"));
@@ -900,8 +924,9 @@ describe("saving a repository and processing completing", () => {
 								processingStatus: "completed",
 							})
 							.where(eq(dbSchema.asset.id, assetId));
-						yield* queueIndexing(
-							yield* db
+						yield* admit({
+							stage: "indexing",
+							links: yield* db
 								.select({
 									assetId: dbSchema.blockAsset.assetId,
 									blockId: dbSchema.blockAsset.blockId,
@@ -909,7 +934,7 @@ describe("saving a repository and processing completing", () => {
 								})
 								.from(dbSchema.blockAsset)
 								.where(eq(dbSchema.blockAsset.assetId, assetId)),
-						);
+						});
 					}),
 				);
 			}),
@@ -956,6 +981,61 @@ describe("saving a repository and processing completing", () => {
 					await procedureOptions(repo.owner, zedToken ?? repo.zedToken),
 				),
 			);
+			expect(await queuedAttempts(assetId, repo.blockId)).toEqual([
+				await linkAttempt(assetId, repo.blockId),
+			]);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("saving a repository whose indexing cannot be queued", () => {
+	test(
+		"the save links nothing, so saving again links the asset and queues its indexing",
+		async () => {
+			const repo = await repositoryWith(1);
+			const { asset, zedToken } = await createAsset(
+				repo.owner,
+				repo.organizationId,
+			);
+			const assetId = asset.id as AssetId;
+			await setStatus({
+				assetId,
+				processing: "completed",
+			});
+			const procedures = await run(Procedures);
+			const options = await procedureOptions(
+				repo.owner,
+				zedToken ?? repo.zedToken,
+			);
+			const save = () =>
+				run(
+					procedures.block.update(
+						{
+							id: repo.blockId,
+							...repository([
+								...repo.assets,
+								assetId,
+							]),
+						},
+						options,
+					),
+				);
+			const boss = await run(PgBossService.useSync(({ boss }) => boss));
+
+			await boss.deleteQueue(VECTORIZE_ASSET_JOB_NAME);
+			try {
+				await expect(save()).rejects.toBeDefined();
+			} finally {
+				await run(
+					ensureQueues([
+						VECTORIZE_ASSET_JOB_NAME,
+					]),
+				);
+			}
+			expect(await links(repo.blockId)).not.toHaveProperty(assetId);
+
+			await save();
 			expect(await queuedAttempts(assetId, repo.blockId)).toEqual([
 				await linkAttempt(assetId, repo.blockId),
 			]);

@@ -1,6 +1,6 @@
-import type { OrganizationId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
-import { sendJobBatch } from "@orcai/pg-boss";
+import type { ActivityRunId, OrganizationId, UserId } from "@orcai/core";
+import { advisoryXactLock, DB, dbSchema } from "@orcai/db";
+import { liveJobs, sendJobBatchInTransaction } from "@orcai/pg-boss";
 import {
 	EmbeddingIndex,
 	maintainCollections,
@@ -11,14 +11,23 @@ import {
 	PIPELINE_FAILURES,
 	type PipelineFailure,
 	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+	type PrepareMissingExtractionsAgainPayload,
 } from "@orcai/schema";
-import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
-import * as Effect from "effect/Effect";
 import {
-	type ObservedLink,
-	queueIndexing,
-	queueProcessing,
-} from "./asset-pipeline";
+	and,
+	desc,
+	eq,
+	exists,
+	inArray,
+	isNotNull,
+	isNull,
+	or,
+	sql,
+} from "drizzle-orm";
+import * as Effect from "effect/Effect";
+import { runningRun, type StageTarget } from "./activity";
+import { type AdmissionRun, admit, type ObservedLink } from "./admission";
+import { inActivityRun, leaseHeld, leaseRun, releaseAdmission } from "./runs";
 
 const ADMISSION_BATCH = 500;
 
@@ -93,16 +102,20 @@ const embeddable = Effect.gen(function* () {
 	};
 });
 
-/** Admits `select`'s links, a batch at a time, to embed their stored extraction again. */
+/** Admits `select`'s links, a batch at a time, to embed their stored extraction again, as the run's work. */
 const admitAll = <E, R>(
 	select: () => Effect.Effect<readonly ObservedLink[], E, R>,
+	run?: AdmissionRun,
 ) =>
 	Effect.gen(function* () {
 		let admitted = 0;
 		while (true) {
 			const links = yield* select();
 			if (links.length === 0) return admitted;
-			const queued = yield* queueIndexing(links, undefined, {
+			const queued = yield* admit({
+				stage: "indexing",
+				links,
+				run,
 				fromStoredExtraction: true,
 			});
 			admitted += queued.length;
@@ -187,25 +200,37 @@ export const reconcileEmbeddings = Effect.gen(function* () {
 
 /**
  * Embeds every failed link of the active generation again whose failure
- * re-embedding can help, from its stored extraction; links already embedded
- * stay. Returns the links admitted.
+ * re-embedding can help, from its stored extraction, as a run of the
+ * user's; links already embedded stay. Returns the links admitted.
  */
-export const retryFailedEmbeddings = Effect.gen(function* () {
-	const { blockAsset } = dbSchema;
-	const links = yield* embeddable;
-	return yield* admitAll(() =>
-		links
-			.links()
-			.where(
-				links.where(
-					links.inActive,
-					eq(blockAsset.indexStatus, "failed"),
-					inArray(blockAsset.indexFailure, REEMBEDDABLE_FAILURES),
-				),
-			)
-			.limit(ADMISSION_BATCH),
+export const retryFailedEmbeddings = (userId: UserId) =>
+	inActivityRun(
+		{
+			userId,
+			kind: "retry",
+		},
+		(runId) =>
+			Effect.gen(function* () {
+				const { blockAsset } = dbSchema;
+				const links = yield* embeddable;
+				return yield* admitAll(
+					() =>
+						links
+							.links()
+							.where(
+								links.where(
+									links.inActive,
+									eq(blockAsset.indexStatus, "failed"),
+									inArray(blockAsset.indexFailure, REEMBEDDABLE_FAILURES),
+								),
+							)
+							.limit(ADMISSION_BATCH),
+					{
+						id: runId,
+					},
+				);
+			}),
 	);
-});
 
 /** The failed links of the active generation missing their stored extraction. Join `settings` too. */
 const missingExtraction = Effect.gen(function* () {
@@ -241,77 +266,201 @@ const preparableAssets = Effect.gen(function* () {
 
 /**
  * Prepares every asset again whose stored extraction a failed link of the
- * active generation is missing, a batch at a time, once per asset; its
- * processing indexes every link of the asset again when it completes. An
- * asset already being prepared is skipped. Returns the assets queued.
+ * active generation is missing, a batch at a time, once per asset, as the
+ * job's run while its lease holds it; its processing indexes every link of the
+ * asset again when it completes. An asset already being prepared is
+ * skipped. Releases the lease once done. Returns the assets queued.
  */
-export const prepareMissingExtractionsAgain = Effect.gen(function* () {
+export const prepareMissingExtractionsAgain = (
+	payload: PrepareMissingExtractionsAgainPayload,
+) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { settings } = yield* EmbeddingIndex;
+		const { asset, blockAsset } = dbSchema;
+		const missing = yield* missingExtraction;
+		const assetsMissing = (...conditions: ReturnType<typeof and>[]) =>
+			db
+				.selectDistinct({
+					id: asset.id,
+					generation: asset.processingGeneration,
+				})
+				.from(blockAsset)
+				.innerJoin(asset, eq(asset.id, blockAsset.assetId))
+				.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
+				.where(missing(...conditions));
+		const held = () =>
+			leaseHeld(payload.leaseId).pipe(
+				Effect.map((running) =>
+					running
+						? {
+								id: payload.runId,
+							}
+						: undefined,
+				),
+			);
+		// Checked again under the generation lock, so a switch since the batch was read queues nothing.
+		const prepare = (
+			selected: Effect.Success<ReturnType<typeof assetsMissing>>[number],
+			run: AdmissionRun | undefined,
+		) =>
+			writeGeneration(
+				Effect.gen(function* () {
+					const [still] = yield* assetsMissing(eq(asset.id, selected.id));
+					return still
+						? yield* admit({
+								stage: "processing",
+								assets: [
+									still,
+								],
+								from: [
+									"completed",
+								],
+								run,
+							})
+						: [];
+				}),
+			).pipe(
+				Effect.catchTag("EmbeddingsNotConfiguredError", () =>
+					Effect.succeed<readonly StageTarget[]>([]),
+				),
+			);
+		let queued = 0;
+		while (true) {
+			const run = yield* held();
+			const assets = yield* assetsMissing().limit(ADMISSION_BATCH);
+			if (assets.length === 0) break;
+			const admitted = (yield* Effect.forEach(assets, (selected) =>
+				prepare(selected, run),
+			)).flat().length;
+			queued += admitted;
+			// Every asset went to another admission meanwhile; the next request looks again.
+			if (admitted === 0) break;
+		}
+		yield* releaseAdmission(payload.leaseId);
+		return queued;
+	});
+
+/**
+ * The instance's run preparing assets again whose work is not done: a
+ * retry run of no organisation or repository that took on the processing of
+ * an asset linked in the index's repositories. A person's retry of an asset
+ * in no repository is not one.
+ */
+const runningInstanceRun = Effect.gen(function* () {
 	const db = yield* DB;
-	const { settings } = yield* EmbeddingIndex;
-	const { asset, blockAsset } = dbSchema;
-	const missing = yield* missingExtraction;
-	const assetsMissing = (...conditions: ReturnType<typeof and>[]) =>
-		db
-			.selectDistinct({
-				id: asset.id,
-				bucket: asset.bucket,
-				prefix: asset.prefix,
-				fileType: asset.fileType,
-				processingGeneration: asset.processingGeneration,
-			})
-			.from(blockAsset)
-			.innerJoin(asset, eq(asset.id, blockAsset.assetId))
-			.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
-			.where(missing(...conditions));
-	// Checked again under the generation lock, so a switch since the batch was read queues nothing.
-	const prepare = (
-		selected: Effect.Success<ReturnType<typeof assetsMissing>>[number],
-	) =>
-		writeGeneration(
-			Effect.gen(function* () {
-				const [still] = yield* assetsMissing(eq(asset.id, selected.id));
-				return still
-					? yield* queueProcessing(still, [
-							"completed",
-						])
-					: undefined;
-			}),
-		).pipe(
-			Effect.catchTag("EmbeddingsNotConfiguredError", () =>
-				Effect.succeed(undefined),
+	const { blockIds } = yield* EmbeddingIndex;
+	const { activityMember, activityRun, blockAsset } = dbSchema;
+	const [run] = yield* db
+		.select({
+			id: activityRun.id,
+		})
+		.from(activityRun)
+		.where(
+			and(
+				eq(activityRun.kind, "retry"),
+				isNull(activityRun.organizationId),
+				isNull(activityRun.blockId),
+				runningRun,
+				exists(
+					db
+						.select({
+							id: activityMember.id,
+						})
+						.from(activityMember)
+						.where(
+							and(
+								eq(activityMember.runId, activityRun.id),
+								isNotNull(activityMember.processingState),
+								exists(
+									db
+										.select({
+											assetId: blockAsset.assetId,
+										})
+										.from(blockAsset)
+										.where(
+											and(
+												eq(blockAsset.assetId, activityMember.assetId),
+												blockIds
+													? inArray(blockAsset.blockId, [
+															...blockIds,
+														])
+													: undefined,
+											),
+										),
+								),
+							),
+						),
+				),
 			),
-		);
-	let queued = 0;
-	while (true) {
-		const assets = yield* assetsMissing().limit(ADMISSION_BATCH);
-		if (assets.length === 0) return queued;
-		const admitted = (yield* Effect.forEach(assets, prepare)).filter(
-			(generation) => generation !== undefined,
-		).length;
-		queued += admitted;
-		// Every asset went to another admission meanwhile; the next run looks again.
-		if (admitted === 0) return queued;
-	}
+		)
+		.orderBy(desc(activityRun.createdAt))
+		.limit(1);
+	return run?.id;
 });
 
 /**
- * Queues the job that runs `prepareMissingExtractionsAgain`, unless one is
- * already waiting. Returns how many assets it is to prepare.
+ * Starts preparing again the assets a failed link of the active generation
+ * misses the stored extraction of, as a run of the user's that a job
+ * admits. A request joins the run of a job still queued or running, else
+ * the instance's run whose work is not done, and queues a job for it when
+ * no job waits and there are assets to prepare. Requests take turns, so the
+ * queue never drops one. Returns how many assets there are and the run.
  */
-export const startPreparingMissingExtractionsAgain = Effect.gen(function* () {
-	const assets = yield* preparableAssets;
-	if (assets > 0) {
-		yield* sendJobBatch({
-			jobName: PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
-			jobs: [
-				{
-					data: {},
-				},
-			],
-		});
-	}
-	return assets;
-});
+export const startPreparingMissingExtractionsAgain = (userId: UserId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db.transaction(() =>
+			Effect.gen(function* () {
+				yield* db.execute(
+					advisoryXactLock("instancePreparation", "missingExtractions"),
+				);
+				const assets = yield* preparableAssets;
+				const live = yield* liveJobs<PrepareMissingExtractionsAgainPayload>([
+					PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+				]);
+				const joined = live[0]?.data.runId ?? (yield* runningInstanceRun);
+				const waiting = live.some((job) => job.state !== "active");
+				if (waiting || assets === 0) {
+					return {
+						assets,
+						runId: joined ?? null,
+						joined: joined !== undefined,
+					};
+				}
+
+				const runId: ActivityRunId =
+					joined ??
+					(yield* db
+						.insert(dbSchema.activityRun)
+						.values({
+							userId,
+							kind: "retry",
+						})
+						.returning({
+							id: dbSchema.activityRun.id,
+						}))[0].id;
+				yield* sendJobBatchInTransaction<PrepareMissingExtractionsAgainPayload>(
+					{
+						jobName: PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+						jobs: [
+							{
+								data: {
+									runId,
+									leaseId: yield* leaseRun(runId),
+								},
+							},
+						],
+					},
+				);
+				return {
+					assets,
+					runId,
+					joined: joined !== undefined,
+				};
+			}),
+		);
+	});
 
 /** How far the active generation got in one organisation's repositories. */
 export type OrganizationEmbeddingProgress = {

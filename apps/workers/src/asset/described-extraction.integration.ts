@@ -1,4 +1,5 @@
 import { beforeAll, expect, test } from "bun:test";
+import { EncryptionKeyLive } from "@orcai/ai";
 import { type ActivityRunId, type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { type PgBoss, PgBossService } from "@orcai/pg-boss";
@@ -17,6 +18,7 @@ import {
 	type StoredExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
+import { QdrantLive } from "@orcai/qdrant";
 import {
 	S3Live,
 	sendDeleteObjectCommand,
@@ -42,7 +44,7 @@ import { describedExtraction } from "@/asset/described-extraction";
 const TIMEOUT = 30_000;
 
 const runtime = integrationRuntime(
-	Layer.mergeAll(S3Live, IsolatedPgBossLive()),
+	Layer.mergeAll(S3Live, EncryptionKeyLive, QdrantLive, IsolatedPgBossLive()),
 );
 const run = runtime.runPromise;
 

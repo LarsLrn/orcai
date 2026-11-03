@@ -117,7 +117,7 @@ export const instanceSettingsContracts = {
 				summary: "Prepare the assets again whose stored text is missing",
 				tags,
 				description:
-					"Starts queueing each asset whose failed embedding misses its stored extraction once, in the background, and returns how many there are. Reading the file again also describes its images. Assets already being prepared are skipped, and a click while queueing waits to start adds nothing.",
+					"Starts queueing each asset whose failed embedding misses its stored extraction once, in the background, as an activity run of the caller, and returns how many there are and the run. Reading the file again also describes its images. Assets already being prepared are skipped, and a request while a run is queued or running joins that run.",
 			}),
 		)
 		.input(prepareMissingExtractionsAgainInputSchema)

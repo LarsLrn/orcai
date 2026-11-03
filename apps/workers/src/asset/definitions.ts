@@ -1,4 +1,4 @@
-import { defineWorker } from "@orcai/pg-boss";
+import { defineWorker, type Job } from "@orcai/pg-boss";
 import {
 	markIndexingExhausted,
 	markMetadataExhausted,
@@ -14,6 +14,7 @@ import {
 	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
+	type PrepareMissingExtractionsAgainPayload,
 	RECONCILE_EMBEDDINGS_JOB_NAME,
 	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -88,8 +89,8 @@ export const assetWorkers = [
 		queue: PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 		concurrency: 1,
 		pollingIntervalSeconds: 2,
-		handler: () =>
-			prepareMissingExtractionsAgain.pipe(
+		handler: (job: Job<PrepareMissingExtractionsAgainPayload>) =>
+			prepareMissingExtractionsAgain(job.data).pipe(
 				Effect.tap((queued) =>
 					Effect.logInfo(
 						{

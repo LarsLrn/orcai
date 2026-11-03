@@ -17,20 +17,24 @@ import {
 	AssetPipelineError,
 	admitStage,
 	failStrandedStages,
+	leaseRun,
 	processingAttempt,
+	releaseJobLeases,
 	type StrandedStages,
 	settleProcessingAttempt,
+	strandedJobLeases,
 	strandedStages,
 } from "@orcai/preparation";
 import { activeGeneration, EmbeddingIndex, QdrantLive } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import {
+	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
 } from "@orcai/schema";
 import { createUser, integrationRuntime } from "@orcai/testing";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
@@ -402,6 +406,78 @@ describe("stages no job will deliver", () => {
 			expect(await stagesOf(unconfigured.asset.id)).toMatchObject({
 				indexing: "pending",
 			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"release the run lease of a preparation job that is gone and keep one whose job waits",
+		async () => {
+			const { gone, waiting } = await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					const user = yield* createUser();
+					const lease = () =>
+						Effect.gen(function* () {
+							const [created] = yield* db
+								.insert(dbSchema.activityRun)
+								.values({
+									userId: user.id,
+									kind: "retry",
+								})
+								.returning({
+									id: dbSchema.activityRun.id,
+								});
+							return {
+								runId: created.id,
+								leaseId: yield* leaseRun(created.id),
+							};
+						});
+					return {
+						gone: yield* lease(),
+						waiting: yield* lease(),
+					};
+				}),
+			);
+			const job = await boss.send(
+				PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+				waiting,
+			);
+			onTestFinished(async () => {
+				if (job) {
+					await boss.deleteJob(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, job);
+				}
+			});
+			const ours = new Set([
+				gone.leaseId,
+				waiting.leaseId,
+			]);
+
+			const stranded = (await run(strandedJobLeases)).filter((id) =>
+				ours.has(id),
+			);
+			expect(stranded).toEqual([
+				gone.leaseId,
+			]);
+			await run(releaseJobLeases(stranded));
+
+			const leases = await run(
+				Effect.gen(function* () {
+					return (yield* (yield* DB)
+						.select({
+							id: dbSchema.activityAdmission.id,
+						})
+						.from(dbSchema.activityAdmission)
+						.where(
+							inArray(dbSchema.activityAdmission.id, [
+								...ours,
+							]),
+						)).map((row) => row.id);
+				}),
+			);
+			expect(leases).toEqual([
+				waiting.leaseId,
+			]);
 		},
 		TIMEOUT,
 	);

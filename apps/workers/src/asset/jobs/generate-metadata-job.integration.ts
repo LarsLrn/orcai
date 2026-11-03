@@ -10,14 +10,15 @@ import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import { type Job, type PgBoss, PgBossService } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
+	admit as admitPreparation,
 	completeProcessing,
-	queueMetadataGeneration,
 } from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
+import { QdrantLive } from "@orcai/qdrant";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	type AssetMetadataType,
@@ -45,7 +46,7 @@ import {
 const TIMEOUT = 30_000;
 
 const runtime = integrationRuntime(
-	Layer.mergeAll(S3Live, EncryptionKeyLive, IsolatedPgBossLive()),
+	Layer.mergeAll(S3Live, EncryptionKeyLive, QdrantLive, IsolatedPgBossLive()),
 );
 const run = runtime.runPromise;
 
@@ -150,7 +151,8 @@ const admit = async (
 	userId?: UserId,
 ) => {
 	const admitted = await run(
-		queueMetadataGeneration({
+		admitPreparation({
+			stage: "metadata",
 			assetIds: [
 				assetId,
 			],
@@ -371,7 +373,10 @@ test(
 		const first = await admit(seeded.assetId, "apply");
 		const second = await admit(seeded.assetId, "apply");
 		expect(first.admitted).toEqual([
-			seeded.assetId,
+			{
+				stage: "metadata",
+				assetId: seeded.assetId,
+			},
 		]);
 		expect(second.admitted).toEqual([]);
 		const stale = await latestJob(seeded.assetId);
@@ -455,7 +460,8 @@ test(
 				3,
 			].map(() =>
 				run(
-					queueMetadataGeneration({
+					admitPreparation({
+						stage: "metadata",
 						assetIds: [
 							seeded.assetId,
 						],
@@ -466,7 +472,10 @@ test(
 		);
 
 		expect(results.flat()).toEqual([
-			seeded.assetId,
+			{
+				stage: "metadata",
+				assetId: seeded.assetId,
+			},
 		]);
 		expect((await assetOf(seeded.assetId))?.generation).toBe(1);
 	},
@@ -600,13 +609,16 @@ test(
 			}),
 		);
 		await run(
-			queueMetadataGeneration({
+			admitPreparation({
+				stage: "metadata",
 				assetIds: [
 					seeded.assetId,
 				],
 				mode: "apply",
 				userId: seeded.adminId,
-				runId,
+				run: {
+					id: runId,
+				},
 			}),
 		);
 		const job = await latestJob(seeded.assetId);
@@ -677,14 +689,17 @@ test(
 			}),
 		);
 		await run(
-			queueMetadataGeneration({
+			admitPreparation({
+				stage: "metadata",
 				assetIds: [
 					seeded.assetId,
 				],
 				mode: "apply",
 				onlyMissing: true,
 				userId: seeded.adminId,
-				runId,
+				run: {
+					id: runId,
+				},
 			}),
 		);
 		const job = await latestJob(seeded.assetId);
@@ -866,13 +881,16 @@ test(
 								id: dbSchema.activityRun.id,
 							});
 						if (!activityRun) throw new Error("No run seeded");
-						yield* queueMetadataGeneration({
+						yield* admitPreparation({
+							stage: "metadata",
 							assetIds: [
 								seeded.assetId,
 							],
 							mode: "review",
 							userId: seeded.adminId,
-							runId: activityRun.id,
+							run: {
+								id: activityRun.id,
+							},
 						});
 						return activityRun.id;
 					}),
@@ -1016,6 +1034,49 @@ test(
 			failure: "missing_extraction",
 		});
 		expect(await processJobs(seeded.assetId)).toHaveLength(1);
+	},
+	TIMEOUT,
+);
+
+test(
+	"a review requested once the file is prepared replaces a generation still waiting for it, which never supersedes the review",
+	async () => {
+		const seeded = await seedAsset({
+			stored: false,
+		});
+		await admit(seeded.assetId, "apply");
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+		await runJob(job);
+		const waiting = await latestJob(seeded.assetId);
+		if (!waiting) throw new Error("No job handed on");
+
+		await completeCurrentProcessing(seeded);
+		await admit(seeded.assetId, "review", seeded.adminId);
+		const review = await latestJob(seeded.assetId);
+		if (!review) throw new Error("No review queued");
+		expect(review.data).toMatchObject({
+			mode: "review",
+			generation: waiting.data.generation + 1,
+		});
+		await runJob(waiting);
+
+		expect((await latestJob(seeded.assetId))?.id).toBe(review.id);
+		expect(await processJobs(seeded.assetId)).toHaveLength(1);
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "pending",
+			generation: review.data.generation,
+		});
+		expect(requests).toHaveLength(0);
+
+		await runJob(review);
+		expect(requests).toHaveLength(1);
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "completed",
+			suggestion: {
+				title: "Refund policy 2026",
+			},
+		});
 	},
 	TIMEOUT,
 );

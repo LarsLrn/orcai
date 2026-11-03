@@ -8,8 +8,7 @@ import {
 import { and, asc, eq, inArray, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { boundRepository, settleStage } from "./activity";
-import { queueMetadataGeneration } from "./asset-metadata";
-import { queueIndexing } from "./asset-pipeline";
+import { admit } from "./admission";
 import {
 	currentIndexing,
 	currentMetadata,
@@ -97,18 +96,31 @@ const queueAfterProcessing = (attempt: {
 			},
 		);
 
-		yield* queueIndexing(
-			links.filter((link) => link.blockId === bound),
-			attempt.runId,
-		);
-		yield* queueIndexing(links.filter((link) => link.blockId !== bound));
-		yield* queueMetadataGeneration({
+		yield* admit({
+			stage: "indexing",
+			links: links.filter((link) => link.blockId === bound),
+			run: attempt.runId
+				? {
+						id: attempt.runId,
+					}
+				: undefined,
+		});
+		yield* admit({
+			stage: "indexing",
+			links: links.filter((link) => link.blockId !== bound),
+		});
+		yield* admit({
+			stage: "metadata",
 			assetIds: [
 				attempt.assetId,
 			],
 			mode: "apply",
 			onlyMissing: true,
-			runId: attempt.runId,
+			run: attempt.runId
+				? {
+						id: attempt.runId,
+					}
+				: undefined,
 		});
 	});
 

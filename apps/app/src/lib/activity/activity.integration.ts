@@ -7,10 +7,16 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
+	addActivityMember,
+	admit,
 	admitStage,
 	completeProcessing,
+	homeOrganization,
+	inActivityRun,
 	newFailureId,
-	queueIndexing,
+	openUploadRun,
+	releaseAdmission,
+	renewAdmission,
 	settleStage,
 } from "@orcai/preparation";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
@@ -20,14 +26,6 @@ import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Tracer from "effect/Tracer";
-import {
-	addActivityMember,
-	homeOrganization,
-	inActivityRun,
-	openUploadRun,
-	releaseAdmission,
-	renewAdmission,
-} from "@/lib/activity/admission";
 import { activitySummary } from "@/lib/activity/summary";
 import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
@@ -1262,7 +1260,13 @@ describe("repository save with upload runs", () => {
 									})
 									.from(dbSchema.blockAsset)
 									.where(eq(dbSchema.blockAsset.assetId, assetId));
-								yield* queueIndexing(links, runId);
+								yield* admit({
+									stage: "indexing",
+									links,
+									run: {
+										id: runId,
+									},
+								});
 								yield* Deferred.succeed(admitted, undefined);
 								yield* Deferred.await(commit);
 							}),
@@ -1496,12 +1500,15 @@ describe("repository save with upload runs", () => {
 								blockId,
 							},
 							(retryRunId) =>
-								queueIndexing(
-									[
+								admit({
+									stage: "indexing",
+									links: [
 										link,
 									],
-									retryRunId,
-								),
+									run: {
+										id: retryRunId,
+									},
+								}),
 						),
 					),
 				),

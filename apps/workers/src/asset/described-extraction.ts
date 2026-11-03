@@ -2,9 +2,9 @@ import type { AssetId } from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import {
 	AssetPipelineError,
+	admit,
 	currentIndexing,
 	type IndexingAttempt,
-	queueProcessing,
 } from "@orcai/preparation";
 import {
 	readStoredExtraction,
@@ -139,21 +139,24 @@ export const describedExtraction = (params: {
 						.for("update");
 					if (!link) return undefined;
 
-					yield* queueProcessing(
-						{
-							...params.asset,
-							processingGeneration: completed.processingGeneration,
-						},
-						[
+					yield* admit({
+						stage: "processing",
+						assets: [
+							{
+								id: params.asset.id,
+								generation: completed.processingGeneration,
+							},
+						],
+						from: [
 							"completed",
 						],
-						params.attempt.runId
+						run: params.attempt.runId
 							? {
 									id: params.attempt.runId,
 									blockId: params.attempt.blockId,
 								}
 							: undefined,
-					);
+					});
 					yield* Effect.logInfo(
 						{
 							jobId: params.jobId,

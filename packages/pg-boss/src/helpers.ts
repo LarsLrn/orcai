@@ -60,16 +60,17 @@ const insertJobs = <T extends object>(
 		});
 	});
 
-/** The payloads of the queues' jobs that wait, wait to retry or run. */
+/** The queues' jobs that wait, wait to retry or run, with their payloads. */
 export const liveJobs = <T>(queues: readonly JobQueue[]) =>
 	Effect.gen(function* () {
 		const { schema } = yield* PgBossService;
 		const sql = yield* PgClient.PgClient;
 		return yield* sql.unsafe<{
 			name: JobQueue;
+			state: "created" | "retry" | "active";
 			data: T;
 		}>(
-			`SELECT name, data FROM ${schema}.job WHERE name = ANY($1) AND state < 'completed'`,
+			`SELECT name, state, data FROM ${schema}.job WHERE name = ANY($1) AND state < 'completed'`,
 			[
 				queues,
 			],

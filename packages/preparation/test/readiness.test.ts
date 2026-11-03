@@ -4,7 +4,7 @@ import {
 	PIPELINE_STATUSES,
 	type PipelineStatus,
 } from "@orcai/schema";
-import { assetState, readinessTotals } from "./readiness";
+import { assetState, readinessTotals } from "../src/readiness";
 
 const row = (
 	processingStatus: PipelineStatus,

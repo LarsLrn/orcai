@@ -1,5 +1,6 @@
 import type { AssetId, BlockId, BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { repositoryTotals } from "@orcai/preparation";
 import {
 	behaviourSchema,
 	type CatalogueEntry,
@@ -27,7 +28,6 @@ import {
 import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
 import { inLibrary } from "@/lib/authz/library";
-import { repositoryTotals } from "@/lib/blocks/readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { botDetails } from "@/lib/library/tile-details";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";

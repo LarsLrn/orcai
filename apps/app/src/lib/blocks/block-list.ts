@@ -1,4 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
+import { repositoryTotals } from "@orcai/preparation";
 import type { Block, ListBlocksInput, ResourceOwner } from "@orcai/schema";
 import {
 	and,
@@ -15,7 +16,6 @@ import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
-import { repositoryTotals } from "@/lib/blocks/readiness";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
 import { homeOrganizations, type TileQuery } from "@/lib/library/tile-details";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";

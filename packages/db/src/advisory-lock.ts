@@ -6,6 +6,7 @@ export const lockSpaces = {
 	embeddingGenerations: 51830478,
 	authzDelivery: 72370905,
 	organizationWrites: 72370906,
+	instancePreparation: 51830479,
 } as const;
 
 export type LockSpace = keyof typeof lockSpaces;

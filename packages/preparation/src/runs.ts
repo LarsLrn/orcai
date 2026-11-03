@@ -129,6 +129,42 @@ export const openUploadRun = (params: {
 		);
 	});
 
+/** A job's lease on its run: held until the job releases it, never lapsing. */
+export const JOB_LEASE = sql<Date>`'infinity'::timestamp`;
+
+/**
+ * Opens a lease on the run for a job that admits its work later, so the run
+ * counts as running until the job releases it. The preparation sweep
+ * releases the lease of a job that is gone.
+ */
+export const leaseRun = (runId: ActivityRunId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [lease] = yield* db
+			.insert(dbSchema.activityAdmission)
+			.values({
+				runId,
+				leaseUntil: JOB_LEASE,
+			})
+			.returning({
+				id: dbSchema.activityAdmission.id,
+			});
+		return lease.id;
+	});
+
+/** Whether the lease still holds its run: false once the run is gone. */
+export const leaseHeld = (leaseId: string) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const [lease] = yield* db
+			.select({
+				id: dbSchema.activityAdmission.id,
+			})
+			.from(dbSchema.activityAdmission)
+			.where(eq(dbSchema.activityAdmission.id, leaseId));
+		return lease !== undefined;
+	});
+
 /** Keeps the call's lease alive while it admits more files. */
 export const renewAdmission = (leaseId: string) =>
 	Effect.gen(function* () {

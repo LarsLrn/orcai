@@ -10,13 +10,9 @@ import {
 	PgBossService,
 } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
-import {
-	admitStage,
-	markProcessingExhausted,
-	queueProcessing,
-} from "@orcai/preparation";
+import { admit, admitStage, markProcessingExhausted } from "@orcai/preparation";
 import { readStoredExtraction } from "@orcai/process";
-import { EmbeddingIndex } from "@orcai/qdrant";
+import { EmbeddingIndex, QdrantLive } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import { S3Live } from "@orcai/s3/server";
 import {
@@ -61,6 +57,7 @@ const runtime = integrationRuntime(
 	Layer.mergeAll(
 		S3Live,
 		EncryptionKeyLive,
+		QdrantLive,
 		// Completion queues indexing once embeddings are set up; nothing embeds here.
 		Layer.succeed(
 			EmbeddingIndex,
@@ -358,18 +355,18 @@ test(
 			} as JobWithMetadata<ProcessAssetPayload>),
 		);
 		await run(
-			queueProcessing(
-				{
-					id: asset.assetId,
-					bucket: buckets.processed.name,
-					prefix: asset.prefix,
-					fileType: "png",
-					processingGeneration: 0,
-				},
-				[
+			admit({
+				stage: "processing",
+				assets: [
+					{
+						id: asset.assetId,
+						generation: 0,
+					},
+				],
+				from: [
 					"failed",
 				],
-			),
+			}),
 		);
 		await late.release();
 
