@@ -14,13 +14,12 @@ import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/repositories/$blockId/edit")(
 	{
-		loader: async ({ context: { queryClient }, params: { blockId } }) => {
+		beforeLoad: async ({ context: { queryClient }, params: { blockId } }) => {
 			await ensureEntityCapability({
 				queryClient,
 				entityType: "block",
 				entityId: blockId,
 				permission: "edit",
-				redirectTo: "/app/library/repositories",
 			});
 		},
 		component: RouteComponent,

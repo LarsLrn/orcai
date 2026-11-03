@@ -2,7 +2,7 @@ import type { EntityIdFor, EntityType } from "@orcai/spice-db";
 import { permittedEntityIds } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/effect";
 import * as Effect from "effect/Effect";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { unique } from "@/lib/utils/array-utils";
 import { permissionBase, permissionDenied, requirePermission } from "./core";
@@ -21,7 +21,7 @@ export const checkPermissionMiddleware = permissionBase.middleware(
 		yield* requirePermission({
 			...input,
 			userId: opts.context.auth.user.id,
-			zedToken: getZedToken(opts.context, input),
+			zedToken: readRevision(opts.context, input),
 		});
 		return yield* opts.next();
 	}),
@@ -35,7 +35,7 @@ export const checkManyPermissionMiddleware = <Entity extends EntityType>(
 			opts,
 			input: CheckManyPermissionInputFor<Entity>,
 		) {
-			const zedToken = getZedToken(opts.context, input);
+			const zedToken = readRevision(opts.context, input);
 			const requestedIds = normalizeEntityIds(input.entityIds);
 
 			const permittedIds = yield* permittedEntityIds({

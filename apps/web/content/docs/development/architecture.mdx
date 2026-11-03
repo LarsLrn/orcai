@@ -112,6 +112,8 @@ A chat turn streams its answer, so its response is under way before its tools wr
 
 API consumers outside the browser can send the token back in the `X-Zed-Token` header, and some procedures also accept it as a `zedToken` input to pin the freshness of a single call.
 
+When a call's input token differs from the request's token, its authorisation reads are fully consistent. zedTokens cannot be compared, so either may be the newer one, and a read must see the writes both cover. An assistant turn's calls carry the turn's newest token beside the request's, and the same rule applies to them.
+
 A response without `meta.zedToken` means the request wrote nothing to SpiceDB inline. Its write is queued and applied shortly after, so a read issued immediately may still see the previous state.
 
 ### Schema

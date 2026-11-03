@@ -10,7 +10,6 @@ import { m } from "@/paraglide/messages";
 export const useInit = () => {
 	const navigate = useNavigate();
 	const { trackEvent } = useUmami();
-	const { refetch: refetchSession } = authClient.useSession();
 
 	return useMutationAction({
 		mutationOptions: () => ({
@@ -44,7 +43,6 @@ export const useInit = () => {
 			},
 			onSuccess: () => {
 				trackEvent("app-init");
-				refetchSession();
 				// The first admin sets embeddings up next, or skips to the app.
 				navigate({
 					to: "/instance/settings",

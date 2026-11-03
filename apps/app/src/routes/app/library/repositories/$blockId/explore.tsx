@@ -21,6 +21,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
+import { loadBlockOfType } from "@/lib/router/block-loader";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -42,15 +43,12 @@ export const Route = createFileRoute(
 	"/app/library/repositories/$blockId/explore",
 )({
 	validateSearch: searchSchema,
-	// The parent route has loaded the repository, or answered not found.
 	loader: async ({ context: { queryClient }, params: { blockId } }) => {
-		const repository = await queryClient.query(
-			orpc.block.find.queryOptions({
-				input: {
-					id: blockId,
-				},
-			}),
-		);
+		const repository = await loadBlockOfType({
+			queryClient,
+			blockId,
+			type: "repository",
+		});
 		if (repository.data.status !== "ready") {
 			throw notFound();
 		}

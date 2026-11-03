@@ -10,7 +10,7 @@ import type {
 	OrganizationAnalytics,
 	UsageBot,
 } from "@orcai/schema";
-import type { SpiceDbService } from "@orcai/spice-db";
+import type { ReadRevision, SpiceDbService } from "@orcai/spice-db";
 import { and, count, eq, gte, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import * as Clock from "effect/Clock";
@@ -270,7 +270,7 @@ export const organizationAnalytics = ({
 	days: AnalyticsDays;
 	viewer: {
 		userId: UserId;
-		zedToken?: string;
+		zedToken?: ReadRevision;
 	};
 }): Effect.Effect<OrganizationAnalytics, unknown, DB | SpiceDbService> =>
 	Effect.gen(function* () {

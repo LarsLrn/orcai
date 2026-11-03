@@ -38,7 +38,7 @@ import {
 	chatCallSettings,
 } from "@/lib/ai/utils/chat-call-settings";
 import { capabilitySets } from "@/lib/authz/capabilities";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { requestZedToken } from "@/lib/authz/zed-token";
 import { effectiveModel } from "@/lib/chats/effective-model";
 import {
 	AppConfigService,
@@ -83,7 +83,14 @@ export type TurnRequester = {
 	timeZone?: string;
 	/** The request's context, reading at the request's zedToken. */
 	context: ORPCContext;
+	/** The token the client's request named, which the turn's calls carry. */
+	zedToken?: string;
 };
+
+/** The token a turn's calls carry: the client's, else the request's. */
+export const turnStartToken = (
+	requester: Pick<TurnRequester, "context" | "zedToken">,
+) => requester.zedToken ?? requestZedToken(requester.context);
 
 type RequestedSetup = {
 	model: AgentModel;
@@ -261,13 +268,14 @@ const devToolsMiddleware = Effect.gen(function* () {
 const botSettings = ({
 	botId,
 	context,
+	zedToken,
 }: {
 	botId: NonNullable<StoredChat["botId"]>;
 	context: ORPCContext;
+	zedToken: string | undefined;
 }) =>
 	Effect.gen(function* () {
 		const procedures = yield* Procedures;
-		const zedToken = getZedToken(context);
 		const [blocks, { data: bot }] = yield* Effect.all(
 			[
 				procedures.block
@@ -334,11 +342,10 @@ const mergeRepositories = (base: Repository[], attached: Repository[]) => {
 	];
 };
 
-const chatSetup = (
-	chat: StoredChat,
-	{ organizationId, user, context }: TurnRequester,
-) =>
+const chatSetup = (chat: StoredChat, requester: TurnRequester) =>
 	Effect.gen(function* () {
+		const { organizationId, user, context } = requester;
+		const zedToken = turnStartToken(requester);
 		const procedures = yield* Procedures;
 		const config = chat.config;
 		const setup = chat.botId
@@ -346,7 +353,7 @@ const chatSetup = (
 					.find(
 						{
 							botId: chat.botId,
-							zedToken: getZedToken(context),
+							zedToken,
 						},
 						{
 							context,
@@ -399,13 +406,14 @@ const chatSetup = (
 					? botSettings({
 							botId: chat.botId,
 							context,
+							zedToken,
 						})
 					: Effect.succeed(undefined),
 				procedures.chatBlock
 					.list(
 						{
 							chatId: chat.id,
-							zedToken: getZedToken(context),
+							zedToken,
 						},
 						{
 							context,

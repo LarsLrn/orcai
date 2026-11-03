@@ -12,13 +12,12 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/assets/$assetId/edit")({
-	loader: async ({ context: { queryClient }, params: { assetId } }) => {
+	beforeLoad: async ({ context: { queryClient }, params: { assetId } }) => {
 		await ensureEntityCapability({
 			queryClient,
 			entityType: "asset",
 			entityId: assetId,
 			permission: "edit",
-			redirectTo: "/app/library/assets",
 		});
 	},
 	component: RouteComponent,

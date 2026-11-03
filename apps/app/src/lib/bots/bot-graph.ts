@@ -1,6 +1,7 @@
 import type { BlockId, BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Block, Bot, SaveBotInput } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -27,7 +28,7 @@ export const loadBotEditor = (params: {
 	id: BotId;
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -222,7 +223,7 @@ const requireLinkableBlocks = (params: {
 	previousBlockIds: readonly BlockId[];
 	organizationId: OrganizationId;
 	userId: UserId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		if (params.blockIds.length === 0) return;
@@ -335,7 +336,7 @@ export const saveBotGraph = (params: {
 	input: SaveBotInput;
 	userId: UserId;
 	organizationId: OrganizationId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;

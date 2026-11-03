@@ -10,7 +10,7 @@ import {
 	initializeResourceAuthorization,
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import { listBlockTiles } from "@/lib/blocks/block-list";
 import {
 	loadRepositoryReadiness,
@@ -39,7 +39,7 @@ const listBlocks = authed.block.list.effect(function* ({ input, context }) {
 	const reader = {
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: getZedToken(context, input),
+		zedToken: readRevision(context, input),
 	};
 	return yield* listBlockTiles({
 		input,
@@ -52,14 +52,13 @@ const findBlock = authed.block.find
 	.use(
 		requireEntityPermission("block", "read", {
 			entityId: "id",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		yield* requireReadable("block", input.id, {
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 
 		const [block] = yield* db
@@ -95,7 +94,7 @@ const findBlock = authed.block.find
 					entityId: input.id,
 					userId: context.auth.user.id,
 					organizationId: context.auth.session.activeOrganizationId,
-					zedToken: getZedToken(context, input),
+					zedToken: readRevision(context, input),
 				}),
 				homeOrganizations(
 					"block",
@@ -120,7 +119,7 @@ const findBlock = authed.block.find
 				blockId: input.id,
 				userId: context.auth.user.id,
 				organizationId: context.auth.session.activeOrganizationId,
-				zedToken: getZedToken(context, input),
+				zedToken: readRevision(context, input),
 			});
 
 			return {
@@ -143,7 +142,7 @@ const createBlock = authed.block.create
 			yield* requireReadableAssets({
 				assetIds: input.assets,
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			});
 		}
 
@@ -235,7 +234,7 @@ const updateBlock = authed.block.update
 					(assetId) => !previousAssetIds.includes(assetId),
 				),
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			});
 		}
 
@@ -374,7 +373,7 @@ const blockReadiness = authed.block.readiness.effect(function* ({
 			blockIds: input.blockIds,
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		}),
 	};
 });

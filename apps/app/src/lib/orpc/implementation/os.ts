@@ -19,6 +19,8 @@ export interface ORPCContext
 		AppEffectContext {
 	meta?: {
 		zedToken?: string;
+		/** The newest token of the assistant turn that makes the call. */
+		turnZedToken?: string;
 	};
 	secureCookies: boolean;
 }

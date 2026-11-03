@@ -1,15 +1,19 @@
 import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ResourceIdentity } from "@orcai/schema";
-import { and, eq, isNull } from "drizzle-orm";
+import type { ReadRevision } from "@orcai/spice-db";
+import { and, eq, ilike, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { hasManageGroups } from "@/lib/authz/group-visibility";
 
-/** Whether the caller manages groups in every one of these organisations. */
+/**
+ * Who sees a member's email in a people picker: someone who manages groups
+ * in every organisation the picker covers. Everyone else sees names only.
+ */
 export const canSeeEmailIn = (params: {
 	organizationIds: readonly OrganizationId[];
 	userId: UserId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.all(
 		params.organizationIds.map((organizationId) =>
@@ -32,7 +36,7 @@ export const canSeeEmailIn = (params: {
 export const canSeeEmailOn = (params: {
 	resource: ResourceIdentity;
 	userId: UserId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -55,3 +59,29 @@ export const canSeeEmailOn = (params: {
 			zedToken: params.zedToken,
 		});
 	});
+
+/** The user columns a picker answers with. */
+export const visibleUserColumns = (canSeeEmail: boolean) => ({
+	id: dbSchema.user.id,
+	name: dbSchema.user.name,
+	...(canSeeEmail
+		? {
+				email: dbSchema.user.email,
+			}
+		: {}),
+	image: dbSchema.user.image,
+});
+
+/** Matches the name, and the email only where it is visible. */
+export const visibleUserSearch = (params: {
+	pattern: string | undefined;
+	canSeeEmail: boolean;
+}) =>
+	params.pattern
+		? or(
+				ilike(dbSchema.user.name, params.pattern),
+				params.canSeeEmail
+					? ilike(dbSchema.user.email, params.pattern)
+					: undefined,
+			)
+		: undefined;

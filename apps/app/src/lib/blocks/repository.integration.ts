@@ -11,6 +11,7 @@ import {
 } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import {
+	type PipelineFailure,
 	type PipelineStatus,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
@@ -604,10 +605,17 @@ describe("block.readiness", () => {
 
 describe("retrying assets", () => {
 	test(
-		"retries the failed stage, skips failures retrying cannot fix, and refuses assets still preparing",
+		"retries the failed stage where it can help, an unreadable image included, and refuses the rest",
 		async () => {
-			const { owner, assets, blockId, zedToken } = await repositoryWith(4);
-			const [processingFailed, indexingFailed, empty, preparing] = assets;
+			const { owner, assets, blockId, zedToken } = await repositoryWith(6);
+			const [
+				processingFailed,
+				indexingFailed,
+				empty,
+				unreadableImage,
+				unsupportedDocument,
+				preparing,
+			] = assets;
 			await setStatus({
 				assetId: processingFailed,
 				processing: "failed",
@@ -620,20 +628,26 @@ describe("retrying assets", () => {
 					status: "failed",
 				},
 			});
-			await setStatus({
-				assetId: empty,
-				processing: "failed",
-			});
-			await run(
-				Effect.gen(function* () {
-					yield* (yield* DB)
-						.update(dbSchema.asset)
-						.set({
-							processingFailure: "empty",
-						})
-						.where(eq(dbSchema.asset.id, empty));
-				}),
-			);
+			const failProcessing = (
+				assetId: AssetId,
+				failure: PipelineFailure,
+				fileType: "pdf" | "png" | "docx",
+			) =>
+				run(
+					Effect.gen(function* () {
+						yield* (yield* DB)
+							.update(dbSchema.asset)
+							.set({
+								processingStatus: "failed",
+								processingFailure: failure,
+								fileType,
+							})
+							.where(eq(dbSchema.asset.id, assetId));
+					}),
+				);
+			await failProcessing(empty, "empty", "pdf");
+			await failProcessing(unreadableImage, "unsupported", "png");
+			await failProcessing(unsupportedDocument, "unsupported", "docx");
 			const procedures = await run(Procedures);
 			const options = await procedureOptions(owner, zedToken);
 
@@ -647,12 +661,13 @@ describe("retrying assets", () => {
 					),
 				),
 			).toEqual({
-				processing: 1,
+				processing: 2,
 				indexing: 1,
 			});
 			expect(await links(blockId)).toMatchObject({
 				[processingFailed]: "pending",
 				[indexingFailed]: "pending",
+				[unreadableImage]: "pending",
 			});
 			expect(
 				(
@@ -668,14 +683,14 @@ describe("retrying assets", () => {
 					)
 				).data[0].totals,
 			).toEqual({
-				total: 4,
+				total: 6,
 				ready: 0,
-				preparing: 3,
-				failed: 1,
+				preparing: 4,
+				failed: 2,
 			});
 
-			expect(
-				await run(
+			await expect(
+				run(
 					procedures.block.prepareAssetAgain(
 						{
 							blockId,
@@ -684,8 +699,8 @@ describe("retrying assets", () => {
 						options,
 					),
 				),
-			).toEqual({
-				retried: "processing",
+			).rejects.toMatchObject({
+				reason: "ASSET_PREPARING_AGAIN_UNHELPFUL",
 			});
 			await expect(
 				run(

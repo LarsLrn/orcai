@@ -13,8 +13,10 @@ import {
 	type BotSetupFields,
 	modelUnusableReason,
 } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { canSeeEmailIn } from "@/lib/authz/email-visibility";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { activeGrants } from "@/lib/authz/resource-access";
@@ -22,7 +24,6 @@ import { administersIn } from "@/lib/authz/resource-authority";
 import { resourceOrganizations } from "@/lib/authz/resource-lifecycle";
 import { checkChatModel, checkMaxTokens } from "@/lib/chats/chat-model";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { canSeeEmailIn } from "@/lib/orpc/router/helpers/can-see-email";
 
 type SetupKey = {
 	botId: BotId;
@@ -40,7 +41,7 @@ export const canEditBotSetup = ({
 	zedToken,
 }: SetupKey & {
 	userId: UserId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	administersIn({
 		resource: {
@@ -182,7 +183,7 @@ export const saveBotSetup = ({
 	setup,
 }: SetupKey & {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 	setup: BotSetupFields | null;
 }) =>
 	writeRelationships(
@@ -312,7 +313,7 @@ export const botSetupCoverage = ({
 	modelId: ModelId;
 	viewer: {
 		userId: UserId;
-		zedToken?: string;
+		zedToken?: ReadRevision;
 	};
 }) =>
 	Effect.gen(function* () {

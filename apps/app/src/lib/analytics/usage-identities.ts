@@ -1,7 +1,7 @@
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { UsageBot, UsagePerson } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
+import { permittedEntityIds, type ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
@@ -9,7 +9,7 @@ import { unique } from "@/lib/utils/array-utils";
 
 type Viewer = {
 	userId: UserId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 };
 
 /**

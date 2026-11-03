@@ -8,6 +8,7 @@ import {
 import { getMimeTypeFromFileType } from "@orcai/s3";
 import { getImageAsBase64, getObjectAsJson } from "@orcai/s3/server";
 import type { ChatAttachmentRef, ChatMessageAttachment } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import type { FileUIPart, TextUIPart } from "ai";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -24,7 +25,7 @@ import {
 
 type Reader = {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 type AttachedAsset = Pick<

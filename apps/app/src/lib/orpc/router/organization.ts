@@ -39,7 +39,7 @@ import {
 	touchOrganizationRoles,
 } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import { listedCounts } from "@/lib/catalogue/catalogue-browse";
 import { listedHomeResources } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -69,7 +69,7 @@ const listOrganizations = authed.organization.list.effect(function* ({
 		userId: context.auth.user.id,
 		permission: "read",
 		entityType: "organization",
-		zedToken: getZedToken(context),
+		zedToken: readRevision(context),
 	}).pipe(Effect.catch(() => Effect.succeed([])));
 
 	const allowedSet = new Set(allowedIds);

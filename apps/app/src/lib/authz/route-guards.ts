@@ -5,41 +5,71 @@ import type {
 } from "@orcai/schema";
 import type { QueryClient } from "@tanstack/react-query";
 import { notFound, redirect } from "@tanstack/react-router";
+import { hasCapability } from "@/lib/authz/capabilities";
+import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
 import { orpc } from "@/lib/orpc/orpc";
 
-export const ensureOrganizationCapability = async ({
-	queryClient,
-	permission,
-	redirectTo,
-}: {
-	queryClient: QueryClient;
-	permission: OrganizationCapability;
-	redirectTo?: string;
-}) => {
-	const result = await queryClient.query(
-		orpc.authorization.organizationCapabilities.queryOptions({
-			input: {
-				permissions: [
-					permission,
-				],
-			},
-			staleTime: "static",
-		}),
-	);
+type RouteAuth =
+	| {
+			isAuthenticated: false;
+	  }
+	| {
+			isAuthenticated: true;
+			twoFactor: {
+				setupRequired: boolean;
+			};
+	  };
 
-	if (result.data.capabilities[permission]) {
-		return;
+const isSignedIn = <Auth extends RouteAuth>(
+	auth: Auth,
+): auth is Extract<
+	Auth,
+	{
+		isAuthenticated: true;
 	}
+> => auth.isAuthenticated;
 
-	if (redirectTo) {
+/**
+ * Signed in under the rules every procedure applies: otherwise to sign-in,
+ * or to set up the second factor the policy demands first.
+ */
+export const ensureSignedIn = <Auth extends RouteAuth>(auth: Auth) => {
+	if (!isSignedIn(auth)) {
 		throw redirect({
-			to: redirectTo,
+			to: "/login",
+			statusCode: 302,
 		});
 	}
 
-	throw notFound();
+	if (auth.twoFactor.setupRequired) {
+		throw redirect({
+			to: "/setup-two-factor",
+			statusCode: 302,
+		});
+	}
+
+	return auth;
 };
 
+/**
+ * Gates a route in `beforeLoad`, so no child loader runs first. A page the
+ * viewer may not open is not found, as detail pages hide what they cannot see.
+ */
+export const ensureOrganizationCapability = async ({
+	queryClient,
+	permission,
+}: {
+	queryClient: QueryClient;
+	permission: OrganizationCapability;
+}) => {
+	const { data } = await queryClient.query(organizationCapabilitiesQuery());
+
+	if (!hasCapability(data.capabilities, permission)) {
+		throw notFound();
+	}
+};
+
+/** Gates a route on one entity, like `ensureOrganizationCapability`. */
 export const ensureEntityCapability = async <
 	Entity extends CapabilityEntityType,
 >({
@@ -47,13 +77,11 @@ export const ensureEntityCapability = async <
 	entityType,
 	entityId,
 	permission,
-	redirectTo,
 }: {
 	queryClient: QueryClient;
 	entityType: Entity;
 	entityId: string;
 	permission: CapabilityFor<Entity>;
-	redirectTo?: string;
 }) => {
 	const result = await queryClient.query(
 		orpc.authorization.check.queryOptions({
@@ -66,15 +94,7 @@ export const ensureEntityCapability = async <
 		}),
 	);
 
-	if (result.data.allowed) {
-		return;
+	if (!result.data.allowed) {
+		throw notFound();
 	}
-
-	if (redirectTo) {
-		throw redirect({
-			to: redirectTo,
-		});
-	}
-
-	throw notFound();
 };

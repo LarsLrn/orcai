@@ -4,14 +4,13 @@ import * as Effect from "effect/Effect";
 import { DrizzleReplyStore } from "@/lib/ai/turn/drizzle-reply-store";
 import { continueTurn, keepUploads, startTurn } from "@/lib/ai/turn/turn";
 import { ownUploads } from "@/lib/assets/own-uploads";
-import { getZedToken, recordZedToken } from "@/lib/authz/zed-token";
+import { readRevision, recordZedToken } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 const requireChatEdit = requireEntityPermission("chat", "edit", {
 	entityId: "chatId",
-	zedToken: "zedToken",
 });
 
 const aiChat = authed.ai.chat
@@ -28,13 +27,8 @@ const aiChat = authed.ai.chat
 				email: context.auth.user.email,
 			},
 			timeZone: input.timeZone,
-			context: {
-				...context,
-				meta: {
-					...context.meta,
-					zedToken: getZedToken(context, input),
-				},
-			},
+			context,
+			zedToken: input.zedToken,
 			stop: signal,
 		}).pipe(Effect.provide(DrizzleReplyStore));
 
@@ -58,13 +52,8 @@ const aiContinue = authed.ai.continue
 				email: context.auth.user.email,
 			},
 			timeZone: input.timeZone,
-			context: {
-				...context,
-				meta: {
-					...context.meta,
-					zedToken: getZedToken(context, input),
-				},
-			},
+			context,
+			zedToken: input.zedToken,
 			stop: signal,
 		}).pipe(Effect.provide(DrizzleReplyStore));
 
@@ -79,7 +68,7 @@ const aiKeepUploads = authed.ai.keepUploads
 		const assets = yield* ownUploads(input.assetIds, {
 			userId: context.auth.user.id,
 			organizationId,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 		const data = yield* keepUploads({
 			chatId: input.chatId,
@@ -106,7 +95,6 @@ const aiRecordTurnWrites = authed.ai.recordTurnWrites
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input }) {

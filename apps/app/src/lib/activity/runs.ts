@@ -15,6 +15,7 @@ import type {
 	DataExportStatus,
 	PipelineStatus,
 } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import {
 	and,
 	asc,
@@ -33,7 +34,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 
 export type Viewer = {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 const {

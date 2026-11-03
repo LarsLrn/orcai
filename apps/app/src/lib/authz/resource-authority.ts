@@ -6,7 +6,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { checkEntityPermission } from "@orcai/spice-db";
+import { checkEntityPermission, type ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { ResourceRef } from "@/lib/authz/relationship-facts";
@@ -15,7 +15,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 
 export type Actor = {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 /** Whether the user may add from the catalogue to the organisation and remove what was added. */

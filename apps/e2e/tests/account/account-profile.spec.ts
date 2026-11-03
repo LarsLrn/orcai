@@ -29,10 +29,7 @@ test("account: a user changes the display name through the profile card", async 
 
 		await saveProfileName(page, newName, user.api);
 
-		// The sidebar and the stats card read `auth.user` from the router
-		// context, which the root route fills once per document from the
-		// session on the server, so the new name is there on the next load.
-		await openAccountPage(page);
+		// The sidebar and the stats card show it without a reload.
 		await expect(userMenu(page, newName)).toBeVisible();
 		await expect(page.getByText(newName).first()).toBeVisible();
 		await expect(

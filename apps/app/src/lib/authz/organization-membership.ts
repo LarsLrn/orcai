@@ -9,7 +9,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { checkEntityPermission } from "@orcai/spice-db";
+import { checkEntityPermission, type ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { notBanned } from "@/lib/authz/eligible-owner";
@@ -40,7 +40,7 @@ import { deleteImages } from "@/lib/images/images";
 
 type Actor = {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 /**

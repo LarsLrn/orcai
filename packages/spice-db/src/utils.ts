@@ -1,6 +1,7 @@
 import { v1 } from "@authzed/authzed-node";
 import type { EntityIdFor, SubjectIdFor } from "./types/entity-id";
 import type { EntityType } from "./types/entity-type";
+import { NEWEST_REVISION, type ReadRevision } from "./types/read-revision";
 
 export const createResourceReference = <Entity extends EntityType>(params: {
 	entityType: Entity;
@@ -25,18 +26,24 @@ export const createSubjectReference = <Entity extends EntityType>(params: {
 	});
 
 export const createConsistency = (params: {
-	zedToken: string | null | undefined;
+	zedToken: ReadRevision | null | undefined;
 }) =>
 	v1.Consistency.create({
-		requirement: params.zedToken
-			? {
-					oneofKind: "atLeastAsFresh",
-					atLeastAsFresh: {
-						token: params.zedToken ?? "",
-					},
-				}
-			: {
-					oneofKind: "minimizeLatency",
-					minimizeLatency: true,
-				},
+		requirement:
+			typeof params.zedToken === "string" && params.zedToken !== ""
+				? {
+						oneofKind: "atLeastAsFresh",
+						atLeastAsFresh: {
+							token: params.zedToken,
+						},
+					}
+				: params.zedToken === NEWEST_REVISION
+					? {
+							oneofKind: "fullyConsistent",
+							fullyConsistent: true,
+						}
+					: {
+							oneofKind: "minimizeLatency",
+							minimizeLatency: true,
+						},
 	});

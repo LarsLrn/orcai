@@ -1,8 +1,7 @@
 import {
 	type AssetState,
 	type FileType,
-	isImageFileType,
-	isRetryableFailure,
+	isUnreadableImage,
 	type PipelineFailure,
 } from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
@@ -65,19 +64,11 @@ const failureDescriptions: Record<PipelineFailure, () => string> = {
 export const describePipelineFailure = (failure: PipelineFailure) =>
 	failureDescriptions[failure]();
 
-/** An image the utility model could not read can be processed again once an admin picks one that can. */
-const unreadableImage = (failure: PipelineFailure, fileType: FileType) =>
-	failure === "unsupported" && isImageFileType(fileType);
-
-/** Whether processing a failed file again can help. */
-export const canPrepareAgain = (failure: PipelineFailure, fileType: FileType) =>
-	isRetryableFailure(failure) || unreadableImage(failure, fileType);
-
 /** Why preparing a file failed, in words; says so when retrying cannot help. */
 export const getPipelineFailureDescription = (
 	failure: PipelineFailure,
 	fileType: FileType,
 ) =>
-	unreadableImage(failure, fileType)
+	isUnreadableImage(failure, fileType)
 		? m.pipeline_failure_unsupported_image()
 		: describePipelineFailure(failure);

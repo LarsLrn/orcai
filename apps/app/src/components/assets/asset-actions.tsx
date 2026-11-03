@@ -1,7 +1,8 @@
-import type {
-	Asset,
-	AssetWithCapabilities,
-	ResourceOwner,
+import {
+	type Asset,
+	type AssetWithCapabilities,
+	canPrepareAgain,
+	type ResourceOwner,
 } from "@orcai/schema";
 import { useRouteContext } from "@tanstack/react-router";
 import {
@@ -27,7 +28,12 @@ import { m } from "@/paraglide/messages";
 
 type ActionAsset = Pick<
 	Asset,
-	"id" | "title" | "keptIn" | "processingStatus"
+	| "id"
+	| "title"
+	| "keptIn"
+	| "processingStatus"
+	| "processingFailure"
+	| "fileType"
 > & {
 	owner: Pick<ResourceOwner, "id">;
 	capabilities?: AssetWithCapabilities["capabilities"];
@@ -72,6 +78,9 @@ const assetActions = (
 	const canEdit = hasCapability(asset.capabilities, "edit");
 	const processing =
 		asset.processingStatus === "pending" || asset.processingStatus === "active";
+	const failedForGood =
+		asset.processingStatus === "failed" &&
+		!canPrepareAgain(asset.processingFailure ?? "other", asset.fileType);
 
 	return {
 		edit: canEdit && {
@@ -110,7 +119,8 @@ const assetActions = (
 				onClick: onAddToLibrary,
 			},
 		prepareAgain: canEdit &&
-			!processing && {
+			!processing &&
+			!failedForGood && {
 				key: "prepareAgain",
 				label: m.assets_prepare_again_action(),
 				icon: RefreshCwIcon,

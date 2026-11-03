@@ -6,7 +6,7 @@ import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { requireReadable } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import {
 	favouriteOf,
 	isFavourite,
@@ -31,7 +31,7 @@ const listBots = authed.bot.list.effect(function* ({ input, context }) {
 	const reader = {
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: getZedToken(context, input),
+		zedToken: readRevision(context, input),
 	};
 	return yield* listBotTiles({
 		input,
@@ -44,14 +44,13 @@ const findBot = authed.bot.find
 	.use(
 		requireEntityPermission("bot", "read", {
 			entityId: "id",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		yield* requireReadable("bot", input.id, {
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 
 		const [bot] = yield* db
@@ -87,7 +86,7 @@ const findBot = authed.bot.find
 					entityId: bot.id,
 					userId: context.auth.user.id,
 					organizationId: context.auth.session.activeOrganizationId,
-					zedToken: getZedToken(context, input),
+					zedToken: readRevision(context, input),
 				}),
 				homeOrganizations(
 					"bot",
@@ -124,7 +123,7 @@ const findBotEditor = authed.bot.findEditor
 			id: input.id,
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		}).pipe(
 			Effect.mapError(
 				() =>
@@ -139,7 +138,7 @@ const findBotEditor = authed.bot.findEditor
 const saveBot = authed.bot.save
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
-		const resolvedZedToken = getZedToken(context, input);
+		const resolvedZedToken = readRevision(context, input);
 
 		if (input.id) {
 			yield* requirePermission({

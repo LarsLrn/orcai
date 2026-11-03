@@ -22,7 +22,7 @@ import {
 	assertCanManageOrganizationAdmins,
 	organizationRoleRequiresAdminControl,
 } from "@/lib/authz/organization-membership";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
@@ -225,7 +225,7 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 		if (organizationRoleRequiresAdminControl(input.role)) {
 			yield* assertCanManageOrganizationAdmins(organizationId, {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			});
 		}
 
@@ -271,7 +271,7 @@ const updateOrganizationInvitation = authed.organizationInvitation.update
 		if (organizationRoleRequiresAdminControl(existing.role)) {
 			yield* assertCanManageOrganizationAdmins(organizationId, {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			});
 		}
 
@@ -331,7 +331,7 @@ const deleteOrganizationInvitations = authed.organizationInvitation.delete
 		) {
 			yield* assertCanManageOrganizationAdmins(organizationId, {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			});
 		}
 

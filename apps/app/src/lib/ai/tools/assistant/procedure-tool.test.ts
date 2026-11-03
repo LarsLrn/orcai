@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import type { ReadRevision } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
+import { readRevision } from "@/lib/authz/zed-token";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { ProcedureClients } from "@/lib/orpc/implementation/procedures";
 import type { ProcedureOptions } from "./procedure-tool";
@@ -25,7 +27,7 @@ const rejection = (promise: Promise<unknown>) =>
 	);
 
 describe("callProcedure", () => {
-	test("calls in the user's context at the turn's newest zedToken", async () => {
+	test("calls in the user's context, reading at the turn's newest zedToken", async () => {
 		const deps = {
 			context,
 			turn: createAssistantTurn({
@@ -34,11 +36,11 @@ describe("callProcedure", () => {
 				replyId: "reply",
 			}),
 		};
-		const seen: (string | undefined)[] = [];
+		const seen: (ReadRevision | undefined)[] = [];
 		const call =
 			(output: unknown) => (_: ProcedureClients, options: ProcedureOptions) =>
 				Effect.sync(() => {
-					seen.push(options.context.meta?.zedToken);
+					seen.push(readRevision(options.context));
 					return output;
 				});
 

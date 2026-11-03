@@ -96,6 +96,7 @@ const reasonMessages: ReasonMessages = {
 	DATA_EXPORT_IN_PROGRESS: m.error_data_export_in_progress,
 	DEFAULT_PASSAGES_OUT_OF_RANGE: m.error_default_passages_out_of_range,
 	ASSET_STILL_PREPARING: m.error_asset_still_preparing,
+	ASSET_PREPARING_AGAIN_UNHELPFUL: m.error_asset_preparing_again_unhelpful,
 	EMAIL_ALREADY_REGISTERED: m.error_email_already_registered,
 	EMAIL_NOT_VERIFIED: m.error_email_not_verified,
 	EMBEDDINGS_NOT_CONFIGURED: m.error_embeddings_not_configured,

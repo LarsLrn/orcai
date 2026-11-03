@@ -5,7 +5,7 @@ import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
 } from "@/lib/authz/entity-capabilities";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 
@@ -21,7 +21,7 @@ const checkAuthorization = authed.authorization.check.effect(function* ({
 		],
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: getZedToken(context, input),
+		zedToken: readRevision(context, input),
 	});
 
 	return {
@@ -39,7 +39,7 @@ const checkManyAuthorization = authed.authorization.checkMany.effect(
 			permissions: input.permissions,
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 
 		return {
@@ -72,7 +72,7 @@ const organizationCapabilities =
 			permissions: input.permissions,
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 
 		return {

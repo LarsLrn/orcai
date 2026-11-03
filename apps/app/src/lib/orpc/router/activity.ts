@@ -1,13 +1,13 @@
 import { attention, dismissFailure } from "@/lib/activity/attention";
 import { dismissRun, listRunMembers, listRuns } from "@/lib/activity/runs";
 import { activitySummary } from "@/lib/activity/summary";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
 
 const summary = authed.activity.summary.effect(function* ({ context }) {
 	return yield* activitySummary({
 		userId: context.auth.user.id,
-		zedToken: getZedToken(context),
+		zedToken: readRevision(context),
 	});
 });
 
@@ -15,7 +15,7 @@ const runs = authed.activity.runs.effect(function* ({ input, context }) {
 	return yield* listRuns(
 		{
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		},
 		input,
 	);
@@ -26,7 +26,7 @@ const attentionItems = authed.activity.attention.effect(function* ({
 }) {
 	return yield* attention({
 		userId: context.auth.user.id,
-		zedToken: getZedToken(context),
+		zedToken: readRevision(context),
 	});
 });
 
@@ -37,7 +37,7 @@ const runMembers = authed.activity.runMembers.effect(function* ({
 	return yield* listRunMembers(
 		{
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		},
 		input,
 	);
@@ -58,7 +58,7 @@ const dismissActivityFailure = authed.activity.dismissFailure.effect(
 		yield* dismissFailure(
 			{
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			},
 			input.occurrenceId,
 		);

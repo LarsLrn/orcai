@@ -3,12 +3,10 @@ import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import { middlewareGen } from "@orpc/effect";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
-import { auth as betterAuth } from "@/lib/auth/auth";
-import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
+import type { auth as betterAuth } from "@/lib/auth/auth";
+import { requireSignedIn, signedInSession } from "@/lib/auth/signed-in";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
-import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { recordRequestUser } from "@/lib/observability/request-span";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import type { AuthContext } from ".";
@@ -47,37 +45,11 @@ export const requiredAuthMiddleware = withName(
 					),
 				);
 
-				// getSession answers null without a session, so a throw is a backend failure.
-				const auth =
-					resolvedAuth(opts.context.auth) ??
-					(yield* Effect.tryPromise(() =>
-						betterAuth.api.getSession({
-							headers,
-						}),
-					));
-
-				if (!auth?.session || !auth?.user) {
-					return yield* Effect.fail(
-						new AppErrors.UnauthorizedError({
-							reason: "AUTH_REQUIRED",
-							message: "You must be logged in to access this resource.",
-						}),
-					);
-				}
-
-				const { session, user } = auth;
+				const resolved = resolvedAuth(opts.context.auth);
+				const { session, user } = resolved
+					? yield* requireSignedIn(resolved)
+					: yield* signedInSession(headers);
 				const activeOrganizationId = session.activeOrganizationId;
-				recordRequestUser(user.id);
-
-				const { config } = yield* AppConfigService;
-				if (requiresTwoFactor(config.auth.twoFactorPolicy, user)) {
-					return yield* Effect.fail(
-						new AppErrors.ForbiddenError({
-							reason: "TWO_FACTOR_REQUIRED",
-							message: "Set up two-factor authentication to continue.",
-						}),
-					);
-				}
 
 				return yield* opts.next({
 					context: {

@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { assetIdSchema } from "../asset/ref";
 import { entityCapabilitiesSchema } from "../authorization";
 import type { ErrorReason } from "../shared/error-reason";
+import { fileTypeSchema } from "../shared/primitives/file-type";
 import { pipelineFailureSchema } from "../shared/primitives/pipeline-status";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
@@ -157,6 +158,7 @@ export const assetStateSchema = z.enum([
 export const assetReadinessSchema = z.object({
 	assetId: assetIdSchema,
 	title: z.string(),
+	fileType: fileTypeSchema,
 	state: assetStateSchema,
 	/** Set when `state` is failed: the stage that failed and why. */
 	failure: z

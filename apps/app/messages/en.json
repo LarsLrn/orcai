@@ -3215,6 +3215,7 @@
 	"error_data_export_in_progress": "An export of your data is already being prepared.",
 	"error_default_passages_out_of_range": "The default number of passages must lie between the minimum and the maximum.",
 	"error_asset_still_preparing": "This asset is still being prepared, so there is nothing to retry yet.",
+	"error_asset_preparing_again_unhelpful": "Preparing this file again would fail the same way.",
 	"error_email_already_registered": "An account with this email address already exists.",
 	"error_email_not_verified": "Verify your email address before signing in.",
 	"error_embedding_api_key_required": "Enter the API key of the embedding endpoint.",

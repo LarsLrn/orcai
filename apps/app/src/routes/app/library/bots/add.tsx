@@ -22,11 +22,10 @@ export const Route = createFileRoute("/app/library/bots/add")({
 			.catch(0)
 			.default(0),
 	}),
-	loader: async ({ context: { queryClient } }) => {
+	beforeLoad: async ({ context: { queryClient } }) => {
 		await ensureOrganizationCapability({
 			queryClient,
 			permission: "create_bot",
-			redirectTo: "/app/library/bots",
 		});
 	},
 	component: RouteComponent,

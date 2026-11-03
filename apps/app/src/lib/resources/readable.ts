@@ -7,7 +7,7 @@ import type {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { NamedResource, ResourceIdentity } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
+import { permittedEntityIds, type ReadRevision } from "@orcai/spice-db";
 import { and, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
@@ -22,7 +22,7 @@ export const readableResources = (params: {
 	resources: readonly ResourceIdentity[];
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;

@@ -1,5 +1,9 @@
 import type { UserId } from "@orcai/core";
-import { checkEntityPermission, type EntityType } from "@orcai/spice-db";
+import {
+	checkEntityPermission,
+	type EntityType,
+	type ReadRevision,
+} from "@orcai/spice-db";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -20,7 +24,7 @@ export const permissionBase = os.$context<
 export const permissionDenied = (params: {
 	entityType: EntityType;
 	permission: string;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	new AppErrors.ForbiddenError({
 		reason: "PERMISSION_DENIED",
@@ -28,7 +32,8 @@ export const permissionDenied = (params: {
 		data: {
 			entityType: params.entityType,
 			permission: params.permission,
-			zedToken: params.zedToken,
+			zedToken:
+				typeof params.zedToken === "string" ? params.zedToken : undefined,
 		},
 	});
 

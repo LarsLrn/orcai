@@ -308,7 +308,11 @@ const listOwnedContent = authed.instance.ownedContent
 const listReceivers = authed.instance.receivers
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input }) {
-		const data = yield* eligibleReceivers(input);
+		// Instance admins see every user's email in the user list.
+		const data = yield* eligibleReceivers({
+			...input,
+			canSeeEmail: true,
+		});
 		return {
 			data,
 			rowCount: data.length,

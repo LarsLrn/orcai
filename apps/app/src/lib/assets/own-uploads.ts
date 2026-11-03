@@ -1,6 +1,7 @@
 import type { AssetId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { UploadedAsset } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableIds } from "@/lib/authz/content-access";
@@ -14,7 +15,7 @@ export const ownUploads = (
 	reader: {
 		userId: UserId;
 		organizationId: OrganizationId;
-		zedToken: string | undefined;
+		zedToken: ReadRevision | undefined;
 	},
 ) =>
 	Effect.gen(function* () {

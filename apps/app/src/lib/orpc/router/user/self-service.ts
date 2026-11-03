@@ -4,7 +4,7 @@ import { and, eq, ne } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
 import { touchOrganizationRoles } from "@/lib/authz/organization-lifecycle";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -164,7 +164,7 @@ const setActiveOrganization = authed.user.setActiveOrganization.effect(
 			entityType: "organization",
 			permission: "read",
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		}).pipe(Effect.catch(() => Effect.succeed(false)));
 
 		if (!hasSpiceAccess) {

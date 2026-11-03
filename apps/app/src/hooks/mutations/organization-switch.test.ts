@@ -50,8 +50,8 @@ describe("openAfterOrganizationSwitch", () => {
 		server.active = "Org B";
 		shown.length = 0;
 		await openAfterOrganizationSwitch(queryClient, {
-			refetchSession: async () => undefined,
 			navigate: async () => undefined,
+			guards: [],
 		});
 		await settle();
 
@@ -68,7 +68,6 @@ describe("openAfterOrganizationSwitch", () => {
 
 		let shown = (): unknown => undefined;
 		await openAfterOrganizationSwitch(queryClient, {
-			refetchSession: async () => undefined,
 			navigate: async () => {
 				expect(queryClient.getQueryData(assets.queryKey)).toBeUndefined();
 				// The new page's loader fetches, then the page mounts.
@@ -77,11 +76,34 @@ describe("openAfterOrganizationSwitch", () => {
 				page.subscribe(() => undefined);
 				shown = () => page.getCurrentResult().data;
 			},
+			guards: [],
 		});
 		await settle();
 
 		expect(shown()).toBe("Org B assets");
 		expect(server.fetches).toBe(2);
+	});
+
+	test("a guard the sidebar keeps mounted answers for the new organisation before the page opens", async () => {
+		const queryClient = new QueryClient();
+		const { server, assets } = organisations();
+		const sidebar = new QueryObserver(queryClient, assets);
+		const stop = sidebar.subscribe(() => undefined);
+		await settle();
+		server.active = "Org B";
+
+		let guarded: unknown;
+		await openAfterOrganizationSwitch(queryClient, {
+			navigate: async () => {
+				guarded = await queryClient.query(assets);
+			},
+			guards: [
+				assets.queryKey,
+			],
+		});
+		stop();
+
+		expect(guarded).toBe("Org B assets");
 	});
 
 	test("a page that unmounts during the navigation leaves nothing of the old organisation behind", async () => {
@@ -93,11 +115,11 @@ describe("openAfterOrganizationSwitch", () => {
 		server.active = "Org B";
 
 		await openAfterOrganizationSwitch(queryClient, {
-			refetchSession: async () => undefined,
 			navigate: () => {
 				stop();
 				return Promise.resolve();
 			},
+			guards: [],
 		});
 		await settle();
 		expect(queryClient.getQueryData(assets.queryKey)).toBeUndefined();

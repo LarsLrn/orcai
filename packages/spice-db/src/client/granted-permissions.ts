@@ -6,6 +6,7 @@ import { SpiceDbService } from "../service";
 import type { EntityIdFor } from "../types/entity-id";
 import type { EntityType } from "../types/entity-type";
 import type { PermissionFor } from "../types/permissions";
+import type { ReadRevision } from "../types/read-revision";
 import {
 	createConsistency,
 	createResourceReference,
@@ -29,7 +30,7 @@ export const grantedPermissions = <
 	entityType: Entity;
 	permissions: readonly Permission[];
 	userId: UserId;
-	zedToken?: string | null | undefined;
+	zedToken?: ReadRevision | null | undefined;
 }) =>
 	Effect.gen(function* () {
 		const granted = new Map<EntityIdFor<Entity>, Set<Permission>>();
@@ -136,7 +137,7 @@ export const permittedEntityIds = <Entity extends EntityType>(params: {
 	entityType: Entity;
 	permission: PermissionFor<Entity>;
 	userId: UserId;
-	zedToken?: string | null | undefined;
+	zedToken?: ReadRevision | null | undefined;
 }) =>
 	grantedPermissions({
 		...params,

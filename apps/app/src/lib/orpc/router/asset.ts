@@ -2,7 +2,11 @@ import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { queueMetadataGeneration } from "@orcai/pg-boss";
 import { UPLOAD_ROUTES } from "@orcai/s3";
-import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
+import {
+	canPrepareAgain,
+	fitMetadataToSourceType,
+	metadataSchema,
+} from "@orcai/schema";
 import { checkEntityPermission } from "@orcai/spice-db";
 import { and, eq, getColumns, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -20,7 +24,7 @@ import {
 	homeOrganizationId,
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -37,7 +41,7 @@ const listAssets = authed.asset.list.effect(function* ({ input, context }) {
 	const reader = {
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: getZedToken(context, input),
+		zedToken: readRevision(context, input),
 	};
 	return yield* listAssetTiles({
 		input,
@@ -50,14 +54,13 @@ const findAsset = authed.asset.find
 	.use(
 		requireEntityPermission("asset", "read", {
 			entityId: "id",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		yield* requireReadable("asset", input.id, {
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 
 		const [query] = yield* db
@@ -94,7 +97,7 @@ const findAsset = authed.asset.find
 		}
 
 		const { utilityModelId, organizationId, ...asset } = query;
-		const zedToken = getZedToken(context, input);
+		const zedToken = readRevision(context, input);
 		// Readers from outside the organisation learn nothing about it.
 		const readsOrganization =
 			organizationId !== null &&
@@ -324,6 +327,15 @@ const prepareAssetAgainProcedure = authed.asset.prepareAgain
 				message: "Asset not found",
 			});
 		}
+		if (
+			asset.processingStatus === "failed" &&
+			!canPrepareAgain(asset.processingFailure ?? "other", asset.fileType)
+		) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "ASSET_PREPARING_AGAIN_UNHELPFUL",
+				message: "Preparing the asset again would fail the same way",
+			});
+		}
 
 		const admitted = yield* inActivityRun(
 			{
@@ -417,7 +429,7 @@ const missingMetadata = authed.asset.missingMetadata
 		const assetIds = yield* assetsMissingMetadata({
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 		return {
 			count: assetIds.length,
@@ -431,7 +443,7 @@ const generateMissingMetadata = authed.asset.generateMissingMetadata
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
 			ids: input.ids,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 		const admitted = yield* inActivityRun(
 			{

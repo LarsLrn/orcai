@@ -6,6 +6,7 @@ import { SpiceDbService } from "../service";
 import type { EntityIdFor } from "../types/entity-id";
 import type { EntityType } from "../types/entity-type";
 import type { PermissionFor } from "../types/permissions";
+import type { ReadRevision } from "../types/read-revision";
 import { createConsistency, createSubjectReference } from "../utils";
 
 /** The ids of every `entityType` entity the user holds `permission` on. */
@@ -13,7 +14,7 @@ export const lookupEntitiesByPermission = <Entity extends EntityType>(params: {
 	entityType: Entity;
 	permission: PermissionFor<Entity>;
 	userId: UserId;
-	zedToken?: string | null | undefined;
+	zedToken?: ReadRevision | null | undefined;
 }) =>
 	Effect.gen(function* () {
 		const { spice } = yield* SpiceDbService;

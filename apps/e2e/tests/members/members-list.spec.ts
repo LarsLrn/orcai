@@ -92,9 +92,11 @@ test("members: a member and a viewer never see the members page", async ({
 		await enterApp(page, org.slug);
 		await open(page, "/app/members");
 
-		// The route guard checks `manage_members` and sends the rest back to
-		// the dashboard.
-		await expect(page).toHaveURL(/\/app$/);
+		await expect(
+			page.getByRole("heading", {
+				name: message("boundaries_not_found_title"),
+			}),
+		).toBeVisible();
 		await expect(
 			page.getByRole("heading", {
 				name: message("members_page_title"),

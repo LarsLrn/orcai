@@ -14,24 +14,25 @@ const MANAGEMENT_PAGES = [
 	},
 ];
 
-test("a viewer is sent back from the management pages", async ({
+test("a viewer finds no management pages, not even by a deep link", async ({
 	org,
 	pageAs,
 }) => {
 	const page = await pageAs("viewer");
 	await enterApp(page, org.slug);
 
-	for (const managementPage of MANAGEMENT_PAGES) {
-		await open(page, managementPage.path);
+	for (const path of [
+		...MANAGEMENT_PAGES.map((managementPage) => managementPage.path),
+		`/app/models/${crypto.randomUUID()}`,
+	]) {
+		await open(page, path);
 
-		// The route guard checks the organisation capability and redirects to
-		// the dashboard when the viewer does not have it.
-		await expect(page).toHaveURL(/\/app$/);
+		await expect(page).toHaveURL((url) => url.pathname === path);
 		await expect(
 			page.getByRole("heading", {
-				name: managementPage.heading,
+				name: message("boundaries_not_found_title"),
 			}),
-		).toHaveCount(0);
+		).toBeVisible();
 	}
 });
 

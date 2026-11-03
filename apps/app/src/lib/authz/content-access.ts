@@ -4,6 +4,7 @@ import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import {
 	type EntityIdFor,
 	permittedEntityIds,
+	type ReadRevision,
 	type ResourceType,
 } from "@orcai/spice-db";
 import { type AnyColumn, and, inArray, type SQL, sql } from "drizzle-orm";
@@ -13,7 +14,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 
 type Reader = {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 const resourceTables = {

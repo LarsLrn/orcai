@@ -1,4 +1,4 @@
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import {
 	addBotBlocks,
 	addResource,
@@ -48,7 +48,7 @@ const add = authed.catalogue.add
 				withBlocks: input.withBlocks,
 				actor: {
 					userId: context.auth.user.id,
-					zedToken: getZedToken(context, input),
+					zedToken: readRevision(context, input),
 				},
 			}),
 		};
@@ -64,7 +64,7 @@ const addBlocks = authed.catalogue.addBlocks
 					organizationId: context.auth.session.activeOrganizationId,
 					actor: {
 						userId: context.auth.user.id,
-						zedToken: getZedToken(context, input),
+						zedToken: readRevision(context, input),
 					},
 				}),
 			},
@@ -81,7 +81,7 @@ const remove = authed.catalogue.remove
 					organizationId: context.auth.session.activeOrganizationId,
 					actor: {
 						userId: context.auth.user.id,
-						zedToken: getZedToken(context, input),
+						zedToken: readRevision(context, input),
 					},
 				}),
 			},

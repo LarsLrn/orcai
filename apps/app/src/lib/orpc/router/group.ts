@@ -15,58 +15,34 @@ import {
 	inArray,
 	isNull,
 	notExists,
-	or,
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	canSeeEmailIn,
+	visibleUserColumns,
+	visibleUserSearch,
+} from "@/lib/authz/email-visibility";
 import {
 	addGroupMembers,
 	findOrganizationGroup,
 	groupMemberCount,
 	removeGroupMembers,
 } from "@/lib/authz/group-membership";
-import {
-	hasManageGroups,
-	visibleGroupScope,
-} from "@/lib/authz/group-visibility";
+import { visibleGroupScope } from "@/lib/authz/group-visibility";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
 import { detachGroups } from "@/lib/authz/resource-access";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
 import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
-
-/** Matches the search term against the user name, and the email when it is visible. */
-const userSearch = (params: {
-	queryLike: string | undefined;
-	canSeeEmail: boolean;
-}) =>
-	params.queryLike
-		? or(
-				ilike(dbSchema.user.name, params.queryLike),
-				params.canSeeEmail
-					? ilike(dbSchema.user.email, params.queryLike)
-					: undefined,
-			)
-		: undefined;
-
-const userColumns = (canSeeEmail: boolean) => ({
-	id: dbSchema.user.id,
-	name: dbSchema.user.name,
-	...(canSeeEmail
-		? {
-				email: dbSchema.user.email,
-			}
-		: {}),
-	image: dbSchema.user.image,
-});
 
 const listGroups = authed.group.list
 	.use(requireActiveOrganizationMiddleware)
@@ -79,7 +55,7 @@ const listGroups = authed.group.list
 				organizationId,
 			],
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 
 		const queryLike = input.filters?.search
@@ -151,7 +127,7 @@ const findGroup = authed.group.find
 				organizationId,
 			],
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 
 		const [group] = yield* db
@@ -402,7 +378,7 @@ const listGroupMembers = authed.group.listMembers
 				organizationId,
 			],
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 
 		const [group] = yield* db
@@ -431,13 +407,15 @@ const listGroupMembers = authed.group.listMembers
 			);
 		}
 
-		const canSeeEmail = yield* hasManageGroups({
-			organizationId,
+		const canSeeEmail = yield* canSeeEmailIn({
+			organizationIds: [
+				organizationId,
+			],
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
-		const searchClause = userSearch({
-			queryLike: input.query ? literalSearch(input.query.trim()) : undefined,
+		const searchClause = visibleUserSearch({
+			pattern: input.query ? literalSearch(input.query.trim()) : undefined,
 			canSeeEmail,
 		});
 		const orderBy = yield* buildOrderBy({
@@ -467,7 +445,7 @@ const listGroupMembers = authed.group.listMembers
 				[
 					db
 						.select({
-							user: userColumns(canSeeEmail),
+							user: visibleUserColumns(canSeeEmail),
 						})
 						.from(dbSchema.member)
 						.innerJoin(
@@ -515,7 +493,7 @@ const listGroupMembers = authed.group.listMembers
 			[
 				db
 					.select({
-						user: userColumns(canSeeEmail),
+						user: visibleUserColumns(canSeeEmail),
 						addedAt: dbSchema.groupMember.createdAt,
 						addedBy: dbSchema.groupMember.addedBy,
 					})
@@ -573,14 +551,16 @@ const listGroupCandidates = authed.group.listCandidates
 			};
 		}
 
-		const canSeeEmail = yield* hasManageGroups({
-			organizationId,
+		const canSeeEmail = yield* canSeeEmailIn({
+			organizationIds: [
+				organizationId,
+			],
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 
 		const data = yield* db
-			.select(userColumns(canSeeEmail))
+			.select(visibleUserColumns(canSeeEmail))
 			.from(dbSchema.member)
 			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
 			.where(
@@ -600,8 +580,8 @@ const listGroupCandidates = authed.group.listCandidates
 								),
 							),
 					),
-					userSearch({
-						queryLike: input.query
+					visibleUserSearch({
+						pattern: input.query
 							? literalSearch(input.query.trim())
 							: undefined,
 						canSeeEmail,

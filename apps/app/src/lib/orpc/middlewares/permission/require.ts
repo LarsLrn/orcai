@@ -1,7 +1,7 @@
 import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/effect";
 import * as Effect from "effect/Effect";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { withName } from "@/lib/orpc/middlewares/utils";
 import { checkPermissionMiddleware } from "./checks";
@@ -9,93 +9,54 @@ import { permissionBase, requirePermission } from "./core";
 import {
 	createResourcePermissionInput,
 	type ResourcePermissionSource,
-	type ResourcePermissionSourceWithToken,
 	type SharedResourcePermission,
 } from "./resource";
 import type { CheckPermissionInput } from "./types";
+
+/** A permission check reads at the token its input carries, else the request's. */
+type ZedTokenInput = {
+	zedToken?: string | undefined;
+};
 
 type EntityPermissionSource<
 	Entity extends EntityType,
 	IdKey extends string,
 > = Record<IdKey, EntityIdFor<Entity>>;
 
-type EntityPermissionSourceWithToken<
-	Entity extends EntityType,
-	IdKey extends string,
-	ZedTokenKey extends string,
-> = EntityPermissionSource<Entity, IdKey> &
-	Partial<Record<ZedTokenKey, string | undefined>>;
-
 export const requireEntityPermission = <
 	Entity extends EntityType,
 	IdKey extends string,
-	ZedTokenKey extends string | undefined = undefined,
 >(
 	entityType: Entity,
 	permission: PermissionFor<Entity>,
 	keys: {
 		/** The key in the input where the entity ID can be found. */
 		entityId: IdKey;
-		/** If the permission check requires a ZedToken, it can be provided in the input and specified with this key. If not provided, the middleware will look for a ZedToken in the context meta. */
-		zedToken?: ZedTokenKey;
 	},
-) => {
-	if (keys.zedToken) {
-		const zedTokenKey = keys.zedToken;
-
-		return checkPermissionMiddleware.adaptInput(
-			(
-				input: EntityPermissionSourceWithToken<
-					Entity,
-					IdKey,
-					Exclude<ZedTokenKey, undefined>
-				>,
-			): CheckPermissionInput =>
-				({
-					entityType,
-					entityId: input[keys.entityId] as EntityIdFor<Entity>,
-					permission,
-					zedToken: input[zedTokenKey],
-				}) as CheckPermissionInput,
-		);
-	}
-
-	return checkPermissionMiddleware.adaptInput(
-		(input: EntityPermissionSource<Entity, IdKey>): CheckPermissionInput =>
-			({
+) =>
+	checkPermissionMiddleware.adaptInput(
+		(
+			input: EntityPermissionSource<Entity, IdKey> & ZedTokenInput,
+		): CheckPermissionInput => {
+			const source: EntityPermissionSource<Entity, IdKey> = input;
+			return {
 				entityType,
-				entityId: input[keys.entityId] as EntityIdFor<Entity>,
+				entityId: source[keys.entityId],
 				permission,
-			}) as CheckPermissionInput,
+				zedToken: input.zedToken,
+			} as CheckPermissionInput;
+		},
 	);
-};
 
 export const requireResourcePermission = <
 	Permission extends SharedResourcePermission,
-	ZedTokenKey extends string | undefined = undefined,
 >(
 	permission: Permission,
-	keys?: {
-		zedToken: ZedTokenKey;
-	},
-) => {
-	if (keys?.zedToken) {
-		const zedTokenKey = keys.zedToken;
-
-		return checkPermissionMiddleware.adaptInput(
-			(
-				input: ResourcePermissionSourceWithToken<
-					Exclude<ZedTokenKey, undefined>
-				>,
-			) => createResourcePermissionInput(input, permission, input[zedTokenKey]),
-		);
-	}
-
-	return checkPermissionMiddleware.adaptInput(
-		(input: ResourcePermissionSource) =>
-			createResourcePermissionInput(input, permission),
+) =>
+	checkPermissionMiddleware.adaptInput(
+		(input: ResourcePermissionSource & ZedTokenInput) =>
+			createResourcePermissionInput(input, permission, input.zedToken),
 	);
-};
 
 type OrganizationPermission = PermissionFor<"organization">;
 
@@ -104,7 +65,7 @@ export const requireOrganizationPermission = (
 ) =>
 	withName(
 		permissionBase.middleware(
-			middlewareGen(function* (opts) {
+			middlewareGen(function* (opts, input: unknown) {
 				const { activeOrganizationId } = opts.context.auth.session;
 
 				if (!activeOrganizationId) {
@@ -122,7 +83,7 @@ export const requireOrganizationPermission = (
 					entityId: activeOrganizationId,
 					permission,
 					userId: opts.context.auth.user.id,
-					zedToken: getZedToken(opts.context),
+					zedToken: readRevision(opts.context, input),
 				});
 
 				return yield* opts.next({

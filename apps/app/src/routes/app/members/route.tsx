@@ -4,11 +4,10 @@ import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/members")({
-	loader: async ({ context: { queryClient } }) => {
+	beforeLoad: async ({ context: { queryClient } }) => {
 		await ensureOrganizationCapability({
 			queryClient,
 			permission: "manage_members",
-			redirectTo: "/app",
 		});
 	},
 	head: () => ({

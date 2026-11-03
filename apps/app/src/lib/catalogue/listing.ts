@@ -1,6 +1,7 @@
 import type { BlockId, BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ResourceVisibility } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
@@ -26,7 +27,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 
 type Actor = {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 const blockVisibility = and(

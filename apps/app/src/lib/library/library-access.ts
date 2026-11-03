@@ -5,7 +5,7 @@ import type {
 	LibraryScope,
 	PublicationStatusFilter,
 } from "@orcai/schema";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
+import { lookupEntitiesByPermission, type ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, or, type SQL, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
@@ -19,7 +19,7 @@ type Permission = "read" | "edit" | "use";
 export type Reader = {
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 const lookup = (
