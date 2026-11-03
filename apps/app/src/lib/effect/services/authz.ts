@@ -62,6 +62,8 @@ export const enqueueRelationshipMutations = (
 
 type Delivery = {
 	zedToken?: string;
+	/** The seq of the event whose token `zedToken` is. */
+	seq?: number;
 };
 
 export class AuthzService extends Context.Service<
@@ -292,6 +294,7 @@ export const AuthzLive = Layer.effect(
 									zedToken?: string;
 								}
 							).zedToken,
+							seq: newest.seq,
 						};
 					if (newest.status === DEAD_LETTER) return {};
 					const batch = yield* deliverBatch(newest.seq);
@@ -306,7 +309,9 @@ export const AuthzLive = Layer.effect(
 					yield* Effect.sleep(AUTHZ.outboxInlineWaitMs);
 				}
 			}).pipe(
-				Effect.tap((delivery: Delivery) => recordZedToken(delivery.zedToken)),
+				Effect.tap((delivery: Delivery) =>
+					recordZedToken(delivery.zedToken, delivery.seq),
+				),
 			);
 
 		const replayRelationshipOutbox = () =>

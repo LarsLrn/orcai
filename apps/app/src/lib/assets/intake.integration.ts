@@ -12,10 +12,13 @@ import {
 	PROCESS_ASSET_JOB_NAME,
 	type UploadFileObject,
 } from "@orcai/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
+import * as Context from "effect/Context";
+import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
+import { AuthzService } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
@@ -146,6 +149,25 @@ const processJobsFor = (assetId: string) =>
 					},
 				}),
 			);
+		}),
+	);
+
+/** The seqs of the outbox events `eventIds`. */
+const outboxSeqs = (eventIds: readonly string[]) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const rows = yield* db
+				.select({
+					seq: dbSchema.authzOutbox.seq,
+				})
+				.from(dbSchema.authzOutbox)
+				.where(
+					inArray(dbSchema.authzOutbox.id, [
+						...eventIds,
+					]),
+				);
+			return rows.map((row) => row.seq);
 		}),
 	);
 
@@ -577,6 +599,74 @@ describe("chat uploads", () => {
 			expect(data.keptIn).toBe("library");
 			expect(await listIds(withToken, "library")).toContain(asset.id);
 			expect(await listIds(withToken, "chat")).not.toContain(asset.id);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"publish the token of their newest grant when an older delivery finishes last",
+		async () => {
+			const [owner] = await members(1);
+			const files = await Promise.all([
+				upload(owner, "first.txt", "chatAttachment"),
+				upload(owner, "second.txt", "chatAttachment"),
+			]);
+			const procedures = await run(Procedures);
+			const authz = await run(AuthzService);
+			const arrived = await run(Deferred.make<void>());
+			const newerDelivered = await run(Deferred.make<void>());
+			const seqs: number[] = [];
+			let newerToken: string | undefined;
+
+			// Both deliveries wait for each other; the newer event's runs first.
+			const newestFirst: typeof authz = {
+				...authz,
+				deliverRelationshipEvents: (eventIds) =>
+					Effect.gen(function* () {
+						const seq = Math.max(
+							...(yield* Effect.promise(() => outboxSeqs(eventIds))),
+						);
+						seqs.push(seq);
+						if (seqs.length === 2) yield* Deferred.succeed(arrived, undefined);
+						yield* Deferred.await(arrived);
+						if (seq < Math.max(...seqs)) {
+							yield* Deferred.await(newerDelivered);
+							return yield* authz.deliverRelationshipEvents(eventIds);
+						}
+						const delivery = yield* authz.deliverRelationshipEvents(eventIds);
+						newerToken = delivery.zedToken;
+						yield* Deferred.succeed(newerDelivered, undefined);
+						return delivery;
+					}),
+			};
+
+			const options = await procedureOptions(owner.actor, owner.zedToken);
+			const { data, meta } = await run(
+				procedures.asset.createFromUploads(
+					{
+						route: "chatAttachment",
+						files,
+					},
+					{
+						...options,
+						context: {
+							...options.context,
+							"effect/context": Context.add(
+								options.context["effect/context"],
+								AuthzService,
+								newestFirst,
+							),
+						},
+					},
+				),
+			);
+
+			expect(data.map((result) => created(result).fileName)).toEqual([
+				"first.txt",
+				"second.txt",
+			]);
+			expect(newerToken).toBeString();
+			expect(meta?.zedToken).toBe(newerToken);
 		},
 		TIMEOUT,
 	);
