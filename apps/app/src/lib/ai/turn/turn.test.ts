@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 import type { AssetId, BotId, ChatMessageId } from "@orcai/core";
 import { METERED_CALL_TIMEOUT_MS, promptTokens } from "@orcai/quota";
 import { quota } from "@orcai/quota/testing";
+import type { TurnWrite } from "@orcai/schema";
 import {
 	readUIMessageStream,
 	simulateReadableStream,
@@ -24,6 +25,9 @@ import {
 } from "./test-turn";
 
 const { ReplyStore } = await import("./reply-store");
+const { RUNNING_CALLS_WAIT_MS } = await import(
+	"../tools/assistant/turn-writes"
+);
 const { keepUploads } = await import("./turn");
 const { memoryReplyStore } = await import("./memory-reply-store");
 const AppErrors = await import("@/lib/effect/utils/errors");
@@ -1177,6 +1181,295 @@ describe("continueTurn", () => {
 		expect(await refusal(() => chat.decide(true))).toBe(
 			"ConflictError: CHAT_TURN_NOT_AWAITING",
 		);
+	});
+});
+
+describe("turn writes", () => {
+	const botId = crypto.randomUUID();
+	const publish = {
+		name: "publishBot",
+		input: {
+			id: botId,
+		},
+	};
+
+	beforeEach(() => {
+		answers["bot.publish"] = () =>
+			Effect.succeed({
+				data: {
+					id: botId,
+					name: "Tutor",
+					description: null,
+					status: "published",
+					features: {},
+					behaviour: null,
+					repositories: [],
+				},
+			});
+		answers["bot.find"] = () =>
+			Effect.succeed({
+				data: {
+					name: "Old draft",
+					capabilities: {
+						delete: true,
+					},
+				},
+			});
+		answers["bot.delete"] = () =>
+			Effect.succeed({
+				success: true,
+			});
+	});
+
+	const streamedWrites = (chunks: unknown[]) =>
+		chunks.flatMap((chunk) => {
+			const { type, messageMetadata } = chunk as UIMessageChunk & {
+				messageMetadata?: {
+					writes?: unknown;
+				};
+			};
+
+			return type === "message-metadata" && messageMetadata?.writes
+				? [
+						messageMetadata.writes,
+					]
+				: [];
+		});
+
+	test("a write before an approval pause stays with the reply, and its continuation adds its own", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		chat.script([
+			{
+				calls: [
+					publish,
+					deleteDraft,
+				],
+			},
+		]);
+
+		const paused = await chat.send(
+			"Publish the tutor and delete the old draft",
+		);
+
+		expect(streamedWrites(paused)).toEqual([
+			[
+				{
+					path: "bot.publish",
+				},
+			],
+		]);
+		expect(chat.messages().at(-1)?.metadata.writes).toEqual([
+			{
+				path: "bot.publish",
+			},
+		]);
+
+		chat.script([
+			{
+				text: "Done.",
+			},
+		]);
+		const continued = await chat.decide(true);
+
+		const both: TurnWrite[] = [
+			{
+				path: "bot.publish",
+			},
+			{
+				path: "bot.delete",
+			},
+		];
+		expect(streamedWrites(continued)).toEqual([
+			both,
+		]);
+		expect(chat.messages().at(-1)?.metadata.writes).toEqual(both);
+	});
+
+	test("a stopped turn keeps what it wrote before the stop", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const stop = new AbortController();
+		chat.script([
+			{
+				calls: [
+					publish,
+				],
+			},
+			{
+				text: "Never read.",
+			},
+		]);
+		chat.beforeRequest((count) => {
+			if (count === 2) {
+				stop.abort();
+			}
+		});
+
+		await chat.send("Publish the tutor", stop.signal);
+
+		expect(chat.messages().at(-1)?.metadata.writes).toEqual([
+			{
+				path: "bot.publish",
+			},
+		]);
+	});
+
+	test("a change still running when the user stops is stored with the reply once it succeeds", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const stop = new AbortController();
+		const published = answers["bot.publish"];
+		answers["bot.publish"] = (input) =>
+			Effect.promise(async () => {
+				stop.abort();
+				await new Promise((resolve) => setTimeout(resolve, 50));
+			}).pipe(Effect.andThen(published?.(input) ?? Effect.void));
+		chat.script([
+			{
+				calls: [
+					publish,
+				],
+			},
+			{
+				text: "Never read.",
+			},
+		]);
+
+		await chat.send("Publish the tutor", stop.signal);
+
+		expect(chat.messages().at(-1)?.metadata.writes).toEqual([
+			{
+				path: "bot.publish",
+			},
+		]);
+	});
+
+	/** A publish that stops the turn and ends only when `finish` is called; the wait for it ends only when `endWait` is. */
+	const outlastingPublish = () => {
+		const stop = new AbortController();
+		const late = Promise.withResolvers<void>();
+		const waiting = Promise.withResolvers<void>();
+		const bound = new AbortController();
+		const timeout = AbortSignal.timeout;
+		const timer = spyOn(AbortSignal, "timeout").mockImplementation((ms) => {
+			if (ms !== RUNNING_CALLS_WAIT_MS) return timeout(ms);
+			waiting.resolve();
+			return bound.signal;
+		});
+		const published = answers["bot.publish"];
+		answers["bot.publish"] = (input) =>
+			Effect.promise(async () => {
+				stop.abort();
+				await late.promise;
+			}).pipe(Effect.andThen(published?.(input) ?? Effect.void));
+
+		return {
+			stop: stop.signal,
+			waiting: waiting.promise,
+			endWait: () => bound.abort(),
+			finish: async () => {
+				late.resolve();
+				await new Promise((resolve) => setTimeout(resolve, 20));
+			},
+			restore: () => timer.mockRestore(),
+		};
+	};
+
+	test("a change that outlasts the wait leaves the reply settled once, without its write", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const publishing = outlastingPublish();
+		chat.script([
+			{
+				calls: [
+					publish,
+				],
+			},
+			{
+				text: "Never read.",
+			},
+		]);
+
+		try {
+			const sent = chat.send("Publish the tutor", publishing.stop);
+			await publishing.waiting;
+			publishing.endWait();
+			await sent;
+			const settled = chat.messages().at(-1);
+			await publishing.finish();
+
+			expect(settled?.metadata.writes).toBeUndefined();
+			expect(chat.messages().at(-1)).toEqual(settled);
+		} finally {
+			publishing.restore();
+		}
+	});
+
+	test("a continuation sent while a stopped turn waits is refused, and the reply settles with the write", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const publishing = outlastingPublish();
+		chat.script([
+			{
+				calls: [
+					publish,
+					deleteDraft,
+				],
+			},
+		]);
+
+		try {
+			const sent = chat.send(
+				"Publish the tutor and delete the draft",
+				publishing.stop,
+			);
+			await publishing.waiting;
+			const replyId = chat.messages().at(-1)?.id as ChatMessageId;
+			const early = await refusal(() =>
+				chat.run(
+					chat.continue({
+						...chat.requester,
+						chatId: chat.chatId,
+						replyId,
+						decisions: [],
+						toolOutputs: [],
+						clientZedToken: undefined,
+						stop: undefined,
+					}),
+				),
+			);
+			await publishing.finish();
+			await sent;
+
+			expect(early).toBe("ConflictError: CHAT_TURN_NOT_AWAITING");
+			expect(chat.messages().at(-1)?.metadata.writes).toEqual([
+				{
+					path: "bot.publish",
+				},
+			]);
+		} finally {
+			publishing.restore();
+		}
+	});
+
+	test("a turn that only reads lists no writes", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		chat.script([
+			{
+				calls: [
+					{
+						name: "getBot",
+						input: {
+							id: botId,
+						},
+					},
+				],
+			},
+			{
+				text: "It is a draft.",
+			},
+		]);
+
+		const chunks = await chat.send("What is the tutor?");
+
+		expect(streamedWrites(chunks)).toEqual([]);
+		expect(chat.messages().at(-1)?.metadata.writes).toBeUndefined();
 	});
 });
 

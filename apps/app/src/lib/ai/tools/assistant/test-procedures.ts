@@ -5,6 +5,7 @@ import {
 	type ProcedureClients,
 	Procedures,
 } from "@/lib/orpc/implementation/procedures";
+import type { ProcedureOptions } from "./procedure-tool";
 
 /**
  * Every assistant tool test fakes the procedure clients here, with one shape,
@@ -35,7 +36,7 @@ const fakeNamespace = (namespace: string) =>
 		{
 			get: (_, name) =>
 				typeof name === "string"
-					? (input: unknown) =>
+					? (input: unknown, options?: ProcedureOptions) =>
 							Effect.suspend(() => {
 								const procedure = `${namespace}.${name}`;
 								procedureCalls.push({
@@ -43,10 +44,32 @@ const fakeNamespace = (namespace: string) =>
 									input,
 								});
 								const answer = answers[procedure];
+								if (!answer) {
+									return Effect.die(
+										new Error(`unexpected call to ${procedure}`),
+									);
+								}
 
-								return answer
-									? answer(input as never)
-									: Effect.die(new Error(`unexpected call to ${procedure}`));
+								// As the real clients' interceptor does.
+								const turnWrites = options?.context.meta?.turnWrites;
+								const done = Promise.withResolvers<void>();
+								turnWrites?.track(done.promise);
+
+								return answer(input as never).pipe(
+									Effect.tap((output) =>
+										Effect.sync(() =>
+											turnWrites?.record(
+												[
+													namespace,
+													name,
+												],
+												input,
+												output,
+											),
+										),
+									),
+									Effect.ensuring(Effect.sync(() => done.resolve())),
+								);
 							})
 					: undefined,
 		},

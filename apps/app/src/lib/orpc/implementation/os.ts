@@ -21,6 +21,15 @@ export interface ORPCContext
 		zedToken?: string;
 		/** The newest token of the assistant turn that makes the call. */
 		turnZedToken?: string;
+		/** Keeps what the assistant turn that makes the call wrote. */
+		turnWrites?: {
+			record: (
+				path: readonly string[],
+				input: unknown,
+				output: unknown,
+			) => void;
+			track: (done: Promise<unknown>) => void;
+		};
 	};
 	secureCookies: boolean;
 }

@@ -2,6 +2,7 @@ import { docsMarkdownPath, safeExternalUrl } from "@orcai/core";
 import { z } from "zod/v4";
 import { assetIdSchema } from "../../asset/ref";
 import { chatMessageAttachmentSchema } from "./attachment";
+import { turnWritesSchema } from "./writes";
 
 /** A cited asset: a passage of it, on `page` when the passage lies on one page. */
 const assetCitationSchema = z.object({
@@ -122,6 +123,8 @@ export const chatMessageMetadataSchema = z.object({
 		.optional(),
 	/** What each waiting `requestUpload` call lists so far, by call id. */
 	uploads: z.record(z.string(), keptUploadsSchema).optional(),
+	/** What the turns that wrote the reply wrote, so the client refreshes what they made stale. */
+	writes: turnWritesSchema.optional(),
 });
 
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;

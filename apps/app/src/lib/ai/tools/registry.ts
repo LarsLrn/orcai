@@ -4,7 +4,6 @@ import {
 	displayToolMarkdown,
 	primitiveCatalog,
 } from "@/components/chat/gen-ui/catalog";
-import type { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { createBehaviour } from "./assistant/bots/create-behaviour.declaration";
 import { createBot } from "./assistant/bots/create-bot.declaration";
@@ -339,42 +338,3 @@ export const clientOutputSchema = (toolName: string) => {
 
 	return declaration?.kind === "client" ? declaration.outputSchema : undefined;
 };
-
-const writingKinds = new Set<ToolKind>([
-	"create",
-	"change",
-	"client",
-]);
-
-/** The data a tool that writes may have changed. */
-const PLATFORM_DATA = [
-	"bot",
-	"block",
-	"asset",
-	"resource",
-	"group",
-	"organizationMember",
-	"organizationInvitation",
-	"user",
-	"authorization",
-] as const satisfies (keyof typeof orpc)[];
-
-/** The query namespaces a reply made stale: all platform data once a tool that writes ran. */
-export const staleDataOf = (message: {
-	parts: readonly {
-		type: string;
-		state?: string;
-	}[];
-}): readonly (typeof PLATFORM_DATA)[number][] =>
-	message.parts.some((part) => {
-		const declaration = partDeclaration(part);
-
-		return (
-			declaration !== undefined &&
-			writingKinds.has(declaration.kind) &&
-			!declaration.conversational &&
-			part.state === "output-available"
-		);
-	})
-		? PLATFORM_DATA
-		: [];

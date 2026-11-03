@@ -19,7 +19,7 @@ import {
 	type QueryKey,
 } from "@tanstack/react-query";
 import type { router } from "./router";
-import { invalidateStaleQueries } from "./stale-queries";
+import { invalidateStaleQueries, staleQueriesOfWrites } from "./stale-queries";
 
 type AppClient = RouterClient<typeof router>;
 
@@ -538,5 +538,98 @@ describe("invalidateStaleQueries", () => {
 			.catch(() => undefined);
 
 		expect(members()).toBe(false);
+	});
+});
+
+describe("staleQueriesOfWrites", () => {
+	test("makes stale what the same mutations would, from the fields a write carries", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const membersA = cached(
+			orpc.group.listMembers.queryKey({
+				input: {
+					groupId: groupA,
+				},
+			}),
+		);
+		const membersB = cached(
+			orpc.group.listMembers.queryKey({
+				input: {
+					groupId: groupB,
+				},
+			}),
+		);
+		const library = cached(
+			orpc.library.counts.queryKey({
+				input: {},
+			}),
+		);
+		const catalogue = cached(
+			orpc.catalogue.list.queryKey({
+				input: {},
+			}),
+		);
+		const models = cached(
+			orpc.model.list.queryKey({
+				input: {},
+			}),
+		);
+
+		const invalidate = (writes: Parameters<typeof staleQueriesOfWrites>[1]) =>
+			Promise.all(
+				staleQueriesOfWrites(orpc, writes).map((queryKey) =>
+					queryClient.invalidateQueries({
+						queryKey,
+					}),
+				),
+			);
+		await invalidate([
+			{
+				path: "group.addMembers",
+				groupId: groupA,
+			},
+			{
+				path: "catalogue.add",
+			},
+			{
+				path: "organizationMember.delete",
+				handedOver: false,
+			},
+		]);
+
+		expect(membersA()).toBe(true);
+		expect(membersB()).toBe(false);
+		expect(library()).toBe(true);
+		expect(catalogue()).toBe(true);
+		expect(models()).toBe(false);
+	});
+
+	test("a member removal makes owners stale only when it handed something over", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const botPage = cached(
+			orpc.bot.find.queryKey({
+				input: {
+					id: "bot-1" as BotId,
+				},
+			}),
+		);
+		const invalidate = (handedOver: boolean) =>
+			Promise.all(
+				staleQueriesOfWrites(orpc, [
+					{
+						path: "organizationMember.delete",
+						handedOver,
+					},
+				]).map((queryKey) =>
+					queryClient.invalidateQueries({
+						queryKey,
+					}),
+				),
+			);
+
+		await invalidate(false);
+		expect(botPage()).toBe(false);
+
+		await invalidate(true);
+		expect(botPage()).toBe(true);
 	});
 });

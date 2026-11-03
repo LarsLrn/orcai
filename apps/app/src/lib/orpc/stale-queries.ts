@@ -1,3 +1,4 @@
+import type { TurnWrite } from "@orcai/schema";
 import type { InferClientInputs, InferClientOutputs } from "@orpc/client";
 import type { RouterClient } from "@orpc/server";
 import type { RouterUtils, RouterUtilsOptions } from "@orpc/tanstack-query";
@@ -550,6 +551,19 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	};
 };
 
+type StaleKeysOf = (input: unknown, output: unknown) => readonly QueryKey[];
+
+const staleKeysOf = (
+	staleQueries: StaleQueries,
+	[namespace = "", procedure = ""]: readonly string[],
+) =>
+	(
+		staleQueries as Record<
+			string,
+			Record<string, StaleKeysOf | undefined> | undefined
+		>
+	)[namespace]?.[procedure];
+
 /**
  * Invalidates what a mutation made stale once it succeeds, before its
  * `onSuccess` runs; call sites cannot override it. Active queries refetch in
@@ -564,20 +578,9 @@ export const invalidateStaleQueries = (
 	return async ({ path, input, fnContext, next }) => {
 		const output = await next();
 		staleQueries ??= staleQueriesOf(orpc());
-		const [namespace = "", procedure = ""] = path;
-		const keysOf = (
-			staleQueries as Record<
-				string,
-				| Record<
-						string,
-						| ((input: unknown, output: unknown) => readonly QueryKey[])
-						| undefined
-				  >
-				| undefined
-			>
-		)[namespace]?.[procedure];
 
-		for (const queryKey of keysOf?.(input, output) ?? []) {
+		for (const queryKey of staleKeysOf(staleQueries, path)?.(input, output) ??
+			[]) {
 			void fnContext.client.invalidateQueries({
 				queryKey,
 			});
@@ -585,4 +588,17 @@ export const invalidateStaleQueries = (
 
 		return output;
 	};
+};
+
+/** The queries an Assistant turn's writes made stale. A write carries the input and output fields its entry reads. */
+export const staleQueriesOfWrites = (
+	orpc: AppUtils,
+	writes: readonly TurnWrite[],
+): QueryKey[] => {
+	const staleQueries = staleQueriesOf(orpc);
+
+	return writes.flatMap(
+		(write) =>
+			staleKeysOf(staleQueries, write.path.split("."))?.(write, write) ?? [],
+	);
 };
