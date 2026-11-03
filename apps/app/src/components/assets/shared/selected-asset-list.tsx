@@ -1,16 +1,17 @@
 import type { Asset, AssetWithCapabilities } from "@orcai/schema";
-import { LoaderCircleIcon, PencilIcon, XIcon } from "lucide-react";
+import { PencilIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { AssetMetadataDialog } from "@/components/assets/shared/asset-metadata-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
-import { isGeneratingMetadata } from "@/lib/presentation/metadata-status";
 import {
-	getProcessingStatusLabel,
-	getProcessingStatusVariant,
-} from "@/lib/presentation/processing-status";
+	generatingMetadataBadge,
+	isGeneratingMetadata,
+} from "@/lib/presentation/metadata-status";
+import { processingStatusBadge } from "@/lib/presentation/processing-status";
 import { m } from "@/paraglide/messages";
 
 /** Assets with their processing state, metadata editing and, given `onRemove`, removal. */
@@ -50,17 +51,12 @@ const SelectedAssetList = ({
 									{getFileTypeLabel(asset.fileType)}
 								</Badge>
 								{asset.processingStatus ? (
-									<Badge
-										variant={getProcessingStatusVariant(asset.processingStatus)}
-									>
-										{getProcessingStatusLabel(asset.processingStatus)}
-									</Badge>
+									<StateBadge
+										badge={processingStatusBadge(asset.processingStatus)}
+									/>
 								) : null}
 								{isGeneratingMetadata(asset) ? (
-									<Badge variant="processing">
-										<LoaderCircleIcon className="animate-spin" />
-										{m.assets_metadata_generating_badge()}
-									</Badge>
+									<StateBadge badge={generatingMetadataBadge()} />
 								) : null}
 							</div>
 						</div>

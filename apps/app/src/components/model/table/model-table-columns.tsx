@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
@@ -10,10 +11,7 @@ import { createDataTableSelectColumn } from "@/components/ui/data-table/data-tab
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
-import {
-	getModelStatusLabel,
-	getModelStatusVariant,
-} from "@/lib/presentation/model-status";
+import { modelStatusBadge } from "@/lib/presentation/model-status";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
@@ -149,9 +147,7 @@ export const modelTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<Badge variant={getModelStatusVariant(row.original.isDeprecated)}>
-				{getModelStatusLabel(row.original.isDeprecated)}
-			</Badge>
+			<StateBadge badge={modelStatusBadge(row.original.isDeprecated)} />
 		),
 		meta: {
 			label: m.common_status_column_header,

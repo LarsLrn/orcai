@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	DialogSelect,
@@ -15,12 +14,10 @@ import {
 	DialogSelectPagination,
 	DialogSelectSearch,
 } from "@/components/ui/composed/dialog-select";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
-import {
-	getPublicationStatusLabel,
-	getPublicationStatusVariant,
-} from "@/lib/presentation/publication-status";
+import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -159,12 +156,10 @@ const BlockSelectorDialog = ({
 								trailing={
 									<div className="flex items-center gap-2">
 										{block.status === "draft" ? (
-											<Badge
-												variant={getPublicationStatusVariant(block.status)}
+											<StateBadge
+												badge={publicationStatusBadge(block.status)}
 												className="h-5 px-1.5"
-											>
-												{getPublicationStatusLabel(block.status)}
-											</Badge>
+											/>
 										) : null}
 										{isSelected ? (
 											<span className="text-muted-foreground text-xs">

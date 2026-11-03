@@ -1,7 +1,38 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"access_dialog_description": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für {resource}.",
-	"access_dialog_description_named": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für {resource}: {name}.",
+	"access_dialog_description": [
+		{
+			"declarations": [
+				"input kind"
+			],
+			"selectors": [
+				"kind"
+			],
+			"match": {
+				"kind=bot": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für diesen Bot.",
+				"kind=behaviour": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für dieses Verhalten.",
+				"kind=repository": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für dieses Repository.",
+				"kind=asset": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für dieses Asset."
+			}
+		}
+	],
+	"access_dialog_description_named": [
+		{
+			"declarations": [
+				"input kind",
+				"input name"
+			],
+			"selectors": [
+				"kind"
+			],
+			"match": {
+				"kind=bot": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für diesen Bot: {name}.",
+				"kind=behaviour": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für dieses Verhalten: {name}.",
+				"kind=repository": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für dieses Repository: {name}.",
+				"kind=asset": "Konfigurieren Sie Sichtbarkeit, Gruppen und direkte Freigaben für dieses Asset: {name}."
+			}
+		}
+	],
 	"access_dialog_title": "Zugriff verwalten",
 	"access_grant_blocks_partial_toast": "Der Bot ist freigegeben, diese Blöcke aber nicht: {names}.",
 	"access_grant_list_empty_state_description": "Keine direkten Freigaben gefunden.",
@@ -134,11 +165,8 @@
 	"access_publish_confirm_description": "Jeder Benutzer dieser Instanz sieht dann eine Vorschau, und andere Organisationen können den Bot oder Block hinzufügen.",
 	"access_publish_confirm_title": "In den Katalog aufnehmen?",
 	"access_resource_asset_hint": "Der Zugriff kann auch von seinen Repositories und den Bots, die sie nutzen, geerbt werden.",
-	"access_resource_asset_label": "Asset",
 	"access_resource_block_hint": "Der Zugriff kann auch von den Bots geerbt werden, die ihn nutzen.",
-	"access_resource_block_label": "Block",
 	"access_resource_bot_hint": "Mit Zugriff hier können Personen die verknüpften Blöcke und Assets lesen, aber um sie zu bearbeiten, brauchen sie eine Freigabe für jeden Block und jedes Asset.",
-	"access_resource_bot_label": "Bot",
 	"access_revoke_confirm_button": "Entziehen",
 	"access_revoke_confirm_description": "Diese Person oder Gruppe verliert ihren direkten Zugriff.",
 	"access_revoke_confirm_title": "Zugriff entziehen?",
@@ -3715,15 +3743,9 @@
 	"home_quota_pool_default_badge": "Standard",
 	"home_quota_pool_meta_no_period": "{provider}, kein offener Zeitraum",
 	"home_quota_pool_meta_renews": "{provider}, erneuert sich am {date}",
-	"home_recent_asset_kind": "Asset",
-	"home_recent_block_kind": "Verhalten",
-	"home_recent_bot_kind": "Bot",
-	"home_recent_draft_badge": "Entwurf",
 	"home_recent_panel_empty_note": "Es wurde noch nichts bearbeitet. Bots, Verhaltensvorgaben, Repositories und Assets erscheinen hier, sobald sie sich ändern.",
 	"home_recent_panel_open_library_action": "Bibliothek öffnen",
 	"home_recent_panel_title": "Zuletzt geändert",
-	"home_recent_published_badge": "Veröffentlicht",
-	"home_recent_repository_kind": "Repository",
 	"home_tour_button_aria_label": "Eine Tour durch OrcAI machen",
 	"home_tour_button_label": "Tour starten",
 	"home_view_manage_tab": "Verwalten",
@@ -4442,7 +4464,6 @@
 	"pipeline_failure_unsupported": "OrcAI kann diesen Dateityp nicht lesen, daher hilft ein erneuter Versuch nicht.",
 	"pipeline_failure_unsupported_image": "Das Hilfsmodell der Organisation kann keine Bilder lesen. Sobald ein Admin eines wählt, das Bilder lesen kann, bereiten Sie das Bild erneut vor.",
 	"processing_status_failed_description": "Die Vorbereitung ist nach mehreren Versuchen fehlgeschlagen. Bereiten Sie das Asset erneut vor, oder löschen Sie es und laden Sie eine lesbare Datei hoch.",
-	"processing_status_failed_label": "Fehlgeschlagen",
 	"providers_detail_search_badge": "Websuche",
 	"providers_search_pool_notice_title": "Kein Kontingent-Pool deckt diesen Suchanbieter ab",
 	"providers_search_pool_notice_description": "Die Websuche über diesen Anbieter schlägt fehl, bis ein aktiver Kontingent-Pool ihn abdeckt, sodass Bots bis dahin ohne Suche antworten.",
@@ -4976,11 +4997,8 @@
 	"orgs_update_toast_loading": "Die Organisation wird aktualisiert...",
 	"orgs_update_toast_success": "Organisation aktualisiert",
 	"processing_status_active_description": "Wird derzeit für Suche und Quellenangaben vorbereitet.",
-	"processing_status_active_label": "Wird verarbeitet",
 	"processing_status_completed_description": "Die Datei ist vorbereitet. Repositories indizieren sie, bevor sie durchsucht und zitiert werden kann.",
-	"processing_status_completed_label": "Bereit",
 	"processing_status_pending_description": "Wartet auf die Vorbereitung für Suche und Quellenangaben.",
-	"processing_status_pending_label": "In Warteschlange",
 	"providers_add_page_title": "Anbieter hinzufügen",
 	"providers_create_toast_error": "Der Anbieter wurde nicht erstellt.",
 	"providers_create_toast_loading": "Der Anbieter wird erstellt...",

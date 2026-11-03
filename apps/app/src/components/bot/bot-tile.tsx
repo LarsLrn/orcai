@@ -4,7 +4,7 @@ import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { FeatureBadges } from "@/components/features/feature-badges";
 import { useBotActions } from "@/components/library/resource-actions";
-import { Badge } from "@/components/ui/badge";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import {
 	Tile,
 	TileBadges,
@@ -18,7 +18,7 @@ import {
 	TileTitle,
 } from "@/components/ui/shell/tile";
 import type { BadgeItem } from "@/lib/presentation/badge-item";
-import { getPublicationStatusLabel } from "@/lib/presentation/publication-status";
+import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -105,7 +105,7 @@ const BotTileContent = ({
 			<TileFooter>
 				{children}
 				{bot.status === "draft" ? (
-					<Badge variant="outline">{getPublicationStatusLabel("draft")}</Badge>
+					<StateBadge badge={publicationStatusBadge("draft")} />
 				) : null}
 				<FeatureBadges features={bot.features} className="contents" />
 			</TileFooter>

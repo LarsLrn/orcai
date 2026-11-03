@@ -27,6 +27,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
@@ -62,10 +63,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { formatPrice } from "@/lib/presentation/format-number";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import { getProviderKindLabel } from "@/lib/presentation/provider-kind";
-import {
-	getProviderStatusLabel,
-	getProviderStatusVariant,
-} from "@/lib/presentation/provider-status";
+import { providerStatusBadge } from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = listModelsInputSchema
@@ -161,14 +159,12 @@ function RouteComponent() {
 				<PageTitle>{provider.name}</PageTitle>
 				<PageDescription>{provider.description}</PageDescription>
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={getProviderStatusVariant(provider.enabled)}>
-						{provider.enabled ? (
-							<BadgeCheck className="size-3" />
-						) : (
-							<BadgeX className="size-3" />
-						)}
-						{getProviderStatusLabel(provider.enabled)}
-					</Badge>
+					<StateBadge
+						badge={{
+							...providerStatusBadge(provider.enabled),
+							icon: provider.enabled ? BadgeCheck : BadgeX,
+						}}
+					/>
 					<Badge variant="outline">
 						<ServerIcon className="size-3" />
 						{kindLabel}

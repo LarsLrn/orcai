@@ -7,7 +7,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { DisplayDate } from "@/components/app/display-time";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Panel,
@@ -17,31 +16,24 @@ import {
 	PanelTitle,
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
-import { getProcessingStatusLabel } from "@/lib/presentation/processing-status";
+import { processingStatusBadge } from "@/lib/presentation/processing-status";
+import { publicationStatusBadge } from "@/lib/presentation/publication-status";
+import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 const RECENT_LIMIT = 6;
 
-const PublicationBadge = ({ status }: { status: PublicationStatus }) =>
-	status === "ready" ? (
-		<Badge variant="success">{m.home_recent_published_badge()}</Badge>
-	) : (
-		<Badge variant="outline">{m.home_recent_draft_badge()}</Badge>
-	);
+const PublicationBadge = ({ status }: { status: PublicationStatus }) => (
+	<StateBadge badge={publicationStatusBadge(status)} />
+);
 
-const ProcessingBadge = ({ status }: { status: PipelineStatus }) => {
-	if (status === "completed") {
-		return null;
-	}
-
-	return (
-		<Badge variant={status === "failed" ? "danger" : "outline"}>
-			{getProcessingStatusLabel(status)}
-		</Badge>
+const ProcessingBadge = ({ status }: { status: PipelineStatus }) =>
+	status === "completed" ? null : (
+		<StateBadge badge={processingStatusBadge(status)} />
 	);
-};
 
 const RecentRowBody = ({
 	kind,
@@ -82,7 +74,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 					})}
 				>
 					<RecentRowBody
-						kind={m.home_recent_bot_kind()}
+						kind={RESOURCE_KINDS.bot.label()}
 						name={entry.name}
 						changedAt={entry.changedAt}
 						badge={<PublicationBadge status={entry.status} />}
@@ -101,11 +93,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 					})}
 				>
 					<RecentRowBody
-						kind={
-							entry.blockType === "repository"
-								? m.home_recent_repository_kind()
-								: m.home_recent_block_kind()
-						}
+						kind={RESOURCE_KINDS[entry.blockType].label()}
 						name={entry.name}
 						changedAt={entry.changedAt}
 						badge={<PublicationBadge status={entry.status} />}
@@ -124,7 +112,7 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 					})}
 				>
 					<RecentRowBody
-						kind={m.home_recent_asset_kind()}
+						kind={RESOURCE_KINDS.asset.label()}
 						name={entry.name}
 						changedAt={entry.changedAt}
 						badge={<ProcessingBadge status={entry.processingStatus} />}

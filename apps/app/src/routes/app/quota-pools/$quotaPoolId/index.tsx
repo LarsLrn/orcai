@@ -29,6 +29,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
@@ -66,10 +67,7 @@ import { orpc } from "@/lib/orpc/orpc";
 import { formatNumber } from "@/lib/presentation/format-number";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
-import {
-	getQuotaPoolStatusLabel,
-	getQuotaPoolStatusVariant,
-} from "@/lib/presentation/quota-pool-status";
+import { quotaPoolStatusBadge } from "@/lib/presentation/quota-pool-status";
 import { orNotFound } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
 
@@ -194,9 +192,7 @@ function RouteComponent() {
 					<PageDescription>{data.data.description}</PageDescription>
 				) : null}
 				<div className="flex flex-wrap gap-2">
-					<Badge variant={getQuotaPoolStatusVariant(data.data.isActive)}>
-						{getQuotaPoolStatusLabel(data.data.isActive)}
-					</Badge>
+					<StateBadge badge={quotaPoolStatusBadge(data.data.isActive)} />
 					<Badge variant="outline">
 						{getQuotaPeriodLabel(data.data.periodType)}
 					</Badge>

@@ -2,7 +2,7 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { Link } from "@tanstack/react-router";
 import { CheckIcon } from "lucide-react";
 import type * as React from "react";
-import { Badge } from "@/components/ui/badge";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import {
 	ActionMenu,
 	type ClickAction,
@@ -180,16 +180,7 @@ const TileFooter = ({ className, ...props }: React.ComponentProps<"div">) => (
 
 /** State badges in a `TileFooter`. */
 const TileBadges = ({ badges }: { badges: readonly BadgeItem[] }) =>
-	badges.map((badge) => (
-		<Badge
-			key={badge.label}
-			variant={badge.variant}
-			className={badge.className}
-		>
-			{badge.icon ? <badge.icon aria-hidden="true" /> : null}
-			{badge.label}
-		</Badge>
-	));
+	badges.map((badge) => <StateBadge key={badge.label} badge={badge} />);
 
 /**
  * The corner cluster above the stretched title: `children` (such as the

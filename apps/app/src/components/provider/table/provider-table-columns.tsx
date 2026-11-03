@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
+import { StateBadge } from "@/components/ui/composed/state-badge";
 import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
@@ -10,10 +11,7 @@ import { createDataTableSelectColumn } from "@/components/ui/data-table/data-tab
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
-import {
-	getProviderStatusLabel,
-	getProviderStatusVariant,
-} from "@/lib/presentation/provider-status";
+import { providerStatusBadge } from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Provider>();
@@ -94,9 +92,7 @@ export const providerTableColumns = columnHelper.columns([
 			/>
 		),
 		cell: ({ row }) => (
-			<Badge variant={getProviderStatusVariant(row.original.enabled)}>
-				{getProviderStatusLabel(row.original.enabled)}
-			</Badge>
+			<StateBadge badge={providerStatusBadge(row.original.enabled)} />
 		),
 		meta: {
 			label: m.common_status_column_header,
