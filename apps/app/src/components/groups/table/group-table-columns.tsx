@@ -1,24 +1,53 @@
-import type { Group, GroupListRow } from "@orcai/schema";
+import type { GroupListRow } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLinkItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteGroupsMutation } from "@/hooks/mutations/use-group-mutations";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, GroupListRow>();
+
+const useGroupRowActions = (group: GroupListRow) => {
+	const { mutate: deleteGroups } = useDeleteGroupsMutation({
+		names: [
+			group.name,
+		],
+	});
+
+	return {
+		actions: [
+			{
+				key: "manage",
+				label: m.groups_table_manage_action(),
+				linkProps: {
+					to: "/app/groups/$groupId",
+					params: {
+						groupId: group.id,
+					},
+				},
+			},
+			group.kind === "custom" && {
+				key: "delete",
+				label: m.groups_delete_action(),
+				destructive: true,
+				onClick: () =>
+					deleteGroups({
+						refs: [
+							{
+								id: group.id,
+							},
+						],
+					}),
+			},
+		] satisfies (HeaderAction | false)[],
+	};
+};
 
 export const groupTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<GroupListRow>(),
@@ -85,64 +114,5 @@ export const groupTableColumns = columnHelper.columns([
 			label: m.groups_table_members_column_header,
 		},
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => <ActionCell group={row.original} />,
-	}),
+	createDataTableActionsColumn(useGroupRowActions),
 ]);
-
-const ActionCell = ({ group }: { group: Group }) => {
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-			<DropdownMenuContent align="end">
-				<DropdownMenuLinkItem
-					render={
-						<Link
-							to="/app/groups/$groupId"
-							params={{
-								groupId: group.id,
-							}}
-						/>
-					}
-				>
-					{m.groups_table_manage_action()}
-				</DropdownMenuLinkItem>
-				{group.kind === "custom" && (
-					<>
-						<DropdownMenuSeparator />
-						<DeleteGroupItem group={group} />
-					</>
-				)}
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
-};
-
-const DeleteGroupItem = ({ group }: { group: Group }) => {
-	const deleteGroup = useDeleteGroupsMutation({
-		names: [
-			group.name,
-		],
-	});
-
-	return (
-		<DropdownMenuItem
-			variant="destructive"
-			onClick={() =>
-				deleteGroup.mutate({
-					refs: [
-						{
-							id: group.id,
-						},
-					],
-				})
-			}
-		>
-			{m.groups_delete_action()}
-		</DropdownMenuItem>
-	);
-};

@@ -1,23 +1,14 @@
-import {
-	ORGANIZATION_ADMIN_ROLE,
-	type OrganizationInvitationId,
-} from "@orcai/core";
+import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { DisplayTimestamp } from "@/components/app/display-time";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
@@ -27,6 +18,63 @@ const columnHelper = createColumnHelper<
 	DataTableFeatures,
 	OrganizationInvitation
 >();
+
+const useInvitationRowActions = (invitation: OrganizationInvitation) => {
+	const router = useRouter();
+	const { data: capabilities } = useOrganizationCapabilities();
+	const { mutate: deleteInvitations } =
+		useDeleteOrganizationInvitationsMutation({
+			names: [
+				`for ${invitation.email}`,
+			],
+		});
+	const canDeleteInvitation =
+		invitation.role !== ORGANIZATION_ADMIN_ROLE ||
+		capabilities?.data.capabilities.manage_organization === true;
+
+	const copyLink = () => {
+		const location = router.buildLocation({
+			to: "/register",
+			search: {
+				inv: invitation.id,
+			},
+		});
+		const href = location.maskedLocation?.publicHref ?? location.publicHref;
+		const fullUrl = new URL(href, window.location.origin).toString();
+
+		toast.promise(navigator.clipboard.writeText(fullUrl), {
+			loading: m.members_invitations_copy_link_toast_loading(),
+			success: m.members_invitations_copy_link_toast_success(),
+			error: (error) => ({
+				message: m.members_invitations_copy_link_toast_error(),
+				description: reasonMessageOf(error),
+			}),
+		});
+	};
+
+	return {
+		actions: [
+			{
+				key: "copy-link",
+				label: m.members_invitations_table_copy_link_action(),
+				onClick: copyLink,
+			},
+			canDeleteInvitation && {
+				key: "delete",
+				label: m.members_invitations_table_delete_action(),
+				destructive: true,
+				onClick: () =>
+					deleteInvitations({
+						refs: [
+							{
+								id: invitation.id,
+							},
+						],
+					}),
+			},
+		] satisfies (HeaderAction | false)[],
+	};
+};
 
 export const invitationsTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<OrganizationInvitation>(),
@@ -87,88 +135,5 @@ export const invitationsTableColumns = columnHelper.columns([
 			label: m.members_invitations_table_role_column_header,
 		},
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => <ActionsCell invitation={row.original} />,
-	}),
+	createDataTableActionsColumn(useInvitationRowActions),
 ]);
-
-const ActionsCell = ({
-	invitation,
-}: {
-	invitation: OrganizationInvitation;
-}) => {
-	const router = useRouter();
-	const { data: capabilities } = useOrganizationCapabilities();
-	const canDeleteInvitation =
-		invitation.role !== ORGANIZATION_ADMIN_ROLE ||
-		capabilities?.data.capabilities.manage_organization === true;
-
-	const handleCopyLink = (id: OrganizationInvitationId) => {
-		const location = router.buildLocation({
-			to: "/register",
-			search: {
-				inv: id,
-			},
-		});
-		const href = location.maskedLocation?.publicHref ?? location.publicHref;
-		const fullUrl = new URL(href, window.location.origin).toString();
-
-		toast.promise(navigator.clipboard.writeText(fullUrl), {
-			loading: m.members_invitations_copy_link_toast_loading(),
-			success: m.members_invitations_copy_link_toast_success(),
-			error: (error) => ({
-				message: m.members_invitations_copy_link_toast_error(),
-				description: reasonMessageOf(error),
-			}),
-		});
-	};
-
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-			<DropdownMenuContent align="end">
-				<DropdownMenuItem onClick={() => handleCopyLink(invitation.id)}>
-					{m.members_invitations_table_copy_link_action()}
-				</DropdownMenuItem>
-				{canDeleteInvitation ? (
-					<>
-						<DropdownMenuSeparator />
-						<DeleteItem invitation={invitation} />
-					</>
-				) : null}
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
-};
-
-const DeleteItem = ({ invitation }: { invitation: OrganizationInvitation }) => {
-	const { mutate: deleteInvitations } =
-		useDeleteOrganizationInvitationsMutation({
-			names: [
-				`for ${invitation.email}`,
-			],
-		});
-
-	const handleDelete = (id: OrganizationInvitationId) => {
-		deleteInvitations({
-			refs: [
-				{
-					id,
-				},
-			],
-		});
-	};
-
-	return (
-		<DropdownMenuItem
-			variant="destructive"
-			onClick={() => handleDelete(invitation.id)}
-		>
-			{m.members_invitations_table_delete_action()}
-		</DropdownMenuItem>
-	);
-};

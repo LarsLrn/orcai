@@ -145,9 +145,31 @@ export const ORGANIZATION_ROLE_PERMISSIONS = {
 	readonly OrganizationPermission[]
 >;
 
+/**
+ * What a user may do with each entity: SpiceDB's permissions, and for bots,
+ * blocks and assets `hand_over`, which Postgres decides.
+ */
+export const AUTHZ_CAPABILITIES_BY_ENTITY = {
+	organization: AUTHZ_PERMISSIONS_BY_ENTITY.organization,
+	group: AUTHZ_PERMISSIONS_BY_ENTITY.group,
+	bot: [
+		...AUTHZ_PERMISSIONS_BY_ENTITY.bot,
+		"hand_over",
+	],
+	block: [
+		...AUTHZ_PERMISSIONS_BY_ENTITY.block,
+		"hand_over",
+	],
+	asset: [
+		...AUTHZ_PERMISSIONS_BY_ENTITY.asset,
+		"hand_over",
+	],
+	chat: AUTHZ_PERMISSIONS_BY_ENTITY.chat,
+} as const satisfies Record<AuthzCapabilityEntityType, readonly string[]>;
+
 export type CapabilityEntityType = AuthzCapabilityEntityType;
 export type CapabilityByEntity = {
-	[Entity in CapabilityEntityType]: PermissionFor<Entity>;
+	[Entity in CapabilityEntityType]: (typeof AUTHZ_CAPABILITIES_BY_ENTITY)[Entity][number];
 };
 export type CapabilityFor<Entity extends CapabilityEntityType> =
 	CapabilityByEntity[Entity];

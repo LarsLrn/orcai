@@ -1,11 +1,11 @@
-import { AUTHZ_PERMISSIONS_BY_ENTITY } from "@orcai/core";
+import { AUTHZ_CAPABILITIES_BY_ENTITY } from "@orcai/core";
 import type {
 	CapabilityEntityType,
 	CapabilityFor,
 	EntityCapabilities,
 } from "@orcai/schema";
 
-export const capabilitySets = AUTHZ_PERMISSIONS_BY_ENTITY satisfies {
+export const capabilitySets = AUTHZ_CAPABILITIES_BY_ENTITY satisfies {
 	[Entity in CapabilityEntityType]: readonly CapabilityFor<Entity>[];
 };
 

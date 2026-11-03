@@ -7,17 +7,10 @@ import {
 	QuotaRemaining,
 } from "@/components/quota/quota-consumption";
 import { Badge } from "@/components/ui/badge";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLinkItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeactivateQuotaPoolMutation } from "@/hooks/mutations/use-quota-pool-mutations";
 import { formatNumber } from "@/lib/presentation/format-number";
 import { getQuotaPeriodLabel } from "@/lib/presentation/quota-period";
@@ -34,6 +27,45 @@ const formatAmount = (value: number | null | undefined) => {
 };
 
 const columnHelper = createColumnHelper<DataTableFeatures, QuotaPoolListRow>();
+
+const useQuotaPoolRowActions = (pool: QuotaPoolListRow) => {
+	const { mutate: deactivatePool } = useDeactivateQuotaPoolMutation(pool.name);
+
+	return {
+		actions: [
+			{
+				key: "view",
+				label: m.quota_pools_table_view_menu_item(),
+				linkProps: {
+					to: "/app/quota-pools/$quotaPoolId",
+					params: {
+						quotaPoolId: pool.id,
+					},
+				},
+			},
+			{
+				key: "edit",
+				label: m.quota_pools_table_edit_menu_item(),
+				linkProps: {
+					to: "/app/quota-pools/$quotaPoolId/edit",
+					params: {
+						quotaPoolId: pool.id,
+					},
+				},
+			},
+			{
+				key: "deactivate",
+				label: m.quota_pools_table_deactivate_menu_item(),
+				destructive: true,
+				disabled: !pool.isActive,
+				onClick: () =>
+					deactivatePool({
+						id: pool.id,
+					}),
+			},
+		] satisfies HeaderAction[],
+	};
+};
 
 export const quotaPoolTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
@@ -146,61 +178,5 @@ export const quotaPoolTableColumns = columnHelper.columns([
 			</div>
 		),
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => (
-			<DropdownMenu>
-				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-				<DropdownMenuContent align="end">
-					<DropdownMenuLinkItem
-						render={
-							<Link
-								to="/app/quota-pools/$quotaPoolId"
-								params={{
-									quotaPoolId: row.original.id,
-								}}
-							/>
-						}
-					>
-						{m.quota_pools_table_view_menu_item()}
-					</DropdownMenuLinkItem>
-					<DropdownMenuLinkItem
-						render={
-							<Link
-								to="/app/quota-pools/$quotaPoolId/edit"
-								params={{
-									quotaPoolId: row.original.id,
-								}}
-							/>
-						}
-					>
-						{m.quota_pools_table_edit_menu_item()}
-					</DropdownMenuLinkItem>
-					<DropdownMenuSeparator />
-					<DeactivateItem pool={row.original} />
-				</DropdownMenuContent>
-			</DropdownMenu>
-		),
-	}),
+	createDataTableActionsColumn(useQuotaPoolRowActions),
 ]);
-
-const DeactivateItem = ({ pool }: { pool: QuotaPoolListRow }) => {
-	const deactivatePool = useDeactivateQuotaPoolMutation(pool.name);
-
-	return (
-		<DropdownMenuItem
-			variant="destructive"
-			disabled={!pool.isActive}
-			onClick={() =>
-				deactivatePool.mutate({
-					id: pool.id,
-				})
-			}
-		>
-			{m.quota_pools_table_deactivate_menu_item()}
-		</DropdownMenuItem>
-	);
-};

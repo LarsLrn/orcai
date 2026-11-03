@@ -3,18 +3,11 @@ import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLinkItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";
 import {
@@ -24,6 +17,52 @@ import {
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Provider>();
+
+const useProviderRowActions = (provider: Provider) => {
+	const { mutate: deleteProviders } = useDeleteProvidersMutation({
+		names: [
+			provider.name,
+		],
+	});
+
+	return {
+		actions: [
+			{
+				key: "view",
+				label: m.providers_table_view_menu_item(),
+				linkProps: {
+					to: "/app/providers/$providerId",
+					params: {
+						providerId: provider.id,
+					},
+				},
+			},
+			{
+				key: "edit",
+				label: m.providers_table_edit_menu_item(),
+				linkProps: {
+					to: "/app/providers/$providerId/edit",
+					params: {
+						providerId: provider.id,
+					},
+				},
+			},
+			{
+				key: "delete",
+				label: m.providers_table_delete_menu_item(),
+				destructive: true,
+				onClick: () =>
+					deleteProviders({
+						refs: [
+							{
+								id: provider.id,
+							},
+						],
+					}),
+			},
+		] satisfies HeaderAction[],
+	};
+};
 
 export const providerTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<Provider>(),
@@ -111,74 +150,5 @@ export const providerTableColumns = columnHelper.columns([
 			label: m.providers_table_updated_column_header,
 		},
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => {
-			const provider = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={<OverflowMenuTrigger variant="ghost" />}
-					/>
-					<DropdownMenuContent align="end">
-						<DropdownMenuLinkItem
-							render={
-								<Link
-									to={"/app/providers/$providerId"}
-									params={{
-										providerId: row.original.id,
-									}}
-								/>
-							}
-						>
-							{m.providers_table_view_menu_item()}
-						</DropdownMenuLinkItem>
-						<DropdownMenuLinkItem
-							render={
-								<Link
-									to={"/app/providers/$providerId/edit"}
-									params={{
-										providerId: row.original.id,
-									}}
-								/>
-							}
-						>
-							{m.providers_table_edit_menu_item()}
-						</DropdownMenuLinkItem>
-						<DropdownMenuSeparator />
-						<DeleteItem provider={provider} />
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
-	}),
+	createDataTableActionsColumn(useProviderRowActions),
 ]);
-
-const DeleteItem = ({ provider }: { provider: Provider }) => {
-	const { mutate: deleteProviders } = useDeleteProvidersMutation({
-		names: [
-			provider.name,
-		],
-	});
-
-	return (
-		<DropdownMenuItem
-			variant="destructive"
-			onClick={() =>
-				deleteProviders({
-					refs: [
-						{
-							id: provider.id,
-						},
-					],
-				})
-			}
-		>
-			{m.providers_table_delete_menu_item()}
-		</DropdownMenuItem>
-	);
-};

@@ -1,9 +1,9 @@
 import type { BotListItem, BotWithCapabilities } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
-import { useBotActions } from "@/components/bot/bot-actions";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import { FeatureBadges } from "@/components/features/feature-badges";
+import { useBotActions } from "@/components/library/resource-actions";
 import { Badge } from "@/components/ui/badge";
 import {
 	Tile,

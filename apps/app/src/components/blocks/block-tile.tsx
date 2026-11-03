@@ -5,8 +5,8 @@ import type {
 	RepositoryTotals,
 } from "@orcai/schema";
 import { LoaderCircleIcon } from "lucide-react";
-import { useBlockActions } from "@/components/blocks/block-actions";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
+import { useBlockActions } from "@/components/library/resource-actions";
 import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {

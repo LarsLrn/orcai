@@ -5,21 +5,40 @@ import { useState } from "react";
 import { DisplayTimestamp } from "@/components/app/display-time";
 import { DeleteOrganizationDialog } from "@/components/organizations/delete-organization-dialog";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
 	OrganizationWithMemberCount
 >();
+
+const useInstanceOrganizationRowActions = (
+	organization: OrganizationWithMemberCount,
+) => {
+	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+	return {
+		actions: [
+			{
+				key: "delete",
+				label: m.instance_orgs_table_delete_menu_item(),
+				destructive: true,
+				onClick: () => setIsDeleteOpen(true),
+			},
+		] satisfies HeaderAction[],
+		dialog: (
+			<DeleteOrganizationDialog
+				organizationId={organization.id}
+				open={isDeleteOpen}
+				onOpenChange={setIsDeleteOpen}
+			/>
+		),
+	};
+};
 
 export const instanceOrganizationTableColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
@@ -83,42 +102,5 @@ export const instanceOrganizationTableColumns = columnHelper.columns([
 			label: m.common_created_column_header,
 		},
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => (
-			<InstanceOrganizationRowActions organization={row.original} />
-		),
-	}),
+	createDataTableActionsColumn(useInstanceOrganizationRowActions),
 ]);
-
-const InstanceOrganizationRowActions = ({
-	organization,
-}: {
-	organization: OrganizationWithMemberCount;
-}) => {
-	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
-	return (
-		<>
-			<DropdownMenu>
-				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-				<DropdownMenuContent align="end">
-					<DropdownMenuItem
-						variant="destructive"
-						onClick={() => setIsDeleteOpen(true)}
-					>
-						{m.instance_orgs_table_delete_menu_item()}
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
-			<DeleteOrganizationDialog
-				organizationId={organization.id}
-				open={isDeleteOpen}
-				onOpenChange={setIsDeleteOpen}
-			/>
-		</>
-	);
-};

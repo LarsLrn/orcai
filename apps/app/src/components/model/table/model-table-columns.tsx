@@ -3,18 +3,11 @@ import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLinkItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
 import {
@@ -24,6 +17,52 @@ import {
 import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ModelListRow>();
+
+const useModelRowActions = (model: ModelListRow) => {
+	const { mutate: deleteModels } = useDeleteModelsMutation({
+		names: [
+			model.name,
+		],
+	});
+
+	return {
+		actions: [
+			{
+				key: "view",
+				label: m.models_table_view_menu_item(),
+				linkProps: {
+					to: "/app/models/$modelId",
+					params: {
+						modelId: model.id,
+					},
+				},
+			},
+			{
+				key: "edit",
+				label: m.models_table_edit_menu_item(),
+				linkProps: {
+					to: "/app/models/$modelId/edit",
+					params: {
+						modelId: model.id,
+					},
+				},
+			},
+			{
+				key: "delete",
+				label: m.models_table_delete_menu_item(),
+				destructive: true,
+				onClick: () =>
+					deleteModels({
+						refs: [
+							{
+								id: model.id,
+							},
+						],
+					}),
+			},
+		] satisfies HeaderAction[],
+	};
+};
 
 export const modelTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<ModelListRow>(),
@@ -134,74 +173,5 @@ export const modelTableColumns = columnHelper.columns([
 			label: m.common_created_column_header,
 		},
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => {
-			const model = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={<OverflowMenuTrigger variant="ghost" />}
-					/>
-					<DropdownMenuContent align="end">
-						<DropdownMenuLinkItem
-							render={
-								<Link
-									to={"/app/models/$modelId"}
-									params={{
-										modelId: model.id,
-									}}
-								/>
-							}
-						>
-							{m.models_table_view_menu_item()}
-						</DropdownMenuLinkItem>
-						<DropdownMenuLinkItem
-							render={
-								<Link
-									to={"/app/models/$modelId/edit"}
-									params={{
-										modelId: model.id,
-									}}
-								/>
-							}
-						>
-							{m.models_table_edit_menu_item()}
-						</DropdownMenuLinkItem>
-						<DropdownMenuSeparator />
-						<DeleteItem model={model} />
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
-	}),
+	createDataTableActionsColumn(useModelRowActions),
 ]);
-
-const DeleteItem = ({ model }: { model: ModelListRow }) => {
-	const { mutate: deleteModels } = useDeleteModelsMutation({
-		names: [
-			model.name,
-		],
-	});
-
-	return (
-		<DropdownMenuItem
-			variant="destructive"
-			onClick={() =>
-				deleteModels({
-					refs: [
-						{
-							id: model.id,
-						},
-					],
-				})
-			}
-		>
-			{m.models_table_delete_menu_item()}
-		</DropdownMenuItem>
-	);
-};

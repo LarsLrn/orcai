@@ -2,7 +2,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MessageSquarePlusIcon } from "lucide-react";
 import { MetadataCard } from "@/components/app/metadata-card";
-import { useBotActions } from "@/components/bot/bot-actions";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { BotSetupSummary } from "@/components/bot/setup/bot-setup-summary";
@@ -12,6 +11,7 @@ import {
 	isContentEmpty,
 } from "@/components/editor/content-renderer";
 import { FeatureBadges } from "@/components/features/feature-badges";
+import { useBotActions } from "@/components/library/resource-actions";
 import { Badge } from "@/components/ui/badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {

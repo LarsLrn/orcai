@@ -4,18 +4,11 @@ import { Link, useRouteContext } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
 import { RemoveMembersDialog } from "@/components/members/remove-members-dialog";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLinkItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { OverflowMenuTrigger } from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { getOrganizationRoleLabel } from "@/lib/authz/organization-role-metadata";
@@ -25,6 +18,50 @@ const columnHelper = createColumnHelper<
 	DataTableFeatures,
 	UserWithOrganizationRole
 >();
+
+const useMemberRowActions = (member: UserWithOrganizationRole) => {
+	const { auth } = useRouteContext({
+		from: "/app",
+	});
+	const { data: capabilities } = useOrganizationCapabilities();
+	const canManageOrganization =
+		capabilities?.data.capabilities.manage_organization === true;
+	const canRemoveMember =
+		member.id !== auth.user.id &&
+		(member.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
+			canManageOrganization);
+	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
+
+	return {
+		actions: [
+			{
+				key: "edit",
+				label: m.members_table_edit_action(),
+				linkProps: {
+					to: "/app/members/$userId/edit",
+					params: {
+						userId: member.id,
+					},
+				},
+			},
+			canRemoveMember && {
+				key: "remove",
+				label: m.members_remove_from_organisation_action(),
+				destructive: true,
+				onClick: () => setIsRemoveOpen(true),
+			},
+		] satisfies (HeaderAction | false)[],
+		dialog: canRemoveMember ? (
+			<RemoveMembersDialog
+				members={[
+					member,
+				]}
+				open={isRemoveOpen}
+				onOpenChange={setIsRemoveOpen}
+			/>
+		) : null,
+	};
+};
 
 export const memberTableColumns = columnHelper.columns([
 	createDataTableSelectColumn<UserWithOrganizationRole>(),
@@ -86,71 +123,5 @@ export const memberTableColumns = columnHelper.columns([
 			label: m.members_organisation_role_label,
 		},
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => {
-			const member = row.original;
-
-			return <MemberActions member={member} />;
-		},
-	}),
+	createDataTableActionsColumn(useMemberRowActions),
 ]);
-
-const MemberActions = ({ member }: { member: UserWithOrganizationRole }) => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-	const { data: capabilities } = useOrganizationCapabilities();
-	const canManageOrganization =
-		capabilities?.data.capabilities.manage_organization === true;
-	const canRemoveMember =
-		member.id !== auth.user.id &&
-		(member.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
-			canManageOrganization);
-	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
-
-	return (
-		<>
-			<DropdownMenu>
-				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-				<DropdownMenuContent align="end">
-					<DropdownMenuLinkItem
-						render={
-							<Link
-								to={"/app/members/$userId/edit"}
-								params={{
-									userId: member.id,
-								}}
-							/>
-						}
-					>
-						{m.members_table_edit_action()}
-					</DropdownMenuLinkItem>
-					{canRemoveMember ? (
-						<>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								variant="destructive"
-								onClick={() => setIsRemoveOpen(true)}
-							>
-								{m.members_remove_from_organisation_action()}
-							</DropdownMenuItem>
-						</>
-					) : null}
-				</DropdownMenuContent>
-			</DropdownMenu>
-			{canRemoveMember ? (
-				<RemoveMembersDialog
-					members={[
-						member,
-					]}
-					open={isRemoveOpen}
-					onOpenChange={setIsRemoveOpen}
-				/>
-			) : null}
-		</>
-	);
-};

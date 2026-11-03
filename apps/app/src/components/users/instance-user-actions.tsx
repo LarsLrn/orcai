@@ -11,17 +11,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { HandOverConfirmDialog } from "@/components/ownership/hand-over-confirm-dialog";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-	type HeaderAction,
-	OverflowMenuTrigger,
-} from "@/components/ui/shell/actions";
+import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
 import { useRemoveUserImageMutation } from "@/hooks/mutations/use-instance-image-mutations";
 import {
@@ -181,40 +171,4 @@ export const useInstanceUserActions = (
 			/>
 		),
 	};
-};
-
-/** The same actions as a table row's `…` menu. */
-export const InstanceUserRowMenu = ({ user }: { user: InstanceUser }) => {
-	const { actions, dialog } = useInstanceUserActions(user);
-	if (actions.length === 0) {
-		return null;
-	}
-	const regular = actions.filter((action) => !action.destructive);
-	const destructive = actions.filter((action) => action.destructive);
-
-	return (
-		<>
-			<DropdownMenu>
-				<DropdownMenuTrigger render={<OverflowMenuTrigger variant="ghost" />} />
-				<DropdownMenuContent align="end">
-					{regular.map((action) => (
-						<DropdownMenuItem key={action.key} onClick={action.onClick}>
-							{action.label}
-						</DropdownMenuItem>
-					))}
-					<DropdownMenuSeparator />
-					{destructive.map((action) => (
-						<DropdownMenuItem
-							key={action.key}
-							variant="destructive"
-							onClick={action.onClick}
-						>
-							{action.label}
-						</DropdownMenuItem>
-					))}
-				</DropdownMenuContent>
-			</DropdownMenu>
-			{dialog}
-		</>
-	);
 };
