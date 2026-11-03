@@ -3,18 +3,22 @@ import {
 	getProviderEndpointMode,
 	getProviderPurpose,
 	type ProviderKind,
+	providerKinds,
+	providerMeteringModes,
 } from "@orcai/core";
 import { z } from "zod/v4";
-import { modelCapabilitiesSchema } from "../model/parts/capabilities";
-import { organizationIdSchema } from "../organization/ref";
+import { modelCapabilitiesSchema } from "../model/schema";
 import type { ErrorReason } from "../shared/error-reason";
+import { organizationIdSchema, providerIdSchema } from "../shared/ids";
 import { currencySchema, priceSchema } from "../shared/primitives/money";
-import { providerKindSchema } from "./parts/kind";
-import {
-	type ProviderMeteringMode,
-	providerMeteringModeSchema,
-} from "./parts/metering-mode";
-import { providerIdSchema } from "./ref";
+
+export const providerKindSchema = z.enum(
+	providerKinds.map((entry) => entry.kind),
+);
+
+export const providerMeteringModeSchema = z.enum(providerMeteringModes);
+
+export type ProviderMeteringMode = z.infer<typeof providerMeteringModeSchema>;
 
 /** Why an endpoint does not suit a kind, or undefined when it does. */
 const providerEndpointIssue = (kind: ProviderKind, endpoint: string | null) => {

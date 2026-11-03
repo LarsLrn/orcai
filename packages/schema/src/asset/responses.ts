@@ -1,13 +1,13 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../activity/ref";
 import { resourceOwnerSchema } from "../resource/schema";
+import { errorReasonSchema } from "../shared/error-reason";
+import { activityRunIdSchema } from "../shared/ids";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
-} from "../shared";
-import { errorReasonSchema } from "../shared/error-reason";
+} from "../shared/responses";
 import {
 	assetListItemSchema,
 	assetSchema,

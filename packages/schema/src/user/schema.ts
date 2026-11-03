@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../organization/parts/role";
+import { organizationRoleSchema } from "../organization/schema";
 import { searchFilterSchema } from "../shared/filters";
+import { userIdSchema } from "../shared/ids";
 import { preferencesSchema } from "./parts/preferences";
-import { userIdSchema } from "./ref";
 
 export const userFieldsSchema = z.object({
 	name: z.string().min(1),

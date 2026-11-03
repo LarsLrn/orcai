@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
-import { organizationIdSchema } from "../organization/ref";
-import { userIdSchema } from "../user/ref";
+import { organizationIdSchema, userIdSchema } from "../shared/ids";
 
 const ownedCountsShape = {
 	bots: z.number().int().nonnegative(),

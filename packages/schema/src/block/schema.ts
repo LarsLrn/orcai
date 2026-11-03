@@ -1,13 +1,11 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
-import { entityCapabilitiesSchema } from "../authorization";
+import { entityCapabilitiesSchema } from "../authorization/schema";
 import type { ErrorReason } from "../shared/error-reason";
+import { assetIdSchema, blockIdSchema, userIdSchema } from "../shared/ids";
 import { fileTypeSchema } from "../shared/primitives/file-type";
 import { pipelineFailureSchema } from "../shared/primitives/pipeline-status";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { retrievalModeSchema } from "../shared/primitives/retrieval-mode";
-import { userIdSchema } from "../user/ref";
-import { blockIdSchema } from "./ref";
 
 export const contentJsonSchema = z.custom<object>(
 	(value) =>

@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
-import { userIdSchema } from "../user/ref";
-import { groupMemberSourceSchema } from "./parts/member-source";
-import { groupSchema } from "./schema";
+import { userIdSchema } from "../shared/ids";
+import { groupMemberSourceSchema, groupSchema } from "./schema";
 
 export const groupMemberUserSchema = z.object({
 	id: userIdSchema,

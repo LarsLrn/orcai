@@ -4,7 +4,7 @@ import {
 	createDataResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
-} from "../shared";
+} from "../shared/responses";
 import { userSchema } from "./schema";
 
 export const listAllUsersResponseSchema =

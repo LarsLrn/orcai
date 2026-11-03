@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { chatFeaturesSchema } from "../../feature/schema";
-import { modelIdSchema } from "../../model/ref";
-import { providerIdSchema } from "../../provider/ref";
+import { modelIdSchema, providerIdSchema } from "../../shared/ids";
 
 /** Call options of a chat or a bot setup; unset ones keep the provider's defaults. */
 export const generationSettingsSchema = z.object({

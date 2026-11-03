@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
+import { assetIdSchema } from "../shared/ids";
 import {
 	multipartCompletedPartSchema,
 	storageUploadRouteSchema,

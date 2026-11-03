@@ -3,12 +3,12 @@ import {
 	homeOrganizationSchema,
 	resourceOwnerSchema,
 } from "../resource/schema";
+import { botIdSchema } from "../shared/ids";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
-} from "../shared";
-import { botIdSchema } from "./ref";
+} from "../shared/responses";
 import {
 	botEditorSchema,
 	botListItemSchema,

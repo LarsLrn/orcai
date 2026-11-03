@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../activity/ref";
-import { createDataResponseSchema } from "../shared";
+import { activityRunIdSchema } from "../shared/ids";
+import { createDataResponseSchema } from "../shared/responses";
 import {
 	embeddingProgressSchema,
 	embeddingSettingsSchema,

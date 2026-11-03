@@ -1,9 +1,12 @@
+import { modelCapabilities } from "@orcai/core";
 import { z } from "zod/v4";
-import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
-import { modelCapabilitiesSchema } from "./parts/capabilities";
+import { modelIdSchema, providerIdSchema } from "../shared/ids";
 import { modelPricesSchema } from "./parts/prices";
-import { modelIdSchema } from "./ref";
+
+export const modelCapabilitiesSchema = z.enum(modelCapabilities);
+
+export type ModelCapability = z.infer<typeof modelCapabilitiesSchema>;
 
 const tokenCountSchema = z.int32().positive();
 

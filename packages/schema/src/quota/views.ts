@@ -2,8 +2,8 @@ import { z } from "zod/v4";
 import { groupListRowSchema } from "../group/views";
 import { modelSchema } from "../model/schema";
 import { providerSchema } from "../provider/schema";
+import { quotaPoolIdSchema } from "../shared/ids";
 import { usageBotSchema, usagePersonSchema } from "../usage/identity";
-import { quotaPoolIdSchema } from "./ref";
 import {
 	quotaLedgerSchema,
 	quotaPeriodSchema,

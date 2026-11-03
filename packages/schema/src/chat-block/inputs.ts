@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
-import { blockIdSchema } from "../block/ref";
-import { chatIdSchema } from "../chat/ref";
-import { zedTokenSchema } from "../shared";
+import { blockIdSchema, chatIdSchema } from "../shared/ids";
+import { zedTokenSchema } from "../shared/zed-token";
 
 export const listChatBlocksInputSchema = z.object({
 	chatId: chatIdSchema,

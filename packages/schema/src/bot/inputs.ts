@@ -1,15 +1,15 @@
 import { z } from "zod/v4";
-import { blockIdSchema } from "../block/ref";
 import { featuresSchema } from "../feature/schema";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { blockIdSchema, botIdSchema } from "../shared/ids";
 import {
 	libraryOriginSchema,
 	libraryScopeSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
+import { paginationInputSchema } from "../shared/pagination";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
-import { botIdSchema } from "./ref";
+import { zedTokenSchema } from "../shared/zed-token";
 import { botContentJsonSchema, botFieldsSchema } from "./schema";
 
 export const botListSortSchema = z.enum([

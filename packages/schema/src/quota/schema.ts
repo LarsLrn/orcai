@@ -1,20 +1,41 @@
 import { z } from "zod/v4";
-import { groupIdSchema } from "../group/ref";
-import { modelIdSchema } from "../model/ref";
-import { organizationIdSchema } from "../organization/ref";
-import { providerMeteringModeSchema } from "../provider/parts/metering-mode";
-import { providerIdSchema } from "../provider/ref";
-import { userIdSchema } from "../user/ref";
-import { quotaPeriodStatusSchema } from "./parts/period-status";
-import { quotaPoolPeriodTypeSchema } from "./parts/period-type";
-import { quotaUsageEventTypeSchema } from "./parts/usage-event-type";
+import { providerMeteringModeSchema } from "../provider/schema";
 import {
+	groupIdSchema,
+	modelIdSchema,
+	organizationIdSchema,
+	providerIdSchema,
 	quotaLedgerIdSchema,
 	quotaPeriodIdSchema,
 	quotaPoolGroupAssignmentIdSchema,
 	quotaPoolIdSchema,
 	quotaUsageEventIdSchema,
-} from "./ref";
+	userIdSchema,
+} from "../shared/ids";
+
+export const quotaPeriodStatusSchema = z.enum([
+	"open",
+	"closed",
+]);
+
+export type QuotaPeriodStatus = z.infer<typeof quotaPeriodStatusSchema>;
+
+export const quotaPoolPeriodTypeSchema = z.enum([
+	"weekly",
+	"monthly",
+	"yearly",
+]);
+
+export type QuotaPoolPeriodType = z.infer<typeof quotaPoolPeriodTypeSchema>;
+
+export const quotaUsageEventTypeSchema = z.enum([
+	"reserved",
+	"finalized",
+	"released",
+	"failed",
+]);
+
+export type QuotaUsageEventType = z.infer<typeof quotaUsageEventTypeSchema>;
 
 export const quotaPoolFieldsSchema = z.object({
 	name: z.string().trim().min(1).max(120),

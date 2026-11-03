@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { createDataResponseSchema } from "../shared";
+import { createDataResponseSchema } from "../shared/responses";
 import { entityCapabilitiesSchema } from "./schema";
 
 export const authorizationCheckResponseSchema = createDataResponseSchema(

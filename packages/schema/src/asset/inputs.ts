@@ -1,13 +1,14 @@
 import { z } from "zod/v4";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { assetIdSchema } from "../shared/ids";
 import { librarySortSchema } from "../shared/library";
+import { paginationInputSchema } from "../shared/pagination";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
+import { zedTokenSchema } from "../shared/zed-token";
 import {
 	assetUploadRouteSchema,
 	uploadFileObjectSchema,
 } from "../storage/schema";
 import { metadataSchema } from "./parts/metadata";
-import { assetIdSchema } from "./ref";
 import { assetFieldsSchema, assetFiltersSchema } from "./schema";
 
 export const listAssetsInputSchema = z.object({

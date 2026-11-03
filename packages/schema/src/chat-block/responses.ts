@@ -1,6 +1,9 @@
 import { z } from "zod/v4";
 import { blockSchema } from "../block/schema";
-import { createDataResponseSchema, statusResponseSchema } from "../shared";
+import {
+	createDataResponseSchema,
+	statusResponseSchema,
+} from "../shared/responses";
 import { chatBlockSchema } from "./schema";
 
 export const listChatBlocksResponseSchema = z.object({

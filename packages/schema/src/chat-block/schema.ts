@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
-import { blockIdSchema } from "../block/ref";
-import { chatIdSchema } from "../chat/ref";
+import { blockIdSchema, chatIdSchema } from "../shared/ids";
 
 export const chatBlockSchema = z.object({
 	blockId: blockIdSchema,

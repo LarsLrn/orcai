@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
-import { organizationIdSchema } from "../organization/ref";
 import { createResourceScopedSchema } from "../resource/schema";
-import { userIdSchema } from "../user/ref";
+import { organizationIdSchema, userIdSchema } from "../shared/ids";
 
 const ownersSchema = userIdSchema.array().min(1).max(100);
 const receiverSearchSchema = z.string().trim().max(200).optional();

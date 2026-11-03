@@ -1,4 +1,7 @@
-import { createDataResponseSchema, createListResponseSchema } from "../shared";
+import {
+	createDataResponseSchema,
+	createListResponseSchema,
+} from "../shared/responses";
 import { quotaPoolSchema } from "./schema";
 import {
 	quotaPoolDetailSchema,

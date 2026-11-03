@@ -2,8 +2,11 @@ import { z } from "zod/v4";
 import { assetListItemSchema } from "../asset/schema";
 import { blockListItemSchema } from "../block/responses";
 import { botListItemSchema } from "../bot/schema";
-import { createDataResponseSchema, createListResponseSchema } from "../shared";
 import { libraryKindSchema } from "../shared/library";
+import {
+	createDataResponseSchema,
+	createListResponseSchema,
+} from "../shared/responses";
 
 /** One tile of a mixed library list. */
 export const libraryEntrySchema = z.discriminatedUnion("kind", [

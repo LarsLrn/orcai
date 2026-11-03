@@ -1,11 +1,21 @@
-import { webSearchModes } from "@orcai/core";
+import {
+	ORGANIZATION_ROLES,
+	type OrganizationRole,
+	webSearchModes,
+} from "@orcai/core";
 import { z } from "zod/v4";
 import { catalogueKindSchema } from "../catalogue/inputs";
-import { modelIdSchema } from "../model/ref";
-import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
+import {
+	modelIdSchema,
+	organizationIdSchema,
+	providerIdSchema,
+} from "../shared/ids";
 import { organizationDescriptionSchema } from "./description";
-import { organizationIdSchema } from "./ref";
+
+export const organizationRoleSchema = z.enum(ORGANIZATION_ROLES);
+
+export type { OrganizationRole };
 
 export const organizationFieldsSchema = z.object({
 	name: z.string().min(1),

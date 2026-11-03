@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { dataExportIdSchema } from "../../data-export/ref";
+import { dataExportIdSchema } from "../shared/ids";
 
 export const dataExportPayloadSchema = z.object({
 	dataExportId: dataExportIdSchema,

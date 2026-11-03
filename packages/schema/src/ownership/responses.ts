@@ -1,4 +1,7 @@
-import { createListResponseSchema, statusResponseSchema } from "../shared";
+import {
+	createListResponseSchema,
+	statusResponseSchema,
+} from "../shared/responses";
 import {
 	contentReceiverSchema,
 	handedOverSchema,

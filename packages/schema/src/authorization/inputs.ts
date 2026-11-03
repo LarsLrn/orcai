@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { zedTokenSchema } from "../shared";
+import { zedTokenSchema } from "../shared/zed-token";
 import {
 	capabilityEntityTypeSchema,
 	capabilitySchema,

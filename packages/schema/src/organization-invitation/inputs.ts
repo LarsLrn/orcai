@@ -1,15 +1,15 @@
 import { z } from "zod/v4";
-import { paginationInputSchema } from "../shared";
 import type { ErrorReason } from "../shared/error-reason";
+import { organizationInvitationIdSchema } from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { localeSchema } from "../shared/primitives/locale";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
-import { organizationInvitationResponseActionSchema } from "./parts/response-action";
-import { organizationInvitationStatusSchema } from "./parts/status";
-import { organizationInvitationIdSchema } from "./ref";
 import {
 	organizationInvitationFiltersSchema,
+	organizationInvitationResponseActionSchema,
 	organizationInvitationSchema,
+	organizationInvitationStatusSchema,
 } from "./schema";
 
 export const organizationInvitationSortKeySchema = z.enum([

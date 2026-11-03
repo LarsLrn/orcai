@@ -1,17 +1,20 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../activity/ref";
-import { assetIdSchema } from "../asset/ref";
-import { botIdSchema } from "../bot/ref";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
+import {
+	activityRunIdSchema,
+	assetIdSchema,
+	blockIdSchema,
+	botIdSchema,
+} from "../shared/ids";
 import {
 	libraryOriginSchema,
 	libraryScopeSchema,
 	librarySortSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
+import { paginationInputSchema } from "../shared/pagination";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
-import { blockIdSchema } from "./ref";
+import { zedTokenSchema } from "../shared/zed-token";
 import {
 	behaviourSchema,
 	blockFieldsSchema,

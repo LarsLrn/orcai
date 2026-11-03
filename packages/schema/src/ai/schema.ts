@@ -3,7 +3,7 @@ import {
 	CHAT_MESSAGE_ATTACHMENT_LIMIT,
 	chatAttachmentRefSchema,
 } from "../chat-message/parts/attachment";
-import { chatMessageIdSchema } from "../chat-message/ref";
+import { chatMessageIdSchema } from "../shared/ids";
 
 /** What a user message says; attachments travel beside it. */
 const aiChatTextPartSchema = z.object({

@@ -1,9 +1,11 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
-import { chatIdSchema } from "../chat/ref";
 import { MAX_KEPT_UPLOADS } from "../chat-message/parts/metadata";
-import { chatMessageIdSchema } from "../chat-message/ref";
-import { zedTokenSchema } from "../shared";
+import {
+	assetIdSchema,
+	chatIdSchema,
+	chatMessageIdSchema,
+} from "../shared/ids";
+import { zedTokenSchema } from "../shared/zed-token";
 import { aiChatMessageSchema } from "./schema";
 
 /**

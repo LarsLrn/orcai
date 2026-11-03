@@ -1,15 +1,15 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
 import { assetWithCapabilitiesSchema } from "../asset/schema";
 import {
 	homeOrganizationSchema,
 	resourceOwnerSchema,
 } from "../resource/schema";
+import { assetIdSchema } from "../shared/ids";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
-} from "../shared";
+} from "../shared/responses";
 import {
 	blockSchema,
 	blockWithCapabilitiesSchema,

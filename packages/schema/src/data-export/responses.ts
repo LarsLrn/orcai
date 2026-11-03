@@ -1,4 +1,4 @@
-import { createDataResponseSchema } from "../shared";
+import { createDataResponseSchema } from "../shared/responses";
 import { dataExportSchema } from "./schema";
 
 /** The user's newest export, or null when they never requested one. */

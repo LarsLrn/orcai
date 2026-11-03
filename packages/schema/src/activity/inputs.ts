@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
+import { activityRunIdSchema } from "../shared/ids";
 import { paginationInputSchema } from "../shared/pagination";
-import { activityRunIdSchema } from "./ref";
 
 export const activitySummaryInputSchema = z.object({});
 

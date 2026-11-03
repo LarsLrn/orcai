@@ -1,5 +1,8 @@
 import { chatSchema } from "../chat/schema";
-import { createDataResponseSchema, createListResponseSchema } from "../shared";
+import {
+	createDataResponseSchema,
+	createListResponseSchema,
+} from "../shared/responses";
 
 export const listAssistantConversationsResponseSchema =
 	createListResponseSchema(chatSchema);

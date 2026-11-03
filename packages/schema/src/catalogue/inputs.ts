@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
-import { botIdSchema } from "../bot/ref";
-import { organizationIdSchema } from "../organization/ref";
 import {
 	blockResourceIdentitySchema,
 	botResourceIdentitySchema,
 } from "../resource/schema";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { botIdSchema, organizationIdSchema } from "../shared/ids";
 import { librarySortSchema } from "../shared/library";
+import { paginationInputSchema } from "../shared/pagination";
+import { zedTokenSchema } from "../shared/zed-token";
 
 /** The kinds the catalogue lists; assets are published through their repository. */
 export const catalogueKindSchema = z.enum([

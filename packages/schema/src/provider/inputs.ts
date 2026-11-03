@@ -1,8 +1,9 @@
 import { z } from "zod/v4";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { providerIdSchema } from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
-import { providerIdSchema } from "./ref";
+import { zedTokenSchema } from "../shared/zed-token";
 import {
 	checkProviderFields,
 	providerFieldsSchema,

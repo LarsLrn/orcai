@@ -1,10 +1,9 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../organization/parts/role";
-import { organizationIdSchema } from "../organization/ref";
-import { paginationInputSchema } from "../shared";
+import { organizationRoleSchema } from "../organization/schema";
+import { organizationIdSchema, userIdSchema } from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { localeSchema } from "../shared/primitives/locale";
 import { createSortingInputSchema } from "../shared/sorting";
-import { userIdSchema } from "../user/ref";
 
 export const findInstanceUserInputSchema = z.object({
 	id: userIdSchema,

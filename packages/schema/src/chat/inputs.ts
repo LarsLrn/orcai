@@ -1,11 +1,14 @@
 import { z } from "zod/v4";
-import { chatMessageIdSchema } from "../chat-message/ref";
-import { modelIdSchema } from "../model/ref";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import {
+	chatIdSchema,
+	chatMessageIdSchema,
+	modelIdSchema,
+} from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
+import { zedTokenSchema } from "../shared/zed-token";
 import { chatConfigPatchSchema } from "./parts/config";
-import { chatIdSchema } from "./ref";
 import { chatFiltersSchema, chatMutableFieldsSchema } from "./schema";
 
 export const chatSortKeySchema = z.enum([

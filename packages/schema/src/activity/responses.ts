@@ -1,11 +1,13 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
-import { blockIdSchema } from "../block/ref";
-import { dataExportIdSchema } from "../data-export/ref";
 import { dataExportStatusSchema } from "../data-export/schema";
-import { organizationIdSchema } from "../organization/ref";
+import {
+	activityRunIdSchema,
+	assetIdSchema,
+	blockIdSchema,
+	dataExportIdSchema,
+	organizationIdSchema,
+} from "../shared/ids";
 import { pipelineFailureSchema } from "../shared/primitives/pipeline-status";
-import { activityRunIdSchema } from "./ref";
 import {
 	activityRunKindSchema,
 	activityStageSchema,

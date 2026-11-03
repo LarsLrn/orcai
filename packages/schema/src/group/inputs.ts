@@ -1,10 +1,9 @@
 import { z } from "zod/v4";
-import { paginationInputSchema } from "../shared";
 import type { ErrorReason } from "../shared/error-reason";
+import { groupIdSchema, userIdSchema } from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
-import { userIdSchema } from "../user/ref";
-import { groupIdSchema } from "./ref";
 import {
 	groupFieldsSchema,
 	groupFiltersSchema,
