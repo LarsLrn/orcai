@@ -51,9 +51,7 @@ export const SearchIndexSection = ({
 			}),
 			description: m.instance_settings_index_retry_confirm_description(),
 			confirmText: m.instance_settings_index_retry_confirm_button(),
-			confirmButton: {
-				variant: "default",
-			},
+			confirmVariant: "default",
 		},
 	});
 	const prepareAgain = useMutationAction({
@@ -76,9 +74,7 @@ export const SearchIndexSection = ({
 			description:
 				m.instance_settings_index_prepare_again_confirm_description(),
 			confirmText: m.instance_settings_index_prepare_again_confirm_button(),
-			confirmButton: {
-				variant: "default",
-			},
+			confirmVariant: "default",
 		},
 	});
 	const [preparing, setPreparing] = useState(false);

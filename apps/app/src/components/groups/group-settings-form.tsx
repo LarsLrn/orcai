@@ -20,20 +20,11 @@ import { m } from "@/paraglide/messages";
 const GroupSettingsForm = ({ group }: { group: Group }) => {
 	const navigate = useNavigate();
 	const updateGroup = useUpdateGroupMutation();
-	const deleteGroup = useDeleteGroupsMutation(
-		{
-			onSuccess: async () => {
-				await navigate({
-					to: "/app/groups",
-				});
-			},
-		},
-		{
-			names: [
-				group.name,
-			],
-		},
-	);
+	const deleteGroup = useDeleteGroupsMutation({
+		names: [
+			group.name,
+		],
+	});
 
 	const isSystemGroup = group.kind === "system";
 
@@ -99,15 +90,20 @@ const GroupSettingsForm = ({ group }: { group: Group }) => {
 								type="button"
 								variant="destructive"
 								loading={deleteGroup.isPending}
-								onClick={() =>
-									deleteGroup.mutate({
+								onClick={async () => {
+									const result = await deleteGroup.mutateAsync({
 										refs: [
 											{
 												id: group.id,
 											},
 										],
-									})
-								}
+									});
+									if (result.status === "success") {
+										await navigate({
+											to: "/app/groups",
+										});
+									}
+								}}
 							>
 								<Trash2Icon />
 								{m.groups_delete_action()}

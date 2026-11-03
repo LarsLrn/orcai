@@ -17,7 +17,6 @@ import {
 import type { z } from "zod/v4";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { DiscoverModels } from "@/components/model/discover-models";
-import { ModelTableActions } from "@/components/model/table/model-table-actions";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
 import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +29,7 @@ import {
 } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
@@ -57,6 +57,7 @@ import {
 	SectionHeader,
 	SectionTitle,
 } from "@/components/ui/shell/section";
+import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatPrice } from "@/lib/presentation/format-number";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";
@@ -128,6 +129,7 @@ const getEndpointHost = (endpoint: string | null) => {
 };
 
 function RouteComponent() {
+	const deleteModels = useDeleteModelsMutation();
 	const { providerId } = Route.useParams();
 	const search = Route.useSearch();
 	const { data: providerResponse } = useSuspenseQuery(
@@ -393,7 +395,7 @@ function RouteComponent() {
 									placeholder={m.providers_detail_models_search_placeholder()}
 								/>
 								<DataTableToolbarActions>
-									<ModelTableActions />
+									<DataTableBulkDelete action={deleteModels} />
 								</DataTableToolbarActions>
 							</DataTableToolbar>
 							<DataTableBody

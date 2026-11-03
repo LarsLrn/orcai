@@ -1,7 +1,7 @@
 import type { ChatId } from "@orcai/core";
 import type { ChatKind } from "@orcai/schema";
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
+import { useParams, useSearch } from "@tanstack/react-router";
 import {
 	CompassIcon,
 	DownloadIcon,
@@ -48,7 +48,6 @@ const COPY = {
 		downloadFailed: m.chat_download_failed_toast_error,
 		deleteAction: m.chat_actions_delete_action,
 		placeholder: m.chat_title_placeholder,
-		deleteRedirectTo: "/app/chat",
 	},
 	assistant: {
 		rename: m.assistant_conversation_rename_action,
@@ -57,7 +56,6 @@ const COPY = {
 		downloadFailed: m.assistant_conversation_download_failed_toast_error,
 		deleteAction: m.assistant_conversation_delete_action,
 		placeholder: m.assistant_conversation_title_placeholder,
-		deleteRedirectTo: "/app/assistant",
 	},
 } as const;
 
@@ -79,32 +77,13 @@ const ChatActionsDropdown = ({
 	current?: CurrentChat;
 }) => {
 	const copy = COPY[kind];
-	const params = useParams({
-		strict: false,
+
+	const { mutate: deleteChats } = useDeleteChatsMutation({
+		names: [
+			title,
+		],
+		kind,
 	});
-	const navigate = useNavigate();
-
-	const { mutate: deleteChats } = useDeleteChatsMutation(
-		{
-			onMutate: async ({ refs }) => {
-				const isCurrentChatSelected =
-					!!params.chatId && refs.some((ref) => ref.id === params.chatId);
-
-				// Navigate away before deleting to avoid rendering a deleted chat entry.
-				if (isCurrentChatSelected) {
-					await navigate({
-						to: copy.deleteRedirectTo,
-					});
-				}
-			},
-		},
-		{
-			names: [
-				title,
-			],
-			kind,
-		},
-	);
 	const { mutateAsync: updateChat, isPending: isUpdatingChat } =
 		useUpdateChatMutation();
 	const { mutate: pinChat } = usePinChatMutation();

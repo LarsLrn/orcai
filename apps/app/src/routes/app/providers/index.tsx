@@ -2,11 +2,11 @@ import { listProvidersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PlusIcon, ServerCogIcon } from "lucide-react";
-import { ProviderTableActions } from "@/components/provider/table/provider-table-actions";
 import { providerTableColumns } from "@/components/provider/table/provider-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { paginationSearchShape } from "@/components/ui/data-table/data-table-search-params";
 import {
@@ -20,6 +20,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { useDeleteProvidersMutation } from "@/hooks/mutations/use-provider-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/app/providers/")({
 });
 
 function RouteComponent() {
+	const deleteProviders = useDeleteProvidersMutation();
 	const { pageIndex, pageSize, sort } = Route.useSearch();
 	const { data: providers } = useSuspenseQuery(
 		orpc.provider.list.queryOptions({
@@ -93,7 +95,7 @@ function RouteComponent() {
 				>
 					<DataTableToolbar>
 						<DataTableToolbarActions>
-							<ProviderTableActions />
+							<DataTableBulkDelete action={deleteProviders} />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody

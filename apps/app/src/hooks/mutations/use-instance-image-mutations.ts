@@ -19,7 +19,6 @@ export const useRemoveUserImageMutation = (target: { name: string }) =>
 			}),
 			description: m.images_picture_remove_confirm_description(),
 			confirmText: m.common_remove_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});
 
@@ -35,6 +34,5 @@ export const useRemoveOrganizationLogoMutation = (target: { name: string }) =>
 			}),
 			description: m.images_logo_remove_confirm_description(),
 			confirmText: m.common_remove_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});

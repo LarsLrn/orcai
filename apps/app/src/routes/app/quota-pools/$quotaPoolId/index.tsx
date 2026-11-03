@@ -159,7 +159,7 @@ function RouteComponent() {
 	);
 
 	const updatePool = useUpdateQuotaPoolMutation();
-	const deactivatePool = useDeactivateQuotaPoolMutation({}, data.data.name);
+	const deactivatePool = useDeactivateQuotaPoolMutation(data.data.name);
 	const meteringModeLabel = getMeteringModeLabel(
 		data.data.provider.meteringMode,
 	);

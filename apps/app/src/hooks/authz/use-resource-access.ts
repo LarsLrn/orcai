@@ -17,7 +17,10 @@ import {
 	type ConfirmOptions,
 	useConfirm,
 } from "@/components/ui/dialog/confirm-dialog";
-import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	callProcedure,
+	useMutationAction,
+} from "@/hooks/actions/use-mutation-action";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatList } from "@/lib/presentation/format-list";
@@ -123,7 +126,6 @@ export const useRevokeResourceAccess = () =>
 			title: m.access_revoke_confirm_title(),
 			description: m.access_revoke_confirm_description(),
 			confirmText: m.access_revoke_confirm_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});
 
@@ -132,7 +134,7 @@ export const useRevokeResourceAccess = () =>
  * and the organisations that added it lose it; null when the server refuses the
  * change anyway and names what blocks it.
  */
-export const listingConfirm = (
+const listingConfirm = (
 	visibility: ResourceVisibility,
 	impact: ListingImpact,
 ): ConfirmOptions | null => {
@@ -155,7 +157,6 @@ export const listingConfirm = (
 					: []),
 			].join(" "),
 			confirmText: m.access_publish_confirm_button(),
-			cancelText: m.common_cancel_button(),
 		};
 	}
 	if (impact.listedBots.length > 0) {
@@ -178,7 +179,6 @@ export const listingConfirm = (
 				: []),
 		].join(" "),
 		confirmText: m.access_make_private_confirm_button(),
-		cancelText: m.common_cancel_button(),
 	};
 };
 
@@ -248,21 +248,25 @@ const principalKey = (principal: {
  */
 export const useGrantBlockEdit = () => {
 	const queryClient = useQueryClient();
-	const { mutateAsync: grant } = useMutation(
-		orpc.resource.grant.mutationOptions(),
-	);
 
 	return useMutation({
-		mutationFn: async ({
-			blocks,
-			principals,
-		}: {
-			blocks: {
-				id: BlockId;
-				name: string;
-			}[];
-			principals: ResourcePrincipalIdentity[];
-		}) => {
+		mutationFn: async (
+			{
+				blocks,
+				principals,
+			}: {
+				blocks: {
+					id: BlockId;
+					name: string;
+				}[];
+				principals: ResourcePrincipalIdentity[];
+			},
+			context,
+		) => {
+			const grant = callProcedure(
+				orpc.resource.grant.mutationOptions(),
+				context,
+			);
 			const outcomes = await Promise.allSettled(
 				blocks.map(async (block) => {
 					const resourceRef = {

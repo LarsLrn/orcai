@@ -5,7 +5,12 @@ import {
 	type Model,
 	type Provider,
 } from "@orcai/schema";
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import {
+	type MutationFunctionContext,
+	skipToken,
+	useMutation,
+	useQuery,
+} from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { ChatDraft } from "@/components/chat/chat-draft";
@@ -13,7 +18,7 @@ import { composerBlocker } from "@/components/chat/composer-blocker";
 import { starterModel } from "@/components/chat/model-picker-state";
 import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
-import { reasonMessageOf } from "@/lib/errors/describe-error";
+import { callProcedure } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -28,9 +33,29 @@ const useChatStarter = ({
 		zedToken?: string,
 	) => void | Promise<void>;
 }) => {
-	const { mutateAsync: createChat } = useMutation(
-		orpc.chat.create.mutationOptions(),
-	);
+	// Opening the chat is part of starting it, so its failure toasts too.
+	const { mutateAsync: startChat } = useMutation({
+		mutationFn: async (
+			{
+				message,
+				...input
+			}: {
+				botId?: BotId;
+				config: ChatConfig;
+				message: ChatDraft;
+			},
+			context: MutationFunctionContext,
+		) => {
+			const result = await callProcedure(
+				orpc.chat.create.mutationOptions(),
+				context,
+			)(input);
+			await onChatCreated(result.data.id, message, result.meta?.zedToken);
+		},
+		meta: {
+			errorToast: m.chat_starter_create_failed_toast_error(),
+		},
+	});
 	// A pick belongs to the bot it was made for, so another bot brings its own recommendation.
 	const [pick, setPick] = useState<{
 		botId: BotId | undefined;
@@ -129,19 +154,13 @@ const useChatStarter = ({
 							}),
 				};
 
-				const result = await createChat({
+				await startChat({
 					botId: selectedBotId ?? undefined,
 					config,
+					message,
 				});
-
-				await Promise.resolve(
-					onChatCreated(result.data.id, message, result.meta?.zedToken),
-				);
 				return true;
-			} catch (error) {
-				toast.error(m.chat_starter_create_failed_toast_error(), {
-					description: reasonMessageOf(error),
-				});
+			} catch {
 				setIsCreating(false);
 				return false;
 			}
@@ -150,8 +169,7 @@ const useChatStarter = ({
 			selected,
 			selectedBotId,
 			isCreating,
-			createChat,
-			onChatCreated,
+			startChat,
 		],
 	);
 

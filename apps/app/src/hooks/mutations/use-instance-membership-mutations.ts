@@ -2,11 +2,9 @@ import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const useAddInstanceMemberMutation = (
-	opts: ReturnType<typeof orpc.instance.addMember.mutationOptions> = {},
-) =>
+export const useAddInstanceMemberMutation = () =>
 	useMutationAction({
-		mutationOptions: () => orpc.instance.addMember.mutationOptions(opts),
+		mutationOptions: () => orpc.instance.addMember.mutationOptions(),
 		messages: {
 			loading: m.instance_org_member_add_toast_loading(),
 			success: m.instance_org_member_add_toast_success(),
@@ -34,11 +32,9 @@ export const useRemoveInstanceMemberMutation = () =>
 		},
 	});
 
-export const useInviteInstanceMemberMutation = (
-	opts: ReturnType<typeof orpc.instance.inviteMember.mutationOptions> = {},
-) =>
+export const useInviteInstanceMemberMutation = () =>
 	useMutationAction({
-		mutationOptions: () => orpc.instance.inviteMember.mutationOptions(opts),
+		mutationOptions: () => orpc.instance.inviteMember.mutationOptions(),
 		messages: {
 			loading: m.instance_org_member_invite_toast_loading(),
 			success: ({ data }) => {

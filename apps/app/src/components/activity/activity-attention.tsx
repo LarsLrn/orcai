@@ -3,10 +3,8 @@ import type { ActivityFailure } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { XIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
-import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { failureSummary, failureTitle } from "@/lib/presentation/activity";
 import { m } from "@/paraglide/messages";
@@ -43,7 +41,7 @@ export const ReviewSuggestionsLink = ({
 			review: true,
 		},
 	} as const;
-	const switchTo = useSetActiveOrganizationMutation({}, target);
+	const switchTo = useSetActiveOrganizationMutation(target);
 
 	if (organizationId === auth.session.activeOrganizationId) {
 		return (
@@ -165,10 +163,9 @@ export const FailureRow = ({
 	const dismiss = useMutation(
 		orpc.activity.dismissFailure.mutationOptions({
 			onSuccess: onDismissed,
-			onError: (error) =>
-				toast.error(m.activity_dismiss_toast_error(), {
-					description: reasonMessageOf(error),
-				}),
+			meta: {
+				errorToast: m.activity_dismiss_toast_error(),
+			},
 		}),
 	);
 

@@ -1,33 +1,14 @@
-import { useRouter } from "@tanstack/react-router";
+import { useDeleteAction } from "@/hooks/actions/use-delete-action";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import {
-	type DestructiveTarget,
-	singleTargetName,
-} from "@/hooks/mutations/destructive-target";
+import type { DestructiveTarget } from "@/hooks/mutations/destructive-target";
 import { useUmami } from "@/hooks/use-umami";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
-export const useCreateOrganizationInvitationMutation = (
-	opts: ReturnType<
-		typeof orpc.organizationInvitation.create.mutationOptions
-	> = {},
-) => {
-	const router = useRouter();
-
+export const useCreateOrganizationInvitationMutation = () => {
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.organizationInvitation.create.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					await router.navigate({
-						to: "/app/members/invitations",
-					});
-
-					await opts.onSuccess?.(...args);
-				},
-			}),
+		mutationOptions: () => orpc.organizationInvitation.create.mutationOptions(),
 		messages: {
 			loading: m.orgs_invitation_create_toast_loading(),
 			success: ({ data }) =>
@@ -42,68 +23,33 @@ export const useCreateOrganizationInvitationMutation = (
 };
 
 export const useDeleteOrganizationInvitationsMutation = (
-	opts: ReturnType<
-		typeof orpc.organizationInvitation.delete.mutationOptions
-	> = {},
 	target?: DestructiveTarget,
-) => {
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.organizationInvitation.delete.mutationOptions(opts),
-		messages: {
-			loading: ({ input }) =>
-				m.orgs_invitation_delete_toast_loading({
-					count: input.refs.length,
-				}),
-			success: ({ input }) =>
-				m.orgs_invitation_delete_toast_success({
-					count: input.refs.length,
-				}),
-			error: ({ input }) =>
-				m.orgs_invitation_delete_toast_error({
-					count: input.refs.length,
-				}),
+) =>
+	useDeleteAction({
+		mutationOptions: () => orpc.organizationInvitation.delete.mutationOptions(),
+		copy: {
+			loading: m.orgs_invitation_delete_toast_loading,
+			success: m.orgs_invitation_delete_toast_success,
+			error: m.orgs_invitation_delete_toast_error,
+			title: m.orgs_invitation_delete_confirm_title,
+			namedTitle: m.orgs_invitation_delete_confirm_title_named,
+			description: m.orgs_invitation_delete_confirm_description,
+			confirmText: m.common_delete_button,
 		},
-		confirm: (input) => {
-			const count = input.refs.length;
-			const name = singleTargetName(count, target);
-
-			return {
-				title: name
-					? m.orgs_invitation_delete_confirm_title_named({
-							name,
-						})
-					: m.orgs_invitation_delete_confirm_title({
-							count,
-						}),
-				description: m.orgs_invitation_delete_confirm_description({
-					count,
-				}),
-				confirmText: m.common_delete_button(),
-				cancelText: m.common_cancel_button(),
-			};
-		},
+		target,
 	});
-};
 
-export const useRespondOrganizationInvitationMutation = (
-	opts: ReturnType<
-		typeof orpc.organizationInvitation.respond.mutationOptions
-	> = {},
-) => {
+export const useRespondOrganizationInvitationMutation = () => {
 	const { trackEvent } = useUmami();
 
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.organizationInvitation.respond.mutationOptions({
-				...opts,
-				onSuccess: async (result, variables, ...args) => {
+				onSuccess: (_result, variables) => {
 					trackEvent("respond-organization-invitation", {
 						invitationId: variables.id,
 						response: variables.response,
 					});
-
-					await opts.onSuccess?.(result, variables, ...args);
 				},
 			}),
 		messages: {

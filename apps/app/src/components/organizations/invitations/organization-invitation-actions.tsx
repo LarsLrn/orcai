@@ -16,19 +16,19 @@ export function OrganizationInvitationActions({
 	onRejected,
 }: OrganizationInvitationActionsProps) {
 	const confirm = useConfirm();
-	const respondInvitation = useRespondOrganizationInvitationMutation({
-		onSuccess: async (_result, variables) => {
-			if (variables.response === "accept") {
-				await onAccepted?.();
-			} else {
-				await onRejected?.();
-			}
-		},
-	});
+	const respondInvitation = useRespondOrganizationInvitationMutation();
 
 	const pendingResponse = respondInvitation.isPending
 		? respondInvitation.variables?.response
 		: undefined;
+
+	const accept = async () => {
+		const result = await respondInvitation.mutateAsync({
+			id: invitation.id,
+			response: "accept",
+		});
+		if (result.status === "success") await onAccepted?.();
+	};
 
 	const reject = async () => {
 		const isConfirmed = await confirm({
@@ -37,26 +37,20 @@ export function OrganizationInvitationActions({
 			}),
 			description: m.orgs_invitation_reject_confirm_description(),
 			confirmText: m.orgs_invitation_reject_confirm_button(),
-			cancelText: m.common_cancel_button(),
 		});
 
-		if (isConfirmed) {
-			respondInvitation.mutate({
-				id: invitation.id,
-				response: "reject",
-			});
-		}
+		if (!isConfirmed) return;
+		const result = await respondInvitation.mutateAsync({
+			id: invitation.id,
+			response: "reject",
+		});
+		if (result.status === "success") await onRejected?.();
 	};
 
 	return (
 		<div className="mt-2 flex gap-2">
 			<Button
-				onClick={() =>
-					respondInvitation.mutate({
-						id: invitation.id,
-						response: "accept",
-					})
-				}
+				onClick={() => void accept()}
 				loading={pendingResponse === "accept"}
 				disabled={respondInvitation.isPending}
 				variant="default"

@@ -16,7 +16,6 @@ import {
 import { useSelector } from "@tanstack/react-store";
 import { PlusIcon, XIcon } from "lucide-react";
 import { Suspense, useState } from "react";
-import { toast } from "sonner";
 import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
 import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
 import { CompactBlockTile } from "@/components/blocks/block-tile";
@@ -43,7 +42,6 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppForm } from "@/hooks/form";
 import { useUpdateChatMutation } from "@/hooks/mutations/use-chat-mutation";
-import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -297,20 +295,16 @@ const ChatBlocksEditor = ({
 
 	const attachMutation = useMutation(
 		orpc.chatBlock.attach.mutationOptions({
-			onError: (error) => {
-				toast.error(m.chat_settings_block_attach_failed_toast_error(), {
-					description: reasonMessageOf(error),
-				});
+			meta: {
+				errorToast: m.chat_settings_block_attach_failed_toast_error(),
 			},
 		}),
 	);
 
 	const detachMutation = useMutation(
 		orpc.chatBlock.detach.mutationOptions({
-			onError: (error) => {
-				toast.error(m.chat_settings_block_detach_failed_toast_error(), {
-					description: reasonMessageOf(error),
-				});
+			meta: {
+				errorToast: m.chat_settings_block_detach_failed_toast_error(),
 			},
 		}),
 	);
@@ -446,10 +440,8 @@ const ChatFeaturesEditor = ({
 						cancelRefetch: false,
 					},
 				),
-			onError: (error) => {
-				toast.error(m.chat_settings_feature_update_failed_toast_error(), {
-					description: reasonMessageOf(error),
-				});
+			meta: {
+				errorToast: m.chat_settings_feature_update_failed_toast_error(),
 			},
 		}),
 	);

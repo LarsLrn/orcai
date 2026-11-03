@@ -106,12 +106,9 @@ const EditAction = ({
 	organization: OrganizationProfile;
 	isActive: boolean;
 }) => {
-	const switchTo = useSetActiveOrganizationMutation(
-		{},
-		{
-			to: "/app/organization",
-		},
-	);
+	const switchTo = useSetActiveOrganizationMutation({
+		to: "/app/organization",
+	});
 	const look = buttonVariants({
 		variant: "ghost",
 		size: "sm",

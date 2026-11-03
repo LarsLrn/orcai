@@ -1,7 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -25,10 +23,8 @@ export const useBranchChat = () => {
 					},
 				});
 			},
-			onError: (error) => {
-				toast.error(m.chat_branch_create_failed_toast_error(), {
-					description: reasonMessageOf(error),
-				});
+			meta: {
+				errorToast: m.chat_branch_create_failed_toast_error(),
 			},
 		}),
 	);

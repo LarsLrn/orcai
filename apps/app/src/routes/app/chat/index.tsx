@@ -3,11 +3,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MessagesSquareIcon, PlusIcon } from "lucide-react";
 import { ChatHistoryLink } from "@/components/chat/chat-history-link";
-import { ChatTableActions } from "@/components/chat/table/chat-table-actions";
 import { chatTableColumns } from "@/components/chat/table/chat-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
@@ -26,6 +26,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { useDeleteChatsMutation } from "@/hooks/mutations/use-chat-mutation";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -80,6 +81,7 @@ export const Route = createFileRoute("/app/chat/")({
 });
 
 function RouteComponent() {
+	const deleteChats = useDeleteChatsMutation();
 	const navigate = useNavigate();
 	const { botId, pageIndex, pageSize, query, sort } = Route.useSearch();
 	const { data: chats } = useSuspenseQuery(
@@ -152,7 +154,10 @@ function RouteComponent() {
 							}
 						/>
 						<DataTableToolbarActions>
-							<ChatTableActions />
+							<DataTableBulkDelete
+								action={deleteChats}
+								label={m.chat_table_bulk_delete_action()}
+							/>
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody

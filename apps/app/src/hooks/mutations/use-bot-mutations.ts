@@ -1,31 +1,13 @@
-import type {
-	MutationFunction,
-	MutationFunctionContext,
-} from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
+import type { MutationFunctionContext } from "@tanstack/react-query";
 import { executeBotEditorSave } from "@/components/authoring/bot-editor-save";
-import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import { useDeleteAction } from "@/hooks/actions/use-delete-action";
 import {
-	type DestructiveTarget,
-	singleTargetName,
-} from "@/hooks/mutations/destructive-target";
+	callProcedure,
+	useMutationAction,
+} from "@/hooks/actions/use-mutation-action";
+import type { DestructiveTarget } from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
-
-/** Calls a procedure through its mutation options, so the queries it makes stale are invalidated. */
-const callProcedure =
-	<TInput, TOutput>(
-		options: {
-			mutationFn?: MutationFunction<TOutput, TInput>;
-		},
-		context: MutationFunctionContext,
-	) =>
-	(input: TInput) => {
-		if (!options.mutationFn) {
-			throw new Error("Procedure mutation options lack a mutationFn");
-		}
-		return options.mutationFn(input, context);
-	};
 
 /** Saves the bot editor's changed blocks and bot as one action with one toast. */
 export const useSaveBotEditorMutation = () => {
@@ -55,78 +37,30 @@ export const useSaveBotEditorMutation = () => {
 	});
 };
 
-export const usePublishBotMutation = (
-	opts: ReturnType<typeof orpc.bot.publish.mutationOptions> = {},
-) => {
-	const router = useRouter();
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.bot.publish.mutationOptions({
-				...opts,
-				onSuccess: async (result, ...args) => {
-					await router.navigate({
-						to: "/app/library/bots/$botId",
-						params: {
-							botId: result.data.id,
-						},
-						ignoreBlocker: true,
-					});
-
-					await opts.onSuccess?.(result, ...args);
-				},
-			}),
+export const usePublishBotMutation = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.bot.publish.mutationOptions(),
 		messages: {
 			loading: () => m.bots_publish_toast_loading(),
 			success: () => m.bots_publish_toast_success(),
 			error: () => m.bots_publish_toast_error(),
 		},
 	});
-};
 
-export const useDeleteBotsMutation = (
-	opts: ReturnType<typeof orpc.bot.delete.mutationOptions> = {},
-	target?: DestructiveTarget,
-) => {
-	return useMutationAction({
-		mutationOptions: () => orpc.bot.delete.mutationOptions(opts),
-		messages: {
-			loading: ({ input }) =>
-				m.bots_delete_toast_loading({
-					count: input.refs.length,
-				}),
-			success: ({ input }) =>
-				m.bots_delete_toast_success({
-					count: input.refs.length,
-				}),
-			error: ({ input }) =>
-				m.bots_delete_toast_error({
-					count: input.refs.length,
-				}),
+export const useDeleteBotsMutation = (target?: DestructiveTarget) =>
+	useDeleteAction({
+		mutationOptions: () => orpc.bot.delete.mutationOptions(),
+		copy: {
+			loading: m.bots_delete_toast_loading,
+			success: m.bots_delete_toast_success,
+			error: m.bots_delete_toast_error,
+			title: m.bots_delete_confirm_title,
+			namedTitle: m.bots_delete_confirm_title_named,
+			description: m.bots_delete_confirm_description,
+			confirmText: m.bots_delete_confirm_button,
 		},
-		confirm: (input) => {
-			const count = input.refs.length;
-			const name = singleTargetName(count, target);
-
-			return {
-				title: name
-					? m.bots_delete_confirm_title_named({
-							name,
-						})
-					: m.bots_delete_confirm_title({
-							count,
-						}),
-				description: m.bots_delete_confirm_description({
-					count,
-				}),
-				confirmText: m.bots_delete_confirm_button({
-					count,
-				}),
-				cancelText: m.common_cancel_button(),
-			};
-		},
+		target,
 	});
-};
 
 export const useSaveBotSetupMutation = () =>
 	useMutationAction({

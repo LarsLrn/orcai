@@ -252,10 +252,7 @@ const BotEditorShell = ({
 						blockNames: formatList(blocks.map((block) => block.name)),
 					}),
 					confirmText: m.authoring_list_blocks_confirm_button(),
-					cancelText: m.common_cancel_button(),
-					confirmButton: {
-						variant: "default",
-					},
+					confirmVariant: "default",
 				}),
 		});
 		if (result.status !== "success") {
@@ -328,10 +325,7 @@ const BotEditorShell = ({
 				/>
 			),
 			confirmText: m.authoring_publish_confirm_button(),
-			cancelText: m.common_cancel_button(),
-			confirmButton: {
-				variant: "default",
-			},
+			confirmVariant: "default",
 		});
 
 		if (!confirmed) {
@@ -345,9 +339,18 @@ const BotEditorShell = ({
 			return;
 		}
 
-		await publishBot({
+		const result = await publishBot({
 			id: savedEditor.id,
 		});
+		if (result.status === "success") {
+			await navigate({
+				to: "/app/library/bots/$botId",
+				params: {
+					botId: result.data.data.id,
+				},
+				ignoreBlocker: true,
+			});
+		}
 	};
 
 	const handleSetDraft = async () => {

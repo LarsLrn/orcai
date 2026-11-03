@@ -182,14 +182,11 @@ export const modelTableColumns = columnHelper.columns([
 ]);
 
 const DeleteItem = ({ model }: { model: ModelListRow }) => {
-	const { mutate: deleteModels } = useDeleteModelsMutation(
-		{},
-		{
-			names: [
-				model.name,
-			],
-		},
-	);
+	const { mutate: deleteModels } = useDeleteModelsMutation({
+		names: [
+			model.name,
+		],
+	});
 
 	return (
 		<DropdownMenuItem

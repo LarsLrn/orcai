@@ -138,48 +138,42 @@ const useBlockActions = (
 				hasCapability(block.capabilities, "manage_access"),
 		},
 	);
-	const { mutate: remove } = useCatalogueRemoveMutation(
-		{
-			kind: "block",
-			name: block.name,
-			organisation: adder?.organisation ?? "",
-		},
-		{
-			onSuccess: onDeleted,
-		},
-	);
-	const { mutate: deleteBlocks } = useDeleteBlocksMutation(
-		{
-			onSuccess: onDeleted,
-		},
-		{
-			names: [
-				block.name,
-			],
-			kind: block.type,
-		},
-	);
+	const { mutateAsync: remove } = useCatalogueRemoveMutation({
+		kind: "block",
+		name: block.name,
+		organisation: adder?.organisation ?? "",
+	});
+	const { mutateAsync: deleteBlocks } = useDeleteBlocksMutation({
+		names: [
+			block.name,
+		],
+		kind: block.type,
+	});
 
 	const actions = blockActions(
 		block,
 		{
 			onAccess: () => setIsAccessOpen(true),
 			onHandOver: () => setIsHandOverOpen(true),
-			onDelete: () =>
-				deleteBlocks({
+			onDelete: async () => {
+				const result = await deleteBlocks({
 					refs: [
 						{
 							id: block.id,
 						},
 					],
-				}),
-			onRemove: () =>
-				remove({
+				});
+				if (result.status === "success") await onDeleted?.();
+			},
+			onRemove: async () => {
+				const result = await remove({
 					entry: {
 						resourceType: "block",
 						resourceId: block.id,
 					},
-				}),
+				});
+				if (result.status === "success") await onDeleted?.();
+			},
 		},
 		{
 			viewerId: auth.user.id,

@@ -56,12 +56,12 @@ export const useInstanceUserActions = (
 			user.email,
 		],
 	};
-	const banUser = useBanUserMutation({}, target);
+	const banUser = useBanUserMutation(target);
 	const unbanUser = useUnbanUserMutation();
 	const deleteUsers = useDeleteUsersMutation();
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-	const resetTwoFactor = useResetTwoFactorMutation({}, target);
-	const setInstanceRole = useSetInstanceRoleMutation({}, target);
+	const resetTwoFactor = useResetTwoFactorMutation(target);
+	const setInstanceRole = useSetInstanceRoleMutation(target);
 	const removeImage = useRemoveUserImageMutation({
 		name: user.name,
 	});

@@ -61,6 +61,5 @@ export const useDeletePasskeyMutation = () =>
 			title: m.passkey_delete_confirm_title(),
 			description: m.passkey_delete_confirm_description(),
 			confirmText: m.common_delete_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});

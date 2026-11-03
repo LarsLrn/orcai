@@ -165,16 +165,11 @@ const useAssetActions = (
 	);
 	const { mutate: addToLibrary } = useAddAssetToLibraryMutation();
 	const { mutate: prepareAssetAgain } = usePrepareAssetAgainMutation();
-	const { mutate: deleteAssets } = useDeleteAssetsMutation(
-		{
-			onSuccess: onDeleted,
-		},
-		{
-			names: [
-				asset.title,
-			],
-		},
-	);
+	const { mutateAsync: deleteAssets } = useDeleteAssetsMutation({
+		names: [
+			asset.title,
+		],
+	});
 
 	const actions = assetActions(
 		asset,
@@ -189,14 +184,16 @@ const useAssetActions = (
 				prepareAssetAgain({
 					id: asset.id,
 				}),
-			onDelete: () =>
-				deleteAssets({
+			onDelete: async () => {
+				const result = await deleteAssets({
 					refs: [
 						{
 							id: asset.id,
 						},
 					],
-				}),
+				});
+				if (result.status === "success") await onDeleted?.();
+			},
 		},
 		{
 			id: auth.user.id,
