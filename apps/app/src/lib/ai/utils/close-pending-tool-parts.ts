@@ -22,6 +22,41 @@ export const toolCloseCode = (
 
 type Part = UIMessage["parts"][number];
 
+const isClientTool = (
+	part: Parameters<typeof getToolName>[0],
+	tools: ToolSet,
+) => {
+	const tool = tools[getToolName(part)];
+
+	return tool !== undefined && tool.execute === undefined;
+};
+
+const closeRunningPart = (part: Part, tools: ToolSet): Part => {
+	if (!isToolUIPart(part)) {
+		return part;
+	}
+
+	switch (part.state) {
+		case "input-available":
+			return isClientTool(part, tools)
+				? part
+				: {
+						...part,
+						state: "output-error",
+						errorText: TOOL_CLOSE_SENTENCES.interrupted,
+					};
+		case "input-streaming":
+			return {
+				...part,
+				state: "output-error",
+				input: part.input ?? {},
+				errorText: TOOL_CLOSE_SENTENCES.interrupted,
+			};
+		default:
+			return part;
+	}
+};
+
 const closePart = (part: Part, tools: ToolSet): Part => {
 	if (!isToolUIPart(part)) {
 		return part;
@@ -53,35 +88,32 @@ const closePart = (part: Part, tools: ToolSet): Part => {
 						: {}),
 				},
 			};
-		case "input-available": {
-			const toolName = getToolName(part);
-			const tool = tools[toolName];
-			const isClientTool = tool !== undefined && tool.execute === undefined;
-
-			return {
-				...part,
-				state: "output-error",
-				errorText:
-					TOOL_CLOSE_SENTENCES[
-						!isClientTool
-							? "interrupted"
-							: isConversationalTool(toolName)
-								? "declined"
-								: "superseded"
-					],
-			};
-		}
-		case "input-streaming":
-			return {
-				...part,
-				state: "output-error",
-				input: part.input ?? {},
-				errorText: TOOL_CLOSE_SENTENCES.interrupted,
-			};
+		case "input-available":
+			return isClientTool(part, tools)
+				? {
+						...part,
+						state: "output-error",
+						errorText:
+							TOOL_CLOSE_SENTENCES[
+								isConversationalTool(getToolName(part))
+									? "declined"
+									: "superseded"
+							],
+					}
+				: closeRunningPart(part, tools);
 		default:
-			return part;
+			return closeRunningPart(part, tools);
 	}
 };
+
+/**
+ * Closes the calls whose run or input a turn's end cut off; a client call
+ * still waits for the browser.
+ */
+export const closeRunningToolParts = (
+	parts: UIMessage["parts"],
+	tools: ToolSet,
+) => parts.map((part) => closeRunningPart(part, tools));
 
 /**
  * Gives every tool call still waiting for a result one, so the model can be

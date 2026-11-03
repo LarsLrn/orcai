@@ -14,6 +14,7 @@ import * as Layer from "effect/Layer";
 import { sourceRef } from "../citations/source-ref";
 import { answers, resetProcedures } from "../tools/assistant/test-procedures";
 import { assetPoint } from "../tools/rag/test-points";
+import { TOOL_CLOSE_SENTENCES } from "../utils/close-pending-tool-parts";
 import {
 	answerSetup,
 	assistantRow,
@@ -982,6 +983,59 @@ describe("continueTurn", () => {
 		expect(reply?.metadata.interrupted).toBe(true);
 	});
 
+	test("continues a reply stopped while a call ran beside an approval", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const stop = new AbortController();
+		answers["bot.list"] = () =>
+			Effect.sync(() => stop.abort()).pipe(Effect.andThen(Effect.never));
+		chat.script([
+			{
+				calls: [
+					{
+						name: "findBots",
+						input: {},
+					},
+					deleteDraft,
+				],
+			},
+		]);
+		await chat.send("Delete the old draft", stop.signal);
+		expect(toolStates(chat.messages().at(-1)?.parts ?? [])).toEqual([
+			"output-error",
+			"approval-requested",
+		]);
+		answers["bot.find"] = () =>
+			Effect.succeed({
+				data: {
+					name: "Old draft",
+					capabilities: {
+						delete: true,
+					},
+				},
+			});
+		answers["bot.delete"] = () => Effect.succeed({});
+		chat.script([
+			{
+				text: "Deleted.",
+			},
+		]);
+
+		await chat.decide(true);
+
+		const reply = chat.messages().at(-1);
+		expect(toolStates(reply?.parts ?? [])).toEqual([
+			"output-error",
+			"output-available",
+		]);
+		expect(textOf(reply?.parts ?? [])).toEqual([
+			"Deleted.",
+		]);
+		// The model read the stopped call as interrupted.
+		expect(JSON.stringify(chat.bodies.at(-1))).toContain(
+			TOOL_CLOSE_SENTENCES.interrupted,
+		);
+	});
+
 	test("clears the cut-off mark of a paused reply once its continuation finishes", async () => {
 		const chat = await conversation(assistantRow(), "anthropic");
 		chat.script([
@@ -1335,11 +1389,20 @@ describe("turn writes", () => {
 
 		await chat.send("Publish the tutor", stop.signal);
 
-		expect(chat.messages().at(-1)?.metadata.writes).toEqual([
+		const reply = chat.messages().at(-1);
+		expect(reply?.metadata.writes).toEqual([
 			{
 				path: "bot.publish",
 			},
 		]);
+		// The stop interrupts the tool once its change is done, so the model checks rather than reads a result.
+		expect(reply?.parts).toContainEqual(
+			expect.objectContaining({
+				type: "tool-publishBot",
+				state: "output-error",
+				errorText: TOOL_CLOSE_SENTENCES.interrupted,
+			}),
+		);
 	});
 
 	/** A publish that stops the turn and ends only when `finish` is called; the wait for it ends only when `endWait` is. */
@@ -1396,6 +1459,13 @@ describe("turn writes", () => {
 			await publishing.finish();
 
 			expect(settled?.metadata.writes).toBeUndefined();
+			expect(settled?.parts).toContainEqual(
+				expect.objectContaining({
+					type: "tool-publishBot",
+					state: "output-error",
+					errorText: TOOL_CLOSE_SENTENCES.interrupted,
+				}),
+			);
 			expect(chat.messages().at(-1)).toEqual(settled);
 		} finally {
 			publishing.restore();
