@@ -46,13 +46,13 @@ import { markIndexingExhausted } from "@/asset/pipeline-attempt";
 const TIMEOUT = 30_000;
 
 /**
- * Requests the endpoint received. While `holding`, each request waits until
- * the test settles it: true answers, false fails it.
+ * Requests the endpoint received. The next `holding` requests each wait
+ * until the test settles them: true answers, false fails it.
  */
 const embedding = {
 	requests: 0,
 	inputs: [] as string[],
-	holding: false,
+	holding: 0,
 	waiting: [] as ReturnType<typeof Promise.withResolvers<boolean>>[],
 };
 
@@ -74,7 +74,8 @@ const embeddings = serve({
 		};
 		embedding.requests += 1;
 		embedding.inputs.push(...body.input);
-		if (embedding.holding) {
+		if (embedding.holding > 0) {
+			embedding.holding -= 1;
 			const settled = Promise.withResolvers<boolean>();
 			embedding.waiting.push(settled);
 			if (!(await settled.promise)) {
@@ -272,12 +273,11 @@ const vectorize = (job: Job<VectorizeAssetPayload>) =>
 /** Runs `jobs` until each asks for embeddings, which wait for the test to settle them in order. */
 const held = async (...jobs: Job<VectorizeAssetPayload>[]) => {
 	const waiting = embedding.waiting.length;
-	embedding.holding = true;
+	embedding.holding = jobs.length;
 	const running = jobs.map((job) => vectorize(job));
 	while (embedding.waiting.length < waiting + jobs.length) {
 		await sleep(25);
 	}
-	embedding.holding = false;
 	const requests = embedding.waiting.slice(waiting);
 	return {
 		settle: (index: number, answer: boolean) => requests[index].resolve(answer),
