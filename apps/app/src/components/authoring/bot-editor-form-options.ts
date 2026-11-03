@@ -2,19 +2,21 @@ import type { ActivityRunId, BlockId, BotId } from "@orcai/core";
 import {
 	type AssetWithCapabilities,
 	type Behaviour,
+	type BlockWithCapabilities,
 	type BotEditor,
 	DEFAULT_FEATURES,
+	defaultRepositoryConfig,
 	type EntityCapabilities,
 	type FeatureId,
 	type Features,
 	type PublicationStatus,
 	type Repository,
 } from "@orcai/schema";
-import { createDefaultBehaviour } from "@/components/authoring/behaviour-editor";
-import { createDefaultRepository } from "@/components/authoring/repository-editor";
+import { formOptions } from "@tanstack/react-form";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { m } from "@/paraglide/messages";
 
-type BotEditorBehaviour = {
+export type BotEditorBehaviour = {
 	id?: BlockId;
 	capabilities: EntityCapabilities<"block">;
 	name: string;
@@ -25,7 +27,7 @@ type BotEditorBehaviour = {
 	config: Behaviour["config"];
 };
 
-type BotEditorRepository = {
+export type BotEditorRepository = {
 	id?: BlockId;
 	capabilities: EntityCapabilities<"block">;
 	name: string;
@@ -92,42 +94,88 @@ const toBotEditorFormValues = (editor?: BotEditor): BotEditorFormValues => ({
 	features: editor ? editor.features : DEFAULT_FEATURES,
 });
 
-export { toBotEditorFormValues };
+const botEditorFormOptions = formOptions({
+	defaultValues: toBotEditorFormValues(),
+});
 
-export const createDefaultBuilderRepository = (params?: {
-	botName: string;
-}): BotEditorFormValues["repositories"][number] => {
-	const block = createDefaultRepository(params);
+const newBlockCapabilities = () => ({
+	...emptyCapabilities("block"),
+	edit: true,
+	read: true,
+	use: true,
+});
 
-	return {
-		...block,
+/** The behaviour the editor creates. */
+const newBehaviourValues = (): BotEditorBehaviour => ({
+	capabilities: newBlockCapabilities(),
+	name: m.authoring_behaviour_default_name(),
+	description: "",
+	contentJson: null,
+	type: "behaviour",
+	status: "draft",
+	config: {
+		systemPrompt: "",
+	},
+});
+
+/** The repository the editor creates for a bot named `botName`. */
+const newRepositoryValues = (botName: string): BotEditorRepository => ({
+	capabilities: newBlockCapabilities(),
+	name: botName
+		? m.authoring_repository_default_name_named({
+				botName,
+			})
+		: m.authoring_repository_default_name(),
+	description: "",
+	contentJson: null,
+	type: "repository",
+	status: "draft",
+	config: {
+		...defaultRepositoryConfig,
+	},
+	assetIds: [],
+	assets: [],
+	uploadRunIds: [],
+});
+
+/** A library block as the editor links it. */
+const toLinkedBlockValues = ({
+	data: block,
+	assets = [],
+}: {
+	data: BlockWithCapabilities;
+	assets?: AssetWithCapabilities[];
+}): (BotEditorBehaviour | BotEditorRepository) & {
+	id: BlockId;
+} => {
+	const fields = {
+		id: block.id,
+		capabilities: block.capabilities,
+		name: block.name,
 		description: block.description ?? "",
-		contentJson: block.contentJson ?? null,
-		assetIds: block.assetIds ?? [],
-		uploadRunIds: [],
-		capabilities: {
-			...emptyCapabilities("block"),
-			edit: true,
-			read: true,
-			use: true,
-		},
+		contentJson: block.contentJson,
+		status: block.status,
 	};
+	return block.type === "behaviour"
+		? {
+				...fields,
+				type: "behaviour",
+				config: block.config,
+			}
+		: {
+				...fields,
+				type: "repository",
+				config: block.config,
+				assetIds: assets.map((asset) => asset.id),
+				assets,
+				uploadRunIds: [],
+			};
 };
 
-export const createDefaultBuilderBehaviour = (): NonNullable<
-	BotEditorFormValues["behaviour"]
-> => {
-	const block = createDefaultBehaviour();
-
-	return {
-		...block,
-		description: block.description ?? "",
-		contentJson: block.contentJson ?? null,
-		capabilities: {
-			...emptyCapabilities("block"),
-			edit: true,
-			read: true,
-			use: true,
-		},
-	};
+export {
+	botEditorFormOptions,
+	newBehaviourValues,
+	newRepositoryValues,
+	toBotEditorFormValues,
+	toLinkedBlockValues,
 };

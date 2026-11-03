@@ -17,7 +17,7 @@ import type { client } from "@/lib/orpc/orpc";
 type BehaviourValues = NonNullable<BotEditorFormValues["behaviour"]>;
 type RepositoryValues = BotEditorFormValues["repositories"][number];
 
-export const toBehaviourInput = (block: BehaviourValues) => ({
+const toBehaviourInput = (block: BehaviourValues) => ({
 	name: block.name,
 	description: block.description.trim() ? block.description : null,
 	contentJson: block.contentJson ?? null,
@@ -26,7 +26,7 @@ export const toBehaviourInput = (block: BehaviourValues) => ({
 	config: block.config,
 });
 
-export const toRepositoryInput = (block: RepositoryValues) => ({
+const toRepositoryInput = (block: RepositoryValues) => ({
 	name: block.name,
 	description: block.description.trim() ? block.description : null,
 	contentJson: block.contentJson ?? null,
@@ -37,7 +37,7 @@ export const toRepositoryInput = (block: RepositoryValues) => ({
 	uploadRunIds: block.uploadRunIds,
 });
 
-const toBlockInput = (block: BehaviourValues | RepositoryValues) =>
+export const toBlockInput = (block: BehaviourValues | RepositoryValues) =>
 	block.type === "behaviour"
 		? toBehaviourInput(block)
 		: toRepositoryInput(block);
@@ -194,9 +194,12 @@ type BotEditorProcedures = {
 	saveBot: (input: Inputs["bot"]["save"]) => Promise<Outputs["bot"]["save"]>;
 };
 
-/** A block write the server committed; `slot` is "behaviour" or the repository's index. */
+/** Where a block sits in the editor: "behaviour" or the repository's index. */
+export type BotEditorBlockSlot = "behaviour" | number;
+
+/** A block write the server committed. */
 export type BotEditorBlockSaved = {
-	slot: "behaviour" | number;
+	slot: BotEditorBlockSlot;
 	block: BlockValues & {
 		id: BlockId;
 	};
@@ -246,7 +249,7 @@ export const executeBotEditorSave = async (
 	const writeBlock = async <Block extends BlockValues>(
 		block: Block,
 		write: BlockWrite,
-		slot: BotEditorBlockSaved["slot"],
+		slot: BotEditorBlockSlot,
 	): Promise<Block> => {
 		if (write === null) {
 			return block;

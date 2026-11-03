@@ -8,10 +8,7 @@ import {
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
-import {
-	BehaviourFieldGroup,
-	behaviourTopLevelFieldMap,
-} from "./behaviour-field-group";
+import { BehaviourFieldGroup } from "./behaviour-field-group";
 import { behaviourFormOptions } from "./behaviour-form-options";
 
 const BehaviourForm = ({
@@ -75,7 +72,15 @@ const BehaviourForm = ({
 				)}
 			/>
 
-			<BehaviourFieldGroup form={form} fields={behaviourTopLevelFieldMap} />
+			<BehaviourFieldGroup
+				form={form}
+				fields={{
+					name: "name",
+					description: "description",
+					contentJson: "contentJson",
+					config: "config",
+				}}
+			/>
 
 			<form.AppForm>
 				<form.SubmitButton

@@ -42,7 +42,7 @@ for (const locale of [
 			.click();
 
 		const prompt = page.getByLabel(
-			message("authoring_behaviour_system_prompt_label", {}, locale),
+			message("blocks_behaviour_form_system_prompt_label", {}, locale),
 		);
 		await expect(prompt).toHaveValue("");
 		await page
