@@ -9,7 +9,7 @@ import {
 import { DB, dbSchema } from "@orcai/db";
 import {
 	buildStoredExtractionKey,
-	createImageOnlyStoredExtractionArtifact,
+	createImageOnlyExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
 import { assetObjectKey } from "@orcai/s3";
@@ -100,7 +100,7 @@ const privateAsset = async (owner: UserId, title: string, content: string) => {
 				key: buildStoredExtractionKey(row.id),
 				body: Buffer.from(
 					serializeStoredExtractionArtifact({
-						...createImageOnlyStoredExtractionArtifact({
+						...createImageOnlyExtractionArtifact({
 							mimeType: "application/pdf",
 							format: "pdf",
 							sourceBucket: row.bucket,

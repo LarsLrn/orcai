@@ -170,6 +170,7 @@ const writePoint = (assetId: AssetId, blockId: BlockId, attempt: number) =>
 						chunkCount: 1,
 						createdAt: new Date().toISOString(),
 						index_attempt: attempt,
+						published: false,
 					},
 				},
 			],

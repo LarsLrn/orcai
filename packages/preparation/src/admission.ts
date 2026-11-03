@@ -68,8 +68,6 @@ export type Admission =
 			readonly stage: "indexing";
 			readonly links: readonly ObservedLink[];
 			readonly run?: AdmissionRun;
-			/** A re-embed: the stored extraction as it is. */
-			readonly fromStoredExtraction?: boolean;
 	  }
 	| {
 			readonly stage: "metadata";
@@ -282,9 +280,6 @@ const admitIndexing = (
 					data: {
 						...link,
 						runId,
-						...(admission.fromStoredExtraction && {
-							fromStoredExtraction: true,
-						}),
 					},
 				})),
 			});

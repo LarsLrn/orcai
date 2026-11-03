@@ -35,8 +35,6 @@ export type IndexingAttempt = {
 	readonly blockId: BlockId;
 	readonly attempt: number;
 	readonly runId?: ActivityRunId;
-	/** A re-embed: the stored extraction as it is, never prepared again. */
-	readonly fromStoredExtraction: boolean;
 };
 
 /** A metadata delivery's attempt: the asset's generation it was queued for. */
@@ -50,7 +48,7 @@ export const processingAttempt = (
 	data: ProcessAssetPayload,
 ): ProcessingAttempt => ({
 	assetId: data.assetRef.id,
-	generation: data.generation ?? 0,
+	generation: data.generation,
 	runId: data.runId,
 });
 
@@ -59,9 +57,8 @@ export const indexingAttempt = (
 ): IndexingAttempt => ({
 	assetId: data.assetId,
 	blockId: data.blockId,
-	attempt: data.attempt ?? 0,
+	attempt: data.attempt,
 	runId: data.runId,
-	fromStoredExtraction: data.fromStoredExtraction ?? false,
 });
 
 export const unfinished = (status: Column) =>

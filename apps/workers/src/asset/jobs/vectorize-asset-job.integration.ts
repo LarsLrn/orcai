@@ -13,7 +13,7 @@ import {
 } from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
-	createImageOnlyStoredExtractionArtifact,
+	createImageOnlyExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
 import {
@@ -28,7 +28,11 @@ import {
 } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
 import { assetObjectKey } from "@orcai/s3";
-import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
+import {
+	S3Live,
+	sendDeleteObjectCommand,
+	sendPutObjectCommand,
+} from "@orcai/s3/server";
 import type { VectorizeAssetPayload } from "@orcai/schema";
 import {
 	awaitLockWaiters,
@@ -216,7 +220,7 @@ const seed = (
 				key: buildStoredExtractionKey(asset.id),
 				body: Buffer.from(
 					serializeStoredExtractionArtifact({
-						...createImageOnlyStoredExtractionArtifact({
+						...createImageOnlyExtractionArtifact({
 							mimeType: "application/pdf",
 							format: "pdf",
 							sourceBucket: buckets.main.name,
@@ -267,7 +271,7 @@ const admit = async (link: { assetId: AssetId; blockId: BlockId }) => {
 		id: crypto.randomUUID(),
 		name: "vectorize-asset",
 		data,
-	} as Job<Required<VectorizeAssetPayload>>;
+	} as Job<VectorizeAssetPayload>;
 };
 
 const vectorize = (job: Job<VectorizeAssetPayload>) => run(vectorizeAsset(job));
@@ -313,7 +317,7 @@ const pointsOf = async (link: { assetId: AssetId; blockId: BlockId }) =>
 /** The indexing attempt of each of the link's served points. */
 const servedOf = async (link: { assetId: AssetId; blockId: BlockId }) =>
 	(await payloadsOf(link))
-		.filter((payload) => payload?.published !== false)
+		.filter((payload) => payload?.published === true)
 		.map((payload) => payload?.index_attempt ?? null);
 
 /** Whether each of the link's points is served. */
@@ -415,8 +419,8 @@ const writePoint = (
 		assetId: AssetId;
 		blockId: BlockId;
 	},
-	attempt: number | undefined,
-	published?: boolean,
+	attempt: number,
+	published = true,
 ) =>
 	run(
 		writeGeneration(
@@ -453,8 +457,7 @@ test(
 	"a completed attempt replaces the link's earlier points, and a duplicate delivery changes nothing",
 	async () => {
 		const link = await seed();
-		// A point an earlier release wrote, without an attempt.
-		await writePoint(link, undefined);
+		await writePoint(link, (await linkOf(link))?.attempt ?? 0);
 		const job = await admit(link);
 
 		await vectorize(job);
@@ -471,6 +474,66 @@ test(
 			true,
 		]);
 		expect(embedding.requests).toBeGreaterThan(0);
+	},
+	TIMEOUT,
+);
+
+test.each([
+	"gone",
+	"older than image descriptions",
+] as const)(
+	"a stored extraction %s fails indexing as missing, for processing to prepare again, without a retry",
+	async (extraction) => {
+		const link = await seed();
+		const key = buildStoredExtractionKey(link.assetId);
+		await run(
+			extraction === "gone"
+				? sendDeleteObjectCommand({
+						bucket: buckets.processed.name,
+						key,
+					})
+				: sendPutObjectCommand({
+						bucket: buckets.processed.name,
+						key,
+						body: Buffer.from(
+							JSON.stringify({
+								...createImageOnlyExtractionArtifact({
+									mimeType: "image/png",
+									format: "png",
+									sourceBucket: buckets.main.name,
+									sourcePath: "figures/1.png",
+								}),
+							}),
+						),
+						contentType: "application/json",
+					}),
+		);
+		const job = await admit(link);
+
+		await vectorize(job);
+
+		const [failed] = await run(
+			Effect.gen(function* () {
+				const { blockAsset } = dbSchema;
+				return yield* (yield* DB)
+					.select({
+						status: blockAsset.indexStatus,
+						failure: blockAsset.indexFailure,
+					})
+					.from(blockAsset)
+					.where(
+						and(
+							eq(blockAsset.assetId, link.assetId),
+							eq(blockAsset.blockId, link.blockId),
+						),
+					);
+			}),
+		);
+		expect(failed).toEqual({
+			status: "failed",
+			failure: "missing_extraction",
+		});
+		expect(await pointsOf(link)).toEqual([]);
 	},
 	TIMEOUT,
 );

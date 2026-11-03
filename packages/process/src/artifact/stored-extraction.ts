@@ -73,7 +73,7 @@ const StoredExtraction = Schema.Struct({
 			format: Schema.String,
 			pageNumber: optionalNullable(Schema.Number),
 			sourcePath: Schema.optional(Schema.String),
-			text: optionalNullable(Schema.String),
+			text: Schema.NullOr(Schema.String),
 		}),
 	),
 	metadataSuggestion: Schema.optional(

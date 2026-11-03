@@ -56,15 +56,9 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 		}
 	});
 
-const unsetAttempt = {
-	is_empty: {
-		key: "index_attempt",
-	},
-};
-
 /**
  * Indexing attempts from `from` up to, not including, `to`; an open end is
- * unbounded. Points without an attempt count as attempt 0.
+ * unbounded.
  */
 export type AttemptRange = {
 	readonly from?: number;
@@ -74,26 +68,18 @@ export type AttemptRange = {
 const isEmpty = ({ from = 0, to }: AttemptRange) =>
 	to !== undefined && to <= from;
 
-const attemptFilter = ({ from, to }: AttemptRange) => {
-	if (from === undefined && to === undefined) return [];
-	const range = {
-		key: "index_attempt",
-		range: {
-			gte: from,
-			lt: to,
-		},
-	};
-	return [
-		(from ?? 0) <= 0
-			? {
-					should: [
-						range,
-						unsetAttempt,
-					],
-				}
-			: range,
-	];
-};
+const attemptFilter = ({ from, to }: AttemptRange) =>
+	from === undefined && to === undefined
+		? []
+		: [
+				{
+					key: "index_attempt",
+					range: {
+						gte: from,
+						lt: to,
+					},
+				},
+			];
 
 type LinkPoints = {
 	assetId: AssetPointPayload["asset_id"];

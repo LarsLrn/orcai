@@ -3,7 +3,7 @@ import { EncryptionKeyLive } from "@orcai/ai";
 import type { AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { AssetPipelineError } from "@orcai/preparation";
-import type { StoredExtractionArtifact } from "@orcai/process";
+import type { ExtractionArtifact } from "@orcai/process";
 import { S3Live } from "@orcai/s3/server";
 import { integrationRuntime } from "@orcai/testing";
 import { eq, like } from "drizzle-orm";
@@ -23,25 +23,27 @@ beforeEach(() => {
 const seed = (params: Parameters<typeof seedImageAsset>[0]) =>
 	run(seedImageAsset(params));
 
-/** The same stored image as a figure of a document. */
+/** The same stored image as `count` figures of a document. */
 const asFigures = (
-	artifact: StoredExtractionArtifact,
-	texts: (string | null | undefined)[],
-): StoredExtractionArtifact => ({
+	artifact: ExtractionArtifact,
+	count: number,
+): ExtractionArtifact => ({
 	...artifact,
 	content: "A document about refunds.",
-	images: texts.map((text, imageIndex) => ({
-		...artifact.images[0],
-		imageIndex,
-		...(text !== undefined && {
-			text,
+	images: Array.from(
+		{
+			length: count,
+		},
+		(_, imageIndex) => ({
+			...artifact.images[0],
+			imageIndex,
 		}),
-	})),
+	),
 });
 
 const describe = (
 	assetId: AssetId,
-	artifact: StoredExtractionArtifact,
+	artifact: ExtractionArtifact,
 	imageAsset: boolean,
 ) =>
 	run(
@@ -103,7 +105,7 @@ test("an image asset is described in one call, charged to its organisation and u
 	});
 });
 
-test("figures already described are kept; only the others are described, in the uploader's language", async () => {
+test("every figure is described, in the uploader's language", async () => {
 	const { assetId, artifact, uploaderId } = await seed({
 		capabilities: [
 			"text",
@@ -121,24 +123,17 @@ test("figures already described are kept; only the others are described, in the 
 		}),
 	);
 
-	const described = await describe(
-		assetId,
-		asFigures(artifact, [
-			"A described figure.",
-			null,
-			undefined,
-		]),
-		false,
-	);
+	const described = await describe(assetId, asFigures(artifact, 2), false);
 
 	expect(described.images.map((image) => image.text)).toEqual([
-		"A described figure.",
-		null,
+		"A photo of a lighthouse.",
 		"A photo of a lighthouse.",
 	]);
-	expect(requests).toHaveLength(1);
-	expect(requests[0]?.responseFormat).toBeUndefined();
-	expect(requests[0]?.system).toContain("in German, the uploader's language");
+	expect(requests).toHaveLength(2);
+	for (const request of requests) {
+		expect(request.responseFormat).toBeUndefined();
+		expect(request.system).toContain("in German, the uploader's language");
+	}
 });
 
 test("without a utility model that reads images, an image asset is unsupported and figures are skipped", async () => {
@@ -152,13 +147,7 @@ test("without a utility model that reads images, an image asset is unsupported a
 		"unsupported",
 	);
 
-	const described = await describe(
-		assetId,
-		asFigures(artifact, [
-			undefined,
-		]),
-		false,
-	);
+	const described = await describe(assetId, asFigures(artifact, 1), false);
 	expect(described.images.map((image) => image.text)).toEqual([
 		null,
 	]);
@@ -176,15 +165,7 @@ test("a quota that refuses the call fails an image asset and a document with quo
 
 	expect(await failureOf(describe(assetId, artifact, true))).toBe("quota");
 	expect(
-		await failureOf(
-			describe(
-				assetId,
-				asFigures(artifact, [
-					undefined,
-				]),
-				false,
-			),
-		),
+		await failureOf(describe(assetId, asFigures(artifact, 1), false)),
 	).toBe("quota");
 	expect(requests).toHaveLength(0);
 });

@@ -15,6 +15,7 @@ import {
 } from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
+	type ExtractionArtifact,
 	type StoredExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
@@ -84,7 +85,7 @@ beforeEach(() => {
 
 const storeExtraction = (
 	assetId: AssetId,
-	artifact: StoredExtractionArtifact,
+	artifact: ExtractionArtifact,
 	content = "Refund policy\n\nRefunds are paid within 14 days.",
 ) =>
 	sendPutObjectCommand({
@@ -514,46 +515,54 @@ test(
 	TIMEOUT,
 );
 
-test(
-	"an image asset applies what processing suggested without another call",
-	async () => {
-		const seeded = await run(
-			seedImageAsset({
-				capabilities: [
-					"text",
-					"image",
-				],
-			}),
-		);
-		await run(
-			Effect.gen(function* () {
-				yield* (yield* DB)
-					.update(dbSchema.asset)
-					.set({
-						fileName: "chart.png",
-						processingStatus: "completed",
-					})
-					.where(eq(dbSchema.asset.id, seeded.assetId));
-				const artifact: StoredExtractionArtifact = {
-					...seeded.artifact,
-					images: seeded.artifact.images.map((image) => ({
-						...image,
-						text: suggestion.text,
-					})),
+/** A processed image asset whose stored extraction is described, with processing's suggestion unless `suggested` is false. */
+const seedDescribedImage = async (suggested: boolean) => {
+	const seeded = await run(
+		seedImageAsset({
+			capabilities: [
+				"text",
+				"image",
+			],
+		}),
+	);
+	await run(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.asset)
+				.set({
+					fileName: "chart.png",
+					processingStatus: "completed",
+				})
+				.where(eq(dbSchema.asset.id, seeded.assetId));
+			const artifact: StoredExtractionArtifact = {
+				...seeded.artifact,
+				images: seeded.artifact.images.map((image) => ({
+					...image,
+					text: suggestion.text,
+				})),
+				...(suggested && {
 					metadataSuggestion: {
 						title: suggestion.title,
 						description: suggestion.description,
 						language: suggestion.language,
 					},
-				};
-				yield* sendPutObjectCommand({
-					bucket: buckets.processed.name,
-					key: buildStoredExtractionKey(seeded.assetId),
-					body: Buffer.from(serializeStoredExtractionArtifact(artifact)),
-					contentType: "application/json",
-				});
-			}),
-		);
+				}),
+			};
+			yield* sendPutObjectCommand({
+				bucket: buckets.processed.name,
+				key: buildStoredExtractionKey(seeded.assetId),
+				body: Buffer.from(serializeStoredExtractionArtifact(artifact)),
+				contentType: "application/json",
+			});
+		}),
+	);
+	return seeded;
+};
+
+test(
+	"an image asset applies what processing suggested without another call",
+	async () => {
+		const seeded = await seedDescribedImage(true);
 		await admit(seeded.assetId, "apply");
 		const job = await latestJob(seeded.assetId);
 		if (!job) throw new Error("No job queued");
@@ -567,6 +576,25 @@ test(
 				language: "en",
 			},
 			status: "completed",
+		});
+		expect(requests).toHaveLength(0);
+	},
+	TIMEOUT,
+);
+
+test(
+	"an image extraction without processing's suggestion fails apply as missing, without a call",
+	async () => {
+		const seeded = await seedDescribedImage(false);
+		await admit(seeded.assetId, "apply");
+		const job = await latestJob(seeded.assetId);
+		if (!job) throw new Error("No job queued");
+
+		await runJob(job);
+
+		expect(await assetOf(seeded.assetId)).toMatchObject({
+			status: "failed",
+			failure: "missing_extraction",
 		});
 		expect(requests).toHaveLength(0);
 	},

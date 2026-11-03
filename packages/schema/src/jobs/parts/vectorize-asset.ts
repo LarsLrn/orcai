@@ -6,12 +6,10 @@ import { blockIdSchema } from "../../block/ref";
 export const vectorizeAssetPayloadSchema = z.object({
 	assetId: assetIdSchema,
 	blockId: blockIdSchema,
-	/** The link's indexing attempt the job was queued for; jobs queued before attempts existed stand for attempt 0. */
-	attempt: z.number().int().nonnegative().optional(),
+	/** The link's indexing attempt the job was queued for. */
+	attempt: z.number().int().nonnegative(),
 	/** The activity run that admitted the work; none for automatic work. */
 	runId: activityRunIdSchema.optional(),
-	/** Embeds the stored extraction as it is: a re-embed never prepares the file again. */
-	fromStoredExtraction: z.boolean().optional(),
 });
 
 export type VectorizeAssetPayload = z.infer<typeof vectorizeAssetPayloadSchema>;

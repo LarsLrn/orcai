@@ -11,8 +11,8 @@ export const processAssetPayloadSchema = z.object({
 		id: assetIdSchema,
 		type: fileTypeSchema,
 	}),
-	/** The asset's processing generation the job was queued for; jobs queued before generations existed stand for generation 0. */
-	generation: z.number().int().nonnegative().optional(),
+	/** The asset's processing generation the job was queued for. */
+	generation: z.number().int().nonnegative(),
 	/** The activity run that admitted the work; none for automatic work. */
 	runId: activityRunIdSchema.optional(),
 });

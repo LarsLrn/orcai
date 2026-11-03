@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ExtractionResult } from "@kreuzberg/node";
-import { createStoredExtractionArtifact } from "../../src/artifact/storage";
+import { createExtractionArtifact } from "../../src/artifact/storage";
 
 const createExtractionResult = (): ExtractionResult => ({
 	content: "",
@@ -28,9 +28,9 @@ const createExtractionResult = (): ExtractionResult => ({
 	document: null,
 });
 
-describe("createStoredExtractionArtifact", () => {
+describe("createExtractionArtifact", () => {
 	test("drops images when transformImage returns undefined", () => {
-		const artifact = createStoredExtractionArtifact({
+		const artifact = createExtractionArtifact({
 			result: createExtractionResult(),
 			transformImage: () => undefined,
 		});
@@ -39,7 +39,7 @@ describe("createStoredExtractionArtifact", () => {
 	});
 
 	test("keeps images when transformImage is omitted", () => {
-		const artifact = createStoredExtractionArtifact({
+		const artifact = createExtractionArtifact({
 			result: createExtractionResult(),
 		});
 

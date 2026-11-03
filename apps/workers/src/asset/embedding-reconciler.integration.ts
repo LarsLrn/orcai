@@ -22,7 +22,7 @@ import {
 } from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
-	createImageOnlyStoredExtractionArtifact,
+	createImageOnlyExtractionArtifact,
 	type StoredExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
@@ -279,7 +279,7 @@ const seed = (
 				key: buildStoredExtractionKey(asset.id),
 				body: Buffer.from(
 					serializeStoredExtractionArtifact({
-						...createImageOnlyStoredExtractionArtifact({
+						...createImageOnlyExtractionArtifact({
 							mimeType: "application/pdf",
 							format: "pdf",
 							sourceBucket: buckets.main.name,
@@ -556,7 +556,6 @@ test(
 		const [job] = await jobsOf(link);
 		expect(job).toMatchObject({
 			attempt: admitted?.attempt,
-			fromStoredExtraction: true,
 		});
 		// Converged: a second run admits nothing more.
 		expect(await on(index, link, reconcileEmbeddings)).toBe(0);
@@ -648,7 +647,7 @@ test(
 );
 
 test(
-	"re-embedding an extraction older than image descriptions fails the link and prepares nothing again",
+	"an extraction older than image descriptions fails its link as missing, and Prepare again prepares the file again",
 	async () => {
 		const index = indexes.undescribed;
 		const link = await seed({
@@ -664,6 +663,7 @@ test(
 		await configure(index, link);
 		await on(index, link, reconcileEmbeddings);
 		const [job] = await jobsOf(link);
+		const before = await processingOf(link);
 
 		await vectorize(index, link, job);
 
@@ -671,20 +671,21 @@ test(
 			status: "failed",
 			failure: "missing_extraction",
 		});
-		const [asset] = await runtime.runPromise(
-			Effect.gen(function* () {
-				return yield* (yield* DB)
-					.select({
-						status: dbSchema.asset.processingStatus,
-						generation: dbSchema.asset.processingGeneration,
-					})
-					.from(dbSchema.asset)
-					.where(eq(dbSchema.asset.id, link.assetId));
-			}),
+		expect(await processingOf(link)).toEqual(before);
+
+		await on(index, link, startPreparingMissingExtractionsAgain(await admin()));
+		const preparation = await takePreparation();
+		expect(
+			await on(index, link, prepareMissingExtractionsAgain(preparation.data)),
+		).toBe(1);
+		await boss.complete(
+			PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+			preparation.id,
 		);
-		expect(asset).toEqual({
-			status: "completed",
-			generation: 0,
+		expect(await processingOf(link)).toEqual({
+			status: "pending",
+			generation: Number(before.generation) + 1,
+			jobs: before.jobs + 1,
 		});
 	},
 	TIMEOUT,
@@ -764,9 +765,7 @@ test(
 			const jobs = await jobsOf(link);
 			const current = await linkOf(link);
 			const job = jobs.find(({ attempt }) => attempt === current?.attempt);
-			expect(job).toMatchObject({
-				fromStoredExtraction: true,
-			});
+			expect(job).toBeDefined();
 			if (job) await vectorize(index, links, job);
 			expect(await linkOf(link)).toMatchObject({
 				status: "completed",
@@ -882,9 +881,7 @@ test(
 		const retried = (await jobsOf(broken)).find(
 			({ attempt }) => attempt === after[1]?.attempt,
 		);
-		expect(retried).toMatchObject({
-			fromStoredExtraction: true,
-		});
+		expect(retried).toBeDefined();
 		// The admin's run took the link on, so their Activity follows it.
 		expect(await membersOf(retried?.runId as ActivityRunId)).toEqual([
 			{

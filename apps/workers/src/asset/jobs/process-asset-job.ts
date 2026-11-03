@@ -10,10 +10,10 @@ import {
 } from "@orcai/preparation";
 import {
 	buildStoredExtractionImageKey,
-	createImageOnlyStoredExtractionArtifact,
-	createStoredExtractionArtifact,
+	createExtractionArtifact,
+	createImageOnlyExtractionArtifact,
+	type ExtractionArtifact,
 	extract,
-	type StoredExtractionArtifact,
 	writeStoredExtraction,
 } from "@orcai/process";
 import {
@@ -43,7 +43,7 @@ const getRequiredMimeType = (
 	);
 
 const createDocumentArtifact = (params: {
-	result: Parameters<typeof createStoredExtractionArtifact>[0]["result"];
+	result: Parameters<typeof createExtractionArtifact>[0]["result"];
 	jobId: string;
 	assetId: string;
 }) =>
@@ -96,7 +96,7 @@ const createDocumentArtifact = (params: {
 			},
 		);
 
-		return createStoredExtractionArtifact({
+		return createExtractionArtifact({
 			result: params.result,
 			transformImage: (image) => {
 				const sourcePath = storedImagePaths.get(image.imageIndex);
@@ -112,7 +112,7 @@ const createDocumentArtifact = (params: {
 		});
 	});
 
-const isEmptyArtifact = (artifact: StoredExtractionArtifact) =>
+const isEmptyArtifact = (artifact: ExtractionArtifact) =>
 	artifact.content.trim().length === 0 &&
 	artifact.chunks.length === 0 &&
 	artifact.images.length === 0;
@@ -155,7 +155,7 @@ const processDelivery = (params: {
 		});
 		const imageAsset = isImageFileType(assetRef.type);
 		const extracted = imageAsset
-			? createImageOnlyStoredExtractionArtifact({
+			? createImageOnlyExtractionArtifact({
 					mimeType,
 					format: assetRef.type,
 					sourceBucket: assetRef.bucket,

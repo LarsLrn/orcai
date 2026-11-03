@@ -116,7 +116,6 @@ const admitAll = <E, R>(
 				stage: "indexing",
 				links,
 				run,
-				fromStoredExtraction: true,
 			});
 			admitted += queued.length;
 			// Every link went to another admission meanwhile; the next run looks again.

@@ -75,6 +75,8 @@ beforeAll(
 							chunk_index: index,
 							chunkCount: Object.keys(points).length,
 							createdAt: new Date().toISOString(),
+							index_attempt: 1,
+							published: true,
 						},
 					}),
 				),

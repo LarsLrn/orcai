@@ -159,7 +159,6 @@ export const failStrandedStages = (stages: StrandedStages) =>
 						failStrandedIndexing({
 							...stage,
 							runId,
-							fromStoredExtraction: false,
 						}),
 					),
 				),

@@ -20,6 +20,8 @@ const ranked = (...ids: string[]): AssetPoint[] =>
 			chunk_index: index,
 			chunkCount: ids.length,
 			createdAt: "2026-01-01T00:00:00.000Z",
+			index_attempt: 1,
+			published: true,
 		},
 	}));
 

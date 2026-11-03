@@ -10,9 +10,6 @@ import * as Layer from "effect/Layer";
 import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import { failDataExports, runDataExport } from "./data-export";
 
-const dataExportIdOf = (data: unknown) =>
-	Effect.try(() => dataExportPayloadSchema.parse(data).dataExportId);
-
 /**
  * Works the data export queues in the app server, which holds the transcript
  * formatting, one export at a time. Shutting down interrupts a running
@@ -22,25 +19,21 @@ export const DataExportWorkerLive = Layer.effectDiscard(
 	runWorkers([
 		defineWorker({
 			queue: DATA_EXPORT_JOB_NAME,
+			payload: dataExportPayloadSchema,
 			concurrency: 1,
 			pollingIntervalSeconds: 2,
 			handler: (job) =>
-				dataExportIdOf(job.data).pipe(
-					Effect.flatMap((id) => runDataExport(id, transcriptMarkdown)),
-				),
+				runDataExport(job.data.dataExportId, transcriptMarkdown),
 		}),
 		defineWorker({
 			queue: DATA_EXPORT_DEAD_LETTER_JOB_NAME,
+			payload: dataExportPayloadSchema,
 			concurrency: 1,
 			pollingIntervalSeconds: 2,
 			handler: (job) =>
-				dataExportIdOf(job.data).pipe(
-					Effect.flatMap((id) =>
-						failDataExports([
-							id,
-						]),
-					),
-				),
+				failDataExports([
+					job.data.dataExportId,
+				]),
 		}),
 	]).pipe(
 		Effect.catchCause((cause) =>
