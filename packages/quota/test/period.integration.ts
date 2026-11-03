@@ -5,19 +5,17 @@ import {
 	awaitLockWaiters,
 	createOrganization,
 	createUser,
+	holdLock,
 	integrationRuntime,
 } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
-import {
-	finalizeAppRequestQuota,
-	releaseAppRequestQuota,
-	reserveForAppRequest,
-} from "../src/enforcement";
+import { reserveForAppRequest } from "../src/enforcement";
 import {
 	createQuotaPoolWithInitialPeriod,
+	settleQuotaReservation,
 	updateQuotaPoolBudget,
 } from "../src/ledger";
 import {
@@ -129,6 +127,21 @@ const periodsOf = (quotaPoolId: QuotaPoolId) =>
 			.where(eq(dbSchema.quotaPeriod.quotaPoolId, quotaPoolId));
 	});
 
+/** The period a reservation was made in. */
+const periodOfReservation = (reservationKey: string) =>
+	Effect.gen(function* () {
+		const [reserved] = yield* (yield* DB)
+			.select({
+				quotaPeriodId: dbSchema.quotaUsageEvent.quotaPeriodId,
+			})
+			.from(dbSchema.quotaUsageEvent)
+			.where(eq(dbSchema.quotaUsageEvent.reservationKey, reservationKey));
+		return reserved?.quotaPeriodId;
+	});
+
+const reserveDenial = (input: Parameters<typeof reserveForAppRequest>[0]) =>
+	Effect.flip(reserveForAppRequest(input));
+
 test("everything that reads a pool at its reset succeeds and opens one period", async () => {
 	const { opened, periods, reservations } = await runtime.runPromise(
 		Effect.gen(function* () {
@@ -140,10 +153,15 @@ test("everything that reads a pool at its reset succeeds and opens one period", 
 				organizationId: fixture.organization.id,
 				userId: fixture.user.id,
 				providerId: fixture.provider.id,
+				modelId: null,
 				appRequestId: `quota_${crypto.randomUUID()}`,
-				maxExpectedProviderRequests: 1,
-				messages: [],
-			});
+				maxRequests: 1,
+				inputTokens: 0,
+			}).pipe(
+				Effect.flatMap(({ reservationKey }) =>
+					periodOfReservation(reservationKey),
+				),
+			);
 			const statusRead = openQuotaPeriod({
 				quotaPoolId: pool.id,
 			}).pipe(Effect.map(({ period }) => period.id));
@@ -219,47 +237,40 @@ test("everything that reads a pool at its reset succeeds and opens one period", 
 			open[0].id,
 		]),
 	);
-	expect(reservations.map((result) => result.reservation?.periodId)).toEqual(
-		Array(10).fill(open[0].id),
-	);
+	expect(reservations).toEqual(Array(10).fill(open[0].id));
 });
 
 test("a reservation that resolved its pool before the reset lands on the new period", async () => {
-	const { reservation, periods } = await runtime.runPromise(
+	const { reservedOn, periods } = await runtime.runPromise(
 		Effect.gen(function* () {
-			const db = yield* DB;
 			const fixture = yield* organizationWithProvider();
 			const { pool } = yield* fixture.createPool({});
 			yield* endOpenPeriod(pool.id);
-			const locked = Promise.withResolvers<void>();
-			const release = Promise.withResolvers<void>();
 
 			// The rollover opens the next period and holds the pool until released.
-			const rollover = yield* db
-				.transaction(() =>
-					openQuotaPeriod({
-						quotaPoolId: pool.id,
-					}).pipe(
-						Effect.tap(() => Effect.sync(() => locked.resolve())),
-						Effect.tap(() => Effect.promise(() => release.promise)),
-					),
-				)
-				.pipe(Effect.forkChild);
-			yield* Effect.promise(() => locked.promise);
+			const releaseRollover = yield* holdLock(
+				openQuotaPeriod({
+					quotaPoolId: pool.id,
+				}),
+			);
 			const reserving = yield* reserveForAppRequest({
 				organizationId: fixture.organization.id,
 				userId: fixture.user.id,
 				providerId: fixture.provider.id,
+				modelId: null,
 				appRequestId: `quota_${crypto.randomUUID()}`,
-				maxExpectedProviderRequests: 1,
-				messages: [],
-			}).pipe(Effect.forkChild);
+				maxRequests: 1,
+				inputTokens: 0,
+			}).pipe(
+				Effect.flatMap(({ reservationKey }) =>
+					periodOfReservation(reservationKey),
+				),
+				Effect.forkChild,
+			);
 			yield* awaitLockWaiters("%quota_pool%for no key update%");
-			release.resolve();
-			yield* Fiber.join(rollover);
-			const { reservation } = yield* Fiber.join(reserving);
+			yield* releaseRollover;
 			return {
-				reservation,
+				reservedOn: yield* Fiber.join(reserving),
 				periods: yield* periodsOf(pool.id),
 			};
 		}),
@@ -267,7 +278,9 @@ test("a reservation that resolved its pool before the reset lands on the new per
 
 	const open = periods.find((period) => period.status === "open");
 	expect(periods).toHaveLength(2);
-	expect(reservation?.periodId).toBe(open?.id);
+	expect(open).toMatchObject({
+		id: reservedOn,
+	});
 });
 
 test("pools are drawn on in the documented order, the first only", async () => {
@@ -402,7 +415,7 @@ test("a pool whose rollover fails leaves the others rolled over", async () => {
 	]);
 });
 
-/** Runs `change` to the pool in a transaction held open until `waiters` wait on the pool. */
+/** Runs `waiting` while a change to the pool is not yet committed, then commits it. */
 const heldPoolChange = <A>(
 	quotaPoolId: QuotaPoolId,
 	change: Partial<typeof dbSchema.quotaPool.$inferInsert>,
@@ -410,25 +423,15 @@ const heldPoolChange = <A>(
 ) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const changed = Promise.withResolvers<void>();
-		const release = Promise.withResolvers<void>();
-		const holding = yield* db
-			.transaction(() =>
-				db
-					.update(dbSchema.quotaPool)
-					.set(change)
-					.where(eq(dbSchema.quotaPool.id, quotaPoolId))
-					.pipe(
-						Effect.tap(() => Effect.sync(() => changed.resolve())),
-						Effect.tap(() => Effect.promise(() => release.promise)),
-					),
-			)
-			.pipe(Effect.forkChild);
-		yield* Effect.promise(() => changed.promise);
+		const commit = yield* holdLock(
+			db
+				.update(dbSchema.quotaPool)
+				.set(change)
+				.where(eq(dbSchema.quotaPool.id, quotaPoolId)),
+		);
 		const waiter = yield* Effect.forkChild(waiting);
 		yield* awaitLockWaiters("%quota_pool%for no key update%");
-		release.resolve();
-		yield* Fiber.join(holding);
+		yield* commit;
 		return yield* Fiber.join(waiter);
 	});
 
@@ -468,21 +471,22 @@ test("a pool deactivated after the call resolved it takes no reservation", async
 				{
 					isActive: false,
 				},
-				reserveForAppRequest({
+				reserveDenial({
 					organizationId: fixture.organization.id,
 					userId: fixture.user.id,
 					providerId: fixture.provider.id,
+					modelId: null,
 					appRequestId: `quota_${crypto.randomUUID()}`,
-					maxExpectedProviderRequests: 1,
-					messages: [],
+					maxRequests: 1,
+					inputTokens: 0,
 				}),
 			);
 		}),
 	);
 
-	expect(result).toEqual({
-		allowed: false,
-		denialReason: "no_pool",
+	expect(result).toMatchObject({
+		_tag: "QuotaDeniedError",
+		reason: "QUOTA_POOL_UNAVAILABLE",
 	});
 });
 
@@ -529,34 +533,32 @@ test.each([
 		const second = await runtime.runPromise(
 			Effect.gen(function* () {
 				const fixture = yield* organizationWithProvider();
-				yield* fixture.createPool({});
+				const { pool } = yield* fixture.createPool({});
 				const reserve = reserveForAppRequest({
 					organizationId: fixture.organization.id,
 					userId: fixture.user.id,
 					providerId: fixture.provider.id,
+					modelId: null,
 					appRequestId: `quota_${crypto.randomUUID()}`,
-					maxExpectedProviderRequests: 1,
-					messages: [],
+					maxRequests: 1,
+					inputTokens: 0,
 				});
-				const { reservation } = yield* reserve;
-				if (!reservation) {
-					return yield* Effect.die("the first call was refused");
-				}
+				const { reservationKey } = yield* reserve;
 
 				// The settle locks the ledger first, then writes an event of the period.
 				const held = yield* heldLedger(
-					reservation.poolId,
-					settle === "finalize"
-						? finalizeAppRequestQuota({
-								reservation,
-								steps: [
-									{},
-								],
-							})
-						: releaseAppRequestQuota({
-								reservation,
-								reason: "provider_failure",
-							}),
+					pool.id,
+					settleQuotaReservation({
+						reservationKey,
+						steps:
+							settle === "finalize"
+								? [
+										{},
+									]
+								: [],
+						reason: "provider_failure",
+						prices: null,
+					}),
 				);
 				const reserving = yield* Effect.forkChild(reserve);
 				yield* held.finish;
@@ -564,7 +566,7 @@ test.each([
 			}),
 		);
 
-		expect(second.allowed).toBe(true);
+		expect(second.reservedAmount).toBe(1);
 	},
 );
 
@@ -602,23 +604,35 @@ test("a reservation that waits past the end of its period lands on the next", as
 			};
 			const clock = yield* shiftedClock(offset);
 
-			const held = yield* heldLedger(pool.id, Effect.void);
+			const releaseLedger = yield* holdLock(
+				db
+					.select()
+					.from(dbSchema.quotaLedger)
+					.where(eq(dbSchema.quotaLedger.quotaPoolId, pool.id))
+					.for("update"),
+			);
 			const reserving = yield* reserveForAppRequest({
 				organizationId: fixture.organization.id,
 				userId: fixture.user.id,
 				providerId: fixture.provider.id,
+				modelId: null,
 				appRequestId: `quota_${crypto.randomUUID()}`,
-				maxExpectedProviderRequests: 1,
-				messages: [],
-			}).pipe(Effect.provideService(Clock.Clock, clock), Effect.forkChild);
+				maxRequests: 1,
+				inputTokens: 0,
+			}).pipe(
+				Effect.flatMap(({ reservationKey }) =>
+					periodOfReservation(reservationKey),
+				),
+				Effect.provideService(Clock.Clock, clock),
+				Effect.forkChild,
+			);
 			yield* awaitLockWaiters("%quota_ledger%for update%");
 			// The period ends while the reservation waits.
 			offset.ms = 120_000;
-			yield* held.finish;
-			const { reservation } = yield* Fiber.join(reserving);
+			yield* releaseLedger;
 			return {
 				ended: period.id,
-				reservedOn: reservation?.periodId,
+				reservedOn: yield* Fiber.join(reserving),
 				periods: yield* periodsOf(pool.id),
 			};
 		}),

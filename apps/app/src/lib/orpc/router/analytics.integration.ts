@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { type MeterStep, startMeteredCall } from "@orcai/ai";
+import { type MeterStep, meteredStep } from "@orcai/ai";
 import type {
 	BotId,
 	ChatId,
@@ -8,6 +8,7 @@ import type {
 	OrganizationRole,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { startMeteredCall } from "@orcai/quota";
 import type {
 	AnalyticsDays,
 	ChatMessageRating,
@@ -191,10 +192,12 @@ const meteredOrganization = async (
 					userId: params.actor.user.id,
 					...(params.on ?? model),
 					botId: params.botId,
-					maxSteps: params.steps.length,
-					messages: [],
+					maxRequests: params.steps.length,
+					inputTokens: 0,
 				});
-				for (const step of params.steps) meter.step(step);
+				for (const step of params.steps) {
+					yield* meter.record(meteredStep(step));
+				}
 				yield* meter.settle("completed");
 				if (params.daysAgo) {
 					yield* (yield* DB)

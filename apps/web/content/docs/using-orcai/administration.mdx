@@ -123,19 +123,30 @@ wins over pools covering all models. Between pools of the same scope, the
 higher priority wins, then the older pool. If no pool covers someone, they cannot chat with that
 provider's models.
 
-Each reply reserves its likely cost before the model runs and is charged what
+Each call reserves its likely cost before the model runs and is charged what
 it used once it ends. With requests metering a reply reserves one request per
 step it may take, 25 in chat and 20 in the OrcAI Assistant, or what the pool
 has left when that is less. A reply starts while at least one request remains,
 gets as many steps as it reserved, and answers on the last of them, so it never
 uses more than the pool has. With tokens metering the pool needs the whole
-estimate remaining: the prompt plus the chat's max tokens, or 16,384 tokens
-when the chat sets none, or the model's max output tokens when that is
-smaller.
+estimate of one request remaining: the prompt with the chat's instructions,
+tools and attachments, plus the chat's max tokens, or 16,384 tokens when the
+chat sets none, or the model's max output tokens when that is smaller. Titles,
+summaries, metadata and image descriptions reserve their own output limit, or
+else the model's max output tokens, or else 4,096 tokens. A reply that takes
+several steps can use more than it reserved, and it is charged all it used.
 
-A call runs for at most 30 minutes. A reservation still open 35 minutes after
-it was made, such as one left by a server that stopped mid-reply, is released
-by the workers within five minutes.
+A call is charged the usage its provider reported for each finished request,
+also when it was stopped or failed after one. A request cut off in the middle
+reports nothing and is not charged, so usage is best-effort and not
+guaranteed to be exact. A web search through a search provider counts one
+request once it answers, also when it found nothing.
+
+A call runs for at most 30 minutes, and OrcAI stores each finished request
+with its reservation while it runs. A reservation still open 35 minutes after
+it was made, such as one left by a server that stopped mid-reply, is settled
+by the workers within five minutes. It is charged the requests stored with it
+and shows as Settled, or it is released when none had finished.
 
 **View pool** opens `/app/quota-pools/<pool id>`, with the current period's
 budget, consumed, reserved and remaining amounts, **Adjust budget** (raising
@@ -143,7 +154,9 @@ the budget frees the remaining budget straight away), the eligible groups
 with their description, type and member count, and the usage events. The
 usage events table covers every period, newest first, and filters by user and
 event type: Reserved when a call starts, Settled with the amount it actually
-used, Released when a reservation is given back, and Failed when the call failed.
+used, Released when a reservation is given back, and Failed when the provider
+failed. A stopped call that finished no request, or one that never ran, shows
+Released only.
 As in Analytics, people who have left the organisation and bots you cannot
 open stay unnamed, and the user search finds current members only.
 **Edit pool** opens `/app/quota-pools/<pool id>/edit`.

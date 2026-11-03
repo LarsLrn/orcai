@@ -14,7 +14,7 @@ export {
 	shouldGenerateChatTitle,
 } from "./chat-title";
 export { countTokens } from "./count-tokens";
-export { AiError, QuotaDeniedError } from "./errors";
+export { AiError } from "./errors";
 export {
 	type EmbeddingConnection,
 	EmbeddingTestError,
@@ -31,12 +31,7 @@ export {
 } from "./image-description";
 export { jsonAnswerModel } from "./json-answer";
 export { generateTextWithQuota } from "./metered/generate-text-with-quota";
-export {
-	type Meter,
-	type MeteredCallOutcome,
-	type MeterStep,
-	startMeteredCall,
-} from "./metered/meter";
+export { type MeterStep, meteredStep } from "./metered/metered-step";
 export {
 	decryptApiKey,
 	EncryptionKey,

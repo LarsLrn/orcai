@@ -5,7 +5,6 @@ import {
 	assetMetadataOutput,
 	assetMetadataPrompt,
 	generateTextWithQuota,
-	QuotaDeniedError,
 	readAssetMetadata,
 	type UtilityModel,
 	utilityModel,
@@ -116,10 +115,6 @@ const documentSuggestion = (params: {
 			model: params.model.language,
 			system: instructions,
 			prompt,
-			reservationMessages: [
-				instructions,
-				prompt,
-			],
 			output: assetMetadataOutput,
 			maxOutputTokens: ASSET_METADATA_MAX_OUTPUT_TOKENS,
 			reasoning: utilityReasoning(params.model.kind),
@@ -129,6 +124,14 @@ const documentSuggestion = (params: {
 				error instanceof AiError
 					? modelCallFailure(error, ASSET_METADATA_MAX_OUTPUT_TOKENS)
 					: error,
+			),
+			Effect.catchTag("QuotaDeniedError", (denied) =>
+				Effect.fail(
+					new AssetPipelineError({
+						failure: "quota",
+						cause: denied,
+					}),
+				),
 			),
 		);
 		return readAssetMetadata(output);
@@ -424,30 +427,19 @@ const generateClaimed = (
 			);
 		}
 
-		const suggestion = yield* (
-			isImageFileType(fileType)
-				? imageSuggestion({
-						job,
-						owner,
-						model,
-						extraction,
-					})
-				: documentSuggestion({
-						job,
-						owner,
-						model,
-						extraction,
-					})
-		).pipe(
-			Effect.mapError((error) =>
-				error instanceof QuotaDeniedError
-					? new AssetPipelineError({
-							failure: "quota",
-							cause: error,
-						})
-					: error,
-			),
-		);
+		const suggestion = yield* isImageFileType(fileType)
+			? imageSuggestion({
+					job,
+					owner,
+					model,
+					extraction,
+				})
+			: documentSuggestion({
+					job,
+					owner,
+					model,
+					extraction,
+				});
 
 		yield* store(job.data, suggestion);
 	});

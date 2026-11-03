@@ -46,10 +46,6 @@ export const generateChatTitle = ({ model, ...params }: TitleRequest) =>
 			system,
 			prompt,
 			...titleCallSettings(model.kind),
-			reservationMessages: [
-				system,
-				prompt,
-			],
 			timeoutMs: TITLE_GENERATION_TIMEOUT_MS,
 		});
 

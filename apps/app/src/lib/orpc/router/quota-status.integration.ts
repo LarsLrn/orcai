@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { type MeterStep, startMeteredCall } from "@orcai/ai";
+import { type MeterStep, meteredStep } from "@orcai/ai";
 import type { ModelId, ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { startMeteredCall } from "@orcai/quota";
 import { createOrganization, createUser, rejection } from "@orcai/testing";
 import * as Effect from "effect/Effect";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
@@ -149,10 +150,10 @@ const quotaOrganization = async () => {
 					organizationId,
 					userId: actor.user.id,
 					...covered,
-					maxSteps: 1,
-					messages: [],
+					maxRequests: 1,
+					inputTokens: 0,
 				});
-				meter.step(usage(totalTokens));
+				yield* meter.record(meteredStep(usage(totalTokens)));
 				yield* meter.settle("completed");
 			}),
 		);

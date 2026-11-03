@@ -86,6 +86,15 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 				},
 				cause: error,
 			});
+		// The cause stays in the server's log.
+		case ErrorTags.QUOTA_UNAVAILABLE:
+		case ErrorTags.QUOTA_WRITE_FAILED:
+			return new ORPCError("SERVICE_UNAVAILABLE", {
+				data: {
+					reason: "QUOTA_CHECK_FAILED",
+				},
+				cause: error,
+			});
 		case ErrorTags.VALIDATION:
 			return new ORPCError("BAD_REQUEST", {
 				data: {},

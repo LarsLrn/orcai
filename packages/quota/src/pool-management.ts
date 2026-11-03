@@ -9,6 +9,7 @@ import type {
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { type QuotaWriteFailedError, writeFailed } from "./errors";
 import {
 	createQuotaPoolWithInitialPeriod,
 	updateQuotaPoolBudget,
@@ -133,7 +134,9 @@ const validateGroupAssignments = (params: {
 
 export const createQuotaPool: (
 	params: CreateQuotaPoolParams,
-) => Effect.Effect<WriteQuotaPoolResult, unknown, DB> = (params) =>
+) => Effect.Effect<WriteQuotaPoolResult, QuotaWriteFailedError, DB> = (
+	params,
+) =>
 	Effect.gen(function* () {
 		const provider = yield* selectOrganizationProvider({
 			organizationId: params.organizationId,
@@ -187,11 +190,13 @@ export const createQuotaPool: (
 			status: "ok",
 			pool: created.pool,
 		} satisfies WriteQuotaPoolResult;
-	});
+	}).pipe(writeFailed("The quota pool could not be created."));
 
 export const updateQuotaPool: (
 	params: UpdateQuotaPoolParams,
-) => Effect.Effect<WriteQuotaPoolResult, unknown, DB> = (params) =>
+) => Effect.Effect<WriteQuotaPoolResult, QuotaWriteFailedError, DB> = (
+	params,
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
@@ -449,13 +454,15 @@ export const updateQuotaPool: (
 			status: "ok",
 			pool: finalPool,
 		} satisfies WriteQuotaPoolResult;
-	});
+	}).pipe(writeFailed("The quota pool could not be updated."));
 
 export const deactivateQuotaPool: (params: {
 	organizationId: OrganizationId;
 	actorUserId: UserId;
 	id: QuotaPoolId;
-}) => Effect.Effect<WriteQuotaPoolResult, unknown, DB> = (params) =>
+}) => Effect.Effect<WriteQuotaPoolResult, QuotaWriteFailedError, DB> = (
+	params,
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const now = new Date();
@@ -509,4 +516,4 @@ export const deactivateQuotaPool: (params: {
 			status: "ok",
 			pool,
 		} satisfies WriteQuotaPoolResult;
-	});
+	}).pipe(writeFailed("The quota pool could not be deactivated."));

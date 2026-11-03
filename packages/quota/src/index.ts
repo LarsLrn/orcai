@@ -8,24 +8,21 @@ export {
 	memberQuotaScopes,
 	type QuotaScope,
 } from "./coverage";
+export { recoverStaleQuotaReservations } from "./enforcement";
 export {
-	finalizeAppRequestQuota,
-	releaseAppRequestQuota,
-	reserveForAppRequest,
-} from "./enforcement";
+	QuotaDeniedError,
+	QuotaUnavailableError,
+	QuotaWriteFailedError,
+} from "./errors";
+export { charTokens, promptTokens } from "./estimator";
+export { createQuotaPoolWithInitialPeriod } from "./ledger";
 export {
-	estimateQuotaReservationAmount,
-	reservedOutputTokens,
-} from "./estimator";
-export {
-	createQuotaPoolWithInitialPeriod,
-	finalizeQuotaLedger,
-	findReservedQuotaEvent,
-	releaseQuotaLedger,
-	releaseStaleQuotaReservations,
-	reserveQuotaLedger,
-	updateQuotaPoolBudget,
-} from "./ledger";
+	type MeteredCall,
+	type MeteredCallOutcome,
+	meteredCall,
+	QuotaRetry,
+	startMeteredCall,
+} from "./metered-call";
 export {
 	getUtcPeriodBounds,
 	listExpiredOpenQuotaPeriods,

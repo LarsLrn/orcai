@@ -12,6 +12,7 @@ import {
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { QdrantLive } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
+import { QuotaUnavailableError } from "@orcai/quota";
 import {
 	type PipelineFailure,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
@@ -261,6 +262,40 @@ describe("processing failures", () => {
 			expect(await processingOf(asset.id)).toEqual({
 				status: "failed",
 				failure: "extraction",
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"of a quota that cannot be read retry, unlike a refused one",
+		async () => {
+			const { asset } = await seedLink();
+			const queue = await pipelineQueue<ProcessAssetPayload>({
+				attempt: (data) =>
+					settleProcessingAttempt(
+						processingAttempt(data),
+						Effect.fail(
+							new QuotaUnavailableError({
+								message: "The quota could not be read.",
+								cause: new Error("connection refused"),
+							}),
+						),
+					),
+				exhausted: markProcessingExhausted,
+				retryLimit: 1,
+			});
+
+			await queue.send(processPayload(asset));
+			await until(
+				async () => (await processingOf(asset.id)).status === "failed",
+				"the asset to fail",
+			);
+
+			expect(queue.attempts()).toBe(2);
+			expect(await processingOf(asset.id)).toEqual({
+				status: "failed",
+				failure: "other",
 			});
 		},
 		TIMEOUT,

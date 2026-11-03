@@ -1,11 +1,5 @@
 import { context as otelContext } from "@opentelemetry/api";
-import {
-	AiError,
-	type Meter,
-	type MeteredCallOutcome,
-	type MeterStep,
-	startMeteredCall,
-} from "@orcai/ai";
+import { AiError, type MeterStep, meteredStep } from "@orcai/ai";
 import {
 	type BotId,
 	type ChatId,
@@ -14,6 +8,12 @@ import {
 } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import { withActiveSpan } from "@orcai/observability";
+import {
+	type MeteredCall,
+	type MeteredCallOutcome,
+	promptTokens,
+	startMeteredCall,
+} from "@orcai/quota";
 import type {
 	AiChatInput,
 	ChatMessageMetadata,
@@ -101,7 +101,7 @@ type TurnStreamOptions = {
 	maxSteps: number;
 	promptTokens: number | undefined;
 	replyId: ChatMessageId;
-	onStepEnd: (step: MeterStep) => void;
+	onStepEnd: (step: MeterStep) => Promise<void>;
 	onEnd: (event: {
 		responseMessage: UIMessage<StreamedMetadata>;
 		outcome: UIMessageStreamOutcome;
@@ -333,16 +333,17 @@ const buildAgent = ({
 	};
 };
 
+/** Reserves one request of the fitted prompt, its instructions and tools included, for each step. */
 const meterTurn = ({
 	setup,
 	input,
 	replyId,
-	messages,
+	fit,
 }: {
 	setup: TurnSetup;
 	input: TurnInput;
 	replyId: ChatMessageId;
-	messages: ChatAgentUIMessage[];
+	fit: PromptFit;
 }) =>
 	startMeteredCall({
 		appRequestId: replyId,
@@ -351,9 +352,9 @@ const meterTurn = ({
 		providerId: setup.providerId,
 		modelId: setup.modelId,
 		botId: setup.botId,
-		maxSteps: setup.maxSteps,
+		maxRequests: setup.maxSteps,
 		maxOutputTokens: setup.callSettings.maxOutputTokens,
-		messages,
+		inputTokens: fit.requestTokens + promptTokens(fit.messages),
 	});
 
 /**
@@ -394,6 +395,7 @@ const fitPrompt = ({
 		}
 		return {
 			...fit,
+			requestTokens: request,
 			promptTokens: setup.compaction.native ? undefined : fit.stepTokens,
 		};
 	});
@@ -403,11 +405,7 @@ type PromptFit = Effect.Success<ReturnType<typeof fitPrompt>>;
 const meteredOutcome = (
 	status: UIMessageStreamOutcome["status"],
 ): MeteredCallOutcome =>
-	status === "failed"
-		? "failed"
-		: status === "completed"
-			? "completed"
-			: "aborted";
+	status === "failed" || status === "completed" ? status : "cancelled";
 
 /** The part our own summary is streamed as, ahead of the agent's parts. */
 const SUMMARY_PART_ID = "summary";
@@ -439,7 +437,7 @@ const streamTurn = ({
 	/** What the fit read, attachments included. */
 	prompt: ChatAgentUIMessage[];
 	fit: PromptFit;
-	meter: Meter;
+	meter: MeteredCall;
 	operation: string;
 }) =>
 	Effect.gen(function* () {
@@ -562,12 +560,10 @@ const streamTurn = ({
 				uiMessages: sent.messages,
 				originalMessages: originalMessages as UIMessage<ChatMessageMetadata>[],
 				abortSignal: stop,
-				maxSteps: meter.maxSteps,
+				maxSteps: meter.maxRequests,
 				promptTokens: sent.promptTokens,
 				replyId,
-				onStepEnd: (step) => {
-					meter.step(step);
-				},
+				onStepEnd: (step) => run(meter.record(meteredStep(step))),
 				onEnd: ({ responseMessage, outcome }) =>
 					run(
 						store
@@ -821,7 +817,7 @@ export const startTurn = (
 			setup,
 			input,
 			replyId,
-			messages: fit.messages,
+			fit,
 		});
 
 		return yield* Effect.gen(function* () {
@@ -922,7 +918,7 @@ export const continueTurn = (
 			setup,
 			input,
 			replyId: input.replyId,
-			messages: unclaimedFit.messages,
+			fit: unclaimedFit,
 		});
 
 		return yield* Effect.gen(function* () {
