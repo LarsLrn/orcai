@@ -23,6 +23,7 @@ export const createAccountUser = async (params: {
 	label: string;
 	/** Client whose active organisation the user joins; it sends the invitation. */
 	admin: ApiClient;
+	initialTour?: "skipped" | "unseen";
 }): Promise<AccountUser> => {
 	const name = `E2E Account ${params.label}`;
 	const email = `account-${params.label}-${runId()}@${EMAIL_DOMAIN}`;
@@ -34,6 +35,7 @@ export const createAccountUser = async (params: {
 		name,
 		email,
 		password: USER_PASSWORD,
+		initialTour: params.initialTour,
 	});
 
 	const api = createApiClient(params.baseURL, session.cookieHeader);

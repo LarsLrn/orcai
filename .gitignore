@@ -9,6 +9,7 @@ node_modules/
 /apps/e2e/test-results
 /apps/app/scripts/prompt-evals/results
 /apps/e2e/playwright-report
+/reports
 
 # TanStack Start / Vite
 .tanstack

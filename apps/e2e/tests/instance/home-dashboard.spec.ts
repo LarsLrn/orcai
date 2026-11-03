@@ -30,11 +30,6 @@ test("home: long bot and catalogue names wrap inside a phone screen", async ({
 }) => {
 	const created = await orgs.create(`E2E Home Phone ${runId()}`);
 	const admin = api.as("admin", created);
-	// The initial tour's modal would cover the dashboard.
-	await admin.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const botNames = [
 		longName(runId()),
 		longName(runId()),

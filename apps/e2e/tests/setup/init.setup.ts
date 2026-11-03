@@ -6,7 +6,7 @@ import {
 } from "../../fixtures/constants";
 import { baseURL } from "../../fixtures/env";
 import { submitForm } from "../../fixtures/forms";
-import { expect, test } from "../../fixtures/index";
+import { expect, signIn, test } from "../../fixtures/index";
 import { INFERENCE_MOCK_MODELS } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
@@ -135,4 +135,13 @@ test("points the embedding endpoint of a reused instance at the inference mock",
 		"The embedding endpoint is the inference mock already",
 	);
 	await pointEmbeddingsAtMock(page);
+});
+
+// Specs enter the app as the well-known admin, and the tour's card would cover it.
+test("the well-known admin has skipped the initial tour", async () => {
+	const admin = await signIn(baseURL(), WELL_KNOWN_ADMIN);
+	await createApiClient(baseURL(), admin.cookieHeader).user.setTourState({
+		tourId: "initialTour",
+		state: "skipped",
+	});
 });

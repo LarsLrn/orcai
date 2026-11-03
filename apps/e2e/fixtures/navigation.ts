@@ -242,32 +242,6 @@ const activateOverApi = async (
 	return true;
 };
 
-/**
- * Skip the initial tour, whose modal card blocks the page. The skip is
- * remembered for the user; the card opens once the user's preferences have
- * loaded, hence the bounded wait.
- */
-const skipInitialTour = async (page: Page): Promise<void> => {
-	const skip = page.getByRole("button", {
-		name: message("tour_card_skip_button"),
-	});
-
-	const appeared = await skip
-		.waitFor({
-			state: "visible",
-			timeout: 3_000,
-		})
-		.then(() => true)
-		.catch(() => false);
-
-	if (!appeared) {
-		return;
-	}
-
-	await skip.click();
-	await expect(skip).toHaveCount(0);
-};
-
 /** Enter an organisation through the picker, or the API when its card is not listed. */
 export const enterApp = async (
 	page: Page,
@@ -305,7 +279,6 @@ export const enterApp = async (
 	});
 
 	await awaitHydration(page);
-	await skipInitialTour(page);
 
 	// The membership the sign-up hook granted announces itself in no response, so
 	// both the listing and the user menu are retried until they name it.

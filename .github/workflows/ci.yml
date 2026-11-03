@@ -121,8 +121,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The integration tier runs once, on shard 1. Only the pipeline job
-        # runs the background workers.
+        # The integration tier runs once, on shard 1. The serial instance
+        # specs run once, in their own job, and only the pipeline job runs the
+        # background workers.
         include:
           - shard: 1/3
             args: -- --shard=1/3
@@ -130,6 +131,8 @@ jobs:
             args: --no-integration -- --shard=2/3
           - shard: 3/3
             args: --no-integration -- --shard=3/3
+          - shard: instance
+            args: --no-integration -- --project=instance
           - shard: pipeline
             args: --pipeline --no-integration
     steps:
@@ -166,6 +169,15 @@ jobs:
         env:
           CI: true
           NODE_OPTIONS: --max-old-space-size=4096
+          E2E_NO_INSTANCE: ${{ contains(matrix.shard, '/') && '1' || '' }}
+
+      - name: Upload test durations
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-durations-${{ strategy.job-index }}
+          path: reports
+          retention-days: 30
 
       - name: Upload Playwright report
         if: failure()

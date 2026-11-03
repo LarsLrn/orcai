@@ -3,17 +3,10 @@ import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
 test("home: an admin of an unfinished organisation can open Use and still lands on Manage by default", async ({
-	api,
 	orgs,
 	pageAs,
 }) => {
 	const fresh = await orgs.create("E2E Home Navigation");
-	// The initial tour's modal would cover the tabs.
-	await api.as("admin", fresh).user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
-
 	const admin = await pageAs("admin", fresh);
 	await enterApp(admin, fresh.slug);
 	await open(admin, "/app");
