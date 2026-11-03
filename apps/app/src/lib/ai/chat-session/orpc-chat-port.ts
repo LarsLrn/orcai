@@ -1,11 +1,11 @@
 import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
-import type { QueryClient } from "@tanstack/react-query";
+import { hashKey, type QueryClient } from "@tanstack/react-query";
 import { isTextUIPart } from "ai";
 import { toChatAgentMessages } from "@/components/chat/chat-history";
-import { staleDataOf } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getChatMessageAttachments } from "@/lib/ai/types/chat-attachment";
 import { client, orpc } from "@/lib/orpc/orpc";
+import { staleQueriesOfWrites } from "@/lib/orpc/stale-queries";
 import type { ChatPage, ChatPort } from "./chat-session";
 
 /** A `chatMessage.list` result as a page with its cursor. */
@@ -20,26 +20,33 @@ export const chatPageOf = (page: {
 	hasMore: page.hasMore,
 });
 
-/** What a finished turn may have changed: the chat list and title, the quota, and data its tools wrote. */
+/** What a finished turn may have changed: the chat list and title, the quota, and what its tools wrote. */
 const invalidateAfterTurn = async (
 	queryClient: QueryClient,
 	variant: "chat" | "assistant",
 	message: ChatAgentUIMessage,
 ) => {
-	const namespaces = [
-		orpc.chat,
-		orpc.quota.status,
-		...(variant === "assistant"
-			? [
-					orpc.assistant,
-				]
-			: []),
-		...staleDataOf(message).map((namespace) => orpc[namespace]),
-	];
+	const queryKeys = new Map(
+		[
+			orpc.chat.key(),
+			orpc.quota.status.key(),
+			...(variant === "assistant"
+				? [
+						orpc.assistant.key(),
+					]
+				: []),
+			...staleQueriesOfWrites(orpc, message.metadata?.writes ?? []),
+		].map((queryKey) => [
+			hashKey(queryKey),
+			queryKey,
+		]),
+	);
 	await Promise.all(
-		namespaces.map((namespace) =>
+		[
+			...queryKeys.values(),
+		].map((queryKey) =>
 			queryClient.invalidateQueries({
-				queryKey: namespace.key(),
+				queryKey,
 				refetchType: "active",
 			}),
 		),

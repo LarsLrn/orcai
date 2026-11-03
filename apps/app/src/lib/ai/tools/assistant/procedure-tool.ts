@@ -82,8 +82,8 @@ export const expectType =
 
 /**
  * Calls a procedure as the user, reading at least at the turn's newest
- * zedToken beside the request's, and keeps the zedToken its output carries.
- * The turn's calls run one at a time.
+ * zedToken beside the request's, and keeps the zedToken its output carries
+ * and what it wrote. The turn's calls run one at a time.
  */
 export const callProcedure = <A, E>(
 	{ context, turn }: AssistantToolDeps,
@@ -100,6 +100,7 @@ export const callProcedure = <A, E>(
 					meta: {
 						...context.meta,
 						turnZedToken: zedToken,
+						turnWrites: turn.writes,
 					},
 				},
 			}),

@@ -6,7 +6,6 @@ import type {
 	KeptUploads,
 } from "@orcai/schema";
 import type { ChatStatus, InferUITools, UIMessageChunk } from "ai";
-import { staleDataOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import type { ChatPhase, ClientToolName } from "@/lib/ai/turn-view/turn-view";
 import type {
@@ -114,6 +113,10 @@ export const phaseOf = (status: ChatStatus, storing: boolean): ChatPhase => {
 			return "idle";
 	}
 };
+
+/** Whether the reply's turns wrote something the server keeps a zedToken for. */
+const wrote = (reply: ChatAgentUIMessage) =>
+	(reply.metadata?.writes?.length ?? 0) > 0;
 
 const STORE_POLL_MS = 250;
 const STORE_POLL_ATTEMPTS = 40;
@@ -396,22 +399,22 @@ export class ChatSession {
 	}) {
 		this.#zedToken = message.metadata?.zedToken ?? this.#zedToken;
 		const cutOff = isAbort || isDisconnect || isError;
-		const wrote = staleDataOf(message).length > 0;
 		if (!cutOff) {
 			this.#answerZedToken = undefined;
 		}
-		if (cutOff || wrote) {
+		let reply = message;
+		if (cutOff || wrote(message)) {
 			this.#setStoring(true);
 			try {
-				// A finished stream closes after the reply is stored; any other ending may still be saving.
-				if (cutOff) await this.#adoptStored(message.id);
-				if (wrote) {
+				// A finished stream closes after the reply is stored; any other ending may still be saving, and only the stored reply lists every write.
+				if (cutOff) reply = (await this.#adoptStored(message.id)) ?? message;
+				if (wrote(reply)) {
 					// A failed handover only leaves the next reads less fresh.
 					await this.#port
 						.recordWrites({
 							chatId: this.#chatId,
 							messageId: message.id,
-							zedToken: message.metadata?.zedToken,
+							zedToken: reply.metadata?.zedToken,
 						})
 						.catch(() => undefined);
 				}
@@ -420,7 +423,7 @@ export class ChatSession {
 			}
 		}
 		await this.#adoptStoredAttachments().catch(() => undefined);
-		await this.#port.turnEnded(message);
+		await this.#port.turnEnded(reply);
 	}
 
 	/** Takes over the attachments the server stored with the question, which record what it could read of each file. */
@@ -453,6 +456,7 @@ export class ChatSession {
 	/**
 	 * Waits until the server settled the reply, filled in or dropped, and shows
 	 * it as stored, so the next turn's context and the reply's notices match.
+	 * Returns the stored reply, if one was found.
 	 */
 	async #adoptStored(id: ChatMessageId) {
 		for (let attempt = 0; attempt < STORE_POLL_ATTEMPTS; attempt++) {
@@ -472,7 +476,7 @@ export class ChatSession {
 								current.id === id ? reply : current,
 							)
 						: this.chat.messages.filter((current) => current.id !== id);
-					return;
+					return reply;
 				}
 			} catch {
 				// Retried until the attempts run out.

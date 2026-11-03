@@ -371,4 +371,55 @@ describe("updateBotTool", () => {
 			`REPOSITORY_BLOCK_TYPE_INVALID: No repository with id ${otherBehaviourId}.`,
 		);
 	});
+
+	test("its saves stay recorded for the turn when a later read fails the tool", async () => {
+		const modelId = crypto.randomUUID() as ModelId;
+		answers["botSetup.save"] = () =>
+			Effect.succeed({
+				data: {
+					model: {
+						id: modelId,
+						name: "Tutor model",
+						providerId: crypto.randomUUID() as ProviderId,
+						usable: true,
+					},
+					strength: "required",
+					generation: {},
+				},
+			});
+		answers["botSetup.coverage"] = () =>
+			Effect.die(new Error("connection reset"));
+		const turn = createAssistantTurn({
+			zedToken: undefined,
+		});
+
+		await expect(
+			updateBotTool({
+				context: {} as ORPCContext,
+				turn,
+			}).execute?.(
+				{
+					id: botId,
+					setup: {
+						modelId,
+						strength: "required",
+						generation: {},
+					},
+				},
+				{
+					toolCallId: "update",
+					messages: [],
+				} as never,
+			),
+		).rejects.toThrow();
+		expect(turn.writes.all()).toEqual([
+			{
+				path: "bot.save",
+				listBlockIds: [],
+			},
+			{
+				path: "botSetup.save",
+			},
+		]);
+	});
 });

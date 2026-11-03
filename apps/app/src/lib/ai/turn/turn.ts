@@ -49,6 +49,7 @@ import {
 	type AssistantTurn,
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
+import { mergeTurnWrites } from "@/lib/ai/tools/assistant/turn-writes";
 import { toolKindOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
@@ -454,6 +455,24 @@ const streamTurn = ({
 
 		const { sources } = agent;
 		const continued = messages.find(({ id }) => id === replyId);
+		// A continuation adds to what the turns before it wrote.
+		const continuedWrites =
+			(continued?.metadata as ChatMessageMetadata | undefined)?.writes ?? [];
+		const turnWrites = () =>
+			mergeTurnWrites(continuedWrites, assistantTurn?.writes.all() ?? []);
+		let streamedWrites = continuedWrites.length;
+		/** Every write so far, once a call wrote since the client last got them. */
+		const changedWrites = () => {
+			const writes = turnWrites();
+			if (writes.length === streamedWrites) {
+				return undefined;
+			}
+			streamedWrites = writes.length;
+
+			return {
+				writes,
+			};
+		};
 		// What the reply may cite in: what a continued reply wrote, then what streams.
 		let citable = citableText(continued?.parts ?? []);
 		// What the client holds: it merges each streamed set into the reply's metadata.
@@ -500,6 +519,7 @@ const streamTurn = ({
 			const { citations: _, ...streamed } = metadata ?? {};
 			const settled = withoutContinuationClaim(streamed);
 			const citations = sources.citations(citableText(parts));
+			const writes = turnWrites();
 
 			return {
 				// A turn that produced nothing leaves no reply.
@@ -510,6 +530,9 @@ const streamTurn = ({
 						citations,
 					}),
 					...writtenZedToken(),
+					...(writes.length > 0 && {
+						writes,
+					}),
 				},
 			} satisfies ReplyContent;
 		};
@@ -525,6 +548,68 @@ const streamTurn = ({
 				},
 			);
 
+		const partMetadata = (
+			part: TextStreamPart<ToolSet>,
+			sent: PromptFit,
+		): StreamedMetadata | undefined => {
+			if (part.type === "text-start") {
+				citable += "\n";
+			}
+			if (part.type === "text-delta") {
+				citable += part.text;
+				return part.text.includes(">") ? changedCitations() : undefined;
+			}
+			// A call's sources can make a cited ref ambiguous.
+			if (part.type === "tool-result") {
+				return changedCitations();
+			}
+			if (
+				part.type === "tool-call" &&
+				toolKindOf({
+					type: `tool-${part.toolName}`,
+				}) === "display"
+			) {
+				citable += `\n${displayCallText(part.input)}`;
+				return changedCitations();
+			}
+			if (part.type === "abort" && timeLimitReached) {
+				return {
+					timeLimitReached: true,
+				};
+			}
+			if (part.type === "finish-step") {
+				return {
+					model: part.response.modelId,
+					...(part.usage.totalTokens !== undefined && {
+						contextTokens: part.usage.totalTokens,
+					}),
+					// Lets the client read what the turn wrote, such as the names on its cards.
+					...writtenZedToken(),
+				};
+			}
+			if (part.type === "finish") {
+				const citations = citationChanges();
+				return {
+					totalUsage: part.totalUsage,
+					...(citations && {
+						citations,
+					}),
+					...(contextWindow !== null && {
+						contextWindow,
+					}),
+					contextEstimate: sent.estimate,
+					...(sent.trimmed && {
+						historyTrimmed: true,
+					}),
+					// Explicit, so a finished continuation clears what the paused reply said.
+					stepLimitReached: part.finishReason === "tool-calls" && meter.spent(),
+					contextLimitReached: agent.contextFull(),
+					timeLimitReached: false,
+					interrupted: part.finishReason === "interrupted",
+				};
+			}
+		};
+
 		const streamAgent = (
 			sent: PromptFit,
 			originalMessages: ChatAgentUIMessage[],
@@ -537,8 +622,10 @@ const streamTurn = ({
 				promptTokens: sent.promptTokens,
 				replyId,
 				onStepEnd: (step) => run(meter.record(meteredStep(step))),
-				onEnd: ({ responseMessage, outcome }) =>
-					run(
+				onEnd: async ({ responseMessage, outcome }) => {
+					// A stopped stream ends before the calls it started, and a change runs to its end.
+					await assistantTurn?.writes.settled();
+					return run(
 						store
 							.settle({
 								chatId: input.chatId,
@@ -554,7 +641,8 @@ const streamTurn = ({
 								Effect.andThen(meter.settle(meteredOutcome(outcome.status))),
 								Effect.andThen(Effect.suspend(logCollisions)),
 							),
-					),
+					);
+				},
 				// Also called for every failed tool call, whose error text it returns.
 				onError: (error) => {
 					void run(
@@ -565,64 +653,17 @@ const streamTurn = ({
 					);
 					return streamErrorText(error);
 				},
+				// A write reaches the client with the next part, also when the turn then fails or stops.
 				messageMetadata: (part) => {
-					if (part.type === "text-start") {
-						citable += "\n";
-					}
-					if (part.type === "text-delta") {
-						citable += part.text;
-						return part.text.includes(">") ? changedCitations() : undefined;
-					}
-					// A call's sources can make a cited ref ambiguous.
-					if (part.type === "tool-result") {
-						return changedCitations();
-					}
-					if (
-						part.type === "tool-call" &&
-						toolKindOf({
-							type: `tool-${part.toolName}`,
-						}) === "display"
-					) {
-						citable += `\n${displayCallText(part.input)}`;
-						return changedCitations();
-					}
-					if (part.type === "abort" && timeLimitReached) {
-						return {
-							timeLimitReached: true,
-						};
-					}
-					if (part.type === "finish-step") {
-						return {
-							model: part.response.modelId,
-							...(part.usage.totalTokens !== undefined && {
-								contextTokens: part.usage.totalTokens,
-							}),
-							// Lets the client read what the turn wrote, such as the names on its cards.
-							...writtenZedToken(),
-						};
-					}
-					if (part.type === "finish") {
-						const citations = citationChanges();
-						return {
-							totalUsage: part.totalUsage,
-							...(citations && {
-								citations,
-							}),
-							...(contextWindow !== null && {
-								contextWindow,
-							}),
-							contextEstimate: sent.estimate,
-							...(sent.trimmed && {
-								historyTrimmed: true,
-							}),
-							// Explicit, so a finished continuation clears what the paused reply said.
-							stepLimitReached:
-								part.finishReason === "tool-calls" && meter.spent(),
-							contextLimitReached: agent.contextFull(),
-							timeLimitReached: false,
-							interrupted: part.finishReason === "interrupted",
-						};
-					}
+					const metadata = partMetadata(part, sent);
+					const writes = changedWrites();
+
+					return writes
+						? {
+								...metadata,
+								...writes,
+							}
+						: metadata;
 				},
 			});
 

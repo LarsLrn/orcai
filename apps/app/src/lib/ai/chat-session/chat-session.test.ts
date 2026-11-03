@@ -4,6 +4,7 @@ import type {
 	ContinueChatInput,
 	KeepUploadsInput,
 	KeptUploads,
+	TurnWrite,
 } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import type { UIMessageChunk } from "ai";
@@ -132,6 +133,11 @@ const reply = (
 	},
 ];
 
+const botSaved: TurnWrite = {
+	path: "bot.save",
+	listBlockIds: [],
+};
+
 /** A reply whose `createBot` call wrote, at the turn's zedToken. */
 const writingReply = (id: string, zedToken: string): UIMessageChunk[] => [
 	{
@@ -159,6 +165,14 @@ const writingReply = (id: string, zedToken: string): UIMessageChunk[] => [
 			type: "bot",
 			id: "bot-1",
 			name: "Tutor",
+		},
+	},
+	{
+		type: "message-metadata",
+		messageMetadata: {
+			writes: [
+				botSaved,
+			],
 		},
 	},
 	{
@@ -418,6 +432,52 @@ describe("ChatSession", () => {
 		expect(calls.find).toHaveLength(2);
 		expect(chat.phase).toBe("idle");
 		expect(calls.turnEnded).toHaveLength(1);
+	});
+
+	test("a stopped reply records the writes only the stored reply lists, and refreshes for them", async () => {
+		const turn = replyStream();
+		const stored = {
+			...message("reply-1", "assistant", [
+				text("Saved"),
+			]),
+			metadata: {
+				zedToken: "zed-stored",
+				writes: [
+					botSaved,
+				],
+			},
+		};
+		const { port, calls } = fakePort({
+			replies: [
+				() => turn.stream,
+			],
+			stored: [
+				stored,
+			],
+		});
+		const chat = session(port);
+		const sent = chat.send({
+			text: "Save the bot",
+		});
+		await tick();
+		turn.push(...reply("reply-1", "Saved").slice(0, 4));
+		await tick();
+
+		await chat.stop();
+		await sent;
+
+		expect(calls.recordWrites).toEqual([
+			{
+				chatId,
+				messageId: "reply-1" as ChatMessageId,
+				zedToken: "zed-stored",
+			},
+		]);
+		expect(calls.turnEnded.map((ended) => ended.metadata?.writes)).toEqual([
+			[
+				botSaved,
+			],
+		]);
 	});
 
 	test("a failed turn that left no reply stops storing at once", async () => {
