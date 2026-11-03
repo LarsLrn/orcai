@@ -6,27 +6,32 @@ import {
 	callProcedure,
 	effectTool,
 } from "../procedure-tool";
-import { listLimitSchema, listQuerySchema } from "./list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	listQuerySchema,
+	PAGING_NOTE,
+} from "./list-input";
 
 const findBlocksInputSchema = z.strictObject({
 	type: blockTypeSchema.describe(
 		"behaviour: the system prompt a bot follows. repository: assets a bot searches to answer from.",
 	),
 	query: listQuerySchema,
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 export const findBlocksTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"Find behaviours or repositories by name: published ones the user can read and drafts they can edit. Without a query it lists them all, newest first.",
+		description: `Find behaviours or repositories by name among the published ones the user can read and the drafts they can edit, newest first. Without a query it pages through all of them. ${PAGING_NOTE}`,
 		inputSchema: findBlocksInputSchema,
-		run: ({ type, query, limit }) =>
+		run: ({ type, query, page }) =>
 			Effect.gen(function* () {
 				const blocks = yield* callProcedure(deps, (procedures, options) =>
 					procedures.block.list(
 						{
-							pageSize: limit,
+							...listPage(page),
 							filters: {
 								type,
 								status: "all",
@@ -45,7 +50,7 @@ export const findBlocksTool = (deps: AssistantToolDeps) =>
 						status: block.status,
 						canEdit: block.capabilities.edit === true,
 					})),
-					total: blocks.rowCount,
+					...listPaging(page, blocks.rowCount),
 				};
 			}),
 	});

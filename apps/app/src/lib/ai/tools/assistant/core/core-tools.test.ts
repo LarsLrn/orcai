@@ -5,6 +5,7 @@ import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import { LIST_PAGE_SIZE } from "./list-input";
 
 const { findBotsTool } = await import("./find-bots");
 const { getBotTool } = await import("./get-bot");
@@ -91,17 +92,17 @@ describe("findBots", () => {
 	];
 
 	beforeEach(() => {
-		answers["bot.list"] = (input: { pageSize: number }) =>
+		answers["bot.list"] = () =>
 			Effect.succeed({
-				data: found.slice(0, input.pageSize),
-				rowCount: 6,
+				data: found,
+				rowCount: 3,
 			});
 	});
 
 	test("lists published bots and drafts in one page with its total", async () => {
 		const output = await run(findBotsTool(deps()), {
 			query: "citation",
-			limit: 20,
+			page: 1,
 		});
 
 		expect(output).toEqual({
@@ -113,13 +114,16 @@ describe("findBots", () => {
 				canEdit: entry.capabilities.edit,
 				favourite: entry.isFavourite,
 			})),
-			total: 6,
+			total: 3,
+			hasMore: false,
+			nextPage: null,
 		});
 		expect(procedureCalls).toEqual([
 			{
 				procedure: "bot.list",
 				input: {
-					pageSize: 20,
+					pageIndex: 0,
+					pageSize: LIST_PAGE_SIZE,
 					search: "citation",
 					filters: {
 						status: "all",
@@ -129,20 +133,42 @@ describe("findBots", () => {
 		]);
 	});
 
-	test("forwards a smaller limit", async () => {
-		const output = await run(findBotsTool(deps()), {
-			limit: 2,
-		});
-
-		expect(output.bots).toHaveLength(2);
-		expect(procedureCalls.map((call) => call.input)).toEqual([
+	test("pages to the end of a list larger than one page", async () => {
+		const library = Array.from(
 			{
-				pageSize: 2,
-				filters: {
-					status: "all",
-				},
+				length: LIST_PAGE_SIZE * 2 + 3,
 			},
-		]);
+			(_, index) => bot(`Bot ${index}`, "ready", false),
+		);
+		answers["bot.list"] = (input: { pageIndex: number; pageSize: number }) =>
+			Effect.succeed({
+				data: library.slice(
+					input.pageIndex * input.pageSize,
+					(input.pageIndex + 1) * input.pageSize,
+				),
+				rowCount: library.length,
+			});
+
+		const seen: string[] = [];
+		let page: number | null = 1;
+		while (page !== null) {
+			const output: {
+				bots: {
+					id: string;
+				}[];
+				total: number;
+				hasMore: boolean;
+				nextPage: number | null;
+			} = await run(findBotsTool(deps()), {
+				page,
+			});
+			expect(output.total).toBe(library.length);
+			seen.push(...output.bots.map((entry) => entry.id));
+			page = output.hasMore ? output.nextPage : null;
+		}
+
+		expect(seen).toEqual(library.map((entry) => entry.id));
+		expect(procedureCalls).toHaveLength(3);
 	});
 });
 
@@ -389,7 +415,7 @@ describe("findBlocks", () => {
 		const output = await run(findBlocksTool(deps()), {
 			type: "repository",
 			query: "sources",
-			limit: 10,
+			page: 2,
 		});
 
 		expect(output).toEqual({
@@ -410,10 +436,13 @@ describe("findBlocks", () => {
 				},
 			],
 			total: 4,
+			hasMore: false,
+			nextPage: null,
 		});
 		expect(procedureCalls.map((call) => call.input)).toEqual([
 			{
-				pageSize: 10,
+				pageIndex: 1,
+				pageSize: LIST_PAGE_SIZE,
 				filters: {
 					type: "repository",
 					status: "all",
@@ -452,7 +481,7 @@ describe("findAssets", () => {
 
 		const output = await run(findAssetsTool(deps()), {
 			repositoryId,
-			limit: 1,
+			page: 1,
 		});
 
 		expect(output).toEqual({
@@ -466,12 +495,15 @@ describe("findAssets", () => {
 				},
 			],
 			total: 7,
+			hasMore: false,
+			nextPage: null,
 		});
 		expect(procedureCalls).toEqual([
 			{
 				procedure: "asset.list",
 				input: {
-					pageSize: 1,
+					pageIndex: 0,
+					pageSize: LIST_PAGE_SIZE,
 					filters: {
 						search: undefined,
 						repositoryId,

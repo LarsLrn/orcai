@@ -2,13 +2,8 @@ import type { OrganizationInvitationId } from "@orcai/core";
 import { organizationInvitationIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import {
-	type AssistantToolDeps,
-	callProcedure,
-	effectTool,
-	expectType,
-	mutation,
-} from "../procedure-tool";
+import { deleteNamed } from "../named-delete";
+import { type AssistantToolDeps, effectTool } from "../procedure-tool";
 
 const cancelInvitationInputSchema = z.strictObject({
 	ids: z
@@ -18,65 +13,39 @@ const cancelInvitationInputSchema = z.strictObject({
 		.describe("Ids of the invitations to withdraw, from listInvitations."),
 });
 
-/** The organisation's newest invitations; withdrawing an older one leaves its email unnamed. */
-const INVITATION_LOOKUP_LIMIT = 1000;
-
-/** Emails are read before the invitations are gone, so the summary can still show them. */
 export const cancelInvitations = (
 	deps: AssistantToolDeps,
 	ids: OrganizationInvitationId[],
 ) =>
-	Effect.gen(function* () {
-		const unique = [
-			...new Set(ids),
-		];
-		const emails = yield* callProcedure(deps, (procedures, options) =>
-			procedures.organizationInvitation.list(
+	deleteNamed(deps, ids, {
+		type: "invitation",
+		find: (id, procedures, options) =>
+			procedures.organizationInvitation.find(
 				{
-					pageSize: INVITATION_LOOKUP_LIMIT,
+					id,
 				},
 				options,
 			),
-		).pipe(
-			Effect.map(
-				({ data }) =>
-					new Map(
-						data.map((invitation) => [
-							invitation.id,
-							invitation.email,
-						]),
-					),
-			),
-			Effect.orElseSucceed(() => new Map<string, string>()),
-		);
-
-		yield* callProcedure(deps, (procedures, options) =>
+		name: ({ data }) => data.email,
+		verify: "listInvitations",
+		remove: (ids, procedures, options) =>
 			procedures.organizationInvitation.delete(
 				{
-					refs: unique.map((id) => ({
+					refs: ids.map((id) => ({
 						id,
 					})),
 				},
 				options,
 			),
-		).pipe(
-			mutation("listInvitations"),
-			expectType(
-				"invitation",
-				unique.some((id) => !emails.has(id))
-					? unique.filter((id) => !emails.has(id))
-					: unique,
-			),
-		);
-
-		return {
-			withdrawn: unique.map((id) => ({
-				type: "invitation" as const,
+	}).pipe(
+		Effect.map(({ deleted }) => ({
+			withdrawn: deleted.map(({ type, id, name }) => ({
+				type,
 				id,
-				email: emails.get(id),
+				email: name,
 			})),
-		};
-	});
+		})),
+	);
 
 export const cancelInvitationTool = (deps: AssistantToolDeps) =>
 	effectTool({

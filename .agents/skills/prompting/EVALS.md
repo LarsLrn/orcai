@@ -48,7 +48,7 @@ Cases live in `apps/app/scripts/prompt-evals/cases/`. The part of an id before t
 
 | Area | Checks |
 | --- | --- |
-| `assistant` | Tool routing: asking with `askUser` before a plan and creating only after its approval, starting work once the plan is approved, a behaviour written in Markdown, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, declining off-topic questions. |
+| `assistant` | Tool routing: asking with `askUser` before a plan and creating only after its approval, starting work once the plan is approved, a behaviour written in Markdown, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, paging a list tool when the answer needs every item and not for a count, reading every page before a change to all of them, declining off-topic questions. |
 | `terms` | Answers use no word GLOSSARY.md lists under _Avoid_ ("knowledge base", "template", "chunk" and the like), and say Published for the `ready` status. |
 | `language` | The answer's language follows the user, unless the behaviour sets one, with and without a behaviour. |
 | `retrieval` | `<cite chunk>` with only the refs given, also when the behaviour asks for footnotes, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |

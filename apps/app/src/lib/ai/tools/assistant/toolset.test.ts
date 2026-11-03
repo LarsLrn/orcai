@@ -73,7 +73,7 @@ describe("buildAssistantTools", () => {
 		expect(
 			await asSchema(tools.findBots?.inputSchema).validate?.({
 				query: `${" ".repeat(101)}bot`,
-				limit: 20,
+				page: 1,
 			}),
 		).toMatchObject({
 			success: true,

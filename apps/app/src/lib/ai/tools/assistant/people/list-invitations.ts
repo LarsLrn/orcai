@@ -1,7 +1,12 @@
 import { organizationInvitationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { listLimitSchema } from "../core/list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	PAGING_NOTE,
+} from "../core/list-input";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -10,19 +15,18 @@ import {
 
 const listInvitationsInputSchema = z.strictObject({
 	status: organizationInvitationStatusSchema.default("pending"),
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 export const listInvitationsTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"List the invitations of the active organisation, newest first. A pending invitation past its expiry can no longer be accepted.",
+		description: `List the invitations of the active organisation with one status, pending unless you pass another, newest first. A pending invitation past its expiry can no longer be accepted. ${PAGING_NOTE}`,
 		inputSchema: listInvitationsInputSchema,
-		run: ({ status, limit }) =>
+		run: ({ status, page }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.organizationInvitation.list(
 					{
-						pageSize: limit,
+						...listPage(page),
 						filters: {
 							status,
 						},
@@ -42,7 +46,7 @@ export const listInvitationsTool = (deps: AssistantToolDeps) =>
 							expiresAt: invitation.expiresAt.toISOString(),
 							expired: invitation.expiresAt.getTime() < now,
 						})),
-						total: rowCount,
+						...listPaging(page, rowCount),
 					};
 				}),
 			),

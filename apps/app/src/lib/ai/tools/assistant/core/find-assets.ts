@@ -6,7 +6,13 @@ import {
 	callProcedure,
 	effectTool,
 } from "../procedure-tool";
-import { listLimitSchema, listQuerySchema } from "./list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	listQuerySchema,
+	PAGING_NOTE,
+} from "./list-input";
 
 const findAssetsInputSchema = z.strictObject({
 	query: listQuerySchema.describe(
@@ -20,19 +26,18 @@ const findAssetsInputSchema = z.strictObject({
 		.describe(
 			"library: Library assets only, the ones a repository accepts. chat: chat uploads only. Leave out for both.",
 		),
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 export const findAssetsTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"Find assets by title among those the user can read, optionally only those in one repository. Without a query it lists them all, newest first. Each comes with its preparation state (processingStatus) and where it is kept (keptIn). An asset with keptIn chat is a chat upload, which stays out of repositories until someone adds it to the Library.",
+		description: `Find assets by title among those the user can read, optionally only those in one repository, newest first. Without a query it pages through all of them. Each comes with its preparation state (processingStatus) and where it is kept (keptIn). An asset with keptIn chat is a chat upload, which stays out of repositories until someone adds it to the Library. ${PAGING_NOTE}`,
 		inputSchema: findAssetsInputSchema,
-		run: ({ query, repositoryId, keptIn, limit }) =>
+		run: ({ query, repositoryId, keptIn, page }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.asset.list(
 					{
-						pageSize: limit,
+						...listPage(page),
 						filters: {
 							search: query,
 							repositoryId,
@@ -50,7 +55,7 @@ export const findAssetsTool = (deps: AssistantToolDeps) =>
 						keptIn: asset.keptIn,
 						canEdit: asset.capabilities.edit === true,
 					})),
-					total: rowCount,
+					...listPaging(page, rowCount),
 				})),
 			),
 	});

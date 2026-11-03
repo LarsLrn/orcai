@@ -622,7 +622,7 @@ describe("sharing an added resource", () => {
 					{
 						...s.entry.bot,
 						principalType: "user",
-						limit: 50,
+						pageSize: 50,
 					},
 					options,
 				),

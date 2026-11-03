@@ -60,7 +60,7 @@ const PrincipalPicker = ({
 }: PrincipalPickerProps) => {
 	const [debouncedQuery] = useDebounceValue(query, 300);
 	const principals = useShareablePrincipals(resourceRef, debouncedQuery, {
-		limit: 30,
+		pageSize: 30,
 		principalType,
 	});
 

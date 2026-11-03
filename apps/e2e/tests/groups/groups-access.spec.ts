@@ -274,7 +274,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 		resourceId,
 		principalType: "group",
 		query: name,
-		limit: 25,
+		pageSize: 25,
 	});
 	expect(principals.data.map((principal) => String(principal.id))).toContain(
 		String(groupId),
@@ -324,7 +324,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 		resourceId,
 		principalType: "group",
 		query: name,
-		limit: 25,
+		pageSize: 25,
 	});
 	expect(remaining.data.map((principal) => String(principal.id))).toContain(
 		String(groupId),
@@ -348,7 +348,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 		resourceId: outsiderBlock.data.id,
 		principalType: "group",
 		query: name,
-		limit: 25,
+		pageSize: 25,
 	});
 	expect(
 		outsiderPrincipals.data.map((principal) => String(principal.id)),
@@ -360,7 +360,7 @@ test("groups: listPrincipals and listGrants reflect the group grants", async ({
 		resourceType: "block",
 		resourceId: outsiderBlock.data.id,
 		principalType: "group",
-		limit: 25,
+		pageSize: 25,
 	});
 	expect(
 		outsiderAllMembers.data.some(
@@ -499,7 +499,7 @@ test("groups: the principal list leaves out whoever already holds a grant", asyn
 				resourceType: "block",
 				resourceId,
 				principalType,
-				limit: 100,
+				pageSize: 100,
 				excludeGranted: true,
 			})
 		).data.map((principal) => String(principal.id));

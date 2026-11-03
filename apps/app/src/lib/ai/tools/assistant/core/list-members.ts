@@ -5,7 +5,12 @@ import {
 	callProcedure,
 	effectTool,
 } from "../procedure-tool";
-import { listLimitSchema } from "./list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	PAGING_NOTE,
+} from "./list-input";
 
 const listMembersInputSchema = z.strictObject({
 	query: z
@@ -14,19 +19,18 @@ const listMembersInputSchema = z.strictObject({
 		.max(100)
 		.optional()
 		.describe("Part of the name or email to search for, case-insensitive."),
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 export const listMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"List the members of the active organisation with their names, emails and organisation roles. Use it to find the user id the people tools take.",
+		description: `List the members of the active organisation with their names, emails and organisation roles, newest first. Use it to find the user id the people tools take. ${PAGING_NOTE}`,
 		inputSchema: listMembersInputSchema,
-		run: ({ query, limit }) =>
+		run: ({ query, page }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.organizationMember.list(
 					{
-						pageSize: limit,
+						...listPage(page),
 						filters: {
 							search: query,
 						},
@@ -41,7 +45,7 @@ export const listMembersTool = (deps: AssistantToolDeps) =>
 						email: user.email,
 						organizationRole: user.organizationRole,
 					})),
-					total: rowCount,
+					...listPaging(page, rowCount),
 				})),
 			),
 	});

@@ -1,6 +1,11 @@
 import { listGroupMembersInputSchema as groupMembersQuerySchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { listLimitSchema } from "../core/list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	PAGING_NOTE,
+} from "../core/list-input";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -17,22 +22,21 @@ const listGroupMembersInputSchema = groupMembersQuerySchema
 		query: groupMembersQuerySchema.shape.query.describe(
 			"Part of the name or email to search for, case-insensitive.",
 		),
-		limit: listLimitSchema,
+		page: listPageSchema,
 	})
 	.strict();
 
 export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"List the members of a group. The All members group holds every member of the organisation, with source implicit.",
+		description: `List the members of a group, sorted by name. The All members group holds every member of the organisation, with source implicit. ${PAGING_NOTE}`,
 		inputSchema: listGroupMembersInputSchema,
-		run: ({ groupId, query, limit }) =>
+		run: ({ groupId, query, page }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.group.listMembers(
 					{
 						groupId,
 						query,
-						pageSize: limit,
+						...listPage(page),
 					},
 					options,
 				),
@@ -45,7 +49,7 @@ export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 						email: row.user.email,
 						source: row.source,
 					})),
-					total: rowCount,
+					...listPaging(page, rowCount),
 				})),
 			),
 	});

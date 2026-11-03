@@ -4,6 +4,7 @@ import type {
 	ListOrganizationInvitationsInput,
 	OrganizationInvitationSortKey,
 } from "@orcai/schema";
+import { checkEntityPermission } from "@orcai/spice-db";
 import {
 	and,
 	count,
@@ -122,25 +123,42 @@ const listMyOrganizationInvitations =
 		);
 	});
 
+/** Its recipient and inviter see an invitation, and so does whoever may invite to the active organisation. */
 const findOrganizationInvitation = authed.organizationInvitation.find.effect(
 	function* ({ input, context }) {
 		const db = yield* DB;
+		const { activeOrganizationId } = context.auth.session;
+		const findIn = (scope: SQL | undefined) =>
+			db
+				.select({
+					...getColumns(dbSchema.invitation),
+				})
+				.from(dbSchema.invitation)
+				.where(and(eq(dbSchema.invitation.id, input.id), scope))
+				.limit(1);
 
-		const [invitation] = yield* db
-			.select({
-				...getColumns(dbSchema.invitation),
-			})
-			.from(dbSchema.invitation)
-			.where(
-				and(
-					eq(dbSchema.invitation.id, input.id),
-					or(
-						invitationAddressedTo(context.auth.user.email),
-						eq(dbSchema.invitation.inviterId, context.auth.user.id),
-					),
-				),
-			)
-			.limit(1);
+		const [own] = yield* findIn(
+			or(
+				invitationAddressedTo(context.auth.user.email),
+				eq(dbSchema.invitation.inviterId, context.auth.user.id),
+			),
+		);
+		const inActiveOrganization = Effect.gen(function* () {
+			if (!activeOrganizationId) return undefined;
+			const invites = yield* checkEntityPermission({
+				entityType: "organization",
+				entityId: activeOrganizationId,
+				permission: "invite_members",
+				userId: context.auth.user.id,
+				zedToken: readRevision(context),
+			});
+			if (!invites) return undefined;
+			const [invitation] = yield* findIn(
+				eq(dbSchema.invitation.organizationId, activeOrganizationId),
+			);
+			return invitation;
+		});
+		const invitation = own ?? (yield* inActiveOrganization);
 
 		return yield* Effect.fromNullishOr(invitation).pipe(
 			Effect.mapError(

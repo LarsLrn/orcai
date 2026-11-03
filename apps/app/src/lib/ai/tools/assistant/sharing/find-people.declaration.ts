@@ -28,7 +28,7 @@ export const findPeople = declareTool<typeof findPeopleTool>()({
 
 		return output
 			? m.assistant_tool_find_people_summary_found({
-					count: output.count,
+					count: output.total,
 					resource,
 				})
 			: m.assistant_tool_find_people_summary({

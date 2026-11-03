@@ -111,7 +111,7 @@ describe("authorization reads at an input token", () => {
 				tool.execute?.(
 					{
 						status: "pending",
-						limit: 10,
+						page: 1,
 					},
 					{
 						toolCallId: "list-invitations",
