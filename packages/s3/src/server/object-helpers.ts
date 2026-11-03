@@ -7,7 +7,7 @@ import {
 	sendListObjectsCommand,
 } from "./commands";
 import { S3Error } from "./errors";
-import { createBucketIfNotExists } from "./upload-validation";
+import { ensureBuckets } from "./service";
 
 /** Every object under `prefix`, across all pages of the listing. */
 export const listObjects = ({
@@ -42,7 +42,7 @@ export const deletePrefixRecursively = ({
 	prefix: string;
 }) =>
 	Effect.gen(function* () {
-		yield* createBucketIfNotExists(bucket);
+		yield* ensureBuckets;
 
 		const objects = yield* listObjects({
 			bucket,

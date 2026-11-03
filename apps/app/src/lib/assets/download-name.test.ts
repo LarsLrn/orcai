@@ -58,6 +58,32 @@ describe("downloadName", () => {
 		);
 	});
 
+	test("replaces characters Windows refuses in file names", () => {
+		expect(downloadName(asset('Q3: "final" <draft>?.pdf', "Q3", "pdf"))).toBe(
+			"Q3- -final- -draft-.pdf",
+		);
+	});
+
+	test("drops trailing dots and spaces", () => {
+		expect(downloadName(asset("report.pdf. . ", "Report", "pdf"))).toBe(
+			"report.pdf",
+		);
+		expect(downloadName(asset(null, "Handbook...", "pdf"))).toBe(
+			"Handbook.pdf",
+		);
+	});
+
+	test("escapes Windows device names with or without an extension", () => {
+		expect(downloadName(asset("CON.pdf", "Report", "pdf"))).toBe("_CON.pdf");
+		expect(downloadName(asset("lpt9", "Report", "pdf"))).toBe("_lpt9.pdf");
+		expect(downloadName(asset(null, "Aux.tar.gz", "pdf"))).toBe(
+			"_Aux.tar.gz.pdf",
+		);
+		expect(downloadName(asset("console.pdf", "Report", "pdf"))).toBe(
+			"console.pdf",
+		);
+	});
+
 	test("falls back to the title when the uploaded name leaves nothing", () => {
 		expect(downloadName(asset("..", "Handbook", "pdf"))).toBe("Handbook.pdf");
 		expect(downloadName(asset("\u202E", "Handbook", "pdf"))).toBe(

@@ -7,7 +7,7 @@ import {
 	sendPutBucketLifecycleConfigurationCommand,
 } from "./commands";
 import { getS3Code } from "./errors";
-import { createBucketIfNotExists } from "./upload-validation";
+import { ensureBuckets } from "./service";
 
 /** Staged uploads no asset was created from, and abandoned multipart uploads. */
 export const UPLOAD_LIFECYCLE_RULES = [
@@ -37,7 +37,7 @@ const MANAGED_RULE_IDS = new Set<string>([
 
 /** Idempotent: puts these rules on the uploads bucket, drops retired ones and keeps any other rule. */
 export const ensureUploadLifecycle = Effect.gen(function* () {
-	yield* createBucketIfNotExists(buckets.main.name);
+	yield* ensureBuckets;
 	const current = yield* sendGetBucketLifecycleConfigurationCommand({
 		bucket: buckets.main.name,
 	}).pipe(

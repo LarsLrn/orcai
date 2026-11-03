@@ -1,4 +1,4 @@
-import { UPLOAD_ROUTES } from "@orcai/s3";
+import { mimeTypesFor, UPLOAD_ROUTES } from "@orcai/s3";
 
 export const COOKIES = {
 	ZED_TOKEN: {
@@ -16,12 +16,15 @@ export const CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH = 20_000;
 /** The image bytes one turn sends the model, newest messages first. */
 export const CHAT_ATTACHMENT_MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 
-export const CHAT_ATTACHMENT_ACCEPT =
-	UPLOAD_ROUTES.chatAttachment.allowedMimePatterns.join(",");
+const CHAT_ATTACHMENT_MIME_TYPES = mimeTypesFor(
+	UPLOAD_ROUTES.chatAttachment.fileTypes,
+);
+
+export const CHAT_ATTACHMENT_ACCEPT = CHAT_ATTACHMENT_MIME_TYPES.join(",");
 
 /** The same types in the shape a drop zone takes. */
 export const CHAT_ATTACHMENT_DROP_ACCEPT = Object.fromEntries(
-	UPLOAD_ROUTES.chatAttachment.allowedMimePatterns.map((type) => [
+	CHAT_ATTACHMENT_MIME_TYPES.map((type) => [
 		type,
 		[],
 	]),

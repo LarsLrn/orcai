@@ -3,25 +3,24 @@ import { DB, dbSchema } from "@orcai/db";
 import { logErrorCause } from "@orcai/observability";
 import {
 	type ImageOwner,
+	imageKey,
 	imagePath,
 	parseImagePath,
 	UPLOAD_ROUTES,
 } from "@orcai/s3";
 import {
+	checkUpload,
+	claimStagedUpload,
 	isS3NotFound,
-	sendCopyObjectCommand,
 	sendDeleteObjectCommand,
 	sendGetObjectCommand,
 	sendHeadObjectCommand,
-	validateUploadEnvelope,
 } from "@orcai/s3/server";
 import type { UploadFileObject } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import * as AppErrors from "@/lib/effect/utils/errors";
-
-const IMAGE_TYPE = "image/webp";
 
 const ROUTE_BY_OWNER = {
 	user: "profileImage",
@@ -122,16 +121,11 @@ export const deleteImages = (paths: readonly (string | null)[]) =>
 		},
 	);
 
-const rejectUpload = (
-	rejection: ConstructorParameters<typeof AppErrors.BadRequestError>[0],
-) => Effect.fail(new AppErrors.BadRequestError(rejection));
-
 /**
- * Makes an upload the owner's picture or logo: checks the envelope against
- * `uploaderId` and the owner's route, checks the staged object is a WebP
- * within the route's size, copies it to a fresh key under `images/`, and
- * stores its path. The replaced image and the staged copy are deleted after
- * the swap. A retried call never rewrites a published key.
+ * Makes an upload the owner's picture or logo: checks the upload against
+ * `uploaderId` and the owner's route, claims the staged WebP under a fresh
+ * key below `images/`, and stores its path. The replaced image is deleted
+ * after the swap. A retried call never rewrites a published key.
  */
 export const setImage = (params: {
 	owner: ImageOwner;
@@ -139,77 +133,31 @@ export const setImage = (params: {
 	file: UploadFileObject;
 }) =>
 	Effect.gen(function* () {
-		const route = ROUTE_BY_OWNER[params.owner.kind];
-		const { maxFileSize } = UPLOAD_ROUTES[route];
-		const staged = yield* validateUploadEnvelope({
+		const upload = yield* checkUpload({
 			file: params.file,
-			route,
+			route: ROUTE_BY_OWNER[params.owner.kind],
 			userId: params.uploaderId,
-		}).pipe(
-			Effect.catchTag("S3Error", () =>
-				rejectUpload({
-					reason: "UPLOAD_REQUEST_INVALID",
-					message: "Invalid upload metadata.",
-				}),
-			),
-		);
-
-		const invalidType = rejectUpload({
-			reason: "UPLOAD_FILE_TYPE_INVALID",
-			params: {
-				fileName: params.file.name,
-				fileType: params.file.type,
-			},
-			message: "Images must be WebP.",
 		});
-		const tooLarge = rejectUpload({
-			reason: "UPLOAD_FILE_TOO_LARGE",
-			params: {
-				fileName: params.file.name,
-			},
-			message: "The image exceeds the allowed size.",
-		});
-		if (params.file.type !== IMAGE_TYPE) return yield* invalidType;
-		if (params.file.size > maxFileSize) return yield* tooLarge;
-
-		const head = yield* sendHeadObjectCommand({
-			bucket: staged.bucket,
-			key: staged.stagingKey,
-		}).pipe(
-			Effect.catchIf(isS3NotFound, () =>
-				rejectUpload({
-					reason: "UPLOAD_FILE_MISSING",
-					message: "The upload is missing.",
-				}),
-			),
-		);
-		if (head.ContentType !== IMAGE_TYPE) return yield* invalidType;
-		if ((head.ContentLength ?? 0) > maxFileSize) return yield* tooLarge;
-		if (head.ContentLength !== params.file.size)
-			return yield* rejectUpload({
-				reason: "UPLOAD_FILE_SIZE_MISMATCH",
-				message: "The upload does not match its declared size.",
-			});
-
-		const path = imagePath(params.owner, uuidv4());
-		const key = path.slice("/api/".length);
-		yield* sendCopyObjectCommand({
-			bucket: staged.bucket,
-			sourceKey: staged.stagingKey,
+		const id = uuidv4();
+		const key = imageKey(params.owner, id);
+		const path = imagePath(params.owner, id);
+		const previous = yield* claimStagedUpload(upload, {
 			key,
+			commit: replacePath(params.owner, path).pipe(
+				Effect.tapError(() => deleteObject(key, "Unused image not deleted")),
+			),
 		});
-
-		const previous = yield* replacePath(params.owner, path).pipe(
-			Effect.tapError(() => deleteObject(key, "Unused image not deleted")),
-		);
 
 		yield* deleteImages([
 			previous,
 		]);
-		yield* deleteObject(staged.stagingKey, "Staged image not deleted");
 
 		return path;
-	});
+	}).pipe(
+		Effect.catchTag("UploadRejected", (rejected) =>
+			Effect.fail(AppErrors.uploadRefused(rejected)),
+		),
+	);
 
 /** Clears the owner's picture or logo and deletes its object. */
 export const removeImage = (owner: ImageOwner) =>

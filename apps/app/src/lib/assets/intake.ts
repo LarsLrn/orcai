@@ -13,26 +13,21 @@ import {
 	releaseAdmission,
 	renewAdmission,
 } from "@orcai/preparation";
-import { getFileTypeFromMime, isMimeAllowed, UPLOAD_ROUTES } from "@orcai/s3";
 import {
-	isS3NotFound,
-	sendCopyObjectCommand,
-	sendDeleteObjectCommand,
-	sendHeadObjectCommand,
-	validateUploadEnvelope,
+	checkUpload,
+	claimStagedUpload,
+	UploadRejected,
 } from "@orcai/s3/server";
 import {
 	type Asset,
 	type AssetIntakeResult,
 	type AssetKeptIn,
 	type AssetUploadRoute,
-	assetFileTypeSchema,
 	assetIdSchema,
 	type ErrorReasonProps,
 	type UploadFileObject,
 } from "@orcai/schema";
 import { eq } from "drizzle-orm";
-import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
@@ -41,11 +36,6 @@ const KEPT_IN_BY_ROUTE = {
 	asset: "library",
 	chatAttachment: "chat",
 } as const satisfies Record<AssetUploadRoute, AssetKeptIn>;
-
-/** A file the intake refuses, with the reason the client translates. */
-class UploadRejected extends Data.TaggedError("UploadRejected")<{
-	readonly rejection: ErrorReasonProps;
-}> {}
 
 const reject = (rejection: ErrorReasonProps) =>
 	Effect.fail(
@@ -65,57 +55,6 @@ type Admission = {
 	runId: ActivityRunId;
 	leaseId: string;
 };
-
-/** Validates the file against the caller and the route and derives every coordinate. */
-const planUpload = (intake: Intake, file: UploadFileObject) =>
-	Effect.gen(function* () {
-		const coordinates = yield* validateUploadEnvelope({
-			file,
-			route: intake.route,
-			userId: intake.userId,
-		}).pipe(
-			Effect.catchTag("S3Error", () =>
-				reject({
-					reason: "UPLOAD_REQUEST_INVALID",
-				}),
-			),
-		);
-
-		const fileType = assetFileTypeSchema.safeParse(
-			getFileTypeFromMime(file.type),
-		);
-		const route = UPLOAD_ROUTES[intake.route];
-		if (
-			!fileType.success ||
-			!isMimeAllowed({
-				mimeType: file.type,
-				allowedMimePatterns: route.allowedMimePatterns,
-			})
-		) {
-			return yield* reject({
-				reason: "UPLOAD_FILE_TYPE_INVALID",
-				params: {
-					fileName: file.name,
-					fileType: file.type,
-				},
-			});
-		}
-
-		if (file.size > route.maxFileSize) {
-			return yield* reject({
-				reason: "UPLOAD_FILE_TOO_LARGE",
-				params: {
-					fileName: file.name,
-				},
-			});
-		}
-
-		return {
-			...coordinates,
-			id: assetIdSchema.parse(coordinates.id),
-			fileType: fileType.data,
-		};
-	});
 
 /**
  * The existing asset for a repeated upload: the owner gets it back, also as
@@ -151,36 +90,19 @@ const createAssetFromUpload = (
 	file: UploadFileObject,
 ) =>
 	Effect.gen(function* () {
-		const plan = yield* planUpload(intake, file);
+		const upload = yield* checkUpload({
+			file,
+			route: intake.route,
+			userId: intake.userId,
+		});
+		const id = assetIdSchema.parse(upload.id);
 
-		const existing = yield* findAsset(plan.id);
+		const existing = yield* findAsset(id);
 		if (existing) {
 			return yield* existingAsset(intake, existing, admission);
 		}
 
-		const staged = yield* sendHeadObjectCommand({
-			bucket: plan.bucket,
-			key: plan.stagingKey,
-		}).pipe(
-			Effect.catchIf(isS3NotFound, () =>
-				reject({
-					reason: "UPLOAD_FILE_MISSING",
-				}),
-			),
-		);
-		if (staged.ContentLength !== file.size) {
-			return yield* reject({
-				reason: "UPLOAD_FILE_SIZE_MISMATCH",
-			});
-		}
-
-		yield* sendCopyObjectCommand({
-			bucket: plan.bucket,
-			sourceKey: plan.stagingKey,
-			key: plan.key,
-		});
-
-		const { result: inserted } = yield* writeRelationships(
+		const insert = writeRelationships(
 			{
 				organizationIds: [
 					intake.organizationId,
@@ -191,14 +113,14 @@ const createAssetFromUpload = (
 				const [asset] = yield* db
 					.insert(dbSchema.asset)
 					.values({
-						id: plan.id,
+						id,
 						title: file.name,
 						fileName: file.name,
 						size: file.size,
-						fileType: plan.fileType,
+						fileType: upload.fileType,
 						keptIn: KEPT_IN_BY_ROUTE[intake.route],
-						bucket: plan.bucket,
-						prefix: plan.prefix,
+						bucket: upload.bucket,
+						prefix: upload.prefix,
 						userId: intake.userId,
 					})
 					.onConflictDoNothing({
@@ -237,26 +159,20 @@ const createAssetFromUpload = (
 				return (yield* findAsset(asset.id)) ?? asset;
 			}),
 		);
+		const { result: inserted } = yield* claimStagedUpload(upload, {
+			key: upload.key,
+			commit: insert,
+		});
 
 		// A concurrent call for the same upload inserted first.
 		if (!inserted) {
-			const winner = yield* findAsset(plan.id);
+			const winner = yield* findAsset(id);
 			return winner
 				? yield* existingAsset(intake, winner, admission)
 				: yield* reject({
 						reason: "UPLOAD_CREATE_FAILED",
 					});
 		}
-
-		// The lifecycle rule expires a staged copy left behind.
-		yield* sendDeleteObjectCommand({
-			bucket: plan.bucket,
-			key: plan.stagingKey,
-		}).pipe(
-			Effect.catchCause((cause) =>
-				logErrorCause("Staged upload not deleted", cause),
-			),
-		);
 
 		return inserted;
 	});

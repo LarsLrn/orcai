@@ -8,6 +8,7 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { reconcileLinkPoints, replaceIndexing } from "@orcai/preparation";
+import { assetObjectKey, processedAssetPrefix } from "@orcai/s3";
 import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
@@ -474,11 +475,11 @@ export const removeDeletedResourceData = (deleted: readonly DeletedData[]) =>
 					Effect.all([
 						sendDeleteObjectCommand({
 							bucket: asset.bucket,
-							key: `${asset.prefix}/${asset.id}.${asset.fileType}`,
+							key: assetObjectKey(asset),
 						}),
 						deletePrefixRecursively({
 							bucket: buckets.processed.name,
-							prefix: `${asset.id}/`,
+							prefix: processedAssetPrefix(asset.id),
 						}),
 					]),
 				{

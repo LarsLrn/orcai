@@ -37,6 +37,7 @@ import {
 	servedFilter,
 } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
+import { assetObjectKey } from "@orcai/s3";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	type PipelineFailure,
@@ -282,7 +283,7 @@ const seed = (
 							mimeType: "application/pdf",
 							format: "pdf",
 							sourceBucket: buckets.main.name,
-							sourcePath: `${asset.prefix}/${asset.id}.pdf`,
+							sourcePath: assetObjectKey(asset),
 						}),
 						images: [],
 						...extraction,

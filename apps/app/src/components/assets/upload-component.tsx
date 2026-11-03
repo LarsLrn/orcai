@@ -1,4 +1,4 @@
-import { ASSET_UPLOAD_ACCEPT } from "@orcai/s3/client";
+import { ASSET_UPLOAD_ACCEPT, UPLOAD_ROUTES } from "@orcai/s3";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { describeUploadFailures } from "@/components/assets/describe-upload-failures";
@@ -28,7 +28,7 @@ const UploadComponent = ({
 	description,
 	uploadLabel,
 	variant = "page",
-	maxFileCount = 100,
+	maxFileCount = UPLOAD_ROUTES.asset.maxFiles,
 	onPendingChange,
 	onCreated,
 }: {
@@ -101,11 +101,9 @@ const UploadComponent = ({
 				onValueChange={setFiles}
 				progresses={progresses}
 				maxFileCount={maxFileCount}
-				maxSize={64 * 1024 * 1024}
+				maxSize={UPLOAD_ROUTES.asset.maxFileSize}
 				multiple
-				accept={{
-					...ASSET_UPLOAD_ACCEPT,
-				}}
+				accept={ASSET_UPLOAD_ACCEPT}
 				disabled={isPending}
 			/>
 			<div className="mt-4 flex justify-end">

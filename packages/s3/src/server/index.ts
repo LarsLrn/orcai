@@ -1,7 +1,6 @@
 export {
 	sendAbortMultipartUploadCommand,
 	sendCompleteMultipartUploadCommand,
-	sendCopyObjectCommand,
 	sendCreateMultipartUploadCommand,
 	sendDeleteObjectCommand,
 	sendGetObjectCommand,
@@ -17,17 +16,19 @@ export {
 	listObjects,
 } from "./object-helpers";
 export { probeS3 } from "./probe";
-export { S3Live, S3Service } from "./service";
+export { ensureBuckets, S3Live, S3Service } from "./service";
 export { uploadStream } from "./stream-upload";
+export {
+	checkUpload,
+	checkUploadFile,
+	claimStagedUpload,
+	normalizeUploadId,
+	UploadRejected,
+} from "./upload-claim";
 export {
 	ensureUploadLifecycle,
 	UPLOAD_LIFECYCLE_RULES,
 } from "./upload-lifecycle";
-export {
-	createBucketIfNotExists,
-	normalizeUploadId,
-	validateUploadEnvelope,
-} from "./upload-validation";
 export {
 	getDownloadUrl,
 	getSignedPartUploadUrl,

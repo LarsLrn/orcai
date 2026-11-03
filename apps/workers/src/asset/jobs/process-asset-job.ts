@@ -16,7 +16,11 @@ import {
 	type StoredExtractionArtifact,
 	writeStoredExtraction,
 } from "@orcai/process";
-import { getMimeTypeFromFileType } from "@orcai/s3";
+import {
+	assetObjectKey,
+	getMimeTypeFromFileType,
+	processedAssetPrefix,
+} from "@orcai/s3";
 import {
 	deletePrefixRecursively,
 	sendPutObjectCommand,
@@ -24,9 +28,6 @@ import {
 import { isImageFileType, type ProcessAssetPayload } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { describeImages, imageMediaType } from "@/asset/image-descriptions";
-
-const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
-	`${assetRef.prefix}/${assetRef.id}.${assetRef.type}`;
 
 const getRequiredMimeType = (
 	fileType: ProcessAssetPayload["assetRef"]["type"],
@@ -143,11 +144,15 @@ const processDelivery = (params: {
 
 		yield* deletePrefixRecursively({
 			bucket: buckets.processed.name,
-			prefix: `${assetRef.id}/`,
+			prefix: processedAssetPrefix(assetRef.id),
 		});
 
 		const mimeType = yield* getRequiredMimeType(assetRef.type);
-		const objectKey = getAssetObjectKey(assetRef);
+		const objectKey = assetObjectKey({
+			prefix: assetRef.prefix,
+			id: assetRef.id,
+			fileType: assetRef.type,
+		});
 		const imageAsset = isImageFileType(assetRef.type);
 		const extracted = imageAsset
 			? createImageOnlyStoredExtractionArtifact({

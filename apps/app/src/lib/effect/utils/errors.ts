@@ -138,6 +138,17 @@ export const BadRequestError = BadRequestErrorClass as ReasonedConstructor<
 	BadRequestProps
 >;
 
+/** The answer to an upload its route refuses. */
+export const uploadRefused = ({
+	rejection,
+}: {
+	readonly rejection: ErrorReasonProps;
+}) =>
+	new BadRequestError({
+		...rejection,
+		message: `Upload refused: ${rejection.reason}.`,
+	});
+
 type UnavailableProps = {
 	readonly message: string;
 	readonly cause?: unknown;

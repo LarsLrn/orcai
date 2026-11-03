@@ -39,14 +39,15 @@ const ownerOf = (scope: string | undefined, ownerId: string | undefined) => {
 		: undefined;
 };
 
-/**
- * The app path of a new image, which `user.image` and `organization.logo`
- * hold: `/api/images/<users|organizations>/<ownerId>/<id>.webp`.
- */
-export const imagePath = (owner: ImageOwner, id: string) =>
+/** The object key of an image: `images/<users|organizations>/<ownerId>/<id>.webp`. */
+export const imageKey = (owner: ImageOwner, id: string) =>
 	owner.kind === "user"
-		? `${ROUTE_PREFIX}${IMAGE_PREFIX}users/${owner.userId}/${id}.webp`
-		: `${ROUTE_PREFIX}${IMAGE_PREFIX}organizations/${owner.organizationId}/${id}.webp`;
+		? `${IMAGE_PREFIX}users/${owner.userId}/${id}.webp`
+		: `${IMAGE_PREFIX}organizations/${owner.organizationId}/${id}.webp`;
+
+/** The app path of an image, which `user.image` and `organization.logo` hold. */
+export const imagePath = (owner: ImageOwner, id: string) =>
+	`${ROUTE_PREFIX}${imageKey(owner, id)}`;
 
 /** The owner, id and object key of an image path; undefined for anything else. */
 export const parseImagePath = (path: string) => {
