@@ -9,42 +9,41 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Library",
+		],
+	}),
+);
+
 export const libraryContracts = {
-	counts: base
+	counts: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/library/counts",
-				summary: "Count the active organization's library by kind",
-				tags: [
-					"Library",
-				],
+				summary: "Count the active organisation's Library by kind",
 			}),
 		)
 		.input(libraryCountsInputSchema)
 		.output(libraryCountsResponseSchema),
-	overview: base
+	overview: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/library/overview",
-				summary: "The library's shelves: favourites, drafts and each kind",
-				tags: [
-					"Library",
-				],
+				summary: "The Library's sections: favourites, drafts and each kind",
 			}),
 		)
 		.input(libraryOverviewInputSchema)
 		.output(libraryOverviewResponseSchema),
-	search: base
+	search: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/library/search",
-				summary: "Search every kind of the library in one ordered list",
-				tags: [
-					"Library",
-				],
+				summary: "Search every kind of the Library in one ordered list",
 			}),
 		)
 		.input(searchLibraryInputSchema)

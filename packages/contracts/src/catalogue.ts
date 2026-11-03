@@ -15,84 +15,74 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Catalogue",
+		],
+	}),
+);
+
 export const catalogueContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/catalogue/list",
 				summary:
 					"List the bots, behaviours and repositories organisations list",
-				tags: [
-					"Catalogue",
-				],
 			}),
 		)
 		.input(listCatalogueInputSchema)
 		.output(listCatalogueResponseSchema),
-	counts: base
+	counts: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/catalogue/counts",
-				summary: "Count the catalogue's entries by kind and organisation",
-				tags: [
-					"Catalogue",
-				],
+				summary: "Count the Catalogue's entries by kind and organisation",
 			}),
 		)
 		.input(catalogueCountsInputSchema)
 		.output(catalogueCountsResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/catalogue/find",
-				summary: "Find a catalogue entry with what its page shows",
-				tags: [
-					"Catalogue",
-				],
+				summary: "Find a Catalogue entry with what its page shows",
 			}),
 		)
 		.input(findCatalogueEntryInputSchema)
 		.output(findCatalogueEntryResponseSchema),
-	add: base
+	add: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/catalogue/add",
-				summary: "Add a catalogue entry to the active organisation",
-				tags: [
-					"Catalogue",
-				],
+				summary: "Add a Catalogue entry to the active organisation",
 			}),
 		)
 		.input(addCatalogueEntryInputSchema)
 		.output(addCatalogueEntryResponseSchema),
-	addBlocks: base
+	addBlocks: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/catalogue/add-blocks",
 				summary:
 					"Add the behaviour and repositories of a bot the active organisation added",
-				tags: [
-					"Catalogue",
-				],
 			}),
 		)
 		.input(addCatalogueBotBlocksInputSchema)
 		.output(addCatalogueBotBlocksResponseSchema),
-	remove: base
+	remove: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/catalogue/remove",
 				summary:
-					"Remove an entry added from the catalogue from the active organisation",
-				tags: [
-					"Catalogue",
-				],
+					"Remove an entry added from the Catalogue from the active organisation",
 			}),
 		)
 		.input(removeCatalogueEntryInputSchema)

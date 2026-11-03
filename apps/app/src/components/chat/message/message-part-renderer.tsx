@@ -6,6 +6,7 @@ import { DisplayPart } from "@/components/chat/gen-ui/display-part";
 import { ClientToolWidget } from "@/components/chat/message/client-tool-renderers";
 import { StepAnswersContext } from "@/components/chat/step-answers";
 import type { AnswerPart } from "@/lib/ai/turn-view/turn-view";
+import { m } from "@/paraglide/messages";
 import { ImagePart } from "./parts/image-part";
 
 const MessagePartRenderer = ({
@@ -22,7 +23,7 @@ const MessagePartRenderer = ({
 			return <MessageResponse>{answer.part.text}</MessageResponse>;
 		case "file":
 			return answer.part.mediaType === "image/png" ? (
-				<ImagePart url={answer.part.url} alt={answer.part.type} />
+				<ImagePart url={answer.part.url} alt={m.chat_image_part_label()} />
 			) : null;
 		case "display":
 			return <DisplayPart part={answer.part} running={running} />;

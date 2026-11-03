@@ -21,121 +21,102 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Chats",
+		],
+	}),
+);
+
 export const chatContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/chats",
 				summary: "List all chats",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(listChatsInputSchema)
 		.output(listChatsResponseSchema),
-	history: base
+	history: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/chat-history",
 				summary:
 					"List your chats in organisations you are no longer a member of",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(listChatHistoryInputSchema)
 		.output(listChatHistoryResponseSchema),
-	create: base
+	create: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/chats",
 				summary: "Create a chat",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(createChatInputSchema)
 		.output(createChatResponseSchema),
-	defaultModel: base
+	defaultModel: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/chat-default-model",
 				summary: "Find the model a new chat starts on",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(defaultChatModelInputSchema)
 		.output(defaultChatModelResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/chats/{id}",
 				summary: "Find a chat",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(findChatInputSchema)
 		.output(findChatResponseSchema),
-	update: base
+	update: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/chats/{id}",
 				summary: "Update a chat",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(updateChatInputSchema)
 		.output(updateChatResponseSchema),
-	pin: base
+	pin: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/chats/{id}/pin",
 				summary: "Pin or unpin a chat",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(pinChatInputSchema)
 		.output(pinChatResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/chats",
 				summary: "Delete a chat",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(deleteChatInputSchema)
 		.output(deleteChatResponseSchema),
-	branch: base
+	branch: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/chats/{chatId}/branches",
 				summary: "Branch a chat from one of its messages",
-				tags: [
-					"Chats",
-				],
 			}),
 		)
 		.input(branchChatInputSchema)

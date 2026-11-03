@@ -15,6 +15,13 @@ export const Route = createFileRoute("/_pathlessLayout/reset-password")({
 	validateSearch: z.object({
 		token: z.string().optional(),
 	}),
+	head: () => ({
+		meta: [
+			{
+				title: m.auth_reset_password_page_title(),
+			},
+		],
+	}),
 	component: ResetPasswordPage,
 });
 

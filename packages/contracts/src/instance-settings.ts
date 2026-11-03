@@ -41,7 +41,7 @@ export const instanceSettingsContracts = {
 				method: "GET",
 				path: "/instance/settings/embeddings/status",
 				summary:
-					"Whether embeddings are set up and whether files are being re-embedded",
+					"Whether embeddings are set up and whether assets are being re-embedded",
 				tags,
 			}),
 		)
@@ -68,7 +68,7 @@ export const instanceSettingsContracts = {
 				summary: "Set the embedding endpoint",
 				tags,
 				description:
-					"Runs a test embedding first and stores nothing when it fails. The dimensions come from its result. Without an API key, the stored one is kept. Another model, another size or another passage prefix re-embeds every file into a new collection and needs `reembedGeneration`. Another query prefix applies at once.",
+					"Runs a test embedding first and stores nothing when it fails. The dimensions come from its result. Without an API key, the stored one is kept. Another model, another size or another passage prefix re-embeds every asset into a new collection and needs `reembedGeneration`. Another query prefix applies at once.",
 			}),
 		)
 		.input(updateEmbeddingSettingsInputSchema)
@@ -79,7 +79,7 @@ export const instanceSettingsContracts = {
 				method: "GET",
 				path: "/instance/settings/embeddings/progress",
 				summary:
-					"Count the files embedded, waiting and failed per organisation",
+					"Count the assets embedded, waiting and failed per organisation",
 				tags,
 			}),
 		)
@@ -90,7 +90,7 @@ export const instanceSettingsContracts = {
 			openapi({
 				method: "POST",
 				path: "/instance/settings/embeddings/reembed",
-				summary: "Embed every file again with the current setup",
+				summary: "Embed every asset again with the current setup",
 				tags,
 				description:
 					"Starts a new collection, which search uses at once. Does nothing when the given generation is no longer active.",
@@ -103,7 +103,7 @@ export const instanceSettingsContracts = {
 			openapi({
 				method: "POST",
 				path: "/instance/settings/embeddings/retry-failed",
-				summary: "Embed the failed files again",
+				summary: "Embed the failed assets again",
 				tags,
 			}),
 		)

@@ -11,6 +11,13 @@ import {
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/verify-email")({
+	head: () => ({
+		meta: [
+			{
+				title: m.auth_verify_email_page_title(),
+			},
+		],
+	}),
 	component: VerifyEmailPage,
 });
 

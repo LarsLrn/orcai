@@ -1,5 +1,4 @@
 import type { AnalyticsDayUsage } from "@orcai/schema";
-import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
 	Card,
@@ -17,19 +16,11 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import { formatCompactNumber } from "@/lib/presentation/format-number";
+import { formatDisplayDay } from "@/lib/presentation/format-timestamp";
 import { m } from "@/paraglide/messages";
-import { getLocale } from "@/paraglide/runtime";
 
-const useDayLabel = () =>
-	useMemo(() => {
-		const format = new Intl.DateTimeFormat(getLocale(), {
-			day: "numeric",
-			month: "short",
-			timeZone: "UTC",
-		});
-		return (date: unknown) =>
-			typeof date === "string" ? format.format(new Date(date)) : "";
-	}, []);
+const dayLabel = (date: unknown) =>
+	typeof date === "string" ? formatDisplayDay(date, "UTC") : "";
 
 const UsageChart = ({
 	title,
@@ -48,7 +39,6 @@ const UsageChart = ({
 	stacked?: boolean;
 	decimals?: boolean;
 }) => {
-	const dayLabel = useDayLabel();
 	const keys = Object.keys(config);
 
 	return (

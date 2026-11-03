@@ -27,160 +27,133 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Items",
+		],
+	}),
+);
+
 export const resourceContracts = {
-	listGrants: base
+	listGrants: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/resources/{resourceType}/{resourceId}/grants",
-				summary: "List direct grants for a resource",
-				tags: [
-					"Resources",
-				],
+				summary: "List the direct grants on an item",
 			}),
 		)
 		.input(resourceListGrantsInputSchema)
 		.output(resourceListGrantsResponseSchema),
-	inheritedAccess: base
+	inheritedAccess: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/resources/{resourceType}/{resourceId}/inherited-access",
-				summary: "Summarise the access a resource inherits from its ancestors",
-				tags: [
-					"Resources",
-				],
+				summary: "Summarise the access an item inherits",
 			}),
 		)
 		.input(resourceInheritedAccessInputSchema)
 		.output(resourceInheritedAccessResponseSchema),
-	listPrincipals: base
+	listPrincipals: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/resources/{resourceType}/{resourceId}/principals",
-				summary: "List principals that can be directly granted on a resource",
-				tags: [
-					"Resources",
-				],
+				summary:
+					"List the people and groups that can get a direct grant on an item",
 			}),
 		)
 		.input(resourceListPrincipalsInputSchema)
 		.output(resourceListPrincipalsResponseSchema),
-	findMany: base
+	findMany: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/resources/find",
 				summary:
-					"Find the given resources the user can read, with their current names",
-				tags: [
-					"Resources",
-				],
+					"Find the given items the user can read, with their current names",
 			}),
 		)
 		.input(resourceFindManyInputSchema)
 		.output(resourceFindManyResponseSchema),
-	listRecent: base
+	listRecent: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/resources/recent",
-				summary: "List the resources that changed most recently",
-				tags: [
-					"Resources",
-				],
+				summary: "List the items that changed most recently",
 			}),
 		)
 		.input(resourceListRecentInputSchema)
 		.output(resourceListRecentResponseSchema),
-	grant: base
+	grant: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/resources/{resourceType}/{resourceId}/grants",
-				summary: "Grant direct access to a resource",
-				tags: [
-					"Resources",
-				],
+				summary: "Grant direct access to an item",
 			}),
 		)
 		.input(resourceGrantInputSchema)
 		.output(resourceGrantResponseSchema),
-	revoke: base
+	revoke: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/resources/{resourceType}/{resourceId}/grants",
-				summary: "Revoke direct access from a resource",
-				tags: [
-					"Resources",
-				],
+				summary: "Revoke direct access from an item",
 			}),
 		)
 		.input(resourceRevokeInputSchema)
 		.output(resourceRevokeResponseSchema),
-	getVisibility: base
+	getVisibility: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/resources/{resourceType}/{resourceId}/visibility",
-				summary: "Get resource visibility",
-				tags: [
-					"Resources",
-				],
+				summary: "Get an item's visibility",
 			}),
 		)
 		.input(resourceGetVisibilityInputSchema)
 		.output(resourceGetVisibilityResponseSchema),
-	listingImpact: base
+	listingImpact: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/resources/{resourceType}/{resourceId}/listing-impact",
-				summary: "What changing a resource's listing involves",
-				tags: [
-					"Resources",
-				],
+				summary: "What changing an item's listing involves",
 			}),
 		)
 		.input(resourceListingImpactInputSchema)
 		.output(resourceListingImpactResponseSchema),
-	setVisibility: base
+	setVisibility: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/resources/{resourceType}/{resourceId}/visibility",
-				summary: "Set resource visibility",
-				tags: [
-					"Resources",
-				],
+				summary: "Set an item's visibility",
 			}),
 		)
 		.input(resourceSetVisibilityInputSchema)
 		.output(resourceSetVisibilityResponseSchema),
-	receivers: base
+	receivers: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/resources/{resourceType}/{resourceId}/receivers",
-				summary: "List the members the owner may hand a resource to",
-				tags: [
-					"Resources",
-				],
+				summary: "List the members the owner may hand an item over to",
 			}),
 		)
 		.input(resourceListReceiversInputSchema)
 		.output(listContentReceiversResponseSchema),
-	handOver: base
+	handOver: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/resources/{resourceType}/{resourceId}/hand-over",
-				summary: "Hand a resource over to another member",
-				tags: [
-					"Resources",
-				],
+				summary: "Hand an item over to another member",
 				description: "Only the owner; they keep Can manage on it.",
 			}),
 		)

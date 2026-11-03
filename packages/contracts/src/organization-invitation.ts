@@ -18,110 +18,94 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base, withoutSession } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Organisation invitations",
+		],
+	}),
+);
+
 export const organizationInvitationContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/invitations",
-				summary: "List invitations of the active organization",
-				tags: [
-					"Organization Invitations",
-				],
+				summary: "List invitations of the active organisation",
 			}),
 		)
 		.input(listOrganizationInvitationsInputSchema)
 		.output(listOrganizationInvitationsResponseSchema),
-	listMine: base
+	listMine: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/users/me/invitations",
 				summary: "List invitations addressed to the current user",
-				tags: [
-					"Organization Invitations",
-				],
 			}),
 		)
 		.input(listOrganizationInvitationsInputSchema)
 		.output(listMyOrganizationInvitationsResponseSchema),
-	create: base
+	create: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/invitations",
-				summary: "Invite many users to the active organization",
-				tags: [
-					"Organization Invitations",
-				],
+				summary: "Invite many users to the active organisation",
 				description:
 					"Skips addresses that already belong to a member or have an invitation that has not expired, and names them in `skipped`. An expired invitation is replaced by a new one.",
 			}),
 		)
 		.input(createOrganizationInvitationsInputSchema)
 		.output(createOrganizationInvitationsResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/invitations/{id}",
-				summary: "Find an organization invitation",
-				tags: [
-					"Organization Invitations",
-				],
+				summary: "Find an organisation invitation",
 			}),
 		)
 		.input(findOrganizationInvitationInputSchema)
 		.output(findOrganizationInvitationResponseSchema),
-	validate: base
+	validate: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/invitations/{id}/validate",
-				summary: "Validate an organization invitation",
-				tags: [
-					"Organization Invitations",
-				],
+				summary: "Validate an organisation invitation",
 				spec: withoutSession,
 			}),
 		)
 		.input(validateOrganizationInvitationInputSchema)
 		.output(validateOrganizationInvitationResponseSchema),
-	update: base
+	update: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/invitations/{id}",
-				summary: "Update an invitation of the active organization",
-				tags: [
-					"Organization Invitations",
-				],
+				summary: "Update an invitation of the active organisation",
 			}),
 		)
 		.input(updateOrganizationInvitationInputSchema)
 		.output(updateOrganizationInvitationResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/invitations",
-				summary: "Delete invitations of the active organization",
-				tags: [
-					"Organization Invitations",
-				],
+				summary: "Delete invitations of the active organisation",
 			}),
 		)
 		.input(deleteOrganizationInvitationsInputSchema)
 		.output(deleteOrganizationInvitationsResponseSchema),
-	respond: base
+	respond: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/invitations/{id}/respond",
-				summary: "Respond to an organization invitation",
-				tags: [
-					"Organization Invitations",
-				],
+				summary: "Respond to an organisation invitation",
 			}),
 		)
 		.input(respondToOrganizationInvitationInputSchema)

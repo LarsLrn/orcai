@@ -5,13 +5,17 @@ import { isS3NotFound, sendGetObjectCommand } from "@orcai/s3/server";
 import { asc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
+import type { TranscriptChat } from "@/lib/ai/turn-view/message-markdown";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { downloadName } from "@/lib/assets/download-name";
 import { readImage, referencedImage } from "@/lib/images/images";
 import type { ZipArchiveWriter } from "./zip-archive";
 
 /** A stored conversation as the markdown a person reads. */
-export type Transcript = (messages: ChatAgentUIMessage[]) => string;
+export type Transcript = (
+	messages: ChatAgentUIMessage[],
+	chat: TranscriptChat,
+) => string;
 
 const UNSAFE_NAME = /[\\/:*?"<>|\p{Cc}]+/gu;
 
@@ -141,14 +145,18 @@ const writeChats = (
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const chats = yield* db
-			.select()
+			.select({
+				chat: dbSchema.chat,
+				botName: dbSchema.bot.name,
+			})
 			.from(dbSchema.chat)
+			.leftJoin(dbSchema.bot, eq(dbSchema.bot.id, dbSchema.chat.botId))
 			.where(eq(dbSchema.chat.userId, userId))
 			.orderBy(asc(dbSchema.chat.createdAt), asc(dbSchema.chat.id));
 
 		yield* Effect.forEach(
 			chats,
-			(chat) =>
+			({ chat, botName }) =>
 				Effect.gen(function* () {
 					const rows = yield* db
 						.select()
@@ -178,6 +186,10 @@ const writeChats = (
 										attachments: message.attachments,
 									}) as ChatAgentUIMessage,
 							),
+							{
+								kind: chat.kind,
+								botName,
+							},
 						),
 					);
 				}),

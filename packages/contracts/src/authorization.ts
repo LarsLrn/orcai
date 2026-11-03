@@ -9,42 +9,41 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Authorization",
+		],
+	}),
+);
+
 export const authorizationContracts = {
-	check: base
+	check: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/authorization/check",
 				summary: "Check one entity capability",
-				tags: [
-					"Authorization",
-				],
 			}),
 		)
 		.input(authorizationCheckInputSchema)
 		.output(authorizationCheckResponseSchema),
-	checkMany: base
+	checkMany: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/authorization/check-many",
 				summary: "Check many entity capabilities",
-				tags: [
-					"Authorization",
-				],
 			}),
 		)
 		.input(authorizationCheckManyInputSchema)
 		.output(authorizationCheckManyResponseSchema),
-	organizationCapabilities: base
+	organizationCapabilities: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/authorization/organization-capabilities",
-				summary: "Check active organization capabilities",
-				tags: [
-					"Authorization",
-				],
+				summary: "Check active organisation capabilities",
 			}),
 		)
 		.input(organizationCapabilitiesInputSchema)

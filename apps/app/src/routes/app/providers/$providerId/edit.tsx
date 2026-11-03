@@ -10,7 +10,7 @@ export const Route = createFileRoute("/app/providers/$providerId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: m.common_edit_button(),
+				title: m.providers_edit_page_title(),
 			},
 		],
 	}),

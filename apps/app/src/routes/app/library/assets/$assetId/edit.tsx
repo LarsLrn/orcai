@@ -24,7 +24,7 @@ export const Route = createFileRoute("/app/library/assets/$assetId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: m.assets_edit_page_meta_title(),
+				title: m.assets_edit_page_title(),
 			},
 		],
 	}),

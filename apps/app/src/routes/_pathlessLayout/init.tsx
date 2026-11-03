@@ -27,6 +27,13 @@ export const Route = createFileRoute("/_pathlessLayout/init")({
 			});
 		}
 	},
+	head: () => ({
+		meta: [
+			{
+				title: m.auth_init_page_title(),
+			},
+		],
+	}),
 	component: RouteComponent,
 });
 

@@ -17,94 +17,81 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Bots",
+		],
+	}),
+);
+
 export const botContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/bots",
 				summary: "List all bots",
-				tags: [
-					"Bots",
-				],
 			}),
 		)
 		.input(listBotsInputSchema)
 		.output(listBotsResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/bots/{id}",
 				summary: "Find a bot",
-				tags: [
-					"Bots",
-				],
 			}),
 		)
 		.input(findBotInputSchema)
 		.output(findBotResponseSchema),
-	findEditor: base
+	findEditor: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/bots/{id}/editor",
 				summary: "Find an editable bot authoring graph",
-				tags: [
-					"Bots",
-				],
 			}),
 		)
 		.input(findBotEditorInputSchema)
 		.output(findBotEditorResponseSchema),
-	save: base
+	save: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/bots/save",
 				summary: "Create or update a bot authoring graph",
-				tags: [
-					"Bots",
-				],
 			}),
 		)
 		.input(saveBotInputSchema)
 		.output(saveBotResponseSchema),
-	publish: base
+	publish: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/bots/{id}/publish",
 				summary: "Publish a draft bot",
-				tags: [
-					"Bots",
-				],
 			}),
 		)
 		.input(publishBotInputSchema)
 		.output(publishBotResponseSchema),
-	setFavourite: base
+	setFavourite: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/bots/{id}/favourite",
 				summary: "Add a bot to or remove it from the user's favourites",
-				tags: [
-					"Bots",
-				],
 			}),
 		)
 		.input(setBotFavouriteInputSchema)
 		.output(setBotFavouriteResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/bots",
 				summary: "Delete a bot",
-				tags: [
-					"Bots",
-				],
 			}),
 		)
 		.input(deleteBotsInputSchema)

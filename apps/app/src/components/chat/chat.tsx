@@ -265,7 +265,9 @@ const Chat = ({
 										className="bg-destructive/10 w-full space-y-1 rounded-xl px-4 py-3 text-sm"
 									>
 										<p className="text-destructive">
-											{m.chat_response_failed()}
+											{isAssistant
+												? m.assistant_response_failed()
+												: m.chat_response_failed()}
 										</p>
 										{error && (
 											<p className="text-muted-foreground text-xs wrap-anywhere">

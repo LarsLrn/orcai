@@ -166,8 +166,8 @@ export const runDataExport = (
 			},
 			writeDataExportContents({
 				userId: target.userId,
-				transcript: (messages) =>
-					withLocale(locale, () => transcript(messages)),
+				transcript: (messages, chat) =>
+					withLocale(locale, () => transcript(messages, chat)),
 			}),
 		);
 

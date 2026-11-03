@@ -36,10 +36,10 @@ const organizationsInput = (params: { search: string; pageCount: number }) => ({
 });
 
 export const Route = createFileRoute("/_pathlessLayout/select-organization")({
-	component: RouteComponent,
 	beforeLoad: ({ context }) => ({
 		auth: ensureSignedIn(context.auth),
 	}),
+	component: RouteComponent,
 	loader: async ({ context: { auth, queryClient } }) => {
 		const organizations = await queryClient.query(
 			orpc.organization.list.queryOptions({
@@ -73,6 +73,13 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 			});
 		}
 	},
+	head: () => ({
+		meta: [
+			{
+				title: m.select_organisation_page_title(),
+			},
+		],
+	}),
 });
 
 function PendingInvitationsSection({

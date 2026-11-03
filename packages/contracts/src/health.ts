@@ -7,30 +7,32 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Health",
+		],
+	}),
+);
+
 export const healthContracts = {
-	instance: base
+	instance: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/health/instance",
 				summary: "Check the instance's dependencies, processes and mail",
-				tags: [
-					"Health",
-				],
 				description: "Probes every dependency on each call.",
 			}),
 		)
 		.input(findInstanceHealthInputSchema)
 		.output(findInstanceHealthResponseSchema),
-	sendTestEmail: base
+	sendTestEmail: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/health/test-email",
-				summary: "Send a test email to the signed-in instance administrator",
-				tags: [
-					"Health",
-				],
+				summary: "Send a test email to the signed-in instance admin",
 			}),
 		)
 		.input(sendTestEmailInputSchema)

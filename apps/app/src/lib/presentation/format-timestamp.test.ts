@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { getLocale, overwriteGetLocale } from "@/paraglide/runtime";
 import {
 	formatDisplayDate,
+	formatDisplayDay,
 	formatDisplayTimestamp,
 	formatRelativeTime,
 } from "./format-timestamp";
@@ -108,5 +109,19 @@ describe("formatDisplayTimestamp", () => {
 		expect(formatDisplayDate(lateEvening, "Pacific/Kiritimati")).toBe(
 			"29 Oct 2026",
 		);
+	});
+});
+
+describe("formatDisplayDay", () => {
+	test("writes the day before the month in English", () => {
+		overwriteGetLocale(() => "en");
+
+		expect(formatDisplayDay("2026-10-28", "UTC")).toBe("28 Oct");
+	});
+
+	test("writes the day with a period in German", () => {
+		overwriteGetLocale(() => "de");
+
+		expect(formatDisplayDay("2026-10-28", "UTC")).toBe("28. Okt.");
 	});
 });

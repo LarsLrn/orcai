@@ -77,9 +77,9 @@ const AssistantNewConversation = ({
 						aria-label={m.chat_composer_aria_label()}
 						placeholder={
 							blocker?.reason === "exhausted"
-								? m.chat_composer_placeholder_quota_exhausted()
+								? m.assistant_composer_placeholder_quota_exhausted()
 								: blocker
-									? m.chat_composer_placeholder_no_quota()
+									? m.assistant_composer_placeholder_no_quota()
 									: m.chat_composer_placeholder()
 						}
 						className="field-sizing-content max-h-48 min-h-16"
@@ -103,7 +103,7 @@ const AssistantNewConversation = ({
 						</div>
 					</InputGroupAddon>
 				</InputGroup>
-				{blocker && <ChatModelNotice blocker={blocker} />}
+				{blocker && <ChatModelNotice blocker={blocker} assistant />}
 			</form>
 		</div>
 	);

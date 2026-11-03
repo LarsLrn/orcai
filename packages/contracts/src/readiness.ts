@@ -5,18 +5,23 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Readiness",
+		],
+	}),
+);
+
 export const readinessContracts = {
-	organization: base
+	organization: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/readiness/organization",
 				summary:
-					"What the active organization still needs before members can chat",
-				tags: [
-					"Readiness",
-				],
-				description: "Derived live from the organization's configuration.",
+					"What the active organisation still needs before members can chat",
+				description: "Derived live from the organisation's configuration.",
 			}),
 		)
 		.input(findOrganizationReadinessInputSchema)

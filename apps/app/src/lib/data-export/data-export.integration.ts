@@ -471,7 +471,7 @@ describe("data export", () => {
 				"assistant",
 			]);
 			expect(archive[`${chatName}.md`]).toBe(
-				"**User:**\n\nHow deep do I sample?\n\n**Assistant:**\n\nThirty centimetres.",
+				"**You:**\n\nHow deep do I sample?\n\n**Model:**\n\nThirty centimetres.",
 			);
 			expect(archive[`files/${seeded.notes.id}/notes.txt`]).toBe(FILE_CONTENT);
 
