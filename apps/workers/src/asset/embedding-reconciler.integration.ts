@@ -2,19 +2,17 @@ import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, type BlockId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { type Job, type PgBoss, PgBossService } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	embeddingProgress,
 	embeddingsRebuilding,
-	type Job,
-	type PgBoss,
-	PgBossService,
 	prepareMissingExtractionsAgain,
 	queueIndexing,
 	reconcileEmbeddings,
 	retryFailedEmbeddings,
 	startPreparingMissingExtractionsAgain,
-} from "@orcai/pg-boss";
-import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+} from "@orcai/preparation";
 import {
 	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,

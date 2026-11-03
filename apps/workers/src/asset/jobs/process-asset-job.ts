@@ -1,7 +1,13 @@
 import { buckets } from "@orcai/core";
-import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
-import { queueAfterProcessing } from "@orcai/pg-boss";
+import {
+	AssetPipelineError,
+	claimProcessing,
+	completeProcessing,
+	type ProcessingAttempt,
+	processingAttempt,
+	settleProcessingAttempt,
+} from "@orcai/preparation";
 import {
 	buildStoredExtractionImageKey,
 	createImageOnlyStoredExtractionArtifact,
@@ -18,14 +24,6 @@ import {
 import { isImageFileType, type ProcessAssetPayload } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { describeImages, imageMediaType } from "@/asset/image-descriptions";
-import {
-	AssetPipelineError,
-	claimProcessing,
-	currentProcessing,
-	type ProcessingAttempt,
-	processingAttempt,
-	settleProcessingAttempt,
-} from "@/asset/pipeline-attempt";
 import { validateImageResolution } from "@/asset/utils/validate-image-resolution";
 
 const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
@@ -124,39 +122,6 @@ const isEmptyArtifact = (artifact: StoredExtractionArtifact) =>
 	artifact.chunks.length === 0 &&
 	artifact.images.length === 0;
 
-/**
- * Completes the attempt and queues indexing in every repository the asset is
- * linked to, in one transaction: a retry after a crash finds the attempt
- * still active and gets here again. An attach reads the asset's status with a
- * share lock, so a link it adds meanwhile is queued either here or by the
- * attach. A replaced attempt completes nothing and queues nothing.
- */
-const completeAndQueueIndexing = (attempt: ProcessingAttempt) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const { asset } = dbSchema;
-
-		return yield* retryDeadlocks(
-			db.transaction(() =>
-				Effect.gen(function* () {
-					const completed = yield* db
-						.update(asset)
-						.set({
-							processingStatus: "completed",
-							processingFailure: null,
-						})
-						.where(currentProcessing(attempt))
-						.returning({
-							id: asset.id,
-						});
-					if (completed.length === 0) return false;
-					yield* queueAfterProcessing(attempt);
-					return true;
-				}),
-			),
-		);
-	});
-
 export const processAsset = (job: Job<ProcessAssetPayload>) =>
 	Effect.gen(function* () {
 		const attempt = processingAttempt(job.data);
@@ -241,7 +206,7 @@ const processDelivery = (params: {
 
 		yield* writeStoredExtraction(assetRef.id, artifact);
 
-		if (!(yield* completeAndQueueIndexing(params.attempt))) {
+		if (!(yield* completeProcessing(params.attempt))) {
 			return yield* Effect.logInfo(
 				{
 					jobId: params.job.id,

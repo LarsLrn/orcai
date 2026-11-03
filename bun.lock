@@ -126,6 +126,7 @@
         "@orcai/notifications": "workspace:*",
         "@orcai/observability": "workspace:*",
         "@orcai/pg-boss": "workspace:*",
+        "@orcai/preparation": "workspace:*",
         "@orcai/process": "workspace:*",
         "@orcai/qdrant": "workspace:*",
         "@orcai/quota": "workspace:*",
@@ -222,6 +223,7 @@
         "@orcai/notifications": "workspace:*",
         "@orcai/observability": "workspace:*",
         "@orcai/pg-boss": "workspace:*",
+        "@orcai/preparation": "workspace:*",
         "@orcai/process": "workspace:*",
         "@orcai/qdrant": "workspace:*",
         "@orcai/quota": "workspace:*",
@@ -336,13 +338,30 @@
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
         "@orcai/observability": "workspace:*",
-        "@orcai/qdrant": "workspace:*",
         "@orcai/schema": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
         "pg-boss": "12.38.0",
       },
       "devDependencies": {
+        "@orcai/testing": "workspace:*",
+      },
+    },
+    "packages/preparation": {
+      "name": "@orcai/preparation",
+      "version": "0.1.0",
+      "dependencies": {
+        "@orcai/core": "workspace:*",
+        "@orcai/db": "workspace:*",
+        "@orcai/pg-boss": "workspace:*",
+        "@orcai/qdrant": "workspace:*",
+        "@orcai/schema": "workspace:*",
+        "drizzle-orm": "catalog:",
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@orcai/ai": "workspace:*",
+        "@orcai/quota": "workspace:*",
         "@orcai/testing": "workspace:*",
       },
     },
@@ -966,6 +985,8 @@
     "@orcai/observability": ["@orcai/observability@workspace:packages/observability"],
 
     "@orcai/pg-boss": ["@orcai/pg-boss@workspace:packages/pg-boss"],
+
+    "@orcai/preparation": ["@orcai/preparation@workspace:packages/preparation"],
 
     "@orcai/process": ["@orcai/process@workspace:packages/process"],
 

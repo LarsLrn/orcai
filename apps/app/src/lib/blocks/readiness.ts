@@ -1,6 +1,6 @@
 import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { queueIndexing } from "@orcai/pg-boss";
+import { queueIndexing } from "@orcai/preparation";
 import {
 	type AssetReadiness,
 	canPrepareAgain,

@@ -41,6 +41,9 @@
 			"path": "./packages/pg-boss"
 		},
 		{
+			"path": "./packages/preparation"
+		},
+		{
 			"path": "./packages/process"
 		},
 		{

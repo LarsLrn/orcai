@@ -11,25 +11,27 @@ import {
 	utilityReasoning,
 } from "@orcai/ai";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
+import { type Job, sendJobBatchInTransaction } from "@orcai/pg-boss";
 import {
-	type Job,
+	AssetPipelineError,
+	claimMetadata,
+	completeMetadata,
+	currentMetadata,
 	queueProcessing,
-	sendJobBatchInTransaction,
-	settleStage,
-} from "@orcai/pg-boss";
+	settleMetadataAttempt,
+} from "@orcai/preparation";
 import {
 	readStoredExtraction,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
 import {
-	applyMetadataSuggestion,
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
 	isImageFileType,
 	type MetadataSuggestion,
 	type PipelineFailure,
 } from "@orcai/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { modelCallFailure, summarizeErrorCause } from "@/asset/error-summary";
 import {
@@ -37,34 +39,11 @@ import {
 	assetOwner,
 	readImageAsset,
 } from "@/asset/image-descriptions";
-import {
-	AssetPipelineError,
-	currentMetadata,
-	settleMetadataAttempt,
-} from "@/asset/pipeline-attempt";
 
 const METADATA_TIMEOUT_MS = 120_000;
 
 /** How long a generation waiting for its file to be prepared sleeps before it looks again. */
 const PREPARATION_WAIT_SECONDS = 30;
-
-/** Whether the job's generation is still the asset's and not done. */
-const claim = (data: GenerateAssetMetadataPayload) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const { asset } = dbSchema;
-		const [claimed] = yield* db
-			.update(asset)
-			.set({
-				metadataStatus: "active",
-				metadataFailure: null,
-			})
-			.where(currentMetadata(data))
-			.returning({
-				fileType: asset.fileType,
-			});
-		return claimed;
-	});
 
 const failWith =
 	(failure: PipelineFailure) =>
@@ -159,95 +138,6 @@ const imageSuggestion = (params: {
 			metadata,
 		};
 		return suggestion;
-	});
-
-/**
- * In `review` mode the suggestion is kept whole. In `apply` mode it fills
- * empty fields on the row as it is now, so an edit saved meanwhile wins, and
- * keeps only what it could not apply; the run's member records the fields it
- * filled. Either way only while the job's generation is the asset's and
- * unfinished, so a duplicate delivery stores nothing, and a deadlocked store
- * runs again without asking the model again.
- */
-const store = (
-	data: GenerateAssetMetadataPayload,
-	suggestion: MetadataSuggestion,
-) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const { activityMember, asset } = dbSchema;
-		const current = currentMetadata(data);
-		const target = {
-			stage: "metadata",
-			assetId: data.assetId,
-		} as const;
-
-		yield* retryDeadlocks(
-			db.transaction(() =>
-				Effect.gen(function* () {
-					if (data.mode === "review") {
-						const stored = yield* db
-							.update(asset)
-							.set({
-								metadataSuggestion: suggestion,
-								metadataStatus: "completed",
-								metadataFailure: null,
-							})
-							.where(current)
-							.returning({
-								id: asset.id,
-							});
-						if (stored.length > 0) {
-							yield* settleStage(data.runId, target, {
-								state: "completed",
-							});
-						}
-						return;
-					}
-
-					const [row] = yield* db
-						.select({
-							title: asset.title,
-							fileName: asset.fileName,
-							metadata: asset.metadata,
-						})
-						.from(asset)
-						.where(current)
-						.for("update");
-					if (!row) {
-						return;
-					}
-					const applied = applyMetadataSuggestion(row, suggestion);
-					yield* db
-						.update(asset)
-						.set({
-							title: applied.title,
-							metadata: applied.metadata,
-							metadataSuggestion: applied.review,
-							metadataStatus: "completed",
-							metadataFailure: null,
-							updatedAt: new Date(),
-						})
-						.where(current);
-					yield* settleStage(data.runId, target, {
-						state: "completed",
-					});
-					if (data.runId) {
-						yield* db
-							.update(activityMember)
-							.set({
-								appliedFields: applied.filled,
-							})
-							.where(
-								and(
-									eq(activityMember.runId, data.runId),
-									eq(activityMember.assetId, data.assetId),
-								),
-							);
-					}
-				}),
-			),
-		);
 	});
 
 /** The asset's stored extraction, or undefined when it is gone or unreadable. */
@@ -353,8 +243,8 @@ const awaitPreparation = (data: GenerateAssetMetadataPayload) =>
 /** A delivery replayed after its run completed, or of a replaced generation, does nothing. */
 export const generateMetadata = (job: Job<GenerateAssetMetadataPayload>) =>
 	Effect.gen(function* () {
-		const claimed = yield* claim(job.data);
-		if (!claimed) {
+		const fileType = yield* claimMetadata(job.data);
+		if (!fileType) {
 			return yield* Effect.logInfo(
 				{
 					jobId: job.id,
@@ -363,14 +253,14 @@ export const generateMetadata = (job: Job<GenerateAssetMetadataPayload>) =>
 				"Skipping a metadata job that is done or replaced",
 			);
 		}
-		yield* generateClaimed(job, claimed.fileType).pipe(
+		yield* generateClaimed(job, fileType).pipe(
 			Effect.tapError((err) =>
 				Effect.logError(
 					{
 						err,
 						jobId: job.id,
 						assetId: job.data.assetId,
-						fileType: claimed.fileType,
+						fileType,
 						stage: "metadata",
 					},
 					"Generate asset metadata job failed",
@@ -429,5 +319,5 @@ const generateClaimed = (
 					extraction,
 				});
 
-		yield* store(job.data, suggestion);
+		yield* completeMetadata(job.data, suggestion);
 	});

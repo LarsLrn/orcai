@@ -1,5 +1,6 @@
 import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { sendJobBatch } from "@orcai/pg-boss";
 import {
 	EmbeddingIndex,
 	maintainCollections,
@@ -18,7 +19,6 @@ import {
 	queueIndexing,
 	queueProcessing,
 } from "./asset-pipeline";
-import { sendJobBatch } from "./helpers";
 
 const ADMISSION_BATCH = 500;
 

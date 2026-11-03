@@ -1,5 +1,6 @@
 import type { ActivityRunId, AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { sendJobBatchInTransaction } from "@orcai/pg-boss";
 import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
@@ -18,7 +19,6 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { admitStage, runActor } from "./activity";
-import { sendJobBatchInTransaction } from "./helpers";
 
 /**
  * Starts the next metadata generation of each library asset among `assetIds`

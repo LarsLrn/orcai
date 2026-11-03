@@ -4,14 +4,17 @@ import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
-	admitStage,
 	type Job,
 	type JobWithMetadata,
 	type PgBoss,
 	PgBossService,
-	queueProcessing,
 } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
+import {
+	admitStage,
+	markProcessingExhausted,
+	queueProcessing,
+} from "@orcai/preparation";
 import { readStoredExtraction } from "@orcai/process";
 import { EmbeddingIndex } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
@@ -27,7 +30,6 @@ import { and, eq, like, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { processAsset } from "@/asset/jobs/process-asset-job";
-import { markProcessingExhausted } from "@/asset/pipeline-attempt";
 import {
 	held,
 	requests,

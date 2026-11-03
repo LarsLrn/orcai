@@ -1,12 +1,6 @@
 import type { ActivityRunId, AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import {
-	type JobWithMetadata,
-	newFailureId,
-	reconcileLinkPoints,
-	type StageTarget,
-	settleStage,
-} from "@orcai/pg-boss";
+import type { JobWithMetadata } from "@orcai/pg-boss";
 import { StaleEmbeddingGenerationError } from "@orcai/qdrant";
 import {
 	type GenerateAssetMetadataPayload,
@@ -18,6 +12,8 @@ import {
 import { and, type Column, eq, inArray, sql } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
+import { newFailureId, type StageTarget, settleStage } from "./activity";
+import { reconcileLinkPoints } from "./link-points";
 
 /** An attempt failed for a known reason. Any other error counts as `other`. */
 export class AssetPipelineError extends Data.TaggedError("AssetPipelineError")<{
@@ -247,6 +243,24 @@ const claim = (target: Target) =>
 	target({
 		status: "active",
 		failure: null,
+	});
+
+/** The asset's file type when the delivery may run: its generation is current and unfinished, now active. */
+export const claimMetadata = (attempt: MetadataAttempt) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { asset } = dbSchema;
+		const [claimed] = yield* db
+			.update(asset)
+			.set({
+				metadataStatus: "active",
+				metadataFailure: null,
+			})
+			.where(currentMetadata(attempt))
+			.returning({
+				fileType: asset.fileType,
+			});
+		return claimed?.fileType;
 	});
 
 /** Whether the delivery may run: its attempt is current and unfinished, now active. */

@@ -1,5 +1,5 @@
 import { type AiError, aiFailure, failedReply } from "@orcai/ai";
-import { AssetPipelineError } from "@/asset/pipeline-attempt";
+import { AssetPipelineError } from "@orcai/preparation";
 
 const MAX_ERROR_MESSAGE_LENGTH = 320;
 

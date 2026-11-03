@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { PgBossService, queueIndexing, withLinkPoints } from "@orcai/pg-boss";
+import { PgBossService } from "@orcai/pg-boss";
+import { queueIndexing, withLinkPoints } from "@orcai/preparation";
 import {
 	EmbeddingGeneration,
 	onActiveGeneration,

@@ -17,6 +17,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { AssetPipelineError } from "@orcai/preparation";
 import type {
 	StoredExtractionArtifact,
 	StoredExtractionImage,
@@ -26,7 +27,6 @@ import type { Locale } from "@orcai/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { modelCallFailure, summarizeErrorCause } from "@/asset/error-summary";
-import { AssetPipelineError } from "@/asset/pipeline-attempt";
 
 /** A description that takes longer counts as failed. */
 const IMAGE_DESCRIPTION_TIMEOUT_MS = 120_000;

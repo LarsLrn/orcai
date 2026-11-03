@@ -2,6 +2,7 @@ import { beforeEach, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import type { AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { AssetPipelineError } from "@orcai/preparation";
 import type { StoredExtractionArtifact } from "@orcai/process";
 import { S3Live } from "@orcai/s3/server";
 import { integrationRuntime } from "@orcai/testing";
@@ -9,7 +10,6 @@ import { eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { describeImages } from "@/asset/image-descriptions";
-import { AssetPipelineError } from "@/asset/pipeline-attempt";
 import { requests, seedImageAsset, suggestion } from "@/asset/test-vision";
 
 const { runPromise: run } = integrationRuntime(

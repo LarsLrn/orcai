@@ -59,7 +59,8 @@ The apps share their server code through the workspace packages under `packages/
 | `@orcai/db` | The Drizzle schema, the migrations and the database service. |
 | `@orcai/notifications` | Email templates, their message catalogue and the notification outbox. |
 | `@orcai/observability` | The OpenTelemetry setup. |
-| `@orcai/pg-boss` | The pg-boss service, the queue table every process creates its queues from, the worker runtime, and the jobs the app and workers share. |
+| `@orcai/pg-boss` | The pg-boss service, the queue table every process creates its queues from, and the worker runtime. |
+| `@orcai/preparation` | Asset preparation: admitting, claiming, failing and completing processing, metadata and indexing, the activity of each stage, the Qdrant points of repository links, the embedding reconciler and the preparation sweep. |
 | `@orcai/process` | Text extraction with Kreuzberg and the processed artifacts. |
 | `@orcai/qdrant` | Vector collections, their writes and their queries. |
 | `@orcai/quota` | Quota pools: pricing, estimates, the usage ledger and enforcement. |

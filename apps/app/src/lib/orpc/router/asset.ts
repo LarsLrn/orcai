@@ -1,6 +1,6 @@
 import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { queueMetadataGeneration } from "@orcai/pg-boss";
+import { queueMetadataGeneration } from "@orcai/preparation";
 import { UPLOAD_ROUTES } from "@orcai/s3";
 import {
 	canPrepareAgain,
