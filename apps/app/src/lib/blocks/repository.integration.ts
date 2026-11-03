@@ -565,11 +565,12 @@ describe("block.readiness", () => {
 			});
 			const {
 				actors: [stranger],
+				zedToken: strangerToken,
 			} = await organizationWith([
 				"member",
 			]);
 			const procedures = await run(Procedures);
-			const readiness = async (actor: Actor) =>
+			const readiness = async (actor: Actor, token = zedToken) =>
 				(
 					await run(
 						procedures.block.readiness(
@@ -578,7 +579,7 @@ describe("block.readiness", () => {
 									blockId,
 								],
 							},
-							await procedureOptions(actor, zedToken),
+							await procedureOptions(actor, token),
 						),
 					)
 				).data;
@@ -597,7 +598,7 @@ describe("block.readiness", () => {
 				stage: "processing",
 				kind: "other",
 			});
-			expect(await readiness(stranger)).toEqual([]);
+			expect(await readiness(stranger, strangerToken)).toEqual([]);
 		},
 		TIMEOUT,
 	);

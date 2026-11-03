@@ -33,7 +33,7 @@ import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { readRevision } from "@/lib/authz/zed-token";
 import { listingImpact, setListing } from "@/lib/catalogue/listing";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
 import { readableResources } from "@/lib/resources/readable";
 import { recentResources } from "@/lib/resources/recents";
@@ -237,6 +237,7 @@ const collectAncestors = (resource: ResourceIdentity) =>
 	});
 
 const getInheritedAccess = authed.resource.inheritedAccess
+	.use(requireOrganization())
 	.use(requireResourcePermission("manage_access"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
@@ -407,7 +408,7 @@ const requireSharing = (
 	});
 
 const listResourceGrants = authed.resource.listGrants
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		yield* requireSharing(input, context);
 		const grants = yield* activeGrants(
@@ -429,7 +430,7 @@ const listResourceGrants = authed.resource.listGrants
 
 /** Grants are issued in the active organisation, so only its principals can receive one. */
 const listResourcePrincipals = authed.resource.listPrincipals
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		yield* requireSharing(input, context);
 		const db = yield* DB;
@@ -540,7 +541,7 @@ const listResourcePrincipals = authed.resource.listPrincipals
 	});
 
 const grantAccess = authed.resource.grant
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const { grants, zedToken } = yield* grantResourceAccess({
 			resource: input,
@@ -566,7 +567,7 @@ const grantAccess = authed.resource.grant
 	});
 
 const revokeAccess = authed.resource.revoke
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const revoked = yield* revokeResourceAccess({
 			resource: input,
@@ -641,42 +642,40 @@ const getListingImpact = authed.resource.listingImpact
 		};
 	});
 
-const findManyResources = authed.resource.findMany.effect(function* ({
-	input,
-	context,
-}) {
-	const data = yield* readableResources({
-		resources: input.resources,
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: readRevision(context, input),
+const findManyResources = authed.resource.findMany
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		const data = yield* readableResources({
+			resources: input.resources,
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			zedToken: readRevision(context, input),
+		});
+
+		return {
+			data,
+			rowCount: data.length,
+		};
 	});
 
-	return {
-		data,
-		rowCount: data.length,
-	};
-});
+const listRecentResources = authed.resource.listRecent
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		const data = yield* recentResources({
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			limit: input.limit,
+			zedToken: readRevision(context, input),
+		});
 
-const listRecentResources = authed.resource.listRecent.effect(function* ({
-	input,
-	context,
-}) {
-	const data = yield* recentResources({
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		limit: input.limit,
-		zedToken: readRevision(context, input),
+		return {
+			data,
+			rowCount: data.length,
+		};
 	});
-
-	return {
-		data,
-		rowCount: data.length,
-	};
-});
 
 const listReceivers = authed.resource.receivers
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const data = yield* itemReceivers({
 			resource: input,
@@ -692,7 +691,7 @@ const listReceivers = authed.resource.receivers
 	});
 
 const handOver = authed.resource.handOver
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		yield* handOverItem({
 			resource: input,

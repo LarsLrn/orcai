@@ -1,3 +1,4 @@
+import type { BotId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { Bot } from "@orcai/schema";
 import { eq, getColumns } from "drizzle-orm";
@@ -18,7 +19,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
 import { homeOrganizations } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
@@ -27,7 +28,10 @@ import {
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
-const listBots = authed.bot.list.effect(function* ({ input, context }) {
+const listBots = authed.bot.list.use(requireOrganization()).effect(function* ({
+	input,
+	context,
+}) {
 	const reader = {
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
@@ -41,6 +45,7 @@ const listBots = authed.bot.list.effect(function* ({ input, context }) {
 });
 
 const findBot = authed.bot.find
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("bot", "read", {
 			entityId: "id",
@@ -113,6 +118,7 @@ const findBot = authed.bot.find
 	});
 
 const findBotEditor = authed.bot.findEditor
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("bot", "edit", {
 			entityId: "id",
@@ -128,7 +134,11 @@ const findBotEditor = authed.bot.findEditor
 	});
 
 const saveBot = authed.bot.save
-	.use(requireActiveOrganizationMiddleware)
+	.use(
+		requireOrganization((input: { id?: BotId | undefined }) =>
+			input.id ? "read" : "create_bot",
+		),
+	)
 	.effect(function* ({ input, context }) {
 		const resolvedZedToken = readRevision(context, input);
 
@@ -137,14 +147,6 @@ const saveBot = authed.bot.save
 				entityId: input.id,
 				entityType: "bot",
 				permission: "edit",
-				userId: context.auth.user.id,
-				zedToken: resolvedZedToken,
-			});
-		} else {
-			yield* requirePermission({
-				entityId: context.auth.session.activeOrganizationId,
-				entityType: "organization",
-				permission: "create_bot",
 				userId: context.auth.user.id,
 				zedToken: resolvedZedToken,
 			});
@@ -161,6 +163,7 @@ const saveBot = authed.bot.save
 	});
 
 const publishBot = authed.bot.publish
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("bot", "edit", {
 			entityId: "id",

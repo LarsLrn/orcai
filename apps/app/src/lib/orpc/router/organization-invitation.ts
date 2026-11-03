@@ -26,7 +26,7 @@ import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const invitationOrderBy = (sort: ListOrganizationInvitationsInput["sort"]) =>
@@ -103,7 +103,7 @@ const listInvitations = (
 	});
 
 const listOrganizationInvitations = authed.organizationInvitation.list
-	.use(requireOrganizationPermission("invite_members"))
+	.use(requireOrganization("invite_members"))
 	.effect(function* ({ input, context }) {
 		return yield* listInvitations(
 			eq(
@@ -219,7 +219,7 @@ const validateOrganizationInvitation =
 	});
 
 const createOrganizationInvitations = authed.organizationInvitation.create
-	.use(requireOrganizationPermission("invite_members"))
+	.use(requireOrganization("invite_members"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		if (organizationRoleRequiresAdminControl(input.role)) {
@@ -245,7 +245,7 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 	});
 
 const updateOrganizationInvitation = authed.organizationInvitation.update
-	.use(requireOrganizationPermission("invite_members"))
+	.use(requireOrganization("invite_members"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -296,7 +296,7 @@ const updateOrganizationInvitation = authed.organizationInvitation.update
 	});
 
 const deleteOrganizationInvitations = authed.organizationInvitation.delete
-	.use(requireOrganizationPermission("invite_members"))
+	.use(requireOrganization("invite_members"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;

@@ -1,14 +1,15 @@
 import type { GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
-import {
-	checkEntityPermission,
-	permittedEntityIds,
-	type ReadRevision,
-} from "@orcai/spice-db";
+import { permittedEntityIds, type ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
+import {
+	committedRoles,
+	organizationPermitted,
+	roleGrants,
+} from "@/lib/authz/organization-access";
 
 type PermissionParams = {
 	userId: UserId;
@@ -21,25 +22,46 @@ export const hasManageGroups = (
 		organizationId: OrganizationId;
 	},
 ) =>
-	checkEntityPermission({
-		entityType: "organization",
-		entityId: params.organizationId,
-		permission: "manage_groups",
+	organizationPermitted({
+		organizationId: params.organizationId,
 		userId: params.userId,
-		zedToken: params.zedToken,
+		permission: "manage_groups",
+		zedToken: params.zedToken ?? undefined,
 	});
 
+/** The organisations whose groups the caller manages, by committed role and in SpiceDB. */
 export const organizationsWithManageGroups = (
 	params: PermissionParams & {
 		organizationIds: readonly OrganizationId[];
 	},
 ) =>
-	permittedEntityIds({
-		entityType: "organization",
-		entityIds: params.organizationIds,
-		permission: "manage_groups",
-		userId: params.userId,
-		zedToken: params.zedToken,
+	Effect.gen(function* () {
+		const [permitted, roles] = yield* Effect.all(
+			[
+				permittedEntityIds({
+					entityType: "organization",
+					entityIds: params.organizationIds,
+					permission: "manage_groups",
+					userId: params.userId,
+					zedToken: params.zedToken,
+				}),
+				committedRoles({
+					userId: params.userId,
+					organizationIds: params.organizationIds,
+				}),
+			],
+			{
+				concurrency: "unbounded",
+			},
+		);
+		return new Set(
+			[
+				...permitted,
+			].filter((id) => {
+				const role = roles.get(id);
+				return role !== undefined && roleGrants(role, "manage_groups");
+			}),
+		);
 	});
 
 const isAllMembersGroup = and(

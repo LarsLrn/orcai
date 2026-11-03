@@ -10,7 +10,7 @@ import { readRevision } from "@/lib/authz/zed-token";
 import { chatBotUsable, requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 import { assistantConversationImmutable } from "./helpers/assistant-conversation";
 
@@ -72,7 +72,7 @@ const listChatBlocks = authed.chatBlock.list
 	});
 
 const attachChatBlock = authed.chatBlock.attach
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
@@ -203,7 +203,7 @@ const attachChatBlock = authed.chatBlock.attach
 	});
 
 const detachChatBlock = authed.chatBlock.detach
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",

@@ -102,6 +102,10 @@ The 256-pixel size and the dropped metadata are guaranteed for uploads through t
 
 The app stores domain records in PostgreSQL and uses SpiceDB for relationship-based authorisation. Permission middleware checks whether a user can access or mutate a resource before executing protected operations.
 
+### Organisation gate
+
+Every procedure that acts in an organisation passes one gate (`requireOrganization`, or `requireOrganizationById` when the input names the organisation). It needs an active organisation, a `member` row, a committed role that grants the permission and the same permission in SpiceDB. The committed role counts first, so a demotion or removal applies before its tuples reach SpiceDB. When the role grants a permission SpiceDB does not hold yet, the gate answers 503 `ACCESS_PENDING` instead of a denial, and the client can try again shortly. Organisation capabilities are narrowed by the committed role the same way. The organisation list reads PostgreSQL only.
+
 ### Read consistency
 
 SpiceDB answers authorisation reads with `minimizeLatency` by default, so a read can miss a permission change made moments earlier. A request that writes authorisation returns the resulting zedToken in the response `meta` and sets a `zed_token` cookie for 60 seconds, so the browser's following reads are at least as fresh as that write.

@@ -50,7 +50,7 @@ import {
 } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
@@ -65,7 +65,7 @@ import {
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listChats = authed.chat.list
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
@@ -415,7 +415,7 @@ const MODEL_KEYS = [
 ] as const;
 
 const createChat = authed.chat.create
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const features = input.config?.features;
@@ -479,7 +479,7 @@ const createChat = authed.chat.create
 	});
 
 const findDefaultModel = authed.chat.defaultModel
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		return {
 			data: yield* defaultChatModel({
@@ -491,7 +491,7 @@ const findDefaultModel = authed.chat.defaultModel
 	});
 
 const updateChat = authed.chat.update
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "id",
@@ -700,7 +700,7 @@ const deleteChats = authed.chat.delete
 	});
 
 const branchChat = authed.chat.branch
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",

@@ -75,67 +75,6 @@ export const requiredAuthMiddleware = withName(
 	"requiredAuth",
 );
 
-export const requireActiveOrganizationMiddleware = withName(
-	os.$context<AppEffectContext & AuthContext>().middleware(
-		middlewareGen(function* (opts) {
-			const activeOrganizationId =
-				opts.context.auth.session.activeOrganizationId;
-
-			if (!activeOrganizationId) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "ACTIVE_ORGANIZATION_REQUIRED",
-						message:
-							"An active organization must be selected to access this resource.",
-					}),
-				);
-			}
-
-			const db = yield* DB;
-			const membership = yield* db.query.member.findFirst({
-				where: {
-					organizationId: {
-						eq: activeOrganizationId,
-					},
-					userId: {
-						eq: opts.context.auth.user.id,
-					},
-				},
-				columns: {
-					id: true,
-				},
-			});
-
-			if (!membership) {
-				return yield* Effect.fail(
-					new AppErrors.ForbiddenError({
-						reason: "ORGANIZATION_MEMBERSHIP_REVOKED",
-						message: "You are no longer a member of the selected organization.",
-						data: {
-							permission: "read",
-							entityType: "organization",
-						},
-					}),
-				);
-			}
-
-			return yield* opts.next({
-				context: {
-					reqHeaders: opts.context.reqHeaders,
-					auth: {
-						...opts.context.auth,
-						session: {
-							...opts.context.auth.session,
-							activeOrganizationId,
-						},
-					},
-				},
-			});
-		}),
-	),
-	"requireActiveOrganization",
-);
-
 export const requirePreferencesMiddleware = withName(
 	os.$context<AppEffectContext & AuthContext>().middleware(
 		middlewareGen(function* (opts) {

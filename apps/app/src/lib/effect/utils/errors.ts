@@ -34,6 +34,9 @@ export const ErrorTags = {
 	VALIDATION: "ValidationError",
 	BAD_REQUEST: "BadRequestError",
 
+	// Temporarily unavailable, the client may retry
+	UNAVAILABLE: "UnavailableError",
+
 	// AI errors
 	AI: "AiError",
 	QUOTA_DENIED: "QuotaDeniedError",
@@ -145,6 +148,21 @@ export const BadRequestError = BadRequestErrorClass as ReasonedConstructor<
 	BadRequestProps
 >;
 
+type UnavailableProps = {
+	readonly message: string;
+	readonly cause?: unknown;
+};
+
+class UnavailableErrorClass extends Data.TaggedError(ErrorTags.UNAVAILABLE)<
+	UnavailableProps & ReasonCarrier
+> {}
+
+export type UnavailableError = UnavailableErrorClass;
+export const UnavailableError = UnavailableErrorClass as ReasonedConstructor<
+	UnavailableErrorClass,
+	UnavailableProps
+>;
+
 export class AuthzError extends Data.TaggedError(ErrorTags.AUTHZ)<{
 	reason: "outbox_enqueue_failed" | "projection_failed";
 	cause: unknown;
@@ -164,6 +182,7 @@ export type AppError =
 	| ForbiddenError
 	| ValidationError
 	| BadRequestError
+	| UnavailableError
 	| S3Error
 	| QdrantError
 	| ValkeyError

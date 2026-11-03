@@ -8,11 +8,11 @@ import {
 	saveBotSetup,
 } from "@/lib/bots/bot-setup";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 const findSetup = authed.botSetup.find
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("bot", "read", {
 			entityId: "botId",
@@ -46,7 +46,7 @@ const findSetup = authed.botSetup.find
 	});
 
 const saveSetup = authed.botSetup.save
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		return {
 			data: yield* saveBotSetup({
@@ -61,7 +61,7 @@ const saveSetup = authed.botSetup.save
 
 /** Only setup editors see who the bot is shared with and whether they are covered. */
 const setupCoverage = authed.botSetup.coverage
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		yield* requireBotSetupEditor({
 			botId: input.botId,

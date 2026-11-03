@@ -3,6 +3,7 @@ import type { FeatureId } from "../feature/schema";
 
 /** Stable codes the client translates; the server never sends user-facing prose. */
 export const ERROR_REASONS = [
+	"ACCESS_PENDING",
 	"ACTIVE_ORGANIZATION_REQUIRED",
 	"ACTIVITY_FAILURE_NOT_FOUND",
 	"ACTIVITY_RUN_NOT_FOUND",

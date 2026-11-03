@@ -4,12 +4,11 @@ import * as Effect from "effect/Effect";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { insertChat } from "@/lib/chats/chat-lifecycle";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 
 /** Assistant conversations are never shared, so the owner column is the whole check. */
 const listAssistantConversations = authed.assistant.list
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const whereClause = and(
@@ -49,8 +48,7 @@ const listAssistantConversations = authed.assistant.list
 	});
 
 const createAssistantConversation = authed.assistant.create
-	.use(requireActiveOrganizationMiddleware)
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganization())
 	.effect(function* ({ context }) {
 		const { result: chat } = yield* writeRelationships(
 			{
