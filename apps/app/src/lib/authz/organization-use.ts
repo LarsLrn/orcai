@@ -1,6 +1,5 @@
 import type { OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
+import { DB, dbSchema, resourceTables } from "@orcai/db";
 import {
 	type EntityIdFor,
 	permittedEntityIds,
@@ -10,33 +9,8 @@ import {
 import { type AnyColumn, and, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
+import { grantReaches } from "@/lib/authz/reaching-groups";
 import * as AppErrors from "@/lib/effect/utils/errors";
-
-const resourceTables = {
-	bot: dbSchema.bot,
-	block: dbSchema.block,
-	asset: dbSchema.asset,
-};
-
-/** The groups of the organisation whose grants reach the user, All Members included. */
-const memberGroupIds = (userId: UserId, organizationId: OrganizationId) => {
-	const group = dbSchema.group;
-	const groupMember = dbSchema.groupMember;
-	return sql`(
-		select ${group.id} from ${group}
-		where ${group.organizationId} = ${organizationId}
-			and ${group.deletedAt} is null
-			and (
-				(${group.kind} = 'system' and ${group.systemKey} = ${ALL_MEMBERS_GROUP_SYSTEM_KEY})
-				or exists (
-					select 1 from ${groupMember}
-					where ${groupMember.groupId} = ${group.id}
-						and ${groupMember.userId} = ${userId}
-						and ${groupMember.removedAt} is null
-				)
-			)
-	)`;
-};
 
 /**
  * Postgres's part of using the resource in `id` in the organisation: an
@@ -80,10 +54,10 @@ export const usableHere = (params: {
 						and ${grant.resourceId} = ${scope.resourceId}
 						and ${grant.organizationId} = ${organizationId}
 						and ${grant.revokedAt} is null
-						and (
-							(${grant.principalType} = 'user' and ${grant.principalId} = ${userId})
-							or (${grant.principalType} = 'group' and ${grant.principalId} in ${memberGroupIds(userId, organizationId)})
-						)
+						and ${grantReaches({
+							userId,
+							organizationId,
+						})}
 				)
 			)
 	)`;

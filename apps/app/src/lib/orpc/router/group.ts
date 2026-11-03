@@ -12,7 +12,6 @@ import {
 	eq,
 	getColumns,
 	ilike,
-	inArray,
 	isNull,
 	notExists,
 	sql,
@@ -25,17 +24,14 @@ import {
 } from "@/lib/authz/email-visibility";
 import {
 	addGroupMembers,
+	createGroup,
+	deleteGroups,
 	findOrganizationGroup,
 	groupMemberCount,
 	removeGroupMembers,
-} from "@/lib/authz/group-membership";
+	updateGroup,
+} from "@/lib/authz/group-lifecycle";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
-import { RelationshipFact } from "@/lib/authz/relationship-facts";
-import {
-	recordRelationshipFacts,
-	writeRelationships,
-} from "@/lib/authz/relationship-write";
-import { detachGroups } from "@/lib/authz/resource-access";
 import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -155,210 +151,43 @@ const findGroup = authed.group.find
 		};
 	});
 
-const createGroup = authed.group.create
+const createGroupProcedure = authed.group.create
 	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
-		const now = new Date();
-
-		const { result: created } = yield* writeRelationships(
-			{
-				organizationIds: [
-					organizationId,
-				],
-			},
-			Effect.gen(function* () {
-				const [created] = yield* db
-					.insert(dbSchema.group)
-					.values({
-						organizationId,
-						name: input.name,
-						description: input.description,
-						kind: "custom",
-						systemKey: null,
-						createdBy: context.auth.user.id,
-						createdAt: now,
-						updatedAt: now,
-						deletedAt: null,
-					})
-					.returning();
-				yield* recordRelationshipFacts(
-					RelationshipFact.GroupCreated({
-						groupId: created.id,
-						organizationId,
-						allMembers: false,
-					}),
-				);
-				return created;
-			}),
-		);
+		const created = yield* createGroup({
+			organizationId: context.auth.session.activeOrganizationId,
+			name: input.name,
+			description: input.description,
+			actorId: context.auth.user.id,
+		});
 
 		return {
 			data: created,
 		};
 	});
 
-const updateGroup = authed.group.update
+const updateGroupProcedure = authed.group.update
 	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
-
-		const [existing] = yield* db
-			.select({
-				id: dbSchema.group.id,
-				kind: dbSchema.group.kind,
-			})
-			.from(dbSchema.group)
-			.where(
-				and(
-					eq(dbSchema.group.id, input.id),
-					eq(dbSchema.group.organizationId, organizationId),
-					isNull(dbSchema.group.deletedAt),
-				),
-			)
-			.limit(1);
-
-		if (!existing) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					reason: "GROUP_NOT_FOUND",
-					message: "Group not found",
-				}),
-			);
-		}
-
-		if (existing.kind === "system") {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "SYSTEM_GROUP_IMMUTABLE",
-					message: "System groups cannot be modified",
-				}),
-			);
-		}
-
-		const [updated] = yield* db
-			.update(dbSchema.group)
-			.set({
-				name: input.name,
-				description: input.description,
-				updatedAt: new Date(),
-			})
-			.where(eq(dbSchema.group.id, input.id))
-			.returning();
+		const updated = yield* updateGroup({
+			groupId: input.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			name: input.name,
+			description: input.description,
+		});
 
 		return {
 			data: updated,
 		};
 	});
 
-const deleteGroups = authed.group.delete
+const deleteGroupsProcedure = authed.group.delete
 	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
-		const now = new Date();
-
-		const groupIds = input.refs.map((ref) => ref.id);
-
-		yield* writeRelationships(
-			{
-				organizationIds: [
-					organizationId,
-				],
-			},
-			Effect.gen(function* () {
-				const existingGroups = yield* db
-					.select({
-						id: dbSchema.group.id,
-						kind: dbSchema.group.kind,
-					})
-					.from(dbSchema.group)
-					.where(
-						and(
-							inArray(dbSchema.group.id, groupIds),
-							eq(dbSchema.group.organizationId, organizationId),
-							isNull(dbSchema.group.deletedAt),
-						),
-					);
-
-				if (existingGroups.length !== groupIds.length) {
-					return yield* Effect.fail(
-						new AppErrors.NotFoundError({
-							reason: "GROUP_NOT_FOUND",
-							message: "One or more groups were not found",
-						}),
-					);
-				}
-
-				if (existingGroups.some((group) => group.kind === "system")) {
-					return yield* Effect.fail(
-						new AppErrors.BadRequestError({
-							reason: "SYSTEM_GROUP_IMMUTABLE",
-							message: "System groups cannot be deleted",
-						}),
-					);
-				}
-
-				const existingGroupIds = existingGroups.map((group) => group.id);
-
-				const membersToRemove = yield* db
-					.select({
-						groupId: dbSchema.groupMember.groupId,
-						userId: dbSchema.groupMember.userId,
-					})
-					.from(dbSchema.groupMember)
-					.where(
-						and(
-							inArray(dbSchema.groupMember.groupId, existingGroupIds),
-							isNull(dbSchema.groupMember.removedAt),
-						),
-					);
-
-				yield* db
-					.update(dbSchema.groupMember)
-					.set({
-						removedAt: now,
-					})
-					.where(
-						and(
-							inArray(dbSchema.groupMember.groupId, existingGroupIds),
-							isNull(dbSchema.groupMember.removedAt),
-						),
-					);
-
-				yield* detachGroups({
-					groupIds: existingGroupIds,
-					now,
-				});
-
-				yield* db
-					.update(dbSchema.group)
-					.set({
-						deletedAt: now,
-						updatedAt: now,
-					})
-					.where(inArray(dbSchema.group.id, existingGroupIds));
-
-				yield* recordRelationshipFacts(
-					...existingGroupIds.map((groupId) =>
-						RelationshipFact.GroupDeleted({
-							groupId,
-							organizationId,
-							allMembers: false,
-						}),
-					),
-					...membersToRemove.map((member) =>
-						RelationshipFact.GroupMembershipChanged({
-							groupId: member.groupId,
-							userId: member.userId,
-							member: false,
-						}),
-					),
-				);
-			}),
-		);
+		yield* deleteGroups({
+			organizationId: context.auth.session.activeOrganizationId,
+			groupIds: input.refs.map((ref) => ref.id),
+		});
 
 		return {
 			success: true,
@@ -636,10 +465,10 @@ const removeMembers = authed.group.removeMembers
 
 export const groupRouter = {
 	list: listGroups,
-	create: createGroup,
+	create: createGroupProcedure,
 	find: findGroup,
-	update: updateGroup,
-	delete: deleteGroups,
+	update: updateGroupProcedure,
+	delete: deleteGroupsProcedure,
 	listMembers: listGroupMembers,
 	listCandidates: listGroupCandidates,
 	addMembers,
