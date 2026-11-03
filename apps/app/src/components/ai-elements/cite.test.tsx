@@ -5,6 +5,7 @@ import {
 	render,
 	screen,
 	waitFor,
+	waitForElementToBeRemoved,
 } from "@testing-library/react";
 import type { Citations } from "@/lib/ai/citations/chat-sources";
 
@@ -154,13 +155,7 @@ describe("CiteComponent", () => {
 			"https://www.who.int/news-room/fact-sheets/detail/malaria",
 		);
 
-		const opened: unknown[] = [];
-		const open = window.open;
-		window.open = ((...args: unknown[]) => {
-			opened.push(args[0]);
-			return null;
-		}) as typeof window.open;
-		try {
+		await opening(async (opened) => {
 			fireEvent.click(
 				screen.getByRole("button", {
 					name: "Open link",
@@ -169,10 +164,8 @@ describe("CiteComponent", () => {
 			expect(opened).toEqual([
 				"https://www.who.int/news-room/fact-sheets/detail/malaria",
 			]);
-			await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
-		} finally {
-			window.open = open;
-		}
+			await waitForElementToBeRemoved(() => screen.queryByRole("alertdialog"));
+		});
 	});
 
 	test.each([

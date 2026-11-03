@@ -1,5 +1,6 @@
 import { enqueueNotification } from "@orcai/notifications";
 import { localeSchema } from "@orcai/schema";
+import * as Clock from "effect/Clock";
 import { AppConfigService } from "@/lib/effect/services/config";
 import { instanceHealth } from "@/lib/health/health";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -20,6 +21,7 @@ const sendTestEmail = authed.health.sendTestEmail
 	.effect(function* ({ context }) {
 		const { config } = yield* AppConfigService;
 		const { user } = context.auth;
+		const now = yield* Clock.currentTimeMillis;
 		const queued = yield* enqueueNotification(
 			{
 				type: "instance.test-email",
@@ -29,7 +31,7 @@ const sendTestEmail = authed.health.sendTestEmail
 				healthUrl: `${config.auth.url}/instance/health`,
 			},
 			// One per admin per minute, however often or concurrently they ask.
-			`instance.test-email:${user.id}:${Math.floor(Date.now() / TEST_EMAIL_WINDOW_MS)}`,
+			`instance.test-email:${user.id}:${Math.floor(now / TEST_EMAIL_WINDOW_MS)}`,
 		);
 
 		return {

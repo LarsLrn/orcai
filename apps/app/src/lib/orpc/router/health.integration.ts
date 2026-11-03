@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import { DB, dbSchema } from "@orcai/db";
 import { rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
+import * as Clock from "effect/Clock";
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import { coreDependenciesHealthy } from "@/lib/health/health";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
@@ -10,6 +11,22 @@ import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, instanceAdmin } =
 	appIntegration();
+
+/** The real clock stopped at `at.ms`, which the test moves. */
+const stoppedClock = (at: { ms: number }) =>
+	Effect.gen(function* () {
+		const real = yield* Clock.Clock;
+		const nanos = () => BigInt(at.ms) * 1_000_000n;
+		return {
+			currentTimeMillisUnsafe: () => at.ms,
+			currentTimeMillis: Effect.sync(() => at.ms),
+			currentTimeNanosUnsafe: nanos,
+			currentTimeNanos: Effect.sync(nanos),
+			monotonicTimeNanosUnsafe: () => real.monotonicTimeNanosUnsafe(),
+			monotonicTimeNanos: real.monotonicTimeNanos,
+			sleep: (duration) => real.sleep(duration),
+		} satisfies Clock.Clock;
+	});
 
 describe("instance health", () => {
 	test(
@@ -99,16 +116,33 @@ describe("instance health", () => {
 			]);
 			const admin = await instanceAdmin(organizationId);
 			const options = await procedureOptions(admin);
+			const at = {
+				ms: Date.now(),
+			};
+			const clock = await run(stoppedClock(at));
+			const send = () =>
+				run(
+					procedures.health.sendTestEmail(
+						{},
+						{
+							context: {
+								...options.context,
+								"effect/context": Context.add(
+									options.context["effect/context"],
+									Clock.Clock,
+									clock,
+								),
+							},
+						},
+					),
+				);
 
-			// The cooldown window is the clock minute; stay inside one.
-			const intoMinute = Date.now() % 60_000;
-			if (intoMinute > 55_000) await sleep(60_500 - intoMinute);
 			const answers = await Promise.all(
 				[
 					1,
 					2,
 					3,
-				].map(() => run(procedures.health.sendTestEmail({}, options))),
+				].map(send),
 			);
 			expect(answers.filter(({ queued }) => queued)).toHaveLength(1);
 
@@ -136,6 +170,11 @@ describe("instance health", () => {
 			expect(data.mail?.testEmail).toMatchObject({
 				status: "pending",
 				deliveryChannel: null,
+			});
+
+			at.ms += 60_000;
+			expect(await send()).toEqual({
+				queued: true,
 			});
 		},
 		TIMEOUT,

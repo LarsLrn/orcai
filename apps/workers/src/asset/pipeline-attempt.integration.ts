@@ -35,7 +35,7 @@ import {
 	settleIndexingAttempt,
 	settleProcessingAttempt,
 } from "@/asset/pipeline-attempt";
-import { ensureQueue } from "@/worker/run-worker-process";
+import { ensureQueue, runWorkerBatch } from "@/worker/run-worker-process";
 
 const TIMEOUT = 30_000;
 
@@ -171,15 +171,19 @@ const pipelineQueue = async <T extends object>(params: {
 		expireInSeconds: params.expireInSeconds ?? 60,
 		deadLetter,
 	});
-	await boss.work<T>(
+	const services = await run(Effect.context<DB>());
+	await boss.work(
 		name,
 		{
 			pollingIntervalSeconds: 0.5,
+			includeMetadata: true,
 		},
-		async ([job]) => {
-			attempts += 1;
-			await run(params.attempt(job.data));
-		},
+		runWorkerBatch(services, name, ([job]: JobWithMetadata<T>[]) =>
+			Effect.suspend(() => {
+				attempts += 1;
+				return job ? params.attempt(job.data) : Effect.void;
+			}),
+		),
 	);
 	await boss.work(
 		deadLetter,

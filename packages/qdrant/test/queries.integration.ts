@@ -1,15 +1,12 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import type { RetrievalMode } from "@orcai/schema";
-import * as Effect from "effect/Effect";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import { upsertPointsToQdrant } from "../src/mutations";
 import { queryAssetPoints } from "../src/queries";
-import { TestCollectionLive } from "./test-collection";
+import { SETUP_TIMEOUT, testCollectionRuntime } from "./test-collection";
 
 const dimensions = 8;
-const runtime = ManagedRuntime.make(TestCollectionLive(dimensions));
-const run = runtime.runPromise;
+const run = testCollectionRuntime(dimensions).runPromise;
 
 const assetId = crypto.randomUUID() as AssetId;
 
@@ -60,34 +57,33 @@ const ids = Object.fromEntries(
 	]),
 );
 
-const stored = run(
-	Effect.gen(function* () {
-		yield* upsertPointsToQdrant({
-			points: Object.entries(points).map(
-				([name, { similarity, text }], index) => ({
-					id: ids[name],
-					vector: at(similarity, dimensions),
-					payload: {
-						source: "text" as const,
-						asset_id: assetId,
-						block_id: crypto.randomUUID() as BlockId,
-						text,
-						depth: 0,
-						tokens: 8,
-						chunk_index: index,
-						chunkCount: Object.keys(points).length,
-						createdAt: new Date().toISOString(),
-					},
-				}),
-			),
-		});
-	}),
+beforeAll(
+	() =>
+		run(
+			upsertPointsToQdrant({
+				points: Object.entries(points).map(
+					([name, { similarity, text }], index) => ({
+						id: ids[name],
+						vector: at(similarity, dimensions),
+						payload: {
+							source: "text" as const,
+							asset_id: assetId,
+							block_id: crypto.randomUUID() as BlockId,
+							text,
+							depth: 0,
+							tokens: 8,
+							chunk_index: index,
+							chunkCount: Object.keys(points).length,
+							createdAt: new Date().toISOString(),
+						},
+					}),
+				),
+			}),
+		),
+	SETUP_TIMEOUT,
 );
 
-afterAll(() => runtime.dispose());
-
 const search = async (retrievalMode: RetrievalMode) => {
-	await stored;
 	const found = await run(
 		queryAssetPoints({
 			embedding: at(1, dimensions),
