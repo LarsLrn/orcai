@@ -1,7 +1,6 @@
 import { DB, dbSchema } from "@orcai/db";
 import type { InstanceUserSortKey } from "@orcai/schema";
-import { count, desc, eq, getColumns, ilike, or } from "drizzle-orm";
-import * as Effect from "effect/Effect";
+import { desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
 import { setInstanceRole } from "@/lib/authz/instance-role-change";
 import {
@@ -11,6 +10,7 @@ import {
 } from "@/lib/authz/organization-membership";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
+import { pageOf } from "@/lib/orpc/router/helpers/paging";
 import {
 	buildOrderBy,
 	type SortExpression,
@@ -46,37 +46,20 @@ const listAllUsers = authed.user.listAll
 			},
 		});
 
-		const [users, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						...getColumns(dbSchema.user),
-						membershipCount: db.$count(
-							dbSchema.member,
-							eq(dbSchema.member.userId, dbSchema.user.id),
-						),
-					})
-					.from(dbSchema.user)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.user)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		return yield* pageOf(
+			db
+				.select({
+					...getColumns(dbSchema.user),
+					membershipCount: db.$count(
+						dbSchema.member,
+						eq(dbSchema.member.userId, dbSchema.user.id),
+					),
+				})
+				.from(dbSchema.user)
+				.where(whereClause),
+			input,
+			orderBy,
 		);
-
-		return {
-			data: users,
-			rowCount: rowCount.count,
-		};
 	});
 
 const banUser = authed.user.ban

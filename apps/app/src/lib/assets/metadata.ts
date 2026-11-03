@@ -1,5 +1,5 @@
 import type { AssetId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import { lookupEntitiesByPermission, type ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -32,15 +32,7 @@ export const assetsMissingMetadata = (params: {
 				id: asset.id,
 			})
 			.from(asset)
-			.innerJoin(
-				resourceScope,
-				and(
-					eq(resourceScope.resourceType, "asset"),
-					eq(resourceScope.resourceId, asset.id),
-					eq(resourceScope.isPrimary, true),
-					isNull(resourceScope.endedAt),
-				),
-			)
+			.innerJoin(resourceScope, homeScopeOf("asset", asset.id))
 			.where(
 				and(
 					inArray(asset.id, editable as AssetId[]),

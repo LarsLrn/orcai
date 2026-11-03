@@ -1,5 +1,5 @@
 import type { AssetId, BlockId, BotId, OrganizationId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import { repositoryTotals } from "@orcai/preparation";
 import {
 	behaviourSchema,
@@ -30,6 +30,7 @@ import * as Effect from "effect/Effect";
 import { inLibrary } from "@/lib/authz/library";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { botDetails } from "@/lib/library/tile-details";
+import { pageOf } from "@/lib/orpc/router/helpers/paging";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -55,12 +56,7 @@ type EntryFilters = {
 const home = alias(dbSchema.resourceScope, "home");
 
 const homeOf = (resourceType: "bot" | "block", id: AnyColumn) =>
-	and(
-		eq(home.resourceType, resourceType),
-		sql`${home.resourceId} = ${id}`,
-		eq(home.isPrimary, true),
-		isNull(home.endedAt),
-	);
+	homeScopeOf(resourceType, id, home);
 
 const listed = (resourceType: "bot" | "block", id: AnyColumn) => {
 	const visibility = dbSchema.resourceVisibility;
@@ -371,31 +367,20 @@ const cataloguePage = (
 						desc(listedEntries.id),
 					];
 
-		const [page, [counted]] = yield* Effect.all(
-			[
-				db
-					.select({
-						kind: listedEntries.kind,
-						id: listedEntries.id,
-					})
-					.from(listedEntries)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(listedEntries),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data, rowCount } = yield* pageOf(
+			db
+				.select({
+					kind: listedEntries.kind,
+					id: listedEntries.id,
+				})
+				.from(listedEntries),
+			input,
+			orderBy,
 		);
 
 		return {
-			data: yield* hydrate(page, organizationId),
-			rowCount: counted.count,
+			data: yield* hydrate(data, organizationId),
+			rowCount,
 		};
 	});
 

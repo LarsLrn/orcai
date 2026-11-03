@@ -5,26 +5,13 @@ import type {
 	OrganizationId,
 	UserId,
 } from "@orcai/core";
-import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
-import type { ActivityRunKind, ResourceType } from "@orcai/schema";
+import { DB, dbSchema, homeOrganization, retryDeadlocks } from "@orcai/db";
+import type { ActivityRunKind } from "@orcai/schema";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
 /** How long an upload call keeps its run open without renewing, by the database clock. */
 const leaseEnd = sql<Date>`now() + interval '10 minutes'`;
-
-/** The organisation a resource is home to, as a subquery for a run's label. */
-export const homeOrganization = (resourceType: ResourceType, id: string) => {
-	const { resourceScope } = dbSchema;
-	return sql<OrganizationId | null>`(
-		select ${resourceScope.organizationId} from ${resourceScope}
-		where ${resourceScope.resourceType} = ${resourceType}
-			and ${resourceScope.resourceId} = ${id}
-			and ${resourceScope.isPrimary}
-			and ${resourceScope.endedAt} is null
-		limit 1
-	)`;
-};
 
 /**
  * Runs `admit` as the work of a new run of the user's, in one transaction.

@@ -1,5 +1,5 @@
 import type { ActivityRunId, OrganizationId, UserId } from "@orcai/core";
-import { advisoryXactLock, DB, dbSchema } from "@orcai/db";
+import { advisoryXactLock, DB, dbSchema, homeScopeOf } from "@orcai/db";
 import { liveJobs, sendJobBatchInTransaction } from "@orcai/pg-boss";
 import {
 	EmbeddingIndex,
@@ -508,15 +508,7 @@ export const embeddingProgress = Effect.gen(function* () {
 		.from(blockAsset)
 		.innerJoin(dbSchema.asset, eq(dbSchema.asset.id, blockAsset.assetId))
 		.innerJoin(settings, sql`${settings.embeddingGeneration} is not null`)
-		.leftJoin(
-			resourceScope,
-			and(
-				eq(resourceScope.resourceType, "block"),
-				eq(resourceScope.resourceId, blockAsset.blockId),
-				eq(resourceScope.isPrimary, true),
-				isNull(resourceScope.endedAt),
-			),
-		)
+		.leftJoin(resourceScope, homeScopeOf("block", blockAsset.blockId))
 		.leftJoin(organization, eq(organization.id, resourceScope.organizationId))
 		.where(links.counted())
 		.groupBy(organization.id, organization.name)

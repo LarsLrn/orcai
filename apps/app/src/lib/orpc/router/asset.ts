@@ -1,15 +1,10 @@
 import type { OrganizationId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
-import {
-	admit,
-	homeOrganization,
-	inActivityRun,
-	prepareAssetAgain,
-} from "@orcai/preparation";
+import { DB, dbSchema, homeOrganization, homeScopeOf } from "@orcai/db";
+import { admit, inActivityRun, prepareAssetAgain } from "@orcai/preparation";
 import { UPLOAD_ROUTES } from "@orcai/s3";
 import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
 import { checkEntityPermission } from "@orcai/spice-db";
-import { and, eq, getColumns, isNull, sql } from "drizzle-orm";
+import { and, eq, getColumns, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { listAssetTiles } from "@/lib/assets/asset-list";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
@@ -70,15 +65,7 @@ const findAsset = authed.asset.find
 			})
 			.from(dbSchema.asset)
 			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.asset.userId))
-			.leftJoin(
-				dbSchema.resourceScope,
-				and(
-					eq(dbSchema.resourceScope.resourceType, "asset"),
-					eq(dbSchema.resourceScope.resourceId, dbSchema.asset.id),
-					eq(dbSchema.resourceScope.isPrimary, true),
-					isNull(dbSchema.resourceScope.endedAt),
-				),
-			)
+			.leftJoin(dbSchema.resourceScope, homeScopeOf("asset", dbSchema.asset.id))
 			.leftJoin(
 				dbSchema.organization,
 				eq(dbSchema.organization.id, dbSchema.resourceScope.organizationId),

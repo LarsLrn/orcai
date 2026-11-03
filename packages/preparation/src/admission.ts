@@ -1,5 +1,5 @@
 import type { ActivityRunId, AssetId, BlockId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import { sendJobBatchInTransaction } from "@orcai/pg-boss";
 import { activeGeneration } from "@orcai/qdrant";
 import {
@@ -344,10 +344,7 @@ const admitMetadata = (
 							)
 							.where(
 								and(
-									eq(resourceScope.resourceType, "asset"),
-									eq(resourceScope.resourceId, asset.id),
-									eq(resourceScope.isPrimary, true),
-									isNull(resourceScope.endedAt),
+									homeScopeOf("asset", asset.id),
 									isNotNull(organization.utilityModelId),
 								),
 							),

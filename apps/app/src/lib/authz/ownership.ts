@@ -6,10 +6,9 @@ import {
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
-import { DB, dbSchema, resourceTables } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf, resourceTables } from "@orcai/db";
 import type { EntityIdFor, ReadRevision, ResourceType } from "@orcai/spice-db";
-import { and, asc, eq, inArray, isNull, ne, notInArray } from "drizzle-orm";
-import type { AnyPgColumn } from "drizzle-orm/pg-core";
+import { and, asc, eq, inArray, ne, notInArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import {
@@ -63,17 +62,6 @@ type OwnedItem = {
 	organizationId: OrganizationId;
 };
 
-const homeScope = (
-	resourceType: ResourceRef["resourceType"],
-	id: AnyPgColumn,
-) =>
-	and(
-		eq(dbSchema.resourceScope.resourceType, resourceType),
-		eq(dbSchema.resourceScope.resourceId, id),
-		eq(dbSchema.resourceScope.isPrimary, true),
-		isNull(dbSchema.resourceScope.endedAt),
-	);
-
 /**
  * The bots, blocks and Library assets the users own, by home organisation;
  * chat uploads are personal and never listed. `lock` holds the rows until
@@ -102,7 +90,7 @@ const ownedItems = (params: {
 				organizationId: resourceScope.organizationId,
 			})
 			.from(bot)
-			.innerJoin(resourceScope, homeScope("bot", bot.id))
+			.innerJoin(resourceScope, homeScopeOf("bot", bot.id))
 			.where(and(inArray(bot.userId, userIds), inOrganization));
 		const blocks = db
 			.select({
@@ -111,7 +99,7 @@ const ownedItems = (params: {
 				organizationId: resourceScope.organizationId,
 			})
 			.from(block)
-			.innerJoin(resourceScope, homeScope("block", block.id))
+			.innerJoin(resourceScope, homeScopeOf("block", block.id))
 			.where(and(inArray(block.userId, userIds), inOrganization));
 		const assets = db
 			.select({
@@ -120,7 +108,7 @@ const ownedItems = (params: {
 				organizationId: resourceScope.organizationId,
 			})
 			.from(asset)
-			.innerJoin(resourceScope, homeScope("asset", asset.id))
+			.innerJoin(resourceScope, homeScopeOf("asset", asset.id))
 			.where(
 				and(
 					inArray(asset.userId, userIds),
@@ -353,21 +341,21 @@ export const ownedContentOrganizations = (userIds: readonly UserId[]) =>
 					organizationId: resourceScope.organizationId,
 				})
 				.from(bot)
-				.innerJoin(resourceScope, homeScope("bot", bot.id))
+				.innerJoin(resourceScope, homeScopeOf("bot", bot.id))
 				.where(inArray(bot.userId, owners)),
 			db
 				.selectDistinct({
 					organizationId: resourceScope.organizationId,
 				})
 				.from(block)
-				.innerJoin(resourceScope, homeScope("block", block.id))
+				.innerJoin(resourceScope, homeScopeOf("block", block.id))
 				.where(inArray(block.userId, owners)),
 			db
 				.selectDistinct({
 					organizationId: resourceScope.organizationId,
 				})
 				.from(asset)
-				.innerJoin(resourceScope, homeScope("asset", asset.id))
+				.innerJoin(resourceScope, homeScopeOf("asset", asset.id))
 				.where(inArray(asset.userId, owners)),
 		]);
 		return Arr.dedupe(rows.flat().map((row) => row.organizationId));
@@ -614,11 +602,8 @@ export const handOverableIds = <Type extends ResourceType>(params: {
 			.innerJoin(
 				home,
 				and(
-					eq(home.resourceType, params.resourceType),
-					eq(home.resourceId, table.id),
+					homeScopeOf(params.resourceType, table.id),
 					eq(home.organizationId, organizationId),
-					eq(home.isPrimary, true),
-					isNull(home.endedAt),
 				),
 			)
 			.where(

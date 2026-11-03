@@ -16,7 +16,7 @@ import {
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import { AssetPipelineError } from "@orcai/preparation";
 import type {
 	StoredExtractionArtifact,
@@ -24,7 +24,7 @@ import type {
 } from "@orcai/process";
 import { getImageAsBase64 } from "@orcai/s3/server";
 import type { Locale } from "@orcai/schema";
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { modelCallFailure, summarizeErrorCause } from "@/asset/error-summary";
 
@@ -51,15 +51,7 @@ export const assetOwner = (assetId: AssetId) =>
 			})
 			.from(asset)
 			.innerJoin(user, eq(user.id, asset.userId))
-			.innerJoin(
-				resourceScope,
-				and(
-					eq(resourceScope.resourceType, "asset"),
-					eq(resourceScope.resourceId, asset.id),
-					eq(resourceScope.isPrimary, true),
-					isNull(resourceScope.endedAt),
-				),
-			)
+			.innerJoin(resourceScope, homeScopeOf("asset", asset.id))
 			.where(eq(asset.id, assetId))
 			.limit(1);
 

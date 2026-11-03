@@ -3,9 +3,9 @@ import {
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, isHome } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY, RESOURCE_TYPES } from "@orcai/schema";
-import { and, asc, eq, getColumns, inArray, isNull } from "drizzle-orm";
+import { and, asc, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { deleteOrganizationGroups } from "@/lib/authz/group-lifecycle";
 import { detachUsers } from "@/lib/authz/organization-membership";
@@ -101,8 +101,7 @@ const homeResources = (organizationIds: readonly OrganizationId[]) =>
 					inArray(dbSchema.resourceScope.organizationId, [
 						...organizationIds,
 					]),
-					eq(dbSchema.resourceScope.isPrimary, true),
-					isNull(dbSchema.resourceScope.endedAt),
+					isHome(),
 				),
 			);
 	});

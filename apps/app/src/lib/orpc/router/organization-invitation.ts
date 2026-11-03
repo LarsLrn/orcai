@@ -5,16 +5,7 @@ import type {
 	OrganizationInvitationSortKey,
 } from "@orcai/schema";
 import { checkEntityPermission } from "@orcai/spice-db";
-import {
-	and,
-	count,
-	desc,
-	eq,
-	getColumns,
-	inArray,
-	or,
-	type SQL,
-} from "drizzle-orm";
+import { and, desc, eq, getColumns, inArray, or, type SQL } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { invitationAddressedTo } from "@/lib/auth/invitation-signup";
 import { inviteToOrganization } from "@/lib/authz/organization-invitations";
@@ -28,6 +19,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { os } from "@/lib/orpc/implementation/os";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
+import { pageOf } from "./helpers/paging";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const invitationOrderBy = (sort: ListOrganizationInvitationsInput["sort"]) =>
@@ -67,40 +59,23 @@ const listInvitations = (
 
 		const orderBy = yield* invitationOrderBy(input.sort);
 
-		const [data, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						...getColumns(dbSchema.invitation),
-						organizationName: dbSchema.organization.name,
-						organizationSlug: dbSchema.organization.slug,
-						organizationLogo: dbSchema.organization.logo,
-					})
-					.from(dbSchema.invitation)
-					.innerJoin(
-						dbSchema.organization,
-						eq(dbSchema.organization.id, dbSchema.invitation.organizationId),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.invitation)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		return yield* pageOf(
+			db
+				.select({
+					...getColumns(dbSchema.invitation),
+					organizationName: dbSchema.organization.name,
+					organizationSlug: dbSchema.organization.slug,
+					organizationLogo: dbSchema.organization.logo,
+				})
+				.from(dbSchema.invitation)
+				.innerJoin(
+					dbSchema.organization,
+					eq(dbSchema.organization.id, dbSchema.invitation.organizationId),
+				)
+				.where(whereClause),
+			input,
+			orderBy,
 		);
-
-		return {
-			data,
-			rowCount: rowCount.count,
-		};
 	});
 
 const listOrganizationInvitations = authed.organizationInvitation.list

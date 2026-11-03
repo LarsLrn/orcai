@@ -1,10 +1,10 @@
 import { DB, dbSchema } from "@orcai/db";
-import { and, count, desc, eq } from "drizzle-orm";
-import * as Effect from "effect/Effect";
+import { and, desc, eq } from "drizzle-orm";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { insertChat } from "@/lib/chats/chat-lifecycle";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
+import { pageOf } from "@/lib/orpc/router/helpers/paging";
 
 /** Assistant conversations are never shared, so the owner column is the whole check. */
 const listAssistantConversations = authed.assistant.list
@@ -20,31 +20,14 @@ const listAssistantConversations = authed.assistant.list
 			eq(dbSchema.chat.userId, context.auth.user.id),
 		);
 
-		const [data, [rowCount]] = yield* Effect.all(
+		return yield* pageOf(
+			db.select().from(dbSchema.chat).where(whereClause),
+			input,
 			[
-				db
-					.select()
-					.from(dbSchema.chat)
-					.where(whereClause)
-					.orderBy(desc(dbSchema.chat.updatedAt), desc(dbSchema.chat.id))
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.chat)
-					.where(whereClause),
+				desc(dbSchema.chat.updatedAt),
+				desc(dbSchema.chat.id),
 			],
-			{
-				concurrency: "unbounded",
-			},
 		);
-
-		return {
-			data,
-			rowCount: rowCount.count,
-		};
 	});
 
 const createAssistantConversation = authed.assistant.create

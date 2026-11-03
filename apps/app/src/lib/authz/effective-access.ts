@@ -22,19 +22,10 @@ import {
 	lookupEntitiesByPermission,
 	type ReadRevision,
 } from "@orcai/spice-db";
-import {
-	and,
-	asc,
-	count,
-	eq,
-	ilike,
-	inArray,
-	isNull,
-	or,
-	sql,
-} from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { grantReaches } from "@/lib/authz/reaching-groups";
+import { pageOf } from "@/lib/orpc/router/helpers/paging";
 import {
 	buildOrderBy,
 	type SortExpression,
@@ -210,73 +201,40 @@ export const effectiveAccess = (
 			},
 		});
 
-		const [rows, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						resourceType: scope.resourceType,
-						resourceId: scope.resourceId,
-						resourceName,
-						blockType: dbSchema.block.type,
-						origin,
-					})
-					.from(scope)
-					.leftJoin(
-						dbSchema.bot,
-						and(
-							eq(scope.resourceType, "bot"),
-							eq(dbSchema.bot.id, scope.resourceId),
-						),
-					)
-					.leftJoin(
-						dbSchema.block,
-						and(
-							eq(scope.resourceType, "block"),
-							eq(dbSchema.block.id, scope.resourceId),
-						),
-					)
-					.leftJoin(
-						dbSchema.asset,
-						and(
-							eq(scope.resourceType, "asset"),
-							eq(dbSchema.asset.id, scope.resourceId),
-						),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(params.pageSize)
-					.offset(params.pageIndex * params.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(scope)
-					.leftJoin(
-						dbSchema.bot,
-						and(
-							eq(scope.resourceType, "bot"),
-							eq(dbSchema.bot.id, scope.resourceId),
-						),
-					)
-					.leftJoin(
-						dbSchema.block,
-						and(
-							eq(scope.resourceType, "block"),
-							eq(dbSchema.block.id, scope.resourceId),
-						),
-					)
-					.leftJoin(
-						dbSchema.asset,
-						and(
-							eq(scope.resourceType, "asset"),
-							eq(dbSchema.asset.id, scope.resourceId),
-						),
-					)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data: rows, rowCount } = yield* pageOf(
+			db
+				.select({
+					resourceType: scope.resourceType,
+					resourceId: scope.resourceId,
+					resourceName,
+					blockType: dbSchema.block.type,
+					origin,
+				})
+				.from(scope)
+				.leftJoin(
+					dbSchema.bot,
+					and(
+						eq(scope.resourceType, "bot"),
+						eq(dbSchema.bot.id, scope.resourceId),
+					),
+				)
+				.leftJoin(
+					dbSchema.block,
+					and(
+						eq(scope.resourceType, "block"),
+						eq(dbSchema.block.id, scope.resourceId),
+					),
+				)
+				.leftJoin(
+					dbSchema.asset,
+					and(
+						eq(scope.resourceType, "asset"),
+						eq(dbSchema.asset.id, scope.resourceId),
+					),
+				)
+				.where(whereClause),
+			params,
+			orderBy,
 		);
 
 		const idsOf = (type: ResourceType) =>
@@ -336,6 +294,6 @@ export const effectiveAccess = (
 
 		return {
 			data,
-			rowCount: rowCount.count,
+			rowCount,
 		};
 	});

@@ -7,7 +7,6 @@ import {
 import {
 	and,
 	asc,
-	count,
 	desc,
 	eq,
 	getColumns,
@@ -37,6 +36,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
+import { pageOf } from "./helpers/paging";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listGroups = authed.group.list
@@ -81,34 +81,17 @@ const listGroups = authed.group.list
 			},
 		});
 
-		const [data, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						...getColumns(dbSchema.group),
-						memberCount: groupMemberCount,
-					})
-					.from(dbSchema.group)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.group)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		return yield* pageOf(
+			db
+				.select({
+					...getColumns(dbSchema.group),
+					memberCount: groupMemberCount,
+				})
+				.from(dbSchema.group)
+				.where(whereClause),
+			input,
+			orderBy,
 		);
-
-		return {
-			data,
-			rowCount: rowCount.count,
-		};
 	});
 
 const findGroup = authed.group.find
@@ -269,35 +252,19 @@ const listGroupMembers = authed.group.listMembers
 				searchClause,
 			);
 
-			const [data, [rowCount]] = yield* Effect.all(
-				[
-					db
-						.select({
-							user: visibleUserColumns(canSeeEmail),
-						})
-						.from(dbSchema.member)
-						.innerJoin(
-							dbSchema.user,
-							eq(dbSchema.user.id, dbSchema.member.userId),
-						)
-						.where(whereClause)
-						.orderBy(...orderBy)
-						.limit(input.pageSize)
-						.offset(input.pageIndex * input.pageSize),
-					db
-						.select({
-							count: count(),
-						})
-						.from(dbSchema.member)
-						.innerJoin(
-							dbSchema.user,
-							eq(dbSchema.user.id, dbSchema.member.userId),
-						)
-						.where(whereClause),
-				],
-				{
-					concurrency: "unbounded",
-				},
+			const { data, rowCount } = yield* pageOf(
+				db
+					.select({
+						user: visibleUserColumns(canSeeEmail),
+					})
+					.from(dbSchema.member)
+					.innerJoin(
+						dbSchema.user,
+						eq(dbSchema.user.id, dbSchema.member.userId),
+					)
+					.where(whereClause),
+				input,
+				orderBy,
 			);
 
 			return {
@@ -307,7 +274,7 @@ const listGroupMembers = authed.group.listMembers
 					addedAt: null,
 					addedBy: null,
 				})),
-				rowCount: rowCount.count,
+				rowCount,
 			};
 		}
 
@@ -317,37 +284,21 @@ const listGroupMembers = authed.group.listMembers
 			searchClause,
 		);
 
-		const [data, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						user: visibleUserColumns(canSeeEmail),
-						addedAt: dbSchema.groupMember.createdAt,
-						addedBy: dbSchema.groupMember.addedBy,
-					})
-					.from(dbSchema.groupMember)
-					.innerJoin(
-						dbSchema.user,
-						eq(dbSchema.user.id, dbSchema.groupMember.userId),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.groupMember)
-					.innerJoin(
-						dbSchema.user,
-						eq(dbSchema.user.id, dbSchema.groupMember.userId),
-					)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data, rowCount } = yield* pageOf(
+			db
+				.select({
+					user: visibleUserColumns(canSeeEmail),
+					addedAt: dbSchema.groupMember.createdAt,
+					addedBy: dbSchema.groupMember.addedBy,
+				})
+				.from(dbSchema.groupMember)
+				.innerJoin(
+					dbSchema.user,
+					eq(dbSchema.user.id, dbSchema.groupMember.userId),
+				)
+				.where(whereClause),
+			input,
+			orderBy,
 		);
 
 		return {
@@ -357,7 +308,7 @@ const listGroupMembers = authed.group.listMembers
 				addedAt: row.addedAt,
 				addedBy: row.addedBy,
 			})),
-			rowCount: rowCount.count,
+			rowCount,
 		};
 	});
 

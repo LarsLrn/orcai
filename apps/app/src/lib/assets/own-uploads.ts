@@ -1,8 +1,8 @@
 import type { AssetId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import type { UploadedAsset } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableIds } from "@/lib/authz/content-access";
 
@@ -30,10 +30,7 @@ export const ownUploads = (
 			.innerJoin(
 				dbSchema.resourceScope,
 				and(
-					eq(dbSchema.resourceScope.resourceType, "asset"),
-					eq(dbSchema.resourceScope.resourceId, dbSchema.asset.id),
-					eq(dbSchema.resourceScope.isPrimary, true),
-					isNull(dbSchema.resourceScope.endedAt),
+					homeScopeOf("asset", dbSchema.asset.id),
 					eq(dbSchema.resourceScope.organizationId, reader.organizationId),
 				),
 			)

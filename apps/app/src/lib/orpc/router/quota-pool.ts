@@ -7,7 +7,7 @@ import {
 	type WriteQuotaPoolResult,
 } from "@orcai/quota";
 import type { QuotaPoolSortKey, QuotaUsageEventSortKey } from "@orcai/schema";
-import { and, asc, count, desc, eq, ilike, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
 	memberMatching,
@@ -19,6 +19,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
+import { pageOf } from "./helpers/paging";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const quotaPoolWriteError = (
@@ -141,32 +142,20 @@ const listQuotaPools = authed.quotaPool.list
 			},
 		});
 
-		const [rows, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						pool: dbSchema.quotaPool,
-						provider: dbSchema.provider,
-					})
-					.from(dbSchema.quotaPool)
-					.innerJoin(
-						dbSchema.provider,
-						eq(dbSchema.provider.id, dbSchema.quotaPool.providerId),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.quotaPool)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data: rows, rowCount } = yield* pageOf(
+			db
+				.select({
+					pool: dbSchema.quotaPool,
+					provider: dbSchema.provider,
+				})
+				.from(dbSchema.quotaPool)
+				.innerJoin(
+					dbSchema.provider,
+					eq(dbSchema.provider.id, dbSchema.quotaPool.providerId),
+				)
+				.where(whereClause),
+			input,
+			orderBy,
 		);
 
 		const data = yield* Effect.forEach(
@@ -191,7 +180,7 @@ const listQuotaPools = authed.quotaPool.list
 
 		return {
 			data,
-			rowCount: rowCount.count,
+			rowCount,
 		};
 	});
 
@@ -318,40 +307,28 @@ const listQuotaUsageEvents = authed.quotaPool.listEvents
 			},
 		});
 
-		const [rows, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						id: event.id,
-						eventType: event.eventType,
-						appRequestId: event.appRequestId,
-						reservedAmount: event.reservedAmount,
-						actualAmount: event.actualAmount,
-						totalTokens: event.totalTokens,
-						occurredAt: event.occurredAt,
-						userId: event.userId,
-						botId: event.botId,
-						model: {
-							id: dbSchema.model.id,
-							name: dbSchema.model.name,
-						},
-					})
-					.from(event)
-					.leftJoin(dbSchema.model, eq(dbSchema.model.id, event.modelId))
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(event)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data: rows, rowCount } = yield* pageOf(
+			db
+				.select({
+					id: event.id,
+					eventType: event.eventType,
+					appRequestId: event.appRequestId,
+					reservedAmount: event.reservedAmount,
+					actualAmount: event.actualAmount,
+					totalTokens: event.totalTokens,
+					occurredAt: event.occurredAt,
+					userId: event.userId,
+					botId: event.botId,
+					model: {
+						id: dbSchema.model.id,
+						name: dbSchema.model.name,
+					},
+				})
+				.from(event)
+				.leftJoin(dbSchema.model, eq(dbSchema.model.id, event.modelId))
+				.where(whereClause),
+			input,
+			orderBy,
 		);
 
 		const identities = yield* usageIdentities({
@@ -370,7 +347,7 @@ const listQuotaUsageEvents = authed.quotaPool.listEvents
 				user: identities.person(userId),
 				bot: identities.bot(botId),
 			})),
-			rowCount: rowCount.count,
+			rowCount,
 		};
 	});
 

@@ -15,7 +15,6 @@ import { ORPCError } from "@orpc/server";
 import {
 	and,
 	arrayContains,
-	count,
 	desc,
 	eq,
 	getColumns,
@@ -32,6 +31,7 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
+import { pageOf } from "./helpers/paging";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 import {
 	mapCreateModelInputToModelInsertValues,
@@ -107,36 +107,20 @@ const listModels = authed.model.list
 		const modelColumns = getColumns(dbSchema.model);
 		const providerColumns = getColumns(dbSchema.provider);
 
-		const [data, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						...modelColumns,
-						providerName: providerColumns.name,
-					})
-					.from(dbSchema.model)
-					.innerJoin(
-						dbSchema.provider,
-						eq(dbSchema.provider.id, dbSchema.model.providerId),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.model)
-					.innerJoin(
-						dbSchema.provider,
-						eq(dbSchema.provider.id, dbSchema.model.providerId),
-					)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data, rowCount } = yield* pageOf(
+			db
+				.select({
+					...modelColumns,
+					providerName: providerColumns.name,
+				})
+				.from(dbSchema.model)
+				.innerJoin(
+					dbSchema.provider,
+					eq(dbSchema.provider.id, dbSchema.model.providerId),
+				)
+				.where(whereClause),
+			input,
+			orderBy,
 		);
 
 		return {
@@ -146,7 +130,7 @@ const listModels = authed.model.list
 					name: row.providerName,
 				}),
 			),
-			rowCount: rowCount.count,
+			rowCount,
 		};
 	});
 
