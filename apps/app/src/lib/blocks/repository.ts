@@ -12,6 +12,7 @@ import {
 	reconcileLinkPoints,
 	replaceIndexing,
 } from "@orcai/pg-boss";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -27,7 +28,7 @@ export const loadRepositoryAssets = (params: {
 	blockId: BlockId;
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -64,7 +65,7 @@ export const loadRepositoryAssets = (params: {
 export const requireReadableAssets = (params: {
 	assetIds: readonly AssetId[];
 	userId: UserId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const assetIds = Array.from(new Set(params.assetIds));

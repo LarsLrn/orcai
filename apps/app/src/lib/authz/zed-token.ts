@@ -1,3 +1,4 @@
+import { NEWEST_REVISION, type ReadRevision } from "@orcai/spice-db";
 import type { WithEffectContext } from "@orpc/effect";
 import { os } from "@orpc/server";
 import { setCookie } from "@orpc/server/helpers";
@@ -18,19 +19,47 @@ import { COOKIES } from "@/settings/constants";
 
 type ZedTokenContext = {
 	meta?: {
+		/** The token the request carries. */
 		zedToken?: string;
+		/** The newest token of the assistant turn that makes the call. */
+		turnZedToken?: string;
 	};
 };
 
-type ZedTokenInput = {
-	zedToken?: string | undefined;
-};
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === "object" && value !== null;
 
-/** The token a request reads at: explicit input wins over the token the request carries. */
-export const getZedToken = (
+/** An empty token names no revision. */
+const tokenOf = (value: unknown) =>
+	typeof value === "string" && value !== "" ? value : undefined;
+
+const inputTokenOf = (input: unknown) =>
+	isRecord(input) ? tokenOf(input.zedToken) : undefined;
+
+/** The token the request carries, to hand on to the calls it makes. */
+export const requestZedToken = (context: ZedTokenContext): string | undefined =>
+	tokenOf(context.meta?.zedToken);
+
+/**
+ * The revision a request's authorisation reads must see. The input's token,
+ * the request's and a calling turn's may each be older than another, and
+ * zedTokens cannot be compared, so different tokens read the newest
+ * revision: the read sees every write any of them names and every revocation
+ * any of them covers.
+ */
+export const readRevision = (
 	context: ZedTokenContext,
-	input?: ZedTokenInput,
-): string | undefined => input?.zedToken ?? context.meta?.zedToken;
+	input?: unknown,
+): ReadRevision | undefined => {
+	const tokens = new Set(
+		[
+			inputTokenOf(input),
+			requestZedToken(context),
+			tokenOf(context.meta?.turnZedToken),
+		].filter((token) => token !== undefined),
+	);
+	return tokens.size > 1 ? NEWEST_REVISION : tokens.values().next().value;
+};
 
 /** Cookies are marked Secure only when the app is served over https. */
 export const secureCookiesFor = (authUrl: string): boolean =>
@@ -126,9 +155,6 @@ export const zedTokenResponseMiddleware = withName(
 		}),
 	"zedTokenResponse",
 );
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === "object" && value !== null;
 
 const zedTokenOf = (output: unknown) =>
 	isRecord(output) &&

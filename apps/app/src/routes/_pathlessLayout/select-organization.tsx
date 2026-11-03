@@ -18,8 +18,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SearchField } from "@/components/ui/composed/search-field";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
-import { authClient } from "@/lib/auth/auth-client";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { ensureSignedIn } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -37,14 +37,9 @@ const organizationsInput = (params: { search: string; pageCount: number }) => ({
 
 export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	component: RouteComponent,
-	beforeLoad: ({ context }) => {
-		if (!context.auth.isAuthenticated) {
-			throw redirect({
-				to: "/login",
-				statusCode: 302,
-			});
-		}
-	},
+	beforeLoad: ({ context }) => ({
+		auth: ensureSignedIn(context.auth),
+	}),
 	loader: async ({ context: { auth, queryClient } }) => {
 		const organizations = await queryClient.query(
 			orpc.organization.list.queryOptions({
@@ -64,9 +59,7 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 				staleTime: 0,
 			}),
 		);
-		const activeOrganizationId = auth.isAuthenticated
-			? auth.session.activeOrganizationId
-			: null;
+		const { activeOrganizationId } = auth.session;
 
 		if (
 			invitations.rowCount === 0 &&
@@ -115,7 +108,6 @@ function PendingInvitationsSection({
 }
 
 function RouteComponent() {
-	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
 	const { auth } = Route.useRouteContext();
 
@@ -143,7 +135,6 @@ function RouteComponent() {
 	const hasMore = rows.length < rowCount;
 
 	const handleInvitationAccepted = async () => {
-		await refetchSession();
 		await navigate({
 			to: "/app",
 		});
@@ -151,7 +142,7 @@ function RouteComponent() {
 
 	return (
 		<div className="w-full max-w-3xl space-y-6">
-			{auth.isAuthenticated && isInstanceAdminRole(auth.user.role) && (
+			{isInstanceAdminRole(auth.user.role) && (
 				<div className="flex justify-end">
 					<Link
 						to="/instance"
@@ -195,9 +186,7 @@ function RouteComponent() {
 							organization={organization}
 							loading={organization.id === selectingId}
 							disabled={setActiveOrganization.isPending}
-							withPageLink={
-								auth.isAuthenticated && !!auth.session.activeOrganizationId
-							}
+							withPageLink={!!auth.session.activeOrganizationId}
 							onSelect={() =>
 								setActiveOrganization.mutate({
 									organizationId: organization.id,

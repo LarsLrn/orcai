@@ -23,7 +23,7 @@ import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { downloadName } from "@/lib/assets/download-name";
 import { requireReadable } from "@/lib/authz/content-access";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -241,7 +241,7 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 	.effect(function* ({ input, context }) {
 		yield* requireReadable("asset", input.id, {
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 		const db = yield* DB;
 		const expiry = 60 * 60;

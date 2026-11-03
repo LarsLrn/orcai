@@ -131,7 +131,8 @@ test("members: deleting an account in the instance hands its content to the orga
 		})
 	).data;
 	const receiver = owned?.defaultReceiver;
-	if (!receiver) throw new Error("The organisation has no admin to receive.");
+	if (!receiver?.email)
+		throw new Error("The organisation has no admin to receive.");
 
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
@@ -177,6 +178,8 @@ test("members: the owner hands a bot over and keeps Can manage", async ({
 	zedTokens,
 }) => {
 	const name = `E2E Handed Bot ${Date.now()}`;
+	// A member who does not manage groups finds the receiver by name.
+	const { data: manager } = await api.as("manager").user.me({});
 	const { data: bot } = await api.as("member").bot.save({
 		name,
 		description: "Created by the members slice.",
@@ -208,11 +211,11 @@ test("members: the owner hands a bot over and keeps Can manage", async ({
 		.getByRole("textbox", {
 			name: message("ownership_receiver_search_placeholder"),
 		})
-		.fill(org.users.manager.email);
+		.fill(manager.name);
 	await dialog
 		.getByRole("button")
 		.filter({
-			hasText: org.users.manager.email,
+			hasText: manager.name,
 		})
 		.click();
 	await dialog

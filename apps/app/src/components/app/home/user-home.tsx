@@ -14,6 +14,7 @@ const QuickChat = () => {
 		selectedModelId,
 		selectedProviderId,
 		blocker,
+		setup,
 		isCreating,
 		handleModelSelect,
 		handleBotSelect,
@@ -45,6 +46,7 @@ const QuickChat = () => {
 			onSend={handleSend}
 			isCreating={isCreating}
 			blocker={blocker}
+			setup={setup}
 		/>
 	);
 };

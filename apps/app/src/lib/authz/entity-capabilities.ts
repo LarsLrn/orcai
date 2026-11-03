@@ -4,6 +4,7 @@ import {
 	type EntityIdFor,
 	grantedPermissions,
 	type PermissionFor,
+	type ReadRevision,
 	type ResourceType,
 } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
@@ -17,7 +18,7 @@ type CapabilityParams<Entity extends CapabilityEntityType> = {
 	organizationId: OrganizationId | undefined;
 	/** Defaults to every capability of the entity type; the others read false. */
 	permissions?: readonly PermissionFor<Entity>[];
-	zedToken?: string;
+	zedToken?: ReadRevision;
 };
 
 const isResourceType = (

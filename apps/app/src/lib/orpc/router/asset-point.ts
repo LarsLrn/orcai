@@ -23,7 +23,7 @@ import * as Effect from "effect/Effect";
 import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
 import { requireReadable } from "@/lib/authz/content-access";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -353,7 +353,7 @@ const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 	.effect(function* ({ input, context }) {
 		yield* requireReadable("block", input.repositoryId, {
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 		const assetIds = yield* repositoryAssetScope(
 			input.repositoryId,
@@ -390,7 +390,7 @@ const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 	.effect(function* ({ input, context }) {
 		yield* requireReadable("block", input.repositoryId, {
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 		const assetIds = yield* repositoryAssetScope(
 			input.repositoryId,

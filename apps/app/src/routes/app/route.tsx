@@ -11,9 +11,10 @@ import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
 import { EmbeddingsSetupBanner } from "@/components/instance/settings/embeddings-setup-banner";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { organizationCapabilitiesQuery } from "@/hooks/authz/use-capabilities";
 import { useUmami } from "@/hooks/use-umami";
 import { auth } from "@/lib/auth/auth";
+import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
+import { ensureSignedIn } from "@/lib/authz/route-guards";
 import { runPromise } from "@/lib/effect/runtime";
 import { recordRequestUser } from "@/lib/observability/request-span";
 import { orpc } from "@/lib/orpc/orpc";
@@ -78,21 +79,9 @@ const hasActiveOrganizationMembership = createServerFn({
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: async ({ context }) => {
-		if (!context.auth.isAuthenticated) {
-			throw redirect({
-				to: "/login",
-				statusCode: 302,
-			});
-		}
+		const auth = ensureSignedIn(context.auth);
 
-		if (context.auth.twoFactor.setupRequired) {
-			throw redirect({
-				to: "/setup-two-factor",
-				statusCode: 302,
-			});
-		}
-
-		if (!context.auth.session.activeOrganizationId) {
+		if (!auth.session.activeOrganizationId) {
 			throw redirect({
 				to: "/select-organization",
 				statusCode: 302,
@@ -108,11 +97,11 @@ export const Route = createFileRoute("/app")({
 
 		return {
 			auth: {
-				...context.auth,
+				...auth,
 				session: {
-					...context.auth.session,
+					...auth.session,
 					activeOrganizationId: organizationIdSchema.parse(
-						context.auth.session.activeOrganizationId,
+						auth.session.activeOrganizationId,
 					),
 				},
 			},

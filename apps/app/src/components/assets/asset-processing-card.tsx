@@ -1,4 +1,4 @@
-import type { Asset } from "@orcai/schema";
+import { type Asset, canPrepareAgain } from "@orcai/schema";
 import { RotateCwIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,7 @@ import {
 } from "@/components/ui/card";
 import { InfoDot } from "@/components/ui/composed/info-dot";
 import { usePrepareAssetAgainMutation } from "@/hooks/mutations/use-asset-mutations";
-import {
-	canPrepareAgain,
-	getPipelineFailureDescription,
-} from "@/lib/presentation/asset-state";
+import { getPipelineFailureDescription } from "@/lib/presentation/asset-state";
 import {
 	getProcessingStatusDescription,
 	processingStatusBadge,

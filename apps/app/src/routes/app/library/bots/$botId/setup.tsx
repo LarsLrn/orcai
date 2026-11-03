@@ -11,7 +11,6 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound } from "@/lib/router/not-found";
 import { m } from "@/paraglide/messages";
@@ -31,13 +30,6 @@ export const Route = createFileRoute("/app/library/bots/$botId/setup")({
 		zedToken,
 	}),
 	loader: async ({ context: { queryClient }, params: { botId }, deps }) => {
-		await ensureEntityCapability({
-			queryClient,
-			entityType: "bot",
-			entityId: botId,
-			permission: "edit",
-			redirectTo: "/app/library/bots",
-		});
 		await orNotFound(
 			queryClient.query(
 				orpc.bot.findEditor.queryOptions({

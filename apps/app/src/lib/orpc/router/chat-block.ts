@@ -6,7 +6,7 @@ import {
 	requireUsableInOrganization,
 	usableInOrganization,
 } from "@/lib/authz/organization-use";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import { chatBotUsable, requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -18,12 +18,11 @@ const listChatBlocks = authed.chatBlock.list
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const resolvedZedToken = getZedToken(context, input);
+		const resolvedZedToken = readRevision(context, input);
 
 		const chatBlocks = yield* db.query.chatBlock.findMany({
 			where: {
@@ -77,12 +76,11 @@ const attachChatBlock = authed.chatBlock.attach
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const resolvedZedToken = getZedToken(context, input);
+		const resolvedZedToken = readRevision(context, input);
 		const chat = yield* db.query.chat.findFirst({
 			where: {
 				id: {
@@ -108,7 +106,7 @@ const attachChatBlock = authed.chatBlock.attach
 			activeOrganizationId: context.auth.session.activeOrganizationId,
 			botUsable: chatBotUsable(chat, {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context, input),
+				zedToken: readRevision(context, input),
 			}),
 		});
 
@@ -209,7 +207,6 @@ const detachChatBlock = authed.chatBlock.detach
 	.use(
 		requireEntityPermission("chat", "edit", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
@@ -239,7 +236,7 @@ const detachChatBlock = authed.chatBlock.detach
 			activeOrganizationId: context.auth.session.activeOrganizationId,
 			botUsable: chatBotUsable(chat, {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context, input),
+				zedToken: readRevision(context, input),
 			}),
 		});
 

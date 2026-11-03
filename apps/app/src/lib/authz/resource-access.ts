@@ -2,6 +2,7 @@ import type { GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { GrantRejection, ResourceGrantRole } from "@orcai/schema";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -34,7 +35,7 @@ type ActiveGrant = typeof dbSchema.resourceGrant.$inferSelect;
 
 type Actor = {
 	userId: UserId;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 };
 
 const principalKey = (principal: {

@@ -1,10 +1,15 @@
-import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
+import type {
+	EntityIdFor,
+	EntityType,
+	PermissionFor,
+	ReadRevision,
+} from "@orcai/spice-db";
 
 export type CheckPermissionInputFor<Entity extends EntityType> = {
 	entityId: EntityIdFor<Entity>;
 	permission: PermissionFor<Entity>;
 	entityType: Entity;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 };
 
 export type CheckPermissionInput = {
@@ -14,5 +19,5 @@ export type CheckPermissionInput = {
 export type CheckManyPermissionInputFor<Entity extends EntityType> = {
 	entityIds: readonly EntityIdFor<Entity>[];
 	permission: PermissionFor<Entity>;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 };

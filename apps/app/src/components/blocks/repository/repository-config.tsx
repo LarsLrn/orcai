@@ -2,7 +2,7 @@ import type { BlockId } from "@orcai/core";
 import {
 	type Asset,
 	type AssetReadiness,
-	isRetryableFailure,
+	canPrepareAgain,
 	type Repository,
 	type RepositoryReadiness,
 } from "@orcai/schema";
@@ -204,8 +204,8 @@ const AssetSection = ({
 	);
 	const retryable = (asset: AssetReadiness | undefined) =>
 		canEdit &&
-		Boolean(asset?.failure) &&
-		isRetryableFailure(asset?.failure?.kind ?? "other");
+		asset?.failure != null &&
+		canPrepareAgain(asset.failure.kind, asset.fileType);
 	const { mutate: prepareAssetAgain, isPending: preparingAssetAgain } =
 		usePrepareRepositoryAssetAgainMutation();
 	const { mutate: prepareFailedAgain, isPending: preparingFailedAgain } =

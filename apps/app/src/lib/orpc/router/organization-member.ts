@@ -3,12 +3,13 @@ import type { OrganizationMemberSortKey } from "@orcai/schema";
 import { and, count, desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { effectiveAccess } from "@/lib/authz/effective-access";
+import { canSeeEmailIn } from "@/lib/authz/email-visibility";
 import {
 	changeMemberRole,
 	removeMembers,
 } from "@/lib/authz/organization-membership";
 import { eligibleReceivers, ownedContent } from "@/lib/authz/ownership";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -32,7 +33,7 @@ const listOrganizationMembers = authed.organizationMember.list
 			entityType: "organization",
 			permission: "manage_members",
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 
 		const search = input.filters?.search?.trim();
@@ -107,7 +108,7 @@ const findOrganizationMember = authed.organizationMember.find
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
-		const zedToken = getZedToken(context, input);
+		const zedToken = readRevision(context, input);
 
 		if (input.userId !== context.auth.user.id) {
 			yield* requirePermission({
@@ -156,7 +157,7 @@ const listMemberAccess = authed.organizationMember.listAccess
 	.use(requireActiveOrganizationMiddleware)
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
-		const zedToken = getZedToken(context, input);
+		const zedToken = readRevision(context, input);
 
 		if (input.userId !== context.auth.user.id) {
 			yield* requirePermission({
@@ -235,10 +236,18 @@ const listOwnedContent = authed.organizationMember.ownedContent
 const listReceivers = authed.organizationMember.receivers
 	.use(requireOrganizationPermission("manage_members"))
 	.effect(function* ({ input, context }) {
+		const organizationId = context.auth.session.activeOrganizationId;
 		const data = yield* eligibleReceivers({
-			organizationId: context.auth.session.activeOrganizationId,
+			organizationId,
 			search: input.search,
 			excluded: input.excluded,
+			canSeeEmail: yield* canSeeEmailIn({
+				organizationIds: [
+					organizationId,
+				],
+				userId: context.auth.user.id,
+				zedToken: readRevision(context, input),
+			}),
 		});
 		return {
 			data,

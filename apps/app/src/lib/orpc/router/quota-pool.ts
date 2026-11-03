@@ -14,7 +14,7 @@ import {
 	usageIdentities,
 } from "@/lib/analytics/usage-identities";
 import { groupMemberCount } from "@/lib/authz/group-membership";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
@@ -358,7 +358,7 @@ const listQuotaUsageEvents = authed.quotaPool.listEvents
 			organizationId,
 			viewer: {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			},
 			userIds: rows.map(({ userId }) => userId),
 			botIds: rows.map(({ botId }) => botId),

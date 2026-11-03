@@ -20,6 +20,7 @@ import {
 	type EntityIdFor,
 	grantedPermissions,
 	lookupEntitiesByPermission,
+	type ReadRevision,
 } from "@orcai/spice-db";
 import {
 	and,
@@ -100,7 +101,7 @@ const rolesOf = <Entity extends ResourceType>(
 	entityType: Entity,
 	ids: EntityIdFor<Entity>[],
 	userId: UserId,
-	zedToken: string | undefined,
+	zedToken: ReadRevision | undefined,
 ) =>
 	Effect.gen(function* () {
 		if (ids.length === 0) {
@@ -142,7 +143,7 @@ export const effectiveAccess = (
 	params: Omit<ListMemberAccessInput, "userId" | "zedToken"> & {
 		userId: UserId;
 		organizationId: OrganizationId;
-		zedToken: string | undefined;
+		zedToken: ReadRevision | undefined;
 	},
 ) =>
 	Effect.gen(function* () {

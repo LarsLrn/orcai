@@ -1,4 +1,5 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { authClient } from "@/lib/auth/auth-client";
 import { toAuthError } from "@/lib/errors/auth-error";
@@ -17,7 +18,7 @@ type UpdateProfileMutationOptions = UseMutationOptions<
 export const useUpdateProfileMutation = (
 	opts: UpdateProfileMutationOptions = {},
 ) => {
-	const { refetch } = authClient.useSession();
+	const router = useRouter();
 
 	return useMutationAction({
 		mutationOptions: () => ({
@@ -29,7 +30,8 @@ export const useUpdateProfileMutation = (
 				if (result.error) throw toAuthError(result.error);
 			},
 			onSuccess: async (...args) => {
-				await refetch();
+				// The signed-in user is read from the router context.
+				await router.invalidate();
 
 				await opts.onSuccess?.(...args);
 			},

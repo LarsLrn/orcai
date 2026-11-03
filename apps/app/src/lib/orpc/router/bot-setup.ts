@@ -1,5 +1,5 @@
 import * as Effect from "effect/Effect";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import {
 	botSetupCoverage,
 	canEditBotSetup,
@@ -16,7 +16,6 @@ const findSetup = authed.botSetup.find
 	.use(
 		requireEntityPermission("bot", "read", {
 			entityId: "botId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
@@ -30,7 +29,7 @@ const findSetup = authed.botSetup.find
 					botId: input.botId,
 					organizationId: context.auth.session.activeOrganizationId,
 					userId: context.auth.user.id,
-					zedToken: getZedToken(context, input),
+					zedToken: readRevision(context, input),
 				}),
 			],
 			{
@@ -54,7 +53,7 @@ const saveSetup = authed.botSetup.save
 				botId: input.botId,
 				organizationId: context.auth.session.activeOrganizationId,
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context, input),
+				zedToken: readRevision(context, input),
 				setup: input.setup,
 			}),
 		};
@@ -68,7 +67,7 @@ const setupCoverage = authed.botSetup.coverage
 			botId: input.botId,
 			organizationId: context.auth.session.activeOrganizationId,
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 		return {
 			data: yield* botSetupCoverage({
@@ -77,7 +76,7 @@ const setupCoverage = authed.botSetup.coverage
 				modelId: input.modelId,
 				viewer: {
 					userId: context.auth.user.id,
-					zedToken: getZedToken(context, input),
+					zedToken: readRevision(context, input),
 				},
 			}),
 		};

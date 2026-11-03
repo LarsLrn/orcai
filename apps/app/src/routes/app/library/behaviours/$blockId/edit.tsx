@@ -13,13 +13,12 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/behaviours/$blockId/edit")({
-	loader: async ({ context: { queryClient }, params: { blockId } }) => {
+	beforeLoad: async ({ context: { queryClient }, params: { blockId } }) => {
 		await ensureEntityCapability({
 			queryClient,
 			entityType: "block",
 			entityId: blockId,
 			permission: "edit",
-			redirectTo: "/app/library/behaviours",
 		});
 	},
 	component: RouteComponent,

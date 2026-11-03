@@ -3,12 +3,13 @@ import { DB, dbSchema } from "@orcai/db";
 import { queueIndexing } from "@orcai/pg-boss";
 import {
 	type AssetReadiness,
-	isRetryableFailure,
+	canPrepareAgain,
 	type PipelineFailure,
 	type PipelineStatus,
 	type RepositoryReadiness,
 	type RepositoryTotals,
 } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, asc, eq, getColumns, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { homeOrganization, inActivityRun } from "@/lib/activity/admission";
@@ -162,7 +163,7 @@ export const loadRepositoryReadiness = (params: {
 	blockIds: readonly BlockId[];
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const blockIds = Array.from(new Set(params.blockIds));
@@ -202,6 +203,7 @@ export const loadRepositoryReadiness = (params: {
 						blockId: dbSchema.blockAsset.blockId,
 						assetId: dbSchema.asset.id,
 						title: dbSchema.asset.title,
+						fileType: dbSchema.asset.fileType,
 						processingStatus: dbSchema.asset.processingStatus,
 						processingFailure: dbSchema.asset.processingFailure,
 						indexStatus: dbSchema.blockAsset.indexStatus,
@@ -237,6 +239,7 @@ export const loadRepositoryReadiness = (params: {
 					(row): AssetReadiness => ({
 						assetId: row.assetId,
 						title: row.title,
+						fileType: row.fileType,
 						...assetState(row),
 					}),
 				);
@@ -364,6 +367,12 @@ export const prepareRepositoryAssetAgain = (params: {
 				message: "The asset is still being prepared",
 			});
 		}
+		if (failure && !canPrepareAgain(failure.kind, asset.fileType)) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "ASSET_PREPARING_AGAIN_UNHELPFUL",
+				message: "Preparing the asset again would fail the same way",
+			});
+		}
 
 		const retried = yield* runRetries({
 			userId: params.userId,
@@ -401,7 +410,7 @@ export const prepareRepositoryFailedAgain = (params: {
 	Effect.gen(function* () {
 		const failed = (yield* loadAssets(params)).flatMap((asset) => {
 			const { failure } = assetState(asset);
-			return failure && isRetryableFailure(failure.kind)
+			return failure && canPrepareAgain(failure.kind, asset.fileType)
 				? [
 						{
 							asset,

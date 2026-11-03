@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { canPrepareAgain } from "./asset-state";
+import { canPrepareAgain } from "../src";
 
 describe("canPrepareAgain", () => {
 	test("allows an image the utility model could not read, not another unsupported file", () => {

@@ -12,9 +12,6 @@ export type ResourcePermissionSource = {
 	};
 }[ResourceType];
 
-export type ResourcePermissionSourceWithToken<ZedTokenKey extends string> =
-	ResourcePermissionSource & Partial<Record<ZedTokenKey, string | undefined>>;
-
 export const createResourcePermissionInput = <
 	Permission extends SharedResourcePermission,
 >(

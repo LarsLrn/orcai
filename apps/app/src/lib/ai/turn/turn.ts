@@ -62,10 +62,9 @@ import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import { closeLastReply } from "@/lib/ai/utils/close-pending-tool-parts";
 import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import { requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	applyTurnDecisions,
@@ -80,7 +79,12 @@ import {
 	ReplyStore,
 	type StoredMessage,
 } from "./reply-store";
-import { type TurnRequester, type TurnSetup, turnSetup } from "./setup";
+import {
+	type TurnRequester,
+	type TurnSetup,
+	turnSetup,
+	turnStartToken,
+} from "./setup";
 import { summarizeHistory } from "./summary";
 
 type TurnInput = TurnRequester & {
@@ -195,15 +199,19 @@ const isRefusal = (cause: unknown) =>
 		: cause instanceof AppErrors.ForbiddenError ||
 			cause instanceof AppErrors.NotFoundError;
 
-/** Whether the requester may use the bot, read through the procedures at the request's zedToken. */
-const botUsable = (botId: BotId, context: ORPCContext) =>
+/** Whether the requester may use the bot, read through the procedures at the turn's zedToken. */
+const botUsable = (
+	botId: BotId,
+	requester: Pick<TurnInput, "context" | "zedToken">,
+) =>
 	Effect.gen(function* () {
 		const procedures = yield* Procedures;
+		const { context } = requester;
 		return yield* procedures.bot
 			.find(
 				{
 					id: botId,
-					zedToken: getZedToken(context),
+					zedToken: turnStartToken(requester),
 				},
 				{
 					context,
@@ -219,7 +227,8 @@ const loadChat = ({
 	chatId,
 	organizationId,
 	context,
-}: Pick<TurnInput, "chatId" | "organizationId" | "context">) =>
+	zedToken,
+}: Pick<TurnInput, "chatId" | "organizationId" | "context" | "zedToken">) =>
 	Effect.gen(function* () {
 		const loaded = yield* (yield* ReplyStore).load(chatId);
 		if (!loaded) {
@@ -233,7 +242,10 @@ const loadChat = ({
 		yield* requireWritableChat(chat, {
 			activeOrganizationId: organizationId,
 			botUsable: chat.botId
-				? botUsable(chat.botId, context)
+				? botUsable(chat.botId, {
+						context,
+						zedToken,
+					})
 				: Effect.succeed(true),
 		});
 		return loaded;
@@ -768,7 +780,7 @@ export const startTurn = (
 		const history = historyOf(stored);
 		const reader = {
 			userId: input.user.id,
-			zedToken: getZedToken(input.context),
+			zedToken: readRevision(input.context, input),
 		};
 		const question = {
 			id: input.message.id,
@@ -786,7 +798,7 @@ export const startTurn = (
 				question as ChatAgentUIMessage,
 			],
 			replyId,
-			turnZedToken: getZedToken(input.context),
+			turnZedToken: turnStartToken(input),
 		});
 		const { closedHistory, closedReply } = closeLastReply(history, agent.tools);
 		const messages = yield* Effect.promise(() =>
@@ -979,14 +991,14 @@ export const continueTurn = (
 					turnZedToken:
 						input.toolOutputs.length > 0 && input.clientZedToken !== undefined
 							? input.clientZedToken
-							: (claimed.metadata.zedToken ?? getZedToken(input.context)),
+							: (claimed.metadata.zedToken ?? turnStartToken(input)),
 				});
 				const messages = yield* Effect.promise(() =>
 					closeInvalidToolParts(history, agent.tools),
 				);
 				const prompt = yield* withAttachmentParts(messages, {
 					userId: input.user.id,
-					zedToken: getZedToken(input.context),
+					zedToken: readRevision(input.context, input),
 				});
 				const fit = yield* fitPrompt({
 					setup,

@@ -12,18 +12,15 @@ import {
 	RESOURCE_GRANT_ORIGIN,
 	userIdSchema,
 } from "@orcai/schema";
-import { permittedEntityIds } from "@orcai/spice-db";
-import {
-	and,
-	desc,
-	eq,
-	ilike,
-	inArray,
-	isNull,
-	notInArray,
-	or,
-} from "drizzle-orm";
+import { permittedEntityIds, type ReadRevision } from "@orcai/spice-db";
+import { and, desc, eq, ilike, inArray, isNull, notInArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import {
+	canSeeEmailIn,
+	canSeeEmailOn,
+	visibleUserColumns,
+	visibleUserSearch,
+} from "@/lib/authz/email-visibility";
 import { visibleGroupScope } from "@/lib/authz/group-visibility";
 import { handOverItem, itemReceivers } from "@/lib/authz/ownership";
 import {
@@ -33,7 +30,7 @@ import {
 } from "@/lib/authz/resource-access";
 import { requireAdministersIn } from "@/lib/authz/resource-authority";
 import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import { listingImpact, setListing } from "@/lib/catalogue/listing";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
@@ -41,7 +38,6 @@ import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
 import { readableResources } from "@/lib/resources/readable";
 import { recentResources } from "@/lib/resources/recents";
 import { literalSearch } from "@/lib/utils/literal-search";
-import { canSeeEmailIn, canSeeEmailOn } from "./helpers/can-see-email";
 
 type GroupPrincipal = Extract<
 	ResourcePrincipal,
@@ -91,7 +87,7 @@ const hydrateGrants = (params: {
 	grants: ActiveGrant[];
 	resource: ResourceIdentity;
 	userId: UserId;
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		if (params.grants.length === 0) {
@@ -105,16 +101,7 @@ const hydrateGrants = (params: {
 		const users =
 			userIds.length > 0
 				? yield* db
-						.select({
-							id: dbSchema.user.id,
-							name: dbSchema.user.name,
-							...(canSeeEmail
-								? {
-										email: dbSchema.user.email,
-									}
-								: {}),
-							image: dbSchema.user.image,
-						})
+						.select(visibleUserColumns(canSeeEmail))
 						.from(dbSchema.user)
 						.where(inArray(dbSchema.user.id, userIds))
 				: [];
@@ -318,7 +305,7 @@ const getInheritedAccess = authed.resource.inheritedAccess
 			);
 
 		const userId = context.auth.user.id;
-		const zedToken = getZedToken(context);
+		const zedToken = readRevision(context);
 		const [readableBots, readableBlocks] = yield* Effect.all(
 			[
 				permittedEntityIds({
@@ -415,7 +402,7 @@ const requireSharing = (
 		homePermission: "manage_access",
 		actor: {
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		},
 	});
 
@@ -431,7 +418,7 @@ const listResourceGrants = authed.resource.listGrants
 			grants,
 			resource: input,
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 
 		return {
@@ -452,7 +439,7 @@ const listResourcePrincipals = authed.resource.listPrincipals
 		const canSeeEmail = yield* canSeeEmailIn({
 			organizationIds: orgIds,
 			userId: context.auth.user.id,
-			zedToken: getZedToken(context),
+			zedToken: readRevision(context),
 		});
 		const query = input.query?.trim();
 		const searchLike = query ? literalSearch(query) : undefined;
@@ -479,16 +466,7 @@ const listResourcePrincipals = authed.resource.listPrincipals
 		const users =
 			!input.principalType || input.principalType === "user"
 				? yield* db
-						.selectDistinct({
-							id: dbSchema.user.id,
-							name: dbSchema.user.name,
-							...(canSeeEmail
-								? {
-										email: dbSchema.user.email,
-									}
-								: {}),
-							image: dbSchema.user.image,
-						})
+						.selectDistinct(visibleUserColumns(canSeeEmail))
 						.from(dbSchema.member)
 						.innerJoin(
 							dbSchema.user,
@@ -500,14 +478,10 @@ const listResourcePrincipals = authed.resource.listPrincipals
 								grantedUserIds.length > 0
 									? notInArray(dbSchema.user.id, grantedUserIds)
 									: undefined,
-								searchLike
-									? or(
-											ilike(dbSchema.user.name, searchLike),
-											canSeeEmail
-												? ilike(dbSchema.user.email, searchLike)
-												: undefined,
-										)
-									: undefined,
+								visibleUserSearch({
+									pattern: searchLike,
+									canSeeEmail,
+								}),
 							),
 						)
 						.limit(input.limit)
@@ -517,7 +491,7 @@ const listResourcePrincipals = authed.resource.listPrincipals
 			? yield* visibleGroupScope({
 					organizationIds: orgIds,
 					userId: context.auth.user.id,
-					zedToken: getZedToken(context),
+					zedToken: readRevision(context),
 				}).pipe(
 					Effect.flatMap((groupScope) =>
 						db
@@ -575,14 +549,14 @@ const grantAccess = authed.resource.grant
 			role: input.role,
 			actor: {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			},
 		});
 		const data = yield* hydrateGrants({
 			grants,
 			resource: input,
 			userId: context.auth.user.id,
-			zedToken: zedToken ?? getZedToken(context),
+			zedToken: zedToken ?? readRevision(context),
 		});
 
 		return {
@@ -600,7 +574,7 @@ const revokeAccess = authed.resource.revoke
 			principal: input,
 			actor: {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			},
 		});
 
@@ -647,7 +621,7 @@ const setVisibility = authed.resource.setVisibility
 			listBlockIds: input.listBlockIds,
 			actor: {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			},
 		});
 
@@ -662,7 +636,7 @@ const getListingImpact = authed.resource.listingImpact
 		return {
 			data: yield* listingImpact(scopedResourceRef(input), {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			}),
 		};
 	});
@@ -675,7 +649,7 @@ const findManyResources = authed.resource.findMany.effect(function* ({
 		resources: input.resources,
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: getZedToken(context, input),
+		zedToken: readRevision(context, input),
 	});
 
 	return {
@@ -692,7 +666,7 @@ const listRecentResources = authed.resource.listRecent.effect(function* ({
 		userId: context.auth.user.id,
 		organizationId: context.auth.session.activeOrganizationId,
 		limit: input.limit,
-		zedToken: getZedToken(context, input),
+		zedToken: readRevision(context, input),
 	});
 
 	return {
@@ -709,6 +683,7 @@ const listReceivers = authed.resource.receivers
 			actorId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
 			search: input.search,
+			zedToken: readRevision(context, input),
 		});
 		return {
 			data,

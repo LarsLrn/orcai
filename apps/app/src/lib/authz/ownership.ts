@@ -7,16 +7,8 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import {
-	and,
-	asc,
-	eq,
-	ilike,
-	inArray,
-	isNull,
-	notInArray,
-	or,
-} from "drizzle-orm";
+import type { ReadRevision } from "@orcai/spice-db";
+import { and, asc, eq, inArray, isNull, notInArray } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -25,6 +17,11 @@ import {
 	notBanned,
 	OWNER_ROLES,
 } from "@/lib/authz/eligible-owner";
+import {
+	canSeeEmailIn,
+	visibleUserColumns,
+	visibleUserSearch,
+} from "@/lib/authz/email-visibility";
 import {
 	RelationshipFact,
 	type ResourceRef,
@@ -465,19 +462,21 @@ export const ownedContent = (params: {
 
 /**
  * The members who may receive content in the organisation, matching
- * `search` by name or email, by name. The caller authorises the read.
+ * `search`, by name. Emails show only where `canSeeEmail`. The caller
+ * authorises the read.
  */
 export const eligibleReceivers = (params: {
 	organizationId: OrganizationId;
 	search?: string;
 	excluded?: readonly UserId[];
+	canSeeEmail: boolean;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const search = params.search?.trim();
 		const pattern = search ? literalSearch(search) : undefined;
 		const candidates = yield* db
-			.select(receiverColumns)
+			.select(visibleUserColumns(params.canSeeEmail))
 			.from(dbSchema.member)
 			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
 			.where(
@@ -490,12 +489,10 @@ export const eligibleReceivers = (params: {
 								...params.excluded,
 							])
 						: undefined,
-					pattern
-						? or(
-								ilike(dbSchema.user.name, pattern),
-								ilike(dbSchema.user.email, pattern),
-							)
-						: undefined,
+					visibleUserSearch({
+						pattern,
+						canSeeEmail: params.canSeeEmail,
+					}),
 				),
 			)
 			.orderBy(asc(dbSchema.user.name), asc(dbSchema.user.id))
@@ -599,6 +596,7 @@ export const itemReceivers = (params: {
 	actorId: UserId;
 	organizationId: OrganizationId;
 	search?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -609,6 +607,13 @@ export const itemReceivers = (params: {
 			excluded: [
 				params.actorId,
 			],
+			canSeeEmail: yield* canSeeEmailIn({
+				organizationIds: [
+					home,
+				],
+				userId: params.actorId,
+				zedToken: params.zedToken,
+			}),
 		});
 	});
 

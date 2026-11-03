@@ -1,14 +1,18 @@
 import type { GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
-import { checkEntityPermission, permittedEntityIds } from "@orcai/spice-db";
+import {
+	checkEntityPermission,
+	permittedEntityIds,
+	type ReadRevision,
+} from "@orcai/spice-db";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
 
 type PermissionParams = {
 	userId: UserId;
-	zedToken?: string | null | undefined;
+	zedToken?: ReadRevision | null | undefined;
 };
 
 /** Whether the caller manages the groups of one organisation. */

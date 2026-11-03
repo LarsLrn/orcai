@@ -102,6 +102,64 @@ test("bots: a required model locks the picker and every turn uses it", async ({
 	).toBeVisible();
 });
 
+test("bots: picking a bot with a required model on Home locks the composer's picker", async ({
+	api,
+	inference,
+	org,
+	pageAs,
+}) => {
+	const model = await setUpChatModel(api, inference);
+	const required = await createRequiredModel(api.as("admin"), model);
+	const member = api.as("member");
+	const { bot } = await requiringBot(member, model, required);
+	// The selector lists usable bots only.
+	await member.bot.publish({
+		id: bot.id,
+	});
+	for (const tourId of [
+		"initialTour",
+		"chatTour",
+	] as const) {
+		await member.user.setTourState({
+			tourId,
+			state: "completed",
+		});
+	}
+
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	await open(page, "/app");
+	await page
+		.getByRole("button", {
+			name: message("chat_bot_selector_no_bot_title"),
+		})
+		.click();
+	const selector = page.getByRole("dialog", {
+		name: message("chat_bot_selector_dialog_title"),
+	});
+	await selector
+		.getByPlaceholder(message("chat_bot_selector_search_placeholder"))
+		.fill(bot.name);
+	await selector
+		.getByRole("option", {
+			name: bot.name,
+		})
+		.click();
+
+	const locked = page.getByText("E2E Required Model", {
+		exact: true,
+	});
+	await expect(locked).toBeVisible();
+	await locked.hover();
+	await expect(
+		page.getByText(
+			message("chat_model_locked_tooltip", {
+				bot: bot.name,
+			}),
+		),
+	).toBeVisible();
+});
+
 test("bots: the Model step shows who the bot's quota covers", async ({
 	api,
 	inference,

@@ -9,7 +9,7 @@ import { expect, test } from "../../fixtures/inference/fixture";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 
-test("analytics: an admin sees usage and ratings of a bot they cannot open as other bots, a member is led away", async ({
+test("analytics: an admin sees usage and ratings of a bot they cannot open as other bots, a member finds no analytics page", async ({
 	api,
 	inference,
 	org,
@@ -109,7 +109,11 @@ test("analytics: an admin sees usage and ratings of a bot they cannot open as ot
 	const memberPage = await pageAs("member");
 	await enterApp(memberPage, org.slug);
 	await open(memberPage, "/app/analytics");
-	await expect(memberPage).toHaveURL(/\/app\/?$/);
+	await expect(
+		memberPage.getByRole("heading", {
+			name: message("boundaries_not_found_title"),
+		}),
+	).toBeVisible();
 
 	const instancePage = await pageAsWellKnownAdmin();
 	await open(instancePage, "/instance/analytics");

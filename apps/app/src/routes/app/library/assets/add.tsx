@@ -11,11 +11,10 @@ import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/assets/add")({
-	loader: async ({ context: { queryClient } }) => {
+	beforeLoad: async ({ context: { queryClient } }) => {
 		await ensureOrganizationCapability({
 			queryClient,
 			permission: "create_asset",
-			redirectTo: "/app/library/assets",
 		});
 	},
 	component: RouteComponent,

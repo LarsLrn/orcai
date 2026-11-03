@@ -1,6 +1,6 @@
 import type { AssetId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
+import { lookupEntitiesByPermission, type ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
@@ -12,7 +12,7 @@ export const assetsMissingMetadata = (params: {
 	userId: UserId;
 	organizationId: OrganizationId;
 	ids?: readonly AssetId[];
-	zedToken?: string;
+	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
 		const editable = (yield* lookupEntitiesByPermission({

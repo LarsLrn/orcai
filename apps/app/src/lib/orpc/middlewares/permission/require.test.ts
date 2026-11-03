@@ -1,0 +1,208 @@
+import { describe, expect, test } from "bun:test";
+import { v1 } from "@authzed/authzed-node";
+import type { BotId, UserId } from "@orcai/core";
+import { SpiceDbService } from "@orcai/spice-db";
+import { call, os, type } from "@orpc/server";
+import * as Context from "effect/Context";
+import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
+import type { AppEffectContext } from "@/lib/orpc/implementation/os";
+import type { AuthContext } from "@/lib/orpc/middlewares/auth";
+import {
+	requireEntityPermission,
+	requireOrganizationPermission,
+	requireResourcePermission,
+} from "./require";
+
+const userId = "00000000-0000-4000-8000-000000000001" as UserId;
+const botId = "00000000-0000-4000-8000-000000000002" as BotId;
+const organizationId = "00000000-0000-4000-8000-000000000003";
+
+/**
+ * What SpiceDB answers: at a token, as of that revision, which may be all a
+ * replica has; fully consistent, as of the newest; without consistency, as
+ * of a stale cache that misses every write here.
+ */
+type Revisions = {
+	allowedAt: Record<string, boolean>;
+	newest: boolean;
+};
+
+/** The checks the procedures below make; any other check is denied. */
+const expectedChecks = new Set([
+	`bot:${botId}#edit@user:${userId}`,
+	`organization:${organizationId}#manage_models@user:${userId}`,
+]);
+
+const answer = (revisions: Revisions, request: v1.CheckPermissionRequest) => {
+	const check = `${request.resource?.objectType}:${request.resource?.objectId}#${request.permission}@${request.subject?.object?.objectType}:${request.subject?.object?.objectId}`;
+	if (!expectedChecks.has(check)) return false;
+	const requirement = request.consistency?.requirement;
+	switch (requirement?.oneofKind) {
+		case "fullyConsistent":
+			return revisions.newest;
+		case "atLeastAsFresh":
+			return revisions.allowedAt[requirement.atLeastAsFresh.token] ?? false;
+		default:
+			return false;
+	}
+};
+
+const requestContext = (requestToken: string, revisions: Revisions) => ({
+	reqHeaders: new Headers(),
+	auth: {
+		isAuthenticated: true as const,
+		session: {
+			activeOrganizationId: organizationId,
+		},
+		user: {
+			id: userId,
+		},
+	} as unknown as AuthContext["auth"],
+	meta: {
+		zedToken: requestToken,
+	},
+	"effect/context": Context.make(SpiceDbService, {
+		spice: {
+			checkPermission: async (request: v1.CheckPermissionRequest) =>
+				v1.CheckPermissionResponse.create({
+					permissionship: answer(revisions, request)
+						? v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
+						: v1.CheckPermissionResponse_Permissionship.NO_PERMISSION,
+				}),
+		} as unknown as v1.ZedPromiseClientInterface,
+	}) as AppEffectContext["effect/context"],
+	"effect/wrap": mapEffectErrors,
+});
+
+const base = os.$context<AppEffectContext & AuthContext>();
+
+const procedures = {
+	entity: base
+		.input(
+			type<{
+				id: BotId;
+				zedToken?: string;
+			}>(),
+		)
+		.use(
+			requireEntityPermission("bot", "edit", {
+				entityId: "id",
+			}),
+		)
+		.handler(() => "allowed"),
+	resource: base
+		.input(
+			type<{
+				resourceType: "bot";
+				resourceId: BotId;
+				zedToken?: string;
+			}>(),
+		)
+		.use(requireResourcePermission("edit"))
+		.handler(() => "allowed"),
+	organization: base
+		.input(
+			type<{
+				zedToken?: string;
+			}>(),
+		)
+		.use(requireOrganizationPermission("manage_models"))
+		.handler(() => "allowed"),
+};
+
+const outcome = (promise: Promise<unknown>) =>
+	promise.then(
+		(value) => value,
+		(error: { code?: string }) => error.code,
+	);
+
+/** Every middleware's answer for one input token. */
+const outcomes = (
+	zedToken: string,
+	context: ReturnType<typeof requestContext>,
+) =>
+	Promise.all([
+		outcome(
+			call(
+				procedures.entity,
+				{
+					id: botId,
+					zedToken,
+				},
+				{
+					context,
+				},
+			),
+		),
+		outcome(
+			call(
+				procedures.resource,
+				{
+					resourceType: "bot",
+					resourceId: botId,
+					zedToken,
+				},
+				{
+					context,
+				},
+			),
+		),
+		outcome(
+			call(
+				procedures.organization,
+				{
+					zedToken,
+				},
+				{
+					context,
+				},
+			),
+		),
+	]);
+
+describe("permission middlewares", () => {
+	test("see a grant the input's token names, though the request carries an older token", async () => {
+		const context = requestContext("before-grant", {
+			allowedAt: {
+				"after-grant": true,
+			},
+			newest: true,
+		});
+
+		expect(await outcomes("after-grant", context)).toEqual([
+			"allowed",
+			"allowed",
+			"allowed",
+		]);
+	});
+
+	test("see a revocation the request's token covers, though the input carries an older token", async () => {
+		const context = requestContext("after-revocation", {
+			allowedAt: {
+				"before-revocation": true,
+			},
+			newest: false,
+		});
+
+		expect(await outcomes("before-revocation", context)).toEqual([
+			"FORBIDDEN",
+			"FORBIDDEN",
+			"FORBIDDEN",
+		]);
+	});
+
+	test("read an empty input token as none, at the request's token", async () => {
+		const context = requestContext("after-grant", {
+			allowedAt: {
+				"after-grant": true,
+			},
+			newest: true,
+		});
+
+		expect(await outcomes("", context)).toEqual([
+			"allowed",
+			"allowed",
+			"allowed",
+		]);
+	});
+});

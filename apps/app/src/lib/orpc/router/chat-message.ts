@@ -10,7 +10,6 @@ const listChatMessages = authed.chatMessage.list
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input }) {
@@ -69,7 +68,6 @@ const findChatMessage = authed.chatMessage.find
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input }) {
@@ -115,7 +113,6 @@ const listChatMessageRatings = authed.chatMessage.listRatings
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {

@@ -3,25 +3,14 @@ import { LoadingPage } from "@/components/app/loading/loading-page";
 import { InstanceShell } from "@/components/instance/instance-shell";
 import { useUmami } from "@/hooks/use-umami";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import { ensureSignedIn } from "@/lib/authz/route-guards";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/instance")({
 	beforeLoad: ({ context }) => {
-		if (!context.auth.isAuthenticated) {
-			throw redirect({
-				to: "/login",
-				statusCode: 302,
-			});
-		}
+		const auth = ensureSignedIn(context.auth);
 
-		if (context.auth.twoFactor.setupRequired) {
-			throw redirect({
-				to: "/setup-two-factor",
-				statusCode: 302,
-			});
-		}
-
-		if (!isInstanceAdminRole(context.auth.user.role)) {
+		if (!isInstanceAdminRole(auth.user.role)) {
 			throw redirect({
 				to: "/app",
 				statusCode: 302,
@@ -29,7 +18,7 @@ export const Route = createFileRoute("/instance")({
 		}
 
 		return {
-			auth: context.auth,
+			auth,
 		};
 	},
 	head: () => ({

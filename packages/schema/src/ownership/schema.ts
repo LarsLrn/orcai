@@ -14,11 +14,11 @@ export const handedOverSchema = z.object({
 	...ownedCountsShape,
 });
 
-/** A member who may receive content. */
+/** A member who may receive content; the email shows only to those who may see it. */
 export const contentReceiverSchema = z.object({
 	id: userIdSchema,
 	name: z.string(),
-	email: z.string(),
+	email: z.string().optional(),
 	image: z.string().nullable(),
 });
 

@@ -1396,6 +1396,84 @@ describe("reading what members own", () => {
 	);
 
 	test(
+		"an owner who does not manage groups finds receivers by name, without their emails",
+		async () => {
+			const {
+				organizationId,
+				actors: [owner, other],
+			} = await organization([
+				"member",
+				"member",
+			]);
+			const content = await contentOf(owner, organizationId);
+			const receivers = async (search?: string) =>
+				(
+					await call(owner, (options) =>
+						procedures.resource.receivers(
+							{
+								resourceType: "bot",
+								resourceId: content.botId,
+								search,
+							},
+							options,
+						),
+					)
+				).data;
+
+			expect(await receivers()).toEqual([
+				{
+					id: other.user.id,
+					name: other.user.name,
+					image: other.user.image,
+				},
+			]);
+			expect(await receivers(other.user.email)).toEqual([]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"an owner who manages groups finds receivers by email and sees their emails",
+		async () => {
+			const {
+				organizationId,
+				actors: [owner, other],
+			} = await organization([
+				"manager",
+				"member",
+			]);
+			const content = await contentOf(owner, organizationId);
+			const receivers = async (search?: string) =>
+				(
+					await call(owner, (options) =>
+						procedures.resource.receivers(
+							{
+								resourceType: "bot",
+								resourceId: content.botId,
+								search,
+							},
+							options,
+						),
+					)
+				).data;
+			const visible = {
+				id: other.user.id,
+				name: other.user.name,
+				email: other.user.email,
+				image: other.user.image,
+			};
+
+			expect(await receivers()).toEqual([
+				visible,
+			]);
+			expect(await receivers(other.user.email)).toEqual([
+				visible,
+			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
 		"a deletion defaults to the earliest admin who can sign in",
 		async () => {
 			const {

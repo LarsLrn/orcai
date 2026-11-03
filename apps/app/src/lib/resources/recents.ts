@@ -1,6 +1,6 @@
 import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
+import { lookupEntitiesByPermission, type ReadRevision } from "@orcai/spice-db";
 import { type AnyColumn, and, desc, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableNow } from "@/lib/authz/content-access";
@@ -21,7 +21,7 @@ export const recentResources = (params: {
 	userId: UserId;
 	organizationId: OrganizationId | undefined;
 	limit: number;
-	zedToken: string | undefined;
+	zedToken: ReadRevision | undefined;
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;

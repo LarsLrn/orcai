@@ -1,5 +1,6 @@
 import type { BotId, OrganizationId, UserId } from "@orcai/core";
 import type { ChatReadOnlyReason } from "@orcai/schema";
+import type { ReadRevision } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import { usableInOrganization } from "@/lib/authz/organization-use";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -45,7 +46,7 @@ export const chatBotUsable = (
 	chat: Pick<ChatState, "botId" | "organizationId">,
 	viewer: {
 		userId: UserId;
-		zedToken: string | undefined;
+		zedToken: ReadRevision | undefined;
 	},
 ) =>
 	chat.botId

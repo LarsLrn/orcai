@@ -14,20 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { Page, PageContent } from "@/components/ui/shell/page";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { orpc } from "@/lib/orpc/orpc";
+import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/_home")({
 	beforeLoad: async ({ context: { queryClient } }) => {
-		const { data } = await queryClient.query(
-			orpc.authorization.organizationCapabilities.queryOptions({
-				input: {
-					permissions: [
-						"manage_organization",
-					],
-				},
-			}),
-		);
+		const { data } = await queryClient.query(organizationCapabilitiesQuery());
 		const isOrganizationAdmin = hasCapability(
 			data.capabilities,
 			"manage_organization",

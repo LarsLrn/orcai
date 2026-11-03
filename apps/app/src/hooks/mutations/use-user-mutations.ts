@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { type NavigateOptions, useNavigate } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import { authClient } from "@/lib/auth/auth-client";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { openAfterOrganizationSwitch } from "./organization-switch";
@@ -13,7 +12,6 @@ export const useSetActiveOrganizationMutation = (
 		to: "/app",
 	},
 ) => {
-	const { refetch: refetchSession } = authClient.useSession();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
@@ -23,8 +21,10 @@ export const useSetActiveOrganizationMutation = (
 				...opts,
 				onSuccess: async (...args) => {
 					await openAfterOrganizationSwitch(queryClient, {
-						refetchSession,
 						navigate: () => navigate(target),
+						guards: [
+							orpc.authorization.organizationCapabilities.key(),
+						],
 					});
 
 					await opts.onSuccess?.(...args);

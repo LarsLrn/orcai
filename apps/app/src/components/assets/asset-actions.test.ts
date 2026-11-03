@@ -15,6 +15,8 @@ const asset = (
 	id: "asset-1" as AssetId,
 	keptIn: "library",
 	processingStatus: "completed",
+	processingFailure: null,
+	fileType: "pdf",
 	owner: {
 		id: "owner-1" as UserId,
 	},
@@ -90,6 +92,32 @@ describe("assetActions", () => {
 		).toEqual([
 			"edit",
 		]);
+	});
+
+	test("a failed asset offers Prepare again only where it can help", () => {
+		const prepareAgainFor = (
+			failure: "unsupported" | "empty" | "timeout",
+			fileType: "png" | "docx",
+		) =>
+			actionKeys(
+				assetActions(
+					asset({
+						processingStatus: "failed",
+						processingFailure: failure,
+						fileType,
+						capabilities: {
+							edit: true,
+						},
+					}),
+					handlers,
+					viewer,
+				),
+			).includes("prepareAgain");
+
+		expect(prepareAgainFor("timeout", "docx")).toBe(true);
+		expect(prepareAgainFor("unsupported", "png")).toBe(true);
+		expect(prepareAgainFor("unsupported", "docx")).toBe(false);
+		expect(prepareAgainFor("empty", "png")).toBe(false);
 	});
 
 	test("only its owner hands over a Library asset, never a chat upload", () => {

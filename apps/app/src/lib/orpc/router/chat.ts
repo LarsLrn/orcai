@@ -34,7 +34,7 @@ import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { requireUsableInOrganization } from "@/lib/authz/organization-use";
 import { writeRelationships } from "@/lib/authz/relationship-write";
-import { getZedToken } from "@/lib/authz/zed-token";
+import { readRevision } from "@/lib/authz/zed-token";
 import { findBotSetup } from "@/lib/bots/bot-setup";
 import { deleteChatsWhere, insertChat } from "@/lib/chats/chat-lifecycle";
 import { checkChatModel, checkMaxTokens } from "@/lib/chats/chat-model";
@@ -73,7 +73,7 @@ const listChats = authed.chat.list
 			userId: context.auth.user.id,
 			permission: "read",
 			entityType: "chat",
-			zedToken: getZedToken(context, input),
+			zedToken: readRevision(context, input),
 		});
 		const search =
 			input.filters?.search === undefined
@@ -265,7 +265,6 @@ const findChat = authed.chat.find
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "id",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
@@ -333,7 +332,7 @@ const findChat = authed.chat.find
 					entityType: "chat",
 					permission: "read",
 					userId: context.auth.user.id,
-					zedToken: getZedToken(context, input),
+					zedToken: readRevision(context, input),
 				}),
 				chat.organizationId === activeOrganizationId
 					? Effect.succeed(undefined)
@@ -352,7 +351,7 @@ const findChat = authed.chat.find
 						}),
 				chatBotUsable(chat, {
 					userId: context.auth.user.id,
-					zedToken: getZedToken(context, input),
+					zedToken: readRevision(context, input),
 				}),
 			],
 			{
@@ -433,7 +432,7 @@ const createChat = authed.chat.create
 				],
 				userId: context.auth.user.id,
 				organizationId,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			});
 		} else if (features) {
 			yield* checkFeatureRequirements(features);
@@ -519,7 +518,7 @@ const updateChat = authed.chat.update
 			activeOrganizationId: context.auth.session.activeOrganizationId,
 			botUsable: chatBotUsable(existingChat, {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context),
+				zedToken: readRevision(context),
 			}),
 		});
 		const features = input.config?.features;
@@ -705,7 +704,6 @@ const branchChat = authed.chat.branch
 	.use(
 		requireEntityPermission("chat", "read", {
 			entityId: "chatId",
-			zedToken: "zedToken",
 		}),
 	)
 	.effect(function* ({ input, context }) {
@@ -734,7 +732,7 @@ const branchChat = authed.chat.branch
 			activeOrganizationId: context.auth.session.activeOrganizationId,
 			botUsable: chatBotUsable(source, {
 				userId: context.auth.user.id,
-				zedToken: getZedToken(context, input),
+				zedToken: readRevision(context, input),
 			}),
 		});
 
