@@ -24,13 +24,6 @@ test("account: a user switches the interface language to German and back", async
 		admin: api.as("admin"),
 	});
 
-	// The app home starts the initial tour for a user who has not seen it, and
-	// its card covers the header the switcher sits in.
-	await user.api.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
-
 	const { context, page } = await pageForSession(browser, user.session);
 
 	try {
@@ -69,12 +62,6 @@ test("account: a language chosen in the header follows the user into a new brows
 		baseURL: appBaseURL,
 		label: "locale-follow",
 		admin: api.as("admin"),
-	});
-
-	// The tour card would cover the header the switcher sits in.
-	await user.api.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
 	});
 
 	const first = await pageForSession(browser, user.session);

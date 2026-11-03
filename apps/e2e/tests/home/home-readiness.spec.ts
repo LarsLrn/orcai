@@ -28,12 +28,6 @@ test("home: a fresh organisation's admin works through the setup checklist on Ma
 	test.slow();
 	const fresh = await orgs.create("E2E Readiness");
 	const adminApi = api.as("admin", fresh);
-	// The initial tour's modal would cover Use once the admin gets there.
-	await adminApi.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
-
 	const admin = await pageAs("admin", fresh);
 	await enterApp(admin, fresh.slug);
 	await open(admin, "/app");

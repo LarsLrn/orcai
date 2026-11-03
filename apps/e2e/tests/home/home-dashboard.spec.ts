@@ -26,11 +26,6 @@ test("home: the organisation card counts what the organisation lists and leads t
 
 	const created = await orgs.create(`E2E Home Dashboard ${runId()}`);
 	const admin = api.as("admin", created);
-	// The initial tour's modal would cover the dashboard.
-	await admin.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const { data: behaviour } = await admin.block.create({
 		type: "behaviour",
 		name: `E2E Home Behaviour ${runId()}`,
@@ -92,10 +87,6 @@ test("home: the organisation card counts what the organisation lists and leads t
 	await expect(page).toHaveURL(new RegExp(`/app/organizations/${created.id}$`));
 
 	// A member sees the card without the way into the settings.
-	await api.as("member", created).user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const member = await pageAs("member", created);
 	await enterApp(member, created.slug);
 	await open(member, "/app");
@@ -131,15 +122,10 @@ for (const [where, path] of [
 	}) => {
 		await setUpChatModel(api, inference);
 		const member = api.as("member");
-		for (const tourId of [
-			"initialTour",
-			"chatTour",
-		] as const) {
-			await member.user.setTourState({
-				tourId,
-				state: "completed",
-			});
-		}
+		await member.user.setTourState({
+			tourId: "chatTour",
+			state: "completed",
+		});
 		inference.respondWith({
 			text: "Got the notes.",
 		});

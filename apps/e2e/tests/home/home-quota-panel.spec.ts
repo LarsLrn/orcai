@@ -11,12 +11,6 @@ test("home: the quota panel tells no pool from no active pool", async ({
 }) => {
 	const fresh = await orgs.create("E2E Home Quota");
 	const adminApi = api.as("admin", fresh);
-	// The initial tour's modal would cover the dashboard.
-	await adminApi.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
-
 	const admin = await pageAs("admin", fresh);
 	await enterApp(admin, fresh.slug);
 	await open(admin, "/app/manage");

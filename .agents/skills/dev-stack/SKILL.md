@@ -70,8 +70,9 @@ limit (`BETTER_AUTH_RATE_LIMIT=false`) because all requests come from loopback.
 
 The setup project initialises a reset instance through the first-run UI with
 the well-known admin. Each parallel worker creates and mutates only its own
-organisations through the public API. Instance-level specs run serially before
-parallel specs. The mock inference server is used for e2e; do not call a real
+organisations through the public API. Every fixture user and the well-known
+admin have skipped the initial tour. Instance-level specs run serially before
+parallel specs, and CI runs them in a job of their own. The mock inference server is used for e2e; do not call a real
 provider. Playwright also runs the docs image on `WEB_PORT` for the
 assistant, reusing a running `bun run stack web`. Email delivery and OCR
 are outside the suite.

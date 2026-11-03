@@ -64,10 +64,11 @@ test("chat: the chat tour starts on opening a chat until the user has seen it, a
 		await expect(page.getByRole("dialog")).toHaveCount(0);
 
 		await expect
-			.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
-			.toEqual({
-				chatTour: "completed",
-			});
+			.poll(
+				async () =>
+					(await user.api.user.me({})).data.preferences?.tours?.chatTour,
+			)
+			.toBe("completed");
 
 		// Opening the chat again does not start the finished tour.
 		await open(page, chatPath);
@@ -87,10 +88,11 @@ test("chat: the chat tour starts on opening a chat until the user has seen it, a
 		// Focus returns to the title the tour started from.
 		await expect(chatTitleMenu(page)).toBeFocused();
 		await expect
-			.poll(async () => (await user.api.user.me({})).data.preferences?.tours)
-			.toEqual({
-				chatTour: "skipped",
-			});
+			.poll(
+				async () =>
+					(await user.api.user.me({})).data.preferences?.tours?.chatTour,
+			)
+			.toBe("skipped");
 	} finally {
 		await context.close();
 	}

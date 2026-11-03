@@ -31,15 +31,10 @@ const failureTitle = (name: string) =>
 const uploadTitle = message("activity_run_upload_library_title");
 
 test("activity: an idle user gets the empty list from the keyboard", async ({
-	api,
 	orgs,
 	pageAs,
 }) => {
 	const created = await orgs.create(`E2E Activity Idle ${runId()}`);
-	await api.as("member", created).user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const page = await pageAs("member", created);
 	await enterApp(page, created.slug);
 	await open(page, "/app/library");
@@ -71,15 +66,10 @@ type Viewport = {
 };
 
 test("activity: the list stays below its trigger when the page scrolls under it", async ({
-	api,
 	orgs,
 	pageAs,
 }) => {
 	const created = await orgs.create(`E2E Activity Scroll ${runId()}`);
-	await api.as("member", created).user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const page = await pageAs("member", created);
 	// Short enough for the Library to scroll, wide enough for the popover.
 	await page.setViewportSize({
@@ -122,10 +112,6 @@ test("activity: a failed upload needs attention until dismissed, and its entry o
 
 	const created = await orgs.create(`E2E Activity Failed ${runId()}`);
 	const member = api.as("member", created);
-	await member.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const name = `E2E Activity ${runId()}.txt`;
 	const other = `E2E Activity Other ${runId()}.txt`;
 	await uploadTogether(member, [
@@ -269,10 +255,6 @@ test("activity: the dashboard card shows only while something needs the user, an
 }) => {
 	const created = await orgs.create(`E2E Activity Card ${runId()}`);
 	const member = api.as("member", created);
-	await member.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const page = await pageAs("member", created);
 	await enterApp(page, created.slug);
 	await open(page, "/app?view=use");
@@ -305,10 +287,6 @@ test("activity: below md the list opens in a drawer", async ({
 }) => {
 	const created = await orgs.create(`E2E Activity Mobile ${runId()}`);
 	const member = api.as("member", created);
-	await member.user.setTourState({
-		tourId: "initialTour",
-		state: "completed",
-	});
 	const name = `E2E Activity Mobile ${runId()}.txt`;
 	await uploadAsset(member, name);
 

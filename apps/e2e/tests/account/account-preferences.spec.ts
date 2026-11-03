@@ -42,6 +42,7 @@ test("account: skipping the app tour is remembered for the user", async ({
 		baseURL: appBaseURL,
 		label: "tour",
 		admin: api.as("admin"),
+		initialTour: "unseen",
 	});
 	const { context, page } = await pageForSession(browser, user.session);
 

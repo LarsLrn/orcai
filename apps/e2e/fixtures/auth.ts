@@ -1,6 +1,6 @@
 import type { OrganizationInvitationId } from "@orcai/core";
 import type { BrowserContextOptions } from "@playwright/test";
-import { type ApiClient, ZED_TOKEN_COOKIE } from "./api";
+import { type ApiClient, createApiClient, ZED_TOKEN_COOKIE } from "./api";
 import { type Role, USER_PASSWORD } from "./constants";
 
 export type StorageState = Exclude<
@@ -181,7 +181,8 @@ const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
  * The user comes back a member with the invited role and, if this is its only
  * organisation, inside it. The sign-up response carries the `zedToken` of the
  * granted membership, so a caller that keeps it reads the membership without
- * waiting.
+ * waiting. The user has skipped the initial tour, whose modal card covers the
+ * app home, unless `initialTour` is `"unseen"`.
  */
 export const signUpInvited = async (params: {
 	baseURL: string;
@@ -190,6 +191,7 @@ export const signUpInvited = async (params: {
 	name: string;
 	email: string;
 	password?: string;
+	initialTour?: "skipped" | "unseen";
 }): Promise<
 	Session & {
 		invitationId: OrganizationInvitationId;
@@ -220,6 +222,16 @@ export const signUpInvited = async (params: {
 	}
 
 	const session = await readSession(params.baseURL, response);
+
+	if (params.initialTour !== "unseen") {
+		await createApiClient(
+			params.baseURL,
+			session.cookieHeader,
+		).user.setTourState({
+			tourId: "initialTour",
+			state: "skipped",
+		});
+	}
 
 	return {
 		...session,
