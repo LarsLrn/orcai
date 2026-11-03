@@ -75,7 +75,7 @@ const SignUpForm = ({
 					<field.PasswordField
 						label={m.auth_signup_form_password_label()}
 						placeholder={m.common_password_placeholder()}
-						showStrength
+						showLimits
 					/>
 				)}
 			/>

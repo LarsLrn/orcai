@@ -4,7 +4,7 @@ import { sharedSchemas } from "./shared";
 
 export const changePasswordSchema = z
 	.object({
-		currentPassword: sharedSchemas.password,
+		currentPassword: sharedSchemas.currentPassword,
 		password: sharedSchemas.password,
 		confirmPassword: sharedSchemas.password,
 	})

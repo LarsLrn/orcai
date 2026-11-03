@@ -72,7 +72,7 @@ const InitForm = () => {
 					<field.PasswordField
 						label={m.common_password_label()}
 						placeholder={m.common_password_placeholder()}
-						showStrength
+						showLimits
 					/>
 				)}
 			/>

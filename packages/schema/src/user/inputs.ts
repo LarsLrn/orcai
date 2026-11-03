@@ -54,7 +54,7 @@ export const deleteUsersInputSchema = z.object({
 export const meInputSchema = z.object({});
 
 export const updatePasswordInputSchema = z.object({
-	currentPassword: sharedSchemas.password,
+	currentPassword: sharedSchemas.currentPassword,
 	password: sharedSchemas.password,
 });
 

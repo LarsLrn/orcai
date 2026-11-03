@@ -57,7 +57,7 @@ test("the login form rejects an unknown email address", async ({ page }) => {
 	await expect(page).toHaveURL(/\/login/);
 });
 
-test("the login form validates an empty email and a short password", async ({
+test("the login form validates an empty email and an empty password", async ({
 	page,
 }) => {
 	await open(page, "/login");
@@ -71,12 +71,8 @@ test("the login form validates an empty email and a short password", async ({
 	).toBeVisible();
 
 	await expect(
-		page.getByText(
-			message("error_validation_string_too_small", {
-				minimum: 8,
-			}),
-		),
-	).toBeVisible();
+		page.getByText(message("error_validation_required")),
+	).toBeHidden();
 
 	await emailField(page).fill("");
 	await passwordField(page).fill("");
@@ -85,11 +81,7 @@ test("the login form validates an empty email and a short password", async ({
 		page.getByText(message("error_validation_invalid_email")),
 	).toBeVisible();
 	await expect(
-		page.getByText(
-			message("error_validation_string_too_small", {
-				minimum: 8,
-			}),
-		),
+		page.getByText(message("error_validation_required")),
 	).toBeVisible();
 
 	await page

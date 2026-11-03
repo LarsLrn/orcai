@@ -3,7 +3,7 @@ import { sharedSchemas } from "./shared";
 
 export const signinSchema = z.object({
 	email: sharedSchemas.email,
-	password: sharedSchemas.password,
+	password: sharedSchemas.currentPassword,
 });
 
 export type SigninSchemaType = z.infer<typeof signinSchema>;

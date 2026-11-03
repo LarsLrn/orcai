@@ -1,6 +1,6 @@
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "@orcai/schema";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
-import { PasswordStrengthIndicator } from "@/components/forms/utility/password-strength-indicator";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -10,29 +10,30 @@ type PasswordFieldProps = {
 	label: string;
 	description?: string;
 	showTogglePassword?: boolean;
-	showStrength?: boolean;
+	showLimits?: boolean;
 	width?: ControlWidth;
 } & React.ComponentProps<typeof Input>;
 
 const PasswordField = ({
 	label,
-	description,
+	description: descriptionProp,
 	showTogglePassword = false,
-	showStrength = false,
+	showLimits = false,
 	width,
 	className,
 	...props
 }: PasswordFieldProps) => {
+	const description =
+		descriptionProp ??
+		(showLimits
+			? m.forms_password_limits_hint({
+					min: PASSWORD_MIN_LENGTH,
+					max: PASSWORD_MAX_LENGTH,
+				})
+			: undefined);
 	const { field, ...state } = useFormField<string>(label, description);
 	const { id } = state.control;
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-	const describedBy = [
-		state.control["aria-describedby"],
-		showStrength && `${id}-description`,
-	]
-		.filter(Boolean)
-		.join(" ");
-
 	return (
 		<FormField
 			state={state}
@@ -44,7 +45,6 @@ const PasswordField = ({
 				<Input
 					{...props}
 					{...state.control}
-					aria-describedby={describedBy || undefined}
 					name={field.name}
 					type={isPasswordVisible ? "text" : "password"}
 					value={field.state.value}
@@ -74,9 +74,6 @@ const PasswordField = ({
 					</button>
 				)}
 			</div>
-			{showStrength && (
-				<PasswordStrengthIndicator value={field.state.value} fieldName={id} />
-			)}
 		</FormField>
 	);
 };

@@ -11,6 +11,8 @@ import {
 	LOCALES,
 	localeSchema,
 	organizationInvitationIdSchema,
+	PASSWORD_MAX_LENGTH,
+	PASSWORD_MIN_LENGTH,
 	userIdSchema,
 } from "@orcai/schema";
 import { betterAuth, type User } from "better-auth";
@@ -195,6 +197,8 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
+		minPasswordLength: PASSWORD_MIN_LENGTH,
+		maxPasswordLength: PASSWORD_MAX_LENGTH,
 		requireEmailVerification: false,
 		revokeSessionsOnPasswordReset: true,
 		sendResetPassword: async ({ user, url, token }, _request) => {
