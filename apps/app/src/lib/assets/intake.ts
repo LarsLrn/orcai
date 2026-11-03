@@ -6,7 +6,13 @@ import type {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { logErrorCause } from "@orcai/observability";
-import { admitStage } from "@orcai/preparation";
+import {
+	addActivityMember,
+	admit,
+	openUploadRun,
+	releaseAdmission,
+	renewAdmission,
+} from "@orcai/preparation";
 import { getFileTypeFromMime, isMimeAllowed, UPLOAD_ROUTES } from "@orcai/s3";
 import {
 	isS3NotFound,
@@ -28,13 +34,6 @@ import {
 import { eq } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import {
-	addActivityMember,
-	openUploadRun,
-	releaseAdmission,
-	renewAdmission,
-} from "@/lib/activity/admission";
-import { queueFirstProcessing } from "@/lib/assets/processing";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 
@@ -201,21 +200,12 @@ const createAssetFromUpload = (
 						bucket: plan.bucket,
 						prefix: plan.prefix,
 						userId: intake.userId,
-						processingActorId: admission && intake.userId,
 					})
 					.onConflictDoNothing({
 						target: dbSchema.asset.id,
 					})
 					.returning();
 
-				if (asset && admission) {
-					yield* admitStage(admission.runId, [
-						{
-							stage: "processing",
-							assetId: asset.id,
-						},
-					]);
-				}
 				if (!asset) return undefined;
 				yield* initializeResourceAuthorization({
 					resource: {
@@ -225,7 +215,26 @@ const createAssetFromUpload = (
 					organizationId: intake.organizationId,
 					ownerUserId: intake.userId,
 				});
-				return yield* queueFirstProcessing(asset, admission?.runId);
+				// A new asset waits pending at generation 0 for its first processing.
+				yield* admit({
+					stage: "processing",
+					assets: [
+						{
+							id: asset.id,
+							generation: asset.processingGeneration,
+						},
+					],
+					from: [
+						"pending",
+					],
+					failWhenRefused: true,
+					run: admission
+						? {
+								id: admission.runId,
+							}
+						: undefined,
+				});
+				return (yield* findAsset(asset.id)) ?? asset;
 			}),
 		);
 

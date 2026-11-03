@@ -101,9 +101,6 @@ type Write = {
 	readonly failure: PipelineFailure | "recorded" | null;
 };
 
-/** Writes while the attempt is current and unfinished; whether it was. */
-type Target = (values: Write) => Effect.Effect<boolean, unknown, DB>;
-
 const failureValue = (failure: Write["failure"], column: Column) =>
 	failure === "recorded" ? sql`coalesce(${column}, 'other')` : failure;
 
@@ -111,7 +108,7 @@ const failureValue = (failure: Write["failure"], column: Column) =>
  * Runs the attempt's fenced write; when it failed the target, records the
  * failure on the run's member in the same transaction.
  */
-const fencedWrite = (
+const fencedWrite = <E>(
 	values: Write,
 	runId: ActivityRunId | undefined,
 	stage: StageTarget,
@@ -119,7 +116,7 @@ const fencedWrite = (
 		{
 			failureId: string | null;
 		}[],
-		unknown,
+		E,
 		DB
 	>,
 ) =>
@@ -143,40 +140,37 @@ const fencedWrite = (
 const failureIdValue = (values: Write) =>
 	values.status === "failed" ? newFailureId : undefined;
 
-const processingTarget =
-	(attempt: ProcessingAttempt): Target =>
-	(values) =>
-		Effect.gen(function* () {
-			const db = yield* DB;
-			const { asset } = dbSchema;
-			return yield* fencedWrite(
-				values,
-				attempt.runId,
-				{
-					stage: "processing",
-					assetId: attempt.assetId,
-				},
-				db
-					.update(asset)
-					.set({
-						processingStatus: values.status,
-						processingFailure: failureValue(
-							values.failure,
-							asset.processingFailure,
-						),
-						processingFailureId: failureIdValue(values),
-					})
-					.where(currentProcessing(attempt))
-					.returning({
-						failureId: asset.processingFailureId,
-					}),
-			);
-		});
+const processingTarget = (attempt: ProcessingAttempt) => (values: Write) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { asset } = dbSchema;
+		return yield* fencedWrite(
+			values,
+			attempt.runId,
+			{
+				stage: "processing",
+				assetId: attempt.assetId,
+			},
+			db
+				.update(asset)
+				.set({
+					processingStatus: values.status,
+					processingFailure: failureValue(
+						values.failure,
+						asset.processingFailure,
+					),
+					processingFailureId: failureIdValue(values),
+				})
+				.where(currentProcessing(attempt))
+				.returning({
+					failureId: asset.processingFailureId,
+				}),
+		);
+	});
 
 /** The link's indexing; with `generation`, only while admitted into it. */
 const indexingTarget =
-	(attempt: IndexingAttempt, generation?: number): Target =>
-	(values) =>
+	(attempt: IndexingAttempt, generation?: number) => (values: Write) =>
 		Effect.gen(function* () {
 			const db = yield* DB;
 			const { blockAsset } = dbSchema;
@@ -209,35 +203,33 @@ const indexingTarget =
 			);
 		});
 
-const metadataTarget =
-	(attempt: MetadataAttempt): Target =>
-	(values) =>
-		Effect.gen(function* () {
-			const db = yield* DB;
-			const { asset } = dbSchema;
-			return yield* fencedWrite(
-				values,
-				attempt.runId,
-				{
-					stage: "metadata",
-					assetId: attempt.assetId,
-				},
-				db
-					.update(asset)
-					.set({
-						metadataStatus: values.status,
-						metadataFailure: failureValue(
-							values.failure,
-							asset.metadataFailure,
-						),
-						metadataFailureId: failureIdValue(values),
-					})
-					.where(currentMetadata(attempt))
-					.returning({
-						failureId: asset.metadataFailureId,
-					}),
-			);
-		});
+const metadataTarget = (attempt: MetadataAttempt) => (values: Write) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { asset } = dbSchema;
+		return yield* fencedWrite(
+			values,
+			attempt.runId,
+			{
+				stage: "metadata",
+				assetId: attempt.assetId,
+			},
+			db
+				.update(asset)
+				.set({
+					metadataStatus: values.status,
+					metadataFailure: failureValue(values.failure, asset.metadataFailure),
+					metadataFailureId: failureIdValue(values),
+				})
+				.where(currentMetadata(attempt))
+				.returning({
+					failureId: asset.metadataFailureId,
+				}),
+		);
+	});
+
+/** Writes while the attempt is current and unfinished; whether it was. */
+type Target = ReturnType<typeof processingTarget>;
 
 const claim = (target: Target) =>
 	target({

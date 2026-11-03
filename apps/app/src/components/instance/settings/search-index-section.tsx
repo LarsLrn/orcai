@@ -62,9 +62,11 @@ export const SearchIndexSection = ({
 		messages: {
 			loading: m.instance_settings_index_prepare_again_toast_loading(),
 			success: ({ data }) =>
-				m.instance_settings_index_prepare_again_toast_success({
-					count: data.data.assets,
-				}),
+				data.data.joined
+					? m.instance_settings_index_prepare_again_toast_joined()
+					: m.instance_settings_index_prepare_again_toast_success({
+							count: data.data.assets,
+						}),
 			error: m.instance_settings_index_prepare_again_toast_error(),
 		},
 		confirm: {

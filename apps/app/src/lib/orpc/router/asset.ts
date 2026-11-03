@@ -1,20 +1,20 @@
 import type { OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { queueMetadataGeneration } from "@orcai/preparation";
-import { UPLOAD_ROUTES } from "@orcai/s3";
 import {
-	canPrepareAgain,
-	fitMetadataToSourceType,
-	metadataSchema,
-} from "@orcai/schema";
+	admit,
+	homeOrganization,
+	inActivityRun,
+	prepareAssetAgain,
+} from "@orcai/preparation";
+import { UPLOAD_ROUTES } from "@orcai/s3";
+import { fitMetadataToSourceType, metadataSchema } from "@orcai/schema";
 import { checkEntityPermission } from "@orcai/spice-db";
 import { and, eq, getColumns, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { homeOrganization, inActivityRun } from "@/lib/activity/admission";
 import { listAssetTiles } from "@/lib/assets/asset-list";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
-import { prepareAssetAgain } from "@/lib/assets/processing";
+import { prepareAgainError } from "@/lib/assets/prepare-again";
 import { requireEligibleOwner } from "@/lib/authz/eligible-owner";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
@@ -227,7 +227,8 @@ const addAssetToLibrary = authed.asset.addToLibrary
 			}),
 		);
 
-		const admitted = yield* queueMetadataGeneration({
+		const admitted = yield* admit({
+			stage: "metadata",
 			assetIds: [
 				input.id,
 			],
@@ -313,45 +314,14 @@ const prepareAssetAgainProcedure = authed.asset.prepareAgain
 		}),
 	)
 	.effect(function* ({ input, context }) {
-		const db = yield* DB;
-		const [asset] = yield* db
-			.select()
-			.from(dbSchema.asset)
-			.where(eq(dbSchema.asset.id, input.id));
-
-		if (!asset) {
-			return yield* new AppErrors.NotFoundError({
-				reason: "ASSET_NOT_FOUND",
-				message: "Asset not found",
-			});
-		}
-		if (
-			asset.processingStatus === "failed" &&
-			!canPrepareAgain(asset.processingFailure ?? "other", asset.fileType)
-		) {
-			return yield* new AppErrors.BadRequestError({
-				reason: "ASSET_PREPARING_AGAIN_UNHELPFUL",
-				message: "Preparing the asset again would fail the same way",
-			});
-		}
-
-		const admitted = yield* inActivityRun(
-			{
-				userId: context.auth.user.id,
-				kind: "retry",
-				organizationId: homeOrganization("asset", asset.id),
-			},
-			(runId) =>
-				prepareAssetAgain(asset, {
-					id: runId,
-				}),
+		yield* prepareAssetAgain({
+			userId: context.auth.user.id,
+			assetId: input.id,
+		}).pipe(
+			Effect.catchTag("PrepareAgainRefused", (refused) =>
+				Effect.fail(prepareAgainError(refused)),
+			),
 		);
-		if (!admitted) {
-			return yield* new AppErrors.BadRequestError({
-				reason: "ASSET_STILL_PREPARING",
-				message: "The asset is still being processed",
-			});
-		}
 
 		return {
 			success: true,
@@ -373,13 +343,16 @@ const generateAssetMetadata = authed.asset.generateMetadata
 				organizationId: homeOrganization("asset", input.id),
 			},
 			(runId) =>
-				queueMetadataGeneration({
+				admit({
+					stage: "metadata",
 					assetIds: [
 						input.id,
 					],
 					mode: "review",
 					userId: context.auth.user.id,
-					runId,
+					run: {
+						id: runId,
+					},
 				}),
 		);
 		if (admitted.length === 0) {
@@ -450,12 +423,15 @@ const generateMissingMetadata = authed.asset.generateMissingMetadata
 				organizationId: context.auth.session.activeOrganizationId,
 			},
 			(runId) =>
-				queueMetadataGeneration({
+				admit({
+					stage: "metadata",
 					assetIds,
 					mode: "apply",
 					onlyMissing: true,
 					userId: context.auth.user.id,
-					runId,
+					run: {
+						id: runId,
+					},
 				}),
 		);
 		return {

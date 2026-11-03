@@ -5,10 +5,11 @@ import type {
 	OrganizationId,
 	UserId,
 } from "@orcai/core";
-import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
+import { DB, dbSchema } from "@orcai/db";
 import {
+	admit,
+	bindUploadRuns,
 	type ObservedLink,
-	queueIndexing,
 	reconcileLinkPoints,
 	replaceIndexing,
 } from "@orcai/preparation";
@@ -16,7 +17,6 @@ import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
-import { bindUploadRuns } from "@/lib/activity/admission";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
@@ -86,10 +86,12 @@ export const requireReadableAssets = (params: {
 	});
 
 /**
- * Replaces a repository's asset links and records the change. Kept links
- * keep their index state; new ones start pending, and those from the user's
- * `uploadRunIds` are indexed as part of their upload. Call it in
- * `writeRelationships`, then pass the result to {@link reindexBlockAssets}.
+ * Replaces a repository's asset links, records the change and admits the
+ * indexing of the newly linked, processed assets, as part of the upload run
+ * each was bound to; the rest are indexed once their processing completes.
+ * Kept links keep their index state. Call it in `writeRelationships`, so the
+ * links and their admission commit together, then pass the result to
+ * {@link reconcileRemovedLinks}.
  */
 export const replaceBlockAssets = (params: {
 	blockId: BlockId;
@@ -181,76 +183,74 @@ export const replaceBlockAssets = (params: {
 			}),
 		);
 
-		return {
+		yield* admitAdded(
 			added,
-			removed,
-			runs: yield* bindUploadRuns({
+			yield* bindUploadRuns({
 				userId: params.userId,
 				runIds: params.uploadRunIds,
 				blockId: params.blockId,
 				assetIds: added.map((link) => link.assetId),
 			}),
+		);
+		return {
+			removed,
 		};
 	});
 
 /**
- * Reconciles the vectors of unlinked assets, so they go unless a relink owns
- * them, and indexes the newly linked, processed ones, as part of the upload
- * run each was bound to. The rest are indexed once their processing
- * completes.
+ * Admits the indexing of the newly linked, processed assets, each as the run
+ * it was bound to. Locks the assets without a status filter, so processing
+ * completing one is waited for.
  */
-export const reindexBlockAssets = (params: {
-	added: readonly ObservedLink[];
-	removed: readonly ObservedLink[];
-	runs?: ReadonlyMap<AssetId, ActivityRunId>;
-}) =>
+const admitAdded = (
+	added: readonly ObservedLink[],
+	runs: ReadonlyMap<AssetId, ActivityRunId>,
+) =>
 	Effect.gen(function* () {
+		if (added.length === 0) return;
 		const db = yield* DB;
-
-		yield* Effect.forEach(params.removed, reconcileLinkPoints, {
-			concurrency: "unbounded",
-			discard: true,
-		});
-
-		if (params.added.length === 0) return;
-
-		// Locks the rows without a status filter, so processing completing an asset is waited for; a link both queue is admitted once.
-		yield* retryDeadlocks(
-			db.transaction(() =>
-				Effect.gen(function* () {
-					const completed = new Set(
-						(yield* db
-							.select({
-								id: dbSchema.asset.id,
-								processingStatus: dbSchema.asset.processingStatus,
-							})
-							.from(dbSchema.asset)
-							.where(
-								inArray(
-									dbSchema.asset.id,
-									params.added.map((link) => link.assetId),
-								),
-							)
-							.for("share"))
-							.filter((asset) => asset.processingStatus === "completed")
-							.map((asset) => asset.id),
-					);
-					const admissible = params.added.filter((link) =>
-						completed.has(link.assetId),
-					);
-					const runOf = (link: ObservedLink) => params.runs?.get(link.assetId);
-					yield* Effect.forEach(
-						Arr.dedupe(admissible.map(runOf)),
-						(runId) =>
-							queueIndexing(
-								admissible.filter((link) => runOf(link) === runId),
-								runId,
-							),
-						{
-							discard: true,
-						},
-					);
-				}),
-			),
+		const completed = new Set(
+			(yield* db
+				.select({
+					id: dbSchema.asset.id,
+					processingStatus: dbSchema.asset.processingStatus,
+				})
+				.from(dbSchema.asset)
+				.where(
+					inArray(
+						dbSchema.asset.id,
+						added.map((link) => link.assetId),
+					),
+				)
+				.for("share"))
+				.filter((asset) => asset.processingStatus === "completed")
+				.map((asset) => asset.id),
 		);
+		const admissible = added.filter((link) => completed.has(link.assetId));
+		const runOf = (link: ObservedLink) => runs.get(link.assetId);
+		yield* Effect.forEach(
+			Arr.dedupe(admissible.map(runOf)),
+			(runId) =>
+				admit({
+					stage: "indexing",
+					links: admissible.filter((link) => runOf(link) === runId),
+					run: runId
+						? {
+								id: runId,
+							}
+						: undefined,
+				}),
+			{
+				discard: true,
+			},
+		);
+	});
+
+/** Reconciles the vectors of unlinked assets, so they go unless a relink owns them. */
+export const reconcileRemovedLinks = (params: {
+	removed: readonly ObservedLink[];
+}) =>
+	Effect.forEach(params.removed, reconcileLinkPoints, {
+		concurrency: "unbounded",
+		discard: true,
 	});

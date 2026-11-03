@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import type { ActivityRunId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { leaseRun } from "@orcai/preparation";
 import { createUser, integrationRuntime, rolledBack } from "@orcai/testing";
 import { eq, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -15,7 +16,7 @@ const TIMEOUT = 30_000;
 const { runPromise: run } = integrationRuntime();
 
 test(
-	"keeps running and recent runs and current dismissals, and deletes the rest",
+	"keeps running and recent runs, runs a queued preparation job holds, and current dismissals, and deletes the rest",
 	async () => {
 		const { seeded, runs, dismissals, leases } = await run(
 			rolledBack(
@@ -77,7 +78,10 @@ test(
 							dismissedAt: new Date(),
 						}),
 						crashed: yield* runOf({}),
+						queued: yield* runOf({}),
 					};
+					// Its job waits however long the workers are down.
+					yield* leaseRun(ids.queued);
 					yield* db.insert(dbSchema.activityAdmission).values({
 						runId: ids.crashed,
 						leaseUntil: sql`now() - interval '1 second'`,
@@ -144,10 +148,12 @@ test(
 			[
 				seeded.ids.recent,
 				seeded.ids.running,
+				seeded.ids.queued,
 			].sort(),
 		);
 		expect(kept.get(seeded.ids.recent)).toBeInstanceOf(Date);
 		expect(kept.get(seeded.ids.running)).toBeNull();
+		expect(kept.get(seeded.ids.queued)).toBeNull();
 		expect(dismissals.map((row) => row.occurrenceId)).toEqual([
 			seeded.asset.processingFailureId as string,
 		]);

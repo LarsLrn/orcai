@@ -11,13 +11,13 @@ import {
 	utilityReasoning,
 } from "@orcai/ai";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
-import { type Job, sendJobBatchInTransaction } from "@orcai/pg-boss";
+import type { Job } from "@orcai/pg-boss";
 import {
 	AssetPipelineError,
+	admit,
 	claimMetadata,
 	completeMetadata,
 	currentMetadata,
-	queueProcessing,
 	settleMetadataAttempt,
 } from "@orcai/preparation";
 import {
@@ -25,13 +25,12 @@ import {
 	type StoredExtractionArtifact,
 } from "@orcai/process";
 import {
-	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
 	isImageFileType,
 	type MetadataSuggestion,
 	type PipelineFailure,
 } from "@orcai/schema";
-import { eq, sql } from "drizzle-orm";
+
 import * as Effect from "effect/Effect";
 import { modelCallFailure, summarizeErrorCause } from "@/asset/error-summary";
 import {
@@ -173,11 +172,8 @@ const awaitPreparation = (data: GenerateAssetMetadataPayload) =>
 					const [row] = yield* db
 						.select({
 							id: asset.id,
-							bucket: asset.bucket,
-							prefix: asset.prefix,
-							fileType: asset.fileType,
 							processingStatus: asset.processingStatus,
-							processingGeneration: asset.processingGeneration,
+							generation: asset.processingGeneration,
 						})
 						.from(asset)
 						.where(currentMetadata(data))
@@ -194,45 +190,31 @@ const awaitPreparation = (data: GenerateAssetMetadataPayload) =>
 						const stored = yield* readExtraction(row.id);
 						if (stored) return stored;
 						if (data.preparedAgain) return "missing" as const;
-						yield* queueProcessing(
-							row,
-							[
+						yield* admit({
+							stage: "processing",
+							assets: [
+								row,
+							],
+							from: [
 								"completed",
 							],
-							data.runId
+							run: data.runId
 								? {
 										id: data.runId,
 									}
 								: undefined,
-						);
+						});
 					}
 
-					const [next] = yield* db
-						.update(asset)
-						.set({
-							metadataStatus: "pending",
-							metadataGeneration: sql`${asset.metadataGeneration} + 1`,
-						})
-						.where(eq(asset.id, row.id))
-						.returning({
-							generation: asset.metadataGeneration,
-						});
-					yield* sendJobBatchInTransaction<GenerateAssetMetadataPayload>({
-						jobName: GENERATE_ASSET_METADATA_JOB_NAME,
-						jobs: [
-							{
-								data: {
-									...data,
-									generation: next.generation,
-									...((data.preparedAgain || !preparing) && {
-										preparedAgain: true,
-									}),
-								},
-								options: {
-									startAfter: PREPARATION_WAIT_SECONDS,
-								},
-							},
-						],
+					yield* admit({
+						stage: "metadata",
+						continues: {
+							...data,
+							...((data.preparedAgain || !preparing) && {
+								preparedAgain: true,
+							}),
+						},
+						startAfter: PREPARATION_WAIT_SECONDS,
 					});
 					return "waiting" as const;
 				}),

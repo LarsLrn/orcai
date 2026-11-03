@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { activityRunIdSchema } from "../activity/ref";
 import { createDataResponseSchema } from "../shared";
 import {
 	embeddingProgressSchema,
@@ -51,5 +52,9 @@ export const prepareMissingExtractionsAgainResponseSchema =
 	createDataResponseSchema(
 		z.object({
 			assets: z.number().int().nonnegative(),
+			/** The run preparing them again, null when there is nothing to prepare. */
+			runId: activityRunIdSchema.nullable(),
+			/** Whether the request joined a run already in progress. */
+			joined: z.boolean(),
 		}),
 	);

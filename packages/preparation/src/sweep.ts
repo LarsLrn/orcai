@@ -6,14 +6,16 @@ import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
 	type JobQueue,
+	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
+	type PrepareMissingExtractionsAgainPayload,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { waitingRun } from "./activity";
 import {
@@ -24,6 +26,7 @@ import {
 	processingAttempt,
 	unfinished,
 } from "./attempt";
+import { JOB_LEASE } from "./runs";
 
 const PROCESSING = new Set<JobQueue>([
 	PROCESS_ASSET_JOB_NAME,
@@ -187,6 +190,48 @@ export const failStrandedStages = (stages: StrandedStages) =>
 		return count;
 	});
 
-export const sweepPreparation = strandedStages.pipe(
-	Effect.flatMap(failStrandedStages),
-);
+/**
+ * The run leases of preparation jobs that are gone: a job that ran out of
+ * retries, or that retention removed, never releases its own.
+ */
+export const strandedJobLeases = Effect.gen(function* () {
+	const db = yield* DB;
+	const { activityAdmission } = dbSchema;
+	// Leases before jobs: a lease read here with its job sent is live when the jobs are read.
+	const leases = yield* db
+		.select({
+			id: activityAdmission.id,
+		})
+		.from(activityAdmission)
+		.where(eq(activityAdmission.leaseUntil, JOB_LEASE));
+	if (leases.length === 0) return [];
+	const live = new Set(
+		(yield* liveJobs<PrepareMissingExtractionsAgainPayload>([
+			PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+		])).map((job) => job.data.leaseId),
+	);
+	return leases.map((lease) => lease.id).filter((id) => !live.has(id));
+});
+
+/** Releases the leases, so their runs finish once their work is done. */
+export const releaseJobLeases = (leaseIds: readonly string[]) =>
+	Effect.gen(function* () {
+		if (leaseIds.length === 0) return;
+		const db = yield* DB;
+		yield* db.delete(dbSchema.activityAdmission).where(
+			inArray(dbSchema.activityAdmission.id, [
+				...leaseIds,
+			]),
+		);
+		yield* Effect.logWarning(
+			{
+				released: leaseIds.length,
+			},
+			"Released run leases of preparation jobs that are gone",
+		);
+	});
+
+export const sweepPreparation = Effect.all([
+	strandedStages.pipe(Effect.flatMap(failStrandedStages)),
+	strandedJobLeases.pipe(Effect.flatMap(releaseJobLeases)),
+]);

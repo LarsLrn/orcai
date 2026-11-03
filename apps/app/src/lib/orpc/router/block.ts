@@ -1,7 +1,12 @@
 import { DB, dbSchema } from "@orcai/db";
+import {
+	prepareRepositoryAssetAgain,
+	prepareRepositoryFailedAgain,
+} from "@orcai/preparation";
 import type { Block, ResourceOwner } from "@orcai/schema";
 import { and, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { prepareAgainError } from "@/lib/assets/prepare-again";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
@@ -11,14 +16,10 @@ import {
 } from "@/lib/authz/resource-lifecycle";
 import { readRevision } from "@/lib/authz/zed-token";
 import { listBlockTiles } from "@/lib/blocks/block-list";
-import {
-	loadRepositoryReadiness,
-	prepareRepositoryAssetAgain,
-	prepareRepositoryFailedAgain,
-} from "@/lib/blocks/readiness";
+import { loadRepositoryReadiness } from "@/lib/blocks/readiness";
 import {
 	loadRepositoryAssets,
-	reindexBlockAssets,
+	reconcileRemovedLinks,
 	replaceBlockAssets,
 	requireReadableAssets,
 } from "@/lib/blocks/repository";
@@ -193,7 +194,7 @@ const createBlock = authed.block.create
 		);
 
 		if (input.type === "repository" && links) {
-			yield* reindexBlockAssets(links);
+			yield* reconcileRemovedLinks(links);
 
 			return {
 				data: block,
@@ -320,7 +321,7 @@ const updateBlock = authed.block.update
 		);
 
 		if (input.type === "repository" && links) {
-			yield* reindexBlockAssets(links);
+			yield* reconcileRemovedLinks(links);
 
 			return {
 				data: block,
@@ -386,7 +387,11 @@ const prepareAssetAgainProcedure = authed.block.prepareAssetAgain
 		return yield* prepareRepositoryAssetAgain({
 			...input,
 			userId: context.auth.user.id,
-		});
+		}).pipe(
+			Effect.catchTag("PrepareAgainRefused", (refused) =>
+				Effect.fail(prepareAgainError(refused)),
+			),
+		);
 	});
 
 const prepareFailedAgainProcedure = authed.block.prepareFailedAgain

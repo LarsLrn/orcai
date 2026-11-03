@@ -251,10 +251,10 @@ const reembedEmbeddings = authed.instanceSettings.reembedEmbeddings
 
 const retryFailedEmbeddings = authed.instanceSettings.retryFailedEmbeddings
 	.use(requireInstanceAdminMiddleware)
-	.effect(function* () {
+	.effect(function* ({ context }) {
 		return {
 			data: {
-				admitted: yield* retryFailed,
+				admitted: yield* retryFailed(context.auth.user.id),
 			},
 		};
 	});
@@ -262,11 +262,11 @@ const retryFailedEmbeddings = authed.instanceSettings.retryFailedEmbeddings
 const prepareMissingExtractionsAgain =
 	authed.instanceSettings.prepareMissingExtractionsAgain
 		.use(requireInstanceAdminMiddleware)
-		.effect(function* () {
+		.effect(function* ({ context }) {
 			return {
-				data: {
-					assets: yield* startPreparingMissingExtractionsAgain,
-				},
+				data: yield* startPreparingMissingExtractionsAgain(
+					context.auth.user.id,
+				),
 			};
 		});
 

@@ -96,6 +96,8 @@ The **Search index** section below the setting counts the assets in repositories
 
 All three ask for confirmation with the number of assets first. Rate limits of the endpoint count as temporary failures, which the workers retry with a delay before an asset counts as failed.
 
+**Retry failed assets** and **Prepare assets again** show up in your Activity as one run each. A request to prepare assets again while another one is still queueing joins that run instead of starting a second one.
+
 Until embeddings are set up, uploads still work and OrcAI prepares the assets, but their indexing shows "Waiting for the embedding setup" and repository search is unavailable. Instance admins see a banner in the app that links to Settings, and the Health page fails its **Embeddings** check. Once the setting is saved, the workers index every waiting asset within about a minute, so nothing has to be uploaded again.
 
 An instance that set its embedding model through environment variables keeps its vectors in a collection named `orcai-chunks-<dimensions>`. After the update, search is unavailable until an instance admin saves the embedding setting. Saving embeds every asset in a repository again into the new collection and deletes the old one. OrcAI does not read the old embedding variables, so remove them from `.env`.

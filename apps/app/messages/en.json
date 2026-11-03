@@ -4143,6 +4143,7 @@
 			}
 		}
 	],
+	"instance_settings_index_prepare_again_toast_joined": "Preparing the assets again is already running.",
 	"instance_settings_index_prepare_again_toast_error": "The assets were not queued for preparation.",
 	"instance_settings_index_reembed_button": "Re-embed everything",
 	"instance_settings_index_reembed_confirm_title": "Re-embed every asset?",
