@@ -1,5 +1,5 @@
 import { createApiClient, ZED_TOKEN_COOKIE } from "../../fixtures/api";
-import { expectForbidden, untilAllowed } from "../../fixtures/authorization";
+import { rejection, untilAllowed } from "../../fixtures/authorization";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
@@ -93,13 +93,16 @@ test("a grant and a revoke are both readable over the API without waiting", asyn
 		principalId: org.users.viewer.id,
 	});
 
-	// The permission middleware refuses before the block is looked up, so a
-	// closed block is forbidden rather than missing.
-	await expectForbidden(
-		api.as("viewer").block.find({
-			id: resourceId,
-		}),
-	);
+	// A block the viewer may not read is missing to them, not forbidden.
+	expect(
+		(
+			await rejection(
+				api.as("viewer").block.find({
+					id: resourceId,
+				}),
+			)
+		).code,
+	).toBe("NOT_FOUND");
 });
 
 test("a session that has never seen a zedToken still reads what it was granted", async ({

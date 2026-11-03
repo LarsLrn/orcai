@@ -12,9 +12,10 @@ import {
 	RESOURCE_GRANT_ORIGIN,
 	userIdSchema,
 } from "@orcai/schema";
-import { permittedEntityIds, type ReadRevision } from "@orcai/spice-db";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, desc, eq, ilike, inArray, isNull, notInArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { readableIds } from "@/lib/authz/content-access";
 import {
 	canSeeEmailIn,
 	canSeeEmailOn,
@@ -34,7 +35,7 @@ import { readRevision } from "@/lib/authz/zed-token";
 import { listingImpact, setListing } from "@/lib/catalogue/listing";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import { requireResourcePermission } from "@/lib/orpc/middlewares/permission";
+import { requireResourceAccess } from "@/lib/orpc/middlewares/permission";
 import { readableResources } from "@/lib/resources/readable";
 import { recentResources } from "@/lib/resources/recents";
 import { literalSearch } from "@/lib/utils/literal-search";
@@ -238,7 +239,7 @@ const collectAncestors = (resource: ResourceIdentity) =>
 
 const getInheritedAccess = authed.resource.inheritedAccess
 	.use(requireOrganization())
-	.use(requireResourcePermission("manage_access"))
+	.use(requireResourceAccess("manage_access"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const ancestors = yield* collectAncestors(input);
@@ -305,24 +306,14 @@ const getInheritedAccess = authed.resource.inheritedAccess
 				),
 			);
 
-		const userId = context.auth.user.id;
-		const zedToken = readRevision(context);
+		const reader = {
+			userId: context.auth.user.id,
+			zedToken: readRevision(context, input),
+		};
 		const [readableBots, readableBlocks] = yield* Effect.all(
 			[
-				permittedEntityIds({
-					entityType: "bot",
-					permission: "read",
-					entityIds: botIds,
-					userId,
-					zedToken,
-				}),
-				permittedEntityIds({
-					entityType: "block",
-					permission: "read",
-					entityIds: blockIds,
-					userId,
-					zedToken,
-				}),
+				readableIds("bot", botIds, reader),
+				readableIds("block", blockIds, reader),
 			],
 			{
 				concurrency: "unbounded",
@@ -589,7 +580,7 @@ const revokeAccess = authed.resource.revoke
 	});
 
 const getResourceVisibility = authed.resource.getVisibility
-	.use(requireResourcePermission("read"))
+	.use(requireResourceAccess("read"))
 	.effect(function* ({ input }) {
 		const db = yield* DB;
 
@@ -614,7 +605,7 @@ const getResourceVisibility = authed.resource.getVisibility
 	});
 
 const setVisibility = authed.resource.setVisibility
-	.use(requireResourcePermission("manage_access"))
+	.use(requireResourceAccess("manage_access"))
 	.effect(function* ({ input, context }) {
 		const data = yield* setListing({
 			resource: scopedResourceRef(input),
@@ -632,7 +623,7 @@ const setVisibility = authed.resource.setVisibility
 	});
 
 const getListingImpact = authed.resource.listingImpact
-	.use(requireResourcePermission("manage_access"))
+	.use(requireResourceAccess("manage_access"))
 	.effect(function* ({ input, context }) {
 		return {
 			data: yield* listingImpact(scopedResourceRef(input), {

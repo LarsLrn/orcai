@@ -370,7 +370,7 @@ describe("browsing a repository's passages", () => {
 					}),
 				),
 			).toMatchObject({
-				reason: "PERMISSION_DENIED",
+				_tag: "NotFoundError",
 			});
 		},
 		TIMEOUT,

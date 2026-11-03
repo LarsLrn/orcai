@@ -7,7 +7,7 @@ import * as Context from "effect/Context";
 import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
-import { requireEntityPermission, requireResourcePermission } from "./require";
+import { requireEntityPermission } from "./require";
 
 const userId = "00000000-0000-4000-8000-000000000001" as UserId;
 const botId = "00000000-0000-4000-8000-000000000002" as BotId;
@@ -68,31 +68,19 @@ const requestContext = (requestToken: string, revisions: Revisions) => ({
 
 const base = os.$context<AppEffectContext & AuthContext>();
 
-const procedures = {
-	entity: base
-		.input(
-			type<{
-				id: BotId;
-				zedToken?: string;
-			}>(),
-		)
-		.use(
-			requireEntityPermission("bot", "edit", {
-				entityId: "id",
-			}),
-		)
-		.handler(() => "allowed"),
-	resource: base
-		.input(
-			type<{
-				resourceType: "bot";
-				resourceId: BotId;
-				zedToken?: string;
-			}>(),
-		)
-		.use(requireResourcePermission("edit"))
-		.handler(() => "allowed"),
-};
+const procedure = base
+	.input(
+		type<{
+			id: BotId;
+			zedToken?: string;
+		}>(),
+	)
+	.use(
+		requireEntityPermission("bot", "edit", {
+			entityId: "id",
+		}),
+	)
+	.handler(() => "allowed");
 
 const outcome = (promise: Promise<unknown>) =>
 	promise.then(
@@ -100,40 +88,25 @@ const outcome = (promise: Promise<unknown>) =>
 		(error: { code?: string }) => error.code,
 	);
 
-/** Every middleware's answer for one input token. */
-const outcomes = (
+/** The middleware's answer for one input token. */
+const outcomeFor = (
 	zedToken: string,
 	context: ReturnType<typeof requestContext>,
 ) =>
-	Promise.all([
-		outcome(
-			call(
-				procedures.entity,
-				{
-					id: botId,
-					zedToken,
-				},
-				{
-					context,
-				},
-			),
+	outcome(
+		call(
+			procedure,
+			{
+				id: botId,
+				zedToken,
+			},
+			{
+				context,
+			},
 		),
-		outcome(
-			call(
-				procedures.resource,
-				{
-					resourceType: "bot",
-					resourceId: botId,
-					zedToken,
-				},
-				{
-					context,
-				},
-			),
-		),
-	]);
+	);
 
-describe("permission middlewares", () => {
+describe("requireEntityPermission", () => {
 	test("see a grant the input's token names, though the request carries an older token", async () => {
 		const context = requestContext("before-grant", {
 			allowedAt: {
@@ -142,10 +115,7 @@ describe("permission middlewares", () => {
 			newest: true,
 		});
 
-		expect(await outcomes("after-grant", context)).toEqual([
-			"allowed",
-			"allowed",
-		]);
+		expect(await outcomeFor("after-grant", context)).toBe("allowed");
 	});
 
 	test("see a revocation the request's token covers, though the input carries an older token", async () => {
@@ -156,10 +126,7 @@ describe("permission middlewares", () => {
 			newest: false,
 		});
 
-		expect(await outcomes("before-revocation", context)).toEqual([
-			"FORBIDDEN",
-			"FORBIDDEN",
-		]);
+		expect(await outcomeFor("before-revocation", context)).toBe("FORBIDDEN");
 	});
 
 	test("read an empty input token as none, at the request's token", async () => {
@@ -170,9 +137,6 @@ describe("permission middlewares", () => {
 			newest: true,
 		});
 
-		expect(await outcomes("", context)).toEqual([
-			"allowed",
-			"allowed",
-		]);
+		expect(await outcomeFor("", context)).toBe("allowed");
 	});
 });

@@ -4,7 +4,6 @@ import type { Bot } from "@orcai/schema";
 import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
-import { requireReadable } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { readRevision } from "@/lib/authz/zed-token";
@@ -25,6 +24,7 @@ import {
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
 	requirePermission,
+	requireReadableEntity,
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
@@ -47,16 +47,12 @@ const listBots = authed.bot.list.use(requireOrganization()).effect(function* ({
 const findBot = authed.bot.find
 	.use(requireOrganization())
 	.use(
-		requireEntityPermission("bot", "read", {
+		requireReadableEntity("bot", {
 			entityId: "id",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		yield* requireReadable("bot", input.id, {
-			userId: context.auth.user.id,
-			zedToken: readRevision(context, input),
-		});
 
 		const [bot] = yield* db
 			.select({
@@ -246,7 +242,7 @@ const publishBot = authed.bot.publish
 
 const setFavourite = authed.bot.setFavourite
 	.use(
-		requireEntityPermission("bot", "read", {
+		requireReadableEntity("bot", {
 			entityId: "id",
 		}),
 	)
