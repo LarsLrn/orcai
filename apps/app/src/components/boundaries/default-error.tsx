@@ -44,10 +44,8 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 		select: (state) => state.id === rootRouteId,
 	});
 
-	// TODO: Log error to an error tracking service
 	console.error(error);
 
-	// Extract validation messages if available
 	const validationMessages = getValidationErrorMessages(error);
 	const hasValidationErrors = validationMessages.length > 0;
 
@@ -56,12 +54,10 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 			<div className="w-full max-w-lg space-y-6 text-center">
 				<Card>
 					<CardContent className="space-y-6 p-8">
-						{/* Error Icon */}
 						<div className="bg-destructive/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
 							<AlertTriangle className="text-destructive h-8 w-8" />
 						</div>
 
-						{/* Error Title */}
 						<div className="space-y-2">
 							<h1 className="text-foreground text-2xl font-semibold">
 								{m.boundaries_default_error_title()}
@@ -84,11 +80,9 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							)}
 						</div>
 
-						{/* Error Details */}
 						<div className="text-muted-foreground text-sm">
 							<p className="mb-4">{m.boundaries_default_error_description()}</p>
 
-							{/* Error Component (collapsible details) */}
 							<details className="bg-muted/50 rounded-md p-3 text-left text-xs">
 								<summary className="text-muted-foreground hover:text-foreground cursor-pointer font-medium">
 									{m.boundaries_default_error_details_summary()}
@@ -101,7 +95,6 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 					</CardContent>
 				</Card>
 
-				{/* Action Buttons */}
 				<div className="flex flex-col justify-center gap-3 sm:flex-row">
 					<Button
 						onClick={() => {

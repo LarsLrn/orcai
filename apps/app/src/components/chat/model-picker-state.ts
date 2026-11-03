@@ -75,9 +75,4 @@ const starterModel = ({
 	return picked ?? defaultModel ?? undefined;
 };
 
-export {
-	type ModelChoice,
-	type ModelPickerState,
-	modelPickerState,
-	starterModel,
-};
+export { type ModelPickerState, modelPickerState, starterModel };

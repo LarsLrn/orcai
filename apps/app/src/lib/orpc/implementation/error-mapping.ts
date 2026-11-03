@@ -107,11 +107,6 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 				},
 				cause: error,
 			});
-		case ErrorTags.VALIDATION:
-			return new ORPCError("BAD_REQUEST", {
-				data: {},
-				cause: error,
-			});
 		case ErrorTags.CONFLICT:
 			return new ORPCError("CONFLICT", {
 				data: {

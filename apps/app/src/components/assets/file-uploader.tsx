@@ -8,110 +8,35 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useControllableState } from "@/hooks/use-controllable-state";
 import { formatFileSize } from "@/lib/presentation/format-file-size";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
-	/**
-	 * Value of the uploader.
-	 * @type File[]
-	 * @default undefined
-	 * @example value={files}
-	 */
 	value: File[];
-
-	/**
-	 * Function to be called when the value changes.
-	 * @type (files: File[]) => void
-	 * @default undefined
-	 * @example onValueChange={(files) => setFiles(files)}
-	 */
 	onValueChange: (files: File[]) => void;
-
-	/**
-	 * Function to be called when files are uploaded.
-	 * @type (files: File[]) => Promise<void>
-	 * @default undefined
-	 * @example onUpload={(files) => uploadFiles(files)}
-	 */
-	onUpload?: (files: File[]) => Promise<void>;
-
-	/**
-	 * Progress of the uploaded files.
-	 * @type Record<string, number> | undefined
-	 * @default undefined
-	 * @example progresses={{ "file1.png": 50 }}
-	 */
+	/** Upload progress by file name. */
 	progresses?: Record<string, number>;
-
-	/**
-	 * Accepted file types for the uploader.
-	 * @type { [key: string]: string[]}
-	 * @default
-	 * ```ts
-	 * { "image/*": [] }
-	 * ```
-	 * @example accept={["image/png", "image/jpeg"]}
-	 */
-	accept?: DropzoneProps["accept"];
-
-	/**
-	 * Maximum file size for the uploader.
-	 * @type number | undefined
-	 * @default 1024 * 1024 * 2 // 2MB
-	 * @example maxSize={1024 * 1024 * 2} // 2MB
-	 */
-	maxSize?: DropzoneProps["maxSize"];
-
-	/**
-	 * Maximum number of files for the uploader.
-	 * @type number | undefined
-	 * @default 1
-	 * @example maxFileCount={4}
-	 */
-	maxFileCount?: DropzoneProps["maxFiles"];
-
-	/**
-	 * Whether the uploader should accept multiple files.
-	 * @type boolean
-	 * @default false
-	 * @example multiple
-	 */
+	accept: DropzoneProps["accept"];
+	maxSize: number;
+	maxFileCount: number;
 	multiple?: boolean;
-
-	/**
-	 * Whether the uploader is disabled.
-	 * @type boolean
-	 * @default false
-	 * @example disabled
-	 */
 	disabled?: boolean;
 }
 
 const FileUploader = (props: FileUploaderProps) => {
 	const {
-		value: valueProp,
+		value: files,
 		onValueChange,
-		onUpload,
 		progresses,
-		accept = {
-			"image/*": [],
-		},
-		maxSize = 1024 * 1024 * 2,
-		maxFileCount = 1,
+		accept,
+		maxSize,
+		maxFileCount,
 		multiple = false,
 		disabled = false,
 		className,
 		...dropzoneProps
 	} = props;
-
-	const [files, setFiles] = useControllableState({
-		prop: valueProp,
-		defaultProp: [],
-		onChange: onValueChange,
-	});
 
 	const onDrop = useCallback(
 		(acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -120,7 +45,7 @@ const FileUploader = (props: FileUploaderProps) => {
 				return;
 			}
 
-			if ((files?.length ?? 0) + acceptedFiles.length > maxFileCount) {
+			if (files.length + acceptedFiles.length > maxFileCount) {
 				toast.error(
 					m.assets_file_uploader_max_files_toast_error({
 						count: maxFileCount,
@@ -135,14 +60,10 @@ const FileUploader = (props: FileUploaderProps) => {
 				}),
 			);
 
-			const updatedFiles = files
-				? [
-						...files,
-						...newFiles,
-					]
-				: newFiles;
-
-			setFiles(updatedFiles);
+			onValueChange([
+				...files,
+				...newFiles,
+			]);
 
 			if (rejectedFiles.length > 0) {
 				rejectedFiles.forEach(({ file }) => {
@@ -153,45 +74,17 @@ const FileUploader = (props: FileUploaderProps) => {
 					);
 				});
 			}
-
-			if (
-				onUpload &&
-				updatedFiles.length > 0 &&
-				updatedFiles.length <= maxFileCount
-			) {
-				const count = updatedFiles.length;
-
-				toast.promise(onUpload(updatedFiles), {
-					loading: m.assets_upload_toast_loading({
-						count,
-					}),
-					success: () => {
-						setFiles([]);
-						return m.assets_upload_toast_success({
-							count,
-						});
-					},
-					error: m.assets_upload_toast_error({
-						count,
-					}),
-				});
-			}
 		},
-
 		[
 			files,
 			maxFileCount,
 			multiple,
-			onUpload,
-			setFiles,
+			onValueChange,
 		],
 	);
 
 	function onRemove(index: number) {
-		if (!files) return;
-		const newFiles = files.filter((_, i) => i !== index);
-		setFiles(newFiles);
-		onValueChange?.(newFiles);
+		onValueChange(files.filter((_, i) => i !== index));
 	}
 
 	// Preview URLs live until unmount, so the cleanup reads the latest files.
@@ -203,7 +96,7 @@ const FileUploader = (props: FileUploaderProps) => {
 	]);
 	useEffect(
 		() => () => {
-			for (const file of filesRef.current ?? []) {
+			for (const file of filesRef.current) {
 				if (isFileWithPreview(file)) {
 					URL.revokeObjectURL(file.preview);
 				}
@@ -212,7 +105,7 @@ const FileUploader = (props: FileUploaderProps) => {
 		[],
 	);
 
-	const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
+	const isDisabled = disabled || files.length >= maxFileCount;
 
 	return (
 		<div className="relative flex flex-col gap-6 overflow-hidden">
@@ -281,10 +174,10 @@ const FileUploader = (props: FileUploaderProps) => {
 					</div>
 				)}
 			</Dropzone>
-			{files?.length ? (
+			{files.length ? (
 				<ScrollArea className="h-fit w-full px-3">
 					<div className="flex max-h-48 flex-col gap-4">
-						{files?.map((file, index) => (
+						{files.map((file, index) => (
 							<FileCard
 								key={`${file.name}-${file.lastModified}`}
 								file={file}
@@ -301,7 +194,6 @@ const FileUploader = (props: FileUploaderProps) => {
 
 export { FileUploader };
 
-// TODO: Split these components into separate files
 interface FileCardProps {
 	file: File;
 	onRemove: () => void;

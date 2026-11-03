@@ -88,7 +88,7 @@ const YoutubeToolbar = ({
 							<Label htmlFor={inputId}>
 								{m.editor_toolbar_youtube_popover_label()}
 							</Label>
-							<p className="text-gray-11 text-sm">
+							<p className="text-sm">
 								{m.editor_toolbar_youtube_popover_description()}
 							</p>
 							<div className="mt-3 flex flex-col items-end justify-end gap-3">

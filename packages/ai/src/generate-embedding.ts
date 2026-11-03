@@ -74,7 +74,7 @@ export type EmbeddingTestFailure =
 	| "invalid-response";
 
 /** Why a test embedding failed, as far as the endpoint's answer says. */
-export class EmbeddingTestError extends Data.TaggedError("EmbeddingTestError")<{
+class EmbeddingTestError extends Data.TaggedError("EmbeddingTestError")<{
 	readonly failure: EmbeddingTestFailure;
 	readonly cause: unknown;
 }> {}

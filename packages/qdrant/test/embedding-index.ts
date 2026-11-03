@@ -21,7 +21,7 @@ import {
  * without touching the instance's or another test's. Its reconciler admits
  * only links of `blockIds`. Both go when the scope closes.
  */
-export const isolatedEmbeddingIndex = (blockIds: readonly BlockId[] = []) =>
+const isolatedEmbeddingIndex = (blockIds: readonly BlockId[] = []) =>
 	Effect.acquireRelease(
 		Effect.gen(function* () {
 			const db = yield* DB;

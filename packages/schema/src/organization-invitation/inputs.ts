@@ -27,9 +27,6 @@ export const listOrganizationInvitationsInputSchema =
 		...createSortingInputSchema(organizationInvitationSortKeySchema).shape,
 	});
 
-export const listMyOrganizationInvitationsInputSchema =
-	listOrganizationInvitationsInputSchema;
-
 export const createOrganizationInvitationsInputSchema = z.object({
 	role: organizationInvitationSchema.shape.role,
 	expiresAt: z.date(),

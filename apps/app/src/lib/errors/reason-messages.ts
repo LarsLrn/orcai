@@ -5,7 +5,6 @@ import type {
 	GrantRejection,
 	GrantRejectionReason,
 } from "@orcai/schema";
-import { featureLabel } from "@/components/features/feature-labels";
 import { formatList } from "@/lib/presentation/format-list";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
@@ -110,11 +109,6 @@ const reasonMessages: ReasonMessages = {
 	EMBEDDING_RESPONSE_INVALID: m.error_embedding_response_invalid,
 	EMBEDDING_SETTING_CHANGED: m.error_embedding_setting_changed,
 	ENTITY_IDS_REQUIRED: m.error_entity_ids_required,
-	FEATURE_REQUIREMENT_MISSING: ({ feature, requirement }) =>
-		m.error_feature_requirement_missing({
-			feature: featureLabel(feature),
-			requirement: featureLabel(requirement),
-		}),
 	GRANT_PRINCIPALS_INVALID: ({ rejections }) =>
 		[
 			m.error_grant_principals_invalid(),
@@ -253,7 +247,6 @@ const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
 	BOT_REPOSITORY_EMPTY: true,
 	BOT_REPOSITORY_NOT_READY: true,
 	CHAT_MAX_TOKENS_EXCEEDS_MODEL: true,
-	FEATURE_REQUIREMENT_MISSING: true,
 	GRANT_PRINCIPALS_INVALID: true,
 	GROUP_MEMBERS_INVALID: true,
 	LISTING_BLOCKS_FORBIDDEN: true,

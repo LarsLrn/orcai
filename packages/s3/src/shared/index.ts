@@ -14,7 +14,7 @@ export {
 	imagePath,
 	parseImagePath,
 } from "./images";
-export type { ObjectMetadata, ServerMetadata } from "./types";
+export type { ServerMetadata } from "./types";
 export type { UploadRouteName } from "./upload-policy";
 export {
 	ASSET_UPLOAD_ACCEPT,

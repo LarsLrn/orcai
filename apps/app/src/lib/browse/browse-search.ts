@@ -75,7 +75,7 @@ export const multiFilter = <V extends string, I>({
 	schema: z.array(value).catch([]).default([]),
 });
 
-export type FilterDefinition =
+type FilterDefinition =
 	| {
 			type: "single";
 			label: () => string;

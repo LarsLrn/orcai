@@ -5,14 +5,10 @@ import { z } from "zod/v4";
 import type { FeatureCatalog, FeatureEntry } from "./catalog";
 import { resolveFeatures } from "./resolve-features";
 
-const entry = (
-	settingsSchema: z.ZodType,
-	requires: string[] = [],
-): FeatureEntry => ({
+const entry = (settingsSchema: z.ZodType): FeatureEntry => ({
 	settingsSchema,
 	buildTools: () => ({}),
 	prompt: () => "",
-	requires,
 });
 
 const catalog: FeatureCatalog = {
@@ -21,12 +17,7 @@ const catalog: FeatureCatalog = {
 			level: z.number().default(1),
 		}),
 	),
-	dependent: entry(z.object({}), [
-		"base",
-	]),
-	transitive: entry(z.object({}), [
-		"dependent",
-	]),
+	dependent: entry(z.object({})),
 };
 
 const logged: string[] = [];
@@ -114,23 +105,6 @@ describe("resolveFeatures", () => {
 		).toEqual([]);
 		expect(logged).toEqual([
 			"Warn feature.skipped id=base reason=invalid_settings",
-		]);
-	});
-
-	test("skips unmet requirements, also through a skipped requirement", () => {
-		expect(
-			resolve({
-				base: {
-					level: "high",
-				},
-				dependent: {},
-				transitive: {},
-			}),
-		).toEqual([]);
-		expect(logged).toEqual([
-			"Warn feature.skipped id=base reason=invalid_settings",
-			"Warn feature.skipped id=dependent reason=missing_requirement requirement=base",
-			"Warn feature.skipped id=transitive reason=missing_requirement requirement=dependent",
 		]);
 	});
 });

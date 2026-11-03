@@ -1,10 +1,11 @@
 import { FolderOpenIcon, PaperclipIcon, UploadIcon } from "lucide-react";
 import {
-	PromptInputActionMenu,
-	PromptInputActionMenuContent,
-	PromptInputActionMenuItem,
-	PromptInputActionMenuTrigger,
-} from "@/components/ai-elements/prompt-input";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { InputGroupButton } from "@/components/ui/input-group";
 import { m } from "@/paraglide/messages";
 
 export const ChatAttachmentActionMenu = ({
@@ -17,27 +18,31 @@ export const ChatAttachmentActionMenu = ({
 	onSelectFromAssets: () => void;
 }) => {
 	return (
-		<PromptInputActionMenu>
-			<PromptInputActionMenuTrigger
-				type="button"
-				variant="ghost"
-				size="icon-sm"
-				disabled={disabled}
-				aria-label={m.chat_attachment_menu_trigger()}
-				className="text-muted-foreground"
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				render={
+					<InputGroupButton
+						type="button"
+						variant="ghost"
+						size="icon-sm"
+						disabled={disabled}
+						aria-label={m.chat_attachment_menu_trigger()}
+						className="text-muted-foreground rounded-full"
+					/>
+				}
 			>
 				<PaperclipIcon />
-			</PromptInputActionMenuTrigger>
-			<PromptInputActionMenuContent className="w-48">
-				<PromptInputActionMenuItem onClick={onUploadFile}>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start" className="w-48">
+				<DropdownMenuItem onClick={onUploadFile}>
 					<UploadIcon className="size-4" />
 					<span>{m.chat_attachment_menu_upload_action()}</span>
-				</PromptInputActionMenuItem>
-				<PromptInputActionMenuItem onClick={onSelectFromAssets}>
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={onSelectFromAssets}>
 					<FolderOpenIcon className="size-4" />
 					<span>{m.chat_attachment_menu_assets_action()}</span>
-				</PromptInputActionMenuItem>
-			</PromptInputActionMenuContent>
-		</PromptInputActionMenu>
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };

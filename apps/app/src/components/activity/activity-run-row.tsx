@@ -60,7 +60,7 @@ const STAGE_ICONS = {
 	),
 } satisfies Record<MemberStage, React.ReactNode>;
 
-export const textLink =
+const textLink =
 	"rounded-sm outline-none underline-offset-2 hover:underline focus-visible:ring-3 focus-visible:ring-ring/75";
 
 const closeActivity = () => activityOpen.set(false);

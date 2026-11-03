@@ -23,10 +23,8 @@ const StatePagination = ({
 	onPageChange: (page: number) => void;
 	maxVisiblePages?: number;
 }) => {
-	// Calculate which pages to show
 	const getVisiblePages = () => {
 		if (maxPages <= maxVisiblePages) {
-			// Show all pages if total pages is less than or equal to max visible
 			return Array.from(
 				{
 					length: maxPages,
@@ -39,7 +37,6 @@ const StatePagination = ({
 		let start = Math.max(0, page - half);
 		const end = Math.min(maxPages - 1, start + maxVisiblePages - 1);
 
-		// Adjust start if we're near the end
 		if (end - start + 1 < maxVisiblePages) {
 			start = Math.max(0, end - maxVisiblePages + 1);
 		}

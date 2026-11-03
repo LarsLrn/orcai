@@ -91,5 +91,4 @@ const DataTableBulkActions = <TData extends RowData>({
 	);
 };
 
-export type { DataTableBulkAction };
 export { DataTableBulkActions };

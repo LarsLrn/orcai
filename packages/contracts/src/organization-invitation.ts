@@ -5,7 +5,6 @@ import {
 	deleteOrganizationInvitationsResponseSchema,
 	findOrganizationInvitationInputSchema,
 	findOrganizationInvitationResponseSchema,
-	listMyOrganizationInvitationsInputSchema,
 	listMyOrganizationInvitationsResponseSchema,
 	listOrganizationInvitationsInputSchema,
 	listOrganizationInvitationsResponseSchema,
@@ -44,7 +43,7 @@ export const organizationInvitationContracts = {
 				],
 			}),
 		)
-		.input(listMyOrganizationInvitationsInputSchema)
+		.input(listOrganizationInvitationsInputSchema)
 		.output(listMyOrganizationInvitationsResponseSchema),
 	create: base
 		.meta(

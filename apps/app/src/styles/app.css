@@ -13,11 +13,11 @@
  * Brand Accent Rule
  *
  * --accent-brand is the steel blue of the colour wordmark (#456789) and the
- * manifest theme colour, kept on the dark-mode hue 249.3 so it stays inside
- * the Same Hue Rule. It is a governance and state colour only: published
- * state, active/default pills, quota low-balance warnings, citation markers,
- * the active sidebar indicator, and the hero wave and gradient. It never
- * fills a call to action; Deep Water (--primary) remains the only solid CTA.
+ * manifest theme colour, kept on the dark-mode hue 249.3. It is a governance
+ * and state colour only: published state, active/default pills, quota
+ * low-balance warnings, citation markers and the active sidebar indicator.
+ * It never fills a call to action; Deep Water (--primary) remains the only
+ * solid CTA.
  */
 
 /*
@@ -42,8 +42,8 @@
  * or a failure.
  *
  * Neither family fills a call to action, and neither is used for emphasis on
- * its own; the Governance Accent Rule still owns published, active, default,
- * low balance and cited.
+ * its own; the Brand Accent Rule still owns published, active, default, low
+ * balance and cited.
  */
 :root {
 	--background: oklch(0.98 0.01 257.8);
@@ -61,7 +61,6 @@
 	--accent: oklch(0.92 0.01 269.8);
 	--accent-foreground: oklch(0.3 0.04 257.8);
 	--destructive: oklch(0.5 0.11 25.33);
-	--destructive-foreground: oklch(0.98 0.02 257.8);
 	--border: oklch(0.9 0.01 257.8);
 	--input: oklch(0.9 0.01 257.8);
 	--ring: oklch(0.5 0.03 257.8);
@@ -71,23 +70,14 @@
 	--accent-brand: oklch(0.5024 0.067 249.3);
 	--accent-brand-foreground: oklch(0.98 0.02 249.3);
 	--status-success: oklch(0.5 0.11 152);
-	--status-success-foreground: oklch(0.98 0.02 257.8);
 	--status-warning: oklch(0.5 0.104 78);
-	--status-warning-foreground: oklch(0.98 0.02 257.8);
 	--status-danger: oklch(0.5 0.11 25.33);
-	--status-danger-foreground: oklch(0.98 0.02 257.8);
 	--status-info: oklch(0.5 0.1 230);
-	--status-info-foreground: oklch(0.98 0.02 257.8);
 	--status-processing: oklch(0.5 0.11 288);
-	--status-processing-foreground: oklch(0.98 0.02 257.8);
 	--kind-bot: oklch(0.5 0.085 200);
-	--kind-bot-foreground: oklch(0.98 0.02 257.8);
 	--kind-behaviour: oklch(0.5 0.1 300);
-	--kind-behaviour-foreground: oklch(0.98 0.02 257.8);
 	--kind-repository: oklch(0.5 0.1 135);
-	--kind-repository-foreground: oklch(0.98 0.02 257.8);
 	--kind-asset: oklch(0.5 0.1 65);
-	--kind-asset-foreground: oklch(0.98 0.02 257.8);
 	--chart-1: oklch(0.66 0.09 262);
 	--chart-2: oklch(0.63 0.16 52);
 	--chart-3: oklch(0.62 0.13 161);
@@ -101,16 +91,6 @@
 	--sidebar-accent-foreground: oklch(0.3 0.04 257.8);
 	--sidebar-border: oklch(0.9 0.01 257.8);
 	--sidebar-ring: oklch(0.5 0.03 257.8);
-	--header: oklch(0.98 0.01 257.8);
-	--header-foreground: oklch(0.3 0.04 257.8);
-	--footer: oklch(0.98 0.005 257.8);
-	--footer-foreground: oklch(0.3 0.04 257.8);
-	--code: oklch(0.98 0.01 257.8);
-	--code-foreground: oklch(0.3 0.04 257.8);
-	--code-highlight: oklch(0.45 0.01 257.8);
-	--code-number: oklch(0.35 0.01 257.8);
-	--code-selection: oklch(0.96 0.01 257.8);
-	--code-border: oklch(0.9 0.01 257.8);
 	--radius: 0.625rem;
 }
 
@@ -130,7 +110,6 @@
 	--accent: oklch(0.28 0.01 237.3);
 	--accent-foreground: oklch(0.85 0.01 249.3);
 	--destructive: oklch(0.72 0.11 25.33);
-	--destructive-foreground: oklch(0.18 0.01 249.3);
 	--border: oklch(0.33 0.01 249.3);
 	--input: oklch(0.33 0.01 249.3);
 	--ring: oklch(0.68 0.03 249.3);
@@ -140,23 +119,14 @@
 	--accent-brand: oklch(0.72 0.075 249.3);
 	--accent-brand-foreground: oklch(0.18 0.01 249.3);
 	--status-success: oklch(0.72 0.11 152);
-	--status-success-foreground: oklch(0.18 0.01 249.3);
 	--status-warning: oklch(0.72 0.11 78);
-	--status-warning-foreground: oklch(0.18 0.01 249.3);
 	--status-danger: oklch(0.72 0.11 25.33);
-	--status-danger-foreground: oklch(0.18 0.01 249.3);
 	--status-info: oklch(0.72 0.11 230);
-	--status-info-foreground: oklch(0.18 0.01 249.3);
 	--status-processing: oklch(0.72 0.11 288);
-	--status-processing-foreground: oklch(0.18 0.01 249.3);
 	--kind-bot: oklch(0.72 0.1 200);
-	--kind-bot-foreground: oklch(0.18 0.01 249.3);
 	--kind-behaviour: oklch(0.72 0.1 300);
-	--kind-behaviour-foreground: oklch(0.18 0.01 249.3);
 	--kind-repository: oklch(0.72 0.1 135);
-	--kind-repository-foreground: oklch(0.18 0.01 249.3);
 	--kind-asset: oklch(0.72 0.1 65);
-	--kind-asset-foreground: oklch(0.18 0.01 249.3);
 	--chart-1: oklch(0.6 0.15 255);
 	--chart-2: oklch(0.75 0.15 63);
 	--chart-3: oklch(0.84 0.1 140);
@@ -170,16 +140,6 @@
 	--sidebar-accent-foreground: oklch(0.85 0.01 249.3);
 	--sidebar-border: oklch(0.33 0.01 249.3);
 	--sidebar-ring: oklch(0.68 0.03 249.3);
-	--header: oklch(0.18 0.01 249.3);
-	--header-foreground: oklch(0.85 0.01 249.3);
-	--footer: oklch(0.18 0.01 249.3);
-	--footer-foreground: oklch(0.85 0.01 249.3);
-	--code: oklch(0.23 0.01 249.3);
-	--code-foreground: oklch(0.85 0.01 249.3);
-	--code-highlight: oklch(0.3024 0.01 249.3);
-	--code-number: oklch(0.4 0.01 249.3);
-	--code-selection: oklch(0.18 0.01 249.3);
-	--code-border: oklch(0.33 0.01 249.3);
 	--radius: 0.625rem;
 }
 
@@ -216,23 +176,14 @@
 	--color-accent-brand: var(--accent-brand);
 	--color-accent-brand-foreground: var(--accent-brand-foreground);
 	--color-status-success: var(--status-success);
-	--color-status-success-foreground: var(--status-success-foreground);
 	--color-status-warning: var(--status-warning);
-	--color-status-warning-foreground: var(--status-warning-foreground);
 	--color-status-danger: var(--status-danger);
-	--color-status-danger-foreground: var(--status-danger-foreground);
 	--color-status-info: var(--status-info);
-	--color-status-info-foreground: var(--status-info-foreground);
 	--color-status-processing: var(--status-processing);
-	--color-status-processing-foreground: var(--status-processing-foreground);
 	--color-kind-bot: var(--kind-bot);
-	--color-kind-bot-foreground: var(--kind-bot-foreground);
 	--color-kind-behaviour: var(--kind-behaviour);
-	--color-kind-behaviour-foreground: var(--kind-behaviour-foreground);
 	--color-kind-repository: var(--kind-repository);
-	--color-kind-repository-foreground: var(--kind-repository-foreground);
 	--color-kind-asset: var(--kind-asset);
-	--color-kind-asset-foreground: var(--kind-asset-foreground);
 	--color-popover-foreground: var(--popover-foreground);
 	--color-popover: var(--popover);
 	--color-card-foreground: var(--card-foreground);
@@ -246,9 +197,6 @@
 	--radius-2xl: calc(var(--radius) + 8px);
 	--radius-3xl: calc(var(--radius) + 12px);
 	--radius-4xl: calc(var(--radius) + 16px);
-
-	/* --font-sans: "Geist Variable", sans-serif;
-	--font-mono: "Geist Mono Variable", monospace; */
 
 	/* Aceternity Aurora Background */
 	--animate-aurora: aurora 60s linear infinite;
@@ -277,10 +225,7 @@
 	html {
 		@apply font-sans;
 	}
-}
-
-/* Add back pointer cursor to buttons (tailwind-v4) */
-@layer base {
+	/* Tailwind v4 dropped the pointer cursor on buttons. */
 	button:not([disabled]),
 	[role="button"]:not([disabled]) {
 		cursor: pointer;

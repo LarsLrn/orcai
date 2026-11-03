@@ -61,8 +61,4 @@ const useAssistantModel = () => {
 	};
 };
 
-export {
-	type AssistantModelAvailability,
-	assistantModelAvailability,
-	useAssistantModel,
-};
+export { assistantModelAvailability, useAssistantModel };

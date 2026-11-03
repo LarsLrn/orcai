@@ -2,12 +2,9 @@ import type { ChatId } from "@orcai/core";
 import { CopyIcon, GitBranchIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useCopyToClipboard } from "usehooks-ts";
-import {
-	MessageAction as Action,
-	MessageActions as Actions,
-	type MessageActionsProps,
-} from "@/components/ai-elements/message";
+import { MessageAction as Action } from "@/components/ai-elements/message";
 import { MessageRate } from "@/components/chat/message/message-rate";
+import { MessageFooter } from "@/components/ui/message";
 import { usePublicConfig } from "@/hooks/use-public-config";
 import { messageToMarkdown } from "@/lib/ai/turn-view/message-markdown";
 import type { MessageView } from "@/lib/ai/turn-view/turn-view";
@@ -29,7 +26,8 @@ export const MessageActions = ({
 	/** Left out while the message can't be branched from yet. */
 	onBranch?: () => void;
 	branching?: boolean;
-} & MessageActionsProps) => {
+	className?: string;
+}) => {
 	const [, copy] = useCopyToClipboard();
 	const { docsUrl } = usePublicConfig();
 
@@ -64,7 +62,7 @@ export const MessageActions = ({
 
 	if (variant === "sent") {
 		return (
-			<Actions className={cn("mt-2", className)}>
+			<MessageFooter className={cn("mt-2 gap-1", className)}>
 				<Action
 					label={m.chat_message_copy_label()}
 					tooltip={m.chat_message_copy_tooltip()}
@@ -73,12 +71,12 @@ export const MessageActions = ({
 					<CopyIcon className="size-3" />
 				</Action>
 				{branchAction}
-			</Actions>
+			</MessageFooter>
 		);
 	}
 
 	return (
-		<Actions className={cn("mt-2", className)}>
+		<MessageFooter className={cn("mt-2 gap-1", className)}>
 			<Action
 				label={m.chat_message_copy_label()}
 				tooltip={m.chat_message_copy_response_tooltip()}
@@ -88,6 +86,6 @@ export const MessageActions = ({
 			</Action>
 			{branchAction}
 			<MessageRate chatId={chatId} messageId={view.message.id} />
-		</Actions>
+		</MessageFooter>
 	);
 };

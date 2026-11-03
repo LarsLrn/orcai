@@ -74,9 +74,7 @@ const LinkToolbar = ({
 									{...props}
 								>
 									<p className="mr-2 text-base">↗</p>
-									<p
-										className={"decoration-gray-7 underline underline-offset-4"}
-									>
+									<p className="underline underline-offset-4">
 										{m.editor_toolbar_link_button()}
 									</p>
 								</Button>
@@ -101,7 +99,7 @@ const LinkToolbar = ({
 						</PopoverPrimitive.Close>
 						<div>
 							<Label>{m.editor_toolbar_link_popover_label()}</Label>
-							<p className="text-gray-11 text-sm">
+							<p className="text-sm">
 								{m.editor_toolbar_link_popover_description()}
 							</p>
 							<div className="mt-3 flex flex-col items-end justify-end gap-3">
@@ -122,7 +120,7 @@ const LinkToolbar = ({
 									{href && (
 										<Button
 											size="sm"
-											className="text-gray-11 h-8"
+											className="h-8"
 											variant="ghost"
 											onClick={() => {
 												editor?.chain().focus().unsetLink().run();

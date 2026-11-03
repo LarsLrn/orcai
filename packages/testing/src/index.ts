@@ -1,4 +1,4 @@
 export { createOrganization, createUser } from "./factories";
 export { IntegrationLive, integrationRuntime } from "./layer";
-export { type AdvisoryLock, awaitLockWaiters, holdLock } from "./locks";
+export { awaitLockWaiters, holdLock } from "./locks";
 export { reasonOf, rejection, rolledBack } from "./outcomes";

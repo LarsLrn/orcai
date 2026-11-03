@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ExtractionResult } from "@kreuzberg/node";
-import { createStoredExtractionArtifact } from "../../src/artifact";
+import { createStoredExtractionArtifact } from "../../src/artifact/storage";
 
 const createExtractionResult = (): ExtractionResult => ({
 	content: "",

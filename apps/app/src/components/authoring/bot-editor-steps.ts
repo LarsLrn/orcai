@@ -47,7 +47,7 @@ export const WIZARD_STEPS = [
 	},
 ] as const;
 
-export const stepIndexOf = (key: (typeof WIZARD_STEPS)[number]["key"]) =>
+const stepIndexOf = (key: (typeof WIZARD_STEPS)[number]["key"]) =>
 	WIZARD_STEPS.findIndex((step) => step.key === key);
 
 /** Where the bot's setup is edited, linked from notices and the detail page. */

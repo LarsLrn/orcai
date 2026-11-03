@@ -2,7 +2,6 @@ import type { BotId, ChatId } from "@orcai/core";
 import {
 	Conversation,
 	ConversationContent,
-	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
 import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
@@ -12,7 +11,10 @@ import { NewChatInput } from "@/components/chat/new-chat-input";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
 import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
-import { MessageScrollerItem } from "@/components/ui/message-scroller";
+import {
+	MessageScrollerButton,
+	MessageScrollerItem,
+} from "@/components/ui/message-scroller";
 
 const NewChat = ({
 	botId,
@@ -51,7 +53,7 @@ const NewChat = ({
 						<ChatPlaceholder botId={selectedBotId} />
 					</MessageScrollerItem>
 				</ConversationContent>
-				<ConversationScrollButton />
+				<MessageScrollerButton />
 			</Conversation>
 
 			<div className="mx-auto flex w-full flex-col gap-2 px-4 pt-2 pb-6 md:max-w-3xl md:pb-2">

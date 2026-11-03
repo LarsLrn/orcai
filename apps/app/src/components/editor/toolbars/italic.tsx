@@ -49,7 +49,7 @@ const ItalicToolbar = ({
 			/>
 			<TooltipContent>
 				<span>{m.editor_toolbar_italic_tooltip()}</span>
-				<span className="text-gray-11 ml-1 text-xs">(cmd + i)</span>
+				<span className="ml-1 text-xs">(cmd + i)</span>
 			</TooltipContent>
 		</Tooltip>
 	);

@@ -320,4 +320,4 @@ const BotModelForm = ({
 	);
 };
 
-export { type AuthorsPick, BotModelStep, type BotModelStepHandle };
+export { BotModelStep, type BotModelStepHandle };

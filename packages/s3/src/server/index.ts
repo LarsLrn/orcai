@@ -2,16 +2,12 @@ export {
 	sendAbortMultipartUploadCommand,
 	sendCompleteMultipartUploadCommand,
 	sendCopyObjectCommand,
-	sendCreateBucketCommand,
 	sendCreateMultipartUploadCommand,
 	sendDeleteObjectCommand,
 	sendGetObjectCommand,
-	sendHeadBucketCommand,
 	sendHeadObjectCommand,
-	sendListObjectsCommand,
 	sendPutObjectCommand,
 } from "./commands";
-export type { S3Config } from "./config";
 export { S3ConfigLive, S3ConfigService } from "./config";
 export { isS3NoSuchKey, isS3NotFound, S3Error } from "./errors";
 export {
@@ -21,7 +17,7 @@ export {
 	listObjects,
 } from "./object-helpers";
 export { probeS3 } from "./probe";
-export { S3Live, S3Service, S3ServiceLive } from "./service";
+export { S3Live, S3Service } from "./service";
 export { uploadStream } from "./stream-upload";
 export {
 	ensureUploadLifecycle,

@@ -44,7 +44,7 @@ export const runTitle = (run: ActivityRun): string => {
 };
 
 /** How far a running entry is: "12 of 40 files ready". */
-export const runProgress = (run: ActivityRun): string => {
+const runProgress = (run: ActivityRun): string => {
 	const { done, total } = run.progress;
 	if (run.kind === "export") return m.activity_run_export_running();
 	if (run.kind === "upload") {
@@ -86,7 +86,7 @@ const stateLabels = {
 } satisfies Record<Exclude<ActivityRun["state"], "running">, () => string>;
 
 /** What a finished entry achieved: "40 files ready", "Updated 38 assets". */
-export const runOutcome = (run: ActivityRun): string | undefined => {
+const runOutcome = (run: ActivityRun): string | undefined => {
 	const { total, failed } = run.progress;
 	if (run.state === "expired") return m.activity_run_export_expired();
 	if (run.kind === "export") {

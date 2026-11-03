@@ -113,7 +113,7 @@ export type CatalogueSearch<V extends CatalogueView> = z.output<
 >;
 
 /** The view an entry's page was opened from, so its return links restore it. */
-export const catalogueOriginSchema = z.object({
+const catalogueOriginSchema = z.object({
 	view: z.enum([
 		"overview",
 		"bot",

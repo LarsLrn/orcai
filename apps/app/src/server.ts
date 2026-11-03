@@ -12,6 +12,7 @@ import { traceRequest } from "./lib/observability/request-span";
 import {
 	contentSecurityPolicy,
 	createNonce,
+	type PolicyOrigins,
 	withContentSecurityPolicy,
 } from "./lib/server/content-security-policy";
 import { openRequests } from "./lib/server/open-requests";
@@ -57,12 +58,16 @@ const routeMatcher = createRouter({
 	},
 });
 
+// The origins come from configuration, so the first request reads them for all.
+let origins: Promise<PolicyOrigins> | undefined;
+
 export default {
 	fetch(req: Request): Promise<Response> {
 		return requests.track(async () => {
 			// The tracer provider is registered while the runtime builds.
 			await runtime.context();
-			const origins = await runtime.runPromise(policyOrigins);
+			origins ??= runtime.runPromise(policyOrigins);
+			const resolvedOrigins = await origins;
 			return traceRequest(req, routeMatcher, async () => {
 				const nonce = createNonce();
 				const response = await paraglideMiddleware(req, () =>
@@ -76,7 +81,7 @@ export default {
 					response,
 					contentSecurityPolicy({
 						nonce,
-						origins,
+						origins: resolvedOrigins,
 						development: import.meta.env.DEV,
 					}),
 				);

@@ -90,7 +90,7 @@ const inference = serve({
 afterAll(() => inference.stop(true));
 
 // A 1x1 transparent PNG.
-export const PNG = Buffer.from(
+const PNG = Buffer.from(
 	"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
 	"base64",
 );

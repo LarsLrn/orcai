@@ -24,7 +24,6 @@ import {
 import { isImageFileType, type ProcessAssetPayload } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { describeImages, imageMediaType } from "@/asset/image-descriptions";
-import { validateImageResolution } from "@/asset/utils/validate-image-resolution";
 
 const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
 	`${assetRef.prefix}/${assetRef.id}.${assetRef.type}`;
@@ -61,12 +60,7 @@ const createDocumentArtifact = (params: {
 					const hasDimensions = width !== undefined && height !== undefined;
 
 					if (hasDimensions) {
-						const validationResult = validateImageResolution({
-							width,
-							height,
-						});
-
-						if (!validationResult.isValid) {
+						if (width <= 200 || height <= 200) {
 							return yield* Effect.logWarning(
 								{
 									jobId: params.jobId,
