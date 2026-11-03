@@ -1,7 +1,7 @@
 import type { Job } from "@orcai/pg-boss";
 import {
-	ensureOpenQuotaPeriod,
 	listExpiredOpenQuotaPeriods,
+	rollOverQuotaPeriods,
 } from "@orcai/quota";
 import * as Effect from "effect/Effect";
 
@@ -10,27 +10,20 @@ export const rolloverQuotaPeriodBatchEffect = (jobs: Job<unknown>[]) =>
 		jobs,
 		() =>
 			Effect.gen(function* () {
-				const expiredPeriods = yield* listExpiredOpenQuotaPeriods({
+				const poolIds = yield* listExpiredOpenQuotaPeriods({
 					limit: 400,
 				});
-
-				yield* Effect.forEach(
-					expiredPeriods,
-					(expired) =>
-						ensureOpenQuotaPeriod({
-							quotaPoolId: expired.poolId,
-							periodType: expired.periodType,
-							budgetAmount: expired.budgetAmount,
-						}),
-					{
-						concurrency: 10,
-						discard: true,
-					},
-				);
+				const failed = yield* rollOverQuotaPeriods(poolIds);
 
 				yield* Effect.logInfo(
-					`quota.rollover.completed expiredPeriods=${expiredPeriods.length}`,
+					`quota.rollover.completed expiredPeriods=${poolIds.length} failed=${failed}`,
 				);
+				// The queue runs it again soon; pools already rolled over stay as they are.
+				if (failed > 0) {
+					return yield* Effect.fail(
+						new Error(`${failed} quota pools could not roll over`),
+					);
+				}
 			}),
 		{
 			discard: true,

@@ -50,7 +50,7 @@ export interface ReservedQuotaContext {
 interface ReserveQuotaResult {
 	allowed: boolean;
 	reservation?: ReservedQuotaContext;
-	denialReason?: "no_pool" | "exhausted" | "error";
+	denialReason?: "no_pool" | "exhausted";
 }
 
 export const reserveForAppRequest: (
@@ -83,7 +83,6 @@ export const reserveForAppRequest: (
 		const reserved = yield* reserveQuotaLedger({
 			organizationId: input.organizationId,
 			quotaPoolId: winning.pool.id,
-			quotaPeriodId: winning.period.id,
 			providerId: winning.pool.providerId,
 			modelId: input.modelId,
 			botId: input.botId,
@@ -103,7 +102,7 @@ export const reserveForAppRequest: (
 		if (reserved.status !== "reserved") {
 			return {
 				allowed: false,
-				denialReason: reserved.status === "exhausted" ? "exhausted" : "error",
+				denialReason: reserved.status === "exhausted" ? "exhausted" : "no_pool",
 			} satisfies ReserveQuotaResult;
 		}
 
@@ -113,13 +112,13 @@ export const reserveForAppRequest: (
 				reservationKey,
 				appRequestId: input.appRequestId,
 				poolId: winning.pool.id,
-				periodId: winning.period.id,
+				periodId: reserved.period.id,
 				providerId: winning.pool.providerId,
 				modelId: input.modelId ?? null,
 				meteringMode: winning.meteringMode,
 				reservedAmount: reserved.reservedAmount,
-				budgetAmount: winning.ledger.budgetAmount,
-				periodEndsAt: winning.period.endsAt,
+				budgetAmount: reserved.budgetAmount,
+				periodEndsAt: reserved.period.endsAt,
 			},
 		} satisfies ReserveQuotaResult;
 	});

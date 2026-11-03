@@ -20,7 +20,7 @@ type Pool =
 			remaining: number;
 	  }
 	| {
-			denial: "no_pool" | "exhausted" | "error";
+			denial: "no_pool" | "exhausted";
 	  };
 
 const defaultPool = (): Pool => ({

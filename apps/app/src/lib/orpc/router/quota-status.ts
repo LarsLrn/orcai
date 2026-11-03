@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { resolveQuotaPool } from "@orcai/quota";
+import { openQuotaPeriod, resolveQuotaPool } from "@orcai/quota";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -44,14 +44,26 @@ const quotaStatus = authed.quota.status
 			modelId: input.modelId,
 		});
 
+		if (!winningPool) {
+			return {
+				data: {
+					available: false,
+					pool: null,
+				},
+			};
+		}
+		// Read after a reset, the status opens the new period.
+		const { period, ledger } = yield* openQuotaPeriod({
+			quotaPoolId: winningPool.pool.id,
+		});
 		return {
 			data: {
-				available: winningPool !== null,
-				pool: winningPool && {
+				available: true,
+				pool: {
 					id: winningPool.pool.id,
 					name: winningPool.pool.name,
-					usedShare: usedShareOf(winningPool.ledger),
-					periodEndsAt: winningPool.period.endsAt,
+					usedShare: usedShareOf(ledger),
+					periodEndsAt: period.endsAt,
 				},
 			},
 		};

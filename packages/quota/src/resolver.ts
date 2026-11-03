@@ -2,25 +2,19 @@ import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, asc, desc, eq, isNotNull, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { ensureOpenQuotaPeriod } from "./period";
-
-interface ResolvedQuotaPoolCandidate {
-	pool: typeof dbSchema.quotaPool.$inferSelect;
-	period: typeof dbSchema.quotaPeriod.$inferSelect;
-	ledger: typeof dbSchema.quotaLedger.$inferSelect;
-	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
-}
-
-interface QuotaResolutionResult {
-	winningPool: ResolvedQuotaPoolCandidate | null;
-	orderedCandidatePoolIds: string[];
-}
 
 interface CandidateRow {
 	pool: typeof dbSchema.quotaPool.$inferSelect;
 	meteringMode: (typeof dbSchema.provider.$inferSelect)["meteringMode"];
 }
 
+interface QuotaResolutionResult {
+	/** The first candidate; the others are never drawn on. */
+	winningPool: CandidateRow | null;
+	orderedCandidatePoolIds: string[];
+}
+
+/** The pools that cover the person for the provider and model, in the order they are drawn on. */
 export const resolveQuotaPool: (params: {
 	organizationId: OrganizationId;
 	userId: UserId;
@@ -129,29 +123,8 @@ export const resolveQuotaPool: (params: {
 			return a.pool.id.localeCompare(b.pool.id);
 		});
 
-		const orderedCandidatePoolIds = orderedRows.map((row) => row.pool.id);
-
-		const firstCandidate = orderedRows[0];
-		if (!firstCandidate) {
-			return {
-				winningPool: null,
-				orderedCandidatePoolIds,
-			} satisfies QuotaResolutionResult;
-		}
-
-		const period = yield* ensureOpenQuotaPeriod({
-			quotaPoolId: firstCandidate.pool.id,
-			periodType: firstCandidate.pool.periodType,
-			budgetAmount: firstCandidate.pool.budgetAmount,
-		});
-
 		return {
-			winningPool: {
-				pool: firstCandidate.pool,
-				period: period.period,
-				ledger: period.ledger,
-				meteringMode: firstCandidate.meteringMode,
-			} satisfies ResolvedQuotaPoolCandidate,
-			orderedCandidatePoolIds,
+			winningPool: orderedRows[0] ?? null,
+			orderedCandidatePoolIds: orderedRows.map((row) => row.pool.id),
 		} satisfies QuotaResolutionResult;
 	});
