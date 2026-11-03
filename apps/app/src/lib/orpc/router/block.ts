@@ -27,28 +27,31 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
 import { homeOrganizations } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
-	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
-const listBlocks = authed.block.list.effect(function* ({ input, context }) {
-	const reader = {
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: readRevision(context, input),
-	};
-	return yield* listBlockTiles({
-		input,
-		reader,
-		access: yield* libraryAccess(reader),
+const listBlocks = authed.block.list
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		const reader = {
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			zedToken: readRevision(context, input),
+		};
+		return yield* listBlockTiles({
+			input,
+			reader,
+			access: yield* libraryAccess(reader),
+		});
 	});
-});
 
 const findBlock = authed.block.find
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("block", "read", {
 			entityId: "id",
@@ -134,7 +137,7 @@ const findBlock = authed.block.find
 	});
 
 const createBlock = authed.block.create
-	.use(requireOrganizationPermission("create_block"))
+	.use(requireOrganization("create_block"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 
@@ -364,19 +367,18 @@ const deleteBlocks = authed.block.delete
 		};
 	});
 
-const blockReadiness = authed.block.readiness.effect(function* ({
-	input,
-	context,
-}) {
-	return {
-		data: yield* loadRepositoryReadiness({
-			blockIds: input.blockIds,
-			userId: context.auth.user.id,
-			organizationId: context.auth.session.activeOrganizationId,
-			zedToken: readRevision(context, input),
-		}),
-	};
-});
+const blockReadiness = authed.block.readiness
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		return {
+			data: yield* loadRepositoryReadiness({
+				blockIds: input.blockIds,
+				userId: context.auth.user.id,
+				organizationId: context.auth.session.activeOrganizationId,
+				zedToken: readRevision(context, input),
+			}),
+		};
+	});
 
 const prepareAssetAgainProcedure = authed.block.prepareAssetAgain
 	.use(

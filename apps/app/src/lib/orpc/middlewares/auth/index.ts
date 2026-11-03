@@ -1,5 +1,4 @@
 export {
-	requireActiveOrganizationMiddleware,
 	requiredAuthMiddleware,
 	requireInstanceAdminMiddleware,
 	requirePreferencesMiddleware,

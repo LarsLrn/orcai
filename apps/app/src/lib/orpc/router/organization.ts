@@ -14,7 +14,6 @@ import {
 	type OrganizationSortKey,
 	type UpdateOrganizationInput,
 } from "@orcai/schema";
-import { lookupEntitiesByPermission } from "@orcai/spice-db";
 import {
 	and,
 	count,
@@ -36,18 +35,15 @@ import {
 import {
 	deleteOrganizationsWithAuthorization,
 	insertOrganization,
-	touchOrganizationRoles,
 } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
-import { readRevision } from "@/lib/authz/zed-token";
 import { listedCounts } from "@/lib/catalogue/catalogue-browse";
 import { listedHomeResources } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
-import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
-import { unique } from "@/lib/utils/array-utils";
+import { requireOrganizationById } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
@@ -57,44 +53,14 @@ const listOrganizations = authed.organization.list.effect(function* ({
 }) {
 	const db = yield* DB;
 
-	const memberships = yield* db
+	const visibleIds = (yield* db
 		.select({
 			organizationId: dbSchema.member.organizationId,
-			role: dbSchema.member.role,
 		})
 		.from(dbSchema.member)
-		.where(eq(dbSchema.member.userId, context.auth.user.id));
-
-	const allowedIds = yield* lookupEntitiesByPermission({
-		userId: context.auth.user.id,
-		permission: "read",
-		entityType: "organization",
-		zedToken: readRevision(context),
-	}).pipe(Effect.catch(() => Effect.succeed([])));
-
-	const allowedSet = new Set(allowedIds);
-	const visibleIds = unique([
-		...allowedIds,
-		...memberships.map((membership) => membership.organizationId),
-	]);
-
-	const missingMemberships = memberships.filter(
-		(membership) => !allowedSet.has(membership.organizationId),
+		.where(eq(dbSchema.member.userId, context.auth.user.id))).map(
+		(membership) => membership.organizationId,
 	);
-	if (missingMemberships.length > 0) {
-		yield* touchOrganizationRoles({
-			userId: context.auth.user.id,
-			organizationIds: missingMemberships.map(
-				(membership) => membership.organizationId,
-			),
-		}).pipe(
-			Effect.catch((error) =>
-				Effect.logWarning(
-					`organization.membership_repair_failed userId=${context.auth.user.id} cause=${String(error)}`,
-				),
-			),
-		);
-	}
 
 	if (visibleIds.length === 0) {
 		return {
@@ -215,11 +181,7 @@ const listAllOrganizations = authed.organization.listAll
 	});
 
 const findOrganization = authed.organization.find
-	.use(
-		requireEntityPermission("organization", "read", {
-			entityId: "id",
-		}),
-	)
+	.use(requireOrganizationById("read"))
 	.effect(function* ({ input }) {
 		const db = yield* DB;
 		const [found] = yield* db
@@ -479,11 +441,7 @@ const webSearchColumns = (
 			});
 
 const updateOrganization = authed.organization.update
-	.use(
-		requireEntityPermission("organization", "manage_organization", {
-			entityId: "id",
-		}),
-	)
+	.use(requireOrganizationById("manage_organization"))
 	.effect(function* ({ input }) {
 		const db = yield* DB;
 
@@ -532,11 +490,7 @@ const updateOrganization = authed.organization.update
 	});
 
 const setOrganizationLogo = authed.organization.setLogo
-	.use(
-		requireEntityPermission("organization", "manage_organization", {
-			entityId: "id",
-		}),
-	)
+	.use(requireOrganizationById("manage_organization"))
 	.effect(function* ({ input, context }) {
 		const logo = yield* setImage({
 			owner: {
@@ -555,11 +509,7 @@ const setOrganizationLogo = authed.organization.setLogo
 	});
 
 const removeOrganizationLogo = authed.organization.removeLogo
-	.use(
-		requireEntityPermission("organization", "manage_organization", {
-			entityId: "id",
-		}),
-	)
+	.use(requireOrganizationById("manage_organization"))
 	.effect(function* ({ input }) {
 		yield* removeImage({
 			kind: "organization",

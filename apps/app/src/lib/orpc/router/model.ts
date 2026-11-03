@@ -30,7 +30,7 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 import {
@@ -41,7 +41,7 @@ import {
 } from "./mappers/model";
 
 const listModels = authed.model.list
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganization("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -151,7 +151,7 @@ const listModels = authed.model.list
 	});
 
 const findModel = authed.model.find
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganization("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -231,7 +231,7 @@ const requireModelProvider = ({
 	});
 
 const createModel = authed.model.create
-	.use(requireOrganizationPermission("manage_models"))
+	.use(requireOrganization("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -252,7 +252,7 @@ const createModel = authed.model.create
 	});
 
 const updateModel = authed.model.update
-	.use(requireOrganizationPermission("manage_models"))
+	.use(requireOrganization("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -311,7 +311,7 @@ const updateModel = authed.model.update
 	});
 
 const deleteModel = authed.model.delete
-	.use(requireOrganizationPermission("manage_models"))
+	.use(requireOrganization("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -378,7 +378,7 @@ const LISTING_FAILURE_REASONS = {
 } as const satisfies Record<ModelListingFailure, ErrorReason>;
 
 const discoverModels = authed.model.discover
-	.use(requireOrganizationPermission("manage_models"))
+	.use(requireOrganization("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 

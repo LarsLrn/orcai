@@ -10,10 +10,10 @@ import {
 	listCatalogue,
 } from "@/lib/catalogue/catalogue-browse";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 
 const list = authed.catalogue.list
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		return yield* listCatalogue(
 			input,
@@ -28,7 +28,7 @@ const counts = authed.catalogue.counts.effect(function* ({ input }) {
 });
 
 const find = authed.catalogue.find
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		return {
 			data: yield* findCatalogueEntry(
@@ -38,24 +38,25 @@ const find = authed.catalogue.find
 		};
 	});
 
-const add = authed.catalogue.add
-	.use(requireActiveOrganizationMiddleware)
-	.effect(function* ({ input, context }) {
-		return {
-			data: yield* addResource({
-				resource: input.entry,
-				organizationId: context.auth.session.activeOrganizationId,
-				withBlocks: input.withBlocks,
-				actor: {
-					userId: context.auth.user.id,
-					zedToken: readRevision(context, input),
-				},
-			}),
-		};
-	});
+const add = authed.catalogue.add.use(requireOrganization()).effect(function* ({
+	input,
+	context,
+}) {
+	return {
+		data: yield* addResource({
+			resource: input.entry,
+			organizationId: context.auth.session.activeOrganizationId,
+			withBlocks: input.withBlocks,
+			actor: {
+				userId: context.auth.user.id,
+				zedToken: readRevision(context, input),
+			},
+		}),
+	};
+});
 
 const addBlocks = authed.catalogue.addBlocks
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		return {
 			data: {
@@ -72,7 +73,7 @@ const addBlocks = authed.catalogue.addBlocks
 	});
 
 const remove = authed.catalogue.remove
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		return {
 			data: {

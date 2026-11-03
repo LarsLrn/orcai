@@ -6,7 +6,7 @@ import { continueTurn, keepUploads, startTurn } from "@/lib/ai/turn/turn";
 import { ownUploads } from "@/lib/assets/own-uploads";
 import { readRevision, recordZedToken } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
 
 const requireChatEdit = requireEntityPermission("chat", "edit", {
@@ -14,7 +14,7 @@ const requireChatEdit = requireEntityPermission("chat", "edit", {
 });
 
 const aiChat = authed.ai.chat
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(requireChatEdit)
 	.effect(function* ({ input, context, signal }) {
 		const stream = yield* startTurn({
@@ -36,7 +36,7 @@ const aiChat = authed.ai.chat
 	});
 
 const aiContinue = authed.ai.continue
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(requireChatEdit)
 	.effect(function* ({ input, context, signal }) {
 		const stream = yield* continueTurn({
@@ -61,7 +61,7 @@ const aiContinue = authed.ai.continue
 	});
 
 const aiKeepUploads = authed.ai.keepUploads
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.use(requireChatEdit)
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;

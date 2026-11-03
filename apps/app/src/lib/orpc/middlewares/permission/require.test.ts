@@ -7,15 +7,10 @@ import * as Context from "effect/Context";
 import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
-import {
-	requireEntityPermission,
-	requireOrganizationPermission,
-	requireResourcePermission,
-} from "./require";
+import { requireEntityPermission, requireResourcePermission } from "./require";
 
 const userId = "00000000-0000-4000-8000-000000000001" as UserId;
 const botId = "00000000-0000-4000-8000-000000000002" as BotId;
-const organizationId = "00000000-0000-4000-8000-000000000003";
 
 /**
  * What SpiceDB answers: at a token, as of that revision, which may be all a
@@ -30,7 +25,6 @@ type Revisions = {
 /** The checks the procedures below make; any other check is denied. */
 const expectedChecks = new Set([
 	`bot:${botId}#edit@user:${userId}`,
-	`organization:${organizationId}#manage_models@user:${userId}`,
 ]);
 
 const answer = (revisions: Revisions, request: v1.CheckPermissionRequest) => {
@@ -51,9 +45,7 @@ const requestContext = (requestToken: string, revisions: Revisions) => ({
 	reqHeaders: new Headers(),
 	auth: {
 		isAuthenticated: true as const,
-		session: {
-			activeOrganizationId: organizationId,
-		},
+		session: {},
 		user: {
 			id: userId,
 		},
@@ -100,14 +92,6 @@ const procedures = {
 		)
 		.use(requireResourcePermission("edit"))
 		.handler(() => "allowed"),
-	organization: base
-		.input(
-			type<{
-				zedToken?: string;
-			}>(),
-		)
-		.use(requireOrganizationPermission("manage_models"))
-		.handler(() => "allowed"),
 };
 
 const outcome = (promise: Promise<unknown>) =>
@@ -147,17 +131,6 @@ const outcomes = (
 				},
 			),
 		),
-		outcome(
-			call(
-				procedures.organization,
-				{
-					zedToken,
-				},
-				{
-					context,
-				},
-			),
-		),
 	]);
 
 describe("permission middlewares", () => {
@@ -170,7 +143,6 @@ describe("permission middlewares", () => {
 		});
 
 		expect(await outcomes("after-grant", context)).toEqual([
-			"allowed",
 			"allowed",
 			"allowed",
 		]);
@@ -187,7 +159,6 @@ describe("permission middlewares", () => {
 		expect(await outcomes("before-revocation", context)).toEqual([
 			"FORBIDDEN",
 			"FORBIDDEN",
-			"FORBIDDEN",
 		]);
 	});
 
@@ -200,7 +171,6 @@ describe("permission middlewares", () => {
 		});
 
 		expect(await outcomes("", context)).toEqual([
-			"allowed",
 			"allowed",
 			"allowed",
 		]);

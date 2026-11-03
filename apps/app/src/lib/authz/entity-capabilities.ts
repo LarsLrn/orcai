@@ -1,4 +1,8 @@
-import type { OrganizationId, UserId } from "@orcai/core";
+import type {
+	OrganizationId,
+	OrganizationPermission,
+	UserId,
+} from "@orcai/core";
 import type { CapabilityEntityType, EntityCapabilities } from "@orcai/schema";
 import {
 	type EntityIdFor,
@@ -9,6 +13,7 @@ import {
 } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import { capabilitySets, emptyCapabilities } from "@/lib/authz/capabilities";
+import { committedRoles, roleGrants } from "@/lib/authz/organization-access";
 import { usableInOrganization } from "@/lib/authz/organization-use";
 
 type CapabilityParams<Entity extends CapabilityEntityType> = {
@@ -70,6 +75,44 @@ const narrowUse = <Entity extends CapabilityEntityType>(
 		);
 	});
 
+/**
+ * Narrows SpiceDB's organisation permissions to what the user's committed
+ * role grants, so a demotion counts before its tuples arrive.
+ */
+const narrowOrganization = <Entity extends CapabilityEntityType>(
+	granted: ReadonlyMap<EntityIdFor<Entity>, ReadonlySet<string>>,
+	params: CapabilityParams<Entity>,
+) =>
+	Effect.gen(function* () {
+		if (params.entityType !== "organization" || granted.size === 0)
+			return granted;
+		const roles = yield* committedRoles({
+			userId: params.userId,
+			organizationIds: [
+				...granted.keys(),
+			] as OrganizationId[],
+		});
+		return new Map(
+			[
+				...granted,
+			].map(([id, permissions]) => {
+				const role = roles.get(id as OrganizationId);
+				return [
+					id,
+					new Set(
+						[
+							...permissions,
+						].filter(
+							(permission) =>
+								role !== undefined &&
+								roleGrants(role, permission as OrganizationPermission),
+						),
+					),
+				];
+			}),
+		);
+	});
+
 /** The capabilities the user holds on each of `entityIds`. */
 export const getManyEntityCapabilities = <Entity extends CapabilityEntityType>(
 	params: CapabilityParams<Entity> & {
@@ -86,6 +129,7 @@ export const getManyEntityCapabilities = <Entity extends CapabilityEntityType>(
 		zedToken: params.zedToken,
 	}).pipe(
 		Effect.flatMap((granted) => narrowUse(granted, params)),
+		Effect.flatMap((granted) => narrowOrganization(granted, params)),
 		Effect.map(
 			(granted) =>
 				new Map(

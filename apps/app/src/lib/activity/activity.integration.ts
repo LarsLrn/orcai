@@ -14,7 +14,7 @@ import {
 	settleStage,
 } from "@orcai/pg-boss";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
-import { awaitLockWaiters, holdLock } from "@orcai/testing";
+import { awaitLockWaiters, holdLock, reasonOf } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -491,19 +491,22 @@ describe("activity runs", () => {
 				),
 			).toEqual([]);
 			expect((await attentionOf(member, token)).failures).toEqual([]);
-			const listed = await run(
-				(await procedures()).asset.list(
-					{
-						pageIndex: 0,
-						pageSize: 10,
-						filters: {
-							runId,
-						},
-					},
-					await procedureOptions(member, token),
+			expect(
+				await reasonOf(
+					run(
+						(await procedures()).asset.list(
+							{
+								pageIndex: 0,
+								pageSize: 10,
+								filters: {
+									runId,
+								},
+							},
+							await procedureOptions(member, token),
+						),
+					),
 				),
-			);
-			expect(listed.rowCount).toBe(0);
+			).toBe("ORGANIZATION_MEMBERSHIP_REVOKED");
 		},
 		TIMEOUT,
 	);

@@ -3165,6 +3165,7 @@
 	"embeddings_setup_banner_title": "Embeddings sind nicht eingerichtet",
 	"embeddings_rebuild_notice_title": "Die Suche wird neu aufgebaut",
 	"embeddings_rebuild_notice_description": "OrcAI erzeugt die Embeddings aller Assets in Repositories neu, daher können Suchergebnisse vorerst unvollständig sein.",
+	"error_access_pending": "Ihr Zugang wird noch eingerichtet. Versuchen Sie es gleich noch einmal.",
 	"error_active_organization_required": "Wählen Sie zuerst eine Organisation aus.",
 	"error_activity_failure_not_found": "Dieses Problem ist bereits gelöst oder ausgeblendet.",
 	"error_activity_run_not_found": "Diese Aktivität gibt es nicht mehr.",
