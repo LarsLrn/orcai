@@ -4,24 +4,25 @@ import { DB, dbSchema } from "@orcai/db";
 import type { ResourceVisibility } from "@orcai/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	queueBehindOrganizationLock,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import type { ResourceRef } from "@/lib/authz/relationship-facts";
 import { grantResourceAccess } from "@/lib/authz/resource-access";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
 const {
 	run,
+	caller,
+	queueBehindOrganizationLock,
 	organizationWith,
 	procedureOptions,
 	createAsset,
 	readTuples,
 	instanceAdmin,
-} = authzIntegration();
+} = appIntegration();
 
 const outcomeOf = (operation: Promise<unknown>) =>
 	operation.then(
@@ -60,24 +61,7 @@ const twoOrganizations = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const call = async <A>(
-		actor: Actor,
-		operation: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-	) => {
-		const result = await run(operation(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call, observe, token } = caller(zedToken);
 
 	const createBlock = async (
 		actor: Actor,
@@ -197,12 +181,10 @@ const twoOrganizations = async () => {
 				role: "viewer",
 				actor: {
 					userId: otherAdmin.user.id,
-					zedToken: token,
+					zedToken: token(),
 				},
 			}),
-		).then(({ zedToken: written }) => {
-			token = written ?? token;
-		});
+		).then(({ zedToken: written }) => observe(written));
 
 	return {
 		home,
@@ -222,11 +204,8 @@ const twoOrganizations = async () => {
 		visibilityOf,
 		add,
 		grantInOther,
-		token: () => token,
-		/** Reads later calls at least as fresh as a write made outside the procedures. */
-		advance: (written: string | undefined) => {
-			token = written ?? token;
-		},
+		token,
+		observe,
 	};
 };
 
@@ -523,7 +502,7 @@ describe("assets", () => {
 		async () => {
 			const s = await twoOrganizations();
 			const { asset, zedToken } = await createAsset(s.author, s.home);
-			s.advance(zedToken);
+			s.observe(zedToken);
 			const ref = {
 				resourceType: "asset",
 				resourceId: asset.id,
@@ -696,7 +675,7 @@ describe("unlisting", () => {
 				asset: { id: assetId },
 				zedToken: assetToken,
 			} = await createAsset(s.author, s.home);
-			s.advance(assetToken);
+			s.observe(assetToken);
 			await s.call(s.author, (options) =>
 				s.procedures.block.update(
 					{

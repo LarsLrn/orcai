@@ -1,11 +1,9 @@
-import { afterAll, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 import type { ActivityRunId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createUser, IntegrationLive } from "@orcai/testing";
+import { createUser, integrationRuntime, rolledBack } from "@orcai/testing";
 import { eq, inArray, sql } from "drizzle-orm";
-import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import * as Tracer from "effect/Tracer";
 import {
 	BATCH_SIZE,
@@ -14,51 +12,13 @@ import {
 
 const TIMEOUT = 30_000;
 
-const runtime = ManagedRuntime.make(IntegrationLive);
-afterAll(() => runtime.dispose());
-
-const run = <A, E>(
-	effect: Effect.Effect<
-		A,
-		E,
-		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
-	>,
-) => runtime.runPromise(effect);
-
-class Rollback<A> extends Data.TaggedError("Rollback")<{
-	readonly value: A;
-}> {}
-
-/**
- * Runs `effect` in a transaction it rolls back: the job cleans up every
- * user's activity, which other files are still writing.
- */
-const isolated = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		return yield* db
-			.transaction(() =>
-				Effect.flatMap(effect, (value) =>
-					Effect.fail(
-						new Rollback({
-							value,
-						}),
-					),
-				),
-			)
-			.pipe(
-				Effect.catchIf(
-					(error): error is Rollback<A> => error instanceof Rollback,
-					({ value }) => Effect.succeed(value),
-				),
-			);
-	});
+const { runPromise: run } = integrationRuntime();
 
 test(
 	"keeps running and recent runs and current dismissals, and deletes the rest",
 	async () => {
 		const { seeded, runs, dismissals, leases } = await run(
-			isolated(
+			rolledBack(
 				Effect.gen(function* () {
 					const db = yield* DB;
 					const user = yield* createUser();
@@ -219,7 +179,7 @@ test(
 		const STALE = BATCH_SIZE * 2 + 500;
 		const FAILED = 500;
 		const { seeded, statements, kept } = await run(
-			isolated(
+			rolledBack(
 				Effect.gen(function* () {
 					const db = yield* DB;
 					const user = yield* createUser();

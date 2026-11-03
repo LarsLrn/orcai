@@ -13,7 +13,8 @@ import {
 	queueIndexing,
 	settleStage,
 } from "@orcai/pg-boss";
-import { awaitLockWaiters, testEmbeddingIndex } from "@orcai/testing";
+import { testEmbeddingIndex } from "@orcai/qdrant/testing";
+import { awaitLockWaiters, holdLock } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -28,11 +29,6 @@ import {
 	renewAdmission,
 } from "@/lib/activity/admission";
 import { activitySummary } from "@/lib/activity/summary";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
@@ -40,16 +36,22 @@ import {
 	initializeResourceAuthorization,
 } from "@/lib/authz/resource-lifecycle";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration({
+const { run, organizationWith, procedureOptions, createAsset } = appIntegration(
+	{
 		// Indexing is queued once embeddings are set up; nothing embeds here.
 		embeddingIndex: await testEmbeddingIndex({
 			baseUrl: "http://127.0.0.1:9/v1",
 			model: "integration",
 			dimensions: 4,
 		}),
-	});
+	},
+);
 
 const procedures = () => run(Procedures);
 
@@ -967,30 +969,6 @@ const membersOf = (runId: ActivityRunId) =>
 		}),
 	);
 
-/** Holds what `lock` locks in an open transaction; the returned function releases it. */
-const hold = async (lock: Effect.Effect<unknown, unknown, DB>) => {
-	const held = await run(Deferred.make<void>());
-	const release = await run(Deferred.make<void>());
-	const holder = await run(
-		Effect.forkDetach(
-			Effect.gen(function* () {
-				yield* (yield* DB).transaction(() =>
-					Effect.gen(function* () {
-						yield* lock;
-						yield* Deferred.succeed(held, undefined);
-						yield* Deferred.await(release);
-					}),
-				);
-			}),
-		),
-	);
-	await run(Deferred.await(held));
-	return async () => {
-		await run(Deferred.succeed(release, undefined));
-		await run(Fiber.join(holder));
-	};
-};
-
 /** The worker's processing completion: the fenced write and what follows it. */
 const completeProcessing = (assetId: AssetId, runId: ActivityRunId) =>
 	Effect.gen(function* () {
@@ -1360,16 +1338,18 @@ describe("repository save with upload runs", () => {
 			);
 
 			// Holds the member, so completion reaches it first and deletion queues behind.
-			const release = await hold(
-				Effect.gen(function* () {
-					yield* (yield* DB)
-						.select({
-							id: dbSchema.activityMember.id,
-						})
-						.from(dbSchema.activityMember)
-						.where(eq(dbSchema.activityMember.runId, runId))
-						.for("update");
-				}),
+			const release = await run(
+				holdLock(
+					Effect.gen(function* () {
+						yield* (yield* DB)
+							.select({
+								id: dbSchema.activityMember.id,
+							})
+							.from(dbSchema.activityMember)
+							.where(eq(dbSchema.activityMember.runId, runId))
+							.for("update");
+					}),
+				),
 			);
 			const completion = await run(
 				Effect.forkDetach(traced(completeProcessing(assetId, runId))),
@@ -1386,7 +1366,7 @@ describe("repository save with upload runs", () => {
 				),
 			);
 			await run(awaitLockWaiters("%block%"));
-			await release();
+			await run(release);
 			const completed = await run(Fiber.join(completion));
 			const deleted = await deletion;
 
@@ -1437,21 +1417,23 @@ describe("repository save with upload runs", () => {
 			);
 
 			// Holds the other asset's link, so deletion stops holding the repository, before the assets.
-			const release = await hold(
-				Effect.gen(function* () {
-					yield* (yield* DB)
-						.select({
-							blockId: dbSchema.blockAsset.blockId,
-						})
-						.from(dbSchema.blockAsset)
-						.where(
-							and(
-								eq(dbSchema.blockAsset.blockId, block.id),
-								eq(dbSchema.blockAsset.assetId, other.asset.id),
-							),
-						)
-						.for("update");
-				}),
+			const release = await run(
+				holdLock(
+					Effect.gen(function* () {
+						yield* (yield* DB)
+							.select({
+								blockId: dbSchema.blockAsset.blockId,
+							})
+							.from(dbSchema.blockAsset)
+							.where(
+								and(
+									eq(dbSchema.blockAsset.blockId, block.id),
+									eq(dbSchema.blockAsset.assetId, other.asset.id),
+								),
+							)
+							.for("update");
+					}),
+				),
 			);
 			const deletion = await run(
 				Effect.forkDetach(
@@ -1468,7 +1450,7 @@ describe("repository save with upload runs", () => {
 				Effect.forkDetach(traced(completeProcessing(assetId, runId))),
 			);
 			await run(awaitLockWaiters("%for key share%"));
-			await release();
+			await run(release);
 			const completed = await run(Fiber.join(completion));
 			const deleted = await run(Fiber.join(deletion));
 
@@ -1502,16 +1484,18 @@ describe("repository save with upload runs", () => {
 			if (!link) throw new Error("No link");
 
 			// Holds the upload's member, so the retry stops holding the link, before its own member.
-			const release = await hold(
-				Effect.gen(function* () {
-					yield* (yield* DB)
-						.select({
-							id: dbSchema.activityMember.id,
-						})
-						.from(dbSchema.activityMember)
-						.where(eq(dbSchema.activityMember.runId, runId))
-						.for("update");
-				}),
+			const release = await run(
+				holdLock(
+					Effect.gen(function* () {
+						yield* (yield* DB)
+							.select({
+								id: dbSchema.activityMember.id,
+							})
+							.from(dbSchema.activityMember)
+							.where(eq(dbSchema.activityMember.runId, runId))
+							.for("update");
+					}),
+				),
 			);
 			const retry = await run(
 				Effect.forkDetach(
@@ -1547,7 +1531,7 @@ describe("repository save with upload runs", () => {
 				),
 			);
 			await run(awaitLockWaiters("%block_asset%"));
-			await release();
+			await run(release);
 			const retried = await run(Fiber.join(retry));
 			const deleted = await deletion;
 
@@ -1589,16 +1573,18 @@ describe("repository save with upload runs", () => {
 			const zedToken = meta?.zedToken ?? created.zedToken ?? organizationToken;
 
 			// Holds the repository the asset is already in, so completion waits before it reads links and binding.
-			const release = await hold(
-				Effect.gen(function* () {
-					yield* (yield* DB)
-						.select({
-							id: dbSchema.block.id,
-						})
-						.from(dbSchema.block)
-						.where(eq(dbSchema.block.id, elsewhere.id))
-						.for("update");
-				}),
+			const release = await run(
+				holdLock(
+					Effect.gen(function* () {
+						yield* (yield* DB)
+							.select({
+								id: dbSchema.block.id,
+							})
+							.from(dbSchema.block)
+							.where(eq(dbSchema.block.id, elsewhere.id))
+							.for("update");
+					}),
+				),
 			);
 			const completion = await run(
 				Effect.forkDetach(completeProcessing(assetId, runId)),
@@ -1620,7 +1606,7 @@ describe("repository save with upload runs", () => {
 					),
 				))();
 			await run(awaitLockWaiters("%for share%"));
-			await release();
+			await run(release);
 			await run(Fiber.join(completion));
 			const { data: block } = await save;
 

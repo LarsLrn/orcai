@@ -2,22 +2,17 @@ import { describe, expect, test } from "bun:test";
 import type { BotId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ListBotsInput } from "@orcai/schema";
+import { rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+const { run, caller, organizationWith } = appIntegration();
 
 /**
  * An organization with an owner and a member; every call reads at the newest
@@ -32,25 +27,8 @@ const library = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
+	const { call } = caller(zedToken);
 	const prefix = crypto.randomUUID();
-
-	const call = async <
-		A extends {
-			meta?: {
-				zedToken?: string;
-			};
-		},
-	>(
-		actor: Actor,
-		procedure: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<A, unknown, never>,
-	) => {
-		const output = await run(procedure(await procedureOptions(actor, token)));
-		token = output.meta?.zedToken ?? token;
-		return output;
-	};
 
 	const save = async (
 		name: string,

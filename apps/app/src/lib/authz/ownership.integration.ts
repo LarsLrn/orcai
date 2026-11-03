@@ -8,20 +8,23 @@ import type {
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createOrganization, createUser } from "@orcai/testing";
+import {
+	createOrganization,
+	createUser,
+	rejection,
+	rolledBack,
+} from "@orcai/testing";
 import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	failingWritesAbout,
-	queueBehindOrganizationLock,
-	rolledBack,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { handOverItem } from "@/lib/authz/ownership";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	failingWritesAbout,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
 const {
 	run,
@@ -33,13 +36,14 @@ const {
 	outboxDelivered,
 	readTuples,
 	instanceAdmin,
-} = authzIntegration();
+	queueBehindOrganizationLock,
+	caller,
+} = appIntegration();
 
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+const procedures = await run(Procedures);
+
+/** Calls procedures as actors, reading at least at the newest zedToken seen. */
+const { call, observe, token } = caller();
 
 /** Changes rows behind SpiceDB's back, so only the Postgres checks see it. */
 const quietly = {
@@ -196,7 +200,6 @@ describe("adding a chat upload to the Library", () => {
 				organizationId,
 			);
 			await quietly.makeChatUpload(asset.id);
-			const procedures = await run(Procedures);
 
 			await expect(
 				queueBehindOrganizationLock(
@@ -225,35 +228,9 @@ describe("adding a chat upload to the Library", () => {
 	);
 });
 
-type Options = Awaited<ReturnType<typeof procedureOptions>>;
-type AppProcedures = Effect.Success<typeof Procedures>;
-
-/** Calls a procedure as `actor`, reading at least at the newest zedToken seen. */
-let token: string | undefined;
-const call = async <A>(
-	actor: Actor,
-	operation: (
-		procedures: AppProcedures,
-		options: Options,
-	) => Effect.Effect<
-		A & {
-			meta?: {
-				zedToken?: string;
-			};
-		},
-		unknown
-	>,
-) => {
-	const result = await run(
-		operation(await run(Procedures), await procedureOptions(actor, token)),
-	);
-	token = result.meta?.zedToken ?? token;
-	return result;
-};
-
 const organization = async (roles: Parameters<typeof organizationWith>[0]) => {
 	const created = await organizationWith(roles);
-	token = created.zedToken ?? token;
+	observe(created.zedToken);
 	return created;
 };
 
@@ -274,7 +251,7 @@ const joining = async (actor: Actor, role: OrganizationRole) => {
 			],
 		}),
 	);
-	token = created.zedToken ?? token;
+	observe(created.zedToken);
 	return {
 		organizationId: created.organization.id,
 		admin: await signIn(created.organization.id, adminUser.id),
@@ -293,9 +270,9 @@ const contentOf = async (
 	owner: Actor,
 	organizationId: OrganizationId,
 ): Promise<Content> => {
-	const block = await createBlock(owner, token);
-	token = block.zedToken ?? token;
-	const { data: bot } = await call(owner, (procedures, options) =>
+	const block = await createBlock(owner, token());
+	observe(block.zedToken);
+	const { data: bot } = await call(owner, (options) =>
 		procedures.bot.save(
 			{
 				name: "Owned bot",
@@ -308,7 +285,8 @@ const contentOf = async (
 	);
 	const library = await createAsset(owner, organizationId);
 	const upload = await createAsset(owner, organizationId);
-	token = upload.zedToken ?? library.zedToken ?? token;
+	observe(library.zedToken);
+	observe(upload.zedToken);
 	await quietly.makeChatUpload(upload.asset.id);
 	return {
 		botId: bot.id,
@@ -426,7 +404,7 @@ const removeMember = (
 	userIds: readonly UserId[],
 	receiverId?: UserId,
 ) =>
-	call(actor, (procedures, options) =>
+	call(actor, (options) =>
 		procedures.organizationMember.delete(
 			{
 				refs: userIds.map((userId) => ({
@@ -444,7 +422,7 @@ const changeRole = (
 	role: "viewer" | "member" | "manager",
 	receiverId?: UserId,
 ) =>
-	call(actor, (procedures, options) =>
+	call(actor, (options) =>
 		procedures.organizationMember.update(
 			{
 				userId,
@@ -463,7 +441,7 @@ const handOver = (
 	},
 	receiverId: UserId,
 ) =>
-	call(actor, (procedures, options) =>
+	call(actor, (options) =>
 		procedures.resource.handOver(
 			{
 				...resource,
@@ -622,7 +600,7 @@ describe("removing a member", () => {
 			for (const [actor, userIds, receiverId] of attempts) {
 				const attempt =
 					actor === instance
-						? call(actor, (procedures, options) =>
+						? call(actor, (options) =>
 								procedures.instance.removeMember(
 									{
 										organizationId,
@@ -656,7 +634,6 @@ describe("removing a member", () => {
 				"admin",
 				"member",
 			]);
-			const procedures = await run(Procedures);
 			const removal = async () =>
 				run(
 					procedures.organizationMember.delete(
@@ -667,13 +644,13 @@ describe("removing a member", () => {
 								},
 							],
 						},
-						await procedureOptions(admin, token),
+						await procedureOptions(admin, token()),
 					),
 				);
 
 			await expect(
 				queueBehindOrganizationLock(organizationId, removal, () =>
-					createBlock(owner, token),
+					createBlock(owner, token()),
 				),
 			).rejects.toMatchObject({
 				reason: "PERMISSION_DENIED",
@@ -733,7 +710,7 @@ describe("changing a member's role", () => {
 });
 
 const chatOf = async (owner: Actor) => {
-	const { data } = await call(owner, (procedures, options) =>
+	const { data } = await call(owner, (options) =>
 		procedures.chat.create(
 			{
 				title: "Personal",
@@ -779,7 +756,7 @@ describe("deleting accounts", () => {
 			const chatId = await chatOf(owner);
 			const instance = await instanceAdmin(first);
 
-			await call(instance, (procedures, options) =>
+			await call(instance, (options) =>
 				procedures.user.delete(
 					{
 						userIds: [
@@ -841,9 +818,9 @@ describe("deleting accounts", () => {
 				"member",
 				"member",
 			]);
-			const { blockId, zedToken } = await createBlock(owner, token);
-			token = zedToken ?? token;
-			const { data: grants } = await call(owner, (procedures, options) =>
+			const { blockId, zedToken } = await createBlock(owner, token());
+			observe(zedToken);
+			const { data: grants } = await call(owner, (options) =>
 				procedures.resource.grant(
 					{
 						resourceType: "block",
@@ -895,7 +872,7 @@ describe("deleting accounts", () => {
 			);
 			const instance = await instanceAdmin(organizationId);
 
-			await call(instance, (procedures, options) =>
+			await call(instance, (options) =>
 				procedures.user.delete(
 					{
 						userIds: [
@@ -1003,7 +980,7 @@ describe("handing one item over", () => {
 				resourceType: "bot" as const,
 				resourceId: content.botId,
 			};
-			await call(owner, (procedures, options) =>
+			await call(owner, (options) =>
 				procedures.resource.grant(
 					{
 						...bot,
@@ -1324,7 +1301,7 @@ describe("reading what members own", () => {
 
 			expect(
 				await rejection(
-					call(owner, (procedures, options) =>
+					call(owner, (options) =>
 						procedures.organizationMember.ownedContent(
 							{
 								userIds: [
@@ -1338,7 +1315,7 @@ describe("reading what members own", () => {
 			).toMatchObject({
 				reason: "PERMISSION_DENIED",
 			});
-			const { data } = await call(admin, (procedures, options) =>
+			const { data } = await call(admin, (options) =>
 				procedures.organizationMember.ownedContent(
 					{
 						userIds: [
@@ -1360,7 +1337,7 @@ describe("reading what members own", () => {
 					}),
 				}),
 			]);
-			const { data: receivers } = await call(admin, (procedures, options) =>
+			const { data: receivers } = await call(admin, (options) =>
 				procedures.organizationMember.receivers({}, options),
 			);
 			expect(receivers.map((receiver) => receiver.id).sort()).toEqual(
@@ -1369,7 +1346,7 @@ describe("reading what members own", () => {
 					owner.user.id,
 				].sort(),
 			);
-			const { data: others } = await call(admin, (procedures, options) =>
+			const { data: others } = await call(admin, (options) =>
 				procedures.organizationMember.receivers(
 					{
 						excluded: [
@@ -1398,7 +1375,7 @@ describe("reading what members own", () => {
 			]);
 			const content = await contentOf(owner, organizationId);
 			const receiversOf = (actor: Actor) =>
-				call(actor, (procedures, options) =>
+				call(actor, (options) =>
 					procedures.resource.receivers(
 						{
 							resourceType: "bot",
@@ -1448,7 +1425,7 @@ describe("reading what members own", () => {
 			const instance = await instanceAdmin(organizationId);
 			const deletionDefault = async () =>
 				(
-					await call(instance, (procedures, options) =>
+					await call(instance, (options) =>
 						procedures.instance.ownedContent(
 							{
 								userIds: [

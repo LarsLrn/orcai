@@ -1,9 +1,9 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { serve } from "bun";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions } = appIntegration();
 
 const openRouterModel = (id: string, supportedParameters: string[]) => ({
 	id,

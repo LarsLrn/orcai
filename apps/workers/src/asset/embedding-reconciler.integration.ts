@@ -7,7 +7,7 @@ import {
 	embeddingProgress,
 	embeddingsRebuilding,
 	type Job,
-	PgBoss,
+	type PgBoss,
 	PgBossService,
 	prepareMissingExtractionsAgain,
 	queueIndexing,
@@ -15,6 +15,7 @@ import {
 	retryFailedEmbeddings,
 	startPreparingMissingExtractionsAgain,
 } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,
@@ -31,6 +32,7 @@ import {
 	QdrantService,
 	servedFilter,
 } from "@orcai/qdrant";
+import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	type PipelineFailure,
@@ -42,31 +44,20 @@ import {
 } from "@orcai/schema";
 import {
 	awaitLockWaiters,
-	createJobQueues,
 	createOrganization,
 	createUser,
-	IntegrationLive,
-	testEmbeddingIndex,
+	integrationRuntime,
 } from "@orcai/testing";
 import { serve } from "bun";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
+import type * as ManagedRuntime from "effect/ManagedRuntime";
 import { assetWorkerDefinitions } from "@/asset/definitions";
 import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
 
 const TIMEOUT = 30_000;
 const DIMENSIONS = 4;
-
-const boss = new PgBoss({
-	host: process.env.POSTGRES_HOST,
-	port: Number(process.env.POSTGRES_PORT),
-	user: process.env.POSTGRES_USER,
-	password: process.env.POSTGRES_PASSWORD,
-	database: process.env.POSTGRES_DB,
-});
-boss.on("error", () => undefined);
 
 /** An OpenAI-compatible endpoint that embeds every value as the same vector. */
 const embeddings = serve({
@@ -121,30 +112,20 @@ const HeldQdrantLive = Layer.effect(
 	}),
 ).pipe(Layer.provide(QdrantLive));
 
-const runtime = ManagedRuntime.make(
+const runtime = integrationRuntime(
 	Layer.mergeAll(
-		IntegrationLive,
 		S3Live,
 		HeldQdrantLive,
 		EncryptionKeyLive,
-		Layer.succeed(PgBossService, {
-			boss,
-		}),
+		IsolatedPgBossLive(),
 	),
 );
 
+let boss: PgBoss;
 beforeAll(async () => {
-	await boss.start();
-	await createJobQueues(boss);
-}, TIMEOUT);
-afterAll(async () => {
-	await embeddings.stop(true);
-	await boss.stop({
-		graceful: false,
-		timeout: 1000,
-	});
-	await runtime.dispose();
+	boss = await runtime.runPromise(PgBossService.useSync(({ boss }) => boss));
 });
+afterAll(() => embeddings.stop(true));
 
 type Link = {
 	readonly assetId: AssetId;
@@ -1069,7 +1050,6 @@ test(
 		expect(served).toBeGreaterThan(0);
 		const before = await processingOf(missing);
 
-		await boss.deleteQueuedJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME);
 		const queuedJobs = async () =>
 			(
 				await boss.findJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, {
@@ -1090,8 +1070,13 @@ test(
 		const worker = assetWorkerDefinitions.find(
 			({ name }) => name === PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 		);
+		// The worker takes the job, and its handler runs again on a retry.
+		const [taken] = await boss.fetch(
+			PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+		);
 		await on(index, links, worker?.handler([]) ?? Effect.void);
 		await on(index, links, worker?.handler([]) ?? Effect.void);
+		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, taken.id);
 		expect(await processingOf(missing)).toEqual({
 			status: "pending",
 			generation: Number(before.generation) + 1,
@@ -1151,7 +1136,6 @@ test(
 		});
 		expect(await on(index, links, embeddingsRebuilding)).toBe(false);
 
-		await boss.deleteQueuedJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME);
 		expect(await on(index, links, startPreparingMissingExtractionsAgain)).toBe(
 			0,
 		);

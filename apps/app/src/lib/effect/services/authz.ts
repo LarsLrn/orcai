@@ -1,4 +1,4 @@
-import { DB, dbSchema, enumSchema } from "@orcai/db";
+import { DB, dbSchema, enumSchema, lockSpaces } from "@orcai/db";
 import {
 	grpcStatusOf,
 	SpiceDbError,
@@ -19,8 +19,6 @@ import { AUTHZ } from "@/settings/constants";
 
 const [PENDING, PROCESSED, FAILED, DEAD_LETTER] =
 	enumSchema.authzOutboxStatusEnum.enumValues;
-// Held for the whole delivery, so one deliverer writes events in seq order.
-const DELIVERY_LOCK = 72370905;
 const BATCH_SIZE = 200;
 
 const outboxFailure =
@@ -216,10 +214,11 @@ export const AuthzLive = Layer.effect(
 							processed: 0,
 							failed: 0,
 						};
+						// Held for the whole delivery, so one deliverer writes events in seq order.
 						const [{ locked }] = yield* db.execute<{
 							locked: boolean;
 						}>(
-							sql`SELECT pg_try_advisory_xact_lock(${DELIVERY_LOCK}) AS locked`,
+							sql`SELECT pg_try_advisory_xact_lock(${lockSpaces.authzDelivery}) AS locked`,
 							"objects",
 						);
 						if (!locked) return result;

@@ -1,28 +1,22 @@
 import { describe, expect, test } from "bun:test";
 import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createUser } from "@orcai/testing";
+import { createUser, rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import {
 	banAccount,
 	deleteAccounts,
 } from "@/lib/authz/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, instanceAdmin } =
-	authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	appIntegration();
 
 const procedures = () => run(Procedures);
 

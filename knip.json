@@ -70,6 +70,7 @@
 		"apps/workers": {
 			"entry": [
 				"src/start-workers.ts",
+				"src/**/*.test.ts",
 				"src/**/*.integration.ts"
 			],
 			"project": [

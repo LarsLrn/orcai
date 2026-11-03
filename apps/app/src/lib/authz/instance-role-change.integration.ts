@@ -1,23 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import type { InstanceRole } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { rejection } from "@orcai/testing";
 import { and, eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, signIn, instanceAdmin } =
-	authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	appIntegration();
 
 const setRole = async (actor: Actor, target: Actor, role: InstanceRole) => {
 	const procedures = await run(Procedures);

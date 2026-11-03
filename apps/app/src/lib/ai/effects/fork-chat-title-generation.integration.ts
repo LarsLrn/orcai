@@ -6,15 +6,15 @@ import { DB, dbSchema } from "@orcai/db";
 import { serve } from "bun";
 import { eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 import { forkChatTitleGenerationIfNeeded } from "./fork-chat-title-generation";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, caller, organizationWith, procedureOptions } = appIntegration();
 
 /** An OpenAI-compatible endpoint that titles every request after its model. */
 const inference = serve({
@@ -73,8 +73,8 @@ const organizationWithModels = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const asAdmin = () => procedureOptions(admin, token);
+	const { call, token } = caller(zedToken);
+	const asAdmin = () => procedureOptions(admin, token());
 	const [allMembers] = await run(
 		Effect.gen(function* () {
 			return yield* (yield* DB)
@@ -91,7 +91,7 @@ const organizationWithModels = async () => {
 	);
 
 	const providerWithModel = async (providerModelId: string) => {
-		const { data: provider, meta } = await run(
+		const { data: provider } = await call(admin, (options) =>
 			procedures.provider.create(
 				{
 					name: `Integration ${crypto.randomUUID()}`,
@@ -102,10 +102,9 @@ const organizationWithModels = async () => {
 					meteringMode: "tokens",
 					enabled: true,
 				},
-				await asAdmin(),
+				options,
 			),
 		);
-		token = meta?.zedToken ?? token;
 		const { data: model } = await run(
 			procedures.model.create(
 				{

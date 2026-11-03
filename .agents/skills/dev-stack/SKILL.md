@@ -114,9 +114,13 @@ Test a module that needs PostgreSQL or SpiceDB through its interface in a
 reset, but `integrationRuntime()` fails before the instance is initialised;
 run `bun run stack e2e --yes -- --grep <area>` once on a fresh stack.
 
-Use `integrationRuntime()` from `@orcai/testing` for the app's DB and SpiceDB
-layers, and `createUser` and `createOrganization` for data. A file that
-enqueues jobs calls `createJobQueues(boss)` first; the tier runs no workers,
-so no queue exists otherwise. Create everything
+Use `integrationRuntime(layer)` from `@orcai/testing` for the app's DB and
+SpiceDB layers plus the file's own, and `createUser` and `createOrganization`
+for data. App files use `appIntegration()` from
+`apps/app/src/lib/testing/app-integration.ts`, whose `caller(zedToken)` runs
+procedures with the latest zed token. A file that enqueues or reads jobs adds
+`IsolatedPgBossLive()` from `@orcai/pg-boss/testing`: a pg-boss in a schema of
+its own with every queue, so no other file sees its jobs. The tier runs no
+workers. Embedding-index helpers come from `@orcai/qdrant/testing`. Create everything
 under fresh ids, never rely on or mutate rows you did not create, and leave
 the data in place.

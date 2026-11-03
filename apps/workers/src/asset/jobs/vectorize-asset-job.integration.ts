@@ -6,12 +6,11 @@ import { DB, dbSchema } from "@orcai/db";
 import {
 	type Job,
 	type JobWithMetadata,
-	PgBoss,
-	PgBossService,
 	queueIndexing,
 	reconcileEmbeddings,
 	reconcileLinkPoints,
 } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,
@@ -27,14 +26,14 @@ import {
 	upsertPointsToQdrant,
 	writeGeneration,
 } from "@orcai/qdrant";
+import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import type { VectorizeAssetPayload } from "@orcai/schema";
 import {
 	awaitLockWaiters,
-	createJobQueues,
 	createUser,
 	IntegrationLive,
-	IsolatedEmbeddingIndexLive,
+	integrationRuntime,
 } from "@orcai/testing";
 import { serve } from "bun";
 import { and, eq, sql } from "drizzle-orm";
@@ -45,15 +44,6 @@ import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
 import { markIndexingExhausted } from "@/asset/pipeline-attempt";
 
 const TIMEOUT = 30_000;
-
-const boss = new PgBoss({
-	host: process.env.POSTGRES_HOST,
-	port: Number(process.env.POSTGRES_PORT),
-	user: process.env.POSTGRES_USER,
-	password: process.env.POSTGRES_PASSWORD,
-	database: process.env.POSTGRES_DB,
-});
-boss.on("error", () => undefined);
 
 /**
  * Requests the endpoint received. While `holding`, each request waits until
@@ -153,26 +143,22 @@ const InterceptedQdrantLive = Layer.effect(
 	}),
 ).pipe(Layer.provide(QdrantLive));
 
-const runtime = ManagedRuntime.make(
+const runtime = integrationRuntime(
 	IsolatedEmbeddingIndexLive().pipe(
 		Layer.provideMerge(
 			Layer.mergeAll(
-				IntegrationLive,
 				S3Live,
 				InterceptedQdrantLive,
 				EncryptionKeyLive,
-				Layer.succeed(PgBossService, {
-					boss,
-				}),
+				IsolatedPgBossLive(),
 			),
 		),
 	),
 );
+const run = runtime.runPromise;
 
 beforeAll(async () => {
-	await boss.start();
-	await createJobQueues(boss);
-	await runtime.runPromise(
+	await run(
 		configureEmbeddings({
 			baseUrl: `${embeddings.url.origin}/v1`,
 			apiKey: "key",
@@ -187,20 +173,7 @@ afterEach(() => {
 });
 afterAll(async () => {
 	await embeddings.stop(true);
-	await boss.stop({
-		graceful: false,
-		timeout: 1000,
-	});
-	await runtime.dispose();
 });
-
-const run = <A, E>(
-	effect: Effect.Effect<
-		A,
-		E,
-		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
-	>,
-) => runtime.runPromise(effect);
 
 /** A processed document linked to a fresh repository, with its stored extraction of `chunks`. */
 const seed = (

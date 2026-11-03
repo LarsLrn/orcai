@@ -1,22 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import type { ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+const { run, organizationWith, procedureOptions } = appIntegration();
 
 /** A chat of the first member holding one reply, with the other member beside it. */
 const chatWithReply = async () => {

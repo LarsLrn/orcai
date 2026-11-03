@@ -1,5 +1,3 @@
-import { afterAll, expect } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
 import { v1 } from "@authzed/authzed-node";
 import {
 	buckets,
@@ -9,43 +7,40 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { PgBossService } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { EmbeddingIndex, type EmbeddingIndexScope } from "@orcai/qdrant";
 import { SpiceDbService } from "@orcai/spice-db";
 import {
-	createJobQueues,
+	awaitLockWaiters,
 	createOrganization,
 	createUser,
-	IntegrationLive,
+	holdLock,
+	integrationRuntime,
 } from "@orcai/testing";
 import { and, count, eq, ne, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
-import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
-import { Client } from "pg";
-import { writeRelationships } from "@/lib/authz/relationship-write";
+import type * as ManagedRuntime from "effect/ManagedRuntime";
+import {
+	lockOrganization,
+	writeRelationships,
+} from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
-import { AppLayer } from "@/lib/effect/app-layer";
+import { AppServices } from "@/lib/effect/app-layer";
 import { AuthzLive } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+// Loading the router blocks the event loop for seconds. Loaded with this
+// module, it is cached before the runtime opens connections that time out.
+import "@/lib/orpc/router";
 
-const ORGANIZATION_LOCK_SPACE = 72370906;
 export const TIMEOUT = 30_000;
-
-const JobQueuesLive = Layer.effectDiscard(
-	Effect.gen(function* () {
-		const { boss } = yield* PgBossService;
-		yield* Effect.promise(() => createJobQueues(boss));
-	}),
-);
 
 const until = async (condition: () => Promise<boolean>, what: string) => {
 	const deadline = Date.now() + 20_000;
 	while (!(await condition())) {
 		if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`);
-		await sleep(25);
+		await new Promise((resolve) => setTimeout(resolve, 25));
 	}
 };
 
@@ -53,118 +48,6 @@ export type Actor = {
 	user: typeof dbSchema.user.$inferSelect;
 	session: typeof dbSchema.session.$inferSelect;
 };
-
-const waitingForOrganizationLock = async (
-	client: Client,
-	organizationId: OrganizationId,
-) => {
-	const { rows } = await client.query<{
-		waiting: number;
-	}>(
-		`SELECT count(*)::int AS waiting FROM pg_locks
-		 WHERE locktype = 'advisory' AND classid::bigint = $1 AND objsubid = 2
-		   AND objid::bigint = (hashtext($2)::bigint & 4294967295) AND NOT granted`,
-		[
-			ORGANIZATION_LOCK_SPACE,
-			organizationId,
-		],
-	);
-	return rows[0].waiting;
-};
-
-export /**
- * Holds the organization's write lock from another connection, queues `first`
- * then `second` behind it, checks neither finishes while it is held, and
- * releases it so Postgres runs them in queue order.
- */
-const queueBehindOrganizationLock = async (
-	organizationId: OrganizationId,
-	first: () => Promise<unknown>,
-	second: () => Promise<unknown>,
-) => {
-	const client = new Client({
-		host: process.env.POSTGRES_HOST,
-		port: Number(process.env.POSTGRES_PORT),
-		user: process.env.POSTGRES_USER,
-		password: process.env.POSTGRES_PASSWORD,
-		database: process.env.POSTGRES_DB,
-	});
-	await client.connect();
-	const finished: boolean[] = [];
-	const start = (operation: () => Promise<unknown>) => {
-		const index = finished.push(false) - 1;
-		const settled = Promise.allSettled([
-			operation(),
-		]).then(([outcome]) => {
-			finished[index] = true;
-			return outcome;
-		});
-		return settled;
-	};
-	try {
-		await client.query("BEGIN");
-		await client.query("SELECT pg_advisory_xact_lock($1, hashtext($2))", [
-			ORGANIZATION_LOCK_SPACE,
-			organizationId,
-		]);
-		const outcomes = [
-			start(first),
-		];
-		await until(
-			async () =>
-				(await waitingForOrganizationLock(client, organizationId)) === 1,
-			"the first operation to wait",
-		);
-		outcomes.push(start(second));
-		await until(
-			async () =>
-				(await waitingForOrganizationLock(client, organizationId)) === 2,
-			"the second operation to wait",
-		);
-		await sleep(200);
-		expect(finished).toEqual([
-			false,
-			false,
-		]);
-		await client.query("COMMIT");
-		for (const outcome of await Promise.all(outcomes)) {
-			if (outcome.status === "rejected") throw outcome.reason;
-		}
-	} finally {
-		await client.query("ROLLBACK").catch(() => undefined);
-		await client.end();
-	}
-};
-
-class RolledBack extends Data.TaggedError("RolledBack")<{
-	readonly value: unknown;
-}> {}
-
-/**
- * Runs `body` in a transaction that is rolled back, returning its value, so
- * the outbox events it fails hold back no other file once it ends.
- */
-export const rolledBack = <A, E, R>(body: Effect.Effect<A, E, R>) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		return yield* db
-			.transaction(() =>
-				Effect.flatMap(body, (value) =>
-					Effect.fail(
-						new RolledBack({
-							value,
-						}),
-					),
-				),
-			)
-			.pipe(
-				Effect.catch((error) =>
-					error instanceof RolledBack
-						? Effect.succeed(error.value as A)
-						: Effect.fail(error),
-				),
-			);
-	});
 
 /**
  * A SpiceDB whose writes naming `objectId` as resource or subject fail until
@@ -252,25 +135,23 @@ export const onEmbeddingIndex = <
 });
 
 /**
- * The app's layers over the stack, disposed after the file, with helpers that
- * create organizations, users and resources and read both stores. With
+ * The app's layers over the stack and a pg-boss of the file's own, built
+ * before its first test and disposed after its last, with helpers that create
+ * organizations, users and resources and read both stores. With
  * `embeddingIndex`, everything runs on it instead of the instance's.
  */
-export const authzIntegration = (
+export const appIntegration = (
 	options: { readonly embeddingIndex?: EmbeddingIndexScope } = {},
 ) => {
-	// Loading the router while the app layer builds blocks the event loop for
-	// seconds, so the instance check connects only once it is built.
-	const runtime = ManagedRuntime.make(
-		Layer.mergeAll(
-			IntegrationLive,
-			JobQueuesLive,
-			options.embeddingIndex
-				? Layer.succeed(EmbeddingIndex, options.embeddingIndex)
-				: Layer.empty,
-		).pipe(Layer.provideMerge(AppLayer)),
+	const runtime = integrationRuntime(
+		(options.embeddingIndex
+			? Layer.succeed(EmbeddingIndex, options.embeddingIndex)
+			: Layer.empty
+		).pipe(
+			Layer.provideMerge(AppServices),
+			Layer.provideMerge(IsolatedPgBossLive()),
+		),
 	);
-	afterAll(() => runtime.dispose());
 
 	const run = <A, E>(
 		effect: Effect.Effect<
@@ -492,8 +373,83 @@ export const authzIntegration = (
 		return signIn(organizationId, user.id);
 	};
 
+	type ProcedureOptions = Awaited<ReturnType<typeof procedureOptions>>;
+
+	/**
+	 * Runs procedures as actors with the latest zed token, starting from
+	 * `zedToken`: each call keeps the token its procedure returns, and
+	 * `observe` keeps one a fixture returns.
+	 */
+	const caller = (zedToken?: string) => {
+		let token = zedToken;
+		const observe = (zedToken?: string) => {
+			token = zedToken ?? token;
+		};
+		const call = async <A>(
+			actor: Actor,
+			operation: (options: ProcedureOptions) => Effect.Effect<
+				A & {
+					meta?: {
+						zedToken?: string;
+					};
+				},
+				unknown
+			>,
+		) => {
+			const result = await run(operation(await procedureOptions(actor, token)));
+			observe(result.meta?.zedToken);
+			return result;
+		};
+		return {
+			call,
+			observe,
+			token: () => token,
+		};
+	};
+
+	/**
+	 * Holds the organization's write lock, queues `first` then `second` behind
+	 * it, and releases it so Postgres runs them in queue order.
+	 */
+	const queueBehindOrganizationLock = async (
+		organizationId: OrganizationId,
+		first: () => Promise<unknown>,
+		second: () => Promise<unknown>,
+	) => {
+		const lock = {
+			space: "organizationWrites",
+			key: organizationId,
+		} as const;
+		const release = await run(
+			holdLock(
+				Effect.gen(function* () {
+					yield* (yield* DB).execute(lockOrganization(organizationId));
+				}),
+			),
+		);
+		const settle = (operation: () => Promise<unknown>) =>
+			Promise.allSettled([
+				operation(),
+			]).then(([outcome]) => outcome);
+		const outcomes = [
+			settle(first),
+		];
+		try {
+			await run(awaitLockWaiters(lock, 1));
+			outcomes.push(settle(second));
+			await run(awaitLockWaiters(lock, 2));
+		} finally {
+			await run(release);
+		}
+		for (const outcome of await Promise.all(outcomes)) {
+			if (outcome.status === "rejected") throw outcome.reason;
+		}
+	};
+
 	return {
 		run,
+		caller,
+		queueBehindOrganizationLock,
 		signIn,
 		procedureOptions,
 		organizationWith,

@@ -2,15 +2,15 @@ import { describe, expect, test } from "bun:test";
 import type { AssetId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { AssetMetadataType, SaveAssetInput } from "@orcai/schema";
-import { createOrganization } from "@orcai/testing";
+import { createOrganization, rejection } from "@orcai/testing";
 import { eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, signIn, procedureOptions, organizationWith, createAsset } =
-	authzIntegration();
+	appIntegration();
 
 const prepared = (assetIds: AssetId[]) =>
 	run(
@@ -58,12 +58,6 @@ const withUtilityModel = (organizationId: OrganizationId) =>
 				})
 				.where(eq(dbSchema.organization.id, organizationId));
 		}),
-	);
-
-const rejection = (promise: Promise<unknown>) =>
-	promise.then(
-		() => undefined,
-		(error: unknown) => error,
 	);
 
 describe("asset metadata generation", () => {

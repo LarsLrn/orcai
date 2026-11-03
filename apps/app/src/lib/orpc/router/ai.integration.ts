@@ -4,11 +4,11 @@ import { DB, dbSchema } from "@orcai/db";
 import { createOrganization } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration();
+	appIntegration();
 
 const UPLOAD_CALL = "upload-1";
 

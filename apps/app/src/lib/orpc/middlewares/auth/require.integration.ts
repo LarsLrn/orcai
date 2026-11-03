@@ -1,25 +1,20 @@
 import { describe, expect, test } from "bun:test";
 import { DB, dbSchema } from "@orcai/db";
+import { rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import type { TwoFactorPolicy } from "@/lib/auth/two-factor-policy";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { AppConfigService } from "@/lib/effect/services/config";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, signIn, instanceAdmin } =
-	authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	appIntegration();
 
 /** The actor's call options with `TWO_FACTOR_REQUIRED` set to `policy`. */
 const underPolicy = async (actor: Actor, policy: TwoFactorPolicy) => {

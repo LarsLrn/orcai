@@ -63,14 +63,24 @@ bun run stack exec -- bun test ./packages/spice-db/test/schema.integration.ts   
 
 Tests create their own organisations and users under unique ids, so they coexist with development data and with each other. Bootstrap counts any user or organisation as an initialised instance. Because a test row on a fresh stack would lock first-run setup, `integrationRuntime()` fails until the instance is initialised through `/init` or a `bun run stack e2e` run.
 
-`@orcai/testing` holds the shared helpers:
+`@orcai/testing` holds the shared helpers. It depends only on the database and SpiceDB packages, so any package can test with it:
 
 | Helper | Provides |
 | --- | --- |
-| `integrationRuntime()` | A `ManagedRuntime` over `IntegrationLive`, the app's `DrizzleLive` and `SpiceDbLive` layers built from the stack environment, disposed after the file's last test. |
+| `integrationRuntime(layer)` | A `ManagedRuntime` over `IntegrationLive`, the app's `DrizzleLive` and `SpiceDbLive` layers built from the stack environment, and the file's own `layer`. It is built before the file's first test, so no test carries the build, and disposed after its last. |
 | `createUser({ role })` | A user row with a unique email, instance role `user` unless given. |
 | `createOrganization({ members })` | An organisation with a unique slug whose members hold their role in both the `member` table and SpiceDB, and the `zedToken` of that write. |
-| `createJobQueues(boss)` | Every pg-boss queue the workers create at boot. The tier runs no workers, so a file that enqueues jobs creates them all, whatever queues it expects to reach. |
+| `holdLock(lock)`, `awaitLockWaiters(on, count)` | Hold a lock in a transaction of its own, and wait until a number of statements wait on it, given as an advisory lock from `lockSpaces` or a statement pattern. |
+| `rolledBack(effect)` | Runs an effect in a transaction that is rolled back, for code that drains tables other files write to. |
+| `rejection(promise)`, `reasonOf(promise)` | What a call rejects with, or the `reason` of it. |
+
+Helpers that need more of the stack live with their package:
+
+| Helper | Provides |
+| --- | --- |
+| `IsolatedPgBossLive()` from `@orcai/pg-boss/testing` | A pg-boss in a schema of the file's own with every queue the workers create, dropped after the file. The tier runs no workers, and no other file sees or wakes its jobs. |
+| `testEmbeddingIndex()` and `IsolatedEmbeddingIndexLive()` from `@orcai/qdrant/testing` | An embedding index with its own settings table and collection prefix. |
+| `appIntegration()` in `apps/app/src/lib/testing/app-integration.ts` | The app's layers on an isolated pg-boss, with session fixtures and `caller(zedToken)`, which runs procedures as actors with the latest zed token. |
 
 `packages/spice-db/test/schema.integration.ts` checks the SpiceDB schema. It writes a fixed set of relationships under per-run ids and asserts which permissions they grant and deny against the stack's applied schema.
 

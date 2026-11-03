@@ -2,23 +2,14 @@ import { describe, expect, test } from "bun:test";
 import type { ChatId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { BotSetupFields } from "@orcai/schema";
+import { reasonOf } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { turnSetup } from "@/lib/ai/turn/setup";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
-
-const reasonOf = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: { reason?: string }) => error.reason,
-	);
+const { run, caller, organizationWith, procedureOptions } = appIntegration();
 
 /** An admin with a provider, two chat models and a bot of their own. */
 const authorWithBot = async () => {
@@ -30,26 +21,9 @@ const authorWithBot = async () => {
 		"admin",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const call = async <A>(
-		operation: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-		actor: Actor = admin,
-	) => {
-		const result = await run(operation(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call, token } = caller(zedToken);
 
-	const { data: provider } = await call((options) =>
+	const { data: provider } = await call(admin, (options) =>
 		procedures.provider.create(
 			{
 				name: `Effective ${crypto.randomUUID()}`,
@@ -65,7 +39,7 @@ const authorWithBot = async () => {
 	);
 	const createModel = async (name: string) =>
 		(
-			await call((options) =>
+			await call(admin, (options) =>
 				procedures.model.create(
 					{
 						providerId: provider.id,
@@ -84,7 +58,7 @@ const authorWithBot = async () => {
 		).data;
 	const chatModel = await createModel("Chat model");
 	const botModel = await createModel("Bot model");
-	const { data: behaviour } = await call((options) =>
+	const { data: behaviour } = await call(admin, (options) =>
 		procedures.block.create(
 			{
 				type: "behaviour",
@@ -99,7 +73,7 @@ const authorWithBot = async () => {
 			options,
 		),
 	);
-	const { data: bot } = await call((options) =>
+	const { data: bot } = await call(admin, (options) =>
 		procedures.bot.save(
 			{
 				name: `Effective bot ${crypto.randomUUID()}`,
@@ -112,7 +86,7 @@ const authorWithBot = async () => {
 	);
 
 	const saveSetup = (setup: BotSetupFields | null) =>
-		call((options) =>
+		call(admin, (options) =>
 			procedures.botSetup.save(
 				{
 					botId: bot.id,
@@ -123,7 +97,7 @@ const authorWithBot = async () => {
 		);
 	const createChat = async () =>
 		(
-			await call((options) =>
+			await call(admin, (options) =>
 				procedures.chat.create(
 					{
 						title: "Effective chat",
@@ -139,7 +113,7 @@ const authorWithBot = async () => {
 		).data;
 	const effective = async (chatId: ChatId) =>
 		(
-			await call((options) =>
+			await call(admin, (options) =>
 				procedures.chat.find(
 					{
 						id: chatId,
@@ -159,8 +133,9 @@ const authorWithBot = async () => {
 				return yield* turnSetup(chat, {
 					organizationId,
 					user: admin.user,
-					context: (yield* Effect.promise(() => procedureOptions(admin, token)))
-						.context,
+					context: (yield* Effect.promise(() =>
+						procedureOptions(admin, token()),
+					)).context,
 				});
 			}),
 		);
@@ -169,7 +144,7 @@ const authorWithBot = async () => {
 		admin,
 		procedures,
 		call,
-		options: () => procedureOptions(admin, token),
+		options: () => procedureOptions(admin, token()),
 		provider,
 		chatModel,
 		botModel,

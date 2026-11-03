@@ -4,8 +4,8 @@ import { DB, dbSchema } from "@orcai/db";
 import type { LibraryEntry } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { type Actor, TIMEOUT } from "@/lib/authz/authz-integration";
 import { libraryIntegration } from "@/lib/library/library-integration";
+import { type Actor, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, procedureOptions, organization, countingStatements } =
 	libraryIntegration();

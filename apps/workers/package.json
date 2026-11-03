@@ -6,7 +6,8 @@
 	"scripts": {
 		"build": "bun run --filter @orcai/notifications paraglide:compile && bun build.ts",
 		"dev": "bun run --filter @orcai/notifications paraglide:compile && bun --watch src/start-workers.ts",
-		"start": "bun dist/start-workers.js"
+		"start": "bun dist/start-workers.js",
+		"test": "bun test --parallel"
 	},
 	"dependencies": {
 		"@kreuzberg/node": "catalog:"

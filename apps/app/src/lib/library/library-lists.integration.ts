@@ -5,8 +5,8 @@ import { defaultRepositoryConfig, type PipelineStatus } from "@orcai/schema";
 import { createOrganization } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { type Actor, TIMEOUT } from "@/lib/authz/authz-integration";
 import { libraryIntegration } from "@/lib/library/library-integration";
+import { type Actor, TIMEOUT } from "@/lib/testing/app-integration";
 
 const {
 	run,
@@ -835,7 +835,7 @@ describe("library lists", () => {
 	test(
 		"Mine stays inside the active organisation's library",
 		async () => {
-			const { member, procedures, call, behaviour, remember } =
+			const { member, procedures, call, behaviour, observe } =
 				await organization();
 			const tag = crypto.randomUUID();
 			await behaviour(member, `Here ${tag}`);
@@ -849,7 +849,7 @@ describe("library lists", () => {
 					],
 				}),
 			);
-			remember(zedToken);
+			observe(zedToken);
 			const away = await signIn(elsewhere.id, member.user.id);
 			const { data: foreign } = await call(away, (options) =>
 				procedures.block.create(

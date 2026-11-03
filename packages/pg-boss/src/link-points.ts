@@ -8,8 +8,6 @@ import {
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
-const LINK_POINTS_LOCK_SPACE = 51830477;
-
 type Link = {
 	readonly assetId: AssetId;
 	readonly blockId: BlockId;
@@ -28,10 +26,7 @@ export const withLinkPoints = <A, E, R>(
 		Effect.gen(function* () {
 			const db = yield* DB;
 			yield* db.execute(
-				advisoryXactLock(
-					LINK_POINTS_LOCK_SPACE,
-					`${link.assetId}/${link.blockId}`,
-				),
+				advisoryXactLock("linkPoints", `${link.assetId}/${link.blockId}`),
 			);
 			return yield* body;
 		}),

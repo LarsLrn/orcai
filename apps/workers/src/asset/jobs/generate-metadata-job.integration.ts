@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
+import { beforeAll, beforeEach, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import {
 	type ActivityRunId,
@@ -9,11 +9,12 @@ import {
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import {
 	type Job,
-	PgBoss,
+	type PgBoss,
 	PgBossService,
 	queueAfterProcessing,
 	queueMetadataGeneration,
 } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
@@ -28,17 +29,12 @@ import {
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
 } from "@orcai/schema";
-import {
-	awaitLockWaiters,
-	createJobQueues,
-	IntegrationLive,
-} from "@orcai/testing";
+import { awaitLockWaiters, integrationRuntime } from "@orcai/testing";
 import { and, eq, like } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import * as Tracer from "effect/Tracer";
 import { generateMetadataBatch } from "@/asset/jobs/generate-metadata-job";
 import {
@@ -50,36 +46,14 @@ import {
 
 const TIMEOUT = 30_000;
 
-const boss = new PgBoss({
-	host: process.env.POSTGRES_HOST,
-	port: Number(process.env.POSTGRES_PORT),
-	user: process.env.POSTGRES_USER,
-	password: process.env.POSTGRES_PASSWORD,
-	database: process.env.POSTGRES_DB,
-});
-boss.on("error", () => undefined);
-
-const runtime = ManagedRuntime.make(
-	Layer.mergeAll(
-		IntegrationLive,
-		S3Live,
-		EncryptionKeyLive,
-		Layer.succeed(PgBossService, {
-			boss,
-		}),
-	),
+const runtime = integrationRuntime(
+	Layer.mergeAll(S3Live, EncryptionKeyLive, IsolatedPgBossLive()),
 );
+const run = runtime.runPromise;
 
+let boss: PgBoss;
 beforeAll(async () => {
-	await boss.start();
-	await createJobQueues(boss);
-}, TIMEOUT);
-afterAll(async () => {
-	await boss.stop({
-		graceful: false,
-		timeout: 1000,
-	});
-	await runtime.dispose();
+	boss = await run(PgBossService.useSync(({ boss }) => boss));
 });
 
 const documentAnswer = {
@@ -108,14 +82,6 @@ beforeEach(() => {
 	jsonAnswer.value = documentAnswer;
 	jsonAnswer.cutOff = false;
 });
-
-const run = <A, E>(
-	effect: Effect.Effect<
-		A,
-		E,
-		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
-	>,
-) => runtime.runPromise(effect);
 
 const storeExtraction = (
 	assetId: AssetId,

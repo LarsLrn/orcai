@@ -2,23 +2,24 @@ import { describe, expect, test } from "bun:test";
 import type { ChatId, ChatMessageId, ModelId, ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ChatConfig, ChatConfigPatch } from "@orcai/schema";
+import { rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions, outboxDelivered, readTuples } =
-	authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+const {
+	run,
+	caller,
+	organizationWith,
+	procedureOptions,
+	outboxDelivered,
+	readTuples,
+} = appIntegration();
 
 const textMessage = (text: string) => [
 	{
@@ -37,22 +38,21 @@ const members = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
+	const { call, token } = caller(zedToken);
 
 	const createChat = async (
 		actor: Actor,
 		title: string | null,
 		messages: string[] = [],
 	) => {
-		const { data: chat, meta } = await run(
+		const { data: chat } = await call(actor, (options) =>
 			procedures.chat.create(
 				{
 					title,
 				},
-				await procedureOptions(actor, token),
+				options,
 			),
 		);
-		token = meta?.zedToken ?? token;
 		const ids = await run(
 			Effect.gen(function* () {
 				if (messages.length === 0) return [];
@@ -79,24 +79,6 @@ const members = async () => {
 			chatId: chat.id,
 			messageIds: ids,
 		};
-	};
-
-	const call = async <A>(
-		actor: Actor,
-		procedure: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-	) => {
-		const result = await run(procedure(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
 	};
 
 	const list = async (actor: Actor, search?: string) =>
@@ -191,7 +173,7 @@ const members = async () => {
 					through,
 					limit: 2,
 				},
-				await procedureOptions(actor, token),
+				await procedureOptions(actor, token()),
 			),
 		);
 
@@ -461,9 +443,9 @@ describe("a chat's model and provider", () => {
 			"member",
 		]);
 		const procedures = await run(Procedures);
-		let token = zedToken;
+		const { call, token } = caller(zedToken);
 		const addProvider = async (kind: "openai-compatible" | "tavily") => {
-			const { data, meta } = await run(
+			const { data } = await call(admin, (options) =>
 				procedures.provider.create(
 					{
 						name: `${kind} ${crypto.randomUUID()}`,
@@ -474,10 +456,9 @@ describe("a chat's model and provider", () => {
 						meteringMode: kind === "tavily" ? "requests" : "tokens",
 						enabled: true,
 					},
-					await procedureOptions(admin, token),
+					options,
 				),
 			);
-			token = meta?.zedToken ?? token;
 			return data;
 		};
 		const addModel = async (providerId: ProviderId) =>
@@ -495,20 +476,19 @@ describe("a chat's model and provider", () => {
 								"tool-calling",
 							],
 						},
-						await procedureOptions(admin, token),
+						await procedureOptions(admin, token()),
 					),
 				)
 			).data;
 		const chat = async () => {
-			const { data, meta } = await run(
+			const { data } = await call(member, (options) =>
 				procedures.chat.create(
 					{
 						title: "Config",
 					},
-					await procedureOptions(member, token),
+					options,
 				),
 			);
-			token = meta?.zedToken ?? token;
 			return data;
 		};
 		const create = async (config: ChatConfig) =>
@@ -518,7 +498,7 @@ describe("a chat's model and provider", () => {
 						title: "Config",
 						config,
 					},
-					await procedureOptions(member, token),
+					await procedureOptions(member, token()),
 				),
 			);
 		const update = async (id: ChatId, config: ChatConfigPatch) =>
@@ -528,7 +508,7 @@ describe("a chat's model and provider", () => {
 						id,
 						config,
 					},
-					await procedureOptions(member, token),
+					await procedureOptions(member, token()),
 				),
 			);
 

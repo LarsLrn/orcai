@@ -6,20 +6,21 @@ import {
 	upsertPointsToQdrant,
 	writeGeneration,
 } from "@orcai/qdrant";
+import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import type { AssetPointBrowseCursor } from "@orcai/schema";
-import { testEmbeddingIndex } from "@orcai/testing";
+import { rejection } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	onEmbeddingIndex,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration();
+const { run, caller, organizationWith, procedureOptions, createAsset } =
+	appIntegration();
 
 const dimensions = 4;
 // Browsing embeds nothing, so the endpoint is never called.
@@ -28,12 +29,6 @@ const embeddingIndex = await testEmbeddingIndex({
 	model: "integration",
 	dimensions,
 });
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
 
 const repository = (assets: AssetId[]) => ({
 	type: "repository" as const,
@@ -143,19 +138,16 @@ const repositoryWith = async (count: number) => {
 		"member",
 		"member",
 	]);
-	let zedToken = organizationToken;
+	const { call, observe, token } = caller(organizationToken);
 	const assets: AssetId[] = [];
 	for (let position = 0; position < count; position++) {
 		const created = await createAsset(owner, organizationId);
 		assets.push(created.asset.id);
-		zedToken = created.zedToken ?? zedToken;
+		observe(created.zedToken);
 	}
 	const procedures = await run(Procedures);
-	const { data, meta } = await run(
-		procedures.block.create(
-			repository(assets),
-			await procedureOptions(owner, zedToken),
-		),
+	const { data } = await call(owner, (options) =>
+		procedures.block.create(repository(assets), options),
 	);
 	return {
 		owner,
@@ -163,7 +155,7 @@ const repositoryWith = async (count: number) => {
 		organizationId,
 		assets,
 		blockId: data.id,
-		zedToken: meta?.zedToken ?? zedToken,
+		zedToken: token(),
 	};
 };
 

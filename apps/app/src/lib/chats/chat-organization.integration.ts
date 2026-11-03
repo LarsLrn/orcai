@@ -1,62 +1,23 @@
 import { describe, expect, test } from "bun:test";
 import type { BotId, ChatId, ChatMessageId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createOrganization } from "@orcai/testing";
+import {
+	awaitLockWaiters,
+	createOrganization,
+	holdLock,
+	reasonOf,
+} from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { Client } from "pg";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions, signIn } = authzIntegration();
-
-const connect = async () => {
-	const client = new Client({
-		host: process.env.POSTGRES_HOST,
-		port: Number(process.env.POSTGRES_PORT),
-		user: process.env.POSTGRES_USER,
-		password: process.env.POSTGRES_PASSWORD,
-		database: process.env.POSTGRES_DB,
-	});
-	await client.connect();
-	return client;
-};
-
-/** Waits until `depth` backends queue behind `client`: 1 directly, 2 behind one that does. */
-const untilQueuedBehind = async (client: Client, depth: 1 | 2) => {
-	const deadline = Date.now() + 20_000;
-	const query =
-		depth === 1
-			? `SELECT count(*)::int AS queued FROM pg_stat_activity
-			   WHERE pg_backend_pid() = ANY(pg_blocking_pids(pid))`
-			: `SELECT count(*)::int AS queued FROM pg_stat_activity waiter
-			   WHERE EXISTS (
-			     SELECT 1 FROM pg_stat_activity blocker
-			     WHERE pg_backend_pid() = ANY(pg_blocking_pids(blocker.pid))
-			       AND blocker.pid = ANY(pg_blocking_pids(waiter.pid))
-			   )`;
-	while (
-		(
-			await client.query<{
-				queued: number;
-			}>(query)
-		).rows[0].queued === 0
-	) {
-		if (Date.now() > deadline)
-			throw new Error("Nothing queued behind the lock");
-		await new Promise((resolve) => setTimeout(resolve, 25));
-	}
-};
-
-const reasonOf = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: { reason?: string }) => error.reason,
-	);
+const { run, caller, organizationWith, procedureOptions, signIn } =
+	appIntegration();
 
 /** An admin and a member of one organisation, the member also in a second one, and their chat procedures. */
 const twoOrganizations = async () => {
@@ -80,33 +41,18 @@ const twoOrganizations = async () => {
 	);
 	const elsewhere = await signIn(other.id, member.user.id);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-
-	const options = (actor: Actor) => procedureOptions(actor, token);
-	const call = async <A>(
-		operation: Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-	) => {
-		const result = await run(operation);
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call, token } = caller(zedToken);
+	const options = (actor: Actor) => procedureOptions(actor, token());
 
 	/** A chat of `actor`'s active organisation with one question. */
 	const createChat = async (actor: Actor, botId?: BotId) => {
-		const { data: chat } = await call(
+		const { data: chat } = await call(actor, (options) =>
 			procedures.chat.create(
 				{
 					title: "Org chat",
 					botId,
 				},
-				await options(actor),
+				options,
 			),
 		);
 		const messageId = crypto.randomUUID() as ChatMessageId;
@@ -136,45 +82,45 @@ const twoOrganizations = async () => {
 
 	const find = async (actor: Actor, id: ChatId) =>
 		(
-			await call(
+			await call(actor, (options) =>
 				procedures.chat.find(
 					{
 						id,
 					},
-					await options(actor),
+					options,
 				),
 			)
 		).data;
 
 	const listed = async (actor: Actor) =>
 		(
-			await call(
+			await call(actor, (options) =>
 				procedures.chat.list(
 					{
 						pageIndex: 0,
 						pageSize: 100,
 					},
-					await options(actor),
+					options,
 				),
 			)
 		).data.map((chat) => chat.id);
 
 	const history = async (actor: Actor) =>
 		(
-			await call(
+			await call(actor, (options) =>
 				procedures.chat.history(
 					{
 						pageIndex: 0,
 						pageSize: 100,
 					},
-					await options(actor),
+					options,
 				),
 			)
 		).data;
 
 	const {
 		data: { id: blockId },
-	} = await call(
+	} = await call(member, (options) =>
 		procedures.block.create(
 			{
 				type: "behaviour",
@@ -186,7 +132,7 @@ const twoOrganizations = async () => {
 					systemPrompt: "",
 				},
 			},
-			await options(member),
+			options,
 		),
 	);
 
@@ -307,7 +253,6 @@ describe("chats belong to an organisation", () => {
 				refusals,
 				call,
 				procedures,
-				options,
 			} = await twoOrganizations();
 			const { chat, messageId } = await createChat(member);
 
@@ -318,13 +263,13 @@ describe("chats belong to an organisation", () => {
 				attach: "CHAT_ORGANIZATION_MISMATCH",
 			});
 
-			const { data: branch } = await call(
+			const { data: branch } = await call(member, (options) =>
 				procedures.chat.branch(
 					{
 						chatId: chat.id,
 						messageId,
 					},
-					await options(member),
+					options,
 				),
 			);
 			expect(branch.organizationId).toBe(home);
@@ -346,12 +291,11 @@ describe("chats belong to an organisation", () => {
 				refusals,
 				call,
 				procedures,
-				options,
 			} = await twoOrganizations();
 			const { chat, messageId } = await createChat(member);
 			expect(await history(member)).toEqual([]);
 
-			await call(
+			await call(admin, (options) =>
 				procedures.organizationMember.delete(
 					{
 						refs: [
@@ -360,7 +304,7 @@ describe("chats belong to an organisation", () => {
 							},
 						],
 					},
-					await options(admin),
+					options,
 				),
 			);
 
@@ -406,7 +350,7 @@ describe("chats belong to an organisation", () => {
 				options,
 			} = await twoOrganizations();
 			const { chat } = await createChat(member);
-			await call(
+			await call(admin, (options) =>
 				procedures.organizationMember.delete(
 					{
 						refs: [
@@ -415,7 +359,7 @@ describe("chats belong to an organisation", () => {
 							},
 						],
 					},
-					await options(admin),
+					options,
 				),
 			);
 			await run(
@@ -457,21 +401,21 @@ describe("chats belong to an organisation", () => {
 	test(
 		"deleting the bot leaves its chats read-only with the reason kept",
 		async () => {
-			const { member, createChat, find, refusals, call, procedures, options } =
+			const { member, createChat, find, refusals, call, procedures } =
 				await twoOrganizations();
-			const { data: bot } = await call(
+			const { data: bot } = await call(member, (options) =>
 				procedures.bot.save(
 					{
 						name: `Org bot ${crypto.randomUUID()}`,
 						description: "Integration bot",
 						status: "draft",
 					},
-					await options(member),
+					options,
 				),
 			);
 			const { chat, messageId } = await createChat(member, bot.id);
 
-			await call(
+			await call(member, (options) =>
 				procedures.bot.delete(
 					{
 						refs: [
@@ -480,7 +424,7 @@ describe("chats belong to an organisation", () => {
 							},
 						],
 					},
-					await options(member),
+					options,
 				),
 			);
 
@@ -505,19 +449,19 @@ describe("chats belong to an organisation", () => {
 				await twoOrganizations();
 			const saveBot = async () =>
 				(
-					await call(
+					await call(member, (options) =>
 						procedures.bot.save(
 							{
 								name: `Raced bot ${crypto.randomUUID()}`,
 								description: "Integration bot",
 								status: "draft",
 							},
-							await options(member),
+							options,
 						),
 					)
 				).data.id;
 			const deleteBot = async (id: BotId) =>
-				call(
+				call(member, (options) =>
 					procedures.bot.delete(
 						{
 							refs: [
@@ -526,50 +470,61 @@ describe("chats belong to an organisation", () => {
 								},
 							],
 						},
-						await options(member),
+						options,
 					),
 				);
-			const client = await connect();
+			// A creation in flight: the deletion waits for it, then marks its chat.
+			const first = await saveBot();
+			const inFlight = crypto.randomUUID() as ChatId;
+			const releaseCreation = await run(
+				holdLock(
+					Effect.gen(function* () {
+						yield* (yield* DB).insert(dbSchema.chat).values({
+							id: inFlight,
+							userId: member.user.id,
+							botId: first,
+							organizationId: home,
+						});
+					}),
+				),
+			);
+			const firstDeletion = deleteBot(first);
 			try {
-				// A creation in flight: the deletion waits for it, then marks its chat.
-				const first = await saveBot();
-				await client.query("BEGIN");
-				const {
-					rows: [inFlight],
-				} = await client.query<{
-					id: string;
-				}>(
-					"INSERT INTO chat (user_id, bot_id, organization_id) VALUES ($1, $2, $3) RETURNING id",
-					[
-						member.user.id,
-						first,
-						home,
-					],
-				);
-				const firstDeletion = deleteBot(first);
-				await untilQueuedBehind(client, 1);
-				await client.query("COMMIT");
-				await firstDeletion;
-				const {
-					rows: [marked],
-				} = await client.query<{
-					bot_id: string | null;
-					bot_deleted_at: Date | null;
-				}>("SELECT bot_id, bot_deleted_at FROM chat WHERE id = $1", [
-					inFlight.id,
-				]);
-				expect(marked.bot_id).toBeNull();
-				expect(marked.bot_deleted_at).not.toBeNull();
+				await run(awaitLockWaiters('%from "bot"%for update%'));
+			} finally {
+				await run(releaseCreation);
+			}
+			await firstDeletion;
+			const [marked] = await run(
+				Effect.gen(function* () {
+					return yield* (yield* DB)
+						.select()
+						.from(dbSchema.chat)
+						.where(eq(dbSchema.chat.id, inFlight));
+				}),
+			);
+			expect(marked.botId).toBeNull();
+			expect(marked.botDeletedAt).not.toBeNull();
 
-				// A deletion in flight, held at an existing chat: a new chat waits, then finds no bot.
-				const second = await saveBot();
-				const { chat: existing } = await createChat(member, second);
-				await client.query("BEGIN");
-				await client.query("SELECT id FROM chat WHERE id = $1 FOR UPDATE", [
-					existing.id,
-				]);
+			// A deletion in flight, held at an existing chat: a new chat waits, then finds no bot.
+			const second = await saveBot();
+			const { chat: existing } = await createChat(member, second);
+			const releaseChat = await run(
+				holdLock(
+					Effect.gen(function* () {
+						yield* (yield* DB)
+							.select({
+								id: dbSchema.chat.id,
+							})
+							.from(dbSchema.chat)
+							.where(eq(dbSchema.chat.id, existing.id))
+							.for("update");
+					}),
+				),
+			);
+			try {
 				const secondDeletion = deleteBot(second);
-				await untilQueuedBehind(client, 1);
+				await run(awaitLockWaiters('%"chat"%'));
 				const creation = reasonOf(
 					run(
 						procedures.chat.create(
@@ -581,13 +536,13 @@ describe("chats belong to an organisation", () => {
 						),
 					),
 				);
-				await untilQueuedBehind(client, 2);
-				await client.query("COMMIT");
+				// Queued behind the deletion, which holds the bot.
+				await run(awaitLockWaiters('%from "bot"%for key share%'));
+				await run(releaseChat);
 				await secondDeletion;
 				expect(await creation).toBe("BOT_NOT_FOUND");
 			} finally {
-				await client.query("ROLLBACK").catch(() => undefined);
-				await client.end();
+				await run(releaseChat);
 			}
 		},
 		TIMEOUT,
@@ -605,10 +560,9 @@ describe("chats belong to an organisation", () => {
 				find,
 				call,
 				procedures,
-				options,
 			} = await twoOrganizations();
 			const { chat } = await createChat(member);
-			await call(
+			await call(admin, (options) =>
 				procedures.organizationMember.delete(
 					{
 						refs: [
@@ -617,12 +571,12 @@ describe("chats belong to an organisation", () => {
 							},
 						],
 					},
-					await options(admin),
+					options,
 				),
 			);
 			expect((await find(elsewhere, chat.id)).readOnly).toBe("not-member");
 
-			const { data: invitations } = await call(
+			const { data: invitations } = await call(admin, (options) =>
 				procedures.organizationInvitation.create(
 					{
 						role: "member",
@@ -633,28 +587,28 @@ describe("chats belong to an organisation", () => {
 							},
 						],
 					},
-					await options(admin),
+					options,
 				),
 			);
-			await call(
+			await call(elsewhere, (options) =>
 				procedures.organizationInvitation.respond(
 					{
 						id: invitations[0].id,
 						response: "accept",
 					},
-					await options(elsewhere),
+					options,
 				),
 			);
 			const rejoined = await signIn(home, member.user.id);
 
 			expect((await find(rejoined, chat.id)).readOnly).toBeNull();
-			const { data: renamed } = await call(
+			const { data: renamed } = await call(rejoined, (options) =>
 				procedures.chat.update(
 					{
 						id: chat.id,
 						title: "Back again",
 					},
-					await options(rejoined),
+					options,
 				),
 			);
 			expect(renamed.title).toBe("Back again");
@@ -665,28 +619,20 @@ describe("chats belong to an organisation", () => {
 	test(
 		"revoking the bot locks its chat and sharing it again unlocks it",
 		async () => {
-			const {
-				admin,
-				member,
-				createChat,
-				find,
-				refusals,
-				call,
-				procedures,
-				options,
-			} = await twoOrganizations();
-			const { data: bot } = await call(
+			const { admin, member, createChat, find, refusals, call, procedures } =
+				await twoOrganizations();
+			const { data: bot } = await call(admin, (options) =>
 				procedures.bot.save(
 					{
 						name: `Shared bot ${crypto.randomUUID()}`,
 						description: "Integration bot",
 						status: "draft",
 					},
-					await options(admin),
+					options,
 				),
 			);
 			const grant = async () =>
-				call(
+				call(admin, (options) =>
 					procedures.resource.grant(
 						{
 							resourceType: "bot",
@@ -699,14 +645,14 @@ describe("chats belong to an organisation", () => {
 								},
 							],
 						},
-						await options(admin),
+						options,
 					),
 				);
 			await grant();
 			const { chat, messageId } = await createChat(member, bot.id);
 			expect((await find(member, chat.id)).readOnly).toBeNull();
 
-			await call(
+			await call(admin, (options) =>
 				procedures.resource.revoke(
 					{
 						resourceType: "bot",
@@ -714,7 +660,7 @@ describe("chats belong to an organisation", () => {
 						principalType: "user",
 						principalId: member.user.id,
 					},
-					await options(admin),
+					options,
 				),
 			);
 			expect((await find(member, chat.id)).readOnly).toBe("bot-unavailable");
@@ -734,17 +680,9 @@ describe("chats belong to an organisation", () => {
 	test(
 		"a locked chat shows its own settings, not the bot's live setup",
 		async () => {
-			const {
-				admin,
-				member,
-				elsewhere,
-				createChat,
-				find,
-				call,
-				procedures,
-				options,
-			} = await twoOrganizations();
-			const { data: provider } = await call(
+			const { admin, member, elsewhere, createChat, find, call, procedures } =
+				await twoOrganizations();
+			const { data: provider } = await call(admin, (options) =>
 				procedures.provider.create(
 					{
 						name: `Locked ${crypto.randomUUID()}`,
@@ -755,10 +693,10 @@ describe("chats belong to an organisation", () => {
 						meteringMode: "tokens",
 						enabled: true,
 					},
-					await options(admin),
+					options,
 				),
 			);
-			const { data: model } = await call(
+			const { data: model } = await call(admin, (options) =>
 				procedures.model.create(
 					{
 						providerId: provider.id,
@@ -771,21 +709,21 @@ describe("chats belong to an organisation", () => {
 							"tool-calling",
 						],
 					},
-					await options(admin),
+					options,
 				),
 			);
-			const { data: bot } = await call(
+			const { data: bot } = await call(admin, (options) =>
 				procedures.bot.save(
 					{
 						name: `Required bot ${crypto.randomUUID()}`,
 						description: "Integration bot",
 						status: "draft",
 					},
-					await options(admin),
+					options,
 				),
 			);
 			const grant = async () =>
-				call(
+				call(admin, (options) =>
 					procedures.resource.grant(
 						{
 							resourceType: "bot",
@@ -798,11 +736,11 @@ describe("chats belong to an organisation", () => {
 								},
 							],
 						},
-						await options(admin),
+						options,
 					),
 				);
 			const requireModel = async (temperature: number) =>
-				call(
+				call(admin, (options) =>
 					procedures.botSetup.save(
 						{
 							botId: bot.id,
@@ -814,7 +752,7 @@ describe("chats belong to an organisation", () => {
 								},
 							},
 						},
-						await options(admin),
+						options,
 					),
 				);
 			await grant();
@@ -836,7 +774,7 @@ describe("chats belong to an organisation", () => {
 				source: "chat",
 				botSetup: null,
 			};
-			await call(
+			await call(admin, (options) =>
 				procedures.resource.revoke(
 					{
 						resourceType: "bot",
@@ -844,7 +782,7 @@ describe("chats belong to an organisation", () => {
 						principalType: "user",
 						principalId: member.user.id,
 					},
-					await options(admin),
+					options,
 				),
 			);
 			expect((await find(member, chat.id)).effectiveModel).toMatchObject(
@@ -852,7 +790,7 @@ describe("chats belong to an organisation", () => {
 			);
 
 			await grant();
-			await call(
+			await call(admin, (options) =>
 				procedures.organizationMember.delete(
 					{
 						refs: [
@@ -861,7 +799,7 @@ describe("chats belong to an organisation", () => {
 							},
 						],
 					},
-					await options(admin),
+					options,
 				),
 			);
 			expect((await find(elsewhere, chat.id)).effectiveModel).toMatchObject(
