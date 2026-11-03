@@ -5,22 +5,18 @@ import {
 	DrizzleLive,
 	makePgConnectionString,
 } from "@orcai/db";
-import { JOB_QUEUE_POLICIES, jobQueues } from "@orcai/schema";
+import { jobQueues } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { type ConstructorOptions, PgBoss } from "pg-boss";
+import { ensureQueues } from "../src/queues";
 import { PgBossService } from "../src/service";
 
-/** The schema `IsolatedPgBossLive` keeps its jobs in, for a test that reads them in SQL. */
-export class PgBossSchema extends Context.Service<PgBossSchema, string>()(
-	"PgBossSchema",
-) {}
-
 /**
- * pg-boss in a schema of its own with every queue the workers create, so no
+ * pg-boss in a schema of its own with every queue of the queue table, so no
  * other test file sees or wakes its jobs. Errors are logged, as in
  * production. The schema goes when the scope closes.
  */
@@ -70,16 +66,15 @@ export const IsolatedPgBossLive = (
 					),
 				),
 			);
-			yield* Effect.promise(async () => {
-				await boss.start();
-				for (const name of jobQueues.options) {
-					await boss.createQueue(name, {
-						policy: JOB_QUEUE_POLICIES[name],
-					});
-				}
-			});
-			return Context.make(PgBossService, {
+			yield* Effect.promise(() => boss.start());
+			const service = Context.make(PgBossService, {
 				boss,
-			}).pipe(Context.add(PgBossSchema, schema));
+				schema,
+			});
+			yield* ensureQueues(jobQueues.options).pipe(
+				Effect.provide(service),
+				Effect.orDie,
+			);
+			return service;
 		}),
 	).pipe(Layer.provide(Layer.mergeAll(DbConfigLive, DrizzleLive)));

@@ -1,7 +1,7 @@
 import { buckets } from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
-import { queueAfterProcessing, toPgBossRunError } from "@orcai/pg-boss";
+import { queueAfterProcessing } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
 	createImageOnlyStoredExtractionArtifact,
@@ -15,11 +15,7 @@ import {
 	deletePrefixRecursively,
 	sendPutObjectCommand,
 } from "@orcai/s3/server";
-import {
-	isImageFileType,
-	PROCESS_ASSET_JOB_NAME,
-	type ProcessAssetPayload,
-} from "@orcai/schema";
+import { isImageFileType, type ProcessAssetPayload } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { describeImages, imageMediaType } from "@/asset/image-descriptions";
 import {
@@ -35,33 +31,17 @@ import { validateImageResolution } from "@/asset/utils/validate-image-resolution
 const getAssetObjectKey = (assetRef: ProcessAssetPayload["assetRef"]) =>
 	`${assetRef.prefix}/${assetRef.id}.${assetRef.type}`;
 
-const getRequiredMimeType = (params: {
-	fileType: ProcessAssetPayload["assetRef"]["type"];
-	jobId: string;
-}) =>
-	Effect.fromNullishOr(getMimeTypeFromFileType(params.fileType)).pipe(
+const getRequiredMimeType = (
+	fileType: ProcessAssetPayload["assetRef"]["type"],
+) =>
+	Effect.fromNullishOr(getMimeTypeFromFileType(fileType)).pipe(
 		Effect.mapError(
 			() =>
 				new AssetPipelineError({
 					failure: "unsupported",
-					cause: toPgBossRunError(
-						params.jobId,
-						PROCESS_ASSET_JOB_NAME,
-					)(new Error(`Unsupported asset file type: ${params.fileType}`)),
+					cause: new Error(`Unsupported asset file type: ${fileType}`),
 				}),
 		),
-	);
-
-export const processAssetBatch = (jobs: Job<ProcessAssetPayload>[]) =>
-	Effect.forEach(
-		jobs,
-		(job) =>
-			processAssets({
-				job,
-			}),
-		{
-			discard: true,
-		},
 	);
 
 const createDocumentArtifact = (params: {
@@ -113,22 +93,7 @@ const createDocumentArtifact = (params: {
 						key,
 						body: Buffer.from(image.data),
 						contentType: imageMediaType(image.format),
-					}).pipe(
-						Effect.mapError(
-							toPgBossRunError(params.jobId, PROCESS_ASSET_JOB_NAME),
-						),
-						Effect.tapError((err) =>
-							Effect.logError(
-								{
-									err,
-									jobId: params.jobId,
-									assetId: params.assetId,
-									imageIndex: image.imageIndex,
-								},
-								"Error uploading extracted image",
-							),
-						),
-					);
+					});
 
 					storedImagePaths.set(image.imageIndex, key);
 				}),
@@ -192,20 +157,20 @@ const completeAndQueueIndexing = (attempt: ProcessingAttempt) =>
 		);
 	});
 
-const processAssets = (params: { job: Job<ProcessAssetPayload> }) =>
+export const processAsset = (job: Job<ProcessAssetPayload>) =>
 	Effect.gen(function* () {
-		const attempt = processingAttempt(params.job.data);
+		const attempt = processingAttempt(job.data);
 		if (!(yield* claimProcessing(attempt))) {
 			return yield* Effect.logInfo(
 				{
-					jobId: params.job.id,
+					jobId: job.id,
 					assetId: attempt.assetId,
 				},
 				"Skipping a processing delivery that is done or replaced",
 			);
 		}
 		yield* processDelivery({
-			job: params.job,
+			job,
 			attempt,
 		});
 	});
@@ -222,10 +187,7 @@ const processDelivery = (params: {
 			prefix: `${assetRef.id}/`,
 		});
 
-		const mimeType = yield* getRequiredMimeType({
-			fileType: assetRef.type,
-			jobId: params.job.id,
-		});
+		const mimeType = yield* getRequiredMimeType(assetRef.type);
 		const objectKey = getAssetObjectKey(assetRef);
 		const imageAsset = isImageFileType(assetRef.type);
 		const extracted = imageAsset
@@ -251,23 +213,8 @@ const processDelivery = (params: {
 						(cause) =>
 							new AssetPipelineError({
 								failure: "extraction",
-								cause: toPgBossRunError(
-									params.job.id,
-									PROCESS_ASSET_JOB_NAME,
-								)(cause),
+								cause,
 							}),
-					),
-					Effect.tapError((err) =>
-						Effect.logError(
-							{
-								err,
-								jobId: params.job.id,
-								assetId: assetRef.id,
-								fileType: assetRef.type,
-								mimeType,
-							},
-							"Error extracting asset with Kreuzberg",
-						),
 					),
 					Effect.flatMap((result) =>
 						createDocumentArtifact({
@@ -292,19 +239,7 @@ const processDelivery = (params: {
 			imageAsset,
 		});
 
-		yield* writeStoredExtraction(assetRef.id, artifact).pipe(
-			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
-			Effect.tapError((err) =>
-				Effect.logError(
-					{
-						err,
-						jobId: params.job.id,
-						assetId: assetRef.id,
-					},
-					"Error uploading extraction artifact",
-				),
-			),
-		);
+		yield* writeStoredExtraction(assetRef.id, artifact);
 
 		if (!(yield* completeAndQueueIndexing(params.attempt))) {
 			return yield* Effect.logInfo(
@@ -325,18 +260,4 @@ const processDelivery = (params: {
 			},
 			"Completed asset processing",
 		);
-	}).pipe(
-		Effect.tapError((err) =>
-			Effect.logError(
-				{
-					err,
-					jobId: params.job.id,
-					assetId: params.attempt.assetId,
-					fileType: params.job.data.assetRef.type,
-					stage: "processing",
-				},
-				"Process asset job failed",
-			),
-		),
-		(run) => settleProcessingAttempt(params.attempt, run),
-	);
+	}).pipe((run) => settleProcessingAttempt(params.attempt, run));

@@ -40,7 +40,7 @@ import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
-import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
+import { vectorizeAsset } from "@/asset/jobs/vectorize-asset-job";
 import { markIndexingExhausted } from "@/asset/pipeline-attempt";
 
 const TIMEOUT = 30_000;
@@ -263,12 +263,7 @@ const admit = async (link: { assetId: AssetId; blockId: BlockId }) => {
 	} as Job<Required<VectorizeAssetPayload>>;
 };
 
-const vectorize = (job: Job<VectorizeAssetPayload>) =>
-	run(
-		vectorizeAssetBatch([
-			job,
-		]),
-	);
+const vectorize = (job: Job<VectorizeAssetPayload>) => run(vectorizeAsset(job));
 
 /** Runs `jobs` until each asks for embeddings, which wait for the test to settle them in order. */
 const held = async (...jobs: Job<VectorizeAssetPayload>[]) => {
@@ -605,15 +600,13 @@ test(
 		const late = await held(job);
 
 		await run(
-			markIndexingExhausted([
-				{
-					id: crypto.randomUUID(),
-					data: job.data,
-					sourceOutput: {
-						message: "job heartbeat timeout",
-					},
-				} as JobWithMetadata<VectorizeAssetPayload>,
-			]),
+			markIndexingExhausted({
+				id: crypto.randomUUID(),
+				data: job.data,
+				sourceOutput: {
+					message: "job heartbeat timeout",
+				},
+			} as JobWithMetadata<VectorizeAssetPayload>),
 		);
 		late.settle(0, true);
 		await late.done();
@@ -879,15 +872,13 @@ test(
 		await publish.reached;
 
 		const cleanup = run(
-			markIndexingExhausted([
-				{
-					id: crypto.randomUUID(),
-					data: older.data,
-					sourceOutput: {
-						message: "job heartbeat timeout",
-					},
-				} as JobWithMetadata<VectorizeAssetPayload>,
-			]),
+			markIndexingExhausted({
+				id: crypto.randomUUID(),
+				data: older.data,
+				sourceOutput: {
+					message: "job heartbeat timeout",
+				},
+			} as JobWithMetadata<VectorizeAssetPayload>),
 		);
 		await waitingForLinkLock();
 		expect(await servedOf(link)).toEqual([

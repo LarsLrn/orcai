@@ -15,8 +15,12 @@ export class PgBossService extends Context.Service<
 	PgBossService,
 	{
 		readonly boss: PgBoss;
+		/** The Postgres schema pg-boss keeps its tables in. */
+		readonly schema: string;
 	}
 >()("PgBossService") {}
+
+const SCHEMA = "pgboss";
 
 /** `instanceName` tells this process apart in pg-boss's instance registry. */
 const pgBossServiceLayer = (options: {
@@ -38,6 +42,7 @@ const pgBossServiceLayer = (options: {
 							connectionString: Redacted.value(url),
 							max: config.postgres.poolMax,
 							instanceName: options.instanceName,
+							schema: SCHEMA,
 							// Jobs carry the trace context only, never baggage.
 							openTelemetry: {
 								propagateContext: true,
@@ -62,6 +67,7 @@ const pgBossServiceLayer = (options: {
 				yield* Effect.logInfo("PgBoss service started successfully");
 				return {
 					boss,
+					schema: SCHEMA,
 				};
 			}),
 			({ boss }) =>

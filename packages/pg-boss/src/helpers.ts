@@ -28,9 +28,6 @@ type JobBatch<T> = {
 	jobs: Array<{
 		data: T;
 		options?: {
-			priority?: number;
-			retryLimit?: number;
-			retryDelay?: number;
 			/** Seconds before the job may run. */
 			startAfter?: number;
 		};
@@ -50,9 +47,6 @@ const insertJobs = <T extends object>(
 					params.jobName,
 					params.jobs.map((job) => ({
 						data: job.data,
-						priority: job.options?.priority,
-						retryLimit: job.options?.retryLimit ?? 3,
-						retryDelay: job.options?.retryDelay ?? 60,
 						startAfter: job.options?.startAfter,
 					})),
 					options,
@@ -65,6 +59,30 @@ const insertJobs = <T extends object>(
 				}),
 		});
 	});
+
+/** The payloads of the queues' jobs that wait, wait to retry or run. */
+export const liveJobs = <T>(queues: readonly JobQueue[]) =>
+	Effect.gen(function* () {
+		const { schema } = yield* PgBossService;
+		const sql = yield* PgClient.PgClient;
+		return yield* sql.unsafe<{
+			name: JobQueue;
+			data: T;
+		}>(
+			`SELECT name, data FROM ${schema}.job WHERE name = ANY($1) AND state < 'completed'`,
+			[
+				queues,
+			],
+		);
+	}).pipe(
+		Effect.mapError(
+			(cause) =>
+				new PgBossError({
+					operation: "query",
+					cause,
+				}),
+		),
+	);
 
 /**
  * Send multiple jobs in batch.

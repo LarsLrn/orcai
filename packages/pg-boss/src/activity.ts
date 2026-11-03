@@ -176,6 +176,26 @@ export const settleStage = (
 			);
 	});
 
+/** The run whose member waits on the target's stage, if any. */
+export const waitingRun = (target: StageTarget) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { activityMember } = dbSchema;
+		const [member] = yield* db
+			.select({
+				runId: activityMember.runId,
+			})
+			.from(activityMember)
+			.where(
+				and(
+					memberOf(target),
+					eq(activityMember[memberColumns[target.stage].state], "pending"),
+				),
+			)
+			.limit(1);
+		return member?.runId;
+	});
+
 /** The repository the run's member for the asset is bound to, if any. */
 export const boundRepository = (
 	runId: ActivityRunId | undefined,

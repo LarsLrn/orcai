@@ -79,7 +79,7 @@ are outside the suite.
 
 Only `--pipeline` runs the background workers, polling every half second (in
 place of the docs site), and only the specs in `apps/e2e/tests/pipeline/`;
-every other run has no pg-boss
+every other run has no preparation
 queues, so queueing fails and uploads end up failed, which other specs rely
 on. Put a spec that needs a document processed, indexed, or searched there,
 with txt or md content; the mock serves the embeddings. A pipeline run leaves

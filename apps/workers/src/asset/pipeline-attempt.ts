@@ -68,7 +68,7 @@ export const indexingAttempt = (
 	fromStoredExtraction: data.fromStoredExtraction ?? false,
 });
 
-const unfinished = (status: Column) =>
+export const unfinished = (status: Column) =>
 	inArray(status, [
 		"pending",
 		"active",
@@ -357,39 +357,43 @@ const markExhausted = (target: Target, job: JobWithMetadata<unknown>) =>
 		failure: timedOut(job) ? "timeout" : "recorded",
 	});
 
+const stranded: Write = {
+	status: "failed",
+	failure: "recorded",
+};
+
 /** Dead letter handler: processing ran out of retries. */
 export const markProcessingExhausted = (
-	jobs: JobWithMetadata<ProcessAssetPayload>[],
-) =>
-	Effect.forEach(
-		jobs,
-		(job) => markExhausted(processingTarget(processingAttempt(job.data)), job),
-		{
-			discard: true,
-		},
-	);
+	job: JobWithMetadata<ProcessAssetPayload>,
+) => markExhausted(processingTarget(processingAttempt(job.data)), job);
 
 /** Dead letter handler: indexing in one repository ran out of retries. */
 export const markIndexingExhausted = (
-	jobs: JobWithMetadata<VectorizeAssetPayload>[],
-) =>
-	Effect.forEach(
-		jobs,
-		(job) => {
-			const attempt = indexingAttempt(job.data);
-			return markExhausted(indexingTarget(attempt), job).pipe(
-				Effect.andThen(reconcileLinkPoints(attempt)),
-			);
-		},
-		{
-			discard: true,
-		},
+	job: JobWithMetadata<VectorizeAssetPayload>,
+) => {
+	const attempt = indexingAttempt(job.data);
+	return markExhausted(indexingTarget(attempt), job).pipe(
+		Effect.andThen(reconcileLinkPoints(attempt)),
 	);
+};
 
 /** Dead letter handler: a metadata generation ran out of retries. */
 export const markMetadataExhausted = (
-	jobs: JobWithMetadata<GenerateAssetMetadataPayload>[],
-) =>
-	Effect.forEach(jobs, (job) => markExhausted(metadataTarget(job.data), job), {
-		discard: true,
-	});
+	job: JobWithMetadata<GenerateAssetMetadataPayload>,
+) => markExhausted(metadataTarget(job.data), job);
+
+/** The sweep: processing no job will deliver again failed with its recorded kind. */
+export const failStrandedProcessing = (attempt: ProcessingAttempt) =>
+	processingTarget(attempt)(stranded);
+
+/** The sweep: indexing no job will deliver again failed with its recorded kind. */
+export const failStrandedIndexing = (attempt: IndexingAttempt) =>
+	indexingTarget(attempt)(stranded).pipe(
+		Effect.tap((failed) =>
+			failed ? reconcileLinkPoints(attempt) : Effect.void,
+		),
+	);
+
+/** The sweep: metadata no job will deliver again failed with its recorded kind. */
+export const failStrandedMetadata = (attempt: MetadataAttempt) =>
+	metadataTarget(attempt)(stranded);
