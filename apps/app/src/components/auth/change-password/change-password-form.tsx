@@ -43,6 +43,7 @@ const ChangePasswordForm = () => {
 					<field.PasswordField
 						label={m.auth_change_password_form_new_password_label()}
 						placeholder={m.auth_change_password_form_new_password_placeholder()}
+						showLimits
 						width="medium"
 					/>
 				)}

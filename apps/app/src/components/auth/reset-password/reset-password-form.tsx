@@ -27,7 +27,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
 					<field.PasswordField
 						label={m.auth_reset_password_form_new_password_label()}
 						placeholder={m.auth_reset_password_form_new_password_placeholder()}
-						showStrength
+						showLimits
 					/>
 				)}
 			/>
