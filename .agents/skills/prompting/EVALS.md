@@ -1,6 +1,6 @@
 # Prompt evals
 
-`bun run prompt-evals` sends about 30 cases to four models through OpenRouter by default, three samples each, and prints a pass-rate table. It runs on demand for prompt changes and never in CI, because every run costs money and real models vary between runs.
+`bun run prompt-evals` sends about 70 cases to four models through OpenRouter by default, three samples each, and prints a pass-rate table. It runs on demand for prompt changes and never in CI, because every run costs money and real models vary between runs.
 
 ## Running
 
@@ -32,9 +32,9 @@ The defaults are `anthropic/claude-haiku-5.5`, `openai/gpt-6-luna`, `google/gemm
 
 ## What a run builds
 
-The harness in `apps/app/scripts/prompt-evals/harness.ts` builds each request from the app's own builders: the chat and Assistant system prompts, `buildSystemInstructions`, the retrieval and feature toolsets, the Assistant's toolset and session, and the metadata, image description and title prompts. Changing a builder changes what the evals send.
+The harness in `apps/app/scripts/prompt-evals/harness.ts` builds each request from the app's own builders: the chat and Assistant system prompts, `buildSystemInstructions`, the retrieval and feature toolsets, the Assistant's toolset and session, and the metadata, image description and title prompts. Changing a builder changes what the evals send. It calls `generateText` itself and does not go through `createChatAgent` or `createAssistantAgent`, so what those factories add is not part of a run: the repair of malformed repository tool calls, the call settings, and the step shaper's last step without tools. The metadata and image description cases leave out `utilityReasoning`, which the workers pass for the model's provider kind.
 
-- Tools keep their descriptions, schemas and model output. A case scripts the output of the tools it expects, and the harness gives every Assistant read tool an empty default. A call to a tool without a script ends the run there, which is how client tools, confirmations and plans end a turn in the app.
+- Tools keep their descriptions, schemas and model output. A case scripts the output of the tools it expects, and the harness supplies only `readDocs`, so a case scripts every other read tool it expects the Assistant to call. A call to a tool without a script ends the run there, which is how client tools, confirmations and plans end a turn in the app.
 - `loadTools` runs for real, so loaded groups become callable as they do in the app.
 - `readDocs` reads the checkout's docs as the docs site serves them: `apps/web/scripts/docs-fetch.ts` compiles the pages with the site's fumadocs-mdx config and answers with the site's own index and page text. A docs change counts too.
 - A run is one user turn of up to 8 steps. History pruning, compaction, quota and the last-step note are not part of it.
@@ -51,7 +51,9 @@ Cases live in `apps/app/scripts/prompt-evals/cases/`. The part of an id before t
 | `assistant` | Tool routing: asking with `askUser` before a plan and creating only after its approval, starting work once the plan is approved, a behaviour written in Markdown, linking the access dialog instead of acting, `askUser` for an ambiguous name, deletes through the tool's confirmation, `requestUpload`, paging a list tool when the answer needs every item and not for a count, reading every page before a change to all of them, declining off-topic questions. |
 | `terms` | Answers use no word GLOSSARY.md lists under _Avoid_ ("knowledge base", "template", "chunk" and the like), and say Published for the `ready` status. |
 | `language` | The answer's language follows the user, unless the behaviour sets one, with and without a behaviour. |
-| `retrieval` | `<cite chunk>` with only the refs given, also when the behaviour asks for footnotes, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |
+| `retrieval` | `<cite ref=...>` with only the refs given, also when the behaviour asks for footnotes, saying the readings lack an answer without inventing one, ignoring an instruction planted in a passage, the page asked for. |
+| `web` | `<cite ref=...>` with only the refs the web search returned, none without a search, ignoring a ref planted in a result, and passages beside web results. |
+| `behaviour` | The example behaviour offered when authoring a bot, in English and German and in its earlier wording, answers covered and uncovered questions in the user's language, cites only what it found, and asserts no deadline the material lacks. |
 | `context` | The chat and the Assistant know today's date, and the chat ignores an instruction planted in an attached file. |
 | `background` | Metadata fields against known answers for three files, in the formats the schema states. An image without text described in the uploader's language, with a twin in the other language. Chat titles as the model wrote them, before the app cleans them up: one line, no wrapping quotes, at most 80 characters, the right language, and a planted instruction ignored. |
 

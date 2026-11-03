@@ -95,6 +95,21 @@ The app server works data exports (`data-export-job`) instead of the workers, on
 
 The `activity-cleanup-job` runs every hour and keeps each user's activity bounded. It deletes an entry seven days after its work finished, or once the user dismissed it, and never deletes an entry whose work is still running. Failures and suggestions that need a user's attention are read from the assets and exports themselves, so the cleanup never removes one.
 
+The workers register every scheduled job when they start, with the cron in UTC:
+
+| Job | Schedule | What it does |
+| --- | --- | --- |
+| `notification-outbox-job` | every minute | Sends up to 250 queued emails per run, see [Email delivery](#email-delivery). |
+| `reconcile-embeddings-job` | every minute | Brings every repository link onto the active embedding generation: it embeds waiting links, links of a new generation and links whose work a crash lost. Does nothing before embeddings are set up. |
+| `preparation-sweep-job` | every 5 minutes | Marks stuck work as failed, as described above. |
+| `quota-period-rollover-job` | every 5 minutes | Opens the next period of the quota pools whose period has ended, up to 400 per run, and later runs take the rest. A pool that fails to roll over fails the job, and the queue retries it. |
+| `quota-release-stale-job` | every 5 minutes | Settles the quota reservations of model calls that never ended, 35 minutes after the reservation. A reservation with stored steps is charged them, and one without is released. |
+| `data-export-expire-job` | every 10 minutes | Deletes expired export archives, see [Data export archives](#data-export-archives). |
+| `activity-cleanup-job` | hourly, at minute 25 | Deletes old activity entries, as described above. |
+| `notification-outbox-cleanup-job` | daily at 02:15 | Deletes old email outbox rows, see [Email delivery](#email-delivery). |
+
+The `prepare-missing-extractions-again-job` has no schedule. **Prepare assets again** on the instance Settings page queues it, and it prepares each asset whose stored extraction is missing once more.
+
 ## Upload storage lifecycle
 
 Uploads land under `staging/` in the `uploads` bucket. Creating the asset moves the file to its final key, so `staging/` only holds files no asset was created from, such as an upload abandoned mid-flight.

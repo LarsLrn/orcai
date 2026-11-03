@@ -101,7 +101,7 @@ Notes:
 
 ### End-to-end tests
 
-The end-to-end suite is Playwright Test on the host, Chromium only, in the `apps/e2e` workspace package. It runs against this worktree's stack and resets that stack's data before a full run, so a run wipes the worktree's database, object storage, vector collections, authorisation relationships, and cache.
+The end-to-end suite is Playwright Test on the host, Chromium only, in the `apps/e2e` workspace package. It runs against this worktree's stack and resets that stack's data before a full run, so a run wipes the worktree's database, object storage, vector collections, and authorisation relationships.
 
 ```bash
 bun run stack e2e                              # reset, then the whole suite
@@ -230,9 +230,10 @@ Stack flags before `--` are validated; delegated flags belong after `--`.
 Runtime configuration is loaded across app and package config modules. Every value comes from the container environment and applies on restart, so one image serves any deployment; build args only carry image identity.
 
 - [apps/app/src/lib/effect/services/config.ts](apps/app/src/lib/effect/services/config.ts)
-- [packages/ai/src/config.ts](packages/ai/src/config.ts)
+- [packages/ai/src/provider-key.ts](packages/ai/src/provider-key.ts)
 - [packages/db/src/config.ts](packages/db/src/config.ts)
 - [packages/notifications/src/config.ts](packages/notifications/src/config.ts)
+- [packages/observability/src/config.ts](packages/observability/src/config.ts)
 - [packages/qdrant/src/config.ts](packages/qdrant/src/config.ts)
 - [packages/s3/src/server/config.ts](packages/s3/src/server/config.ts)
 - [packages/spice-db/src/config.ts](packages/spice-db/src/config.ts)
@@ -306,7 +307,7 @@ See [.env.example](.env.example) for a current baseline.
 - `bun run workers:dev`: start worker process directly on the host
 - `bun run workers:start`: run the worker bundle from `apps/workers/dist`
 - `bun run lint`: run Biome, TypeScript checks, and the migration check. Biome also fails a module in `apps/app/src/lib` that imports from `components`, `hooks` or `routes`
-- `bun run ci`: run the same lint, migration check, test, docs type-check, and build suite used by GitHub Actions
+- `bun run ci`: run the same lint, migration check, ESLint, test, docs type-check, and build suite used by GitHub Actions
 - `bun run prompt-evals`: run the prompt evals against real models through OpenRouter, on demand for prompt changes (see `.agents/skills/prompting/EVALS.md`)
 - `bun run stack migrate`: apply SQL migrations and the SpiceDB schema
 - `bun run stack exec -- bun run --filter @orcai/db generate`: generate a new Drizzle migration
