@@ -25,10 +25,9 @@ class RelationshipFacts extends Context.Service<
 export const recordRelationshipFacts = (...facts: RelationshipFact[]) =>
 	RelationshipFacts.use((collector) => collector.record(facts));
 
-const ORGANIZATION_LOCK_SPACE = 72370906;
-
-const lockOrganization = (organizationId: OrganizationId) =>
-	advisoryXactLock(ORGANIZATION_LOCK_SPACE, organizationId);
+/** Organization `organizationId`'s write lock, which every writer in it takes first. */
+export const lockOrganization = (organizationId: OrganizationId) =>
+	advisoryXactLock("organizationWrites", organizationId);
 
 class ScopeGrew extends Data.TaggedError("ScopeGrew")<{
 	readonly organizationIds: readonly OrganizationId[];

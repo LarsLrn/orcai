@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId } from "@orcai/core";
 import type { NamedResource } from "@orcai/schema";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration();
+	appIntegration();
 
 describe("resource.findMany", () => {
 	test(

@@ -1,22 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { DB, dbSchema } from "@orcai/db";
+import { rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, signIn, instanceAdmin } =
-	authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	appIntegration();
 
 /** What Better Auth leaves behind for an enrolled user with a passkey who trusted a device. */
 const enrol = (actor: Actor) =>

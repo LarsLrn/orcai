@@ -1,12 +1,8 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { beforeAll, expect, test } from "bun:test";
 import { type ActivityRunId, type AssetId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import {
-	admitStage,
-	PgBoss,
-	PgBossService,
-	sendJobBatchInTransaction,
-} from "@orcai/pg-boss";
+import { admitStage, type PgBoss, PgBossService } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,
@@ -15,23 +11,20 @@ import {
 } from "@orcai/process";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
-	type JobQueue,
 	type PipelineStatus,
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
 } from "@orcai/schema";
 import {
 	awaitLockWaiters,
-	createJobQueues,
 	createUser,
-	IntegrationLive,
+	integrationRuntime,
 } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import { describedExtraction } from "@/asset/described-extraction";
 import {
 	AssetPipelineError,
@@ -43,47 +36,15 @@ import {
 
 const TIMEOUT = 30_000;
 
-const boss = new PgBoss({
-	host: process.env.POSTGRES_HOST,
-	port: Number(process.env.POSTGRES_PORT),
-	user: process.env.POSTGRES_USER,
-	password: process.env.POSTGRES_PASSWORD,
-	database: process.env.POSTGRES_DB,
-});
-boss.on("error", () => undefined);
-
-const runtime = ManagedRuntime.make(
-	Layer.mergeAll(
-		IntegrationLive,
-		S3Live,
-		Layer.succeed(PgBossService, {
-			boss,
-		}),
-	),
+const runtime = integrationRuntime(
+	Layer.mergeAll(S3Live, IsolatedPgBossLive()),
 );
+const run = runtime.runPromise;
 
-const TEST_QUEUE = `test-described-extraction-${crypto.randomUUID()}`;
-
+let boss: PgBoss;
 beforeAll(async () => {
-	await boss.start();
-	await createJobQueues(boss);
-	await boss.createQueue(TEST_QUEUE);
-}, TIMEOUT);
-afterAll(async () => {
-	await boss.stop({
-		graceful: false,
-		timeout: 1000,
-	});
-	await runtime.dispose();
+	boss = await run(PgBossService.useSync(({ boss }) => boss));
 });
-
-const run = <A, E>(
-	effect: Effect.Effect<
-		A,
-		E,
-		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
-	>,
-) => runtime.runPromise(effect);
 
 const olderExtraction = (prefix: string, assetId: AssetId) =>
 	createImageOnlyStoredExtractionArtifact({
@@ -366,47 +327,6 @@ test(
 				"pending",
 			],
 		});
-	},
-	TIMEOUT,
-);
-
-test(
-	"a job sent in a transaction is queued only if it commits",
-	async () => {
-		const send = (marker: string, outcome: Effect.Effect<void, string>) =>
-			run(
-				Effect.gen(function* () {
-					const db = yield* DB;
-					yield* db.transaction(() =>
-						sendJobBatchInTransaction({
-							jobName: TEST_QUEUE as JobQueue,
-							jobs: [
-								{
-									data: {
-										marker,
-									},
-								},
-							],
-						}).pipe(Effect.andThen(outcome)),
-					);
-				}).pipe(Effect.ignore),
-			);
-		const queuedWith = async (marker: string) =>
-			(
-				await boss.findJobs(TEST_QUEUE, {
-					data: {
-						marker,
-					},
-				})
-			).length;
-		const committed = crypto.randomUUID();
-		const rolledBack = crypto.randomUUID();
-
-		await send(committed, Effect.void);
-		await send(rolledBack, Effect.fail("crash after the send"));
-
-		expect(await queuedWith(committed)).toBe(1);
-		expect(await queuedWith(rolledBack)).toBe(0);
 	},
 	TIMEOUT,
 );

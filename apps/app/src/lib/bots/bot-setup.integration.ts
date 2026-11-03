@@ -2,22 +2,13 @@ import { describe, expect, test } from "bun:test";
 import type { BotId, GroupId, ModelId, ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ModelCapability } from "@orcai/schema";
-import { createOrganization } from "@orcai/testing";
+import { createOrganization, reasonOf } from "@orcai/testing";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions, signIn } = authzIntegration();
-
-const reasonOf = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: { reason?: string }) => error.reason,
-	);
+const { run, caller, organizationWith, procedureOptions, signIn } =
+	appIntegration();
 
 /**
  * An organisation whose admin owns a bot shared with a custom group, All
@@ -34,24 +25,7 @@ const organizationWithBot = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const call = async <A>(
-		actor: Actor,
-		operation: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-	) => {
-		const result = await run(operation(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call } = caller(zedToken);
 
 	const [allMembers] = await run(
 		Effect.gen(function* () {

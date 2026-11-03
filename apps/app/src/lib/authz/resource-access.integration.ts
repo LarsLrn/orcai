@@ -2,14 +2,9 @@ import { describe, expect, test } from "bun:test";
 import type { BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ResourceGrantRole } from "@orcai/schema";
+import { rejection } from "@orcai/testing";
 import { and, eq, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	queueBehindOrganizationLock,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
 import {
 	deleteAccounts,
@@ -22,6 +17,11 @@ import {
 } from "@/lib/authz/resource-access";
 import { setListing } from "@/lib/catalogue/listing";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
 const {
 	run,
@@ -31,24 +31,17 @@ const {
 	outboxDelivered,
 	readTuples,
 	instanceAdmin,
-} = authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	queueBehindOrganizationLock,
+	caller,
+} = appIntegration();
 
 /** The newest zedToken a write here returned; the lib checks the actor's authority at it. */
-let latestToken: string | undefined;
-const remember = (zedToken: string | undefined) => {
-	latestToken = zedToken ?? latestToken;
-};
+const { observe, token } = caller();
 
 const actorOf = (actor: Actor) => ({
 	kind: "member" as const,
 	userId: actor.user.id,
-	zedToken: latestToken,
+	zedToken: token(),
 });
 
 const block = (blockId: BlockId) => ({
@@ -96,7 +89,7 @@ const grant = (
 			actor: actorOf(owner),
 		}),
 	).then((granted) => {
-		remember(granted.zedToken);
+		observe(granted.zedToken);
 		return granted;
 	});
 
@@ -168,7 +161,7 @@ const ownedBlock = async (roles: readonly ("admin" | "member")[]) => {
 	]);
 	const [owner, ...others] = actors;
 	const { blockId, zedToken: created } = await createBlock(owner, zedToken);
-	remember(created);
+	observe(created);
 	return {
 		organizationId,
 		owner,
@@ -585,7 +578,7 @@ const blockInTwoOrganizations = async () => {
 	} = await organizationWith([
 		"admin",
 	]);
-	remember(zedToken);
+	observe(zedToken);
 	const [sharer] = actors;
 	await run(
 		Effect.gen(function* () {

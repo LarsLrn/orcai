@@ -4,14 +4,14 @@ import type {
 	ListMemberAccessInput,
 	ResourcePrincipalIdentity,
 } from "@orcai/schema";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, caller } = appIntegration();
 
 /**
  * A member who reaches three of the admin's blocks three ways: Alpha granted
@@ -21,15 +21,15 @@ const sharedBlocks = async () => {
 	const procedures = await run(Procedures);
 	const {
 		actors: [admin, member],
-		zedToken: created,
+		zedToken,
 	} = await organizationWith([
 		"admin",
 		"member",
 	]);
-	let zedToken = created;
+	const { call } = caller(zedToken);
 
 	const block = async (name: string) => {
-		const { data, meta } = await run(
+		const { data } = await call(admin, (options) =>
 			procedures.block.create(
 				{
 					type: "behaviour",
@@ -41,10 +41,9 @@ const sharedBlocks = async () => {
 						systemPrompt: "",
 					},
 				},
-				await procedureOptions(admin, zedToken),
+				options,
 			),
 		);
-		zedToken = meta?.zedToken ?? zedToken;
 		return data.id;
 	};
 	const share = async (
@@ -52,7 +51,7 @@ const sharedBlocks = async () => {
 		principal: ResourcePrincipalIdentity,
 		role: "viewer" | "editor",
 	) => {
-		const { meta } = await run(
+		await call(admin, (options) =>
 			procedures.resource.grant(
 				{
 					resourceType: "block",
@@ -62,23 +61,21 @@ const sharedBlocks = async () => {
 					],
 					role,
 				},
-				await procedureOptions(admin, zedToken),
+				options,
 			),
 		);
-		zedToken = meta?.zedToken ?? zedToken;
 	};
 
-	const { data: team, meta: teamMeta } = await run(
+	const { data: team } = await call(admin, (options) =>
 		procedures.group.create(
 			{
 				name: "Integration team",
 				description: null,
 			},
-			await procedureOptions(admin, zedToken),
+			options,
 		),
 	);
-	zedToken = teamMeta?.zedToken ?? zedToken;
-	const { meta: joinedMeta } = await run(
+	await call(admin, (options) =>
 		procedures.group.addMembers(
 			{
 				groupId: team.id,
@@ -86,10 +83,9 @@ const sharedBlocks = async () => {
 					member.user.id,
 				],
 			},
-			await procedureOptions(admin, zedToken),
+			options,
 		),
 	);
-	zedToken = joinedMeta?.zedToken ?? zedToken;
 
 	const alpha = await block("Alpha notes");
 	const beta = await block("Beta notes");
@@ -110,23 +106,22 @@ const sharedBlocks = async () => {
 		},
 		"editor",
 	);
-	const { meta } = await run(
+	await call(admin, (options) =>
 		procedures.resource.setVisibility(
 			{
 				resourceType: "block",
 				resourceId: gamma,
 				visibility: "public",
 			},
-			await procedureOptions(admin, zedToken),
+			options,
 		),
 	);
-	zedToken = meta?.zedToken ?? zedToken;
 
 	const listAccess = async (
 		actor: Actor,
 		input: Partial<Omit<ListMemberAccessInput, "userId">> = {},
 	) => {
-		const { data, rowCount } = await run(
+		const { data, rowCount } = await call(actor, (options) =>
 			procedures.organizationMember.listAccess(
 				{
 					userId: member.user.id,
@@ -135,7 +130,7 @@ const sharedBlocks = async () => {
 					sort: [],
 					...input,
 				},
-				await procedureOptions(actor, zedToken),
+				options,
 			),
 		);
 		return {

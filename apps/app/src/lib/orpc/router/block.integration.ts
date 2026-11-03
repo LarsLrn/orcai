@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import type { PublicationStatus } from "@orcai/schema";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
-	queueBehindOrganizationLock,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions, queueBehindOrganizationLock } =
+	appIntegration();
 
 const behaviour = (status: PublicationStatus) => ({
 	type: "behaviour" as const,

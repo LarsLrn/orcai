@@ -2,20 +2,23 @@ import { describe, expect, test } from "bun:test";
 import type { BlockId, BotId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { CatalogueEntryRef } from "@orcai/schema";
-import { awaitLockWaiters } from "@orcai/testing";
-import { and, count, eq, isNull } from "drizzle-orm";
+import { awaitLockWaiters, holdLock } from "@orcai/testing";
+import { and, count, eq, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { Client } from "pg";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
-	queueBehindOrganizationLock,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration();
+const {
+	run,
+	caller,
+	queueBehindOrganizationLock,
+	organizationWith,
+	createAsset,
+} = appIntegration();
 
 const reasonOf = (operation: Promise<unknown>) =>
 	operation.then(
@@ -45,27 +48,10 @@ const catalogue = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const call = async <A>(
-		actor: Actor,
-		operation: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-	) => {
-		const result = await run(operation(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call, observe } = caller(zedToken);
 
 	const created = await createAsset(author, home);
-	token = created.zedToken ?? token;
+	observe(created.zedToken);
 	const create = (type: "behaviour" | "repository") =>
 		call(author, (options) =>
 			procedures.block.create(
@@ -918,15 +904,6 @@ describe("the catalogue", () => {
 	);
 });
 
-const postgres = () =>
-	new Client({
-		host: process.env.POSTGRES_HOST,
-		port: Number(process.env.POSTGRES_PORT),
-		user: process.env.POSTGRES_USER,
-		password: process.env.POSTGRES_PASSWORD,
-		database: process.env.POSTGRES_DB,
-	});
-
 /** Sets a member's role in Postgres only, as a demotion whose tuples have not arrived. */
 const demoteInPostgres = (actor: Actor, organizationId: OrganizationId) =>
 	run(
@@ -1119,20 +1096,24 @@ const pausedOn = async <A>(
 	read: () => Promise<A>,
 	meanwhile: () => Promise<unknown>,
 ) => {
-	const client = postgres();
-	await client.connect();
+	const release = await run(
+		holdLock(
+			Effect.gen(function* () {
+				yield* (yield* DB).execute(
+					sql.raw(`LOCK TABLE "${table}" IN ACCESS EXCLUSIVE MODE`),
+				);
+			}),
+		),
+	);
+	let reading: Promise<A>;
 	try {
-		await client.query("BEGIN");
-		await client.query(`LOCK TABLE "${table}" IN ACCESS EXCLUSIVE MODE`);
-		const reading = read();
+		reading = read();
 		await run(awaitLockWaiters(`%"${table}"%`));
 		await meanwhile();
-		await client.query("COMMIT");
-		return await reading;
 	} finally {
-		await client.query("ROLLBACK").catch(() => undefined);
-		await client.end();
+		await run(release);
 	}
+	return await reading;
 };
 
 /** Unlists the behaviour and saves an unpublished draft of it, in Postgres. */

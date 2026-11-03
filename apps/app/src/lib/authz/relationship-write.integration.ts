@@ -3,24 +3,22 @@ import type { BlockId, GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import type { TupleMutation } from "@orcai/spice-db";
-import { createUser } from "@orcai/testing";
+import { createUser, rolledBack } from "@orcai/testing";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
 import * as TestClock from "effect/testing/TestClock";
 import {
-	authzIntegration,
-	failingWritesAbout,
-	queueBehindOrganizationLock,
-	rolledBack,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import {
 	AuthzService,
 	enqueueRelationshipMutations,
 } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	appIntegration,
+	failingWritesAbout,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 import { AUTHZ } from "@/settings/constants";
 
 const {
@@ -31,7 +29,8 @@ const {
 	outboxDelivered,
 	readTuples,
 	instanceAdmin,
-} = authzIntegration();
+	queueBehindOrganizationLock,
+} = appIntegration();
 
 const viewerTuple = (
 	blockId: BlockId,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { sanitizeGeneratedChatTitle } from "./chat-title";
+import { sanitizeGeneratedChatTitle } from "../src/chat-title";
 
 describe("sanitizeGeneratedChatTitle", () => {
 	test("trims quotes and whitespace", () => {

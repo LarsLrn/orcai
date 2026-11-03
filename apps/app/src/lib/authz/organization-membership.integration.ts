@@ -6,15 +6,9 @@ import type {
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createUser } from "@orcai/testing";
+import { createUser, rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	queueBehindOrganizationLock,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import {
 	acceptInvitation,
 	addMember,
@@ -23,6 +17,11 @@ import {
 	deleteAccounts,
 	removeMembers,
 } from "@/lib/authz/organization-membership";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
 const {
 	run,
@@ -31,13 +30,8 @@ const {
 	readTuples,
 	instanceAdmin,
 	createBlock,
-} = authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	queueBehindOrganizationLock,
+} = appIntegration();
 
 type Organization = Awaited<ReturnType<typeof organizationWith>>;
 

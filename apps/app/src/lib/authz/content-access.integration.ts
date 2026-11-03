@@ -4,17 +4,12 @@ import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { attachAssets } from "@/lib/ai/turn/attachments";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration();
+const { run, organizationWith, caller, createAsset } = appIntegration();
 
-const reasonOf = (operation: Promise<unknown>) =>
+const tagOf = (operation: Promise<unknown>) =>
 	operation.then(
 		() => undefined,
 		(error: { _tag?: string }) => error._tag,
@@ -34,30 +29,13 @@ const sharedRepository = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const call = async <A>(
-		actor: Actor,
-		operation: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-	) => {
-		const result = await run(operation(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call, observe, token } = caller(zedToken);
 
 	const {
 		asset: { id: assetId },
 		zedToken: assetToken,
 	} = await createAsset(author, organizationId);
-	token = assetToken ?? token;
+	observe(assetToken);
 	const { data: repository } = await call(author, (options) =>
 		procedures.block.create(
 			{
@@ -138,7 +116,7 @@ const sharedRepository = async () => {
 	);
 
 	const reads = async () => ({
-		block: await reasonOf(
+		block: await tagOf(
 			call(member, (options) =>
 				procedures.block.find(
 					{
@@ -148,7 +126,7 @@ const sharedRepository = async () => {
 				),
 			),
 		),
-		asset: await reasonOf(
+		asset: await tagOf(
 			call(member, (options) =>
 				procedures.asset.find(
 					{
@@ -226,7 +204,7 @@ const sharedRepository = async () => {
 
 	/** Why the member cannot carry the asset into a message or their own repository. */
 	const admissions = async () => ({
-		message: await reasonOf(
+		message: await tagOf(
 			run(
 				attachAssets(
 					[
@@ -236,12 +214,12 @@ const sharedRepository = async () => {
 					],
 					{
 						userId: member.user.id,
-						zedToken: token,
+						zedToken: token(),
 					},
 				),
 			),
 		),
-		repository: await reasonOf(
+		repository: await tagOf(
 			call(member, (options) =>
 				procedures.block.create(
 					{

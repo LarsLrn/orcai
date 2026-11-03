@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
+import { beforeAll, beforeEach, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, buckets } from "@orcai/core";
@@ -7,15 +7,17 @@ import {
 	admitStage,
 	type Job,
 	type JobWithMetadata,
-	PgBoss,
+	type PgBoss,
 	PgBossService,
 	queueProcessing,
 } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
 	buildStoredExtractionKey,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
 import { EmbeddingIndex } from "@orcai/qdrant";
+import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import { getObjectAsJson, S3Live } from "@orcai/s3/server";
 import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
@@ -23,16 +25,10 @@ import {
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import {
-	createJobQueues,
-	createUser,
-	IntegrationLive,
-	testEmbeddingIndex,
-} from "@orcai/testing";
+import { createUser, integrationRuntime } from "@orcai/testing";
 import { and, eq, like, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import { processAssetBatch } from "@/asset/jobs/process-asset-job";
 import { markProcessingExhausted } from "@/asset/pipeline-attempt";
 import {
@@ -44,33 +40,26 @@ import {
 
 const TIMEOUT = 30_000;
 
-const boss = new PgBoss({
-	host: process.env.POSTGRES_HOST,
-	port: Number(process.env.POSTGRES_PORT),
-	user: process.env.POSTGRES_USER,
-	password: process.env.POSTGRES_PASSWORD,
-	database: process.env.POSTGRES_DB,
-});
-boss.on("error", () => undefined);
-
 /** Makes the next job insert fail, as a crash right before it would. */
 let failNextInsert = false;
-const flakyBoss = new Proxy(boss, {
-	get: (target, property, receiver) =>
-		property === "insert"
-			? (...args: Parameters<PgBoss["insert"]>) => {
+const flaky = (boss: PgBoss) =>
+	new Proxy(boss, {
+		get: (target, property) => {
+			if (property === "insert")
+				return (...args: Parameters<PgBoss["insert"]>) => {
 					if (failNextInsert) {
 						failNextInsert = false;
 						return Promise.reject(new Error("connection lost"));
 					}
 					return target.insert(...args);
-				}
-			: Reflect.get(target, property, receiver),
-});
+				};
+			const value = Reflect.get(target, property);
+			return typeof value === "function" ? value.bind(target) : value;
+		},
+	});
 
-const runtime = ManagedRuntime.make(
+const runtime = integrationRuntime(
 	Layer.mergeAll(
-		IntegrationLive,
 		S3Live,
 		EncryptionKeyLive,
 		// Completion queues indexing once embeddings are set up; nothing embeds here.
@@ -82,35 +71,24 @@ const runtime = ManagedRuntime.make(
 				dimensions: 4,
 			}),
 		),
-		Layer.succeed(PgBossService, {
-			boss: flakyBoss,
-		}),
+		Layer.effect(
+			PgBossService,
+			PgBossService.useSync(({ boss }) => ({
+				boss: flaky(boss),
+			})),
+		).pipe(Layer.provide(IsolatedPgBossLive())),
 	),
 );
+const run = runtime.runPromise;
 
+let boss: PgBoss;
 beforeAll(async () => {
-	await boss.start();
-	await createJobQueues(boss);
-}, TIMEOUT);
-afterAll(async () => {
-	await boss.stop({
-		graceful: false,
-		timeout: 1000,
-	});
-	await runtime.dispose();
+	boss = await run(PgBossService.useSync(({ boss }) => boss));
 });
 
 beforeEach(() => {
 	requests.length = 0;
 });
-
-const run = <A, E>(
-	effect: Effect.Effect<
-		A,
-		E,
-		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
-	>,
-) => runtime.runPromise(effect);
 
 /** A delivery of the processing job, as pg-boss hands it to the handler. */
 const delivery = (

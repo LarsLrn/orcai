@@ -6,16 +6,17 @@ import {
 	embeddingSettings,
 	storedEmbeddingApiKey,
 } from "@orcai/qdrant";
-import { testEmbeddingIndex } from "@orcai/testing";
+import { testEmbeddingIndex } from "@orcai/qdrant/testing";
+import { reasonOf } from "@orcai/testing";
 import { serve } from "bun";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	onEmbeddingIndex,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
 const DIMENSIONS = 6;
 const WIDE_DIMENSIONS = 8;
@@ -119,7 +120,7 @@ const endpoint = (kind: string) => `${endpoints.url.origin}/${kind}/v1`;
 const UNREACHABLE = "http://127.0.0.1:9/v1";
 
 const { run, organizationWith, procedureOptions, instanceAdmin } =
-	authzIntegration();
+	appIntegration();
 
 const indexes = {
 	racing: await testEmbeddingIndex(),
@@ -138,12 +139,6 @@ const call = async (actor: Actor, index: EmbeddingIndexScope) => ({
 	procedures: await run(Procedures),
 	options: onEmbeddingIndex(await procedureOptions(actor), index),
 });
-
-const reasonOf = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: { reason?: string }) => error.reason,
-	);
 
 const actors = async () => {
 	const {

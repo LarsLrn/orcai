@@ -1,13 +1,18 @@
 import * as Context from "effect/Context";
-import type * as Effect from "effect/Effect";
 import * as Tracer from "effect/Tracer";
-import { type Actor, authzIntegration } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { type Actor, appIntegration } from "@/lib/testing/app-integration";
 
 /** The library lists' integration fixtures over one runtime. */
 export const libraryIntegration = () => {
-	const { run, organizationWith, procedureOptions, createAsset, signIn } =
-		authzIntegration();
+	const {
+		run,
+		caller,
+		organizationWith,
+		procedureOptions,
+		createAsset,
+		signIn,
+	} = appIntegration();
 
 	type Options = Awaited<ReturnType<typeof procedureOptions>>;
 
@@ -25,22 +30,7 @@ export const libraryIntegration = () => {
 			"member",
 		]);
 		const procedures = await run(Procedures);
-		let token = zedToken;
-		const call = async <A>(
-			actor: Actor,
-			operation: (options: Options) => Effect.Effect<
-				A & {
-					meta?: {
-						zedToken?: string;
-					};
-				},
-				unknown
-			>,
-		) => {
-			const result = await run(operation(await procedureOptions(actor, token)));
-			token = result.meta?.zedToken ?? token;
-			return result;
-		};
+		const { call, observe, token } = caller(zedToken);
 
 		const behaviour = async (
 			owner: Actor,
@@ -94,14 +84,9 @@ export const libraryIntegration = () => {
 				),
 			);
 
-		/** Makes later calls see writes made outside `call`. */
-		const remember = (zedToken: string | undefined) => {
-			token = zedToken ?? token;
-		};
-
 		const asset = async (owner: Actor) => {
 			const created = await createAsset(owner, organizationId);
-			remember(created.zedToken);
+			observe(created.zedToken);
 			return created.asset.id;
 		};
 
@@ -119,8 +104,8 @@ export const libraryIntegration = () => {
 			behaviour,
 			share,
 			asset,
-			remember,
-			token: () => token,
+			observe,
+			token,
 			toMember,
 		};
 	};

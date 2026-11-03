@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
 import type { ActivityRunId, AssetId, BlockId, UserId } from "@orcai/core";
@@ -6,10 +6,12 @@ import { DB, dbSchema } from "@orcai/db";
 import {
 	admitStage,
 	type JobWithMetadata,
-	PgBoss,
+	type PgBoss,
 	PgBossService,
 } from "@orcai/pg-boss";
+import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { QdrantLive } from "@orcai/qdrant";
+import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
 import {
 	type PipelineFailure,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
@@ -17,15 +19,11 @@ import {
 	type ProcessAssetPayload,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import {
-	createUser,
-	IntegrationLive,
-	IsolatedEmbeddingIndexLive,
-} from "@orcai/testing";
+import { createUser, integrationRuntime } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
+import type * as ManagedRuntime from "effect/ManagedRuntime";
 import {
 	AssetPipelineError,
 	indexingAttempt,
@@ -40,57 +38,29 @@ import { ensureQueue } from "@/worker/run-worker-process";
 
 const TIMEOUT = 30_000;
 
-// Short supervise and monitor passes, so expired jobs are failed within seconds.
-const boss = new PgBoss({
-	host: process.env.POSTGRES_HOST,
-	port: Number(process.env.POSTGRES_PORT),
-	user: process.env.POSTGRES_USER,
-	password: process.env.POSTGRES_PASSWORD,
-	database: process.env.POSTGRES_DB,
-	superviseIntervalSeconds: 1,
-	monitorIntervalSeconds: 1,
-});
-boss.on("error", () => undefined);
-
 // Indexing never gets as far as Qdrant here, so the index stays without embeddings.
-const runtime = ManagedRuntime.make(
+const runtime = integrationRuntime(
 	IsolatedEmbeddingIndexLive().pipe(
 		Layer.provideMerge(
 			Layer.mergeAll(
-				IntegrationLive,
 				QdrantLive,
 				EncryptionKeyLive,
-				Layer.succeed(PgBossService, {
-					boss,
+				// Short supervise and monitor passes, so expired jobs are failed within seconds.
+				IsolatedPgBossLive({
+					supervise: true,
+					superviseIntervalSeconds: 1,
+					monitorIntervalSeconds: 1,
 				}),
 			),
 		),
 	),
 );
+const run = runtime.runPromise;
 
-/** The file's own queues, each before its dead letter queue. */
-const ownQueues: string[] = [];
-
-beforeAll(() => boss.start(), TIMEOUT);
-afterAll(async () => {
-	for (const name of ownQueues) {
-		await boss.offWork(name);
-		await boss.deleteQueue(name);
-	}
-	await boss.stop({
-		graceful: false,
-		timeout: 1000,
-	});
-	await runtime.dispose();
-}, TIMEOUT);
-
-const run = <A, E>(
-	effect: Effect.Effect<
-		A,
-		E,
-		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
-	>,
-) => runtime.runPromise(effect);
+let boss: PgBoss;
+beforeAll(async () => {
+	boss = await run(PgBossService.useSync(({ boss }) => boss));
+});
 
 const until = async (condition: () => Promise<boolean>, what: string) => {
 	const deadline = Date.now() + 20_000;
@@ -193,7 +163,6 @@ const pipelineQueue = async <T extends object>(params: {
 	const name = `test-pipeline-${crypto.randomUUID()}`;
 	const deadLetter = `${name}-dead-letter`;
 	let attempts = 0;
-	ownQueues.push(name, deadLetter);
 	await boss.createQueue(deadLetter);
 	await boss.createQueue(name, {
 		retryLimit: params.retryLimit,
@@ -250,7 +219,6 @@ describe("ensureQueue", () => {
 	test(
 		"gives an existing queue its dead letter queue",
 		async () => {
-			await boss.createQueue(PROCESS_ASSET_JOB_NAME);
 			await boss.updateQueue(PROCESS_ASSET_JOB_NAME, {
 				deadLetter: null,
 			});

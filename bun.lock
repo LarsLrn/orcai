@@ -306,6 +306,7 @@
       },
       "devDependencies": {
         "@inlang/paraglide-js": "catalog:",
+        "@orcai/testing": "workspace:*",
         "@types/node": "catalog:",
         "@types/react": "catalog:",
       },
@@ -341,6 +342,9 @@
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
         "pg-boss": "12.38.0",
+      },
+      "devDependencies": {
+        "@orcai/testing": "workspace:*",
       },
     },
     "packages/process": {
@@ -424,12 +428,8 @@
       "version": "0.1.0",
       "dependencies": {
         "@effect/sql-pg": "catalog:",
-        "@orcai/ai": "workspace:*",
         "@orcai/core": "workspace:*",
         "@orcai/db": "workspace:*",
-        "@orcai/pg-boss": "workspace:*",
-        "@orcai/qdrant": "workspace:*",
-        "@orcai/schema": "workspace:*",
         "@orcai/spice-db": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
@@ -3575,15 +3575,6 @@
     "postcss/nanoid": ["nanoid@3.3.20", "", { "bin": { "nanoid": "bin/nanoid.cjs" } }, "sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ=="],
 
     "prompts/kleur": ["kleur@3.0.3", "", {}, "sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w=="],
-
-
-
-
-
-
-
-
-
 
     "qified/hookified": ["hookified@2.2.0", "", {}, "sha512-p/LgFzRN5FeoD3DLS6bkUapeye6E4SI6yJs6KetENd18S+FBthqYq2amJUWpt5z0EQwwHemidjY5OqJGEKm5uA=="],
 

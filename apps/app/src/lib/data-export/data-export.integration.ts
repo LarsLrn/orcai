@@ -27,19 +27,19 @@ import {
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { transcriptMarkdown } from "@/lib/ai/turn-view/message-markdown";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 import {
 	downloadableDataExport,
 	failDataExports,
 	runDataExport,
 } from "./data-export";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions } = appIntegration();
 
 const FILE_CONTENT = "Field notes, page one.";
 const PICTURE_CONTENT = "picture bytes";

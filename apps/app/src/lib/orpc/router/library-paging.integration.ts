@@ -2,10 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { DB, dbSchema } from "@orcai/db";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, caller, organizationWith } = appIntegration();
 
 const COUNT = 5;
 const PAGE_SIZE = 2;
@@ -22,9 +22,11 @@ const member = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
+	const { call } = caller(zedToken);
 	return {
+		actor,
 		procedures,
-		options: (token = zedToken) => procedureOptions(actor, token),
+		call,
 	};
 };
 
@@ -67,11 +69,10 @@ describe("library lists with equal creation times", () => {
 	test(
 		"block pages follow id order on equal creation times",
 		async () => {
-			const { procedures, options } = await member();
-			let zedToken: string | undefined;
+			const { actor, procedures, call } = await member();
 			const ids: string[] = [];
 			for (let index = 0; index < COUNT; index++) {
-				const block = await run(
+				const block = await call(actor, (options) =>
 					procedures.block.create(
 						{
 							type: "behaviour",
@@ -83,16 +84,15 @@ describe("library lists with equal creation times", () => {
 								systemPrompt: "Paging prompt",
 							},
 						},
-						await options(zedToken),
+						options,
 					),
 				);
 				ids.push(block.data.id);
-				zedToken = block.meta?.zedToken ?? zedToken;
 			}
 			await stampSameInstant(dbSchema.block, ids);
 
 			await expectPagesInTieOrder(async (pageIndex) => {
-				const { data } = await run(
+				const { data } = await call(actor, (options) =>
 					procedures.block.list(
 						{
 							pageIndex,
@@ -102,7 +102,7 @@ describe("library lists with equal creation times", () => {
 								status: "ready",
 							},
 						},
-						await options(zedToken),
+						options,
 					),
 				);
 				return data.map((block) => block.id);
@@ -114,11 +114,10 @@ describe("library lists with equal creation times", () => {
 	test(
 		"asset pages follow id order on equal creation times",
 		async () => {
-			const { procedures, options } = await member();
-			let zedToken: string | undefined;
+			const { actor, procedures, call } = await member();
 			const ids: string[] = [];
 			for (let index = 0; index < COUNT; index++) {
-				const signed = await run(
+				const signed = await call(actor, (options) =>
 					procedures.storage.createUploadUrls(
 						{
 							route: "asset",
@@ -130,7 +129,7 @@ describe("library lists with equal creation times", () => {
 								},
 							],
 						},
-						await options(zedToken),
+						options,
 					),
 				);
 				const [target] = signed.data;
@@ -144,7 +143,7 @@ describe("library lists with equal creation times", () => {
 				});
 				expect(response.ok).toBe(true);
 
-				const created = await run(
+				const created = await call(actor, (options) =>
 					procedures.asset.createFromUploads(
 						{
 							route: "asset",
@@ -152,7 +151,7 @@ describe("library lists with equal creation times", () => {
 								target.file,
 							],
 						},
-						await options(zedToken),
+						options,
 					),
 				);
 				const [result] = created.data;
@@ -160,12 +159,11 @@ describe("library lists with equal creation times", () => {
 					throw new Error(`Expected a created asset, got ${result?.status}`);
 				}
 				ids.push(result.asset.id);
-				zedToken = created.meta?.zedToken ?? zedToken;
 			}
 			await stampSameInstant(dbSchema.asset, ids);
 
 			await expectPagesInTieOrder(async (pageIndex) => {
-				const { data } = await run(
+				const { data } = await call(actor, (options) =>
 					procedures.asset.list(
 						{
 							pageIndex,
@@ -174,7 +172,7 @@ describe("library lists with equal creation times", () => {
 								keptIn: "library",
 							},
 						},
-						await options(zedToken),
+						options,
 					),
 				);
 				return data.map((asset) => asset.id);

@@ -7,7 +7,8 @@
 		"seed:dev": "bun scripts/seed-dev-embeddings.ts"
 	},
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./testing": "./test/embedding-index.ts"
 	},
 	"dependencies": {
 		"@orcai/ai": "workspace:*",

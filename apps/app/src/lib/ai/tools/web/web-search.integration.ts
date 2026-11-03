@@ -4,12 +4,12 @@ import { DB, dbSchema } from "@orcai/db";
 import { serve } from "bun";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 import { AssistantToolError } from "../tool-error";
 import { turnWebSearch } from "./turn-web-search";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions } = appIntegration();
 
 /** A Tavily stand-in that fails each search whose query starts with `fail`. */
 const searches: string[] = [];

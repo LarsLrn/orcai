@@ -14,34 +14,23 @@ import type {
 	ModelPrices,
 	OrganizationAnalytics,
 } from "@orcai/schema";
-import { createOrganization, createUser } from "@orcai/testing";
+import { createOrganization, createUser, rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { removeMembers } from "@/lib/authz/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
-const { run, signIn, procedureOptions, instanceAdmin } = authzIntegration();
+const { run, caller, signIn, procedureOptions, instanceAdmin } =
+	appIntegration();
 
-/** The newest zedToken any call returned; every call reads at least at it. */
-let token: string | undefined;
-const options = (actor: Actor) => procedureOptions(actor, token);
-const track = <
-	A extends {
-		meta?: {
-			zedToken?: string;
-		};
-	},
->(
-	output: A,
-) => {
-	token = output.meta?.zedToken ?? token;
-	return output;
-};
+/** Every call reads at least at the newest zedToken any call returned. */
+const { call, observe, token } = caller();
+const options = (actor: Actor) => procedureOptions(actor, token());
 
 const DAY_MS = 86_400_000;
 
@@ -62,12 +51,6 @@ const usage = (inputTokens: number, outputTokens: number): MeterStep => ({
 	},
 	toolCalls: [],
 });
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
 
 /**
  * An organisation with an admin and a member, a provider with one model, and a
@@ -110,7 +93,7 @@ const meteredOrganization = async (
 		}),
 	);
 	const organizationId = organization.id;
-	token = zedToken ?? token;
+	observe(zedToken);
 	const [admin, member, ...joined] = await Promise.all(
 		[
 			...users.map((user) => user.id),
@@ -138,21 +121,19 @@ const meteredOrganization = async (
 		currency?: string;
 		prices?: Partial<ModelPrices>;
 	}) => {
-		const { data: provider } = track(
-			await run(
-				procedures.provider.create(
-					{
-						name: `Analytics ${crypto.randomUUID()}`,
-						description: "Metered by the analytics test.",
-						kind: "openai-compatible",
-						endpoint: "http://127.0.0.1:9/v1",
-						apiKey: "key",
-						meteringMode: "tokens",
-						currency: pricing.currency,
-						enabled: true,
-					},
-					await asAdmin(),
-				),
+		const { data: provider } = await call(admin, (options) =>
+			procedures.provider.create(
+				{
+					name: `Analytics ${crypto.randomUUID()}`,
+					description: "Metered by the analytics test.",
+					kind: "openai-compatible",
+					endpoint: "http://127.0.0.1:9/v1",
+					apiKey: "key",
+					meteringMode: "tokens",
+					currency: pricing.currency,
+					enabled: true,
+				},
+				options,
 			),
 		);
 		const { data: model } = await run(
@@ -288,16 +269,14 @@ const finalizedEvent = (appRequestId: string) =>
 const createBot = async (owner: Actor) => {
 	const procedures = await run(Procedures);
 	const name = `Analytics bot ${crypto.randomUUID()}`;
-	const { data } = track(
-		await run(
-			procedures.bot.save(
-				{
-					name,
-					description: "Metered by the analytics test.",
-					status: "draft",
-				},
-				await options(owner),
-			),
+	const { data } = await call(owner, (options) =>
+		procedures.bot.save(
+			{
+				name,
+				description: "Metered by the analytics test.",
+				status: "draft",
+			},
+			options,
 		),
 	);
 	return {
@@ -315,32 +294,28 @@ const viewerOf = (botId: BotId, viewer: Actor) => ({
 
 const share = async (owner: Actor, botId: BotId, viewer: Actor) => {
 	const procedures = await run(Procedures);
-	track(
-		await run(
-			procedures.resource.grant(
-				{
-					resourceType: "bot",
-					resourceId: botId,
-					principals: [
-						{
-							principalType: "user",
-							principalId: viewer.user.id,
-						},
-					],
-					role: "viewer",
-				},
-				await options(owner),
-			),
+	await call(owner, (options) =>
+		procedures.resource.grant(
+			{
+				resourceType: "bot",
+				resourceId: botId,
+				principals: [
+					{
+						principalType: "user",
+						principalId: viewer.user.id,
+					},
+				],
+				role: "viewer",
+			},
+			options,
 		),
 	);
 };
 
 const unshare = async (owner: Actor, botId: BotId, viewer: Actor) => {
 	const procedures = await run(Procedures);
-	track(
-		await run(
-			procedures.resource.revoke(viewerOf(botId, viewer), await options(owner)),
-		),
+	await call(owner, (options) =>
+		procedures.resource.revoke(viewerOf(botId, viewer), options),
 	);
 };
 

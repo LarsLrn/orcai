@@ -4,7 +4,8 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./testing": "./test/isolated-pg-boss.ts"
 	},
 	"dependencies": {
 		"@effect/sql-pg": "catalog:",
@@ -16,5 +17,8 @@
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"pg-boss": "12.38.0"
+	},
+	"devDependencies": {
+		"@orcai/testing": "workspace:*"
 	}
 }

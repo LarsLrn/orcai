@@ -15,9 +15,6 @@ const BaseInfra = Layer.mergeAll(
 	DrizzleLive,
 	SpiceDbLive,
 	S3Live,
-	makePgBossLayer({
-		instanceName: "app",
-	}),
 	ValkeyLive,
 	QdrantLive,
 	EncryptionKeyLive,
@@ -25,10 +22,18 @@ const BaseInfra = Layer.mergeAll(
 
 const AppInfra = AuthzLive.pipe(Layer.provideMerge(BaseInfra));
 
-// Compose all app-level services in one place.
-export const AppLayer = Layer.mergeAll(
+/** Every app-level service but pg-boss, which the app or a test provides. */
+export const AppServices = Layer.mergeAll(
 	ObservabilityLive,
 	AiTelemetryLive,
 	ProceduresLive,
 	AppInfra,
+);
+
+export const AppLayer = AppServices.pipe(
+	Layer.provideMerge(
+		makePgBossLayer({
+			instanceName: "app",
+		}),
+	),
 );

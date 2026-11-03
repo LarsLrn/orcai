@@ -3,14 +3,14 @@ import type { BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { CatalogueKind, OrganizationDescription } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, caller, organizationWith } = appIntegration();
 
 const outcomeOf = (operation: Promise<unknown>) =>
 	operation.then(
@@ -69,24 +69,7 @@ const organizations = async () => {
 		"viewer",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const call = async <A>(
-		actor: Actor,
-		operation: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-	) => {
-		const result = await run(operation(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call } = caller(zedToken);
 
 	const names = {
 		unlisted: `Unlisted repository ${crypto.randomUUID()}`,

@@ -25,6 +25,7 @@
 	},
 	"devDependencies": {
 		"@inlang/paraglide-js": "catalog:",
+		"@orcai/testing": "workspace:*",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:"
 	}

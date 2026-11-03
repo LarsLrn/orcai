@@ -8,28 +8,23 @@ import {
 	sendHeadObjectCommand,
 } from "@orcai/s3/server";
 import type { StorageUploadRoute, UploadFileObject } from "@orcai/schema";
+import { rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
 import { deleteAccounts } from "@/lib/authz/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 import { imageResponse, referencedImage } from "./images";
 
 const { run, organizationWith, procedureOptions, instanceAdmin } =
-	authzIntegration();
+	appIntegration();
 
 const procedures = () => run(Procedures);
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
 
 /** A 1x1 lossless WebP. */
 const WEBP = Buffer.from(

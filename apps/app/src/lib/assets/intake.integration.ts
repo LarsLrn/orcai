@@ -3,6 +3,7 @@ import { PgClient } from "@effect/sql-pg";
 import type { ActivityRunId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
+import { PgBossSchema } from "@orcai/pg-boss/testing";
 import { UPLOAD_STAGING_PREFIX } from "@orcai/s3";
 import { isS3NotFound, sendHeadObjectCommand } from "@orcai/s3/server";
 import {
@@ -15,15 +16,15 @@ import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, outboxDelivered, readTuples } =
-	authzIntegration();
+	appIntegration();
 
 type Member = {
 	actor: Actor;
@@ -354,12 +355,13 @@ describe("createAssetsFromUploads", () => {
 				run(
 					Effect.gen(function* () {
 						const sql = yield* PgClient.PgClient;
+						const schema = yield* PgBossSchema;
 						const [row] = yield* sql<{
 							asset: boolean;
 							job: boolean;
 						}>`SELECT
 						exists (SELECT 1 FROM asset WHERE id = ${file.objectKey}) AS asset,
-						exists (SELECT 1 FROM pgboss.job WHERE name = ${PROCESS_ASSET_JOB_NAME}
+						exists (SELECT 1 FROM ${sql(schema)}.job WHERE name = ${PROCESS_ASSET_JOB_NAME}
 							AND data -> 'assetRef' ->> 'id' = ${file.objectKey}) AS job`;
 						return row;
 					}),

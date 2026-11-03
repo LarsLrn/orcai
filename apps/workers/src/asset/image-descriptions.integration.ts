@@ -1,30 +1,20 @@
-import { afterAll, beforeEach, expect, test } from "bun:test";
+import { beforeEach, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import type { AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { StoredExtractionArtifact } from "@orcai/process";
 import { S3Live } from "@orcai/s3/server";
-import { IntegrationLive } from "@orcai/testing";
+import { integrationRuntime } from "@orcai/testing";
 import { eq, like } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import { describeImages } from "@/asset/image-descriptions";
 import { AssetPipelineError } from "@/asset/pipeline-attempt";
 import { requests, seedImageAsset, suggestion } from "@/asset/test-vision";
 
-const runtime = ManagedRuntime.make(
-	Layer.mergeAll(IntegrationLive, S3Live, EncryptionKeyLive),
+const { runPromise: run } = integrationRuntime(
+	Layer.mergeAll(S3Live, EncryptionKeyLive),
 );
-afterAll(() => runtime.dispose());
-
-const run = <A, E>(
-	effect: Effect.Effect<
-		A,
-		E,
-		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
-	>,
-) => runtime.runPromise(effect);
 
 beforeEach(() => {
 	requests.length = 0;

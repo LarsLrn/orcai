@@ -1,20 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { DB, dbSchema } from "@orcai/db";
+import { rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { coreDependenciesHealthy } from "@/lib/health/health";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, instanceAdmin } =
-	authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	appIntegration();
 
 describe("instance health", () => {
 	test(

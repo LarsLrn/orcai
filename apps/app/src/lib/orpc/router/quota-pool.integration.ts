@@ -6,31 +6,20 @@ import type { QuotaUsageEventListInput } from "@orcai/schema";
 import { createOrganization, createUser } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { removeMembers } from "@/lib/authz/organization-membership";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
-const { run, signIn, procedureOptions, instanceAdmin } = authzIntegration();
+const { run, caller, signIn, procedureOptions, instanceAdmin } =
+	appIntegration();
 
-/** The newest zedToken any call returned; every call reads at least at it. */
-let token: string | undefined;
-const options = (actor: Actor) => procedureOptions(actor, token);
-const track = <
-	A extends {
-		meta?: {
-			zedToken?: string;
-		};
-	},
->(
-	output: A,
-) => {
-	token = output.meta?.zedToken ?? token;
-	return output;
-};
+/** Every call reads at least at the newest zedToken any call returned. */
+const { call, observe, token } = caller();
+const options = (actor: Actor) => procedureOptions(actor, token());
 
 /**
  * An organisation whose admin manages a pool for everyone; its member chats
@@ -56,7 +45,7 @@ const pooledOrganization = async () => {
 		}),
 	);
 	const organizationId = organization.id;
-	token = zedToken ?? token;
+	observe(zedToken);
 	const [admin, member] = await Promise.all(
 		users.map((user) => signIn(organizationId, user.id)),
 	);
@@ -75,20 +64,18 @@ const pooledOrganization = async () => {
 				.returning();
 		}),
 	);
-	const { data: provider } = track(
-		await run(
-			procedures.provider.create(
-				{
-					name: `Quota events ${crypto.randomUUID()}`,
-					description: "Metered by the quota events test.",
-					kind: "openai-compatible",
-					endpoint: "http://127.0.0.1:9/v1",
-					apiKey: "key",
-					meteringMode: "tokens",
-					enabled: true,
-				},
-				await options(admin),
-			),
+	const { data: provider } = await call(admin, (options) =>
+		procedures.provider.create(
+			{
+				name: `Quota events ${crypto.randomUUID()}`,
+				description: "Metered by the quota events test.",
+				kind: "openai-compatible",
+				endpoint: "http://127.0.0.1:9/v1",
+				apiKey: "key",
+				meteringMode: "tokens",
+				enabled: true,
+			},
+			options,
 		),
 	);
 	const { data: model } = await run(
@@ -120,16 +107,14 @@ const pooledOrganization = async () => {
 			await options(admin),
 		),
 	);
-	const { data: bot } = track(
-		await run(
-			procedures.bot.save(
-				{
-					name: `Private bot ${crypto.randomUUID()}`,
-					description: "Readable by its owner alone.",
-					status: "draft",
-				},
-				await options(member),
-			),
+	const { data: bot } = await call(member, (options) =>
+		procedures.bot.save(
+			{
+				name: `Private bot ${crypto.randomUUID()}`,
+				description: "Readable by its owner alone.",
+				status: "draft",
+			},
+			options,
 		),
 	);
 
@@ -315,16 +300,14 @@ describe("quota usage events", () => {
 			const before = await org.ledger();
 			const instance = await instanceAdmin(org.organizationId);
 			const procedures = await run(Procedures);
-			track(
-				await run(
-					procedures.user.delete(
-						{
-							userIds: [
-								org.member.user.id,
-							],
-						},
-						await options(instance),
-					),
+			await call(instance, (options) =>
+				procedures.user.delete(
+					{
+						userIds: [
+							org.member.user.id,
+						],
+					},
+					options,
 				),
 			);
 

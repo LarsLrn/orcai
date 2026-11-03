@@ -4,12 +4,12 @@ import { DB, dbSchema } from "@orcai/db";
 import * as Effect from "effect/Effect";
 import { DrizzleReplyStore } from "@/lib/ai/turn/drizzle-reply-store";
 import { ReplyStore } from "@/lib/ai/turn/reply-store";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 import { chatSources } from "./chat-sources";
 import { sourceRef } from "./source-ref";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, caller, organizationWith } = appIntegration();
 
 const passage = (id: string) => ({
 	ref: sourceRef("passage", id),
@@ -94,18 +94,17 @@ describe("chat sources of a branch", () => {
 				"member",
 			]);
 			const procedures = await run(Procedures);
-			let token = zedToken;
+			const { call } = caller(zedToken);
 
 			const createChat = async (turns: string[], actor = owner) => {
-				const { data: chat, meta } = await run(
+				const { data: chat } = await call(actor, (options) =>
 					procedures.chat.create(
 						{
 							title: "Sources",
 						},
-						await procedureOptions(actor, token),
+						options,
 					),
 				);
-				token = meta?.zedToken ?? token;
 				const messages = turns.flatMap(searchTurn);
 				const ids = await run(
 					Effect.gen(function* () {
@@ -165,14 +164,14 @@ describe("chat sources of a branch", () => {
 				],
 				other,
 			);
-			const { data: branch } = await run(
+			const { data: branch } = await call(owner, (options) =>
 				procedures.chat.branch(
 					{
 						chatId: parent.chatId,
 						// The reply of the first turn.
 						messageId: parent.messageIds[1],
 					},
-					await procedureOptions(owner, token),
+					options,
 				),
 			);
 

@@ -3,17 +3,17 @@ import { EncryptionKeyLive } from "@orcai/ai";
 import type { BlockId } from "@orcai/core";
 import { DB, DrizzleLive, type dbSchema } from "@orcai/db";
 import { instanceSettingsIn } from "@orcai/db/schema";
+import { sql } from "drizzle-orm";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as ManagedRuntime from "effect/ManagedRuntime";
 import {
 	configureEmbeddings,
 	EmbeddingIndex,
 	type EmbeddingIndexScope,
 	QdrantLive,
 	QdrantService,
-} from "@orcai/qdrant";
-import { sql } from "drizzle-orm";
-import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
+} from "../src";
 
 /**
  * An embedding index of the test's own: a settings table in its own schema

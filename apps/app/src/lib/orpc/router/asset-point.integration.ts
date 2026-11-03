@@ -7,23 +7,24 @@ import {
 	upsertPointsToQdrant,
 	writeGeneration,
 } from "@orcai/qdrant";
+import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import type { AssetPoint, assetPointsFiltersSchema } from "@orcai/schema";
-import { testEmbeddingIndex } from "@orcai/testing";
+import { reasonOf } from "@orcai/testing";
 import { serve } from "bun";
 import { eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import type { z } from "zod/v4";
-import {
-	type Actor,
-	authzIntegration,
-	onEmbeddingIndex,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	onEmbeddingIndex,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
+const { run, organizationWith, procedureOptions } = appIntegration();
 
 const dimensions = 8;
 
@@ -576,12 +577,6 @@ describe("before embeddings are set up", () => {
 			const { search, browse } = await repositoryOf([
 				passages(2, STRONG),
 			]);
-			const reasonOf = (call: Promise<unknown>) =>
-				call.then(
-					() => undefined,
-					(error: { reason?: string }) => error.reason,
-				);
-
 			for (const retrievalMode of [
 				"dense",
 				"sparse",

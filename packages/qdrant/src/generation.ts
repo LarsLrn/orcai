@@ -30,8 +30,6 @@ import {
 } from "./errors";
 import { QdrantService } from "./service";
 
-const GENERATION_LOCK_SPACE = 51830478;
-
 /** Where the instance's embedding generations live: the settings row and the collections they name. */
 export interface EmbeddingIndexScope {
 	readonly settings: typeof dbSchema.instanceSettings;
@@ -146,7 +144,7 @@ const lockGenerations = (exclusive: boolean) =>
 		const db = yield* DB;
 		yield* db.execute(
 			(exclusive ? advisoryXactLock : advisoryXactLockShared)(
-				GENERATION_LOCK_SPACE,
+				"embeddingGenerations",
 				collectionPrefix,
 			),
 		);

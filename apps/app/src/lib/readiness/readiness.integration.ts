@@ -2,21 +2,15 @@ import { describe, expect, test } from "bun:test";
 import type { GroupId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { ModelCapability } from "@orcai/schema";
-import { createOrganization, createUser } from "@orcai/testing";
+import { createOrganization, createUser, rejection } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import type * as Effect from "effect/Effect";
-import { authzIntegration, TIMEOUT } from "@/lib/authz/authz-integration";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 import { organizationReadiness } from "./readiness";
 
 const { run, organizationWith, procedureOptions, signIn, instanceAdmin } =
-	authzIntegration();
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+	appIntegration();
 
 /** An admin, a member and the All Members group, configured row by row. */
 const organization = async () => {

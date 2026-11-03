@@ -2,26 +2,20 @@ import { describe, expect, test } from "bun:test";
 import { type MeterStep, startMeteredCall } from "@orcai/ai";
 import type { ModelId, ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createOrganization, createUser } from "@orcai/testing";
+import { createOrganization, createUser, rejection } from "@orcai/testing";
 import * as Effect from "effect/Effect";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, signIn, procedureOptions } = authzIntegration();
+const { run, caller, signIn, procedureOptions } = appIntegration();
 
-/** The newest zedToken any call returned; every call reads at least at it. */
-let token: string | undefined;
-const options = (actor: Actor) => procedureOptions(actor, token);
-
-const rejection = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: unknown) => error,
-	);
+/** Every call reads at least at the newest zedToken any call returned. */
+const { call, observe, token } = caller();
+const options = (actor: Actor) => procedureOptions(actor, token());
 
 const usage = (totalTokens: number): MeterStep => ({
 	usage: {
@@ -63,7 +57,7 @@ const quotaOrganization = async () => {
 		}),
 	);
 	const organizationId = organization.id;
-	token = zedToken ?? token;
+	observe(zedToken);
 	const [admin, member, otherMember] = await Promise.all(
 		users.map((user) => signIn(organizationId, user.id)),
 	);
@@ -84,7 +78,7 @@ const quotaOrganization = async () => {
 	);
 	/** A token-metered provider with one model. */
 	const addModel = async () => {
-		const createdProvider = await run(
+		const createdProvider = await call(admin, (options) =>
 			procedures.provider.create(
 				{
 					name: `Quota ${crypto.randomUUID()}`,
@@ -95,10 +89,9 @@ const quotaOrganization = async () => {
 					meteringMode: "tokens",
 					enabled: true,
 				},
-				await options(admin),
+				options,
 			),
 		);
-		token = createdProvider.meta?.zedToken ?? token;
 		const { data: model } = await run(
 			procedures.model.create(
 				{

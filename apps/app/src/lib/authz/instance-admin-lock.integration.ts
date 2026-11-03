@@ -1,49 +1,52 @@
 import { describe, expect, test } from "bun:test";
 import { DB, dbSchema } from "@orcai/db";
-import { awaitLockWaiters } from "@orcai/testing";
+import { awaitLockWaiters, holdLock } from "@orcai/testing";
 import { inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { Client } from "pg";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
 const { run, organizationWith, procedureOptions, instanceAdmin } =
-	authzIntegration();
+	appIntegration();
 
-/** Holds both rows from another connection until both changes wait on them. */
+/** Holds both rows in a transaction of its own until both changes wait on them. */
 const queueBehindRowLocks = async (
 	users: Actor[],
 	operations: (() => Promise<unknown>)[],
 ) => {
-	const client = new Client({
-		host: process.env.POSTGRES_HOST,
-		port: Number(process.env.POSTGRES_PORT),
-		user: process.env.POSTGRES_USER,
-		password: process.env.POSTGRES_PASSWORD,
-		database: process.env.POSTGRES_DB,
-	});
-	await client.connect();
+	const release = await run(
+		holdLock(
+			Effect.gen(function* () {
+				yield* (yield* DB)
+					.select({
+						id: dbSchema.user.id,
+					})
+					.from(dbSchema.user)
+					.where(
+						inArray(
+							dbSchema.user.id,
+							users.map(({ user }) => user.id),
+						),
+					)
+					.for("update");
+			}),
+		),
+	);
+	const outcomes = operations.map((operation) =>
+		Promise.allSettled([
+			operation(),
+		]).then(([outcome]) => outcome),
+	);
 	try {
-		await client.query("BEGIN");
-		await client.query(`SELECT id FROM "user" WHERE id = ANY($1) FOR UPDATE`, [
-			users.map(({ user }) => user.id),
-		]);
-		const outcomes = operations.map((operation) =>
-			Promise.allSettled([
-				operation(),
-			]).then(([outcome]) => outcome),
-		);
 		await run(awaitLockWaiters('%from "user"%for update%', operations.length));
-		await client.query("COMMIT");
-		return await Promise.all(outcomes);
 	} finally {
-		await client.query("ROLLBACK").catch(() => undefined);
-		await client.end();
+		await run(release);
 	}
+	return Promise.all(outcomes);
 };
 
 /** What is left of two accounts: their instance role, or "banned" or "deleted". */

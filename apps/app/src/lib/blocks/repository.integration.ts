@@ -9,30 +9,31 @@ import {
 	upsertPointsToQdrant,
 	writeGeneration,
 } from "@orcai/qdrant";
+import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import {
 	type PipelineStatus,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { awaitLockWaiters, testEmbeddingIndex } from "@orcai/testing";
+import { awaitLockWaiters } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import { prepareAssetAgain } from "@/lib/assets/processing";
-import {
-	type Actor,
-	authzIntegration,
-	TIMEOUT,
-} from "@/lib/authz/authz-integration";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { reindexBlockAssets } from "@/lib/blocks/repository";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import {
+	type Actor,
+	appIntegration,
+	TIMEOUT,
+} from "@/lib/testing/app-integration";
 
 const dimensions = 4;
 // Indexing never embeds here, so the endpoint is never called.
-const { run, organizationWith, procedureOptions, createAsset } =
-	authzIntegration({
+const { run, organizationWith, procedureOptions, createAsset, caller } =
+	appIntegration({
 		embeddingIndex: await testEmbeddingIndex({
 			baseUrl: "http://127.0.0.1:9/v1",
 			model: "integration",
@@ -223,26 +224,23 @@ const repositoryWith = async (count: number) => {
 	} = await organizationWith([
 		"member",
 	]);
-	let zedToken: string | undefined;
+	const { call, observe, token } = caller();
 	const assets: AssetId[] = [];
 	for (let index = 0; index < count; index++) {
 		const created = await createAsset(owner, organizationId);
 		assets.push(created.asset.id);
-		zedToken = created.zedToken ?? zedToken;
+		observe(created.zedToken);
 	}
 	const procedures = await run(Procedures);
-	const { data, meta } = await run(
-		procedures.block.create(
-			repository(assets),
-			await procedureOptions(owner, zedToken),
-		),
+	const { data } = await call(owner, (options) =>
+		procedures.block.create(repository(assets), options),
 	);
 	return {
 		owner,
 		organizationId,
 		assets,
 		blockId: data.id,
-		zedToken: meta?.zedToken ?? zedToken,
+		zedToken: token(),
 	};
 };
 

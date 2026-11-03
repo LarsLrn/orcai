@@ -1,4 +1,4 @@
-import { afterAll } from "bun:test";
+import { afterAll, beforeAll } from "bun:test";
 import { DB, DrizzleLive, dbSchema } from "@orcai/db";
 import { SpiceDbLive } from "@orcai/spice-db";
 import { count } from "drizzle-orm";
@@ -36,9 +36,30 @@ export const IntegrationLive = Layer.effectDiscard(
 	requireInitializedInstance,
 ).pipe(Layer.provideMerge(Layer.mergeAll(DrizzleLive, SpiceDbLive)));
 
-/** One runtime per test file, disposed after its last test. */
-export const integrationRuntime = () => {
-	const runtime = ManagedRuntime.make(IntegrationLive);
+type IntegrationServices = Layer.Success<typeof IntegrationLive>;
+type IntegrationError = Layer.Error<typeof IntegrationLive>;
+
+const BUILD_TIMEOUT = 60_000;
+
+/**
+ * The test file's runtime over the stack's DB and SpiceDB and `layer`, built
+ * before its first test, so no test carries the build, and disposed after its
+ * last.
+ */
+export function integrationRuntime(): ManagedRuntime.ManagedRuntime<
+	IntegrationServices,
+	IntegrationError
+>;
+export function integrationRuntime<A, E>(
+	layer: Layer.Layer<A, E, IntegrationServices>,
+): ManagedRuntime.ManagedRuntime<A | IntegrationServices, E | IntegrationError>;
+export function integrationRuntime<A, E>(
+	layer?: Layer.Layer<A, E, IntegrationServices>,
+) {
+	const runtime = ManagedRuntime.make(
+		layer ? layer.pipe(Layer.provideMerge(IntegrationLive)) : IntegrationLive,
+	);
+	beforeAll(() => runtime.context(), BUILD_TIMEOUT);
 	afterAll(() => runtime.dispose());
 	return runtime;
-};
+}

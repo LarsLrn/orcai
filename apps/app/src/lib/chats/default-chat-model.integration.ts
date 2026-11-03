@@ -1,23 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import type { BotId, ChatId, GroupId, ModelId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { reasonOf } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { turnSetup } from "@/lib/ai/turn/setup";
+import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
-	authzIntegration,
+	appIntegration,
 	TIMEOUT,
-} from "@/lib/authz/authz-integration";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
+} from "@/lib/testing/app-integration";
 
-const { run, organizationWith, procedureOptions } = authzIntegration();
-
-const reasonOf = (operation: Promise<unknown>) =>
-	operation.then(
-		() => undefined,
-		(error: { reason?: string }) => error.reason,
-	);
+const { run, caller, organizationWith, procedureOptions } = appIntegration();
 
 /** An admin and a member, three chat models, and pools the test assigns per group. */
 const organizationWithModels = async () => {
@@ -30,26 +25,9 @@ const organizationWithModels = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	let token = zedToken;
-	const call = async <A>(
-		operation: (
-			options: Awaited<ReturnType<typeof procedureOptions>>,
-		) => Effect.Effect<
-			A & {
-				meta?: {
-					zedToken?: string;
-				};
-			},
-			unknown
-		>,
-		actor: Actor = admin,
-	) => {
-		const result = await run(operation(await procedureOptions(actor, token)));
-		token = result.meta?.zedToken ?? token;
-		return result;
-	};
+	const { call, token } = caller(zedToken);
 
-	const { data: provider } = await call((options) =>
+	const { data: provider } = await call(admin, (options) =>
 		procedures.provider.create(
 			{
 				name: `Default ${crypto.randomUUID()}`,
@@ -65,7 +43,7 @@ const organizationWithModels = async () => {
 	);
 	const createModel = async (name: string) =>
 		(
-			await call((options) =>
+			await call(admin, (options) =>
 				procedures.model.create(
 					{
 						providerId: provider.id,
@@ -88,7 +66,7 @@ const organizationWithModels = async () => {
 	const newest = await createModel("Newest model");
 
 	const group = async (members: Actor[]) => {
-		const { data } = await call((options) =>
+		const { data } = await call(admin, (options) =>
 			procedures.group.create(
 				{
 					name: `Default ${crypto.randomUUID()}`,
@@ -96,7 +74,7 @@ const organizationWithModels = async () => {
 				options,
 			),
 		);
-		await call((options) =>
+		await call(admin, (options) =>
 			procedures.group.addMembers(
 				{
 					groupId: data.id,
@@ -108,7 +86,7 @@ const organizationWithModels = async () => {
 		return data.id;
 	};
 	const pool = (modelId: ModelId, groupId: GroupId) =>
-		call((options) =>
+		call(admin, (options) =>
 			procedures.quotaPool.create(
 				{
 					name: `Default ${crypto.randomUUID()}`,
@@ -124,7 +102,7 @@ const organizationWithModels = async () => {
 			),
 		);
 	const setDefault = (defaultChatModelId: ModelId | null) =>
-		call((options) =>
+		call(admin, (options) =>
 			procedures.organization.update(
 				{
 					id: organizationId,
@@ -136,7 +114,7 @@ const organizationWithModels = async () => {
 
 	/** A bot of the admin, shared with the organisation, whose setup recommends `modelId`. */
 	const botRecommending = async (modelId: ModelId) => {
-		const { data: behaviour } = await call((options) =>
+		const { data: behaviour } = await call(admin, (options) =>
 			procedures.block.create(
 				{
 					type: "behaviour",
@@ -151,7 +129,7 @@ const organizationWithModels = async () => {
 				options,
 			),
 		);
-		const { data: bot } = await call((options) =>
+		const { data: bot } = await call(admin, (options) =>
 			procedures.bot.save(
 				{
 					name: `Default bot ${crypto.randomUUID()}`,
@@ -162,7 +140,7 @@ const organizationWithModels = async () => {
 				options,
 			),
 		);
-		await call((options) =>
+		await call(admin, (options) =>
 			procedures.botSetup.save(
 				{
 					botId: bot.id,
@@ -183,20 +161,18 @@ const organizationWithModels = async () => {
 	/** A chat of the actor without a model of its own. */
 	const modelLessChat = async (actor: Actor) =>
 		(
-			await call(
-				(options) =>
-					procedures.chat.create(
-						{
-							title: "Default chat",
-						},
-						options,
-					),
-				actor,
+			await call(actor, (options) =>
+				procedures.chat.create(
+					{
+						title: "Default chat",
+					},
+					options,
+				),
 			)
 		).data;
 	/** The model the actor's picker preselects. */
 	const preselected = async (actor: Actor) =>
-		(await call((options) => procedures.chat.defaultModel({}, options), actor))
+		(await call(actor, (options) => procedures.chat.defaultModel({}, options)))
 			.data?.modelId;
 	/** The model the next turn of the chat runs on. */
 	const turnModel = async (
@@ -218,7 +194,7 @@ const organizationWithModels = async () => {
 						organizationId,
 						user: actor.user,
 						context: (yield* Effect.promise(() =>
-							procedureOptions(actor, token),
+							procedureOptions(actor, token()),
 						)).context,
 					});
 				}),
@@ -296,7 +272,7 @@ describe("default chat model", () => {
 			);
 
 			await org.setDefault(org.preferred.id);
-			await org.call((options) =>
+			await org.call(org.admin, (options) =>
 				org.procedures.model.delete(
 					{
 						refs: [
@@ -308,7 +284,7 @@ describe("default chat model", () => {
 					options,
 				),
 			);
-			const { data: organization } = await org.call((options) =>
+			const { data: organization } = await org.call(org.admin, (options) =>
 				org.procedures.organization.find(
 					{
 						id: org.organizationId,
@@ -333,7 +309,7 @@ describe("default chat model", () => {
 			await org.setDefault(org.preferred.id);
 			const startedOn = async (botId: BotId) =>
 				(
-					await org.call((options) =>
+					await org.call(org.admin, (options) =>
 						org.procedures.chat.create(
 							{
 								title: "Bot chat",
@@ -364,7 +340,7 @@ describe("default chat model", () => {
 
 			// Unusable, likewise.
 			const deprecatedBot = await org.botRecommending(org.fallback.id);
-			await org.call((options) =>
+			await org.call(org.admin, (options) =>
 				org.procedures.model.update(
 					{
 						id: org.fallback.id,
