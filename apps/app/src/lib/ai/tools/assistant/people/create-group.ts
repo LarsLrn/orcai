@@ -1,9 +1,9 @@
 import { groupFieldsSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	effectTool,
 	mutation,
 } from "../procedure-tool";
 import { groupOutline } from "./group-outline";

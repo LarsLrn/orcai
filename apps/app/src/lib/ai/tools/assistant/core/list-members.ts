@@ -1,10 +1,7 @@
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import {
-	type AssistantToolDeps,
-	callProcedure,
-	effectTool,
-} from "../procedure-tool";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
+import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
 import {
 	listPage,
 	listPageSchema,

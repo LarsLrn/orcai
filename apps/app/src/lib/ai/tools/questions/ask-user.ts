@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod/v4";
 import { toolInputSchema } from "@/lib/ai/tools/input-schema";
-import type { NoToolContext } from "../assistant/procedure-tool";
+import type { NoToolContext } from "@/lib/ai/tools/tool-builders";
 import {
 	type AnsweredQuestion,
 	answeredQuestions,

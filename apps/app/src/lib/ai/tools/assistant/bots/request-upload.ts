@@ -2,7 +2,7 @@ import { uploadedAssetSchema } from "@orcai/schema";
 import { tool } from "ai";
 import { z } from "zod/v4";
 import { toolInputSchema } from "@/lib/ai/tools/input-schema";
-import type { NoToolContext } from "../procedure-tool";
+import type { NoToolContext } from "@/lib/ai/tools/tool-builders";
 
 export const requestUploadInputSchema = z.strictObject({
 	reason: z

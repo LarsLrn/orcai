@@ -1,8 +1,9 @@
 import { blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { deleteNamed } from "../named-delete";
-import { type AssistantToolDeps, effectTool } from "../procedure-tool";
+import type { AssistantToolDeps } from "../procedure-tool";
 
 const deleteBlockInputSchema = z.strictObject({
 	ids: z

@@ -1,5 +1,10 @@
 import { type HandedOver, userIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import {
+	AssistantToolError,
+	isUnreadable,
+	toolErrorText,
+} from "@/lib/ai/tools/tool-error";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
 
 export const receiverIdSchema = userIdSchema.optional();
@@ -33,7 +38,16 @@ export const receiverOf = (
 			),
 		).pipe(
 			Effect.map(({ data }) => data.name),
-			Effect.orElseSucceed(() => undefined),
+			Effect.catchIf(isUnreadable, () => Effect.succeed(undefined)),
+			Effect.mapError(
+				(error) =>
+					new AssistantToolError(
+						`${toolErrorText(error)} The change was applied, only naming its receiver failed; check with listMembers before retrying.`,
+						{
+							cause: error,
+						},
+					),
+			),
 		);
 		const named: NamedHandover = {
 			handedOver: {

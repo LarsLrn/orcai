@@ -1,6 +1,10 @@
 import { z } from "zod/v4";
 import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
 import {
+	type AssistantTool,
+	assistantTool,
+} from "@/lib/ai/tools/tool-builders";
+import {
 	type AssistantToolName,
 	DEFERRED_TOOL_GROUPS,
 	type DeferredToolGroup,
@@ -8,7 +12,6 @@ import {
 	offeredGroupTools,
 	offeredToolGroups,
 } from "../groups";
-import { type AssistantTool, assistantTool } from "../procedure-tool";
 
 export const loadToolsInputSchema = z.strictObject({
 	groups: z

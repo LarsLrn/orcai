@@ -2,11 +2,13 @@ import type { BlockId } from "@orcai/core";
 import { blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { AssistantToolError, isUnreadable } from "@/lib/ai/tools/tool-error";
+import { wrongIdText } from "@/lib/ai/tools/entity-kind";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
+import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	effectTool,
+	expectType,
 } from "../procedure-tool";
 
 const getBlockInputSchema = z.strictObject({
@@ -35,10 +37,6 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 		inputSchema: getBlockInputSchema,
 		run: ({ id }) =>
 			Effect.gen(function* () {
-				const notFound = new AssistantToolError(
-					`BLOCK_NOT_FOUND: No behaviour or repository with id ${id} that the user can read. Look ids up with findBlocks; bot ids belong to getBot.`,
-				);
-
 				const { data: block } = yield* callProcedure(
 					deps,
 					(procedures, options) =>
@@ -48,9 +46,7 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 							},
 							options,
 						),
-				).pipe(
-					Effect.mapError((error) => (isUnreadable(error) ? notFound : error)),
-				);
+				).pipe(expectType("block", id));
 
 				const common = {
 					id: block.id,
@@ -70,13 +66,11 @@ export const getBlockTool = (deps: AssistantToolDeps) =>
 					};
 				}
 
-				if (block.type !== "repository") {
-					return yield* Effect.fail(notFound);
-				}
-
 				const readiness = yield* readinessOf(deps, block.id);
 				if (!readiness) {
-					return yield* Effect.fail(notFound);
+					return yield* Effect.fail(
+						new AssistantToolError(wrongIdText("block", id, "BLOCK_NOT_FOUND")),
+					);
 				}
 
 				return {

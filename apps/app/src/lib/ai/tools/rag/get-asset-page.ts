@@ -1,7 +1,7 @@
 import { assetIdSchema, blockIdSchema, type Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
-import { effectTool } from "@/lib/ai/tools/assistant/procedure-tool";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { pageModelOutput } from "./outputs";

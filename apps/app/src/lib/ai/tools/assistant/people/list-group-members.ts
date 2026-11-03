@@ -1,5 +1,6 @@
 import { listGroupMembersInputSchema as groupMembersQuerySchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	listPage,
 	listPageSchema,
@@ -9,7 +10,6 @@ import {
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	effectTool,
 	expectType,
 } from "../procedure-tool";
 
