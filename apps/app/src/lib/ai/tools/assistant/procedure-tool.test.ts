@@ -231,4 +231,14 @@ describe("mutation", () => {
 		expect(finished).toBe(true);
 		expect(error).not.toBeInstanceOf(AssistantToolError);
 	});
+
+	test("a failure on the server stays the cause of the tool error", async () => {
+		const failure = new ORPCError("INTERNAL_SERVER_ERROR", {
+			message: "connection reset",
+		});
+
+		const error = await mutate(Effect.fail(failure));
+
+		expect(((error as Error).cause as Error).cause).toBe(failure);
+	});
 });

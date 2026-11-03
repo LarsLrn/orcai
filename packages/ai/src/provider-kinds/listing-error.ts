@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import { ZodError } from "zod/v4";
 
 export type ModelListingFailure =
@@ -39,14 +38,8 @@ const failureOfStatus = (status: number): ModelListingFailure | undefined => {
 };
 
 const failureOf = (cause: unknown): ModelListingFailure | undefined => {
-	if (cause instanceof OpenAI.APIConnectionError) return "unreachable";
-	if (
-		cause instanceof OpenAI.APIError ||
-		cause instanceof ProviderStatusError
-	) {
-		return cause.status === undefined
-			? undefined
-			: failureOfStatus(cause.status);
+	if (cause instanceof ProviderStatusError) {
+		return failureOfStatus(cause.status);
 	}
 	if (cause instanceof ZodError || cause instanceof SyntaxError) {
 		return "invalid-response";

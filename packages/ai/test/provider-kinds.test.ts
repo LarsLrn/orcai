@@ -660,6 +660,18 @@ describe("listProviderModels failures", () => {
 				expect(await failureOf(kind, fetch)).toBe("unreachable");
 			});
 
+			test("a failed answer is reported without asking again", async () => {
+				let requests = 0;
+				const fetch = answering(() => {
+					requests += 1;
+					return new Response("down", {
+						status: 503,
+					});
+				});
+				await failureOf(kind, fetch);
+				expect(requests).toBe(1);
+			});
+
 			test("a network error is an unreachable provider", async () => {
 				const fetch = answering(() => {
 					throw new TypeError("fetch failed");

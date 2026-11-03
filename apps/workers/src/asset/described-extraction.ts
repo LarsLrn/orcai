@@ -1,12 +1,10 @@
 import type { AssetId } from "@orcai/core";
-import { buckets } from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import { queueProcessing } from "@orcai/pg-boss";
 import {
-	buildStoredExtractionKey,
+	readStoredExtraction,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
-import { getObjectAsJson, isS3NoSuchKey } from "@orcai/s3/server";
 import type { AssetFileType, BucketName } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -24,40 +22,40 @@ interface ProcessableAsset {
 	fileType: AssetFileType;
 }
 
-const getExtraction = (assetId: AssetId) =>
-	getObjectAsJson<StoredExtractionArtifact>({
-		bucket: buckets.processed.name,
-		name: buildStoredExtractionKey(assetId),
+const missingExtraction = (message: string) =>
+	new AssetPipelineError({
+		failure: "missing_extraction",
+		cause: new Error(message),
 	});
 
+/**
+ * The stored extraction; one that is gone or unreadable fails
+ * `missing_extraction`, for a person to prepare the file again.
+ */
 const readExtraction = (assetId: AssetId) =>
-	getExtraction(assetId).pipe(Effect.mapError(toSanitizedPgBossRunError));
+	readStoredExtraction(assetId).pipe(
+		Effect.mapError((error) =>
+			error._tag === "StoredExtractionError"
+				? missingExtraction(
+						error.reason === "missing"
+							? "The stored extraction is missing"
+							: "The stored extraction is unreadable",
+					)
+				: toSanitizedPgBossRunError(error),
+		),
+	);
 
 const isDescribed = (extraction: StoredExtractionArtifact) =>
 	extraction.images.every((image) => image.text !== undefined);
 
 /**
  * The stored extraction of a re-embed: as it is, with its images described.
- * One that is gone or older than image descriptions fails
- * `missing_extraction`, for a person to prepare the file again.
+ * One older than image descriptions fails `missing_extraction` too.
  */
 const storedExtraction = (assetId: AssetId) =>
-	getExtraction(assetId).pipe(
-		Effect.catchIf(isS3NoSuchKey, () => Effect.succeed(undefined)),
-		Effect.mapError(toSanitizedPgBossRunError),
-		Effect.flatMap((stored) =>
-			stored && isDescribed(stored)
-				? Effect.succeed(stored)
-				: Effect.fail(
-						new AssetPipelineError({
-							failure: "missing_extraction",
-							cause: new Error(
-								stored
-									? "The stored extraction predates image descriptions"
-									: "The stored extraction is missing",
-							),
-						}),
-					),
+	readExtraction(assetId).pipe(
+		Effect.filterOrFail(isDescribed, () =>
+			missingExtraction("The stored extraction predates image descriptions"),
 		),
 	);
 

@@ -1,7 +1,7 @@
 import { buckets, type DataExportId, type UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { enqueueNotification } from "@orcai/notifications";
-import { sendJobBatch } from "@orcai/pg-boss";
+import { sendJobBatchInTransaction } from "@orcai/pg-boss";
 import { DATA_EXPORT_TTL_MS, dataExportKey } from "@orcai/s3";
 import {
 	DATA_EXPORT_JOB_NAME,
@@ -53,7 +53,7 @@ export const findLatestDataExport = (userId: UserId) =>
 
 /**
  * Queues an export of everything the user owns. Fails while another of their
- * exports is in flight, and when queueing fails, which leaves this one failed.
+ * exports is in flight, and when queueing fails, which leaves no export.
  */
 export const requestDataExport = (userId: UserId) =>
 	Effect.gen(function* () {
@@ -75,6 +75,16 @@ export const requestDataExport = (userId: UserId) =>
 						runId,
 						dataExportId: row.id,
 					});
+					yield* sendJobBatchInTransaction<DataExportPayload>({
+						jobName: DATA_EXPORT_JOB_NAME,
+						jobs: [
+							{
+								data: {
+									dataExportId: row.id,
+								},
+							},
+						],
+					});
 					return row;
 				}),
 		).pipe(
@@ -90,27 +100,6 @@ export const requestDataExport = (userId: UserId) =>
 							cause,
 						}),
 					),
-			),
-		);
-
-		yield* sendJobBatch<DataExportPayload>({
-			jobName: DATA_EXPORT_JOB_NAME,
-			jobs: [
-				{
-					data: {
-						dataExportId: created.id,
-					},
-				},
-			],
-		}).pipe(
-			Effect.tapError(() =>
-				db
-					.update(dbSchema.dataExport)
-					.set({
-						status: "failed",
-						updatedAt: new Date(),
-					})
-					.where(eq(dbSchema.dataExport.id, created.id)),
 			),
 		);
 

@@ -10,7 +10,6 @@ import {
 	utilityModel,
 	utilityReasoning,
 } from "@orcai/ai";
-import { buckets } from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import {
 	type Job,
@@ -19,10 +18,9 @@ import {
 	settleStage,
 } from "@orcai/pg-boss";
 import {
-	buildStoredExtractionKey,
+	readStoredExtraction,
 	type StoredExtractionArtifact,
 } from "@orcai/process";
-import { getObjectAsJson, isS3NoSuchKey } from "@orcai/s3/server";
 import {
 	applyMetadataSuggestion,
 	GENERATE_ASSET_METADATA_JOB_NAME,
@@ -259,13 +257,10 @@ const store = (
 		);
 	});
 
-/** The asset's stored extraction, or undefined when there is none. */
+/** The asset's stored extraction, or undefined when it is gone or unreadable. */
 const readExtraction = (assetId: GenerateAssetMetadataPayload["assetId"]) =>
-	getObjectAsJson<StoredExtractionArtifact>({
-		bucket: buckets.processed.name,
-		name: buildStoredExtractionKey(assetId),
-	}).pipe(
-		Effect.catchIf(isS3NoSuchKey, () => Effect.succeed(undefined)),
+	readStoredExtraction(assetId).pipe(
+		Effect.catchTag("StoredExtractionError", () => Effect.succeed(undefined)),
 		Effect.mapError(
 			(cause) =>
 				new AssetPipelineError({

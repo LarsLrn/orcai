@@ -393,25 +393,15 @@ const discoverModels = authed.model.discover
 				},
 			)
 			.pipe(
-				Effect.mapError((cause) => {
-					if (cause instanceof ORPCError && cause.code === "FORBIDDEN") {
-						return cause;
-					}
-
-					if (cause instanceof ORPCError && cause.code === "NOT_FOUND") {
-						return new AppErrors.NotFoundError({
-							reason: "PROVIDER_NOT_FOUND",
-							message: "Failed to find provider",
-							cause,
-						});
-					}
-
-					return new AppErrors.BadRequestError({
-						reason: "PROVIDER_NOT_FOUND",
-						message: "Failed to find provider",
-						cause,
-					});
-				}),
+				Effect.mapError((cause) =>
+					cause instanceof ORPCError && cause.code === "NOT_FOUND"
+						? new AppErrors.NotFoundError({
+								reason: "PROVIDER_NOT_FOUND",
+								message: "Failed to find provider",
+								cause,
+							})
+						: cause,
+				),
 			);
 
 		const { kind } = provider;

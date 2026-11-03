@@ -1,4 +1,5 @@
 import { DB, dbSchema, enumSchema, lockSpaces } from "@orcai/db";
+import { logFailure } from "@orcai/observability";
 import {
 	grpcStatusOf,
 	SpiceDbError,
@@ -324,7 +325,9 @@ export const AuthzLive = Layer.effect(
 				}
 			}).pipe(
 				Effect.catch((cause) =>
-					Effect.logError(`authz.replay_failed cause=${String(cause)}`).pipe(
+					logFailure("authz.replay_failed", cause, {
+						expected: false,
+					}).pipe(
 						Effect.as({
 							processed: 0,
 							failed: 1,

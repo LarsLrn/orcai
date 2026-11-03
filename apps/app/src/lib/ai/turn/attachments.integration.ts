@@ -455,4 +455,55 @@ describe("chat attachments", () => {
 			],
 		]);
 	});
+
+	test("a file whose stored extraction is unreadable is read from the file itself", async () => {
+		const owner = await newUser();
+		const asset = await run(
+			Effect.gen(function* () {
+				const [row] = yield* (yield* DB)
+					.insert(dbSchema.asset)
+					.values({
+						bucket: buckets.main.name,
+						prefix: `users/${owner}/chatAttachment/2026/10`,
+						title: "Field notes",
+						fileType: "txt",
+						size: 22,
+						userId: owner,
+					})
+					.returning();
+				yield* sendPutObjectCommand({
+					bucket: row.bucket,
+					key: `${row.prefix}/${row.id}.txt`,
+					body: Buffer.from("Soil samples at 30 cm."),
+					contentType: "text/plain",
+				});
+				yield* sendPutObjectCommand({
+					bucket: buckets.processed.name,
+					key: buildStoredExtractionKey(row.id),
+					body: Buffer.from('{"content":'),
+					contentType: "application/json",
+				});
+				return row;
+			}),
+		);
+		const { zedToken } = await relate(asset.id, "owner", owner);
+		const reader = {
+			userId: owner,
+			zedToken,
+		};
+		const attached = await run(
+			attachAssets(
+				[
+					{
+						assetId: asset.id,
+					},
+				],
+				reader,
+			),
+		);
+
+		const parts = await attachmentPartsOf(question(attached), reader);
+
+		expect(JSON.stringify(parts)).toContain("Soil samples at 30 cm.");
+	});
 });

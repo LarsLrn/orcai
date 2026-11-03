@@ -4,12 +4,11 @@ import type { Job } from "@orcai/pg-boss";
 import { queueAfterProcessing, toPgBossRunError } from "@orcai/pg-boss";
 import {
 	buildStoredExtractionImageKey,
-	buildStoredExtractionKey,
 	createImageOnlyStoredExtractionArtifact,
 	createStoredExtractionArtifact,
 	extract,
 	type StoredExtractionArtifact,
-	serializeStoredExtractionArtifact,
+	writeStoredExtraction,
 } from "@orcai/process";
 import { getMimeTypeFromFileType } from "@orcai/s3";
 import {
@@ -293,12 +292,7 @@ const processDelivery = (params: {
 			imageAsset,
 		});
 
-		yield* sendPutObjectCommand({
-			bucket: buckets.processed.name,
-			key: buildStoredExtractionKey(assetRef.id),
-			body: Buffer.from(serializeStoredExtractionArtifact(artifact), "utf-8"),
-			contentType: "application/json",
-		}).pipe(
+		yield* writeStoredExtraction(assetRef.id, artifact).pipe(
 			Effect.mapError(toPgBossRunError(params.job.id, PROCESS_ASSET_JOB_NAME)),
 			Effect.tapError((err) =>
 				Effect.logError(

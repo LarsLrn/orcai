@@ -1,7 +1,7 @@
 import { modelCapabilities } from "@orcai/core";
 import type { ModelCapability } from "@orcai/schema";
-import OpenAI from "openai";
 import { z } from "zod/v4";
+import { ModelListingError, ProviderStatusError } from "./listing-error";
 import { reportedTokenCount } from "./reported-token-count";
 import type { DiscoveredModel, ProviderConnection } from "./types";
 
@@ -97,19 +97,31 @@ const reportedCapabilities = (
 	return modelCapabilities.filter((capability) => reported.has(capability));
 };
 
+const OPENAI_API_URL = "https://api.openai.com/v1";
+
 /** `GET /models` of the endpoint, or of OpenAI's API without one. */
 export const listOpenAIModels = async ({
 	apiKey,
 	endpoint,
-	fetch,
+	fetch = globalThis.fetch,
 }: ProviderConnection): Promise<DiscoveredModel[]> => {
-	const client = new OpenAI({
-		apiKey,
-		baseURL: endpoint ?? undefined,
-		fetch,
+	const response = await fetch(
+		`${(endpoint ?? OPENAI_API_URL).replace(/\/+$/, "")}/models`,
+		{
+			headers: {
+				authorization: `Bearer ${apiKey}`,
+			},
+		},
+	).catch((cause) => {
+		throw new ModelListingError("unreachable", cause);
 	});
+	if (!response.ok) {
+		throw new ProviderStatusError(
+			`Models API answered ${response.status} ${response.statusText}`,
+			response.status,
+		);
+	}
 
-	const response = await client.models.list().asResponse();
 	return listingSchema.parse(await response.json()).data.map((model) => ({
 		providerModelId: model.id,
 		name: model.id,

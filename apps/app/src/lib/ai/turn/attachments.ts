@@ -1,12 +1,8 @@
-import { type AssetId, buckets, type UserId } from "@orcai/core";
+import type { AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import {
-	buildStoredExtractionKey,
-	extract,
-	type StoredExtractionArtifact,
-} from "@orcai/process";
+import { extract, readStoredExtraction } from "@orcai/process";
 import { getMimeTypeFromFileType } from "@orcai/s3";
-import { getImageAsBase64, getObjectAsJson } from "@orcai/s3/server";
+import { getImageAsBase64 } from "@orcai/s3/server";
 import type { ChatAttachmentRef, ChatMessageAttachment } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
 import type { FileUIPart, TextUIPart } from "ai";
@@ -186,10 +182,7 @@ const imageAttachment = (asset: AttachedAsset) =>
 
 const documentAttachment = (asset: AttachedAsset) =>
 	Effect.gen(function* () {
-		const stored = yield* getObjectAsJson<StoredExtractionArtifact>({
-			bucket: buckets.processed.name,
-			name: buildStoredExtractionKey(asset.id),
-		}).pipe(Effect.option);
+		const stored = yield* readStoredExtraction(asset.id).pipe(Effect.option);
 
 		const content =
 			stored._tag === "Some"

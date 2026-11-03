@@ -13,7 +13,6 @@ export const ImagePart = ({ url, alt }: ImagePartProps) => {
 	const handleDownloadImage = () => {
 		try {
 			downloadImage(url);
-			toast.success(m.chat_image_part_download_toast_success());
 		} catch (_error) {
 			toast.error(m.chat_image_part_download_toast_error());
 		}

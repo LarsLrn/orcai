@@ -105,4 +105,13 @@ describe("runAssistantTool", () => {
 			"INTERNAL_SERVER_ERROR: The request failed on the server.",
 		);
 	});
+
+	test("a failure on the server keeps its cause", async () => {
+		const failure = new Error("connection to db-primary:5432 refused");
+		const error = await rejection(
+			runAssistantTool(Effect.fail(failure), undefined),
+		);
+
+		expect((error as Error).cause).toBe(failure);
+	});
 });

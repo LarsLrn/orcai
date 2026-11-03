@@ -199,6 +199,12 @@ export const updateQuotaPool: (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		return yield* db.transaction(() => applyQuotaPoolUpdate(params));
+	}).pipe(writeFailed("The quota pool could not be updated."));
+
+const applyQuotaPoolUpdate = (params: UpdateQuotaPoolParams) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
 
 		const [pool] = yield* db
 			.select()
@@ -454,7 +460,7 @@ export const updateQuotaPool: (
 			status: "ok",
 			pool: finalPool,
 		} satisfies WriteQuotaPoolResult;
-	}).pipe(writeFailed("The quota pool could not be updated."));
+	});
 
 export const deactivateQuotaPool: (params: {
 	organizationId: OrganizationId;

@@ -18,8 +18,6 @@ const PARALLEL_CALLS = 2;
 // Backs off for 30 s in total, longer than a rate limit window.
 const MAX_RETRIES = 4;
 
-const trimNewlines = (input: string) => input.replaceAll("\\n", " ");
-
 const embeddingModel = (connection: EmbeddingConnection) =>
 	wrapEmbeddingModel({
 		model: createOpenAI({
@@ -45,7 +43,7 @@ const embed = (
 ) =>
 	embedMany({
 		model: embeddingModel(connection),
-		values: values.map((value) => prefix + trimNewlines(value)),
+		values: values.map((value) => prefix + value),
 		maxParallelCalls: PARALLEL_CALLS,
 		maxRetries,
 		...aiTelemetry("ai.embedMany"),

@@ -130,4 +130,51 @@ describe("embedValues", () => {
 			],
 		]);
 	});
+
+	test("embeds each value exactly as given after the prefix", async () => {
+		const received: string[] = [];
+		const server = serve({
+			port: 0,
+			async fetch(request) {
+				const { input } = (await request.json()) as {
+					input: string[];
+				};
+				received.push(...input);
+				return Response.json({
+					object: "list",
+					model: "fake",
+					data: input.map((_, index) => ({
+						object: "embedding",
+						index,
+						embedding: [
+							0.5,
+						],
+					})),
+					usage: {
+						prompt_tokens: input.length,
+						total_tokens: input.length,
+					},
+				});
+			},
+		});
+		servers.push(server);
+		const values = [
+			"C:\\new\\notes",
+			"line one\nline two",
+		];
+
+		await Effect.runPromise(
+			embedValues(
+				{
+					baseUrl: server.url.href,
+					apiKey: "key",
+					model: "fake",
+				},
+				values,
+				"query: ",
+			),
+		);
+
+		expect(received).toEqual(values.map((value) => `query: ${value}`));
+	});
 });
