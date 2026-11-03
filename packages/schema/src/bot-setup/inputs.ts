@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
-import { botIdSchema } from "../bot/ref";
-import { modelIdSchema } from "../model/ref";
-import { zedTokenSchema } from "../shared";
+import { botIdSchema, modelIdSchema } from "../shared/ids";
+import { zedTokenSchema } from "../shared/zed-token";
 import { botSetupFieldsSchema } from "./schema";
 
 export const findBotSetupInputSchema = z.object({

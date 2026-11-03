@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
-import { blockIdSchema } from "../block/ref";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { blockIdSchema } from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
+import { zedTokenSchema } from "../shared/zed-token";
 import {
 	createResourceScopedSchema,
 	principalTypeSchema,

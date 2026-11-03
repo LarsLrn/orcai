@@ -1,15 +1,17 @@
 import { z } from "zod/v4";
-import { groupIdSchema } from "../group/ref";
-import { modelIdSchema } from "../model/ref";
-import { providerIdSchema } from "../provider/ref";
-import { paginationInputSchema } from "../shared";
+import {
+	groupIdSchema,
+	modelIdSchema,
+	providerIdSchema,
+	quotaPoolIdSchema,
+} from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { createSortingInputSchema } from "../shared/sorting";
-import { quotaUsageEventTypeSchema } from "./parts/usage-event-type";
-import { quotaPoolIdSchema } from "./ref";
 import {
 	quotaPoolFieldsSchema,
 	quotaPoolFiltersSchema,
 	quotaPoolMutableFieldsSchema,
+	quotaUsageEventTypeSchema,
 } from "./schema";
 
 export const quotaPoolSortKeySchema = z.enum([

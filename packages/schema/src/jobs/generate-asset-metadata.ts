@@ -1,7 +1,9 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../../activity/ref";
-import { assetIdSchema } from "../../asset/ref";
-import { userIdSchema } from "../../user/ref";
+import {
+	activityRunIdSchema,
+	assetIdSchema,
+	userIdSchema,
+} from "../shared/ids";
 
 /**
  * `apply` fills empty fields and keeps only what it could not apply for

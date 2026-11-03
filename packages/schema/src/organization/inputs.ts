@@ -1,15 +1,17 @@
 import { z } from "zod/v4";
-import { modelIdSchema } from "../model/ref";
-import { providerIdSchema } from "../provider/ref";
-import { paginationInputSchema } from "../shared";
 import { searchFilterSchema } from "../shared/filters";
+import {
+	modelIdSchema,
+	organizationIdSchema,
+	providerIdSchema,
+	userIdSchema,
+} from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { localeSchema } from "../shared/primitives/locale";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
 import { uploadFileObjectSchema } from "../storage/schema";
-import { userIdSchema } from "../user/ref";
 import { organizationDescriptionSchema } from "./description";
-import { organizationIdSchema } from "./ref";
 import {
 	organizationFieldsSchema,
 	organizationFiltersSchema,

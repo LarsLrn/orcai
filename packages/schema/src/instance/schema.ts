@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../organization/parts/role";
-import { organizationIdSchema } from "../organization/ref";
-import { userIdSchema } from "../user/ref";
+import { organizationRoleSchema } from "../organization/schema";
+import { organizationIdSchema, userIdSchema } from "../shared/ids";
 import { userSchema } from "../user/schema";
 
 /** An account as the instance sees it. */

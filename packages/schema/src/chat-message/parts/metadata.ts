@@ -1,6 +1,6 @@
 import { docsMarkdownPath, safeExternalUrl } from "@orcai/core";
 import { z } from "zod/v4";
-import { assetIdSchema } from "../../asset/ref";
+import { assetIdSchema } from "../../shared/ids";
 import { chatMessageAttachmentSchema } from "./attachment";
 import { turnWritesSchema } from "./writes";
 

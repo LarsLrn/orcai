@@ -1,19 +1,30 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../activity/ref";
-import { entityCapabilitiesSchema } from "../authorization";
-import { blockIdSchema } from "../block/ref";
+import { entityCapabilitiesSchema } from "../authorization/schema";
 import { resourceOwnerSchema } from "../resource/schema";
+import {
+	activityRunIdSchema,
+	assetIdSchema,
+	blockIdSchema,
+	userIdSchema,
+} from "../shared/ids";
 import { libraryScopeSchema } from "../shared/library";
 import { assetFileTypeSchema } from "../shared/primitives/file-type";
 import {
 	pipelineFailureSchema,
 	pipelineStatusSchema,
 } from "../shared/primitives/pipeline-status";
-import { bucketSchema } from "../storage/parts/buckets";
-import { userIdSchema } from "../user/ref";
-import { assetKeptInSchema } from "./parts/kept-in";
+import { bucketSchema } from "../storage/schema";
 import { metadataSchema, metadataSuggestionSchema } from "./parts/metadata";
-import { assetIdSchema } from "./ref";
+
+/** Where an asset is kept: the Library, or a chat message's attachments. */
+export const ASSET_KEPT_IN = [
+	"library",
+	"chat",
+] as const;
+
+export const assetKeptInSchema = z.enum(ASSET_KEPT_IN);
+
+export type AssetKeptIn = z.infer<typeof assetKeptInSchema>;
 
 export const assetFieldsSchema = z.object({
 	title: z.string().min(1),

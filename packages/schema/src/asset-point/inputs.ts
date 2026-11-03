@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
-import { blockIdSchema } from "../block/ref";
+import { assetIdSchema, blockIdSchema } from "../shared/ids";
 import {
 	assetPointBrowseCursorSchema,
 	assetPointsFiltersSchema,

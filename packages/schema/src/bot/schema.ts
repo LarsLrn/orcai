@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { assetSchema, assetWithCapabilitiesSchema } from "../asset/schema";
-import { entityCapabilitiesSchema } from "../authorization";
-import { blockIdSchema } from "../block/ref";
+import { entityCapabilitiesSchema } from "../authorization/schema";
 import {
 	behaviourSchema,
 	blockFieldsSchema,
@@ -13,9 +12,8 @@ import {
 	homeOrganizationSchema,
 	resourceOwnerSchema,
 } from "../resource/schema";
+import { blockIdSchema, botIdSchema, userIdSchema } from "../shared/ids";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
-import { userIdSchema } from "../user/ref";
-import { botIdSchema } from "./ref";
 
 export const botContentJsonSchema = z.custom<object>(
 	(value) =>

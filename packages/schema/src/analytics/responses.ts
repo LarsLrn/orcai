@@ -1,4 +1,4 @@
-import { createDataResponseSchema } from "../shared";
+import { createDataResponseSchema } from "../shared/responses";
 import { instanceAnalyticsSchema, organizationAnalyticsSchema } from "./views";
 
 export const organizationAnalyticsResponseSchema = createDataResponseSchema(

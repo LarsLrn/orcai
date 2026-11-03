@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { dataExportIdSchema } from "./ref";
+import { dataExportIdSchema } from "../shared/ids";
 
 /** `expired` is a ready export past its expiry; the archive is gone. */
 export const dataExportStatusSchema = z.enum([

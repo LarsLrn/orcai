@@ -1,14 +1,16 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
-import { blockIdSchema } from "../block/ref";
 import { blockTypeSchema } from "../block/schema";
-import { botIdSchema } from "../bot/ref";
-import { groupIdSchema } from "../group/ref";
 import { groupSchema } from "../group/schema";
-import { organizationIdSchema } from "../organization/ref";
+import {
+	assetIdSchema,
+	blockIdSchema,
+	botIdSchema,
+	groupIdSchema,
+	organizationIdSchema,
+	userIdSchema,
+} from "../shared/ids";
 import { pipelineStatusSchema } from "../shared/primitives/pipeline-status";
 import { publicationStatusSchema } from "../shared/primitives/publication-status";
-import { userIdSchema } from "../user/ref";
 
 export const RESOURCE_TYPES = [
 	"bot",

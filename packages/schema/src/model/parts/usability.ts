@@ -1,5 +1,5 @@
 import type { ErrorReason } from "../../shared/error-reason";
-import type { ModelCapability } from "./capabilities";
+import type { ModelCapability } from "../schema";
 
 const required = {
 	turn: {

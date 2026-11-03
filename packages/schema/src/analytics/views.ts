@@ -1,8 +1,10 @@
 import { z } from "zod/v4";
 import { chatMessageRatingSchema } from "../chat-message/schema";
-import { modelIdSchema } from "../model/ref";
-import { organizationIdSchema } from "../organization/ref";
-import { providerIdSchema } from "../provider/ref";
+import {
+	modelIdSchema,
+	organizationIdSchema,
+	providerIdSchema,
+} from "../shared/ids";
 import { usageBotSchema, usagePersonSchema } from "../usage/identity";
 import { analyticsDaysSchema } from "./inputs";
 

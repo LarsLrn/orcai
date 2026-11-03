@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../../activity/ref";
+import { activityRunIdSchema } from "../shared/ids";
 
 export const prepareMissingExtractionsAgainPayloadSchema = z.object({
 	/** The instance run the assets are prepared again as. */

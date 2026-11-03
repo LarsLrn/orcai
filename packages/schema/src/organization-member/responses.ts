@@ -1,6 +1,9 @@
 import { handOverActionResponseSchema } from "../ownership/responses";
 import { handedOverSchema } from "../ownership/schema";
-import { createDataResponseSchema, createListResponseSchema } from "../shared";
+import {
+	createDataResponseSchema,
+	createListResponseSchema,
+} from "../shared/responses";
 import { userWithOrganizationRoleSchema } from "../user/schema";
 import { memberAccessEntrySchema, organizationMemberSchema } from "./schema";
 

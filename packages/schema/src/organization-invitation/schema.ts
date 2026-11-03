@@ -1,9 +1,39 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../organization/parts/role";
-import { organizationIdSchema } from "../organization/ref";
-import { userIdSchema } from "../user/ref";
-import { organizationInvitationStatusSchema } from "./parts/status";
-import { organizationInvitationIdSchema } from "./ref";
+import { organizationRoleSchema } from "../organization/schema";
+import {
+	organizationIdSchema,
+	organizationInvitationIdSchema,
+	userIdSchema,
+} from "../shared/ids";
+
+export const organizationInvitationResponseActionSchema = z.enum([
+	"accept",
+	"reject",
+]);
+
+export type OrganizationInvitationResponseAction = z.infer<
+	typeof organizationInvitationResponseActionSchema
+>;
+
+export const organizationInvitationStatusSchema = z.enum([
+	"pending",
+	"accepted",
+	"rejected",
+]);
+
+export type OrganizationInvitationStatus = z.infer<
+	typeof organizationInvitationStatusSchema
+>;
+
+export const organizationInvitationValidationReasonSchema = z.enum([
+	"not_found",
+	"consumed",
+	"expired",
+]);
+
+export type OrganizationInvitationValidationReason = z.infer<
+	typeof organizationInvitationValidationReasonSchema
+>;
 
 /** How long a new invitation stays valid unless the inviter picks another date. */
 export const DEFAULT_INVITATION_TTL_DAYS = 7;

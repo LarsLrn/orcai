@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { createDataResponseSchema } from "../shared";
+import { createDataResponseSchema } from "../shared/responses";
 import { instanceHealthSchema } from "./schema";
 
 export const findInstanceHealthResponseSchema =

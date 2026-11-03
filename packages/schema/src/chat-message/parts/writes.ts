@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
-import { blockIdSchema } from "../../block/ref";
-import { groupIdSchema } from "../../group/ref";
 import { createResourceScopedSchema } from "../../resource/schema";
+import { blockIdSchema, groupIdSchema } from "../../shared/ids";
 
 /**
  * A procedure call that wrote for an Assistant turn, with only the fields of

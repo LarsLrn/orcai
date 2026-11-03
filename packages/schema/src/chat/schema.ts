@@ -1,14 +1,16 @@
 import { z } from "zod/v4";
-import { botIdSchema } from "../bot/ref";
 import { botSetupSchema } from "../bot-setup/schema";
-import { chatMessageIdSchema } from "../chat-message/ref";
-import { modelIdSchema } from "../model/ref";
-import { organizationIdSchema } from "../organization/ref";
-import { providerIdSchema } from "../provider/ref";
 import { searchFilterSchema } from "../shared/filters";
-import { userIdSchema } from "../user/ref";
+import {
+	botIdSchema,
+	chatIdSchema,
+	chatMessageIdSchema,
+	modelIdSchema,
+	organizationIdSchema,
+	providerIdSchema,
+	userIdSchema,
+} from "../shared/ids";
 import { chatConfigSchema, generationSettingsSchema } from "./parts/config";
-import { chatIdSchema } from "./ref";
 
 export const chatKindSchema = z.enum([
 	"chat",

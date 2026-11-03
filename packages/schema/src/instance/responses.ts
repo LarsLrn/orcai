@@ -5,7 +5,7 @@ import {
 	createDataResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
-} from "../shared";
+} from "../shared/responses";
 import {
 	instanceOrganizationMemberSchema,
 	instanceUserMembershipSchema,

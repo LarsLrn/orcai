@@ -1,6 +1,5 @@
 import { z } from "zod/v4";
-import { botIdSchema } from "../bot/ref";
-import { userIdSchema } from "../user/ref";
+import { botIdSchema, userIdSchema } from "../shared/ids";
 
 /**
  * A current member, someone who has left the organisation, unnamed, or a

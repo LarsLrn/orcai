@@ -1,8 +1,7 @@
 import { z } from "zod/v4";
 import { generationSettingsSchema } from "../chat/parts/config";
-import { modelIdSchema } from "../model/ref";
-import { providerIdSchema } from "../provider/ref";
 import { resourcePrincipalSchema } from "../resource/schema";
+import { modelIdSchema, providerIdSchema } from "../shared/ids";
 
 /** Recommended seeds new chats; required decides every turn of the bot's chats. */
 export const botSetupStrengthSchema = z.enum([

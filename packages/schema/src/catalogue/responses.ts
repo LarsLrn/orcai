@@ -1,14 +1,15 @@
 import { z } from "zod/v4";
-import { assetIdSchema } from "../asset/ref";
-import { blockIdSchema } from "../block/ref";
 import { blockTypeSchema } from "../block/schema";
 import { botSetupStrengthSchema } from "../bot-setup/schema";
-import { modelIdSchema } from "../model/ref";
 import {
 	homeOrganizationSchema,
 	resourceOwnerSchema,
 } from "../resource/schema";
-import { createDataResponseSchema, createListResponseSchema } from "../shared";
+import { assetIdSchema, blockIdSchema, modelIdSchema } from "../shared/ids";
+import {
+	createDataResponseSchema,
+	createListResponseSchema,
+} from "../shared/responses";
 import { catalogueKindSchema } from "./inputs";
 
 /**

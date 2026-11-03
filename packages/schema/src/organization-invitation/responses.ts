@@ -4,11 +4,11 @@ import {
 	createDeleteResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
-} from "../shared";
-import { organizationInvitationValidationReasonSchema } from "./parts/validation-reason";
+} from "../shared/responses";
 import {
 	organizationInvitationListItemSchema,
 	organizationInvitationSchema,
+	organizationInvitationValidationReasonSchema,
 	skippedInviteeSchema,
 } from "./schema";
 

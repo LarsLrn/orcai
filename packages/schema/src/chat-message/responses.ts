@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { createDataResponseSchema } from "../shared";
-import { chatMessageIdSchema } from "./ref";
+import { chatMessageIdSchema } from "../shared/ids";
+import { createDataResponseSchema } from "../shared/responses";
 import { chatMessageRatingSchema, chatMessageSchema } from "./schema";
 
 /** One page in ascending `position` order. */

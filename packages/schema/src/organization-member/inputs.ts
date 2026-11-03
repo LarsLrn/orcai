@@ -1,9 +1,10 @@
 import { z } from "zod/v4";
 import { resourceTypeSchema } from "../resource/schema";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { userIdSchema } from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { createSortingInputSchema } from "../shared/sorting";
-import { userIdSchema } from "../user/ref";
+import { zedTokenSchema } from "../shared/zed-token";
 import { userFiltersSchema } from "../user/schema";
 import {
 	memberAccessOriginSchema,

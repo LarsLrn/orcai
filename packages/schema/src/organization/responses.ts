@@ -4,7 +4,7 @@ import {
 	createDeleteResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
-} from "../shared";
+} from "../shared/responses";
 import {
 	organizationDeletionImpactSchema,
 	organizationProfileSchema,

@@ -3,7 +3,7 @@ import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
-} from "../shared";
+} from "../shared/responses";
 import { modelSchema } from "./schema";
 import { modelListRowSchema } from "./views";
 

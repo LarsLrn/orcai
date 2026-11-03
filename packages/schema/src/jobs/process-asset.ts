@@ -1,8 +1,7 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../../activity/ref";
-import { assetIdSchema } from "../../asset/ref";
-import { fileTypeSchema } from "../../shared/primitives/file-type";
-import { bucketSchema } from "../../storage/parts/buckets";
+import { activityRunIdSchema, assetIdSchema } from "../shared/ids";
+import { fileTypeSchema } from "../shared/primitives/file-type";
+import { bucketSchema } from "../storage/schema";
 
 export const processAssetPayloadSchema = z.object({
 	assetRef: z.object({

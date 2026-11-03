@@ -2,7 +2,7 @@ import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
-} from "../shared";
+} from "../shared/responses";
 import { providerDetailSchema, providerSchema } from "./schema";
 
 export const listProvidersResponseSchema =

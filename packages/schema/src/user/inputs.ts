@@ -1,12 +1,11 @@
 import { INSTANCE_ROLES } from "@orcai/core";
 import { z } from "zod/v4";
-import { organizationIdSchema } from "../organization/ref";
-import { paginationInputSchema } from "../shared";
 import { sharedSchemas } from "../shared/forms/shared";
+import { organizationIdSchema, userIdSchema } from "../shared/ids";
+import { paginationInputSchema } from "../shared/pagination";
 import { createSortingInputSchema } from "../shared/sorting";
 import { uploadFileObjectSchema } from "../storage/schema";
 import { tourIdSchema, tourStateSchema } from "./parts/preferences";
-import { userIdSchema } from "./ref";
 import { userFiltersSchema } from "./schema";
 
 export const instanceUserSortKeySchema = z.enum([

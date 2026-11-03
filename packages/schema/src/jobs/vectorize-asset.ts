@@ -1,7 +1,9 @@
 import { z } from "zod/v4";
-import { activityRunIdSchema } from "../../activity/ref";
-import { assetIdSchema } from "../../asset/ref";
-import { blockIdSchema } from "../../block/ref";
+import {
+	activityRunIdSchema,
+	assetIdSchema,
+	blockIdSchema,
+} from "../shared/ids";
 
 export const vectorizeAssetPayloadSchema = z.object({
 	assetId: assetIdSchema,

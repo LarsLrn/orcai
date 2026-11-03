@@ -1,11 +1,12 @@
 import { z } from "zod/v4";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
 import {
 	libraryOriginSchema,
 	libraryScopeSchema,
 	librarySortSchema,
 	publicationStatusFilterSchema,
 } from "../shared/library";
+import { paginationInputSchema } from "../shared/pagination";
+import { zedTokenSchema } from "../shared/zed-token";
 
 export const libraryCountsInputSchema = z.object({
 	...zedTokenSchema.shape,

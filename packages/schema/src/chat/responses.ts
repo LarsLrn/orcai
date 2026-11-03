@@ -1,13 +1,15 @@
 import { z } from "zod/v4";
 import { chatMessageAttachmentSchema } from "../chat-message/parts/attachment";
-import { modelIdSchema } from "../model/ref";
-import { organizationIdSchema } from "../organization/ref";
-import { providerIdSchema } from "../provider/ref";
+import {
+	modelIdSchema,
+	organizationIdSchema,
+	providerIdSchema,
+} from "../shared/ids";
 import {
 	createDataResponseSchema,
 	createDeleteResponseSchema,
 	createListResponseSchema,
-} from "../shared";
+} from "../shared/responses";
 import {
 	chatBranchLinkSchema,
 	chatHistoryRowSchema,

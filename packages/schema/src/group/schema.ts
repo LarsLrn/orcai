@@ -1,9 +1,32 @@
 import { z } from "zod/v4";
-import { organizationIdSchema } from "../organization/ref";
-import { userIdSchema } from "../user/ref";
-import { groupKindSchema } from "./parts/kind";
-import { groupSystemKeySchema } from "./parts/system-key";
-import { groupIdSchema, groupMemberIdSchema } from "./ref";
+import {
+	groupIdSchema,
+	groupMemberIdSchema,
+	organizationIdSchema,
+	userIdSchema,
+} from "../shared/ids";
+
+export const groupKindSchema = z.enum([
+	"system",
+	"custom",
+]);
+
+export type GroupKind = z.infer<typeof groupKindSchema>;
+
+export const groupMemberSourceSchema = z.enum([
+	"explicit",
+	"implicit",
+]);
+
+export type GroupMemberSource = z.infer<typeof groupMemberSourceSchema>;
+
+export const groupSystemKeySchema = z.enum([
+	"all_members",
+]);
+
+export const ALL_MEMBERS_GROUP_SYSTEM_KEY = "all_members";
+
+export type GroupSystemKey = z.infer<typeof groupSystemKeySchema>;
 
 export const groupFieldsSchema = z.object({
 	name: z.string().trim().min(1),

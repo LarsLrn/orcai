@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { blockTypeSchema } from "../block/schema";
-import { organizationRoleSchema } from "../organization/parts/role";
-import { memberIdSchema, organizationIdSchema } from "../organization/ref";
+import { organizationRoleSchema } from "../organization/schema";
 import {
 	assetResourceIdentitySchema,
 	blockResourceIdentitySchema,
@@ -11,7 +10,11 @@ import {
 	resourceGrantOriginSchema,
 	resourceGrantRoleSchema,
 } from "../resource/schema";
-import { userIdSchema } from "../user/ref";
+import {
+	memberIdSchema,
+	organizationIdSchema,
+	userIdSchema,
+} from "../shared/ids";
 
 export const organizationMemberFieldsSchema = z.object({
 	organizationId: organizationIdSchema,

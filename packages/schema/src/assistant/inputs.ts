@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
-import { paginationInputSchema, zedTokenSchema } from "../shared";
+import { paginationInputSchema } from "../shared/pagination";
+import { zedTokenSchema } from "../shared/zed-token";
 
 export const listAssistantConversationsInputSchema =
 	paginationInputSchema.extend({
