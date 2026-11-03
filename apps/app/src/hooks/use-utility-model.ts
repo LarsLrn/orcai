@@ -16,9 +16,7 @@ export const useUtilityModel = () => {
 			},
 		}),
 	);
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 	// The server renders the query as pending even when its data reaches the
 	// browser before hydration, and hydration keeps the server's attributes.
 	const hydrated = useHydrated();

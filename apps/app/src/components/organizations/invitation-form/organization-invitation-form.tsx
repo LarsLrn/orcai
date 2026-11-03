@@ -41,9 +41,7 @@ const OrganizationInvitationForm = () => {
 	});
 	const { mutateAsync: createInvitation } =
 		useCreateOrganizationInvitationMutation();
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_organization",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 
 	const bulkEmailsId = useId();
 

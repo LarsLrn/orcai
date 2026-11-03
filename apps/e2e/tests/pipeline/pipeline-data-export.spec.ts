@@ -6,7 +6,6 @@ import {
 } from "../../fixtures/account/navigation";
 import { createAccountUser } from "../../fixtures/account/users";
 import { uploadAsset } from "../../fixtures/assets";
-import { pageForSession } from "../../fixtures/auth/users";
 import {
 	chatName,
 	createChat,
@@ -22,9 +21,9 @@ const NOTES = "# Field notes\n\nSoil samples from the north plot.\n";
 test("pipeline: a user exports their data from the account page and downloads the archive", async ({
 	api,
 	appBaseURL,
-	browser,
 	inference,
 	outbox,
+	pageForSession,
 }) => {
 	const model = await setUpChatModel(api, inference);
 	const user = await createAccountUser({
@@ -48,70 +47,61 @@ test("pipeline: a user exports their data from the account page and downloads th
 		type: "text/markdown",
 	});
 
-	const { context, page } = await pageForSession(browser, user.session);
+	const page = await pageForSession(user.session);
 
-	try {
-		await openAccountPage(page, "data");
-		const card = accountCard(page, message("account_data_export_card_title"));
-		await card
-			.getByRole("button", {
-				name: message("account_data_export_request_button"),
-			})
-			.click();
-		await page
-			.getByRole("alertdialog")
-			.getByRole("button", {
-				name: message("account_data_export_confirm_button"),
-			})
-			.click();
-		const download = card.getByRole("link", {
-			name: message("account_data_export_download_button"),
-		});
-		// Workers poll every 0.5 s, so the export can be ready before pending renders.
-		await expect(
-			card
-				.getByText(message("account_data_export_status_pending"))
-				.or(download),
-		).toBeVisible();
+	await openAccountPage(page, "data");
+	const card = accountCard(page, message("account_data_export_card_title"));
+	await card
+		.getByRole("button", {
+			name: message("account_data_export_request_button"),
+		})
+		.click();
+	await page
+		.getByRole("alertdialog")
+		.getByRole("button", {
+			name: message("account_data_export_confirm_button"),
+		})
+		.click();
+	const download = card.getByRole("link", {
+		name: message("account_data_export_download_button"),
+	});
+	// Workers poll every 0.5 s, so the export can be ready before pending renders.
+	await expect(
+		card.getByText(message("account_data_export_status_pending")).or(download),
+	).toBeVisible();
 
-		// The app picks the job up once the workers have created its queue.
-		await expect(download).toBeVisible({
-			timeout: 60_000,
-		});
-		await expect(
-			card.getByRole("button", {
-				name: message("account_data_export_request_again_button"),
-			}),
-		).toBeVisible();
+	// The app picks the job up once the workers have created its queue.
+	await expect(download).toBeVisible({
+		timeout: 60_000,
+	});
+	await expect(
+		card.getByRole("button", {
+			name: message("account_data_export_request_again_button"),
+		}),
+	).toBeVisible();
 
-		const [file] = await Promise.all([
-			page.waitForEvent("download"),
-			download.click(),
-		]);
-		expect(file.suggestedFilename()).toMatch(
-			/^orcai-data-export-\d{4}-\d{2}-\d{2}\.zip$/,
-		);
-		const archive = unzipSync(await readFile(await file.path()));
-		const entry = (name: string) =>
-			strFromU8(archive[name] ?? new Uint8Array());
+	const [file] = await Promise.all([
+		page.waitForEvent("download"),
+		download.click(),
+	]);
+	expect(file.suggestedFilename()).toMatch(
+		/^orcai-data-export-\d{4}-\d{2}-\d{2}\.zip$/,
+	);
+	const archive = unzipSync(await readFile(await file.path()));
+	const entry = (name: string) => strFromU8(archive[name] ?? new Uint8Array());
 
-		expect(JSON.parse(entry("profile.json")).email).toBe(user.email);
-		const transcript = Object.keys(archive).find(
-			(name) => name.startsWith(`chats/${title}`) && name.endsWith(".md"),
-		);
-		expect(entry(transcript ?? "")).toBe(
-			"**User:**\n\nHow deep do I sample?\n\n**Assistant:**\n\nThirty centimetres.",
-		);
-		const upload = Object.keys(archive).find((name) =>
-			name.startsWith(`files/${asset.id}/`),
-		);
-		expect(entry(upload ?? "")).toBe(NOTES);
+	expect(JSON.parse(entry("profile.json")).email).toBe(user.email);
+	const transcript = Object.keys(archive).find(
+		(name) => name.startsWith(`chats/${title}`) && name.endsWith(".md"),
+	);
+	expect(entry(transcript ?? "")).toBe(
+		"**User:**\n\nHow deep do I sample?\n\n**Assistant:**\n\nThirty centimetres.",
+	);
+	const upload = Object.keys(archive).find((name) =>
+		name.startsWith(`files/${asset.id}/`),
+	);
+	expect(entry(upload ?? "")).toBe(NOTES);
 
-		// The workers send it at once, which clears its payload.
-		expect(
-			await outbox.latestFor(user.email, "data-export.ready"),
-		).toBeDefined();
-	} finally {
-		await context.close();
-	}
+	// The workers send it at once, which clears its payload.
+	expect(await outbox.latestFor(user.email, "data-export.ready")).toBeDefined();
 });

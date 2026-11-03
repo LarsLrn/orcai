@@ -7,6 +7,7 @@ import type { ReactElement, ReactNode } from "react";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
 import { parseSearch, stringifySearch } from "./lib/router/search-params";
+import { pageViewTransitionTypes } from "./lib/router/view-transitions";
 import { routeTree } from "./routeTree.gen";
 
 // Typed here because the request context's type depends on the router's.
@@ -26,7 +27,9 @@ export function getRouter() {
 		routeTree,
 		parseSearch,
 		stringifySearch,
-		defaultViewTransition: true,
+		defaultViewTransition: {
+			types: pageViewTransitionTypes,
+		},
 		scrollRestoration: true,
 		defaultPreload: "intent",
 		defaultErrorComponent: DefaultErrorBoundary,

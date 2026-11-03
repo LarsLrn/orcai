@@ -52,9 +52,7 @@ const UsageIndicator = ({
 				: skipToken,
 		}),
 	);
-	const { data: capabilities } = useOrganizationCapabilities([
-		"manage_quota_pools",
-	]);
+	const { data: capabilities } = useOrganizationCapabilities();
 
 	const view = usageView({
 		contextTokens,

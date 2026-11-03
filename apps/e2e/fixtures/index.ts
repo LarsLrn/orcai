@@ -1,8 +1,14 @@
 import {
 	type BrowserContext,
+	type BrowserContextOptions,
 	test as base,
 	expect,
 	type Page,
+	type PlaywrightTestArgs,
+	type PlaywrightTestOptions,
+	type PlaywrightWorkerArgs,
+	type PlaywrightWorkerOptions,
+	type TestType,
 } from "@playwright/test";
 import {
 	type ApiClient,
@@ -43,6 +49,11 @@ type WorkerFixtures = {
 /** Opens a page signed in as the instance-wide well-known admin. */
 export type PageAsWellKnownAdmin = () => Promise<Page>;
 
+export type PageErrors = {
+	/** Record the uncaught errors of every page in a context. */
+	watch: (context: BrowserContext) => void;
+};
+
 type TestFixtures = {
 	api: Api;
 	/** The newest zedToken this worker's setup and API clients have seen. */
@@ -50,6 +61,12 @@ type TestFixtures = {
 	outbox: Outbox;
 	pageAs: (role: Role, organisation?: WorkerOrganisation) => Promise<Page>;
 	pageAsWellKnownAdmin: PageAsWellKnownAdmin;
+	/** Fails the test with every uncaught error its pages logged. */
+	pageErrors: PageErrors;
+	/** A browser context whose pages fail the test on uncaught errors, closed after the test. */
+	newContext: (options?: BrowserContextOptions) => Promise<BrowserContext>;
+	/** A page carrying a session captured earlier. */
+	pageForSession: (session: Session) => Promise<Page>;
 	/** Give an open page the newest zedToken of this test, so its next reads are fresh. */
 	seedZedToken: (page: Page) => Promise<void>;
 };
@@ -81,7 +98,7 @@ const seedZedToken = async (
 	]);
 };
 
-export const test = base.extend<TestFixtures, WorkerFixtures>({
+const extended = base.extend<TestFixtures, WorkerFixtures>({
 	appBaseURL: [
 		baseURL(),
 		{
@@ -161,41 +178,90 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 		await use((page) => seedZedToken(page.context(), appBaseURL, zedTokens));
 	},
 
-	pageAsWellKnownAdmin: async ({ appBaseURL, browser, zedTokens }, use) => {
+	// React reports a hydration mismatch as an uncaught error too.
+	// biome-ignore lint/correctness/noEmptyPattern: Playwright reads fixture dependencies from this pattern.
+	pageErrors: async ({}, use) => {
+		const errors: string[] = [];
+
+		await use({
+			watch: (context) => {
+				context.on("weberror", (webError) => {
+					const error = webError.error();
+					errors.push(
+						`${webError.page()?.url() ?? "unknown page"}: ${error.stack ?? error.message}`,
+					);
+				});
+			},
+		});
+
+		if (errors.length > 0) {
+			throw new Error(`Uncaught page errors:\n\n${errors.join("\n\n")}`);
+		}
+	},
+
+	context: async ({ context, pageErrors }, use) => {
+		pageErrors.watch(context);
+		await use(context);
+	},
+
+	newContext: async ({ browser, pageErrors }, use) => {
 		const contexts: BrowserContext[] = [];
 
+		await use(async (options) => {
+			const context = await browser.newContext({
+				locale: "en",
+				...options,
+			});
+			contexts.push(context);
+			pageErrors.watch(context);
+
+			return context;
+		});
+
+		await Promise.all(contexts.map((context) => context.close()));
+	},
+
+	pageForSession: async ({ newContext }, use) => {
+		await use(async (session) => {
+			const context = await newContext({
+				storageState: session.storageState,
+			});
+
+			return await context.newPage();
+		});
+	},
+
+	pageAsWellKnownAdmin: async ({ appBaseURL, newContext, zedTokens }, use) => {
 		await use(async () => {
 			const admin = await signIn(appBaseURL, WELL_KNOWN_ADMIN);
-			const context = await browser.newContext({
+			const context = await newContext({
 				storageState: admin.storageState,
-				locale: "en",
 			});
-			contexts.push(context);
 			await seedZedToken(context, appBaseURL, zedTokens);
 
 			return await context.newPage();
 		});
-
-		await Promise.all(contexts.map((context) => context.close()));
 	},
 
-	pageAs: async ({ appBaseURL, browser, org, zedTokens }, use) => {
-		const contexts: BrowserContext[] = [];
-
+	pageAs: async ({ appBaseURL, newContext, org, zedTokens }, use) => {
 		await use(async (role, organisation = org) => {
-			const context = await browser.newContext({
+			const context = await newContext({
 				storageState: organisation.storageStates[role],
-				locale: "en",
 			});
-			contexts.push(context);
 			await seedZedToken(context, appBaseURL, zedTokens);
 
 			return await context.newPage();
 		});
-
-		await Promise.all(contexts.map((context) => context.close()));
 	},
 });
+
+/** Specs open contexts through `newContext` and never reach the browser, so every page is watched for uncaught errors. */
+export const test: TestType<
+	PlaywrightTestArgs & PlaywrightTestOptions & TestFixtures,
+	Omit<PlaywrightWorkerArgs, "browser" | "playwright"> &
+		PlaywrightWorkerOptions &
+		WorkerFixtures
+> = extended;
 
 export type { ApiClient, Role, Session, WorkerOrganisation };
 export { expect, signIn, WELL_KNOWN_ADMIN };

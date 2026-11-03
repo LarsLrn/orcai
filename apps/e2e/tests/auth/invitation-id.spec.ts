@@ -13,7 +13,7 @@ test("registration validates the selected invitation and leaves the others pendi
 	org,
 	orgs,
 	appBaseURL,
-	browser,
+	newContext,
 }) => {
 	const second = await orgs.create("Pending invitation");
 	const email = `selected-${randomUUID()}@e2e.orcai.test`;
@@ -111,28 +111,24 @@ test("registration validates the selected invitation and leaves the others pendi
 			})
 		).data.isValid,
 	).toBe(true);
-	const context = await browser.newContext({
+	const context = await newContext({
 		storageState: session.storageState,
 	});
-	try {
-		const page = await context.newPage();
-		await open(page, "/select-organization");
-		await expect(
-			page.getByText(
-				message("select_organisation_page_pending_invitations_title"),
-				{
-					exact: true,
-				},
-			),
-		).toBeVisible();
-		await expect(
-			page.getByRole("heading", {
-				name: message("select_organisation_page_title"),
-			}),
-		).toBeVisible();
-	} finally {
-		await context.close();
-	}
+	const page = await context.newPage();
+	await open(page, "/select-organization");
+	await expect(
+		page.getByText(
+			message("select_organisation_page_pending_invitations_title"),
+			{
+				exact: true,
+			},
+		),
+	).toBeVisible();
+	await expect(
+		page.getByRole("heading", {
+			name: message("select_organisation_page_title"),
+		}),
+	).toBeVisible();
 	await client.organizationInvitation.respond({
 		id: secondId,
 		response: "accept",

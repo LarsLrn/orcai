@@ -63,14 +63,11 @@ test("instance: the instance area opens on health with every dependency reachabl
 });
 
 test("instance: /api/health answers without session or detail", async ({
-	appBaseURL,
-	playwright,
+	request,
 }) => {
-	const request = await playwright.request.newContext();
-	const response = await request.get(`${appBaseURL}/api/health`);
+	const response = await request.get("/api/health");
 	expect(response.status()).toBe(200);
 	expect(await response.text()).toBe("");
-	await request.dispose();
 });
 
 test("instance: a test email is queued for the signed-in admin only", async ({

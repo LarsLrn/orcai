@@ -127,9 +127,6 @@ for (const { condition, theme, colorScheme, clockAheadMs } of [
 			},
 		]);
 
-		const pageErrors: string[] = [];
-		page.on("pageerror", (error) => pageErrors.push(error.message));
-
 		// Scripts are held back until the server-rendered form is in hand.
 		let releaseScripts!: () => void;
 		const scriptsReleased = new Promise<void>((resolve) => {
@@ -163,6 +160,5 @@ for (const { condition, theme, colorScheme, clockAheadMs } of [
 				name: org.name,
 			}),
 		).toBeVisible();
-		expect(pageErrors).toEqual([]);
 	});
 }

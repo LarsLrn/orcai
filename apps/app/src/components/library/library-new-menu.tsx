@@ -67,11 +67,7 @@ const NEW_ITEMS: {
 
 /** Everything the user may create in the library, in one menu; nothing without a `create_*` capability. */
 export const LibraryNewMenu = () => {
-	const { data } = useOrganizationCapabilities([
-		"create_bot",
-		"create_block",
-		"create_asset",
-	]);
+	const { data } = useOrganizationCapabilities();
 	const items = filterByCapabilities(
 		NEW_ITEMS,
 		data?.data.capabilities,

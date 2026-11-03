@@ -139,7 +139,7 @@ test("orgs: bulk add emails appends to the filled fields and skips duplicates", 
 
 test("orgs: an invited visitor registers from the link and joins with the invited role", async ({
 	api,
-	browser,
+	newContext,
 	org,
 	outbox,
 }) => {
@@ -152,40 +152,34 @@ test("orgs: an invited visitor registers from the link and joins with the invite
 	});
 
 	const link = await waitForLink(outbox, email, INVITED_NOTIFICATION);
-	const context = await browser.newContext({
-		locale: "en",
-	});
+	const context = await newContext();
 	const page = await context.newPage();
 
-	try {
-		await registerFromInvitation(page, link, {
-			name: "E2E Orgs Invitee",
-			password: USER_PASSWORD,
-			organisationName: org.name,
-		});
+	await registerFromInvitation(page, link, {
+		name: "E2E Orgs Invitee",
+		password: USER_PASSWORD,
+		organisationName: org.name,
+	});
 
-		// Signing up consumes the invitation, so the membership is already
-		// there and the one organisation it joined is the active one: the
-		// selection page has nothing to ask and hands the visitor to the app,
-		// without an email step in between.
-		await expect(page).toHaveURL(/\/app(\/|$)/);
+	// Signing up consumes the invitation, so the membership is already
+	// there and the one organisation it joined is the active one: the
+	// selection page has nothing to ask and hands the visitor to the app,
+	// without an email step in between.
+	await expect(page).toHaveURL(/\/app(\/|$)/);
 
-		// The sign-up hook grants the membership outside any oRPC response, so
-		// there is no zedToken to make the first reads of it fresh.
-		await expect
-			.poll(async () => await organisationRoleOf(api.as("admin"), email), {
-				timeout: 15_000,
-			})
-			.toBe("viewer");
-	} finally {
-		await context.close();
-	}
+	// The sign-up hook grants the membership outside any oRPC response, so
+	// there is no zedToken to make the first reads of it fresh.
+	await expect
+		.poll(async () => await organisationRoleOf(api.as("admin"), email), {
+			timeout: 15_000,
+		})
+		.toBe("viewer");
 });
 
 test("orgs: an existing user accepts a pending invitation from the selection page", async ({
 	api,
 	appBaseURL,
-	browser,
+	newContext,
 	org,
 }) => {
 	test.slow();
@@ -196,40 +190,33 @@ test("orgs: an existing user accepts a pending invitation from the selection pag
 		role: "manager",
 	});
 
-	const context = await browser.newContext({
+	const context = await newContext({
 		storageState: user.session.storageState,
-		locale: "en",
 	});
 	const page = await context.newPage();
 
-	try {
-		await open(page, "/select-organization");
-		await expect(
-			page.getByText(
-				message("select_organisation_page_pending_invitations_title"),
-			),
-		).toBeVisible();
-		// The invitation carries the organisation's name and slug, so the card
-		// names them without reading an organisation the user is not in yet.
-		await expect(
-			page.getByText(`@${org.slug}`, {
-				exact: true,
-			}),
-		).toBeVisible();
+	await open(page, "/select-organization");
+	await expect(
+		page.getByText(
+			message("select_organisation_page_pending_invitations_title"),
+		),
+	).toBeVisible();
+	// The invitation carries the organisation's name and slug, so the card
+	// names them without reading an organisation the user is not in yet.
+	await expect(
+		page.getByText(`@${org.slug}`, {
+			exact: true,
+		}),
+	).toBeVisible();
 
-		await page
-			.getByRole("button", {
-				name: message("orgs_invitation_accept_button"),
-			})
-			.click();
-		await expect(page).toHaveURL(/\/app(\/|$)/);
+	await page
+		.getByRole("button", {
+			name: message("orgs_invitation_accept_button"),
+		})
+		.click();
+	await expect(page).toHaveURL(/\/app(\/|$)/);
 
-		expect(await organisationRoleOf(api.as("admin"), user.email)).toBe(
-			"manager",
-		);
-	} finally {
-		await context.close();
-	}
+	expect(await organisationRoleOf(api.as("admin"), user.email)).toBe("manager");
 });
 
 /** A user of the worker organisation, invited to a second one, so signing in alone enters the first. */
@@ -269,7 +256,7 @@ const invitedMember = async (
 test("orgs: an existing user signs in from the invitation link and lands on its acceptance", async ({
 	api,
 	appBaseURL,
-	browser,
+	newContext,
 	orgs,
 	outbox,
 	zedTokens,
@@ -288,30 +275,24 @@ test("orgs: an existing user signs in from the invitation link and lands on its 
 	);
 
 	const link = await waitForLink(outbox, user.email, INVITED_NOTIFICATION);
-	const context = await browser.newContext({
-		locale: "en",
-	});
+	const context = await newContext();
 	const page = await context.newPage();
 
-	try {
-		await signInFromInvitation(page, link, {
-			...user,
-			until: /\/select-organization/,
-		});
-		await acceptOnSelectionPage(page, inviting.slug);
+	await signInFromInvitation(page, link, {
+		...user,
+		until: /\/select-organization/,
+	});
+	await acceptOnSelectionPage(page, inviting.slug);
 
-		expect(
-			await organisationRoleOf(api.as("admin", inviting), user.email),
-		).toBe("member");
-	} finally {
-		await context.close();
-	}
+	expect(await organisationRoleOf(api.as("admin", inviting), user.email)).toBe(
+		"member",
+	);
 });
 
 test("orgs: the second sign-in step and the sign-in pages' back links keep the invitation", async ({
 	api,
 	appBaseURL,
-	browser,
+	newContext,
 	orgs,
 	outbox,
 	zedTokens,
@@ -335,61 +316,55 @@ test("orgs: the second sign-in step and the sign-in pages' back links keep the i
 	);
 
 	const link = await waitForLink(outbox, user.email, INVITED_NOTIFICATION);
-	const context = await browser.newContext({
-		locale: "en",
-	});
+	const context = await newContext();
 	const page = await context.newPage();
 
-	try {
-		await open(page, link);
-		await followAuthLink(
-			page,
-			message("auth_register_page_signin_link"),
-			/\/login\?inv=/,
-		);
-		// Detours through the sign-in pages keep the invitation.
-		await followAuthLink(
-			page,
-			message("auth_login_page_forgot_password_link"),
-			/\/forgot-password\?inv=/,
-		);
-		await followAuthLink(
-			page,
-			message("auth_forgot_password_page_signin_link"),
-			/\/login\?inv=/,
-		);
-		await submitSignIn(page, {
-			...user,
-			until: /\/two-factor\?inv=/,
-		});
-		await awaitHydration(page);
-		await followAuthLink(
-			page,
-			message("two_factor_challenge_back_link"),
-			/\/login\?inv=/,
-		);
-		await submitSignIn(page, {
-			...user,
-			until: /\/two-factor\?inv=/,
-		});
-		await awaitHydration(page);
-		await passChallenge(page, {
-			code: await totpCode(setupKey),
-		});
-		await acceptOnSelectionPage(page, inviting.slug);
+	await open(page, link);
+	await followAuthLink(
+		page,
+		message("auth_register_page_signin_link"),
+		/\/login\?inv=/,
+	);
+	// Detours through the sign-in pages keep the invitation.
+	await followAuthLink(
+		page,
+		message("auth_login_page_forgot_password_link"),
+		/\/forgot-password\?inv=/,
+	);
+	await followAuthLink(
+		page,
+		message("auth_forgot_password_page_signin_link"),
+		/\/login\?inv=/,
+	);
+	await submitSignIn(page, {
+		...user,
+		until: /\/two-factor\?inv=/,
+	});
+	await awaitHydration(page);
+	await followAuthLink(
+		page,
+		message("two_factor_challenge_back_link"),
+		/\/login\?inv=/,
+	);
+	await submitSignIn(page, {
+		...user,
+		until: /\/two-factor\?inv=/,
+	});
+	await awaitHydration(page);
+	await passChallenge(page, {
+		code: await totpCode(setupKey),
+	});
+	await acceptOnSelectionPage(page, inviting.slug);
 
-		expect(
-			await organisationRoleOf(api.as("admin", inviting), user.email),
-		).toBe("viewer");
-	} finally {
-		await context.close();
-	}
+	expect(await organisationRoleOf(api.as("admin", inviting), user.email)).toBe(
+		"viewer",
+	);
 });
 
 test("orgs: a signed-in invitee opening the link lands on its acceptance, and a used link says so", async ({
 	api,
 	appBaseURL,
-	browser,
+	newContext,
 	orgs,
 	outbox,
 	zedTokens,
@@ -408,33 +383,28 @@ test("orgs: a signed-in invitee opening the link lands on its acceptance, and a 
 	);
 
 	const link = await waitForLink(outbox, user.email, INVITED_NOTIFICATION);
-	const context = await browser.newContext({
+	const context = await newContext({
 		storageState: user.session.storageState,
-		locale: "en",
 	});
 	const page = await context.newPage();
 
-	try {
-		await open(page, link);
-		await acceptOnSelectionPage(page, inviting.slug);
+	await open(page, link);
+	await acceptOnSelectionPage(page, inviting.slug);
 
-		expect(
-			await organisationRoleOf(api.as("admin", inviting), user.email),
-		).toBe("manager");
+	expect(await organisationRoleOf(api.as("admin", inviting), user.email)).toBe(
+		"manager",
+	);
 
-		await open(page, link);
-		await expect(
-			page.getByText(message("auth_register_page_invitation_not_found_title")),
-		).toBeVisible();
-	} finally {
-		await context.close();
-	}
+	await open(page, link);
+	await expect(
+		page.getByText(message("auth_register_page_invitation_not_found_title")),
+	).toBeVisible();
 });
 
 test("orgs: a link opened under another account names the invited address and offers to sign out", async ({
 	api,
 	appBaseURL,
-	browser,
+	newContext,
 	outbox,
 }) => {
 	test.slow();
@@ -447,52 +417,47 @@ test("orgs: a link opened under another account names the invited address and of
 	const someoneElse = await createOrgsUser(appBaseURL, "other-account");
 
 	const link = await waitForLink(outbox, email, INVITED_NOTIFICATION);
-	const context = await browser.newContext({
+	const context = await newContext({
 		storageState: someoneElse.session.storageState,
-		locale: "en",
 	});
 	const page = await context.newPage();
 
-	try {
-		await open(page, link);
-		await expect(
-			page.getByText(
-				message("auth_register_page_invitation_other_account_title"),
-			),
-		).toBeVisible();
-		await expect(
-			page.getByText(
-				message("auth_register_page_invitation_other_account_description", {
-					email,
-				}),
-			),
-		).toBeVisible();
-		await expect(
-			page.getByRole("button", {
-				name: message("orgs_invitation_accept_button"),
+	await open(page, link);
+	await expect(
+		page.getByText(
+			message("auth_register_page_invitation_other_account_title"),
+		),
+	).toBeVisible();
+	await expect(
+		page.getByText(
+			message("auth_register_page_invitation_other_account_description", {
+				email,
 			}),
-		).toHaveCount(0);
+		),
+	).toBeVisible();
+	await expect(
+		page.getByRole("button", {
+			name: message("orgs_invitation_accept_button"),
+		}),
+	).toHaveCount(0);
 
-		// Signing out keeps the link, so the invited address can register.
-		await page
-			.getByRole("button", {
-				name: message("auth_register_page_sign_out_action"),
-			})
-			.click();
-		await expect(
-			page.getByRole("button", {
-				name: message("auth_signup_form_submit_button"),
-			}),
-		).toBeVisible();
-		await expect(page).toHaveURL(/\/register\?inv=/);
-	} finally {
-		await context.close();
-	}
+	// Signing out keeps the link, so the invited address can register.
+	await page
+		.getByRole("button", {
+			name: message("auth_register_page_sign_out_action"),
+		})
+		.click();
+	await expect(
+		page.getByRole("button", {
+			name: message("auth_signup_form_submit_button"),
+		}),
+	).toBeVisible();
+	await expect(page).toHaveURL(/\/register\?inv=/);
 });
 
 test("orgs: a revoked invitation no longer opens the registration form", async ({
 	api,
-	browser,
+	newContext,
 	org,
 	outbox,
 	pageAs,
@@ -547,26 +512,18 @@ test("orgs: a revoked invitation no longer opens the registration form", async (
 	expect(validation.data.isValid).toBe(false);
 	expect(validation.data.reason).toBe("not_found");
 
-	const context = await browser.newContext({
-		locale: "en",
-	});
+	const context = await newContext();
 	const visitor = await context.newPage();
 
-	try {
-		await open(visitor, link);
-		await expect(
-			visitor.getByText(
-				message("auth_register_page_invitation_not_found_title"),
-			),
-		).toBeVisible();
-		await expect(
-			visitor.getByRole("button", {
-				name: message("auth_signup_form_submit_button"),
-			}),
-		).toHaveCount(0);
-	} finally {
-		await context.close();
-	}
+	await open(visitor, link);
+	await expect(
+		visitor.getByText(message("auth_register_page_invitation_not_found_title")),
+	).toBeVisible();
+	await expect(
+		visitor.getByRole("button", {
+			name: message("auth_signup_form_submit_button"),
+		}),
+	).toHaveCount(0);
 });
 
 test("orgs: the invitations list carries every invitation of the active organisation", async ({

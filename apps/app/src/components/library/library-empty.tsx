@@ -28,11 +28,7 @@ export const LibraryEmpty = ({
 	/** A kind's own title, such as "No bots yet"; the library's otherwise. */
 	title?: string;
 }) => {
-	const { data } = useOrganizationCapabilities([
-		"create_bot",
-		"create_block",
-		"create_asset",
-	]);
+	const { data } = useOrganizationCapabilities();
 	const canCreate = (
 		[
 			"create_bot",

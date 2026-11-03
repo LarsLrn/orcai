@@ -1,5 +1,4 @@
 import { createApiClient } from "../../fixtures/api";
-import { pageForSession } from "../../fixtures/auth/users";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import { addMember, createThrowawayUser } from "../../fixtures/members/members";
@@ -7,8 +6,8 @@ import { enterApp, open } from "../../fixtures/navigation";
 
 test("members: a user in two organisations switches the active one", async ({
 	api,
-	browser,
 	orgs,
+	pageForSession,
 	seedZedToken,
 	zedTokens,
 }) => {
@@ -60,39 +59,35 @@ test("members: a user in two organisations switches the active one", async ({
 			.map((entry) => entry.origin),
 	).toEqual([]);
 
-	const { context, page } = await pageForSession(browser, user.session);
+	const page = await pageForSession(user.session);
 
-	try {
-		await seedZedToken(page);
-		await enterApp(page, org.slug);
+	await seedZedToken(page);
+	await enterApp(page, org.slug);
 
-		await expect(
-			page.getByRole("button", {
-				name: org.name,
-			}),
-		).toBeVisible();
+	await expect(
+		page.getByRole("button", {
+			name: org.name,
+		}),
+	).toBeVisible();
 
-		// The page and this client share one session, so switching the active
-		// organisation through the API is what the app itself does and the
-		// next load reads the other organisation everywhere.
-		const switched = await client.user.setActiveOrganization({
-			organizationId: second.id,
-		});
-		expect(switched.success).toBe(true);
+	// The page and this client share one session, so switching the active
+	// organisation through the API is what the app itself does and the
+	// next load reads the other organisation everywhere.
+	const switched = await client.user.setActiveOrganization({
+		organizationId: second.id,
+	});
+	expect(switched.success).toBe(true);
 
-		await seedZedToken(page);
-		await open(page, "/app");
-		await expect(
-			page.getByRole("button", {
-				name: second.name,
-			}),
-		).toBeVisible();
-		await expect(
-			page.getByRole("button", {
-				name: org.name,
-			}),
-		).toHaveCount(0);
-	} finally {
-		await context.close();
-	}
+	await seedZedToken(page);
+	await open(page, "/app");
+	await expect(
+		page.getByRole("button", {
+			name: second.name,
+		}),
+	).toBeVisible();
+	await expect(
+		page.getByRole("button", {
+			name: org.name,
+		}),
+	).toHaveCount(0);
 });

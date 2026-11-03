@@ -118,6 +118,55 @@
 			}
 		}
 	},
+	"overrides": [
+		{
+			// Specs reach pages only through the fixtures, which fail a test on
+			// uncaught page errors.
+			"includes": [
+				"apps/e2e/tests/**"
+			],
+			"plugins": [
+				"./apps/e2e/no-browser.grit"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"@playwright/test": {
+										"importNames": [
+											"chromium",
+											"firefox",
+											"webkit",
+											"_android",
+											"_electron",
+											"test"
+										],
+										"message": "Import test from apps/e2e/fixtures/index.ts and open further contexts with its newContext fixture, whose pages fail the test on uncaught errors."
+									},
+									"playwright": "Open further contexts with the newContext fixture, whose pages fail the test on uncaught errors.",
+									"playwright-core": "Open further contexts with the newContext fixture, whose pages fail the test on uncaught errors."
+								},
+								"patterns": [
+									{
+										"group": [
+											"@orcai/db/*",
+											"@orcai/db/**",
+											"!@orcai/db/relations",
+											"!@orcai/db/schema"
+										],
+										"message": "Import DB modules via '@orcai/db', '@orcai/db/schema', or '@orcai/db/relations' only."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"

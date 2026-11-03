@@ -1,5 +1,4 @@
 import { createApiClient } from "../../fixtures/api";
-import { pageForSession } from "../../fixtures/auth/users";
 import {
 	expectDenied,
 	expectForbidden,
@@ -70,8 +69,8 @@ test("members: an admin removes a user from the organisation", async ({
 
 test("members: a removed user loses the organisation it was signed in to", async ({
 	api,
-	browser,
 	org,
+	pageForSession,
 	seedZedToken,
 	zedTokens,
 }) => {
@@ -85,33 +84,29 @@ test("members: a removed user loses the organisation it was signed in to", async
 		organizationId: org.id,
 	});
 
-	const { context, page } = await pageForSession(browser, user.session);
+	const page = await pageForSession(user.session);
 
-	try {
-		await seedZedToken(page);
-		await enterApp(page, org.slug);
+	await seedZedToken(page);
+	await enterApp(page, org.slug);
 
-		await expect(
-			page.getByRole("button", {
-				name: org.name,
-			}),
-		).toBeVisible();
+	await expect(
+		page.getByRole("button", {
+			name: org.name,
+		}),
+	).toBeVisible();
 
-		await api.as("admin").organizationMember.delete({
-			refs: [
-				{
-					userId: user.id,
-				},
-			],
-		});
+	await api.as("admin").organizationMember.delete({
+		refs: [
+			{
+				userId: user.id,
+			},
+		],
+	});
 
-		await seedZedToken(page);
-		await open(page, "/app");
+	await seedZedToken(page);
+	await open(page, "/app");
 
-		await expect(page).toHaveURL(/\/select-organization/);
-	} finally {
-		await context.close();
-	}
+	await expect(page).toHaveURL(/\/select-organization/);
 });
 
 test("members: an admin deletes a user's account", async ({
