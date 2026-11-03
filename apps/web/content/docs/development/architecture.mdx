@@ -101,7 +101,11 @@ The app stores domain records in PostgreSQL and uses SpiceDB for relationship-ba
 
 ### Organisation gate
 
-Every procedure that acts in an organisation passes one gate (`requireOrganization`, or `requireOrganizationById` when the input names the organisation). It needs an active organisation, a `member` row, a committed role that grants the permission and the same permission in SpiceDB. The committed role counts first, so a demotion or removal applies before its tuples reach SpiceDB. When the role grants a permission SpiceDB does not hold yet, the gate answers 503 `ACCESS_PENDING` instead of a denial, and the client can try again shortly. Organisation capabilities are narrowed by the committed role the same way. The organisation list reads PostgreSQL only.
+Every procedure that acts in an organisation passes one gate. `requireOrganization` checks the active organisation and refuses without one. `requireOrganizationById` checks the organisation the input names, whichever is active. Both need a `member` row, a committed role that grants the permission and the same permission in SpiceDB. The committed role counts first, so a demotion or removal applies before its tuples reach SpiceDB. When the role grants a permission SpiceDB does not hold yet, the gate answers 503 `ACCESS_PENDING` instead of a denial, and the client can try again shortly. Organisation capabilities are narrowed by the committed role the same way. The organisation list reads PostgreSQL only.
+
+### Resource reads
+
+A procedure that reads one bot, block or asset passes `requireReadableEntity`, or `requireResourceAccess("read")` when its input names the resource by type and id. Both need SpiceDB and committed PostgreSQL state to agree that the user reads it: as owner, through a listing or an active grant, or through a bot or repository above it that they read. Anything else answers 404, so a revoked grant closes the resource before its tuple leaves SpiceDB. `requireResourceAccess("manage_access")` asks the same of ownership or an active manager grant and answers 403. Lists apply the same check in their query, before paging and counting.
 
 ### Read consistency
 

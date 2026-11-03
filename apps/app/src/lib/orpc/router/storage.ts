@@ -22,11 +22,9 @@ import {
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
 import { downloadName } from "@/lib/assets/download-name";
-import { requireReadable } from "@/lib/authz/content-access";
-import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
+import { requireReadableEntity } from "@/lib/orpc/middlewares/permission";
 
 const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 	input,
@@ -234,15 +232,11 @@ const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 
 const createDownloadUrl = authed.storage.createDownloadUrl
 	.use(
-		requireEntityPermission("asset", "download", {
+		requireReadableEntity("asset", {
 			entityId: "id",
 		}),
 	)
-	.effect(function* ({ input, context }) {
-		yield* requireReadable("asset", input.id, {
-			userId: context.auth.user.id,
-			zedToken: readRevision(context),
-		});
+	.effect(function* ({ input }) {
 		const db = yield* DB;
 		const expiry = 60 * 60;
 		const asset = yield* db.query.asset

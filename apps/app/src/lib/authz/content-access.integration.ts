@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { BlockId } from "@orcai/core";
+import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -188,6 +188,123 @@ const sharedRepository = async () => {
 		).data.map((block) => block.id),
 	});
 
+	/** Every read of one resource the member reaches through the bot. */
+	const finds = async () => {
+		const read = <A>(
+			operation: Parameters<typeof call<A>>[1],
+		): Promise<string | undefined> => tagOf(call(member, operation));
+		const [
+			botFind,
+			favourite,
+			setup,
+			visibility,
+			blockFind,
+			search,
+			browse,
+			assetFind,
+			download,
+		] = await Promise.all([
+			read((options) =>
+				procedures.bot.find(
+					{
+						id: bot.id,
+					},
+					options,
+				),
+			),
+			read((options) =>
+				procedures.bot.setFavourite(
+					{
+						id: bot.id,
+						favourite: true,
+					},
+					options,
+				),
+			),
+			read((options) =>
+				procedures.botSetup.find(
+					{
+						botId: bot.id,
+					},
+					options,
+				),
+			),
+			read((options) =>
+				procedures.resource.getVisibility(
+					{
+						resourceType: "bot",
+						resourceId: bot.id,
+					},
+					options,
+				),
+			),
+			read((options) =>
+				procedures.block.find(
+					{
+						id: repository.id,
+					},
+					options,
+				),
+			),
+			// Ids outside the repository keep both off the vector store.
+			read((options) =>
+				procedures.assetPoint.searchRepository(
+					{
+						repositoryId: repository.id,
+						filters: {
+							assetIds: [
+								crypto.randomUUID(),
+							],
+						},
+					},
+					options,
+				),
+			),
+			read((options) =>
+				procedures.assetPoint.browseRepository(
+					{
+						repositoryId: repository.id,
+						assetId: crypto.randomUUID() as AssetId,
+					},
+					options,
+				),
+			),
+			read((options) =>
+				procedures.asset.find(
+					{
+						id: assetId,
+					},
+					options,
+				),
+			),
+			read((options) =>
+				procedures.storage.createDownloadUrl(
+					{
+						id: assetId,
+					},
+					options,
+				),
+			),
+		]);
+		return {
+			bot: {
+				find: botFind,
+				setFavourite: favourite,
+				setup,
+				visibility,
+			},
+			block: {
+				find: blockFind,
+				search,
+				browse,
+			},
+			asset: {
+				find: assetFind,
+				download,
+			},
+		};
+	};
+
 	/** Removes the bot's link in Postgres only, as a write whose tuples are not delivered yet leaves it. */
 	const unlinkWithoutTuples = () =>
 		run(
@@ -201,6 +318,30 @@ const sharedRepository = async () => {
 	/** Changes a committed row only, as a write whose tuples are not delivered yet leaves it. */
 	const withoutTuples = (change: Effect.Effect<unknown, unknown, DB>) =>
 		run(change);
+
+	/** Changes the member's grant on a resource in Postgres only. */
+	const changeGrantWithoutTuples = (
+		resourceId: string,
+		change: Partial<typeof dbSchema.resourceGrant.$inferInsert>,
+	) =>
+		withoutTuples(
+			Effect.gen(function* () {
+				yield* (yield* DB)
+					.update(dbSchema.resourceGrant)
+					.set(change)
+					.where(
+						and(
+							eq(dbSchema.resourceGrant.resourceId, resourceId),
+							eq(dbSchema.resourceGrant.principalId, member.user.id),
+						),
+					);
+			}),
+		);
+
+	const revokeWithoutTuples = (resourceId: string) =>
+		changeGrantWithoutTuples(resourceId, {
+			revokedAt: new Date(),
+		});
 
 	/** Why the member cannot carry the asset into a message or their own repository. */
 	const admissions = async () => ({
@@ -246,12 +387,15 @@ const sharedRepository = async () => {
 	return {
 		admissions,
 		author,
+		finds,
 		member,
 		procedures,
 		call,
 		bot,
 		repositoryId: repository.id as BlockId,
 		reads,
+		changeGrantWithoutTuples,
+		revokeWithoutTuples,
 		unlinkWithoutTuples,
 		withoutTuples,
 	};
@@ -269,6 +413,43 @@ const closed = {
 	botBlocks: [],
 };
 
+/** The member's single-resource reads while the bot grant holds; the bot is a draft, so it cannot be a favourite. */
+const found = {
+	bot: {
+		find: undefined,
+		setFavourite: "BadRequestError",
+		setup: undefined,
+		visibility: undefined,
+	},
+	block: {
+		find: undefined,
+		search: undefined,
+		browse: undefined,
+	},
+	asset: {
+		find: undefined,
+		download: undefined,
+	},
+};
+
+const missing = {
+	bot: {
+		find: "NotFoundError",
+		setFavourite: "NotFoundError",
+		setup: "NotFoundError",
+		visibility: "NotFoundError",
+	},
+	block: {
+		find: "NotFoundError",
+		search: "NotFoundError",
+		browse: "NotFoundError",
+	},
+	asset: {
+		find: "NotFoundError",
+		download: "NotFoundError",
+	},
+};
+
 const refused = {
 	message: "ForbiddenError",
 	repository: "ForbiddenError",
@@ -278,24 +459,12 @@ describe("reading contents while tuples lag", () => {
 	test(
 		"revoking the member's bot grant closes the bot's contents before its tuple goes",
 		async () => {
-			const { admissions, member, bot, reads, withoutTuples } =
+			const { admissions, finds, bot, reads, revokeWithoutTuples } =
 				await sharedRepository();
-			await withoutTuples(
-				Effect.gen(function* () {
-					yield* (yield* DB)
-						.update(dbSchema.resourceGrant)
-						.set({
-							revokedAt: new Date(),
-						})
-						.where(
-							and(
-								eq(dbSchema.resourceGrant.resourceId, bot.id),
-								eq(dbSchema.resourceGrant.principalId, member.user.id),
-							),
-						);
-				}),
-			);
+			expect(await finds()).toEqual(found);
+			await revokeWithoutTuples(bot.id);
 			expect(await reads()).toEqual(closed);
+			expect(await finds()).toEqual(missing);
 			expect(await admissions()).toEqual(refused);
 		},
 		TIMEOUT,
@@ -454,6 +623,83 @@ describe("reading contents while tuples lag", () => {
 			expect(await reads()).toMatchObject({
 				block: undefined,
 				asset: undefined,
+			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("inherited access while tuples lag", () => {
+	/** The shared repository, which the member also manages directly. */
+	const managedRepository = async () => {
+		const shared = await sharedRepository();
+		const { author, member, procedures, call, repositoryId } = shared;
+		await call(author, (options) =>
+			procedures.resource.grant(
+				{
+					resourceType: "block",
+					resourceId: repositoryId,
+					role: "manager",
+					principals: [
+						{
+							principalType: "user",
+							principalId: member.user.id,
+						},
+					],
+				},
+				options,
+			),
+		);
+		const inherited = () =>
+			call(member, (options) =>
+				procedures.resource.inheritedAccess(
+					{
+						resourceType: "block",
+						resourceId: repositoryId,
+					},
+					options,
+				),
+			);
+		return {
+			...shared,
+			inherited,
+		};
+	};
+
+	test(
+		"a manager demoted to a viewer is refused before the manager tuple goes",
+		async () => {
+			const { repositoryId, inherited, changeGrantWithoutTuples } =
+				await managedRepository();
+			expect(await tagOf(inherited())).toBeUndefined();
+
+			await changeGrantWithoutTuples(repositoryId, {
+				role: "viewer",
+			});
+			expect(await tagOf(inherited())).toBe("ForbiddenError");
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"an ancestor whose grant was revoked is hidden before its tuple goes",
+		async () => {
+			const { bot, inherited, revokeWithoutTuples } = await managedRepository();
+			expect((await inherited()).data).toMatchObject({
+				ancestors: [
+					{
+						resourceType: "bot",
+						resourceId: bot.id,
+					},
+				],
+				hiddenAncestorCount: 0,
+			});
+
+			await revokeWithoutTuples(bot.id);
+			expect((await inherited()).data).toMatchObject({
+				ancestors: [],
+				botCount: 1,
+				hiddenAncestorCount: 1,
 			});
 		},
 		TIMEOUT,

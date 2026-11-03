@@ -199,7 +199,7 @@ describe("setFavourite", () => {
 			const botId = await save("Hidden", "ready");
 
 			expect(await rejection(setFavourite(member, botId, true))).toMatchObject({
-				reason: "PERMISSION_DENIED",
+				_tag: "NotFoundError",
 			});
 			expect(await favouriteRows(botId)).toHaveLength(0);
 		},

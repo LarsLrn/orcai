@@ -9,12 +9,12 @@ import {
 } from "@/lib/bots/bot-setup";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
+import { requireReadableEntity } from "@/lib/orpc/middlewares/permission";
 
 const findSetup = authed.botSetup.find
 	.use(requireOrganization())
 	.use(
-		requireEntityPermission("bot", "read", {
+		requireReadableEntity("bot", {
 			entityId: "botId",
 		}),
 	)

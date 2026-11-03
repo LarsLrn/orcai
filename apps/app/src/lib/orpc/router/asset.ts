@@ -15,7 +15,6 @@ import { listAssetTiles } from "@/lib/assets/asset-list";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { prepareAssetAgain } from "@/lib/assets/processing";
-import { requireReadable } from "@/lib/authz/content-access";
 import { requireEligibleOwner } from "@/lib/authz/eligible-owner";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
@@ -33,6 +32,7 @@ import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
+	requireReadableEntity,
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
@@ -54,16 +54,12 @@ const listAssets = authed.asset.list
 const findAsset = authed.asset.find
 	.use(requireOrganization())
 	.use(
-		requireEntityPermission("asset", "read", {
+		requireReadableEntity("asset", {
 			entityId: "id",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		yield* requireReadable("asset", input.id, {
-			userId: context.auth.user.id,
-			zedToken: readRevision(context, input),
-		});
 
 		const [query] = yield* db
 			.select({

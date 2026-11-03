@@ -22,11 +22,9 @@ import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
-import { requireReadable } from "@/lib/authz/content-access";
-import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
+import { requireReadableEntity } from "@/lib/orpc/middlewares/permission";
 
 /** The points of links that still exist, with their asset's title as it is now. */
 const linkedPoints = (points: readonly AssetPoint[]) =>
@@ -346,15 +344,11 @@ const repositoryAssetScope = (
 
 const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 	.use(
-		requireEntityPermission("block", "read", {
+		requireReadableEntity("block", {
 			entityId: "repositoryId",
 		}),
 	)
-	.effect(function* ({ input, context }) {
-		yield* requireReadable("block", input.repositoryId, {
-			userId: context.auth.user.id,
-			zedToken: readRevision(context),
-		});
+	.effect(function* ({ input }) {
 		const assetIds = yield* repositoryAssetScope(
 			input.repositoryId,
 			input.filters.assetIds,
@@ -383,15 +377,11 @@ const BROWSE_PAGE_SIZE = 50;
 
 const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 	.use(
-		requireEntityPermission("block", "read", {
+		requireReadableEntity("block", {
 			entityId: "repositoryId",
 		}),
 	)
-	.effect(function* ({ input, context }) {
-		yield* requireReadable("block", input.repositoryId, {
-			userId: context.auth.user.id,
-			zedToken: readRevision(context),
-		});
+	.effect(function* ({ input }) {
 		const assetIds = yield* repositoryAssetScope(
 			input.repositoryId,
 			input.assetId

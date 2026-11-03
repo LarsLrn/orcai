@@ -2,7 +2,6 @@ import { DB, dbSchema } from "@orcai/db";
 import type { Block, ResourceOwner } from "@orcai/schema";
 import { and, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { requireReadable } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
@@ -32,6 +31,7 @@ import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
+	requireReadableEntity,
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
@@ -53,16 +53,12 @@ const listBlocks = authed.block.list
 const findBlock = authed.block.find
 	.use(requireOrganization())
 	.use(
-		requireEntityPermission("block", "read", {
+		requireReadableEntity("block", {
 			entityId: "id",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		yield* requireReadable("block", input.id, {
-			userId: context.auth.user.id,
-			zedToken: readRevision(context, input),
-		});
 
 		const [block] = yield* db
 			.select({
