@@ -51,10 +51,7 @@ export const ConversationContent = ({
 	);
 };
 
-export const downloadConversation = (
-	markdown: string,
-	filename = "conversation.md",
-) => {
+export const downloadConversation = (markdown: string, filename: string) => {
 	const blob = new Blob(
 		[
 			markdown,

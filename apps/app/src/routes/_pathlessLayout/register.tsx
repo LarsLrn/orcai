@@ -18,10 +18,10 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_pathlessLayout/register")({
-	component: RouteComponent,
 	validateSearch: z.object({
 		inv: z.string().optional(),
 	}),
+	component: RouteComponent,
 	loaderDeps: ({ search }) => ({
 		inv: search.inv,
 	}),
@@ -73,6 +73,13 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 			otherAccount: auth.isAuthenticated,
 		};
 	},
+	head: () => ({
+		meta: [
+			{
+				title: m.auth_register_page_title(),
+			},
+		],
+	}),
 });
 
 function RouteComponent() {

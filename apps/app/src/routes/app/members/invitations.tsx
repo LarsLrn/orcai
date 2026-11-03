@@ -113,7 +113,9 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableToolbarActions>
 							<DataTableBulkDelete action={deleteInvitations} />
-							<DataTableExportButton fileName="invitations" />
+							<DataTableExportButton
+								fileName={m.members_invitations_export_file_name()}
+							/>
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody

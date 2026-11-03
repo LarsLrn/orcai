@@ -23,88 +23,78 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Organisations",
+		],
+	}),
+);
+
 export const organizationContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/organizations",
-				summary: "List all organizations",
-				tags: [
-					"Organizations",
-				],
+				summary: "List all organisations",
 			}),
 		)
 		.input(listOrganizationsInputSchema)
 		.output(listOrganizationsResponseSchema),
-	listAll: base
+	listAll: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/instance/organizations",
-				summary: "List every organization of the instance",
-				tags: [
-					"Organizations",
-				],
+				summary: "List every organisation of the instance",
 			}),
 		)
 		.input(listAllOrganizationsInputSchema)
 		.output(listAllOrganizationsResponseSchema),
-	create: base
+	create: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/organizations",
-				summary: "Create an organization",
-				tags: [
-					"Organizations",
-				],
+				summary: "Create an organisation",
 			}),
 		)
 		.input(createOrganizationInputSchema)
 		.output(createOrganizationResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/organizations/{id}",
-				summary: "Find an organization",
-				tags: [
-					"Organizations",
-				],
+				summary: "Find an organisation",
 			}),
 		)
 		.input(findOrganizationInputSchema)
 		.output(findOrganizationResponseSchema),
-	profile: base
+	profile: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/organizations/{id}/profile",
 				summary: "Find an organisation's public profile",
 				description:
-					"What any signed-in user sees of an organisation: its name, logo, description and how many entries of each kind it lists in the catalogue.",
-				tags: [
-					"Organizations",
-				],
+					"What any signed-in user sees of an organisation: its name, logo, description and how many entries of each kind it lists in the Catalogue.",
 			}),
 		)
 		.input(organizationProfileInputSchema)
 		.output(organizationProfileResponseSchema),
-	update: base
+	update: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/organizations/{id}",
-				summary: "Update an organization",
-				tags: [
-					"Organizations",
-				],
+				summary: "Update an organisation",
 			}),
 		)
 		.input(updateOrganizationInputSchema)
 		.output(updateOrganizationResponseSchema),
-	setLogo: base
+	setLogo: tagged
 		.meta(
 			openapi({
 				method: "PUT",
@@ -112,48 +102,36 @@ export const organizationContracts = {
 				summary: "Set the organisation's logo",
 				description:
 					"Takes a square WebP of at most 256 KB uploaded through the `organizationLogo` route.",
-				tags: [
-					"Organizations",
-				],
 			}),
 		)
 		.input(setOrganizationLogoInputSchema)
 		.output(setOrganizationLogoResponseSchema),
-	removeLogo: base
+	removeLogo: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/organizations/{id}/logo",
 				summary: "Remove the organisation's logo",
-				tags: [
-					"Organizations",
-				],
 			}),
 		)
 		.input(removeOrganizationLogoInputSchema)
 		.output(removeOrganizationLogoResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/organizations",
-				summary: "Delete organizations",
-				tags: [
-					"Organizations",
-				],
+				summary: "Delete organisations",
 			}),
 		)
 		.input(deleteOrganizationsInputSchema)
 		.output(deleteOrganizationsResponseSchema),
-	deletionImpact: base
+	deletionImpact: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/organizations/{id}/deletion-impact",
-				summary: "Preview what deleting an organization takes with it",
-				tags: [
-					"Organizations",
-				],
+				summary: "Preview what deleting an organisation takes with it",
 			}),
 		)
 		.input(organizationDeletionImpactInputSchema)

@@ -22,150 +22,125 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Assets",
+		],
+	}),
+);
+
 export const assetContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/list",
 				summary: "List all assets",
-				tags: [
-					"Assets",
-				],
 			}),
 		)
 		.input(listAssetsInputSchema)
 		.output(listAssetsResponseSchema),
-	createFromUploads: base
+	createFromUploads: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/from-uploads",
 				summary: "Create assets from uploaded files, with one result per file",
-				tags: [
-					"Assets",
-				],
 			}),
 		)
 		.input(createAssetsFromUploadsInputSchema)
 		.output(createAssetsFromUploadsResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/assets/{id}",
 				summary: "Find an asset",
-				tags: [
-					"Assets",
-				],
 			}),
 		)
 		.input(findAssetInputSchema)
 		.output(findAssetResponseSchema),
-	save: base
+	save: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/assets/save",
 				summary:
 					"Change an asset's title and the given metadata fields; the others keep their values",
-				tags: [
-					"Assets",
-				],
 			}),
 		)
 		.input(saveAssetInputSchema)
 		.output(saveAssetResponseSchema),
-	addToLibrary: base
+	addToLibrary: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/{id}/add-to-library",
-				summary: "Move a chat upload into the library",
-				tags: [
-					"Assets",
-				],
+				summary: "Move a chat upload into the Library",
 			}),
 		)
 		.input(addAssetToLibraryInputSchema)
 		.output(saveAssetResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/assets",
 				summary: "Delete an asset",
-				tags: [
-					"Assets",
-				],
 			}),
 		)
 		.input(deleteAssetsInputSchema)
 		.output(deleteAssetsResponseSchema),
-	prepareAgain: base
+	prepareAgain: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/{id}/prepare-again",
-				summary: "Process an asset again",
-				tags: [
-					"Assets",
-				],
+				summary: "Prepare an asset again",
 			}),
 		)
 		.input(prepareAssetAgainInputSchema)
 		.output(prepareAssetAgainResponseSchema),
-	generateMetadata: base
+	generateMetadata: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/{id}/generate-metadata",
 				summary:
 					"Generate a metadata suggestion for an asset with the utility model, to review",
-				tags: [
-					"Assets",
-				],
 			}),
 		)
 		.input(generateAssetMetadataInputSchema)
 		.output(statusResponseSchema),
-	dismissMetadataSuggestion: base
+	dismissMetadataSuggestion: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/{id}/dismiss-metadata-suggestion",
 				summary: "Dismiss an asset's metadata suggestion",
-				tags: [
-					"Assets",
-				],
 			}),
 		)
 		.input(dismissMetadataSuggestionInputSchema)
 		.output(statusResponseSchema),
-	missingMetadata: base
+	missingMetadata: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/missing-metadata",
 				summary:
-					"Count the library assets you can edit whose metadata was never generated or failed",
-				tags: [
-					"Assets",
-				],
+					"Count the Library assets you can edit whose metadata was never generated or failed",
 			}),
 		)
 		.input(missingMetadataInputSchema)
 		.output(missingMetadataResponseSchema),
-	generateMissingMetadata: base
+	generateMissingMetadata: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assets/generate-missing-metadata",
 				summary:
-					"Generate metadata for the library assets you can edit that lack it, filling empty fields",
-				tags: [
-					"Assets",
-				],
+					"Generate metadata for the Library assets you can edit that lack it, filling empty fields",
 			}),
 		)
 		.input(generateMissingMetadataInputSchema)

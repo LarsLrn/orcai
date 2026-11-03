@@ -7,29 +7,31 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Passages",
+		],
+	}),
+);
+
 export const assetPointContracts = {
-	searchRepository: base
+	searchRepository: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/repositories/{repositoryId}/points/search",
-				summary: "Search repository asset points",
-				tags: [
-					"Asset Points",
-				],
+				summary: "Search the passages of a repository",
 			}),
 		)
 		.input(searchRepositoryAssetPointsInputSchema)
 		.output(listAssetPointsResponseSchema),
-	browseRepository: base
+	browseRepository: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/repositories/{repositoryId}/points/browse",
-				summary: "Browse repository asset points",
-				tags: [
-					"Asset Points",
-				],
+				summary: "Browse the passages of a repository",
 			}),
 		)
 		.input(browseRepositoryAssetPointsInputSchema)

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/app/quota-pools/$quotaPoolId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: m.common_edit_button(),
+				title: m.quota_pools_edit_page_title(),
 			},
 		],
 	}),

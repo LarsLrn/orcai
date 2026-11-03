@@ -7,30 +7,33 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Assistant",
+		],
+	}),
+);
+
 export const assistantContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/assistant/conversations",
 				summary:
-					"List the caller's assistant conversations in the active organisation",
-				tags: [
-					"Assistant",
-				],
+					"List the caller's conversations with the OrcAI Assistant in the active organisation",
 			}),
 		)
 		.input(listAssistantConversationsInputSchema)
 		.output(listAssistantConversationsResponseSchema),
-	create: base
+	create: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/assistant/conversations",
-				summary: "Start an assistant conversation in the active organisation",
-				tags: [
-					"Assistant",
-				],
+				summary:
+					"Start a conversation with the OrcAI Assistant in the active organisation",
 			}),
 		)
 		.input(createAssistantConversationInputSchema)

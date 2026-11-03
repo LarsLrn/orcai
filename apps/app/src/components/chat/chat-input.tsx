@@ -327,7 +327,13 @@ const ChatInput = ({
 							{m.chat_composer_model_required_hint()}
 						</p>
 					)}
-				{blocker && <ChatModelNotice blocker={blocker} className="mt-3" />}
+				{blocker && (
+					<ChatModelNotice
+						blocker={blocker}
+						className="mt-3"
+						assistant={isAssistant}
+					/>
+				)}
 			</form>
 
 			{!isAssistant && (

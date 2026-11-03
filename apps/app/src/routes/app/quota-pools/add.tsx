@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/quota-pools/add")({
 	head: () => ({
 		meta: [
 			{
-				title: m.common_add_button(),
+				title: m.quota_pools_add_page_title(),
 			},
 		],
 	}),

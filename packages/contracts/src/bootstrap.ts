@@ -7,30 +7,32 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base, withoutSession } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Bootstrap",
+		],
+	}),
+);
+
 export const bootstrapContracts = {
-	status: base
+	status: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/bootstrap/status",
-				summary: "Get bootstrap status",
-				tags: [
-					"Bootstrap",
-				],
+				summary: "Get the instance's initialisation status",
 				spec: withoutSession,
 			}),
 		)
 		.input(bootstrapStatusInputSchema)
 		.output(bootstrapStatusResponseSchema),
-	initialize: base
+	initialize: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/bootstrap/initialize",
-				summary: "Initialize application",
-				tags: [
-					"Bootstrap",
-				],
+				summary: "Initialise the instance",
 				spec: withoutSession,
 			}),
 		)

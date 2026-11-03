@@ -16,6 +16,13 @@ export const Route = createFileRoute("/_pathlessLayout/forgot-password")({
 	validateSearch: z.object({
 		inv: z.string().optional(),
 	}),
+	head: () => ({
+		meta: [
+			{
+				title: m.auth_forgot_password_page_title(),
+			},
+		],
+	}),
 	component: ForgotPasswordPage,
 });
 

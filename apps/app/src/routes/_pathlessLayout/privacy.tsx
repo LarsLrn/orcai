@@ -1,9 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Markdown } from "@/components/app/markdown";
 import { Card, CardContent } from "@/components/ui/card";
+import { m } from "@/paraglide/messages";
 import markdownContent from "@/static/legal/privacy-policy.md?raw";
 
 export const Route = createFileRoute("/_pathlessLayout/privacy")({
+	head: () => ({
+		meta: [
+			{
+				title: m.account_legal_privacy_link(),
+			},
+		],
+	}),
 	component: RouteComponent,
 });
 

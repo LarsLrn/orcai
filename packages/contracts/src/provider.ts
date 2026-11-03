@@ -13,68 +13,61 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Providers",
+		],
+	}),
+);
+
 export const providerContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/providers",
 				summary: "List all providers",
-				tags: [
-					"Providers",
-				],
 			}),
 		)
 		.input(listProvidersInputSchema)
 		.output(listProvidersResponseSchema),
-	create: base
+	create: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/providers",
 				summary: "Create a provider",
-				tags: [
-					"Providers",
-				],
 			}),
 		)
 		.input(createProviderInputSchema)
 		.output(createProviderResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/providers/{id}",
 				summary: "Find a provider",
-				tags: [
-					"Providers",
-				],
 			}),
 		)
 		.input(findProviderInputSchema)
 		.output(findProviderResponseSchema),
-	update: base
+	update: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/providers/{id}",
 				summary: "Update a provider",
-				tags: [
-					"Providers",
-				],
 			}),
 		)
 		.input(updateProviderInputSchema)
 		.output(updateProviderResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/providers",
 				summary: "Delete providers",
-				tags: [
-					"Providers",
-				],
 			}),
 		)
 		.input(deleteProviderInputSchema)

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/members/add")({
 	head: () => ({
 		meta: [
 			{
-				title: m.members_add_page_meta_title(),
+				title: m.members_add_page_title(),
 			},
 		],
 	}),

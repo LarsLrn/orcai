@@ -8,8 +8,26 @@ const REGIONAL_LOCALES: Record<string, string> = {
 	de: "de-DE",
 };
 
-const getFormatter = (locale: string, timeZone: string, withTime: boolean) => {
-	const key = `${locale}:${timeZone}:${withTime ? "datetime" : "date"}`;
+const FORMATS = {
+	datetime: {
+		dateStyle: "medium",
+		timeStyle: "short",
+	},
+	date: {
+		dateStyle: "medium",
+	},
+	day: {
+		day: "numeric",
+		month: "short",
+	},
+} satisfies Record<string, Intl.DateTimeFormatOptions>;
+
+const getFormatter = (
+	locale: string,
+	timeZone: string,
+	format: keyof typeof FORMATS,
+) => {
+	const key = `${locale}:${timeZone}:${format}`;
 	const cached = formatterCache.get(key);
 	if (cached) {
 		return cached;
@@ -18,8 +36,7 @@ const getFormatter = (locale: string, timeZone: string, withTime: boolean) => {
 	const formatter = new Intl.DateTimeFormat(
 		REGIONAL_LOCALES[locale] ?? locale,
 		{
-			dateStyle: "medium",
-			timeStyle: withTime ? "short" : undefined,
+			...FORMATS[format],
 			timeZone,
 		},
 	);
@@ -31,13 +48,19 @@ const getFormatter = (locale: string, timeZone: string, withTime: boolean) => {
 export const formatDisplayTimestamp = (
 	value: Date | string | number,
 	timeZone: string,
-) => getFormatter(getLocale(), timeZone, true).format(new Date(value));
+) => getFormatter(getLocale(), timeZone, "datetime").format(new Date(value));
 
 /** Date only in `timeZone`, written the way the active locale writes it. */
 export const formatDisplayDate = (
 	value: Date | string | number,
 	timeZone: string,
-) => getFormatter(getLocale(), timeZone, false).format(new Date(value));
+) => getFormatter(getLocale(), timeZone, "date").format(new Date(value));
+
+/** Day and month in `timeZone`, for chart axes, in the active locale's order. */
+export const formatDisplayDay = (
+	value: Date | string | number,
+	timeZone: string,
+) => getFormatter(getLocale(), timeZone, "day").format(new Date(value));
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;

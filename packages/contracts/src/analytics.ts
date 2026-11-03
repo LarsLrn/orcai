@@ -6,29 +6,31 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Analytics",
+		],
+	}),
+);
+
 export const analyticsContracts = {
-	organization: base
+	organization: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/analytics/organization",
-				summary: "Usage and ratings of the active organization",
-				tags: [
-					"Analytics",
-				],
+				summary: "Usage and ratings of the active organisation",
 			}),
 		)
 		.input(analyticsInputSchema)
 		.output(organizationAnalyticsResponseSchema),
-	instance: base
+	instance: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/analytics/instance",
-				summary: "Usage of every organization",
-				tags: [
-					"Analytics",
-				],
+				summary: "Usage of every organisation",
 			}),
 		)
 		.input(analyticsInputSchema)

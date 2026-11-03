@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/providers/add")({
 	head: () => ({
 		meta: [
 			{
-				title: m.common_add_button(),
+				title: m.providers_add_page_title(),
 			},
 		],
 	}),

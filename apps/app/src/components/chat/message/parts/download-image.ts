@@ -1,3 +1,5 @@
+import { m } from "@/paraglide/messages";
+
 const extensions: Record<string, string> = {
 	"image/png": "png",
 	"image/jpeg": "jpg",
@@ -13,7 +15,7 @@ const extensionOf = (dataUrl: string) => {
 export const downloadImage = (dataUrl: string) => {
 	const link = document.createElement("a");
 	link.href = dataUrl;
-	link.download = `generated-image.${extensionOf(dataUrl)}`;
+	link.download = `${m.chat_image_part_file_name()}.${extensionOf(dataUrl)}`;
 	document.body.append(link);
 	link.click();
 	link.remove();

@@ -140,7 +140,8 @@ export const instanceContracts = {
 			openapi({
 				method: "GET",
 				path: "/instance/organizations/{organizationId}/receivers",
-				summary: "List the members who may receive content in an organisation",
+				summary:
+					"List the members who can take over what another member owns in an organisation",
 				tags,
 			}),
 		)

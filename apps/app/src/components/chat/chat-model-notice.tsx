@@ -78,9 +78,12 @@ const BotModelNotice = ({ botId }: { botId: BotId }) => {
 const ChatModelNotice = ({
 	blocker,
 	className,
+	assistant = false,
 }: {
 	blocker: ComposerBlocker;
 	className?: string;
+	/** The Assistant's model is the admins' choice, so the notice never suggests another. */
+	assistant?: boolean;
 }) => {
 	const { reason } = blocker;
 	const { data: organization } = useActiveOrganization();
@@ -143,8 +146,12 @@ const ChatModelNotice = ({
 								{m.chat_quota_notice_title()}{" "}
 								<span className="text-muted-foreground">
 									{canFix
-										? m.chat_quota_notice_description_manager()
-										: m.chat_quota_notice_description_member()}
+										? assistant
+											? m.assistant_quota_notice_description_manager()
+											: m.chat_quota_notice_description_manager()
+										: assistant
+											? m.assistant_quota_notice_description_member()
+											: m.chat_quota_notice_description_member()}
 								</span>
 							</p>
 						)}

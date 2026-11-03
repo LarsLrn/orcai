@@ -6,6 +6,7 @@ import {
 	toChatAgentMessages,
 } from "@/lib/ai/types/chat-agent-message";
 import { client } from "@/lib/orpc/orpc";
+import { m } from "@/paraglide/messages";
 
 const EXPORT_PAGE_SIZE = 100;
 
@@ -35,8 +36,40 @@ const fetchWholeChat = async ({
 	return pages.flat();
 };
 
-/** Downloads the whole chat as a markdown transcript. */
-export const downloadChat = async (chat: {
+/** Downloads the whole chat as a markdown transcript named after its title. */
+export const downloadChat = async ({
+	chatId,
+	zedToken,
+}: {
 	chatId: ChatId;
 	zedToken?: string;
-}) => downloadConversation(transcriptMarkdown(await fetchWholeChat(chat)));
+}) => {
+	const { data: chat } = await client.chat.find({
+		id: chatId,
+		zedToken,
+	});
+	const bot = chat.botId
+		? await client.bot
+				.find({
+					id: chat.botId,
+				})
+				.catch(() => undefined)
+		: undefined;
+	const messages = await fetchWholeChat({
+		chatId,
+		zedToken,
+	});
+	const title =
+		chat.title ??
+		(chat.kind === "assistant"
+			? m.assistant_conversation_title_placeholder()
+			: m.chat_title_placeholder());
+
+	downloadConversation(
+		transcriptMarkdown(messages, {
+			kind: chat.kind,
+			botName: bot?.data.name ?? null,
+		}),
+		`${title}.md`,
+	);
+};

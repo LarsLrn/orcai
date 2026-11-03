@@ -10,7 +10,7 @@ export const Route = createFileRoute("/app/models/$modelId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: m.common_edit_button(),
+				title: m.models_edit_page_title(),
 			},
 		],
 	}),

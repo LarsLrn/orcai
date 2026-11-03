@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/models/add")({
 	head: () => ({
 		meta: [
 			{
-				title: m.common_add_button(),
+				title: m.models_add_page_title(),
 			},
 		],
 	}),

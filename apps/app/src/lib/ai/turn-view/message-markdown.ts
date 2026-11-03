@@ -1,5 +1,5 @@
 import { docsPageUrl } from "@orcai/core";
-import type { ChatMessageCitation } from "@orcai/schema";
+import type { ChatKind, ChatMessageCitation } from "@orcai/schema";
 import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
 import { replaceCiteTags } from "@/lib/ai/citations/cite-tag";
 import { toolCallMarkdown } from "@/lib/ai/tools/registry";
@@ -104,15 +104,36 @@ export const messageToMarkdown = (
 		.join("\n\n");
 };
 
-/** One message of a conversation export: the role on its own line, then the content. */
-export const messageToTranscriptMarkdown = (view: MessageView): string => {
-	const { role } = view.message;
-	const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
-	return `**${roleLabel}:**\n\n${messageToMarkdown(view)}`;
+/** What a transcript names the replies after: the Assistant, or the chat's bot. */
+export type TranscriptChat = {
+	kind: ChatKind;
+	botName: string | null;
 };
 
+/** The name above a reply: the Assistant's or the bot's, else the model that wrote it. */
+const speakerLabel = (view: MessageView, chat: TranscriptChat | undefined) => {
+	if (view.message.role === "user") {
+		return m.chat_transcript_user();
+	}
+
+	return (
+		(chat?.kind === "assistant" ? m.assistant_name() : chat?.botName) ??
+		view.message.metadata?.model ??
+		m.chat_transcript_model()
+	);
+};
+
+/** One message of a conversation export: the speaker on its own line, then the content. */
+export const messageToTranscriptMarkdown = (
+	view: MessageView,
+	chat?: TranscriptChat,
+): string => `**${speakerLabel(view, chat)}:**\n\n${messageToMarkdown(view)}`;
+
 /** A stored conversation as markdown, one transcript block per shown message. */
-export const transcriptMarkdown = (messages: ChatAgentUIMessage[]): string =>
+export const transcriptMarkdown = (
+	messages: ChatAgentUIMessage[],
+	chat?: TranscriptChat,
+): string =>
 	turnView(messages, "idle")
-		.messages.map(messageToTranscriptMarkdown)
+		.messages.map((view) => messageToTranscriptMarkdown(view, chat))
 		.join("\n\n");

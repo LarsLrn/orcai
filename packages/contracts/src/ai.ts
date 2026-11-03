@@ -10,55 +10,51 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"AI",
+		],
+	}),
+);
+
 export const aiContracts = {
-	chat: base
+	chat: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/ai",
-				summary: "Chat with AI",
-				tags: [
-					"AI",
-				],
+				summary: "Send a chat message and stream the reply",
 			}),
 		)
 		.input(aiChatInputSchema)
 		.output(aiChatResponseSchema),
-	continue: base
+	continue: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/ai/continue",
-				summary: "Continue an AI turn after tool approvals",
-				tags: [
-					"AI",
-				],
+				summary: "Continue a reply after tool approvals",
 			}),
 		)
 		.input(continueChatInputSchema)
 		.output(aiChatResponseSchema),
-	keepUploads: base
+	keepUploads: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/ai/uploads",
 				summary: "Keep the files a waiting upload request lists",
-				tags: [
-					"AI",
-				],
 			}),
 		)
 		.input(keepUploadsInputSchema)
 		.output(keepUploadsResponseSchema),
-	recordTurnWrites: base
+	recordTurnWrites: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/ai/turn-writes",
 				summary: "Make a finished turn's writes visible to later reads",
-				tags: [
-					"AI",
-				],
 			}),
 		)
 		.input(recordTurnWritesInputSchema)

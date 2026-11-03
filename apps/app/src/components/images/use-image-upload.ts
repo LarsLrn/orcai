@@ -52,7 +52,7 @@ export const useImageUpload = (target: ImageTarget) => {
 				if (!file)
 					throw (
 						uploaded.failedFiles[0]?.error.cause ??
-						new Error("The image was not uploaded.")
+						new Error(m.images_upload_failed_error())
 					);
 				const upload = {
 					objectKey: file.objectKey,

@@ -94,8 +94,10 @@ test("pipeline: a user exports their data from the account page and downloads th
 	const transcript = Object.keys(archive).find(
 		(name) => name.startsWith(`chats/${title}`) && name.endsWith(".md"),
 	);
-	expect(entry(transcript ?? "")).toBe(
-		"**User:**\n\nHow deep do I sample?\n\n**Assistant:**\n\nThirty centimetres.",
+	expect(entry(transcript ?? "")).toMatch(
+		new RegExp(
+			`^\\*\\*${message("chat_transcript_user")}:\\*\\*\\n\\nHow deep do I sample\\?\\n\\n\\*\\*[^*]+:\\*\\*\\n\\nThirty centimetres\\.$`,
+		),
 	);
 	const upload = Object.keys(archive).find((name) =>
 		name.startsWith(`files/${asset.id}/`),

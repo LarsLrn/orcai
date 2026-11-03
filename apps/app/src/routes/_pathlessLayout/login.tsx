@@ -34,6 +34,13 @@ export const Route = createFileRoute("/_pathlessLayout/login")({
 			});
 		}
 	},
+	head: () => ({
+		meta: [
+			{
+				title: m.auth_login_page_title(),
+			},
+		],
+	}),
 	component: RouteComponent,
 });
 

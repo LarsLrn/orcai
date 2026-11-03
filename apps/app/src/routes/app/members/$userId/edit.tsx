@@ -111,7 +111,7 @@ export const Route = createFileRoute("/app/members/$userId/edit")({
 	head: () => ({
 		meta: [
 			{
-				title: m.members_edit_page_meta_title(),
+				title: m.members_edit_page_title(),
 			},
 		],
 	}),

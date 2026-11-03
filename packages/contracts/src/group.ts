@@ -18,120 +18,101 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Groups",
+		],
+	}),
+);
+
 export const groupContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/groups",
-				summary: "List groups in active organization",
-				tags: [
-					"Groups",
-				],
+				summary: "List groups in active organisation",
 			}),
 		)
 		.input(listGroupsInputSchema)
 		.output(listGroupsResponseSchema),
-	create: base
+	create: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/groups",
 				summary: "Create a custom group",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(createGroupInputSchema)
 		.output(groupWriteResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/groups/{id}",
 				summary: "Find a group",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(findGroupInputSchema)
 		.output(findGroupResponseSchema),
-	update: base
+	update: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/groups/{id}",
 				summary: "Update a custom group",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(updateGroupInputSchema)
 		.output(groupWriteResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/groups",
 				summary: "Delete groups",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(deleteGroupsInputSchema)
 		.output(groupMembersMutateResponseSchema),
-	listMembers: base
+	listMembers: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/groups/{groupId}/members",
 				summary: "List group members",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(listGroupMembersInputSchema)
 		.output(listGroupMembersResponseSchema),
-	listCandidates: base
+	listCandidates: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/groups/{groupId}/candidates",
 				summary: "List organisation members who are not yet in a custom group",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(listGroupCandidatesInputSchema)
 		.output(listGroupCandidatesResponseSchema),
-	addMembers: base
+	addMembers: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/groups/{groupId}/members",
 				summary: "Add users to a custom group",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(addGroupMembersInputSchema)
 		.output(groupMembersMutateResponseSchema),
-	removeMembers: base
+	removeMembers: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/groups/{groupId}/members",
 				summary: "Remove users from a custom group",
-				tags: [
-					"Groups",
-				],
 			}),
 		)
 		.input(removeGroupMembersInputSchema)

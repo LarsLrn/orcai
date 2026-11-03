@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { displayToolMarkdown } from "@/lib/ai/tools/gen-ui/catalog";
 import {
 	capitalsAnswers,
@@ -8,6 +8,7 @@ import { gradeQuiz } from "@/lib/ai/tools/questions/quiz-result";
 import { askUserMarkdown } from "@/lib/ai/tools/questions/to-markdown";
 import { type MessageView, turnView } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { getLocale, overwriteGetLocale } from "@/paraglide/runtime";
 import {
 	messageToMarkdown,
 	messageToTranscriptMarkdown,
@@ -264,23 +265,112 @@ describe("messageToMarkdown", () => {
 });
 
 describe("messageToTranscriptMarkdown", () => {
-	test("puts the role on its own paragraph before a code fence", () => {
+	const originalGetLocale = getLocale;
+
+	afterEach(() => {
+		overwriteGetLocale(originalGetLocale);
+	});
+
+	test("puts the speaker on its own paragraph before a code fence", () => {
+		overwriteGetLocale(() => "en");
+
 		expect(
 			messageToTranscriptMarkdown(
 				message("assistant", [
 					text("```ts\nconst a = 1;\n```"),
 				]),
 			),
-		).toBe("**Assistant:**\n\n```ts\nconst a = 1;\n```");
+		).toBe("**Model:**\n\n```ts\nconst a = 1;\n```");
 	});
 
-	test("puts the role on its own paragraph before a list", () => {
+	test("puts the speaker on its own paragraph before a list", () => {
+		overwriteGetLocale(() => "en");
+
 		expect(
 			messageToTranscriptMarkdown(
 				message("user", [
 					text("- first\n- second"),
 				]),
 			),
-		).toBe("**User:**\n\n- first\n- second");
+		).toBe("**You:**\n\n- first\n- second");
+	});
+
+	test("labels the speakers in the locale of the reader", () => {
+		overwriteGetLocale(() => "de");
+
+		expect(
+			messageToTranscriptMarkdown(
+				message("user", [
+					text("Hallo"),
+				]),
+			),
+		).toBe("**Sie:**\n\nHallo");
+		expect(
+			messageToTranscriptMarkdown(
+				message("assistant", [
+					text("Guten Tag"),
+				]),
+			),
+		).toBe("**Modell:**\n\nGuten Tag");
+	});
+
+	test("names a reply after the model that wrote it", () => {
+		overwriteGetLocale(() => "en");
+
+		expect(
+			messageToTranscriptMarkdown(
+				message(
+					"assistant",
+					[
+						text("Hello"),
+					],
+					{
+						model: "gpt-test",
+					},
+				),
+			),
+		).toBe("**gpt-test:**\n\nHello");
+	});
+
+	test("names a reply after the chat's bot", () => {
+		overwriteGetLocale(() => "en");
+
+		expect(
+			messageToTranscriptMarkdown(
+				message(
+					"assistant",
+					[
+						text("Hello"),
+					],
+					{
+						model: "gpt-test",
+					},
+				),
+				{
+					kind: "chat",
+					botName: "Field guide",
+				},
+			),
+		).toBe("**Field guide:**\n\nHello");
+	});
+
+	test("names an Assistant conversation's replies after the Assistant in both locales", () => {
+		const reply = message("assistant", [
+			text("Done"),
+		]);
+		const conversation = {
+			kind: "assistant",
+			botName: null,
+		} as const;
+
+		overwriteGetLocale(() => "en");
+		expect(messageToTranscriptMarkdown(reply, conversation)).toBe(
+			"**OrcAI Assistant:**\n\nDone",
+		);
+
+		overwriteGetLocale(() => "de");
+		expect(messageToTranscriptMarkdown(reply, conversation)).toBe(
+			"**OrcAI Assistant:**\n\nDone",
+		);
 	});
 });

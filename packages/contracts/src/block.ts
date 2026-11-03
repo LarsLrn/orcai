@@ -19,107 +19,91 @@ import {
 import { openapi } from "@orpc/openapi";
 import { base } from "./base";
 
+const tagged = base.meta(
+	openapi({
+		tags: [
+			"Blocks",
+		],
+	}),
+);
+
 export const blockContracts = {
-	list: base
+	list: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/blocks",
 				summary: "List all blocks",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(listBlocksInputSchema)
 		.output(listBlocksResponseSchema),
-	create: base
+	create: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/blocks",
 				summary: "Create a block",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(createBlockInputSchema)
 		.output(createBlockResponseSchema),
-	find: base
+	find: tagged
 		.meta(
 			openapi({
 				method: "GET",
 				path: "/blocks/{id}",
 				summary: "Find a block",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(findBlockInputSchema)
 		.output(findBlockResponseSchema),
-	update: base
+	update: tagged
 		.meta(
 			openapi({
 				method: "PUT",
 				path: "/blocks/{id}",
 				summary: "Update a block",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(updateBlockInputSchema)
 		.output(updateBlockResponseSchema),
-	delete: base
+	delete: tagged
 		.meta(
 			openapi({
 				method: "DELETE",
 				path: "/blocks",
 				summary: "Delete blocks",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(deleteBlocksInputSchema)
 		.output(deleteBlocksResponseSchema),
-	readiness: base
+	readiness: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/blocks/readiness",
 				summary: "Asset readiness of repositories",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(blockReadinessInputSchema)
 		.output(blockReadinessResponseSchema),
-	prepareAssetAgain: base
+	prepareAssetAgain: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/blocks/{blockId}/assets/{assetId}/prepare-again",
 				summary: "Retry a failed asset in a repository",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(prepareRepositoryAssetAgainInputSchema)
 		.output(prepareRepositoryAssetAgainResponseSchema),
-	prepareFailedAgain: base
+	prepareFailedAgain: tagged
 		.meta(
 			openapi({
 				method: "POST",
 				path: "/blocks/{blockId}/assets/prepare-failed-again",
 				summary: "Retry every failed asset in a repository",
-				tags: [
-					"Blocks",
-				],
 			}),
 		)
 		.input(prepareRepositoryFailedAgainInputSchema)
