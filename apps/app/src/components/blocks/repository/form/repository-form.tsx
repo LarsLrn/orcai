@@ -1,6 +1,5 @@
 import type { AssetWithCapabilities, Repository } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
-import { useSelector } from "@tanstack/react-store";
 import { useState } from "react";
 import { useAppForm } from "@/hooks/form";
 import {
@@ -10,10 +9,7 @@ import {
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
-import {
-	RepositoryFieldGroup,
-	repositoryTopLevelFieldMap,
-} from "./repository-field-group";
+import { RepositoryFieldGroup } from "./repository-field-group";
 import { repositoryFormOptions } from "./repository-form-options";
 
 const RepositoryForm = ({
@@ -59,8 +55,6 @@ const RepositoryForm = ({
 		},
 	});
 	useUnsavedChangesGuard(() => !form.state.isDefaultValue);
-
-	const assetIds = useSelector(form.store, (state) => state.values.assets);
 	return (
 		<form
 			onSubmit={(event) => {
@@ -87,18 +81,26 @@ const RepositoryForm = ({
 
 			<RepositoryFieldGroup
 				form={form}
-				fields={repositoryTopLevelFieldMap}
-				assetIds={assetIds ?? []}
-				onAssetIdsChange={(ids) => form.setFieldValue("assets", ids)}
+				fields={{
+					name: "name",
+					description: "description",
+					contentJson: "contentJson",
+					config: "config",
+				}}
 				assets={selectedAssets}
-				onAssetsChange={setSelectedAssets}
+				onAssetsChange={(nextAssets) => {
+					setSelectedAssets(nextAssets);
+					form.setFieldValue(
+						"assets",
+						nextAssets.map((asset) => asset.id),
+					);
+				}}
 				onUploadRun={(runId) =>
 					form.setFieldValue("uploadRunIds", (runIds = []) => [
 						...runIds,
 						runId,
 					])
 				}
-				onRemove={undefined}
 				blockId={block?.id}
 			/>
 

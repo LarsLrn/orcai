@@ -1,6 +1,7 @@
 import type { AssetId } from "@orcai/core";
 import {
 	createRepositoryInputSchema,
+	defaultRepositoryConfig,
 	type Repository,
 	retrievalModeSchema,
 } from "@orcai/schema";
@@ -27,13 +28,8 @@ const defaultValues = (
 	type: "repository",
 	status: block?.status || "draft",
 	config: {
-		maxPassages: block?.config.maxPassages ?? 8,
-		minPassages: block?.config.minPassages ?? 1,
-		defaultPassages: block?.config.defaultPassages ?? 4,
-		retrievalMode: block?.config.retrievalMode ?? "hybrid",
-		scoreThreshold: block?.config.scoreThreshold ?? 0.2,
-		candidateLimit: block?.config.candidateLimit ?? 40,
-		maxPerAsset: block?.config.maxPerAsset ?? 6,
+		...defaultRepositoryConfig,
+		...block?.config,
 	},
 	assets: assetIds || [],
 	uploadRunIds: [],

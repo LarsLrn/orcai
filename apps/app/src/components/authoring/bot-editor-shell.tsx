@@ -1,62 +1,40 @@
-import type {
-	AssetState,
-	BotEditor,
-	PublicationStatus,
-	ResourceGrant,
-} from "@orcai/schema";
+import type { BlockId } from "@orcai/core";
+import type { BotEditor, PublicationStatus } from "@orcai/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AccessManagerContent } from "@/components/access/access-manager-content";
-import { toLinkedBlocks } from "@/components/access/block-edit-offer";
+import { useMemo, useRef, useState } from "react";
 import { useRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
-import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
-import { BehaviourEditor } from "@/components/authoring/behaviour-editor";
 import {
 	type BotEditorFormValues,
-	createDefaultBuilderBehaviour,
-	createDefaultBuilderRepository,
+	botEditorFormOptions,
 	toBotEditorFormValues,
+	toLinkedBlockValues,
 } from "@/components/authoring/bot-editor-form-options";
 import {
 	type BotEditorBlockSaved,
+	type BotEditorBlockSlot,
 	botEditorBaseline,
 	planBotEditorSave,
-	toBehaviourInput,
-	toRepositoryInput,
+	toBlockInput,
 	withSavedBlock,
 } from "@/components/authoring/bot-editor-save";
 import { WIZARD_STEPS } from "@/components/authoring/bot-editor-steps";
-import {
-	describeAllMembersAccess,
-	PublishSummary,
-} from "@/components/authoring/publish-summary";
-import { BlockSelectorDialog } from "@/components/blocks/block-selector-dialog";
-import {
-	createRepositoryBuilderFieldMap,
-	RepositoryFieldGroup,
-} from "@/components/blocks/repository/form/repository-field-group";
+import { PublishSummary } from "@/components/authoring/publish-summary";
+import { BasicsStep } from "@/components/authoring/steps/basics-step";
+import { BehaviourStep } from "@/components/authoring/steps/behaviour-step";
+import { RepositoriesStep } from "@/components/authoring/steps/repositories-step";
+import { ReviewStep } from "@/components/authoring/steps/review-step";
+import { SharingStep } from "@/components/authoring/steps/sharing-step";
 import {
 	BotModelStep,
 	type BotModelStepHandle,
 } from "@/components/bot/setup/bot-model-step";
-import { FeaturesSection } from "@/components/features/features-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { OptionPicker } from "@/components/ui/composed/option-picker";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
 	useResourceGrants,
 	useResourceVisibility,
@@ -67,13 +45,10 @@ import {
 	usePublishBotMutation,
 	useSaveBotEditorMutation,
 } from "@/hooks/mutations/use-bot-mutations";
-import { useEmbeddingsConfigured } from "@/hooks/use-embeddings-configured";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
-import { assetStateBadge } from "@/lib/presentation/asset-state";
 import { formatList } from "@/lib/presentation/format-list";
-import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -83,10 +58,6 @@ const revealStep = (node: HTMLButtonElement | null) => {
 		inline: "nearest",
 	});
 };
-
-const canEditBlock = (block: {
-	capabilities?: Partial<Record<"edit", boolean>>;
-}) => hasCapability(block.capabilities, "edit");
 
 const getPublishIssues = (editor: BotEditorFormValues) => {
 	const issues: string[] = [];
@@ -118,32 +89,32 @@ const getPublishIssues = (editor: BotEditorFormValues) => {
 	return issues;
 };
 
+const blockPath = (slot: BotEditorBlockSlot) =>
+	slot === "behaviour" ? "behaviour" : (`repositories[${slot}]` as const);
+
 const BotEditorShell = ({
 	editorData,
 	stepIndex,
 	onStepChange,
 }: {
 	editorData?: BotEditor;
-	stepIndex?: number;
-	onStepChange?: (step: number) => void;
+	stepIndex: number;
+	onStepChange: (step: number) => void;
 }) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const confirm = useConfirm();
 	const { availability: assistantAvailability } = useAssistantModel();
-	const [internalStepIndex, setInternalStepIndex] = useState(0);
-	const [isBehaviourLibraryOpen, setIsBehaviourLibraryOpen] = useState(false);
-	const [isRepositoryLibraryOpen, setIsRepositoryLibraryOpen] = useState(false);
 	const [wizardAction, setWizardAction] = useState<
 		"back" | "next" | "draft" | "publish" | null
 	>(null);
-	const activeStepIndex = stepIndex ?? internalStepIndex;
 	const zedTokenRef = useRef<string | undefined>(undefined);
 	// What the server holds; the form keeps the saved bot as its default values.
 	const [baseline, setBaseline] = useState(() =>
 		botEditorBaseline(toBotEditorFormValues(editorData)),
 	);
 	const form = useAppForm({
+		...botEditorFormOptions,
 		defaultValues: baseline.bot,
 		onSubmit: () => undefined,
 	});
@@ -152,10 +123,7 @@ const BotEditorShell = ({
 		() => !form.state.isDefaultValue || modelStep.current?.isDirty() === true,
 	);
 
-	const editor = useSelector(
-		form.store,
-		(state) => state.values,
-	) as BotEditorFormValues;
+	const editor = useSelector(form.store, (state) => state.values);
 	const publishIssues = useMemo(
 		() => getPublishIssues(editor),
 		[
@@ -171,14 +139,6 @@ const BotEditorShell = ({
 				: [],
 		),
 	);
-
-	useEffect(() => {
-		if (typeof stepIndex === "number") {
-			setInternalStepIndex(stepIndex);
-		}
-	}, [
-		stepIndex,
-	]);
 
 	const {
 		mutateAsync: saveBotEditor,
@@ -221,79 +181,31 @@ const BotEditorShell = ({
 	// The Model step saves through its own procedure and loses its form when left.
 	const leaveModelStep = async () => (await modelStep.current?.save()) ?? true;
 
-	const setStep = (nextStep: number) => {
-		onStepChange?.(nextStep);
-		if (typeof stepIndex !== "number") {
-			setInternalStepIndex(nextStep);
-		}
-	};
-
-	const handleSelectExistingBehaviour = async (blockId: string) => {
-		const block = await queryClient.query(
-			orpc.block.find.queryOptions({
-				input: {
-					id: blockId,
-				},
-			}),
+	const handleLinkBlock = async (blockId: BlockId) => {
+		const block = toLinkedBlockValues(
+			await queryClient.query(
+				orpc.block.find.queryOptions({
+					input: {
+						id: blockId,
+					},
+				}),
+			),
 		);
-
-		if (block.data.type !== "behaviour") {
+		if (
+			block.type === "repository" &&
+			form
+				.getFieldValue("repositories")
+				.some((repository) => repository.id === block.id)
+		) {
 			return;
 		}
 
-		const behaviour = {
-			id: block.data.id,
-			capabilities: block.data.capabilities,
-			name: block.data.name,
-			description: block.data.description ?? "",
-			contentJson: block.data.contentJson,
-			type: "behaviour" as const,
-			status: block.data.status,
-			config: block.data.config,
-		} satisfies NonNullable<BotEditorFormValues["behaviour"]>;
-		setBaseline((current) => withSavedBlock(current, behaviour));
-		form.setFieldValue("behaviour", behaviour);
-	};
-
-	const handleAddExistingRepository = async (blockId: string) => {
-		const block = await queryClient.query(
-			orpc.block.find.queryOptions({
-				input: {
-					id: blockId,
-				},
-			}),
-		);
-
-		if (block.data.type !== "repository") {
-			return;
+		setBaseline((current) => withSavedBlock(current, block));
+		if (block.type === "behaviour") {
+			form.setFieldValue("behaviour", block);
+		} else {
+			form.pushFieldValue("repositories", block);
 		}
-
-		const alreadyLinked = editor.repositories.some(
-			(repository) => repository.id === block.data.id,
-		);
-		if (alreadyLinked) {
-			return;
-		}
-
-		const linkedBlock = {
-			id: block.data.id,
-			capabilities: block.data.capabilities,
-			name: block.data.name,
-			type: "repository" as const,
-			description: block.data.description ?? "",
-			contentJson: block.data.contentJson,
-			status: block.data.status,
-			config: block.data.config,
-			assetIds: block.assets?.map((asset) => asset.id) ?? [],
-			assets: block.assets ?? [],
-			uploadRunIds: [],
-		} satisfies BotEditorFormValues["repositories"][number];
-
-		setBaseline((current) => withSavedBlock(current, linkedBlock));
-		form.setFieldValue("repositories", [
-			...editor.repositories,
-			linkedBlock,
-		]);
 	};
 
 	const markSaved = (values: BotEditorFormValues) => {
@@ -372,7 +284,7 @@ const BotEditorShell = ({
 	};
 
 	const handleWizardNext = async () => {
-		const nextStep = Math.min(activeStepIndex + 1, WIZARD_STEPS.length - 1);
+		const nextStep = Math.min(stepIndex + 1, WIZARD_STEPS.length - 1);
 		if (!(await leaveModelStep())) {
 			return;
 		}
@@ -384,7 +296,7 @@ const BotEditorShell = ({
 		}
 
 		if (editorData?.id && savedEditor.id === editorData.id) {
-			setStep(nextStep);
+			onStepChange(nextStep);
 		}
 	};
 
@@ -392,11 +304,11 @@ const BotEditorShell = ({
 		if (!(await leaveModelStep())) {
 			return;
 		}
-		if (activeStepIndex > 0 && editor.id) {
+		if (stepIndex > 0 && editor.id) {
 			await handleSave();
 		}
 
-		setStep(Math.max(activeStepIndex - 1, 0));
+		onStepChange(Math.max(stepIndex - 1, 0));
 	};
 
 	const handlePublish = async () => {
@@ -444,99 +356,55 @@ const BotEditorShell = ({
 		});
 	};
 
-	const handleBehaviourStatusChange = async (status: PublicationStatus) => {
-		const behaviour = editor.behaviour;
-		if (!behaviour || behaviour.status === status) {
+	const linkedSlotOf = (id: BlockId): BotEditorBlockSlot | undefined => {
+		if (form.getFieldValue("behaviour")?.id === id) {
+			return "behaviour";
+		}
+		const index = form
+			.getFieldValue("repositories")
+			.findIndex((repository) => repository.id === id);
+		return index === -1 ? undefined : index;
+	};
+
+	/** A saved block's status is written at once; a new one's is saved with the bot. */
+	const handleStatusChange = async (
+		slot: BotEditorBlockSlot,
+		status: PublicationStatus,
+	) => {
+		const path = blockPath(slot);
+		const block = form.getFieldValue(path);
+		if (!block || block.status === status) {
 			return;
 		}
 
-		if (!behaviour.id) {
-			form.setFieldValue("behaviour", {
-				...behaviour,
+		if (block.id) {
+			if (!hasCapability(block.capabilities, "edit")) {
+				return;
+			}
+			const savedBlock = {
+				...block,
+				id: block.id,
 				status,
+			};
+			const result = await setBlockStatus({
+				id: block.id,
+				...toBlockInput(savedBlock),
 			});
+			if (result.status !== "success") {
+				return;
+			}
+			setBaseline((current) => withSavedBlock(current, savedBlock));
+			// The block may have moved or been detached while the write was pending.
+			const linkedSlot = linkedSlotOf(savedBlock.id);
+			if (linkedSlot !== undefined) {
+				form.setFieldValue(`${blockPath(linkedSlot)}.status`, status);
+			}
 			return;
 		}
-
-		if (!canEditBlock(behaviour)) {
-			return;
-		}
-
-		const result = await setBlockStatus({
-			id: behaviour.id,
-			...toBehaviourInput({
-				...behaviour,
-				status,
-			}),
-		});
-		if (result.status !== "success") {
-			return;
-		}
-
-		const savedBlock = {
-			...behaviour,
-			id: behaviour.id,
-			status,
-		};
-		setBaseline((current) => withSavedBlock(current, savedBlock));
-		form.setFieldValue("behaviour", savedBlock);
+		form.setFieldValue(`${path}.status`, status);
 	};
 
-	const handleRepositoryStatusChange = async (params: {
-		blockId?: string;
-		blockIndex: number;
-		status: PublicationStatus;
-	}) => {
-		const repository = editor.repositories[params.blockIndex];
-		if (!repository || repository.status === params.status) {
-			return;
-		}
-
-		if (!repository.id) {
-			form.setFieldValue(
-				"repositories",
-				editor.repositories.map((block, index) =>
-					index === params.blockIndex
-						? {
-								...block,
-								status: params.status,
-							}
-						: block,
-				),
-			);
-			return;
-		}
-
-		if (!canEditBlock(repository)) {
-			return;
-		}
-
-		const result = await setBlockStatus({
-			id: repository.id,
-			...toRepositoryInput({
-				...repository,
-				status: params.status,
-			}),
-		});
-		if (result.status !== "success") {
-			return;
-		}
-
-		const savedBlock = {
-			...repository,
-			id: repository.id,
-			status: params.status,
-		};
-		setBaseline((current) => withSavedBlock(current, savedBlock));
-		form.setFieldValue(
-			"repositories",
-			editor.repositories.map((block) =>
-				block.id === savedBlock.id ? savedBlock : block,
-			),
-		);
-	};
-
-	const currentStep = WIZARD_STEPS[activeStepIndex];
+	const currentStep = WIZARD_STEPS[stepIndex];
 
 	return (
 		<div className="@container grid min-w-0 grid-cols-1 gap-6">
@@ -544,8 +412,8 @@ const BotEditorShell = ({
 				{WIZARD_STEPS.map((step, index) => {
 					const Icon = step.icon;
 					const isLocked = !editor.id && index > 0;
-					const isActive = index === activeStepIndex;
-					const isComplete = index < activeStepIndex;
+					const isActive = index === stepIndex;
+					const isComplete = index < stepIndex;
 					return (
 						<button
 							type="button"
@@ -560,7 +428,7 @@ const BotEditorShell = ({
 							)}
 							onClick={async () => {
 								if (!isLocked && (await leaveModelStep())) {
-									setStep(index);
+									onStepChange(index);
 								}
 							}}
 							disabled={isLocked}
@@ -614,352 +482,18 @@ const BotEditorShell = ({
 				</div>
 
 				<div className="grid min-w-0 grid-cols-1 gap-6">
-					{currentStep.key === "basics" ? (
-						<div className="grid min-w-0 grid-cols-1 gap-6">
-							<Card className="min-w-0 rounded-2xl">
-								<CardHeader>
-									<CardTitle>{m.authoring_basics_identity_title()}</CardTitle>
-									<CardDescription>
-										{m.authoring_basics_identity_description()}
-									</CardDescription>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<form.AppField
-										name="name"
-										children={(field) => (
-											<field.TextField
-												label={m.authoring_basics_name_label()}
-												placeholder={m.authoring_basics_name_placeholder()}
-											/>
-										)}
-									/>
-									<form.AppField
-										name="description"
-										children={(field) => (
-											<field.TextareaField
-												label={m.authoring_basics_description_label()}
-												placeholder={m.authoring_basics_description_placeholder()}
-												rows={4}
-											/>
-										)}
-									/>
-								</CardContent>
-							</Card>
-
-							<Card className="min-w-0 rounded-2xl">
-								<CardHeader>
-									<CardTitle>{m.authoring_basics_content_title()}</CardTitle>
-									<CardDescription>
-										{m.authoring_basics_content_description()}
-									</CardDescription>
-								</CardHeader>
-								<CardContent>
-									<form.AppField
-										name="contentJson"
-										children={(field) => (
-											<field.BlockEditorField
-												label={m.authoring_basics_content_label()}
-											/>
-										)}
-									/>
-								</CardContent>
-							</Card>
-						</div>
-					) : null}
+					{currentStep.key === "basics" ? <BasicsStep form={form} /> : null}
 
 					{currentStep.key === "behavior" ? (
-						<div className="grid min-w-0 grid-cols-1 gap-4">
-							{editor.behaviour ? (
-								<div className="flex flex-wrap justify-end gap-2">
-									<Button
-										variant="outline"
-										onClick={() => setIsBehaviourLibraryOpen(true)}
-									>
-										{m.authoring_behaviour_use_existing_action()}
-									</Button>
-								</div>
-							) : null}
-
-							{editor.behaviour ? (
-								canEditBlock(editor.behaviour) || !editor.behaviour.id ? (
-									<BehaviourEditor
-										nameField={
-											<form.AppField
-												name="behaviour.name"
-												children={(field) => (
-													<field.TextField
-														label={m.common_name_label()}
-														placeholder={m.authoring_behaviour_name_placeholder()}
-													/>
-												)}
-											/>
-										}
-										systemPromptField={
-											<div className="space-y-2">
-												<form.AppField
-													name="behaviour.config.systemPrompt"
-													children={(field) => (
-														<field.TextareaField
-															label={m.authoring_behaviour_system_prompt_label()}
-															placeholder={m.authoring_behaviour_example()}
-															rows={12}
-														/>
-													)}
-												/>
-												<BehaviourDocsLink />
-												<div className="flex flex-wrap items-center gap-3">
-													<Button
-														variant="outline"
-														size="sm"
-														disabled={
-															!!editor.behaviour?.config.systemPrompt.trim()
-														}
-														onClick={() =>
-															form.setFieldValue(
-																"behaviour.config.systemPrompt",
-																m.authoring_behaviour_example(),
-															)
-														}
-													>
-														{m.authoring_behaviour_example_button()}
-													</Button>
-													<span className="text-muted-foreground text-xs">
-														{m.authoring_behaviour_example_hint()}
-													</span>
-												</div>
-											</div>
-										}
-										descriptionField={
-											<form.AppField
-												name="behaviour.description"
-												children={(field) => (
-													<field.TextareaField
-														label={m.authoring_behaviour_description_label()}
-														placeholder={m.authoring_behaviour_description_placeholder()}
-														rows={4}
-													/>
-												)}
-											/>
-										}
-										contentField={
-											<form.AppField
-												name="behaviour.contentJson"
-												children={(field) => (
-													<field.BlockEditorField
-														label={m.authoring_behaviour_content_label()}
-													/>
-												)}
-											/>
-										}
-									/>
-								) : (
-									<ReadOnlyBehaviourCard block={editor.behaviour} />
-								)
-							) : (
-								<Card className="min-w-0 rounded-2xl">
-									<CardContent className="flex flex-wrap items-center justify-between gap-3 p-6">
-										<div>
-											<div className="font-medium">
-												{m.authoring_behaviour_empty_state_title()}
-											</div>
-											<div className="text-muted-foreground text-sm">
-												{m.authoring_behaviour_empty_state_description()}
-											</div>
-										</div>
-										<div className="flex flex-wrap gap-2">
-											<Button
-												onClick={() =>
-													form.setFieldValue(
-														"behaviour",
-														createDefaultBuilderBehaviour(),
-													)
-												}
-											>
-												{m.authoring_behaviour_create_action()}
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => setIsBehaviourLibraryOpen(true)}
-											>
-												{m.authoring_behaviour_use_existing_action()}
-											</Button>
-										</div>
-									</CardContent>
-								</Card>
-							)}
-
-							<Card className="min-w-0 rounded-2xl">
-								<CardContent className="p-6">
-									<form.Field
-										name="features"
-										children={(field) => (
-											<FeaturesSection
-												value={field.state.value}
-												onChange={field.handleChange}
-											/>
-										)}
-									/>
-								</CardContent>
-							</Card>
-
-							<BlockSelectorDialog
-								open={isBehaviourLibraryOpen}
-								onOpenChange={setIsBehaviourLibraryOpen}
-								type="behaviour"
-								includeDrafts
-								selectedIds={
-									editor.behaviour?.id
-										? [
-												editor.behaviour.id,
-											]
-										: []
-								}
-								onSelect={(block) => handleSelectExistingBehaviour(block.id)}
-								title={m.authoring_behaviour_library_dialog_title()}
-								description={m.authoring_behaviour_library_dialog_description()}
-								searchPlaceholder={m.authoring_behaviour_library_search_placeholder()}
-							/>
-						</div>
+						<BehaviourStep form={form} onLink={handleLinkBlock} />
 					) : null}
 
 					{currentStep.key === "repositories" ? (
-						<div className="grid min-w-0 grid-cols-1 gap-4">
-							{editor.repositories.length === 0 ? (
-								<div className="bg-background/70 min-w-0 rounded-2xl border border-dashed p-6">
-									<div className="font-medium">
-										{m.authoring_repositories_empty_state_title()}
-									</div>
-									<div className="text-muted-foreground mt-2 text-sm">
-										{m.authoring_repositories_empty_state_description()}
-									</div>
-									<div className="mt-4 flex flex-wrap gap-2">
-										<Button
-											onClick={() =>
-												form.setFieldValue("repositories", [
-													...editor.repositories,
-													createDefaultBuilderRepository({
-														botName: editor.name,
-													}),
-												])
-											}
-										>
-											{m.authoring_repositories_create_action()}
-										</Button>
-										<Button
-											variant="outline"
-											onClick={() => setIsRepositoryLibraryOpen(true)}
-										>
-											{m.authoring_repositories_use_existing_action()}
-										</Button>
-									</div>
-								</div>
-							) : (
-								<div className="grid min-w-0 grid-cols-1 gap-4">
-									<div className="flex flex-wrap justify-end gap-2">
-										<Button
-											variant="outline"
-											onClick={() => setIsRepositoryLibraryOpen(true)}
-										>
-											{m.authoring_repositories_add_existing_action()}
-										</Button>
-									</div>
-
-									{editor.repositories.map((repository, index) =>
-										canEditBlock(repository) || !repository.id ? (
-											<RepositoryFieldGroup
-												key={repository.id ?? `repository-${index}`}
-												form={form}
-												fields={createRepositoryBuilderFieldMap(index)}
-												blockId={repository.id}
-												assetIds={repository.assetIds}
-												onAssetIdsChange={(ids) => {
-													form.setFieldValue(
-														`repositories[${index}].assetIds`,
-														ids,
-													);
-												}}
-												assets={repository.assets}
-												onAssetsChange={(assets) => {
-													form.setFieldValue(
-														`repositories[${index}].assets`,
-														assets,
-													);
-												}}
-												onUploadRun={(runId) => {
-													form.setFieldValue(
-														`repositories[${index}].uploadRunIds`,
-														(runIds) => [
-															...runIds,
-															runId,
-														],
-													);
-												}}
-												onRemove={() =>
-													form.setFieldValue(
-														"repositories",
-														editor.repositories.filter(
-															(_, existingIndex) => existingIndex !== index,
-														),
-													)
-												}
-											/>
-										) : (
-											<ReadOnlyRepositoryCard
-												key={repository.id}
-												block={repository}
-												onDetach={() =>
-													form.setFieldValue(
-														"repositories",
-														editor.repositories.filter(
-															(_, existingIndex) => existingIndex !== index,
-														),
-													)
-												}
-											/>
-										),
-									)}
-
-									<Button
-										className="justify-self-start"
-										variant="outline"
-										onClick={() =>
-											form.setFieldValue("repositories", [
-												...editor.repositories,
-												createDefaultBuilderRepository({
-													botName: editor.name,
-												}),
-											])
-										}
-									>
-										{m.authoring_repositories_add_another_action()}
-									</Button>
-								</div>
-							)}
-
-							<BlockSelectorDialog
-								open={isRepositoryLibraryOpen}
-								onOpenChange={setIsRepositoryLibraryOpen}
-								type="repository"
-								includeDrafts
-								selectedIds={editor.repositories.flatMap((repository) =>
-									repository.id
-										? [
-												repository.id,
-											]
-										: [],
-								)}
-								onSelect={async (block) => {
-									await handleAddExistingRepository(block.id);
-								}}
-								title={m.authoring_repositories_library_dialog_title()}
-								description={m.authoring_repositories_library_dialog_description()}
-								searchPlaceholder={m.authoring_repositories_library_search_placeholder()}
-							/>
-						</div>
+						<RepositoriesStep form={form} onLink={handleLinkBlock} />
 					) : null}
 
 					{currentStep.key === "sharing" ? (
-						<SharingSection
+						<SharingStep
 							editor={editor}
 							grants={grants.data?.data ?? []}
 							grantsAvailable={grants.isSuccess}
@@ -971,13 +505,12 @@ const BotEditorShell = ({
 					) : null}
 
 					{currentStep.key === "review" ? (
-						<ReviewSection
+						<ReviewStep
 							editor={editor}
 							visibility={visibility.data?.data.visibility}
 							grantCount={grants.data?.data.length ?? 0}
 							issues={publishIssues}
-							onBehaviourStatusChange={handleBehaviourStatusChange}
-							onRepositoryStatusChange={handleRepositoryStatusChange}
+							onStatusChange={handleStatusChange}
 							isSettingBlockStatus={isSettingBlockStatus}
 						/>
 					) : null}
@@ -988,7 +521,7 @@ const BotEditorShell = ({
 							className="col-start-1 row-start-1"
 							onClick={runWizardAction("back", handleWizardBack)}
 							loading={isWizardActionPending("back")}
-							disabled={activeStepIndex === 0 || isWorking}
+							disabled={stepIndex === 0 || isWorking}
 						>
 							<ChevronLeftIcon />
 							{m.common_back_button()}
@@ -1004,7 +537,7 @@ const BotEditorShell = ({
 									: m.authoring_wizard_autosave_hint()}
 						</span>
 
-						{activeStepIndex === WIZARD_STEPS.length - 1 ? (
+						{stepIndex === WIZARD_STEPS.length - 1 ? (
 							<div className="col-start-2 row-start-1 flex flex-wrap items-center justify-end gap-2 sm:col-start-3">
 								<Button
 									variant="outline"
@@ -1044,376 +577,6 @@ const BotEditorShell = ({
 				</div>
 			</div>
 		</div>
-	);
-};
-
-const SharingSection = ({
-	editor,
-	grants,
-	grantsAvailable,
-}: {
-	editor: BotEditorFormValues;
-	grants: ResourceGrant[];
-	grantsAvailable: boolean;
-}) => {
-	const memberAccess = grantsAvailable
-		? describeAllMembersAccess(grants)
-		: null;
-
-	if (!editor.id) {
-		return (
-			<Card className="min-w-0 rounded-2xl">
-				<CardHeader>
-					<CardTitle>{m.authoring_sharing_title()}</CardTitle>
-					<CardDescription>
-						{m.authoring_sharing_unsaved_description()}
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-3">
-					<p>{m.authoring_sharing_unshared_description()}</p>
-					{memberAccess ? <p>{memberAccess}</p> : null}
-				</CardContent>
-			</Card>
-		);
-	}
-
-	if (!hasCapability(editor.capabilities, "manage_access")) {
-		return null;
-	}
-
-	return (
-		<Card className="min-w-0 rounded-2xl">
-			<CardHeader>
-				<CardTitle>{m.authoring_sharing_title()}</CardTitle>
-				<CardDescription>{m.authoring_sharing_description()}</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-4">
-				{grants.length === 0 ? (
-					<p>{m.authoring_sharing_unshared_description()}</p>
-				) : null}
-				{memberAccess ? <p>{memberAccess}</p> : null}
-				<AccessManagerContent
-					resourceRef={{
-						type: "bot",
-						id: editor.id,
-					}}
-					resourceName={editor.name}
-					linkedBlocks={toLinkedBlocks(editor)}
-				/>
-			</CardContent>
-		</Card>
-	);
-};
-
-const ReviewSection = ({
-	editor,
-	visibility,
-	grantCount,
-	issues,
-	onBehaviourStatusChange,
-	onRepositoryStatusChange,
-	isSettingBlockStatus,
-}: {
-	editor: BotEditorFormValues;
-	visibility?: "private" | "public";
-	grantCount: number;
-	issues: string[];
-	onBehaviourStatusChange: (status: PublicationStatus) => void;
-	onRepositoryStatusChange: (params: {
-		blockId?: string;
-		blockIndex: number;
-		status: PublicationStatus;
-	}) => void;
-	isSettingBlockStatus: boolean;
-}) => {
-	const publicationStatusOptions = getPublicationStatusOptions();
-
-	return (
-		<Card className="border-border/70 bg-background min-w-0 rounded-2xl">
-			<CardHeader>
-				<CardTitle>{m.authoring_review_title()}</CardTitle>
-				<CardDescription>{m.authoring_review_description()}</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-6">
-				<div>
-					<div className="text-sm font-medium">
-						{m.authoring_review_bot_label()}
-					</div>
-					<div className="mt-2 rounded-xl border p-4">
-						<div className="font-medium">
-							{editor.name || m.authoring_review_bot_untitled()}
-						</div>
-						<div className="text-muted-foreground mt-1 text-sm">
-							{editor.description || m.authoring_review_bot_no_description()}
-						</div>
-					</div>
-				</div>
-
-				<Separator />
-
-				<div>
-					<div className="text-sm font-medium">
-						{m.authoring_review_behaviour_label()}
-					</div>
-					<div className="mt-2 rounded-xl border p-4 text-sm">
-						{editor.behaviour ? (
-							<>
-								<div className="font-medium">{editor.behaviour.name}</div>
-								<div className="text-muted-foreground mt-1">
-									{m.authoring_review_behaviour_hint()}
-								</div>
-								<div className="mt-3 max-w-sm space-y-2">
-									<Label htmlFor="review-behaviour-status">
-										{m.authoring_review_behaviour_status_label()}
-									</Label>
-									<OptionPicker
-										id="review-behaviour-status"
-										options={publicationStatusOptions}
-										value={editor.behaviour.status}
-										onChange={onBehaviourStatusChange}
-										disabled={
-											Boolean(
-												editor.behaviour.id && !canEditBlock(editor.behaviour),
-											) || isSettingBlockStatus
-										}
-									/>
-									{editor.behaviour.id && !canEditBlock(editor.behaviour) ? (
-										<p className="text-muted-foreground text-xs">
-											{m.authoring_review_behaviour_readonly_hint()}
-										</p>
-									) : null}
-								</div>
-							</>
-						) : (
-							<div className="text-muted-foreground">
-								{m.authoring_review_behaviour_empty_state()}
-							</div>
-						)}
-					</div>
-				</div>
-
-				<Separator />
-
-				<div>
-					<div className="text-sm font-medium">
-						{m.authoring_review_repositories_label()}
-					</div>
-					<div className="mt-2 space-y-3">
-						{editor.repositories.length === 0 ? (
-							<div className="text-muted-foreground rounded-xl border p-4 text-sm">
-								{m.authoring_review_repositories_empty_state()}
-							</div>
-						) : (
-							editor.repositories.map((repository, index) => (
-								<div
-									key={repository.id ?? `review-db-${index}`}
-									className="rounded-xl border p-4"
-								>
-									<div className="font-medium">{repository.name}</div>
-									<div className="text-muted-foreground mt-1 text-sm">
-										{m.authoring_attached_asset_count({
-											count: repository.assetIds.length,
-										})}
-									</div>
-									<div className="mt-3 max-w-sm space-y-2">
-										<Label htmlFor={`review-db-status-${index}`}>
-											{m.authoring_review_repository_status_label()}
-										</Label>
-										<OptionPicker
-											id={`review-db-status-${index}`}
-											options={publicationStatusOptions}
-											value={repository.status}
-											onChange={(status) =>
-												onRepositoryStatusChange({
-													blockId: repository.id,
-													blockIndex: index,
-													status,
-												})
-											}
-											disabled={
-												Boolean(repository.id && !canEditBlock(repository)) ||
-												isSettingBlockStatus
-											}
-										/>
-										{repository.id && !canEditBlock(repository) ? (
-											<p className="text-muted-foreground text-xs">
-												{m.authoring_review_repository_readonly_hint()}
-											</p>
-										) : null}
-									</div>
-								</div>
-							))
-						)}
-					</div>
-				</div>
-
-				<Separator />
-
-				<div className="grid gap-4 md:grid-cols-2">
-					<div className="rounded-xl border p-4">
-						<div className="text-sm font-medium">
-							{m.authoring_review_visibility_label()}
-						</div>
-						<div className="text-muted-foreground mt-1 text-sm">
-							{visibility === "public"
-								? m.authoring_review_visibility_public()
-								: m.authoring_review_visibility_private()}
-						</div>
-					</div>
-					<div className="rounded-xl border p-4">
-						<div className="text-sm font-medium">
-							{m.authoring_review_grants_label()}
-						</div>
-						<div className="text-muted-foreground mt-1 text-sm">
-							{m.authoring_review_grant_count({
-								count: grantCount,
-							})}
-						</div>
-					</div>
-				</div>
-
-				{issues.length > 0 ? (
-					<div className="border-destructive/30 bg-destructive/5 rounded-xl border p-4">
-						<div className="text-destructive text-sm font-medium">
-							{m.authoring_review_issues_title()}
-						</div>
-						<ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-							{issues.map((issue) => (
-								<li key={issue}>{issue}</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-			</CardContent>
-		</Card>
-	);
-};
-
-const ReadOnlyBehaviourCard = ({
-	block,
-}: {
-	block: NonNullable<BotEditorFormValues["behaviour"]>;
-}) => {
-	const navigate = useNavigate();
-
-	return (
-		<Card className="min-w-0 rounded-2xl">
-			<CardHeader>
-				<CardTitle>{m.authoring_readonly_behaviour_title()}</CardTitle>
-				<CardDescription>
-					{m.authoring_readonly_behaviour_description()}
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-3">
-				<div className="font-medium">{block.name}</div>
-				{block.description ? (
-					<div className="text-muted-foreground text-sm">
-						{block.description}
-					</div>
-				) : null}
-				{block.id ? (
-					<Button
-						variant="outline"
-						onClick={() =>
-							block.id
-								? navigate({
-										to: "/app/library/behaviours/$blockId",
-										params: {
-											blockId: block.id,
-										},
-									})
-								: undefined
-						}
-					>
-						{m.authoring_readonly_open_block_action()}
-					</Button>
-				) : null}
-			</CardContent>
-		</Card>
-	);
-};
-
-/** An asset's state in the repository; nothing once it is ready. */
-const AssetStateBadge = ({ state }: { state: AssetState | undefined }) => {
-	const embeddingsConfigured = useEmbeddingsConfigured();
-	if (!state || state === "ready") return null;
-	const { label, variant } = assetStateBadge(state, embeddingsConfigured);
-	return <Badge variant={variant}>{label}</Badge>;
-};
-
-const ReadOnlyRepositoryCard = ({
-	block,
-	onDetach,
-}: {
-	block: BotEditorFormValues["repositories"][number];
-	onDetach: () => void;
-}) => {
-	const navigate = useNavigate();
-	const { data: readiness } = useRepositoryReadiness(
-		block.id
-			? [
-					block.id,
-				]
-			: [],
-	);
-	const stateById = new Map(
-		readiness?.data[0]?.assets.map((asset) => [
-			asset.assetId,
-			asset.state,
-		]),
-	);
-
-	return (
-		<Card className="min-w-0 rounded-2xl">
-			<CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-				<div className="min-w-0">
-					<CardTitle className="text-base">{block.name}</CardTitle>
-					<CardDescription>
-						{m.authoring_readonly_repository_description()}
-					</CardDescription>
-				</div>
-				<Button variant="outline" size="sm" onClick={onDetach}>
-					{m.authoring_readonly_detach_action()}
-				</Button>
-			</CardHeader>
-			<CardContent className="space-y-3">
-				<div className="text-muted-foreground text-sm">
-					{m.authoring_attached_asset_count({
-						count: block.assetIds.length,
-					})}
-				</div>
-				{block.assets.length > 0 ? (
-					<ul className="bg-muted/20 space-y-2 rounded-xl border p-3 text-sm">
-						{block.assets.map((asset) => (
-							<li
-								key={asset.id}
-								className="flex items-center justify-between gap-2"
-							>
-								<span className="truncate">{asset.title}</span>
-								<AssetStateBadge state={stateById.get(asset.id)} />
-							</li>
-						))}
-					</ul>
-				) : null}
-				{block.id ? (
-					<Button
-						variant="outline"
-						onClick={() =>
-							block.id
-								? navigate({
-										to: "/app/library/repositories/$blockId",
-										params: {
-											blockId: block.id,
-										},
-									})
-								: undefined
-						}
-					>
-						{m.authoring_readonly_open_block_action()}
-					</Button>
-				) : null}
-			</CardContent>
-		</Card>
 	);
 };
 

@@ -58,7 +58,6 @@ const BlockSelectorDialog = ({
 	onSelect,
 	title,
 	description,
-	searchPlaceholder,
 	emptyText,
 	className,
 }: {
@@ -71,7 +70,6 @@ const BlockSelectorDialog = ({
 	onSelect: (block: Block) => void | Promise<void>;
 	title?: string;
 	description?: string;
-	searchPlaceholder?: string;
 	emptyText?: string;
 	className?: string;
 }) => {
@@ -141,7 +139,7 @@ const BlockSelectorDialog = ({
 						setSearch(value);
 						setPage(0);
 					}}
-					placeholder={searchPlaceholder ?? copy.searchPlaceholder}
+					placeholder={copy.searchPlaceholder}
 				/>
 				<DialogSelectList
 					loading={blocksQuery.isLoading || blocksQuery.isFetching}

@@ -1,5 +1,13 @@
+import { SparklesIcon } from "lucide-react";
 import { BehaviourDocsLink } from "@/components/authoring/behaviour-docs-link";
-import { BehaviourEditor } from "@/components/authoring/behaviour-editor";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { withFieldGroup } from "@/hooks/form";
 import { m } from "@/paraglide/messages";
 
@@ -7,22 +15,30 @@ const behaviourGroupDefaultValues = {
 	name: "",
 	description: "",
 	contentJson: null as unknown,
-	systemPrompt: "",
+	config: {
+		systemPrompt: "",
+	},
 };
-
-const behaviourTopLevelFieldMap = {
-	name: "name",
-	description: "description",
-	contentJson: "contentJson",
-	systemPrompt: "config.systemPrompt",
-} as const;
 
 const BehaviourFieldGroup = withFieldGroup({
 	defaultValues: behaviourGroupDefaultValues,
-	render: function Render({ group }) {
+	props: {} as {
+		/** Offers an example system prompt to start from. */
+		withExample?: boolean;
+	},
+	render: function Render({ group, withExample }) {
 		return (
-			<BehaviourEditor
-				nameField={
+			<Card className="min-w-0 rounded-2xl">
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<SparklesIcon className="h-5 w-5" />
+						{m.authoring_behaviour_title()}
+					</CardTitle>
+					<CardDescription>
+						{m.authoring_behaviour_description()}
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
 					<group.AppField
 						name="name"
 						children={(field) => (
@@ -32,23 +48,40 @@ const BehaviourFieldGroup = withFieldGroup({
 							/>
 						)}
 					/>
-				}
-				systemPromptField={
-					<div className="space-y-2">
-						<group.AppField
-							name="systemPrompt"
-							children={(field) => (
+					<group.AppField
+						name="config.systemPrompt"
+						children={(field) => (
+							<div className="space-y-2">
 								<field.TextareaField
 									label={m.blocks_behaviour_form_system_prompt_label()}
-									placeholder={m.blocks_behaviour_form_system_prompt_placeholder()}
+									placeholder={
+										withExample
+											? m.authoring_behaviour_example()
+											: m.blocks_behaviour_form_system_prompt_placeholder()
+									}
 									rows={12}
 								/>
-							)}
-						/>
-						<BehaviourDocsLink />
-					</div>
-				}
-				descriptionField={
+								<BehaviourDocsLink />
+								{withExample ? (
+									<div className="flex flex-wrap items-center gap-3">
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={!!field.state.value.trim()}
+											onClick={() =>
+												field.handleChange(m.authoring_behaviour_example())
+											}
+										>
+											{m.authoring_behaviour_example_button()}
+										</Button>
+										<span className="text-muted-foreground text-xs">
+											{m.authoring_behaviour_example_hint()}
+										</span>
+									</div>
+								) : null}
+							</div>
+						)}
+					/>
 					<group.AppField
 						name="description"
 						children={(field) => (
@@ -59,8 +92,6 @@ const BehaviourFieldGroup = withFieldGroup({
 							/>
 						)}
 					/>
-				}
-				contentField={
 					<group.AppField
 						name="contentJson"
 						children={(field) => (
@@ -69,10 +100,10 @@ const BehaviourFieldGroup = withFieldGroup({
 							/>
 						)}
 					/>
-				}
-			/>
+				</CardContent>
+			</Card>
 		);
 	},
 });
 
-export { BehaviourFieldGroup, behaviourTopLevelFieldMap };
+export { BehaviourFieldGroup };
