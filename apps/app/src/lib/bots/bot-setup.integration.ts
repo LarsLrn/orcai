@@ -25,7 +25,7 @@ const organizationWithBot = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	const { call } = caller(zedToken);
+	const { call, observe } = caller(zedToken);
 
 	const [allMembers] = await run(
 		Effect.gen(function* () {
@@ -183,6 +183,7 @@ const organizationWithBot = async () => {
 		);
 
 	return {
+		observe,
 		organizationId,
 		admin,
 		grouped,
@@ -467,13 +468,13 @@ describe("bot setup", () => {
 			expect(data.setup?.model?.id).toBe(model.id);
 			expect(
 				await reasonOf(
-					run(
+					call(direct, (options) =>
 						procedures.botSetup.coverage(
 							{
 								botId: bot.id,
 								modelId: model.id,
 							},
-							await procedureOptions(direct),
+							options,
 						),
 					),
 				),
@@ -485,7 +486,7 @@ describe("bot setup", () => {
 	test(
 		"the bot's editors set it up only in its home organisation",
 		async () => {
-			const { admin, procedures, call, bot, model } =
+			const { admin, procedures, call, observe, bot, model } =
 				await organizationWithBot();
 			await call(admin, (options) =>
 				procedures.botSetup.save(
@@ -500,7 +501,7 @@ describe("bot setup", () => {
 					options,
 				),
 			);
-			const { organization: other } = await run(
+			const { organization: other, zedToken: joined } = await run(
 				createOrganization({
 					members: [
 						{
@@ -510,6 +511,7 @@ describe("bot setup", () => {
 					],
 				}),
 			);
+			observe(joined);
 			const elsewhere = await signIn(other.id, admin.user.id);
 
 			const { data } = await call(elsewhere, (options) =>

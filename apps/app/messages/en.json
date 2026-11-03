@@ -3165,6 +3165,7 @@
 	"embeddings_setup_banner_title": "Embeddings are not set up",
 	"embeddings_rebuild_notice_title": "Search is being rebuilt",
 	"embeddings_rebuild_notice_description": "OrcAI embeds every asset in a repository again, so search results can be incomplete for now.",
+	"error_access_pending": "Your access is still being set up. Please try again in a moment.",
 	"error_active_organization_required": "Select an organisation first.",
 	"error_activity_failure_not_found": "This problem is already solved or dismissed.",
 	"error_activity_run_not_found": "This activity no longer exists.",

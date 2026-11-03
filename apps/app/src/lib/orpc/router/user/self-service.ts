@@ -1,10 +1,7 @@
 import { DB, dbSchema } from "@orcai/db";
-import { checkEntityPermission } from "@orcai/spice-db";
 import { and, eq, ne } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
-import { touchOrganizationRoles } from "@/lib/authz/organization-lifecycle";
-import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -157,23 +154,6 @@ const setActiveOrganization = authed.user.setActiveOrganization.effect(
 					permission: "read",
 				}),
 			);
-		}
-
-		const hasSpiceAccess = yield* checkEntityPermission({
-			entityId: input.organizationId,
-			entityType: "organization",
-			permission: "read",
-			userId: context.auth.user.id,
-			zedToken: readRevision(context),
-		}).pipe(Effect.catch(() => Effect.succeed(false)));
-
-		if (!hasSpiceAccess) {
-			yield* touchOrganizationRoles({
-				userId: context.auth.user.id,
-				organizationIds: [
-					input.organizationId,
-				],
-			});
 		}
 
 		yield* db

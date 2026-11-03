@@ -79,6 +79,13 @@ const appErrorToORPCError = (error: AppError): AnyORPCError => {
 				},
 				cause: error,
 			});
+		case ErrorTags.UNAVAILABLE:
+			return new ORPCError("SERVICE_UNAVAILABLE", {
+				data: {
+					reason: error.reason,
+				},
+				cause: error,
+			});
 		case ErrorTags.QUOTA_DENIED:
 			return new ORPCError("BAD_REQUEST", {
 				data: {

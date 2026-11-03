@@ -1,3 +1,4 @@
+import type { UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { OrganizationMemberSortKey } from "@orcai/schema";
 import { and, count, desc, eq, getColumns, ilike, or } from "drizzle-orm";
@@ -12,29 +13,26 @@ import { eligibleReceivers, ownedContent } from "@/lib/authz/ownership";
 import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import {
-	requireOrganizationPermission,
-	requirePermission,
-} from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import {
 	buildOrderBy,
 	type SortExpression,
 } from "@/lib/orpc/router/helpers/sorting";
 import { literalSearch } from "@/lib/utils/literal-search";
 
+/** Anyone may read their own membership; reading another's takes `manage_members`. */
+const managesOthers = (
+	input: {
+		userId: UserId;
+	},
+	userId: UserId,
+) => (input.userId === userId ? "read" : "manage_members");
+
 const listOrganizationMembers = authed.organizationMember.list
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization("manage_members"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
-		yield* requirePermission({
-			entityId: organizationId,
-			entityType: "organization",
-			permission: "manage_members",
-			userId: context.auth.user.id,
-			zedToken: readRevision(context, input),
-		});
 
 		const search = input.filters?.search?.trim();
 		const searchLike = search ? literalSearch(search) : undefined;
@@ -104,21 +102,10 @@ const listOrganizationMembers = authed.organizationMember.list
 	});
 
 const findOrganizationMember = authed.organizationMember.find
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization(managesOthers))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
-		const zedToken = readRevision(context, input);
-
-		if (input.userId !== context.auth.user.id) {
-			yield* requirePermission({
-				entityId: organizationId,
-				entityType: "organization",
-				permission: "manage_members",
-				userId: context.auth.user.id,
-				zedToken,
-			});
-		}
 
 		return yield* db
 			.select({
@@ -154,30 +141,17 @@ const findOrganizationMember = authed.organizationMember.find
 	});
 
 const listMemberAccess = authed.organizationMember.listAccess
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization(managesOthers))
 	.effect(function* ({ input, context }) {
-		const organizationId = context.auth.session.activeOrganizationId;
-		const zedToken = readRevision(context, input);
-
-		if (input.userId !== context.auth.user.id) {
-			yield* requirePermission({
-				entityId: organizationId,
-				entityType: "organization",
-				permission: "manage_members",
-				userId: context.auth.user.id,
-				zedToken,
-			});
-		}
-
 		return yield* effectiveAccess({
 			...input,
-			organizationId,
-			zedToken,
+			organizationId: context.auth.session.activeOrganizationId,
+			zedToken: readRevision(context, input),
 		});
 	});
 
 const updateOrganizationMember = authed.organizationMember.update
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganization("manage_members"))
 	.effect(function* ({ input, context }) {
 		const { member, handedOver } = yield* changeMemberRole({
 			organizationId: context.auth.session.activeOrganizationId,
@@ -197,7 +171,7 @@ const updateOrganizationMember = authed.organizationMember.update
 	});
 
 const deleteOrganizationMembers = authed.organizationMember.delete
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganization("manage_members"))
 	.effect(function* ({ input, context }) {
 		const handedOver = yield* removeMembers({
 			organizationId: context.auth.session.activeOrganizationId,
@@ -217,7 +191,7 @@ const deleteOrganizationMembers = authed.organizationMember.delete
 	});
 
 const listOwnedContent = authed.organizationMember.ownedContent
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganization("manage_members"))
 	.effect(function* ({ input, context }) {
 		const data = yield* ownedContent({
 			userIds: input.userIds,
@@ -234,7 +208,7 @@ const listOwnedContent = authed.organizationMember.ownedContent
 	});
 
 const listReceivers = authed.organizationMember.receivers
-	.use(requireOrganizationPermission("manage_members"))
+	.use(requireOrganization("manage_members"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const data = yield* eligibleReceivers({

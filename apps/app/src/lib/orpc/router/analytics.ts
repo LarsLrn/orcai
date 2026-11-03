@@ -5,10 +5,10 @@ import {
 import { readRevision } from "@/lib/authz/zed-token";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 
 const organization = authed.analytics.organization
-	.use(requireOrganizationPermission("view_analytics"))
+	.use(requireOrganization("view_analytics"))
 	.effect(function* ({ input, context }) {
 		return {
 			data: yield* organizationAnalytics({

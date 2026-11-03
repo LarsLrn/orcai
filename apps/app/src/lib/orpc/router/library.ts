@@ -6,36 +6,43 @@ import {
 	searchLibrary,
 } from "@/lib/library/library-browse";
 import { authed } from "@/lib/orpc/implementation/authed";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 
-const counts = authed.library.counts.effect(function* ({ input, context }) {
-	const access = yield* libraryAccess({
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: readRevision(context, input),
-	});
-	return {
-		data: yield* libraryCounts(access, input),
-	};
-});
-
-const overview = authed.library.overview.effect(function* ({ input, context }) {
-	return {
-		data: yield* libraryOverview(input, {
+const counts = authed.library.counts
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		const access = yield* libraryAccess({
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
 			zedToken: readRevision(context, input),
-		}),
-	};
-});
+		});
+		return {
+			data: yield* libraryCounts(access, input),
+		};
+	});
 
-const search = authed.library.search.effect(function* ({ input, context }) {
-	const reader = {
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: readRevision(context, input),
-	};
-	return yield* searchLibrary(input, reader, yield* libraryAccess(reader));
-});
+const overview = authed.library.overview
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		return {
+			data: yield* libraryOverview(input, {
+				userId: context.auth.user.id,
+				organizationId: context.auth.session.activeOrganizationId,
+				zedToken: readRevision(context, input),
+			}),
+		};
+	});
+
+const search = authed.library.search
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		const reader = {
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			zedToken: readRevision(context, input),
+		};
+		return yield* searchLibrary(input, reader, yield* libraryAccess(reader));
+	});
 
 export const libraryRouter = {
 	counts,

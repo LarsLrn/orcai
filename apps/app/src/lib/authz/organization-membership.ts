@@ -1,19 +1,21 @@
 import {
 	normalizeEmail,
 	ORGANIZATION_ADMIN_ROLE,
-	ORGANIZATION_ROLE_PERMISSIONS,
 	type OrganizationId,
 	type OrganizationInvitationId,
-	type OrganizationPermission,
 	type OrganizationRole,
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { checkEntityPermission, type ReadRevision } from "@orcai/spice-db";
+import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { notBanned } from "@/lib/authz/eligible-owner";
 import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
+import {
+	organizationPermitted,
+	roleGrants,
+} from "@/lib/authz/organization-access";
 import {
 	handOverAccountsContent,
 	handOverOwnedContent,
@@ -66,18 +68,12 @@ const canManageOrganizationAdmins = (
 	organizationId: OrganizationId,
 	actor: Actor,
 ) =>
-	checkEntityPermission({
-		entityType: "organization",
-		entityId: organizationId,
-		permission: "manage_organization",
+	organizationPermitted({
+		organizationId,
 		userId: actor.userId,
+		permission: "manage_organization",
 		zedToken: actor.zedToken,
 	});
-
-const grants = (role: OrganizationRole, permission: OrganizationPermission) =>
-	(
-		ORGANIZATION_ROLE_PERMISSIONS[role] as readonly OrganizationPermission[]
-	).includes(permission);
 
 /**
  * Under the organization lock: fails unless the actor still manages members
@@ -114,7 +110,7 @@ const confirmAuthority = (params: {
 					notBanned(),
 				),
 			);
-		if (!membership || !grants(membership.role, "manage_members"))
+		if (!membership || !roleGrants(membership.role, "manage_members"))
 			return yield* Effect.fail(
 				new AppErrors.ForbiddenError({
 					reason: "PERMISSION_DENIED",
@@ -126,7 +122,7 @@ const confirmAuthority = (params: {
 				}),
 			);
 		return {
-			managesAdmins: grants(membership.role, "manage_organization"),
+			managesAdmins: roleGrants(membership.role, "manage_organization"),
 		};
 	});
 

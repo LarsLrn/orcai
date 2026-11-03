@@ -1,14 +1,7 @@
-import {
-	ORGANIZATION_ROLE_PERMISSIONS,
-	ORGANIZATION_ROLES,
-	type OrganizationId,
-	type OrganizationPermission,
-	type UserId,
-} from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import type { OrganizationId, UserId } from "@orcai/core";
 import { checkEntityPermission, type ReadRevision } from "@orcai/spice-db";
-import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { organizationPermitted } from "@/lib/authz/organization-access";
 import type { ResourceRef } from "@/lib/authz/relationship-facts";
 import { scopeIn } from "@/lib/authz/resource-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -18,47 +11,16 @@ export type Actor = {
 	zedToken: ReadRevision | undefined;
 };
 
-/** Whether the user may add from the catalogue to the organisation and remove what was added. */
-const adderRoles = ORGANIZATION_ROLES.filter((role) =>
-	(
-		ORGANIZATION_ROLE_PERMISSIONS[role] as readonly OrganizationPermission[]
-	).includes("add_from_catalogue"),
-);
-
 /**
  * Whether the user may add from the catalogue to the organisation and remove
- * what was added: SpiceDB `add_from_catalogue`, and a committed role that holds
- * it, so a demotion counts before its tuples arrive.
+ * what was added, by their committed role and in SpiceDB.
  */
 export const canAddIn = (organizationId: OrganizationId, actor: Actor) =>
-	Effect.gen(function* () {
-		const [permitted, [membership]] = yield* Effect.all(
-			[
-				checkEntityPermission({
-					entityType: "organization",
-					entityId: organizationId,
-					permission: "add_from_catalogue",
-					userId: actor.userId,
-					zedToken: actor.zedToken,
-				}),
-				(yield* DB)
-					.select({
-						role: dbSchema.member.role,
-					})
-					.from(dbSchema.member)
-					.where(
-						and(
-							eq(dbSchema.member.organizationId, organizationId),
-							eq(dbSchema.member.userId, actor.userId),
-							inArray(dbSchema.member.role, adderRoles),
-						),
-					),
-			],
-			{
-				concurrency: "unbounded",
-			},
-		);
-		return permitted && membership !== undefined;
+	organizationPermitted({
+		organizationId,
+		userId: actor.userId,
+		permission: "add_from_catalogue",
+		zedToken: actor.zedToken,
 	});
 
 /**

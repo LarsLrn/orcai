@@ -1,6 +1,10 @@
 import { createApiClient } from "../../fixtures/api";
 import { pageForSession } from "../../fixtures/auth/users";
-import { expectDenied, expectForbidden } from "../../fixtures/authorization";
+import {
+	expectDenied,
+	expectForbidden,
+	rejection,
+} from "../../fixtures/authorization";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import {
@@ -271,16 +275,21 @@ test("members: a removed user loses the access its groups and grants gave it", a
 		],
 	});
 
-	await expectDenied(
-		client.block.find({
-			id: throughGroup.data.id,
-		}),
-	);
-	await expectDenied(
-		client.block.find({
-			id: throughGrant.data.id,
-		}),
-	);
+	// The removal also took the organisation off the user's session, so the
+	// organisation gate refuses before either block is looked up.
+	for (const blockId of [
+		throughGroup.data.id,
+		throughGrant.data.id,
+	]) {
+		const refused = await rejection(
+			client.block.find({
+				id: blockId,
+			}),
+		);
+		expect(refused.data).toMatchObject({
+			reason: "ACTIVE_ORGANIZATION_REQUIRED",
+		});
+	}
 
 	const grants = await api.as("admin").resource.listGrants({
 		resourceType: "block",

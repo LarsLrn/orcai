@@ -4,11 +4,11 @@ import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { usedShareOf } from "@/lib/presentation/quota-share";
 
 const quotaStatus = authed.quota.status
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganization("read"))
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
 		const [model] = yield* (yield* DB)

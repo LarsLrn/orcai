@@ -39,13 +39,12 @@ import { detachGroups } from "@/lib/authz/resource-access";
 import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listGroups = authed.group.list
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -117,7 +116,7 @@ const listGroups = authed.group.list
 	});
 
 const findGroup = authed.group.find
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -157,7 +156,7 @@ const findGroup = authed.group.find
 	});
 
 const createGroup = authed.group.create
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -201,7 +200,7 @@ const createGroup = authed.group.create
 	});
 
 const updateGroup = authed.group.update
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -255,7 +254,7 @@ const updateGroup = authed.group.update
 	});
 
 const deleteGroups = authed.group.delete
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -368,7 +367,7 @@ const deleteGroups = authed.group.delete
 	});
 
 const listGroupMembers = authed.group.listMembers
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -534,7 +533,7 @@ const listGroupMembers = authed.group.listMembers
 	});
 
 const listGroupCandidates = authed.group.listCandidates
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -598,7 +597,7 @@ const listGroupCandidates = authed.group.listCandidates
 	});
 
 const addMembers = authed.group.addMembers
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
 		yield* addGroupMembers({
 			groupId: input.groupId,
@@ -614,7 +613,7 @@ const addMembers = authed.group.addMembers
 	});
 
 const removeMembers = authed.group.removeMembers
-	.use(requireOrganizationPermission("manage_groups"))
+	.use(requireOrganization("manage_groups"))
 	.effect(function* ({ input, context }) {
 		const removedUserIds = yield* removeGroupMembers({
 			groupId: input.groupId,

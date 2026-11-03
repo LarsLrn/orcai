@@ -28,29 +28,31 @@ import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireActiveOrganizationMiddleware } from "@/lib/orpc/middlewares/auth";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import {
 	type CheckManyPermissionInputFor,
 	checkManyPermissionMiddleware,
 	requireEntityPermission,
-	requireOrganizationPermission,
 } from "@/lib/orpc/middlewares/permission";
 import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
-const listAssets = authed.asset.list.effect(function* ({ input, context }) {
-	const reader = {
-		userId: context.auth.user.id,
-		organizationId: context.auth.session.activeOrganizationId,
-		zedToken: readRevision(context, input),
-	};
-	return yield* listAssetTiles({
-		input,
-		reader,
-		access: yield* libraryAccess(reader),
+const listAssets = authed.asset.list
+	.use(requireOrganization())
+	.effect(function* ({ input, context }) {
+		const reader = {
+			userId: context.auth.user.id,
+			organizationId: context.auth.session.activeOrganizationId,
+			zedToken: readRevision(context, input),
+		};
+		return yield* listAssetTiles({
+			input,
+			reader,
+			access: yield* libraryAccess(reader),
+		});
 	});
-});
 
 const findAsset = authed.asset.find
+	.use(requireOrganization())
 	.use(
 		requireEntityPermission("asset", "read", {
 			entityId: "id",
@@ -249,7 +251,7 @@ const addAssetToLibrary = authed.asset.addToLibrary
 	});
 
 const createAssetsFromUploadsProcedure = authed.asset.createFromUploads
-	.use(requireOrganizationPermission("create_asset"))
+	.use(requireOrganization("create_asset"))
 	.effect(function* ({ input, context }) {
 		const route = UPLOAD_ROUTES[input.route];
 
@@ -424,7 +426,7 @@ const dismissMetadataSuggestion = authed.asset.dismissMetadataSuggestion
 	});
 
 const missingMetadata = authed.asset.missingMetadata
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ context }) {
 		const assetIds = yield* assetsMissingMetadata({
 			userId: context.auth.user.id,
@@ -437,7 +439,7 @@ const missingMetadata = authed.asset.missingMetadata
 	});
 
 const generateMissingMetadata = authed.asset.generateMissingMetadata
-	.use(requireActiveOrganizationMiddleware)
+	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const assetIds = yield* assetsMissingMetadata({
 			userId: context.auth.user.id,

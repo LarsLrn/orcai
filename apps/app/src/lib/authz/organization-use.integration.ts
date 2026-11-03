@@ -5,7 +5,6 @@ import { createOrganization, reasonOf } from "@orcai/testing";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { turnSetup } from "@/lib/ai/turn/setup";
-import { touchOrganizationRoles } from "@/lib/authz/organization-lifecycle";
 import { grantResourceAccess } from "@/lib/authz/resource-access";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
@@ -371,7 +370,7 @@ describe("using a resource in an organisation", () => {
 					),
 				);
 
-			const { organization: elsewhere } = await run(
+			const { organization: elsewhere, zedToken: joined } = await run(
 				createOrganization({
 					members: [
 						{
@@ -381,15 +380,7 @@ describe("using a resource in an organisation", () => {
 					],
 				}),
 			);
-			const { zedToken: touched } = await run(
-				touchOrganizationRoles({
-					userId: author.user.id,
-					organizationIds: [
-						elsewhere.id as OrganizationId,
-					],
-				}),
-			);
-			observe(touched);
+			observe(joined);
 			const authorElsewhere = await signIn(
 				elsewhere.id as OrganizationId,
 				author.user.id,

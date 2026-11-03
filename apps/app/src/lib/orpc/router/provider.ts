@@ -10,7 +10,7 @@ import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireOrganizationPermission } from "@/lib/orpc/middlewares/permission";
+import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 /** Every column a caller may read; the encrypted API key stays server side. */
@@ -31,7 +31,7 @@ const providerColumns = {
 };
 
 const listProviders = authed.provider.list
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganization("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -100,7 +100,7 @@ const listProviders = authed.provider.list
 	});
 
 const findProvider = authed.provider.find
-	.use(requireOrganizationPermission("read"))
+	.use(requireOrganization("read"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -162,7 +162,7 @@ const findProvider = authed.provider.find
 	});
 
 const createProvider = authed.provider.create
-	.use(requireOrganizationPermission("manage_providers"))
+	.use(requireOrganization("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -187,7 +187,7 @@ const createProvider = authed.provider.create
 	});
 
 const updateProvider = authed.provider.update
-	.use(requireOrganizationPermission("manage_providers"))
+	.use(requireOrganization("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
@@ -260,7 +260,7 @@ const updateProvider = authed.provider.update
 	});
 
 const deleteProviders = authed.provider.delete
-	.use(requireOrganizationPermission("manage_providers"))
+	.use(requireOrganization("manage_providers"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
 		const organizationId = context.auth.session.activeOrganizationId;
