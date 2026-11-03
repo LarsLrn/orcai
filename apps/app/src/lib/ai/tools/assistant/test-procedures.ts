@@ -1,5 +1,4 @@
 import { mock } from "bun:test";
-import { type ValkeyClient, ValkeyService } from "@orcai/valkey";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import {
@@ -23,12 +22,8 @@ export const procedureCalls: {
 /** Answers by `namespace.name`; any other call dies. */
 export const answers: Record<string, Answer> = {};
 
-/** What the fake Valkey client holds, by key. */
-export const valkeyStore = new Map<string, string>();
-
 export const resetProcedures = () => {
 	procedureCalls.length = 0;
-	valkeyStore.clear();
 	for (const procedure of Object.keys(answers)) {
 		delete answers[procedure];
 	}
@@ -65,25 +60,12 @@ const fakeProcedures = new Proxy(
 	},
 ) as ProcedureClients;
 
-const fakeValkey = {
-	client: {
-		get: (key: string) => Promise.resolve(valkeyStore.get(key) ?? null),
-		set: (key: string, value: string) => {
-			valkeyStore.set(key, value);
-			return Promise.resolve("OK");
-		},
-	} as unknown as ValkeyClient,
-};
-
-/** The fake Valkey and procedure clients. */
-export const FakeServices = Layer.mergeAll(
-	Layer.succeed(ValkeyService, fakeValkey),
-	Layer.succeed(Procedures, fakeProcedures),
-);
+/** The fake procedure clients. */
+export const FakeServices = Layer.succeed(Procedures, fakeProcedures);
 
 /** Runs with the fakes; the real runtime builds the app's layers, which need its configuration. */
 export const runPromise = <A, E>(
-	effect: Effect.Effect<A, E, ValkeyService | Procedures>,
+	effect: Effect.Effect<A, E, Procedures>,
 	options?: Effect.RunOptions,
 ) => Effect.runPromise(Effect.provide(effect, FakeServices), options);
 

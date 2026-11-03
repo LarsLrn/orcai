@@ -163,8 +163,6 @@ describe("updateBotTool", () => {
 			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
-				chatId: "chat",
-				replyId: "reply",
 			}),
 		});
 
@@ -221,8 +219,6 @@ describe("updateBotTool", () => {
 			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
-				chatId: "chat",
-				replyId: "reply",
 			}),
 		}).execute?.(
 			input as never,

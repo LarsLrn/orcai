@@ -38,8 +38,6 @@ describe("updateAssetTool", () => {
 			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
-				chatId: "chat",
-				replyId: "reply",
 			}),
 		}).execute?.(
 			{

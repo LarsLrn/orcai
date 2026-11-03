@@ -45,7 +45,6 @@ OrcAI is a self-hostable platform for building governed AI bots around curated k
 - Better Auth
 - Drizzle ORM
 - PostgreSQL
-- Valkey
 - SpiceDB
 - Qdrant
 - pg-boss
@@ -61,7 +60,7 @@ OrcAI is a self-hostable platform for building governed AI bots around curated k
 
 ### Per-worktree dev stack (recommended)
 
-`bun run stack` gives every checkout, including each git worktree, its own Docker Compose project for PostgreSQL, Valkey, SeaweedFS, Qdrant, and SpiceDB. Ports are chosen per worktree and written to a gitignored `.env`, so several checkouts and agents can run side by side without colliding.
+`bun run stack` gives every checkout, including each git worktree, its own Docker Compose project for PostgreSQL, SeaweedFS, Qdrant, and SpiceDB. Ports are chosen per worktree and written to a gitignored `.env`, so several checkouts and agents can run side by side without colliding.
 
 Prerequisites:
 - Bun `>=1.3.10`
@@ -147,7 +146,6 @@ Steps:
 
 What starts automatically:
 - PostgreSQL
-- Valkey
 - SeaweedFS
 - Qdrant
 - SpiceDB
@@ -183,7 +181,6 @@ This starts:
 - the docs/web container on `localhost:3001`
 - a dedicated workers container for scheduled and background jobs
 - PostgreSQL on `localhost:5432`
-- Valkey on `localhost:6379`
 - SeaweedFS S3 API on `localhost:8333`
 - Qdrant HTTP on `localhost:6333`
 - Qdrant gRPC on `localhost:6334`
@@ -202,7 +199,7 @@ Notes:
 
 ### Manual host setup
 
-Use this only when you cannot run Docker. Provide PostgreSQL, Valkey, Qdrant, SpiceDB, S3-compatible storage, and an OpenAI-compatible endpoint yourself, then:
+Use this only when you cannot run Docker. Provide PostgreSQL, Qdrant, SpiceDB, S3-compatible storage, and an OpenAI-compatible endpoint yourself, then:
 
 ```bash
 cp .env.example .env
@@ -238,7 +235,6 @@ Runtime configuration is loaded across app and package config modules. Every val
 - [packages/qdrant/src/config.ts](packages/qdrant/src/config.ts)
 - [packages/s3/src/server/config.ts](packages/s3/src/server/config.ts)
 - [packages/spice-db/src/config.ts](packages/spice-db/src/config.ts)
-- [packages/valkey/src/config.ts](packages/valkey/src/config.ts)
 
 ### Core URL and auth variables
 
@@ -257,7 +253,6 @@ Runtime configuration is loaded across app and package config modules. Every val
 - `POSTGRES_HOST`
 - `POSTGRES_PORT`
 - `POSTGRES_DB`
-- `VALKEY_URL`
 - `S3_ENDPOINT`
 - `S3_ACCESS_KEY`
 - `S3_SECRET_KEY`

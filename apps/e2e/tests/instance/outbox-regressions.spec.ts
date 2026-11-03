@@ -245,20 +245,10 @@ test("deletion transactions roll back with their outbox and committed cleanup re
 	expect(await status()).toBe("pending");
 	// Membership can be added independently while an invitation is pending.
 	await fault("none", "delay");
-	const asViewer = (
-		await api.as("admin", doomed).organizationInvitation.create({
-			role: "viewer",
-			expiresAt: new Date(Date.now() + 86400000),
-			items: [
-				{
-					email,
-				},
-			],
-		})
-	).data[0];
-	await survivorClient.organizationInvitation.respond({
-		id: asViewer.id,
-		response: "accept",
+	await admin.instance.addMember({
+		organizationId: doomed.id,
+		userId: userIdSchema.parse(survivor.userId),
+		role: "viewer",
 	});
 	await fault(survivor.userId, "delay");
 	await survivorClient.organizationInvitation.respond({

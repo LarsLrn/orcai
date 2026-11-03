@@ -81,6 +81,7 @@ beforeEach(() => {
 				id: id(10 + index),
 				email: item.email,
 			})),
+			skipped: [],
 		});
 });
 
@@ -97,8 +98,6 @@ const deps = (reqHeaders?: Headers) => ({
 	} as ORPCContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
-		chatId: "chat",
-		replyId: "reply",
 	}),
 });
 
@@ -342,6 +341,7 @@ describe("inviteMembers", () => {
 					email: "ben@example.org",
 				},
 			],
+			skipped: [],
 			role: "manager",
 			expiresAt: "2026-10-27T08:00:00.000Z",
 		});

@@ -13,7 +13,6 @@ const DEPENDENCIES = [
 	"instance_health_check_qdrant_title",
 	"instance_health_check_embeddings_title",
 	"instance_health_check_s3_title",
-	"instance_health_check_valkey_title",
 ];
 
 test("instance: the instance area opens on health with every dependency reachable", async ({

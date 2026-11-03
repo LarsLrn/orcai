@@ -11,6 +11,7 @@ import type {
 	OrganizationDescription,
 	OrganizationInvitationStatus,
 } from "@orcai/schema";
+import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	index,
@@ -19,6 +20,7 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
@@ -91,23 +93,34 @@ export const member = pgTable(
 	],
 );
 
-export const invitation = pgTable("invitation", {
-	id: uuid("id").$type<OrganizationInvitationId>().primaryKey().defaultRandom(),
-	organizationId: uuid("organization_id")
-		.$type<OrganizationId>()
-		.notNull()
-		.references(() => organization.id, {
-			onDelete: "cascade",
-		}),
-	email: text("email").notNull(),
-	role: organizationRoleEnum("role").notNull(),
-	status: text("status").notNull().$type<OrganizationInvitationStatus>(),
-	expiresAt: timestamp("expires_at").notNull(),
-	inviterId: uuid("inviter_id")
-		.$type<UserId>()
-		.references(() => user.id, {
-			onDelete: "set null",
-		}),
-	createdAt: timestamp("created_at").defaultNow(),
-	updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const invitation = pgTable(
+	"invitation",
+	{
+		id: uuid("id")
+			.$type<OrganizationInvitationId>()
+			.primaryKey()
+			.defaultRandom(),
+		organizationId: uuid("organization_id")
+			.$type<OrganizationId>()
+			.notNull()
+			.references(() => organization.id, {
+				onDelete: "cascade",
+			}),
+		email: text("email").notNull(),
+		role: organizationRoleEnum("role").notNull(),
+		status: text("status").notNull().$type<OrganizationInvitationStatus>(),
+		expiresAt: timestamp("expires_at").notNull(),
+		inviterId: uuid("inviter_id")
+			.$type<UserId>()
+			.references(() => user.id, {
+				onDelete: "set null",
+			}),
+		createdAt: timestamp("created_at").defaultNow(),
+		updatedAt: timestamp("updated_at").defaultNow(),
+	},
+	(table) => [
+		uniqueIndex("invitation_org_pending_email_unique")
+			.on(table.organizationId, sql`lower(trim(${table.email}))`)
+			.where(sql`${table.status} = 'pending'`),
+	],
+);

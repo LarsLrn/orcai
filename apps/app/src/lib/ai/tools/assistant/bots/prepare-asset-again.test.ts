@@ -28,8 +28,6 @@ const run = (input: { assetId: AssetId; repositoryId?: BlockId }) =>
 		context: {} as ORPCContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
-			chatId: "chat",
-			replyId: "reply",
 		}),
 	}).execute?.(input, {
 		toolCallId: "retry",

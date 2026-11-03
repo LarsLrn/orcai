@@ -27,8 +27,6 @@ describe("generateAssetMetadataTool", () => {
 				context: {} as ORPCContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
-					chatId: "chat",
-					replyId: "reply",
 				}),
 			}).execute?.(
 				{
@@ -61,8 +59,6 @@ describe("generateAssetMetadataTool", () => {
 				context: {} as ORPCContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
-					chatId: "chat",
-					replyId: "reply",
 				}),
 			}).execute?.(
 				{

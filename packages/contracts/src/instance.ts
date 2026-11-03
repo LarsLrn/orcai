@@ -9,6 +9,7 @@ import {
 	handOverActionResponseSchema,
 	instanceMembershipActionResponseSchema,
 	inviteInstanceOrganizationMemberInputSchema,
+	inviteInstanceOrganizationMemberResponseSchema,
 	listContentReceiversResponseSchema,
 	listInstanceContentReceiversInputSchema,
 	listInstanceOrganizationMembersInputSchema,
@@ -152,11 +153,12 @@ export const instanceContracts = {
 				path: "/instance/organizations/{organizationId}/invitations",
 				summary: "Invite someone to an organisation by email",
 				tags,
-				description: "Refused for an address that already belongs to a member.",
+				description:
+					"Skips an address that already belongs to a member or has an invitation that has not expired, and names it in `skipped`.",
 			}),
 		)
 		.input(inviteInstanceOrganizationMemberInputSchema)
-		.output(instanceMembershipActionResponseSchema),
+		.output(inviteInstanceOrganizationMemberResponseSchema),
 	removeUserImage: base
 		.meta(
 			openapi({

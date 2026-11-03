@@ -4,12 +4,7 @@ import type { BotEditor, BotSetup, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
-import {
-	answers,
-	procedureCalls,
-	resetProcedures,
-	valkeyStore,
-} from "../test-procedures";
+import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
 	resetProcedures();
@@ -119,8 +114,6 @@ describe("createBotTool", () => {
 			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
-				chatId: "chat",
-				replyId: "reply",
 			}),
 		}).execute?.(
 			{
@@ -133,43 +126,6 @@ describe("createBotTool", () => {
 				messages: [],
 			} as never,
 		);
-	const saves = () =>
-		procedureCalls.filter(({ procedure }) => procedure === "bot.save").length;
-
-	test("the same call run again returns the bot it created", async () => {
-		const first = await create("call-1");
-		const again = await create("call-1");
-
-		expect(saves()).toBe(1);
-		expect(again).toEqual(first);
-		expect(again).toMatchObject({
-			id: botId,
-		});
-		expect(valkeyStore.size).toBe(1);
-	});
-
-	test("another call creates another bot", async () => {
-		await create("call-1");
-		await create("call-2");
-
-		expect(saves()).toBe(2);
-	});
-
-	test("a bot deleted since is created anew", async () => {
-		await create("call-1");
-		answers["bot.findEditor"] = () =>
-			Effect.fail(
-				new ORPCError("NOT_FOUND", {
-					message: "Bot not found",
-					data: {
-						reason: "BOT_NOT_FOUND",
-					},
-				}),
-			);
-		await create("call-1");
-
-		expect(saves()).toBe(2);
-	});
 
 	test("a failed create that may have gone through says to check", async () => {
 		answers["bot.save"] = () =>
@@ -182,7 +138,6 @@ describe("createBotTool", () => {
 		await expect(create("call-1")).rejects.toThrow(
 			"INTERNAL_SERVER_ERROR: The request failed on the server. The change may have been applied anyway; check with findBots before retrying.",
 		);
-		expect(valkeyStore.size).toBe(0);
 	});
 
 	describe("with a setup", () => {
@@ -243,7 +198,6 @@ describe("createBotTool", () => {
 				id: botId,
 				setupError: "MODEL_NOT_FOUND: Model not found",
 			});
-			expect(valkeyStore.size).toBe(1);
 		});
 
 		test("a saved setup whose coverage cannot be read keeps the created bot", async () => {
@@ -254,10 +208,9 @@ describe("createBotTool", () => {
 					}),
 				);
 
-			const first = await create("call-1", setup);
-			await create("call-1", setup);
+			const output = await create("call-1", setup);
 
-			expect(first).toMatchObject({
+			expect(output).toMatchObject({
 				id: botId,
 				setup: {
 					model: {
@@ -266,26 +219,7 @@ describe("createBotTool", () => {
 				},
 				setupError: expect.stringContaining("The setup was saved"),
 			});
-			expect(saves()).toBe(1);
 			expect(setupSaves()).toBe(1);
-		});
-
-		test("the same call run again reads the setup back instead of saving it again", async () => {
-			const first = await create("call-1", setup);
-			const again = await create("call-1", setup);
-
-			expect(first).toMatchObject({
-				setup: {
-					model: {
-						id: modelId,
-					},
-				},
-			});
-			expect(setupSaves()).toBe(1);
-			expect(again).toMatchObject({
-				id: botId,
-				setup: null,
-			});
 		});
 	});
 

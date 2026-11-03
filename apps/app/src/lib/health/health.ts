@@ -29,11 +29,6 @@ import {
 	SpiceDbConfigLive,
 	SpiceDbConfigService,
 } from "@orcai/spice-db";
-import {
-	probeValkey,
-	ValkeyConfigLive,
-	ValkeyConfigService,
-} from "@orcai/valkey";
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import type * as Duration from "effect/Duration";
@@ -51,7 +46,6 @@ const DEPENDENCIES = {
 	spicedb: "required",
 	qdrant: "required",
 	s3: "required",
-	valkey: "recommended",
 } as const;
 
 type DependencyId = keyof typeof DEPENDENCIES;
@@ -370,7 +364,6 @@ export const checkInstance = <R>(
 				app: sources.appVersion,
 				postgres: doneValue(byId.postgres)?.version ?? null,
 				qdrant: doneValue(byId.qdrant)?.version ?? null,
-				valkey: doneValue(byId.valkey)?.version ?? null,
 				migration: doneValue(migration) ?? null,
 			},
 			processes: [
@@ -469,7 +462,6 @@ const appProcessConfig = Effect.gen(function* () {
 	const { config: db } = yield* DbConfigService;
 	const { config: spice } = yield* SpiceDbConfigService;
 	const { config: qdrant } = yield* QdrantConfigService;
-	const { config: valkey } = yield* ValkeyConfigService;
 	const { config: s3 } = yield* S3ConfigService;
 	return {
 		auth: app.config.auth,
@@ -481,7 +473,6 @@ const appProcessConfig = Effect.gen(function* () {
 		postgres: db.postgres,
 		spicedb: spice.spice,
 		qdrant: qdrant.qdrant,
-		valkey: valkey.valkey,
 		s3,
 		embeddings: {
 			baseUrl: embeddings?.baseUrl,
@@ -502,7 +493,6 @@ const appProcessConfig = Effect.gen(function* () {
 			DbConfigLive,
 			SpiceDbConfigLive,
 			QdrantConfigLive,
-			ValkeyConfigLive,
 			S3ConfigLive,
 		),
 	),
@@ -518,7 +508,6 @@ export const instanceHealth = (viewer: { readonly email: string }) =>
 			| Effect.Services<typeof probeSpiceDb>
 			| Effect.Services<typeof probeQdrant>
 			| Effect.Services<typeof probeS3>
-			| Effect.Services<typeof probeValkey>
 			| Effect.Services<typeof inspectActiveCollection>
 			| Effect.Services<typeof probePgBoss>
 			| Effect.Services<typeof mail>
@@ -529,7 +518,6 @@ export const instanceHealth = (viewer: { readonly email: string }) =>
 				spicedb: probeSpiceDb,
 				qdrant: probeQdrant,
 				s3: probeS3,
-				valkey: probeValkey,
 			},
 			embeddings: inspectActiveCollection,
 			pgBoss: probePgBoss,

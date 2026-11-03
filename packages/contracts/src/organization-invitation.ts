@@ -55,6 +55,8 @@ export const organizationInvitationContracts = {
 				tags: [
 					"Organization Invitations",
 				],
+				description:
+					"Skips addresses that already belong to a member or have an invitation that has not expired, and names them in `skipped`. An expired invitation is replaced by a new one.",
 			}),
 		)
 		.input(createOrganizationInvitationsInputSchema)

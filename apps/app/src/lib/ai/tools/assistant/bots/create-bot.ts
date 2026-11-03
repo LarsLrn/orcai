@@ -1,4 +1,3 @@
-import type { BotId } from "@orcai/core";
 import {
 	blockIdSchema,
 	botFieldsSchema,
@@ -9,14 +8,13 @@ import { z } from "zod/v4";
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	createOnce,
 	effectTool,
 	expectType,
 	mutation,
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
 import { featuresInputSchema } from "./features-input";
-import { readSetup, setupInputSchema, writeSetup } from "./setup-input";
+import { setupInputSchema, writeSetup } from "./setup-input";
 
 export const createBotInputSchema = z.strictObject({
 	name: botFieldsSchema.shape.name,
@@ -59,69 +57,35 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 		description:
 			"Create a new draft bot with its name and description, and optionally its behaviour, repositories, features and its model in the active organisation. The result says how many of the bot's audience a quota pool covers. A setup that fails comes back as setupError next to the created bot, so fix it with updateBot. To change an existing bot, use updateBot. To publish it, use publishBot.",
 		inputSchema: createBotInputSchema,
-		run: (input, { toolCallId }) => {
+		run: (input) => {
 			const payload = createBotPayload(input);
 			const { behaviourId, repositoryIds } = payload;
 
-			return createOnce(
-				{
-					scope: deps.turn.scope,
-					toolCallId,
-					input,
-				},
-				{
-					create: callProcedure(deps, (procedures, options) =>
-						procedures.bot.save(payload, options),
-					).pipe(
-						mutation("findBots"),
-						expectType("block", [
-							...(behaviourId
-								? [
-										behaviourId,
-									]
-								: []),
-							...repositoryIds,
-						]),
-						expectType("behaviour", behaviourId ?? []),
-						expectType("repository", repositoryIds),
-						Effect.map(({ data }) => botOutline(data)),
-						Effect.flatMap((bot) =>
-							input.setup === undefined
-								? Effect.succeed(bot)
-								: writeSetup(deps, bot.id, input.setup).pipe(
-										Effect.map((setup) => ({
-											...bot,
-											...setup,
-										})),
-									),
-						),
-					),
-					ids: (bot) => [
-						bot.id,
-					],
-					// A replay reads the setup back, so it never undoes a change made since.
-					replay: ([botId]) =>
-						callProcedure(deps, (procedures, options) =>
-							procedures.bot.findEditor(
-								{
-									id: botId as BotId,
-								},
-								options,
+			return callProcedure(deps, (procedures, options) =>
+				procedures.bot.save(payload, options),
+			).pipe(
+				mutation("findBots"),
+				expectType("block", [
+					...(behaviourId
+						? [
+								behaviourId,
+							]
+						: []),
+					...repositoryIds,
+				]),
+				expectType("behaviour", behaviourId ?? []),
+				expectType("repository", repositoryIds),
+				Effect.map(({ data }) => botOutline(data)),
+				Effect.flatMap((bot) =>
+					input.setup === undefined
+						? Effect.succeed(bot)
+						: writeSetup(deps, bot.id, input.setup).pipe(
+								Effect.map((setup) => ({
+									...bot,
+									...setup,
+								})),
 							),
-						).pipe(
-							Effect.map(({ data }) => botOutline(data)),
-							Effect.flatMap((bot) =>
-								input.setup === undefined
-									? Effect.succeed(bot)
-									: readSetup(deps, bot.id).pipe(
-											Effect.map((setup) => ({
-												...bot,
-												setup,
-											})),
-										),
-							),
-						),
-				},
+				),
 			);
 		},
 	});

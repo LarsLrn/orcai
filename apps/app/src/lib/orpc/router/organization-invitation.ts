@@ -229,18 +229,20 @@ const createOrganizationInvitations = authed.organizationInvitation.create
 			});
 		}
 
+		const { invitations, skipped } = yield* inviteToOrganization({
+			organizationId,
+			emails: input.items.map((item) => item.email),
+			role: input.role,
+			expiresAt: input.expiresAt,
+			locale: input.locale ?? context.auth.user.locale ?? "en",
+			inviter: {
+				id: context.auth.user.id,
+				name: context.auth.user.name || context.auth.user.email,
+			},
+		});
 		return {
-			data: yield* inviteToOrganization({
-				organizationId,
-				emails: input.items.map((item) => item.email),
-				role: input.role,
-				expiresAt: input.expiresAt,
-				locale: input.locale ?? context.auth.user.locale ?? "en",
-				inviter: {
-					id: context.auth.user.id,
-					name: context.auth.user.name || context.auth.user.email,
-				},
-			}),
+			data: invitations,
+			skipped,
 		};
 	});
 

@@ -66,9 +66,11 @@ the Admin role.
 and sets the **Role**, the **Expires** date (seven days ahead by default) and
 the **Email language** for everyone in it. Add addresses one at a time with
 **Add email field** or paste a list with **Bulk add emails**, then choose
-**Create invitations**. An address that already belongs to a member is
-refused with the whole batch, before any email goes out, so change that
-member's role instead.
+**Create invitations**. An address that already belongs to a member, or
+already has a pending invitation that has not expired, gets no new invitation
+and no email, and the toast names it. Change a member's role instead. For an
+address whose pending invitation has expired, a new invitation with a new
+email replaces it, and the old one is listed as Rejected.
 
 **View invitations** opens `/app/members/invitations`, a table with the columns
 Email, Invitation ID, Expires, Status and Role. Each row offers **Copy

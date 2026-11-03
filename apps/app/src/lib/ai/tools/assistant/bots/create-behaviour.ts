@@ -1,11 +1,9 @@
-import type { BlockId } from "@orcai/core";
 import { blockFieldsSchema, publicationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import {
 	type AssistantToolDeps,
 	callProcedure,
-	createOnce,
 	effectTool,
 	mutation,
 } from "../procedure-tool";
@@ -32,47 +30,26 @@ export const createBehaviourTool = (deps: AssistantToolDeps) =>
 		description:
 			"Create a new behaviour: the reusable system prompt that sets how a bot answers. To change an existing one, use updateBehaviour.",
 		inputSchema: createBehaviourInputSchema,
-		run: (input, { toolCallId }) =>
-			createOnce(
-				{
-					scope: deps.turn.scope,
-					toolCallId,
-					input,
-				},
-				{
-					create: callProcedure(deps, (procedures, options) =>
-						procedures.block.create(
-							{
-								type: "behaviour",
-								name: input.name,
-								description:
-									input.description === undefined
-										? null
-										: blockDescription(input.description),
-								contentJson: null,
-								status: input.status ?? "draft",
-								config: {
-									systemPrompt: input.systemPrompt,
-								},
-							},
-							options,
-						),
-					).pipe(
-						mutation("findBlocks"),
-						Effect.map(({ data }) => behaviourOutline(data)),
-					),
-					ids: (behaviour) => [
-						behaviour.id,
-					],
-					replay: ([behaviourId]) =>
-						callProcedure(deps, (procedures, options) =>
-							procedures.block.find(
-								{
-									id: behaviourId as BlockId,
-								},
-								options,
-							),
-						).pipe(Effect.map(({ data }) => behaviourOutline(data))),
-				},
+		run: (input) =>
+			callProcedure(deps, (procedures, options) =>
+				procedures.block.create(
+					{
+						type: "behaviour",
+						name: input.name,
+						description:
+							input.description === undefined
+								? null
+								: blockDescription(input.description),
+						contentJson: null,
+						status: input.status ?? "draft",
+						config: {
+							systemPrompt: input.systemPrompt,
+						},
+					},
+					options,
+				),
+			).pipe(
+				mutation("findBlocks"),
+				Effect.map(({ data }) => behaviourOutline(data)),
 			),
 	});

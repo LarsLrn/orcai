@@ -63,8 +63,6 @@ const run = (input: Record<string, unknown>) =>
 		context: {} as ORPCContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
-			chatId: "chat",
-			replyId: "reply",
 		}),
 	}).execute?.(
 		input as never,

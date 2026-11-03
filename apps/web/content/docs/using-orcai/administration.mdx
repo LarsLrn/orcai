@@ -355,8 +355,7 @@ organisation memberships. `/instance` opens the Health page.
 
 **Health** (`/instance/health`) shows whether the instance works. Each check
 is OK, a warning or failing, and is either required or recommended.
-PostgreSQL, SpiceDB, Qdrant and object storage are required, and Valkey is
-recommended. **Embeddings** is required too and passes once embeddings are set
+PostgreSQL, SpiceDB, Qdrant and object storage are required. **Embeddings** is required too and passes once embeddings are set
 up and the active Qdrant collection exists with the model's dimensions. The
 page also requires a running workers process, and recommends email delivery
 over SMTP and a deployment without configuration warnings. A dependency that does not answer within three seconds counts as
@@ -364,7 +363,7 @@ failing. Below the checks it lists the outbox (waiting and given-up emails,
 the latest error, and whether the latest email went out over SMTP or only to
 the worker log), the processes that run background jobs with their last
 heartbeat, the jobs per queue including dead letter queues, the OrcAI,
-PostgreSQL, Qdrant and Valkey versions with the latest database migration,
+PostgreSQL and Qdrant versions with the latest database migration,
 and the settings of the app process, including the stored embedding endpoint,
 model, dimensions and collection. Secrets only show whether they are set.
 The checks run when the page opens and on **Check again**, and nothing polls
@@ -403,8 +402,10 @@ Each name links to the account's page. There an instance admin
 changes a member's role, removes a member (on your own row this reads
 **Leave**), **Add existing user** with a role, and **Invite by email** with a
 role. The organisation always keeps one admin who can sign in, so demoting or
-removing the last one is refused. Inviting someone who is already a member is
-refused before any email goes out, so change their role instead. **Remove logo**
+removing the last one is refused. Inviting someone who is already a member or
+already invited sends no email, as under
+[Invitations](/docs/using-orcai/access-control#invitations), so change a
+member's role instead. **Remove logo**
 in the page's `…` menu deletes the organisation's logo. None of this
 gives an instance admin access to the organisation's bots, blocks and assets.
 

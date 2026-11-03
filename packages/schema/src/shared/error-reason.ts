@@ -79,7 +79,6 @@ export const ERROR_REASONS = [
 	"INVALID_CREDENTIALS",
 	"INVALID_TOOL_INPUT",
 	"INVITATION_ALREADY_ACCEPTED",
-	"INVITEE_ALREADY_MEMBER",
 	"INVITATION_CHANGED",
 	"INVITATION_EXPIRED",
 	"INVITATION_NOT_FOUND",
@@ -214,9 +213,6 @@ export type ErrorReasonParams = {
 	};
 	GROUP_MEMBERS_INVALID: {
 		userIds: string[];
-	};
-	INVITEE_ALREADY_MEMBER: {
-		emails: string[];
 	};
 	LISTING_BLOCKS_FORBIDDEN: {
 		blockNames: string[];

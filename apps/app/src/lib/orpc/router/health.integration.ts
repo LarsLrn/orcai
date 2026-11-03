@@ -72,7 +72,6 @@ describe("instance health", () => {
 							"spicedb",
 							"qdrant",
 							"s3",
-							"valkey",
 						].includes(check.id),
 					)
 					.map((check) => [
@@ -94,10 +93,6 @@ describe("instance health", () => {
 				],
 				[
 					"s3",
-					"ok",
-				],
-				[
-					"valkey",
 					"ok",
 				],
 			]);

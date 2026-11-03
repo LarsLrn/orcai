@@ -237,11 +237,6 @@ export const VersionsCard = ({ versions }: { versions: InstanceVersions }) => {
 						value: versions.qdrant ?? unknown(),
 					},
 					{
-						key: "valkey",
-						label: m.instance_health_check_valkey_title(),
-						value: versions.valkey ?? unknown(),
-					},
-					{
 						key: "migration",
 						label: m.instance_health_version_migration_label(),
 						value: versions.migration ? (

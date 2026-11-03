@@ -12,7 +12,6 @@ OrcAI is a multi-service application. The app and workers are separate processes
 | App | UI, authentication, API routes, workflows | All user-facing use |
 | Workers | Background jobs and scheduled maintenance | Asset preparation, email and quota pools |
 | PostgreSQL | Relational application data | Core persistence |
-| Valkey | Short-lived app state | Assistant actions |
 | SeaweedFS/S3 | Uploaded and processed files | Library |
 | Qdrant | Vector indexes | Retrieval |
 | SpiceDB | Authorisation relationships | Access control |
@@ -35,10 +34,6 @@ Workers run background jobs for asset preparation (including indexing), metadata
 ## PostgreSQL
 
 PostgreSQL stores application data. The Compose stack uses the `pgvector/pgvector:0.8.7-pg17` image, although retrieval vectors are stored in Qdrant.
-
-## Valkey
-
-The app keeps short-lived state in Valkey, and the workers do not use it. The app keeps what an Assistant action created there for a day, so a repeated call of the same action does not create the items twice. If Valkey is unreachable, the app logs a warning and runs without that check. The Health page probes it.
 
 ## SeaweedFS or S3-compatible storage
 

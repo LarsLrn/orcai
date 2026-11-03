@@ -1,7 +1,7 @@
 /**
  * OrcAI development stack.
  *
- * One command per worktree that owns the backing services (PostgreSQL, Valkey,
+ * One command per worktree that owns the backing services (PostgreSQL,
  * SeaweedFS, Qdrant, SpiceDB) in an isolated Docker Compose project, picks free
  * loopback ports, writes them to `.env`, applies migrations, and runs the app
  * with that environment.
@@ -32,7 +32,7 @@
  * those arguments to Playwright.
  *
  * `reset` wipes the data of every store (PostgreSQL, SpiceDB relationships,
- * S3 objects, Qdrant collections, Valkey keys) while leaving the containers
+ * S3 objects, Qdrant collections) while leaving the containers
  * and `.env` in place; `e2e` does the same unless `--no-reset` is given. Both
  * refuse to run unless POSTGRES_HOST is a loopback address, the stack is named
  * `orcai-*`, and nothing is listening on the app port. There is no override.
@@ -80,7 +80,6 @@ import * as Bun from "bun";
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const infraServices = [
 	"postgres",
-	"valkey",
 	"seaweedfs",
 	"qdrant",
 	"spicedb-database",
@@ -91,7 +90,6 @@ const portKeys = [
 	"PORT",
 	"WEB_PORT",
 	"POSTGRES_PORT",
-	"VALKEY_PORT",
 	"S3_PORT",
 	"QDRANT_HTTP_PORT",
 	"QDRANT_GRPC_PORT",
@@ -275,9 +273,6 @@ function defaultEnv(stackName: string, ports: Ports): Env {
 		POSTGRES_PORT: String(ports.POSTGRES_PORT),
 		POSTGRES_DB: "app",
 		POSTGRES_SSL: "false",
-
-		VALKEY_PORT: String(ports.VALKEY_PORT),
-		VALKEY_URL: `redis://127.0.0.1:${String(ports.VALKEY_PORT)}`,
 
 		S3_PORT: String(ports.S3_PORT),
 		S3_ENDPOINT: s3Url,
@@ -887,16 +882,6 @@ async function resetQdrant(env: Env): Promise<void> {
 	log(`Deleted ${String(body.result.collections.length)} Qdrant collections`);
 }
 
-async function resetValkey(env: Env): Promise<void> {
-	const client = new Bun.RedisClient(envValue(env, "VALKEY_URL"));
-	try {
-		await client.send("FLUSHALL", []);
-	} finally {
-		client.close();
-	}
-	log("Flushed Valkey");
-}
-
 /**
  * Empty every store of a stack while leaving its containers and env file in
  * place, so that the next run starts from an uninitialised instance.
@@ -913,7 +898,6 @@ async function reset(options: Options, env: Env): Promise<void> {
 	await resetSpiceDb(env);
 	await resetObjectStorage(env);
 	await resetQdrant(env);
-	await resetValkey(env);
 }
 
 /**
@@ -1224,11 +1208,6 @@ function probes(env: Env): Probe[] {
 				env.POSTGRES_PORT ?? "",
 			),
 			detail: `${env.POSTGRES_HOST ?? ""}:${env.POSTGRES_PORT ?? ""}/${env.POSTGRES_DB ?? ""}`,
-		},
-		{
-			name: "valkey",
-			check: tcpProbe("127.0.0.1", env.VALKEY_PORT ?? ""),
-			detail: env.VALKEY_URL ?? "",
 		},
 		{
 			name: "seaweedfs",
