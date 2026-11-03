@@ -56,8 +56,8 @@ bun run stack e2e --yes --pipeline        # the pipeline specs, with workers
 
 Everything after `--` is passed to Playwright. After Playwright the run
 executes the integration tier on the same stack and fails if either fails. A run without `--no-reset`
-clears this worktree's database, authorisation store, object storage, vector
-store, and cache. Use a second named stack when development data must remain.
+clears this worktree's database, authorisation store, object storage, and
+vector store. Use a second named stack when development data must remain.
 
 The app under test is the production image. Each run first builds the app and
 docs images (app and workers with `--pipeline`) with `docker buildx bake` from
@@ -87,10 +87,12 @@ queues behind, so the next other run must reset. CI runs the pipeline specs
 in their own job; a full local run is `bun run stack e2e --yes`, then
 `bun run stack e2e --yes --pipeline`.
 
-Import the shared fixtures from `apps/e2e/fixtures/index.ts`; use the
-inference fixture for specs that need a provider endpoint. Open pages and
-submit forms with the core fixture helpers so server-rendered hydration is
-handled consistently.
+Import `test` and `expect` from `apps/e2e/fixtures/index.ts` and the other
+helpers from the foundation file that holds them, such as `open` from
+`fixtures/navigation.ts`. Use the inference fixture for specs that need a
+provider endpoint. `open` waits until the page has hydrated. After a reload
+`open` did not make, call `awaitHydration` before interacting, because
+`submitForm` does not wait for hydration.
 Every page from the fixtures fails its test on an uncaught error, which
 includes a React hydration mismatch. Specs get no `browser` or `playwright`
 fixture and lint refuses Playwright's launchers and `.browser()` there: open
@@ -100,9 +102,13 @@ An e2e slice owns `apps/e2e/tests/<area>/` and may add
 `apps/e2e/fixtures/<area>/`. The Playwright config, core fixtures, stack
 script, this skill, `AGENTS.md`, `README.md`, and public development docs are
 foundation files. Stop and report when a slice needs one of them changed.
-Create test data through fixtures. There is one direct-store exception,
-because no public API can produce its data: the serial outbox
-failure-injection spec. Keep such setup isolated and clean it up reliably.
+Create test data through fixtures. There are two direct-store exceptions,
+because no public API can produce their data: the serial outbox
+failure-injection spec and `failWithMissingExtraction` in
+`fixtures/instance/missing-extraction.ts`, which the embeddings spec uses to
+simulate a missing-extraction indexing failure by setting the asset's and
+its repository link's status rows, and restore them afterwards. Keep such setup
+isolated and clean it up reliably.
 
 Locate elements by role and accessible English name; add a test id only when
 no accessible name exists. Pin a current defect with `test.fail()` while

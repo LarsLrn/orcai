@@ -34,7 +34,7 @@ flowchart LR
 - oRPC defines typed backend contracts.
 - Better Auth handles authentication.
 - Drizzle ORM manages PostgreSQL access and migrations.
-- pg-boss coordinates background jobs.
+- pg-boss coordinates background jobs. The workers run them, except data exports, which the app server runs because building an export's chat transcripts needs the app's code.
 - Qdrant stores vector indexes.
 - SpiceDB handles authorisation relationships and permission checks.
 - S3-compatible storage stores uploaded and processed files.

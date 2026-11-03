@@ -9,9 +9,10 @@ Under Docker Compose, a container only sees the variables `docker-compose.yaml` 
 
 The primary config modules are:
 
-- `packages/ai/src/config.ts`
+- `packages/ai/src/provider-key.ts`
 - `packages/db/src/config.ts`
 - `packages/notifications/src/config.ts`
+- `packages/observability/src/config.ts`
 - `packages/qdrant/src/config.ts`
 - `packages/s3/src/server/config.ts`
 - `packages/spice-db/src/config.ts`
@@ -39,7 +40,7 @@ The app sends a Content Security Policy with every response. Browsers then load 
 | `ENCRYPTION_KEY` | Yes | Application encryption key. Any string works, but use a random value of 32 to 64 characters. Provider API keys are stored encrypted with it, so the app and the workers need the same value. |
 | `TWO_FACTOR_REQUIRED` | No | Who must use two-factor authentication: `none` (default), `admins` (instance admins) or `all`. A covered user without it is sent to set it up before using the app. |
 
-## Database and cache
+## Database and workers
 
 | Variable | Required | Notes |
 | --- | --- | --- |
