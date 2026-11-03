@@ -3,8 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
 import { CompactAssetTile } from "@/components/assets/asset-tile";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -46,24 +48,46 @@ const AssetLibraryPicker = ({
 			<ScrollArea
 				className={cn("max-h-[50vh] overflow-y-auto", scrollAreaClassName)}
 			>
-				<div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
-					{assets.data?.data.map((asset) => {
-						const isSelected = selectedIds.includes(asset.id);
-						return (
-							<CompactAssetTile
-								key={asset.id}
-								asset={asset}
-								selection={{
-									selected: isSelected,
-									onToggle: () =>
-										isSelected && onDeselect
-											? onDeselect(asset)
-											: onSelect(asset),
-								}}
-							/>
-						);
-					})}
-				</div>
+				{assets.isError ? (
+					<div
+						role="alert"
+						className="text-muted-foreground flex flex-col items-center py-8 text-center text-sm"
+					>
+						{describeError(assets.error)}
+						<Button
+							variant="outline"
+							size="sm"
+							className="mt-3"
+							loading={assets.isRefetching}
+							onClick={() => void assets.refetch()}
+						>
+							{m.common_retry_button()}
+						</Button>
+					</div>
+				) : assets.data?.data.length === 0 ? (
+					<p className="text-muted-foreground py-8 text-center text-sm">
+						{m.assets_library_picker_empty_state()}
+					</p>
+				) : (
+					<div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
+						{assets.data?.data.map((asset) => {
+							const isSelected = selectedIds.includes(asset.id);
+							return (
+								<CompactAssetTile
+									key={asset.id}
+									asset={asset}
+									selection={{
+										selected: isSelected,
+										onToggle: () =>
+											isSelected && onDeselect
+												? onDeselect(asset)
+												: onSelect(asset),
+									}}
+								/>
+							);
+						})}
+					</div>
+				)}
 			</ScrollArea>
 		</div>
 	);

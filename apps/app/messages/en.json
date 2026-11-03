@@ -893,6 +893,7 @@
 	"assets_intake_upload_more_button": "Upload more",
 	"assets_intake_upload_title": "Upload assets",
 	"assets_library_picker_search_placeholder": "Search the Library",
+	"assets_library_picker_empty_state": "No assets found.",
 	"assets_meta_author_label": "Author(s):",
 	"assets_meta_chapter_label": "Chapter:",
 	"assets_meta_citation_label": "Citation label:",
