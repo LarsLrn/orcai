@@ -1,4 +1,5 @@
 import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
+import { processedAssetPrefix } from "@orcai/s3";
 import type { BucketName } from "@orcai/schema";
 import type { StoredExtractionArtifact, StoredExtractionImage } from "./types";
 
@@ -77,14 +78,12 @@ export const serializeStoredExtractionArtifact = (
 	artifact: StoredExtractionArtifact,
 ) => JSON.stringify(artifact);
 
-const buildProcessedAssetPrefix = (assetId: string) => `${assetId}`;
-
 export const buildStoredExtractionKey = (assetId: string) =>
-	`${buildProcessedAssetPrefix(assetId)}/${STORED_EXTRACTION_FILE_NAME}`;
+	`${processedAssetPrefix(assetId)}${STORED_EXTRACTION_FILE_NAME}`;
 
 export const buildStoredExtractionImageKey = (params: {
 	assetId: string;
 	imageIndex: number;
 	format: string;
 }) =>
-	`${buildProcessedAssetPrefix(params.assetId)}/images/image-${params.imageIndex}.${params.format.toLowerCase()}`;
+	`${processedAssetPrefix(params.assetId)}images/image-${params.imageIndex}.${params.format.toLowerCase()}`;

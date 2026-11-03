@@ -4,6 +4,7 @@ import { buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { createImageOnlyStoredExtractionArtifact } from "@orcai/process";
 import { createQuotaPoolWithInitialPeriod } from "@orcai/quota";
+import { assetObjectKey } from "@orcai/s3";
 import { sendPutObjectCommand } from "@orcai/s3/server";
 import type { ModelCapability } from "@orcai/schema";
 import { createOrganization, createUser } from "@orcai/testing";
@@ -192,7 +193,7 @@ export const seedImageAsset = (params: {
 			organizationId: organization.id,
 			assignedBy: uploader.id,
 		});
-		const sourcePath = `${asset.prefix}/${asset.id}.png`;
+		const sourcePath = assetObjectKey(asset);
 		yield* sendPutObjectCommand({
 			bucket: buckets.processed.name,
 			key: sourcePath,

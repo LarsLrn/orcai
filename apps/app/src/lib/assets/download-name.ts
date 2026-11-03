@@ -3,15 +3,23 @@ import type { AssetFileType } from "@orcai/schema";
 
 const MAX_LENGTH = 200;
 
-/** The last path segment without control or bidirectional formatting characters. */
+const WINDOWS_DEVICE = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i;
+
+/**
+ * The last path segment without control or bidirectional formatting
+ * characters, made a name Windows accepts: a dash for each run of refused
+ * characters, no trailing dots or spaces, and no bare device name.
+ */
 const bareName = (name: string) => {
 	const base =
 		name
 			.replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, "")
 			.split(/[\\/]/)
 			.pop()
-			?.trim() ?? "";
-	return /^\.*$/.test(base) ? "" : base;
+			?.replace(/[:*?"<>|]+/g, "-")
+			.replace(/[. ]+$/, "")
+			.trim() ?? "";
+	return WINDOWS_DEVICE.test(base) ? `_${base}` : base;
 };
 
 /** At most `MAX_LENGTH` characters, keeping the extension. */

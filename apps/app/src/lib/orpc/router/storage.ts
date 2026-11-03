@@ -1,15 +1,17 @@
 import { buckets } from "@orcai/core";
 import { DB } from "@orcai/db";
 import {
+	assetObjectKey,
 	buildUploadPrefix,
 	ensureQuotedEtag,
-	getFileTypeFromMime,
-	isMimeAllowed,
+	processedAssetPrefix,
 	shouldUseMultipartUpload,
 	UPLOAD_ROUTES,
 } from "@orcai/s3";
 import {
-	createBucketIfNotExists,
+	checkUpload,
+	checkUploadFile,
+	ensureBuckets,
 	getDownloadUrl,
 	getSignedPartUploadUrl,
 	getSignedUploadUrl,
@@ -17,7 +19,6 @@ import {
 	sendAbortMultipartUploadCommand,
 	sendCompleteMultipartUploadCommand,
 	sendCreateMultipartUploadCommand,
-	validateUploadEnvelope,
 } from "@orcai/s3/server";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
@@ -44,38 +45,14 @@ const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 		);
 	}
 
-	yield* Effect.forEach(input.files, (file) =>
-		Effect.gen(function* () {
-			if (file.size > uploadRoute.maxFileSize) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "UPLOAD_FILE_TOO_LARGE",
-						params: {
-							fileName: file.name,
-						},
-						message: `File "${file.name}" exceeds max allowed size.`,
-					}),
-				);
-			}
-
-			if (
-				!isMimeAllowed({
-					mimeType: file.type,
-					allowedMimePatterns: uploadRoute.allowedMimePatterns,
-				})
-			) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "UPLOAD_FILE_TYPE_INVALID",
-						params: {
-							fileName: file.name,
-							fileType: file.type,
-						},
-						message: `File type "${file.type}" is not allowed.`,
-					}),
-				);
-			}
-		}),
+	const files = yield* Effect.forEach(input.files, (file) =>
+		checkUploadFile(input.route, file).pipe(
+			Effect.map((fileType) => ({
+				file,
+				fileType,
+			})),
+			Effect.mapError(AppErrors.uploadRefused),
+		),
 	);
 
 	const bucket = uploadRoute.bucket;
@@ -84,15 +61,18 @@ const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 		route: input.route,
 	});
 
-	yield* createBucketIfNotExists(bucket);
+	yield* ensureBuckets;
 
 	const presignedUrls = yield* Effect.forEach(
-		input.files,
-		(file) =>
+		files,
+		({ file, fileType }) =>
 			Effect.gen(function* () {
 				const id = uuidv4();
-				const extension = getFileTypeFromMime(file.type);
-				const filePath = `${prefix}/${id}.${extension}`;
+				const filePath = assetObjectKey({
+					prefix,
+					id,
+					fileType,
+				});
 				const objectMetadata = {
 					...input.metadata,
 					id,
@@ -269,11 +249,14 @@ const createDownloadUrl = authed.storage.createDownloadUrl
 			);
 		const filePath = (() => {
 			if (!input.objectKey) {
-				return `${asset.prefix}/${input.id}.${asset.fileType}`;
+				return assetObjectKey({
+					prefix: asset.prefix,
+					id: input.id,
+					fileType: asset.fileType,
+				});
 			}
 
-			const processedAssetPrefix = `${input.id}/`;
-			if (!input.objectKey.startsWith(processedAssetPrefix)) {
+			if (!input.objectKey.startsWith(processedAssetPrefix(input.id))) {
 				return undefined;
 			}
 
@@ -315,19 +298,11 @@ const completeMultipartUpload = authed.storage.completeMultipartUpload.effect(
 			);
 		}
 
-		const validated = yield* validateUploadEnvelope({
+		const validated = yield* checkUpload({
 			file: input.file,
 			route: input.route,
 			userId: context.auth.user.id,
-		}).pipe(
-			Effect.mapError(
-				() =>
-					new AppErrors.BadRequestError({
-						reason: "UPLOAD_REQUEST_INVALID",
-						message: "Invalid upload metadata.",
-					}),
-			),
-		);
+		}).pipe(Effect.mapError(AppErrors.uploadRefused));
 
 		const sortedParts = [
 			...input.parts,
@@ -364,19 +339,11 @@ const abortMultipartUpload = authed.storage.abortMultipartUpload.effect(
 			);
 		}
 
-		const validated = yield* validateUploadEnvelope({
+		const validated = yield* checkUpload({
 			file: input.file,
 			route: input.route,
 			userId: context.auth.user.id,
-		}).pipe(
-			Effect.mapError(
-				() =>
-					new AppErrors.BadRequestError({
-						reason: "UPLOAD_REQUEST_INVALID",
-						message: "Invalid upload metadata.",
-					}),
-			),
-		);
+		}).pipe(Effect.mapError(AppErrors.uploadRefused));
 
 		yield* sendAbortMultipartUploadCommand({
 			bucket: validated.bucket,

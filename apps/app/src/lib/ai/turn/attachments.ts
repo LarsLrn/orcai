@@ -1,7 +1,7 @@
 import type { AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { extract, readStoredExtraction } from "@orcai/process";
-import { getMimeTypeFromFileType } from "@orcai/s3";
+import { assetObjectKey, getMimeTypeFromFileType } from "@orcai/s3";
 import { getImageAsBase64 } from "@orcai/s3/server";
 import type { ChatAttachmentRef, ChatMessageAttachment } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
@@ -114,9 +114,6 @@ export const attachAssets = (
 		});
 	});
 
-const objectKey = (asset: AttachedAsset) =>
-	`${asset.prefix}/${asset.id}.${asset.fileType}`;
-
 const truncateText = (
 	text: string,
 	limit = CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH,
@@ -163,7 +160,7 @@ export const attachmentText = (asset: TaggedAsset, content: string) =>
 const imageAttachment = (asset: AttachedAsset) =>
 	getImageAsBase64({
 		bucket: asset.bucket,
-		name: objectKey(asset),
+		name: assetObjectKey(asset),
 	}).pipe(
 		Effect.map(
 			(base64): BuiltAttachment => ({
@@ -191,7 +188,7 @@ const documentAttachment = (asset: AttachedAsset) =>
 						{
 							kind: "s3",
 							bucket: asset.bucket,
-							key: objectKey(asset),
+							key: assetObjectKey(asset),
 							mimeType: asset.mediaType,
 							filename: asset.title,
 						},

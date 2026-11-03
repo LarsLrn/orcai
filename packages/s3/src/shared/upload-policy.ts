@@ -1,124 +1,11 @@
 import { buckets } from "@orcai/core";
-import type {
-	AssetFileType,
-	BucketName,
-	StorageUploadRoute,
+import {
+	ASSET_FILE_TYPES,
+	type BucketName,
+	type FileType,
+	type StorageUploadRoute,
 } from "@orcai/schema";
-
-type UploadFileTypeDefinition = {
-	fileType: AssetFileType;
-	mimeType: string;
-	aliases?: readonly string[];
-};
-
-const PROCESSABLE_ASSET_FILE_TYPES: readonly UploadFileTypeDefinition[] = [
-	{
-		fileType: "jpeg",
-		mimeType: "image/jpeg",
-		aliases: [
-			"image/jpg",
-		],
-	},
-	{
-		fileType: "jpg",
-		mimeType: "image/jpeg",
-	},
-	{
-		fileType: "png",
-		mimeType: "image/png",
-	},
-	{
-		fileType: "gif",
-		mimeType: "image/gif",
-	},
-	{
-		fileType: "webp",
-		mimeType: "image/webp",
-	},
-	{
-		fileType: "pdf",
-		mimeType: "application/pdf",
-	},
-	{
-		fileType: "txt",
-		mimeType: "text/plain",
-	},
-	{
-		fileType: "csv",
-		mimeType: "text/csv",
-	},
-	{
-		fileType: "md",
-		mimeType: "text/markdown",
-	},
-	{
-		fileType: "doc",
-		mimeType: "application/msword",
-		aliases: [
-			"application/x-msword",
-		],
-	},
-	{
-		fileType: "docx",
-		mimeType:
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-	},
-	{
-		fileType: "xls",
-		mimeType: "application/vnd.ms-excel",
-		aliases: [
-			"application/msexcel",
-			"application/x-msexcel",
-			"application/x-ms-excel",
-		],
-	},
-	{
-		fileType: "xlsx",
-		mimeType:
-			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-	},
-	{
-		fileType: "ppt",
-		mimeType: "application/vnd.ms-powerpoint",
-		aliases: [
-			"application/mspowerpoint",
-			"application/powerpoint",
-			"application/x-mspowerpoint",
-		],
-	},
-	{
-		fileType: "pptx",
-		mimeType:
-			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-	},
-];
-
-export const ASSET_UPLOAD_MIME_TYPES = [
-	...new Set(
-		PROCESSABLE_ASSET_FILE_TYPES.flatMap((definition) => [
-			definition.mimeType,
-			...(definition.aliases ?? []),
-		]),
-	),
-] as readonly string[];
-
-export const ASSET_UPLOAD_ACCEPT = PROCESSABLE_ASSET_FILE_TYPES.reduce(
-	(accept, definition) => {
-		const extension = `.${definition.fileType}`;
-		for (const mimeType of [
-			definition.mimeType,
-			...(definition.aliases ?? []),
-		]) {
-			accept[mimeType] = [
-				...(accept[mimeType] ?? []),
-				extension,
-			];
-		}
-
-		return accept;
-	},
-	{} as Record<string, string[]>,
-);
+import { acceptFor } from "./file-types";
 
 /** The browser crops pictures and logos to a small WebP; nothing else is stored. */
 const IMAGE_UPLOAD_ROUTE = {
@@ -132,8 +19,8 @@ const IMAGE_UPLOAD_ROUTE = {
 		partSize: 0,
 		partSignedUrlExpiresIn: 0,
 	},
-	allowedMimePatterns: [
-		"image/webp",
+	fileTypes: [
+		"webp",
 	],
 } as const;
 
@@ -149,7 +36,7 @@ export const UPLOAD_ROUTES = {
 			partSize: 10 * 1024 * 1024,
 			partSignedUrlExpiresIn: 60 * 30,
 		},
-		allowedMimePatterns: ASSET_UPLOAD_MIME_TYPES,
+		fileTypes: ASSET_FILE_TYPES,
 	},
 	chatAttachment: {
 		bucket: buckets.main.name,
@@ -162,18 +49,18 @@ export const UPLOAD_ROUTES = {
 			partSize: 10 * 1024 * 1024,
 			partSignedUrlExpiresIn: 60 * 15,
 		},
-		allowedMimePatterns: [
-			"image/jpeg",
-			"image/jpg",
-			"image/png",
-			"image/gif",
-			"image/webp",
-			"application/pdf",
-			"text/plain",
-			"text/csv",
-			"text/markdown",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		fileTypes: [
+			"jpeg",
+			"jpg",
+			"png",
+			"gif",
+			"webp",
+			"pdf",
+			"txt",
+			"csv",
+			"md",
+			"docx",
+			"pptx",
 		],
 	},
 	profileImage: IMAGE_UPLOAD_ROUTE,
@@ -191,29 +78,14 @@ export const UPLOAD_ROUTES = {
 			partSize: number;
 			partSignedUrlExpiresIn: number;
 		};
-		allowedMimePatterns: readonly string[];
+		fileTypes: readonly Exclude<FileType, "unknown">[];
 	}
 >;
 
 export type UploadRouteName = keyof typeof UPLOAD_ROUTES;
 
-export const isMimeAllowed = (params: {
-	mimeType: string;
-	allowedMimePatterns: readonly string[];
-}) => {
-	if (params.allowedMimePatterns.length === 0) {
-		return true;
-	}
-
-	return params.allowedMimePatterns.some((pattern) => {
-		if (pattern.endsWith("/*")) {
-			const prefix = pattern.slice(0, -1);
-			return params.mimeType.startsWith(prefix);
-		}
-
-		return params.mimeType === pattern;
-	});
-};
+/** What the asset file picker offers. */
+export const ASSET_UPLOAD_ACCEPT = acceptFor(UPLOAD_ROUTES.asset.fileTypes);
 
 /** Uploads land here until an asset or image is made from them; lifecycle expires the rest. */
 export const UPLOAD_STAGING_PREFIX = "staging/";

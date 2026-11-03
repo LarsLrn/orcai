@@ -2,23 +2,29 @@ import { describe, expect, test } from "bun:test";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Result from "effect/Result";
-import { UPLOAD_LIFECYCLE_RULES, validateUploadEnvelope } from "../src/server";
+import {
+	checkUpload,
+	checkUploadFile,
+	UPLOAD_LIFECYCLE_RULES,
+} from "../src/server";
 import {
 	ASSET_UPLOAD_ACCEPT,
-	ASSET_UPLOAD_MIME_TYPES,
+	assetObjectKey,
 	buildUploadPrefix,
 	getFileTypeFromMime,
 	getMimeTypeFromFileType,
 	IMAGE_PREFIX,
 	type ImageOwner,
+	imageKey,
 	imagePath,
-	isMimeAllowed,
+	mimeTypesFor,
 	parseImagePath,
 	UPLOAD_ROUTES,
 	UPLOAD_STAGING_PREFIX,
+	type UploadRouteName,
 } from "../src/shared";
 
-describe("file type helpers", () => {
+describe("file types", () => {
 	test("maps modern and legacy office MIME types to file types", () => {
 		expect(
 			getFileTypeFromMime(
@@ -27,68 +33,117 @@ describe("file type helpers", () => {
 		).toBe("docx");
 		expect(
 			getFileTypeFromMime(
-				"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-			),
-		).toBe("pptx");
-		expect(
-			getFileTypeFromMime(
 				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 			),
 		).toBe("xlsx");
-		expect(getFileTypeFromMime("application/msword")).toBe("doc");
+		expect(getFileTypeFromMime("application/x-msword")).toBe("doc");
 		expect(getFileTypeFromMime("application/vnd.ms-powerpoint")).toBe("ppt");
-		expect(getFileTypeFromMime("application/vnd.ms-excel")).toBe("xls");
+		expect(getMimeTypeFromFileType("xls")).toBe("application/vnd.ms-excel");
 	});
 
-	test("maps office file types to canonical MIME types", () => {
-		expect(getMimeTypeFromFileType("docx")).toBe(
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-		);
-		expect(getMimeTypeFromFileType("pptx")).toBe(
-			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-		);
-		expect(getMimeTypeFromFileType("xlsx")).toBe(
-			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-		);
-		expect(getMimeTypeFromFileType("doc")).toBe("application/msword");
-		expect(getMimeTypeFromFileType("ppt")).toBe(
-			"application/vnd.ms-powerpoint",
-		);
-		expect(getMimeTypeFromFileType("xls")).toBe("application/vnd.ms-excel");
+	test("stores JPEGs as jpeg, the non-standard image/jpg as jpg, and reads x-wav as wav", () => {
+		expect(getFileTypeFromMime("image/jpeg")).toBe("jpeg");
+		expect(getFileTypeFromMime("image/jpg")).toBe("jpg");
+		expect(getMimeTypeFromFileType("jpg")).toBe("image/jpeg");
+		expect(getFileTypeFromMime("audio/x-wav")).toBe("wav");
+		expect(getFileTypeFromMime("text/plain; charset=utf-8")).toBe("txt");
+		expect(getFileTypeFromMime("video/webm")).toBe("unknown");
 	});
 });
 
-describe("asset upload policy", () => {
-	test("derives route MIME policy and UI accept map from the same MIME set", () => {
-		expect(UPLOAD_ROUTES.asset.allowedMimePatterns).toEqual(
-			ASSET_UPLOAD_MIME_TYPES,
-		);
+describe("upload routes", () => {
+	test("accept these MIME types", () => {
+		const office = [
+			"application/msword",
+			"application/x-msword",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"application/vnd.ms-excel",
+			"application/msexcel",
+			"application/x-msexcel",
+			"application/x-ms-excel",
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			"application/vnd.ms-powerpoint",
+			"application/mspowerpoint",
+			"application/powerpoint",
+			"application/x-mspowerpoint",
+			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		];
+		const common = [
+			"image/jpeg",
+			"image/jpg",
+			"image/png",
+			"image/gif",
+			"image/webp",
+			"application/pdf",
+			"text/plain",
+			"text/csv",
+			"text/markdown",
+		];
+		const accepted = (route: UploadRouteName) =>
+			new Set(mimeTypesFor(UPLOAD_ROUTES[route].fileTypes));
 
-		for (const mimeType of ASSET_UPLOAD_MIME_TYPES) {
-			expect(ASSET_UPLOAD_ACCEPT[mimeType]).toBeDefined();
-		}
+		expect(accepted("asset")).toEqual(
+			new Set([
+				...common,
+				...office,
+			]),
+		);
+		expect(accepted("chatAttachment")).toEqual(
+			new Set([
+				...common,
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+				"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+			]),
+		);
+		expect(accepted("profileImage")).toEqual(
+			new Set([
+				"image/webp",
+			]),
+		);
 	});
 
-	test("allows supported asset MIME types and rejects unsupported types", () => {
+	test("the asset picker offers every accepted type with its extensions", () => {
+		expect(new Set(Object.keys(ASSET_UPLOAD_ACCEPT))).toEqual(
+			new Set(mimeTypesFor(UPLOAD_ROUTES.asset.fileTypes)),
+		);
+		expect(ASSET_UPLOAD_ACCEPT["image/jpeg"]).toEqual([
+			".jpeg",
+			".jpg",
+		]);
+	});
+
+	test("a route refuses a type or a size it does not take", () => {
+		const check = (route: UploadRouteName, type: string, size: number) =>
+			Effect.runSync(
+				checkUploadFile(route, {
+					name: "file",
+					type,
+					size,
+				}).pipe(
+					Effect.match({
+						onFailure: (error) => error.rejection.reason,
+						onSuccess: (fileType) => fileType,
+					}),
+				),
+			);
+
+		expect(check("asset", "image/jpg", 1)).toBe("jpg");
+		expect(check("asset", "video/mp4", 1)).toBe("UPLOAD_FILE_TYPE_INVALID");
+		expect(check("asset", "text/plain; charset=utf-8", 1)).toBe(
+			"UPLOAD_FILE_TYPE_INVALID",
+		);
+		expect(check("chatAttachment", "application/msword", 1)).toBe(
+			"UPLOAD_FILE_TYPE_INVALID",
+		);
+		expect(check("profileImage", "image/png", 1)).toBe(
+			"UPLOAD_FILE_TYPE_INVALID",
+		);
+		expect(check("asset", "text/plain", UPLOAD_ROUTES.asset.maxFileSize)).toBe(
+			"txt",
+		);
 		expect(
-			isMimeAllowed({
-				mimeType:
-					"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-				allowedMimePatterns: UPLOAD_ROUTES.asset.allowedMimePatterns,
-			}),
-		).toBe(true);
-		expect(
-			isMimeAllowed({
-				mimeType: "application/vnd.ms-excel",
-				allowedMimePatterns: UPLOAD_ROUTES.asset.allowedMimePatterns,
-			}),
-		).toBe(true);
-		expect(
-			isMimeAllowed({
-				mimeType: "video/mp4",
-				allowedMimePatterns: UPLOAD_ROUTES.asset.allowedMimePatterns,
-			}),
-		).toBe(false);
+			check("asset", "text/plain", UPLOAD_ROUTES.asset.maxFileSize + 1),
+		).toBe("UPLOAD_FILE_TOO_LARGE");
 	});
 });
 
@@ -102,11 +157,17 @@ describe("staging", () => {
 			route: "asset",
 		});
 		return {
+			name: "notes.txt",
 			type: "text/plain",
+			size: 5,
 			objectMetadata: {
 				id,
 				prefix,
-				key: `${prefix}/${id}.txt`,
+				key: assetObjectKey({
+					prefix,
+					id,
+					fileType: "txt",
+				}),
 				route: "asset",
 				userId,
 				bucket: UPLOAD_ROUTES.asset.bucket,
@@ -117,7 +178,7 @@ describe("staging", () => {
 
 	const validate = (file: ReturnType<typeof envelope>) =>
 		Effect.runSync(
-			validateUploadEnvelope({
+			checkUpload({
 				file,
 				route: "asset",
 				userId,
@@ -138,6 +199,7 @@ describe("staging", () => {
 		expect(result.success.prefix).toMatch(
 			new RegExp(`^users/${userId}/asset/\\d{4}/\\d{2}$`),
 		);
+		expect(result.success.key).toBe(`${result.success.prefix}/${id}.txt`);
 	});
 
 	test("lifecycle expires staged uploads, never final keys", () => {
@@ -148,7 +210,17 @@ describe("staging", () => {
 
 		expect(expires(result.success.stagingKey)).toBe(true);
 		expect(expires(result.success.key)).toBe(false);
-		expect(expires(`${IMAGE_PREFIX}users/${userId}/${id}.webp`)).toBe(false);
+		expect(
+			expires(
+				imageKey(
+					{
+						kind: "user",
+						userId: userIdSchema.parse(userId),
+					},
+					id,
+				),
+			),
+		).toBe(false);
 	});
 
 	test("rejects envelopes pointing outside the caller's staging prefix", () => {
@@ -175,10 +247,20 @@ describe("staging", () => {
 			{
 				route: "chatAttachment",
 			},
+			{
+				key: assetObjectKey({
+					prefix: envelope().objectMetadata.prefix,
+					id,
+					fileType: "pdf",
+				}),
+			},
 		];
 
 		for (const overrides of forgeries) {
-			expect(Result.isFailure(validate(envelope(overrides)))).toBe(true);
+			const result = validate(envelope(overrides));
+			expect(Result.isFailure(result) && result.failure.rejection.reason).toBe(
+				"UPLOAD_REQUEST_INVALID",
+			);
 		}
 	});
 });

@@ -13,6 +13,7 @@ import {
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
 import {
+	assetObjectKey,
 	DATA_EXPORT_TTL_MS,
 	dataExportKey,
 	imagePath,
@@ -151,7 +152,7 @@ const seed = (userId: UserId, organizationId: OrganizationId) =>
 				.returning();
 			yield* sendPutObjectCommand({
 				bucket: notes.bucket,
-				key: `${notes.prefix}/${notes.id}.txt`,
+				key: assetObjectKey(notes),
 				body: FILE_CONTENT,
 				contentType: "text/plain",
 			});

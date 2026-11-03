@@ -27,6 +27,7 @@ import {
 	writeGeneration,
 } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
+import { assetObjectKey } from "@orcai/s3";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import type { VectorizeAssetPayload } from "@orcai/schema";
 import {
@@ -219,7 +220,7 @@ const seed = (
 							mimeType: "application/pdf",
 							format: "pdf",
 							sourceBucket: buckets.main.name,
-							sourcePath: `${asset.prefix}/${asset.id}.pdf`,
+							sourcePath: assetObjectKey(asset),
 						}),
 						content: chunks.join("\n"),
 						chunks: chunks.map((content, chunkIndex) => ({

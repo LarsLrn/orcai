@@ -12,6 +12,7 @@ import {
 	createImageOnlyStoredExtractionArtifact,
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
+import { assetObjectKey } from "@orcai/s3";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import { writeRelationshipMutations } from "@orcai/spice-db";
 import {
@@ -65,7 +66,7 @@ const privateImage = async (
 				.returning();
 			yield* sendPutObjectCommand({
 				bucket: row.bucket,
-				key: `${row.prefix}/${row.id}.png`,
+				key: assetObjectKey(row),
 				body: Buffer.from(PIXEL, "base64"),
 				contentType: "image/png",
 			});
@@ -473,7 +474,7 @@ describe("chat attachments", () => {
 					.returning();
 				yield* sendPutObjectCommand({
 					bucket: row.bucket,
-					key: `${row.prefix}/${row.id}.txt`,
+					key: assetObjectKey(row),
 					body: Buffer.from("Soil samples at 30 cm."),
 					contentType: "text/plain",
 				});

@@ -3,7 +3,7 @@ import { PgClient } from "@effect/sql-pg";
 import type { ActivityRunId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
-import { UPLOAD_STAGING_PREFIX } from "@orcai/s3";
+import { UPLOAD_ROUTES, UPLOAD_STAGING_PREFIX } from "@orcai/s3";
 import { isS3NotFound, sendHeadObjectCommand } from "@orcai/s3/server";
 import {
 	type AssetIntakeResult,
@@ -283,6 +283,120 @@ describe("createAssetsFromUploads", () => {
 				}),
 			).toContain(`owner@user:${owner.actor.user.id}`);
 			expect(await processJobsFor(asset.id)).toHaveLength(1);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a staged file stored under another type than signed fails alone",
+		async () => {
+			const [owner] = await members(1);
+			const procedures = await run(Procedures);
+			const signed = await run(
+				procedures.storage.createUploadUrls(
+					{
+						route: "asset",
+						files: [
+							{
+								name: "notes.txt",
+								size: CONTENT.length,
+								type: "text/plain",
+							},
+						],
+					},
+					await procedureOptions(owner.actor, owner.zedToken),
+				),
+			);
+			const [target] = signed.data;
+			if (target?.mode !== "single")
+				throw new Error("Expected a single upload");
+			// The store may keep a PUT whose type differs from the signed one.
+			const response = await fetch(target.signedUrl, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "text/html",
+				},
+				body: CONTENT,
+			});
+
+			const [result] = await createFromUploads(owner, [
+				target.file,
+			]);
+			expect(result).toMatchObject({
+				status: "failed",
+				reason: response.ok
+					? "UPLOAD_FILE_TYPE_INVALID"
+					: "UPLOAD_FILE_MISSING",
+			});
+			expect(await assetRows(target.file.objectKey)).toEqual([]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a multipart upload becomes an asset with its signed type",
+		async () => {
+			const [owner] = await members(1);
+			const procedures = await run(Procedures);
+			const options = await procedureOptions(owner.actor, owner.zedToken);
+			const body = new Uint8Array(
+				UPLOAD_ROUTES.asset.multipart.thresholdSize + 1,
+			).fill(97);
+			const signed = await run(
+				procedures.storage.createUploadUrls(
+					{
+						route: "asset",
+						files: [
+							{
+								name: "large.txt",
+								size: body.byteLength,
+								type: "text/plain",
+							},
+						],
+					},
+					options,
+				),
+			);
+			const [target] = signed.data;
+			if (target?.mode !== "multipart")
+				throw new Error("Expected a multipart upload");
+			const parts = await Promise.all(
+				target.parts.map(async (part) => {
+					const start = (part.partNumber - 1) * target.partSize;
+					const response = await fetch(part.signedUrl, {
+						method: "PUT",
+						body: body.subarray(start, start + part.size),
+					});
+					expect(response.ok).toBe(true);
+					return {
+						partNumber: part.partNumber,
+						etag: response.headers.get("ETag") ?? "",
+					};
+				}),
+			);
+			await run(
+				procedures.storage.completeMultipartUpload(
+					{
+						route: "asset",
+						uploadId: target.uploadId,
+						parts,
+						file: target.file,
+					},
+					options,
+				),
+			);
+
+			const asset = created(
+				(
+					await createFromUploads(owner, [
+						target.file,
+					])
+				)[0],
+			);
+			expect(asset).toMatchObject({
+				fileType: "txt",
+				size: body.byteLength,
+			});
 		},
 		TIMEOUT,
 	);

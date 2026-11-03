@@ -1,10 +1,12 @@
 import type { UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { assetObjectKey } from "@orcai/s3";
 import { isS3NotFound, sendGetObjectCommand } from "@orcai/s3/server";
 import { asc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
+import { downloadName } from "@/lib/assets/download-name";
 import { readImage, referencedImage } from "@/lib/images/images";
 import type { ZipArchiveWriter } from "./zip-archive";
 
@@ -21,13 +23,6 @@ const json = (value: unknown) => JSON.stringify(value, null, 2);
 
 const chatEntryName = (chat: { id: string; title: string | null }) =>
 	`chats/${safeName(chat.title ?? "") || "chat"} (${chat.id.slice(0, 8)})`;
-
-const assetFileName = (asset: { title: string; fileType: string }) => {
-	const name = safeName(asset.title) || "file";
-	return name.toLowerCase().endsWith(`.${asset.fileType}`)
-		? name
-		: `${name}.${asset.fileType}`;
-};
 
 const AVATAR_ENTRY = "profile/avatar.webp";
 
@@ -209,13 +204,13 @@ const writeAssets = (userId: UserId, writer: ZipArchiveWriter) =>
 				Effect.gen(function* () {
 					const object = yield* sendGetObjectCommand({
 						bucket: asset.bucket,
-						key: `${asset.prefix}/${asset.id}.${asset.fileType}`,
+						key: assetObjectKey(asset),
 					});
 					if (!object.Body) {
 						return;
 					}
 					yield* writer.addFile(
-						`files/${asset.id}/${assetFileName(asset)}`,
+						`files/${asset.id}/${downloadName(asset)}`,
 						object.Body.transformToWebStream(),
 					);
 				}).pipe(

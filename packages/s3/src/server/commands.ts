@@ -2,7 +2,6 @@ import {
 	AbortMultipartUploadCommand,
 	CompleteMultipartUploadCommand,
 	CopyObjectCommand,
-	CreateBucketCommand,
 	CreateMultipartUploadCommand,
 	DeleteObjectCommand,
 	GetBucketLifecycleConfigurationCommand,
@@ -122,19 +121,6 @@ export const sendHeadBucketCommand = (params: { bucket: string }) =>
 		return yield* trySend({
 			send: () => client.send(command),
 			operation: "sendHeadBucketCommand",
-		});
-	});
-
-export const sendCreateBucketCommand = (params: { bucket: string }) =>
-	Effect.gen(function* () {
-		const { client } = yield* S3Service;
-		const command = new CreateBucketCommand({
-			Bucket: params.bucket,
-		});
-
-		return yield* trySend({
-			send: () => client.send(command),
-			operation: "sendCreateBucketCommand",
 		});
 	});
 
