@@ -7,8 +7,8 @@ import {
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
-	checkEntityPermission,
 	NEWEST_REVISION,
+	permittedEntityIds,
 	type ReadRevision,
 } from "@orcai/spice-db";
 import { and, eq, inArray } from "drizzle-orm";
@@ -62,13 +62,57 @@ type AccessParams = {
 	zedToken: ReadRevision | undefined;
 };
 
-const permittedInSpiceDb = (params: AccessParams) =>
-	checkEntityPermission({
-		entityType: "organization",
-		entityId: params.organizationId,
-		permission: params.permission,
-		userId: params.userId,
-		zedToken: params.zedToken,
+type ManyAccessParams = Omit<AccessParams, "organizationId"> & {
+	organizationIds: readonly OrganizationId[];
+};
+
+/**
+ * Those of the organisations SpiceDB grants the permission in. A denial at an
+ * older revision may be a cache that has not caught up, so it is read again
+ * at the newest.
+ */
+const grantedInSpiceDb = (params: ManyAccessParams) =>
+	Effect.gen(function* () {
+		const read = (
+			entityIds: readonly OrganizationId[],
+			zedToken: ReadRevision | undefined,
+		) =>
+			entityIds.length === 0
+				? Effect.succeed(new Set<OrganizationId>())
+				: permittedEntityIds({
+						entityType: "organization",
+						entityIds,
+						permission: params.permission,
+						userId: params.userId,
+						zedToken,
+					});
+		const granted = yield* read(params.organizationIds, params.zedToken);
+		if (params.zedToken === NEWEST_REVISION) return granted;
+		const caughtUp = yield* read(
+			params.organizationIds.filter((id) => !granted.has(id)),
+			NEWEST_REVISION,
+		);
+		return new Set([
+			...granted,
+			...caughtUp,
+		]);
+	});
+
+/**
+ * Those of the organisations where the user holds the permission by their
+ * committed role and in SpiceDB, so a demotion or removal counts before its
+ * tuples arrive.
+ */
+export const permittedOrganizationIds = (params: ManyAccessParams) =>
+	Effect.gen(function* () {
+		const roles = yield* committedRoles(params);
+		return yield* grantedInSpiceDb({
+			...params,
+			organizationIds: params.organizationIds.filter((id) => {
+				const role = roles.get(id);
+				return role !== undefined && roleGrants(role, params.permission);
+			}),
+		});
 	});
 
 /**
@@ -76,16 +120,12 @@ const permittedInSpiceDb = (params: AccessParams) =>
  * SpiceDB, so a demotion or removal counts before its tuples arrive.
  */
 export const organizationPermitted = (params: AccessParams) =>
-	Effect.gen(function* () {
-		const role = (yield* committedRoles({
-			userId: params.userId,
-			organizationIds: [
-				params.organizationId,
-			],
-		})).get(params.organizationId);
-		if (!role || !roleGrants(role, params.permission)) return false;
-		return yield* permittedInSpiceDb(params);
-	});
+	permittedOrganizationIds({
+		...params,
+		organizationIds: [
+			params.organizationId,
+		],
+	}).pipe(Effect.map((permitted) => permitted.has(params.organizationId)));
 
 /**
  * Fails unless the user holds the permission by their committed role and in
@@ -126,16 +166,13 @@ export const requireOrganizationAccess = (
 				}),
 			);
 		}
-		// A denial at an older revision may be a cache that has not caught up;
-		// only one at the newest means the tuples have not arrived.
-		const granted =
-			(yield* permittedInSpiceDb(params)) ||
-			(params.zedToken !== NEWEST_REVISION &&
-				(yield* permittedInSpiceDb({
-					...params,
-					zedToken: NEWEST_REVISION,
-				})));
-		if (!granted) {
+		const granted = yield* grantedInSpiceDb({
+			...params,
+			organizationIds: [
+				params.organizationId,
+			],
+		});
+		if (!granted.has(params.organizationId)) {
 			yield* Effect.logWarning(
 				`organization.access_pending userId=${params.userId} organizationId=${params.organizationId} permission=${params.permission}`,
 			);
