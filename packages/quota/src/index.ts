@@ -27,9 +27,10 @@ export {
 	updateQuotaPoolBudget,
 } from "./ledger";
 export {
-	ensureOpenQuotaPeriod,
 	getUtcPeriodBounds,
 	listExpiredOpenQuotaPeriods,
+	openQuotaPeriod,
+	rollOverQuotaPeriods,
 } from "./period";
 export {
 	createQuotaPool,

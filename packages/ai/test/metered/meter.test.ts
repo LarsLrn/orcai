@@ -84,10 +84,6 @@ describe("startMeteredCall", () => {
 			"exhausted",
 			"QUOTA_EXHAUSTED",
 		],
-		[
-			"error",
-			"QUOTA_CHECK_FAILED",
-		],
 	] as const)("a %s denial fails with %s", async (denial, reason) => {
 		quota.pool = {
 			denial,

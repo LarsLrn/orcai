@@ -4,15 +4,15 @@ import type {
 	ModelId,
 	OrganizationId,
 	ProviderId,
-	QuotaPeriodId,
 	QuotaPoolId,
 	UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq, inArray, lt, notExists, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
-import { getUtcPeriodBounds } from "./period";
+import { openQuotaPeriod } from "./period";
 import type { EventCost } from "./pricing";
 import type { UsageCounts } from "./usage";
 
@@ -37,9 +37,11 @@ type LedgerReserveResult =
 	| {
 			status: "reserved";
 			reservedAmount: number;
+			period: QuotaPeriod;
+			budgetAmount: number;
 	  }
 	| {
-			status: "exhausted" | "no_ledger";
+			status: "exhausted" | "inactive";
 	  };
 
 type LedgerTransitionResult = {
@@ -101,35 +103,9 @@ export const createQuotaPoolWithInitialPeriod: (params: {
 					);
 				}
 
-				const bounds = getUtcPeriodBounds({
-					at: now,
-					periodType: pool.periodType,
+				const { period, ledger } = yield* openQuotaPeriod({
+					quotaPoolId: pool.id,
 				});
-
-				const [period] = yield* tx
-					.insert(dbSchema.quotaPeriod)
-					.values({
-						quotaPoolId: pool.id,
-						startsAt: bounds.start,
-						endsAt: bounds.end,
-						status: "open",
-						createdAt: now,
-					})
-					.returning();
-
-				const [ledger] = yield* tx
-					.insert(dbSchema.quotaLedger)
-					.values({
-						quotaPoolId: pool.id,
-						quotaPeriodId: period.id,
-						budgetAmount: pool.budgetAmount,
-						reservedAmount: 0,
-						consumedAmount: 0,
-						remainingAmount: pool.budgetAmount,
-						version: 0,
-						updatedAt: now,
-					})
-					.returning();
 
 				yield* tx.insert(dbSchema.quotaPoolAuditLog).values({
 					organizationId: pool.organizationId,
@@ -166,6 +142,7 @@ export const updateQuotaPoolBudget: (params: {
 
 		return yield* db.transaction((tx) =>
 			Effect.gen(function* () {
+				// The pool first, as every writer of its periods and ledger takes it.
 				const [pool] = yield* tx
 					.select()
 					.from(dbSchema.quotaPool)
@@ -175,108 +152,16 @@ export const updateQuotaPoolBudget: (params: {
 							eq(dbSchema.quotaPool.organizationId, params.organizationId),
 						),
 					)
-					.limit(1);
+					.limit(1)
+					.for("no key update");
 
 				if (!pool) {
 					return null;
 				}
 
-				let period = yield* tx.query.quotaPeriod.findFirst({
-					where: {
-						AND: [
-							{
-								quotaPoolId: {
-									eq: params.poolId,
-								},
-							},
-							{
-								status: "open",
-							},
-						],
-					},
+				const { period, ledger } = yield* openQuotaPeriod({
+					quotaPoolId: pool.id,
 				});
-
-				if (!period || now >= period.endsAt) {
-					if (period) {
-						yield* tx
-							.update(dbSchema.quotaPeriod)
-							.set({
-								status: "closed",
-								closedAt: now,
-							})
-							.where(eq(dbSchema.quotaPeriod.id, period.id));
-					}
-
-					const bounds = getUtcPeriodBounds({
-						at: now,
-						periodType: pool.periodType,
-					});
-					const [createdPeriod] = yield* tx
-						.insert(dbSchema.quotaPeriod)
-						.values({
-							quotaPoolId: pool.id,
-							startsAt: bounds.start,
-							endsAt: bounds.end,
-							status: "open",
-							createdAt: now,
-						})
-						.onConflictDoNothing()
-						.returning();
-
-					if (!createdPeriod) {
-						// Another transaction already created the period, so we re-read.
-						const existing = yield* tx.query.quotaPeriod.findFirst({
-							where: {
-								AND: [
-									{
-										quotaPoolId: {
-											eq: pool.id,
-										},
-									},
-									{
-										status: "open",
-									},
-								],
-							},
-						});
-						if (existing) {
-							period = existing;
-						} else {
-							return null;
-						}
-					} else {
-						yield* tx
-							.insert(dbSchema.quotaLedger)
-							.values({
-								quotaPoolId: pool.id,
-								quotaPeriodId: createdPeriod.id,
-								budgetAmount: pool.budgetAmount,
-								reservedAmount: 0,
-								consumedAmount: 0,
-								remainingAmount: pool.budgetAmount,
-								version: 0,
-								updatedAt: now,
-							})
-							.onConflictDoNothing();
-
-						period = createdPeriod;
-					}
-				}
-
-				const [ledger] = yield* tx
-					.select()
-					.from(dbSchema.quotaLedger)
-					.where(
-						and(
-							eq(dbSchema.quotaLedger.quotaPoolId, pool.id),
-							eq(dbSchema.quotaLedger.quotaPeriodId, period.id),
-						),
-					)
-					.limit(1);
-
-				if (!ledger) {
-					return null;
-				}
 
 				const [updatedPool] = yield* tx
 					.update(dbSchema.quotaPool)
@@ -331,11 +216,13 @@ export const updateQuotaPoolBudget: (params: {
 		);
 	});
 
-/** Reserves on the locked ledger row, which decides how much is granted. */
+/**
+ * Reserves on the pool's current period, opened if needed, with the pool and
+ * then the ledger row locked; the ledger decides how much is granted.
+ */
 export const reserveQuotaLedger: (params: {
 	organizationId: OrganizationId;
 	quotaPoolId: QuotaPoolId;
-	quotaPeriodId: QuotaPeriodId;
 	providerId: ProviderId;
 	modelId?: ModelId | null;
 	botId?: BotId | null;
@@ -351,25 +238,38 @@ export const reserveQuotaLedger: (params: {
 }) => Effect.Effect<LedgerReserveResult, unknown, DB> = (params) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const now = new Date();
-		const ledgerOf = and(
-			eq(dbSchema.quotaLedger.quotaPoolId, params.quotaPoolId),
-			eq(dbSchema.quotaLedger.quotaPeriodId, params.quotaPeriodId),
-		);
 
-		return yield* db.transaction((tx) =>
+		// Waiting for the ledger can outlast the period; the next one opens then, once.
+		const reserveOnCurrentPeriod = (
+			retried: boolean,
+		): Effect.Effect<LedgerReserveResult, unknown, DB> =>
 			Effect.gen(function* () {
-				const [ledger] = yield* tx
+				const { pool, period } = yield* openQuotaPeriod({
+					quotaPoolId: params.quotaPoolId,
+				});
+				// Deactivated since it was resolved.
+				if (!pool.isActive) {
+					return {
+						status: "inactive",
+					} satisfies LedgerReserveResult;
+				}
+				const ledgerOf = and(
+					eq(dbSchema.quotaLedger.quotaPoolId, params.quotaPoolId),
+					eq(dbSchema.quotaLedger.quotaPeriodId, period.id),
+				);
+				const [ledger] = yield* db
 					.select()
 					.from(dbSchema.quotaLedger)
 					.where(ledgerOf)
 					.limit(1)
 					.for("update");
-
-				if (!ledger) {
-					return {
-						status: "no_ledger",
-					} satisfies LedgerReserveResult;
+				const now = new Date(yield* Clock.currentTimeMillis);
+				if (now >= period.endsAt) {
+					return retried
+						? yield* Effect.fail(
+								new Error(`Quota pool ${params.quotaPoolId} kept rolling over`),
+							)
+						: yield* reserveOnCurrentPeriod(true);
 				}
 
 				const reservedAmount = Math.min(params.amount, ledger.remainingAmount);
@@ -379,10 +279,10 @@ export const reserveQuotaLedger: (params: {
 					} satisfies LedgerReserveResult;
 				}
 
-				yield* tx.insert(dbSchema.quotaUsageEvent).values({
+				yield* db.insert(dbSchema.quotaUsageEvent).values({
 					organizationId: params.organizationId,
 					quotaPoolId: params.quotaPoolId,
-					quotaPeriodId: params.quotaPeriodId,
+					quotaPeriodId: period.id,
 					providerId: params.providerId,
 					modelId: params.modelId ?? null,
 					botId: params.botId ?? null,
@@ -398,7 +298,7 @@ export const reserveQuotaLedger: (params: {
 					createdAt: now,
 				});
 
-				yield* tx
+				yield* db
 					.update(dbSchema.quotaLedger)
 					.set({
 						reservedAmount: sql`${dbSchema.quotaLedger.reservedAmount} + ${reservedAmount}`,
@@ -411,9 +311,12 @@ export const reserveQuotaLedger: (params: {
 				return {
 					status: "reserved",
 					reservedAmount,
+					period,
+					budgetAmount: ledger.budgetAmount,
 				} satisfies LedgerReserveResult;
-			}),
-		);
+			});
+
+		return yield* db.transaction(() => reserveOnCurrentPeriod(false));
 	});
 
 export const findReservedQuotaEvent = (params: { reservationKey: string }) =>

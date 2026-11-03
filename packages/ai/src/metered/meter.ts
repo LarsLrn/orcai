@@ -41,9 +41,7 @@ export interface Meter {
 	readonly settle: (outcome: MeteredCallOutcome) => Effect.Effect<void>;
 }
 
-const denialError = (
-	denialReason: "no_pool" | "exhausted" | "error" | undefined,
-) => {
+const denialError = (denialReason: "no_pool" | "exhausted" | undefined) => {
 	switch (denialReason) {
 		case "no_pool":
 			return new QuotaDeniedError({
