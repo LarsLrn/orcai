@@ -92,10 +92,7 @@ export const resourceIdentitySchema = z.discriminatedUnion(
 	resourceIdentityVariants,
 );
 
-export const resourceRefSchema = z.discriminatedUnion(
-	"type",
-	resourceRefVariants,
-);
+const resourceRefSchema = z.discriminatedUnion("type", resourceRefVariants);
 
 export const resourcePrincipalIdentitySchema = z.discriminatedUnion(
 	"principalType",
@@ -168,7 +165,7 @@ export const resourceGrantOriginSchema = z.enum([
 	RESOURCE_GRANT_ORIGIN.PUBLIC,
 ]);
 
-export const directGrantOriginSchema = z.enum([
+const directGrantOriginSchema = z.enum([
 	RESOURCE_GRANT_ORIGIN.DIRECT_USER,
 	RESOURCE_GRANT_ORIGIN.DIRECT_GROUP,
 	RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS,
@@ -296,7 +293,6 @@ export type ResourceGrantRole = z.infer<typeof resourceGrantRoleSchema>;
 export type ResourceVisibility = z.infer<typeof resourceVisibilitySchema>;
 export type ListingImpact = z.infer<typeof listingImpactSchema>;
 export type PrincipalType = z.infer<typeof principalTypeSchema>;
-export type ResourceGrantOrigin = z.infer<typeof resourceGrantOriginSchema>;
 export type ResourceOwner = z.infer<typeof resourceOwnerSchema>;
 export type HomeOrganization = z.infer<typeof homeOrganizationSchema>;
 export type DirectGrantOrigin = z.infer<typeof directGrantOriginSchema>;

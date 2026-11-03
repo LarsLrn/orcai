@@ -11,10 +11,6 @@ export const organizationInvitationResponseActionSchema = z.enum([
 	"reject",
 ]);
 
-export type OrganizationInvitationResponseAction = z.infer<
-	typeof organizationInvitationResponseActionSchema
->;
-
 export const organizationInvitationStatusSchema = z.enum([
 	"pending",
 	"accepted",
@@ -31,14 +27,10 @@ export const organizationInvitationValidationReasonSchema = z.enum([
 	"expired",
 ]);
 
-export type OrganizationInvitationValidationReason = z.infer<
-	typeof organizationInvitationValidationReasonSchema
->;
-
 /** How long a new invitation stays valid unless the inviter picks another date. */
 export const DEFAULT_INVITATION_TTL_DAYS = 7;
 
-export const organizationInvitationFieldsSchema = z.object({
+const organizationInvitationFieldsSchema = z.object({
 	organizationId: organizationIdSchema,
 	email: z.email(),
 	role: organizationRoleSchema,

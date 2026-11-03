@@ -23,8 +23,6 @@ export const instanceSettingsSchema = z.object({
 	embeddings: embeddingSettingsSchema.nullable(),
 });
 
-export type InstanceSettings = z.infer<typeof instanceSettingsSchema>;
-
 /** How far re-embedding got, counted without naming any file or repository. */
 export const embeddingProgressSchema = z.object({
 	generation: z.number().int().positive(),

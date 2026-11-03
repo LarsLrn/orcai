@@ -34,7 +34,7 @@ const namedAssetSchema = z.object({
  * `resolved` once every failure was repaired, `expired` for an export whose
  * download is gone.
  */
-export const activityRunStateSchema = z.enum([
+const activityRunStateSchema = z.enum([
 	"running",
 	"finished",
 	"failed",
@@ -43,7 +43,7 @@ export const activityRunStateSchema = z.enum([
 ]);
 
 /** One entry in the user's activity: an action and how its work went. */
-export const activityRunSchema = z.object({
+const activityRunSchema = z.object({
 	id: activityRunIdSchema,
 	kind: activityRunKindSchema,
 	state: activityRunStateSchema,
@@ -73,7 +73,7 @@ export const activityRunSchema = z.object({
 		.nullable(),
 });
 
-export const activityMemberSchema = z.object({
+const activityMemberSchema = z.object({
 	asset: namedAssetSchema,
 	/** Each stage of the run's work on the asset; null when not the run's work or not readable. */
 	processing: activityStageStateSchema.nullable(),
@@ -84,7 +84,7 @@ export const activityMemberSchema = z.object({
 });
 
 /** A failure that needs the user, until it is repaired or they dismiss it. */
-export const activityFailureSchema = z.object({
+const activityFailureSchema = z.object({
 	occurrenceId: z.uuid(),
 	stage: activityStageSchema,
 	failure: pipelineFailureSchema.nullable(),
@@ -94,7 +94,7 @@ export const activityFailureSchema = z.object({
 	organization: namedOrganizationSchema.nullable(),
 });
 
-export const activitySuggestionsSchema = z.object({
+const activitySuggestionsSchema = z.object({
 	organization: namedOrganizationSchema,
 	count: z.number().int(),
 });

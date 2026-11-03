@@ -141,16 +141,6 @@
 				"src/**/*.{ts,tsx}"
 			]
 		},
-		"packages/schema": {
-			"entry": [
-				"src/index.ts",
-				"src/**/*.test.ts",
-				"test/**/*.{test,integration}.ts"
-			],
-			"project": [
-				"src/**/*.{ts,tsx}"
-			]
-		},
 		"packages/*": {
 			"entry": [
 				"src/index.ts",

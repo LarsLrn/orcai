@@ -1,8 +1,6 @@
 import {
 	AUTHZ_CAPABILITIES_BY_ENTITY,
 	AUTHZ_CAPABILITY_ENTITY_TYPES,
-	type Capability,
-	type CapabilityByEntity,
 	type CapabilityEntityType,
 	type CapabilityFor,
 	type EntityCapabilities,
@@ -15,15 +13,15 @@ export const organizationCapabilitySchema = z.enum(
 	AUTHZ_CAPABILITIES_BY_ENTITY.organization,
 );
 
-export const groupCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.group);
+const groupCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.group);
 
 export const botCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.bot);
 
-export const blockCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.block);
+const blockCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.block);
 
 export const assetCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.asset);
 
-export const chatCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.chat);
+const chatCapabilitySchema = z.enum(AUTHZ_CAPABILITIES_BY_ENTITY.chat);
 
 export const capabilitySchema = z.union([
 	organizationCapabilitySchema,
@@ -34,27 +32,7 @@ export const capabilitySchema = z.union([
 	chatCapabilitySchema,
 ]);
 
-export const capabilityByEntitySchema = {
-	organization: organizationCapabilitySchema,
-	group: groupCapabilitySchema,
-	bot: botCapabilitySchema,
-	block: blockCapabilitySchema,
-	asset: assetCapabilitySchema,
-	chat: chatCapabilitySchema,
-} as const;
-
 export const entityCapabilitiesSchema = z.record(z.string(), z.boolean());
 
-export type {
-	Capability,
-	CapabilityByEntity,
-	CapabilityEntityType,
-	CapabilityFor,
-	EntityCapabilities,
-};
+export type { CapabilityEntityType, CapabilityFor, EntityCapabilities };
 export type OrganizationCapability = CapabilityFor<"organization">;
-export type GroupCapability = CapabilityFor<"group">;
-export type BotCapability = CapabilityFor<"bot">;
-export type BlockCapability = CapabilityFor<"block">;
-export type AssetCapability = CapabilityFor<"asset">;
-export type ChatCapability = CapabilityFor<"chat">;

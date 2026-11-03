@@ -67,20 +67,8 @@ export const deleteAssetsInputSchema = z.object({
 });
 
 export type ListAssetsInput = z.infer<typeof listAssetsInputSchema>;
-export type FindAssetInput = z.infer<typeof findAssetInputSchema>;
 export type SaveAssetInput = z.infer<typeof saveAssetInputSchema>;
-export type AddAssetToLibraryInput = z.infer<
-	typeof addAssetToLibraryInputSchema
->;
-export type CreateAssetsFromUploadsInput = z.infer<
-	typeof createAssetsFromUploadsInputSchema
->;
-export type DeleteAssetsInput = z.infer<typeof deleteAssetsInputSchema>;
 
 export const prepareAssetAgainInputSchema = z.object({
 	id: assetIdSchema,
 });
-
-export type PrepareAssetAgainInput = z.infer<
-	typeof prepareAssetAgainInputSchema
->;

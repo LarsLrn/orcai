@@ -11,8 +11,3 @@ export const bootstrapInitializeInputSchema = z.object({
 	organizationName: createOrganizationInputSchema.shape.name,
 	organizationSlug: createOrganizationInputSchema.shape.slug,
 });
-
-export type BootstrapStatusInput = z.infer<typeof bootstrapStatusInputSchema>;
-export type BootstrapInitializeInput = z.infer<
-	typeof bootstrapInitializeInputSchema
->;

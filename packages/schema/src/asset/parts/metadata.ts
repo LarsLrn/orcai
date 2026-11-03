@@ -64,7 +64,7 @@ const TYPE_INDEPENDENT_FIELDS = [
 ] as const satisfies readonly (keyof AssetMetadataType)[];
 
 /** The fields each source type has, as the editor shows them. */
-export const SOURCE_TYPE_FIELDS = {
+const SOURCE_TYPE_FIELDS = {
 	book: [
 		"author",
 		"citationLabel",

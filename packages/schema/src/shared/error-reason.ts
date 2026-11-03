@@ -171,7 +171,7 @@ export const errorReasonSchema = z.enum(ERROR_REASONS);
 
 export type ErrorReason = z.infer<typeof errorReasonSchema>;
 
-export const GRANT_REJECTION_REASONS = [
+const GRANT_REJECTION_REASONS = [
 	"ALL_MEMBERS_VIEWER_ONLY",
 	"GROUP_NOT_IN_SCOPE",
 	"GROUP_NOT_JOINED",
@@ -267,7 +267,7 @@ export const NOT_FOUND_ENTITIES = [
 	"user",
 ] as const;
 
-export const notFoundEntitySchema = z.enum(NOT_FOUND_ENTITIES);
+const notFoundEntitySchema = z.enum(NOT_FOUND_ENTITIES);
 
 export type NotFoundEntity = z.infer<typeof notFoundEntitySchema>;
 

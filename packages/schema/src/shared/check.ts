@@ -1,18 +1,18 @@
 import { z } from "zod/v4";
 
-export const checkStatusSchema = z.enum([
+const checkStatusSchema = z.enum([
 	"ok",
 	"warning",
 	"failing",
 ]);
 
-export const checkSeveritySchema = z.enum([
+const checkSeveritySchema = z.enum([
 	"required",
 	"recommended",
 ]);
 
 /** Stable codes the client translates; `detail` carries untranslated technical text. */
-export const CHECK_REASONS = [
+const CHECK_REASONS = [
 	"DEPENDENCY_REACHABLE",
 	"DEPENDENCY_UNREACHABLE",
 	"DEPENDENCY_TIMEOUT",
@@ -49,7 +49,7 @@ export const CHECK_REASONS = [
 	"COVERAGE_GAPS",
 ] as const;
 
-export const checkReasonSchema = z.enum(CHECK_REASONS);
+const checkReasonSchema = z.enum(CHECK_REASONS);
 
 /** One line of a check list: what was checked, how it stands, and why. */
 export const checkSchema = z.object({
@@ -70,6 +70,5 @@ export const checkSchema = z.object({
 });
 
 export type CheckStatus = z.infer<typeof checkStatusSchema>;
-export type CheckSeverity = z.infer<typeof checkSeveritySchema>;
 export type CheckReason = z.infer<typeof checkReasonSchema>;
 export type Check = z.infer<typeof checkSchema>;

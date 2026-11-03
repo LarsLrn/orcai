@@ -16,7 +16,7 @@ import {
 	userIdSchema,
 } from "../shared/ids";
 
-export const organizationMemberFieldsSchema = z.object({
+const organizationMemberFieldsSchema = z.object({
 	organizationId: organizationIdSchema,
 	userId: userIdSchema,
 	role: organizationRoleSchema,
@@ -70,6 +70,5 @@ export const memberAccessEntrySchema = z.discriminatedUnion("resourceType", [
 	botResourceIdentitySchema.extend(memberAccessFields),
 ]);
 
-export type OrganizationMember = z.infer<typeof organizationMemberSchema>;
 export type MemberAccessEntry = z.infer<typeof memberAccessEntrySchema>;
 export type MemberAccessOrigin = z.infer<typeof memberAccessOriginSchema>;

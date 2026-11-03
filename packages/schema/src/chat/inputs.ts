@@ -11,7 +11,7 @@ import { zedTokenSchema } from "../shared/zed-token";
 import { chatConfigPatchSchema } from "./parts/config";
 import { chatFiltersSchema, chatMutableFieldsSchema } from "./schema";
 
-export const chatSortKeySchema = z.enum([
+const chatSortKeySchema = z.enum([
 	"title",
 	"botName",
 	"updatedAt",
@@ -62,11 +62,3 @@ export const branchChatInputSchema = z.object({
 
 export type ListChatsInput = z.infer<typeof listChatsInputSchema>;
 export type ChatSortKey = z.infer<typeof chatSortKeySchema>;
-export type ListChatHistoryInput = z.infer<typeof listChatHistoryInputSchema>;
-export type FindChatInput = z.infer<typeof findChatInputSchema>;
-export type CreateChatInput = z.infer<typeof createChatInputSchema>;
-export type DefaultChatModelInput = z.infer<typeof defaultChatModelInputSchema>;
-export type UpdateChatInput = z.infer<typeof updateChatInputSchema>;
-export type PinChatInput = z.infer<typeof pinChatInputSchema>;
-export type DeleteChatInput = z.infer<typeof deleteChatInputSchema>;
-export type BranchChatInput = z.infer<typeof branchChatInputSchema>;

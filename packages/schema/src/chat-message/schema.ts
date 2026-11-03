@@ -3,7 +3,7 @@ import { chatIdSchema, chatMessageIdSchema } from "../shared/ids";
 import { chatMessageAttachmentSchema } from "./parts/attachment";
 import { chatMessageMetadataSchema } from "./parts/metadata";
 
-export const chatMessagePartsSchema = z.array(z.unknown());
+const chatMessagePartsSchema = z.array(z.unknown());
 
 const chatMessageFieldsSchema = z.object({
 	chatId: chatIdSchema,
@@ -28,4 +28,3 @@ export const chatMessageRatingSchema = z.enum([
 
 export type ChatMessageRating = z.infer<typeof chatMessageRatingSchema>;
 export type ChatMessageParts = z.infer<typeof chatMessagePartsSchema>;
-export type ChatMessage = z.infer<typeof chatMessageSchema>;

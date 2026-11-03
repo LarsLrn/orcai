@@ -18,7 +18,3 @@ export const detachChatBlockInputSchema = z.object({
 	blockId: blockIdSchema,
 	...zedTokenSchema.shape,
 });
-
-export type ListChatBlocksInput = z.infer<typeof listChatBlocksInputSchema>;
-export type AttachChatBlockInput = z.infer<typeof attachChatBlockInputSchema>;
-export type DetachChatBlockInput = z.infer<typeof detachChatBlockInputSchema>;

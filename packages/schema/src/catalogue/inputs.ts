@@ -19,7 +19,7 @@ export const catalogueKindSchema = z.enum([
  * Bots by the model their author's setup asks for: any, none ("works with
  * any model"), a recommended one ("tuned for") or a required one.
  */
-export const catalogueModelFilterSchema = z.enum([
+const catalogueModelFilterSchema = z.enum([
 	"any",
 	"none",
 	"recommended",
@@ -27,7 +27,7 @@ export const catalogueModelFilterSchema = z.enum([
 ]);
 
 /** A catalogue entry: a listed bot or block. */
-export const catalogueEntryRefSchema = z.discriminatedUnion("resourceType", [
+const catalogueEntryRefSchema = z.discriminatedUnion("resourceType", [
 	botResourceIdentitySchema,
 	blockResourceIdentitySchema,
 ]);
@@ -76,15 +76,3 @@ export type CatalogueModelFilter = z.infer<typeof catalogueModelFilterSchema>;
 export type CatalogueEntryRef = z.infer<typeof catalogueEntryRefSchema>;
 export type ListCatalogueInput = z.infer<typeof listCatalogueInputSchema>;
 export type CatalogueCountsInput = z.infer<typeof catalogueCountsInputSchema>;
-export type FindCatalogueEntryInput = z.infer<
-	typeof findCatalogueEntryInputSchema
->;
-export type AddCatalogueEntryInput = z.infer<
-	typeof addCatalogueEntryInputSchema
->;
-export type AddCatalogueBotBlocksInput = z.infer<
-	typeof addCatalogueBotBlocksInputSchema
->;
-export type RemoveCatalogueEntryInput = z.infer<
-	typeof removeCatalogueEntryInputSchema
->;

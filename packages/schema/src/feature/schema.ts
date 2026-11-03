@@ -56,7 +56,6 @@ export const CHAT_FEATURE_IDS = Object.keys(
 
 export type FeatureId = z.infer<typeof featureIdSchema>;
 export type Features = z.infer<typeof featuresSchema>;
-export type WebSearchSettings = z.infer<typeof webSearchSettingsSchema>;
 
 /** Features enabled on new bots and new plain chats. */
 export const DEFAULT_FEATURES: Features = {

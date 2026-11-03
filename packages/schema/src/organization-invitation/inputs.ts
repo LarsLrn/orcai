@@ -12,7 +12,7 @@ import {
 	organizationInvitationStatusSchema,
 } from "./schema";
 
-export const organizationInvitationSortKeySchema = z.enum([
+const organizationInvitationSortKeySchema = z.enum([
 	"email",
 	"id",
 	"expiresAt",
@@ -117,19 +117,4 @@ export type OrganizationInvitationSortKey = z.infer<
 >;
 export type CreateOrganizationInvitationsInput = z.infer<
 	typeof createOrganizationInvitationsInputSchema
->;
-export type FindOrganizationInvitationInput = z.infer<
-	typeof findOrganizationInvitationInputSchema
->;
-export type ValidateOrganizationInvitationInput = z.infer<
-	typeof validateOrganizationInvitationInputSchema
->;
-export type UpdateOrganizationInvitationInput = z.infer<
-	typeof updateOrganizationInvitationInputSchema
->;
-export type DeleteOrganizationInvitationsInput = z.infer<
-	typeof deleteOrganizationInvitationsInputSchema
->;
-export type RespondToOrganizationInvitationInput = z.infer<
-	typeof respondToOrganizationInvitationInputSchema
 >;

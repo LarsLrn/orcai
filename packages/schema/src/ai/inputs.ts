@@ -25,7 +25,7 @@ export const aiChatInputSchema = z.object({
 
 export type AiChatInput = z.infer<typeof aiChatInputSchema>;
 
-export const toolApprovalDecisionSchema = z.object({
+const toolApprovalDecisionSchema = z.object({
 	approvalId: z.string().min(1).max(200),
 	approved: z.boolean(),
 	reason: z.string().max(1000).optional(),
@@ -36,7 +36,7 @@ export type ToolApprovalDecision = z.infer<typeof toolApprovalDecisionSchema>;
 const toolCallIdSchema = z.string().min(1).max(200);
 
 /** A client tool's result; the server validates `output` against that tool's schema. */
-export const clientToolOutputSchema = z.strictObject({
+const clientToolOutputSchema = z.strictObject({
 	toolCallId: toolCallIdSchema,
 	output: z.unknown(),
 });
@@ -72,5 +72,3 @@ export const recordTurnWritesInputSchema = z.object({
 	messageId: chatMessageIdSchema,
 	...zedTokenSchema.shape,
 });
-
-export type RecordTurnWritesInput = z.infer<typeof recordTurnWritesInputSchema>;

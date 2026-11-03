@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { checkSchema } from "../shared/check";
 
 /** What an organisation needs before its members can chat, in setup order. */
-export const ORGANIZATION_CHECK_IDS = [
+const ORGANIZATION_CHECK_IDS = [
 	"provider",
 	"chat-model",
 	"pool",
@@ -14,9 +14,9 @@ export const ORGANIZATION_CHECK_IDS = [
 	"coverage",
 ] as const;
 
-export const organizationCheckIdSchema = z.enum(ORGANIZATION_CHECK_IDS);
+const organizationCheckIdSchema = z.enum(ORGANIZATION_CHECK_IDS);
 
-export const organizationCheckSchema = checkSchema.extend({
+const organizationCheckSchema = checkSchema.extend({
 	id: organizationCheckIdSchema,
 });
 

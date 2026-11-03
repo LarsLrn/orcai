@@ -12,9 +12,7 @@ import type { ErrorReason } from "../shared/error-reason";
 import { organizationIdSchema, providerIdSchema } from "../shared/ids";
 import { currencySchema, priceSchema } from "../shared/primitives/money";
 
-export const providerKindSchema = z.enum(
-	providerKinds.map((entry) => entry.kind),
-);
+const providerKindSchema = z.enum(providerKinds.map((entry) => entry.kind));
 
 export const providerMeteringModeSchema = z.enum(providerMeteringModes);
 
@@ -192,4 +190,3 @@ export const providerFiltersSchema = z.object({
 });
 
 export type Provider = z.infer<typeof providerSchema>;
-export type ProviderDetail = z.infer<typeof providerDetailSchema>;

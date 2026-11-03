@@ -10,7 +10,7 @@ import {
 	modelMutableFieldsSchema,
 } from "./schema";
 
-export const modelSortKeySchema = z.enum([
+const modelSortKeySchema = z.enum([
 	"name",
 	"providerName",
 	"isDeprecated",
@@ -53,10 +53,6 @@ export const discoverModelsInputSchema = z.object({
 	providerId: providerIdSchema,
 });
 
-export type ListModelsInput = z.infer<typeof listModelsInputSchema>;
 export type ModelSortKey = z.infer<typeof modelSortKeySchema>;
-export type FindModelInput = z.infer<typeof findModelInputSchema>;
 export type CreateModelInput = z.infer<typeof createModelInputSchema>;
 export type UpdateModelInput = z.infer<typeof updateModelInputSchema>;
-export type DeleteModelsInput = z.infer<typeof deleteModelsInputSchema>;
-export type DiscoverModelsInput = z.infer<typeof discoverModelsInputSchema>;

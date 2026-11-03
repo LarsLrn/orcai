@@ -6,5 +6,3 @@ export const chatBlockSchema = z.object({
 	chatId: chatIdSchema,
 	createdAt: z.coerce.date(),
 });
-
-export type ChatBlock = z.infer<typeof chatBlockSchema>;

@@ -30,16 +30,14 @@ export const botFieldsSchema = z.object({
 	features: featuresSchema,
 });
 
-export const botMutableFieldsSchema = botFieldsSchema.partial();
-
-export const botSchema = botFieldsSchema.extend({
+const botSchema = botFieldsSchema.extend({
 	id: botIdSchema,
 	userId: userIdSchema,
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
 });
 
-export const botWithCapabilitiesSchema = botSchema.extend({
+const botWithCapabilitiesSchema = botSchema.extend({
 	capabilities: entityCapabilitiesSchema,
 	isFavourite: z.boolean(),
 });
@@ -77,14 +75,14 @@ const botEditorBlockSchema = z.object({
 	status: publicationStatusSchema,
 });
 
-export const botEditorBehaviourSchema = botEditorBlockSchema
+const botEditorBehaviourSchema = botEditorBlockSchema
 	.extend({
 		type: behaviourSchema.shape.type.default("behaviour"),
 		config: behaviourSchema.shape.config,
 	})
 	.nullable();
 
-export const botEditorRepositorySchema = botEditorBlockSchema.extend({
+const botEditorRepositorySchema = botEditorBlockSchema.extend({
 	type: z.literal("repository").default("repository"),
 	config: repositorySchema.shape.config,
 	assetIds: z.array(assetSchema.shape.id).default([]),
@@ -106,5 +104,4 @@ export const botEditorSchema = z.object({
 export type Bot = z.infer<typeof botSchema>;
 export type BotWithCapabilities = z.infer<typeof botWithCapabilitiesSchema>;
 export type BotListItem = z.infer<typeof botListItemSchema>;
-export type BotWithBlocks = z.infer<typeof botWithBlocksSchema>;
 export type BotEditor = z.infer<typeof botEditorSchema>;

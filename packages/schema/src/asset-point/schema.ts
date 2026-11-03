@@ -32,7 +32,7 @@ const textPointPayloadSchema = baseChunkPayloadSchema.extend({
 	source: z.literal("text"),
 });
 
-export const assetPointPayloadSchema = z.discriminatedUnion("source", [
+const assetPointPayloadSchema = z.discriminatedUnion("source", [
 	imagePointPayloadSchema,
 	textPointPayloadSchema,
 ]);

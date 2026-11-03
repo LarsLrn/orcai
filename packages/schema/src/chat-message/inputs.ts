@@ -30,10 +30,3 @@ export const listChatMessageRatingsInputSchema = z.object({
 	chatId: chatMessageSchema.shape.chatId,
 	...zedTokenSchema.shape,
 });
-
-export type ListChatMessagesInput = z.infer<typeof listChatMessagesInputSchema>;
-export type ListChatMessageRatingsInput = z.infer<
-	typeof listChatMessageRatingsInputSchema
->;
-export type FindChatMessageInput = z.infer<typeof findChatMessageInputSchema>;
-export type RateChatMessageInput = z.infer<typeof rateChatMessageInputSchema>;
