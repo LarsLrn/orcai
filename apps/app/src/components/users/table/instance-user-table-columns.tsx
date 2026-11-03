@@ -3,9 +3,10 @@ import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { DisplayTimestamp } from "@/components/app/display-time";
 import { Badge } from "@/components/ui/badge";
+import { createDataTableActionsColumn } from "@/components/ui/data-table/data-table-actions-column";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
-import { InstanceUserRowMenu } from "@/components/users/instance-user-actions";
+import { useInstanceUserActions } from "@/components/users/instance-user-actions";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
 import { formatCount } from "@/lib/presentation/format-number";
@@ -113,11 +114,5 @@ export const instanceUserTableColumns = columnHelper.columns([
 			label: m.common_created_column_header,
 		},
 	}),
-	columnHelper.display({
-		id: "actions",
-		size: 32,
-		enableSorting: false,
-		enableHiding: false,
-		cell: ({ row }) => <InstanceUserRowMenu user={row.original} />,
-	}),
+	createDataTableActionsColumn<InstanceUser>(useInstanceUserActions),
 ]);

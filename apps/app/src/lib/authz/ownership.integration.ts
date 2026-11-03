@@ -451,6 +451,33 @@ const handOver = (
 		),
 	);
 
+/** Whether the actor is offered Hand over on each item, as `hand_over` reads. */
+const offersHandOver = async (actor: Actor, content: Content) => {
+	const check = (entityType: "bot" | "block" | "asset", entityId: string) =>
+		call(actor, (options) =>
+			procedures.authorization.check(
+				{
+					entityType,
+					entityId,
+					permission: "hand_over",
+				},
+				options,
+			),
+		).then(({ data }) => data.allowed);
+	const [bot, block, asset, upload] = await Promise.all([
+		check("bot", content.botId),
+		check("block", content.blockId),
+		check("asset", content.assetId),
+		check("asset", content.uploadId),
+	]);
+	return {
+		bot,
+		block,
+		asset,
+		upload,
+	};
+};
+
 const isMember = (organizationId: OrganizationId, userId: UserId) =>
 	run(
 		Effect.gen(function* () {
@@ -951,6 +978,13 @@ describe("handing one item over", () => {
 				resourceId: content.botId,
 			};
 
+			expect(await offersHandOver(owner, content)).toEqual({
+				bot: true,
+				block: true,
+				asset: true,
+				upload: false,
+			});
+
 			await handOver(owner, bot, receiver.user.id);
 
 			expect((await ownersOf(content)).bot).toBe(receiver.user.id);
@@ -999,12 +1033,14 @@ describe("handing one item over", () => {
 			for (const actor of [
 				manager,
 				admin,
-			])
+			]) {
+				expect((await offersHandOver(actor, content)).bot).toBe(false);
 				expect(
 					await rejection(handOver(actor, bot, receiver.user.id)),
 				).toMatchObject({
 					reason: "PERMISSION_DENIED",
 				});
+			}
 			expect((await ownersOf(content)).bot).toBe(owner.user.id);
 		},
 		TIMEOUT,
@@ -1036,6 +1072,7 @@ describe("handing one item over", () => {
 			);
 			const away = await signIn(elsewhere, owner.user.id);
 
+			expect((await offersHandOver(away, content)).bot).toBe(false);
 			expect(
 				await rejection(
 					handOver(

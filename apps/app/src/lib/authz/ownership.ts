@@ -6,9 +6,9 @@ import {
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
-import type { ReadRevision } from "@orcai/spice-db";
-import { and, asc, eq, inArray, isNull, notInArray } from "drizzle-orm";
+import { DB, dbSchema, resourceTables } from "@orcai/db";
+import type { EntityIdFor, ReadRevision, ResourceType } from "@orcai/spice-db";
+import { and, asc, eq, inArray, isNull, ne, notInArray } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -588,6 +588,51 @@ const requireOwnerAtHome = (params: {
 		)
 			return yield* Effect.fail(ownerOnly());
 		return home;
+	});
+
+/**
+ * The items of `resourceIds` the user may hand over from `organizationId`,
+ * by the rule {@link requireOwnerAtHome} enforces.
+ */
+export const handOverableIds = <Type extends ResourceType>(params: {
+	resourceType: Type;
+	resourceIds: readonly EntityIdFor<Type>[];
+	userId: UserId;
+	organizationId: OrganizationId | undefined;
+}) =>
+	Effect.gen(function* () {
+		const { organizationId } = params;
+		if (!organizationId || params.resourceIds.length === 0)
+			return new Set<string>();
+		const table = resourceTables[params.resourceType];
+		const home = dbSchema.resourceScope;
+		const rows = yield* (yield* DB)
+			.select({
+				id: home.resourceId,
+			})
+			.from(table)
+			.innerJoin(
+				home,
+				and(
+					eq(home.resourceType, params.resourceType),
+					eq(home.resourceId, table.id),
+					eq(home.organizationId, organizationId),
+					eq(home.isPrimary, true),
+					isNull(home.endedAt),
+				),
+			)
+			.where(
+				and(
+					inArray(table.id, [
+						...params.resourceIds,
+					] as (typeof table.id._.data)[]),
+					eq(table.userId, params.userId),
+					params.resourceType === "asset"
+						? ne(dbSchema.asset.keptIn, "chat")
+						: undefined,
+				),
+			);
+		return new Set<string>(rows.map((row) => row.id));
 	});
 
 /** The members the item's owner may hand it to, checked in Postgres. */

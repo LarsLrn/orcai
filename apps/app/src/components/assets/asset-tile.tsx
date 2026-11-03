@@ -5,7 +5,7 @@ import type {
 	AssetWithCapabilities,
 } from "@orcai/schema";
 import { MessageSquareIcon } from "lucide-react";
-import { useAssetActions } from "@/components/assets/asset-actions";
+import { useAssetActions } from "@/components/library/resource-actions";
 import { Badge } from "@/components/ui/badge";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import {

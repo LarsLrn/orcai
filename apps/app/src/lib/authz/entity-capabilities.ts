@@ -3,7 +3,11 @@ import type {
 	OrganizationPermission,
 	UserId,
 } from "@orcai/core";
-import type { CapabilityEntityType, EntityCapabilities } from "@orcai/schema";
+import type {
+	CapabilityEntityType,
+	CapabilityFor,
+	EntityCapabilities,
+} from "@orcai/schema";
 import {
 	type EntityIdFor,
 	grantedPermissions,
@@ -15,6 +19,7 @@ import * as Effect from "effect/Effect";
 import { capabilitySets, emptyCapabilities } from "@/lib/authz/capabilities";
 import { committedRoles, roleGrants } from "@/lib/authz/organization-access";
 import { usableInOrganization } from "@/lib/authz/organization-use";
+import { handOverableIds } from "@/lib/authz/ownership";
 
 type CapabilityParams<Entity extends CapabilityEntityType> = {
 	entityType: Entity;
@@ -22,7 +27,7 @@ type CapabilityParams<Entity extends CapabilityEntityType> = {
 	/** Where `use` is decided for bots, blocks and assets; without one they read false. */
 	organizationId: OrganizationId | undefined;
 	/** Defaults to every capability of the entity type; the others read false. */
-	permissions?: readonly PermissionFor<Entity>[];
+	permissions?: readonly CapabilityFor<Entity>[];
 	zedToken?: ReadRevision;
 };
 
@@ -113,23 +118,59 @@ const narrowOrganization = <Entity extends CapabilityEntityType>(
 		);
 	});
 
+/** Adds `hand_over`, which Postgres decides, where the user may hand the item over. */
+const addHandOver = <Entity extends CapabilityEntityType>(
+	granted: ReadonlyMap<EntityIdFor<Entity>, ReadonlySet<string>>,
+	params: CapabilityParams<Entity> & {
+		entityIds: readonly EntityIdFor<Entity>[];
+	},
+) =>
+	Effect.gen(function* () {
+		const { entityType } = params;
+		if (!isResourceType(entityType)) return granted;
+		const handOverable: ReadonlySet<string> = yield* handOverableIds({
+			resourceType: entityType,
+			resourceIds: params.entityIds as EntityIdFor<typeof entityType>[],
+			userId: params.userId,
+			organizationId: params.organizationId,
+		});
+		return new Map(
+			params.entityIds.map((id) => [
+				id,
+				handOverable.has(id)
+					? new Set([
+							...(granted.get(id) ?? []),
+							"hand_over",
+						])
+					: (granted.get(id) ?? new Set<string>()),
+			]),
+		);
+	});
+
 /** The capabilities the user holds on each of `entityIds`. */
 export const getManyEntityCapabilities = <Entity extends CapabilityEntityType>(
 	params: CapabilityParams<Entity> & {
 		entityIds: readonly EntityIdFor<Entity>[];
 	},
-) =>
-	grantedPermissions({
+) => {
+	const requested: readonly string[] =
+		params.permissions ?? capabilitySets[params.entityType];
+	return grantedPermissions({
 		entityType: params.entityType,
 		entityIds: params.entityIds,
-		permissions:
-			params.permissions ??
-			(capabilitySets[params.entityType] as readonly PermissionFor<Entity>[]),
+		permissions: requested.filter(
+			(permission) => permission !== "hand_over",
+		) as PermissionFor<Entity>[],
 		userId: params.userId,
 		zedToken: params.zedToken,
 	}).pipe(
 		Effect.flatMap((granted) => narrowUse(granted, params)),
 		Effect.flatMap((granted) => narrowOrganization(granted, params)),
+		Effect.flatMap((granted) =>
+			requested.includes("hand_over")
+				? addHandOver(granted, params)
+				: Effect.succeed(granted),
+		),
 		Effect.map(
 			(granted) =>
 				new Map(
@@ -148,6 +189,7 @@ export const getManyEntityCapabilities = <Entity extends CapabilityEntityType>(
 				),
 		),
 	);
+};
 
 /** The capabilities the user holds on one entity. */
 export const getEntityCapabilities = <Entity extends CapabilityEntityType>(

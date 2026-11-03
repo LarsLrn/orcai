@@ -3,9 +3,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { BehaviourConfigCard } from "@/components/blocks/behaviour/behaviour-config";
-import { useBlockActions } from "@/components/blocks/block-actions";
 import { RepositoryConfigCard } from "@/components/blocks/repository/repository-config";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
+import { useBlockActions } from "@/components/library/resource-actions";
 import { Badge } from "@/components/ui/badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
