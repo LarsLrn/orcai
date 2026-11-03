@@ -1,5 +1,5 @@
 import type { AssetId, BlockId, BotId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, pageOf } from "@orcai/db";
 import type {
 	LibraryCounts,
 	LibraryEntry,
@@ -31,7 +31,6 @@ import {
 	libraryAccess,
 	type Reader,
 } from "@/lib/library/library-access";
-import { pageOf } from "@/lib/orpc/router/helpers/paging";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 /** How many tiles an overview shelf holds. */

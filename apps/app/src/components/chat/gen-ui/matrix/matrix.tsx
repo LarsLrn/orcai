@@ -1,11 +1,6 @@
 import { ChevronDownIcon } from "lucide-react";
 import { Fragment, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
-import {
-	type MatrixView,
-	rowNotes,
-} from "@/components/chat/gen-ui/matrix/cells";
-import { statusLabel } from "@/components/chat/gen-ui/status";
 import { StatusIcon, Tally } from "@/components/chat/gen-ui/status-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,6 +11,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { type MatrixView, rowNotes } from "@/lib/ai/tools/gen-ui/matrix/cells";
+import { statusLabel } from "@/lib/ai/tools/gen-ui/status";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { assetIdSchema } from "@orcai/schema";
 import { asSchema } from "ai";
 import { z } from "zod/v4";
-import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
+import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
 import { toolInputSchema } from "./input-schema";
 
 const ASSET_ID = "9b2d4c6e-1f3a-4b5c-8d7e-0a1b2c3d4e5f";

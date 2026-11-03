@@ -2,8 +2,9 @@ import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/effect";
 import * as Effect from "effect/Effect";
 import { managedIds, requireReadable } from "@/lib/authz/content-access";
+import { permissionDenied } from "@/lib/authz/permission-denied";
 import { readRevision } from "@/lib/authz/zed-token";
-import { permissionBase, permissionDenied } from "./core";
+import { permissionBase } from "./core";
 
 type ZedTokenInput = {
 	zedToken?: string | undefined;

@@ -1,7 +1,5 @@
 import { ChevronDownIcon } from "lucide-react";
 import { MessageResponse } from "@/components/ai-elements/message";
-import type { ChecklistView } from "@/components/chat/gen-ui/checklist/read";
-import { statusLabel } from "@/components/chat/gen-ui/status";
 import {
 	StatusIcon,
 	statusTone,
@@ -13,6 +11,8 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { ChecklistView } from "@/lib/ai/tools/gen-ui/checklist/read";
+import { statusLabel } from "@/lib/ai/tools/gen-ui/status";
 import { cn } from "@/lib/utils";
 
 export const Checklist = ({

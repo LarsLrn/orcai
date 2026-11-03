@@ -7,12 +7,7 @@ export {
 	assetMetadataPrompt,
 	readAssetMetadata,
 } from "./asset-metadata";
-export {
-	chatTitlePrompt,
-	getChatTitleSourceText,
-	sanitizeGeneratedChatTitle,
-	shouldGenerateChatTitle,
-} from "./chat-title";
+export { chatTitlePrompt, sanitizeGeneratedChatTitle } from "./chat-title";
 export { countTokens } from "./count-tokens";
 export { AiError } from "./errors";
 export {

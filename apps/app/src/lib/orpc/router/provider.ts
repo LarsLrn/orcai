@@ -1,6 +1,12 @@
 import { encryptApiKey } from "@orcai/ai";
 import { providerKinds } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import {
 	type ModelCapability,
 	type ProviderSortKey,
@@ -11,8 +17,6 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import { pageOf } from "./helpers/paging";
-import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 /** Every column a caller may read; the encrypted API key stays server side. */
 const providerColumns = {
@@ -55,7 +59,7 @@ const listProviders = authed.provider.list
 		const countWhereClause =
 			countConditions.length > 0 ? and(...countConditions) : undefined;
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.provider.name,

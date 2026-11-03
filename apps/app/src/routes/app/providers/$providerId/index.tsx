@@ -34,11 +34,6 @@ import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
-	dataTableQuerySchema,
-	dataTableSearchDefaults,
-	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
-import {
 	DataTableToolbar,
 	DataTableToolbarActions,
 } from "@/components/ui/data-table/data-table-toolbar";
@@ -59,6 +54,11 @@ import {
 	SectionTitle,
 } from "@/components/ui/shell/section";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
+import {
+	dataTableQuerySchema,
+	dataTableSearchDefaults,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatPrice } from "@/lib/presentation/format-number";
 import { getModelCapabilityLabel } from "@/lib/presentation/model-capability";

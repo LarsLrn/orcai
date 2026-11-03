@@ -1,9 +1,4 @@
 import { type LucideIcon, WrenchIcon } from "lucide-react";
-import {
-	type DisplayToolName,
-	displayToolMarkdown,
-	primitiveCatalog,
-} from "@/components/chat/gen-ui/catalog";
 import { m } from "@/paraglide/messages";
 import { createBehaviour } from "./assistant/bots/create-behaviour.declaration";
 import { createBot } from "./assistant/bots/create-bot.declaration";
@@ -58,6 +53,7 @@ import type {
 } from "./declaration";
 import { readDocs } from "./docs/read-docs.declaration";
 import type { EntityRef } from "./entity-kind";
+import { displayTools } from "./gen-ui/display.declaration";
 import { askUser } from "./questions/ask-user.declaration";
 import { getAssetPage } from "./rag/get-asset-page.declaration";
 import { getPassages } from "./rag/get-passages.declaration";
@@ -65,30 +61,6 @@ import { listRepositoryAssets } from "./rag/list-repository-assets.declaration";
 import { searchRepositories } from "./rag/search-repositories.declaration";
 import { nativeWebSearch } from "./web/native-web-search.declaration";
 import { searchWeb } from "./web/search-web.declaration";
-
-const displayTools = Object.fromEntries(
-	Object.entries(primitiveCatalog).map(
-		([name, { icon, name: label, active }]) => [
-			name,
-			{
-				kind: "display",
-				group: "core",
-				icon,
-				name: label,
-				active,
-				markdown: ({ input, output }) =>
-					displayToolMarkdown(name as DisplayToolName, input, output) ??
-					undefined,
-			},
-		],
-	),
-) as Record<
-	DisplayToolName,
-	ToolDeclaration & {
-		kind: "display";
-		group: "core";
-	}
->;
 
 /** Every tool of plain and assistant chats; the assistant offers its own in this order. */
 const toolDeclarations = {

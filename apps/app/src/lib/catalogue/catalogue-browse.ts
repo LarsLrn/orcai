@@ -1,5 +1,5 @@
 import type { AssetId, BlockId, BotId, OrganizationId } from "@orcai/core";
-import { DB, dbSchema, homeScopeOf } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf, ownerColumns, pageOf } from "@orcai/db";
 import { repositoryTotals } from "@orcai/preparation";
 import {
 	behaviourSchema,
@@ -30,8 +30,6 @@ import * as Effect from "effect/Effect";
 import { inLibrary } from "@/lib/authz/library";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { botDetails } from "@/lib/library/tile-details";
-import { pageOf } from "@/lib/orpc/router/helpers/paging";
-import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 /*

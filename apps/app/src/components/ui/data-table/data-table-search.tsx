@@ -1,7 +1,10 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useEffectEvent, useState } from "react";
 import { SearchField } from "@/components/ui/composed/search-field";
-import { dataTableQuerySchema, withQuery } from "./data-table-search-params";
+import {
+	dataTableQuerySchema,
+	withQuery,
+} from "@/lib/browse/data-table-search-params";
 
 type DataTableSearchProps = {
 	placeholder?: string;

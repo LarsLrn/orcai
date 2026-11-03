@@ -1,10 +1,13 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import {
+	buildOrderBy,
 	chatMessageSearchText,
 	chatMessageSearchVector,
 	chatTitleSearchVector,
 	DB,
 	dbSchema,
+	pageOf,
+	type SortExpression,
 } from "@orcai/db";
 import type { ChatSortKey } from "@orcai/schema";
 import {
@@ -61,8 +64,6 @@ import {
 	prefixTsQuery,
 	snippetOf,
 } from "./helpers/chat-search";
-import { pageOf } from "./helpers/paging";
-import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listChats = authed.chat.list
 	.use(requireOrganization())
@@ -132,7 +133,7 @@ const listChats = authed.chat.list
 		// A title term weighs ten times one in a message.
 		const rank = sql`greatest(ts_rank(setweight(${titleVector}, 'A'), ${tsQuery}), ${bestMessage.rank})`;
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				title: dbSchema.chat.title,

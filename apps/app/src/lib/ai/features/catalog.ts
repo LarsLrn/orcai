@@ -6,8 +6,8 @@ import {
 } from "@orcai/schema";
 import type { ToolSet } from "ai";
 import type { z } from "zod/v4";
-import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
-import { genUiPrompt } from "@/components/chat/gen-ui/prompt";
+import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
+import { genUiPrompt } from "@/lib/ai/tools/gen-ui/prompt";
 import { questionsPrompt } from "@/lib/ai/tools/questions/prompt";
 import type { QuizHistoryMessage } from "@/lib/ai/tools/questions/quiz-result";
 import { buildQuestionTools } from "@/lib/ai/tools/questions/toolset";

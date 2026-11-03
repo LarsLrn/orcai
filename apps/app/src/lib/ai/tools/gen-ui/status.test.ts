@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { tally } from "@/components/chat/gen-ui/status";
+import { tally } from "@/lib/ai/tools/gen-ui/status";
 
 describe("tally", () => {
 	test("counts not met, partial and met in that order", () => {

@@ -1,17 +1,13 @@
+import { uniqueViolationConstraint } from "@orcai/db";
 import { logFailure } from "@orcai/observability";
 import { isUnavailable } from "@orcai/spice-db";
-import {
-	COMMON_ERROR_STATUS_MAP,
-	ORPCError,
-	type ORPCErrorCode,
-} from "@orpc/server";
+import { ORPCError, type ORPCErrorCode } from "@orpc/server";
 import { isAbortError } from "@orpc/shared";
-import { EffectDrizzleQueryError } from "drizzle-orm/effect-core";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
-import { SqlError } from "effect/sql";
+import { isClientErrorCode } from "@/lib/effect/services/client-error-code";
 import {
 	type AppError,
 	ErrorTags,
@@ -30,21 +26,6 @@ const isAppError = (error: unknown): error is AppError => {
 		typeof error._tag === "string" &&
 		APP_ERROR_TAGS.has(error._tag)
 	);
-};
-
-/** The violated constraint when `error` is a unique violation. */
-export const uniqueViolationConstraint = (
-	error: unknown,
-): string | undefined => {
-	const failure =
-		error instanceof EffectDrizzleQueryError && Cause.isCause(error.cause)
-			? Cause.squash(error.cause)
-			: error;
-
-	return failure instanceof SqlError.SqlError &&
-		failure.reason._tag === "UniqueViolation"
-		? failure.reason.constraint
-		: undefined;
 };
 
 // Only the reason, its params and the typed data cross the wire. The English
@@ -161,11 +142,6 @@ const unknownToORPCError = (error: unknown): AnyORPCError => {
 		cause: error,
 	});
 };
-
-/** Whether the RPC handler answers `code` with a 4xx status; codes it has no status for get 500. */
-export const isClientErrorCode = (code: string): boolean =>
-	Object.hasOwn(COMMON_ERROR_STATUS_MAP, code) &&
-	COMMON_ERROR_STATUS_MAP[code as keyof typeof COMMON_ERROR_STATUS_MAP] < 500;
 
 /** A defect wins over failures alongside it, so the request answers 500. */
 const causeToORPCError = (cause: Cause.Cause<unknown>): AnyORPCError => {

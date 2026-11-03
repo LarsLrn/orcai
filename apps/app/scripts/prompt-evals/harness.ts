@@ -27,8 +27,6 @@ import {
 	type ToolSet,
 } from "ai";
 import * as Effect from "effect/Effect";
-import { buildGenUiTools } from "@/components/chat/gen-ui/catalog";
-import { genUiPrompt } from "@/components/chat/gen-ui/prompt";
 import {
 	type AssistantSession,
 	createAssistantSession,
@@ -52,6 +50,8 @@ import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
+import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
+import { genUiPrompt } from "@/lib/ai/tools/gen-ui/prompt";
 import type {
 	AskUserInput,
 	AskUserOutput,

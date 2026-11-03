@@ -3330,7 +3330,6 @@
 	"error_self_two_factor_reset_forbidden": "You cannot reset your own two-factor authentication.",
 	"error_session_not_found": "Your session could not be found. Sign in again.",
 	"error_session_not_fresh": "For this change, sign out and sign in again, then try once more.",
-	"error_sort_key_unsupported": "Sorting by \"{sortKey}\" is not supported.",
 	"error_system_group_immutable": "System groups cannot be changed.",
 	"error_token_invalid": "The link is invalid or has expired.",
 	"error_tool_not_available": "The model called a tool that was not available.",

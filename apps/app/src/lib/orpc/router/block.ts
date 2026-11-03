@@ -1,4 +1,4 @@
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import {
 	prepareRepositoryAssetAgain,
 	prepareRepositoryFailedAgain,
@@ -34,7 +34,6 @@ import {
 	requireEntityPermission,
 	requireReadableEntity,
 } from "@/lib/orpc/middlewares/permission";
-import { ownerColumns } from "@/lib/orpc/router/helpers/resource-owner";
 
 const listBlocks = authed.block.list
 	.use(requireOrganization())

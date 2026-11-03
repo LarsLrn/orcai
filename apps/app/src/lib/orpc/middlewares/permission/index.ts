@@ -1,5 +1,5 @@
 export { checkManyPermissionMiddleware } from "./checks";
-export { permissionDenied, requirePermission } from "./core";
+export { requirePermission } from "./core";
 export { requireEntityPermission } from "./require";
 export {
 	requireReadableEntity,

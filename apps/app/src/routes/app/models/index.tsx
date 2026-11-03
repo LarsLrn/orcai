@@ -11,10 +11,6 @@ import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import {
-	dataTableQuerySchema,
-	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
 	DataTableToolbar,
@@ -28,6 +24,10 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
+import {
+	dataTableQuerySchema,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { displayToolMarkdown } from "@/components/chat/gen-ui/catalog";
+import { displayToolMarkdown } from "@/lib/ai/tools/gen-ui/catalog";
 
 describe("showReview markdown", () => {
 	test("writes items with status, quoted text, findings and revision", () => {

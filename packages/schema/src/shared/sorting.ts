@@ -14,7 +14,3 @@ export const createSortingInputSchema = <
 		sort: z.array(sortingItemSchema).default([]),
 	});
 };
-
-export const sortingInputSchema = createSortingInputSchema(z.string().min(1));
-
-export type SortingInput = z.infer<typeof sortingInputSchema>;

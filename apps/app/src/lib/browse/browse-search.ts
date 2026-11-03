@@ -1,10 +1,10 @@
 import { librarySortSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 import {
+	DEFAULT_PAGE_SIZE,
 	dataTableQuerySchema,
 	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
-import { DEFAULT_PAGE_SIZE } from "@/components/ui/pager";
+} from "@/lib/browse/data-table-search-params";
 
 /*
  * Declarative filters of a browsing surface. Each definition is one search

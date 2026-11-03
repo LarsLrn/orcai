@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { toast } from "sonner";
-import { stripEmphasis } from "@/components/chat/gen-ui/review/findings";
+import { stripEmphasis } from "@/lib/ai/tools/gen-ui/review/findings";
 import { m } from "@/paraglide/messages";
 
 const renderHtml = async (markdown: string): Promise<Blob> => {

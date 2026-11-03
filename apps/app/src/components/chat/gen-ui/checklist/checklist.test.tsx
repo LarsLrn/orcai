@@ -7,11 +7,11 @@ import {
 	waitFor,
 	within,
 } from "@testing-library/react";
-import { readChecklist } from "@/components/chat/gen-ui/checklist/read";
+import { readChecklist } from "@/lib/ai/tools/gen-ui/checklist/read";
 import {
 	type ChecklistInput,
 	checklistSchema,
-} from "@/components/chat/gen-ui/checklist/schema";
+} from "@/lib/ai/tools/gen-ui/checklist/schema";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({

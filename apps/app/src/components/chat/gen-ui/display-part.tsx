@@ -2,14 +2,14 @@ import type { ToolUIPart } from "ai";
 import type { ComponentType } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import {
-	type DisplayToolName,
-	displayToolMarkdown,
-	primitiveCatalog,
-} from "@/components/chat/gen-ui/catalog";
-import {
 	type DisplayRendererProps,
 	displayRenderers,
 } from "@/components/chat/gen-ui/renderers";
+import {
+	type DisplayToolName,
+	displayToolMarkdown,
+	primitiveCatalog,
+} from "@/lib/ai/tools/gen-ui/catalog";
 import { toolNameOf } from "@/lib/ai/tools/registry";
 import { m } from "@/paraglide/messages";
 

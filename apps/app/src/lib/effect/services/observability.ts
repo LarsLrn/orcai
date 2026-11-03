@@ -10,7 +10,7 @@ import {
 	type TracingHeaders,
 	type TracingSpan,
 } from "@orpc/shared";
-import { isClientErrorCode } from "@/lib/orpc/implementation/error-mapping";
+import { isClientErrorCode } from "@/lib/effect/services/client-error-code";
 import { version } from "../../../../package.json" with { type: "json" };
 
 const isClientORPCError = (exception: TracingException) =>

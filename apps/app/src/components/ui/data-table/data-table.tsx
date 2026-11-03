@@ -7,6 +7,10 @@ import {
 	useTable,
 } from "@tanstack/react-table";
 import { useEffect } from "react";
+import {
+	withPagination,
+	withSorting,
+} from "@/lib/browse/data-table-search-params";
 import { cn } from "@/lib/utils";
 import { TableProvider } from "./data-table-context";
 import {
@@ -14,7 +18,6 @@ import {
 	type DataTableFeatures,
 	dataTableFeatures,
 } from "./data-table-features";
-import { withPagination, withSorting } from "./data-table-search-params";
 
 interface DataTableProps<TData extends RowData> {
 	columns: DataTableColumnDef<TData>[];

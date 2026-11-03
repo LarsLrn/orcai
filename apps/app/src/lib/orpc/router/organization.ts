@@ -5,7 +5,14 @@ import {
 	type OrganizationId,
 	type ProviderId,
 } from "@orcai/core";
-import { DB, dbSchema, isHome } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	isHome,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import {
 	DEFAULT_INVITATION_TTL_DAYS,
 	type InstanceOrganizationSortKey,
@@ -45,8 +52,6 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationById } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
-import { pageOf } from "./helpers/paging";
-import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listOrganizations = authed.organization.list.effect(function* ({
 	input,
@@ -70,7 +75,7 @@ const listOrganizations = authed.organization.list.effect(function* ({
 		};
 	}
 
-	const orderBy = yield* buildOrderBy({
+	const orderBy = buildOrderBy({
 		sort: input.sort,
 		allowlist: {
 			name: dbSchema.organization.name,
@@ -107,7 +112,7 @@ const listAllOrganizations = authed.organization.listAll
 		const db = yield* DB;
 		const memberCount = count(dbSchema.member.id);
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.organization.name,

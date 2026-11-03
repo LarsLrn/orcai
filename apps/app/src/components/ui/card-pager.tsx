@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { DEFAULT_PAGE_SIZE, Pager } from "@/components/ui/pager";
+import { Pager } from "@/components/ui/pager";
+import { DEFAULT_PAGE_SIZE } from "@/lib/browse/data-table-search-params";
 
 /**
  * Replaces a page index past the last page, such as after deleting the last

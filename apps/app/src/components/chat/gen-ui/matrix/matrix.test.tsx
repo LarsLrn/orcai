@@ -6,9 +6,9 @@ import {
 	screen,
 	within,
 } from "@testing-library/react";
-import { readMatrix } from "@/components/chat/gen-ui/matrix/cells";
-import { referenceMatrix } from "@/components/chat/gen-ui/matrix/fixtures";
-import { matrixSchema } from "@/components/chat/gen-ui/matrix/schema";
+import { readMatrix } from "@/lib/ai/tools/gen-ui/matrix/cells";
+import { referenceMatrix } from "@/lib/ai/tools/gen-ui/matrix/fixtures";
+import { matrixSchema } from "@/lib/ai/tools/gen-ui/matrix/schema";
 
 // The real client resolves server configuration at import time.
 mock.module("@/lib/orpc/orpc", () => ({

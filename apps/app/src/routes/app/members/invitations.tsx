@@ -9,7 +9,6 @@ import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTableExportButton } from "@/components/ui/data-table/data-table-export-button";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
-import { paginationSearchShape } from "@/components/ui/data-table/data-table-search-params";
 import {
 	DataTableToolbar,
 	DataTableToolbarActions,
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/shell/page";
 import { useMembershipControl } from "@/hooks/authz/use-membership-control";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
+import { paginationSearchShape } from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

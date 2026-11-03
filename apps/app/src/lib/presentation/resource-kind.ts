@@ -5,7 +5,7 @@ import {
 	FileTextIcon,
 	type LucideIcon,
 } from "lucide-react";
-import type { Badge } from "@/components/ui/badge";
+import type { BadgeVariant } from "@/lib/presentation/badge-item";
 import { m } from "@/paraglide/messages";
 
 export type ResourceKind = "bot" | "behaviour" | "repository" | "asset";
@@ -44,7 +44,7 @@ export const RESOURCE_KINDS = {
 	ResourceKind,
 	{
 		label: () => string;
-		badge: React.ComponentProps<typeof Badge>["variant"];
+		badge: BadgeVariant;
 		Icon: LucideIcon;
 		well: string;
 		band: string;

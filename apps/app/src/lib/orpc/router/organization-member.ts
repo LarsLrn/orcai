@@ -1,5 +1,11 @@
 import type { UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import type { OrganizationMemberSortKey } from "@orcai/schema";
 import { and, desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -14,11 +20,6 @@ import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import { pageOf } from "@/lib/orpc/router/helpers/paging";
-import {
-	buildOrderBy,
-	type SortExpression,
-} from "@/lib/orpc/router/helpers/sorting";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 /** Anyone may read their own membership; reading another's takes `manage_members`. */
@@ -47,7 +48,7 @@ const listOrganizationMembers = authed.organizationMember.list
 				: undefined,
 		);
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.user.name,

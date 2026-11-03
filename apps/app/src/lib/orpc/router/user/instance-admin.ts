@@ -1,4 +1,10 @@
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import type { InstanceUserSortKey } from "@orcai/schema";
 import { desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
@@ -10,11 +16,6 @@ import {
 } from "@/lib/authz/organization-membership";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
-import { pageOf } from "@/lib/orpc/router/helpers/paging";
-import {
-	buildOrderBy,
-	type SortExpression,
-} from "@/lib/orpc/router/helpers/sorting";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 const listAllUsers = authed.user.listAll
@@ -30,7 +31,7 @@ const listAllUsers = authed.user.listAll
 				)
 			: undefined;
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.user.name,

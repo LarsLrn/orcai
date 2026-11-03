@@ -1,4 +1,10 @@
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
 	type GroupMemberSortKey,
@@ -36,8 +42,6 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
-import { pageOf } from "./helpers/paging";
-import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listGroups = authed.group.list
 	.use(requireOrganization())
@@ -63,7 +67,7 @@ const listGroups = authed.group.list
 			queryLike ? ilike(dbSchema.group.name, queryLike) : undefined,
 		);
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.group.name,
@@ -229,7 +233,7 @@ const listGroupMembers = authed.group.listMembers
 			pattern: input.query ? literalSearch(input.query.trim()) : undefined,
 			canSeeEmail,
 		});
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.user.name,

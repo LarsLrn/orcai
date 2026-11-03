@@ -14,11 +14,6 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import {
-	dataTableQuerySchema,
-	dataTableSearchDefaults,
-	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
 import { DataTableToolbar } from "@/components/ui/data-table/data-table-toolbar";
 import { HeaderActions } from "@/components/ui/shell/actions";
 import {
@@ -37,6 +32,11 @@ import {
 import { useInstanceUserActions } from "@/components/users/instance-user-actions";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { isInstanceAdminRole } from "@/lib/authz/instance-role";
+import {
+	dataTableQuerySchema,
+	dataTableSearchDefaults,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 

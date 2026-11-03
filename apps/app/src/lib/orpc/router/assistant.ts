@@ -1,10 +1,9 @@
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, pageOf } from "@orcai/db";
 import { and, desc, eq } from "drizzle-orm";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import { insertChat } from "@/lib/chats/chat-lifecycle";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import { pageOf } from "@/lib/orpc/router/helpers/paging";
 
 /** Assistant conversations are never shared, so the owner column is the whole check. */
 const listAssistantConversations = authed.assistant.list

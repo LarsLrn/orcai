@@ -1,4 +1,10 @@
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import {
 	DEFAULT_INVITATION_TTL_DAYS,
 	type InstanceOrganizationMemberSortKey,
@@ -17,11 +23,6 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
-import { pageOf } from "@/lib/orpc/router/helpers/paging";
-import {
-	buildOrderBy,
-	type SortExpression,
-} from "@/lib/orpc/router/helpers/sorting";
 import { organizationReadiness as readOrganizationReadiness } from "@/lib/readiness/readiness";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -71,7 +72,7 @@ const userMemberships = authed.instance.userMemberships
 					)
 				: undefined,
 		);
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.organization.name,
@@ -140,7 +141,7 @@ const organizationMembers = authed.instance.organizationMembers
 					)
 				: undefined,
 		);
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.user.name,

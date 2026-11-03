@@ -146,7 +146,6 @@ export const ERROR_REASONS = [
 	"SELF_TWO_FACTOR_RESET_FORBIDDEN",
 	"SESSION_NOT_FOUND",
 	"SESSION_NOT_FRESH",
-	"SORT_KEY_UNSUPPORTED",
 	"SYSTEM_GROUP_IMMUTABLE",
 	"TOKEN_INVALID",
 	"TOOL_NOT_AVAILABLE",
@@ -217,9 +216,6 @@ export type ErrorReasonParams = {
 			id: string;
 			name: string;
 		}[];
-	};
-	SORT_KEY_UNSUPPORTED: {
-		sortKey: string;
 	};
 	UPLOAD_FILE_TOO_LARGE: {
 		fileName: string;

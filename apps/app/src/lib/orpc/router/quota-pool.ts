@@ -1,5 +1,11 @@
 import type { QuotaPoolId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import {
+	buildOrderBy,
+	DB,
+	dbSchema,
+	pageOf,
+	type SortExpression,
+} from "@orcai/db";
 import {
 	createQuotaPool as createQuotaPoolCommand,
 	deactivateQuotaPool as deactivateQuotaPoolCommand,
@@ -19,8 +25,6 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
-import { pageOf } from "./helpers/paging";
-import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const quotaPoolWriteError = (
 	status: Exclude<WriteQuotaPoolResult["status"], "ok">,
@@ -122,7 +126,7 @@ const listQuotaPools = authed.quotaPool.list
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				name: dbSchema.quotaPool.name,
@@ -290,7 +294,7 @@ const listQuotaUsageEvents = authed.quotaPool.listEvents
 				: undefined,
 		);
 
-		const orderBy = yield* buildOrderBy({
+		const orderBy = buildOrderBy({
 			sort: input.sort,
 			allowlist: {
 				occurredAt: event.occurredAt,

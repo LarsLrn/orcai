@@ -41,6 +41,8 @@ flowchart LR
 - Kreuzberg and Tesseract handle text extraction and OCR.
 - The AI SDK talks to each provider's API through its kind (OpenAI-compatible, OpenAI or Anthropic). Chats, titles, image descriptions and metadata suggestions use the providers and models an organisation configures. The instance's OpenAI-compatible endpoint serves embeddings only.
 
+Inside `apps/app/src`, imports point from `routes` to `components` and `hooks`, and from all three to `lib`. Biome fails a module in `lib` that imports from `components`, `hooks` or `routes`.
+
 <Callout title="Generated API reference" type="info">
 	Each OrcAI instance serves its API reference, rendered with Scalar, at
 	`/api/doc` in the main app. The OpenAPI document is generated from the oRPC

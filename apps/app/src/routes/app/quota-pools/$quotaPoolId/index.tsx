@@ -34,11 +34,6 @@ import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
-import {
-	dataTableQuerySchema,
-	dataTableSearchDefaults,
-	paginationSearchShape,
-} from "@/components/ui/data-table/data-table-search-params";
 import { DataTableSelectFilter } from "@/components/ui/data-table/data-table-select-filter";
 import {
 	DataTableToolbar,
@@ -63,6 +58,11 @@ import {
 	useDeactivateQuotaPoolMutation,
 	useUpdateQuotaPoolMutation,
 } from "@/hooks/mutations/use-quota-pool-mutations";
+import {
+	dataTableQuerySchema,
+	dataTableSearchDefaults,
+	paginationSearchShape,
+} from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatNumber } from "@/lib/presentation/format-number";
 import { getMeteringModeLabel } from "@/lib/presentation/metering-mode";

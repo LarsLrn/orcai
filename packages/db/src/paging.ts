@@ -1,7 +1,7 @@
-import { DB } from "@orcai/db";
 import { count, type Subquery } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import type { SortExpression } from "./sorting";
+import type { SortExpression } from "./order-by";
+import { DB } from "./service";
 
 /** A select not yet ordered, limited or offset; drizzle's builders change in place. */
 type Unpaged<Row, E, R> = Effect.Effect<Row[], E, R> & {

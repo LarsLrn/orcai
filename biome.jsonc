@@ -120,6 +120,45 @@
 	},
 	"overrides": [
 		{
+			// Imports point from routes to components, hooks and lib, never back.
+			"includes": [
+				"apps/app/src/lib/**"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"@/components/**",
+											"@/hooks/**",
+											"@/routes/**",
+											"**/../components/**",
+											"**/../hooks/**",
+											"**/../routes/**"
+										],
+										"message": "lib is imported by components, hooks and routes, and imports none of them."
+									},
+									{
+										"group": [
+											"@orcai/db/*",
+											"@orcai/db/**",
+											"!@orcai/db/relations",
+											"!@orcai/db/schema"
+										],
+										"message": "Import DB modules via '@orcai/db', '@orcai/db/schema', or '@orcai/db/relations' only."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			// Specs reach pages only through the fixtures, which fail a test on
 			// uncaught page errors.
 			"includes": [

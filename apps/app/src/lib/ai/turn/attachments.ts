@@ -12,7 +12,7 @@ import { sourceRef } from "@/lib/ai/citations/source-ref";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { dataTag } from "@/lib/ai/utils/data-tag";
 import { readableIds } from "@/lib/authz/content-access";
-import { permissionDenied } from "@/lib/orpc/middlewares/permission";
+import { permissionDenied } from "@/lib/authz/permission-denied";
 import { unique } from "@/lib/utils/array-utils";
 import {
 	CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH,

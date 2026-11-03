@@ -202,10 +202,6 @@ const reasonMessages: ReasonMessages = {
 	SELF_TWO_FACTOR_RESET_FORBIDDEN: m.error_self_two_factor_reset_forbidden,
 	SESSION_NOT_FOUND: m.error_session_not_found,
 	SESSION_NOT_FRESH: m.error_session_not_fresh,
-	SORT_KEY_UNSUPPORTED: ({ sortKey }) =>
-		m.error_sort_key_unsupported({
-			sortKey,
-		}),
 	SYSTEM_GROUP_IMMUTABLE: m.error_system_group_immutable,
 	TOKEN_INVALID: m.error_token_invalid,
 	TOOL_NOT_AVAILABLE: m.error_tool_not_available,
@@ -251,7 +247,6 @@ const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
 	GROUP_MEMBERS_INVALID: true,
 	LISTING_BLOCKS_FORBIDDEN: true,
 	LISTING_BLOCKS_UNCONFIRMED: true,
-	SORT_KEY_UNSUPPORTED: true,
 	UPLOAD_FILE_TOO_LARGE: true,
 	UPLOAD_FILE_TYPE_INVALID: true,
 	UPLOAD_TOO_MANY_FILES: true,

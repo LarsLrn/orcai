@@ -2,11 +2,11 @@ import { DB, dbSchema } from "@orcai/db";
 import { and, eq, ne } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { auth } from "@/lib/auth/auth";
+import { permissionDenied } from "@/lib/authz/permission-denied";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage, setImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requirePreferencesMiddleware } from "@/lib/orpc/middlewares/auth";
-import { permissionDenied } from "@/lib/orpc/middlewares/permission";
 
 const me = authed.user.me.effect(function* ({ context }) {
 	const db = yield* DB;

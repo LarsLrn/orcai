@@ -1,14 +1,14 @@
 import { use } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
-import type { QuizResultView } from "@/components/chat/gen-ui/quiz-result/read";
-import {
-	verdictLabel,
-	verdictStatus,
-} from "@/components/chat/gen-ui/quiz-result/verdict";
 import { StatusIcon, statusTone } from "@/components/chat/gen-ui/status-icon";
 import { SendMessageContext } from "@/components/chat/send-message";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { QuizResultView } from "@/lib/ai/tools/gen-ui/quiz-result/read";
+import {
+	verdictLabel,
+	verdictStatus,
+} from "@/lib/ai/tools/gen-ui/quiz-result/verdict";
 import type { QuizResult as GradedQuiz } from "@/lib/ai/tools/questions/quiz-result";
 import { formatCount } from "@/lib/presentation/format-number";
 import { cn } from "@/lib/utils";

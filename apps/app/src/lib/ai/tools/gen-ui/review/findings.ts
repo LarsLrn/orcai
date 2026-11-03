@@ -1,9 +1,9 @@
 import {
 	type Severity,
 	severitySchema,
-} from "@/components/chat/gen-ui/review/schema";
-import type { Status } from "@/components/chat/gen-ui/status";
-import { isRecord, listOf, textOf } from "@/components/chat/gen-ui/streamed";
+} from "@/lib/ai/tools/gen-ui/review/schema";
+import type { Status } from "@/lib/ai/tools/gen-ui/status";
+import { isRecord, listOf, textOf } from "@/lib/ai/tools/gen-ui/streamed";
 import { m } from "@/paraglide/messages";
 
 export type StreamedFinding = {

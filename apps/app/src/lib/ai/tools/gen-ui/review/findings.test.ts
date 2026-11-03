@@ -5,8 +5,8 @@ import {
 	readReview,
 	type StreamedFinding,
 	stripEmphasis,
-} from "@/components/chat/gen-ui/review/findings";
-import type { Status } from "@/components/chat/gen-ui/status";
+} from "@/lib/ai/tools/gen-ui/review/findings";
+import type { Status } from "@/lib/ai/tools/gen-ui/status";
 
 describe("itemStatus", () => {
 	test.each<
