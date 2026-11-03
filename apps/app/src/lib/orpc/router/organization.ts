@@ -5,7 +5,7 @@ import {
 	type OrganizationId,
 	type ProviderId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, isHome } from "@orcai/db";
 import {
 	DEFAULT_INVITATION_TTL_DAYS,
 	type InstanceOrganizationSortKey,
@@ -45,6 +45,7 @@ import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { requireOrganizationById } from "@/lib/orpc/middlewares/organization";
 import { literalSearch } from "@/lib/utils/literal-search";
+import { pageOf } from "./helpers/paging";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listOrganizations = authed.organization.list.effect(function* ({
@@ -93,25 +94,10 @@ const listOrganizations = authed.organization.list.effect(function* ({
 			: undefined,
 	);
 
-	return yield* Effect.all([
-		db
-			.select()
-			.from(dbSchema.organization)
-			.where(whereClause)
-			.orderBy(...orderBy)
-			.limit(input.pageSize)
-			.offset(input.pageIndex * input.pageSize),
-		db
-			.select({
-				count: count(),
-			})
-			.from(dbSchema.organization)
-			.where(whereClause),
-	]).pipe(
-		Effect.map(([organizations, [countResult]]) => ({
-			data: organizations,
-			rowCount: countResult.count,
-		})),
+	return yield* pageOf(
+		db.select().from(dbSchema.organization).where(whereClause),
+		input,
+		orderBy,
 	);
 });
 
@@ -147,7 +133,7 @@ const listAllOrganizations = authed.organization.listAll
 				)
 			: undefined;
 
-		return yield* Effect.all([
+		return yield* pageOf(
 			db
 				.select({
 					...getColumns(dbSchema.organization),
@@ -159,23 +145,16 @@ const listAllOrganizations = authed.organization.listAll
 					eq(dbSchema.member.organizationId, dbSchema.organization.id),
 				)
 				.where(whereClause)
-				.groupBy(dbSchema.organization.id)
-				.orderBy(...orderBy)
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({
-					count: count(),
-				})
-				.from(dbSchema.organization)
-				.where(whereClause),
-		]).pipe(
-			Effect.map(([organizations, [countResult]]) => ({
-				data: organizations.map((organization) => ({
+				.groupBy(dbSchema.organization.id),
+			input,
+			orderBy,
+		).pipe(
+			Effect.map(({ data, rowCount }) => ({
+				data: data.map((organization) => ({
 					...organization,
 					memberCount: Number(organization.memberCount),
 				})),
-				rowCount: countResult.count,
+				rowCount,
 			})),
 		);
 	});
@@ -533,8 +512,7 @@ const countHomeResources = (organizationId: OrganizationId) =>
 			.where(
 				and(
 					eq(dbSchema.resourceScope.organizationId, organizationId),
-					eq(dbSchema.resourceScope.isPrimary, true),
-					isNull(dbSchema.resourceScope.endedAt),
+					isHome(),
 				),
 			);
 

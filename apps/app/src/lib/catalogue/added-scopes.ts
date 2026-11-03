@@ -1,5 +1,5 @@
 import type { BlockId, OrganizationId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, isHome } from "@orcai/db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import {
@@ -54,8 +54,7 @@ const unlinkBlock = (
 			.where(
 				and(
 					eq(dbSchema.resourceScope.resourceType, "bot"),
-					eq(dbSchema.resourceScope.isPrimary, true),
-					isNull(dbSchema.resourceScope.endedAt),
+					isHome(),
 					inArray(dbSchema.resourceScope.organizationId, [
 						...organizationIds,
 					]),

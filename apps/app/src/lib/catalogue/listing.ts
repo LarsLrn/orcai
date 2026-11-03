@@ -1,5 +1,5 @@
 import type { BlockId, BotId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, isHome } from "@orcai/db";
 import type { ResourceVisibility } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
@@ -371,8 +371,7 @@ export const listedHomeResources = (organizationId: OrganizationId) =>
 			.where(
 				and(
 					eq(home.organizationId, organizationId),
-					eq(home.isPrimary, true),
-					isNull(home.endedAt),
+					isHome(home),
 					inArray(home.resourceType, [
 						"bot",
 						"block",

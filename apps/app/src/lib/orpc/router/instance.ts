@@ -4,7 +4,7 @@ import {
 	type InstanceOrganizationMemberSortKey,
 	type InstanceUserMembershipSortKey,
 } from "@orcai/schema";
-import { and, asc, count, eq, getColumns, ilike, or } from "drizzle-orm";
+import { and, asc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { inviteToOrganization } from "@/lib/authz/organization-invitations";
 import {
@@ -17,6 +17,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
+import { pageOf } from "@/lib/orpc/router/helpers/paging";
 import {
 	buildOrderBy,
 	type SortExpression,
@@ -85,45 +86,25 @@ const userMemberships = authed.instance.userMemberships
 				expression: dbSchema.organization.id,
 			},
 		});
-		const [data, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						organizationId: dbSchema.organization.id,
-						name: dbSchema.organization.name,
-						slug: dbSchema.organization.slug,
-						logo: dbSchema.organization.logo,
-						role: dbSchema.member.role,
-						joinedAt: dbSchema.member.createdAt,
-					})
-					.from(dbSchema.member)
-					.innerJoin(
-						dbSchema.organization,
-						eq(dbSchema.organization.id, dbSchema.member.organizationId),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.member)
-					.innerJoin(
-						dbSchema.organization,
-						eq(dbSchema.organization.id, dbSchema.member.organizationId),
-					)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		return yield* pageOf(
+			db
+				.select({
+					organizationId: dbSchema.organization.id,
+					name: dbSchema.organization.name,
+					slug: dbSchema.organization.slug,
+					logo: dbSchema.organization.logo,
+					role: dbSchema.member.role,
+					joinedAt: dbSchema.member.createdAt,
+				})
+				.from(dbSchema.member)
+				.innerJoin(
+					dbSchema.organization,
+					eq(dbSchema.organization.id, dbSchema.member.organizationId),
+				)
+				.where(whereClause),
+			input,
+			orderBy,
 		);
-		return {
-			data,
-			rowCount: rowCount.count,
-		};
 	});
 
 const organization = authed.instance.organization
@@ -175,48 +156,29 @@ const organizationMembers = authed.instance.organizationMembers
 				expression: dbSchema.user.id,
 			},
 		});
-		const [rows, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						userId: dbSchema.user.id,
-						name: dbSchema.user.name,
-						email: dbSchema.user.email,
-						image: dbSchema.user.image,
-						banned: dbSchema.user.banned,
-						role: dbSchema.member.role,
-						joinedAt: dbSchema.member.createdAt,
-					})
-					.from(dbSchema.member)
-					.innerJoin(
-						dbSchema.user,
-						eq(dbSchema.user.id, dbSchema.member.userId),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.member)
-					.innerJoin(
-						dbSchema.user,
-						eq(dbSchema.user.id, dbSchema.member.userId),
-					)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data, rowCount } = yield* pageOf(
+			db
+				.select({
+					userId: dbSchema.user.id,
+					name: dbSchema.user.name,
+					email: dbSchema.user.email,
+					image: dbSchema.user.image,
+					banned: dbSchema.user.banned,
+					role: dbSchema.member.role,
+					joinedAt: dbSchema.member.createdAt,
+				})
+				.from(dbSchema.member)
+				.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
+				.where(whereClause),
+			input,
+			orderBy,
 		);
 		return {
-			data: rows.map((row) => ({
+			data: data.map((row) => ({
 				...row,
 				banned: row.banned ?? false,
 			})),
-			rowCount: rowCount.count,
+			rowCount,
 		};
 	});
 

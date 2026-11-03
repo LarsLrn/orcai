@@ -6,7 +6,7 @@ import {
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
-import { DB, dbSchema, resourceTables } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf, resourceTables } from "@orcai/db";
 import { reconcileLinkPoints, replaceIndexing } from "@orcai/preparation";
 import { assetObjectKey, processedAssetPrefix } from "@orcai/s3";
 import {
@@ -325,14 +325,7 @@ export const homeOrganizationId = (resource: ResourceRef) =>
 				organizationId: dbSchema.resourceScope.organizationId,
 			})
 			.from(dbSchema.resourceScope)
-			.where(
-				and(
-					eq(dbSchema.resourceScope.resourceType, resource.resourceType),
-					eq(dbSchema.resourceScope.resourceId, resource.resourceId),
-					eq(dbSchema.resourceScope.isPrimary, true),
-					isNull(dbSchema.resourceScope.endedAt),
-				),
-			);
+			.where(homeScopeOf(resource.resourceType, resource.resourceId));
 		return scope?.organizationId;
 	});
 

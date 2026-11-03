@@ -1,5 +1,5 @@
 import type { AssetId, BlockId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import type { ActivityFailure } from "@orcai/schema";
 import { permittedEntityIds } from "@orcai/spice-db";
 import { and, desc, eq, or, sql } from "drizzle-orm";
@@ -29,10 +29,7 @@ const memberHome = (
 	resourceId: typeof asset.id | typeof block.id,
 ) =>
 	and(
-		eq(resourceScope.resourceType, resourceType),
-		eq(resourceScope.resourceId, resourceId),
-		eq(resourceScope.isPrimary, true),
-		sql`${resourceScope.endedAt} is null`,
+		homeScopeOf(resourceType, resourceId),
 		sql`exists (select 1 from ${member} where ${member.organizationId} = ${resourceScope.organizationId} and ${member.userId} = ${userId})`,
 	);
 

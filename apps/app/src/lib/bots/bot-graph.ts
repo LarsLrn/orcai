@@ -1,5 +1,5 @@
 import type { BlockId, BotId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, homeScopeOf } from "@orcai/db";
 import type { Block, Bot, SaveBotInput } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray, isNull } from "drizzle-orm";
@@ -197,14 +197,7 @@ const homeOrganization = (botId: BotId) =>
 				organizationId: dbSchema.resourceScope.organizationId,
 			})
 			.from(dbSchema.resourceScope)
-			.where(
-				and(
-					eq(dbSchema.resourceScope.resourceType, "bot"),
-					eq(dbSchema.resourceScope.resourceId, botId),
-					eq(dbSchema.resourceScope.isPrimary, true),
-					isNull(dbSchema.resourceScope.endedAt),
-				),
-			);
+			.where(homeScopeOf("bot", botId));
 		if (!scope)
 			return yield* new AppErrors.BadRequestError({
 				reason: "RESOURCE_SCOPE_REQUIRED",

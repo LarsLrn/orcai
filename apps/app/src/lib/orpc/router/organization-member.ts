@@ -1,7 +1,7 @@
 import type { UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { OrganizationMemberSortKey } from "@orcai/schema";
-import { and, count, desc, eq, getColumns, ilike, or } from "drizzle-orm";
+import { and, desc, eq, getColumns, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { effectiveAccess } from "@/lib/authz/effective-access";
 import { canSeeEmailIn } from "@/lib/authz/email-visibility";
@@ -14,6 +14,7 @@ import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
+import { pageOf } from "@/lib/orpc/router/helpers/paging";
 import {
 	buildOrderBy,
 	type SortExpression,
@@ -63,42 +64,18 @@ const listOrganizationMembers = authed.organizationMember.list
 			},
 		});
 
-		const [data, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select({
-						...getColumns(dbSchema.user),
-						organizationRole: dbSchema.member.role,
-					})
-					.from(dbSchema.member)
-					.innerJoin(
-						dbSchema.user,
-						eq(dbSchema.user.id, dbSchema.member.userId),
-					)
-					.where(whereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.member)
-					.innerJoin(
-						dbSchema.user,
-						eq(dbSchema.user.id, dbSchema.member.userId),
-					)
-					.where(whereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		return yield* pageOf(
+			db
+				.select({
+					...getColumns(dbSchema.user),
+					organizationRole: dbSchema.member.role,
+				})
+				.from(dbSchema.member)
+				.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
+				.where(whereClause),
+			input,
+			orderBy,
 		);
-
-		return {
-			data,
-			rowCount: rowCount.count,
-		};
 	});
 
 const findOrganizationMember = authed.organizationMember.find

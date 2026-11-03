@@ -31,6 +31,7 @@ import {
 	libraryAccess,
 	type Reader,
 } from "@/lib/library/library-access";
+import { pageOf } from "@/lib/orpc/router/helpers/paging";
 import { literalSearch } from "@/lib/utils/literal-search";
 
 /** How many tiles an overview shelf holds. */
@@ -240,31 +241,20 @@ export const searchLibrary = (
 						desc(listed.id),
 					];
 
-		const [page, [counted]] = yield* Effect.all(
-			[
-				db
-					.select({
-						kind: listed.kind,
-						id: listed.id,
-					})
-					.from(listed)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(listed),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		const { data, rowCount } = yield* pageOf(
+			db
+				.select({
+					kind: listed.kind,
+					id: listed.id,
+				})
+				.from(listed),
+			input,
+			orderBy,
 		);
 
 		return {
-			data: yield* hydrate(reader, page),
-			rowCount: counted.count,
+			data: yield* hydrate(reader, data),
+			rowCount,
 		};
 	});
 

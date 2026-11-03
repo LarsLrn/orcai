@@ -61,6 +61,7 @@ import {
 	prefixTsQuery,
 	snippetOf,
 } from "./helpers/chat-search";
+import { pageOf } from "./helpers/paging";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 const listChats = authed.chat.list
@@ -217,40 +218,26 @@ const listChatHistory = authed.chat.history.effect(function* ({
 		),
 	);
 
-	const [data, [rowCount]] = yield* Effect.all(
+	return yield* pageOf(
+		db
+			.select({
+				...getColumns(dbSchema.chat),
+				organizationName: dbSchema.organization.name,
+				botName: dbSchema.bot.name,
+			})
+			.from(dbSchema.chat)
+			.innerJoin(
+				dbSchema.organization,
+				eq(dbSchema.organization.id, dbSchema.chat.organizationId),
+			)
+			.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
+			.where(whereClause),
+		input,
 		[
-			db
-				.select({
-					...getColumns(dbSchema.chat),
-					organizationName: dbSchema.organization.name,
-					botName: dbSchema.bot.name,
-				})
-				.from(dbSchema.chat)
-				.innerJoin(
-					dbSchema.organization,
-					eq(dbSchema.organization.id, dbSchema.chat.organizationId),
-				)
-				.leftJoin(dbSchema.bot, eq(dbSchema.chat.botId, dbSchema.bot.id))
-				.where(whereClause)
-				.orderBy(desc(dbSchema.chat.updatedAt), desc(dbSchema.chat.id))
-				.limit(input.pageSize)
-				.offset(input.pageIndex * input.pageSize),
-			db
-				.select({
-					count: count(),
-				})
-				.from(dbSchema.chat)
-				.where(whereClause),
+			desc(dbSchema.chat.updatedAt),
+			desc(dbSchema.chat.id),
 		],
-		{
-			concurrency: "unbounded",
-		},
 	);
-
-	return {
-		data,
-		rowCount: rowCount.count,
-	};
 });
 
 const chatNotFound = (id: ChatId) =>

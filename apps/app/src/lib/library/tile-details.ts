@@ -1,5 +1,5 @@
 import type { BotId, OrganizationId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, isHome } from "@orcai/db";
 import type { BotListItem, HomeOrganization } from "@orcai/schema";
 import { and, eq, inArray, isNull, not, type SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -123,8 +123,7 @@ export const homeOrganizations = (
 				and(
 					eq(home.resourceType, added.resourceType),
 					eq(home.resourceId, added.resourceId),
-					eq(home.isPrimary, true),
-					isNull(home.endedAt),
+					isHome(home),
 				),
 			)
 			.innerJoin(

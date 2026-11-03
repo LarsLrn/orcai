@@ -11,6 +11,7 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
+import { pageOf } from "./helpers/paging";
 import { buildOrderBy, type SortExpression } from "./helpers/sorting";
 
 /** Every column a caller may read; the encrypted API key stays server side. */
@@ -72,31 +73,14 @@ const listProviders = authed.provider.list
 			},
 		});
 
-		const [data, [rowCount]] = yield* Effect.all(
-			[
-				db
-					.select(providerColumns)
-					.from(dbSchema.provider)
-					.where(countWhereClause)
-					.orderBy(...orderBy)
-					.limit(input.pageSize)
-					.offset(input.pageIndex * input.pageSize),
-				db
-					.select({
-						count: count(),
-					})
-					.from(dbSchema.provider)
-					.where(countWhereClause),
-			],
-			{
-				concurrency: "unbounded",
-			},
+		return yield* pageOf(
+			db
+				.select(providerColumns)
+				.from(dbSchema.provider)
+				.where(countWhereClause),
+			input,
+			orderBy,
 		);
-
-		return {
-			data,
-			rowCount: rowCount.count,
-		};
 	});
 
 const findProvider = authed.provider.find
