@@ -73,10 +73,6 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 		setIsDragging(false);
 	};
 
-	if (!editor) {
-		return null;
-	}
-
 	return (
 		<BubbleMenu
 			editor={editor}

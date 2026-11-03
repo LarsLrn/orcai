@@ -64,8 +64,8 @@ test("blocks: undo and redo follow edits in a behaviour's description", async ({
 		org,
 		pageAs,
 	});
-	const undo = toolbarButton(page, "editor_toolbar_undo_tooltip");
-	const redo = toolbarButton(page, "editor_toolbar_redo_tooltip");
+	const undo = toolbarButton(page, "editor_control_undo");
+	const redo = toolbarButton(page, "editor_control_redo");
 	await expect(undo).toBeDisabled();
 	await expect(redo).toBeDisabled();
 
@@ -96,11 +96,7 @@ test("blocks: the toolbar shows the heading at the cursor", async ({
 	});
 	await editor.click();
 
-	await page
-		.getByRole("button", {
-			name: message("editor_toolbar_headings_normal_option"),
-		})
-		.click();
+	await toolbarButton(page, "editor_control_paragraph").click();
 	await page
 		.getByRole("menuitem", {
 			name: "H2",
@@ -145,7 +141,7 @@ test("blocks: a behaviour's description takes a table and a YouTube video", asyn
 	await insert.click();
 	await expect(editor.locator("iframe")).toHaveCount(1);
 
-	await toolbarButton(page, "editor_toolbar_table_tooltip").click();
+	await toolbarButton(page, "editor_control_table").click();
 	await expect(editor.getByRole("table")).toBeVisible();
 	await page.keyboard.type("First cell");
 
@@ -184,10 +180,8 @@ test("blocks: the editor toolbar scrolls to its inserts on a phone", async ({
 		},
 	});
 
-	await expect(
-		toolbarButton(page, "editor_toolbar_undo_tooltip"),
-	).toBeVisible();
-	const insertTable = toolbarButton(page, "editor_toolbar_table_tooltip");
+	await expect(toolbarButton(page, "editor_control_undo")).toBeVisible();
+	const insertTable = toolbarButton(page, "editor_control_table");
 	await expect(insertTable).not.toBeInViewport();
 	await insertTable.scrollIntoViewIfNeeded();
 	await expect(insertTable).toBeInViewport();

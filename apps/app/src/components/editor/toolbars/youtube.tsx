@@ -1,8 +1,7 @@
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
-import type { VariantProps } from "class-variance-authority";
 import { SquarePlay, X } from "lucide-react";
 import { useId, useState } from "react";
-import { Button, type buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,15 +15,11 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { youtubeEmbedUrl } from "../extensions/youtube";
 import { useToolbar } from "./toolbar-provider";
 
-const YoutubeToolbar = ({
-	className,
-	...props
-}: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
+const YoutubeToolbar = () => {
 	const { editor } = useToolbar();
 	const [open, setOpen] = useState(false);
 	const [url, setUrl] = useState("");
@@ -60,8 +55,7 @@ const YoutubeToolbar = ({
 									variant="ghost"
 									size="icon"
 									aria-label={m.editor_toolbar_youtube_tooltip()}
-									className={cn("h-8 w-8 p-0 sm:h-9 sm:w-9", className)}
-									{...props}
+									className="h-8 w-8 p-0 sm:h-9 sm:w-9"
 								>
 									<SquarePlay className="h-4 w-4" />
 								</Button>

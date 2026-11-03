@@ -1,98 +1,32 @@
 import type { Editor } from "@tiptap/core";
-import { useEditorState } from "@tiptap/react";
-import { CheckIcon, LinkIcon, Trash2Icon } from "lucide-react";
-import { useRef } from "react";
+import { LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import { LinkPopover, useLinkState } from "../../link-popover";
 
 export const LinkSelector = ({ editor }: { editor: Editor }) => {
-	const inputRef = useRef<HTMLInputElement>(null);
-	const editorState = useEditorState({
-		editor,
-		selector: (instance) => ({
-			isLink: instance.editor.isActive("link"),
-			getLink: instance.editor.getAttributes("link").href,
-			isMath: instance.editor.isActive("math"),
-		}),
-	});
+	const { canLink, isActive } = useLinkState(editor);
 
 	return (
-		<Popover>
+		<LinkPopover editor={editor}>
 			<PopoverTrigger
+				disabled={!canLink}
 				render={
 					<Button
 						variant="ghost"
 						size="icon"
-						aria-label={m.editor_toolbar_link_tooltip()}
+						aria-label={m.editor_control_link()}
 						className="shrink-0 rounded-none"
-						disabled={editorState.isMath}
 					>
 						<LinkIcon
-							className={cn("size-4", {
-								"text-primary": editorState.isLink,
-							})}
+							className={cn("size-4", isActive && "text-primary")}
 							strokeWidth={2.5}
 						/>
 					</Button>
 				}
 			/>
-			<PopoverContent
-				className="w-fit rounded-md border p-1 shadow-xl"
-				align="end"
-			>
-				<form
-					className="flex items-center space-x-1"
-					onSubmit={(evt) => {
-						evt.preventDefault();
-						const url = inputRef.current?.value;
-						if (!url) {
-							return;
-						}
-						editor
-							.chain()
-							.focus()
-							.extendMarkRange("link")
-							.setLink({
-								href: url,
-							})
-							.run();
-					}}
-				>
-					<Input
-						ref={inputRef}
-						aria-label={m.editor_link_url_aria_label()}
-						placeholder="https://example.com"
-						defaultValue={editorState.getLink}
-					/>
-					{editorState.isLink ? (
-						<Button
-							variant="destructive"
-							size="icon"
-							type="button"
-							aria-label={m.editor_link_remove_aria_label()}
-							onClick={() => {
-								editor.chain().focus().unsetLink().run();
-								if (inputRef.current) {
-									inputRef.current.value = "";
-								}
-							}}
-						>
-							<Trash2Icon className="size-4" aria-hidden="true" />
-						</Button>
-					) : (
-						<Button size="icon" aria-label={m.editor_link_apply_aria_label()}>
-							<CheckIcon className="size-4" aria-hidden="true" />
-						</Button>
-					)}
-				</form>
-			</PopoverContent>
-		</Popover>
+		</LinkPopover>
 	);
 };

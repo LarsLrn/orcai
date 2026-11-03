@@ -10,18 +10,13 @@ import {
 import { useEffect } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { controls } from "./controls";
 import { DescriptionEditorPlaceholder } from "./description-editor-placeholder";
 import { descriptionExtensions } from "./extensions";
-import { BlockquoteToolbar } from "./toolbars/blockquote";
-import { BoldToolbar } from "./toolbars/bold";
-import { BulletListToolbar } from "./toolbars/bullet-list";
+import { ControlButton } from "./toolbars/control-button";
 import { HeadingsToolbar } from "./toolbars/headings";
-import { ItalicToolbar } from "./toolbars/italic";
 import { LinkToolbar } from "./toolbars/link";
-import { OrderedListToolbar } from "./toolbars/ordered-list";
-import { RedoToolbar } from "./toolbars/redo";
 import { ToolbarProvider } from "./toolbars/toolbar-provider";
-import { UndoToolbar } from "./toolbars/undo";
 
 type DescriptionEditorProps = {
 	content: Content | null;
@@ -106,17 +101,17 @@ const DescriptionEditor = ({
 			<ToolbarProvider editor={editor}>
 				<ScrollArea className="border-border/60 border-b">
 					<div className="flex items-center gap-1 px-2 py-0.5">
-						<UndoToolbar />
-						<RedoToolbar />
+						<ControlButton control={controls.undo} />
+						<ControlButton control={controls.redo} />
 						<Separator orientation="vertical" className="mx-1 h-7" />
 						<HeadingsToolbar levels={ORGANIZATION_DESCRIPTION_HEADING_LEVELS} />
-						<BoldToolbar />
-						<ItalicToolbar />
+						<ControlButton control={controls.bold} />
+						<ControlButton control={controls.italic} />
 						<LinkToolbar />
 						<Separator orientation="vertical" className="mx-1 h-7" />
-						<BulletListToolbar />
-						<OrderedListToolbar />
-						<BlockquoteToolbar />
+						<ControlButton control={controls.bulletList} />
+						<ControlButton control={controls.orderedList} />
+						<ControlButton control={controls.blockquote} />
 					</div>
 					<ScrollBar orientation="horizontal" />
 				</ScrollArea>

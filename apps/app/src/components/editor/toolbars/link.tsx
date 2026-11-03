@@ -1,16 +1,5 @@
-import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
-import type { VariantProps } from "class-variance-authority";
-import { Trash2, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { getUrlFromString } from "@/components/editor/utils";
-import { Button, type buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { PopoverTrigger } from "@/components/ui/popover";
 import {
 	Tooltip,
 	TooltipContent,
@@ -18,45 +7,15 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-import { useToolbar, useToolbarState } from "./toolbar-provider";
+import { LinkPopover, useLinkState } from "../link-popover";
+import { useToolbar } from "./toolbar-provider";
 
-/** Any allowed address, to ask whether the selection can take a link. */
-export const LINK_PROBE = "https://example.com";
-
-const LinkToolbar = ({
-	className,
-	...props
-}: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>) => {
+export const LinkToolbar = () => {
 	const { editor } = useToolbar();
-	const { canLink, isActive, href } = useToolbarState((current) => ({
-		canLink: current.can().setLink({
-			href: LINK_PROBE,
-		}),
-		isActive: current.isActive("link"),
-		href: current.getAttributes("link").href,
-	}));
-	const [link, setLink] = useState("");
-
-	const handleConfirm = () => {
-		const url = getUrlFromString(link);
-		url &&
-			editor
-				?.chain()
-				.focus()
-				.setLink({
-					href: url,
-				})
-				.run();
-	};
-
-	useEffect(() => {
-		setLink(href ?? "");
-	}, [
-		href,
-	]);
+	const { canLink, isActive } = useLinkState(editor);
 
 	return (
-		<Popover>
+		<LinkPopover editor={editor}>
 			<Tooltip>
 				<TooltipTrigger
 					render={
@@ -69,13 +28,13 @@ const LinkToolbar = ({
 									className={cn(
 										"h-8 w-max px-3 font-normal",
 										isActive && "bg-accent",
-										className,
 									)}
-									{...props}
 								>
-									<p className="mr-2 text-base">↗</p>
+									<p aria-hidden className="mr-2 text-base">
+										↗
+									</p>
 									<p className="underline underline-offset-4">
-										{m.editor_toolbar_link_button()}
+										{m.editor_control_link()}
 									</p>
 								</Button>
 							}
@@ -83,67 +42,9 @@ const LinkToolbar = ({
 					}
 				/>
 				<TooltipContent>
-					<span>{m.editor_toolbar_link_tooltip()}</span>
+					<span>{m.editor_control_link()}</span>
 				</TooltipContent>
 			</Tooltip>
-
-			<PopoverContent
-				className="relative px-3 py-2.5"
-				render={
-					<div className="relative">
-						<PopoverPrimitive.Close
-							aria-label={m.common_close_button()}
-							className="absolute top-3 right-3"
-						>
-							<X className="h-4 w-4" />
-						</PopoverPrimitive.Close>
-						<div>
-							<Label>{m.editor_toolbar_link_popover_label()}</Label>
-							<p className="text-sm">
-								{m.editor_toolbar_link_popover_description()}
-							</p>
-							<div className="mt-3 flex flex-col items-end justify-end gap-3">
-								<Input
-									value={link}
-									onChange={(e) => {
-										setLink(e.target.value);
-									}}
-									className="w-full"
-									placeholder="https://example.com"
-									onKeyDown={(e) => {
-										if (e.key === "Enter") {
-											handleConfirm();
-										}
-									}}
-								/>
-								<div className="flex items-center gap-3">
-									{href && (
-										<Button
-											size="sm"
-											className="h-8"
-											variant="ghost"
-											onClick={() => {
-												editor?.chain().focus().unsetLink().run();
-												setLink("");
-											}}
-										>
-											<Trash2 />
-											{m.common_remove_button()}
-										</Button>
-									)}
-									<Button size="sm" className="h-8" onClick={handleConfirm}>
-										{href
-											? m.editor_toolbar_link_update_button()
-											: m.common_confirm_button()}
-									</Button>
-								</div>
-							</div>
-						</div>
-					</div>
-				}
-			/>
-		</Popover>
+		</LinkPopover>
 	);
 };
-
-export { LinkToolbar };
