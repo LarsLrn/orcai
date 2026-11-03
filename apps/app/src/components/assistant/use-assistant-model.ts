@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/client";
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { orpc } from "@/lib/orpc/orpc";
 
 type AssistantModelAvailability = "loading" | "unset" | "set";
@@ -23,16 +23,8 @@ const assistantModelAvailability = ({
 
 /** The active organisation's assistant model, read live like the turn does. */
 const useAssistantModel = () => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-	const { data: organization, status: organizationStatus } = useQuery(
-		orpc.organization.find.queryOptions({
-			input: {
-				id: auth.session.activeOrganizationId,
-			},
-		}),
-	);
+	const { data: organization, status: organizationStatus } =
+		useActiveOrganization();
 	const modelId = organization?.data.assistantModelId ?? null;
 
 	const { data: model, error: modelError } = useQuery(

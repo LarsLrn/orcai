@@ -1,6 +1,6 @@
 import type { BotId } from "@orcai/core";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useRouteContext } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { CircleAlertIcon } from "lucide-react";
 import { DisplayTimestamp } from "@/components/app/display-time";
 import { MODEL_STEP_INDEX } from "@/components/authoring/bot-editor-steps";
@@ -12,6 +12,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatRelativeTime } from "@/lib/presentation/format-timestamp";
@@ -82,17 +83,7 @@ const ChatModelNotice = ({
 	className?: string;
 }) => {
 	const { reason } = blocker;
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-	const { data: organization } = useQuery(
-		orpc.organization.find.queryOptions({
-			input: {
-				id: auth.session.activeOrganizationId ?? "",
-			},
-			enabled: reason === "model" && !!auth.session.activeOrganizationId,
-		}),
-	);
+	const { data: organization } = useActiveOrganization();
 	const { data: capabilities } = useOrganizationCapabilities();
 	// Managers reach a used-up pool through the usage indicator.
 	const canFix =

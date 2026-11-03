@@ -6,6 +6,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { organizationIdSchema, userIdSchema } from "@orcai/schema";
 import {
 	NEWEST_REVISION,
 	permittedEntityIds,
@@ -53,6 +54,41 @@ export const committedRoles = (params: {
 				row.role,
 			]),
 		);
+	});
+
+/**
+ * The session's active organisation while the user is still a member there.
+ * One they left is cleared, so they choose another.
+ */
+export const currentActiveOrganization = (session: {
+	id: string;
+	userId: string;
+	activeOrganizationId?: string | null;
+}) =>
+	Effect.gen(function* () {
+		if (!session.activeOrganizationId) return null;
+		const organizationId = organizationIdSchema.parse(
+			session.activeOrganizationId,
+		);
+		const roles = yield* committedRoles({
+			userId: userIdSchema.parse(session.userId),
+			organizationIds: [
+				organizationId,
+			],
+		});
+		if (roles.has(organizationId)) return organizationId;
+		yield* (yield* DB)
+			.update(dbSchema.session)
+			.set({
+				activeOrganizationId: null,
+			})
+			.where(
+				and(
+					eq(dbSchema.session.id, session.id),
+					eq(dbSchema.session.activeOrganizationId, organizationId),
+				),
+			);
+		return null;
 	});
 
 type AccessParams = {

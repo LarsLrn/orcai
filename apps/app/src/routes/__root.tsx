@@ -28,51 +28,56 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { getRenderTimeZone } from "@/hooks/use-display-time";
 import { auth } from "@/lib/auth/auth";
 import { requiresTwoFactor } from "@/lib/auth/two-factor-policy";
+import { currentActiveOrganization } from "@/lib/authz/organization-access";
 import { runPromise } from "@/lib/effect/runtime";
 import { AppConfigService } from "@/lib/effect/services/config";
+import { recordRequestUser } from "@/lib/observability/request-span";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import appCss from "@/styles/app.css?url";
 
+/** The session, with an active organisation the user has left already cleared. */
 const getSession = createServerFn({
 	method: "GET",
-}).handler(async () => {
-	const { headers } = getRequest();
-	const [sessionData, policy] = await Promise.all([
-		auth.api.getSession({
-			headers,
-		}),
-		runPromise(
-			Effect.gen(function* () {
-				const { config } = yield* AppConfigService;
+}).handler(() =>
+	runPromise(
+		Effect.gen(function* () {
+			const { headers } = getRequest();
+			const sessionData = yield* Effect.tryPromise(() =>
+				auth.api.getSession({
+					headers,
+				}),
+			);
+			if (!sessionData) return null;
 
-				return config.auth.twoFactorPolicy;
-			}),
-		),
-	]);
+			const { session, user } = sessionData;
+			recordRequestUser(user.id);
+			const { config } = yield* AppConfigService;
+			const policy = config.auth.twoFactorPolicy;
 
-	return sessionData
-		? {
+			return {
 				session: {
-					...sessionData.session,
+					...session,
+					activeOrganizationId: yield* currentActiveOrganization(session),
 				},
 				user: {
-					...sessionData.user,
+					...user,
 				},
 				twoFactor: {
 					/** The policy covers the user, who has no second factor yet. */
-					setupRequired: requiresTwoFactor(policy, sessionData.user),
+					setupRequired: requiresTwoFactor(policy, user),
 					/** The policy covers the user, so 2FA cannot be turned off. */
 					enforced: requiresTwoFactor(policy, {
-						role: sessionData.user.role,
+						role: user.role,
 						twoFactorEnabled: false,
 					}),
 				},
-			}
-		: null;
-});
+			};
+		}),
+	),
+);
 
 /** Read per request, so one image serves any deployment. */
 const getPublicConfig = createServerFn({

@@ -1,6 +1,5 @@
-import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { UserWithOrganizationRole } from "@orcai/schema";
-import { useNavigate, useRouteContext } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
 	KeyRoundIcon,
 	MailCheckIcon,
@@ -8,25 +7,22 @@ import {
 	UserCogIcon,
 	UserMinusIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { RemoveMembersDialog } from "@/components/members/remove-members-dialog";
 import { OrganizationRolePicker } from "@/components/organizations/organization-role-picker";
 import { useRoleChange } from "@/components/ownership/use-role-change";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { useMembershipControl } from "@/hooks/authz/use-membership-control";
 import { useForgotPassword } from "@/hooks/mutations/use-forgot-password";
 import { useUpdateOrganizationMemberMutation } from "@/hooks/mutations/use-organization-member-mutations";
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
-import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
 import { m } from "@/paraglide/messages";
 
 const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-	const { data: capabilities } = useOrganizationCapabilities();
+	const { assignableRoles, canManageRole, canManageMember } =
+		useMembershipControl();
 	const navigate = useNavigate();
 	const passwordReset = useForgotPassword();
 	const verificationEmail = useResendVerificationEmail();
@@ -45,26 +41,8 @@ const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
 		pending: updateMember.isPending,
 	});
 	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
-	const canManageOrganization =
-		capabilities?.data.capabilities.manage_organization === true;
-	const canManageProtectedMember =
-		member.organizationRole !== ORGANIZATION_ADMIN_ROLE ||
-		canManageOrganization;
-	const canMutateUserAccount =
-		canManageProtectedMember && member.id !== auth.user.id;
-	const isProtectedAdmin =
-		member.organizationRole === ORGANIZATION_ADMIN_ROLE &&
-		!canManageOrganization;
-
-	const assignableRoles = useMemo(
-		() =>
-			getAssignableOrganizationRoles({
-				canManageOrganization,
-			}),
-		[
-			canManageOrganization,
-		],
-	);
+	const canMutateUserAccount = canManageMember(member);
+	const isProtectedAdmin = !canManageRole(member.organizationRole);
 
 	return (
 		<div className="flex flex-col gap-4">

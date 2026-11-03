@@ -1,7 +1,7 @@
 import { Radio } from "@base-ui/react/radio";
 import { RadioGroup } from "@base-ui/react/radio-group";
 import type { LibraryScope, LibrarySort } from "@orcai/schema";
-import { keepPreviousData, skipToken, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMatches, useNavigate, useSearch } from "@tanstack/react-router";
 import { LayoutGridIcon, LibraryIcon, UserIcon } from "lucide-react";
 import { FilterFields } from "@/components/browse/browse-filters";
@@ -19,7 +19,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
-import { useAuthenticatedRouteContext } from "@/hooks/authz/use-authenticated-route-context";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { FilterValues } from "@/lib/browse/browse-search";
 import {
 	type LibraryView,
@@ -166,17 +166,7 @@ const ScopeSwitch = ({
 
 /** The page title with the active organisation's name in the line under it. */
 const LibraryHeader = () => {
-	const { auth } = useAuthenticatedRouteContext();
-	const organizationId = auth.session.activeOrganizationId;
-	const { data: organization } = useQuery(
-		orpc.organization.find.queryOptions({
-			input: organizationId
-				? {
-						id: organizationId,
-					}
-				: skipToken,
-		}),
-	);
+	const { data: organization } = useActiveOrganization();
 
 	return (
 		<PageHeader className="md:grid-cols-[1fr_auto] md:items-end">

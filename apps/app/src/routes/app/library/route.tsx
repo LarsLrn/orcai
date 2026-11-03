@@ -4,22 +4,9 @@ import {
 	LibraryBrowse,
 	useLibraryView,
 } from "@/components/library/library-browse";
-import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library")({
-	loader: async ({ context: { queryClient, auth } }) => {
-		const id = auth.session?.activeOrganizationId;
-		if (id)
-			await queryClient.query(
-				orpc.organization.find.queryOptions({
-					input: {
-						id,
-					},
-					staleTime: "static",
-				}),
-			);
-	},
 	head: () => ({
 		meta: [
 			{

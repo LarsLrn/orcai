@@ -1,4 +1,3 @@
-import { ORGANIZATION_ADMIN_ROLE } from "@orcai/core";
 import type { OrganizationInvitation } from "@orcai/schema";
 import { useRouter } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -9,7 +8,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
 import { createDataTableSelectColumn } from "@/components/ui/data-table/data-table-select-column";
 import type { HeaderAction } from "@/components/ui/shell/actions";
-import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { useMembershipControl } from "@/hooks/authz/use-membership-control";
 import { useDeleteOrganizationInvitationsMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
 import { reasonMessageOf } from "@/lib/errors/describe-error";
 import { m } from "@/paraglide/messages";
@@ -21,16 +20,15 @@ const columnHelper = createColumnHelper<
 
 const useInvitationRowActions = (invitation: OrganizationInvitation) => {
 	const router = useRouter();
-	const { data: capabilities } = useOrganizationCapabilities();
 	const { mutate: deleteInvitations } =
 		useDeleteOrganizationInvitationsMutation({
 			names: [
 				`for ${invitation.email}`,
 			],
 		});
-	const canDeleteInvitation =
-		invitation.role !== ORGANIZATION_ADMIN_ROLE ||
-		capabilities?.data.capabilities.manage_organization === true;
+	const canDeleteInvitation = useMembershipControl().canManageRole(
+		invitation.role,
+	);
 
 	const copyLink = () => {
 		const location = router.buildLocation({

@@ -3,17 +3,14 @@ import { usePublicConfig } from "@/hooks/use-public-config";
 export function useUmami() {
 	const { umami } = usePublicConfig();
 
-	const identifyUser = (
-		uniqueId: string,
-		data: {
-			name: string;
-			email: string;
-		},
-	) => {
+	const identifyUser = (user: { id: string; name: string; email: string }) => {
 		if (!umami) return;
 
 		if (typeof window !== "undefined" && window.umami) {
-			window.umami.identify(uniqueId, data);
+			window.umami.identify(user.id, {
+				email: user.email,
+				name: user.name,
+			});
 		}
 	};
 

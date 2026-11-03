@@ -1,6 +1,5 @@
 import type { OrganizationInvitation, OrganizationRole } from "@orcai/schema";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useRouteContext } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
 import { LOCALE_NAMES } from "@/components/app/locale/locale-names";
@@ -24,11 +23,10 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { useMembershipControl } from "@/hooks/authz/use-membership-control";
 import { useAppForm } from "@/hooks/form";
 import { useCreateOrganizationInvitationMutation } from "@/hooks/mutations/use-organization-invitation-mutations";
-import { getAssignableOrganizationRoles } from "@/lib/authz/organization-role-metadata";
-import { orpc } from "@/lib/orpc/orpc";
+import { useSuspenseActiveOrganization } from "@/hooks/use-active-organization";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { locales } from "@/paraglide/runtime";
@@ -36,30 +34,17 @@ import { mergeBulkEmails } from "./merge-bulk-emails";
 import { organizationInvitationFormOptions } from "./organization-invitation-form-options";
 
 const OrganizationInvitationForm = () => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
 	const navigate = useNavigate();
 	const { mutateAsync: createInvitation } =
 		useCreateOrganizationInvitationMutation();
-	const { data: capabilities } = useOrganizationCapabilities();
 
 	const bulkEmailsId = useId();
 
 	const organizationNameId = useId();
 	const roleLabelId = useId();
 
-	const { data: organization } = useSuspenseQuery(
-		orpc.organization.find.queryOptions({
-			input: {
-				id: auth.session.activeOrganizationId,
-			},
-		}),
-	);
-	const assignableRoles = getAssignableOrganizationRoles({
-		canManageOrganization:
-			capabilities?.data.capabilities.manage_organization === true,
-	});
+	const organization = useSuspenseActiveOrganization();
+	const { assignableRoles } = useMembershipControl();
 
 	const form = useAppForm({
 		...organizationInvitationFormOptions(),
@@ -105,7 +90,7 @@ const OrganizationInvitationForm = () => {
 					</FieldLabel>
 					<Input
 						id={organizationNameId}
-						value={organization.data.name}
+						value={organization.name}
 						readOnly
 						className="sm:max-w-md"
 					/>

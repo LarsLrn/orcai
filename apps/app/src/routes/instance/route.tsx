@@ -36,10 +36,7 @@ function RouteComponent() {
 	const { auth } = Route.useRouteContext();
 	const { identifyUser } = useUmami();
 
-	identifyUser(auth.user.id, {
-		email: auth.user.email,
-		name: auth.user.name,
-	});
+	identifyUser(auth.user);
 
 	return (
 		<InstanceShell>

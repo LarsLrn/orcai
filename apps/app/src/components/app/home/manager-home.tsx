@@ -1,4 +1,3 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useRouteContext } from "@tanstack/react-router";
 import { SparklesIcon } from "lucide-react";
 import { Suspense } from "react";
@@ -13,8 +12,8 @@ import {
 } from "@/components/ui/shell/page";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
+import { useSuspenseActiveOrganization } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 import { ManageLibraryPanel } from "./manage-library-panel";
 import { ManagePeoplePanel } from "./manage-people-panel";
@@ -22,18 +21,9 @@ import { ManageQuotaPanel } from "./manage-quota-panel";
 import { ManageRecentPanel } from "./manage-recent-panel";
 
 const OrganizationTitle = () => {
-	const { auth } = useRouteContext({
-		from: "/app",
-	});
-	const { data: organization } = useSuspenseQuery(
-		orpc.organization.find.queryOptions({
-			input: {
-				id: auth.session.activeOrganizationId,
-			},
-		}),
-	);
+	const organization = useSuspenseActiveOrganization();
 
-	return <PageTitle>{organization.data.name}</PageTitle>;
+	return <PageTitle>{organization.name}</PageTitle>;
 };
 
 const CreateBotAction = () => {

@@ -4,6 +4,8 @@ import {
 	ORGANIZATION_ROLES,
 	type OrganizationRole,
 } from "@orcai/core";
+import type { OrganizationCapability } from "@orcai/schema";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
 
 type OrganizationPermission =
@@ -43,9 +45,24 @@ export const getOrganizationRoleDescription = (role: OrganizationRole) =>
 		.map((permission) => organizationPermissionLabels[permission]())
 		.join(", ");
 
-export const getAssignableOrganizationRoles = (params: {
-	canManageOrganization: boolean;
-}) =>
-	ORGANIZATION_ROLES.filter(
-		(role) => params.canManageOrganization || role !== ORGANIZATION_ADMIN_ROLE,
-	);
+/**
+ * Which memberships and invitations the user may hand out, change or remove:
+ * an admin one needs `manage_organization`, and nobody acts on their own.
+ */
+export const membershipControl = (params: {
+	userId: string;
+	capabilities: Partial<Record<OrganizationCapability, boolean>> | undefined;
+}) => {
+	const canManageRole = (role: OrganizationRole) =>
+		role !== ORGANIZATION_ADMIN_ROLE ||
+		hasCapability(params.capabilities, "manage_organization");
+
+	return {
+		assignableRoles: ORGANIZATION_ROLES.filter(canManageRole),
+		canManageRole,
+		canManageMember: (member: {
+			id: string;
+			organizationRole: OrganizationRole;
+		}) => member.id !== params.userId && canManageRole(member.organizationRole),
+	};
+};

@@ -3,9 +3,10 @@ import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { createUser, reasonOf, rolledBack } from "@orcai/testing";
 import { ORPCError } from "@orpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
+import { currentActiveOrganization } from "@/lib/authz/organization-access";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
@@ -590,6 +591,69 @@ describe("organisation gate", () => {
 					),
 				),
 			).toBeUndefined();
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"a session keeps its active organisation only while the user is a member there",
+		async () => {
+			const {
+				organizationId,
+				actors: [staying, leaving],
+			} = await organizationWith([
+				"member",
+				"member",
+			]);
+			const outcome = await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					yield* db
+						.delete(dbSchema.member)
+						.where(
+							and(
+								eq(dbSchema.member.organizationId, organizationId),
+								eq(dbSchema.member.userId, leaving.user.id),
+							),
+						);
+					const active = [
+						yield* currentActiveOrganization(staying.session),
+						yield* currentActiveOrganization(leaving.session),
+					];
+					const stored = yield* db
+						.select({
+							id: dbSchema.session.id,
+							activeOrganizationId: dbSchema.session.activeOrganizationId,
+						})
+						.from(dbSchema.session)
+						.where(
+							inArray(dbSchema.session.id, [
+								staying.session.id,
+								leaving.session.id,
+							]),
+						);
+					return {
+						active,
+						stored: Object.fromEntries(
+							stored.map((row) => [
+								row.id,
+								row.activeOrganizationId,
+							]),
+						),
+					};
+				}),
+			);
+
+			expect(outcome).toEqual({
+				active: [
+					organizationId,
+					null,
+				],
+				stored: {
+					[staying.session.id]: organizationId,
+					[leaving.session.id]: null,
+				},
+			});
 		},
 		TIMEOUT,
 	);
