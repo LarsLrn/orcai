@@ -2,27 +2,35 @@ import { describe, expect, test } from "bun:test";
 import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { createUser, reasonOf, rolledBack } from "@orcai/testing";
+import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
-import { requireOrganizationAccess } from "@/lib/authz/organization-access";
-import { insertOrganization } from "@/lib/authz/organization-lifecycle";
-import {
-	acceptInvitation,
-	changeMemberRole,
-} from "@/lib/authz/organization-membership";
-import { writeRelationships } from "@/lib/authz/relationship-write";
+import { AuthzService } from "@/lib/effect/services/authz";
+import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { router } from "@/lib/orpc/router";
 import {
+	type Actor,
 	appIntegration,
 	failingWritesAbout,
 	TIMEOUT,
 } from "@/lib/testing/app-integration";
 
-const { run, signIn, organizationWith, instanceAdmin, caller } =
-	appIntegration();
+const {
+	run,
+	signIn,
+	organizationWith,
+	instanceAdmin,
+	caller,
+	procedureOptions,
+} = appIntegration();
 
 const procedures = await run(Procedures);
+
+type AppContext = Awaited<
+	ReturnType<typeof procedureOptions>
+>["context"]["effect/context"];
 
 const { call, observe } = caller();
 
@@ -348,94 +356,132 @@ describe("organisation gate", () => {
 	);
 
 	test(
-		"a committed grant SpiceDB does not hold yet is pending, not denied",
+		"a committed grant SpiceDB does not hold yet answers 503 ACCESS_PENDING",
 		async () => {
 			const newcomer = await run(createUser());
 			const {
-				organizationId: promoting,
+				organizationId: joining,
 				actors: [admin],
 				zedToken,
 			} = await organizationWith([
 				"admin",
 			]);
-			observe(zedToken);
+			const instance = await instanceAdmin(joining);
+			const newcomerSession = await signIn(joining, newcomer.id);
 			const spice = failingWritesAbout(newcomer.id, "unavailable");
 
-			const reasons = await run(
+			const outcomes = await run(
 				rolledBack(
 					Effect.gen(function* () {
-						const db = yield* DB;
-						const admitted = (
-							organizationId: OrganizationId,
-							permission: "read" | "manage_models",
-						) =>
-							requireOrganizationAccess({
-								organizationId,
-								userId: newcomer.id,
-								permission,
-								zedToken: undefined,
-								active: true,
-							}).pipe(
+						// The transaction's own context, so the procedures write inside it
+						// and deliver through the failing SpiceDB.
+						const context = Context.add(
+							(yield* Effect.context<never>()) as AppContext,
+							AuthzService,
+							yield* AuthzService,
+						);
+						const optionsFor = (
+							actor: Actor,
+							activeOrganizationId: OrganizationId | null,
+						) => ({
+							context: {
+								"effect/context": context,
+								"effect/wrap": mapEffectErrors,
+								reqHeaders: new Headers(),
+								secureCookies: false,
+								meta: {
+									zedToken,
+								},
+								auth: {
+									isAuthenticated: true as const,
+									session: {
+										...actor.session,
+										activeOrganizationId,
+									},
+									user: actor.user,
+								},
+							},
+						});
+						const asNewcomer = (organizationId: OrganizationId) =>
+							optionsFor(newcomerSession, organizationId);
+						const outcome = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+							effect.pipe(
 								Effect.as(undefined),
 								Effect.catch((error) =>
-									Effect.succeed("reason" in error ? error.reason : error._tag),
+									Effect.succeed(
+										error instanceof ORPCError
+											? `${error.code} ${
+													(
+														error.data as {
+															reason?: string;
+														}
+													).reason
+												}`
+											: String(error),
+									),
 								),
 							);
 
-						const { result: created } = yield* writeRelationships(
+						const { data: created } = yield* procedures.organization.create(
 							{
-								organizationIds: [],
-							},
-							insertOrganization({
-								values: {
-									name: "Pending",
-									slug: `pending-${crypto.randomUUID()}`,
+								name: "Pending",
+								slug: `pending-${crypto.randomUUID()}`,
+								initialAdmin: {
+									kind: "user",
+									userId: newcomer.id,
 								},
-								adminUserId: newcomer.id,
-								now: new Date(),
-							}),
+							},
+							optionsFor(instance, joining),
+						);
+						const createdAdmin = yield* outcome(
+							procedures.readiness.organization({}, asNewcomer(created.id)),
 						);
 
-						const [invitation] = yield* db
+						const [invitation] = yield* (yield* DB)
 							.insert(dbSchema.invitation)
 							.values({
-								organizationId: promoting,
+								organizationId: joining,
 								email: newcomer.email,
 								role: "viewer",
 								status: "pending",
 								expiresAt: new Date(Date.now() + 3_600_000),
 							})
 							.returning();
-						yield* acceptInvitation({
-							invitationId: invitation.id,
-							userId: newcomer.id,
-							email: newcomer.email,
-						});
-						const accepted = yield* admitted(promoting, "read");
-
-						yield* changeMemberRole({
-							organizationId: promoting,
-							userId: newcomer.id,
-							role: "admin",
-							actor: {
-								kind: "member",
-								userId: admin.user.id,
+						yield* procedures.organizationInvitation.respond(
+							{
+								id: invitation.id,
+								response: "accept",
 							},
-						});
+							optionsFor(newcomerSession, null),
+						);
+						const invitedViewer = yield* outcome(
+							procedures.model.list({}, asNewcomer(joining)),
+						);
+
+						yield* procedures.organizationMember.update(
+							{
+								userId: newcomer.id,
+								role: "admin",
+							},
+							optionsFor(admin, joining),
+						);
+						const promotedAdmin = yield* outcome(
+							procedures.readiness.organization({}, asNewcomer(joining)),
+						);
 
 						return [
-							yield* admitted(created.id, "manage_models"),
-							accepted,
-							yield* admitted(promoting, "manage_models"),
+							createdAdmin,
+							invitedViewer,
+							promotedAdmin,
 						];
 					}),
 				).pipe(Effect.provide(spice.authz)),
 			).finally(spice.close);
 
-			expect(reasons).toEqual([
-				"ACCESS_PENDING",
-				"ACCESS_PENDING",
-				"ACCESS_PENDING",
+			expect(outcomes).toEqual([
+				"SERVICE_UNAVAILABLE ACCESS_PENDING",
+				"SERVICE_UNAVAILABLE ACCESS_PENDING",
+				"SERVICE_UNAVAILABLE ACCESS_PENDING",
 			]);
 		},
 		TIMEOUT,
