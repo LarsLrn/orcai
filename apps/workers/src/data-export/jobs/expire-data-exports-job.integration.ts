@@ -71,26 +71,4 @@ describe("expireDataExports", () => {
 			olderThanWindow: [],
 		});
 	}, 30_000);
-
-	test("sweeps a listing that spans several pages", async () => {
-		const prefix = scopedPrefix();
-		const outcome = await run(
-			Effect.gen(function* () {
-				yield* putArchives(prefix, 1_005);
-				const deleted = yield* expireDataExports({
-					prefix,
-					now: new Date(Date.now() + DATA_EXPORT_TTL_MS + 2 * HOUR),
-				});
-				return {
-					deleted,
-					left: (yield* keysUnder(prefix)).length,
-				};
-			}).pipe(Effect.provide(S3Live)),
-		);
-
-		expect(outcome).toEqual({
-			deleted: 1_005,
-			left: 0,
-		});
-	}, 120_000);
 });

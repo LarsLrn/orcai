@@ -5,6 +5,7 @@ import { PgBossService, PgBossWorkersError } from "@orcai/pg-boss";
 import { JOB_QUEUE_POLICIES, type JobQueue } from "@orcai/schema";
 import * as Cause from "effect/Cause";
 import * as Config from "effect/Config";
+import type * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import type * as Layer from "effect/Layer";
@@ -59,6 +60,35 @@ const pollingIntervalOverride = Config.option(
 	Config.Number("WORKER_POLLING_INTERVAL_SECONDS"),
 );
 
+/** Runs a pg-boss batch through `handler`, interrupted when pg-boss expires the batch. */
+export const runWorkerBatch =
+	<R, T>(
+		services: Context.Context<R>,
+		queue: string,
+		handler: (jobs: JobWithMetadata<T>[]) => Effect.Effect<void, unknown, R>,
+	) =>
+	(jobs: JobWithMetadata<T>[]) =>
+		Effect.runPromiseWith(services)(
+			// Joins the span this callback is called in.
+			withActiveSpan(
+				handler(jobs).pipe(
+					Effect.tapCause((cause) =>
+						logErrorCause("Worker batch failed", cause).pipe(
+							Effect.annotateLogs({
+								queue,
+								jobIds: jobs.map((job) => job.id),
+								jobCount: jobs.length,
+							}),
+						),
+					),
+				),
+			),
+			// pg-boss aborts a batch that outlives its expiry.
+			{
+				signal: jobs[0]?.signal,
+			},
+		);
+
 const registerWorkers = <TContext>(
 	definitions: readonly WorkerDefinition<TContext | PgBossService, unknown>[],
 ) =>
@@ -68,35 +98,6 @@ const registerWorkers = <TContext>(
 		const pollingIntervalSeconds = Option.getOrUndefined(
 			yield* pollingIntervalOverride,
 		);
-
-		const runWorkerBatch =
-			(
-				queue: JobQueue,
-				handler: (
-					jobs: JobWithMetadata<unknown>[],
-				) => Effect.Effect<void, unknown, TContext | PgBossService>,
-			) =>
-			(jobs: JobWithMetadata<unknown>[]) =>
-				Effect.runPromiseWith(services)(
-					// Joins the span this callback is called in.
-					withActiveSpan(
-						handler(jobs).pipe(
-							Effect.tapCause((cause) =>
-								logErrorCause("Worker batch failed", cause).pipe(
-									Effect.annotateLogs({
-										queue,
-										jobIds: jobs.map((job) => job.id),
-										jobCount: jobs.length,
-									}),
-								),
-							),
-						),
-					),
-					// pg-boss aborts a batch that outlives its expiry.
-					{
-						signal: jobs[0]?.signal,
-					},
-				);
 
 		yield* Effect.forEach(
 			definitions,
@@ -114,7 +115,7 @@ const registerWorkers = <TContext>(
 										definition.workOptions.pollingIntervalSeconds,
 									includeMetadata: true,
 								},
-								runWorkerBatch(definition.name, definition.handler),
+								runWorkerBatch(services, definition.name, definition.handler),
 							),
 						catch: (cause) =>
 							new PgBossWorkersError({

@@ -5,14 +5,16 @@ import * as Effect from "effect/Effect";
 import { GenerationWrite } from "../src/generation";
 import { deleteAttemptPoints, upsertPointsToQdrant } from "../src/mutations";
 import { QdrantService } from "../src/service";
-import { TestCollectionLive } from "./test-collection";
+import { testCollectionRuntime } from "./test-collection";
 
 const DIMENSIONS = 1024;
 
 describe("upsertPointsToQdrant", () => {
+	const wide = testCollectionRuntime(DIMENSIONS);
+
 	test("stores a document whose points exceed one request's size limit", async () => {
 		const assetId = crypto.randomUUID() as AssetId;
-		const stored = await Effect.runPromise(
+		const stored = await wide.runPromise(
 			Effect.gen(function* () {
 				const { client } = yield* QdrantService;
 				const { collection } = yield* GenerationWrite;
@@ -69,19 +71,21 @@ describe("upsertPointsToQdrant", () => {
 					count: count.count,
 					pointCount,
 				};
-			}).pipe(Effect.provide(TestCollectionLive(DIMENSIONS))),
+			}),
 		);
 
 		expect(stored.count).toBe(stored.pointCount);
 	}, 120_000);
 });
 
-// One-dimensional vectors make a link with enough points that deleting them takes a while.
 describe("deleteAttemptPoints", () => {
+	// One-dimensional vectors make a link with enough points that deleting them takes a while.
+	const narrow = testCollectionRuntime(1);
+
 	test("returns once the points are gone", async () => {
 		const assetId = crypto.randomUUID() as AssetId;
 		const blockId = crypto.randomUUID() as BlockId;
-		const remaining = await Effect.runPromise(
+		const remaining = await narrow.runPromise(
 			Effect.gen(function* () {
 				const { client } = yield* QdrantService;
 				const { collection } = yield* GenerationWrite;
@@ -137,7 +141,7 @@ describe("deleteAttemptPoints", () => {
 						),
 					),
 				);
-			}).pipe(Effect.provide(TestCollectionLive(1))),
+			}),
 		);
 
 		expect(remaining.count).toBe(0);

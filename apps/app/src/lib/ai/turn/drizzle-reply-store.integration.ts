@@ -1,16 +1,26 @@
 import { describe, expect, test } from "bun:test";
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { createUser, integrationRuntime } from "@orcai/testing";
+import {
+	awaitLockWaiters,
+	createUser,
+	integrationRuntime,
+} from "@orcai/testing";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
+import type * as ManagedRuntime from "effect/ManagedRuntime";
 import { DrizzleReplyStore } from "./drizzle-reply-store";
 import { type NewMessage, ReplyStore } from "./reply-store";
 
 const runtime = integrationRuntime();
 
-const run = <A, E>(effect: Effect.Effect<A, E, ReplyStore | DB>) =>
-	runtime.runPromise(effect.pipe(Effect.provide(DrizzleReplyStore)));
+const run = <A, E>(
+	effect: Effect.Effect<
+		A,
+		E,
+		ReplyStore | ManagedRuntime.ManagedRuntime.Services<typeof runtime>
+	>,
+) => runtime.runPromise(effect.pipe(Effect.provide(DrizzleReplyStore)));
 
 const newChat = Effect.gen(function* () {
 	const db = yield* DB;
@@ -280,7 +290,7 @@ describe("DrizzleReplyStore", () => {
 													}),
 												),
 											),
-										Effect.sleep("200 millis").pipe(
+										awaitLockWaiters('update "chat" set%').pipe(
 											Effect.andThen(Deferred.succeed(release, undefined)),
 										),
 									],

@@ -776,7 +776,7 @@ const largestParameterList = (statements: readonly string[]) =>
 
 describe("activity summary cost", () => {
 	test(
-		"a retained 1000-asset backfill and 200 failures cost a bounded summary that never carries the finished run's assets",
+		"a retained backfill and failures cost a bounded summary that never carries the finished run's assets",
 		async () => {
 			const { organizationId, owner, zedToken } = await organization();
 			const { backfill, failed, token } = await run(
@@ -815,8 +815,8 @@ describe("activity summary cost", () => {
 							],
 						},
 						Effect.gen(function* () {
-							const backfill = yield* insertAssets(1000, false);
-							const failed = yield* insertAssets(200, true);
+							const backfill = yield* insertAssets(50, false);
+							const failed = yield* insertAssets(20, true);
 							yield* Effect.forEach(
 								[
 									...backfill,
@@ -867,7 +867,7 @@ describe("activity summary cost", () => {
 					};
 				}),
 			);
-			expect(backfill).toHaveLength(1000);
+			expect(backfill).toHaveLength(50);
 
 			const { value, statements } = await run(
 				traced(

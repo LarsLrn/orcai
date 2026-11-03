@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, jest, test } from "bun:test";
 import {
 	createMemoryHistory,
 	createRootRoute,
@@ -11,7 +11,6 @@ import {
 	fireEvent,
 	render,
 	screen,
-	waitFor,
 } from "@testing-library/react";
 import { useState } from "react";
 import { z } from "zod/v4";
@@ -23,8 +22,15 @@ const DEBOUNCE_MS = 20;
 const LOADER_MS = 60;
 const SETTLE_MS = DEBOUNCE_MS + LOADER_MS * 3;
 
+// Moves the fake clock one millisecond at a time, letting the navigation each
+// timer starts run before the next one fires.
 const sleep = (ms: number) =>
-	act(() => new Promise((resolve) => setTimeout(resolve, ms)));
+	act(async () => {
+		for (let elapsed = 0; elapsed < ms; elapsed++) {
+			jest.advanceTimersByTime(1);
+			await Promise.resolve();
+		}
+	});
 
 const Searches = ({ twice }: { twice: boolean }) => {
 	const [mounted, setMounted] = useState(true);
@@ -67,22 +73,24 @@ const renderSearch = async ({
 	});
 	render(<RouterProvider router={router} />);
 	const inputs = await screen.findAllByRole<HTMLInputElement>("textbox");
+	jest.useFakeTimers();
 	const urlQuery = () =>
 		(
 			router.state.location.search as {
 				query?: string;
 			}
 		).query ?? "";
-	const navigateTo = (query: string, replace = false) =>
-		act(() =>
-			router.navigate({
-				to: ".",
-				search: {
-					query,
-				},
-				replace,
-			}),
-		);
+	const navigateTo = async (query: string, replace = false) => {
+		const navigation = router.navigate({
+			to: ".",
+			search: {
+				query,
+			},
+			replace,
+		});
+		await sleep(SETTLE_MS);
+		await act(() => navigation);
+	};
 	return {
 		input: inputs[0] as HTMLInputElement,
 		inputs,
@@ -111,7 +119,10 @@ const fill = (input: HTMLInputElement, text: string) =>
 		},
 	});
 
-afterEach(cleanup);
+afterEach(() => {
+	cleanup();
+	jest.useRealTimers();
+});
 
 describe("DataTableSearch", () => {
 	test("keeps keystrokes typed while a debounced navigation loads", async () => {
@@ -141,20 +152,22 @@ describe("DataTableSearch", () => {
 		const { input, urlQuery, navigateTo } = await renderSearch();
 
 		await type(input, "gamma");
-		await waitFor(() => expect(urlQuery()).toBe("gamma"));
+		await sleep(SETTLE_MS);
+		expect(urlQuery()).toBe("gamma");
 		await navigateTo("delta");
 
-		await waitFor(() => expect(input.value).toBe("delta"));
+		expect(input.value).toBe("delta");
 	});
 
 	test("adopts a query replaced from outside", async () => {
 		const { input, urlQuery, navigateTo } = await renderSearch();
 
 		await type(input, "gamma");
-		await waitFor(() => expect(urlQuery()).toBe("gamma"));
+		await sleep(SETTLE_MS);
+		expect(urlQuery()).toBe("gamma");
 		await navigateTo("delta", true);
 
-		await waitFor(() => expect(input.value).toBe("delta"));
+		expect(input.value).toBe("delta");
 	});
 
 	test("adopts the query of a history entry gone forward to", async () => {
@@ -162,7 +175,8 @@ describe("DataTableSearch", () => {
 
 		await navigateTo("iota");
 		await act(() => router.history.back());
-		await waitFor(() => expect(input.value).toBe(""));
+		await sleep(SETTLE_MS);
+		expect(input.value).toBe("");
 		fill(input, "kappa");
 		await act(() => router.history.forward());
 		await sleep(SETTLE_MS);
@@ -264,7 +278,8 @@ describe("DataTableSearch", () => {
 		const { input, urlQuery } = await renderSearch();
 
 		await type(input, "theta");
-		await waitFor(() => expect(urlQuery()).toBe("theta"));
+		await sleep(SETTLE_MS);
+		expect(urlQuery()).toBe("theta");
 		fireEvent.click(
 			screen.getByRole("button", {
 				name: m.data_table_search_clear_label(),
@@ -272,6 +287,7 @@ describe("DataTableSearch", () => {
 		);
 
 		expect(input.value).toBe("");
-		await waitFor(() => expect(urlQuery()).toBe(""));
+		await sleep(SETTLE_MS);
+		expect(urlQuery()).toBe("");
 	});
 });

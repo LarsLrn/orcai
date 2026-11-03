@@ -1,13 +1,12 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import type { AssetPointBrowseCursor } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as ManagedRuntime from "effect/ManagedRuntime";
 import { browseAssetPoints } from "../src/browse";
 import { upsertPointsToQdrant } from "../src/mutations";
 import { QdrantLive, QdrantService } from "../src/service";
-import { TestCollectionLive } from "./test-collection";
+import { testCollectionRuntime } from "./test-collection";
 
 let calls = 0;
 
@@ -35,12 +34,7 @@ const CountingQdrant = Layer.effect(
 ).pipe(Layer.provide(QdrantLive));
 
 const dimensions = 4;
-const runtime = ManagedRuntime.make(
-	TestCollectionLive(dimensions, CountingQdrant),
-);
-const run = runtime.runPromise;
-
-afterAll(() => runtime.dispose());
+const run = testCollectionRuntime(dimensions, CountingQdrant).runPromise;
 
 describe("browseAssetPoints in reading order", () => {
 	test("pages a document of more than 1,000 passages with at most four requests a page", async () => {

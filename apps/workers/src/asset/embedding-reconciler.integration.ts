@@ -1,5 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
-import { setTimeout as sleep } from "node:timers/promises";
+import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import { type AssetId, type BlockId, buckets } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
@@ -87,8 +86,44 @@ const embeddings = serve({
 	},
 });
 
-/** Holds the next collection Qdrant creates until the test lets it through. */
-let creating: Promise<void> | undefined;
+let held:
+	| {
+			readonly reach: () => void;
+			readonly release: Promise<void>;
+			readonly free: () => void;
+	  }
+	| undefined;
+
+/**
+ * Holds the collections Qdrant creates until `release`. `reached(running)`
+ * settles once one is held, and fails if `running` ends first.
+ */
+const holdCollections = () => {
+	const reached = Promise.withResolvers<void>();
+	const release = Promise.withResolvers<void>();
+	const free = () => {
+		held = undefined;
+		release.resolve();
+	};
+	held = {
+		reach: reached.resolve,
+		release: release.promise,
+		free,
+	};
+	return {
+		reached: (running: Promise<unknown>) =>
+			Promise.race([
+				reached.promise,
+				running.then(() => {
+					throw new Error("Finished without creating a collection");
+				}),
+			]),
+		release: free,
+	};
+};
+
+// A failed test must not leave a later collection waiting.
+afterEach(() => held?.free());
 
 const HeldQdrantLive = Layer.effect(
 	QdrantService,
@@ -100,7 +135,10 @@ const HeldQdrantLive = Layer.effect(
 				if (typeof value !== "function") return value;
 				if (key !== "createCollection") return value.bind(target);
 				return async (...args: unknown[]) => {
-					await creating;
+					if (held) {
+						held.reach();
+						await held.release;
+					}
 					return value.apply(target, args);
 				};
 			},
@@ -482,10 +520,9 @@ test(
 	async () => {
 		const index = indexes.racing;
 		const link = await seed();
-		const release = Promise.withResolvers<void>();
-		creating = release.promise;
+		const hold = holdCollections();
 		const saving = configure(index, link);
-		await sleep(200);
+		await hold.reached(saving);
 
 		// Processing completes now: the setup is not committed, so the link waits.
 		await admit(link, index);
@@ -493,8 +530,7 @@ test(
 			generation: null,
 		});
 
-		release.resolve();
-		creating = undefined;
+		hold.release();
 		await saving;
 		expect(await on(index, link, reconcileEmbeddings)).toBe(1);
 		expect(await linkOf(link)).toMatchObject({
@@ -1005,16 +1041,14 @@ test(
 		const before = await processingOf(link);
 
 		// The switch holds the generation lock until its collection exists.
-		const release = Promise.withResolvers<void>();
-		creating = release.promise;
+		const hold = holdCollections();
 		const switching = configure(index, link, "integration-switched");
-		await sleep(200);
+		await hold.reached(switching);
 		const preparing = on(index, link, prepareMissingExtractionsAgain);
 		await runtime.runPromise(
 			awaitLockWaiters("%pg_advisory_xact_lock_shared%"),
 		);
-		release.resolve();
-		creating = undefined;
+		hold.release();
 		await switching;
 
 		expect(await preparing).toBe(0);

@@ -971,7 +971,12 @@ test(
 			.then(() => {
 				saved = true;
 			});
-		await sleep(300);
+		await run(
+			awaitLockWaiters({
+				space: "embeddingGenerations",
+				key: index.collectionPrefix,
+			}),
+		);
 		expect(saved).toBe(false);
 
 		upsert.settle(true);
