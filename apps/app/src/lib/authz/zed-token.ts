@@ -75,20 +75,26 @@ export const zedTokenCookieOptions = (secure: boolean) =>
 		secure,
 	}) satisfies CookieOptions;
 
-/** The newest token written by the authz writes of one request; the last write wins. */
+/** The newest token written by the authz writes of one request. */
 class ZedTokenMailbox extends Context.Service<
 	ZedTokenMailbox,
 	{
-		record: (zedToken: string) => void;
+		record: (zedToken: string, seq: number | undefined) => void;
 	}
 >()("ZedTokenMailbox") {}
 
-/** Records a written token for the request's response. No-op outside a request. */
-export const recordZedToken = (zedToken: string | undefined) =>
+/**
+ * Records a written token for the request's response. No-op outside a request.
+ * Concurrent writes of one request finish their deliveries in any order, so a
+ * token with the seq of the outbox event that wrote it replaces only the token
+ * of an older event. A token without one replaces any.
+ */
+export const recordZedToken = (zedToken: string | undefined, seq?: number) =>
 	Effect.serviceOption(ZedTokenMailbox).pipe(
 		Effect.flatMap((mailbox) =>
 			Effect.sync(() => {
-				if (zedToken && Option.isSome(mailbox)) mailbox.value.record(zedToken);
+				if (zedToken && Option.isSome(mailbox))
+					mailbox.value.record(zedToken, seq);
 			}),
 		),
 	);
@@ -114,14 +120,22 @@ export const zedTokenResponseMiddleware = withName(
 		.$context<ZedTokenResponseContext>()
 		.middleware(async ({ context, next }) => {
 			let zedToken: string | undefined;
+			let newestSeq: number | undefined;
 			const result = await next({
 				context: {
 					"effect/context": Context.add(
 						context["effect/context"],
 						ZedTokenMailbox,
 						{
-							record: (written) => {
+							record: (written, seq) => {
+								if (
+									seq !== undefined &&
+									newestSeq !== undefined &&
+									seq < newestSeq
+								)
+									return;
 								zedToken = written;
+								newestSeq = seq;
 							},
 						},
 					),

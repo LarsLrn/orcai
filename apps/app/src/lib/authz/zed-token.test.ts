@@ -7,9 +7,9 @@ import {
 	zedTokenResponseMiddleware,
 } from "./zed-token";
 
-/** Runs the middleware around a handler that writes `zedTokens` through the Effect context. */
+/** Runs the middleware around a handler that records `writes` through the Effect context. */
 const run = async (params: {
-	zedTokens?: (string | undefined)[];
+	writes?: Parameters<typeof recordZedToken>[];
 	output: unknown;
 	secureCookies?: boolean;
 }) => {
@@ -37,9 +37,9 @@ const run = async (params: {
 		},
 		next: ({ context }) => {
 			Effect.runSync(
-				Effect.forEach(params.zedTokens ?? [], recordZedToken).pipe(
-					Effect.provide(context["effect/context"]),
-				),
+				Effect.forEach(params.writes ?? [], (write) =>
+					recordZedToken(...write),
+				).pipe(Effect.provide(context["effect/context"])),
 			);
 
 			return Promise.resolve({
@@ -58,8 +58,10 @@ const run = async (params: {
 describe("zedTokenResponseMiddleware", () => {
 	test("adds the token to the output and the response cookie", async () => {
 		const { output, setCookie } = await run({
-			zedTokens: [
-				"token-1",
+			writes: [
+				[
+					"token-1",
+				],
 			],
 			output: {
 				data: {
@@ -86,8 +88,10 @@ describe("zedTokenResponseMiddleware", () => {
 
 	test("keeps the other meta keys", async () => {
 		const { output } = await run({
-			zedTokens: [
-				"token-2",
+			writes: [
+				[
+					"token-2",
+				],
 			],
 			output: {
 				data: [],
@@ -125,8 +129,10 @@ describe("zedTokenResponseMiddleware", () => {
 			yield 1;
 		})();
 		const result = await run({
-			zedTokens: [
-				"token-3",
+			writes: [
+				[
+					"token-3",
+				],
 			],
 			output: stream,
 		});
@@ -137,10 +143,16 @@ describe("zedTokenResponseMiddleware", () => {
 
 	test("publishes the last token written, ignoring writes without one", async () => {
 		const { output } = await run({
-			zedTokens: [
-				"first",
-				"second",
-				undefined,
+			writes: [
+				[
+					"first",
+				],
+				[
+					"second",
+				],
+				[
+					undefined,
+				],
 			],
 			output: {
 				data: null,
@@ -155,10 +167,41 @@ describe("zedTokenResponseMiddleware", () => {
 		});
 	});
 
+	test("publishes the newest outbox event's token, whatever order deliveries finish in", async () => {
+		const { output } = await run({
+			writes: [
+				[
+					"seq-7",
+					7,
+				],
+				[
+					"seq-9",
+					9,
+				],
+				[
+					"seq-8",
+					8,
+				],
+			],
+			output: {
+				data: null,
+			},
+		});
+
+		expect(output).toEqual({
+			data: null,
+			meta: {
+				zedToken: "seq-9",
+			},
+		});
+	});
+
 	test("marks the cookie Secure over https", async () => {
 		const { setCookie } = await run({
-			zedTokens: [
-				"token-4",
+			writes: [
+				[
+					"token-4",
+				],
 			],
 			output: {
 				data: null,
