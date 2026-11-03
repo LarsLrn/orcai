@@ -15,10 +15,8 @@ import { EditorToolbar } from "./toolbars/editor-toolbar";
 
 interface BlockEditorProps {
 	content?: Content;
-	placeholder?: string;
 	labelledBy?: string;
 	describedBy?: string;
-	onCreate?: (editor: Editor) => void;
 	onUpdate?: (editor: Editor) => void;
 }
 
@@ -32,7 +30,6 @@ const BlockEditor = ({
 	content,
 	labelledBy,
 	describedBy,
-	onCreate,
 	onUpdate,
 }: BlockEditorProps) => {
 	const attributes = useMemo(
@@ -59,9 +56,6 @@ const BlockEditor = ({
 		shouldRerenderOnTransaction: false,
 		editorProps: {
 			attributes,
-		},
-		onCreate: ({ editor }) => {
-			onCreate?.(editor);
 		},
 		onUpdate: ({ editor }) => {
 			onUpdate?.(editor);

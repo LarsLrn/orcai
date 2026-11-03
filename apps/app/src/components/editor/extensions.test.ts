@@ -2,7 +2,7 @@ import { describe, expect, spyOn, test } from "bun:test";
 import { organizationDescriptionSchema } from "@orcai/schema";
 import { Editor } from "@tiptap/core";
 import { descriptionExtensions, extensions } from "./extensions";
-import { LINK_PROBE } from "./toolbars/link";
+import { LINK_PROBE } from "./link-popover";
 
 describe("editor extensions", () => {
 	test("resolve to unique names including StarterKit's bundled extensions", () => {
