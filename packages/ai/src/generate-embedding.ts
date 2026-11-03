@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { APICallError, embedMany } from "ai";
+import { APICallError, embedMany, wrapEmbeddingModel } from "ai";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { AiError } from "./errors";
@@ -12,21 +12,32 @@ export interface EmbeddingConnection {
 	readonly model: string;
 }
 
+// Small calls, two at a time: a slow endpoint answers each well inside fetch's idle timeout.
+const EMBEDDINGS_PER_CALL = 64;
+const PARALLEL_CALLS = 2;
+// Backs off for 30 s in total, longer than a rate limit window.
+const MAX_RETRIES = 4;
+
 const trimNewlines = (input: string) => input.replaceAll("\\n", " ");
 
 const embeddingModel = (connection: EmbeddingConnection) =>
-	createOpenAI({
-		baseURL: connection.baseUrl,
-		apiKey: connection.apiKey,
-		name: "globalProvider",
-	}).embedding(connection.model);
+	wrapEmbeddingModel({
+		model: createOpenAI({
+			baseURL: connection.baseUrl,
+			apiKey: connection.apiKey,
+			name: "globalProvider",
+		}).embedding(connection.model),
+		middleware: {
+			overrideMaxEmbeddingsPerCall: () => EMBEDDINGS_PER_CALL,
+		},
+	});
 
 const embed = (
 	connection: EmbeddingConnection,
 	values: readonly string[],
 	{
 		prefix = "",
-		maxRetries,
+		maxRetries = MAX_RETRIES,
 	}: {
 		prefix?: string;
 		maxRetries?: number;
@@ -35,6 +46,7 @@ const embed = (
 	embedMany({
 		model: embeddingModel(connection),
 		values: values.map((value) => prefix + trimNewlines(value)),
+		maxParallelCalls: PARALLEL_CALLS,
 		maxRetries,
 		...aiTelemetry("ai.embedMany"),
 	}).then(({ embeddings }) => embeddings);
