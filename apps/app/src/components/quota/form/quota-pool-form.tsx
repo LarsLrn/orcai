@@ -31,49 +31,47 @@ const QuotaPoolForm = ({
 }) => {
 	const createQuotaPool = useCreateQuotaPoolMutation();
 	const navigate = useNavigate();
-	const updateQuotaPool = useUpdateQuotaPoolMutation({
-		onSuccess: (result) =>
-			navigate({
-				to: "/app/quota-pools/$quotaPoolId",
-				params: {
-					quotaPoolId: result.data.id,
-				},
-			}),
-	});
+	const updateQuotaPool = useUpdateQuotaPoolMutation();
 	const form = useAppForm({
 		...quotaPoolFormOptions(pool),
 		onSubmit: async ({ value }) => {
 			const modelId =
 				value.modelId === PROVIDER_WIDE_MODEL_VALUE ? null : value.modelId;
 
-			if (action === "update" && pool) {
-				await updateQuotaPool.mutateAsync({
-					id: pool.id,
-					name: value.name.trim(),
-					description: value.description.trim() || null,
-					modelId,
-					periodType: value.periodType,
-					budgetAmount: value.budgetAmount,
-					priority: value.priority,
-					isDefault: value.isDefault,
-					isActive: value.isActive,
-					groupIds: value.groupIds,
+			const result =
+				action === "update" && pool
+					? await updateQuotaPool.mutateAsync({
+							id: pool.id,
+							name: value.name.trim(),
+							description: value.description.trim() || null,
+							modelId,
+							periodType: value.periodType,
+							budgetAmount: value.budgetAmount,
+							priority: value.priority,
+							isDefault: value.isDefault,
+							isActive: value.isActive,
+							groupIds: value.groupIds,
+						})
+					: await createQuotaPool.mutateAsync({
+							name: value.name.trim(),
+							description: value.description.trim() || null,
+							providerId: value.providerId,
+							modelId,
+							periodType: value.periodType,
+							budgetAmount: value.budgetAmount,
+							priority: value.priority,
+							isDefault: value.isDefault,
+							isActive: value.isActive,
+							groupIds: value.groupIds,
+						});
+			if (result.status === "success") {
+				await navigate({
+					to: "/app/quota-pools/$quotaPoolId",
+					params: {
+						quotaPoolId: result.data.data.id,
+					},
 				});
-				return;
 			}
-
-			await createQuotaPool.mutateAsync({
-				name: value.name.trim(),
-				description: value.description.trim() || null,
-				providerId: value.providerId,
-				modelId,
-				periodType: value.periodType,
-				budgetAmount: value.budgetAmount,
-				priority: value.priority,
-				isDefault: value.isDefault,
-				isActive: value.isActive,
-				groupIds: value.groupIds,
-			});
 		},
 	});
 

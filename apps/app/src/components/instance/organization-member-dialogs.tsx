@@ -51,12 +51,7 @@ export const AddMemberDialog = ({
 }: DialogProps) => {
 	const [user, setUser] = useState<InstanceUser | null>(null);
 	const [role, setRole] = useState<OrganizationRole>("member");
-	const addMember = useAddInstanceMemberMutation({
-		onSuccess: () => {
-			setUser(null);
-			onOpenChange(false);
-		},
-	});
+	const addMember = useAddInstanceMemberMutation();
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -73,14 +68,18 @@ export const AddMemberDialog = ({
 					<Button
 						disabled={!user}
 						loading={addMember.isPending}
-						onClick={() =>
-							user &&
-							addMember.mutate({
+						onClick={async () => {
+							if (!user) return;
+							const result = await addMember.mutateAsync({
 								organizationId,
 								userId: user.id,
 								role,
-							})
-						}
+							});
+							if (result.status === "success") {
+								setUser(null);
+								onOpenChange(false);
+							}
+						}}
 					>
 						{m.instance_org_member_add_action()}
 					</Button>
@@ -99,12 +98,7 @@ export const InviteMemberDialog = ({
 	const id = useId();
 	const [email, setEmail] = useState("");
 	const [role, setRole] = useState<OrganizationRole>("member");
-	const invite = useInviteInstanceMemberMutation({
-		onSuccess: () => {
-			setEmail("");
-			onOpenChange(false);
-		},
-	});
+	const invite = useInviteInstanceMemberMutation();
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -118,13 +112,17 @@ export const InviteMemberDialog = ({
 				<form
 					id={`${id}-form`}
 					className="flex flex-col gap-4"
-					onSubmit={(event) => {
+					onSubmit={async (event) => {
 						event.preventDefault();
-						invite.mutate({
+						const result = await invite.mutateAsync({
 							organizationId,
 							email: email.trim(),
 							role,
 						});
+						if (result.status === "success") {
+							setEmail("");
+							onOpenChange(false);
+						}
 					}}
 				>
 					<Field>

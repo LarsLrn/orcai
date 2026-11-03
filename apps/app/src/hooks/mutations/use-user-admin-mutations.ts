@@ -8,11 +8,9 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 /** Deletes accounts; the dialog confirms and picks who receives what they own. */
-export const useDeleteUsersMutation = (
-	opts: ReturnType<typeof orpc.user.delete.mutationOptions> = {},
-) =>
+export const useDeleteUsersMutation = () =>
 	useMutationAction({
-		mutationOptions: () => orpc.user.delete.mutationOptions(opts),
+		mutationOptions: () => orpc.user.delete.mutationOptions(),
 		messages: {
 			loading: ({ input }) =>
 				m.users_delete_toast_loading({
@@ -29,14 +27,11 @@ export const useDeleteUsersMutation = (
 		},
 	});
 
-export const useBanUserMutation = (
-	opts: ReturnType<typeof orpc.user.ban.mutationOptions> = {},
-	target?: DestructiveTarget,
-) => {
+export const useBanUserMutation = (target?: DestructiveTarget) => {
 	const name = singleTargetName(1, target);
 
 	return useMutationAction({
-		mutationOptions: () => orpc.user.ban.mutationOptions(opts),
+		mutationOptions: () => orpc.user.ban.mutationOptions(),
 		messages: {
 			loading: m.users_ban_toast_loading(),
 			success: m.users_ban_toast_success(),
@@ -50,16 +45,13 @@ export const useBanUserMutation = (
 				: m.users_ban_confirm_title(),
 			description: m.users_ban_confirm_description(),
 			confirmText: m.users_ban_confirm_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});
 };
 
-export const useUnbanUserMutation = (
-	opts: ReturnType<typeof orpc.user.unban.mutationOptions> = {},
-) => {
+export const useUnbanUserMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.user.unban.mutationOptions(opts),
+		mutationOptions: () => orpc.user.unban.mutationOptions(),
 		messages: {
 			loading: m.users_unban_toast_loading(),
 			success: m.users_unban_toast_success(),
@@ -68,14 +60,11 @@ export const useUnbanUserMutation = (
 	});
 };
 
-export const useResetTwoFactorMutation = (
-	opts: ReturnType<typeof orpc.user.resetTwoFactor.mutationOptions> = {},
-	target?: DestructiveTarget,
-) => {
+export const useResetTwoFactorMutation = (target?: DestructiveTarget) => {
 	const name = singleTargetName(1, target);
 
 	return useMutationAction({
-		mutationOptions: () => orpc.user.resetTwoFactor.mutationOptions(opts),
+		mutationOptions: () => orpc.user.resetTwoFactor.mutationOptions(),
 		messages: {
 			loading: m.users_reset_two_factor_toast_loading(),
 			success: m.users_reset_two_factor_toast_success(),
@@ -89,19 +78,15 @@ export const useResetTwoFactorMutation = (
 				: m.users_reset_two_factor_confirm_title(),
 			description: m.users_reset_two_factor_confirm_description(),
 			confirmText: m.users_reset_two_factor_confirm_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});
 };
 
-export const useSetInstanceRoleMutation = (
-	opts: ReturnType<typeof orpc.user.setInstanceRole.mutationOptions> = {},
-	target?: DestructiveTarget,
-) => {
+export const useSetInstanceRoleMutation = (target?: DestructiveTarget) => {
 	const name = singleTargetName(1, target);
 
 	return useMutationAction({
-		mutationOptions: () => orpc.user.setInstanceRole.mutationOptions(opts),
+		mutationOptions: () => orpc.user.setInstanceRole.mutationOptions(),
 		messages: {
 			loading: ({ input }) =>
 				isInstanceAdminRole(input.role)
@@ -126,7 +111,6 @@ export const useSetInstanceRoleMutation = (
 							: m.users_promote_confirm_title(),
 						description: m.users_promote_confirm_description(),
 						confirmText: m.users_promote_confirm_button(),
-						cancelText: m.common_cancel_button(),
 					}
 				: {
 						title: name
@@ -136,7 +120,6 @@ export const useSetInstanceRoleMutation = (
 							: m.users_demote_confirm_title(),
 						description: m.users_demote_confirm_description(),
 						confirmText: m.users_demote_confirm_button(),
-						cancelText: m.common_cancel_button(),
 					},
 	});
 };

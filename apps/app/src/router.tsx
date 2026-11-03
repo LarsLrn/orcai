@@ -1,11 +1,10 @@
-import { createHydrationOptions } from "@orpc/tanstack-query";
-import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { getGlobalStartContext } from "@tanstack/react-start";
 import type { ReactElement, ReactNode } from "react";
 import { DefaultErrorBoundary } from "./components/boundaries/default-error";
 import { NotFound } from "./components/boundaries/not-found";
+import { createQueryClient } from "./lib/orpc/query-client";
 import { parseSearch, stringifySearch } from "./lib/router/search-params";
 import { pageViewTransitionTypes } from "./lib/router/view-transitions";
 import { routeTree } from "./routeTree.gen";
@@ -14,14 +13,7 @@ import { routeTree } from "./routeTree.gen";
 const requestNonce = (): string | undefined => getGlobalStartContext()?.nonce;
 
 export function getRouter() {
-	const queryClient = new QueryClient({
-		defaultOptions: {
-			queries: {
-				staleTime: 60 * 1000, // > 0 to prevent immediate refetching on mount
-			},
-			...createHydrationOptions(),
-		},
-	});
+	const queryClient = createQueryClient();
 
 	const router = createRouter({
 		routeTree,

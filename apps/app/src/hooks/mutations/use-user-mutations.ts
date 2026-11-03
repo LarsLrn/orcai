@@ -7,7 +7,6 @@ import { openAfterOrganizationSwitch } from "./organization-switch";
 
 /** Switches the active organisation, then opens `target`. */
 export const useSetActiveOrganizationMutation = (
-	opts: ReturnType<typeof orpc.user.setActiveOrganization.mutationOptions> = {},
 	target: NavigateOptions = {
 		to: "/app",
 	},
@@ -18,17 +17,13 @@ export const useSetActiveOrganizationMutation = (
 	return useMutationAction({
 		mutationOptions: () =>
 			orpc.user.setActiveOrganization.mutationOptions({
-				...opts,
-				onSuccess: async (...args) => {
-					await openAfterOrganizationSwitch(queryClient, {
+				onSuccess: () =>
+					openAfterOrganizationSwitch(queryClient, {
 						navigate: () => navigate(target),
 						guards: [
 							orpc.authorization.organizationCapabilities.key(),
 						],
-					});
-
-					await opts.onSuccess?.(...args);
-				},
+					}),
 			}),
 		messages: {
 			loading: m.users_set_active_organisation_toast_loading(),

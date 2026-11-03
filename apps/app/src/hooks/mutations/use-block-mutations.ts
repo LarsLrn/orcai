@@ -1,10 +1,6 @@
-import { useRouter } from "@tanstack/react-router";
+import { useDeleteAction } from "@/hooks/actions/use-delete-action";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
-import {
-	type DestructiveTarget,
-	singleTargetName,
-} from "@/hooks/mutations/destructive-target";
-import { blockPaths } from "@/lib/navigation/block-paths";
+import type { DestructiveTarget } from "@/hooks/mutations/destructive-target";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -12,41 +8,19 @@ type BlockDeleteTarget = DestructiveTarget & {
 	kind?: "block" | "repository" | "behaviour";
 };
 
-export const useCreateBlockMutation = (
-	opts: ReturnType<typeof orpc.block.create.mutationOptions> = {},
-) => {
-	const router = useRouter();
-
-	return useMutationAction({
-		mutationOptions: () => {
-			return orpc.block.create.mutationOptions({
-				...opts,
-				onSuccess: async (result, ...args) => {
-					await router.navigate({
-						to: blockPaths(result.data.type).detail,
-						params: {
-							blockId: result.data.id,
-						},
-						ignoreBlocker: true,
-					});
-
-					await opts.onSuccess?.(result, ...args);
-				},
-			});
-		},
+export const useCreateBlockMutation = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.block.create.mutationOptions(),
 		messages: {
 			loading: () => m.blocks_create_toast_loading(),
 			success: () => m.blocks_create_toast_success(),
 			error: () => m.blocks_create_toast_error(),
 		},
 	});
-};
 
-export const useUpdateBlockMutation = (
-	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
-) => {
+export const useUpdateBlockMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.block.update.mutationOptions(opts),
+		mutationOptions: () => orpc.block.update.mutationOptions(),
 		messages: {
 			loading: () => m.blocks_update_toast_loading(),
 			success: () => m.blocks_update_toast_success(),
@@ -55,62 +29,51 @@ export const useUpdateBlockMutation = (
 	});
 };
 
-export const useDeleteBlocksMutation = (
-	opts: ReturnType<typeof orpc.block.delete.mutationOptions> = {},
-	target?: BlockDeleteTarget,
-) => {
-	return useMutationAction({
-		mutationOptions: () => orpc.block.delete.mutationOptions(opts),
-		messages: {
-			loading: ({ input }) =>
-				m.blocks_delete_toast_loading({
-					count: input.refs.length,
-					kind: target?.kind ?? "block",
-				}),
-			success: ({ input }) =>
-				m.blocks_delete_toast_success({
-					count: input.refs.length,
-					kind: target?.kind ?? "block",
-				}),
-			error: ({ input }) =>
-				m.blocks_delete_toast_error({
-					count: input.refs.length,
-					kind: target?.kind ?? "block",
-				}),
-		},
-		confirm: (input) => {
-			const count = input.refs.length;
-			const kind = target?.kind ?? "block";
-			const name = singleTargetName(count, target);
+export const useDeleteBlocksMutation = (target?: BlockDeleteTarget) => {
+	const kind = target?.kind ?? "block";
 
-			return {
-				title: name
-					? m.blocks_delete_confirm_title_named({
-							kind,
-							name,
-						})
-					: m.blocks_delete_confirm_title({
-							count,
-							kind,
-						}),
-				description: m.blocks_delete_confirm_description({
-					count,
-				}),
-				confirmText: m.blocks_delete_confirm_button({
+	return useDeleteAction({
+		mutationOptions: () => orpc.block.delete.mutationOptions(),
+		copy: {
+			loading: ({ count }) =>
+				m.blocks_delete_toast_loading({
 					count,
 					kind,
 				}),
-				cancelText: m.common_cancel_button(),
-			};
+			success: ({ count }) =>
+				m.blocks_delete_toast_success({
+					count,
+					kind,
+				}),
+			error: ({ count }) =>
+				m.blocks_delete_toast_error({
+					count,
+					kind,
+				}),
+			title: ({ count }) =>
+				m.blocks_delete_confirm_title({
+					count,
+					kind,
+				}),
+			namedTitle: ({ name }) =>
+				m.blocks_delete_confirm_title_named({
+					kind,
+					name,
+				}),
+			description: m.blocks_delete_confirm_description,
+			confirmText: ({ count }) =>
+				m.blocks_delete_confirm_button({
+					count,
+					kind,
+				}),
 		},
+		target,
 	});
 };
 
-export const useSetBlockStatusMutation = (
-	opts: ReturnType<typeof orpc.block.update.mutationOptions> = {},
-) => {
+export const useSetBlockStatusMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.block.update.mutationOptions(opts),
+		mutationOptions: () => orpc.block.update.mutationOptions(),
 		messages: {
 			loading: () => m.blocks_status_toast_loading(),
 			success: ({ input }) =>

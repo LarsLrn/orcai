@@ -3,18 +3,15 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 /** Adds a catalogue entry to the active organisation. */
-export const useCatalogueAddMutation = (
-	{
-		name,
-		organisation,
-	}: {
-		name: string;
-		organisation: string;
-	},
-	opts: ReturnType<typeof orpc.catalogue.add.mutationOptions> = {},
-) =>
+export const useCatalogueAddMutation = ({
+	name,
+	organisation,
+}: {
+	name: string;
+	organisation: string;
+}) =>
 	useMutationAction({
-		mutationOptions: () => orpc.catalogue.add.mutationOptions(opts),
+		mutationOptions: () => orpc.catalogue.add.mutationOptions(),
 		messages: {
 			loading: () =>
 				m.catalogue_add_toast_loading({
@@ -67,20 +64,17 @@ export const useCatalogueAddBlocksMutation = ({
 	});
 
 /** Removes an entry added from the catalogue from the active organisation, after a confirm. */
-export const useCatalogueRemoveMutation = (
-	{
-		kind,
-		name,
-		organisation,
-	}: {
-		kind: "bot" | "block";
-		name: string;
-		organisation: string;
-	},
-	opts: ReturnType<typeof orpc.catalogue.remove.mutationOptions> = {},
-) =>
+export const useCatalogueRemoveMutation = ({
+	kind,
+	name,
+	organisation,
+}: {
+	kind: "bot" | "block";
+	name: string;
+	organisation: string;
+}) =>
 	useMutationAction({
-		mutationOptions: () => orpc.catalogue.remove.mutationOptions(opts),
+		mutationOptions: () => orpc.catalogue.remove.mutationOptions(),
 		messages: {
 			loading: () =>
 				m.catalogue_remove_toast_loading({

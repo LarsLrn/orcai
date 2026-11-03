@@ -279,12 +279,8 @@ export const OrganizationForm = ({
 	organization,
 	onCompleted,
 }: OrganizationFormProps) => {
-	const { mutateAsync: createOrganization } = useCreateOrganizationMutation({
-		onSuccess: onCompleted,
-	});
-	const { mutateAsync: updateOrganization } = useUpdateOrganizationMutation({
-		onSuccess: onCompleted,
-	});
+	const { mutateAsync: createOrganization } = useCreateOrganizationMutation();
+	const { mutateAsync: updateOrganization } = useUpdateOrganizationMutation();
 	const { data: searchProviders } = useQuery(
 		orpc.provider.list.queryOptions({
 			input:
@@ -328,47 +324,47 @@ export const OrganizationForm = ({
 				initialAdminEmail,
 				...fields
 			} = value;
-			if (action === "update") {
-				await updateOrganization({
-					...fields,
-					id: organization.id,
-					description,
-					...changedModel(
-						"assistantModelId",
-						assistantModelId,
-						organization.assistantModelId,
-					),
-					...changedModel(
-						"defaultChatModelId",
-						defaultChatModelId,
-						organization.defaultChatModelId,
-					),
-					...changedModel(
-						"utilityModelId",
-						utilityModelId,
-						organization.utilityModelId,
-					),
-					...changedWebSearch(webSearch, organization),
-				});
-			} else {
-				await createOrganization({
-					...fields,
-					initialAdmin:
-						initialAdmin === "user" && initialAdminUserId
-							? {
-									kind: "user",
-									userId: userIdSchema.parse(initialAdminUserId),
-								}
-							: initialAdmin === "invite"
-								? {
-										kind: "invite",
-										email: initialAdminEmail.trim(),
-									}
-								: {
-										kind: "me",
-									},
-				});
-			}
+			const result =
+				action === "update"
+					? await updateOrganization({
+							...fields,
+							id: organization.id,
+							description,
+							...changedModel(
+								"assistantModelId",
+								assistantModelId,
+								organization.assistantModelId,
+							),
+							...changedModel(
+								"defaultChatModelId",
+								defaultChatModelId,
+								organization.defaultChatModelId,
+							),
+							...changedModel(
+								"utilityModelId",
+								utilityModelId,
+								organization.utilityModelId,
+							),
+							...changedWebSearch(webSearch, organization),
+						})
+					: await createOrganization({
+							...fields,
+							initialAdmin:
+								initialAdmin === "user" && initialAdminUserId
+									? {
+											kind: "user",
+											userId: userIdSchema.parse(initialAdminUserId),
+										}
+									: initialAdmin === "invite"
+										? {
+												kind: "invite",
+												email: initialAdminEmail.trim(),
+											}
+										: {
+												kind: "me",
+											},
+						});
+			if (result.status === "success") onCompleted?.();
 		},
 	});
 

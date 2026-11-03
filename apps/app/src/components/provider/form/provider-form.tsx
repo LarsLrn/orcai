@@ -35,15 +35,7 @@ const ProviderForm = ({
 }) => {
 	const { mutateAsync: createProvider } = useCreateProviderMutation();
 	const navigate = useNavigate();
-	const { mutateAsync: updateProvider } = useUpdateProviderMutation({
-		onSuccess: (result) =>
-			navigate({
-				to: "/app/providers/$providerId",
-				params: {
-					providerId: result.data.id,
-				},
-			}),
-	});
+	const { mutateAsync: updateProvider } = useUpdateProviderMutation();
 
 	const form = useAppForm({
 		...providerFormOptions(provider),
@@ -55,21 +47,28 @@ const ProviderForm = ({
 					: fields.endpoint || null;
 			// An emptied price field is cleared, not left as it was.
 			const searchPrice = fields.searchPrice ?? null;
-			if (action === "update" && provider) {
-				await updateProvider({
-					...fields,
-					endpoint,
-					searchPrice,
-					apiKey: apiKey.trim() || undefined,
-					id: provider.id,
-				});
-			} else {
-				await createProvider({
-					...fields,
-					kind,
-					endpoint,
-					searchPrice,
-					apiKey,
+			const result =
+				action === "update" && provider
+					? await updateProvider({
+							...fields,
+							endpoint,
+							searchPrice,
+							apiKey: apiKey.trim() || undefined,
+							id: provider.id,
+						})
+					: await createProvider({
+							...fields,
+							kind,
+							endpoint,
+							searchPrice,
+							apiKey,
+						});
+			if (result.status === "success") {
+				await navigate({
+					to: "/app/providers/$providerId",
+					params: {
+						providerId: result.data.data.id,
+					},
 				});
 			}
 		},

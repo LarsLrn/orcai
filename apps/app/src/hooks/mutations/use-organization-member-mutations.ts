@@ -2,11 +2,9 @@ import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const useUpdateOrganizationMemberMutation = (
-	opts: ReturnType<typeof orpc.organizationMember.update.mutationOptions> = {},
-) => {
+export const useUpdateOrganizationMemberMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.organizationMember.update.mutationOptions(opts),
+		mutationOptions: () => orpc.organizationMember.update.mutationOptions(),
 		messages: {
 			loading: m.orgs_member_update_toast_loading(),
 			success: m.orgs_member_update_toast_success(),
@@ -19,11 +17,9 @@ export const useUpdateOrganizationMemberMutation = (
  * Removes memberships from the active organisation. The accounts stay, and
  * the removal dialog confirms and picks who receives what they own.
  */
-export const useDeleteOrganizationMembersMutation = (
-	opts: ReturnType<typeof orpc.organizationMember.delete.mutationOptions> = {},
-) =>
+export const useDeleteOrganizationMembersMutation = () =>
 	useMutationAction({
-		mutationOptions: () => orpc.organizationMember.delete.mutationOptions(opts),
+		mutationOptions: () => orpc.organizationMember.delete.mutationOptions(),
 		messages: {
 			loading: ({ input }) =>
 				m.orgs_member_delete_toast_loading({

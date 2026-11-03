@@ -2,14 +2,9 @@ import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const useChangePasswordMutation = (
-	opts: ReturnType<typeof orpc.user.updatePassword.mutationOptions> = {},
-) => {
+export const useChangePasswordMutation = () => {
 	return useMutationAction({
-		mutationOptions: () =>
-			orpc.user.updatePassword.mutationOptions({
-				...opts,
-			}),
+		mutationOptions: () => orpc.user.updatePassword.mutationOptions(),
 		messages: {
 			loading: m.account_change_password_toast_loading(),
 			success: m.account_change_password_toast_success(),

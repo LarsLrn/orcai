@@ -147,14 +147,11 @@ const ActionsCell = ({
 
 const DeleteItem = ({ invitation }: { invitation: OrganizationInvitation }) => {
 	const { mutate: deleteInvitations } =
-		useDeleteOrganizationInvitationsMutation(
-			{},
-			{
-				names: [
-					`for ${invitation.email}`,
-				],
-			},
-		);
+		useDeleteOrganizationInvitationsMutation({
+			names: [
+				`for ${invitation.email}`,
+			],
+		});
 
 	const handleDelete = (id: OrganizationInvitationId) => {
 		deleteInvitations({

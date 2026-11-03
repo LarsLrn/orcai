@@ -4,11 +4,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SparklesIcon, UserCogIcon } from "lucide-react";
 import { useState } from "react";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
-import { GroupTableActions } from "@/components/groups/table/group-table-actions";
 import { groupTableColumns } from "@/components/groups/table/group-table-columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
@@ -37,7 +37,10 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateGroupMutation } from "@/hooks/mutations/use-group-mutations";
+import {
+	useCreateGroupMutation,
+	useDeleteGroupsMutation,
+} from "@/hooks/mutations/use-group-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -76,6 +79,7 @@ export const Route = createFileRoute("/app/groups/")({
 });
 
 function RouteComponent() {
+	const deleteGroups = useDeleteGroupsMutation();
 	const navigate = useNavigate();
 	const { pageIndex, pageSize, query, sort } = Route.useSearch();
 	const { availability: assistantAvailability } = useAssistantModel();
@@ -96,13 +100,7 @@ function RouteComponent() {
 		}),
 	);
 
-	const createGroup = useCreateGroupMutation({
-		onSuccess: () => {
-			setIsCreateOpen(false);
-			setName("");
-			setDescription("");
-		},
-	});
+	const createGroup = useCreateGroupMutation();
 
 	const onCreateSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -110,10 +108,15 @@ function RouteComponent() {
 			return;
 		}
 
-		await createGroup.mutateAsync({
+		const result = await createGroup.mutateAsync({
 			name: name.trim(),
 			description: description.trim() ? description.trim() : null,
 		});
+		if (result.status === "success") {
+			setIsCreateOpen(false);
+			setName("");
+			setDescription("");
+		}
 	};
 
 	return (
@@ -164,7 +167,7 @@ function RouteComponent() {
 					<DataTableToolbar>
 						<DataTableSearch placeholder={m.groups_list_search_placeholder()} />
 						<DataTableToolbarActions>
-							<GroupTableActions />
+							<DataTableBulkDelete action={deleteGroups} />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody

@@ -1,15 +1,12 @@
-/** Credit: https://github.com/Aslam97/react-confirm-dialog
- * Not using the NPM package, as it's a bit unnecessary for a single file.
- */
+/** Credit: https://github.com/Aslam97/react-confirm-dialog */
 
-import React, {
-	type ComponentPropsWithRef,
+import {
+	type ComponentProps,
 	createContext,
-	memo,
 	type ReactNode,
 	useCallback,
 	useContext,
-	useMemo,
+	useRef,
 	useState,
 } from "react";
 import {
@@ -20,24 +17,10 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogMedia,
-	type AlertDialogOverlay,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { Button } from "@/components/ui/button";
 import { m } from "@/paraglide/messages";
-
-interface CustomActionsProps {
-	confirm: () => void;
-	cancel: () => void;
-	config: ConfirmOptions;
-	setConfig: ConfigUpdater;
-}
-
-type ConfigUpdater = (
-	config: ConfirmOptions | ((prev: ConfirmOptions) => ConfirmOptions),
-) => void;
-
-type EnhancedCustomActions = (props: CustomActionsProps) => ReactNode;
 
 export interface ConfirmOptions {
 	title?: ReactNode;
@@ -45,301 +28,95 @@ export interface ConfirmOptions {
 	contentSlot?: ReactNode;
 	confirmText?: string;
 	cancelText?: string;
-	icon?: ReactNode;
-	media?: ReactNode;
-	customActions?: EnhancedCustomActions;
-	confirmButton?: ComponentPropsWithRef<typeof AlertDialogAction>;
-	cancelButton?: ComponentPropsWithRef<typeof AlertDialogCancel> | null;
-	alertDialogOverlay?: ComponentPropsWithRef<typeof AlertDialogOverlay>;
-	alertDialogContent?: ComponentPropsWithRef<typeof AlertDialogContent>;
-	alertDialogHeader?: ComponentPropsWithRef<typeof AlertDialogHeader>;
-	alertDialogTitle?: ComponentPropsWithRef<typeof AlertDialogTitle>;
-	alertDialogMedia?: ComponentPropsWithRef<typeof AlertDialogMedia>;
-	alertDialogDescription?: ComponentPropsWithRef<typeof AlertDialogDescription>;
-	alertDialogFooter?: ComponentPropsWithRef<typeof AlertDialogFooter>;
+	/** Destructive unless set. */
+	confirmVariant?: ComponentProps<typeof Button>["variant"];
 }
 
-interface ConfirmDialogState {
-	isOpen: boolean;
-	config: ConfirmOptions;
-	resolver: ((value: boolean) => void) | null;
-}
+type Confirm = (options: ConfirmOptions) => Promise<boolean>;
 
-interface ConfirmContextValue {
-	confirm: ConfirmFunction;
-	updateConfig: ConfigUpdater;
-}
+const ConfirmContext = createContext<Confirm | undefined>(undefined);
 
-interface ConfirmFunction {
-	(options: ConfirmOptions): Promise<boolean>;
-	updateConfig?: ConfigUpdater;
-}
+export const ConfirmDialogProvider = ({
+	children,
+}: {
+	children: ReactNode;
+}) => {
+	const [dialog, setDialog] = useState<{
+		open: boolean;
+		options: ConfirmOptions;
+	}>({
+		open: false,
+		options: {},
+	});
+	const resolver = useRef<((confirmed: boolean) => void) | null>(null);
 
-const ConfirmContext = createContext<ConfirmContextValue | undefined>(
-	undefined,
-);
+	const confirm = useCallback<Confirm>((options) => {
+		resolver.current?.(false);
+		setDialog({
+			open: true,
+			options,
+		});
+		return new Promise((resolve) => {
+			resolver.current = resolve;
+		});
+	}, []);
 
-const baseDefaultOptions: ConfirmOptions = {
-	title: "",
-	description: "",
-	confirmButton: {
-		variant: "destructive",
-	},
-	cancelButton: {},
-	alertDialogContent: {},
-	alertDialogHeader: {},
-	alertDialogTitle: {},
-	alertDialogMedia: {},
-	alertDialogDescription: {},
-	alertDialogFooter: {},
-};
+	const settle = (confirmed: boolean) => {
+		resolver.current?.(confirmed);
+		resolver.current = null;
+		setDialog((prev) => ({
+			...prev,
+			open: false,
+		}));
+	};
 
-const ConfirmDialogContent: React.FC<{
-	config: ConfirmOptions;
-	onConfirm: () => void;
-	onCancel: () => void;
-	setConfig: (
-		config: ConfirmOptions | ((prev: ConfirmOptions) => ConfirmOptions),
-	) => void;
-}> = memo(({ config, onConfirm, onCancel, setConfig }) => {
 	const {
 		title,
 		description,
-		cancelButton,
-		confirmButton,
+		contentSlot,
 		confirmText,
 		cancelText,
-		icon,
-		media,
-		contentSlot,
-		customActions,
-		alertDialogContent,
-		alertDialogHeader,
-		alertDialogTitle,
-		alertDialogMedia,
-		alertDialogDescription,
-		alertDialogFooter,
-	} = config;
+		confirmVariant,
+	} = dialog.options;
 
-	const renderActions = () => {
-		if (!customActions) {
-			return (
-				<>
-					{cancelButton !== null && (
-						<AlertDialogCancel onClick={onCancel} {...cancelButton}>
+	return (
+		<ConfirmContext.Provider value={confirm}>
+			{children}
+			<AlertDialog
+				open={dialog.open}
+				onOpenChange={(open) => {
+					if (!open) settle(false);
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						{title && <AlertDialogTitle>{title}</AlertDialogTitle>}
+						{description && (
+							<AlertDialogDescription>{description}</AlertDialogDescription>
+						)}
+						{contentSlot}
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel onClick={() => settle(false)}>
 							{cancelText ?? m.common_cancel_button()}
 						</AlertDialogCancel>
-					)}
-					<AlertDialogAction onClick={onConfirm} {...confirmButton}>
-						{confirmText ?? m.common_confirm_button()}
-					</AlertDialogAction>
-				</>
-			);
-		}
-
-		return customActions({
-			confirm: onConfirm,
-			cancel: onCancel,
-			config,
-			setConfig,
-		});
-	};
-
-	const renderTitle = () => {
-		if (!title && !icon) {
-			return null;
-		}
-
-		return (
-			<AlertDialogTitle {...alertDialogTitle}>
-				{icon}
-				{title}
-			</AlertDialogTitle>
-		);
-	};
-
-	return (
-		<AlertDialogContent {...alertDialogContent}>
-			<AlertDialogHeader {...alertDialogHeader}>
-				{media && (
-					<AlertDialogMedia {...alertDialogMedia}>{media}</AlertDialogMedia>
-				)}
-				{renderTitle()}
-				{description && (
-					<AlertDialogDescription {...alertDialogDescription}>
-						{description}
-					</AlertDialogDescription>
-				)}
-				{contentSlot}
-			</AlertDialogHeader>
-			<AlertDialogFooter {...alertDialogFooter}>
-				{renderActions()}
-			</AlertDialogFooter>
-		</AlertDialogContent>
-	);
-});
-
-ConfirmDialogContent.displayName = "ConfirmDialogContent";
-
-const ConfirmDialog: React.FC<{
-	isOpen: boolean;
-	onOpenChange: (isOpen: boolean) => void;
-	config: ConfirmOptions;
-	onConfirm: () => void;
-	onCancel: () => void;
-	setConfig: (
-		config: ConfirmOptions | ((prev: ConfirmOptions) => ConfirmOptions),
-	) => void;
-}> = memo(
-	({ isOpen, onOpenChange, config, onConfirm, onCancel, setConfig }) => (
-		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-			<ConfirmDialogContent
-				config={config}
-				onConfirm={onConfirm}
-				onCancel={onCancel}
-				setConfig={setConfig}
-			/>
-		</AlertDialog>
-	),
-);
-
-ConfirmDialog.displayName = "ConfirmDialog";
-
-export const ConfirmDialogProvider: React.FC<{
-	defaultOptions?: ConfirmOptions;
-	children: React.ReactNode;
-}> = ({ defaultOptions = {}, children }) => {
-	const [dialogState, setDialogState] = useState<ConfirmDialogState>({
-		isOpen: false,
-		config: baseDefaultOptions,
-		resolver: null,
-	});
-
-	const mergedDefaultOptions = useMemo(
-		() => ({
-			...baseDefaultOptions,
-			...defaultOptions,
-		}),
-		[
-			defaultOptions,
-		],
-	);
-
-	const updateConfig = useCallback(
-		(
-			newConfig: ConfirmOptions | ((prev: ConfirmOptions) => ConfirmOptions),
-		) => {
-			setDialogState((prev) => ({
-				...prev,
-				config:
-					typeof newConfig === "function"
-						? newConfig(prev.config)
-						: {
-								...prev.config,
-								...newConfig,
-							},
-			}));
-		},
-		[],
-	);
-
-	const confirm = useCallback(
-		(options: ConfirmOptions) => {
-			setDialogState((prev) => ({
-				isOpen: true,
-				config: {
-					...mergedDefaultOptions,
-					...options,
-				},
-				resolver: prev.resolver,
-			}));
-			return new Promise<boolean>((resolve) => {
-				setDialogState((prev) => ({
-					...prev,
-					resolver: resolve,
-				}));
-			});
-		},
-		[
-			mergedDefaultOptions,
-		],
-	);
-
-	const handleConfirm = useCallback(() => {
-		setDialogState((prev) => {
-			if (prev.resolver) {
-				prev.resolver(true);
-			}
-			return {
-				...prev,
-				isOpen: false,
-				resolver: null,
-			};
-		});
-	}, []);
-
-	const handleCancel = useCallback(() => {
-		setDialogState((prev) => {
-			if (prev.resolver) {
-				prev.resolver(false);
-			}
-			return {
-				...prev,
-				isOpen: false,
-				resolver: null,
-			};
-		});
-	}, []);
-
-	const handleOpenChange = useCallback(
-		(open: boolean) => {
-			if (!open) {
-				handleCancel();
-			}
-		},
-		[
-			handleCancel,
-		],
-	);
-
-	const contextValue = useMemo(
-		() => ({
-			confirm,
-			updateConfig,
-		}),
-		[
-			confirm,
-			updateConfig,
-		],
-	);
-
-	return (
-		<ConfirmContext.Provider value={contextValue}>
-			{children}
-			<ConfirmDialog
-				isOpen={dialogState.isOpen}
-				onOpenChange={handleOpenChange}
-				config={dialogState.config}
-				onConfirm={handleConfirm}
-				onCancel={handleCancel}
-				setConfig={updateConfig}
-			/>
+						<AlertDialogAction
+							variant={confirmVariant ?? "destructive"}
+							onClick={() => settle(true)}
+						>
+							{confirmText ?? m.common_confirm_button()}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</ConfirmContext.Provider>
 	);
 };
 
 export const useConfirm = () => {
-	const context = useContext(ConfirmContext);
-	if (!context) {
+	const confirm = useContext(ConfirmContext);
+	if (!confirm) {
 		throw new Error("useConfirm must be used within a ConfirmDialogProvider");
 	}
-
-	const { confirm, updateConfig } = context;
-
-	const enhancedConfirm = confirm;
-	enhancedConfirm.updateConfig = updateConfig;
-
-	return enhancedConfirm as ConfirmFunction & {
-		updateConfig: ConfirmContextValue["updateConfig"];
-	};
+	return confirm;
 };

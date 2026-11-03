@@ -188,7 +188,7 @@ export const quotaPoolTableColumns = columnHelper.columns([
 ]);
 
 const DeactivateItem = ({ pool }: { pool: QuotaPoolListRow }) => {
-	const deactivatePool = useDeactivateQuotaPoolMutation({}, pool.name);
+	const deactivatePool = useDeactivateQuotaPoolMutation(pool.name);
 
 	return (
 		<DropdownMenuItem

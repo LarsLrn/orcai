@@ -7,6 +7,7 @@ import {
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
+import { blockPaths } from "@/lib/navigation/block-paths";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 import { RepositoryFieldGroup } from "./repository-field-group";
@@ -23,16 +24,7 @@ const RepositoryForm = ({
 }) => {
 	const { mutateAsync: createBlock } = useCreateBlockMutation();
 	const navigate = useNavigate();
-	const { mutateAsync: updateBlock } = useUpdateBlockMutation({
-		onSuccess: (result) =>
-			navigate({
-				to: "/app/library/repositories/$blockId",
-				params: {
-					blockId: result.data.id,
-				},
-				ignoreBlocker: true,
-			}),
-	});
+	const { mutateAsync: updateBlock } = useUpdateBlockMutation();
 	const [selectedAssets, setSelectedAssets] = useState<AssetWithCapabilities[]>(
 		assets ?? [],
 	);
@@ -43,15 +35,22 @@ const RepositoryForm = ({
 			assets?.map((asset) => asset.id),
 		),
 		onSubmit: async ({ value }) => {
-			if (action === "update" && block) {
-				await updateBlock({
-					...value,
-					id: block.id,
+			const result =
+				action === "update" && block
+					? await updateBlock({
+							...value,
+							id: block.id,
+						})
+					: await createBlock(value);
+			if (result.status === "success") {
+				await navigate({
+					to: blockPaths(result.data.data.type).detail,
+					params: {
+						blockId: result.data.data.id,
+					},
+					ignoreBlocker: true,
 				});
-				return;
 			}
-
-			await createBlock(value);
 		},
 	});
 	useUnsavedChangesGuard(() => !form.state.isDefaultValue);

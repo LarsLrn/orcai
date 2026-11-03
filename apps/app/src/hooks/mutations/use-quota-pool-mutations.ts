@@ -1,41 +1,20 @@
-import { useRouter } from "@tanstack/react-router";
 import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const useCreateQuotaPoolMutation = (
-	opts: ReturnType<typeof orpc.quotaPool.create.mutationOptions> = {},
-) => {
-	const router = useRouter();
-
-	return useMutationAction({
-		mutationOptions: () =>
-			orpc.quotaPool.create.mutationOptions({
-				...opts,
-				onSuccess: async (result, ...args) => {
-					await router.navigate({
-						to: "/app/quota-pools/$quotaPoolId",
-						params: {
-							quotaPoolId: result.data.id,
-						},
-					});
-
-					await opts.onSuccess?.(result, ...args);
-				},
-			}),
+export const useCreateQuotaPoolMutation = () =>
+	useMutationAction({
+		mutationOptions: () => orpc.quotaPool.create.mutationOptions(),
 		messages: {
 			loading: m.quota_pools_create_toast_loading(),
 			success: m.quota_pools_create_toast_success(),
 			error: m.quota_pools_create_toast_error(),
 		},
 	});
-};
 
-export const useUpdateQuotaPoolMutation = (
-	opts: ReturnType<typeof orpc.quotaPool.update.mutationOptions> = {},
-) => {
+export const useUpdateQuotaPoolMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.quotaPool.update.mutationOptions(opts),
+		mutationOptions: () => orpc.quotaPool.update.mutationOptions(),
 		messages: {
 			loading: m.quota_pools_update_toast_loading(),
 			success: m.quota_pools_update_toast_success(),
@@ -44,12 +23,9 @@ export const useUpdateQuotaPoolMutation = (
 	});
 };
 
-export const useDeactivateQuotaPoolMutation = (
-	opts: ReturnType<typeof orpc.quotaPool.deactivate.mutationOptions> = {},
-	poolName?: string,
-) => {
+export const useDeactivateQuotaPoolMutation = (poolName?: string) => {
 	return useMutationAction({
-		mutationOptions: () => orpc.quotaPool.deactivate.mutationOptions(opts),
+		mutationOptions: () => orpc.quotaPool.deactivate.mutationOptions(),
 		messages: {
 			loading: m.quota_pools_deactivate_toast_loading(),
 			success: m.quota_pools_deactivate_toast_success(),
@@ -63,7 +39,6 @@ export const useDeactivateQuotaPoolMutation = (
 				: m.quota_pools_deactivate_confirm_title(),
 			description: m.quota_pools_deactivate_confirm_description(),
 			confirmText: m.quota_pools_deactivate_confirm_button(),
-			cancelText: m.common_cancel_button(),
 		},
 	});
 };

@@ -123,14 +123,11 @@ const ActionCell = ({ group }: { group: Group }) => {
 };
 
 const DeleteGroupItem = ({ group }: { group: Group }) => {
-	const deleteGroup = useDeleteGroupsMutation(
-		{},
-		{
-			names: [
-				group.name,
-			],
-		},
-	);
+	const deleteGroup = useDeleteGroupsMutation({
+		names: [
+			group.name,
+		],
+	});
 
 	return (
 		<DropdownMenuItem

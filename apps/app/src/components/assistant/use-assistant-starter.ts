@@ -1,11 +1,13 @@
 import type { ChatId } from "@orcai/core";
-import { useMutation } from "@tanstack/react-query";
+import {
+	type MutationFunctionContext,
+	useMutation,
+} from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { composerBlocker } from "@/components/chat/composer-blocker";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
-import { reasonMessageOf } from "@/lib/errors/describe-error";
+import { callProcedure } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -18,9 +20,19 @@ const useAssistantStarter = ({
 		zedToken?: string,
 	) => void | Promise<void>;
 }) => {
-	const { mutateAsync: createConversation } = useMutation(
-		orpc.assistant.create.mutationOptions(),
-	);
+	// Opening the conversation is part of starting it, so its failure toasts too.
+	const { mutateAsync: startConversation } = useMutation({
+		mutationFn: async (text: string, context: MutationFunctionContext) => {
+			const result = await callProcedure(
+				orpc.assistant.create.mutationOptions(),
+				context,
+			)({});
+			await onConversationCreated(result.data.id, text, result.meta?.zedToken);
+		},
+		meta: {
+			errorToast: m.assistant_starter_create_failed_toast_error(),
+		},
+	});
 	const [isCreating, setIsCreating] = useState(false);
 	const { availability, modelId, providerId } = useAssistantModel();
 	const { data: quota } = useQuotaStatus({
@@ -43,24 +55,16 @@ const useAssistantStarter = ({
 			setIsCreating(true);
 
 			try {
-				const result = await createConversation({});
-
-				await Promise.resolve(
-					onConversationCreated(result.data.id, text, result.meta?.zedToken),
-				);
+				await startConversation(text);
 				return true;
-			} catch (error) {
-				toast.error(m.assistant_starter_create_failed_toast_error(), {
-					description: reasonMessageOf(error),
-				});
+			} catch {
 				setIsCreating(false);
 				return false;
 			}
 		},
 		[
 			isCreating,
-			createConversation,
-			onConversationCreated,
+			startConversation,
 		],
 	);
 

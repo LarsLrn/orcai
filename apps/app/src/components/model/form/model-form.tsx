@@ -36,15 +36,7 @@ const ModelForm = ({
 }) => {
 	const { mutateAsync: createModel } = useCreateModelMutation();
 	const navigate = useNavigate();
-	const { mutateAsync: updateModel } = useUpdateModelMutation({
-		onSuccess: (result) =>
-			navigate({
-				to: "/app/models/$modelId",
-				params: {
-					modelId: result.data.id,
-				},
-			}),
-	});
+	const { mutateAsync: updateModel } = useUpdateModelMutation();
 
 	const providers = useQuery(
 		orpc.provider.list.queryOptions({
@@ -68,13 +60,20 @@ const ModelForm = ({
 				maxOutputTokens: value.maxOutputTokens ?? null,
 				prices: clearedPrices(value.prices),
 			};
-			if (action === "update" && model) {
-				await updateModel({
-					...values,
-					id: model.id,
+			const result =
+				action === "update" && model
+					? await updateModel({
+							...values,
+							id: model.id,
+						})
+					: await createModel(values);
+			if (result.status === "success") {
+				await navigate({
+					to: "/app/models/$modelId",
+					params: {
+						modelId: result.data.data.id,
+					},
 				});
-			} else {
-				await createModel(values);
 			}
 		},
 	});

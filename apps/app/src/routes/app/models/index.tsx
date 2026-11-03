@@ -4,11 +4,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BoxIcon, PlusIcon } from "lucide-react";
 import { z } from "zod/v4";
 import { DiscoverModels } from "@/components/model/discover-models";
-import { ModelTableActions } from "@/components/model/table/model-table-actions";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { DataTableBody } from "@/components/ui/data-table/data-table-body";
+import { DataTableBulkDelete } from "@/components/ui/data-table/data-table-bulk-delete";
 import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
@@ -27,6 +27,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { useDeleteModelsMutation } from "@/hooks/mutations/use-model-mutations";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -99,6 +100,7 @@ export const Route = createFileRoute("/app/models/")({
 });
 
 function RouteComponent() {
+	const deleteModels = useDeleteModelsMutation();
 	const navigate = useNavigate();
 	const { pageIndex, pageSize, providerId, capabilities, query, sort } =
 		Route.useSearch();
@@ -207,7 +209,7 @@ function RouteComponent() {
 							}
 						/>
 						<DataTableToolbarActions>
-							<ModelTableActions />
+							<DataTableBulkDelete action={deleteModels} />
 						</DataTableToolbarActions>
 					</DataTableToolbar>
 					<DataTableBody

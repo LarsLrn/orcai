@@ -1,8 +1,11 @@
 import type { OrganizationId } from "@orcai/core";
-import { useMutation } from "@tanstack/react-query";
+import type { MutationFunctionContext } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useUploadFiles } from "@/components/assets/use-upload-files";
-import { useMutationAction } from "@/hooks/actions/use-mutation-action";
+import {
+	callProcedure,
+	useMutationAction,
+} from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -26,12 +29,6 @@ export const useImageUpload = (target: ImageTarget) => {
 	const { uploadAsync } = useUploadFiles({
 		route: target.kind === "user" ? "profileImage" : "organizationLogo",
 	});
-	const setUserImage = useMutation(orpc.user.setImage.mutationOptions());
-	const removeUserImage = useMutation(orpc.user.removeImage.mutationOptions());
-	const setLogo = useMutation(orpc.organization.setLogo.mutationOptions());
-	const removeLogo = useMutation(
-		orpc.organization.removeLogo.mutationOptions(),
-	);
 
 	const refresh = async () => {
 		if (target.kind === "user") await router.invalidate();
@@ -39,7 +36,7 @@ export const useImageUpload = (target: ImageTarget) => {
 
 	const save = useMutationAction({
 		mutationOptions: () => ({
-			mutationFn: async (image: Blob) => {
+			mutationFn: async (image: Blob, context: MutationFunctionContext) => {
 				const uploaded = await uploadAsync([
 					new File(
 						[
@@ -65,11 +62,17 @@ export const useImageUpload = (target: ImageTarget) => {
 					type: file.type,
 				};
 				if (target.kind === "user")
-					await setUserImage.mutateAsync({
+					await callProcedure(
+						orpc.user.setImage.mutationOptions(),
+						context,
+					)({
 						file: upload,
 					});
 				else
-					await setLogo.mutateAsync({
+					await callProcedure(
+						orpc.organization.setLogo.mutationOptions(),
+						context,
+					)({
 						id: target.organizationId,
 						file: upload,
 					});
@@ -85,10 +88,20 @@ export const useImageUpload = (target: ImageTarget) => {
 
 	const remove = useMutationAction({
 		mutationOptions: () => ({
-			mutationFn: async () => {
-				if (target.kind === "user") await removeUserImage.mutateAsync({});
+			mutationFn: async (
+				_input: undefined,
+				context: MutationFunctionContext,
+			) => {
+				if (target.kind === "user")
+					await callProcedure(
+						orpc.user.removeImage.mutationOptions(),
+						context,
+					)({});
 				else
-					await removeLogo.mutateAsync({
+					await callProcedure(
+						orpc.organization.removeLogo.mutationOptions(),
+						context,
+					)({
 						id: target.organizationId,
 					});
 			},

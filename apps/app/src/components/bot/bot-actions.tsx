@@ -147,47 +147,41 @@ const useBotActions = (
 			overflow: true,
 		},
 	);
-	const { mutate: remove } = useCatalogueRemoveMutation(
-		{
-			kind: "bot",
-			name: bot.name,
-			organisation: adder?.organisation ?? "",
-		},
-		{
-			onSuccess: onDeleted,
-		},
-	);
-	const { mutate: deleteBots } = useDeleteBotsMutation(
-		{
-			onSuccess: onDeleted,
-		},
-		{
-			names: [
-				bot.name,
-			],
-		},
-	);
+	const { mutateAsync: remove } = useCatalogueRemoveMutation({
+		kind: "bot",
+		name: bot.name,
+		organisation: adder?.organisation ?? "",
+	});
+	const { mutateAsync: deleteBots } = useDeleteBotsMutation({
+		names: [
+			bot.name,
+		],
+	});
 
 	const actions = botActions(
 		bot,
 		{
 			onAccess: () => setIsAccessOpen(true),
 			onHandOver: () => setIsHandOverOpen(true),
-			onDelete: () =>
-				deleteBots({
+			onDelete: async () => {
+				const result = await deleteBots({
 					refs: [
 						{
 							id: bot.id,
 						},
 					],
-				}),
-			onRemove: () =>
-				remove({
+				});
+				if (result.status === "success") await onDeleted?.();
+			},
+			onRemove: async () => {
+				const result = await remove({
 					entry: {
 						resourceType: "bot",
 						resourceId: bot.id,
 					},
-				}),
+				});
+				if (result.status === "success") await onDeleted?.();
+			},
 		},
 		{
 			viewerId: auth.user.id,

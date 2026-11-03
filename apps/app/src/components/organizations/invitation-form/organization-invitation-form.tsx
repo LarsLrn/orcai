@@ -1,6 +1,6 @@
 import type { OrganizationInvitation, OrganizationRole } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useRouteContext } from "@tanstack/react-router";
+import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import { CircleMinusIcon } from "lucide-react";
 import { useId } from "react";
 import { LOCALE_NAMES } from "@/components/app/locale/locale-names";
@@ -39,6 +39,7 @@ const OrganizationInvitationForm = () => {
 	const { auth } = useRouteContext({
 		from: "/app",
 	});
+	const navigate = useNavigate();
 	const { mutateAsync: createInvitation } =
 		useCreateOrganizationInvitationMutation();
 	const { data: capabilities } = useOrganizationCapabilities();
@@ -63,10 +64,15 @@ const OrganizationInvitationForm = () => {
 	const form = useAppForm({
 		...organizationInvitationFormOptions(),
 		onSubmit: async ({ value }) => {
-			await createInvitation({
+			const result = await createInvitation({
 				...value,
 				role: value.role as OrganizationInvitation["role"],
 			});
+			if (result.status === "success") {
+				await navigate({
+					to: "/app/members/invitations",
+				});
+			}
 		},
 	});
 

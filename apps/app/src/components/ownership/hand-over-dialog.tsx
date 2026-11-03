@@ -21,9 +21,7 @@ type HandOverProps = {
 
 const HandOverContent = ({ resource, name, onDone }: HandOverProps) => {
 	const [receiver, setReceiver] = useState<ContentReceiver | null>(null);
-	const handOver = useHandOverMutation(name, {
-		onSuccess: onDone,
-	});
+	const handOver = useHandOverMutation(name);
 
 	return (
 		<>
@@ -64,13 +62,14 @@ const HandOverContent = ({ resource, name, onDone }: HandOverProps) => {
 				<Button
 					disabled={!receiver}
 					loading={handOver.isPending}
-					onClick={() =>
-						receiver &&
-						handOver.mutate({
+					onClick={async () => {
+						if (!receiver) return;
+						const result = await handOver.mutateAsync({
 							...resource,
 							receiverId: receiver.id,
-						})
-					}
+						});
+						if (result.status === "success") onDone();
+					}}
 				>
 					{m.ownership_hand_over_action()}
 				</Button>

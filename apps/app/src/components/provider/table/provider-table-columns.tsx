@@ -159,14 +159,11 @@ export const providerTableColumns = columnHelper.columns([
 ]);
 
 const DeleteItem = ({ provider }: { provider: Provider }) => {
-	const { mutate: deleteProviders } = useDeleteProvidersMutation(
-		{},
-		{
-			names: [
-				provider.name,
-			],
-		},
-	);
+	const { mutate: deleteProviders } = useDeleteProvidersMutation({
+		names: [
+			provider.name,
+		],
+	});
 
 	return (
 		<DropdownMenuItem

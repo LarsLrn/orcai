@@ -2,11 +2,9 @@ import { useMutationAction } from "@/hooks/actions/use-mutation-action";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
-export const useCreateOrganizationMutation = (
-	opts: ReturnType<typeof orpc.organization.create.mutationOptions> = {},
-) => {
+export const useCreateOrganizationMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.organization.create.mutationOptions(opts),
+		mutationOptions: () => orpc.organization.create.mutationOptions(),
 		messages: {
 			loading: m.orgs_create_toast_loading(),
 			success: m.orgs_create_toast_success(),
@@ -15,11 +13,9 @@ export const useCreateOrganizationMutation = (
 	});
 };
 
-export const useUpdateOrganizationMutation = (
-	opts: ReturnType<typeof orpc.organization.update.mutationOptions> = {},
-) => {
+export const useUpdateOrganizationMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.organization.update.mutationOptions(opts),
+		mutationOptions: () => orpc.organization.update.mutationOptions(),
 		messages: {
 			loading: m.orgs_update_toast_loading(),
 			success: m.orgs_update_toast_success(),
@@ -29,11 +25,9 @@ export const useUpdateOrganizationMutation = (
 };
 
 /** Deletes organisations. Confirmation is `DeleteOrganizationDialog`, not the generic prompt. */
-export const useDeleteOrganizationsMutation = (
-	opts: ReturnType<typeof orpc.organization.delete.mutationOptions> = {},
-) => {
+export const useDeleteOrganizationsMutation = () => {
 	return useMutationAction({
-		mutationOptions: () => orpc.organization.delete.mutationOptions(opts),
+		mutationOptions: () => orpc.organization.delete.mutationOptions(),
 		messages: {
 			loading: m.orgs_delete_toast_loading(),
 			success: m.orgs_delete_toast_success(),
