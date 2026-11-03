@@ -8,7 +8,7 @@ import {
 import type { AssetFileType, BucketName } from "@orcai/schema";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { toSanitizedPgBossRunError } from "@/asset/error-summary";
+import { summarizeErrorCause } from "@/asset/error-summary";
 import {
 	AssetPipelineError,
 	currentIndexing,
@@ -41,7 +41,10 @@ const readExtraction = (assetId: AssetId) =>
 							? "The stored extraction is missing"
 							: "The stored extraction is unreadable",
 					)
-				: toSanitizedPgBossRunError(error),
+				: new AssetPipelineError({
+						failure: "other",
+						cause: summarizeErrorCause(error),
+					}),
 		),
 	);
 

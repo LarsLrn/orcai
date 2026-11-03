@@ -1,30 +1,38 @@
-import { beforeAll, describe, expect, test } from "bun:test";
+import { beforeAll, describe, expect, onTestFinished, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { EncryptionKeyLive } from "@orcai/ai";
 import type { ActivityRunId, AssetId, BlockId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	admitStage,
+	defineWorker,
 	type JobWithMetadata,
 	type PgBoss,
 	PgBossService,
+	runWorkers,
+	TestClock,
 } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { QdrantLive } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
 import { QuotaUnavailableError } from "@orcai/quota";
 import {
+	type JobQueue,
 	type PipelineFailure,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
 	type ProcessAssetPayload,
+	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
+	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
 import { createUser, integrationRuntime } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
 import type * as ManagedRuntime from "effect/ManagedRuntime";
+import * as Scope from "effect/Scope";
 import {
 	AssetPipelineError,
 	indexingAttempt,
@@ -35,9 +43,11 @@ import {
 	settleIndexingAttempt,
 	settleProcessingAttempt,
 } from "@/asset/pipeline-attempt";
-import { ensureQueue, runWorkerBatch } from "@/worker/run-worker-process";
 
 const TIMEOUT = 30_000;
+
+// pg-boss's time, so the queue table's retry delays and expiry pass at once.
+const clock = new TestClock();
 
 // Indexing never gets as far as Qdrant here, so the index stays without embeddings.
 const runtime = integrationRuntime(
@@ -46,11 +56,8 @@ const runtime = integrationRuntime(
 			Layer.mergeAll(
 				QdrantLive,
 				EncryptionKeyLive,
-				// Short supervise and monitor passes, so expired jobs are failed within seconds.
 				IsolatedPgBossLive({
-					supervise: true,
-					superviseIntervalSeconds: 1,
-					monitorIntervalSeconds: 1,
+					clock,
 				}),
 			),
 		),
@@ -63,11 +70,21 @@ beforeAll(async () => {
 	boss = await run(PgBossService.useSync(({ boss }) => boss));
 });
 
-const until = async (condition: () => Promise<boolean>, what: string) => {
+/**
+ * Moves pg-boss's time on in steps of `stepMs` until `condition` holds. A
+ * step shorter than the queue's expiry never expires a running attempt.
+ */
+const until = async (
+	condition: () => Promise<boolean>,
+	what: string,
+	stepMs = 120_000,
+) => {
 	const deadline = Date.now() + 20_000;
 	while (!(await condition())) {
 		if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`);
-		await sleep(100);
+		await clock.setTime(clock.now() + stepMs);
+		await clock.tick(1);
+		await sleep(10);
 	}
 };
 
@@ -146,56 +163,52 @@ const indexingOf = (link: { assetId: AssetId; blockId: BlockId }) =>
 	);
 
 /**
- * A queue whose jobs run `attempt` and dead-letter into a queue handled by
- * `exhausted`, with the retry and expiry options of the test.
+ * Works the stage's queue with `attempt` and its dead letter queue with
+ * `exhausted` until the test ends, with the queue table's retries and expiry.
  */
 const pipelineQueue = async <T extends object>(params: {
+	queue: JobQueue;
+	deadLetter: JobQueue;
 	attempt: (data: T) => Effect.Effect<void, unknown, DB>;
 	exhausted: (
-		jobs: JobWithMetadata<T>[],
+		job: JobWithMetadata<T>,
 	) => Effect.Effect<
 		void,
 		unknown,
 		ManagedRuntime.ManagedRuntime.Services<typeof runtime>
 	>;
-	retryLimit: number;
-	expireInSeconds?: number;
 }) => {
-	const name = `test-pipeline-${crypto.randomUUID()}`;
-	const deadLetter = `${name}-dead-letter`;
 	let attempts = 0;
-	await boss.createQueue(deadLetter);
-	await boss.createQueue(name, {
-		retryLimit: params.retryLimit,
-		retryDelay: 0,
-		expireInSeconds: params.expireInSeconds ?? 60,
-		deadLetter,
-	});
-	const services = await run(Effect.context<DB>());
-	await boss.work(
-		name,
-		{
-			pollingIntervalSeconds: 0.5,
-			includeMetadata: true,
-		},
-		runWorkerBatch(services, name, ([job]: JobWithMetadata<T>[]) =>
-			Effect.suspend(() => {
-				attempts += 1;
-				return job ? params.attempt(job.data) : Effect.void;
+	const sent = new Set<string>();
+	const scope = await run(Scope.make());
+	onTestFinished(() => run(Scope.close(scope, Exit.void)));
+	await run(
+		runWorkers([
+			defineWorker({
+				queue: params.queue,
+				concurrency: 1,
+				pollingIntervalSeconds: 60,
+				handler: (job: JobWithMetadata<T>) =>
+					Effect.suspend(() => {
+						if (sent.has(job.id)) attempts += 1;
+						return params.attempt(job.data);
+					}),
 			}),
-		),
-	);
-	await boss.work(
-		deadLetter,
-		{
-			pollingIntervalSeconds: 0.5,
-			includeMetadata: true,
-		},
-		(jobs: JobWithMetadata<T>[]) => run(params.exhausted(jobs)),
+			defineWorker({
+				queue: params.deadLetter,
+				concurrency: 1,
+				pollingIntervalSeconds: 60,
+				handler: params.exhausted,
+			}),
+		]).pipe(Scope.provide(scope)),
 	);
 	return {
-		send: (data: T) => boss.send(name, data),
-		job: (id: string) => boss.getJobById(name, id),
+		send: async (data: T) => {
+			const id = await boss.send(params.queue, data);
+			if (id) sent.add(id);
+			return id;
+		},
+		job: (id: string) => boss.getJobById(params.queue, id),
 		attempts: () => attempts,
 	};
 };
@@ -220,27 +233,6 @@ const processPayload = (asset: {
 	},
 });
 
-describe("ensureQueue", () => {
-	test(
-		"gives an existing queue its dead letter queue",
-		async () => {
-			await boss.updateQueue(PROCESS_ASSET_JOB_NAME, {
-				deadLetter: null,
-			});
-			await run(ensureQueue(PROCESS_ASSET_DEAD_LETTER_JOB_NAME));
-			await run(
-				ensureQueue(PROCESS_ASSET_JOB_NAME, {
-					deadLetter: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
-				}),
-			);
-			expect((await boss.getQueue(PROCESS_ASSET_JOB_NAME))?.deadLetter).toBe(
-				PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
-			);
-		},
-		TIMEOUT,
-	);
-});
-
 describe("processing failures", () => {
 	test(
 		"stay active while retries remain, then turn failed with the recorded kind",
@@ -252,8 +244,9 @@ describe("processing failures", () => {
 						processingAttempt(data),
 						failWith("extraction"),
 					),
+				queue: PROCESS_ASSET_JOB_NAME,
+				deadLetter: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 				exhausted: markProcessingExhausted,
-				retryLimit: 1,
 			});
 
 			await queue.send(processPayload(asset));
@@ -262,7 +255,7 @@ describe("processing failures", () => {
 				"the asset to fail",
 			);
 
-			expect(queue.attempts()).toBe(2);
+			expect(queue.attempts()).toBe(4);
 			expect(await processingOf(asset.id)).toEqual({
 				status: "failed",
 				failure: "extraction",
@@ -286,8 +279,9 @@ describe("processing failures", () => {
 							}),
 						),
 					),
+				queue: PROCESS_ASSET_JOB_NAME,
+				deadLetter: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 				exhausted: markProcessingExhausted,
-				retryLimit: 1,
 			});
 
 			await queue.send(processPayload(asset));
@@ -296,7 +290,7 @@ describe("processing failures", () => {
 				"the asset to fail",
 			);
 
-			expect(queue.attempts()).toBe(2);
+			expect(queue.attempts()).toBe(4);
 			expect(await processingOf(asset.id)).toEqual({
 				status: "failed",
 				failure: "other",
@@ -311,22 +305,20 @@ describe("processing failures", () => {
 			const { asset } = await seedLink();
 			const queue = await pipelineQueue<ProcessAssetPayload>({
 				attempt: (data) =>
-					settleProcessingAttempt(
-						processingAttempt(data),
-						Effect.sleep("5 seconds"),
-					),
+					settleProcessingAttempt(processingAttempt(data), Effect.never),
+				queue: PROCESS_ASSET_JOB_NAME,
+				deadLetter: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 				exhausted: markProcessingExhausted,
-				retryLimit: 1,
-				expireInSeconds: 1,
 			});
 
 			await queue.send(processPayload(asset));
 			await until(
 				async () => (await processingOf(asset.id)).status === "failed",
 				"the expired asset to fail",
+				3_700_000,
 			);
 
-			expect(queue.attempts()).toBe(2);
+			expect(queue.attempts()).toBe(4);
 			expect(await processingOf(asset.id)).toEqual({
 				status: "failed",
 				failure: "timeout",
@@ -345,8 +337,9 @@ describe("processing failures", () => {
 			const queue = await pipelineQueue<ProcessAssetPayload>({
 				attempt: (data) =>
 					settleProcessingAttempt(processingAttempt(data), failWith(failure)),
+				queue: PROCESS_ASSET_JOB_NAME,
+				deadLetter: PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 				exhausted: markProcessingExhausted,
-				retryLimit: 3,
 			});
 
 			const jobId = await queue.send(processPayload(asset));
@@ -373,8 +366,9 @@ describe("indexing failures", () => {
 			const queue = await pipelineQueue<VectorizeAssetPayload>({
 				attempt: (data) =>
 					settleIndexingAttempt(indexingAttempt(data), failWith("other")),
+				queue: VECTORIZE_ASSET_JOB_NAME,
+				deadLetter: VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
 				exhausted: markIndexingExhausted,
-				retryLimit: 1,
 			});
 
 			await queue.send({
@@ -387,7 +381,7 @@ describe("indexing failures", () => {
 				"the link to fail",
 			);
 
-			expect(queue.attempts()).toBe(2);
+			expect(queue.attempts()).toBe(4);
 			expect(await indexingOf(link)).toEqual({
 				status: "failed",
 				failure: "other",
@@ -458,25 +452,17 @@ describe("replaced and finished attempts", () => {
 			});
 
 			await run(
-				markProcessingExhausted([
+				markProcessingExhausted(
 					deadLetter(processing.data, "handler execution exceeded"),
-				]),
+				),
 			);
 			await run(
-				markIndexingExhausted([
+				markIndexingExhausted(
 					deadLetter(indexing.data, "handler execution exceeded"),
-				]),
+				),
 			);
-			await run(
-				markProcessingExhausted([
-					processing,
-				]),
-			);
-			await run(
-				markIndexingExhausted([
-					indexing,
-				]),
-			);
+			await run(markProcessingExhausted(processing));
+			await run(markIndexingExhausted(indexing));
 			expect(await processingOf(link.assetId)).toEqual({
 				status: "failed",
 				failure: "timeout",
@@ -487,16 +473,8 @@ describe("replaced and finished attempts", () => {
 			});
 
 			await processAgain(link.assetId);
-			await run(
-				markProcessingExhausted([
-					processing,
-				]),
-			);
-			await run(
-				markIndexingExhausted([
-					indexing,
-				]),
-			);
+			await run(markProcessingExhausted(processing));
+			await run(markIndexingExhausted(indexing));
 			expect(await processingOf(link.assetId)).toEqual({
 				status: "pending",
 				failure: null,
@@ -562,25 +540,17 @@ describe("replaced and finished attempts", () => {
 					mode: "apply" as const,
 				});
 
-			await run(
-				markMetadataExhausted([
-					job(1),
-				]),
-			);
+			await run(markMetadataExhausted(job(1)));
 			expect(await metadataOf(asset.id)).toEqual({
 				status: "pending",
 				failure: null,
 			});
 
+			await run(markMetadataExhausted(job(2)));
 			await run(
-				markMetadataExhausted([
-					job(2),
-				]),
-			);
-			await run(
-				markMetadataExhausted([
+				markMetadataExhausted(
 					deadLetter(job(2).data, "handler execution exceeded"),
-				]),
+				),
 			);
 			expect(await metadataOf(asset.id)).toEqual({
 				status: "failed",
@@ -657,11 +627,7 @@ describe("activity runs", () => {
 				runId,
 			});
 
-			await run(
-				markProcessingExhausted([
-					job,
-				]),
-			);
+			await run(markProcessingExhausted(job));
 			const failureId = await processingFailureId(asset.id);
 			expect(failureId).toEqual(expect.any(String));
 			expect(await processingMember(runId)).toEqual({
@@ -669,11 +635,7 @@ describe("activity runs", () => {
 				failureId,
 			});
 
-			await run(
-				markProcessingExhausted([
-					job,
-				]),
-			);
+			await run(markProcessingExhausted(job));
 			expect(await processingFailureId(asset.id)).toBe(failureId);
 		},
 		TIMEOUT,
@@ -688,12 +650,12 @@ describe("activity runs", () => {
 			const newer = await admitProcessing(asset);
 
 			await run(
-				markProcessingExhausted([
+				markProcessingExhausted(
 					deadLetter({
 						...processPayload(asset),
 						runId: older,
 					}),
-				]),
+				),
 			);
 			expect(await processingMember(older)).toEqual({
 				state: "replaced",
@@ -708,13 +670,13 @@ describe("activity runs", () => {
 			});
 
 			await run(
-				markProcessingExhausted([
+				markProcessingExhausted(
 					deadLetter({
 						...processPayload(asset),
 						generation: 1,
 						runId: newer,
 					}),
-				]),
+				),
 			);
 			expect(await processingMember(newer)).toMatchObject({
 				state: "failed",

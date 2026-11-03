@@ -48,13 +48,6 @@ const METADATA_TIMEOUT_MS = 120_000;
 /** How long a generation waiting for its file to be prepared sleeps before it looks again. */
 const PREPARATION_WAIT_SECONDS = 30;
 
-export const generateMetadataBatch = (
-	jobs: Job<GenerateAssetMetadataPayload>[],
-) =>
-	Effect.forEach(jobs, generateMetadata, {
-		discard: true,
-	});
-
 /** Whether the job's generation is still the asset's and not done. */
 const claim = (data: GenerateAssetMetadataPayload) =>
 	Effect.gen(function* () {
@@ -358,7 +351,7 @@ const awaitPreparation = (data: GenerateAssetMetadataPayload) =>
 	);
 
 /** A delivery replayed after its run completed, or of a replaced generation, does nothing. */
-const generateMetadata = (job: Job<GenerateAssetMetadataPayload>) =>
+export const generateMetadata = (job: Job<GenerateAssetMetadataPayload>) =>
 	Effect.gen(function* () {
 		const claimed = yield* claim(job.data);
 		if (!claimed) {

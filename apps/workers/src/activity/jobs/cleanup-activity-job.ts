@@ -1,5 +1,5 @@
 import { DB, dbSchema } from "@orcai/db";
-import { type Job, runningRun } from "@orcai/pg-boss";
+import { runningRun } from "@orcai/pg-boss";
 import { and, inArray, isNotNull, isNull, lt, not, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 
@@ -121,5 +121,3 @@ export const cleanupActivity = Effect.gen(function* () {
 		"Cleaned up activity",
 	);
 });
-
-export const cleanupActivityBatch = (_jobs: Job<unknown>[]) => cleanupActivity;

@@ -26,7 +26,7 @@ import { createUser, integrationRuntime } from "@orcai/testing";
 import { and, eq, like, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { processAssetBatch } from "@/asset/jobs/process-asset-job";
+import { processAsset } from "@/asset/jobs/process-asset-job";
 import { markProcessingExhausted } from "@/asset/pipeline-attempt";
 import {
 	held,
@@ -70,8 +70,9 @@ const runtime = integrationRuntime(
 		),
 		Layer.effect(
 			PgBossService,
-			PgBossService.useSync(({ boss }) => ({
-				boss: flaky(boss),
+			PgBossService.useSync((service) => ({
+				...service,
+				boss: flaky(service.boss),
 			})),
 		).pipe(Layer.provide(IsolatedPgBossLive())),
 	),
@@ -109,12 +110,7 @@ const delivery = (
 		},
 	}) as Job<ProcessAssetPayload>;
 
-const processOnce = (job: Job<ProcessAssetPayload>) =>
-	run(
-		processAssetBatch([
-			job,
-		]),
-	);
+const processOnce = (job: Job<ProcessAssetPayload>) => run(processAsset(job));
 
 const statusOf = (assetId: AssetId) =>
 	run(
@@ -352,14 +348,12 @@ test(
 		]);
 		// Its job expired meanwhile, ran out of retries and was processed again.
 		await run(
-			markProcessingExhausted([
-				{
-					...delivery(asset, 0),
-					sourceOutput: {
-						message: "handler execution exceeded",
-					},
-				} as JobWithMetadata<ProcessAssetPayload>,
-			]),
+			markProcessingExhausted({
+				...delivery(asset, 0),
+				sourceOutput: {
+					message: "handler execution exceeded",
+				},
+			} as JobWithMetadata<ProcessAssetPayload>),
 		);
 		await run(
 			queueProcessing(

@@ -78,7 +78,7 @@ Helpers that need more of the stack live with their package:
 
 | Helper | Provides |
 | --- | --- |
-| `IsolatedPgBossLive()` from `@orcai/pg-boss/testing` | A pg-boss in a schema of the file's own with every queue the workers create, dropped after the file. The tier runs no workers, and no other file sees or wakes its jobs. |
+| `IsolatedPgBossLive()` from `@orcai/pg-boss/testing` | A pg-boss in a schema of the file's own with every queue of the queue table, dropped after the file. No other file sees or wakes its jobs. A file that runs workers with `runWorkers` passes a pg-boss `TestClock` and moves its time on with `setTime`, so retry delays and expiry pass without waiting. |
 | `testEmbeddingIndex()` and `IsolatedEmbeddingIndexLive()` from `@orcai/qdrant/testing` | An embedding index with its own settings table and collection prefix. |
 | `appIntegration()` in `apps/app/src/lib/testing/app-integration.ts` | The app's layers on an isolated pg-boss, with session fixtures and `caller(zedToken)`, which runs procedures as actors with the latest zed token. |
 
@@ -105,7 +105,7 @@ The suite does not cover email delivery, real AI endpoints or OCR. Background wo
 
 The specs in `apps/e2e/tests/pipeline/` cover upload, preparation, indexing, search, and citation with the real background workers. Only `bun run stack e2e --pipeline` runs them, and only that run starts the workers. It sets `E2E_PIPELINE`, and with it the Playwright configuration selects the `setup` and `pipeline` projects and runs the workers image in place of the docs site, ready once the workers log that they started. `bun run stack e2e --pipeline` sets `WORKER_POLLING_INTERVAL_SECONDS=0.5`, so an asset is ready within seconds.
 
-Every other run has no workers, so no pg-boss queue exists. Queueing preparation fails, and an uploaded asset ends up failed with kind `other`, which the other specs rely on. A pipeline run leaves its queues behind, so reset before the next run of the rest of the suite.
+Every other run has no workers, so only the data export queues the app creates exist. Queueing preparation fails, and an uploaded asset ends up failed with kind `other`, which the other specs rely on. A pipeline run leaves its queues behind, so reset before the next run of the rest of the suite.
 
 Pipeline assets are txt or md files, so extraction needs no OCR. Their embeddings come from the mock inference server that the `setup` project saved as the embedding endpoint. Image descriptions are not exercised. `fixtures/pipeline/repository.ts` creates a repository holding one uploaded asset and waits through `block.readiness` until nothing in it is being prepared.
 

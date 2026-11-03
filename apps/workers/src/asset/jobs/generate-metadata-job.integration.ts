@@ -36,7 +36,7 @@ import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as Tracer from "effect/Tracer";
-import { generateMetadataBatch } from "@/asset/jobs/generate-metadata-job";
+import { generateMetadata } from "@/asset/jobs/generate-metadata-job";
 import {
 	jsonAnswer,
 	requests,
@@ -204,11 +204,7 @@ const statementTracer = (statements: string[]) =>
 	});
 
 const runJob = (job: Job<GenerateAssetMetadataPayload>) =>
-	run(
-		generateMetadataBatch([
-			job,
-		]),
-	);
+	run(generateMetadata(job));
 
 const assetOf = (assetId: AssetId) =>
 	run(
@@ -730,9 +726,9 @@ test(
 		const statements: string[] = [];
 		const store = await run(
 			Effect.forkDetach(
-				generateMetadataBatch([
-					job,
-				]).pipe(Effect.withTracer(statementTracer(statements))),
+				generateMetadata(job).pipe(
+					Effect.withTracer(statementTracer(statements)),
+				),
 			),
 		);
 		// The member's second change in the store rechecks its repository's key.
@@ -1121,13 +1117,7 @@ for (const preparedAgain of [
 				),
 			);
 			await run(Deferred.await(locked));
-			const worker = await run(
-				Effect.forkDetach(
-					generateMetadataBatch([
-						job,
-					]),
-				),
-			);
+			const worker = await run(Effect.forkDetach(generateMetadata(job)));
 			await run(awaitLockWaiters('%"processing_generation" from "asset"%'));
 			await run(storeExtraction(seeded.assetId, seeded.artifact));
 			await run(Deferred.succeed(go, undefined));

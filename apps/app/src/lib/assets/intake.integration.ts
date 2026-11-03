@@ -3,7 +3,6 @@ import { PgClient } from "@effect/sql-pg";
 import type { ActivityRunId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
-import { PgBossSchema } from "@orcai/pg-boss/testing";
 import { UPLOAD_STAGING_PREFIX } from "@orcai/s3";
 import { isS3NotFound, sendHeadObjectCommand } from "@orcai/s3/server";
 import {
@@ -377,7 +376,7 @@ describe("createAssetsFromUploads", () => {
 				run(
 					Effect.gen(function* () {
 						const sql = yield* PgClient.PgClient;
-						const schema = yield* PgBossSchema;
+						const { schema } = yield* PgBossService;
 						const [row] = yield* sql<{
 							asset: boolean;
 							job: boolean;
@@ -432,6 +431,7 @@ describe("createAssetsFromUploads", () => {
 				}).pipe(
 					Effect.provideService(PgBossService, {
 						boss: refusing as never,
+						schema: "pgboss",
 					}),
 				),
 			);

@@ -52,8 +52,8 @@ import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import type * as ManagedRuntime from "effect/ManagedRuntime";
-import { assetWorkerDefinitions } from "@/asset/definitions";
-import { vectorizeAssetBatch } from "@/asset/jobs/vectorize-asset-job";
+import { assetWorkers } from "@/asset/definitions";
+import { vectorizeAsset } from "@/asset/jobs/vectorize-asset-job";
 
 const TIMEOUT = 30_000;
 const DIMENSIONS = 4;
@@ -370,13 +370,11 @@ const vectorize = (
 	on(
 		index,
 		link,
-		vectorizeAssetBatch([
-			{
-				id: crypto.randomUUID(),
-				name: VECTORIZE_ASSET_JOB_NAME,
-				data,
-			} as Job<VectorizeAssetPayload>,
-		]),
+		vectorizeAsset({
+			id: crypto.randomUUID(),
+			name: VECTORIZE_ASSET_JOB_NAME,
+			data,
+		} as Job<VectorizeAssetPayload>),
 	);
 
 const indexes = {
@@ -1101,15 +1099,15 @@ test(
 		);
 		expect(await queuedJobs()).toBe(1);
 
-		const worker = assetWorkerDefinitions.find(
-			({ name }) => name === PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
+		const worker = assetWorkers.find(
+			({ queue }) => queue === PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 		);
 		// The worker takes the job, and its handler runs again on a retry.
 		const [taken] = await boss.fetch(
 			PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 		);
-		await on(index, links, worker?.handler([]) ?? Effect.void);
-		await on(index, links, worker?.handler([]) ?? Effect.void);
+		await on(index, links, worker?.handler(taken as never) ?? Effect.void);
+		await on(index, links, worker?.handler(taken as never) ?? Effect.void);
 		await boss.complete(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME, taken.id);
 		expect(await processingOf(missing)).toEqual({
 			status: "pending",

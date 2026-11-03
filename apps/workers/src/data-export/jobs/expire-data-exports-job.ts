@@ -1,5 +1,4 @@
 import { buckets } from "@orcai/core";
-import type { Job } from "@orcai/pg-boss";
 import { DATA_EXPORT_PREFIX, DATA_EXPORT_TTL_MS } from "@orcai/s3";
 import { listObjects, sendDeleteObjectCommand } from "@orcai/s3/server";
 import * as Effect from "effect/Effect";
@@ -63,6 +62,3 @@ export const expireDataExports = (
 		}
 		return expired.length;
 	});
-
-export const expireDataExportsBatch = (_jobs: Job<unknown>[]) =>
-	expireDataExports().pipe(Effect.asVoid);

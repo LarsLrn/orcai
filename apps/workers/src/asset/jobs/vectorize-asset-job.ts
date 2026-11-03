@@ -37,18 +37,6 @@ import {
 
 const POINT_ID_NAMESPACE = "3f0d7c2e-5b1a-4d8e-9c6f-2a4b8e1d7f30";
 
-export const vectorizeAssetBatch = (jobs: Job<VectorizeAssetPayload>[]) =>
-	Effect.forEach(
-		jobs,
-		(job) =>
-			vectorizeAssets({
-				job,
-			}),
-		{
-			discard: true,
-		},
-	);
-
 type VectorPointSource = "text" | "image";
 
 type VectorizableChunk = {
@@ -240,12 +228,12 @@ interface IndexedAsset {
 	fileType: AssetFileType;
 }
 
-const vectorizeAssets = (params: { job: Job<VectorizeAssetPayload> }) =>
+export const vectorizeAsset = (job: Job<VectorizeAssetPayload>) =>
 	Effect.gen(function* () {
-		const attempt = indexingAttempt(params.job.data);
+		const attempt = indexingAttempt(job.data);
 		const ran = yield* Effect.exit(
 			runAttempt({
-				jobId: params.job.id,
+				jobId: job.id,
 				attempt,
 			}),
 		);
