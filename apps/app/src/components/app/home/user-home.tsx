@@ -1,55 +1,12 @@
-import { useNavigate } from "@tanstack/react-router";
 import { UserWelcome } from "@/components/app/user-welcome";
-import { NewChatInput } from "@/components/chat/new-chat-input";
+import { NewChatComposer } from "@/components/chat/new-chat-composer";
 import { useChatStarter } from "@/components/chat/use-chat-starter";
 import { ActivityCard } from "./activity-card";
 import { OrganizationCard } from "./organization-card";
 import { RecentChats } from "./recent-chats";
 import { TrySomething } from "./try-something";
 
-const QuickChat = () => {
-	const navigate = useNavigate();
-	const {
-		selectedBotId,
-		selectedModelId,
-		selectedProviderId,
-		blocker,
-		setup,
-		isCreating,
-		handleModelSelect,
-		handleBotSelect,
-		handleSend,
-	} = useChatStarter({
-		onChatCreated: (chatId, pendingMessage, zedToken) =>
-			navigate({
-				to: "/app/chat/$chatId",
-				params: {
-					chatId,
-				},
-				search: {
-					zedToken,
-				},
-				state: (previous) => ({
-					...previous,
-					pendingMessage,
-				}),
-			}),
-	});
-
-	return (
-		<NewChatInput
-			selectedBotId={selectedBotId}
-			selectedModelId={selectedModelId}
-			selectedProviderId={selectedProviderId}
-			onBotSelect={handleBotSelect}
-			onModelSelect={handleModelSelect}
-			onSend={handleSend}
-			isCreating={isCreating}
-			blocker={blocker}
-			setup={setup}
-		/>
-	);
-};
+const QuickChat = () => <NewChatComposer starter={useChatStarter()} />;
 
 /**
  * The Use view: greeting and composer, the active organisation and running

@@ -345,6 +345,59 @@ describe("ChatSession", () => {
 		]);
 	});
 
+	test("a message reaches the transcript unless a stop cuts it off while it is prepared", async () => {
+		const { port, calls } = fakePort({
+			replies: [
+				() => streamOf(reply("reply-1", "Hello")),
+			],
+		});
+		const chat = session(port);
+
+		const stopped = chat.send({
+			text: "Never mind",
+		});
+		await Promise.resolve();
+		await chat.stop();
+		expect(await stopped).toBe(false);
+		expect(texts(chat)).toEqual([]);
+		expect(calls.chat).toHaveLength(0);
+
+		expect(
+			await chat.send({
+				text: "Hi",
+			}),
+		).toBe(true);
+		expect(calls.chat).toHaveLength(1);
+	});
+
+	test("an opening message stopped while it is prepared may be sent again", async () => {
+		const { port, calls } = fakePort({
+			replies: [
+				() => streamOf(reply("reply-1", "Hello")),
+			],
+		});
+		const chat = session(port);
+
+		const stopped = chat.sendFirst({
+			text: "Hi",
+		});
+		await Promise.resolve();
+		await chat.stop();
+		expect(await stopped).toBe(false);
+
+		expect(
+			await chat.sendFirst({
+				text: "Hi",
+			}),
+		).toBe(true);
+		expect(
+			chat.sendFirst({
+				text: "Hi",
+			}),
+		).toBeUndefined();
+		expect(calls.chat).toHaveLength(1);
+	});
+
 	test("reports each phase of a turn", async () => {
 		const turn = replyStream();
 		const { port } = fakePort({

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import type { BotId, ModelId, ProviderId, QuotaPoolId } from "@orcai/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, renderHook, screen } from "@testing-library/react";
-import { type ReactNode, use } from "react";
+import { cleanup, renderHook } from "@testing-library/react";
+import type { ReactNode } from "react";
 
 const quotaKey = (options: { input: unknown }) => [
 	"quota.status",
@@ -31,13 +31,7 @@ mock.module("@/components/assistant/use-assistant-model", () => ({
 	useAssistantModel: () => assistantModel,
 }));
 
-const { chatSelectedModel, useComposerSendState } = await import(
-	"./use-composer-send-state"
-);
-const { AssistantReplySender, ChatReplySender } = await import(
-	"./reply-sender"
-);
-const { SendMessageContext } = await import("./send-message");
+const { useComposerSendState } = await import("./use-composer-send-state");
 
 afterEach(cleanup);
 
@@ -108,15 +102,25 @@ const withQuota = (
 	);
 };
 
-const sendState = (chat: TestChat, quota?: unknown) =>
+const sendState = (
+	chat: TestChat,
+	quota?: unknown,
+	{
+		kind = "chat",
+		quotaModel,
+	}: {
+		kind?: "chat" | "assistant";
+		quotaModel?: typeof assistantModel;
+	} = {},
+) =>
 	renderHook(
 		() =>
 			useComposerSendState({
 				chat: chat as never,
-				selectedModel: chatSelectedModel(chat as never),
+				kind,
 			}),
 		{
-			wrapper: withQuota(quota),
+			wrapper: withQuota(quota, quotaModel),
 		},
 	).result.current;
 
@@ -192,83 +196,15 @@ describe("useComposerSendState", () => {
 
 		expect(state.canSend).toBe(false);
 	});
-});
 
-describe("ChatReplySender", () => {
-	const Reply = () => {
-		const send = use(SendMessageContext);
-		return (
-			<button type="button" disabled={!send}>
-				Practice
-			</button>
-		);
-	};
+	test("an Assistant conversation sends with the organisation's model and follows its pool, not the chat's", () => {
+		const state = sendState(chatOf(), pool(1), {
+			kind: "assistant",
+			quotaModel: assistantModel,
+		});
 
-	const replies = (chat: TestChat | undefined, quota: unknown, busy = false) =>
-		render(
-			<ChatReplySender
-				chat={chat as never}
-				send={() => Promise.resolve()}
-				busy={busy}
-			>
-				<Reply />
-			</ChatReplySender>,
-			{
-				wrapper: withQuota(quota),
-			},
-		);
-
-	test("a reply is enabled while the composer can send", () => {
-		replies(chatOf(), pool(0.5));
-
-		expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(
-			false,
-		);
-	});
-
-	test("an assistant reply follows the pool of the assistant's model, not the chat's", () => {
-		render(
-			<AssistantReplySender
-				chat={chatOf() as never}
-				send={() => Promise.resolve()}
-				busy={false}
-			>
-				<Reply />
-			</AssistantReplySender>,
-			{
-				wrapper: withQuota(pool(1), assistantModel as never),
-			},
-		);
-
-		expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(
-			true,
-		);
-	});
-
-	test("a reply is disabled while the pool is used up, while a turn runs and before the chat loads", () => {
-		for (const [chat, quota, busy] of [
-			[
-				chatOf(),
-				pool(1),
-				false,
-			],
-			[
-				chatOf(),
-				pool(0.5),
-				true,
-			],
-			[
-				undefined,
-				undefined,
-				false,
-			],
-		] as const) {
-			const { unmount } = replies(chat, quota, busy);
-
-			expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(
-				true,
-			);
-			unmount();
-		}
+		expect(state.selectedModel).toEqual(assistantModel);
+		expect(state.blocker?.reason).toBe("exhausted");
+		expect(state.canSend).toBe(false);
 	});
 });

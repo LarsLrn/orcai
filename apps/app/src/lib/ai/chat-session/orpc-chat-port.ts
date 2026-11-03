@@ -1,3 +1,4 @@
+import type { ChatKind } from "@orcai/schema";
 import { eventIteratorToUnproxiedDataStream, ORPCError } from "@orpc/client";
 import { hashKey, type QueryClient } from "@tanstack/react-query";
 import { isTextUIPart } from "ai";
@@ -25,14 +26,14 @@ export const chatPageOf = (page: {
 /** What a finished turn may have changed: the chat list and title, the quota, and what its tools wrote. */
 const invalidateAfterTurn = async (
 	queryClient: QueryClient,
-	variant: "chat" | "assistant",
+	kind: ChatKind,
 	message: ChatAgentUIMessage,
 ) => {
 	const queryKeys = new Map(
 		[
 			orpc.chat.key(),
 			orpc.quota.status.key(),
-			...(variant === "assistant"
+			...(kind === "assistant"
 				? [
 						orpc.assistant.key(),
 					]
@@ -60,10 +61,10 @@ const browserTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export const orpcChatPort = ({
 	queryClient,
-	variant,
+	kind,
 }: {
 	queryClient: QueryClient;
-	variant: "chat" | "assistant";
+	kind: ChatKind;
 }): ChatPort => ({
 	chat: async ({ message, ...input }, signal) =>
 		eventIteratorToUnproxiedDataStream(
@@ -121,5 +122,5 @@ export const orpcChatPort = ({
 	recordWrites: async (input) => {
 		await client.ai.recordTurnWrites(input);
 	},
-	turnEnded: (message) => invalidateAfterTurn(queryClient, variant, message),
+	turnEnded: (message) => invalidateAfterTurn(queryClient, kind, message),
 });

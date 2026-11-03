@@ -1,5 +1,5 @@
 import type { ChatId } from "@orcai/core";
-import type { ChatBranchLink } from "@orcai/schema";
+import type { ChatBranchLink, ChatKind } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import {
 	useEffect,
@@ -8,7 +8,6 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import { toast } from "sonner";
 import {
 	Conversation,
 	ConversationContent,
@@ -17,6 +16,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
 import { useChatRepositoryIds } from "@/components/assets/readiness/use-repository-readiness";
 import { AssistantComposerGate } from "@/components/assistant/assistant-composer-gate";
+import { AssistantModelLabel } from "@/components/assistant/assistant-model-label";
 import { AssistantPlaceholder } from "@/components/assistant/assistant-placeholder";
 import { PlanPanel } from "@/components/assistant/plan-panel";
 import {
@@ -32,21 +32,24 @@ import {
 } from "@/components/ui/message-scroller";
 import { usePublicConfig } from "@/hooks/use-public-config";
 import { turnView } from "@/lib/ai/turn-view/turn-view";
-import { describeError, reasonMessageOf } from "@/lib/errors/describe-error";
+import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { BranchedFrom } from "./branch-links";
-import type { ChatDraft } from "./chat-draft";
-import { ChatInput } from "./chat-input";
+import { type ChatDraft, outgoingMessageOf } from "./chat-draft";
+import { ChatModelPicker } from "./chat-model-picker";
 import { ChatPlaceholder } from "./chat-placeholder";
 import { ChatReadOnlyNotice } from "./chat-read-only-notice";
+import { Composer } from "./composer";
 import { EarlierMessages } from "./earlier-messages";
 import { MessageBlock } from "./message/message-block";
 import { useBranchChat } from "./message/use-branch-chat";
-import { AssistantReplySender, ChatReplySender } from "./reply-sender";
+import { SendMessageContext } from "./send-message";
 import { StepAnswersContext } from "./step-answers";
 import { useChatSession } from "./use-chat-session";
+import { useComposerSendState } from "./use-composer-send-state";
+import { useOpeningMessage } from "./use-opening-message";
 
 const HIGHLIGHT_MS = 2000;
 
@@ -74,7 +77,7 @@ const Chat = ({
 	focusMessageId,
 	pendingMessage,
 	draft,
-	variant = "chat",
+	kind,
 }: {
 	id: ChatId;
 	/** The newest page as the loader fetched it. */
@@ -86,9 +89,9 @@ const Chat = ({
 	pendingMessage?: ChatDraft;
 	draft?: ChatDraft;
 	/** Assistant conversations drop the chat-only controls. */
-	variant?: "chat" | "assistant";
+	kind: ChatKind;
 }) => {
-	const isAssistant = variant === "assistant";
+	const isAssistant = kind === "assistant";
 	const { docsUrl } = usePublicConfig();
 	const linkSafety = useMemo(
 		() =>
@@ -105,7 +108,7 @@ const Chat = ({
 		chatId: id,
 		page,
 		zedToken,
-		variant,
+		kind,
 	});
 
 	const { data: chat } = useQuery(
@@ -155,52 +158,66 @@ const Chat = ({
 		});
 	};
 
-	useEffect(() => {
-		if (!pendingMessage) return;
-		const { text, attachments } = pendingMessage;
-		session
-			.sendFirst({
-				text,
-				metadata:
-					attachments.length > 0
-						? {
-								attachments,
-							}
-						: undefined,
-			})
-			?.catch((error: unknown) => {
-				toast.error(m.chat_pending_message_failed_toast_error(), {
-					description: reasonMessageOf(error),
-				});
-			});
-	}, [
+	const sendState = useComposerSendState({
+		chat: chat?.data,
+		kind,
+	});
+
+	const composerDraft = useOpeningMessage({
 		session,
 		pendingMessage,
-	]);
+		draft,
+	});
 
 	const composer = (
-		<ChatInput
-			chatId={id}
-			zedToken={zedToken}
-			phase={phase}
-			send={session.send}
-			stop={session.stop}
-			draft={draft}
+		<Composer
+			key={composerDraft.version}
+			draft={composerDraft.draft}
+			onSend={(message) => session.send(outgoingMessageOf(message))}
+			withAttachments={!isAssistant}
+			assistant={isAssistant}
+			model={sendState.selectedModel}
+			blocker={sendState.blocker}
+			turn={{
+				phase,
+				stop: session.stop,
+			}}
 			contextTokens={view.contextTokens}
-			variant={variant}
-		/>
+			tools={(held) =>
+				isAssistant ? (
+					<AssistantModelLabel />
+				) : (
+					<ChatModelPicker
+						chatId={id}
+						botId={chat?.data.botId}
+						effectiveModel={chat?.data.effectiveModel}
+						disabled={held}
+					/>
+				)
+			}
+		>
+			{!isAssistant &&
+				!sendState.isModelConfigured &&
+				sendState.blocker?.reason !== "bot-model" && (
+					<p className="text-muted-foreground text-xs">
+						{m.chat_composer_model_required_hint()}
+					</p>
+				)}
+		</Composer>
 	);
-
-	const sendText = (text: string) =>
-		session.send({
-			text,
-		});
-	const ReplySender = isAssistant ? AssistantReplySender : ChatReplySender;
+	// Prefilled replies send as the composer does: not while a turn runs, the chat is read-only or sending is blocked.
+	const sendReply =
+		sendState.canSend && !view.busy
+			? (text: string) =>
+					session.send({
+						text,
+					})
+			: undefined;
 
 	return (
 		<StepAnswersContext value={session.answers}>
 			<LinkSafetyContext value={linkSafety}>
-				<ReplySender chat={chat?.data} send={sendText} busy={view.busy}>
+				<SendMessageContext value={sendReply}>
 					<div className="flex size-full min-h-0 min-w-0 flex-col">
 						{!isAssistant && chat?.data.parentChat && (
 							<div className="mx-auto flex w-full max-w-200 px-4 pb-2">
@@ -308,7 +325,7 @@ const Chat = ({
 							)}
 						</div>
 					</div>
-				</ReplySender>
+				</SendMessageContext>
 			</LinkSafetyContext>
 		</StepAnswersContext>
 	);

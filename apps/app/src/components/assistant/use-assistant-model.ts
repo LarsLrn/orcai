@@ -21,19 +21,20 @@ const assistantModelAvailability = ({
 			? "unset"
 			: "set";
 
-/** The active organisation's assistant model, read live like the turn does. */
-const useAssistantModel = () => {
+/** The active organisation's assistant model, read live like the turn does; the model is not read while disabled. */
+const useAssistantModel = ({ enabled = true }: { enabled?: boolean } = {}) => {
 	const { data: organization, status: organizationStatus } =
 		useActiveOrganization();
 	const modelId = organization?.data.assistantModelId ?? null;
 
 	const { data: model, error: modelError } = useQuery(
 		orpc.model.find.queryOptions({
-			input: modelId
-				? {
-						id: modelId,
-					}
-				: skipToken,
+			input:
+				enabled && modelId
+					? {
+							id: modelId,
+						}
+					: skipToken,
 		}),
 	);
 	const providerId = model?.data.providerId ?? null;

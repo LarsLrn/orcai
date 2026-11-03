@@ -32,27 +32,7 @@ function RouteComponent() {
 
 	return (
 		<div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-2 py-4">
-			<AssistantNewConversation
-				initialText={initialDraft}
-				onConversationCreated={(chatId, pendingMessage, zedToken) =>
-					navigate({
-						to: "/app/assistant/$chatId",
-						params: {
-							chatId,
-						},
-						search: {
-							zedToken,
-						},
-						state: (previous) => ({
-							...previous,
-							pendingMessage: {
-								text: pendingMessage,
-								attachments: [],
-							},
-						}),
-					})
-				}
-			/>
+			<AssistantNewConversation initialText={initialDraft} />
 			<AssistantHistory />
 		</div>
 	);

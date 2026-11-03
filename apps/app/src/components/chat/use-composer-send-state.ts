@@ -1,5 +1,6 @@
 import type { BotId, ModelId, ProviderId } from "@orcai/core";
-import type { EffectiveModel } from "@orcai/schema";
+import type { ChatKind, EffectiveModel } from "@orcai/schema";
+import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { composerBlocker } from "@/components/chat/composer-blocker";
 import { useQuotaStatus } from "@/components/quota/use-quota-status";
 
@@ -17,21 +18,29 @@ type SelectedModel = {
 	modelId: ModelId | null | undefined;
 };
 
-/** The model a chat sends with. */
-const chatSelectedModel = (chat: SendStateChat | undefined): SelectedModel => ({
-	providerId: chat?.effectiveModel.providerId ?? undefined,
-	modelId: chat?.effectiveModel.modelId ?? undefined,
-});
-
-/** What blocks sending with a model; the composer and prefilled replies share it. */
+/**
+ * The model a chat sends with and what blocks sending with it; the composer
+ * and prefilled replies share it. The Assistant's model comes from the
+ * organisation.
+ */
 const useComposerSendState = ({
 	chat,
-	selectedModel,
+	kind,
 }: {
 	chat: SendStateChat | undefined;
-	selectedModel: SelectedModel;
+	kind: ChatKind;
 }) => {
 	const effective = chat?.effectiveModel;
+	const assistantModel = useAssistantModel({
+		enabled: kind === "assistant",
+	});
+	const selectedModel: SelectedModel =
+		kind === "assistant"
+			? assistantModel
+			: {
+					providerId: effective?.providerId ?? undefined,
+					modelId: effective?.modelId ?? undefined,
+				};
 	const isModelConfigured = Boolean(
 		selectedModel.modelId && selectedModel.providerId,
 	);
@@ -58,6 +67,7 @@ const useComposerSendState = ({
 	});
 
 	return {
+		selectedModel,
 		isModelConfigured,
 		blocker,
 		canSend:
@@ -68,9 +78,4 @@ const useComposerSendState = ({
 	};
 };
 
-export {
-	chatSelectedModel,
-	type SelectedModel,
-	type SendStateChat,
-	useComposerSendState,
-};
+export { type SelectedModel, useComposerSendState };
