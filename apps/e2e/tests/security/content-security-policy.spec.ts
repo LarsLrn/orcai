@@ -188,9 +188,13 @@ test("security: a diagram that loads an image from storage or another site is no
 	await enterApp(page, org.slug);
 	await openChat(page, chatId);
 
-	// Streamdown renders a diagram once its block scrolls into view.
+	// Streamdown renders a diagram once its block stays in view. The chat
+	// follows its latest content until the reader scrolls up, so scroll up
+	// as a reader does before moving between the blocks.
 	const diagrams = page.locator('[data-streamdown="mermaid-block"]');
 	await expect(diagrams).toHaveCount(4);
+	await page.getByRole("log").hover();
+	await page.mouse.wheel(0, -20_000);
 	for (const [index, shown] of [
 		[
 			0,
