@@ -75,7 +75,7 @@ export const useShareablePrincipals = (
 	resourceRef: ResourceRef,
 	query: string,
 	options: {
-		limit: number;
+		pageSize: number;
 		principalType: PrincipalType;
 	},
 ) =>
@@ -85,7 +85,7 @@ export const useShareablePrincipals = (
 				...getResourceInput(resourceRef),
 				principalType: options.principalType,
 				query: query.trim().length > 0 ? query.trim() : undefined,
-				limit: options.limit,
+				pageSize: options.pageSize,
 				excludeGranted: true,
 			},
 		}),

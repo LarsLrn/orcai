@@ -61,7 +61,6 @@ const fixtures = {
 			{
 				query: "APA",
 				origin: "library",
-				limit: 30,
 			},
 			{
 				assets: [
@@ -78,9 +77,7 @@ const fixtures = {
 			"call-listed",
 		),
 		found(
-			{
-				limit: 30,
-			},
+			{},
 			{
 				assets: [],
 				total: 0,
@@ -217,7 +214,6 @@ describe("kept in migration", () => {
 				input: {
 					query: "APA",
 					keptIn: "library",
-					limit: 30,
 				},
 				output: {
 					assets: [

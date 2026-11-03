@@ -13,7 +13,18 @@ import {
 	userIdSchema,
 } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
-import { and, desc, eq, ilike, inArray, isNull, notInArray } from "drizzle-orm";
+import {
+	and,
+	asc,
+	count,
+	countDistinct,
+	desc,
+	eq,
+	ilike,
+	inArray,
+	isNull,
+	notInArray,
+} from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { readableIds } from "@/lib/authz/content-access";
 import {
@@ -419,7 +430,10 @@ const listResourceGrants = authed.resource.listGrants
 		};
 	});
 
-/** Grants are issued in the active organisation, so only its principals can receive one. */
+/**
+ * Grants are issued in the active organisation, so only its principals can receive one.
+ * Pages run over users by name, then groups with system groups first.
+ */
 const listResourcePrincipals = authed.resource.listPrincipals
 	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
@@ -435,7 +449,9 @@ const listResourcePrincipals = authed.resource.listPrincipals
 		});
 		const query = input.query?.trim();
 		const searchLike = query ? literalSearch(query) : undefined;
+		const wantsUsers = !input.principalType || input.principalType === "user";
 		const wantsGroups = !input.principalType || input.principalType === "group";
+		const offset = input.pageIndex * input.pageSize;
 
 		const granted = input.excludeGranted
 			? yield* db
@@ -455,8 +471,31 @@ const listResourcePrincipals = authed.resource.listPrincipals
 		const { userIds: grantedUserIds, groupIds: grantedGroupIds } =
 			splitPrincipalIds(granted);
 
+		const userScope = and(
+			inArray(dbSchema.member.organizationId, orgIds),
+			grantedUserIds.length > 0
+				? notInArray(dbSchema.user.id, grantedUserIds)
+				: undefined,
+			visibleUserSearch({
+				pattern: searchLike,
+				canSeeEmail,
+			}),
+		);
+		const [userCount] = wantsUsers
+			? yield* db
+					.select({
+						count: countDistinct(dbSchema.user.id),
+					})
+					.from(dbSchema.member)
+					.innerJoin(
+						dbSchema.user,
+						eq(dbSchema.user.id, dbSchema.member.userId),
+					)
+					.where(userScope)
+			: [];
+		const userTotal = userCount?.count ?? 0;
 		const users =
-			!input.principalType || input.principalType === "user"
+			offset < userTotal
 				? yield* db
 						.selectDistinct(visibleUserColumns(canSeeEmail))
 						.from(dbSchema.member)
@@ -464,55 +503,56 @@ const listResourcePrincipals = authed.resource.listPrincipals
 							dbSchema.user,
 							eq(dbSchema.user.id, dbSchema.member.userId),
 						)
-						.where(
-							and(
-								inArray(dbSchema.member.organizationId, orgIds),
-								grantedUserIds.length > 0
-									? notInArray(dbSchema.user.id, grantedUserIds)
-									: undefined,
-								visibleUserSearch({
-									pattern: searchLike,
-									canSeeEmail,
-								}),
-							),
-						)
-						.limit(input.limit)
+						.where(userScope)
+						.orderBy(asc(dbSchema.user.name), asc(dbSchema.user.id))
+						.limit(input.pageSize)
+						.offset(offset)
 				: [];
 
-		const groups = wantsGroups
-			? yield* visibleGroupScope({
-					organizationIds: orgIds,
-					userId: context.auth.user.id,
-					zedToken: readRevision(context),
-				}).pipe(
-					Effect.flatMap((groupScope) =>
-						db
-							.select({
-								id: dbSchema.group.id,
-								name: dbSchema.group.name,
-								description: dbSchema.group.description,
-								kind: dbSchema.group.kind,
-								systemKey: dbSchema.group.systemKey,
-								organizationId: dbSchema.group.organizationId,
-							})
-							.from(dbSchema.group)
-							.where(
-								and(
-									groupScope,
-									isNull(dbSchema.group.deletedAt),
-									grantedGroupIds.length > 0
-										? notInArray(dbSchema.group.id, grantedGroupIds)
-										: undefined,
-									searchLike
-										? ilike(dbSchema.group.name, searchLike)
-										: undefined,
-								),
-							)
-							.orderBy(desc(dbSchema.group.kind), dbSchema.group.name)
-							.limit(input.limit),
-					),
+		const groupScope = wantsGroups
+			? and(
+					yield* visibleGroupScope({
+						organizationIds: orgIds,
+						userId: context.auth.user.id,
+						zedToken: readRevision(context),
+					}),
+					isNull(dbSchema.group.deletedAt),
+					grantedGroupIds.length > 0
+						? notInArray(dbSchema.group.id, grantedGroupIds)
+						: undefined,
+					searchLike ? ilike(dbSchema.group.name, searchLike) : undefined,
 				)
+			: undefined;
+		const [groupCount] = groupScope
+			? yield* db
+					.select({
+						count: count(),
+					})
+					.from(dbSchema.group)
+					.where(groupScope)
 			: [];
+		const groupSlots = input.pageSize - users.length;
+		const groups =
+			groupScope && groupSlots > 0
+				? yield* db
+						.select({
+							id: dbSchema.group.id,
+							name: dbSchema.group.name,
+							description: dbSchema.group.description,
+							kind: dbSchema.group.kind,
+							systemKey: dbSchema.group.systemKey,
+							organizationId: dbSchema.group.organizationId,
+						})
+						.from(dbSchema.group)
+						.where(groupScope)
+						.orderBy(
+							desc(dbSchema.group.kind),
+							asc(dbSchema.group.name),
+							asc(dbSchema.group.id),
+						)
+						.limit(groupSlots)
+						.offset(Math.max(0, offset - userTotal))
+				: [];
 
 		const principals: ResourcePrincipal[] = [
 			...users.map((user) => ({
@@ -523,11 +563,11 @@ const listResourcePrincipals = authed.resource.listPrincipals
 				type: "group" as const,
 				...group,
 			})),
-		].slice(0, input.limit);
+		];
 
 		return {
 			data: principals,
-			rowCount: principals.length,
+			rowCount: userTotal + (groupCount?.count ?? 0),
 		};
 	});
 

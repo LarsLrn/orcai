@@ -156,7 +156,6 @@ const fixtures = {
 			{
 				type: "template",
 				query: "APA",
-				limit: 30,
 			},
 			{
 				blocks: [],
@@ -168,7 +167,6 @@ const fixtures = {
 			{
 				query: "APA",
 				kind: "template",
-				limit: 30,
 			},
 			{
 				entries: [
@@ -645,7 +643,6 @@ describe("behaviours and repositories migration", () => {
 		expect(partOf(result.parts.blocks, "tool-findBlocks").input).toEqual({
 			type: "behaviour",
 			query: "APA",
-			limit: 30,
 		});
 		expect(partOf(result.parts.blocks, "tool-findCatalogue")).toMatchObject({
 			input: {

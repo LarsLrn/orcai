@@ -5,23 +5,28 @@ import {
 	callProcedure,
 	effectTool,
 } from "../procedure-tool";
-import { listLimitSchema, listQuerySchema } from "./list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	listQuerySchema,
+	PAGING_NOTE,
+} from "./list-input";
 
 const listGroupsInputSchema = z.strictObject({
 	query: listQuerySchema,
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 export const listGroupsTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"List the groups of the active organisation that the user can see, by name. System groups such as All members are managed by OrcAI.",
+		description: `List the groups of the active organisation that the user can see, newest first, optionally only those whose name matches. System groups such as All members are managed by OrcAI. ${PAGING_NOTE}`,
 		inputSchema: listGroupsInputSchema,
-		run: ({ query, limit }) =>
+		run: ({ query, page }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.group.list(
 					{
-						pageSize: limit,
+						...listPage(page),
 						filters: {
 							search: query,
 						},
@@ -36,7 +41,7 @@ export const listGroupsTool = (deps: AssistantToolDeps) =>
 						description: group.description,
 						kind: group.kind,
 					})),
-					total: rowCount,
+					...listPaging(page, rowCount),
 				})),
 			),
 	});

@@ -1,4 +1,8 @@
 import {
+	LIST_PAGE_SIZE,
+	listPaging,
+} from "@/lib/ai/tools/assistant/core/list-input";
+import {
 	answers,
 	answersIn,
 	calls,
@@ -39,6 +43,16 @@ const bot = (name: string, status: "draft" | "ready" = "ready") => ({
 });
 
 const citationCheck = bot("Citation check");
+/** More bots than one page holds, with the only draft on the second page. */
+const manyBots = [
+	...Array.from(
+		{
+			length: LIST_PAGE_SIZE + 4,
+		},
+		(_, index) => bot(`Year ${7 + (index % 6)} helper ${index + 1}`),
+	),
+	bot("Lab safety quiz", "draft"),
+];
 const oldQuiz = bot("Old quiz");
 
 const group = (name: string) => ({
@@ -48,6 +62,22 @@ const group = (name: string) => ({
 	kind: "custom",
 });
 const year9 = group("Year 9");
+
+const invitation = (index: number) => ({
+	id: crypto.randomUUID(),
+	email: `parent${index}@riverside.example`,
+	role: "member",
+	status: "pending",
+	expiresAt: "2026-11-10T08:00:00.000Z",
+	expired: false,
+});
+/** Pending invitations over two pages. */
+const manyInvitations = Array.from(
+	{
+		length: LIST_PAGE_SIZE + 5,
+	},
+	(_, index) => invitation(index + 1),
+);
 
 const repository = (name: string) => ({
 	id: crypto.randomUUID(),
@@ -75,6 +105,7 @@ interface Library {
 	bots?: ReturnType<typeof bot>[];
 	blocks?: ReturnType<typeof repository>[];
 	groups?: ReturnType<typeof group>[];
+	invitations?: ReturnType<typeof invitation>[];
 }
 
 const found = <
@@ -115,7 +146,20 @@ interface GrantInput {
 
 interface Query {
 	query?: string;
+	page?: number;
 }
+
+/** One page of `items` with the paging fields every list tool returns. */
+const paged = <Item>(items: Item[], page = 1) => ({
+	items: items.slice((page - 1) * LIST_PAGE_SIZE, page * LIST_PAGE_SIZE),
+	...listPaging(page, items.length),
+});
+
+const empty = {
+	total: 0,
+	hasMore: false,
+	nextPage: null,
+};
 
 interface Id {
 	id: string;
@@ -129,11 +173,15 @@ const riverside = ({
 	bots = [],
 	blocks = [],
 	groups = [],
+	invitations = [],
 }: Library): Scripted => ({
-	findBots: ({ query }: Query) => ({
-		bots: found(bots, query),
-		total: found(bots, query).length,
-	}),
+	findBots: ({ query, page }: Query) => {
+		const { items, ...paging } = paged(found(bots, query), page);
+		return {
+			bots: items,
+			...paging,
+		};
+	},
 	getBot: ({ id }: Id) => ({
 		...byId(bots, id),
 		features: {},
@@ -144,51 +192,63 @@ const riverside = ({
 		},
 		repositories: [],
 	}),
-	findBlocks: ({ query }: Query) => ({
-		blocks: found(blocks, query),
-		total: found(blocks, query).length,
-	}),
+	findBlocks: ({ query, page }: Query) => {
+		const { items, ...paging } = paged(found(blocks, query), page);
+		return {
+			blocks: items,
+			...paging,
+		};
+	},
 	getBlock: ({ id }: Id) => ({
 		...byId(blocks, id),
 		assets: [],
 	}),
 	findAssets: () => ({
 		assets: [],
-		total: 0,
+		...empty,
 	}),
-	listGroups: ({ query }: Query) => ({
-		groups: found(groups, query),
-		total: found(groups, query).length,
-	}),
-	findPeople: ({ query }: Query) => ({
-		grantees: found(groups, query).map(({ id, name, description, kind }) => ({
-			granteeType: "group",
-			granteeId: id,
-			name,
-			description,
-			kind,
-		})),
-		count: found(groups, query).length,
-	}),
+	listGroups: ({ query, page }: Query) => {
+		const { items, ...paging } = paged(found(groups, query), page);
+		return {
+			groups: items,
+			...paging,
+		};
+	},
+	findPeople: ({ query, page }: Query) => {
+		const { items, ...paging } = paged(found(groups, query), page);
+		return {
+			grantees: items.map(({ id, name, description, kind }) => ({
+				granteeType: "group",
+				granteeId: id,
+				name,
+				description,
+				kind,
+			})),
+			...paging,
+		};
+	},
 	listMembers: () => ({
 		members: [],
-		total: 0,
+		...empty,
 	}),
 	listGroupMembers: () => ({
 		members: [],
-		total: 0,
+		...empty,
 	}),
-	listInvitations: () => ({
-		invitations: [],
-		total: 0,
-	}),
+	listInvitations: ({ page }: Query) => {
+		const { items, ...paging } = paged(invitations, page);
+		return {
+			invitations: items,
+			...paging,
+		};
+	},
 	listAccess: () => ({
 		grants: [],
 		inherited: [],
 	}),
 	findCatalogue: () => ({
 		entries: [],
-		total: 0,
+		...empty,
 	}),
 	findModels: () => ({
 		models: [
@@ -200,6 +260,8 @@ const riverside = ({
 			},
 		],
 		total: 1,
+		hasMore: false,
+		nextPage: null,
 	}),
 });
 
@@ -509,6 +571,58 @@ export const assistantCases: EvalCase[] = [
 		checks: [
 			doesNotCall("requestUpload"),
 			answers,
+		],
+	},
+	{
+		id: "assistant/full-list-pages",
+		run: assistant("Which of our bots are still drafts?", {
+			bots: manyBots,
+		}),
+		checks: [
+			callsWith<Query>("findBots", "page 2", ({ page }) => page === 2),
+			mentions(/Lab safety quiz/),
+		],
+	},
+	{
+		id: "assistant/count-does-not-page",
+		run: assistant("How many bots do we have?", {
+			bots: manyBots,
+		}),
+		checks: [
+			calls("findBots"),
+			{
+				name: "reads only the first page of findBots",
+				pass: ({ calls: made }) =>
+					!made.some(
+						(call) =>
+							call.toolName === "findBots" &&
+							((call.input as Query).page ?? 1) > 1,
+					),
+			},
+			mentions(new RegExp(`\\b${manyBots.length}\\b`)),
+		],
+	},
+	{
+		id: "assistant/bulk-change-reads-every-page",
+		run: assistant("Withdraw all pending invitations.", {
+			invitations: manyInvitations,
+		}),
+		checks: [
+			calls("cancelInvitation"),
+			{
+				name: "reads page 2 of listInvitations before withdrawing any",
+				pass: ({ calls: made }) => {
+					const secondPage = made.findIndex(
+						(call) =>
+							call.toolName === "listInvitations" &&
+							(call.input as Query).page === 2,
+					);
+					const firstWithdrawal = made.findIndex(
+						(call) => call.toolName === "cancelInvitation",
+					);
+					return secondPage >= 0 && secondPage < firstWithdrawal;
+				},
+			},
 		],
 	},
 	{

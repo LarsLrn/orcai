@@ -332,7 +332,7 @@ test("orgs: an invitation reaches the invitee whatever case it was sent to", asy
 	expect(accepted.success).toBe(true);
 });
 
-test("orgs: finding an invitation is scoped to the caller", async ({
+test("orgs: finding an invitation is scoped to its sender, recipient and inviting managers", async ({
 	api,
 	appBaseURL,
 	zedTokens,
@@ -349,8 +349,8 @@ test("orgs: finding an invitation is scoped to the caller", async ({
 	});
 	expect(String(found.data.id)).toBe(String(invitation.id));
 
-	// There is no permission over an invitation, so a signed-in user who
-	// neither sent nor received one is answered as if it were not there.
+	// A signed-in user who neither sent nor received it is answered as if it
+	// were not there, unless they may invite to its organisation.
 	const stranger = await createOrgsUser(appBaseURL, "find-stranger");
 	const asStranger = createApiClient(
 		appBaseURL,
@@ -367,8 +367,12 @@ test("orgs: finding an invitation is scoped to the caller", async ({
 		).code,
 	).toBe("NOT_FOUND");
 
+	const asManager = await api.as("manager").organizationInvitation.find({
+		id: invitation.id,
+	});
+	expect(asManager.data.email).toBe(email);
+
 	for (const role of [
-		"manager",
 		"member",
 		"viewer",
 	] as const) {

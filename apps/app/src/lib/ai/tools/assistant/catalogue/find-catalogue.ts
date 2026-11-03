@@ -1,7 +1,13 @@
 import { catalogueKindSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { listLimitSchema, listQuerySchema } from "../core/list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	listQuerySchema,
+	PAGING_NOTE,
+} from "../core/list-input";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -13,21 +19,19 @@ const findCatalogueInputSchema = z.strictObject({
 	kind: catalogueKindSchema
 		.optional()
 		.describe("Only entries of this kind. Every kind when left out."),
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 export const findCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"Find what organisations on this instance list in the Catalogue: bots, behaviours and repositories, newest first. Pass an entry's `entry` to addFromCatalogue. `state` tells whether the active organisation is the entry's home organisation, added it already, or can add it with addFromCatalogue. A bot's `model` is what its home organisation's setup asks for.",
+		description: `Find what organisations on this instance list in the Catalogue: bots, behaviours and repositories, newest first. Pass an entry's \`entry\` to addFromCatalogue. \`state\` tells whether the active organisation is the entry's home organisation, added it already, or can add it with addFromCatalogue. A bot's \`model\` is what its home organisation's setup asks for. ${PAGING_NOTE}`,
 		inputSchema: findCatalogueInputSchema,
-		run: ({ query, kind, limit }) =>
+		run: ({ query, kind, page }) =>
 			Effect.gen(function* () {
 				const entries = yield* callProcedure(deps, (procedures, options) =>
 					procedures.catalogue.list(
 						{
-							pageIndex: 0,
-							pageSize: limit,
+							...listPage(page),
 							search: query,
 							kind,
 						},
@@ -55,7 +59,7 @@ export const findCatalogueTool = (deps: AssistantToolDeps) =>
 						model: entry.modelHint,
 						assets: entry.assets,
 					})),
-					total: entries.rowCount,
+					...listPaging(page, entries.rowCount),
 				};
 			}),
 	});

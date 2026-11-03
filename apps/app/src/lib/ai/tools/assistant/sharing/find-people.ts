@@ -1,7 +1,12 @@
 import { resourceListPrincipalsInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { listLimitSchema } from "../core/list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	PAGING_NOTE,
+} from "../core/list-input";
 import {
 	type AssistantToolDeps,
 	callProcedure,
@@ -26,15 +31,14 @@ const findPeopleInputSchema = z.strictObject({
 	excludeGranted: principalFilters.excludeGranted.describe(
 		"Leave out users and groups that already hold a direct grant.",
 	),
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 export const findPeopleTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"Find the users and groups that could be given access to a bot, block or asset, by name. Use it to resolve names to ids before grantAccess. The user needs Can manage on the item.",
+		description: `Find the users and groups of the active organisation that could be given access to a bot, block or asset, by name: users sorted by name, then groups. Use it to resolve names to ids before grantAccess. The user needs Can manage on the item. ${PAGING_NOTE}`,
 		inputSchema: findPeopleInputSchema,
-		run: ({ granteeType, query, excludeGranted, limit, ...target }) =>
+		run: ({ granteeType, query, excludeGranted, page, ...target }) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.resource.listPrincipals(
 					{
@@ -42,7 +46,7 @@ export const findPeopleTool = (deps: AssistantToolDeps) =>
 						principalType: granteeType,
 						query,
 						excludeGranted,
-						limit,
+						...listPage(page),
 					},
 					options,
 				),
@@ -65,7 +69,7 @@ export const findPeopleTool = (deps: AssistantToolDeps) =>
 									kind: principal.kind,
 								},
 					),
-					count: rowCount,
+					...listPaging(page, rowCount),
 				})),
 			),
 	});

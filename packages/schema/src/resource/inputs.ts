@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { blockIdSchema } from "../block/ref";
-import { zedTokenSchema } from "../shared";
+import { paginationInputSchema, zedTokenSchema } from "../shared";
 import {
 	createResourceScopedSchema,
 	principalTypeSchema,
@@ -30,7 +30,7 @@ export const resourceInheritedAccessInputSchema = resourceIdentitySchema;
 export const resourceListPrincipalsInputSchema = createResourceScopedSchema({
 	principalType: principalTypeSchema.optional(),
 	query: z.string().trim().max(200).optional(),
-	limit: z.number().int().positive().max(100).default(25),
+	...paginationInputSchema.shape,
 	/** Leave out principals that already hold a direct grant on this resource. */
 	excludeGranted: z.boolean().default(false),
 });

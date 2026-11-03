@@ -5,11 +5,17 @@ import {
 	callProcedure,
 	effectTool,
 } from "../procedure-tool";
-import { listLimitSchema, listQuerySchema } from "./list-input";
+import {
+	listPage,
+	listPageSchema,
+	listPaging,
+	listQuerySchema,
+	PAGING_NOTE,
+} from "./list-input";
 
 const findBotsInputSchema = z.strictObject({
 	query: listQuerySchema,
-	limit: listLimitSchema,
+	page: listPageSchema,
 });
 
 const toFoundBot = (bot: {
@@ -30,15 +36,14 @@ const toFoundBot = (bot: {
 
 export const findBotsTool = (deps: AssistantToolDeps) =>
 	effectTool({
-		description:
-			"Find bots by name: published bots the user can use and drafts they can edit. Without a query it lists them all. `favourite` marks the published bots the user made a favourite.",
+		description: `Find bots by name among the published bots the user can use and the drafts they can edit, sorted by name. Without a query it pages through all of them. \`favourite\` marks the published bots the user made a favourite. ${PAGING_NOTE}`,
 		inputSchema: findBotsInputSchema,
-		run: ({ query, limit }) =>
+		run: ({ query, page }) =>
 			Effect.gen(function* () {
 				const bots = yield* callProcedure(deps, (procedures, options) =>
 					procedures.bot.list(
 						{
-							pageSize: limit,
+							...listPage(page),
 							search: query,
 							filters: {
 								status: "all",
@@ -50,7 +55,7 @@ export const findBotsTool = (deps: AssistantToolDeps) =>
 
 				return {
 					bots: bots.data.map(toFoundBot),
-					total: bots.rowCount,
+					...listPaging(page, bots.rowCount),
 				};
 			}),
 	});

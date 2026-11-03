@@ -61,16 +61,20 @@ beforeEach(() => {
 	answers["group.delete"] = done;
 	answers["organizationMember.delete"] = done;
 	answers["organizationInvitation.delete"] = done;
-	answers["organizationInvitation.list"] = () =>
-		Effect.succeed({
-			data: [
-				{
-					id: id(3),
-					email: "anna@example.org",
-				},
-			],
-			rowCount: 1,
-		});
+	answers["organizationInvitation.find"] = ({ id: key }: { id: string }) =>
+		key === id(3)
+			? Effect.succeed({
+					data: {
+						email: "anna@example.org",
+					},
+				})
+			: Effect.fail(
+					new ORPCError("NOT_FOUND", {
+						data: {
+							reason: "INVITATION_NOT_FOUND",
+						},
+					}),
+				);
 	answers["organizationInvitation.create"] = (input: {
 		items: {
 			email: string;
@@ -283,7 +287,8 @@ describe("cancelInvitation", () => {
 			],
 		});
 		expect(callNames()).toEqual([
-			"organizationInvitation.list",
+			"organizationInvitation.find",
+			"organizationInvitation.find",
 			"organizationInvitation.delete",
 		]);
 	});
