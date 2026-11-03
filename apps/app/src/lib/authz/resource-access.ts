@@ -537,61 +537,6 @@ export const revokeIssuedGrants = (params: {
 				params.now,
 			);
 
-/** Removes the users' active group memberships, in one organization's groups when given. */
-const leaveGroups = (params: {
-	organizationId?: OrganizationId;
-	userIds: readonly UserId[];
-	now: Date;
-}) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const memberships = yield* db
-			.select({
-				id: dbSchema.groupMember.id,
-				groupId: dbSchema.groupMember.groupId,
-				userId: dbSchema.groupMember.userId,
-			})
-			.from(dbSchema.groupMember)
-			.innerJoin(
-				dbSchema.group,
-				eq(dbSchema.group.id, dbSchema.groupMember.groupId),
-			)
-			.where(
-				and(
-					inArray(dbSchema.groupMember.userId, [
-						...params.userIds,
-					]),
-					isNull(dbSchema.groupMember.removedAt),
-					isNull(dbSchema.group.deletedAt),
-					params.organizationId
-						? eq(dbSchema.group.organizationId, params.organizationId)
-						: undefined,
-				),
-			);
-		if (memberships.length === 0) return;
-
-		yield* db
-			.update(dbSchema.groupMember)
-			.set({
-				removedAt: params.now,
-			})
-			.where(
-				inArray(
-					dbSchema.groupMember.id,
-					memberships.map((membership) => membership.id),
-				),
-			);
-		yield* recordRelationshipFacts(
-			...memberships.map((membership) =>
-				RelationshipFact.GroupMembershipChanged({
-					groupId: membership.groupId,
-					userId: membership.userId,
-					member: false,
-				}),
-			),
-		);
-	});
-
 const scopeKey = (resource: { resourceType: string; resourceId: string }) =>
 	`${resource.resourceType}:${resource.resourceId}`;
 
@@ -647,52 +592,27 @@ export const issuedGrantOrganizations = (params: {
 	});
 
 /**
- * Detaches users whose membership of the organization is gone: they leave its
- * groups and lose the direct grants issued in it. Call it in the
- * {@link writeRelationships} that deletes the `member` rows, after deleting
- * them, holding {@link issuedGrantOrganizations}.
+ * Revokes the direct grants to the users, those issued in one organisation
+ * when given. Lock {@link issuedGrantOrganizations} or
+ * {@link accountAccessOrganizations} for them.
  */
-export const detachMembers = (params: {
-	organizationId: OrganizationId;
+export const revokeUserGrants = (params: {
+	organizationId?: OrganizationId;
 	userIds: readonly UserId[];
 	now: Date;
 }) =>
-	Effect.gen(function* () {
-		if (params.userIds.length === 0) return;
-		yield* leaveGroups(params);
-		yield* revokeGrantsWhere(
-			and(
-				eq(dbSchema.resourceGrant.organizationId, params.organizationId),
-				eq(dbSchema.resourceGrant.principalType, "user"),
-				inArray(dbSchema.resourceGrant.principalId, [
-					...params.userIds,
-				]),
-			),
-			params.now,
-		);
-	});
-
-/**
- * Detaches accounts being deleted: they leave every group and lose every
- * direct grant. Lock {@link accountAccessOrganizations} for them.
- */
-export const detachAccounts = (params: {
-	userIds: readonly UserId[];
-	now: Date;
-}) =>
-	Effect.gen(function* () {
-		if (params.userIds.length === 0) return;
-		yield* leaveGroups(params);
-		yield* revokeGrantsWhere(
-			and(
-				eq(dbSchema.resourceGrant.principalType, "user"),
-				inArray(dbSchema.resourceGrant.principalId, [
-					...params.userIds,
-				]),
-			),
-			params.now,
-		);
-	});
+	revokeGrantsWhere(
+		and(
+			params.organizationId
+				? eq(dbSchema.resourceGrant.organizationId, params.organizationId)
+				: undefined,
+			eq(dbSchema.resourceGrant.principalType, "user"),
+			inArray(dbSchema.resourceGrant.principalId, [
+				...params.userIds,
+			]),
+		),
+		params.now,
+	);
 
 /**
  * The organizations whose locks guard the users' grants and group

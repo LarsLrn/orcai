@@ -7,16 +7,14 @@ import { DB, dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY, RESOURCE_TYPES } from "@orcai/schema";
 import { and, asc, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { deleteOrganizationGroups } from "@/lib/authz/group-lifecycle";
+import { detachUsers } from "@/lib/authz/organization-membership";
 import { RelationshipFact } from "@/lib/authz/relationship-facts";
 import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
-import {
-	detachGroups,
-	detachMembers,
-	issuedGrantOrganizations,
-} from "@/lib/authz/resource-access";
+import { issuedGrantOrganizations } from "@/lib/authz/resource-access";
 import {
 	deleteResources,
 	removeDeletedResourceData,
@@ -184,7 +182,7 @@ export const deleteOrganizationsWithAuthorization = (
 				),
 			);
 			for (const organizationId of ids)
-				yield* detachMembers({
+				yield* detachUsers({
 					organizationId,
 					userIds: memberships
 						.filter(
@@ -194,37 +192,8 @@ export const deleteOrganizationsWithAuthorization = (
 					now,
 				});
 
-			const groups = yield* db
-				.select({
-					id: dbSchema.group.id,
-					organizationId: dbSchema.group.organizationId,
-					systemKey: dbSchema.group.systemKey,
-				})
-				.from(dbSchema.group)
-				.where(
-					and(
-						inArray(dbSchema.group.organizationId, ids),
-						isNull(dbSchema.group.deletedAt),
-					),
-				);
-			const groupIds = groups.map((group) => group.id);
-			const groupMembers =
-				groupIds.length === 0
-					? []
-					: yield* db
-							.select({
-								groupId: dbSchema.groupMember.groupId,
-								userId: dbSchema.groupMember.userId,
-							})
-							.from(dbSchema.groupMember)
-							.where(
-								and(
-									inArray(dbSchema.groupMember.groupId, groupIds),
-									isNull(dbSchema.groupMember.removedAt),
-								),
-							);
-			yield* detachGroups({
-				groupIds,
+			yield* deleteOrganizationGroups({
+				organizationIds: ids,
 				now,
 			});
 
@@ -239,22 +208,6 @@ export const deleteOrganizationsWithAuthorization = (
 				})
 				.where(inArray(dbSchema.session.activeOrganizationId, ids));
 
-			yield* recordRelationshipFacts(
-				...groups.map((group) =>
-					RelationshipFact.GroupDeleted({
-						groupId: group.id,
-						organizationId: group.organizationId,
-						allMembers: group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY,
-					}),
-				),
-				...groupMembers.map((groupMember) =>
-					RelationshipFact.GroupMembershipChanged({
-						groupId: groupMember.groupId,
-						userId: groupMember.userId,
-						member: false,
-					}),
-				),
-			);
 			return {
 				logos: existing.map((organization) => organization.logo),
 				deleted,

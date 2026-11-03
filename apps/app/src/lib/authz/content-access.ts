@@ -1,6 +1,5 @@
 import type { UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
-import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
+import { DB, dbSchema, resourceTables } from "@orcai/db";
 import {
 	type EntityIdFor,
 	permittedEntityIds,
@@ -10,43 +9,12 @@ import {
 import { type AnyColumn, and, inArray, type SQL, sql } from "drizzle-orm";
 import { alias, QueryBuilder } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
+import { grantReaches } from "@/lib/authz/reaching-groups";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 type Reader = {
 	userId: UserId;
 	zedToken: ReadRevision | undefined;
-};
-
-const resourceTables = {
-	bot: dbSchema.bot,
-	block: dbSchema.block,
-	asset: dbSchema.asset,
-};
-
-/** The groups whose grants reach the user: joined ones and the All Members of their organisations. */
-const readerGroupIds = (userId: UserId) => {
-	const { group, groupMember, member } = dbSchema;
-	return sql`(
-		select ${group.id} from ${group}
-		where ${group.deletedAt} is null
-			and (
-				exists (
-					select 1 from ${groupMember}
-					where ${groupMember.groupId} = ${group.id}
-						and ${groupMember.userId} = ${userId}
-						and ${groupMember.removedAt} is null
-				)
-				or (
-					${group.kind} = 'system'
-					and ${group.systemKey} = ${ALL_MEMBERS_GROUP_SYSTEM_KEY}
-					and exists (
-						select 1 from ${member}
-						where ${member.organizationId} = ${group.organizationId}
-							and ${member.userId} = ${userId}
-					)
-				)
-			)
-	)`;
 };
 
 /** Whether the user owns the resource in `id`. */
@@ -80,10 +48,9 @@ const grantedTo = (
 			and ${grant.resourceId} = ${id}
 			and ${grant.revokedAt} is null
 			${role ? sql`and ${grant.role} = ${role}` : sql``}
-			and (
-				(${grant.principalType} = 'user' and ${grant.principalId} = ${userId})
-				or (${grant.principalType} = 'group' and ${grant.principalId} in ${readerGroupIds(userId)})
-			)
+			and ${grantReaches({
+				userId,
+			})}
 	)`;
 };
 

@@ -6,7 +6,7 @@ import {
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { DB, dbSchema, resourceTables } from "@orcai/db";
 import { reconcileLinkPoints, replaceIndexing } from "@orcai/preparation";
 import { assetObjectKey, processedAssetPrefix } from "@orcai/s3";
 import {
@@ -78,12 +78,6 @@ export const initializeResourceAuthorization = (params: {
 			}),
 		);
 	});
-
-const resourceTables = {
-	bot: dbSchema.bot,
-	block: dbSchema.block,
-	asset: dbSchema.asset,
-};
 
 const groupLinks = <Parent extends string, Child extends string>(
 	links: readonly {

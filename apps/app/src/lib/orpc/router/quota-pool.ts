@@ -13,7 +13,7 @@ import {
 	memberMatching,
 	usageIdentities,
 } from "@/lib/analytics/usage-identities";
-import { groupMemberCount } from "@/lib/authz/group-membership";
+import { groupMemberCount } from "@/lib/authz/group-lifecycle";
 import { readRevision } from "@/lib/authz/zed-token";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";

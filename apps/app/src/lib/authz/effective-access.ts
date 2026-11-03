@@ -1,4 +1,4 @@
-import type { GroupId, OrganizationId, UserId } from "@orcai/core";
+import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	ALL_MEMBERS_GROUP_SYSTEM_KEY,
@@ -34,6 +34,7 @@ import {
 	sql,
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { grantReaches } from "@/lib/authz/reaching-groups";
 import {
 	buildOrderBy,
 	type SortExpression,
@@ -53,21 +54,16 @@ const resourceName = sql<
  */
 const accessOrigin = (params: {
 	userId: UserId;
-	groupIds: GroupId[];
-	allMembersGroupId: GroupId | undefined;
+	organizationId: OrganizationId;
 }) => {
-	const principal = or(
-		and(eq(grant.principalType, "user"), eq(grant.principalId, params.userId)),
-		params.groupIds.length > 0
-			? and(
-					eq(grant.principalType, "group"),
-					inArray(grant.principalId, params.groupIds),
-				)
-			: undefined,
-	);
+	const { group } = dbSchema;
 	const directSource = sql`case
 		when ${grant.principalType} = 'user' then ${RESOURCE_GRANT_ORIGIN.DIRECT_USER}
-		when ${grant.principalId} = ${params.allMembersGroupId ?? null} then ${RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS}
+		when exists (
+			select 1 from ${group}
+			where ${group.id} = ${grant.principalId}
+				and ${group.systemKey} = ${ALL_MEMBERS_GROUP_SYSTEM_KEY}
+		) then ${RESOURCE_GRANT_ORIGIN.DIRECT_GROUP_ALL_MEMBERS}
 		else ${RESOURCE_GRANT_ORIGIN.DIRECT_GROUP}
 	end`;
 	const roleRank = sql`case ${grant.role} when 'manager' then 3 when 'editor' then 2 else 1 end`;
@@ -85,7 +81,7 @@ const accessOrigin = (params: {
 			where ${grant.resourceType} = ${scope.resourceType}
 				and ${grant.resourceId} = ${scope.resourceId}
 				and ${grant.revokedAt} is null
-				and ${principal}
+				and ${grantReaches(params)}
 			order by ${roleRank} desc, ${grant.createdAt} asc
 			limit 1),
 		(select ${RESOURCE_GRANT_ORIGIN.PUBLIC} from ${dbSchema.resourceVisibility}
@@ -185,56 +181,9 @@ export const effectiveAccess = (
 			};
 		}
 
-		const [[allMembersGroup], groupMemberships] = yield* Effect.all(
-			[
-				db
-					.select({
-						id: dbSchema.group.id,
-					})
-					.from(dbSchema.group)
-					.where(
-						and(
-							eq(dbSchema.group.organizationId, organizationId),
-							eq(dbSchema.group.kind, "system"),
-							eq(dbSchema.group.systemKey, ALL_MEMBERS_GROUP_SYSTEM_KEY),
-							isNull(dbSchema.group.deletedAt),
-						),
-					)
-					.limit(1),
-				db
-					.select({
-						groupId: dbSchema.groupMember.groupId,
-					})
-					.from(dbSchema.groupMember)
-					.innerJoin(
-						dbSchema.group,
-						eq(dbSchema.group.id, dbSchema.groupMember.groupId),
-					)
-					.where(
-						and(
-							eq(dbSchema.groupMember.userId, userId),
-							isNull(dbSchema.groupMember.removedAt),
-							eq(dbSchema.group.organizationId, organizationId),
-							isNull(dbSchema.group.deletedAt),
-						),
-					),
-			],
-			{
-				concurrency: "unbounded",
-			},
-		);
-
 		const origin = accessOrigin({
 			userId,
-			groupIds: [
-				...groupMemberships.map((membership) => membership.groupId),
-				...(allMembersGroup
-					? [
-							allMembersGroup.id,
-						]
-					: []),
-			],
-			allMembersGroupId: allMembersGroup?.id,
+			organizationId,
 		});
 		const search = filters?.search ? literalSearch(filters.search) : undefined;
 		const whereClause = and(

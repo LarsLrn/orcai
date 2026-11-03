@@ -11,6 +11,7 @@ import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { notBanned } from "@/lib/authz/eligible-owner";
+import { leaveGroups } from "@/lib/authz/group-lifecycle";
 import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
 import {
 	organizationPermitted,
@@ -28,9 +29,8 @@ import {
 } from "@/lib/authz/relationship-write";
 import {
 	accountAccessOrganizations,
-	detachAccounts,
-	detachMembers,
 	issuedGrantOrganizations,
+	revokeUserGrants,
 } from "@/lib/authz/resource-access";
 import {
 	deleteResources,
@@ -44,6 +44,23 @@ type Actor = {
 	userId: UserId;
 	zedToken: ReadRevision | undefined;
 };
+
+/**
+ * Detaches users whose memberships are gone: they leave the groups and lose
+ * the direct grants, of one organisation when given, else everywhere. Call it
+ * in the {@link writeRelationships} that deletes the `member` rows, after
+ * deleting them.
+ */
+export const detachUsers = (params: {
+	organizationId?: OrganizationId;
+	userIds: readonly UserId[];
+	now: Date;
+}) =>
+	Effect.gen(function* () {
+		if (params.userIds.length === 0) return;
+		yield* leaveGroups(params);
+		yield* revokeUserGrants(params);
+	});
 
 /**
  * Who changes memberships: a member, through their organization role, or an
@@ -395,7 +412,7 @@ export const removeMembers = (params: {
 						}),
 					),
 				);
-				yield* detachMembers({
+				yield* detachUsers({
 					organizationId: params.organizationId,
 					userIds,
 					now,
@@ -745,7 +762,7 @@ export const deleteAccounts = (params: {
 						}),
 					),
 				);
-				yield* detachAccounts({
+				yield* detachUsers({
 					userIds,
 					now,
 				});
