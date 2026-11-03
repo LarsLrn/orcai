@@ -11,7 +11,7 @@ export type ModelCapability = z.infer<typeof modelCapabilitiesSchema>;
 const tokenCountSchema = z.int32().positive();
 
 /** What a model takes and writes at most; null when unknown. */
-export const modelTokenLimitsSchema = z.object({
+const modelTokenLimitsSchema = z.object({
 	contextWindow: tokenCountSchema.nullable(),
 	maxOutputTokens: tokenCountSchema.nullable(),
 });

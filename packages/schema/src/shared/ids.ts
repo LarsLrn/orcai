@@ -7,7 +7,6 @@ import type {
 	ChatMessageId,
 	DataExportId,
 	GroupId,
-	GroupMemberId,
 	MemberId,
 	ModelId,
 	OrganizationId,
@@ -15,7 +14,6 @@ import type {
 	ProviderId,
 	QuotaLedgerId,
 	QuotaPeriodId,
-	QuotaPoolAuditLogId,
 	QuotaPoolGroupAssignmentId,
 	QuotaPoolId,
 	QuotaUsageEventId,
@@ -32,7 +30,6 @@ export const botIdSchema = createUuidIdSchema<BotId>();
 export const assetIdSchema = createUuidIdSchema<AssetId>();
 
 export const groupIdSchema = createUuidIdSchema<GroupId>();
-export const groupMemberIdSchema = createUuidIdSchema<GroupMemberId>();
 
 export const dataExportIdSchema = createUuidIdSchema<DataExportId>();
 
@@ -58,5 +55,3 @@ export const quotaPoolGroupAssignmentIdSchema =
 export const quotaPeriodIdSchema = createUuidIdSchema<QuotaPeriodId>();
 export const quotaLedgerIdSchema = createUuidIdSchema<QuotaLedgerId>();
 export const quotaUsageEventIdSchema = createUuidIdSchema<QuotaUsageEventId>();
-export const quotaPoolAuditLogIdSchema =
-	createUuidIdSchema<QuotaPoolAuditLogId>();

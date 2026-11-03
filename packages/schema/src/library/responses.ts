@@ -9,7 +9,7 @@ import {
 } from "../shared/responses";
 
 /** One tile of a mixed library list. */
-export const libraryEntrySchema = z.discriminatedUnion("kind", [
+const libraryEntrySchema = z.discriminatedUnion("kind", [
 	z.object({
 		kind: z.literal("bot"),
 		bot: botListItemSchema,
@@ -25,7 +25,7 @@ export const libraryEntrySchema = z.discriminatedUnion("kind", [
 ]);
 
 /** How many items each kind holds. Assets count those uploaded to the library. */
-export const libraryCountsSchema = z.record(libraryKindSchema, z.number());
+const libraryCountsSchema = z.record(libraryKindSchema, z.number());
 
 const shelfSchema = <TItemSchema extends z.ZodType>(itemSchema: TItemSchema) =>
 	z.object({
@@ -53,6 +53,3 @@ export const searchLibraryResponseSchema =
 
 export type LibraryEntry = z.infer<typeof libraryEntrySchema>;
 export type LibraryCounts = z.infer<typeof libraryCountsSchema>;
-export type LibraryOverview = z.infer<
-	typeof libraryOverviewResponseSchema
->["data"];

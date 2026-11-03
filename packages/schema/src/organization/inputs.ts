@@ -19,7 +19,7 @@ import {
 	organizationSchema,
 } from "./schema";
 
-export const organizationSortKeySchema = z.enum([
+const organizationSortKeySchema = z.enum([
 	"name",
 	"slug",
 	"createdAt",
@@ -30,7 +30,7 @@ export const listOrganizationsInputSchema = paginationInputSchema.extend({
 	...createSortingInputSchema(organizationSortKeySchema).shape,
 });
 
-export const instanceOrganizationSortKeySchema = z.enum([
+const instanceOrganizationSortKeySchema = z.enum([
 	"name",
 	"slug",
 	"createdAt",
@@ -58,7 +58,7 @@ export const organizationDeletionImpactInputSchema = organizationSchema.pick({
  * Who administers a new organisation: its creator, an existing account (the
  * creator is not added), or an invitee, with the creator as admin until they leave.
  */
-export const initialOrganizationAdminSchema = z.discriminatedUnion("kind", [
+const initialOrganizationAdminSchema = z.discriminatedUnion("kind", [
 	z.object({
 		kind: z.literal("me"),
 	}),
@@ -121,29 +121,10 @@ export const deleteOrganizationsInputSchema = z.object({
 	}),
 });
 
-export type ListOrganizationsInput = z.infer<
-	typeof listOrganizationsInputSchema
->;
 export type OrganizationSortKey = z.infer<typeof organizationSortKeySchema>;
-export type ListAllOrganizationsInput = z.infer<
-	typeof listAllOrganizationsInputSchema
->;
 export type InstanceOrganizationSortKey = z.infer<
 	typeof instanceOrganizationSortKeySchema
 >;
-export type FindOrganizationInput = z.infer<typeof findOrganizationInputSchema>;
-export type OrganizationProfileInput = z.infer<
-	typeof organizationProfileInputSchema
->;
-export type OrganizationDeletionImpactInput = z.infer<
-	typeof organizationDeletionImpactInputSchema
->;
-export type CreateOrganizationInput = z.infer<
-	typeof createOrganizationInputSchema
->;
 export type UpdateOrganizationInput = z.infer<
 	typeof updateOrganizationInputSchema
->;
-export type DeleteOrganizationsInput = z.infer<
-	typeof deleteOrganizationsInputSchema
 >;

@@ -12,7 +12,7 @@ import {
 	providerSchema,
 } from "./schema";
 
-export const providerSortKeySchema = z.enum([
+const providerSortKeySchema = z.enum([
 	"name",
 	"enabled",
 	"meteringMode",
@@ -45,9 +45,4 @@ export const deleteProviderInputSchema = z.object({
 	}),
 });
 
-export type ListProvidersInput = z.infer<typeof listProvidersInputSchema>;
 export type ProviderSortKey = z.infer<typeof providerSortKeySchema>;
-export type FindProviderInput = z.infer<typeof findProviderInputSchema>;
-export type CreateProviderInput = z.infer<typeof createProviderInputSchema>;
-export type UpdateProviderInput = z.infer<typeof updateProviderInputSchema>;
-export type DeleteProviderInput = z.infer<typeof deleteProviderInputSchema>;

@@ -30,7 +30,7 @@ export const findAssetResponseSchema = createDataResponseSchema(
 export const saveAssetResponseSchema = createDataResponseSchema(assetSchema);
 
 /** One uploaded file's outcome, keyed by the `objectKey` its upload was signed with. */
-export const assetIntakeResultSchema = z.discriminatedUnion("status", [
+const assetIntakeResultSchema = z.discriminatedUnion("status", [
 	z.object({
 		status: z.literal("created"),
 		objectKey: z.string(),

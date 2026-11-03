@@ -8,7 +8,7 @@ import { uploadFileObjectSchema } from "../storage/schema";
 import { tourIdSchema, tourStateSchema } from "./parts/preferences";
 import { userFiltersSchema } from "./schema";
 
-export const instanceUserSortKeySchema = z.enum([
+const instanceUserSortKeySchema = z.enum([
 	"name",
 	"email",
 	"createdAt",
@@ -73,16 +73,4 @@ export const setUserImageInputSchema = z.object({
 
 export const removeUserImageInputSchema = z.object({});
 
-export type ListAllUsersInput = z.infer<typeof listAllUsersInputSchema>;
 export type InstanceUserSortKey = z.infer<typeof instanceUserSortKeySchema>;
-export type BanUserInput = z.infer<typeof banUserInputSchema>;
-export type UnbanUserInput = z.infer<typeof unbanUserInputSchema>;
-export type ResetTwoFactorInput = z.infer<typeof resetTwoFactorInputSchema>;
-export type SetInstanceRoleInput = z.infer<typeof setInstanceRoleInputSchema>;
-export type DeleteUsersInput = z.infer<typeof deleteUsersInputSchema>;
-export type MeInput = z.infer<typeof meInputSchema>;
-export type UpdatePasswordInput = z.infer<typeof updatePasswordInputSchema>;
-export type SetActiveOrganizationInput = z.infer<
-	typeof setActiveOrganizationInputSchema
->;
-export type SetTourStateInput = z.infer<typeof setTourStateInputSchema>;

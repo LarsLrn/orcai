@@ -9,14 +9,14 @@ import { usageBotSchema, usagePersonSchema } from "../usage/identity";
 import { analyticsDaysSchema } from "./inputs";
 
 /** An estimated cost in one currency; amounts in different currencies are never added up. */
-export const analyticsCostSchema = z.object({
+const analyticsCostSchema = z.object({
 	currency: z.string(),
 	/** In micro-units of the currency. */
 	amount: z.number(),
 });
 
 /** Tokens and provider requests as metered; the two units are never added up. */
-export const analyticsUsageSchema = z.object({
+const analyticsUsageSchema = z.object({
 	inputTokens: z.number(),
 	outputTokens: z.number(),
 	totalTokens: z.number(),
@@ -29,7 +29,7 @@ export const analyticsUsageSchema = z.object({
 	unpriced: z.number(),
 });
 
-export const analyticsDayUsageSchema = analyticsUsageSchema.extend({
+const analyticsDayUsageSchema = analyticsUsageSchema.extend({
 	/** The UTC day, `YYYY-MM-DD`. */
 	date: z.iso.date(),
 });

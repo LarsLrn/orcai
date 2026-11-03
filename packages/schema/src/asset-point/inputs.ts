@@ -33,10 +33,3 @@ export const browseRepositoryAssetPointsInputSchema = z
 			],
 		},
 	);
-
-export type SearchRepositoryAssetPointsInput = z.infer<
-	typeof searchRepositoryAssetPointsInputSchema
->;
-export type BrowseRepositoryAssetPointsInput = z.infer<
-	typeof browseRepositoryAssetPointsInputSchema
->;

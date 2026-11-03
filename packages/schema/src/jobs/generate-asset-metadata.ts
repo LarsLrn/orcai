@@ -9,7 +9,7 @@ import {
  * `apply` fills empty fields and keeps only what it could not apply for
  * review; `review` keeps the whole suggestion for the person who asked.
  */
-export const metadataGenerationModeSchema = z.enum([
+const metadataGenerationModeSchema = z.enum([
 	"apply",
 	"review",
 ]);

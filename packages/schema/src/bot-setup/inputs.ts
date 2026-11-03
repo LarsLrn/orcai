@@ -20,7 +20,3 @@ export const botSetupCoverageInputSchema = z.object({
 	modelId: modelIdSchema,
 	...zedTokenSchema.shape,
 });
-
-export type FindBotSetupInput = z.infer<typeof findBotSetupInputSchema>;
-export type SaveBotSetupInput = z.infer<typeof saveBotSetupInputSchema>;
-export type BotSetupCoverageInput = z.infer<typeof botSetupCoverageInputSchema>;

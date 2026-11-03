@@ -17,7 +17,7 @@ export const blockTypeSchema = z.enum([
 	"repository",
 ]);
 
-export const passagesConfigSchema = z
+const passagesConfigSchema = z
 	.object({
 		minPassages: z.number().int().min(1),
 		maxPassages: z.number().int().min(1),
@@ -91,8 +91,6 @@ export const blockFieldsSchema = z.object({
 	version: z.number().int(),
 });
 
-export const blockMutableFieldsSchema = blockFieldsSchema.partial();
-
 const blockBaseSchema = blockFieldsSchema.extend({
 	id: blockIdSchema,
 	type: blockTypeSchema,
@@ -116,10 +114,6 @@ export const blockWithCapabilitiesSchema = z.intersection(
 
 export type Block = z.infer<typeof blockSchema>;
 export type BlockWithCapabilities = z.infer<typeof blockWithCapabilitiesSchema>;
-
-export type BlockConfigType =
-	| z.infer<typeof behaviourSchema.shape.config>
-	| z.infer<typeof repositorySchema.shape.config>;
 
 export type BlockType = z.infer<typeof blockTypeSchema>;
 
@@ -145,7 +139,7 @@ export function isRepository(block: Block): block is Repository {
 }
 
 /** How far one asset in a repository is from being searchable. */
-export const assetStateSchema = z.enum([
+const assetStateSchema = z.enum([
 	"queued",
 	"processing",
 	"indexing",

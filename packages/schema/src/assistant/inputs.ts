@@ -8,10 +8,3 @@ export const listAssistantConversationsInputSchema =
 	});
 
 export const createAssistantConversationInputSchema = z.object({});
-
-export type ListAssistantConversationsInput = z.infer<
-	typeof listAssistantConversationsInputSchema
->;
-export type CreateAssistantConversationInput = z.infer<
-	typeof createAssistantConversationInputSchema
->;

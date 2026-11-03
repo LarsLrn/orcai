@@ -14,7 +14,7 @@ export const activityRunKindSchema = z.enum(ACTIVITY_RUN_KINDS);
 export type ActivityRunKind = z.infer<typeof activityRunKindSchema>;
 
 /** A stage of the work a run admitted for one asset or export. */
-export const ACTIVITY_STAGES = [
+const ACTIVITY_STAGES = [
 	"processing",
 	"indexing",
 	"metadata",
@@ -22,8 +22,6 @@ export const ACTIVITY_STAGES = [
 ] as const;
 
 export const activityStageSchema = z.enum(ACTIVITY_STAGES);
-
-export type ActivityStage = z.infer<typeof activityStageSchema>;
 
 /** How a run's stage of one member went; `replaced` when later work took it over. */
 export const ACTIVITY_STAGE_STATES = [

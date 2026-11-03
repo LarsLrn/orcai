@@ -96,7 +96,6 @@ export const quotaStatusSchema = z.object({
 		.nullable(),
 });
 
-export type QuotaPoolListRow = z.infer<typeof quotaPoolListRowSchema>;
 export type QuotaPoolDetail = z.infer<typeof quotaPoolDetailSchema>;
 export type QuotaUsageEventListRow = z.infer<
 	typeof quotaUsageEventListRowSchema

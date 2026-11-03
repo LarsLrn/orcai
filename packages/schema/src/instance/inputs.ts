@@ -9,7 +9,7 @@ export const findInstanceUserInputSchema = z.object({
 	id: userIdSchema,
 });
 
-export const instanceUserMembershipSortKeySchema = z.enum([
+const instanceUserMembershipSortKeySchema = z.enum([
 	"name",
 	"role",
 	"joinedAt",
@@ -26,7 +26,7 @@ export const findInstanceOrganizationInputSchema = z.object({
 	id: organizationIdSchema,
 });
 
-export const instanceOrganizationMemberSortKeySchema = z.enum([
+const instanceOrganizationMemberSortKeySchema = z.enum([
 	"name",
 	"email",
 	"role",
@@ -86,10 +86,4 @@ export type InstanceUserMembershipSortKey = z.infer<
 >;
 export type InstanceOrganizationMemberSortKey = z.infer<
 	typeof instanceOrganizationMemberSortKeySchema
->;
-export type ListInstanceUserMembershipsInput = z.infer<
-	typeof listInstanceUserMembershipsInputSchema
->;
-export type ListInstanceOrganizationMembersInput = z.infer<
-	typeof listInstanceOrganizationMembersInputSchema
 >;

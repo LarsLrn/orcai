@@ -16,20 +16,20 @@ import { catalogueKindSchema } from "./inputs";
  * How the entry relates to the active organisation: its home, added from
  * the catalogue, or not in its library yet.
  */
-export const catalogueEntryStateSchema = z.enum([
+const catalogueEntryStateSchema = z.enum([
 	"home",
 	"added",
 	"available",
 ]);
 
 /** The model the author's setup asks for in the bot's home. */
-export const catalogueModelHintSchema = z.object({
+const catalogueModelHintSchema = z.object({
 	strength: botSetupStrengthSchema,
 	modelName: z.string(),
 });
 
 /** One catalogue tile. */
-export const catalogueEntrySchema = z.object({
+const catalogueEntrySchema = z.object({
 	kind: catalogueKindSchema,
 	/** The bot or block id. */
 	id: z.uuid(),
@@ -78,7 +78,7 @@ const catalogueBlockSummarySchema = z.object({
 });
 
 /** What an entry's page shows to judge it before adding it. */
-export const catalogueEntryDetailSchema = catalogueEntrySchema.extend({
+const catalogueEntryDetailSchema = catalogueEntrySchema.extend({
 	/** A bot's behaviour and repositories. */
 	blocks: z.array(catalogueBlockSummarySchema),
 	/**
@@ -124,10 +124,6 @@ export const removeCatalogueEntryResponseSchema = createDataResponseSchema(
 	}),
 );
 
-export type CatalogueEntryState = z.infer<typeof catalogueEntryStateSchema>;
 export type CatalogueModelHint = z.infer<typeof catalogueModelHintSchema>;
 export type CatalogueEntry = z.infer<typeof catalogueEntrySchema>;
 export type CatalogueEntryDetail = z.infer<typeof catalogueEntryDetailSchema>;
-export type CatalogueCounts = z.infer<
-	typeof catalogueCountsResponseSchema
->["data"];

@@ -12,7 +12,7 @@ import {
 } from "../shared/ids";
 import { chatConfigSchema, generationSettingsSchema } from "./parts/config";
 
-export const chatKindSchema = z.enum([
+const chatKindSchema = z.enum([
 	"chat",
 	"assistant",
 ]);
@@ -38,7 +38,7 @@ export const effectiveModelSchema = z.object({
 	botSetup: botSetupSchema.nullable(),
 });
 
-export const chatFieldsSchema = z.object({
+const chatFieldsSchema = z.object({
 	title: z.string().nullable(),
 	config: chatConfigSchema.nullable(),
 	botId: botIdSchema.nullable(),
@@ -65,7 +65,7 @@ export const chatFiltersSchema = z.object({
 });
 
 /** Text around a search hit, the matched terms highlighted. */
-export const chatSearchSnippetSchema = z.array(
+const chatSearchSnippetSchema = z.array(
 	z.object({
 		text: z.string(),
 		highlighted: z.boolean(),
@@ -102,8 +102,6 @@ export const chatBranchLinkSchema = chatLinkSchema.extend({
 export type ChatKind = z.infer<typeof chatKindSchema>;
 export type EffectiveModel = z.infer<typeof effectiveModelSchema>;
 export type ChatReadOnlyReason = z.infer<typeof chatReadOnlyReasonSchema>;
-export type ChatHistoryRow = z.infer<typeof chatHistoryRowSchema>;
-export type Chat = z.infer<typeof chatSchema>;
 export type ChatLink = z.infer<typeof chatLinkSchema>;
 export type ChatBranchLink = z.infer<typeof chatBranchLinkSchema>;
 export type ChatListRow = z.infer<typeof chatListRowSchema>;

@@ -31,6 +31,3 @@ export const aiChatStreamSchema = z.custom<AsyncIterator<any>>(
 			}
 		).next === "function",
 );
-
-export type AiChatMessage = z.infer<typeof aiChatMessageSchema>;
-export type AiChatStream = z.infer<typeof aiChatStreamSchema>;

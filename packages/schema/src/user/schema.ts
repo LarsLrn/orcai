@@ -32,7 +32,6 @@ export const userFiltersSchema = z.object({
 	...searchFilterSchema.shape,
 });
 
-export type User = z.infer<typeof userSchema>;
 export type UserWithOrganizationRole = z.infer<
 	typeof userWithOrganizationRoleSchema
 >;

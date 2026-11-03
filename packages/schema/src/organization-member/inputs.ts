@@ -12,7 +12,7 @@ import {
 	organizationMemberSchema,
 } from "./schema";
 
-export const organizationMemberSortKeySchema = z.enum([
+const organizationMemberSortKeySchema = z.enum([
 	"name",
 	"email",
 	"organizationRole",
@@ -31,7 +31,7 @@ export const findOrganizationMemberInputSchema = organizationMemberSchema
 	})
 	.extend(zedTokenSchema.shape);
 
-export const memberAccessSortKeySchema = z.enum([
+const memberAccessSortKeySchema = z.enum([
 	"resourceName",
 	"resourceType",
 	"origin",
@@ -67,20 +67,8 @@ export const deleteOrganizationMembersInputSchema = z.object({
 	receiverId: receiverIdSchema,
 });
 
-export type ListOrganizationMembersInput = z.infer<
-	typeof listOrganizationMembersInputSchema
->;
 export type OrganizationMemberSortKey = z.infer<
 	typeof organizationMemberSortKeySchema
 >;
-export type FindOrganizationMemberInput = z.infer<
-	typeof findOrganizationMemberInputSchema
->;
 export type ListMemberAccessInput = z.infer<typeof listMemberAccessInputSchema>;
 export type MemberAccessSortKey = z.infer<typeof memberAccessSortKeySchema>;
-export type UpdateOrganizationMemberInput = z.infer<
-	typeof updateOrganizationMemberInputSchema
->;
-export type DeleteOrganizationMembersInput = z.infer<
-	typeof deleteOrganizationMembersInputSchema
->;

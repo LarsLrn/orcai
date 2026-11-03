@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { checkSchema } from "../shared/check";
 
-export const INSTANCE_CHECK_IDS = [
+const INSTANCE_CHECK_IDS = [
 	"postgres",
 	"spicedb",
 	"qdrant",
@@ -12,18 +12,18 @@ export const INSTANCE_CHECK_IDS = [
 	"config",
 ] as const;
 
-export const instanceCheckIdSchema = z.enum(INSTANCE_CHECK_IDS);
+const instanceCheckIdSchema = z.enum(INSTANCE_CHECK_IDS);
 
-export const instanceCheckSchema = checkSchema.extend({
+const instanceCheckSchema = checkSchema.extend({
 	id: instanceCheckIdSchema,
 });
 
-export const emailDeliveryChannelSchema = z.enum([
+const emailDeliveryChannelSchema = z.enum([
 	"smtp",
 	"log",
 ]);
 
-export const instanceProcessSchema = z.object({
+const instanceProcessSchema = z.object({
 	name: z.string().nullable(),
 	host: z.string(),
 	pid: z.number(),
@@ -33,7 +33,7 @@ export const instanceProcessSchema = z.object({
 	lastWorkerErrorOn: z.coerce.date().nullable(),
 });
 
-export const instanceQueueSchema = z.object({
+const instanceQueueSchema = z.object({
 	name: z.string(),
 	deadLetter: z.string().nullable(),
 	queued: z.number(),
@@ -41,7 +41,7 @@ export const instanceQueueSchema = z.object({
 	failed: z.number(),
 });
 
-export const instanceMailSchema = z.object({
+const instanceMailSchema = z.object({
 	pending: z.number(),
 	dead: z.number(),
 	lastError: z.string().nullable(),
@@ -63,7 +63,7 @@ export const instanceMailSchema = z.object({
 });
 
 /** A setting of the app process; secrets only say whether they are set. */
-export const configEntrySchema = z.discriminatedUnion("kind", [
+const configEntrySchema = z.discriminatedUnion("kind", [
 	z.object({
 		kind: z.literal("value"),
 		key: z.string(),
@@ -80,7 +80,7 @@ export const configEntrySchema = z.discriminatedUnion("kind", [
 	}),
 ]);
 
-export const instanceVersionsSchema = z.object({
+const instanceVersionsSchema = z.object({
 	app: z.string(),
 	postgres: z.string().nullable(),
 	qdrant: z.string().nullable(),

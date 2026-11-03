@@ -9,7 +9,7 @@ export const ORGANIZATION_DESCRIPTION_HEADING_LEVELS = [
 ] as const;
 
 /** The protocols a description's links may use. */
-export const ORGANIZATION_DESCRIPTION_LINK_PROTOCOLS = [
+const ORGANIZATION_DESCRIPTION_LINK_PROTOCOLS = [
 	"http:",
 	"https:",
 	"mailto:",

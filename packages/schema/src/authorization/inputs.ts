@@ -24,13 +24,3 @@ export const organizationCapabilitiesInputSchema = z.object({
 	permissions: z.array(organizationCapabilitySchema).optional(),
 	...zedTokenSchema.shape,
 });
-
-export type AuthorizationCheckInput = z.infer<
-	typeof authorizationCheckInputSchema
->;
-export type AuthorizationCheckManyInput = z.infer<
-	typeof authorizationCheckManyInputSchema
->;
-export type OrganizationCapabilitiesInput = z.infer<
-	typeof organizationCapabilitiesInputSchema
->;

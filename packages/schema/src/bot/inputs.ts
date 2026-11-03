@@ -12,7 +12,7 @@ import { createUniqueRefsInputSchema } from "../shared/ref-list";
 import { zedTokenSchema } from "../shared/zed-token";
 import { botContentJsonSchema, botFieldsSchema } from "./schema";
 
-export const botListSortSchema = z.enum([
+const botListSortSchema = z.enum([
 	"name",
 	"favouritesFirst",
 	"newest",
@@ -75,11 +75,5 @@ export const deleteBotsInputSchema = z.object({
 	}),
 });
 
-export type BotListSort = z.infer<typeof botListSortSchema>;
 export type ListBotsInput = z.infer<typeof listBotsInputSchema>;
-export type FindBotInput = z.infer<typeof findBotInputSchema>;
-export type FindBotEditorInput = z.infer<typeof findBotEditorInputSchema>;
 export type SaveBotInput = z.infer<typeof saveBotInputSchema>;
-export type PublishBotInput = z.infer<typeof publishBotInputSchema>;
-export type SetBotFavouriteInput = z.infer<typeof setBotFavouriteInputSchema>;
-export type DeleteBotsInput = z.infer<typeof deleteBotsInputSchema>;

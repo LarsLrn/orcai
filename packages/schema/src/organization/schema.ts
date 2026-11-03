@@ -96,7 +96,3 @@ export const organizationDeletionImpactSchema = z.object({
 		}),
 	),
 });
-
-export type OrganizationDeletionImpact = z.infer<
-	typeof organizationDeletionImpactSchema
->;

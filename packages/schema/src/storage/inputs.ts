@@ -32,14 +32,3 @@ export const completeMultipartUploadInputSchema =
 	});
 
 export const abortMultipartUploadInputSchema = multipartControlBaseSchema;
-
-export type CreateUploadUrlsInput = z.infer<typeof createUploadUrlsInputSchema>;
-export type CreateDownloadUrlInput = z.infer<
-	typeof createDownloadUrlInputSchema
->;
-export type CompleteMultipartUploadInput = z.infer<
-	typeof completeMultipartUploadInputSchema
->;
-export type AbortMultipartUploadInput = z.infer<
-	typeof abortMultipartUploadInputSchema
->;

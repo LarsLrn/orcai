@@ -51,11 +51,11 @@ const updateBlockFieldsSchema = blockWriteFieldsSchema.extend({
 	id: blockIdSchema,
 });
 
-export const updateBehaviourInputSchema = updateBlockFieldsSchema.extend(
+const updateBehaviourInputSchema = updateBlockFieldsSchema.extend(
 	behaviourSchema.shape,
 );
 
-export const updateRepositoryInputSchema = updateBlockFieldsSchema.extend({
+const updateRepositoryInputSchema = updateBlockFieldsSchema.extend({
 	...repositorySchema.shape,
 	assets: z.array(assetIdSchema).default([]),
 	/** The user's upload runs whose newly linked assets this save indexes. */
@@ -127,14 +127,3 @@ export const prepareRepositoryFailedAgainInputSchema = z.object({
 });
 
 export type ListBlocksInput = z.infer<typeof listBlocksInputSchema>;
-export type CreateBlockInput = z.infer<typeof createBlockInputSchema>;
-export type FindBlockInput = z.infer<typeof findBlockInputSchema>;
-export type UpdateBlockInput = z.infer<typeof updateBlockInputSchema>;
-export type DeleteBlocksInput = z.infer<typeof deleteBlocksInputSchema>;
-export type BlockReadinessInput = z.infer<typeof blockReadinessInputSchema>;
-export type PrepareRepositoryAssetAgainInput = z.infer<
-	typeof prepareRepositoryAssetAgainInputSchema
->;
-export type PrepareRepositoryFailedAgainInput = z.infer<
-	typeof prepareRepositoryFailedAgainInputSchema
->;

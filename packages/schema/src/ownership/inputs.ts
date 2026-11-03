@@ -35,18 +35,3 @@ export const resourceHandOverInputSchema = createResourceScopedSchema({
 export const resourceListReceiversInputSchema = createResourceScopedSchema({
 	search: receiverSearchSchema,
 });
-
-export type ListOwnedContentInput = z.infer<typeof listOwnedContentInputSchema>;
-export type ListContentReceiversInput = z.infer<
-	typeof listContentReceiversInputSchema
->;
-export type ListInstanceOwnedContentInput = z.infer<
-	typeof listInstanceOwnedContentInputSchema
->;
-export type ListInstanceContentReceiversInput = z.infer<
-	typeof listInstanceContentReceiversInputSchema
->;
-export type ResourceHandOverInput = z.infer<typeof resourceHandOverInputSchema>;
-export type ResourceListReceiversInput = z.infer<
-	typeof resourceListReceiversInputSchema
->;

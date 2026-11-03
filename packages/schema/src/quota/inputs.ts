@@ -14,7 +14,7 @@ import {
 	quotaUsageEventTypeSchema,
 } from "./schema";
 
-export const quotaPoolSortKeySchema = z.enum([
+const quotaPoolSortKeySchema = z.enum([
 	"name",
 	"periodType",
 	"isActive",
@@ -29,7 +29,7 @@ export const quotaPoolListInputSchema = paginationInputSchema.extend({
 	...createSortingInputSchema(quotaPoolSortKeySchema).shape,
 });
 
-export const quotaUsageEventSortKeySchema = z.enum([
+const quotaUsageEventSortKeySchema = z.enum([
 	"occurredAt",
 	"eventType",
 	"reservedAmount",
@@ -70,7 +70,6 @@ export const quotaStatusInputSchema = z.object({
 	modelId: modelIdSchema,
 });
 
-export type QuotaPoolListInput = z.infer<typeof quotaPoolListInputSchema>;
 export type QuotaPoolSortKey = z.infer<typeof quotaPoolSortKeySchema>;
 export type QuotaUsageEventListInput = z.infer<
 	typeof quotaUsageEventListInputSchema
@@ -78,10 +77,3 @@ export type QuotaUsageEventListInput = z.infer<
 export type QuotaUsageEventSortKey = z.infer<
 	typeof quotaUsageEventSortKeySchema
 >;
-export type QuotaPoolCreateInput = z.infer<typeof quotaPoolCreateInputSchema>;
-export type QuotaPoolUpdateInput = z.infer<typeof quotaPoolUpdateInputSchema>;
-export type QuotaPoolDeactivateInput = z.infer<
-	typeof quotaPoolDeactivateInputSchema
->;
-export type QuotaPoolFindInput = z.infer<typeof quotaPoolFindInputSchema>;
-export type QuotaStatusInput = z.infer<typeof quotaStatusInputSchema>;

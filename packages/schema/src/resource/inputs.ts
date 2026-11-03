@@ -56,21 +56,3 @@ export const resourceListRecentInputSchema = z.object({
 	limit: z.number().int().positive().max(20).default(8),
 	...zedTokenSchema.shape,
 });
-
-export type ResourceGrantInput = z.infer<typeof resourceGrantInputSchema>;
-export type ResourceRevokeInput = z.infer<typeof resourceRevokeInputSchema>;
-export type ResourceListGrantsInput = z.infer<
-	typeof resourceListGrantsInputSchema
->;
-export type ResourceListPrincipalsInput = z.infer<
-	typeof resourceListPrincipalsInputSchema
->;
-export type ResourceSetVisibilityInput = z.infer<
-	typeof resourceSetVisibilityInputSchema
->;
-export type ResourceGetVisibilityInput = z.infer<
-	typeof resourceGetVisibilityInputSchema
->;
-export type ResourceListRecentInput = z.infer<
-	typeof resourceListRecentInputSchema
->;

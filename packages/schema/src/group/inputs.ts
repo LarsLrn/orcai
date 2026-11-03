@@ -30,7 +30,7 @@ const groupUserIdsSchema = z
 		}
 	});
 
-export const groupSortKeySchema = z.enum([
+const groupSortKeySchema = z.enum([
 	"name",
 	"kind",
 	"memberCount",
@@ -60,7 +60,7 @@ export const findGroupInputSchema = z.object({
 	id: groupIdSchema,
 });
 
-export const groupMemberSortKeySchema = z.enum([
+const groupMemberSortKeySchema = z.enum([
 	"name",
 ]);
 
@@ -86,18 +86,7 @@ export const removeGroupMembersInputSchema = z.object({
 	userIds: groupUserIdsSchema,
 });
 
-export type ListGroupsInput = z.infer<typeof listGroupsInputSchema>;
 export type GroupSortKey = z.infer<typeof groupSortKeySchema>;
 export type CreateGroupInput = z.infer<typeof createGroupInputSchema>;
 export type UpdateGroupInput = z.infer<typeof updateGroupInputSchema>;
-export type DeleteGroupsInput = z.infer<typeof deleteGroupsInputSchema>;
-export type ListGroupCandidatesInput = z.infer<
-	typeof listGroupCandidatesInputSchema
->;
-export type FindGroupInput = z.infer<typeof findGroupInputSchema>;
-export type ListGroupMembersInput = z.infer<typeof listGroupMembersInputSchema>;
 export type GroupMemberSortKey = z.infer<typeof groupMemberSortKeySchema>;
-export type AddGroupMembersInput = z.infer<typeof addGroupMembersInputSchema>;
-export type RemoveGroupMembersInput = z.infer<
-	typeof removeGroupMembersInputSchema
->;
