@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import type { FeatureId } from "../feature/schema";
 
 /** Stable codes the client translates; the server never sends user-facing prose. */
 export const ERROR_REASONS = [
@@ -69,7 +68,6 @@ export const ERROR_REASONS = [
 	"EMBEDDING_RESPONSE_INVALID",
 	"EMBEDDING_SETTING_CHANGED",
 	"ENTITY_IDS_REQUIRED",
-	"FEATURE_REQUIREMENT_MISSING",
 	"GRANT_PRINCIPALS_INVALID",
 	"GROUP_MEMBERS_INVALID",
 	"GROUP_NOT_FOUND",
@@ -204,10 +202,6 @@ export type ErrorReasonParams = {
 	};
 	CHAT_MAX_TOKENS_EXCEEDS_MODEL: {
 		maxOutputTokens: number;
-	};
-	FEATURE_REQUIREMENT_MISSING: {
-		feature: FeatureId;
-		requirement: FeatureId;
 	};
 	GRANT_PRINCIPALS_INVALID: {
 		rejections: GrantRejection[];

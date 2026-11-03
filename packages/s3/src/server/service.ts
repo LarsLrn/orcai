@@ -15,7 +15,7 @@ export class S3Service extends Context.Service<
 	}
 >()("S3Service") {}
 
-export const S3ServiceLive = Layer.effect(
+const S3ServiceLive = Layer.effect(
 	S3Service,
 	Effect.acquireRelease(
 		Effect.gen(function* () {

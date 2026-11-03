@@ -16,9 +16,3 @@ export type ProcessS3Source = {
 };
 
 export type ProcessSource = ProcessBytesSource | ProcessS3Source;
-
-export type MaterializedProcessFile = {
-	readonly path: string;
-	readonly mimeType: string | null;
-	readonly filename?: string;
-};

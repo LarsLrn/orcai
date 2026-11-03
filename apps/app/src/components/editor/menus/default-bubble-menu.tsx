@@ -1,6 +1,5 @@
 import { type Editor, isTextSelection } from "@tiptap/core";
 import { BubbleMenu } from "@tiptap/react/menus";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -8,8 +7,6 @@ import { NodeSelector, TextAlignSelector, TextButtons } from "./selectors";
 
 export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
-	const [canScrollLeft] = useState(false);
-	const [canScrollRight] = useState(false);
 	const [isDragging, setIsDragging] = useState(false);
 	const [startX, setStartX] = useState(0);
 	const [startScrollLeft, setStartScrollLeft] = useState(0);
@@ -32,7 +29,7 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 		if (!container) return;
 
 		const x = e.pageX - container.offsetLeft;
-		const walk = (x - startX) * 2; // Adjust scroll speed
+		const walk = (x - startX) * 2;
 		container.scrollLeft = startScrollLeft - walk;
 	};
 
@@ -76,26 +73,6 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 		setIsDragging(false);
 	};
 
-	const handleScrollLeft = () => {
-		const container = scrollContainerRef.current;
-		if (!container) return;
-
-		container.scrollBy({
-			left: -100,
-			behavior: "smooth",
-		});
-	};
-
-	const handleScrollRight = () => {
-		const container = scrollContainerRef.current;
-		if (!container) return;
-
-		container.scrollBy({
-			left: 100,
-			behavior: "smooth",
-		});
-	};
-
 	if (!editor) {
 		return null;
 	}
@@ -130,29 +107,6 @@ export const DefaultBubbleMenu = ({ editor }: { editor: Editor }) => {
 			}}
 		>
 			<div className="bg-popover relative max-w-[90vw] overflow-hidden rounded-md border shadow-xl">
-				{/* Left scroll indicator */}
-				{canScrollLeft && (
-					<button
-						type="button"
-						onClick={handleScrollLeft}
-						className="from-popover/95 via-popover/80 hover:from-popover absolute top-0 left-0 z-10 flex h-full w-8 items-center justify-center bg-gradient-to-r to-transparent transition-colors duration-200"
-					>
-						<ChevronLeft className="text-foreground h-4 w-4 drop-shadow-sm" />
-					</button>
-				)}
-
-				{/* Right scroll indicator */}
-				{canScrollRight && (
-					<button
-						type="button"
-						onClick={handleScrollRight}
-						className="from-popover/95 via-popover/80 hover:from-popover absolute top-0 right-0 z-10 flex h-full w-8 items-center justify-center bg-gradient-to-l to-transparent transition-colors duration-200"
-					>
-						<ChevronRight className="text-foreground h-4 w-4 drop-shadow-sm" />
-					</button>
-				)}
-
-				{/* Scrollable content */}
 				{/* biome-ignore lint/a11y/noStaticElementInteractions: Drag to scroll functionality requires mouse/touch events */}
 				<div
 					ref={scrollContainerRef}

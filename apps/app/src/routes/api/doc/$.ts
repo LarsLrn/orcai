@@ -1,22 +1,13 @@
-import { trace } from "@opentelemetry/api";
 import { SmartCoercionHandlerPlugin } from "@orpc/json-schema";
 import { OpenAPIGenerator } from "@orpc/openapi";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferenceHandlerPlugin } from "@orpc/openapi/plugins";
-import { onError } from "@orpc/server";
-import {
-	RequestHeadersHandlerPlugin,
-	ResponseHeadersHandlerPlugin,
-} from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import { createFileRoute } from "@tanstack/react-router";
-import { createORPCContext } from "@/lib/orpc/implementation/context";
-import { logFailedProcedure } from "@/lib/orpc/implementation/interceptors";
-import { toFetchResponse } from "@/lib/orpc/implementation/response";
 import {
-	describeValidationFailure,
-	errorStatusMap,
-} from "@/lib/orpc/implementation/validation";
+	serveUnder,
+	sharedHandlerOptions,
+} from "@/lib/orpc/implementation/handler";
 import { router } from "@/lib/orpc/router";
 import { HEADERS } from "@/settings/constants";
 
@@ -60,33 +51,12 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 	},
 });
 
+const shared = sharedHandlerOptions();
+
 const openAPIHandler = new OpenAPIHandler(router, {
-	clientInterceptors: [
-		onError(describeValidationFailure),
-		onError(logFailedProcedure),
-	],
-	interceptors: [
-		({ request, next }) => {
-			const span = trace.getActiveSpan();
-
-			request.signal?.addEventListener("abort", () => {
-				span?.addEvent("aborted", {
-					reason: String(request.signal?.reason),
-				});
-			});
-
-			return next();
-		},
-	],
+	...shared,
 	plugins: [
-		new RequestHeadersHandlerPlugin(),
-		new ResponseHeadersHandlerPlugin(),
-		/**
-		 * TODO: Uncomment this when CSRF protection is needed
-		 * Adds CSRF protection to the handler:
-		 * https://orpc.unnoq.com/docs/plugins/simple-csrf-protection
-		 */
-		/* new SimpleCsrfProtectionHandlerPlugin(), */
+		...shared.plugins,
 		new SmartCoercionHandlerPlugin({
 			converters: [
 				new ZodToJsonSchemaConverter(),
@@ -96,28 +66,12 @@ const openAPIHandler = new OpenAPIHandler(router, {
 			spec: specFromRouter,
 		}),
 	],
-	errorStatusMap,
-	toFetchResponse,
 });
 
 export const Route = createFileRoute("/api/doc/$")({
 	server: {
 		handlers: {
-			ANY: async ({ request }) => {
-				const { response } = await openAPIHandler.handle(request, {
-					prefix: "/api/doc",
-					context: await createORPCContext({
-						reqHeaders: request.headers,
-					}),
-				});
-
-				return (
-					response ??
-					new Response("Not Found", {
-						status: 404,
-					})
-				);
-			},
+			ANY: serveUnder(openAPIHandler, "/api/doc"),
 		},
 	},
 });

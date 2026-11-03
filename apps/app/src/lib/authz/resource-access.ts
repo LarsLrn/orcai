@@ -76,7 +76,7 @@ type EndedGrant = {
  * only when no active grant, from any organisation, still backs it. `ended`
  * are the grants that ended; `touched` principals gained one.
  */
-export const recordGrantChanges = (
+const recordGrantChanges = (
 	ended: readonly EndedGrant[],
 	touched: readonly EndedGrant[] = [],
 ) =>

@@ -40,13 +40,8 @@ interface GenerateTextWithQuotaInput<
 	output?: OUTPUT;
 	maxOutputTokens?: number;
 	reasoning?: Parameters<typeof generateText>[0]["reasoning"];
-	temperature?: number;
-	topP?: number;
-	frequencyPenalty?: number;
-	presencePenalty?: number;
 	timeoutMs?: number;
 	abortSignal?: AbortSignal;
-	maxExpectedProviderRequests?: number;
 }
 
 /**
@@ -77,7 +72,7 @@ export const generateTextWithQuota = <
 				botId: input.botId,
 				appRequestId: input.appRequestId,
 				maxOutputTokens: input.maxOutputTokens,
-				maxRequests: input.maxExpectedProviderRequests ?? 1,
+				maxRequests: 1,
 				inputTokens: promptTokens([
 					...(input.system === undefined
 						? []
@@ -99,10 +94,6 @@ export const generateTextWithQuota = <
 						output: input.output,
 						maxOutputTokens: input.maxOutputTokens,
 						reasoning: input.reasoning,
-						temperature: input.temperature,
-						topP: input.topP,
-						frequencyPenalty: input.frequencyPenalty,
-						presencePenalty: input.presencePenalty,
 						abortSignal: AbortSignal.any([
 							...(input.abortSignal
 								? [

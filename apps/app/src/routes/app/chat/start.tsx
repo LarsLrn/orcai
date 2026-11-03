@@ -59,7 +59,6 @@ function RouteComponent() {
 			</PageHeader>
 
 			<PageContent className="grid gap-6 md:grid-cols-2">
-				{/* Bot option */}
 				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 					<DialogTrigger
 						nativeButton={false}
@@ -102,7 +101,6 @@ function RouteComponent() {
 
 						<BotSelect onBotSelect={setSelectedBot} selectedBot={selectedBot} />
 
-						{/* Action Buttons */}
 						<div className="flex justify-end gap-3 border-t pt-4">
 							<Button variant="outline" onClick={() => setDialogOpen(false)}>
 								{m.common_cancel_button()}

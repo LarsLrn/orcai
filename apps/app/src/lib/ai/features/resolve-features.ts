@@ -19,7 +19,7 @@ const skip = (id: string, reason: string) =>
 
 /**
  * The usable features of a stored features map, in catalog order. Unknown
- * ids, settings that no longer parse and unmet requirements are skipped.
+ * ids and settings that no longer parse are skipped.
  */
 export const resolveFeatures = (
 	features: unknown,
@@ -36,7 +36,7 @@ export const resolveFeatures = (
 			}
 		}
 
-		let usable: ResolvedFeature[] = [];
+		const usable: ResolvedFeature[] = [];
 		for (const [id, entry] of Object.entries(catalog)) {
 			if (!Object.hasOwn(features, id)) {
 				continue;
@@ -51,24 +51,6 @@ export const resolveFeatures = (
 			} else {
 				yield* skip(id, "invalid_settings");
 			}
-		}
-
-		let changed = true;
-		while (changed) {
-			const ids = new Set(usable.map((feature) => feature.id));
-			const kept: ResolvedFeature[] = [];
-			for (const feature of usable) {
-				const missing = feature.entry.requires.find(
-					(requirement) => !ids.has(requirement),
-				);
-				if (missing === undefined) {
-					kept.push(feature);
-				} else {
-					yield* skip(feature.id, `missing_requirement requirement=${missing}`);
-				}
-			}
-			changed = kept.length !== usable.length;
-			usable = kept;
 		}
 
 		return usable;

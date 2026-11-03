@@ -95,7 +95,7 @@ const ColorHighlightButton = ({
 }: ColorHighlightButtonProps) => (
 	<button
 		onClick={onClick}
-		className="hover:bg-gray-3 flex w-full items-center justify-between rounded-sm px-2 py-1 text-sm"
+		className="flex w-full items-center justify-between rounded-sm px-2 py-1 text-sm"
 		type="button"
 	>
 		<div className="flex items-center space-x-2">
@@ -237,9 +237,9 @@ export const ColorHighlightToolbar = () => {
 					<TooltipContent>{m.editor_toolbar_colour_tooltip()}</TooltipContent>
 				</Tooltip>
 
-				<PopoverContent align="start" className="dark:bg-gray-2 w-56 p-1">
+				<PopoverContent align="start" className="w-56 p-1">
 					<ScrollArea className="max-h-80 overflow-y-auto pr-2">
-						<div className="text-gray-11 mt-2 mb-2.5 px-2 text-xs">
+						<div className="mt-2 mb-2.5 px-2 text-xs">
 							{m.editor_toolbar_colour_section_label()}
 						</div>
 						{textColours.map(({ id, name, color }) => (
@@ -254,7 +254,7 @@ export const ColorHighlightToolbar = () => {
 
 						<Separator className="my-3" />
 
-						<div className="text-gray-11 mb-2.5 w-full px-2 pr-3 text-xs">
+						<div className="mb-2.5 w-full px-2 pr-3 text-xs">
 							{m.editor_toolbar_background_section_label()}
 						</div>
 						{highlightColours.map(({ id, name, color }) => (

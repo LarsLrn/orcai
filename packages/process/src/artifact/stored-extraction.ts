@@ -14,9 +14,7 @@ import {
 import type { StoredExtractionArtifact } from "./types";
 
 /** A stored extraction that is gone, or not one this version can read. */
-export class StoredExtractionError extends Data.TaggedError(
-	"StoredExtractionError",
-)<{
+class StoredExtractionError extends Data.TaggedError("StoredExtractionError")<{
 	readonly reason: "missing" | "invalid";
 	readonly cause: unknown;
 }> {}

@@ -26,18 +26,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { m } from "@/paraglide/messages";
 
-export interface CustomActionsProps {
+interface CustomActionsProps {
 	confirm: () => void;
 	cancel: () => void;
 	config: ConfirmOptions;
 	setConfig: ConfigUpdater;
 }
 
-export type ConfigUpdater = (
+type ConfigUpdater = (
 	config: ConfirmOptions | ((prev: ConfirmOptions) => ConfirmOptions),
 ) => void;
 
-export type EnhancedCustomActions = (props: CustomActionsProps) => ReactNode;
+type EnhancedCustomActions = (props: CustomActionsProps) => ReactNode;
 
 export interface ConfirmOptions {
 	title?: ReactNode;
@@ -59,23 +59,23 @@ export interface ConfirmOptions {
 	alertDialogFooter?: ComponentPropsWithRef<typeof AlertDialogFooter>;
 }
 
-export interface ConfirmDialogState {
+interface ConfirmDialogState {
 	isOpen: boolean;
 	config: ConfirmOptions;
 	resolver: ((value: boolean) => void) | null;
 }
 
-export interface ConfirmContextValue {
+interface ConfirmContextValue {
 	confirm: ConfirmFunction;
 	updateConfig: ConfigUpdater;
 }
 
-export interface ConfirmFunction {
+interface ConfirmFunction {
 	(options: ConfirmOptions): Promise<boolean>;
 	updateConfig?: ConfigUpdater;
 }
 
-export const ConfirmContext = createContext<ConfirmContextValue | undefined>(
+const ConfirmContext = createContext<ConfirmContextValue | undefined>(
 	undefined,
 );
 

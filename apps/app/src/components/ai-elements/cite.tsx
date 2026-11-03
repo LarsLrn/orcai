@@ -7,23 +7,57 @@ import { Link } from "@tanstack/react-router";
 import { BookOpenIcon, ExternalLinkIcon, GlobeIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { createContext, use, useState } from "react";
-import {
-	InlineCitation,
-	InlineCitationCard,
-	InlineCitationCardBody,
-	InlineCitationCardTrigger,
-	InlineCitationText,
-} from "@/components/ai-elements/inline-citation";
 import { ConfirmedLink } from "@/components/chat/link-confirm";
 import { hostOf } from "@/components/chat/message/work-log/web-source";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { usePublicConfig } from "@/hooks/use-public-config";
 import type { StreamedCitations } from "@/lib/ai/citations/chat-sources";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatAssetTitle } from "@/lib/presentation/asset-title";
 import { m } from "@/paraglide/messages";
+
+const CitePill = ({
+	label,
+	ariaLabel,
+	text,
+	onOpenChange,
+	children,
+}: {
+	label: string;
+	ariaLabel: string;
+	text?: ReactNode;
+	onOpenChange?: (open: boolean) => void;
+	children: ReactNode;
+}) => (
+	<span>
+		<span>{text}</span>
+		<Popover onOpenChange={onOpenChange}>
+			<PopoverTrigger
+				render={
+					<Badge
+						className="bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 ml-1 inline-flex max-w-48 min-w-0 rounded-full border-transparent align-middle text-xs font-medium transition-colors duration-150"
+						variant="secondary"
+						title={label}
+						aria-label={ariaLabel}
+						render={<button type="button" />}
+					/>
+				}
+			>
+				<span className="truncate">{label}</span>
+			</PopoverTrigger>
+			<PopoverContent className="relative max-h-[calc(100vh-2rem)] w-[min(20rem,calc(100vw-2rem))] min-w-0 overflow-auto p-0">
+				{children}
+			</PopoverContent>
+		</Popover>
+	</span>
+);
 
 const CiteCardShell = ({
 	title,
@@ -151,40 +185,30 @@ const AssetPill = ({
 				});
 
 	return (
-		<InlineCitation>
-			<InlineCitationText className="group-hover:bg-transparent">
-				{children}
-			</InlineCitationText>
-			<InlineCitationCard
-				onOpenChange={(open) => {
-					if (open) setHasOpened(true);
-				}}
-			>
-				<InlineCitationCardTrigger
-					label={pillLabel}
-					aria-label={m.ai_elements_cite_asset_aria_label({
-						label: pillLabel,
-					})}
-					sources={[]}
-					className="bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 border-transparent text-xs font-medium transition-colors duration-150"
+		<CitePill
+			label={pillLabel}
+			ariaLabel={m.ai_elements_cite_asset_aria_label({
+				label: pillLabel,
+			})}
+			text={children}
+			onOpenChange={(open) => {
+				if (open) setHasOpened(true);
+			}}
+		>
+			{resolvedAssetId && hasOpened ? (
+				<CiteCardContent
+					assetId={resolvedAssetId}
+					title={assetTitle}
+					page={page}
 				/>
-				<InlineCitationCardBody>
-					{resolvedAssetId && hasOpened ? (
-						<CiteCardContent
-							assetId={resolvedAssetId}
-							title={assetTitle}
-							page={page}
-						/>
-					) : (
-						<CiteCardShell title={assetTitle} page={page}>
-							<p className="text-muted-foreground text-xs">
-								{m.ai_elements_cite_unknown_source()}
-							</p>
-						</CiteCardShell>
-					)}
-				</InlineCitationCardBody>
-			</InlineCitationCard>
-		</InlineCitation>
+			) : (
+				<CiteCardShell title={assetTitle} page={page}>
+					<p className="text-muted-foreground text-xs">
+						{m.ai_elements_cite_unknown_source()}
+					</p>
+				</CiteCardShell>
+			)}
+		</CitePill>
 	);
 };
 
@@ -201,40 +225,31 @@ const WebPill = ({
 	const pageTitle = title || host;
 
 	return (
-		<InlineCitation>
-			<InlineCitationText className="group-hover:bg-transparent">
-				{children}
-			</InlineCitationText>
-			<InlineCitationCard>
-				<InlineCitationCardTrigger
-					label={host}
-					aria-label={m.ai_elements_cite_web_aria_label({
-						title: pageTitle,
+		<CitePill
+			label={host}
+			ariaLabel={m.ai_elements_cite_web_aria_label({
+				title: pageTitle,
+			})}
+			text={children}
+		>
+			<CiteCardShell title={pageTitle}>
+				<p className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs">
+					<GlobeIcon className="size-3 shrink-0" />
+					<span className="truncate">{host}</span>
+				</p>
+				<ConfirmedLink
+					href={url}
+					className={buttonVariants({
+						variant: "outline",
+						size: "sm",
+						className: "w-full",
 					})}
-					sources={[]}
-					className="bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 border-transparent text-xs font-medium transition-colors duration-150"
-				/>
-				<InlineCitationCardBody>
-					<CiteCardShell title={pageTitle}>
-						<p className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs">
-							<GlobeIcon className="size-3 shrink-0" />
-							<span className="truncate">{host}</span>
-						</p>
-						<ConfirmedLink
-							href={url}
-							className={buttonVariants({
-								variant: "outline",
-								size: "sm",
-								className: "w-full",
-							})}
-						>
-							{m.ai_elements_cite_open_page_action()}
-							<ExternalLinkIcon className="size-3" />
-						</ConfirmedLink>
-					</CiteCardShell>
-				</InlineCitationCardBody>
-			</InlineCitationCard>
-		</InlineCitation>
+				>
+					{m.ai_elements_cite_open_page_action()}
+					<ExternalLinkIcon className="size-3" />
+				</ConfirmedLink>
+			</CiteCardShell>
+		</CitePill>
 	);
 };
 
@@ -252,44 +267,35 @@ const DocsPill = ({
 	const url = docsUrl && docsPageUrl(docsUrl, path);
 
 	return (
-		<InlineCitation>
-			<InlineCitationText className="group-hover:bg-transparent">
-				{children}
-			</InlineCitationText>
-			<InlineCitationCard>
-				<InlineCitationCardTrigger
-					label={title}
-					aria-label={m.ai_elements_cite_docs_aria_label({
-						title,
-					})}
-					sources={[]}
-					className="bg-accent-brand/10 text-accent-brand hover:bg-accent-brand/20 border-transparent text-xs font-medium transition-colors duration-150"
-				/>
-				<InlineCitationCardBody>
-					<CiteCardShell title={title}>
-						{url ? (
-							<>
-								<p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-									<BookOpenIcon className="size-3 shrink-0" />
-									{m.ai_elements_cite_docs_source()}
-								</p>
-								<ConfirmedLink
-									href={url}
-									className={buttonVariants({
-										variant: "outline",
-										size: "sm",
-										className: "w-full",
-									})}
-								>
-									{m.ai_elements_cite_open_page_action()}
-									<ExternalLinkIcon className="size-3" />
-								</ConfirmedLink>
-							</>
-						) : null}
-					</CiteCardShell>
-				</InlineCitationCardBody>
-			</InlineCitationCard>
-		</InlineCitation>
+		<CitePill
+			label={title}
+			ariaLabel={m.ai_elements_cite_docs_aria_label({
+				title,
+			})}
+			text={children}
+		>
+			<CiteCardShell title={title}>
+				{url ? (
+					<>
+						<p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+							<BookOpenIcon className="size-3 shrink-0" />
+							{m.ai_elements_cite_docs_source()}
+						</p>
+						<ConfirmedLink
+							href={url}
+							className={buttonVariants({
+								variant: "outline",
+								size: "sm",
+								className: "w-full",
+							})}
+						>
+							{m.ai_elements_cite_open_page_action()}
+							<ExternalLinkIcon className="size-3" />
+						</ConfirmedLink>
+					</>
+				) : null}
+			</CiteCardShell>
+		</CitePill>
 	);
 };
 

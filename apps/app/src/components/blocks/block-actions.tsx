@@ -222,4 +222,4 @@ const useBlockActions = (
 	};
 };
 
-export { blockActions, useBlockActions };
+export { useBlockActions };

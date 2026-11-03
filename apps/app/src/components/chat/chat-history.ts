@@ -6,12 +6,12 @@ import { client } from "@/lib/orpc/orpc";
 
 const EXPORT_PAGE_SIZE = 100;
 
-// Unfortunately required for now to restore types after route validation, since UI Messages are dynamically inferred based on available tools, metadata and more, which makes it impossible to statically define the shape in the @orcai/schema package.
+/** Stored parts are untyped; the chat's UI message type is inferred from its tools. */
 export const toChatAgentMessages = (
 	messages: unknown[],
 ): ChatAgentUIMessage[] => messages as ChatAgentUIMessage[];
 
-export const fetchWholeChat = async ({
+const fetchWholeChat = async ({
 	chatId,
 	zedToken,
 }: {

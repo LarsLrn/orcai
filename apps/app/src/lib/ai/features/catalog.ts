@@ -35,8 +35,6 @@ export interface FeatureEntry<Settings extends z.ZodType = z.ZodType> {
 	}): ToolSet;
 	/** Appended to the system prompt while the feature is enabled. */
 	prompt(turn: Pick<FeatureTurn, "citations">): string;
-	/** Other feature ids that must be enabled too. */
-	requires: readonly string[];
 }
 
 export type FeatureCatalog = Readonly<Record<string, FeatureEntry>>;
@@ -51,7 +49,6 @@ export const featureCatalog = {
 		settingsSchema: generativeUiSettingsSchema,
 		buildTools: ({ turn }) => buildGenUiTools(turn),
 		prompt: genUiPrompt,
-		requires: [],
 	},
 	webSearch: feature({
 		settingsSchema: webSearchSettingsSchema,
@@ -62,7 +59,6 @@ export const featureCatalog = {
 				allowedDomains: settings.allowedDomains,
 			}),
 		prompt: () => "",
-		requires: [],
 	}),
 	questions: {
 		settingsSchema: questionsSettingsSchema,
@@ -71,6 +67,5 @@ export const featureCatalog = {
 				history: turn.history,
 			}),
 		prompt: () => questionsPrompt,
-		requires: [],
 	},
 } satisfies Record<FeatureId, FeatureEntry>;

@@ -33,10 +33,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-// ---------------------------------------------------------------------------
-// Context
-// ---------------------------------------------------------------------------
-
 type DialogSelectContextValue = {
 	multiple: boolean;
 	value: string | null;
@@ -58,10 +54,6 @@ function useDialogSelectContext() {
 	}
 	return ctx;
 }
-
-// ---------------------------------------------------------------------------
-// DialogSelect (root)
-// ---------------------------------------------------------------------------
 
 type DialogSelectProps = {
 	children: ReactNode;
@@ -143,10 +135,6 @@ function DialogSelect({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Trigger
-// ---------------------------------------------------------------------------
-
 function DialogSelectTrigger({
 	className,
 	children,
@@ -178,10 +166,6 @@ function DialogSelectTrigger({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Content
-// ---------------------------------------------------------------------------
-
 function DialogSelectContent({
 	className,
 	children,
@@ -200,10 +184,6 @@ function DialogSelectContent({
 		</DialogContent>
 	);
 }
-
-// ---------------------------------------------------------------------------
-// Search
-// ---------------------------------------------------------------------------
 
 function DialogSelectSearch({
 	className,
@@ -229,10 +209,6 @@ function DialogSelectSearch({
 		</InputGroup>
 	);
 }
-
-// ---------------------------------------------------------------------------
-// Filters
-// ---------------------------------------------------------------------------
 
 function DialogSelectFilters({
 	className,
@@ -277,10 +253,6 @@ function DialogSelectFilter({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// List
-// ---------------------------------------------------------------------------
-
 function DialogSelectList({
 	className,
 	children,
@@ -303,10 +275,6 @@ function DialogSelectList({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Group
-// ---------------------------------------------------------------------------
-
 function DialogSelectGroup({
 	label,
 	className,
@@ -328,10 +296,6 @@ function DialogSelectGroup({
 		</fieldset>
 	);
 }
-
-// ---------------------------------------------------------------------------
-// Item
-// ---------------------------------------------------------------------------
 
 function DialogSelectItem({
 	value: itemValue,
@@ -392,10 +356,6 @@ function DialogSelectItem({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Empty
-// ---------------------------------------------------------------------------
-
 function DialogSelectEmpty({
 	className,
 	children = m.dialog_select_empty_state(),
@@ -414,10 +374,6 @@ function DialogSelectEmpty({
 		</div>
 	);
 }
-
-// ---------------------------------------------------------------------------
-// Loading
-// ---------------------------------------------------------------------------
 
 function DialogSelectLoading({
 	rows = 4,
@@ -445,10 +401,6 @@ function DialogSelectLoading({
 		</div>
 	);
 }
-
-// ---------------------------------------------------------------------------
-// Pagination
-// ---------------------------------------------------------------------------
 
 function DialogSelectPagination({
 	page,
@@ -492,11 +444,7 @@ function DialogSelectPagination({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Exports
-// ---------------------------------------------------------------------------
-
-export type { DialogSelectFilterOption, DialogSelectProps };
+export type { DialogSelectFilterOption };
 export {
 	DialogSelect,
 	DialogSelectContent,
@@ -506,7 +454,6 @@ export {
 	DialogSelectGroup,
 	DialogSelectItem,
 	DialogSelectList,
-	DialogSelectLoading,
 	DialogSelectPagination,
 	DialogSelectSearch,
 	DialogSelectTrigger,

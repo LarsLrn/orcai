@@ -19,7 +19,7 @@ export const UploadProgress = ({
 	control,
 	onReset = () => void 0,
 }: {
-	control: UploadHookControl<true>;
+	control: UploadHookControl;
 	onReset?: () => void;
 }) => {
 	const {
@@ -88,7 +88,6 @@ export const UploadProgress = ({
 					)}
 				</div>
 
-				{/* Overall Progress */}
 				<div className="space-y-2">
 					<div className="flex items-center justify-between text-sm">
 						<span className="text-muted-foreground">
@@ -104,7 +103,6 @@ export const UploadProgress = ({
 					<Progress value={averageProgress * 100} className="h-2" />
 				</div>
 
-				{/* Status Summary */}
 				<div className="flex items-center gap-2 pt-1">
 					{completedFiles > 0 && (
 						<Badge variant="success">
@@ -124,7 +122,6 @@ export const UploadProgress = ({
 			</CardHeader>
 
 			<CardContent className="pt-0">
-				{/* Critical Error Display */}
 				{isError && error && (
 					<div className="border-destructive/20 bg-destructive/5 mb-4 rounded-2xl border p-3">
 						<div className="text-destructive flex items-center gap-2 text-sm">
@@ -137,7 +134,6 @@ export const UploadProgress = ({
 					</div>
 				)}
 
-				{/* Individual File Progress */}
 				<div className="max-h-60 space-y-3 overflow-y-auto">
 					{progresses.map((fileInfo) => {
 						const isComplete = fileInfo.status === "complete";
@@ -158,7 +154,6 @@ export const UploadProgress = ({
 										"border-border/50 bg-background/50",
 								)}
 							>
-								{/* File Icon */}
 								<div
 									className={cn(
 										"flex h-8 w-8 items-center justify-center rounded-md",
@@ -181,7 +176,6 @@ export const UploadProgress = ({
 									)}
 								</div>
 
-								{/* File Info */}
 								<div className="min-w-0 flex-1">
 									<div className="mb-1 flex items-center justify-between">
 										<p className="truncate text-sm font-medium">
@@ -195,7 +189,6 @@ export const UploadProgress = ({
 										</div>
 									</div>
 
-									{/* Progress Bar for Individual Files */}
 									{(isUploading || isPending) && (
 										<Progress
 											value={fileInfo.progress * 100}
@@ -203,14 +196,12 @@ export const UploadProgress = ({
 										/>
 									)}
 
-									{/* Error Message */}
 									{isFailed && "error" in fileInfo && (
 										<p className="text-status-danger mt-1 text-xs">
 											{fileInfo.error.message}
 										</p>
 									)}
 
-									{/* Success Message */}
 									{isComplete && (
 										<p className="text-status-success mt-1 text-xs">
 											{m.assets_upload_progress_file_success_label()}
@@ -222,25 +213,11 @@ export const UploadProgress = ({
 					})}
 				</div>
 
-				{/* Action Buttons */}
 				{isSettled && (
 					<div className="border-border/50 mt-4 flex justify-end gap-2 border-t pt-3">
 						<Button variant="outline" size="sm" onClick={handleReset}>
 							{m.assets_upload_progress_clear_button()}
 						</Button>
-						{/* {hasFailedFiles && (
-							<Button
-								variant="default"
-								size="sm"
-								onClick={() => {
-									// Note: This would need to be implemented to retry failed files
-									// control.retryFailedFiles?.();
-								}}
-								disabled
-							>
-								Retry failed
-							</Button>
-						)} */}
 					</div>
 				)}
 			</CardContent>

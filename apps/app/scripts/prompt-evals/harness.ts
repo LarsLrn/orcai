@@ -89,7 +89,7 @@ const BACKOFF_MS = 2_000;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Holds requests back so no more than `perMinute` start in any minute. */
-export const rateLimiter = (perMinute: number) => {
+const rateLimiter = (perMinute: number) => {
 	const starts: number[] = [];
 	let queue: Promise<void> = Promise.resolve();
 	return () => {
@@ -114,7 +114,7 @@ export const rateLimiter = (perMinute: number) => {
 /** Steps a run may take before it counts as stuck. */
 const MAX_STEPS = 8;
 
-export interface ToolCallRecord {
+interface ToolCallRecord {
 	toolName: string;
 	input: unknown;
 	/** What the call returned, when it ran. */

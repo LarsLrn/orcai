@@ -4,7 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { m } from "@/paraglide/messages";
 
-export function NotFound({ children }: { children?: any }) {
+export function NotFound() {
 	const router = useRouter();
 
 	return (
@@ -12,12 +12,10 @@ export function NotFound({ children }: { children?: any }) {
 			<div className="w-full max-w-md space-y-6 text-center">
 				<Card>
 					<CardContent className="space-y-6 p-8">
-						{/* Error Icon */}
 						<div className="bg-muted mx-auto flex h-16 w-16 items-center justify-center rounded-full">
 							<AlertCircle className="text-muted-foreground h-8 w-8" />
 						</div>
 
-						{/* Error Code */}
 						<div className="space-y-2">
 							<h1 className="text-foreground text-4xl font-semibold">404</h1>
 							<h2 className="text-muted-foreground text-lg font-semibold">
@@ -25,14 +23,12 @@ export function NotFound({ children }: { children?: any }) {
 							</h2>
 						</div>
 
-						{/* Error Message */}
 						<div className="text-muted-foreground">
-							{children || <p>{m.boundaries_not_found_description()}</p>}
+							<p>{m.boundaries_not_found_description()}</p>
 						</div>
 					</CardContent>
 				</Card>
 
-				{/* Action Buttons */}
 				<div className="flex flex-col justify-center gap-3 sm:flex-row">
 					<Button
 						onClick={() => router.history.back()}

@@ -102,7 +102,7 @@ export function useUploadFiles({
 	onUploadFail,
 	onUploadProgress,
 	onUploadSettle,
-}: UploadHookProps<UploadRouteName, true>): UploadHookReturn<true> {
+}: UploadHookProps<UploadRouteName>): UploadHookReturn {
 	const [uploads, setUploads] = useState(
 		() => new Map<string, FileUploadInfo<UploadStatus>>(),
 	);

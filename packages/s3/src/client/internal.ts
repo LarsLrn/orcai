@@ -37,72 +37,36 @@ export type SignedUrlsSuccessResponse = {
 	files: Array<SingleUploadFile | MultipartUploadFile>;
 };
 
-export type UploadHookProps<TRoute extends string, T extends boolean> = {
+export type UploadHookProps<TRoute extends string> = {
 	route?: TRoute;
 	multipartBatchSize?: number;
-	onBeforeUpload?: (
-		data: T extends true
-			? {
-					files: File[];
-				}
-			: {
-					file: File;
-				},
-	) =>
-		| undefined
-		| (T extends true
-				? File[] | Promise<undefined | File[]>
-				: File | Promise<undefined | File>);
-	onUploadBegin?: (
-		data: {
-			metadata: ServerMetadata;
-		} & (T extends true
-			? {
-					files: FileUploadInfo<"pending">[];
-				}
-			: {
-					file: FileUploadInfo<"pending">;
-				}),
-	) => void;
+	onBeforeUpload?: (data: {
+		files: File[];
+	}) => undefined | File[] | Promise<undefined | File[]>;
+	onUploadBegin?: (data: {
+		metadata: ServerMetadata;
+		files: FileUploadInfo<"pending">[];
+	}) => void;
 	onUploadProgress?: (data: { file: FileUploadInfo<"uploading"> }) => void;
-	onUploadComplete?: (
-		data: {
-			metadata: ServerMetadata;
-		} & (T extends true
-			? {
-					files: FileUploadInfo<"complete">[];
-					failedFiles: FileUploadInfo<"failed">[];
-				}
-			: {
-					file: FileUploadInfo<"complete">;
-				}),
-	) => void | Promise<void>;
-	onUploadSettle?: (
-		data: {
-			metadata: ServerMetadata;
-		} & (T extends true
-			? {
-					files: FileUploadInfo<"complete">[];
-					failedFiles: FileUploadInfo<"failed">[];
-				}
-			: {
-					file: FileUploadInfo<"complete">;
-				}),
-	) => void | Promise<void>;
-} & (T extends true
-	? {
-			uploadBatchSize?: number;
-			onUploadFail?: (data: {
-				metadata: ServerMetadata;
-				succeededFiles: FileUploadInfo<"complete">[];
-				failedFiles: FileUploadInfo<"failed">[];
-			}) => void | Promise<void>;
-			onError?: (error: ClientUploadError) => void;
-		}
-	: {
-			onError?: (error: ClientUploadError) => void;
-		});
+	onUploadComplete?: (data: {
+		metadata: ServerMetadata;
+		files: FileUploadInfo<"complete">[];
+		failedFiles: FileUploadInfo<"failed">[];
+	}) => void | Promise<void>;
+	onUploadSettle?: (data: {
+		metadata: ServerMetadata;
+		files: FileUploadInfo<"complete">[];
+		failedFiles: FileUploadInfo<"failed">[];
+	}) => void | Promise<void>;
+	uploadBatchSize?: number;
+	onUploadFail?: (data: {
+		metadata: ServerMetadata;
+		succeededFiles: FileUploadInfo<"complete">[];
+		failedFiles: FileUploadInfo<"failed">[];
+	}) => void | Promise<void>;
+	onError?: (error: ClientUploadError) => void;
+};
 
-export type UploadHookReturn<T extends boolean> = UploadHookControl<T> & {
-	control: UploadHookControl<T>;
+export type UploadHookReturn = UploadHookControl & {
+	control: UploadHookControl;
 };

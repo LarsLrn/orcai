@@ -31,18 +31,13 @@ export type FileUploadInfo<T extends UploadStatus> = {
 		}
 	: object);
 
-export type DirectUploadResult<T extends boolean> = {
+export type DirectUploadResult = {
 	metadata: ServerMetadata;
-} & (T extends true
-	? {
-			files: FileUploadInfo<"complete">[];
-			failedFiles: FileUploadInfo<"failed">[];
-		}
-	: {
-			file: FileUploadInfo<"complete">;
-		});
+	files: FileUploadInfo<"complete">[];
+	failedFiles: FileUploadInfo<"failed">[];
+};
 
-export type UploadHookControl<T extends boolean> = {
+export type UploadHookControl = {
 	metadata: ServerMetadata;
 	isError: boolean;
 	error: ClientUploadError | null;
@@ -50,28 +45,21 @@ export type UploadHookControl<T extends boolean> = {
 	isSettled: boolean;
 	reset: () => void;
 	uploadAsync: (
-		input: T extends true ? File[] | FileList : File,
+		input: File[] | FileList,
 		options?: {
 			metadata?: ServerMetadata;
 		},
-	) => Promise<DirectUploadResult<T>>;
+	) => Promise<DirectUploadResult>;
 	upload: (
-		input: T extends true ? File[] | FileList : File,
+		input: File[] | FileList,
 		options?: {
 			metadata?: ServerMetadata;
 		},
-	) => Promise<DirectUploadResult<T>>;
-} & (T extends true
-	? {
-			progresses: FileUploadInfo<UploadStatus>[];
-			allSucceeded: boolean;
-			hasFailedFiles: boolean;
-			uploadedFiles: FileUploadInfo<"complete">[];
-			failedFiles: FileUploadInfo<"failed">[];
-			averageProgress: number;
-		}
-	: {
-			progress: number;
-			uploadedFile: FileUploadInfo<"complete"> | null;
-			isSuccess: boolean;
-		});
+	) => Promise<DirectUploadResult>;
+	progresses: FileUploadInfo<UploadStatus>[];
+	allSucceeded: boolean;
+	hasFailedFiles: boolean;
+	uploadedFiles: FileUploadInfo<"complete">[];
+	failedFiles: FileUploadInfo<"failed">[];
+	averageProgress: number;
+};

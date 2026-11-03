@@ -31,13 +31,13 @@ import { describeError } from "@/lib/errors/describe-error";
 import { formatList } from "@/lib/presentation/format-list";
 import { m } from "@/paraglide/messages";
 
-export type ChosenReceiver = {
+type ChosenReceiver = {
 	organizationId: OrganizationId;
 	userId: UserId;
 };
 
 /** "2 bots and 1 block": the kinds someone owns, leaving out the empty ones. */
-export const ownedContentLabel = (
+const ownedContentLabel = (
 	counts: Pick<OwnedContent, "bots" | "blocks" | "assets">,
 ) =>
 	formatList(

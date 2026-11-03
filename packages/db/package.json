@@ -5,11 +5,8 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./config": "./src/config.ts",
-		"./pg-connection-string": "./src/pg-connection-string.ts",
 		"./relations": "./src/schema/relations.ts",
-		"./schema": "./src/schema/index.ts",
-		"./service": "./src/service.ts"
+		"./schema": "./src/schema/index.ts"
 	},
 	"scripts": {
 		"check": "drizzle-kit check --config drizzle.config.ts",

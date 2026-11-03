@@ -33,10 +33,12 @@
 				"src/server.ts",
 				"src/lib/server/nitro-content-security-policy.ts",
 				"src/**/*.test.{ts,tsx}",
-				"src/**/*.integration.ts"
+				"src/**/*.integration.ts",
+				"scripts/**/*.test.ts"
 			],
 			"project": [
-				"src/**/*.{ts,tsx}"
+				"src/**/*.{ts,tsx}",
+				"scripts/**/*.ts"
 			],
 			"ignore": [
 				"src/paraglide/**"
@@ -53,6 +55,12 @@
 			"vite": {
 				"config": [
 					"vite.config.{js,mjs,ts,cjs,mts,cts}"
+				]
+			},
+			"ignoreIssues": {
+				"src/components/ui/**": [
+					"exports",
+					"types"
 				]
 			}
 		},
@@ -83,11 +91,7 @@
 		"packages/db": {
 			"entry": [
 				"src/index.ts",
-				"src/config.ts",
-				"src/pg-connection-string.ts",
-				"src/schema/index.ts",
-				"src/schema/relations.ts",
-				"src/service.ts"
+				"src/schema/*.ts"
 			],
 			"project": [
 				"src/**/*.ts"
@@ -107,6 +111,46 @@
 				"src/**/*.ts"
 			]
 		},
+		"packages/contracts": {
+			"entry": [
+				"src/index.ts",
+				"src/**/*.test.ts",
+				"test/**/*.{test,integration}.ts"
+			],
+			"project": [
+				"src/**/*.{ts,tsx}"
+			]
+		},
+		"packages/core": {
+			"entry": [
+				"src/index.ts",
+				"src/**/*.test.ts",
+				"test/**/*.{test,integration}.ts"
+			],
+			"project": [
+				"src/**/*.{ts,tsx}"
+			]
+		},
+		"packages/pg-boss": {
+			"entry": [
+				"src/index.ts",
+				"src/**/*.test.ts",
+				"test/**/*.{test,integration}.ts"
+			],
+			"project": [
+				"src/**/*.{ts,tsx}"
+			]
+		},
+		"packages/schema": {
+			"entry": [
+				"src/index.ts",
+				"src/**/*.test.ts",
+				"test/**/*.{test,integration}.ts"
+			],
+			"project": [
+				"src/**/*.{ts,tsx}"
+			]
+		},
 		"packages/*": {
 			"entry": [
 				"src/index.ts",
@@ -115,6 +159,12 @@
 			],
 			"project": [
 				"src/**/*.{ts,tsx}"
+			],
+			"includeEntryExports": true
+		},
+		"apps/web": {
+			"entry": [
+				"scripts/*.ts"
 			]
 		}
 	}

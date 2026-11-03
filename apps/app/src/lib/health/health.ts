@@ -1,13 +1,12 @@
 import { EncryptionKey } from "@orcai/ai";
 import type { ProbeResult } from "@orcai/core";
 import {
-	DB,
 	DbConfigLive,
 	DbConfigService,
-	dbSchema,
 	findLatestMigration,
 	probeDatabase,
 } from "@orcai/db";
+import { outboxSummary } from "@orcai/notifications";
 import { otlpEndpointHost } from "@orcai/observability";
 import { type PgBossProbeResult, probePgBoss } from "@orcai/pg-boss";
 import {
@@ -29,7 +28,6 @@ import {
 	SpiceDbConfigLive,
 	SpiceDbConfigService,
 } from "@orcai/spice-db";
-import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import type * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
@@ -380,82 +378,6 @@ export const checkInstance = <R>(
 		};
 	});
 
-const TEST_EMAIL_TYPE = "instance.test-email";
-
-const outbox = dbSchema.notificationOutbox;
-
-const mailSummary = (viewerEmail: string) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-		const [[counts], [lastFailure], [lastSent], [testEmail]] =
-			yield* Effect.all(
-				[
-					db
-						.select({
-							pending:
-								sql<number>`count(*) filter (where ${outbox.status} in ('pending', 'processing'))`.mapWith(
-									Number,
-								),
-							dead: sql<number>`count(*) filter (where ${outbox.status} = 'dead')`.mapWith(
-								Number,
-							),
-						})
-						.from(outbox),
-					db
-						.select({
-							lastError: outbox.lastError,
-						})
-						.from(outbox)
-						.where(
-							and(
-								isNotNull(outbox.lastError),
-								inArray(outbox.status, [
-									"pending",
-									"dead",
-								]),
-							),
-						)
-						.orderBy(desc(outbox.updatedAt))
-						.limit(1),
-					db
-						.select({
-							deliveryChannel: outbox.deliveryChannel,
-						})
-						.from(outbox)
-						.where(eq(outbox.status, "sent"))
-						.orderBy(desc(outbox.sentAt))
-						.limit(1),
-					db
-						.select({
-							status: outbox.status,
-							deliveryChannel: outbox.deliveryChannel,
-							createdAt: outbox.createdAt,
-							sentAt: outbox.sentAt,
-						})
-						.from(outbox)
-						.where(
-							and(
-								eq(outbox.type, TEST_EMAIL_TYPE),
-								eq(outbox.recipient, viewerEmail.trim().toLowerCase()),
-							),
-						)
-						.orderBy(desc(outbox.createdAt))
-						.limit(1),
-				],
-				{
-					concurrency: "unbounded",
-				},
-			);
-
-		return {
-			pending: counts?.pending ?? 0,
-			dead: counts?.dead ?? 0,
-			lastError: lastFailure?.lastError ?? null,
-			lastDeliveryChannel: lastSent?.deliveryChannel ?? null,
-			testEmail: testEmail ?? null,
-		} satisfies InstanceMail;
-	});
-
 const appProcessConfig = Effect.gen(function* () {
 	const app = yield* AppConfigService;
 	const embeddings = yield* embeddingSettings;
@@ -502,7 +424,7 @@ const appProcessConfig = Effect.gen(function* () {
 export const instanceHealth = (viewer: { readonly email: string }) =>
 	Effect.gen(function* () {
 		const { warnings } = yield* AppConfigService;
-		const mail = mailSummary(viewer.email);
+		const mail = outboxSummary(viewer.email);
 		return yield* checkInstance<
 			| Effect.Services<typeof probeDatabase>
 			| Effect.Services<typeof probeSpiceDb>

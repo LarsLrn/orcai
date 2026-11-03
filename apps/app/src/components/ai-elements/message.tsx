@@ -11,7 +11,6 @@ import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
 import {
 	MessageContent as MessageBody,
-	MessageFooter,
 	Message as MessageRoot,
 } from "@/components/ui/message";
 import {
@@ -52,15 +51,6 @@ export const MessageContent = ({ children, ...props }: MessageContentProps) => {
 		</MessageBody>
 	);
 };
-
-export type MessageActionsProps = ComponentProps<typeof MessageFooter>;
-
-export const MessageActions = ({
-	className,
-	...props
-}: MessageActionsProps) => (
-	<MessageFooter className={cn("gap-1", className)} {...props} />
-);
 
 export type MessageActionProps = ComponentProps<typeof Button> & {
 	tooltip?: string;

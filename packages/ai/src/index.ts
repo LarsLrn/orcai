@@ -17,7 +17,6 @@ export { countTokens } from "./count-tokens";
 export { AiError } from "./errors";
 export {
 	type EmbeddingConnection,
-	EmbeddingTestError,
 	type EmbeddingTestFailure,
 	embedValues,
 	testEmbedding,
@@ -57,18 +56,16 @@ export {
 	titleCallSettings,
 	utilityReasoning,
 } from "./provider-kinds/registry";
-export type { ProviderConnection, SystemPrompt } from "./provider-kinds/types";
+export type { SystemPrompt } from "./provider-kinds/types";
 export { AiTelemetryLive, aiTelemetry } from "./telemetry";
 export {
 	type MeteredModel,
 	type UtilityModel,
 	utilityModel,
 } from "./utility-model";
-export { isAllowedUrl } from "./web-search/allowed-domains";
 export { createWebSearch } from "./web-search/registry";
-export {
-	type WebSearch,
-	WebSearchError,
-	type WebSearchQuery,
-	type WebSearchResult,
+export type {
+	WebSearch,
+	WebSearchQuery,
+	WebSearchResult,
 } from "./web-search/types";

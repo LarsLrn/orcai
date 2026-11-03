@@ -39,4 +39,4 @@ const FeatureBadges = ({
 	);
 };
 
-export { enabledFeatureIds, FeatureBadges };
+export { FeatureBadges };

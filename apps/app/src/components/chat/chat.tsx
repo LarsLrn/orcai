@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import {
 	Conversation,
 	ConversationContent,
-	ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AssetsPanel } from "@/components/assets/readiness/assets-panel";
@@ -27,6 +26,7 @@ import {
 import { WebSearchNotice } from "@/components/chat/web-search-notice";
 import { ChatEmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
 import {
+	MessageScrollerButton,
 	MessageScrollerItem,
 	useMessageScroller,
 } from "@/components/ui/message-scroller";
@@ -275,7 +275,7 @@ const Chat = ({
 									</MessageScrollerItem>
 								)}
 							</ConversationContent>
-							<ConversationScrollButton />
+							<MessageScrollerButton />
 							{focusMessageId && <ScrollToMessage messageId={focusMessageId} />}
 						</Conversation>
 

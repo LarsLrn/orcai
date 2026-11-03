@@ -20,11 +20,9 @@ export {
 	type MeteredCall,
 	type MeteredCallOutcome,
 	meteredCall,
-	QuotaRetry,
 	startMeteredCall,
 } from "./metered-call";
 export {
-	getUtcPeriodBounds,
 	listExpiredOpenQuotaPeriods,
 	openQuotaPeriod,
 	rollOverQuotaPeriods,

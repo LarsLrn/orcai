@@ -29,8 +29,6 @@ export const ErrorTags = {
 	UNAUTHORIZED: "UnauthorizedError",
 	FORBIDDEN: "ForbiddenError",
 
-	// Validation errors
-	VALIDATION: "ValidationError",
 	BAD_REQUEST: "BadRequestError",
 
 	// Temporarily unavailable, the client may retry
@@ -55,7 +53,7 @@ export const ErrorTags = {
 	INTERNAL: "InternalError",
 } as const;
 
-// Resource / auth / validation errors
+// Resource and auth errors
 // Define concrete classes so `AppError` union is exhaustive at the type level.
 // `message` is for logs only; the client receives `reason` and `params`.
 
@@ -72,12 +70,6 @@ export class UnauthorizedError extends Data.TaggedError(
 )<{
 	readonly reason?: ErrorReason;
 	readonly message?: string;
-	readonly cause?: unknown;
-}> {}
-
-class ValidationError extends Data.TaggedError(ErrorTags.VALIDATION)<{
-	readonly message: string;
-	readonly fields?: Record<string, string>;
 	readonly cause?: unknown;
 }> {}
 
@@ -178,7 +170,6 @@ export type AppError =
 	| ConflictError
 	| UnauthorizedError
 	| ForbiddenError
-	| ValidationError
 	| BadRequestError
 	| UnavailableError
 	| S3Error

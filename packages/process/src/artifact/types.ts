@@ -12,7 +12,7 @@ export type StoredExtractionImage = Omit<
 };
 
 /** Metadata the utility model suggests for an image asset. */
-export type ImageMetadataSuggestion = {
+type ImageMetadataSuggestion = {
 	title: string;
 	description: string;
 	/** Left out when the model's answer is no BCP 47 tag. */

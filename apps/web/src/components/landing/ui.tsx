@@ -25,7 +25,7 @@ export function Surface({ className, ...props }: ComponentProps<"div">) {
 	);
 }
 
-export function Eyebrow({ className, ...props }: ComponentProps<"p">) {
+function Eyebrow({ className, ...props }: ComponentProps<"p">) {
 	return (
 		<p
 			className={cn(

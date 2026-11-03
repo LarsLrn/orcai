@@ -85,12 +85,6 @@ const menuItems = (): MenuItem[] => [
 				.run(),
 		isActive: (state) => state.isHeading3,
 	},
-	// {
-	//   name: "To-do List",
-	//   icon: CheckSquare,
-	//   onClick: (editor) => editor!.chain().focus().toggleTaskList().run(),
-	//   isActive: (editor) => editor!.isActive("taskItem"),
-	// },
 	{
 		name: m.editor_node_selector_bullet_list_option(),
 		icon: List,

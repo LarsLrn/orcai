@@ -2,7 +2,6 @@ import type { ComponentProps, RefObject } from "react";
 import { createContext, useContext, useRef } from "react";
 import {
 	MessageScroller,
-	MessageScrollerButton,
 	MessageScrollerContent,
 	MessageScrollerProvider,
 	MessageScrollerViewport,
@@ -51,14 +50,6 @@ export const ConversationContent = ({
 		</MessageScrollerViewport>
 	);
 };
-
-export type ConversationScrollButtonProps = ComponentProps<
-	typeof MessageScrollerButton
->;
-
-export const ConversationScrollButton = (
-	props: ConversationScrollButtonProps,
-) => <MessageScrollerButton {...props} />;
 
 export const downloadConversation = (
 	markdown: string,

@@ -2,7 +2,7 @@ import type { ExtractedImage, ExtractionResult } from "@kreuzberg/node";
 import type { BucketName } from "@orcai/schema";
 import type { StoredExtractionArtifact, StoredExtractionImage } from "./types";
 
-export const STORED_EXTRACTION_FILE_NAME = "extraction.json";
+const STORED_EXTRACTION_FILE_NAME = "extraction.json";
 
 const stripInlineImageFields = (
 	image: ExtractedImage,
@@ -77,7 +77,7 @@ export const serializeStoredExtractionArtifact = (
 	artifact: StoredExtractionArtifact,
 ) => JSON.stringify(artifact);
 
-export const buildProcessedAssetPrefix = (assetId: string) => `${assetId}`;
+const buildProcessedAssetPrefix = (assetId: string) => `${assetId}`;
 
 export const buildStoredExtractionKey = (assetId: string) =>
 	`${buildProcessedAssetPrefix(assetId)}/${STORED_EXTRACTION_FILE_NAME}`;

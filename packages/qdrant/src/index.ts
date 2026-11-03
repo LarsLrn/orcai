@@ -1,17 +1,14 @@
 export * from "./browse";
-export { assetPointIndex } from "./collections";
-export type { QdrantConfig } from "./config";
 export {
 	QdrantConfigLive,
 	QdrantConfigService,
 } from "./config";
 export {
-	EmbeddingGenerationChangedError,
-	EmbeddingModelChangeError,
 	EmbeddingsNotConfiguredError,
 	QdrantError,
 	StaleEmbeddingGenerationError,
 } from "./errors";
+/** @public Named in the inferred types of layers built on the mutations. */
 export {
 	activeGeneration,
 	configureEmbeddings,
@@ -30,5 +27,5 @@ export {
 export * from "./mutations";
 export { probeQdrant } from "./probe";
 export * from "./queries";
-export { QdrantLive, QdrantService, QdrantServiceLive } from "./service";
+export { QdrantLive, QdrantService } from "./service";
 export * from "./utils";

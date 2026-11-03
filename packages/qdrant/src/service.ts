@@ -18,7 +18,7 @@ export class QdrantService extends Context.Service<
 	}
 >()("QdrantService") {}
 
-export const QdrantServiceLive = Layer.effect(
+const QdrantServiceLive = Layer.effect(
 	QdrantService,
 	Effect.gen(function* () {
 		const { config } = yield* QdrantConfigService;

@@ -3,7 +3,6 @@ import { DB, dbSchema } from "@orcai/db";
 import type { Bot } from "@orcai/schema";
 import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { readRevision } from "@/lib/authz/zed-token";
@@ -148,8 +147,6 @@ const saveBot = authed.bot.save
 			});
 		}
 
-		yield* checkFeatureRequirements(input.features);
-
 		return yield* saveBotGraph({
 			input,
 			userId: context.auth.user.id,
@@ -190,8 +187,6 @@ const publishBot = authed.bot.publish
 				}),
 			);
 		}
-
-		yield* checkFeatureRequirements(editor.data.features);
 
 		for (const repository of editor.data.repositories) {
 			if (repository.status !== "ready") {
@@ -264,18 +259,9 @@ const deleteBots = authed.bot.delete
 		),
 	)
 	.effect(function* ({ context }) {
-		const allowedIds = context.allowedIds ?? [];
-
-		if (allowedIds.length === 0) {
-			return {
-				success: true,
-				message: "No bots to delete",
-			};
-		}
-
 		yield* deleteResourcesWithAuthorization({
 			resourceType: "bot",
-			resourceIds: allowedIds,
+			resourceIds: context.allowedIds,
 		});
 
 		return {

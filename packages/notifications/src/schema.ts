@@ -126,4 +126,3 @@ export type InstanceTestEmailNotification = z.infer<
 >;
 
 export type EmailNotification = z.infer<typeof emailNotificationSchema>;
-export type EmailNotificationType = EmailNotification["type"];

@@ -116,28 +116,12 @@ const SectionGrid = ({
 	);
 };
 
-const SectionFooter = ({
-	className,
-	...props
-}: React.ComponentProps<"div">) => {
-	return (
-		<div
-			data-slot="section-footer"
-			className={cn("flex items-center [.border-t]:pt-5", className)}
-			{...props}
-		/>
-	);
-};
-
 export {
 	Section,
 	SectionAction,
 	SectionContent,
 	SectionDescription,
-	SectionFooter,
 	SectionGrid,
-	type SectionGridGap,
-	type SectionGridLayout,
 	SectionHeader,
 	SectionTitle,
 };

@@ -2,8 +2,8 @@ import { type ExtractionResult, extractBytes } from "@kreuzberg/node";
 import * as Effect from "effect/Effect";
 import { ProcessError } from "../errors";
 import type { ExpandedExtractionConfig } from "../kreuzberg-expanded-types";
-import type { ProcessSource } from "../source";
-import { readSource } from "../source";
+import { readSource } from "../source/read";
+import type { ProcessSource } from "../source/types";
 import { getExtractionProfileConfig } from "./profiles";
 import type { ExtractionProfile } from "./types";
 

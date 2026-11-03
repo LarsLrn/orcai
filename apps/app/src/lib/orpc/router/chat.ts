@@ -29,7 +29,6 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
-import { checkFeatureRequirements } from "@/lib/ai/features/requirements";
 import { isEmptyReply } from "@/lib/ai/turn/reply-store";
 import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { requireUsableInOrganization } from "@/lib/authz/organization-use";
@@ -418,10 +417,9 @@ const createChat = authed.chat.create
 	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const organizationId = context.auth.session.activeOrganizationId;
-		const features = input.config?.features;
 
 		if (input.botId) {
-			if (features !== undefined) {
+			if (input.config?.features !== undefined) {
 				return yield* botFeaturesImmutable();
 			}
 
@@ -434,8 +432,6 @@ const createChat = authed.chat.create
 				organizationId,
 				zedToken: readRevision(context),
 			});
-		} else if (features) {
-			yield* checkFeatureRequirements(features);
 		}
 
 		const config = yield* startingConfig({
@@ -521,16 +517,8 @@ const updateChat = authed.chat.update
 				zedToken: readRevision(context),
 			}),
 		});
-		const features = input.config?.features;
-
-		if (features !== undefined) {
-			if (existingChat.botId) {
-				return yield* botFeaturesImmutable();
-			}
-
-			if (features) {
-				yield* checkFeatureRequirements(features);
-			}
+		if (input.config?.features !== undefined && existingChat.botId) {
+			return yield* botFeaturesImmutable();
 		}
 
 		if (existingChat.kind === "assistant" && input.config !== undefined) {

@@ -8,7 +8,7 @@ import { EmailService } from "./email";
 import { renderEmail } from "./render";
 import { type EmailNotification, emailNotificationSchema } from "./schema";
 
-export const NOTIFICATION_MAX_ATTEMPTS = 10;
+const NOTIFICATION_MAX_ATTEMPTS = 10;
 const LEASE_MS = 5 * 60_000;
 const OUTBOX_WAKE_SINGLETON_KEY = "notification-outbox-drain";
 const OUTBOX_WAKE_SINGLETON_SECONDS = 5;

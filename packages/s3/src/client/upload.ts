@@ -36,7 +36,7 @@ export async function uploadFiles<TRoute extends string>(params: {
 		uploadId: string;
 		file: SignedUrlsSuccessResponse["files"][number]["file"];
 	}) => Promise<unknown>;
-}): Promise<DirectUploadResult<true>> {
+}): Promise<DirectUploadResult> {
 	const files = Array.from(params.files);
 
 	if (files.length === 0) {
