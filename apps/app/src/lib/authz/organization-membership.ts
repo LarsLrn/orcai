@@ -851,3 +851,36 @@ export const banAccount = (params: {
 			}),
 		);
 	});
+
+/** Lifts an account's ban, under the same instance-admin lock as a ban. */
+export const unbanAccount = (params: { userId: UserId; actorId: UserId }) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		yield* db.transaction(() =>
+			Effect.gen(function* () {
+				const [user] = yield* lockAsInstanceAdmin({
+					actorId: params.actorId,
+					userIds: [
+						params.userId,
+					],
+				});
+				if (!user)
+					return yield* Effect.fail(
+						new AppErrors.NotFoundError({
+							reason: "USER_NOT_FOUND",
+							id: params.userId,
+							message: "User not found",
+						}),
+					);
+				yield* db
+					.update(dbSchema.user)
+					.set({
+						banned: false,
+						banReason: null,
+						banExpires: null,
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.user.id, params.userId));
+			}),
+		);
+	});

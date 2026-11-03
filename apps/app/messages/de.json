@@ -3284,6 +3284,7 @@
 	"error_password_not_set": "Für dieses Konto ist kein Passwort festgelegt.",
 	"error_passwords_mismatch": "Die Passwörter müssen übereinstimmen.",
 	"error_permission_denied": "Sie sind dazu nicht berechtigt.",
+	"error_permissions_unavailable": "Die Berechtigungen konnten gerade nicht geprüft werden. Versuchen Sie es in Kürze noch einmal.",
 	"error_privacy_consent_required": "Sie müssen der Datenschutzerklärung zustimmen.",
 	"error_profile_image_upload_required": "Ein Profilbild wird durch Hochladen in OrcAI festgelegt.",
 	"error_provider_disabled": "Der ausgewählte Anbieter ist deaktiviert. Wählen Sie einen aktiven Anbieter.",
@@ -3340,7 +3341,6 @@
 	"error_user_banned": "Dieses Konto ist gesperrt.",
 	"error_user_not_found": "Benutzer nicht gefunden.",
 	"error_user_preferences_not_found": "Benutzereinstellungen nicht gefunden.",
-	"error_user_unban_failed": "Die Sperre des Benutzers konnte nicht aufgehoben werden.",
 	"error_validation_array_too_big": [
 		{
 			"declarations": [

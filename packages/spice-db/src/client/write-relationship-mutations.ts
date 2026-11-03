@@ -1,5 +1,4 @@
 import { v1 } from "@authzed/authzed-node";
-import { status } from "@grpc/grpc-js";
 import * as Effect from "effect/Effect";
 import { SpiceDbError } from "../errors";
 import { SpiceDbService } from "../service";
@@ -85,12 +84,3 @@ export const writeRelationshipMutations = (
 			zedToken,
 		};
 	});
-
-/** The gRPC status name of a failed SpiceDB call, when it carries one. */
-export const grpcStatusOf = (error: SpiceDbError) => {
-	const code =
-		error.cause instanceof Error && "code" in error.cause
-			? error.cause.code
-			: undefined;
-	return typeof code === "number" ? status[code] : undefined;
-};

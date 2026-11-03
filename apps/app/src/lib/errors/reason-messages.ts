@@ -165,6 +165,7 @@ const reasonMessages: ReasonMessages = {
 	PASSKEY_USER_NOT_VERIFIED: m.error_passkey_user_not_verified,
 	PASSWORDS_MISMATCH: m.error_passwords_mismatch,
 	PERMISSION_DENIED: m.error_permission_denied,
+	PERMISSIONS_UNAVAILABLE: m.error_permissions_unavailable,
 	PRIVACY_CONSENT_REQUIRED: m.error_privacy_consent_required,
 	PROFILE_IMAGE_UPLOAD_REQUIRED: m.error_profile_image_upload_required,
 	PROVIDER_DISABLED: m.error_provider_disabled,
@@ -239,7 +240,6 @@ const reasonMessages: ReasonMessages = {
 	USER_BANNED: m.error_user_banned,
 	USER_NOT_FOUND: m.error_user_not_found,
 	USER_PREFERENCES_NOT_FOUND: m.error_user_preferences_not_found,
-	USER_UNBAN_FAILED: m.error_user_unban_failed,
 	WEB_SEARCH_FAILED: m.error_web_search_failed,
 };
 

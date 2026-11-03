@@ -35,6 +35,11 @@ const issuesText = (data: unknown) =>
 				.join("; ")
 		: "";
 
+/** The server refused the caller or found nothing, which an outage is not. */
+export const isUnreadable = (error: unknown) =>
+	error instanceof ORPCError &&
+	(error.code === "NOT_FOUND" || error.code === "FORBIDDEN");
+
 /** `REASON: message`, with the code standing in for a missing reason. */
 export const toolErrorText = (error: unknown): string => {
 	if (error instanceof AssistantToolError) {

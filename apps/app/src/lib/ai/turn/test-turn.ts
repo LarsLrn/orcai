@@ -46,6 +46,13 @@ mock.module("@orcai/ai", () => ({
 	providerApiKey: () => Effect.succeed("key"),
 }));
 
+// The requester may use every bot; the check reads Postgres and SpiceDB.
+const readOnly = await import("@/lib/chats/read-only");
+mock.module("@/lib/chats/read-only", () => ({
+	...readOnly,
+	chatBotUsable: () => Effect.succeed(true),
+}));
+
 export const ORGANIZATION_ID =
 	"00000000-0000-4000-8000-00000000000a" as OrganizationId;
 const PROVIDER_ID = "00000000-0000-4000-8000-00000000000b" as ProviderId;

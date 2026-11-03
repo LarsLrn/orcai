@@ -268,6 +268,7 @@ PostgreSQL optional:
 SpiceDB optional:
 
 - `SPICEDB_SECURITY`: Transport mode for SpiceDB client. Valid values: `secure`, `insecure-localhost`, `insecure-plaintext` (default).
+- `SPICEDB_READ_TIMEOUT`: How long a permission check may wait for SpiceDB before the request answers 503, default `5 seconds`.
 
 ### Embeddings
 

@@ -114,6 +114,7 @@ An instance that set its embedding model through environment variables keeps its
 | `SPICEDB_ENDPOINT` | Yes | SpiceDB gRPC endpoint. |
 | `SPICEDB_TOKEN` | Yes | Token used by the app. |
 | `SPICEDB_SECURITY` | No | Transport mode for the SpiceDB client: `secure`, `insecure-localhost` or `insecure-plaintext` (default). |
+| `SPICEDB_READ_TIMEOUT` | No | How long a permission check may wait for SpiceDB before the request answers 503, default `5 seconds`. |
 | `SPICEDB_GRPC_PRESHARED_KEY` | Compose | Used by the Compose-managed SpiceDB service. |
 | `SPICEDB_POSTGRES_USER` | Compose | User for the Compose-managed SpiceDB database. |
 | `SPICEDB_POSTGRES_PASSWORD` | Compose | Password for the Compose-managed SpiceDB database. |

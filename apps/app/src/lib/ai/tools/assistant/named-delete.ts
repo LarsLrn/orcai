@@ -1,6 +1,6 @@
-import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { EntityKind } from "@/lib/ai/tools/entity-kind";
+import { isUnreadable } from "@/lib/ai/tools/tool-error";
 import type { ProcedureClients } from "@/lib/orpc/implementation/procedures";
 import {
 	type AssistantToolDeps,
@@ -9,10 +9,6 @@ import {
 	mutation,
 	type ProcedureOptions,
 } from "./procedure-tool";
-
-const isUnreadable = (error: unknown) =>
-	error instanceof ORPCError &&
-	(error.code === "NOT_FOUND" || error.code === "FORBIDDEN");
 
 /**
  * Deletes a batch and returns the targets' names, read beforehand so the

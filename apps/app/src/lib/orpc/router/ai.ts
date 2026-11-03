@@ -73,6 +73,9 @@ const aiKeepUploads = authed.ai.keepUploads
 		const data = yield* keepUploads({
 			chatId: input.chatId,
 			organizationId,
+			user: {
+				id: context.auth.user.id,
+			},
 			context,
 			replyId: input.messageId,
 			toolCallId: input.toolCallId,

@@ -1,5 +1,6 @@
 import * as Config from "effect/Config";
 import * as Context from "effect/Context";
+import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
@@ -42,6 +43,10 @@ const spiceConfig = Config.all({
 		security: Config.withDefault(
 			Config.schema(SpiceDbSecurityModeSchema, "SPICEDB_SECURITY"),
 			"insecure-plaintext",
+		),
+		readTimeout: Config.withDefault(
+			Config.Duration("SPICEDB_READ_TIMEOUT"),
+			Duration.seconds(5),
 		),
 	}),
 });

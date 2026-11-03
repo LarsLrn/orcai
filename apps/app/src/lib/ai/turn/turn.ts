@@ -1,11 +1,6 @@
 import { context as otelContext } from "@opentelemetry/api";
 import { AiError, type MeterStep, meteredStep } from "@orcai/ai";
-import {
-	type BotId,
-	type ChatId,
-	type ChatMessageId,
-	SUMMARY_METADATA,
-} from "@orcai/core";
+import { type ChatId, type ChatMessageId, SUMMARY_METADATA } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import { withActiveSpan } from "@orcai/observability";
 import {
@@ -21,7 +16,6 @@ import type {
 	KeptUploads,
 	ToolApprovalDecision,
 } from "@orcai/schema";
-import { ORPCError } from "@orpc/client";
 import {
 	type Agent,
 	type AsyncIterableStream,
@@ -63,9 +57,8 @@ import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import { closeLastReply } from "@/lib/ai/utils/close-pending-tool-parts";
 import { streamErrorText } from "@/lib/ai/utils/stream-error-text";
 import { readRevision } from "@/lib/authz/zed-token";
-import { requireWritableChat } from "@/lib/chats/read-only";
+import { chatBotUsable, requireWritableChat } from "@/lib/chats/read-only";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	applyTurnDecisions,
 	isContinuationClaimLive,
@@ -192,43 +185,15 @@ const turnNotAwaiting = (message: string) =>
 		message,
 	});
 
-/** A procedure that refused the requester or found nothing, as an ORPC or an app error. */
-const isRefusal = (cause: unknown) =>
-	cause instanceof ORPCError
-		? cause.code === "FORBIDDEN" || cause.code === "NOT_FOUND"
-		: cause instanceof AppErrors.ForbiddenError ||
-			cause instanceof AppErrors.NotFoundError;
-
-/** Whether the requester may use the bot, read through the procedures at the turn's zedToken. */
-const botUsable = (
-	botId: BotId,
-	requester: Pick<TurnInput, "context" | "zedToken">,
-) =>
-	Effect.gen(function* () {
-		const procedures = yield* Procedures;
-		const { context } = requester;
-		return yield* procedures.bot
-			.find(
-				{
-					id: botId,
-					zedToken: turnStartToken(requester),
-				},
-				{
-					context,
-				},
-			)
-			.pipe(
-				Effect.map(({ data }) => data.capabilities.use === true),
-				Effect.catchIf(isRefusal, () => Effect.succeed(false)),
-			);
-	});
-
 const loadChat = ({
 	chatId,
 	organizationId,
+	user,
 	context,
 	zedToken,
-}: Pick<TurnInput, "chatId" | "organizationId" | "context" | "zedToken">) =>
+}: Pick<TurnInput, "chatId" | "organizationId" | "context" | "zedToken"> & {
+	user: Pick<TurnInput["user"], "id">;
+}) =>
 	Effect.gen(function* () {
 		const loaded = yield* (yield* ReplyStore).load(chatId);
 		if (!loaded) {
@@ -241,12 +206,12 @@ const loadChat = ({
 		const { chat } = loaded;
 		yield* requireWritableChat(chat, {
 			activeOrganizationId: organizationId,
-			botUsable: chat.botId
-				? botUsable(chat.botId, {
-						context,
-						zedToken,
-					})
-				: Effect.succeed(true),
+			botUsable: chatBotUsable(chat, {
+				userId: user.id,
+				zedToken: readRevision(context, {
+					zedToken,
+				}),
+			}),
 		});
 		return loaded;
 	});
@@ -1048,6 +1013,7 @@ export const keepUploads = ({
 	kept,
 	...input
 }: Pick<TurnInput, "chatId" | "organizationId" | "context"> & {
+	user: Pick<TurnInput["user"], "id">;
 	replyId: ChatMessageId;
 	toolCallId: string;
 	kept: KeptUploads;

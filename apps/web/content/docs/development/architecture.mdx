@@ -108,6 +108,10 @@ Every procedure that acts in an organisation passes one gate. `requireOrganizati
 
 A procedure that reads one bot, block or asset passes `requireReadableEntity`, or `requireResourceAccess("read")` when its input names the resource by type and id. Both need SpiceDB and committed PostgreSQL state to agree that the user reads it: as owner, through a listing or an active grant, or through a bot or repository above it that they read. Anything else answers 404, so a revoked grant closes the resource before its tuple leaves SpiceDB. `requireResourceAccess("manage_access")` asks the same of ownership or an active manager grant and answers 403. Lists apply the same check in their query, before paging and counting.
 
+### SpiceDB unavailable
+
+A permission read SpiceDB refuses to connect for, or does not answer within `SPICEDB_READ_TIMEOUT`, answers 503 `PERMISSIONS_UNAVAILABLE`. Gates, lists and finds answer the same way, so a list never shows up empty for an outage. Route guards render not found only after a check that answered no, so a failed check shows the error page, and the Assistant reads the reason in its tool result. Other SpiceDB failures, such as a malformed zedToken, answer 500 and are logged with their gRPC status.
+
 ### Read consistency
 
 SpiceDB answers authorisation reads with `minimizeLatency` by default, so a read can miss a permission change made moments earlier. A request that writes authorisation returns the resulting zedToken in the response `meta` and sets a `zed_token` cookie for 60 seconds, so the browser's following reads are at least as fresh as that write.
