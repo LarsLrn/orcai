@@ -17,6 +17,7 @@ import { m } from "../src/paraglide/messages";
 const notifications = [
 	{
 		type: "organization.invited" as const,
+		locale: "en" as const,
 		recipient: "INVITEE@example.com",
 		recipientName: "<Invitee>",
 		invitationId: "6ba7b810-9dad-41d1-80b4-00c04fd430c8",
@@ -29,18 +30,21 @@ const notifications = [
 	},
 	{
 		type: "auth.verify-email" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		verificationUrl: "https://example.com/api/auth/verify-email?token=secret",
 	},
 	{
 		type: "auth.reset-password" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		resetUrl: "https://example.com/reset-password?token=secret",
 	},
 	{
 		type: "data-export.ready" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		accountUrl: "https://example.com/app/account",
@@ -48,18 +52,21 @@ const notifications = [
 	},
 	{
 		type: "auth.two-factor-disabled" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
 	},
 	{
 		type: "auth.two-factor-reset" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
 	},
 	{
 		type: "auth.instance-admin-granted" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
@@ -67,18 +74,21 @@ const notifications = [
 	},
 	{
 		type: "auth.instance-admin-revoked" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
 	},
 	{
 		type: "auth.passkey-added" as const,
+		locale: "en" as const,
 		recipient: "user@example.com",
 		recipientName: "User",
 		securityUrl: "https://example.com/app/account/security",
 	},
 	{
 		type: "instance.test-email" as const,
+		locale: "en" as const,
 		recipient: "admin@example.com",
 		recipientName: "Admin",
 		healthUrl: "https://example.com/instance/health",
@@ -257,22 +267,6 @@ describe("notification schemas and templates", () => {
 			expect(rendered.html).not.toContain("<Invitee>");
 		});
 	}
-
-	test("renders payloads queued without a locale in English", async () => {
-		const { locale: _, ...legacy } = emailNotificationSchema.parse(
-			notifications[1],
-		);
-		const rendered = await renderEmail(emailNotificationSchema.parse(legacy));
-		expect(rendered.html).toMatch(/<html[^>]* lang="en"/);
-		expect(rendered.subject).toBe(
-			m.email_verify_subject(
-				{},
-				{
-					locale: "en",
-				},
-			),
-		);
-	});
 
 	for (const locale of LOCALES) {
 		const options = {

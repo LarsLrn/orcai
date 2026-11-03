@@ -1,93 +1,34 @@
 import * as Effect from "effect/Effect";
 import {
 	defaultSpiceDbSchemaPath,
-	deleteRelationshipsInBatches,
 	normalizeSchema,
-	readCurrentSchema as readCurrentSpiceSchema,
+	readCurrentSchema,
 	readTargetSchema,
-	rewriteRelationshipsInBatches,
 	writeSchema,
 } from "./lib";
-import { operations } from "./operations";
-import type { SpiceConvergeContext, SpiceConvergeRunOptions } from "./types";
-
-const createContext = (): SpiceConvergeContext => {
-	let schemaCache: string | null = null;
-
-	const readCurrentSchema = () => {
-		if (schemaCache !== null) {
-			return Effect.succeed(schemaCache);
-		}
-
-		return readCurrentSpiceSchema.pipe(
-			Effect.tap((schema) =>
-				Effect.sync(() => {
-					schemaCache = schema;
-				}),
-			),
-		);
-	};
-
-	return {
-		readCurrentSchema,
-		writeSchema: (schema) =>
-			writeSchema(schema).pipe(
-				Effect.tap(() =>
-					Effect.sync(() => {
-						schemaCache = schema;
-					}),
-				),
-			),
-		deleteRelationshipsInBatches: ({ relationshipFilter, batchSize }) =>
-			deleteRelationshipsInBatches({
-				relationshipFilter,
-				batchSize,
-			}),
-		rewriteRelationshipsInBatches: ({
-			relationshipFilter,
-			mapRelationship,
-			batchSize,
-		}) =>
-			rewriteRelationshipsInBatches({
-				relationshipFilter,
-				mapRelationship,
-				batchSize,
-			}),
-		log: (message) => Effect.logInfo(message),
-	};
-};
-
-const formatOperation = (params: {
-	id: string;
-	description: string;
-	shouldRun: boolean;
-}) =>
-	`- ${params.id}: ${params.shouldRun ? "run" : "skip"} :: ${params.description}`;
+import type { SpiceConvergeRunOptions } from "./types";
 
 const resolveSchemaPath = (schemaPathOverride?: string) =>
 	schemaPathOverride ?? defaultSpiceDbSchemaPath;
 
+const readSchemas = (schemaPathOverride?: string) =>
+	Effect.gen(function* () {
+		const targetSchemaPath = resolveSchemaPath(schemaPathOverride);
+		const targetSchema = yield* readTargetSchema(targetSchemaPath);
+		const currentSchema = yield* readCurrentSchema;
+		return {
+			targetSchemaPath,
+			targetSchema,
+			schemaInSync:
+				normalizeSchema(currentSchema) === normalizeSchema(targetSchema),
+		};
+	});
+
 export const runConvergeStatus = (params: SpiceConvergeRunOptions = {}) =>
 	Effect.gen(function* () {
-		const targetSchemaPath = resolveSchemaPath(params.schemaPathOverride);
-		const context = createContext();
-
-		yield* Effect.logInfo("Spice converge operations:");
-		for (const operation of operations) {
-			const shouldRun = yield* operation.shouldRun(context);
-			yield* Effect.logInfo(
-				formatOperation({
-					id: operation.id,
-					description: operation.description,
-					shouldRun,
-				}),
-			);
-		}
-
-		const targetSchema = yield* readTargetSchema(targetSchemaPath);
-		const currentSchema = yield* context.readCurrentSchema();
-		const schemaInSync =
-			normalizeSchema(currentSchema) === normalizeSchema(targetSchema);
+		const { targetSchemaPath, schemaInSync } = yield* readSchemas(
+			params.schemaPathOverride,
+		);
 
 		yield* Effect.logInfo(`Target schema file: ${targetSchemaPath}`);
 		yield* Effect.logInfo(
@@ -97,33 +38,9 @@ export const runConvergeStatus = (params: SpiceConvergeRunOptions = {}) =>
 
 export const runConvergeUp = (params: SpiceConvergeRunOptions = {}) =>
 	Effect.gen(function* () {
-		const targetSchemaPath = resolveSchemaPath(params.schemaPathOverride);
-		const context = createContext();
-
-		for (const operation of operations) {
-			const shouldRun = yield* operation.shouldRun(context);
-			if (!shouldRun) {
-				yield* Effect.logInfo(
-					`[${operation.id}] Skip: ${operation.description}`,
-				);
-				continue;
-			}
-
-			yield* Effect.logInfo(`[${operation.id}] Run: ${operation.description}`);
-			if (params.dryRun === true) {
-				continue;
-			}
-
-			yield* operation.run({
-				...context,
-				log: (message) => Effect.logInfo(`[${operation.id}] ${message}`),
-			});
-		}
-
-		const targetSchema = yield* readTargetSchema(targetSchemaPath);
-		const currentSchema = yield* context.readCurrentSchema();
-		const schemaInSync =
-			normalizeSchema(currentSchema) === normalizeSchema(targetSchema);
+		const { targetSchemaPath, targetSchema, schemaInSync } = yield* readSchemas(
+			params.schemaPathOverride,
+		);
 
 		if (schemaInSync) {
 			yield* Effect.logInfo("SpiceDB schema already matches target schema");
@@ -136,6 +53,6 @@ export const runConvergeUp = (params: SpiceConvergeRunOptions = {}) =>
 		}
 
 		yield* Effect.logInfo(`Applying target schema from ${targetSchemaPath}`);
-		yield* context.writeSchema(targetSchema);
+		yield* writeSchema(targetSchema);
 		yield* Effect.logInfo("SpiceDB schema deployed successfully");
 	});

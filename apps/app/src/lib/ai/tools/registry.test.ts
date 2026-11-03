@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { m } from "@/paraglide/messages";
 import { formatNames, type NameOf } from "./declaration";
 import type { EntityRef } from "./entity-kind";
 import { type ToolName, toolLabels, toolSummary } from "./registry";
@@ -664,6 +665,69 @@ describe("readDocs summary", () => {
 		);
 		expect(line(read("/docs/using-orcai/bots", null))).toBe(
 			"Read the docs page /docs/using-orcai/bots",
+		);
+	});
+});
+
+describe("block summaries", () => {
+	const line = (
+		name: string,
+		call: {
+			input: unknown;
+			output?: unknown;
+		},
+	) => summaryOf(name, call).line(lookedUp);
+	const quoted = m.assistant_tool_quoted_name({
+		name: "Strict",
+	});
+
+	test("getBlock reads a behaviour and a repository differently", () => {
+		expect(
+			line("getBlock", {
+				input: {},
+				output: {
+					type: "behaviour",
+					name: "Strict",
+				},
+			}),
+		).toBe(
+			m.assistant_tool_get_block_summary_behaviour({
+				name: quoted,
+			}),
+		);
+		expect(
+			line("getBlock", {
+				input: {},
+				output: {
+					type: "repository",
+					name: "Strict",
+				},
+			}),
+		).toBe(
+			m.assistant_tool_get_block_summary_repository({
+				name: quoted,
+			}),
+		);
+	});
+
+	test("findBlocks with a behaviour filter counts behaviours", () => {
+		expect(
+			line("findBlocks", {
+				input: {
+					type: "behaviour",
+					query: "APA",
+				},
+				output: {
+					total: 2,
+				},
+			}),
+		).toBe(
+			m.assistant_tool_find_blocks_summary_behaviours_query({
+				count: 2,
+				query: m.assistant_tool_quoted_name({
+					name: "APA",
+				}),
+			}),
 		);
 	});
 });
