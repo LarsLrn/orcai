@@ -90,6 +90,7 @@ const replyStream = () => {
 			for (const chunk of chunks) controller.enqueue(chunk);
 		},
 		close: () => controller.close(),
+		fail: (error: Error) => controller.error(error),
 	};
 };
 
@@ -441,6 +442,81 @@ describe("ChatSession", () => {
 		expect(chat.chat.error?.message).toBe("Model unavailable");
 	});
 
+	describe("a continuation that ends before its finish shows the reply as stored", () => {
+		/** A paused reply that said why it stopped, and the same reply after the server settled its continuation. */
+		const cutOffContinuation = () => {
+			const before = {
+				...paused(deleteBot("approval-requested")),
+				metadata: {
+					interrupted: true,
+					stepLimitReached: true,
+				},
+			};
+			const settled = {
+				...paused(deleteBot("approval-responded", true)),
+				metadata: {},
+			};
+			const turn = replyStream();
+			const { port, calls } = fakePort({
+				replies: [
+					() => turn.stream,
+				],
+				stored: [
+					{
+						...settled,
+						metadata: {
+							continuedAt: "2026-11-03T08:00:00.000Z",
+						},
+					},
+					settled,
+				],
+			});
+			const chat = session(port, {
+				messages: [
+					message("question-1", "user", [
+						text("Delete it"),
+					]),
+					before,
+				],
+			});
+			chat.answers.approve({
+				id: "approval-1",
+				approved: true,
+			});
+			return {
+				chat,
+				calls,
+				turn,
+			};
+		};
+
+		test("when stopped", async () => {
+			const { chat, calls, turn } = cutOffContinuation();
+			await until(() => calls.continue.length === 1);
+			turn.push(...reply("reply-1", "Del").slice(0, 4));
+			await until(() => chat.phase === "streaming");
+
+			await chat.stop();
+
+			expect(calls.find).toHaveLength(2);
+			expect(chat.chat.lastMessage?.metadata).toEqual({});
+		});
+
+		test("when its stream fails", async () => {
+			const { chat, calls, turn } = cutOffContinuation();
+			await until(() => calls.continue.length === 1);
+			turn.push(...reply("reply-1", "Del").slice(0, 4));
+			await until(() => chat.phase === "streaming");
+
+			turn.fail(new Error("Connection lost"));
+			await until(() => calls.turnEnded.length === 1);
+
+			expect(chat.phase).toBe("error");
+			expect(calls.find).toHaveLength(2);
+			expect(chat.chat.lastMessage?.metadata).toEqual({});
+		});
+	});
+
 	test("answering the last approval continues with the step's answers", async () => {
 		const { port, calls } = fakePort({
 			replies: [
@@ -774,6 +850,11 @@ describe("ChatSession", () => {
 						},
 					});
 				},
+			],
+			stored: [
+				message("reply-1", "assistant", [
+					text("Answered in another tab"),
+				]),
 			],
 			pages: [
 				{

@@ -129,6 +129,7 @@ describe("startTurn", () => {
 				],
 			],
 		]);
+		expect(chat.messages().at(-1)?.metadata.interrupted).toBe(false);
 		expect(quota.calls.settle).toHaveLength(1);
 		expect(quota.calls.settle[0]?.steps).toHaveLength(1);
 	});
@@ -191,6 +192,35 @@ describe("startTurn", () => {
 		]);
 	});
 
+	test.each([
+		"anthropic",
+		"openai",
+	] as const)(
+		"keeps a reply whose %s stream was cut off, and marks it",
+		async (kind) => {
+			answerSetup({
+				providerKind: kind,
+				providerModelId: kind === "anthropic" ? "claude-opus-5-5" : "gpt-5.5",
+			});
+			const chat = await conversation(chatRow(), kind);
+			chat.script([
+				{
+					text: "The first half",
+					cutOff: true,
+				},
+			]);
+
+			await chat.send("Hi");
+
+			const reply = chat.messages().at(-1);
+			expect(textOf(reply?.parts ?? [])).toEqual([
+				"The first half",
+			]);
+			expect(reply?.metadata.interrupted).toBe(true);
+			expect(quota.calls.settle).toHaveLength(1);
+		},
+	);
+
 	test("charges a stopped turn the tokens of its finished steps", async () => {
 		quota.pool = {
 			meteringMode: "tokens",
@@ -243,6 +273,7 @@ describe("startTurn", () => {
 			},
 		]);
 		expect(chat.messages().at(-1)?.metadata.timeLimitReached).toBeUndefined();
+		expect(chat.messages().at(-1)?.metadata.interrupted).toBeUndefined();
 	});
 
 	test("ends a turn that runs out of time like a stopped one, and says so", async () => {
@@ -929,6 +960,71 @@ describe("continueTurn", () => {
 		expect(JSON.stringify(chat.bodies.at(-1))).toContain(
 			"Tool call execution denied.",
 		);
+	});
+
+	test("marks a continued reply whose stream was cut off", async () => {
+		const chat = await pausedAssistant();
+		chat.script([
+			{
+				text: "Deleted the",
+				cutOff: true,
+			},
+		]);
+
+		await chat.decide(true);
+
+		const reply = chat.messages().at(-1);
+		expect(textOf(reply?.parts ?? [])).toContain("Deleted the");
+		expect(reply?.metadata.interrupted).toBe(true);
+	});
+
+	test("clears the cut-off mark of a paused reply once its continuation finishes", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		chat.script([
+			{
+				calls: [
+					deleteDraft,
+				],
+				cutOff: true,
+			},
+		]);
+		await chat.send("Delete the old draft");
+		expect(toolStates(chat.messages().at(-1)?.parts ?? [])).toEqual([
+			"approval-requested",
+		]);
+		expect(chat.messages().at(-1)?.metadata.interrupted).toBe(true);
+		chat.script([
+			{
+				text: "Deleted.",
+			},
+		]);
+
+		await chat.decide(true);
+
+		expect(chat.messages().at(-1)?.metadata.interrupted).toBe(false);
+	});
+
+	test("clears why a paused reply stopped early once its continuation finishes", async () => {
+		const chat = await pausedAssistant();
+		// A step that asks for approval can also be the last one the turn had room or time for.
+		Object.assign(chat.messages().at(-1)?.metadata ?? {}, {
+			stepLimitReached: true,
+			contextLimitReached: true,
+			timeLimitReached: true,
+		});
+		chat.script([
+			{
+				text: "Deleted.",
+			},
+		]);
+
+		await chat.decide(true);
+
+		expect(chat.messages().at(-1)?.metadata).toMatchObject({
+			stepLimitReached: false,
+			contextLimitReached: false,
+			timeLimitReached: false,
+		});
 	});
 
 	test("keeps the approved plan in the instructions, and drops a proposal the user moved past", async () => {

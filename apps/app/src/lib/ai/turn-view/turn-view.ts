@@ -293,7 +293,8 @@ const missingAnswer = (
 		if (message.parts.length > 0) return undefined;
 		return running ? "waiting" : "pending";
 	}
-	if (answer.length > 0) {
+	// The cut-off notice already says why.
+	if (answer.length > 0 || message.metadata?.interrupted) {
 		return undefined;
 	}
 	return message.metadata?.stepLimitReached ? "step-limit" : "no-answer";
