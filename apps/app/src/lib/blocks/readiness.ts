@@ -5,7 +5,6 @@ import type { AssetReadiness, RepositoryReadiness } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { readableIds } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 
 /**
@@ -30,11 +29,9 @@ export const loadRepositoryReadiness = (params: {
 			organizationId: params.organizationId,
 			zedToken: params.zedToken,
 		});
-		const readable = yield* readableIds("block", blockIds, {
-			userId: params.userId,
-			zedToken: params.zedToken,
-		});
-		const repositoryIds = blockIds.filter((blockId) => readable.has(blockId));
+		const repositoryIds = blockIds.filter(
+			(blockId) => capabilities.get(blockId)?.read,
+		);
 		if (repositoryIds.length === 0) return [];
 
 		const [blocks, rows] = yield* Effect.all(

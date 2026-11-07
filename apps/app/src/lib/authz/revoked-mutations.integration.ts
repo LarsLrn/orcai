@@ -3,6 +3,7 @@ import { expect, test } from "bun:test";
 import { DB, dbSchema } from "@orcai/db";
 import { and, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
@@ -38,7 +39,7 @@ for (const action of [
 				"member",
 			]);
 			const p = await run(Procedures);
-			const { call, observe } = caller(zedToken);
+			const { call, observe, token } = caller(zedToken);
 			const { asset, zedToken: created } = await createAsset(
 				owner,
 				organizationId,
@@ -60,6 +61,22 @@ for (const action of [
 					o,
 				),
 			);
+			const before = await run(
+				getEntityCapabilities({
+					entityType: "asset",
+					entityId: asset.id,
+					userId: member.user.id,
+					organizationId,
+					zedToken: token(),
+				}),
+			);
+			expect(before.read).toBe(true);
+			expect(before.use).toBe(true);
+			expect(before.edit).toBe(true);
+			expect(before.delete).toBe(action !== "save");
+			expect(before.manage_access).toBe(action !== "save");
+			expect(before.download).toBe(true);
+			expect(before.fork).toBe(true);
 			// Failure injection: keep delivered tuples while the fresh grant is revoked in Postgres.
 			// This matches a committed revocation whose outbox delivery is pending.
 			await run(
@@ -77,6 +94,37 @@ for (const action of [
 						);
 				}),
 			);
+			const capabilities = await run(
+				getEntityCapabilities({
+					entityType: "asset",
+					zedToken: token(),
+					entityId: asset.id,
+					userId: member.user.id,
+					organizationId,
+				}),
+			);
+			expect(capabilities.read).toBe(false);
+			expect(capabilities.use).toBe(false);
+			expect(capabilities.edit).toBe(false);
+			expect(capabilities.delete).toBe(false);
+			expect(capabilities.manage_access).toBe(false);
+			expect(capabilities.download).toBe(false);
+			expect(capabilities.fork).toBe(false);
+			const aliases = await run(
+				getEntityCapabilities({
+					entityType: "asset",
+					entityId: asset.id,
+					userId: member.user.id,
+					organizationId,
+					zedToken: token(),
+					permissions: [
+						"download",
+						"fork",
+					],
+				}),
+			);
+			expect(aliases.download).toBe(false);
+			expect(aliases.fork).toBe(false);
 			expect(
 				await refused(
 					call(member, (o) =>
