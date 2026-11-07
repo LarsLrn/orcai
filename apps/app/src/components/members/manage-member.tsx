@@ -1,4 +1,4 @@
-import type { UserWithOrganizationRole } from "@orcai/schema";
+import type { OrganizationMemberUser } from "@orcai/schema";
 import { useNavigate } from "@tanstack/react-router";
 import {
 	KeyRoundIcon,
@@ -20,7 +20,7 @@ import { useUpdateOrganizationMemberMutation } from "@/hooks/mutations/use-organ
 import { useResendVerificationEmail } from "@/hooks/mutations/use-resend-verification-email";
 import { m } from "@/paraglide/messages";
 
-const ManageMember = ({ member }: { member: UserWithOrganizationRole }) => {
+const ManageMember = ({ member }: { member: OrganizationMemberUser }) => {
 	const { assignableRoles, canManageRole, canManageMember } =
 		useMembershipControl();
 	const navigate = useNavigate();

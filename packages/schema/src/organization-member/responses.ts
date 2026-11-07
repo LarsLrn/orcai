@@ -4,15 +4,18 @@ import {
 	createDataResponseSchema,
 	createListResponseSchema,
 } from "../shared/responses";
-import { userWithOrganizationRoleSchema } from "../user/schema";
-import { memberAccessEntrySchema, organizationMemberSchema } from "./schema";
+import {
+	memberAccessEntrySchema,
+	organizationMemberSchema,
+	organizationMemberUserSchema,
+} from "./schema";
 
 export const listOrganizationMembersResponseSchema = createListResponseSchema(
-	userWithOrganizationRoleSchema,
+	organizationMemberUserSchema,
 );
 
 export const findOrganizationMemberResponseSchema = createDataResponseSchema(
-	userWithOrganizationRoleSchema,
+	organizationMemberUserSchema,
 );
 
 export const listMemberAccessResponseSchema = createListResponseSchema(

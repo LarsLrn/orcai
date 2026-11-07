@@ -15,6 +15,7 @@ import {
 	organizationIdSchema,
 	userIdSchema,
 } from "../shared/ids";
+import { userSchema } from "../user/schema";
 
 const organizationMemberFieldsSchema = z.object({
 	organizationId: organizationIdSchema,
@@ -34,6 +35,26 @@ export const organizationMemberSchema = organizationMemberFieldsSchema.extend({
 	id: memberIdSchema,
 	createdAt: z.coerce.date().nullable(),
 });
+
+/** A member as organisation managers see them: no account moderation details or preferences. */
+export const organizationMemberUserSchema = userSchema
+	.pick({
+		id: true,
+		name: true,
+		email: true,
+		emailVerified: true,
+		image: true,
+		banned: true,
+		createdAt: true,
+		updatedAt: true,
+	})
+	.extend({
+		organizationRole: organizationRoleSchema,
+	});
+
+export type OrganizationMemberUser = z.infer<
+	typeof organizationMemberUserSchema
+>;
 
 export const MEMBER_ACCESS_ORIGIN = {
 	...RESOURCE_GRANT_ORIGIN,

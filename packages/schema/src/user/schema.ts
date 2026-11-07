@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { organizationRoleSchema } from "../organization/schema";
 import { searchFilterSchema } from "../shared/filters";
 import { userIdSchema } from "../shared/ids";
 import { preferencesSchema } from "./parts/preferences";
@@ -23,15 +22,7 @@ export const userSchema = userFieldsSchema.extend({
 	updatedAt: z.coerce.date(),
 });
 
-export const userWithOrganizationRoleSchema = userSchema.extend({
-	organizationRole: organizationRoleSchema,
-});
-
 /** Search over name and email, for the user lists. */
 export const userFiltersSchema = z.object({
 	...searchFilterSchema.shape,
 });
-
-export type UserWithOrganizationRole = z.infer<
-	typeof userWithOrganizationRoleSchema
->;
