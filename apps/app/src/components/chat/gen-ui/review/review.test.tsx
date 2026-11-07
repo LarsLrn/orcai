@@ -55,8 +55,17 @@ const lastCopy = async () => {
 	};
 };
 
+const activeContent = () => {
+	const tab = screen.queryByRole("tab", {
+		selected: true,
+	});
+	const panel =
+		tab && document.getElementById(tab.getAttribute("aria-controls") ?? "");
+	return panel ? within(panel) : screen;
+};
+
 const rowOf = (label: string) => {
-	const row = screen
+	const row = activeContent()
 		.getByText(label, {
 			exact: true,
 		})
@@ -203,12 +212,12 @@ describe("Review", () => {
 	});
 
 	test("shows the summary and general findings last as Overall", () => {
-		const { container } = render(
-			<Review view={readReview(outcomesReview)} streaming={false} />,
-		);
+		render(<Review view={readReview(outcomesReview)} streaming={false} />);
 
 		expect(screen.getByText(/Two outcomes need rewriting/)).toBeDefined();
-		const rows = container.querySelectorAll(":scope > div > ul > li");
+		const rows = screen
+			.getByRole("tabpanel")
+			.querySelectorAll(":scope > ul > li");
 		expect(rows[rows.length - 1].textContent).toContain("Overall");
 		expect(rows[rows.length - 1].textContent).toContain("Assessment alignment");
 	});
@@ -226,19 +235,30 @@ describe("Review", () => {
 			/>,
 		);
 
-		expect(screen.queryByRole("group")).toBeNull();
+		expect(screen.queryByRole("tablist")).toBeNull();
+		expect(screen.queryByRole("tabpanel")).toBeNull();
 		expect(screen.queryByText("Changes")).toBeNull();
 	});
 
 	test("shows a word diff in Changes, stacked for a rewrite", () => {
-		const { container } = render(
-			<Review view={readReview(outcomesReview)} streaming={false} />,
-		);
+		render(<Review view={readReview(outcomesReview)} streaming={false} />);
 
 		fireEvent.click(
-			screen.getByRole("button", {
+			screen.getByRole("tab", {
 				name: "Changes",
 			}),
+		);
+
+		expect(
+			screen
+				.getByRole("tab", {
+					name: "Changes",
+				})
+				.getAttribute("aria-controls"),
+		).toBe(
+			screen.getByRole("tabpanel", {
+				name: "Changes",
+			}).id,
 		);
 
 		const outcome4 = rowOf("Outcome 4");
@@ -265,13 +285,15 @@ describe("Review", () => {
 		);
 
 		expect(marksOf(rowOf("Outcome 2"))).toEqual([]);
-		expect(container.textContent).not.toContain("Two outcomes need rewriting");
+		expect(
+			activeContent().queryByText(/Two outcomes need rewriting/),
+		).toBeNull();
 	});
 
 	test("strips emphasis markers from the diff", () => {
 		render(<Review view={readReview(referenceReview)} streaming={false} />);
 		fireEvent.click(
-			screen.getByRole("button", {
+			screen.getByRole("tab", {
 				name: "Changes",
 			}),
 		);
@@ -282,12 +304,12 @@ describe("Review", () => {
 	test("shows revisions or the unrevised text in Revised", async () => {
 		render(<Review view={readReview(outcomesReview)} streaming={false} />);
 		fireEvent.click(
-			screen.getByRole("button", {
+			screen.getByRole("tab", {
 				name: "Revised",
 			}),
 		);
 
-		expect(screen.queryByText("Outcome 1")).toBeNull();
+		expect(activeContent().queryByText("Outcome 1")).toBeNull();
 		await waitFor(() =>
 			expect(
 				screen.getByText(/^Compare the strengths and limitations/),
@@ -320,7 +342,7 @@ describe("Review", () => {
 	test("copies all revisions joined by blank lines", async () => {
 		render(<Review view={readReview(referenceReview)} streaming={false} />);
 		fireEvent.click(
-			screen.getByRole("button", {
+			screen.getByRole("tab", {
 				name: "Revised",
 			}),
 		);

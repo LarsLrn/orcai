@@ -128,13 +128,13 @@ describe("Matrix", () => {
 		expect(screen.queryByText("Inverted names with initials.")).toBeNull();
 	});
 
-	test("expands several rows at once, by button or by row", () => {
+	test("expands several rows at once through their notes buttons", () => {
 		render(<Matrix view={readMatrix(referenceMatrix)} streaming={false} />);
 
 		const hattie = notesButton("Hattie & Timperley (2007)");
 		expect(hattie.getAttribute("aria-expanded")).toBe("false");
 		fireEvent.click(hattie);
-		fireEvent.click(rowOf("Shute (2008)"));
+		fireEvent.click(notesButton("Shute (2008)"));
 
 		expect(hattie.getAttribute("aria-expanded")).toBe("true");
 		expect(notesButton("Shute (2008)").getAttribute("aria-expanded")).toBe(

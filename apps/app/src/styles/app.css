@@ -225,9 +225,70 @@
 	html {
 		@apply font-sans;
 	}
-	/* Tailwind v4 dropped the pointer cursor on buttons. */
-	button:not([disabled]),
-	[role="button"]:not([disabled]) {
+	/* Native controls and Base UI's non-button interactive parts. */
+	:is(
+		button,
+		a[href],
+		summary,
+		[role="button"],
+		[role="link"],
+		[role="radio"],
+		[role="checkbox"],
+		[role="switch"],
+		[role="tab"],
+		[role="option"],
+		[role="menuitem"],
+		[role="menuitemcheckbox"],
+		[role="menuitemradio"],
+		[role="slider"],
+		[data-slot="slider-thumb"],
+		input[type="range"],
+		input[type="checkbox"],
+		input[type="radio"]
+	):not(
+		:disabled,
+		[disabled],
+		[aria-disabled="true"],
+		[data-disabled],
+		[aria-readonly="true"],
+		[data-readonly],
+		[readonly]
+	),
+	[data-slot="field"]:has(
+			:is(
+					[role="radio"],
+					[role="checkbox"],
+					[role="switch"],
+					input[type="checkbox"]:not([aria-hidden="true"]),
+					input[type="radio"]:not([aria-hidden="true"])
+				):not(
+					:disabled,
+					[disabled],
+					[aria-disabled="true"],
+					[data-disabled],
+					[aria-readonly="true"],
+					[data-readonly],
+					[readonly]
+				)
+		)
+		[data-slot="field-label"],
+	label:has(
+		:is(
+				[role="radio"],
+				[role="checkbox"],
+				[role="switch"],
+				input[type="checkbox"]:not([aria-hidden="true"]),
+				input[type="radio"]:not([aria-hidden="true"])
+			):not(
+				:disabled,
+				[disabled],
+				[aria-disabled="true"],
+				[data-disabled],
+				[aria-readonly="true"],
+				[data-readonly],
+				[readonly]
+			)
+	) {
 		cursor: pointer;
 	}
 }

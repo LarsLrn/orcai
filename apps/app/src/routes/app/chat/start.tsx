@@ -63,7 +63,7 @@ function RouteComponent() {
 					<DialogTrigger
 						nativeButton={false}
 						render={
-							<Card className="group cursor-pointer justify-between transition-shadow hover:shadow-lg">
+							<Card className="group justify-between transition-shadow hover:shadow-lg">
 								<CardHeader className="text-center">
 									<div className="bg-primary/10 group-hover:bg-primary/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full transition-colors">
 										<BotIcon className="text-primary h-8 w-8" />
@@ -122,7 +122,7 @@ function RouteComponent() {
 					</DialogContent>
 				</Dialog>
 
-				<Card className="group h-full cursor-pointer justify-between transition-shadow hover:shadow-lg">
+				<Card className="group h-full justify-between transition-shadow hover:shadow-lg">
 					<button
 						type="button"
 						className="contents"

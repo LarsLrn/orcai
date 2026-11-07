@@ -83,37 +83,39 @@ const MetadataReview = ({
 			</div>
 			<ul className="space-y-2">
 				{fields.map((field) => (
-					<li key={field.field} className="flex items-start gap-3 text-sm">
-						<Checkbox
-							id={`${id}-${field.field}`}
-							checked={
-								accepted.has(field.field) &&
-								(!field.requiresType || accepted.has("sourceType"))
-							}
-							disabled={field.requiresType && !accepted.has("sourceType")}
-							onCheckedChange={(checked) =>
-								setChoices((current) => {
-									const next = new Map(current);
-									if (checked) next.set(field.field, field.current);
-									else next.delete(field.field);
-									return next;
-								})
-							}
-							className="mt-0.5"
-						/>
+					<li key={field.field}>
 						<label
 							htmlFor={`${id}-${field.field}`}
-							className="min-w-0 space-y-0.5"
+							className="flex items-start gap-3 text-sm"
 						>
-							<span className="block font-medium">
-								{metadataFieldLabels[field.field]()}
-							</span>
-							<span className="text-muted-foreground block line-through">
-								{shown(field.field, field.current)}
-							</span>
-							<span className="block break-words">
-								{shown(field.field, field.suggested)}
-							</span>
+							<Checkbox
+								id={`${id}-${field.field}`}
+								checked={
+									accepted.has(field.field) &&
+									(!field.requiresType || accepted.has("sourceType"))
+								}
+								disabled={field.requiresType && !accepted.has("sourceType")}
+								onCheckedChange={(checked) =>
+									setChoices((current) => {
+										const next = new Map(current);
+										if (checked) next.set(field.field, field.current);
+										else next.delete(field.field);
+										return next;
+									})
+								}
+								className="mt-0.5"
+							/>
+							<div className="min-w-0 space-y-0.5">
+								<span className="block font-medium">
+									{metadataFieldLabels[field.field]()}
+								</span>
+								<span className="text-muted-foreground block line-through">
+									{shown(field.field, field.current)}
+								</span>
+								<span className="block break-words">
+									{shown(field.field, field.suggested)}
+								</span>
+							</div>
 						</label>
 					</li>
 				))}

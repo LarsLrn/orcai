@@ -38,7 +38,7 @@ export const TextAlignSelector = ({ editor }: { editor: Editor }) => {
 						type="button"
 						key={alignment.label()}
 						onClick={() => runControl(editor, alignment)}
-						className="hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center space-x-2 rounded-md px-2 py-1.5"
+						className="hover:bg-accent hover:text-accent-foreground flex items-center space-x-2 rounded-md px-2 py-1.5"
 					>
 						<alignment.icon className="size-4" />
 						<span className="text-sm">{alignment.label()}</span>

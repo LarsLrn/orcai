@@ -9,7 +9,7 @@ import {
 import { StatusIcon, Tally } from "@/components/chat/gen-ui/status-icon";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	anchorFindings,
 	itemStatus,
@@ -243,6 +243,48 @@ const RevisedView = ({ items }: { items: readonly StreamedItem[] }) => {
 	);
 };
 
+const ReviewBody = ({
+	view: { summary, items, general },
+	tab,
+	streaming,
+}: {
+	view: ReviewView;
+	tab: Tab;
+	streaming: boolean;
+}) => (
+	<>
+		{summary && tab === "findings" && (
+			<div className="text-muted-foreground border-b px-4 py-3 text-sm">
+				<MessageResponse>{summary}</MessageResponse>
+			</div>
+		)}
+
+		{tab === "revised" ? (
+			<RevisedView items={items} />
+		) : (
+			<ul className="divide-y">
+				{items.map((item, index) => (
+					<ItemRow key={index} item={item} tab={tab} streaming={streaming} />
+				))}
+				{general.length > 0 && (
+					<li className="bg-muted/30 space-y-2.5 px-4 py-3">
+						<span className="text-sm font-medium">
+							{m.gen_ui_review_overall()}
+						</span>
+						<Findings findings={general} />
+					</li>
+				)}
+				{items.length === 0 && streaming && (
+					<li className="space-y-2 px-4 py-3">
+						<Skeleton className="h-4 w-full" />
+						<Skeleton className="h-4 w-2/3" />
+					</li>
+				)}
+			</ul>
+		)}
+	</>
+);
+
 export const Review = ({
 	view,
 	streaming,
@@ -251,83 +293,60 @@ export const Review = ({
 	streaming: boolean;
 }) => {
 	const [tab, setTab] = useState<Tab>("findings");
-	const { title, summary, items, general } = view;
+	const { title, items } = view;
 	const hasRevisions = items.some((item) => item.revised);
-	const shown = hasRevisions ? tab : "findings";
+	const heading = (
+		<div className="min-w-0 space-y-1">
+			{title ? (
+				<h3 className="text-sm font-medium">{title}</h3>
+			) : (
+				<Skeleton className="h-4 w-40" />
+			)}
+			<Tally statuses={items.map((item) => itemStatus(item.findings))} />
+		</div>
+	);
 
-	return (
-		<div className="bg-card overflow-hidden rounded-xl border">
-			<div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-				<div className="min-w-0 space-y-1">
-					{title ? (
-						<h3 className="text-sm font-medium">{title}</h3>
-					) : (
-						<Skeleton className="h-4 w-40" />
-					)}
-					<Tally statuses={items.map((item) => itemStatus(item.findings))} />
+	if (!hasRevisions)
+		return (
+			<div className="bg-card overflow-hidden rounded-xl border">
+				<div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+					{heading}
 				</div>
-				{hasRevisions && (
-					<ToggleGroup
-						aria-label={m.gen_ui_review_view_label()}
-						value={[
-							shown,
-						]}
-						onValueChange={(value) => {
-							const next = TABS.find((candidate) => candidate === value[0]);
-							if (next) {
-								setTab(next);
-							}
-						}}
-						variant="outline"
-						size="sm"
-					>
-						<ToggleGroupItem value="findings">
-							{m.gen_ui_review_view_findings()}
-						</ToggleGroupItem>
-						<ToggleGroupItem value="changes">
-							{m.gen_ui_review_view_changes()}
-						</ToggleGroupItem>
-						<ToggleGroupItem value="revised">
-							{m.gen_ui_review_view_revised()}
-						</ToggleGroupItem>
-					</ToggleGroup>
-				)}
+				<ReviewBody view={view} tab="findings" streaming={streaming} />
+			</div>
+		);
+	return (
+		<Tabs
+			value={tab}
+			onValueChange={(value) => {
+				const next = TABS.find((candidate) => candidate === value);
+				if (next) setTab(next);
+			}}
+			className="bg-card gap-0 overflow-hidden rounded-xl border"
+		>
+			<div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+				{heading}
+				<TabsList
+					aria-label={m.gen_ui_review_view_label()}
+					className="h-auto max-w-full flex-wrap"
+				>
+					<TabsTrigger value="findings">
+						{m.gen_ui_review_view_findings()}
+					</TabsTrigger>
+					<TabsTrigger value="changes">
+						{m.gen_ui_review_view_changes()}
+					</TabsTrigger>
+					<TabsTrigger value="revised">
+						{m.gen_ui_review_view_revised()}
+					</TabsTrigger>
+				</TabsList>
 			</div>
 
-			{summary && shown === "findings" && (
-				<div className="text-muted-foreground border-b px-4 py-3 text-sm">
-					<MessageResponse>{summary}</MessageResponse>
-				</div>
-			)}
-
-			{shown === "revised" ? (
-				<RevisedView items={items} />
-			) : (
-				<ul className="divide-y">
-					{items.map((item, index) => (
-						<ItemRow
-							key={index}
-							item={item}
-							tab={shown}
-							streaming={streaming}
-						/>
-					))}
-					{general.length > 0 && (
-						<li className="bg-muted/30 space-y-2.5 px-4 py-3">
-							<span className="text-sm font-medium">
-								{m.gen_ui_review_overall()}
-							</span>
-							<Findings findings={general} />
-						</li>
-					)}
-					{items.length === 0 && streaming && (
-						<li className="space-y-2 px-4 py-3">
-							<Skeleton className="h-4 w-full" />
-							<Skeleton className="h-4 w-2/3" />
-						</li>
-					)}
-				</ul>
-			)}
-		</div>
+			{TABS.map((value) => (
+				<TabsContent key={value} value={value}>
+					<ReviewBody view={view} tab={value} streaming={streaming} />
+				</TabsContent>
+			))}
+		</Tabs>
 	);
 };

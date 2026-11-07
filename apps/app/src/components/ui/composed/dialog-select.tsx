@@ -324,7 +324,7 @@ function DialogSelectItem({
 			size="sm"
 			variant="default"
 			className={cn(
-				"hover:bg-muted cursor-pointer rounded-2xl transition-colors select-none",
+				"hover:bg-muted rounded-2xl transition-colors select-none",
 				isSelected && "bg-muted",
 				disabled && "pointer-events-none opacity-50",
 				className,
