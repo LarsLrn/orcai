@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import type { AssetId, ChatId, ChatMessageId } from "@orcai/core";
 import type {
 	ContinueChatInput,
@@ -183,6 +183,50 @@ const writingReply = (id: string, zedToken: string): UIMessageChunk[] => [
 	},
 ];
 
+/** A reply that pauses on `deleteBot`'s approval. */
+const pausingReply: UIMessageChunk[] = [
+	{
+		type: "start",
+		messageId: "reply-1",
+	},
+	{
+		type: "start-step",
+	},
+	{
+		type: "tool-input-available",
+		toolCallId: "delete-1",
+		toolName: "deleteBot",
+		input: {
+			ids: [
+				"bot-1",
+			],
+		},
+	},
+	{
+		type: "tool-approval-request",
+		approvalId: "approval-1",
+		toolCallId: "delete-1",
+	},
+	{
+		type: "finish-step",
+	},
+	{
+		type: "finish",
+	},
+];
+
+/** Refreshes that finish only when the test releases them, in order. */
+const slowRefreshes = () => {
+	const pending: (() => void)[] = [];
+	return {
+		pending,
+		next: () =>
+			new Promise<void>((resolve) => {
+				pending.push(resolve);
+			}),
+	};
+};
+
 const streamOf = (chunks: UIMessageChunk[]) =>
 	new ReadableStream<UIMessageChunk>({
 		start: (controller) => {
@@ -199,6 +243,7 @@ const fakePort = (
 		pages?: ChatPage[];
 		keepUploads?: (input: KeepUploadsInput) => Promise<KeptUploads>;
 		recordWrites?: () => Promise<void>;
+		turnEnded?: () => Promise<void>;
 	} = {},
 ) => {
 	const replies = [
@@ -272,7 +317,7 @@ const fakePort = (
 		},
 		turnEnded: (message) => {
 			calls.turnEnded.push(message);
-			return Promise.resolve();
+			return options.turnEnded?.() ?? Promise.resolve();
 		},
 	};
 	return {
@@ -665,6 +710,169 @@ describe("ChatSession", () => {
 				toolOutputs: [],
 				zedToken: undefined,
 			},
+		]);
+	});
+
+	test("a failed refresh after a turn leaves later sends working", async () => {
+		let refreshes = 0;
+		const { port } = fakePort({
+			replies: [
+				() => streamOf(reply("reply-1", "Hello")),
+				() => streamOf(reply("reply-2", "Again")),
+			],
+			turnEnded: () =>
+				++refreshes === 1
+					? Promise.reject(new Error("refresh offline"))
+					: Promise.resolve(),
+		});
+		const chat = session(port);
+		const logged = spyOn(console, "error").mockImplementation(() => undefined);
+
+		try {
+			expect(
+				await chat.send({
+					text: "first",
+				}),
+			).toBe(true);
+			expect(
+				await chat.send({
+					text: "second",
+				}),
+			).toBe(true);
+			expect(logged.mock.calls).toEqual([
+				[
+					new Error("refresh offline"),
+				],
+			]);
+		} finally {
+			logged.mockRestore();
+		}
+
+		expect(texts(chat)).toEqual([
+			[
+				"first",
+			],
+			[
+				"Hello",
+			],
+			[
+				"second",
+			],
+			[
+				"Again",
+			],
+		]);
+		expect(chat.phase).toBe("idle");
+	});
+
+	test("stop and the next send wait for the turn's refresh", async () => {
+		const refreshed = slowRefreshes();
+		const { port, calls } = fakePort({
+			replies: [
+				() => streamOf(reply("reply-1", "Hello")),
+				() => streamOf(reply("reply-2", "Again")),
+			],
+			turnEnded: refreshed.next,
+		});
+		const chat = session(port);
+		const done: string[] = [];
+
+		const first = chat
+			.send({
+				text: "first",
+			})
+			.then(() => done.push("first"));
+		await until(() => refreshed.pending.length === 1);
+		const stopped = chat.stop().then(() => done.push("stopped"));
+		const second = chat.send({
+			text: "second",
+		});
+		await tick();
+		expect(done).toEqual([]);
+		expect(calls.chat).toHaveLength(1);
+
+		refreshed.pending[0]?.();
+		await Promise.all([
+			first,
+			stopped,
+		]);
+		await until(() => refreshed.pending.length === 2);
+		expect(calls.chat).toHaveLength(2);
+		refreshed.pending[1]?.();
+		expect(await second).toBe(true);
+	});
+
+	test("a step answered while the turn before refreshes continues once the refresh is done", async () => {
+		const refreshed = slowRefreshes();
+		const { port, calls } = fakePort({
+			replies: [
+				() => streamOf(pausingReply),
+				() => streamOf(reply("reply-1", "Deleted")),
+			],
+			turnEnded: refreshed.next,
+		});
+		const chat = session(port);
+
+		const sent = chat.send({
+			text: "Delete it",
+		});
+		await until(() => refreshed.pending.length === 1);
+		chat.answers.approve({
+			id: "approval-1",
+			approved: true,
+		});
+		await tick();
+		expect(calls.continue).toHaveLength(0);
+
+		refreshed.pending[0]?.();
+		await sent;
+		await until(() => refreshed.pending.length === 2);
+		expect(calls.continue).toHaveLength(1);
+		refreshed.pending[1]?.();
+	});
+
+	test("a failed refresh after a continued step leaves the next send working", async () => {
+		let refreshes = 0;
+		const { port, calls } = fakePort({
+			replies: [
+				() => streamOf(reply("reply-1", "Deleted")),
+				() => streamOf(reply("reply-2", "Done")),
+			],
+			turnEnded: () =>
+				++refreshes === 1
+					? Promise.reject(new Error("refresh offline"))
+					: Promise.resolve(),
+		});
+		const chat = session(port, {
+			messages: [
+				message("question-1", "user", [
+					text("Delete it"),
+				]),
+				paused(deleteBot("approval-requested")),
+			],
+		});
+
+		chat.answers.approve({
+			id: "approval-1",
+			approved: true,
+		});
+		await until(() => calls.turnEnded.length === 1);
+
+		expect(
+			await chat.send({
+				text: "Thanks",
+			}),
+		).toBe(true);
+		expect(calls.chat.map(({ message }) => message.parts)).toEqual([
+			[
+				{
+					type: "text",
+					text: "Thanks",
+				},
+			],
+		]);
+		expect(texts(chat).at(-1)).toEqual([
+			"Done",
 		]);
 	});
 

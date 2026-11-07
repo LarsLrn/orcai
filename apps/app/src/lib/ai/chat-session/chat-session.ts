@@ -173,6 +173,8 @@ export class ChatSession {
 			},
 			transport: {
 				sendMessages: async ({ messages, abortSignal }) => {
+					// Continuations, the SDK's automatic ones included, open only once the turn before is stored and refreshed.
+					await this.#settled;
 					// Stop cuts the stream only once the server has answered, so the reply is already reserved.
 					const request = new AbortController();
 					const stream = await this.#open(messages.at(-1), request.signal);
@@ -183,7 +185,10 @@ export class ChatSession {
 				reconnectToStream: async () => null,
 			},
 			onFinish: (finish) => {
-				this.#settled = this.#settle(finish);
+				// The next turn waits on this, so it always resolves; a failed refresh only leaves cached views stale.
+				this.#settled = this.#settle(finish).catch((error: unknown) => {
+					console.error(error);
+				});
 			},
 			onError: (error) => {
 				if (errorReasonOf(error)?.reason === "CHAT_TURN_NOT_AWAITING") {
