@@ -124,69 +124,58 @@ export const loadBotEditor = (params: {
 		};
 	});
 
-const resolveLinkedBlocksForSave = (params: { input: SaveBotInput }) =>
+/** The behaviour first, then the repositories, without duplicates. */
+const requestedBlockIds = (input: SaveBotInput): BlockId[] => [
+	...(input.behaviourId
+		? [
+				input.behaviourId,
+			]
+		: []),
+	...new Set(input.repositoryIds),
+];
+
+/**
+ * Fails unless the behaviour id names a behaviour and every repository id a
+ * repository. Call it after {@link requireLinkableBlocks}, so only blocks the
+ * editor may link reveal their type.
+ */
+const requireLinkedBlockTypes = (input: SaveBotInput) =>
 	Effect.gen(function* () {
+		const blockIds = requestedBlockIds(input);
+		if (blockIds.length === 0) return;
 		const db = yield* DB;
-		const behaviourId = params.input.behaviourId;
-		const repositoryIds = Array.from(new Set(params.input.repositoryIds));
-		const nextBlockIds = [
-			...(behaviourId
-				? [
-						behaviourId,
-					]
-				: []),
-			...repositoryIds,
-		];
-
-		if (nextBlockIds.length === 0) {
-			return [];
-		}
-
-		const linkedBlocks = yield* db
+		const rows = yield* db
 			.select({
-				...getColumns(dbSchema.block),
+				id: dbSchema.block.id,
+				type: dbSchema.block.type,
 			})
 			.from(dbSchema.block)
-			.where(inArray(dbSchema.block.id, nextBlockIds))
-			.pipe(Effect.map((rows) => rows as Block[]));
-
-		if (linkedBlocks.length !== nextBlockIds.length) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "BLOCK_NOT_FOUND",
-					message: "One or more linked blocks could not be found.",
-				}),
-			);
-		}
-
-		const blockById = new Map(
-			linkedBlocks.map((block) => [
-				block.id,
-				block,
+			.where(inArray(dbSchema.block.id, blockIds));
+		const typeById = new Map(
+			rows.map((row) => [
+				row.id,
+				row.type,
 			]),
 		);
 
-		if (behaviourId && blockById.get(behaviourId)?.type !== "behaviour") {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "BEHAVIOUR_BLOCK_TYPE_INVALID",
-					message: "The linked behaviour id must name a behaviour.",
-				}),
-			);
+		if (rows.length !== blockIds.length) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "BLOCK_NOT_FOUND",
+				message: "One or more linked blocks could not be found.",
+			});
 		}
-
-		for (const repositoryId of repositoryIds) {
-			if (blockById.get(repositoryId)?.type !== "repository") {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "REPOSITORY_BLOCK_TYPE_INVALID",
-						message: "Every linked repository id must name a repository.",
-					}),
-				);
-			}
+		if (input.behaviourId && typeById.get(input.behaviourId) !== "behaviour") {
+			return yield* new AppErrors.BadRequestError({
+				reason: "BEHAVIOUR_BLOCK_TYPE_INVALID",
+				message: "The linked behaviour id must name a behaviour.",
+			});
 		}
-
-		return nextBlockIds;
+		if (input.repositoryIds.some((id) => typeById.get(id) !== "repository")) {
+			return yield* new AppErrors.BadRequestError({
+				reason: "REPOSITORY_BLOCK_TYPE_INVALID",
+				message: "Every linked repository id must name a repository.",
+			});
+		}
 	});
 
 /** The organisation a bot is home to, read under its lock. */
@@ -335,9 +324,7 @@ export const saveBotGraph = (params: {
 	Effect.gen(function* () {
 		const db = yield* DB;
 
-		const nextBlockIds = yield* resolveLinkedBlocksForSave({
-			input: params.input,
-		});
+		const nextBlockIds = requestedBlockIds(params.input);
 
 		const organizationIds = params.input.id
 			? yield* resourceOrganizations([
@@ -384,6 +371,7 @@ export const saveBotGraph = (params: {
 					userId: params.userId,
 					zedToken: params.zedToken,
 				});
+				yield* requireLinkedBlockTypes(params.input);
 				if (
 					yield* isListed({
 						resourceType: "bot",
