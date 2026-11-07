@@ -1,5 +1,3 @@
-import { Radio } from "@base-ui/react/radio";
-import { RadioGroup } from "@base-ui/react/radio-group";
 import type { LibraryScope, LibrarySort } from "@orcai/schema";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMatches, useNavigate, useSearch } from "@tanstack/react-router";
@@ -19,6 +17,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { FilterValues } from "@/lib/browse/browse-search";
 import {
@@ -29,7 +28,6 @@ import {
 } from "@/lib/library/library-filters";
 import { orpc } from "@/lib/orpc/orpc";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
-import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 /** The library's list views; every other library route is a detail or form. */
@@ -129,39 +127,33 @@ const ScopeSwitch = ({
 	scope: LibraryScope;
 	onScope: (scope: LibraryScope) => void;
 }) => (
-	<RadioGroup
-		value={scope}
-		onValueChange={(value) => onScope(value as LibraryScope)}
-		aria-label={m.library_scope_label()}
-		className="bg-muted grid grid-cols-2 rounded-full p-1 text-sm"
-	>
-		{(
-			[
+	<Tabs value={scope} onValueChange={(value) => onScope(value as LibraryScope)}>
+		<TabsList
+			activateOnFocus
+			aria-label={m.library_scope_label()}
+			className="grid w-full grid-cols-2"
+		>
+			{(
 				[
-					"all",
-					m.library_scope_all(),
-					LibraryIcon,
-				],
-				[
-					"edit",
-					m.library_scope_mine(),
-					UserIcon,
-				],
-			] as const
-		).map(([value, label, Icon]) => (
-			<Radio.Root
-				key={value}
-				value={value}
-				className={cn(
-					"text-muted-foreground hover:text-foreground focus-visible:ring-ring/75 flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition-colors outline-none focus-visible:ring-[3px]",
-					"data-checked:bg-background data-checked:text-foreground data-checked:font-medium data-checked:shadow-xs",
-				)}
-			>
-				<Icon aria-hidden="true" className="size-3.5" />
-				{label}
-			</Radio.Root>
-		))}
-	</RadioGroup>
+					[
+						"all",
+						m.library_scope_all(),
+						LibraryIcon,
+					],
+					[
+						"edit",
+						m.library_scope_mine(),
+						UserIcon,
+					],
+				] as const
+			).map(([value, label, Icon]) => (
+				<TabsTrigger key={value} value={value}>
+					<Icon aria-hidden="true" className="size-3.5" />
+					{label}
+				</TabsTrigger>
+			))}
+		</TabsList>
+	</Tabs>
 );
 
 /** The page title with the active organisation's name in the line under it. */

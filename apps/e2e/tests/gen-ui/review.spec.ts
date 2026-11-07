@@ -135,7 +135,7 @@ test("gen-ui: a review renders findings, changes and revisions", async ({
 	await expect(log.getByText(GENERAL_NOTE)).toBeVisible();
 
 	const view = (key: string) =>
-		log.getByRole("button", {
+		log.getByRole("tab", {
 			name: message(key),
 			exact: true,
 		});

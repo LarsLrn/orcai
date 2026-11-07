@@ -57,6 +57,7 @@ test("gen-ui: the bot editor saves Generative UI and its chats offer the checkli
 		}),
 	).toBeVisible();
 	await expect(genUiSwitch(page)).not.toBeChecked();
+	await expect(genUiSwitch(page)).toHaveCSS("cursor", "pointer");
 	await genUiSwitch(page).click();
 	await expect(genUiSwitch(page)).toBeChecked();
 	await page
@@ -94,7 +95,27 @@ test("gen-ui: a plain chat's switch saves at once and decides the tools offered"
 	expect(completionBodies(inference).at(-1)?.tools).toBeUndefined();
 
 	const settings = await openChatSettings(page);
+	let releaseUpdate!: () => void;
+	const updateGate = new Promise<void>((resolve) => {
+		releaseUpdate = resolve;
+	});
+	await page.route("**/api/rpc/chat/update**", async (route) => {
+		await updateGate;
+		await route.continue();
+	});
+	const updated = page.waitForResponse("**/api/rpc/chat/update**");
 	await settings.getByRole("switch").click();
+	try {
+		await expect(genUiSwitch(page)).toBeDisabled();
+		await expect(genUiSwitch(page)).not.toHaveCSS("cursor", "pointer");
+		await expect(
+			genUiSwitch(page).locator("xpath=ancestor::label"),
+		).not.toHaveCSS("cursor", "pointer");
+	} finally {
+		releaseUpdate();
+	}
+	await updated;
+	await page.unroute("**/api/rpc/chat/update**");
 	await expect(genUiSwitch(page)).toBeChecked();
 	await expect
 		.poll(
@@ -148,6 +169,10 @@ test("gen-ui: a bot-linked chat shows the bot's features read-only", async ({
 	const settings = await openChatSettings(page);
 	await expect(genUiSwitch(page)).toBeChecked();
 	await expect(genUiSwitch(page)).toHaveAttribute("aria-readonly", "true");
+	await expect(genUiSwitch(page)).not.toHaveCSS("cursor", "pointer");
+	await expect(
+		genUiSwitch(page).locator("xpath=ancestor::label"),
+	).not.toHaveCSS("cursor", "pointer");
 	await expect(
 		settings.getByText(message("chat_settings_features_bot_managed_notice")),
 	).toBeVisible();

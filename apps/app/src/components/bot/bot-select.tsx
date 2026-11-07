@@ -66,7 +66,7 @@ const BotRadioGroup = ({
 					<FieldLabel
 						key={bot.id}
 						htmlFor={itemId}
-						className="hover:bg-muted/50 has-data-checked:border-primary has-focus-visible:border-ring has-data-checked:bg-primary/5 has-focus-visible:ring-ring/30 cursor-pointer transition-colors has-focus-visible:ring-3"
+						className="hover:bg-muted/50 has-data-checked:border-primary has-focus-visible:border-ring has-data-checked:bg-primary/5 has-focus-visible:ring-ring/30 transition-colors has-focus-visible:ring-3"
 					>
 						<Field orientation="horizontal">
 							<RadioGroupItem

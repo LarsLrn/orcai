@@ -210,7 +210,7 @@ const BotModel = ({
 /** A behaviour's full prompt, open to read before adding it. */
 const BehaviourPrompt = ({ prompt }: { prompt: string | null }) => (
 	<details className="group flex flex-col rounded-2xl border p-4" open>
-		<summary className="text-muted-foreground focus-visible:ring-ring/75 flex cursor-pointer list-none items-center justify-between rounded-sm text-xs font-semibold tracking-wider uppercase outline-none focus-visible:ring-[3px]">
+		<summary className="text-muted-foreground focus-visible:ring-ring/75 flex list-none items-center justify-between rounded-sm text-xs font-semibold tracking-wider uppercase outline-none focus-visible:ring-[3px]">
 			{m.catalogue_detail_prompt_label()}
 			<ChevronDownIcon
 				className="size-4 transition-transform group-open:rotate-180"

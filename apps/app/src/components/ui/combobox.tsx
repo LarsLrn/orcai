@@ -157,7 +157,7 @@ function ComboboxItem({
 		<ComboboxPrimitive.Item
 			data-slot="combobox-item"
 			className={cn(
-				"group/combobox-item data-highlighted:bg-foreground/10 relative flex cursor-default items-center gap-2.5 rounded-2xl px-3 py-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50",
+				"group/combobox-item data-highlighted:bg-foreground/10 relative flex items-center gap-2.5 rounded-2xl px-3 py-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50",
 				className,
 			)}
 			{...props}

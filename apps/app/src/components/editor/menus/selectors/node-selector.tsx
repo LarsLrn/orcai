@@ -48,7 +48,7 @@ export const NodeSelector = ({ editor }: { editor: Editor }) => {
 						type="button"
 						key={blockType.label()}
 						onClick={() => runControl(editor, blockType)}
-						className="hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center rounded-md px-2 py-1.5 text-sm"
+						className="hover:bg-accent hover:text-accent-foreground flex items-center rounded-md px-2 py-1.5 text-sm"
 					>
 						<blockType.icon className="me-2 size-3.5" />
 						<span>{blockType.label()}</span>

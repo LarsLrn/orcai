@@ -84,7 +84,7 @@ export function DefaultErrorBoundary({ error }: ErrorComponentProps) {
 							<p className="mb-4">{m.boundaries_default_error_description()}</p>
 
 							<details className="bg-muted/50 rounded-md p-3 text-left text-xs">
-								<summary className="text-muted-foreground hover:text-foreground cursor-pointer font-medium">
+								<summary className="text-muted-foreground hover:text-foreground font-medium">
 									{m.boundaries_default_error_details_summary()}
 								</summary>
 								<div className="mt-2 font-mono">

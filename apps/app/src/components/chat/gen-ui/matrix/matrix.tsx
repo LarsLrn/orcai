@@ -72,10 +72,9 @@ export const Matrix = ({
 								<Fragment key={rowIndex}>
 									<TableRow
 										className={cn(
-											expandable && "cursor-pointer",
+											"hover:bg-transparent",
 											isOpen && "bg-muted/40 border-b-0",
 										)}
-										onClick={expandable ? () => toggle(rowIndex) : undefined}
 									>
 										<TableCell className="pl-4 font-medium">
 											{row.label}
@@ -99,10 +98,7 @@ export const Matrix = ({
 													type="button"
 													aria-expanded={isOpen}
 													className="text-muted-foreground focus-visible:ring-ring inline-flex items-center gap-1 rounded-sm text-xs outline-none focus-visible:ring-2"
-													onClick={(event) => {
-														event.stopPropagation();
-														toggle(rowIndex);
-													}}
+													onClick={() => toggle(rowIndex)}
 												>
 													{m.gen_ui_matrix_notes({
 														count: notes.length,

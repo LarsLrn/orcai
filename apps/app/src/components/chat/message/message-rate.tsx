@@ -102,7 +102,6 @@ const MessageRate = ({
 							closeOnClick
 							onClick={() => handleRate(rating.value)}
 							className={cn(
-								"cursor-pointer",
 								score === rating.value && "bg-primary/10 text-primary",
 							)}
 						>

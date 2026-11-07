@@ -12,7 +12,7 @@ import { type Draft, setOther, toggleChoice } from "./draft";
 const OTHER = "other";
 
 const optionRow =
-	"flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition-colors hover:bg-muted/50 has-data-checked:border-primary has-data-checked:bg-primary/5 has-focus-visible:border-ring";
+	"flex items-center gap-3 rounded-xl border px-3 py-2 text-sm transition-colors hover:bg-muted/50 has-data-checked:border-primary has-data-checked:bg-primary/5 has-focus-visible:border-ring";
 
 /**
  * Renders a control as a native button inside its option's row label. Base UI
@@ -190,7 +190,7 @@ export const QuestionField = ({
 							<RadioPrimitive.Root
 								key={value}
 								value={String(value)}
-								className="hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-ring/30 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground flex min-w-10 cursor-pointer items-center justify-center rounded-xl border px-3 py-2 text-sm tabular-nums transition-colors outline-none focus-visible:ring-3"
+								className="hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-ring/30 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground flex min-w-10 items-center justify-center rounded-xl border px-3 py-2 text-sm tabular-nums transition-colors outline-none focus-visible:ring-3"
 							>
 								{value}
 							</RadioPrimitive.Root>

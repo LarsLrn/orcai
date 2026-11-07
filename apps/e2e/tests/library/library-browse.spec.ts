@@ -32,13 +32,13 @@ const view = (page: Page, key: string) =>
 
 const scope = (page: Page, key: "library_scope_all" | "library_scope_mine") =>
 	page
-		.getByRole("radiogroup", {
+		.getByRole("tablist", {
 			name: message("library_scope_label"),
 		})
 		.filter({
 			visible: true,
 		})
-		.getByRole("radio", {
+		.getByRole("tab", {
 			name: message(key),
 		});
 
@@ -166,7 +166,30 @@ test("library: Mine keeps to what the user can edit across views", async ({
 	await expect(tile(page, shared)).toBeVisible();
 	await expect(view(page, "library_view_bot")).toContainText("2");
 
-	await scope(page, "library_scope_mine").click();
+	await expect(scope(page, "library_scope_all")).toHaveCSS("cursor", "pointer");
+	await expect(scope(page, "library_scope_mine")).toHaveCSS(
+		"cursor",
+		"pointer",
+	);
+	const radio = page
+		.getByRole("radio")
+		.filter({
+			visible: true,
+		})
+		.first();
+	await expect(radio).toHaveCSS("cursor", "pointer");
+	await page
+		.getByRole("button", {
+			name: new RegExp(`^${message("browse_sort_label")}: `),
+		})
+		.click();
+	await expect(page.getByRole("menuitemradio").first()).toHaveCSS(
+		"cursor",
+		"pointer",
+	);
+	await page.keyboard.press("Escape");
+	await scope(page, "library_scope_all").focus();
+	await scope(page, "library_scope_all").press("ArrowRight");
 	await expect(page).toHaveURL(/scope=edit/);
 	await expect(tile(page, shared)).toHaveCount(0);
 	await expect(tile(page, own)).toBeVisible();
@@ -175,7 +198,10 @@ test("library: Mine keeps to what the user can edit across views", async ({
 
 	await view(page, "library_view_behaviour").click();
 	await expect(page).toHaveURL(/\/app\/library\/behaviours\?scope=edit/);
-	await expect(scope(page, "library_scope_mine")).toBeChecked();
+	await expect(scope(page, "library_scope_mine")).toHaveAttribute(
+		"aria-selected",
+		"true",
+	);
 	await expect(
 		page.getByText(message("library_mine_empty_title")),
 	).toBeVisible();
