@@ -24,7 +24,7 @@ import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireReadableEntity } from "@/lib/orpc/middlewares/permission";
+import { requireEntityAccess } from "@/lib/orpc/middlewares/permission";
 
 /** The points of links that still exist, with their asset's title as it is now. */
 const linkedPoints = (points: readonly AssetPoint[]) =>
@@ -344,7 +344,7 @@ const repositoryAssetScope = (
 
 const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 	.use(
-		requireReadableEntity("block", {
+		requireEntityAccess("block", "read", {
 			entityId: "repositoryId",
 		}),
 	)
@@ -377,7 +377,7 @@ const BROWSE_PAGE_SIZE = 50;
 
 const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 	.use(
-		requireReadableEntity("block", {
+		requireEntityAccess("block", "read", {
 			entityId: "repositoryId",
 		}),
 	)

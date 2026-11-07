@@ -19,6 +19,7 @@ import {
 	settleStage,
 } from "@orcai/preparation";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
+import { NEWEST_REVISION } from "@orcai/spice-db";
 import { awaitLockWaiters, holdLock, reasonOf } from "@orcai/testing";
 import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
@@ -1353,6 +1354,10 @@ describe("repository save with upload runs", () => {
 						resourceIds: [
 							block.id,
 						],
+						actor: {
+							userId: owner.user.id,
+							zedToken: NEWEST_REVISION,
+						},
 					}),
 				),
 			);
@@ -1521,6 +1526,10 @@ describe("repository save with upload runs", () => {
 						resourceIds: [
 							assetId,
 						],
+						actor: {
+							userId: owner.user.id,
+							zedToken: NEWEST_REVISION,
+						},
 					}),
 				),
 			);

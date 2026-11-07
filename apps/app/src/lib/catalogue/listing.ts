@@ -5,7 +5,7 @@ import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
-import { managedIds } from "@/lib/authz/content-access";
+import { permittedIds } from "@/lib/authz/content-access";
 import {
 	RelationshipFact,
 	type ResourceRef,
@@ -86,7 +86,7 @@ const exposedBlocks = (blockIds: readonly BlockId[], actor: Actor) =>
 					]),
 				)
 				.orderBy(dbSchema.block.name),
-			managedIds("block", blockIds, actor),
+			permittedIds("block", blockIds, actor, "manage_access"),
 		]);
 		return blocks.map((block) => ({
 			id: block.id,
@@ -281,12 +281,13 @@ export const setListing = (params: {
 						"Assets are not listed on their own; list the repository that holds them.",
 				});
 			// SpiceDB may still hold a manager grant revoked moments ago.
-			const managed: ReadonlySet<string> = yield* managedIds(
+			const managed: ReadonlySet<string> = yield* permittedIds(
 				resource.resourceType,
 				[
 					resource.resourceId,
 				],
 				params.actor,
+				"manage_access",
 			);
 			if (!managed.has(resource.resourceId))
 				return yield* new AppErrors.ForbiddenError({

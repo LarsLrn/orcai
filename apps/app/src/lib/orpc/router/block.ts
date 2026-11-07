@@ -12,7 +12,7 @@ import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
 	deleteResourcesWithAuthorization,
 	initializeResourceAuthorization,
-	resourceOrganizations,
+	writePermitted,
 } from "@/lib/authz/resource-lifecycle";
 import { readRevision } from "@/lib/authz/zed-token";
 import { listBlockTiles } from "@/lib/blocks/block-list";
@@ -28,12 +28,7 @@ import { libraryAccess } from "@/lib/library/library-access";
 import { homeOrganizations } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import {
-	type CheckManyPermissionInputFor,
-	checkManyPermissionMiddleware,
-	requireEntityPermission,
-	requireReadableEntity,
-} from "@/lib/orpc/middlewares/permission";
+import { requireEntityAccess } from "@/lib/orpc/middlewares/permission";
 
 const listBlocks = authed.block.list
 	.use(requireOrganization())
@@ -53,7 +48,7 @@ const listBlocks = authed.block.list
 const findBlock = authed.block.find
 	.use(requireOrganization())
 	.use(
-		requireReadableEntity("block", {
+		requireEntityAccess("block", "read", {
 			entityId: "id",
 		}),
 	)
@@ -208,7 +203,7 @@ const createBlock = authed.block.create
 
 const updateBlock = authed.block.update
 	.use(
-		requireEntityPermission("block", "edit", {
+		requireEntityAccess("block", "edit", {
 			entityId: "id",
 		}),
 	)
@@ -237,17 +232,19 @@ const updateBlock = authed.block.update
 			});
 		}
 
-		const organizationIds = yield* resourceOrganizations([
-			{
-				resourceType: "block",
-				resourceId: input.id,
-			},
-		]);
 		const {
 			result: { block, links },
-		} = yield* writeRelationships(
+		} = yield* writePermitted(
 			{
-				organizationIds,
+				resourceType: "block",
+				resourceIds: [
+					input.id,
+				],
+				permission: "edit",
+				actor: {
+					userId: context.auth.user.id,
+					zedToken: readRevision(context, input),
+				},
 			},
 			Effect.gen(function* () {
 				// Checked under the organization write lock, so a concurrent status change cannot interleave.
@@ -333,35 +330,21 @@ const updateBlock = authed.block.update
 		};
 	});
 
-const deleteBlocks = authed.block.delete
-	.use(
-		checkManyPermissionMiddleware("block").adaptInput(
-			(input): CheckManyPermissionInputFor<"block"> => ({
-				entityIds: input.refs.map((ref) => ref.id),
-				permission: "delete",
-			}),
-		),
-	)
-	.effect(function* ({ context }) {
-		const allowedIds = context.allowedIds ?? [];
-
-		if (allowedIds.length === 0) {
-			return {
-				success: true,
-				message: "No blocks to delete",
-			};
-		}
-
-		yield* deleteResourcesWithAuthorization({
-			resourceType: "block",
-			resourceIds: allowedIds,
-		});
-
-		return {
-			success: true,
-			message: "Blocks deleted successfully",
-		};
+const deleteBlocks = authed.block.delete.effect(function* ({ input, context }) {
+	yield* deleteResourcesWithAuthorization({
+		resourceType: "block",
+		resourceIds: input.refs.map((ref) => ref.id),
+		actor: {
+			userId: context.auth.user.id,
+			zedToken: readRevision(context),
+		},
 	});
+
+	return {
+		success: true,
+		message: "Blocks deleted successfully",
+	};
+});
 
 const blockReadiness = authed.block.readiness
 	.use(requireOrganization())
@@ -378,32 +361,60 @@ const blockReadiness = authed.block.readiness
 
 const prepareAssetAgainProcedure = authed.block.prepareAssetAgain
 	.use(
-		requireEntityPermission("block", "edit", {
+		requireEntityAccess("block", "edit", {
 			entityId: "blockId",
 		}),
 	)
 	.effect(function* ({ input, context }) {
-		return yield* prepareRepositoryAssetAgain({
-			...input,
-			userId: context.auth.user.id,
-		}).pipe(
+		const { result } = yield* writePermitted(
+			{
+				resourceType: "block",
+				resourceIds: [
+					input.blockId,
+				],
+				permission: "edit",
+				actor: {
+					userId: context.auth.user.id,
+					zedToken: readRevision(context, input),
+				},
+			},
+			prepareRepositoryAssetAgain({
+				...input,
+				userId: context.auth.user.id,
+			}),
+		).pipe(
 			Effect.catchTag("PrepareAgainRefused", (refused) =>
 				Effect.fail(prepareAgainError(refused)),
 			),
 		);
+		return result;
 	});
 
 const prepareFailedAgainProcedure = authed.block.prepareFailedAgain
 	.use(
-		requireEntityPermission("block", "edit", {
+		requireEntityAccess("block", "edit", {
 			entityId: "blockId",
 		}),
 	)
 	.effect(function* ({ input, context }) {
-		return yield* prepareRepositoryFailedAgain({
-			...input,
-			userId: context.auth.user.id,
-		});
+		const { result } = yield* writePermitted(
+			{
+				resourceType: "block",
+				resourceIds: [
+					input.blockId,
+				],
+				permission: "edit",
+				actor: {
+					userId: context.auth.user.id,
+					zedToken: readRevision(context, input),
+				},
+			},
+			prepareRepositoryFailedAgain({
+				...input,
+				userId: context.auth.user.id,
+			}),
+		);
+		return result;
 	});
 
 export const blockRouter = {

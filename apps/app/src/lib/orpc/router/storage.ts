@@ -25,7 +25,7 @@ import { v4 as uuidv4 } from "uuid";
 import { downloadName } from "@/lib/assets/download-name";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
-import { requireReadableEntity } from "@/lib/orpc/middlewares/permission";
+import { requireEntityAccess } from "@/lib/orpc/middlewares/permission";
 
 const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 	input,
@@ -212,7 +212,7 @@ const createUploadUrls = authed.storage.createUploadUrls.effect(function* ({
 
 const createDownloadUrl = authed.storage.createDownloadUrl
 	.use(
-		requireReadableEntity("asset", {
+		requireEntityAccess("asset", "read", {
 			entityId: "id",
 		}),
 	)

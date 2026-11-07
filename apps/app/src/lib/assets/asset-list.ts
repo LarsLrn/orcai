@@ -15,7 +15,7 @@ import {
 import * as Effect from "effect/Effect";
 import { visibleRuns } from "@/lib/activity/runs";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
-import { readableIds, requireReadable } from "@/lib/authz/content-access";
+import { readableIds, requirePermitted } from "@/lib/authz/content-access";
 import { getManyEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import type { LibraryAccess, Reader } from "@/lib/library/library-access";
 import type { TileQuery } from "@/lib/library/tile-details";
@@ -120,7 +120,15 @@ export const listAssetTiles = (params: {
 					(id) => !known || known.includes(id),
 				)
 			: known;
-		if (repositoryId) yield* requireReadable("block", repositoryId, reader);
+		if (repositoryId)
+			yield* requirePermitted(
+				"block",
+				[
+					repositoryId,
+				],
+				reader,
+				"read",
+			);
 
 		// A repository's assets, known ids and a run's assets are contents; the rest is the library.
 		const where = and(
