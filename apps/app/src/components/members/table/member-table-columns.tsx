@@ -1,4 +1,4 @@
-import type { UserWithOrganizationRole } from "@orcai/schema";
+import type { OrganizationMemberUser } from "@orcai/schema";
 import { Link } from "@tanstack/react-router";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useState } from "react";
@@ -15,10 +15,10 @@ import { m } from "@/paraglide/messages";
 
 const columnHelper = createColumnHelper<
 	DataTableFeatures,
-	UserWithOrganizationRole
+	OrganizationMemberUser
 >();
 
-const useMemberRowActions = (member: UserWithOrganizationRole) => {
+const useMemberRowActions = (member: OrganizationMemberUser) => {
 	const canRemoveMember = useMembershipControl().canManageMember(member);
 	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
 
@@ -54,7 +54,7 @@ const useMemberRowActions = (member: UserWithOrganizationRole) => {
 };
 
 export const memberTableColumns = columnHelper.columns([
-	createDataTableSelectColumn<UserWithOrganizationRole>(),
+	createDataTableSelectColumn<OrganizationMemberUser>(),
 	columnHelper.accessor("name", {
 		size: 500,
 		header: ({ column }) => (

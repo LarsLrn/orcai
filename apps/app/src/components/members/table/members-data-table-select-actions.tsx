@@ -1,4 +1,4 @@
-import type { UserWithOrganizationRole } from "@orcai/schema";
+import type { OrganizationMemberUser } from "@orcai/schema";
 import { useState } from "react";
 import { RemoveMembersDialog } from "@/components/members/remove-members-dialog";
 import { DataTableBulkActions } from "@/components/ui/data-table/data-table-bulk-actions";
@@ -7,9 +7,9 @@ import { useMembershipControl } from "@/hooks/authz/use-membership-control";
 import { m } from "@/paraglide/messages";
 
 const MembersDataTableSelectActions = () => {
-	const { table } = useTable<UserWithOrganizationRole>();
+	const { table } = useTable<OrganizationMemberUser>();
 	const { canManageMember } = useMembershipControl();
-	const [removing, setRemoving] = useState<UserWithOrganizationRole[]>([]);
+	const [removing, setRemoving] = useState<OrganizationMemberUser[]>([]);
 	const [isRemoveOpen, setIsRemoveOpen] = useState(false);
 	const selectedRows = table.getSelectedRowModel().rows;
 	const hasProtectedSelection = selectedRows.some(
@@ -18,7 +18,7 @@ const MembersDataTableSelectActions = () => {
 
 	return (
 		<>
-			<DataTableBulkActions<UserWithOrganizationRole>
+			<DataTableBulkActions<OrganizationMemberUser>
 				actions={
 					hasProtectedSelection
 						? []

@@ -7,7 +7,7 @@ import {
 	type SortExpression,
 } from "@orcai/db";
 import type { OrganizationMemberSortKey } from "@orcai/schema";
-import { and, desc, eq, getColumns, ilike, or } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { effectiveAccess } from "@/lib/authz/effective-access";
 import { canSeeEmailIn } from "@/lib/authz/email-visibility";
@@ -29,6 +29,19 @@ const managesOthers = (
 	},
 	userId: UserId,
 ) => (input.userId === userId ? "read" : "manage_members");
+
+/** What the members screens show; moderation details stay with instance admins. */
+const memberUserColumns = {
+	id: dbSchema.user.id,
+	name: dbSchema.user.name,
+	email: dbSchema.user.email,
+	emailVerified: dbSchema.user.emailVerified,
+	image: dbSchema.user.image,
+	banned: dbSchema.user.banned,
+	createdAt: dbSchema.user.createdAt,
+	updatedAt: dbSchema.user.updatedAt,
+	organizationRole: dbSchema.member.role,
+};
 
 const listOrganizationMembers = authed.organizationMember.list
 	.use(requireOrganization("manage_members"))
@@ -67,10 +80,7 @@ const listOrganizationMembers = authed.organizationMember.list
 
 		return yield* pageOf(
 			db
-				.select({
-					...getColumns(dbSchema.user),
-					organizationRole: dbSchema.member.role,
-				})
+				.select(memberUserColumns)
 				.from(dbSchema.member)
 				.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
 				.where(whereClause),
@@ -86,10 +96,7 @@ const findOrganizationMember = authed.organizationMember.find
 		const organizationId = context.auth.session.activeOrganizationId;
 
 		return yield* db
-			.select({
-				...getColumns(dbSchema.user),
-				organizationRole: dbSchema.member.role,
-			})
+			.select(memberUserColumns)
 			.from(dbSchema.member)
 			.innerJoin(dbSchema.user, eq(dbSchema.user.id, dbSchema.member.userId))
 			.where(
