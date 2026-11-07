@@ -17,6 +17,10 @@ import {
 } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import { capabilitySets, emptyCapabilities } from "@/lib/authz/capabilities";
+import {
+	committedPermittedIds,
+	type ResourcePermission,
+} from "@/lib/authz/content-access";
 import { committedRoles, roleGrants } from "@/lib/authz/organization-access";
 import { usableInOrganization } from "@/lib/authz/organization-use";
 import { handOverableIds } from "@/lib/authz/ownership";
@@ -118,6 +122,94 @@ const narrowOrganization = <Entity extends CapabilityEntityType>(
 		);
 	});
 
+const committedCheck = {
+	read: "read",
+	download: "read",
+	fork: "read",
+	edit: "edit",
+	delete: "delete",
+	manage_access: "manage_access",
+	use: undefined,
+} satisfies Record<PermissionFor<ResourceType>, ResourcePermission | undefined>;
+
+/** Narrows resource permissions to committed grants, including the read aliases. */
+const narrowResources = <Entity extends CapabilityEntityType>(
+	granted: ReadonlyMap<EntityIdFor<Entity>, ReadonlySet<string>>,
+	params: CapabilityParams<Entity>,
+) =>
+	Effect.gen(function* () {
+		const { entityType } = params;
+		if (!isResourceType(entityType)) return granted;
+		const committedPermission = (permission: string) =>
+			committedCheck[permission as PermissionFor<ResourceType>];
+		const permissions = new Set(
+			[
+				...granted.values(),
+			].flatMap((values) =>
+				[
+					...values,
+				].flatMap((permission) => {
+					const key = committedPermission(permission);
+					return key === undefined
+						? []
+						: [
+								key,
+							];
+				}),
+			),
+		);
+		const committedPermissions = new Map(
+			yield* Effect.all(
+				[
+					...permissions,
+				].map((permission) =>
+					committedPermittedIds(
+						entityType,
+						[
+							...granted,
+						].flatMap(([id, values]) =>
+							[
+								...values,
+							].some((value) => committedPermission(value) === permission)
+								? [
+										id,
+									]
+								: [],
+						) as EntityIdFor<typeof entityType>[],
+						params.userId,
+						permission,
+					).pipe(
+						Effect.map(
+							(ids) =>
+								[
+									permission,
+									ids as ReadonlySet<string>,
+								] as const,
+						),
+					),
+				),
+				{
+					concurrency: "unbounded",
+				},
+			),
+		);
+		return new Map(
+			[
+				...granted,
+			].map(([id, values]) => [
+				id,
+				new Set(
+					[
+						...values,
+					].filter((permission) => {
+						const key = committedPermission(permission);
+						return key === undefined || committedPermissions.get(key)?.has(id);
+					}),
+				),
+			]),
+		);
+	});
+
 /** Adds `hand_over`, which Postgres decides, where the user may hand the item over. */
 const addHandOver = <Entity extends CapabilityEntityType>(
 	granted: ReadonlyMap<EntityIdFor<Entity>, ReadonlySet<string>>,
@@ -164,6 +256,7 @@ export const getManyEntityCapabilities = <Entity extends CapabilityEntityType>(
 		userId: params.userId,
 		zedToken: params.zedToken,
 	}).pipe(
+		Effect.flatMap((granted) => narrowResources(granted, params)),
 		Effect.flatMap((granted) => narrowUse(granted, params)),
 		Effect.flatMap((granted) => narrowOrganization(granted, params)),
 		Effect.flatMap((granted) =>

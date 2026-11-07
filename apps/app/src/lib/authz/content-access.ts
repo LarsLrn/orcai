@@ -141,6 +141,37 @@ export const permittedNow = (
 			)})`;
 
 /**
+ * The resources committed Postgres state permits, without checking SpiceDB.
+ * Only for narrowing SpiceDB results; access decisions use {@link permittedIds}.
+ */
+export const committedPermittedIds = <Type extends ResourceType>(
+	resourceType: Type,
+	ids: readonly EntityIdFor<Type>[],
+	userId: UserId,
+	permission: ResourcePermission,
+) =>
+	Effect.gen(function* () {
+		if (ids.length === 0) return new Set<EntityIdFor<Type>>();
+		const db = yield* DB;
+		const table = resourceTables[resourceType];
+		const rows = yield* db
+			.select({
+				id: table.id,
+			})
+			.from(table)
+			.where(
+				and(
+					inArray(table.id, [
+						...ids,
+					] as (typeof table.id._.data)[]),
+					permittedNow(resourceType, table.id, userId, permission),
+				),
+			);
+		const committed = new Set<string>(rows.map((row) => row.id));
+		return new Set(ids.filter((id) => committed.has(id)));
+	});
+
+/**
  * The resources of `ids` the user holds `permission` on, in SpiceDB and by
  * committed state. SpiceDB keeps a revoked grant until its tuples are
  * delivered; the committed state closes it at once. A mutation checks again
@@ -154,9 +185,7 @@ export const permittedIds = <Type extends ResourceType>(
 ) =>
 	Effect.gen(function* () {
 		if (ids.length === 0) return new Set<EntityIdFor<Type>>();
-		const db = yield* DB;
-		const table = resourceTables[resourceType];
-		const [permitted, rows] = yield* Effect.all(
+		const [permitted, committed] = yield* Effect.all(
 			[
 				permittedEntityIds({
 					entityIds: ids,
@@ -164,26 +193,13 @@ export const permittedIds = <Type extends ResourceType>(
 					permission,
 					...reader,
 				}),
-				db
-					.select({
-						id: table.id,
-					})
-					.from(table)
-					.where(
-						and(
-							inArray(table.id, [
-								...ids,
-							] as (typeof table.id._.data)[]),
-							permittedNow(resourceType, table.id, reader.userId, permission),
-						),
-					),
+				committedPermittedIds(resourceType, ids, reader.userId, permission),
 			],
 			{
 				concurrency: "unbounded",
 			},
 		);
-		const agreed = new Set<string>(rows.map((row) => row.id));
-		return new Set(ids.filter((id) => agreed.has(id) && permitted.has(id)));
+		return new Set(ids.filter((id) => committed.has(id) && permitted.has(id)));
 	});
 
 /** The resources of `ids` the user may read, see {@link permittedIds}. */
