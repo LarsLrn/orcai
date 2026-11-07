@@ -4,10 +4,14 @@ import { organizationIdSchema, userIdSchema } from "../shared/ids";
 import { userSchema } from "../user/schema";
 
 /** An account as the instance sees it. */
-export const instanceUserSchema = userSchema.extend({
-	twoFactorEnabled: z.boolean(),
-	membershipCount: z.number().int(),
-});
+export const instanceUserSchema = userSchema
+	.omit({
+		preferences: true,
+	})
+	.extend({
+		twoFactorEnabled: z.boolean(),
+		membershipCount: z.number().int(),
+	});
 
 /** One organisation an account belongs to, on the instance user page. */
 export const instanceUserMembershipSchema = z.object({

@@ -6,7 +6,7 @@ import {
 	type SortExpression,
 } from "@orcai/db";
 import type { InstanceUserSortKey } from "@orcai/schema";
-import { desc, eq, getColumns, ilike, or } from "drizzle-orm";
+import { desc, eq, ilike, or } from "drizzle-orm";
 import { resetTwoFactor } from "@/lib/auth/two-factor-reset";
 import { setInstanceRole } from "@/lib/authz/instance-role-change";
 import {
@@ -17,6 +17,7 @@ import {
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
 import { literalSearch } from "@/lib/utils/literal-search";
+import { instanceUserColumns } from "./instance-user-columns";
 
 const listAllUsers = authed.user.listAll
 	.use(requireInstanceAdminMiddleware)
@@ -50,7 +51,7 @@ const listAllUsers = authed.user.listAll
 		return yield* pageOf(
 			db
 				.select({
-					...getColumns(dbSchema.user),
+					...instanceUserColumns,
 					membershipCount: db.$count(
 						dbSchema.member,
 						eq(dbSchema.member.userId, dbSchema.user.id),

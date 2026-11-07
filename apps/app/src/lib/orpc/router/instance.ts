@@ -23,6 +23,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { removeImage } from "@/lib/images/images";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
+import { instanceUserColumns } from "@/lib/orpc/router/user/instance-user-columns";
 import { organizationReadiness as readOrganizationReadiness } from "@/lib/readiness/readiness";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -45,7 +46,7 @@ const user = authed.instance.user
 		const db = yield* DB;
 		const [found] = yield* db
 			.select({
-				...getColumns(dbSchema.user),
+				...instanceUserColumns,
 				membershipCount: db.$count(
 					dbSchema.member,
 					eq(dbSchema.member.userId, dbSchema.user.id),
