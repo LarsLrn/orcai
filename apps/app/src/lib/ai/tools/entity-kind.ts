@@ -326,3 +326,19 @@ export const nameQuery = (
 	{ kind, id }: EntityRef,
 	zedToken: string | undefined,
 ) => kinds[kind].name.query(utils, id, zedToken);
+
+/** Link rejection names the requested kinds without claiming which id exists. */
+export const unlinkableBlocksText = (
+	behaviourId: string | null,
+	repositoryIds: readonly string[],
+) => {
+	const refs = [
+		...(behaviourId
+			? [
+					`behaviour ${behaviourId}`,
+				]
+			: []),
+		...repositoryIds.map((id) => `repository ${id}`),
+	];
+	return `BLOCK_LINK_FORBIDDEN: You cannot link one or more of these in this organisation: ${refs.join(", ")}. Use a behaviour or repository from findBlocks that you may use in this organisation, create one with createBehaviour or createRepository, or remove the link from the bot.`;
+};

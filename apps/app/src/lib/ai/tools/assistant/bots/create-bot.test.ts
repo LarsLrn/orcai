@@ -238,4 +238,38 @@ describe("createBotTool", () => {
 			/^PERMISSION_DENIED: You may not create bots\.$/,
 		);
 	});
+	test("a block-link rejection names requested kinds without exposing existence", async () => {
+		answers["bot.save"] = () =>
+			Effect.fail(
+				new ORPCError("FORBIDDEN", {
+					message: "No access to link",
+					data: {
+						reason: "BLOCK_LINK_FORBIDDEN",
+					},
+				}),
+			);
+		await expect(
+			createBotTool({
+				context: {} as ORPCContext,
+				turn: createAssistantTurn({
+					zedToken: undefined,
+				}),
+			}).execute?.(
+				{
+					name: "New bot",
+					description: "New bot",
+					behaviourId,
+					repositoryIds: [
+						repositoryId,
+					],
+				},
+				{
+					toolCallId: "link",
+					messages: [],
+				} as never,
+			),
+		).rejects.toThrow(
+			`BLOCK_LINK_FORBIDDEN: You cannot link one or more of these in this organisation: behaviour ${behaviourId}, repository ${repositoryId}. Use a behaviour or repository from findBlocks that you may use in this organisation, create one with createBehaviour or createRepository, or remove the link from the bot.`,
+		);
+	});
 });
