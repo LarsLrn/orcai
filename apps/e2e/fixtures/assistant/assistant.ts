@@ -502,7 +502,22 @@ export const workLogToggle = (page: Page) =>
 		})
 		.last();
 
-/** Expand the newest turn's folded work log. */
+/**
+ * Expand the newest turn's folded work log. Clicks only while it is closed, so
+ * a retry after a click that missed a scrolling header never folds it again.
+ */
 export const expandWorkLog = async (page: Page): Promise<void> => {
-	await workLogToggle(page).click();
+	const toggle = workLogToggle(page);
+
+	await expect(async () => {
+		if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+			await toggle.click();
+		}
+
+		await expect(toggle).toHaveAttribute("aria-expanded", "true", {
+			timeout: 2_000,
+		});
+	}).toPass({
+		timeout: 10_000,
+	});
 };
