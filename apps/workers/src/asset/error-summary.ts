@@ -1,6 +1,3 @@
-import { type AiError, aiFailure, failedReply } from "@orcai/ai";
-import { AssetPipelineError } from "@orcai/preparation";
-
 const MAX_ERROR_MESSAGE_LENGTH = 320;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -107,14 +104,3 @@ export const summarizeErrorCause = (
 		causeStatusCode: nested ? getStatusCode(nested) : undefined,
 	});
 };
-
-/** A failed model call as the asset's failure, with what its reply says for the log. */
-export const modelCallFailure = (error: AiError, maxOutputTokens: number) =>
-	new AssetPipelineError({
-		failure: aiFailure(error),
-		cause: {
-			...summarizeErrorCause(error),
-			...failedReply(error),
-			maxOutputTokens,
-		},
-	});

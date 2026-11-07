@@ -3,6 +3,7 @@ import type { AssetId, BotId, ChatMessageId } from "@orcai/core";
 import { METERED_CALL_TIMEOUT_MS, promptTokens } from "@orcai/quota";
 import { quota } from "@orcai/quota/testing";
 import type { TurnWrite } from "@orcai/schema";
+import { ORPCError } from "@orpc/client";
 import {
 	readUIMessageStream,
 	simulateReadableStream,
@@ -1641,6 +1642,73 @@ describe("turn setup", () => {
 		expect(await refusalOf(chatRow())).toBe(
 			"BadRequestError: MODEL_TOOLS_UNSUPPORTED",
 		);
+	});
+
+	test("a refused read stays a denial and an outage stays unavailable, as the procedure answered", async () => {
+		const botId = crypto.randomUUID() as BotId;
+		answers["block.list"] = () =>
+			Effect.succeed({
+				data: [
+					{
+						id: crypto.randomUUID(),
+						type: "behaviour",
+						config: {
+							systemPrompt: "You are the bot.",
+						},
+					},
+				],
+			});
+		answers["bot.find"] = () =>
+			Effect.succeed({
+				data: {
+					id: botId,
+					features: {},
+				},
+			});
+		const answered = async (
+			procedure: string,
+			error: ORPCError<string, unknown>,
+		) => {
+			const previous = answers[procedure];
+			answers[procedure] = () => Effect.fail(error);
+			const turns = await conversation(
+				chatRow({
+					botId,
+				}),
+				"anthropic",
+			);
+			const outcome = await turns.send("Hi").then(
+				() => "ok",
+				(failure: unknown) =>
+					failure instanceof ORPCError
+						? `${failure.code} ${failure.data?.reason}`
+						: String(failure),
+			);
+			if (previous) answers[procedure] = previous;
+			else delete answers[procedure];
+			return outcome;
+		};
+
+		expect(
+			await answered(
+				"bot.find",
+				new ORPCError("FORBIDDEN", {
+					data: {
+						reason: "PERMISSION_DENIED",
+					},
+				}),
+			),
+		).toBe("FORBIDDEN PERMISSION_DENIED");
+		expect(
+			await answered(
+				"chatBlock.list",
+				new ORPCError("SERVICE_UNAVAILABLE", {
+					data: {
+						reason: "PERMISSIONS_UNAVAILABLE",
+					},
+				}),
+			),
+		).toBe("SERVICE_UNAVAILABLE PERMISSIONS_UNAVAILABLE");
 	});
 
 	test("estimates a chat's prompt with only the tools it offers", async () => {

@@ -13,33 +13,43 @@ import { generateTextWithQuota } from "../../src/metered/generate-text-with-quot
 const generate = (model: MockLanguageModelV4) =>
 	withQuotaServices(
 		generateTextWithQuota({
-			operation: "test.generate",
 			appRequestId: "request-1",
 			organizationId: "org-1" as OrganizationId,
 			userId: "user-1" as UserId,
 			providerId: "provider-1" as ProviderId,
 			modelId: "model-1" as ModelId,
 			model,
-			prompt: "Name this chat.",
+			call: {
+				operation: "test.generate",
+				instructions: "",
+				prompt: "Name this chat.",
+				maxOutputTokens: undefined,
+				providerOptions: undefined,
+			},
 		}),
 	);
 
 const generateTitle = (model: MockLanguageModelV4) =>
 	withQuotaServices(
 		generateTextWithQuota({
-			operation: "test.generate",
 			appRequestId: "request-1",
 			organizationId: "org-1" as OrganizationId,
 			userId: "user-1" as UserId,
 			providerId: "provider-1" as ProviderId,
 			modelId: "model-1" as ModelId,
 			model,
-			prompt: "Describe this.",
-			output: Output.object({
-				schema: z.object({
-					title: z.string(),
+			call: {
+				operation: "test.generate",
+				instructions: "",
+				prompt: "Describe this.",
+				output: Output.object({
+					schema: z.object({
+						title: z.string(),
+					}),
 				}),
-			}),
+				maxOutputTokens: undefined,
+				providerOptions: undefined,
+			},
 		}),
 	);
 
@@ -141,7 +151,6 @@ test("the reservation counts the instructions and the prompt", async () => {
 	await Effect.runPromise(
 		withQuotaServices(
 			generateTextWithQuota({
-				operation: "test.generate",
 				appRequestId: "request-1",
 				organizationId: "org-1" as OrganizationId,
 				userId: "user-1" as UserId,
@@ -152,9 +161,13 @@ test("the reservation counts the instructions and the prompt", async () => {
 					finishReason: "stop",
 					outputTokens: 2,
 				}),
-				system: "Name the chat.",
-				prompt: "Refunds for a cancelled course",
-				maxOutputTokens: 256,
+				call: {
+					operation: "test.generate",
+					instructions: "Name the chat.",
+					prompt: "Refunds for a cancelled course",
+					maxOutputTokens: 256,
+					providerOptions: undefined,
+				},
 			}),
 		),
 	);
@@ -184,15 +197,20 @@ test("a generation stopped before its reply ended is released as cancelled", asy
 		Effect.flip(
 			withQuotaServices(
 				generateTextWithQuota({
-					operation: "test.generate",
 					appRequestId: "request-1",
 					organizationId: "org-1" as OrganizationId,
 					userId: "user-1" as UserId,
 					providerId: "provider-1" as ProviderId,
 					modelId: "model-1" as ModelId,
 					model,
-					prompt: "Summarise.",
 					abortSignal: stop.signal,
+					call: {
+						operation: "test.generate",
+						instructions: "",
+						prompt: "Summarise.",
+						maxOutputTokens: undefined,
+						providerOptions: undefined,
+					},
 				}),
 			),
 		),
@@ -325,19 +343,24 @@ test("a structured reply inside a code fence parses", async () => {
 	const { output } = await Effect.runPromise(
 		withQuotaServices(
 			generateTextWithQuota({
-				operation: "test.generate",
 				appRequestId: "request-1",
 				organizationId: "org-1" as OrganizationId,
 				userId: "user-1" as UserId,
 				providerId: "provider-1" as ProviderId,
 				modelId: "model-1" as ModelId,
 				model,
-				prompt: "Describe this.",
-				output: Output.object({
-					schema: z.object({
-						title: z.string(),
+				call: {
+					operation: "test.generate",
+					instructions: "",
+					prompt: "Describe this.",
+					output: Output.object({
+						schema: z.object({
+							title: z.string(),
+						}),
 					}),
-				}),
+					maxOutputTokens: undefined,
+					providerOptions: undefined,
+				},
 			}),
 		),
 	);

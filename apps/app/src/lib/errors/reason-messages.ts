@@ -82,7 +82,6 @@ const reasonMessages: ReasonMessages = {
 			blockName,
 		}),
 	BOT_SETUP_FORBIDDEN: m.error_bot_setup_forbidden,
-	CHAT_BLOCKS_UNAVAILABLE: m.error_chat_blocks_unavailable,
 	CHAT_BOT_BLOCKS_IMMUTABLE: m.error_chat_bot_blocks_immutable,
 	CHAT_BOT_DELETED: m.error_chat_bot_deleted,
 	CHAT_BOT_FEATURES_IMMUTABLE: m.error_chat_bot_features_immutable,

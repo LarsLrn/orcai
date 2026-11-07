@@ -1,18 +1,17 @@
 import {
-	AiError,
-	figureDescriptionInstructions,
-	generateTextWithQuota,
-	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
-	imageAssetDescriptionInstructions,
-	imageAssetDescriptionOutput,
+	type CallOutput,
+	type CallSpec,
+	type DescribedImage,
+	figureCall,
+	imageAssetCall,
 	type ResolvedModel,
 	readImageAssetDescription,
 	utilityModel,
-	utilityReasoning,
 } from "@orcai/ai";
 import {
 	type AssetId,
 	buckets,
+	type ModelProviderKind,
 	type OrganizationId,
 	type UserId,
 } from "@orcai/core";
@@ -28,10 +27,11 @@ import { getImageAsBase64 } from "@orcai/s3/server";
 import type { Locale } from "@orcai/schema";
 import { eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { modelCallFailure, summarizeErrorCause } from "@/asset/error-summary";
-
-/** A description that takes longer counts as failed. */
-const IMAGE_DESCRIPTION_TIMEOUT_MS = 120_000;
+import {
+	assetModelCall,
+	cannotReadImages,
+	readsImages,
+} from "@/asset/model-call";
 
 /** Who the model calls for an asset are metered against, and the uploader's locale for images without text. */
 export interface AssetOwner {
@@ -82,8 +82,8 @@ const hintOf = (image: ExtractionImage) =>
 		.filter(Boolean)
 		.join(" ");
 
-/** One metered vision call on a stored image. */
-const describe = (params: {
+/** One metered vision call on a stored image, with the call `kind` builds for it. */
+const describe = <OUTPUT extends CallOutput>(params: {
 	assetId: AssetId;
 	jobId: string;
 	owner: AssetOwner;
@@ -91,8 +91,7 @@ const describe = (params: {
 	image: ExtractionImage & {
 		sourcePath: string;
 	};
-	instructions: string;
-	output?: typeof imageAssetDescriptionOutput;
+	call: (kind: ModelProviderKind, image: DescribedImage) => CallSpec<OUTPUT>;
 }) =>
 	Effect.gen(function* () {
 		const base64 = yield* getImageAsBase64({
@@ -100,41 +99,17 @@ const describe = (params: {
 			name: params.image.sourcePath,
 		});
 
-		return yield* generateTextWithQuota({
-			operation: "asset.describeImage",
+		return yield* assetModelCall({
 			appRequestId: `image:${params.assetId}:${params.image.imageIndex}:${params.jobId}`,
-			organizationId: params.owner.organizationId,
-			userId: params.owner.userId,
-			providerId: params.model.providerId,
-			modelId: params.model.modelId,
-			model: params.model.language,
-			system: params.instructions,
-			output: params.output,
-			messages: [
-				{
-					role: "user",
-					content: [
-						{
-							type: "file",
-							data: Buffer.from(base64, "base64"),
-							mediaType: imageMediaType(params.image.format),
-						},
-					],
-				},
-			],
-			maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
-			reasoning: utilityReasoning(params.model.kind),
-			timeoutMs: IMAGE_DESCRIPTION_TIMEOUT_MS,
-		}).pipe(
-			Effect.catchTag("QuotaDeniedError", (denied) =>
-				Effect.fail(
-					new AssetPipelineError({
-						failure: "quota",
-						cause: denied,
-					}),
-				),
-			),
-		);
+			owner: params.owner,
+			model: params.model,
+			call: params.call(params.model.kind, {
+				data: Buffer.from(base64, "base64"),
+				mediaType: imageMediaType(params.image.format),
+				hint: hintOf(params.image),
+				locale: params.owner.locale,
+			}),
+		});
 	});
 
 const withSource = (image: ExtractionImage) =>
@@ -166,19 +141,8 @@ export const readImageAsset = (params: {
 		const { output } = yield* describe({
 			...params,
 			image,
-			instructions: imageAssetDescriptionInstructions({
-				kind: params.model.kind,
-				hint: hintOf(image),
-				locale: params.owner.locale,
-			}),
-			output: imageAssetDescriptionOutput,
-		}).pipe(
-			Effect.mapError((error) =>
-				error instanceof AiError
-					? modelCallFailure(error, IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS)
-					: error,
-			),
-		);
+			call: imageAssetCall,
+		});
 
 		return {
 			image,
@@ -229,23 +193,22 @@ const describeFigures = (params: {
 			return describe({
 				...params,
 				image,
-				instructions: figureDescriptionInstructions({
-					hint: hintOf(image),
-					locale: params.owner.locale,
-				}),
+				call: figureCall,
 			}).pipe(
 				Effect.map(({ text }) => ({
 					...image,
 					text: text.trim() || null,
 				})),
 				Effect.catchIf(
-					(error) => error instanceof AiError,
+					(error): error is AssetPipelineError =>
+						error instanceof AssetPipelineError && error.failure !== "quota",
 					(error) =>
 						Effect.logWarning(
 							{
 								assetId: params.assetId,
 								imageIndex: image.imageIndex,
-								error: summarizeErrorCause(error),
+								failure: error.failure,
+								error: error.cause,
 							},
 							"Skipping a figure whose description failed",
 						).pipe(
@@ -293,12 +256,9 @@ export const describeImages = (params: {
 		const owner = yield* assetOwner(params.assetId);
 		const model = yield* utilityModel(owner.organizationId);
 
-		if (!model?.capabilities?.includes("image")) {
+		if (!readsImages(model)) {
 			if (params.imageAsset) {
-				return yield* new AssetPipelineError({
-					failure: "unsupported",
-					cause: new Error("The utility model cannot read images"),
-				});
+				return yield* cannotReadImages();
 			}
 			yield* Effect.logWarning(
 				{

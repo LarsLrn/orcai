@@ -1,13 +1,8 @@
 export { type AgentModel, agentModel } from "./agent-model";
 export { aiFailure, failedReply } from "./ai-failure";
-export {
-	ASSET_METADATA_MAX_OUTPUT_TOKENS,
-	assetMetadataInstructions,
-	assetMetadataOutput,
-	assetMetadataPrompt,
-	readAssetMetadata,
-} from "./asset-metadata";
-export { chatTitlePrompt, sanitizeGeneratedChatTitle } from "./chat-title";
+export { assetMetadataCall, readAssetMetadata } from "./asset-metadata";
+export { type CallOutput, type CallSpec, callRequest } from "./call-spec";
+export { chatTitleCall, sanitizeGeneratedChatTitle } from "./chat-title";
 export { countTokens } from "./count-tokens";
 export { AiError } from "./errors";
 export {
@@ -17,13 +12,11 @@ export {
 	testEmbedding,
 } from "./generate-embedding";
 export {
-	figureDescriptionInstructions,
-	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
-	imageAssetDescriptionInstructions,
-	imageAssetDescriptionOutput,
+	type DescribedImage,
+	figureCall,
+	imageAssetCall,
 	readImageAssetDescription,
 } from "./image-description";
-export { jsonAnswerModel } from "./json-answer";
 export { generateTextWithQuota } from "./metered/generate-text-with-quota";
 export { type MeterStep, meteredStep } from "./metered/metered-step";
 export {
@@ -33,7 +26,6 @@ export {
 	encryptApiKey,
 	providerApiKey,
 } from "./provider-key";
-export { COMPACTION_INSTRUCTIONS } from "./provider-kinds/compaction";
 export {
 	ModelListingError,
 	type ModelListingFailure,
@@ -48,8 +40,6 @@ export {
 	providerCompaction,
 	providerToolLoading,
 	type ToolLoading,
-	titleCallSettings,
-	utilityReasoning,
 } from "./provider-kinds/registry";
 export type { SystemPrompt } from "./provider-kinds/types";
 export { quoted } from "./quoted";
@@ -60,6 +50,7 @@ export {
 	resolveModel,
 	utilityModel,
 } from "./resolve-model";
+export { summaryCall } from "./summary";
 export { AiTelemetryLive, aiTelemetry } from "./telemetry";
 export { createWebSearch } from "./web-search/registry";
 export type {

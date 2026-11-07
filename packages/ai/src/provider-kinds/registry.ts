@@ -88,8 +88,10 @@ export interface ProviderKindServerEntry {
 	readonly stablePromptOptions?: SystemModelMessage["providerOptions"];
 	/** Defaults to active tools. */
 	readonly toolLoading?: (modelId: string) => ToolLoading;
-	/** Sent with every call of the kind. */
+	/** Sent with every call of the kind, background calls included. */
 	readonly callProviderOptions?: SharedV4ProviderOptions;
+	/** Sent with every step of a turn, which later steps profit from. */
+	readonly turnProviderOptions?: SharedV4ProviderOptions;
 	/** Without it, our own summary compacts. */
 	readonly compaction?: NativeCompaction;
 	/** A JSON answer is asked for without its schema, so the prompt lists the fields. */
@@ -195,8 +197,8 @@ export const providerKindServerEntries: Record<
 				},
 			},
 		},
-		// Each call caches up to its last block, so a turn's steps read the history from cache.
-		callProviderOptions: {
+		// Each step caches up to its last block, so later steps read the history from cache.
+		turnProviderOptions: {
 			anthropic: {
 				cacheControl: {
 					type: "ephemeral",
@@ -244,6 +246,10 @@ export const providerKindServerEntries: Record<
 		},
 	},
 };
+
+/** The options every call of `kind` sends. */
+export const callProviderOptions = (kind: ModelProviderKind) =>
+	providerKindServerEntries[kind].callProviderOptions;
 
 export const titleCallSettings = (kind: ModelProviderKind): TitleCallSettings =>
 	providerKindServerEntries[kind].titleCallSettings ?? {};
@@ -338,14 +344,16 @@ export const providerCompaction = (
 	kind: ModelProviderKind,
 	trigger: number,
 ): ProviderCompaction => {
-	const { callProviderOptions, compaction } = providerKindServerEntries[kind];
+	const entry = providerKindServerEntries[kind];
+	const { compaction } = entry;
 	const native =
 		compaction !== undefined && trigger >= compaction.minimumTrigger
 			? compaction
 			: undefined;
 	const nativeOptions = native?.providerOptions(trigger);
 	const providers = new Set([
-		...Object.keys(callProviderOptions ?? {}),
+		...Object.keys(entry.callProviderOptions ?? {}),
+		...Object.keys(entry.turnProviderOptions ?? {}),
 		...Object.keys(nativeOptions ?? {}),
 	]);
 
@@ -360,7 +368,8 @@ export const providerCompaction = (
 						].map((provider) => [
 							provider,
 							{
-								...callProviderOptions?.[provider],
+								...entry.callProviderOptions?.[provider],
+								...entry.turnProviderOptions?.[provider],
 								...nativeOptions?.[provider],
 							},
 						]),

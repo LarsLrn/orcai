@@ -2,10 +2,18 @@ import type { ModelProviderKind } from "@orcai/core";
 import { languageTag } from "@orcai/schema";
 import { Output } from "ai";
 import { z } from "zod/v4";
+import type { CallSpec } from "./call-spec";
 import { jsonAnswerInstructions } from "./json-answer";
+import {
+	callProviderOptions,
+	utilityReasoning,
+} from "./provider-kinds/registry";
 
 /** The output budget of one image description, with room for a reasoning model's thinking. */
-export const IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS = 4096;
+const IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS = 4096;
+
+/** A description that takes longer counts as failed. */
+const IMAGE_DESCRIPTION_TIMEOUT_MS = 120_000;
 
 /** A summary of an image asset is at most this long. */
 const MAX_IMAGE_SUMMARY_LENGTH = 300;
@@ -81,7 +89,7 @@ const imageAssetDescriptionSchema = z.object({
 		),
 });
 
-export const imageAssetDescriptionOutput = Output.object({
+const imageAssetDescriptionOutput = Output.object({
 	schema: imageAssetDescriptionSchema,
 });
 
@@ -115,3 +123,68 @@ export const imageAssetDescriptionInstructions = ({
 	]
 		.filter(Boolean)
 		.join("\n\n");
+
+/** A stored image as its call sends it; `hint` is what the extraction knows of it. */
+export interface DescribedImage {
+	data: Uint8Array;
+	mediaType: string;
+	hint?: string;
+	/** The uploader's, the language of an image without text. */
+	locale: string;
+}
+
+const describeCall = (
+	kind: ModelProviderKind,
+	image: DescribedImage,
+	instructions: string,
+) => ({
+	operation: "asset.describeImage",
+	instructions,
+	prompt: [
+		{
+			role: "user" as const,
+			content: [
+				{
+					type: "file" as const,
+					data: image.data,
+					mediaType: image.mediaType,
+				},
+			],
+		},
+	],
+	maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
+	reasoning: utilityReasoning(kind),
+	timeoutMs: IMAGE_DESCRIPTION_TIMEOUT_MS,
+	providerOptions: callProviderOptions(kind),
+});
+
+/** The call that reads an image asset: its search text and a metadata suggestion. */
+export const imageAssetCall = (
+	kind: ModelProviderKind,
+	image: DescribedImage,
+): CallSpec<typeof imageAssetDescriptionOutput> => ({
+	...describeCall(
+		kind,
+		image,
+		imageAssetDescriptionInstructions({
+			kind,
+			hint: image.hint,
+			locale: image.locale,
+		}),
+	),
+	output: imageAssetDescriptionOutput,
+});
+
+/** The call that describes a figure of a document for search. */
+export const figureCall = (
+	kind: ModelProviderKind,
+	image: DescribedImage,
+): CallSpec =>
+	describeCall(
+		kind,
+		image,
+		figureDescriptionInstructions({
+			hint: image.hint,
+			locale: image.locale,
+		}),
+	);

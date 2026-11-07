@@ -1,4 +1,14 @@
+import type { ModelProviderKind } from "@orcai/core";
+import type { CallSpec } from "./call-spec";
+import {
+	callProviderOptions,
+	titleCallSettings,
+} from "./provider-kinds/registry";
+
 const MAX_CHAT_TITLE_LENGTH = 80;
+
+/** A title that takes longer is given up. */
+const TITLE_TIMEOUT_MS = 15_000;
 
 const CHAT_TITLE_INSTRUCTIONS = [
 	"You name a chat after the first message its user wrote.",
@@ -7,11 +17,22 @@ const CHAT_TITLE_INSTRUCTIONS = [
 	"Answer with the title alone.",
 ].join("\n");
 
-/** The title call's instructions and prompt for a chat's first message. */
-export const chatTitlePrompt = (userMessageText: string) => ({
-	system: CHAT_TITLE_INSTRUCTIONS,
-	prompt: `<message>\n${userMessageText}\n</message>`,
-});
+/** The call that names a chat after its first message, without reasoning where the kind allows. */
+export const chatTitleCall = (
+	kind: ModelProviderKind,
+	userMessageText: string,
+): CallSpec => {
+	const { reasoning, maxOutputTokens } = titleCallSettings(kind);
+	return {
+		operation: "ai.chat.generateTitle",
+		instructions: CHAT_TITLE_INSTRUCTIONS,
+		prompt: `<message>\n${userMessageText}\n</message>`,
+		maxOutputTokens,
+		reasoning,
+		timeoutMs: TITLE_TIMEOUT_MS,
+		providerOptions: callProviderOptions(kind),
+	};
+};
 
 export const sanitizeGeneratedChatTitle = (title: string) => {
 	const sanitized = title

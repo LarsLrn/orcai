@@ -7,14 +7,22 @@ import {
 } from "@orcai/schema";
 import { Output } from "ai";
 import { z } from "zod/v4";
+import type { CallSpec } from "./call-spec";
 import { jsonAnswerInstructions } from "./json-answer";
+import {
+	callProviderOptions,
+	utilityReasoning,
+} from "./provider-kinds/registry";
 import { quoted } from "./quoted";
 
 /** About 8k tokens of the document's text: bibliographic details sit up front. */
 const MAX_CONTENT_CHARACTERS = 32_000;
 
 /** Room for a reasoning model's thinking before the object. */
-export const ASSET_METADATA_MAX_OUTPUT_TOKENS = 4096;
+const ASSET_METADATA_MAX_OUTPUT_TOKENS = 4096;
+
+/** A metadata call that takes longer counts as failed. */
+const ASSET_METADATA_TIMEOUT_MS = 120_000;
 
 /** Each description is the field's whole spec: sent with the schema, or listed in the prompt. */
 const assetMetadataSchema = z.object({
@@ -116,7 +124,7 @@ const assetMetadataSchema = z.object({
 		),
 });
 
-export const assetMetadataOutput = Output.object({
+const assetMetadataOutput = Output.object({
 	schema: assetMetadataSchema,
 });
 
@@ -174,6 +182,21 @@ export const assetMetadataPrompt = (params: {
 		"</document_text>",
 	].join("\n");
 };
+
+/** The call that reads a document's metadata from its details and the start of its text. */
+export const assetMetadataCall = (
+	kind: ModelProviderKind,
+	document: Parameters<typeof assetMetadataPrompt>[0],
+): CallSpec<typeof assetMetadataOutput> => ({
+	operation: "asset.generateMetadata",
+	instructions: assetMetadataInstructions(kind),
+	prompt: assetMetadataPrompt(document),
+	output: assetMetadataOutput,
+	maxOutputTokens: ASSET_METADATA_MAX_OUTPUT_TOKENS,
+	reasoning: utilityReasoning(kind),
+	timeoutMs: ASSET_METADATA_TIMEOUT_MS,
+	providerOptions: callProviderOptions(kind),
+});
 
 const text = (value: string | null | undefined) => {
 	const trimmed = value?.trim();

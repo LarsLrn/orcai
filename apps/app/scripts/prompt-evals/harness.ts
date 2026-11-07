@@ -1,21 +1,15 @@
 import {
 	type AgentModel,
-	ASSET_METADATA_MAX_OUTPUT_TOKENS,
 	agentModel,
-	assetMetadataInstructions,
-	assetMetadataOutput,
-	assetMetadataPrompt,
+	assetMetadataCall,
 	buildSystemInstructions,
-	chatTitlePrompt,
-	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
-	imageAssetDescriptionInstructions,
-	imageAssetDescriptionOutput,
-	jsonAnswerModel,
+	callRequest,
+	chatTitleCall,
+	imageAssetCall,
 	providerCompaction,
 	readAssetMetadata,
 	readImageAssetDescription,
 	sanitizeGeneratedChatTitle,
-	titleCallSettings,
 } from "@orcai/ai";
 import type { Repository } from "@orcai/schema";
 import {
@@ -792,7 +786,7 @@ export const runAssistant = async ({
 	return transcriptOf(steps, result.text);
 };
 
-/** Metadata of one document, as the worker's metadata job asks for it. */
+/** Metadata of one document, with the worker's metadata call. */
 export const runAssetMetadata = async ({
 	model: { model },
 	content,
@@ -800,18 +794,17 @@ export const runAssetMetadata = async ({
 }: {
 	model: EvalModel;
 	content: string;
-	hints?: Parameters<typeof assetMetadataPrompt>[0]["hints"];
+	hints?: Parameters<typeof assetMetadataCall>[1]["hints"];
 }): Promise<Transcript> => {
-	const { output, text } = await generateText({
-		model: jsonAnswerModel(model.language),
-		system: assetMetadataInstructions(model.kind),
-		prompt: assetMetadataPrompt({
-			content,
-			hints,
-		}),
-		output: assetMetadataOutput,
-		maxOutputTokens: ASSET_METADATA_MAX_OUTPUT_TOKENS,
-	});
+	const { output, text } = await generateText(
+		callRequest(
+			model.language,
+			assetMetadataCall(model.kind, {
+				content,
+				hints,
+			}),
+		),
+	);
 
 	return {
 		text,
@@ -821,7 +814,7 @@ export const runAssetMetadata = async ({
 	};
 };
 
-/** An image asset's search text and metadata, as the worker's image description asks for them. */
+/** An image asset's search text and metadata, with the worker's image call. */
 export const runImageAsset = async ({
 	model: { model },
 	png,
@@ -831,27 +824,16 @@ export const runImageAsset = async ({
 	png: Uint8Array;
 	locale: string;
 }): Promise<Transcript> => {
-	const { output, text } = await generateText({
-		model: jsonAnswerModel(model.language),
-		system: imageAssetDescriptionInstructions({
-			kind: model.kind,
-			locale,
-		}),
-		output: imageAssetDescriptionOutput,
-		messages: [
-			{
-				role: "user",
-				content: [
-					{
-						type: "file",
-						data: png,
-						mediaType: "image/png",
-					},
-				],
-			},
-		],
-		maxOutputTokens: IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
-	});
+	const { output, text } = await generateText(
+		callRequest(
+			model.language,
+			imageAssetCall(model.kind, {
+				data: png,
+				mediaType: "image/png",
+				locale,
+			}),
+		),
+	);
 	const { suggestion, text: searchText } = readImageAssetDescription(output);
 
 	return {
@@ -865,7 +847,7 @@ export const runImageAsset = async ({
 	};
 };
 
-/** A chat title from the first message, as the title generation asks for it. */
+/** A chat title from the first message, with the title generation's call. */
 export const runChatTitle = async ({
 	model: { model },
 	message,
@@ -873,11 +855,9 @@ export const runChatTitle = async ({
 	model: EvalModel;
 	message: string;
 }): Promise<Transcript> => {
-	const { text } = await generateText({
-		model: model.language,
-		...chatTitlePrompt(message),
-		...titleCallSettings(model.kind),
-	});
+	const { text } = await generateText(
+		callRequest(model.language, chatTitleCall(model.kind, message)),
+	);
 
 	return {
 		text,
