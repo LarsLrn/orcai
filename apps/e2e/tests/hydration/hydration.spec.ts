@@ -1,10 +1,16 @@
 import type { Page } from "@playwright/test";
+import { uploadTogether } from "../../fixtures/activity/uploads";
+import { createBot } from "../../fixtures/assistant/approval";
 import {
+	createMockModel,
 	setAssistantModel,
 	startConversation,
 } from "../../fixtures/assistant/assistant";
 import { untilAllowed } from "../../fixtures/authorization";
-import { expect, test } from "../../fixtures/index";
+import { setUpChatModel } from "../../fixtures/chat/chat";
+import { serverHtml } from "../../fixtures/hydration/server-html";
+import { expect, test } from "../../fixtures/inference/fixture";
+import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
 
@@ -14,17 +20,6 @@ const TIME_ZONE = "Pacific/Kiritimati";
 test.use({
 	timezoneId: TIME_ZONE,
 });
-
-/**
- * Slow the page's CPU, not its network, so a query the sidebar fetches after
- * the shell hydrates lands before React hydrates the page content.
- */
-const slowCpu = async (page: Page) => {
-	const session = await page.context().newCDPSession(page);
-	await session.send("Emulation.setCPUThrottlingRate", {
-		rate: 6,
-	});
-};
 
 // The shared fixtures fail the test on a hydration mismatch.
 const openEach = async (page: Page, paths: string[]) => {
@@ -145,58 +140,144 @@ test("hydration: an entry added from the catalogue matches the server in the cat
 	const page = await pageAs("admin", other);
 
 	await enterApp(page, other.slug);
-	await slowCpu(page);
-	await openEach(
-		page,
-		[
-			`/app/catalogue/behaviours?query=${id}`,
-			`/app/library?query=${id}`,
-		].flatMap((path) => [
-			path,
-			path,
-		]),
-	);
+	await openEach(page, [
+		`/app/catalogue/behaviours?query=${id}`,
+		`/app/library?query=${id}`,
+	]);
 });
 
-// The sidebar fetches the organisation and its capabilities once the shell
-// hydrates, often before the page does. A page reading them must not see them
-// first, which a few loads catch nearly every time.
-test("hydration: a page reading the organisation matches the server", async ({
+/*
+ * A query only the browser fetches can be filled by a region that hydrated
+ * earlier, so a later region would render differently from the server. The
+ * tests below read the server's HTML for a page whose content depends on such
+ * shared data, then open it once under the suite's page-error check.
+ */
+
+test("hydration: the server renders the organisation's missing assistant model", async ({
 	api,
 	org,
 	pageAs,
+	newContext,
 }) => {
 	await setAssistantModel(api.as("admin"), org, null);
 	const chatId = await startConversation(api.as("member"));
-
 	const page = await pageAs("member");
-
 	await enterApp(page, org.slug);
-	await slowCpu(page);
-	await openEach(
-		page,
-		Array.from(
-			{
-				length: 4,
-			},
-			() => `/app/assistant/${chatId}`,
-		),
-	);
+
+	const html = await serverHtml(page, newContext, `/app/assistant/${chatId}`);
+	await expect(
+		html.getByText(message("assistant_unavailable_description_member")).first(),
+	).toBeAttached();
+
+	await open(page, `/app/assistant/${chatId}`);
 });
 
-// The Library's own "New" menu fetches the creation capabilities once the
-// page around the list hydrates. The empty list must not see them first.
-test("hydration: an empty Library kind matches the server", async ({
+test("hydration: the server renders the assistant's model by name", async ({
+	api,
+	inference,
 	orgs,
 	pageAs,
+	newContext,
+}) => {
+	const fresh = await orgs.create(`E2E Hydration Model ${runId()}`);
+	const admin = api.as("admin", fresh);
+	const chat = await setUpChatModel(
+		{
+			...api,
+			as: (role) => api.as(role, fresh),
+		},
+		inference,
+	);
+	const model = await createMockModel(admin, chat.providerId);
+	await setAssistantModel(admin, fresh, model.modelId);
+	const page = await pageAs("member", fresh);
+	await enterApp(page, fresh.slug);
+
+	const html = await serverHtml(page, newContext, "/app/assistant");
+	await expect(
+		html.getByText(model.name, {
+			exact: true,
+		}),
+	).toBeAttached();
+
+	await open(page, "/app/assistant");
+});
+
+test("hydration: the server renders the user's activity in the header and on Home", async ({
+	api,
+	orgs,
+	pageAs,
+	newContext,
+}) => {
+	const fresh = await orgs.create(`E2E Hydration Activity ${runId()}`);
+	// Without workers both uploads fail at once and need the user.
+	await uploadTogether(api.as("member", fresh), [
+		`E2E Hydration ${runId()}.txt`,
+		`E2E Hydration ${runId()}.txt`,
+	]);
+	const page = await pageAs("member", fresh);
+	await enterApp(page, fresh.slug);
+
+	const html = await serverHtml(page, newContext, "/app");
+	await expect(
+		html.getByRole("button", {
+			name: "Activity, 2 need your attention",
+			includeHidden: true,
+		}),
+	).toBeAttached();
+	await expect(
+		html.getByRole("heading", {
+			name: message("activity_title"),
+			exact: true,
+			level: 2,
+			includeHidden: true,
+		}),
+	).toBeAttached();
+
+	await open(page, "/app");
+});
+
+test("hydration: the server renders a new chat with its bot", async ({
+	api,
+	org,
+	pageAs,
+	newContext,
+}) => {
+	const bot = await createBot(api.as("member"), "Hydration bot");
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+
+	const path = `/app/chat/new?botId=${bot.id}`;
+	const html = await serverHtml(page, newContext, path);
+	await expect(
+		html
+			.getByText(bot.name, {
+				exact: true,
+			})
+			.first(),
+	).toBeAttached();
+
+	await open(page, path);
+});
+
+test("hydration: the server renders an empty Library kind with its New action", async ({
+	orgs,
+	pageAs,
+	newContext,
 }) => {
 	const empty = await orgs.create(`E2E Empty Library ${runId()}`);
 	const page = await pageAs("admin", empty);
-
 	await enterApp(page, empty.slug);
-	await slowCpu(page);
-	await openEach(page, [
-		"/app/library/bots",
-		"/app/library/bots",
-	]);
+
+	const html = await serverHtml(page, newContext, "/app/library/bots");
+	await expect(
+		html
+			.getByRole("button", {
+				name: message("library_new_action"),
+				includeHidden: true,
+			})
+			.first(),
+	).toBeAttached();
+
+	await open(page, "/app/library/bots");
 });
