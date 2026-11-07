@@ -10,7 +10,7 @@ import {
 	type UpdateOrganizationInput,
 	userIdSchema,
 } from "@orcai/schema";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { type QueryClient, skipToken, useQuery } from "@tanstack/react-query";
 import { TriangleAlertIcon } from "lucide-react";
 import { useId } from "react";
 import { ModelSelectorButton } from "@/components/chat/model-selector";
@@ -18,7 +18,10 @@ import { formTriggerText } from "@/components/forms/fields/form-field";
 import { FormSection } from "@/components/forms/form-layout";
 import { OrganizationLogoSettings } from "@/components/images/image-settings";
 import { InitialAdminField } from "@/components/organizations/form/initial-admin-field";
-import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
+import {
+	SearchPoolNotice,
+	searchPoolQuery,
+} from "@/components/provider/search-pool-notice";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -235,6 +238,57 @@ const webSearchChoice = ({
 			? "native"
 			: "off";
 
+/** The search provider a web search choice names, whose pools the notice checks. */
+const searchPoolProviderId = (choice: string) =>
+	providerIdSchema.safeParse(choice).data ?? null;
+
+/** The search providers the web search setting offers. */
+const searchProvidersQuery = () =>
+	orpc.provider.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 100,
+			filters: {
+				purpose: "search",
+			},
+		},
+	});
+
+/** Loads a model setting's model and its provider, as `OrganizationModelField` reads them. */
+const loadModelField = async (queryClient: QueryClient, id: ModelId) => {
+	const { data: model } = await queryClient.query(
+		orpc.model.find.queryOptions({
+			input: {
+				id,
+			},
+		}),
+	);
+	await queryClient.query(
+		orpc.provider.find.queryOptions({
+			input: {
+				id: model.providerId,
+			},
+		}),
+	);
+};
+
+/** Loads what the update form reads about the organisation's settings. A failed read fails only its field. */
+export const loadOrganizationForm = async (
+	queryClient: QueryClient,
+	organization: Organization,
+) => {
+	const searchProviderId = searchPoolProviderId(webSearchChoice(organization));
+	await Promise.allSettled([
+		queryClient.query(searchProvidersQuery()),
+		...[
+			organization.assistantModelId,
+			organization.defaultChatModelId,
+			organization.utilityModelId,
+		].map((id) => id && loadModelField(queryClient, id)),
+		searchProviderId && queryClient.query(searchPoolQuery(searchProviderId)),
+	]);
+};
+
 /** The setting's next value, left out when unchanged so a disabled provider does not block other edits. */
 const changedWebSearch = (
 	choice: string,
@@ -282,18 +336,11 @@ export const OrganizationForm = ({
 	const { mutateAsync: createOrganization } = useCreateOrganizationMutation();
 	const { mutateAsync: updateOrganization } = useUpdateOrganizationMutation();
 	const { data: searchProviders } = useQuery(
-		orpc.provider.list.queryOptions({
-			input:
-				action === "update"
-					? {
-							pageIndex: 0,
-							pageSize: 100,
-							filters: {
-								purpose: "search",
-							},
-						}
-					: skipToken,
-		}),
+		action === "update"
+			? searchProvidersQuery()
+			: orpc.provider.list.queryOptions({
+					input: skipToken,
+				}),
 	);
 
 	const form = useAppForm({
@@ -519,9 +566,7 @@ export const OrganizationForm = ({
 										]}
 									/>
 									<SearchPoolNotice
-										providerId={
-											providerIdSchema.safeParse(field.state.value).data ?? null
-										}
+										providerId={searchPoolProviderId(field.state.value)}
 									/>
 								</>
 							)}

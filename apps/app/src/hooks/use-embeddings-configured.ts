@@ -3,7 +3,8 @@ import { orpc } from "@/lib/orpc/orpc";
 
 const REBUILD_POLL_MS = 60_000;
 
-const embeddingsStatusQuery = () =>
+/** Whether embeddings are set up or rebuilding. `/app` loads it, so the server renders with it. */
+export const embeddingsStatusQuery = () =>
 	orpc.instanceSettings.embeddingsStatus.queryOptions({
 		input: {},
 	});

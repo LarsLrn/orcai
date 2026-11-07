@@ -1,11 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { FormPage } from "@/components/forms/form-layout";
-import { OrganizationForm } from "@/components/organizations/form/organization-form";
-import { useSuspenseActiveOrganization } from "@/hooks/use-active-organization";
+import {
+	loadOrganizationForm,
+	OrganizationForm,
+} from "@/components/organizations/form/organization-form";
+import {
+	activeOrganizationQuery,
+	useSuspenseActiveOrganization,
+} from "@/hooks/use-active-organization";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/organization/")({
+	// The form's reads fail only their fields.
+	loader: async ({ context: { queryClient, auth } }) => {
+		await Promise.allSettled([
+			queryClient
+				.query(activeOrganizationQuery(auth.session.activeOrganizationId))
+				.then(({ data }) => loadOrganizationForm(queryClient, data)),
+		]);
+	},
 	component: RouteComponent,
 });
 

@@ -1,11 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileTextIcon } from "lucide-react";
-import { DataExportCard } from "@/components/account/data-export-card";
+import {
+	DataExportCard,
+	latestDataExportQuery,
+} from "@/components/account/data-export-card";
 import { buttonVariants } from "@/components/ui/button";
 import { PageContent } from "@/components/ui/shell/page";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/account/data")({
+	// The card fails only itself.
+	loader: async ({ context: { queryClient } }) => {
+		await Promise.allSettled([
+			queryClient.query(latestDataExportQuery()),
+		]);
+	},
 	component: RouteComponent,
 });
 

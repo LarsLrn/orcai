@@ -1,11 +1,13 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import z from "zod/v4";
+import { loadActivityAttention } from "@/components/activity/activity-state";
 import { recentChatsInput } from "@/components/app/home/recent-chats";
 import {
 	catalogueTeaserInput,
 	tryBotsInput,
 } from "@/components/app/home/try-something";
 import { UserHome } from "@/components/app/home/user-home";
+import { loadChatStarter } from "@/components/chat/use-chat-starter";
 import {
 	failingRequired,
 	readinessQuery,
@@ -61,6 +63,11 @@ export const Route = createFileRoute("/app/_home/")({
 					staleTime: "static",
 				}),
 			),
+			// These fail only their own cards.
+			Promise.allSettled([
+				loadChatStarter(queryClient),
+				loadActivityAttention(queryClient),
+			]),
 		]);
 	},
 	component: UserHome,

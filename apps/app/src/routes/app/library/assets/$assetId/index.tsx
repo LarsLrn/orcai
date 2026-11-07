@@ -29,6 +29,26 @@ import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/assets/$assetId/")({
+	// The viewer's file and the download link fail only themselves.
+	loader: async ({ context: { queryClient }, params: { assetId } }) => {
+		await Promise.allSettled(
+			[
+				{
+					id: assetId,
+				},
+				{
+					id: assetId,
+					attachment: true,
+				},
+			].map((input) =>
+				queryClient.query(
+					orpc.storage.createDownloadUrl.queryOptions({
+						input,
+					}),
+				),
+			),
+		);
+	},
 	component: RouteComponent,
 });
 

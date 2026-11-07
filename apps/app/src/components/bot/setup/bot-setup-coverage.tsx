@@ -8,6 +8,12 @@ import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+/** Who the bot is shared with, each covered for the model or not; loaders share it with the coverage views. */
+const botSetupCoverageQuery = (input: { botId: BotId; modelId: ModelId }) =>
+	orpc.botSetup.coverage.queryOptions({
+		input,
+	});
+
 /**
  * Who the bot is shared with in the active organisation, each covered by a
  * quota pool for the model or not. It warns; saving goes ahead either way.
@@ -20,11 +26,9 @@ const BotSetupCoverage = ({
 	modelId: ModelId;
 }) => {
 	const { data: coverage } = useQuery(
-		orpc.botSetup.coverage.queryOptions({
-			input: {
-				botId,
-				modelId,
-			},
+		botSetupCoverageQuery({
+			botId,
+			modelId,
 		}),
 	);
 	const { data: capabilities } = useOrganizationCapabilities();
@@ -115,4 +119,4 @@ const BotSetupCoverage = ({
 	);
 };
 
-export { BotSetupCoverage };
+export { BotSetupCoverage, botSetupCoverageQuery };

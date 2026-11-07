@@ -7,11 +7,14 @@ import type {
 	Model,
 	Provider,
 } from "@orcai/schema";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { type QueryClient, skipToken, useQuery } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-store";
 import { CircleAlertIcon, CircleCheckIcon } from "lucide-react";
 import { type Ref, useImperativeHandle } from "react";
-import { BotSetupCoverage } from "@/components/bot/setup/bot-setup-coverage";
+import {
+	BotSetupCoverage,
+	botSetupCoverageQuery,
+} from "@/components/bot/setup/bot-setup-coverage";
 import {
 	GENERATION_SETTINGS_FIELDS,
 	GenerationSettingsFieldGroup,
@@ -85,6 +88,40 @@ const formValues = (
 				strength: authorsPick?.hint.strength ?? "recommended",
 			};
 
+/** The bot's setup in the active organisation and whether the user may edit it. */
+const botSetupQuery = (botId: BotId) =>
+	orpc.botSetup.find.queryOptions({
+		input: {
+			botId,
+		},
+	});
+
+/**
+ * Loads what the step shows first for a bot without an Author's pick: its
+ * setup and, for an editor, the set model and its coverage.
+ */
+const loadBotModelStep = async (queryClient: QueryClient, botId: BotId) => {
+	const { data } = await queryClient.query(botSetupQuery(botId));
+	if (!data.canEdit) return;
+	const { modelId } = formValues(data.setup, undefined);
+	if (!modelId) return;
+	await Promise.allSettled([
+		queryClient.query(
+			orpc.model.find.queryOptions({
+				input: {
+					id: modelId,
+				},
+			}),
+		),
+		queryClient.query(
+			botSetupCoverageQuery({
+				botId,
+				modelId,
+			}),
+		),
+	]);
+};
+
 /** Which model the author asks for, and whether it is preselected or missing here. */
 const AuthorsPickNote = ({ pick }: { pick: AuthorsPick }) => (
 	<Alert>
@@ -133,13 +170,11 @@ const BotModelStep = ({
 	ref?: Ref<BotModelStepHandle>;
 }) => {
 	const { data: found } = useQuery(
-		orpc.botSetup.find.queryOptions({
-			input: botId
-				? {
-						botId,
-					}
-				: skipToken,
-		}),
+		botId
+			? botSetupQuery(botId)
+			: orpc.botSetup.find.queryOptions({
+					input: skipToken,
+				}),
 	);
 
 	if (!botId) {
@@ -320,4 +355,9 @@ const BotModelForm = ({
 	);
 };
 
-export { BotModelStep, type BotModelStepHandle };
+export {
+	BotModelStep,
+	type BotModelStepHandle,
+	botSetupQuery,
+	loadBotModelStep,
+};

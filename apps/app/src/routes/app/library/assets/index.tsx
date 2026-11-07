@@ -5,13 +5,14 @@ import {
 	stripSearchParams,
 } from "@tanstack/react-router";
 import { SparklesIcon } from "lucide-react";
-import { RunFilter } from "@/components/activity/run-filter";
+import { RunFilter, runFilterQuery } from "@/components/activity/run-filter";
 import { AssetTile } from "@/components/assets/asset-tile";
 import { NoResults } from "@/components/browse/browse-layout";
 import { LibraryEmpty } from "@/components/library/library-empty";
 import { LibraryResults } from "@/components/library/library-results";
 import { Button } from "@/components/ui/button";
 import { useGenerateMissingMetadataMutation } from "@/hooks/mutations/use-asset-mutations";
+import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { useUtilityModel } from "@/hooks/use-utility-model";
 import {
 	assetLibrarySearchSchema,
@@ -67,7 +68,19 @@ export const Route = createFileRoute("/app/library/assets/")({
 		],
 	},
 	loaderDeps: ({ search }) => search,
-	loader: async ({ context: { queryClient }, deps }) => {
+	loader: async ({ context: { queryClient, auth }, deps }) => {
+		const loadMissingMetadata = async () => {
+			const { data: organization } = await queryClient.query(
+				activeOrganizationQuery(auth.session.activeOrganizationId),
+			);
+			if (organization.utilityModelId) {
+				await queryClient.query(
+					orpc.asset.missingMetadata.queryOptions({
+						input: {},
+					}),
+				);
+			}
+		};
 		await Promise.all([
 			queryClient.query(
 				orpc.asset.list.queryOptions({
@@ -81,6 +94,11 @@ export const Route = createFileRoute("/app/library/assets/")({
 					staleTime: "static",
 				}),
 			),
+			// The run's title and the metadata action fail only themselves.
+			Promise.allSettled([
+				deps.run && queryClient.query(runFilterQuery(deps.run)),
+				deps.keptIn === "library" && !deps.run && loadMissingMetadata(),
+			]),
 		]);
 	},
 	component: RouteComponent,

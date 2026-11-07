@@ -75,6 +75,18 @@ The apps share their server code through the workspace packages under `packages/
 
 The app and the workers ship as bundles. A dependency breaks only at runtime when it loads native bindings, reads its own files by path or imports a computed name, so keep such a dependency external. In the app, add it to `ssr.external` in `apps/app/vite.config.ts`, and to Nitro's `traceDeps` when it requires files the tracer cannot see. In the workers, add it to `external` in `apps/workers/build.ts` and to the workers' `dependencies`, which the image installs.
 
+## Server rendering and data
+
+The server renders every page with TanStack Start, and the browser hydrates the shell first and each Suspense region after it. A plain `useQuery` does not fetch on the server and reads the live cache while it hydrates, so a query another region already fetched in the browser changes what a later region renders, and React reports a hydration mismatch. TanStack Query keeps no snapshot of what the server rendered, and its freshness settings do not change that.
+
+Data that decides what a page shows is therefore on the server before it renders:
+
+- A route `loader` awaits what the shell or the page reads, through `context.queryClient.query()` with the same query options the component uses, so the keys match. `/app` loads the shell's reads, such as the organisation, the capabilities, the activity summary and the assistant's model. A read whose failure should only affect its own component is awaited with `Promise.allSettled`. Reads that depend on another read go in a `load...` function beside the hook, such as `loadChatStarter`.
+- A secondary region that may arrive later reads with `useSuspenseQuery` behind a Suspense boundary, and the server streams it.
+- A plain `useQuery` is for data the server never renders: closed dialogs, pickers, and queries that start after a user action.
+
+The hydration specs in `apps/e2e/tests/hydration/` read a page's server HTML with scripts off and check that it already shows the data-dependent content.
+
 ## Asset preparation flow
 
 1. A user uploads files through the app. The browser puts each file under `staging/` in S3-compatible object storage with a URL the app signed.

@@ -1,6 +1,10 @@
-import { hasNativeWebSearch, modelCapabilities } from "@orcai/core";
+import {
+	hasNativeWebSearch,
+	modelCapabilities,
+	type ProviderId,
+} from "@orcai/core";
 import type { Model, ModelPrices } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import {
@@ -27,6 +31,35 @@ const clearedPrices = (prices: Partial<ModelPrices> = {}): ModelPrices => ({
 	webSearch: prices.webSearch ?? null,
 });
 
+const providersQuery = () =>
+	orpc.provider.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 100,
+			filters: {
+				purpose: "models",
+			},
+		},
+	});
+
+const providerQuery = (id: string) =>
+	orpc.provider.find.queryOptions({
+		input: {
+			id,
+		},
+	});
+
+/** Loads the providers the form offers and the one of `providerId`, whose currency labels the prices. A failed read fails only its field. */
+const loadModelForm = async (
+	queryClient: QueryClient,
+	providerId?: ProviderId,
+) => {
+	await Promise.allSettled([
+		queryClient.query(providersQuery()),
+		providerId && queryClient.query(providerQuery(providerId)),
+	]);
+};
+
 const ModelForm = ({
 	action,
 	model,
@@ -38,17 +71,7 @@ const ModelForm = ({
 	const navigate = useNavigate();
 	const { mutateAsync: updateModel } = useUpdateModelMutation();
 
-	const providers = useQuery(
-		orpc.provider.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 100,
-				filters: {
-					purpose: "models",
-				},
-			},
-		}),
-	);
+	const providers = useQuery(providersQuery());
 
 	const form = useAppForm({
 		...modelFormOptions(model),
@@ -84,11 +107,7 @@ const ModelForm = ({
 	);
 	// The list may not hold the model's provider; its currency labels the prices.
 	const { data: provider } = useQuery({
-		...orpc.provider.find.queryOptions({
-			input: {
-				id: providerId,
-			},
-		}),
+		...providerQuery(providerId),
 		enabled: providerId !== "",
 		select: ({ data }) => data,
 	});
@@ -248,4 +267,4 @@ const ModelForm = ({
 	);
 };
 
-export { ModelForm };
+export { loadModelForm, ModelForm };

@@ -12,6 +12,15 @@ import { m } from "@/paraglide/messages";
 
 const HISTORY_PAGE_SIZE = 20;
 
+/** The first page of the history; `/app/assistant` loads it. */
+export const assistantHistoryQuery = () =>
+	orpc.assistant.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: HISTORY_PAGE_SIZE,
+		},
+	});
+
 /** The caller's assistant conversations in the active organisation, most recently active first. */
 const AssistantHistory = ({ className }: { className?: string }) => {
 	const headingId = useId();

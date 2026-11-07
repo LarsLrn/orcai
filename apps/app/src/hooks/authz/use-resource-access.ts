@@ -46,8 +46,15 @@ const getResourceInput = (resourceRef: ResourceRef) => {
 	}
 };
 
-const getGrantsOptions = (resourceRef: ResourceRef) =>
+/** Who holds a role on the resource; loaders share it with `useResourceGrants`. */
+export const resourceGrantsQuery = (resourceRef: ResourceRef) =>
 	orpc.resource.listGrants.queryOptions({
+		input: getResourceInput(resourceRef),
+	});
+
+/** Whether the resource is listed; loaders share it with `useResourceVisibility`. */
+export const resourceVisibilityQuery = (resourceRef: ResourceRef) =>
+	orpc.resource.getVisibility.queryOptions({
 		input: getResourceInput(resourceRef),
 	});
 
@@ -274,7 +281,7 @@ export const useGrantBlockEdit = () => {
 						id: block.id,
 					} as const;
 					const grants = await queryClient.query({
-						...getGrantsOptions(resourceRef),
+						...resourceGrantsQuery(resourceRef),
 						staleTime: 0,
 					});
 					const holdsEdit = new Set(

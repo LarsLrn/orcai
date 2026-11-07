@@ -15,6 +15,59 @@ export const TOP_K_OPTIONS = [
 ] as const;
 export type TopK = (typeof TOP_K_OPTIONS)[number];
 
+type ExploreBrowseParams = {
+	repositoryId: BlockId;
+	assetId?: AssetId;
+};
+
+type ExploreSearchParams = ExploreBrowseParams & {
+	query: string;
+	mode: RetrievalMode;
+	topK: TopK;
+};
+
+/** The repository's passages page by page; the explore page loads the first. */
+export const exploreBrowseOptions = ({
+	repositoryId,
+	assetId,
+}: ExploreBrowseParams) =>
+	orpc.assetPoint.browseRepository.infiniteOptions({
+		input: (cursor: AssetPointBrowseCursor | undefined) => ({
+			repositoryId,
+			assetId,
+			cursor,
+		}),
+		initialPageParam: undefined,
+		getNextPageParam: (page) => page.nextCursor ?? undefined,
+	});
+
+/** The ranked passages for a query; the explore page loads them. */
+export const exploreSearchQuery = ({
+	repositoryId,
+	query,
+	mode,
+	assetId,
+	topK,
+}: ExploreSearchParams) =>
+	orpc.assetPoint.searchRepository.queryOptions({
+		input: {
+			repositoryId,
+			filters: {
+				queries: [
+					query,
+				],
+				retrievalMode: mode,
+				limit: topK,
+				maxPerAsset: topK,
+				assetIds: assetId
+					? [
+							assetId,
+						]
+					: undefined,
+			},
+		},
+	});
+
 const Pending = () => (
 	<div className="flex min-h-48 items-center justify-center">
 		<Spinner className="size-8" />
@@ -22,26 +75,10 @@ const Pending = () => (
 );
 
 /** The repository's passages page by page; one asset's in reading order. */
-export const ExploreBrowse = ({
-	repositoryId,
-	assetId,
-}: {
-	repositoryId: BlockId;
-	assetId?: AssetId;
-}) => {
+export const ExploreBrowse = (params: ExploreBrowseParams) => {
 	// The key holds the repository and asset, so changing either starts over.
 	const { data, status, fetchNextPage, hasNextPage, isFetchingNextPage } =
-		useInfiniteQuery(
-			orpc.assetPoint.browseRepository.infiniteOptions({
-				input: (cursor: AssetPointBrowseCursor | undefined) => ({
-					repositoryId,
-					assetId,
-					cursor,
-				}),
-				initialPageParam: undefined,
-				getNextPageParam: (page) => page.nextCursor ?? undefined,
-			}),
-		);
+		useInfiniteQuery(exploreBrowseOptions(params));
 
 	if (status === "pending") return <Pending />;
 
@@ -85,39 +122,8 @@ export const ExploreBrowse = ({
 };
 
 /** The top `topK` passages for the query, ranked, without the per-asset cap a bot's search applies. */
-export const ExploreSearch = ({
-	repositoryId,
-	query,
-	mode,
-	assetId,
-	topK,
-}: {
-	repositoryId: BlockId;
-	query: string;
-	mode: RetrievalMode;
-	assetId?: AssetId;
-	topK: TopK;
-}) => {
-	const { data, status } = useQuery(
-		orpc.assetPoint.searchRepository.queryOptions({
-			input: {
-				repositoryId,
-				filters: {
-					queries: [
-						query,
-					],
-					retrievalMode: mode,
-					limit: topK,
-					maxPerAsset: topK,
-					assetIds: assetId
-						? [
-								assetId,
-							]
-						: undefined,
-				},
-			},
-		}),
-	);
+export const ExploreSearch = (params: ExploreSearchParams) => {
+	const { data, status } = useQuery(exploreSearchQuery(params));
 
 	if (status === "pending") return <Pending />;
 

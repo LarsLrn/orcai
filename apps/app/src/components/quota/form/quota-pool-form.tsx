@@ -1,5 +1,5 @@
 import type { QuotaPoolDetail } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { useEffect, useMemo, useRef } from "react";
@@ -21,6 +21,39 @@ import {
 	PROVIDER_WIDE_MODEL_VALUE,
 	quotaPoolFormOptions,
 } from "./quota-pool-form-options";
+
+const providersQuery = () =>
+	orpc.provider.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 200,
+		},
+	});
+
+const modelsQuery = () =>
+	orpc.model.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 500,
+		},
+	});
+
+const groupsQuery = () =>
+	orpc.group.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 200,
+		},
+	});
+
+/** Loads the providers, models and groups the form offers. A failed read fails only its field. */
+const loadQuotaPoolForm = async (queryClient: QueryClient) => {
+	await Promise.allSettled([
+		queryClient.query(providersQuery()),
+		queryClient.query(modelsQuery()),
+		queryClient.query(groupsQuery()),
+	]);
+};
 
 const QuotaPoolForm = ({
 	action,
@@ -75,32 +108,9 @@ const QuotaPoolForm = ({
 		},
 	});
 
-	const providers = useQuery(
-		orpc.provider.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 200,
-			},
-		}),
-	);
-
-	const models = useQuery(
-		orpc.model.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 500,
-			},
-		}),
-	);
-
-	const groups = useQuery(
-		orpc.group.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 200,
-			},
-		}),
-	);
+	const providers = useQuery(providersQuery());
+	const models = useQuery(modelsQuery());
+	const groups = useQuery(groupsQuery());
 
 	const defaultGroupId =
 		groups.data?.data.find(
@@ -368,4 +378,4 @@ const QuotaPoolForm = ({
 	);
 };
 
-export { QuotaPoolForm };
+export { loadQuotaPoolForm, QuotaPoolForm };

@@ -1,15 +1,30 @@
 import type { BotId, ModelId, ProviderId } from "@orcai/core";
-import { DEFAULT_FEATURES, type Model, type Provider } from "@orcai/schema";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import {
+	type BotSetup,
+	DEFAULT_FEATURES,
+	type Model,
+	type Provider,
+} from "@orcai/schema";
+import { type QueryClient, skipToken, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import type { ChatDraft } from "@/components/chat/chat-draft";
 import { composerBlocker } from "@/components/chat/composer-blocker";
 import { starterModel } from "@/components/chat/model-picker-state";
-import { useDefaultChatModel } from "@/components/chat/use-default-chat-model";
+import {
+	defaultChatModelQuery,
+	useDefaultChatModel,
+} from "@/components/chat/use-default-chat-model";
 import { useStartChat } from "@/components/chat/use-start-chat";
-import { useQuotaStatus } from "@/components/quota/use-quota-status";
+import {
+	quotaStatusQuery,
+	useQuotaStatus,
+} from "@/components/quota/use-quota-status";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
+
+/** The model a bot's setup recommends, which the default model starts from. */
+const recommendedModelId = (setup: BotSetup | null) =>
+	setup?.strength === "recommended" ? (setup.model?.id ?? null) : null;
 
 const useChatStarter = ({ initialBotId }: { initialBotId?: BotId } = {}) => {
 	const { start, isStarting } = useStartChat({
@@ -38,9 +53,7 @@ const useChatStarter = ({ initialBotId }: { initialBotId?: BotId } = {}) => {
 	const { none, defaultModel } = useDefaultChatModel(
 		selectedBotId && setupStatus === "pending"
 			? undefined
-			: setup?.strength === "recommended"
-				? (setup.model?.id ?? null)
-				: null,
+			: recommendedModelId(setup),
 	);
 	const picked =
 		pick && pick.botId === selectedBotId
@@ -124,4 +137,61 @@ const useChatStarter = ({ initialBotId }: { initialBotId?: BotId } = {}) => {
 	};
 };
 
-export { useChatStarter };
+/**
+ * Loads what `useChatStarter` and the new chat's composer read for a bot, or
+ * for no bot, so the server renders the starter as the browser first does.
+ * Resolves with the starting model; a failed read fails only its readers.
+ */
+const loadChatStarter = async (queryClient: QueryClient, botId?: BotId) => {
+	const loadModel = async () => {
+		const setup = botId
+			? (
+					await queryClient.query(
+						orpc.botSetup.find.queryOptions({
+							input: {
+								botId,
+							},
+						}),
+					)
+				).data.setup
+			: null;
+		// A required model needs no default, so a failed default still loads its quota.
+		const defaultModel = await queryClient
+			.query(defaultChatModelQuery(recommendedModelId(setup)))
+			.then(
+				({ data }) => data,
+				() => null,
+			);
+		const selected = starterModel({
+			setup,
+			picked: null,
+			defaultModel,
+		});
+		if (!selected) return undefined;
+		await Promise.allSettled([
+			queryClient.query(quotaStatusQuery(selected)),
+			queryClient.query(
+				orpc.model.find.queryOptions({
+					input: {
+						id: selected.modelId,
+					},
+				}),
+			),
+		]);
+		return selected;
+	};
+	const [selected] = await Promise.allSettled([
+		loadModel(),
+		botId &&
+			queryClient.query(
+				orpc.bot.find.queryOptions({
+					input: {
+						id: botId,
+					},
+				}),
+			),
+	]);
+	return selected.status === "fulfilled" ? selected.value : undefined;
+};
+
+export { loadChatStarter, useChatStarter };

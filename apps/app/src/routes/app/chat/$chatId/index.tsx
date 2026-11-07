@@ -32,7 +32,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 	}),
 	loader: ({
 		params: { chatId },
-		context: { queryClient },
+		context: { queryClient, auth },
 		deps: { zedToken, message },
 	}) =>
 		loadChatPage(
@@ -41,6 +41,7 @@ export const Route = createFileRoute("/app/chat/$chatId/")({
 				chatId,
 				zedToken,
 				through: message,
+				organizationId: auth.session.activeOrganizationId,
 			},
 			(chat) => {
 				if (chat.kind === "assistant") {
