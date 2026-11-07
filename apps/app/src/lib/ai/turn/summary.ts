@@ -1,12 +1,9 @@
-import { COMPACTION_INSTRUCTIONS, generateTextWithQuota } from "@orcai/ai";
+import { generateTextWithQuota, summaryCall } from "@orcai/ai";
 import { getToolName, isToolUIPart } from "ai";
 import * as Effect from "effect/Effect";
 import { toolCallMarkdown } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import type { TurnRequester, TurnSetup } from "./setup";
-
-/** Summaries stay short; the conversation goes on from them. */
-const SUMMARY_MAX_OUTPUT_TOKENS = 8_192;
 
 const partLine = (part: ChatAgentUIMessage["parts"][number]) => {
 	if (part.type === "text") {
@@ -63,10 +60,8 @@ export const summarizeHistory = ({
 	replyId: string;
 	history: readonly ChatAgentUIMessage[];
 	stop: AbortSignal | undefined;
-}) => {
-	const prompt = transcript(history);
-	return generateTextWithQuota({
-		operation: "chatTurn.compact",
+}) =>
+	generateTextWithQuota({
 		appRequestId: `compaction:${replyId}`,
 		organizationId: requester.organizationId,
 		userId: requester.user.id,
@@ -74,12 +69,10 @@ export const summarizeHistory = ({
 		modelId: setup.model.modelId,
 		botId: setup.botId,
 		model: setup.model.language,
-		system: COMPACTION_INSTRUCTIONS,
-		prompt,
-		maxOutputTokens: Math.min(
-			setup.callSettings.maxOutputTokens,
-			SUMMARY_MAX_OUTPUT_TOKENS,
-		),
+		call: summaryCall(setup.model.kind, {
+			transcript: transcript(history),
+			turnMaxOutputTokens: setup.callSettings.maxOutputTokens,
+		}),
 		abortSignal: stop,
 	}).pipe(
 		Effect.map(({ text }) => text.trim() || undefined),
@@ -89,4 +82,3 @@ export const summarizeHistory = ({
 			),
 		),
 	);
-};

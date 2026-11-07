@@ -3243,7 +3243,6 @@
 	"error_bot_setup_forbidden": "Nur Personen, die den Bot in seiner Heimatorganisation bearbeiten können, oder, wo er aus dem Katalog hinzugefügt wurde, Admins und Manager können sein Modell hier ändern.",
 	"error_chat_upload_not_in_library": "Chat-Uploads können nicht in ein Repository. Fügen Sie das Asset zuerst zur Bibliothek hinzu.",
 	"error_add_grants_viewer_only": "Bots und Blöcke aus dem Katalog können nur zur Nutzung freigegeben werden, nicht zum Bearbeiten oder Verwalten.",
-	"error_chat_blocks_unavailable": "Die Blöcke dieses Chats konnten nicht geladen werden.",
 	"error_chat_bot_blocks_immutable": "Die Blöcke eines mit einem Bot verknüpften Chats können nicht direkt geändert werden.",
 	"error_chat_bot_deleted": "Der Bot dieses Chats wurde gelöscht, daher ist der Chat schreibgeschützt. Laden Sie ihn herunter, um ihn zu behalten.",
 	"error_chat_bot_features_immutable": "Die Funktionen eines mit einem Bot verknüpften Chats können nicht direkt geändert werden.",

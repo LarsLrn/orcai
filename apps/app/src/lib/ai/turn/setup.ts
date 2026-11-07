@@ -14,7 +14,6 @@ import type {
 	UserId,
 } from "@orcai/core";
 import type { Repository } from "@orcai/schema";
-import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
 import {
@@ -136,12 +135,6 @@ const badRequest = (
 		message,
 	});
 
-const failedRead = (operation: string) => (cause: unknown) =>
-	new AiError({
-		operation: `turn.setup.${operation}`,
-		cause,
-	});
-
 /** The model and provider of a turn, refused unless it can carry one. */
 const readModel = ({
 	modelId,
@@ -154,27 +147,14 @@ const readModel = ({
 }) =>
 	Effect.gen(function* () {
 		const procedures = yield* Procedures;
-		const { data: model } = yield* procedures.model
-			.find(
-				{
-					id: modelId,
-				},
-				{
-					context,
-				},
-			)
-			.pipe(
-				Effect.mapError((cause) =>
-					cause instanceof ORPCError && cause.code === "NOT_FOUND"
-						? new AppErrors.NotFoundError({
-								reason: "MODEL_NOT_FOUND",
-								id: modelId,
-								message:
-									"The model of this turn is not available in this organisation.",
-							})
-						: failedRead("model")(cause),
-				),
-			);
+		const { data: model } = yield* procedures.model.find(
+			{
+				id: modelId,
+			},
+			{
+				context,
+			},
+		);
 
 		if (requestedProviderId && requestedProviderId !== model.providerId) {
 			return yield* badRequest(
@@ -183,16 +163,14 @@ const readModel = ({
 			);
 		}
 
-		const { data: provider } = yield* procedures.provider
-			.find(
-				{
-					id: model.providerId,
-				},
-				{
-					context,
-				},
-			)
-			.pipe(Effect.mapError(failedRead("provider")));
+		const { data: provider } = yield* procedures.provider.find(
+			{
+				id: model.providerId,
+			},
+			{
+				context,
+			},
+		);
 
 		return yield* resolveModel(
 			{
@@ -246,30 +224,26 @@ const botSettings = ({
 		const procedures = yield* Procedures;
 		const [blocks, { data: bot }] = yield* Effect.all(
 			[
-				procedures.block
-					.list(
-						{
-							filters: {
-								botId,
-							},
-							zedToken,
+				procedures.block.list(
+					{
+						filters: {
+							botId,
 						},
-						{
-							context,
-						},
-					)
-					.pipe(Effect.mapError(failedRead("botBlocks"))),
-				procedures.bot
-					.find(
-						{
-							id: botId,
-							zedToken,
-						},
-						{
-							context,
-						},
-					)
-					.pipe(Effect.mapError(failedRead("bot"))),
+						zedToken,
+					},
+					{
+						context,
+					},
+				),
+				procedures.bot.find(
+					{
+						id: botId,
+						zedToken,
+					},
+					{
+						context,
+					},
+				),
 			],
 			{
 				concurrency: "unbounded",
@@ -317,17 +291,15 @@ const chatSetup = (chat: StoredChat, requester: TurnRequester) =>
 		const procedures = yield* Procedures;
 		const config = chat.config;
 		const setup = chat.botId
-			? (yield* procedures.botSetup
-					.find(
-						{
-							botId: chat.botId,
-							zedToken,
-						},
-						{
-							context,
-						},
-					)
-					.pipe(Effect.mapError(failedRead("botSetup")))).data.setup
+			? (yield* procedures.botSetup.find(
+					{
+						botId: chat.botId,
+						zedToken,
+					},
+					{
+						context,
+					},
+				)).data.setup
 			: null;
 		const effective = effectiveModel(config, setup);
 		if (effective.source === "bot-required" && !effective.modelId) {
@@ -343,19 +315,15 @@ const chatSetup = (chat: StoredChat, requester: TurnRequester) =>
 						modelId: effective.modelId,
 						providerId: effective.providerId,
 					}
-				: (yield* procedures.chat
-						.defaultModel(
-							{
-								recommendedModelId:
-									setup?.strength === "recommended"
-										? setup.model?.id
-										: undefined,
-							},
-							{
-								context,
-							},
-						)
-						.pipe(Effect.mapError(failedRead("defaultModel")))).data;
+				: (yield* procedures.chat.defaultModel(
+						{
+							recommendedModelId:
+								setup?.strength === "recommended" ? setup.model?.id : undefined,
+						},
+						{
+							context,
+						},
+					)).data;
 		if (!chosen) {
 			return yield* badRequest(
 				"CHAT_MODEL_NOT_CONFIGURED",
@@ -377,26 +345,15 @@ const chatSetup = (chat: StoredChat, requester: TurnRequester) =>
 							zedToken,
 						})
 					: Effect.succeed(undefined),
-				procedures.chatBlock
-					.list(
-						{
-							chatId: chat.id,
-							zedToken,
-						},
-						{
-							context,
-						},
-					)
-					.pipe(
-						Effect.mapError(
-							(cause) =>
-								new AppErrors.BadRequestError({
-									reason: "CHAT_BLOCKS_UNAVAILABLE",
-									message: "Failed to fetch chat blocks",
-									cause,
-								}),
-						),
-					),
+				procedures.chatBlock.list(
+					{
+						chatId: chat.id,
+						zedToken,
+					},
+					{
+						context,
+					},
+				),
 			],
 			{
 				concurrency: "unbounded",

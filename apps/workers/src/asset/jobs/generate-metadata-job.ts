@@ -1,14 +1,8 @@
 import {
-	AiError,
-	ASSET_METADATA_MAX_OUTPUT_TOKENS,
-	assetMetadataInstructions,
-	assetMetadataOutput,
-	assetMetadataPrompt,
-	generateTextWithQuota,
+	assetMetadataCall,
 	type ResolvedModel,
 	readAssetMetadata,
 	utilityModel,
-	utilityReasoning,
 } from "@orcai/ai";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
 import type { Job } from "@orcai/pg-boss";
@@ -32,14 +26,17 @@ import {
 } from "@orcai/schema";
 
 import * as Effect from "effect/Effect";
-import { modelCallFailure, summarizeErrorCause } from "@/asset/error-summary";
+import { summarizeErrorCause } from "@/asset/error-summary";
 import {
 	type AssetOwner,
 	assetOwner,
 	readImageAsset,
 } from "@/asset/image-descriptions";
-
-const METADATA_TIMEOUT_MS = 120_000;
+import {
+	assetModelCall,
+	cannotReadImages,
+	readsImages,
+} from "@/asset/model-call";
 
 /** How long a generation waiting for its file to be prepared sleeps before it looks again. */
 const PREPARATION_WAIT_SECONDS = 30;
@@ -62,47 +59,22 @@ const documentSuggestion = (params: {
 }) =>
 	Effect.gen(function* () {
 		const { metadata } = params.extraction;
-		const prompt = assetMetadataPrompt({
-			content: params.extraction.content,
-			hints: {
-				title: metadata.title,
-				authors: metadata.authors,
-				keywords: metadata.keywords,
-				subject: metadata.subject,
-				pageCount: metadata.pageCount,
-				languages: params.extraction.detectedLanguages,
-			},
-		});
-		const instructions = assetMetadataInstructions(params.model.kind);
-		const { output } = yield* generateTextWithQuota({
-			operation: "asset.generateMetadata",
+		const { output } = yield* assetModelCall({
 			appRequestId: `metadata:${params.job.data.assetId}:${params.job.data.generation}:${params.job.id}`,
-			organizationId: params.owner.organizationId,
-			userId: params.owner.userId,
-			providerId: params.model.providerId,
-			modelId: params.model.modelId,
-			model: params.model.language,
-			system: instructions,
-			prompt,
-			output: assetMetadataOutput,
-			maxOutputTokens: ASSET_METADATA_MAX_OUTPUT_TOKENS,
-			reasoning: utilityReasoning(params.model.kind),
-			timeoutMs: METADATA_TIMEOUT_MS,
-		}).pipe(
-			Effect.mapError((error) =>
-				error instanceof AiError
-					? modelCallFailure(error, ASSET_METADATA_MAX_OUTPUT_TOKENS)
-					: error,
-			),
-			Effect.catchTag("QuotaDeniedError", (denied) =>
-				Effect.fail(
-					new AssetPipelineError({
-						failure: "quota",
-						cause: denied,
-					}),
-				),
-			),
-		);
+			owner: params.owner,
+			model: params.model,
+			call: assetMetadataCall(params.model.kind, {
+				content: params.extraction.content,
+				hints: {
+					title: metadata.title,
+					authors: metadata.authors,
+					keywords: metadata.keywords,
+					subject: metadata.subject,
+					pageCount: metadata.pageCount,
+					languages: params.extraction.detectedLanguages,
+				},
+			}),
+		});
 		return readAssetMetadata(output);
 	});
 
@@ -124,7 +96,7 @@ const imageSuggestion = (params: {
 					(yield* failWith("missing_extraction")(
 						"The stored extraction has no metadata suggestion",
 					)))
-				: params.model.capabilities.includes("image")
+				: readsImages(params.model)
 					? (yield* readImageAsset({
 							assetId: params.job.data.assetId,
 							jobId: params.job.id,
@@ -132,9 +104,7 @@ const imageSuggestion = (params: {
 							model: params.model,
 							artifact: params.extraction,
 						})).suggestion
-					: yield* failWith("unsupported")(
-							"The utility model cannot read images",
-						);
+					: yield* cannotReadImages();
 		const suggestion: MetadataSuggestion = {
 			title,
 			metadata,
