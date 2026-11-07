@@ -12,7 +12,11 @@ import {
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { sourceRef } from "../citations/source-ref";
-import { answers, resetProcedures } from "../tools/assistant/test-procedures";
+import {
+	answers,
+	procedureCalls,
+	resetProcedures,
+} from "../tools/assistant/test-procedures";
 import { assetPoint } from "../tools/rag/test-points";
 import { TOOL_CLOSE_SENTENCES } from "../utils/close-pending-tool-parts";
 import {
@@ -1671,6 +1675,211 @@ describe("turn setup", () => {
 		expect(withRepository - plain).toBeGreaterThan(1_000);
 	});
 
+	describe("chat tools", () => {
+		const SEARCH_PROVIDER_ID = "00000000-0000-4000-8000-0000000000ee";
+		const repository = {
+			id: crypto.randomUUID(),
+			type: "repository",
+			name: "Handbook",
+			config: {},
+		};
+
+		/** The tools of a bot chat's first request, with the organisation's web search setting. */
+		const botTools = async ({
+			features,
+			repositories = [],
+			webSearchMode = "off",
+		}: {
+			features: Record<string, unknown>;
+			repositories?: unknown[];
+			webSearchMode?: "off" | "native" | "provider";
+		}) => {
+			const botId = crypto.randomUUID() as BotId;
+			answers["block.list"] = () =>
+				Effect.succeed({
+					data: [
+						{
+							id: crypto.randomUUID(),
+							type: "behaviour",
+							config: {
+								systemPrompt: "You are the bot.",
+							},
+						},
+						...repositories,
+					],
+				});
+			answers["bot.find"] = () =>
+				Effect.succeed({
+					data: {
+						id: botId,
+						features,
+					},
+				});
+			const organization = answers["organization.find"];
+			answers["organization.find"] = (input) =>
+				(organization?.(input) ?? Effect.die("no organization")).pipe(
+					Effect.map((answer) => ({
+						data: {
+							...(
+								answer as {
+									data: object;
+								}
+							).data,
+							webSearchMode,
+							webSearchProviderId: SEARCH_PROVIDER_ID,
+						},
+					})),
+				);
+			const provider = answers["provider.find"];
+			answers["provider.find"] = (input: { id: string }) =>
+				input.id === SEARCH_PROVIDER_ID
+					? Effect.succeed({
+							data: {
+								id: SEARCH_PROVIDER_ID,
+								kind: "tavily",
+								enabled: true,
+								endpoint: null,
+							},
+						})
+					: (provider?.(input as never) ?? Effect.die("no provider"));
+			const chat = await conversation(
+				chatRow({
+					botId,
+				}),
+				"anthropic",
+			);
+			chat.script([
+				{
+					text: "Hello.",
+				},
+			]);
+			await chat.send("Hi");
+			return chat.bodies[0]?.tools as
+				| {
+						name: string;
+						type?: string;
+						description?: string;
+						allowed_domains?: string[];
+				  }[]
+				| undefined;
+		};
+		const namesOf = (
+			tools:
+				| {
+						name: string;
+				  }[]
+				| undefined,
+		) => tools?.map(({ name }) => name);
+
+		const REPOSITORY_TOOLS = [
+			"searchRepositories",
+			"listRepositoryAssets",
+			"getAssetPage",
+			"getPassages",
+		];
+		const QUESTION_TOOLS = [
+			"askUser",
+			"showQuizResult",
+		];
+
+		test("sends the repository tools first, then the features' tools in catalogue order", async () => {
+			const tools = await botTools({
+				features: {
+					questions: {},
+					webSearch: {
+						allowedDomains: [
+							"example.org",
+						],
+					},
+					generativeUi: {},
+				},
+				repositories: [
+					repository,
+				],
+				webSearchMode: "provider",
+			});
+
+			const names = namesOf(tools) ?? [];
+			expect(names.slice(0, 4)).toEqual(REPOSITORY_TOOLS);
+			expect(names.slice(-3)).toEqual([
+				"searchWeb",
+				...QUESTION_TOOLS,
+			]);
+			expect(names.length).toBeGreaterThan(7);
+			expect(
+				tools?.find(({ name }) => name === "searchWeb")?.description,
+			).toContain("Only pages on example.org and their subdomains");
+		});
+
+		test("sends the model's own search within the allowed domains", async () => {
+			const tools = await botTools({
+				features: {
+					webSearch: {
+						allowedDomains: [
+							"example.org",
+						],
+					},
+				},
+				webSearchMode: "native",
+			});
+
+			expect(tools).toEqual([
+				expect.objectContaining({
+					name: "web_search",
+					type: expect.stringMatching(/^web_search_/),
+					allowed_domains: [
+						"example.org",
+					],
+				}),
+			]);
+		});
+
+		test("leaves out a feature whose settings no longer parse or whose search is off", async () => {
+			expect(
+				namesOf(
+					await botTools({
+						features: {
+							webSearch: {
+								allowedDomains: "example.org",
+							},
+							questions: {},
+						},
+						webSearchMode: "native",
+					}),
+				),
+			).toEqual(QUESTION_TOOLS);
+			expect(
+				namesOf(
+					await botTools({
+						features: {
+							webSearch: {},
+							questions: {},
+						},
+						webSearchMode: "off",
+					}),
+				),
+			).toEqual(QUESTION_TOOLS);
+		});
+
+		test("sends no tools when the chat offers none", async () => {
+			const chat = await conversation(chatRow(), "anthropic");
+			chat.script([
+				{
+					text: "Hello.",
+				},
+			]);
+			await chat.send("Hi");
+
+			expect(chat.bodies[0]).not.toHaveProperty("tools");
+			expect(chat.bodies[0]).not.toHaveProperty("tool_choice");
+			expect(
+				await botTools({
+					features: {},
+				}),
+			).toBeUndefined();
+		});
+	});
+
 	describe("citations", () => {
 		const repositoryChat = async () => {
 			answerSetup({
@@ -1736,6 +1945,90 @@ describe("turn setup", () => {
 						]
 					: [];
 			});
+
+		const toolParts = (chat: Awaited<ReturnType<typeof repositoryChat>>) =>
+			(chat.messages().at(-1)?.parts ?? []).filter(
+				(part) =>
+					typeof part === "object" && part !== null && "toolCallId" in part,
+			);
+
+		test("repairs a malformed repository call within its schema's limits", async () => {
+			const chat = await repositoryChat();
+			chat.script([
+				{
+					calls: [
+						{
+							name: "searchRepositories",
+							input: {
+								query: "refunds",
+								queryVariants: [
+									"refund time",
+									"payout",
+									"money back",
+									"reimbursement",
+									"repayment",
+								],
+								scope: "all",
+							},
+						},
+					],
+				},
+				{
+					text: "Within 14 days.",
+				},
+			]);
+
+			await chat.send("How fast are refunds paid?");
+
+			expect(toolParts(chat)).toEqual([
+				expect.objectContaining({
+					state: "output-available",
+					input: {
+						query: "refunds",
+						queryVariants: [
+							"refund time",
+							"payout",
+							"money back",
+							"reimbursement",
+						],
+					},
+				}),
+			]);
+		});
+
+		test("a call still invalid after repair fails as a tool error without searching", async () => {
+			const chat = await repositoryChat();
+			chat.script([
+				{
+					calls: [
+						{
+							name: "searchRepositories",
+							input: {
+								query: "r",
+								scope: "all",
+							},
+						},
+					],
+				},
+				{
+					text: "I could not search.",
+				},
+			]);
+
+			await chat.send("How fast are refunds paid?");
+
+			expect(toolParts(chat)).toEqual([
+				expect.objectContaining({
+					state: "output-error",
+					errorText: expect.stringContaining("Invalid input"),
+				}),
+			]);
+			expect(
+				procedureCalls.some(
+					({ procedure }) => procedure === "assetPoint.searchRepository",
+				),
+			).toBe(false);
+		});
 
 		test("stores the sources of the refs the reply cites", async () => {
 			const chat = await repositoryChat();

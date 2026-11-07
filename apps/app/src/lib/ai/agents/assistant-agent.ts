@@ -1,10 +1,9 @@
-import type { AgentModel } from "@orcai/ai";
 import {
-	aiTelemetry,
+	type AgentModel,
 	buildSystemInstructions,
 	type ProviderCompaction,
 } from "@orcai/ai";
-import { Output, ToolLoopAgent, type ToolSet } from "ai";
+import type { ToolSet } from "ai";
 import { pruneAssistantHistory } from "@/lib/ai/agents/assistant-history-pruning";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import {
@@ -15,8 +14,10 @@ import {
 	createToolLines,
 	type StoredMessage,
 } from "@/lib/ai/agents/assistant-tool-lines";
-import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
-import { createStepShaper } from "@/lib/ai/agents/step-request";
+import {
+	createTurnAgent,
+	type TurnTelemetryIds,
+} from "@/lib/ai/agents/turn-agent";
 import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
 import {
@@ -48,12 +49,7 @@ export const createAssistantAgent = (
 		today: string;
 		/** The chat's sources, which the turn's calls add to. */
 		sources: ChatSources;
-		telemetryIds: {
-			organizationId: string;
-			chatId: string;
-			providerId: string;
-			modelId: string;
-		};
+		telemetryIds: TurnTelemetryIds;
 	},
 ) => {
 	// The docs are the Assistant's only citable source.
@@ -104,73 +100,30 @@ export const createAssistantAgent = (
 				]
 			: []),
 	]);
-	const activeToolNames = () =>
-		session.activeTools().filter((name) => !disabled.has(name));
-
 	const toolLines = createToolLines(params.history);
-	const steps = createStepShaper({
-		prune: (messages) =>
-			pruneAssistantHistory(messages, {
-				lines: toolLines.lines,
-				contentToolNames: CONTENT_TOOL_NAMES,
-				enabledContentToolNames,
-				toolListChanges: session.toolListChanges,
+
+	return createTurnAgent({
+		model: params.model,
+		functionId: "assistant.agent",
+		telemetryIds: params.telemetryIds,
+		instructions: buildSystemInstructions(
+			params.model.kind,
+			buildAssistantSystemPrompt({
+				docs: params.docs,
+				userContext: params.userContext,
+				featurePrompts: params.features.map(({ entry }) =>
+					entry.prompt({
+						citations,
+					}),
+				),
+				toolGroups,
+				plan: params.plan,
+				today: params.today,
 			}),
-	});
-
-	const instructions = buildSystemInstructions(
-		params.model.kind,
-		buildAssistantSystemPrompt({
-			docs: params.docs,
-			userContext: params.userContext,
-			featurePrompts: params.features.map(({ entry }) =>
-				entry.prompt({
-					citations,
-				}),
-			),
-			toolGroups,
-			plan: params.plan,
-			today: params.today,
-		}),
-	);
-
-	const agent = new ToolLoopAgent({
-		model: params.model.language,
+		),
 		tools,
-		toolApproval: session.toolApproval,
-		...aiTelemetry("assistant.agent", params.telemetryIds),
-		callOptionsSchema: stepBudgetOptionsSchema,
-		prepareCall: ({ options, ...settings }) => {
-			const turn = steps.forTurn(options);
-			return {
-				...settings,
-				...params.callSettings,
-				providerOptions: params.compaction.providerOptions,
-				instructions,
-				stopWhen: turn.stopWhen,
-				prepareStep: (step) => ({
-					...turn.prepareStep(step),
-					activeTools: activeToolNames(),
-				}),
-			};
-		},
-		// Also sees tools approved in an earlier request, which run before the first step.
-		onToolExecutionEnd: ({ toolOutput }) => {
-			steps.recordExecution(toolOutput);
-			if (toolOutput.type === "tool-result") {
-				toolLines.record([
-					toolOutput,
-				]);
-				session.record(toolOutput);
-				params.sources.record(toolOutput.toolName, toolOutput.output);
-			}
-		},
-		output: Output.text(),
-	});
-
-	return {
-		agent,
-		instructions,
+		activeTools: () =>
+			session.activeTools().filter((name) => !disabled.has(name)),
 		// Groups loaded during the turn send their tools too.
 		offeredTools: (): ToolSet => {
 			const offered = new Set<string>(
@@ -183,6 +136,24 @@ export const createAssistantAgent = (
 				),
 			);
 		},
-		contextFull: steps.contextFull,
-	};
+		toolApproval: session.toolApproval,
+		prune: (messages) =>
+			pruneAssistantHistory(messages, {
+				lines: toolLines.lines,
+				contentToolNames: CONTENT_TOOL_NAMES,
+				enabledContentToolNames,
+				toolListChanges: session.toolListChanges,
+			}),
+		callSettings: params.callSettings,
+		compaction: params.compaction,
+		sources: params.sources,
+		onToolResult: (result) => {
+			toolLines.record([
+				result,
+			]);
+			session.record(result);
+		},
+	});
 };
+
+export type AssistantTools = ReturnType<typeof buildAssistantTools>;

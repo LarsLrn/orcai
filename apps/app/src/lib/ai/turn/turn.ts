@@ -1,5 +1,5 @@
 import { context as otelContext } from "@opentelemetry/api";
-import { AiError, type MeterStep, meteredStep } from "@orcai/ai";
+import { AiError, meteredStep } from "@orcai/ai";
 import { type ChatId, type ChatMessageId, SUMMARY_METADATA } from "@orcai/core";
 import type { DB } from "@orcai/db";
 import { withActiveSpan } from "@orcai/observability";
@@ -17,17 +17,10 @@ import type {
 	ToolApprovalDecision,
 } from "@orcai/schema";
 import {
-	type Agent,
-	type AsyncIterableStream,
-	createAgentUIStream,
 	createUIMessageStream,
-	type InferAgentUIMessage,
-	type SystemModelMessage,
-	smoothStream,
 	type TextStreamPart,
 	type ToolSet,
 	type UIMessage,
-	type UIMessageChunk,
 	type UIMessageStreamOutcome,
 } from "ai";
 import * as Cause from "effect/Cause";
@@ -36,9 +29,8 @@ import { v4 as uuidv4 } from "uuid";
 import { createAssistantAgent } from "@/lib/ai/agents/assistant-agent";
 import { createChatAgent } from "@/lib/ai/agents/chat-agent";
 import { localDate } from "@/lib/ai/agents/chat-agent-system-prompt";
-import { lastStepToolCalls } from "@/lib/ai/agents/step-request";
+import type { StreamedMetadata, TurnAgent } from "@/lib/ai/agents/turn-agent";
 import {
-	type ChatSources,
 	chatSources,
 	citableText,
 	displayCallText,
@@ -89,98 +81,6 @@ type TurnInput = TurnRequester & {
 	/** Stops the model call and the running tools. */
 	stop: AbortSignal | undefined;
 };
-
-/** What a reply streams as metadata; the settled reply stores no withdrawn citation. */
-type StreamedMetadata = Omit<ChatMessageMetadata, "citations"> & {
-	citations?: StreamedCitations;
-};
-
-type TurnStreamOptions = {
-	uiMessages: UIMessage[];
-	originalMessages: UIMessage<ChatMessageMetadata>[];
-	abortSignal: AbortSignal | undefined;
-	maxSteps: number;
-	promptTokens: number | undefined;
-	replyId: ChatMessageId;
-	onStepEnd: (step: MeterStep) => Promise<void>;
-	onEnd: (event: {
-		responseMessage: UIMessage<StreamedMetadata>;
-		outcome: UIMessageStreamOutcome;
-	}) => Promise<void>;
-	onError: (error: unknown) => string;
-	messageMetadata: (
-		part: TextStreamPart<ToolSet>,
-	) => StreamedMetadata | undefined;
-};
-
-/** An agent of either chat kind, streamed the same way. */
-type TurnAgent = {
-	/** Every tool its stored calls may name. */
-	tools: ToolSet;
-	/** The chat's sources, which its calls add to as they finish. */
-	sources: ChatSources;
-	/** The tools its requests may send this turn. */
-	offeredTools: () => ToolSet;
-	instructions: SystemModelMessage[];
-	/** Whether the turn stopped because its next step would not fit. */
-	contextFull: () => boolean;
-	stream: (
-		options: TurnStreamOptions,
-	) => Promise<AsyncIterableStream<UIMessageChunk>>;
-};
-
-const turnAgent = <Tools extends ToolSet>({
-	agent,
-	instructions,
-	offeredTools,
-	contextFull,
-	sources,
-}: {
-	agent: Agent<
-		{
-			maxSteps: number;
-			promptTokens?: number;
-		},
-		Tools
-	>;
-	instructions: SystemModelMessage[];
-	offeredTools: () => ToolSet;
-	contextFull: () => boolean;
-	sources: ChatSources;
-}): TurnAgent => ({
-	tools: agent.tools,
-	sources,
-	offeredTools,
-	instructions,
-	contextFull,
-	stream: (options) =>
-		createAgentUIStream({
-			agent,
-			uiMessages: options.uiMessages,
-			// Each chat kind stores only its own agent's tool parts.
-			originalMessages: options.originalMessages as InferAgentUIMessage<
-				typeof agent,
-				StreamedMetadata
-			>[],
-			abortSignal: options.abortSignal,
-			options: {
-				maxSteps: options.maxSteps,
-				promptTokens: options.promptTokens,
-			},
-			generateMessageId: () => options.replyId,
-			experimental_transform: [
-				lastStepToolCalls(),
-				smoothStream({
-					delayInMs: 20,
-					chunking: "word",
-				}),
-			],
-			onStepEnd: options.onStepEnd,
-			onEnd: options.onEnd,
-			onError: options.onError,
-			messageMetadata: ({ part }) => options.messageMetadata(part),
-		}),
-});
 
 /** The turn moved on or another request answered it first. */
 const turnNotAwaiting = (message: string) =>
@@ -252,32 +152,29 @@ const buildAgent = ({
 	const telemetryIds = {
 		organizationId: input.organizationId,
 		chatId: input.chatId,
-		providerId: setup.providerId,
-		modelId: setup.modelId,
+		providerId: setup.model.providerId,
+		modelId: setup.model.modelId,
 	};
 	const sources = chatSources(history);
 	const today = localDate(input.timeZone);
 	if (setup.agent.kind === "chat") {
 		return {
-			agent: turnAgent({
-				...createChatAgent({
-					model: setup.model,
-					systemPrompt: setup.agent.systemPrompt,
-					today,
-					repositories: setup.agent.repositories,
-					features: setup.agent.features,
-					webSearch: setup.agent.webSearch,
-					callSettings: setup.callSettings,
-					compaction: setup.compaction,
-					telemetryIds,
-					context: input.context,
-					history,
-					hasAttachments: history.some(
-						(message) =>
-							message.role === "user" && (message.attachments?.length ?? 0) > 0,
-					),
-					sources,
-				}),
+			agent: createChatAgent({
+				model: setup.model,
+				systemPrompt: setup.agent.systemPrompt,
+				today,
+				repositories: setup.agent.repositories,
+				features: setup.agent.features,
+				webSearch: setup.agent.webSearch,
+				callSettings: setup.callSettings,
+				compaction: setup.compaction,
+				telemetryIds,
+				context: input.context,
+				history,
+				hasAttachments: history.some(
+					(message) =>
+						message.role === "user" && (message.attachments?.length ?? 0) > 0,
+				),
 				sources,
 			}),
 			assistantTurn: undefined,
@@ -288,22 +185,19 @@ const buildAgent = ({
 		zedToken: turnZedToken,
 	});
 	return {
-		agent: turnAgent({
-			...createAssistantAgent({
-				model: setup.model,
-				callSettings: setup.callSettings,
-				compaction: setup.compaction,
-				docs: setup.agent.docs,
-				userContext: setup.agent.userContext,
-				features: setup.agent.features,
-				history,
-				plan: latestPlanPart(history)?.input,
-				today,
-				telemetryIds,
-				context: input.context,
-				turn: assistantTurn,
-				sources,
-			}),
+		agent: createAssistantAgent({
+			model: setup.model,
+			callSettings: setup.callSettings,
+			compaction: setup.compaction,
+			docs: setup.agent.docs,
+			userContext: setup.agent.userContext,
+			features: setup.agent.features,
+			history,
+			plan: latestPlanPart(history)?.input,
+			today,
+			telemetryIds,
+			context: input.context,
+			turn: assistantTurn,
 			sources,
 		}),
 		assistantTurn,
@@ -326,8 +220,8 @@ const meterTurn = ({
 		appRequestId: replyId,
 		organizationId: input.organizationId,
 		userId: input.user.id,
-		providerId: setup.providerId,
-		modelId: setup.modelId,
+		providerId: setup.model.providerId,
+		modelId: setup.model.modelId,
 		botId: setup.botId,
 		maxRequests: setup.maxSteps,
 		maxOutputTokens: setup.callSettings.maxOutputTokens,
@@ -426,7 +320,7 @@ const streamTurn = ({
 			otelContext.with(traceContext, () =>
 				Effect.runPromiseWith(services)(withActiveSpan(effect)),
 			);
-		const { contextWindow } = setup.tokenLimits;
+		const { contextWindow } = setup.model.tokenLimits;
 		const stop = AbortSignal.any([
 			...(input.stop
 				? [
@@ -865,12 +759,7 @@ export const startTurn = (
 			yield* forkChatTitleGenerationIfNeeded({
 				chatId: chat.id,
 				currentTitle: chat.title,
-				chatModel: {
-					language: setup.model.language,
-					kind: setup.model.kind,
-					providerId: setup.providerId,
-					modelId: setup.modelId,
-				},
+				chatModel: setup.model,
 				organizationId: input.organizationId,
 				userId: input.user.id,
 				userMessage: question,

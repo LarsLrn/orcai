@@ -1,25 +1,19 @@
 import {
-	type AgentModel,
 	AiError,
-	agentModel,
+	type ModelRefusal,
 	type ProviderCompaction,
-	providerApiKey,
 	providerCompaction,
+	type ResolvedModel,
+	resolveModel,
 } from "@orcai/ai";
-import {
-	type BotId,
-	isModelProviderKind,
-	type ModelId,
-	type OrganizationId,
-	type ProviderId,
-	type UserId,
+import type {
+	BotId,
+	ModelId,
+	OrganizationId,
+	ProviderId,
+	UserId,
 } from "@orcai/core";
-import {
-	type ModelTokenLimits,
-	type ModelUnusableReason,
-	modelUnusableReason,
-	type Repository,
-} from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
@@ -60,7 +54,7 @@ const ASSISTANT_FEATURES = {
 	questions: {},
 };
 
-const UNUSABLE_MESSAGES: Record<ModelUnusableReason<"turn">, string> = {
+const UNUSABLE_MESSAGES: Record<ModelRefusal<"turn">, string> = {
 	PROVIDER_DISABLED:
 		"Selected provider is disabled. Please choose an active provider.",
 	MODEL_DEPRECATED:
@@ -69,6 +63,8 @@ const UNUSABLE_MESSAGES: Record<ModelUnusableReason<"turn">, string> = {
 		"Selected model has no capabilities set yet. Please set them on the model.",
 	MODEL_TOOLS_UNSUPPORTED:
 		"Selected model does not support tool calling. Please choose a chat-capable model.",
+	PROVIDER_PURPOSE_MISMATCH:
+		"Selected model belongs to a search provider. Please choose a chat model.",
 };
 
 export type TurnRequester = {
@@ -93,12 +89,9 @@ export const turnStartToken = (
 ) => requester.zedToken ?? requestZedToken(requester.context);
 
 type RequestedSetup = {
-	model: AgentModel;
-	providerId: ProviderId;
-	modelId: ModelId;
+	model: ResolvedModel;
 	/** The bot of the chat, which its metered calls record. */
 	botId: BotId | null;
-	tokenLimits: ModelTokenLimits;
 	callSettings: ChatCallSettings;
 	maxSteps: number;
 	agent:
@@ -131,9 +124,8 @@ export type TurnSetup = RequestedSetup & {
 
 const badRequest = (
 	reason:
-		| ModelUnusableReason<"turn">
+		| ModelRefusal<"turn">
 		| "MODEL_PROVIDER_MISMATCH"
-		| "PROVIDER_PURPOSE_MISMATCH"
 		| "CHAT_MODEL_NOT_CONFIGURED"
 		| "BOT_MODEL_UNAVAILABLE"
 		| "ASSISTANT_MODEL_NOT_CONFIGURED",
@@ -202,44 +194,20 @@ const readModel = ({
 			)
 			.pipe(Effect.mapError(failedRead("provider")));
 
-		const unusable = modelUnusableReason(
+		return yield* resolveModel(
 			{
-				capabilities: model.capabilities,
-				isDeprecated: model.isDeprecated,
-				providerEnabled: provider.enabled,
+				model,
+				provider,
 			},
-			"turn",
-		);
-		if (unusable) {
-			return yield* badRequest(unusable, UNUSABLE_MESSAGES[unusable]);
-		}
-		const { kind } = provider;
-		if (!isModelProviderKind(kind)) {
-			return yield* badRequest(
-				"PROVIDER_PURPOSE_MISMATCH",
-				"Selected model belongs to a search provider. Please choose a chat model.",
-			);
-		}
-
-		const apiKey = yield* providerApiKey(provider.id);
-
-		return {
-			model: agentModel({
-				kind,
-				connection: {
-					apiKey,
-					endpoint: provider.endpoint,
-				},
-				providerModelId: model.providerModelId,
+			{
+				purpose: "turn",
 				middleware: yield* devToolsMiddleware,
-			}),
-			providerId: provider.id,
-			modelId,
-			tokenLimits: {
-				contextWindow: model.contextWindow,
-				maxOutputTokens: model.maxOutputTokens,
 			},
-		};
+		).pipe(
+			Effect.catchTag("ModelUnusableError", ({ reason }) =>
+				badRequest(reason, UNUSABLE_MESSAGES[reason]),
+			),
+		);
 	});
 
 const devToolsMiddleware = Effect.gen(function* () {
@@ -448,13 +416,13 @@ const chatSetup = (chat: StoredChat, requester: TurnRequester) =>
 						organizationId,
 						userId: user.id,
 						botId: chat.botId,
-						modelKind: model.model.kind,
+						modelKind: model.kind,
 						context,
 					})
 				: NO_WEB_SEARCH;
 
 		return {
-			...model,
+			model,
 			botId: chat.botId,
 			callSettings: chatCallSettings(effective.generation, model.tokenLimits),
 			maxSteps: CHAT_AGENT_MAX_STEPS,
@@ -525,7 +493,7 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 		const { docs } = yield* AppConfigService;
 
 		return {
-			...model,
+			model,
 			botId: null,
 			callSettings: {},
 			maxSteps: ASSISTANT_AGENT_MAX_STEPS,
@@ -557,13 +525,13 @@ const DEFAULT_MAX_OUTPUT_TOKENS = 16_384;
  * sets where the conversation compacts.
  */
 const withLimits = (setup: RequestedSetup): TurnSetup => {
-	const { contextWindow } = setup.tokenLimits;
+	const { contextWindow } = setup.model.tokenLimits;
 	const half = Math.floor((contextWindow ?? DEFAULT_CONTEXT_WINDOW) / 2);
 	const maxOutputTokens =
 		setup.callSettings.maxOutputTokens ??
 		Math.min(
 			half,
-			setup.tokenLimits.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
+			setup.model.tokenLimits.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
 			DEFAULT_MAX_OUTPUT_TOKENS,
 		);
 	const budget = promptBudget({

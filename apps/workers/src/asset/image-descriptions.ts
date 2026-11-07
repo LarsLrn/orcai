@@ -5,8 +5,8 @@ import {
 	IMAGE_DESCRIPTION_MAX_OUTPUT_TOKENS,
 	imageAssetDescriptionInstructions,
 	imageAssetDescriptionOutput,
+	type ResolvedModel,
 	readImageAssetDescription,
-	type UtilityModel,
 	utilityModel,
 	utilityReasoning,
 } from "@orcai/ai";
@@ -87,7 +87,7 @@ const describe = (params: {
 	assetId: AssetId;
 	jobId: string;
 	owner: AssetOwner;
-	model: UtilityModel;
+	model: ResolvedModel;
 	image: ExtractionImage & {
 		sourcePath: string;
 	};
@@ -150,7 +150,7 @@ export const readImageAsset = (params: {
 	assetId: AssetId;
 	jobId: string;
 	owner: AssetOwner;
-	model: UtilityModel;
+	model: ResolvedModel;
 	artifact: ExtractionArtifact;
 }) =>
 	Effect.gen(function* () {
@@ -190,7 +190,7 @@ const describeImageAsset = (params: {
 	assetId: AssetId;
 	jobId: string;
 	owner: AssetOwner;
-	model: UtilityModel;
+	model: ResolvedModel;
 	artifact: ExtractionArtifact;
 }) =>
 	readImageAsset(params).pipe(
@@ -212,7 +212,7 @@ const describeFigures = (params: {
 	assetId: AssetId;
 	jobId: string;
 	owner: AssetOwner;
-	model: UtilityModel;
+	model: ResolvedModel;
 	artifact: ExtractionArtifact;
 }) =>
 	Effect.forEach(

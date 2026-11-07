@@ -1,4 +1,4 @@
-import type { SystemPrompt } from "@orcai/ai";
+import { quoted, type SystemPrompt } from "@orcai/ai";
 import {
 	type CitableKind,
 	citationRules,
@@ -29,9 +29,6 @@ const behaviourSection = (behaviour: string) =>
 		behaviour,
 		"</behaviour>",
 	].join("\n");
-
-/** A JSON string literal, so a typed name stays data. */
-const quoted = (value: string) => JSON.stringify(value);
 
 const repositoryGuidance = (
 	repositories: readonly {

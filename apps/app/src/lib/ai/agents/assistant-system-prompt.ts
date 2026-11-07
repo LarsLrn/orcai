@@ -1,4 +1,4 @@
-import type { SystemPrompt } from "@orcai/ai";
+import { quoted, type SystemPrompt } from "@orcai/ai";
 import type { OrganizationRole } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { buildFormattingGuidance } from "@/lib/ai/agents/chat-agent-system-prompt";
@@ -131,14 +131,6 @@ export const buildAssistantStablePrompt = ({
 	]
 		.filter((section) => section !== undefined)
 		.join("\n\n");
-
-/** A JSON string literal, with the line and C1 control characters JSON leaves raw escaped too. */
-const quoted = (value: string) =>
-	JSON.stringify(value).replace(
-		/[\u007f-\u009f\u2028\u2029]/g,
-		(character) =>
-			`\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`,
-	);
 
 const listOrNone = (values: string[]) =>
 	values.length > 0 ? values.join(", ") : "nothing";

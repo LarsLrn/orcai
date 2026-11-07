@@ -52,12 +52,15 @@ export {
 	utilityReasoning,
 } from "./provider-kinds/registry";
 export type { SystemPrompt } from "./provider-kinds/types";
-export { AiTelemetryLive, aiTelemetry } from "./telemetry";
+export { quoted } from "./quoted";
 export {
 	type MeteredModel,
-	type UtilityModel,
+	type ModelRefusal,
+	type ResolvedModel,
+	resolveModel,
 	utilityModel,
-} from "./utility-model";
+} from "./resolve-model";
+export { AiTelemetryLive, aiTelemetry } from "./telemetry";
 export { createWebSearch } from "./web-search/registry";
 export type {
 	WebSearch,

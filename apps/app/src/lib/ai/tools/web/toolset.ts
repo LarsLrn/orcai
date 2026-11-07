@@ -54,7 +54,7 @@ export const buildWebSearchTools = ({
 	}
 };
 
-/** The search tools of the typed tool set, which only checks stored calls; every provider's native call passes. */
+/** The search tools a chat declares for its stored calls where the turn offers no search; every provider's native call passes. */
 export const storedWebSearchTools = () => ({
 	searchWeb: searchWebTool({
 		search: () =>
