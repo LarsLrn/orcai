@@ -409,6 +409,8 @@ test("assistant: a new message instead of an upload skips the widget", async ({
 	await expect(widget).toBeVisible();
 	await ask(page, "Never mind, what can you do?");
 	await expect(widget).toHaveCount(0);
+	await expect(messageText(page, done)).toBeVisible();
+	await turnFinished(page);
 	const entry = await openWorkLogEntry(
 		page,
 		message("assistant_tool_request_upload_name"),
@@ -418,8 +420,6 @@ test("assistant: a new message instead of an upload skips the widget", async ({
 			exact: true,
 		}),
 	).toBeVisible();
-	await expect(messageText(page, done)).toBeVisible();
-	await turnFinished(page);
 	expect(continuations()).toBe(0);
 
 	const requests = turnRequests(inference);
