@@ -3,8 +3,12 @@ import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import type { Bot } from "@orcai/schema";
 import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { requirePermitted } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
-import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
+import {
+	deleteResourcesWithAuthorization,
+	writePermitted,
+} from "@/lib/authz/resource-lifecycle";
 import { readRevision } from "@/lib/authz/zed-token";
 import {
 	favouriteOf,
@@ -18,13 +22,7 @@ import { libraryAccess } from "@/lib/library/library-access";
 import { homeOrganizations } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
-import {
-	type CheckManyPermissionInputFor,
-	checkManyPermissionMiddleware,
-	requireEntityPermission,
-	requirePermission,
-	requireReadableEntity,
-} from "@/lib/orpc/middlewares/permission";
+import { requireEntityAccess } from "@/lib/orpc/middlewares/permission";
 
 const listBots = authed.bot.list.use(requireOrganization()).effect(function* ({
 	input,
@@ -45,7 +43,7 @@ const listBots = authed.bot.list.use(requireOrganization()).effect(function* ({
 const findBot = authed.bot.find
 	.use(requireOrganization())
 	.use(
-		requireReadableEntity("bot", {
+		requireEntityAccess("bot", "read", {
 			entityId: "id",
 		}),
 	)
@@ -114,7 +112,7 @@ const findBot = authed.bot.find
 const findBotEditor = authed.bot.findEditor
 	.use(requireOrganization())
 	.use(
-		requireEntityPermission("bot", "edit", {
+		requireEntityAccess("bot", "edit", {
 			entityId: "id",
 		}),
 	)
@@ -136,15 +134,18 @@ const saveBot = authed.bot.save
 	.effect(function* ({ input, context }) {
 		const resolvedZedToken = readRevision(context, input);
 
-		if (input.id) {
-			yield* requirePermission({
-				entityId: input.id,
-				entityType: "bot",
-				permission: "edit",
-				userId: context.auth.user.id,
-				zedToken: resolvedZedToken,
-			});
-		}
+		if (input.id)
+			yield* requirePermitted(
+				"bot",
+				[
+					input.id,
+				],
+				{
+					userId: context.auth.user.id,
+					zedToken: resolvedZedToken,
+				},
+				"edit",
+			);
 
 		return yield* saveBotGraph({
 			input,
@@ -157,69 +158,85 @@ const saveBot = authed.bot.save
 const publishBot = authed.bot.publish
 	.use(requireOrganization())
 	.use(
-		requireEntityPermission("bot", "edit", {
+		requireEntityAccess("bot", "edit", {
 			entityId: "id",
 		}),
 	)
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const editor = yield* loadBotEditor({
-			id: input.id,
-			userId: context.auth.user.id,
-			organizationId: context.auth.session.activeOrganizationId,
-		});
+		yield* writePermitted(
+			{
+				resourceType: "bot",
+				resourceIds: [
+					input.id,
+				],
+				permission: "edit",
+				actor: {
+					userId: context.auth.user.id,
+					zedToken: readRevision(context, input),
+				},
+			},
+			Effect.gen(function* () {
+				const editor = yield* loadBotEditor({
+					id: input.id,
+					userId: context.auth.user.id,
+					organizationId: context.auth.session.activeOrganizationId,
+				});
 
-		if (!editor.data.behaviour) {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "BOT_BEHAVIOUR_BLOCK_REQUIRED",
-					message: "Bots need a behaviour before they can be published.",
-				}),
-			);
-		}
+				if (!editor.data.behaviour) {
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "BOT_BEHAVIOUR_BLOCK_REQUIRED",
+							message: "Bots need a behaviour before they can be published.",
+						}),
+					);
+				}
 
-		if (editor.data.behaviour.status !== "ready") {
-			return yield* Effect.fail(
-				new AppErrors.BadRequestError({
-					reason: "BOT_BEHAVIOUR_BLOCK_NOT_READY",
-					message: "Publish the bot's behaviour before publishing this bot.",
-				}),
-			);
-		}
+				if (editor.data.behaviour.status !== "ready") {
+					return yield* Effect.fail(
+						new AppErrors.BadRequestError({
+							reason: "BOT_BEHAVIOUR_BLOCK_NOT_READY",
+							message:
+								"Publish the bot's behaviour before publishing this bot.",
+						}),
+					);
+				}
 
-		for (const repository of editor.data.repositories) {
-			if (repository.status !== "ready") {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "BOT_REPOSITORY_NOT_READY",
-						params: {
-							blockName: repository.name,
-						},
-						message: `Set "${repository.name}" to "ready" before publishing this bot.`,
-					}),
-				);
-			}
+				for (const repository of editor.data.repositories) {
+					if (repository.status !== "ready") {
+						return yield* Effect.fail(
+							new AppErrors.BadRequestError({
+								reason: "BOT_REPOSITORY_NOT_READY",
+								params: {
+									blockName: repository.name,
+								},
+								message: `Set "${repository.name}" to "ready" before publishing this bot.`,
+							}),
+						);
+					}
 
-			if (repository.assetIds.length === 0) {
-				return yield* Effect.fail(
-					new AppErrors.BadRequestError({
-						reason: "BOT_REPOSITORY_EMPTY",
-						params: {
-							blockName: repository.name,
-						},
-						message: `Attach at least one asset to "${repository.name}" before publishing.`,
-					}),
-				);
-			}
-		}
+					if (repository.assetIds.length === 0) {
+						return yield* Effect.fail(
+							new AppErrors.BadRequestError({
+								reason: "BOT_REPOSITORY_EMPTY",
+								params: {
+									blockName: repository.name,
+								},
+								message: `Attach at least one asset to "${repository.name}" before publishing.`,
+							}),
+						);
+					}
+				}
 
-		yield* db
-			.update(dbSchema.bot)
-			.set({
-				status: "ready",
-				updatedAt: new Date(),
-			})
-			.where(eq(dbSchema.bot.id, input.id));
+				yield* db
+					.update(dbSchema.bot)
+					.set({
+						status: "ready",
+						updatedAt: new Date(),
+					})
+					.where(eq(dbSchema.bot.id, input.id));
+			}),
+		);
 		const updatedEditor = yield* loadBotEditor({
 			id: input.id,
 			userId: context.auth.user.id,
@@ -236,7 +253,7 @@ const publishBot = authed.bot.publish
 
 const setFavourite = authed.bot.setFavourite
 	.use(
-		requireReadableEntity("bot", {
+		requireEntityAccess("bot", "read", {
 			entityId: "id",
 		}),
 	)
@@ -248,26 +265,21 @@ const setFavourite = authed.bot.setFavourite
 		});
 	});
 
-const deleteBots = authed.bot.delete
-	.use(
-		checkManyPermissionMiddleware("bot").adaptInput(
-			(input): CheckManyPermissionInputFor<"bot"> => ({
-				entityIds: input.refs.map((ref) => ref.id),
-				permission: "delete",
-			}),
-		),
-	)
-	.effect(function* ({ context }) {
-		yield* deleteResourcesWithAuthorization({
-			resourceType: "bot",
-			resourceIds: context.allowedIds,
-		});
-
-		return {
-			success: true,
-			message: "Bots deleted successfully",
-		};
+const deleteBots = authed.bot.delete.effect(function* ({ input, context }) {
+	yield* deleteResourcesWithAuthorization({
+		resourceType: "bot",
+		resourceIds: input.refs.map((ref) => ref.id),
+		actor: {
+			userId: context.auth.user.id,
+			zedToken: readRevision(context),
+		},
 	});
+
+	return {
+		success: true,
+		message: "Bots deleted successfully",
+	};
+});
 
 export const botRouter = {
 	list: listBots,

@@ -13,10 +13,14 @@ import {
 	deletePrefixRecursively,
 	sendDeleteObjectCommand,
 } from "@orcai/s3/server";
-import type { ResourceType } from "@orcai/spice-db";
+import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
+import {
+	type ResourcePermission,
+	requirePermitted,
+} from "@/lib/authz/content-access";
 import { requireEligibleOwner } from "@/lib/authz/eligible-owner";
 import {
 	RelationshipFact,
@@ -26,6 +30,7 @@ import {
 	recordRelationshipFacts,
 	writeRelationships,
 } from "@/lib/authz/relationship-write";
+import type { Actor } from "@/lib/authz/resource-authority";
 import {
 	grantPrincipal,
 	scopedResourceRef,
@@ -488,19 +493,49 @@ export const removeDeletedResourceData = (deleted: readonly DeletedData[]) =>
 		},
 	);
 
-/** Deletes resources with their authorization state, tuples, files and search points. */
-export const deleteResourcesWithAuthorization = (params: {
-	resourceType: ResourceType;
-	resourceIds: readonly string[];
-}) =>
+/**
+ * Runs `body` as a {@link writeRelationships} under the resources'
+ * organisation locks, once the actor holds `permission` on each of them. A
+ * revocation committed before the locks were taken refuses it.
+ */
+export const writePermitted = <Type extends ResourceType, A, E, R>(
+	target: {
+		resourceType: Type;
+		resourceIds: readonly EntityIdFor<Type>[];
+		permission: ResourcePermission;
+		actor: Actor;
+	},
+	body: Effect.Effect<A, E, R>,
+) =>
 	writeRelationships(
 		{
 			organizationIds: resourceOrganizations(
-				params.resourceIds.map((resourceId) => ({
-					resourceType: params.resourceType,
+				target.resourceIds.map((resourceId) => ({
+					resourceType: target.resourceType,
 					resourceId,
 				})),
 			),
+		},
+		requirePermitted(
+			target.resourceType,
+			target.resourceIds,
+			target.actor,
+			target.permission,
+		).pipe(Effect.andThen(body)),
+	);
+
+/** Deletes resources the actor may delete with their authorization state, tuples, files and search points. */
+export const deleteResourcesWithAuthorization = <
+	Type extends ResourceType,
+>(params: {
+	resourceType: Type;
+	resourceIds: readonly EntityIdFor<Type>[];
+	actor: Actor;
+}) =>
+	writePermitted(
+		{
+			...params,
+			permission: "delete",
 		},
 		deleteResources(params),
 	).pipe(

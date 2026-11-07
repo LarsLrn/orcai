@@ -140,7 +140,7 @@ const setup = async () => {
 	};
 };
 
-describe("requireReadableEntity", () => {
+describe("requireEntityAccess", () => {
 	test(
 		"refuses when SpiceDB and committed state disagree, either way",
 		async () => {

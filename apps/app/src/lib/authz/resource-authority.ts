@@ -1,6 +1,7 @@
 import type { OrganizationId, UserId } from "@orcai/core";
-import { checkEntityPermission, type ReadRevision } from "@orcai/spice-db";
+import type { ReadRevision } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
+import { permittedIds } from "@/lib/authz/content-access";
 import { organizationPermitted } from "@/lib/authz/organization-access";
 import type { ResourceRef } from "@/lib/authz/relationship-facts";
 import { scopeIn } from "@/lib/authz/resource-lifecycle";
@@ -25,7 +26,7 @@ export const canAddIn = (organizationId: OrganizationId, actor: Actor) =>
 
 /**
  * Whether the user administers the resource in the organisation: with
- * `homePermission` on it in its home, with `add_from_catalogue` where it is
+ * `homePermission` on it in its home, in SpiceDB and by committed state, with `add_from_catalogue` where it is
  * added. Adders share it there and set a bot's setup, but never edit
  * its definition.
  */
@@ -39,13 +40,14 @@ export const administersIn = (params: {
 		const { resource, actor } = params;
 		switch (yield* scopeIn(resource, params.organizationId)) {
 			case "home":
-				return yield* checkEntityPermission({
-					entityType: resource.resourceType,
-					entityId: resource.resourceId,
-					permission: params.homePermission,
-					userId: actor.userId,
-					zedToken: actor.zedToken,
-				});
+				return (yield* permittedIds(
+					resource.resourceType,
+					[
+						resource.resourceId,
+					],
+					actor,
+					params.homePermission,
+				)).has(resource.resourceId);
 			case "added":
 				return yield* canAddIn(params.organizationId, actor);
 			case undefined:

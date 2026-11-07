@@ -17,6 +17,7 @@ import {
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
+import { NEWEST_REVISION } from "@orcai/spice-db";
 import { awaitLockWaiters } from "@orcai/testing";
 import { and, eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
@@ -1054,6 +1055,7 @@ describe("deleting a linked asset or repository", () => {
 			`deleting the ${resourceType} removes a point written under the link lock while it ran`,
 			async () => {
 				const {
+					owner,
 					assets: [assetId],
 					blockId,
 				} = await repositoryWith(1);
@@ -1085,6 +1087,10 @@ describe("deleting a linked asset or repository", () => {
 							resourceIds: [
 								resourceType === "asset" ? assetId : blockId,
 							],
+							actor: {
+								userId: owner.user.id,
+								zedToken: NEWEST_REVISION,
+							},
 						}),
 					),
 				);

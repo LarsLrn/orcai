@@ -6,6 +6,7 @@ import { and, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
+import { requirePermitted } from "@/lib/authz/content-access";
 import {
 	getEntityCapabilities,
 	getManyEntityCapabilities,
@@ -354,6 +355,18 @@ export const saveBotGraph = (params: {
 				organizationIds,
 			},
 			Effect.gen(function* () {
+				if (params.input.id)
+					yield* requirePermitted(
+						"bot",
+						[
+							params.input.id,
+						],
+						{
+							userId: params.userId,
+							zedToken: params.zedToken,
+						},
+						"edit",
+					);
 				const botId = yield* resolveBot(params);
 
 				const previousBlockIds = (yield* db

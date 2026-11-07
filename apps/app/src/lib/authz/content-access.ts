@@ -9,6 +9,7 @@ import {
 import { type AnyColumn, and, inArray, type SQL, sql } from "drizzle-orm";
 import { alias, QueryBuilder } from "drizzle-orm/pg-core";
 import * as Effect from "effect/Effect";
+import { permissionDenied } from "@/lib/authz/permission-denied";
 import { grantReaches } from "@/lib/authz/reaching-groups";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
@@ -34,12 +35,12 @@ const ownedBy = (
 	return sql`exists ${ownership}`;
 };
 
-/** Whether the user, or a group of theirs, holds an active grant on the resource in `id`, of `role` when given. */
+/** Whether the user, or a group of theirs, holds an active grant on the resource in `id`, in one of `roles` when given. */
 const grantedTo = (
 	resourceType: ResourceType,
 	id: AnyColumn | SQL,
 	userId: UserId,
-	role?: "manager",
+	roles?: readonly ("manager" | "editor")[],
 ) => {
 	const { resourceGrant: grant } = dbSchema;
 	return sql`exists (
@@ -47,7 +48,13 @@ const grantedTo = (
 		where ${grant.resourceType} = ${resourceType}
 			and ${grant.resourceId} = ${id}
 			and ${grant.revokedAt} is null
-			${role ? sql`and ${grant.role} = ${role}` : sql``}
+			${
+				roles
+					? sql`and ${inArray(grant.role, [
+							...roles,
+						])}`
+					: sql``
+			}
 			and ${grantReaches({
 				userId,
 			})}
@@ -104,13 +111,46 @@ export const readableNow = (
 	}
 };
 
-/** The resources of `ids` the user holds `permission` on in SpiceDB whose committed state agrees. */
-const permittedNow = <Type extends ResourceType>(
+export type ResourcePermission = "read" | "edit" | "delete" | "manage_access";
+
+/**
+ * Whether the user holds `permission` on the resource in `id` by committed
+ * Postgres state. Edit, delete and manage access come from ownership or an
+ * active grant only: editors edit, managers also delete and manage access.
+ */
+export const permittedNow = (
+	resourceType: ResourceType,
+	id: AnyColumn | SQL,
+	userId: UserId,
+	permission: ResourcePermission,
+): SQL =>
+	permission === "read"
+		? readableNow(resourceType, id, userId)
+		: sql`(${ownedBy(resourceType, id, userId)} or ${grantedTo(
+				resourceType,
+				id,
+				userId,
+				permission === "edit"
+					? [
+							"manager",
+							"editor",
+						]
+					: [
+							"manager",
+						],
+			)})`;
+
+/**
+ * The resources of `ids` the user holds `permission` on, in SpiceDB and by
+ * committed state. SpiceDB keeps a revoked grant until its tuples are
+ * delivered; the committed state closes it at once. A mutation checks again
+ * under its organisation write lock, after which no revocation can commit.
+ */
+export const permittedIds = <Type extends ResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	reader: Reader,
-	permission: "read" | "manage_access",
-	committed: (id: AnyColumn) => SQL,
+	permission: ResourcePermission,
 ) =>
 	Effect.gen(function* () {
 		if (ids.length === 0) return new Set<EntityIdFor<Type>>();
@@ -134,7 +174,7 @@ const permittedNow = <Type extends ResourceType>(
 							inArray(table.id, [
 								...ids,
 							] as (typeof table.id._.data)[]),
-							committed(table.id),
+							permittedNow(resourceType, table.id, reader.userId, permission),
 						),
 					),
 			],
@@ -146,56 +186,38 @@ const permittedNow = <Type extends ResourceType>(
 		return new Set(ids.filter((id) => agreed.has(id) && permitted.has(id)));
 	});
 
-/** The resources of `ids` the user may read, in SpiceDB and by committed state. */
+/** The resources of `ids` the user may read, see {@link permittedIds}. */
 export const readableIds = <Type extends ResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	reader: Reader,
-) =>
-	permittedNow(resourceType, ids, reader, "read", (id) =>
-		readableNow(resourceType, id, reader.userId),
-	);
+) => permittedIds(resourceType, ids, reader, "read");
 
 /**
- * The resources of `ids` whose access the user manages, in SpiceDB and by
- * committed state: they own it or hold an active manager grant, directly or
- * through a group.
+ * Fails unless the user holds `permission` on every resource of `ids`, see
+ * {@link permittedIds}: as not found for read, else as denied.
  */
-export const managedIds = <Type extends ResourceType>(
+export const requirePermitted = <Type extends ResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	reader: Reader,
+	permission: ResourcePermission,
 ) =>
-	permittedNow(
-		resourceType,
-		ids,
-		reader,
-		"manage_access",
-		(id) =>
-			sql`(${ownedBy(resourceType, id, reader.userId)} or ${grantedTo(resourceType, id, reader.userId, "manager")})`,
-	);
-
-/** Fails as not found unless the user may read the resource, see {@link readableIds}. */
-export const requireReadable = <Type extends ResourceType>(
-	resourceType: Type,
-	id: EntityIdFor<Type>,
-	reader: Reader,
-) =>
-	readableIds(
-		resourceType,
-		[
-			id,
-		],
-		reader,
-	).pipe(
-		Effect.flatMap((readable) =>
-			readable.has(id)
-				? Effect.void
-				: Effect.fail(
-						new AppErrors.NotFoundError({
-							id,
+	permittedIds(resourceType, ids, reader, permission).pipe(
+		Effect.flatMap((permitted) => {
+			const refused = ids.find((id) => !permitted.has(id));
+			if (refused === undefined) return Effect.void;
+			return Effect.fail(
+				permission === "read"
+					? new AppErrors.NotFoundError({
+							id: refused,
 							message: "Resource not found",
+						})
+					: permissionDenied({
+							entityType: resourceType,
+							permission,
+							zedToken: reader.zedToken,
 						}),
-					),
-		),
+			);
+		}),
 	);
