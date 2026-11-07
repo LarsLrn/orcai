@@ -199,7 +199,7 @@ describe("effective model", () => {
 				source: "bot-required",
 			});
 			const required = await turn(chat);
-			expect(required.modelId).toBe(botModel.id);
+			expect(required.model.modelId).toBe(botModel.id);
 			expect(required.callSettings.temperature).toBe(0.7);
 			expect(
 				await reasonOf(
@@ -223,7 +223,7 @@ describe("effective model", () => {
 				generation: {},
 			});
 			const seeded = await turn(chat);
-			expect(seeded.modelId).toBe(botModel.id);
+			expect(seeded.model.modelId).toBe(botModel.id);
 			expect(seeded.callSettings.temperature).toBe(0.2);
 			expect((await effective(chat.id)).source).toBe("chat");
 		},

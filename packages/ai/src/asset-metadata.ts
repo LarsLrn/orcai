@@ -8,15 +8,13 @@ import {
 import { Output } from "ai";
 import { z } from "zod/v4";
 import { jsonAnswerInstructions } from "./json-answer";
+import { quoted } from "./quoted";
 
 /** About 8k tokens of the document's text: bibliographic details sit up front. */
 const MAX_CONTENT_CHARACTERS = 32_000;
 
 /** Room for a reasoning model's thinking before the object. */
 export const ASSET_METADATA_MAX_OUTPUT_TOKENS = 4096;
-
-const quoted = (values: readonly string[]) =>
-	values.map((value) => `"${value}"`).join(", ");
 
 /** Each description is the field's whole spec: sent with the schema, or listed in the prompt. */
 const assetMetadataSchema = z.object({
@@ -30,7 +28,7 @@ const assetMetadataSchema = z.object({
 		.enum(sourceTypes)
 		.nullable()
 		.describe(
-			`The kind of source, one of ${quoted(sourceTypes)}. A chapter of a book counts as "book". Null when none fits.`,
+			`The kind of source, one of ${sourceTypes.map(quoted).join(", ")}. A chapter of a book counts as "book". Null when none fits.`,
 		),
 	author: z
 		.string()

@@ -5,8 +5,8 @@ import {
 	assetMetadataOutput,
 	assetMetadataPrompt,
 	generateTextWithQuota,
+	type ResolvedModel,
 	readAssetMetadata,
-	type UtilityModel,
 	utilityModel,
 	utilityReasoning,
 } from "@orcai/ai";
@@ -57,7 +57,7 @@ const failWith =
 const documentSuggestion = (params: {
 	job: Job<GenerateAssetMetadataPayload>;
 	owner: AssetOwner;
-	model: UtilityModel;
+	model: ResolvedModel;
 	extraction: StoredExtractionArtifact;
 }) =>
 	Effect.gen(function* () {
@@ -114,7 +114,7 @@ const documentSuggestion = (params: {
 const imageSuggestion = (params: {
 	job: Job<GenerateAssetMetadataPayload>;
 	owner: AssetOwner;
-	model: UtilityModel;
+	model: ResolvedModel;
 	extraction: StoredExtractionArtifact;
 }) =>
 	Effect.gen(function* () {

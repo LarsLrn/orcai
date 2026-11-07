@@ -199,7 +199,7 @@ const organizationWithModels = async () => {
 					});
 				}),
 			)
-		).modelId;
+		).model.modelId;
 
 	return {
 		organizationId,

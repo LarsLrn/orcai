@@ -1,23 +1,9 @@
-import type { NATIVE_WEB_SEARCH_TOOL_NAME } from "@orcai/ai";
-import type { Tool } from "ai";
 import {
 	InvalidToolInputError,
-	NoSuchToolError,
+	type JSONSchema7,
 	type ToolCallRepairFunction,
+	type ToolSet,
 } from "ai";
-import type { GenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
-import type { QuestionTools } from "@/lib/ai/tools/questions/toolset";
-import type { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
-import type { searchWebTool } from "@/lib/ai/tools/web/search-web";
-import { RETRIEVAL_LIMITS } from "@/settings/constants";
-
-export type ChatAgentTools = ReturnType<typeof buildRepositoryTools> &
-	GenUiTools &
-	QuestionTools & {
-		searchWeb: ReturnType<typeof searchWebTool>;
-		/** Provider-executed: its input and output differ by provider. */
-		[NATIVE_WEB_SEARCH_TOOL_NAME]: Tool;
-	};
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	value !== null && typeof value === "object" && !Array.isArray(value);
@@ -31,15 +17,35 @@ const parseToolInput = (input: string) => {
 	}
 };
 
-const clampInteger = ({
-	value,
-	min,
-	max,
-}: {
-	value: unknown;
+/** The bounds the tool's input schema sets on a property. */
+type Limits = (property: string) => {
 	min: number;
 	max: number;
-}) => {
+	maxItems: number;
+};
+
+const limitsOf =
+	(schema: JSONSchema7): Limits =>
+	(property) => {
+		const definition = schema.properties?.[property];
+		const bounds = typeof definition === "object" ? definition : {};
+		return {
+			min: bounds.minimum ?? Number.MIN_SAFE_INTEGER,
+			max: bounds.maximum ?? Number.MAX_SAFE_INTEGER,
+			maxItems: bounds.maxItems ?? Number.MAX_SAFE_INTEGER,
+		};
+	};
+
+const clampInteger = (
+	value: unknown,
+	{
+		min,
+		max,
+	}: {
+		min: number;
+		max: number;
+	},
+) => {
 	if (typeof value !== "number" || !Number.isFinite(value)) {
 		return undefined;
 	}
@@ -68,11 +74,22 @@ const normalizeStringArray = (value: unknown, maxItems: number) => {
 	return normalized.length > 0 ? normalized.slice(0, maxItems) : [];
 };
 
-const repairSearchRepositoriesInput = (input: Record<string, unknown>) => {
+const repairSearchRepositoriesInput = (
+	input: Record<string, unknown>,
+	limits: Limits,
+) => {
+	const maxVariants = limits("queryVariants").maxItems;
 	const query = normalizeTrimmedString(input.query);
-	const queryVariants = normalizeStringArray(input.queryVariants, 4);
+	// Cut after a variant is promoted to the query, so the rest keep their room.
+	const queryVariants = normalizeStringArray(
+		input.queryVariants,
+		Number.POSITIVE_INFINITY,
+	);
 
-	const normalizedAssetIds = normalizeStringArray(input.assetIds, 20);
+	const normalizedAssetIds = normalizeStringArray(
+		input.assetIds,
+		limits("assetIds").maxItems,
+	);
 	const blockId = normalizeTrimmedString(input.blockId);
 
 	const normalizedQuery = query ?? queryVariants?.[0];
@@ -89,7 +106,7 @@ const repairSearchRepositoriesInput = (input: Record<string, unknown>) => {
 			: {}),
 		...(normalizedVariants.length > 0
 			? {
-					queryVariants: normalizedVariants.slice(0, 4),
+					queryVariants: normalizedVariants.slice(0, maxVariants),
 				}
 			: {}),
 		...(normalizedAssetIds && normalizedAssetIds.length > 0
@@ -105,16 +122,15 @@ const repairSearchRepositoriesInput = (input: Record<string, unknown>) => {
 	};
 };
 
-const repairGetPassagesInput = (input: Record<string, unknown>) => {
+const repairGetPassagesInput = (
+	input: Record<string, unknown>,
+	limits: Limits,
+) => {
 	const passages = normalizeStringArray(
 		input.passages,
-		RETRIEVAL_LIMITS.maxFullPassageFetches,
+		limits("passages").maxItems,
 	);
-	const neighbours = clampInteger({
-		value: input.neighbours,
-		min: 0,
-		max: 2,
-	});
+	const neighbours = clampInteger(input.neighbours, limits("neighbours"));
 
 	return {
 		passages: passages ?? [],
@@ -126,22 +142,16 @@ const repairGetPassagesInput = (input: Record<string, unknown>) => {
 	};
 };
 
-const repairGetAssetPageInput = (input: Record<string, unknown>) => {
-	const page = clampInteger({
-		value: input.page ?? input.pageNumber,
-		min: 1,
-		max: Number.MAX_SAFE_INTEGER,
-	});
-	const limit = clampInteger({
-		value: input.limit,
-		min: 1,
-		max: 30,
-	});
-	const includeAdjacentPages = clampInteger({
-		value: input.includeAdjacentPages,
-		min: 0,
-		max: 2,
-	});
+const repairGetAssetPageInput = (
+	input: Record<string, unknown>,
+	limits: Limits,
+) => {
+	const page = clampInteger(input.page ?? input.pageNumber, limits("page"));
+	const limit = clampInteger(input.limit, limits("limit"));
+	const includeAdjacentPages = clampInteger(
+		input.includeAdjacentPages,
+		limits("includeAdjacentPages"),
+	);
 
 	const assetId =
 		normalizeTrimmedString(input.assetId) ??
@@ -185,14 +195,13 @@ const repairGetAssetPageInput = (input: Record<string, unknown>) => {
 	};
 };
 
-const repairListRepositoryAssetsInput = (input: Record<string, unknown>) => {
+const repairListRepositoryAssetsInput = (
+	input: Record<string, unknown>,
+	limits: Limits,
+) => {
 	const query = normalizeTrimmedString(input.query);
 	const blockId = normalizeTrimmedString(input.blockId);
-	const limit = clampInteger({
-		value: input.limit,
-		min: 1,
-		max: 100,
-	});
+	const limit = clampInteger(input.limit, limits("limit"));
 
 	return {
 		...(query
@@ -213,55 +222,47 @@ const repairListRepositoryAssetsInput = (input: Record<string, unknown>) => {
 	};
 };
 
-const repairToolInput = ({
-	toolName,
-	input,
-}: {
-	toolName: string;
-	input: Record<string, unknown>;
-}) => {
-	switch (toolName) {
-		case "searchRepositories":
-			return repairSearchRepositoriesInput(input);
-		case "getPassages":
-			return repairGetPassagesInput(input);
-		case "getAssetPage":
-			return repairGetAssetPageInput(input);
-		case "listRepositoryAssets":
-			return repairListRepositoryAssetsInput(input);
-		default:
-			return null;
-	}
+const repairers: Record<
+	string,
+	(input: Record<string, unknown>, limits: Limits) => Record<string, unknown>
+> = {
+	searchRepositories: repairSearchRepositoriesInput,
+	getPassages: repairGetPassagesInput,
+	getAssetPage: repairGetAssetPageInput,
+	listRepositoryAssets: repairListRepositoryAssetsInput,
 };
 
-/** Repairs repository tool input only; other calls are left as they are. */
+/**
+ * Repairs repository tool input within the bounds of the tool's schema; other
+ * calls are left as they are. The SDK validates the repaired input again, and
+ * one that still fails becomes a tool error for the model.
+ */
 export const repairRepositoryToolCall: ToolCallRepairFunction<
-	ChatAgentTools
-> = ({ toolCall, error }) => {
-	if (NoSuchToolError.isInstance(error)) {
-		return Promise.resolve(null);
-	}
-
-	if (!InvalidToolInputError.isInstance(error)) {
-		return Promise.resolve(null);
+	ToolSet
+> = async ({ toolCall, error, inputSchema }) => {
+	const repairer = Object.hasOwn(repairers, toolCall.toolName)
+		? repairers[toolCall.toolName]
+		: undefined;
+	if (!repairer || !InvalidToolInputError.isInstance(error)) {
+		return null;
 	}
 
 	const parsedInput = parseToolInput(toolCall.input);
 	if (!parsedInput) {
-		return Promise.resolve(null);
+		return null;
 	}
 
-	const repairedInput = repairToolInput({
-		toolName: toolCall.toolName,
-		input: parsedInput,
-	});
-
-	if (!repairedInput) {
-		return Promise.resolve(null);
-	}
-
-	return Promise.resolve({
+	return {
 		...toolCall,
-		input: JSON.stringify(repairedInput),
-	});
+		input: JSON.stringify(
+			repairer(
+				parsedInput,
+				limitsOf(
+					await inputSchema({
+						toolName: toolCall.toolName,
+					}),
+				),
+			),
+		),
+	};
 };

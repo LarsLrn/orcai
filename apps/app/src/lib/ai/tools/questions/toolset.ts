@@ -61,5 +61,3 @@ export const buildQuestionTools = ({
 		history,
 	}),
 });
-
-export type QuestionTools = ReturnType<typeof buildQuestionTools>;

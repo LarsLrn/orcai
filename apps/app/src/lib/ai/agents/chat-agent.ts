@@ -1,19 +1,16 @@
-import type { AgentModel } from "@orcai/ai";
 import {
-	aiTelemetry,
+	type AgentModel,
 	buildSystemInstructions,
 	type ProviderCompaction,
 } from "@orcai/ai";
 import type { Repository } from "@orcai/schema";
-import { Output, ToolLoopAgent, type ToolSet, type UIMessage } from "ai";
+import type { ToolSet, UIMessage } from "ai";
 import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import {
-	type ChatAgentTools,
-	repairRepositoryToolCall,
-} from "@/lib/ai/agents/repair-tool-call";
-import { stepBudgetOptionsSchema } from "@/lib/ai/agents/step-budget";
-import { createStepShaper } from "@/lib/ai/agents/step-request";
+	createTurnAgent,
+	type TurnTelemetryIds,
+} from "@/lib/ai/agents/turn-agent";
 import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import type { CitableKind } from "@/lib/ai/citations/citation-rules";
 import type { ResolvedFeature } from "@/lib/ai/features/resolve-features";
@@ -28,6 +25,29 @@ import {
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 
+/** Every tool a plain or bot chat's stored calls may name. */
+const chatTools = ({
+	repositoryTools,
+	citations,
+	history,
+}: {
+	repositoryTools: ReturnType<typeof buildRepositoryTools>;
+	citations: boolean;
+	history: readonly UIMessage[];
+}) => ({
+	...repositoryTools,
+	...buildGenUiTools({
+		citations,
+	}),
+	...buildQuestionTools({
+		history,
+	}),
+	// Search runs only where the turn offers it; these read stored calls.
+	...storedWebSearchTools(),
+});
+
+export type ChatTools = ReturnType<typeof chatTools>;
+
 export const createChatAgent = (params: {
 	model: AgentModel;
 	systemPrompt: string | undefined;
@@ -38,12 +58,7 @@ export const createChatAgent = (params: {
 	webSearch: TurnWebSearch;
 	callSettings: ChatCallSettings;
 	compaction: ProviderCompaction;
-	telemetryIds: {
-		organizationId: string;
-		chatId: string;
-		providerId: string;
-		modelId: string;
-	};
+	telemetryIds: TurnTelemetryIds;
 	context: ORPCContext;
 	/** The stored messages the turn answers. */
 	history: readonly UIMessage[];
@@ -75,15 +90,21 @@ export const createChatAgent = (params: {
 			: []),
 	];
 	const citations = citable.length > 0;
-	const offeredTools: ToolSet = {
-		...(hasRepositories
-			? buildRepositoryTools({
-					blocks: params.repositories,
-					context: params.context,
-					sources: params.sources,
-				})
-			: {}),
-	};
+	const repositoryTools = buildRepositoryTools({
+		blocks: params.repositories,
+		context: params.context,
+		sources: params.sources,
+	});
+	const allTools = chatTools({
+		repositoryTools,
+		citations,
+		history: params.history,
+	});
+	const offeredTools: ToolSet = hasRepositories
+		? {
+				...repositoryTools,
+			}
+		: {};
 	for (const { entry, settings } of params.features) {
 		Object.assign(
 			offeredTools,
@@ -98,7 +119,37 @@ export const createChatAgent = (params: {
 			}),
 		);
 	}
-	const steps = createStepShaper({
+	const offeredNames = Object.keys(offeredTools);
+
+	return createTurnAgent({
+		model: params.model,
+		functionId: "chat.agent",
+		telemetryIds: params.telemetryIds,
+		instructions: buildSystemInstructions(
+			params.model.kind,
+			buildChatAgentSystemPrompt({
+				behaviour: params.systemPrompt,
+				repositories: params.repositories,
+				featurePrompts: params.features.map(({ entry }) =>
+					entry.prompt({
+						citations,
+					}),
+				),
+				citable,
+				today: params.today,
+			}),
+		),
+		// The offered tools first, in the order they were offered, so requests send them so.
+		tools: {
+			...offeredTools,
+			...Object.fromEntries(
+				Object.entries(allTools).filter(
+					([name]) => !Object.hasOwn(offeredTools, name),
+				),
+			),
+		},
+		activeTools: () => offeredNames,
+		offeredTools: () => offeredTools,
 		prune: (messages) =>
 			pruneChatHistory(messages, {
 				contentToolNames: CONTENT_TOOL_NAMES,
@@ -106,68 +157,8 @@ export const createChatAgent = (params: {
 					Object.hasOwn(offeredTools, name),
 				),
 			}),
+		callSettings: params.callSettings,
+		compaction: params.compaction,
+		sources: params.sources,
 	});
-
-	const instructions = buildSystemInstructions(
-		params.model.kind,
-		buildChatAgentSystemPrompt({
-			behaviour: params.systemPrompt,
-			repositories: params.repositories,
-			featurePrompts: params.features.map(({ entry }) =>
-				entry.prompt({
-					citations,
-				}),
-			),
-			citable,
-			today: params.today,
-		}),
-	);
-
-	const agent = new ToolLoopAgent({
-		model: params.model.language,
-		// The typed tool set; prepareCall swaps in the tools offered this turn.
-		tools: {
-			...buildRepositoryTools({
-				blocks: [],
-				context: params.context,
-				sources: params.sources,
-			}),
-			...buildGenUiTools({
-				citations,
-			}),
-			...buildQuestionTools({
-				history: [],
-			}),
-			...storedWebSearchTools(),
-		} satisfies ChatAgentTools,
-		...aiTelemetry("chat.agent", params.telemetryIds),
-		repairToolCall: repairRepositoryToolCall,
-		callOptionsSchema: stepBudgetOptionsSchema,
-		prepareCall: ({ options, ...settings }) => ({
-			...settings,
-			...params.callSettings,
-			providerOptions: params.compaction.providerOptions,
-			instructions,
-			// A subset of the typed set; no tools at all when nothing is offered.
-			tools:
-				Object.keys(offeredTools).length > 0
-					? (offeredTools as ChatAgentTools)
-					: undefined,
-			...steps.forTurn(options),
-		}),
-		onToolExecutionEnd: ({ toolOutput }) => {
-			steps.recordExecution(toolOutput);
-			if (toolOutput.type === "tool-result") {
-				params.sources.record(toolOutput.toolName, toolOutput.output);
-			}
-		},
-		output: Output.text(),
-	});
-
-	return {
-		agent,
-		instructions,
-		offeredTools: () => offeredTools,
-		contextFull: steps.contextFull,
-	};
 };
