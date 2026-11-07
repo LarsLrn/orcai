@@ -206,6 +206,7 @@ const applyQuotaPoolUpdate = (params: UpdateQuotaPoolParams) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 
+		// Locked like the ledger's writers, so concurrent edits apply in turn.
 		const [pool] = yield* db
 			.select()
 			.from(dbSchema.quotaPool)
@@ -215,7 +216,8 @@ const applyQuotaPoolUpdate = (params: UpdateQuotaPoolParams) =>
 					eq(dbSchema.quotaPool.organizationId, params.organizationId),
 				),
 			)
-			.limit(1);
+			.limit(1)
+			.for("no key update");
 
 		if (!pool) {
 			return {
@@ -471,6 +473,16 @@ export const deactivateQuotaPool: (params: {
 ) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		return yield* db.transaction(() => applyQuotaPoolDeactivation(params));
+	}).pipe(writeFailed("The quota pool could not be deactivated."));
+
+const applyQuotaPoolDeactivation = (params: {
+	organizationId: OrganizationId;
+	actorUserId: UserId;
+	id: QuotaPoolId;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
 		const now = new Date();
 
 		const [existingPool] = yield* db
@@ -482,7 +494,8 @@ export const deactivateQuotaPool: (params: {
 					eq(dbSchema.quotaPool.organizationId, params.organizationId),
 				),
 			)
-			.limit(1);
+			.limit(1)
+			.for("no key update");
 
 		if (!existingPool) {
 			return {
@@ -522,4 +535,4 @@ export const deactivateQuotaPool: (params: {
 			status: "ok",
 			pool,
 		} satisfies WriteQuotaPoolResult;
-	}).pipe(writeFailed("The quota pool could not be deactivated."));
+	});
