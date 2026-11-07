@@ -81,7 +81,7 @@ Instance admins see the full picture on the Health page (`/instance/health`): ev
 
 The workers send email from the `notification_outbox` table. Each sent row records its `delivery_channel`: `smtp`, or `log` when the workers have no SMTP configuration and only wrote the message to their log. A `log` row is still marked `sent`, so check the channel, or the Health page, which warns when the latest email only reached the log. The app process has no SMTP settings of its own.
 
-Retry delays start at 30 seconds and double after each failed attempt, with up to 10 seconds of random jitter. After the tenth failed attempt the row is marked `dead`, and its `last_error` keeps the reason. The `notification-outbox-cleanup-job` runs once a day and deletes sent rows 30 days after they were sent and dead rows 30 days after they were given up.
+A worker holds a row for five minutes while it sends. An attempt that has not finished after four minutes counts as failed. A row whose worker stopped mid attempt is picked up again after the five minutes, and the unfinished attempt counts too. Retry delays start at 30 seconds and double after each failed attempt, with up to 10 seconds of random jitter. When the tenth attempt fails, or its worker stopped and the row is picked up again, the row is marked `dead`, and its `last_error` keeps the reason. The `notification-outbox-cleanup-job` runs once a day and deletes sent rows 30 days after they were sent and dead rows 30 days after they were given up.
 
 ## Workers
 

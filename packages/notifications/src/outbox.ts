@@ -10,6 +10,8 @@ import { type EmailNotification, emailNotificationSchema } from "./schema";
 
 const NOTIFICATION_MAX_ATTEMPTS = 10;
 const LEASE_MS = 5 * 60_000;
+/** Rendering and sending give up before the lease lets another worker claim the row. */
+const DELIVERY_DEADLINE_MS = LEASE_MS - 60_000;
 const OUTBOX_WAKE_SINGLETON_KEY = "notification-outbox-drain";
 const OUTBOX_WAKE_SINGLETON_SECONDS = 5;
 
@@ -78,12 +80,19 @@ const sanitizeError = (failure: unknown) =>
 		.replaceAll(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, "[email]")
 		.slice(0, 2000);
 
+type Settlement = Partial<typeof dbSchema.notificationOutbox.$inferInsert>;
+
+/**
+ * Claims the oldest due row, delivers it and records the result. Each claim
+ * consumes an attempt, and only the claim still holding the row settles it,
+ * so a sender whose lease expired cannot undo its replacement's result.
+ */
 export const processNextNotification = () =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		const email = yield* EmailService;
 		const now = new Date();
-		const row = yield* db.transaction((tx) =>
+		const claimed = yield* db.transaction((tx) =>
 			Effect.gen(function* () {
 				const [selected] = yield* tx
 					.select()
@@ -108,33 +117,83 @@ export const processNextNotification = () =>
 					});
 
 				if (!selected) return undefined;
+				const exhausted = selected.attempts >= NOTIFICATION_MAX_ATTEMPTS;
 				yield* tx
 					.update(dbSchema.notificationOutbox)
-					.set({
-						status: "processing",
-						leaseExpiresAt: new Date(now.getTime() + LEASE_MS),
-						updatedAt: now,
-					})
+					.set(
+						exhausted
+							? {
+									status: "dead",
+									payload: {},
+									leaseExpiresAt: null,
+									lastError: "Notification attempts exhausted",
+									updatedAt: now,
+								}
+							: {
+									status: "processing",
+									attempts: selected.attempts + 1,
+									leaseExpiresAt: new Date(now.getTime() + LEASE_MS),
+									updatedAt: now,
+								},
+					)
 					.where(eq(dbSchema.notificationOutbox.id, selected.id));
-				return selected;
+				return {
+					row: selected,
+					attempt: selected.attempts + 1,
+					exhausted,
+				};
 			}),
 		);
 
-		if (!row) return false;
-		const attempt = row.attempts + 1;
-		const parsed = emailNotificationSchema.safeParse(row.payload);
-		if (!parsed.success) {
-			yield* db
+		if (!claimed) return false;
+		const { row, attempt } = claimed;
+		if (claimed.exhausted) {
+			yield* Effect.logWarning({
+				operation: "notification.exhausted",
+				notificationId: row.id,
+				type: row.type,
+			});
+			return true;
+		}
+
+		const settle = (values: Settlement) =>
+			db
 				.update(dbSchema.notificationOutbox)
 				.set({
-					status: "dead",
-					attempts: attempt,
-					payload: {},
+					...values,
 					leaseExpiresAt: null,
-					lastError: "Notification payload validation failed",
 					updatedAt: new Date(),
 				})
-				.where(eq(dbSchema.notificationOutbox.id, row.id));
+				.where(
+					and(
+						eq(dbSchema.notificationOutbox.id, row.id),
+						eq(dbSchema.notificationOutbox.status, "processing"),
+						eq(dbSchema.notificationOutbox.attempts, attempt),
+					),
+				)
+				.returning({
+					id: dbSchema.notificationOutbox.id,
+				})
+				.pipe(
+					Effect.tap((settled) =>
+						settled.length > 0
+							? Effect.void
+							: Effect.logWarning({
+									operation: "notification.lease-lost",
+									notificationId: row.id,
+									type: row.type,
+									attempt,
+								}),
+					),
+				);
+
+		const parsed = emailNotificationSchema.safeParse(row.payload);
+		if (!parsed.success) {
+			yield* settle({
+				status: "dead",
+				payload: {},
+				lastError: "Notification payload validation failed",
+			});
 			yield* Effect.logWarning({
 				operation: "notification.invalid-payload",
 				notificationId: row.id,
@@ -143,37 +202,31 @@ export const processNextNotification = () =>
 			return true;
 		}
 
+		const notification = parsed.data;
 		const result = yield* Effect.exit(
 			Effect.tryPromise({
-				try: async () => {
-					const notification = parsed.data;
-					const rendered = await renderEmail(notification);
-					return await Effect.runPromise(
-						email.send({
-							to: notification.recipient,
-							...rendered,
-						}),
-					);
-				},
+				try: () => renderEmail(notification),
 				catch: (cause) => cause,
-			}),
+			}).pipe(
+				Effect.flatMap((rendered) =>
+					email.send({
+						to: notification.recipient,
+						...rendered,
+					}),
+				),
+				Effect.timeout(DELIVERY_DEADLINE_MS),
+			),
 		);
 
 		if (Exit.isSuccess(result)) {
-			yield* db
-				.update(dbSchema.notificationOutbox)
-				.set({
-					status: "sent",
-					attempts: attempt,
-					payload: {},
-					leaseExpiresAt: null,
-					lastError: null,
-					providerMessageId: result.value.messageId,
-					deliveryChannel: result.value.channel,
-					sentAt: new Date(),
-					updatedAt: new Date(),
-				})
-				.where(eq(dbSchema.notificationOutbox.id, row.id));
+			yield* settle({
+				status: "sent",
+				payload: {},
+				lastError: null,
+				providerMessageId: result.value.messageId,
+				deliveryChannel: result.value.channel,
+				sentAt: new Date(),
+			});
 			yield* Effect.logInfo({
 				operation: "notification.sent",
 				notificationId: row.id,
@@ -182,20 +235,17 @@ export const processNextNotification = () =>
 				recipientDomain: row.recipient.split("@").at(-1),
 			});
 		} else {
-			const failure = result.cause;
 			const dead = attempt >= NOTIFICATION_MAX_ATTEMPTS;
-			yield* db
-				.update(dbSchema.notificationOutbox)
-				.set({
-					status: dead ? "dead" : "pending",
-					attempts: attempt,
-					payload: dead ? {} : row.payload,
-					nextAttemptAt: new Date(Date.now() + retryDelay(attempt)),
-					leaseExpiresAt: null,
-					lastError: sanitizeError(failure),
-					updatedAt: new Date(),
-				})
-				.where(eq(dbSchema.notificationOutbox.id, row.id));
+			yield* settle({
+				status: dead ? "dead" : "pending",
+				...(dead
+					? {
+							payload: {},
+						}
+					: {}),
+				nextAttemptAt: new Date(Date.now() + retryDelay(attempt)),
+				lastError: sanitizeError(result.cause),
+			});
 			yield* Effect.logWarning({
 				operation: "notification.failed",
 				notificationId: row.id,
