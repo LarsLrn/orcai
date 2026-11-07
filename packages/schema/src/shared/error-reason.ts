@@ -187,8 +187,10 @@ export type GrantRejection = {
 
 /** Reasons that carry data for their message. User data stays raw; vocabulary is typed. */
 export type ErrorReasonParams = {
+	/** Names only the bots the caller may read; `otherCount` counts the rest. */
 	BLOCK_IN_USE_BY_READY_BOTS: {
 		botNames: string[];
+		otherCount: number;
 	};
 	BLOCK_USED_BY_LISTED_BOTS: {
 		botNames: string[];

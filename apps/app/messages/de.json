@@ -3198,6 +3198,36 @@
 	"error_auth_required": "Melden Sie sich an, um fortzufahren.",
 	"error_behaviour_block_type_invalid": "Der verknüpfte Block muss ein Verhalten sein.",
 	"error_block_in_use_by_ready_bots": "Dieser Block kann nicht in den Entwurf zurückgesetzt werden, weil veröffentlichte Bots ihn verwenden: {botNames}.",
+	"error_block_in_use_by_unnamed_ready_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Dieser Block kann nicht in den Entwurf zurückgesetzt werden, weil ein veröffentlichter Bot ihn verwendet.",
+				"countPlural=other": "Dieser Block kann nicht in den Entwurf zurückgesetzt werden, weil {count} veröffentlichte Bots ihn verwenden."
+			}
+		}
+	],
+	"error_block_in_use_other_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} weiterer Bot",
+				"countPlural=other": "{count} weitere Bots"
+			}
+		}
+	],
 	"error_block_link_forbidden": "Sie haben keinen Zugriff auf einen oder mehrere der ausgewählten Blöcke.",
 	"error_block_not_found": "Block nicht gefunden.",
 	"error_block_used_by_listed_bots": "Bots im Katalog enthalten diesen Block: {botNames}. Nehmen Sie sie zuerst aus dem Katalog oder entfernen Sie den Block aus ihnen.",

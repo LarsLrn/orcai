@@ -3198,6 +3198,36 @@
 	"error_auth_required": "Sign in to continue.",
 	"error_behaviour_block_type_invalid": "The linked block must be a behaviour.",
 	"error_block_in_use_by_ready_bots": "This block cannot be moved to draft because published bots use it: {botNames}.",
+	"error_block_in_use_by_unnamed_ready_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "This block cannot be moved to draft because a published bot uses it.",
+				"countPlural=other": "This block cannot be moved to draft because {count} published bots use it."
+			}
+		}
+	],
+	"error_block_in_use_other_bots": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} other bot",
+				"countPlural=other": "{count} other bots"
+			}
+		}
+	],
 	"error_block_link_forbidden": "You do not have access to one or more of the selected blocks.",
 	"error_block_not_found": "Block not found.",
 	"error_block_used_by_listed_bots": "Listed bots contain this block: {botNames}. Unlist them or remove the block from them first.",
