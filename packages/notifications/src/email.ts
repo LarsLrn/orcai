@@ -1,3 +1,4 @@
+import { Socket } from "node:net";
 import type { EmailDeliveryChannel } from "@orcai/schema";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -98,8 +99,16 @@ export const EmailLive = Layer.effect(
 				transport,
 				send: (params: SendEmailParams) =>
 					Effect.tryPromise({
-						try: async () => {
-							const info = await transport.sendMail({
+						try: async (signal) => {
+							// A socket of its own, so interruption closes this message's connection.
+							const socket = new Socket();
+							signal.addEventListener("abort", () => socket.destroy(), {
+								once: true,
+							});
+							const info = await createTransport({
+								...options,
+								socket,
+							}).sendMail({
 								...params,
 								from: params.from ?? defaultFrom,
 							});
