@@ -341,6 +341,17 @@ export const AuthzLive = Layer.effect(
 				),
 			);
 
+		return {
+			deliverRelationshipEvents,
+			replayRelationshipOutbox,
+		};
+	}),
+);
+
+/** Replays the outbox every 10 s, delivering what inline deliveries left. */
+export const AuthzReplayLive = Layer.effectDiscard(
+	Effect.gen(function* () {
+		const { replayRelationshipOutbox } = yield* AuthzService;
 		yield* Effect.forkScoped(
 			Effect.forever(
 				replayRelationshipOutbox().pipe(
@@ -351,9 +362,5 @@ export const AuthzLive = Layer.effect(
 				),
 			),
 		);
-		return {
-			deliverRelationshipEvents,
-			replayRelationshipOutbox,
-		};
 	}),
 );
