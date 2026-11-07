@@ -102,6 +102,9 @@ remaining amounts. **Add pool** opens `/app/quota-pools/add` with these fields:
 - **Provider**, which the pool meters in the provider's metering mode, tokens
   or requests.
 - **Model scope**, either **All models from this provider** or one model.
+  A pool scoped to a model keeps that model on its provider, so change the
+  pool's model scope before moving the model to another provider. Deleting the
+  model widens its pools to all models from the provider.
 - **Period**, which is Weekly, Monthly or Yearly. The budget resets in UTC,
   weekly on Monday, monthly on the 1st and yearly on 1 January. Each period
   starts with the full budget, and unused budget does not roll over.

@@ -16,7 +16,12 @@ import {
 	pageOf,
 	type SortExpression,
 } from "@orcai/db";
-import type { ErrorReason, ModelCapability, ModelSortKey } from "@orcai/schema";
+import type {
+	ErrorReason,
+	ModelCapability,
+	ModelSortKey,
+	UpdateModelInput,
+} from "@orcai/schema";
 import { ORPCError } from "@orpc/server";
 import {
 	and,
@@ -243,11 +248,23 @@ const updateModel = authed.model.update
 	.use(requireOrganization("manage_models"))
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
-		const organizationId = context.auth.session.activeOrganizationId;
+		return yield* db.transaction(() =>
+			applyModelUpdate(input, context.auth.session.activeOrganizationId),
+		);
+	});
 
+const applyModelUpdate = (
+	input: UpdateModelInput,
+	organizationId: OrganizationId,
+) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+
+		// Pool validation takes this row too, so a move and a pool write apply in turn.
 		const [existingModel] = yield* db
 			.select({
 				id: dbSchema.model.id,
+				providerId: dbSchema.model.providerId,
 			})
 			.from(dbSchema.model)
 			.innerJoin(
@@ -260,7 +277,10 @@ const updateModel = authed.model.update
 					eq(dbSchema.provider.organizationId, organizationId),
 				),
 			)
-			.limit(1);
+			.limit(1)
+			.for("update", {
+				of: dbSchema.model,
+			});
 
 		if (!existingModel) {
 			return yield* Effect.fail(
@@ -271,11 +291,29 @@ const updateModel = authed.model.update
 			);
 		}
 
-		if (input.providerId) {
+		if (input.providerId && input.providerId !== existingModel.providerId) {
 			yield* requireModelProvider({
 				organizationId,
 				providerId: input.providerId,
 			});
+
+			const [pool] = yield* db
+				.select({
+					id: dbSchema.quotaPool.id,
+				})
+				.from(dbSchema.quotaPool)
+				.where(eq(dbSchema.quotaPool.modelId, existingModel.id))
+				.limit(1);
+
+			if (pool) {
+				return yield* Effect.fail(
+					new AppErrors.ConflictError({
+						reason: "MODEL_IN_QUOTA_POOLS",
+						message:
+							"Quota pools limited to this model keep it on its provider",
+					}),
+				);
+			}
 		}
 
 		const [model] = yield* db
@@ -283,15 +321,6 @@ const updateModel = authed.model.update
 			.set(mapUpdateModelInputToModelUpdateValues(input))
 			.where(eq(dbSchema.model.id, input.id))
 			.returning();
-
-		if (!model) {
-			return yield* Effect.fail(
-				new AppErrors.NotFoundError({
-					reason: "MODEL_NOT_FOUND",
-					message: "Model not found",
-				}),
-			);
-		}
 
 		return {
 			data: toModelDto(model),

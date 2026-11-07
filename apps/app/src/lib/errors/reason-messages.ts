@@ -157,6 +157,7 @@ const reasonMessages: ReasonMessages = {
 	METADATA_GENERATION_UNAVAILABLE: m.error_metadata_generation_unavailable,
 	MODEL_CAPABILITIES_UNKNOWN: m.error_model_capabilities_unknown,
 	MODEL_DEPRECATED: m.error_model_deprecated,
+	MODEL_IN_QUOTA_POOLS: m.error_model_in_quota_pools,
 	MODEL_NOT_FOUND: m.error_model_not_found,
 	MODEL_PROVIDER_MISMATCH: m.error_model_provider_mismatch,
 	MODEL_TEXT_UNSUPPORTED: m.error_model_text_unsupported,

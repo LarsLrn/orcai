@@ -1,0 +1,119 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "8ffa6dc2-0f73-4995-9f29-a0d0c199430c",
+  "prevIds": [
+    "46f21c43-7c7a-4e3b-ace3-351f50968744"
+  ],
+  "footprints": [
+    {
+      "statementType": "drop_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "quota_pool"
+      ],
+      "writes": [
+        "s|fk|public.quota_pool.quota_pool_model_id_model_id_fkey",
+        "n|fk|public.quota_pool.quota_pool_model_id_model_id_fkey",
+        "e|fk|public.quota_pool.quota_pool_model_id_model_id_fkey",
+        "n|con|public.quota_pool.quota_pool_model_id_model_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool",
+        "n|sch|public",
+        "e|col|public.quota_pool.model_id"
+      ]
+    },
+    {
+      "statementType": "add_unique",
+      "statementTarget": [
+        "table",
+        "public",
+        "model"
+      ],
+      "writes": [
+        "s|uq|public.model.model_provider_id_id_unique",
+        "n|uq|public.model.model_provider_id_id_unique",
+        "e|uq|public.model.model_provider_id_id_unique",
+        "n|con|public.model.model_provider_id_id_unique",
+        "n|rel|public.model_provider_id_id_unique"
+      ],
+      "reads": [
+        "n|tbl|public.model",
+        "n|sch|public",
+        "n|col|public.model.provider_id",
+        "n|col|public.model.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "quota_pool"
+      ],
+      "writes": [
+        "s|fk|public.quota_pool.quota_pool_provider_model_fk",
+        "n|fk|public.quota_pool.quota_pool_provider_model_fk",
+        "e|fk|public.quota_pool.quota_pool_provider_model_fk",
+        "n|con|public.quota_pool.quota_pool_provider_model_fk"
+      ],
+      "reads": [
+        "n|tbl|public.quota_pool",
+        "n|sch|public",
+        "n|tbl|public.model",
+        "n|sch|public",
+        "n|col|public.quota_pool.provider_id",
+        "n|col|public.quota_pool.model_id",
+        "n|col|public.model.provider_id",
+        "n|col|public.model.id",
+        "e|uniqueness|public.model.id.provider_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "quota_pool",
+        "name": "quota_pool_provider_model_fk",
+        "nameExplicit": true,
+        "columns": [
+          "provider_id",
+          "model_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "model",
+        "columnsTo": [
+          "provider_id",
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "model",
+        "name": "model_provider_id_id_unique",
+        "nameExplicit": true,
+        "columns": [
+          "provider_id",
+          "id"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "drop",
+      "key": "fks\u0000[\"public\",\"quota_pool\",\"quota_pool_model_id_model_id_fkey\"]"
+    }
+  ]
+}
