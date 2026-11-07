@@ -17,7 +17,7 @@ import {
 	holdLock,
 	integrationRuntime,
 } from "@orcai/testing";
-import { and, count, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, max, ne, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -28,21 +28,13 @@ import {
 } from "@/lib/authz/relationship-write";
 import { initializeResourceAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AppServices } from "@/lib/effect/app-layer";
-import { AuthzLive } from "@/lib/effect/services/authz";
+import { AuthzLive, AuthzService } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 // Loading the router blocks the event loop for seconds. Loaded with this
 // module, it is cached before the runtime opens connections that time out.
 import "@/lib/orpc/router";
 
 export const TIMEOUT = 30_000;
-
-const until = async (condition: () => Promise<boolean>, what: string) => {
-	const deadline = Date.now() + 20_000;
-	while (!(await condition())) {
-		if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`);
-		await new Promise((resolve) => setTimeout(resolve, 25));
-	}
-};
 
 export type Actor = {
 	user: typeof dbSchema.user.$inferSelect;
@@ -293,29 +285,80 @@ export const appIntegration = (
 			}),
 		);
 
-	/** Waits until every outbox event mentioning `id` is delivered. */
-	const outboxDelivered = (id: string) =>
-		until(
-			() =>
-				run(
-					Effect.gen(function* () {
-						const db = yield* DB;
-						const [row] = yield* db
-							.select({
-								pending: count(),
-							})
-							.from(dbSchema.authzOutbox)
-							.where(
-								and(
-									sql`${dbSchema.authzOutbox.payloadJson}::text LIKE ${`%${id}%`}`,
-									ne(dbSchema.authzOutbox.status, "processed"),
-								),
-							);
-						return row.pending === 0;
-					}),
-				),
-			`the outbox events for ${id}`,
-		);
+	const undeliveredAbout = (id: string) =>
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const events = yield* db
+				.select({
+					id: dbSchema.authzOutbox.id,
+				})
+				.from(dbSchema.authzOutbox)
+				.where(
+					and(
+						sql`${dbSchema.authzOutbox.payloadJson}::text LIKE ${`%${id}%`}`,
+						ne(dbSchema.authzOutbox.status, "processed"),
+					),
+				);
+			return events.map((event) => event.id);
+		});
+
+	/** The oldest undelivered event at or before the newest of `eventIds`. */
+	const oldestBlocking = (eventIds: readonly string[]) =>
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const newest = db
+				.select({
+					seq: max(dbSchema.authzOutbox.seq),
+				})
+				.from(dbSchema.authzOutbox)
+				.where(
+					inArray(dbSchema.authzOutbox.id, [
+						...eventIds,
+					]),
+				);
+			const [event] = yield* db
+				.select({
+					seq: dbSchema.authzOutbox.seq,
+					status: dbSchema.authzOutbox.status,
+					attempts: dbSchema.authzOutbox.attempts,
+					nextAttemptAt: dbSchema.authzOutbox.nextAttemptAt,
+				})
+				.from(dbSchema.authzOutbox)
+				.where(
+					and(
+						ne(dbSchema.authzOutbox.status, "processed"),
+						lte(dbSchema.authzOutbox.seq, newest),
+					),
+				)
+				.orderBy(asc(dbSchema.authzOutbox.seq))
+				.limit(1);
+			return event;
+		});
+
+	/**
+	 * Delivers every outbox event mentioning `id`, and all older ones, through
+	 * the Authz interface. An inline delivery gives up under lock contention and
+	 * leaves its events to the outbox loop, which this tier must not wait for.
+	 */
+	const outboxDelivered = async (id: string) => {
+		const deadline = Date.now() + 20_000;
+		for (;;) {
+			const eventIds = await run(undeliveredAbout(id));
+			if (eventIds.length === 0) return;
+			if (Date.now() > deadline) {
+				const blocking = await run(oldestBlocking(eventIds));
+				throw new Error(
+					`Timed out delivering ${String(eventIds.length)} outbox events for ${id}; oldest blocking: ${JSON.stringify(blocking)}`,
+				);
+			}
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* AuthzService).deliverRelationshipEvents(eventIds);
+				}),
+			);
+			await new Promise((resolve) => setTimeout(resolve, 25));
+		}
+	};
 
 	/**
 	 * `relation@type:id#relation` of the tuples on a resource, fully consistent;

@@ -376,7 +376,7 @@ describe("ordered delivery", () => {
 			const { blockId } = await createBlock(owner, zedToken);
 			const subject = await run(createUser());
 
-			await run(
+			const eventIds = await run(
 				Effect.gen(function* () {
 					const db = yield* DB;
 					const authz = yield* AuthzService;
@@ -404,10 +404,13 @@ describe("ordered delivery", () => {
 							concurrency: "unbounded",
 						},
 					);
+					return eventIds;
 				}),
 			);
 
-			await outboxDelivered(subject.id);
+			expect(
+				(await run(outboxStates(eventIds))).map(({ status }) => status),
+			).toEqual(eventIds.map(() => "processed"));
 			expect(
 				await readTuples({
 					resourceType: "block",
