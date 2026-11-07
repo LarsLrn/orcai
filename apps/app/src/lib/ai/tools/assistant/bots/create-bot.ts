@@ -9,6 +9,7 @@ import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
 	callProcedure,
+	expectLinkableBlocks,
 	expectType,
 	mutation,
 } from "../procedure-tool";
@@ -65,6 +66,7 @@ export const createBotTool = (deps: AssistantToolDeps) =>
 				procedures.bot.save(payload, options),
 			).pipe(
 				mutation("findBots"),
+				expectLinkableBlocks(behaviourId, repositoryIds),
 				expectType("block", [
 					...(behaviourId
 						? [

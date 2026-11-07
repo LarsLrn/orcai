@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import {
 	type EntityKind,
 	isMissing,
+	unlinkableBlocksText,
 	wrongIdText,
 } from "@/lib/ai/tools/entity-kind";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
@@ -63,6 +64,22 @@ export const expectType =
 					? error
 					: new AssistantToolError(wrongIdText(kind, ids, reason));
 			}),
+		);
+
+/** Gives a block-link rejection the kinds and ids supplied to the bot save. */
+export const expectLinkableBlocks =
+	(behaviourId: string | null, repositoryIds: readonly string[]) =>
+	<A, E, R>(effect: Effect.Effect<A, E, R>) =>
+		effect.pipe(
+			Effect.mapError((error): E | AssistantToolError =>
+				error instanceof ORPCError &&
+				isRecord(error.data) &&
+				error.data.reason === "BLOCK_LINK_FORBIDDEN"
+					? new AssistantToolError(
+							unlinkableBlocksText(behaviourId, repositoryIds),
+						)
+					: error,
+			),
 		);
 
 /**
