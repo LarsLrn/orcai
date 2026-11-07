@@ -9,9 +9,12 @@ import { logErrorCause } from "@orcai/observability";
 import {
 	addActivityMember,
 	admit,
+	cleanUpDeletions,
 	openUploadRun,
+	recordDeletion,
 	releaseAdmission,
 	renewAdmission,
+	wasAssetDeleted,
 } from "@orcai/preparation";
 import {
 	checkUpload,
@@ -101,6 +104,11 @@ const createAssetFromUpload = (
 		if (existing) {
 			return yield* existingAsset(intake, existing, admission);
 		}
+		// Its cleanup may still be removing files under this id; the insert checks again.
+		if (yield* wasAssetDeleted(id))
+			return yield* reject({
+				reason: "UPLOAD_CREATE_FAILED",
+			});
 
 		const insert = writeRelationships(
 			{
@@ -129,6 +137,23 @@ const createAssetFromUpload = (
 					.returning();
 
 				if (!asset) return undefined;
+				// Waited for a deletion of the id in flight, so a recheck sees its record.
+				if (yield* wasAssetDeleted(id)) {
+					yield* db.delete(dbSchema.asset).where(eq(dbSchema.asset.id, id));
+					return {
+						refused: yield* recordDeletion({
+							files: [
+								{
+									id,
+									bucket: upload.bucket,
+									prefix: upload.prefix,
+									fileType: upload.fileType,
+								},
+							],
+							indexedLinks: [],
+						}),
+					};
+				}
 				yield* initializeResourceAuthorization({
 					resource: {
 						resourceType: "asset",
@@ -156,13 +181,24 @@ const createAssetFromUpload = (
 							}
 						: undefined,
 				});
-				return (yield* findAsset(asset.id)) ?? asset;
+				return {
+					asset: (yield* findAsset(asset.id)) ?? asset,
+				};
 			}),
 		);
 		const { result: inserted } = yield* claimStagedUpload(upload, {
 			key: upload.key,
 			commit: insert,
 		});
+
+		if (inserted && "refused" in inserted) {
+			yield* cleanUpDeletions([
+				inserted.refused,
+			]);
+			return yield* reject({
+				reason: "UPLOAD_CREATE_FAILED",
+			});
+		}
 
 		// A concurrent call for the same upload inserted first.
 		if (!inserted) {
@@ -174,7 +210,7 @@ const createAssetFromUpload = (
 					});
 		}
 
-		return inserted;
+		return inserted.asset;
 	});
 
 const intakeResult = (

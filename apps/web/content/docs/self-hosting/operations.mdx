@@ -95,6 +95,8 @@ The app server works data exports (`data-export-job`) instead of the workers, on
 
 The `activity-cleanup-job` runs every hour and keeps each user's activity bounded. It deletes an entry seven days after its work finished, or once the user dismissed it, and never deletes an entry whose work is still running. Failures and suggestions that need a user's attention are read from the assets and exports themselves, so the cleanup never removes one.
 
+Deleting an asset, a repository, an organisation or an account removes the database rows first and records what the deletion left in object storage and Qdrant: stored files, extracted text and search entries. Removing an asset from a repository records the search entries it leaves there. The app removes those right after the deletion. When object storage or Qdrant is unavailable, or the app stops before it is done, the `deletion-cleanup-job` tries again until everything is gone, waiting longer after each failure, up to an hour between attempts. Each failed attempt is logged with its error. Processing that is still running for a deleted asset stores nothing more, and an upload cannot create an asset again under a deleted asset's id.
+
 The workers register every scheduled job when they start, with the cron in UTC:
 
 | Job | Schedule | What it does |
@@ -102,6 +104,7 @@ The workers register every scheduled job when they start, with the cron in UTC:
 | `notification-outbox-job` | every minute | Sends up to 250 queued emails per run, see [Email delivery](#email-delivery). |
 | `reconcile-embeddings-job` | every minute | Brings every repository link onto the active embedding generation: it embeds waiting links, links of a new generation and links whose work a crash lost. Does nothing before embeddings are set up. |
 | `preparation-sweep-job` | every 5 minutes | Marks stuck work as failed, as described above. |
+| `deletion-cleanup-job` | every 5 minutes | Finishes removing what deleted content left in object storage and Qdrant, as described above. |
 | `quota-period-rollover-job` | every 5 minutes | Opens the next period of the quota pools whose period has ended, up to 400 per run, and later runs take the rest. A pool that fails to roll over fails the job, and the queue retries it. |
 | `quota-release-stale-job` | every 5 minutes | Settles the quota reservations of model calls that never ended, 35 minutes after the reservation. A reservation with stored steps is charged them, and one without is released. |
 | `data-export-expire-job` | every 10 minutes | Deletes expired export archives, see [Data export archives](#data-export-archives). |

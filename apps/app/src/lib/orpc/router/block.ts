@@ -1,5 +1,6 @@
 import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import {
+	cleanUpDeletions,
 	prepareRepositoryAssetAgain,
 	prepareRepositoryFailedAgain,
 } from "@orcai/preparation";
@@ -20,7 +21,6 @@ import { listBlockTiles } from "@/lib/blocks/block-list";
 import { loadRepositoryReadiness } from "@/lib/blocks/readiness";
 import {
 	loadRepositoryAssets,
-	reconcileRemovedLinks,
 	replaceBlockAssets,
 	requireReadableAssets,
 } from "@/lib/blocks/repository";
@@ -145,7 +145,7 @@ const createBlock = authed.block.create
 
 		const organizationId = context.auth.session.activeOrganizationId;
 		const {
-			result: { block, links },
+			result: { block, cleanup },
 		} = yield* writeRelationships(
 			{
 				organizationIds: [
@@ -177,7 +177,7 @@ const createBlock = authed.block.create
 
 				return {
 					block,
-					links:
+					cleanup:
 						input.type === "repository"
 							? yield* replaceBlockAssets({
 									blockId: block.id,
@@ -190,8 +190,10 @@ const createBlock = authed.block.create
 			}),
 		);
 
-		if (input.type === "repository" && links) {
-			yield* reconcileRemovedLinks(links);
+		if (input.type === "repository") {
+			yield* cleanUpDeletions([
+				cleanup,
+			]);
 
 			return {
 				data: block,
@@ -240,7 +242,7 @@ const updateBlock = authed.block.update
 			zedToken: readRevision(context, input),
 		};
 		const {
-			result: { block, links },
+			result: { block, cleanup },
 		} = yield* writePermitted(
 			{
 				resourceType: "block",
@@ -316,7 +318,7 @@ const updateBlock = authed.block.update
 
 				return {
 					block,
-					links:
+					cleanup:
 						input.type === "repository" && block.type === "repository"
 							? yield* replaceBlockAssets({
 									blockId: block.id,
@@ -329,8 +331,10 @@ const updateBlock = authed.block.update
 			}),
 		);
 
-		if (input.type === "repository" && links) {
-			yield* reconcileRemovedLinks(links);
+		if (input.type === "repository" && block.type === "repository") {
+			yield* cleanUpDeletions([
+				cleanup,
+			]);
 
 			return {
 				data: block,

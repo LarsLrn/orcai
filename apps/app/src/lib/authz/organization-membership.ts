@@ -7,6 +7,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import { cleanUpDeletions } from "@orcai/preparation";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -32,10 +33,7 @@ import {
 	issuedGrantOrganizations,
 	revokeUserGrants,
 } from "@/lib/authz/resource-access";
-import {
-	deleteResources,
-	removeDeletedResourceData,
-} from "@/lib/authz/resource-lifecycle";
+import { deleteResources } from "@/lib/authz/resource-lifecycle";
 import { deleteChatsWhere } from "@/lib/chats/chat-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { deleteImages } from "@/lib/images/images";
@@ -783,7 +781,7 @@ export const deleteAccounts = (params: {
 			}),
 		);
 		yield* deleteImages(deleted.images);
-		yield* removeDeletedResourceData([
+		yield* cleanUpDeletions([
 			deleted.uploads,
 		]);
 

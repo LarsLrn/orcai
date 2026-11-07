@@ -2,6 +2,7 @@ export * from "./activity";
 export * from "./admission";
 export * from "./attempt";
 export * from "./completion";
+export * from "./deletion-cleanup";
 export * from "./embedding-reconciler";
 export * from "./link-points";
 export * from "./prepare-again";

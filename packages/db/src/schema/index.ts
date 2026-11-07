@@ -45,6 +45,7 @@ import {
 	chatMessageRatingEnum,
 } from "./chat-message";
 import { dataExport, dataExportStatusEnum } from "./data-export";
+import { deletedAsset, deletionCleanup } from "./deletion-cleanup";
 import { instanceSettings } from "./instance-settings";
 
 export { instanceSettingsIn } from "./instance-settings";
@@ -92,6 +93,8 @@ export const dbSchema = {
 	chatMessageRating,
 	chat,
 	dataExport,
+	deletedAsset,
+	deletionCleanup,
 	group,
 	groupMember,
 	model,

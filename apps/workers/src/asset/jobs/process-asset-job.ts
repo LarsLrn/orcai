@@ -7,6 +7,7 @@ import {
 	type ProcessingAttempt,
 	processingAttempt,
 	settleProcessingAttempt,
+	writeWhileProcessing,
 } from "@orcai/preparation";
 import {
 	buildStoredExtractionImageKey,
@@ -45,7 +46,7 @@ const getRequiredMimeType = (
 const createDocumentArtifact = (params: {
 	result: Parameters<typeof createExtractionArtifact>[0]["result"];
 	jobId: string;
-	assetId: string;
+	attempt: ProcessingAttempt;
 }) =>
 	Effect.gen(function* () {
 		const storedImagePaths = new Map<number, string>();
@@ -65,7 +66,7 @@ const createDocumentArtifact = (params: {
 							return yield* Effect.logWarning(
 								{
 									jobId: params.jobId,
-									assetId: params.assetId,
+									assetId: params.attempt.assetId,
 									imageIndex: image.imageIndex,
 									width,
 									height,
@@ -76,17 +77,20 @@ const createDocumentArtifact = (params: {
 					}
 
 					const key = buildStoredExtractionImageKey({
-						assetId: params.assetId,
+						assetId: params.attempt.assetId,
 						imageIndex: image.imageIndex,
 						format: image.format,
 					});
 
-					yield* sendPutObjectCommand({
-						bucket: buckets.processed.name,
-						key,
-						body: Buffer.from(image.data),
-						contentType: imageMediaType(image.format),
-					});
+					yield* writeWhileProcessing(
+						params.attempt,
+						sendPutObjectCommand({
+							bucket: buckets.processed.name,
+							key,
+							body: Buffer.from(image.data),
+							contentType: imageMediaType(image.format),
+						}),
+					);
 
 					storedImagePaths.set(image.imageIndex, key);
 				}),
@@ -184,7 +188,7 @@ const processDelivery = (params: {
 						createDocumentArtifact({
 							result,
 							jobId: params.job.id,
-							assetId: assetRef.id,
+							attempt: params.attempt,
 						}),
 					),
 				);
@@ -203,7 +207,10 @@ const processDelivery = (params: {
 			imageAsset,
 		});
 
-		yield* writeStoredExtraction(assetRef.id, artifact);
+		yield* writeWhileProcessing(
+			params.attempt,
+			writeStoredExtraction(assetRef.id, artifact),
+		);
 
 		if (!(yield* completeProcessing(params.attempt))) {
 			return yield* Effect.logInfo(

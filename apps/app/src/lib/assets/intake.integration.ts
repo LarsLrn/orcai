@@ -1,22 +1,33 @@
 import { describe, expect, test } from "bun:test";
 import { PgClient } from "@effect/sql-pg";
-import type { ActivityRunId, OrganizationId } from "@orcai/core";
+import type { ActivityRunId, AssetId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
-import { UPLOAD_ROUTES, UPLOAD_STAGING_PREFIX } from "@orcai/s3";
-import { isS3NotFound, sendHeadObjectCommand } from "@orcai/s3/server";
+import { cleanUpDueDeletions } from "@orcai/preparation";
+import {
+	assetObjectKey,
+	UPLOAD_ROUTES,
+	UPLOAD_STAGING_PREFIX,
+} from "@orcai/s3";
+import {
+	isS3NotFound,
+	S3Service,
+	sendHeadObjectCommand,
+} from "@orcai/s3/server";
 import {
 	type AssetIntakeResult,
 	type AssetUploadRoute,
 	PROCESS_ASSET_JOB_NAME,
 	type UploadFileObject,
 } from "@orcai/schema";
-import { eq, inArray } from "drizzle-orm";
+import { NEWEST_REVISION } from "@orcai/spice-db";
+import { eq, inArray, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import { createAssetsFromUploads } from "@/lib/assets/intake";
+import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
 import { AuthzService } from "@/lib/effect/services/authz";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
@@ -51,13 +62,12 @@ const members = async (count: number): Promise<Member[]> => {
 
 const CONTENT = "Uploaded by the asset intake integration test.";
 
-/** Signs one text upload as `actor` and, unless `put` is false, puts its bytes like the browser. */
-const upload = async (
+/** Signs one text upload as `actor`; `put` sends its bytes like the browser, as often as called. */
+const signUpload = async (
 	{ actor, zedToken }: Member,
 	name: string,
 	route: AssetUploadRoute = "asset",
-	put = true,
-): Promise<UploadFileObject> => {
+) => {
 	const procedures = await run(Procedures);
 	const signed = await run(
 		procedures.storage.createUploadUrls(
@@ -76,16 +86,30 @@ const upload = async (
 	);
 	const [target] = signed.data;
 	if (target?.mode !== "single") throw new Error("Expected a single upload");
-	if (!put) return target.file;
+	const put = async () => {
+		const response = await fetch(target.signedUrl, {
+			method: "PUT",
+			headers: target.headers,
+			body: CONTENT,
+		});
+		expect(response.ok).toBe(true);
+	};
+	return {
+		file: target.file,
+		put,
+	};
+};
 
-	const response = await fetch(target.signedUrl, {
-		method: "PUT",
-		headers: target.headers,
-		body: CONTENT,
-	});
-	expect(response.ok).toBe(true);
-
-	return target.file;
+/** Signs one text upload as `actor` and, unless `put` is false, puts its bytes like the browser. */
+const upload = async (
+	member: Member,
+	name: string,
+	route: AssetUploadRoute = "asset",
+	put = true,
+): Promise<UploadFileObject> => {
+	const signed = await signUpload(member, name, route);
+	if (put) await signed.put();
+	return signed.file;
 };
 
 const createFromUploads = async (
@@ -781,6 +805,176 @@ describe("chat uploads", () => {
 			]);
 			expect(newerToken).toBeString();
 			expect(meta?.zedToken).toBe(newerToken);
+		},
+		TIMEOUT,
+	);
+});
+
+/** S3 whose requests go through `gate` first. */
+const gatedStorage = async (gate: (command: object) => Promise<void>) => {
+	const s3 = await run(S3Service);
+	return {
+		...s3,
+		client: new Proxy(s3.client, {
+			get(target, key) {
+				if (key === "send")
+					return async (command: object, ...rest: unknown[]) => {
+						await gate(command);
+						return Reflect.apply(target.send, target, [
+							command,
+							...rest,
+						]);
+					};
+				return Reflect.get(target, key);
+			},
+		}),
+	};
+};
+
+/** Deletes the asset while storage is down, so its cleanup stays pending. */
+const deleteWhileStorageDown = async (owner: Member, assetId: AssetId) =>
+	run(
+		deleteResourcesWithAuthorization({
+			resourceType: "asset",
+			resourceIds: [
+				assetId,
+			],
+			actor: {
+				userId: owner.actor.user.id,
+				zedToken: NEWEST_REVISION,
+			},
+		}).pipe(
+			Effect.provideService(
+				S3Service,
+				await gatedStorage(() =>
+					Promise.reject(new Error("injected storage outage")),
+				),
+			),
+		),
+	);
+
+/** Retries the asset's pending cleanup now, as the worker does once it is due. */
+const retryCleanup = (assetId: AssetId) =>
+	run(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.deletionCleanup)
+				.set({
+					nextAttemptAt: new Date(0),
+				})
+				.where(
+					sql`${dbSchema.deletionCleanup.data} -> 'files' @> ${JSON.stringify([
+						{
+							id: assetId,
+						},
+					])}::jsonb`,
+				);
+			yield* cleanUpDueDeletions;
+		}),
+	);
+
+describe("deleted assets", () => {
+	test(
+		"an upload cannot bring back a deleted asset whose files are still being removed",
+		async () => {
+			const [owner] = await members(1);
+			const { file, put } = await signUpload(owner, "deleted.txt");
+			await put();
+			const asset = created(
+				(
+					await createFromUploads(owner, [
+						file,
+					])
+				)[0],
+			);
+			await deleteWhileStorageDown(owner, asset.id);
+
+			// The signed URL still works, so the same upload can be taken in again.
+			await put();
+			const [again] = await createFromUploads(owner, [
+				file,
+			]);
+			expect(again).toMatchObject({
+				status: "failed",
+				reason: "UPLOAD_CREATE_FAILED",
+			});
+			expect(await assetRows(asset.id)).toEqual([]);
+
+			await retryCleanup(asset.id);
+			expect(await objectExists(asset.bucket, assetObjectKey(asset))).toBe(
+				false,
+			);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"an intake that checked before the asset was created and deleted does not bring it back",
+		async () => {
+			const [owner] = await members(1);
+			const { file, put } = await signUpload(owner, "raced.txt");
+			await put();
+			const copying = Promise.withResolvers<void>();
+			const resume = Promise.withResolvers<void>();
+			const paused = await gatedStorage(async (command) => {
+				if (
+					"CopySource" in
+					(
+						command as {
+							input: object;
+						}
+					).input
+				) {
+					copying.resolve();
+					await resume.promise;
+				}
+			});
+			const options = await procedureOptions(owner.actor, owner.zedToken);
+			const procedures = await run(Procedures);
+			const late = run(
+				procedures.asset.createFromUploads(
+					{
+						route: "asset",
+						files: [
+							file,
+						],
+					},
+					{
+						...options,
+						context: {
+							...options.context,
+							"effect/context": Context.add(
+								options.context["effect/context"],
+								S3Service,
+								paused,
+							),
+						},
+					},
+				),
+			);
+			await copying.promise;
+
+			const asset = created(
+				(
+					await createFromUploads(owner, [
+						file,
+					])
+				)[0],
+			);
+			await deleteWhileStorageDown(owner, asset.id);
+			await put();
+			resume.resolve();
+
+			const [result] = (await late).data;
+			expect(result).toMatchObject({
+				status: "failed",
+				reason: "UPLOAD_CREATE_FAILED",
+			});
+			expect(await assetRows(asset.id)).toEqual([]);
+			await retryCleanup(asset.id);
+			expect(await objectExists(asset.bucket, assetObjectKey(asset))).toBe(
+				false,
+			);
 		},
 		TIMEOUT,
 	);

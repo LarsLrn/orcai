@@ -355,6 +355,7 @@
         "@orcai/db": "workspace:*",
         "@orcai/pg-boss": "workspace:*",
         "@orcai/qdrant": "workspace:*",
+        "@orcai/s3": "workspace:*",
         "@orcai/schema": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",

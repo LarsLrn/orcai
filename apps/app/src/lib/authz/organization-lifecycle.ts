@@ -4,6 +4,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema, isHome } from "@orcai/db";
+import { cleanUpDeletions } from "@orcai/preparation";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY, RESOURCE_TYPES } from "@orcai/schema";
 import { and, asc, getColumns, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -17,7 +18,6 @@ import {
 import { issuedGrantOrganizations } from "@/lib/authz/resource-access";
 import {
 	deleteResources,
-	removeDeletedResourceData,
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -217,7 +217,7 @@ export const deleteOrganizationsWithAuthorization = (
 			Effect.all(
 				[
 					deleteImages(result.logos),
-					removeDeletedResourceData(result.deleted),
+					cleanUpDeletions(result.deleted),
 				],
 				{
 					discard: true,
