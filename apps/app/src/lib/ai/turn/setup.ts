@@ -2,7 +2,6 @@ import {
 	AiError,
 	type ModelRefusal,
 	type ProviderCompaction,
-	providerCompaction,
 	type ResolvedModel,
 	resolveModel,
 } from "@orcai/ai";
@@ -15,6 +14,7 @@ import type {
 } from "@orcai/core";
 import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
+import { ASSISTANT_FEATURES } from "@/lib/ai/agents/assistant-agent";
 import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
 import {
 	ASSISTANT_AGENT_MAX_STEPS,
@@ -40,18 +40,8 @@ import {
 import * as AppErrors from "@/lib/effect/utils/errors";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import {
-	compactionTrigger,
-	DEFAULT_CONTEXT_WINDOW,
-	promptBudget,
-} from "./context-window";
+import { turnLimits } from "./context-window";
 import type { StoredChat } from "./reply-store";
-
-/** The assistant's fixed features. */
-const ASSISTANT_FEATURES = {
-	generativeUi: {},
-	questions: {},
-};
 
 const UNUSABLE_MESSAGES: Record<ModelRefusal<"turn">, string> = {
 	PROVIDER_DISABLED:
@@ -473,27 +463,11 @@ const assistantSetup = ({ organizationId, user, context }: TurnRequester) =>
 		} satisfies RequestedSetup;
 	});
 
-/** The output a chat without its own cap gets, within the model's maximum. */
-const DEFAULT_MAX_OUTPUT_TOKENS = 16_384;
-
-/**
- * Without its own cap a call reserves a guess at its output, which leaves at
- * least half the context window to the prompt. The rest is the budget, which
- * sets where the conversation compacts.
- */
 const withLimits = (setup: RequestedSetup): TurnSetup => {
-	const { contextWindow } = setup.model.tokenLimits;
-	const half = Math.floor((contextWindow ?? DEFAULT_CONTEXT_WINDOW) / 2);
-	const maxOutputTokens =
-		setup.callSettings.maxOutputTokens ??
-		Math.min(
-			half,
-			setup.model.tokenLimits.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
-			DEFAULT_MAX_OUTPUT_TOKENS,
-		);
-	const budget = promptBudget({
-		contextWindow,
-		reservedOutputTokens: maxOutputTokens,
+	const { maxOutputTokens, budget, compaction } = turnLimits({
+		kind: setup.model.kind,
+		tokenLimits: setup.model.tokenLimits,
+		maxOutputTokens: setup.callSettings.maxOutputTokens,
 	});
 	return {
 		...setup,
@@ -502,7 +476,7 @@ const withLimits = (setup: RequestedSetup): TurnSetup => {
 			maxOutputTokens,
 		},
 		budget,
-		compaction: providerCompaction(setup.model.kind, compactionTrigger(budget)),
+		compaction,
 	};
 };
 

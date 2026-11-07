@@ -21,7 +21,7 @@ import {
 	noOtherCitationStyle,
 	omits,
 } from "../checks";
-import { repository, runChat, type Scripted } from "../harness";
+import { EVAL_DATE, repository, runChat, type Scripted } from "../harness";
 import type { EvalCase } from "./case";
 
 const LESSON_PLANNER =
@@ -826,7 +826,7 @@ export const chatCases: EvalCase[] = [
 				message: "What is today's date? Answer with the date only.",
 			}),
 		checks: [
-			mentionsDate(new Date()),
+			mentionsDate(EVAL_DATE),
 		],
 	},
 	{

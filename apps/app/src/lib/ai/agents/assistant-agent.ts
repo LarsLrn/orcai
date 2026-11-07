@@ -16,6 +16,7 @@ import {
 } from "@/lib/ai/agents/assistant-tool-lines";
 import {
 	createTurnAgent,
+	type ToolExecutions,
 	type TurnTelemetryIds,
 } from "@/lib/ai/agents/turn-agent";
 import type { ChatSources } from "@/lib/ai/citations/chat-sources";
@@ -31,6 +32,12 @@ import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
 import { NO_WEB_SEARCH } from "@/lib/ai/tools/web/toolset";
 import type { ChatCallSettings } from "@/lib/ai/utils/chat-call-settings";
 import type { DocsConfig } from "@/lib/effect/services/config";
+
+/** The assistant's fixed features. */
+export const ASSISTANT_FEATURES = {
+	generativeUi: {},
+	questions: {},
+};
 
 export const createAssistantAgent = (
 	params: AssistantToolDeps & {
@@ -50,6 +57,8 @@ export const createAssistantAgent = (
 		/** The chat's sources, which the turn's calls add to. */
 		sources: ChatSources;
 		telemetryIds: TurnTelemetryIds;
+		/** Applied before the session's guards wrap the tools. */
+		toolExecutions?: ToolExecutions;
 	},
 ) => {
 	// The docs are the Assistant's only citable source.
@@ -77,14 +86,15 @@ export const createAssistantAgent = (
 		compaction: params.compaction,
 	});
 	// Every tool, so stored calls validate with the docs or a feature off; activeTools narrows what the model sees.
+	const built = buildAssistantTools({
+		context: params.context,
+		turn: params.turn,
+		session,
+		docs: params.docs,
+		history: params.history,
+	});
 	const tools = session.declare(
-		buildAssistantTools({
-			context: params.context,
-			turn: params.turn,
-			session,
-			docs: params.docs,
-			history: params.history,
-		}),
+		params.toolExecutions ? params.toolExecutions(built) : built,
 	);
 	const toolGroups = offeredToolGroups(params.userContext.capabilities);
 	const enabledContentToolNames = CONTENT_TOOL_NAMES.filter((name) =>

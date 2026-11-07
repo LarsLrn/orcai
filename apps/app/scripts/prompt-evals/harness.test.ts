@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { generateText } from "ai";
-import { describeError, evalModel, runAssistant } from "./harness";
+import { FINAL_STEP_NOTE } from "@/lib/ai/agents/step-request";
+import {
+	describeError,
+	evalModel,
+	OPENROUTER,
+	repository,
+	runAssistant,
+	runChat,
+} from "./harness";
 
 const KEY = "sk-secret-key-123";
 
@@ -39,41 +47,53 @@ describe("describeError", () => {
 	});
 });
 
-/** An OpenAI-compatible endpoint that answers each request with the next tool call. */
-const scriptedEndpoint = (
-	calls: {
-		name: string;
-		input: unknown;
-	}[],
-) => {
-	const requests: {
-		messages: {
-			role: string;
-			content: unknown;
-		}[];
-		tools?: {
-			function: {
+type ScriptedRequest = {
+	messages: {
+		role: string;
+		content: unknown;
+	}[];
+	tools?: {
+		function: {
+			name: string;
+		};
+	}[];
+	tool_choice?: unknown;
+	max_tokens?: number;
+};
+
+/** One streamed completion: a tool call, or else the answer "Done.". */
+const completion = (
+	index: number,
+	call:
+		| {
 				name: string;
-			};
-		}[];
-	}[] = [];
-	const fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
-		requests.push(JSON.parse(String(init?.body)));
-		const call = calls[requests.length - 1];
-		return Response.json({
-			id: `response-${requests.length}`,
-			object: "chat.completion",
+				input: unknown;
+		  }
+		| undefined,
+) => {
+	const chunk = (choice: object, extra: object = {}) =>
+		`data:${JSON.stringify({
+			id: `response-${index}`,
+			object: "chat.completion.chunk",
 			created: 0,
 			model: "scripted",
 			choices: [
 				{
 					index: 0,
-					message: {
+					...choice,
+				},
+			],
+			...extra,
+		})}\n\n`;
+	const body = [
+		chunk({
+			delta: call
+				? {
 						role: "assistant",
-						content: call ? null : "Done.",
-						tool_calls: call && [
+						tool_calls: [
 							{
-								id: `call-${requests.length}`,
+								index: 0,
+								id: `call-${index}`,
 								type: "function",
 								function: {
 									name: call.name,
@@ -81,16 +101,74 @@ const scriptedEndpoint = (
 								},
 							},
 						],
+					}
+				: {
+						role: "assistant",
+						content: "Done.",
 					},
-					finish_reason: call ? "tool_calls" : "stop",
-				},
-			],
+			finish_reason: null,
+		}),
+		chunk({
+			delta: {},
+			finish_reason: call ? "tool_calls" : "stop",
+		}),
+		// OpenRouter reports usage in its own event after the finish.
+		`data:${JSON.stringify({
+			id: `response-${index}`,
+			object: "chat.completion.chunk",
+			created: 0,
+			model: "scripted",
+			choices: [],
 			usage: {
 				prompt_tokens: 1,
 				completion_tokens: 1,
 				total_tokens: 2,
+				cost: 0.001,
 			},
-		});
+		})}\r\n\r\n`,
+		"data: [DONE]\n\n",
+	].join("");
+
+	return new Response(body, {
+		headers: {
+			"content-type": "text/event-stream",
+		},
+	});
+};
+
+/** An OpenAI-compatible endpoint that answers each request with the next tool call, then with text. */
+const scriptedEndpoint = (
+	calls: (
+		| {
+				name: string;
+				input: unknown;
+		  }
+		| ((request: ScriptedRequest) =>
+				| {
+						name: string;
+						input: unknown;
+				  }
+				| undefined)
+	)[],
+	{
+		url = "https://endpoint.test/v1",
+		onCost = () => undefined,
+	}: {
+		url?: string;
+		onCost?: (cost: number) => void;
+	} = {},
+) => {
+	const requests: ScriptedRequest[] = [];
+	const fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
+		const request: ScriptedRequest = JSON.parse(String(init?.body));
+		requests.push(request);
+		const next = calls[requests.length - 1];
+		return Promise.resolve(
+			completion(
+				requests.length,
+				typeof next === "function" ? next(request) : next,
+			),
+		);
 	}) as unknown as typeof globalThis.fetch;
 
 	return {
@@ -98,14 +176,153 @@ const scriptedEndpoint = (
 		model: evalModel(
 			"scripted",
 			{
-				url: "https://endpoint.test/v1",
+				url,
 				apiKey: KEY,
 				fetch,
 			},
-			() => undefined,
+			onCost,
 		),
 	};
 };
+
+const toolNames = (request: ScriptedRequest | undefined) =>
+	request?.tools?.map(({ function: { name } }) => name);
+
+describe("runChat", () => {
+	test("runs a scripted call and ends on an unscripted one without running it", async () => {
+		const { requests, model } = scriptedEndpoint([
+			{
+				name: "searchRepositories",
+				input: {
+					query: "essay deadline",
+				},
+			},
+			{
+				name: "listRepositoryAssets",
+				input: {},
+			},
+		]);
+
+		const transcript = await runChat({
+			model,
+			behaviour: undefined,
+			repositories: [
+				repository("Course"),
+			],
+			message: "When is the essay due?",
+			scripted: {
+				searchRepositories: () => ({
+					results: [],
+				}),
+			},
+		});
+
+		expect(transcript.calls).toEqual([
+			{
+				toolName: "searchRepositories",
+				input: {
+					query: "essay deadline",
+				},
+				output: {
+					results: [],
+				},
+			},
+			{
+				toolName: "listRepositoryAssets",
+				input: {
+					limit: 30,
+				},
+				output: undefined,
+			},
+		]);
+		expect(transcript.stop).toBe("call to listRepositoryAssets");
+		expect(requests).toHaveLength(2);
+	});
+
+	test("sends the turn's tools, output cap and last step without tools", async () => {
+		let searches = 0;
+		const { requests, model } = scriptedEndpoint(
+			Array.from(
+				{
+					length: 25,
+				},
+				() => ({
+					name: "searchWeb",
+					input: {
+						query: "essay deadline",
+					},
+				}),
+			),
+		);
+
+		const transcript = await runChat({
+			model,
+			behaviour: undefined,
+			repositories: [
+				repository("Course"),
+			],
+			message: "When is the essay due?",
+			webSearch: true,
+			generativeUi: true,
+			scripted: {
+				searchWeb: () => {
+					searches++;
+					return {
+						results: [],
+					};
+				},
+			},
+		});
+
+		expect(toolNames(requests[0])?.at(0)).toBe("searchRepositories");
+		expect(toolNames(requests[0])?.at(-1)).toBe("searchWeb");
+		expect(toolNames(requests[0])).not.toContain("askUser");
+		expect(requests[0].max_tokens).toBe(16_384);
+		expect(requests).toHaveLength(25);
+		const last = requests.at(-1);
+		expect(last?.tool_choice).toBe("none");
+		expect(JSON.stringify(last?.messages.at(-1))).toContain(FINAL_STEP_NOTE);
+		expect(transcript.stop).toBe("step limit");
+		expect(searches).toBe(24);
+	});
+
+	test("adds up the cost OpenRouter reports in each streamed response", async () => {
+		const costs: number[] = [];
+		const { model } = scriptedEndpoint(
+			[
+				{
+					name: "searchRepositories",
+					input: {
+						query: "essay deadline",
+					},
+				},
+			],
+			{
+				url: OPENROUTER,
+				onCost: (cost) => costs.push(cost),
+			},
+		);
+
+		await runChat({
+			model,
+			behaviour: undefined,
+			repositories: [
+				repository("Course"),
+			],
+			message: "When is the essay due?",
+			scripted: {
+				searchRepositories: () => ({
+					results: [],
+				}),
+			},
+		});
+
+		expect(costs).toEqual([
+			0.001,
+			0.001,
+		]);
+	});
+});
 
 const plan = {
 	title: "Create Spanish drill",
@@ -207,9 +424,7 @@ describe("runAssistant", () => {
 		expect(JSON.stringify(afterApproval.messages.at(-1))).toContain(
 			'\\"approved\\":true',
 		);
-		expect(
-			afterApproval.tools?.map(({ function: { name } }) => name),
-		).toContain("createBehaviour");
+		expect(toolNames(afterApproval)).toContain("createBehaviour");
 	});
 
 	test("ends where a reply does not fit the pause", async () => {

@@ -2,11 +2,9 @@ import {
 	type AgentModel,
 	agentModel,
 	assetMetadataCall,
-	buildSystemInstructions,
 	callRequest,
 	chatTitleCall,
 	imageAssetCall,
-	providerCompaction,
 	readAssetMetadata,
 	readImageAssetDescription,
 	sanitizeGeneratedChatTitle,
@@ -14,7 +12,6 @@ import {
 import type { Repository } from "@orcai/schema";
 import {
 	generateText,
-	isStepCount,
 	type ModelMessage,
 	type StepResult,
 	type Tool,
@@ -22,50 +19,46 @@ import {
 } from "ai";
 import * as Effect from "effect/Effect";
 import {
-	type AssistantSession,
-	createAssistantSession,
-} from "@/lib/ai/agents/assistant-session";
+	ASSISTANT_FEATURES,
+	createAssistantAgent,
+} from "@/lib/ai/agents/assistant-agent";
+import type { AssistantUserContext } from "@/lib/ai/agents/assistant-system-prompt";
+import type {
+	StoredMessage,
+	ToolExecution,
+} from "@/lib/ai/agents/assistant-tool-lines";
+import { createChatAgent } from "@/lib/ai/agents/chat-agent";
+import { localDate } from "@/lib/ai/agents/chat-agent-system-prompt";
 import {
-	type AssistantUserContext,
-	buildAssistantSystemPrompt,
-} from "@/lib/ai/agents/assistant-system-prompt";
-import {
-	buildChatAgentSystemPrompt,
-	localDate,
-} from "@/lib/ai/agents/chat-agent-system-prompt";
+	ASSISTANT_AGENT_MAX_STEPS,
+	CHAT_AGENT_MAX_STEPS,
+} from "@/lib/ai/agents/step-budget";
+import type { ToolExecutions, TurnAgent } from "@/lib/ai/agents/turn-agent";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
-import type { CitableKind } from "@/lib/ai/citations/citation-rules";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
-import {
-	type DeferredToolGroup,
-	offeredToolGroups,
-} from "@/lib/ai/tools/assistant/groups";
+import type { DeferredToolGroup } from "@/lib/ai/tools/assistant/groups";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
-import { buildAssistantTools } from "@/lib/ai/tools/assistant/toolset";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
 import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
-import { genUiPrompt } from "@/lib/ai/tools/gen-ui/prompt";
 import type {
 	AskUserInput,
 	AskUserOutput,
 } from "@/lib/ai/tools/questions/ask-user";
-import { buildRepositoryTools } from "@/lib/ai/tools/rag/toolset";
-import { CONTENT_TOOL_NAMES } from "@/lib/ai/tools/registry";
-import {
-	NO_WEB_SEARCH,
-	storedWebSearchTools,
-} from "@/lib/ai/tools/web/toolset";
+import { NO_WEB_SEARCH, type TurnWebSearch } from "@/lib/ai/tools/web/toolset";
 import { attachmentText } from "@/lib/ai/turn/attachments";
+import { turnLimits } from "@/lib/ai/turn/context-window";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { DOCS, localDocsFetch } from "./docs";
 
 /**
- * Builds each request the way the app does, from its own prompt builders and
- * toolsets, and sends it through the `openai-compatible` kind to the configured endpoint.
- * Tools run only where a case scripts their output; a call to any other tool
- * ends the run there, as a client tool or a confirmation would.
+ * Runs each turn through the app's own agent factories, with the settings a
+ * turn on a model without recorded token limits gets, and each background
+ * task through its call spec, sending them through the `openai-compatible`
+ * kind to the configured endpoint. Tools run only where a case scripts their
+ * output; a call to any other tool ends the run there, as a client tool or a
+ * confirmation would.
  */
 
 export const OPENROUTER = "https://openrouter.ai/api/v1";
@@ -105,9 +98,6 @@ const rateLimiter = (perMinute: number) => {
 	};
 };
 
-/** Steps a run may take before it counts as stuck. */
-const MAX_STEPS = 8;
-
 interface ToolCallRecord {
 	toolName: string;
 	input: unknown;
@@ -135,9 +125,41 @@ export interface EvalModel {
 	model: AgentModel;
 }
 
-const contextStub = {
-	secureCookies: false,
-} as ORPCContext;
+/** A run never calls a procedure, so anything reading the request context fails loudly. */
+const unreachableContext = new Proxy(
+	{},
+	{
+		get: (_, key) => {
+			throw new Error(
+				`An eval run reached the request context (${String(key)}).`,
+			);
+		},
+	},
+) as ORPCContext;
+
+/** A search provider no run reaches: the case scripts searchWeb. */
+const unreachableSearch: TurnWebSearch = {
+	kind: "provider",
+	search: () => Effect.die(new Error("An eval run reached web search.")),
+};
+
+/** Eval models have no recorded token limits, so turns get the defaults. */
+const limitsOf = (model: AgentModel) =>
+	turnLimits({
+		kind: model.kind,
+		tokenLimits: {
+			contextWindow: null,
+			maxOutputTokens: null,
+		},
+		maxOutputTokens: undefined,
+	});
+
+const telemetryIds = (model: EvalModel) => ({
+	organizationId: "prompt-evals",
+	chatId: "prompt-evals",
+	providerId: "prompt-evals",
+	modelId: model.id,
+});
 
 export interface Endpoint {
 	url: string;
@@ -181,6 +203,37 @@ export const describeError = (error: unknown, secret: string) => {
 	};
 };
 
+/** The data of each server-sent event in `text`, its data lines joined. */
+const sseData = (text: string) =>
+	text
+		.replaceAll(/\r\n?/g, "\n")
+		.split("\n\n")
+		.map((event) =>
+			event
+				.split("\n")
+				.filter((line) => line.startsWith("data:"))
+				.map((line) => line.slice("data:".length).replace(/^ /, ""))
+				.join("\n"),
+		);
+
+/** The `usage.cost` an OpenRouter response body or stream event reports. */
+const usageCost = (json: string) => {
+	try {
+		const body: unknown = JSON.parse(json);
+		const cost =
+			typeof body === "object" && body !== null && "usage" in body
+				? (
+						body.usage as {
+							cost?: unknown;
+						} | null
+					)?.cost
+				: undefined;
+		return typeof cost === "number" ? cost : undefined;
+	} catch {
+		return undefined;
+	}
+};
+
 /** The model on `endpoint`; `onCost` receives the cost an OpenRouter response reports. */
 export const evalModel = (
 	id: string,
@@ -195,59 +248,84 @@ export const evalModel = (
 			endpoint: endpoint.url,
 			fetch: (async (input: RequestInfo | URL, init?: RequestInit) => {
 				const response = await endpoint.fetch(input, init);
-				if (endpoint.url !== OPENROUTER) {
+				if (endpoint.url !== OPENROUTER || !response.body) {
 					return response;
 				}
-				const body: unknown = await response
-					.clone()
-					.json()
-					.catch(() => undefined);
-				const cost =
-					typeof body === "object" && body !== null && "usage" in body
-						? (
-								body.usage as {
-									cost?: unknown;
-								}
-							).cost
-						: undefined;
-				if (typeof cost === "number") {
-					onCost(cost);
-				}
-				return response;
+				// Reads the cost as the SDK consumes the body; a stream reports it in its last usage event.
+				const decoder = new TextDecoder();
+				let text = "";
+				const body = response.body.pipeThrough(
+					new TransformStream<Uint8Array, Uint8Array>({
+						transform: (chunk, controller) => {
+							text += decoder.decode(chunk, {
+								stream: true,
+							});
+							controller.enqueue(chunk);
+						},
+						flush: () => {
+							const whole = text + decoder.decode();
+							const cost =
+								usageCost(whole) ??
+								sseData(whole)
+									.reverse()
+									.map(usageCost)
+									.find((found) => found !== undefined);
+							if (cost !== undefined) {
+								onCost(cost);
+							}
+						},
+					}),
+				);
+				return new Response(body, response);
 			}) as typeof globalThis.fetch,
 		},
 		providerModelId: id,
 	}),
 });
 
-/** Keeps each tool's description, schema and model output; the case decides what runs. */
-const scriptTools = (
-	tools: ToolSet,
-	scripted: Scripted,
-	real: readonly string[] = [],
-): ToolSet =>
-	Object.fromEntries(
-		Object.entries(tools).map(([name, tool]) => {
-			if (real.includes(name)) {
+/**
+ * Runs the scripted tools with the case's outputs and the `real` ones as
+ * they are, and removes every other execution. `onExecuted` sees each call
+ * that returned.
+ */
+const scriptExecutions =
+	(
+		scripted: Scripted,
+		real: readonly string[] = [],
+		onExecuted: (execution: ToolExecution) => void = () => undefined,
+	): ToolExecutions =>
+	(tools) =>
+		Object.fromEntries(
+			Object.entries(tools).map(([name, tool]) => {
+				const { execute, ...declared } = tool;
+				const run = real.includes(name)
+					? execute
+					: scripted[name] &&
+						((input: unknown) => scripted[name](input as never));
+				if (!run) {
+					return [
+						name,
+						declared,
+					];
+				}
 				return [
 					name,
-					tool,
+					{
+						...declared,
+						execute: async (input: unknown, options) => {
+							const output: unknown = await run(input, options);
+							onExecuted({
+								toolCallId: options.toolCallId,
+								toolName: name,
+								input,
+								output,
+							});
+							return output;
+						},
+					} satisfies Tool,
 				];
-			}
-			const { execute: _, ...declared } = tool;
-			const output = scripted[name];
-
-			return [
-				name,
-				output
-					? ({
-							...declared,
-							execute: async (input: unknown) => output(input as never),
-						} as Tool)
-					: declared,
-			];
-		}),
-	);
+			}),
+		) as typeof tools;
 
 /** The calls of the last step that got no result: a client tool or a pause. */
 const openCalls = (steps: readonly StepResult<ToolSet>[]) => {
@@ -266,17 +344,22 @@ const openCalls = (steps: readonly StepResult<ToolSet>[]) => {
 	);
 };
 
-const stopOf = (steps: readonly StepResult<ToolSet>[]) => {
+const stopOf = (steps: readonly StepResult<ToolSet>[], maxSteps: number) => {
+	// The last step sends no tools; calling one anyway ends it as tool calls.
+	if (steps.length >= maxSteps && steps.at(-1)?.finishReason === "tool-calls") {
+		return "step limit";
+	}
 	const open = openCalls(steps);
 	if (open.length > 0) {
 		return `call to ${open.map(({ toolName }) => toolName).join(", ")}`;
 	}
-	return steps.at(-1)?.finishReason === "tool-calls" ? "step limit" : "answer";
+	return "answer";
 };
 
 const transcriptOf = (
 	steps: readonly StepResult<ToolSet>[],
 	text: string,
+	stop: string,
 ): Transcript => ({
 	text,
 	calls: steps.flatMap((step) =>
@@ -288,7 +371,7 @@ const transcriptOf = (
 			)?.output,
 		})),
 	),
-	stop: stopOf(steps),
+	stop,
 });
 
 /** A repository for the retrieval tools; the case scripts what they return. */
@@ -300,8 +383,15 @@ export const repository = (name: string) =>
 		config: {},
 	}) as unknown as Repository;
 
+/** The display tools, which only show what the model passes, so they run as they are. */
+const DISPLAY_TOOLS = Object.keys(
+	buildGenUiTools({
+		citations: true,
+	}),
+);
+
 export const runChat = async ({
-	model: { model },
+	model,
 	behaviour,
 	repositories = [],
 	message,
@@ -328,64 +418,39 @@ export const runChat = async ({
 	history?: ModelMessage[];
 	scripted?: Scripted;
 }): Promise<Transcript> => {
-	const citable: CitableKind[] = [
-		...(repositories.length > 0
-			? ([
-					"passage",
-				] as const)
-			: []),
-		...(webSearch
-			? ([
-					"web",
-				] as const)
-			: []),
-		...(attachment
-			? ([
-					"attachment",
-				] as const)
-			: []),
-	];
-	const citations = citable.length > 0;
-	const displayTools = generativeUi
-		? buildGenUiTools({
-				citations,
-			})
-		: {};
-	const offered: ToolSet = {
-		...(repositories.length > 0
-			? buildRepositoryTools({
-					blocks: repositories,
-					context: contextStub,
-					sources: chatSources([]),
-				})
-			: {}),
-		...displayTools,
-		...(webSearch
-			? {
-					searchWeb: storedWebSearchTools().searchWeb,
-				}
-			: {}),
-	};
-	const tools = Object.keys(offered).length > 0 ? offered : undefined;
-
-	const { steps, text } = await generateText({
-		model: model.language,
-		system: buildSystemInstructions(
-			model.kind,
-			buildChatAgentSystemPrompt({
-				behaviour,
-				repositories,
-				featurePrompts: generativeUi
-					? [
-							genUiPrompt({
-								citations,
-							}),
-						]
-					: [],
-				citable,
-				today: localDate(Intl.DateTimeFormat().resolvedOptions().timeZone),
+	const limits = limitsOf(model.model);
+	const agent = createChatAgent({
+		model: model.model,
+		systemPrompt: behaviour,
+		today: localDate(
+			Intl.DateTimeFormat().resolvedOptions().timeZone,
+			EVAL_DATE,
+		),
+		repositories,
+		features: await Effect.runPromise(
+			resolveFeatures({
+				...(generativeUi && {
+					generativeUi: {},
+				}),
+				...(webSearch && {
+					webSearch: {},
+				}),
 			}),
 		),
+		webSearch: webSearch ? unreachableSearch : NO_WEB_SEARCH,
+		callSettings: {
+			maxOutputTokens: limits.maxOutputTokens,
+		},
+		compaction: limits.compaction,
+		telemetryIds: telemetryIds(model),
+		context: unreachableContext,
+		history: [],
+		hasAttachments: attachment !== undefined,
+		sources: chatSources([]),
+		toolExecutions: scriptExecutions(scripted, DISPLAY_TOOLS),
+	});
+
+	const { steps, text } = await agent.generate({
 		messages: [
 			...history,
 			{
@@ -406,11 +471,10 @@ export const runChat = async ({
 				],
 			},
 		],
-		tools: tools && scriptTools(tools, scripted, Object.keys(displayTools)),
-		stopWhen: isStepCount(MAX_STEPS),
+		maxSteps: CHAT_AGENT_MAX_STEPS,
 	});
 
-	return transcriptOf(steps, text);
+	return transcriptOf(steps, text, stopOf(steps, CHAT_AGENT_MAX_STEPS));
 };
 
 /** An admin of "Riverside School", who may do everything. */
@@ -440,11 +504,25 @@ const readLocalDocs = ({ path }: { path?: string }) =>
 		}).pipe(Effect.mapError(({ message }) => new Error(message))),
 	);
 
-/** The paused reply and the user's approval, with the groups it loaded recorded. */
+/** The calls that returned, as the stored conversation holds them. */
+const storedHistory = (
+	executions: readonly ToolExecution[],
+): StoredMessage[] => [
+	{
+		parts: executions.map(({ toolCallId, toolName, input, output }) => ({
+			type: `tool-${toolName}`,
+			toolCallId,
+			state: "output-available",
+			input,
+			output,
+		})),
+	},
+];
+
+/** The paused reply and the user's approval, with the groups it loaded first. */
 const approvalMessages = async (
 	{ plan, leadIn, loaded = [] }: ApprovedPlan,
-	tools: ToolSet,
-	session: AssistantSession,
+	agent: TurnAgent,
 ): Promise<ModelMessage[]> => {
 	const loading: ModelMessage[] = [];
 	if (loaded.length > 0) {
@@ -452,15 +530,13 @@ const approvalMessages = async (
 		const input = {
 			groups: loaded,
 		};
-		const output = await tools.loadTools?.execute?.(input, {
-			toolCallId,
-			messages: [],
-		} as never);
-		session.record({
-			toolCallId,
-			toolName: "loadTools",
-			output,
-		});
+		const output = await agent.tools.loadTools?.execute?.(
+			input as never,
+			{
+				toolCallId,
+				messages: [],
+			} as never,
+		);
 		loading.push(
 			{
 				role: "assistant",
@@ -532,8 +608,8 @@ export interface ApprovedPlan {
 	loaded?: DeferredToolGroup[];
 }
 
-/** The user's day in every Assistant run, one no model can take for its own today. */
-export const ASSISTANT_DATE = new Date(2027, 1, 17, 12);
+/** The user's day in every run, one no model can take for its own today. */
+export const EVAL_DATE = new Date(2027, 1, 17, 12);
 
 /** The user's answers to one askUser round, as the questions card sends them. */
 export type Answerer = (input: AskUserInput) => AskUserOutput;
@@ -562,6 +638,7 @@ const replyMessage = async (
 	reply: Reply,
 	steps: readonly StepResult<ToolSet>[],
 	tools: ToolSet,
+	onAnswered: (execution: ToolExecution) => void,
 ): Promise<ModelMessage | undefined> => {
 	const open = openCalls(steps);
 	const approvals = (steps.at(-1)?.content ?? []).flatMap((part) =>
@@ -609,6 +686,12 @@ const replyMessage = async (
 		content: await Promise.all(
 			open.map(async ({ toolCallId, toolName, input }) => {
 				const output = reply.answers(input as AskUserInput);
+				onAnswered({
+					toolCallId,
+					toolName,
+					input,
+					output,
+				});
 				return {
 					type: "tool-result" as const,
 					toolCallId,
@@ -627,21 +710,30 @@ const replyMessage = async (
 	};
 };
 
-/** The plan the user sees: the newest updatePlan call's input. */
+/** The plan the user sees: the newest updatePlan call whose input held, as the app shows it. */
 const latestPlan = (steps: readonly StepResult<ToolSet>[]) =>
 	steps
-		.flatMap(({ toolCalls }) => toolCalls)
-		.filter(({ toolName }) => toolName === "updatePlan")
+		.flatMap(({ toolCalls, content }) =>
+			toolCalls.filter(
+				({ toolName, toolCallId, invalid }) =>
+					toolName === "updatePlan" &&
+					!invalid &&
+					!content.some(
+						(part) =>
+							part.type === "tool-error" && part.toolCallId === toolCallId,
+					),
+			),
+		)
 		.at(-1)?.input as Plan | undefined;
 
 /**
  * The Assistant with its fixed features, the docs, and the core tool group
- * to start. Each reply continues the conversation through the same session,
- * as the next request would; the run ends after the last reply, or where a
- * reply does not fit the pause.
+ * to start. Each reply is a next request, to an agent built from the calls
+ * so far as the app builds it from the stored conversation; the run ends
+ * after the last reply, or where a reply does not fit the pause.
  */
 export const runAssistant = async ({
-	model: { model },
+	model,
 	message,
 	approved,
 	replies = [],
@@ -654,94 +746,45 @@ export const runAssistant = async ({
 	replies?: readonly Reply[];
 	scripted?: Scripted;
 }): Promise<Transcript> => {
-	const features = await Effect.runPromise(
-		resolveFeatures({
-			generativeUi: {},
-			questions: {},
-		}),
+	const features = await Effect.runPromise(resolveFeatures(ASSISTANT_FEATURES));
+	const limits = limitsOf(model.model);
+	const executed: ToolExecution[] = [];
+	const toolExecutions = scriptExecutions(
+		{
+			readDocs: readLocalDocs,
+			...scripted,
+		},
+		[
+			"loadTools",
+			"updatePlan",
+			"showQuizResult",
+			...DISPLAY_TOOLS,
+		],
+		(execution) => executed.push(execution),
 	);
-	const session = createAssistantSession({
-		history: [],
-		capabilities: admin.capabilities,
-		toolLoading: model.toolLoading,
-		compaction: providerCompaction(model.kind, 100_000),
-	});
-	const tools = session.declare(
-		scriptTools(
-			buildAssistantTools({
-				context: contextStub,
-				turn: createAssistantTurn({
-					zedToken: undefined,
-				}),
-				session,
-				docs: DOCS,
-				history: [],
-			}),
-			{
-				readDocs: readLocalDocs,
-				...scripted,
+	const agentFor = (plan: Plan | undefined) =>
+		createAssistantAgent({
+			model: model.model,
+			callSettings: {
+				maxOutputTokens: limits.maxOutputTokens,
 			},
-			[
-				"loadTools",
-				"updatePlan",
-			],
-		),
-	);
-	const featureTools = new Set(
-		features.flatMap(({ entry, settings }) =>
-			Object.keys(
-				entry.buildTools({
-					context: contextStub,
-					settings,
-					turn: {
-						webSearch: NO_WEB_SEARCH,
-						history: [],
-						citations: true,
-					},
-				}),
+			compaction: limits.compaction,
+			docs: DOCS,
+			userContext: admin,
+			features,
+			history: storedHistory(executed),
+			plan,
+			today: localDate(
+				Intl.DateTimeFormat().resolvedOptions().timeZone,
+				EVAL_DATE,
 			),
-		),
-	);
-	const disabled = new Set<string>(
-		CONTENT_TOOL_NAMES.filter((name) => !featureTools.has(name)),
-	);
-
-	const generate = (messages: ModelMessage[], plan: Plan | undefined) =>
-		generateText({
-			model: model.language,
-			system: buildSystemInstructions(
-				model.kind,
-				buildAssistantSystemPrompt({
-					docs: DOCS,
-					userContext: admin,
-					featurePrompts: features.map(({ entry }) =>
-						entry.prompt({
-							citations: true,
-						}),
-					),
-					toolGroups: offeredToolGroups(admin.capabilities),
-					plan,
-					today: localDate(
-						Intl.DateTimeFormat().resolvedOptions().timeZone,
-						ASSISTANT_DATE,
-					),
-				}),
-			),
-			messages,
-			tools,
-			toolApproval: session.toolApproval,
-			stopWhen: isStepCount(MAX_STEPS),
-			prepareStep: () => ({
-				activeTools: session
-					.activeTools()
-					.filter((name) => !disabled.has(name)),
+			sources: chatSources([]),
+			telemetryIds: telemetryIds(model),
+			context: unreachableContext,
+			turn: createAssistantTurn({
+				zedToken: undefined,
 			}),
-			// Also sees the approved call, which runs before the first step.
-			onToolExecutionEnd: ({ toolOutput }) => {
-				if (toolOutput.type === "tool-result") {
-					session.record(toolOutput);
-				}
-			},
+			toolExecutions,
 		});
 
 	const messages: ModelMessage[] = [
@@ -749,17 +792,30 @@ export const runAssistant = async ({
 			role: "user",
 			content: message,
 		},
-		...(approved ? await approvalMessages(approved, tools, session) : []),
+		...(approved ? await approvalMessages(approved, agentFor(undefined)) : []),
 	];
 	const steps: StepResult<ToolSet>[] = [];
-	let result = await generate(messages, approved?.plan);
-	steps.push(...result.steps);
+	const request = async () => {
+		const agent = agentFor(latestPlan(steps) ?? approved?.plan);
+		const run = await agent.generate({
+			messages,
+			maxSteps: ASSISTANT_AGENT_MAX_STEPS,
+		});
+		steps.push(...run.steps);
+		return {
+			agent,
+			run,
+		};
+	};
+	let { agent, run } = await request();
 
 	let next = 0;
 	let rounds = 0;
 	while (next < replies.length) {
 		const reply = replies[next];
-		const sent = await replyMessage(reply, result.steps, tools);
+		const sent = await replyMessage(reply, run.steps, agent.tools, (answer) =>
+			executed.push(answer),
+		);
 		if (!sent) {
 			// An answers reply gives way to the next reply once the questions stop.
 			if ("answers" in reply && rounds > 0) {
@@ -778,12 +834,15 @@ export const runAssistant = async ({
 		} else {
 			next++;
 		}
-		messages.push(...result.response.messages, sent);
-		result = await generate(messages, latestPlan(steps) ?? approved?.plan);
-		steps.push(...result.steps);
+		messages.push(...run.responseMessages, sent);
+		({ agent, run } = await request());
 	}
 
-	return transcriptOf(steps, result.text);
+	return transcriptOf(
+		steps,
+		run.text,
+		stopOf(run.steps, ASSISTANT_AGENT_MAX_STEPS),
+	);
 };
 
 /** Metadata of one document, with the worker's metadata call. */
