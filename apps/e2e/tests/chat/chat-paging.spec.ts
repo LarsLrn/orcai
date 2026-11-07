@@ -1,6 +1,5 @@
-import type { Route } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
 import {
-	branchActions,
 	chatName,
 	createChat,
 	messageText,
@@ -15,6 +14,16 @@ import { enterApp } from "../../fixtures/navigation";
 
 const TURNS = 12;
 const PAGE_SIZE = 20;
+
+/**
+ * One branch action per loaded message, hidden ones included: messages far
+ * off screen skip rendering, and their actions can read as hidden meanwhile.
+ */
+const loadedMessages = (page: Page) =>
+	page.getByRole("button", {
+		name: message("chat_message_branch_action"),
+		includeHidden: true,
+	});
 
 const turn = (index: number) => {
 	const label = String(index + 1).padStart(2, "0");
@@ -53,7 +62,7 @@ test("a long chat opens on its newest page and loads older ones in place on scro
 	const oldestLoaded = messageText(page, turn(TURNS - PAGE_SIZE / 2).question);
 	await expect(messageText(page, turn(TURNS - 1).reply)).toBeInViewport();
 	await expect(oldestLoaded).toBeAttached();
-	await expect(branchActions(page)).toHaveCount(PAGE_SIZE);
+	await expect(loadedMessages(page)).toHaveCount(PAGE_SIZE);
 	await expect(messageText(page, turn(0).question)).toHaveCount(0);
 
 	// Hold the older page until the reader's position before it is measured.
@@ -76,7 +85,7 @@ test("a long chat opens on its newest page and loads older ones in place on scro
 	const topBefore = await topOf(oldestLoaded);
 
 	release();
-	await expect(branchActions(page)).toHaveCount(TURNS * 2);
+	await expect(loadedMessages(page)).toHaveCount(TURNS * 2);
 	expect(Math.abs((await topOf(oldestLoaded)) - topBefore)).toBeLessThan(4);
 
 	await page.mouse.wheel(0, -20_000);
