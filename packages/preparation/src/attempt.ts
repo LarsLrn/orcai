@@ -21,6 +21,11 @@ export class AssetPipelineError extends Data.TaggedError("AssetPipelineError")<{
 	readonly cause: unknown;
 }> {}
 
+/** The attempt was replaced, or its asset deleted, before it could write. */
+export class AttemptReplacedError extends Data.TaggedError(
+	"AttemptReplacedError",
+) {}
+
 /** A processing delivery's attempt: the asset's generation it was queued for. */
 export type ProcessingAttempt = {
 	readonly assetId: AssetId;
@@ -74,6 +79,36 @@ export const currentProcessing = (attempt: ProcessingAttempt) =>
 		eq(dbSchema.asset.processingGeneration, attempt.generation),
 		unfinished(dbSchema.asset.processingStatus),
 	);
+
+/**
+ * Runs `write` while `attempt` is the asset's current processing, keeping the
+ * asset from being deleted until it ends, so storage written for a deleted
+ * asset is always in its deletion's cleanup. Fails with
+ * {@link AttemptReplacedError} otherwise. Uninterruptible, so a write in
+ * flight keeps the asset until it settles.
+ */
+export const writeWhileProcessing = <A, E, R>(
+	attempt: ProcessingAttempt,
+	write: Effect.Effect<A, E, R>,
+) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* Effect.uninterruptible(
+			db.transaction(() =>
+				Effect.gen(function* () {
+					const [current] = yield* db
+						.select({
+							id: dbSchema.asset.id,
+						})
+						.from(dbSchema.asset)
+						.where(currentProcessing(attempt))
+						.for("key share");
+					if (!current) return yield* new AttemptReplacedError();
+					return yield* write;
+				}),
+			),
+		);
+	});
 
 /** The repository link, while `attempt` is its current indexing and unfinished. */
 export const currentIndexing = (attempt: IndexingAttempt) =>
@@ -277,6 +312,11 @@ const settleAttempt = <A, E, R>(
 ) =>
 	attempt.pipe(
 		Effect.catch((error) => {
+			if (error instanceof AttemptReplacedError) {
+				return Effect.logInfo(
+					"Not writing for an attempt that was replaced or deleted",
+				);
+			}
 			if (error instanceof StaleEmbeddingGenerationError) {
 				return Effect.logInfo(
 					{

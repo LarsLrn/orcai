@@ -1,5 +1,6 @@
 import { defineWorker } from "@orcai/pg-boss";
 import {
+	cleanUpDueDeletions,
 	markIndexingExhausted,
 	markMetadataExhausted,
 	markProcessingExhausted,
@@ -8,6 +9,7 @@ import {
 	sweepPreparation,
 } from "@orcai/preparation";
 import {
+	DELETION_CLEANUP_JOB_NAME,
 	GENERATE_ASSET_METADATA_DEAD_LETTER_JOB_NAME,
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	generateAssetMetadataPayloadSchema,
@@ -75,6 +77,12 @@ export const assetWorkers = [
 		concurrency: 1,
 		pollingIntervalSeconds: 30,
 		handler: () => sweepPreparation,
+	}),
+	defineWorker({
+		queue: DELETION_CLEANUP_JOB_NAME,
+		concurrency: 1,
+		pollingIntervalSeconds: 30,
+		handler: () => cleanUpDueDeletions,
 	}),
 	defineWorker({
 		queue: RECONCILE_EMBEDDINGS_JOB_NAME,

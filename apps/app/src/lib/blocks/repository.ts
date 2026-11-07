@@ -10,7 +10,7 @@ import {
 	admit,
 	bindUploadRuns,
 	type ObservedLink,
-	reconcileLinkPoints,
+	recordDeletion,
 	replaceIndexing,
 } from "@orcai/preparation";
 import type { ReadRevision } from "@orcai/spice-db";
@@ -90,8 +90,8 @@ export const requireReadableAssets = (params: {
  * indexing of the newly linked, processed assets, as part of the upload run
  * each was bound to; the rest are indexed once their processing completes.
  * Kept links keep their index state. Call it in `writeRelationships`, so the
- * links and their admission commit together, then pass the result to
- * {@link reconcileRemovedLinks}.
+ * links, their admission and the cleanup of removed links' points commit
+ * together, then pass the result to `cleanUpDeletions`.
  */
 export const replaceBlockAssets = (params: {
 	blockId: BlockId;
@@ -192,9 +192,13 @@ export const replaceBlockAssets = (params: {
 				assetIds: added.map((link) => link.assetId),
 			}),
 		);
-		return {
-			removed,
-		};
+		return yield* recordDeletion({
+			indexedLinks: removed.map(({ assetId, blockId }) => ({
+				assetId,
+				blockId,
+			})),
+			files: [],
+		});
 	});
 
 /**
@@ -244,13 +248,4 @@ const admitAdded = (
 				discard: true,
 			},
 		);
-	});
-
-/** Reconciles the vectors of unlinked assets, so they go unless a relink owns them. */
-export const reconcileRemovedLinks = (params: {
-	removed: readonly ObservedLink[];
-}) =>
-	Effect.forEach(params.removed, reconcileLinkPoints, {
-		concurrency: "unbounded",
-		discard: true,
 	});

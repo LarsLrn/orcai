@@ -10,20 +10,40 @@ import {
 	PgBossService,
 } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
-import { admit, admitStage, markProcessingExhausted } from "@orcai/preparation";
+import {
+	admit,
+	admitStage,
+	claimProcessing,
+	cleanUpDeletions,
+	markProcessingExhausted,
+	recordDeletion,
+	writeWhileProcessing,
+} from "@orcai/preparation";
 import { readStoredExtraction } from "@orcai/process";
 import { EmbeddingIndex, QdrantLive } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
-import { S3Live } from "@orcai/s3/server";
+import { processedAssetPrefix } from "@orcai/s3";
+import {
+	isS3NotFound,
+	S3Live,
+	S3Service,
+	sendHeadObjectCommand,
+	sendPutObjectCommand,
+} from "@orcai/s3/server";
 import {
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { createUser, integrationRuntime } from "@orcai/testing";
+import {
+	awaitLockWaiters,
+	createUser,
+	integrationRuntime,
+} from "@orcai/testing";
 import { and, eq, like, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import { processAsset } from "@/asset/jobs/process-asset-job";
 import {
@@ -488,6 +508,160 @@ test(
 			[blockId]: asset.uploaderId,
 			[elsewhere]: null,
 		});
+	},
+	TIMEOUT,
+);
+
+/** Deletes the asset as resource deletion does, then runs its cleanup. */
+const deleteAsset = (assetId: AssetId) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const cleanup = yield* db.transaction(() =>
+			Effect.gen(function* () {
+				yield* db
+					.select({
+						id: dbSchema.asset.id,
+					})
+					.from(dbSchema.asset)
+					.where(eq(dbSchema.asset.id, assetId))
+					.for("update");
+				const [deleted] = yield* db
+					.delete(dbSchema.asset)
+					.where(eq(dbSchema.asset.id, assetId))
+					.returning();
+				return yield* recordDeletion({
+					files: [
+						{
+							id: deleted.id,
+							bucket: deleted.bucket,
+							prefix: deleted.prefix,
+							fileType: deleted.fileType,
+						},
+					],
+					indexedLinks: [],
+				});
+			}),
+		);
+		yield* cleanUpDeletions([
+			cleanup,
+		]);
+	});
+
+test(
+	"a delivery whose asset is deleted while it describes the image stores nothing",
+	async () => {
+		const asset = await run(
+			seedImageAsset({
+				capabilities: [
+					"text",
+					"image",
+				],
+			}),
+		);
+		const gate = Promise.withResolvers<void>();
+		held.until = gate.promise;
+		try {
+			const processing = processOnce(delivery(asset, 0));
+			while (requests.length === 0) await sleep(20);
+			await run(deleteAsset(asset.assetId));
+			gate.resolve();
+			await processing;
+		} finally {
+			gate.resolve();
+			held.until = undefined;
+		}
+
+		const stored = await run(
+			readStoredExtraction(asset.assetId).pipe(
+				Effect.flip,
+				Effect.map((error) => ("reason" in error ? error.reason : error._tag)),
+			),
+		);
+		expect(stored).toBe("missing");
+	},
+	TIMEOUT,
+);
+
+test(
+	"a write interrupted in flight keeps its asset until it lands, so the deletion's cleanup removes it",
+	async () => {
+		const asset = await run(
+			seedImageAsset({
+				capabilities: [
+					"text",
+					"image",
+				],
+			}),
+		);
+		const attempt = {
+			assetId: asset.assetId,
+			generation: 0,
+		};
+		expect(await run(claimProcessing(attempt))).toBe(true);
+		const putting = Promise.withResolvers<void>();
+		const land = Promise.withResolvers<void>();
+		const landed = Promise.withResolvers<void>();
+		const s3 = await run(S3Service);
+		const slow = {
+			...s3,
+			client: new Proxy(s3.client, {
+				get(target, key) {
+					if (key === "send")
+						return async (command: object, ...rest: unknown[]) => {
+							putting.resolve();
+							await land.promise;
+							try {
+								return await Reflect.apply(target.send, target, [
+									command,
+									...rest,
+								]);
+							} finally {
+								landed.resolve();
+							}
+						};
+					return Reflect.get(target, key);
+				},
+			}),
+		};
+		const late = {
+			bucket: buckets.processed.name,
+			key: `${processedAssetPrefix(asset.assetId)}late.txt`,
+		};
+
+		const writing = await run(
+			Effect.forkDetach(
+				writeWhileProcessing(
+					attempt,
+					sendPutObjectCommand({
+						...late,
+						body: "late",
+						contentType: "text/plain",
+					}),
+				).pipe(Effect.provideService(S3Service, slow)),
+			),
+		);
+		await putting.promise;
+		// A worker shutting down interrupts its jobs.
+		const interrupting = await run(Effect.forkDetach(Fiber.interrupt(writing)));
+		const deleting = await run(Effect.forkDetach(deleteAsset(asset.assetId)));
+		await run(
+			Effect.raceFirst(
+				awaitLockWaiters('%"asset"%for update%'),
+				Fiber.join(deleting),
+			),
+		);
+		land.resolve();
+		await landed.promise;
+		await run(Fiber.join(interrupting));
+		await run(Fiber.join(deleting));
+
+		const stored = await run(
+			sendHeadObjectCommand(late).pipe(
+				Effect.as(true),
+				Effect.catchIf(isS3NotFound, () => Effect.succeed(false)),
+			),
+		);
+		expect(stored).toBe(false);
 	},
 	TIMEOUT,
 );

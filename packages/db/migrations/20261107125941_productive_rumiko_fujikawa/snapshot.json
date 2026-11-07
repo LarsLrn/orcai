@@ -1,0 +1,311 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "c12d84f4-d002-4366-ba55-13c9de95d1d0",
+  "prevIds": [
+    "8ffa6dc2-0f73-4995-9f29-a0d0c199430c"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "deleted_asset"
+      ],
+      "writes": [
+        "s|tbl|public.deleted_asset",
+        "n|tbl|public.deleted_asset",
+        "e|tbl|public.deleted_asset",
+        "n|rel|public.deleted_asset",
+        "n|type|public.deleted_asset",
+        "n|rel|public.deleted_asset_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "deletion_cleanup"
+      ],
+      "writes": [
+        "s|tbl|public.deletion_cleanup",
+        "n|tbl|public.deletion_cleanup",
+        "e|tbl|public.deletion_cleanup",
+        "n|rel|public.deletion_cleanup",
+        "n|type|public.deletion_cleanup",
+        "n|rel|public.deletion_cleanup_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "deleted_asset",
+        "deleted_asset_deleted_at_idx"
+      ],
+      "writes": [
+        "s|idx|public.deleted_asset_deleted_at_idx",
+        "n|idx|public.deleted_asset_deleted_at_idx",
+        "e|idx|public.deleted_asset_deleted_at_idx",
+        "n|rel|public.deleted_asset_deleted_at_idx"
+      ],
+      "reads": [
+        "n|tbl|public.deleted_asset",
+        "n|sch|public",
+        "n|col|public.deleted_asset.deleted_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "deletion_cleanup",
+        "deletion_cleanup_due_idx"
+      ],
+      "writes": [
+        "s|idx|public.deletion_cleanup_due_idx",
+        "n|idx|public.deletion_cleanup_due_idx",
+        "e|idx|public.deletion_cleanup_due_idx",
+        "n|rel|public.deletion_cleanup_due_idx"
+      ],
+      "reads": [
+        "n|tbl|public.deletion_cleanup",
+        "n|sch|public",
+        "n|col|public.deletion_cleanup.next_attempt_at"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "deleted_asset",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "deletion_cleanup",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deleted_asset",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deleted_asset",
+        "name": "deleted_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "data",
+        "type": "jsonb",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "attempts",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "next_attempt_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "last_error",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deleted_asset",
+        "name": "deleted_asset_deleted_at_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "deleted_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "deletion_cleanup_due_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "next_attempt_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deleted_asset",
+        "name": "deleted_asset_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "deletion_cleanup",
+        "name": "deletion_cleanup_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    }
+  ]
+}

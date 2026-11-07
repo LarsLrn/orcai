@@ -1,18 +1,16 @@
-import {
-	type AssetId,
-	type BlockId,
-	type BotId,
-	buckets,
-	type OrganizationId,
-	type UserId,
+import type {
+	AssetId,
+	BlockId,
+	BotId,
+	OrganizationId,
+	UserId,
 } from "@orcai/core";
 import { DB, dbSchema, homeScopeOf, resourceTables } from "@orcai/db";
-import { reconcileLinkPoints, replaceIndexing } from "@orcai/preparation";
-import { assetObjectKey, processedAssetPrefix } from "@orcai/s3";
 import {
-	deletePrefixRecursively,
-	sendDeleteObjectCommand,
-} from "@orcai/s3/server";
+	cleanUpDeletions,
+	recordDeletion,
+	replaceIndexing,
+} from "@orcai/preparation";
 import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
@@ -367,9 +365,10 @@ export const resourceOrganizations = (
 
 /**
  * Deletes resource rows with their authorization state, recording the facts
- * that remove their tuples. Call it in a {@link writeRelationships} that
- * holds the resources' organisation locks; pass the result to
- * {@link removeDeletedResourceData} after the commit.
+ * that remove their tuples and the cleanup of their files and search points.
+ * Call it in a {@link writeRelationships} that holds the resources'
+ * organisation locks; pass the result to {@link cleanUpDeletions} after the
+ * commit.
  */
 export const deleteResources = (params: {
 	resourceType: ResourceType;
@@ -381,7 +380,7 @@ export const deleteResources = (params: {
 		const ids = [
 			...params.resourceIds,
 		] as (typeof table.id._.data)[];
-		if (ids.length === 0) return emptyDeletedData;
+		if (ids.length === 0) return undefined;
 
 		// Waits for chats being created with a bot, and keeps new ones out until commit.
 		yield* db
@@ -433,65 +432,11 @@ export const deleteResources = (params: {
 				.where(inArray(dbSchema.chat.botId, ids as BotId[]));
 		}
 		yield* db.delete(table).where(inArray(table.id, ids));
-		return {
+		return yield* recordDeletion({
 			indexedLinks,
 			files,
-		};
+		});
 	});
-
-type DeletedData = Effect.Success<ReturnType<typeof deleteResources>>;
-
-const emptyDeletedData = {
-	indexedLinks: [] as {
-		blockId: BlockId;
-		assetId: AssetId;
-	}[],
-	files: [] as {
-		id: AssetId;
-		bucket: string;
-		prefix: string;
-		fileType: string;
-	}[],
-};
-
-/**
- * Removes the stored files and search points of deleted resources. Points go
- * through the link reconcile, so a point write still in flight lands first.
- */
-export const removeDeletedResourceData = (deleted: readonly DeletedData[]) =>
-	Effect.all(
-		[
-			Effect.forEach(
-				deleted.flatMap((data) => data.files),
-				(asset) =>
-					Effect.all([
-						sendDeleteObjectCommand({
-							bucket: asset.bucket,
-							key: assetObjectKey(asset),
-						}),
-						deletePrefixRecursively({
-							bucket: buckets.processed.name,
-							prefix: processedAssetPrefix(asset.id),
-						}),
-					]),
-				{
-					concurrency: 5,
-					discard: true,
-				},
-			),
-			Effect.forEach(
-				deleted.flatMap((data) => data.indexedLinks),
-				reconcileLinkPoints,
-				{
-					concurrency: 5,
-					discard: true,
-				},
-			),
-		],
-		{
-			discard: true,
-		},
-	);
 
 /**
  * Runs `body` as a {@link writeRelationships} under the resources'
@@ -540,7 +485,7 @@ export const deleteResourcesWithAuthorization = <
 		deleteResources(params),
 	).pipe(
 		Effect.flatMap(({ result }) =>
-			removeDeletedResourceData([
+			cleanUpDeletions([
 				result,
 			]),
 		),

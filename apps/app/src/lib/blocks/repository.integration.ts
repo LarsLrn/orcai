@@ -2,7 +2,14 @@ import { describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { ensureQueues, PgBossService } from "@orcai/pg-boss";
-import { admit, type ObservedLink, withLinkPoints } from "@orcai/preparation";
+import {
+	admit,
+	cleanUpDeletions,
+	cleanUpDueDeletions,
+	type ObservedLink,
+	recordDeletion,
+	withLinkPoints,
+} from "@orcai/preparation";
 import {
 	EmbeddingGeneration,
 	onActiveGeneration,
@@ -19,12 +26,11 @@ import {
 } from "@orcai/schema";
 import { NEWEST_REVISION } from "@orcai/spice-db";
 import { awaitLockWaiters } from "@orcai/testing";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
-import { reconcileRemovedLinks } from "@/lib/blocks/repository";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
@@ -178,46 +184,53 @@ const writePoint = (assetId: AssetId, blockId: BlockId, attempt: number) =>
 		}),
 	);
 
+const assetPoints = (assetId: AssetId) => ({
+	must: [
+		{
+			key: "asset_id",
+			match: {
+				value: assetId,
+			},
+		},
+	],
+});
+
+/** The payloads of the asset's points. */
+const pointPayloads = (assetId: AssetId) =>
+	Effect.gen(function* () {
+		const { client } = yield* QdrantService;
+		const { collection } = yield* onActiveGeneration(EmbeddingGeneration);
+		const { points } = yield* Effect.promise(() =>
+			client.scroll(collection, {
+				filter: assetPoints(assetId),
+				with_payload: true,
+			}),
+		);
+		return points.map((point) => point.payload);
+	});
+
 /** The attempts of the asset's remaining points, which it then deletes. */
 const takePoints = (assetId: AssetId) =>
 	run(
 		Effect.gen(function* () {
+			const payloads = yield* pointPayloads(assetId);
 			const { client } = yield* QdrantService;
 			const { collection } = yield* onActiveGeneration(EmbeddingGeneration);
-			const filter = {
-				must: [
-					{
-						key: "asset_id",
-						match: {
-							value: assetId,
-						},
-					},
-				],
-			};
-			const { points } = yield* Effect.promise(() =>
-				client.scroll(collection, {
-					filter: {
-						must: [
-							{
-								key: "asset_id",
-								match: {
-									value: assetId,
-								},
-							},
-						],
-					},
-					with_payload: true,
-				}),
-			);
 			yield* Effect.promise(() =>
 				client.delete(collection, {
 					wait: true,
-					filter,
+					filter: assetPoints(assetId),
 				}),
 			);
-			return points.map((point) => point.payload?.index_attempt);
+			return payloads.map((payload) => payload?.index_attempt);
 		}),
 	);
+
+/** The repositories the asset's points belong to. */
+const pointRepositories = async (assetId: AssetId) =>
+	(await run(pointPayloads(assetId)))
+		.map((payload) => payload?.block_id)
+		.sort();
 
 /** A repository of `count` fresh assets, owned by one signed-in editor. */
 const repositoryWith = async (count: number) => {
@@ -560,9 +573,16 @@ describe("overlapping admissions", () => {
 				}),
 			);
 			await run(
-				reconcileRemovedLinks({
-					removed,
-				}),
+				recordDeletion({
+					indexedLinks: removed,
+					files: [],
+				}).pipe(
+					Effect.flatMap((cleanup) =>
+						cleanUpDeletions([
+							cleanup,
+						]),
+					),
+				),
 			);
 
 			expect(await takePoints(assetId)).toEqual([
@@ -1104,4 +1124,95 @@ describe("deleting a linked asset or repository", () => {
 			TIMEOUT,
 		);
 	}
+
+	test(
+		"deleting a repository while Qdrant is down removes only its points once Qdrant is back",
+		async () => {
+			const {
+				owner,
+				assets: [assetId],
+				blockId,
+				zedToken,
+			} = await repositoryWith(1);
+			const procedures = await run(Procedures);
+			const { call } = caller(zedToken);
+			const { data: kept } = await call(owner, (options) =>
+				procedures.block.create(
+					repository([
+						assetId,
+					]),
+					options,
+				),
+			);
+			for (const repositoryId of [
+				blockId,
+				kept.id,
+			])
+				await run(
+					writePoint(
+						assetId,
+						repositoryId,
+						(await linkAttempt(assetId, repositoryId)) ?? 0,
+					),
+				);
+			const qdrant = await run(QdrantService);
+			const unavailable = {
+				...qdrant,
+				client: new Proxy(qdrant.client, {
+					get(target, key) {
+						const value = Reflect.get(target, key);
+						return typeof value === "function"
+							? () => Promise.reject(new Error("injected Qdrant outage"))
+							: value;
+					},
+				}),
+			};
+
+			await run(
+				deleteResourcesWithAuthorization({
+					resourceType: "block",
+					resourceIds: [
+						blockId,
+					],
+					actor: {
+						userId: owner.user.id,
+						zedToken: NEWEST_REVISION,
+					},
+				}).pipe(Effect.provideService(QdrantService, unavailable)),
+			);
+			expect(await pointRepositories(assetId)).toEqual(
+				[
+					blockId,
+					kept.id,
+				].sort(),
+			);
+
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.deletionCleanup)
+						.set({
+							nextAttemptAt: new Date(0),
+						})
+						.where(
+							sql`${dbSchema.deletionCleanup.data} -> 'indexedLinks' @> ${JSON.stringify(
+								[
+									{
+										blockId,
+									},
+								],
+							)}::jsonb`,
+						);
+					yield* cleanUpDueDeletions;
+				}),
+			);
+
+			expect(await pointRepositories(assetId)).toEqual([
+				kept.id,
+			]);
+			expect(await links(kept.id)).toHaveProperty(assetId);
+			await takePoints(assetId);
+		},
+		TIMEOUT,
+	);
 });

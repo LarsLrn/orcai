@@ -21,6 +21,7 @@ export const RECONCILE_EMBEDDINGS_JOB_NAME = "reconcile-embeddings-job";
 export const PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME =
 	"prepare-missing-extractions-again-job";
 export const PREPARATION_SWEEP_JOB_NAME = "preparation-sweep-job";
+export const DELETION_CLEANUP_JOB_NAME = "deletion-cleanup-job";
 
 export const DATA_EXPORT_JOB_NAME = "data-export-job";
 export const DATA_EXPORT_DEAD_LETTER_JOB_NAME = "data-export-dead-letter-job";
@@ -44,6 +45,7 @@ export const jobQueues = z.enum([
 	RECONCILE_EMBEDDINGS_JOB_NAME,
 	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PREPARATION_SWEEP_JOB_NAME,
+	DELETION_CLEANUP_JOB_NAME,
 ]);
 
 export type JobQueue = z.infer<typeof jobQueues>;

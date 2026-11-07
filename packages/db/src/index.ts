@@ -23,6 +23,7 @@ export {
 	chatMessageSearchVector,
 	chatTitleSearchVector,
 } from "./schema/chat-search";
+export type { DeletedData } from "./schema/deletion-cleanup";
 export { relations } from "./schema/relations";
 export {
 	applicationName,
