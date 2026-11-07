@@ -12,6 +12,7 @@ import {
 	type InferAgentUIMessage,
 	type ModelMessage,
 	Output,
+	type StepResult,
 	type SystemModelMessage,
 	smoothStream,
 	type TextStreamPart,
@@ -57,6 +58,21 @@ type TurnStreamOptions = {
 	) => StreamedMetadata | undefined;
 };
 
+/**
+ * Replaces tool executions and keeps each tool's declaration: description,
+ * schema, model output and provider options. The evals script them with it.
+ */
+export type ToolExecutions = <TOOLS extends ToolSet>(tools: TOOLS) => TOOLS;
+
+/** What one request did, read from its steps. */
+export type TurnRun = {
+	steps: StepResult<ToolSet>[];
+	/** The last step's text. */
+	text: string;
+	/** The request's messages, for a next request to go on from. */
+	responseMessages: ModelMessage[];
+};
+
 /** An agent of either chat kind, streamed the same way. */
 export type TurnAgent = {
 	/** Every tool its stored calls may name. */
@@ -71,6 +87,11 @@ export type TurnAgent = {
 	stream: (
 		options: TurnStreamOptions,
 	) => Promise<AsyncIterableStream<UIMessageChunk>>;
+	/** Runs one request on model messages to its end, steps as the stream takes them. */
+	generate: (options: {
+		messages: ModelMessage[];
+		maxSteps: number;
+	}) => Promise<TurnRun>;
 };
 
 export type TurnTelemetryIds = {
@@ -179,5 +200,24 @@ export const createTurnAgent = (params: {
 				onError: options.onError,
 				messageMetadata: ({ part }) => options.messageMetadata(part),
 			}),
+		generate: async ({ messages, maxSteps }) => {
+			const result = await agent.stream({
+				messages,
+				options: {
+					maxSteps,
+				},
+				experimental_transform: lastStepToolCalls(),
+			});
+			for await (const part of result.fullStream) {
+				if (part.type === "error") {
+					throw part.error;
+				}
+			}
+			return {
+				steps: await result.steps,
+				text: await result.text,
+				responseMessages: (await result.response).messages,
+			};
+		},
 	};
 };

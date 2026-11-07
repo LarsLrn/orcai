@@ -1,10 +1,12 @@
+import { type ProviderCompaction, providerCompaction } from "@orcai/ai";
 import {
 	type CompactionSource,
 	compactionPoint,
 	compactionSource,
+	type ModelProviderKind,
 } from "@orcai/core";
 import { charTokens, promptTokens } from "@orcai/quota";
-import type { ChatMessageMetadata } from "@orcai/schema";
+import type { ChatMessageMetadata, ModelTokenLimits } from "@orcai/schema";
 import {
 	asSchema,
 	type ModelMessage,
@@ -71,6 +73,47 @@ export const promptBudget = ({
 /** The prompt size at which a conversation is compacted. */
 export const compactionTrigger = (budget: number) =>
 	Math.floor(budget * COMPACTION_TRIGGER);
+
+/** The output a turn without its own cap gets, within the model's maximum. */
+const DEFAULT_MAX_OUTPUT_TOKENS = 16_384;
+
+/**
+ * Without its own cap a turn reserves a guess at its output, which leaves at
+ * least half the context window to the prompt. The rest is the budget, which
+ * sets where the conversation compacts.
+ */
+export const turnLimits = ({
+	kind,
+	tokenLimits,
+	maxOutputTokens: ownCap,
+}: {
+	kind: ModelProviderKind;
+	tokenLimits: ModelTokenLimits;
+	maxOutputTokens: number | undefined;
+}): {
+	maxOutputTokens: number;
+	budget: number;
+	compaction: ProviderCompaction;
+} => {
+	const { contextWindow } = tokenLimits;
+	const half = Math.floor((contextWindow ?? DEFAULT_CONTEXT_WINDOW) / 2);
+	const maxOutputTokens =
+		ownCap ??
+		Math.min(
+			half,
+			tokenLimits.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
+			DEFAULT_MAX_OUTPUT_TOKENS,
+		);
+	const budget = promptBudget({
+		contextWindow,
+		reservedOutputTokens: maxOutputTokens,
+	});
+	return {
+		maxOutputTokens,
+		budget,
+		compaction: providerCompaction(kind, compactionTrigger(budget)),
+	};
+};
 
 export type ContextFit<M> =
 	| {

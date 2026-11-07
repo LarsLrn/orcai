@@ -26,7 +26,7 @@ import {
 import {
 	type Answerer,
 	type ApprovedPlan,
-	ASSISTANT_DATE,
+	EVAL_DATE,
 	type Reply,
 	runAssistant,
 	type Scripted,
@@ -683,7 +683,7 @@ export const assistantCases: EvalCase[] = [
 			"What is today's date? I want to put it in my bot's description.",
 		),
 		checks: [
-			mentionsDate(ASSISTANT_DATE),
+			mentionsDate(EVAL_DATE),
 		],
 	},
 	{

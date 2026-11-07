@@ -447,3 +447,100 @@ describe.each([
 		}
 	});
 });
+
+describe("tool executions", () => {
+	/** An Anthropic Assistant, which declares the create tools from the start, with `createBot` scripted. */
+	const scriptedAgent = (
+		history: Parameters<typeof createAssistantAgent>[0]["history"],
+	) => {
+		let runs = 0;
+		const agent = createAssistantAgent({
+			model: agentModel({
+				kind: "anthropic",
+				connection: {
+					apiKey: "key",
+					endpoint: null,
+				},
+				providerModelId: "claude-opus-5-5",
+			}),
+			callSettings: {},
+			compaction: providerCompaction("anthropic", 100_000),
+			docs: undefined,
+			userContext: {
+				user: {
+					id: "user",
+					name: "Ada",
+					email: "ada@example.org",
+				},
+				organizationName: "Org",
+				role: "member",
+				capabilities: memberCapabilities,
+			},
+			features: [],
+			history,
+			plan: undefined,
+			today: "Friday, 30 October 2026",
+			telemetryIds: {
+				organizationId: "org",
+				chatId: "chat",
+				providerId: "provider",
+				modelId: "claude-opus-5-5",
+			},
+			context: {
+				secureCookies: false,
+			} as ORPCContext,
+			sources: chatSources([]),
+			turn: createAssistantTurn({
+				zedToken: undefined,
+			}),
+			toolExecutions: (tools) =>
+				({
+					...tools,
+					createBot: {
+						...tools.createBot,
+						execute: () => {
+							runs++;
+							return {
+								id: "bot",
+							};
+						},
+					},
+				}) as typeof tools,
+		});
+		const create = async () =>
+			await agent.tools.createBot?.execute?.(
+				createBot.input as never,
+				{
+					toolCallId: "call-create",
+					messages: [],
+				} as never,
+			);
+
+		return {
+			create,
+			runs: () => runs,
+		};
+	};
+
+	test("a substituted create tool still waits for an approved plan", async () => {
+		const before = scriptedAgent([]);
+		await expect(before.create()).rejects.toThrow("PLAN_NOT_APPROVED");
+		expect(before.runs()).toBe(0);
+
+		const after = scriptedAgent([
+			{
+				parts: [
+					{
+						type: "tool-updatePlan",
+						toolCallId: "call-plan",
+						state: "output-available",
+						input: plan,
+						output: plan,
+					},
+				],
+			},
+		]);
+		await after.create();
+		expect(after.runs()).toBe(1);
+	});
+});

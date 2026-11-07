@@ -9,6 +9,7 @@ import { pruneChatHistory } from "@/lib/ai/agents/chat-agent-history-pruning";
 import { buildChatAgentSystemPrompt } from "@/lib/ai/agents/chat-agent-system-prompt";
 import {
 	createTurnAgent,
+	type ToolExecutions,
 	type TurnTelemetryIds,
 } from "@/lib/ai/agents/turn-agent";
 import type { ChatSources } from "@/lib/ai/citations/chat-sources";
@@ -66,6 +67,7 @@ export const createChatAgent = (params: {
 	hasAttachments: boolean;
 	/** The chat's sources, which the turn's calls add to. */
 	sources: ChatSources;
+	toolExecutions?: ToolExecutions;
 }) => {
 	const hasRepositories = params.repositories.length > 0;
 	// Native search issues no refs, so only the search provider's results are citable.
@@ -100,14 +102,14 @@ export const createChatAgent = (params: {
 		citations,
 		history: params.history,
 	});
-	const offeredTools: ToolSet = hasRepositories
+	const offeredBuilt: ToolSet = hasRepositories
 		? {
 				...repositoryTools,
 			}
 		: {};
 	for (const { entry, settings } of params.features) {
 		Object.assign(
-			offeredTools,
+			offeredBuilt,
 			entry.buildTools({
 				context: params.context,
 				settings,
@@ -119,6 +121,24 @@ export const createChatAgent = (params: {
 			}),
 		);
 	}
+	// The offered tools first, in the order they were offered, so requests send them so.
+	const declared: ToolSet = {
+		...offeredBuilt,
+		...Object.fromEntries(
+			Object.entries(allTools).filter(
+				([name]) => !Object.hasOwn(offeredBuilt, name),
+			),
+		),
+	};
+	const tools = params.toolExecutions
+		? params.toolExecutions(declared)
+		: declared;
+	const offeredTools = Object.fromEntries(
+		Object.keys(offeredBuilt).map((name) => [
+			name,
+			tools[name],
+		]),
+	);
 	const offeredNames = Object.keys(offeredTools);
 
 	return createTurnAgent({
@@ -139,15 +159,7 @@ export const createChatAgent = (params: {
 				today: params.today,
 			}),
 		),
-		// The offered tools first, in the order they were offered, so requests send them so.
-		tools: {
-			...offeredTools,
-			...Object.fromEntries(
-				Object.entries(allTools).filter(
-					([name]) => !Object.hasOwn(offeredTools, name),
-				),
-			),
-		},
+		tools,
 		activeTools: () => offeredNames,
 		offeredTools: () => offeredTools,
 		prune: (messages) =>
