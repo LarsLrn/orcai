@@ -3314,6 +3314,7 @@
 	"error_metadata_generation_unavailable": "Metadaten lassen sich erzeugen, sobald das Asset vorbereitet ist und in der Bibliothek liegt, und nur, wenn die Organisation ein Hilfsmodell hat.",
 	"error_model_capabilities_unknown": "Für das ausgewählte Modell sind noch keine Fähigkeiten festgelegt. Legen Sie sie zuerst am Modell fest.",
 	"error_model_deprecated": "Das ausgewählte Modell ist veraltet. Wählen Sie ein anderes Modell.",
+	"error_model_in_quota_pools": "Kontingent-Pools sind auf dieses Modell begrenzt, daher kann es nicht zu einem anderen Anbieter wechseln. Ändern Sie zuerst den Modell-Geltungsbereich dieser Pools.",
 	"error_model_not_found": "Modell nicht gefunden.",
 	"error_model_provider_mismatch": "Das ausgewählte Modell gehört nicht zum ausgewählten Anbieter.",
 	"error_model_text_unsupported": "Das ausgewählte Modell erzeugt keinen Text. Wählen Sie ein Textmodell.",

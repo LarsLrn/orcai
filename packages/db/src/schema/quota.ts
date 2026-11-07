@@ -18,6 +18,7 @@ import {
 	boolean,
 	char,
 	check,
+	foreignKey,
 	index,
 	integer,
 	json,
@@ -76,11 +77,7 @@ export const quotaPool = pgTable(
 			.references(() => provider.id, {
 				onDelete: "cascade",
 			}),
-		modelId: uuid("model_id")
-			.$type<ModelId>()
-			.references(() => model.id, {
-				onDelete: "set null",
-			}),
+		modelId: uuid("model_id").$type<ModelId>(),
 		periodType: quotaPoolPeriodTypeEnum("period_type").notNull(),
 		budgetAmount: bigint("budget_amount", {
 			mode: "number",
@@ -102,6 +99,18 @@ export const quotaPool = pgTable(
 			table.providerId,
 		),
 		index("quota_pool_provider_model_idx").on(table.providerId, table.modelId),
+		// The migration narrows the delete action to SET NULL (model_id).
+		foreignKey({
+			name: "quota_pool_provider_model_fk",
+			columns: [
+				table.providerId,
+				table.modelId,
+			],
+			foreignColumns: [
+				model.providerId,
+				model.id,
+			],
+		}).onDelete("set null"),
 		uniqueIndex("quota_pool_default_org_provider_unique")
 			.on(table.organizationId, table.providerId)
 			.where(

@@ -3314,6 +3314,7 @@
 	"error_metadata_generation_unavailable": "Metadata can be generated once the asset is prepared and in the Library, and only if the organisation has a utility model.",
 	"error_model_capabilities_unknown": "The selected model has no capabilities set yet. Set them on the model first.",
 	"error_model_deprecated": "The selected model is deprecated. Choose another model.",
+	"error_model_in_quota_pools": "Quota pools are limited to this model, so it cannot move to another provider. Change the model scope of those pools first.",
 	"error_model_not_found": "Model not found.",
 	"error_model_provider_mismatch": "The selected model does not belong to the selected provider.",
 	"error_model_text_unsupported": "The selected model does not generate text. Choose a text model.",

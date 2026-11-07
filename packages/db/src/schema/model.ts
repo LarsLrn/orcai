@@ -67,6 +67,7 @@ export const model = pgTable(
 			table.providerModelId,
 			table.providerId,
 		),
+		unique("model_provider_id_id_unique").on(table.providerId, table.id),
 		index("model_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
 	],
 );

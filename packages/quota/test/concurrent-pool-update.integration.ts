@@ -318,3 +318,54 @@ test("a deactivation queued behind an edit records the state it replaced", async
 		},
 	]);
 });
+
+test("an edit naming the pool's model while the model is deleted does not deadlock", async () => {
+	const { provider, update } = await setup();
+	const [model] = await runtime.runPromise(
+		Effect.gen(function* () {
+			return yield* (yield* DB)
+				.insert(dbSchema.model)
+				.values({
+					providerId: provider.id,
+					providerModelId: "concurrency-model",
+					name: "Concurrency model",
+					description: "",
+				})
+				.returning();
+		}),
+	);
+	await update({
+		modelId: model.id,
+	});
+	const [deleted, edited] = await overlap(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.select()
+				.from(dbSchema.model)
+				.where(eq(dbSchema.model.id, model.id))
+				.for("update");
+		}),
+		'%"model"%',
+		() =>
+			runtime.runPromise(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.delete(dbSchema.model)
+						.where(eq(dbSchema.model.id, model.id));
+				}),
+			),
+		() =>
+			update({
+				name: "Renamed",
+				modelId: model.id,
+			}),
+	);
+	expect(deleted).toEqual({
+		value: undefined,
+	});
+	expect(edited).toEqual({
+		value: {
+			status: "model_invalid",
+		},
+	});
+});

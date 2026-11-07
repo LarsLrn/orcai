@@ -87,27 +87,33 @@ const selectOrganizationProvider = (params: {
 		return provider ?? null;
 	});
 
-const validateProviderModel = (params: {
-	providerId: ProviderId;
-	modelId?: ModelId | null;
-}) =>
+/**
+ * The provider of `modelId`, key-share locked so a model move or delete waits
+ * for this write. Taken before the pool row, in the order model deletion locks.
+ */
+const lockModelProvider = (modelId: ModelId | null | undefined) =>
 	Effect.gen(function* () {
-		if (!params.modelId) {
-			return true;
+		if (!modelId) {
+			return undefined;
 		}
 
 		const db = yield* DB;
 		const [model] = yield* db
 			.select({
-				id: dbSchema.model.id,
 				providerId: dbSchema.model.providerId,
 			})
 			.from(dbSchema.model)
-			.where(eq(dbSchema.model.id, params.modelId))
-			.limit(1);
+			.where(eq(dbSchema.model.id, modelId))
+			.limit(1)
+			.for("key share");
 
-		return !!model && model.providerId === params.providerId;
+		return model?.providerId ?? null;
 	});
+
+const modelMatches = (
+	modelProvider: ProviderId | null | undefined,
+	providerId: ProviderId,
+) => modelProvider === undefined || modelProvider === providerId;
 
 const validateGroupAssignments = (params: {
 	organizationId: OrganizationId;
@@ -138,6 +144,12 @@ export const createQuotaPool: (
 	params,
 ) =>
 	Effect.gen(function* () {
+		const db = yield* DB;
+		return yield* db.transaction(() => applyQuotaPoolCreation(params));
+	}).pipe(writeFailed("The quota pool could not be created."));
+
+const applyQuotaPoolCreation = (params: CreateQuotaPoolParams) =>
+	Effect.gen(function* () {
 		const provider = yield* selectOrganizationProvider({
 			organizationId: params.organizationId,
 			providerId: params.providerId,
@@ -149,12 +161,9 @@ export const createQuotaPool: (
 			} satisfies WriteQuotaPoolResult;
 		}
 
-		const modelValid = yield* validateProviderModel({
-			providerId: provider.id,
-			modelId: params.modelId,
-		});
+		const modelProvider = yield* lockModelProvider(params.modelId);
 
-		if (!modelValid) {
+		if (!modelMatches(modelProvider, provider.id)) {
 			return {
 				status: "model_invalid",
 			} satisfies WriteQuotaPoolResult;
@@ -190,7 +199,7 @@ export const createQuotaPool: (
 			status: "ok",
 			pool: created.pool,
 		} satisfies WriteQuotaPoolResult;
-	}).pipe(writeFailed("The quota pool could not be created."));
+	});
 
 export const updateQuotaPool: (
 	params: UpdateQuotaPoolParams,
@@ -205,6 +214,7 @@ export const updateQuotaPool: (
 const applyQuotaPoolUpdate = (params: UpdateQuotaPoolParams) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
+		const modelProvider = yield* lockModelProvider(params.modelId);
 
 		// Locked like the ledger's writers, so concurrent edits apply in turn.
 		const [pool] = yield* db
@@ -225,12 +235,7 @@ const applyQuotaPoolUpdate = (params: UpdateQuotaPoolParams) =>
 			} satisfies WriteQuotaPoolResult;
 		}
 
-		const modelValid = yield* validateProviderModel({
-			providerId: pool.providerId,
-			modelId: params.modelId,
-		});
-
-		if (!modelValid) {
+		if (!modelMatches(modelProvider, pool.providerId)) {
 			return {
 				status: "model_invalid",
 			} satisfies WriteQuotaPoolResult;
