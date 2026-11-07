@@ -1,11 +1,18 @@
 import type { BotId } from "@orcai/core";
 import type { BotSetup } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { MODEL_STEP_INDEX } from "@/components/authoring/bot-editor-steps";
-import { BotModelStep } from "@/components/bot/setup/bot-model-step";
-import { useQuotaStatus } from "@/components/quota/use-quota-status";
+import {
+	BotModelStep,
+	botSetupQuery,
+} from "@/components/bot/setup/bot-model-step";
+import { botSetupCoverageQuery } from "@/components/bot/setup/bot-setup-coverage";
+import {
+	quotaStatusQuery,
+	useQuotaStatus,
+} from "@/components/quota/use-quota-status";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +25,6 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
-import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 /** Setup editors see how many of the bot's audience are covered. */
@@ -30,11 +36,9 @@ const CoverageCount = ({
 	modelId: NonNullable<BotSetup["model"]>["id"];
 }) => {
 	const { data: coverage } = useQuery(
-		orpc.botSetup.coverage.queryOptions({
-			input: {
-				botId,
-				modelId,
-			},
+		botSetupCoverageQuery({
+			botId,
+			modelId,
 		}),
 	);
 	const principals = coverage?.data.principals;
@@ -118,13 +122,7 @@ const BotSetupSummary = ({
 	added: boolean;
 }) => {
 	const { data: organization } = useActiveOrganization();
-	const { data: found } = useQuery(
-		orpc.botSetup.find.queryOptions({
-			input: {
-				botId,
-			},
-		}),
-	);
+	const { data: found } = useQuery(botSetupQuery(botId));
 	if (!found) return null;
 	const { setup, canEdit } = found.data;
 
@@ -175,4 +173,27 @@ const BotSetupSummary = ({
 	);
 };
 
-export { BotSetupSummary };
+/** Loads the setup and, for its model, the coverage an editor sees or the quota anyone else sees. */
+const loadBotSetupSummary = async (queryClient: QueryClient, botId: BotId) => {
+	const {
+		data: { setup, canEdit },
+	} = await queryClient.query(botSetupQuery(botId));
+	if (!setup?.model) return;
+	if (canEdit) {
+		await queryClient.query(
+			botSetupCoverageQuery({
+				botId,
+				modelId: setup.model.id,
+			}),
+		);
+		return;
+	}
+	await queryClient.query(
+		quotaStatusQuery({
+			providerId: setup.model.providerId,
+			modelId: setup.model.id,
+		}),
+	);
+};
+
+export { BotSetupSummary, loadBotSetupSummary };

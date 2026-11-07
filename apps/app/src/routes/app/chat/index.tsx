@@ -2,7 +2,10 @@ import { botIdSchema, listChatsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MessagesSquareIcon, PlusIcon } from "lucide-react";
-import { ChatHistoryLink } from "@/components/chat/chat-history-link";
+import {
+	ChatHistoryLink,
+	chatHistoryLinkQuery,
+} from "@/components/chat/chat-history-link";
 import { chatTableColumns } from "@/components/chat/table/chat-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -75,6 +78,10 @@ export const Route = createFileRoute("/app/chat/")({
 					staleTime: "static",
 				}),
 			),
+			// The history link fails only itself.
+			Promise.allSettled([
+				queryClient.query(chatHistoryLinkQuery()),
+			]),
 		]);
 	},
 	component: RouteComponent,

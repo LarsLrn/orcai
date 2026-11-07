@@ -6,6 +6,19 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+/** One active pool of a search provider, if any; loaders share it with the notice. */
+export const searchPoolQuery = (providerId: ProviderId) =>
+	orpc.quotaPool.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 1,
+			filters: {
+				providerId,
+				isActive: true,
+			},
+		},
+	});
+
 /** Warns an admin when no active quota pool covers a search provider, which makes every search fail. */
 export const SearchPoolNotice = ({
 	providerId,
@@ -13,18 +26,11 @@ export const SearchPoolNotice = ({
 	providerId: ProviderId | null;
 }) => {
 	const { data: pools } = useQuery(
-		orpc.quotaPool.list.queryOptions({
-			input: providerId
-				? {
-						pageIndex: 0,
-						pageSize: 1,
-						filters: {
-							providerId,
-							isActive: true,
-						},
-					}
-				: skipToken,
-		}),
+		providerId
+			? searchPoolQuery(providerId)
+			: orpc.quotaPool.list.queryOptions({
+					input: skipToken,
+				}),
 	);
 
 	if (!pools || pools.data.length > 0) {

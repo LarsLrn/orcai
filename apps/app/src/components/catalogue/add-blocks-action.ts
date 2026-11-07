@@ -1,9 +1,15 @@
+import type { OrganizationId } from "@orcai/core";
 import type { CatalogueEntryDetail, CatalogueEntryRef } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { PackagePlusIcon } from "lucide-react";
-import { useCatalogueAdder } from "@/components/catalogue/catalogue-adder";
+import {
+	catalogueAdder,
+	useCatalogueAdder,
+} from "@/components/catalogue/catalogue-adder";
 import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useCatalogueAddBlocksMutation } from "@/hooks/mutations/use-catalogue-mutations";
+import { activeOrganizationQuery } from "@/hooks/use-active-organization";
+import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -39,6 +45,30 @@ export const addBlocksLabel = (
 	});
 };
 
+const catalogueEntryQuery = (entry: CatalogueEntryRef) =>
+	orpc.catalogue.find.queryOptions({
+		input: {
+			entry,
+		},
+	});
+
+/** Loads the entry an enabled action reads, when the user may add from the catalogue. */
+export const loadAddBlocksAction = async (
+	queryClient: QueryClient,
+	entry: CatalogueEntryRef,
+	organizationId: OrganizationId,
+) => {
+	if (entry.resourceType !== "bot") return;
+	const [capabilities, organization] = await Promise.all([
+		queryClient.query(organizationCapabilitiesQuery()),
+		queryClient.query(activeOrganizationQuery(organizationId)),
+	]);
+	if (!catalogueAdder(capabilities.data.capabilities, organization.data.name)) {
+		return;
+	}
+	await queryClient.query(catalogueEntryQuery(entry));
+};
+
 /**
  * "Add its behaviour and N repositories" for a bot the organisation added
  * without them, while some are not added yet. Reads the bot's catalogue
@@ -58,11 +88,7 @@ export const useAddBlocksAction = (
 	const adder = useCatalogueAdder();
 	const active = enabled && adder !== undefined && entry.resourceType === "bot";
 	const { data } = useQuery({
-		...orpc.catalogue.find.queryOptions({
-			input: {
-				entry,
-			},
-		}),
+		...catalogueEntryQuery(entry),
 		enabled: active,
 	});
 	const { mutate, isPending } = useCatalogueAddBlocksMutation({

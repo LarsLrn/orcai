@@ -4,16 +4,14 @@ import { TriangleAlertIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { useIsInstanceAdmin } from "@/hooks/authz/use-instance-admin";
-import { orpc } from "@/lib/orpc/orpc";
+import { embeddingsStatusQuery } from "@/hooks/use-embeddings-configured";
 import { m } from "@/paraglide/messages";
 
 /** Tells instance admins that nothing is searchable until embeddings are set up. */
 export const EmbeddingsSetupBanner = () => {
 	const isInstanceAdmin = useIsInstanceAdmin();
 	const { data } = useQuery({
-		...orpc.instanceSettings.embeddingsStatus.queryOptions({
-			input: {},
-		}),
+		...embeddingsStatusQuery(),
 		enabled: isInstanceAdmin,
 	});
 

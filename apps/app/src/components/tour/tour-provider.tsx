@@ -28,6 +28,12 @@ const TourContext = createContext<{
 	ended: ReadonlySet<TourId>;
 } | null>(null);
 
+/** The user's tour progress lives in their preferences. `/app` loads it, so the server renders with it. */
+export const tourPreferencesQuery = () =>
+	orpc.user.me.queryOptions({
+		input: {},
+	});
+
 /**
  * `seen` is true once the user has completed or skipped the tour, here or
  * earlier, and undefined while their preferences load. `start` shows it as a
@@ -39,11 +45,7 @@ export const useTour = (tour: TourId) => {
 		throw new Error("useTour must be used within <TourProvider>");
 	}
 	const { start, ended } = context;
-	const { data, status } = useQuery(
-		orpc.user.me.queryOptions({
-			input: {},
-		}),
-	);
+	const { data, status } = useQuery(tourPreferencesQuery());
 
 	// A tour ended in this session wins over preferences cached before it ended.
 	const stored = data?.data.preferences?.tours?.[tour];

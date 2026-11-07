@@ -1,11 +1,25 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { FormPage } from "@/components/forms/form-layout";
-import { ModelForm } from "@/components/model/form/model-form";
+import { loadModelForm, ModelForm } from "@/components/model/form/model-form";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/models/$modelId/edit")({
+	// A missing model fails the page through the parent's loader.
+	loader: async ({ context: { queryClient }, params: { modelId } }) => {
+		await Promise.allSettled([
+			queryClient
+				.query(
+					orpc.model.find.queryOptions({
+						input: {
+							id: modelId,
+						},
+					}),
+				)
+				.then(({ data }) => loadModelForm(queryClient, data.providerId)),
+		]);
+	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [

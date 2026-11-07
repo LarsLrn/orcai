@@ -1,8 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod/v4";
-import { AssistantHistory } from "@/components/assistant/assistant-history";
+import {
+	AssistantHistory,
+	assistantHistoryQuery,
+} from "@/components/assistant/assistant-history";
 import { AssistantNewConversation } from "@/components/assistant/assistant-new-conversation";
+import { loadAssistantModel } from "@/components/assistant/use-assistant-model";
 
 const searchSchema = z.object({
 	draft: z.string().max(2000).optional(),
@@ -10,6 +14,14 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/app/assistant/")({
 	validateSearch: searchSchema,
+	loader: async ({ context: { queryClient, auth } }) => {
+		await Promise.allSettled([
+			loadAssistantModel(queryClient, auth.session.activeOrganizationId, {
+				quota: true,
+			}),
+			queryClient.query(assistantHistoryQuery()),
+		]);
+	},
 	component: RouteComponent,
 });
 

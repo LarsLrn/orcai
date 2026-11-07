@@ -1,4 +1,3 @@
-import { useHydrated } from "@tanstack/react-router";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import {
 	DropdownMenu,
@@ -25,10 +24,7 @@ const NavUser = () => {
 	const { signOut } = useSignOut();
 	const { auth } = useAuthenticatedRouteContext();
 	const { data: activeOrganization } = useActiveOrganization();
-	// The server renders the query as pending even when its data reaches the
-	// browser before hydration, so the organisation waits for hydration.
-	const hydrated = useHydrated();
-	const organization = hydrated ? activeOrganization?.data : undefined;
+	const organization = activeOrganization?.data;
 
 	return (
 		<SidebarMenu>

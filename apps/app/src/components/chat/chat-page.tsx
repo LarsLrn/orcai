@@ -1,7 +1,11 @@
-import type { ChatId, ChatMessageId } from "@orcai/core";
+import type { ChatId, ChatMessageId, OrganizationId } from "@orcai/core";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useMatch, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
+import { loadChatRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
+import { loadAssistantModel } from "@/components/assistant/use-assistant-model";
+import { loadWebSearchNotice } from "@/components/chat/web-search-notice";
+import { quotaStatusQuery } from "@/components/quota/use-quota-status";
 import { useAutoStartTour } from "@/components/tour/tour-provider";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound } from "@/lib/router/not-found";
@@ -10,9 +14,48 @@ import { chatDraftSchema } from "./chat-draft";
 
 type LoadedChat = Awaited<ReturnType<typeof orpc.chat.find.call>>;
 
+/** Loads what the composer and notices of a chat the user can continue read about its model. */
+const loadComposer = async (
+	queryClient: QueryClient,
+	chat: LoadedChat["data"],
+	organizationId: OrganizationId,
+) => {
+	if (chat.kind === "assistant") {
+		await loadAssistantModel(queryClient, organizationId, {
+			quota: true,
+		});
+		return;
+	}
+	const { providerId, modelId } = chat.effectiveModel;
+	await Promise.allSettled([
+		modelId &&
+			queryClient.query(
+				orpc.model.find.queryOptions({
+					input: {
+						id: modelId,
+					},
+				}),
+			),
+		providerId &&
+			modelId &&
+			queryClient.query(
+				quotaStatusQuery({
+					providerId,
+					modelId,
+				}),
+			),
+		loadWebSearchNotice(queryClient, {
+			organizationId,
+			botId: chat.botId,
+			providerId,
+		}),
+	]);
+};
+
 /**
  * Loads a chat page: the chat, which `admit` may reject by throwing, then its
- * newest messages and the bot its settings read.
+ * newest messages and what the page around them reads. Only the chat and its
+ * messages fail the page.
  */
 export const loadChatPage = async (
 	{
@@ -20,12 +63,15 @@ export const loadChatPage = async (
 		chatId,
 		zedToken,
 		through,
+		organizationId,
 	}: {
 		queryClient: QueryClient;
 		chatId: ChatId;
 		zedToken?: string;
 		/** A message the first page reaches back to. */
 		through?: ChatMessageId;
+		/** The active organisation, whose models a chat the user can continue sends with. */
+		organizationId?: OrganizationId;
 	},
 	admit: (chat: LoadedChat["data"]) => void,
 ) => {
@@ -54,15 +100,38 @@ export const loadChatPage = async (
 				staleTime: 0,
 			}),
 		),
-		// A bot the settings cannot load fails only there.
-		chat.data.botId &&
-			queryClient.prefetchQuery(
-				orpc.bot.find.queryOptions({
+		Promise.allSettled([
+			chat.data.botId &&
+				queryClient.query(
+					orpc.bot.find.queryOptions({
+						input: {
+							id: chat.data.botId,
+						},
+					}),
+				),
+			chat.data.botId &&
+				queryClient.query(
+					orpc.botSetup.find.queryOptions({
+						input: {
+							botId: chat.data.botId,
+						},
+					}),
+				),
+			queryClient.query(
+				orpc.chatMessage.listRatings.queryOptions({
 					input: {
-						id: chat.data.botId,
+						chatId,
 					},
 				}),
 			),
+			loadChatRepositoryReadiness(queryClient, {
+				chatId,
+				botId: chat.data.botId,
+			}),
+			chat.data.readOnly === null &&
+				organizationId &&
+				loadComposer(queryClient, chat.data, organizationId),
+		]),
 	]);
 
 	return {

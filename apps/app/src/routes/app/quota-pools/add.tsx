@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FormPage } from "@/components/forms/form-layout";
-import { QuotaPoolForm } from "@/components/quota/form/quota-pool-form";
+import {
+	loadQuotaPoolForm,
+	QuotaPoolForm,
+} from "@/components/quota/form/quota-pool-form";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/quota-pools/add")({
+	loader: ({ context: { queryClient } }) => loadQuotaPoolForm(queryClient),
 	component: RouteComponent,
 	head: () => ({
 		meta: [

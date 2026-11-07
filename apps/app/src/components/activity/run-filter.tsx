@@ -7,18 +7,20 @@ import { orpc } from "@/lib/orpc/orpc";
 import { runTitle } from "@/lib/presentation/activity";
 import { m } from "@/paraglide/messages";
 
+/** The activity entry the Library opens on; the asset list loads it. */
+export const runFilterQuery = (runId: ActivityRunId) =>
+	orpc.activity.runs.queryOptions({
+		input: {
+			ids: [
+				runId,
+			],
+			limit: 1,
+		},
+	});
+
 /** Says whose assets the Library shows when it opens on an activity entry, with the way back to all of them. */
 export const RunFilter = ({ runId }: { runId: ActivityRunId }) => {
-	const { data } = useQuery(
-		orpc.activity.runs.queryOptions({
-			input: {
-				ids: [
-					runId,
-				],
-				limit: 1,
-			},
-		}),
-	);
+	const { data } = useQuery(runFilterQuery(runId));
 	const run = data?.data[0];
 
 	return (

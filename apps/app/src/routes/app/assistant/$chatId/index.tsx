@@ -41,6 +41,7 @@ export const Route = createFileRoute("/app/assistant/$chatId/")({
 				chatId,
 				zedToken,
 				through: message,
+				organizationId: auth.session.activeOrganizationId,
 			},
 			(chat) => {
 				// Readable from any organisation over the API, but only shown in its own.

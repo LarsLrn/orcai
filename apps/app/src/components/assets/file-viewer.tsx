@@ -136,6 +136,12 @@ const Viewport = ({
 							alt={title}
 							className="max-h-[70dvh] max-w-full object-contain md:max-h-[calc(100dvh-110px)]"
 							loading="eager"
+							// A server-rendered image may settle before hydration, which fires no event.
+							ref={(img) => {
+								if (!img?.complete) return;
+								if (img.naturalWidth > 0) setIsLoading(false);
+								else setLoadFailed(true);
+							}}
 							onLoad={() => setIsLoading(false)}
 							onError={() => setLoadFailed(true)}
 						/>

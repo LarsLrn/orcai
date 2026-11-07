@@ -5,16 +5,18 @@ import { buttonVariants } from "@/components/ui/button";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+/** Whether there is any history; the pages showing the link load it. */
+const chatHistoryLinkQuery = () =>
+	orpc.chat.history.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 1,
+		},
+	});
+
 /** Leads to the chats of organisations the user left, once there are any. */
 const ChatHistoryLink = ({ className }: { className?: string }) => {
-	const { data: history } = useQuery(
-		orpc.chat.history.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 1,
-			},
-		}),
-	);
+	const { data: history } = useQuery(chatHistoryLinkQuery());
 
 	if (!history?.rowCount) {
 		return null;
@@ -36,4 +38,4 @@ const ChatHistoryLink = ({ className }: { className?: string }) => {
 	);
 };
 
-export { ChatHistoryLink };
+export { ChatHistoryLink, chatHistoryLinkQuery };

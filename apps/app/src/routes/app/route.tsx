@@ -1,11 +1,17 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { activitySummaryOptions } from "@/components/activity/activity-state";
 import { Header } from "@/components/app/header";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { AppSidebar } from "@/components/app/sidebar/app-sidebar";
+import { loadAssistantModel } from "@/components/assistant/use-assistant-model";
 import { EmbeddingsSetupBanner } from "@/components/instance/settings/embeddings-setup-banner";
-import { TourProvider } from "@/components/tour/tour-provider";
+import {
+	TourProvider,
+	tourPreferencesQuery,
+} from "@/components/tour/tour-provider";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { activeOrganizationQuery } from "@/hooks/use-active-organization";
+import { embeddingsStatusQuery } from "@/hooks/use-embeddings-configured";
 import { useUmami } from "@/hooks/use-umami";
 import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
 import { ensureSignedIn } from "@/lib/authz/route-guards";
@@ -32,14 +38,18 @@ export const Route = createFileRoute("/app")({
 			},
 		};
 	},
-	// The sidebar and pages read these with `useQuery`. Loaded here, the server
+	// The shell and pages read these with `useQuery`. Loaded here, the server
 	// renders with them too, so a later-hydrating page cannot see them first.
+	// A failed read fails only its readers, as on the client.
 	loader: async ({ context: { queryClient, auth } }) => {
+		const { activeOrganizationId } = auth.session;
 		await Promise.allSettled([
-			queryClient.query(
-				activeOrganizationQuery(auth.session.activeOrganizationId),
-			),
+			queryClient.query(activeOrganizationQuery(activeOrganizationId)),
 			queryClient.query(organizationCapabilitiesQuery()),
+			queryClient.query(embeddingsStatusQuery()),
+			queryClient.query(activitySummaryOptions()),
+			queryClient.query(tourPreferencesQuery()),
+			loadAssistantModel(queryClient, activeOrganizationId),
 		]);
 	},
 	component: RouteComponent,

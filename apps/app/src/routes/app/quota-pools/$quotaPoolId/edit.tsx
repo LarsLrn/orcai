@@ -1,11 +1,15 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { FormPage } from "@/components/forms/form-layout";
-import { QuotaPoolForm } from "@/components/quota/form/quota-pool-form";
+import {
+	loadQuotaPoolForm,
+	QuotaPoolForm,
+} from "@/components/quota/form/quota-pool-form";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/quota-pools/$quotaPoolId/edit")({
+	loader: ({ context: { queryClient } }) => loadQuotaPoolForm(queryClient),
 	component: RouteComponent,
 	head: () => ({
 		meta: [

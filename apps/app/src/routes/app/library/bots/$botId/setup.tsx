@@ -2,7 +2,10 @@ import { zedTokenSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import z from "zod/v4";
-import { BotEditorShell } from "@/components/authoring/bot-editor-shell";
+import {
+	BotEditorShell,
+	loadBotEditorStep,
+} from "@/components/authoring/bot-editor-shell";
 import { WIZARD_STEPS } from "@/components/authoring/bot-editor-steps";
 import {
 	Page,
@@ -26,11 +29,12 @@ export const Route = createFileRoute("/app/library/bots/$botId/setup")({
 			.default(0),
 		...zedTokenSchema.shape,
 	}),
-	loaderDeps: ({ search: { zedToken } }) => ({
+	loaderDeps: ({ search: { zedToken, step } }) => ({
 		zedToken,
+		step,
 	}),
 	loader: async ({ context: { queryClient }, params: { botId }, deps }) => {
-		await orNotFound(
+		const editor = await orNotFound(
 			queryClient.query(
 				orpc.bot.findEditor.queryOptions({
 					input: {
@@ -41,6 +45,7 @@ export const Route = createFileRoute("/app/library/bots/$botId/setup")({
 				}),
 			),
 		);
+		await loadBotEditorStep(queryClient, editor.data, deps.step);
 	},
 	component: RouteComponent,
 	head: () => ({

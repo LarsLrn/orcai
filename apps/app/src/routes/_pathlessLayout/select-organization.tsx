@@ -8,7 +8,10 @@ import {
 import { BuildingIcon, ServerCogIcon } from "lucide-react";
 import { useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
-import { ChatHistoryLink } from "@/components/chat/chat-history-link";
+import {
+	ChatHistoryLink,
+	chatHistoryLinkQuery,
+} from "@/components/chat/chat-history-link";
 import {
 	invitationsPageInput,
 	OrganizationInvitationsList,
@@ -41,6 +44,10 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	}),
 	component: RouteComponent,
 	loader: async ({ context: { auth, queryClient } }) => {
+		// The history link fails only itself.
+		const history = Promise.allSettled([
+			queryClient.query(chatHistoryLinkQuery()),
+		]);
 		const organizations = await queryClient.query(
 			orpc.organization.list.queryOptions({
 				input: organizationsInput({
@@ -72,6 +79,7 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 				statusCode: 302,
 			});
 		}
+		await history;
 	},
 	head: () => ({
 		meta: [

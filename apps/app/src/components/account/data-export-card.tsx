@@ -47,15 +47,19 @@ const statusText = (
 	}
 };
 
+/** The user's latest export; the pages showing the card load it. */
+export const latestDataExportQuery = () =>
+	orpc.dataExport.latest.queryOptions({
+		input: {},
+	});
+
 export function DataExportCard() {
 	const displayTime = useDisplayTime();
-	const { data, isPending } = useQuery(
-		orpc.dataExport.latest.queryOptions({
-			input: {},
-			refetchInterval: (query) =>
-				isInFlight(query.state.data?.data) ? IN_FLIGHT_POLL_MS : false,
-		}),
-	);
+	const { data, isPending } = useQuery({
+		...latestDataExportQuery(),
+		refetchInterval: (query) =>
+			isInFlight(query.state.data?.data) ? IN_FLIGHT_POLL_MS : false,
+	});
 	const dataExport = data?.data;
 	const inFlight = isInFlight(dataExport);
 	const exportedBefore =

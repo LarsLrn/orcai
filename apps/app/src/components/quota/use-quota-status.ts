@@ -8,6 +8,17 @@ const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 /** Lets the server open the next period before the status is read again. */
 const RESET_GRACE_MS = 2_000;
 
+type QuotaModel = {
+	providerId: ProviderId;
+	modelId: ModelId;
+};
+
+/** The pool covering the user for a model; loaders share it with `useQuotaStatus`. */
+const quotaStatusQuery = (model: QuotaModel) =>
+	orpc.quota.status.queryOptions({
+		input: model,
+	});
+
 /** The pool covering the user for a model, read again when its period resets; idle until both ids are known. */
 const useQuotaStatus = ({
 	providerId,
@@ -60,4 +71,4 @@ const useQuotaStatus = ({
 	return query;
 };
 
-export { useQuotaStatus };
+export { quotaStatusQuery, useQuotaStatus };

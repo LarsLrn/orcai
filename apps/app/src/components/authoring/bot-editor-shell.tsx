@@ -1,11 +1,14 @@
 import type { BlockId } from "@orcai/core";
 import type { BotEditor, PublicationStatus } from "@orcai/schema";
-import { useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { useRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
+import {
+	loadRepositoryReadiness,
+	useRepositoryReadiness,
+} from "@/components/assets/readiness/use-repository-readiness";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import {
 	type BotEditorFormValues,
@@ -25,17 +28,23 @@ import { WIZARD_STEPS } from "@/components/authoring/bot-editor-steps";
 import { PublishSummary } from "@/components/authoring/publish-summary";
 import { BasicsStep } from "@/components/authoring/steps/basics-step";
 import { BehaviourStep } from "@/components/authoring/steps/behaviour-step";
-import { RepositoriesStep } from "@/components/authoring/steps/repositories-step";
+import {
+	editsInPlace,
+	RepositoriesStep,
+} from "@/components/authoring/steps/repositories-step";
 import { ReviewStep } from "@/components/authoring/steps/review-step";
 import { SharingStep } from "@/components/authoring/steps/sharing-step";
 import {
 	BotModelStep,
 	type BotModelStepHandle,
+	loadBotModelStep,
 } from "@/components/bot/setup/bot-model-step";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/dialog/confirm-dialog";
 import {
+	resourceGrantsQuery,
+	resourceVisibilityQuery,
 	useResourceGrants,
 	useResourceVisibility,
 } from "@/hooks/authz/use-resource-access";
@@ -583,4 +592,58 @@ const BotEditorShell = ({
 	);
 };
 
-export { BotEditorShell };
+/**
+ * Loads what the editor's step `stepIndex` shows of a saved bot, so the
+ * server renders it as the browser first does. A failed read fails only its
+ * readers.
+ */
+const loadBotEditorStep = async (
+	queryClient: QueryClient,
+	editorData: BotEditor,
+	stepIndex: number,
+) => {
+	const editor = toBotEditorFormValues(editorData);
+	const botId = editor.id;
+	if (!botId) return;
+	const bot = {
+		type: "bot" as const,
+		id: botId,
+	};
+	const reads = () => {
+		switch (WIZARD_STEPS[stepIndex]?.key) {
+			case "repositories":
+				return editor.repositories.map(
+					(repository) =>
+						repository.id &&
+						(editsInPlace(repository)
+							? queryClient.query(
+									resourceVisibilityQuery({
+										type: "block",
+										id: repository.id,
+									}),
+								)
+							: loadRepositoryReadiness(queryClient, [
+									repository.id,
+								])),
+				);
+			case "sharing":
+				return [
+					queryClient.query(resourceGrantsQuery(bot)),
+				];
+			case "model":
+				return [
+					loadBotModelStep(queryClient, botId),
+				];
+			case "review":
+				return [
+					queryClient.query(resourceVisibilityQuery(bot)),
+					queryClient.query(resourceGrantsQuery(bot)),
+				];
+			default:
+				return [];
+		}
+	};
+	await Promise.allSettled(reads());
+};
+
+export { BotEditorShell, loadBotEditorStep };

@@ -8,6 +8,7 @@ import {
 	PageHeader,
 	PageTitle,
 } from "@/components/ui/shell/page";
+import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
 import { ensureEntityCapability } from "@/lib/authz/route-guards";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
@@ -21,6 +22,17 @@ export const Route = createFileRoute("/app/library/repositories/$blockId/edit")(
 				entityId: blockId,
 				permission: "edit",
 			});
+		},
+		// The listed note fails only itself.
+		loader: async ({ context: { queryClient }, params: { blockId } }) => {
+			await Promise.allSettled([
+				queryClient.query(
+					resourceVisibilityQuery({
+						type: "block",
+						id: blockId,
+					}),
+				),
+			]);
 		},
 		component: RouteComponent,
 		head: () => ({

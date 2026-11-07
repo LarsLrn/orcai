@@ -1,7 +1,10 @@
 import { botIdSchema } from "@orcai/schema";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
+import { loadChatRepositoryReadiness } from "@/components/assets/readiness/use-repository-readiness";
 import { NewChat } from "@/components/chat/new-chat";
+import { loadChatStarter } from "@/components/chat/use-chat-starter";
+import { loadWebSearchNotice } from "@/components/chat/web-search-notice";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -10,6 +13,23 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/app/chat/new")({
 	validateSearch: searchSchema,
+	loaderDeps: ({ search: { botId } }) => ({
+		botId,
+	}),
+	loader: async ({ context: { queryClient, auth }, deps: { botId } }) => {
+		await Promise.allSettled([
+			loadChatStarter(queryClient, botId).then((model) =>
+				loadWebSearchNotice(queryClient, {
+					organizationId: auth.session.activeOrganizationId,
+					botId,
+					providerId: model?.providerId,
+				}),
+			),
+			loadChatRepositoryReadiness(queryClient, {
+				botId,
+			}),
+		]);
+	},
 	component: RouteComponent,
 	head: () => ({
 		meta: [

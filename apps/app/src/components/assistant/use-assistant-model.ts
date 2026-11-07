@@ -1,6 +1,11 @@
+import type { OrganizationId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
-import { skipToken, useQuery } from "@tanstack/react-query";
-import { useActiveOrganization } from "@/hooks/use-active-organization";
+import { type QueryClient, skipToken, useQuery } from "@tanstack/react-query";
+import { quotaStatusQuery } from "@/components/quota/use-quota-status";
+import {
+	activeOrganizationQuery,
+	useActiveOrganization,
+} from "@/hooks/use-active-organization";
 import { orpc } from "@/lib/orpc/orpc";
 
 type AssistantModelAvailability = "loading" | "unset" | "set";
@@ -54,4 +59,38 @@ const useAssistantModel = ({ enabled = true }: { enabled?: boolean } = {}) => {
 	};
 };
 
-export { assistantModelAvailability, useAssistantModel };
+/**
+ * Loads the organisation's assistant model, and its quota with `quota`, so
+ * the server renders what `useAssistantModel` and the starters read.
+ */
+const loadAssistantModel = async (
+	queryClient: QueryClient,
+	organizationId: OrganizationId,
+	{
+		quota = false,
+	}: {
+		quota?: boolean;
+	} = {},
+) => {
+	const { data: organization } = await queryClient.query(
+		activeOrganizationQuery(organizationId),
+	);
+	if (!organization.assistantModelId) return;
+	const { data: model } = await queryClient.query(
+		orpc.model.find.queryOptions({
+			input: {
+				id: organization.assistantModelId,
+			},
+		}),
+	);
+	if (quota) {
+		await queryClient.query(
+			quotaStatusQuery({
+				providerId: model.providerId,
+				modelId: model.id,
+			}),
+		);
+	}
+};
+
+export { assistantModelAvailability, loadAssistantModel, useAssistantModel };

@@ -4,7 +4,11 @@ import { MessageSquarePlusIcon } from "lucide-react";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
-import { BotSetupSummary } from "@/components/bot/setup/bot-setup-summary";
+import {
+	BotSetupSummary,
+	loadBotSetupSummary,
+} from "@/components/bot/setup/bot-setup-summary";
+import { loadAddBlocksAction } from "@/components/catalogue/add-blocks-action";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
 import {
 	ContentRenderer,
@@ -33,6 +37,31 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/bots/$botId/")({
+	// The setup card and the add-blocks action fail only themselves.
+	loader: async ({ context: { queryClient, auth }, params: { botId } }) => {
+		const loadAddBlocks = async () => {
+			const { data: bot } = await queryClient.query(
+				orpc.bot.find.queryOptions({
+					input: {
+						id: botId,
+					},
+				}),
+			);
+			if (bot.homeOrganization === null) return;
+			await loadAddBlocksAction(
+				queryClient,
+				{
+					resourceType: "bot",
+					resourceId: botId,
+				},
+				auth.session.activeOrganizationId,
+			);
+		};
+		await Promise.allSettled([
+			loadBotSetupSummary(queryClient, botId),
+			loadAddBlocks(),
+		]);
+	},
 	component: RouteComponent,
 });
 

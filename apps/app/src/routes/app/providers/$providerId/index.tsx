@@ -18,7 +18,10 @@ import type { z } from "zod/v4";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { DiscoverModels } from "@/components/model/discover-models";
 import { modelTableColumns } from "@/components/model/table/model-table-columns";
-import { SearchPoolNotice } from "@/components/provider/search-pool-notice";
+import {
+	SearchPoolNotice,
+	searchPoolQuery,
+} from "@/components/provider/search-pool-notice";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -105,12 +108,30 @@ export const Route = createFileRoute("/app/providers/$providerId/")({
 		params: { providerId },
 		deps,
 	}) => {
-		await queryClient.query(
-			orpc.model.list.queryOptions({
-				input: modelsInput(providerId, deps),
-				staleTime: "static",
-			}),
-		);
+		const loadSearchPool = async () => {
+			const { data: provider } = await queryClient.query(
+				orpc.provider.find.queryOptions({
+					input: {
+						id: providerId,
+					},
+				}),
+			);
+			if (getProviderPurpose(provider.kind) !== "models") {
+				await queryClient.query(searchPoolQuery(providerId));
+			}
+		};
+		await Promise.all([
+			queryClient.query(
+				orpc.model.list.queryOptions({
+					input: modelsInput(providerId, deps),
+					staleTime: "static",
+				}),
+			),
+			// The notice fails only itself.
+			Promise.allSettled([
+				loadSearchPool(),
+			]),
+		]);
 	},
 	component: RouteComponent,
 });

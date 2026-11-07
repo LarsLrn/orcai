@@ -1,3 +1,4 @@
+import type { AssetId } from "@orcai/core";
 import { assetIdSchema, retrievalModeSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound } from "@tanstack/react-router";
@@ -7,6 +8,8 @@ import { z } from "zod/v4";
 import {
 	ExploreBrowse,
 	ExploreSearch,
+	exploreBrowseOptions,
+	exploreSearchQuery,
 	TOP_K_OPTIONS,
 	type TopK,
 } from "@/components/assets/explore/explore-results";
@@ -39,11 +42,39 @@ const searchSchema = z.object({
 
 const ALL_ASSETS = "all";
 
+/** The search with its defaults. */
+const exploreSearch = ({
+	q,
+	mode = "hybrid",
+	asset,
+	k = 10,
+}: z.infer<typeof searchSchema>) => ({
+	q,
+	mode,
+	asset,
+	k,
+});
+
+/** The asset the search names, when the repository holds it. */
+const selectedAssetId = (
+	assets:
+		| readonly {
+				id: AssetId;
+		  }[]
+		| undefined,
+	asset: AssetId | undefined,
+) => assets?.find((entry) => entry.id === asset)?.id;
+
 export const Route = createFileRoute(
 	"/app/library/repositories/$blockId/explore",
 )({
 	validateSearch: searchSchema,
-	loader: async ({ context: { queryClient }, params: { blockId } }) => {
+	loaderDeps: ({ search }) => exploreSearch(search),
+	loader: async ({
+		context: { queryClient },
+		params: { blockId },
+		deps: { q, mode, asset, k },
+	}) => {
 		const repository = await loadBlockOfType({
 			queryClient,
 			blockId,
@@ -52,6 +83,26 @@ export const Route = createFileRoute(
 		if (repository.data.status !== "ready") {
 			throw notFound();
 		}
+		const assetId = selectedAssetId(repository.assets, asset);
+		// The results fail only themselves.
+		await Promise.allSettled([
+			q
+				? queryClient.query(
+						exploreSearchQuery({
+							repositoryId: blockId,
+							query: q,
+							mode,
+							assetId,
+							topK: k,
+						}),
+					)
+				: queryClient.infiniteQuery(
+						exploreBrowseOptions({
+							repositoryId: blockId,
+							assetId,
+						}),
+					),
+		]);
 	},
 	component: RouteComponent,
 	head: () => ({
@@ -65,7 +116,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
 	const { blockId } = Route.useParams();
-	const { q, mode = "hybrid", asset, k = 10 } = Route.useSearch();
+	const { q, mode, asset, k } = exploreSearch(Route.useSearch());
 	const navigate = Route.useNavigate();
 	const { data: repository } = useSuspenseQuery(
 		orpc.block.find.queryOptions({
@@ -85,7 +136,7 @@ function RouteComponent() {
 			label: entry.title,
 		})),
 	];
-	const assetId = repository.assets?.find((entry) => entry.id === asset)?.id;
+	const assetId = selectedAssetId(repository.assets, asset);
 
 	const hint = q
 		? m.blocks_explore_search_hint()

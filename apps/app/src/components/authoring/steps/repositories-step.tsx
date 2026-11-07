@@ -2,6 +2,7 @@ import type { BlockId } from "@orcai/core";
 import { useSelector } from "@tanstack/react-store";
 import { useState } from "react";
 import {
+	type BotEditorRepository,
 	botEditorFormOptions,
 	newRepositoryValues,
 } from "@/components/authoring/bot-editor-form-options";
@@ -12,6 +13,10 @@ import { Button } from "@/components/ui/button";
 import { withForm } from "@/hooks/form";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { m } from "@/paraglide/messages";
+
+/** A new repository, or one the user may edit, is edited in the step; any other is shown read-only. */
+const editsInPlace = (repository: BotEditorRepository) =>
+	hasCapability(repository.capabilities, "edit") || !repository.id;
 
 const RepositoriesStep = withForm({
 	...botEditorFormOptions,
@@ -61,8 +66,7 @@ const RepositoriesStep = withForm({
 						</div>
 
 						{repositories.map((repository, index) =>
-							hasCapability(repository.capabilities, "edit") ||
-							!repository.id ? (
+							editsInPlace(repository) ? (
 								<RepositoryFieldGroup
 									key={repository.id ?? `repository-${index}`}
 									form={form}
@@ -124,4 +128,4 @@ const RepositoriesStep = withForm({
 	},
 });
 
-export { RepositoriesStep };
+export { editsInPlace, RepositoriesStep };

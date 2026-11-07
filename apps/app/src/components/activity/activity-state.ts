@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query";
 import { createAtom } from "@tanstack/react-store";
 import { orpc } from "@/lib/orpc/orpc";
 
@@ -20,3 +21,15 @@ export const activitySummaryOptions = () =>
 				: IDLE_POLL_MS,
 		refetchOnWindowFocus: "always",
 	});
+
+/** Loads the summary and, when it counts suggestions, the attention list the dashboard card shows. */
+export const loadActivityAttention = async (queryClient: QueryClient) => {
+	const summary = await queryClient.query(activitySummaryOptions());
+	if (summary.attention.suggestions > 0) {
+		await queryClient.query(
+			orpc.activity.attention.queryOptions({
+				input: {},
+			}),
+		);
+	}
+};

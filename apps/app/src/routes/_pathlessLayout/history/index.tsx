@@ -6,7 +6,10 @@ import {
 } from "@tanstack/react-router";
 import { ArrowLeftIcon, MessagesSquareIcon } from "lucide-react";
 import { z } from "zod/v4";
-import { DataExportCard } from "@/components/account/data-export-card";
+import {
+	DataExportCard,
+	latestDataExportQuery,
+} from "@/components/account/data-export-card";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
@@ -38,13 +41,20 @@ export const Route = createFileRoute("/_pathlessLayout/history/")({
 		pageIndex,
 		pageSize,
 	}),
-	loader: ({ context: { queryClient }, deps }) =>
-		queryClient.query(
-			orpc.chat.history.queryOptions({
-				input: deps,
-				staleTime: 0,
-			}),
-		),
+	loader: async ({ context: { queryClient }, deps }) => {
+		await Promise.all([
+			queryClient.query(
+				orpc.chat.history.queryOptions({
+					input: deps,
+					staleTime: 0,
+				}),
+			),
+			// The export card fails only itself.
+			Promise.allSettled([
+				queryClient.query(latestDataExportQuery()),
+			]),
+		]);
+	},
 	component: RouteComponent,
 });
 
