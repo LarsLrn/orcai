@@ -27,6 +27,5 @@ export {
 } from "./generation";
 export * from "./mutations";
 export { probeQdrant } from "./probe";
-export * from "./queries";
+export { prepareQueries, retrievePassages } from "./retrieve";
 export { QdrantLive, QdrantService } from "./service";
-export * from "./utils";

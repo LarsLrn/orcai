@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { RAG_SETTINGS } from "@orcai/core";
-import { selectDiversePoints } from "@orcai/qdrant";
 import type { AssetPoint, Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
@@ -137,47 +135,35 @@ describe("searchRepositories", () => {
 			longText,
 		]);
 	});
-	test("shows the repository's per-asset selection, recalled for more than it shows", async () => {
-		const ranked = [
-			...Array.from(
-				{
-					length: 8,
-				},
-				(_, index) => ({
-					...assetPoint({
-						id: `a${index}`,
-						index,
-					}),
-					score: 0.9 - index / 100,
+	test("shows the repository's selection in its order, recalled for more than it shows", async () => {
+		const selected = [
+			...[
+				0,
+				1,
+				2,
+				3,
+			].map((index) => ({
+				...assetPoint({
+					id: `a${index}`,
+					index,
 				}),
-			),
-			...Array.from(
-				{
-					length: 2,
-				},
-				(_, index) => ({
-					...assetPoint({
-						id: `b${index}`,
-						index,
-						assetId: "asset-b",
-					}),
-					score: 0.6 - index / 100,
+				score: 0.9 - index / 100,
+			})),
+			...[
+				0,
+				1,
+			].map((index) => ({
+				...assetPoint({
+					id: `b${index}`,
+					index,
+					assetId: "asset-b",
 				}),
-			),
+				score: 0.6 - index / 100,
+			})),
 		];
-		answers["assetPoint.searchRepository"] = ({
-			filters,
-		}: {
-			filters: {
-				limit: number;
-				maxPerAsset?: number;
-			};
-		}) =>
+		answers["assetPoint.searchRepository"] = () =>
 			Effect.succeed({
-				data: selectDiversePoints(ranked, {
-					limit: filters.limit,
-					maxPerAsset: filters.maxPerAsset ?? RAG_SETTINGS.maxPerAsset,
-				}),
+				data: selected,
 			});
 
 		const output = await searchRepositoriesTool(deps).execute?.(

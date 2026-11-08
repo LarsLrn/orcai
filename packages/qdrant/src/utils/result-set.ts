@@ -1,22 +1,6 @@
 import type { AssetPoint } from "@orcai/schema";
 
 /**
- * Removes duplicate points from an array, keeping the first occurrence of
- * each Qdrant point ID. This is needed because multiple query variants can
- * return the same chunk; deduplication must happen before re-ranking so
- * that each chunk is scored only once.
- */
-export const dedupeById = (points: AssetPoint[]) => {
-	const seen = new Set<string>();
-	return points.filter((point) => {
-		const key = String(point.id);
-		if (seen.has(key)) return false;
-		seen.add(key);
-		return true;
-	});
-};
-
-/**
  * Picks up to `limit` points from a ranked list: at most `maxPerAsset` per
  * asset first, then the next-best points regardless of asset fill any slots
  * left. The picks keep their rank order.

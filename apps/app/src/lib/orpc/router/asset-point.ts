@@ -1,17 +1,11 @@
 import type { BlockId } from "@orcai/core";
-import { RAG_SETTINGS } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import {
 	browseAssetPoints,
 	buildQdrantFilter,
-	dedupeById,
-	EmbeddingGeneration,
-	mergeRecallCandidates,
 	onActiveGeneration,
-	queryAssetPoints,
-	rerankHybrid,
-	resolveScoreThreshold,
-	selectDiversePoints,
+	prepareQueries,
+	retrievePassages,
 } from "@orcai/qdrant";
 import type {
 	AssetPoint,
@@ -20,7 +14,6 @@ import type {
 } from "@orcai/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { clamp } from "effect/Number";
 import type { z } from "zod/v4";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
@@ -88,10 +81,44 @@ const onSearchGeneration = <A, E, R>(read: Effect.Effect<A, E, R>) =>
 		),
 	);
 
+/** The repository's best points for the search in `filters`, as the router's response. */
 const retrieveAssetPoints = (
-	filters: z.infer<typeof assetPointsFiltersSchema>,
+	repositoryId: BlockId,
+	assetIds: readonly string[],
+	{
+		queries = [],
+		pointIds,
+		page,
+		pageFrom,
+		pageTo,
+		passageIndices,
+		...policy
+	}: z.infer<typeof assetPointsFiltersSchema>,
 ) =>
-	onSearchGeneration(queryPoints(filters)).pipe(
+	onSearchGeneration(
+		prepareQueries([
+			{
+				queries,
+				retrievalMode: policy.retrievalMode ?? "dense",
+			},
+		]).pipe(
+			Effect.flatMap(([prepared]) =>
+				retrievePassages({
+					queries: prepared,
+					scope: {
+						blockId: repositoryId,
+						assetIds,
+						pointIds,
+						page,
+						pageFrom,
+						pageTo,
+						passageIndices,
+					},
+					policy,
+				}),
+			),
+		),
+	).pipe(
 		Effect.flatMap((result) =>
 			linkedPoints(result.data).pipe(
 				Effect.map((data) => ({
@@ -104,192 +131,6 @@ const retrieveAssetPoints = (
 			),
 		),
 	);
-
-const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
-	Effect.gen(function* () {
-		const input = {
-			filters,
-		};
-		const limit = input.filters.limit ?? RAG_SETTINGS.limit;
-		const recallLimit = input.filters.recallLimit ?? limit;
-		const retrievalMode = input.filters.retrievalMode ?? "dense";
-
-		const scoreThreshold = resolveScoreThreshold({
-			explicit: input.filters.minScore,
-			queries: input.filters.queries,
-		});
-
-		const candidateLimit = Math.max(
-			limit,
-			input.filters.candidateLimit ??
-				Math.max(recallLimit * 6, RAG_SETTINGS.candidateLimit),
-		);
-
-		const maxPerAsset = input.filters.maxPerAsset ?? RAG_SETTINGS.maxPerAsset;
-
-		const denseWeight =
-			input.filters.denseWeight ?? (retrievalMode === "hybrid" ? 0.65 : 1);
-		const lexicalWeight =
-			input.filters.lexicalWeight ?? (retrievalMode === "hybrid" ? 0.35 : 0);
-
-		const qdrantFilter = buildQdrantFilter({
-			pointIds: input.filters.pointIds,
-			assetIds: input.filters.assetIds,
-			blockId: input.filters.blockId,
-			page: input.filters.page,
-			pageFrom: input.filters.pageFrom,
-			pageTo: input.filters.pageTo,
-			chunkIndices: input.filters.passageIndices,
-		});
-
-		if (!input.filters.queries || input.filters.queries.length === 0) {
-			return yield* queryAssetPoints({
-				filter: qdrantFilter,
-				limit,
-				retrievalMode,
-			}).pipe(
-				Effect.map((points) => {
-					const pointIds = input.filters.pointIds ?? [];
-					const idOrder =
-						pointIds.length > 0
-							? new Map(
-									pointIds.map((id, index) => [
-										String(id),
-										index,
-									]),
-								)
-							: undefined;
-
-					if (idOrder) {
-						points.sort(
-							(a, b) =>
-								(idOrder.get(String(a.id)) ?? Number.MAX_SAFE_INTEGER) -
-								(idOrder.get(String(b.id)) ?? Number.MAX_SAFE_INTEGER),
-						);
-					}
-
-					return {
-						data: points,
-						metadata: {
-							retrievalMode,
-							scoreThreshold: 0,
-							candidateCount: points.length,
-							returnedCount: points.length,
-						},
-					};
-				}),
-			);
-		}
-
-		const searchQueries = input.filters.queries;
-
-		const recallTarget = Math.max(
-			RAG_SETTINGS.minRecallCandidates,
-			recallLimit * 2,
-		);
-
-		const recallPasses = [
-			{
-				scoreThreshold,
-				candidateLimit,
-			},
-			{
-				scoreThreshold: clamp(scoreThreshold - 0.22, {
-					maximum: 1,
-					minimum: 0.15,
-				}),
-				candidateLimit: Math.min(
-					200,
-					Math.max(80, candidateLimit * 2, recallLimit * 12),
-				),
-			},
-		];
-
-		const { embedQueries } = yield* EmbeddingGeneration;
-		const embeddings =
-			retrievalMode === "sparse"
-				? undefined
-				: yield* embedQueries(searchQueries);
-		const variants = searchQueries.map((query, index) => ({
-			query,
-			embedding: embeddings?.[index],
-		}));
-
-		const recallCandidates = new Map<
-			string,
-			{
-				point: AssetPoint;
-				hitCount: number;
-			}
-		>();
-
-		let usedFallbackPass = false;
-		let appliedScoreThreshold = scoreThreshold;
-
-		for (const [index, pass] of recallPasses.entries()) {
-			yield* Effect.forEach(
-				variants,
-				({ query, embedding }) =>
-					queryAssetPoints({
-						embedding,
-						text: query,
-						filter: qdrantFilter,
-						limit: pass.candidateLimit,
-						scoreThreshold: pass.scoreThreshold,
-						retrievalMode,
-					}).pipe(
-						Effect.map((points) =>
-							mergeRecallCandidates(recallCandidates, points),
-						),
-					),
-				{
-					concurrency: 4,
-				},
-			);
-
-			usedFallbackPass ||= index > 0;
-			appliedScoreThreshold = pass.scoreThreshold;
-
-			if (recallCandidates.size >= recallTarget) {
-				break;
-			}
-		}
-
-		const basePoints = dedupeById(
-			Array.from(recallCandidates.values()).map(({ point, hitCount }) => ({
-				...point,
-				score: clamp(point.score + Math.min(0.12, (hitCount - 1) * 0.03), {
-					maximum: 1,
-					minimum: 0,
-				}),
-			})),
-		);
-
-		const rankedPoints =
-			retrievalMode === "hybrid"
-				? rerankHybrid({
-						query: searchQueries[0],
-						points: basePoints,
-						denseWeight,
-						lexicalWeight,
-					})
-				: basePoints.sort((a, b) => b.score - a.score);
-
-		const selectedPoints = selectDiversePoints(rankedPoints, {
-			limit,
-			maxPerAsset: usedFallbackPass ? Math.max(maxPerAsset, 4) : maxPerAsset,
-		});
-
-		return {
-			data: selectedPoints,
-			metadata: {
-				retrievalMode,
-				scoreThreshold: appliedScoreThreshold,
-				candidateCount: basePoints.length,
-				returnedCount: selectedPoints.length,
-			},
-		};
-	});
 
 /**
  * The ready repository's member assets among `requested`, or all of them.
@@ -362,11 +203,11 @@ const searchRepositoryAssetPoint = authed.assetPoint.searchRepository
 			};
 		}
 
-		return yield* retrieveAssetPoints({
-			...input.filters,
-			blockId: input.repositoryId,
+		return yield* retrieveAssetPoints(
+			input.repositoryId,
 			assetIds,
-		});
+			input.filters,
+		);
 	});
 
 const BROWSE_PAGE_SIZE = 50;
