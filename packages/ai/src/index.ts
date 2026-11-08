@@ -29,7 +29,7 @@ export {
 export {
 	ModelListingError,
 	type ModelListingFailure,
-} from "./provider-kinds/listing-error";
+} from "./provider-kinds/listing";
 export {
 	buildSystemInstructions,
 	createProviderLanguageModel,

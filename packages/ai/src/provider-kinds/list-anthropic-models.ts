@@ -1,7 +1,8 @@
 import { modelCapabilities } from "@orcai/core";
 import type { ModelCapability } from "@orcai/schema";
+import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { ModelListingError, ProviderStatusError } from "./listing-error";
+import { decodeListing, getListing, ModelListingError } from "./listing";
 import { reportedTokenCount } from "./reported-token-count";
 import type { DiscoveredModel, ProviderConnection } from "./types";
 
@@ -48,57 +49,46 @@ const modelsPageSchema = z.object({
 });
 
 /** Every page of Anthropic's Models API. */
-export const listAnthropicModels = async ({
+export const listAnthropicModels = ({
 	apiKey,
 	fetch = globalThis.fetch,
-}: ProviderConnection): Promise<DiscoveredModel[]> => {
-	const models: DiscoveredModel[] = [];
-	let afterId: string | null = null;
+}: ProviderConnection) =>
+	Effect.gen(function* () {
+		const models: DiscoveredModel[] = [];
+		let afterId: string | null = null;
 
-	do {
-		const url = new URL(`${ANTHROPIC_API_URL}/models`);
-		url.searchParams.set("limit", "1000");
-		if (afterId) url.searchParams.set("after_id", afterId);
+		do {
+			const url = new URL(`${ANTHROPIC_API_URL}/models`);
+			url.searchParams.set("limit", "1000");
+			if (afterId) url.searchParams.set("after_id", afterId);
 
-		const response = await fetch(url, {
-			headers: {
+			const page = yield* getListing(fetch, url, {
 				"x-api-key": apiKey,
 				"anthropic-version": ANTHROPIC_VERSION,
-			},
-		}).catch((cause) => {
-			throw new ModelListingError("unreachable", cause);
-		});
-		if (!response.ok) {
-			throw new ProviderStatusError(
-				`Anthropic Models API answered ${response.status} ${response.statusText}`,
-				response.status,
+			}).pipe(Effect.flatMap((body) => decodeListing(modelsPageSchema, body)));
+			models.push(
+				...page.data.map((model) => ({
+					providerModelId: model.id,
+					name: model.display_name,
+					description: `Model ID: ${model.id}`,
+					contextWindow: model.max_input_tokens,
+					maxOutputTokens: model.max_tokens,
+					capabilities: capabilitiesOf(model.capabilities),
+				})),
 			);
-		}
+			if (!page.has_more) {
+				afterId = null;
+			} else if (page.last_id === null || page.last_id === afterId) {
+				return yield* new ModelListingError({
+					failure: "invalid-response",
+					cause: new Error(
+						"Anthropic Models API reported more pages without advancing the cursor",
+					),
+				});
+			} else {
+				afterId = page.last_id;
+			}
+		} while (afterId);
 
-		const page = modelsPageSchema.parse(await response.json());
-		models.push(
-			...page.data.map((model) => ({
-				providerModelId: model.id,
-				name: model.display_name,
-				description: `Model ID: ${model.id}`,
-				contextWindow: model.max_input_tokens,
-				maxOutputTokens: model.max_tokens,
-				capabilities: capabilitiesOf(model.capabilities),
-			})),
-		);
-		if (!page.has_more) {
-			afterId = null;
-		} else if (page.last_id === null || page.last_id === afterId) {
-			throw new ModelListingError(
-				"invalid-response",
-				new Error(
-					"Anthropic Models API reported more pages without advancing the cursor",
-				),
-			);
-		} else {
-			afterId = page.last_id;
-		}
-	} while (afterId);
-
-	return models;
-};
+		return models;
+	});

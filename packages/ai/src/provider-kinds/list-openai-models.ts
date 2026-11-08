@@ -1,7 +1,8 @@
 import { modelCapabilities } from "@orcai/core";
 import type { ModelCapability } from "@orcai/schema";
+import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
-import { ModelListingError, ProviderStatusError } from "./listing-error";
+import { decodeListing, getListing } from "./listing";
 import { reportedTokenCount } from "./reported-token-count";
 import type { DiscoveredModel, ProviderConnection } from "./types";
 
@@ -100,35 +101,30 @@ const reportedCapabilities = (
 const OPENAI_API_URL = "https://api.openai.com/v1";
 
 /** `GET /models` of the endpoint, or of OpenAI's API without one. */
-export const listOpenAIModels = async ({
+export const listOpenAIModels = ({
 	apiKey,
 	endpoint,
 	fetch = globalThis.fetch,
-}: ProviderConnection): Promise<DiscoveredModel[]> => {
-	const response = await fetch(
+}: ProviderConnection) =>
+	getListing(
+		fetch,
 		`${(endpoint ?? OPENAI_API_URL).replace(/\/+$/, "")}/models`,
 		{
-			headers: {
-				authorization: `Bearer ${apiKey}`,
-			},
+			authorization: `Bearer ${apiKey}`,
 		},
-	).catch((cause) => {
-		throw new ModelListingError("unreachable", cause);
-	});
-	if (!response.ok) {
-		throw new ProviderStatusError(
-			`Models API answered ${response.status} ${response.statusText}`,
-			response.status,
-		);
-	}
-
-	return listingSchema.parse(await response.json()).data.map((model) => ({
-		providerModelId: model.id,
-		name: model.id,
-		description: model.owned_by
-			? `Model ID: ${model.id} | Owned by ${model.owned_by}`
-			: `Model ID: ${model.id}`,
-		...reportedLimits(model),
-		capabilities: reportedCapabilities(model),
-	}));
-};
+	).pipe(
+		Effect.flatMap((body) => decodeListing(listingSchema, body)),
+		Effect.map(({ data }) =>
+			data.map(
+				(model): DiscoveredModel => ({
+					providerModelId: model.id,
+					name: model.id,
+					description: model.owned_by
+						? `Model ID: ${model.id} | Owned by ${model.owned_by}`
+						: `Model ID: ${model.id}`,
+					...reportedLimits(model),
+					capabilities: reportedCapabilities(model),
+				}),
+			),
+		),
+	);
