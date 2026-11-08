@@ -5,7 +5,8 @@ import {
 	NoResults,
 	TileGrid,
 } from "@/components/browse/browse-layout";
-import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
+import { CardPager } from "@/components/ui/card-pager";
+import { useClampedPageIndex } from "@/components/ui/pager";
 import {
 	activeFilterCount,
 	type FilterDefinitions,

@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import {
 	createContext,
 	type ReactNode,
@@ -13,8 +13,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { InputGroup, InputGroupAddon } from "@/components/ui/input-group";
 import {
 	Item,
 	ItemContent,
@@ -22,13 +20,6 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
-import {
-	Pagination,
-	PaginationContent,
-	PaginationItem,
-	PaginationNext,
-	PaginationPrevious,
-} from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -182,31 +173,6 @@ function DialogSelectContent({
 			<DialogTitle className="sr-only">{title}</DialogTitle>
 			{children}
 		</DialogContent>
-	);
-}
-
-function DialogSelectSearch({
-	className,
-	value,
-	onValueChange,
-	...props
-}: Omit<React.ComponentProps<typeof Input>, "onChange" | "value"> & {
-	value: string;
-	onValueChange: (value: string) => void;
-}) {
-	return (
-		<InputGroup className={cn("h-9", className)}>
-			<InputGroupAddon>
-				<SearchIcon className="size-4 shrink-0 opacity-50" />
-			</InputGroupAddon>
-			<Input
-				data-slot="input-group-control"
-				className="h-full border-none bg-transparent shadow-none ring-0 outline-none focus-visible:border-none focus-visible:ring-0"
-				value={value}
-				onChange={(e) => onValueChange(e.target.value)}
-				{...props}
-			/>
-		</InputGroup>
 	);
 }
 
@@ -402,56 +368,6 @@ function DialogSelectLoading({
 	);
 }
 
-function DialogSelectPagination({
-	page,
-	pageCount,
-	onPageChange,
-	disabled = false,
-	className,
-}: {
-	page: number;
-	pageCount: number;
-	onPageChange: (page: number) => void;
-	/** Keeps the pager in place while a page loads. */
-	disabled?: boolean;
-	className?: string;
-}) {
-	if (pageCount <= 1) return null;
-
-	const atStart = disabled || page <= 0;
-	const atEnd = disabled || page >= pageCount - 1;
-
-	return (
-		<Pagination className={cn("pt-2", className)}>
-			<PaginationContent>
-				<PaginationItem>
-					<PaginationPrevious
-						onClick={() => {
-							if (!atStart) onPageChange(page - 1);
-						}}
-						aria-disabled={atStart}
-						className={cn(atStart && "opacity-50")}
-					/>
-				</PaginationItem>
-				<PaginationItem>
-					<span className="text-muted-foreground px-2 text-sm">
-						{page + 1} / {pageCount}
-					</span>
-				</PaginationItem>
-				<PaginationItem>
-					<PaginationNext
-						onClick={() => {
-							if (!atEnd) onPageChange(page + 1);
-						}}
-						aria-disabled={atEnd}
-						className={cn(atEnd && "opacity-50")}
-					/>
-				</PaginationItem>
-			</PaginationContent>
-		</Pagination>
-	);
-}
-
 export type { DialogSelectFilterOption };
 export {
 	DialogSelect,
@@ -462,7 +378,5 @@ export {
 	DialogSelectGroup,
 	DialogSelectItem,
 	DialogSelectList,
-	DialogSelectPagination,
-	DialogSelectSearch,
 	DialogSelectTrigger,
 };

@@ -3,12 +3,10 @@ import type { BotListItem } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, MessageSquareIcon } from "lucide-react";
 import { useState } from "react";
-import { useDebounceValue } from "usehooks-ts";
 import {
 	BotFavouriteStar,
 	FAVOURITE_CHAT_BOTS_INPUT,
 } from "@/components/bot/bot-favourites";
-import { Button } from "@/components/ui/button";
 import {
 	DialogSelect,
 	DialogSelectContent,
@@ -16,11 +14,12 @@ import {
 	DialogSelectGroup,
 	DialogSelectItem,
 	DialogSelectList,
-	DialogSelectPagination,
-	DialogSelectSearch,
 	DialogSelectTrigger,
 } from "@/components/ui/composed/dialog-select";
-import { describeError } from "@/lib/errors/describe-error";
+import { LoadError } from "@/components/ui/composed/load-error";
+import { SearchField } from "@/components/ui/composed/search-field";
+import { Pager } from "@/components/ui/pager";
+import { usePickerList } from "@/hooks/use-picker-list";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -52,26 +51,21 @@ const BotSelectorButton = ({
 	className?: string;
 }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const [search, setSearch] = useState("");
-	const [debouncedSearch] = useDebounceValue(search, 300);
-	const [page, setPage] = useState(0);
-	const query = debouncedSearch.trim() || undefined;
-
-	const botsQuery = useQuery(
-		orpc.bot.list.queryOptions({
-			input: {
-				pageIndex: page,
-				pageSize: BOT_PAGE_SIZE,
-				search: query,
-				filters: {
-					usable: true,
+	const bots = usePickerList({
+		pageSize: BOT_PAGE_SIZE,
+		open: dialogOpen,
+		queryOptions: (input) =>
+			orpc.bot.list.queryOptions({
+				input: {
+					...input,
+					filters: {
+						usable: true,
+					},
 				},
-			},
-			enabled: dialogOpen,
-		}),
-	);
+			}),
+	});
 
-	const showFavourites = !query;
+	const showFavourites = !bots.query;
 	const favouritesQuery = useQuery(
 		orpc.bot.list.queryOptions({
 			input: FAVOURITE_CHAT_BOTS_INPUT,
@@ -88,31 +82,8 @@ const BotSelectorButton = ({
 		}),
 	);
 
-	const bots = botsQuery.isError ? [] : (botsQuery.data?.data ?? []);
 	const favourites = showFavourites ? (favouritesQuery.data?.data ?? []) : [];
-	// Rows of the previous search are not choices while the next one is typed.
-	const loading =
-		search.trim() !== debouncedSearch.trim() ||
-		botsQuery.isLoading ||
-		(showFavourites && favouritesQuery.isLoading);
-	// The pager keeps the search's last count while another of its pages loads.
-	const [counted, setCounted] = useState({
-		query,
-		rowCount: 0,
-	});
-	const rowCount = botsQuery.data?.rowCount;
-	if (
-		rowCount !== undefined &&
-		(counted.query !== query || counted.rowCount !== rowCount)
-	) {
-		setCounted({
-			query,
-			rowCount,
-		});
-	}
-	const pageCount = Math.ceil(
-		(counted.query === query ? counted.rowCount : 0) / BOT_PAGE_SIZE,
-	);
+	const loading = bots.loading || (showFavourites && favouritesQuery.isLoading);
 	const triggerLabel =
 		selectedBotResult?.data.name ?? m.chat_bot_selector_no_bot_title();
 
@@ -125,13 +96,7 @@ const BotSelectorButton = ({
 				)
 			}
 			open={dialogOpen}
-			onOpenChange={(open) => {
-				setDialogOpen(open);
-				if (!open) {
-					setSearch("");
-					setPage(0);
-				}
-			}}
+			onOpenChange={setDialogOpen}
 		>
 			<DialogSelectTrigger
 				className={cn(
@@ -148,12 +113,9 @@ const BotSelectorButton = ({
 				<span className="truncate">{triggerLabel}</span>
 			</DialogSelectTrigger>
 			<DialogSelectContent title={m.chat_bot_selector_dialog_title()}>
-				<DialogSelectSearch
-					value={search}
-					onValueChange={(value) => {
-						setSearch(value);
-						setPage(0);
-					}}
+				<SearchField
+					value={bots.search}
+					onValueChange={bots.setSearch}
 					placeholder={m.chat_bot_selector_search_placeholder()}
 				/>
 				<DialogSelectList loading={loading}>
@@ -171,41 +133,25 @@ const BotSelectorButton = ({
 								))}
 							</DialogSelectGroup>
 							<DialogSelectGroup label={m.bots_all_group_label()}>
-								{bots.map((bot) => (
+								{bots.rows.map((bot) => (
 									<BotItem key={bot.id} bot={bot} />
 								))}
 							</DialogSelectGroup>
 						</>
 					) : (
-						bots.map((bot) => <BotItem key={bot.id} bot={bot} />)
+						bots.rows.map((bot) => <BotItem key={bot.id} bot={bot} />)
 					)}
-					{botsQuery.isError ? (
-						<DialogSelectEmpty role="alert">
-							{describeError(botsQuery.error)}
-							<Button
-								variant="outline"
-								size="sm"
-								className="mt-3"
-								loading={botsQuery.isRefetching}
-								onClick={() => void botsQuery.refetch()}
-							>
-								{m.common_retry_button()}
-							</Button>
-						</DialogSelectEmpty>
+					{bots.list.isError ? (
+						<LoadError query={bots.list} />
 					) : (
-						bots.length === 0 && (
+						bots.rows.length === 0 && (
 							<DialogSelectEmpty>
 								{m.chat_bot_selector_empty_state()}
 							</DialogSelectEmpty>
 						)
 					)}
 				</DialogSelectList>
-				<DialogSelectPagination
-					page={page}
-					pageCount={pageCount}
-					onPageChange={setPage}
-					disabled={loading}
-				/>
+				<Pager variant="compact" {...bots.pager} pending={loading} />
 			</DialogSelectContent>
 		</DialogSelect>
 	);

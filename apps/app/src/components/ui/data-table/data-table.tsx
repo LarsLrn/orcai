@@ -6,7 +6,7 @@ import {
 	type TableState,
 	useTable,
 } from "@tanstack/react-table";
-import { useEffect } from "react";
+import { useClampedPageIndex } from "@/components/ui/pager";
 import {
 	withPagination,
 	withSorting,
@@ -81,27 +81,10 @@ const DataTable = <TData extends RowData>({
 				: String(row[uidAccessor]),
 	});
 
-	// A page emptied by deletions moves back to the last page, keeping filters.
-	const { pageIndex, pageSize } = table.state.pagination;
-	const lastPageIndex = Math.max(0, Math.ceil(rowCount / pageSize) - 1);
-	useEffect(() => {
-		if (data.length > 0 || pageIndex <= lastPageIndex) return;
-		void navigate({
-			to: ".",
-			search: (prev) =>
-				withPagination(prev, {
-					pageIndex: lastPageIndex,
-					pageSize,
-				}),
-			replace: true,
-		});
-	}, [
-		data.length,
-		lastPageIndex,
-		navigate,
-		pageIndex,
-		pageSize,
-	]);
+	useClampedPageIndex({
+		rowCount,
+		...table.state.pagination,
+	});
 
 	return (
 		<TableProvider table={table}>

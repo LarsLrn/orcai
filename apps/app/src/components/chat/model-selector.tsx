@@ -10,10 +10,12 @@ import {
 	DialogSelectFilters,
 	DialogSelectItem,
 	DialogSelectList,
-	DialogSelectPagination,
-	DialogSelectSearch,
 	DialogSelectTrigger,
 } from "@/components/ui/composed/dialog-select";
+import { LoadError } from "@/components/ui/composed/load-error";
+import { SearchField } from "@/components/ui/composed/search-field";
+import { Pager } from "@/components/ui/pager";
+import { usePickerList } from "@/hooks/use-picker-list";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -46,8 +48,6 @@ const ModelSelectorButton = ({
 	"aria-describedby"?: string;
 }) => {
 	const [modelDialogOpen, setModelDialogOpen] = useState(false);
-	const [modelSearch, setModelSearch] = useState("");
-	const [modelPage, setModelPage] = useState(0);
 	const [providerFilter, setProviderFilter] = useState(
 		selectedProviderId ?? PROVIDER_PLACEHOLDER_VALUE,
 	);
@@ -68,25 +68,24 @@ const ModelSelectorButton = ({
 		}),
 	);
 
-	const {
-		data: modelsResult,
-		isLoading: modelsLoading,
-		isFetching: modelsFetching,
-	} = useQuery(
-		orpc.model.list.queryOptions({
-			input: {
-				pageIndex: modelPage,
-				pageSize: MODEL_PAGE_SIZE,
-				filters: {
-					providerId: providerFilterId,
-					capabilities,
-					isDeprecated: false,
-					search: modelSearch || undefined,
+	const models = usePickerList({
+		pageSize: MODEL_PAGE_SIZE,
+		open: modelDialogOpen,
+		queryOptions: ({ search, ...page }) =>
+			orpc.model.list.queryOptions({
+				input: {
+					...page,
+					filters: {
+						providerId: providerFilterId,
+						capabilities,
+						isDeprecated: false,
+						search,
+					},
 				},
-			},
-			enabled: modelDialogOpen && !!providerFilterId,
-		}),
-	);
+				enabled: !!providerFilterId,
+			}),
+	});
+	const { setSearch: setModelSearch } = models;
 
 	const { data: selectedModelData } = useQuery(
 		orpc.model.find.queryOptions({
@@ -120,7 +119,6 @@ const ModelSelectorButton = ({
 			if (providerFilter !== PROVIDER_PLACEHOLDER_VALUE) {
 				setProviderFilter(PROVIDER_PLACEHOLDER_VALUE);
 				setModelSearch("");
-				setModelPage(0);
 			}
 			return;
 		}
@@ -132,17 +130,12 @@ const ModelSelectorButton = ({
 		if (!providerExists) {
 			setProviderFilter(providers[0].id);
 			setModelSearch("");
-			setModelPage(0);
 		}
 	}, [
 		providerFilter,
 		providers,
+		setModelSearch,
 	]);
-
-	const models = providerFilterId ? (modelsResult?.data ?? []) : [];
-	const pageCount = providerFilterId
-		? Math.ceil((modelsResult?.rowCount ?? 0) / MODEL_PAGE_SIZE)
-		: 0;
 
 	const providerMap = useMemo(
 		() =>
@@ -177,7 +170,7 @@ const ModelSelectorButton = ({
 		<DialogSelect
 			value={selectedModelId ?? null}
 			onValueChange={(modelId) => {
-				const model = models.find((entry) => entry.id === modelId);
+				const model = models.rows.find((entry) => entry.id === modelId);
 				if (!model) return;
 				const provider = providerMap.get(model.providerId);
 				if (!provider) return;
@@ -201,12 +194,9 @@ const ModelSelectorButton = ({
 				<span className="truncate">{triggerLabel}</span>
 			</DialogSelectTrigger>
 			<DialogSelectContent title={m.chat_model_selector_dialog_title()}>
-				<DialogSelectSearch
-					value={modelSearch}
-					onValueChange={(value) => {
-						setModelSearch(value);
-						setModelPage(0);
-					}}
+				<SearchField
+					value={models.search}
+					onValueChange={setModelSearch}
 					placeholder={m.chat_model_selector_search_placeholder()}
 				/>
 				<DialogSelectFilters>
@@ -215,16 +205,13 @@ const ModelSelectorButton = ({
 						onValueChange={(providerId) => {
 							setProviderFilter(providerId);
 							setModelSearch("");
-							setModelPage(0);
 						}}
 						placeholder={m.chat_model_selector_provider_filter_placeholder()}
 						options={providerFilterOptions}
 					/>
 				</DialogSelectFilters>
-				<DialogSelectList
-					loading={providerFilterId ? modelsLoading || modelsFetching : false}
-				>
-					{models.map((model) => (
+				<DialogSelectList loading={providerFilterId ? models.loading : false}>
+					{models.rows.map((model) => (
 						<DialogSelectItem
 							key={model.id}
 							value={model.id}
@@ -239,19 +226,19 @@ const ModelSelectorButton = ({
 							}
 						/>
 					))}
-					{!modelsLoading && !modelsFetching && models.length === 0 && (
-						<DialogSelectEmpty>
-							{providerFilterId
-								? m.chat_model_selector_empty_state()
-								: m.chat_model_selector_no_provider_empty_state()}
-						</DialogSelectEmpty>
+					{models.list.isError ? (
+						<LoadError query={models.list} />
+					) : (
+						models.rows.length === 0 && (
+							<DialogSelectEmpty>
+								{providerFilterId
+									? m.chat_model_selector_empty_state()
+									: m.chat_model_selector_no_provider_empty_state()}
+							</DialogSelectEmpty>
+						)
 					)}
 				</DialogSelectList>
-				<DialogSelectPagination
-					page={modelPage}
-					pageCount={pageCount}
-					onPageChange={setModelPage}
-				/>
+				<Pager variant="compact" {...models.pager} />
 			</DialogSelectContent>
 		</DialogSelect>
 	);

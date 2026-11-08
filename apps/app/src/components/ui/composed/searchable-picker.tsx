@@ -1,10 +1,9 @@
 import type { LucideIcon } from "lucide-react";
-import { SearchIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { SearchField } from "@/components/ui/composed/search-field";
 import type { SelectOption } from "@/components/ui/composed/selectable-list-item";
 import { SelectableListItem } from "@/components/ui/composed/selectable-list-item";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { m } from "@/paraglide/messages";
 
@@ -47,17 +46,12 @@ const SearchablePicker = <TItem,>({
 
 	return (
 		<div className="space-y-2">
-			<div className="relative">
-				<SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-				<Input
-					aria-label={placeholder}
-					placeholder={placeholder}
-					className="pl-9"
-					value={query}
-					onChange={(event) => onQueryChange(event.target.value)}
-					disabled={disabled}
-				/>
-			</div>
+			<SearchField
+				placeholder={placeholder}
+				value={query}
+				onValueChange={onQueryChange}
+				disabled={disabled}
+			/>
 			<div className="flex items-center justify-between">
 				<p className="text-muted-foreground text-xs">
 					{m.common_selected_count({
