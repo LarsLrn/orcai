@@ -13,11 +13,9 @@ import {
 	referenceReview,
 } from "@/lib/ai/tools/gen-ui/review/fixtures";
 import { reviewSchema } from "@/lib/ai/tools/gen-ui/review/schema";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { Review } = await import("@/components/chat/gen-ui/review/review");
 
@@ -280,7 +278,7 @@ describe("Review", () => {
 
 		const outcome1 = rowOf("Outcome 1");
 		expect(outcome1.querySelector("ins")).toBeNull();
-		expect(outcome1.querySelector(".line-through")?.textContent).toBe(
+		expect(outcome1.querySelector("del")?.textContent).toBe(
 			outcomesReview.items[0].text,
 		);
 

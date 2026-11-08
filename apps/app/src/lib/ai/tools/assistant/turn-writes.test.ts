@@ -1,26 +1,5 @@
-import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { createTurnWrites, RUNNING_CALLS_WAIT_MS } from "./turn-writes";
-
-const timeout = AbortSignal.timeout;
-
-/** Ends the wait for running calls when `end` is called, instead of after its real bound. */
-const waitBound = () => {
-	const bound = new AbortController();
-	const timer = spyOn(AbortSignal, "timeout").mockImplementation((ms) =>
-		ms === RUNNING_CALLS_WAIT_MS ? bound.signal : timeout(ms),
-	);
-
-	return {
-		end: () => bound.abort(),
-		restore: () => timer.mockRestore(),
-	};
-};
-
-let restore: (() => void) | undefined;
-afterEach(() => {
-	restore?.();
-	restore = undefined;
-});
+import { describe, expect, test } from "bun:test";
+import { createTurnWrites } from "./turn-writes";
 
 const publish = [
 	"bot",
@@ -95,9 +74,8 @@ describe("createTurnWrites", () => {
 	});
 
 	test("stops waiting at the bound, and a call that ends later rejects nothing", async () => {
-		const bound = waitBound();
-		restore = bound.restore;
-		const writes = createTurnWrites();
+		const bound = new AbortController();
+		const writes = createTurnWrites(() => bound.signal);
 		const late = Promise.withResolvers<void>();
 		const failing = Promise.withResolvers<void>();
 		writes.track(late.promise.then(() => writes.record(publish, {}, {})));
@@ -107,7 +85,7 @@ describe("createTurnWrites", () => {
 		process.on("unhandledRejection", onUnhandled);
 
 		const settled = writes.settled();
-		bound.end();
+		bound.abort();
 		await settled;
 		const atBound = [
 			...writes.all(),

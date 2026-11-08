@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import type { ChatMessageMetadata, ChatMessagePart } from "@orcai/schema";
+import { storedPart, textPart, uiMessage } from "@/lib/ai/test-parts";
 import { displayToolMarkdown } from "@/lib/ai/tools/gen-ui/catalog";
 import {
 	capitalsAnswers,
@@ -7,7 +9,6 @@ import {
 import { gradeQuiz } from "@/lib/ai/tools/questions/quiz-result";
 import { askUserMarkdown } from "@/lib/ai/tools/questions/to-markdown";
 import { type MessageView, turnView } from "@/lib/ai/turn-view/turn-view";
-import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getLocale, overwriteGetLocale } from "@/paraglide/runtime";
 import {
 	messageToMarkdown,
@@ -25,28 +26,27 @@ const checklistInput = {
 	],
 };
 
+/** A stored message's view, as the chat shows it. */
 const message = (
 	role: "user" | "assistant",
-	parts: unknown[],
-	metadata?: unknown,
-) =>
-	turnView(
+	parts: ChatMessagePart[],
+	metadata?: ChatMessageMetadata,
+): MessageView => {
+	const [view] = turnView(
 		[
-			{
-				id: "message-1",
+			uiMessage({
 				role,
-				parts,
+				parts: parts.map(storedPart),
 				metadata,
-			} as unknown as ChatAgentUIMessage,
+			}),
 		],
 		"idle",
-	).messages[0] as MessageView;
+	).messages;
+	if (!view) throw new Error("The message has no view");
+	return view;
+};
 
-const text = (content: string) => ({
-	type: "text",
-	text: content,
-	state: "done",
-});
+const text = (content: string) => textPart(content);
 
 describe("messageToMarkdown", () => {
 	test("renders answered questions and a graded quiz", () => {
@@ -150,7 +150,7 @@ describe("messageToMarkdown", () => {
 	});
 
 	describe("citations", () => {
-		const citations = {
+		const citations: ChatMessageMetadata["citations"] = {
 			kgol9ts: {
 				kind: "asset",
 				assetId: "a2",

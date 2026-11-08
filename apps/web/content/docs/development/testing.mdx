@@ -5,6 +5,8 @@ description: How the Playwright end-to-end suite and the integration tier are ru
 
 The end-to-end suite proves that the application works against real infrastructure: a real database, a real authorisation store and real object storage. Unit tests (`bun run test`) never touch the stack, and the end-to-end suite always does. Each unit test file runs isolated in a pool of worker processes (`bun test --parallel`), so `mock.module` and DOM globals stay within their file.
 
+App unit tests that call the API replace `@/lib/orpc/orpc` with `scriptedOrpc` from `@/lib/testing/scripted-orpc`. It keeps the app's query utilities and answers only the procedures the test scripts, so an unscripted call fails with its name. Chat message parts come from the builders in `@/lib/ai/test-parts`, which check each part against the stored part schema.
+
 ## Runner
 
 - Playwright Test on the host, Chromium only.

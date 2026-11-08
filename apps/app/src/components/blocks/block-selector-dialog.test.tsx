@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { listBlocksInputSchema } from "@orcai/schema";
+import type { BlockId, UserId } from "@orcai/core";
+import { type BlockListItem, listBlocksInputSchema } from "@orcai/schema";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
 	cleanup,
@@ -8,65 +9,55 @@ import {
 	screen,
 	waitFor,
 } from "@testing-library/react";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 import { m } from "@/paraglide/messages";
 
-/** The library behind the fake `block.list`, newest first. */
-let library: {
-	id: string;
-	name: string;
-	status: "ready" | "draft";
-}[] = [];
+/** The library behind the scripted `block.list`, newest first. */
+let library: BlockListItem[] = [];
+
+const owner = {
+	id: crypto.randomUUID() as UserId,
+	name: "Ada",
+	image: null,
+};
 
 const behaviours = (count: number) =>
 	Array.from(
 		{
 			length: count,
 		},
-		(_, index) => ({
-			id: `block-${String(index)}`,
+		(_, index): BlockListItem => ({
+			id: crypto.randomUUID() as BlockId,
+			type: "behaviour",
 			name: `Behaviour ${String(index)}`,
-			status: "ready" as const,
+			description: null,
+			status: "ready",
+			createdAt: null,
+			capabilities: {},
+			owner,
+			homeOrganization: null,
+			assets: null,
 		}),
 	);
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {
+mock.module("@/lib/orpc/orpc", () =>
+	scriptedOrpc({
 		block: {
-			list: {
-				queryOptions: ({
-					input,
-					enabled,
-				}: {
-					input: unknown;
-					enabled: boolean;
-				}) => ({
-					queryKey: [
-						"block",
-						"list",
-						input,
-					],
-					enabled,
-					queryFn: () => {
-						const { pageIndex, pageSize, filters } =
-							listBlocksInputSchema.parse(input);
-						const search = filters?.search?.toLowerCase();
-						const rows = library.filter(
-							(block) => !search || block.name.toLowerCase().includes(search),
-						);
-						return {
-							data: rows.slice(
-								pageIndex * pageSize,
-								(pageIndex + 1) * pageSize,
-							),
-							rowCount: rows.length,
-						};
-					},
-				}),
+			list: (input) => {
+				const { pageIndex, pageSize, filters } =
+					listBlocksInputSchema.parse(input);
+				const search = filters?.search?.toLowerCase();
+				const rows = library.filter(
+					(block) => !search || block.name.toLowerCase().includes(search),
+				);
+				return {
+					data: rows.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize),
+					rowCount: rows.length,
+				};
 			},
 		},
-	},
-}));
+	}),
+);
 
 const { BlockSelectorDialog } = await import("./block-selector-dialog");
 

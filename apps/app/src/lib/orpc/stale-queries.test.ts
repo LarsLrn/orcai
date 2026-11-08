@@ -15,6 +15,7 @@ import {
 } from "@orpc/tanstack-query";
 import {
 	MutationObserver,
+	type MutationObserverOptions,
 	QueryClient,
 	type QueryKey,
 } from "@tanstack/react-query";
@@ -26,6 +27,16 @@ type AppClient = RouterClient<typeof router>;
 const groupA = "group-a" as GroupId;
 const groupB = "group-b" as GroupId;
 const userId = "user-1" as UserId;
+
+/** Runs a mutation with an input its stale queries do not read. */
+const mutateUnread = <Data, Failure, Variables, Context>(
+	queryClient: QueryClient,
+	options: MutationObserverOptions<Data, Failure, Variables, Context>,
+) =>
+	new MutationObserver<Data, Failure, Variables, Context>(
+		queryClient,
+		options,
+	).mutate({} as Variables);
 
 const setup = (call: () => Promise<unknown> = () => Promise.resolve({})) => {
 	const client = createORPCClient<AppClient>({
@@ -122,26 +133,11 @@ describe("invalidateStaleQueries", () => {
 	test("makes organisation readiness stale on every configuration edit", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [
+			() => mutateUnread(queryClient, orpc.provider.update.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.model.update.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.quotaPool.create.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.provider.update.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.model.update.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.quotaPool.create.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.organization.update.mutationOptions(),
-				).mutate({} as never),
+				mutateUnread(queryClient, orpc.organization.update.mutationOptions()),
 			() =>
 				new MutationObserver(
 					queryClient,
@@ -153,20 +149,16 @@ describe("invalidateStaleQueries", () => {
 					],
 				}),
 			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.organizationMember.delete.mutationOptions(),
-				).mutate({} as never),
+				),
 			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.organizationInvitation.create.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.user.delete.mutationOptions(),
-				).mutate({} as never),
+				),
+			() => mutateUnread(queryClient, orpc.user.delete.mutationOptions()),
 		];
 
 		for (const edit of edits) {
@@ -184,27 +176,21 @@ describe("invalidateStaleQueries", () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [
 			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.organizationMember.delete.mutationOptions(),
-				).mutate({} as never),
+				),
 			() =>
 				new MutationObserver(
 					queryClient,
 					orpc.organizationInvitation.respond.mutationOptions(),
 				).mutate({
+					id: crypto.randomUUID(),
 					response: "accept",
-				} as never),
+				}),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.instance.addMember.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.user.delete.mutationOptions(),
-				).mutate({} as never),
+				mutateUnread(queryClient, orpc.instance.addMember.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.user.delete.mutationOptions()),
 		];
 
 		for (const edit of edits) {
@@ -224,65 +210,44 @@ describe("invalidateStaleQueries", () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [
 			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.asset.createFromUploads.mutationOptions(),
-				).mutate({} as never),
+				),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.asset.prepareAgain.mutationOptions(),
-				).mutate({} as never),
+				mutateUnread(queryClient, orpc.asset.prepareAgain.mutationOptions()),
 			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.asset.generateMissingMetadata.mutationOptions(),
-				).mutate({} as never),
+				),
 			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.asset.dismissMetadataSuggestion.mutationOptions(),
-				).mutate({} as never),
+				),
+			() => mutateUnread(queryClient, orpc.asset.delete.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.block.update.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.asset.delete.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.block.update.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.block.prepareFailedAgain.mutationOptions(),
-				).mutate({} as never),
+				),
+			() => mutateUnread(queryClient, orpc.block.delete.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.block.delete.mutationOptions(),
-				).mutate({} as never),
+				mutateUnread(queryClient, orpc.dataExport.request.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.dataExport.request.mutationOptions(),
-				).mutate({} as never),
+				mutateUnread(queryClient, orpc.activity.dismissRun.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.activity.dismissRun.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.activity.dismissFailure.mutationOptions(),
-				).mutate({} as never),
+				),
 			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.organizationMember.delete.mutationOptions(),
-				).mutate({} as never),
+				),
 		];
 
 		for (const edit of edits) {
@@ -299,41 +264,22 @@ describe("invalidateStaleQueries", () => {
 	test("makes open chats stale whenever access to their bot or organisation changes", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [
+			() => mutateUnread(queryClient, orpc.resource.grant.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.resource.revoke.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.resource.grant.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.resource.revoke.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.resource.setVisibility.mutationOptions(),
-				).mutate({} as never),
+				),
+			() => mutateUnread(queryClient, orpc.group.addMembers.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.group.addMembers.mutationOptions(),
-				).mutate({} as never),
+				mutateUnread(queryClient, orpc.group.removeMembers.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.group.removeMembers.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
+				mutateUnread(
 					queryClient,
 					orpc.organizationMember.delete.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.bot.delete.mutationOptions(),
-				).mutate({} as never),
+				),
+			() => mutateUnread(queryClient, orpc.bot.delete.mutationOptions()),
 		];
 
 		for (const edit of edits) {
@@ -386,21 +332,10 @@ describe("invalidateStaleQueries", () => {
 	test("makes bot setup coverage stale whenever group membership changes", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [
+			() => mutateUnread(queryClient, orpc.group.addMembers.mutationOptions()),
 			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.group.addMembers.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.group.removeMembers.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.group.delete.mutationOptions(),
-				).mutate({} as never),
+				mutateUnread(queryClient, orpc.group.removeMembers.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.group.delete.mutationOptions()),
 		];
 
 		for (const edit of edits) {
@@ -420,26 +355,10 @@ describe("invalidateStaleQueries", () => {
 	test("makes bot setups and their chats stale whenever a model can change", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const edits = [
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.provider.update.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.provider.delete.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.model.update.mutationOptions(),
-				).mutate({} as never),
-			() =>
-				new MutationObserver(
-					queryClient,
-					orpc.model.delete.mutationOptions(),
-				).mutate({} as never),
+			() => mutateUnread(queryClient, orpc.provider.update.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.provider.delete.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.model.update.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.model.delete.mutationOptions()),
 		];
 
 		for (const edit of edits) {

@@ -1,5 +1,5 @@
 import { describe, expect, spyOn, test } from "bun:test";
-import type { AssetId, ChatId, ChatMessageId } from "@orcai/core";
+import type { AssetId, BotId, ChatId, ChatMessageId } from "@orcai/core";
 import type {
 	ContinueChatInput,
 	KeepUploadsInput,
@@ -8,6 +8,13 @@ import type {
 } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import type { UIMessageChunk } from "ai";
+import {
+	stepStartPart,
+	textPart,
+	toolPart,
+	uiMessage,
+} from "@/lib/ai/test-parts";
+import type { MessagePart } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { type ChatPage, type ChatPort, ChatSession } from "./chat-session";
 
@@ -19,61 +26,51 @@ const until = async (done: () => boolean) => {
 
 const chatId = "00000000-0000-4000-8000-0000000000c1" as ChatId;
 
-type Part = ChatAgentUIMessage["parts"][number];
-
 const message = (
 	id: string,
 	role: "user" | "assistant",
-	parts: unknown[],
+	parts: MessagePart[],
 ): ChatAgentUIMessage =>
-	({
-		id: id as ChatMessageId,
+	uiMessage({
+		id,
 		role,
-		parts: parts as Part[],
-	}) as ChatAgentUIMessage;
+		parts,
+	});
 
-const text = (value: string) => ({
-	type: "text",
-	text: value,
-	state: "done",
-});
+const text = (value: string) => textPart(value);
 
 const deleteBot = (
 	state: "approval-requested" | "approval-responded",
 	approved?: boolean,
-) => ({
-	type: "tool-deleteBot",
-	toolCallId: "delete-1",
-	state,
-	input: {
-		ids: [
-			"bot-1",
-		],
-	},
-	approval: {
-		id: "approval-1",
-		...(approved === undefined
-			? {}
-			: {
-					approved,
-				}),
-	},
-});
+) =>
+	toolPart("deleteBot", state, {
+		toolCallId: "delete-1",
+		input: {
+			ids: [
+				"bot-1" as BotId,
+			],
+		},
+		approval:
+			approved === undefined
+				? {
+						id: "approval-1",
+					}
+				: {
+						id: "approval-1",
+						approved,
+					},
+	});
 
-const requestUpload = {
-	type: "tool-requestUpload",
+const requestUpload = toolPart("requestUpload", "input-available", {
 	toolCallId: "upload-1",
-	state: "input-available",
 	input: {
 		reason: "Needs the style guide",
 	},
-};
+});
 
-const paused = (...calls: unknown[]) =>
+const paused = (...calls: MessagePart[]) =>
 	message("reply-1", "assistant", [
-		{
-			type: "step-start",
-		},
+		stepStartPart(),
 		...calls,
 	]);
 

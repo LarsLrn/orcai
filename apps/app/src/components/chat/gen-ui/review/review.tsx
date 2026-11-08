@@ -75,8 +75,8 @@ const Diff = ({ before, after }: { before: string; after: string }) => {
 	if (retainedShare(tokens) < 0.5) {
 		return (
 			<div className={cn(textClass, "space-y-1.5")}>
-				<p className="text-status-danger decoration-status-danger/50 line-through">
-					{before}
+				<p className="text-status-danger">
+					<del className="decoration-status-danger/50">{before}</del>
 				</p>
 				<p className="text-status-success">{revised}</p>
 			</div>

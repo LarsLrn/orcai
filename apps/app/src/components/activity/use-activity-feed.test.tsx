@@ -13,45 +13,21 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
+import {
+	type ScriptedProcedure,
+	scriptedOrpc,
+} from "@/lib/testing/scripted-orpc";
 import { getLocale, overwriteGetLocale } from "@/paraglide/runtime";
 
-const runs =
-	mock<
-		(input: { ids: ActivityRunId[] }) => Promise<{
-			data: ActivityRun[];
-		}>
-	>();
+const runs = mock<ScriptedProcedure<"activity", "runs">>();
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	client: {
+mock.module("@/lib/orpc/orpc", () =>
+	scriptedOrpc({
 		activity: {
 			runs,
 		},
-	},
-	orpc: {
-		activity: {
-			runs: {
-				key: () => [
-					"activity",
-					"runs",
-				],
-			},
-			attention: {
-				key: () => [
-					"activity",
-					"attention",
-				],
-			},
-			runMembers: {
-				key: () => [
-					"activity",
-					"runMembers",
-				],
-			},
-		},
-	},
-}));
+	}),
+);
 
 const { useActivityFeed } = await import("./use-activity-feed");
 
@@ -103,6 +79,7 @@ describe("useActivityFeed", () => {
 			data: [
 				run(id, "finished"),
 			],
+			hasMore: false,
 		});
 		const queryClient = new QueryClient();
 		const idle = summaryOf([]);

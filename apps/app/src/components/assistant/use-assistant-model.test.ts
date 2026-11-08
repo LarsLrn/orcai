@@ -1,9 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { assistantModelAvailability } = await import("./use-assistant-model");
 

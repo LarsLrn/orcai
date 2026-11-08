@@ -12,11 +12,9 @@ import {
 	type ChecklistInput,
 	checklistSchema,
 } from "@/lib/ai/tools/gen-ui/checklist/schema";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { Checklist } = await import(
 	"@/components/chat/gen-ui/checklist/checklist"

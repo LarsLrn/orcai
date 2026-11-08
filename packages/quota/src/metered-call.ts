@@ -34,6 +34,14 @@ export const QuotaRetry = Context.Reference<Schedule.Schedule<unknown>>(
 	},
 );
 
+/** Aborts once a call has run as long as its reservation may stay open. */
+export const MeteredCallDeadline = Context.Reference<() => AbortSignal>(
+	"MeteredCallDeadline",
+	{
+		defaultValue: () => () => AbortSignal.timeout(METERED_CALL_TIMEOUT_MS),
+	},
+);
+
 /** How a call ended; only the release of a call without usage tells them apart. */
 export type MeteredCallOutcome =
 	| "completed"
@@ -96,7 +104,7 @@ export const startMeteredCall = (
 		const services = yield* Effect.context<DB>();
 		const writes = yield* Semaphore.make(1);
 		const settled = yield* Deferred.make<void>();
-		const deadline = AbortSignal.timeout(METERED_CALL_TIMEOUT_MS);
+		const deadline = (yield* MeteredCallDeadline)();
 		const maxRequests =
 			reservation.meteringMode === "requests"
 				? reservation.reservedAmount

@@ -8,11 +8,9 @@ import {
 	waitForElementToBeRemoved,
 } from "@testing-library/react";
 import type { Citations } from "@/lib/ai/citations/chat-sources";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const DOCS_URL = "https://docs.example.org";
 let docsUrl: string | undefined = DOCS_URL;

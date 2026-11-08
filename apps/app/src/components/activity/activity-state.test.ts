@@ -14,24 +14,31 @@ import {
 	QueryClient,
 	QueryObserver,
 } from "@tanstack/react-query";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	client: {},
-	orpc: {
+/** The server's running runs and how often it was asked. */
+const server = {
+	runs: [] as ActivityRun[],
+	fetches: 0,
+};
+
+mock.module("@/lib/orpc/orpc", () =>
+	scriptedOrpc({
 		activity: {
-			summary: {
-				queryOptions: <T extends object>(options: T) => ({
-					queryKey: [
-						"activity",
-						"summary",
-					],
-					...options,
-				}),
+			summary: () => {
+				server.fetches += 1;
+				return {
+					running: server.runs,
+					attention: {
+						suggestions: 0,
+						failures: 0,
+						revision: "none",
+					},
+				};
 			},
 		},
-	},
-}));
+	}),
+);
 
 const { activitySummaryOptions } = await import("./activity-state");
 
@@ -68,24 +75,9 @@ const mounted = async () => {
 	const queryClient = new QueryClient();
 	// What QueryClientProvider does: follow focus and connectivity.
 	queryClient.mount();
-	const server = {
-		runs: [] as ActivityRun[],
-		fetches: 0,
-	};
-	const options = {
-		...activitySummaryOptions(),
-		queryFn: () => {
-			server.fetches += 1;
-			return Promise.resolve({
-				running: server.runs,
-				attention: {
-					suggestions: 0,
-					failures: 0,
-					revision: "none",
-				},
-			});
-		},
-	};
+	server.runs = [];
+	server.fetches = 0;
+	const options = activitySummaryOptions();
 	const unsubscribe = [
 		"header",
 		"dashboard card",

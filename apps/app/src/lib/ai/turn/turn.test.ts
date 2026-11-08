@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BotId, ChatMessageId } from "@orcai/core";
-import { METERED_CALL_TIMEOUT_MS, promptTokens } from "@orcai/quota";
+import { promptTokens } from "@orcai/quota";
 import { quota } from "@orcai/quota/testing";
 import type { TurnWrite } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
@@ -29,12 +29,10 @@ import {
 	drain,
 	ORGANIZATION_ID,
 	runTurn,
+	turnWaits,
 } from "./test-turn";
 
 const { ReplyStore } = await import("./reply-store");
-const { RUNNING_CALLS_WAIT_MS } = await import(
-	"../tools/assistant/turn-writes"
-);
 const { keepUploads } = await import("./turn");
 const { memoryReplyStore } = await import("./memory-reply-store");
 const AppErrors = await import("@/lib/effect/utils/errors");
@@ -303,11 +301,6 @@ describe("startTurn", () => {
 			}),
 			"anthropic",
 		);
-		const timeLimit = new AbortController();
-		const timeout = AbortSignal.timeout;
-		const timer = spyOn(AbortSignal, "timeout").mockImplementation((ms) =>
-			ms === METERED_CALL_TIMEOUT_MS ? timeLimit.signal : timeout(ms),
-		);
 		chat.script([
 			{
 				calls: [
@@ -330,15 +323,11 @@ describe("startTurn", () => {
 		// The time runs out while the second step is in flight.
 		chat.beforeRequest((count) => {
 			if (count === 2) {
-				timeLimit.abort();
+				quota.timeLimit.abort();
 			}
 		});
 
-		try {
-			await chat.send("Write it");
-		} finally {
-			timer.mockRestore();
-		}
+		await chat.send("Write it");
 
 		expect(quota.calls.settle).toHaveLength(1);
 		expect(quota.calls.settle[0]?.steps).toHaveLength(1);
@@ -1417,12 +1406,10 @@ describe("turn writes", () => {
 		const late = Promise.withResolvers<void>();
 		const waiting = Promise.withResolvers<void>();
 		const bound = new AbortController();
-		const timeout = AbortSignal.timeout;
-		const timer = spyOn(AbortSignal, "timeout").mockImplementation((ms) => {
-			if (ms !== RUNNING_CALLS_WAIT_MS) return timeout(ms);
+		turnWaits.runningCalls = () => {
 			waiting.resolve();
 			return bound.signal;
-		});
+		};
 		const published = answers["bot.publish"];
 		answers["bot.publish"] = (input) =>
 			Effect.promise(async () => {
@@ -1438,7 +1425,9 @@ describe("turn writes", () => {
 				late.resolve();
 				await new Promise((resolve) => setTimeout(resolve, 20));
 			},
-			restore: () => timer.mockRestore(),
+			restore: () => {
+				turnWaits.runningCalls = undefined;
+			},
 		};
 	};
 
