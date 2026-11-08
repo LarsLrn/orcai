@@ -1,16 +1,17 @@
 import { buckets, type DataExportId, type UserId } from "@orcai/core";
 import { DB, dbSchema, uniqueViolationConstraint } from "@orcai/db";
 import { enqueueNotification } from "@orcai/notifications";
-import { sendJobBatchInTransaction } from "@orcai/pg-boss";
+import { liveJobs, sendJobBatchInTransaction } from "@orcai/pg-boss";
 import { inActivityRun } from "@orcai/preparation";
 import { DATA_EXPORT_TTL_MS, dataExportKey } from "@orcai/s3";
 import {
+	DATA_EXPORT_DEAD_LETTER_JOB_NAME,
 	DATA_EXPORT_JOB_NAME,
 	type DataExport,
 	type DataExportPayload,
 	localeSchema,
 } from "@orcai/schema";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { AppConfigService } from "@/lib/effect/services/config";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -217,11 +218,12 @@ export const runDataExport = (
 		}),
 	);
 
-/** Marks exports whose retries ran out as failed. */
+/** Marks exports still in flight as failed and returns how many it failed. */
 export const failDataExports = (dataExportIds: readonly DataExportId[]) =>
 	Effect.gen(function* () {
+		if (dataExportIds.length === 0) return 0;
 		const db = yield* DB;
-		yield* db
+		const failed = yield* db
 			.update(dbSchema.dataExport)
 			.set({
 				status: "failed",
@@ -234,8 +236,87 @@ export const failDataExports = (dataExportIds: readonly DataExportId[]) =>
 					]),
 					inArray(dbSchema.dataExport.status, IN_FLIGHT),
 				),
-			);
+			)
+			.returning({
+				id: dbSchema.dataExport.id,
+			});
+		return failed.length;
 	});
+
+/** Exports in flight per batch of the sweep. */
+const SWEEP_BATCH = 1000;
+
+/**
+ * The batch of exports in flight after `after` that no export or dead letter
+ * job is left for: the dead letter handler failed too, or retention removed
+ * the job. `next` is where the following batch starts, absent after the last.
+ */
+export const strandedDataExports = (
+	after?: DataExportId,
+	limit = SWEEP_BATCH,
+) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		// Exports before jobs: an export is queued with its job, so a job of an export read here is live when the jobs are read.
+		const rows = yield* db
+			.select({
+				id: dbSchema.dataExport.id,
+			})
+			.from(dbSchema.dataExport)
+			.where(
+				and(
+					inArray(dbSchema.dataExport.status, IN_FLIGHT),
+					after ? gt(dbSchema.dataExport.id, after) : undefined,
+				),
+			)
+			.orderBy(asc(dbSchema.dataExport.id))
+			.limit(limit);
+		const ids = rows.map((row) => row.id);
+		const jobs = yield* liveJobs<DataExportPayload>(
+			[
+				DATA_EXPORT_JOB_NAME,
+				DATA_EXPORT_DEAD_LETTER_JOB_NAME,
+			],
+			{
+				paths: [
+					[
+						"dataExportId",
+					],
+				],
+				values: ids.map((id) => [
+					id,
+				]),
+			},
+		);
+		const live = new Set(jobs.map((job) => job.data.dataExportId));
+		return {
+			stranded: ids.filter((id) => !live.has(id)),
+			next: ids.length > 0 && ids.length === limit ? ids.at(-1) : undefined,
+		};
+	});
+
+/**
+ * Fails the exports in flight that no job will finish, batch by batch, so
+ * their users can export again.
+ */
+export const sweepDataExports = Effect.gen(function* () {
+	let after: DataExportId | undefined;
+	let failed = 0;
+	do {
+		const batch: Effect.Success<ReturnType<typeof strandedDataExports>> =
+			yield* strandedDataExports(after);
+		failed += yield* failDataExports(batch.stranded);
+		after = batch.next;
+	} while (after);
+	if (failed > 0) {
+		yield* Effect.logWarning(
+			{
+				failed,
+			},
+			"Failed data exports no job will finish",
+		);
+	}
+});
 
 /** Where a ready, unexpired export of `userId` lives, or undefined. */
 export const downloadableDataExport = (

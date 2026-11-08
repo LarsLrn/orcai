@@ -3,6 +3,7 @@ import {
 	DATA_EXPORT_DEAD_LETTER_JOB_NAME,
 	DATA_EXPORT_EXPIRE_JOB_NAME,
 	DATA_EXPORT_JOB_NAME,
+	DATA_EXPORT_SWEEP_JOB_NAME,
 	DELETION_CLEANUP_JOB_NAME,
 	GENERATE_ASSET_METADATA_DEAD_LETTER_JOB_NAME,
 	GENERATE_ASSET_METADATA_JOB_NAME,
@@ -119,6 +120,10 @@ export const QUEUES: { readonly [Q in JobQueue]: QueueSettings } = {
 	[DATA_EXPORT_EXPIRE_JOB_NAME]: {
 		...work,
 		schedule: "*/10 * * * *",
+	},
+	[DATA_EXPORT_SWEEP_JOB_NAME]: {
+		...work,
+		schedule: "*/5 * * * *",
 	},
 };
 
