@@ -4,6 +4,14 @@ import type {
 	OrganizationId,
 	UserId,
 } from "@orcai/core";
+import {
+	GROUP_KINDS,
+	GROUP_SYSTEM_KEYS,
+	PRINCIPAL_TYPES,
+	RESOURCE_GRANT_ROLES,
+	RESOURCE_TYPES,
+	RESOURCE_VISIBILITIES,
+} from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	boolean,
@@ -21,36 +29,23 @@ import {
 import { user } from "./auth";
 import { organization } from "./organization";
 
-export const resourceTypeEnum = pgEnum("resource_type", [
-	"bot",
-	"block",
-	"asset",
-]);
+export const resourceTypeEnum = pgEnum("resource_type", RESOURCE_TYPES);
 
-export const resourceGrantRoleEnum = pgEnum("resource_grant_role", [
-	"viewer",
-	"editor",
-	"manager",
-]);
+export const resourceGrantRoleEnum = pgEnum(
+	"resource_grant_role",
+	RESOURCE_GRANT_ROLES,
+);
 
-export const principalTypeEnum = pgEnum("principal_type", [
-	"user",
-	"group",
-]);
+export const principalTypeEnum = pgEnum("principal_type", PRINCIPAL_TYPES);
 
-export const groupKindEnum = pgEnum("group_kind", [
-	"system",
-	"custom",
-]);
+export const groupKindEnum = pgEnum("group_kind", GROUP_KINDS);
 
-export const groupSystemKeyEnum = pgEnum("group_system_key", [
-	"all_members",
-]);
+export const groupSystemKeyEnum = pgEnum("group_system_key", GROUP_SYSTEM_KEYS);
 
-export const resourceVisibilityEnum = pgEnum("resource_visibility_enum", [
-	"private",
-	"public",
-]);
+export const resourceVisibilityEnum = pgEnum(
+	"resource_visibility_enum",
+	RESOURCE_VISIBILITIES,
+);
 
 export const authzOutboxStatusEnum = pgEnum("authz_outbox_status", [
 	"pending",

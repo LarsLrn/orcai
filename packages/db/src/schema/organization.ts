@@ -1,6 +1,7 @@
 import {
 	type MemberId,
 	type ModelId,
+	ORGANIZATION_ROLES,
 	type OrganizationId,
 	type OrganizationInvitationId,
 	type ProviderId,
@@ -26,12 +27,10 @@ import {
 import { user } from "./auth";
 import { model, provider } from "./model";
 
-export const organizationRoleEnum = pgEnum("organization_role", [
-	"admin",
-	"manager",
-	"member",
-	"viewer",
-]);
+export const organizationRoleEnum = pgEnum(
+	"organization_role",
+	ORGANIZATION_ROLES,
+);
 
 export const organizationWebSearchModeEnum = pgEnum(
 	"organization_web_search_mode",

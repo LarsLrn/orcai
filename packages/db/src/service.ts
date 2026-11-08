@@ -17,11 +17,11 @@ export const PgClientServiceLive: Layer.Layer<
 > = Layer.unwrap(
 	Effect.gen(function* () {
 		const { config } = yield* DbConfigService;
-		const url = makePgConnectionString(config.postgres);
+		const url = makePgConnectionString(config);
 
 		return PgClient.layer({
 			url,
-			maxConnections: config.postgres.poolMax,
+			maxConnections: config.poolMax,
 			applicationName,
 			// Compiling short queries costs far more than it saves.
 			startupParameters: {

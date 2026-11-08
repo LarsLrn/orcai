@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import type { ActivityRunId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { leaseRun } from "@orcai/preparation";
+import { defaultRepositoryConfig } from "@orcai/schema";
 import { createUser, integrationRuntime, rolledBack } from "@orcai/testing";
 import { eq, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -228,7 +229,7 @@ test(
 						.values({
 							type: "repository",
 							name: "Cleanup repository",
-							config: {},
+							config: defaultRepositoryConfig,
 							userId: user.id,
 						})
 						.returning();

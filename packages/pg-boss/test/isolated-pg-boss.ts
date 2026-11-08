@@ -41,9 +41,7 @@ export const IsolatedPgBossLive = (
 					.pipe(Effect.orDie),
 			);
 			const boss = new PgBoss({
-				connectionString: Redacted.value(
-					makePgConnectionString(config.postgres),
-				),
+				connectionString: Redacted.value(makePgConnectionString(config)),
 				schema,
 				// Test files run in parallel against one Postgres, so each keeps few
 				// connections and runs no maintenance unless it asks for it.

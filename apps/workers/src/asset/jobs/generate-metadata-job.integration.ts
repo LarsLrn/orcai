@@ -23,6 +23,7 @@ import { QdrantLive } from "@orcai/qdrant";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	type AssetMetadataType,
+	defaultRepositoryConfig,
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type GenerateAssetMetadataPayload,
 	type MetadataGenerationMode,
@@ -683,7 +684,7 @@ test(
 					.values({
 						type: "repository",
 						name: "Deleted repository",
-						config: {},
+						config: defaultRepositoryConfig,
 						userId: seeded.adminId,
 					})
 					.returning({

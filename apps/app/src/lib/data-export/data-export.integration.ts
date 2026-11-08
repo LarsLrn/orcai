@@ -70,7 +70,9 @@ const seed = (userId: UserId, organizationId: OrganizationId) =>
 				.values({
 					type: "behaviour",
 					name: "Export block",
-					config: {},
+					config: {
+						systemPrompt: "",
+					},
 					userId,
 				})
 				.returning();
@@ -315,7 +317,9 @@ const seedOrdered = (userId: UserId, organizationId: OrganizationId) =>
 					id: row.id,
 					type: "behaviour" as const,
 					name: `Block ${row.index}`,
-					config: {},
+					config: {
+						systemPrompt: "",
+					},
 					userId,
 					createdAt: row.createdAt,
 				})),

@@ -5,10 +5,12 @@ import type {
 	OrganizationId,
 	UserId,
 } from "@orcai/core";
-import type {
-	Features,
-	GenerationSettings,
-	PublicationStatus,
+import {
+	BOT_SETUP_STRENGTHS,
+	type Bot,
+	type Features,
+	type GenerationSettings,
+	type PublicationStatus,
 } from "@orcai/schema";
 import {
 	type AnyPgColumn,
@@ -34,7 +36,10 @@ export const bot = pgTable("bot", {
 	description: varchar("description", {
 		length: 500,
 	}).notNull(),
-	contentJson: json("content_json").notNull().default({}),
+	contentJson: json("content_json")
+		.$type<Bot["contentJson"]>()
+		.notNull()
+		.default({}),
 	status: text("status").$type<PublicationStatus>().notNull().default("ready"),
 	userId: uuid("user_id")
 		.$type<UserId>()
@@ -107,10 +112,10 @@ export const botFavourite = pgTable(
 	],
 );
 
-export const botSetupStrengthEnum = pgEnum("bot_setup_strength", [
-	"recommended",
-	"required",
-]);
+export const botSetupStrengthEnum = pgEnum(
+	"bot_setup_strength",
+	BOT_SETUP_STRENGTHS,
+);
 
 /** A bot's model and generation settings in one organisation. */
 export const botSetup = pgTable(

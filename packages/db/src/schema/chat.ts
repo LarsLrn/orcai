@@ -7,7 +7,7 @@ import type {
 	ProviderId,
 	UserId,
 } from "@orcai/core";
-import type { Features } from "@orcai/schema";
+import { CHAT_KINDS, type Features } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
@@ -26,10 +26,7 @@ import { chatMessage } from "./chat-message";
 import { chatTitleSearchVector } from "./chat-search";
 import { organization } from "./organization";
 
-export const chatKindEnum = pgEnum("chat_kind", [
-	"chat",
-	"assistant",
-]);
+export const chatKindEnum = pgEnum("chat_kind", CHAT_KINDS);
 
 export const chat = pgTable(
 	"chat",

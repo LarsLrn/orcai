@@ -3,11 +3,11 @@ import * as Redacted from "effect/Redacted";
 import { Pool } from "pg";
 
 const cfg = loadDbConfigSync();
-const pgConnectionString = makePgConnectionString(cfg.postgres);
+const pgConnectionString = makePgConnectionString(cfg);
 
 export const pgPool = new Pool({
 	connectionString: Redacted.value(pgConnectionString),
-	max: cfg.postgres.poolMax,
+	max: cfg.poolMax,
 });
 
 // pg removes failed idle clients. Handle the event to avoid an uncaught error.
