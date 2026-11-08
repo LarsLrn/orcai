@@ -5,7 +5,7 @@ import { notFound } from "@tanstack/react-router";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound } from "@/lib/router/not-found";
 
-/** The block behind a kind's path; a block of another type is not found there. */
+/** The block behind a type's path; a block of another type is not found there. */
 export const loadBlockOfType = async ({
 	queryClient,
 	blockId,

@@ -3,9 +3,9 @@ import { loadRepositoryReadiness } from "@/components/assets/readiness/use-repos
 import { BlockDetailPage } from "@/components/blocks/block-detail-page";
 import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
 
-export const Route = createFileRoute("/app/library/repositories/$blockId/")({
-	// The asset states fail only themselves.
-	loader: async ({ context: { queryClient }, params: { blockId } }) => {
+export const Route = createFileRoute("/app/library/$kind/$blockId/")({
+	// A repository's asset states fail only themselves.
+	loader: async ({ context: { queryClient }, params: { kind, blockId } }) => {
 		await Promise.all([
 			queryClient.query(
 				resourceVisibilityQuery({
@@ -13,11 +13,12 @@ export const Route = createFileRoute("/app/library/repositories/$blockId/")({
 					id: blockId,
 				}),
 			),
-			Promise.allSettled([
-				loadRepositoryReadiness(queryClient, [
-					blockId,
+			kind === "repository" &&
+				Promise.allSettled([
+					loadRepositoryReadiness(queryClient, [
+						blockId,
+					]),
 				]),
-			]),
 		]);
 	},
 	component: RouteComponent,

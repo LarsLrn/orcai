@@ -10,7 +10,6 @@ import { FileIcon, ShieldIcon, SquareStackIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DataTableFeatures } from "@/components/ui/data-table/data-table-features";
-import { blockPaths } from "@/lib/navigation/block-paths";
 import { m } from "@/paraglide/messages";
 import { getResourceRoleLabel } from "@/settings/display-config";
 
@@ -90,8 +89,9 @@ const ResourceLink = ({ access }: { access: MemberAccessEntry }) => {
 		case "block":
 			return (
 				<Link
-					to={blockPaths(access.blockType).detail}
+					to="/app/library/$kind/$blockId"
 					params={{
+						kind: access.blockType,
 						blockId: access.resourceId,
 					}}
 					className={className}

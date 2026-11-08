@@ -51,9 +51,12 @@ export const LIBRARY_VIEWS = [
 	},
 	{
 		view: "behaviour",
-		routeId: "/app/library/behaviours/",
+		routeId: "/app/library/$kind/",
 		link: {
-			to: "/app/library/behaviours",
+			to: "/app/library/$kind",
+			params: {
+				kind: "behaviour",
+			},
 		},
 		label: m.library_view_behaviour,
 		Icon: RESOURCE_KINDS.behaviour.Icon,
@@ -61,9 +64,12 @@ export const LIBRARY_VIEWS = [
 	},
 	{
 		view: "repository",
-		routeId: "/app/library/repositories/",
+		routeId: "/app/library/$kind/",
 		link: {
-			to: "/app/library/repositories",
+			to: "/app/library/$kind",
+			params: {
+				kind: "repository",
+			},
 		},
 		label: m.library_view_repository,
 		Icon: RESOURCE_KINDS.repository.Icon,

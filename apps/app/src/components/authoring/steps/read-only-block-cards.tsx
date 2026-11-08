@@ -42,8 +42,9 @@ const ReadOnlyBehaviourCard = ({ block }: { block: BotEditorBehaviour }) => {
 						onClick={() =>
 							block.id
 								? navigate({
-										to: "/app/library/behaviours/$blockId",
+										to: "/app/library/$kind/$blockId",
 										params: {
+											kind: "behaviour",
 											blockId: block.id,
 										},
 									})
@@ -126,8 +127,9 @@ const ReadOnlyRepositoryCard = ({
 						onClick={() =>
 							block.id
 								? navigate({
-										to: "/app/library/repositories/$blockId",
+										to: "/app/library/$kind/$blockId",
 										params: {
+											kind: "repository",
 											blockId: block.id,
 										},
 									})

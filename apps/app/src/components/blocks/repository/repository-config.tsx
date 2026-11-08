@@ -239,8 +239,9 @@ const AssetSection = ({
 							label: m.blocks_repository_config_explore_action(),
 							icon: TelescopeIcon,
 							linkProps: {
-								to: "/app/library/repositories/$blockId/explore",
+								to: "/app/library/$kind/$blockId/explore",
 								params: {
+									kind: "repository",
 									blockId,
 								},
 							},

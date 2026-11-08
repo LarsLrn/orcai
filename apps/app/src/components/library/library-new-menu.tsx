@@ -40,7 +40,10 @@ const NEW_ITEMS: {
 		tone: "text-kind-behaviour",
 		requires: "create_block",
 		linkProps: {
-			to: "/app/library/behaviours/add",
+			to: "/app/library/$kind/add",
+			params: {
+				kind: "behaviour",
+			},
 		},
 	},
 	{
@@ -50,7 +53,10 @@ const NEW_ITEMS: {
 		tone: "text-kind-repository",
 		requires: "create_block",
 		linkProps: {
-			to: "/app/library/repositories/add",
+			to: "/app/library/$kind/add",
+			params: {
+				kind: "repository",
+			},
 		},
 	},
 	{

@@ -3,35 +3,12 @@ import {
 	botIdSchema,
 	type CatalogueEntryRef,
 	type CatalogueKind,
-	catalogueKindSchema,
 } from "@orcai/schema";
 import type { QueryClient } from "@tanstack/react-query";
 import { notFound, redirect } from "@tanstack/react-router";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
 import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
 import { orNotFound, parseParam } from "@/lib/router/not-found";
-
-const SLUGS = {
-	bot: "bots",
-	behaviour: "behaviours",
-	repository: "repositories",
-} as const satisfies Record<CatalogueKind, string>;
-
-/** The `$kind` segment: a kind's plural slug in the path, the kind in params; any other slug is not found. */
-export const catalogueKindParams = {
-	parse: ({ kind: slug }: { kind: string }) => {
-		const kind = catalogueKindSchema.options.find(
-			(candidate) => SLUGS[candidate] === slug,
-		);
-		if (!kind) throw notFound();
-		return {
-			kind,
-		};
-	},
-	stringify: ({ kind }: { kind: CatalogueKind }) => ({
-		kind: SLUGS[kind],
-	}),
-};
 
 /** The entry a kind's path names, as `catalogue.find`, `add` and `remove` take it; an id that does not parse is not found. */
 export const catalogueEntryRef = (

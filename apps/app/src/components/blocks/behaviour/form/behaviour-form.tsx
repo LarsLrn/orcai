@@ -6,7 +6,6 @@ import {
 	useUpdateBlockMutation,
 } from "@/hooks/mutations/use-block-mutations";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
-import { blockPaths } from "@/lib/navigation/block-paths";
 import { getPublicationStatusOptions } from "@/lib/presentation/publication-status";
 import { m } from "@/paraglide/messages";
 import { BehaviourFieldGroup } from "./behaviour-field-group";
@@ -35,8 +34,9 @@ const BehaviourForm = ({
 					: await createBlock(value);
 			if (result.status === "success") {
 				await navigate({
-					to: blockPaths(result.data.data.type).detail,
+					to: "/app/library/$kind/$blockId",
 					params: {
+						kind: result.data.data.type,
 						blockId: result.data.data.id,
 					},
 					ignoreBlocker: true,

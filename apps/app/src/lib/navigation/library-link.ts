@@ -17,15 +17,17 @@ export const libraryLink = (resource: {
 			};
 		case "behaviour":
 			return {
-				to: "/app/library/behaviours/$blockId",
+				to: "/app/library/$kind/$blockId",
 				params: {
+					kind: "behaviour",
 					blockId: blockIdSchema.parse(resource.id),
 				},
 			};
 		case "repository":
 			return {
-				to: "/app/library/repositories/$blockId",
+				to: "/app/library/$kind/$blockId",
 				params: {
+					kind: "repository",
 					blockId: blockIdSchema.parse(resource.id),
 				},
 			};
