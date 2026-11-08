@@ -91,9 +91,9 @@ for (const path of [
 			}
 			await expect(page.getByText(pagePrefix), url).toBeVisible();
 			await expect(
-				page
-					.getByText(message("data_table_pagination_rows_per_page_label"))
-					.locator("xpath=following-sibling::*[@role='combobox']"),
+				page.getByRole("combobox", {
+					name: message("data_table_pagination_rows_per_page_label"),
+				}),
 				url,
 			).toContainText("20");
 		}

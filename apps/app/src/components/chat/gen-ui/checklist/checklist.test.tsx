@@ -130,9 +130,7 @@ describe("checklistSchema", () => {
 
 describe("Checklist", () => {
 	test("renders the header with title, description and tally", () => {
-		const { container } = render(
-			<Checklist view={readChecklist(statusList)} streaming={false} />,
-		);
+		render(<Checklist view={readChecklist(statusList)} streaming={false} />);
 
 		expect(
 			screen.getByRole("heading", {
@@ -142,14 +140,16 @@ describe("Checklist", () => {
 		expect(
 			screen.getByText("Four references and the list as a whole."),
 		).toBeDefined();
-		const header = container.querySelector("h3")?.parentElement
-			?.parentElement as HTMLElement;
 		expect(
-			within(header)
-				.getAllByRole("img")
-				.map((icon) => [
-					icon.getAttribute("aria-label"),
-					icon.parentElement?.textContent,
+			within(
+				screen.getByRole("list", {
+					name: "Status counts",
+				}),
+			)
+				.getAllByRole("listitem")
+				.map((item) => [
+					within(item).getByRole("img").getAttribute("aria-label"),
+					item.textContent,
 				]),
 		).toEqual([
 			[
@@ -260,7 +260,7 @@ describe("Checklist", () => {
 	});
 
 	test("renders no header without title, description or statuses", () => {
-		const { container } = render(
+		render(
 			<Checklist
 				view={readChecklist({
 					items: [
@@ -273,7 +273,12 @@ describe("Checklist", () => {
 			/>,
 		);
 
-		expect(container.querySelector(".border-b")).toBeNull();
+		expect(screen.queryByRole("heading")).toBeNull();
+		expect(
+			screen.queryByRole("list", {
+				name: "Status counts",
+			}),
+		).toBeNull();
 	});
 
 	const missingStatus = {

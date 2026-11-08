@@ -1,13 +1,12 @@
 import { expect, test } from "../../fixtures/index";
 import {
-	addMember,
 	memberRow,
 	reachPage,
 	rowMenuItems,
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 /**
  * The table holds 20 rows per page, newest member first, and the worker
@@ -24,7 +23,11 @@ test("members: an admin sees every member of the organisation", async ({
 	zedTokens,
 }) => {
 	const user = await createUser("listed");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -57,7 +60,11 @@ test("members: a manager sees the members page but may not remove an admin", asy
 	zedTokens,
 }) => {
 	const user = await createUser("manager-view");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
@@ -111,7 +118,11 @@ test("members: an admin searches the organisation members by email", async ({
 	zedTokens,
 }) => {
 	const user = await createUser("searched");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);

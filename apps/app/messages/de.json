@@ -3485,6 +3485,7 @@
 	"gen_ui_severity_error": "Fehler",
 	"gen_ui_severity_info": "Hinweis",
 	"gen_ui_severity_warning": "Warnung",
+	"gen_ui_status_counts_label": "Anzahl je Status",
 	"gen_ui_status_met": "Erfüllt",
 	"gen_ui_status_n_a": "Nicht prüfbar",
 	"gen_ui_status_not_met": "Nicht erfüllt",

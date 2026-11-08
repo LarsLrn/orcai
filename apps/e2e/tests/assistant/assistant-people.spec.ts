@@ -21,7 +21,6 @@ import { ask } from "../../fixtures/gen-ui/gen-ui";
 import { groupsName } from "../../fixtures/groups/groups";
 import type { ApiClient } from "../../fixtures/index";
 import { expect, test } from "../../fixtures/index";
-import { addMember } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import {
@@ -29,7 +28,7 @@ import {
 	invitationEmail,
 } from "../../fixtures/orgs/invitations";
 import { memberRole } from "../../fixtures/orgs/members";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 const DONE = "That is done.";
 
@@ -120,7 +119,11 @@ test("assistant: a manager changes a member's role through the card", async ({
 	await setUpAssistantModel(api, org, inference);
 	const manager = api.as("manager");
 	const user = await createUser("assistant-role");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	const chatId = await startTitledConversation(manager, inference);
 	const call = {
 		name: "changeMemberRole",
@@ -170,7 +173,11 @@ test("assistant: a manager adds a member to a group through the card", async ({
 	await setUpAssistantModel(api, org, inference);
 	const manager = api.as("manager");
 	const user = await createUser("assistant-group");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	const groupName = groupsName("Assistant");
 	const group = await manager.group.create({
 		name: groupName,

@@ -91,7 +91,7 @@ Import `test` and `expect` from `apps/e2e/fixtures/index.ts` and the other
 helpers from the foundation file that holds them, such as `open` from
 `fixtures/navigation.ts`. Use the `inference` fixture for specs that need a
 provider endpoint and read its requests through `fixtures/inference/requests.ts`.
-Create users with `fixtures/users.ts`. `open` and `submitForm` wait until the
+Create users and add them to organisations with `fixtures/users.ts`. `open` and `submitForm` wait until the
 page has hydrated. After a reload `open` did not make, call `awaitHydration`
 before any other interaction.
 Every page from the fixtures fails its test on an uncaught error, which

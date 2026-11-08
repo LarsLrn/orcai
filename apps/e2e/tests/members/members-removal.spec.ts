@@ -7,14 +7,13 @@ import {
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import {
-	addMember,
 	adoptZedToken,
 	memberRow,
 	reachPage,
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 test("members: an admin removes a user from the organisation", async ({
 	api,
@@ -23,7 +22,11 @@ test("members: an admin removes a user from the organisation", async ({
 	zedTokens,
 }) => {
 	const user = await createUser("removed");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -75,7 +78,11 @@ test("members: a removed user loses the organisation it was signed in to", async
 	zedTokens,
 }) => {
 	const user = await createUser("evicted");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	await createApiClient(
 		baseURL(),
 		user.session.cookieHeader,
@@ -115,7 +122,11 @@ test("members: an admin deletes a user's account", async ({
 	zedTokens,
 }) => {
 	const user = await createUser("deleted");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	// Deleting an account is an instance action, so an organisation admin is
 	// refused however much it may manage inside its own organisation.
@@ -148,7 +159,11 @@ test("members: deleting an account hands its content to the chosen member", asyn
 	zedTokens,
 }) => {
 	const user = await createUser("owner");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	// A throwaway user is created without an organisation, and creating a
 	// block is an organisation action, so the session gets one first.
@@ -194,7 +209,11 @@ test("members: a removed user loses the access its groups and grants gave it", a
 	zedTokens,
 }) => {
 	const user = await createUser("detached");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	const client = createApiClient(
 		baseURL(),
 		user.session.cookieHeader,

@@ -38,13 +38,12 @@ export const openAccountPage = async (
 	);
 };
 
-/** The card whose title is `title`; card titles are `div`s, not headings. */
+/** The card whose title is `title`. */
 export const accountCard = (page: Page, title: string): Locator =>
-	page
-		.getByText(title, {
-			exact: true,
-		})
-		.locator('xpath=ancestor::div[@data-slot="card"][1]');
+	page.getByRole("group", {
+		name: title,
+		exact: true,
+	});
 
 /** The sidebar user menu button, which names the signed-in user. */
 export const userMenu = (page: Page, name: string): Locator =>

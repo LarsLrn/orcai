@@ -160,6 +160,11 @@ describe("DataTable", () => {
 		await renderTable();
 		expect(screen.getByText("Alpha")).toBeTruthy();
 		expect(screen.getByText("Gamma")).toBeTruthy();
+		expect(
+			screen.getByRole("combobox", {
+				name: "Rows per page",
+			}),
+		).toBeTruthy();
 		cleanup();
 
 		await renderTable({
@@ -167,7 +172,11 @@ describe("DataTable", () => {
 			rowCount: 0,
 		});
 		expect(screen.getByText("Nothing yet")).toBeTruthy();
-		expect(screen.queryByText("Rows per page")).toBeNull();
+		expect(
+			screen.queryByRole("combobox", {
+				name: "Rows per page",
+			}),
+		).toBeNull();
 	});
 
 	test("an empty page past the data moves back to the last page", async () => {

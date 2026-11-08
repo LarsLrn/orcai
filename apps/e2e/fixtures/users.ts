@@ -1,9 +1,14 @@
 import type { UserId } from "@orcai/core";
 import { organizationIdSchema, userIdSchema } from "@orcai/schema";
-import { type ApiClient, createApiClient } from "./api";
-import { activeOrganizationOf, type Session, signUpInvited } from "./auth";
+import { type ApiClient, createApiClient, type ZedTokenStore } from "./api";
+import {
+	activeOrganizationOf,
+	inviteEmail,
+	type Session,
+	signUpInvited,
+} from "./auth";
 import { untilAllowed } from "./authorization";
-import { EMAIL_DOMAIN, USER_PASSWORD } from "./constants";
+import { EMAIL_DOMAIN, type Role, USER_PASSWORD } from "./constants";
 import { baseURL } from "./env";
 import { runId, signUpUnaffiliated } from "./organisation";
 
@@ -79,4 +84,32 @@ export const createMember = async (params: {
 		session,
 		api,
 	};
+};
+
+/**
+ * Add an existing user to the active organisation of `admin`: invite the
+ * address, then accept as the user. The acceptance goes through `zedTokens`,
+ * so the test's later reads and pages see the membership.
+ */
+export const addMember = async (
+	admin: ApiClient,
+	membership: {
+		user: FreshUser;
+		role: Role;
+		zedTokens: ZedTokenStore;
+	},
+): Promise<void> => {
+	const { id } = await inviteEmail(admin, {
+		email: membership.user.email,
+		role: membership.role,
+	});
+
+	await createApiClient(
+		baseURL(),
+		membership.user.session.cookieHeader,
+		membership.zedTokens,
+	).organizationInvitation.respond({
+		id,
+		response: "accept",
+	});
 };

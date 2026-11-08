@@ -1,4 +1,5 @@
 import { ChevronDownIcon } from "lucide-react";
+import { useId } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import {
 	StatusIcon,
@@ -26,13 +27,23 @@ export const Checklist = ({
 	const statuses = items.map((item) => item.status);
 	const withStatus = statuses.some(Boolean);
 	const withHeader = Boolean(title || description || withStatus);
+	const titleId = useId();
 
 	return (
-		<div className="bg-card overflow-hidden rounded-xl border">
+		// biome-ignore lint/a11y/useSemanticElements: groups content, not form controls
+		<div
+			role="group"
+			aria-labelledby={title ? titleId : undefined}
+			className="bg-card overflow-hidden rounded-xl border"
+		>
 			{withHeader && (
 				<div className="flex items-start justify-between gap-4 border-b px-4 py-3">
 					<div className="min-w-0 space-y-1">
-						{title && <h3 className="text-sm font-medium">{title}</h3>}
+						{title && (
+							<h3 id={titleId} className="text-sm font-medium">
+								{title}
+							</h3>
+						)}
 						{description && (
 							<p className="text-muted-foreground text-xs">{description}</p>
 						)}

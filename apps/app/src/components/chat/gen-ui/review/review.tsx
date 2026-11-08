@@ -1,5 +1,5 @@
 import { CopyIcon } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { copyRevision } from "@/components/chat/gen-ui/review/copy";
 import {
@@ -126,14 +126,14 @@ const Findings = ({
 						className="mt-0.5"
 					/>
 					<div className="min-w-0 flex-1">
-						<span className="font-medium">
+						<strong className="font-medium">
 							{number !== undefined && (
 								<sup className="text-muted-foreground mr-1 text-[10px]">
 									{number}
 								</sup>
 							)}
 							{finding.label}
-						</span>{" "}
+						</strong>{" "}
 						{finding.note && (
 							<MessageResponse className="text-muted-foreground inline [&>p]:inline">
 								{finding.note}
@@ -295,10 +295,17 @@ export const Review = ({
 	const [tab, setTab] = useState<Tab>("findings");
 	const { title, items } = view;
 	const hasRevisions = items.some((item) => item.revised);
+	const titleId = useId();
+	const named = {
+		role: "group",
+		"aria-labelledby": title ? titleId : undefined,
+	};
 	const heading = (
 		<div className="min-w-0 space-y-1">
 			{title ? (
-				<h3 className="text-sm font-medium">{title}</h3>
+				<h3 id={titleId} className="text-sm font-medium">
+					{title}
+				</h3>
 			) : (
 				<Skeleton className="h-4 w-40" />
 			)}
@@ -308,7 +315,7 @@ export const Review = ({
 
 	if (!hasRevisions)
 		return (
-			<div className="bg-card overflow-hidden rounded-xl border">
+			<div {...named} className="bg-card overflow-hidden rounded-xl border">
 				<div className="flex items-center justify-between gap-3 border-b px-4 py-3">
 					{heading}
 				</div>
@@ -317,6 +324,7 @@ export const Review = ({
 		);
 	return (
 		<Tabs
+			{...named}
 			value={tab}
 			onValueChange={(value) => {
 				const next = TABS.find((candidate) => candidate === value);

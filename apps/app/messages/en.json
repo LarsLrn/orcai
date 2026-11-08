@@ -3485,6 +3485,7 @@
 	"gen_ui_severity_error": "Error",
 	"gen_ui_severity_info": "Info",
 	"gen_ui_severity_warning": "Warning",
+	"gen_ui_status_counts_label": "Status counts",
 	"gen_ui_status_met": "Met",
 	"gen_ui_status_n_a": "Not checkable",
 	"gen_ui_status_not_met": "Not met",

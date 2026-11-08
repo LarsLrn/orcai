@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { createContext, use, useId, useLayoutEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,19 +12,38 @@ function Card({
 	size?: "default" | "sm";
 	selected?: boolean;
 }) {
+	const titleId = useId();
+	const [titled, setTitled] = useState(false);
 	return (
-		<div
-			data-slot="card"
-			data-size={size}
-			data-selected={selected ? "true" : undefined}
-			className={cn(
-				"group/card bg-card text-card-foreground ring-foreground/5 data-[selected=true]:ring-accent-brand dark:ring-foreground/10 flex flex-col gap-6 overflow-hidden rounded-4xl py-6 text-sm shadow-md ring-1 transition-shadow duration-200 has-[>img:first-child]:pt-0 data-[selected=true]:ring-2 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
-				className,
-			)}
-			{...props}
-		/>
+		<CardTitleContext
+			value={{
+				titleId,
+				setTitled,
+			}}
+		>
+			<div
+				{...(titled && {
+					role: "group",
+					"aria-labelledby": titleId,
+				})}
+				data-slot="card"
+				data-size={size}
+				data-selected={selected ? "true" : undefined}
+				className={cn(
+					"group/card bg-card text-card-foreground ring-foreground/5 data-[selected=true]:ring-accent-brand dark:ring-foreground/10 flex flex-col gap-6 overflow-hidden rounded-4xl py-6 text-sm shadow-md ring-1 transition-shadow duration-200 has-[>img:first-child]:pt-0 data-[selected=true]:ring-2 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
+					className,
+				)}
+				{...props}
+			/>
+		</CardTitleContext>
 	);
 }
+
+/** A titled card is a group named by its title. */
+const CardTitleContext = createContext<{
+	titleId: string;
+	setTitled: (titled: boolean) => void;
+} | null>(null);
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 	return (
@@ -39,8 +59,16 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+	const card = use(CardTitleContext);
+	useLayoutEffect(() => {
+		card?.setTitled(true);
+		return () => card?.setTitled(false);
+	}, [
+		card,
+	]);
 	return (
 		<div
+			id={card?.titleId}
 			data-slot="card-title"
 			className={cn("font-heading text-base font-medium", className)}
 			{...props}

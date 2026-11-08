@@ -3,7 +3,6 @@ import { createApiClient } from "../../fixtures/api";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
 import {
-	addMember,
 	adoptZedToken,
 	behaviourInput,
 	memberRow,
@@ -11,7 +10,7 @@ import {
 } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 /** Swap the preselected receiver for the member with `email`. */
 const chooseReceiver = async (dialog: Locator, email: string) => {
@@ -41,7 +40,11 @@ test("members: removing a member hands their block to the member chosen", async 
 	zedTokens,
 }) => {
 	const user = await createUser("handing");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	const client = createApiClient(
 		baseURL(),
 		user.session.cookieHeader,
@@ -111,7 +114,11 @@ test("members: deleting an account in the instance hands its content to the orga
 	zedTokens,
 }) => {
 	const user = await createUser("leaving");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	const client = createApiClient(
 		baseURL(),
 		user.session.cookieHeader,

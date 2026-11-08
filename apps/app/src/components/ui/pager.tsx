@@ -53,10 +53,8 @@ const Pager = ({
 	return (
 		<div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:gap-x-8">
 			<div className="flex items-center space-x-2">
-				<p className="text-sm font-medium whitespace-nowrap">
-					{m.data_table_pagination_rows_per_page_label()}
-				</p>
 				<OptionPicker
+					label={m.data_table_pagination_rows_per_page_label()}
 					options={pageSizeOptions(pageSize)}
 					value={`${pageSize}`}
 					onChange={(value) => onPageSizeChange(Number(value))}

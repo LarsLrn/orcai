@@ -1,4 +1,5 @@
 import type { ZedTokenStore } from "../../fixtures/api";
+import { inviteEmail } from "../../fixtures/auth";
 import { waitForLink } from "../../fixtures/auth/outbox";
 import {
 	enrolTwoFactor,
@@ -22,16 +23,14 @@ import {
 	followAuthLink,
 	INVITED_NOTIFICATION,
 	invitationEmail,
-	inviteEmail,
 	organisationRoleOf,
 	registerFromInvitation,
 	signInFromInvitation,
 	submitSignIn,
 } from "../../fixtures/orgs/invitations";
-import { addMember } from "../../fixtures/orgs/members";
 import { openGuarded } from "../../fixtures/orgs/navigation";
 import { chooseRole } from "../../fixtures/orgs/roles";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 test("orgs: an admin invites an address through the form and the link reaches the outbox", async ({
 	api,

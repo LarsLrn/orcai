@@ -30,12 +30,12 @@ const SelectedAssetList = ({
 	const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
 
 	return (
-		<div className="space-y-3">
+		<ul className="space-y-3">
 			{assets.map((asset) => {
 				const canEdit = hasCapability(asset.capabilities, "edit");
 
 				return (
-					<div
+					<li
 						key={asset.id}
 						className="bg-background flex flex-wrap items-start justify-between gap-3 rounded-2xl border px-4 py-3 shadow-xs"
 					>
@@ -94,10 +94,10 @@ const SelectedAssetList = ({
 								onSaved={onAssetUpdated}
 							/>
 						) : null}
-					</div>
+					</li>
 				);
 			})}
-		</div>
+		</ul>
 	);
 };
 

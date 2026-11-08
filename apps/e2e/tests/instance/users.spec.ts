@@ -7,11 +7,11 @@ import { rejection } from "../../fixtures/authorization";
 import { WELL_KNOWN_ADMIN } from "../../fixtures/constants";
 import { baseURL } from "../../fixtures/env";
 import { expect, test } from "../../fixtures/index";
-import { addMember, memberRow } from "../../fixtures/members/members";
+import { memberRow } from "../../fixtures/members/members";
 import { message } from "../../fixtures/messages";
 import { open } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 test.describe.configure({
 	mode: "serial",
@@ -23,13 +23,22 @@ test("instance: the users page lists accounts from several organisations", async
 	org,
 	orgs,
 	pageAsWellKnownAdmin,
+	zedTokens,
 }) => {
 	const suffix = runId();
 	const other = await orgs.create(`E2E Users ${suffix}`);
 	const first = await createUser(`inst-${suffix}-a`);
 	const second = await createUser(`inst-${suffix}-b`);
-	await addMember(api, org, first);
-	await addMember(api, other, second, "manager");
+	await addMember(api.as("admin", org), {
+		user: first,
+		role: "member",
+		zedTokens,
+	});
+	await addMember(api.as("admin", other), {
+		user: second,
+		role: "manager",
+		zedTokens,
+	});
 
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
@@ -68,12 +77,21 @@ test("instance: the search narrows the users page", async ({
 	api,
 	org,
 	pageAsWellKnownAdmin,
+	zedTokens,
 }) => {
 	const suffix = runId();
 	const wanted = await createUser(`search-${suffix}`);
 	const other = await createUser(`hidden-${suffix}`);
-	await addMember(api, org, wanted);
-	await addMember(api, org, other);
+	await addMember(api.as("admin", org), {
+		user: wanted,
+		role: "member",
+		zedTokens,
+	});
+	await addMember(api.as("admin", org), {
+		user: other,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
@@ -93,9 +111,14 @@ test("instance: the users page bans and unbans an account", async ({
 	api,
 	org,
 	pageAsWellKnownAdmin,
+	zedTokens,
 }) => {
 	const user = await createUser(`banned-${runId()}`);
-	await addMember(api, org, user);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
@@ -144,9 +167,14 @@ test("instance: the users page deletes an account", async ({
 	api,
 	org,
 	pageAsWellKnownAdmin,
+	zedTokens,
 }) => {
 	const user = await createUser(`deleted-${runId()}`);
-	await addMember(api, org, user);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
@@ -191,9 +219,14 @@ test("instance: the users page resets an account's two-factor authentication", a
 	org,
 	outbox,
 	pageAsWellKnownAdmin,
+	zedTokens,
 }) => {
 	const user = await createUser(`two-factor-${runId()}`);
-	await addMember(api, org, user);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	await enrolTwoFactor(baseURL(), user.session, user.password);
 	// A password alone now only reaches the second step.
 	await expect(signIn(baseURL(), user)).rejects.toThrow();
@@ -238,9 +271,14 @@ test("instance: the users page makes an account an instance admin and back", asy
 	org,
 	outbox,
 	pageAsWellKnownAdmin,
+	zedTokens,
 }) => {
 	const user = await createUser(`instance-role-${runId()}`);
-	await addMember(api, org, user);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	const asUser = createApiClient(baseURL(), user.session.cookieHeader);
 	const listUsers = () =>
 		asUser.user.listAll({
@@ -313,6 +351,7 @@ test("instance: nobody changes their own instance role, and only instance admins
 	api,
 	org,
 	pageAsWellKnownAdmin,
+	zedTokens,
 }) => {
 	const page = await pageAsWellKnownAdmin();
 	await open(page, "/instance/users");
@@ -347,7 +386,11 @@ test("instance: nobody changes their own instance role, and only instance admins
 	});
 
 	const user = await createUser(`self-promote-${runId()}`);
-	await addMember(api, org, user);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 	const selfPromotion = await rejection(
 		createApiClient(baseURL(), user.session.cookieHeader).user.setInstanceRole({
 			userId: user.id,

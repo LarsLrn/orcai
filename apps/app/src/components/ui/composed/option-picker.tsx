@@ -8,6 +8,7 @@ import {
 	Select,
 	SelectContent,
 	SelectItem,
+	SelectLabel,
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
@@ -21,6 +22,7 @@ type PickerOption<T extends string> = {
 
 const OptionPicker = <T extends string>({
 	options,
+	label,
 	onChange,
 	value,
 	placeholder,
@@ -35,6 +37,8 @@ const OptionPicker = <T extends string>({
 	"aria-describedby": ariaDescribedBy,
 }: {
 	options: readonly PickerOption<T>[];
+	/** A visible label beside the trigger, which names it. */
+	label?: string;
 	onChange: (value: T) => void;
 	value: T | null;
 	placeholder?: string;
@@ -58,6 +62,7 @@ const OptionPicker = <T extends string>({
 		items={options}
 		disabled={disabled}
 	>
+		{label && <SelectLabel className="whitespace-nowrap">{label}</SelectLabel>}
 		<SelectTrigger
 			id={id}
 			aria-label={ariaLabel}
