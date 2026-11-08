@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import {
 	type ActivityRunId,
@@ -7,7 +7,7 @@ import {
 	buckets,
 	type UserId,
 } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import { advisoryXactLock, DB, dbSchema } from "@orcai/db";
 import { type Job, type PgBoss, PgBossService } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import {
@@ -53,6 +53,7 @@ import {
 	awaitLockWaiters,
 	createOrganization,
 	createUser,
+	holdLock,
 	integrationRuntime,
 } from "@orcai/testing";
 import { serve } from "bun";
@@ -94,78 +95,28 @@ const embeddings = serve({
 	},
 });
 
-let held:
-	| {
-			readonly reach: () => void;
-			readonly release: Promise<void>;
-			readonly free: () => void;
-	  }
-	| undefined;
-
-/**
- * Holds the collections Qdrant creates until `release`. `reached(running)`
- * settles once one is held, and fails if `running` ends first.
- */
-const holdCollections = () => {
-	const reached = Promise.withResolvers<void>();
-	const release = Promise.withResolvers<void>();
-	const free = () => {
-		held = undefined;
-		release.resolve();
-	};
-	held = {
-		reach: reached.resolve,
-		release: release.promise,
-		free,
-	};
-	return {
-		reached: (running: Promise<unknown>) =>
-			Promise.race([
-				reached.promise,
-				running.then(() => {
-					throw new Error("Finished without creating a collection");
-				}),
-			]),
-		release: free,
-	};
-};
-
-// A failed test must not leave a later collection waiting.
-afterEach(() => held?.free());
-
-const HeldQdrantLive = Layer.effect(
-	QdrantService,
-	Effect.gen(function* () {
-		const service = yield* QdrantService;
-		const client = new Proxy(service.client, {
-			get: (target, key) => {
-				const value = Reflect.get(target, key);
-				if (typeof value !== "function") return value;
-				if (key !== "createCollection") return value.bind(target);
-				return async (...args: unknown[]) => {
-					if (held) {
-						held.reach();
-						await held.release;
-					}
-					return value.apply(target, args);
-				};
-			},
-		});
-		return {
-			...service,
-			client,
-		};
-	}),
-).pipe(Layer.provide(QdrantLive));
-
 const runtime = integrationRuntime(
-	Layer.mergeAll(
-		S3Live,
-		HeldQdrantLive,
-		EncryptionKeyLive,
-		IsolatedPgBossLive(),
-	),
+	Layer.mergeAll(S3Live, QdrantLive, EncryptionKeyLive, IsolatedPgBossLive()),
 );
+
+/** `index`'s generation lock, as a save takes it exclusively. */
+const generationLock = (index: EmbeddingIndexScope) => ({
+	space: "embeddingGenerations" as const,
+	key: index.collectionPrefix,
+});
+
+/** Holds `index`'s generation lock until the returned function releases it. */
+const holdGenerations = async (index: EmbeddingIndexScope) => {
+	const { space, key } = generationLock(index);
+	const release = await runtime.runPromise(
+		holdLock(
+			Effect.gen(function* () {
+				yield* (yield* DB).execute(advisoryXactLock(space, key));
+			}),
+		),
+	);
+	return () => runtime.runPromise(release);
+};
 
 let boss: PgBoss;
 beforeAll(async () => {
@@ -575,17 +526,19 @@ test(
 	async () => {
 		const index = indexes.racing;
 		const link = await seed();
-		const hold = holdCollections();
+		const release = await holdGenerations(index);
 		const saving = configure(index, link);
-		await hold.reached(saving);
+		try {
+			await runtime.runPromise(awaitLockWaiters(generationLock(index)));
 
-		// Processing completes now: the setup is not committed, so the link waits.
-		await admit(link, index);
-		expect(await linkOf(link)).toMatchObject({
-			generation: null,
-		});
-
-		hold.release();
+			// Processing completes now: the setup is not committed, so the link waits.
+			await admit(link, index);
+			expect(await linkOf(link)).toMatchObject({
+				generation: null,
+			});
+		} finally {
+			await release();
+		}
 		await saving;
 		expect(await on(index, link, reconcileEmbeddings)).toBe(1);
 		expect(await linkOf(link)).toMatchObject({
@@ -1120,15 +1073,17 @@ test(
 		await on(index, link, startPreparingMissingExtractionsAgain(await admin()));
 		const job = await takePreparation();
 
-		// The switch holds the generation lock until its collection exists.
-		const hold = holdCollections();
+		// The switch queues for the generation lock first, Prepare again behind it.
+		const release = await holdGenerations(index);
 		const switching = configure(index, link, "integration-switched");
-		await hold.reached(switching);
-		const preparing = on(index, link, prepareMissingExtractionsAgain(job.data));
-		await runtime.runPromise(
-			awaitLockWaiters("%pg_advisory_xact_lock_shared%"),
-		);
-		hold.release();
+		let preparing: Promise<number> | undefined;
+		try {
+			await runtime.runPromise(awaitLockWaiters(generationLock(index)));
+			preparing = on(index, link, prepareMissingExtractionsAgain(job.data));
+			await runtime.runPromise(awaitLockWaiters(generationLock(index), 2));
+		} finally {
+			await release();
+		}
 		await switching;
 
 		expect(await preparing).toBe(0);

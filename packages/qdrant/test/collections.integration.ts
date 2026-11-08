@@ -1,5 +1,6 @@
 import { afterAll, expect, test } from "bun:test";
 import { setTimeout as sleep } from "node:timers/promises";
+import type { QdrantClient } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import { ensureCollection } from "../src/collections";
@@ -20,22 +21,39 @@ afterAll(async () => {
 	await runtime.dispose();
 });
 
+const create = (client: QdrantClient, name: string) =>
+	client.createCollection(name, {
+		vectors: {
+			dense: {
+				size: 2,
+				distance: "Cosine",
+			},
+		},
+	});
+
 test(
-	"ensureCollection adds the payload indexes an existing collection lacks, in the background",
+	"ensureCollection adds the payload indexes an existing collection holding points lacks, in the background",
 	async () => {
 		const client = await runtime.runPromise(
 			Effect.gen(function* () {
 				const { client } = yield* QdrantService;
-				yield* Effect.promise(() =>
-					client.createCollection(collection, {
-						vectors: {
-							dense: {
-								size: 2,
-								distance: "Cosine",
+				yield* Effect.promise(async () => {
+					await create(client, collection);
+					await client.upsert(collection, {
+						wait: true,
+						points: [
+							{
+								id: crypto.randomUUID(),
+								vector: {
+									dense: [
+										1,
+										0,
+									],
+								},
 							},
-						},
-					}),
-				);
+						],
+					});
+				});
 				yield* ensureCollection(client, collection, 2);
 				return client;
 			}),
