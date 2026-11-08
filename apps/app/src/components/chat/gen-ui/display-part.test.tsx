@@ -1,11 +1,9 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { DisplayToolPart } from "@/components/chat/gen-ui/display-part";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { DisplayPart } = await import("@/components/chat/gen-ui/display-part");
 

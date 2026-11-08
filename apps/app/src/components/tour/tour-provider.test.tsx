@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
+import type { UserId } from "@orcai/core";
+import type { UserPreferencesType } from "@orcai/schema";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
 	cleanup,
@@ -7,39 +9,46 @@ import {
 	screen,
 	waitFor,
 } from "@testing-library/react";
+import {
+	type ScriptedProcedure,
+	scriptedOrpc,
+} from "@/lib/testing/scripted-orpc";
 import { m } from "@/paraglide/messages";
 
-const setTourState = mock(async (_input: unknown) => ({}));
-let storedTours: Record<string, string> = {};
+const setTourState = mock<ScriptedProcedure<"user", "setTourState">>(
+	async () => ({
+		success: true,
+	}),
+);
+let storedTours: UserPreferencesType["tours"] = {};
 let feedbackEmail: string | undefined;
 const trackEvent = mock((_name: string, _data?: unknown) => undefined);
 
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {
+mock.module("@/lib/orpc/orpc", () =>
+	scriptedOrpc({
 		user: {
-			me: {
-				queryOptions: () => ({
-					queryKey: [
-						"user",
-						"me",
-					],
-					queryFn: async () => ({
-						data: {
-							preferences: {
-								tours: storedTours,
-							},
-						},
-					}),
-				}),
-			},
-			setTourState: {
-				mutationOptions: () => ({
-					mutationFn: (input: unknown) => setTourState(input),
-				}),
-			},
+			me: () => ({
+				data: {
+					id: crypto.randomUUID() as UserId,
+					name: "Ada",
+					email: "ada@example.org",
+					emailVerified: true,
+					image: null,
+					role: null,
+					banned: null,
+					banReason: null,
+					banExpires: null,
+					preferences: {
+						tours: storedTours,
+					},
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				},
+			}),
+			setTourState,
 		},
-	},
-}));
+	}),
+);
 mock.module("@/hooks/use-public-config", () => ({
 	usePublicConfig: () => ({
 		feedbackEmail,

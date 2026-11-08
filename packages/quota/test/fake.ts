@@ -8,7 +8,7 @@ import {
 	QuotaUnavailableError,
 	QuotaWriteFailedError,
 } from "../src/errors";
-import { QuotaRetry } from "../src/metered-call";
+import { MeteredCallDeadline, QuotaRetry } from "../src/metered-call";
 
 /**
  * Fakes the reservations of this package for a test file, under the real
@@ -47,6 +47,8 @@ export const quota = {
 	failures: {} as Partial<globalThis.Record<"record" | "settle", number>>,
 	/** Holds each record until it resolves. */
 	recordGate: undefined as Promise<void> | undefined,
+	/** Aborting it runs every metered call out of time. */
+	timeLimit: new AbortController(),
 	calls: {
 		reserve: [] as Parameters<Reserve>[0][],
 		record: [] as Parameters<Record>[0][],
@@ -56,6 +58,7 @@ export const quota = {
 		quota.pool = defaultPool();
 		quota.failures = {};
 		quota.recordGate = undefined;
+		quota.timeLimit = new AbortController();
 		quota.calls.reserve.length = 0;
 		quota.calls.record.length = 0;
 		quota.calls.settle.length = 0;
@@ -133,9 +136,10 @@ mock.module("../src/enforcement.ts", () => ({
 	settleReservation,
 }));
 
-/** Provides what the quota calls require; the fakes use no database, and retries do not wait. */
+/** Provides what the quota calls require; the fakes use no database, retries do not wait, and calls run out of time with `timeLimit`. */
 export const withQuotaServices = <A, E>(effect: Effect.Effect<A, E, DB>) =>
 	effect.pipe(
 		Effect.provideService(DB, {} as never),
 		Effect.provideService(QuotaRetry, TEST_RETRY),
+		Effect.provideService(MeteredCallDeadline, () => quota.timeLimit.signal),
 	);

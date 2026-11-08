@@ -1,33 +1,23 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import type { BotId, ModelId, ProviderId, QuotaPoolId } from "@orcai/core";
+import type { QuotaStatus } from "@orcai/schema";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-const quotaKey = (options: { input: unknown }) => [
-	"quota.status",
-	options.input,
-];
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
+const { orpc } = await import("@/lib/orpc/orpc");
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {
-		quota: {
-			status: {
-				queryKey: quotaKey,
-				queryOptions: (options: { input: unknown }) => ({
-					queryKey: quotaKey(options),
-					queryFn: () => Promise.reject(new Error("No server in unit tests")),
-				}),
-			},
-		},
-	},
-}));
 const assistantModel = {
 	providerId: crypto.randomUUID() as ProviderId,
 	modelId: crypto.randomUUID() as ModelId,
 };
+const assistantModelModule = await import(
+	"@/components/assistant/use-assistant-model"
+);
 mock.module("@/components/assistant/use-assistant-model", () => ({
+	...assistantModelModule,
 	useAssistantModel: () => assistantModel,
 }));
 
@@ -60,7 +50,7 @@ const chatOf = (
 });
 type TestChat = ReturnType<typeof chatOf>;
 
-const pool = (usedShare: number) => ({
+const pool = (usedShare: number): QuotaStatus => ({
 	available: true,
 	pool: {
 		id: crypto.randomUUID() as QuotaPoolId,
@@ -71,7 +61,7 @@ const pool = (usedShare: number) => ({
 });
 
 const withQuota = (
-	quota: unknown,
+	quota: QuotaStatus | undefined,
 	model: {
 		providerId: ProviderId;
 		modelId: ModelId;
@@ -89,7 +79,7 @@ const withQuota = (
 	});
 	if (quota) {
 		queryClient.setQueryData(
-			quotaKey({
+			orpc.quota.status.queryKey({
 				input: model,
 			}),
 			{
@@ -104,7 +94,7 @@ const withQuota = (
 
 const sendState = (
 	chat: TestChat,
-	quota?: unknown,
+	quota?: QuotaStatus,
 	{
 		kind = "chat",
 		quotaModel,

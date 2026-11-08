@@ -41,7 +41,10 @@ import {
 	type AssistantTurn,
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
-import { mergeTurnWrites } from "@/lib/ai/tools/assistant/turn-writes";
+import {
+	mergeTurnWrites,
+	RunningCallsWait,
+} from "@/lib/ai/tools/assistant/turn-writes";
 import { toolKindOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
@@ -133,11 +136,13 @@ const buildAgent = ({
 	input,
 	history,
 	turnZedToken,
+	runningCallsWait,
 }: {
 	setup: TurnSetup;
 	input: TurnInput;
 	history: ChatAgentUIMessage[];
 	turnZedToken: string | undefined;
+	runningCallsWait?: () => AbortSignal;
 }): {
 	agent: TurnAgent;
 	assistantTurn: AssistantTurn | undefined;
@@ -176,6 +181,7 @@ const buildAgent = ({
 
 	const assistantTurn = createAssistantTurn({
 		zedToken: turnZedToken,
+		runningCallsWait,
 	});
 	return {
 		agent: createAssistantAgent({
@@ -692,6 +698,7 @@ export const startTurn = (
 				question as ChatAgentUIMessage,
 			],
 			turnZedToken: turnStartToken(input),
+			runningCallsWait: yield* RunningCallsWait,
 		});
 		const { closedHistory, closedReply } = closeLastReply(history, agent.tools);
 		const messages = yield* Effect.promise(() =>
@@ -891,6 +898,7 @@ export const continueTurn = (
 						input.toolOutputs.length > 0 && input.clientZedToken !== undefined
 							? input.clientZedToken
 							: (claimed.metadata.zedToken ?? turnStartToken(input)),
+					runningCallsWait: yield* RunningCallsWait,
 				});
 				const messages = yield* Effect.promise(() =>
 					closeInvalidToolParts(history, agent.tools),

@@ -1,28 +1,25 @@
 import { describe, expect, mock, test } from "bun:test";
+import type { BotId } from "@orcai/core";
 import type { BotEditor } from "@orcai/schema";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	client: {},
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { toBotEditorFormValues } = await import(
 	"@/components/authoring/bot-editor-form-options"
 );
 
-const storedBot = (features: BotEditor["features"]) =>
-	({
-		id: "00000000-0000-4000-8000-000000000000",
-		name: "Stored",
-		description: "Stored bot",
-		contentJson: {},
-		status: "draft",
-		capabilities: {},
-		behaviour: null,
-		repositories: [],
-		features,
-	}) as unknown as BotEditor;
+const storedBot = (features: BotEditor["features"]): BotEditor => ({
+	id: "00000000-0000-4000-8000-000000000000" as BotId,
+	name: "Stored",
+	description: "Stored bot",
+	contentJson: {},
+	status: "draft",
+	capabilities: {},
+	behaviour: null,
+	repositories: [],
+	features,
+});
 
 describe("toBotEditorFormValues", () => {
 	test("a new bot starts with Generative UI on", () => {

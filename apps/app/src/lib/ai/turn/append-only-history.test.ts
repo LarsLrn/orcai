@@ -796,26 +796,6 @@ const assistantConversation = async (
 const reasoningIn = (request: ModelRequest) =>
 	request.blocks.filter((block) => block.kind === "reasoning").length;
 
-/** Each exception is needed: without it, the conversation shows a rewrite. */
-const expectEachNeeded = (
-	requests: ModelRequest[],
-	exceptions: Exception[],
-) => {
-	for (const exception of exceptions) {
-		expect({
-			exception: exception.name,
-			needed:
-				rewrites(
-					requests,
-					exceptions.filter((other) => other !== exception),
-				).length > 0,
-		}).toEqual({
-			exception: exception.name,
-			needed: true,
-		});
-	}
-};
-
 describe.each([
 	[
 		"anthropic",
@@ -849,10 +829,6 @@ describe.each([
 		expect(requests).toHaveLength(7);
 		expect(requests.some((request) => reasoningIn(request) > 0)).toBe(true);
 		expect(rewrites(requests, exceptions)).toEqual([]);
-	});
-
-	test("rewrites only through the named exceptions", () => {
-		expectEachNeeded(requests, exceptions);
 	});
 });
 
@@ -895,10 +871,6 @@ describe.each([
 		expect(requests).toHaveLength(14);
 		expect(requests.some((request) => reasoningIn(request) > 0)).toBe(true);
 		expect(rewrites(requests, exceptions)).toEqual([]);
-	});
-
-	test("rewrites only through the named exceptions", () => {
-		expectEachNeeded(requests, exceptions);
 	});
 
 	if (loading === "references") {

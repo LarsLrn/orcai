@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import { isRedirect } from "@tanstack/react-router";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
 mock.module("@/lib/auth/auth", () => ({
 	auth: {},
@@ -10,10 +11,7 @@ mock.module("@/lib/effect/runtime", () => ({
 mock.module("@/lib/auth/auth-client", () => ({
 	authClient: {},
 }));
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-	client: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const layouts = {
 	"/app": (await import("./app/route")).Route,

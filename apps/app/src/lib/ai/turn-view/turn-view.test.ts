@@ -1,10 +1,18 @@
 import { describe, expect, test } from "bun:test";
+import type { AssetId, BotId } from "@orcai/core";
+import {
+	reasoningPart,
+	stepStartPart,
+	storedPart,
+	textPart,
+	toolPart,
+	uiMessage,
+} from "@/lib/ai/test-parts";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { TOOL_CLOSE_SENTENCES } from "@/lib/ai/utils/close-pending-tool-parts";
 import { pausedStep } from "./paused-step";
 import {
 	type ChatPhase,
-	type ClientToolPart,
 	type MessagePart,
 	type MessageView,
 	type ReasoningPart,
@@ -13,32 +21,34 @@ import {
 	turnView,
 } from "./turn-view";
 
-const text = (content: string) =>
-	({
-		type: "text",
-		text: content,
-		state: "done",
-	}) as unknown as TextPart;
+type CallState = ToolPart["state"];
+
+const botId = "bot-1" as BotId;
+const assetId = "asset-1" as AssetId;
+
+const text = (content: string) => textPart(content);
 
 const streamingText = (content: string) =>
-	({
-		type: "text",
-		text: content,
+	textPart(content, {
 		state: "streaming",
-	}) as unknown as TextPart;
+	});
 
-const reasoning = (content: string, state = "done") =>
-	({
-		type: "reasoning",
-		text: content,
-		state,
-	}) as unknown as ReasoningPart;
+const reasoning = (content: string, state: ReasoningPart["state"] = "done") =>
+	reasoningPart(content, state);
 
-const search = (state = "output-available", extra: object = {}) =>
-	({
-		type: "tool-searchRepositories",
+const search = (
+	state: CallState = "output-available",
+	extra: {
+		errorText?: string;
+		approval?: {
+			id: string;
+			approved: false;
+			reason: string;
+		};
+	} = {},
+) =>
+	toolPart("searchRepositories", state, {
 		toolCallId: "call-1",
-		state,
 		input: {
 			query: "x",
 		},
@@ -50,31 +60,36 @@ const search = (state = "output-available", extra: object = {}) =>
 				}
 			: {}),
 		...extra,
-	}) as unknown as ToolPart;
+	});
 
-const checklist = (state = "output-available") =>
-	({
-		type: "tool-showChecklist",
+const checklist = (state: CallState = "output-available") =>
+	toolPart("showChecklist", state, {
 		toolCallId: `checklist-${state}`,
-		state,
 		input: {
 			items: [],
 		},
-	}) as unknown as ToolPart;
+		...(state === "output-available"
+			? {
+					output: {
+						shown: true,
+					},
+				}
+			: {}),
+		...(state === "output-error"
+			? {
+					errorText: "Invalid input",
+				}
+			: {}),
+	});
 
-const stepStart = () =>
-	({
-		type: "step-start",
-	}) as unknown as MessagePart;
+const stepStart = () => stepStartPart();
 
-const deleteBot = (state: string, approved?: boolean, reason?: string) =>
-	({
-		type: "tool-deleteBot",
+const deleteBot = (state: CallState, approved?: boolean, reason?: string) =>
+	toolPart("deleteBot", state, {
 		toolCallId: `delete-${state}-${approved}`,
-		state,
 		input: {
 			ids: [
-				"bot-1",
+				botId,
 			],
 		},
 		...(state === "output-available"
@@ -85,26 +100,30 @@ const deleteBot = (state: string, approved?: boolean, reason?: string) =>
 					},
 				}
 			: {}),
-		approval: {
-			id: `approval-${state}-${approved}`,
-			...(approved === undefined
-				? {}
+		approval:
+			approved === undefined
+				? {
+						id: `approval-${state}-${approved}`,
+					}
 				: {
+						id: `approval-${state}-${approved}`,
 						approved,
-					}),
-			...(reason === undefined
-				? {}
-				: {
-						reason,
-					}),
-		},
-	}) as unknown as ToolPart;
+						...(reason === undefined
+							? {}
+							: {
+									reason,
+								}),
+					},
+	});
 
-const upload = (state: string, extra: object = {}) =>
-	({
-		type: "tool-requestUpload",
+const upload = (
+	state: CallState,
+	extra: {
+		errorText?: string;
+	} = {},
+) =>
+	toolPart("requestUpload", state, {
 		toolCallId: "upload-1",
-		state,
 		input: {
 			reason: "Upload the style guides",
 		},
@@ -116,13 +135,16 @@ const upload = (state: string, extra: object = {}) =>
 				}
 			: {}),
 		...extra,
-	}) as unknown as ClientToolPart;
+	});
 
-const askUser = (state: string, extra: object = {}) =>
-	({
-		type: "tool-askUser",
+const askUser = (
+	state: CallState,
+	extra: {
+		errorText?: string;
+	} = {},
+) =>
+	toolPart("askUser", state, {
 		toolCallId: "ask-1",
-		state,
 		input: {
 			mode: "regular",
 			questions: [
@@ -146,17 +168,22 @@ const askUser = (state: string, extra: object = {}) =>
 				}
 			: {}),
 		...extra,
-	}) as unknown as ClientToolPart;
+	});
 
 const updatePlan = (
 	title: string,
-	state: string,
-	approval?: Record<string, unknown>,
+	state: CallState,
+	approval?:
+		| {
+				id: string;
+		  }
+		| {
+				id: string;
+				approved: boolean;
+		  },
 ) =>
-	({
-		type: "tool-updatePlan",
+	toolPart("updatePlan", state, {
 		toolCallId: `plan-${title}-${state}`,
-		state,
 		input: {
 			title,
 			items: [
@@ -183,46 +210,48 @@ const updatePlan = (
 					approval,
 				}
 			: {}),
-	}) as unknown as ToolPart;
+	});
 
 const writeBot = (
 	tool: "createBot" | "updateBot" | "publishBot",
 	name: string,
-	state = "output-available",
+	state: CallState = "output-available",
 ) =>
-	({
-		type: `tool-${tool}`,
+	toolPart(tool, state, {
 		toolCallId: `${tool}-${name}`,
-		state,
 		input: {
-			id: "bot-1",
+			id: botId,
 			name,
 		},
 		...(state === "output-available"
 			? {
 					output: {
 						type: "bot",
-						id: "bot-1",
+						id: botId,
 						name,
+						description: "",
+						status: "draft",
+						features: {},
+						behaviour: null,
+						repositories: [],
 					},
 				}
 			: {}),
-	}) as unknown as ToolPart;
+	});
 
 const updateAsset = () =>
-	({
-		type: "tool-updateAsset",
+	toolPart("updateAsset", "output-available", {
 		toolCallId: "asset-1",
-		state: "output-available",
 		input: {
-			id: "asset-1",
+			id: assetId,
 		},
 		output: {
 			type: "asset",
-			id: "asset-1",
+			id: assetId,
 			title: "Style guide",
+			metadata: {},
 		},
-	}) as unknown as ToolPart;
+	});
 
 const reply = (
 	parts: MessagePart[],
@@ -233,21 +262,21 @@ const reply = (
 	} = {},
 	id = "reply",
 ) =>
-	({
+	uiMessage({
 		id,
 		role: "assistant",
 		parts,
 		metadata,
-	}) as unknown as ChatAgentUIMessage;
+	});
 
 const question = () =>
-	({
+	uiMessage({
 		id: "question",
 		role: "user",
 		parts: [
 			text("Do something else"),
 		],
-	}) as unknown as ChatAgentUIMessage;
+	});
 
 /** The reply's view as the chat's latest message, or before a newer question. */
 const view = (
@@ -728,7 +757,7 @@ describe("tool status", () => {
 });
 
 describe("paused step", () => {
-	const pausedTurn = (state: string, approved?: boolean) => [
+	const pausedTurn = (state: CallState, approved?: boolean) => [
 		stepStart(),
 		text("let me look"),
 		search(),
@@ -975,7 +1004,7 @@ describe("paused step", () => {
 });
 
 describe("client call step", () => {
-	const widgetTurn = (state: string) => [
+	const widgetTurn = (state: CallState) => [
 		stepStart(),
 		text("let me look"),
 		search(),
@@ -1110,7 +1139,12 @@ describe("client call step", () => {
 });
 
 describe("questions", () => {
-	const askingTurn = (state: string, extra: object = {}) => [
+	const askingTurn = (
+		state: CallState,
+		extra: {
+			errorText?: string;
+		} = {},
+	) => [
 		stepStart(),
 		text("let me look"),
 		search(),
@@ -1485,7 +1519,7 @@ describe("plan", () => {
 	test("takes the newest plan across and within messages", () => {
 		const newest = updatePlan("Third", "output-available");
 
-		expect(
+		expect<MessagePart | undefined>(
 			planOf([
 				[
 					updatePlan("First", "output-available"),
@@ -1497,7 +1531,7 @@ describe("plan", () => {
 					text("done"),
 				],
 			])?.part,
-		).toBe(newest as never);
+		).toBe(newest);
 	});
 
 	test.each([
@@ -1515,7 +1549,7 @@ describe("plan", () => {
 			}),
 		],
 	])("shows a plan %s", (_, part) => {
-		expect(
+		expect<MessagePart | undefined>(
 			planOf([
 				[
 					updatePlan("First", "output-available"),
@@ -1524,7 +1558,7 @@ describe("plan", () => {
 					part,
 				],
 			])?.part,
-		).toBe(part as never);
+		).toBe(part);
 	});
 
 	test.each([
@@ -1557,7 +1591,7 @@ describe("plan", () => {
 	])("skips %s for the plan before it", (_, part) => {
 		const earlier = updatePlan("First", "output-available");
 
-		expect(
+		expect<MessagePart | undefined>(
 			planOf([
 				[
 					earlier,
@@ -1566,34 +1600,34 @@ describe("plan", () => {
 					part,
 				],
 			])?.part,
-		).toBe(earlier as never);
+		).toBe(earlier);
 	});
 
 	test("skips a stored plan whose input no longer fits", () => {
 		const earlier = updatePlan("First", "output-available");
 
-		expect(
+		expect<MessagePart | undefined>(
 			planOf([
 				[
 					earlier,
 				],
 				[
-					{
+					storedPart({
 						type: "tool-updatePlan",
 						toolCallId: "c",
 						state: "output-available",
 						input: null,
 						output: {},
-					} as never,
+					}),
 				],
 			])?.part,
-		).toBe(earlier as never);
+		).toBe(earlier);
 	});
 
 	test("a proposal before a later message no longer shows", () => {
 		const earlier = updatePlan("First", "output-available");
 
-		expect(
+		expect<MessagePart | undefined>(
 			turnView(
 				[
 					reply(
@@ -1612,7 +1646,7 @@ describe("plan", () => {
 				],
 				"idle",
 			).plan?.part,
-		).toBe(earlier as never);
+		).toBe(earlier);
 	});
 
 	test("lists the proposals the idle chat waits on", () => {
@@ -1678,30 +1712,29 @@ describe("plan", () => {
 });
 
 describe("compaction", () => {
-	const summary = (content: string, state = "done") =>
-		({
-			type: "text",
-			text: content,
+	const summary = (content: string, state: TextPart["state"] = "done") =>
+		textPart(content, {
 			state,
 			providerMetadata: {
 				orcai: {
 					type: "compaction",
 				},
 			},
-		}) as unknown as TextPart;
-	const anthropicCompaction = (content: string, state = "done") =>
-		({
-			type: "text",
-			text: content,
+		});
+	const anthropicCompaction = (
+		content: string,
+		state: TextPart["state"] = "done",
+	) =>
+		textPart(content, {
 			state,
 			providerMetadata: {
 				anthropic: {
 					type: "compaction",
 				},
 			},
-		}) as unknown as TextPart;
+		});
 	const openAICompaction = () =>
-		({
+		storedPart({
 			type: "custom",
 			kind: "openai.compaction",
 			providerMetadata: {
@@ -1711,7 +1744,7 @@ describe("compaction", () => {
 					encryptedContent: "sealed",
 				},
 			},
-		}) as unknown as MessagePart;
+		});
 	const dividers = (
 		messages: ChatAgentUIMessage[],
 		phase: ChatPhase = "idle",

@@ -1,12 +1,9 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { AssetId } from "@orcai/core";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 import { m } from "@/paraglide/messages";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	client: {},
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { assetTileState } = await import("./asset-tile");
 

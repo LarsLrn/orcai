@@ -10,9 +10,12 @@ export interface AssistantTurn {
 
 export const createAssistantTurn = ({
 	zedToken,
+	runningCallsWait,
 }: {
 	zedToken: string | undefined;
+	/** Bounds the wait for running calls once the turn stopped. */
+	runningCallsWait?: () => AbortSignal;
 }): AssistantTurn => ({
 	zedToken: createTurnZedToken(zedToken),
-	writes: createTurnWrites(),
+	writes: createTurnWrites(runningCallsWait),
 });

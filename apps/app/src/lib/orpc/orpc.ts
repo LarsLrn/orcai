@@ -2,17 +2,13 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { RouterClient } from "@orpc/server";
 import { createRouterClient, onError } from "@orpc/server";
-import {
-	createTanstackQueryUtils,
-	type RouterUtils,
-} from "@orpc/tanstack-query";
+import type { RouterUtils } from "@orpc/tanstack-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { createORPCContext } from "@/lib/orpc/implementation/context";
 import { logFailedProcedure } from "@/lib/orpc/implementation/interceptors";
-import { queryDefaults } from "./query-defaults";
+import { queryUtils } from "./query-utils";
 import { router } from "./router";
-import { invalidateStaleQueries } from "./stale-queries";
 
 const getORPCClient = createIsomorphicFn()
 	.server(() =>
@@ -38,12 +34,4 @@ const getORPCClient = createIsomorphicFn()
 
 export const client: RouterClient<typeof router> = getORPCClient();
 
-export const orpc: RouterUtils<typeof client> = createTanstackQueryUtils(
-	client,
-	{
-		scoped: queryDefaults,
-		mutationInterceptors: [
-			invalidateStaleQueries(() => orpc),
-		],
-	},
-);
+export const orpc: RouterUtils<typeof client> = queryUtils(client);

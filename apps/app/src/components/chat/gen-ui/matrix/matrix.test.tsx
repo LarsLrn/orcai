@@ -9,11 +9,9 @@ import {
 import { readMatrix } from "@/lib/ai/tools/gen-ui/matrix/cells";
 import { referenceMatrix } from "@/lib/ai/tools/gen-ui/matrix/fixtures";
 import { matrixSchema } from "@/lib/ai/tools/gen-ui/matrix/schema";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { Matrix } = await import("@/components/chat/gen-ui/matrix/matrix");
 

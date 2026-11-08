@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { AssetId } from "@orcai/core";
+import { toolPart } from "@/lib/ai/test-parts";
 import type { Passage } from "@/lib/ai/tools/rag/types";
 import { chatSources, citableText } from "./chat-sources";
 import { sourceRef } from "./source-ref";
@@ -18,56 +19,57 @@ const passage = (id: string, page?: number, ref = sourceRef("passage", id)) =>
 		text: `Text ${id}`,
 	}) satisfies Passage;
 
-const searchPart = (...results: Passage[]) => ({
-	type: "tool-searchRepositories",
-	toolCallId: crypto.randomUUID(),
-	state: "output-available",
-	input: {
-		query: "q",
-	},
-	output: {
-		results,
-	},
-});
+const searchPart = (...results: Passage[]) =>
+	toolPart("searchRepositories", "output-available", {
+		toolCallId: crypto.randomUUID(),
+		input: {
+			query: "q",
+		},
+		output: {
+			results,
+		},
+	});
 
-const webPart = (...urls: string[]) => ({
-	type: "tool-searchWeb",
-	toolCallId: crypto.randomUUID(),
-	state: "output-available",
-	input: {
-		query: "q",
-	},
-	output: {
-		results: urls.map((url) => ({
-			url,
-			title: `Title of ${url}`,
+const webPart = (...urls: string[]) =>
+	toolPart("searchWeb", "output-available", {
+		toolCallId: crypto.randomUUID(),
+		input: {
+			query: "q",
+		},
+		output: {
+			results: urls.map((url) => ({
+				url,
+				title: `Title of ${url}`,
+				content: "",
+			})),
+		},
+	});
+
+const docsPart = (path: string | null) =>
+	toolPart("readDocs", "output-available", {
+		toolCallId: crypto.randomUUID(),
+		input:
+			path === null
+				? {}
+				: {
+						path,
+					},
+		output: {
+			path,
+			title: path === null ? null : "Bots and behaviour",
+			url: `https://docs.example.org${path ?? "/docs"}`,
 			content: "",
-		})),
-	},
-});
+		},
+	});
 
-const docsPart = (path: string | null) => ({
-	type: "tool-readDocs",
-	toolCallId: crypto.randomUUID(),
-	state: "output-available",
-	input:
-		path === null
-			? {}
-			: {
-					path,
-				},
-	output: {
-		path,
-		title: path === null ? null : "Bots and behaviour",
-		url: `https://docs.example.org${path ?? "/docs"}`,
-		content: "",
-	},
-});
-
-const message = (...parts: object[]) => ({
-	parts: parts as {
+/** A message as `chatSources` reads it; parts of an older shape are left as they are. */
+const message = (
+	...parts: {
 		type: string;
-	}[],
+		[field: string]: unknown;
+	}[]
+) => ({
+	parts,
 });
 
 const cite = (ref: string) => `<cite ref=${ref}>text</cite>`;

@@ -1,4 +1,13 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	type Mock,
+	mock,
+	spyOn,
+	test,
+} from "bun:test";
 import {
 	QueryClient,
 	QueryClientProvider,
@@ -7,15 +16,8 @@ import {
 } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-
-const toastError = mock(() => undefined);
-mock.module("sonner", () => ({
-	toast: {
-		error: toastError,
-	},
-}));
-
-const { openFreshUrl } = await import("./open-fresh-url");
+import { toast } from "sonner";
+import { openFreshUrl } from "./open-fresh-url";
 
 const realOpen = window.open;
 
@@ -30,12 +32,15 @@ const stubTab = () => {
 	return tab;
 };
 
+let toastError: Mock<typeof toast.error>;
+
 beforeEach(() => {
-	toastError.mockClear();
+	toastError = spyOn(toast, "error").mockImplementation(() => "");
 });
 
 afterEach(() => {
 	window.open = realOpen;
+	toastError.mockRestore();
 });
 
 describe("openFreshUrl", () => {

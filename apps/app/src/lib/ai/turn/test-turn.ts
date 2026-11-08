@@ -23,6 +23,7 @@ import { AppConfigService } from "@/lib/effect/services/config";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { memberCapabilities, scriptedFetch } from "../agents/test-provider";
 import { answers, FakeServices } from "../tools/assistant/test-procedures";
+import { RunningCallsWait } from "../tools/assistant/turn-writes";
 import type { ReplyStore, StoredChat } from "./reply-store";
 
 /**
@@ -176,18 +177,29 @@ const AppConfigTest = Layer.succeed(AppConfigService, {
 	warnings: [],
 });
 
+/** Bounds a stopped turn's wait for its running calls when set; the real bound applies otherwise. */
+export const turnWaits: {
+	runningCalls?: () => AbortSignal;
+} = {};
+
 /** Runs a turn effect with the store and the services the fakes stand in for. */
 export const runTurn = <A, E>(
 	effect: Effect.Effect<A, E, unknown>,
 	store: Layer.Layer<ReplyStore>,
-) =>
-	Effect.runPromise(
+) => {
+	const runningCalls = turnWaits.runningCalls;
+	return Effect.runPromise(
 		withQuotaServices(
 			effect.pipe(
 				Effect.provide(Layer.mergeAll(store, AppConfigTest, FakeServices)),
+				(provided) =>
+					runningCalls
+						? Effect.provideService(provided, RunningCallsWait, runningCalls)
+						: provided,
 			) as Effect.Effect<A, E, never>,
 		),
 	);
+};
 
 /** Reads a turn's stream to its end, which runs the agent and settles the reply. */
 /** Reads the stream to its end, which runs the turn, and returns its chunks. */

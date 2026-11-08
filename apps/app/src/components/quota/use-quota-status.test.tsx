@@ -1,34 +1,41 @@
-import { afterEach, describe, expect, jest, mock, spyOn, test } from "bun:test";
+import { afterEach, describe, expect, jest, mock, test } from "bun:test";
 import type { ModelId, ProviderId, QuotaPoolId } from "@orcai/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook } from "@testing-library/react";
+import { act, cleanup, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-const statusKey = ({ input }: { input: unknown }) => [
-	"quota",
-	"status",
-	input,
-];
+/** The models whose status the server was asked for, in order. */
+const asked: unknown[] = [];
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {
+mock.module("@/lib/orpc/orpc", () =>
+	scriptedOrpc({
 		quota: {
-			status: {
-				queryKey: statusKey,
-				queryOptions: (options: { input: unknown }) => ({
-					queryKey: statusKey(options),
-					queryFn: () => Promise.reject(new Error("No server in unit tests")),
-				}),
+			// A used-up pool whose period ends in a minute.
+			status: (input) => {
+				asked.push(input);
+				return {
+					data: {
+						available: true,
+						pool: {
+							id: crypto.randomUUID() as QuotaPoolId,
+							name: "Everyone",
+							usedShare: 1,
+							periodEndsAt: new Date(Date.now() + 60_000),
+						},
+					},
+				};
 			},
 		},
-	},
-}));
+	}),
+);
 
 const { useQuotaStatus } = await import("./use-quota-status");
 
 afterEach(() => {
+	cleanup();
 	jest.useRealTimers();
+	asked.length = 0;
 });
 
 const input = {
@@ -36,57 +43,43 @@ const input = {
 	modelId: crypto.randomUUID() as ModelId,
 };
 
-/** A composer showing a used-up pool whose period ends in a minute. */
-const exhaustedComposer = () => {
-	const queryClient = new QueryClient({
-		defaultOptions: {
-			queries: {
-				staleTime: Number.POSITIVE_INFINITY,
-			},
-		},
+/** Moves the clock on and lets any fetch it started reach the server. */
+const wait = async (ms: number) => {
+	act(() => {
+		jest.advanceTimersByTime(ms);
 	});
-	const queryKey = statusKey({
-		input,
-	});
-	queryClient.setQueryData(queryKey, {
-		data: {
-			available: true,
-			pool: {
-				id: crypto.randomUUID() as QuotaPoolId,
-				name: "Everyone",
-				usedShare: 1,
-				periodEndsAt: new Date(Date.now() + 60_000),
-			},
-		},
-	});
-	const invalidate = spyOn(
-		queryClient,
-		"invalidateQueries",
-	).mockResolvedValue();
-	renderHook(() => useQuotaStatus(input), {
-		wrapper: ({ children }: { children: ReactNode }) => (
-			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-		),
-	});
-	return {
-		invalidate,
-		queryKey,
-	};
+	for (let tick = 0; tick < 20; tick += 1) await Promise.resolve();
 };
 
 describe("useQuotaStatus", () => {
-	test("reads the status again once its period has reset, without polling before", () => {
+	test("reads the status again once its period has reset, without polling before", async () => {
 		jest.useFakeTimers();
-		const { invalidate, queryKey } = exhaustedComposer();
-
-		jest.advanceTimersByTime(59_000);
-		expect(invalidate).not.toHaveBeenCalled();
-
-		jest.advanceTimersByTime(4_000);
-		expect(invalidate).toHaveBeenCalledTimes(1);
-		expect(invalidate.mock.calls[0]?.[0]).toEqual({
-			queryKey,
-			exact: true,
+		const queryClient = new QueryClient({
+			defaultOptions: {
+				queries: {
+					staleTime: Number.POSITIVE_INFINITY,
+				},
+			},
 		});
+		renderHook(() => useQuotaStatus(input), {
+			wrapper: ({ children }: { children: ReactNode }) => (
+				<QueryClientProvider client={queryClient}>
+					{children}
+				</QueryClientProvider>
+			),
+		});
+		await wait(0);
+		expect(asked).toEqual([
+			input,
+		]);
+
+		await wait(59_000);
+		expect(asked).toHaveLength(1);
+
+		await wait(4_000);
+		expect(asked).toEqual([
+			input,
+			input,
+		]);
 	});
 });

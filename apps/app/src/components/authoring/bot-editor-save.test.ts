@@ -1,13 +1,10 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { BlockId, BotId } from "@orcai/core";
-import type { BotEditor, PublicationStatus } from "@orcai/schema";
+import type { AssetId, BlockId, BotId } from "@orcai/core";
+import type { PublicationStatus } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	client: {},
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { toBotEditorFormValues } = await import(
 	"@/components/authoring/bot-editor-form-options"
@@ -69,13 +66,13 @@ const published = (): Values =>
 				},
 				capabilities: ownerCapabilities("block"),
 				assetIds: [
-					"asset-1",
+					"asset-1" as AssetId,
 				],
 				assets: [],
 			},
 		],
 		features: {},
-	} as unknown as BotEditor);
+	});
 
 /**
  * Plans and runs a save against recording procedures; the bot save echoes its

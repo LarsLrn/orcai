@@ -3,12 +3,9 @@ import type { AssetId, BotId, OrganizationId } from "@orcai/core";
 import type { HomeOrganization, ResourceRef } from "@orcai/schema";
 import type { CatalogueAdder } from "@/components/catalogue/catalogue-adder";
 import type { HeaderAction } from "@/components/ui/shell/actions";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	client: {},
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { assetStateActions, resourceActions } = await import(
 	"./resource-actions"

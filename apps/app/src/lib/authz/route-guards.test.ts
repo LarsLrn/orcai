@@ -1,24 +1,37 @@
 import { describe, expect, mock, test } from "bun:test";
 import { ORPCError } from "@orpc/client";
-import {
-	QueryClient as Queries,
-	type QueryClient,
-} from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { isNotFound } from "@tanstack/react-router";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-const queryOptions = (options: unknown) => options;
-mock.module("@/lib/orpc/orpc", () => ({
-	orpc: {
+/** How the server answers every permission check; set by each test. */
+let answer: () => Promise<{
+	allowed: boolean;
+	capabilities: Record<string, boolean>;
+}> = () => Promise.reject(new Error("No answer scripted"));
+
+mock.module("@/lib/orpc/orpc", () =>
+	scriptedOrpc({
 		authorization: {
-			check: {
-				queryOptions,
+			check: async () => {
+				const { allowed } = await answer();
+				return {
+					data: {
+						allowed,
+					},
+				};
 			},
-			organizationCapabilities: {
-				queryOptions,
+			organizationCapabilities: async () => {
+				const { capabilities } = await answer();
+				return {
+					data: {
+						capabilities,
+					},
+				};
 			},
 		},
-	},
-}));
+	}),
+);
 
 const { ensureEntityCapability, ensureOrganizationCapability } = await import(
 	"@/lib/authz/route-guards"
@@ -31,11 +44,10 @@ const unavailable = new ORPCError("SERVICE_UNAVAILABLE", {
 	},
 });
 
-/** A query client whose every query settles with `outcome`. */
-const answering = (outcome: () => Promise<unknown>): QueryClient => {
-	const queries = new Queries();
-	queries.query = outcome as QueryClient["query"];
-	return queries;
+/** The guards of a page on a server that settles every check with `outcome`. */
+const answering = (outcome: typeof answer) => {
+	answer = outcome;
+	return new QueryClient();
 };
 
 const guards = (queryClient: QueryClient) => [
@@ -61,10 +73,8 @@ describe("route guards", () => {
 	test("render not found only after a check that answered no", async () => {
 		const denied = answering(() =>
 			Promise.resolve({
-				data: {
-					allowed: false,
-					capabilities: {},
-				},
+				allowed: false,
+				capabilities: {},
 			}),
 		);
 

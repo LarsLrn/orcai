@@ -1,10 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
+import { scriptedOrpc } from "@/lib/testing/scripted-orpc";
 
-// The real client resolves server configuration at import time.
-mock.module("@/lib/orpc/orpc", () => ({
-	client: {},
-	orpc: {},
-}));
+mock.module("@/lib/orpc/orpc", () => scriptedOrpc());
 
 const { botContentsLabel, botModelHintBadge } = await import("./bot-tile");
 
