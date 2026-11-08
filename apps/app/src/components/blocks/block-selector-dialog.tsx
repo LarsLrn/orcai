@@ -1,21 +1,18 @@
 import type { BlockId } from "@orcai/core";
 import type { BlockListItem, BlockType } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useDebounceValue } from "usehooks-ts";
-import { Button } from "@/components/ui/button";
 import {
 	DialogSelect,
 	DialogSelectContent,
 	DialogSelectEmpty,
 	DialogSelectItem,
 	DialogSelectList,
-	DialogSelectPagination,
-	DialogSelectSearch,
 } from "@/components/ui/composed/dialog-select";
+import { LoadError } from "@/components/ui/composed/load-error";
+import { SearchField } from "@/components/ui/composed/search-field";
 import { StateBadge } from "@/components/ui/composed/state-badge";
-import { describeError } from "@/lib/errors/describe-error";
+import { Pager } from "@/components/ui/pager";
+import { usePickerList } from "@/hooks/use-picker-list";
 import { orpc } from "@/lib/orpc/orpc";
 import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { cn } from "@/lib/utils";
@@ -70,38 +67,21 @@ const BlockSelectorDialog = ({
 	emptyText?: string;
 	className?: string;
 }) => {
-	const [search, setSearch] = useState("");
-	const [debouncedSearch] = useDebounceValue(search, 300);
-	const [page, setPage] = useState(0);
-
-	useEffect(() => {
-		if (!open) {
-			setSearch("");
-			setPage(0);
-		}
-	}, [
+	const blocks = usePickerList({
+		pageSize: BLOCK_PAGE_SIZE,
 		open,
-	]);
-
-	const blocksQuery = useQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				pageIndex: page,
-				pageSize: BLOCK_PAGE_SIZE,
-				filters: {
-					type,
-					status: includeDrafts ? "all" : "ready",
-					search: debouncedSearch.trim() || undefined,
+		queryOptions: ({ search, ...page }) =>
+			orpc.block.list.queryOptions({
+				input: {
+					...page,
+					filters: {
+						type,
+						status: includeDrafts ? "all" : "ready",
+						search,
+					},
 				},
-			},
-			enabled: open,
-		}),
-	);
-
-	const blocks = blocksQuery.isError ? [] : (blocksQuery.data?.data ?? []);
-	const pageCount = Math.ceil(
-		(blocksQuery.data?.rowCount ?? 0) / BLOCK_PAGE_SIZE,
-	);
+			}),
+	});
 	const selectedSet = new Set(selectedIds);
 	const disabledSet = new Set(disabledIds);
 	const Icon = iconByType[type];
@@ -111,7 +91,7 @@ const BlockSelectorDialog = ({
 		<DialogSelect
 			value={null}
 			onValueChange={(blockId) => {
-				const block = blocks.find((entry) => entry.id === blockId);
+				const block = blocks.rows.find((entry) => entry.id === blockId);
 				if (!block) {
 					return;
 				}
@@ -130,18 +110,13 @@ const BlockSelectorDialog = ({
 						{description ?? copy.description}
 					</div>
 				</div>
-				<DialogSelectSearch
-					value={search}
-					onValueChange={(value) => {
-						setSearch(value);
-						setPage(0);
-					}}
+				<SearchField
+					value={blocks.search}
+					onValueChange={blocks.setSearch}
 					placeholder={copy.searchPlaceholder}
 				/>
-				<DialogSelectList
-					loading={blocksQuery.isLoading || blocksQuery.isFetching}
-				>
-					{blocks.map((block) => {
+				<DialogSelectList loading={blocks.loading}>
+					{blocks.rows.map((block) => {
 						const isSelected = selectedSet.has(block.id);
 						const isDisabled = isSelected || disabledSet.has(block.id);
 
@@ -171,29 +146,15 @@ const BlockSelectorDialog = ({
 							/>
 						);
 					})}
-					{blocksQuery.isError ? (
-						<DialogSelectEmpty role="alert">
-							{describeError(blocksQuery.error)}
-							<Button
-								variant="outline"
-								size="sm"
-								className="mt-3"
-								onClick={() => void blocksQuery.refetch()}
-							>
-								{m.common_retry_button()}
-							</Button>
-						</DialogSelectEmpty>
+					{blocks.list.isError ? (
+						<LoadError query={blocks.list} />
 					) : (
-						blocks.length === 0 && (
+						blocks.rows.length === 0 && (
 							<DialogSelectEmpty>{emptyText ?? copy.empty}</DialogSelectEmpty>
 						)
 					)}
 				</DialogSelectList>
-				<DialogSelectPagination
-					page={page}
-					pageCount={pageCount}
-					onPageChange={setPage}
-				/>
+				<Pager variant="compact" {...blocks.pager} />
 			</DialogSelectContent>
 		</DialogSelect>
 	);

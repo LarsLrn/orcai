@@ -19,6 +19,7 @@ const SearchField = ({
 	onClear = () => onValueChange(""),
 	placeholder = m.common_search_placeholder(),
 	className,
+	disabled,
 	...inputProps
 }: SearchFieldProps) => (
 	<div className={cn("relative", className)}>
@@ -28,6 +29,7 @@ const SearchField = ({
 		/>
 		<Input
 			{...inputProps}
+			disabled={disabled}
 			value={value}
 			onChange={(event) => onValueChange(event.target.value)}
 			aria-label={placeholder}
@@ -40,6 +42,7 @@ const SearchField = ({
 				variant="ghost"
 				size="icon-sm"
 				className="absolute top-1/2 right-1 -translate-y-1/2"
+				disabled={disabled}
 				onClick={onClear}
 			>
 				<XIcon aria-hidden="true" />

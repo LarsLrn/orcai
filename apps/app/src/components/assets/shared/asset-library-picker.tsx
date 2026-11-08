@@ -1,15 +1,16 @@
 import type { AssetWithCapabilities } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { useDebounceValue } from "usehooks-ts";
 import { CompactAssetTile } from "@/components/assets/asset-tile";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { LoadError } from "@/components/ui/composed/load-error";
+import { SearchField } from "@/components/ui/composed/search-field";
+import { Pager } from "@/components/ui/pager";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { describeError } from "@/lib/errors/describe-error";
+import { Spinner } from "@/components/ui/spinner";
+import { usePickerList } from "@/hooks/use-picker-list";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+
+const ASSET_PAGE_SIZE = 24;
 
 const AssetLibraryPicker = ({
 	selectedIds,
@@ -22,55 +23,42 @@ const AssetLibraryPicker = ({
 	onDeselect?: (asset: AssetWithCapabilities) => void;
 	scrollAreaClassName?: string;
 }) => {
-	const [search, setSearch] = useState("");
-	const [debouncedSearch] = useDebounceValue(search, 300);
-	const assets = useQuery(
-		orpc.asset.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 24,
-				filters: {
-					search: debouncedSearch.trim() || undefined,
-					keptIn: "library",
+	const assets = usePickerList({
+		pageSize: ASSET_PAGE_SIZE,
+		queryOptions: ({ search, ...page }) =>
+			orpc.asset.list.queryOptions({
+				input: {
+					...page,
+					filters: {
+						search,
+						keptIn: "library",
+					},
 				},
-			},
-		}),
-	);
+			}),
+	});
 
 	return (
 		<div className="space-y-4">
-			<Input
-				value={search}
-				onChange={(event) => setSearch(event.target.value)}
+			<SearchField
+				value={assets.search}
+				onValueChange={assets.setSearch}
 				placeholder={m.assets_library_picker_search_placeholder()}
 			/>
 
 			<ScrollArea
 				className={cn("max-h-[50vh] overflow-y-auto", scrollAreaClassName)}
 			>
-				{assets.isError ? (
-					<div
-						role="alert"
-						className="text-muted-foreground flex flex-col items-center py-8 text-center text-sm"
-					>
-						{describeError(assets.error)}
-						<Button
-							variant="outline"
-							size="sm"
-							className="mt-3"
-							loading={assets.isRefetching}
-							onClick={() => void assets.refetch()}
-						>
-							{m.common_retry_button()}
-						</Button>
-					</div>
-				) : assets.data?.data.length === 0 ? (
+				{assets.list.isError ? (
+					<LoadError query={assets.list} />
+				) : assets.loading ? (
+					<Spinner className="mx-auto my-8 block size-6" />
+				) : assets.rows.length === 0 ? (
 					<p className="text-muted-foreground py-8 text-center text-sm">
 						{m.assets_library_picker_empty_state()}
 					</p>
 				) : (
 					<div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
-						{assets.data?.data.map((asset) => {
+						{assets.rows.map((asset) => {
 							const isSelected = selectedIds.includes(asset.id);
 							return (
 								<CompactAssetTile
@@ -89,6 +77,7 @@ const AssetLibraryPicker = ({
 					</div>
 				)}
 			</ScrollArea>
+			<Pager variant="compact" {...assets.pager} />
 		</div>
 	);
 };

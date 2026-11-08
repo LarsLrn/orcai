@@ -1,42 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Pager } from "@/components/ui/pager";
 import { DEFAULT_PAGE_SIZE } from "@/lib/browse/data-table-search-params";
-
-/**
- * Replaces a page index past the last page, such as after deleting the last
- * card of the last page or editing the URL. Runs whether or not the grid is
- * rendered, so an empty collection is normalized too.
- */
-export const useClampedPageIndex = ({
-	rowCount,
-	pageIndex,
-	pageSize,
-}: {
-	rowCount: number;
-	pageIndex: number;
-	pageSize: number;
-}) => {
-	const navigate = useNavigate();
-	const lastPageIndex = Math.max(Math.ceil(rowCount / pageSize) - 1, 0);
-
-	useEffect(() => {
-		if (pageIndex > lastPageIndex) {
-			void navigate({
-				to: ".",
-				replace: true,
-				search: (prev) => ({
-					...prev,
-					pageIndex: lastPageIndex,
-				}),
-			});
-		}
-	}, [
-		pageIndex,
-		lastPageIndex,
-		navigate,
-	]);
-};
 
 /** Pager under a card grid, paging through the `pageIndex` and `pageSize` search params. */
 export const CardPager = ({
@@ -49,6 +13,10 @@ export const CardPager = ({
 	pageSize: number;
 }) => {
 	const navigate = useNavigate();
+	// Until a navigation lands, the shown page is stale: paging from it skips pages.
+	const navigating = useRouterState({
+		select: (state) => state.isLoading,
+	});
 	const pageCount = Math.ceil(rowCount / pageSize);
 
 	if (pageCount <= 1 && rowCount <= DEFAULT_PAGE_SIZE && pageIndex === 0) {
@@ -61,6 +29,7 @@ export const CardPager = ({
 				pageIndex={pageIndex}
 				pageSize={pageSize}
 				pageCount={pageCount}
+				pending={navigating}
 				onPageIndexChange={(next) =>
 					void navigate({
 						to: ".",

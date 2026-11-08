@@ -4,8 +4,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { MessagesSquareIcon, MoreHorizontalIcon } from "lucide-react";
 import { BranchMark } from "@/components/chat/branch-links";
 import { ChatActionsDropdown } from "@/components/chat/chat-actions-dropdown";
-import { SimplePlaceholder } from "@/components/placeholders/simple-placeholder";
-import { Button } from "@/components/ui/button";
+import { Placeholder } from "@/components/placeholders/placeholder";
 import {
 	SidebarGroup,
 	SidebarGroupContent,
@@ -91,26 +90,29 @@ const ChatSidebarGroups = () => {
 
 		if (status === "error") {
 			return (
-				<SimplePlaceholder Icon={MessagesSquareIcon} variant="muted">
-					<span className="block">{m.sidebar_chats_error_title()}</span>
-					<Button
-						variant="outline"
-						size="sm"
-						className="mt-3"
-						loading={isRefetching}
-						onClick={() => refetch()}
-					>
-						{m.sidebar_chats_error_retry_button()}
-					</Button>
-				</SimplePlaceholder>
+				<Placeholder
+					Icon={MessagesSquareIcon}
+					title={m.sidebar_chats_error_title()}
+					size="sm"
+					actions={[
+						{
+							key: "retry",
+							label: m.sidebar_chats_error_retry_button(),
+							onClick: () => void refetch(),
+							loading: isRefetching,
+						},
+					]}
+				/>
 			);
 		}
 
 		if (chats.length === 0) {
 			return (
-				<SimplePlaceholder Icon={MessagesSquareIcon} variant="muted">
-					{m.sidebar_chats_empty_state_title()}
-				</SimplePlaceholder>
+				<Placeholder
+					Icon={MessagesSquareIcon}
+					title={m.sidebar_chats_empty_state_title()}
+					size="sm"
+				/>
 			);
 		}
 

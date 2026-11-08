@@ -1,13 +1,10 @@
 import type { AssetId } from "@orcai/core";
 import type { Asset } from "@orcai/schema";
-import { useQuery } from "@tanstack/react-query";
-import { SearchIcon } from "lucide-react";
-import { useState } from "react";
-import { useDebounceValue } from "usehooks-ts";
-import { StatePagination } from "@/components/blocks/state-pagination";
 import { Placeholder } from "@/components/placeholders/placeholder";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LoadError } from "@/components/ui/composed/load-error";
+import { SearchField } from "@/components/ui/composed/search-field";
 import {
 	Dialog,
 	DialogContent,
@@ -16,9 +13,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Pager } from "@/components/ui/pager";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
+import { usePickerList } from "@/hooks/use-picker-list";
 import { orpc } from "@/lib/orpc/orpc";
 import { getFileTypeLabel } from "@/lib/presentation/file-type";
 import { formatFileSize } from "@/lib/presentation/format-file-size";
@@ -39,23 +37,19 @@ export const ChatAssetPicker = ({
 	onAddAsset: (asset: Asset) => void;
 	onRemoveAsset: (assetId: AssetId) => void;
 }) => {
-	const [search, setSearch] = useState("");
-	const [debouncedSearch] = useDebounceValue(search, 500);
-	const [pageIndex, setPageIndex] = useState(0);
-
-	const { data: assets, isPending } = useQuery(
-		orpc.asset.list.queryOptions({
-			input: {
-				pageIndex,
-				pageSize: PAGE_SIZE,
-				filters: {
-					search: debouncedSearch,
+	const assets = usePickerList({
+		pageSize: PAGE_SIZE,
+		open,
+		queryOptions: ({ search, ...page }) =>
+			orpc.asset.list.queryOptions({
+				input: {
+					...page,
+					filters: {
+						search,
+					},
 				},
-			},
-		}),
-	);
-
-	const maxPage = Math.max(1, Math.ceil((assets?.rowCount ?? 0) / PAGE_SIZE));
+			}),
+	});
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,75 +61,72 @@ export const ChatAssetPicker = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="relative">
-					<SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-					<Input
-						className="pl-9"
-						placeholder={m.chat_asset_picker_search_placeholder()}
-						value={search}
-						onChange={(event) => setSearch(event.target.value)}
-					/>
-				</div>
+				<SearchField
+					value={assets.search}
+					onValueChange={assets.setSearch}
+					placeholder={m.chat_asset_picker_search_placeholder()}
+				/>
 
 				<ScrollArea className="h-72 rounded-md border">
 					<div className="divide-y">
-						{isPending && <Spinner className="mt-10 size-10 w-full" />}
-						{!isPending && assets?.data.length === 0 && (
+						{assets.list.isError ? (
+							<LoadError query={assets.list} />
+						) : assets.loading ? (
+							<Spinner className="mx-auto my-10 block size-8" />
+						) : assets.rows.length === 0 ? (
 							<Placeholder
+								size="sm"
 								title={m.chat_asset_picker_empty_state_title()}
 								description={m.chat_asset_picker_empty_state_description()}
 							/>
-						)}
-						{assets?.data.map((asset) => (
-							<div
-								key={asset.id}
-								className="flex items-center justify-between gap-3 p-3"
-							>
-								<div className="min-w-0">
-									<div className="flex min-w-0 items-center gap-2">
-										<span className="truncate text-sm font-medium">
-											{asset.title}
-										</span>
-										{asset.keptIn === "chat" ? (
-											<Badge variant="outline" className="shrink-0">
-												{m.assets_chat_upload_badge()}
-											</Badge>
-										) : null}
+						) : (
+							assets.rows.map((asset) => (
+								<div
+									key={asset.id}
+									className="flex items-center justify-between gap-3 p-3"
+								>
+									<div className="min-w-0">
+										<div className="flex min-w-0 items-center gap-2">
+											<span className="truncate text-sm font-medium">
+												{asset.title}
+											</span>
+											{asset.keptIn === "chat" ? (
+												<Badge variant="outline" className="shrink-0">
+													{m.assets_chat_upload_badge()}
+												</Badge>
+											) : null}
+										</div>
+										<div className="text-muted-foreground truncate text-xs">
+											{getFileTypeLabel(asset.fileType)} ·{" "}
+											{formatFileSize(asset.size)}
+										</div>
 									</div>
-									<div className="text-muted-foreground truncate text-xs">
-										{getFileTypeLabel(asset.fileType)} ·{" "}
-										{formatFileSize(asset.size)}
-									</div>
+									{selectedAssetIds.has(asset.id) ? (
+										<Button
+											size="sm"
+											type="button"
+											variant="destructive"
+											onClick={() => onRemoveAsset(asset.id)}
+										>
+											{m.common_remove_button()}
+										</Button>
+									) : (
+										<Button
+											size="sm"
+											type="button"
+											onClick={() => onAddAsset(asset)}
+										>
+											{m.chat_asset_picker_attach_action()}
+										</Button>
+									)}
 								</div>
-								{selectedAssetIds.has(asset.id) ? (
-									<Button
-										size="sm"
-										type="button"
-										variant="destructive"
-										onClick={() => onRemoveAsset(asset.id)}
-									>
-										{m.common_remove_button()}
-									</Button>
-								) : (
-									<Button
-										size="sm"
-										type="button"
-										onClick={() => onAddAsset(asset)}
-									>
-										{m.chat_asset_picker_attach_action()}
-									</Button>
-								)}
-							</div>
-						))}
+							))
+						)}
 					</div>
 				</ScrollArea>
 
 				<DialogFooter>
-					<StatePagination
-						maxPages={maxPage}
-						page={pageIndex}
-						onPageChange={setPageIndex}
-					/>
+					<Pager variant="compact" {...assets.pager} />
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

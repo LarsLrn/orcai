@@ -1,9 +1,14 @@
+import { useRouterState } from "@tanstack/react-router";
 import { Pager } from "@/components/ui/pager";
 import { m } from "@/paraglide/messages";
 import { useTable } from "./data-table-context";
 
 const DataTablePagination = () => {
 	const { table } = useTable();
+	// Until a navigation lands, the shown page is stale: paging from it skips pages.
+	const navigating = useRouterState({
+		select: (state) => state.isLoading,
+	});
 
 	const hasSelectionColumn = table
 		.getAllLeafColumns()
@@ -27,6 +32,7 @@ const DataTablePagination = () => {
 				pageIndex={table.state.pagination.pageIndex}
 				pageSize={table.state.pagination.pageSize}
 				pageCount={table.getPageCount()}
+				pending={navigating}
 				onPageIndexChange={(pageIndex) => table.setPageIndex(pageIndex)}
 				onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
 			/>

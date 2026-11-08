@@ -18,7 +18,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { CardPager, useClampedPageIndex } from "@/components/ui/card-pager";
+import { CardPager } from "@/components/ui/card-pager";
+import { useClampedPageIndex } from "@/components/ui/pager";
 import { useDisplayTime } from "@/hooks/use-display-time";
 import {
 	DEFAULT_PAGE_SIZE,
