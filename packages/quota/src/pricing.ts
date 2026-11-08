@@ -102,7 +102,7 @@ export const priceSteps = (
 /** The prices in force for a call on the provider and model; null without the provider. */
 export const loadPriceList = (params: {
 	providerId: ProviderId;
-	modelId: string | null;
+	modelId: ModelId | null;
 }): Effect.Effect<PriceList | null, unknown, DB> =>
 	Effect.gen(function* () {
 		const db = yield* DB;
@@ -135,7 +135,7 @@ export const loadPriceList = (params: {
 						.from(model)
 						.where(
 							and(
-								eq(model.id, params.modelId as ModelId),
+								eq(model.id, params.modelId),
 								eq(model.providerId, params.providerId),
 							),
 						)

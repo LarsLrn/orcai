@@ -93,8 +93,7 @@ export const resolveQuotaPool: (params: {
 				desc(dbSchema.quotaPool.priority),
 				asc(dbSchema.quotaPool.createdAt),
 				asc(dbSchema.quotaPool.id),
-			)
-			.pipe(Effect.map((rows) => rows as CandidateRow[]));
+			);
 
 		const deduped = new Map<string, CandidateRow>();
 		for (const row of candidateRows) {
