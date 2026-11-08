@@ -23,7 +23,6 @@ export const Route = createFileRoute("/_pathlessLayout/login")({
 		const status = await queryClient.query(
 			orpc.bootstrap.status.queryOptions({
 				input: {},
-				staleTime: "static",
 			}),
 		);
 

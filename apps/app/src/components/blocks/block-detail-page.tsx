@@ -18,6 +18,7 @@ import {
 	DetailHeaderTitle,
 } from "@/components/ui/shell/detail-header";
 import { Page, PageContent } from "@/components/ui/shell/page";
+import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
 import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { publicationStatusBadge } from "@/lib/presentation/publication-status";
@@ -35,11 +36,9 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 		}),
 	);
 	const { data: visibility } = useSuspenseQuery(
-		orpc.resource.getVisibility.queryOptions({
-			input: {
-				resourceType: "block",
-				resourceId: blockId,
-			},
+		resourceVisibilityQuery({
+			type: "block",
+			id: blockId,
 		}),
 	);
 

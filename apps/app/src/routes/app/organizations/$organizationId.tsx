@@ -7,7 +7,7 @@ import { Page, PageContent } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound, parseParam } from "@/lib/router/not-found";
 
-const canEditOptions = (organizationId: string) =>
+const canEditQuery = (organizationId: string) =>
 	orpc.authorization.check.queryOptions({
 		input: {
 			entityType: "organization",
@@ -30,14 +30,10 @@ export const Route = createFileRoute("/app/organizations/$organizationId")({
 						input: {
 							id: organizationId,
 						},
-						staleTime: "static",
 					}),
 				),
 			),
-			queryClient.query({
-				...canEditOptions(organizationId),
-				staleTime: "static",
-			}),
+			queryClient.query(canEditQuery(organizationId)),
 		]);
 		return profile;
 	},
@@ -63,7 +59,7 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { data: canEdit } = useSuspenseQuery(canEditOptions(organizationId));
+	const { data: canEdit } = useSuspenseQuery(canEditQuery(organizationId));
 
 	return (
 		<Page>

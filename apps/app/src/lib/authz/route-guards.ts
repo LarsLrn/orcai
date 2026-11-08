@@ -90,7 +90,6 @@ export const ensureEntityCapability = async <
 				entityId,
 				permission,
 			},
-			staleTime: "static",
 		}),
 	);
 

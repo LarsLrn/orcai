@@ -1,4 +1,4 @@
-import type { ChatListRow, ListChatsInput } from "@orcai/schema";
+import type { ChatListRow } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BotIcon, MessagesSquareIcon } from "lucide-react";
@@ -11,16 +11,19 @@ import { m } from "@/paraglide/messages";
 import { HomeSection } from "./home-section";
 
 /** Newest first, so a pinned older chat does not push a recent one out. */
-export const recentChatsInput = {
-	pageIndex: 0,
-	pageSize: 4,
-	sort: [
-		{
-			id: "updatedAt",
-			desc: true,
+export const recentChatsQuery = () =>
+	orpc.chat.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 4,
+			sort: [
+				{
+					id: "updatedAt",
+					desc: true,
+				},
+			],
 		},
-	],
-} satisfies ListChatsInput;
+	});
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -78,11 +81,7 @@ const RecentChatRow = ({ chat }: { chat: ChatListRow }) => {
 
 /** The user's latest chats in this organisation, as compact rows. */
 const RecentChats = () => {
-	const { data } = useSuspenseQuery(
-		orpc.chat.list.queryOptions({
-			input: recentChatsInput,
-		}),
-	);
+	const { data } = useSuspenseQuery(recentChatsQuery());
 
 	return (
 		<HomeSection

@@ -16,11 +16,13 @@ import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { useUtilityModel } from "@/hooks/use-utility-model";
 import {
 	assetLibrarySearchSchema,
-	libraryCountsInput,
 	libraryFilters,
-	libraryListInput,
 	librarySearchDefaults,
 } from "@/lib/library/library-filters";
+import {
+	libraryCountsQuery,
+	libraryListQuery,
+} from "@/lib/library/library-queries";
 import { orpc } from "@/lib/orpc/orpc";
 import {
 	isAssetWorking,
@@ -82,18 +84,8 @@ export const Route = createFileRoute("/app/library/assets/")({
 			}
 		};
 		await Promise.all([
-			queryClient.query(
-				orpc.asset.list.queryOptions({
-					input: libraryListInput.asset(deps),
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.library.counts.queryOptions({
-					input: libraryCountsInput(deps),
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(libraryListQuery.asset(deps)),
+			queryClient.query(libraryCountsQuery(deps)),
 			// The run's title and the metadata action fail only themselves.
 			Promise.allSettled([
 				deps.run && queryClient.query(runFilterQuery(deps.run)),
@@ -106,13 +98,11 @@ export const Route = createFileRoute("/app/library/assets/")({
 
 function RouteComponent() {
 	const search = Route.useSearch();
-	const { data: assets } = useSuspenseQuery(
-		orpc.asset.list.queryOptions({
-			input: libraryListInput.asset(search),
-			refetchInterval: (query) =>
-				query.state.data?.data.some(isAssetWorking) ? METADATA_POLL_MS : false,
-		}),
-	);
+	const { data: assets } = useSuspenseQuery({
+		...libraryListQuery.asset(search),
+		refetchInterval: (query) =>
+			query.state.data?.data.some(isAssetWorking) ? METADATA_POLL_MS : false,
+	});
 
 	return (
 		<>

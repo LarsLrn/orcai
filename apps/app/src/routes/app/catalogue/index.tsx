@@ -19,11 +19,14 @@ import { CatalogueEmpty } from "@/components/catalogue/catalogue-empty";
 import { CatalogueTile } from "@/components/catalogue/catalogue-tile";
 import {
 	type CatalogueSearch,
-	catalogueCountsInput,
 	catalogueListInput,
 	catalogueSearchDefaults,
 	catalogueSearchSchemas,
 } from "@/lib/catalogue/catalogue-filters";
+import {
+	catalogueCountsQuery,
+	catalogueListQuery,
+} from "@/lib/catalogue/catalogue-queries";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
@@ -39,12 +42,14 @@ const KINDS = [
 ] as const satisfies CatalogueKind[];
 
 /** A shelf's entries: the newest of a kind, or of every kind. */
-const shelfInput = (kind?: CatalogueKind) =>
-	({
-		...catalogueListInput("overview", catalogueSearchDefaults.overview),
-		pageSize: SHELF_SIZE,
-		kind,
-	}) as const;
+const shelfQuery = (kind?: CatalogueKind) =>
+	orpc.catalogue.list.queryOptions({
+		input: {
+			...catalogueListInput("overview", catalogueSearchDefaults.overview),
+			pageSize: SHELF_SIZE,
+			kind,
+		},
+	});
 
 export const Route = createFileRoute("/app/catalogue/")({
 	validateSearch: catalogueSearchSchemas.overview,
@@ -61,30 +66,14 @@ export const Route = createFileRoute("/app/catalogue/")({
 		await Promise.all([
 			...(deps.query
 				? [
-						queryClient.query(
-							orpc.catalogue.list.queryOptions({
-								input: catalogueListInput("overview", deps),
-								staleTime: "static",
-							}),
-						),
+						catalogueListQuery("overview", deps),
 					]
 				: [
 						undefined,
 						...KINDS,
-					].map((kind) =>
-						queryClient.query(
-							orpc.catalogue.list.queryOptions({
-								input: shelfInput(kind),
-								staleTime: "static",
-							}),
-						),
-					)),
-			queryClient.query(
-				orpc.catalogue.counts.queryOptions({
-					input: catalogueCountsInput(deps),
-					staleTime: "static",
-				}),
-			),
+					].map(shelfQuery)
+			).map((options) => queryClient.query(options)),
+			queryClient.query(catalogueCountsQuery(deps)),
 		]);
 	},
 	component: RouteComponent,
@@ -98,9 +87,7 @@ function RouteComponent() {
 /** Every kind at once, in one order and one pager. */
 const SearchResults = ({ search }: { search: CatalogueSearch<"overview"> }) => {
 	const { data: results } = useSuspenseQuery(
-		orpc.catalogue.list.queryOptions({
-			input: catalogueListInput("overview", search),
-		}),
+		catalogueListQuery("overview", search),
 	);
 	return (
 		<CatalogueResults
@@ -118,26 +105,10 @@ const SearchResults = ({ search }: { search: CatalogueSearch<"overview"> }) => {
 
 /** The newest entries, then a shelf per kind; a plain grid while there are few. */
 const Discover = () => {
-	const { data: newest } = useSuspenseQuery(
-		orpc.catalogue.list.queryOptions({
-			input: shelfInput(),
-		}),
-	);
-	const { data: bots } = useSuspenseQuery(
-		orpc.catalogue.list.queryOptions({
-			input: shelfInput("bot"),
-		}),
-	);
-	const { data: behaviours } = useSuspenseQuery(
-		orpc.catalogue.list.queryOptions({
-			input: shelfInput("behaviour"),
-		}),
-	);
-	const { data: repositories } = useSuspenseQuery(
-		orpc.catalogue.list.queryOptions({
-			input: shelfInput("repository"),
-		}),
-	);
+	const { data: newest } = useSuspenseQuery(shelfQuery());
+	const { data: bots } = useSuspenseQuery(shelfQuery("bot"));
+	const { data: behaviours } = useSuspenseQuery(shelfQuery("behaviour"));
+	const { data: repositories } = useSuspenseQuery(shelfQuery("repository"));
 	const shelves = {
 		bot: bots,
 		behaviour: behaviours,

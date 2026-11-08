@@ -1,10 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import z from "zod/v4";
 import { loadActivityAttention } from "@/components/activity/activity-state";
-import { recentChatsInput } from "@/components/app/home/recent-chats";
+import { recentChatsQuery } from "@/components/app/home/recent-chats";
 import {
-	catalogueTeaserInput,
-	tryBotsInput,
+	catalogueTeaserQuery,
+	tryBotsQuery,
 } from "@/components/app/home/try-something";
 import { UserHome } from "@/components/app/home/user-home";
 import { loadChatStarter } from "@/components/chat/use-chat-starter";
@@ -42,27 +42,11 @@ export const Route = createFileRoute("/app/_home/")({
 					input: {
 						id: auth.session.activeOrganizationId,
 					},
-					staleTime: "static",
 				}),
 			),
-			queryClient.query(
-				orpc.bot.list.queryOptions({
-					input: tryBotsInput,
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.catalogue.list.queryOptions({
-					input: catalogueTeaserInput,
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.chat.list.queryOptions({
-					input: recentChatsInput,
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(tryBotsQuery()),
+			queryClient.query(catalogueTeaserQuery()),
+			queryClient.query(recentChatsQuery()),
 			// These fail only their own cards.
 			Promise.allSettled([
 				loadChatStarter(queryClient),

@@ -5,12 +5,13 @@ import {
 } from "@tanstack/react-router";
 import { CatalogueKindResults } from "@/components/catalogue/catalogue-kind-results";
 import {
-	catalogueCountsInput,
-	catalogueListInput,
 	catalogueSearchDefaults,
 	catalogueSearchSchemas,
 } from "@/lib/catalogue/catalogue-filters";
-import { orpc } from "@/lib/orpc/orpc";
+import {
+	catalogueCountsQuery,
+	catalogueListQuery,
+} from "@/lib/catalogue/catalogue-queries";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/catalogue/bots/")({
@@ -26,18 +27,8 @@ export const Route = createFileRoute("/app/catalogue/bots/")({
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
-			queryClient.query(
-				orpc.catalogue.list.queryOptions({
-					input: catalogueListInput("bot", deps),
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.catalogue.counts.queryOptions({
-					input: catalogueCountsInput(deps),
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(catalogueListQuery("bot", deps)),
+			queryClient.query(catalogueCountsQuery(deps)),
 		]);
 	},
 	head: () => ({

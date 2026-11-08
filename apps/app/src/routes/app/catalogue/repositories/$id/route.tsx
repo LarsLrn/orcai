@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod/v4";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { catalogueEntrySearchSchema } from "@/lib/catalogue/catalogue-filters";
@@ -25,10 +25,5 @@ export const Route = createFileRoute("/app/catalogue/repositories/$id")({
 			},
 		],
 	}),
-	component: RouteComponent,
 	pendingComponent: LoadingPage,
 });
-
-function RouteComponent() {
-	return <Outlet />;
-}

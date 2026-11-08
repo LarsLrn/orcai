@@ -2,6 +2,7 @@ import { listOrganizationMembersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PlusIcon, UsersIcon } from "lucide-react";
+import type { z } from "zod/v4";
 import { memberTableColumns } from "@/components/members/table/member-table-columns";
 import { MembersDataTableSelectActions } from "@/components/members/table/members-data-table-select-actions";
 import { buttonVariants } from "@/components/ui/button";
@@ -33,6 +34,26 @@ const searchSchema = listOrganizationMembersInputSchema.extend({
 	query: dataTableQuerySchema.default(""),
 });
 
+const membersQuery = ({
+	pageIndex,
+	pageSize,
+	query,
+	sort,
+}: Pick<
+	z.output<typeof searchSchema>,
+	"pageIndex" | "pageSize" | "query" | "sort"
+>) =>
+	orpc.organizationMember.list.queryOptions({
+		input: {
+			filters: {
+				search: query.trim() || undefined,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
+
 export const Route = createFileRoute("/app/members/")({
 	validateSearch: searchSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize, query, sort } }) => ({
@@ -41,41 +62,16 @@ export const Route = createFileRoute("/app/members/")({
 		query,
 		sort,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize, query, sort },
-	}) => {
-		await queryClient.query(
-			orpc.organizationMember.list.queryOptions({
-				input: {
-					filters: {
-						search: query.trim() ? query.trim() : undefined,
-					},
-					pageIndex,
-					pageSize,
-					sort,
-				},
-				staleTime: "static",
-			}),
-		);
+	loader: async ({ context: { queryClient }, deps }) => {
+		await queryClient.query(membersQuery(deps));
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize, query, sort } = Route.useSearch();
-	const { data: users } = useSuspenseQuery(
-		orpc.organizationMember.list.queryOptions({
-			input: {
-				filters: {
-					search: query.trim() ? query.trim() : undefined,
-				},
-				pageIndex,
-				pageSize,
-				sort,
-			},
-		}),
-	);
+	const search = Route.useSearch();
+	const { pageIndex, pageSize, query, sort } = search;
+	const { data: users } = useSuspenseQuery(membersQuery(search));
 
 	return (
 		<Page>

@@ -16,21 +16,27 @@ import { m } from "@/paraglide/messages";
 import { HomeSection } from "./home-section";
 
 /** A bot starts a chat, so only bots the user may chat with here, favourites first. */
-export const tryBotsInput = {
-	pageIndex: 0,
-	pageSize: 3,
-	sort: "favouritesFirst",
-	filters: {
-		usable: true,
-	},
-} as const;
+export const tryBotsQuery = () =>
+	orpc.bot.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 3,
+			sort: "favouritesFirst",
+			filters: {
+				usable: true,
+			},
+		},
+	});
 
 /** The newest catalogue entry the active organisation has not added yet. */
-export const catalogueTeaserInput = {
-	pageIndex: 0,
-	pageSize: 1,
-	hideAdded: true,
-} as const;
+export const catalogueTeaserQuery = () =>
+	orpc.catalogue.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 1,
+			hideAdded: true,
+		},
+	});
 
 const { Icon: BotGlyph, well: botWell } = RESOURCE_KINDS.bot;
 
@@ -131,16 +137,8 @@ const CatalogueTeaser = ({ entry }: { entry: CatalogueEntry }) => (
 
 /** Bots to start a chat with, the favourite first, and one new catalogue entry. */
 const TrySomething = () => {
-	const { data: bots } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({
-			input: tryBotsInput,
-		}),
-	);
-	const { data: catalogue } = useSuspenseQuery(
-		orpc.catalogue.list.queryOptions({
-			input: catalogueTeaserInput,
-		}),
-	);
+	const { data: bots } = useSuspenseQuery(tryBotsQuery());
+	const { data: catalogue } = useSuspenseQuery(catalogueTeaserQuery());
 	const [featured, ...rest] = bots.data;
 	const teaser = catalogue.data[0];
 

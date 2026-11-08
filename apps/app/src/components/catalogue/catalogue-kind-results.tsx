@@ -3,11 +3,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { CatalogueResults } from "@/components/catalogue/catalogue-browse";
 import { CatalogueEmpty } from "@/components/catalogue/catalogue-empty";
 import { CatalogueTile } from "@/components/catalogue/catalogue-tile";
-import {
-	type CatalogueSearch,
-	catalogueListInput,
-} from "@/lib/catalogue/catalogue-filters";
-import { orpc } from "@/lib/orpc/orpc";
+import type { CatalogueSearch } from "@/lib/catalogue/catalogue-filters";
+import { catalogueListQuery } from "@/lib/catalogue/catalogue-queries";
 import { m } from "@/paraglide/messages";
 
 const TITLES = {
@@ -39,11 +36,7 @@ export const CatalogueKindResults = ({
 	kind: CatalogueKind;
 	search: CatalogueSearch<CatalogueKind>;
 }) => {
-	const { data: entries } = useSuspenseQuery(
-		orpc.catalogue.list.queryOptions({
-			input: catalogueListInput(kind, search),
-		}),
-	);
+	const { data: entries } = useSuspenseQuery(catalogueListQuery(kind, search));
 
 	return (
 		<CatalogueResults

@@ -29,7 +29,6 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 		const status = await queryClient.query(
 			orpc.bootstrap.status.queryOptions({
 				input: {},
-				staleTime: "static",
 			}),
 		);
 
@@ -49,7 +48,6 @@ export const Route = createFileRoute("/_pathlessLayout/register")({
 				input: {
 					id: deps.inv,
 				},
-				staleTime: "static",
 			}),
 		);
 

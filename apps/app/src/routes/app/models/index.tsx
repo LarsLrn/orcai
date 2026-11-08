@@ -50,6 +50,41 @@ const searchSchema = listModelsInputSchema
 const capabilitiesSet = (capabilities: "set" | "unset" | undefined) =>
 	capabilities === undefined ? undefined : capabilities === "set";
 
+const modelsQuery = ({
+	pageIndex,
+	pageSize,
+	providerId,
+	capabilities,
+	query,
+	sort,
+}: Pick<
+	z.output<typeof searchSchema>,
+	"pageIndex" | "pageSize" | "providerId" | "capabilities" | "query" | "sort"
+>) =>
+	orpc.model.list.queryOptions({
+		input: {
+			filters: {
+				providerId,
+				capabilitiesSet: capabilitiesSet(capabilities),
+				search: query || undefined,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
+
+const modelProvidersQuery = () =>
+	orpc.provider.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 200,
+			filters: {
+				purpose: "models",
+			},
+		},
+	});
+
 export const Route = createFileRoute("/app/models/")({
 	validateSearch: searchSchema,
 	loaderDeps: ({
@@ -62,38 +97,10 @@ export const Route = createFileRoute("/app/models/")({
 		query,
 		sort,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize, providerId, capabilities, query, sort },
-	}) => {
+	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
-			queryClient.query(
-				orpc.model.list.queryOptions({
-					input: {
-						filters: {
-							providerId,
-							capabilitiesSet: capabilitiesSet(capabilities),
-							search: query || undefined,
-						},
-						pageIndex,
-						pageSize,
-						sort,
-					},
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.provider.list.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: 200,
-						filters: {
-							purpose: "models",
-						},
-					},
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(modelsQuery(deps)),
+			queryClient.query(modelProvidersQuery()),
 		]);
 	},
 	component: RouteComponent,
@@ -102,33 +109,10 @@ export const Route = createFileRoute("/app/models/")({
 function RouteComponent() {
 	const deleteModels = useDeleteModelsMutation();
 	const navigate = useNavigate();
-	const { pageIndex, pageSize, providerId, capabilities, query, sort } =
-		Route.useSearch();
-	const { data: models } = useSuspenseQuery(
-		orpc.model.list.queryOptions({
-			input: {
-				filters: {
-					providerId,
-					capabilitiesSet: capabilitiesSet(capabilities),
-					search: query || undefined,
-				},
-				pageIndex,
-				pageSize,
-				sort,
-			},
-		}),
-	);
-	const { data: providers } = useSuspenseQuery(
-		orpc.provider.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 200,
-				filters: {
-					purpose: "models",
-				},
-			},
-		}),
-	);
+	const search = Route.useSearch();
+	const { pageIndex, pageSize, providerId, capabilities, query, sort } = search;
+	const { data: models } = useSuspenseQuery(modelsQuery(search));
+	const { data: providers } = useSuspenseQuery(modelProvidersQuery());
 
 	return (
 		<Page>

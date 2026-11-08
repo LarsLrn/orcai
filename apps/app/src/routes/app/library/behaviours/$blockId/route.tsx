@@ -1,5 +1,5 @@
 import { blockIdSchema } from "@orcai/schema";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { loadBlockOfType } from "@/lib/router/block-loader";
 import { parseParam } from "@/lib/router/not-found";
@@ -23,10 +23,5 @@ export const Route = createFileRoute("/app/library/behaviours/$blockId")({
 			},
 		],
 	}),
-	component: RouteComponent,
 	pendingComponent: LoadingPage,
 });
-
-function RouteComponent() {
-	return <Outlet />;
-}

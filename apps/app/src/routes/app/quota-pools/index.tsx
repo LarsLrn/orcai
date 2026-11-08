@@ -2,6 +2,7 @@ import { quotaPoolListInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GaugeIcon, PlusIcon } from "lucide-react";
+import type { z } from "zod/v4";
 import { quotaPoolTableColumns } from "@/components/quota/table/quota-pool-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -22,42 +23,38 @@ import { paginationSearchShape } from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+const searchSchema = quotaPoolListInputSchema.extend(paginationSearchShape);
+
+const quotaPoolsQuery = ({
+	pageIndex,
+	pageSize,
+	sort,
+}: z.output<typeof searchSchema>) =>
+	orpc.quotaPool.list.queryOptions({
+		input: {
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
+
 export const Route = createFileRoute("/app/quota-pools/")({
-	validateSearch: quotaPoolListInputSchema.extend(paginationSearchShape),
+	validateSearch: searchSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
 		sort,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize, sort },
-	}) => {
-		await queryClient.query(
-			orpc.quotaPool.list.queryOptions({
-				input: {
-					pageIndex,
-					pageSize,
-					sort,
-				},
-				staleTime: "static",
-			}),
-		);
+	loader: async ({ context: { queryClient }, deps }) => {
+		await queryClient.query(quotaPoolsQuery(deps));
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize, sort } = Route.useSearch();
-	const { data: pools } = useSuspenseQuery(
-		orpc.quotaPool.list.queryOptions({
-			input: {
-				pageIndex,
-				pageSize,
-				sort,
-			},
-		}),
-	);
+	const search = Route.useSearch();
+	const { pageIndex, pageSize, sort } = search;
+	const { data: pools } = useSuspenseQuery(quotaPoolsQuery(search));
 
 	return (
 		<Page>

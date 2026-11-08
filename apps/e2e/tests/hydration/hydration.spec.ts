@@ -7,6 +7,11 @@ import {
 	startConversation,
 } from "../../fixtures/assistant/assistant";
 import { untilAllowed } from "../../fixtures/authorization";
+import {
+	authzName,
+	behaviourInput,
+	botSave,
+} from "../../fixtures/authz/resources";
 import { setUpChatModel } from "../../fixtures/chat/chat";
 import { serverHtml } from "../../fixtures/hydration/server-html";
 import { expect, test } from "../../fixtures/index";
@@ -280,4 +285,71 @@ test("hydration: the server renders an empty Library kind with its New action", 
 	).toBeAttached();
 
 	await open(page, "/app/library/bots");
+});
+
+test("hydration: the server renders a bot's page with its blocks", async ({
+	api,
+	org,
+	pageAs,
+	newContext,
+}) => {
+	const member = api.as("member");
+	const behaviourName = authzName("Hydration Behaviour");
+	const behaviour = await member.block.create(behaviourInput(behaviourName));
+	const bot = await member.bot.save(
+		botSave({
+			name: authzName("Hydration Bot"),
+			behaviourId: behaviour.data.id,
+		}),
+	);
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+
+	const path = `/app/library/bots/${bot.data.id}`;
+	const html = await serverHtml(page, newContext, path);
+	await expect(
+		html
+			.getByText(behaviourName, {
+				exact: true,
+			})
+			.first(),
+	).toBeAttached();
+
+	await open(page, path);
+});
+
+test("hydration: the server renders a model's page with its provider", async ({
+	api,
+	inference,
+	orgs,
+	pageAs,
+	newContext,
+}) => {
+	const fresh = await orgs.create(`E2E Hydration Model Page ${runId()}`);
+	const chat = await setUpChatModel(
+		{
+			...api,
+			as: (role) => api.as(role, fresh),
+		},
+		inference,
+	);
+	const admin = api.as("admin", fresh);
+	const model = await createMockModel(admin, chat.providerId);
+	const provider = await admin.provider.find({
+		id: chat.providerId,
+	});
+	const page = await pageAs("admin", fresh);
+	await enterApp(page, fresh.slug);
+
+	const path = `/app/models/${model.modelId}`;
+	const html = await serverHtml(page, newContext, path);
+	await expect(
+		html
+			.getByText(provider.data.name, {
+				exact: true,
+			})
+			.first(),
+	).toBeAttached();
+
+	await open(page, path);
 });

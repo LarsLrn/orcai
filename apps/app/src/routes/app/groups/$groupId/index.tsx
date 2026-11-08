@@ -46,16 +46,19 @@ const searchSchema = listGroupMembersInputSchema
 		query: dataTableQuerySchema.default(""),
 	});
 
-const membersInput = (
+const membersQuery = (
 	groupId: GroupId,
 	{ pageIndex, pageSize, sort, query }: z.infer<typeof searchSchema>,
-) => ({
-	groupId,
-	query: query || undefined,
-	pageIndex,
-	pageSize,
-	sort,
-});
+) =>
+	orpc.group.listMembers.queryOptions({
+		input: {
+			groupId,
+			query: query || undefined,
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
 
 export const Route = createFileRoute("/app/groups/$groupId/")({
 	validateSearch: searchSchema,
@@ -66,12 +69,7 @@ export const Route = createFileRoute("/app/groups/$groupId/")({
 	},
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, params: { groupId }, deps }) => {
-		await queryClient.query(
-			orpc.group.listMembers.queryOptions({
-				input: membersInput(groupId, deps),
-				staleTime: "static",
-			}),
-		);
+		await queryClient.query(membersQuery(groupId, deps));
 	},
 	component: RouteComponent,
 });
@@ -89,11 +87,7 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { data: members } = useSuspenseQuery(
-		orpc.group.listMembers.queryOptions({
-			input: membersInput(groupId, search),
-		}),
-	);
+	const { data: members } = useSuspenseQuery(membersQuery(groupId, search));
 	const columns = useMemo(
 		() => groupMemberTableColumns(groupId),
 		[

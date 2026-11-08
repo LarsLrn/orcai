@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/behaviours")({
@@ -9,9 +9,4 @@ export const Route = createFileRoute("/app/library/behaviours")({
 			},
 		],
 	}),
-	component: RouteComponent,
 });
-
-function RouteComponent() {
-	return <Outlet />;
-}

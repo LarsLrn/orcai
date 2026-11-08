@@ -1,3 +1,5 @@
+import type { BotId } from "@orcai/core";
+import type { PublicationStatus } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MessageSquarePlusIcon } from "lucide-react";
@@ -29,12 +31,30 @@ import {
 	DetailHeaderTitle,
 } from "@/components/ui/shell/detail-header";
 import { Page, PageContent } from "@/components/ui/shell/page";
+import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
 import { hasCapability } from "@/lib/authz/capabilities";
 import { orpc } from "@/lib/orpc/orpc";
 import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+
+/** The bot's blocks of one status; a draft bot also shows its draft blocks. */
+const botBlocksQuery = (botId: BotId, status: PublicationStatus) =>
+	orpc.block.list.queryOptions({
+		input: {
+			filters: {
+				botId,
+				status,
+			},
+		},
+	});
+
+const botVisibilityQuery = (botId: BotId) =>
+	resourceVisibilityQuery({
+		type: "bot",
+		id: botId,
+	});
 
 export const Route = createFileRoute("/app/library/bots/$botId/")({
 	// The setup card and the add-blocks action fail only themselves.
@@ -57,9 +77,14 @@ export const Route = createFileRoute("/app/library/bots/$botId/")({
 				auth.session.activeOrganizationId,
 			);
 		};
-		await Promise.allSettled([
-			loadBotSetupSummary(queryClient, botId),
-			loadAddBlocks(),
+		await Promise.all([
+			queryClient.query(botVisibilityQuery(botId)),
+			queryClient.query(botBlocksQuery(botId, "ready")),
+			queryClient.query(botBlocksQuery(botId, "draft")),
+			Promise.allSettled([
+				loadBotSetupSummary(queryClient, botId),
+				loadAddBlocks(),
+			]),
 		]);
 	},
 	component: RouteComponent,
@@ -76,34 +101,10 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { data: visibility } = useSuspenseQuery(
-		orpc.resource.getVisibility.queryOptions({
-			input: {
-				resourceType: "bot",
-				resourceId: botId,
-			},
-		}),
-	);
-
-	const { data: blocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				filters: {
-					botId,
-					status: "ready",
-				},
-			},
-		}),
-	);
+	const { data: visibility } = useSuspenseQuery(botVisibilityQuery(botId));
+	const { data: blocks } = useSuspenseQuery(botBlocksQuery(botId, "ready"));
 	const { data: draftBlocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: {
-				filters: {
-					botId,
-					status: "draft",
-				},
-			},
-		}),
+		botBlocksQuery(botId, "draft"),
 	);
 
 	const botBlocks =

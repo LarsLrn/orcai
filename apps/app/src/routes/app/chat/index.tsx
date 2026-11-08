@@ -2,6 +2,7 @@ import { botIdSchema, listChatsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MessagesSquareIcon, PlusIcon } from "lucide-react";
+import type { z } from "zod/v4";
 import {
 	ChatHistoryLink,
 	chatHistoryLinkQuery,
@@ -44,6 +45,37 @@ const searchSchema = listChatsInputSchema
 		query: dataTableQuerySchema.default(""),
 	});
 
+const chatsQuery = ({
+	botId,
+	pageIndex,
+	pageSize,
+	query,
+	sort,
+}: Pick<
+	z.output<typeof searchSchema>,
+	"botId" | "pageIndex" | "pageSize" | "query" | "sort"
+>) =>
+	orpc.chat.list.queryOptions({
+		input: {
+			filters: {
+				botId,
+				search: query || undefined,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
+
+/** The bot filter's choices. */
+const filterBotsQuery = () =>
+	orpc.bot.list.queryOptions({
+		input: {
+			pageIndex: 0,
+			pageSize: 1000,
+		},
+	});
+
 export const Route = createFileRoute("/app/chat/")({
 	validateSearch: searchSchema,
 	loaderDeps: ({ search: { botId, pageIndex, pageSize, query, sort } }) => ({
@@ -55,29 +87,8 @@ export const Route = createFileRoute("/app/chat/")({
 	}),
 	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
-			queryClient.query(
-				orpc.chat.list.queryOptions({
-					input: {
-						filters: {
-							botId: deps.botId,
-							search: deps.query || undefined,
-						},
-						pageIndex: deps.pageIndex,
-						pageSize: deps.pageSize,
-						sort: deps.sort,
-					},
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.bot.list.queryOptions({
-					input: {
-						pageIndex: 0,
-						pageSize: 1000,
-					},
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(chatsQuery(deps)),
+			queryClient.query(filterBotsQuery()),
 			// The history link fails only itself.
 			Promise.allSettled([
 				queryClient.query(chatHistoryLinkQuery()),
@@ -90,28 +101,10 @@ export const Route = createFileRoute("/app/chat/")({
 function RouteComponent() {
 	const deleteChats = useDeleteChatsMutation();
 	const navigate = useNavigate();
-	const { botId, pageIndex, pageSize, query, sort } = Route.useSearch();
-	const { data: chats } = useSuspenseQuery(
-		orpc.chat.list.queryOptions({
-			input: {
-				filters: {
-					botId,
-					search: query || undefined,
-				},
-				pageIndex,
-				pageSize,
-				sort,
-			},
-		}),
-	);
-	const { data: bots } = useSuspenseQuery(
-		orpc.bot.list.queryOptions({
-			input: {
-				pageIndex: 0,
-				pageSize: 1000,
-			},
-		}),
-	);
+	const search = Route.useSearch();
+	const { botId, pageIndex, pageSize, query, sort } = search;
+	const { data: chats } = useSuspenseQuery(chatsQuery(search));
+	const { data: bots } = useSuspenseQuery(filterBotsQuery());
 
 	return (
 		<Page>

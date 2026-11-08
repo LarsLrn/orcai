@@ -2,6 +2,7 @@ import { listOrganizationInvitationsInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MailIcon, PlusIcon } from "lucide-react";
+import type { z } from "zod/v4";
 import { invitationsTableColumns } from "@/components/members/invitations/table/invitations-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -27,29 +28,32 @@ import { paginationSearchShape } from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+const searchSchema = listOrganizationInvitationsInputSchema.extend(
+	paginationSearchShape,
+);
+
+const invitationsQuery = ({
+	pageIndex,
+	pageSize,
+	sort,
+}: z.output<typeof searchSchema>) =>
+	orpc.organizationInvitation.list.queryOptions({
+		input: {
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
+
 export const Route = createFileRoute("/app/members/invitations")({
-	validateSearch: listOrganizationInvitationsInputSchema.extend(
-		paginationSearchShape,
-	),
+	validateSearch: searchSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
 		sort,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize, sort },
-	}) => {
-		return await queryClient.query(
-			orpc.organizationInvitation.list.queryOptions({
-				input: {
-					pageIndex,
-					pageSize,
-					sort,
-				},
-				staleTime: "static",
-			}),
-		);
+	loader: async ({ context: { queryClient }, deps }) => {
+		return await queryClient.query(invitationsQuery(deps));
 	},
 	component: RouteComponent,
 	head: () => ({
@@ -63,16 +67,9 @@ export const Route = createFileRoute("/app/members/invitations")({
 
 function RouteComponent() {
 	const deleteInvitations = useDeleteOrganizationInvitationsMutation();
-	const { pageIndex, pageSize, sort } = Route.useSearch();
-	const { data: invitations } = useSuspenseQuery(
-		orpc.organizationInvitation.list.queryOptions({
-			input: {
-				pageIndex,
-				pageSize,
-				sort,
-			},
-		}),
-	);
+	const search = Route.useSearch();
+	const { pageIndex, pageSize, sort } = search;
+	const { data: invitations } = useSuspenseQuery(invitationsQuery(search));
 	const { canManageRole } = useMembershipControl();
 
 	return (

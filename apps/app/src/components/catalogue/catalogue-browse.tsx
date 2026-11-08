@@ -29,12 +29,11 @@ import {
 	type CatalogueOrigin,
 	type CatalogueSearch,
 	type CatalogueView,
-	catalogueCountsInput,
 	catalogueFilters,
 	catalogueSearchSchemas,
 } from "@/lib/catalogue/catalogue-filters";
+import { catalogueCountsQuery } from "@/lib/catalogue/catalogue-queries";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
-import { orpc } from "@/lib/orpc/orpc";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
@@ -116,10 +115,8 @@ export const catalogueReturnLink = (
 /** The organisations with entries, whatever the search: the header's line and the filter's choices. */
 const useCatalogueOrganizations = () => {
 	const { data } = useQuery(
-		orpc.catalogue.counts.queryOptions({
-			input: catalogueCountsInput({
-				query: "",
-			}),
+		catalogueCountsQuery({
+			query: "",
 		}),
 	);
 	return data?.data.organizations;
@@ -228,9 +225,7 @@ export const CatalogueBrowse = ({
 }) => {
 	const { filters, search, setFilter } = useCatalogueSearch(view);
 	const { data: counts } = useQuery({
-		...orpc.catalogue.counts.queryOptions({
-			input: catalogueCountsInput(search),
-		}),
+		...catalogueCountsQuery(search),
 		placeholderData: keepPreviousData,
 	});
 	const items: BrowseNavItem[] = CATALOGUE_VIEWS.map((item) => ({

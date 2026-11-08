@@ -87,19 +87,22 @@ const searchSchema = quotaUsageEventListInputSchema
 
 type EventsSearch = z.infer<typeof searchSchema>;
 
-const eventsInput = (
+const poolEventsQuery = (
 	quotaPoolId: z.infer<typeof quotaUsageEventListInputSchema>["quotaPoolId"],
 	{ pageIndex, pageSize, sort, query, eventType }: EventsSearch,
-) => ({
-	quotaPoolId,
-	filters: {
-		eventType,
-		search: query || undefined,
-	},
-	pageIndex,
-	pageSize,
-	sort,
-});
+) =>
+	orpc.quotaPool.listEvents.queryOptions({
+		input: {
+			quotaPoolId,
+			filters: {
+				eventType,
+				search: query || undefined,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
 
 export const Route = createFileRoute("/app/quota-pools/$quotaPoolId/")({
 	validateSearch: searchSchema,
@@ -114,12 +117,7 @@ export const Route = createFileRoute("/app/quota-pools/$quotaPoolId/")({
 		params: { quotaPoolId },
 		deps,
 	}) => {
-		await queryClient.query(
-			orpc.quotaPool.listEvents.queryOptions({
-				input: eventsInput(quotaPoolId, deps),
-				staleTime: "static",
-			}),
-		);
+		await queryClient.query(poolEventsQuery(quotaPoolId, deps));
 	},
 	component: RouteComponent,
 });
@@ -138,9 +136,7 @@ function RouteComponent() {
 	);
 
 	const { data: events } = useSuspenseQuery(
-		orpc.quotaPool.listEvents.queryOptions({
-			input: eventsInput(quotaPoolId, search),
-		}),
+		poolEventsQuery(quotaPoolId, search),
 	);
 
 	const updatePool = useUpdateQuotaPoolMutation();
