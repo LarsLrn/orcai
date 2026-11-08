@@ -7,10 +7,11 @@ import type {
 } from "@ai-sdk/provider";
 import type { CompactionSource, ModelProviderKind } from "@orcai/core";
 import type { SystemModelMessage, Tool, ToolResultPart } from "ai";
+import * as Effect from "effect/Effect";
 import { COMPACTION_INSTRUCTIONS } from "./compaction";
 import { listAnthropicModels } from "./list-anthropic-models";
 import { listOpenAIModels } from "./list-openai-models";
-import { classifyListingFailure } from "./listing-error";
+import type { ModelListingError } from "./listing";
 import type {
 	DiscoveredModel,
 	ProviderConnection,
@@ -83,7 +84,7 @@ export interface ProviderKindServerEntry {
 	) => LanguageModelV4;
 	readonly listModels: (
 		connection: ProviderConnection,
-	) => Promise<DiscoveredModel[]>;
+	) => Effect.Effect<DiscoveredModel[], ModelListingError>;
 	/** Sent on the stable system part; set for kinds that cache prompts. */
 	readonly stablePromptOptions?: SystemModelMessage["providerOptions"];
 	/** Defaults to active tools. */
@@ -130,10 +131,12 @@ export const providerKindServerEntries: Record<
 				includeUsage: true,
 			})(modelId),
 		listModels: (connection) =>
-			listOpenAIModels({
-				...connection,
-				endpoint: requireEndpoint(connection),
-			}),
+			Effect.suspend(() =>
+				listOpenAIModels({
+					...connection,
+					endpoint: requireEndpoint(connection),
+				}),
+			),
 		// JSON mode: many servers behind this kind take no JSON schema.
 		jsonWithoutSchema: true,
 	},
@@ -280,14 +283,10 @@ export const nativeWebSearchTool = (
 ): Tool | undefined =>
 	providerKindServerEntries[kind].webSearchTool?.(allowedDomains);
 
-/** Rejects with a `ModelListingError` where the failure has a class. */
 export const listProviderModels = (
 	kind: ModelProviderKind,
 	connection: ProviderConnection,
-) =>
-	providerKindServerEntries[kind].listModels(connection).catch((cause) => {
-		throw classifyListingFailure(cause);
-	});
+) => providerKindServerEntries[kind].listModels(connection);
 
 /**
  * The system messages of a call. Kinds that cache get the stable part on its

@@ -1,8 +1,6 @@
 import {
 	type EmbeddingTestFailure,
 	listProviderModels,
-	ModelListingError,
-	type ModelListingFailure,
 	testEmbedding,
 } from "@orcai/ai";
 import { sendJobBatch } from "@orcai/pg-boss";
@@ -23,6 +21,7 @@ import * as Effect from "effect/Effect";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireInstanceAdminMiddleware } from "@/lib/orpc/middlewares/auth";
+import { listingFailed } from "@/lib/orpc/router/helpers/model-listing";
 
 const TEST_FAILURE_REASONS = {
 	"key-rejected": "EMBEDDING_KEY_REJECTED",
@@ -30,13 +29,6 @@ const TEST_FAILURE_REASONS = {
 	"model-not-found": "EMBEDDING_MODEL_NOT_FOUND",
 	"invalid-response": "EMBEDDING_RESPONSE_INVALID",
 } as const satisfies Record<EmbeddingTestFailure, ErrorReason>;
-
-const LISTING_FAILURE_REASONS = {
-	unauthorized: "PROVIDER_MODELS_KEY_REJECTED",
-	unsupported: "PROVIDER_MODELS_LISTING_UNSUPPORTED",
-	unreachable: "PROVIDER_MODELS_UNREACHABLE",
-	"invalid-response": "PROVIDER_MODELS_RESPONSE_INVALID",
-} as const satisfies Record<ModelListingFailure, ErrorReason>;
 
 /** The key a request brings, else the stored one. */
 const apiKeyOf = (apiKey: string | undefined) =>
@@ -111,27 +103,16 @@ const discoverEmbeddingModels = authed.instanceSettings.discoverEmbeddingModels
 	.use(requireInstanceAdminMiddleware)
 	.effect(function* ({ input }) {
 		const apiKey = yield* apiKeyOf(input.apiKey);
-		const listed = yield* Effect.tryPromise({
-			try: () =>
-				listProviderModels("openai-compatible", {
-					apiKey,
-					endpoint: input.baseUrl,
-				}),
-			catch: (cause) => cause,
+		const listed = yield* listProviderModels("openai-compatible", {
+			apiKey,
+			endpoint: input.baseUrl,
 		}).pipe(
-			Effect.catch((cause) =>
-				cause instanceof ModelListingError && cause.failure === "unsupported"
-					? Effect.succeed(undefined)
-					: Effect.fail(
-							new AppErrors.BadRequestError({
-								reason:
-									cause instanceof ModelListingError
-										? LISTING_FAILURE_REASONS[cause.failure]
-										: "PROVIDER_MODELS_FETCH_FAILED",
-								message: "Failed to list the embedding endpoint's models",
-								cause,
-							}),
-						),
+			Effect.catchIf(
+				(error) => error.failure === "unsupported",
+				() => Effect.succeed(undefined),
+			),
+			Effect.mapError(
+				listingFailed("Failed to list the embedding endpoint's models"),
 			),
 		);
 

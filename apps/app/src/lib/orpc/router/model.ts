@@ -1,9 +1,4 @@
-import {
-	listProviderModels,
-	ModelListingError,
-	type ModelListingFailure,
-	providerApiKey,
-} from "@orcai/ai";
+import { listProviderModels, providerApiKey } from "@orcai/ai";
 import {
 	isModelProviderKind,
 	type OrganizationId,
@@ -17,7 +12,6 @@ import {
 	type SortExpression,
 } from "@orcai/db";
 import type {
-	ErrorReason,
 	ModelCapability,
 	ModelSortKey,
 	UpdateModelInput,
@@ -41,6 +35,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
+import { listingFailed } from "@/lib/orpc/router/helpers/model-listing";
 import { literalSearch } from "@/lib/utils/literal-search";
 import {
 	mapCreateModelInputToModelInsertValues,
@@ -387,13 +382,6 @@ const deleteModel = authed.model.delete
 		};
 	});
 
-const LISTING_FAILURE_REASONS = {
-	unauthorized: "PROVIDER_MODELS_KEY_REJECTED",
-	unsupported: "PROVIDER_MODELS_LISTING_UNSUPPORTED",
-	unreachable: "PROVIDER_MODELS_UNREACHABLE",
-	"invalid-response": "PROVIDER_MODELS_RESPONSE_INVALID",
-} as const satisfies Record<ModelListingFailure, ErrorReason>;
-
 const discoverModels = authed.model.discover
 	.use(requireOrganization("manage_models"))
 	.effect(function* ({ input, context }) {
@@ -432,22 +420,12 @@ const discoverModels = authed.model.discover
 		}
 
 		const apiKey = yield* providerApiKey(provider.id);
-		const discovered = yield* Effect.tryPromise({
-			try: () =>
-				listProviderModels(kind, {
-					apiKey,
-					endpoint: provider.endpoint,
-				}),
-			catch: (cause) =>
-				new AppErrors.BadRequestError({
-					reason:
-						cause instanceof ModelListingError
-							? LISTING_FAILURE_REASONS[cause.failure]
-							: "PROVIDER_MODELS_FETCH_FAILED",
-					message: "Failed to fetch models from provider",
-					cause,
-				}),
-		});
+		const discovered = yield* listProviderModels(kind, {
+			apiKey,
+			endpoint: provider.endpoint,
+		}).pipe(
+			Effect.mapError(listingFailed("Failed to fetch models from provider")),
+		);
 
 		const modelsToInsert = discovered.map((model) => ({
 			...model,

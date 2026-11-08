@@ -4,8 +4,9 @@ import {
 	type ModelProviderKind,
 	modelProviderKinds,
 } from "@orcai/core";
+import * as Effect from "effect/Effect";
+import * as Fiber from "effect/Fiber";
 import { listAnthropicModels } from "../src/provider-kinds/list-anthropic-models";
-import { ModelListingError } from "../src/provider-kinds/listing-error";
 import {
 	buildSystemInstructions,
 	createProviderLanguageModel,
@@ -156,16 +157,20 @@ describe("provider kind registry", () => {
 		const official = fakeFetch(listing);
 
 		const [compatibleModels] = await Promise.all([
-			listProviderModels("openai-compatible", {
-				apiKey: "key",
-				endpoint: "https://llm.example.org/v1",
-				fetch: compatible.fetch,
-			}),
-			listProviderModels("openai", {
-				apiKey: "key",
-				endpoint: null,
-				fetch: official.fetch,
-			}),
+			Effect.runPromise(
+				listProviderModels("openai-compatible", {
+					apiKey: "key",
+					endpoint: "https://llm.example.org/v1",
+					fetch: compatible.fetch,
+				}),
+			),
+			Effect.runPromise(
+				listProviderModels("openai", {
+					apiKey: "key",
+					endpoint: null,
+					fetch: official.fetch,
+				}),
+			),
 		]);
 
 		expect(compatibleModels).toEqual([
@@ -217,11 +222,13 @@ describe("provider kind registry", () => {
 			],
 		});
 
-		const models = await listProviderModels("openai-compatible", {
-			apiKey: "key",
-			endpoint: "https://llm.example.org/v1",
-			fetch,
-		});
+		const models = await Effect.runPromise(
+			listProviderModels("openai-compatible", {
+				apiKey: "key",
+				endpoint: "https://llm.example.org/v1",
+				fetch,
+			}),
+		);
 
 		expect(
 			models.map(({ providerModelId, contextWindow, maxOutputTokens }) => ({
@@ -349,11 +356,13 @@ describe("provider kind registry", () => {
 			],
 		});
 
-		const models = await listProviderModels("openai-compatible", {
-			apiKey: "key",
-			endpoint: "https://openrouter.ai/api/v1",
-			fetch,
-		});
+		const models = await Effect.runPromise(
+			listProviderModels("openai-compatible", {
+				apiKey: "key",
+				endpoint: "https://openrouter.ai/api/v1",
+				fetch,
+			}),
+		);
 
 		expect(
 			Object.fromEntries(
@@ -501,11 +510,13 @@ describe("listAnthropicModels", () => {
 			},
 		);
 
-		const models = await listAnthropicModels({
-			apiKey: "sk-ant",
-			endpoint: null,
-			fetch,
-		});
+		const models = await Effect.runPromise(
+			listAnthropicModels({
+				apiKey: "sk-ant",
+				endpoint: null,
+				fetch,
+			}),
+		);
 
 		expect(models).toEqual([
 			{
@@ -574,30 +585,100 @@ describe("listAnthropicModels", () => {
 		]) {
 			const { fetch } = fakeFetch(...pages);
 
-			const error = await listAnthropicModels({
-				apiKey: "sk-ant",
-				endpoint: null,
-				fetch,
-			}).catch((cause: unknown) => cause);
+			const error = await Effect.runPromise(
+				Effect.flip(
+					listAnthropicModels({
+						apiKey: "sk-ant",
+						endpoint: null,
+						fetch,
+					}),
+				),
+			);
 
-			expect(error).toBeInstanceOf(ModelListingError);
-			expect((error as ModelListingError).failure).toBe("invalid-response");
-			expect(((error as ModelListingError).cause as Error).message).toContain(
+			expect(error.failure).toBe("invalid-response");
+			expect((error.cause as Error).message).toContain(
 				"without advancing the cursor",
 			);
 		}
 	});
 
-	test("fails on an error response", async () => {
+	test("fails with the status of an error response", async () => {
 		const { fetch } = fakeFetch();
 
-		await expect(
+		const error = await Effect.runPromise(
+			Effect.flip(
+				listAnthropicModels({
+					apiKey: "sk-ant",
+					endpoint: null,
+					fetch,
+				}),
+			),
+		);
+
+		expect(error).toMatchObject({
+			_tag: "ModelListingError",
+			failure: "unreachable",
+			status: 503,
+		});
+	});
+
+	test("interrupting a listing while its body arrives aborts the request", async () => {
+		let signal: AbortSignal | undefined;
+		const reading = Promise.withResolvers<void>();
+		const fetch = ((_input: string | URL | Request, init?: RequestInit) => {
+			signal = init?.signal ?? undefined;
+			return Promise.resolve(
+				new Response(
+					new ReadableStream({
+						pull: () => reading.resolve(),
+					}),
+				),
+			);
+		}) as typeof globalThis.fetch;
+
+		const fiber = Effect.runFork(
 			listAnthropicModels({
 				apiKey: "sk-ant",
 				endpoint: null,
 				fetch,
 			}),
-		).rejects.toThrow("503");
+		);
+		await reading.promise;
+		await Effect.runPromise(Fiber.interrupt(fiber));
+
+		expect(signal?.aborted).toBe(true);
+	});
+
+	test("interrupting a listing aborts the page request in flight", async () => {
+		const signals: AbortSignal[] = [];
+		const secondPage = Promise.withResolvers<void>();
+		const { fetch: firstPage } = fakeFetch({
+			data: [],
+			has_more: true,
+			first_id: "claude-a",
+			last_id: "claude-a",
+		});
+		const fetch = ((input: string | URL | Request, init?: RequestInit) => {
+			if (init?.signal) signals.push(init.signal);
+			if (signals.length === 1) return firstPage(input, init);
+			secondPage.resolve();
+			return Promise.withResolvers<Response>().promise;
+		}) as typeof globalThis.fetch;
+
+		const fiber = Effect.runFork(
+			listAnthropicModels({
+				apiKey: "sk-ant",
+				endpoint: null,
+				fetch,
+			}),
+		);
+		await secondPage.promise;
+		await Effect.runPromise(Fiber.interrupt(fiber));
+
+		expect(signals.map((signal) => signal.aborted)).toEqual([
+			false,
+			true,
+		]);
 	});
 });
 
@@ -610,13 +691,16 @@ describe("listProviderModels failures", () => {
 		kind: ModelProviderKind,
 		fetch: typeof globalThis.fetch,
 	) => {
-		const error = await listProviderModels(kind, {
-			apiKey: "key",
-			endpoint: "https://llm.example.org/v1",
-			fetch,
-		}).catch((cause: unknown) => cause);
-		expect(error).toBeInstanceOf(ModelListingError);
-		return (error as ModelListingError).failure;
+		const error = await Effect.runPromise(
+			Effect.flip(
+				listProviderModels(kind, {
+					apiKey: "key",
+					endpoint: "https://llm.example.org/v1",
+					fetch,
+				}),
+			),
+		);
+		return error.failure;
 	};
 
 	const kinds = [
@@ -740,20 +824,26 @@ describe("listProviderModels failures", () => {
 		expect(await failureOf("anthropic", fetch)).toBe("invalid-response");
 	});
 
-	test("other statuses pass through unclassified", async () => {
+	test("another error status is a rejected request with its status", async () => {
 		const fetch = answering(
 			() =>
 				new Response("bad request", {
 					status: 400,
 				}),
 		);
-		const error = await listProviderModels("openai", {
-			apiKey: "key",
-			endpoint: null,
-			fetch,
-		}).catch((cause: unknown) => cause);
-		expect(error).not.toBeInstanceOf(ModelListingError);
-		expect(error).toBeInstanceOf(Error);
+		const error = await Effect.runPromise(
+			Effect.flip(
+				listProviderModels("openai", {
+					apiKey: "key",
+					endpoint: null,
+					fetch,
+				}),
+			),
+		);
+		expect(error).toMatchObject({
+			failure: "rejected",
+			status: 400,
+		});
 	});
 });
 
