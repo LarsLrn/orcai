@@ -37,14 +37,12 @@ import {
 	type StreamedCitations,
 } from "@/lib/ai/citations/chat-sources";
 import { forkChatTitleGenerationIfNeeded } from "@/lib/ai/effects/fork-chat-title-generation";
+import { RunningCallsWait } from "@/lib/ai/tools/assistant/running-calls";
 import {
 	type AssistantTurn,
 	createAssistantTurn,
 } from "@/lib/ai/tools/assistant/turn-state";
-import {
-	mergeTurnWrites,
-	RunningCallsWait,
-} from "@/lib/ai/tools/assistant/turn-writes";
+import { mergeTurnWrites } from "@/lib/ai/tools/assistant/turn-writes";
 import { toolKindOf } from "@/lib/ai/tools/registry";
 import { pausedStep } from "@/lib/ai/turn-view/paused-step";
 import { latestPlanPart } from "@/lib/ai/turn-view/plan";
@@ -407,6 +405,8 @@ const streamTurn = ({
 			);
 		};
 
+		// An error ends a reply with output like a cut stream, which is how OpenAI-compatible providers report one.
+		let failed = false;
 		const settledReply = ({
 			parts,
 			metadata,
@@ -422,9 +422,15 @@ const streamTurn = ({
 				parts: parts.every((part) => part.type === "step-start")
 					? []
 					: // A call the turn stopped mid-run needs a result before the model reads the reply again.
-						closeRunningToolParts(parts, agent.tools),
+						closeRunningToolParts(
+							assistantTurn?.calls.finish(parts) ?? parts,
+							agent.tools,
+						),
 				metadata: {
 					...settled,
+					...(failed && {
+						interrupted: true,
+					}),
 					...(Object.keys(citations).length > 0 && {
 						citations,
 					}),
@@ -451,6 +457,9 @@ const streamTurn = ({
 			part: TextStreamPart<ToolSet>,
 			sent: PromptFit,
 		): StreamedMetadata | undefined => {
+			if (part.type === "error") {
+				failed = true;
+			}
 			if (part.type === "text-start") {
 				citable += "\n";
 			}
@@ -523,7 +532,7 @@ const streamTurn = ({
 				onStepEnd: (step) => run(meter.record(meteredStep(step))),
 				onEnd: async ({ responseMessage, outcome }) => {
 					// A stopped stream ends before the calls it started, and a change runs to its end.
-					await assistantTurn?.writes.settled();
+					await assistantTurn?.calls.settled();
 					return run(
 						store
 							.settle({

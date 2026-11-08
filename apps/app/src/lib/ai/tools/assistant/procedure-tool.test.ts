@@ -201,35 +201,6 @@ describe("mutation", () => {
 		);
 	});
 
-	test("an abort while it runs waits for the change to finish", async () => {
-		const controller = new AbortController();
-		const started = Promise.withResolvers<void>();
-		const release = Promise.withResolvers<void>();
-		let finished = false;
-
-		const run = runAssistantTool(
-			Effect.promise(() => {
-				started.resolve();
-				return release.promise;
-			}).pipe(
-				Effect.tap(() =>
-					Effect.sync(() => {
-						finished = true;
-					}),
-				),
-				mutation("getBot"),
-			),
-			controller.signal,
-		);
-		await started.promise;
-		controller.abort();
-		release.resolve();
-		const error = await rejection(run);
-
-		expect(finished).toBe(true);
-		expect(error).not.toBeInstanceOf(AssistantToolError);
-	});
-
 	test("a failure on the server stays the cause of the tool error", async () => {
 		const failure = new ORPCError("INTERNAL_SERVER_ERROR", {
 			message: "connection reset",

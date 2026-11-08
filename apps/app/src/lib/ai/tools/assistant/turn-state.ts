@@ -1,4 +1,5 @@
 import { createTurnZedToken, type TurnZedToken } from "@/lib/authz/zed-token";
+import { createRunningCalls, type RunningCalls } from "./running-calls";
 import { createTurnWrites, type TurnWrites } from "./turn-writes";
 
 export interface AssistantTurn {
@@ -6,6 +7,7 @@ export interface AssistantTurn {
 	zedToken: TurnZedToken;
 	/** What its procedure calls wrote, for the client to refresh. */
 	writes: TurnWrites;
+	calls: RunningCalls;
 }
 
 export const createAssistantTurn = ({
@@ -17,5 +19,6 @@ export const createAssistantTurn = ({
 	runningCallsWait?: () => AbortSignal;
 }): AssistantTurn => ({
 	zedToken: createTurnZedToken(zedToken),
-	writes: createTurnWrites(runningCallsWait),
+	writes: createTurnWrites(),
+	calls: createRunningCalls(runningCallsWait),
 });

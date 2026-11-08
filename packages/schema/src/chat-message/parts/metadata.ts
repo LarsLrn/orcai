@@ -99,7 +99,7 @@ export const chatMessageMetadataSchema = z.object({
 	contextLimitReached: z.boolean().optional(),
 	/** The turn stopped because it ran into the time limit of a metered call. */
 	timeLimitReached: z.boolean().optional(),
-	/** The provider's stream ended before the model finished its last step. */
+	/** The provider's stream ended or failed before the model finished its last step. */
 	interrupted: z.boolean().optional(),
 	/** The sources of the refs the reply cites; an entry that fails its kind's schema is dropped. */
 	citations: z

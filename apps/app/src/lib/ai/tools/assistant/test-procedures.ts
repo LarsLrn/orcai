@@ -52,9 +52,6 @@ const fakeNamespace = (namespace: string) =>
 
 								// As the real clients' interceptor does.
 								const turnWrites = options?.context.meta?.turnWrites;
-								const done = Promise.withResolvers<void>();
-								turnWrites?.track(done.promise);
-
 								return answer(input as never).pipe(
 									Effect.tap((output) =>
 										Effect.sync(() =>
@@ -68,7 +65,6 @@ const fakeNamespace = (namespace: string) =>
 											),
 										),
 									),
-									Effect.ensuring(Effect.sync(() => done.resolve())),
 								);
 							})
 					: undefined,

@@ -74,6 +74,8 @@ export type ScriptedStep = {
 	 * keeps the body open until `release()`, like `response` when not streaming.
 	 */
 	hold?: "response" | "end";
+	/** Streamed, the body ends after the text and calls, without a finish reason or `[DONE]`. */
+	cutOff?: true;
 };
 
 /** One page of a mock Tavily answer. */
@@ -526,6 +528,12 @@ export const startInferenceMock = async (
 					null,
 				);
 			}
+		}
+
+		if (step.cutOff) {
+			response.end();
+
+			return;
 		}
 
 		chunk({}, finishReason);

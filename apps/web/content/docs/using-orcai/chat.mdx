@@ -221,7 +221,7 @@ A reply takes at most 25 steps, 20 in the OrcAI Assistant, and fewer when its qu
 
 A reply runs for at most 30 minutes. One that reaches the limit stops as if you had stopped it. What it wrote is kept, it is charged for the steps it took, and a notice under it says it reached its time limit. Send a message to continue.
 
-When an Anthropic or OpenAI model's stream ends before the model finishes, the reply keeps what arrived and a notice under it says it was cut off. Send a message to continue.
+When the model's stream ends before the model finishes, or fails after the reply has begun, the reply keeps what arrived and a notice under it says it was cut off. Send a message to continue. A stream that fails before anything arrived shows an error instead.
 
 Answers cite their sources inline. A citation shows the asset's title and page, or only the title for an attachment, and opening it shows the asset's metadata with an **Open asset** link to the asset's page (`/app/library/assets/<asset id>`). Copying an answer writes each citation as the cited text followed by its source's title and page in parentheses.
 
