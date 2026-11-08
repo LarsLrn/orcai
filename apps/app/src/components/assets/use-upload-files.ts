@@ -5,7 +5,6 @@ import {
 	type FileUploadInfo,
 	type UploadHookProps,
 	type UploadHookReturn,
-	type UploadStatus,
 	uploadFiles,
 } from "@orcai/s3/client";
 import { useMutation } from "@tanstack/react-query";
@@ -59,25 +58,18 @@ const toClientUploadError = (error: unknown): ClientUploadError => {
 	};
 };
 
-const translateFileError = (
-	file: FileUploadInfo<UploadStatus>,
-): FileUploadInfo<UploadStatus> => {
-	if (file.status !== "failed") {
-		return file;
-	}
-
-	const { error } = file as FileUploadInfo<"failed">;
-
-	return {
-		...file,
-		error: {
-			...error,
-			message:
-				reasonMessageOf(error.cause) ??
-				m.assets_upload_progress_file_error_label(),
-		},
-	} as FileUploadInfo<"failed">;
-};
+const translateFileError = (file: FileUploadInfo): FileUploadInfo =>
+	file.status === "failed"
+		? {
+				...file,
+				error: {
+					...file.error,
+					message:
+						reasonMessageOf(file.error.cause) ??
+						m.assets_upload_progress_file_error_label(),
+				},
+			}
+		: file;
 
 const toStringMetadata = (metadata?: ServerMetadata) =>
 	metadata
@@ -104,7 +96,7 @@ export function useUploadFiles({
 	onUploadSettle,
 }: UploadHookProps<UploadRouteName>): UploadHookReturn {
 	const [uploads, setUploads] = useState(
-		() => new Map<string, FileUploadInfo<UploadStatus>>(),
+		() => new Map<string, FileUploadInfo>(),
 	);
 	const [serverMetadata, setServerMetadata] = useState<ServerMetadata>({});
 
@@ -133,19 +125,13 @@ export function useUploadFiles({
 		],
 	);
 	const uploadedFiles = useMemo(
-		() =>
-			uploadsArray.filter(
-				(file) => file.status === "complete",
-			) as FileUploadInfo<"complete">[],
+		() => uploadsArray.filter((file) => file.status === "complete"),
 		[
 			uploadsArray,
 		],
 	);
 	const failedFiles = useMemo(
-		() =>
-			uploadsArray.filter(
-				(file) => file.status === "failed",
-			) as FileUploadInfo<"failed">[],
+		() => uploadsArray.filter((file) => file.status === "failed"),
 		[
 			uploadsArray,
 		],
@@ -188,7 +174,7 @@ export function useUploadFiles({
 	]);
 
 	const reset = useCallback(() => {
-		setUploads(new Map<string, FileUploadInfo<UploadStatus>>());
+		setUploads(new Map<string, FileUploadInfo>());
 		setServerMetadata({});
 		setIsPending(false);
 		setError(null);
@@ -279,7 +265,7 @@ export function useUploadFiles({
 
 						if (file.status === "uploading") {
 							onUploadProgress?.({
-								file: file as FileUploadInfo<"uploading">,
+								file,
 							});
 						}
 					},

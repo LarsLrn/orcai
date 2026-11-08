@@ -7,7 +7,7 @@ export {
 	sendHeadObjectCommand,
 	sendPutObjectCommand,
 } from "./commands";
-export { S3ConfigLive, S3ConfigService } from "./config";
+export { presignOrigin, S3ConfigLive, S3ConfigService } from "./config";
 export { isS3NoSuchKey, isS3NotFound, S3Error } from "./errors";
 export {
 	deletePrefixRecursively,

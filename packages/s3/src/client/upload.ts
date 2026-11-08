@@ -1,13 +1,7 @@
-/** biome-ignore-all lint/style/noNonNullAssertion: <Mostly fighting typescript here> */
-
 import type { ServerMetadata } from "../shared/types";
 import { ClientUploadErrorClass } from "./error";
 import type { SignedUrlsSuccessResponse } from "./internal";
-import type {
-	DirectUploadResult,
-	FileUploadInfo,
-	UploadStatus,
-} from "./public";
+import type { DirectUploadResult, FileUploadInfo } from "./public";
 import { uploadFileToS3, uploadMultipartFileToS3 } from "./s3-upload";
 
 export async function uploadFiles<TRoute extends string>(params: {
@@ -21,7 +15,7 @@ export async function uploadFiles<TRoute extends string>(params: {
 		files: FileUploadInfo<"pending">[];
 		metadata: ServerMetadata;
 	}) => void;
-	onFileStateChange?: (data: { file: FileUploadInfo<UploadStatus> }) => void;
+	onFileStateChange?: (data: { file: FileUploadInfo }) => void;
 	onMultipartComplete?: (data: {
 		route: TRoute;
 		uploadId: string;
@@ -65,7 +59,7 @@ export async function uploadFiles<TRoute extends string>(params: {
 			});
 		}
 
-		const uploadsByIndex = signedUrls.map((url, index) => {
+		const targets = signedUrls.map((url, index) => {
 			const file = files[index];
 
 			if (!file) {
@@ -75,39 +69,51 @@ export async function uploadFiles<TRoute extends string>(params: {
 				});
 			}
 
+			const pending: FileUploadInfo<"pending"> = {
+				status: "pending",
+				progress: 0,
+				raw: file,
+				...url.file,
+			};
+
 			return {
 				file,
 				url,
+				pending,
 			};
 		});
 
-		const uploads = new Map<string, FileUploadInfo<UploadStatus>>(
-			uploadsByIndex.map(({ file, url }) => [
-				url.file.objectKey,
-				{
-					status: "pending",
-					progress: 0,
-					raw: file,
-					...url.file,
-				},
+		const uploads = new Map<string, FileUploadInfo>(
+			targets.map(({ pending }) => [
+				pending.objectKey,
+				pending,
 			]),
 		);
 
-		const uploadPromises = uploadsByIndex.map(({ file, url }) => async () => {
-			const isMultipart = url.mode === "multipart";
+		const uploadPromises = targets.map(({ file, url, pending }) => async () => {
+			let current: FileUploadInfo = pending;
+			const publish = (next: FileUploadInfo) => {
+				current = next;
+				uploads.set(next.objectKey, next);
+				params.onFileStateChange?.({
+					file: next,
+				});
+			};
+			const onProgress = (progress: number) =>
+				publish({
+					...current,
+					status: progress === 1 ? "complete" : "uploading",
+					progress,
+				});
 
 			try {
-				uploads.set(url.file.objectKey, {
-					...uploads.get(url.file.objectKey)!,
+				publish({
+					...current,
 					status: "uploading",
 					progress: 0,
 				});
 
-				params.onFileStateChange?.({
-					file: uploads.get(url.file.objectKey)!,
-				});
-
-				if (isMultipart) {
+				if (url.mode === "multipart") {
 					if (!params.onMultipartComplete) {
 						throw new Error("Missing multipart completion handler.");
 					}
@@ -118,17 +124,7 @@ export async function uploadFiles<TRoute extends string>(params: {
 						partSize: url.partSize,
 						partsBatchSize: params.multipartBatchSize,
 						signal: params.signal,
-						onProgress: (progress) => {
-							uploads.set(url.file.objectKey, {
-								...uploads.get(url.file.objectKey)!,
-								status: progress === 1 ? "complete" : "uploading",
-								progress,
-							});
-
-							params.onFileStateChange?.({
-								file: uploads.get(url.file.objectKey)!,
-							});
-						},
+						onProgress,
 					});
 
 					await params.onMultipartComplete({
@@ -138,36 +134,22 @@ export async function uploadFiles<TRoute extends string>(params: {
 						parts: completedParts,
 					});
 
-					uploads.set(url.file.objectKey, {
-						...uploads.get(url.file.objectKey)!,
+					publish({
+						...current,
 						status: "complete",
 						progress: 1,
-					});
-
-					params.onFileStateChange?.({
-						file: uploads.get(url.file.objectKey)!,
 					});
 				} else {
 					await uploadFileToS3({
 						file,
 						signedUrl: url.signedUrl,
-						signedHeaders: "headers" in url ? url.headers : undefined,
+						signedHeaders: url.headers,
 						signal: params.signal,
-						onProgress: (progress) => {
-							uploads.set(url.file.objectKey, {
-								...uploads.get(url.file.objectKey)!,
-								status: progress === 1 ? "complete" : "uploading",
-								progress,
-							});
-
-							params.onFileStateChange?.({
-								file: uploads.get(url.file.objectKey)!,
-							});
-						},
+						onProgress,
 					});
 				}
 			} catch (cause) {
-				if (isMultipart) {
+				if (url.mode === "multipart") {
 					await params
 						.onMultipartAbort?.({
 							route: params.route,
@@ -177,8 +159,8 @@ export async function uploadFiles<TRoute extends string>(params: {
 						.catch(() => null);
 				}
 
-				uploads.set(url.file.objectKey, {
-					...uploads.get(url.file.objectKey)!,
+				publish({
+					...current,
 					status: "failed",
 					error: {
 						type: "s3_upload",
@@ -186,15 +168,11 @@ export async function uploadFiles<TRoute extends string>(params: {
 						cause,
 					},
 				});
-
-				params.onFileStateChange?.({
-					file: uploads.get(url.file.objectKey)!,
-				});
 			}
 		});
 
 		params.onUploadBegin?.({
-			files: Array.from(uploads.values()) as FileUploadInfo<"pending">[],
+			files: targets.map(({ pending }) => pending),
 			metadata: serverMetadata,
 		});
 
@@ -211,13 +189,10 @@ export async function uploadFiles<TRoute extends string>(params: {
 			);
 		}
 
+		const settled = Array.from(uploads.values());
 		return {
-			files: Array.from(uploads.values()).filter(
-				(file) => file.status === "complete",
-			) as FileUploadInfo<"complete">[],
-			failedFiles: Array.from(uploads.values()).filter(
-				(file) => file.status === "failed",
-			) as FileUploadInfo<"failed">[],
+			files: settled.filter((file) => file.status === "complete"),
+			failedFiles: settled.filter((file) => file.status === "failed"),
 			metadata: serverMetadata,
 		};
 	} catch (error) {

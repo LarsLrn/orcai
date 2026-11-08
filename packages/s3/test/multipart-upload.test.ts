@@ -1,9 +1,5 @@
 import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
-import {
-	type FileUploadInfo,
-	type UploadStatus,
-	uploadFiles,
-} from "../src/client";
+import { type FileUploadInfo, uploadFiles } from "../src/client";
 import type { SignedUrlsSuccessResponse } from "../src/client/internal";
 
 type PartRequest = {
@@ -232,7 +228,7 @@ const startLargeUpload = (
 	);
 	const completions: CompletedPart[][] = [];
 	const abortions: string[] = [];
-	const states: FileUploadInfo<UploadStatus>[] = [];
+	const states: FileUploadInfo[] = [];
 	const done = uploadFiles({
 		route: "asset",
 		signedUrls: multipartTarget(file),

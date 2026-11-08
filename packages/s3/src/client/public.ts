@@ -14,10 +14,9 @@ export type ClientUploadError = {
 	cause?: unknown;
 };
 
-export type UploadStatus = "pending" | "uploading" | "complete" | "failed";
+type UploadStatus = "pending" | "uploading" | "complete" | "failed";
 
-export type FileUploadInfo<T extends UploadStatus> = {
-	status: T;
+type FileUploadDetails = {
 	progress: number;
 	objectKey: string;
 	objectMetadata: ObjectMetadata;
@@ -25,11 +24,18 @@ export type FileUploadInfo<T extends UploadStatus> = {
 	name: string;
 	size: number;
 	type: string;
-} & (T extends "failed"
-	? {
-			error: ClientUploadError;
-		}
-	: object);
+};
+
+/** One file's upload as a union over `status`; only failed uploads carry an error. */
+export type FileUploadInfo<T extends UploadStatus = UploadStatus> = {
+	[S in T]: FileUploadDetails & {
+		status: S;
+	} & (S extends "failed"
+			? {
+					error: ClientUploadError;
+				}
+			: unknown);
+}[T];
 
 export type DirectUploadResult = {
 	metadata: ServerMetadata;
@@ -56,7 +62,7 @@ export type UploadHookControl = {
 			metadata?: ServerMetadata;
 		},
 	) => Promise<DirectUploadResult>;
-	progresses: FileUploadInfo<UploadStatus>[];
+	progresses: FileUploadInfo[];
 	allSucceeded: boolean;
 	hasFailedFiles: boolean;
 	uploadedFiles: FileUploadInfo<"complete">[];
