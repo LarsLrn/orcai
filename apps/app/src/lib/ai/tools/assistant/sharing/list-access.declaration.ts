@@ -1,8 +1,12 @@
 import { ShieldCheckIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { listAccessTool } from "./list-access";
+import { targetShape } from "./resource-target-input";
 import { quoted, targetRef } from "./summary-refs";
+
+export const listAccessInputSchema = z.strictObject(targetShape);
 
 export const listAccess = declareTool<typeof listAccessTool>()({
 	kind: "read",
@@ -10,6 +14,7 @@ export const listAccess = declareTool<typeof listAccessTool>()({
 	capabilities: [
 		"create_bot",
 	],
+	inputSchema: listAccessInputSchema,
 	icon: ShieldCheckIcon,
 	name: () => m.assistant_tool_list_access_name(),
 	active: () => m.assistant_tool_list_access_active(),

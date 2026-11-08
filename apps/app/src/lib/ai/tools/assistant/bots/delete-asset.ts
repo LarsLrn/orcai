@@ -1,17 +1,8 @@
-import { assetIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { deleteNamed } from "../named-delete";
 import type { AssistantToolDeps } from "../procedure-tool";
-
-const deleteAssetInputSchema = z.strictObject({
-	ids: z
-		.array(assetIdSchema)
-		.min(1)
-		.max(20)
-		.describe("Ids of the assets to delete, from findAssets."),
-});
+import { deleteAssetInputSchema } from "./delete-asset.declaration";
 
 export const deleteAssetTool = (deps: AssistantToolDeps) =>
 	effectTool({

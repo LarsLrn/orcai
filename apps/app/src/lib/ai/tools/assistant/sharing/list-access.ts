@@ -1,15 +1,9 @@
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
+import { listAccessInputSchema } from "./list-access.declaration";
 import { mergeAccess } from "./merge-access";
-import {
-	expectTarget,
-	targetShape,
-	toResourceIdentity,
-} from "./resource-target";
-
-const listAccessInputSchema = z.strictObject(targetShape);
+import { expectTarget, toResourceIdentity } from "./resource-target";
 
 export const listAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({

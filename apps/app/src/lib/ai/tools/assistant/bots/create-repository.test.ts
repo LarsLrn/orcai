@@ -4,6 +4,7 @@ import { defaultRepositoryConfig } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import { createRepositoryInputSchema } from "./create-repository.declaration";
 
 const repositoryId = crypto.randomUUID() as BlockId;
 const asset = crypto.randomUUID() as AssetId;
@@ -21,9 +22,7 @@ beforeEach(() => {
 		});
 });
 
-const { createRepositoryInputSchema, createRepositoryTool } = await import(
-	"./create-repository"
-);
+const { createRepositoryTool } = await import("./create-repository");
 const { createAssistantTurn } = await import("../turn-state");
 
 describe("createRepositoryTool", () => {

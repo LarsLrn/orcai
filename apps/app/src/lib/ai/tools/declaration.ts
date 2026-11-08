@@ -21,8 +21,16 @@ export type ToolKind =
 	| "change"
 	| "client";
 
+export type DeferredToolGroup = "bots" | "sharing" | "people";
+
+export const DEFERRED_TOOL_GROUPS = [
+	"bots",
+	"sharing",
+	"people",
+] as const satisfies DeferredToolGroup[];
+
 /** Core tools are always active; the others once `loadTools` loaded their group. */
-export type AssistantToolGroup = "core" | "bots" | "sharing" | "people";
+export type AssistantToolGroup = "core" | DeferredToolGroup;
 
 /** The confirm button of a gated tool's card. */
 export type ConfirmationVerb =
@@ -59,6 +67,8 @@ export interface ToolDeclaration<Input = unknown, Output = unknown> {
 	capabilities?: readonly OrganizationCapability[];
 	/** The call pauses for the user's confirmation, on a card with this verb. */
 	confirm?: ConfirmationVerb;
+	/** What the model calls the tool with; the server tool builds from it. */
+	inputSchema: z.ZodType<Input>;
 	/** Client tools: what the browser answers with. */
 	outputSchema?: z.ZodType<Output>;
 	/**

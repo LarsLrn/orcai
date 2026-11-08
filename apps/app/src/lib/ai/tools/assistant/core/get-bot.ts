@@ -1,18 +1,13 @@
-import { botIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { isUnreadable } from "@/lib/ai/tools/tool-error";
-import { readSetup } from "../bots/setup-input";
+import { readSetup } from "../bots/bot-setup";
 import {
 	type AssistantToolDeps,
 	callProcedure,
 	expectType,
 } from "../procedure-tool";
-
-const getBotInputSchema = z.strictObject({
-	id: botIdSchema.describe("Id of the bot, from findBots."),
-});
+import { getBotInputSchema } from "./get-bot.declaration";
 
 /** Editors get the links from the editor view; readers get the linked blocks they can read. */
 export const getBotTool = (deps: AssistantToolDeps) =>

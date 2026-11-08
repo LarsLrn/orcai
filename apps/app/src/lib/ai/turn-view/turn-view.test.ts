@@ -23,8 +23,8 @@ import {
 
 type CallState = ToolPart["state"];
 
-const botId = "bot-1" as BotId;
-const assetId = "asset-1" as AssetId;
+const botId = "00000000-0000-4000-8000-0000000000b1" as BotId;
+const assetId = "00000000-0000-4000-8000-0000000000a1" as AssetId;
 
 const text = (content: string) => textPart(content);
 
@@ -50,7 +50,7 @@ const search = (
 	toolPart("searchRepositories", state, {
 		toolCallId: "call-1",
 		input: {
-			query: "x",
+			query: "xy",
 		},
 		...(state === "output-available"
 			? {
@@ -220,9 +220,18 @@ const writeBot = (
 	toolPart(tool, state, {
 		toolCallId: `${tool}-${name}`,
 		input: {
-			id: botId,
-			name,
-		},
+			createBot: {
+				name,
+				description: "A tutor.",
+			},
+			updateBot: {
+				id: botId,
+				name,
+			},
+			publishBot: {
+				id: botId,
+			},
+		}[tool],
 		...(state === "output-available"
 			? {
 					output: {
@@ -1255,7 +1264,7 @@ describe("resource cards", () => {
 		expect(cards(message)).toEqual([
 			{
 				kind: "bot",
-				id: "bot-1",
+				id: botId,
 				name: "Tutor",
 			},
 		]);
@@ -1271,7 +1280,7 @@ describe("resource cards", () => {
 		).toEqual([
 			{
 				kind: "bot",
-				id: "bot-1",
+				id: botId,
 				name: "Tutor",
 			},
 		]);
@@ -1287,7 +1296,7 @@ describe("resource cards", () => {
 		).toEqual([
 			{
 				kind: "asset",
-				id: "asset-1",
+				id: assetId,
 				name: "Style guide",
 			},
 		]);
@@ -1304,12 +1313,12 @@ describe("resource cards", () => {
 		expect(cards(message)).toEqual([
 			{
 				kind: "bot",
-				id: "bot-1",
+				id: botId,
 				name: "Writing tutor",
 			},
 			{
 				kind: "asset",
-				id: "asset-1",
+				id: assetId,
 				name: "Style guide",
 			},
 		]);
@@ -1603,7 +1612,7 @@ describe("plan", () => {
 		).toBe(earlier);
 	});
 
-	test("skips a stored plan whose input no longer fits", () => {
+	test("skips a stored plan whose input no longer fits, read as an untyped call", () => {
 		const earlier = updatePlan("First", "output-available");
 
 		expect<MessagePart | undefined>(

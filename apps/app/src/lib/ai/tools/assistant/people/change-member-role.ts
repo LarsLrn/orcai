@@ -1,4 +1,3 @@
-import { organizationMemberSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
@@ -7,22 +6,8 @@ import {
 	expectType,
 	mutation,
 } from "../procedure-tool";
-import { receiverIdSchema, receiverOf } from "./receiver";
-
-const changeMemberRoleInputSchema = organizationMemberSchema
-	.pick({
-		userId: true,
-		role: true,
-	})
-	.extend({
-		userId: organizationMemberSchema.shape.userId.describe(
-			"Id of the member, from listMembers.",
-		),
-		receiverId: receiverIdSchema.describe(
-			"Only when the role becomes viewer: id of the member, from listMembers, who receives the bots, blocks and Library assets this member owns here. Must be a Member, Manager or Admin who is not banned. Leave out to give them to the user, which works only when the user is a Member, Manager or Admin here.",
-		),
-	})
-	.strict();
+import { changeMemberRoleInputSchema } from "./change-member-role.declaration";
+import { receiverOf } from "./receiver";
 
 export const changeMemberRoleTool = (deps: AssistantToolDeps) =>
 	effectTool({

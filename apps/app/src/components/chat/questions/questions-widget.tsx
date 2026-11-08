@@ -6,7 +6,6 @@ import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
 import {
 	type AskUserOutput,
 	askUserInputSchema,
-	askUserOutputSchema,
 } from "@/lib/ai/tools/questions/ask-user";
 import type { ToolPartOf, ToolStatus } from "@/lib/ai/turn-view/turn-view";
 import { m } from "@/paraglide/messages";
@@ -69,10 +68,7 @@ export const QuestionsWidget = ({
 		return <Round input={input} onSubmit={submit} onSkip={skip} />;
 	}
 
-	const output =
-		part.state === "output-available"
-			? askUserOutputSchema.safeParse(part.output).data
-			: undefined;
+	const output = part.state === "output-available" ? part.output : undefined;
 	const shownStatus: ToolStatus | null =
 		output?.status === "skipped" ? "skipped" : status;
 

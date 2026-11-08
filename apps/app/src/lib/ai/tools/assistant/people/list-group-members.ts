@@ -1,30 +1,12 @@
-import { listGroupMembersInputSchema as groupMembersQuerySchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	PAGING_NOTE,
-} from "../core/list-input";
+import { listPage, listPaging, PAGING_NOTE } from "../core/list-input";
 import {
 	type AssistantToolDeps,
 	callProcedure,
 	expectType,
 } from "../procedure-tool";
-
-const listGroupMembersInputSchema = groupMembersQuerySchema
-	.pick({
-		groupId: true,
-		query: true,
-	})
-	.extend({
-		query: groupMembersQuerySchema.shape.query.describe(
-			"Part of the name or email to search for, case-insensitive.",
-		),
-		page: listPageSchema,
-	})
-	.strict();
+import { listGroupMembersInputSchema } from "./list-group-members.declaration";
 
 export const listGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({

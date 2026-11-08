@@ -1,4 +1,6 @@
+import { assetIdSchema } from "@orcai/schema";
 import { SparklesIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import type { EntityRef } from "@/lib/ai/tools/entity-kind";
 import { m } from "@/paraglide/messages";
@@ -11,6 +13,14 @@ const assetRefs = (assetIds: readonly string[] | undefined): EntityRef[] =>
 		id,
 	}));
 
+export const generateAssetMetadataInputSchema = z.strictObject({
+	assetIds: z
+		.array(assetIdSchema)
+		.min(1)
+		.max(100)
+		.describe("Ids of the assets, from findAssets."),
+});
+
 export const generateAssetMetadata = declareTool<
 	typeof generateAssetMetadataTool
 >()({
@@ -18,6 +28,7 @@ export const generateAssetMetadata = declareTool<
 	group: "bots",
 	capabilities: CONTENT_CAPABILITIES,
 	confirm: "generate",
+	inputSchema: generateAssetMetadataInputSchema,
 	icon: SparklesIcon,
 	name: () => m.assistant_tool_generate_asset_metadata_name(),
 	active: () => m.assistant_tool_generate_asset_metadata_active(),

@@ -226,7 +226,7 @@ export const toolLabels = (part: {
 export interface ToolSummary {
 	/** The ids the line names. */
 	refs: EntityRef[];
-	/** Undefined when the call does not fit its tool, as a stored call of an older shape. */
+	/** Undefined when the call does not fit its tool, as a stored output of an older shape. */
 	line: (nameOf: NameOf) => string | undefined;
 }
 

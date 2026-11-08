@@ -23,7 +23,7 @@ const searchPart = (...results: Passage[]) =>
 	toolPart("searchRepositories", "output-available", {
 		toolCallId: crypto.randomUUID(),
 		input: {
-			query: "q",
+			query: "qq",
 		},
 		output: {
 			results,
@@ -34,7 +34,7 @@ const webPart = (...urls: string[]) =>
 	toolPart("searchWeb", "output-available", {
 		toolCallId: crypto.randomUUID(),
 		input: {
-			query: "q",
+			query: "qq",
 		},
 		output: {
 			results: urls.map((url) => ({

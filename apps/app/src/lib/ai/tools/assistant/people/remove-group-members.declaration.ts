@@ -1,3 +1,4 @@
+import { removeGroupMembersInputSchema } from "@orcai/schema";
 import { UserMinusIcon } from "lucide-react";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import type { EntityRef } from "@/lib/ai/tools/entity-kind";
@@ -9,6 +10,9 @@ const memberRef = (id: string): EntityRef => ({
 	id,
 });
 
+export const removeGroupMembersToolInputSchema =
+	removeGroupMembersInputSchema.strict();
+
 export const removeGroupMembers = declareTool<typeof removeGroupMembersTool>()({
 	kind: "change",
 	group: "people",
@@ -16,6 +20,7 @@ export const removeGroupMembers = declareTool<typeof removeGroupMembersTool>()({
 		"manage_groups",
 	],
 	confirm: "remove",
+	inputSchema: removeGroupMembersToolInputSchema,
 	icon: UserMinusIcon,
 	name: () => m.assistant_tool_remove_group_members_name(),
 	active: () => m.assistant_tool_remove_group_members_active(),

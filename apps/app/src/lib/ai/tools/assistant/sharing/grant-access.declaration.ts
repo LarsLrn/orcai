@@ -1,9 +1,24 @@
+import { resourceGrantRoleSchema } from "@orcai/schema";
 import { ShieldPlusIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import { getResourceRoleLabel } from "@/settings/display-config";
 import type { grantAccessTool } from "./grant-access";
+import { granteeShape, targetShape } from "./resource-target-input";
 import { granteeRef, quoted, targetRef } from "./summary-refs";
+
+export const grantAccessInputSchema = z.strictObject({
+	...targetShape,
+	grantees: z
+		.array(z.strictObject(granteeShape))
+		.min(1)
+		.max(50)
+		.describe("The users and groups that get the role."),
+	role: resourceGrantRoleSchema.describe(
+		"viewer: Can view, to read and use it. editor: Can edit, also to edit it. manager: Can manage, also to manage its access.",
+	),
+});
 
 export const grantAccess = declareTool<typeof grantAccessTool>()({
 	kind: "change",
@@ -12,6 +27,7 @@ export const grantAccess = declareTool<typeof grantAccessTool>()({
 		"create_bot",
 	],
 	confirm: "grant",
+	inputSchema: grantAccessInputSchema,
 	icon: ShieldPlusIcon,
 	name: () => m.assistant_tool_grant_access_name(),
 	active: () => m.assistant_tool_grant_access_active(),

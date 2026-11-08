@@ -5,6 +5,7 @@ import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import { createBotInputSchema } from "./create-bot.declaration";
 
 beforeEach(() => {
 	resetProcedures();
@@ -18,9 +19,7 @@ beforeEach(() => {
 		});
 });
 
-const { createBotInputSchema, createBotPayload, createBotTool } = await import(
-	"./create-bot"
-);
+const { createBotPayload, createBotTool } = await import("./create-bot");
 const { createAssistantTurn } = await import("../turn-state");
 
 const botId = crypto.randomUUID() as BotId;

@@ -1,6 +1,4 @@
-import { assetIdSchema, blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
@@ -8,15 +6,7 @@ import {
 	expectType,
 	mutation,
 } from "../procedure-tool";
-
-const prepareAssetAgainInputSchema = z.strictObject({
-	assetId: assetIdSchema.describe("Id of the asset, from findAssets."),
-	repositoryId: blockIdSchema
-		.optional()
-		.describe(
-			"The repository to retry the asset in. Leave out to prepare the uploaded file again.",
-		),
-});
+import { prepareAssetAgainInputSchema } from "./prepare-asset-again.declaration";
 
 export const prepareAssetAgainTool = (deps: AssistantToolDeps) =>
 	effectTool({

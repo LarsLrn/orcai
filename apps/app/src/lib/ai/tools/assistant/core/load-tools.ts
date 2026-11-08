@@ -1,24 +1,17 @@
-import { z } from "zod/v4";
+import type { z } from "zod/v4";
 import type { AssistantSession } from "@/lib/ai/agents/assistant-session";
+import type { DeferredToolGroup } from "@/lib/ai/tools/declaration";
 import {
 	type AssistantTool,
 	assistantTool,
 } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolName,
-	DEFERRED_TOOL_GROUPS,
-	type DeferredToolGroup,
 	isCreateTool,
 	offeredGroupTools,
 	offeredToolGroups,
 } from "../groups";
-
-export const loadToolsInputSchema = z.strictObject({
-	groups: z
-		.array(z.enum(DEFERRED_TOOL_GROUPS))
-		.min(1)
-		.describe("Every tool group this request needs, in one call."),
-});
+import { loadToolsInputSchema } from "./load-tools.declaration";
 
 type LoadToolsGroupResult =
 	| {

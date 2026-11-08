@@ -1,20 +1,11 @@
-import { assetIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
 	callProcedure,
 	mutation,
 } from "../procedure-tool";
-
-const generateAssetMetadataInputSchema = z.strictObject({
-	assetIds: z
-		.array(assetIdSchema)
-		.min(1)
-		.max(100)
-		.describe("Ids of the assets, from findAssets."),
-});
+import { generateAssetMetadataInputSchema } from "./generate-asset-metadata.declaration";
 
 export const generateAssetMetadataTool = (deps: AssistantToolDeps) =>
 	effectTool({

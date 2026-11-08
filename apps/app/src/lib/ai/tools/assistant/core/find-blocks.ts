@@ -1,23 +1,8 @@
-import { blockTypeSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	listQuerySchema,
-	PAGING_NOTE,
-} from "./list-input";
-
-const findBlocksInputSchema = z.strictObject({
-	type: blockTypeSchema.describe(
-		"behaviour: the system prompt a bot follows. repository: assets a bot searches to answer from.",
-	),
-	query: listQuerySchema,
-	page: listPageSchema,
-});
+import { findBlocksInputSchema } from "./find-blocks.declaration";
+import { listPage, listPaging, PAGING_NOTE } from "./list-input";
 
 export const findBlocksTool = (deps: AssistantToolDeps) =>
 	effectTool({

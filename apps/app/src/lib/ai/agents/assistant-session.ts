@@ -10,14 +10,16 @@ import {
 	type AssistantToolName,
 	type CapabilitySet,
 	CONFIRMED_TOOLS,
-	DEFERRED_TOOL_GROUPS,
 	DEFERRED_TOOL_NAMES,
-	type DeferredToolGroup,
 	isCreateTool,
 	isToolOffered,
 	offeredAssistantToolNames,
 	offeredGroupTools,
 } from "@/lib/ai/tools/assistant/groups";
+import {
+	DEFERRED_TOOL_GROUPS,
+	type DeferredToolGroup,
+} from "@/lib/ai/tools/declaration";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 
 interface SessionState {

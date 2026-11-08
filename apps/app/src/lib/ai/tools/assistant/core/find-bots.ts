@@ -1,19 +1,8 @@
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	listQuerySchema,
-	PAGING_NOTE,
-} from "./list-input";
-
-const findBotsInputSchema = z.strictObject({
-	query: listQuerySchema,
-	page: listPageSchema,
-});
+import { findBotsInputSchema } from "./find-bots.declaration";
+import { listPage, listPaging, PAGING_NOTE } from "./list-input";
 
 const toFoundBot = (bot: {
 	id: string;

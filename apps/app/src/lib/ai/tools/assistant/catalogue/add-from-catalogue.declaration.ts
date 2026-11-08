@@ -1,7 +1,19 @@
 import { PackagePlusIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { addFromCatalogueTool } from "./add-from-catalogue";
+import { catalogueEntryInputSchema } from "./catalogue-entry-input";
+
+export const addFromCatalogueInputSchema = z.strictObject({
+	entry: catalogueEntryInputSchema,
+	withBlocks: z
+		.boolean()
+		.default(false)
+		.describe(
+			"For a bot: also add its behaviour and repositories, each on its own, so the organisation can build its own bots from them. Removing the bot later keeps them. Only when the user asks for them.",
+		),
+});
 
 export const addFromCatalogue = declareTool<typeof addFromCatalogueTool>()({
 	kind: "change",
@@ -10,6 +22,7 @@ export const addFromCatalogue = declareTool<typeof addFromCatalogueTool>()({
 		"add_from_catalogue",
 	],
 	confirm: "add",
+	inputSchema: addFromCatalogueInputSchema,
 	icon: PackagePlusIcon,
 	name: () => m.assistant_tool_add_from_catalogue_name(),
 	active: () => m.assistant_tool_add_from_catalogue_active(),

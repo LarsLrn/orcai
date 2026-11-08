@@ -1,32 +1,17 @@
-import { resourceGrantRoleSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
 	callProcedure,
 	mutation,
 } from "../procedure-tool";
+import { grantAccessInputSchema } from "./grant-access.declaration";
 import {
 	expectGrantees,
 	expectTarget,
-	granteeShape,
-	targetShape,
 	toPrincipalIdentity,
 	toResourceIdentity,
 } from "./resource-target";
-
-const grantAccessInputSchema = z.strictObject({
-	...targetShape,
-	grantees: z
-		.array(z.strictObject(granteeShape))
-		.min(1)
-		.max(50)
-		.describe("The users and groups that get the role."),
-	role: resourceGrantRoleSchema.describe(
-		"viewer: Can view, to read and use it. editor: Can edit, also to edit it. manager: Can manage, also to manage its access.",
-	),
-});
 
 export const grantAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({

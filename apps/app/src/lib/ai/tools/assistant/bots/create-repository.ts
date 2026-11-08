@@ -1,11 +1,5 @@
-import {
-	assetIdSchema,
-	blockFieldsSchema,
-	defaultRepositoryConfig,
-	publicationStatusSchema,
-} from "@orcai/schema";
+import { defaultRepositoryConfig } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
@@ -18,23 +12,7 @@ import {
 	repositoryOutline,
 	uniqueAssetIds,
 } from "./block-outline";
-
-export const createRepositoryInputSchema = z.strictObject({
-	name: z.string().min(1).describe("The repository's name, a few words."),
-	description: blockFieldsSchema.shape.description
-		.unwrap()
-		.optional()
-		.describe("Short plain-text description, up to 500 characters."),
-	status: publicationStatusSchema
-		.optional()
-		.describe("ready: Published, so bots can use it. Defaults to draft."),
-	assetIds: z
-		.array(assetIdSchema)
-		.optional()
-		.describe(
-			"Ids of the Library assets the repository holds, from findAssets with keptIn library.",
-		),
-});
+import { createRepositoryInputSchema } from "./create-repository.declaration";
 
 export const createRepositoryTool = (deps: AssistantToolDeps) =>
 	effectTool({

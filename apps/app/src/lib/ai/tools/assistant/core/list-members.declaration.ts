@@ -1,7 +1,19 @@
 import { UserRoundIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
+import { listPageSchema } from "./list-input";
 import type { listMembersTool } from "./list-members";
+
+export const listMembersInputSchema = z.strictObject({
+	query: z
+		.string()
+		.trim()
+		.max(100)
+		.optional()
+		.describe("Part of the name or email to search for, case-insensitive."),
+	page: listPageSchema,
+});
 
 export const listMembers = declareTool<typeof listMembersTool>()({
 	kind: "read",
@@ -9,6 +21,7 @@ export const listMembers = declareTool<typeof listMembersTool>()({
 	capabilities: [
 		"manage_members",
 	],
+	inputSchema: listMembersInputSchema,
 	icon: UserRoundIcon,
 	name: () => m.assistant_tool_list_members_name(),
 	active: () => m.assistant_tool_list_members_active(),

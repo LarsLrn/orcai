@@ -1,19 +1,14 @@
 import type { OrganizationCapability } from "@orcai/schema";
-import type {
-	AssistantToolGroup,
-	ConfirmationVerb,
-	ToolDeclaration,
+import {
+	type AssistantToolGroup,
+	type ConfirmationVerb,
+	DEFERRED_TOOL_GROUPS,
+	type DeferredToolGroup,
+	type ToolDeclaration,
 } from "@/lib/ai/tools/declaration";
 import { type AssistantToolName, toolEntries } from "@/lib/ai/tools/registry";
 
 export type { AssistantToolGroup, AssistantToolName };
-export type DeferredToolGroup = Exclude<AssistantToolGroup, "core">;
-
-export const DEFERRED_TOOL_GROUPS = [
-	"bots",
-	"sharing",
-	"people",
-] as const satisfies DeferredToolGroup[];
 
 const assistantTools = toolEntries.filter(
 	(

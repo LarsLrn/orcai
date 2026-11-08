@@ -1,3 +1,4 @@
+import { addGroupMembersInputSchema } from "@orcai/schema";
 import { UserPlusIcon } from "lucide-react";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import type { EntityRef } from "@/lib/ai/tools/entity-kind";
@@ -9,6 +10,9 @@ const memberRef = (id: string): EntityRef => ({
 	id,
 });
 
+export const addGroupMembersToolInputSchema =
+	addGroupMembersInputSchema.strict();
+
 export const addGroupMembers = declareTool<typeof addGroupMembersTool>()({
 	kind: "change",
 	group: "people",
@@ -16,6 +20,7 @@ export const addGroupMembers = declareTool<typeof addGroupMembersTool>()({
 		"manage_groups",
 	],
 	confirm: "add",
+	inputSchema: addGroupMembersToolInputSchema,
 	icon: UserPlusIcon,
 	name: () => m.assistant_tool_add_group_members_name(),
 	active: () => m.assistant_tool_add_group_members_active(),

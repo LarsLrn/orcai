@@ -9,6 +9,7 @@ import type { ToolDeclaration } from "@/lib/ai/tools/declaration";
 import {
 	type DisplayToolName,
 	displayToolMarkdown,
+	primitiveCatalog,
 } from "@/lib/ai/tools/gen-ui/catalog";
 import { m } from "@/paraglide/messages";
 
@@ -42,23 +43,28 @@ const workLogLabels: Record<
 	},
 };
 
+type DisplayDeclaration = ToolDeclaration & {
+	kind: "display";
+	group: "core";
+};
+
 /** The display tools' declarations, in the catalog's order. */
 export const displayTools = Object.fromEntries(
-	Object.entries(workLogLabels).map(([name, labels]) => [
-		name,
-		{
-			kind: "display",
-			group: "core",
-			...labels,
-			markdown: ({ input, output }) =>
-				displayToolMarkdown(name as DisplayToolName, input, output) ??
-				undefined,
-		},
-	]),
-) as Record<
-	DisplayToolName,
-	ToolDeclaration & {
-		kind: "display";
-		group: "core";
-	}
->;
+	Object.entries(workLogLabels).map(
+		([name, labels]): [
+			string,
+			DisplayDeclaration,
+		] => [
+			name,
+			{
+				kind: "display",
+				group: "core",
+				inputSchema: primitiveCatalog[name as DisplayToolName].schema,
+				...labels,
+				markdown: ({ input, output }) =>
+					displayToolMarkdown(name as DisplayToolName, input, output) ??
+					undefined,
+			},
+		],
+	),
+) as Record<DisplayToolName, DisplayDeclaration>;

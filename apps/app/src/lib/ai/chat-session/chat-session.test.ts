@@ -47,7 +47,7 @@ const deleteBot = (
 		toolCallId: "delete-1",
 		input: {
 			ids: [
-				"bot-1" as BotId,
+				"00000000-0000-4000-8000-0000000000b1" as BotId,
 			],
 		},
 		approval:
@@ -160,7 +160,7 @@ const writingReply = (id: string, zedToken: string): UIMessageChunk[] => [
 		toolCallId: "create-1",
 		output: {
 			type: "bot",
-			id: "bot-1",
+			id: "00000000-0000-4000-8000-0000000000b1",
 			name: "Tutor",
 		},
 	},
@@ -195,7 +195,7 @@ const pausingReply: UIMessageChunk[] = [
 		toolName: "deleteBot",
 		input: {
 			ids: [
-				"bot-1",
+				"00000000-0000-4000-8000-0000000000b1",
 			],
 		},
 	},

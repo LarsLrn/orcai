@@ -1,10 +1,6 @@
-import {
-	blockIdSchema,
-	botFieldsSchema,
-	type SaveBotInput,
-} from "@orcai/schema";
+import type { SaveBotInput } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
+import type { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
@@ -14,30 +10,8 @@ import {
 	mutation,
 } from "../procedure-tool";
 import { botOutline } from "./bot-outline";
-import { featuresInputSchema } from "./features-input";
-import { setupInputSchema, writeSetup } from "./setup-input";
-
-export const createBotInputSchema = z.strictObject({
-	name: botFieldsSchema.shape.name,
-	description: botFieldsSchema.shape.description.describe(
-		"Short plain-text description shown with the bot, up to 500 characters.",
-	),
-	behaviourId: blockIdSchema
-		.optional()
-		.describe(
-			"Id of the behaviour the bot follows, from findBlocks or createBehaviour.",
-		),
-	repositoryIds: z
-		.array(blockIdSchema)
-		.optional()
-		.describe("Ids of every repository the bot answers from."),
-	features: featuresInputSchema
-		.optional()
-		.describe(
-			"Every enabled feature, such as { generativeUi: {}, webSearch: { allowedDomains: [] } }.",
-		),
-	setup: setupInputSchema.optional(),
-});
+import { writeSetup } from "./bot-setup";
+import { createBotInputSchema } from "./create-bot.declaration";
 
 /** A new bot is a draft with empty rich content. */
 export const createBotPayload = (

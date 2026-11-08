@@ -3,11 +3,11 @@ import {
 	ORGANIZATION_ROLE_PERMISSIONS,
 	type OrganizationRole,
 } from "@orcai/core";
+import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import {
 	DEFERRED_TOOL_GROUPS,
 	type DeferredToolGroup,
-} from "@/lib/ai/tools/assistant/groups";
-import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
+} from "@/lib/ai/tools/declaration";
 import { capabilitySets } from "@/lib/authz/capabilities";
 import {
 	type AssistantUserContext,

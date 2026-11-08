@@ -1,7 +1,5 @@
 import type { BlockId } from "@orcai/core";
-import { blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { wrongIdText } from "@/lib/ai/tools/entity-kind";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
@@ -10,12 +8,7 @@ import {
 	callProcedure,
 	expectType,
 } from "../procedure-tool";
-
-const getBlockInputSchema = z.strictObject({
-	id: blockIdSchema.describe(
-		"Id of the behaviour or repository, from findBlocks or getBot.",
-	),
-});
+import { getBlockInputSchema } from "./get-block.declaration";
 
 /** Asset states and totals of one repository. */
 const readinessOf = (deps: AssistantToolDeps, repositoryId: BlockId) =>

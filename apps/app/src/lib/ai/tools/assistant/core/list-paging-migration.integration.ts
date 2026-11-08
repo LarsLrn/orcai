@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import type { ToolSet, UIMessage } from "ai";
+import type { UIMessage } from "ai";
 import { Client } from "pg";
-import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
+import {
+	type ChatAgentUIMessage,
+	toChatAgentParts,
+} from "@/lib/ai/types/chat-agent-message";
 import { toolSummary } from "../../registry";
-import type { AssistantToolDeps } from "../procedure-tool";
-import { findPeopleTool } from "../sharing/find-people";
-import { findBotsTool } from "./find-bots";
 
 const MIGRATION = new URL(
 	"../../../../../../../../packages/db/migrations/20261103080517_easy_tony_stark/migration.sql",
@@ -174,25 +174,9 @@ const migrated = async () => {
 
 const result = await migrated();
 
-const tools: ToolSet = {
-	findBots: findBotsTool({} as AssistantToolDeps),
-	findPeople: findPeopleTool({} as AssistantToolDeps),
-};
-
-/** The stored parts as the next turn hands them to the model. */
-const replayed = async (parts: unknown[]) => {
-	const [message] = await closeInvalidToolParts(
-		[
-			{
-				id: "reply",
-				role: "assistant",
-				parts: parts as Part[],
-			},
-		],
-		tools,
-	);
-	return message.parts;
-};
+/** The stored parts as the next turn reads them. */
+const replayed = (parts: unknown[]) =>
+	toChatAgentParts(parts as ChatAgentUIMessage["parts"]);
 
 describe("list paging migration", () => {
 	test("rewrites only the row with list calls, and a second run changes nothing", () => {
@@ -227,15 +211,13 @@ describe("list paging migration", () => {
 		expect<unknown>(result.parts.untouched).toEqual(fixtures.untouched);
 	});
 
-	test("a continued chat keeps the rewritten calls typed, the stored ones would not be", async () => {
-		expect(
-			(await replayed(result.parts.listed)).map((part) => part.type),
-		).toEqual([
+	test("a continued chat keeps the rewritten calls typed, the stored ones would not be", () => {
+		expect(replayed(result.parts.listed).map((part) => part.type)).toEqual([
 			"text",
 			"tool-findBots",
 			"tool-findPeople",
 		]);
-		expect((await replayed(fixtures.listed)).map((part) => part.type)).toEqual([
+		expect(replayed(fixtures.listed).map((part) => part.type)).toEqual([
 			"text",
 			"dynamic-tool",
 			"dynamic-tool",

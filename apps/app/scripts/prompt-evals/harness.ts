@@ -36,9 +36,9 @@ import {
 import type { ToolExecutions, TurnAgent } from "@/lib/ai/agents/turn-agent";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { resolveFeatures } from "@/lib/ai/features/resolve-features";
-import type { DeferredToolGroup } from "@/lib/ai/tools/assistant/groups";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import { createAssistantTurn } from "@/lib/ai/tools/assistant/turn-state";
+import type { DeferredToolGroup } from "@/lib/ai/tools/declaration";
 import { readDocs } from "@/lib/ai/tools/docs/read-docs";
 import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
 import type {

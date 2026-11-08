@@ -1,4 +1,3 @@
-import { groupFieldsSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
@@ -6,9 +5,8 @@ import {
 	callProcedure,
 	mutation,
 } from "../procedure-tool";
+import { createGroupInputSchema } from "./create-group.declaration";
 import { groupOutline } from "./group-outline";
-
-const createGroupInputSchema = groupFieldsSchema.strict();
 
 export const createGroupTool = (deps: AssistantToolDeps) =>
 	effectTool({

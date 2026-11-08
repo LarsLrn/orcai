@@ -1,29 +1,12 @@
-import { uploadedAssetSchema } from "@orcai/schema";
 import { tool } from "ai";
-import { z } from "zod/v4";
+import type { z } from "zod/v4";
 import { toolInputSchema } from "@/lib/ai/tools/input-schema";
 import type { NoToolContext } from "@/lib/ai/tools/tool-builders";
-
-export const requestUploadInputSchema = z.strictObject({
-	reason: z
-		.string()
-		.min(1)
-		.describe(
-			"One line shown above the upload field, such as: Upload the style guides for the repository 'APA rules'.",
-		),
-});
-
-export const requestUploadOutputSchema = z.discriminatedUnion("status", [
-	z.object({
-		status: z.literal("saved"),
-		assets: z.array(uploadedAssetSchema).min(1),
-	}),
-	z.object({
-		status: z.literal("cancelled"),
-	}),
-]);
-
-export type RequestUploadOutput = z.infer<typeof requestUploadOutputSchema>;
+import {
+	type RequestUploadOutput,
+	requestUploadInputSchema,
+	requestUploadOutputSchema,
+} from "./request-upload.declaration";
 
 /** Saved assets are not in any repository yet; the model reads that with the ids. */
 export const SAVED_UPLOAD_NEXT_STEP =

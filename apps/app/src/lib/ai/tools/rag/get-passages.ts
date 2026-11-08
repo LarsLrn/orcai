@@ -1,11 +1,10 @@
 import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import type { ChatSources } from "@/lib/ai/citations/chat-sources";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
-import { RETRIEVAL_LIMITS } from "@/settings/constants";
+import { getPassagesInputSchema } from "./get-passages.declaration";
 import { passagesModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { PointWithBlock } from "./types";
@@ -46,20 +45,7 @@ export const getPassagesTool = ({
 	return effectTool({
 		description:
 			"Read the text around passages from earlier results, such as the rest of a list or an argument that breaks off. Passages next to each other in one asset come back joined as one passage. Use it only when you need that context, since searchRepositories already returns each passage in full.",
-		inputSchema: z.strictObject({
-			passages: z
-				.array(z.string())
-				.min(1)
-				.max(RETRIEVAL_LIMITS.maxFullPassageFetches)
-				.describe("Refs of passages from earlier results, such as kgol9ts."),
-			neighbours: z.coerce
-				.number()
-				.int()
-				.min(0)
-				.max(2)
-				.default(1)
-				.describe("How many passages to read before and after each one."),
-		}),
+		inputSchema: getPassagesInputSchema,
 		run: ({ passages: refs, neighbours }) =>
 			Effect.gen(function* () {
 				const procedures = yield* Procedures;

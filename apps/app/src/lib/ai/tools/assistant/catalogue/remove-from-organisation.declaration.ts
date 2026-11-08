@@ -1,7 +1,13 @@
 import { PackageMinusIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
+import { catalogueEntryInputSchema } from "./catalogue-entry-input";
 import type { removeFromOrganisationTool } from "./remove-from-organisation";
+
+export const removeFromOrganisationInputSchema = z.strictObject({
+	entry: catalogueEntryInputSchema,
+});
 
 export const removeFromOrganisation = declareTool<
 	typeof removeFromOrganisationTool
@@ -12,6 +18,7 @@ export const removeFromOrganisation = declareTool<
 		"add_from_catalogue",
 	],
 	confirm: "remove",
+	inputSchema: removeFromOrganisationInputSchema,
 	icon: PackageMinusIcon,
 	name: () => m.assistant_tool_remove_from_organisation_name(),
 	active: () => m.assistant_tool_remove_from_organisation_active(),
