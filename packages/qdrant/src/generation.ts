@@ -13,6 +13,7 @@ import {
 	dbSchema,
 } from "@orcai/db";
 import { eq, sql } from "drizzle-orm";
+import type { PgTableWithColumns } from "drizzle-orm/pg-core";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -30,9 +31,18 @@ import {
 } from "./errors";
 import { QdrantService } from "./service";
 
+/** The instance settings table, in the instance's schema or a test's own. */
+type InstanceSettingsTable = PgTableWithColumns<{
+	readonly name: "instance_settings";
+	readonly schema: string | undefined;
+	readonly columns: (typeof dbSchema.instanceSettings)["_"]["columns"];
+	readonly dialect: "pg";
+	readonly isAlias: false;
+}>;
+
 /** Where the instance's embedding generations live: the settings row and the collections they name. */
 export interface EmbeddingIndexScope {
-	readonly settings: typeof dbSchema.instanceSettings;
+	readonly settings: InstanceSettingsTable;
 	readonly collectionPrefix: string;
 	/** The repositories whose links it indexes; every repository without. */
 	readonly blockIds?: readonly BlockId[];
@@ -102,7 +112,48 @@ const readStored = Effect.gen(function* () {
 			passagePrefix: settings.embeddingPassagePrefix,
 		})
 		.from(settings);
-	return row?.generation == null ? undefined : (row as StoredGeneration);
+	if (!row) return undefined;
+	const {
+		generation,
+		baseUrl,
+		apiKeyEncrypted,
+		model,
+		dimensions,
+		collection,
+	} = row;
+	if (
+		[
+			generation,
+			baseUrl,
+			apiKeyEncrypted,
+			model,
+			dimensions,
+			collection,
+		].every((value) => value === null)
+	) {
+		return undefined;
+	}
+	if (
+		generation === null ||
+		baseUrl === null ||
+		apiKeyEncrypted === null ||
+		model === null ||
+		dimensions === null ||
+		collection === null
+	) {
+		return yield* Effect.die(
+			new Error("The embedding settings are only partly set"),
+		);
+	}
+	return {
+		...row,
+		generation,
+		baseUrl,
+		apiKeyEncrypted,
+		model,
+		dimensions,
+		collection,
+	} satisfies StoredGeneration;
 });
 
 const snapshotOf = (stored: StoredGeneration) =>
@@ -171,18 +222,20 @@ export const writeGeneration = <A, E, R>(body: Effect.Effect<A, E, R>) =>
 			Effect.gen(function* () {
 				yield* lockGenerations(false);
 				const stored = yield* readStored;
-				if (Option.isSome(ambient)) {
-					if (stored?.generation !== ambient.value.generation) {
-						return yield* new StaleEmbeddingGenerationError({
-							generation: ambient.value.generation,
-						});
-					}
-				} else if (!stored) {
-					return yield* new EmbeddingsNotConfiguredError();
-				}
-				const generation = Option.isSome(ambient)
-					? ambient.value
-					: yield* snapshotOf(stored as StoredGeneration);
+				const generation = yield* Option.match(ambient, {
+					onNone: () =>
+						stored
+							? snapshotOf(stored)
+							: Effect.fail(new EmbeddingsNotConfiguredError()),
+					onSome: (snapshot) =>
+						stored?.generation === snapshot.generation
+							? Effect.succeed(snapshot)
+							: Effect.fail(
+									new StaleEmbeddingGenerationError({
+										generation: snapshot.generation,
+									}),
+								),
+				});
 				yield* ensureActiveCollection(generation);
 				return yield* body.pipe(
 					Effect.provideService(GenerationWrite, {

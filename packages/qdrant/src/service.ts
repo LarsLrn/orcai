@@ -25,9 +25,9 @@ const QdrantServiceLive = Layer.effect(
 
 		return {
 			client: new QdrantClient({
-				url: config.qdrant.url,
+				url: config.url,
 				port: null,
-				apiKey: Redacted.value(config.qdrant.apiKey),
+				apiKey: Redacted.value(config.apiKey),
 			}),
 			bm25Config: defaultBm25Config,
 		};

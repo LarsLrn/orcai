@@ -394,7 +394,7 @@ const appProcessConfig = Effect.gen(function* () {
 		umami: app.publicConfig.umami,
 		postgres: db,
 		spicedb: spice,
-		qdrant: qdrant.qdrant,
+		qdrant,
 		s3,
 		embeddings: {
 			baseUrl: embeddings?.baseUrl,

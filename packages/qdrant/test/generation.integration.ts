@@ -1,8 +1,9 @@
 import { afterAll, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
-import { DrizzleLive } from "@orcai/db";
+import { DB, DrizzleLive } from "@orcai/db";
 import { awaitLockWaiters, holdLock } from "@orcai/testing";
 import { QdrantClient } from "@qdrant/qdrant-js";
+import { sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
@@ -10,6 +11,7 @@ import { browseAssetPoints } from "../src/browse";
 import { defaultBm25Config } from "../src/config";
 import { buildQdrantFilter, payloadKey } from "../src/filter";
 import {
+	activeGeneration,
 	configureEmbeddings,
 	EmbeddingIndex,
 	type EmbeddingIndexScope,
@@ -17,6 +19,8 @@ import {
 	inspectActiveCollection,
 	maintainCollections,
 	onActiveGeneration,
+	storedEmbeddingApiKey,
+	writeGeneration,
 } from "../src/generation";
 import { QdrantLive, QdrantService } from "../src/service";
 import { testEmbeddingIndex } from "./embedding-index";
@@ -30,6 +34,8 @@ const runtime = ManagedRuntime.make(
 afterAll(() => runtime.dispose());
 
 const indexes = {
+	unset: await testEmbeddingIndex(),
+	partial: await testEmbeddingIndex(),
 	down: await testEmbeddingIndex(),
 	racing: await testEmbeddingIndex(),
 	switching: await testEmbeddingIndex(),
@@ -86,6 +92,54 @@ const unreachableQdrant = QdrantService.of({
 		port: null,
 	}),
 	bm25Config: defaultBm25Config,
+});
+
+test(
+	"before setup nothing reads a generation, runs on one or creates a collection",
+	async () => {
+		const index = indexes.unset;
+
+		expect(await on(index, activeGeneration)).toBeUndefined();
+		expect(await on(index, embeddingSettings)).toBeUndefined();
+		expect(await on(index, storedEmbeddingApiKey)).toBeUndefined();
+		expect(await on(index, inspectActiveCollection)).toBeUndefined();
+		await on(index, maintainCollections);
+		for (const run of [
+			onActiveGeneration(Effect.void),
+			writeGeneration(Effect.void),
+		]) {
+			expect((await on(index, Effect.flip(run)))._tag).toBe(
+				"EmbeddingsNotConfiguredError",
+			);
+		}
+		expect(await collectionsOf(index)).toEqual([]);
+
+		await save(index);
+		expect(await on(index, activeGeneration)).toBeNumber();
+		expect(await on(index, storedEmbeddingApiKey)).toBe("key");
+	},
+	TIMEOUT,
+);
+
+test("a partly set embedding setup is a defect, not a missing one", async () => {
+	const index = indexes.partial;
+	await on(
+		index,
+		Effect.gen(function* () {
+			const db = yield* DB;
+			yield* db.execute(
+				sql`alter table ${index.settings} drop constraint instance_settings_embedding_complete`,
+			);
+			yield* db.insert(index.settings).values({
+				id: true,
+				embeddingGeneration: 1,
+			});
+		}),
+	);
+
+	await expect(on(index, activeGeneration)).rejects.toThrow(
+		"The embedding settings are only partly set",
+	);
 });
 
 test(

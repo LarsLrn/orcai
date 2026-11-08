@@ -17,13 +17,11 @@ export const defaultBm25Config = {
 } satisfies Schemas["Bm25Config"];
 
 const qdrantConfig = Config.all({
-	qdrant: Config.all({
-		url: Config.String("QDRANT_URL"),
-		apiKey: Config.Redacted("QDRANT_API_KEY"),
-	}),
+	url: Config.String("QDRANT_URL"),
+	apiKey: Config.Redacted("QDRANT_API_KEY"),
 });
 
-export type QdrantConfig = Config.Success<typeof qdrantConfig>;
+type QdrantConfig = Config.Success<typeof qdrantConfig>;
 
 export class QdrantConfigService extends Context.Service<
 	QdrantConfigService,
@@ -34,11 +32,7 @@ export class QdrantConfigService extends Context.Service<
 
 export const QdrantConfigLive = Layer.effect(
 	QdrantConfigService,
-	Effect.gen(function* () {
-		const config = yield* qdrantConfig;
-
-		return {
-			config,
-		};
-	}),
+	Effect.map(qdrantConfig, (config) => ({
+		config,
+	})),
 );
