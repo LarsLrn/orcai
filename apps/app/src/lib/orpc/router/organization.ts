@@ -35,10 +35,7 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { lockAsInstanceAdmin } from "@/lib/authz/instance-admin-lock";
-import {
-	insertInvitations,
-	wakeInvitationEmails,
-} from "@/lib/authz/organization-invitations";
+import { insertInvitations } from "@/lib/authz/organization-invitations";
 import {
 	deleteOrganizationsWithAuthorization,
 	insertOrganization,
@@ -299,10 +296,6 @@ const createOrganization = authed.organization.create
 				return organization;
 			}),
 		);
-		if (initialAdmin.kind === "invite") {
-			yield* wakeInvitationEmails;
-		}
-
 		return {
 			data: organization,
 		};

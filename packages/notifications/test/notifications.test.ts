@@ -158,7 +158,6 @@ describe("notification schemas and templates", () => {
 				return yield* service.send(email);
 			}).pipe(
 				Effect.provide(EmailLive),
-				Effect.provide(EmailConfigLive),
 				Effect.provideService(
 					ConfigProvider.ConfigProvider,
 					ConfigProvider.fromUnknown({
@@ -228,6 +227,25 @@ describe("notification schemas and templates", () => {
 			mode: "smtp",
 			port: 465,
 			secure: true,
+		});
+	});
+
+	test("rejects an SMTP port outside 1 to 65535", async () => {
+		await expect(
+			loadEmailConfig({
+				SMTP_HOST: "smtp.example.com",
+				SMTP_FROM: "mail@example.com",
+				SMTP_PORT: "65536",
+			}),
+		).rejects.toThrow();
+	});
+
+	test("ignores SMTP_PORT while SMTP is not configured", async () => {
+		const service = await loadEmailConfig({
+			SMTP_PORT: "oops",
+		});
+		expect(service.config).toEqual({
+			mode: "log_only",
 		});
 	});
 

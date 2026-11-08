@@ -8,10 +8,11 @@
 		"./render": "./src/render.ts"
 	},
 	"scripts": {
-		"paraglide:compile": "bun run compile-paraglide.ts",
+		"paraglide:compile": "paraglide-js compile --project ./project.inlang --output-structure locale-modules --silent",
 		"test": "bun run paraglide:compile && bun test"
 	},
 	"dependencies": {
+		"@effect/sql-pg": "catalog:",
 		"@orcai/db": "workspace:*",
 		"@orcai/pg-boss": "workspace:*",
 		"@orcai/schema": "workspace:*",

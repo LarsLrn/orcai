@@ -293,6 +293,7 @@
       "name": "@orcai/notifications",
       "version": "0.1.0",
       "dependencies": {
+        "@effect/sql-pg": "catalog:",
         "@orcai/db": "workspace:*",
         "@orcai/pg-boss": "workspace:*",
         "@orcai/schema": "workspace:*",

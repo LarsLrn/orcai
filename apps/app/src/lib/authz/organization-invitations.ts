@@ -5,10 +5,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema, retryDeadlocks } from "@orcai/db";
-import {
-	notificationOutboxValues,
-	wakeNotificationWorker,
-} from "@orcai/notifications";
+import { enqueueNotifications } from "@orcai/notifications";
 import type { Locale, SkippedInvitee } from "@orcai/schema";
 import { and, eq, getColumns, inArray, lt, sql } from "drizzle-orm";
 import * as Arr from "effect/Array";
@@ -33,11 +30,10 @@ type InvitationParams = {
 const invitedAddress = sql<string>`lower(trim(${dbSchema.invitation.email}))`;
 
 /**
- * Inserts the invitations and their emails in the enclosing transaction.
- * Skips members and addresses with a pending invitation that has not expired,
- * and replaces an expired one. Takes the organization's write lock first, so
- * it runs after membership writes in flight. Wake the notification worker
- * after the commit.
+ * Inserts the invitations and queues their emails in the enclosing
+ * transaction. Skips members and addresses with a pending invitation that has
+ * not expired, and replaces an expired one. Takes the organization's write
+ * lock first, so it runs after membership writes in flight.
  */
 export const insertInvitations = (params: InvitationParams) =>
 	Effect.gen(function* () {
@@ -121,27 +117,23 @@ export const insertInvitations = (params: InvitationParams) =>
 								...getColumns(dbSchema.invitation),
 							});
 					});
-		if (invitations.length > 0) {
-			yield* db.insert(dbSchema.notificationOutbox).values(
-				invitations.map((invitation) =>
-					notificationOutboxValues(
-						{
-							type: "organization.invited",
-							recipient: invitation.email,
-							recipientName: invitation.email.split("@")[0] || undefined,
-							invitationId: invitation.id,
-							organizationName: organization.name,
-							inviterName: params.inviter.name,
-							role: invitation.role,
-							expiresAt: invitation.expiresAt,
-							registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
-							locale: params.locale,
-						},
-						`organization.invited:${invitation.id}`,
-					),
-				),
-			);
-		}
+		yield* enqueueNotifications(
+			invitations.map((invitation) => ({
+				notification: {
+					type: "organization.invited",
+					recipient: invitation.email,
+					recipientName: invitation.email.split("@")[0] || undefined,
+					invitationId: invitation.id,
+					organizationName: organization.name,
+					inviterName: params.inviter.name,
+					role: invitation.role,
+					expiresAt: invitation.expiresAt,
+					registrationUrl: `${config.auth.url}/register?inv=${invitation.id}`,
+					locale: params.locale,
+				},
+				deduplicationKey: `organization.invited:${invitation.id}`,
+			})),
+		);
 
 		const invited = new Set(
 			invitations.map((invitation) => normalizeEmail(invitation.email)),
@@ -162,17 +154,11 @@ export const insertInvitations = (params: InvitationParams) =>
 		};
 	});
 
-export const wakeInvitationEmails = wakeNotificationWorker.pipe(
-	Effect.catch((cause) => Effect.logWarning("notification.wake.failed", cause)),
-);
-
 /** Invites `emails` to the organization with `role` and queues their emails, as {@link insertInvitations}. */
 export const inviteToOrganization = (params: InvitationParams) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const created = yield* retryDeadlocks(
+		return yield* retryDeadlocks(
 			db.transaction(() => insertInvitations(params)),
 		);
-		yield* wakeInvitationEmails;
-		return created;
 	});

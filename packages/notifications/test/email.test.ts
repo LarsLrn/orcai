@@ -4,7 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import * as ConfigProvider from "effect/ConfigProvider";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
-import { EmailConfigLive, EmailLive, EmailService } from "../src";
+import { EmailLive, EmailService } from "../src";
 
 let server: Server | undefined;
 afterEach(() => server?.close());
@@ -63,7 +63,6 @@ const sendThrough = (port: number) =>
 		});
 	}).pipe(
 		Effect.provide(EmailLive),
-		Effect.provide(EmailConfigLive),
 		Effect.provideService(
 			ConfigProvider.ConfigProvider,
 			ConfigProvider.fromUnknown({
