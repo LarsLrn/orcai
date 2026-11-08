@@ -7,6 +7,7 @@ import type {
 	LibraryOrigin,
 	LibraryOverviewInput,
 	LibraryScope,
+	PublicationStatus,
 	PublicationStatusFilter,
 	SearchLibraryInput,
 } from "@orcai/schema";
@@ -83,15 +84,24 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 				createdAt: AnyColumn;
 			},
 			name: AnyColumn,
+			status: SQL<PublicationStatus>,
 		) => ({
 			kind: kind.as("kind"),
 			id: sql<string>`${table.id}`.as("id"),
 			name: sql<string>`${name}`.as("name"),
 			createdAt: sql<Date>`${table.createdAt}`.as("created_at"),
+			status: status.as("status"),
 		});
 
 		const union = db
-			.select(fields(sql<LibraryKind>`'bot'`, dbSchema.bot, dbSchema.bot.name))
+			.select(
+				fields(
+					sql<LibraryKind>`'bot'`,
+					dbSchema.bot,
+					dbSchema.bot.name,
+					sql<PublicationStatus>`${dbSchema.bot.status}`,
+				),
+			)
 			.from(dbSchema.bot)
 			.where(and(bots, matches(dbSchema.bot.name)))
 			.unionAll(
@@ -101,6 +111,7 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 							sql<LibraryKind>`${dbSchema.block.type}`,
 							dbSchema.block,
 							dbSchema.block.name,
+							sql<PublicationStatus>`${dbSchema.block.status}`,
 						),
 					)
 					.from(dbSchema.block)
@@ -116,6 +127,7 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 									sql<LibraryKind>`'asset'`,
 									dbSchema.asset,
 									dbSchema.asset.title,
+									sql<PublicationStatus>`'ready'`,
 								),
 							)
 							.from(dbSchema.asset)
@@ -130,7 +142,12 @@ const entries = (access: LibraryAccess, filters: EntryFilters) =>
 		).as("entries");
 	});
 
-/** How many items of each kind the reader may list in scope, matching `search`. */
+const none = () => ({
+	total: 0,
+	drafts: 0,
+});
+
+/** How many items of each kind, and drafts among them, the reader may list in scope, matching `search`. */
 export const libraryCounts = (
 	access: LibraryAccess,
 	filters: Omit<EntryFilters, "status">,
@@ -143,17 +160,21 @@ export const libraryCounts = (
 		const rows = yield* (yield* DB)
 			.select({
 				kind: listed.kind,
-				count: count(),
+				total: count(),
+				drafts:
+					sql<number>`count(*) filter (where ${listed.status} = 'draft')`.mapWith(
+						Number,
+					),
 			})
 			.from(listed)
 			.groupBy(listed.kind);
 		const counts: LibraryCounts = {
-			bot: 0,
-			behaviour: 0,
-			repository: 0,
-			asset: 0,
+			bot: none(),
+			behaviour: none(),
+			repository: none(),
+			asset: none(),
 		};
-		for (const row of rows) counts[row.kind] = row.count;
+		for (const { kind, ...row } of rows) counts[kind] = row;
 		return counts;
 	});
 

@@ -41,7 +41,7 @@ export const libraryOverviewQuery = (scope: LibraryScope) =>
 		},
 	});
 
-/** The rail's counts. */
+/** The rail's counts, and Home's Library panel without scope or search. */
 export const libraryCountsQuery = (
 	search: Parameters<typeof libraryCountsInput>[0],
 ) =>
