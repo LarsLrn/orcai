@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { ChevronRightIcon, type LucideIcon, SearchXIcon } from "lucide-react";
+import { ChevronRightIcon, SearchXIcon } from "lucide-react";
 import {
 	Empty,
 	EmptyDescription,
@@ -9,86 +9,6 @@ import {
 } from "@/components/ui/empty";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-
-/** The rail beside the results from `lg`; below it, everything stacks. */
-const BrowseLayout = ({ className, ...props }: React.ComponentProps<"div">) => (
-	<div
-		className={cn("grid gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]", className)}
-		{...props}
-	/>
-);
-
-const BrowseRail = ({ className, ...props }: React.ComponentProps<"aside">) => (
-	<aside
-		className={cn(
-			"hidden flex-col gap-6 lg:sticky lg:top-20 lg:flex lg:self-start",
-			className,
-		)}
-		{...props}
-	/>
-);
-
-const BrowseMain = ({ className, ...props }: React.ComponentProps<"div">) => (
-	<div className={cn("flex min-w-0 flex-col gap-5", className)} {...props} />
-);
-
-export type BrowseNavItem = {
-	key: string;
-	label: string;
-	Icon: LucideIcon;
-	iconClassName?: string;
-	count?: number;
-	active: boolean;
-	linkProps: LinkProps;
-};
-
-/**
- * The views of a surface: a list in the rail, a row of chips below `lg`. The
- * chip row scrolls sideways inside an inset that keeps focus rings whole.
- */
-const BrowseNav = ({
-	items,
-	label,
-	orientation,
-}: {
-	items: readonly BrowseNavItem[];
-	label: string;
-	orientation: "vertical" | "horizontal";
-}) => (
-	<nav
-		aria-label={label}
-		className={cn(
-			"flex gap-1",
-			orientation === "vertical"
-				? "flex-col"
-				: "-mx-2 -my-1 overflow-x-auto px-2 py-1 md:-mx-3 md:px-3 lg:hidden",
-		)}
-	>
-		{items.map((item) => (
-			<Link
-				key={item.key}
-				{...item.linkProps}
-				aria-current={item.active ? "page" : undefined}
-				className={cn(
-					"hover:bg-muted focus-visible:ring-ring/75 flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors outline-none focus-visible:ring-[3px]",
-					item.active && "bg-muted font-medium",
-					orientation === "horizontal" && "rounded-full border",
-				)}
-			>
-				<item.Icon
-					aria-hidden="true"
-					className={cn("size-4", item.iconClassName)}
-				/>
-				<span className="flex-1">{item.label}</span>
-				{item.count === undefined ? null : (
-					<span className="text-muted-foreground text-xs tabular-nums">
-						{item.count}
-					</span>
-				)}
-			</Link>
-		))}
-	</nav>
-);
 
 /** The heading over results: the view's name, its count and the view's controls. */
 const BrowseResultsHeader = ({
@@ -182,14 +102,4 @@ const NoResults = () => (
 	</Empty>
 );
 
-export {
-	BrowseLayout,
-	BrowseMain,
-	BrowseNav,
-	BrowseRail,
-	BrowseResultsHeader,
-	NoResults,
-	Shelf,
-	ShelfItem,
-	TileGrid,
-};
+export { BrowseResultsHeader, NoResults, Shelf, ShelfItem, TileGrid };

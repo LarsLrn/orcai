@@ -1,15 +1,13 @@
 import type { LibraryScope, LibrarySort } from "@orcai/schema";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useMatches, useNavigate, useSearch } from "@tanstack/react-router";
+import { useSearch } from "@tanstack/react-router";
 import { LayoutGridIcon, LibraryIcon, UserIcon } from "lucide-react";
-import { FilterFields } from "@/components/browse/browse-filters";
 import {
-	BrowseLayout,
-	BrowseMain,
-	BrowseNav,
-	type BrowseNavItem,
-	BrowseRail,
-} from "@/components/browse/browse-layout";
+	BrowseShell,
+	type BrowseView,
+	useBrowseSearchChange,
+	useBrowseView,
+} from "@/components/browse/browse-shell";
 import { LibraryNewMenu } from "@/components/library/library-new-menu";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
@@ -45,7 +43,7 @@ export const LIBRARY_VIEWS = [
 		to: "/app/library/bots",
 		label: m.library_view_bot,
 		Icon: RESOURCE_KINDS.bot.Icon,
-		tone: "text-kind-bot",
+		tone: RESOURCE_KINDS.bot.tone,
 	},
 	{
 		view: "behaviour",
@@ -53,7 +51,7 @@ export const LIBRARY_VIEWS = [
 		to: "/app/library/behaviours",
 		label: m.library_view_behaviour,
 		Icon: RESOURCE_KINDS.behaviour.Icon,
-		tone: "text-kind-behaviour",
+		tone: RESOURCE_KINDS.behaviour.tone,
 	},
 	{
 		view: "repository",
@@ -61,7 +59,7 @@ export const LIBRARY_VIEWS = [
 		to: "/app/library/repositories",
 		label: m.library_view_repository,
 		Icon: RESOURCE_KINDS.repository.Icon,
-		tone: "text-kind-repository",
+		tone: RESOURCE_KINDS.repository.tone,
 	},
 	{
 		view: "asset",
@@ -69,35 +67,21 @@ export const LIBRARY_VIEWS = [
 		to: "/app/library/assets",
 		label: m.library_view_asset,
 		Icon: RESOURCE_KINDS.asset.Icon,
-		tone: "text-kind-asset",
+		tone: RESOURCE_KINDS.asset.tone,
 	},
-] as const;
+] as const satisfies BrowseView<LibraryView>[];
 
 /** The list view the current location shows, if any. */
-export const useLibraryView = () => {
-	const routeId = useMatches({
-		select: (matches) => matches.at(-1)?.routeId,
-	});
-	return LIBRARY_VIEWS.find((candidate) => candidate.routeId === routeId)?.view;
-};
+export const useLibraryView = () => useBrowseView(LIBRARY_VIEWS);
 
 /** The current view's search params, and changes to them that start over on the first page. */
 export const useLibrarySearch = <V extends LibraryView>(view: V) => {
-	const navigate = useNavigate();
+	const update = useBrowseSearchChange();
 	const search = librarySearchSchema(libraryFilters[view]).parse(
 		useSearch({
 			strict: false,
 		}),
 	);
-	const update = (patch: Record<string, unknown>) =>
-		void navigate({
-			to: ".",
-			search: (previous) => ({
-				...previous,
-				...patch,
-				pageIndex: 0,
-			}),
-		});
 	return {
 		search,
 		// A filter or Mine leaves an activity run's assets for the whole view.
@@ -182,11 +166,7 @@ const LibraryHeader = () => {
 	);
 };
 
-/**
- * The library's browsing shell around a list view: header with search and
- * New, the rail with All | Mine, the views with their counts and the view's
- * filters; below `lg` the switch and the views as chips above the results.
- */
+/** The library around a list view: header with search and New, All | Mine and the views with their counts. */
 export const LibraryBrowse = ({
 	view,
 	children,
@@ -199,51 +179,23 @@ export const LibraryBrowse = ({
 		...libraryCountsQuery(search),
 		placeholderData: keepPreviousData,
 	});
-	const items: BrowseNavItem[] = LIBRARY_VIEWS.map((item) => ({
-		key: item.view,
-		label: item.label(),
-		Icon: item.Icon,
-		iconClassName: item.tone,
-		count: item.view === "overview" ? undefined : counts?.data[item.view],
-		active: item.view === view,
-		linkProps: {
-			to: item.to,
-		},
-	}));
 	const filters = libraryFilters[view];
-	const showFilters = view !== "overview" || search.query !== "";
+	const scope = <ScopeSwitch scope={search.scope} onScope={setScope} />;
 
 	return (
-		<div className="flex flex-col gap-6">
-			<LibraryHeader />
-			<BrowseLayout>
-				<BrowseRail>
-					<ScopeSwitch scope={search.scope} onScope={setScope} />
-					<BrowseNav
-						items={items}
-						label={m.library_views_label()}
-						orientation="vertical"
-					/>
-					{showFilters ? (
-						<FilterFields
-							filters={filters}
-							values={search as FilterValues<typeof filters>}
-							onChange={setFilter}
-						/>
-					) : null}
-				</BrowseRail>
-				<BrowseMain>
-					<div className="flex flex-col gap-3 lg:hidden">
-						<ScopeSwitch scope={search.scope} onScope={setScope} />
-						<BrowseNav
-							items={items}
-							label={m.library_views_label()}
-							orientation="horizontal"
-						/>
-					</div>
-					{children}
-				</BrowseMain>
-			</BrowseLayout>
-		</div>
+		<BrowseShell
+			header={<LibraryHeader />}
+			views={LIBRARY_VIEWS}
+			view={view}
+			counts={counts?.data ?? {}}
+			navLabel={m.library_views_label()}
+			controls={scope}
+			filters={filters}
+			values={search as FilterValues<typeof filters>}
+			onFilter={setFilter}
+			showFilters={view !== "overview" || search.query !== ""}
+		>
+			{children}
+		</BrowseShell>
 	);
 };
