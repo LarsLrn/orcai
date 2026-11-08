@@ -1,4 +1,4 @@
-import type { CatalogueEntryDetail, CatalogueKind } from "@orcai/schema";
+import type { CatalogueEntryDetail, CatalogueEntryRef } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -41,10 +41,8 @@ import { useCatalogueAddMutation } from "@/hooks/mutations/use-catalogue-mutatio
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
 import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
-import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { libraryLink } from "@/lib/navigation/library-link";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
-import { catalogueEntryRef } from "@/lib/router/catalogue-entry-loader";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -260,15 +258,12 @@ const RepositoryContents = ({ entry }: { entry: CatalogueEntryDetail }) => {
  * "Added" and "Open in Library", then what it holds to judge it by.
  */
 export const CatalogueEntryPage = ({
-	kind,
-	id,
+	entryRef: ref,
 	from,
 }: {
-	kind: CatalogueKind;
-	id: string;
+	entryRef: CatalogueEntryRef;
 	from: CatalogueOrigin | undefined;
 }) => {
-	const ref = catalogueEntryRef(kind, id);
 	const navigate = useNavigate();
 	const { data } = useSuspenseQuery(catalogueEntryQuery(ref));
 	const entry = data.data;
@@ -340,8 +335,9 @@ export const CatalogueEntryPage = ({
 												});
 												if (result.status === "success")
 													await navigate({
-														to: cataloguePaths(entry.kind).add,
+														to: "/app/catalogue/$kind/$id/add",
 														params: {
+															kind: entry.kind,
 															id: entry.id,
 														},
 														search: {

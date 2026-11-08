@@ -56,6 +56,7 @@ import { Route as AppAccountSecurityRouteImport } from './routes/app/account/sec
 import { Route as AppAnalyticsIndexRouteImport } from './routes/app/analytics/index'
 import { Route as AppAssistantIndexRouteImport } from './routes/app/assistant/index'
 import { Route as AppCatalogueIndexRouteImport } from './routes/app/catalogue/index'
+import { Route as AppCatalogueKindRouteRouteImport } from './routes/app/catalogue/$kind/route'
 import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
 import { Route as AppChatStartRouteImport } from './routes/app/chat/start'
@@ -89,12 +90,8 @@ import { Route as InstanceSettingsIndexRouteImport } from './routes/instance/set
 import { Route as InstanceUsersIndexRouteImport } from './routes/instance/users/index'
 import { Route as InstanceUsersUserIdRouteRouteImport } from './routes/instance/users/$userId/route'
 import { Route as AppAssistantChatIdIndexRouteImport } from './routes/app/assistant/$chatId/index'
-import { Route as AppCatalogueBehavioursIndexRouteImport } from './routes/app/catalogue/behaviours/index'
-import { Route as AppCatalogueBehavioursIdRouteRouteImport } from './routes/app/catalogue/behaviours/$id/route'
-import { Route as AppCatalogueBotsIndexRouteImport } from './routes/app/catalogue/bots/index'
-import { Route as AppCatalogueBotsIdRouteRouteImport } from './routes/app/catalogue/bots/$id/route'
-import { Route as AppCatalogueRepositoriesIndexRouteImport } from './routes/app/catalogue/repositories/index'
-import { Route as AppCatalogueRepositoriesIdRouteRouteImport } from './routes/app/catalogue/repositories/$id/route'
+import { Route as AppCatalogueKindIndexRouteImport } from './routes/app/catalogue/$kind/index'
+import { Route as AppCatalogueKindIdRouteRouteImport } from './routes/app/catalogue/$kind/$id/route'
 import { Route as AppChatChatIdIndexRouteImport } from './routes/app/chat/$chatId/index'
 import { Route as AppGroupsGroupIdIndexRouteImport } from './routes/app/groups/$groupId/index'
 import { Route as AppLibraryAssetsIndexRouteImport } from './routes/app/library/assets/index'
@@ -119,12 +116,8 @@ import { Route as AppQuotaPoolsQuotaPoolIdIndexRouteImport } from './routes/app/
 import { Route as AppQuotaPoolsQuotaPoolIdEditRouteImport } from './routes/app/quota-pools/$quotaPoolId/edit'
 import { Route as InstanceOrganizationsOrganizationIdIndexRouteImport } from './routes/instance/organizations/$organizationId/index'
 import { Route as InstanceUsersUserIdIndexRouteImport } from './routes/instance/users/$userId/index'
-import { Route as AppCatalogueBehavioursIdIndexRouteImport } from './routes/app/catalogue/behaviours/$id/index'
-import { Route as AppCatalogueBehavioursIdAddRouteImport } from './routes/app/catalogue/behaviours/$id/add'
-import { Route as AppCatalogueBotsIdIndexRouteImport } from './routes/app/catalogue/bots/$id/index'
-import { Route as AppCatalogueBotsIdAddRouteImport } from './routes/app/catalogue/bots/$id/add'
-import { Route as AppCatalogueRepositoriesIdIndexRouteImport } from './routes/app/catalogue/repositories/$id/index'
-import { Route as AppCatalogueRepositoriesIdAddRouteImport } from './routes/app/catalogue/repositories/$id/add'
+import { Route as AppCatalogueKindIdIndexRouteImport } from './routes/app/catalogue/$kind/$id/index'
+import { Route as AppCatalogueKindIdAddRouteImport } from './routes/app/catalogue/$kind/$id/add'
 import { Route as AppLibraryAssetsAssetIdIndexRouteImport } from './routes/app/library/assets/$assetId/index'
 import { Route as AppLibraryAssetsAssetIdEditRouteImport } from './routes/app/library/assets/$assetId/edit'
 import { Route as AppLibraryBehavioursBlockIdIndexRouteImport } from './routes/app/library/behaviours/$blockId/index'
@@ -377,6 +370,11 @@ const AppCatalogueIndexRoute = AppCatalogueIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppCatalogueRouteRoute,
 } as any)
+const AppCatalogueKindRouteRoute = AppCatalogueKindRouteRouteImport.update({
+  id: '/$kind',
+  path: '/$kind',
+  getParentRoute: () => AppCatalogueRouteRoute,
+} as any)
 const AppChatIndexRoute = AppChatIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -550,40 +548,16 @@ const AppAssistantChatIdIndexRoute = AppAssistantChatIdIndexRouteImport.update({
   path: '/$chatId/',
   getParentRoute: () => AppAssistantRouteRoute,
 } as any)
-const AppCatalogueBehavioursIndexRoute =
-  AppCatalogueBehavioursIndexRouteImport.update({
-    id: '/behaviours/',
-    path: '/behaviours/',
-    getParentRoute: () => AppCatalogueRouteRoute,
-  } as any)
-const AppCatalogueBehavioursIdRouteRoute =
-  AppCatalogueBehavioursIdRouteRouteImport.update({
-    id: '/behaviours/$id',
-    path: '/behaviours/$id',
-    getParentRoute: () => AppCatalogueRouteRoute,
-  } as any)
-const AppCatalogueBotsIndexRoute = AppCatalogueBotsIndexRouteImport.update({
-  id: '/bots/',
-  path: '/bots/',
-  getParentRoute: () => AppCatalogueRouteRoute,
+const AppCatalogueKindIndexRoute = AppCatalogueKindIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppCatalogueKindRouteRoute,
 } as any)
-const AppCatalogueBotsIdRouteRoute = AppCatalogueBotsIdRouteRouteImport.update({
-  id: '/bots/$id',
-  path: '/bots/$id',
-  getParentRoute: () => AppCatalogueRouteRoute,
+const AppCatalogueKindIdRouteRoute = AppCatalogueKindIdRouteRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppCatalogueKindRouteRoute,
 } as any)
-const AppCatalogueRepositoriesIndexRoute =
-  AppCatalogueRepositoriesIndexRouteImport.update({
-    id: '/repositories/',
-    path: '/repositories/',
-    getParentRoute: () => AppCatalogueRouteRoute,
-  } as any)
-const AppCatalogueRepositoriesIdRouteRoute =
-  AppCatalogueRepositoriesIdRouteRouteImport.update({
-    id: '/repositories/$id',
-    path: '/repositories/$id',
-    getParentRoute: () => AppCatalogueRouteRoute,
-  } as any)
 const AppChatChatIdIndexRoute = AppChatChatIdIndexRouteImport.update({
   id: '/$chatId/',
   path: '/$chatId/',
@@ -717,40 +691,16 @@ const InstanceUsersUserIdIndexRoute =
     path: '/',
     getParentRoute: () => InstanceUsersUserIdRouteRoute,
   } as any)
-const AppCatalogueBehavioursIdIndexRoute =
-  AppCatalogueBehavioursIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppCatalogueBehavioursIdRouteRoute,
-  } as any)
-const AppCatalogueBehavioursIdAddRoute =
-  AppCatalogueBehavioursIdAddRouteImport.update({
-    id: '/add',
-    path: '/add',
-    getParentRoute: () => AppCatalogueBehavioursIdRouteRoute,
-  } as any)
-const AppCatalogueBotsIdIndexRoute = AppCatalogueBotsIdIndexRouteImport.update({
+const AppCatalogueKindIdIndexRoute = AppCatalogueKindIdIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppCatalogueBotsIdRouteRoute,
+  getParentRoute: () => AppCatalogueKindIdRouteRoute,
 } as any)
-const AppCatalogueBotsIdAddRoute = AppCatalogueBotsIdAddRouteImport.update({
+const AppCatalogueKindIdAddRoute = AppCatalogueKindIdAddRouteImport.update({
   id: '/add',
   path: '/add',
-  getParentRoute: () => AppCatalogueBotsIdRouteRoute,
+  getParentRoute: () => AppCatalogueKindIdRouteRoute,
 } as any)
-const AppCatalogueRepositoriesIdIndexRoute =
-  AppCatalogueRepositoriesIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppCatalogueRepositoriesIdRouteRoute,
-  } as any)
-const AppCatalogueRepositoriesIdAddRoute =
-  AppCatalogueRepositoriesIdAddRouteImport.update({
-    id: '/add',
-    path: '/add',
-    getParentRoute: () => AppCatalogueRepositoriesIdRouteRoute,
-  } as any)
 const AppLibraryAssetsAssetIdIndexRoute =
   AppLibraryAssetsAssetIdIndexRouteImport.update({
     id: '/',
@@ -836,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/api/health': typeof ApiHealthRoute
   '/instance/': typeof InstanceIndexRoute
+  '/app/catalogue/$kind': typeof AppCatalogueKindRouteRouteWithChildren
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/library/assets': typeof AppLibraryAssetsRouteRouteWithChildren
   '/app/library/behaviours': typeof AppLibraryBehavioursRouteRouteWithChildren
@@ -884,9 +835,7 @@ export interface FileRoutesByFullPath {
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/settings/': typeof InstanceSettingsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
-  '/app/catalogue/behaviours/$id': typeof AppCatalogueBehavioursIdRouteRouteWithChildren
-  '/app/catalogue/bots/$id': typeof AppCatalogueBotsIdRouteRouteWithChildren
-  '/app/catalogue/repositories/$id': typeof AppCatalogueRepositoriesIdRouteRouteWithChildren
+  '/app/catalogue/$kind/$id': typeof AppCatalogueKindIdRouteRouteWithChildren
   '/app/library/assets/$assetId': typeof AppLibraryAssetsAssetIdRouteRouteWithChildren
   '/app/library/behaviours/$blockId': typeof AppLibraryBehavioursBlockIdRouteRouteWithChildren
   '/app/library/bots/$botId': typeof AppLibraryBotsBotIdRouteRouteWithChildren
@@ -900,9 +849,7 @@ export interface FileRoutesByFullPath {
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quota-pools/$quotaPoolId/edit': typeof AppQuotaPoolsQuotaPoolIdEditRoute
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
-  '/app/catalogue/behaviours/': typeof AppCatalogueBehavioursIndexRoute
-  '/app/catalogue/bots/': typeof AppCatalogueBotsIndexRoute
-  '/app/catalogue/repositories/': typeof AppCatalogueRepositoriesIndexRoute
+  '/app/catalogue/$kind/': typeof AppCatalogueKindIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
   '/app/library/assets/': typeof AppLibraryAssetsIndexRoute
@@ -915,17 +862,13 @@ export interface FileRoutesByFullPath {
   '/app/quota-pools/$quotaPoolId/': typeof AppQuotaPoolsQuotaPoolIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
-  '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
-  '/app/catalogue/bots/$id/add': typeof AppCatalogueBotsIdAddRoute
-  '/app/catalogue/repositories/$id/add': typeof AppCatalogueRepositoriesIdAddRoute
+  '/app/catalogue/$kind/$id/add': typeof AppCatalogueKindIdAddRoute
   '/app/library/assets/$assetId/edit': typeof AppLibraryAssetsAssetIdEditRoute
   '/app/library/behaviours/$blockId/edit': typeof AppLibraryBehavioursBlockIdEditRoute
   '/app/library/bots/$botId/setup': typeof AppLibraryBotsBotIdSetupRoute
   '/app/library/repositories/$blockId/edit': typeof AppLibraryRepositoriesBlockIdEditRoute
   '/app/library/repositories/$blockId/explore': typeof AppLibraryRepositoriesBlockIdExploreRoute
-  '/app/catalogue/behaviours/$id/': typeof AppCatalogueBehavioursIdIndexRoute
-  '/app/catalogue/bots/$id/': typeof AppCatalogueBotsIdIndexRoute
-  '/app/catalogue/repositories/$id/': typeof AppCatalogueRepositoriesIdIndexRoute
+  '/app/catalogue/$kind/$id/': typeof AppCatalogueKindIdIndexRoute
   '/app/library/assets/$assetId/': typeof AppLibraryAssetsAssetIdIndexRoute
   '/app/library/behaviours/$blockId/': typeof AppLibraryBehavioursBlockIdIndexRoute
   '/app/library/bots/$botId/': typeof AppLibraryBotsBotIdIndexRoute
@@ -992,9 +935,7 @@ export interface FileRoutesByTo {
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quota-pools/$quotaPoolId/edit': typeof AppQuotaPoolsQuotaPoolIdEditRoute
   '/app/assistant/$chatId': typeof AppAssistantChatIdIndexRoute
-  '/app/catalogue/behaviours': typeof AppCatalogueBehavioursIndexRoute
-  '/app/catalogue/bots': typeof AppCatalogueBotsIndexRoute
-  '/app/catalogue/repositories': typeof AppCatalogueRepositoriesIndexRoute
+  '/app/catalogue/$kind': typeof AppCatalogueKindIndexRoute
   '/app/chat/$chatId': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId': typeof AppGroupsGroupIdIndexRoute
   '/app/library/assets': typeof AppLibraryAssetsIndexRoute
@@ -1007,17 +948,13 @@ export interface FileRoutesByTo {
   '/app/quota-pools/$quotaPoolId': typeof AppQuotaPoolsQuotaPoolIdIndexRoute
   '/instance/organizations/$organizationId': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId': typeof InstanceUsersUserIdIndexRoute
-  '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
-  '/app/catalogue/bots/$id/add': typeof AppCatalogueBotsIdAddRoute
-  '/app/catalogue/repositories/$id/add': typeof AppCatalogueRepositoriesIdAddRoute
+  '/app/catalogue/$kind/$id/add': typeof AppCatalogueKindIdAddRoute
   '/app/library/assets/$assetId/edit': typeof AppLibraryAssetsAssetIdEditRoute
   '/app/library/behaviours/$blockId/edit': typeof AppLibraryBehavioursBlockIdEditRoute
   '/app/library/bots/$botId/setup': typeof AppLibraryBotsBotIdSetupRoute
   '/app/library/repositories/$blockId/edit': typeof AppLibraryRepositoriesBlockIdEditRoute
   '/app/library/repositories/$blockId/explore': typeof AppLibraryRepositoriesBlockIdExploreRoute
-  '/app/catalogue/behaviours/$id': typeof AppCatalogueBehavioursIdIndexRoute
-  '/app/catalogue/bots/$id': typeof AppCatalogueBotsIdIndexRoute
-  '/app/catalogue/repositories/$id': typeof AppCatalogueRepositoriesIdIndexRoute
+  '/app/catalogue/$kind/$id': typeof AppCatalogueKindIdIndexRoute
   '/app/library/assets/$assetId': typeof AppLibraryAssetsAssetIdIndexRoute
   '/app/library/behaviours/$blockId': typeof AppLibraryBehavioursBlockIdIndexRoute
   '/app/library/bots/$botId': typeof AppLibraryBotsBotIdIndexRoute
@@ -1056,6 +993,7 @@ export interface FileRoutesById {
   '/_pathlessLayout/verify-email': typeof PathlessLayoutVerifyEmailRoute
   '/api/health': typeof ApiHealthRoute
   '/instance/': typeof InstanceIndexRoute
+  '/app/catalogue/$kind': typeof AppCatalogueKindRouteRouteWithChildren
   '/app/groups/$groupId': typeof AppGroupsGroupIdRouteRouteWithChildren
   '/app/library/assets': typeof AppLibraryAssetsRouteRouteWithChildren
   '/app/library/behaviours': typeof AppLibraryBehavioursRouteRouteWithChildren
@@ -1104,9 +1042,7 @@ export interface FileRoutesById {
   '/instance/organizations/': typeof InstanceOrganizationsIndexRoute
   '/instance/settings/': typeof InstanceSettingsIndexRoute
   '/instance/users/': typeof InstanceUsersIndexRoute
-  '/app/catalogue/behaviours/$id': typeof AppCatalogueBehavioursIdRouteRouteWithChildren
-  '/app/catalogue/bots/$id': typeof AppCatalogueBotsIdRouteRouteWithChildren
-  '/app/catalogue/repositories/$id': typeof AppCatalogueRepositoriesIdRouteRouteWithChildren
+  '/app/catalogue/$kind/$id': typeof AppCatalogueKindIdRouteRouteWithChildren
   '/app/library/assets/$assetId': typeof AppLibraryAssetsAssetIdRouteRouteWithChildren
   '/app/library/behaviours/$blockId': typeof AppLibraryBehavioursBlockIdRouteRouteWithChildren
   '/app/library/bots/$botId': typeof AppLibraryBotsBotIdRouteRouteWithChildren
@@ -1120,9 +1056,7 @@ export interface FileRoutesById {
   '/app/providers/$providerId/edit': typeof AppProvidersProviderIdEditRoute
   '/app/quota-pools/$quotaPoolId/edit': typeof AppQuotaPoolsQuotaPoolIdEditRoute
   '/app/assistant/$chatId/': typeof AppAssistantChatIdIndexRoute
-  '/app/catalogue/behaviours/': typeof AppCatalogueBehavioursIndexRoute
-  '/app/catalogue/bots/': typeof AppCatalogueBotsIndexRoute
-  '/app/catalogue/repositories/': typeof AppCatalogueRepositoriesIndexRoute
+  '/app/catalogue/$kind/': typeof AppCatalogueKindIndexRoute
   '/app/chat/$chatId/': typeof AppChatChatIdIndexRoute
   '/app/groups/$groupId/': typeof AppGroupsGroupIdIndexRoute
   '/app/library/assets/': typeof AppLibraryAssetsIndexRoute
@@ -1135,17 +1069,13 @@ export interface FileRoutesById {
   '/app/quota-pools/$quotaPoolId/': typeof AppQuotaPoolsQuotaPoolIdIndexRoute
   '/instance/organizations/$organizationId/': typeof InstanceOrganizationsOrganizationIdIndexRoute
   '/instance/users/$userId/': typeof InstanceUsersUserIdIndexRoute
-  '/app/catalogue/behaviours/$id/add': typeof AppCatalogueBehavioursIdAddRoute
-  '/app/catalogue/bots/$id/add': typeof AppCatalogueBotsIdAddRoute
-  '/app/catalogue/repositories/$id/add': typeof AppCatalogueRepositoriesIdAddRoute
+  '/app/catalogue/$kind/$id/add': typeof AppCatalogueKindIdAddRoute
   '/app/library/assets/$assetId/edit': typeof AppLibraryAssetsAssetIdEditRoute
   '/app/library/behaviours/$blockId/edit': typeof AppLibraryBehavioursBlockIdEditRoute
   '/app/library/bots/$botId/setup': typeof AppLibraryBotsBotIdSetupRoute
   '/app/library/repositories/$blockId/edit': typeof AppLibraryRepositoriesBlockIdEditRoute
   '/app/library/repositories/$blockId/explore': typeof AppLibraryRepositoriesBlockIdExploreRoute
-  '/app/catalogue/behaviours/$id/': typeof AppCatalogueBehavioursIdIndexRoute
-  '/app/catalogue/bots/$id/': typeof AppCatalogueBotsIdIndexRoute
-  '/app/catalogue/repositories/$id/': typeof AppCatalogueRepositoriesIdIndexRoute
+  '/app/catalogue/$kind/$id/': typeof AppCatalogueKindIdIndexRoute
   '/app/library/assets/$assetId/': typeof AppLibraryAssetsAssetIdIndexRoute
   '/app/library/behaviours/$blockId/': typeof AppLibraryBehavioursBlockIdIndexRoute
   '/app/library/bots/$botId/': typeof AppLibraryBotsBotIdIndexRoute
@@ -1183,6 +1113,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/api/health'
     | '/instance/'
+    | '/app/catalogue/$kind'
     | '/app/groups/$groupId'
     | '/app/library/assets'
     | '/app/library/behaviours'
@@ -1231,9 +1162,7 @@ export interface FileRouteTypes {
     | '/instance/organizations/'
     | '/instance/settings/'
     | '/instance/users/'
-    | '/app/catalogue/behaviours/$id'
-    | '/app/catalogue/bots/$id'
-    | '/app/catalogue/repositories/$id'
+    | '/app/catalogue/$kind/$id'
     | '/app/library/assets/$assetId'
     | '/app/library/behaviours/$blockId'
     | '/app/library/bots/$botId'
@@ -1247,9 +1176,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/edit'
     | '/app/quota-pools/$quotaPoolId/edit'
     | '/app/assistant/$chatId/'
-    | '/app/catalogue/behaviours/'
-    | '/app/catalogue/bots/'
-    | '/app/catalogue/repositories/'
+    | '/app/catalogue/$kind/'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
     | '/app/library/assets/'
@@ -1262,17 +1189,13 @@ export interface FileRouteTypes {
     | '/app/quota-pools/$quotaPoolId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
-    | '/app/catalogue/behaviours/$id/add'
-    | '/app/catalogue/bots/$id/add'
-    | '/app/catalogue/repositories/$id/add'
+    | '/app/catalogue/$kind/$id/add'
     | '/app/library/assets/$assetId/edit'
     | '/app/library/behaviours/$blockId/edit'
     | '/app/library/bots/$botId/setup'
     | '/app/library/repositories/$blockId/edit'
     | '/app/library/repositories/$blockId/explore'
-    | '/app/catalogue/behaviours/$id/'
-    | '/app/catalogue/bots/$id/'
-    | '/app/catalogue/repositories/$id/'
+    | '/app/catalogue/$kind/$id/'
     | '/app/library/assets/$assetId/'
     | '/app/library/behaviours/$blockId/'
     | '/app/library/bots/$botId/'
@@ -1339,9 +1262,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/edit'
     | '/app/quota-pools/$quotaPoolId/edit'
     | '/app/assistant/$chatId'
-    | '/app/catalogue/behaviours'
-    | '/app/catalogue/bots'
-    | '/app/catalogue/repositories'
+    | '/app/catalogue/$kind'
     | '/app/chat/$chatId'
     | '/app/groups/$groupId'
     | '/app/library/assets'
@@ -1354,17 +1275,13 @@ export interface FileRouteTypes {
     | '/app/quota-pools/$quotaPoolId'
     | '/instance/organizations/$organizationId'
     | '/instance/users/$userId'
-    | '/app/catalogue/behaviours/$id/add'
-    | '/app/catalogue/bots/$id/add'
-    | '/app/catalogue/repositories/$id/add'
+    | '/app/catalogue/$kind/$id/add'
     | '/app/library/assets/$assetId/edit'
     | '/app/library/behaviours/$blockId/edit'
     | '/app/library/bots/$botId/setup'
     | '/app/library/repositories/$blockId/edit'
     | '/app/library/repositories/$blockId/explore'
-    | '/app/catalogue/behaviours/$id'
-    | '/app/catalogue/bots/$id'
-    | '/app/catalogue/repositories/$id'
+    | '/app/catalogue/$kind/$id'
     | '/app/library/assets/$assetId'
     | '/app/library/behaviours/$blockId'
     | '/app/library/bots/$botId'
@@ -1402,6 +1319,7 @@ export interface FileRouteTypes {
     | '/_pathlessLayout/verify-email'
     | '/api/health'
     | '/instance/'
+    | '/app/catalogue/$kind'
     | '/app/groups/$groupId'
     | '/app/library/assets'
     | '/app/library/behaviours'
@@ -1450,9 +1368,7 @@ export interface FileRouteTypes {
     | '/instance/organizations/'
     | '/instance/settings/'
     | '/instance/users/'
-    | '/app/catalogue/behaviours/$id'
-    | '/app/catalogue/bots/$id'
-    | '/app/catalogue/repositories/$id'
+    | '/app/catalogue/$kind/$id'
     | '/app/library/assets/$assetId'
     | '/app/library/behaviours/$blockId'
     | '/app/library/bots/$botId'
@@ -1466,9 +1382,7 @@ export interface FileRouteTypes {
     | '/app/providers/$providerId/edit'
     | '/app/quota-pools/$quotaPoolId/edit'
     | '/app/assistant/$chatId/'
-    | '/app/catalogue/behaviours/'
-    | '/app/catalogue/bots/'
-    | '/app/catalogue/repositories/'
+    | '/app/catalogue/$kind/'
     | '/app/chat/$chatId/'
     | '/app/groups/$groupId/'
     | '/app/library/assets/'
@@ -1481,17 +1395,13 @@ export interface FileRouteTypes {
     | '/app/quota-pools/$quotaPoolId/'
     | '/instance/organizations/$organizationId/'
     | '/instance/users/$userId/'
-    | '/app/catalogue/behaviours/$id/add'
-    | '/app/catalogue/bots/$id/add'
-    | '/app/catalogue/repositories/$id/add'
+    | '/app/catalogue/$kind/$id/add'
     | '/app/library/assets/$assetId/edit'
     | '/app/library/behaviours/$blockId/edit'
     | '/app/library/bots/$botId/setup'
     | '/app/library/repositories/$blockId/edit'
     | '/app/library/repositories/$blockId/explore'
-    | '/app/catalogue/behaviours/$id/'
-    | '/app/catalogue/bots/$id/'
-    | '/app/catalogue/repositories/$id/'
+    | '/app/catalogue/$kind/$id/'
     | '/app/library/assets/$assetId/'
     | '/app/library/behaviours/$blockId/'
     | '/app/library/bots/$botId/'
@@ -1842,6 +1752,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCatalogueIndexRouteImport
       parentRoute: typeof AppCatalogueRouteRoute
     }
+    '/app/catalogue/$kind': {
+      id: '/app/catalogue/$kind'
+      path: '/$kind'
+      fullPath: '/app/catalogue/$kind'
+      preLoaderRoute: typeof AppCatalogueKindRouteRouteImport
+      parentRoute: typeof AppCatalogueRouteRoute
+    }
     '/app/chat/': {
       id: '/app/chat/'
       path: '/'
@@ -2073,47 +1990,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssistantChatIdIndexRouteImport
       parentRoute: typeof AppAssistantRouteRoute
     }
-    '/app/catalogue/behaviours/': {
-      id: '/app/catalogue/behaviours/'
-      path: '/behaviours'
-      fullPath: '/app/catalogue/behaviours/'
-      preLoaderRoute: typeof AppCatalogueBehavioursIndexRouteImport
-      parentRoute: typeof AppCatalogueRouteRoute
+    '/app/catalogue/$kind/': {
+      id: '/app/catalogue/$kind/'
+      path: '/'
+      fullPath: '/app/catalogue/$kind/'
+      preLoaderRoute: typeof AppCatalogueKindIndexRouteImport
+      parentRoute: typeof AppCatalogueKindRouteRoute
     }
-    '/app/catalogue/behaviours/$id': {
-      id: '/app/catalogue/behaviours/$id'
-      path: '/behaviours/$id'
-      fullPath: '/app/catalogue/behaviours/$id'
-      preLoaderRoute: typeof AppCatalogueBehavioursIdRouteRouteImport
-      parentRoute: typeof AppCatalogueRouteRoute
-    }
-    '/app/catalogue/bots/': {
-      id: '/app/catalogue/bots/'
-      path: '/bots'
-      fullPath: '/app/catalogue/bots/'
-      preLoaderRoute: typeof AppCatalogueBotsIndexRouteImport
-      parentRoute: typeof AppCatalogueRouteRoute
-    }
-    '/app/catalogue/bots/$id': {
-      id: '/app/catalogue/bots/$id'
-      path: '/bots/$id'
-      fullPath: '/app/catalogue/bots/$id'
-      preLoaderRoute: typeof AppCatalogueBotsIdRouteRouteImport
-      parentRoute: typeof AppCatalogueRouteRoute
-    }
-    '/app/catalogue/repositories/': {
-      id: '/app/catalogue/repositories/'
-      path: '/repositories'
-      fullPath: '/app/catalogue/repositories/'
-      preLoaderRoute: typeof AppCatalogueRepositoriesIndexRouteImport
-      parentRoute: typeof AppCatalogueRouteRoute
-    }
-    '/app/catalogue/repositories/$id': {
-      id: '/app/catalogue/repositories/$id'
-      path: '/repositories/$id'
-      fullPath: '/app/catalogue/repositories/$id'
-      preLoaderRoute: typeof AppCatalogueRepositoriesIdRouteRouteImport
-      parentRoute: typeof AppCatalogueRouteRoute
+    '/app/catalogue/$kind/$id': {
+      id: '/app/catalogue/$kind/$id'
+      path: '/$id'
+      fullPath: '/app/catalogue/$kind/$id'
+      preLoaderRoute: typeof AppCatalogueKindIdRouteRouteImport
+      parentRoute: typeof AppCatalogueKindRouteRoute
     }
     '/app/chat/$chatId/': {
       id: '/app/chat/$chatId/'
@@ -2283,47 +2172,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstanceUsersUserIdIndexRouteImport
       parentRoute: typeof InstanceUsersUserIdRouteRoute
     }
-    '/app/catalogue/behaviours/$id/': {
-      id: '/app/catalogue/behaviours/$id/'
+    '/app/catalogue/$kind/$id/': {
+      id: '/app/catalogue/$kind/$id/'
       path: '/'
-      fullPath: '/app/catalogue/behaviours/$id/'
-      preLoaderRoute: typeof AppCatalogueBehavioursIdIndexRouteImport
-      parentRoute: typeof AppCatalogueBehavioursIdRouteRoute
+      fullPath: '/app/catalogue/$kind/$id/'
+      preLoaderRoute: typeof AppCatalogueKindIdIndexRouteImport
+      parentRoute: typeof AppCatalogueKindIdRouteRoute
     }
-    '/app/catalogue/behaviours/$id/add': {
-      id: '/app/catalogue/behaviours/$id/add'
+    '/app/catalogue/$kind/$id/add': {
+      id: '/app/catalogue/$kind/$id/add'
       path: '/add'
-      fullPath: '/app/catalogue/behaviours/$id/add'
-      preLoaderRoute: typeof AppCatalogueBehavioursIdAddRouteImport
-      parentRoute: typeof AppCatalogueBehavioursIdRouteRoute
-    }
-    '/app/catalogue/bots/$id/': {
-      id: '/app/catalogue/bots/$id/'
-      path: '/'
-      fullPath: '/app/catalogue/bots/$id/'
-      preLoaderRoute: typeof AppCatalogueBotsIdIndexRouteImport
-      parentRoute: typeof AppCatalogueBotsIdRouteRoute
-    }
-    '/app/catalogue/bots/$id/add': {
-      id: '/app/catalogue/bots/$id/add'
-      path: '/add'
-      fullPath: '/app/catalogue/bots/$id/add'
-      preLoaderRoute: typeof AppCatalogueBotsIdAddRouteImport
-      parentRoute: typeof AppCatalogueBotsIdRouteRoute
-    }
-    '/app/catalogue/repositories/$id/': {
-      id: '/app/catalogue/repositories/$id/'
-      path: '/'
-      fullPath: '/app/catalogue/repositories/$id/'
-      preLoaderRoute: typeof AppCatalogueRepositoriesIdIndexRouteImport
-      parentRoute: typeof AppCatalogueRepositoriesIdRouteRoute
-    }
-    '/app/catalogue/repositories/$id/add': {
-      id: '/app/catalogue/repositories/$id/add'
-      path: '/add'
-      fullPath: '/app/catalogue/repositories/$id/add'
-      preLoaderRoute: typeof AppCatalogueRepositoriesIdAddRouteImport
-      parentRoute: typeof AppCatalogueRepositoriesIdRouteRoute
+      fullPath: '/app/catalogue/$kind/$id/add'
+      preLoaderRoute: typeof AppCatalogueKindIdAddRouteImport
+      parentRoute: typeof AppCatalogueKindIdRouteRoute
     }
     '/app/library/assets/$assetId/': {
       id: '/app/library/assets/$assetId/'
@@ -2496,74 +2357,45 @@ const AppAssistantRouteRouteChildren: AppAssistantRouteRouteChildren = {
 const AppAssistantRouteRouteWithChildren =
   AppAssistantRouteRoute._addFileChildren(AppAssistantRouteRouteChildren)
 
-interface AppCatalogueBehavioursIdRouteRouteChildren {
-  AppCatalogueBehavioursIdAddRoute: typeof AppCatalogueBehavioursIdAddRoute
-  AppCatalogueBehavioursIdIndexRoute: typeof AppCatalogueBehavioursIdIndexRoute
+interface AppCatalogueKindIdRouteRouteChildren {
+  AppCatalogueKindIdAddRoute: typeof AppCatalogueKindIdAddRoute
+  AppCatalogueKindIdIndexRoute: typeof AppCatalogueKindIdIndexRoute
 }
 
-const AppCatalogueBehavioursIdRouteRouteChildren: AppCatalogueBehavioursIdRouteRouteChildren =
+const AppCatalogueKindIdRouteRouteChildren: AppCatalogueKindIdRouteRouteChildren =
   {
-    AppCatalogueBehavioursIdAddRoute: AppCatalogueBehavioursIdAddRoute,
-    AppCatalogueBehavioursIdIndexRoute: AppCatalogueBehavioursIdIndexRoute,
+    AppCatalogueKindIdAddRoute: AppCatalogueKindIdAddRoute,
+    AppCatalogueKindIdIndexRoute: AppCatalogueKindIdIndexRoute,
   }
 
-const AppCatalogueBehavioursIdRouteRouteWithChildren =
-  AppCatalogueBehavioursIdRouteRoute._addFileChildren(
-    AppCatalogueBehavioursIdRouteRouteChildren,
+const AppCatalogueKindIdRouteRouteWithChildren =
+  AppCatalogueKindIdRouteRoute._addFileChildren(
+    AppCatalogueKindIdRouteRouteChildren,
   )
 
-interface AppCatalogueBotsIdRouteRouteChildren {
-  AppCatalogueBotsIdAddRoute: typeof AppCatalogueBotsIdAddRoute
-  AppCatalogueBotsIdIndexRoute: typeof AppCatalogueBotsIdIndexRoute
+interface AppCatalogueKindRouteRouteChildren {
+  AppCatalogueKindIdRouteRoute: typeof AppCatalogueKindIdRouteRouteWithChildren
+  AppCatalogueKindIndexRoute: typeof AppCatalogueKindIndexRoute
 }
 
-const AppCatalogueBotsIdRouteRouteChildren: AppCatalogueBotsIdRouteRouteChildren =
-  {
-    AppCatalogueBotsIdAddRoute: AppCatalogueBotsIdAddRoute,
-    AppCatalogueBotsIdIndexRoute: AppCatalogueBotsIdIndexRoute,
-  }
-
-const AppCatalogueBotsIdRouteRouteWithChildren =
-  AppCatalogueBotsIdRouteRoute._addFileChildren(
-    AppCatalogueBotsIdRouteRouteChildren,
-  )
-
-interface AppCatalogueRepositoriesIdRouteRouteChildren {
-  AppCatalogueRepositoriesIdAddRoute: typeof AppCatalogueRepositoriesIdAddRoute
-  AppCatalogueRepositoriesIdIndexRoute: typeof AppCatalogueRepositoriesIdIndexRoute
+const AppCatalogueKindRouteRouteChildren: AppCatalogueKindRouteRouteChildren = {
+  AppCatalogueKindIdRouteRoute: AppCatalogueKindIdRouteRouteWithChildren,
+  AppCatalogueKindIndexRoute: AppCatalogueKindIndexRoute,
 }
 
-const AppCatalogueRepositoriesIdRouteRouteChildren: AppCatalogueRepositoriesIdRouteRouteChildren =
-  {
-    AppCatalogueRepositoriesIdAddRoute: AppCatalogueRepositoriesIdAddRoute,
-    AppCatalogueRepositoriesIdIndexRoute: AppCatalogueRepositoriesIdIndexRoute,
-  }
-
-const AppCatalogueRepositoriesIdRouteRouteWithChildren =
-  AppCatalogueRepositoriesIdRouteRoute._addFileChildren(
-    AppCatalogueRepositoriesIdRouteRouteChildren,
+const AppCatalogueKindRouteRouteWithChildren =
+  AppCatalogueKindRouteRoute._addFileChildren(
+    AppCatalogueKindRouteRouteChildren,
   )
 
 interface AppCatalogueRouteRouteChildren {
+  AppCatalogueKindRouteRoute: typeof AppCatalogueKindRouteRouteWithChildren
   AppCatalogueIndexRoute: typeof AppCatalogueIndexRoute
-  AppCatalogueBehavioursIdRouteRoute: typeof AppCatalogueBehavioursIdRouteRouteWithChildren
-  AppCatalogueBotsIdRouteRoute: typeof AppCatalogueBotsIdRouteRouteWithChildren
-  AppCatalogueRepositoriesIdRouteRoute: typeof AppCatalogueRepositoriesIdRouteRouteWithChildren
-  AppCatalogueBehavioursIndexRoute: typeof AppCatalogueBehavioursIndexRoute
-  AppCatalogueBotsIndexRoute: typeof AppCatalogueBotsIndexRoute
-  AppCatalogueRepositoriesIndexRoute: typeof AppCatalogueRepositoriesIndexRoute
 }
 
 const AppCatalogueRouteRouteChildren: AppCatalogueRouteRouteChildren = {
+  AppCatalogueKindRouteRoute: AppCatalogueKindRouteRouteWithChildren,
   AppCatalogueIndexRoute: AppCatalogueIndexRoute,
-  AppCatalogueBehavioursIdRouteRoute:
-    AppCatalogueBehavioursIdRouteRouteWithChildren,
-  AppCatalogueBotsIdRouteRoute: AppCatalogueBotsIdRouteRouteWithChildren,
-  AppCatalogueRepositoriesIdRouteRoute:
-    AppCatalogueRepositoriesIdRouteRouteWithChildren,
-  AppCatalogueBehavioursIndexRoute: AppCatalogueBehavioursIndexRoute,
-  AppCatalogueBotsIndexRoute: AppCatalogueBotsIndexRoute,
-  AppCatalogueRepositoriesIndexRoute: AppCatalogueRepositoriesIndexRoute,
 }
 
 const AppCatalogueRouteRouteWithChildren =
@@ -3024,12 +2856,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

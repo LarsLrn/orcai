@@ -1,22 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod/v4";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { catalogueEntrySearchSchema } from "@/lib/catalogue/catalogue-filters";
-import { loadCatalogueEntry } from "@/lib/router/catalogue-entry-loader";
-import { parseParam } from "@/lib/router/not-found";
+import {
+	catalogueEntryRef,
+	loadCatalogueEntry,
+} from "@/lib/router/catalogue-route";
 
-export const Route = createFileRoute("/app/catalogue/behaviours/$id")({
-	params: {
-		parse: (params) => ({
-			id: parseParam(z.uuidv4(), params.id),
-		}),
-	},
+export const Route = createFileRoute("/app/catalogue/$kind/$id")({
 	validateSearch: catalogueEntrySearchSchema,
-	loader: ({ context: { queryClient }, params: { id } }) =>
+	beforeLoad: ({ params: { kind, id } }) => ({
+		entryRef: catalogueEntryRef(kind, id),
+	}),
+	loader: ({ context: { queryClient, entryRef }, params: { kind } }) =>
 		loadCatalogueEntry({
 			queryClient,
-			kind: "behaviour",
-			id,
+			kind,
+			entry: entryRef,
 		}),
 	head: ({ loaderData }) => ({
 		meta: [

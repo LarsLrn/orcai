@@ -1,8 +1,4 @@
-import type {
-	CatalogueEntryDetail,
-	CatalogueEntryRef,
-	CatalogueKind,
-} from "@orcai/schema";
+import type { CatalogueEntryDetail, CatalogueEntryRef } from "@orcai/schema";
 import { skipToken, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
@@ -32,11 +28,9 @@ import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
 import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
-import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { libraryLink } from "@/lib/navigation/library-link";
 import { orpc } from "@/lib/orpc/orpc";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
-import { catalogueEntryRef } from "@/lib/router/catalogue-entry-loader";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -227,15 +221,12 @@ const DoneStep = ({
  * bots, then Done. Each step saves through its own procedure.
  */
 export const CatalogueAddWizard = ({
-	kind,
-	id,
+	entryRef: ref,
 	from,
 }: {
-	kind: CatalogueKind;
-	id: string;
+	entryRef: CatalogueEntryRef;
 	from: CatalogueOrigin | undefined;
 }) => {
-	const ref = catalogueEntryRef(kind, id);
 	const { data } = useSuspenseQuery(catalogueEntryQuery(ref));
 	const entry = data.data;
 	const organisation = useActiveOrganization().data?.data.name ?? "";
@@ -261,7 +252,6 @@ export const CatalogueAddWizard = ({
 		index,
 	]);
 	const { Icon, well } = RESOURCE_KINDS[entry.kind];
-	const paths = cataloguePaths(entry.kind);
 
 	const next = async () => {
 		if (step === "model") {
@@ -276,8 +266,9 @@ export const CatalogueAddWizard = ({
 	return (
 		<div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
 			<Link
-				to={paths.detail}
+				to="/app/catalogue/$kind/$id"
 				params={{
+					kind: entry.kind,
 					id: entry.id,
 				}}
 				search={{

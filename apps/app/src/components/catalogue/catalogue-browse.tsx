@@ -25,7 +25,6 @@ import {
 	catalogueSearchSchemas,
 } from "@/lib/catalogue/catalogue-filters";
 import { catalogueCountsQuery } from "@/lib/catalogue/catalogue-queries";
-import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
@@ -34,31 +33,48 @@ export const CATALOGUE_VIEWS = [
 	{
 		view: "overview",
 		routeId: "/app/catalogue/",
-		to: "/app/catalogue",
+		link: {
+			to: "/app/catalogue",
+		},
 		label: m.catalogue_view_discover,
 		Icon: CompassIcon,
 		tone: "text-primary",
 	},
 	{
 		view: "bot",
-		routeId: "/app/catalogue/bots/",
-		to: "/app/catalogue/bots",
+		routeId: "/app/catalogue/$kind/",
+		link: {
+			to: "/app/catalogue/$kind",
+			params: {
+				kind: "bot",
+			},
+		},
 		label: m.library_view_bot,
 		Icon: RESOURCE_KINDS.bot.Icon,
 		tone: RESOURCE_KINDS.bot.tone,
 	},
 	{
 		view: "behaviour",
-		routeId: "/app/catalogue/behaviours/",
-		to: "/app/catalogue/behaviours",
+		routeId: "/app/catalogue/$kind/",
+		link: {
+			to: "/app/catalogue/$kind",
+			params: {
+				kind: "behaviour",
+			},
+		},
 		label: m.library_view_behaviour,
 		Icon: RESOURCE_KINDS.behaviour.Icon,
 		tone: RESOURCE_KINDS.behaviour.tone,
 	},
 	{
 		view: "repository",
-		routeId: "/app/catalogue/repositories/",
-		to: "/app/catalogue/repositories",
+		routeId: "/app/catalogue/$kind/",
+		link: {
+			to: "/app/catalogue/$kind",
+			params: {
+				kind: "repository",
+			},
+		},
 		label: m.library_view_repository,
 		Icon: RESOURCE_KINDS.repository.Icon,
 		tone: RESOURCE_KINDS.repository.tone,
@@ -89,11 +105,21 @@ export const catalogueReturnLink = (
 ): LinkProps => {
 	if (!origin)
 		return {
-			to: cataloguePaths(kind).list,
+			to: "/app/catalogue/$kind",
+			params: {
+				kind,
+			},
 		};
-	const view = CATALOGUE_VIEWS.find((item) => item.view === origin.view);
+	if (origin.view === "overview")
+		return {
+			to: "/app/catalogue",
+			search: catalogueSearchSchemas.overview.parse(origin.search),
+		};
 	return {
-		to: view?.to ?? cataloguePaths(kind).list,
+		to: "/app/catalogue/$kind",
+		params: {
+			kind: origin.view,
+		},
 		search: catalogueSearchSchemas[origin.view].parse(origin.search),
 	};
 };

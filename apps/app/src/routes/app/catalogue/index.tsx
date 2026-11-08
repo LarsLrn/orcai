@@ -150,9 +150,7 @@ const Discover = () => {
 							<Shelf
 								key={view.view}
 								title={view.label()}
-								seeAll={{
-									to: view.to,
-								}}
+								seeAll={view.link}
 								restorationId={`catalogue-${view.view}`}
 							>
 								{shelves[view.view].data.map((entry) => (
