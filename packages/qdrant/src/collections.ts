@@ -1,16 +1,7 @@
 import type { QdrantClient } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
-import { QdrantError } from "./errors";
-
-/** The payload fields asset points are indexed and ordered by. */
-export const assetPointIndex = {
-	assetId: "asset_id",
-	blockId: "block_id",
-	chunkIndex: "chunk_index",
-	chunkPageStart: "chunkPageStart",
-	chunkPageEnd: "chunkPageEnd",
-	published: "published",
-} as const;
+import { qdrantCall } from "./client";
+import { payloadKey } from "./filter";
 
 const MODEL_SLUG_LENGTH = 64;
 
@@ -34,57 +25,63 @@ const alreadyExists = (cause: unknown) =>
 		cause instanceof Error ? cause.message : String(cause),
 	);
 
-const qdrantCall = <A>(operation: string, call: () => Promise<A>) =>
-	Effect.tryPromise({
-		try: call,
-		catch: (cause) =>
-			new QdrantError({
-				operation,
-				cause,
-			}),
-	});
-
 const payloadIndexes = [
 	[
-		assetPointIndex.assetId,
+		payloadKey.assetId,
 		{
 			type: "uuid",
 		},
 	],
 	[
-		assetPointIndex.blockId,
+		payloadKey.blockId,
 		{
 			type: "uuid",
 			is_tenant: true,
 		},
 	],
 	[
-		assetPointIndex.chunkIndex,
+		payloadKey.chunkIndex,
 		{
 			type: "integer",
 		},
 	],
 	[
-		assetPointIndex.chunkPageStart,
+		payloadKey.chunkPageStart,
 		{
 			type: "integer",
 		},
 	],
 	[
-		assetPointIndex.chunkPageEnd,
+		payloadKey.chunkPageEnd,
 		{
 			type: "integer",
 		},
 	],
 	[
-		assetPointIndex.published,
+		payloadKey.published,
 		{
 			type: "bool",
 		},
 	],
+	// Only deleting and publishing an attempt's points filter on it, by range.
+	[
+		payloadKey.indexAttempt,
+		{
+			type: "integer",
+			lookup: false,
+			range: true,
+			enable_hnsw: false,
+		},
+	],
 ] as const;
 
-/** Creates the collection with its payload indexes unless it exists; concurrent callers are fine. */
+/**
+ * Creates the collection unless it exists, and any payload index it lacks;
+ * concurrent callers are fine. A new, empty collection gets its indexes
+ * before this returns, as ordered browsing needs them. On an existing one,
+ * a missing index builds in the background: filters stay correct meanwhile,
+ * only slower, and no caller waits on a full collection's index.
+ */
 export const ensureCollection = (
 	client: QdrantClient,
 	name: string,
@@ -129,7 +126,7 @@ export const ensureCollection = (
 			([fieldName, fieldSchema]) =>
 				qdrantCall("createPayloadIndex", () =>
 					client.createPayloadIndex(name, {
-						wait: true,
+						wait: !exists,
 						field_name: fieldName,
 						field_schema: fieldSchema,
 					}),

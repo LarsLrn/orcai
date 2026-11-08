@@ -2,7 +2,8 @@ import type { AssetPointPayload } from "@orcai/schema";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
-import { QdrantError } from "./errors";
+import { qdrantCall } from "./client";
+import { inRange, matchValue, payloadKey } from "./filter";
 import { GenerationWrite } from "./generation";
 import { QdrantService } from "./service";
 
@@ -24,28 +25,22 @@ export const upsertPointsToQdrant = ({ points }: { points: Point[] }) =>
 		const settled = yield* Effect.forEach(
 			Arr.chunksOf(points, UPSERT_BATCH_SIZE),
 			(batch) =>
-				Effect.tryPromise({
-					try: async () =>
-						client.upsert(collection, {
-							points: batch.map((point) => ({
-								id: point.id,
-								vector: {
-									dense: point.vector,
-									bm25: {
-										text: point.payload.lexical_text ?? point.payload.text,
-										model: "qdrant/bm25",
-										options: bm25Config,
-									},
+				qdrantCall("upsert", () =>
+					client.upsert(collection, {
+						points: batch.map((point) => ({
+							id: point.id,
+							vector: {
+								dense: point.vector,
+								bm25: {
+									text: point.payload.lexical_text ?? point.payload.text,
+									model: "qdrant/bm25",
+									options: bm25Config,
 								},
-								payload: point.payload,
-							})),
-						}),
-					catch: (cause) =>
-						new QdrantError({
-							operation: "upsert",
-							cause,
-						}),
-				}).pipe(Effect.exit),
+							},
+							payload: point.payload,
+						})),
+					}),
+				).pipe(Effect.exit),
 			{
 				concurrency: 4,
 			},
@@ -72,13 +67,10 @@ const attemptFilter = ({ from, to }: AttemptRange) =>
 	from === undefined && to === undefined
 		? []
 		: [
-				{
-					key: "index_attempt",
-					range: {
-						gte: from,
-						lt: to,
-					},
-				},
+				inRange(payloadKey.indexAttempt, {
+					gte: from,
+					lt: to,
+				}),
 			];
 
 type LinkPoints = {
@@ -89,18 +81,8 @@ type LinkPoints = {
 
 const linkPointsFilter = ({ assetId, blockId, attempts }: LinkPoints) => ({
 	must: [
-		{
-			key: "asset_id",
-			match: {
-				value: assetId,
-			},
-		},
-		{
-			key: "block_id",
-			match: {
-				value: blockId,
-			},
-		},
+		matchValue(payloadKey.assetId, assetId),
+		matchValue(payloadKey.blockId, blockId),
 		...attemptFilter(attempts),
 	],
 });
@@ -112,18 +94,12 @@ export const deleteAttemptPoints = (points: LinkPoints) =>
 		const { client } = yield* QdrantService;
 		const { collection } = yield* GenerationWrite;
 
-		yield* Effect.tryPromise({
-			try: () =>
-				client.delete(collection, {
-					wait: true,
-					filter: linkPointsFilter(points),
-				}),
-			catch: (cause) =>
-				new QdrantError({
-					operation: "delete",
-					cause,
-				}),
-		});
+		yield* qdrantCall("delete", () =>
+			client.delete(collection, {
+				wait: true,
+				filter: linkPointsFilter(points),
+			}),
+		);
 	});
 
 /** Serves a repository link's points of these indexing attempts, or stops serving them. */
@@ -137,18 +113,12 @@ export const publishAttemptPoints = (
 		const { client } = yield* QdrantService;
 		const { collection } = yield* GenerationWrite;
 
-		yield* Effect.tryPromise({
-			try: () =>
-				client.setPayload(collection, {
-					payload: {
-						published: points.published,
-					},
-					filter: linkPointsFilter(points),
-				}),
-			catch: (cause) =>
-				new QdrantError({
-					operation: "publish",
-					cause,
-				}),
-		});
+		yield* qdrantCall("publish", () =>
+			client.setPayload(collection, {
+				payload: {
+					published: points.published,
+				},
+				filter: linkPointsFilter(points),
+			}),
+		);
 	});

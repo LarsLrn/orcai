@@ -3,34 +3,11 @@ import { assetPointSchema } from "@orcai/schema";
 import type { Schemas } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import z from "zod/v4";
+import { qdrantCall } from "./client";
 import { QdrantError } from "./errors";
+import { servedFilter } from "./filter";
 import { EmbeddingGeneration } from "./generation";
 import { QdrantService } from "./service";
-
-const asArray = <T>(value: T | T[] | null | undefined) =>
-	value == null
-		? []
-		: Array.isArray(value)
-			? value
-			: [
-					value,
-				];
-
-/** `filter`, leaving out points whose attempt has not completed. */
-export const servedFilter = (
-	filter: Schemas["Filter"] | undefined,
-): Schemas["Filter"] => ({
-	...filter,
-	must: [
-		...asArray(filter?.must),
-		{
-			key: "published",
-			match: {
-				value: true,
-			},
-		},
-	],
-});
 
 /** Qdrant records as asset points; records without a score or version get 0. */
 export const parseAssetPoints = (points: ReadonlyArray<object>) =>
@@ -62,8 +39,6 @@ export const queryAssetPoints = (params: {
 	text?: string;
 	filter?: Schemas["Filter"];
 	limit?: number | null;
-	withPayload?: boolean;
-	withVector?: boolean;
 	scoreThreshold?: number;
 	retrievalMode?: RetrievalMode;
 }) =>
@@ -71,128 +46,115 @@ export const queryAssetPoints = (params: {
 		const { client, bm25Config } = yield* QdrantService;
 		const { collection } = yield* EmbeddingGeneration;
 		const resolvedLimit = params.limit ?? 10;
-		const withPayload = params.withPayload ?? true;
-		const withVector = params.withVector ?? false;
 		const retrievalMode = params.retrievalMode ?? "dense";
 		const hasEmbedding =
 			Array.isArray(params.embedding) && params.embedding.length > 0;
 		const hasText = typeof params.text === "string" && params.text.length > 0;
 		const filter = servedFilter(params.filter);
 
-		const points = yield* Effect.tryPromise({
-			try: async () => {
-				const queryDense = async () => {
-					if (!hasEmbedding) {
-						return [];
-					}
+		const points = yield* qdrantCall("query", async () => {
+			const queryDense = async () => {
+				if (!hasEmbedding) {
+					return [];
+				}
 
-					const response = await client.query(collection, {
-						query: params.embedding,
-						using: "dense",
-						filter,
-						limit: resolvedLimit,
-						with_payload: withPayload,
-						with_vector: withVector,
-						score_threshold: params.scoreThreshold,
-					});
-					return response.points;
-				};
+				const response = await client.query(collection, {
+					query: params.embedding,
+					using: "dense",
+					filter,
+					limit: resolvedLimit,
+					with_payload: true,
+					score_threshold: params.scoreThreshold,
+				});
+				return response.points;
+			};
 
-				const querySparse = async () => {
-					if (!hasText) {
-						return [];
-					}
+			const querySparse = async () => {
+				if (!hasText) {
+					return [];
+				}
 
-					const response = await client.query(collection, {
-						query: {
-							text: params.text,
-							model: "qdrant/bm25",
-							options: bm25Config,
-						},
-						using: "bm25",
-						filter,
-						limit: resolvedLimit,
-						with_payload: withPayload,
-						with_vector: withVector,
-						score_threshold: params.scoreThreshold,
-					});
-					return response.points;
-				};
+				const response = await client.query(collection, {
+					query: {
+						text: params.text,
+						model: "qdrant/bm25",
+						options: bm25Config,
+					},
+					using: "bm25",
+					filter,
+					limit: resolvedLimit,
+					with_payload: true,
+					score_threshold: params.scoreThreshold,
+				});
+				return response.points;
+			};
 
-				// The threshold is a cosine similarity, so only the dense side takes it; any lexical match counts.
-				const queryHybrid = async () => {
-					if (!hasEmbedding || !hasText) {
-						return [];
-					}
+			// The threshold is a cosine similarity, so only the dense side takes it; any lexical match counts.
+			const queryHybrid = async () => {
+				if (!hasEmbedding || !hasText) {
+					return [];
+				}
 
-					const response = await client.query(collection, {
-						prefetch: [
-							{
-								query: {
-									text: params.text,
-									model: "qdrant/bm25",
-									options: bm25Config,
-								},
-								using: "bm25",
-								filter,
-								limit: Math.max(resolvedLimit, 20),
+				const response = await client.query(collection, {
+					prefetch: [
+						{
+							query: {
+								text: params.text,
+								model: "qdrant/bm25",
+								options: bm25Config,
 							},
-							{
-								query: params.embedding,
-								using: "dense",
-								filter,
-								limit: Math.max(resolvedLimit, 20),
-								score_threshold: params.scoreThreshold,
-							},
-						],
-						query: {
-							fusion: "rrf",
+							using: "bm25",
+							filter,
+							limit: Math.max(resolvedLimit, 20),
 						},
-						limit: resolvedLimit,
-						with_payload: withPayload,
-						with_vector: withVector,
-					});
-					return response.points;
-				};
+						{
+							query: params.embedding,
+							using: "dense",
+							filter,
+							limit: Math.max(resolvedLimit, 20),
+							score_threshold: params.scoreThreshold,
+						},
+					],
+					query: {
+						fusion: "rrf",
+					},
+					limit: resolvedLimit,
+					with_payload: true,
+				});
+				return response.points;
+			};
 
-				const queryMetadataOnly = async () => {
-					const response = await client.scroll(collection, {
-						filter,
-						limit: resolvedLimit,
-						with_payload: withPayload,
-						with_vector: withVector,
-					});
-					return response.points ?? [];
-				};
+			const queryMetadataOnly = async () => {
+				const response = await client.scroll(collection, {
+					filter,
+					limit: resolvedLimit,
+					with_payload: true,
+				});
+				return response.points ?? [];
+			};
 
-				if (retrievalMode === "hybrid" && hasEmbedding && hasText) {
-					return await queryHybrid();
-				}
+			if (retrievalMode === "hybrid" && hasEmbedding && hasText) {
+				return await queryHybrid();
+			}
 
-				if (retrievalMode === "dense" && hasEmbedding) {
-					return await queryDense();
-				}
+			if (retrievalMode === "dense" && hasEmbedding) {
+				return await queryDense();
+			}
 
-				if (retrievalMode === "sparse" && hasText) {
-					return await querySparse();
-				}
+			if (retrievalMode === "sparse" && hasText) {
+				return await querySparse();
+			}
 
-				// Fallback to whichever modality is available when the preferred mode cannot run.
-				if (hasEmbedding) {
-					return await queryDense();
-				}
+			// Fallback to whichever modality is available when the preferred mode cannot run.
+			if (hasEmbedding) {
+				return await queryDense();
+			}
 
-				if (hasText) {
-					return await querySparse();
-				}
+			if (hasText) {
+				return await querySparse();
+			}
 
-				return await queryMetadataOnly();
-			},
-			catch: (error) =>
-				new QdrantError({
-					operation: "query",
-					cause: error,
-				}),
+			return await queryMetadataOnly();
 		});
 
 		return yield* parseAssetPoints(points);
