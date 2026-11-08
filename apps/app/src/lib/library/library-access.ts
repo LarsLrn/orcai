@@ -172,6 +172,18 @@ export const libraryAccess = (reader: Reader) =>
 				return and(visible, listed) as SQL;
 			});
 
+		/** The library's resources the reader may read, drafts included. */
+		const readable = (resource: LibraryResource) =>
+			Effect.map(
+				permitted[resource].read,
+				(ids) =>
+					and(
+						idIn(dbSchema[resource].id, ids),
+						inLibrary(resource, dbSchema[resource].id, organizationId),
+						readableNow(resource, dbSchema[resource].id, userId),
+					) as SQL,
+			);
+
 		/** The resources the reader may use in the active organisation, such as to start a chat. */
 		const usable = (resource: LibraryResource) =>
 			Effect.map(permitted[resource].use, (ids) =>
@@ -190,6 +202,7 @@ export const libraryAccess = (reader: Reader) =>
 
 		return {
 			condition,
+			readable,
 			usable,
 		};
 	});

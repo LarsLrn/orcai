@@ -1,10 +1,7 @@
-import type { OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import { lookupEntitiesByPermission, type ReadRevision } from "@orcai/spice-db";
-import { type AnyColumn, and, desc, inArray, sql } from "drizzle-orm";
+import { type AnyColumn, desc, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { readableNow } from "@/lib/authz/content-access";
-import { inLibrary } from "@/lib/authz/library";
+import type { LibraryAccess } from "@/lib/library/library-access";
 
 /**
  * When a row last changed, falling back to creation time so a row that has
@@ -16,105 +13,58 @@ const changedAt = (table: { updatedAt: AnyColumn; createdAt: AnyColumn }) =>
 /** Postgres returns the coalesced timestamp as text, so normalise before comparing. */
 const toTime = (value: Date | string) => new Date(value).getTime();
 
-/** The user's most recently changed readable bots, blocks and assets, newest first. */
-export const recentResources = (params: {
-	userId: UserId;
-	organizationId: OrganizationId | undefined;
-	limit: number;
-	zedToken: ReadRevision | undefined;
-}) =>
+/** The most recently changed bots, blocks and assets of the library the reader may read, newest first. */
+export const recentResources = (access: LibraryAccess, limit: number) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const { userId, zedToken } = params;
-
-		const readableIds = <TEntity extends "asset" | "block" | "bot">(
-			entityType: TEntity,
-		) =>
-			lookupEntitiesByPermission({
-				entityType,
-				permission: "read",
-				userId,
-				zedToken,
-			});
+		const { bot, block, asset } = dbSchema;
 
 		const [bots, blocks, assets] = yield* Effect.all(
 			[
-				readableIds("bot").pipe(
-					Effect.flatMap((ids) =>
-						ids.length === 0
-							? Effect.succeed([])
-							: db
-									.select({
-										resourceId: dbSchema.bot.id,
-										name: dbSchema.bot.name,
-										status: dbSchema.bot.status,
-										changedAt: changedAt(dbSchema.bot),
-									})
-									.from(dbSchema.bot)
-									.where(
-										and(
-											inArray(dbSchema.bot.id, ids),
-											inLibrary("bot", dbSchema.bot.id, params.organizationId),
-											readableNow("bot", dbSchema.bot.id, params.userId),
-										),
-									)
-									.orderBy(desc(changedAt(dbSchema.bot)))
-									.limit(params.limit),
+				access.readable("bot").pipe(
+					Effect.flatMap((readable) =>
+						db
+							.select({
+								resourceId: bot.id,
+								name: bot.name,
+								status: bot.status,
+								changedAt: changedAt(bot),
+							})
+							.from(bot)
+							.where(readable)
+							.orderBy(desc(changedAt(bot)))
+							.limit(limit),
 					),
 				),
-				readableIds("block").pipe(
-					Effect.flatMap((ids) =>
-						ids.length === 0
-							? Effect.succeed([])
-							: db
-									.select({
-										resourceId: dbSchema.block.id,
-										name: dbSchema.block.name,
-										blockType: dbSchema.block.type,
-										status: dbSchema.block.status,
-										changedAt: changedAt(dbSchema.block),
-									})
-									.from(dbSchema.block)
-									.where(
-										and(
-											inArray(dbSchema.block.id, ids),
-											inLibrary(
-												"block",
-												dbSchema.block.id,
-												params.organizationId,
-											),
-											readableNow("block", dbSchema.block.id, params.userId),
-										),
-									)
-									.orderBy(desc(changedAt(dbSchema.block)))
-									.limit(params.limit),
+				access.readable("block").pipe(
+					Effect.flatMap((readable) =>
+						db
+							.select({
+								resourceId: block.id,
+								name: block.name,
+								blockType: block.type,
+								status: block.status,
+								changedAt: changedAt(block),
+							})
+							.from(block)
+							.where(readable)
+							.orderBy(desc(changedAt(block)))
+							.limit(limit),
 					),
 				),
-				readableIds("asset").pipe(
-					Effect.flatMap((ids) =>
-						ids.length === 0
-							? Effect.succeed([])
-							: db
-									.select({
-										resourceId: dbSchema.asset.id,
-										name: dbSchema.asset.title,
-										processingStatus: dbSchema.asset.processingStatus,
-										changedAt: changedAt(dbSchema.asset),
-									})
-									.from(dbSchema.asset)
-									.where(
-										and(
-											inArray(dbSchema.asset.id, ids),
-											inLibrary(
-												"asset",
-												dbSchema.asset.id,
-												params.organizationId,
-											),
-											readableNow("asset", dbSchema.asset.id, params.userId),
-										),
-									)
-									.orderBy(desc(changedAt(dbSchema.asset)))
-									.limit(params.limit),
+				access.readable("asset").pipe(
+					Effect.flatMap((readable) =>
+						db
+							.select({
+								resourceId: asset.id,
+								name: asset.title,
+								processingStatus: asset.processingStatus,
+								changedAt: changedAt(asset),
+							})
+							.from(asset)
+							.where(readable)
+							.orderBy(desc(changedAt(asset)))
+							.limit(limit),
 					),
 				),
 			],
@@ -131,7 +81,6 @@ export const recentResources = (params: {
 			...blocks.map((block) => ({
 				resourceType: "block" as const,
 				...block,
-				blockType: block.blockType,
 			})),
 			...assets.map((asset) => ({
 				resourceType: "asset" as const,
@@ -139,5 +88,5 @@ export const recentResources = (params: {
 			})),
 		]
 			.sort((left, right) => toTime(right.changedAt) - toTime(left.changedAt))
-			.slice(0, params.limit);
+			.slice(0, limit);
 	});

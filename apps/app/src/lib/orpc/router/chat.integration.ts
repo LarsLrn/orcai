@@ -177,9 +177,21 @@ const members = async () => {
 			),
 		);
 
+	const page = async (actor: Actor, pageIndex: number) =>
+		call(actor, (options) =>
+			procedures.chat.list(
+				{
+					pageIndex,
+					pageSize: 2,
+				},
+				options,
+			),
+		);
+
 	return {
 		owner,
 		other,
+		page,
 		createChat,
 		createAssistantConversation,
 		list,
@@ -190,6 +202,49 @@ const members = async () => {
 		listMessages,
 	};
 };
+
+describe("chat list", () => {
+	test(
+		"pages through the caller's own chats with an exact count",
+		async () => {
+			const { owner, other, page, createChat } = await members();
+			const own: ChatId[] = [];
+			for (const title of [
+				"First",
+				"Second",
+				"Third",
+			]) {
+				own.push((await createChat(owner, title)).chatId);
+			}
+			await createChat(other, "Theirs");
+
+			const [first, second] = [
+				await page(owner, 0),
+				await page(owner, 1),
+			];
+
+			expect(
+				[
+					...first.data,
+					...second.data,
+				].map((chat) => chat.id),
+			).toEqual(
+				[
+					...own,
+				].reverse(),
+			);
+			expect([
+				first.rowCount,
+				second.rowCount,
+			]).toEqual([
+				3,
+				3,
+			]);
+			expect((await page(other, 0)).rowCount).toBe(1);
+		},
+		TIMEOUT,
+	);
+});
 
 describe("chat search", () => {
 	test(
