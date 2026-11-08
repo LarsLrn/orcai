@@ -1,6 +1,7 @@
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
+import { SpiceDbConfigLive, SpiceDbConfigService } from "./config";
 import { runConvergeStatus, runConvergeUp } from "./converge";
 import { SpiceDbCliError } from "./errors";
 import { resetRelationships } from "./reset";
@@ -18,8 +19,8 @@ const affirmatives = new Set([
 const confirmReset = Effect.gen(function* () {
 	if (process.argv.includes("--yes")) return;
 
-	const endpoint = process.env.SPICEDB_ENDPOINT ?? "the configured endpoint";
-	const warning = `This deletes every relationship on ${endpoint}.`;
+	const { config } = yield* SpiceDbConfigService;
+	const warning = `This deletes every relationship on ${config.endpoint}.`;
 
 	if (!process.stdin.isTTY) {
 		return yield* Effect.fail(
@@ -37,7 +38,7 @@ const confirmReset = Effect.gen(function* () {
 			}),
 		);
 	}
-});
+}).pipe(Effect.provide(SpiceDbConfigLive));
 
 const resolveProgram = (value: string): Effect.Effect<void, unknown, never> => {
 	switch (value) {

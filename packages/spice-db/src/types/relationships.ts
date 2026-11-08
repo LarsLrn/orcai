@@ -1,4 +1,4 @@
-import type { EntityType } from "./entity-type";
+import type { AuthzEntityType } from "@orcai/core";
 
 /**
  * Relationship labels in Spice can represent either:
@@ -15,5 +15,6 @@ export type RelationshipByEntity = {
 	user: never;
 };
 
-export type RelationshipFor<E extends EntityType> = RelationshipByEntity[E];
-export type Relationship = RelationshipByEntity[EntityType];
+export type RelationshipFor<E extends AuthzEntityType> =
+	RelationshipByEntity[E];
+export type Relationship = RelationshipByEntity[AuthzEntityType];

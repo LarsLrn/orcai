@@ -1,11 +1,9 @@
 import { v1 } from "@authzed/authzed-node";
-import type { UserId } from "@orcai/core";
+import type { AuthzEntityType, PermissionFor, UserId } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import { SpiceDbError } from "../errors";
-import { SpiceDbService } from "../service";
+import { callSpiceDb } from "../service";
 import type { EntityIdFor } from "../types/entity-id";
-import type { EntityType } from "../types/entity-type";
-import type { PermissionFor } from "../types/permissions";
 import type { ReadRevision } from "../types/read-revision";
 import {
 	createConsistency,
@@ -23,7 +21,7 @@ const MAX_ITEMS_PER_REQUEST = 10_000;
  * denial.
  */
 export const grantedPermissions = <
-	Entity extends EntityType,
+	Entity extends AuthzEntityType,
 	Permission extends PermissionFor<Entity>,
 >(params: {
 	entityIds: readonly EntityIdFor<Entity>[];
@@ -48,7 +46,6 @@ export const grantedPermissions = <
 			>;
 		}
 
-		const { spice } = yield* SpiceDbService;
 		const subject = createSubjectReference({
 			entityType: "user",
 			entityId: params.userId,
@@ -82,20 +79,14 @@ export const grantedPermissions = <
 					),
 			),
 			(chunk) =>
-				Effect.tryPromise({
-					try: () =>
-						spice.checkBulkPermissions(
-							v1.CheckBulkPermissionsRequest.create({
-								consistency,
-								items: chunk,
-							}),
-						),
-					catch: (error) =>
-						new SpiceDbError({
-							operation: "query",
-							cause: error,
+				callSpiceDb("query", (spice) =>
+					spice.checkBulkPermissions(
+						v1.CheckBulkPermissionsRequest.create({
+							consistency,
+							items: chunk,
 						}),
-				}),
+					),
+				),
 		);
 
 		for (const pair of responses.flatMap((response) => response.pairs)) {
@@ -138,7 +129,7 @@ export const grantedPermissions = <
 	});
 
 /** The ids among `entityIds` the user holds `permission` on, in one round trip. */
-export const permittedEntityIds = <Entity extends EntityType>(params: {
+export const permittedEntityIds = <Entity extends AuthzEntityType>(params: {
 	entityIds: readonly EntityIdFor<Entity>[];
 	entityType: Entity;
 	permission: PermissionFor<Entity>;

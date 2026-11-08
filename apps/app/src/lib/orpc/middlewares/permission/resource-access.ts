@@ -1,4 +1,5 @@
-import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
+import type { AuthzResourceType } from "@orcai/core";
+import type { EntityIdFor } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/effect";
 import {
 	type ResourcePermission,
@@ -12,11 +13,11 @@ type ZedTokenInput = {
 };
 
 type ResourceTarget = {
-	[Type in ResourceType]: {
+	[Type in AuthzResourceType]: {
 		resourceType: Type;
 		resourceId: EntityIdFor<Type>;
 	};
-}[ResourceType] &
+}[AuthzResourceType] &
 	ZedTokenInput;
 
 /**
@@ -47,7 +48,7 @@ const resourceAccessMiddleware = permissionBase.middleware(
 
 /** Requires `access` on the resource the input names under `keys.entityId`. */
 export const requireEntityAccess = <
-	Type extends ResourceType,
+	Type extends AuthzResourceType,
 	IdKey extends string,
 >(
 	resourceType: Type,
@@ -76,7 +77,7 @@ export const requireResourceAccess = (access: ResourcePermission) =>
 	}));
 
 /** Requires `access` on every resource of `resourceType` whose id `idsOf` reads from the input. */
-export const requireEntitiesAccess = <Type extends ResourceType, Input>(
+export const requireEntitiesAccess = <Type extends AuthzResourceType, Input>(
 	resourceType: Type,
 	access: ResourcePermission,
 	idsOf: (input: Input) => readonly EntityIdFor<Type>[],

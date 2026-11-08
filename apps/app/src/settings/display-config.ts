@@ -1,5 +1,5 @@
+import type { AuthzResourceType } from "@orcai/core";
 import { RESOURCE_GRANT_ROLES, type ResourceGrantRole } from "@orcai/schema";
-import type { ResourceType } from "@orcai/spice-db";
 import { m } from "@/paraglide/messages";
 
 const resourceRoleLabels: Record<ResourceGrantRole, () => string> = {
@@ -14,7 +14,7 @@ const resourceRoleDescriptions: Record<ResourceGrantRole, () => string> = {
 	manager: m.access_role_manager_description,
 };
 
-const resourceAccessHints: Record<ResourceType, () => string> = {
+const resourceAccessHints: Record<AuthzResourceType, () => string> = {
 	bot: m.access_resource_bot_hint,
 	block: m.access_resource_block_hint,
 	asset: m.access_resource_asset_hint,
@@ -30,5 +30,5 @@ export const getResourceRoleOptions = () =>
 		description: resourceRoleDescriptions[role](),
 	}));
 
-export const getResourceAccessHint = (type: ResourceType) =>
+export const getResourceAccessHint = (type: AuthzResourceType) =>
 	resourceAccessHints[type]();

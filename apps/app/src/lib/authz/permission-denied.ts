@@ -1,9 +1,10 @@
-import type { EntityType, ReadRevision } from "@orcai/spice-db";
+import type { AuthzEntityType } from "@orcai/core";
+import type { ReadRevision } from "@orcai/spice-db";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
 /** The denial every permission check fails with; the message is what the assistant's model reads. */
 export const permissionDenied = (params: {
-	entityType: EntityType;
+	entityType: AuthzEntityType;
 	permission: string;
 	zedToken?: ReadRevision;
 }) =>

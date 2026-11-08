@@ -1,9 +1,11 @@
 import { v1 } from "@authzed/authzed-node";
+import type { AuthzEntityType } from "@orcai/core";
 import type { EntityIdFor, SubjectIdFor } from "./types/entity-id";
-import type { EntityType } from "./types/entity-type";
 import { NEWEST_REVISION, type ReadRevision } from "./types/read-revision";
 
-export const createResourceReference = <Entity extends EntityType>(params: {
+export const createResourceReference = <
+	Entity extends AuthzEntityType,
+>(params: {
 	entityType: Entity;
 	entityId: EntityIdFor<Entity>;
 }) =>
@@ -12,7 +14,7 @@ export const createResourceReference = <Entity extends EntityType>(params: {
 		objectId: params.entityId,
 	});
 
-export const createSubjectReference = <Entity extends EntityType>(params: {
+export const createSubjectReference = <Entity extends AuthzEntityType>(params: {
 	entityType: Entity;
 	entityId: SubjectIdFor<Entity>;
 	optionalRelation?: string;

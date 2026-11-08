@@ -1,17 +1,12 @@
 import { status } from "@grpc/grpc-js";
 import * as Data from "effect/Data";
 
-const ErrorTags = {
-	SPICE_DB: "SpiceDbError",
-	SPICE_DB_CLI: "SpiceDbCliError",
-} as const;
-
-export class SpiceDbError extends Data.TaggedError(ErrorTags.SPICE_DB)<{
+export class SpiceDbError extends Data.TaggedError("SpiceDbError")<{
 	readonly operation: "start" | "query" | "mutate" | "converge";
 	readonly cause: unknown;
 }> {}
 
-export class SpiceDbCliError extends Data.TaggedError(ErrorTags.SPICE_DB_CLI)<{
+export class SpiceDbCliError extends Data.TaggedError("SpiceDbCliError")<{
 	readonly message: string;
 }> {}
 

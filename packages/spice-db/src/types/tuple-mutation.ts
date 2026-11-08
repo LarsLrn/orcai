@@ -1,10 +1,10 @@
+import type { AuthzEntityType } from "@orcai/core";
 import type { EntityIdFor, SubjectIdFor } from "./entity-id";
-import type { EntityType } from "./entity-type";
 import type { RelationshipFor } from "./relationships";
 
 export type TupleMutation<
-	Resource extends EntityType = EntityType,
-	Subject extends EntityType = EntityType,
+	Resource extends AuthzEntityType = AuthzEntityType,
+	Subject extends AuthzEntityType = AuthzEntityType,
 > = {
 	resourceType: Resource;
 	resourceId: EntityIdFor<Resource>;

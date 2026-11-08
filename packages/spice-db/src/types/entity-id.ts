@@ -1,5 +1,6 @@
 import type {
 	AssetId,
+	AuthzEntityType,
 	BlockId,
 	BotId,
 	ChatId,
@@ -7,9 +8,8 @@ import type {
 	OrganizationId,
 	UserId,
 } from "@orcai/core";
-import type { EntityType } from "./entity-type";
 
-export type EntityIdFor<Entity extends EntityType> = {
+export type EntityIdFor<Entity extends AuthzEntityType> = {
 	asset: AssetId;
 	block: BlockId;
 	bot: BotId;
@@ -19,6 +19,6 @@ export type EntityIdFor<Entity extends EntityType> = {
 	user: UserId;
 }[Entity];
 
-export type SubjectIdFor<Entity extends EntityType> =
+export type SubjectIdFor<Entity extends AuthzEntityType> =
 	| EntityIdFor<Entity>
 	| (Entity extends "user" ? "*" : never);

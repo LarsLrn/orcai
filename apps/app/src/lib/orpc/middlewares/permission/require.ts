@@ -1,4 +1,5 @@
-import type { EntityIdFor, EntityType, PermissionFor } from "@orcai/spice-db";
+import type { AuthzEntityType, PermissionFor } from "@orcai/core";
+import type { EntityIdFor } from "@orcai/spice-db";
 import { checkPermissionMiddleware } from "./checks";
 import type { CheckPermissionInput } from "./types";
 
@@ -8,12 +9,12 @@ type ZedTokenInput = {
 };
 
 type EntityPermissionSource<
-	Entity extends EntityType,
+	Entity extends AuthzEntityType,
 	IdKey extends string,
 > = Record<IdKey, EntityIdFor<Entity>>;
 
 export const requireEntityPermission = <
-	Entity extends EntityType,
+	Entity extends AuthzEntityType,
 	IdKey extends string,
 >(
 	entityType: Entity,
