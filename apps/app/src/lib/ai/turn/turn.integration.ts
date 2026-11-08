@@ -16,12 +16,10 @@ const { startTurn } = await import("./turn");
 const { ReplyStore } = await import("./reply-store");
 const { DrizzleReplyStore } = await import("./drizzle-reply-store");
 
-const runtime = integrationRuntime();
+const runtime = integrationRuntime(S3Live);
 const run = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-	runtime.runPromise(
-		effect.pipe(Effect.provide(S3Live)) as Effect.Effect<A, E, never>,
-	);
-const { newUser, privateAsset } = assetFixtures(run);
+	runtime.runPromise(effect as Effect.Effect<A, E, never>);
+const { newUser, privateAssets } = assetFixtures(run);
 
 /** The stack's DB, SpiceDB and S3 for a turn, with the reply store over that DB. */
 const services = async () => {
@@ -37,7 +35,7 @@ const services = async () => {
 	return {
 		store,
 		provide: <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-			effect.pipe(Effect.provide(S3Live), Effect.provide(context)),
+			effect.pipe(Effect.provide(context)),
 	};
 };
 
@@ -61,7 +59,7 @@ const RECENT_FILES = [
 	38,
 ];
 
-/** A plain chat of `turns` stored turns, with files on the old and the recent turns; the `filesOnly` turn's question is its file alone. */
+/** A plain chat of `turns` stored turns, with files on the old and the recent turns it has; the `filesOnly` turn's question is its file alone. */
 const longChat = async (
 	owner: UserId,
 	turns = TURNS,
@@ -71,37 +69,35 @@ const longChat = async (
 		filesOnly?: number;
 	} = {},
 ) => {
-	const attachment = ({
-		asset,
-	}: Awaited<ReturnType<typeof privateAsset>>): ChatMessageAttachment => ({
-		assetId: asset.id,
-		title: asset.title,
-		fileType: "application/pdf",
-		size: asset.size,
-	});
-	const filed = new Map([
-		[
-			OLD_FILE,
-			attachment(
-				await privateAsset(owner, "Old notes", filler("Old file", 500)),
-			),
-		],
-		...(await Promise.all(
-			RECENT_FILES.map(
-				async (turn) =>
-					[
-						turn,
-						attachment(
-							await privateAsset(
-								owner,
-								`Notes ${turn}`,
-								filler(`Recent file ${turn}`, 300),
-							),
-						),
-					] as const,
-			),
-		)),
-	]);
+	const files = [
+		{
+			turn: OLD_FILE,
+			title: "Old notes",
+			content: filler("Old file", 500),
+		},
+		...RECENT_FILES.map((turn) => ({
+			turn,
+			title: `Notes ${turn}`,
+			content: filler(`Recent file ${turn}`, 300),
+		})),
+	].filter(({ turn }) => turn < turns);
+	const { assets } =
+		files.length === 0
+			? {
+					assets: [],
+				}
+			: await privateAssets(owner, files);
+	const filed = new Map<number, ChatMessageAttachment>(
+		assets.map((asset, index) => [
+			files[index].turn,
+			{
+				assetId: asset.id,
+				title: asset.title,
+				fileType: "application/pdf",
+				size: asset.size,
+			},
+		]),
+	);
 	const { chatId, organizationId } = await run(
 		Effect.gen(function* () {
 			const db = yield* DB;
@@ -219,7 +215,15 @@ const ask = async ({
 	fileText: string;
 	steps: Parameters<ReturnType<typeof scriptedFetch>["script"]>[0];
 }) => {
-	const latest = await privateAsset(owner, "Latest notes", fileText);
+	const {
+		assets: [latest],
+		zedToken,
+	} = await privateAssets(owner, [
+		{
+			title: "Latest notes",
+			content: fileText,
+		},
+	]);
 	const provider = scriptedFetch("anthropic");
 	globalThis.fetch = provider.fetch;
 	provider.script(steps);
@@ -234,14 +238,14 @@ const ask = async ({
 						id: owner,
 					},
 					organizationId: chat.organizationId,
-					zedToken: latest.zedToken,
+					zedToken,
 					chatId: chat.chatId,
 					message: {
 						id: crypto.randomUUID() as ChatMessageId,
 						role: "user",
 						attachments: [
 							{
-								assetId: latest.asset.id,
+								assetId: latest.id,
 							},
 						],
 						parts:

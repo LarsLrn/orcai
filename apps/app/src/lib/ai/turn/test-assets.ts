@@ -116,56 +116,80 @@ export const assetFixtures = (
 		};
 	};
 
-	/** A PDF asset only its owner can read, with `content` as its stored extraction. */
-	const privateAsset = async (
+	/** PDF assets only their owner can read, each with its `content` as its stored extraction, and the token of the write. */
+	const privateAssets = (
 		owner: UserId,
-		title: string,
-		content: string,
-	) => {
-		const asset = await run(
+		files: readonly {
+			title: string;
+			content: string;
+		}[],
+	) =>
+		run(
 			Effect.gen(function* () {
-				const [row] = yield* (yield* DB)
+				const ids = files.map(() => crypto.randomUUID() as AssetId);
+				const rows = yield* (yield* DB)
 					.insert(dbSchema.asset)
-					.values({
-						bucket: buckets.main.name,
-						prefix: `users/${owner}/chatAttachment/2026/10`,
-						title,
-						fileType: "pdf",
-						size: content.length,
-						userId: owner,
-					})
+					.values(
+						files.map(({ title, content }, index) => ({
+							id: ids[index],
+							bucket: buckets.main.name,
+							prefix: `users/${owner}/chatAttachment/2026/10`,
+							title,
+							fileType: "pdf" as const,
+							size: content.length,
+							userId: owner,
+						})),
+					)
 					.returning();
-				yield* sendPutObjectCommand({
-					bucket: buckets.processed.name,
-					key: buildStoredExtractionKey(row.id),
-					body: Buffer.from(
-						serializeStoredExtractionArtifact({
-							...createImageOnlyExtractionArtifact({
-								mimeType: "application/pdf",
-								format: "pdf",
-								sourceBucket: row.bucket,
-								sourcePath: row.prefix,
-							}),
-							content,
-							images: [],
+				const assets = ids.map(
+					(id) => rows.find((row) => row.id === id) as (typeof rows)[number],
+				);
+				yield* Effect.forEach(
+					assets,
+					(asset, index) =>
+						sendPutObjectCommand({
+							bucket: buckets.processed.name,
+							key: buildStoredExtractionKey(asset.id),
+							body: Buffer.from(
+								serializeStoredExtractionArtifact({
+									...createImageOnlyExtractionArtifact({
+										mimeType: "application/pdf",
+										format: "pdf",
+										sourceBucket: asset.bucket,
+										sourcePath: asset.prefix,
+									}),
+									content: files[index].content,
+									images: [],
+								}),
+							),
+							contentType: "application/json",
 						}),
-					),
-					contentType: "application/json",
-				});
-				return row;
+					{
+						concurrency: "unbounded",
+						discard: true,
+					},
+				);
+				const { zedToken } = yield* writeRelationshipMutations(
+					assets.map((asset) => ({
+						resourceType: "asset",
+						resourceId: asset.id,
+						relation: "owner",
+						subjectType: "user",
+						subjectId: owner,
+						operation: "create",
+					})),
+				);
+				return {
+					assets,
+					zedToken,
+				};
 			}),
 		);
-		const { zedToken } = await relate(asset.id, "owner", owner);
-		return {
-			asset,
-			zedToken,
-		};
-	};
 
 	return {
 		newUser,
 		relate,
 		privateImage,
-		privateAsset,
+		privateAssets,
 	};
 };
