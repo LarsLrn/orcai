@@ -1,14 +1,26 @@
+import { assetIdSchema, blockIdSchema } from "@orcai/schema";
 import { RotateCwIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import type { EntityRef } from "@/lib/ai/tools/entity-kind";
 import { m } from "@/paraglide/messages";
 import { CONTENT_CAPABILITIES } from "../capabilities";
 import type { prepareAssetAgainTool } from "./prepare-asset-again";
 
+export const prepareAssetAgainInputSchema = z.strictObject({
+	assetId: assetIdSchema.describe("Id of the asset, from findAssets."),
+	repositoryId: blockIdSchema
+		.optional()
+		.describe(
+			"The repository to retry the asset in. Leave out to prepare the uploaded file again.",
+		),
+});
+
 export const prepareAssetAgain = declareTool<typeof prepareAssetAgainTool>()({
 	kind: "change",
 	group: "bots",
 	capabilities: CONTENT_CAPABILITIES,
+	inputSchema: prepareAssetAgainInputSchema,
 	icon: RotateCwIcon,
 	name: () => m.assistant_tool_prepare_asset_again_name(),
 	active: () => m.assistant_tool_prepare_asset_again_active(),

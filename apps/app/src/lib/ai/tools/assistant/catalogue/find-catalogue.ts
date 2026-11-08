@@ -1,23 +1,8 @@
-import { catalogueKindSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	listQuerySchema,
-	PAGING_NOTE,
-} from "../core/list-input";
+import { listPage, listPaging, PAGING_NOTE } from "../core/list-input";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-
-const findCatalogueInputSchema = z.strictObject({
-	query: listQuerySchema,
-	kind: catalogueKindSchema
-		.optional()
-		.describe("Only entries of this kind. Every kind when left out."),
-	page: listPageSchema,
-});
+import { findCatalogueInputSchema } from "./find-catalogue.declaration";
 
 export const findCatalogueTool = (deps: AssistantToolDeps) =>
 	effectTool({

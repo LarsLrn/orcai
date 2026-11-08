@@ -1,19 +1,8 @@
-import { organizationInvitationStatusSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	PAGING_NOTE,
-} from "../core/list-input";
+import { listPage, listPaging, PAGING_NOTE } from "../core/list-input";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-
-const listInvitationsInputSchema = z.strictObject({
-	status: organizationInvitationStatusSchema.default("pending"),
-	page: listPageSchema,
-});
+import { listInvitationsInputSchema } from "./list-invitations.declaration";
 
 export const listInvitationsTool = (deps: AssistantToolDeps) =>
 	effectTool({

@@ -1,18 +1,9 @@
 import type { OrganizationInvitationId } from "@orcai/core";
-import { organizationInvitationIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { deleteNamed } from "../named-delete";
 import type { AssistantToolDeps } from "../procedure-tool";
-
-const cancelInvitationInputSchema = z.strictObject({
-	ids: z
-		.array(organizationInvitationIdSchema)
-		.min(1)
-		.max(20)
-		.describe("Ids of the invitations to withdraw, from listInvitations."),
-});
+import { cancelInvitationInputSchema } from "./cancel-invitation.declaration";
 
 export const cancelInvitations = (
 	deps: AssistantToolDeps,

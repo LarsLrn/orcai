@@ -1,17 +1,8 @@
-import { botIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { deleteNamed } from "../named-delete";
 import type { AssistantToolDeps } from "../procedure-tool";
-
-const deleteBotInputSchema = z.strictObject({
-	ids: z
-		.array(botIdSchema)
-		.min(1)
-		.max(20)
-		.describe("Ids of the bots to delete, from findBots or getBot."),
-});
+import { deleteBotInputSchema } from "./delete-bot.declaration";
 
 export const deleteBotTool = (deps: AssistantToolDeps) =>
 	effectTool({

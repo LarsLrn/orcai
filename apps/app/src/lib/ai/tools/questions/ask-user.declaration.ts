@@ -1,13 +1,18 @@
 import { MessageCircleQuestionMarkIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
-import { askUserOutputSchema, type askUserTool } from "./ask-user";
+import {
+	askUserInputSchema,
+	askUserOutputSchema,
+	type askUserTool,
+} from "./ask-user";
 import { askUserMarkdown } from "./to-markdown";
 
 export const askUser = declareTool<typeof askUserTool>()({
 	kind: "client",
 	group: "core",
 	conversational: true,
+	inputSchema: askUserInputSchema,
 	outputSchema: askUserOutputSchema,
 	icon: MessageCircleQuestionMarkIcon,
 	name: () => m.questions_tool_name(),

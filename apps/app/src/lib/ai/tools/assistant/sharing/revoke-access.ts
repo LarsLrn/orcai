@@ -1,5 +1,4 @@
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
@@ -9,16 +8,10 @@ import {
 import {
 	expectGrantees,
 	expectTarget,
-	granteeShape,
-	targetShape,
 	toPrincipalIdentity,
 	toResourceIdentity,
 } from "./resource-target";
-
-const revokeAccessInputSchema = z.strictObject({
-	...targetShape,
-	...granteeShape,
-});
+import { revokeAccessInputSchema } from "./revoke-access.declaration";
 
 export const revokeAccessTool = (deps: AssistantToolDeps) =>
 	effectTool({

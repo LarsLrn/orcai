@@ -3,6 +3,7 @@ import type { BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
+import { createBehaviourInputSchema } from "./create-behaviour.declaration";
 
 const behaviourId = crypto.randomUUID() as BlockId;
 
@@ -18,9 +19,7 @@ beforeEach(() => {
 		});
 });
 
-const { createBehaviourInputSchema, createBehaviourTool } = await import(
-	"./create-behaviour"
-);
+const { createBehaviourTool } = await import("./create-behaviour");
 const { createAssistantTurn } = await import("../turn-state");
 
 describe("createBehaviourTool", () => {

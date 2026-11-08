@@ -1,35 +1,9 @@
-import { resourceListPrincipalsInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	PAGING_NOTE,
-} from "../core/list-input";
+import { listPage, listPaging, PAGING_NOTE } from "../core/list-input";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-import {
-	expectTarget,
-	targetShape,
-	toResourceIdentity,
-} from "./resource-target";
-
-const principalFilters = resourceListPrincipalsInputSchema.options[0].shape;
-
-const findPeopleInputSchema = z.strictObject({
-	...targetShape,
-	granteeType: principalFilters.principalType.describe(
-		"Only users or only groups; leave out for both.",
-	),
-	query: principalFilters.query.describe(
-		"Part of the name (or a user's email) to search for, case-insensitive.",
-	),
-	excludeGranted: principalFilters.excludeGranted.describe(
-		"Leave out users and groups that already hold a direct grant.",
-	),
-	page: listPageSchema,
-});
+import { findPeopleInputSchema } from "./find-people.declaration";
+import { expectTarget, toResourceIdentity } from "./resource-target";
 
 export const findPeopleTool = (deps: AssistantToolDeps) =>
 	effectTool({

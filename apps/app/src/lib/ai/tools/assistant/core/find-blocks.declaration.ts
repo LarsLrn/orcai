@@ -1,11 +1,23 @@
+import { blockTypeSchema } from "@orcai/schema";
 import { SearchIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { findBlocksTool } from "./find-blocks";
+import { listPageSchema, listQuerySchema } from "./list-input";
+
+export const findBlocksInputSchema = z.strictObject({
+	type: blockTypeSchema.describe(
+		"behaviour: the system prompt a bot follows. repository: assets a bot searches to answer from.",
+	),
+	query: listQuerySchema,
+	page: listPageSchema,
+});
 
 export const findBlocks = declareTool<typeof findBlocksTool>()({
 	kind: "read",
 	group: "core",
+	inputSchema: findBlocksInputSchema,
 	icon: SearchIcon,
 	name: () => m.assistant_tool_find_blocks_name(),
 	active: () => m.assistant_tool_find_blocks_active(),

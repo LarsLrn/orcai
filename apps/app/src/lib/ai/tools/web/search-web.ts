@@ -1,8 +1,8 @@
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import type { MeteredWebSearch } from "./metered-web-search";
 import { type SearchWebOutput, searchWebModelOutput } from "./outputs";
+import { searchWebInputSchema } from "./search-web.declaration";
 
 const WEB_SEARCH_MAX_RESULTS = 5;
 
@@ -23,16 +23,7 @@ export const searchWebTool = ({
 					]
 				: []),
 		].join(" "),
-		inputSchema: z.strictObject({
-			query: z
-				.string()
-				.trim()
-				.min(2)
-				.max(400)
-				.describe(
-					"What to search for, as you would type it into a search engine.",
-				),
-		}),
+		inputSchema: searchWebInputSchema,
 		toModelOutput: searchWebModelOutput,
 		run: ({ query }, { abortSignal }) =>
 			search(

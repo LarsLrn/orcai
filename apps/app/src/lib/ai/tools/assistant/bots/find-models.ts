@@ -1,19 +1,8 @@
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	listQuerySchema,
-	PAGING_NOTE,
-} from "../core/list-input";
+import { listPage, listPaging, PAGING_NOTE } from "../core/list-input";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-
-const findModelsInputSchema = z.strictObject({
-	query: listQuerySchema,
-	page: listPageSchema,
-});
+import { findModelsInputSchema } from "./find-models.declaration";
 
 /** Only models that can serve chats: enabled provider, not deprecated, text and tool calling. */
 export const findModelsTool = (deps: AssistantToolDeps) =>

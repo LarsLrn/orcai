@@ -2,7 +2,7 @@ import type { AssetId } from "@orcai/core";
 import type { Asset, KeptUploads } from "@orcai/schema";
 import { useRef, useState } from "react";
 import type { StepAnswers } from "@/lib/ai/chat-session/chat-session";
-import type { RequestUploadOutput } from "@/lib/ai/tools/assistant/bots/request-upload";
+import type { RequestUploadOutput } from "@/lib/ai/tools/assistant/bots/request-upload.declaration";
 
 /** Why Continue did not answer: the list is not stored, or none of its files are left. */
 export type UploadProblem = "unsaved" | "gone";

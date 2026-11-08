@@ -1,6 +1,5 @@
-import { createOrganizationInvitationsInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
+import type { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
@@ -8,17 +7,7 @@ import {
 	mutation,
 } from "../procedure-tool";
 import { invitationInput, requestLocale } from "./invitation-input";
-
-export const inviteMembersInputSchema = z.strictObject({
-	emails: z
-		.array(z.email())
-		.min(1)
-		.max(200)
-		.describe("Email addresses to invite."),
-	role: createOrganizationInvitationsInputSchema.shape.role.describe(
-		"The organisation role they get on accepting. Only admins can invite admins.",
-	),
-});
+import { inviteMembersInputSchema } from "./invite-members.declaration";
 
 export const inviteMembers = (
 	deps: AssistantToolDeps,

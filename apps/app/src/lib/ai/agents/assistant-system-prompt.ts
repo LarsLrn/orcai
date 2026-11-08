@@ -3,8 +3,8 @@ import type { OrganizationRole } from "@orcai/core";
 import type { OrganizationCapability } from "@orcai/schema";
 import { buildFormattingGuidance } from "@/lib/ai/agents/chat-agent-system-prompt";
 import { citationRules } from "@/lib/ai/citations/citation-rules";
-import type { DeferredToolGroup } from "@/lib/ai/tools/assistant/groups";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
+import type { DeferredToolGroup } from "@/lib/ai/tools/declaration";
 import type { DocsConfig } from "@/lib/effect/services/config";
 import { KIND_SLUGS } from "@/lib/navigation/kind-slugs";
 

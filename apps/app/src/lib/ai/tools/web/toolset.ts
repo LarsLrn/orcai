@@ -2,9 +2,9 @@ import { NATIVE_WEB_SEARCH_TOOL_NAME, nativeWebSearchTool } from "@orcai/ai";
 import type { ModelProviderKind } from "@orcai/core";
 import { type Tool, type ToolSet, tool } from "ai";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { MeteredWebSearch } from "./metered-web-search";
+import { nativeWebSearch } from "./native-web-search.declaration";
 import { searchWebTool } from "./search-web";
 
 /** How a turn searches the web, read once before it starts. */
@@ -64,6 +64,6 @@ export const storedWebSearchTools = () => ({
 		allowedDomains: [],
 	}),
 	[NATIVE_WEB_SEARCH_TOOL_NAME]: tool({
-		inputSchema: z.looseObject({}),
+		inputSchema: nativeWebSearch.inputSchema,
 	}) as Tool,
 });

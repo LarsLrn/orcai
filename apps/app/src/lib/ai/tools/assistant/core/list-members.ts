@@ -1,23 +1,8 @@
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	PAGING_NOTE,
-} from "./list-input";
-
-const listMembersInputSchema = z.strictObject({
-	query: z
-		.string()
-		.trim()
-		.max(100)
-		.optional()
-		.describe("Part of the name or email to search for, case-insensitive."),
-	page: listPageSchema,
-});
+import { listPage, listPaging, PAGING_NOTE } from "./list-input";
+import { listMembersInputSchema } from "./list-members.declaration";
 
 export const listMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({

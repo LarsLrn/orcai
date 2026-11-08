@@ -1,4 +1,4 @@
-import { type HandedOver, userIdSchema } from "@orcai/schema";
+import type { HandedOver } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import {
 	AssistantToolError,
@@ -6,8 +6,6 @@ import {
 	toolErrorText,
 } from "@/lib/ai/tools/tool-error";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-
-export const receiverIdSchema = userIdSchema.optional();
 
 type NamedHandover = {
 	handedOver?: {

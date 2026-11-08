@@ -1,8 +1,8 @@
-import { blockIdSchema, type Repository } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { listRepositoryAssetsInputSchema } from "./list-repository-assets.declaration";
 import { listModelOutput } from "./outputs";
 import type { RepositoryAsset } from "./types";
 import {
@@ -21,24 +21,7 @@ export const listRepositoryAssetsTool = ({
 	effectTool({
 		description:
 			"List the assets in the repositories with their ids, titles, citation labels, descriptions and preparation states. Use it when the user asks what you can search, or names an asset whose id you need. Only ready assets are searchable: one that is queued, processing or indexing is still being prepared, and a failed one names its failure. Tell the user about such an asset rather than treating it as empty.",
-		inputSchema: z.strictObject({
-			query: z
-				.string()
-				.optional()
-				.describe("Words from an asset's title, to narrow the list."),
-			blockId: blockIdSchema
-				.optional()
-				.describe(
-					"Id of the one repository to list. Leave it out to list all of them.",
-				),
-			limit: z.coerce
-				.number()
-				.int()
-				.min(1)
-				.max(100)
-				.default(30)
-				.describe("The most assets to return."),
-		}),
+		inputSchema: listRepositoryAssetsInputSchema,
 		run: ({ query, blockId, limit }) =>
 			Effect.gen(function* () {
 				const targetBlocks = resolveSearchBlocks({

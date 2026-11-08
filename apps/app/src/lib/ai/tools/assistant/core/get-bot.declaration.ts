@@ -1,11 +1,18 @@
+import { botIdSchema } from "@orcai/schema";
 import { BotIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { getBotTool } from "./get-bot";
 
+export const getBotInputSchema = z.strictObject({
+	id: botIdSchema.describe("Id of the bot, from findBots."),
+});
+
 export const getBot = declareTool<typeof getBotTool>()({
 	kind: "read",
 	group: "core",
+	inputSchema: getBotInputSchema,
 	icon: BotIcon,
 	name: () => m.assistant_tool_get_bot_name(),
 	active: () => m.assistant_tool_get_bot_active(),

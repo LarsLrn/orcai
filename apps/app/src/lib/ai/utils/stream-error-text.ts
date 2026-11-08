@@ -1,8 +1,6 @@
 import { InvalidToolInputError, NoSuchToolError } from "ai";
-import {
-	ASSISTANT_TOOL_GROUPS,
-	DEFERRED_TOOL_GROUPS,
-} from "@/lib/ai/tools/assistant/groups";
+import { ASSISTANT_TOOL_GROUPS } from "@/lib/ai/tools/assistant/groups";
+import { DEFERRED_TOOL_GROUPS } from "@/lib/ai/tools/declaration";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import { streamErrorReason } from "./stream-error-reason";
 

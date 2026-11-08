@@ -49,6 +49,17 @@ const FILE_CONTENT = "Field notes, page one.";
 const PICTURE_CONTENT = "picture bytes";
 
 /** A chat with a question and an answer, a rating, a favourite bot, a block and two assets, one without its file. */
+/** A stored call whose input today's tool no longer takes. */
+const misfitCall = {
+	type: "tool-updatePlan",
+	toolCallId: "plan-1",
+	state: "output-available",
+	input: null,
+	output: {
+		updated: true,
+	},
+};
+
 const seed = (userId: UserId, organizationId: OrganizationId) =>
 	run(
 		Effect.gen(function* () {
@@ -106,6 +117,7 @@ const seed = (userId: UserId, organizationId: OrganizationId) =>
 						chatId: chat.id,
 						role: "assistant",
 						parts: [
+							misfitCall,
 							{
 								type: "text",
 								text: "Thirty centimetres.",
@@ -491,6 +503,7 @@ describe("data export", () => {
 				"assistant",
 				"user",
 			]);
+			expect(chat.messages[1].parts[0]).toEqual(misfitCall);
 			expect(archive[`${chatName}.md`]).toBe(
 				"**You:**\n\nHow deep do I sample?\n\n**Model:**\n\nThirty centimetres.\n\n**You:**\n\nAttached: Notes.pdf",
 			);

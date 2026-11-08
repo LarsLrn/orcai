@@ -1,4 +1,3 @@
-import { addGroupMembersInputSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
@@ -7,12 +6,13 @@ import {
 	expectType,
 	mutation,
 } from "../procedure-tool";
+import { addGroupMembersToolInputSchema } from "./add-group-members.declaration";
 
 export const addGroupMembersTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
 			"Add members of the active organisation to a custom group, by user id from listMembers. They gain the access the group holds.",
-		inputSchema: addGroupMembersInputSchema.strict(),
+		inputSchema: addGroupMembersToolInputSchema,
 		run: (input) =>
 			callProcedure(deps, (procedures, options) =>
 				procedures.group.addMembers(input, options),

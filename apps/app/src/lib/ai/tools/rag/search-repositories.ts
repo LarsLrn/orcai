@@ -1,18 +1,12 @@
-import {
-	assetIdSchema,
-	blockIdSchema,
-	type Repository,
-	SEARCH_QUERIES_MAX,
-	searchQuerySchema,
-} from "@orcai/schema";
+import { type Repository, SEARCH_QUERIES_MAX } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { RETRIEVAL_LIMITS } from "@/settings/constants";
 import { searchModelOutput } from "./outputs";
+import { searchRepositoriesInputSchema } from "./search-repositories.declaration";
 import type { Passage } from "./types";
 import {
 	flattenBlockResponses,
@@ -58,37 +52,7 @@ export const searchRepositoriesTool = ({
 	effectTool({
 		description:
 			"Search the repositories by topic, name, quote or claim, and return the full text of the best matching passages, each with the ref you cite it by. Use it first for any question the repositories may answer; for a page the user names, use getAssetPage, and for the list of assets, listRepositoryAssets. Only ready assets are searchable: the result names repositories with assets still being prepared or that failed, and the answer may be in those, so tell the user.",
-		inputSchema: z.strictObject({
-			query: searchQuerySchema
-				.min(2)
-				.optional()
-				.describe(
-					"What to search for, as one focused phrase or question rather than a rewritten paragraph.",
-				),
-			queryVariants: z
-				.array(
-					searchQuerySchema
-						.min(2)
-						.describe("Another short wording of the same search."),
-				)
-				.max(SEARCH_QUERIES_MAX - 1)
-				.optional()
-				.describe(
-					"Other wordings of the same search, only for synonyms or names the query may miss.",
-				),
-			assetIds: z
-				.array(assetIdSchema)
-				.max(20)
-				.optional()
-				.describe(
-					"Ids of the assets to search, from listRepositoryAssets. Leave it out to search every asset.",
-				),
-			blockId: blockIdSchema
-				.optional()
-				.describe(
-					"Id of the one repository to search. Leave it out to search all of them.",
-				),
-		}),
+		inputSchema: searchRepositoriesInputSchema,
 		run: ({ query, queryVariants, assetIds, blockId }) =>
 			Effect.gen(function* () {
 				const procedures = yield* Procedures;

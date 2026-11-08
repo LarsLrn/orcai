@@ -6,7 +6,10 @@ import {
 	capitalsAnswers,
 	capitalsQuiz,
 } from "@/lib/ai/tools/questions/fixtures";
-import { gradeQuiz } from "@/lib/ai/tools/questions/quiz-result";
+import {
+	gradeQuiz,
+	type QuizGrading,
+} from "@/lib/ai/tools/questions/quiz-result";
 import { askUserMarkdown } from "@/lib/ai/tools/questions/to-markdown";
 import { type MessageView, turnView } from "@/lib/ai/turn-view/turn-view";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
@@ -55,7 +58,7 @@ describe("messageToMarkdown", () => {
 			input: capitalsQuiz,
 			output: capitalsAnswers,
 		};
-		const graded = gradeQuiz(quiz, {
+		const grading = {
 			results: [
 				{
 					question: 1,
@@ -70,7 +73,8 @@ describe("messageToMarkdown", () => {
 					verdict: "incorrect",
 				},
 			],
-		});
+		} satisfies QuizGrading;
+		const graded = gradeQuiz(quiz, grading);
 		const result = graded.ok ? graded.result : undefined;
 
 		expect(
@@ -89,9 +93,7 @@ describe("messageToMarkdown", () => {
 						type: "tool-showQuizResult",
 						toolCallId: "result-1",
 						state: "output-available",
-						input: {
-							results: [],
-						},
+						input: grading,
 						output: result,
 					},
 					text("Well done."),

@@ -1,7 +1,17 @@
+import { organizationInvitationIdSchema } from "@orcai/schema";
 import { MailXIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { cancelInvitationTool } from "./cancel-invitation";
+
+export const cancelInvitationInputSchema = z.strictObject({
+	ids: z
+		.array(organizationInvitationIdSchema)
+		.min(1)
+		.max(20)
+		.describe("Ids of the invitations to withdraw, from listInvitations."),
+});
 
 export const cancelInvitation = declareTool<typeof cancelInvitationTool>()({
 	kind: "change",
@@ -10,6 +20,7 @@ export const cancelInvitation = declareTool<typeof cancelInvitationTool>()({
 		"invite_members",
 	],
 	confirm: "withdraw",
+	inputSchema: cancelInvitationInputSchema,
 	icon: MailXIcon,
 	name: () => m.assistant_tool_cancel_invitation_name(),
 	active: () => m.assistant_tool_cancel_invitation_active(),

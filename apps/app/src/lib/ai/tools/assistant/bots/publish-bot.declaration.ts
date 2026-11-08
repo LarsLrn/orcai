@@ -1,13 +1,17 @@
+import { publishBotInputSchema } from "@orcai/schema";
 import { RocketIcon } from "lucide-react";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import { CONTENT_CAPABILITIES } from "../capabilities";
 import type { publishBotTool } from "./publish-bot";
 
+export const publishBotToolInputSchema = publishBotInputSchema.strict();
+
 export const publishBot = declareTool<typeof publishBotTool>()({
 	kind: "change",
 	group: "bots",
 	capabilities: CONTENT_CAPABILITIES,
+	inputSchema: publishBotToolInputSchema,
 	icon: RocketIcon,
 	name: () => m.assistant_tool_publish_bot_name(),
 	active: () => m.assistant_tool_publish_bot_active(),

@@ -10,11 +10,13 @@ import {
 	ASSISTANT_TOOL_GROUPS,
 	type AssistantToolName,
 	type CapabilitySet,
-	DEFERRED_TOOL_GROUPS,
 	DEFERRED_TOOL_NAMES,
-	type DeferredToolGroup,
 	offeredToolGroups,
 } from "@/lib/ai/tools/assistant/groups";
+import {
+	DEFERRED_TOOL_GROUPS,
+	type DeferredToolGroup,
+} from "@/lib/ai/tools/declaration";
 import { createAssistantSession } from "./assistant-session";
 
 const viewer: CapabilitySet = {

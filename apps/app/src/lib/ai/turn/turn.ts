@@ -51,7 +51,6 @@ import {
 	toChatAgentMessages,
 	toChatAgentParts,
 } from "@/lib/ai/types/chat-agent-message";
-import { closeInvalidToolParts } from "@/lib/ai/utils/close-invalid-tool-parts";
 import {
 	closeLastReply,
 	closeRunningToolParts,
@@ -710,15 +709,10 @@ export const startTurn = (
 			runningCallsWait: yield* RunningCallsWait,
 		});
 		const { closedHistory, closedReply } = closeLastReply(history, agent.tools);
-		const messages = yield* Effect.promise(() =>
-			closeInvalidToolParts(
-				[
-					...closedHistory,
-					question as ChatAgentUIMessage,
-				],
-				agent.tools,
-			),
-		);
+		const messages = [
+			...closedHistory,
+			question as ChatAgentUIMessage,
+		];
 
 		const prompt = yield* readForFit({
 			messages,
@@ -909,11 +903,8 @@ export const continueTurn = (
 							: (claimed.metadata.zedToken ?? turnStartToken(input)),
 					runningCallsWait: yield* RunningCallsWait,
 				});
-				const messages = yield* Effect.promise(() =>
-					closeInvalidToolParts(history, agent.tools),
-				);
 				const prompt = yield* readForFit({
-					messages,
+					messages: history,
 					budget: setup.budget,
 					compaction: setup.compaction,
 					read: attachmentReader({
@@ -934,7 +925,7 @@ export const continueTurn = (
 					input,
 					setup,
 					replyId: input.replyId,
-					messages,
+					messages: history,
 					prompt,
 					// The summary is a reply's first part, which a continued reply has already written.
 					fit: {

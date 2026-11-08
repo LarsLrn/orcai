@@ -1,10 +1,4 @@
-import {
-	assetFieldsSchema,
-	assetIdSchema,
-	metadataSchema,
-} from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import {
 	type AssistantToolDeps,
@@ -12,20 +6,7 @@ import {
 	expectType,
 	mutation,
 } from "../procedure-tool";
-
-const assetMetadataPatchSchema = metadataSchema.partial().strict();
-
-const updateAssetInputSchema = z.strictObject({
-	id: assetIdSchema.describe("Id of the asset, from findAssets."),
-	title: assetFieldsSchema.shape.title
-		.optional()
-		.describe("Leave out to keep the current title."),
-	metadata: assetMetadataPatchSchema
-		.optional()
-		.describe(
-			"Only the metadata fields to change; the others keep their values.",
-		),
-});
+import { updateAssetInputSchema } from "./update-asset.declaration";
 
 export const updateAssetTool = (deps: AssistantToolDeps) =>
 	effectTool({

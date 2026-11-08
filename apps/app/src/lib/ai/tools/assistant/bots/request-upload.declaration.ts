@@ -1,10 +1,30 @@
+import { uploadedAssetSchema } from "@orcai/schema";
 import { UploadIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
-import {
-	requestUploadOutputSchema,
-	type requestUploadTool,
-} from "./request-upload";
+import type { requestUploadTool } from "./request-upload";
+
+export const requestUploadInputSchema = z.strictObject({
+	reason: z
+		.string()
+		.min(1)
+		.describe(
+			"One line shown above the upload field, such as: Upload the style guides for the repository 'APA rules'.",
+		),
+});
+
+export const requestUploadOutputSchema = z.discriminatedUnion("status", [
+	z.object({
+		status: z.literal("saved"),
+		assets: z.array(uploadedAssetSchema).min(1),
+	}),
+	z.object({
+		status: z.literal("cancelled"),
+	}),
+]);
+
+export type RequestUploadOutput = z.infer<typeof requestUploadOutputSchema>;
 
 export const requestUpload = declareTool<typeof requestUploadTool>()({
 	kind: "client",
@@ -12,6 +32,7 @@ export const requestUpload = declareTool<typeof requestUploadTool>()({
 	capabilities: [
 		"create_asset",
 	],
+	inputSchema: requestUploadInputSchema,
 	outputSchema: requestUploadOutputSchema,
 	icon: UploadIcon,
 	name: () => m.assistant_tool_request_upload_name(),
@@ -29,8 +50,6 @@ export const requestUpload = declareTool<typeof requestUploadTool>()({
 	},
 });
 
-/** The assets a saved upload lists under its summary line; none for an output that does not fit. */
-export const uploadedAssets = (output: unknown) => {
-	const parsed = requestUploadOutputSchema.safeParse(output).data;
-	return parsed?.status === "saved" ? parsed.assets : [];
-};
+/** The assets a saved upload lists under its summary line. */
+export const uploadedAssets = (output: RequestUploadOutput | undefined) =>
+	output?.status === "saved" ? output.assets : [];

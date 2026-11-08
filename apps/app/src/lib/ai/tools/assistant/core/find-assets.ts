@@ -1,30 +1,8 @@
-import { assetKeptInSchema, blockIdSchema } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import { type AssistantToolDeps, callProcedure } from "../procedure-tool";
-import {
-	listPage,
-	listPageSchema,
-	listPaging,
-	listQuerySchema,
-	PAGING_NOTE,
-} from "./list-input";
-
-const findAssetsInputSchema = z.strictObject({
-	query: listQuerySchema.describe(
-		"Part of the title to search for, case-insensitive.",
-	),
-	repositoryId: blockIdSchema
-		.optional()
-		.describe("Only assets attached to this repository, from findBlocks."),
-	keptIn: assetKeptInSchema
-		.optional()
-		.describe(
-			"library: Library assets only, the ones a repository accepts. chat: chat uploads only. Leave out for both.",
-		),
-	page: listPageSchema,
-});
+import { findAssetsInputSchema } from "./find-assets.declaration";
+import { listPage, listPaging, PAGING_NOTE } from "./list-input";
 
 export const findAssetsTool = (deps: AssistantToolDeps) =>
 	effectTool({

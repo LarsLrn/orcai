@@ -1,11 +1,19 @@
 import { UsersIcon } from "lucide-react";
+import { z } from "zod/v4";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
 import type { listGroupsTool } from "./list-groups";
+import { listPageSchema, listQuerySchema } from "./list-input";
+
+export const listGroupsInputSchema = z.strictObject({
+	query: listQuerySchema,
+	page: listPageSchema,
+});
 
 export const listGroups = declareTool<typeof listGroupsTool>()({
 	kind: "read",
 	group: "core",
+	inputSchema: listGroupsInputSchema,
 	icon: UsersIcon,
 	name: () => m.assistant_tool_list_groups_name(),
 	active: () => m.assistant_tool_list_groups_active(),

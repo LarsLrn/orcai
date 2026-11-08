@@ -1,7 +1,22 @@
+import { listGroupMembersInputSchema as groupMembersQuerySchema } from "@orcai/schema";
 import { UsersRoundIcon } from "lucide-react";
 import { declareTool } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
+import { listPageSchema } from "../core/list-input";
 import type { listGroupMembersTool } from "./list-group-members";
+
+export const listGroupMembersInputSchema = groupMembersQuerySchema
+	.pick({
+		groupId: true,
+		query: true,
+	})
+	.extend({
+		query: groupMembersQuerySchema.shape.query.describe(
+			"Part of the name or email to search for, case-insensitive.",
+		),
+		page: listPageSchema,
+	})
+	.strict();
 
 export const listGroupMembers = declareTool<typeof listGroupMembersTool>()({
 	kind: "read",
@@ -9,6 +24,7 @@ export const listGroupMembers = declareTool<typeof listGroupMembersTool>()({
 	capabilities: [
 		"manage_groups",
 	],
+	inputSchema: listGroupMembersInputSchema,
 	icon: UsersRoundIcon,
 	name: () => m.assistant_tool_list_group_members_name(),
 	active: () => m.assistant_tool_list_group_members_active(),

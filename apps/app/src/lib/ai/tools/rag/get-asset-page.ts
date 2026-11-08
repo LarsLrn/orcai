@@ -1,9 +1,9 @@
-import { assetIdSchema, blockIdSchema, type Repository } from "@orcai/schema";
+import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import z from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
+import { getAssetPageInputSchema } from "./get-asset-page.declaration";
 import { pageModelOutput } from "./outputs";
 import { neighbouringRuns } from "./passages";
 import type { Passage, RepositoryAsset } from "./types";
@@ -27,39 +27,7 @@ export const getAssetPageTool = ({
 	effectTool({
 		description:
 			"Read the passages on a page of an asset, and optionally the pages around it. Use it when the user asks about a page. Pass assetId when you know it, or else assetTitleQuery with words from the title; with neither, it reads the page in up to five assets. When the page has no text, the result lists the matching assets instead, so you can pick another.",
-		inputSchema: z.strictObject({
-			page: z.coerce
-				.number()
-				.int()
-				.min(1)
-				.describe("The page number, counting from 1."),
-			blockId: blockIdSchema
-				.optional()
-				.describe(
-					"Id of the one repository to read from. Leave it out to read from all of them.",
-				),
-			assetId: assetIdSchema
-				.optional()
-				.describe("Id of the asset, from listRepositoryAssets."),
-			assetTitleQuery: z
-				.string()
-				.optional()
-				.describe("Words from the asset's title, when you do not know its id."),
-			includeAdjacentPages: z.coerce
-				.number()
-				.int()
-				.min(0)
-				.max(2)
-				.default(0)
-				.describe("How many pages before and after the page to read as well."),
-			limit: z.coerce
-				.number()
-				.int()
-				.min(1)
-				.max(30)
-				.default(12)
-				.describe("The most passages to return."),
-		}),
+		inputSchema: getAssetPageInputSchema,
 		run: ({
 			page,
 			blockId,

@@ -1,12 +1,14 @@
 import { ListTodoIcon } from "lucide-react";
 import { declareTool, formatNames } from "@/lib/ai/tools/declaration";
 import { m } from "@/paraglide/messages";
+import { planSchema } from "./plan";
 import { planTally } from "./plan-tally";
 import type { updatePlanTool } from "./update-plan";
 
 export const updatePlan = declareTool<typeof updatePlanTool>()({
 	kind: "plan",
 	group: "core",
+	inputSchema: planSchema,
 	icon: ListTodoIcon,
 	name: () => m.assistant_tool_update_plan_name(),
 	active: () => m.assistant_tool_update_plan_active(),
