@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import {
 	type ActivityRunId,
@@ -129,6 +129,8 @@ let boss: PgBoss;
 beforeAll(async () => {
 	boss = await runtime.runPromise(PgBossService.useSync(({ boss }) => boss));
 });
+// A test that stops early leaves its preparation job, which the next request would join.
+afterEach(() => boss.deleteAllJobs(PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME));
 afterAll(() => embeddings.stop(true));
 
 type Link = {
@@ -390,22 +392,28 @@ const vectorize = (
 		} as Job<VectorizeAssetPayload>),
 	);
 
+/** An index of the test's own, set up before its tests so its collection is created there. */
+const configuredIndex = () =>
+	testEmbeddingIndex({
+		baseUrl: `${embeddings.url.origin}/v1`,
+		model: "integration",
+		dimensions: DIMENSIONS,
+	});
+
 const indexes = {
+	// Shared by the tests that keep its generation, each confined to its own links.
+	configured: await configuredIndex(),
 	waiting: await testEmbeddingIndex(),
 	racing: await testEmbeddingIndex(),
 	legacy: await testEmbeddingIndex(),
-	undescribed: await testEmbeddingIndex(),
-	wiped: await testEmbeddingIndex(),
-	switched: await testEmbeddingIndex(),
-	retried: await testEmbeddingIndex(),
+	wiped: await configuredIndex(),
+	switched: await configuredIndex(),
+	retried: await configuredIndex(),
 	failedBefore: await testEmbeddingIndex(),
-	racingFlag: await testEmbeddingIndex(),
-	preparedAgain: await testEmbeddingIndex(),
-	preparedWhileSwitching: await testEmbeddingIndex(),
-	preparedInBackground: await testEmbeddingIndex(),
-	preparedTogether: await testEmbeddingIndex(),
-	preparedJoined: await testEmbeddingIndex(),
-	preparedBesidePersonal: await testEmbeddingIndex(),
+	racingFlag: await configuredIndex(),
+	preparedWhileSwitching: await configuredIndex(),
+	preparedInBackground: await configuredIndex(),
+	preparedBesidePersonal: await configuredIndex(),
 };
 
 /** The rebuild flag as stored, before any derivation. */
@@ -574,6 +582,9 @@ test(
 								distance: "Cosine",
 							},
 						},
+						optimizers_config: {
+							default_segment_number: 1,
+						},
 					}),
 				);
 				const { blockAsset } = dbSchema;
@@ -610,7 +621,7 @@ test(
 test(
 	"an extraction older than image descriptions fails its link as missing, and Prepare again prepares the file again",
 	async () => {
-		const index = indexes.undescribed;
+		const index = indexes.configured;
 		const link = await seed({
 			content: "Refunds rose in February.",
 			images: [
@@ -621,7 +632,6 @@ test(
 				} as StoredExtractionArtifact["images"][number],
 			],
 		});
-		await configure(index, link);
 		await on(index, link, reconcileEmbeddings);
 		const [job] = await jobsOf(link);
 		const before = await processingOf(link);
@@ -657,7 +667,6 @@ test(
 	async () => {
 		const index = indexes.wiped;
 		const link = await seed();
-		await configure(index, link);
 		const settings = await on(index, link, embeddingSettings);
 		await runtime.runPromise(
 			Effect.gen(function* () {
@@ -687,7 +696,6 @@ test(
 			await seed(),
 		];
 		const [indexed, inFlight] = links;
-		await configure(index, links);
 		const before = await on(index, links, embeddingSettings);
 		await on(index, links, reconcileEmbeddings);
 		const [indexedJob] = await jobsOf(indexed);
@@ -769,7 +777,6 @@ test(
 				);
 			}),
 		);
-		await configure(index, links);
 		await on(index, links, reconcileEmbeddings);
 		await settle(embedded, "completed");
 		await settle(broken, "failed", "other");
@@ -888,7 +895,6 @@ test(
 	async () => {
 		const index = indexes.racingFlag;
 		const link = await seed();
-		await configure(index, link);
 		await on(index, link, reconcileEmbeddings);
 		await settle(link, "completed");
 		const generation = Number(await generationOf(index, link));
@@ -988,7 +994,7 @@ const processingOf = (link: Link) =>
 test(
 	"Prepare again queues each asset missing its stored extraction in the active generation once, also under a double click, and indexes it again in every repository",
 	async () => {
-		const index = indexes.preparedAgain;
+		const index = indexes.configured;
 		const missing = await seed();
 		const embeddedElsewhere = await linkAgain(missing);
 		const other = await seed();
@@ -999,7 +1005,6 @@ test(
 			other,
 			earlier,
 		];
-		await configure(index, links);
 		await on(index, links, reconcileEmbeddings);
 		await settle(missing, "failed", "missing_extraction");
 		await settle(embeddedElsewhere, "completed");
@@ -1073,7 +1078,6 @@ test(
 	async () => {
 		const index = indexes.preparedWhileSwitching;
 		const link = await seed();
-		await configure(index, link);
 		await on(index, link, reconcileEmbeddings);
 		await settle(link, "failed", "missing_extraction");
 		const before = await processingOf(link);
@@ -1114,7 +1118,6 @@ test(
 			missing,
 			embeddedElsewhere,
 		];
-		await configure(index, links);
 		const settings = await on(index, links, embeddingSettings);
 		await on(index, links, reconcileEmbeddings);
 		const [job] = await jobsOf(embeddedElsewhere);
@@ -1239,9 +1242,8 @@ test(
 test(
 	"simultaneous requests to prepare again join one run: one job waits for both, and a request while it runs queues it once more for the same run",
 	async () => {
-		const index = indexes.preparedTogether;
+		const index = indexes.configured;
 		const link = await seed();
-		await configure(index, link);
 		await on(index, link, reconcileEmbeddings);
 		await settle(link, "failed", "missing_extraction");
 		const [first, second] = await Promise.all([
@@ -1313,9 +1315,8 @@ test(
 test(
 	"a request after the job queued the assets joins its run until their preparation is done",
 	async () => {
-		const index = indexes.preparedJoined;
+		const index = indexes.configured;
 		const link = await seed();
-		await configure(index, link);
 		await on(index, link, reconcileEmbeddings);
 		await settle(link, "failed", "missing_extraction");
 		const [first, second] = await Promise.all([
@@ -1369,7 +1370,6 @@ test(
 	async () => {
 		const index = indexes.preparedBesidePersonal;
 		const link = await seed();
-		await configure(index, link);
 		await on(index, link, reconcileEmbeddings);
 		await settle(link, "failed", "missing_extraction");
 		const personal = await runtime.runPromise(
