@@ -82,8 +82,16 @@ export const assetPointSchema = z.object({
 		.optional(),
 });
 
+/** The wordings of one search: a query and up to four variants. */
+export const SEARCH_QUERIES_MAX = 5;
+/** Far above a focused phrase, well within what an embedding model takes. */
+export const SEARCH_QUERY_MAX_LENGTH = 1000;
+
+/** One wording of a search. */
+export const searchQuerySchema = z.string().max(SEARCH_QUERY_MAX_LENGTH);
+
 export const assetPointsFiltersSchema = z.object({
-	queries: z.array(z.string()).optional(),
+	queries: z.array(searchQuerySchema).max(SEARCH_QUERIES_MAX).optional(),
 	pointIds: z.array(assetPointSchema.shape.id).optional(),
 	assetIds: z.array(assetPointSchema.shape.id).optional(),
 	limit: z.number().int().min(1).optional(),

@@ -3,6 +3,7 @@ import { assetIdSchema, blockIdSchema } from "../shared/ids";
 import {
 	assetPointBrowseCursorSchema,
 	assetPointsFiltersSchema,
+	SEARCH_QUERIES_MAX,
 } from "./schema";
 
 export const searchRepositoryAssetPointsInputSchema = z.object({
@@ -10,6 +11,29 @@ export const searchRepositoryAssetPointsInputSchema = z.object({
 	filters: assetPointsFiltersSchema.omit({
 		blockId: true,
 	}),
+});
+
+/**
+ * Several repository searches answered together, one per repository, their
+ * queries embedded once: at most `SEARCH_QUERIES_MAX` distinct wordings in
+ * all, as one search takes.
+ */
+export const searchRepositoriesAssetPointsInputSchema = z.object({
+	searches: z
+		.array(searchRepositoryAssetPointsInputSchema)
+		.min(1)
+		.refine(
+			(searches) =>
+				new Set(searches.map(({ repositoryId }) => repositoryId)).size ===
+				searches.length,
+			"Each repository can be searched once per request.",
+		)
+		.refine(
+			(searches) =>
+				new Set(searches.flatMap(({ filters }) => filters.queries ?? []))
+					.size <= SEARCH_QUERIES_MAX,
+			`The searches can share at most ${SEARCH_QUERIES_MAX} distinct wordings.`,
+		),
 });
 
 /**

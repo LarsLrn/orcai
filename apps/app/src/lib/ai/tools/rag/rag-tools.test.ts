@@ -105,15 +105,19 @@ afterEach(resetProcedures);
 
 describe("searchRepositories", () => {
 	test("returns the full text of each passage", async () => {
-		answers["assetPoint.searchRepository"] = () =>
+		answers["assetPoint.searchRepositories"] = () =>
 			Effect.succeed({
-				data: [
-					assetPoint({
-						id: "c9",
-						index: 9,
-						text: longText,
-					}),
-				] satisfies AssetPoint[],
+				results: [
+					{
+						data: [
+							assetPoint({
+								id: "c9",
+								index: 9,
+								text: longText,
+							}),
+						] satisfies AssetPoint[],
+					},
+				],
 			});
 
 		const output = await searchRepositoriesTool(deps).execute?.(
@@ -135,6 +139,56 @@ describe("searchRepositories", () => {
 			longText,
 		]);
 	});
+	test("searches every repository in one request, however many there are", async () => {
+		const blocks = Array.from(
+			{
+				length: 150,
+			},
+			(_, index) => ({
+				id: `block-${index}`,
+				name: `Repository ${index}`,
+				config: {},
+			}),
+		) as unknown as Repository[];
+		answers["assetPoint.searchRepositories"] = ({
+			searches,
+		}: {
+			searches: unknown[];
+		}) =>
+			Effect.succeed({
+				results: searches.map(() => ({
+					data: [],
+				})),
+			});
+
+		await searchRepositoriesTool({
+			...deps,
+			blocks,
+		}).execute?.(
+			{
+				query: "refund policy",
+			},
+			options,
+		);
+
+		const searches = procedureCalls.filter(
+			({ procedure }) => procedure === "assetPoint.searchRepositories",
+		);
+		expect(searches).toHaveLength(1);
+		const [{ input }] = searches as unknown as [
+			{
+				input: {
+					searches: {
+						repositoryId: string;
+					}[];
+				};
+			},
+		];
+		expect(input.searches.map(({ repositoryId }) => repositoryId)).toEqual(
+			blocks.map(({ id }) => id),
+		);
+	});
+
 	test("shows the repository's selection in its order, recalled for more than it shows", async () => {
 		const selected = [
 			...[
@@ -161,9 +215,13 @@ describe("searchRepositories", () => {
 				score: 0.6 - index / 100,
 			})),
 		];
-		answers["assetPoint.searchRepository"] = () =>
+		answers["assetPoint.searchRepositories"] = () =>
 			Effect.succeed({
-				data: selected,
+				results: [
+					{
+						data: selected,
+					},
+				],
 			});
 
 		const output = await searchRepositoriesTool(deps).execute?.(
@@ -190,10 +248,14 @@ describe("searchRepositories", () => {
 			"b1",
 		]);
 		expect(procedureCalls[0]?.input).toMatchObject({
-			filters: {
-				limit: 6,
-				recallLimit: 36,
-			},
+			searches: [
+				{
+					filters: {
+						limit: 6,
+						recallLimit: 36,
+					},
+				},
+			],
 		});
 	});
 });

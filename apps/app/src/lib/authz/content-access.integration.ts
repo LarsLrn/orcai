@@ -200,6 +200,7 @@ const sharedRepository = async () => {
 			visibility,
 			blockFind,
 			search,
+			searchMany,
 			browse,
 			assetFind,
 			download,
@@ -261,6 +262,23 @@ const sharedRepository = async () => {
 				),
 			),
 			read((options) =>
+				procedures.assetPoint.searchRepositories(
+					{
+						searches: [
+							{
+								repositoryId: repository.id,
+								filters: {
+									assetIds: [
+										crypto.randomUUID(),
+									],
+								},
+							},
+						],
+					},
+					options,
+				),
+			),
+			read((options) =>
 				procedures.assetPoint.browseRepository(
 					{
 						repositoryId: repository.id,
@@ -296,6 +314,7 @@ const sharedRepository = async () => {
 			block: {
 				find: blockFind,
 				search,
+				searchMany,
 				browse,
 			},
 			asset: {
@@ -424,6 +443,7 @@ const found = {
 	block: {
 		find: undefined,
 		search: undefined,
+		searchMany: undefined,
 		browse: undefined,
 	},
 	asset: {
@@ -442,6 +462,7 @@ const missing = {
 	block: {
 		find: "NotFoundError",
 		search: "NotFoundError",
+		searchMany: "NotFoundError",
 		browse: "NotFoundError",
 	},
 	asset: {

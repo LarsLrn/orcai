@@ -51,6 +51,7 @@ const OUTSIDE_ORGANIZATION = new Set([
 	"asset.prepareAgain",
 	"asset.save",
 	"assetPoint.browseRepository",
+	"assetPoint.searchRepositories",
 	"assetPoint.searchRepository",
 	"block.delete",
 	"block.prepareAssetAgain",
