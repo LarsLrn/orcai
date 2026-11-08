@@ -1,3 +1,4 @@
+import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { liveJobs } from "@orcai/pg-boss";
 import { activeGeneration } from "@orcai/qdrant";
@@ -15,125 +16,265 @@ import {
 	VECTORIZE_ASSET_JOB_NAME,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { waitingRun } from "./activity";
 import {
 	failStrandedIndexing,
 	failStrandedMetadata,
 	failStrandedProcessing,
+	type IndexingAttempt,
 	indexingAttempt,
+	type MetadataAttempt,
+	type ProcessingAttempt,
 	processingAttempt,
 	unfinished,
 } from "./attempt";
 import { JOB_LEASE } from "./runs";
 
-const PROCESSING = new Set<JobQueue>([
+const PROCESSING_QUEUES: readonly JobQueue[] = [
 	PROCESS_ASSET_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
-]);
-const INDEXING = new Set<JobQueue>([
+];
+const INDEXING_QUEUES: readonly JobQueue[] = [
 	VECTORIZE_ASSET_JOB_NAME,
 	VECTORIZE_ASSET_DEAD_LETTER_JOB_NAME,
-]);
-const METADATA = new Set<JobQueue>([
+];
+const METADATA_QUEUES: readonly JobQueue[] = [
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	GENERATE_ASSET_METADATA_DEAD_LETTER_JOB_NAME,
-]);
+];
 
-const processingKey = (attempt: { assetId: string; generation: number }) =>
-	`processing:${attempt.assetId}:${attempt.generation}`;
-const indexingKey = (attempt: {
-	assetId: string;
-	blockId: string;
-	attempt: number;
-}) => `indexing:${attempt.assetId}:${attempt.blockId}:${attempt.attempt}`;
-const metadataKey = (attempt: { assetId: string; generation: number }) =>
-	`metadata:${attempt.assetId}:${attempt.generation}`;
+/** Where a pass of the sweep goes on reading each stage; a stage read to its end is absent. */
+export type SweepCursor = {
+	readonly processing?: {
+		readonly after?: AssetId;
+	};
+	readonly metadata?: {
+		readonly after?: AssetId;
+	};
+	readonly indexing?: {
+		readonly after?: {
+			readonly assetId: AssetId;
+			readonly blockId: BlockId;
+		};
+	};
+};
 
-const jobKey = (job: { name: JobQueue; data: unknown }) =>
-	PROCESSING.has(job.name)
-		? processingKey(processingAttempt(job.data as ProcessAssetPayload))
-		: INDEXING.has(job.name)
-			? indexingKey(indexingAttempt(job.data as VectorizeAssetPayload))
-			: metadataKey(job.data as GenerateAssetMetadataPayload);
+export const SWEEP_START: SweepCursor = {
+	processing: {},
+	metadata: {},
+	indexing: {},
+};
+
+/** Candidates per stage in one batch of the sweep. */
+const SWEEP_BATCH = 1000;
+
+/** Unfinished stages at the attempts the sweep read them on. */
+export type StageAttempts = {
+	readonly processing: readonly ProcessingAttempt[];
+	readonly indexing: readonly IndexingAttempt[];
+	readonly metadata: readonly MetadataAttempt[];
+};
 
 /**
- * The stages still pending or active that no job will deliver again: their
- * job ran out of retries and its dead letter handler failed too, or retention
- * removed it. Links wait for the embedding setup and for processing without a
- * job, so only links of processed assets in the active generation count.
+ * The batch of stages after `cursor` still pending or active. Links wait for
+ * the embedding setup and for processing without a job, so only links of
+ * processed assets in the active generation count. `next` is where the
+ * following batch starts, absent after the last.
  */
-export const strandedStages = Effect.gen(function* () {
-	const db = yield* DB;
-	const { asset, blockAsset } = dbSchema;
+export const unfinishedStages = (cursor: SweepCursor, limit = SWEEP_BATCH) =>
+	Effect.gen(function* () {
+		const db = yield* DB;
+		const { asset, blockAsset } = dbSchema;
 
-	// Stages before jobs: a job sent with a stage read here is still live
-	// when the jobs are read, or its stage is no longer unfinished.
-	const processing = yield* db
-		.select({
-			assetId: asset.id,
-			generation: asset.processingGeneration,
-		})
-		.from(asset)
-		.where(unfinished(asset.processingStatus));
-	const metadata = yield* db
-		.select({
-			assetId: asset.id,
-			generation: asset.metadataGeneration,
-		})
-		.from(asset)
-		.where(unfinished(asset.metadataStatus));
-	const generation = yield* activeGeneration;
-	const indexing =
-		generation === undefined
-			? []
-			: yield* db
+		const processing = cursor.processing
+			? yield* db
 					.select({
-						assetId: blockAsset.assetId,
-						blockId: blockAsset.blockId,
-						attempt: blockAsset.indexAttempt,
+						assetId: asset.id,
+						generation: asset.processingGeneration,
 					})
-					.from(blockAsset)
-					.innerJoin(asset, eq(asset.id, blockAsset.assetId))
+					.from(asset)
 					.where(
 						and(
-							unfinished(blockAsset.indexStatus),
-							eq(blockAsset.embeddingGeneration, generation),
-							eq(asset.processingStatus, "completed"),
+							unfinished(asset.processingStatus),
+							cursor.processing.after
+								? gt(asset.id, cursor.processing.after)
+								: undefined,
 						),
-					);
-	if (processing.length + metadata.length + indexing.length === 0) {
+					)
+					.orderBy(asc(asset.id))
+					.limit(limit)
+			: [];
+		const metadata = cursor.metadata
+			? yield* db
+					.select({
+						assetId: asset.id,
+						generation: asset.metadataGeneration,
+					})
+					.from(asset)
+					.where(
+						and(
+							unfinished(asset.metadataStatus),
+							cursor.metadata.after
+								? gt(asset.id, cursor.metadata.after)
+								: undefined,
+						),
+					)
+					.orderBy(asc(asset.id))
+					.limit(limit)
+			: [];
+		const generation = cursor.indexing ? yield* activeGeneration : undefined;
+		const linksAfter = cursor.indexing?.after;
+		const indexing =
+			generation === undefined
+				? []
+				: yield* db
+						.select({
+							assetId: blockAsset.assetId,
+							blockId: blockAsset.blockId,
+							attempt: blockAsset.indexAttempt,
+						})
+						.from(blockAsset)
+						.innerJoin(asset, eq(asset.id, blockAsset.assetId))
+						.where(
+							and(
+								unfinished(blockAsset.indexStatus),
+								eq(blockAsset.embeddingGeneration, generation),
+								eq(asset.processingStatus, "completed"),
+								linksAfter
+									? sql`(${blockAsset.assetId}, ${blockAsset.blockId}) > (${linksAfter.assetId}, ${linksAfter.blockId})`
+									: undefined,
+							),
+						)
+						.orderBy(asc(blockAsset.assetId), asc(blockAsset.blockId))
+						.limit(limit);
+
+		const full = <A>(rows: readonly A[]) =>
+			rows.length > 0 && rows.length === limit;
+		const next: SweepCursor = {
+			processing: full(processing)
+				? {
+						after: processing[processing.length - 1].assetId,
+					}
+				: undefined,
+			metadata: full(metadata)
+				? {
+						after: metadata[metadata.length - 1].assetId,
+					}
+				: undefined,
+			indexing: full(indexing)
+				? {
+						after: {
+							assetId: indexing[indexing.length - 1].assetId,
+							blockId: indexing[indexing.length - 1].blockId,
+						},
+					}
+				: undefined,
+		};
 		return {
 			processing,
 			indexing,
 			metadata,
+			next:
+				next.processing || next.metadata || next.indexing ? next : undefined,
 		};
-	}
+	});
 
-	const live = new Set(
-		(yield* liveJobs([
-			...PROCESSING,
-			...INDEXING,
-			...METADATA,
-		])).map(jobKey),
-	);
+/** The attempts no job in `queues` is left for, matched on the payload fields at `paths`. */
+const withoutJob = <A, P>(
+	attempts: readonly A[],
+	queues: readonly JobQueue[],
+	paths: readonly (readonly string[])[],
+	fields: (attempt: A) => readonly string[],
+	attemptOf: (payload: P) => A,
+) =>
+	Effect.gen(function* () {
+		const jobs = yield* liveJobs<P>(queues, {
+			paths,
+			values: attempts.map(fields),
+		});
+		const key = (attempt: A) => fields(attempt).join(":");
+		const live = new Set(jobs.map((job) => key(attemptOf(job.data))));
+		return attempts.filter((attempt) => !live.has(key(attempt)));
+	});
 
-	return {
-		processing: processing.filter((stage) => !live.has(processingKey(stage))),
-		indexing: indexing.filter((stage) => !live.has(indexingKey(stage))),
-		metadata: metadata.filter((stage) => !live.has(metadataKey(stage))),
-	};
-});
+const generationFields = (attempt: { assetId: string; generation: number }) => [
+	attempt.assetId,
+	String(attempt.generation),
+];
 
-export type StrandedStages = Effect.Success<typeof strandedStages>;
+/**
+ * The stages no job will deliver again: their job ran out of retries and its
+ * dead letter handler failed too, or retention removed it. Read the stages
+ * first: a job sent for a stage read before is live now, or its stage is no
+ * longer unfinished.
+ */
+export const withoutLiveJobs = (stages: StageAttempts) =>
+	Effect.gen(function* () {
+		const processing = yield* withoutJob(
+			stages.processing,
+			PROCESSING_QUEUES,
+			[
+				[
+					"assetRef",
+					"id",
+				],
+				[
+					"generation",
+				],
+			],
+			generationFields,
+			(payload: ProcessAssetPayload) => processingAttempt(payload),
+		);
+		const indexing = yield* withoutJob(
+			stages.indexing,
+			INDEXING_QUEUES,
+			[
+				[
+					"assetId",
+				],
+				[
+					"blockId",
+				],
+				[
+					"attempt",
+				],
+			],
+			(attempt) => [
+				attempt.assetId,
+				attempt.blockId,
+				String(attempt.attempt),
+			],
+			(payload: VectorizeAssetPayload) => indexingAttempt(payload),
+		);
+		const metadata = yield* withoutJob(
+			stages.metadata,
+			METADATA_QUEUES,
+			[
+				[
+					"assetId",
+				],
+				[
+					"generation",
+				],
+			],
+			generationFields,
+			(payload: GenerateAssetMetadataPayload): MetadataAttempt => payload,
+		);
+		return {
+			processing,
+			indexing,
+			metadata,
+		} satisfies StageAttempts;
+	});
 
 /**
  * Fails each stranded stage still on the attempt it was read on, with the
  * kind its attempt recorded, else `other`, so a person can prepare it again,
  * and its run's member with it. Returns how many it failed.
  */
-export const failStrandedStages = (stages: StrandedStages) =>
+export const failStrandedStages = (stages: StageAttempts) =>
 	Effect.gen(function* () {
 		const failed = yield* Effect.all([
 			Effect.forEach(stages.processing, (stage) =>
@@ -177,17 +318,28 @@ export const failStrandedStages = (stages: StrandedStages) =>
 				),
 			),
 		]);
-		const count = failed.flat().filter(Boolean).length;
-		if (count > 0) {
-			yield* Effect.logWarning(
-				{
-					failed: count,
-				},
-				"Failed preparation stages no job will deliver again",
-			);
-		}
-		return count;
+		return failed.flat().filter(Boolean).length;
 	});
+
+/** Fails the stranded stages batch by batch, each batch read before it is failed. */
+const sweepStrandedStages = Effect.gen(function* () {
+	let cursor: SweepCursor | undefined = SWEEP_START;
+	let failed = 0;
+	while (cursor) {
+		const batch: Effect.Success<ReturnType<typeof unfinishedStages>> =
+			yield* unfinishedStages(cursor);
+		failed += yield* failStrandedStages(yield* withoutLiveJobs(batch));
+		cursor = batch.next;
+	}
+	if (failed > 0) {
+		yield* Effect.logWarning(
+			{
+				failed,
+			},
+			"Failed preparation stages no job will deliver again",
+		);
+	}
+});
 
 /**
  * The run leases of preparation jobs that are gone: a job that ran out of
@@ -231,6 +383,6 @@ export const releaseJobLeases = (leaseIds: readonly string[]) =>
 	});
 
 export const sweepPreparation = Effect.all([
-	strandedStages.pipe(Effect.flatMap(failStrandedStages)),
+	sweepStrandedStages,
 	strandedJobLeases.pipe(Effect.flatMap(releaseJobLeases)),
 ]);

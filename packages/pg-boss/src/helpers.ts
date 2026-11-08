@@ -60,19 +60,50 @@ const insertJobs = <T extends object>(
 		});
 	});
 
-/** The queues' jobs that wait, wait to retry or run, with their payloads. */
-export const liveJobs = <T>(queues: readonly JobQueue[]) =>
+/**
+ * Payloads whose texts at `paths` equal one of `values`, each value a tuple
+ * in the order of `paths`.
+ */
+export type JobMatch = {
+	readonly paths: readonly (readonly string[])[];
+	readonly values: readonly (readonly string[])[];
+};
+
+/**
+ * The queues' jobs that wait, wait to retry or run, with their payloads;
+ * with `matching`, only the jobs it matches.
+ */
+export const liveJobs = <T>(queues: readonly JobQueue[], matching?: JobMatch) =>
 	Effect.gen(function* () {
+		if (
+			matching &&
+			(matching.values.length === 0 || matching.paths.length === 0)
+		)
+			return [];
 		const { schema } = yield* PgBossService;
 		const sql = yield* PgClient.PgClient;
+		const paths = matching?.paths ?? [];
+		const columns = paths.map((_, index) =>
+			(matching?.values ?? []).map((value) => value[index]),
+		);
+		const keys = paths
+			.map((_, index) => `data #>> $${index + 2 + paths.length}::text[]`)
+			.join(", ");
+		const unnested = paths
+			.map((_, index) => `$${index + 2}::text[]`)
+			.join(", ");
 		return yield* sql.unsafe<{
 			name: JobQueue;
 			state: "created" | "retry" | "active";
 			data: T;
 		}>(
-			`SELECT name, state, data FROM ${schema}.job WHERE name = ANY($1) AND state < 'completed'`,
+			`SELECT name, state, data FROM ${schema}.job WHERE name = ANY($1) AND state < 'completed'${
+				matching ? ` AND (${keys}) IN (SELECT * FROM unnest(${unnested}))` : ""
+			}`,
 			[
 				queues,
+				...columns,
+				...paths,
 			],
 		);
 	}).pipe(

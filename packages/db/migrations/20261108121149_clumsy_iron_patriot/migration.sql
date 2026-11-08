@@ -1,0 +1,3 @@
+CREATE INDEX "asset_processing_unfinished_idx" ON "asset" ("id") WHERE "processing_status" in ('pending', 'active');--> statement-breakpoint
+CREATE INDEX "asset_metadata_unfinished_idx" ON "asset" ("id") WHERE "metadata_status" in ('pending', 'active');--> statement-breakpoint
+CREATE INDEX "block_asset_index_unfinished_idx" ON "block_asset" ("embedding_generation","asset_id","block_id") WHERE "index_status" in ('pending', 'active');
