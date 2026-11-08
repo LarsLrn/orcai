@@ -4,8 +4,7 @@ import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
-import * as SchemaGetter from "effect/SchemaGetter";
-import * as SchemaIssue from "effect/SchemaIssue";
+import * as SchemaTransformation from "effect/SchemaTransformation";
 
 const spiceDbSecurityModes = [
 	"secure",
@@ -15,43 +14,26 @@ const spiceDbSecurityModes = [
 
 export type SpiceDbSecurityMode = (typeof spiceDbSecurityModes)[number];
 
-const SpiceDbSecurityModeLiteralSchema = Schema.Literals(spiceDbSecurityModes);
-
 const SpiceDbSecurityModeSchema = Schema.String.pipe(
-	Schema.decodeTo(SpiceDbSecurityModeLiteralSchema, {
-		decode: SchemaGetter.transformEffect((value: string) => {
-			const normalized = value.trim().toLowerCase();
-
-			if (spiceDbSecurityModes.includes(normalized as SpiceDbSecurityMode)) {
-				return Effect.succeed(normalized as SpiceDbSecurityMode);
-			}
-
-			return Effect.fail(
-				new SchemaIssue.InvalidValue({
-					expected: spiceDbSecurityModes.join(" | "),
-				}),
-			);
-		}),
-		encode: SchemaGetter.transform((value: SpiceDbSecurityMode) => value),
-	}),
+	Schema.decode(SchemaTransformation.trim()),
+	Schema.decode(SchemaTransformation.toLowerCase()),
+	Schema.decodeTo(Schema.Literals(spiceDbSecurityModes)),
 );
 
-const spiceConfig = Config.all({
-	spice: Config.all({
-		endpoint: Config.String("SPICEDB_ENDPOINT"),
-		token: Config.Redacted("SPICEDB_TOKEN"),
-		security: Config.withDefault(
-			Config.schema(SpiceDbSecurityModeSchema, "SPICEDB_SECURITY"),
-			"insecure-plaintext",
-		),
-		readTimeout: Config.withDefault(
-			Config.Duration("SPICEDB_READ_TIMEOUT"),
-			Duration.seconds(5),
-		),
-	}),
+const spiceDbConfig = Config.all({
+	endpoint: Config.String("SPICEDB_ENDPOINT"),
+	token: Config.Redacted("SPICEDB_TOKEN"),
+	security: Config.withDefault(
+		Config.schema(SpiceDbSecurityModeSchema, "SPICEDB_SECURITY"),
+		"insecure-plaintext",
+	),
+	readTimeout: Config.withDefault(
+		Config.Duration("SPICEDB_READ_TIMEOUT"),
+		Duration.seconds(5),
+	),
 });
 
-type SpiceDbConfig = Config.Success<typeof spiceConfig>;
+type SpiceDbConfig = Config.Success<typeof spiceDbConfig>;
 
 export class SpiceDbConfigService extends Context.Service<
 	SpiceDbConfigService,
@@ -62,11 +44,7 @@ export class SpiceDbConfigService extends Context.Service<
 
 export const SpiceDbConfigLive = Layer.effect(
 	SpiceDbConfigService,
-	Effect.gen(function* () {
-		const config = yield* spiceConfig;
-
-		return {
-			config,
-		};
-	}),
+	Effect.map(spiceDbConfig, (config) => ({
+		config,
+	})),
 );

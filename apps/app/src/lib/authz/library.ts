@@ -1,7 +1,6 @@
-import type { OrganizationId } from "@orcai/core";
+import type { AuthzResourceType, OrganizationId } from "@orcai/core";
 import { dbSchema } from "@orcai/db";
 import type { LibraryOrigin } from "@orcai/schema";
-import type { ResourceType } from "@orcai/spice-db";
 import { type AnyColumn, sql } from "drizzle-orm";
 
 const originCondition = {
@@ -17,7 +16,7 @@ const originCondition = {
  * loads through it instead.
  */
 export const inLibrary = (
-	resourceType: ResourceType,
+	resourceType: AuthzResourceType,
 	id: AnyColumn,
 	organizationId: OrganizationId | undefined,
 	origin: LibraryOrigin = "all",

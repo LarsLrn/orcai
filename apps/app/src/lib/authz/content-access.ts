@@ -1,10 +1,9 @@
-import type { UserId } from "@orcai/core";
+import type { AuthzResourceType, UserId } from "@orcai/core";
 import { DB, dbSchema, resourceTables } from "@orcai/db";
 import {
 	type EntityIdFor,
 	permittedEntityIds,
 	type ReadRevision,
-	type ResourceType,
 } from "@orcai/spice-db";
 import { type AnyColumn, and, inArray, type SQL, sql } from "drizzle-orm";
 import { alias, QueryBuilder } from "drizzle-orm/pg-core";
@@ -20,7 +19,7 @@ type Reader = {
 
 /** Whether the user owns the resource in `id`. */
 const ownedBy = (
-	resourceType: ResourceType,
+	resourceType: AuthzResourceType,
 	id: AnyColumn | SQL,
 	userId: UserId,
 ) => {
@@ -37,7 +36,7 @@ const ownedBy = (
 
 /** Whether the user, or a group of theirs, holds an active grant on the resource in `id`, in one of `roles` when given. */
 const grantedTo = (
-	resourceType: ResourceType,
+	resourceType: AuthzResourceType,
 	id: AnyColumn | SQL,
 	userId: UserId,
 	roles?: readonly ("manager" | "editor")[],
@@ -63,7 +62,7 @@ const grantedTo = (
 
 /** Whether the user owns the resource in `id`, holds an active grant on it, or it is listed. */
 const readableDirectly = (
-	resourceType: ResourceType,
+	resourceType: AuthzResourceType,
 	id: AnyColumn | SQL,
 	userId: UserId,
 ) => {
@@ -87,7 +86,7 @@ const readableDirectly = (
  * until its tuples are delivered; combining both rejects such stale paths.
  */
 export const readableNow = (
-	resourceType: ResourceType,
+	resourceType: AuthzResourceType,
 	id: AnyColumn | SQL,
 	userId: UserId,
 ): SQL => {
@@ -119,7 +118,7 @@ export type ResourcePermission = "read" | "edit" | "delete" | "manage_access";
  * active grant only: editors edit, managers also delete and manage access.
  */
 export const permittedNow = (
-	resourceType: ResourceType,
+	resourceType: AuthzResourceType,
 	id: AnyColumn | SQL,
 	userId: UserId,
 	permission: ResourcePermission,
@@ -144,7 +143,7 @@ export const permittedNow = (
  * The resources committed Postgres state permits, without checking SpiceDB.
  * Only for narrowing SpiceDB results; access decisions use {@link permittedIds}.
  */
-export const committedPermittedIds = <Type extends ResourceType>(
+export const committedPermittedIds = <Type extends AuthzResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	userId: UserId,
@@ -177,7 +176,7 @@ export const committedPermittedIds = <Type extends ResourceType>(
  * delivered; the committed state closes it at once. A mutation checks again
  * under its organisation write lock, after which no revocation can commit.
  */
-export const permittedIds = <Type extends ResourceType>(
+export const permittedIds = <Type extends AuthzResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	reader: Reader,
@@ -203,7 +202,7 @@ export const permittedIds = <Type extends ResourceType>(
 	});
 
 /** The resources of `ids` the user may read, see {@link permittedIds}. */
-export const readableIds = <Type extends ResourceType>(
+export const readableIds = <Type extends AuthzResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	reader: Reader,
@@ -213,7 +212,7 @@ export const readableIds = <Type extends ResourceType>(
  * Fails unless the user holds `permission` on every resource of `ids`, see
  * {@link permittedIds}: as not found for read, else as denied.
  */
-export const requirePermitted = <Type extends ResourceType>(
+export const requirePermitted = <Type extends AuthzResourceType>(
 	resourceType: Type,
 	ids: readonly EntityIdFor<Type>[],
 	reader: Reader,

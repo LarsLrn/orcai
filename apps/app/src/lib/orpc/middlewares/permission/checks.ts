@@ -1,4 +1,5 @@
-import type { EntityIdFor, EntityType } from "@orcai/spice-db";
+import type { AuthzEntityType } from "@orcai/core";
+import type { EntityIdFor } from "@orcai/spice-db";
 import { permittedEntityIds } from "@orcai/spice-db";
 import { middlewareGen } from "@orpc/effect";
 import * as Effect from "effect/Effect";
@@ -12,7 +13,7 @@ import type {
 	CheckPermissionInput,
 } from "./types";
 
-const normalizeEntityIds = <Entity extends EntityType>(
+const normalizeEntityIds = <Entity extends AuthzEntityType>(
 	entityIds: readonly EntityIdFor<Entity>[],
 ) => unique(entityIds);
 
@@ -28,7 +29,7 @@ export const checkPermissionMiddleware = permissionBase.middleware(
 	}),
 );
 
-export const checkManyPermissionMiddleware = <Entity extends EntityType>(
+export const checkManyPermissionMiddleware = <Entity extends AuthzEntityType>(
 	entityType: Entity,
 ) =>
 	permissionBase.middleware(

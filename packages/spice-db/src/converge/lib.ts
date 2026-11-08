@@ -2,8 +2,8 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { v1 } from "@authzed/authzed-node";
 import * as Effect from "effect/Effect";
-import { SpiceDbError } from "../errors";
-import { SpiceDbService } from "../service";
+import { grpcStatusOf, SpiceDbError } from "../errors";
+import { callSpiceDb } from "../service";
 import type { RelationshipFilterInput } from "./types";
 
 /** SpiceDB re-serialises a schema without blank lines or a trailing newline, so compare ignoring both. */
@@ -26,69 +26,16 @@ export const defaultSpiceDbSchemaPath = fileURLToPath(
 	new URL("../schema/schema.zed", import.meta.url),
 );
 
-const isMissingSchemaError = (error: unknown): boolean => {
-	const candidate = error instanceof SpiceDbError ? error.cause : error;
-
-	if (!(candidate instanceof Error)) {
-		return false;
-	}
-
-	const details = [
-		candidate.message,
-		typeof (
-			candidate as {
-				details?: unknown;
-			}
-		).details === "string"
-			? ((
-					candidate as {
-						details?: unknown;
-					}
-				).details as string)
-			: "",
-	]
-		.join(" ")
-		.toLowerCase();
-
-	return (
-		(
-			candidate as {
-				code?: unknown;
-			}
-		).code === 5 ||
-		(
-			candidate as {
-				grpcCode?: unknown;
-			}
-		).grpcCode === "NotFound" ||
-		details.includes("no schema has been defined")
-	);
-};
-
-export const readCurrentSchema = Effect.gen(function* () {
-	const { spice } = yield* SpiceDbService;
-
-	const response = yield* Effect.tryPromise({
-		try: () => spice.readSchema(v1.ReadSchemaRequest.create({})),
-		catch: (error) =>
-			new SpiceDbError({
-				operation: "query",
-				cause: error,
-			}),
-	}).pipe(
-		Effect.catchIf(
-			(error): error is SpiceDbError => isMissingSchemaError(error),
-			() =>
-				Effect.succeed(
-					v1.ReadSchemaResponse.create({
-						schemaText: "",
-					}),
-				),
-		),
-	);
-
-	return response.schemaText;
-});
+/** The written schema, empty when none is written yet. */
+export const readCurrentSchema = callSpiceDb("query", (spice) =>
+	spice.readSchema(v1.ReadSchemaRequest.create({})),
+).pipe(
+	Effect.map((response) => response.schemaText),
+	Effect.catchIf(
+		(error) => grpcStatusOf(error) === "NOT_FOUND",
+		() => Effect.succeed(""),
+	),
+);
 
 export const readTargetSchema = (schemaPath: string) =>
 	Effect.tryPromise({
@@ -101,23 +48,13 @@ export const readTargetSchema = (schemaPath: string) =>
 	});
 
 export const writeSchema = (schema: string) =>
-	Effect.gen(function* () {
-		const { spice } = yield* SpiceDbService;
-
-		yield* Effect.tryPromise({
-			try: () =>
-				spice.writeSchema(
-					v1.WriteSchemaRequest.create({
-						schema,
-					}),
-				),
-			catch: (error) =>
-				new SpiceDbError({
-					operation: "mutate",
-					cause: error,
-				}),
-		});
-	});
+	callSpiceDb("mutate", (spice) =>
+		spice.writeSchema(
+			v1.WriteSchemaRequest.create({
+				schema,
+			}),
+		),
+	).pipe(Effect.asVoid);
 
 export const deleteRelationshipsInBatches = (params: {
 	relationshipFilter: RelationshipFilterInput;
@@ -134,25 +71,17 @@ export const deleteRelationshipsInBatches = (params: {
 			);
 		}
 
-		const { spice } = yield* SpiceDbService;
-
 		let deletedCount = 0;
 		while (true) {
-			const response = yield* Effect.tryPromise({
-				try: () =>
-					spice.deleteRelationships(
-						v1.DeleteRelationshipsRequest.create({
-							relationshipFilter: params.relationshipFilter,
-							optionalLimit: requestedBatchSize,
-							optionalAllowPartialDeletions: true,
-						}),
-					),
-				catch: (error) =>
-					new SpiceDbError({
-						operation: "mutate",
-						cause: error,
+			const response = yield* callSpiceDb("mutate", (spice) =>
+				spice.deleteRelationships(
+					v1.DeleteRelationshipsRequest.create({
+						relationshipFilter: params.relationshipFilter,
+						optionalLimit: requestedBatchSize,
+						optionalAllowPartialDeletions: true,
 					}),
-			});
+				),
+			);
 
 			deletedCount += parseDeletedCount(response.relationshipsDeletedCount);
 

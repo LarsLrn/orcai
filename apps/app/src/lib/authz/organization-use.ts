@@ -1,10 +1,9 @@
-import type { OrganizationId, UserId } from "@orcai/core";
+import type { AuthzResourceType, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema, resourceTables } from "@orcai/db";
 import {
 	type EntityIdFor,
 	permittedEntityIds,
 	type ReadRevision,
-	type ResourceType,
 } from "@orcai/spice-db";
 import { type AnyColumn, and, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -19,7 +18,7 @@ import * as AppErrors from "@/lib/effect/utils/errors";
  * organisation is the resource's home. SpiceDB `use` completes it.
  */
 export const usableHere = (params: {
-	resourceType: ResourceType;
+	resourceType: AuthzResourceType;
 	id: AnyColumn;
 	userId: UserId;
 	organizationId: OrganizationId;
@@ -67,7 +66,7 @@ export const usableHere = (params: {
  * The resources the user may use in the organisation: SpiceDB `use` and
  * {@link usableHere}.
  */
-export const usableInOrganization = <Type extends ResourceType>(params: {
+export const usableInOrganization = <Type extends AuthzResourceType>(params: {
 	resourceType: Type;
 	resourceIds: readonly EntityIdFor<Type>[];
 	userId: UserId;
@@ -123,7 +122,7 @@ export const usableInOrganization = <Type extends ResourceType>(params: {
 	});
 
 /** Fails unless the user may use every resource in the organisation. */
-export const requireUsableInOrganization = <Type extends ResourceType>(
+export const requireUsableInOrganization = <Type extends AuthzResourceType>(
 	params: Parameters<typeof usableInOrganization<Type>>[0],
 ) =>
 	usableInOrganization(params).pipe(

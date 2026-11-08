@@ -42,12 +42,10 @@ const spiceAt = (port: number) =>
 		Layer.provide(
 			Layer.succeed(SpiceDbConfigService, {
 				config: {
-					spice: {
-						endpoint: `127.0.0.1:${port}`,
-						token: Redacted.make("token"),
-						security: "insecure-plaintext",
-						readTimeout: Duration.millis(100),
-					},
+					endpoint: `127.0.0.1:${port}`,
+					token: Redacted.make("token"),
+					security: "insecure-plaintext",
+					readTimeout: Duration.millis(100),
 				},
 			}),
 		),

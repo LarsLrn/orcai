@@ -46,36 +46,52 @@ export const SpiceDbServiceLive = Layer.effect(
 	SpiceDbService,
 	Effect.gen(function* () {
 		const { config } = yield* SpiceDbConfigService;
-		const security = securityModeMap[config.spice.security];
 
-		return yield* Effect.tryPromise({
-			try: async () =>
+		const client = yield* Effect.try({
+			try: () =>
 				v1.NewClient(
-					Redacted.value(config.spice.token),
-					config.spice.endpoint,
-					security,
+					Redacted.value(config.token),
+					config.endpoint,
+					securityModeMap[config.security],
 					// The default preconnect, the permissions service.
 					undefined,
 					{
 						interceptors: [
-							readDeadline(config.spice.readTimeout),
+							readDeadline(config.readTimeout),
 						],
 					},
 				),
-			catch: (error) =>
+			catch: (cause) =>
 				new SpiceDbError({
 					operation: "start",
-					cause: error,
+					cause,
 				}),
-		}).pipe(
-			Effect.map((spice) => ({
-				spice: spice.promises,
-			})),
-			Effect.tap(() => Effect.logInfo("SpiceDb service started successfully")),
-		);
+		});
+		yield* Effect.logInfo("SpiceDb service started successfully");
+
+		return {
+			spice: client.promises,
+		};
 	}),
 );
 
 export const SpiceDbLive = SpiceDbServiceLive.pipe(
 	Layer.provide(SpiceDbConfigLive),
 );
+
+/** One call on the SpiceDB client, failing as a SpiceDbError for `operation`. */
+export const callSpiceDb = <A>(
+	operation: "query" | "mutate",
+	call: (spice: v1.ZedPromiseClientInterface) => Promise<A>,
+) =>
+	Effect.gen(function* () {
+		const { spice } = yield* SpiceDbService;
+		return yield* Effect.tryPromise({
+			try: () => call(spice),
+			catch: (cause) =>
+				new SpiceDbError({
+					operation,
+					cause,
+				}),
+		});
+	});

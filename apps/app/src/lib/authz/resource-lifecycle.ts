@@ -1,5 +1,6 @@
 import type {
 	AssetId,
+	AuthzResourceType,
 	BlockId,
 	BotId,
 	OrganizationId,
@@ -11,7 +12,7 @@ import {
 	recordDeletion,
 	replaceIndexing,
 } from "@orcai/preparation";
-import type { EntityIdFor, ResourceType } from "@orcai/spice-db";
+import type { EntityIdFor } from "@orcai/spice-db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -122,7 +123,10 @@ export const lockExistingResource = (resource: ResourceRef) =>
 	});
 
 /** The link facts that unlink the resources from bots, blocks and chats. */
-const readLinkFacts = (resourceType: ResourceType, ids: readonly string[]) =>
+const readLinkFacts = (
+	resourceType: AuthzResourceType,
+	ids: readonly string[],
+) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
 		switch (resourceType) {
@@ -220,7 +224,7 @@ const readLinkFacts = (resourceType: ResourceType, ids: readonly string[]) =>
  * their tuples. Runs before the resource rows go, so the links are still there to read.
  */
 const teardownResourceAuthorization = (params: {
-	resourceType: ResourceType;
+	resourceType: AuthzResourceType;
 	resourceIds: readonly string[];
 }) =>
 	Effect.gen(function* () {
@@ -335,7 +339,7 @@ export const homeOrganizationId = (resource: ResourceRef) =>
 /** The organizations the resources are scoped to, whose write locks guard them. */
 export const resourceOrganizations = (
 	resources: readonly {
-		resourceType: ResourceType;
+		resourceType: AuthzResourceType;
 		resourceId: string;
 	}[],
 ) =>
@@ -371,7 +375,7 @@ export const resourceOrganizations = (
  * commit.
  */
 export const deleteResources = (params: {
-	resourceType: ResourceType;
+	resourceType: AuthzResourceType;
 	resourceIds: readonly string[];
 }) =>
 	Effect.gen(function* () {
@@ -443,7 +447,7 @@ export const deleteResources = (params: {
  * organisation locks, once the actor holds `permission` on each of them. A
  * revocation committed before the locks were taken refuses it.
  */
-export const writePermitted = <Type extends ResourceType, A, E, R>(
+export const writePermitted = <Type extends AuthzResourceType, A, E, R>(
 	target: {
 		resourceType: Type;
 		resourceIds: readonly EntityIdFor<Type>[];
@@ -471,7 +475,7 @@ export const writePermitted = <Type extends ResourceType, A, E, R>(
 
 /** Deletes resources the actor may delete with their authorization state, tuples, files and search points. */
 export const deleteResourcesWithAuthorization = <
-	Type extends ResourceType,
+	Type extends AuthzResourceType,
 >(params: {
 	resourceType: Type;
 	resourceIds: readonly EntityIdFor<Type>[];

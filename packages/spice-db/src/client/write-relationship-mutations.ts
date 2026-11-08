@@ -1,8 +1,8 @@
 import { v1 } from "@authzed/authzed-node";
+import type { AuthzEntityType } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import { SpiceDbError } from "../errors";
-import { SpiceDbService } from "../service";
-import type { EntityType } from "../types/entity-type";
+import { callSpiceDb } from "../service";
 import type { TupleMutation } from "../types/tuple-mutation";
 import { createResourceReference, createSubjectReference } from "../utils";
 
@@ -13,8 +13,8 @@ const operationMap = {
 } as const;
 
 const toRelationshipUpdate = <
-	Resource extends EntityType,
-	Subject extends EntityType,
+	Resource extends AuthzEntityType,
+	Subject extends AuthzEntityType,
 >(
 	mutation: TupleMutation<Resource, Subject>,
 ) =>
@@ -61,23 +61,13 @@ export const writeRelationshipMutations = (
 			};
 		}
 
-		const { spice } = yield* SpiceDbService;
-
-		const response = yield* Effect.tryPromise({
-			try: () =>
-				spice.writeRelationships(
-					v1.WriteRelationshipsRequest.create({
-						updates: mutations.map((mutation) =>
-							toRelationshipUpdate(mutation),
-						),
-					}),
-				),
-			catch: (error) =>
-				new SpiceDbError({
-					operation: "mutate",
-					cause: error,
+		const response = yield* callSpiceDb("mutate", (spice) =>
+			spice.writeRelationships(
+				v1.WriteRelationshipsRequest.create({
+					updates: mutations.map((mutation) => toRelationshipUpdate(mutation)),
 				}),
-		});
+			),
+		);
 
 		const zedToken = yield* extractZedToken(response);
 		return {

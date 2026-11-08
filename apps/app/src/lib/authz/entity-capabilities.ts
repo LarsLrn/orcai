@@ -1,6 +1,8 @@
 import type {
+	AuthzResourceType,
 	OrganizationId,
 	OrganizationPermission,
+	PermissionFor,
 	UserId,
 } from "@orcai/core";
 import type {
@@ -11,9 +13,7 @@ import type {
 import {
 	type EntityIdFor,
 	grantedPermissions,
-	type PermissionFor,
 	type ReadRevision,
-	type ResourceType,
 } from "@orcai/spice-db";
 import * as Effect from "effect/Effect";
 import { capabilitySets, emptyCapabilities } from "@/lib/authz/capabilities";
@@ -37,7 +37,7 @@ type CapabilityParams<Entity extends CapabilityEntityType> = {
 
 const isResourceType = (
 	entityType: CapabilityEntityType,
-): entityType is ResourceType =>
+): entityType is AuthzResourceType =>
 	entityType === "bot" || entityType === "block" || entityType === "asset";
 
 /**
@@ -130,7 +130,10 @@ const committedCheck = {
 	delete: "delete",
 	manage_access: "manage_access",
 	use: undefined,
-} satisfies Record<PermissionFor<ResourceType>, ResourcePermission | undefined>;
+} satisfies Record<
+	PermissionFor<AuthzResourceType>,
+	ResourcePermission | undefined
+>;
 
 /** Narrows resource permissions to committed grants, including the read aliases. */
 const narrowResources = <Entity extends CapabilityEntityType>(
@@ -141,7 +144,7 @@ const narrowResources = <Entity extends CapabilityEntityType>(
 		const { entityType } = params;
 		if (!isResourceType(entityType)) return granted;
 		const committedPermission = (permission: string) =>
-			committedCheck[permission as PermissionFor<ResourceType>];
+			committedCheck[permission as PermissionFor<AuthzResourceType>];
 		const permissions = new Set(
 			[
 				...granted.values(),

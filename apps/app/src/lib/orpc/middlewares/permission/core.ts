@@ -1,5 +1,5 @@
-import type { UserId } from "@orcai/core";
-import { checkEntityPermission, type EntityType } from "@orcai/spice-db";
+import type { AuthzEntityType, UserId } from "@orcai/core";
+import { checkEntityPermission } from "@orcai/spice-db";
 import { os } from "@orpc/server";
 import * as Effect from "effect/Effect";
 import { permissionDenied } from "@/lib/authz/permission-denied";
@@ -17,7 +17,7 @@ export const permissionBase = os.$context<
 >();
 
 /** Fails with `permissionDenied` unless the user holds the permission. */
-export const requirePermission = <Entity extends EntityType>(
+export const requirePermission = <Entity extends AuthzEntityType>(
 	check: CheckPermissionInputFor<Entity> & {
 		userId: UserId;
 	},

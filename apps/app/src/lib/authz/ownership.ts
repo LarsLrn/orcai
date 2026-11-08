@@ -1,5 +1,6 @@
 import {
 	type AssetId,
+	type AuthzResourceType,
 	type BlockId,
 	type BotId,
 	ORGANIZATION_ADMIN_ROLE,
@@ -7,7 +8,7 @@ import {
 	type UserId,
 } from "@orcai/core";
 import { DB, dbSchema, homeScopeOf, resourceTables } from "@orcai/db";
-import type { EntityIdFor, ReadRevision, ResourceType } from "@orcai/spice-db";
+import type { EntityIdFor, ReadRevision } from "@orcai/spice-db";
 import { and, asc, eq, inArray, ne, notInArray } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -582,7 +583,7 @@ const requireOwnerAtHome = (params: {
  * The items of `resourceIds` the user may hand over from `organizationId`,
  * by the rule {@link requireOwnerAtHome} enforces.
  */
-export const handOverableIds = <Type extends ResourceType>(params: {
+export const handOverableIds = <Type extends AuthzResourceType>(params: {
 	resourceType: Type;
 	resourceIds: readonly EntityIdFor<Type>[];
 	userId: UserId;
