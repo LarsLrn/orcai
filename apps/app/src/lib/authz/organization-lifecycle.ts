@@ -24,6 +24,42 @@ import * as AppErrors from "@/lib/effect/utils/errors";
 import { deleteImages } from "@/lib/images/images";
 
 /**
+ * Inserts the organization's All Members group, whose members are the
+ * organization's. Call it in a {@link writeRelationships}.
+ */
+export const insertAllMembersGroup = (params: {
+	organizationId: OrganizationId;
+	createdBy: UserId;
+	now: Date;
+}) =>
+	Effect.gen(function* () {
+		const [group] = yield* (yield* DB)
+			.insert(dbSchema.group)
+			.values({
+				organizationId: params.organizationId,
+				name: "All Members",
+				description: "System group containing all organisation members",
+				kind: "system",
+				systemKey: ALL_MEMBERS_GROUP_SYSTEM_KEY,
+				createdBy: params.createdBy,
+				createdAt: params.now,
+				updatedAt: params.now,
+				deletedAt: null,
+			})
+			.returning({
+				id: dbSchema.group.id,
+			});
+		yield* recordRelationshipFacts(
+			RelationshipFact.GroupCreated({
+				groupId: group.id,
+				organizationId: params.organizationId,
+				allMembers: true,
+			}),
+		);
+		return group;
+	});
+
+/**
  * Inserts an organization with its first admin and its All Members group.
  * Call it in a {@link writeRelationships}; a new organization needs no lock.
  */
@@ -52,23 +88,6 @@ export const insertOrganization = (params: {
 			createdAt: params.now,
 		});
 
-		const [allMembersGroup] = yield* db
-			.insert(dbSchema.group)
-			.values({
-				organizationId: organization.id,
-				name: "All Members",
-				description: "System group containing all organisation members",
-				kind: "system",
-				systemKey: ALL_MEMBERS_GROUP_SYSTEM_KEY,
-				createdBy: params.adminUserId,
-				createdAt: params.now,
-				updatedAt: params.now,
-				deletedAt: null,
-			})
-			.returning({
-				id: dbSchema.group.id,
-			});
-
 		yield* recordRelationshipFacts(
 			RelationshipFact.OrganizationRoleChanged({
 				organizationId: organization.id,
@@ -76,12 +95,12 @@ export const insertOrganization = (params: {
 				from: null,
 				to: ORGANIZATION_ADMIN_ROLE,
 			}),
-			RelationshipFact.GroupCreated({
-				groupId: allMembersGroup.id,
-				organizationId: organization.id,
-				allMembers: true,
-			}),
 		);
+		yield* insertAllMembersGroup({
+			organizationId: organization.id,
+			createdBy: params.adminUserId,
+			now: params.now,
+		});
 
 		return organization;
 	});

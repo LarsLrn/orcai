@@ -80,7 +80,7 @@ Helpers that need more of the stack live with their package:
 | --- | --- |
 | `IsolatedPgBossLive()` from `@orcai/pg-boss/testing` | A pg-boss in a schema of the file's own with every queue of the queue table, dropped after the file. No other file sees or wakes its jobs. A file that runs workers with `runWorkers` passes a pg-boss `TestClock` and moves its time on with `setTime`, so retry delays and expiry pass without waiting. |
 | `testEmbeddingIndex()` and `IsolatedEmbeddingIndexLive()` from `@orcai/qdrant/testing` | An embedding index with its own settings table and collection prefix. |
-| `appIntegration()` in `apps/app/src/lib/testing/app-integration.ts` | The app's layers on an isolated pg-boss, with session fixtures and `caller(zedToken)`, which runs procedures as actors with the latest zed token. |
+| `appIntegration()` in `apps/app/src/lib/testing/app-integration.ts` | The app's layers on an isolated pg-boss, with session fixtures and `caller(zedToken)`, which runs procedures as actors with the latest zed token. `organizationByRole()` gives one signed-in member per organisation role and the All Members group, and `outcomesByRole` records whether each role's call is allowed or which error it fails with, with the responses of the allowed calls. |
 
 `packages/spice-db/test/schema.integration.ts` checks the SpiceDB schema. It writes a fixed set of relationships under per-run ids and asserts which permissions they grant and deny against the stack's applied schema.
 
