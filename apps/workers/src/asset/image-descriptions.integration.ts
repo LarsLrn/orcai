@@ -4,6 +4,7 @@ import type { AssetId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { AssetPipelineError } from "@orcai/preparation";
 import type { ExtractionArtifact } from "@orcai/process";
+import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import { integrationRuntime } from "@orcai/testing";
 import { eq, like } from "drizzle-orm";
@@ -13,7 +14,7 @@ import { describeImages } from "@/asset/image-descriptions";
 import { requests, seedImageAsset, suggestion } from "@/asset/test-vision";
 
 const { runPromise: run } = integrationRuntime(
-	Layer.mergeAll(S3Live, EncryptionKeyLive),
+	Layer.mergeAll(S3Live, QuotaReservationsLive, EncryptionKeyLive),
 );
 
 beforeEach(() => {

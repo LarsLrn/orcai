@@ -3,6 +3,7 @@ import type { ModelId, OrganizationId, ProviderId, UserId } from "@orcai/core";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Logger from "effect/Logger";
+import type { QuotaReservations } from "../src/enforcement";
 import { type MeteredCallOutcome, startMeteredCall } from "../src/metered-call";
 import { quota, withQuotaServices } from "./fake";
 
@@ -23,7 +24,7 @@ const run = <A, E>(effect: Effect.Effect<A, E, never>) =>
 
 /** Runs `effect` with the quota fakes and returns what it logged. */
 const logging = async <A, E>(
-	effect: Parameters<typeof withQuotaServices<A, E>>[0],
+	effect: Effect.Effect<A, E, QuotaReservations>,
 ) => {
 	const logged: unknown[] = [];
 	await run(
@@ -50,10 +51,10 @@ beforeEach(() => {
 });
 
 describe("startMeteredCall", () => {
-	test("a small request quota grants fewer requests", async () => {
-		quota.pool = {
+	test("a request reservation smaller than asked grants fewer requests", async () => {
+		quota.reservation = {
 			meteringMode: "requests",
-			remaining: 2,
+			reservedAmount: 2,
 		};
 
 		const call = await run(withQuotaServices(start(5)));
@@ -65,10 +66,10 @@ describe("startMeteredCall", () => {
 		expect(call.spent()).toBe(true);
 	});
 
-	test("a token quota grants the requests asked for", async () => {
-		quota.pool = {
+	test("a token reservation grants the requests asked for", async () => {
+		quota.reservation = {
 			meteringMode: "tokens",
-			remaining: 10_000,
+			reservedAmount: 10_000,
 		};
 
 		const call = await run(withQuotaServices(start(25)));
@@ -84,7 +85,7 @@ describe("startMeteredCall", () => {
 		"QUOTA_POOL_UNAVAILABLE",
 		"QUOTA_EXHAUSTED",
 	] as const)("a %s denial fails before the call runs", async (reason) => {
-		quota.pool = {
+		quota.reservation = {
 			denial: reason,
 		};
 
@@ -95,7 +96,7 @@ describe("startMeteredCall", () => {
 	});
 
 	test("a quota that cannot be read fails as unavailable", async () => {
-		quota.pool = {
+		quota.reservation = {
 			unavailable: true,
 		};
 

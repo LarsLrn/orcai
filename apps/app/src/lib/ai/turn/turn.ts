@@ -7,6 +7,7 @@ import {
 	type MeteredCall,
 	type MeteredCallOutcome,
 	promptTokens,
+	type QuotaReservations,
 	startMeteredCall,
 } from "@orcai/quota";
 import type {
@@ -309,10 +310,10 @@ const streamTurn = ({
 }) =>
 	Effect.gen(function* () {
 		const store = yield* ReplyStore;
-		const services = yield* Effect.context<DB>();
+		const services = yield* Effect.context<DB | QuotaReservations>();
 		// The stream outlives the request handler; its callbacks rejoin the request trace.
 		const traceContext = otelContext.active();
-		const run = <A>(effect: Effect.Effect<A, never, DB>) =>
+		const run = <A>(effect: Effect.Effect<A, never, DB | QuotaReservations>) =>
 			otelContext.with(traceContext, () =>
 				Effect.runPromiseWith(services)(withActiveSpan(effect)),
 			);

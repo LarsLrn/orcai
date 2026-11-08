@@ -22,6 +22,7 @@ import {
 import { readStoredExtraction } from "@orcai/process";
 import { EmbeddingIndex, QdrantLive } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
+import { QuotaReservationsLive } from "@orcai/quota";
 import { processedAssetPrefix } from "@orcai/s3";
 import {
 	isS3NotFound,
@@ -77,6 +78,7 @@ const flaky = (boss: PgBoss) =>
 const runtime = integrationRuntime(
 	Layer.mergeAll(
 		S3Live,
+		QuotaReservationsLive,
 		EncryptionKeyLive,
 		QdrantLive,
 		// Completion queues indexing once embeddings are set up; nothing embeds here.

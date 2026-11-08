@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { v1 } from "@authzed/authzed-node";
-import { SpiceDbService } from "@orcai/spice-db";
+import { type SpiceDbClient, SpiceDbService } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/server";
 import * as Context from "effect/Context";
 import type * as Effect from "effect/Effect";
@@ -31,10 +31,7 @@ afterAll(() => {
 type ObjectType = "organization" | "asset";
 
 /** The real SpiceDB, except that reads about `objectType` go to a closed port. */
-const failingReadsAbout = (
-	real: v1.ZedPromiseClientInterface,
-	objectType: ObjectType,
-) =>
+const failingReadsAbout = (real: SpiceDbClient, objectType: ObjectType) =>
 	new Proxy(real, {
 		get(target, property) {
 			switch (property) {

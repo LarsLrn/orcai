@@ -5,7 +5,6 @@ import type {
 	ProviderId,
 	UserId,
 } from "@orcai/core";
-import type { DB } from "@orcai/db";
 import * as Context from "effect/Context";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -13,12 +12,7 @@ import * as Exit from "effect/Exit";
 import * as Schedule from "effect/Schedule";
 import * as Semaphore from "effect/Semaphore";
 import { METERED_CALL_TIMEOUT_MS } from "./call-timeout";
-import {
-	type ReleaseReason,
-	recordReservationUsage,
-	reserveForAppRequest,
-	settleReservation,
-} from "./enforcement";
+import { QuotaReservations, type ReleaseReason } from "./enforcement";
 import type { QuotaDeniedError, QuotaUnavailableError } from "./errors";
 import type { MeteredStep } from "./usage";
 
@@ -97,11 +91,16 @@ const releaseReasons = {
 /** Reserves the call's likely use on the pool that covers the person, or fails before it runs. */
 export const startMeteredCall = (
 	input: MeteredCallInput,
-): Effect.Effect<MeteredCall, QuotaDeniedError | QuotaUnavailableError, DB> =>
+): Effect.Effect<
+	MeteredCall,
+	QuotaDeniedError | QuotaUnavailableError,
+	QuotaReservations
+> =>
 	Effect.gen(function* () {
-		const reservation = yield* reserveForAppRequest(input);
+		const reservations = yield* QuotaReservations;
+		const reservation = yield* reservations.reserve(input);
 		const retry = yield* QuotaRetry;
-		const services = yield* Effect.context<DB>();
+		const services = yield* Effect.context<never>();
 		const writes = yield* Semaphore.make(1);
 		const settled = yield* Deferred.make<void>();
 		const deadline = (yield* MeteredCallDeadline)();
@@ -119,7 +118,7 @@ export const startMeteredCall = (
 				message,
 				reservationKey: reservation.reservationKey,
 			});
-		const run = <A>(effect: Effect.Effect<A, never, DB>) =>
+		const run = <A>(effect: Effect.Effect<A>) =>
 			effect.pipe(Effect.provideContext(services));
 
 		return {
@@ -143,13 +142,15 @@ export const startMeteredCall = (
 							Effect.suspend(() =>
 								settling
 									? Effect.void
-									: recordReservationUsage({
-											reservation,
-											steps: recorded,
-										}).pipe(
-											Effect.retry(retry),
-											Effect.catch(logFailure("quota.record.failed")),
-										),
+									: reservations
+											.record({
+												reservation,
+												steps: recorded,
+											})
+											.pipe(
+												Effect.retry(retry),
+												Effect.catch(logFailure("quota.record.failed")),
+											),
 							),
 						);
 					}),
@@ -164,7 +165,7 @@ export const startMeteredCall = (
 						return writes
 							.withPermit(
 								Effect.suspend(() =>
-									settleReservation({
+									reservations.settle({
 										reservation,
 										steps,
 										reason: releaseReasons[outcome],

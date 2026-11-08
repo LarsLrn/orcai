@@ -20,6 +20,7 @@ import {
 	serializeStoredExtractionArtifact,
 } from "@orcai/process";
 import { QdrantLive } from "@orcai/qdrant";
+import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
 	type AssetMetadataType,
@@ -48,7 +49,13 @@ import {
 const TIMEOUT = 30_000;
 
 const runtime = integrationRuntime(
-	Layer.mergeAll(S3Live, EncryptionKeyLive, QdrantLive, IsolatedPgBossLive()),
+	Layer.mergeAll(
+		S3Live,
+		QuotaReservationsLive,
+		EncryptionKeyLive,
+		QdrantLive,
+		IsolatedPgBossLive(),
+	),
 );
 const run = runtime.runPromise;
 

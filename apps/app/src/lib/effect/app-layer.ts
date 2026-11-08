@@ -2,6 +2,7 @@ import { AiTelemetryLive, EncryptionKeyLive } from "@orcai/ai";
 import { DrizzleLive } from "@orcai/db";
 import { makePgBossLayer } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
+import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import { SpiceDbLive } from "@orcai/spice-db";
 import * as Layer from "effect/Layer";
@@ -18,7 +19,9 @@ const BaseInfra = Layer.mergeAll(
 	EncryptionKeyLive,
 ).pipe(Layer.provideMerge(AppConfigLive));
 
-const AppInfra = AuthzLive.pipe(Layer.provideMerge(BaseInfra));
+const AppInfra = Layer.mergeAll(AuthzLive, QuotaReservationsLive).pipe(
+	Layer.provideMerge(BaseInfra),
+);
 
 /**
  * Every app-level service but pg-boss, which the app or a test provides, and

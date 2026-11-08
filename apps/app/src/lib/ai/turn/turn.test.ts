@@ -273,9 +273,9 @@ describe("startTurn", () => {
 	});
 
 	test("charges a stopped turn the tokens of its finished steps", async () => {
-		quota.pool = {
+		quota.reservation = {
 			meteringMode: "tokens",
-			remaining: 100_000,
+			reservedAmount: 100_000,
 		};
 		const chat = await conversation(
 			chatRow({
@@ -328,9 +328,9 @@ describe("startTurn", () => {
 	});
 
 	test("ends a turn that runs out of time like a stopped one, and says so", async () => {
-		quota.pool = {
+		quota.reservation = {
 			meteringMode: "tokens",
-			remaining: 100_000,
+			reservedAmount: 100_000,
 		};
 		const chat = await conversation(
 			chatRow({
@@ -393,7 +393,7 @@ describe("startTurn", () => {
 	});
 
 	test("stores nothing when the quota refuses the turn", async () => {
-		quota.pool = {
+		quota.reservation = {
 			denial: "QUOTA_EXHAUSTED",
 		};
 		const chat = await conversation(chatRow(), "anthropic");
@@ -1229,7 +1229,7 @@ describe("continueTurn", () => {
 	test("stores nothing when the quota refuses a continuation", async () => {
 		const chat = await pausedAssistant();
 		const paused = chat.messages().at(-1);
-		quota.pool = {
+		quota.reservation = {
 			denial: "QUOTA_EXHAUSTED",
 		};
 

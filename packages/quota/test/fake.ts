@@ -1,8 +1,6 @@
-import { mock } from "bun:test";
-import { DB } from "@orcai/db";
 import * as Effect from "effect/Effect";
 import * as Schedule from "effect/Schedule";
-import * as realEnforcement from "../src/enforcement";
+import { QuotaReservations } from "../src/enforcement";
 import {
 	QuotaDeniedError,
 	QuotaUnavailableError,
@@ -11,20 +9,18 @@ import {
 import { MeteredCallDeadline, QuotaRetry } from "../src/metered-call";
 
 /**
- * Fakes the reservations of this package for a test file, under the real
- * metered call: set `pool` per test and read what was reserved, recorded and
- * settled from `calls`.
+ * Stands in for the pool writes behind the real metered call: set the
+ * `reservation` the pool answers per test and read what was reserved,
+ * recorded and settled from `calls`.
  */
 
-type Reserve = typeof realEnforcement.reserveForAppRequest;
-type Record = typeof realEnforcement.recordReservationUsage;
-type Settle = typeof realEnforcement.settleReservation;
+type Reservations = QuotaReservations["Service"];
 
-type Pool =
+type Reservation =
 	| {
 			meteringMode: "requests" | "tokens";
-			/** Requests or tokens left; a requests pool grants fewer requests when fewer remain. */
-			remaining: number;
+			/** Requests or tokens the pool reserves. */
+			reservedAmount: number;
 	  }
 	| {
 			denial: QuotaDeniedError["reason"];
@@ -33,29 +29,29 @@ type Pool =
 			unavailable: true;
 	  };
 
-const defaultPool = (): Pool => ({
-	meteringMode: "requests",
-	remaining: 100,
+const defaultReservation = (): Reservation => ({
+	meteringMode: "tokens",
+	reservedAmount: 100_000,
 });
 
 /** The retries a test runs with: twice, without waiting. */
 const TEST_RETRY = Schedule.recurs(2);
 
 export const quota = {
-	pool: defaultPool(),
+	reservation: defaultReservation(),
 	/** How many of the next calls of an operation fail. */
-	failures: {} as Partial<globalThis.Record<"record" | "settle", number>>,
+	failures: {} as Partial<Record<"record" | "settle", number>>,
 	/** Holds each record until it resolves. */
 	recordGate: undefined as Promise<void> | undefined,
 	/** Aborting it runs every metered call out of time. */
 	timeLimit: new AbortController(),
 	calls: {
-		reserve: [] as Parameters<Reserve>[0][],
-		record: [] as Parameters<Record>[0][],
-		settle: [] as Parameters<Settle>[0][],
+		reserve: [] as Parameters<Reservations["reserve"]>[0][],
+		record: [] as Parameters<Reservations["record"]>[0][],
+		settle: [] as Parameters<Reservations["settle"]>[0][],
 	},
 	reset: () => {
-		quota.pool = defaultPool();
+		quota.reservation = defaultReservation();
 		quota.failures = {};
 		quota.recordGate = undefined;
 		quota.timeLimit = new AbortController();
@@ -79,67 +75,56 @@ const failureOf = (operation: keyof typeof quota.failures) => {
 	);
 };
 
-const reserveForAppRequest: Reserve = (input) =>
-	Effect.suspend((): ReturnType<Reserve> => {
-		quota.calls.reserve.push(input);
-		const pool = quota.pool;
-		if ("unavailable" in pool) {
-			return Effect.fail(
-				new QuotaUnavailableError({
-					message: "The quota could not be read.",
-					cause: new Error("connection refused"),
+const reservations: Reservations = {
+	reserve: (input) =>
+		Effect.suspend((): ReturnType<Reservations["reserve"]> => {
+			quota.calls.reserve.push(input);
+			const reservation = quota.reservation;
+			if ("unavailable" in reservation) {
+				return Effect.fail(
+					new QuotaUnavailableError({
+						message: "The quota could not be read.",
+						cause: new Error("connection refused"),
+					}),
+				);
+			}
+			if ("denial" in reservation) {
+				return Effect.fail(
+					new QuotaDeniedError({
+						reason: reservation.denial,
+						message: "Denied by the fake quota.",
+					}),
+				);
+			}
+			return Effect.succeed({
+				reservationKey: `res_${input.appRequestId}`,
+				appRequestId: input.appRequestId,
+				providerId: input.providerId,
+				modelId: input.modelId,
+				...reservation,
+			});
+		}),
+	record: (input) =>
+		Effect.suspend(() => {
+			const gate = quota.recordGate;
+			return (gate ? Effect.promise(() => gate) : Effect.void).pipe(
+				Effect.andThen(() => {
+					quota.calls.record.push(input);
+					return failureOf("record");
 				}),
 			);
-		}
-		if ("denial" in pool || pool.remaining < 1) {
-			return Effect.fail(
-				new QuotaDeniedError({
-					reason: "denial" in pool ? pool.denial : "QUOTA_EXHAUSTED",
-					message: "Denied by the fake quota.",
-				}),
-			);
-		}
-		return Effect.succeed({
-			reservationKey: `res_${input.appRequestId}`,
-			appRequestId: input.appRequestId,
-			providerId: input.providerId,
-			modelId: input.modelId,
-			meteringMode: pool.meteringMode,
-			reservedAmount:
-				pool.meteringMode === "requests"
-					? Math.min(pool.remaining, input.maxRequests)
-					: pool.remaining,
-		});
-	});
+		}),
+	settle: (input) =>
+		Effect.suspend(() => {
+			quota.calls.settle.push(input);
+			return failureOf("settle");
+		}),
+};
 
-const recordReservationUsage: Record = (input) =>
-	Effect.suspend(() => {
-		const gate = quota.recordGate;
-		return (gate ? Effect.promise(() => gate) : Effect.void).pipe(
-			Effect.andThen(() => {
-				quota.calls.record.push(input);
-				return failureOf("record");
-			}),
-		);
-	});
-
-const settleReservation: Settle = (input) =>
-	Effect.suspend(() => {
-		quota.calls.settle.push(input);
-		return failureOf("settle");
-	});
-
-mock.module("../src/enforcement.ts", () => ({
-	...realEnforcement,
-	reserveForAppRequest,
-	recordReservationUsage,
-	settleReservation,
-}));
-
-/** Provides what the quota calls require; the fakes use no database, retries do not wait, and calls run out of time with `timeLimit`. */
-export const withQuotaServices = <A, E>(effect: Effect.Effect<A, E, DB>) =>
+/** Provides the fake pool writes; retries do not wait, and calls run out of time with `timeLimit`. */
+export const withQuotaServices = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 	effect.pipe(
-		Effect.provideService(DB, {} as never),
+		Effect.provideService(QuotaReservations, reservations),
 		Effect.provideService(QuotaRetry, TEST_RETRY),
 		Effect.provideService(MeteredCallDeadline, () => quota.timeLimit.signal),
 	);

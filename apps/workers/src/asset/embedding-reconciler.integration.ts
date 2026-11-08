@@ -37,6 +37,7 @@ import {
 	servedFilter,
 } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
+import { QuotaReservationsLive } from "@orcai/quota";
 import { assetObjectKey } from "@orcai/s3";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
@@ -96,7 +97,13 @@ const embeddings = serve({
 });
 
 const runtime = integrationRuntime(
-	Layer.mergeAll(S3Live, QdrantLive, EncryptionKeyLive, IsolatedPgBossLive()),
+	Layer.mergeAll(
+		S3Live,
+		QuotaReservationsLive,
+		QdrantLive,
+		EncryptionKeyLive,
+		IsolatedPgBossLive(),
+	),
 );
 
 /** `index`'s generation lock, as a save takes it exclusively. */

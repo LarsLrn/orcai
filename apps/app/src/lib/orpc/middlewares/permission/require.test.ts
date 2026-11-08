@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { v1 } from "@authzed/authzed-node";
 import type { BotId, UserId } from "@orcai/core";
 import { SpiceDbService } from "@orcai/spice-db";
+import { spiceClient } from "@orcai/spice-db/testing";
 import { call, os, type } from "@orpc/server";
 import * as Context from "effect/Context";
 import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
@@ -54,14 +55,14 @@ const requestContext = (requestToken: string, revisions: Revisions) => ({
 		zedToken: requestToken,
 	},
 	"effect/context": Context.make(SpiceDbService, {
-		spice: {
-			checkPermission: async (request: v1.CheckPermissionRequest) =>
+		spice: spiceClient({
+			checkPermission: async (request) =>
 				v1.CheckPermissionResponse.create({
 					permissionship: answer(revisions, request)
 						? v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
 						: v1.CheckPermissionResponse_Permissionship.NO_PERMISSION,
 				}),
-		} as unknown as v1.ZedPromiseClientInterface,
+		}),
 	}) as AppEffectContext["effect/context"],
 	"effect/wrap": mapEffectErrors,
 });
