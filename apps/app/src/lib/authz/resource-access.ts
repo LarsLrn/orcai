@@ -6,10 +6,7 @@ import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
-import {
-	isActiveGroupMember,
-	organizationsWithManageGroups,
-} from "@/lib/authz/group-visibility";
+import { organizationsWithManageGroups } from "@/lib/authz/group-visibility";
 import {
 	type GrantPrincipal,
 	RelationshipFact,
@@ -38,10 +35,11 @@ type Actor = {
 	zedToken: ReadRevision | undefined;
 };
 
+/** Postgres returns ids in lower case; requests may not. */
 const principalKey = (principal: {
 	principalType: string;
 	principalId: string;
-}) => `${principal.principalType}:${principal.principalId}`;
+}) => `${principal.principalType}:${principal.principalId.toLowerCase()}`;
 
 /** The resource's grants issued in the organisation that are not revoked. */
 export const activeGrants = (
@@ -199,82 +197,105 @@ const principalRejections = (params: {
 }) =>
 	Effect.gen(function* () {
 		const db = yield* DB;
-		const rejections: GrantRejection[] = [];
-
+		const organizationIds = [
+			...params.organizationIds,
+		];
+		const userIds: UserId[] = [];
+		const groupIds: GroupId[] = [];
 		for (const principal of params.principals) {
-			if (principal.principalType === "user") {
-				const [membership] = yield* db
-					.select({
-						userId: dbSchema.member.userId,
-					})
-					.from(dbSchema.member)
-					.where(
-						and(
-							inArray(dbSchema.member.organizationId, [
-								...params.organizationIds,
-							]),
-							eq(dbSchema.member.userId, principal.principalId),
-						),
-					)
-					.limit(1);
-				if (!membership)
-					rejections.push({
-						principalId: principal.principalId,
-						reason: "USER_NOT_IN_SCOPE",
-					});
-				continue;
-			}
-
-			const [group] = yield* db
-				.select({
-					organizationId: dbSchema.group.organizationId,
-					kind: dbSchema.group.kind,
-					systemKey: dbSchema.group.systemKey,
-				})
-				.from(dbSchema.group)
-				.where(
-					and(
-						eq(dbSchema.group.id, principal.principalId),
-						inArray(dbSchema.group.organizationId, [
-							...params.organizationIds,
-						]),
-						isNull(dbSchema.group.deletedAt),
-					),
-				);
-			if (!group) {
-				rejections.push({
-					principalId: principal.principalId,
-					reason: "GROUP_NOT_IN_SCOPE",
-				});
-				continue;
-			}
-
-			const isAllMembers =
-				group.kind === "system" &&
-				group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
-			if (isAllMembers) {
-				if (params.role !== "viewer")
-					rejections.push({
-						principalId: principal.principalId,
-						reason: "ALL_MEMBERS_VIEWER_ONLY",
-					});
-				continue;
-			}
-
-			if (
-				!params.managedOrganizations.has(group.organizationId) &&
-				!(yield* isActiveGroupMember({
-					groupId: principal.principalId,
-					userId: params.actorId,
-				}))
-			)
-				rejections.push({
-					principalId: principal.principalId,
-					reason: "GROUP_NOT_JOINED",
-				});
+			if (principal.principalType === "user")
+				userIds.push(principal.principalId);
+			else groupIds.push(principal.principalId);
 		}
 
-		return rejections;
+		const members =
+			userIds.length === 0
+				? []
+				: yield* db
+						.selectDistinct({
+							userId: dbSchema.member.userId,
+						})
+						.from(dbSchema.member)
+						.where(
+							and(
+								inArray(dbSchema.member.organizationId, organizationIds),
+								inArray(dbSchema.member.userId, userIds),
+							),
+						);
+		const groups =
+			groupIds.length === 0
+				? []
+				: yield* db
+						.select({
+							id: dbSchema.group.id,
+							organizationId: dbSchema.group.organizationId,
+							kind: dbSchema.group.kind,
+							systemKey: dbSchema.group.systemKey,
+						})
+						.from(dbSchema.group)
+						.where(
+							and(
+								inArray(dbSchema.group.id, groupIds),
+								inArray(dbSchema.group.organizationId, organizationIds),
+								isNull(dbSchema.group.deletedAt),
+							),
+						);
+		const isAllMembers = (group: (typeof groups)[number]) =>
+			group.kind === "system" &&
+			group.systemKey === ALL_MEMBERS_GROUP_SYSTEM_KEY;
+		const needJoining = groups.filter(
+			(group) =>
+				!isAllMembers(group) &&
+				!params.managedOrganizations.has(group.organizationId),
+		);
+		const joined =
+			needJoining.length === 0
+				? []
+				: yield* db
+						.select({
+							groupId: dbSchema.groupMember.groupId,
+						})
+						.from(dbSchema.groupMember)
+						.where(
+							and(
+								inArray(
+									dbSchema.groupMember.groupId,
+									needJoining.map((group) => group.id),
+								),
+								eq(dbSchema.groupMember.userId, params.actorId),
+								isNull(dbSchema.groupMember.removedAt),
+							),
+						);
+
+		const memberIds = new Set<string>(members.map((member) => member.userId));
+		const groupsById = new Map<string, (typeof groups)[number]>(
+			groups.map((group) => [
+				group.id,
+				group,
+			]),
+		);
+		const joinedIds = new Set(joined.map((membership) => membership.groupId));
+		return params.principals.flatMap((principal): GrantRejection[] => {
+			const reject = (reason: GrantRejection["reason"]) => [
+				{
+					principalId: principal.principalId,
+					reason,
+				},
+			];
+			const id = principal.principalId.toLowerCase();
+			if (principal.principalType === "user")
+				return memberIds.has(id) ? [] : reject("USER_NOT_IN_SCOPE");
+			const group = groupsById.get(id);
+			if (!group) return reject("GROUP_NOT_IN_SCOPE");
+			if (isAllMembers(group))
+				return params.role === "viewer"
+					? []
+					: reject("ALL_MEMBERS_VIEWER_ONLY");
+			return params.managedOrganizations.has(group.organizationId) ||
+				joinedIds.has(group.id)
+				? []
+				: reject("GROUP_NOT_JOINED");
+		});
 	});
 
 /**
@@ -332,24 +353,26 @@ export const writeGrants = (params: {
 			}
 		});
 
-		const written: ActiveGrant[] = [];
-		const replaced: ActiveGrant[] = [];
-		for (const principal of params.principals) {
-			const existing = existingByPrincipal.get(principalKey(principal));
-
-			if (existing) {
-				yield* db
-					.update(dbSchema.resourceGrant)
-					.set({
-						revokedAt: now,
-					})
-					.where(eq(dbSchema.resourceGrant.id, existing.id));
-				replaced.push(existing);
-			}
-
-			const [grant] = yield* db
-				.insert(dbSchema.resourceGrant)
-				.values({
+		const replaced = params.principals.flatMap(
+			(principal) => existingByPrincipal.get(principalKey(principal)) ?? [],
+		);
+		if (replaced.length > 0)
+			yield* db
+				.update(dbSchema.resourceGrant)
+				.set({
+					revokedAt: now,
+				})
+				.where(
+					inArray(
+						dbSchema.resourceGrant.id,
+						replaced.map((grant) => grant.id),
+					),
+				);
+		if (params.principals.length === 0) return [];
+		const written = yield* db
+			.insert(dbSchema.resourceGrant)
+			.values(
+				params.principals.map((principal) => ({
 					...params.resource,
 					...principal,
 					role: params.role,
@@ -357,10 +380,9 @@ export const writeGrants = (params: {
 					grantedBy: params.grantedBy,
 					createdAt: now,
 					revokedAt: null,
-				})
-				.returning();
-			written.push(grant);
-		}
+				})),
+			)
+			.returning();
 		yield* recordGrantChanges(replaced, written);
 
 		return written;
