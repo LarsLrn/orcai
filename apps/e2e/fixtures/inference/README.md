@@ -62,7 +62,7 @@ a 401.
 - `script(...steps)` queues one-shot steps; each chat completion answers the
   next one, and an empty queue falls back to `respondWith`, then the echo. A
   failure from `failNext` answers first and leaves the queue alone. A step is
-  `{ text?, toolCalls?, finishReason?, hold? }`, with neither `text` nor
+  `{ text?, toolCalls?, finishReason?, hold?, cutOff? }`, with neither `text` nor
   `toolCalls` it answers the standing reply. A tool call is
   `{ name, input, id? }`: `input` is any JSON value, sent as
   `JSON.stringify(input)`, and the id defaults to `call_e2e_<n>`, counting up
@@ -73,6 +73,9 @@ a 401.
   `message.tool_calls` carries the calls whole and `message.content` is `null`
   without text. `completion_tokens` counts the words of the text and of each
   arguments string.
+- `cutOff: true` ends a streamed body right after the text and calls, with
+  no finish reason, usage chunk or `[DONE]`, as a provider whose stream breaks
+  off. The app's OpenAI-compatible client reads that as finish reason `error`.
 - `hold: "response"` sends nothing until `release()`. `hold: "end"` streams
   every chunk, `[DONE]` included, and keeps the body open until `release()`,
   so a call stays `input-streaming`; without `stream: true` it holds like

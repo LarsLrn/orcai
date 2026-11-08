@@ -28,7 +28,6 @@ export interface ORPCContext
 				input: unknown,
 				output: unknown,
 			) => void;
-			track: (done: Promise<unknown>) => void;
 		};
 	};
 	secureCookies: boolean;

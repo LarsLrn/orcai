@@ -476,6 +476,24 @@ test("the inference mock answers scripted tool calls without streaming", async (
 	]);
 });
 
+test("the inference mock cuts a stream off before its finish reason", async () => {
+	inference.script({
+		text: "The first half",
+		cutOff: true,
+	});
+
+	const body = await (
+		await jsonPost(`${inference.url}/chat/completions`, ask("Cut me", true))
+	).text();
+	const chunks = streamedChunks(body);
+
+	expect(
+		chunks.map((chunk) => chunk.choices[0]?.delta?.content ?? "").join(""),
+	).toBe("The first half");
+	expect(finishReasons(chunks)).toEqual([]);
+	expect(body).not.toContain("[DONE]");
+});
+
 test("the inference mock holds a response until release", async () => {
 	inference.script({
 		text: "Held reply",

@@ -204,6 +204,7 @@ describe("startTurn", () => {
 	test.each([
 		"anthropic",
 		"openai",
+		"openai-compatible",
 	] as const)(
 		"keeps a reply whose %s stream was cut off, and marks it",
 		async (kind) => {
@@ -229,6 +230,47 @@ describe("startTurn", () => {
 			expect(quota.calls.settle).toHaveLength(1);
 		},
 	);
+
+	test("marks a reply cut off when a later step fails after its output", async () => {
+		const chat = await conversation(
+			chatRow({
+				config: {
+					...chatRow().config,
+					features: {
+						generativeUi: {},
+					},
+				} as never,
+			}),
+			"anthropic",
+		);
+		chat.script([
+			{
+				calls: [
+					{
+						name: "showChecklist",
+						input: {
+							items: [
+								{
+									label: "Scope",
+								},
+							],
+						},
+					},
+				],
+			},
+			{
+				refused: true,
+			},
+		]);
+
+		await chat.send("Check it");
+
+		const reply = chat.messages().at(-1);
+		expect(toolStates(reply?.parts ?? [])).toEqual([
+			"output-available",
+		]);
+		expect(reply?.metadata.interrupted).toBe(true);
+	});
 
 	test("charges a stopped turn the tokens of its finished steps", async () => {
 		quota.pool = {
@@ -1390,10 +1432,111 @@ describe("turn writes", () => {
 				path: "bot.publish",
 			},
 		]);
-		// The stop interrupts the tool once its change is done, so the model checks rather than reads a result.
 		expect(reply?.parts).toContainEqual(
 			expect.objectContaining({
 				type: "tool-publishBot",
+				state: "output-available",
+				output: expect.objectContaining({
+					id: botId,
+					status: "published",
+				}),
+			}),
+		);
+	});
+
+	test("a create the user stops runs once to its end, and the reply ends with its result", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const stop = new AbortController();
+		const published = answers["bot.publish"];
+		answers["bot.save"] = (input) =>
+			Effect.promise(async () => {
+				stop.abort();
+				await new Promise((resolve) => setTimeout(resolve, 50));
+			}).pipe(Effect.andThen(published?.(input) ?? Effect.void));
+		chat.script([
+			{
+				calls: [
+					{
+						name: "updatePlan",
+						input: {
+							title: "Support bot",
+							items: [
+								{
+									label: "Create the bot",
+									status: "pending",
+								},
+							],
+						},
+					},
+				],
+			},
+			{
+				calls: [
+					{
+						name: "createBot",
+						input: {
+							name: "Tutor",
+							description: "Helps students.",
+						},
+					},
+				],
+			},
+			{
+				text: "Never read.",
+			},
+		]);
+		await chat.send("Make a support bot");
+
+		await chat.decide(true, stop.signal);
+
+		const reply = chat.messages().at(-1);
+		expect(
+			procedureCalls.filter(({ procedure }) => procedure === "bot.save"),
+		).toHaveLength(1);
+		expect(reply?.parts).toContainEqual(
+			expect.objectContaining({
+				type: "tool-createBot",
+				state: "output-available",
+				output: expect.objectContaining({
+					type: "bot",
+					id: botId,
+				}),
+			}),
+		);
+		expect(chat.bodies).toHaveLength(2);
+		expect(textOf(reply?.parts ?? [])).not.toContain("Never read.");
+	});
+
+	test("a read the user stops is interrupted", async () => {
+		const chat = await conversation(assistantRow(), "anthropic");
+		const stop = new AbortController();
+		const find = answers["bot.find"];
+		answers["bot.find"] = (input) =>
+			Effect.promise(async () => {
+				stop.abort();
+				await new Promise((resolve) => setTimeout(resolve, 50));
+			}).pipe(Effect.andThen(find?.(input) ?? Effect.void));
+		chat.script([
+			{
+				calls: [
+					{
+						name: "getBot",
+						input: {
+							id: botId,
+						},
+					},
+				],
+			},
+			{
+				text: "Never read.",
+			},
+		]);
+
+		await chat.send("What is the tutor?", stop.signal);
+
+		expect(chat.messages().at(-1)?.parts).toContainEqual(
+			expect.objectContaining({
+				type: "tool-getBot",
 				state: "output-error",
 				errorText: TOOL_CLOSE_SENTENCES.interrupted,
 			}),

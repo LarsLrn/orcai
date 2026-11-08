@@ -94,7 +94,9 @@ export const createAssistantAgent = (
 		history: params.history,
 	});
 	const tools = session.declare(
-		params.toolExecutions ? params.toolExecutions(built) : built,
+		params.turn.calls.wrap(
+			params.toolExecutions ? params.toolExecutions(built) : built,
+		),
 	);
 	const toolGroups = offeredToolGroups(params.userContext.capabilities);
 	const enabledContentToolNames = CONTENT_TOOL_NAMES.filter((name) =>

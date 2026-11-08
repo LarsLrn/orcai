@@ -22,8 +22,8 @@ import * as Layer from "effect/Layer";
 import { AppConfigService } from "@/lib/effect/services/config";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { memberCapabilities, scriptedFetch } from "../agents/test-provider";
+import { RunningCallsWait } from "../tools/assistant/running-calls";
 import { answers, FakeServices } from "../tools/assistant/test-procedures";
-import { RunningCallsWait } from "../tools/assistant/turn-writes";
 import type { ReplyStore, StoredChat } from "./reply-store";
 
 /**
@@ -270,7 +270,7 @@ export const conversation = async (
 				),
 			),
 		/** Answers every approval the paused reply waits for. */
-		decide: async (approved: boolean) => {
+		decide: async (approved: boolean, stop?: AbortSignal) => {
 			const reply = store.messages(chat.id).at(-1);
 			if (!reply) {
 				throw new Error("nothing to continue");
@@ -301,7 +301,7 @@ export const conversation = async (
 						),
 						toolOutputs: [],
 						clientZedToken: undefined,
-						stop: undefined,
+						stop,
 					}),
 				),
 			);

@@ -132,16 +132,16 @@ const isRejection = (error: unknown) => {
 };
 
 /**
- * Marks the call that changes something. Once started it runs to its end, and
- * a failure that does not prove the change was turned down tells the model to
- * check with `verify`, a read tool, before retrying.
+ * Marks the call that changes something: a failure that does not prove the
+ * change was turned down tells the model to check with `verify`, a read tool,
+ * before retrying.
  */
 export const mutation =
 	(verify: string) =>
 	<A, E, R>(
 		effect: Effect.Effect<A, E, R>,
 	): Effect.Effect<A, E | AssistantToolError, R> =>
-		Effect.uninterruptible(effect).pipe(
+		effect.pipe(
 			Effect.catchCause(
 				(cause): Effect.Effect<never, E | AssistantToolError> => {
 					const error = Cause.squash(cause);
