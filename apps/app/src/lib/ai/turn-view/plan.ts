@@ -1,3 +1,4 @@
+import { planSchema } from "@/lib/ai/tools/assistant/plan/plan";
 import { isToolOfKind, type ToolNameOf } from "@/lib/ai/tools/registry";
 import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import type { MessagePart, ToolPartOf } from "./turn-view";
@@ -15,7 +16,10 @@ export type ShownPlanPart = Extract<
 export const isPlanPart = (part: MessagePart): part is PlanPart =>
 	isToolOfKind(part, "plan");
 
-/** A proposal counts only on the latest reply; a later message superseded it. */
+/**
+ * A proposal counts only on the latest reply; a later message superseded it.
+ * A stored call whose plan no longer fits the schema is not shown.
+ */
 const isShownPlanPart = (
 	part: MessagePart,
 	isLatest: boolean,
@@ -24,7 +28,8 @@ const isShownPlanPart = (
 	(part.state === "output-available" ||
 		(isLatest &&
 			(part.state === "approval-requested" ||
-				(part.state === "approval-responded" && part.approval.approved))));
+				(part.state === "approval-responded" && part.approval.approved)))) &&
+	planSchema.safeParse(part.input).success;
 
 /** The plan of the conversation: its newest shown `updatePlan` call. */
 export const latestPlanPart = (

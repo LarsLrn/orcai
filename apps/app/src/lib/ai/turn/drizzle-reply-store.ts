@@ -1,17 +1,49 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema, uniqueViolationConstraint } from "@orcai/db";
-import { and, asc, desc, eq, max } from "drizzle-orm";
+import {
+	type ChatMessagePart,
+	chatMessagePartSchema,
+	mergeReadableParts,
+	readableChatMessageParts,
+} from "@orcai/schema";
+import { and, asc, desc, eq, max, type SQL } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Result from "effect/Result";
 import * as AppErrors from "@/lib/effect/utils/errors";
-import { ReplyStore } from "./reply-store";
+import { type ReplyContent, ReplyStore } from "./reply-store";
 
 const CHAT_MESSAGE_PRIMARY_KEY = "chat_message_pkey";
+
+const readMessage = <
+	Message extends {
+		parts: readonly unknown[];
+	},
+>(
+	message: Message,
+) => ({
+	...message,
+	parts: readableChatMessageParts(message.parts),
+});
+
+/** New parts must validate, so every part written reads back. */
+const valid = (parts: readonly ChatMessagePart[]) =>
+	Effect.try(() => chatMessagePartSchema.array().parse(parts));
 
 type Transaction = Parameters<
 	Parameters<Effect.Success<typeof DB>["transaction"]>[0]
 >[0];
+
+/** The message's stored parts, held for the rest of the transaction. */
+const lockedParts = (tx: Transaction, where: SQL | undefined) =>
+	tx
+		.select({
+			parts: dbSchema.chatMessage.parts,
+		})
+		.from(dbSchema.chatMessage)
+		.where(where)
+		.for("update")
+		.pipe(Effect.map(([row]) => row?.parts ?? []));
 
 /** Locks the chat's row, so one writer at a time claims its next positions. */
 const lockChat = (tx: Transaction, chatId: ChatId) =>
@@ -109,7 +141,7 @@ export const DrizzleReplyStore = Layer.effect(
 						.orderBy(asc(dbSchema.chatMessage.position));
 					return {
 						chat,
-						messages,
+						messages: messages.map(readMessage),
 					};
 				}).pipe(internal("replyStore.load")),
 			reserve: ({ chatId, closedReply, question, replyId }) =>
@@ -118,15 +150,22 @@ export const DrizzleReplyStore = Layer.effect(
 						Effect.gen(function* () {
 							yield* lockChat(tx, chatId);
 							if (closedReply) {
+								const where = messageOf(chatId, closedReply.id);
 								yield* tx
 									.update(dbSchema.chatMessage)
 									.set({
-										parts: closedReply.parts,
+										parts: mergeReadableParts(
+											yield* lockedParts(tx, where),
+											yield* valid(closedReply.parts),
+										),
 									})
-									.where(messageOf(chatId, closedReply.id));
+									.where(where);
 							}
 							yield* appendLocked(tx, chatId, [
-								question,
+								{
+									...question,
+									parts: yield* valid(question.parts),
+								},
 								{
 									id: replyId,
 									role: "assistant",
@@ -166,15 +205,30 @@ export const DrizzleReplyStore = Layer.effect(
 								.limit(1);
 
 							const updated = yield* Effect.result(
-								update(reply && last?.id === reply.id ? reply : undefined),
+								update(
+									reply && last?.id === reply.id
+										? readMessage(reply)
+										: undefined,
+								),
 							);
-							if (Result.isSuccess(updated)) {
-								yield* tx
-									.update(dbSchema.chatMessage)
-									.set(updated.success)
-									.where(messageOf(chatId, replyId));
+							if (Result.isFailure(updated)) {
+								return Result.fail(updated.failure);
 							}
-							return updated;
+							const { parts, metadata } = updated.success;
+							const written = parts && (yield* valid(parts));
+							yield* tx
+								.update(dbSchema.chatMessage)
+								.set({
+									metadata,
+									...(written && {
+										parts: mergeReadableParts(reply?.parts ?? [], written),
+									}),
+								})
+								.where(messageOf(chatId, replyId));
+							return Result.succeed<ReplyContent>({
+								parts: written ?? readableChatMessageParts(reply?.parts ?? []),
+								metadata,
+							});
 						}),
 					)
 					.pipe(
@@ -182,13 +236,26 @@ export const DrizzleReplyStore = Layer.effect(
 						Effect.flatMap(Effect.fromResult),
 					),
 			settle: ({ chatId, replyId, reply }) =>
-				(reply.parts.length === 0
-					? db.delete(dbSchema.chatMessage).where(messageOf(chatId, replyId))
-					: db
-							.update(dbSchema.chatMessage)
-							.set(reply)
-							.where(messageOf(chatId, replyId))
-				).pipe(Effect.asVoid, internal("replyStore.settle")),
+				db
+					.transaction((tx) =>
+						Effect.gen(function* () {
+							const where = messageOf(chatId, replyId);
+							const parts = mergeReadableParts(
+								yield* lockedParts(tx, where),
+								yield* valid(reply.parts),
+							);
+							yield* parts.length === 0
+								? tx.delete(dbSchema.chatMessage).where(where)
+								: tx
+										.update(dbSchema.chatMessage)
+										.set({
+											...reply,
+											parts,
+										})
+										.where(where);
+						}),
+					)
+					.pipe(Effect.asVoid, internal("replyStore.settle")),
 		};
 	}),
 );

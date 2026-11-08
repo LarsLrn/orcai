@@ -43,6 +43,7 @@ export * from "./chat-block/responses";
 export * from "./chat-block/schema";
 export * from "./chat-message/inputs";
 export * from "./chat-message/parts/attachment";
+export * from "./chat-message/parts/message-part";
 export * from "./chat-message/parts/metadata";
 export * from "./chat-message/parts/writes";
 export * from "./chat-message/responses";

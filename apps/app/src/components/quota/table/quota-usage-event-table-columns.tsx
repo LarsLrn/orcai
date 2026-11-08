@@ -1,6 +1,7 @@
-import type {
-	QuotaUsageEventListRow,
-	QuotaUsageEventType,
+import {
+	QUOTA_USAGE_EVENT_TYPES,
+	type QuotaUsageEventListRow,
+	type QuotaUsageEventType,
 } from "@orcai/schema";
 import { createColumnHelper } from "@tanstack/react-table";
 import { DisplayTimestamp } from "@/components/app/display-time";
@@ -31,14 +32,7 @@ const eventTypeVariant = {
 } as const satisfies Record<QuotaUsageEventType, string>;
 
 export const quotaUsageEventTypeOptions = () =>
-	(
-		[
-			"reserved",
-			"finalized",
-			"released",
-			"failed",
-		] as const
-	).map((value) => ({
+	QUOTA_USAGE_EVENT_TYPES.map((value) => ({
 		value,
 		label: eventTypeLabel(value),
 	}));

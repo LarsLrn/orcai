@@ -19,6 +19,7 @@ import {
 	resetProcedures,
 } from "../tools/assistant/test-procedures";
 import { assetPoint } from "../tools/rag/test-points";
+import { toChatAgentParts } from "../types/chat-agent-message";
 import { TOOL_CLOSE_SENTENCES } from "../utils/close-pending-tool-parts";
 import {
 	answerSetup,
@@ -2380,12 +2381,8 @@ describe("keepUploads", () => {
 		]);
 		await chat.send("Make a bot from my style guide");
 		const reply = chat.messages().at(-1);
-		const call = reply?.parts.find(
-			(
-				part,
-			): part is {
-				toolCallId: string;
-			} => typeof part === "object" && part !== null && "toolCallId" in part,
+		const call = toChatAgentParts(reply?.parts ?? []).find(
+			(part) => part.type === "tool-requestUpload",
 		);
 		const keep = (toolCallId = call?.toolCallId ?? "") =>
 			chat.run(

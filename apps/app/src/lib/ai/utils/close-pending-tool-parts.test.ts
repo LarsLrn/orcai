@@ -495,6 +495,50 @@ describe("closeCopiedToolParts", () => {
 			],
 		});
 	});
+	test("closes the readable calls of a copy and copies the rest as stored", () => {
+		const pending = {
+			type: "tool-search",
+			toolCallId: "call-1",
+			state: "approval-requested",
+			input: {
+				query: "q",
+			},
+			approval: {
+				id: "approval-1",
+			},
+		};
+		const [copied] = closeCopiedToolParts<{
+			role: string;
+			parts: unknown[];
+		}>([
+			{
+				role: "assistant",
+				parts: [
+					{
+						type: 17,
+					},
+					null,
+					pending,
+				],
+			},
+		]);
+
+		expect(copied.parts).toEqual([
+			{
+				type: 17,
+			},
+			null,
+			{
+				...pending,
+				state: "output-denied",
+				approval: {
+					id: "approval-1",
+					approved: false,
+					reason: TOOL_CLOSE_SENTENCES.superseded,
+				},
+			},
+		]);
+	});
 });
 
 describe("toolCloseCode", () => {

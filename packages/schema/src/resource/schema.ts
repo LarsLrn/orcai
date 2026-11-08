@@ -20,21 +20,27 @@ export const RESOURCE_TYPES = [
 
 export const resourceTypeSchema = z.enum(RESOURCE_TYPES);
 
-export const resourceGrantRoleSchema = z.enum([
+export const RESOURCE_GRANT_ROLES = [
 	"viewer",
 	"editor",
 	"manager",
-]);
+] as const;
 
-export const principalTypeSchema = z.enum([
+export const resourceGrantRoleSchema = z.enum(RESOURCE_GRANT_ROLES);
+
+export const PRINCIPAL_TYPES = [
 	"user",
 	"group",
-]);
+] as const;
 
-export const resourceVisibilitySchema = z.enum([
+export const principalTypeSchema = z.enum(PRINCIPAL_TYPES);
+
+export const RESOURCE_VISIBILITIES = [
 	"private",
 	"public",
-]);
+] as const;
+
+export const resourceVisibilitySchema = z.enum(RESOURCE_VISIBILITIES);
 
 export const assetResourceIdentitySchema = z.object({
 	resourceType: z.literal("asset"),

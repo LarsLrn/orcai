@@ -5,7 +5,7 @@ import { type Source, sourceRef } from "@/lib/ai/citations/source-ref";
 import { dataTag } from "@/lib/ai/utils/data-tag";
 
 /** What `readDocs` answers with: the index without a path, a page with one. */
-const readDocsOutputSchema = z.object({
+export const readDocsOutputSchema = z.object({
 	path: z.string().nullable(),
 	title: z.string().nullable(),
 	url: z.string(),

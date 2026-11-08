@@ -9,12 +9,11 @@ import {
 	pageOf,
 	type SortExpression,
 } from "@orcai/db";
-import type { ChatSortKey } from "@orcai/schema";
+import { type ChatSortKey, readableChatMessageParts } from "@orcai/schema";
 import {
 	lookupEntitiesByPermission,
 	permittedEntityIds,
 } from "@orcai/spice-db";
-import { isTextUIPart, type UIMessage } from "ai";
 import {
 	and,
 	asc,
@@ -804,9 +803,14 @@ const branchChat = authed.chat.branch
 			data: chat,
 			draft: isUserMessage
 				? {
-						text: (message.parts as UIMessage["parts"])
-							.filter(isTextUIPart)
-							.map((part) => part.text)
+						text: readableChatMessageParts(message.parts)
+							.flatMap((part) =>
+								part.type === "text"
+									? [
+											part.text,
+										]
+									: [],
+							)
 							.join("\n\n"),
 						attachments: message.attachments,
 					}

@@ -1,4 +1,9 @@
 import type { ChatId, ChatMessageId } from "@orcai/core";
+import {
+	mergeReadableParts,
+	readableChatMessageParts,
+	type StoredChatMessageParts,
+} from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as AppErrors from "@/lib/effect/utils/errors";
@@ -9,16 +14,26 @@ import {
 	type StoredMessage,
 } from "./reply-store";
 
+/** A message as its row holds it. */
+type Row = Omit<StoredMessage, "parts"> & {
+	parts: StoredChatMessageParts;
+};
+
+const read = (row: Row): StoredMessage => ({
+	...row,
+	parts: readableChatMessageParts(row.parts),
+});
+
 /** A store holding its chats in memory, for tests. */
 export const memoryReplyStore = (chats: StoredChat[]) => {
-	const messages = new Map<ChatId, StoredMessage[]>(
+	const messages = new Map<ChatId, Row[]>(
 		chats.map((chat) => [
 			chat.id,
 			[],
 		]),
 	);
 	const rows = (chatId: ChatId) => messages.get(chatId) ?? [];
-	const stored = (chatId: ChatId, message: NewMessage): StoredMessage => ({
+	const stored = (chatId: ChatId, message: NewMessage): Row => ({
 		...message,
 		chatId,
 		position: (rows(chatId).at(-1)?.position ?? -1) + 1,
@@ -27,7 +42,7 @@ export const memoryReplyStore = (chats: StoredChat[]) => {
 	const replace = (
 		chatId: ChatId,
 		id: ChatMessageId,
-		change: (message: StoredMessage) => StoredMessage | undefined,
+		change: (message: Row) => Row | undefined,
 	) => {
 		messages.set(
 			chatId,
@@ -59,7 +74,7 @@ export const memoryReplyStore = (chats: StoredChat[]) => {
 					return (
 						chat && {
 							chat,
-							messages: rows(chatId),
+							messages: rows(chatId).map(read),
 						}
 					);
 				}),
@@ -76,7 +91,7 @@ export const memoryReplyStore = (chats: StoredChat[]) => {
 					if (closedReply) {
 						replace(chatId, closedReply.id, (message) => ({
 							...message,
-							parts: closedReply.parts,
+							parts: mergeReadableParts(message.parts, closedReply.parts),
 						}));
 					}
 					for (const message of [
@@ -99,30 +114,38 @@ export const memoryReplyStore = (chats: StoredChat[]) => {
 			claim: ({ chatId, replyId, update }) =>
 				Effect.suspend(() => {
 					const last = rows(chatId).at(-1);
-					return update(last?.id === replyId ? last : undefined);
-				}).pipe(
-					Effect.tap((content) =>
-						Effect.sync(() =>
+					const reply = last?.id === replyId ? last : undefined;
+					return update(reply && read(reply)).pipe(
+						Effect.map(({ parts, metadata }) => {
 							replace(chatId, replyId, (message) => ({
 								...message,
-								...content,
-							})),
-						),
-					),
-				),
+								metadata,
+								...(parts && {
+									parts: mergeReadableParts(message.parts, parts),
+								}),
+							}));
+							return {
+								parts: parts ?? readableChatMessageParts(reply?.parts ?? []),
+								metadata,
+							};
+						}),
+					);
+				}),
 			settle: ({ chatId, replyId, reply }) =>
 				Effect.sync(() =>
-					replace(chatId, replyId, (message) =>
-						reply.parts.length === 0
+					replace(chatId, replyId, (message) => {
+						const parts = mergeReadableParts(message.parts, reply.parts);
+						return parts.length === 0
 							? undefined
 							: {
 									...message,
 									...reply,
-								},
-					),
+									parts,
+								};
+					}),
 				),
 		}),
-		/** The chat's messages in order. */
-		messages: rows,
+		/** The chat's messages in order, with the parts this version reads. */
+		messages: (chatId: ChatId) => rows(chatId).map(read),
 	};
 };

@@ -5,21 +5,25 @@ import {
 	userIdSchema,
 } from "../shared/ids";
 
-const groupKindSchema = z.enum([
+export const GROUP_KINDS = [
 	"system",
 	"custom",
-]);
+] as const;
+
+const groupKindSchema = z.enum(GROUP_KINDS);
 
 export const groupMemberSourceSchema = z.enum([
 	"explicit",
 	"implicit",
 ]);
 
-const groupSystemKeySchema = z.enum([
-	"all_members",
-]);
-
 export const ALL_MEMBERS_GROUP_SYSTEM_KEY = "all_members";
+
+export const GROUP_SYSTEM_KEYS = [
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+] as const;
+
+const groupSystemKeySchema = z.enum(GROUP_SYSTEM_KEYS);
 
 export const groupFieldsSchema = z.object({
 	name: z.string().trim().min(1),

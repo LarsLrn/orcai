@@ -1,14 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import type { ChatId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
+import type { ChatMessagePart } from "@orcai/schema";
 import {
 	awaitLockWaiters,
 	createUser,
 	integrationRuntime,
 } from "@orcai/testing";
+import { eq } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import type * as ManagedRuntime from "effect/ManagedRuntime";
+import * as AppErrors from "@/lib/effect/utils/errors";
 import { DrizzleReplyStore } from "./drizzle-reply-store";
 import { type NewMessage, ReplyStore } from "./reply-store";
 
@@ -98,6 +101,68 @@ const rows = (chatId: ChatId) =>
 			position: message.position,
 			parts: message.parts,
 		}));
+	});
+
+const kept = {
+	type: "text",
+	text: "Kept",
+	state: "done",
+} as const;
+
+const rewritten = {
+	type: "text",
+	text: "Rewritten",
+	state: "done",
+} as const;
+
+/** A readable text part, then parts this version cannot read. */
+const unreadable = [
+	kept,
+	{
+		type: "tool-invocation",
+		toolInvocation: {
+			state: "result",
+			toolCallId: "call-0",
+		},
+	},
+	{
+		type: "text",
+		content: "No text field",
+	},
+	{
+		type: "future-part",
+		payload: 1,
+	},
+];
+
+/** A chat whose only message is a reply holding `unreadable`. */
+const unreadableReply = Effect.gen(function* () {
+	const chatId = yield* newChat;
+	const id = crypto.randomUUID() as ChatMessageId;
+	yield* (yield* DB).insert(dbSchema.chatMessage).values({
+		id,
+		chatId,
+		role: "assistant",
+		parts: unreadable,
+		attachments: [],
+		metadata: {},
+		position: 0,
+	});
+	return {
+		chatId,
+		id,
+	};
+});
+
+const rawParts = (id: ChatMessageId) =>
+	Effect.gen(function* () {
+		const [row] = yield* (yield* DB)
+			.select({
+				parts: dbSchema.chatMessage.parts,
+			})
+			.from(dbSchema.chatMessage)
+			.where(eq(dbSchema.chatMessage.id, id));
+		return row?.parts;
 	});
 
 describe("DrizzleReplyStore", () => {
@@ -344,5 +409,171 @@ describe("DrizzleReplyStore", () => {
 			"assistant",
 			"user",
 		]);
+	});
+
+	test("reads the parts it knows and leaves the stored row as it is", async () => {
+		const result = await run(
+			Effect.gen(function* () {
+				const { chatId, id } = yield* unreadableReply;
+				return {
+					read: (yield* rows(chatId)).map((message) => message.parts),
+					row: yield* rawParts(id),
+				};
+			}),
+		);
+
+		expect(result.read).toEqual([
+			[
+				kept,
+			],
+		]);
+		expect(result.row).toEqual(unreadable);
+	});
+
+	test("closing a reply rewrites only the parts it reads", async () => {
+		const row = await run(
+			Effect.gen(function* () {
+				const { chatId, id } = yield* unreadableReply;
+				yield* (yield* ReplyStore).reserve({
+					chatId,
+					closedReply: {
+						id,
+						parts: [
+							rewritten,
+						],
+					},
+					question: question("Next"),
+					replyId: crypto.randomUUID() as ChatMessageId,
+				});
+				return yield* rawParts(id);
+			}),
+		);
+
+		expect(row).toEqual([
+			rewritten,
+			...unreadable.slice(1),
+		]);
+	});
+
+	test("a claim writes its parts over the readable ones and keeps the rest", async () => {
+		const result = await run(
+			Effect.gen(function* () {
+				const { chatId, id } = yield* unreadableReply;
+				const claimed = yield* (yield* ReplyStore).claim({
+					chatId,
+					replyId: id,
+					update: (reply) =>
+						Effect.succeed({
+							parts: [
+								...(reply?.parts ?? []),
+								rewritten,
+							],
+							metadata: {},
+						}),
+				});
+				return {
+					claimed: claimed.parts,
+					row: yield* rawParts(id),
+				};
+			}),
+		);
+
+		expect(result.claimed).toEqual([
+			kept,
+			rewritten,
+		]);
+		expect(result.row).toEqual([
+			...unreadable,
+			rewritten,
+		]);
+	});
+
+	test("a claim without parts changes only the metadata", async () => {
+		const result = await run(
+			Effect.gen(function* () {
+				const { chatId, id } = yield* unreadableReply;
+				yield* (yield* ReplyStore).claim({
+					chatId,
+					replyId: id,
+					update: () =>
+						Effect.succeed({
+							metadata: {
+								continuedAt: "2026-11-08T10:00:00.000Z",
+							},
+						}),
+				});
+				const loaded = yield* (yield* ReplyStore).load(chatId);
+				return {
+					metadata: loaded?.messages[0]?.metadata,
+					row: yield* rawParts(id),
+				};
+			}),
+		);
+
+		expect(result.metadata).toEqual({
+			continuedAt: "2026-11-08T10:00:00.000Z",
+		});
+		expect(result.row).toEqual(unreadable);
+	});
+
+	test("settling a reply keeps the parts it cannot read", async () => {
+		const row = await run(
+			Effect.gen(function* () {
+				const { chatId, id } = yield* unreadableReply;
+				yield* (yield* ReplyStore).settle({
+					chatId,
+					replyId: id,
+					reply: {
+						parts: [
+							rewritten,
+						],
+						metadata: {},
+					},
+				});
+				return yield* rawParts(id);
+			}),
+		);
+
+		expect(row).toEqual([
+			rewritten,
+			...unreadable.slice(1),
+		]);
+	});
+
+	test("stores no part that fails its schema", async () => {
+		const result = await run(
+			Effect.gen(function* () {
+				const store = yield* ReplyStore;
+				const { chatId } = yield* answeredChat;
+				const replyId = crypto.randomUUID() as ChatMessageId;
+				yield* store.reserve({
+					chatId,
+					closedReply: undefined,
+					question: question("Second"),
+					replyId,
+				});
+				const error = yield* Effect.flip(
+					store.settle({
+						chatId,
+						replyId,
+						reply: {
+							parts: [
+								{
+									type: "text",
+								} as unknown as ChatMessagePart,
+							],
+							metadata: {},
+						},
+					}),
+				);
+				return {
+					error,
+					last: (yield* rows(chatId)).at(-1),
+				};
+			}),
+		);
+
+		expect(result.error).toBeInstanceOf(AppErrors.InternalError);
+		expect(result.last?.parts).toEqual([]);
 	});
 });

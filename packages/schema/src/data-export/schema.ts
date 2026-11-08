@@ -1,12 +1,17 @@
 import { z } from "zod/v4";
 import { dataExportIdSchema } from "../shared/ids";
 
-/** `expired` is a ready export past its expiry; the archive is gone. */
-export const dataExportStatusSchema = z.enum([
+/** The statuses an export is stored with. */
+export const DATA_EXPORT_STATUSES = [
 	"pending",
 	"processing",
 	"ready",
 	"failed",
+] as const;
+
+/** `expired` is a ready export past its expiry; the archive is gone. */
+export const dataExportStatusSchema = z.enum([
+	...DATA_EXPORT_STATUSES,
 	"expired",
 ]);
 

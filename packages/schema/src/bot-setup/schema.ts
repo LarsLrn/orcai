@@ -4,10 +4,12 @@ import { resourcePrincipalSchema } from "../resource/schema";
 import { modelIdSchema, providerIdSchema } from "../shared/ids";
 
 /** Recommended seeds new chats; required decides every turn of the bot's chats. */
-export const botSetupStrengthSchema = z.enum([
+export const BOT_SETUP_STRENGTHS = [
 	"recommended",
 	"required",
-]);
+] as const;
+
+export const botSetupStrengthSchema = z.enum(BOT_SETUP_STRENGTHS);
 
 export const botSetupFieldsSchema = z.object({
 	modelId: modelIdSchema,
