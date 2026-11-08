@@ -136,5 +136,8 @@ export const blockAsset = pgTable(
 		index("block_asset_index_failed_actor_idx")
 			.on(table.indexActorId)
 			.where(sql`${table.indexStatus} = 'failed'`),
+		index("block_asset_index_unfinished_idx")
+			.on(table.embeddingGeneration, table.assetId, table.blockId)
+			.where(sql`${table.indexStatus} in ('pending', 'active')`),
 	],
 );

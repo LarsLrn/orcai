@@ -9,7 +9,7 @@ import {
 	type ProcessAssetPayload,
 	type VectorizeAssetPayload,
 } from "@orcai/schema";
-import { and, type Column, eq, inArray, sql } from "drizzle-orm";
+import { and, type Column, eq, sql } from "drizzle-orm";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import { newFailureId, type StageTarget, settleStage } from "./activity";
@@ -66,11 +66,9 @@ export const indexingAttempt = (
 	runId: data.runId,
 });
 
+/** Literal, so the unfinished-stage partial indexes serve generic plans too. */
 export const unfinished = (status: Column) =>
-	inArray(status, [
-		"pending",
-		"active",
-	]);
+	sql`${status} in ('pending', 'active')`;
 
 /** The asset, while `attempt` is its current processing and unfinished. */
 export const currentProcessing = (attempt: ProcessingAttempt) =>

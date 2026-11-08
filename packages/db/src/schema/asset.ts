@@ -93,5 +93,11 @@ export const asset = pgTable(
 			.where(
 				sql`${table.metadataStatus} = 'failed' or ${table.metadataSuggestion} is not null`,
 			),
+		index("asset_processing_unfinished_idx")
+			.on(table.id)
+			.where(sql`${table.processingStatus} in ('pending', 'active')`),
+		index("asset_metadata_unfinished_idx")
+			.on(table.id)
+			.where(sql`${table.metadataStatus} in ('pending', 'active')`),
 	],
 );

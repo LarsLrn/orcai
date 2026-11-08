@@ -1,0 +1,161 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "f7b1cddd-9cf2-4db6-aa3a-33431ed8572b",
+  "prevIds": [
+    "8b5e3edc-17d5-4997-a1de-5898c1c70ccf"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_processing_unfinished_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_processing_unfinished_idx",
+        "n|idx|public.asset_processing_unfinished_idx",
+        "e|idx|public.asset_processing_unfinished_idx",
+        "n|rel|public.asset_processing_unfinished_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.asset.id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_metadata_unfinished_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_metadata_unfinished_idx",
+        "n|idx|public.asset_metadata_unfinished_idx",
+        "e|idx|public.asset_metadata_unfinished_idx",
+        "n|rel|public.asset_metadata_unfinished_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.asset.id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "block_asset",
+        "block_asset_index_unfinished_idx"
+      ],
+      "writes": [
+        "s|idx|public.block_asset_index_unfinished_idx",
+        "n|idx|public.block_asset_index_unfinished_idx",
+        "e|idx|public.block_asset_index_unfinished_idx",
+        "n|rel|public.block_asset_index_unfinished_idx"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public",
+        "n|col|public.block_asset.embedding_generation",
+        "n|col|public.block_asset.asset_id",
+        "n|col|public.block_asset.block_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_processing_unfinished_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"processing_status\" in ('pending', 'active')",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_metadata_unfinished_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"metadata_status\" in ('pending', 'active')",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_asset_index_unfinished_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "embedding_generation",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "asset_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "block_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": "\"index_status\" in ('pending', 'active')",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    }
+  ]
+}
