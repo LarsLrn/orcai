@@ -30,7 +30,9 @@ import { and, eq, sql } from "drizzle-orm";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
+import { writeRelationships } from "@/lib/authz/relationship-write";
 import { deleteResourcesWithAuthorization } from "@/lib/authz/resource-lifecycle";
+import { replaceBlockAssets } from "@/lib/blocks/repository";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
 	type Actor,
@@ -1212,6 +1214,104 @@ describe("deleting a linked asset or repository", () => {
 			]);
 			expect(await links(kept.id)).toHaveProperty(assetId);
 			await takePoints(assetId);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("unlinking many assets", () => {
+	test(
+		"removes every link's points, at most five links at a time, so other requests still get a connection",
+		async () => {
+			const { owner, organizationId, assets, blockId } =
+				await repositoryWith(30);
+			for (const assetId of assets)
+				await run(
+					writePoint(
+						assetId,
+						blockId,
+						(await linkAttempt(assetId, blockId)) ?? 0,
+					),
+				);
+			const qdrant = await run(QdrantService);
+			const saturated = await run(Deferred.make<void>());
+			const release = await run(Deferred.make<void>());
+			let inFlight = 0;
+			let mostInFlight = 0;
+			const deletes: Promise<unknown>[] = [];
+			const held = {
+				...qdrant,
+				client: new Proxy(qdrant.client, {
+					get(target, key) {
+						const value = Reflect.get(target, key);
+						if (key !== "delete" || typeof value !== "function") return value;
+						return (...args: unknown[]) => {
+							const call = (async () => {
+								inFlight++;
+								mostInFlight = Math.max(mostInFlight, inFlight);
+								if (inFlight === 5)
+									await run(Deferred.succeed(saturated, undefined));
+								await run(Deferred.await(release));
+								try {
+									return await value.apply(target, args);
+								} finally {
+									inFlight--;
+								}
+							})();
+							deletes.push(call);
+							return call;
+						};
+					},
+				}),
+			};
+			const { result: cleanup } = await run(
+				writeRelationships(
+					{
+						organizationIds: [
+							organizationId,
+						],
+					},
+					replaceBlockAssets({
+						blockId,
+						assetIds: [],
+						userId: owner.user.id,
+						uploadRunIds: [],
+					}),
+				),
+			);
+
+			const unlinking = await run(
+				Effect.forkDetach(
+					cleanUpDeletions([
+						cleanup,
+					]).pipe(Effect.provideService(QdrantService, held)),
+				),
+			);
+			// Another request's read, while the unlinking holds its transactions.
+			let read: Promise<unknown> | undefined;
+			try {
+				await run(Deferred.await(saturated).pipe(Effect.timeout("10 seconds")));
+				read = links(blockId);
+				expect(
+					await run(
+						Effect.promise(() => read as Promise<unknown>).pipe(
+							Effect.timeout("10 seconds"),
+						),
+					),
+				).toEqual({});
+				expect(inFlight).toBe(5);
+			} finally {
+				await run(Deferred.succeed(release, undefined));
+				await run(Fiber.join(unlinking));
+				await Promise.allSettled([
+					read,
+					...deletes,
+				]);
+			}
+
+			expect(mostInFlight).toBe(5);
+			for (const assetId of assets)
+				expect(await pointRepositories(assetId)).toEqual([]);
 		},
 		TIMEOUT,
 	);
