@@ -1,21 +1,26 @@
 import type { dbSchema } from "@orcai/db";
+import * as Schema from "effect/Schema";
+
+const count = Schema.optional(Schema.Number);
 
 /** What one provider request used; a count the provider left out is undefined. */
-export interface MeteredStep {
-	inputTokens?: number;
+export const MeteredStep = Schema.Struct({
+	inputTokens: count,
 	/** Input read neither from nor into the prompt cache. */
-	noCacheInputTokens?: number;
-	cacheReadTokens?: number;
-	cacheWriteTokens?: number;
-	outputTokens?: number;
+	noCacheInputTokens: count,
+	cacheReadTokens: count,
+	cacheWriteTokens: count,
+	outputTokens: count,
 	/** Already inside the output tokens. */
-	reasoningTokens?: number;
-	totalTokens?: number;
+	reasoningTokens: count,
+	totalTokens: count,
 	/** Searches the model ran with its provider's own tool. */
-	webSearches?: number;
+	webSearches: count,
 	/** The cost the provider reported for the request, in USD. */
-	reportedCost?: number;
-}
+	reportedCost: count,
+});
+
+export type MeteredStep = typeof MeteredStep.Type;
 
 type UsageEvent = typeof dbSchema.quotaUsageEvent.$inferInsert;
 

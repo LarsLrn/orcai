@@ -14,6 +14,7 @@ import type * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
+import * as Logger from "effect/Logger";
 import * as Schedule from "effect/Schedule";
 import { STALE_RESERVATION_AGE_MS } from "../src/call-timeout";
 import {
@@ -352,6 +353,83 @@ test("a call whose settle failed is charged its stored steps once its period clo
 			},
 		}),
 	]);
+}, 30_000);
+
+test("a stale reservation with a corrupt stored step is charged what it can read", async () => {
+	const { poolId, start } = await requestPool(10);
+	const sentinel = "stored prompt text that must stay out of logs";
+	const appRequestId = crypto.randomUUID();
+	await run(start(6, appRequestId));
+	const [reserved] = await eventsOf(appRequestId);
+	await run(
+		Effect.gen(function* () {
+			yield* (yield* DB)
+				.update(dbSchema.quotaUsageEvent)
+				.set({
+					metadata: {
+						...reserved.metadata,
+						steps: [
+							null,
+							{
+								outputTokens: sentinel,
+							},
+							step,
+						],
+					},
+				})
+				.where(eq(dbSchema.quotaUsageEvent.id, reserved.id));
+		}),
+	);
+	await ageReservation(appRequestId);
+	const logged: unknown[] = [];
+
+	await run(
+		recoverStaleQuotaReservations({
+			reservedBefore: new Date(Date.now() - STALE_RESERVATION_AGE_MS),
+			limit: 500,
+		}).pipe(
+			Effect.provide(
+				Logger.layer([
+					Logger.make(({ message }) => {
+						logged.push(message);
+					}),
+				]),
+			),
+		),
+	);
+
+	expect(await ledgerOf(poolId, reserved.quotaPeriodId)).toMatchObject({
+		reservedAmount: 0,
+		consumedAmount: 3,
+	});
+	expect(await finalizedOf(appRequestId)).toEqual([
+		expect.objectContaining({
+			actualAmount: 3,
+			requestCount: 3,
+			inputTokens: 100,
+		}),
+	]);
+	expect(logged.flat()).toContainEqual(
+		expect.objectContaining({
+			message: "quota.steps.corrupt",
+			reservationKey: reserved.reservationKey,
+			corrupt: [
+				{
+					index: 0,
+					paths: [
+						"",
+					],
+				},
+				{
+					index: 1,
+					paths: [
+						"outputTokens",
+					],
+				},
+			],
+		}),
+	);
+	expect(JSON.stringify(logged)).not.toContain(sentinel);
 }, 30_000);
 
 test("a recovery that meets a usage write still being stored charges what it stored", async () => {
