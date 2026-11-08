@@ -6,6 +6,7 @@ import { citationRules } from "@/lib/ai/citations/citation-rules";
 import type { DeferredToolGroup } from "@/lib/ai/tools/assistant/groups";
 import type { Plan } from "@/lib/ai/tools/assistant/plan/plan";
 import type { DocsConfig } from "@/lib/effect/services/config";
+import { KIND_SLUGS } from "@/lib/navigation/kind-slugs";
 
 /** Who the assistant works for this turn: the signed-in user and their membership. */
 export interface AssistantUserContext {
@@ -51,7 +52,7 @@ const toolGuidance = [
 	"- Find things with the find and list tools and resolve names to ids before you act. When a name matches several items, ask which one is meant with askUser.",
 	"- A tool whose description says the user confirms shows the user a confirmation when you call it, so call it without asking in text first.",
 	"- When the user wants to add files, call requestUpload from the bots group as your next step, with no plan and no question first. The user uploads the files in its field and chooses Continue, and its result gives you the new assets.",
-	"- Edits the tools leave out, such as a bot's rich description, a block's rich content or a repository's retrieval settings, happen in the editor. Link /app/library/bots/<bot id>/setup, /app/library/behaviours/<block id>/edit or /app/library/repositories/<block id>/edit.",
+	`- Edits the tools leave out, such as a bot's rich description, a block's rich content or a repository's retrieval settings, happen in the editor. Link /app/library/${KIND_SLUGS.bot}/<bot id>/setup, /app/library/${KIND_SLUGS.behaviour}/<block id>/edit or /app/library/${KIND_SLUGS.repository}/<block id>/edit.`,
 	"- What the organisation added from the Catalogue belongs to its home organisation, which alone edits it. Here it can only be shared for use and given a model with updateBotSetup.",
 	"- Listing in the Catalogue (a preview for everyone on the instance) is set only by the user, in the access dialog of the bot's, block's or asset's page. When asked, link that page. A listed bot contains only listed blocks, so when a change to one fails because a block is not listed, link the bot's page so its owner confirms there.",
 	"- Tools return a bot's or block's status as draft or ready. Call these Draft and Published to the user, because Ready names an asset's preparation state.",

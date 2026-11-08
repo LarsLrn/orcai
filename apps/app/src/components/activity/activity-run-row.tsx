@@ -97,8 +97,9 @@ const RunLink = ({ run }: { run: ActivityRun }) => {
 	if (run.repository) {
 		return (
 			<Link
-				to="/app/library/repositories/$blockId"
+				to="/app/library/$kind/$blockId"
 				params={{
+					kind: "repository",
 					blockId: run.repository.id,
 				}}
 				onClick={closeActivity}

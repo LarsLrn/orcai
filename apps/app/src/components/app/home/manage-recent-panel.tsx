@@ -17,7 +17,6 @@ import {
 	panelRowVariants,
 } from "@/components/ui/composed/panel";
 import { StateBadge } from "@/components/ui/composed/state-badge";
-import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { processingStatusBadge } from "@/lib/presentation/processing-status";
 import { publicationStatusBadge } from "@/lib/presentation/publication-status";
@@ -84,8 +83,9 @@ const RecentRow = ({ entry }: { entry: RecentResource }) => {
 		case "block":
 			return (
 				<Link
-					to={blockPaths(entry.blockType).detail}
+					to="/app/library/$kind/$blockId"
 					params={{
+						kind: entry.blockType,
 						blockId: entry.resourceId,
 					}}
 					className={panelRowVariants({

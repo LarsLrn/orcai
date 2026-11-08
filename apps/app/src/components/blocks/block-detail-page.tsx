@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/shell/detail-header";
 import { Page, PageContent } from "@/components/ui/shell/page";
 import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
-import { blockPaths } from "@/lib/navigation/block-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
@@ -47,7 +46,10 @@ export const BlockDetailPage = ({ blockId }: { blockId: BlockId }) => {
 		listing: true,
 		onDeleted: async () => {
 			await navigate({
-				to: blockPaths(block.data.type).list,
+				to: "/app/library/$kind",
+				params: {
+					kind: block.data.type,
+				},
 			});
 		},
 	});

@@ -8,7 +8,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { blockPaths } from "@/lib/navigation/block-paths";
+import { libraryLink } from "@/lib/navigation/library-link";
 import { m } from "@/paraglide/messages";
 
 /** Which of the two counts a phrase names, so the message picks its shape. */
@@ -105,20 +105,13 @@ const InheritedAccessSummary = ({
 							{inherited.ancestors.map((ancestor) => (
 								<li key={`${ancestor.resourceType}:${ancestor.resourceId}`}>
 									<Link
-										to={
-											ancestor.resourceType === "bot"
-												? "/app/library/bots/$botId"
-												: blockPaths(ancestor.blockType).detail
-										}
-										params={
-											ancestor.resourceType === "bot"
-												? {
-														botId: ancestor.resourceId,
-													}
-												: {
-														blockId: ancestor.resourceId,
-													}
-										}
+										{...libraryLink({
+											kind:
+												ancestor.resourceType === "bot"
+													? "bot"
+													: ancestor.blockType,
+											id: ancestor.resourceId,
+										})}
 										className="hover:bg-muted block truncate rounded-lg px-2 py-1 text-sm"
 									>
 										{ancestor.name}

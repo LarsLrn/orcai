@@ -50,8 +50,9 @@ const RepositoryRow = ({ repository }: { repository: RepositoryReadiness }) => {
 			<RepositoryStatusIcon totals={totals} />
 			{repository.capabilities.edit ? (
 				<Link
-					to="/app/library/repositories/$blockId"
+					to="/app/library/$kind/$blockId"
 					params={{
+						kind: "repository",
 						blockId: repository.blockId,
 					}}
 					className="min-w-0 truncate underline-offset-4 hover:underline"

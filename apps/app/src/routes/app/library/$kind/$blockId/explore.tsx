@@ -29,7 +29,7 @@ import {
 	PageTitle,
 } from "@/components/ui/shell/page";
 import { orpc } from "@/lib/orpc/orpc";
-import { loadBlockOfType } from "@/lib/router/block-loader";
+import { loadBlockOfType } from "@/lib/router/block-route";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -70,11 +70,12 @@ const selectedAssetId = (
 	asset: AssetId | undefined,
 ) => assets?.find((entry) => entry.id === asset)?.id;
 
-export const Route = createFileRoute(
-	"/app/library/repositories/$blockId/explore",
-)({
+export const Route = createFileRoute("/app/library/$kind/$blockId/explore")({
 	validateSearch: searchSchema,
 	loaderDeps: ({ search }) => exploreSearch(search),
+	beforeLoad: ({ params: { kind } }) => {
+		if (kind !== "repository") throw notFound();
+	},
 	loader: async ({
 		context: { queryClient },
 		params: { blockId },

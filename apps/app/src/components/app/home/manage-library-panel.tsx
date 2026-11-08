@@ -89,7 +89,10 @@ const ManageLibraryPanel = () => {
 			meta: m.home_library_blocks_meta(),
 			count: behaviours.data.rowCount,
 			linkProps: {
-				to: "/app/library/behaviours",
+				to: "/app/library/$kind",
+				params: {
+					kind: "behaviour",
+				},
 			},
 		},
 		{
@@ -97,7 +100,10 @@ const ManageLibraryPanel = () => {
 			meta: m.home_library_repositories_meta(),
 			count: repositories.data.rowCount,
 			linkProps: {
-				to: "/app/library/repositories",
+				to: "/app/library/$kind",
+				params: {
+					kind: "repository",
+				},
 			},
 		},
 		{

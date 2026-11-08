@@ -38,7 +38,6 @@ import { useDeleteBlocksMutation } from "@/hooks/mutations/use-block-mutations";
 import { useDeleteBotsMutation } from "@/hooks/mutations/use-bot-mutations";
 import { useCatalogueRemoveMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { blockPaths } from "@/lib/navigation/block-paths";
 import type { ResourceKind } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
@@ -360,8 +359,9 @@ const useBlockActions = (
 			capabilities: block.capabilities,
 			homeOrganization: block.homeOrganization,
 			editLink: {
-				to: blockPaths(block.type).edit,
+				to: "/app/library/$kind/$blockId/edit",
 				params: {
+					kind: block.type,
 					blockId: block.id,
 				},
 			},

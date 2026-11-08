@@ -2,20 +2,20 @@ import { blockIdSchema } from "@orcai/schema";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { EmbeddingsRebuildNotice } from "@/components/instance/settings/embeddings-rebuild-notice";
-import { loadBlockOfType } from "@/lib/router/block-loader";
+import { loadBlockOfType } from "@/lib/router/block-route";
 import { parseParam } from "@/lib/router/not-found";
 
-export const Route = createFileRoute("/app/library/repositories/$blockId")({
+export const Route = createFileRoute("/app/library/$kind/$blockId")({
 	params: {
 		parse: (params) => ({
 			blockId: parseParam(blockIdSchema, params.blockId),
 		}),
 	},
-	loader: ({ context: { queryClient }, params: { blockId } }) =>
+	loader: ({ context: { queryClient }, params: { kind, blockId } }) =>
 		loadBlockOfType({
 			queryClient,
 			blockId,
-			type: "repository",
+			type: kind,
 		}),
 	head: ({ loaderData }) => ({
 		meta: [
@@ -28,10 +28,14 @@ export const Route = createFileRoute("/app/library/repositories/$blockId")({
 	pendingComponent: LoadingPage,
 });
 
+/** A repository's pages say when its passages wait for new embeddings. */
 function RouteComponent() {
+	const { kind } = Route.useParams();
 	return (
 		<>
-			<EmbeddingsRebuildNotice className="mb-4" />
+			{kind === "repository" ? (
+				<EmbeddingsRebuildNotice className="mb-4" />
+			) : null}
 			<Outlet />
 		</>
 	);

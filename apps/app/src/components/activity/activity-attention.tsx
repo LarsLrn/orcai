@@ -126,8 +126,9 @@ const FailureLink = ({
 	if (failure.stage === "indexing" && failure.repository) {
 		return (
 			<Link
-				to="/app/library/repositories/$blockId"
+				to="/app/library/$kind/$blockId"
 				params={{
+					kind: "repository",
 					blockId: failure.repository.id,
 				}}
 				onClick={closeActivity}

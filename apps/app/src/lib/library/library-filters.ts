@@ -63,6 +63,11 @@ const origin = singleFilter({
 	}),
 });
 
+const blockFilters = {
+	status,
+	origin,
+};
+
 /** The library's filters per view; Overview's apply while searching. */
 export const libraryFilters = {
 	overview: {
@@ -83,14 +88,8 @@ export const libraryFilters = {
 					: {},
 		}),
 	},
-	behaviour: {
-		status,
-		origin,
-	},
-	repository: {
-		status,
-		origin,
-	},
+	behaviour: blockFilters,
+	repository: blockFilters,
 	asset: {
 		keptIn: singleFilter({
 			label: m.library_filter_kept_in_label,
@@ -164,6 +163,11 @@ export const librarySearchDefaults = <D extends FilterDefinitions>(
 export type LibrarySearch<V extends LibraryView> = z.output<
 	ReturnType<typeof librarySearchSchema<(typeof libraryFilters)[V]>>
 >;
+
+/** Behaviours and repositories filter alike, so their views share one search schema. */
+export const blockLibrarySearchSchema = librarySearchSchema(blockFilters);
+
+export const blockLibrarySearchDefaults = librarySearchDefaults(blockFilters);
 
 /** The asset view also opens on one of the reader's activity runs, which stands in for its filters and Mine. */
 export const assetLibrarySearchSchema = librarySearchSchema(
