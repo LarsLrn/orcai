@@ -104,12 +104,15 @@ const grids = [
 		path: "/app/library/bots",
 		lastOf: (titles: string[]) => titles[0],
 		seed: async (member: ApiClient, titles: string[]) => {
+			const { data: botBehaviour } = await member.block.create(
+				behaviour(`E2E Pager Behaviour ${runId()}`, "ready"),
+			);
 			for (const title of titles) {
 				await member.bot.save({
 					name: title,
 					description: "Created by the library paging spec.",
 					status: "ready",
-					behaviourId: null,
+					behaviourId: botBehaviour.id,
 					repositoryIds: [],
 				});
 			}
@@ -172,11 +175,14 @@ test("library: published bots and the user's drafts page together, newest first"
 		names("Bot", id),
 		names("Draft", id),
 	];
+	const { data: botBehaviour } = await member.block.create(
+		behaviour(`E2E Pager Behaviour ${id}`, "ready"),
+	);
 	await member.bot.save({
 		name: published[0],
 		description: "Created by the library paging spec.",
 		status: "ready",
-		behaviourId: null,
+		behaviourId: botBehaviour.id,
 		repositoryIds: [],
 	});
 	await member.bot.save({
@@ -190,7 +196,7 @@ test("library: published bots and the user's drafts page together, newest first"
 		name: published[1],
 		description: "Created by the library paging spec.",
 		status: "ready",
-		behaviourId: null,
+		behaviourId: botBehaviour.id,
 		repositoryIds: [],
 	});
 

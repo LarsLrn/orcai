@@ -187,11 +187,14 @@ test("members: the owner hands a bot over and keeps Can manage", async ({
 	const name = `E2E Handed Bot ${Date.now()}`;
 	// A member who does not manage groups finds the receiver by name.
 	const { data: manager } = await api.as("manager").user.me({});
+	const { data: behaviour } = await api
+		.as("member")
+		.block.create(behaviourInput(`E2E Handed Behaviour ${Date.now()}`));
 	const { data: bot } = await api.as("member").bot.save({
 		name,
 		description: "Created by the members slice.",
 		status: "ready",
-		behaviourId: null,
+		behaviourId: behaviour.id,
 		repositoryIds: [],
 	});
 

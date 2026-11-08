@@ -3,7 +3,7 @@ import type { GroupId, OrganizationInvitationId, UserId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { cookieName } from "@/paraglide/runtime";
 import {
 	answers,
@@ -124,9 +124,10 @@ const { inviteMembers } = await import("./invite-members");
 const { createAssistantTurn } = await import("../turn-state");
 
 const deps = (reqHeaders?: Headers) => ({
-	context: testRequestContext({
+	context: {
+		secureCookies: false,
 		reqHeaders,
-	}),
+	} as ORPCContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),
@@ -486,7 +487,7 @@ describe("inviteMembers", () => {
 		});
 	});
 
-	test("leaves the locale to the procedure when the request names none", async () => {
+	test("leaves the locale to the procedure without request headers", async () => {
 		await runPromise(
 			inviteMembers(
 				deps(),

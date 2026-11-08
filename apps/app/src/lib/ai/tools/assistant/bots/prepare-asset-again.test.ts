@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
@@ -25,15 +25,14 @@ const repositoryId = crypto.randomUUID() as BlockId;
 
 const run = (input: { assetId: AssetId; repositoryId?: BlockId }) =>
 	prepareAssetAgainTool({
-		context: testRequestContext(),
+		context: {} as ORPCContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),
 	}).execute?.(input, {
 		toolCallId: "retry",
 		messages: [],
-		context: {},
-	});
+	} as never);
 
 describe("prepareAssetAgainTool", () => {
 	test("without a repository it retries processing", async () => {

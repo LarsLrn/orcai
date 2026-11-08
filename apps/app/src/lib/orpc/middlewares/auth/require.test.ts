@@ -4,7 +4,6 @@ import { userIdSchema } from "@orcai/schema";
 import { call, ORPCError, os } from "@orpc/server";
 import * as Context from "effect/Context";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
-import { testAppConfig } from "@/lib/testing/app-config";
 
 const USER_ID = userIdSchema.parse("7b6d7c0e-2a3f-4c1d-9e8f-0a1b2c3d4e5f");
 
@@ -55,10 +54,16 @@ const requestContext = () => ({
 	reqHeaders: new Headers({
 		cookie: "better-auth.session_token=token",
 	}),
-	"effect/context": Context.make(
-		AppConfigService,
-		testAppConfig(),
-	) as AppEffectContext["effect/context"],
+	"effect/context": Context.make(AppConfigService, {
+		config: {
+			auth: {
+				twoFactorPolicy: "none",
+			},
+		} as never,
+		docs: undefined,
+		publicConfig: {},
+		warnings: [],
+	}) as AppEffectContext["effect/context"],
 	"effect/wrap": mapEffectErrors,
 });
 

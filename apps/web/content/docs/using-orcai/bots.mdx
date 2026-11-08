@@ -123,6 +123,8 @@ Bot cards and the bot page show the bot's enabled features.
 - Every linked repository is Published
 - Every linked repository has at least one attached asset
 
+A published bot keeps to these rules. Saving a published bot that breaks one is refused with the reason. A block owner can still move a linked behaviour or repository to Draft, delete the behaviour or delete a repository's last asset, even when other people's published bots use it. Each published bot this leaves short of the rules moves back to Draft, and its page tells its editors why under **This bot cannot be published yet**. Deleting a repository keeps the bot published, since it no longer links it.
+
 Assets that are still being prepared or that failed do not hold publishing back. When a linked repository has such assets, the publish confirmation adds an **Assets** note per repository, for example "Handbook: 38 of 120 assets ready. 2 failed.", since only ready assets are searchable. A repository linked read-only in the editor marks each asset that is not ready with its state.
 
 ## Block types

@@ -10,6 +10,7 @@ import {
 	createDeleteResponseSchema,
 	createListResponseSchema,
 } from "../shared/responses";
+import { botReadinessIssueSchema } from "./readiness";
 import {
 	botEditorSchema,
 	botListItemSchema,
@@ -24,6 +25,8 @@ export const findBotResponseSchema = createDataResponseSchema(
 		owner: resourceOwnerSchema,
 		/** Set when the active organisation added the bot from the catalogue. */
 		homeOrganization: homeOrganizationSchema.nullable(),
+		/** Why the bot cannot be ready; empty unless the caller may edit it. */
+		readiness: z.array(botReadinessIssueSchema),
 	}),
 );
 

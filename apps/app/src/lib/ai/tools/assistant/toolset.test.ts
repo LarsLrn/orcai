@@ -2,14 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { providerCompaction } from "@orcai/ai";
 import { asSchema, type ToolSet } from "ai";
 import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import "./test-procedures";
 import { createAssistantTurn } from "./turn-state";
 
 const { buildAssistantTools } = await import("./toolset");
 
 const tools: ToolSet = buildAssistantTools({
-	context: testRequestContext(),
+	context: {
+		secureCookies: false,
+	} as ORPCContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),

@@ -3,6 +3,7 @@ import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import { type Block, isBehaviour, isRepository } from "@orcai/schema";
 import { and, desc, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { hasCapability } from "@/lib/authz/capabilities";
 import { requirePermitted } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import {
@@ -17,6 +18,7 @@ import {
 } from "@/lib/bots/bot-favourites";
 import { loadBotEditor, saveBotGraph } from "@/lib/bots/bot-graph";
 import { listBotTiles } from "@/lib/bots/bot-list";
+import { botReadiness, requireReadyBot } from "@/lib/bots/bot-readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
 import { homeOrganizations } from "@/lib/library/tile-details";
@@ -104,6 +106,9 @@ const findBot = authed.bot.find
 				blockIds: blockIds.map((b) => b.blockId),
 				capabilities,
 				homeOrganization: homes(bot.id),
+				readiness: hasCapability(capabilities, "edit")
+					? yield* botReadiness(bot.id)
+					: [],
 			},
 		};
 	});
@@ -210,56 +215,7 @@ const publishBot = authed.bot.publish
 				},
 			},
 			Effect.gen(function* () {
-				const editor = yield* loadBotEditor({
-					id: input.id,
-					userId: context.auth.user.id,
-					organizationId: context.auth.session.activeOrganizationId,
-				});
-
-				if (!editor.data.behaviour) {
-					return yield* Effect.fail(
-						new AppErrors.BadRequestError({
-							reason: "BOT_BEHAVIOUR_BLOCK_REQUIRED",
-							message: "Bots need a behaviour before they can be published.",
-						}),
-					);
-				}
-
-				if (editor.data.behaviour.status !== "ready") {
-					return yield* Effect.fail(
-						new AppErrors.BadRequestError({
-							reason: "BOT_BEHAVIOUR_BLOCK_NOT_READY",
-							message:
-								"Publish the bot's behaviour before publishing this bot.",
-						}),
-					);
-				}
-
-				for (const repository of editor.data.repositories) {
-					if (repository.status !== "ready") {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "BOT_REPOSITORY_NOT_READY",
-								params: {
-									blockName: repository.name,
-								},
-								message: `Set "${repository.name}" to "ready" before publishing this bot.`,
-							}),
-						);
-					}
-
-					if (repository.assetIds.length === 0) {
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "BOT_REPOSITORY_EMPTY",
-								params: {
-									blockName: repository.name,
-								},
-								message: `Attach at least one asset to "${repository.name}" before publishing.`,
-							}),
-						);
-					}
-				}
+				yield* requireReadyBot(input.id);
 
 				yield* db
 					.update(dbSchema.bot)

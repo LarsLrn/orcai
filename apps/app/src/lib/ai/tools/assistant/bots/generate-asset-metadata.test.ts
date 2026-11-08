@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
@@ -24,7 +24,7 @@ describe("generateAssetMetadataTool", () => {
 	test("queues the assets and counts those it skipped", async () => {
 		expect(
 			await generateAssetMetadataTool({
-				context: testRequestContext(),
+				context: {} as ORPCContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
 				}),
@@ -35,8 +35,7 @@ describe("generateAssetMetadataTool", () => {
 				{
 					toolCallId: "generate",
 					messages: [],
-					context: {},
-				},
+				} as never,
 			),
 		).toEqual({
 			queued: 1,
@@ -57,7 +56,7 @@ describe("generateAssetMetadataTool", () => {
 
 		expect(
 			await generateAssetMetadataTool({
-				context: testRequestContext(),
+				context: {} as ORPCContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
 				}),
@@ -71,8 +70,7 @@ describe("generateAssetMetadataTool", () => {
 				{
 					toolCallId: "generate",
 					messages: [],
-					context: {},
-				},
+				} as never,
 			),
 		).toEqual({
 			queued: 1,

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { defaultRepositoryConfig } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 import { createRepositoryInputSchema } from "./create-repository.declaration";
 
@@ -32,7 +32,7 @@ describe("createRepositoryTool", () => {
 
 	test("a create is a draft with the default retrieval settings", async () => {
 		const output = await createRepositoryTool({
-			context: testRequestContext(),
+			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -47,8 +47,7 @@ describe("createRepositoryTool", () => {
 			{
 				toolCallId: "create",
 				messages: [],
-				context: {},
-			},
+			} as never,
 		);
 
 		expect(procedureCalls).toEqual([

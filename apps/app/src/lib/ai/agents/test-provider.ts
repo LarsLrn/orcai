@@ -484,9 +484,6 @@ export const scriptedFetch = (kind: ModelProviderKind) => {
 	const bodies: Body[] = [];
 	const steps: Step[] = [];
 	const fetch = ((_input: string | URL | Request, init?: RequestInit) => {
-		if (init?.signal?.aborted) {
-			return Promise.reject(init.signal.reason);
-		}
 		const body = JSON.parse(String(init?.body));
 		bodies.push(body);
 		const step = steps.shift();

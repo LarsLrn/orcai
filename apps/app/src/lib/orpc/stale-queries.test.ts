@@ -551,4 +551,28 @@ describe("staleQueriesOfWrites", () => {
 		await invalidate(true);
 		expect(botPage()).toBe(true);
 	});
+
+	test("block, asset and organisation deletions make bot pages stale, since they can move bots to draft", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const writes = [
+			() => mutateUnread(queryClient, orpc.block.update.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.block.delete.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.asset.delete.mutationOptions()),
+			() =>
+				mutateUnread(queryClient, orpc.organization.delete.mutationOptions()),
+			() => mutateUnread(queryClient, orpc.catalogue.remove.mutationOptions()),
+		];
+
+		for (const write of writes) {
+			const botPage = cached(
+				orpc.bot.find.queryKey({
+					input: {
+						id: "bot-1" as BotId,
+					},
+				}),
+			);
+			await write();
+			expect(botPage()).toBe(true);
+		}
+	});
 });

@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { uploadAsset } from "../../fixtures/assets";
 import { untilAllowed } from "../../fixtures/authorization";
 import {
 	chatName,
@@ -348,11 +349,14 @@ const listedBotWithBlocks = async (api: Api) => {
 			systemPrompt: "Answer from the handbook.",
 		},
 	});
+	const asset = await uploadAsset(author, `E2E Catalogue Blocks Asset ${id}`);
 	const repository = await author.block.create({
 		type: "repository",
 		name: `E2E Catalogue Blocks Repository ${id}`,
 		status: "ready",
-		assets: [],
+		assets: [
+			asset.id,
+		],
 		config: {
 			minPassages: 1,
 			maxPassages: 5,

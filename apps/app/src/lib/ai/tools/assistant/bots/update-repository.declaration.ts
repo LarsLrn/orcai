@@ -27,13 +27,13 @@ export const updateRepositoryInputSchema = z.strictObject({
 	status: publicationStatusSchema
 		.optional()
 		.describe(
-			"ready: Published, so bots can use it. Leave out to keep the current status.",
+			"ready: Published, so bots can use it. draft moves the published bots using it to Draft. Leave out to keep the current status.",
 		),
 	assetIds: z
 		.array(assetIdSchema)
 		.optional()
 		.describe(
-			"Ids of every Library asset the repository holds, from findAssets with keptIn library; replaces the current set, [] empties it. Assets taken out stay in the Library. Leave out to keep the current assets.",
+			"Ids of every Library asset the repository holds, from findAssets with keptIn library; replaces the current set, [] empties it and moves the published bots using it to Draft. Assets taken out stay in the Library. Leave out to keep the current assets.",
 		),
 });
 

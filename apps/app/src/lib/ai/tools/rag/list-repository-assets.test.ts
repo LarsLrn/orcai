@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { Repository } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import {
 	answers,
 	procedureCalls,
@@ -71,7 +71,7 @@ describe("listRepositoryAssets", () => {
 					config: {},
 				},
 			] as unknown as Repository[],
-			context: testRequestContext(),
+			context: {} as ORPCContext,
 		}).execute?.(
 			{
 				limit: 30,
@@ -123,7 +123,7 @@ describe("listRepositoryAssets", () => {
 					config: {},
 				}),
 			) as unknown as Repository[],
-			context: testRequestContext(),
+			context: {} as ORPCContext,
 		}).execute?.(
 			{
 				limit: 30,

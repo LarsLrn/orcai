@@ -22,6 +22,7 @@ import {
 	resourceOrganizations,
 } from "@/lib/authz/resource-lifecycle";
 import { loadRepositoryAssets } from "@/lib/blocks/repository";
+import { requireReadyBot } from "@/lib/bots/bot-readiness";
 import { isListed, listBlocksOfListedBot } from "@/lib/catalogue/listing";
 import * as AppErrors from "@/lib/effect/utils/errors";
 
@@ -258,24 +259,13 @@ const resolveBot = (params: {
 		const db = yield* DB;
 
 		if (params.input.id) {
-			const [existingBot] = yield* db
-				.select({
-					...getColumns(dbSchema.bot),
-				})
-				.from(dbSchema.bot)
-				.where(eq(dbSchema.bot.id, params.input.id));
-
-			const currentStatus = (params.input.status ??
-				existingBot?.status ??
-				"draft") as "draft" | "ready";
-
 			yield* db
 				.update(dbSchema.bot)
 				.set({
 					name: params.input.name,
 					description: params.input.description,
 					contentJson: params.input.contentJson,
-					status: currentStatus,
+					status: params.input.status,
 					features: params.input.features,
 					updatedAt: new Date(),
 				})
@@ -284,16 +274,13 @@ const resolveBot = (params: {
 			return params.input.id;
 		}
 
-		const currentStatus =
-			(params.input.status as "draft" | "ready" | undefined) ?? "draft";
-
 		const [bot] = yield* db
 			.insert(dbSchema.bot)
 			.values({
 				name: params.input.name,
 				description: params.input.description,
 				contentJson: params.input.contentJson,
-				status: currentStatus,
+				status: params.input.status,
 				features: params.input.features,
 				userId: params.userId,
 				createdAt: new Date(),
@@ -396,6 +383,8 @@ export const saveBotGraph = (params: {
 						})),
 					);
 				}
+
+				if (params.input.status === "ready") yield* requireReadyBot(botId);
 
 				yield* recordRelationshipFacts(
 					RelationshipFact.BotBlocksChanged({

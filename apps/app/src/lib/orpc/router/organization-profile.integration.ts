@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { BlockId } from "@orcai/core";
+import type { AssetId, BlockId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { CatalogueKind, OrganizationDescription } from "@orcai/schema";
 import * as Effect from "effect/Effect";
@@ -10,7 +10,7 @@ import {
 	TIMEOUT,
 } from "@/lib/testing/app-integration";
 
-const { run, caller, organizationWith } = appIntegration();
+const { run, caller, organizationWith, createAsset } = appIntegration();
 
 const outcomeOf = (operation: Promise<unknown>) =>
 	operation.then(
@@ -48,9 +48,9 @@ const description: OrganizationDescription = {
 
 /**
  * A home organisation with an admin author and a member, listing a ready bot
- * with its behaviour and repository, and holding an unlisted repository and a
- * listed draft behaviour; and a second organisation whose admin and viewer
- * belong only to it.
+ * with its behaviour and a repository of one asset, and holding an unlisted
+ * repository and a listed draft behaviour; and a second organisation whose
+ * admin and viewer belong only to it.
  */
 const organizations = async () => {
 	const {
@@ -69,7 +69,7 @@ const organizations = async () => {
 		"viewer",
 	]);
 	const procedures = await run(Procedures);
-	const { call } = caller(zedToken);
+	const { call, observe } = caller(zedToken);
 
 	const names = {
 		unlisted: `Unlisted repository ${crypto.randomUUID()}`,
@@ -79,6 +79,7 @@ const organizations = async () => {
 		type: "behaviour" | "repository",
 		status: "ready" | "draft" = "ready",
 		name = `Profile ${type} ${crypto.randomUUID()}`,
+		assets: AssetId[] = [],
 	): Promise<BlockId> =>
 		call(author, (options) =>
 			procedures.block.create(
@@ -99,7 +100,7 @@ const organizations = async () => {
 							description: null,
 							contentJson: null,
 							status,
-							assets: [],
+							assets,
 							config: {
 								minPassages: 1,
 								maxPassages: 5,
@@ -123,7 +124,11 @@ const organizations = async () => {
 		);
 
 	const behaviour = await createBlock("behaviour");
-	const repository = await createBlock("repository");
+	const { asset, zedToken: assetToken } = await createAsset(author, home);
+	observe(assetToken);
+	const repository = await createBlock("repository", "ready", undefined, [
+		asset.id,
+	]);
 	await createBlock("repository", "ready", names.unlisted);
 	const draft = await createBlock("behaviour", "draft", names.draft);
 	const { data: bot } = await call(author, (options) =>

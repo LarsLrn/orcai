@@ -331,28 +331,32 @@ export const appIntegration = (
 		};
 	};
 
-	const createBlock = async (owner: Actor, zedToken?: string) => {
-		const procedures = await run(Procedures);
-		const { data, meta } = await run(
-			procedures.block.create(
-				{
-					type: "behaviour",
-					name: "Integration block",
-					description: null,
-					contentJson: null,
-					status: "draft",
-					config: {
-						systemPrompt: "",
+	const behaviourOf =
+		(status: "draft" | "ready") => async (owner: Actor, zedToken?: string) => {
+			const procedures = await run(Procedures);
+			const { data, meta } = await run(
+				procedures.block.create(
+					{
+						type: "behaviour",
+						name: "Integration block",
+						description: null,
+						contentJson: null,
+						status,
+						config: {
+							systemPrompt: "",
+						},
 					},
-				},
-				await procedureOptions(owner, zedToken),
-			),
-		);
-		return {
-			blockId: data.id,
-			zedToken: meta?.zedToken ?? zedToken,
+					await procedureOptions(owner, zedToken),
+				),
+			);
+			return {
+				blockId: data.id,
+				zedToken: meta?.zedToken ?? zedToken,
+			};
 		};
-	};
+	const createBlock = behaviourOf("draft");
+	/** A published behaviour, which a ready bot needs. */
+	const createBehaviour = behaviourOf("ready");
 
 	/** A PDF asset row owned by `owner`, with its authorization in place. */
 	const createAsset = (owner: Actor, organizationId: OrganizationId) =>
@@ -656,6 +660,7 @@ export const appIntegration = (
 		organizationWith,
 		organizationByRole,
 		createBlock,
+		createBehaviour,
 		createAsset,
 		outboxDelivered,
 		readTuples,

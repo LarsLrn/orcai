@@ -1,5 +1,4 @@
 import {
-	AiError,
 	type ModelRefusal,
 	type ProviderCompaction,
 	type ResolvedModel,
@@ -117,6 +116,7 @@ const badRequest = (
 		| "MODEL_PROVIDER_MISMATCH"
 		| "CHAT_MODEL_NOT_CONFIGURED"
 		| "BOT_MODEL_UNAVAILABLE"
+		| "BOT_BEHAVIOUR_BLOCK_REQUIRED"
 		| "ASSISTANT_MODEL_NOT_CONFIGURED",
 	message: string,
 ) =>
@@ -239,10 +239,10 @@ const botSettings = ({
 		);
 
 		if (!contents.behaviour) {
-			return yield* new AiError({
-				operation: "turn.setup.missingBehaviour",
-				cause: new Error("Bot-linked chat has no behaviour."),
-			});
+			return yield* badRequest(
+				"BOT_BEHAVIOUR_BLOCK_REQUIRED",
+				"The bot needs a published behaviour.",
+			);
 		}
 
 		return {

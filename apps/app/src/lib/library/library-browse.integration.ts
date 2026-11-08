@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { v1 } from "@authzed/authzed-node";
-import type { AssetId, BotId } from "@orcai/core";
+import type { AssetId, BlockId, BotId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { LibraryEntry } from "@orcai/schema";
 import { SpiceDbService } from "@orcai/spice-db";
@@ -23,26 +23,38 @@ const entryName = (entry: LibraryEntry) =>
 /** `organization()` plus makers for bots, repositories and titled assets. */
 const stocked = async () => {
 	const fixture = await organization();
-	const { procedures, call, asset } = fixture;
+	const { procedures, call, asset, behaviour } = fixture;
 	const tag = crypto.randomUUID();
 
+	const behaviours = new Map<string, Promise<BlockId>>();
+	/** The behaviour every ready bot of `owner` links, created once. */
+	const botBehaviour = (owner: Actor) => {
+		const existing = behaviours.get(owner.user.id);
+		if (existing) return existing;
+		const created = behaviour(owner, "Bot behaviour");
+		behaviours.set(owner.user.id, created);
+		return created;
+	};
 	const bot = async (
 		owner: Actor,
 		name: string,
 		status: "ready" | "draft" = "ready",
-	) =>
-		(
+	) => {
+		const behaviourId = status === "ready" ? await botBehaviour(owner) : null;
+		return (
 			await call(owner, (options) =>
 				procedures.bot.save(
 					{
 						name,
 						description: "Integration bot",
 						status,
+						behaviourId,
 					},
 					options,
 				),
 			)
 		).data.id;
+	};
 	const repository = async (owner: Actor, name: string) =>
 		(
 			await call(owner, (options) =>
@@ -103,6 +115,7 @@ const stocked = async () => {
 	return {
 		...fixture,
 		tag,
+		botBehaviour,
 		bot,
 		repository,
 		titled,
@@ -240,13 +253,14 @@ describe("library browse", () => {
 					procedures.library.counts(input, options),
 				).then(({ data }) => data);
 
+			// The shared ready bot's behaviour is readable through the bot.
 			expect(await counts(member, {})).toEqual({
 				bot: {
 					total: 2,
 					drafts: 1,
 				},
 				behaviour: {
-					total: 1,
+					total: 2,
 					drafts: 0,
 				},
 				repository: {
@@ -438,7 +452,7 @@ describe("library browse", () => {
 				procedures.library.counts({}, options),
 			);
 
-			// Published: own, shared and added bots; the shared and the added behaviour.
+			// Published: own, shared and added bots; the shared and the added behaviour, and the behaviours of the own and the shared bot.
 			expect({
 				bots,
 				botDrafts,
@@ -449,7 +463,7 @@ describe("library browse", () => {
 			}).toEqual({
 				bots: 3,
 				botDrafts: 1,
-				behaviours: 2,
+				behaviours: 4,
 				behaviourDrafts: 1,
 				repositories: 1,
 				assets: 1,
@@ -669,7 +683,8 @@ describe("library browse", () => {
 				`Member draft ${tag}`,
 				`Favourite ${tag}`,
 			]);
-			expect(all.behaviour.rowCount).toBe(2);
+			// With the favourite's behaviour, readable through the bot.
+			expect(all.behaviour.rowCount).toBe(3);
 			expect(all.repository.rowCount).toBe(1);
 			expect(all.asset.data.map((row) => row.title)).toEqual([
 				`Member asset ${tag}`,
@@ -690,6 +705,10 @@ describe("library browse", () => {
 		"lists and counts hold only this library's items the reader may read in both stores",
 		async () => {
 			const elsewhere = await organization();
+			const elsewhereBehaviour = await elsewhere.behaviour(
+				elsewhere.admin,
+				"Elsewhere behaviour",
+			);
 			const listedElsewhere = (
 				await elsewhere.call(elsewhere.admin, (options) =>
 					elsewhere.procedures.bot.save(
@@ -697,6 +716,7 @@ describe("library browse", () => {
 							name: `Elsewhere bot ${crypto.randomUUID()}`,
 							description: "Integration bot",
 							status: "ready",
+							behaviourId: elsewhereBehaviour,
 						},
 						options,
 					),
@@ -708,7 +728,9 @@ describe("library browse", () => {
 						resourceType: "bot",
 						resourceId: listedElsewhere,
 						visibility: "public",
-						listBlockIds: [],
+						listBlockIds: [
+							elsewhereBehaviour,
+						],
 					},
 					options,
 				),
@@ -809,16 +831,20 @@ describe("library browse", () => {
 		"a grant revoked while SpiceDB answers is gone from the same list",
 		async () => {
 			const fixture = await stocked();
-			const { admin, member, procedures, call, tag, bot, shown } = fixture;
+			const { admin, member, procedures, call, tag, bot, botBehaviour, shown } =
+				fixture;
 			const shared = await shown("bot", bot(admin, `Shared ${tag}`));
 			const listed = await shown("bot", bot(admin, `Listed ${tag}`));
+			const listedBehaviour = await botBehaviour(admin);
 			await call(admin, (options) =>
 				procedures.resource.setVisibility(
 					{
 						resourceType: "bot",
 						resourceId: listed,
 						visibility: "public",
-						listBlockIds: [],
+						listBlockIds: [
+							listedBehaviour,
+						],
 					},
 					options,
 				),

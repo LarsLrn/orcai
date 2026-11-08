@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 const behaviourId = crypto.randomUUID() as BlockId;
@@ -42,15 +42,17 @@ const { createAssistantTurn } = await import("../turn-state");
 
 const run = (input: Record<string, unknown>) =>
 	updateBehaviourTool({
-		context: testRequestContext(),
+		context: {} as ORPCContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),
-	}).execute?.(input as never, {
-		toolCallId: "update",
-		messages: [],
-		context: {},
-	});
+	}).execute?.(
+		input as never,
+		{
+			toolCallId: "update",
+			messages: [],
+		} as never,
+	);
 
 describe("updateBehaviourTool", () => {
 	test("an update takes only the changed fields and keeps the rest", async () => {

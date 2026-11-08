@@ -34,12 +34,20 @@ test("home: long bot and catalogue names wrap inside a phone screen", async ({
 		longName(runId()),
 		longName(runId()),
 	];
+	const { data: botBehaviour } = await admin.block.create({
+		type: "behaviour",
+		name: `E2E Home Phone Behaviour ${runId()}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Created by the home phone spec.",
+		},
+	});
 	for (const name of botNames) {
 		await admin.bot.save({
 			name,
 			description: "Created by the home phone spec.",
 			status: "ready",
-			behaviourId: null,
+			behaviourId: botBehaviour.id,
 			repositoryIds: [],
 		});
 	}

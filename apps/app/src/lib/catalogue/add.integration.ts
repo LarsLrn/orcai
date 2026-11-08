@@ -195,6 +195,7 @@ const catalogue = async () => {
 		member,
 		procedures,
 		call,
+		observe,
 		bot,
 		behaviour,
 		repository,
@@ -395,6 +396,8 @@ describe("adding a bot with its blocks", () => {
 		"blocks the organisation is home to are skipped",
 		async () => {
 			const s = await catalogue();
+			const ownAsset = await createAsset(s.admin, s.other);
+			s.observe(ownAsset.zedToken);
 			const { data: own } = await s.call(s.admin, (options) =>
 				s.procedures.block.create(
 					{
@@ -403,7 +406,9 @@ describe("adding a bot with its blocks", () => {
 						description: null,
 						contentJson: null,
 						status: "ready",
-						assets: [],
+						assets: [
+							ownAsset.asset.id,
+						],
 						config: {
 							minPassages: 1,
 							maxPassages: 5,

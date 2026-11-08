@@ -44,23 +44,6 @@ const reasonMessages: ReasonMessages = {
 	ASSISTANT_MODEL_NOT_CONFIGURED: m.error_assistant_model_not_configured,
 	AUTH_REQUIRED: m.error_auth_required,
 	BEHAVIOUR_BLOCK_TYPE_INVALID: m.error_behaviour_block_type_invalid,
-	BLOCK_IN_USE_BY_READY_BOTS: ({ botNames, otherCount }) =>
-		botNames.length === 0
-			? m.error_block_in_use_by_unnamed_ready_bots({
-					count: otherCount,
-				})
-			: m.error_block_in_use_by_ready_bots({
-					botNames: formatList(
-						otherCount > 0
-							? [
-									...botNames,
-									m.error_block_in_use_other_bots({
-										count: otherCount,
-									}),
-								]
-							: botNames,
-					),
-				}),
 	BLOCK_LINK_FORBIDDEN: m.error_block_link_forbidden,
 	BLOCK_NOT_FOUND: m.error_block_not_found,
 	BLOCK_USED_BY_LISTED_BOTS: ({ botNames }) =>
@@ -251,7 +234,6 @@ export const reasonMessage = (reason: ErrorReason, params: unknown): string =>
 	(reasonMessages[reason] as (params: unknown) => string)(params);
 
 const reasonsWithParams: Record<ErrorReasonWithParams, true> = {
-	BLOCK_IN_USE_BY_READY_BOTS: true,
 	BLOCK_USED_BY_LISTED_BOTS: true,
 	BOT_REPOSITORY_EMPTY: true,
 	BOT_REPOSITORY_NOT_READY: true,

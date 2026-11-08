@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { uploadAsset } from "../../fixtures/assets";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
@@ -37,12 +38,15 @@ test("bots: paging through a published bot writes nothing", async ({
 			systemPrompt: "Created by the paging spec.",
 		},
 	});
-	// A ready bot may link a repository that is still a draft.
+	// A ready bot's repository is ready and holds an asset.
+	const asset = await uploadAsset(member, `E2E Paging Asset ${runId()}`);
 	const repository = await member.block.create({
 		type: "repository",
 		name: `E2E Paging Repository ${runId()}`,
-		status: "draft",
-		assets: [],
+		status: "ready",
+		assets: [
+			asset.id,
+		],
 		config: {
 			minPassages: 1,
 			maxPassages: 5,
