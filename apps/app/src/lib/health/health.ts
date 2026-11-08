@@ -388,7 +388,7 @@ const appProcessConfig = Effect.gen(function* () {
 	return {
 		auth: app.config.auth,
 		app: {
-			encryptionKey: yield* EncryptionKey,
+			encryptionKey: (yield* EncryptionKey).secret,
 		},
 		docs: app.docs,
 		umami: app.publicConfig.umami,
