@@ -9,7 +9,6 @@ import {
 	TileIcon,
 	TileTitle,
 } from "@/components/ui/shell/tile";
-import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
@@ -106,8 +105,9 @@ const BotTile = ({ bot }: { bot: BotListItem }) => (
 
 const CatalogueTeaser = ({ entry }: { entry: CatalogueEntry }) => (
 	<Link
-		to={cataloguePaths(entry.kind).detail}
+		to="/app/catalogue/$kind/$id"
 		params={{
+			kind: entry.kind,
 			id: entry.id,
 		}}
 		className="hover:border-foreground/25 hover:bg-muted/50 focus-visible:ring-ring/75 flex items-center gap-4 rounded-3xl border border-dashed p-4 outline-none focus-visible:ring-3"

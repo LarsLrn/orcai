@@ -28,6 +28,8 @@ const TITLES = {
 	}
 >;
 
+export const catalogueKindTitle = (kind: CatalogueKind) => TITLES[kind].title();
+
 /** A kind's entries in the catalogue, as its view's search params narrow them. */
 export const CatalogueKindResults = ({
 	kind,

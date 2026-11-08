@@ -10,7 +10,6 @@ import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useSetActiveOrganizationMutation } from "@/hooks/mutations/use-user-mutations";
-import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -77,7 +76,10 @@ const ListedCount = ({
 	return (
 		<li className="contents">
 			<Link
-				to={cataloguePaths(kind).list}
+				to="/app/catalogue/$kind"
+				params={{
+					kind,
+				}}
 				search={{
 					organizationIds: [
 						organization.id,

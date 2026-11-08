@@ -178,9 +178,7 @@ const Overview = ({ scope }: { scope: LibraryScope }) => {
 					<Shelf
 						key={view.view}
 						title={view.label()}
-						seeAll={{
-							to: view.to,
-						}}
+						seeAll={view.link}
 						restorationId={`library-${view.view}`}
 					>
 						{entries

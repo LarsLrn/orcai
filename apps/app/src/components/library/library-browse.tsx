@@ -32,7 +32,9 @@ export const LIBRARY_VIEWS = [
 	{
 		view: "overview",
 		routeId: "/app/library/",
-		to: "/app/library",
+		link: {
+			to: "/app/library",
+		},
 		label: m.library_view_overview,
 		Icon: LayoutGridIcon,
 		tone: "text-primary",
@@ -40,7 +42,9 @@ export const LIBRARY_VIEWS = [
 	{
 		view: "bot",
 		routeId: "/app/library/bots/",
-		to: "/app/library/bots",
+		link: {
+			to: "/app/library/bots",
+		},
 		label: m.library_view_bot,
 		Icon: RESOURCE_KINDS.bot.Icon,
 		tone: RESOURCE_KINDS.bot.tone,
@@ -48,7 +52,9 @@ export const LIBRARY_VIEWS = [
 	{
 		view: "behaviour",
 		routeId: "/app/library/behaviours/",
-		to: "/app/library/behaviours",
+		link: {
+			to: "/app/library/behaviours",
+		},
 		label: m.library_view_behaviour,
 		Icon: RESOURCE_KINDS.behaviour.Icon,
 		tone: RESOURCE_KINDS.behaviour.tone,
@@ -56,7 +62,9 @@ export const LIBRARY_VIEWS = [
 	{
 		view: "repository",
 		routeId: "/app/library/repositories/",
-		to: "/app/library/repositories",
+		link: {
+			to: "/app/library/repositories",
+		},
 		label: m.library_view_repository,
 		Icon: RESOURCE_KINDS.repository.Icon,
 		tone: RESOURCE_KINDS.repository.tone,
@@ -64,7 +72,9 @@ export const LIBRARY_VIEWS = [
 	{
 		view: "asset",
 		routeId: "/app/library/assets/",
-		to: "/app/library/assets",
+		link: {
+			to: "/app/library/assets",
+		},
 		label: m.library_view_asset,
 		Icon: RESOURCE_KINDS.asset.Icon,
 		tone: RESOURCE_KINDS.asset.tone,

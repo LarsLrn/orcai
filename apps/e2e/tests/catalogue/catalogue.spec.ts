@@ -615,3 +615,98 @@ test("catalogue: the organisation filter links to the picked organisation's page
 	await organisationLink.click();
 	await expect(page).toHaveURL(new RegExp(`/app/organizations/${org.id}`));
 });
+
+test("catalogue: a kind's path shows only entries of that kind, and its views keep their own filters", async ({
+	api,
+	org,
+	pageAs,
+}) => {
+	const { id, bot, behaviour, repository } = await listedBotWithBlocks(api);
+	const page = await pageAs("member");
+	await enterApp(page, org.slug);
+	const notFound = page.getByRole("heading", {
+		name: message("boundaries_not_found_title"),
+	});
+
+	// A direct link and a reload show the entry under its own kind.
+	await open(page, `/app/catalogue/repositories/${repository.id}`);
+	await expect(
+		page.getByRole("heading", {
+			name: repository.name,
+		}),
+	).toBeVisible();
+	await page.reload();
+	await expect(
+		page.getByRole("heading", {
+			name: repository.name,
+		}),
+	).toBeVisible();
+
+	// The kind's crumb leads to its view.
+	await page
+		.getByRole("link", {
+			name: message("library_view_repository"),
+		})
+		.click();
+	await expect(page).toHaveURL(/\/app\/catalogue\/repositories$/);
+
+	// Another kind's path, a path that names no kind and an id that is no id are not found.
+	for (const path of [
+		`/app/catalogue/bots/${behaviour.id}`,
+		`/app/catalogue/behaviours/${bot.id}`,
+		`/app/catalogue/behaviours/${repository.id}`,
+		`/app/catalogue/bot/${bot.id}`,
+		"/app/catalogue/assets",
+		"/app/catalogue/bots/not-an-id",
+	]) {
+		await open(page, path);
+		await expect(notFound).toBeVisible();
+	}
+
+	// The bots' model filter stays with the bots: another view drops it, Back brings it back.
+	await open(page, `/app/catalogue/bots?query=${id}&model=recommended`);
+	const views = page
+		.getByRole("navigation", {
+			name: message("catalogue_views_label"),
+		})
+		.filter({
+			visible: true,
+		});
+	await expect(
+		views.getByRole("link", {
+			name: message("library_view_bot"),
+		}),
+	).toHaveAttribute("aria-current", "page");
+	await views
+		.getByRole("link", {
+			name: message("library_view_behaviour"),
+		})
+		.click();
+	await expect(page).toHaveURL(
+		new RegExp(`/app/catalogue/behaviours\\?query=${id}$`),
+	);
+	await expect(
+		views.getByRole("link", {
+			name: message("library_view_behaviour"),
+		}),
+	).toHaveAttribute("aria-current", "page");
+	await expect(
+		page.getByRole("link", {
+			name: behaviour.name,
+		}),
+	).toBeVisible();
+
+	await page.goBack();
+	await expect(page).toHaveURL(
+		new RegExp(`/app/catalogue/bots\\?query=${id}&model=recommended$`),
+	);
+	await expect(
+		views.getByRole("link", {
+			name: message("library_view_bot"),
+		}),
+	).toHaveAttribute("aria-current", "page");
+	await page.goForward();
+	await expect(page).toHaveURL(
+		new RegExp(`/app/catalogue/behaviours\\?query=${id}$`),
+	);
+});

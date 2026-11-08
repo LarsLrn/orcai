@@ -16,20 +16,27 @@ import { cn } from "@/lib/utils";
 export type BrowseView<V extends string = string> = {
 	view: V;
 	routeId: string;
-	to: LinkProps["to"];
+	link: LinkProps;
 	label: () => string;
 	Icon: LucideIcon;
 	tone: string;
 };
 
-/** The list view the current location shows, if any. */
+/** The list view the current location shows, if any; views on one route tell apart by their link's params. */
 export const useBrowseView = <V extends string>(
 	views: readonly BrowseView<V>[],
 ): V | undefined => {
-	const routeId = useMatches({
-		select: (matches) => matches.at(-1)?.routeId,
+	const leaf = useMatches({
+		select: (matches) => matches.at(-1),
 	});
-	return views.find((candidate) => candidate.routeId === routeId)?.view;
+	return views.find(({ routeId, link: { params } }) => {
+		if (routeId !== leaf?.routeId) return false;
+		if (typeof params !== "object") return true;
+		const current: Record<string, unknown> = leaf.params;
+		return Object.entries(params).every(
+			([key, value]) => current[key] === value,
+		);
+	})?.view;
 };
 
 /** Changes the current view's search params and starts over on the first page. */
@@ -77,7 +84,7 @@ const BrowseNav = <V extends string>({
 			return (
 				<Link
 					key={item.view}
-					to={item.to}
+					{...item.link}
 					aria-current={item.view === active ? "page" : undefined}
 					className={cn(
 						"hover:bg-muted focus-visible:ring-ring/75 flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors outline-none focus-visible:ring-[3px]",

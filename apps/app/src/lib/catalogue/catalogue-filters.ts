@@ -108,6 +108,18 @@ export const catalogueSearchDefaults = {
 	repository: browseSearchDefaults(definitions.repository),
 };
 
+const kindDefinitions = {
+	...definitions.bot,
+	...definitions.behaviour,
+	...definitions.repository,
+};
+
+/** A kind view's search params, whatever the kind; its list input keeps only that kind's filters. */
+export const catalogueKindSearchSchema = browseSearchSchema(kindDefinitions);
+
+export const catalogueKindSearchDefaults =
+	browseSearchDefaults(kindDefinitions);
+
 export type CatalogueSearch<V extends CatalogueView> = z.output<
 	(typeof catalogueSearchSchemas)[V]
 >;

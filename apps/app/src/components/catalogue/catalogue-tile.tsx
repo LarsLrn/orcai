@@ -15,7 +15,6 @@ import {
 	TileTitle,
 } from "@/components/ui/shell/tile";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
-import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
@@ -54,8 +53,9 @@ const CatalogueTile = ({ entry }: { entry: CatalogueEntry }) => {
 				<TileTitle
 					action={{
 						linkProps: {
-							to: cataloguePaths(entry.kind).detail,
+							to: "/app/catalogue/$kind/$id",
 							params: {
+								kind: entry.kind,
 								id: entry.id,
 							},
 							search: {

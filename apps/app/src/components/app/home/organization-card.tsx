@@ -4,7 +4,6 @@ import { Link, useRouteContext } from "@tanstack/react-router";
 import { ChevronRightIcon, PencilIcon } from "lucide-react";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { buttonVariants } from "@/components/ui/button";
-import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { orpc } from "@/lib/orpc/orpc";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { cn } from "@/lib/utils";
@@ -93,7 +92,10 @@ const OrganizationCard = () => {
 									</span>
 								) : (
 									<Link
-										to={cataloguePaths(kind).list}
+										to="/app/catalogue/$kind"
+										params={{
+											kind,
+										}}
 										search={{
 											organizationIds: [
 												organization.id,

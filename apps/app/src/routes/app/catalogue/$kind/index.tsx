@@ -5,42 +5,35 @@ import {
 } from "@tanstack/react-router";
 import { CatalogueKindResults } from "@/components/catalogue/catalogue-kind-results";
 import {
-	catalogueSearchDefaults,
-	catalogueSearchSchemas,
+	catalogueKindSearchDefaults,
+	catalogueKindSearchSchema,
 } from "@/lib/catalogue/catalogue-filters";
 import {
 	catalogueCountsQuery,
 	catalogueListQuery,
 } from "@/lib/catalogue/catalogue-queries";
-import { m } from "@/paraglide/messages";
 
-export const Route = createFileRoute("/app/catalogue/behaviours/")({
-	validateSearch: catalogueSearchSchemas.behaviour,
+export const Route = createFileRoute("/app/catalogue/$kind/")({
+	validateSearch: catalogueKindSearchSchema,
 	search: {
 		middlewares: [
 			retainSearchParams([
 				"query",
 			]),
-			stripSearchParams(catalogueSearchDefaults.behaviour),
+			stripSearchParams(catalogueKindSearchDefaults),
 		],
 	},
 	loaderDeps: ({ search }) => search,
-	loader: async ({ context: { queryClient }, deps }) => {
+	loader: async ({ context: { queryClient }, params: { kind }, deps }) => {
 		await Promise.all([
-			queryClient.query(catalogueListQuery("behaviour", deps)),
+			queryClient.query(catalogueListQuery(kind, deps)),
 			queryClient.query(catalogueCountsQuery(deps)),
 		]);
 	},
-	head: () => ({
-		meta: [
-			{
-				title: m.library_view_behaviour(),
-			},
-		],
-	}),
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	return <CatalogueKindResults kind="behaviour" search={Route.useSearch()} />;
+	const { kind } = Route.useParams();
+	return <CatalogueKindResults kind={kind} search={Route.useSearch()} />;
 }
