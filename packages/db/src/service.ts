@@ -23,6 +23,10 @@ export const PgClientServiceLive: Layer.Layer<
 			url,
 			maxConnections: config.postgres.poolMax,
 			applicationName,
+			// Compiling short queries costs far more than it saves.
+			startupParameters: {
+				jit: "off",
+			},
 		});
 	}),
 );
