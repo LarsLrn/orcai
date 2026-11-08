@@ -90,6 +90,7 @@ export const member = pgTable(
 	},
 	(table) => [
 		index("member_org_user_idx").on(table.organizationId, table.userId),
+		index("member_user_org_idx").on(table.userId, table.organizationId),
 	],
 );
 

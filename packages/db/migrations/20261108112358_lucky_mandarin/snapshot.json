@@ -1,0 +1,221 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "8b5e3edc-17d5-4997-a1de-5898c1c70ccf",
+  "prevIds": [
+    "c12d84f4-d002-4366-ba55-13c9de95d1d0"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "block_asset",
+        "block_asset_asset_idx"
+      ],
+      "writes": [
+        "s|idx|public.block_asset_asset_idx",
+        "n|idx|public.block_asset_asset_idx",
+        "e|idx|public.block_asset_asset_idx",
+        "n|rel|public.block_asset_asset_idx"
+      ],
+      "reads": [
+        "n|tbl|public.block_asset",
+        "n|sch|public",
+        "n|col|public.block_asset.asset_id",
+        "n|col|public.block_asset.block_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "chat_block",
+        "chat_block_chat_idx"
+      ],
+      "writes": [
+        "s|idx|public.chat_block_chat_idx",
+        "n|idx|public.chat_block_chat_idx",
+        "e|idx|public.chat_block_chat_idx",
+        "n|rel|public.chat_block_chat_idx"
+      ],
+      "reads": [
+        "n|tbl|public.chat_block",
+        "n|sch|public",
+        "n|col|public.chat_block.chat_id",
+        "n|col|public.chat_block.block_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bot_block",
+        "bot_block_bot_idx"
+      ],
+      "writes": [
+        "s|idx|public.bot_block_bot_idx",
+        "n|idx|public.bot_block_bot_idx",
+        "e|idx|public.bot_block_bot_idx",
+        "n|rel|public.bot_block_bot_idx"
+      ],
+      "reads": [
+        "n|tbl|public.bot_block",
+        "n|sch|public",
+        "n|col|public.bot_block.bot_id",
+        "n|col|public.bot_block.block_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "member",
+        "member_user_org_idx"
+      ],
+      "writes": [
+        "s|idx|public.member_user_org_idx",
+        "n|idx|public.member_user_org_idx",
+        "e|idx|public.member_user_org_idx",
+        "n|rel|public.member_user_org_idx"
+      ],
+      "reads": [
+        "n|tbl|public.member",
+        "n|sch|public",
+        "n|col|public.member.user_id",
+        "n|col|public.member.organization_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "block_asset",
+        "name": "block_asset_asset_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "asset_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "block_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "chat_block",
+        "name": "chat_block_chat_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "chat_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "block_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "bot_block",
+        "name": "bot_block_bot_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "bot_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "block_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "member",
+        "name": "member_user_org_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    }
+  ]
+}
