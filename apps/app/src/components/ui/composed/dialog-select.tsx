@@ -406,23 +406,31 @@ function DialogSelectPagination({
 	page,
 	pageCount,
 	onPageChange,
+	disabled = false,
 	className,
 }: {
 	page: number;
 	pageCount: number;
 	onPageChange: (page: number) => void;
+	/** Keeps the pager in place while a page loads. */
+	disabled?: boolean;
 	className?: string;
 }) {
 	if (pageCount <= 1) return null;
+
+	const atStart = disabled || page <= 0;
+	const atEnd = disabled || page >= pageCount - 1;
 
 	return (
 		<Pagination className={cn("pt-2", className)}>
 			<PaginationContent>
 				<PaginationItem>
 					<PaginationPrevious
-						onClick={() => onPageChange(Math.max(0, page - 1))}
-						aria-disabled={page <= 0}
-						className={cn(page <= 0 && "pointer-events-none opacity-50")}
+						onClick={() => {
+							if (!atStart) onPageChange(page - 1);
+						}}
+						aria-disabled={atStart}
+						className={cn(atStart && "opacity-50")}
 					/>
 				</PaginationItem>
 				<PaginationItem>
@@ -432,11 +440,11 @@ function DialogSelectPagination({
 				</PaginationItem>
 				<PaginationItem>
 					<PaginationNext
-						onClick={() => onPageChange(Math.min(pageCount - 1, page + 1))}
-						aria-disabled={page >= pageCount - 1}
-						className={cn(
-							page >= pageCount - 1 && "pointer-events-none opacity-50",
-						)}
+						onClick={() => {
+							if (!atEnd) onPageChange(page + 1);
+						}}
+						aria-disabled={atEnd}
+						className={cn(atEnd && "opacity-50")}
 					/>
 				</PaginationItem>
 			</PaginationContent>

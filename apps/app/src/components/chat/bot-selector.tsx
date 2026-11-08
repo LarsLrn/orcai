@@ -3,10 +3,12 @@ import type { BotListItem } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, MessageSquareIcon } from "lucide-react";
 import { useState } from "react";
+import { useDebounceValue } from "usehooks-ts";
 import {
 	BotFavouriteStar,
 	FAVOURITE_CHAT_BOTS_INPUT,
 } from "@/components/bot/bot-favourites";
+import { Button } from "@/components/ui/button";
 import {
 	DialogSelect,
 	DialogSelectContent,
@@ -18,6 +20,7 @@ import {
 	DialogSelectSearch,
 	DialogSelectTrigger,
 } from "@/components/ui/composed/dialog-select";
+import { describeError } from "@/lib/errors/describe-error";
 import { orpc } from "@/lib/orpc/orpc";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -50,18 +53,16 @@ const BotSelectorButton = ({
 }) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [search, setSearch] = useState("");
+	const [debouncedSearch] = useDebounceValue(search, 300);
 	const [page, setPage] = useState(0);
+	const query = debouncedSearch.trim() || undefined;
 
-	const {
-		data: botsResult,
-		isLoading,
-		isFetching,
-	} = useQuery(
+	const botsQuery = useQuery(
 		orpc.bot.list.queryOptions({
 			input: {
 				pageIndex: page,
 				pageSize: BOT_PAGE_SIZE,
-				search: search || undefined,
+				search: query,
 				filters: {
 					usable: true,
 				},
@@ -70,7 +71,7 @@ const BotSelectorButton = ({
 		}),
 	);
 
-	const showFavourites = !search;
+	const showFavourites = !query;
 	const favouritesQuery = useQuery(
 		orpc.bot.list.queryOptions({
 			input: FAVOURITE_CHAT_BOTS_INPUT,
@@ -87,14 +88,31 @@ const BotSelectorButton = ({
 		}),
 	);
 
-	const bots = botsResult?.data ?? [];
+	const bots = botsQuery.isError ? [] : (botsQuery.data?.data ?? []);
 	const favourites = showFavourites ? (favouritesQuery.data?.data ?? []) : [];
+	// Rows of the previous search are not choices while the next one is typed.
 	const loading =
-		isLoading ||
-		isFetching ||
-		(showFavourites &&
-			(favouritesQuery.isLoading || favouritesQuery.isFetching));
-	const pageCount = Math.ceil((botsResult?.rowCount ?? 0) / BOT_PAGE_SIZE);
+		search.trim() !== debouncedSearch.trim() ||
+		botsQuery.isLoading ||
+		(showFavourites && favouritesQuery.isLoading);
+	// The pager keeps the search's last count while another of its pages loads.
+	const [counted, setCounted] = useState({
+		query,
+		rowCount: 0,
+	});
+	const rowCount = botsQuery.data?.rowCount;
+	if (
+		rowCount !== undefined &&
+		(counted.query !== query || counted.rowCount !== rowCount)
+	) {
+		setCounted({
+			query,
+			rowCount,
+		});
+	}
+	const pageCount = Math.ceil(
+		(counted.query === query ? counted.rowCount : 0) / BOT_PAGE_SIZE,
+	);
 	const triggerLabel =
 		selectedBotResult?.data.name ?? m.chat_bot_selector_no_bot_title();
 
@@ -107,7 +125,13 @@ const BotSelectorButton = ({
 				)
 			}
 			open={dialogOpen}
-			onOpenChange={setDialogOpen}
+			onOpenChange={(open) => {
+				setDialogOpen(open);
+				if (!open) {
+					setSearch("");
+					setPage(0);
+				}
+			}}
 		>
 			<DialogSelectTrigger
 				className={cn(
@@ -155,16 +179,32 @@ const BotSelectorButton = ({
 					) : (
 						bots.map((bot) => <BotItem key={bot.id} bot={bot} />)
 					)}
-					{!loading && bots.length === 0 && (
-						<DialogSelectEmpty>
-							{m.chat_bot_selector_empty_state()}
+					{botsQuery.isError ? (
+						<DialogSelectEmpty role="alert">
+							{describeError(botsQuery.error)}
+							<Button
+								variant="outline"
+								size="sm"
+								className="mt-3"
+								loading={botsQuery.isRefetching}
+								onClick={() => void botsQuery.refetch()}
+							>
+								{m.common_retry_button()}
+							</Button>
 						</DialogSelectEmpty>
+					) : (
+						bots.length === 0 && (
+							<DialogSelectEmpty>
+								{m.chat_bot_selector_empty_state()}
+							</DialogSelectEmpty>
+						)
 					)}
 				</DialogSelectList>
 				<DialogSelectPagination
 					page={page}
 					pageCount={pageCount}
 					onPageChange={setPage}
+					disabled={loading}
 				/>
 			</DialogSelectContent>
 		</DialogSelect>

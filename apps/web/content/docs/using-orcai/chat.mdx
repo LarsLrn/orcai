@@ -9,23 +9,18 @@ Conversations with the [OrcAI Assistant](/docs/using-orcai/assistant) live on th
 
 ## Entry points
 
-- **Start a chat** in the sidebar, or on the chat list (`/app/chat`), opens the **Start a chat** page (`/app/chat/start`).
+- **Start a chat** in the sidebar, or on the chat list (`/app/chat`), opens the new chat page (`/app/chat/new`).
 - The composer on the Use tab of Home (`/app`) starts a chat directly, with bot and model pickers and attachments.
 - A bot under **Try something** on the Use tab starts a chat with that bot.
 - **Start chat** on a bot's page (`/app/library/bots/<bot id>`) starts a chat with that bot.
 
-The **Start a chat** page (`/app/chat/start`) offers two options:
-
-- **Use a bot** opens the **Select a bot** dialog, which lists the published bots you can access, and **Start chat** continues with the chosen bot.
-- With **Chat without a bot**, answers come from the model alone.
-
-Both options go to the new chat page (`/app/chat/new`, with `?botId=<bot id>` when a bot was chosen), where you send the first message.
+On the new chat page you send the first message. Links from **Try something** and from a bot's page open it with that bot chosen (`?botId=<bot id>`).
 
 ## Starting a new chat
 
 ### Choose a starting point [step]
 
-Use a bot when you want a predefined behaviour and set of repositories. Chat without a bot when you want answers from the model alone. On the new chat page (`/app/chat/new`) the composer still lets you change the bot, including **No bot**.
+Use a bot when you want a predefined behaviour and set of repositories. Chat without a bot when you want answers from the model alone. The bot button in the composer opens a dialog that lists the published bots you can use, with your favourites first. Search it, page through it, or choose **No bot**.
 
 ### Configure the first message [step]
 
