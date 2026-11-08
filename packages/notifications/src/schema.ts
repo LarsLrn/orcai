@@ -1,22 +1,16 @@
 import { localeSchema, organizationRoleSchema } from "@orcai/schema";
 import { z } from "zod/v4";
 
-const emailActionUrlSchema = z
-	.string()
-	.url()
-	.refine(
-		(value) => {
-			try {
-				const url = new URL(value);
-				return url.protocol === "http:" || url.protocol === "https:";
-			} catch {
-				return false;
-			}
-		},
-		{
-			message: "URL must use http or https scheme",
-		},
-	);
+const emailActionUrlSchema = z.url().refine(
+	(value) =>
+		[
+			"http:",
+			"https:",
+		].includes(URL.parse(value)?.protocol ?? ""),
+	{
+		message: "URL must use http or https scheme",
+	},
+);
 
 const base = z.object({
 	recipient: z.email(),

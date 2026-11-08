@@ -25,80 +25,91 @@ export type EmailConfig =
 			};
 	  };
 
-const config = Config.all({
-	host: Config.option(Config.String("SMTP_HOST")),
+/** A blank value means the setting is not configured. */
+const optionalSetting = (name: string) =>
+	Config.option(Config.String(name)).pipe(
+		Config.map(
+			Option.flatMap((value) => {
+				const trimmed = value.trim();
+				return trimmed.length > 0 ? Option.some(trimmed) : Option.none();
+			}),
+		),
+	);
+
+const invalid = (message: string) =>
+	Effect.fail(
+		new Config.ConfigError(
+			new Schema.SchemaError(
+				new SchemaIssue.InvalidValue({
+					message,
+				}),
+			),
+		),
+	);
+
+const emailConfig = Config.all({
+	host: optionalSetting("SMTP_HOST"),
 	port: Config.option(Config.String("SMTP_PORT")),
-	username: Config.option(Config.String("SMTP_USERNAME")),
-	password: Config.option(Config.String("SMTP_PASSWORD")),
+	username: optionalSetting("SMTP_USERNAME"),
+	password: optionalSetting("SMTP_PASSWORD"),
 	secure: Config.option(Config.Boolean("SMTP_SECURE")),
 	tlsRejectUnauthorized: Config.withDefault(
 		Config.Boolean("SMTP_TLS_REJECT_UNAUTHORIZED"),
 		true,
 	),
-	from: Config.option(Config.String("SMTP_FROM")),
+	from: optionalSetting("SMTP_FROM"),
 	fromName: Config.withDefault(Config.String("SMTP_FROM_NAME"), "OrcAI Team"),
 }).pipe(
-	Config.mapEffect((raw): Effect.Effect<EmailConfig, Config.ConfigError> => {
-		const normalize = (value: Option.Option<string>) =>
-			Option.flatMap(value, (item) => {
-				const trimmed = item.trim();
-				return trimmed.length > 0 ? Option.some(trimmed) : Option.none();
-			});
-		const host = normalize(raw.host);
-		const from = normalize(raw.from);
-		const username = normalize(raw.username);
-		const password = normalize(raw.password);
-		const hasAny = [
+	Config.mapEffect(
+		({
 			host,
 			from,
 			username,
 			password,
-		].some(Option.isSome);
-		if (!hasAny)
-			return Effect.succeed({
-				mode: "log_only",
-			} as const);
-		const port = Option.match(raw.port, {
-			onNone: () => 587,
-			onSome: Number,
-		});
-		const invalid = (message: string) =>
-			Effect.fail(
-				new Config.ConfigError(
-					new Schema.SchemaError(
-						new SchemaIssue.InvalidValue({
-							message,
-						}),
-					),
-				),
-			);
-		if (Option.isNone(host) || Option.isNone(from)) {
-			return invalid("SMTP_HOST and SMTP_FROM must both be configured");
-		}
-		if (Option.isSome(username) !== Option.isSome(password)) {
-			return invalid("SMTP_USERNAME and SMTP_PASSWORD must both be configured");
-		}
-		if (!Number.isInteger(port) || port < 1 || port > 65535) {
-			return invalid("SMTP_PORT must be between 1 and 65535");
-		}
-		const secure = Option.getOrElse(raw.secure, () => port === 465);
-		return Effect.succeed({
-			mode: "smtp" as const,
-			host: host.value,
 			port,
 			secure,
-			tlsRejectUnauthorized: raw.tlsRejectUnauthorized,
-			from: from.value,
-			fromName: raw.fromName,
-			auth:
-				Option.isSome(username) && Option.isSome(password)
-					? {
-							username: username.value,
-							password: Redacted.make(password.value),
-						}
-					: undefined,
-		});
-	}),
+			...smtp
+		}): Effect.Effect<EmailConfig, Config.ConfigError> => {
+			if (
+				[
+					host,
+					from,
+					username,
+					password,
+				].every(Option.isNone)
+			)
+				return Effect.succeed({
+					mode: "log_only",
+				});
+			if (Option.isNone(host) || Option.isNone(from))
+				return invalid("SMTP_HOST and SMTP_FROM must both be configured");
+			if (Option.isSome(username) !== Option.isSome(password))
+				return invalid(
+					"SMTP_USERNAME and SMTP_PASSWORD must both be configured",
+				);
+			const smtpPort = Option.match(port, {
+				onNone: () => 587,
+				onSome: Number,
+			});
+			if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535)
+				return invalid("SMTP_PORT must be between 1 and 65535");
+			return Effect.succeed({
+				mode: "smtp",
+				...smtp,
+				host: host.value,
+				from: from.value,
+				port: smtpPort,
+				secure: Option.getOrElse(secure, () => smtpPort === 465),
+				auth:
+					Option.isSome(username) && Option.isSome(password)
+						? {
+								username: username.value,
+								password: Redacted.make(password.value),
+							}
+						: undefined,
+			});
+		},
+	),
 );
 
 export class EmailConfigService extends Context.Service<
@@ -110,7 +121,7 @@ export class EmailConfigService extends Context.Service<
 
 export const EmailConfigLive = Layer.effect(
 	EmailConfigService,
-	Effect.map(config, (resolved) => ({
-		config: resolved,
+	Effect.map(emailConfig, (config) => ({
+		config,
 	})),
 );

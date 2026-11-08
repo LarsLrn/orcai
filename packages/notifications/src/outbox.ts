@@ -1,10 +1,13 @@
+import { PgClient } from "@effect/sql-pg";
 import { DB, dbSchema } from "@orcai/db";
 import { PgBossService } from "@orcai/pg-boss";
 import { NOTIFICATION_OUTBOX_JOB_NAME } from "@orcai/schema";
 import { and, asc, eq, isNotNull, lte, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
+import * as Option from "effect/Option";
 import { EmailService } from "./email";
+import { EmailError } from "./errors";
 import { renderEmail } from "./render";
 import { type EmailNotification, emailNotificationSchema } from "./schema";
 
@@ -29,46 +32,98 @@ export const notificationOutboxValues = (
 	};
 };
 
-/** Debounced, not throttled: a wake after a drain started still gets one in the next slot. */
+/**
+ * Debounced, not throttled: a wake after a drain started still gets one in
+ * the next slot. A failed wake is logged, the drain schedule picks the rows up.
+ */
 export const wakeNotificationWorker = Effect.gen(function* () {
 	const { boss } = yield* PgBossService;
-	yield* Effect.tryPromise({
-		try: () =>
-			boss.sendDebounced(
-				NOTIFICATION_OUTBOX_JOB_NAME,
-				{},
-				null,
-				OUTBOX_WAKE_SINGLETON_SECONDS,
-				OUTBOX_WAKE_SINGLETON_KEY,
-			),
-		catch: (cause) => cause,
-	});
+	yield* Effect.tryPromise(() =>
+		boss.sendDebounced(
+			NOTIFICATION_OUTBOX_JOB_NAME,
+			{},
+			null,
+			OUTBOX_WAKE_SINGLETON_SECONDS,
+			OUTBOX_WAKE_SINGLETON_KEY,
+		),
+	).pipe(
+		Effect.catch((cause) =>
+			Effect.logWarning("notification.wake.failed", cause),
+		),
+	);
 });
 
-/** False when a row with the same deduplication key already exists. */
-export const enqueueNotification = (
-	notification: EmailNotification,
-	deduplicationKey: string,
+/** The wakes registered in one transaction share a token, so its commit wakes once. */
+const pendingWakes = new WeakMap<
+	object,
+	{
+		woken: boolean;
+	}
+>();
+
+const wakeAfterCommit = Effect.gen(function* () {
+	const sql = yield* PgClient.PgClient;
+	const transaction = yield* Effect.serviceOption(sql.transactionService);
+	if (Option.isNone(transaction)) return yield* wakeNotificationWorker;
+	const [connection] = transaction.value;
+	const token = pendingWakes.get(connection) ?? {
+		woken: false,
+	};
+	pendingWakes.set(connection, token);
+	yield* sql.afterCommit(
+		Effect.suspend(() => {
+			if (token.woken) return Effect.void;
+			token.woken = true;
+			pendingWakes.delete(connection);
+			return wakeNotificationWorker;
+		}),
+	);
+});
+
+export type QueuedNotification = Readonly<{
+	notification: EmailNotification;
+	deduplicationKey: string;
+}>;
+
+/**
+ * Queues the notifications in the current transaction, skipping any whose
+ * deduplication key is already queued, and wakes the worker once the
+ * transaction commits. Returns the deduplication keys it queued.
+ */
+export const enqueueNotifications = (
+	notifications: ReadonlyArray<QueuedNotification>,
 ) =>
 	Effect.gen(function* () {
+		if (notifications.length === 0) return [];
 		const db = yield* DB;
 		const inserted = yield* db
 			.insert(dbSchema.notificationOutbox)
-			.values(notificationOutboxValues(notification, deduplicationKey))
+			.values(
+				notifications.map(({ notification, deduplicationKey }) =>
+					notificationOutboxValues(notification, deduplicationKey),
+				),
+			)
 			.onConflictDoNothing({
 				target: dbSchema.notificationOutbox.deduplicationKey,
 			})
 			.returning({
-				id: dbSchema.notificationOutbox.id,
+				deduplicationKey: dbSchema.notificationOutbox.deduplicationKey,
 			});
-		if (inserted.length === 0) return false;
-		yield* wakeNotificationWorker.pipe(
-			Effect.catch((cause) =>
-				Effect.logWarning("notification.wake.failed", cause),
-			),
-		);
-		return true;
+		if (inserted.length > 0) yield* wakeAfterCommit;
+		return inserted.map((row) => row.deduplicationKey);
 	});
+
+/** False when a notification with the same deduplication key is already queued. */
+export const enqueueNotification = (
+	notification: EmailNotification,
+	deduplicationKey: string,
+) =>
+	enqueueNotifications([
+		{
+			notification,
+			deduplicationKey,
+		},
+	]).pipe(Effect.map((queued) => queued.length > 0));
 
 const retryDelay = (attempt: number) =>
 	Math.min(24 * 60 * 60_000, 30_000 * 2 ** Math.max(0, attempt - 1)) +
@@ -206,7 +261,11 @@ export const processNextNotification = () =>
 		const result = yield* Effect.exit(
 			Effect.tryPromise({
 				try: () => renderEmail(notification),
-				catch: (cause) => cause,
+				catch: (cause) =>
+					new EmailError({
+						operation: "render",
+						cause,
+					}),
 			}).pipe(
 				Effect.flatMap((rendered) =>
 					email.send({

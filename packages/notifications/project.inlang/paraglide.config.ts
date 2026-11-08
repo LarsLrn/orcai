@@ -1,10 +1,8 @@
-import { compile } from "@inlang/paraglide-js";
+import { defineConfig } from "@inlang/paraglide-js";
 
 // Templates pass the locale explicitly, so the runtime never resolves one.
-await compile({
-	project: "./project.inlang",
+export default defineConfig({
 	outdir: "./src/paraglide",
-	outputStructure: "locale-modules",
 	strategy: [
 		"baseLocale",
 	],
