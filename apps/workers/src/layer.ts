@@ -3,6 +3,7 @@ import { DrizzleLive } from "@orcai/db";
 import { EmailLive } from "@orcai/notifications";
 import { makePgBossLayer } from "@orcai/pg-boss";
 import { QdrantLive } from "@orcai/qdrant";
+import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import * as Layer from "effect/Layer";
 import { ObservabilityLive } from "./observability";
@@ -10,7 +11,7 @@ import { ObservabilityLive } from "./observability";
 export const BackgroundWorkerLayer = Layer.mergeAll(
 	ObservabilityLive,
 	AiTelemetryLive,
-	DrizzleLive,
+	QuotaReservationsLive.pipe(Layer.provideMerge(DrizzleLive)),
 	makePgBossLayer({
 		instanceName: "workers",
 	}),

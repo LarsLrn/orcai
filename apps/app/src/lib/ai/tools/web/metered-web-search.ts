@@ -1,7 +1,6 @@
 import type { WebSearch, WebSearchQuery, WebSearchResult } from "@orcai/ai";
 import type { BotId, OrganizationId, ProviderId, UserId } from "@orcai/core";
-import type { DB } from "@orcai/db";
-import { meteredCall } from "@orcai/quota";
+import { meteredCall, type QuotaReservations } from "@orcai/quota";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import { v4 as uuidv4 } from "uuid";
@@ -11,7 +10,7 @@ import { AssistantToolError } from "@/lib/ai/tools/tool-error";
 export type MeteredWebSearch = (
 	query: WebSearchQuery,
 	signal?: AbortSignal,
-) => Effect.Effect<WebSearchResult[], AssistantToolError, DB>;
+) => Effect.Effect<WebSearchResult[], AssistantToolError, QuotaReservations>;
 
 const DENIALS = {
 	QUOTA_POOL_UNAVAILABLE:

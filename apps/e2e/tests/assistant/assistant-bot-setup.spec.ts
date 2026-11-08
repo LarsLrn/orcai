@@ -173,9 +173,9 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	expect(createdBot).toMatchObject({
 		type: "bot",
 		status: "draft",
-		features: {
-			generativeUi: {},
-		},
+	});
+	expect(createdBot.features).toEqual({
+		generativeUi: {},
 	});
 	expect(createdBot).not.toHaveProperty("created");
 	const botId = createdBot.id as BotId;
@@ -234,12 +234,12 @@ test("assistant: a member sets up and publishes a bot in one turn, and the next 
 	expect(bot).toMatchObject({
 		name: botName,
 		status: "ready",
-		features: {
-			generativeUi: {},
-		},
 		behaviour: {
 			id: behaviourId,
 		},
+	});
+	expect(bot.features).toEqual({
+		generativeUi: {},
 	});
 	expect(bot.repositories.map((block) => block.id)).toEqual([
 		repositoryId,

@@ -6,6 +6,7 @@ import { PgBossService, runWorkers, TestClock } from "@orcai/pg-boss";
 import { IsolatedPgBossLive } from "@orcai/pg-boss/testing";
 import { QdrantLive } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
+import { QuotaReservationsLive } from "@orcai/quota";
 import { S3Live } from "@orcai/s3/server";
 import {
 	defaultRepositoryConfig,
@@ -31,6 +32,7 @@ const runtime = integrationRuntime(
 		Layer.provideMerge(
 			Layer.mergeAll(
 				S3Live,
+				QuotaReservationsLive,
 				QdrantLive,
 				EncryptionKeyLive,
 				IsolatedPgBossLive({

@@ -12,6 +12,7 @@ import {
 	SpiceDbError,
 	SpiceDbService,
 } from "../src";
+import { spiceClient } from "./fake";
 
 const userId = "00000000-0000-4000-8000-000000000001" as UserId;
 const assetA = "00000000-0000-4000-8000-00000000000a" as AssetId;
@@ -82,7 +83,7 @@ const run = <A, E>(
 ) =>
 	Effect.runPromiseExit(
 		Effect.provideService(effect, SpiceDbService, {
-			spice: spice as unknown as v1.ZedPromiseClientInterface,
+			spice: spiceClient(spice),
 		}),
 	);
 

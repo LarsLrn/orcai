@@ -8,7 +8,11 @@ export {
 	memberQuotaScopes,
 	type QuotaScope,
 } from "./coverage";
-export { recoverStaleQuotaReservations } from "./enforcement";
+export {
+	QuotaReservations,
+	QuotaReservationsLive,
+	recoverStaleQuotaReservations,
+} from "./enforcement";
 export {
 	QuotaDeniedError,
 	QuotaUnavailableError,

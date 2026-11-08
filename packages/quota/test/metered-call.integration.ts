@@ -13,9 +13,14 @@ import { and, eq } from "drizzle-orm";
 import type * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
+import * as Layer from "effect/Layer";
 import * as Schedule from "effect/Schedule";
 import { STALE_RESERVATION_AGE_MS } from "../src/call-timeout";
-import { recoverStaleQuotaReservations } from "../src/enforcement";
+import {
+	type QuotaReservations,
+	QuotaReservationsLive,
+	recoverStaleQuotaReservations,
+} from "../src/enforcement";
 import {
 	createQuotaPoolWithInitialPeriod,
 	recordQuotaUsage,
@@ -24,7 +29,7 @@ import {
 import { QuotaRetry, startMeteredCall } from "../src/metered-call";
 import { openQuotaPeriod } from "../src/period";
 
-const runtime = integrationRuntime();
+const runtime = integrationRuntime(QuotaReservationsLive);
 
 /** The database, with every transaction failing while `broken.on`, as when its connection drops. */
 const failingTransactions = (
@@ -43,8 +48,9 @@ const failingTransactions = (
 		},
 	});
 
-const run = <A, E>(effect: Effect.Effect<A, E, DB | PgClient.PgClient>) =>
-	runtime.runPromise(effect);
+const run = <A, E>(
+	effect: Effect.Effect<A, E, DB | PgClient.PgClient | QuotaReservations>,
+) => runtime.runPromise(effect);
 
 /** A pool open to every member of a fresh organization. */
 const pool = (params: {
@@ -302,6 +308,7 @@ test("a call whose settle failed is charged its stored steps once its period clo
 	);
 	const call = await run(
 		start(6, appRequestId).pipe(
+			Effect.provide(Layer.fresh(QuotaReservationsLive)),
 			Effect.provideService(DB, failingTransactions(db, broken)),
 			Effect.provideService(QuotaRetry, Schedule.recurs(1)),
 		),

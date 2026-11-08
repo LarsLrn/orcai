@@ -8,7 +8,9 @@ import type {
 import { DB, dbSchema } from "@orcai/db";
 import { eq } from "drizzle-orm";
 import * as Cause from "effect/Cause";
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
 import { v4 as uuidv4 } from "uuid";
 import {
 	QuotaDeniedError,
@@ -138,7 +140,7 @@ export const reserveForAppRequest = (input: {
 	});
 
 /** Stores a call's finished steps so far with its reservation. */
-export const recordReservationUsage = (input: {
+const recordReservationUsage = (input: {
 	reservation: ReservedQuota;
 	steps: readonly MeteredStep[];
 }): Effect.Effect<void, QuotaWriteFailedError, DB> =>
@@ -175,7 +177,7 @@ const pricesOf = (reservation: {
  * Charges a call its steps at the prices now in force, one provider request
  * each, and releases the rest; without steps it releases all of it.
  */
-export const settleReservation = (input: {
+const settleReservation = (input: {
 	reservation: ReservedQuota;
 	steps: readonly MeteredStep[];
 	reason: ReleaseReason;
@@ -189,6 +191,37 @@ export const settleReservation = (input: {
 				input.steps.length === 0 ? null : yield* pricesOf(input.reservation),
 		});
 	}).pipe(writeFailed("The call could not be settled."));
+
+/** The pool writes behind a metered call. */
+export class QuotaReservations extends Context.Service<
+	QuotaReservations,
+	{
+		readonly reserve: (
+			input: Parameters<typeof reserveForAppRequest>[0],
+		) => Effect.Effect<ReservedQuota, QuotaDeniedError | QuotaUnavailableError>;
+		readonly record: (
+			input: Parameters<typeof recordReservationUsage>[0],
+		) => Effect.Effect<void, QuotaWriteFailedError>;
+		readonly settle: (
+			input: Parameters<typeof settleReservation>[0],
+		) => Effect.Effect<void, QuotaWriteFailedError>;
+	}
+>()("QuotaReservations") {}
+
+export const QuotaReservationsLive = Layer.effect(
+	QuotaReservations,
+	Effect.gen(function* () {
+		const db = yield* DB;
+		return {
+			reserve: (input) =>
+				reserveForAppRequest(input).pipe(Effect.provideService(DB, db)),
+			record: (input) =>
+				recordReservationUsage(input).pipe(Effect.provideService(DB, db)),
+			settle: (input) =>
+				settleReservation(input).pipe(Effect.provideService(DB, db)),
+		};
+	}),
+);
 
 /**
  * Ends the reservations made before `reservedBefore` that never settled, in

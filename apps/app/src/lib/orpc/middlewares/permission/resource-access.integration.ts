@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { v1 } from "@authzed/authzed-node";
 import type { AssetId } from "@orcai/core";
-import { SpiceDbService } from "@orcai/spice-db";
+import { type SpiceDbClient, SpiceDbService } from "@orcai/spice-db";
 import * as Context from "effect/Context";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import {
@@ -39,7 +39,7 @@ const allowedBy = (
 
 /** The real SpiceDB, except for bulk checks of `assetId`, which `revisions` answers. */
 const spiceAnswering = (
-	real: v1.ZedPromiseClientInterface,
+	real: SpiceDbClient,
 	assetId: AssetId,
 	revisions: Revisions,
 ) =>

@@ -242,7 +242,9 @@ describe("closePendingToolParts", () => {
 			},
 			errorText: TOOL_CLOSE_SENTENCES.interrupted,
 		});
-		expect(empty.parts[0]).toMatchObject({
+		expect(empty.parts[0]).toEqual({
+			type: "tool-pick",
+			toolCallId: "call-2",
 			state: "output-error",
 			input: {},
 			errorText: TOOL_CLOSE_SENTENCES.interrupted,

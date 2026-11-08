@@ -12,10 +12,24 @@ import {
 } from "./config";
 import { SpiceDbError } from "./errors";
 
+/** The SpiceDB calls OrcAI makes. */
+export type SpiceDbClient = Pick<
+	v1.ZedPromiseClientInterface,
+	| "checkPermission"
+	| "checkBulkPermissions"
+	| "lookupResources"
+	| "readRelationships"
+	| "writeRelationships"
+	| "deleteRelationships"
+	| "readSchema"
+	| "writeSchema"
+	| "diffSchema"
+>;
+
 export class SpiceDbService extends Context.Service<
 	SpiceDbService,
 	{
-		readonly spice: v1.ZedPromiseClientInterface;
+		readonly spice: SpiceDbClient;
 	}
 >()("SpiceDbService") {}
 
@@ -81,7 +95,7 @@ export const SpiceDbLive = SpiceDbServiceLive.pipe(
 /** One call on the SpiceDB client, failing as a SpiceDbError for `operation`. */
 export const callSpiceDb = <A>(
 	operation: "query" | "mutate",
-	call: (spice: v1.ZedPromiseClientInterface) => Promise<A>,
+	call: (spice: SpiceDbClient) => Promise<A>,
 ) =>
 	Effect.gen(function* () {
 		const { spice } = yield* SpiceDbService;

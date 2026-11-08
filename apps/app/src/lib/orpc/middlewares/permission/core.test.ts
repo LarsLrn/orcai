@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { v1 } from "@authzed/authzed-node";
 import type { BotId, UserId } from "@orcai/core";
 import { SpiceDbService } from "@orcai/spice-db";
+import { spiceClient } from "@orcai/spice-db/testing";
 import * as Effect from "effect/Effect";
 import { requirePermission } from "./core";
 
@@ -12,12 +13,12 @@ const withSpiceAnswering = (
 	permissionship: v1.CheckPermissionResponse_Permissionship,
 ) =>
 	Effect.provideService(SpiceDbService, {
-		spice: {
+		spice: spiceClient({
 			checkPermission: async () =>
 				v1.CheckPermissionResponse.create({
 					permissionship,
 				}),
-		} as unknown as v1.ZedPromiseClientInterface,
+		}),
 	});
 
 const requireBotEdit = requirePermission({

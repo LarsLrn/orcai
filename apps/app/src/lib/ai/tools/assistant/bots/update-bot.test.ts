@@ -101,28 +101,28 @@ describe("updateBotPayload", () => {
 	});
 
 	test("given links and features replace the stored ones", () => {
-		expect(
-			updateBotPayload(
-				{
-					id: botId,
-					name: "Citation check",
-					description: "Checks citations.",
-					behaviourId: otherBehaviourId,
-					repositoryIds: [
-						otherRepositoryId,
-					],
-					features: {},
-				},
-				editor,
-			),
-		).toMatchObject({
+		const payload = updateBotPayload(
+			{
+				id: botId,
+				name: "Citation check",
+				description: "Checks citations.",
+				behaviourId: otherBehaviourId,
+				repositoryIds: [
+					otherRepositoryId,
+				],
+				features: {},
+			},
+			editor,
+		);
+
+		expect(payload).toMatchObject({
 			status: "ready",
 			behaviourId: otherBehaviourId,
 			repositoryIds: [
 				otherRepositoryId,
 			],
-			features: {},
 		});
+		expect(payload.features).toEqual({});
 	});
 
 	test("null unlinks the behaviour", () => {
@@ -140,20 +140,20 @@ describe("updateBotPayload", () => {
 	});
 
 	test("an update takes only the changed fields", () => {
-		expect(
-			updateBotPayload(
-				{
-					id: botId,
-					features: {},
-				},
-				editor,
-			),
-		).toMatchObject({
+		const payload = updateBotPayload(
+			{
+				id: botId,
+				features: {},
+			},
+			editor,
+		);
+
+		expect(payload).toMatchObject({
 			name: "Citation check",
 			description: "Checks citations.",
 			behaviourId: behaviourId,
-			features: {},
 		});
+		expect(payload.features).toEqual({});
 	});
 });
 
