@@ -2801,6 +2801,7 @@
 	"chat_table_bulk_delete_action": "Auswahl löschen",
 	"chat_table_date_column_header": "Datum",
 	"chat_title_placeholder": "Neuer Chat",
+	"chat_transcript_attachments": "Angehängt: {titles}",
 	"chat_transcript_model": "Modell",
 	"chat_transcript_user": "Sie",
 	"chat_unpin_toast_error": "Der Chat wurde nicht gelöst.",

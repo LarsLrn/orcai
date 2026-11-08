@@ -1,7 +1,7 @@
 import { DB, dbSchema } from "@orcai/db";
 import { and, count, desc, eq, gte, lt } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { isEmptyReply } from "@/lib/ai/turn/reply-store";
+import { isEmptyMessage } from "@/lib/ai/turn/reply-store";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireEntityPermission } from "@/lib/orpc/middlewares/permission";
@@ -59,7 +59,7 @@ const listChatMessages = authed.chatMessage.list
 			data: rows
 				.slice(0, limit)
 				.reverse()
-				.filter((message) => !isEmptyReply(message)),
+				.filter((message) => !isEmptyMessage(message)),
 			hasMore: rows.length > limit,
 		};
 	});

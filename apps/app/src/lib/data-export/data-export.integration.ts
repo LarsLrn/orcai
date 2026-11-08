@@ -118,11 +118,27 @@ const seed = (userId: UserId, organizationId: OrganizationId) =>
 					{
 						id: crypto.randomUUID() as ChatMessageId,
 						chatId: chat.id,
+						role: "user",
+						parts: [],
+						attachments: [
+							{
+								assetId: crypto.randomUUID() as AssetId,
+								title: "Notes.pdf",
+								fileType: "application/pdf",
+								size: 10,
+							},
+						],
+						metadata: {},
+						position: 2,
+					},
+					{
+						id: crypto.randomUUID() as ChatMessageId,
+						chatId: chat.id,
 						role: "assistant",
 						parts: [],
 						attachments: [],
 						metadata: {},
-						position: 2,
+						position: 3,
 					},
 				])
 				.returning();
@@ -473,9 +489,10 @@ describe("data export", () => {
 			).toEqual([
 				"user",
 				"assistant",
+				"user",
 			]);
 			expect(archive[`${chatName}.md`]).toBe(
-				"**You:**\n\nHow deep do I sample?\n\n**Model:**\n\nThirty centimetres.",
+				"**You:**\n\nHow deep do I sample?\n\n**Model:**\n\nThirty centimetres.\n\n**You:**\n\nAttached: Notes.pdf",
 			);
 			expect(archive[`files/${seeded.notes.id}/notes.txt`]).toBe(FILE_CONTENT);
 

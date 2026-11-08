@@ -30,9 +30,11 @@ export type ReplyChange = {
 	metadata: ChatMessageMetadata;
 };
 
-/** A reserved reply that is still empty, e.g. one whose turn never ended. */
-export const isEmptyReply = (message: { parts: unknown[] }) =>
-	message.parts.length === 0;
+/** A message with nothing to show: a reserved reply that is still empty, or one with no parts this version reads and no files. */
+export const isEmptyMessage = (message: {
+	parts: unknown[];
+	attachments: unknown[];
+}) => message.parts.length === 0 && message.attachments.length === 0;
 
 /**
  * Where a chat's rows live between turns. Reads hand out the parts this
