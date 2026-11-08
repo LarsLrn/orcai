@@ -1,6 +1,8 @@
 import {
 	deleteBotsInputSchema,
 	deleteBotsResponseSchema,
+	findBotContentsInputSchema,
+	findBotContentsResponseSchema,
 	findBotEditorInputSchema,
 	findBotEditorResponseSchema,
 	findBotInputSchema,
@@ -46,6 +48,16 @@ export const botContracts = {
 		)
 		.input(findBotInputSchema)
 		.output(findBotResponseSchema),
+	findContents: tagged
+		.meta(
+			openapi({
+				method: "GET",
+				path: "/bots/{id}/contents",
+				summary: "Find a bot's published behaviour and repositories",
+			}),
+		)
+		.input(findBotContentsInputSchema)
+		.output(findBotContentsResponseSchema),
 	findEditor: tagged
 		.meta(
 			openapi({

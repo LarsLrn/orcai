@@ -1,4 +1,4 @@
-import type { BlockWithCapabilities } from "@orcai/schema";
+import type { BlockListItem } from "@orcai/schema";
 import { CompactBlockTile } from "@/components/blocks/block-tile";
 import {
 	Section,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/shell/section";
 import { m } from "@/paraglide/messages";
 
-const BotBlocks = ({ blocks }: { blocks: BlockWithCapabilities[] }) => {
+const BotBlocks = ({ blocks }: { blocks: BlockListItem[] }) => {
 	const behaviour = blocks.find((b) => b.type === "behaviour");
 	const repositories = blocks.filter((b) => b.type === "repository");
 

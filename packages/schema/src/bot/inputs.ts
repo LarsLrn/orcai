@@ -40,6 +40,11 @@ export const findBotInputSchema = z.object({
 	...zedTokenSchema.shape,
 });
 
+export const findBotContentsInputSchema = z.object({
+	id: botIdSchema,
+	...zedTokenSchema.shape,
+});
+
 export const findBotEditorInputSchema = z.object({
 	id: botIdSchema,
 	...zedTokenSchema.shape,

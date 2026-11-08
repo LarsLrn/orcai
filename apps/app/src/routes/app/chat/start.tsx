@@ -1,4 +1,4 @@
-import type { Bot } from "@orcai/schema";
+import type { BotListItem } from "@orcai/schema";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	BotIcon,
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/app/chat/start")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
+	const [selectedBot, setSelectedBot] = useState<BotListItem | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 
 	return (

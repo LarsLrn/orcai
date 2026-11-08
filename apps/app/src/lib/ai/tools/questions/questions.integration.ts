@@ -169,17 +169,18 @@ beforeEach(() => {
 		providerModelId: "claude-opus-5-5",
 		chatBlocks: [],
 	});
-	answers["block.list"] = () =>
+	answers["bot.findContents"] = () =>
 		Effect.succeed({
-			data: [
-				{
+			data: {
+				behaviour: {
 					id: crypto.randomUUID(),
 					type: "behaviour",
 					config: {
 						systemPrompt: "You quiz the user.",
 					},
 				},
-			],
+				repositories: [],
+			},
 		});
 });
 

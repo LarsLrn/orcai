@@ -1,7 +1,7 @@
 import {
 	type Asset,
 	type Block,
-	type BotWithCapabilities,
+	type BotListItem,
 	type CatalogueEntryRef,
 	canPrepareAgain,
 	type EntityCapabilities,
@@ -251,7 +251,7 @@ const useCatalogueRemoval = (entry: CatalogueEntryRef, name: string) => {
 	};
 };
 
-type ActionBot = Pick<BotWithCapabilities, "id" | "name" | "capabilities"> & {
+type ActionBot = Pick<BotListItem, "id" | "name" | "capabilities"> & {
 	homeOrganization: HomeOrganization | null;
 };
 

@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { behaviourBlockSchema, repositoryBlockSchema } from "../block/schema";
 import {
 	homeOrganizationSchema,
 	resourceOwnerSchema,
@@ -23,6 +24,14 @@ export const findBotResponseSchema = createDataResponseSchema(
 		owner: resourceOwnerSchema,
 		/** Set when the active organisation added the bot from the catalogue. */
 		homeOrganization: homeOrganizationSchema.nullable(),
+	}),
+);
+
+/** The bot's published behaviour and repositories, with their settings. */
+export const findBotContentsResponseSchema = createDataResponseSchema(
+	z.object({
+		behaviour: behaviourBlockSchema.nullable(),
+		repositories: z.array(repositoryBlockSchema),
 	}),
 );
 

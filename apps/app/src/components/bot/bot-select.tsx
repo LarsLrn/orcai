@@ -1,4 +1,4 @@
-import type { Bot, BotWithCapabilities } from "@orcai/schema";
+import type { BotListItem } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, SearchIcon } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
@@ -22,8 +22,8 @@ import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
 interface BotSelectProps {
-	onBotSelect: (bot: Bot | null) => void;
-	selectedBot?: Bot | null;
+	onBotSelect: (bot: BotListItem | null) => void;
+	selectedBot?: BotListItem | null;
 }
 
 const BotRadioGroup = ({
@@ -37,9 +37,9 @@ const BotRadioGroup = ({
 	id: string;
 	label: string;
 	heading?: boolean;
-	bots: BotWithCapabilities[];
-	selectedBot?: Bot | null;
-	onBotSelect: (bot: Bot | null) => void;
+	bots: BotListItem[];
+	selectedBot?: BotListItem | null;
+	onBotSelect: (bot: BotListItem | null) => void;
 }) => (
 	<div className="flex flex-col gap-2">
 		{heading ? (

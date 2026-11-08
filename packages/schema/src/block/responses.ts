@@ -1,33 +1,40 @@
 import { z } from "zod/v4";
 import { assetWithCapabilitiesSchema } from "../asset/schema";
+import { entityCapabilitiesSchema } from "../authorization/schema";
 import {
 	homeOrganizationSchema,
 	resourceOwnerSchema,
 } from "../resource/schema";
-import { assetIdSchema } from "../shared/ids";
+import { assetIdSchema, blockIdSchema } from "../shared/ids";
 import {
 	createDataResponseSchema,
 	createListResponseSchema,
 	statusResponseSchema,
 } from "../shared/responses";
 import {
+	blockFieldsSchema,
 	blockSchema,
+	blockTypeSchema,
 	blockWithCapabilitiesSchema,
 	repositoryReadinessSchema,
 	repositoryTotalsSchema,
 } from "./schema";
 
-/** A block as library lists return it: with what its tile shows. */
-export const blockListItemSchema = z.intersection(
-	blockWithCapabilitiesSchema,
-	z.object({
-		owner: resourceOwnerSchema,
-		/** Set when the active organisation added the block from the catalogue. */
-		homeOrganization: homeOrganizationSchema.nullable(),
-		/** A repository's asset counts; null for behaviours. */
-		assets: repositoryTotalsSchema.nullable(),
-	}),
-);
+/** A block as library lists return it: what its tile shows, without its content or settings. */
+export const blockListItemSchema = z.object({
+	id: blockIdSchema,
+	type: blockTypeSchema,
+	name: blockFieldsSchema.shape.name,
+	description: blockFieldsSchema.shape.description,
+	status: blockFieldsSchema.shape.status,
+	createdAt: z.coerce.date().nullable(),
+	capabilities: entityCapabilitiesSchema,
+	owner: resourceOwnerSchema,
+	/** Set when the active organisation added the block from the catalogue. */
+	homeOrganization: homeOrganizationSchema.nullable(),
+	/** A repository's asset counts; null for behaviours. */
+	assets: repositoryTotalsSchema.nullable(),
+});
 
 export const listBlocksResponseSchema =
 	createListResponseSchema(blockListItemSchema);

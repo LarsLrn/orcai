@@ -1,7 +1,7 @@
 import type { BotId } from "@orcai/core";
 import { DB, dbSchema, ownerColumns } from "@orcai/db";
-import type { Bot } from "@orcai/schema";
-import { eq, getColumns } from "drizzle-orm";
+import { type Block, type Bot, isBehaviour, isRepository } from "@orcai/schema";
+import { and, desc, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { requirePermitted } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
@@ -105,6 +105,40 @@ const findBot = authed.bot.find
 				blockIds: blockIds.map((b) => b.blockId),
 				capabilities,
 				homeOrganization: homes(bot.id),
+			},
+		};
+	});
+
+const findBotContents = authed.bot.findContents
+	.use(requireOrganization())
+	.use(
+		requireEntityAccess("bot", "read", {
+			entityId: "id",
+		}),
+	)
+	.effect(function* ({ input }) {
+		const blocks = yield* (yield* DB)
+			.select({
+				...getColumns(dbSchema.block),
+			})
+			.from(dbSchema.botBlock)
+			.innerJoin(
+				dbSchema.block,
+				eq(dbSchema.block.id, dbSchema.botBlock.blockId),
+			)
+			.where(
+				and(
+					eq(dbSchema.botBlock.botId, input.id),
+					eq(dbSchema.block.status, "ready"),
+				),
+			)
+			.orderBy(desc(dbSchema.block.createdAt), desc(dbSchema.block.id))
+			.pipe(Effect.map((rows) => rows as Block[]));
+
+		return {
+			data: {
+				behaviour: blocks.find(isBehaviour) ?? null,
+				repositories: blocks.filter(isRepository),
 			},
 		};
 	});
@@ -284,6 +318,7 @@ const deleteBots = authed.bot.delete.effect(function* ({ input, context }) {
 export const botRouter = {
 	list: listBots,
 	find: findBot,
+	findContents: findBotContents,
 	findEditor: findBotEditor,
 	save: saveBot,
 	publish: publishBot,

@@ -1,4 +1,4 @@
-import type { BotListItem, BotWithCapabilities } from "@orcai/schema";
+import type { BotListItem } from "@orcai/schema";
 import type { LinkProps } from "@tanstack/react-router";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
 import { ResourceProvenance } from "@/components/catalogue/resource-provenance";
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 type TileBot = Pick<
-	BotWithCapabilities,
+	BotListItem,
 	| "id"
 	| "name"
 	| "description"

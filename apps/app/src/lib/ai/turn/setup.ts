@@ -212,13 +212,11 @@ const botSettings = ({
 }) =>
 	Effect.gen(function* () {
 		const procedures = yield* Procedures;
-		const [blocks, { data: bot }] = yield* Effect.all(
+		const [{ data: contents }, { data: bot }] = yield* Effect.all(
 			[
-				procedures.block.list(
+				procedures.bot.findContents(
 					{
-						filters: {
-							botId,
-						},
+						id: botId,
 						zedToken,
 					},
 					{
@@ -240,21 +238,16 @@ const botSettings = ({
 			},
 		);
 
-		const behaviour = blocks.data.find((block) => block.type === "behaviour");
-		if (!behaviour) {
+		if (!contents.behaviour) {
 			return yield* new AiError({
 				operation: "turn.setup.missingBehaviour",
 				cause: new Error("Bot-linked chat has no behaviour."),
 			});
 		}
 
-		// The bot is authorized, so its blocks come with it.
 		return {
-			behaviour,
-			repositories: blocks.data.filter(
-				(block): block is Extract<typeof block, Repository> =>
-					block.type === "repository",
-			),
+			behaviour: contents.behaviour,
+			repositories: contents.repositories,
 			features: bot.features,
 		};
 	});

@@ -1,4 +1,4 @@
-import type { BotWithCapabilities } from "@orcai/schema";
+import type { BotListItem } from "@orcai/schema";
 import { useMutation } from "@tanstack/react-query";
 import { StarIcon } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
@@ -21,7 +21,7 @@ const BotFavouriteToggle = ({
 	bot,
 	className,
 }: {
-	bot: Pick<BotWithCapabilities, "id" | "name" | "isFavourite">;
+	bot: Pick<BotListItem, "id" | "name" | "isFavourite">;
 	className?: string;
 }) => {
 	const { mutate: setFavourite, isPending } = useMutation(

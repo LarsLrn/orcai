@@ -1647,17 +1647,18 @@ describe("turn setup", () => {
 
 	test("a refused read stays a denial and an outage stays unavailable, as the procedure answered", async () => {
 		const botId = crypto.randomUUID() as BotId;
-		answers["block.list"] = () =>
+		answers["bot.findContents"] = () =>
 			Effect.succeed({
-				data: [
-					{
+				data: {
+					behaviour: {
 						id: crypto.randomUUID(),
 						type: "behaviour",
 						config: {
 							systemPrompt: "You are the bot.",
 						},
 					},
-				],
+					repositories: [],
+				},
 			});
 		answers["bot.find"] = () =>
 			Effect.succeed({
@@ -1764,18 +1765,18 @@ describe("turn setup", () => {
 			webSearchMode?: "off" | "native" | "provider";
 		}) => {
 			const botId = crypto.randomUUID() as BotId;
-			answers["block.list"] = () =>
+			answers["bot.findContents"] = () =>
 				Effect.succeed({
-					data: [
-						{
+					data: {
+						behaviour: {
 							id: crypto.randomUUID(),
 							type: "behaviour",
 							config: {
 								systemPrompt: "You are the bot.",
 							},
 						},
-						...repositories,
-					],
+						repositories: repositories,
+					},
 				});
 			answers["bot.find"] = () =>
 				Effect.succeed({
@@ -2281,17 +2282,18 @@ describe("turn setup", () => {
 
 	test("meters a bot chat's turn with its bot", async () => {
 		const botId = crypto.randomUUID() as BotId;
-		answers["block.list"] = () =>
+		answers["bot.findContents"] = () =>
 			Effect.succeed({
-				data: [
-					{
+				data: {
+					behaviour: {
 						id: crypto.randomUUID(),
 						type: "behaviour",
 						config: {
 							systemPrompt: "You are the bot.",
 						},
 					},
-				],
+					repositories: [],
+				},
 			});
 		answers["bot.find"] = () =>
 			Effect.succeed({

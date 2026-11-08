@@ -1,5 +1,5 @@
 import type { BotId } from "@orcai/core";
-import type { BotWithCapabilities } from "@orcai/schema";
+import type { BotListItem } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BotIcon, MessageSquareIcon } from "lucide-react";
 import { useState } from "react";
@@ -25,7 +25,7 @@ import { m } from "@/paraglide/messages";
 const BOT_PAGE_SIZE = 20;
 const NO_BOT_VALUE = "__no_bot__";
 
-const BotItem = ({ bot }: { bot: BotWithCapabilities }) => (
+const BotItem = ({ bot }: { bot: BotListItem }) => (
 	<DialogSelectItem
 		value={bot.id}
 		title={bot.name}

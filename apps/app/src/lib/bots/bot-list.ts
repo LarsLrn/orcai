@@ -1,12 +1,11 @@
 import { DB, dbSchema, ownerColumns } from "@orcai/db";
-import type { Bot, ListBotsInput } from "@orcai/schema";
+import type { ListBotsInput } from "@orcai/schema";
 import {
 	and,
 	asc,
 	count,
 	desc,
 	eq,
-	getColumns,
 	ilike,
 	isNotNull,
 	isNull,
@@ -45,7 +44,12 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 		const db = yield* DB;
 		const select = db
 			.select({
-				...getColumns(dbSchema.bot),
+				id: dbSchema.bot.id,
+				name: dbSchema.bot.name,
+				description: dbSchema.bot.description,
+				status: dbSchema.bot.status,
+				features: dbSchema.bot.features,
+				createdAt: dbSchema.bot.createdAt,
 				isFavourite,
 				owner: ownerColumns,
 			})
@@ -79,7 +83,6 @@ export const botTiles = (reader: Reader, query: TileQuery) =>
 
 		return rows.map((bot) => ({
 			...bot,
-			contentJson: bot.contentJson as Bot["contentJson"],
 			capabilities: capabilities.get(bot.id) ?? emptyCapabilities("bot"),
 			...details(bot.id),
 			homeOrganization: homes(bot.id),
