@@ -221,18 +221,21 @@ const denseVectorsSchema = z.object({
 	}),
 });
 
-/** The collection's dense vector size, or null when it does not exist. */
+/**
+ * The collection's dense vector size: "missing" when it does not exist, and
+ * "incompatible" when it has no dense vector, which no write repairs.
+ */
 export const collectionDimensions = (client: QdrantClient, name: string) =>
 	Effect.gen(function* () {
 		const { exists } = yield* qdrantCall("collectionExists", () =>
 			client.collectionExists(name),
 		);
-		if (!exists) return null;
+		if (!exists) return "missing" as const;
 		const info = yield* qdrantCall("getCollection", () =>
 			client.getCollection(name),
 		);
 		return (
 			denseVectorsSchema.safeParse(info.config?.params?.vectors).data?.dense
-				.size ?? null
+				.size ?? ("incompatible" as const)
 		);
 	});

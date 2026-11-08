@@ -197,11 +197,19 @@ const embeddingsCheck = (
 			reason: "EMBEDDINGS_NOT_CONFIGURED",
 		};
 	}
-	if (inspection.collectionDimensions === null) {
+	if (inspection.collectionDimensions === "missing") {
 		return {
 			...check,
 			status: "failing",
 			reason: "EMBEDDINGS_COLLECTION_MISSING",
+			detail: inspection.collection,
+		};
+	}
+	if (inspection.collectionDimensions === "incompatible") {
+		return {
+			...check,
+			status: "failing",
+			reason: "EMBEDDINGS_COLLECTION_INCOMPATIBLE",
 			detail: inspection.collection,
 		};
 	}

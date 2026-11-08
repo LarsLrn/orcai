@@ -3860,6 +3860,7 @@
 	"check_reason_dependency_reachable": "Erreichbar.",
 	"check_reason_dependency_timeout": "Hat nicht rechtzeitig geantwortet.",
 	"check_reason_dependency_unreachable": "Nicht erreichbar.",
+	"check_reason_embeddings_collection_incompatible": "Die Qdrant-Collection des Embedding-Modells hat keine Dense-Vektoren, die OrcAI nutzen kann. Löschen Sie die Collection, dann legen die Worker sie innerhalb einer Minute neu an.",
 	"check_reason_embeddings_collection_mismatch": "Die Qdrant-Collection passt nicht zu den Dimensionen des Embedding-Modells.",
 	"check_reason_embeddings_collection_missing": "Die Qdrant-Collection des Embedding-Modells fehlt. Die Worker legen sie innerhalb einer Minute neu an.",
 	"check_reason_embeddings_not_configured": "Die Suche ist nicht verfügbar, bis ein Instanz-Admin die Embeddings einrichtet.",

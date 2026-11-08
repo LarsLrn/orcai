@@ -189,12 +189,25 @@ describe("checkInstance", () => {
 				Effect.succeed({
 					collection: "orcai-chunks-g2-bge-m3-1024",
 					dimensions: 1024,
-					collectionDimensions: null,
+					collectionDimensions: "missing",
 				}),
 			),
 		).toMatchObject({
 			status: "failing",
 			reason: "EMBEDDINGS_COLLECTION_MISSING",
+		});
+		expect(
+			await embeddingsCheck(
+				Effect.succeed({
+					collection: "orcai-chunks-g2-bge-m3-1024",
+					dimensions: 1024,
+					collectionDimensions: "incompatible",
+				}),
+			),
+		).toMatchObject({
+			status: "failing",
+			reason: "EMBEDDINGS_COLLECTION_INCOMPATIBLE",
+			detail: "orcai-chunks-g2-bge-m3-1024",
 		});
 		expect(
 			await embeddingsCheck(
