@@ -17,6 +17,11 @@ export const listAssetPointsResponseSchema = z.object({
 		.optional(),
 });
 
+/** Each search's answer, in the order of the searches. */
+export const searchRepositoriesAssetPointsResponseSchema = z.object({
+	results: z.array(listAssetPointsResponseSchema),
+});
+
 export const browseRepositoryAssetPointsResponseSchema = z.object({
 	data: z.array(retrievedAssetPointSchema),
 	/** Absent on the last page. */

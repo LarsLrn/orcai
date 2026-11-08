@@ -74,3 +74,27 @@ export const requireResourceAccess = (access: ResourcePermission) =>
 		...input,
 		access,
 	}));
+
+/** Requires `access` on every resource of `resourceType` whose id `idsOf` reads from the input. */
+export const requireEntitiesAccess = <Type extends ResourceType, Input>(
+	resourceType: Type,
+	access: ResourcePermission,
+	idsOf: (input: Input) => readonly EntityIdFor<Type>[],
+) =>
+	permissionBase.middleware(
+		middlewareGen(function* requireEntitiesAccess(
+			opts,
+			input: Input & ZedTokenInput,
+		) {
+			yield* requirePermitted(
+				resourceType,
+				idsOf(input),
+				{
+					userId: opts.context.auth.user.id,
+					zedToken: readRevision(opts.context, input),
+				},
+				access,
+			);
+			return yield* opts.next();
+		}),
+	);

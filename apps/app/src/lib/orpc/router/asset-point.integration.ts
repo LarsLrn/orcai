@@ -8,7 +8,12 @@ import {
 	writeGeneration,
 } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
-import type { AssetPoint, assetPointsFiltersSchema } from "@orcai/schema";
+import {
+	type AssetPoint,
+	type assetPointsFiltersSchema,
+	SEARCH_QUERIES_MAX,
+	SEARCH_QUERY_MAX_LENGTH,
+} from "@orcai/schema";
 import { reasonOf } from "@orcai/testing";
 import { serve } from "bun";
 import { eq, sql } from "drizzle-orm";
@@ -98,15 +103,25 @@ const STRONG = 0.8;
 const WEAK = 0.4;
 const UNRELATED = 0.1;
 
-/** A ready repository of assets whose passages lie at these similarities to the query. */
-const repositoryOf = async (passageSimilarities: number[][]) => {
+/**
+ * A ready repository of assets whose passages lie at these similarities to
+ * the query, in `organization`'s organisation and owned by its first actor,
+ * or in a new one.
+ */
+const repositoryOf = async (
+	passageSimilarities: number[][],
+	organization?: Awaited<ReturnType<typeof organizationWith>>,
+) => {
+	const within =
+		organization ??
+		(await organizationWith([
+			"member",
+		]));
 	const {
 		organizationId,
 		actors: [owner],
 		zedToken,
-	} = await organizationWith([
-		"member",
-	]);
+	} = within;
 	const assets = await run(
 		writeRelationships(
 			{
@@ -189,6 +204,35 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 			),
 		);
 
+	/** Searches of this repository, and of `others` the owner cannot read, in one request. */
+	/** Searches in one request, of this repository unless one names another. */
+	const searchMany = async (
+		searches: (z.infer<typeof assetPointsFiltersSchema> & {
+			repositoryId?: BlockId;
+		})[],
+	) =>
+		run(
+			procedures.assetPoint.searchRepositories(
+				{
+					searches: searches.map(
+						({ repositoryId = block.data.id, ...filters }) => ({
+							repositoryId,
+							filters: {
+								queries: [
+									"refund",
+								],
+								retrievalMode: "dense" as const,
+								minScore: 0.5,
+								maxPerAsset: 2,
+								...filters,
+							},
+						}),
+					),
+				},
+				await embeddingThroughEndpoint(owner, block.meta?.zedToken),
+			),
+		);
+
 	const browse = async (index?: EmbeddingIndexScope) =>
 		run(
 			procedures.assetPoint.browseRepository(
@@ -200,10 +244,12 @@ const repositoryOf = async (passageSimilarities: number[][]) => {
 		);
 
 	return {
+		organization: within,
 		assets: assets.result,
 		blockId: block.data.id,
 		indexed,
 		search,
+		searchMany,
 		browse,
 	};
 };
@@ -429,6 +475,222 @@ describe("repository search", () => {
 				[first]: 1,
 				[second]: 1,
 			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("searching several repositories", () => {
+	/** Three repositories of one owner; the last was written last, so its token reads them all. */
+	const siblings = async () => {
+		const first = await repositoryOf([
+			[
+				...passages(3, STRONG),
+				WEAK,
+			],
+			passages(2, STRONG),
+		]);
+		const second = await repositoryOf(
+			[
+				passages(2, STRONG),
+			],
+			first.organization,
+		);
+		const third = await repositoryOf(
+			[
+				[
+					STRONG,
+					WEAK,
+				],
+			],
+			first.organization,
+		);
+		return [
+			first,
+			second,
+			third,
+		] as const;
+	};
+
+	const codeOf = (operation: Promise<unknown>) =>
+		operation.then(
+			() => undefined,
+			(error: { code?: string }) => error.code,
+		);
+
+	test(
+		"embeds the distinct queries of every dense or hybrid search in one request, each search ranked as alone",
+		async () => {
+			const repositories = await siblings();
+			const searches = [
+				{
+					queries: [
+						"refund",
+						"late fee",
+					],
+					retrievalMode: "hybrid" as const,
+				},
+				{
+					queries: [
+						"zebra",
+					],
+					retrievalMode: "sparse" as const,
+				},
+				{
+					queries: [
+						"late fee",
+						"deposit",
+					],
+					retrievalMode: "dense" as const,
+				},
+			];
+			const alone = await Promise.all(
+				searches.map((filters, index) => repositories[index].search(filters)),
+			);
+			const before = embedded.length;
+
+			const { results } = await repositories[2].searchMany(
+				searches.map((filters, index) => ({
+					...filters,
+					repositoryId: repositories[index].blockId,
+				})),
+			);
+
+			expect(embedded.slice(before)).toEqual([
+				`${QUERY_PREFIX}refund`,
+				`${QUERY_PREFIX}late fee`,
+				`${QUERY_PREFIX}deposit`,
+			]);
+			expect(results).toEqual(alone);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"embeds nothing for sparse searches",
+		async () => {
+			const { searchMany } = await repositoryOf([
+				passages(2, STRONG),
+			]);
+			const before = embedded.length;
+
+			await searchMany([
+				{
+					retrievalMode: "sparse",
+				},
+			]);
+
+			expect(embedded.length).toBe(before);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"fails whole when a repository is not readable",
+		async () => {
+			const { searchMany } = await repositoryOf([
+				passages(2, STRONG),
+			]);
+			const other = await repositoryOf([
+				passages(2, STRONG),
+			]);
+
+			expect(
+				await searchMany([
+					{},
+					{
+						repositoryId: other.blockId,
+					},
+				]).then(
+					() => undefined,
+					(error: { _tag?: string }) => error._tag,
+				),
+			).toBe("NotFoundError");
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"refuses a repository searched twice, or more distinct wordings in all than one search takes, before embedding anything",
+		async () => {
+			const [first, , third] = await siblings();
+			const before = embedded.length;
+
+			expect(
+				await codeOf(
+					third.searchMany([
+						{},
+						{
+							repositoryId: third.blockId,
+						},
+					]),
+				),
+			).toBe("BAD_REQUEST");
+			// Each search keeps to its own limit; together they hold one wording too many.
+			expect(
+				await codeOf(
+					third.searchMany([
+						{
+							queries: [
+								"one",
+								"two",
+								"three",
+							],
+						},
+						{
+							repositoryId: first.blockId,
+							queries: [
+								"three",
+								"four",
+								"five",
+								"six",
+							],
+						},
+					]),
+				),
+			).toBe("BAD_REQUEST");
+			expect(embedded.length).toBe(before);
+		},
+		TIMEOUT,
+	);
+});
+
+describe("search limits", () => {
+	test(
+		"refuse more wordings, or longer ones, than a search takes, before embedding anything",
+		async () => {
+			const { search } = await repositoryOf([
+				passages(1, STRONG),
+			]);
+			const codeOf = (operation: Promise<unknown>) =>
+				operation.then(
+					() => undefined,
+					(error: { code?: string }) => error.code,
+				);
+			const before = embedded.length;
+
+			expect(
+				await codeOf(
+					search({
+						queries: Array.from(
+							{
+								length: SEARCH_QUERIES_MAX + 1,
+							},
+							(_, index) => `wording ${index}`,
+						),
+					}),
+				),
+			).toBe("BAD_REQUEST");
+			expect(
+				await codeOf(
+					search({
+						queries: [
+							"x".repeat(SEARCH_QUERY_MAX_LENGTH + 1),
+						],
+					}),
+				),
+			).toBe("BAD_REQUEST");
+			expect(embedded.length).toBe(before);
 		},
 		TIMEOUT,
 	);

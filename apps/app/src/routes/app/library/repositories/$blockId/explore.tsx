@@ -1,5 +1,10 @@
 import type { AssetId } from "@orcai/core";
-import { assetIdSchema, retrievalModeSchema } from "@orcai/schema";
+import {
+	assetIdSchema,
+	retrievalModeSchema,
+	SEARCH_QUERY_MAX_LENGTH,
+	searchQuerySchema,
+} from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { SearchIcon } from "lucide-react";
@@ -29,7 +34,7 @@ import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
 	/** A search query; without one the page browses. */
-	q: z.string().optional().catch(undefined),
+	q: searchQuerySchema.optional().catch(undefined),
 	mode: retrievalModeSchema.optional().catch(undefined),
 	/** One asset of the repository. */
 	asset: assetIdSchema.optional().catch(undefined),
@@ -275,6 +280,7 @@ const SearchForm = ({
 				type="search"
 				value={draft}
 				onChange={(event) => setDraft(event.target.value)}
+				maxLength={SEARCH_QUERY_MAX_LENGTH}
 				aria-label={m.blocks_explore_search_label()}
 				placeholder={m.blocks_explore_search_placeholder()}
 				className="min-w-48 flex-1"

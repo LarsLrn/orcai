@@ -1,4 +1,10 @@
-import { assetIdSchema, blockIdSchema, type Repository } from "@orcai/schema";
+import {
+	assetIdSchema,
+	blockIdSchema,
+	type Repository,
+	SEARCH_QUERIES_MAX,
+	searchQuerySchema,
+} from "@orcai/schema";
 import * as Effect from "effect/Effect";
 import { z } from "zod/v4";
 import { effectTool } from "@/lib/ai/tools/tool-builders";
@@ -35,7 +41,7 @@ const normalizeQueries = ({
 					Boolean(value && value.length >= 2),
 				),
 		),
-	).slice(0, 5);
+	).slice(0, SEARCH_QUERIES_MAX);
 
 const DEFAULT_SEARCH_RESULT_LIMIT = Math.min(
 	6,
@@ -53,8 +59,7 @@ export const searchRepositoriesTool = ({
 		description:
 			"Search the repositories by topic, name, quote or claim, and return the full text of the best matching passages, each with the ref you cite it by. Use it first for any question the repositories may answer; for a page the user names, use getAssetPage, and for the list of assets, listRepositoryAssets. Only ready assets are searchable: the result names repositories with assets still being prepared or that failed, and the answer may be in those, so tell the user.",
 		inputSchema: z.strictObject({
-			query: z
-				.string()
+			query: searchQuerySchema
 				.min(2)
 				.optional()
 				.describe(
@@ -62,12 +67,11 @@ export const searchRepositoriesTool = ({
 				),
 			queryVariants: z
 				.array(
-					z
-						.string()
+					searchQuerySchema
 						.min(2)
 						.describe("Another short wording of the same search."),
 				)
-				.max(4)
+				.max(SEARCH_QUERIES_MAX - 1)
 				.optional()
 				.describe(
 					"Other wordings of the same search, only for synonyms or names the query may miss.",
@@ -114,40 +118,37 @@ export const searchRepositoriesTool = ({
 
 				const [blockResponses, repositories] = yield* Effect.all(
 					[
-						Effect.forEach(
-							targetBlocks,
-							(block) =>
-								procedures.assetPoint
-									.searchRepository(
-										{
-											repositoryId: block.id,
-											filters: {
-												queries: normalizedQueries,
-												limit,
-												recallLimit: Math.max(limit * 6, 24),
-												assetIds,
-												retrievalMode: block.config.retrievalMode ?? "hybrid",
-												minScore: block.config.scoreThreshold,
-												candidateLimit:
-													block.config.candidateLimit ??
-													Math.max(limit * 8, 32),
-												maxPerAsset: block.config.maxPerAsset,
-											},
+						// One request, so every repository is searched on one generation and the queries are embedded once.
+						procedures.assetPoint
+							.searchRepositories(
+								{
+									searches: targetBlocks.map((block) => ({
+										repositoryId: block.id,
+										filters: {
+											queries: normalizedQueries,
+											limit,
+											recallLimit: Math.max(limit * 6, 24),
+											assetIds,
+											retrievalMode: block.config.retrievalMode ?? "hybrid",
+											minScore: block.config.scoreThreshold,
+											candidateLimit:
+												block.config.candidateLimit ?? Math.max(limit * 8, 32),
+											maxPerAsset: block.config.maxPerAsset,
 										},
-										{
-											context,
-										},
-									)
-									.pipe(
-										Effect.map((response) => ({
-											block,
-											response,
-										})),
-									),
-							{
-								concurrency: "unbounded",
-							},
-						),
+									})),
+								},
+								{
+									context,
+								},
+							)
+							.pipe(
+								Effect.map(({ results }) =>
+									targetBlocks.map((block, index) => ({
+										block,
+										response: results[index],
+									})),
+								),
+							),
 						// Only adds notSearchable; a failure must not lose the results.
 						loadReadiness({
 							blocks: targetBlocks,

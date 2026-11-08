@@ -1968,15 +1968,19 @@ describe("turn setup", () => {
 				Effect.succeed({
 					data: [],
 				});
-			answers["assetPoint.searchRepository"] = () =>
+			answers["assetPoint.searchRepositories"] = () =>
 				Effect.succeed({
-					data: [
-						assetPoint({
-							id: "c1",
-							index: 1,
-							text: "Refunds are paid within 14 days.",
-							pageStart: 4,
-						}),
+					results: [
+						{
+							data: [
+								assetPoint({
+									id: "c1",
+									index: 1,
+									text: "Refunds are paid within 14 days.",
+									pageStart: 4,
+								}),
+							],
+						},
 					],
 				});
 			return await conversation(chatRow(), "anthropic");
@@ -2095,7 +2099,7 @@ describe("turn setup", () => {
 			]);
 			expect(
 				procedureCalls.some(
-					({ procedure }) => procedure === "assetPoint.searchRepository",
+					({ procedure }) => procedure === "assetPoint.searchRepositories",
 				),
 			).toBe(false);
 		});
@@ -2205,15 +2209,19 @@ describe("turn setup", () => {
 			const shared = sourceRef("passage", first);
 			expect(sourceRef("passage", second)).toBe(shared);
 			let searches = 0;
-			answers["assetPoint.searchRepository"] = () => {
+			answers["assetPoint.searchRepositories"] = () => {
 				searches += 1;
 				return Effect.succeed({
-					data: [
-						assetPoint({
-							id: searches === 1 ? first : second,
-							index: searches,
-							pageStart: 4,
-						}),
+					results: [
+						{
+							data: [
+								assetPoint({
+									id: searches === 1 ? first : second,
+									index: searches,
+									pageStart: 4,
+								}),
+							],
+						},
 					],
 				});
 			};

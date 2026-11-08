@@ -83,7 +83,7 @@ describe("repository tool errors", () => {
 	});
 
 	test("a failed search keeps the procedure's reason", async () => {
-		answers["assetPoint.searchRepository"] = denied;
+		answers["assetPoint.searchRepositories"] = denied;
 
 		const run = searchRepositoriesTool(deps).execute?.(
 			{
