@@ -1,5 +1,5 @@
-import type { GroupId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema } from "@orcai/db";
+import type { OrganizationId, UserId } from "@orcai/core";
+import { dbSchema } from "@orcai/db";
 import { ALL_MEMBERS_GROUP_SYSTEM_KEY } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
@@ -101,40 +101,4 @@ export const visibleGroupScope = (
 				(organizationId) => !managed.has(organizationId),
 			),
 		});
-	});
-
-/** Whether the caller is an active member of one group. */
-export const isActiveGroupMember = (params: {
-	groupId: GroupId;
-	userId: UserId;
-}) =>
-	Effect.gen(function* () {
-		const db = yield* DB;
-
-		const membership = yield* db.query.groupMember.findFirst({
-			columns: {
-				id: true,
-			},
-			where: {
-				AND: [
-					{
-						groupId: {
-							eq: params.groupId,
-						},
-					},
-					{
-						userId: {
-							eq: params.userId,
-						},
-					},
-					{
-						removedAt: {
-							isNull: true,
-						},
-					},
-				],
-			},
-		});
-
-		return membership != null;
 	});

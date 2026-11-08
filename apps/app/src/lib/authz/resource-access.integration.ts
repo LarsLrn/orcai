@@ -1,9 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { BlockId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
-import type { ResourceGrantRole } from "@orcai/schema";
+import {
+	ALL_MEMBERS_GROUP_SYSTEM_KEY,
+	type ResourceGrantRole,
+} from "@orcai/schema";
 import { rejection } from "@orcai/testing";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { deleteOrganizationsWithAuthorization } from "@/lib/authz/organization-lifecycle";
 import {
@@ -36,7 +39,7 @@ const {
 } = appIntegration();
 
 /** The newest zedToken a write here returned; the lib checks the actor's authority at it. */
-const { observe, token } = caller();
+const { call, observe, token } = caller();
 
 const actorOf = (actor: Actor) => ({
 	kind: "member" as const,
@@ -790,6 +793,275 @@ describe("grant provenance", () => {
 			expect(rejected).toMatchObject({
 				reason: "RESOURCE_SCOPE_REQUIRED",
 			});
+		},
+		TIMEOUT,
+	);
+});
+
+/** The tuple a grant of `role` to `principal` writes. */
+const tupleOf = (principal: GrantPrincipal, role: ResourceGrantRole) =>
+	principal.principalType === "user"
+		? `${role}@user:${principal.principalId}`
+		: `${role}@group:${principal.principalId}#member`;
+
+/** The block's revoked grants as `role@principalId`. */
+const revokedOf = (blockId: BlockId) =>
+	run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			const rows = yield* db
+				.select({
+					role: dbSchema.resourceGrant.role,
+					principalId: dbSchema.resourceGrant.principalId,
+				})
+				.from(dbSchema.resourceGrant)
+				.where(
+					and(
+						eq(dbSchema.resourceGrant.resourceId, blockId),
+						isNotNull(dbSchema.resourceGrant.revokedAt),
+					),
+				);
+			return rows.map((row) => `${row.role}@${row.principalId}`).sort();
+		}),
+	);
+
+/**
+ * A block owned by an admin of an organisation of 40 members, with ten
+ * groups there, one of them joined by the first member and one deleted, its
+ * All Members group, and a user and a group of another organisation.
+ */
+const sharingFixture = async () => {
+	const procedures = await run(Procedures);
+	const home = await ownedBlock(
+		Array.from(
+			{
+				length: 40,
+			},
+			() => "member" as const,
+		),
+	);
+	const createGroup = (actor: Actor, name: string) =>
+		call(actor, (options) =>
+			procedures.group.create(
+				{
+					name,
+					description: null,
+				},
+				options,
+			),
+		).then(
+			({ data }): GrantPrincipal => ({
+				principalType: "group",
+				principalId: data.id,
+			}),
+		);
+	const groups: GrantPrincipal[] = [];
+	for (let index = 0; index < 10; index++)
+		groups.push(await createGroup(home.owner, `Sharing group ${index}`));
+	const [joined, ...notJoined] = groups;
+	const deleted = notJoined.pop() as GrantPrincipal;
+	await call(home.owner, (options) =>
+		procedures.group.addMembers(
+			{
+				groupId: joined.principalId,
+				userIds: [
+					home.others[0].user.id,
+				],
+			},
+			options,
+		),
+	);
+	await call(home.owner, (options) =>
+		procedures.group.delete(
+			{
+				refs: [
+					{
+						id: deleted.principalId,
+					},
+				],
+			},
+			options,
+		),
+	);
+	const [allMembers] = await run(
+		Effect.gen(function* () {
+			const db = yield* DB;
+			return yield* db
+				.insert(dbSchema.group)
+				.values({
+					organizationId: home.organizationId,
+					name: "All Members",
+					kind: "system",
+					systemKey: ALL_MEMBERS_GROUP_SYSTEM_KEY,
+					createdBy: home.owner.user.id,
+				})
+				.returning({
+					id: dbSchema.group.id,
+				});
+		}),
+	);
+	const foreign = await organizationWith([
+		"admin",
+	]);
+	observe(foreign.zedToken);
+	const [foreignAdmin] = foreign.actors;
+	return {
+		...home,
+		members: home.others.map((other) => user(other.user.id)),
+		joined,
+		notJoined,
+		deleted,
+		allMembers: {
+			principalType: "group",
+			principalId: allMembers.id,
+		} as GrantPrincipal,
+		foreignUser: user(foreignAdmin.user.id),
+		foreignGroup: await createGroup(foreignAdmin, "Foreign group"),
+	};
+};
+
+const shareWith = (
+	actor: Actor,
+	blockId: BlockId,
+	principals: readonly GrantPrincipal[],
+	role: ResourceGrantRole,
+) =>
+	run(
+		grantResourceAccess({
+			resource: block(blockId),
+			organizationId: actor.session.activeOrganizationId as OrganizationId,
+			principals,
+			role,
+			actor: actorOf(actor),
+		}),
+	).then((granted) => {
+		observe(granted.zedToken);
+		return granted;
+	});
+
+describe("sharing with many principals", () => {
+	test(
+		"50 principals each get the role, replacing their grants, and every tuple follows",
+		async () => {
+			const { owner, blockId, members, joined, notJoined, allMembers } =
+				await sharingFixture();
+			const replaced = members.slice(0, 10);
+			await shareWith(owner, blockId, replaced, "editor");
+			const principals = [
+				...members,
+				joined,
+				...notJoined,
+				allMembers,
+			];
+			expect(principals).toHaveLength(50);
+			// A request may spell an id in upper case, a replaced grantee's too.
+			const { grants } = await shareWith(
+				owner,
+				blockId,
+				principals.map((principal, index) =>
+					index === 0 || index === 10 || index === 41
+						? ({
+								...principal,
+								principalId: principal.principalId.toUpperCase(),
+							} as GrantPrincipal)
+						: principal,
+				),
+				"viewer",
+			);
+
+			expect(grants.map((granted) => granted.principalId).sort()).toEqual(
+				principals.map((principal) => principal.principalId).sort(),
+			);
+			expect(await accessOf(blockId, members[0].principalId)).toEqual({
+				grants: principals
+					.map((principal) => `viewer@${principal.principalId}`)
+					.sort(),
+				tuples: [
+					`owner@user:${owner.user.id}`,
+					...principals.map((principal) => tupleOf(principal, "viewer")),
+				].sort(),
+			});
+			expect(await revokedOf(blockId)).toEqual(
+				replaced.map((principal) => `editor@${principal.principalId}`).sort(),
+			);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"50 principals with some that may not receive the role are each rejected, and nothing changes",
+		async () => {
+			const {
+				owner,
+				others: [sharer],
+				blockId,
+				members,
+				joined,
+				notJoined,
+				deleted,
+				allMembers,
+				foreignUser,
+				foreignGroup,
+			} = await sharingFixture();
+			const [, ...others] = members;
+			await grant(owner, blockId, user(sharer.user.id), "manager");
+			await shareWith(owner, blockId, others.slice(0, 5), "viewer");
+			const before = await accessOf(blockId, others[4].principalId);
+
+			const refused = [
+				foreignUser,
+				...notJoined,
+				deleted,
+				foreignGroup,
+				allMembers,
+			];
+			const principals = [
+				...others.slice(0, 37),
+				joined,
+			].flatMap((principal, index) =>
+				refused[index] === undefined
+					? [
+							principal,
+						]
+					: [
+							principal,
+							refused[index],
+						],
+			);
+			expect(principals).toHaveLength(50);
+			const rejected = await rejection(
+				shareWith(sharer, blockId, principals, "editor"),
+			);
+
+			expect(rejected).toMatchObject({
+				reason: "GRANT_PRINCIPALS_INVALID",
+				params: {
+					rejections: [
+						{
+							principalId: foreignUser.principalId,
+							reason: "USER_NOT_IN_SCOPE",
+						},
+						...notJoined.map((group) => ({
+							principalId: group.principalId,
+							reason: "GROUP_NOT_JOINED",
+						})),
+						{
+							principalId: deleted.principalId,
+							reason: "GROUP_NOT_IN_SCOPE",
+						},
+						{
+							principalId: foreignGroup.principalId,
+							reason: "GROUP_NOT_IN_SCOPE",
+						},
+						{
+							principalId: allMembers.principalId,
+							reason: "ALL_MEMBERS_VIEWER_ONLY",
+						},
+					],
+				},
+			});
+			expect(await accessOf(blockId, others[4].principalId)).toEqual(before);
+			expect(await revokedOf(blockId)).toEqual([]);
 		},
 		TIMEOUT,
 	);
