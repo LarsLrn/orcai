@@ -67,6 +67,7 @@ export const chatBlock = pgTable(
 				table.chatId,
 			],
 		}),
+		index("chat_block_chat_idx").on(table.chatId, table.blockId),
 	],
 );
 
@@ -128,6 +129,7 @@ export const blockAsset = pgTable(
 				table.assetId,
 			],
 		}),
+		index("block_asset_asset_idx").on(table.assetId, table.blockId),
 		index("block_asset_index_failure_idx")
 			.on(table.indexFailureId)
 			.where(sql`${table.indexFailureId} is not null`),

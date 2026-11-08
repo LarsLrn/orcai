@@ -75,6 +75,7 @@ export const botBlock = pgTable(
 				table.botId,
 			],
 		}),
+		index("bot_block_bot_idx").on(table.botId, table.blockId),
 	],
 );
 
