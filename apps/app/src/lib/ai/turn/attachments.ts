@@ -226,87 +226,93 @@ const buildAttachment = (asset: AttachedAsset) =>
 	);
 
 /**
- * User messages with their attachments as parts the model reads, and the ones
- * whose text was cut marked `truncated`. An attachment the reader can no
+ * Reads the attachments of user messages as parts the model reads, and marks
+ * the ones whose text was cut `truncated`. An attachment the reader can no
  * longer read, or whose asset is gone, becomes a note saying so, as do images
- * past the turn's image budget.
+ * past the turn's image budget. Each call reads messages older than those of
+ * the calls before it, so the image budget goes to the latest attachments and
+ * a file is read once.
  */
-export const withAttachmentParts = (
-	messages: ChatAgentUIMessage[],
-	reader: Reader,
-) =>
-	Effect.gen(function* () {
-		const attachmentsOf = (message: ChatAgentUIMessage) =>
-			message.role === "user" ? (message.attachments ?? []) : [];
-		// Newest first, so the image budget goes to the latest attachments.
-		const assetIds = unique(
-			[
-				...messages,
-			]
-				.reverse()
-				.flatMap((message) =>
-					attachmentsOf(message).map((attachment) => attachment.assetId),
-				),
-		);
-		if (assetIds.length === 0) return messages;
+export const attachmentReader = (reader: Reader) => {
+	const built = new Map<AssetId, BuiltAttachment>();
+	const checked = new Set<AssetId>();
+	let imageBytes = 0;
+	const attachmentsOf = (message: ChatAgentUIMessage) =>
+		message.role === "user" ? (message.attachments ?? []) : [];
 
-		const assets = yield* readableAssets(assetIds, reader);
-		const built = new Map<AssetId, BuiltAttachment>();
-		let imageBytes = 0;
-		const loaded = assetIds
-			.flatMap((assetId) => assets.get(assetId) ?? [])
-			.filter((asset) => {
-				if (!asset.mediaType.startsWith("image/")) return true;
-				imageBytes += asset.size;
-				if (imageBytes <= CHAT_ATTACHMENT_MAX_IMAGE_BYTES) return true;
-				built.set(
-					asset.id,
-					note(
-						`Attachment "${asset.title}" is left out to keep the request small.`,
+	return (messages: ChatAgentUIMessage[]) =>
+		Effect.gen(function* () {
+			// Newest first, so the image budget goes to the latest attachments.
+			const assetIds = unique(
+				[
+					...messages,
+				]
+					.reverse()
+					.flatMap((message) =>
+						attachmentsOf(message).map((attachment) => attachment.assetId),
 					),
-				);
-				return false;
-			});
-		yield* Effect.forEach(
-			loaded,
-			(asset) =>
-				buildAttachment(asset).pipe(
-					Effect.tap((attachment) =>
-						Effect.sync(() => built.set(asset.id, attachment)),
-					),
-				),
-			{
-				concurrency: 3,
-				discard: true,
-			},
-		);
-
-		return messages.map((message): ChatAgentUIMessage => {
-			const attachments = attachmentsOf(message);
-			return attachments.length === 0
-				? message
-				: {
-						...message,
-						attachments: attachments.map((attachment) =>
-							built.get(attachment.assetId)?.truncated
-								? {
-										...attachment,
-										truncated: true,
-									}
-								: attachment,
-						),
-						parts: [
-							...message.parts,
-							...attachments.flatMap(
-								(attachment) =>
-									(
-										built.get(attachment.assetId) ??
-										note(
-											`Attachment "${attachment.title}" is no longer available.`,
-										)
-									).parts,
+			).filter((assetId) => !checked.has(assetId));
+			if (assetIds.length > 0) {
+				const assets = yield* readableAssets(assetIds, reader);
+				for (const assetId of assetIds) {
+					checked.add(assetId);
+				}
+				const loaded = assetIds
+					.flatMap((assetId) => assets.get(assetId) ?? [])
+					.filter((asset) => {
+						if (!asset.mediaType.startsWith("image/")) return true;
+						imageBytes += asset.size;
+						if (imageBytes <= CHAT_ATTACHMENT_MAX_IMAGE_BYTES) return true;
+						built.set(
+							asset.id,
+							note(
+								`Attachment "${asset.title}" is left out to keep the request small.`,
 							),
-						],
-					};
+						);
+						return false;
+					});
+				yield* Effect.forEach(
+					loaded,
+					(asset) =>
+						buildAttachment(asset).pipe(
+							Effect.tap((attachment) =>
+								Effect.sync(() => built.set(asset.id, attachment)),
+							),
+						),
+					{
+						concurrency: 3,
+						discard: true,
+					},
+				);
+			}
+
+			return messages.map((message): ChatAgentUIMessage => {
+				const attachments = attachmentsOf(message);
+				return attachments.length === 0
+					? message
+					: {
+							...message,
+							attachments: attachments.map((attachment) =>
+								built.get(attachment.assetId)?.truncated
+									? {
+											...attachment,
+											truncated: true,
+										}
+									: attachment,
+							),
+							parts: [
+								...message.parts,
+								...attachments.flatMap(
+									(attachment) =>
+										(
+											built.get(attachment.assetId) ??
+											note(
+												`Attachment "${attachment.title}" is no longer available.`,
+											)
+										).parts,
+								),
+							],
+						};
+			});
 		});
-	});
+};

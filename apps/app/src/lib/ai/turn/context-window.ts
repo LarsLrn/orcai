@@ -15,6 +15,7 @@ import {
 	type ToolSet,
 	type UIMessage,
 } from "ai";
+import * as Effect from "effect/Effect";
 
 /** What a model without a recorded context window is assumed to hold. */
 export const DEFAULT_CONTEXT_WINDOW = 128_000;
@@ -226,32 +227,17 @@ const fromCompaction = <M extends UIMessage<ChatMessageMetadata>>(
 };
 
 /**
- * Decides a turn's prompt. It starts at the latest compaction the turn reads.
- * Once it reaches the compaction trigger without native compaction, all but
- * its latest turn are handed to our own summary. Beyond the budget it leaves
- * out the oldest whole turns, down to three quarters of it; the latest turn
- * stays. Sizes are char estimates, calibrated by the context tokens the
- * latest reply after the compaction recorded, so the history it covers counts
- * what the provider counted.
+ * The prompt from the latest compaction the turn reads, cut into turns. Sizes
+ * are char estimates, calibrated by the context tokens the latest reply after
+ * the compaction recorded, so the history it covers counts what the provider
+ * counted.
  */
-export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
-	messages,
-	replyId,
-	requestTokens,
-	budget,
-	compaction,
-}: {
-	messages: M[];
-	/** The reply the prompt is for, left out of the estimate when it continues. */
-	replyId: string;
-	requestTokens: number;
-	/** See `promptBudget`. */
-	budget: number;
+const promptTurns = <M extends UIMessage<ChatMessageMetadata>>(
+	messages: M[],
 	compaction: {
-		native: boolean;
 		reads: (source: CompactionSource) => boolean;
-	};
-}): ContextFit<M> => {
+	},
+) => {
 	const { prompt, anchorsFrom, summarized, before } = fromCompaction(
 		messages,
 		compaction.reads,
@@ -298,6 +284,170 @@ export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
 			cost: indices.reduce((sum, index) => sum + cost(index), 0),
 		};
 	});
+	return {
+		prompt,
+		summarized,
+		sizes,
+		cost,
+		requestScale,
+		turns,
+	};
+};
+
+/**
+ * Where the messages `fitContextWindow` depends on start. Once the newest
+ * turns besides the latest take more than the budget, the older ones are left
+ * out and summarized by no one, whatever they hold. Reading a file only adds
+ * parts, so the messages before this index may go to the fit with their
+ * files unread.
+ */
+const fitReadsFrom = <
+	M extends UIMessage<ChatMessageMetadata> & {
+		attachments?: readonly unknown[];
+	},
+>({
+	messages,
+	readFrom,
+	budget,
+	compaction,
+}: {
+	messages: M[];
+	/** Where the messages whose files were read start. */
+	readFrom: number;
+	/** See `promptBudget`. */
+	budget: number;
+	compaction: {
+		reads: (source: CompactionSource) => boolean;
+	};
+}) => {
+	// A read file adds at least one part, so an unread one counts as an empty part.
+	const sized = messages.map((message, index) =>
+		index >= readFrom ||
+		message.role !== "user" ||
+		(message.attachments?.length ?? 0) === 0
+			? message
+			: {
+					...message,
+					parts: [
+						...message.parts,
+						...(message.attachments ?? []).map(() => ({
+							type: "text" as const,
+							text: "",
+						})),
+					],
+				},
+	);
+	const { prompt, turns } = promptTurns(sized, compaction);
+	const positions = new Map(
+		messages.map(({ id }, position) => [
+			id,
+			position,
+		]),
+	);
+	// Our own summary's message is new; the reply it comes from holds no attachments.
+	const firstOf = (indices: number[]) =>
+		Math.min(
+			...indices.flatMap((index) => positions.get(prompt[index].id) ?? []),
+		);
+	let taken = 0;
+	for (const turn of turns.slice(0, -1).reverse()) {
+		taken += turn.cost;
+		const first = firstOf(turn.indices);
+		if (taken > budget && Number.isFinite(first)) {
+			return first;
+		}
+	}
+	return Math.min(firstOf(prompt.map((_, index) => index)), messages.length);
+};
+
+/** How many files a turn reads first; each batch after reads twice as many. */
+const FIRST_READ_BATCH = 6;
+
+/**
+ * The messages with the files of every turn the fit may send or summarize
+ * read by `read`, newest first in growing batches, until the turns read take
+ * more than the fit can keep. `read` gets each batch before the older ones,
+ * and a chat that fits whole takes few rounds.
+ */
+export const readForFit = <
+	M extends UIMessage<ChatMessageMetadata> & {
+		attachments?: readonly unknown[];
+	},
+	E,
+	R,
+>({
+	messages,
+	budget,
+	compaction,
+	read,
+}: {
+	messages: M[];
+	/** See `promptBudget`. */
+	budget: number;
+	compaction: {
+		reads: (source: CompactionSource) => boolean;
+	};
+	read: (messages: M[]) => Effect.Effect<M[], E, R>;
+}) =>
+	Effect.gen(function* () {
+		let prompt = messages;
+		let from = messages.length;
+		let batch = FIRST_READ_BATCH;
+		while (true) {
+			const needed = fitReadsFrom({
+				messages: prompt,
+				readFrom: from,
+				budget,
+				compaction,
+			});
+			if (needed >= from) {
+				return prompt;
+			}
+			let start = from;
+			let files = 0;
+			while (start > needed && files < batch) {
+				start -= 1;
+				files += prompt[start].attachments?.length ?? 0;
+			}
+			prompt = [
+				...prompt.slice(0, start),
+				...(yield* read(prompt.slice(start, from))),
+				...prompt.slice(from),
+			];
+			from = start;
+			batch *= 2;
+		}
+	});
+
+/**
+ * Decides a turn's prompt. It starts at the latest compaction the turn reads.
+ * Once it reaches the compaction trigger without native compaction, all but
+ * its latest turn are handed to our own summary. Beyond the budget it leaves
+ * out the oldest whole turns, down to three quarters of it; the latest turn
+ * stays. Sizes are those of `promptTurns`.
+ */
+export const fitContextWindow = <M extends UIMessage<ChatMessageMetadata>>({
+	messages,
+	replyId,
+	requestTokens,
+	budget,
+	compaction,
+}: {
+	messages: M[];
+	/** The reply the prompt is for, left out of the estimate when it continues. */
+	replyId: string;
+	requestTokens: number;
+	/** See `promptBudget`. */
+	budget: number;
+	compaction: {
+		native: boolean;
+		reads: (source: CompactionSource) => boolean;
+	};
+}): ContextFit<M> => {
+	const { prompt, summarized, sizes, cost, requestScale, turns } = promptTurns(
+		messages,
+		compaction,
+	);
 
 	const full =
 		requestTokens * requestScale +

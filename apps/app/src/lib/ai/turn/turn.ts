@@ -64,8 +64,8 @@ import {
 	isContinuationClaimLive,
 	withoutContinuationClaim,
 } from "./apply-turn-decisions";
-import { attachAssets, withAttachmentParts } from "./attachments";
-import { fitContextWindow, requestTokens } from "./context-window";
+import { attachAssets, attachmentReader } from "./attachments";
+import { fitContextWindow, readForFit, requestTokens } from "./context-window";
 import {
 	isEmptyReply,
 	type ReplyContent,
@@ -704,7 +704,12 @@ export const startTurn = (
 			),
 		);
 
-		const prompt = yield* withAttachmentParts(messages, reader);
+		const prompt = yield* readForFit({
+			messages,
+			budget: setup.budget,
+			compaction: setup.compaction,
+			read: attachmentReader(reader),
+		});
 		// What the model read of the question's files is stored with it.
 		const storedQuestion = {
 			...question,
@@ -890,9 +895,14 @@ export const continueTurn = (
 				const messages = yield* Effect.promise(() =>
 					closeInvalidToolParts(history, agent.tools),
 				);
-				const prompt = yield* withAttachmentParts(messages, {
-					userId: input.user.id,
-					zedToken: readRevision(input.context, input),
+				const prompt = yield* readForFit({
+					messages,
+					budget: setup.budget,
+					compaction: setup.compaction,
+					read: attachmentReader({
+						userId: input.user.id,
+						zedToken: readRevision(input.context, input),
+					}),
 				});
 				const fit = yield* fitPrompt({
 					setup,
