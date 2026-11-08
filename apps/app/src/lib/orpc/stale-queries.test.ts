@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type {
+	AssetId,
+	BlockId,
 	BotId,
 	ChatId,
 	GroupId,
@@ -7,6 +9,7 @@ import type {
 	OrganizationId,
 	UserId,
 } from "@orcai/core";
+import type { ResourceIdentity } from "@orcai/schema";
 import { createORPCClient } from "@orpc/client";
 import type { RouterClient } from "@orpc/server";
 import {
@@ -16,11 +19,17 @@ import {
 import {
 	MutationObserver,
 	type MutationObserverOptions,
+	onlineManager,
 	QueryClient,
 	type QueryKey,
+	QueryObserver,
 } from "@tanstack/react-query";
 import type { router } from "./router";
-import { invalidateStaleQueries, staleQueriesOfWrites } from "./stale-queries";
+import {
+	invalidateQuery,
+	invalidateStaleQueries,
+	staleQueriesOfWrites,
+} from "./stale-queries";
 
 type AppClient = RouterClient<typeof router>;
 
@@ -38,7 +47,10 @@ const mutateUnread = <Data, Failure, Variables, Context>(
 		options,
 	).mutate({} as Variables);
 
-const setup = (call: () => Promise<unknown> = () => Promise.resolve({})) => {
+const setup = (
+	call: (path: readonly string[]) => Promise<unknown> = () =>
+		Promise.resolve({}),
+) => {
 	const client = createORPCClient<AppClient>({
 		call,
 	});
@@ -47,7 +59,13 @@ const setup = (call: () => Promise<unknown> = () => Promise.resolve({})) => {
 			invalidateStaleQueries(() => orpc),
 		],
 	});
-	const queryClient = new QueryClient();
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				staleTime: 60_000,
+			},
+		},
+	});
 
 	return {
 		orpc,
@@ -295,6 +313,96 @@ describe("invalidateStaleQueries", () => {
 		}
 	});
 
+	test("a grant or revoke makes the resource's page stale, not other resources' pages", async () => {
+		const { orpc, queryClient, cached } = setup();
+		const botId = "bot-1" as BotId;
+		const blockId = "block-1" as BlockId;
+		const assetId = "asset-1" as AssetId;
+		const group = {
+			principalType: "group",
+			principalId: groupA,
+		} as const;
+		const changes = [
+			(resource: ResourceIdentity) =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.grant.mutationOptions(),
+				).mutate({
+					...resource,
+					principals: [
+						group,
+					],
+					role: "viewer",
+				}),
+			(resource: ResourceIdentity) =>
+				new MutationObserver(
+					queryClient,
+					orpc.resource.revoke.mutationOptions(),
+				).mutate({
+					...resource,
+					...group,
+				}),
+		];
+
+		for (const change of changes) {
+			for (const resource of [
+				{
+					resourceType: "bot",
+					resourceId: botId,
+				},
+				{
+					resourceType: "block",
+					resourceId: blockId,
+				},
+				{
+					resourceType: "asset",
+					resourceId: assetId,
+				},
+			] as const) {
+				const bot = cached(
+					orpc.bot.find.queryKey({
+						input: {
+							id: botId,
+						},
+					}),
+				);
+				const otherBot = cached(
+					orpc.bot.find.queryKey({
+						input: {
+							id: "bot-2" as BotId,
+						},
+					}),
+				);
+				const block = cached(
+					orpc.block.find.queryKey({
+						input: {
+							id: blockId,
+						},
+					}),
+				);
+				const asset = cached(
+					orpc.asset.find.queryKey({
+						input: {
+							id: assetId,
+						},
+					}),
+				);
+				await change(resource);
+				expect({
+					bot: bot(),
+					otherBot: otherBot(),
+					block: block(),
+					asset: asset(),
+				}).toEqual({
+					bot: resource.resourceType === "bot",
+					otherBot: false,
+					block: resource.resourceType === "block",
+					asset: resource.resourceType === "asset",
+				});
+			}
+		}
+	});
+
 	test("an instance invitation makes both readiness views stale", async () => {
 		const { orpc, queryClient, cached } = setup();
 		const organizationId = "organization-1" as OrganizationId;
@@ -457,6 +565,132 @@ describe("invalidateStaleQueries", () => {
 			.catch(() => undefined);
 
 		expect(members()).toBe(false);
+	});
+});
+
+describe("invalidateQuery", () => {
+	/** A bot whose first read waits for `answerFirst`; later reads answer `read <n>`. */
+	const botReads = () => {
+		const first = Promise.withResolvers<unknown>();
+		let reads = 0;
+		const { orpc, queryClient } = setup((path) => {
+			if (path.join(".") !== "bot.find") {
+				return Promise.resolve({});
+			}
+			reads += 1;
+
+			return reads === 1 ? first.promise : Promise.resolve(`read ${reads}`);
+		});
+		const bot = orpc.bot.find.queryOptions({
+			input: {
+				id: "bot-1" as BotId,
+			},
+		});
+		const query = () =>
+			queryClient.getQueryCache().find({
+				queryKey: bot.queryKey,
+			});
+
+		return {
+			queryClient,
+			queryKey: bot.queryKey,
+			data: () => query()?.state.data,
+			fetchStatus: () => query()?.state.fetchStatus,
+			show: () =>
+				new QueryObserver(queryClient, bot).subscribe(() => undefined),
+			loadFirstRead: () => queryClient.ensureQueryData(bot),
+			answerFirst: first.resolve,
+			reads: () => reads,
+		};
+	};
+
+	/** Waits for later tasks, such as a read's follow-up, to run. */
+	const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+	test("a shown first read still loading when the change lands is read again once it settles", async () => {
+		const bot = botReads();
+		const unsubscribe = bot.show();
+
+		const invalidated = invalidateQuery(bot.queryClient, bot.queryKey);
+		bot.answerFirst("before the change");
+		await invalidated;
+		await settle();
+		unsubscribe();
+
+		expect(bot.data()).toBe("read 2");
+	});
+
+	test("a loader's first read still loading when the change lands is read again on mount", async () => {
+		const bot = botReads();
+		const loaded: Promise<unknown> = bot.loadFirstRead();
+
+		await invalidateQuery(bot.queryClient, bot.queryKey);
+		bot.answerFirst("before the change");
+		expect(await loaded).toBe("before the change");
+		await settle();
+		const unsubscribe = bot.show();
+		await settle();
+		unsubscribe();
+
+		expect(bot.data()).toBe("read 2");
+	});
+
+	test("a paused first read does not hold the caller and is read again once it resumes", async () => {
+		const bot = botReads();
+		bot.queryClient.mount();
+		onlineManager.setOnline(false);
+		try {
+			const unsubscribe = bot.show();
+
+			await invalidateQuery(bot.queryClient, bot.queryKey);
+			expect(bot.fetchStatus()).toBe("paused");
+
+			onlineManager.setOnline(true);
+			bot.answerFirst("before the change");
+			await settle();
+			unsubscribe();
+		} finally {
+			onlineManager.setOnline(true);
+			bot.queryClient.unmount();
+		}
+
+		expect(bot.data()).toBe("read 2");
+	});
+
+	test("callers holding the first read get its answer, not an error", async () => {
+		const bot = botReads();
+		const unsubscribe = bot.show();
+		const joined: Promise<unknown> = bot.loadFirstRead();
+		const captured = bot.queryClient.getQueryCache().find({
+			queryKey: bot.queryKey,
+		})?.promise;
+
+		const invalidated = invalidateQuery(bot.queryClient, bot.queryKey);
+		bot.answerFirst("before the change");
+		await invalidated;
+		await settle();
+		unsubscribe();
+
+		expect(await joined).toBe("before the change");
+		expect(await captured).toBe("before the change");
+	});
+
+	test("a query with data is read once more", async () => {
+		const bot = botReads();
+		const unsubscribe = bot.show();
+		bot.answerFirst("first");
+		await bot.loadFirstRead();
+
+		await invalidateQuery(bot.queryClient, bot.queryKey);
+		unsubscribe();
+
+		expect([
+			bot.data(),
+			bot.reads(),
+		]).toEqual([
+			"read 2",
+			2,
+		]);
 	});
 });
 

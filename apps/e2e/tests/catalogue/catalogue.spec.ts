@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { APIResponse, Page } from "@playwright/test";
 import { uploadAsset } from "../../fixtures/assets";
 import { untilAllowed } from "../../fixtures/authorization";
 import {
@@ -30,6 +30,49 @@ const stepHeading = (
 			step: message(stepKey),
 		}),
 	});
+
+/** Holds the page's requests matching `url` until the returned release is called. */
+const hold = async (page: Page, url: string) => {
+	let release!: () => void;
+	const held = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route(url, async (route) => {
+		await held;
+		await route.continue();
+	});
+	return release;
+};
+
+/** Lets the next matching request reach the server and holds its answer until released. */
+const holdAnswer = async (page: Page, url: string) => {
+	let release!: () => void;
+	const held = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	let answer!: (response: APIResponse) => void;
+	const answered = new Promise<APIResponse>((resolve) => {
+		answer = resolve;
+	});
+	await page.route(
+		url,
+		async (route) => {
+			const response = await route.fetch();
+			answer(response);
+			await held;
+			await route.fulfill({
+				response,
+			});
+		},
+		{
+			times: 1,
+		},
+	);
+	return {
+		answered,
+		release,
+	};
+};
 
 /** The `api` fixture acting in another of the worker's organisations. */
 const apiIn = (api: Api, organisation: WorkerOrganisation): Api => ({
@@ -137,6 +180,8 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 		new RegExp(`/app/catalogue/bots/${bot.id}/add\\?from=`),
 	);
 	await page.reload();
+	// The grant may still be saving when Done shows; Start chat follows it.
+	const releaseGrant = await hold(page, "**/api/rpc/resource/grant");
 	await page
 		.getByText(message("access_principal_picker_system_badge"), {
 			exact: true,
@@ -153,17 +198,7 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 		}),
 	).toBeDisabled();
 	// Finish waits for the model form; each step takes focus from the keyboard.
-	const release: (() => void)[] = [];
-	const setupHeld = new Promise<void>((resolve) => {
-		release.push(resolve);
-	});
-	const releaseSetup = () => {
-		for (const resolve of release) resolve();
-	};
-	await page.route("**/api/rpc/botSetup/find**", async (route) => {
-		await setupHeld;
-		await route.continue();
-	});
+	const releaseSetup = await hold(page, "**/api/rpc/botSetup/find**");
 	await page
 		.getByRole("button", {
 			name: message("common_next_button"),
@@ -186,6 +221,7 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 		page.getByText(message("bot_setup_authors_pick_preselected")),
 	).toBeVisible();
 	await expect(finish).toBeEnabled();
+	const firstRead = await holdAnswer(page, "**/api/rpc/bot/find");
 	await finish.press("Enter");
 	await expect(
 		stepHeading(page, 3, 3, "catalogue_wizard_step_done"),
@@ -198,6 +234,13 @@ test("catalogue: a listed bot is added to another organisation, chats there on i
 			}),
 		}),
 	).toBeVisible();
+	// Done reads the bot before the grant lands and gets its answer after.
+	const before = await (await firstRead.answered).json();
+	expect(before.json.data.capabilities.use).toBe(false);
+	const granted = page.waitForResponse("**/api/rpc/resource/grant");
+	releaseGrant();
+	await granted;
+	firstRead.release();
 	await expect(
 		page.getByRole("link", {
 			name: message("bots_detail_start_chat_action"),

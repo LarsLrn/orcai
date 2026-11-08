@@ -2,7 +2,7 @@ import type { TurnWrite } from "@orcai/schema";
 import type { InferClientInputs, InferClientOutputs } from "@orpc/client";
 import type { RouterClient } from "@orpc/server";
 import type { RouterUtils, RouterUtilsOptions } from "@orpc/tanstack-query";
-import type { QueryKey } from "@tanstack/react-query";
+import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import type { router } from "./router";
 
 type AppClient = RouterClient<typeof router>;
@@ -27,16 +27,38 @@ type MutationInterceptor = NonNullable<
 const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	// A chat turns read-only or writable with access to its bot and organisation.
 	const readOnlyChats = orpc.chat.find.key();
-	const resourceAccess = ({
-		resourceType,
-		resourceId,
-	}: Inputs["resource"]["listGrants"]) => {
+	// Its page offers what the user's capabilities on it allow.
+	const resourcePage = (resource: Inputs["resource"]["listGrants"]) => {
+		switch (resource.resourceType) {
+			case "bot":
+				return orpc.bot.find.key({
+					input: {
+						id: resource.resourceId,
+					},
+				});
+			case "block":
+				return orpc.block.find.key({
+					input: {
+						id: resource.resourceId,
+					},
+				});
+			case "asset":
+				return orpc.asset.find.key({
+					input: {
+						id: resource.resourceId,
+					},
+				});
+		}
+	};
+	const resourceAccess = (resource: Inputs["resource"]["listGrants"]) => {
+		const { resourceType, resourceId } = resource;
 		const input = {
 			resourceType,
 			resourceId,
 		};
 
 		return [
+			resourcePage(resource),
 			orpc.resource.listGrants.key({
 				input,
 			}),
@@ -573,6 +595,34 @@ const staleKeysOf = (
 	)[namespace]?.[procedure];
 
 /**
+ * Marks a query stale and reads it again wherever it is shown. A first read
+ * still loading may predate the change and would clear the mark when it
+ * lands, so its key is marked again once it settles, without waiting for it.
+ */
+export const invalidateQuery = (client: QueryClient, queryKey: QueryKey) => {
+	const firstReads = client.getQueryCache().findAll({
+		queryKey,
+		predicate: (query) =>
+			query.state.fetchStatus !== "idle" && query.state.data === undefined,
+	});
+
+	for (const query of firstReads) {
+		void query.promise
+			?.catch(() => undefined)
+			.then(() =>
+				client.invalidateQueries({
+					queryKey: query.queryKey,
+					exact: true,
+				}),
+			);
+	}
+
+	return client.invalidateQueries({
+		queryKey,
+	});
+};
+
+/**
  * Invalidates what a mutation made stale once it succeeds, before its
  * `onSuccess` runs; call sites cannot override it. Active queries refetch in
  * the background, since a deleted entity's own query would hold the mutation
@@ -589,9 +639,7 @@ export const invalidateStaleQueries = (
 
 		for (const queryKey of staleKeysOf(staleQueries, path)?.(input, output) ??
 			[]) {
-			void fnContext.client.invalidateQueries({
-				queryKey,
-			});
+			void invalidateQuery(fnContext.client, queryKey);
 		}
 
 		return output;
