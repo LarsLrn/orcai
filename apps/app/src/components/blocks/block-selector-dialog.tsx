@@ -1,5 +1,5 @@
 import type { BlockId } from "@orcai/core";
-import type { Block, BlockType } from "@orcai/schema";
+import type { BlockListItem, BlockType } from "@orcai/schema";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpenIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -64,7 +64,7 @@ const BlockSelectorDialog = ({
 	selectedIds?: BlockId[];
 	disabledIds?: BlockId[];
 	includeDrafts?: boolean;
-	onSelect: (block: Block) => void | Promise<void>;
+	onSelect: (block: BlockListItem) => void | Promise<void>;
 	title?: string;
 	description?: string;
 	emptyText?: string;

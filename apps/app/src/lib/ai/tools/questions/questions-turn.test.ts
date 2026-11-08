@@ -21,17 +21,18 @@ const botId = crypto.randomUUID() as BotId;
 
 /** A bot with these features, and the behaviour every bot has. */
 const answerBot = (features: Record<string, unknown>) => {
-	answers["block.list"] = () =>
+	answers["bot.findContents"] = () =>
 		Effect.succeed({
-			data: [
-				{
+			data: {
+				behaviour: {
 					id: crypto.randomUUID(),
 					type: "behaviour",
 					config: {
 						systemPrompt: "You are the bot.",
 					},
 				},
-			],
+				repositories: [],
+			},
 		});
 	answers["bot.find"] = () =>
 		Effect.succeed({

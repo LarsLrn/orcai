@@ -100,9 +100,17 @@ const blockBaseSchema = blockFieldsSchema.extend({
 	updatedAt: z.coerce.date().nullable(),
 });
 
+export const behaviourBlockSchema = blockBaseSchema.extend(
+	behaviourSchema.shape,
+);
+
+export const repositoryBlockSchema = blockBaseSchema.extend(
+	repositorySchema.shape,
+);
+
 export const blockSchema = z.discriminatedUnion("type", [
-	blockBaseSchema.extend(behaviourSchema.shape),
-	blockBaseSchema.extend(repositorySchema.shape),
+	behaviourBlockSchema,
+	repositoryBlockSchema,
 ]);
 
 export const blockWithCapabilitiesSchema = z.intersection(

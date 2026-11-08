@@ -1,17 +1,7 @@
 import { DB, dbSchema, ownerColumns } from "@orcai/db";
 import { repositoryTotals } from "@orcai/preparation";
-import type { Block, ListBlocksInput, ResourceOwner } from "@orcai/schema";
-import {
-	and,
-	asc,
-	count,
-	desc,
-	eq,
-	getColumns,
-	ilike,
-	inArray,
-	sql,
-} from "drizzle-orm";
+import type { ListBlocksInput } from "@orcai/schema";
+import { and, asc, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { emptyCapabilities } from "@/lib/authz/capabilities";
 import { readableIds } from "@/lib/authz/content-access";
@@ -36,7 +26,12 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 	Effect.gen(function* () {
 		const select = (yield* DB)
 			.select({
-				...getColumns(dbSchema.block),
+				id: dbSchema.block.id,
+				type: dbSchema.block.type,
+				name: dbSchema.block.name,
+				description: dbSchema.block.description,
+				status: dbSchema.block.status,
+				createdAt: dbSchema.block.createdAt,
 				owner: ownerColumns,
 			})
 			.from(dbSchema.block)
@@ -44,11 +39,9 @@ export const blockTiles = (reader: Reader, query: TileQuery) =>
 			.where(query.where)
 			.orderBy(...(query.orderBy ?? []))
 			.$dynamic();
-		const blocks = (yield* query.page
+		const blocks = yield* query.page
 			? select.limit(query.page.limit).offset(query.page.offset)
-			: select) as (Block & {
-			owner: ResourceOwner;
-		})[];
+			: select;
 
 		const ids = blocks.map((block) => block.id);
 		const [capabilities, totals, homes] = yield* Effect.all(

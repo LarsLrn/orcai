@@ -42,23 +42,34 @@ const botWithCapabilitiesSchema = botSchema.extend({
 	isFavourite: z.boolean(),
 });
 
-/** A bot as library lists return it: with what its tile shows. */
-export const botListItemSchema = botWithCapabilitiesSchema.extend({
-	owner: resourceOwnerSchema,
-	/** Set when the active organisation added the bot from the catalogue. */
-	homeOrganization: homeOrganizationSchema.nullable(),
-	contents: z.object({
-		behaviour: z.boolean(),
-		repositories: z.number().int(),
-	}),
-	/** The model the active organisation's setup asks for, if any. */
-	modelHint: z
-		.object({
-			strength: botSetupStrengthSchema,
-			modelName: z.string(),
-		})
-		.nullable(),
-});
+/** A bot as library lists return it: what its tile shows, without its content. */
+export const botListItemSchema = botWithCapabilitiesSchema
+	.pick({
+		id: true,
+		name: true,
+		description: true,
+		status: true,
+		features: true,
+		createdAt: true,
+		capabilities: true,
+		isFavourite: true,
+	})
+	.extend({
+		owner: resourceOwnerSchema,
+		/** Set when the active organisation added the bot from the catalogue. */
+		homeOrganization: homeOrganizationSchema.nullable(),
+		contents: z.object({
+			behaviour: z.boolean(),
+			repositories: z.number().int(),
+		}),
+		/** The model the active organisation's setup asks for, if any. */
+		modelHint: z
+			.object({
+				strength: botSetupStrengthSchema,
+				modelName: z.string(),
+			})
+			.nullable(),
+	});
 
 export const botWithBlocksSchema = botSchema.extend({
 	blockIds: z.array(blockIdSchema),
@@ -102,6 +113,5 @@ export const botEditorSchema = z.object({
 });
 
 export type Bot = z.infer<typeof botSchema>;
-export type BotWithCapabilities = z.infer<typeof botWithCapabilitiesSchema>;
 export type BotListItem = z.infer<typeof botListItemSchema>;
 export type BotEditor = z.infer<typeof botEditorSchema>;
