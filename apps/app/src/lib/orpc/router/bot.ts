@@ -1,6 +1,6 @@
 import type { BotId } from "@orcai/core";
 import { DB, dbSchema, ownerColumns } from "@orcai/db";
-import { type Block, type Bot, isBehaviour, isRepository } from "@orcai/schema";
+import { type Block, isBehaviour, isRepository } from "@orcai/schema";
 import { and, desc, eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { requirePermitted } from "@/lib/authz/content-access";
@@ -101,7 +101,6 @@ const findBot = authed.bot.find
 		return {
 			data: {
 				...bot,
-				contentJson: bot.contentJson as Bot["contentJson"],
 				blockIds: blockIds.map((b) => b.blockId),
 				capabilities,
 				homeOrganization: homes(bot.id),

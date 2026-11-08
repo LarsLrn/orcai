@@ -40,6 +40,7 @@ import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import { assetObjectKey } from "@orcai/s3";
 import { S3Live, sendPutObjectCommand } from "@orcai/s3/server";
 import {
+	defaultRepositoryConfig,
 	type PipelineFailure,
 	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
@@ -266,7 +267,7 @@ const seed = (
 				.values({
 					type: "repository",
 					name: "Reconciled repository",
-					config: {},
+					config: defaultRepositoryConfig,
 					userId: user.id,
 				})
 				.returning();
@@ -980,7 +981,7 @@ const linkAgain = (link: Link): Promise<Link> =>
 				.values({
 					type: "repository",
 					name: "Second repository",
-					config: {},
+					config: defaultRepositoryConfig,
 					userId: user.id,
 				})
 				.returning();

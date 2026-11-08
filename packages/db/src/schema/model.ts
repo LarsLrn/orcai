@@ -1,8 +1,9 @@
-import type {
-	ModelId,
-	OrganizationId,
-	ProviderId,
-	ProviderKind,
+import {
+	type ModelId,
+	type OrganizationId,
+	type ProviderId,
+	type ProviderKind,
+	providerMeteringModes,
 } from "@orcai/core";
 import type { ModelCapability } from "@orcai/schema";
 import { sql } from "drizzle-orm";
@@ -22,10 +23,10 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization } from "./organization";
 
-export const providerMeteringModeEnum = pgEnum("provider_metering_mode", [
-	"tokens",
-	"requests",
-]);
+export const providerMeteringModeEnum = pgEnum(
+	"provider_metering_mode",
+	providerMeteringModes,
+);
 
 const price = (name: string) =>
 	numeric(name, {

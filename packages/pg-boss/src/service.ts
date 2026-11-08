@@ -34,13 +34,13 @@ const pgBossServiceLayer = (options: {
 
 				const { config } = yield* DbConfigService;
 
-				const url = makePgConnectionString(config.postgres);
+				const url = makePgConnectionString(config);
 
 				const boss = yield* Effect.tryPromise({
 					try: async () => {
 						const boss = new PgBoss({
 							connectionString: Redacted.value(url),
-							max: config.postgres.poolMax,
+							max: config.poolMax,
 							instanceName: options.instanceName,
 							schema: SCHEMA,
 							// Jobs carry the trace context only, never baggage.

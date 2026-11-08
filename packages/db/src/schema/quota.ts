@@ -12,6 +12,11 @@ import type {
 	QuotaUsageEventId,
 	UserId,
 } from "@orcai/core";
+import {
+	QUOTA_PERIOD_STATUSES,
+	QUOTA_POOL_PERIOD_TYPES,
+	QUOTA_USAGE_EVENT_TYPES,
+} from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	bigint,
@@ -35,23 +40,20 @@ import { bot } from "./bot";
 import { model, provider, providerMeteringModeEnum } from "./model";
 import { organization } from "./organization";
 
-export const quotaPoolPeriodTypeEnum = pgEnum("quota_pool_period_type", [
-	"weekly",
-	"monthly",
-	"yearly",
-]);
+export const quotaPoolPeriodTypeEnum = pgEnum(
+	"quota_pool_period_type",
+	QUOTA_POOL_PERIOD_TYPES,
+);
 
-export const quotaPeriodStatusEnum = pgEnum("quota_period_status", [
-	"open",
-	"closed",
-]);
+export const quotaPeriodStatusEnum = pgEnum(
+	"quota_period_status",
+	QUOTA_PERIOD_STATUSES,
+);
 
-export const quotaUsageEventTypeEnum = pgEnum("quota_usage_event_type", [
-	"reserved",
-	"finalized",
-	"released",
-	"failed",
-]);
+export const quotaUsageEventTypeEnum = pgEnum(
+	"quota_usage_event_type",
+	QUOTA_USAGE_EVENT_TYPES,
+);
 
 /** Whether a cost is what the provider reported for every request, or estimated from prices. */
 export const quotaCostSourceEnum = pgEnum("quota_cost_source", [

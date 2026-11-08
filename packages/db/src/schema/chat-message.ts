@@ -1,8 +1,9 @@
 import type { ChatId, ChatMessageId, UserId } from "@orcai/core";
-import type {
-	ChatMessageAttachment,
-	ChatMessageMetadata,
-	StoredChatMessageParts,
+import {
+	CHAT_MESSAGE_RATINGS,
+	type ChatMessageAttachment,
+	type ChatMessageMetadata,
+	type StoredChatMessageParts,
 } from "@orcai/schema";
 import {
 	index,
@@ -53,12 +54,10 @@ export const chatMessage = pgTable(
 	],
 );
 
-export const chatMessageRatingEnum = pgEnum("chat_message_rating_value", [
-	"very_much",
-	"a_bit",
-	"not_really",
-	"not_at_all",
-]);
+export const chatMessageRatingEnum = pgEnum(
+	"chat_message_rating_value",
+	CHAT_MESSAGE_RATINGS,
+);
 
 export const chatMessageRating = pgTable(
 	"chat_message_rating",

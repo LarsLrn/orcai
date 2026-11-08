@@ -27,6 +27,7 @@ import { QdrantLive } from "@orcai/qdrant";
 import { IsolatedEmbeddingIndexLive } from "@orcai/qdrant/testing";
 import { QuotaUnavailableError } from "@orcai/quota";
 import {
+	defaultRepositoryConfig,
 	type JobQueue,
 	type PipelineFailure,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
@@ -109,7 +110,7 @@ const seedLink = () =>
 				.values({
 					type: "repository",
 					name: "Integration repository",
-					config: {},
+					config: defaultRepositoryConfig,
 					userId: user.id,
 				})
 				.returning();

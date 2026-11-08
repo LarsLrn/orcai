@@ -33,7 +33,10 @@ import {
 	sendDeleteObjectCommand,
 	sendPutObjectCommand,
 } from "@orcai/s3/server";
-import type { VectorizeAssetPayload } from "@orcai/schema";
+import {
+	defaultRepositoryConfig,
+	type VectorizeAssetPayload,
+} from "@orcai/schema";
 import {
 	awaitLockWaiters,
 	createUser,
@@ -207,7 +210,7 @@ const seed = (
 				.values({
 					type: "repository",
 					name: "Indexed repository",
-					config: {},
+					config: defaultRepositoryConfig,
 					userId: user.id,
 				})
 				.returning();

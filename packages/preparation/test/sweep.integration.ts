@@ -33,6 +33,7 @@ import {
 import { activeGeneration, EmbeddingIndex, QdrantLive } from "@orcai/qdrant";
 import { testEmbeddingIndex } from "@orcai/qdrant/testing";
 import {
+	defaultRepositoryConfig,
 	PREPARE_MISSING_EXTRACTIONS_AGAIN_JOB_NAME,
 	PROCESS_ASSET_DEAD_LETTER_JOB_NAME,
 	PROCESS_ASSET_JOB_NAME,
@@ -109,7 +110,7 @@ const seed = (stages: {
 				.values({
 					type: "repository",
 					name: "Sweep repository",
-					config: {},
+					config: defaultRepositoryConfig,
 					userId: user.id,
 				})
 				.returning();
@@ -538,7 +539,7 @@ describe("stages no job will deliver", () => {
 							].map(() => ({
 								type: "repository" as const,
 								name: "Sweep repository",
-								config: {},
+								config: defaultRepositoryConfig,
 								userId: asset.userId,
 							})),
 						)

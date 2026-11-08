@@ -31,6 +31,7 @@ import {
 	sendPutObjectCommand,
 } from "@orcai/s3/server";
 import {
+	defaultRepositoryConfig,
 	GENERATE_ASSET_METADATA_JOB_NAME,
 	type ProcessAssetPayload,
 	VECTORIZE_ASSET_JOB_NAME,
@@ -231,7 +232,7 @@ test(
 					.values({
 						type: "repository",
 						name: "Crash repository",
-						config: {},
+						config: defaultRepositoryConfig,
 						userId: user.id,
 					})
 					.returning();
@@ -284,7 +285,7 @@ const seedLinked = async () => {
 				.values({
 					type: "repository",
 					name: "Fenced repository",
-					config: {},
+					config: defaultRepositoryConfig,
 					userId: user.id,
 				})
 				.returning();
@@ -411,7 +412,7 @@ test(
 					.values({
 						type: "repository",
 						name: "Other repository",
-						config: {},
+						config: defaultRepositoryConfig,
 						userId: asset.uploaderId,
 					})
 					.returning();

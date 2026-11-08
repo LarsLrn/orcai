@@ -1,6 +1,6 @@
 import type { BlockId, BotId, OrganizationId, UserId } from "@orcai/core";
 import { DB, dbSchema, homeScopeOf } from "@orcai/db";
-import type { Block, Bot, SaveBotInput } from "@orcai/schema";
+import type { Block, SaveBotInput } from "@orcai/schema";
 import type { ReadRevision } from "@orcai/spice-db";
 import { and, eq, getColumns, inArray, isNull } from "drizzle-orm";
 import * as Arr from "effect/Array";
@@ -106,7 +106,7 @@ export const loadBotEditor = (params: {
 				id: bot.id,
 				name: bot.name,
 				description: bot.description,
-				contentJson: bot.contentJson as Bot["contentJson"],
+				contentJson: bot.contentJson,
 				status: bot.status,
 				behaviour: behaviour
 					? {

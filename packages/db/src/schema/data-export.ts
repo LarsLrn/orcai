@@ -1,4 +1,5 @@
 import type { DataExportId, UserId } from "@orcai/core";
+import { DATA_EXPORT_STATUSES } from "@orcai/schema";
 import { sql } from "drizzle-orm";
 import {
 	bigint,
@@ -11,12 +12,10 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
-export const dataExportStatusEnum = pgEnum("data_export_status", [
-	"pending",
-	"processing",
-	"ready",
-	"failed",
-]);
+export const dataExportStatusEnum = pgEnum(
+	"data_export_status",
+	DATA_EXPORT_STATUSES,
+);
 
 export const dataExport = pgTable(
 	"data_export",
