@@ -78,18 +78,21 @@ const searchSchema = listModelsInputSchema
 		query: dataTableQuerySchema.default(""),
 	});
 
-const modelsInput = (
+const modelsQuery = (
 	providerId: ProviderId,
 	{ pageIndex, pageSize, sort, query }: z.infer<typeof searchSchema>,
-) => ({
-	filters: {
-		providerId,
-		search: query || undefined,
-	},
-	pageIndex,
-	pageSize,
-	sort,
-});
+) =>
+	orpc.model.list.queryOptions({
+		input: {
+			filters: {
+				providerId,
+				search: query || undefined,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
 
 const providerModelColumns = modelTableColumns.filter(
 	(column) => column.id !== "providerName",
@@ -121,12 +124,7 @@ export const Route = createFileRoute("/app/providers/$providerId/")({
 			}
 		};
 		await Promise.all([
-			queryClient.query(
-				orpc.model.list.queryOptions({
-					input: modelsInput(providerId, deps),
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(modelsQuery(providerId, deps)),
 			// The notice fails only itself.
 			Promise.allSettled([
 				loadSearchPool(),
@@ -159,11 +157,7 @@ function RouteComponent() {
 		}),
 	);
 
-	const { data: models } = useSuspenseQuery(
-		orpc.model.list.queryOptions({
-			input: modelsInput(providerId, search),
-		}),
-	);
+	const { data: models } = useSuspenseQuery(modelsQuery(providerId, search));
 
 	const provider = providerResponse.data;
 	const activeModelCount = provider.models.total - provider.models.deprecated;

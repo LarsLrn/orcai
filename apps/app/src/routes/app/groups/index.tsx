@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlusIcon, SparklesIcon, UserCogIcon } from "lucide-react";
 import { useState } from "react";
+import type { z } from "zod/v4";
 import { useAssistantModel } from "@/components/assistant/use-assistant-model";
 import { groupTableColumns } from "@/components/groups/table/group-table-columns";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,26 @@ const searchSchema = listGroupsInputSchema.extend({
 	query: dataTableQuerySchema.default(""),
 });
 
+const groupsQuery = ({
+	pageIndex,
+	pageSize,
+	query,
+	sort,
+}: Pick<
+	z.output<typeof searchSchema>,
+	"pageIndex" | "pageSize" | "query" | "sort"
+>) =>
+	orpc.group.list.queryOptions({
+		input: {
+			filters: {
+				search: query.trim() || undefined,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
+
 export const Route = createFileRoute("/app/groups/")({
 	validateSearch: searchSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize, query, sort } }) => ({
@@ -57,23 +78,8 @@ export const Route = createFileRoute("/app/groups/")({
 		query,
 		sort,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize, query, sort },
-	}) => {
-		await queryClient.query(
-			orpc.group.list.queryOptions({
-				input: {
-					filters: {
-						search: query.trim() ? query.trim() : undefined,
-					},
-					pageIndex,
-					pageSize,
-					sort,
-				},
-				staleTime: "static",
-			}),
-		);
+	loader: async ({ context: { queryClient }, deps }) => {
+		await queryClient.query(groupsQuery(deps));
 	},
 	component: RouteComponent,
 });
@@ -81,24 +87,14 @@ export const Route = createFileRoute("/app/groups/")({
 function RouteComponent() {
 	const deleteGroups = useDeleteGroupsMutation();
 	const navigate = useNavigate();
-	const { pageIndex, pageSize, query, sort } = Route.useSearch();
+	const search = Route.useSearch();
+	const { pageIndex, pageSize, query, sort } = search;
 	const { availability: assistantAvailability } = useAssistantModel();
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
 
-	const { data: groups } = useSuspenseQuery(
-		orpc.group.list.queryOptions({
-			input: {
-				filters: {
-					search: query.trim() ? query.trim() : undefined,
-				},
-				pageIndex,
-				pageSize,
-				sort,
-			},
-		}),
-	);
+	const { data: groups } = useSuspenseQuery(groupsQuery(search));
 
 	const createGroup = useCreateGroupMutation();
 

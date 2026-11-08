@@ -40,9 +40,9 @@ import { ResourceOwner } from "@/components/users/resource-owner";
 import { useCatalogueAddMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
+import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { libraryLink } from "@/lib/navigation/library-link";
-import { orpc } from "@/lib/orpc/orpc";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { catalogueEntryRef } from "@/lib/router/catalogue-entry-loader";
 import { cn } from "@/lib/utils";
@@ -270,13 +270,7 @@ export const CatalogueEntryPage = ({
 }) => {
 	const ref = catalogueEntryRef(kind, id);
 	const navigate = useNavigate();
-	const { data } = useSuspenseQuery(
-		orpc.catalogue.find.queryOptions({
-			input: {
-				entry: ref,
-			},
-		}),
-	);
+	const { data } = useSuspenseQuery(catalogueEntryQuery(ref));
 	const entry = data.data;
 	const adder = useCatalogueAdder();
 	const organisation = useActiveOrganization().data?.data.name;

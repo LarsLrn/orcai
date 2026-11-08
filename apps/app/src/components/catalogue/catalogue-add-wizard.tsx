@@ -31,6 +31,7 @@ import {
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import { hasCapability } from "@/lib/authz/capabilities";
 import type { CatalogueOrigin } from "@/lib/catalogue/catalogue-filters";
+import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
 import { libraryLink } from "@/lib/navigation/library-link";
 import { orpc } from "@/lib/orpc/orpc";
@@ -235,13 +236,7 @@ export const CatalogueAddWizard = ({
 	from: CatalogueOrigin | undefined;
 }) => {
 	const ref = catalogueEntryRef(kind, id);
-	const { data } = useSuspenseQuery(
-		orpc.catalogue.find.queryOptions({
-			input: {
-				entry: ref,
-			},
-		}),
-	);
+	const { data } = useSuspenseQuery(catalogueEntryQuery(ref));
 	const entry = data.data;
 	const organisation = useActiveOrganization().data?.data.name ?? "";
 	const steps = stepsFor(entry);

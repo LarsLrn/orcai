@@ -16,7 +16,6 @@ export const Route = createFileRoute("/_pathlessLayout/init")({
 		const status = await queryClient.query(
 			orpc.bootstrap.status.queryOptions({
 				input: {},
-				staleTime: "static",
 			}),
 		);
 

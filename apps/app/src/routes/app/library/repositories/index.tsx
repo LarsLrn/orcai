@@ -8,13 +8,14 @@ import { BlockTile } from "@/components/blocks/block-tile";
 import { LibraryEmpty } from "@/components/library/library-empty";
 import { LibraryResults } from "@/components/library/library-results";
 import {
-	libraryCountsInput,
 	libraryFilters,
-	libraryListInput,
 	librarySearchDefaults,
 	librarySearchSchema,
 } from "@/lib/library/library-filters";
-import { orpc } from "@/lib/orpc/orpc";
+import {
+	libraryCountsQuery,
+	libraryListQuery,
+} from "@/lib/library/library-queries";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/library/repositories/")({
@@ -31,18 +32,8 @@ export const Route = createFileRoute("/app/library/repositories/")({
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
-			queryClient.query(
-				orpc.block.list.queryOptions({
-					input: libraryListInput.repository(deps),
-					staleTime: "static",
-				}),
-			),
-			queryClient.query(
-				orpc.library.counts.queryOptions({
-					input: libraryCountsInput(deps),
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(libraryListQuery.repository(deps)),
+			queryClient.query(libraryCountsQuery(deps)),
 		]);
 	},
 	component: RouteComponent,
@@ -51,9 +42,7 @@ export const Route = createFileRoute("/app/library/repositories/")({
 function RouteComponent() {
 	const search = Route.useSearch();
 	const { data: blocks } = useSuspenseQuery(
-		orpc.block.list.queryOptions({
-			input: libraryListInput.repository(search),
-		}),
+		libraryListQuery.repository(search),
 	);
 
 	return (

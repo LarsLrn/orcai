@@ -49,16 +49,19 @@ const searchSchema = listInstanceUserMembershipsInputSchema
 		query: dataTableQuerySchema.default(""),
 	});
 
-const membershipsInput = (
+const membershipsQuery = (
 	userId: UserId,
 	{ pageIndex, pageSize, sort, query }: z.infer<typeof searchSchema>,
-) => ({
-	userId,
-	query: query || undefined,
-	pageIndex,
-	pageSize,
-	sort,
-});
+) =>
+	orpc.instance.userMemberships.queryOptions({
+		input: {
+			userId,
+			query: query || undefined,
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
 
 export const Route = createFileRoute("/instance/users/$userId/")({
 	validateSearch: searchSchema,
@@ -69,12 +72,7 @@ export const Route = createFileRoute("/instance/users/$userId/")({
 	},
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, params: { userId }, deps }) => {
-		await queryClient.query(
-			orpc.instance.userMemberships.queryOptions({
-				input: membershipsInput(userId, deps),
-				staleTime: "static",
-			}),
-		);
+		await queryClient.query(membershipsQuery(userId, deps));
 	},
 	component: RouteComponent,
 });
@@ -93,9 +91,7 @@ function RouteComponent() {
 		}),
 	);
 	const { data: memberships } = useSuspenseQuery(
-		orpc.instance.userMemberships.queryOptions({
-			input: membershipsInput(userId, search),
-		}),
+		membershipsQuery(userId, search),
 	);
 	const { actions, dialog } = useInstanceUserActions(user, {
 		onDeleted: () =>

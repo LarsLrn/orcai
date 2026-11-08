@@ -10,7 +10,7 @@ import type { HeaderAction } from "@/components/ui/shell/actions";
 import { useCatalogueAddBlocksMutation } from "@/hooks/mutations/use-catalogue-mutations";
 import { activeOrganizationQuery } from "@/hooks/use-active-organization";
 import { organizationCapabilitiesQuery } from "@/lib/authz/organization-capabilities-query";
-import { orpc } from "@/lib/orpc/orpc";
+import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
 import { m } from "@/paraglide/messages";
 
 const labels = {
@@ -44,13 +44,6 @@ export const addBlocksLabel = (
 		count,
 	});
 };
-
-const catalogueEntryQuery = (entry: CatalogueEntryRef) =>
-	orpc.catalogue.find.queryOptions({
-		input: {
-			entry,
-		},
-	});
 
 /** Loads the entry an enabled action reads, when the user may add from the catalogue. */
 export const loadAddBlocksAction = async (

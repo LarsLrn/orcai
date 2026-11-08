@@ -69,7 +69,7 @@ const searchSchema = listMemberAccessInputSchema
 		origin: memberAccessOriginSchema.optional(),
 	});
 
-const accessInput = (
+const accessQuery = (
 	userId: UserId,
 	{
 		pageIndex,
@@ -79,17 +79,20 @@ const accessInput = (
 		resourceType,
 		origin,
 	}: z.infer<typeof searchSchema>,
-) => ({
-	userId,
-	filters: {
-		search: query || undefined,
-		resourceType,
-		origin,
-	},
-	pageIndex,
-	pageSize,
-	sort,
-});
+) =>
+	orpc.organizationMember.listAccess.queryOptions({
+		input: {
+			userId,
+			filters: {
+				search: query || undefined,
+				resourceType,
+				origin,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
 
 export const Route = createFileRoute("/app/members/$userId/edit")({
 	validateSearch: searchSchema,
@@ -100,12 +103,7 @@ export const Route = createFileRoute("/app/members/$userId/edit")({
 	},
 	loaderDeps: ({ search }) => search,
 	loader: async ({ context: { queryClient }, params: { userId }, deps }) => {
-		await queryClient.query(
-			orpc.organizationMember.listAccess.queryOptions({
-				input: accessInput(userId, deps),
-				staleTime: "static",
-			}),
-		);
+		await queryClient.query(accessQuery(userId, deps));
 	},
 	component: RouteComponent,
 	head: () => ({
@@ -128,11 +126,7 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const { data: access } = useSuspenseQuery(
-		orpc.organizationMember.listAccess.queryOptions({
-			input: accessInput(userId, search),
-		}),
-	);
+	const { data: access } = useSuspenseQuery(accessQuery(userId, search));
 
 	const setFilter = (patch: Partial<z.infer<typeof searchSchema>>) =>
 		void navigate({

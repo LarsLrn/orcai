@@ -4,18 +4,14 @@ import {
 	CatalogueBrowse,
 	useCatalogueView,
 } from "@/components/catalogue/catalogue-browse";
-import { catalogueCountsInput } from "@/lib/catalogue/catalogue-filters";
-import { orpc } from "@/lib/orpc/orpc";
+import { catalogueCountsQuery } from "@/lib/catalogue/catalogue-queries";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/catalogue")({
 	loader: async ({ context: { queryClient } }) => {
 		await queryClient.query(
-			orpc.catalogue.counts.queryOptions({
-				input: catalogueCountsInput({
-					query: "",
-				}),
-				staleTime: "static",
+			catalogueCountsQuery({
+				query: "",
 			}),
 		);
 	},

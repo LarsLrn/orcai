@@ -43,6 +43,22 @@ import { providerStatusBadge } from "@/lib/presentation/provider-status";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/app/models/$modelId/")({
+	loader: async ({ context: { queryClient }, params: { modelId } }) => {
+		const { data: model } = await queryClient.query(
+			orpc.model.find.queryOptions({
+				input: {
+					id: modelId,
+				},
+			}),
+		);
+		await queryClient.query(
+			orpc.provider.find.queryOptions({
+				input: {
+					id: model.providerId,
+				},
+			}),
+		);
+	},
 	component: RouteComponent,
 });
 

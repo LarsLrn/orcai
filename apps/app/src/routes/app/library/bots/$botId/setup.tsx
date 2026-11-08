@@ -41,7 +41,6 @@ export const Route = createFileRoute("/app/library/bots/$botId/setup")({
 						id: botId,
 						zedToken: deps.zedToken,
 					},
-					staleTime: "static",
 				}),
 			),
 		);

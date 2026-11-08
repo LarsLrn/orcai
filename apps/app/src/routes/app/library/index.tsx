@@ -21,13 +21,15 @@ import {
 import { LibraryResults } from "@/components/library/library-results";
 import {
 	type LibrarySearch,
-	libraryCountsInput,
 	libraryFilters,
-	libraryListInput,
 	librarySearchDefaults,
 	librarySearchSchema,
 } from "@/lib/library/library-filters";
-import { orpc } from "@/lib/orpc/orpc";
+import {
+	libraryCountsQuery,
+	libraryListQuery,
+	libraryOverviewQuery,
+} from "@/lib/library/library-queries";
 import {
 	isAssetWorking,
 	METADATA_POLL_MS,
@@ -36,10 +38,6 @@ import { m } from "@/paraglide/messages";
 
 /** Below this many items, the overview is one grid instead of shelves. */
 const SHELVES_FROM = 6;
-
-const overviewInput = (scope: LibraryScope) => ({
-	scope,
-});
 
 export const Route = createFileRoute("/app/library/")({
 	validateSearch: librarySearchSchema(libraryFilters.overview),
@@ -56,24 +54,9 @@ export const Route = createFileRoute("/app/library/")({
 	loader: async ({ context: { queryClient }, deps }) => {
 		await Promise.all([
 			deps.query
-				? queryClient.query(
-						orpc.library.search.queryOptions({
-							input: libraryListInput.overview(deps),
-							staleTime: "static",
-						}),
-					)
-				: queryClient.query(
-						orpc.library.overview.queryOptions({
-							input: overviewInput(deps.scope),
-							staleTime: "static",
-						}),
-					),
-			queryClient.query(
-				orpc.library.counts.queryOptions({
-					input: libraryCountsInput(deps),
-					staleTime: "static",
-				}),
-			),
+				? queryClient.query(libraryListQuery.overview(deps))
+				: queryClient.query(libraryOverviewQuery(deps.scope)),
+			queryClient.query(libraryCountsQuery(deps)),
 		]);
 	},
 	component: RouteComponent,
@@ -90,11 +73,7 @@ function RouteComponent() {
 
 /** Every kind at once, in one order and one pager. */
 const SearchResults = ({ search }: { search: LibrarySearch<"overview"> }) => {
-	const { data: results } = useSuspenseQuery(
-		orpc.library.search.queryOptions({
-			input: libraryListInput.overview(search),
-		}),
-	);
+	const { data: results } = useSuspenseQuery(libraryListQuery.overview(search));
 	return (
 		<LibraryResults
 			view="overview"
@@ -112,15 +91,13 @@ const SearchResults = ({ search }: { search: LibrarySearch<"overview"> }) => {
 const Overview = ({ scope }: { scope: LibraryScope }) => {
 	const {
 		data: { data: overview },
-	} = useSuspenseQuery(
-		orpc.library.overview.queryOptions({
-			input: overviewInput(scope),
-			refetchInterval: (query) =>
-				query.state.data?.data.asset.data.some(isAssetWorking)
-					? METADATA_POLL_MS
-					: false,
-		}),
-	);
+	} = useSuspenseQuery({
+		...libraryOverviewQuery(scope),
+		refetchInterval: (query) =>
+			query.state.data?.data.asset.data.some(isAssetWorking)
+				? METADATA_POLL_MS
+				: false,
+	});
 	const kinds = LIBRARY_VIEWS.filter((view) => view.view !== "overview");
 	const entries = kinds.flatMap((view): LibraryEntry[] =>
 		view.view === "bot"

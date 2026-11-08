@@ -21,7 +21,6 @@ export const loadBlockOfType = async ({
 				input: {
 					id: blockId,
 				},
-				staleTime: "static",
 			}),
 		),
 	);

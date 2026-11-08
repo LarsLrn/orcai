@@ -61,16 +61,19 @@ const searchSchema = listInstanceOrganizationMembersInputSchema
 		query: dataTableQuerySchema.default(""),
 	});
 
-const membersInput = (
+const membersQuery = (
 	organizationId: OrganizationId,
 	{ pageIndex, pageSize, sort, query }: z.infer<typeof searchSchema>,
-) => ({
-	organizationId,
-	query: query || undefined,
-	pageIndex,
-	pageSize,
-	sort,
-});
+) =>
+	orpc.instance.organizationMembers.queryOptions({
+		input: {
+			organizationId,
+			query: query || undefined,
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
 
 export const Route = createFileRoute(
 	"/instance/organizations/$organizationId/",
@@ -88,12 +91,7 @@ export const Route = createFileRoute(
 		deps,
 	}) => {
 		await Promise.all([
-			queryClient.query(
-				orpc.instance.organizationMembers.queryOptions({
-					input: membersInput(organizationId, deps),
-					staleTime: "static",
-				}),
-			),
+			queryClient.query(membersQuery(organizationId, deps)),
 			queryClient.query(
 				orpc.instance.organizationReadiness.queryOptions({
 					input: {
@@ -130,9 +128,7 @@ function RouteComponent() {
 		}),
 	);
 	const { data: members } = useSuspenseQuery(
-		orpc.instance.organizationMembers.queryOptions({
-			input: membersInput(organizationId, search),
-		}),
+		membersQuery(organizationId, search),
 	);
 	const removeLogo = useRemoveOrganizationLogoMutation(organization);
 	const columns = useMemo(

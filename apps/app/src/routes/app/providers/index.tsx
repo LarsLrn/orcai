@@ -2,6 +2,7 @@ import { listProvidersInputSchema } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PlusIcon, ServerCogIcon } from "lucide-react";
+import type { z } from "zod/v4";
 import { providerTableColumns } from "@/components/provider/table/provider-table-columns";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table/data-table";
@@ -24,43 +25,39 @@ import { paginationSearchShape } from "@/lib/browse/data-table-search-params";
 import { orpc } from "@/lib/orpc/orpc";
 import { m } from "@/paraglide/messages";
 
+const searchSchema = listProvidersInputSchema.extend(paginationSearchShape);
+
+const providersQuery = ({
+	pageIndex,
+	pageSize,
+	sort,
+}: z.output<typeof searchSchema>) =>
+	orpc.provider.list.queryOptions({
+		input: {
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
+
 export const Route = createFileRoute("/app/providers/")({
-	validateSearch: listProvidersInputSchema.extend(paginationSearchShape),
+	validateSearch: searchSchema,
 	loaderDeps: ({ search: { pageIndex, pageSize, sort } }) => ({
 		pageIndex,
 		pageSize,
 		sort,
 	}),
-	loader: async ({
-		context: { queryClient },
-		deps: { pageIndex, pageSize, sort },
-	}) => {
-		await queryClient.query(
-			orpc.provider.list.queryOptions({
-				input: {
-					pageIndex,
-					pageSize,
-					sort,
-				},
-				staleTime: "static",
-			}),
-		);
+	loader: async ({ context: { queryClient }, deps }) => {
+		await queryClient.query(providersQuery(deps));
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
 	const deleteProviders = useDeleteProvidersMutation();
-	const { pageIndex, pageSize, sort } = Route.useSearch();
-	const { data: providers } = useSuspenseQuery(
-		orpc.provider.list.queryOptions({
-			input: {
-				pageIndex,
-				pageSize,
-				sort,
-			},
-		}),
-	);
+	const search = Route.useSearch();
+	const { pageIndex, pageSize, sort } = search;
+	const { data: providers } = useSuspenseQuery(providersQuery(search));
 
 	return (
 		<Page>

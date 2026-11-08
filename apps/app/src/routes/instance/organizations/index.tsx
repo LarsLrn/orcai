@@ -43,24 +43,25 @@ const searchSchema = listAllOrganizationsInputSchema.extend({
 	query: dataTableQuerySchema.default(""),
 });
 
-const listInput = ({
+const organizationsQuery = ({
 	pageIndex,
 	pageSize,
 	query,
 	sort,
-}: {
-	pageIndex: number;
-	pageSize: number;
-	query: string;
-	sort: z.infer<typeof listAllOrganizationsInputSchema>["sort"];
-}) => ({
-	filters: {
-		search: query.trim() ? query.trim() : undefined,
-	},
-	pageIndex,
-	pageSize,
-	sort,
-});
+}: Pick<
+	z.output<typeof searchSchema>,
+	"pageIndex" | "pageSize" | "query" | "sort"
+>) =>
+	orpc.organization.listAll.queryOptions({
+		input: {
+			filters: {
+				search: query.trim() || undefined,
+			},
+			pageIndex,
+			pageSize,
+			sort,
+		},
+	});
 
 export const Route = createFileRoute("/instance/organizations/")({
 	validateSearch: searchSchema,
@@ -71,12 +72,7 @@ export const Route = createFileRoute("/instance/organizations/")({
 		sort,
 	}),
 	loader: async ({ context: { queryClient }, deps }) => {
-		await queryClient.query(
-			orpc.organization.listAll.queryOptions({
-				input: listInput(deps),
-				staleTime: "static",
-			}),
-		);
+		await queryClient.query(organizationsQuery(deps));
 	},
 	component: RouteComponent,
 	head: () => ({
@@ -89,18 +85,10 @@ export const Route = createFileRoute("/instance/organizations/")({
 });
 
 function RouteComponent() {
-	const { pageIndex, pageSize, query, sort } = Route.useSearch();
+	const search = Route.useSearch();
+	const { pageIndex, pageSize, query, sort } = search;
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
-	const { data: organizations } = useSuspenseQuery(
-		orpc.organization.listAll.queryOptions({
-			input: listInput({
-				pageIndex,
-				pageSize,
-				query,
-				sort,
-			}),
-		}),
-	);
+	const { data: organizations } = useSuspenseQuery(organizationsQuery(search));
 
 	return (
 		<Page>

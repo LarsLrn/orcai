@@ -1,5 +1,5 @@
 import { userIdSchema } from "@orcai/schema";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LoadingPage } from "@/components/app/loading/loading-page";
 import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound, parseParam } from "@/lib/router/not-found";
@@ -18,7 +18,6 @@ export const Route = createFileRoute("/app/members/$userId")({
 					input: {
 						userId,
 					},
-					staleTime: "static",
 				}),
 			),
 		);
@@ -35,10 +34,5 @@ export const Route = createFileRoute("/app/members/$userId")({
 			},
 		],
 	}),
-	component: RouteComponent,
 	pendingComponent: LoadingPage,
 });
-
-function RouteComponent() {
-	return <Outlet />;
-}

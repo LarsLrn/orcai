@@ -28,15 +28,18 @@ import { m } from "@/paraglide/messages";
 
 const PAGE_SIZE = 12;
 
-const organizationsInput = (params: { search: string; pageCount: number }) => ({
-	filters: params.search
-		? {
-				search: params.search,
-			}
-		: undefined,
-	pageIndex: 0,
-	pageSize: PAGE_SIZE * params.pageCount,
-});
+const organizationsQuery = (params: { search: string; pageCount: number }) =>
+	orpc.organization.list.queryOptions({
+		input: {
+			filters: params.search
+				? {
+						search: params.search,
+					}
+				: undefined,
+			pageIndex: 0,
+			pageSize: PAGE_SIZE * params.pageCount,
+		},
+	});
 
 export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 	beforeLoad: ({ context }) => ({
@@ -49,12 +52,9 @@ export const Route = createFileRoute("/_pathlessLayout/select-organization")({
 			queryClient.query(chatHistoryLinkQuery()),
 		]);
 		const organizations = await queryClient.query(
-			orpc.organization.list.queryOptions({
-				input: organizationsInput({
-					search: "",
-					pageCount: 1,
-				}),
-				staleTime: "static",
+			organizationsQuery({
+				search: "",
+				pageCount: 1,
 			}),
 		);
 
@@ -132,11 +132,9 @@ function RouteComponent() {
 	const trimmedSearch = debouncedSearch.trim();
 
 	const { data: organizations, isFetching } = useQuery(
-		orpc.organization.list.queryOptions({
-			input: organizationsInput({
-				search: trimmedSearch,
-				pageCount,
-			}),
+		organizationsQuery({
+			search: trimmedSearch,
+			pageCount,
 		}),
 	);
 	const setActiveOrganization = useSetActiveOrganizationMutation();

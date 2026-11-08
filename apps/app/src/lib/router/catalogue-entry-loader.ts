@@ -7,8 +7,8 @@ import {
 import type { QueryClient } from "@tanstack/react-query";
 import { notFound, redirect } from "@tanstack/react-router";
 import { ensureOrganizationCapability } from "@/lib/authz/route-guards";
+import { catalogueEntryQuery } from "@/lib/catalogue/catalogue-queries";
 import { cataloguePaths } from "@/lib/navigation/catalogue-paths";
-import { orpc } from "@/lib/orpc/orpc";
 import { orNotFound } from "@/lib/router/not-found";
 
 /** The entry as `catalogue.find`, `add` and `remove` name it. */
@@ -37,13 +37,7 @@ export const loadCatalogueEntry = async ({
 	id: string;
 }) => {
 	const found = await orNotFound(
-		queryClient.query(
-			orpc.catalogue.find.queryOptions({
-				input: {
-					entry: catalogueEntryRef(kind, id),
-				},
-			}),
-		),
+		queryClient.query(catalogueEntryQuery(catalogueEntryRef(kind, id))),
 	);
 
 	if (found.data.kind !== kind) {

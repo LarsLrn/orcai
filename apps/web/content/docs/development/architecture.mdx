@@ -81,7 +81,7 @@ The server renders every page with TanStack Start, and the browser hydrates the 
 
 Data that decides what a page shows is therefore on the server before it renders:
 
-- A route `loader` awaits what the shell or the page reads, through `context.queryClient.query()` with the same query options the component uses, so the keys match. `/app` loads the shell's reads, such as the organisation, the capabilities, the activity summary and the assistant's model. A read whose failure should only affect its own component is awaited with `Promise.allSettled`. Reads that depend on another read go in a `load...` function beside the hook, such as `loadChatStarter`.
+- A route `loader` awaits what the shell or the page reads, through `context.queryClient.query()` with the same query options the component uses, so the keys match. A read whose input takes more than an id gets an `xQuery` factory that both call, such as `libraryListQuery` and `catalogueCountsQuery`. Loaders keep the 60 second default freshness, so a loader refetches what has gone stale or was invalidated instead of rendering it. `/app` loads the shell's reads, such as the organisation, the capabilities, the activity summary and the assistant's model. A read whose failure should only affect its own component is awaited with `Promise.allSettled`. Reads that depend on another read go in a `load...` function beside the hook, such as `loadChatStarter`.
 - A secondary region that may arrive later reads with `useSuspenseQuery` behind a Suspense boundary, and the server streams it.
 - A plain `useQuery` is for data the server never renders: closed dialogs, pickers, and queries that start after a user action.
 

@@ -22,11 +22,10 @@ import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { FilterValues } from "@/lib/browse/browse-search";
 import {
 	type LibraryView,
-	libraryCountsInput,
 	libraryFilters,
 	librarySearchSchema,
 } from "@/lib/library/library-filters";
-import { orpc } from "@/lib/orpc/orpc";
+import { libraryCountsQuery } from "@/lib/library/library-queries";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
 import { m } from "@/paraglide/messages";
 
@@ -197,9 +196,7 @@ export const LibraryBrowse = ({
 }) => {
 	const { search, setFilter, setScope } = useLibrarySearch(view);
 	const { data: counts } = useQuery({
-		...orpc.library.counts.queryOptions({
-			input: libraryCountsInput(search),
-		}),
+		...libraryCountsQuery(search),
 		placeholderData: keepPreviousData,
 	});
 	const items: BrowseNavItem[] = LIBRARY_VIEWS.map((item) => ({
