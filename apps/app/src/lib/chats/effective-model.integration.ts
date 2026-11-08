@@ -332,3 +332,31 @@ describe("effective model", () => {
 		TIMEOUT,
 	);
 });
+
+describe("turn setup of a bot chat", () => {
+	test(
+		"a ready bot stored without a behaviour answers the user error",
+		async () => {
+			const { bot, createChat, turn } = await authorWithBot();
+			const chat = await createChat();
+			// Rows written before save enforced the readiness rule.
+			await run(
+				Effect.gen(function* () {
+					const db = yield* DB;
+					yield* db
+						.delete(dbSchema.botBlock)
+						.where(eq(dbSchema.botBlock.botId, bot.id));
+					yield* db
+						.update(dbSchema.bot)
+						.set({
+							status: "ready",
+						})
+						.where(eq(dbSchema.bot.id, bot.id));
+				}),
+			);
+
+			expect(await reasonOf(turn(chat))).toBe("BOT_BEHAVIOUR_BLOCK_REQUIRED");
+		},
+		TIMEOUT,
+	);
+});

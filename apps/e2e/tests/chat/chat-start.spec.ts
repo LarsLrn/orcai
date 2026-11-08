@@ -130,11 +130,19 @@ test("chat: a failed bot list in the composer shows the error and loads again on
 	pageAs,
 }) => {
 	const member = api.as("member");
+	const behaviour = await member.block.create({
+		type: "behaviour",
+		name: `E2E Selector Behaviour ${runId()}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Created by the chat start spec.",
+		},
+	});
 	const { data: bot } = await member.bot.save({
 		name: `E2E Selector Bot ${runId()}`,
 		description: "Created by the chat start spec.",
 		status: "ready",
-		behaviourId: null,
+		behaviourId: behaviour.data.id,
 		repositoryIds: [],
 	});
 	await member.user.setTourState({
@@ -205,13 +213,23 @@ test("chat: the composer bot selector pages, shows no stale rows while searching
 }) => {
 	const fresh = await orgs.create(`E2E Bot Selector ${runId()}`);
 	const member = api.as("member", fresh);
+	const {
+		data: { id: behaviourId },
+	} = await member.block.create({
+		type: "behaviour",
+		name: `E2E Selector Behaviour ${runId()}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Created by the chat start spec.",
+		},
+	});
 	// One more than the selector's page.
 	for (let index = 1; index <= 21; index++) {
 		await member.bot.save({
 			name: `E2E Paged Bot ${String(index).padStart(2, "0")}`,
 			description: "Created by the chat start spec.",
 			status: "ready",
-			behaviourId: null,
+			behaviourId,
 			repositoryIds: [],
 		});
 	}
@@ -219,7 +237,7 @@ test("chat: the composer bot selector pages, shows no stale rows while searching
 		name: "E2E Other Bot",
 		description: "Created by the chat start spec.",
 		status: "ready",
-		behaviourId: null,
+		behaviourId,
 		repositoryIds: [],
 	});
 	await member.user.setTourState({

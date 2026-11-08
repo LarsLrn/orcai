@@ -1,6 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
 import * as Effect from "effect/Effect";
-import { testAppConfig } from "@/lib/testing/app-config";
 
 /** What Better Auth answers for the request cookie; `null` is a signed-out visitor. */
 let session: {
@@ -41,12 +40,13 @@ mock.module("@/lib/effect/runtime", () => ({
 	runPromise: (effect: Effect.Effect<Response, unknown, never>) =>
 		Effect.runPromise(
 			effect.pipe(
-				Effect.provideService(
-					AppConfigService,
-					testAppConfig({
-						twoFactorPolicy: "all",
-					}),
-				),
+				Effect.provideService(AppConfigService, {
+					config: {
+						auth: {
+							twoFactorPolicy: "all",
+						},
+					},
+				} as never),
 			),
 		),
 }));

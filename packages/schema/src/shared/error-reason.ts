@@ -19,7 +19,6 @@ export const ERROR_REASONS = [
 	"ASSISTANT_MODEL_NOT_CONFIGURED",
 	"AUTH_REQUIRED",
 	"BEHAVIOUR_BLOCK_TYPE_INVALID",
-	"BLOCK_IN_USE_BY_READY_BOTS",
 	"BLOCK_LINK_FORBIDDEN",
 	"BLOCK_NOT_FOUND",
 	"BLOCK_USED_BY_LISTED_BOTS",
@@ -188,10 +187,6 @@ export type GrantRejection = {
 /** Reasons that carry data for their message. User data stays raw; vocabulary is typed. */
 export type ErrorReasonParams = {
 	/** Names only the bots the caller may read; `otherCount` counts the rest. */
-	BLOCK_IN_USE_BY_READY_BOTS: {
-		botNames: string[];
-		otherCount: number;
-	};
 	BLOCK_USED_BY_LISTED_BOTS: {
 		botNames: string[];
 	};

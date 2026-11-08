@@ -12,7 +12,7 @@ import {
 	TIMEOUT,
 } from "@/lib/testing/app-integration";
 
-const { run, caller, organizationWith } = appIntegration();
+const { run, caller, organizationWith, createBehaviour } = appIntegration();
 
 /**
  * An organization with an owner and a member; every call reads at the newest
@@ -27,8 +27,10 @@ const library = async () => {
 		"member",
 	]);
 	const procedures = await run(Procedures);
-	const { call } = caller(zedToken);
+	const { call, observe } = caller(zedToken);
 	const prefix = crypto.randomUUID();
+	const behaviour = await createBehaviour(owner, zedToken);
+	observe(behaviour.zedToken);
 
 	const save = async (
 		name: string,
@@ -42,6 +44,7 @@ const library = async () => {
 					name: `${prefix} ${name}`,
 					description: "Integration bot",
 					status,
+					behaviourId: behaviour.blockId,
 				},
 				options,
 			),

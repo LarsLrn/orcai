@@ -27,6 +27,7 @@ export * from "./bootstrap/inputs";
 export * from "./bootstrap/responses";
 export * from "./bootstrap/schema";
 export * from "./bot/inputs";
+export * from "./bot/readiness";
 export * from "./bot/responses";
 export * from "./bot/schema";
 export * from "./bot-setup/inputs";

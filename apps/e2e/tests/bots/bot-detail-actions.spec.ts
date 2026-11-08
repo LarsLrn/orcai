@@ -8,11 +8,20 @@ test("bots: the detail page shows its frequent actions inline and keeps Delete b
 	org,
 	pageAs,
 }) => {
-	const { data: bot } = await api.as("member").bot.save({
+	const member = api.as("member");
+	const behaviour = await member.block.create({
+		type: "behaviour",
+		name: `E2E Detail Actions Behaviour ${runId()}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Created by the detail actions spec.",
+		},
+	});
+	const { data: bot } = await member.bot.save({
 		name: `E2E Detail Actions Bot ${runId()}`,
 		description: "Created by the detail actions spec.",
 		status: "ready",
-		behaviourId: null,
+		behaviourId: behaviour.data.id,
 		repositoryIds: [],
 	});
 

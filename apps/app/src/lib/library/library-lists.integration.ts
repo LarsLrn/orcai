@@ -335,9 +335,10 @@ describe("library lists", () => {
 	test(
 		"bot pages, counts and favourites leave out drafts the user cannot edit",
 		async () => {
-			const { admin, member, procedures, call, share, toMember } =
+			const { admin, member, procedures, call, share, toMember, behaviour } =
 				await organization();
 			const tag = crypto.randomUUID();
+			const behaviourId = await behaviour(admin, "Bot behaviour");
 			const save = async (
 				name: string,
 				status: "ready" | "draft",
@@ -349,6 +350,7 @@ describe("library lists", () => {
 							name: `${name} ${tag}`,
 							description: "Integration bot",
 							status,
+							behaviourId,
 						},
 						options,
 					),

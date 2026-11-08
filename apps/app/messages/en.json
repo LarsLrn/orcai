@@ -1901,10 +1901,6 @@
 	"authoring_publish_confirm_description": "Publishing makes this bot usable by everyone shown under Who gains access.",
 	"authoring_publish_confirm_description_named": "Publishing makes \"{name}\" usable by everyone shown under Who gains access.",
 	"authoring_publish_confirm_title": "Publish this bot?",
-	"authoring_publish_issue_behaviour_missing": "Add a behaviour before publishing the bot.",
-	"authoring_publish_issue_behaviour_not_ready": "Publish the behaviour before publishing the bot.",
-	"authoring_publish_issue_repository_no_assets": "Attach at least one asset to \"{name}\".",
-	"authoring_publish_issue_repository_not_ready": "Publish \"{name}\" before publishing the bot.",
 	"authoring_publish_summary_access_fact_label": "Who gains access",
 	"authoring_publish_summary_all_members_badge": "Every member of the organisation",
 	"authoring_publish_summary_all_members_granted": "The All members group receives “{role}”, so every member of the organisation can use this bot.",
@@ -2399,6 +2395,7 @@
 			}
 		}
 	],
+	"bots_detail_not_ready_title": "This bot cannot be published yet",
 	"bots_detail_start_chat_action": "Start chat",
 	"bots_edit_action": "Edit bot",
 	"bots_tile_contents_behaviour": "Behaviour",
@@ -3177,43 +3174,12 @@
 	"error_assistant_model_not_configured": "The OrcAI Assistant is unavailable until an admin chooses its model on the organisation page.",
 	"error_auth_required": "Sign in to continue.",
 	"error_behaviour_block_type_invalid": "The linked block must be a behaviour.",
-	"error_block_in_use_by_ready_bots": "This block cannot be moved to draft because published bots use it: {botNames}.",
-	"error_block_in_use_by_unnamed_ready_bots": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "This block cannot be moved to draft because a published bot uses it.",
-				"countPlural=other": "This block cannot be moved to draft because {count} published bots use it."
-			}
-		}
-	],
-	"error_block_in_use_other_bots": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} other bot",
-				"countPlural=other": "{count} other bots"
-			}
-		}
-	],
 	"error_block_link_forbidden": "You do not have access to one or more of the selected blocks.",
 	"error_block_not_found": "Block not found.",
 	"error_block_used_by_listed_bots": "Listed bots contain this block: {botNames}. Unlist them or remove the block from them first.",
 	"error_bootstrap_user_create_failed": "The user could not be created.",
 	"error_bot_behaviour_block_not_ready": "Set the behaviour to Published before publishing this bot.",
-	"error_bot_behaviour_block_required": "Bots need a behaviour before they can be published.",
+	"error_bot_behaviour_block_required": "This bot needs a published behaviour.",
 	"error_bot_model_unavailable": "The model this bot requires is not available. Ask someone who can change the bot setup to choose another.",
 	"error_bot_not_found": "Bot not found.",
 	"error_bot_not_published": "Only published bots can be favourites.",

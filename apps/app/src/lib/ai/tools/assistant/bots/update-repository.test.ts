@@ -3,7 +3,7 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { defaultRepositoryConfig } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 const repositoryId = crypto.randomUUID() as BlockId;
@@ -60,15 +60,17 @@ const { createAssistantTurn } = await import("../turn-state");
 
 const run = (input: Record<string, unknown>) =>
 	updateRepositoryTool({
-		context: testRequestContext(),
+		context: {} as ORPCContext,
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),
-	}).execute?.(input as never, {
-		toolCallId: "update",
-		messages: [],
-		context: {},
-	});
+	}).execute?.(
+		input as never,
+		{
+			toolCallId: "update",
+			messages: [],
+		} as never,
+	);
 
 describe("updateRepositoryTool", () => {
 	test("an update sends the given assets as the full set and keeps the rest", async () => {

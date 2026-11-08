@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 import { createBehaviourInputSchema } from "./create-behaviour.declaration";
 
@@ -33,7 +33,7 @@ describe("createBehaviourTool", () => {
 
 	test("a create is a draft with the given system prompt", async () => {
 		const output = await createBehaviourTool({
-			context: testRequestContext(),
+			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -46,8 +46,7 @@ describe("createBehaviourTool", () => {
 			{
 				toolCallId: "create",
 				messages: [],
-				context: {},
-			},
+			} as never,
 		);
 
 		expect(procedureCalls).toEqual([

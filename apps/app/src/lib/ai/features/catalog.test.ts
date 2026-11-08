@@ -73,8 +73,7 @@ describe("featureCatalog", () => {
 				await tools[name].execute?.(input, {
 					toolCallId: name,
 					messages: [],
-					context: {},
-				}),
+				} as never),
 			).toEqual({
 				shown: true,
 			});

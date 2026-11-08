@@ -7,7 +7,7 @@ import { deleteAssetInputSchema } from "./delete-asset.declaration";
 export const deleteAssetTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Delete assets for good: the file, the text OrcAI prepared from it and its place in every repository. Skips assets the user may not delete.",
+			"Delete assets for good: the file, the text OrcAI prepared from it and its place in every repository. A published bot whose repository it leaves empty moves to Draft. Skips assets the user may not delete.",
 		inputSchema: deleteAssetInputSchema,
 		run: ({ ids }) =>
 			deleteNamed(deps, ids, {

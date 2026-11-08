@@ -1,5 +1,9 @@
 import type { BlockId } from "@orcai/core";
-import type { BotEditor, PublicationStatus } from "@orcai/schema";
+import {
+	type BotEditor,
+	botReadinessIssues,
+	type PublicationStatus,
+} from "@orcai/schema";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
@@ -56,6 +60,7 @@ import {
 } from "@/hooks/mutations/use-bot-mutations";
 import { useUnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { reasonMessage } from "@/lib/errors/reason-messages";
 import { orpc } from "@/lib/orpc/orpc";
 import { formatList } from "@/lib/presentation/format-list";
 import { cn } from "@/lib/utils";
@@ -68,35 +73,28 @@ const revealStep = (node: HTMLButtonElement | null) => {
 	});
 };
 
-const getPublishIssues = (editor: BotEditorFormValues) => {
-	const issues: string[] = [];
-
-	if (!editor.behaviour) {
-		issues.push(m.authoring_publish_issue_behaviour_missing());
-	}
-	if (editor.behaviour && editor.behaviour.status !== "ready") {
-		issues.push(m.authoring_publish_issue_behaviour_not_ready());
-	}
-
-	for (const repository of editor.repositories) {
-		if (repository.status !== "ready") {
-			issues.push(
-				m.authoring_publish_issue_repository_not_ready({
-					name: repository.name,
-				}),
-			);
-		}
-		if (repository.assetIds.length === 0) {
-			issues.push(
-				m.authoring_publish_issue_repository_no_assets({
-					name: repository.name,
-				}),
-			);
-		}
-	}
-
-	return issues;
-};
+/** The readiness rule over unsaved values, so publishing is offered only when the server would accept it. */
+const getPublishIssues = (editor: BotEditorFormValues) =>
+	botReadinessIssues([
+		...(editor.behaviour
+			? [
+					{
+						type: "behaviour" as const,
+						name: editor.behaviour.name,
+						status: editor.behaviour.status,
+						assetCount: 0,
+					},
+				]
+			: []),
+		...editor.repositories.map((repository) => ({
+			type: "repository" as const,
+			name: repository.name,
+			status: repository.status,
+			assetCount: repository.assetIds.length,
+		})),
+	]).map((issue) =>
+		reasonMessage(issue.reason, "params" in issue ? issue.params : undefined),
+	);
 
 const blockPath = (slot: BotEditorBlockSlot) =>
 	slot === "behaviour" ? "behaviour" : (`repositories[${slot}]` as const);

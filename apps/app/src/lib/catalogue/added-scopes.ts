@@ -8,6 +8,7 @@ import {
 } from "@/lib/authz/relationship-facts";
 import { recordRelationshipFacts } from "@/lib/authz/relationship-write";
 import { revokeIssuedGrants } from "@/lib/authz/resource-access";
+import { draftUnreadyBots } from "@/lib/bots/bot-readiness";
 
 /** The resource's added scopes: its active scopes other than its home. */
 const addedScopes = (resource: ResourceRef) =>
@@ -39,6 +40,7 @@ export const addingOrganizations = (resource: ResourceRef) =>
 /**
  * Removes the links bots home in the organisations hold to the block, and
  * the block's attachments to their chats, with the tuples of the links.
+ * Ready bots the removal leaves short of the readiness rule move to draft.
  */
 const unlinkBlock = (
 	blockId: BlockId,
@@ -89,6 +91,7 @@ const unlinkBlock = (
 				),
 			),
 		);
+		yield* draftUnreadyBots(links.map((link) => link.botId));
 		yield* recordRelationshipFacts(
 			...links.map((link) =>
 				RelationshipFact.BotBlocksChanged({

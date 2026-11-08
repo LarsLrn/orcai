@@ -17,11 +17,19 @@ test("bots: a starred bot shows in the library's and the selector's favourites",
 	pageAs,
 }) => {
 	const member = api.as("member");
+	const behaviour = await member.block.create({
+		type: "behaviour",
+		name: `E2E Favourite Behaviour ${runId()}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Created by the favourites spec.",
+		},
+	});
 	const { data: bot } = await member.bot.save({
 		name: `E2E Favourite Bot ${runId()}`,
 		description: "Created by the favourites spec.",
 		status: "ready",
-		behaviourId: null,
+		behaviourId: behaviour.data.id,
 		repositoryIds: [],
 	});
 	// The chat tour's card would cover the chat the bot starts.

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 /** Readable deletable, readable without delete, and unreadable. */
@@ -78,7 +78,7 @@ const { deleteAssetTool } = await import("./delete-asset");
 const { createAssistantTurn } = await import("../turn-state");
 
 const deps = () => ({
-	context: testRequestContext(),
+	context: {} as ORPCContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),
@@ -87,8 +87,7 @@ const deps = () => ({
 const options = {
 	toolCallId: "delete",
 	messages: [],
-	context: {},
-};
+} as never;
 
 describe("delete tools", () => {
 	test("deleteBlock returns the names it read before deleting", async () => {

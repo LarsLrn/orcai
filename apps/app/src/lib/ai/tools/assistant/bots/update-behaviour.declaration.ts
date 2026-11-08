@@ -32,7 +32,7 @@ export const updateBehaviourInputSchema = z.strictObject({
 	status: publicationStatusSchema
 		.optional()
 		.describe(
-			"ready: Published, so bots can use it. Leave out to keep the current status.",
+			"ready: Published, so bots can use it. draft moves the published bots using it to Draft. Leave out to keep the current status.",
 		),
 });
 

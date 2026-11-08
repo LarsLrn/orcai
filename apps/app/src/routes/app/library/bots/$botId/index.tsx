@@ -2,7 +2,7 @@ import type { BotId } from "@orcai/core";
 import type { PublicationStatus } from "@orcai/schema";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { MessageSquarePlusIcon } from "lucide-react";
+import { CircleAlertIcon, MessageSquarePlusIcon } from "lucide-react";
 import { MetadataCard } from "@/components/app/metadata-card";
 import { BotBlocks } from "@/components/bot/bot-blocks";
 import { BotFavouriteToggle } from "@/components/bot/bot-favourites";
@@ -18,6 +18,7 @@ import {
 } from "@/components/editor/content-renderer";
 import { FeatureBadges } from "@/components/features/feature-badges";
 import { useBotActions } from "@/components/library/resource-actions";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { StateBadge } from "@/components/ui/composed/state-badge";
 import { HeaderActions } from "@/components/ui/shell/actions";
@@ -33,6 +34,7 @@ import {
 import { Page, PageContent } from "@/components/ui/shell/page";
 import { resourceVisibilityQuery } from "@/hooks/authz/use-resource-access";
 import { hasCapability } from "@/lib/authz/capabilities";
+import { reasonMessage } from "@/lib/errors/reason-messages";
 import { orpc } from "@/lib/orpc/orpc";
 import { publicationStatusBadge } from "@/lib/presentation/publication-status";
 import { RESOURCE_KINDS } from "@/lib/presentation/resource-kind";
@@ -187,6 +189,26 @@ function RouteComponent() {
 
 			<PageContent className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="space-y-6 lg:col-span-2">
+					{draft && bot.data.readiness.length > 0 ? (
+						<Alert>
+							<CircleAlertIcon />
+							<AlertTitle>{m.bots_detail_not_ready_title()}</AlertTitle>
+							<AlertDescription>
+								<ul className="list-disc pl-4">
+									{bot.data.readiness.map((issue) => (
+										<li
+											key={`${issue.reason}:${"params" in issue ? issue.params.blockName : ""}`}
+										>
+											{reasonMessage(
+												issue.reason,
+												"params" in issue ? issue.params : undefined,
+											)}
+										</li>
+									))}
+								</ul>
+							</AlertDescription>
+						</Alert>
+					) : null}
 					{isContentEmpty(bot.data.contentJson) ? null : (
 						<div className="bg-muted/30 mt-2 rounded-md border p-3 text-sm">
 							<div className="prose prose-sm max-w-none">

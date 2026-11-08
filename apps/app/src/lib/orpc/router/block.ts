@@ -5,10 +5,9 @@ import {
 	prepareRepositoryFailedAgain,
 } from "@orcai/preparation";
 import type { Block, ResourceOwner } from "@orcai/schema";
-import { and, eq, getColumns } from "drizzle-orm";
+import { eq, getColumns } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { prepareAgainError } from "@/lib/assets/prepare-again";
-import { readableIds } from "@/lib/authz/content-access";
 import { getEntityCapabilities } from "@/lib/authz/entity-capabilities";
 import { writeRelationships } from "@/lib/authz/relationship-write";
 import {
@@ -24,14 +23,13 @@ import {
 	replaceBlockAssets,
 	requireReadableAssets,
 } from "@/lib/blocks/repository";
+import { draftingUnreadyBots } from "@/lib/bots/bot-readiness";
 import * as AppErrors from "@/lib/effect/utils/errors";
 import { libraryAccess } from "@/lib/library/library-access";
 import { homeOrganizations } from "@/lib/library/tile-details";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { requireEntityAccess } from "@/lib/orpc/middlewares/permission";
-
-const BOT_NAME_LIMIT = 5;
 
 const listBlocks = authed.block.list
 	.use(requireOrganization())
@@ -252,83 +250,39 @@ const updateBlock = authed.block.update
 				permission: "edit",
 				actor,
 			},
-			Effect.gen(function* () {
-				// Checked under the organization write lock, so a concurrent status change cannot interleave.
-				const [current] = yield* db
-					.select({
-						status: dbSchema.block.status,
-					})
-					.from(dbSchema.block)
-					.where(eq(dbSchema.block.id, input.id))
-					.for("update");
-
-				if (current?.status === "ready" && input.status === "draft") {
-					const linkedReadyBots = yield* db
-						.select({
-							id: dbSchema.bot.id,
-							name: dbSchema.bot.name,
+			draftingUnreadyBots(
+				{
+					blockIds: [
+						input.id,
+					],
+				},
+				Effect.gen(function* () {
+					const [block] = yield* db
+						.update(dbSchema.block)
+						.set({
+							...input,
+							updatedAt: new Date(),
 						})
-						.from(dbSchema.botBlock)
-						.innerJoin(
-							dbSchema.bot,
-							eq(dbSchema.bot.id, dbSchema.botBlock.botId),
-						)
-						.where(
-							and(
-								eq(dbSchema.botBlock.blockId, input.id),
-								eq(dbSchema.bot.status, "ready"),
-							),
-						);
+						.where(eq(dbSchema.block.id, input.id))
+						.returning({
+							...getColumns(dbSchema.block),
+						})
+						.pipe(Effect.map((rows) => rows as Block[]));
 
-					if (linkedReadyBots.length > 0) {
-						// Block edit does not imply read on its parent bots.
-						const readable = yield* readableIds(
-							"bot",
-							linkedReadyBots.map((bot) => bot.id),
-							actor,
-						);
-						const botNames = linkedReadyBots
-							.filter((bot) => readable.has(bot.id))
-							.slice(0, BOT_NAME_LIMIT)
-							.map((bot) => bot.name);
-						return yield* Effect.fail(
-							new AppErrors.BadRequestError({
-								reason: "BLOCK_IN_USE_BY_READY_BOTS",
-								params: {
-									botNames,
-									otherCount: linkedReadyBots.length - botNames.length,
-								},
-								message: `Cannot move this block to draft because ${linkedReadyBots.length} ready bot(s) use it.`,
-							}),
-						);
-					}
-				}
-
-				const [block] = yield* db
-					.update(dbSchema.block)
-					.set({
-						...input,
-						updatedAt: new Date(),
-					})
-					.where(eq(dbSchema.block.id, input.id))
-					.returning({
-						...getColumns(dbSchema.block),
-					})
-					.pipe(Effect.map((rows) => rows as Block[]));
-
-				return {
-					block,
-					cleanup:
-						input.type === "repository" && block.type === "repository"
-							? yield* replaceBlockAssets({
-									blockId: block.id,
-									assetIds: input.assets,
-									userId: context.auth.user.id,
-									uploadRunIds: input.uploadRunIds,
-								})
-							: undefined,
-				};
-			}),
+					return {
+						block,
+						cleanup:
+							input.type === "repository" && block.type === "repository"
+								? yield* replaceBlockAssets({
+										blockId: block.id,
+										assetIds: input.assets,
+										userId: context.auth.user.id,
+										uploadRunIds: input.uploadRunIds,
+									})
+								: undefined,
+					};
+				}),
+			),
 		);
 
 		if (input.type === "repository" && block.type === "repository") {

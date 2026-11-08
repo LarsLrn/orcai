@@ -3,7 +3,7 @@ import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import type { BotEditor, BotSetup, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 import { createBotInputSchema } from "./create-bot.declaration";
 
@@ -110,7 +110,7 @@ describe("createBotPayload", () => {
 describe("createBotTool", () => {
 	const create = (toolCallId: string, setup?: BotSetupFields | null) =>
 		createBotTool({
-			context: testRequestContext(),
+			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -123,8 +123,7 @@ describe("createBotTool", () => {
 			{
 				toolCallId,
 				messages: [],
-				context: {},
-			},
+			} as never,
 		);
 
 	test("a failed create that may have gone through says to check", async () => {
@@ -250,7 +249,7 @@ describe("createBotTool", () => {
 			);
 		await expect(
 			createBotTool({
-				context: testRequestContext(),
+				context: {} as ORPCContext,
 				turn: createAssistantTurn({
 					zedToken: undefined,
 				}),
@@ -266,8 +265,7 @@ describe("createBotTool", () => {
 				{
 					toolCallId: "link",
 					messages: [],
-					context: {},
-				},
+				} as never,
 			),
 		).rejects.toThrow(
 			`BLOCK_LINK_FORBIDDEN: You cannot link one or more of these in this organisation: behaviour ${behaviourId}, repository ${repositoryId}. Use a behaviour or repository from findBlocks that you may use in this organisation, create one with createBehaviour or createRepository, or remove the link from the bot.`,

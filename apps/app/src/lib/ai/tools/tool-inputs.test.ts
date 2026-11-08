@@ -6,7 +6,7 @@ import { createAssistantSession } from "@/lib/ai/agents/assistant-session";
 import { chatSources } from "@/lib/ai/citations/chat-sources";
 import { featureCatalog } from "@/lib/ai/features/catalog";
 import { buildGenUiTools } from "@/lib/ai/tools/gen-ui/catalog";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import "./assistant/test-procedures";
 import { createAssistantTurn } from "./assistant/turn-state";
 import { buildQuestionTools } from "./questions/toolset";
@@ -15,7 +15,9 @@ import { storedWebSearchTools } from "./web/toolset";
 
 const { buildAssistantTools } = await import("./assistant/toolset");
 
-const context = testRequestContext();
+const context = {
+	secureCookies: false,
+} as ORPCContext;
 
 const assistantTools: ToolSet = buildAssistantTools({
 	context,

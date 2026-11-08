@@ -3,7 +3,7 @@ import type { AssetId, BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 import { LIST_PAGE_SIZE } from "./list-input";
 
@@ -14,7 +14,9 @@ const { findAssetsTool } = await import("./find-assets");
 const { createAssistantTurn } = await import("../turn-state");
 
 const deps = () => ({
-	context: testRequestContext(),
+	context: {
+		secureCookies: false,
+	} as ORPCContext,
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),

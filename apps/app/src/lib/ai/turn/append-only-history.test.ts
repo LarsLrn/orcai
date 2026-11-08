@@ -518,7 +518,7 @@ const chatConversation = async (kind: ModelProviderKind, modelId: string) => {
 				features: {
 					generativeUi: {},
 				},
-			},
+			} as never,
 		}),
 		kind,
 	);

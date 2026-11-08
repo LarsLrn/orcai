@@ -7,7 +7,7 @@ import { deleteBlockInputSchema } from "./delete-block.declaration";
 export const deleteBlockTool = (deps: AssistantToolDeps) =>
 	effectTool({
 		description:
-			"Delete behaviours or repositories for good. Bots using them lose the link, and the assets in a repository stay in the Library. Skips blocks the user may not delete.",
+			"Delete behaviours or repositories for good. Bots using them lose the link, and a published bot left without a behaviour moves to Draft. The assets in a repository stay in the Library. Skips blocks the user may not delete.",
 		inputSchema: deleteBlockInputSchema,
 		run: ({ ids }) =>
 			deleteNamed(deps, ids, {

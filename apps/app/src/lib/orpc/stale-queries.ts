@@ -110,7 +110,7 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 	// Adding from the catalogue changes the library, and removing ends what the organisation built on it.
 	const additions = () => [
 		...libraryLists(),
-		orpc.bot.find.key(),
+		orpc.bot.key(),
 		orpc.block.find.key(),
 		orpc.botSetup.key(),
 		orpc.resource.listGrants.key(),
@@ -158,13 +158,18 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 		orpc.library.key(),
 		activity,
 	];
+	// Bots a block or asset write leaves short of the readiness rule move to draft.
+	const assetsAndBots = () => [
+		...assetsAndReadiness(),
+		orpc.bot.key(),
+	];
 
 	return {
 		asset: {
 			addToLibrary: assetsAndReadiness,
 			createFromUploads: assetsAndReadiness,
 			save: assetsAndReadiness,
-			delete: assetsAndReadiness,
+			delete: assetsAndBots,
 			prepareAgain: assetsAndReadiness,
 			generateMetadata: assetsAndReadiness,
 			dismissMetadataSuggestion: () => [
@@ -188,13 +193,13 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 			update: () => [
 				orpc.block.key(),
 				orpc.library.key(),
+				orpc.bot.key(),
 				activity,
 			],
-			// Bot tiles count their blocks.
 			delete: () => [
 				orpc.block.key(),
 				orpc.library.key(),
-				orpc.bot.list.key(),
+				orpc.bot.key(),
 				activity,
 			],
 			prepareAssetAgain: assetsAndReadiness,
@@ -357,8 +362,11 @@ const staleQueriesOf = (orpc: AppUtils): StaleQueries => {
 				readiness,
 				defaultChatModel,
 			],
+			// Bots elsewhere that used its blocks may have moved to draft.
 			delete: () => [
 				orpc.organization.key(),
+				orpc.bot.key(),
+				orpc.library.key(),
 				activity,
 			],
 			setLogo: logos,

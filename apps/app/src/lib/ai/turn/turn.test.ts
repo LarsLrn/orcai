@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { AssetId, BotId, ChatMessageId, ProviderId } from "@orcai/core";
+import type { AssetId, BotId, ChatMessageId } from "@orcai/core";
 import { promptTokens } from "@orcai/quota";
 import { quota } from "@orcai/quota/testing";
 import type { TurnWrite } from "@orcai/schema";
@@ -169,7 +169,7 @@ describe("startTurn", () => {
 					features: {
 						generativeUi: {},
 					},
-				},
+				} as never,
 			}),
 			"anthropic",
 		);
@@ -239,7 +239,7 @@ describe("startTurn", () => {
 					features: {
 						generativeUi: {},
 					},
-				},
+				} as never,
 			}),
 			"anthropic",
 		);
@@ -284,7 +284,7 @@ describe("startTurn", () => {
 					features: {
 						generativeUi: {},
 					},
-				},
+				} as never,
 			}),
 			"anthropic",
 		);
@@ -339,7 +339,7 @@ describe("startTurn", () => {
 					features: {
 						generativeUi: {},
 					},
-				},
+				} as never,
 			}),
 			"anthropic",
 		);
@@ -625,7 +625,7 @@ describe("context window", () => {
 					features: {
 						generativeUi: {},
 					},
-				},
+				} as never,
 			}),
 			"anthropic",
 		);
@@ -838,7 +838,7 @@ describe("compaction", () => {
 					features: {
 						generativeUi: {},
 					},
-				},
+				} as never,
 			}),
 			"openai",
 		);
@@ -1728,7 +1728,7 @@ describe("turn setup", () => {
 		expect(
 			await refusalOf(
 				chatRow({
-					config: {},
+					config: {} as never,
 				}),
 			),
 		).toBe("BadRequestError: CHAT_MODEL_NOT_CONFIGURED");
@@ -1756,8 +1756,8 @@ describe("turn setup", () => {
 				chatRow({
 					config: {
 						...chatRow().config,
-						providerId: crypto.randomUUID() as ProviderId,
-					},
+						providerId: crypto.randomUUID(),
+					} as never,
 				}),
 			),
 		).toBe("BadRequestError: MODEL_PROVIDER_MISMATCH");
@@ -2482,7 +2482,7 @@ describe("turn setup", () => {
 				config: {
 					...chatRow().config,
 					systemPrompt: "You are the chat.",
-				},
+				} as never,
 			}),
 			"anthropic",
 		);

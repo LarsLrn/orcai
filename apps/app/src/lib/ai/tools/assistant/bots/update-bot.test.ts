@@ -3,7 +3,7 @@ import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import type { BotEditor, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import { testRequestContext } from "@/lib/testing/request-context";
+import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
@@ -160,7 +160,7 @@ describe("updateBotPayload", () => {
 describe("updateBotTool", () => {
 	test("an update reads the editor record and saves it back merged", async () => {
 		const tool = updateBotTool({
-			context: testRequestContext(),
+			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -175,8 +175,7 @@ describe("updateBotTool", () => {
 			{
 				toolCallId: "update",
 				messages: [],
-				context: {},
-			},
+			} as never,
 		);
 
 		expect(
@@ -217,15 +216,17 @@ describe("updateBotTool", () => {
 
 	const run = (input: Record<string, unknown>) =>
 		updateBotTool({
-			context: testRequestContext(),
+			context: {} as ORPCContext,
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
-		}).execute?.(input as never, {
-			toolCallId: "update",
-			messages: [],
-			context: {},
-		});
+		}).execute?.(
+			input as never,
+			{
+				toolCallId: "update",
+				messages: [],
+			} as never,
+		);
 
 	test("a setup goes through the shared writer, and the result says whom it covers", async () => {
 		const modelId = crypto.randomUUID() as ModelId;
@@ -394,7 +395,7 @@ describe("updateBotTool", () => {
 
 		await expect(
 			updateBotTool({
-				context: testRequestContext(),
+				context: {} as ORPCContext,
 				turn,
 			}).execute?.(
 				{
@@ -408,8 +409,7 @@ describe("updateBotTool", () => {
 				{
 					toolCallId: "update",
 					messages: [],
-					context: {},
-				},
+				} as never,
 			),
 		).rejects.toThrow();
 		expect(turn.writes.all()).toEqual([

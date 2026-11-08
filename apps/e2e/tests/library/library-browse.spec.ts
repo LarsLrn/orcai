@@ -1,4 +1,5 @@
 import { randomInt } from "node:crypto";
+import type { BlockId } from "@orcai/core";
 import type { Locator, Page } from "@playwright/test";
 import { uploadTogether } from "../../fixtures/activity/uploads";
 import type { ApiClient } from "../../fixtures/api";
@@ -98,12 +99,13 @@ const newMenu = (page: Page) =>
 		})
 		.first();
 
-const bot = (client: ApiClient, name: string, status: "ready" | "draft") =>
+/** A draft bot, or a published one linking the ready behaviour. */
+const bot = (client: ApiClient, name: string, behaviourId?: BlockId) =>
 	client.bot.save({
 		name,
 		description: "Created by the library browse spec.",
-		status,
-		behaviourId: null,
+		status: behaviourId ? "ready" : "draft",
+		behaviourId: behaviourId ?? null,
 		repositoryIds: [],
 	});
 
@@ -129,8 +131,13 @@ test("library: Mine keeps to what the user can edit across views", async ({
 	const id = runId();
 	const own = `E2E Own Bot ${id}`;
 	const shared = `E2E Shared Bot ${id}`;
-	await bot(member, own, "ready");
-	const { data: sharedBot } = await bot(admin, shared, "ready");
+	// The member's own bot stays a draft: a behaviour of its own would show under Mine.
+	await bot(member, own);
+	const { data: sharedBehaviour } = await behaviour(
+		admin,
+		`E2E Shared Behaviour ${id}`,
+	);
+	const { data: sharedBot } = await bot(admin, shared, sharedBehaviour.id);
 	await grantUser(
 		admin,
 		{
@@ -140,16 +147,14 @@ test("library: Mine keeps to what the user can edit across views", async ({
 		memberId,
 		"viewer",
 	);
-	await behaviour(admin, `E2E Shared Behaviour ${id}`).then(({ data }) =>
-		grantUser(
-			admin,
-			{
-				resourceType: "block",
-				resourceId: data.id,
-			},
-			memberId,
-			"viewer",
-		),
+	await grantUser(
+		admin,
+		{
+			resourceType: "block",
+			resourceId: sharedBehaviour.id,
+		},
+		memberId,
+		"viewer",
 	);
 
 	const page = await pageAs("member", org);
@@ -212,11 +217,15 @@ test("library: search, filters, sort and page live in the URL and come back on B
 	const org = await orgs.create("E2E Library URL");
 	const member = api.as("member", org);
 	const id = runId();
+	const { data: urlBehaviour } = await behaviour(
+		member,
+		`E2E Url Behaviour ${id}`,
+	);
 	for (let index = 0; index < 23; index++) {
 		await bot(
 			member,
 			`E2E Url Bot ${id} ${String(index).padStart(2, "0")}`,
-			index === 22 ? "draft" : "ready",
+			index === 22 ? undefined : urlBehaviour.id,
 		);
 	}
 
@@ -304,10 +313,10 @@ test("library: the overview searches every kind in one list", async ({
 	const org = await orgs.create("E2E Library Search");
 	const member = api.as("member", org);
 	const id = runId();
-	await bot(member, `E2E Find ${id} bot`, "ready");
-	await behaviour(member, `E2E Find ${id} behaviour`);
+	const { data: found } = await behaviour(member, `E2E Find ${id} behaviour`);
+	await bot(member, `E2E Find ${id} bot`, found.id);
 	await uploadAsset(member, `E2E Find ${id} asset`);
-	await bot(member, `E2E Other ${id}`, "ready");
+	await bot(member, `E2E Other ${id}`, found.id);
 
 	const page = await pageAs("member", org);
 	await enterApp(page, org.slug);
@@ -336,8 +345,12 @@ test("library: a digit-only search from the address stays the search", async ({
 	const org = await orgs.create("E2E Library Digits");
 	const member = api.as("member", org);
 	const digits = String(randomInt(100_000_000, 1_000_000_000));
-	await bot(member, `E2E Digits ${digits}`, "ready");
-	await bot(member, "E2E Digits other", "ready");
+	const { data: digitsBehaviour } = await behaviour(
+		member,
+		"E2E Digits behaviour",
+	);
+	await bot(member, `E2E Digits ${digits}`, digitsBehaviour.id);
+	await bot(member, "E2E Digits other", digitsBehaviour.id);
 
 	const page = await pageAs("member", org);
 	await enterApp(page, org.slug);
@@ -451,7 +464,11 @@ test("library: a tile is one tab stop, then its star and menu", async ({
 	const org = await orgs.create("E2E Library Keyboard");
 	const member = api.as("member", org);
 	const name = `E2E Keyboard Bot ${runId()}`;
-	await bot(member, name, "ready");
+	const { data: keyboardBehaviour } = await behaviour(
+		member,
+		`E2E Keyboard Behaviour ${runId()}`,
+	);
+	await bot(member, name, keyboardBehaviour.id);
 
 	const page = await pageAs("member", org);
 	await enterApp(page, org.slug);
@@ -490,7 +507,7 @@ test("library: at 390 px the switch, chips, Filters drawer and full-width tiles"
 	const org = await orgs.create("E2E Library Mobile");
 	const member = api.as("member", org);
 	const name = `E2E Mobile Bot ${runId()}`;
-	await bot(member, name, "draft");
+	await bot(member, name);
 
 	const page = await pageAs("member", org);
 	await enterApp(page, org.slug);

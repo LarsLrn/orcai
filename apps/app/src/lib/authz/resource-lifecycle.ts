@@ -34,6 +34,7 @@ import {
 	grantPrincipal,
 	scopedResourceRef,
 } from "@/lib/authz/scoped-resource-id";
+import { draftingUnreadyBots } from "@/lib/bots/bot-readiness";
 
 type ResourceVisibility =
 	typeof dbSchema.resourceVisibility.$inferSelect.visibility;
@@ -435,7 +436,23 @@ export const deleteResources = (params: {
 				})
 				.where(inArray(dbSchema.chat.botId, ids as BotId[]));
 		}
-		yield* db.delete(table).where(inArray(table.id, ids));
+		const deletion = db.delete(table).where(inArray(table.id, ids));
+		// A ready bot left without a behaviour or with an empty repository moves to draft.
+		if (params.resourceType === "block")
+			yield* draftingUnreadyBots(
+				{
+					blockIds: ids as BlockId[],
+				},
+				deletion,
+			);
+		else if (params.resourceType === "asset")
+			yield* draftingUnreadyBots(
+				{
+					assetIds: ids as AssetId[],
+				},
+				deletion,
+			);
+		else yield* deletion;
 		return yield* recordDeletion({
 			indexedLinks,
 			files,

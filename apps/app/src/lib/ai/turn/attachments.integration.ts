@@ -13,12 +13,14 @@ import { CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH } from "@/settings/constants
 import { attachAssets, attachmentReader } from "./attachments";
 import { assetFixtures, PIXEL } from "./test-assets";
 
-const runtime = integrationRuntime(S3Live);
+const runtime = integrationRuntime();
 
 const run = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-	runtime.runPromise(effect as Effect.Effect<A, E, never>);
+	runtime.runPromise(
+		effect.pipe(Effect.provide(S3Live)) as Effect.Effect<A, E, never>,
+	);
 
-const { newUser, relate, privateImage, privateAssets } = assetFixtures(run);
+const { newUser, relate, privateImage, privateAsset } = assetFixtures(run);
 
 const question = (
 	attachments: ChatAgentUIMessage["attachments"],
@@ -264,25 +266,22 @@ describe("chat attachments", () => {
 	test("a file cut at the text limit is marked truncated, a file within it is not", async () => {
 		const owner = await newUser();
 		const limit = CHAT_ATTACHMENT_MAX_ATTACHMENT_TEXT_LENGTH;
-		const { assets, zedToken } = await privateAssets(owner, [
-			{
-				title: "Essay",
-				content: "a".repeat(limit),
-			},
-			{
-				title: "Thesis",
-				content: "a".repeat(limit + 1),
-			},
-		]);
+		const whole = await privateAsset(owner, "Essay", "a".repeat(limit));
+		const cut = await privateAsset(owner, "Thesis", "a".repeat(limit + 1));
 		const reader = {
 			userId: owner,
-			zedToken,
+			zedToken: cut.zedToken,
 		};
 		const attached = await run(
 			attachAssets(
-				assets.map((asset) => ({
-					assetId: asset.id,
-				})),
+				[
+					{
+						assetId: whole.asset.id,
+					},
+					{
+						assetId: cut.asset.id,
+					},
+				],
 				reader,
 			),
 		);
