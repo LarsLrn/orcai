@@ -146,8 +146,6 @@ const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 			return yield* queryAssetPoints({
 				filter: qdrantFilter,
 				limit,
-				withPayload: true,
-				withVector: false,
 				retrievalMode,
 			}).pipe(
 				Effect.map((points) => {
@@ -237,8 +235,6 @@ const queryPoints = (filters: z.infer<typeof assetPointsFiltersSchema>) =>
 						text: query,
 						filter: qdrantFilter,
 						limit: pass.candidateLimit,
-						withPayload: true,
-						withVector: false,
 						scoreThreshold: pass.scoreThreshold,
 						retrievalMode,
 					}).pipe(
@@ -400,22 +396,10 @@ const browseRepositoryAssetPoint = authed.assetPoint.browseRepository
 
 		return yield* onSearchGeneration(
 			browseAssetPoints({
-				filter: {
-					must: [
-						{
-							key: "block_id",
-							match: {
-								value: input.repositoryId,
-							},
-						},
-						{
-							key: "asset_id",
-							match: {
-								any: assetIds,
-							},
-						},
-					],
-				},
+				filter: buildQdrantFilter({
+					blockId: input.repositoryId,
+					assetIds,
+				}),
 				order: input.assetId ? "reading" : "point",
 				cursor: input.cursor,
 				limit: BROWSE_PAGE_SIZE,

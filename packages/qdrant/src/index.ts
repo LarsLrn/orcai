@@ -8,6 +8,7 @@ export {
 	QdrantError,
 	StaleEmbeddingGenerationError,
 } from "./errors";
+export { buildQdrantFilter, servedFilter } from "./filter";
 /** @public Named in the inferred types of layers built on the mutations. */
 export {
 	activeGeneration,

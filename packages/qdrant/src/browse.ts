@@ -1,10 +1,17 @@
 import type { AssetPoint, AssetPointBrowseCursor } from "@orcai/schema";
 import type { Schemas } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
-import { assetPointIndex } from "./collections";
-import { QdrantError } from "./errors";
+import { qdrantCall } from "./client";
+import type { QdrantError } from "./errors";
+import {
+	inRange,
+	matchValue,
+	payloadKey,
+	servedFilter,
+	withConditions,
+} from "./filter";
 import { EmbeddingGeneration } from "./generation";
-import { parseAssetPoints, servedFilter } from "./queries";
+import { parseAssetPoints } from "./queries";
 import { QdrantService } from "./service";
 
 type ReadingCursor = Extract<
@@ -36,7 +43,7 @@ const byChunk = (a: AssetPoint, b: AssetPoint) =>
  * 4. passages without a page, by chunk.
  */
 export const browseAssetPoints = (params: {
-	filter: Schemas["Filter"];
+	filter?: Schemas["Filter"];
 	order: AssetPointBrowseCursor["order"];
 	cursor?: AssetPointBrowseCursor;
 	limit: number;
@@ -44,45 +51,25 @@ export const browseAssetPoints = (params: {
 	Effect.gen(function* () {
 		const { client } = yield* QdrantService;
 		const { collection } = yield* EmbeddingGeneration;
-		const { chunkIndex: CHUNK, chunkPageStart: PAGE } = assetPointIndex;
+		const { chunkIndex: CHUNK, chunkPageStart: PAGE } = payloadKey;
 		const scroll = (request: Schemas["ScrollRequest"]) =>
-			Effect.tryPromise({
-				try: () =>
-					client.scroll(collection, {
-						with_payload: true,
-						with_vector: false,
-						...request,
-					}),
-				catch: (cause) =>
-					new QdrantError({
-						operation: "browse",
-						cause,
-					}),
-			});
+			qdrantCall("browse", () =>
+				client.scroll(collection, {
+					with_payload: true,
+					with_vector: false,
+					...request,
+				}),
+			);
 		const filter = servedFilter(params.filter);
-		const base = filter.must;
-		const where = (...conditions: Condition[]): Schemas["Filter"] => ({
-			...filter,
-			must: [
-				...(Array.isArray(base)
-					? base
-					: base
-						? [
-								base,
-							]
-						: []),
-				...conditions,
-			],
-		});
 		const ordered = (
-			key: string,
+			key: typeof CHUNK | typeof PAGE,
 			conditions: Condition[],
 			limit: number,
 		): Effect.Effect<AssetPoint[], QdrantError> =>
 			limit <= 0
 				? Effect.succeed([])
 				: scroll({
-						filter: where(...conditions),
+						filter: withConditions(filter, ...conditions),
 						limit,
 						order_by: {
 							key,
@@ -123,18 +110,10 @@ export const browseAssetPoints = (params: {
 					...(yield* ordered(
 						CHUNK,
 						[
-							{
-								key: PAGE,
-								match: {
-									value: after.page,
-								},
-							},
-							{
-								key: CHUNK,
-								range: {
-									gt: after.passageIndex,
-								},
-							},
+							matchValue(PAGE, after.page),
+							inRange(CHUNK, {
+								gt: after.passageIndex,
+							}),
 						],
 						wanted,
 					)),
@@ -145,16 +124,16 @@ export const browseAssetPoints = (params: {
 			const following = yield* ordered(
 				PAGE,
 				[
-					{
-						key: PAGE,
-						range: after
+					inRange(
+						PAGE,
+						after
 							? {
 									gt: after.page,
 								}
 							: {
 									gte: 1,
 								},
-					},
+					),
 				],
 				requested,
 			);
@@ -173,12 +152,7 @@ export const browseAssetPoints = (params: {
 					...(yield* ordered(
 						CHUNK,
 						[
-							{
-								key: PAGE,
-								match: {
-									value: cut,
-								},
-							},
+							matchValue(PAGE, cut),
 						],
 						wanted - points.length,
 					)),
@@ -197,12 +171,9 @@ export const browseAssetPoints = (params: {
 					},
 					...(after && after.page === null
 						? [
-								{
-									key: CHUNK,
-									range: {
-										gt: after.passageIndex,
-									},
-								},
+								inRange(CHUNK, {
+									gt: after.passageIndex,
+								}),
 							]
 						: []),
 				],
