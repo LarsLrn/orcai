@@ -551,3 +551,67 @@ test("catalogue: the sort dropdown orders the grid and the filter card's toggle 
 	await expect(hideAdded).toBeChecked();
 	await expect(tiles(page)).toHaveCount(2);
 });
+
+test("catalogue: the organisation filter links to the picked organisation's page in the rail and at 390 px", async ({
+	api,
+	org,
+	orgs,
+	pageAs,
+}) => {
+	const id = runId();
+	const author = api.as("member");
+	const block = await author.block.create({
+		type: "behaviour",
+		name: `E2E Catalogue Organisation ${id}`,
+		status: "ready",
+		config: {
+			systemPrompt: "Listed for the organisation filter.",
+		},
+	});
+	await author.resource.setVisibility({
+		resourceType: "block",
+		resourceId: block.data.id,
+		visibility: "public",
+		listBlockIds: [],
+	});
+
+	const other = await orgs.create(`E2E Catalogue Organisation ${id}`);
+	const page = await pageAs("member", other);
+	await enterApp(page, other.slug);
+	await open(page, `/app/catalogue/behaviours?query=${id}`);
+	await expect(tiles(page)).toHaveCount(1);
+
+	const organisationLink = page.getByRole("link", {
+		name: message("catalogue_organisation_page_link", {
+			organisation: org.name,
+		}),
+	});
+	await expect(organisationLink).toHaveCount(0);
+	await page
+		.getByRole("group", {
+			name: message("catalogue_filter_organisation_label"),
+		})
+		.getByRole("checkbox", {
+			name: org.name,
+		})
+		.click();
+	await expect(page).toHaveURL(/organizationIds=/);
+	await expect(organisationLink).toBeVisible();
+
+	await page.setViewportSize({
+		width: 390,
+		height: 844,
+	});
+	await expect(organisationLink).toBeVisible();
+	await expect(
+		page
+			.getByRole("navigation", {
+				name: message("catalogue_views_label"),
+			})
+			.filter({
+				visible: true,
+			}),
+	).toHaveCount(1);
+	await organisationLink.click();
+	await expect(page).toHaveURL(new RegExp(`/app/organizations/${org.id}`));
+});

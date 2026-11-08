@@ -1,22 +1,14 @@
 import type { CatalogueKind, LibrarySort } from "@orcai/schema";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-	Link,
-	type LinkProps,
-	useMatches,
-	useNavigate,
-	useSearch,
-} from "@tanstack/react-router";
+import { Link, type LinkProps, useSearch } from "@tanstack/react-router";
 import { ArrowRightIcon, CompassIcon } from "lucide-react";
-import { FilterFields } from "@/components/browse/browse-filters";
-import {
-	BrowseLayout,
-	BrowseMain,
-	BrowseNav,
-	type BrowseNavItem,
-	BrowseRail,
-} from "@/components/browse/browse-layout";
 import { BrowseResults } from "@/components/browse/browse-results";
+import {
+	BrowseShell,
+	type BrowseView,
+	useBrowseSearchChange,
+	useBrowseView,
+} from "@/components/browse/browse-shell";
 import { OrganizationLogo } from "@/components/organizations/organization-logo";
 import { DataTableSearch } from "@/components/ui/data-table/data-table-search";
 import {
@@ -53,7 +45,7 @@ export const CATALOGUE_VIEWS = [
 		to: "/app/catalogue/bots",
 		label: m.library_view_bot,
 		Icon: RESOURCE_KINDS.bot.Icon,
-		tone: "text-kind-bot",
+		tone: RESOURCE_KINDS.bot.tone,
 	},
 	{
 		view: "behaviour",
@@ -61,7 +53,7 @@ export const CATALOGUE_VIEWS = [
 		to: "/app/catalogue/behaviours",
 		label: m.library_view_behaviour,
 		Icon: RESOURCE_KINDS.behaviour.Icon,
-		tone: "text-kind-behaviour",
+		tone: RESOURCE_KINDS.behaviour.tone,
 	},
 	{
 		view: "repository",
@@ -69,18 +61,12 @@ export const CATALOGUE_VIEWS = [
 		to: "/app/catalogue/repositories",
 		label: m.library_view_repository,
 		Icon: RESOURCE_KINDS.repository.Icon,
-		tone: "text-kind-repository",
+		tone: RESOURCE_KINDS.repository.tone,
 	},
-] as const;
+] as const satisfies BrowseView<CatalogueView>[];
 
 /** The list view the current location shows, if any. */
-export const useCatalogueView = () => {
-	const routeId = useMatches({
-		select: (matches) => matches.at(-1)?.routeId,
-	});
-	return CATALOGUE_VIEWS.find((candidate) => candidate.routeId === routeId)
-		?.view;
-};
+export const useCatalogueView = () => useBrowseView(CATALOGUE_VIEWS);
 
 /** The current view as an entry's origin, if a list view shows. */
 export const useCatalogueOrigin = (): CatalogueOrigin | undefined => {
@@ -124,22 +110,13 @@ const useCatalogueOrganizations = () => {
 
 /** The current view's filters, search params, and changes to them that start over on the first page. */
 const useCatalogueSearch = (view: CatalogueView) => {
-	const navigate = useNavigate();
+	const update = useBrowseSearchChange();
 	const filters = catalogueFilters(useCatalogueOrganizations())[view];
 	const search = catalogueSearchSchemas[view].parse(
 		useSearch({
 			strict: false,
 		}),
 	) as CatalogueSearch<CatalogueView> & FilterValues<typeof filters>;
-	const update = (patch: Record<string, unknown>) =>
-		void navigate({
-			to: ".",
-			search: (previous) => ({
-				...previous,
-				...patch,
-				pageIndex: 0,
-			}),
-		});
 	return {
 		filters,
 		search,
@@ -211,11 +188,7 @@ const CatalogueHeader = () => {
 	);
 };
 
-/**
- * The catalogue's browsing shell around a list view: header with search, the
- * rail with the views, their counts and the view's filters; below `lg` the
- * views as chips above the results.
- */
+/** The catalogue around a list view: header with search, the views with their counts and links to the picked organisations. */
 export const CatalogueBrowse = ({
 	view,
 	children,
@@ -228,51 +201,25 @@ export const CatalogueBrowse = ({
 		...catalogueCountsQuery(search),
 		placeholderData: keepPreviousData,
 	});
-	const items: BrowseNavItem[] = CATALOGUE_VIEWS.map((item) => ({
-		key: item.view,
-		label: item.label(),
-		Icon: item.Icon,
-		iconClassName: item.tone,
-		count:
-			item.view === "overview" ? undefined : counts?.data.counts[item.view],
-		active: item.view === view,
-		linkProps: {
-			to: item.to,
-		},
-	}));
 	const showFilters = view !== "overview" || search.query !== "";
 
 	return (
-		<div className="flex flex-col gap-6">
-			<CatalogueHeader />
-			<BrowseLayout>
-				<BrowseRail>
-					<BrowseNav
-						items={items}
-						label={m.catalogue_views_label()}
-						orientation="vertical"
-					/>
-					{showFilters ? (
-						<FilterFields
-							filters={filters}
-							values={search}
-							onChange={setFilter}
-						/>
-					) : null}
-				</BrowseRail>
-				<BrowseMain>
-					<BrowseNav
-						items={items}
-						label={m.catalogue_views_label()}
-						orientation="horizontal"
-					/>
-					{showFilters ? (
-						<PickedOrganizations organizationIds={search.organizationIds} />
-					) : null}
-					{children}
-				</BrowseMain>
-			</BrowseLayout>
-		</div>
+		<BrowseShell
+			header={<CatalogueHeader />}
+			views={CATALOGUE_VIEWS}
+			view={view}
+			counts={counts?.data.counts ?? {}}
+			navLabel={m.catalogue_views_label()}
+			filters={filters}
+			values={search}
+			onFilter={setFilter}
+			showFilters={showFilters}
+		>
+			{showFilters ? (
+				<PickedOrganizations organizationIds={search.organizationIds} />
+			) : null}
+			{children}
+		</BrowseShell>
 	);
 };
 

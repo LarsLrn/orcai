@@ -1,5 +1,6 @@
 import { randomInt } from "node:crypto";
 import type { Locator, Page } from "@playwright/test";
+import { uploadTogether } from "../../fixtures/activity/uploads";
 import type { ApiClient } from "../../fixtures/api";
 import { uploadAsset } from "../../fixtures/assets";
 import { grantUser } from "../../fixtures/authz/resources";
@@ -526,4 +527,46 @@ test("library: at 390 px the switch, chips, Filters drawer and full-width tiles"
 	const box = await tile(page, name).boundingBox();
 	expect(box?.width).toBeGreaterThan(350);
 	await expect(sortButton(page, "browse_sort_newest")).toBeVisible();
+});
+
+test("library: a filter or Mine leaves an activity run's assets for the whole view", async ({
+	api,
+	orgs,
+	pageAs,
+}) => {
+	const org = await orgs.create("E2E Library Run");
+	const member = api.as("member", org);
+	await uploadTogether(member, [
+		`E2E Run ${runId()}.txt`,
+		`E2E Run ${runId()}.txt`,
+	]);
+	const runs = await member.activity.runs({
+		limit: 1,
+	});
+	const run = runs.data[0];
+	if (!run) throw new Error("Expected the upload's activity run");
+	const clearRun = (page: Page) =>
+		page.getByRole("link", {
+			name: message("activity_library_run_filter_clear"),
+		});
+
+	const page = await pageAs("member", org);
+	await enterApp(page, org.slug);
+	await open(page, `/app/library/assets?run=${run.id}`);
+	await expect(clearRun(page)).toBeVisible();
+	await scope(page, "library_scope_mine").click();
+	await expect(page).not.toHaveURL(/run=/);
+	await expect(page).toHaveURL(/scope=edit/);
+	await expect(clearRun(page)).toHaveCount(0);
+
+	await open(page, `/app/library/assets?run=${run.id}`);
+	await expect(clearRun(page)).toBeVisible();
+	await filter(
+		page,
+		"library_filter_kept_in_label",
+		"library_filter_kept_in_chat",
+	).click();
+	await expect(page).not.toHaveURL(/run=/);
+	await expect(page).toHaveURL(/keptIn=chat/);
+	await expect(clearRun(page)).toHaveCount(0);
 });
