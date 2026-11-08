@@ -12,8 +12,7 @@ import { sendTurn } from "../../fixtures/chat/chat";
 import { expect, signIn, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { addMember } from "../../fixtures/orgs/members";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 test("assistant: a user in two organisations sees each one's conversations only there", async ({
 	api,

@@ -105,7 +105,7 @@ Every page from these fixtures fails its test when it throws an uncaught error, 
 
 The `inference` fixture's scripted replies and failures reset before and after every test that uses it, including failed tests, and other workers keep their own scenarios. The mock's own contract tests are unit tests in `packages/ai/test`.
 
-`fixtures/users.ts` creates the users a test may change: `createUser` for one in no organisation, `createMember` for a member of the caller's organisation. `open` and `submitForm` wait until the page has hydrated; after a reload `open` did not make, call `awaitHydration` before interacting.
+`fixtures/users.ts` creates the users a test may change: `createUser` for one in no organisation, `createMember` for a member of the caller's organisation, and `addMember` adds an existing user to another organisation. `open` and `submitForm` wait until the page has hydrated; after a reload `open` did not make, call `awaitHydration` before interacting.
 
 The suite does not cover email delivery, real AI endpoints or OCR. Background workers run only for the pipeline specs.
 

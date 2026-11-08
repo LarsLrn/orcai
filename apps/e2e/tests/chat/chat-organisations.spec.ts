@@ -4,8 +4,7 @@ import { skipChatTour } from "../../fixtures/chat/chat";
 import { expect, signIn, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { addMember } from "../../fixtures/orgs/members";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 test("chat: the chat list follows the active organisation, and another organisation's chat is read-only", async ({
 	api,

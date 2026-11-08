@@ -35,20 +35,13 @@ export const uploadTextFiles = async (
 		.click();
 };
 
-/** The widget's row of the file `name`, told apart from the file `other`. */
-export const uploadRow = (
-	widget: Locator,
-	name: string,
-	other: string,
-): Locator =>
-	widget
-		.locator("div")
-		.filter({
-			hasText: name,
-		})
-		.filter({
-			hasNotText: other,
-		});
+/** The widget's row of the file `name`. */
+export const uploadRow = (widget: Locator, name: string): Locator =>
+	widget.getByRole("listitem").filter({
+		has: widget.page().getByText(name, {
+			exact: true,
+		}),
+	});
 
 /** The widget's Continue, which answers the call with the files it lists. */
 export const continueButton = (widget: Locator): Locator =>

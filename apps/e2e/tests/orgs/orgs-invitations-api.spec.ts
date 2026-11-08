@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { organizationInvitationIdSchema } from "@orcai/schema";
 import { createApiClient } from "../../fixtures/api";
+import { inviteEmail } from "../../fixtures/auth";
 import { rejection } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
-import { invitationEmail, inviteEmail } from "../../fixtures/orgs/invitations";
+import { invitationEmail } from "../../fixtures/orgs/invitations";
 import { memberRole } from "../../fixtures/orgs/members";
 import { createUser } from "../../fixtures/users";
 

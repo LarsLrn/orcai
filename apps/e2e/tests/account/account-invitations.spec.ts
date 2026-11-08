@@ -2,12 +2,10 @@ import {
 	accountCard,
 	openAccountPage,
 } from "../../fixtures/account/navigation";
+import { inviteEmail } from "../../fixtures/auth";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { createMember } from "../../fixtures/users";
-
-/** How long the app's own invitation form gives an invitation. */
-const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 test("account: the invitations card shows a pending invitation and accepting it adds the membership", async ({
 	api,
@@ -22,14 +20,9 @@ test("account: the invitations card shows a pending invitation and accepting it 
 	// The invitation has to come from an organisation the user is not in yet.
 	const second = await orgs.create("Account Invitations");
 
-	await api.as("admin", second).organizationInvitation.create({
+	await inviteEmail(api.as("admin", second), {
+		email: user.email,
 		role: "member",
-		expiresAt: new Date(Date.now() + ONE_WEEK),
-		items: [
-			{
-				email: user.email,
-			},
-		],
 	});
 
 	const page = await pageForSession(user.session);
@@ -41,15 +34,17 @@ test("account: the invitations card shows a pending invitation and accepting it 
 		message("account_invitations_card_title"),
 	);
 
-	// The list carries the organisation's name and slug, so the invitee
-	// can tell the entries apart without reading the organisation.
-	const entry = invitations
-		.getByText(`@${second.slug}`, {
-			exact: true,
-		})
-		.locator('xpath=ancestor::div[@data-slot="card"][1]');
+	const entry = invitations.getByRole("group", {
+		name: second.name,
+		exact: true,
+	});
 
 	await expect(entry).toBeVisible();
+	await expect(
+		entry.getByText(`@${second.slug}`, {
+			exact: true,
+		}),
+	).toBeVisible();
 	await expect(
 		entry.getByText(message("orgs_invitation_status_pending")),
 	).toBeVisible();
@@ -86,14 +81,9 @@ test("account: the invitations card names the inviting organisation", async ({
 	});
 	const second = await orgs.create("Account Invitation Name");
 
-	await api.as("admin", second).organizationInvitation.create({
+	await inviteEmail(api.as("admin", second), {
+		email: user.email,
 		role: "member",
-		expiresAt: new Date(Date.now() + ONE_WEEK),
-		items: [
-			{
-				email: user.email,
-			},
-		],
 	});
 
 	const page = await pageForSession(user.session);

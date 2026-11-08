@@ -2,7 +2,7 @@ import { expectDenied, expectForbidden } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
 import { message } from "../../fixtures/messages";
 import { enterApp, open } from "../../fixtures/navigation";
-import { addMember, memberRole } from "../../fixtures/orgs/members";
+import { memberRole } from "../../fixtures/orgs/members";
 import { openGuarded } from "../../fixtures/orgs/navigation";
 import {
 	chooseRole,
@@ -10,7 +10,7 @@ import {
 	roleOption,
 	rolePicker,
 } from "../../fixtures/orgs/roles";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 test("orgs: an admin changes a member's role from the member's page", async ({
 	api,

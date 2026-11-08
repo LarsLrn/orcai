@@ -1,4 +1,5 @@
 import type { OrganizationInvitationId } from "@orcai/core";
+import type { OrganizationInvitation } from "@orcai/schema";
 import type { BrowserContextOptions } from "@playwright/test";
 import { type ApiClient, createApiClient, ZED_TOKEN_COOKIE } from "./api";
 import { type Role, USER_PASSWORD } from "./constants";
@@ -176,6 +177,27 @@ export const attemptSignUp = async (
 /** How long a fixture invitation lives, matching the app's own form. */
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
+/** Invite one address into the active organisation of `admin` and return the invitation. */
+export const inviteEmail = async (
+	admin: ApiClient,
+	invitation: {
+		email: string;
+		role: Role;
+	},
+): Promise<OrganizationInvitation> => {
+	const created = await admin.organizationInvitation.create({
+		role: invitation.role,
+		expiresAt: new Date(Date.now() + ONE_WEEK),
+		items: [
+			{
+				email: invitation.email,
+			},
+		],
+	});
+
+	return created.data[0];
+};
+
 /**
  * Invite an address into the active organisation of `admin`, then sign it up.
  * The user comes back a member with the invited role and, if this is its only
@@ -198,18 +220,10 @@ export const signUpInvited = async (params: {
 	}
 > => {
 	const password = params.password ?? USER_PASSWORD;
-	const created = await params.admin.organizationInvitation.create({
-		role: params.role,
-		expiresAt: new Date(Date.now() + ONE_WEEK),
-		items: [
-			{
-				email: params.email,
-			},
-		],
-	});
+	const { id: invitationId } = await inviteEmail(params.admin, params);
 
 	const response = await attemptSignUp(params.baseURL, {
-		invitationId: created.data[0].id,
+		invitationId,
 		name: params.name,
 		email: params.email,
 		password,
@@ -235,7 +249,7 @@ export const signUpInvited = async (params: {
 
 	return {
 		...session,
-		invitationId: created.data[0].id,
+		invitationId,
 	};
 };
 

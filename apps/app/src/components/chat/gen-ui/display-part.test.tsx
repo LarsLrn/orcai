@@ -144,7 +144,7 @@ describe("DisplayPart", () => {
 			);
 
 			await waitFor(() => expect(container.textContent).toContain(text));
-			expect(container.querySelector(".rounded-xl.border.bg-card")).toBeNull();
+			expect(screen.queryByRole("group")).toBeNull();
 		},
 	);
 
@@ -159,7 +159,11 @@ describe("DisplayPart", () => {
 		);
 
 		await waitFor(() =>
-			expect(container.querySelector("h3")?.textContent).toBe("Cut off"),
+			expect(
+				screen.getByRole("heading", {
+					name: "Cut off",
+				}),
+			).toBeDefined(),
 		);
 		expect(container.querySelector('[data-slot="skeleton"]')).toBeNull();
 	});

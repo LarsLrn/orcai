@@ -65,9 +65,7 @@ describe("matrixSchema", () => {
 
 describe("Matrix", () => {
 	test("renders column headers in order and a tally over all cells", () => {
-		const { container } = render(
-			<Matrix view={readMatrix(referenceMatrix)} streaming={false} />,
-		);
+		render(<Matrix view={readMatrix(referenceMatrix)} streaming={false} />);
 
 		expect(
 			screen.getAllByRole("columnheader").map((header) => header.textContent),
@@ -78,13 +76,16 @@ describe("Matrix", () => {
 			"DOI",
 			"",
 		]);
-		const header = container.querySelector("h3")?.parentElement as HTMLElement;
 		expect(
-			within(header)
-				.getAllByRole("img")
-				.map((icon) => [
-					icon.getAttribute("aria-label"),
-					icon.parentElement?.textContent,
+			within(
+				screen.getByRole("list", {
+					name: "Status counts",
+				}),
+			)
+				.getAllByRole("listitem")
+				.map((item) => [
+					within(item).getByRole("img").getAttribute("aria-label"),
+					item.textContent,
 				]),
 		).toEqual([
 			[
@@ -144,7 +145,7 @@ describe("Matrix", () => {
 				...(notes?.querySelectorAll("li") ?? []),
 			].map((note) => [
 				note.querySelector("[role=img]")?.getAttribute("aria-label"),
-				note.querySelector(".font-medium")?.textContent,
+				within(note).getByRole("strong").textContent,
 			]),
 		).toEqual([
 			[

@@ -1,13 +1,8 @@
-import type { OrganizationRole } from "@orcai/core";
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { createApiClient, ZED_TOKEN_COOKIE, type ZedTokenStore } from "../api";
-import { baseURL } from "../env";
-import type { Api } from "../index";
+import { ZED_TOKEN_COOKIE, type ZedTokenStore } from "../api";
 import { message } from "../messages";
 import { open } from "../navigation";
-import type { WorkerOrganisation } from "../organisation";
-import type { FreshUser } from "../users";
 
 /** A behaviour, the one grantable resource that needs no model, provider, or worker. */
 export const behaviourInput = (name: string) => ({
@@ -18,40 +13,6 @@ export const behaviourInput = (name: string) => ({
 		systemPrompt: "Created by the members slice.",
 	},
 });
-
-/** How long a fixture invitation lives, matching the app's own form. */
-const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-
-/** Add a throwaway user to a worker organisation: invite the address, then accept as the user.
- * Pass the test's `zedTokens` so the acceptance revision reaches its other clients and pages. */
-export const addMember = async (
-	api: Api,
-	organisation: WorkerOrganisation,
-	user: FreshUser,
-	role: OrganizationRole = "member",
-	zedTokens?: ZedTokenStore,
-): Promise<void> => {
-	const invited = await api
-		.as("admin", organisation)
-		.organizationInvitation.create({
-			role,
-			expiresAt: new Date(Date.now() + ONE_WEEK),
-			items: [
-				{
-					email: user.email,
-				},
-			],
-		});
-
-	await createApiClient(
-		baseURL(),
-		user.session.cookieHeader,
-		zedTokens,
-	).organizationInvitation.respond({
-		id: invited.data[0].id,
-		response: "accept",
-	});
-};
 
 /** Carry the newest revision a page has been given back to the test's API clients. */
 export const adoptZedToken = async (

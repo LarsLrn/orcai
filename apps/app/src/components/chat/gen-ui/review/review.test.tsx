@@ -107,22 +107,23 @@ describe("reviewSchema", () => {
 
 describe("Review", () => {
 	test("renders the header with title and a tally of item statuses", () => {
-		const { container } = render(
-			<Review view={readReview(referenceReview)} streaming={false} />,
-		);
+		render(<Review view={readReview(referenceReview)} streaming={false} />);
 
 		expect(
 			screen.getByRole("heading", {
 				name: "APA 7 reference check",
 			}),
 		).toBeDefined();
-		const header = container.querySelector("h3")?.parentElement as HTMLElement;
 		expect(
-			within(header)
-				.getAllByRole("img")
-				.map((icon) => [
-					icon.getAttribute("aria-label"),
-					icon.parentElement?.textContent,
+			within(
+				screen.getByRole("list", {
+					name: "Status counts",
+				}),
+			)
+				.getAllByRole("listitem")
+				.map((item) => [
+					within(item).getByRole("img").getAttribute("aria-label"),
+					item.textContent,
 				]),
 		).toEqual([
 			[
@@ -176,10 +177,10 @@ describe("Review", () => {
 			"the main qualitative research methods3",
 		]);
 		const numbered = [
-			...row.querySelectorAll("ul li"),
+			...row.querySelectorAll<HTMLElement>("ul li"),
 		].map((finding) => [
 			finding.querySelector("sup")?.textContent,
-			finding.querySelector(".font-medium")?.textContent,
+			within(finding).getByRole("strong").textContent,
 		]);
 		expect(numbered).toEqual([
 			[

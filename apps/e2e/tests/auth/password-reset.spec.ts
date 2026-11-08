@@ -47,7 +47,9 @@ test("a user resets the password from the emailed link, which revokes the old se
 	await submitForm(page, {
 		fill: async () => {
 			await page
-				.getByLabel(message("auth_reset_password_form_new_password_label"))
+				.getByLabel(message("auth_reset_password_form_new_password_label"), {
+					exact: true,
+				})
 				.fill(newPassword);
 			await page
 				.getByLabel(message("auth_reset_password_form_confirm_password_label"))

@@ -70,20 +70,18 @@ test("analytics: an admin sees usage and ratings of a bot they cannot open as ot
 		}),
 	).toBeVisible();
 
-	const bots = page.locator("[data-slot=card]", {
-		has: page.getByText(message("analytics_bots_title"), {
-			exact: true,
-		}),
+	const bots = page.getByRole("group", {
+		name: message("analytics_bots_title"),
+		exact: true,
 	});
 	await expect(
 		bots.getByRole("row").filter({
 			hasText: message("analytics_other_bots_label"),
 		}),
 	).toBeVisible();
-	const ratings = page.locator("[data-slot=card]", {
-		has: page.getByText(message("analytics_ratings_title"), {
-			exact: true,
-		}),
+	const ratings = page.getByRole("group", {
+		name: message("analytics_ratings_title"),
+		exact: true,
 	});
 	await expect(
 		ratings.getByRole("row").filter({

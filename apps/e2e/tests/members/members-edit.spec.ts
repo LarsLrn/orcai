@@ -1,7 +1,6 @@
 import { expectDenied } from "../../fixtures/authorization";
 import { expect, test } from "../../fixtures/index";
 import {
-	addMember,
 	behaviourInput,
 	chooseRole,
 	reachPage,
@@ -9,7 +8,7 @@ import {
 import { message } from "../../fixtures/messages";
 import { enterApp } from "../../fixtures/navigation";
 import { runId } from "../../fixtures/organisation";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 test("members: the edit page shows what an admin may know about a user", async ({
 	api,
@@ -18,7 +17,11 @@ test("members: the edit page shows what an admin may know about a user", async (
 	zedTokens,
 }) => {
 	const user = await createUser("details");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	// A block only this test grants, so the table carries a row of its own.
 	const blockName = `E2E Users Block ${runId()}`;
@@ -110,7 +113,11 @@ test("members: the edit page reports a user without resource access", async ({
 	// A new organisation grants nothing and owns no resources, so the table is empty.
 	const org = await orgs.create("E2E Users No Access");
 	const user = await createUser("no-access");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("admin", org);
 	await enterApp(page, org.slug);
@@ -138,7 +145,11 @@ test("members: an admin changes a user's organisation role", async ({
 	zedTokens,
 }) => {
 	const user = await createUser("promoted");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);
@@ -170,7 +181,11 @@ test("members: a manager may not hand out the admin role", async ({
 	zedTokens,
 }) => {
 	const user = await createUser("not-admin");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("manager");
 	await enterApp(page, org.slug);
@@ -223,7 +238,11 @@ test("members: an organisation admin is not offered ban or delete", async ({
 	zedTokens,
 }) => {
 	const user = await createUser("banned");
-	await addMember(api, org, user, "member", zedTokens);
+	await addMember(api.as("admin", org), {
+		user,
+		role: "member",
+		zedTokens,
+	});
 
 	const page = await pageAs("admin");
 	await enterApp(page, org.slug);

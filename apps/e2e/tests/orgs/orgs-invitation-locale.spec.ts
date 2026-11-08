@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { storeLocale } from "../../fixtures/account/locale";
 import { createApiClient } from "../../fixtures/api";
+import { inviteEmail } from "../../fixtures/auth";
 import { expectEmailIn, queuedEmail } from "../../fixtures/emails/render";
 import { submitForm } from "../../fixtures/forms";
 import { expect, test } from "../../fixtures/index";
@@ -9,11 +10,9 @@ import { enterApp } from "../../fixtures/navigation";
 import {
 	INVITED_NOTIFICATION,
 	invitationEmail,
-	inviteEmail,
 } from "../../fixtures/orgs/invitations";
-import { addMember } from "../../fixtures/orgs/members";
 import { openGuarded } from "../../fixtures/orgs/navigation";
-import { createUser } from "../../fixtures/users";
+import { addMember, createUser } from "../../fixtures/users";
 
 /**
  * The first address field. By role, because a label also matches the hidden

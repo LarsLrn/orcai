@@ -117,7 +117,7 @@ test("assistant: requestUpload lists uploads until Continue, keeps them over a r
 		(asset) => asset.title === removedName,
 	)?.id;
 
-	await uploadRow(widget, removedName, fileName)
+	await uploadRow(widget, removedName)
 		.getByRole("button", {
 			name: message("common_remove_button"),
 			exact: true,

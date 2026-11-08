@@ -1,4 +1,5 @@
 import { storeLocale } from "../../fixtures/account/locale";
+import { inviteEmail } from "../../fixtures/auth";
 import { waitForLink } from "../../fixtures/auth/outbox";
 import { USER_PASSWORD } from "../../fixtures/constants";
 import { expectEmailIn, queuedEmail } from "../../fixtures/emails/render";
@@ -9,7 +10,6 @@ import { open } from "../../fixtures/navigation";
 import {
 	INVITED_NOTIFICATION,
 	invitationEmail,
-	inviteEmail,
 	registerFromInvitation,
 } from "../../fixtures/orgs/invitations";
 import { createUser } from "../../fixtures/users";

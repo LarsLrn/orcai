@@ -60,7 +60,7 @@ test("security: every main area loads under the Content Security Policy without 
 	const signedIn = violationsOf(memberPage);
 	await enterApp(memberPage, org.slug);
 	await openChat(memberPage, chatId);
-	await expect(memberPage.locator(".katex").first()).toBeVisible();
+	await expect(memberPage.getByRole("math").first()).toBeVisible();
 	for (const path of [
 		"/app",
 		"/app/library",

@@ -1,5 +1,5 @@
 import { ChevronDownIcon } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, useId, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { StatusIcon, Tally } from "@/components/chat/gen-ui/status-icon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,12 +36,22 @@ export const Matrix = ({
 	const { title, columns, rows } = view;
 	const statuses = rows.flatMap((row) => row.cells.map((cell) => cell.status));
 	const withHeader = Boolean(title) || statuses.some(Boolean);
+	const titleId = useId();
 
 	return (
-		<div className="bg-card overflow-hidden rounded-xl border">
+		// biome-ignore lint/a11y/useSemanticElements: groups content, not form controls
+		<div
+			role="group"
+			aria-labelledby={title ? titleId : undefined}
+			className="bg-card overflow-hidden rounded-xl border"
+		>
 			{withHeader && (
 				<div className="flex items-center justify-between gap-4 border-b px-4 py-3">
-					{title && <h3 className="min-w-0 text-sm font-medium">{title}</h3>}
+					{title && (
+						<h3 id={titleId} className="min-w-0 text-sm font-medium">
+							{title}
+						</h3>
+					)}
 					<Tally statuses={statuses} className="ml-auto" />
 				</div>
 			)}
@@ -125,9 +135,9 @@ export const Matrix = ({
 														<li key={note.column.key} className="flex gap-2.5">
 															<StatusIcon status={note.status} />
 															<div className="min-w-0 flex-1">
-																<span className="font-medium">
+																<strong className="font-medium">
 																	{note.column.label}
-																</span>{" "}
+																</strong>{" "}
 																<MessageResponse className="text-muted-foreground inline [&>p]:inline">
 																	{note.note}
 																</MessageResponse>

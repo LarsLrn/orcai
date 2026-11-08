@@ -1,4 +1,4 @@
-import { use } from "react";
+import { use, useId } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
 import { StatusIcon, statusTone } from "@/components/chat/gen-ui/status-icon";
 import { SendMessageContext } from "@/components/chat/send-message";
@@ -89,6 +89,7 @@ export const QuizResult = ({
 	streaming: boolean;
 }) => {
 	const send = use(SendMessageContext);
+	const titleId = useId();
 	const { result } = view;
 
 	if (!result) {
@@ -107,9 +108,14 @@ export const QuizResult = ({
 	const multipleSections = result.sections.length > 1;
 
 	return (
-		<div className="not-prose bg-card overflow-hidden rounded-xl border">
+		// biome-ignore lint/a11y/useSemanticElements: groups content, not form controls
+		<div
+			role="group"
+			aria-labelledby={titleId}
+			className="not-prose bg-card overflow-hidden rounded-xl border"
+		>
 			<div className="flex items-center justify-between gap-4 border-b px-4 py-3">
-				<h3 className="text-sm font-medium">
+				<h3 id={titleId} className="text-sm font-medium">
 					{result.title ?? m.gen_ui_quiz_result_title()}
 				</h3>
 				<span className="text-sm font-medium tabular-nums">

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { type Status, statusLabel, tally } from "@/lib/ai/tools/gen-ui/status";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const statusTone: Record<Status, string> = {
 	met: "text-status-success",
@@ -72,15 +73,18 @@ export const Tally = ({
 	statuses: readonly (Status | undefined)[];
 	className?: string;
 }) => (
-	<div className={cn("flex shrink-0 items-center gap-2.5 text-xs", className)}>
+	<ul
+		aria-label={m.gen_ui_status_counts_label()}
+		className={cn("flex shrink-0 items-center gap-2.5 text-xs", className)}
+	>
 		{tally(statuses).map(({ status, count }) => (
-			<span
+			<li
 				key={status}
 				className={cn("flex items-center gap-1", statusTone[status])}
 			>
 				<StatusIcon status={status} className="size-3.5" />
 				{count}
-			</span>
+			</li>
 		))}
-	</div>
+	</ul>
 );
