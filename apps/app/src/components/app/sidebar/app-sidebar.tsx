@@ -21,7 +21,7 @@ const AppSidebar = () => {
 			<SidebarHeader>
 				<SidebarLogo />
 				<Link
-					to="/app/chat/start"
+					to="/app/chat/new"
 					className={buttonVariants({
 						size: "sm",
 					})}

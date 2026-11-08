@@ -59,7 +59,6 @@ import { Route as AppCatalogueIndexRouteImport } from './routes/app/catalogue/in
 import { Route as AppCatalogueKindRouteRouteImport } from './routes/app/catalogue/$kind/route'
 import { Route as AppChatIndexRouteImport } from './routes/app/chat/index'
 import { Route as AppChatNewRouteImport } from './routes/app/chat/new'
-import { Route as AppChatStartRouteImport } from './routes/app/chat/start'
 import { Route as AppGroupsIndexRouteImport } from './routes/app/groups/index'
 import { Route as AppGroupsGroupIdRouteRouteImport } from './routes/app/groups/$groupId/route'
 import { Route as AppLibraryIndexRouteImport } from './routes/app/library/index'
@@ -377,11 +376,6 @@ const AppChatIndexRoute = AppChatIndexRouteImport.update({
 const AppChatNewRoute = AppChatNewRouteImport.update({
   id: '/new',
   path: '/new',
-  getParentRoute: () => AppChatRouteRoute,
-} as any)
-const AppChatStartRoute = AppChatStartRouteImport.update({
-  id: '/start',
-  path: '/start',
   getParentRoute: () => AppChatRouteRoute,
 } as any)
 const AppGroupsIndexRoute = AppGroupsIndexRouteImport.update({
@@ -764,7 +758,6 @@ export interface FileRoutesByFullPath {
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
-  '/app/chat/start': typeof AppChatStartRoute
   '/app/members/add': typeof AppMembersAddRoute
   '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
@@ -851,7 +844,6 @@ export interface FileRoutesByTo {
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
-  '/app/chat/start': typeof AppChatStartRoute
   '/app/members/add': typeof AppMembersAddRoute
   '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
@@ -961,7 +953,6 @@ export interface FileRoutesById {
   '/app/account/invitations': typeof AppAccountInvitationsRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/chat/new': typeof AppChatNewRoute
-  '/app/chat/start': typeof AppChatStartRoute
   '/app/members/add': typeof AppMembersAddRoute
   '/app/members/invitations': typeof AppMembersInvitationsRoute
   '/app/models/add': typeof AppModelsAddRoute
@@ -1075,7 +1066,6 @@ export interface FileRouteTypes {
     | '/app/account/invitations'
     | '/app/account/security'
     | '/app/chat/new'
-    | '/app/chat/start'
     | '/app/members/add'
     | '/app/members/invitations'
     | '/app/models/add'
@@ -1162,7 +1152,6 @@ export interface FileRouteTypes {
     | '/app/account/invitations'
     | '/app/account/security'
     | '/app/chat/new'
-    | '/app/chat/start'
     | '/app/members/add'
     | '/app/members/invitations'
     | '/app/models/add'
@@ -1271,7 +1260,6 @@ export interface FileRouteTypes {
     | '/app/account/invitations'
     | '/app/account/security'
     | '/app/chat/new'
-    | '/app/chat/start'
     | '/app/members/add'
     | '/app/members/invitations'
     | '/app/models/add'
@@ -1695,13 +1683,6 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/app/chat/new'
       preLoaderRoute: typeof AppChatNewRouteImport
-      parentRoute: typeof AppChatRouteRoute
-    }
-    '/app/chat/start': {
-      id: '/app/chat/start'
-      path: '/start'
-      fullPath: '/app/chat/start'
-      preLoaderRoute: typeof AppChatStartRouteImport
       parentRoute: typeof AppChatRouteRoute
     }
     '/app/groups/': {
@@ -2285,14 +2266,12 @@ const AppCatalogueRouteRouteWithChildren =
 
 interface AppChatRouteRouteChildren {
   AppChatNewRoute: typeof AppChatNewRoute
-  AppChatStartRoute: typeof AppChatStartRoute
   AppChatIndexRoute: typeof AppChatIndexRoute
   AppChatChatIdIndexRoute: typeof AppChatChatIdIndexRoute
 }
 
 const AppChatRouteRouteChildren: AppChatRouteRouteChildren = {
   AppChatNewRoute: AppChatNewRoute,
-  AppChatStartRoute: AppChatStartRoute,
   AppChatIndexRoute: AppChatIndexRoute,
   AppChatChatIdIndexRoute: AppChatChatIdIndexRoute,
 }
@@ -2692,3 +2671,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
