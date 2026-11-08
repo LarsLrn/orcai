@@ -9,23 +9,23 @@ import { servedFilter } from "./filter";
 import { EmbeddingGeneration } from "./generation";
 import { QdrantService } from "./service";
 
+// A record without a number gets 0; a number that is not finite still fails.
+const unrankedAsZero = z.preprocess(
+	(value) => (typeof value === "number" ? value : 0),
+	z.number(),
+);
+
+const qdrantPointsSchema = z.array(
+	assetPointSchema.extend({
+		version: unrankedAsZero,
+		score: unrankedAsZero,
+	}),
+);
+
 /** Qdrant records as asset points; records without a score or version get 0. */
-export const parseAssetPoints = (points: ReadonlyArray<object>) =>
+export const parseAssetPoints = (points: readonly unknown[]) =>
 	Effect.try({
-		try: () =>
-			z.array(assetPointSchema).parse(
-				points.map((point) => ({
-					...point,
-					version:
-						typeof (point as Record<string, unknown>).version === "number"
-							? ((point as Record<string, unknown>).version as number)
-							: 0,
-					score:
-						typeof (point as Record<string, unknown>).score === "number"
-							? ((point as Record<string, unknown>).score as number)
-							: 0,
-				})),
-			),
+		try: () => qdrantPointsSchema.parse(points),
 		catch: (error) =>
 			new QdrantError({
 				operation: "parse_query_response",

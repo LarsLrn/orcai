@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { QdrantClient } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
-import { ensureCollection } from "../src/collections";
+import { collectionDimensions, ensureCollection } from "../src/collections";
 import { payloadKey } from "../src/filter";
 
 const serverError = Object.assign(new Error("Internal Server Error"), {
@@ -86,5 +86,42 @@ describe("ensureCollection", () => {
 			reads: 2,
 			shardChecks: 1,
 		});
+	});
+});
+
+describe("collectionDimensions", () => {
+	const clientFor = (vectors?: unknown) =>
+		({
+			collectionExists: async () => ({
+				exists: vectors !== undefined,
+			}),
+			getCollection: async () => ({
+				config: {
+					params: {
+						vectors,
+					},
+				},
+			}),
+		}) as unknown as QdrantClient;
+
+	test("reads the dense vector size, null without a collection or dense vector", async () => {
+		const dimensionsOf = (vectors?: unknown) =>
+			Effect.runPromise(collectionDimensions(clientFor(vectors), "c"));
+
+		expect(
+			await dimensionsOf({
+				dense: {
+					size: 768,
+					distance: "Cosine",
+				},
+			}),
+		).toBe(768);
+		expect(await dimensionsOf()).toBeNull();
+		expect(
+			await dimensionsOf({
+				size: 768,
+				distance: "Cosine",
+			}),
+		).toBeNull();
 	});
 });

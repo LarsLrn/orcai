@@ -1,6 +1,7 @@
 import type { QdrantClient } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import * as Schedule from "effect/Schedule";
+import z from "zod/v4";
 import { qdrantCall } from "./client";
 import type { QdrantError } from "./errors";
 import { payloadKey } from "./filter";
@@ -214,19 +215,11 @@ export const deleteCollectionsBut = (
 		);
 	});
 
-const denseSize = (vectors: unknown) => {
-	const dense =
-		vectors && typeof vectors === "object" && "dense" in vectors
-			? (
-					vectors as {
-						dense?: {
-							size?: unknown;
-						};
-					}
-				).dense
-			: undefined;
-	return typeof dense?.size === "number" ? dense.size : undefined;
-};
+const denseVectorsSchema = z.object({
+	dense: z.object({
+		size: z.number(),
+	}),
+});
 
 /** The collection's dense vector size, or null when it does not exist. */
 export const collectionDimensions = (client: QdrantClient, name: string) =>
@@ -238,5 +231,8 @@ export const collectionDimensions = (client: QdrantClient, name: string) =>
 		const info = yield* qdrantCall("getCollection", () =>
 			client.getCollection(name),
 		);
-		return denseSize(info.config?.params?.vectors) ?? null;
+		return (
+			denseVectorsSchema.safeParse(info.config?.params?.vectors).data?.dense
+				.size ?? null
+		);
 	});

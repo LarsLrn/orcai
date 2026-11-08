@@ -19,7 +19,6 @@ import {
 } from "@orcai/process";
 import {
 	EmbeddingGeneration,
-	EmbeddingsNotConfiguredError,
 	onActiveGeneration,
 	upsertPointsToQdrant,
 } from "@orcai/qdrant";
@@ -311,16 +310,14 @@ const runAttempt = (params: { jobId: string; attempt: IndexingAttempt }) =>
 				);
 			}),
 		).pipe(
-			Effect.catchIf(
-				(error) => error instanceof EmbeddingsNotConfiguredError,
-				() =>
-					Effect.logInfo(
-						{
-							jobId,
-							...attempt,
-						},
-						"Indexing waits for the embedding setup",
-					),
+			Effect.catchTag("EmbeddingsNotConfiguredError", () =>
+				Effect.logInfo(
+					{
+						jobId,
+						...attempt,
+					},
+					"Indexing waits for the embedding setup",
+				),
 			),
 		);
 	});

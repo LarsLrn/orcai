@@ -1,7 +1,7 @@
 import { afterAll } from "bun:test";
 import { EncryptionKeyLive } from "@orcai/ai";
 import type { BlockId } from "@orcai/core";
-import { DB, DrizzleLive, type dbSchema } from "@orcai/db";
+import { DB, DrizzleLive } from "@orcai/db";
 import { instanceSettingsIn } from "@orcai/db/schema";
 import { sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
@@ -37,9 +37,7 @@ const isolatedEmbeddingIndex = (blockIds: readonly BlockId[] = []) =>
 			return {
 				schema,
 				scope: {
-					settings: instanceSettingsIn(
-						schema,
-					) as unknown as typeof dbSchema.instanceSettings,
+					settings: instanceSettingsIn(schema),
 					collectionPrefix: `orcai-test-${id}`,
 					blockIds,
 				} satisfies EmbeddingIndexScope,
