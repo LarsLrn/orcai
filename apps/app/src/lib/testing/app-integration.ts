@@ -2,6 +2,7 @@ import { v1 } from "@authzed/authzed-node";
 import {
 	buckets,
 	INSTANCE_ADMIN_ROLE,
+	ORGANIZATION_ROLES,
 	type OrganizationId,
 	type OrganizationRole,
 	type UserId,
@@ -16,12 +17,14 @@ import {
 	createUser,
 	holdLock,
 	integrationRuntime,
+	rejection,
 } from "@orcai/testing";
 import { and, asc, eq, inArray, lte, max, ne, sql } from "drizzle-orm";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import type * as ManagedRuntime from "effect/ManagedRuntime";
+import { insertAllMembersGroup } from "@/lib/authz/organization-lifecycle";
 import {
 	lockOrganization,
 	writeRelationships,
@@ -35,6 +38,46 @@ import { Procedures } from "@/lib/orpc/implementation/procedures";
 import "@/lib/orpc/router";
 
 export const TIMEOUT = 30_000;
+
+const tagOf = (error: unknown) =>
+	(
+		error as {
+			_tag?: string;
+		}
+	)._tag ?? String(error);
+
+/** "allowed", or the tag of the error `operation` fails with. */
+export const outcomeOf = async (operation: Promise<unknown>) => {
+	const error = await rejection(operation);
+	return error === undefined ? "allowed" : tagOf(error);
+};
+
+/**
+ * Each role's outcome of `operation`, "allowed" or the tag of the error it
+ * fails with, called one role after another, and the allowed calls' responses.
+ */
+export const outcomesByRole = async <R extends OrganizationRole, A>(
+	roles: readonly R[],
+	operation: (role: R) => Promise<A>,
+) => {
+	const outcomes: Partial<Record<R, string>> = {};
+	const responses: Partial<Record<R, A>> = {};
+	for (const role of roles) {
+		await operation(role).then(
+			(response) => {
+				outcomes[role] = "allowed";
+				responses[role] = response;
+			},
+			(error: unknown) => {
+				outcomes[role] = tagOf(error);
+			},
+		);
+	}
+	return {
+		outcomes,
+		responses,
+	};
+};
 
 export type Actor = {
 	user: typeof dbSchema.user.$inferSelect;
@@ -200,10 +243,19 @@ export const appIntegration = (
 		},
 	});
 
-	/** An organization with fresh users in `roles`, each signed in to it. */
-	const organizationWith = async (roles: readonly OrganizationRole[]) => {
+	/**
+	 * An organization with fresh users in `roles`, each signed in to it. With
+	 * `allMembersGroup`, it has the All Members group the app creates with
+	 * every organization.
+	 */
+	const organizationWith = async (
+		roles: readonly OrganizationRole[],
+		options: {
+			readonly allMembersGroup?: boolean;
+		} = {},
+	) => {
 		const users = await Promise.all(roles.map(() => run(createUser())));
-		const { organization, zedToken } = await run(
+		const created = await run(
 			createOrganization({
 				members: users.map((user, index) => ({
 					userId: user.id,
@@ -211,13 +263,62 @@ export const appIntegration = (
 				})),
 			}),
 		);
+		const organizationId = created.organization.id;
+		const allMembers =
+			options.allMembersGroup && users[0]
+				? await run(
+						writeRelationships(
+							{
+								organizationIds: [
+									organizationId,
+								],
+							},
+							insertAllMembersGroup({
+								organizationId,
+								createdBy: users[0].id,
+								now: new Date(),
+							}),
+						),
+					)
+				: undefined;
 		const actors = await Promise.all(
-			users.map((user) => signIn(organization.id, user.id)),
+			users.map((user) => signIn(organizationId, user.id)),
 		);
 		return {
-			organizationId: organization.id,
+			organizationId,
+			slug: created.organization.slug,
 			actors,
-			zedToken,
+			allMembersGroupId: allMembers?.result.id,
+			zedToken: allMembers?.zedToken ?? created.zedToken,
+		};
+	};
+
+	/**
+	 * An organization with its All Members group and one signed-in member per
+	 * role, keyed by role in `as`, then members in `others` for membership
+	 * changes to aim at.
+	 */
+	const organizationByRole = async (
+		others: readonly OrganizationRole[] = [],
+	) => {
+		const { actors, ...organization } = await organizationWith(
+			[
+				...ORGANIZATION_ROLES,
+				...others,
+			],
+			{
+				allMembersGroup: true,
+			},
+		);
+		return {
+			...organization,
+			as: Object.fromEntries(
+				ORGANIZATION_ROLES.map((role, index) => [
+					role,
+					actors[index],
+				]),
+			) as Record<OrganizationRole, Actor>,
+			others: actors.slice(ORGANIZATION_ROLES.length),
 		};
 	};
 
@@ -418,15 +519,53 @@ export const appIntegration = (
 
 	type ProcedureOptions = Awaited<ReturnType<typeof procedureOptions>>;
 
+	/** A token at SpiceDB's head revision, newer than every write that has returned. */
+	const headZedToken = () =>
+		run(
+			Effect.gen(function* () {
+				const { spice } = yield* SpiceDbService;
+				const { checkedAt } = yield* Effect.promise(() =>
+					spice.checkPermission(
+						v1.CheckPermissionRequest.create({
+							consistency: v1.Consistency.create({
+								requirement: {
+									oneofKind: "fullyConsistent",
+									fullyConsistent: true,
+								},
+							}),
+							resource: v1.ObjectReference.create({
+								objectType: "organization",
+								objectId: "head-revision",
+							}),
+							permission: "read",
+							subject: v1.SubjectReference.create({
+								object: v1.ObjectReference.create({
+									objectType: "user",
+									objectId: "head-revision",
+								}),
+							}),
+						}),
+					),
+				);
+				if (!checkedAt) throw new Error("SpiceDB answered without a zedToken");
+				return checkedAt.token;
+			}),
+		);
+
 	/**
-	 * Runs procedures as actors with the latest zed token, starting from
+	 * Runs procedures as actors at the newest zed token, starting from
 	 * `zedToken`: each call keeps the token its procedure returns, and
-	 * `observe` keeps one a fixture returns.
+	 * `observe` keeps one a fixture returns. Tokens cannot be compared, so a
+	 * call that returns after another recorded a token since it started keeps
+	 * a head-revision token instead, which covers both.
 	 */
 	const caller = (zedToken?: string) => {
 		let token = zedToken;
+		let recorded = 0;
 		const observe = (zedToken?: string) => {
-			token = zedToken ?? token;
+			if (!zedToken) return;
+			recorded += 1;
+			token = zedToken;
 		};
 		const call = async <A>(
 			actor: Actor,
@@ -439,8 +578,18 @@ export const appIntegration = (
 				unknown
 			>,
 		) => {
+			const before = recorded;
 			const result = await run(operation(await procedureOptions(actor, token)));
-			observe(result.meta?.zedToken);
+			const returned = result.meta?.zedToken;
+			if (!returned) return result;
+			if (recorded === before) {
+				observe(returned);
+				return result;
+			}
+			recorded += 1;
+			const mine = recorded;
+			const head = await headZedToken();
+			if (recorded === mine) token = head;
 			return result;
 		};
 		return {
@@ -496,6 +645,7 @@ export const appIntegration = (
 		signIn,
 		procedureOptions,
 		organizationWith,
+		organizationByRole,
 		createBlock,
 		createAsset,
 		outboxDelivered,

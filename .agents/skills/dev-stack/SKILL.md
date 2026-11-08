@@ -129,7 +129,10 @@ Use `integrationRuntime(layer)` from `@orcai/testing` for the app's DB and
 SpiceDB layers plus the file's own, and `createUser` and `createOrganization`
 for data. App files use `appIntegration()` from
 `apps/app/src/lib/testing/app-integration.ts`, whose `caller(zedToken)` runs
-procedures with the latest zed token. A file that enqueues or reads jobs adds
+procedures with the latest zed token. Role matrices of procedures belong
+here, with `organizationByRole()` and `outcomesByRole`; a spec covers a role
+only where cookies, the active organisation switch or the response zed token
+cross HTTP. A file that enqueues or reads jobs adds
 `IsolatedPgBossLive()` from `@orcai/pg-boss/testing`: a pg-boss in a schema of
 its own with every queue, so no other file sees its jobs. The tier runs no
 workers. Embedding-index helpers come from `@orcai/qdrant/testing`. Create everything

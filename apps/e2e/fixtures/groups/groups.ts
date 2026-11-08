@@ -1,11 +1,6 @@
-import type { AssetId, BlockId, BotId } from "@orcai/core";
-import { type Group, userIdSchema } from "@orcai/schema";
+import type { Group } from "@orcai/schema";
 import { expect, type Locator, type Page } from "@playwright/test";
-import { type ApiClient, createApiClient, type ZedTokenStore } from "../api";
-import { uploadAsset } from "../assets";
-import { signUpInvited } from "../auth";
-import { EMAIL_DOMAIN } from "../constants";
-import { baseURL } from "../env";
+import type { ApiClient } from "../api";
 import { message } from "../messages";
 import { open } from "../navigation";
 import { runId } from "../organisation";
@@ -23,70 +18,6 @@ export const behaviourInput = (name: string) => ({
 		systemPrompt: "Created by the groups slice.",
 	},
 });
-
-/**
- * A repository, the kind a bot links as a repository and the only kind
- * that carries assets.
- */
-export const repositoryInput = (name: string, assets: AssetId[] = []) => ({
-	type: "repository" as const,
-	name,
-	status: "ready" as const,
-	assets,
-	config: {
-		minPassages: 1,
-		maxPassages: 5,
-		defaultPassages: 3,
-	},
-});
-
-/**
- * The inheritance chain the authz schema cascades over: a bot linking a
- * behaviour and a repository, and an asset inside that repository.
- * `bot.save` writes the `block#bot` relationship that makes
- * `block.read` include `bot->read`.
- */
-export const inheritanceChain = async (params: {
-	api: ApiClient;
-	label: string;
-}): Promise<{
-	botId: BotId;
-	botName: string;
-	behaviourId: BlockId;
-	repositoryId: BlockId;
-	assetId: AssetId;
-}> => {
-	const behaviour = await params.api.block.create(
-		behaviourInput(groupsName(`${params.label} Behaviour`)),
-	);
-	const asset = await uploadAsset(
-		params.api,
-		groupsName(`${params.label} Asset`),
-	);
-	const repository = await params.api.block.create(
-		repositoryInput(groupsName(`${params.label} Repository`), [
-			asset.id,
-		]),
-	);
-	const botName = groupsName(`${params.label} Bot`);
-	const bot = await params.api.bot.save({
-		name: botName,
-		description: "Created by the groups slice.",
-		status: "draft",
-		behaviourId: behaviour.data.id,
-		repositoryIds: [
-			repository.data.id,
-		],
-	});
-
-	return {
-		botId: bot.data.id,
-		botName,
-		behaviourId: behaviour.data.id,
-		repositoryId: repository.data.id,
-		assetId: asset.id,
-	};
-};
 
 /** The ids of a `block.list` page, for containment assertions. */
 export const blockIds = async (
@@ -189,26 +120,3 @@ export const memberRow = (page: Page, email: string): Locator =>
 				exact: true,
 			}),
 		});
-
-/** A member of the active organisation of `admin` that belongs to no group. Shares the test's zedToken memory. */
-export const outsiderMember = async (params: {
-	admin: ApiClient;
-	zedTokens?: ZedTokenStore;
-}): Promise<{
-	client: ApiClient;
-	userId: string;
-}> => {
-	const url = baseURL();
-	const session = await signUpInvited({
-		baseURL: url,
-		admin: params.admin,
-		role: "member",
-		name: "E2E Groups Outsider",
-		email: `e2e-groups-outsider-${runId()}@${EMAIL_DOMAIN}`,
-	});
-
-	return {
-		client: createApiClient(url, session.cookieHeader, params.zedTokens),
-		userId: userIdSchema.parse(session.userId),
-	};
-};

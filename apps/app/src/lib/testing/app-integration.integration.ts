@@ -1,10 +1,12 @@
 import { expect, test } from "bun:test";
 import type { BlockId } from "@orcai/core";
 import { createUser } from "@orcai/testing";
+import * as Effect from "effect/Effect";
 import { enqueueRelationshipMutations } from "@/lib/effect/services/authz";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
-const { run, outboxDelivered, readTuples } = appIntegration();
+const { run, outboxDelivered, readTuples, caller, organizationWith } =
+	appIntegration();
 
 // The state an inline delivery leaves when it gives up. Holding the delivery
 // lock to cause that would stall every file's deliveries in the parallel tier.
@@ -35,6 +37,44 @@ test(
 		).toEqual([
 			`viewer@user:${subject.id}`,
 		]);
+	},
+	TIMEOUT,
+);
+
+test(
+	"caller keeps a revision covering two calls that return out of order",
+	async () => {
+		const {
+			actors: [admin],
+		} = await organizationWith([
+			"admin",
+		]);
+		const { call, token } = caller();
+		const returning = (zedToken: string, after?: Promise<void>) =>
+			Effect.promise(async () => {
+				await after;
+				return {
+					meta: {
+						zedToken,
+					},
+				};
+			});
+		const late = Promise.withResolvers<void>();
+
+		// The earlier write's call returns last, so its token is the older one.
+		const earlier = call(admin, () => returning("earlier", late.promise));
+		await call(admin, () => returning("later"));
+		expect(token()).toBe("later");
+
+		late.resolve();
+		await earlier;
+		expect([
+			"earlier",
+			"later",
+		]).not.toContain(token());
+
+		await call(admin, () => returning("next"));
+		expect(token()).toBe("next");
 	},
 	TIMEOUT,
 );
