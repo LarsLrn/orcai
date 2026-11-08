@@ -12,10 +12,10 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import {
 	EmailService,
-	notificationOutboxValues,
 	processNextNotification,
 	wakeNotificationWorker,
 } from "../src";
+import { insertOldestRow } from "./outbox-rows";
 
 const emailVia = (channel: EmailDeliveryChannel) =>
 	Layer.succeed(EmailService, {
@@ -24,29 +24,6 @@ const emailVia = (channel: EmailDeliveryChannel) =>
 				channel,
 			}),
 	});
-
-/** A due row that is processed first, ahead of the stack's own. */
-const insertOldestRow = Effect.gen(function* () {
-	const db = yield* DB;
-	const suffix = crypto.randomUUID();
-	const [row] = yield* db
-		.insert(dbSchema.notificationOutbox)
-		.values({
-			...notificationOutboxValues(
-				{
-					type: "instance.test-email",
-					recipient: `admin-${suffix}@example.test`,
-					locale: "en",
-					healthUrl: "https://example.test/instance/health",
-				},
-				`outbox-${suffix}`,
-			),
-			nextAttemptAt: new Date("2000-01-01T00:00:00.000Z"),
-			createdAt: new Date("2000-01-01T00:00:00.000Z"),
-		})
-		.returning();
-	return row;
-});
 
 /** The row `scenario` returns the id of, as it stands at the end of a rolled-back transaction. */
 const rolledBackRow = <E, R>(scenario: Effect.Effect<string, E, R>) =>
@@ -70,7 +47,7 @@ describe("notification outbox", () => {
 			const row = await Effect.runPromise(
 				rolledBackRow(
 					Effect.gen(function* () {
-						const row = yield* insertOldestRow;
+						const row = yield* insertOldestRow();
 						yield* processNextNotification();
 						return row.id;
 					}),
@@ -103,7 +80,7 @@ test("a row added while a drain runs is drained after the next wake", async () =
 				yield* wakeNotificationWorker;
 				yield* work;
 				// The drain is still running and has already looked for rows.
-				const row = yield* insertOldestRow;
+				const row = yield* insertOldestRow();
 				yield* wakeNotificationWorker;
 				yield* Effect.promise(() => clock.tick(10_000));
 				yield* work;
