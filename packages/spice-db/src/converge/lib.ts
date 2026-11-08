@@ -6,14 +6,6 @@ import { grpcStatusOf, SpiceDbError } from "../errors";
 import { callSpiceDb } from "../service";
 import type { RelationshipFilterInput } from "./types";
 
-/** SpiceDB re-serialises a schema without blank lines or a trailing newline, so compare ignoring both. */
-export const normalizeSchema = (schema: string) =>
-	schema
-		.split(/\r?\n/)
-		.map((line) => line.trim())
-		.filter((line) => line.length > 0)
-		.join("\n");
-
 const parseDeletedCount = (value: string): number => {
 	const parsed = Number.parseInt(value, 10);
 	if (Number.isNaN(parsed)) {
@@ -36,6 +28,22 @@ export const readCurrentSchema = callSpiceDb("query", (spice) =>
 		() => Effect.succeed(""),
 	),
 );
+
+/** Whether the written schema means the same as `schema`, whatever the order and layout of its definitions. */
+export const schemaMatches = (schema: string) =>
+	callSpiceDb("query", (spice) =>
+		spice.diffSchema(
+			v1.DiffSchemaRequest.create({
+				consistency: v1.Consistency.create({
+					requirement: {
+						oneofKind: "fullyConsistent",
+						fullyConsistent: true,
+					},
+				}),
+				comparisonSchema: schema,
+			}),
+		),
+	).pipe(Effect.map((response) => response.diffs.length === 0));
 
 export const readTargetSchema = (schemaPath: string) =>
 	Effect.tryPromise({
