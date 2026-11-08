@@ -5,9 +5,9 @@ import { SpiceDbService } from "@orcai/spice-db";
 import { spiceClient } from "@orcai/spice-db/testing";
 import { call, os, type } from "@orpc/server";
 import * as Context from "effect/Context";
-import { mapEffectErrors } from "@/lib/orpc/implementation/error-mapping";
 import type { AppEffectContext } from "@/lib/orpc/implementation/os";
 import type { AuthContext } from "@/lib/orpc/middlewares/auth";
+import { testAuth, testRequestContext } from "@/lib/testing/request-context";
 import { requireEntityPermission } from "./require";
 
 const userId = "00000000-0000-4000-8000-000000000001" as UserId;
@@ -43,28 +43,22 @@ const answer = (revisions: Revisions, request: v1.CheckPermissionRequest) => {
 };
 
 const requestContext = (requestToken: string, revisions: Revisions) => ({
-	reqHeaders: new Headers(),
-	auth: {
-		isAuthenticated: true as const,
-		session: {},
-		user: {
-			id: userId,
+	...testRequestContext({
+		meta: {
+			zedToken: requestToken,
 		},
-	} as unknown as AuthContext["auth"],
-	meta: {
-		zedToken: requestToken,
-	},
-	"effect/context": Context.make(SpiceDbService, {
-		spice: spiceClient({
-			checkPermission: async (request) =>
-				v1.CheckPermissionResponse.create({
-					permissionship: answer(revisions, request)
-						? v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
-						: v1.CheckPermissionResponse_Permissionship.NO_PERMISSION,
-				}),
-		}),
-	}) as AppEffectContext["effect/context"],
-	"effect/wrap": mapEffectErrors,
+		"effect/context": Context.make(SpiceDbService, {
+			spice: spiceClient({
+				checkPermission: async (request) =>
+					v1.CheckPermissionResponse.create({
+						permissionship: answer(revisions, request)
+							? v1.CheckPermissionResponse_Permissionship.HAS_PERMISSION
+							: v1.CheckPermissionResponse_Permissionship.NO_PERMISSION,
+					}),
+			}),
+		}) as AppEffectContext["effect/context"],
+	}),
+	auth: testAuth(userId),
 });
 
 const base = os.$context<AppEffectContext & AuthContext>();

@@ -3,7 +3,7 @@ import type { BlockId, BotId, ModelId, ProviderId } from "@orcai/core";
 import type { BotEditor, BotSetup, BotSetupFields } from "@orcai/schema";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 import { createBotInputSchema } from "./create-bot.declaration";
 
@@ -110,7 +110,7 @@ describe("createBotPayload", () => {
 describe("createBotTool", () => {
 	const create = (toolCallId: string, setup?: BotSetupFields | null) =>
 		createBotTool({
-			context: {} as ORPCContext,
+			context: testRequestContext(),
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
@@ -250,7 +250,7 @@ describe("createBotTool", () => {
 			);
 		await expect(
 			createBotTool({
-				context: {} as ORPCContext,
+				context: testRequestContext(),
 				turn: createAssistantTurn({
 					zedToken: undefined,
 				}),

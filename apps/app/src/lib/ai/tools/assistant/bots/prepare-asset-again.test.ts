@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId, BlockId } from "@orcai/core";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 beforeEach(() => {
@@ -25,7 +25,7 @@ const repositoryId = crypto.randomUUID() as BlockId;
 
 const run = (input: { assetId: AssetId; repositoryId?: BlockId }) =>
 	prepareAssetAgainTool({
-		context: {} as ORPCContext,
+		context: testRequestContext(),
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),

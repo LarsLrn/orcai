@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import type { AssetId } from "@orcai/core";
 import type { AssetMetadataType } from "@orcai/schema";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 const assetId = crypto.randomUUID() as AssetId;
@@ -35,7 +35,7 @@ const { createAssistantTurn } = await import("../turn-state");
 describe("updateAssetTool", () => {
 	test("saves only the given fields", async () => {
 		await updateAssetTool({
-			context: {} as ORPCContext,
+			context: testRequestContext(),
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),

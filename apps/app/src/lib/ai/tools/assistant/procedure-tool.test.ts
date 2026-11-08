@@ -3,8 +3,8 @@ import type { ReadRevision } from "@orcai/spice-db";
 import { ORPCError } from "@orpc/client";
 import * as Effect from "effect/Effect";
 import { readRevision } from "@/lib/authz/zed-token";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
 import type { ProcedureClients } from "@/lib/orpc/implementation/procedures";
+import { testRequestContext } from "@/lib/testing/request-context";
 import type { ProcedureOptions } from "./procedure-tool";
 import { runPromise } from "./test-procedures";
 import { createAssistantTurn } from "./turn-state";
@@ -14,9 +14,7 @@ const { callProcedure, expectType, mutation } = await import(
 );
 const { AssistantToolError, runAssistantTool } = await import("../tool-error");
 
-const context = {
-	secureCookies: false,
-} as ORPCContext;
+const context = testRequestContext();
 
 const rejection = (promise: Promise<unknown>) =>
 	promise.then(
@@ -74,7 +72,7 @@ describe("callProcedure", () => {
 			"after-save",
 		]);
 		expect(deps.turn.zedToken.current()).toBe("after-save");
-		expect(context.meta).toBeUndefined();
+		expect(context.meta).toEqual({});
 	});
 });
 

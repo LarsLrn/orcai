@@ -3,16 +3,14 @@ import type { AssetId, BlockId } from "@orcai/core";
 import { ORPCError } from "@orpc/client";
 import type { Tool } from "ai";
 import * as Effect from "effect/Effect";
-import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testRequestContext } from "@/lib/testing/request-context";
 import { answers, procedureCalls, resetProcedures } from "../test-procedures";
 
 const { getBlockTool } = await import("./get-block");
 const { createAssistantTurn } = await import("../turn-state");
 
 const deps = () => ({
-	context: {
-		secureCookies: false,
-	} as ORPCContext,
+	context: testRequestContext(),
 	turn: createAssistantTurn({
 		zedToken: undefined,
 	}),
