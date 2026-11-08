@@ -175,7 +175,8 @@ describe("updateBotTool", () => {
 			{
 				toolCallId: "update",
 				messages: [],
-			} as never,
+				context: {},
+			},
 		);
 
 		expect(
@@ -220,13 +221,11 @@ describe("updateBotTool", () => {
 			turn: createAssistantTurn({
 				zedToken: undefined,
 			}),
-		}).execute?.(
-			input as never,
-			{
-				toolCallId: "update",
-				messages: [],
-			} as never,
-		);
+		}).execute?.(input as never, {
+			toolCallId: "update",
+			messages: [],
+			context: {},
+		});
 
 	test("a setup goes through the shared writer, and the result says whom it covers", async () => {
 		const modelId = crypto.randomUUID() as ModelId;
@@ -409,7 +408,8 @@ describe("updateBotTool", () => {
 				{
 					toolCallId: "update",
 					messages: [],
-				} as never,
+					context: {},
+				},
 			),
 		).rejects.toThrow();
 		expect(turn.writes.all()).toEqual([

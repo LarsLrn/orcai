@@ -32,7 +32,8 @@ const run = (input: { assetId: AssetId; repositoryId?: BlockId }) =>
 	}).execute?.(input, {
 		toolCallId: "retry",
 		messages: [],
-	} as never);
+		context: {},
+	});
 
 describe("prepareAssetAgainTool", () => {
 	test("without a repository it retries processing", async () => {

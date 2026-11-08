@@ -87,7 +87,8 @@ const deps = () => ({
 const options = {
 	toolCallId: "delete",
 	messages: [],
-} as never;
+	context: {},
+};
 
 describe("delete tools", () => {
 	test("deleteBlock returns the names it read before deleting", async () => {

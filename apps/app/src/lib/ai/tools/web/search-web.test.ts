@@ -10,7 +10,8 @@ const { searchWebModelOutput } = await import("./outputs");
 const call = {
 	toolCallId: "search",
 	messages: [],
-} as never;
+	context: {},
+};
 
 describe("searchWebTool", () => {
 	test("searches within the allowed domains and answers with url, title and content", async () => {

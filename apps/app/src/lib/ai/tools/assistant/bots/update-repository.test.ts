@@ -64,13 +64,11 @@ const run = (input: Record<string, unknown>) =>
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),
-	}).execute?.(
-		input as never,
-		{
-			toolCallId: "update",
-			messages: [],
-		} as never,
-	);
+	}).execute?.(input as never, {
+		toolCallId: "update",
+		messages: [],
+		context: {},
+	});
 
 describe("updateRepositoryTool", () => {
 	test("an update sends the given assets as the full set and keeps the rest", async () => {

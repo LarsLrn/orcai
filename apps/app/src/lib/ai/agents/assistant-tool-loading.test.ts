@@ -508,13 +508,11 @@ describe("tool executions", () => {
 				}) as typeof tools,
 		});
 		const create = async () =>
-			await agent.tools.createBot?.execute?.(
-				createBot.input as never,
-				{
-					toolCallId: "call-create",
-					messages: [],
-				} as never,
-			);
+			await agent.tools.createBot?.execute?.(createBot.input as never, {
+				toolCallId: "call-create",
+				messages: [],
+				context: {},
+			});
 
 		return {
 			create,
