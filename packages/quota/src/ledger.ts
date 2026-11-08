@@ -12,10 +12,13 @@ import { and, eq, inArray, lt, notExists, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
+import * as Result from "effect/Result";
+import * as Schema from "effect/Schema";
+import * as SchemaIssue from "effect/SchemaIssue";
 import { type QuotaWriteFailedError, writeFailed } from "./errors";
 import { openQuotaPeriod } from "./period";
 import { type PriceList, priceSteps } from "./pricing";
-import { type MeteredStep, usageCounts } from "./usage";
+import { MeteredStep, usageCounts } from "./usage";
 
 type QuotaPool = typeof dbSchema.quotaPool.$inferSelect;
 type QuotaPeriod = typeof dbSchema.quotaPeriod.$inferSelect;
@@ -364,11 +367,50 @@ const lockReservation = (reservationKey: string) =>
 		};
 	});
 
-/** The steps a call stored with its reservation so far. */
-const storedSteps = (reserved: QuotaUsageEvent): readonly MeteredStep[] => {
-	const steps = reserved.metadata?.steps;
-	return Array.isArray(steps) ? (steps as MeteredStep[]) : [];
-};
+const readStep = Schema.decodeUnknownResult(MeteredStep);
+const formatIssues = SchemaIssue.makeFormatterStandardSchemaV1();
+
+/** Where a step failed to read, by field; never the stored values, which may hold anything. */
+const issuePaths = (issue: SchemaIssue.Issue) =>
+	formatIssues(issue).issues.map(({ path = [] }) =>
+		path
+			.map((key) => String(typeof key === "object" ? key.key : key))
+			.join("."),
+	);
+
+/**
+ * The steps a call stored with its reservation so far. A step that cannot be
+ * read still counts as one request, without usage, and is logged.
+ */
+const storedSteps = Effect.fnUntraced(function* (reserved: QuotaUsageEvent) {
+	const stored = reserved.metadata?.steps;
+	if (!Array.isArray(stored)) {
+		return [];
+	}
+	const corrupt: {
+		index: number;
+		paths: string[];
+	}[] = [];
+	const steps = stored.map((step: unknown, index): MeteredStep => {
+		const read = readStep(step);
+		if (Result.isSuccess(read)) {
+			return read.success;
+		}
+		corrupt.push({
+			index,
+			paths: issuePaths(read.failure.issue),
+		});
+		return {};
+	});
+	if (corrupt.length > 0) {
+		yield* Effect.logWarning({
+			message: "quota.steps.corrupt",
+			reservationKey: reserved.reservationKey,
+			corrupt,
+		});
+	}
+	return steps;
+});
 
 /**
  * Stores a call's steps so far with its reservation, summed into its usage
@@ -450,7 +492,7 @@ export const settleQuotaReservation: (params: {
 						charged: false,
 					};
 				}
-				const stored = storedSteps(reserved);
+				const stored = yield* storedSteps(reserved);
 				const steps =
 					params.steps !== undefined && params.steps.length >= stored.length
 						? params.steps
