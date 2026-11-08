@@ -267,6 +267,8 @@ PostgreSQL optional:
 
 - `POSTGRES_POOL_MAX`: The most connections each pool opens, default `10`. The app runs three pools (queries, Better Auth, pg-boss) and the workers two (queries, pg-boss); keep the total for all processes below PostgreSQL's `max_connections` (100 by default).
 
+The query pools of the app and the workers turn off PostgreSQL's JIT compilation on their connections, because compiling the app's short queries takes longer than running them. The Better Auth and pg-boss pools keep the server's setting.
+
 SpiceDB optional:
 
 - `SPICEDB_SECURITY`: Transport mode for SpiceDB client. Valid values: `secure`, `insecure-localhost`, `insecure-plaintext` (default).
