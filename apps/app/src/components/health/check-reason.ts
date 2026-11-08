@@ -31,6 +31,8 @@ const reasonMessages: Record<CheckReason, (check: Check) => string> = {
 	EMBEDDINGS_NOT_CONFIGURED: () => m.check_reason_embeddings_not_configured(),
 	EMBEDDINGS_COLLECTION_MISSING: () =>
 		m.check_reason_embeddings_collection_missing(),
+	EMBEDDINGS_COLLECTION_INCOMPATIBLE: () =>
+		m.check_reason_embeddings_collection_incompatible(),
 	EMBEDDINGS_COLLECTION_MISMATCH: () =>
 		m.check_reason_embeddings_collection_mismatch(),
 	PROVIDER_READY: () => m.check_reason_provider_ready(),

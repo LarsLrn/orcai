@@ -3860,6 +3860,7 @@
 	"check_reason_dependency_reachable": "Reachable.",
 	"check_reason_dependency_timeout": "Did not answer in time.",
 	"check_reason_dependency_unreachable": "Not reachable.",
+	"check_reason_embeddings_collection_incompatible": "The Qdrant collection of the embedding model has no dense vectors OrcAI can use. Delete the collection, and the workers create it again within a minute.",
 	"check_reason_embeddings_collection_mismatch": "The Qdrant collection does not match the dimensions of the embedding model.",
 	"check_reason_embeddings_collection_missing": "The Qdrant collection of the embedding model is missing. The workers create it again within a minute.",
 	"check_reason_embeddings_not_configured": "Search is unavailable until an instance admin sets up embeddings.",

@@ -104,7 +104,7 @@ describe("collectionDimensions", () => {
 			}),
 		}) as unknown as QdrantClient;
 
-	test("reads the dense vector size, null without a collection or dense vector", async () => {
+	test("reads the dense vector size, missing without a collection and incompatible without a dense vector", async () => {
 		const dimensionsOf = (vectors?: unknown) =>
 			Effect.runPromise(collectionDimensions(clientFor(vectors), "c"));
 
@@ -116,12 +116,12 @@ describe("collectionDimensions", () => {
 				},
 			}),
 		).toBe(768);
-		expect(await dimensionsOf()).toBeNull();
+		expect(await dimensionsOf()).toBe("missing");
 		expect(
 			await dimensionsOf({
 				size: 768,
 				distance: "Cosine",
 			}),
-		).toBeNull();
+		).toBe("incompatible");
 	});
 });
