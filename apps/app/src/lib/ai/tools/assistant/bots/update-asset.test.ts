@@ -49,7 +49,8 @@ describe("updateAssetTool", () => {
 			{
 				toolCallId: "update",
 				messages: [],
-			} as never,
+				context: {},
+			},
 		);
 
 		expect(

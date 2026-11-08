@@ -123,7 +123,8 @@ describe("createBotTool", () => {
 			{
 				toolCallId,
 				messages: [],
-			} as never,
+				context: {},
+			},
 		);
 
 	test("a failed create that may have gone through says to check", async () => {
@@ -265,7 +266,8 @@ describe("createBotTool", () => {
 				{
 					toolCallId: "link",
 					messages: [],
-				} as never,
+					context: {},
+				},
 			),
 		).rejects.toThrow(
 			`BLOCK_LINK_FORBIDDEN: You cannot link one or more of these in this organisation: behaviour ${behaviourId}, repository ${repositoryId}. Use a behaviour or repository from findBlocks that you may use in this organisation, create one with createBehaviour or createRepository, or remove the link from the bot.`,

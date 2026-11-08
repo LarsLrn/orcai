@@ -35,7 +35,8 @@ describe("generateAssetMetadataTool", () => {
 				{
 					toolCallId: "generate",
 					messages: [],
-				} as never,
+					context: {},
+				},
 			),
 		).toEqual({
 			queued: 1,
@@ -70,7 +71,8 @@ describe("generateAssetMetadataTool", () => {
 				{
 					toolCallId: "generate",
 					messages: [],
-				} as never,
+					context: {},
+				},
 			),
 		).toEqual({
 			queued: 1,

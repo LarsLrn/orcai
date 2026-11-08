@@ -46,7 +46,8 @@ describe("createBehaviourTool", () => {
 			{
 				toolCallId: "create",
 				messages: [],
-			} as never,
+				context: {},
+			},
 		);
 
 		expect(procedureCalls).toEqual([

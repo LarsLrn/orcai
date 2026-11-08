@@ -46,13 +46,11 @@ const run = (input: Record<string, unknown>) =>
 		turn: createAssistantTurn({
 			zedToken: undefined,
 		}),
-	}).execute?.(
-		input as never,
-		{
-			toolCallId: "update",
-			messages: [],
-		} as never,
-	);
+	}).execute?.(input as never, {
+		toolCallId: "update",
+		messages: [],
+		context: {},
+	});
 
 describe("updateBehaviourTool", () => {
 	test("an update takes only the changed fields and keeps the rest", async () => {

@@ -21,6 +21,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { AppConfigService } from "@/lib/effect/services/config";
 import type { ORPCContext } from "@/lib/orpc/implementation/os";
+import { testAppConfig } from "@/lib/testing/app-config";
 import { memberCapabilities, scriptedFetch } from "../agents/test-provider";
 import { RunningCallsWait } from "../tools/assistant/running-calls";
 import { answers, FakeServices } from "../tools/assistant/test-procedures";
@@ -170,12 +171,7 @@ export const answerSetup = ({
 		});
 };
 
-const AppConfigTest = Layer.succeed(AppConfigService, {
-	config: {} as never,
-	docs: undefined,
-	publicConfig: {},
-	warnings: [],
-});
+const AppConfigTest = Layer.succeed(AppConfigService, testAppConfig());
 
 /** Bounds a stopped turn's wait for its running calls when set; the real bound applies otherwise. */
 export const turnWaits: {

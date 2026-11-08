@@ -29,7 +29,7 @@ const run = (tool: Tool, toolCallId: string, abortSignal?: AbortSignal) =>
 				toolCallId,
 				messages: [],
 				abortSignal,
-				context: {} as never,
+				context: {},
 			},
 		),
 	).catch(() => undefined);
