@@ -123,11 +123,31 @@ const speakerLabel = (view: MessageView, chat: TranscriptChat | undefined) => {
 	);
 };
 
-/** One message of a conversation export: the speaker on its own line, then the content. */
+/** The files a question carries, by name. */
+const attachmentsLine = ({ message }: MessageView) => {
+	const titles =
+		message.role === "user"
+			? (message.attachments ?? []).map(({ title }) => title)
+			: [];
+
+	return titles.length === 0
+		? undefined
+		: m.chat_transcript_attachments({
+				titles: titles.join(", "),
+			});
+};
+
+/** One message of a conversation export: the speaker on its own line, then its files and content. */
 export const messageToTranscriptMarkdown = (
 	view: MessageView,
 	chat?: TranscriptChat,
-): string => `**${speakerLabel(view, chat)}:**\n\n${messageToMarkdown(view)}`;
+): string =>
+	`**${speakerLabel(view, chat)}:**\n\n${[
+		attachmentsLine(view),
+		messageToMarkdown(view),
+	]
+		.filter((block) => block !== undefined && block !== "")
+		.join("\n\n")}`;
 
 /** A stored conversation as markdown, one transcript block per shown message. */
 export const transcriptMarkdown = (

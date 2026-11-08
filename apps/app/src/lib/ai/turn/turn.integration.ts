@@ -61,8 +61,16 @@ const RECENT_FILES = [
 	38,
 ];
 
-/** A plain chat of `turns` stored turns, with files on the old and the recent turns. */
-const longChat = async (owner: UserId, turns = TURNS) => {
+/** A plain chat of `turns` stored turns, with files on the old and the recent turns; the `filesOnly` turn's question is its file alone. */
+const longChat = async (
+	owner: UserId,
+	turns = TURNS,
+	{
+		filesOnly,
+	}: {
+		filesOnly?: number;
+	} = {},
+) => {
 	const attachment = ({
 		asset,
 	}: Awaited<ReturnType<typeof privateAsset>>): ChatMessageAttachment => ({
@@ -126,12 +134,15 @@ const longChat = async (owner: UserId, turns = TURNS) => {
 							chatId: chat.id,
 							position: turn * 2,
 							role: "user",
-							parts: [
-								{
-									type: "text" as const,
-									text: filler(`Question ${turn}`, 200),
-								},
-							],
+							parts:
+								turn === filesOnly
+									? []
+									: [
+											{
+												type: "text" as const,
+												text: filler(`Question ${turn}`, 200),
+											},
+										],
 							attachments: file
 								? [
 										file,
@@ -392,5 +403,48 @@ describe("the first turn of a chat", () => {
 			],
 		]);
 		expect(JSON.stringify(bodies[0].messages)).toContain("Latest file");
+	});
+});
+
+describe("a later turn", () => {
+	test("sends an earlier question of files alone in its place", async () => {
+		const owner = await newUser();
+		const { bodies } = await ask({
+			owner,
+			chat: await longChat(owner, 4, {
+				filesOnly: OLD_FILE,
+			}),
+			text: "And now?",
+			fileText: filler("Latest file", 100),
+			steps: [
+				{
+					text: "Done.",
+				},
+			],
+		});
+
+		const turn = (question: string) => [
+			{
+				role: "user",
+				text: question,
+			},
+			{
+				role: "assistant",
+				text: "Answer",
+			},
+		];
+		expect(bodies.map(shapeOf)).toEqual([
+			[
+				...turn("Question"),
+				...turn("Question"),
+				...turn("<attachment"),
+				...turn("Question"),
+				{
+					role: "user",
+					text: "And | <attachment",
+				},
+			],
+		]);
+		expect(JSON.stringify(bodies[0].messages[4])).toContain("Old file");
 	});
 });

@@ -70,7 +70,7 @@ import {
 import { attachAssets, attachmentReader } from "./attachments";
 import { fitContextWindow, readForFit, requestTokens } from "./context-window";
 import {
-	isEmptyReply,
+	isEmptyMessage,
 	type ReplyContent,
 	ReplyStore,
 	type StoredMessage,
@@ -127,9 +127,9 @@ const loadChat = ({
 		return loaded;
 	});
 
-/** The stored messages the model reads, leaving out those without readable parts, like a reserved reply. */
+/** The stored messages the model reads, leaving out those with nothing to read, like a reserved reply. */
 const historyOf = (messages: StoredMessage[]) =>
-	toChatAgentMessages(messages.filter((message) => !isEmptyReply(message)));
+	toChatAgentMessages(messages.filter((message) => !isEmptyMessage(message)));
 
 const buildAgent = ({
 	setup,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatMessageId } from "@orcai/core";
+import type { AssetId, ChatMessageId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { rejection } from "@orcai/testing";
 import { eq } from "drizzle-orm";
@@ -183,6 +183,79 @@ describe("message ratings", () => {
 					rating: "a_bit",
 				},
 			});
+		},
+		TIMEOUT,
+	);
+});
+
+describe("message list", () => {
+	test(
+		"shows a question of files alone and hides a reply that is still empty",
+		async () => {
+			const {
+				actors: [owner],
+				zedToken,
+			} = await organizationWith([
+				"member",
+			]);
+			const procedures = await run(Procedures);
+			const { data: chat, meta } = await run(
+				procedures.chat.create(
+					{
+						title: "Files",
+					},
+					await procedureOptions(owner, zedToken),
+				),
+			);
+			const [question, reply] = [
+				crypto.randomUUID() as ChatMessageId,
+				crypto.randomUUID() as ChatMessageId,
+			];
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB).insert(dbSchema.chatMessage).values([
+						{
+							id: question,
+							chatId: chat.id,
+							role: "user",
+							parts: [],
+							attachments: [
+								{
+									assetId: crypto.randomUUID() as AssetId,
+									title: "Notes",
+									fileType: "application/pdf",
+									size: 10,
+								},
+							],
+							metadata: {},
+							position: 0,
+						},
+						{
+							id: reply,
+							chatId: chat.id,
+							role: "assistant",
+							parts: [],
+							attachments: [],
+							metadata: {},
+							position: 1,
+						},
+					]);
+				}),
+			);
+
+			const { data } = await run(
+				procedures.chatMessage.list(
+					{
+						chatId: chat.id,
+						limit: 20,
+					},
+					await procedureOptions(owner, meta?.zedToken ?? zedToken),
+				),
+			);
+
+			expect(data.map(({ id }) => id)).toEqual([
+				question,
+			]);
 		},
 		TIMEOUT,
 	);

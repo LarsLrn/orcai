@@ -31,7 +31,7 @@ import {
 } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { v4 as uuidv4 } from "uuid";
-import { isEmptyReply } from "@/lib/ai/turn/reply-store";
+import { isEmptyMessage } from "@/lib/ai/turn/reply-store";
 import { closeCopiedToolParts } from "@/lib/ai/utils/close-pending-tool-parts";
 import { requireUsableInOrganization } from "@/lib/authz/organization-use";
 import { writeRelationships } from "@/lib/authz/relationship-write";
@@ -766,7 +766,7 @@ const branchChat = authed.chat.branch
 							and(eq(dbSchema.chatMessage.chatId, source.id), copiedPositions),
 						)
 						.orderBy(asc(dbSchema.chatMessage.position))).filter(
-						(message) => !isEmptyReply(message),
+						(message) => !isEmptyMessage(message),
 					),
 				);
 

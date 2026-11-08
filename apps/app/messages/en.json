@@ -2801,6 +2801,7 @@
 	"chat_table_bulk_delete_action": "Delete selected",
 	"chat_table_date_column_header": "Date",
 	"chat_title_placeholder": "New chat",
+	"chat_transcript_attachments": "Attached: {titles}",
 	"chat_transcript_model": "Model",
 	"chat_transcript_user": "You",
 	"chat_unpin_toast_error": "The chat was not unpinned.",

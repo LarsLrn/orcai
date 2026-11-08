@@ -9,6 +9,7 @@ import {
 import { gradeQuiz } from "@/lib/ai/tools/questions/quiz-result";
 import { askUserMarkdown } from "@/lib/ai/tools/questions/to-markdown";
 import { type MessageView, turnView } from "@/lib/ai/turn-view/turn-view";
+import type { ChatAgentUIMessage } from "@/lib/ai/types/chat-agent-message";
 import { getLocale, overwriteGetLocale } from "@/paraglide/runtime";
 import {
 	messageToMarkdown,
@@ -293,6 +294,46 @@ describe("messageToTranscriptMarkdown", () => {
 				]),
 			),
 		).toBe("**You:**\n\n- first\n- second");
+	});
+
+	test("names a question's files before its text, also with no text", () => {
+		overwriteGetLocale(() => "en");
+		const asked = (parts: unknown[]) =>
+			turnView(
+				[
+					{
+						id: "message-1",
+						role: "user",
+						parts,
+						attachments: [
+							{
+								assetId: "asset-1",
+								title: "Notes.pdf",
+								fileType: "application/pdf",
+								size: 10,
+							},
+							{
+								assetId: "asset-2",
+								title: "Plan.png",
+								fileType: "image/png",
+								size: 10,
+							},
+						],
+					} as unknown as ChatAgentUIMessage,
+				],
+				"idle",
+			).messages[0] as MessageView;
+
+		expect(messageToTranscriptMarkdown(asked([]))).toBe(
+			"**You:**\n\nAttached: Notes.pdf, Plan.png",
+		);
+		expect(
+			messageToTranscriptMarkdown(
+				asked([
+					text("Compare them"),
+				]),
+			),
+		).toBe("**You:**\n\nAttached: Notes.pdf, Plan.png\n\nCompare them");
 	});
 
 	test("labels the speakers in the locale of the reader", () => {

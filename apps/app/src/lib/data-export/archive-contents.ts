@@ -5,7 +5,7 @@ import { isS3NotFound, sendGetObjectCommand } from "@orcai/s3/server";
 import { readableChatMessageParts } from "@orcai/schema";
 import { asc, eq } from "drizzle-orm";
 import * as Effect from "effect/Effect";
-import { isEmptyReply } from "@/lib/ai/turn/reply-store";
+import { isEmptyMessage } from "@/lib/ai/turn/reply-store";
 import type { TranscriptChat } from "@/lib/ai/turn-view/message-markdown";
 import {
 	type ChatAgentUIMessage,
@@ -167,7 +167,7 @@ const writeChats = (
 						.from(dbSchema.chatMessage)
 						.where(eq(dbSchema.chatMessage.chatId, chat.id))
 						.orderBy(asc(dbSchema.chatMessage.position));
-					const messages = rows.filter((row) => !isEmptyReply(row));
+					const messages = rows.filter((row) => !isEmptyMessage(row));
 					const name = chatEntryName(chat);
 
 					yield* writer.addText(
