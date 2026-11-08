@@ -20,6 +20,7 @@ import {
 	configureEmbeddings,
 	EmbeddingGeneration,
 	EmbeddingIndex,
+	maintainCollections,
 	onActiveGeneration,
 	QdrantLive,
 	QdrantService,
@@ -173,7 +174,7 @@ beforeAll(async () => {
 			model: "integration",
 			dimensions,
 			...prefixes,
-		}),
+		}).pipe(Effect.andThen(maintainCollections)),
 	);
 }, TIMEOUT);
 afterEach(() => {

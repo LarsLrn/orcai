@@ -19,5 +19,8 @@
 		"drizzle-orm": "catalog:",
 		"effect": "catalog:",
 		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@orcai/testing": "workspace:*"
 	}
 }

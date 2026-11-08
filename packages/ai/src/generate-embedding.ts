@@ -96,6 +96,9 @@ const testFailure = (cause: unknown): EmbeddingTestFailure => {
 	return "invalid-response";
 };
 
+/** The most dimensions a Qdrant collection stores. */
+const MAX_DIMENSIONS = 65_536;
+
 /** Embeds one probe value: the model's dimensions, or why the endpoint cannot embed. */
 export const testEmbedding = (connection: EmbeddingConnection) =>
 	Effect.tryPromise({
@@ -118,6 +121,7 @@ export const testEmbedding = (connection: EmbeddingConnection) =>
 		Effect.flatMap(([vector]) =>
 			Array.isArray(vector) &&
 			vector.length > 0 &&
+			vector.length <= MAX_DIMENSIONS &&
 			vector.every((value) => Number.isFinite(value))
 				? Effect.succeed(vector.length)
 				: Effect.fail(

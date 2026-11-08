@@ -11,6 +11,7 @@ import {
 	configureEmbeddings,
 	EmbeddingIndex,
 	type EmbeddingIndexScope,
+	maintainCollections,
 	QdrantLive,
 	QdrantService,
 } from "../src";
@@ -70,7 +71,8 @@ export const IsolatedEmbeddingIndexLive = (blockIds?: readonly BlockId[]) =>
 
 /**
  * An isolated embedding index for the test file, set up with `embeddings`
- * when given; its runtime and data go after the file's last test.
+ * when given, its collection created as the reconciler pass a save wakes
+ * creates it; its runtime and data go after the file's last test.
  */
 export const testEmbeddingIndex = async (embeddings?: {
 	readonly baseUrl: string;
@@ -94,7 +96,7 @@ export const testEmbeddingIndex = async (embeddings?: {
 				passagePrefix: "",
 				...embeddings,
 				apiKey: "key",
-			}),
+			}).pipe(Effect.andThen(maintainCollections)),
 		);
 	}
 	return runtime.runPromise(EmbeddingIndex);

@@ -392,6 +392,9 @@
         "effect": "catalog:",
         "zod": "catalog:",
       },
+      "devDependencies": {
+        "@orcai/testing": "workspace:*",
+      },
     },
     "packages/quota": {
       "name": "@orcai/quota",

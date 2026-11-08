@@ -1,6 +1,8 @@
 import type { QdrantClient } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
+import * as Schedule from "effect/Schedule";
 import { qdrantCall } from "./client";
+import type { QdrantError } from "./errors";
 import { payloadKey } from "./filter";
 
 const MODEL_SLUG_LENGTH = 64;
@@ -20,9 +22,26 @@ export const generationCollectionName = (
 	dimensions: number,
 ) => `${prefix}-g${generation}-${modelSlug(model)}-${dimensions}`;
 
-const alreadyExists = (cause: unknown) =>
-	/already exists/i.test(
-		cause instanceof Error ? cause.message : String(cause),
+const statusOf = (error: QdrantError) =>
+	typeof error.cause === "object" &&
+	error.cause !== null &&
+	"status" in error.cause
+		? error.cause.status
+		: undefined;
+
+/** Until another caller's create returns, its collection answers reads with 500 while its shard initialises. */
+const whileAnotherCreates = Schedule.max([
+	Schedule.spaced("50 millis"),
+	Schedule.during("5 seconds"),
+]);
+
+const initialising = (client: QdrantClient, name: string) =>
+	qdrantCall("collectionClusterInfo", () =>
+		client.collectionClusterInfo(name),
+	).pipe(
+		Effect.map(({ local_shards }) =>
+			local_shards.some(({ state }) => state === "Initializing"),
+		),
 	);
 
 const payloadIndexes = [
@@ -77,10 +96,11 @@ const payloadIndexes = [
 
 /**
  * Creates the collection unless it exists, and any payload index it lacks;
- * concurrent callers are fine. A new, empty collection gets its indexes
- * before this returns, as ordered browsing needs them. On an existing one,
- * a missing index builds in the background: filters stay correct meanwhile,
- * only slower, and no caller waits on a full collection's index.
+ * concurrent callers are fine. An empty collection has its indexes before
+ * this returns, as ordered browsing needs them and they build at once. On
+ * one holding points, a missing index builds in the background: filters stay
+ * correct meanwhile, only slower, and no caller waits on a full collection's
+ * index.
  */
 export const ensureCollection = (
 	client: QdrantClient,
@@ -116,29 +136,59 @@ export const ensureCollection = (
 				}),
 			).pipe(
 				Effect.catchIf(
-					(error) => alreadyExists(error.cause),
+					(error) => statusOf(error) === 409,
 					() => Effect.void,
 				),
 			);
 		}
+		// The schema lists only applied indexes, so one another caller queued counts as missing.
+		const readInfo = qdrantCall("getCollection", () =>
+			client.getCollection(name),
+		);
+		const info = yield* readInfo.pipe(
+			Effect.catchIf(
+				(error) => statusOf(error) === 500,
+				() =>
+					initialising(client, name).pipe(
+						Effect.repeat({
+							while: (busy) => busy,
+							schedule: whileAnotherCreates,
+						}),
+						Effect.andThen(readInfo),
+					),
+			),
+		);
+		const missing = payloadIndexes.filter(
+			([fieldName]) => !(fieldName in info.payload_schema),
+		);
+		if (missing.length === 0) return;
 		yield* Effect.forEach(
-			payloadIndexes,
+			missing,
 			([fieldName, fieldSchema]) =>
 				qdrantCall("createPayloadIndex", () =>
 					client.createPayloadIndex(name, {
-						wait: !exists,
+						wait: false,
 						field_name: fieldName,
 						field_schema: fieldSchema,
 					}),
-				).pipe(
-					Effect.catchIf(
-						(error) => alreadyExists(error.cause),
-						() => Effect.void,
-					),
 				),
 			{
 				discard: true,
 			},
+		);
+		if (info.points_count) return;
+		// Deletes nothing: Qdrant applies a collection's updates in order, so it answers once every queued index is built.
+		yield* qdrantCall("awaitPayloadIndexes", () =>
+			client.delete(name, {
+				wait: true,
+				filter: {
+					must: [
+						{
+							has_id: [],
+						},
+					],
+				},
+			}),
 		);
 	});
 

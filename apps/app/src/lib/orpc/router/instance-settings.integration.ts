@@ -20,6 +20,8 @@ import {
 
 const DIMENSIONS = 6;
 const WIDE_DIMENSIONS = 8;
+// One more than a Qdrant collection stores.
+const HUGE_DIMENSIONS = 65_537;
 const API_KEY = "sk-integration-secret";
 const NO_PREFIXES = {
 	queryPrefix: "",
@@ -99,7 +101,12 @@ const endpoints = serve({
 					index: 0,
 					embedding: Array.from(
 						{
-							length: kind === "wide" ? WIDE_DIMENSIONS : DIMENSIONS,
+							length:
+								kind === "huge"
+									? HUGE_DIMENSIONS
+									: kind === "wide"
+										? WIDE_DIMENSIONS
+										: DIMENSIONS,
 						},
 						() => 0.5,
 					),
@@ -266,6 +273,7 @@ describe("instance settings", () => {
 			expect(await save(endpoint("garbage"))).toBe(
 				"EMBEDDING_RESPONSE_INVALID",
 			);
+			expect(await save(endpoint("huge"))).toBe("EMBEDDING_RESPONSE_INVALID");
 			expect(await save(UNREACHABLE)).toBe("EMBEDDING_ENDPOINT_UNREACHABLE");
 			expect(
 				(await run(procedures.instanceSettings.find({}, options))).data,

@@ -2,54 +2,89 @@ import { describe, expect, test } from "bun:test";
 import type { QdrantClient } from "@qdrant/qdrant-js";
 import * as Effect from "effect/Effect";
 import { ensureCollection } from "../src/collections";
+import { payloadKey } from "../src/filter";
 
-/** A client whose collection exists when `exists`, recording each index request's `wait`. */
-const clientWith = (exists: boolean) => {
-	const waits: (boolean | undefined)[] = [];
+const serverError = Object.assign(new Error("Internal Server Error"), {
+	status: 500,
+});
+
+/**
+ * An existing collection whose reads fail with 500 `failingReads` times while
+ * its shard reports `shardStates` in turn, then answer with every index.
+ */
+const clientWith = (failingReads: number, shardStates: string[]) => {
+	const calls = {
+		reads: 0,
+		shardChecks: 0,
+	};
 	const client = {
 		collectionExists: async () => ({
-			exists,
+			exists: true,
 		}),
-		createCollection: async () => true,
-		createPayloadIndex: (
-			_name: string,
-			request: {
-				wait?: boolean;
-			},
-		) => {
-			waits.push(request.wait);
+		getCollection: () => {
+			calls.reads++;
+			if (calls.reads <= failingReads) return Promise.reject(serverError);
 			return Promise.resolve({
-				operation_id: 0,
-				status: "acknowledged",
+				points_count: 0,
+				payload_schema: Object.fromEntries(
+					Object.values(payloadKey).map((key) => [
+						key,
+						{},
+					]),
+				),
+			});
+		},
+		collectionClusterInfo: () => {
+			const state =
+				shardStates[Math.min(calls.shardChecks, shardStates.length - 1)];
+			calls.shardChecks++;
+			return Promise.resolve({
+				local_shards: [
+					{
+						state,
+					},
+				],
 			});
 		},
 	} as unknown as QdrantClient;
 	return {
 		client,
-		waits,
+		calls,
 	};
 };
 
 describe("ensureCollection", () => {
-	test("waits for a new collection's indexes", async () => {
-		const { client, waits } = clientWith(false);
-		await Effect.runPromise(ensureCollection(client, "new", 2));
-		expect(waits.length).toBeGreaterThan(0);
-		expect(new Set(waits)).toEqual(
-			new Set([
-				true,
-			]),
-		);
+	test("waits out another caller's create while its shard initialises", async () => {
+		const { client, calls } = clientWith(1, [
+			"Initializing",
+			"Initializing",
+			"Active",
+		]);
+
+		await Effect.runPromise(ensureCollection(client, "creating", 2));
+
+		expect(calls).toEqual({
+			reads: 2,
+			shardChecks: 3,
+		});
 	});
 
-	test("does not wait for an existing collection's indexes", async () => {
-		const { client, waits } = clientWith(true);
-		await Effect.runPromise(ensureCollection(client, "existing", 2));
-		expect(waits.length).toBeGreaterThan(0);
-		expect(new Set(waits)).toEqual(
-			new Set([
-				false,
-			]),
+	test("fails at once when a collection with active shards answers 500", async () => {
+		const { client, calls } = clientWith(Number.POSITIVE_INFINITY, [
+			"Active",
+		]);
+
+		const error = await Effect.runPromise(
+			Effect.flip(ensureCollection(client, "broken", 2)),
 		);
+
+		expect(error).toMatchObject({
+			_tag: "QdrantError",
+			operation: "getCollection",
+		});
+		expect(calls).toEqual({
+			reads: 2,
+			shardChecks: 1,
+		});
 	});
 });

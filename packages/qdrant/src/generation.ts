@@ -138,8 +138,14 @@ const lockGenerations = (exclusive: boolean) =>
 
 const ensured = new Set<string>();
 
-/** The active collection exists once anything runs on it: a fresh Qdrant gets it on first use. */
-const ensureActiveCollection = (generation: EmbeddingGeneration["Service"]) =>
+/**
+ * The active collection exists once anything runs on it: a new generation's
+ * collection, or one a fresh Qdrant lacks, is created on first use.
+ */
+const ensureActiveCollection = (generation: {
+	readonly collection: string;
+	readonly dimensions: number;
+}) =>
 	Effect.gen(function* () {
 		if (ensured.has(generation.collection)) return;
 		const { client } = yield* QdrantService;
@@ -255,19 +261,29 @@ export const storedEmbeddingApiKey = readStored.pipe(
 	),
 );
 
-/** The active generation's collection as Qdrant has it. */
+/**
+ * The active generation's collection as Qdrant has it, ensured like on any
+ * use: under the generation lock, so a replaced one is not created again.
+ */
 export const inspectActiveCollection = Effect.gen(function* () {
-	const stored = yield* readStored;
-	if (!stored) return undefined;
-	const { client } = yield* QdrantService;
-	return {
-		collection: stored.collection,
-		dimensions: stored.dimensions,
-		collectionDimensions: yield* collectionDimensions(
-			client,
-			stored.collection,
-		),
-	};
+	const db = yield* DB;
+	return yield* db.transaction(() =>
+		Effect.gen(function* () {
+			yield* lockGenerations(false);
+			const stored = yield* readStored;
+			if (!stored) return undefined;
+			yield* ensureActiveCollection(stored);
+			const { client } = yield* QdrantService;
+			return {
+				collection: stored.collection,
+				dimensions: stored.dimensions,
+				collectionDimensions: yield* collectionDimensions(
+					client,
+					stored.collection,
+				),
+			};
+		}),
+	);
 });
 
 type GenerationSetup = {
@@ -281,8 +297,9 @@ type GenerationSetup = {
 
 /**
  * Makes `setup` the active generation under a new number with a collection
- * of its own, whose files are re-embedded until they have all settled.
- * Needs the generation lock held exclusively.
+ * of its own, whose files are re-embedded until they have all settled. Only
+ * the database changes: the collection is created on first use, so no Qdrant
+ * call runs under the lock. Needs the generation lock held exclusively.
  */
 const startGeneration = (setup: GenerationSetup) =>
 	Effect.gen(function* () {
@@ -311,12 +328,6 @@ const startGeneration = (setup: GenerationSetup) =>
 			embeddingRebuilding: true,
 			updatedAt: new Date(),
 		};
-		const { client } = yield* QdrantService;
-		yield* ensureCollection(
-			client,
-			values.embeddingCollection,
-			setup.dimensions,
-		);
 		yield* db
 			.insert(scope.settings)
 			.values({
