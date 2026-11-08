@@ -1,0 +1,58 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "5a4b1ecf-6aca-4a52-81ae-68ad435aa8a8",
+  "prevIds": [
+    "458d9ef2-3d4a-47ca-882b-da0db8a7fc4a",
+    "f7b1cddd-9cf2-4db6-aa3a-33431ed8572b"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "asset",
+        "asset_user_idx"
+      ],
+      "writes": [
+        "s|idx|public.asset_user_idx",
+        "n|idx|public.asset_user_idx",
+        "e|idx|public.asset_user_idx",
+        "n|rel|public.asset_user_idx"
+      ],
+      "reads": [
+        "n|tbl|public.asset",
+        "n|sch|public",
+        "n|col|public.asset.user_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "asset",
+        "name": "asset_user_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    }
+  ]
+}

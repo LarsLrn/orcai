@@ -1,0 +1,1 @@
+CREATE INDEX "asset_user_idx" ON "asset" ("user_id");
