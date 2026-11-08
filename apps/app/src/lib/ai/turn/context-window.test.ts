@@ -2,10 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { providerCompaction } from "@orcai/ai";
 import type { ChatMessageMetadata } from "@orcai/schema";
 import type { UIMessage } from "ai";
+import * as Effect from "effect/Effect";
 import {
 	compactionTrigger,
 	fitContextWindow,
 	promptBudget,
+	readForFit,
 	SUMMARY_PREFIX,
 } from "./context-window";
 
@@ -581,5 +583,240 @@ describe("fitContextWindow", () => {
 
 			expect(result.fits && result.summarize).toBeUndefined();
 		});
+	});
+});
+
+describe("readForFit", () => {
+	type Filed = Message & {
+		attachments?: {
+			tokens: number;
+		}[];
+	};
+
+	const filed = (message: Message, ...files: number[]): Filed => ({
+		...message,
+		attachments: files.map((tokens) => ({
+			tokens,
+		})),
+	});
+
+	/** A question with only files, no text. */
+	const filesOnly = (id: string, ...files: number[]) =>
+		filed(
+			{
+				id,
+				role: "user",
+				parts: [],
+			},
+			...files,
+		);
+
+	/** A turn per index; every fifth reply records what the provider counted. */
+	const longChat = (
+		turns: number,
+		question: (turn: number) => Filed = (turn) =>
+			user(`u${turn}`, 200 + ((turn * 37) % 300)),
+	) =>
+		Array.from(
+			{
+				length: turns,
+			},
+			(_, turn): Filed[] => [
+				question(turn),
+				reply(
+					`a${turn}`,
+					300 + ((turn * 53) % 700),
+					turn % 5 === 4
+						? {
+								contextTokens: 1_000 + turn * 600,
+								contextEstimate: 900 + turn * 450,
+							}
+						: undefined,
+				),
+			],
+		).flat();
+
+	/** Reading a message's files adds each file's text as a part. */
+	const readFiles = (message: Filed): Filed =>
+		message.role === "user" && message.attachments?.length
+			? {
+					...message,
+					parts: [
+						...message.parts,
+						...message.attachments.map(({ tokens }) => text(tokens)),
+					],
+				}
+			: message;
+
+	const compacted = (compacting: Message) => {
+		const chat = longChat(60, (turn) =>
+			turn % 3 === 0
+				? filed(user(`u${turn}`, 300), 1_500)
+				: user(`u${turn}`, 300),
+		);
+		chat[60] = compacting;
+		return [
+			...chat,
+			user("next", 300),
+		];
+	};
+
+	const histories: [
+		string,
+		Filed[],
+	][] = [
+		[
+			"files in old and recent turns",
+			[
+				...longChat(60, (turn) =>
+					turn % 7 === 0
+						? filed(user(`u${turn}`, 250), 1_500)
+						: user(`u${turn}`, 250),
+				),
+				filed(user("next", 300), 1_500),
+			],
+		],
+		[
+			"a file in every turn",
+			[
+				...longChat(60, (turn) => filed(user(`u${turn}`, 250), 1_500)),
+				user("next", 300),
+			],
+		],
+		[
+			"questions of files only, the latest too",
+			[
+				...longChat(60, (turn) =>
+					turn % 4 === 0 ? filesOnly(`u${turn}`, 900) : user(`u${turn}`, 250),
+				),
+				filesOnly("next", 700),
+			],
+		],
+		[
+			"large files, several to a question",
+			[
+				filesOnly("u-first", 8_000),
+				...longChat(40, (turn) =>
+					turn % 2 === 0
+						? filed(user(`u${turn}`, 100), 6_000, 3_000)
+						: user(`u${turn}`, 100),
+				),
+				filed(user("next", 100), 9_000),
+			],
+		],
+		[
+			"a first question of files only",
+			[
+				filesOnly("only", 2_000),
+			],
+		],
+		[
+			"a provider compaction in the middle",
+			compacted(anthropicCompaction("a30", "The story so far.")),
+		],
+		[
+			"our own summary in the middle",
+			compacted(summarized("a30", "The story so far.")),
+		],
+		[
+			"a continued reply",
+			longChat(60, (turn) =>
+				turn % 4 === 0
+					? filed(user(`u${turn}`, 250), 1_500)
+					: user(`u${turn}`, 250),
+			),
+		],
+	];
+
+	describe.each(histories)("with %s", (_, messages) => {
+		test.each([
+			[
+				"native compaction",
+				anthropic,
+			],
+			[
+				"our own summary",
+				ownSummary,
+			],
+		])("fits as if every file were read, with %s", (_, compaction) => {
+			const unread: number[] = [];
+			// From a budget that refuses the latest turn to one that holds the whole chat.
+			for (let budget = 200; budget <= 160_000; budget += 397) {
+				const batches: Filed[][] = [];
+				const prompt = Effect.runSync(
+					readForFit({
+						messages,
+						budget,
+						compaction,
+						read: (batch) =>
+							Effect.sync(() => {
+								batches.push(batch);
+								return batch.map(readFiles);
+							}),
+					}),
+				);
+				const options = {
+					replyId: messages.at(-1)?.id ?? "",
+					requestTokens: 700,
+					budget,
+					compaction,
+				};
+
+				expect(
+					fitContextWindow({
+						...options,
+						messages: prompt,
+					}),
+				).toEqual(
+					fitContextWindow({
+						...options,
+						messages: messages.map(readFiles),
+					}),
+				);
+				// Each batch is older than the one before.
+				const positions = batches.map((batch) =>
+					batch.map((message) => messages.indexOf(message)),
+				);
+				for (const [index, batch] of positions.entries()) {
+					expect(batch.every((position) => position >= 0)).toBe(true);
+					if (index > 0) {
+						expect(Math.max(...batch)).toBeLessThan(
+							Math.min(...positions[index - 1]),
+						);
+					}
+				}
+				unread.push(messages.length - positions.flat().length);
+			}
+			if (messages.length > 100) {
+				// Small budgets leave older files unread.
+				expect(unread[0]).toBeGreaterThan(messages.length / 2);
+			}
+		});
+	});
+
+	test("reads nothing before the compaction the prompt starts at", () => {
+		const read: string[] = [];
+		Effect.runSync(
+			readForFit({
+				messages: [
+					filed(user("u1", 100), 500),
+					...conversation.slice(1, 4),
+					anthropicCompaction("a3", "The story so far."),
+					filed(user("u4", 100), 500),
+				],
+				budget: 100_000,
+				compaction: anthropic,
+				read: (batch) =>
+					Effect.sync(() => {
+						read.push(...batch.map(({ id }) => id));
+						return batch.map(readFiles);
+					}),
+			}),
+		);
+
+		expect(read).toEqual([
+			"a3",
+			"u4",
+		]);
 	});
 });
