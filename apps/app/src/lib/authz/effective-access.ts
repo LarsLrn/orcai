@@ -3,6 +3,7 @@ import {
 	buildOrderBy,
 	DB,
 	dbSchema,
+	idIn,
 	pageOf,
 	type SortExpression,
 } from "@orcai/db";
@@ -25,11 +26,12 @@ import {
 import {
 	type EntityIdFor,
 	grantedPermissions,
-	lookupEntitiesByPermission,
+	permittedEntityIds,
 	type ReadRevision,
 } from "@orcai/spice-db";
-import { and, asc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { committedPermittedIds, readableNow } from "@/lib/authz/content-access";
 import { grantReaches } from "@/lib/authz/reaching-groups";
 import { literalSearch } from "@/lib/utils/literal-search";
 
@@ -84,7 +86,7 @@ const accessOrigin = (params: {
 	)`.mapWith((value) => memberAccessOriginSchema.parse(value));
 };
 
-/** The strongest role the user holds on each resource, from SpiceDB. */
+/** The strongest role the user holds on each resource, in SpiceDB and by committed state. */
 const rolesOf = <Entity extends ResourceType>(
 	entityType: Entity,
 	ids: EntityIdFor<Entity>[],
@@ -96,26 +98,34 @@ const rolesOf = <Entity extends ResourceType>(
 			return new Map<string, ResourceGrantRole>();
 		}
 
-		const granted = yield* grantedPermissions({
-			entityIds: ids,
-			entityType,
-			permissions: [
-				"manage_access",
-				"edit",
-				"read",
+		const [granted, managed, edited] = yield* Effect.all(
+			[
+				grantedPermissions({
+					entityIds: ids,
+					entityType,
+					permissions: [
+						"manage_access",
+						"edit",
+					],
+					userId,
+					zedToken,
+				}),
+				committedPermittedIds(entityType, ids, userId, "manage_access"),
+				committedPermittedIds(entityType, ids, userId, "edit"),
 			],
-			userId,
-			zedToken,
-		});
+			{
+				concurrency: "unbounded",
+			},
+		);
 
 		return new Map<string, ResourceGrantRole>(
 			ids.map((id) => {
 				const permissions = granted.get(id);
 				return [
 					id,
-					permissions?.has("manage_access")
+					permissions?.has("manage_access") && managed.has(id)
 						? "manager"
-						: permissions?.has("edit")
+						: permissions?.has("edit") && edited.has(id)
 							? "editor"
 							: "viewer",
 				];
@@ -124,8 +134,9 @@ const rolesOf = <Entity extends ResourceType>(
 	});
 
 /**
- * One page of the organization's resources the user can read, with the role
- * they effectively hold and where that access comes from.
+ * One page of the organization's resources the user can read, in SpiceDB and
+ * by committed state, with the role they effectively hold and where that
+ * access comes from.
  */
 export const effectiveAccess = (
 	params: Omit<ListMemberAccessInput, "userId" | "zedToken"> & {
@@ -143,20 +154,43 @@ export const effectiveAccess = (
 					filters.resourceType,
 				]
 			: RESOURCE_TYPES;
+		const readableHere = (entityType: ResourceType) =>
+			and(
+				eq(scope.resourceType, entityType),
+				readableNow(entityType, scope.resourceId, userId),
+			);
+		const scoped = yield* db
+			.select({
+				resourceType: scope.resourceType,
+				resourceId: scope.resourceId,
+			})
+			.from(scope)
+			.where(
+				and(
+					eq(scope.organizationId, organizationId),
+					isNull(scope.endedAt),
+					or(...resourceTypes.map(readableHere)),
+				),
+			);
 		const readable = yield* Effect.forEach(
 			resourceTypes,
 			(entityType) =>
-				lookupEntitiesByPermission({
-					userId,
-					permission: "read",
+				permittedEntityIds({
+					entityIds: scoped
+						.filter((row) => row.resourceType === entityType)
+						.map((row) => row.resourceId as EntityIdFor<typeof entityType>),
 					entityType,
+					permission: "read",
+					userId,
 					zedToken,
 				}).pipe(
 					Effect.map((ids) =>
-						ids.length > 0
+						ids.size > 0
 							? and(
-									eq(scope.resourceType, entityType),
-									inArray(scope.resourceId, ids),
+									readableHere(entityType),
+									idIn(scope.resourceId, [
+										...ids,
+									]),
 								)
 							: undefined,
 					),

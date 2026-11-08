@@ -1,6 +1,13 @@
 import type { OrganizationId } from "@orcai/core";
 import type { ResourceType } from "@orcai/schema";
-import { and, eq, isNull, type SQLWrapper, sql } from "drizzle-orm";
+import {
+	type AnyColumn,
+	and,
+	eq,
+	isNull,
+	type SQLWrapper,
+	sql,
+} from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { asset } from "./schema/asset";
 import { resourceScope } from "./schema/authz";
@@ -13,6 +20,10 @@ export const resourceTables = {
 	block,
 	asset,
 } satisfies Record<ResourceType, unknown>;
+
+/** Whether the resource id in `id` is one of `ids`, sent as one array parameter however many there are. */
+export const idIn = (id: AnyColumn, ids: readonly string[]) =>
+	sql`${id} = any(${sql.param(ids)}::uuid[])`;
 
 /** `resource_scope` or an alias of it. */
 type Scope = {

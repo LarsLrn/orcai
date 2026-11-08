@@ -257,7 +257,7 @@ export const searchLibrary = (
 		};
 	});
 
-/** The overview's shelves; one SpiceDB enumeration per kind and permission serves them all. */
+/** The overview's shelves; one SpiceDB check per kind and permission serves them all. */
 export const libraryOverview = (input: LibraryOverviewInput, reader: Reader) =>
 	Effect.gen(function* () {
 		const access = yield* libraryAccess(reader);
