@@ -29,7 +29,6 @@ const READS = new Set(
 	[
 		"CheckPermission",
 		"CheckBulkPermissions",
-		"LookupResources",
 	].map((method) => `/authzed.api.v1.PermissionsService/${method}`),
 );
 

@@ -10,7 +10,7 @@ import {
 	checkEntityPermission,
 	grpcStatusOf,
 	isUnavailable,
-	lookupEntitiesByPermission,
+	permittedEntityIds,
 	SpiceDbConfigService,
 	type SpiceDbError,
 	SpiceDbServiceLive,
@@ -70,7 +70,10 @@ describe("SpiceDbServiceLive", () => {
 				}).pipe(Effect.provide(layer)),
 			),
 			failure(
-				lookupEntitiesByPermission({
+				permittedEntityIds({
+					entityIds: [
+						assetId,
+					],
 					entityType: "asset",
 					permission: "read",
 					userId,

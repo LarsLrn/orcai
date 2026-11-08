@@ -3,13 +3,13 @@ import type { AssetId, OrganizationId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import type { AssetMetadataType, SaveAssetInput } from "@orcai/schema";
 import { createOrganization, rejection } from "@orcai/testing";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as Effect from "effect/Effect";
 import { assetsMissingMetadata } from "@/lib/assets/metadata";
 import { Procedures } from "@/lib/orpc/implementation/procedures";
 import { appIntegration, TIMEOUT } from "@/lib/testing/app-integration";
 
-const { run, signIn, procedureOptions, organizationWith, createAsset } =
+const { run, caller, signIn, procedureOptions, organizationWith, createAsset } =
 	appIntegration();
 
 const prepared = (assetIds: AssetId[]) =>
@@ -182,6 +182,77 @@ describe("asset metadata generation", () => {
 			).toEqual([
 				mine.asset.id,
 			]);
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"an editor whose grant ended in Postgres no longer counts the asset, before SpiceDB follows",
+		async () => {
+			const {
+				organizationId,
+				actors: [owner, editor],
+				zedToken,
+			} = await organizationWith([
+				"member",
+				"member",
+			]);
+			const { call, observe } = caller(zedToken);
+			const kept = await createAsset(owner, organizationId);
+			const ended = await createAsset(owner, organizationId);
+			observe(kept.zedToken);
+			observe(ended.zedToken);
+			await prepared([
+				kept.asset.id,
+				ended.asset.id,
+			]);
+			const procedures = await run(Procedures);
+			for (const { asset } of [
+				kept,
+				ended,
+			]) {
+				await call(owner, (options) =>
+					procedures.resource.grant(
+						{
+							resourceType: "asset",
+							resourceId: asset.id,
+							role: "editor",
+							principals: [
+								{
+									principalType: "user",
+									principalId: editor.user.id,
+								},
+							],
+						},
+						options,
+					),
+				);
+			}
+			const count = async () =>
+				(
+					await call(editor, (options) =>
+						procedures.asset.missingMetadata({}, options),
+					)
+				).count;
+			expect(await count()).toBe(2);
+
+			await run(
+				Effect.gen(function* () {
+					yield* (yield* DB)
+						.update(dbSchema.resourceGrant)
+						.set({
+							revokedAt: new Date(),
+						})
+						.where(
+							and(
+								eq(dbSchema.resourceGrant.resourceId, ended.asset.id),
+								eq(dbSchema.resourceGrant.principalId, editor.user.id),
+							),
+						);
+				}),
+			);
+
+			expect(await count()).toBe(1);
 		},
 		TIMEOUT,
 	);

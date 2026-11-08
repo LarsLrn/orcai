@@ -1,12 +1,14 @@
 import type { AssetId, OrganizationId, UserId } from "@orcai/core";
-import { DB, dbSchema, homeScopeOf } from "@orcai/db";
-import { lookupEntitiesByPermission, type ReadRevision } from "@orcai/spice-db";
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { DB, dbSchema, homeScopeOf, idIn } from "@orcai/db";
+import { permittedEntityIds, type ReadRevision } from "@orcai/spice-db";
+import { and, eq, isNull, or } from "drizzle-orm";
 import * as Effect from "effect/Effect";
+import { permittedNow } from "@/lib/authz/content-access";
 
 /**
- * The organisation's prepared library assets the user can edit whose metadata
- * was never generated, or failed: what a backfill generates. `ids` narrows them.
+ * The organisation's prepared library assets the user can edit, in SpiceDB
+ * and by committed state, whose metadata was never generated, or failed: what
+ * a backfill generates. `ids` narrows them.
  */
 export const assetsMissingMetadata = (params: {
 	userId: UserId;
@@ -15,16 +17,6 @@ export const assetsMissingMetadata = (params: {
 	zedToken?: ReadRevision;
 }) =>
 	Effect.gen(function* () {
-		const editable = (yield* lookupEntitiesByPermission({
-			userId: params.userId,
-			permission: "edit",
-			entityType: "asset",
-			zedToken: params.zedToken,
-		})).filter((id) => !params.ids || params.ids.includes(id as AssetId));
-		if (editable.length === 0) {
-			return [];
-		}
-
 		const db = yield* DB;
 		const { asset, resourceScope } = dbSchema;
 		const rows = yield* db
@@ -35,12 +27,20 @@ export const assetsMissingMetadata = (params: {
 			.innerJoin(resourceScope, homeScopeOf("asset", asset.id))
 			.where(
 				and(
-					inArray(asset.id, editable as AssetId[]),
+					params.ids ? idIn(asset.id, params.ids) : undefined,
 					eq(resourceScope.organizationId, params.organizationId),
 					eq(asset.keptIn, "library"),
 					eq(asset.processingStatus, "completed"),
 					or(isNull(asset.metadataStatus), eq(asset.metadataStatus, "failed")),
+					permittedNow("asset", asset.id, params.userId, "edit"),
 				),
 			);
-		return rows.map((row) => row.id);
+		const editable = yield* permittedEntityIds({
+			entityIds: rows.map((row) => row.id),
+			entityType: "asset",
+			permission: "edit",
+			userId: params.userId,
+			zedToken: params.zedToken,
+		});
+		return rows.map((row) => row.id).filter((id) => editable.has(id));
 	});

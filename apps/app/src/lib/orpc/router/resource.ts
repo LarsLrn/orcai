@@ -44,6 +44,7 @@ import { requireAdministersIn } from "@/lib/authz/resource-authority";
 import { scopedResourceRef } from "@/lib/authz/scoped-resource-id";
 import { readRevision } from "@/lib/authz/zed-token";
 import { listingImpact, setListing } from "@/lib/catalogue/listing";
+import { libraryAccess } from "@/lib/library/library-access";
 import { authed } from "@/lib/orpc/implementation/authed";
 import { requireOrganization } from "@/lib/orpc/middlewares/organization";
 import { requireResourceAccess } from "@/lib/orpc/middlewares/permission";
@@ -692,12 +693,12 @@ const findManyResources = authed.resource.findMany
 const listRecentResources = authed.resource.listRecent
 	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
-		const data = yield* recentResources({
+		const access = yield* libraryAccess({
 			userId: context.auth.user.id,
 			organizationId: context.auth.session.activeOrganizationId,
-			limit: input.limit,
 			zedToken: readRevision(context, input),
 		});
+		const data = yield* recentResources(access, input.limit);
 
 		return {
 			data,

@@ -6,14 +6,12 @@ import {
 	chatTitleSearchVector,
 	DB,
 	dbSchema,
+	idIn,
 	pageOf,
 	type SortExpression,
 } from "@orcai/db";
 import { type ChatSortKey, readableChatMessageParts } from "@orcai/schema";
-import {
-	lookupEntitiesByPermission,
-	permittedEntityIds,
-} from "@orcai/spice-db";
+import { permittedEntityIds } from "@orcai/spice-db";
 import {
 	and,
 	asc,
@@ -68,11 +66,26 @@ const listChats = authed.chat.list
 	.use(requireOrganization())
 	.effect(function* ({ input, context }) {
 		const db = yield* DB;
+		const userId = context.auth.user.id;
+		const organizationId = context.auth.session.activeOrganizationId;
 
-		const allowedIds = yield* lookupEntitiesByPermission({
-			userId: context.auth.user.id,
-			permission: "read",
+		// Read is ownership, so the user's own chats here are the candidates.
+		const owned = yield* db
+			.select({
+				id: dbSchema.chat.id,
+			})
+			.from(dbSchema.chat)
+			.where(
+				and(
+					eq(dbSchema.chat.organizationId, organizationId),
+					eq(dbSchema.chat.userId, userId),
+				),
+			);
+		const allowedIds = yield* permittedEntityIds({
+			entityIds: owned.map((chat) => chat.id),
 			entityType: "chat",
+			permission: "read",
+			userId,
 			zedToken: readRevision(context, input),
 		});
 		const search =
@@ -85,11 +98,10 @@ const listChats = authed.chat.list
 		const messageMatches = sql`${messageVector} @@ ${tsQuery}`;
 
 		const conditions = [
-			inArray(dbSchema.chat.id, allowedIds),
-			eq(
-				dbSchema.chat.organizationId,
-				context.auth.session.activeOrganizationId,
-			),
+			idIn(dbSchema.chat.id, [
+				...allowedIds,
+			]),
+			eq(dbSchema.chat.organizationId, organizationId),
 			// A search also finds the organisation's assistant conversations.
 			search ? undefined : eq(dbSchema.chat.kind, "chat"),
 			input.filters?.botId

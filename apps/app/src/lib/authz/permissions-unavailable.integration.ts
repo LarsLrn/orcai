@@ -52,12 +52,6 @@ const failingReadsAbout = (
 							? unreachable
 							: target
 						).checkBulkPermissions(request);
-				case "lookupResources":
-					return (request: v1.LookupResourcesRequest) =>
-						(request.resourceObjectType === objectType
-							? unreachable
-							: target
-						).lookupResources(request);
 				default: {
 					const value = Reflect.get(target, property);
 					return typeof value === "function" ? value.bind(target) : value;
