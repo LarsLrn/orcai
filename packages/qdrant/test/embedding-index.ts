@@ -16,16 +16,48 @@ import {
 	QdrantService,
 } from "../src";
 
+const isolatedCollection = /^orcai-test-([0-9a-f]{32})-/;
+
+/**
+ * Deletes the collections of isolated indexes whose schema is gone, so no
+ * test teardown waits on Qdrant.
+ */
+const deleteReleasedCollections = Effect.gen(function* () {
+	const db = yield* DB;
+	const { client } = yield* QdrantService;
+	const { collections } = yield* Effect.promise(() => client.getCollections());
+	const live = new Set(
+		(yield* db.execute<{
+			schema: string;
+		}>(
+			sql`select schema_name as schema from information_schema.schemata where starts_with(schema_name, 'embedding_test_')`,
+			"objects",
+		)).map(({ schema }) => schema),
+	);
+	yield* Effect.forEach(
+		collections.filter(({ name }) => {
+			const id = isolatedCollection.exec(name)?.[1];
+			return id !== undefined && !live.has(`embedding_test_${id}`);
+		}),
+		({ name }) => Effect.promise(() => client.deleteCollection(name)),
+		{
+			discard: true,
+		},
+	);
+});
+
 /**
  * An embedding index of the test's own: a settings table in its own schema
  * and collections under its own prefix, so a test can set embeddings up
  * without touching the instance's or another test's. Its reconciler admits
- * only links of `blockIds`. Both go when the scope closes.
+ * only links of `blockIds`. The schema goes when the scope closes, its
+ * collections when the next isolated index starts.
  */
 const isolatedEmbeddingIndex = (blockIds: readonly BlockId[] = []) =>
 	Effect.acquireRelease(
 		Effect.gen(function* () {
 			const db = yield* DB;
+			yield* deleteReleasedCollections;
 			const id = crypto.randomUUID().replaceAll("-", "");
 			const schema = `embedding_test_${id}`;
 			yield* db.execute(sql.raw(`create schema "${schema}"`));
@@ -43,24 +75,13 @@ const isolatedEmbeddingIndex = (blockIds: readonly BlockId[] = []) =>
 				} satisfies EmbeddingIndexScope,
 			};
 		}),
-		({ schema, scope }) =>
-			Effect.gen(function* () {
-				const db = yield* DB;
-				const { client } = yield* QdrantService;
-				yield* db.execute(sql.raw(`drop schema "${schema}" cascade`));
-				const { collections } = yield* Effect.promise(() =>
-					client.getCollections(),
-				);
-				yield* Effect.forEach(
-					collections.filter(({ name }) =>
-						name.startsWith(`${scope.collectionPrefix}-`),
-					),
-					({ name }) => Effect.promise(() => client.deleteCollection(name)),
-					{
-						discard: true,
-					},
-				);
-			}).pipe(Effect.orDie),
+		({ schema }) =>
+			DB.pipe(
+				Effect.flatMap((db) =>
+					db.execute(sql.raw(`drop schema "${schema}" cascade`)),
+				),
+				Effect.orDie,
+			),
 	).pipe(Effect.map(({ scope }) => scope));
 
 /** `isolatedEmbeddingIndex` in place of the instance's, for a whole runtime. */
@@ -70,7 +91,7 @@ export const IsolatedEmbeddingIndexLive = (blockIds?: readonly BlockId[]) =>
 /**
  * An isolated embedding index for the test file, set up with `embeddings`
  * when given, its collection created as the reconciler pass a save wakes
- * creates it; its runtime and data go after the file's last test.
+ * creates it; its runtime and schema go after the file's last test.
  */
 export const testEmbeddingIndex = async (embeddings?: {
 	readonly baseUrl: string;
