@@ -105,25 +105,11 @@ const readStored = Effect.gen(function* () {
 	return row?.generation == null ? undefined : (row as StoredGeneration);
 });
 
-const apiKeys = new Map<string, string>();
-
-/** Decrypting costs a key derivation, so each stored key is decrypted once per process. */
-const storedKey = (encrypted: string) => {
-	const known = apiKeys.get(encrypted);
-	return known === undefined
-		? decryptApiKey(encrypted).pipe(
-				Effect.tap((apiKey) =>
-					Effect.sync(() => apiKeys.set(encrypted, apiKey)),
-				),
-			)
-		: Effect.succeed(known);
-};
-
 const snapshotOf = (stored: StoredGeneration) =>
 	Effect.gen(function* () {
 		const connection: EmbeddingConnection = {
 			baseUrl: stored.baseUrl,
-			apiKey: yield* storedKey(stored.apiKeyEncrypted),
+			apiKey: yield* decryptApiKey(stored.apiKeyEncrypted),
 			model: stored.model,
 		};
 		return EmbeddingGeneration.of({
@@ -265,7 +251,7 @@ export const embeddingSettings = readStored.pipe(
 /** The stored API key, decrypted, for testing an edited endpoint with it. */
 export const storedEmbeddingApiKey = readStored.pipe(
 	Effect.flatMap((stored) =>
-		stored ? storedKey(stored.apiKeyEncrypted) : Effect.succeed(undefined),
+		stored ? decryptApiKey(stored.apiKeyEncrypted) : Effect.succeed(undefined),
 	),
 );
 

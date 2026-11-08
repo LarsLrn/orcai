@@ -1,25 +1,14 @@
 import type { ProviderId } from "@orcai/core";
 import { DB, dbSchema } from "@orcai/db";
 import { eq } from "drizzle-orm";
+import * as Cache from "effect/Cache";
 import * as Config from "effect/Config";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
 import * as Redacted from "effect/Redacted";
 import { AiError } from "./errors";
-
-/** The key provider API keys are stored encrypted with. */
-export class EncryptionKey extends Context.Service<
-	EncryptionKey,
-	Redacted.Redacted<string>
->()("EncryptionKey") {}
-
-export const EncryptionKeyLive = Layer.effect(
-	EncryptionKey,
-	Effect.gen(function* () {
-		return yield* Config.Redacted("ENCRYPTION_KEY");
-	}),
-);
 
 // Salt, IV and AES-GCM ciphertext, base64url: keys stored so far use this layout.
 const SALT_LENGTH = 16;
@@ -91,6 +80,49 @@ const keyError = (operation: string, message: string) =>
 		cause: new Error(message),
 	});
 
+/** The key provider API keys are stored encrypted with, and the keys it decrypted lately. */
+export class EncryptionKey extends Context.Service<
+	EncryptionKey,
+	{
+		readonly secret: Redacted.Redacted<string>;
+		readonly decrypted: Cache.Cache<string, string, AiError>;
+	}
+>()("EncryptionKey") {}
+
+/**
+ * `secret` as the encryption key. Each decryption derives a key, so up to
+ * 256 decrypted keys are kept for 15 minutes; concurrent decryptions of one
+ * stored key share one derivation, and a failure is not kept.
+ */
+export const makeEncryptionKey = (secret: Redacted.Redacted<string>) =>
+	Cache.makeWith(
+		(encrypted: string) =>
+			Effect.tryPromise({
+				try: () => decrypt(encrypted, Redacted.value(secret)),
+				catch: (cause) =>
+					new AiError({
+						operation: "decryptApiKey",
+						cause,
+					}),
+			}),
+		{
+			capacity: 256,
+			timeToLive: (exit) => (Exit.isSuccess(exit) ? "15 minutes" : 0),
+		},
+	).pipe(
+		Effect.map((decrypted) =>
+			EncryptionKey.of({
+				secret,
+				decrypted,
+			}),
+		),
+	);
+
+export const EncryptionKeyLive = Layer.effect(
+	EncryptionKey,
+	Config.Redacted("ENCRYPTION_KEY").pipe(Effect.flatMap(makeEncryptionKey)),
+);
+
 /** A provider API key as stored. */
 export const encryptApiKey = (apiKey: string) =>
 	Effect.gen(function* () {
@@ -98,10 +130,10 @@ export const encryptApiKey = (apiKey: string) =>
 			return yield* keyError("encryptApiKey", "API key cannot be empty");
 		}
 
-		const key = yield* EncryptionKey;
+		const { secret } = yield* EncryptionKey;
 
 		return yield* Effect.tryPromise({
-			try: () => encrypt(apiKey.trim(), Redacted.value(key)),
+			try: () => encrypt(apiKey.trim(), Redacted.value(secret)),
 			catch: (cause) =>
 				new AiError({
 					operation: "encryptApiKey",
@@ -112,17 +144,9 @@ export const encryptApiKey = (apiKey: string) =>
 
 /** A stored provider API key, decrypted. */
 export const decryptApiKey = (encrypted: string) =>
-	Effect.gen(function* () {
-		const key = yield* EncryptionKey;
-		return yield* Effect.tryPromise({
-			try: () => decrypt(encrypted.trim(), Redacted.value(key)),
-			catch: (cause) =>
-				new AiError({
-					operation: "decryptApiKey",
-					cause,
-				}),
-		});
-	});
+	EncryptionKey.pipe(
+		Effect.flatMap(({ decrypted }) => Cache.get(decrypted, encrypted.trim())),
+	);
 
 /** The decrypted API key of a provider. */
 export const providerApiKey = (providerId: ProviderId) =>
