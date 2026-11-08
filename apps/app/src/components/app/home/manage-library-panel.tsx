@@ -1,4 +1,5 @@
-import { useSuspenseQueries } from "@tanstack/react-query";
+import type { LibraryKind } from "@orcai/schema";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { buttonVariants } from "@/components/ui/button";
@@ -11,60 +12,22 @@ import {
 } from "@/components/ui/composed/panel";
 import { useOrganizationCapabilities } from "@/hooks/authz/use-capabilities";
 import { hasCapability } from "@/lib/authz/capabilities";
-import { orpc } from "@/lib/orpc/orpc";
+import { libraryCountsQuery } from "@/lib/library/library-queries";
 import { formatCount } from "@/lib/presentation/format-number";
 import { m } from "@/paraglide/messages";
 
-const COUNT_INPUT = {
-	pageIndex: 0,
-	pageSize: 1,
-} as const;
-
 const ManageLibraryPanel = () => {
-	const [publishedBots, draftBots, behaviours, repositories, assets] =
-		useSuspenseQueries({
-			queries: [
-				orpc.bot.list.queryOptions({
-					input: COUNT_INPUT,
-				}),
-				orpc.bot.list.queryOptions({
-					input: {
-						...COUNT_INPUT,
-						filters: {
-							status: "draft",
-						},
-					},
-				}),
-				orpc.block.list.queryOptions({
-					input: {
-						...COUNT_INPUT,
-						filters: {
-							type: "behaviour",
-						},
-					},
-				}),
-				orpc.block.list.queryOptions({
-					input: {
-						...COUNT_INPUT,
-						filters: {
-							type: "repository",
-						},
-					},
-				}),
-				orpc.asset.list.queryOptions({
-					input: {
-						...COUNT_INPUT,
-						filters: {
-							keptIn: "library",
-						},
-					},
-				}),
-			],
-		});
-
+	const {
+		data: { data: counts },
+	} = useSuspenseQuery(
+		libraryCountsQuery({
+			scope: "all",
+			query: "",
+		}),
+	);
 	const { data: organizationCapabilities } = useOrganizationCapabilities();
-	const publishedCount = publishedBots.data.rowCount;
-	const draftCount = draftBots.data.rowCount;
+	const published = (kind: LibraryKind) =>
+		counts[kind].total - counts[kind].drafts;
 
 	const rows: Array<{
 		label: string;
@@ -75,11 +38,11 @@ const ManageLibraryPanel = () => {
 		{
 			label: m.home_library_bots_label(),
 			meta: m.home_library_bots_meta({
-				published: formatCount(publishedCount),
-				drafts: formatCount(draftCount),
-				count: draftCount,
+				published: formatCount(published("bot")),
+				drafts: formatCount(counts.bot.drafts),
+				count: counts.bot.drafts,
 			}),
-			count: publishedCount + draftCount,
+			count: counts.bot.total,
 			linkProps: {
 				to: "/app/library/bots",
 			},
@@ -87,7 +50,7 @@ const ManageLibraryPanel = () => {
 		{
 			label: m.home_library_blocks_label(),
 			meta: m.home_library_blocks_meta(),
-			count: behaviours.data.rowCount,
+			count: published("behaviour"),
 			linkProps: {
 				to: "/app/library/$kind",
 				params: {
@@ -98,7 +61,7 @@ const ManageLibraryPanel = () => {
 		{
 			label: m.home_library_repositories_label(),
 			meta: m.home_library_repositories_meta(),
-			count: repositories.data.rowCount,
+			count: published("repository"),
 			linkProps: {
 				to: "/app/library/$kind",
 				params: {
@@ -109,7 +72,7 @@ const ManageLibraryPanel = () => {
 		{
 			label: m.home_library_assets_label(),
 			meta: m.home_library_assets_meta(),
-			count: assets.data.rowCount,
+			count: counts.asset.total,
 			linkProps: {
 				to: "/app/library/assets",
 			},

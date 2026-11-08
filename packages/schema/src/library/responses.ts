@@ -24,8 +24,17 @@ const libraryEntrySchema = z.discriminatedUnion("kind", [
 	}),
 ]);
 
-/** How many items each kind holds. Assets count those uploaded to the library. */
-const libraryCountsSchema = z.record(libraryKindSchema, z.number());
+/**
+ * How many items each kind holds, drafts included, and how many of them are
+ * drafts. Assets count those uploaded to the library and have no drafts.
+ */
+const libraryCountsSchema = z.record(
+	libraryKindSchema,
+	z.object({
+		total: z.number(),
+		drafts: z.number(),
+	}),
+);
 
 const shelfSchema = <TItemSchema extends z.ZodType>(itemSchema: TItemSchema) =>
 	z.object({

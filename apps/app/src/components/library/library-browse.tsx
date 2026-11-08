@@ -194,6 +194,13 @@ export const LibraryBrowse = ({
 	const { data: counts } = useQuery({
 		...libraryCountsQuery(search),
 		placeholderData: keepPreviousData,
+		select: ({ data }) =>
+			Object.fromEntries(
+				Object.entries(data).map(([kind, { total }]) => [
+					kind,
+					total,
+				]),
+			),
 	});
 	const filters = libraryFilters[view];
 	const scope = <ScopeSwitch scope={search.scope} onScope={setScope} />;
@@ -203,7 +210,7 @@ export const LibraryBrowse = ({
 			header={<LibraryHeader />}
 			views={LIBRARY_VIEWS}
 			view={view}
-			counts={counts?.data ?? {}}
+			counts={counts ?? {}}
 			navLabel={m.library_views_label()}
 			controls={scope}
 			filters={filters}

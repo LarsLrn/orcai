@@ -241,30 +241,236 @@ describe("library browse", () => {
 				).then(({ data }) => data);
 
 			expect(await counts(member, {})).toEqual({
-				bot: 2,
-				behaviour: 1,
-				repository: 1,
-				asset: 1,
+				bot: {
+					total: 2,
+					drafts: 1,
+				},
+				behaviour: {
+					total: 1,
+					drafts: 0,
+				},
+				repository: {
+					total: 1,
+					drafts: 0,
+				},
+				asset: {
+					total: 1,
+					drafts: 0,
+				},
 			});
 			expect(
 				await counts(member, {
 					scope: "edit",
 				}),
 			).toEqual({
-				bot: 1,
-				behaviour: 0,
-				repository: 1,
-				asset: 1,
+				bot: {
+					total: 1,
+					drafts: 1,
+				},
+				behaviour: {
+					total: 0,
+					drafts: 0,
+				},
+				repository: {
+					total: 1,
+					drafts: 0,
+				},
+				asset: {
+					total: 1,
+					drafts: 0,
+				},
 			});
 			expect(
 				await counts(member, {
 					search: "alpha",
 				}),
 			).toEqual({
-				bot: 1,
-				behaviour: 1,
-				repository: 0,
-				asset: 1,
+				bot: {
+					total: 1,
+					drafts: 0,
+				},
+				behaviour: {
+					total: 1,
+					drafts: 0,
+				},
+				repository: {
+					total: 0,
+					drafts: 0,
+				},
+				asset: {
+					total: 1,
+					drafts: 0,
+				},
+			});
+		},
+		TIMEOUT,
+	);
+
+	test(
+		"counts match each kind's list for owned, added and shared items and leave out chat uploads",
+		async () => {
+			const elsewhere = await organization();
+			const listedBehaviour = await elsewhere.behaviour(
+				elsewhere.admin,
+				`Listed behaviour ${crypto.randomUUID()}`,
+			);
+			const listedBot = (
+				await elsewhere.call(elsewhere.admin, (options) =>
+					elsewhere.procedures.bot.save(
+						{
+							name: `Listed bot ${crypto.randomUUID()}`,
+							description: "Integration bot",
+							status: "ready",
+							behaviourId: listedBehaviour,
+						},
+						options,
+					),
+				)
+			).data.id;
+			await elsewhere.call(elsewhere.admin, (options) =>
+				elsewhere.procedures.resource.setVisibility(
+					{
+						resourceType: "bot",
+						resourceId: listedBot,
+						visibility: "public",
+						listBlockIds: [
+							listedBehaviour,
+						],
+					},
+					options,
+				),
+			);
+
+			const {
+				admin,
+				member,
+				procedures,
+				call,
+				observe,
+				tag,
+				bot,
+				behaviour,
+				repository,
+				titled,
+				shown,
+			} = await stocked();
+			observe(elsewhere.token());
+			await call(admin, (options) =>
+				procedures.catalogue.add(
+					{
+						entry: {
+							resourceType: "bot",
+							resourceId: listedBot,
+						},
+						withBlocks: true,
+					},
+					options,
+				),
+			);
+			await bot(member, `Own bot ${tag}`);
+			await bot(member, `Own draft bot ${tag}`, "draft");
+			await shown("bot", bot(admin, `Shared bot ${tag}`));
+			await bot(admin, `Unshared bot ${tag}`);
+			await behaviour(member, `Own draft behaviour ${tag}`, "draft");
+			await shown("block", behaviour(admin, `Shared behaviour ${tag}`));
+			await repository(member, `Own repository ${tag}`);
+			await titled(member, `Library asset ${tag}`);
+			await titled(member, `Chat asset ${tag}`, "chat");
+
+			const rows = (
+				read: Promise<{
+					rowCount: number;
+				}>,
+			) => read.then(({ rowCount }) => rowCount);
+			const listed = (status: "ready" | "draft") =>
+				Promise.all([
+					rows(
+						call(member, (options) =>
+							procedures.bot.list(
+								{
+									filters: {
+										status,
+									},
+								},
+								options,
+							),
+						),
+					),
+					...(
+						[
+							"behaviour",
+							"repository",
+						] as const
+					).map((type) =>
+						rows(
+							call(member, (options) =>
+								procedures.block.list(
+									{
+										filters: {
+											type,
+											status,
+										},
+									},
+									options,
+								),
+							),
+						),
+					),
+				]);
+			const [[bots, behaviours, repositories], [botDrafts, behaviourDrafts]] =
+				await Promise.all([
+					listed("ready"),
+					listed("draft"),
+				]);
+			const assets = await rows(
+				call(member, (options) =>
+					procedures.asset.list(
+						{
+							filters: {
+								keptIn: "library",
+							},
+						},
+						options,
+					),
+				),
+			);
+			const { data: counts } = await call(member, (options) =>
+				procedures.library.counts({}, options),
+			);
+
+			// Published: own, shared and added bots; the shared and the added behaviour.
+			expect({
+				bots,
+				botDrafts,
+				behaviours,
+				behaviourDrafts,
+				repositories,
+				assets,
+			}).toEqual({
+				bots: 3,
+				botDrafts: 1,
+				behaviours: 2,
+				behaviourDrafts: 1,
+				repositories: 1,
+				assets: 1,
+			});
+			expect(counts).toEqual({
+				bot: {
+					total: bots + botDrafts,
+					drafts: botDrafts,
+				},
+				behaviour: {
+					total: behaviours + behaviourDrafts,
+					drafts: behaviourDrafts,
+				},
+				repository: {
+					total: repositories,
+					drafts: 0,
+				},
+				asset: {
+					total: assets,
+					drafts: 0,
+				},
 			});
 		},
 		TIMEOUT,
@@ -552,7 +758,7 @@ describe("library browse", () => {
 				return {
 					search: search.data.map(entryName).sort(),
 					rowCount: search.rowCount,
-					bots: counts.data.bot,
+					bots: counts.data.bot.total,
 					usable: usable.data.map((row) => row.name).sort(),
 				};
 			};
